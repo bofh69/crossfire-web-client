@@ -74,6 +74,15 @@ typedef struct Animations {
 
 extern Animations animations[MAXANIM];
 
+#define MAXSMOOTH 1000
+typedef struct Smooths {
+    uint8  received:1;
+    uint16 smoothid;
+    uint16  faces[8];
+} Smooths;
+
+extern Smooths smooths[MAXSMOOTH];
+extern int smoothused;
 
 /* ClientSocket could probably hold more of the global values - it could
  * probably hold most all socket/communication related values instead
@@ -152,7 +161,8 @@ typedef enum rangetype {
 #define CONFIG_PORT	    25		/* Not sure if useful at all anymore */
 #define CONFIG_GRAD_COLOR   26
 #define CONFIG_RESISTS      27
-#define CONFIG_NUMS	    28
+#define CONFIG_SMOOTH       28
+#define CONFIG_NUMS	    29
 
 /* CONFIG_LIGHTING can have several possible values - set them accordingly */
 #define CFG_LT_TILE	    1
@@ -325,9 +335,11 @@ struct MapCellLayer {
 struct MapCell {
     struct MapCellLayer	heads[MAXLAYERS];
     struct MapCellLayer	tails[MAXLAYERS];
+    uint16 smooth[MAXLAYERS];
     uint8 darkness;
     uint8 need_update:1;
     uint8 have_darkness:1;
+    uint8 need_resmooth:1;  /*same has need update but for smoothing only*/
     uint8 cleared:1; /* If set, this is a fog cell. */
 };
 

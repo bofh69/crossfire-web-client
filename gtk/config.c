@@ -94,7 +94,7 @@
  * options, 200-299 is for the resistance options, etc.
  */
 
-#define MAX_BUTTONS	    33
+#define MAX_BUTTONS	    34
 #define RBUTTON	    1
 #define CBUTTON	    2
 #define SEPERATOR   3	    /* Seperator in the window */
@@ -179,6 +179,8 @@ CButtons cbuttons[MAX_BUTTONS] = {
     "Icon Scale (Takes effect next run)"},
 {NULL, 	    SPIN_SCALE,	    CONFIG_MAPSCALE,	FLAG_MAPPANE,
     "Map Scale (Takes effect next run)"},
+{NULL, 	    CBUTTON,	    CONFIG_SMOOTH,	FLAG_MAPPANE | FLAG_UPDATE,
+    "Enable smoothing - Use additionnal CPU (Take effect on next connection)."},
 {NULL, 	    CBUTTON,	    CONFIG_SDL,		FLAG_MAPPANE,
     "SDL Image Support (Take effect next run)"},
 {NULL, 	    CBUTTON,	    CONFIG_SHOWGRID,	FLAG_MAPPANE | FLAG_UPDATE,
@@ -465,7 +467,7 @@ void configdialog(GtkWidget *widget) {
 		    gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(cbuttons[i].widget), 1);
 	    }
 	    else if (cbuttons[i].type & SPIN) {
-		GtkAdjustment *adj;
+		GtkAdjustment *adj=NULL;
 
 		if (cbuttons[i].type == SPIN_SCALE) 
 		    adj = (GtkAdjustment *) gtk_adjustment_new(want_config[cbuttons[i].config], 25, 200, 1, 5, 5);

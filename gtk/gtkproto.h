@@ -99,6 +99,8 @@ extern void print_map(void);
 extern void set_map_darkness(int x, int y, uint8 darkness);
 extern void display_mapscroll(int dx, int dy);
 extern void reset_map_data(void);
+extern GdkBitmap *createpartialmask(GdkBitmap *mask, int x, int y, int width, int height, int maskwidth, int maskheight);
+extern void drawsmooth(int mx, int my, int layer, int picx, int picy);
 extern void gtk_draw_map(int redraw);
 /* png.c */
 extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
@@ -106,10 +108,6 @@ extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 extern int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 /* sdl.c */
-extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
-extern void do_sdl_per_pixel_lighting(int x, int y, int mx, int my);
-extern void sdl_gen_map(int redraw);
-extern void sdl_mapscroll(int dx, int dy);
 /* sound.c */
 extern void signal_pipe(int i);
 extern int init_sounds(void);

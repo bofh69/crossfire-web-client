@@ -83,6 +83,7 @@ struct CmdMapping commands[] = {
     { "map_scroll", (CmdProc)map_scrollCmd },
     { "magicmap", MagicMapCmd},
     { "newmap", NewmapCmd },
+    { "mapextended", MapExtendedCmd },
 
     { "item1", Item1Cmd },
     { "item2", Item2Cmd },
@@ -102,6 +103,7 @@ struct CmdMapping commands[] = {
 
     { "sound", SoundCmd},
     { "anim", AnimCmd},
+    { "smooth", SmoothCmd},
 
     { "player", PlayerCmd },
     { "comc", CompleteCmd},
@@ -111,6 +113,7 @@ struct CmdMapping commands[] = {
     { "version", (CmdProc)VersionCmd },
     { "goodbye", (CmdProc)GoodbyeCmd },
     { "setup", (CmdProc)SetupCmd},
+    { "ExtendedInfoSet", ExtendedInfoSetCmd},
 
     { "query", (CmdProc)handle_query},
     { "replyinfo", (CmdProc)ReplyInfoCmd},
@@ -134,7 +137,7 @@ void DoClient(ClientSocket *csocket)
 	    return;
 	}
 	if (i==0) return;   /* Don't have a full packet */
-	csocket->inbuf.buf[csocket->inbuf.len]='\0';
+	csocket->inbuf.buf[csocket->inbuf.len]='\0';    
         data = (unsigned char *)strchr((char*)csocket->inbuf.buf +2, ' ');
 	if (data) {
 	    *data='\0';
@@ -281,6 +284,11 @@ void negotiate_connection(int sound)
     if (use_config[CONFIG_MAPHEIGHT]!=11 || use_config[CONFIG_MAPWIDTH]!=11)
 	cs_print_string(csocket.fd,"setup mapsize %dx%d",use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 
+    use_config[CONFIG_SMOOTH]=want_config[CONFIG_SMOOTH];
+    if (use_config[CONFIG_SMOOTH]){ /*or other mapextended infos*/
+        cs_print_string(csocket.fd,"setup extendedMapInfos 1");
+        /*will handle all special infos requested when setup answer this command*/
+    }
 
     /* If the server will answer the requestinfo for image_info and image_data,
      * send it and wait for the response.

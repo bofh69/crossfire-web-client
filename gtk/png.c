@@ -395,8 +395,7 @@ int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
 
     *mask=gdk_pixmap_new(window, width, height,1);
     gc_alpha=gdk_gc_new(*mask);
-    gdk_gc_set_function(gc_alpha, GDK_COPY);
-
+    
     scolor.pixel=1;
     gdk_gc_set_foreground(gc_alpha, &scolor);
     gdk_draw_rectangle(*mask, gc_alpha, 1, 0, 0, width, height);

@@ -244,4 +244,28 @@ typedef struct CS_Stats {
 
 extern CS_Stats cst_tot, cst_lst;
 
+/*Constants in the form EMI_ is for extended map infos.
+ * Even if the client select the additionnal infos it wants
+ * on the map, there may exist cases where this whole info
+ * is not given in one buch but in separate bunches. This 
+ * is done performance reasons (imagine some info related to
+ * a visible object and another info related to a 4 square
+ * width and height area). At the begin of an extended info packet
+ * is a bit field. A bit is activated for each extended info
+ * present in the data 
+ */
+/* Meanings:
+ * EMI_NOREDRAW  Take extended infos into account but don't redraw,
+ *               some additionnal datas will follow in a new packet
+ * EMI_SMOOTH    Datas about smoothing  
+ */ 
+#define EMI_NOREDRAW        0x01  
+#define EMI_SMOOTH          0x02
+/*this last one says the bitfield continue un next byte
+ * There may be several on contiguous bytes. So there is 7
+ * actual bits used per byte, and the number of bytes
+ * is not fixed in protocol
+ */
+#define EMI_HASMOREBITS     0x80
+
 #endif

@@ -132,6 +132,10 @@ int SockList_Send(SockList *sl, int fd)
 }
 
 
+char GetChar_String(unsigned char *data)
+{
+    return (data[0]);
+}
 /* Basically does the reverse of SockList_AddInt, but on
  * strings instead.  Same for the GetShort, but for 16 bits.
  */
