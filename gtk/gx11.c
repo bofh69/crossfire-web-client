@@ -4885,7 +4885,11 @@ void get_window_coord(GtkWidget *win,
 {
   int tmp;
   gdk_window_get_geometry (win->window, x, y, w, h, &tmp);
+/*  gdk_window_get_root_origin (win->window, wx, wy); */
+/*  gdk_window_get_deskrelative_origin (win->window, wx, wy); */
   gdk_window_get_origin (win->window, wx, wy);
+  wx -= x;
+  wy -= y;
 }
 
 
