@@ -2135,7 +2135,7 @@ static int get_stats_display(GtkWidget *frame) {
 void draw_stats(int redraw) {
   static Stats last_stats;
   static char last_name[MAX_BUF]="", last_range[MAX_BUF]="";
-  static int init_before=0;
+  static int init_before=0, lastbeep=0;
 
   float weap_sp;
   char buff[MAX_BUF];
@@ -2288,7 +2288,10 @@ void draw_stats(int redraw) {
       sprintf(buff,"Food: %3d",cpl.stats.food);
       gtk_label_set (GTK_LABEL(statwindow.food), buff);
       gtk_widget_draw (statwindow.food, NULL);
-      if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3))
+      if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3) && (cpl.stats.food < 200))
+	XBell(GDK_DISPLAY(), 0);
+    } else if (use_config[CONFIG_FOODBEEP] && cpl.stats.food == 0 && ++lastbeep == 5) {
+	lastbeep = 0;
 	XBell(GDK_DISPLAY(), 0);
     }
     
@@ -5246,11 +5249,11 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-popups")) {
-	    use_config[CONFIG_POPUPS] = TRUE;
+	    want_config[CONFIG_POPUPS] = TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nopopups")) {
-	    use_config[CONFIG_POPUPS] = FALSE;
+	    want_config[CONFIG_POPUPS] = FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-port")) {

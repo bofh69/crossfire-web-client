@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/init.c: Make sure we initalize all the config values.
+gtk/gx11.c: fix foodbeep - now only beep when food is low, and continue
+   to beep when food reaches 0.
+sound-src/Makefile.in: Remove gx11.c in depend statement.
+MSW 2003-02-04
+
 gtk/config.c, gtk/gx11.c: remove including some files which we don't need included.
 gtk/keys.c: Modify to not use X11 for keybinding - instead, uses gdk
     functionality - this should make it more portable.

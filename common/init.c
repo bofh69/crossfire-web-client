@@ -174,12 +174,14 @@ void init_client_vars()
     want_config[CONFIG_SPLITWIN] = FALSE;
     want_config[CONFIG_SHOWGRID] = FALSE;
     want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
+    want_config[CONFIG_TRIMINFO] = FALSE;
     want_config[CONFIG_MAPWIDTH] = 11;
     want_config[CONFIG_MAPHEIGHT] = 11;
     want_config[CONFIG_FOODBEEP] = FALSE;
     want_config[CONFIG_DARKNESS] = TRUE;
     want_config[CONFIG_PORT] = EPORT;
-    want_config[CONFIG_TRIMINFO] = FALSE;
+    want_config[CONFIG_GRAD_COLOR] = FALSE;
+    want_config[CONFIG_RESISTS] = 0;
     want_config[CONFIG_RESISTS] = 0;
     for (i=0; i<CONFIG_NUMS; i++) 
 	use_config[i] = want_config[i];
