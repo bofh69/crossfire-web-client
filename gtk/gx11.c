@@ -243,15 +243,6 @@ extern int maxfd;
 struct timeval timeout;
 gint	csocket_fd=0;
 
- /* Defined in global.h */
-#define SCROLLBAR_WIDTH	16	/* +2+2 for border on each side */
-#define INFOCHARS 50
-#define INFOLINES 36
-#define FONTWIDTH 8
-#define FONTHEIGHT 13
-#define MAX_INFO_WIDTH 80
-#define MAXNAMELENGTH 50
-
 static int gargc;
 
 Display_Mode display_mode = DISPLAY_MODE;
@@ -262,6 +253,7 @@ static uint8
     color_inv=FALSE,
     color_text=FALSE,
     tool_tips=FALSE,
+    trim_info_window=FALSE,
     bigmap=FALSE;	/* True if we've moved some windows around for big maps */
 
 uint8
@@ -280,14 +272,9 @@ int per_tile_lighting= 0;
 int show_grid= FALSE;
 
 
-/* Don't define this unless you want stability problems */
-#undef TRIM_INFO_WINDOW
-
-#ifdef TRIM_INFO_WINDOW
 /* Default size of scroll buffers is 100 K */
 static int info1_num_chars=0, info2_num_chars=0, info1_max_chars=10000,
     info2_max_chars=10000;
-#endif
 
 
 
@@ -401,10 +388,6 @@ static char *last_str;
 static int pickup_mode = 0;
 
 int updatelock = 0;
-
-/* info win */
-#define INFOCHARS 50
-#define FONTWIDTH 8
 
 /* this is used for caching the images across runs.  When we get a face
  * command from the server, we check the facecache for that name.  If
@@ -1999,20 +1982,20 @@ void draw_info(const char *str, int color) {
 	    gtk_text_freeze (GTK_TEXT (gtkwin_info_text2));
 	    draw_info_freeze2=TRUE;
 	}
-#ifdef TRIM_INFO_WINDOW
-	info2_num_chars += strlen(str) + 1;
-	/* Limit size of scrollback buffer. To be more efficient, delete a good
-	 * blob (5000) characters at a time - in that way, there will be some
-	 * time between needing to delete.
-	 */
-	if (info2_num_chars > info2_max_chars ) {
-	    gtk_text_set_point(GTK_TEXT(gtkwin_info_text2),0);
-	    gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text2), (info2_num_chars - info2_max_chars) + 5000);
-	    info2_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text2));
-	    gtk_text_set_point(GTK_TEXT(gtkwin_info_text2), info2_num_chars);
-	    fprintf(stderr,"reduced output buffer2 to %d chars\n", info1_num_chars);
+	if (trim_info_window) {
+	    info2_num_chars += strlen(str) + 1;
+	    /* Limit size of scrollback buffer. To be more efficient, delete a good
+	     * blob (5000) characters at a time - in that way, there will be some
+	     * time between needing to delete.
+	     */
+	    if (info2_num_chars > info2_max_chars ) {
+		gtk_text_set_point(GTK_TEXT(gtkwin_info_text2),0);
+		gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text2), (info2_num_chars - info2_max_chars) + 5000);
+		info2_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text2));
+		gtk_text_set_point(GTK_TEXT(gtkwin_info_text2), info2_num_chars);
+		fprintf(stderr,"reduced output buffer2 to %d chars\n", info1_num_chars);
+	    }
 	}
-#endif
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, str , -1);
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, "\n" , -1);
 
@@ -2022,15 +2005,15 @@ void draw_info(const char *str, int color) {
 	    gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
 	    draw_info_freeze1=TRUE;
 	}
-#ifdef TRIM_INFO_WINDOW
-	info1_num_chars += strlen(str) + 1;
-	if (info1_num_chars > info1_max_chars ) {
-	    gtk_text_set_point(GTK_TEXT(gtkwin_info_text),0);
-	    gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text), (info1_num_chars - info1_max_chars) + 5000);
-	    info1_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text));
-	    gtk_text_set_point(GTK_TEXT(gtkwin_info_text), info1_num_chars);
+	if (trim_info_window) {
+	    info1_num_chars += strlen(str) + 1;
+	    if (info1_num_chars > info1_max_chars ) {
+		gtk_text_set_point(GTK_TEXT(gtkwin_info_text),0);
+		gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text), (info1_num_chars - info1_max_chars) + 5000);
+		info1_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text));
+		gtk_text_set_point(GTK_TEXT(gtkwin_info_text), info1_num_chars);
+	    }
 	}
-#endif
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, str , -1);
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, "\n" , -1);
     }
@@ -5500,29 +5483,35 @@ void set_window_pos()
 
 static void usage(char *progname)
 {
-    puts("Usage of cfclient:\n\n");
-    puts("-server <name>   - Connect to <name> instead of localhost.");
-    puts("-port <number>   - Use port <number> instead of the standard port number");
-    puts("-display <name>  - Use <name> instead if DISPLAY environment variable.\n");
-    puts("-split           - Use split windows.");
-    puts("-echo            - Echo the bound commands");
-    puts("-showicon        - Print status icons in inventory window");
-    puts("-sync            - Synchronize on display");
-    puts("-help            - Display this message.");
+    puts("Usage of gcfclient:\n\n");
     puts("-cache           - Cache images for future use.");
     puts("-nocache         - Do not cache images (default action).");
     puts("-darkness        - Enables darkness code (default)");
     puts("-nodarkness      - Disables darkness code");
-    puts("-nosound         - Disable sound output.");
-    puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
-    puts("-keepcache       - Keep already cached images even if server has different ones.");
-    puts("-pngfile <name>  - Use <name> for source of images");
-    puts("-nopopups        - Don't use pop up windows for input");
-    puts("-splitinfo       - Use two information windows, segregated by information type.");
-    puts("-mapsize xXy     - Set the mapsize to be X by Y spaces.");
-    puts("-sdl             - Use sdl for drawing png (may not work on all hardware");
-    puts("-mapscale %%     - Set map scale percentage");
+    puts("-display <name>  - Use <name> instead if DISPLAY environment variable.");
+    puts("-echo            - Echo the bound commands");
+    puts("-noecho          - Do not echo the bound commands (default)");
+    puts("-fog             - Enable for of war code");
+    puts("-help            - Display this message.");
     puts("-iconscale %%    - Set icon scale percentage");
+    puts("-keepcache       - Keep already cached images even if server has different ones.");
+    puts("-mapscale %%     - Set map scale percentage");
+    puts("-mapsize xXy     - Set the mapsize to be X by Y spaces. (default 11x11)");
+    puts("-pngfile <name>  - Use <name> for source of images");
+    puts("-popups          - Use pop up windows for input (default)");
+    puts("-nopopups        - Don't use pop up windows for input");
+    puts("-port <number>   - Use port <number> instead of the standard port number");
+    puts("-sdl             - Use sdl for drawing png (may not work on all hardware");
+    puts("-server <name>   - Connect to <name> instead of localhost.");
+    puts("-showicon        - Print status icons in inventory window");
+    puts("-sound           - Enable sound output (default).");
+    puts("-nosound         - Disable sound output.");
+    puts("-split           - Use split windows.");
+    puts("-splitinfo       - Use two information windows, segregated by information type.");
+    puts("-sync            - Synchronize on display");
+    puts("-triminfowindow  - Trims size of information window(s)");
+    puts("-notriminfowindow  - Do not trims size of information window(s) (default)");
+    puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
 
     exit(0);
 }
@@ -5549,7 +5538,23 @@ int init_windows(int argc, char **argv)
      */
     want_skill_exp=1;
     for (on_arg=1; on_arg<argc; on_arg++) {
-	if (!strcmp(argv[on_arg],"-display")) {
+	if (!strcmp(argv[on_arg],"-cache")) {
+	    cache_images= TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-nocache")) {
+	    cache_images= FALSE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-darkness")) {
+	    want_darkness= TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-nodarkness")) {
+	    want_darkness= FALSE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-display")) {
 	    if (++on_arg == argc) {
 		fprintf(stderr,"-display requires a display name\n");
 		return 1;
@@ -5557,19 +5562,56 @@ int init_windows(int argc, char **argv)
 	    display_name = argv[on_arg];
 	    continue;
 	}
-	if (strcmp(argv[on_arg],"-sync")==0) {
-	    sync_display = 1;
+	else if (!strcmp(argv[on_arg],"-echo")) {
+	    cpl.echo_bindings=TRUE;
 	    continue;
 	}
-	if (!strcmp(argv[on_arg],"-port")) {
+	else if (!strcmp(argv[on_arg],"-noecho")) {
+	    cpl.echo_bindings=FALSE;
+	    continue;
+	}
+	else if( !strcmp( argv[on_arg],"-fog")) {
+	  fog_of_war= TRUE;
+	  continue;
+	}
+	else if (!strcmp(argv[on_arg],"-help")) {
+	    usage(argv[0]);
+	    continue;
+	}
+	else if( !strcmp( argv[on_arg],"-iconscale")) {
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-port requires a port number\n");
+		fprintf(stderr,"-iconscale requires a percentage value\n");
 		return 1;
 	    }
-	    port_num = atoi(argv[on_arg]);
+	    icon_scale = atoi(argv[on_arg]);
+	    if (icon_scale < 25 || icon_scale>200) {
+		fprintf(stderr,"Valid range for -iconscale is 25 through 200\n");
+		icon_scale=100;
+		return 1;
+	    }
+	    image_size = DEFAULT_IMAGE_SIZE * icon_scale / 100;
 	    continue;
 	}
-	if (!strcmp(argv[on_arg],"-mapsize")) {
+	else if (!strcmp(argv[on_arg],"-keepcache")) {
+	    keepcache=TRUE;
+	    continue;
+	}
+	else if( !strcmp( argv[on_arg],"-mapscale")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-mapscale requires a percentage value\n");
+		return 1;
+	    }
+	    map_scale = atoi(argv[on_arg]);
+	    if (map_scale < 25 || map_scale>200) {
+		fprintf(stderr,"Valid range for -mapscale is 25 through 200\n");
+		map_scale=100;
+		return 1;
+	    }
+	    map_image_size = DEFAULT_IMAGE_SIZE * map_scale / 100;
+	    map_image_half_size = DEFAULT_IMAGE_SIZE * map_scale / 200;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-mapsize")) {
 	    char *cp, x, y=0;
 	    if (++on_arg == argc) {
 		fprintf(stderr,"-mapsize requires a XxY value\n");
@@ -5595,15 +5637,7 @@ int init_windows(int argc, char **argv)
 	    }
 	    continue;
 	}
-	if (!strcmp(argv[on_arg],"-server")) {
-	    if (++on_arg == argc) {
-		fprintf(stderr,"-server requires a host name\n");
-		return 1;
-	    }
-	    server = argv[on_arg];
-	    continue;
-	}
-	if (!strcmp(argv[on_arg],"-pngfile")) {
+	else if (!strcmp(argv[on_arg],"-pngfile")) {
 	    if (++on_arg == argc) {
 		fprintf(stderr,"-pngfile requires a file name\n");
 		return 1;
@@ -5611,60 +5645,20 @@ int init_windows(int argc, char **argv)
 	    image_file = argv[on_arg];
 	    continue;
 	}
-	else if (!strcmp(argv[on_arg],"-cache")) {
-	    cache_images= TRUE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-nocache")) {
-	    cache_images= FALSE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-darkness")) {
-	    want_darkness= TRUE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-nodarkness")) {
-	    want_darkness= FALSE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-split")) {
-	    split_windows=TRUE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-nosplit")) {
-	    split_windows=FALSE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-showicon")) {
-	    inv_list.show_icon = TRUE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-echo")) {
-	    cpl.echo_bindings=TRUE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-help")) {
-	    usage(argv[0]);
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-nosound")) {
-	    nosound=TRUE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
-	    updatekeycodes=TRUE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-keepcache")) {
-	    keepcache=TRUE;
+	else if (!strcmp(argv[on_arg],"-popups")) {
+	    nopopups=FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nopopups")) {
 	    nopopups=TRUE;
 	    continue;
 	}
-	else if (!strcmp(argv[on_arg],"-splitinfo")) {
-	    splitinfo=TRUE;
+	else if (!strcmp(argv[on_arg],"-port")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-port requires a port number\n");
+		return 1;
+	    }
+	    port_num = atoi(argv[on_arg]);
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-sdl")) {
@@ -5676,37 +5670,52 @@ int init_windows(int argc, char **argv)
 #endif
 	    continue;
 	}
-	else if( !strcmp( argv[on_arg],"-fog")) {
-	  fog_of_war= TRUE;
-	  continue;
-	}
-	else if( !strcmp( argv[on_arg],"-mapscale")) {
+	else if (!strcmp(argv[on_arg],"-server")) {
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-mapscale requires a percentage value\n");
+		fprintf(stderr,"-server requires a host name\n");
 		return 1;
 	    }
-	    map_scale = atoi(argv[on_arg]);
-	    if (map_scale < 25 || map_scale>200) {
-		fprintf(stderr,"Valid range for -mapscale is 25 through 200\n");
-		map_scale=100;
-		return 1;
-	    }
-	    map_image_size = DEFAULT_IMAGE_SIZE * map_scale / 100;
-	    map_image_half_size = DEFAULT_IMAGE_SIZE * map_scale / 200;
+	    server = argv[on_arg];
 	    continue;
 	}
-	else if( !strcmp( argv[on_arg],"-iconscale")) {
-	    if (++on_arg == argc) {
-		fprintf(stderr,"-iconscale requires a percentage value\n");
-		return 1;
-	    }
-	    icon_scale = atoi(argv[on_arg]);
-	    if (icon_scale < 25 || icon_scale>200) {
-		fprintf(stderr,"Valid range for -iconscale is 25 through 200\n");
-		icon_scale=100;
-		return 1;
-	    }
-	    image_size = DEFAULT_IMAGE_SIZE * icon_scale / 100;
+	else if (!strcmp(argv[on_arg],"-showicon")) {
+	    inv_list.show_icon = TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-sound")) {
+	    nosound=FALSE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-nosound")) {
+	    nosound=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-split")) {
+	    split_windows=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-nosplit")) {
+	    split_windows=FALSE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-splitinfo")) {
+	    splitinfo=TRUE;
+	    continue;
+	}
+	else if (strcmp(argv[on_arg],"-sync")==0) {
+	    sync_display = 1;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-triminfowindow")) {
+	    trim_info_window=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-notriminfowindow")) {
+	    trim_info_window=FALSE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
+	    updatekeycodes=TRUE;
 	    continue;
 	}
 	else {
@@ -5716,13 +5725,15 @@ int init_windows(int argc, char **argv)
 	}
     }
 
+    /* Fog should now work with png graphics mode */
+#if 0
     if( fog_of_war == TRUE) {
       if ( sdlimage == FALSE) {
 	fprintf( stderr, "fog of war only supported with sdl mode, ignoring fog of war option\n");
 	fog_of_war= FALSE;
       }
     }
-
+#endif
     map_size= (fog_of_war == TRUE) ? FOG_MAP_SIZE : MAP_MAX_SIZE;
 
     allocate_map( &the_map, map_size, map_size);
@@ -5973,12 +5984,30 @@ void load_defaults()
 	*cp='\0';
 	cp+=2;	    /* colon, space, then value */
 
-	if (!strcmp(inbuf, "port")) {
-	    port_num = atoi(cp);
+	if (!strcmp(inbuf,"cacheimages")) {
+	    if (!strcmp(cp,"True")) cache_images=TRUE;
+	    else cache_images=FALSE;
 	    continue;
 	}
-	if (!strcmp(inbuf, "server")) {
-	    server = strdup_local(cp);	/* memory leak ! */
+	if (!strcmp(inbuf,"colorinv")) {
+	    if (!strcmp(cp,"True")) color_inv=TRUE;
+	    else color_inv=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"colortext")) {
+	    if (!strcmp(cp,"True")) color_text=TRUE;
+	    else color_text=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"command_window")) {
+	    cpl.command_window = atoi(cp);
+	    if (cpl.command_window<1 || cpl.command_window>127)
+		cpl.command_window=COMMAND_WINDOW;
+	    continue;
+	}
+	if (!strcmp(inbuf,"darkness")) {
+	    if (!strcmp(cp,"True")) want_darkness=TRUE;
+	    else want_darkness=FALSE;
 	    continue;
 	}
 	if (!strcmp(inbuf,"display")) {
@@ -5992,14 +6021,94 @@ void load_defaults()
 			   path, cp);
 	    continue;
 	}
-	if (!strcmp(inbuf,"cacheimages")) {
-	    if (!strcmp(cp,"True")) cache_images=TRUE;
-	    else cache_images=FALSE;
+	if (!strcmp(inbuf,"echo_bindings")) {
+	    if (!strcmp(cp,"True")) cpl.echo_bindings=TRUE;
+	    else cpl.echo_bindings=FALSE;
 	    continue;
 	}
-	if (!strcmp(inbuf,"split")) {
-	    if (!strcmp(cp,"True")) split_windows=TRUE;
-	    else split_windows=FALSE;
+	if (!strcmp(inbuf,"fog_of_war")) {
+	    if (!strcmp(cp,"True")) fog_of_war=TRUE;
+	    else fog_of_war=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"foodbeep")) {
+	    if (!strcmp(cp,"True")) cpl.food_beep=TRUE;
+	    else cpl.food_beep=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"iconscale")) {
+	    int scale = atoi(cp);
+	    if (scale < 25 || scale > 200) {
+		fprintf(stderr,"ignoring iconscale value read for gdefaults file.\n");
+		fprintf(stderr,"Invalid iconscale range (%d), valid range for -iconscale is 25 through 200\n", scale);
+	    } else {
+		icon_scale = scale;
+		image_size = DEFAULT_IMAGE_SIZE * icon_scale / 100;
+	    }
+	    continue;
+	}
+	if (!strcmp(inbuf,"keepcache")) {
+	    if (!strcmp(cp,"True")) keepcache=TRUE;
+	    else keepcache=FALSE;
+	    continue;
+	}
+	/* Only SDL actually uses these values, but we can still preserve
+	 * them even if they are not being used.
+	 */
+	if( !strcmp( inbuf,"Lighting")) {
+	    if( !strcmp( cp, "per_pixel")) {
+		per_pixel_lighting= 1;
+		per_tile_lighting= 0;
+	    } else if( !strcmp( cp, "per_tile")) {
+		per_pixel_lighting= 0;
+		per_tile_lighting= 1;
+	    }
+	    continue;
+	}
+	if (!strcmp(inbuf,"mapscale")) {
+	    int scale = atoi(cp);
+	    if (scale < 25 || scale > 200) {
+		fprintf(stderr,"ignoring mapscale value read for gdefaults file.\n");
+		fprintf(stderr,"Invalid mapscale range (%d), valid range for -mapscale is 25 through 200\n", scale);
+	    } else {
+		map_scale = scale;
+		map_image_size = DEFAULT_IMAGE_SIZE * map_scale / 100;
+		map_image_half_size = DEFAULT_IMAGE_SIZE * map_scale / 200;
+	    }
+	    continue;
+	}
+	if (!strcmp(inbuf,"mapsize")) {
+	    int w, h;
+	    if (sscanf(cp,"%dx%d", &w, &h)!=2) {
+		fprintf(stderr,"Malformed mapsize option in gdefaults.  Ignoring\n");
+	    } else {
+		if (w<9 || h<9) {
+		    fprintf(stderr,"mapsize option in gdefaults too small\nmap size must be positive values of at least 9\n");
+		} else if (w>MAP_MAX_SIZE || h>MAP_MAX_SIZE) {
+		    fprintf(stderr,"mapsize option in gdefaults too large\nMap size can not be larger than %d x %d \n", MAP_MAX_SIZE, MAP_MAX_SIZE);
+		} else {
+		    want_mapx=w;
+		    want_mapy=h;
+		}
+	    }
+	    continue;
+	}
+	if (!strcmp(inbuf,"nopopups")) {
+	    if (!strcmp(cp,"True")) nopopups=TRUE;
+	    else nopopups=FALSE;
+	    continue;
+	}  
+	if (!strcmp(inbuf, "port")) {
+	    port_num = atoi(cp);
+	    continue;
+	}
+	if (!strcmp(inbuf, "server")) {
+	    server = strdup_local(cp);	/* memory leak ! */
+	    continue;
+	}
+	if( !strcmp( inbuf,"show_grid")) {
+	    if( !strcmp( cp, "True")) show_grid = TRUE;
+	    else show_grid = FALSE;
 	    continue;
 	}
 	if (!strcmp(inbuf,"showicon")) {
@@ -6012,65 +6121,32 @@ void load_defaults()
 	    else nosound=TRUE;
 	    continue;
 	}
-	if (!strcmp(inbuf,"command_window")) {
-	    cpl.command_window = atoi(cp);
-	    if (cpl.command_window<1 || cpl.command_window>127)
-		cpl.command_window=COMMAND_WINDOW;
+	if (!strcmp(inbuf,"split")) {
+	    if (!strcmp(cp,"True")) split_windows=TRUE;
+	    else split_windows=FALSE;
 	    continue;
 	}
-	if (!strcmp(inbuf,"foodbeep")) {
-	    if (!strcmp(cp,"True")) cpl.food_beep=TRUE;
-	    else cpl.food_beep=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"colorinv")) {
-	    if (!strcmp(cp,"True")) color_inv=TRUE;
-	    else color_inv=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"colortext")) {
-	    if (!strcmp(cp,"True")) color_text=TRUE;
-	    else color_text=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"tooltips")) {
-	  if (!strcmp(cp,"True")) tool_tips=TRUE;
-	  else tool_tips=FALSE;
-	  continue;
-	}  
 	if (!strcmp(inbuf,"splitinfo")) {
 	  if (!strcmp(cp,"True")) splitinfo=TRUE;
 	  else splitinfo=FALSE;
 	  continue;
 	}  
-	if (!strcmp(inbuf,"nopopups")) {
-	  if (!strcmp(cp,"True")) nopopups=TRUE;
-	  else nopopups=FALSE;
+	if (!strcmp(inbuf,"tooltips")) {
+	  if (!strcmp(cp,"True")) tool_tips=TRUE;
+	  else tool_tips=FALSE;
 	  continue;
 	}  
-	/* Only SDL actually uses these values, but we can still preserve
-	 * them even if they are not being used.
-	 */
-	if( !strcmp( inbuf,"Lighting")) {
-	  if( !strcmp( cp, "per_pixel")) {
-	    per_pixel_lighting= 1;
-	    per_tile_lighting= 0;
-	  } else if( !strcmp( cp, "per_tile")) {
-	    per_pixel_lighting= 0;
-	    per_tile_lighting= 1;
-	  }
+	if (!strcmp(inbuf,"trim_info_window")) {
+	  if (!strcmp(cp,"True")) trim_info_window=TRUE;
+	  else trim_info_window=FALSE;
 	  continue;
-	}
-	if( !strcmp( inbuf,"show_grid")) {
-	  if( !strcmp( cp, "True")) show_grid = TRUE;
-	  else show_grid = FALSE;
-	  continue;
-	}
+	}  
 	fprintf(stderr,"Got line we did not understand: %s: %s\n", inbuf, cp);
     }
     fclose(fp);
 }
 
+#define TRUE_OR_FALSE(val)  (val?"True":"False")
 void save_defaults()
 {
     char path[MAX_BUF],buf[MAX_BUF];
@@ -6085,37 +6161,38 @@ void save_defaults()
 	fprintf(stderr,"Could not open %s\n", path);
 	return;
     }
-    fprintf(fp,"# This file is generated automatically by cfclient.\n");
-    fprintf(fp,"# Manually editing is allowed, however cfclient may be a bit finicky about\n");
-    fprintf(fp,"# some of the matching it does.  all comparissons are case sensitive.\n");
+    fprintf(fp,"# This file is generated automatically by gcfclient.\n");
+    fprintf(fp,"# Manually editing is allowed, however gcfclient may be a bit finicky about\n");
+    fprintf(fp,"# some of the matching it does.  all comparisons are case sensitive.\n");
     fprintf(fp,"# 'True' and 'False' are the proper cases for those two values");
 
-    fprintf(fp,"port: %d\n", port_num);
-    fprintf(fp,"server: %s\n", server);
-    if (display_mode==Xpm_Display) {
-	fprintf(fp,"display: xpm\n");
-    } else if (display_mode==Pix_Display) {
-	fprintf(fp,"display: pixmap\n");
-    } else if (display_mode==Png_Display) {
-	fprintf(fp,"display: png\n");
-    }
-    fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
-    fprintf(fp,"split: %s\n", split_windows?"True":"False");
-    fprintf(fp,"showicon: %s\n", inv_list.show_icon?"True":"False");
-    fprintf(fp,"sound: %s\n", nosound?"False":"True");
+    fprintf(fp,"cacheimages: %s\n", TRUE_OR_FALSE(cache_images));
+    fprintf(fp,"colorinv: %s\n", TRUE_OR_FALSE(color_inv));
+    fprintf(fp,"colortext: %s\n", TRUE_OR_FALSE(color_text));
     fprintf(fp,"command_window: %d\n", cpl.command_window);
-    fprintf(fp,"foodbeep: %s\n", cpl.food_beep?"True":"False");
-    fprintf(fp,"colorinv: %s\n", color_inv?"True":"False");
-    fprintf(fp,"colortext: %s\n", color_text?"True":"False");
-    fprintf(fp,"tooltips: %s\n", color_text?"True":"False");
-    fprintf(fp,"splitinfo: %s\n", splitinfo?"True":"False");
-    fprintf(fp,"nopopups: %s\n", nopopups?"True":"False");
+    fprintf(fp,"darkness: %s\n", TRUE_OR_FALSE(want_darkness));
+    fprintf(fp,"display: png\n");   /* Currently, the only thing supported */
+    fprintf(fp,"echo_bindings: %s\n", TRUE_OR_FALSE(cpl.echo_bindings));
+    fprintf(fp,"fog_of_war: %s\n", TRUE_OR_FALSE(fog_of_war));
+    fprintf(fp,"foodbeep: %s\n", TRUE_OR_FALSE(cpl.food_beep));
+    fprintf(fp,"iconscale: %d\n", icon_scale);
+    fprintf(fp,"keepcache: %s\n", TRUE_OR_FALSE(keepcache));
     if( per_pixel_lighting)
       fprintf( fp, "Lighting: per_pixel\n");
     else
       fprintf( fp, "Lighting: per_tile\n");
-    fprintf( fp,"show_grid: %s\n", show_grid?"True":"False");
-
+    fprintf(fp,"mapscale: %d\n", map_scale);
+    fprintf(fp,"mapsize: %dx%d\n", want_mapx, want_mapy);
+    fprintf(fp,"nopopups: %s\n", TRUE_OR_FALSE(nopopups));
+    fprintf(fp,"port: %d\n", port_num);
+    fprintf(fp,"server: %s\n", server);
+    fprintf(fp,"showicon: %s\n", TRUE_OR_FALSE(inv_list.show_icon));
+    fprintf(fp,"sound: %s\n", nosound?"False":"True");	/* this is really false or true */
+    fprintf(fp,"split: %s\n", TRUE_OR_FALSE(split_windows));
+    fprintf(fp,"splitinfo: %s\n", TRUE_OR_FALSE(splitinfo));
+    fprintf(fp,"show_grid: %s\n", TRUE_OR_FALSE(show_grid));
+    fprintf(fp,"tooltips: %s\n", TRUE_OR_FALSE(tool_tips));
+    fprintf(fp,"trim_info_window: %s\n", TRUE_OR_FALSE(trim_info_window));
     fclose(fp);
     sprintf(buf,"Defaults saved to %s",path);
     draw_info(buf,NDI_BLUE);

@@ -36,8 +36,8 @@ OBJECTS = $(SOURCES:.c=.o)
 
 
 EXTRA_DIST = \
-	Makefile.in
-
+	Makefile.in \
+	cfclient.man
 
 all:  cfclient
 

@@ -1,6 +1,5 @@
-
 .\"$Id$
-.TH cfclient
+.TH gcfclient
 .SH NAME
 gcfclient - gtk client program for crossfire servers.
 .SH SYNOPSIS
@@ -23,96 +22,6 @@ or may support other options - man pages specific to those versions
 should be referenced.
 
 .SH OPTIONS
-.TP
-.B -server <server>
-Sets the server to play on.  If no option is given, it will default to
-localhost.  
-.TP
-.B -port <number>
-The port number of the server to connect to.  By default, it will use
-port 13327 (standard port).  However, certain servers may use other
-ports.
-.TP
-.B -display <display>
-The display to open the windows on.  If this option is not given, it
-will use the DISPLAY environmental variable to determine the display.
-.TP
-.B -split|-nosplit
--split starts the windows up in split windows mode.  In split windows
-mode, 6 seperate windows are created - these individual windows can then
-be moved around and resized as desired.  -nosplit starts the game up with
-a single window - this is the default.  The option is useful if your
-saved defaults are set for -split (see Saved Defaults further down).
-
-.TP
-.B -echo
-Echo commands as they are entered.  Normally, commands bound to keys
-are just sent to the server without any echoing on the client of what
-that command actually was.  This option causes the commands to also be
-printed in the information window as they are sent to the server.
-
-.TP
-.B -mapsize XxY
-Sets the desired viewable map window.  X and Y are number of tiles.
-Note that larger map sizes are likely to consume more bandwidth,
-cpu time, as well as just screen real estate.
-
-The maximum map size may vary server to server.  The client will
-try to negotiate the largest viewable map in each dimension.  Note
-that there is no requirement that the viewable map be square.
-
-Due to performance issues, it is strongly suggested that expirementation
-is done with this value to find a size that gets acceptable performance
-n(simple test - go to the start town, run in some direction, stop
-running and see how long it takes before the client stops moving
-you).
-
-
-.TP
-.B -pix|-xpm|-png
-
-These options are obsolete.  Currently, the client only supports
-png graphics, and the other options are no longer valid.
-
-.TP
-.B -pngximage
-gcfclient only.  This option is only meaningful if png graphics are
-being used.  It uses a GdkRgb structure - this allows much
-better effects (especially darkness).  Performance may be worse
-when using this option - this depends on many factors.  Like
-the mapsize option above, it is suggested the experimentation is
-done to make performance is still acceptable.  This option does
-not affect bandwidth - it only affects cpu performancs.
-
-.TP
-.B -sdl
-This option will only be available if the SDL library was
-available when the client was compiles. Using this option allows
-for more complex graphics - true alpha channel, improved darkness
-handling.  Performance may be worse
-when using this option - this depends on many factors.  Like
-the mapsize option above, it is suggested the experimentation is
-done to make performance is still acceptable.  This option does
-not affect bandwidth - it only affects cpu performance.  If this option
-is not used, GdkPixmaps will be used instead.
-
-.TP
-.B -showicon
-This shows a little icon next to items in your inventory that contains
-a brief description of some of the item properties (magic, cursed,
-equipped, etc.)  This can make spotting some items easier, but some
-players may not like the extra space these icons take up or the
-
-.TP
-.B -sync
-Runs the server in synchronous display mode.  This option tends only to
-be useful in debugging purposes - using this will slow down the display
-and not gain anything for the typical player.
-
-.TP
-.B -help
-Prints out a brief description of the options to standard output.
-
 .TP
 .B -cache|-nocache
 Determines if the client will cache images for future runs.  With -nocache,
@@ -140,6 +49,153 @@ code).  Turning off darkness may also be desirable as in some graphics
 mode the quality of darkness may not add much to the map.
 
 .TP
+.B -display <display>
+The display to open the windows on.  If this option is not given, it
+will use the DISPLAY environmental variable to determine the display.
+
+.TP
+.B -echo|-noecho
+Echo commands as they are entered.  Normally, commands bound to keys
+are just sent to the server without any echoing on the client of what
+that command actually was.  This option causes the commands to also be
+printed in the information window as they are sent to the server.
+
+.TP
+.B -fog
+Enables fog of war code.  In this mode, spaces which have been seen
+before but are no longer visible will still be shown on the game
+window half darkened.  The data in these spaces is not up to date
+since it is currently out of site.  This has no effect on bandwidth,
+but may consume more cpu time.
+
+.TP
+.B -help
+Prints out a brief description of the options to standard output.
+
+.TP
+.B -iconscale
+Causes the images for the inventory icons 
+to be scaled some percentage value.
+Minimum value is 25%.  Setting this to 50% is
+very useful - doubles amount of data visible in the inventory
+window.
+
+.TP
+.B -keepcache
+Causes the client not to download upated images from the server
+if it already has an image of the same name previously cached.
+By default, if the server has a newer image, the client will download
+it and replace the cached version with it.  Using this option can be
+useful if your cache has been populated with a set of images you
+prefer over the one on the server, or if you play on multiple servers
+and they have different image sets and you don't want to keep downloading
+the images over and over again as you switch between servers.
+
+.TP
+.B -mapscale
+Causes the images for the 
+map surface (-mapscale) to be scaled some percentage value.
+Minimum value is 25%.  This value does not need to be the same as
+the iconscale value.  Scaling down the size of the map images can
+be useful when playing on low resolution screens.  Smaller images
+will also consume less cpu as it will be less information to draw.
+
+.TP
+.B -mapsize XxY
+Sets the desired viewable map window.  X and Y are number of tiles.
+Note that larger map sizes are likely to consume more bandwidth,
+cpu time, as well as just screen real estate.
+
+The maximum map size may vary server to server.  The client will
+try to negotiate the largest viewable map in each dimension.  Note
+that there is no requirement that the viewable map be square.
+
+Due to performance issues, it is strongly suggested that expirementation
+is done with this value to find a size that gets acceptable performance
+n(simple test - go to the start town, run in some direction, stop
+running and see how long it takes before the client stops moving
+you).
+
+.TP
+.B -pngfile <file>
+This can be used to have the client use an image file (format 
+same as that on the server) to load images.  This option will likely
+be obsoleted and instead replaced by images in local cache directories.
+
+.TP
+.B -popops|-nopopups
+This enables/disables pop up windows that otherwise appear for certain input.
+When disabled,  the input will be taken from text entries in the basic text
+pane.  The default is that popups are enabled.
+
+.TP
+.B -port <number>
+The port number of the server to connect to.  By default, it will use
+port 13327 (standard port).  However, certain servers may use other
+ports.
+
+.TP
+.B -sdl
+This option will only be available if the SDL library was
+available when the client was compiles. Using this option allows
+for more complex graphics - true alpha channel, improved darkness
+handling.  Performance may be worse
+when using this option - this depends on many factors.  Like
+the mapsize option above, it is suggested the experimentation is
+done to make performance is still acceptable.  This option does
+not affect bandwidth - it only affects cpu performance.  If this option
+is not used, GdkPixmaps will be used instead.
+
+.TP
+.B -server <server>
+Sets the server to play on.  If no option is given, it will default to
+localhost.  
+
+.TP
+.B -showicon
+This shows a little icon next to items in your inventory that contains
+a brief description of some of the item properties (magic, cursed,
+equipped, etc.)  This can make spotting some items easier, but some
+players may not like the extra space these icons take up or the
+
+.TP
+.B -sound|-nosound
+Enalbe/Disables sound effects.  Disabling sound has a minor savings on bandwidth.  It is
+most useful if you do not want sound, due to lack of hardware or lack
+of desire for sound.  Default is sound is enabled.
+
+.TP
+.B -split|-nosplit
+-split starts the windows up in split windows mode.  In split windows
+mode, 6 seperate windows are created - these individual windows can then
+be moved around and resized as desired.  -nosplit starts the game up with
+a single window - this is the default.  The option is useful if your
+saved defaults are set for -split (see Saved Defaults further down).
+
+.TP
+.B -splitinfo
+This splits the information pane window into two sub windows.  One contains
+all the attack messages and otherwise fairly mundane information, and the
+other contains important messages, like changes in protection values,
+levels, etc.
+
+.TP
+.B -sync
+Runs the server in synchronous display mode.  This option tends only to
+be useful in debugging purposes - using this will slow down the display
+and not gain anything for the typical player.
+
+.TP
+.B -triminfowindow | -notriminfowindw
+Causes the information window to get 'trimmed', eg, remove text
+so that the total contents of the information window remains
+roughly the same size (20,000 bytes or so).  As of 2001-11-03,
+using this option resulted in client periodically crashing.
+The problem appears to be within gtk, so using this is not 
+encouraged.  However, the problems in gtk may get fixed, or this
+may be more reliable on other platforms so is included.
+
+.TP
 .B -updatekeycodes
 The standard behaviour when a player uses the bind command to bind
 new actions is that they keycode is saved with that binding.  Keycodes
@@ -150,31 +206,24 @@ some bindings unavailable.  Using this option will force custom keybindings
 to get updated for the current keyboard when the client is run.
 
 .TP
-.B -nosound
-Disables sound effects.  This has a minor savings on bandwidth.  It is
-most useful if you do not want sound, due to lack of hardware or lack
-of desire for sound.
+.B -pix|-xpm|-png
 
-.TP
-.B -nopopups
-This disables pop up windows that otherwise appear for certain input.
-Instead, the input will be taken from text entries in the basic text
-pane.
+These options are obsolete.  Currently, the client only supports
+png graphics, and the other options are no longer valid.
 
-.TP
-.B -mapscale -iconscale
-Causes the images for the inventory icons (-iconscale) or the images
-for the map surface (-mapscale) to be scaled some percentage value.
-Minimum value is 25%.  These two values do not need to be the same.
-Reducing the scale can be very useful on lower resolution screens.
+
+
 
 .SH SAVED DEFAULTS
 
  Once you have logged into the server, you can enter extended commands
 by typing ' (apostrophe) followed by the extended commands.  One of these
-extended commands is savedefaults.  This will save the server, port,
-image type, split windows mode, scrolllines, showicon, cache and
-sound options into
+extended commands is savedefaults.  This will save many of
+the options listed above.  Note that the saved defaults are
+read first, so using the command line switches can be used to override
+settings in the gdefaults file.
+
+The settings are saved into 
 ~/.crossfire/gdefaults.
 
 If you are using split windows mode, you can enter savewinpos
@@ -271,7 +320,7 @@ comming to them.
 This is a directory that is created that is used to store various
 files.
 .TP
-.B ~/.crossfire/defaults
+.B ~/.crossfire/gdefaults
 This contains default setttings.  This file can in theory be edited
 by hand - just be careful to keep the same case and whitespace.
 .TP

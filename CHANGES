@@ -3,6 +3,20 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+gtk/gcfclient.man: Update man page to include all options supported
+   by gtk client.
+gtk/gx11.c: remove some unused #defines.  add -trim_info_window option which
+   takes place of compile time option.  Re-order command line switches to
+   be in alphabetical order.  Add support for client to load/save most all
+   new options to the gdefaults file.
+gtk/map.c: Some refinements to fog of war so if a space is empty, don't
+   mark it as a fog space to improve performance.  Modify gdk draw routine
+   so that it also supports fog of war.  There is still some problem in
+   that the client will really bog down in some circumstances when
+   drawing the map.
+x11/Makefile.in: Add cfclient.man to list of files.
+MSW 2001-11-03
+
 Complete client re-org.  Create common, gtk, gnome, sounds, and x11 subdirs.
 Gtk client: only image support is png.  Also add resizing options for
 the images (-mapscale/-iconscale), remove pngximage, update sdl

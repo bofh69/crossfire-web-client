@@ -161,6 +161,8 @@ void display_map_clearcell(long x,long y)
 {
     if( fog_of_war == TRUE)
     {
+	int i,got_one=0;
+
 	/* we don't want to clear out the values yet. We will do that
 	 * next time we try to write some data to this tile. For now
 	 * we just mark that it has been cleared. Also mark it for
@@ -168,8 +170,25 @@ void display_map_clearcell(long x,long y)
 	 */
 	x+= pl_pos.x;
 	y+= pl_pos.y;
-	the_map.cells[x][y].cleared= 1;
-	the_map.cells[x][y].need_update= 1;
+
+	/* If the space is completly black, don't mark this as a 
+	 * fog cell - that chews up extra cpu time.  Likewise,
+	 * if the space is completely dark, don't draw it either.
+	 */
+	for (i=0; i<MAXFACES; i++)
+	    if (the_map.cells[x][y].faces[i]>0) got_one=1;
+
+	if (!got_one || the_map.cells[x][y].darkness>200) {
+	    the_map.cells[x][y].count = 0;
+	    the_map.cells[x][y].darkness = 0;
+	    the_map.cells[x][y].need_update = 1;
+	    the_map.cells[x][y].have_darkness = 0;
+	    the_map.cells[x][y].cleared= 0;
+	}
+	else {
+	    the_map.cells[x][y].cleared= 1;
+	    the_map.cells[x][y].need_update= 1;
+	}
     }
     else 
     {
@@ -604,7 +623,7 @@ void reset_map_data()
 #define TIME_MAP_REDRAW
 void gtk_draw_map()
 {
-    int x,y,onlayer,layer, dst_x, dst_y;
+    int x,y,onlayer,layer, dst_x, dst_y,mx,my;
 #ifdef TIME_MAP_REDRAW
     struct timeval tv1, tv2, tv3;
     long elapsed1, elapsed2;
@@ -621,41 +640,59 @@ void gtk_draw_map()
 	/* Fog not currently supported, so don't need to worry about that complexity */
 	for( x= mapx-1; x>= 0; x--) {
             for(y = mapy-1; y >= 0; y--) {
+		if (fog_of_war) {
+		    mx = x + pl_pos.x;
+		    my = y + pl_pos.y;
+		} else {
+		    mx=x;
+		    my=y;
+		}
+		
                 /* there must be a real face for this layer, and we must have data for that face. */
-                if ((the_map.cells[x][y].faces[layer]>0) && 
-		    pixmaps[the_map.cells[x][y].faces[layer]].map_image) {
+                if ((the_map.cells[mx][my].faces[layer]>0) && 
+		    pixmaps[the_map.cells[mx][my].faces[layer]].map_image) {
                     /* Figure out how much data is being copied, and adjust the origin accordingly.
                      * This probably needs additional checking in case the image extends beyond the
                      * map boundries.
                      */
-                    dst_x = (x+1) * map_image_size - pixmaps[the_map.cells[x][y].faces[layer]].map_width;
-                    dst_y = (y+1) * map_image_size - pixmaps[the_map.cells[x][y].faces[layer]].map_height;
-		    gdk_gc_set_clip_mask (mapgc, pixmaps[the_map.cells[x][y].faces[layer]].map_mask);
+                    dst_x = (x+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]].map_width;
+                    dst_y = (y+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]].map_height;
+		    gdk_gc_set_clip_mask (mapgc, pixmaps[the_map.cells[mx][my].faces[layer]].map_mask);
 		    gdk_gc_set_clip_origin(mapgc, dst_x, dst_y);
 		    gdk_draw_pixmap(mapwindow, mapgc,
-				    pixmaps[the_map.cells[x][y].faces[layer]].map_image,
+				    pixmaps[the_map.cells[mx][my].faces[layer]].map_image,
 				    0, 0, dst_x, dst_y, 
-				    pixmaps[the_map.cells[x][y].faces[layer]].map_width,
-				    pixmaps[the_map.cells[x][y].faces[layer]].map_height);
+				    pixmaps[the_map.cells[mx][my].faces[layer]].map_width,
+				    pixmaps[the_map.cells[mx][my].faces[layer]].map_height);
 		}
-               /* On last past, do our special processing, like applying darkness */
+                /* On last past, do our special processing, like applying darkness */
                 if (onlayer==0) {
-                    the_map.cells[x][y].need_update=0;
-		    if (the_map.cells[x][y].darkness > 192) { /* Full dark */
-			gdk_draw_rectangle (mapwindow, drawingarea->style->black_gc,
-					    TRUE,map_image_size*x, map_image_size *y,
-					    map_image_size, map_image_size);
-		    } else if (the_map.cells[x][y].darkness> 128) {
+                    the_map.cells[mx][my].need_update=0;
+		    /* If this is a fog cell, do darknening of the space.
+		     * otherwise, process light/darkness - only do those if not a 
+		     * fog cell.
+		     */
+		    if (the_map.cells[mx][my].cleared == 1) {
 			gdk_gc_set_clip_mask(mapgc, dark1);
 			gdk_gc_set_clip_origin(mapgc, x * map_image_size, y*map_image_size);
 			gdk_draw_pixmap(mapwindow, mapgc, dark, 0, 0,
 					x * map_image_size, y*map_image_size, map_image_size, map_image_size);
-		    } else if (the_map.cells[x][y].darkness> 64) {
+		    }
+		    else if (the_map.cells[mx][my].darkness > 192) { /* Full dark */
+			gdk_draw_rectangle (mapwindow, drawingarea->style->black_gc,
+					    TRUE,map_image_size*x, map_image_size *y,
+					    map_image_size, map_image_size);
+		    } else if (the_map.cells[mx][my].darkness> 128) {
+			gdk_gc_set_clip_mask(mapgc, dark1);
+			gdk_gc_set_clip_origin(mapgc, x * map_image_size, y*map_image_size);
+			gdk_draw_pixmap(mapwindow, mapgc, dark, 0, 0,
+					x * map_image_size, y*map_image_size, map_image_size, map_image_size);
+		    } else if (the_map.cells[mx][my].darkness> 64) {
 			gdk_gc_set_clip_mask(mapgc, dark2);
 			gdk_gc_set_clip_origin(mapgc, x * map_image_size, y*map_image_size);
 			gdk_draw_pixmap(mapwindow, mapgc, dark, 0, 0,
 					x * map_image_size, y*map_image_size, map_image_size, map_image_size);
-		    } else if (the_map.cells[x][y].darkness> 1) {
+		    } else if (the_map.cells[mx][my].darkness> 1) {
 			gdk_gc_set_clip_mask(mapgc, dark3);
 			gdk_gc_set_clip_origin(mapgc, x * map_image_size, y*map_image_size);
 			gdk_draw_pixmap(mapwindow, mapgc, dark, 0, 0,
