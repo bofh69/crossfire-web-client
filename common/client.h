@@ -364,6 +364,7 @@ struct MapCell {
     uint8 have_darkness:1;
     uint8 need_resmooth:1;  /*same has need update but for smoothing only*/
     uint8 cleared:1; /* If set, this is a fog cell. */
+    uint8 keephead:1;
 };
 
 

@@ -338,9 +338,9 @@ void display_mapscroll(int dx,int dy)
      * virtual position though
      */
 	
-    if( need_recenter_map( dx, dy) == TRUE) 
+    if( need_recenter_map( dx, dy) == TRUE)
 	recenter_virtual_map_view( &the_map);
-	
+
     pl_pos.x+= dx;
     pl_pos.y+= dy;
     local_mapx= pl_pos.x + use_config[CONFIG_MAPWIDTH];
@@ -356,7 +356,7 @@ void display_mapscroll(int dx,int dy)
     for( x= pl_pos.x; x < pl_pos.x + use_config[CONFIG_MAPWIDTH]; x++) {
 	for( y= pl_pos.y; y < pl_pos.y + use_config[CONFIG_MAPHEIGHT]; y++) {
 	    if( (x + dx) < pl_pos.x || (x + dx) >= (use_config[CONFIG_MAPWIDTH] + pl_pos.x) ||
-	       (y + dy) < pl_pos.y || (y + dy) >= (use_config[CONFIG_MAPHEIGHT] + pl_pos.y) ) 
+	       (y + dy) < pl_pos.y || (y + dy) >= (use_config[CONFIG_MAPHEIGHT] + pl_pos.y) )
 	    {
 		if( x < 0 || y < 0 || x >= the_map.x ||	y >= the_map.y)
 		    continue;
@@ -364,6 +364,7 @@ void display_mapscroll(int dx,int dy)
 
 		the_map.cells[x][y].need_update= 1;
 		the_map.cells[x][y].cleared= 1;
+        the_map.cells[x][y].keephead = 1;/*otherwise we will also mark the multipart as cleared*/
 	    }
 	} /* for y */
     } /* for x */

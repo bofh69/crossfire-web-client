@@ -430,7 +430,7 @@ void SmoothCmd(unsigned char *data, int len){
             if ( (mx<0) || (my<0) || (the_map.x<=mx) || (the_map.y<=my))
                 continue;
             if (!the_map.cells[mx][my].cleared)
-                the_map.cells[mx][my].need_resmooth=1;   
+                the_map.cells[mx][my].need_resmooth=1;
         }
     }
     }
@@ -871,15 +871,15 @@ static void expand_face(int hx, int hy, int dx, int dy, int oldface, int newface
 		 */
 		if (the_map.cells[zx][zy].tails[l].face == oldface) {
 		    if (oldface == 0 || 
-			(the_map.cells[zx][zy].tails[l].size_x == x && 
+			(the_map.cells[zx][zy].tails[l].size_x == x &&
 			 the_map.cells[zx][zy].tails[l].size_y == y))
 			    break;
 		}
 		/* If we already have this face information, break out - the code below
 		 * will fill in the same values, but that isn't any big deal.
 		 */
-		if (the_map.cells[zx][zy].tails[l].face == newface && 
-		    the_map.cells[zx][zy].tails[l].size_x == x && 
+		if (the_map.cells[zx][zy].tails[l].face == newface &&
+		    the_map.cells[zx][zy].tails[l].size_x == x &&
 		    the_map.cells[zx][zy].tails[l].size_y == y) break;
 
 	    }
@@ -927,11 +927,14 @@ static void expand_face(int hx, int hy, int dx, int dy, int oldface, int newface
  * to display the data for fog of war code.  This is called
  * when we have real data to over-write the contents of this
  * cell.
+ * The multisquares heads are not cleared if the keephead flag is set,
+ * meaning the cleared flags comes from a mapscroll but there may exist
+ * multisquares head entering map at same time.
  */
 void reset_cell_data(int x, int y)
 {
 
-    /* This cell has been cleared previously but now we are 
+    /* This cell has been cleared previously but now we are
      * writing new data to do. So we have to clear it for real now 
      */
     int i= 0;
@@ -942,18 +945,31 @@ void reset_cell_data(int x, int y)
     the_map.cells[x][y].cleared= 0;
     /* only clear the even faces - those explicitly sent to us by the server */
     for (i=0; i<MAXLAYERS; i++) {
-	/* If we are clearing out a 'big image', we need to clear the faces that
-	 * this points into.
-	 */
-	if (the_map.cells[x][y].heads[i].face != 0 &&
-	    (the_map.cells[x][y].heads[i].size_x>1 || the_map.cells[x][y].heads[i].size_y>1))
-	    expand_face(x, y, the_map.cells[x][y].heads[i].size_x, the_map.cells[x][y].heads[i].size_y,
-			the_map.cells[x][y].heads[i].face, 0, i);
-
-	the_map.cells[x][y].heads[i].face= 0;  /* empty/blank face */
-	the_map.cells[x][y].heads[i].size_x = 0;
-	the_map.cells[x][y].heads[i].size_y = 0;
+        /* If we are clearing out a 'big image', we need to clear the faces that
+         * this points into.
+         */
+         if ( (the_map.cells[x][y].heads[i].face != 0)
+              && (the_map.cells[x][y].heads[i].size_x>1
+                    || the_map.cells[x][y].heads[i].size_y>1)
+            )
+         { /*if multisquare head*/
+            if (!the_map.cells[x][y].keephead){
+                /*Touch a multisquare head only if keehead not set*/
+                expand_face(x, y,
+                        the_map.cells[x][y].heads[i].size_x,
+                        the_map.cells[x][y].heads[i].size_y,
+                        the_map.cells[x][y].heads[i].face, 0, i);
+                the_map.cells[x][y].heads[i].face= 0;  /* empty/blank face */
+                the_map.cells[x][y].heads[i].size_x = 0;
+                the_map.cells[x][y].heads[i].size_y = 0;
+            }
+        } else{ /*simple square*/
+            the_map.cells[x][y].heads[i].face= 0;  /* empty/blank face */
+            the_map.cells[x][y].heads[i].size_x = 0;
+            the_map.cells[x][y].heads[i].size_y = 0;
+        }
     }
+    the_map.cells[x][y].keephead= 0;
 }
 /* Modified the logic of this.  Basically, we always act as if
  * we are using the fog mode in terms of clearing the data.  We'll
