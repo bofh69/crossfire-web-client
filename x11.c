@@ -213,6 +213,7 @@ static Font font; /* I don't see why we should try to support fonts,
 		downloading entire .pcf files, etc. 
 		- eanders@cs.berkeley.edu */
 static XEvent event;
+static XSizeHints messagehint;
 
 /* This struct contains the information to draw 1 line of data. */
 typedef struct {
@@ -997,6 +998,10 @@ static void draw_all_info() {
   draw_info_scrollbar(TRUE);
 }
 
+static void resize_win_message(int width, int height) {
+    messagehint.width = width;
+    messagehint.height = height;
+}
 
 static void resize_win_info(int width, int height) {
     int chars=(width/FONTWIDTH)-1;
@@ -1247,12 +1252,12 @@ void draw_stats(int redraw) {
 
     if(redraw || cpl.stats.wc!=last_stats.wc ||
       cpl.stats.ac!=last_stats.ac ||
-      cpl.stats.armor!=last_stats.armor ||
+      cpl.stats.resists[0]!=last_stats.resists[0] ||
       cpl.stats.dam!=last_stats.dam) {
 
 	sprintf(buff,"Wc:%3d Dam:%3d Ac:%3d Arm:%3d",
 	    cpl.stats.wc,cpl.stats.dam,cpl.stats.ac,
-	    cpl.stats.armor);
+	    cpl.stats.resists[0]);
  	strcat(buff,"                     ");
 	XDrawImageString(display,win_stats,
 	    gc_stats,10,66, buff,strlen(buff));
@@ -1260,7 +1265,7 @@ void draw_stats(int redraw) {
 	last_stats.wc=cpl.stats.wc;
 	last_stats.ac=cpl.stats.ac;
 	last_stats.dam=cpl.stats.dam;
-	last_stats.armor = cpl.stats.armor;
+	last_stats.resists[0] = cpl.stats.resists[0];
       }
 
   if(redraw || last_stats.speed!=cpl.stats.speed ||
@@ -1317,7 +1322,6 @@ void draw_stats(int redraw) {
 ***********************************************************************/
 
 static int get_message_display() {
-    XSizeHints messagehint;
 
     messagehint.x=INV_WIDTH + WINDOW_SPACING;
     /* Game window is square so we can use the width */
@@ -1384,103 +1388,124 @@ static void draw_stat_bar(int bar_pos, int height, int is_alert)
  */
 
 void draw_message_window(int redraw) {
-  int bar,is_alert,flags;
+    int bar,is_alert,flags;
     static uint16 oldflags=0;
-
-
-  static uint16 scrollsize_hp=0, scrollsize_sp=0, scrollsize_food=0,
+    static uint16 scrollsize_hp=0, scrollsize_sp=0, scrollsize_food=0,
 	scrollsize_grace=0;
-  static uint8 scrollhp_alert=FALSE, scrollsp_alert=FALSE,
+    static uint8 scrollhp_alert=FALSE, scrollsp_alert=FALSE,
 	scrollfood_alert=FALSE, scrollgrace_alert=FALSE;
 
-  /* draw hp bar */
-  if(cpl.stats.maxhp>0)
+    /* draw hp bar */
+    if(cpl.stats.maxhp>0)
     {
-      bar=(cpl.stats.hp*MAX_BARS_MESSAGE)/cpl.stats.maxhp;
-      if(bar<0)
+	bar=(cpl.stats.hp*MAX_BARS_MESSAGE)/cpl.stats.maxhp;
+	if(bar<0)
+	    bar=0;
+	is_alert=(cpl.stats.hp <= cpl.stats.maxhp/4);
+    }
+    else
+    {
 	bar=0;
-      is_alert=(cpl.stats.hp <= cpl.stats.maxhp/4);
+	is_alert=0;
     }
-  else
-    {
-      bar=0;
-      is_alert=0;
-    }
-  if (redraw || scrollsize_hp!=bar || scrollhp_alert!=is_alert)
-    draw_stat_bar(20, bar, is_alert);
-  scrollsize_hp=bar;
-  scrollhp_alert=is_alert;
+    if (redraw || scrollsize_hp!=bar || scrollhp_alert!=is_alert)
+	draw_stat_bar(20, bar, is_alert);
+    scrollsize_hp=bar;
+    scrollhp_alert=is_alert;
 
-  /* draw sp bar.  spellpoints can go above max
-   * spellpoints via supercharging with the transferrance spell,
-   * or taking off items that raise max spellpoints.
-   */
-  if (cpl.stats.sp>cpl.stats.maxsp)
+    /* draw sp bar.  spellpoints can go above max
+     * spellpoints via supercharging with the transferrance spell,
+     * or taking off items that raise max spellpoints.
+     */
+    if (cpl.stats.sp>cpl.stats.maxsp)
 	bar = MAX_BARS_MESSAGE;
-  else
+    else
 	bar=(cpl.stats.sp*MAX_BARS_MESSAGE)/cpl.stats.maxsp;
-  if(bar<0) 
-    bar=0;
+    if(bar<0) 
+	bar=0;
 
-  is_alert=(cpl.stats.sp <= cpl.stats.maxsp/4);
+    is_alert=(cpl.stats.sp <= cpl.stats.maxsp/4);
 
-  if (redraw || scrollsize_sp!=bar || scrollsp_alert!=is_alert)
-    draw_stat_bar(60, bar, is_alert);
+    if (redraw || scrollsize_sp!=bar || scrollsp_alert!=is_alert)
+	draw_stat_bar(60, bar, is_alert);
 
-  scrollsize_sp=bar;
-  scrollsp_alert=is_alert;
+    scrollsize_sp=bar;
+    scrollsp_alert=is_alert;
 
-  /* draw sp bar. grace can go above max or below min */
-  if (cpl.stats.grace>cpl.stats.maxgrace)
+    /* draw sp bar. grace can go above max or below min */
+    if (cpl.stats.grace>cpl.stats.maxgrace)
 	bar = MAX_BARS_MESSAGE;
-  else
+    else
 	bar=(cpl.stats.grace*MAX_BARS_MESSAGE)/cpl.stats.maxgrace;
-  if(bar<0) 
-    bar=0;
+    if(bar<0) 
+	bar=0;
 
-  is_alert=(cpl.stats.grace <= cpl.stats.maxgrace/4);
+    is_alert=(cpl.stats.grace <= cpl.stats.maxgrace/4);
 
-  if (redraw || scrollsize_grace!=bar || scrollgrace_alert!=is_alert)
-    draw_stat_bar(100, bar, is_alert);
+    if (redraw || scrollsize_grace!=bar || scrollgrace_alert!=is_alert)
+	draw_stat_bar(100, bar, is_alert);
 
-  scrollsize_grace=bar;
-  scrollgrace_alert=is_alert;
+    scrollsize_grace=bar;
+    scrollgrace_alert=is_alert;
   
-  /* draw food bar */
-  bar=(cpl.stats.food*MAX_BARS_MESSAGE)/999;
-  if(bar<0) 
-    bar=0;
-  is_alert=(cpl.stats.food <= 999/4);
+    /* draw food bar */
+    bar=(cpl.stats.food*MAX_BARS_MESSAGE)/999;
+    if(bar<0) 
+	bar=0;
+    is_alert=(cpl.stats.food <= 999/4);
 
-  if (redraw || scrollsize_food!=bar || scrollfood_alert!=is_alert)
-    draw_stat_bar(140, bar, is_alert);
+    if (redraw || scrollsize_food!=bar || scrollfood_alert!=is_alert)
+	draw_stat_bar(140, bar, is_alert);
 
-  scrollsize_food=bar;
-  scrollfood_alert=is_alert;
+    scrollsize_food=bar;
+    scrollfood_alert=is_alert;
 
-  flags = cpl.stats.flags;
+    flags = cpl.stats.flags;
 
-  if (cpl.fire_on) flags |= SF_FIREON;
-  if (cpl.run_on) flags |= SF_RUNON;
+    if (cpl.fire_on) flags |= SF_FIREON;
+    if (cpl.run_on) flags |= SF_RUNON;
 
-  if ((flags & SF_FIREON ) != (oldflags & SF_FIREON)) {
-    if (flags & SF_FIREON)
-      XDrawImageString(display, win_message,
-            look_list.gc_text, 200, 40, "Fire On", 7);
-    else
-        XClearArea(display, win_message,
-                   200, 20, 60, 20, False);
-  }
-  if ((flags & SF_RUNON ) != (oldflags & SF_RUNON)) {
-    if (flags & SF_RUNON)
-      XDrawImageString(display, win_message,
-            look_list.gc_text, 200, 70, "Run On", 6);
-    else
-        XClearArea(display, win_message,
-                   200, 50, 60, 20, False);
-  }
-  oldflags = flags;
+    if ((flags & SF_FIREON ) != (oldflags & SF_FIREON)) {
+	if (flags & SF_FIREON)
+	    XDrawImageString(display, win_message,
+			     look_list.gc_text, 180, 15, "Fire On", 7);
+	else
+	    XClearArea(display, win_message,
+                   180, 0, 60, 15, False);
+    }
+    if ((flags & SF_RUNON ) != (oldflags & SF_RUNON)) {
+	if (flags & SF_RUNON)
+	    XDrawImageString(display, win_message,
+			     look_list.gc_text, 180, 30, "Run On", 6);
+	else
+	    XClearArea(display, win_message,
+                   180, 15, 60, 15, False);
+    }
+    oldflags = flags;
+    if (redraw || cpl.stats.resist_change) {
+	int x=180, y=45,i;
+	char buf[40];
+
+	cpl.stats.resist_change=0;
+	XClearArea(display, win_message, 180, 30, messagehint.width-180, messagehint.height-30, False);
+	for (i=0; i<NUM_RESISTS; i++) {
+	    if (cpl.stats.resists[i]) {
+		XDrawImageString(display, win_message,
+			 look_list.gc_text, x, y, resists_name[i],
+			 strlen(resists_name[i]));
+		sprintf(buf,"%+4d", cpl.stats.resists[i]);
+		XDrawImageString(display, win_message,
+			 look_list.gc_text, x+40, y, buf, strlen(buf));
+		y+=15;
+		/* Move to the next draw position.  If we run
+		 * out of space, just break out of the function.
+		 */
+		if (y>messagehint.height) break;
+	    } /* If we have a resistance with value */
+	} /* For loop of resistances */
+    } /* If we need to draw the resistances */
 }
+    
 
 static void draw_all_message() {
 
@@ -2147,6 +2172,8 @@ static void resize_win_root(XEvent *event) {
     XMoveResizeWindow(display, win_message, inv_width + WINDOW_SPACING, 
 		GAME_WIDTH + STAT_HEIGHT + WINDOW_SPACING*2, GAME_WIDTH,
 		event->xconfigure.height - GAME_WIDTH + STAT_HEIGHT + WINDOW_SPACING*2);
+    messagehint.width=GAME_WIDTH;
+    messagehint.height=event->xconfigure.height - GAME_WIDTH + STAT_HEIGHT + WINDOW_SPACING*2;
 
     /* These windows just need to be relocated.  The y constants are
      * hardcoded - those windows don't really benefit from being resized
@@ -2494,6 +2521,8 @@ void check_x_events() {
 			 event.xconfigure.height);
       else if(event.xconfigure.window==win_root)
 	resize_win_root(&event);
+      else if(event.xconfigure.window==win_message)
+	resize_win_message(event.xconfigure.width, event.xconfigure.height);
       break;
 
     case Expose:

@@ -833,6 +833,9 @@ image command).
 SC version 1023 -> 1024: Server will send two part names (described in
 item command) which contains the singular & plural form of the name)
 
+SC version 1024 -> 1025: Support for sending all resistance
+values in the sttas command.
+
 ------------------------------------------------------------------------------
 Todo:
 

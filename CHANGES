@@ -1,6 +1,13 @@
 "$Id$"
 Top of CVS tree:
 
+Updated to display resistance values in the message window.  Except for
+armour, this is only displayed when running against serves with PR
+code.  Change for both cfclient and gcfclient. Files affected:
+Protocol client.h commands.c gx11.c newclient.h player.c
+sounds soundsdef.h x11.c
+MSW 12-3-2000
+
 ------------------------------------------------------------------------------
 Changes for 0.95.8:
 

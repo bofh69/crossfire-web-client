@@ -340,6 +340,8 @@ typedef struct {
 
 static Vitals vitals[4];
 static GtkWidget *run_label, *fire_label;
+#define SHOW_RESISTS 7
+static GtkWidget *resists[SHOW_RESISTS];
 static GtkWidget *ckentrytext, *ckeyentrytext, *cmodentrytext, *cnumentrytext;
 
 GdkColor gdk_green =    { 0, 0, 0xcfff, 0 };
@@ -3149,9 +3151,9 @@ void draw_stats(int redraw) {
       gtk_widget_draw (statwindow.ac, NULL);
     }
     
-    if(redraw || cpl.stats.armor!=last_stats.armor) {
-      last_stats.armor=cpl.stats.armor;
-      sprintf(buff,"Arm%3d",cpl.stats.armor);
+    if(redraw || cpl.stats.resists[0]!=last_stats.resists[0]) {
+      last_stats.resists[0]=cpl.stats.resists[0];
+      sprintf(buff,"Arm%3d",cpl.stats.resists[0]);
       gtk_label_set (GTK_LABEL(statwindow.armor), buff);
       gtk_widget_draw (statwindow.armor, NULL);
     }
@@ -3216,7 +3218,7 @@ static int get_message_display(GtkWidget *frame) {
   GtkWidget *plabel;
   GtkWidget *mtable;
   GtkWidget *vbox;
- 
+  int i;
 
   vbox = gtk_vbox_new (TRUE, 0);
   gtk_container_add (GTK_CONTAINER(frame),vbox);
@@ -3236,17 +3238,23 @@ static int get_message_display(GtkWidget *frame) {
 
 
   plabel = gtk_label_new ("Status");
-  gtk_table_attach(GTK_TABLE(mtable), plabel, 1,2,2,3,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
+  gtk_table_attach(GTK_TABLE(mtable), plabel, 1,2,1,2,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
   gtk_widget_show (plabel);
 
   fire_label = gtk_label_new ("    ");
-  gtk_table_attach(GTK_TABLE(mtable), fire_label, 1,2,4,5,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
+  gtk_table_attach(GTK_TABLE(mtable), fire_label, 1,2,2,3,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
   gtk_widget_show (fire_label);
 
   run_label = gtk_label_new ("   ");
-  gtk_table_attach(GTK_TABLE(mtable), run_label, 1,2,6,7,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
+  gtk_table_attach(GTK_TABLE(mtable), run_label, 1,2,3,4,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
   gtk_widget_show (run_label);
 
+  for (i=0; i<SHOW_RESISTS; i++) {
+    resists[i] = gtk_label_new("          ");
+    gtk_table_attach(GTK_TABLE(mtable), resists[i], 1,2,4+i, 5+i,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
+    gtk_widget_show (resists[i]);
+  }
+			  
 
   gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[0].bar), 1);
   gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[1].bar), 1);
@@ -3290,111 +3298,120 @@ static void draw_stat_bar(int bar_pos, float bar, int is_alert)
  gtk_widget_draw (vitals[bar_pos].bar, NULL);
 }
 
-
 /* This updates the status bars.  If redraw, then redraw them
  * even if they have not changed
  */
 
 void draw_message_window(int redraw) {
-  float bar;
+    float bar;
     int is_alert,flags;
-    /*    static uint16 oldflags=0;*/
-
-
-  static uint16 scrollsize_hp=0, scrollsize_sp=0, scrollsize_food=0,
+    static uint16 scrollsize_hp=0, scrollsize_sp=0, scrollsize_food=0,
 	scrollsize_grace=0;
-  static uint8 scrollhp_alert=FALSE, scrollsp_alert=FALSE,
+    static uint8 scrollhp_alert=FALSE, scrollsp_alert=FALSE,
 	scrollfood_alert=FALSE, scrollgrace_alert=FALSE;
 
+    if (updatelock < 25) {
+	updatelock++;
+	/* draw hp bar */
+	if(cpl.stats.maxhp>0)
+	{
+	    bar=(float)cpl.stats.hp/cpl.stats.maxhp;
+	    if(bar<=0)
+		bar=(float)0.01;
+	    is_alert=(cpl.stats.hp <= cpl.stats.maxhp/4);
+	}
+	else
+	{
+	    bar=(float)0.01;
+	    is_alert=0;
+	}
 
-if (updatelock < 25) {
-  updatelock++;
-  /* draw hp bar */
-  if(cpl.stats.maxhp>0)
-    {
-      bar=(float)cpl.stats.hp/cpl.stats.maxhp;
-      if(bar<=0)
-	bar=(float)0.01;
-      is_alert=(cpl.stats.hp <= cpl.stats.maxhp/4);
-    }
-  else
-    {
-      bar=(float)0.01;
-      is_alert=0;
-    }
+	if (redraw || scrollsize_hp!=bar || scrollhp_alert!=is_alert)
+	    draw_stat_bar(0, bar, is_alert);
 
+	scrollsize_hp=bar;
+	scrollhp_alert=is_alert;
 
-  if (redraw || scrollsize_hp!=bar || scrollhp_alert!=is_alert)
-    draw_stat_bar(0, bar, is_alert);
-  scrollsize_hp=bar;
-  scrollhp_alert=is_alert;
+	/* draw sp bar.  spellpoints can go above max
+	 * spellpoints via supercharging with the transferrance spell,
+	 * or taking off items that raise max spellpoints.
+	 */
+	if (cpl.stats.sp>cpl.stats.maxsp)
+	    bar=(float)1;
+	else
+	    bar=(float)cpl.stats.sp/cpl.stats.maxsp;
+	if(bar<=0) 
+	    bar=(float)0.01;
 
-  /* draw sp bar.  spellpoints can go above max
-   * spellpoints via supercharging with the transferrance spell,
-   * or taking off items that raise max spellpoints.
-   */
-  if (cpl.stats.sp>cpl.stats.maxsp)
-	bar=(float)1;
-  else
-	bar=(float)cpl.stats.sp/cpl.stats.maxsp;
-  if(bar<=0) 
-    bar=(float)0.01;
+	is_alert=(cpl.stats.sp <= cpl.stats.maxsp/4);
 
-  is_alert=(cpl.stats.sp <= cpl.stats.maxsp/4);
+	if (redraw || scrollsize_sp!=bar || scrollsp_alert!=is_alert)
+	    draw_stat_bar(1, bar, is_alert);
 
- 
+	scrollsize_sp=bar;
+	scrollsp_alert=is_alert;
 
-  if (redraw || scrollsize_sp!=bar || scrollsp_alert!=is_alert)
-    draw_stat_bar(1, bar, is_alert);
+	/* draw grace bar. grace can go above max or below min */
+	if (cpl.stats.grace>cpl.stats.maxgrace)
+	    bar = MAX_BARS_MESSAGE;
+	else
+	    bar=(float)cpl.stats.grace/cpl.stats.maxgrace;
+	if(bar<=0)
+	    bar=(float)0.01;
 
-  scrollsize_sp=bar;
-  scrollsp_alert=is_alert;
-
-  /* draw grace bar. grace can go above max or below min */
-  if (cpl.stats.grace>cpl.stats.maxgrace)
-	bar = MAX_BARS_MESSAGE;
-  else
-	bar=(float)cpl.stats.grace/cpl.stats.maxgrace;
-  if(bar<=0)
-    bar=(float)0.01;
-
-  if (bar>1.0) {
-    bar=(float)1.0;
-  }
-  is_alert=(cpl.stats.grace <= cpl.stats.maxgrace/4);
+	if (bar>1.0) {
+	    bar=(float)1.0;
+	}
+	is_alert=(cpl.stats.grace <= cpl.stats.maxgrace/4);
 
 
-  if (redraw || scrollsize_grace!=bar || scrollgrace_alert!=is_alert)
-    draw_stat_bar(2, bar, is_alert);
+	if (redraw || scrollsize_grace!=bar || scrollgrace_alert!=is_alert)
+	    draw_stat_bar(2, bar, is_alert);
 
-  scrollsize_grace=bar;
-  scrollgrace_alert=is_alert;
+	scrollsize_grace=bar;
+	scrollgrace_alert=is_alert;
   
-  /* draw food bar */
-  bar=(float)cpl.stats.food/999;
-  if(bar<=0) 
-    bar=(float)0.01;
-  is_alert=(cpl.stats.food <= 999/4);
+	/* draw food bar */
+	bar=(float)cpl.stats.food/999;
+	if(bar<=0) 
+	    bar=(float)0.01;
+	is_alert=(cpl.stats.food <= 999/4);
 
+	if (redraw || scrollsize_food!=bar || scrollfood_alert!=is_alert)
+	    draw_stat_bar(3, bar, is_alert);
 
+	scrollsize_food=bar;
+	scrollfood_alert=is_alert;
 
-  if (redraw || scrollsize_food!=bar || scrollfood_alert!=is_alert)
-    draw_stat_bar(3, bar, is_alert);
+	flags = cpl.stats.flags;
 
-  scrollsize_food=bar;
-  scrollfood_alert=is_alert;
+	if (redraw || cpl.stats.resist_change) {
+	    int i,j=0;
+	    char buf[40];
 
-  flags = cpl.stats.flags;
+	    cpl.stats.resist_change=0;
+	    for (i=0; i<NUM_RESISTS; i++) {
+		if (cpl.stats.resists[i]) {
+		    sprintf(buf,"%-10s %+4d",
+			resists_name[i], cpl.stats.resists[i]);
+		    gtk_label_set(GTK_LABEL(resists[j]), buf);
+		    gtk_widget_draw(resists[j], NULL);
+		    j++;
+		}
+	    }
+	    /* Erase old/unused resistances */
+	    while (j<SHOW_RESISTS) {
+		gtk_label_set(GTK_LABEL(resists[j]), "              ");
+		gtk_widget_draw(resists[j], NULL);
+		j++;
+	    }
+	} /* if we draw the resists */
+    }
+    else {
+	/*    printf ("WARNING -- RACE. Frozen updates until updatelock is cleared!\n");*/
+    }
 }
-  else {
-    /*    printf ("WARNING -- RACE. Frozen updates until updatelock is cleared!\n");*/
-  }
-}
 
-/*static void draw_all_message() {
-  draw_message_window(1);
-  printf ("draw_all_message\n");
-}*/
 
  
 

@@ -208,49 +208,55 @@ void StatsCmd(unsigned char *data, int len)
 
     while (i<len) {
 	c=data[i++];
-	switch (c) {
-	    case CS_STAT_HP:	cpl.stats.hp=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_MAXHP:cpl.stats.maxhp=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_SP:	cpl.stats.sp=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_MAXSP:cpl.stats.maxsp=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_GRACE:cpl.stats.grace=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_MAXGRACE:cpl.stats.maxgrace=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_STR:	cpl.stats.Str=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_INT:	cpl.stats.Int=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_POW:	cpl.stats.Pow=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_WIS:	cpl.stats.Wis=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_DEX:	cpl.stats.Dex=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_CON:	cpl.stats.Con=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_CHA:  cpl.stats.Cha=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_EXP:  cpl.stats.exp=GetInt_String(data+i); i+=4; break;
-	    case CS_STAT_LEVEL:cpl.stats.level=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_WC:   cpl.stats.wc=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_AC:   cpl.stats.ac=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_DAM:  cpl.stats.dam=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_ARMOUR:cpl.stats.armor=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_SPEED: cpl.stats.speed=GetInt_String(data+i); i+=4; break;
-	    case CS_STAT_FOOD:  cpl.stats.food=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_WEAP_SP:cpl.stats.weapon_sp=GetInt_String(data+i); i+=4; break;
-	    case CS_STAT_FLAGS:cpl.stats.flags=GetShort_String(data+i); i+=2; break;
-	    case CS_STAT_WEIGHT_LIM:set_weight_limit(GetInt_String(data+i)); i+=4; break;
+	if (c>=CS_STAT_RESIST_START && c<=CS_STAT_RESIST_END) {
+	    cpl.stats.resists[c-CS_STAT_RESIST_START]=GetShort_String(data+i);
+	    i+=2;
+	    cpl.stats.resist_change=1;
+	} else {
+	    switch (c) {
+		case CS_STAT_HP:	cpl.stats.hp=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_MAXHP:cpl.stats.maxhp=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_SP:	cpl.stats.sp=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_MAXSP:cpl.stats.maxsp=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_GRACE:cpl.stats.grace=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_MAXGRACE:cpl.stats.maxgrace=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_STR:	cpl.stats.Str=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_INT:	cpl.stats.Int=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_POW:	cpl.stats.Pow=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_WIS:	cpl.stats.Wis=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_DEX:	cpl.stats.Dex=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_CON:	cpl.stats.Con=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_CHA:  cpl.stats.Cha=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_EXP:  cpl.stats.exp=GetInt_String(data+i); i+=4; break;
+		case CS_STAT_LEVEL:cpl.stats.level=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_WC:   cpl.stats.wc=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_AC:   cpl.stats.ac=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_DAM:  cpl.stats.dam=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_ARMOUR:cpl.stats.resists[0]=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_SPEED: cpl.stats.speed=GetInt_String(data+i); i+=4; break;
+		case CS_STAT_FOOD:  cpl.stats.food=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_WEAP_SP:cpl.stats.weapon_sp=GetInt_String(data+i); i+=4; break;
+		case CS_STAT_FLAGS:cpl.stats.flags=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_WEIGHT_LIM:set_weight_limit(GetInt_String(data+i)); i+=4; break;
 
-	    case CS_STAT_RANGE: {
-		int rlen=data[i++];
-		strncpy(cpl.range,(const char*)data+i,rlen);
-		cpl.range[rlen]='\0';
-		i += rlen;
-		break;
+		case CS_STAT_RANGE: {
+		    int rlen=data[i++];
+		    strncpy(cpl.range,(const char*)data+i,rlen);
+		    cpl.range[rlen]='\0';
+		    i += rlen;
+		    break;
+		}
+		case CS_STAT_TITLE: {
+		    int rlen=data[i++];
+		    strncpy(cpl.title,(const char*)data+i,rlen);
+		    cpl.title[rlen]='\0';
+		    i += rlen;
+		    break;
+		}
+		default:
+		    fprintf(stderr,"Unknown stat number %d\n",c);
+/*		    abort();*/
 	    }
-	    case CS_STAT_TITLE: {
-		int rlen=data[i++];
-		strncpy(cpl.title,(const char*)data+i,rlen);
-		cpl.title[rlen]='\0';
-		i += rlen;
-		break;
-	    }
-	    default:
-		fprintf(stderr,"Unknown stat number %d\n",c);
-		abort();
 	}
     }
     if (i>len) {

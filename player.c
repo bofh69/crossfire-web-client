@@ -325,6 +325,16 @@ void extended_command(const char *ocommand) {
 				   for debugging purposes */
 	print_inventory (cpl.ob);
     }
+    else if (!strcmp(cp,"resist")) {
+	/* For debugging only */
+	int i;
+	char buf[256];
+	for (i=0; i<NUM_RESISTS; i++) {
+	    sprintf(buf,"%-20s %+4d",
+		    resists_name[i], cpl.stats.resists[i]);
+	    draw_info(buf, NDI_BLACK);
+	}
+    }
     else if (!strcmp(cp,"foodbeep")) {
 	if (cpl.food_beep) {
 	    cpl.food_beep=0;

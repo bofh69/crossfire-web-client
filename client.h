@@ -41,7 +41,7 @@
 #endif
 
 #define VERSION_CS 1022
-#define VERSION_SC 1024
+#define VERSION_SC 1025
 
 #ifdef GTK_CLIENT
 #define VERSION_INFO "GTK C Client"
@@ -117,7 +117,6 @@ typedef enum rangetype {
 typedef struct Stat_struct {
     sint8 Str,Dex,Con,Wis,Cha,Int,Pow;
     sint8 wc,ac;	    /* Weapon Class and Armour Class */
-    sint8 armor;
     sint8 level;
     sint16 hp;		    /* Hit Points. */
     sint16 maxhp;
@@ -131,6 +130,8 @@ typedef struct Stat_struct {
     sint32 speed;	    /* Gets converted to a float for display*/
     sint32 weapon_sp;	    /* Gets converted to a float for display */
     uint16 flags;	    /* contains fire on/run on flags */
+    sint16 resists[30];	    /* Resistant values */
+    uint32 resist_change:1; /* Resistant value has changed */
 } Stats;
 
 
@@ -195,3 +196,14 @@ extern int nosound, updatekeycodes;
 #include <proto.h>
 
 extern int errno;
+
+/* translation of the STAT_RES names into printable names,
+ * in matching order.
+ */
+static char *resists_name[] = {
+"armor", "magic", "fire", "elec", 
+"cold", "conf", "acid", "drain",
+"ghit", "pois", "slow", "para",
+"t undead", "fear", "depl",
+"death", "hword", "blind"};
+#define NUM_RESISTS sizeof(resists_name)/sizeof(char *)

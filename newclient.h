@@ -6,7 +6,7 @@
 /*
     CrossFire, A Multiplayer game for X-windows
 
-    Copyright (C) 1994 Mark Wedel
+    Copyright (C) 2000 Mark Wedel
     Copyright (C) 1992 Frank Tore Johansen
 
     This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    The author can be reached via e-mail to mark@pyramid.com
+    The author can be reached via e-mail to mwedel@scruz.net
 */
 
 /* This file defines various flags that both the new client and
@@ -98,6 +98,29 @@
 #define CS_STAT_MAXGRACE	24
 #define CS_STAT_FLAGS	25
 #define CS_STAT_WEIGHT_LIM	26
+
+/* Start & end of resistances, inclusive. */
+#define CS_STAT_RESIST_START	100
+#define CS_STAT_RESIST_END	117
+#define CS_STAT_RES_PHYS	100
+#define CS_STAT_RES_MAG		101
+#define CS_STAT_RES_FIRE	102
+#define CS_STAT_RES_ELEC	103
+#define CS_STAT_RES_COLD	104
+#define CS_STAT_RES_CONF	105
+#define CS_STAT_RES_ACID	106
+#define CS_STAT_RES_DRAIN	107
+#define CS_STAT_RES_GHOSTHIT	108
+#define CS_STAT_RES_POISON	109
+#define CS_STAT_RES_SLOW	110
+#define CS_STAT_RES_PARA	111
+#define CS_STAT_TURN_UNDEAD	112
+#define CS_STAT_RES_FEAR	113
+#define CS_STAT_RES_DEPLETE	114
+#define CS_STAT_RES_DEATH	115
+#define CS_STAT_RES_HOLYWORD	116
+#define CS_STAT_RES_BLIND	117
+
 
 /* These are used with CS_STAT_FLAGS above to communicate S->C what the
  * server thinks the fireon & runon states are.
