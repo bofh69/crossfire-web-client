@@ -6,6 +6,10 @@ Install Steps:
     libraries.
     If you want png support, you will need to install the png
     library.
+    If you want sdl support ( recommended) you will need both gtk and png 
+    as well as the main SDL library and the SDL_image library, both of 
+    which can be found at http://www.libsdl.org if not already installed 
+    on your system.
 
 1)  type './configure' to configure for your OS/system.  Most options 
     normally understood by configure should be available.
@@ -18,6 +22,10 @@ Install Steps:
     --disable-gtk (there is no way to disable the cfclient at this time - 
     if you are able to compile the gtk client, you also have all the tools for
     for the cfclient).
+
+    If SDL libraries are found on your system, SDL support is automatically
+    compiled it (Note: only the gcfclient supports sdl). Use --disable-sdl
+    if you don't want this.
 
     The system will use the new sound system if available (this is a seperate
     sound daemon).  If you want to use the builtin sound system, use
@@ -37,6 +45,7 @@ Install Steps:
     set --with-ldflags, as if one is not in a standard place, the other
     probably is not either.
 
+
 2) Type 'make depend; make' to compile the client. If you get link errors,
     it may be because you have an older version of the gtk libraries.  If
     you get errors like 'can't find target client.c', your make program
@@ -45,7 +54,7 @@ Install Steps:
 3)  Type 'make install' to install the binaries.
 
 4)  The client can be run by typing 'cfclient' for the X11 version, gcfclient
-     for the gtk client.
+     for the gtk client, gcfclient -sdl for the SDL version. 
 
 ------------------------------------------------------------------------------
 Converting keybindings from old save files for use with the client:
@@ -157,3 +166,4 @@ Raphael Quinet (Raphael.Quinet@eed.ericsson.se) - Configure scripts and
 graphics
 Jacek Konieczny <jajcus@zeus.polsl.gliwice.pl> - New Sound System support.
 Eric Anderson did a lot of initial work on the client.
+Scott MacFiggen (smurf@CSUA.Berkeley.EDU) - SDL support
