@@ -52,6 +52,7 @@ extern void SendVersion(ClientSocket csock);
 extern void SendAddMe(ClientSocket csock);
 extern void SendSetFaceMode(ClientSocket csock, int mode);
 extern void init_client_vars(void);
+extern void reset_player_data(void);
 extern void reset_client_vars(void);
 /* item.c */
 extern void init_item_types(void);

@@ -197,6 +197,19 @@ void init_client_vars()
 
 }
 
+/* This is basically called each time a new player logs
+ * on - reset all the player data
+ */
+void reset_player_data()
+{
+    int i;
+
+    for (i=0; i<MAX_SKILL; i++) {
+	cpl.stats.skill_exp[i]=0;
+	cpl.stats.skill_level[i] = 0;
+    }
+}
+
 /* This is used to clear values between connections to different
  * servers.  This needs to be called after init_client_vars has
  * been called because it does not re-allocated some values.
@@ -251,5 +264,8 @@ void reset_client_vars()
 	TEST_FREE_AND_CLEAR(face_info.facesets[i].extension);
 	TEST_FREE_AND_CLEAR(face_info.facesets[i].comment);
     }
+    reset_player_data();
+    for (i=0; i<MAX_SKILL; i++)
+	skill_names[i] = NULL;
 
 }

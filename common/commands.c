@@ -628,6 +628,7 @@ void PlayerCmd(unsigned char *data, int len)
     char name[MAX_BUF];
     int tag, weight, face,i=0,nlen;
 
+    reset_player_data();
     tag = GetInt_String(data);
     i+=4;
     weight = GetInt_String(data+i);

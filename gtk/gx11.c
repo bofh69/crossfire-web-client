@@ -354,6 +354,16 @@ void do_network() {
 	      DoClient(&csocket);
 	   }
 	}
+#if ALTERNATE_MAP_REDRAW
+#ifdef HAVE_SDL
+	if (use_config[CONFIG_SDL]) sdl_gen_map(FALSE);
+	else
+#endif
+	gtk_draw_map(FALSE);
+	LOG(0, "Map redrawn\n");
+
+#endif
+
     } else {
 	printf ("locked for network recieves.\n");
     }
@@ -2132,7 +2142,7 @@ static int get_stats_display(GtkWidget *frame) {
 void draw_stats(int redraw) {
   static Stats last_stats;
   static char last_name[MAX_BUF]="", last_range[MAX_BUF]="";
-  static int init_before=0, lastbeep=0;
+  static int init_before=0, lastbeep=0, max_drawn_skill=0;
 
   float weap_sp;
   char buff[MAX_BUF];
@@ -2318,6 +2328,17 @@ void draw_stats(int redraw) {
 	    on_skill+=2;
 	}
     }
+    /* Since the number of skills we draw come and go, basically we want
+     * to erase any extra.  This shows up when switching characters, eg, character
+     * #1 knows 10 skills, #2 knows 5 - need to erase those 5 extra.
+     */
+    if (on_skill < max_drawn_skill) {
+	int k;
+
+	for (k = on_skill; k <= max_drawn_skill; k++)
+	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[k]), "");
+    }
+    max_drawn_skill = on_skill;
   } /* updatelock < 25 */
 }
 
@@ -5406,12 +5427,14 @@ void display_map_doneupdate(int redraw)
     if (updatelock < 30) {
 	updatelock++;
 
+#if !ALTERNATE_MAP_REDRAW
 #ifdef HAVE_SDL
 	if (use_config[CONFIG_SDL]) sdl_gen_map(redraw);
 	else
 #endif
 	gtk_draw_map(redraw);
 
+#endif
     } /* if updatelock */
 
 }

@@ -1,6 +1,16 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+
+common/commands.c: Add call to reset_player_data() - necessarily for
+    data to be sanely displayed for next time player logs in.
+common/init.c: add reset_player_data - clears out skill data.
+gtk/gx11.c: Add code to erase skills that current player doesn't know.
+   Some alternative map drawing code also in place, but disabled.
+gtk/gx11.h: Add ALTERNATE_MAP_REDRAW define.
+gtk/sdl.c: Add check for ALTERNATE_MAP_REDRAW.
+MSW 2003-09-12
+
 common and gtk:
    Client understand the smoothing protocol and the gtk client is
    able to draw the smoothing information.

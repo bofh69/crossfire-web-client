@@ -136,5 +136,9 @@ typedef struct {
 
 extern itemlist inv_list, look_list;
 
+/* This was just a test I put in to try different redraw methods */
+#define ALTERNATE_MAP_REDRAW	0
+
 
 #endif
+

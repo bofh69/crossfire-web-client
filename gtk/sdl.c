@@ -556,6 +556,13 @@ void sdl_gen_map(int redraw) {
     if (time_map_redraw)
 	gettimeofday(&tv1, NULL);
 
+#if !ALTERNATE_MAP_REDRAW
+    if (map_did_scroll) {
+	redraw=1;
+	map_did_scroll=0;
+    }
+#endif
+
     for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
 	for(y = 0; y<use_config[CONFIG_MAPHEIGHT]; y++) {
 	    /* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
@@ -686,7 +693,6 @@ void sdl_mapscroll(int dx, int dy)
      * mapsurface->pitch is the length of a scanline in bytes 
      * including alignment padding
      */
-
     SDL_LockSurface( mapsurface);
     if( dy < 0) {
 	int offset= mapsurface->pitch * (-dy*map_image_size);
