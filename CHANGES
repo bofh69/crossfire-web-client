@@ -2,6 +2,11 @@
 Top of CVS tree:
 
 ------------------------------------------------------------------------------
+gtk/keys.c: fix buffer overflow when binding a very long command.
+  This fixes bug #1085729.
+gtk/win32/config.h: fix S_ISDIR macro, even if not used.
+Ryo 2004-12-21
+
 gtk/win32/config.h: Add parentheses around arguments of sleep and usleep
   macros.
 Andreas Kirschbaum 2004-09-19

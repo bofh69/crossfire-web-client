@@ -124,7 +124,7 @@ int strncasecmp(const char *s1, const char *s2, int n);
 /* Sleep(x) [Win32] sleeps x milliseconds.  sleep(x) [Unix] sleeps x seconds */
 #define usleep(x) Sleep((x)/1000)
 #define sleep(x) Sleep((x)*1000)
-#define S_ISDIR(x) (x && _S_IFDIR)
+#define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
 
 /* For GTK 2.2 Compatibility */
 #define GTK_WINDOW_DIALOG GTK_WINDOW_TOPLEVEL

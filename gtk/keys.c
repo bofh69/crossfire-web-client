@@ -626,7 +626,8 @@ static void show_keys(int allbindings)
 
 void bind_key(char *params)
 {
-    char buf[MAX_BUF + 16];
+    /* Must have enough room for MAX_BUF and 'Push key to bind to ''.' */
+    char buf[MAX_BUF + 20];
 
     if (!params) {
 	draw_info("Usage: bind [-nfre] {<commandline>/commandkey/firekey{1/2}/runkey{1/2}/",NDI_BLACK);
