@@ -6,14 +6,14 @@
 #
 %define Name crossfire
 %define extra client
-%define version 1.3.1
-%define sndversion 1.3.1
-%define release 3
+%define version 1.5.0
+%define sndversion 1.5.0
+%define release 1
 %define prefix /usr/X11R6
 
 Name: %{Name}-%{extra}
 Version: %{version}
-Release: realtime.3
+Release: 1.realtime
 Summary: Client for connecting to crossfire servers.
 Group: Amusements/Games/Crossfire
 Copyright: GPL
@@ -25,12 +25,12 @@ Source0: %{name}-%{version}.tar.bz2
 Source1: %{name}-sounds-%{version}.tar.bz2
 Source2: %{name}-images-%{version}.tar.bz2
 Provides: crossfire-client
-Epoch: 1
+Requires: SDL
+Requires: SDL_image
+BuildRequires: SDL-devel
+Requires: SDL_image-devel
+Epoch: 4
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
-#
-# To setup appropriate KDE and GNOME menu options
-#
-Requires: tclug-menu
 
 %description
 Crossfire is a highly graphical role-playing adventure game with
@@ -68,67 +68,62 @@ GTK version of the crossfire client
 #gnome version of the crossfire client
 
 %prep
-%setup -a 1 -a 2 -n %{Name}-client-%{version}
+%setup -q -a 1 -a 2 -n %{Name}-client-%{version}
 
 %build
 chmod 755 configure
 %configure --datadir=/usr/share/games/crossfire \
 	--with-sound-dir=/usr/share/sounds/crossfire
 
-%{__make} %{?_smp_mflags}
+make %{?_smp_mflags}
 
 %install
-rm -rf %{buildroot}
-
-%{__install} -d %{buildroot}%{_datadir}/sounds/crossfire
+[ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 #
-# Redhat and Ximian GNOME
+# Sounds
 #
-%{__install} -d %{buildroot}%{_datadir}/gnome/apps/Games/Tclug
-%{__install} -d %{buildroot}%{_datadir}/gnome/ximian/Programs/Games/Tclug
-%{__install} -d %{buildroot}%{_datadir}/pixmaps
-%{__install} -d %{buildroot}%{_datadir}/games/crossfire/crossfire-client
+install -d %{buildroot}%{_datadir}/sounds/crossfire
+install %{name}-sounds-%{version}/*.raw %{buildroot}%{_datadir}/sounds/crossfire
 #
-# KDE3
+# Client images cd lib; adm/collect_images -archive
 #
-%{__install} -d %{buildroot}%{_datadir}/applnk/Games/Adventure
-%{__install} -d %{buildroot}%{_datadir}/icons/hicolor/16x16/apps
-%{__install} -d %{buildroot}%{_datadir}/icons/hicolor/32x32/apps
-%{__install} -d %{buildroot}%{_datadir}/icons/hicolor/48x48/apps
-%{__install} -d %{buildroot}%{_datadir}/icons/locolor/16x16/apps
-%{__install} -d %{buildroot}%{_datadir}/icons/locolor/32x32/apps
-%{__install} -d %{buildroot}%{_datadir}/icons/locolor/48x48/apps
-
-%{__make} install \
-    DESTDIR=%{buildroot} \
-    bindir=%{buildroot}%{_bindir} \
-    mandir=%{buildroot}%{_mandir}/man1
-
-%{__install} %{name}-sounds-%{version}/*.raw %{buildroot}%{_datadir}/sounds/crossfire
-
-%{__install}  %{name}-images-%{version}/* %{buildroot}%{_datadir}/games/crossfire/crossfire-client
-
-%{__install} -c x11/cfclient.man %{buildroot}%{_mandir}/man1/cfclient.1
-%{__install} -c gtk/gcfclient.man %{buildroot}%{_mandir}/man1/gcfclient.1
-
-# Not supported yet
-#%{__install} -c gnome/gnome-cfclient.man %{buildroot}/usr/X11R6/man/man1/gnome-cfclient.1
-#
-# Gnome
-#
-%{__install} -c gnome/crossfire-client.desktop %{buildroot}%{_datadir}/gnome/apps/Games/Tclug/
-%{__install} -c gnome/crossfire-client.desktop %{buildroot}%{_datadir}/gnome/ximian/Programs/Games/Tclug/
-%{__install} -c pixmaps/48x48.png %{buildroot}%{_datadir}/pixmaps/crossfire-client.png
+install -d %{buildroot}%{_datadir}/games/crossfire/%{name}
+install %{name}-images-%{version}/* %{buildroot}%{_datadir}/games/crossfire/%{name}
 #
 # KDE
 #
-%{__install} -m 644 -c gnome/crossfire-client.desktop %{buildroot}%{_datadir}/applnk/Games/Adventure/crossfire.desktop
-%{__install} -m 644 pixmaps/16x16.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/32x32.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/48x48.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/16x16.png %{buildroot}%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/32x32.png %{buildroot}%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/48x48.png %{buildroot}%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
+install -d %{buildroot}%{_datadir}/applnk/Games/Adventure
+install -d %{buildroot}%{_datadir}/icons/hicolor/16x16/apps
+install -d %{buildroot}%{_datadir}/icons/hicolor/32x32/apps
+install -d %{buildroot}%{_datadir}/icons/hicolor/48x48/apps
+install -d %{buildroot}%{_datadir}/icons/locolor/16x16/apps
+install -d %{buildroot}%{_datadir}/icons/locolor/32x32/apps
+install -d %{buildroot}%{_datadir}/icons/locolor/48x48/apps
+
+#%{__make} install \
+#    DESTDIR=%{buildroot} \
+#    bindir=%{buildroot}%{_bindir} \
+#    mandir=%{buildroot}%{_mandir}/man1
+
+%makeinstall mandir=%{buildroot}%{_mandir}/man1
+
+#
+# KDE
+#
+install -m 644 -c gtk/crossfire-client.desktop \
+	%{buildroot}%{_datadir}/applnk/Games/Adventure/crossfire.desktop
+install -m 644 pixmaps/16x16.png \
+	%{buildroot}%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
+install -m 644 pixmaps/32x32.png \
+	%{buildroot}%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
+install -m 644 pixmaps/48x48.png \
+	%{buildroot}%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
+install -m 644 pixmaps/16x16.png \
+	%{buildroot}%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
+install -m 644 pixmaps/32x32.png \
+	%{buildroot}%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
+install -m 644 pixmaps/48x48.png \
+	%{buildroot}%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
 
 
 %post
@@ -136,11 +131,12 @@ rm -f %{_datadir}/gnome/apps/Games/crossfire.desktop
 rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 %clean
-rm -rf %{buildroot}
+[ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
 # Cannot figure out how to get just the sounds to build as noarch, so this
 # is a hack to make it work
-mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm %{_rpmdir}/noarch/%{Name}-client-sounds-%{version}-%{release}.noarch.rpm
+mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm \
+	%{_rpmdir}/noarch/%{Name}-client-sounds-%{version}-%{release}.noarch.rpm
 
 %files
 %defattr(644,root,root,755)
@@ -153,21 +149,19 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %doc CHANGES COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/gcfclient
 %{_mandir}/man1/gcfclient.1*
-%dir %{_datadir}/games/crossfire/crossfire-client
-%attr(0444,root,root) %{_datadir}/games/crossfire/crossfire-client/*
-%{_datadir}/gnome/apps/Games/Tclug/*.desktop
-%{_datadir}/gnome/ximian/Programs/Games/Tclug/*.desktop
-%{_datadir}/pixmaps/crossfire-client.png
+%dir %{_datadir}/games/crossfire/%{name}
+%attr(0444,root,root) %{_datadir}/games/crossfire/%{name}/*
+
 #
 # KDE
 #
 %{_datadir}/applnk/Games/Adventure/*.desktop
-%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
-%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
-%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
-%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
-%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
-%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
+%{_datadir}/icons/hicolor/16x16/apps/%{name}.png
+%{_datadir}/icons/hicolor/32x32/apps/%{name}.png
+%{_datadir}/icons/hicolor/48x48/apps/%{name}.png
+%{_datadir}/icons/locolor/16x16/apps/%{name}.png
+%{_datadir}/icons/locolor/32x32/apps/%{name}.png
+%{_datadir}/icons/locolor/48x48/apps/%{name}.png
 
 
 # Not supported yet
@@ -186,6 +180,32 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %attr(755,root,root) %{_bindir}/cfsndserv
 
 %changelog
+* Wed Feb 26 2003 Bob Tanner <tanner@real-time.com>
++ crossfire-client-1.5.0-1.realtime
+- new release 1.5.0
+
+* Wed Feb 20 2003 Bob Tanner <tanner@real-time.com>
++ crossfire-client-20030220CVS-1.realtime
+- MSW: Fix bug in rescale_rgba_data() that was potentially causing a 1 byte
+  overrun of malloc'd data, that could result in crashes or other odd problems.
+
+* Wed Feb 19 2003 Bob Tanner <tanner@real-time.com>
++ crossfire-client-20030219CVS-1.realtime
+- upgrade to cvs snapshot from 02/19/2003
+- reworked configure and build to take advantage the new autoconf stuff
+
+* Sat Sep 28 2002 Bob Tanner <tanner@real-time.com>
+  + crossfire-client-1.4.0-realtime.1
+  - upgrade to 1.4.0
+  - http://sourceforge.net/project/shownotes.php?group_id=13833&release_id=110812
+
+* Wed Jul 25 2002 Bob Tanner <tanner@real-time.com>
+  + crossfire-client-1.3.1-realtime.4
+  - fixed crossfire-client.desktop entry
+  - fix for init_SDL bug
+  - added Requires: SDL, SDL_image
+  - added BuildRequires: SDL-devel, SDL_image-devel
+
 * Wed Jul 10 2002 Bob Tanner <tanner@real-time.com>
   + crossfire-client-1.3.1-realtime.3
   - fixed location of sound files [kbulgrien@worldnet.att.net]
@@ -199,7 +219,7 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
   + crossfire-client-1.3.1-realtime.1
   - released 1.3.1 client
   - BUG Fix 
-    http://mailman.real-time.com/pipermail/crossfire-devel/2002-July/003273.html  - Enhancement
+    http://mailman.real-time.com/pipermail/crossfire-devel/2002-July/003273.html     - Enhancement
     http://www.geocrawler.com/lists/3/SourceForge/7318/0/9103079/
     http://www.geocrawler.com/lists/3/SourceForge/7318/0/9093313/
 
