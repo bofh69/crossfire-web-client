@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001-2003 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -2981,6 +2981,7 @@ void display_mapcell_pixmap(int ax,int ay)
 	    XSetForeground(display, gc_xpm[XPMGCS-1], discolor[0].pixel);
 	    XSetClipMask(display, gc_xpm[XPMGCS-1], dark2);
 	    XCopyPlane(display, dark2, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
+	    xpm_masks[XPMGCS-1] = dark2;
 	}
 	else if (use_config[CONFIG_DARKNESS] && the_map.cells[mx][my].have_darkness) {
 	    XSetClipOrigin(display, gc_xpm[XPMGCS-1], 0, 0);
@@ -2988,14 +2989,17 @@ void display_mapcell_pixmap(int ax,int ay)
 	    if (the_map.cells[mx][my].darkness > 192) {
 		XSetClipMask(display, gc_xpm[XPMGCS-1], dark1);
 		XCopyPlane(display, dark1, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
+		xpm_masks[XPMGCS-1] = dark1;
 	    }
 	    else if (the_map.cells[mx][my].darkness > 128) {
 		XSetClipMask(display, gc_xpm[XPMGCS-1], dark2);
 		XCopyPlane(display, dark2, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
+		xpm_masks[XPMGCS-1] = dark2;
 	    }
 	    else if (the_map.cells[mx][my].darkness > 64) {
 		XSetClipMask(display, gc_xpm[XPMGCS-1], dark3);
 		XCopyPlane(display, dark3, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
+		xpm_masks[XPMGCS-1] = dark3;
 	    }
 	}
 	XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,image_size,image_size,

@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001-2003 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1470,9 +1470,9 @@ void display_mapscroll(int dx,int dy)
 	    {
 		if( x < 0 || y < 0 || x >= the_map.x ||	y >= the_map.y)
 		    continue;
-		    
-		if (use_config[CONFIG_FOGWAR])
-		    the_map.cells[x][y].cleared= 1;
+
+		the_map.cells[x][y].cleared= 1;
+		the_map.cells[x][y].need_update= 1;
 	    }
 	} /* for y */
     } /* for x */

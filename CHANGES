@@ -2,6 +2,19 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: Change skill experience display - instead of skill
+   name and exp/level being the same string and same table element,
+   add additional columns, so the skill name is in one, the exp/level
+   in another.  IMO, this makes for cleaner display, as the exp
+   totals for the different skills then line up better.  Also, fix
+   some display bug when new skills need to be displayed.
+x11/x11.c: Fix bug where stipple patterns where being improperly
+   displayed/retained in fog of war and darkness modes.
+x11/xutil.c: always set cleared and need_update flag for map scrolls -
+   fixes bug of big objects (griffons for example) not being drawn
+   properly.
+MSW 2003-05-25
+
 x11/x11.c: Add darkness and fog of war tiling stipling, so it is now
    clearer what spaces are dark and which spaces are fog of war
    spaces.  Add -fogofwar and -nofogofwar command line options.

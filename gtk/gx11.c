@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001-2003 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -149,7 +149,7 @@ typedef struct {
   GtkWidget *speed;
   GtkWidget *food;
   GtkWidget *skill;
-  GtkWidget *skill_exp[MAX_SKILL];
+  GtkWidget *skill_exp[MAX_SKILL*2];
 } StatWindow;
 
 typedef struct {
@@ -1991,7 +1991,6 @@ static int get_stats_display(GtkWidget *frame) {
     GtkWidget *stats_box_6;
     GtkWidget *stats_box_7;
     GtkWidget *table;
-    char    buf[MAX_BUF];
     int i,x,y;
   
 
@@ -2100,20 +2099,21 @@ static int get_stats_display(GtkWidget *frame) {
     gtk_widget_show (stats_box_7);
 
 
-    /* Start of experience display - we do it in a 2 X 3 array.  Use a table
+    /* Start of experience display - we do it in a 4 x 4 array.  Use a table
      * so that spacing is uniform - this should look better.
+     * Change it so we use one field for the name, and the other for exp -
+     * in this way, the values line up better.
      */
 
-    table = gtk_table_new (4, 2, TRUE);
+    table = gtk_table_new (4, 4, FALSE);
     x=0;
     y=0;
     /* this is all the same - we just pack it in different places */
-    for (i=0; i<MAX_SKILL; i++) {
-	sprintf(buf,"%s: %d (%d)", skill_names[i], 0, 0);
+    for (i=0; i<MAX_SKILL*2; i++) {
 	statwindow.skill_exp[i] = gtk_label_new("");
 	gtk_table_attach(GTK_TABLE(table), statwindow.skill_exp[i], x, x+1, y, y+1, GTK_FILL, 0, 10, 0);
 	x++;
-	if (x==2) { x=0; y++; }
+	if (x==4) { x=0; y++; }
 	gtk_widget_show(statwindow.skill_exp[i]);
     }
     gtk_box_pack_start (GTK_BOX (stats_vbox), table, TRUE, TRUE, 0);
@@ -2305,13 +2305,18 @@ void draw_stats(int redraw) {
 	 * and the player has some exp in the skill - don't draw
 	 * all 30 skills for no reason.
 	 */
-	if ((redraw || cpl.stats.skill_level[i] != last_stats.skill_level[i] ||
-	    cpl.stats.skill_exp[i] != last_stats.skill_exp[i]) &&
+	if ((redraw || cpl.stats.skill_exp[i] != last_stats.skill_exp[i]) &&
 	    skill_names[i] && cpl.stats.skill_exp[i]){
-	    sprintf(buff,"%s: %lld (%d)", skill_names[i], cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
+	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), skill_names[i]);
+	    sprintf(buff,"%lld (%d)", cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
 	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
 	    last_stats.skill_level[i] = cpl.stats.skill_level[i];
 	    last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
+	} else if (cpl.stats.skill_exp[i]) {
+	    /* don't need to draw the skill, but need to update the position
+	     * of where to draw the next one.
+	     */
+	    on_skill+=2;
 	}
     }
   } /* updatelock < 25 */
