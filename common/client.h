@@ -150,7 +150,8 @@ typedef enum rangetype {
 #define CONFIG_FOODBEEP	    23
 #define CONFIG_DARKNESS	    24
 #define CONFIG_PORT	    25		/* Not sure if useful at all anymore */
-#define CONFIG_NUMS	    26
+#define CONFIG_GRAD_COLOR   26
+#define CONFIG_NUMS	    27
 
 /* CONFIG_LIGHTING can have several possible values - set them accordingly */
 #define CFG_LT_TILE	    1

@@ -2,6 +2,34 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+This commit adds graduated colored statbars to the gtk client.  What
+this means is that the color of the statbar goes smoothly from red to yellow
+to green depending on what percentage of your hp/sp/grace/food is compared
+to your maximum.  To use this, you need to go to the config pane and hit
+the 'gradually change stat bar color' button.
+common/client.h:  Add CONFIG_ value for this, increase CONFIG_NUMS.
+common/init.c: Add "grad_color_bars" to config_names array.
+gtk/config.c: Add button to select this behaviour.  Move all the 
+   special config checks to beyond the for loop that checks the values
+   in apply_config().   There is no need to check all the values on each
+   loop.
+gtk/gtkproto.h: Rebuilt for inclusion of reset_stat_bars()
+gtk/gx11.c: Add two styles to the Vitals (stat bar) structure so we can
+   alternate between them.  Default is to initialize one for green and the
+   other for red (in non graduated color mode).  This should be more efficient
+   then allocating a new one each time we need to change the value.  add
+   reset_stat_bars() to reset the colors of the styles to red and green -
+   needed because the graduated color code will change the colors of these.
+   Remove code that freed these styles.  Modify draw_stat_bar() to draw them
+   in color or simple mode, in simple mode, we now just need to use the
+   appropriate style and not allocated a new one.  Modify
+   draw_message_window() to pass bar values greater than 1 to the
+   draw_stat_bar() function - in graduated color mode, we draw such values
+   with a blue tinting (more blue the more over it is).  draw_stat_bar() knows
+   how to properly deal with these higher values.
+MSW 2002-07-04
+   
+
 gtk/config.c: Fix setting of radio button set state - it was always setting
    the same (last) radio button as the active button, which did not match
    state - now it sets the proper button active - this is for the lighting

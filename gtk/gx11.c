@@ -207,7 +207,7 @@ typedef struct {
 
 typedef struct {
   GtkWidget *bar;
-  GtkStyle *style;
+  GtkStyle *style[2];
   int state;
 } Vitals;
 
@@ -2334,11 +2334,34 @@ void create_stat_bar (GtkWidget *mtable, gint row, gchar *label, gint bar, GtkWi
 
   vitals[bar].state=1;
 
-  vitals[bar].style = gtk_style_new ();
-  vitals[bar].style->bg[GTK_STATE_PRELIGHT] = gdk_green;
-  gtk_widget_set_style (vitals[bar].bar, vitals[bar].style);
+  vitals[bar].style[0] = gtk_style_new ();
+  vitals[bar].style[0]->bg[GTK_STATE_PRELIGHT] = gdk_green;
+  gtk_widget_set_style (vitals[bar].bar, vitals[bar].style[0]);
+  vitals[bar].style[1] = gtk_style_new ();
+  vitals[bar].style[1]->bg[GTK_STATE_PRELIGHT] = gdk_red;
+
 }
 
+/* This is used when going from gradiated color stat bars back
+ * to the normal - we need to reset the colors.
+ */
+void reset_stat_bars() {
+    int i;
+
+    for (i=0; i<4; i++) {
+	vitals[i].style[0]->bg[GTK_STATE_PRELIGHT] = gdk_green;
+	vitals[i].style[1]->bg[GTK_STATE_PRELIGHT] = gdk_red;
+	/* need to do this double switch so that the color gets updated. Otherwise,
+	 * if we are currently using style[0] to draw, the update above won't
+	 * have any effect.
+	 */
+	gtk_widget_set_style(vitals[i].bar, vitals[i].style[1]);
+	gtk_widget_set_style(vitals[i].bar, vitals[i].style[0]);
+	vitals[i].state = 0;
+	
+    }
+    draw_message_window(1);
+}
 
 static int get_message_display(GtkWidget *frame) {
   GtkWidget *plabel;
@@ -2386,42 +2409,61 @@ static int get_message_display(GtkWidget *frame) {
   gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[1].bar), 1);
   gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[2].bar), 1);
   gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[3].bar), 1);
-  gtk_style_unref (vitals[0].style); 
-  gtk_style_unref (vitals[1].style); 
-  gtk_style_unref (vitals[2].style); 
-  gtk_style_unref (vitals[3].style); 
-  
 
   gtk_widget_show (mtable);
   gtk_widget_show (vbox);
-   return 0;
+  return 0;
 }
-
-#define MAX_BARS_MESSAGE 80
 
 static void draw_stat_bar(int bar_pos, float bar, int is_alert)
 {
- if (vitals[bar_pos].state!=is_alert) {
-    if (is_alert) {
-      vitals[bar_pos].style = gtk_style_new ();
-      vitals[bar_pos].style->bg[GTK_STATE_PRELIGHT] = gdk_red;
-      gtk_widget_set_style (vitals[bar_pos].bar, vitals[bar_pos].style);
-      gtk_style_unref (vitals[bar_pos].style); 
-      vitals[bar_pos].state=is_alert;
+    if (use_config[CONFIG_GRAD_COLOR]) {
+	/* In this mode, the color of the stat bar were go between red and green
+	 * in a gradual style.  This, at 50% of the value, the stat bar will be
+	 * drawn in yellow.  Pure fluff I know.
+	 */
+	int nstyle;
+	GdkColor ncolor;
+	/* We need to figure out what style to use.  We can't call gtk_widget_set_style
+         * on the widget currently in use - doing so results in no effect.
+	 * 53247 is float value of 0xcfff, which is the value used in the gdk_red
+	 * and gdk_green values.  We double the values, so that it scales properly -
+	 * at .5, it then matches 53247, so the scaling appears proper.
+         */
+	if (gtk_widget_get_style(vitals[bar_pos].bar) == vitals[bar_pos].style[0]) nstyle=1;
+	else nstyle=0;
+	/* We are 'supercharged' - scale to max of 2.0 for pure blue */
+	if (bar > 1.0) {
+	    if (bar>2.0) bar=2.0;   /* Doesn't affect display, just are calculations */
+	    ncolor.blue = 65535.0 * (bar - 1.0);
+	    ncolor.green = 53247.0 * (2.0 - bar);
+	    ncolor.red = 0;
+	    bar=1.0;
+	} else {
+	    /* Use 0.5 as the adjustment - basically, if greater than 0.5,
+	     * we have pure green with lesser amounts of red.  If less than
+	     * 0.5, we have pure red with lesser amounts of green.
+	     */
+	    if (bar < 0.0) bar=0.0;  /* Like above, doesn't affect display */
+	    if (bar >= 0.5) ncolor.green = 0xcfff;
+	    else ncolor.green = 106494.0 * bar;
+	    if (bar <= 0.5) ncolor.red = 0xcfff;
+	    else ncolor.red = 106494.0 * (1.0 - bar);
+	    ncolor.blue = 0;
+	}
+	vitals[bar_pos].style[nstyle]->bg[GTK_STATE_PRELIGHT] = ncolor;
+	gtk_widget_set_style(vitals[bar_pos].bar, vitals[bar_pos].style[nstyle]);
+	vitals[bar_pos].state=is_alert;
+    } else {
+	if (bar>1.0) bar=1.0;
+	if (is_alert) is_alert=1;	/* Safety check */
+	if (vitals[bar_pos].state!=is_alert) {
+	    gtk_widget_set_style (vitals[bar_pos].bar, vitals[bar_pos].style[is_alert]);
+	    vitals[bar_pos].state=is_alert;
+	}
     }
-    else {
-      vitals[bar_pos].style = gtk_style_new ();
-      vitals[bar_pos].style->bg[GTK_STATE_PRELIGHT] = gdk_green;
-      gtk_widget_set_style (vitals[bar_pos].bar, vitals[bar_pos].style);
-      gtk_style_unref (vitals[bar_pos].style);
-      vitals[bar_pos].state=0;
-    }
-  }
- /* if (bar==0) {
-   bar=(float)0.01;
- }*/
- gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[bar_pos].bar),bar );
- gtk_widget_draw (vitals[bar_pos].bar, NULL);
+    gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[bar_pos].bar),bar );
+    gtk_widget_draw (vitals[bar_pos].bar, NULL);
 }
 
 /* This updates the status bars.  If redraw, then redraw them
@@ -2458,14 +2500,8 @@ void draw_message_window(int redraw) {
 	scrollsize_hp=bar;
 	scrollhp_alert=is_alert;
 
-	/* draw sp bar.  spellpoints can go above max
-	 * spellpoints via supercharging with the transferrance spell,
-	 * or taking off items that raise max spellpoints.
-	 */
-	if (cpl.stats.sp>cpl.stats.maxsp)
-	    bar=(float)1;
-	else
-	    bar=(float)cpl.stats.sp/cpl.stats.maxsp;
+	/* draw sp bar.  Let draw_stats_bar handle high values */
+	bar=(float)cpl.stats.sp/cpl.stats.maxsp;
 	if(bar<=0) 
 	    bar=(float)0.01;
 
@@ -2478,18 +2514,11 @@ void draw_message_window(int redraw) {
 	scrollsp_alert=is_alert;
 
 	/* draw grace bar. grace can go above max or below min */
-	if (cpl.stats.grace>cpl.stats.maxgrace)
-	    bar = MAX_BARS_MESSAGE;
-	else
-	    bar=(float)cpl.stats.grace/cpl.stats.maxgrace;
+	bar=(float)cpl.stats.grace/cpl.stats.maxgrace;
 	if(bar<=0)
 	    bar=(float)0.01;
 
-	if (bar>1.0) {
-	    bar=(float)1.0;
-	}
 	is_alert=(cpl.stats.grace <= cpl.stats.maxgrace/4);
-
 
 	if (redraw || scrollsize_grace!=bar || scrollgrace_alert!=is_alert)
 	    draw_stat_bar(2, bar, is_alert);

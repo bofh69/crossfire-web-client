@@ -89,7 +89,7 @@
  * appropraite thing (eg, stop/start sound daemon, etc)
  */
 
-#define MAX_BUTTONS	    28
+#define MAX_BUTTONS	    29
 #define RBUTTON	    1
 #define CBUTTON	    2
 #define SEPERATOR   3	    /* Seperator in the window */
@@ -131,6 +131,8 @@ CButtons cbuttons[MAX_BUTTONS] = {
     "Echo Bound Commands"},
 {NULL, 	    CBUTTON,	    CONFIG_FASTTCP,	0,
     "Fast TCP Send (May improve performance at expense\n of outgoing bandwidth)"},
+{NULL, 	    CBUTTON,	    CONFIG_GRAD_COLOR,	FLAG_UPDATE,
+    "Gradually change stat bar color based on value of the stat.\nThis option will result in some extra CPU usage."},
 {NULL, 	    CBUTTON,	    CONFIG_POPUPS,	FLAG_UPDATE,
     "Popup Windows"},
 {NULL, 	    CBUTTON,	    CONFIG_SHOWICON,	FLAG_UPDATE,
@@ -239,53 +241,6 @@ void applyconfig () {
     for (onbutton =0; onbutton < MAX_BUTTONS; onbutton++) {
 	if (cbuttons[onbutton].type == CBUTTON) {
 	    set_config_value(onbutton, GTK_TOGGLE_BUTTON (cbuttons[onbutton].widget)->active);
-
-	    /* User has toggled splitwindows - adjust accordingly */
-	    if (IS_DIFFERENT(CONFIG_SPLITWIN)) {
-		use_config[CONFIG_SPLITWIN] = want_config[CONFIG_SPLITWIN];
-		toggle_splitwin(want_config[CONFIG_SPLITWIN]);
-	    }
-	    else if (IS_DIFFERENT(CONFIG_SOUND)) {
-		int tmp;
-		if (want_config[CONFIG_SOUND]) {
-		    tmp = init_sounds();
-		    if (csocket.fd)
-			cs_print_string(csocket.fd, "setup sound %d", tmp >= 0);
-		} else {
-		    if (csocket.fd)
-			cs_print_string(csocket.fd, "setup sound 0");
-		}
-		use_config[CONFIG_SOUND] = want_config[CONFIG_SOUND];
-	    }
-	    else if (IS_DIFFERENT(CONFIG_COLORINV)) {
-		draw_all_list(&inv_list);
-		draw_all_list(&look_list);
-		use_config[CONFIG_COLORINV] = want_config[CONFIG_COLORINV];
-	    }
-	    else if (IS_DIFFERENT(CONFIG_TOOLTIPS)) {
-		if (want_config[CONFIG_TOOLTIPS]) gtk_tooltips_enable(tooltips);
-		else gtk_tooltips_disable(tooltips);
-		use_config[CONFIG_TOOLTIPS] = want_config[CONFIG_TOOLTIPS];
-	    }
-	    else if (IS_DIFFERENT(CONFIG_FASTTCP)) {
-#ifdef TCP_NODELAY
-		int q = want_config[CONFIG_FASTTCP];
-
-		if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1)
-		    perror("TCP_NODELAY");
-#endif
-		use_config[CONFIG_FASTTCP] = want_config[CONFIG_FASTTCP];
-	    }
-	    else if (IS_DIFFERENT(CONFIG_SHOWICON)) {
-		inv_list.show_icon = want_config[CONFIG_SHOWICON];
-		draw_all_list(&inv_list);
-		use_config[CONFIG_SHOWICON] = want_config[CONFIG_SHOWICON];
-	    }
-
-	    /* Nothing special needed for foodbeep, cache images, colored text,
-	     * download all images, echo bindings, nopopups, sdlimage, splitinfo,
-	     * showgrid, fogwar
-	     */
 	} else if (cbuttons[onbutton].type & SPIN) {
 	    set_config_value(onbutton, gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(cbuttons[onbutton].widget)));
 	    /*
@@ -305,7 +260,52 @@ void applyconfig () {
 	}
     } /* for onbutton ... loop */
 
-    /* Can't really do anything on this until we've gotten all the values */
+
+    /* User has toggled splitwindows - adjust accordingly */
+    if (IS_DIFFERENT(CONFIG_SPLITWIN)) {
+	use_config[CONFIG_SPLITWIN] = want_config[CONFIG_SPLITWIN];
+	toggle_splitwin(want_config[CONFIG_SPLITWIN]);
+    }
+    if (IS_DIFFERENT(CONFIG_SOUND)) {
+	int tmp;
+	if (want_config[CONFIG_SOUND]) {
+	    tmp = init_sounds();
+	    if (csocket.fd)
+		cs_print_string(csocket.fd, "setup sound %d", tmp >= 0);
+	} else {
+	    if (csocket.fd)
+		cs_print_string(csocket.fd, "setup sound 0");
+	}
+	use_config[CONFIG_SOUND] = want_config[CONFIG_SOUND];
+    }
+    if (IS_DIFFERENT(CONFIG_COLORINV)) {
+	draw_all_list(&inv_list);
+	draw_all_list(&look_list);
+	use_config[CONFIG_COLORINV] = want_config[CONFIG_COLORINV];
+    }
+    if (IS_DIFFERENT(CONFIG_TOOLTIPS)) {
+	if (want_config[CONFIG_TOOLTIPS]) gtk_tooltips_enable(tooltips);
+	else gtk_tooltips_disable(tooltips);
+	use_config[CONFIG_TOOLTIPS] = want_config[CONFIG_TOOLTIPS];
+    }
+    else if (IS_DIFFERENT(CONFIG_FASTTCP)) {
+#ifdef TCP_NODELAY
+	int q = want_config[CONFIG_FASTTCP];
+
+	if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1)
+	    perror("TCP_NODELAY");
+#endif
+	use_config[CONFIG_FASTTCP] = want_config[CONFIG_FASTTCP];
+    }
+    if (IS_DIFFERENT(CONFIG_SHOWICON)) {
+	inv_list.show_icon = want_config[CONFIG_SHOWICON];
+	draw_all_list(&inv_list);
+	use_config[CONFIG_SHOWICON] = want_config[CONFIG_SHOWICON];
+    }
+    if (!use_config[CONFIG_GRAD_COLOR]) {
+	reset_stat_bars();
+    }
+
     if (lighting) {
 	if (want_config[CONFIG_LIGHTING] != lighting) {
 	    want_config[CONFIG_LIGHTING] = lighting;

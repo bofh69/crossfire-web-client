@@ -17,6 +17,7 @@ extern void draw_info(const char *str, int color);
 extern void draw_color_info(int colr, const char *buf);
 extern void draw_stats(int redraw);
 extern void create_stat_bar(GtkWidget *mtable, gint row, gchar *label, gint bar, GtkWidget **plabel);
+extern void reset_stat_bars(void);
 extern void draw_message_window(int redraw);
 extern void draw_all_list(itemlist *l);
 extern void open_container(item *op);

@@ -41,7 +41,7 @@ NULL, "colorinv", "colortext", "download_all_images", "echo_bindings",
 "fasttcpsend", "command_window", "cacheimages", "fog_of_war", "iconscale",
 "mapscale", "popups", "sdl", "showicon", "tooltips", "sound", "splitinfo",
 "split", "show_grid", "lighting", "trim_info_window",
-"map_width", "map_height", "foodbeep", "darkness", "port",
+"map_width", "map_height", "foodbeep", "darkness", "port", "grad_color_bars"
 };
 
 sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
