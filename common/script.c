@@ -192,7 +192,7 @@ static int emulate_read(HANDLE fd, char *buf, int len)
    return(dwBytesRead);
 }
 
-static int emulate_write(HANDLE fd, char *buf, int len)
+static int emulate_write(HANDLE fd, const char *buf, int len)
 {
    DWORD dwBytesWritten;
    BOOL	rc;
@@ -372,17 +372,20 @@ void script_init(const char *cparams)
 #else /* WIN32 */
 
    char *name,*args;
+   char params[ MAX_BUF ];
    SECURITY_ATTRIBUTES saAttr;
    PROCESS_INFORMATION piProcInfo;
    STARTUPINFO siStartupInfo;
    HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, hChildStdoutRd;
    HANDLE hChildStdoutWr, hChildStdoutRdDup, hSaveStdin, hSaveStdout;
 
-   if ( !params )
+   if ( !cparams )
         {
         draw_info( "Please specifiy a script to launch!", NDI_RED );
         return;
         }
+
+   strncpy(params, cparams, MAX_BUF-1);
 
    /* Get name and args */
    name=params;

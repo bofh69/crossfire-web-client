@@ -129,10 +129,10 @@ int strncasecmp(const char *s1, const char *s2, int n);
 /* For GTK 2.2 Compatibility */
 #define GTK_WINDOW_DIALOG GTK_WINDOW_TOPLEVEL
 #define GC GdkGC
-/* To avoid const issues with GTK widgets */
-/*#define G_DISABLE_CONST_RETURNS*/
 
-#endif
+#define snprintf _snprintf
+
+#endif /* WIN32 */
 
 #ifdef _MSC_VER
 /* Ignore spurious warnings */

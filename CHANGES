@@ -3,6 +3,11 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+common/script.c: fix broken script with a parameter change.
+gtk/help.c: use 'const gchar' instead of 'gchar' as widget text.
+gtk/win32/config.h: snprintf => _snprintf
+Ryo 2005-02-12
+
 Makefile.in, common/Makefile.in, gnome/Makefile.in, gtk/Makefile.in, 
     sound-src/Makefile.in, x11/Makefile.in: Add ${DESTDIR} prefix for
     installation into other directories.  Patch from sourcefore #1061895

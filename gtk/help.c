@@ -131,7 +131,7 @@ static void set_default_text() {
 
 static void chelp_entry_callback(GtkWidget * cargo_cult_ignored, GtkWidget * topic_entry) {
     char buf[MAX_BUF];
-    gchar * topic;
+    const gchar * topic;
     const ConsoleCommand * cc;
     /* LOG(LOG_INFO, "chelp_entry_callback", "Got %s", gtk_entry_get_text(GTK_ENTRY(topic_entry))); */
 
