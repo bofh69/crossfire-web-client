@@ -356,12 +356,12 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	fprintf(stderr,"Invalid face number: %d @ %d, %d\n", face, x, y);
 	return;
     }
-    if (pixmaps[face].bitmap == 0) {
-	fprintf (stderr, "gen_draw_face: Requested to draw null pixmap (num=%d)\n",
+    if (display_mode == Pix_Display) {
+	if (pixmaps[face].bitmap == 0) {
+	    fprintf (stderr, "gen_draw_face: Requested to draw null pixmap (num=%d)\n",
 		 face);
 	return;
-    }
-    if (display_mode == Pix_Display) {
+	}
 	if (iscolor) {
 	    XSetForeground(display,gc_game,discolor[pixmaps[face].fg].pixel);
 	    XSetBackground(display,gc_game,discolor[pixmaps[face].bg].pixel);
@@ -2839,7 +2839,9 @@ void display_newpixmap(long face,char *buf,long buflen)
     error = XpmCreatePixmapFromBuffer(display, win_game, buf,
 		&pixmap, &mask, &xpm_attr);
 
-/*  printf("newpixmap #%ld: (%ld,%ld)\n",face,pixmap,mask);*/
+    if (error) fprintf(stderr,"Got error %d on XpmCreate\n", error);
+
+/*    printf("newpixmap #%ld: (%ld,%ld)\n",face,pixmap,mask);*/
     pixmaps[face].pixmap = pixmap;
     pixmaps[face].mask = mask;
     newimages++;
