@@ -2265,6 +2265,7 @@ void display_mapscroll(int dx,int dy)
 		    }
 		    
 		    the_map.cells[x][y].need_update= 1;
+		    the_map.cells[x][y].cleared= 1;
 		}
 	    } /* for y */
 	} /* for x */
