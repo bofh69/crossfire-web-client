@@ -2011,6 +2011,9 @@ void draw_info(const char *str, int color) {
 	    if (info1_num_chars > info1_max_chars ) {
 #if 1
 		int to_delete = (info1_num_chars - info1_max_chars) + 5000;
+		/* Delete on newline boundaries */
+		while (GTK_TEXT_INDEX(GTK_TEXT(gtkwin_info_text), to_delete)!='\n')
+		    to_delete++;
 		gtk_text_set_point(GTK_TEXT(gtkwin_info_text),0);
 		gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text), to_delete);
 		info1_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text));
@@ -2734,14 +2737,13 @@ static void resize_notebook_event (GtkWidget *widget, GtkAllocation *event) {
 }
 
 void count_callback(GtkWidget *widget, GtkWidget *entry)
-       {
-         gchar *count_text;
-         count_text = gtk_entry_get_text(GTK_ENTRY(counttext));
-	 /*         printf("Entry contents: %s\n", count_text);*/
-	 cpl.count = atoi (count_text);
-	 /*	 gtk_entry_set_text(GTK_ENTRY(counttext),"");*/
-	 gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info_text)); 
-       }
+{
+    gchar *count_text;
+
+    count_text = gtk_entry_get_text(GTK_ENTRY(counttext));
+    cpl.count = atoi (count_text);
+    gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info_text)); 
+}
 
 
 /* Create tabbed notebook page */
@@ -2787,9 +2789,11 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, GtkWidget **li
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(*lists),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   liststyle = gtk_rc_get_style(*list);
-  liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
-  liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
-  gtk_widget_set_style (*list, liststyle);
+  if (liststyle) {
+	liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
+	liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
+	gtk_widget_set_style (*list, liststyle);
+  }
   gtk_clist_set_button_actions (GTK_CLIST(*list),
 				1,
 				GTK_BUTTON_SELECTS);
@@ -2957,10 +2961,11 @@ static int get_look_display(GtkWidget *frame)
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(look_list.gtk_lists[0]),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   liststyle = gtk_rc_get_style (look_list.gtk_list[0]);
-  liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
-  liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
-  gtk_widget_set_style (look_list.gtk_list[0], liststyle);
-
+  if (liststyle) {
+    liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
+    liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
+    gtk_widget_set_style (look_list.gtk_list[0], liststyle);
+  }
   gtk_clist_set_button_actions (GTK_CLIST(look_list.gtk_list[0]),
 				1,
 				GTK_BUTTON_SELECTS);
@@ -4622,12 +4627,22 @@ void create_windows() {
 
   tooltips = gtk_tooltips_new();
 
-  if (split_windows==FALSE) {  
+  if (split_windows==FALSE) {
+    GtkStyle	*style;
     int gcw;
     int gch;
+
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gcw = gdk_char_width(gtk_rc_get_style(gtkwin_root)->font, '0') + 4;
-    gch = gdk_char_height(gtk_rc_get_style(gtkwin_root)->font, '0') + 2;
+    style = gtk_rc_get_style(gtkwin_root);
+    if (style) {
+	gcw = gdk_char_width(style->font, '0') + 4;
+	gch = gdk_char_height(style->font, '0') + 2;
+    } else {
+	/* These are what the old defaults values were */
+	gcw = 11;
+	gch = 10;
+    }
+
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
     fprintf(stderr, "Character Width : %d\n", gcw);

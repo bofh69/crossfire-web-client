@@ -156,8 +156,9 @@ void fire_dir(int dir) {
     if (cpl.input_state != Playing) return;
     if (dir!= dfire) {
 	sprintf(buf,"fire %d", dir);
-	if (send_command(buf, -1, SC_NORMAL)) {
+	if (send_command(buf, cpl.count, SC_NORMAL)) {
 	    dfire=dir;
+	    cpl.count=0;
 	}
     } else {
 	dfire &= 0xff;	/* Mark it so that we need a stop_fire */

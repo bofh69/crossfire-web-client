@@ -3,6 +3,16 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+common/config.h, gnome/gnome-cfclient.soundlist, sound-src/sounds,
+    sound-src/soundsdef.h: Remove from CVS as it gets automatically generated
+   as part of configure/build process.
+common/player.c, gtk/keys.c: Send valid count values when sending a fire
+   command.  Some spells use the count value (eg dimension door).
+gtk/gx11.c: Minor change to the trim_info_window code - still causes
+   periodic crashes in the gtk code however.  Modify style code so that
+   if we don't get a valid style, we don't crash the client.
+MSW 2001-11-25
+
 gtk/gx11.c: Made the inventory lists respect the user's GTK font settings,
   and made the various window parts use the font size to decide what size
   to make the displays and the window.  TSB 2001-11-21

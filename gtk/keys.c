@@ -507,6 +507,8 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
 	if (first_match->direction>=0) {
 	    if (cpl.fire_on) {
 		sprintf(buf,"fire %s", first_match->command);
+		/* Some spells (dimension door) need a valid count value */
+		cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
 		fire_dir(first_match->direction);
 	    }
 	    else if (cpl.run_on) {
