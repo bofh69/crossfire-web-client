@@ -1,5 +1,5 @@
-Readme for Crossfire's GTK client under Windows (October 26th, 2003)
---------------------------------------------------------------------
+Readme for Crossfire's GTK client under Windows (February, 1st, 2004)
+---------------------------------------------------------------------
 
 This document contains notes and information about running Crossfire's GTK client under Win32.
 More information about Crossfire can be found at http://crossfire.real-time.com
@@ -8,15 +8,22 @@ Building instructions can be found in Building.txt, located in the same director
 
 
 
-This client is based on CVS sources of October, 26th, 2003. It is at least equivalent to the official 1.6.0 client.
+This is the official 1.6.1 release for Windows.
 
 
 Requirements:
-The client requires GTK libraries to run. It has been tested with libraries from http://www.dropline.net/gtk/.
+The client requires GTK libraries to run. It has only been tested with libraries from http://www.dropline.net/gtk/.
 You only need to get the 'GTK runtime environment' if you only intend to run the client.
 Client has been compiled with version 2.2.4.1. Use older versions at your own risk.
 
 Some other software, like GAIM (http://gaim.sf.net) will install GTK for you.
+
+GTK Warning
+-----------
+People have reported many issues with GTK. If you experience any trouble, before asking for
+help, check http://www.metalforge.net/cfmb/, the 'bugs' and/or 'Spoilers and help request'
+forums.
+
 
 Installation
 ------------
@@ -26,9 +33,6 @@ The client can run from any directory.
 A .crossfire directory will be created to store settings and cached images.
 If the environment variable 'HOME' is set, .crossfire will be created as $HOME/.crossfire
 Else working directory will be used.
-
-You probably will want to get image files bmaps.client, crossfire.base and crossfire.clsc
-They should be available in CVS or in client's tarball.
 
 If you have a previous version already installed:
 * copy the .crossfire\<player>.keys files
@@ -43,7 +47,6 @@ Release notes & known issues
 * there is no sound currently.
 * if the client loads multisquare building images, display may be mess up until this building goes out of view.
 * split windows mode may not work, it hasn't be tested much.
-* images cache should work correctly, no need to download all the time & trash directories anymore :)
 
 
 Troubleshooting

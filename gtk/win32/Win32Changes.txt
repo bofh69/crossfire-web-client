@@ -1,0 +1,16 @@
+Changes for Win32 GTK client
+----------------------------
+
+This document details changes between Win32 GTK client releases.
+A full log of changes can be found in the 'CHANGES' file.
+
+From version 1.6.0 to version 1.6.1
+-----------------------------------
+* skills's level in statistics panel are now correctly displayed.
+* 'alt' and 'windows' key won't anymore display the 'key unbound' message, as
+  they are often used to switch to another application.
+* new 'report bug' window, accessible from the 'help' menu.
+* potential fixes on non correctly closed files/sockets.
+* new display format for console log.
+* fixed some map display issues.
+* fixed potential crash.
