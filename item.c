@@ -57,10 +57,13 @@ uint8 get_type_from_name(const char *name)
     for (type=0; type < NUM_ITEM_TYPES; type++) {
 	pos=0;
 	while (item_types[type][pos]!=NULL) {
-	    /* If we just want to search at the start, strcmp could be
-	     * used.
-	     */
-	    if (strstr(name, item_types[type][pos])!=NULL) {
+	    /* Only search at start of line */
+	    if (item_types[type][pos][0]=='^') {
+		if (!strncasecmp(name, item_types[type][pos]+1, strlen( item_types[type][pos]+1)))
+		    return type;
+	    }
+	    /* String anywhere in name */
+	    else if (strstr(name, item_types[type][pos])!=NULL) {
 #if 0
 		fprintf(stderr,"Returning type %d for %s\n", type, name);
 #endif

@@ -1,6 +1,34 @@
 "$Id$"
 Top of CVS tree:
 
+MSW 2001/02/02:
+Protocol: Update with new face1 command that includes checksum.
+client.c: add face1 protocol command.
+client.h: Update version_sc to 1026.
+commands.c: Move FaceCmd from gx11.c/x11.c to this file, since it
+    now only does decoding of data and passes rendering off to appropriate
+    file.  Also add Face1Cmd function that deals with checksum.  Both
+    of these functions pass off the rendering to the same function.
+gx11.c: add keepcache variable, re-do facing loading/caching - if
+    we have local version of face, generate checksum of it and compare
+    to that against what server has.  finish_face_command added to
+    do this - called by the face functions in commands.c.  Add
+    -keepcache command line option which will have it not request
+    images from server if checksum is different.  Add usleep
+    in metserver selection area to prevent client from hogging all the cpu
+    time.
+item.c: Add support for ^ in items file to say only match at start of
+    line.  Useful for 'bolt' - doing substring also matched against firebolt.
+item_types, item_types.h: make bolt ^bolt, add Head and hauberk to matching
+    criteria.
+proto.h: automatic regen.
+x11.c: As gx11.c above, plus: Use one font for all windows - reduces
+    complexity.  Add easy selection of font to use with -font command
+    line option.
+xutil.c: As gx11.c for relevant functions that are located in this file
+    and not x11.c
+End of MSW 2001/02/02 checkin.
+
 MSW 2001/01/31:
 client.c: Clear player inventory and look windows after disconnection
    from server.  Prevents client crashes.

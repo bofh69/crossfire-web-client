@@ -67,6 +67,58 @@
 
 #include <client.h>
 
+/* Move these here - they don't contain any windows dependant
+ * code.
+ */
+
+/* We only get here if the server believes we are caching images. */
+/* We rely on the fact that the server will only send a face command for
+ * a particular number once - at current time, we have no way of knowing
+ * if we have already received a face for a particular number.
+ */
+
+void FaceCmd(unsigned char *data,  int len)
+{
+    int pnum;
+    char *face;
+
+    /* A quick sanity check, since if client isn't caching, all the data
+     * structures may not be initialized.
+     */
+    if (!display_willcache()) {
+	fprintf(stderr,"Received a 'face' command when we are not caching\n");
+	return;
+    }
+    pnum = GetShort_String(data);
+    face = (char*)data+2;
+    data[len] = '\0';
+
+    finish_face_cmd(pnum, 0, 0, face);
+
+}
+
+void Face1Cmd(unsigned char *data,  int len)
+{
+    int pnum;
+    uint32  checksum;
+    char *face;
+
+    /* A quick sanity check, since if client isn't caching, all the data
+     * structures may not be initialized.
+     */
+    if (!display_willcache()) {
+	fprintf(stderr,"Received a 'face' command when we are not caching\n");
+	return;
+    }
+    pnum = GetShort_String(data);
+    checksum = GetInt_String(data+2);
+    face = (char*)data+6;
+    data[len] = '\0';
+
+    finish_face_cmd(pnum, checksum, 1, face);
+}
+
+
 
 /* Handles when the server says we can't be added.  In reality, we need to
  * close the connection and quit out, because the client is going to close

@@ -63,7 +63,7 @@ bow
 crossbow
 sling
 arrow
-bolt
+^bolt
 boulder
 # armor
 10:
@@ -72,6 +72,7 @@ leather
 robe
 shirt
 apron
+hauberk
 # Headware
 11:
 helmet
@@ -212,6 +213,7 @@ eye
 foot
 hand
 head
+Head
 heart
 icor
 leg

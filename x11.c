@@ -165,9 +165,7 @@ typedef struct {
     uint32  weight_limit;   /* Weight limit for this list - used for title */
 } itemlist;
 
-static char font_text_stats[]="8x13", font_text_info[]="8x13",
-	font_inv_text[]="8x13",
-	**gargv;
+static char *font_name="8x13",	**gargv;
 
 #define SCROLLBAR_WIDTH	16	/* +2+2 for border on each side */
 #define INFOCHARS 50
@@ -208,10 +206,7 @@ static unsigned long foreground,background;
 static Window win_root, win_game,win_stats,win_message;
 static Colormap colormap;
 static XColor discolor[16];
-static Font font; /* I don't see why we should try to support fonts,
-		bitmaps are more convinient, and won't require
-		downloading entire .pcf files, etc. 
-		- eanders@cs.berkeley.edu */
+static XFontStruct *font;	/* Font loaded to display in the windows */
 static XEvent event;
 static XSizeHints messagehint, roothint;
 
@@ -544,7 +539,6 @@ static int get_game_display() {
 static int get_info_display() {
     XSizeHints infohint;
     int i;
-    XFontStruct	*xfs;
 
     /* The following could happen if bad values are given. */
     if (infodata.maxlines<INFOLINES) infodata.maxlines=INFOLINES;
@@ -573,22 +567,8 @@ static int get_info_display() {
     infodata.gc_info=XCreateGC(display,infodata.win_info,0,0);
     XSetForeground(display,infodata.gc_info,foreground);
     XSetBackground(display,infodata.gc_info,background);
-    xfs=XLoadQueryFont(display,font_text_info);
 
-    XSetFont(display,infodata.gc_info,xfs->fid);
-    i=xfs->max_bounds.rbearing - xfs->min_bounds.lbearing;
-    if (i != FONTWIDTH) {
-	fprintf(stderr,"Font has actual width of %d, resetting from %d\n",
-		i, FONTWIDTH);
-	FONTWIDTH=i;
-    }
-
-    i=xfs->max_bounds.ascent + xfs->max_bounds.descent;
-    if (i != FONTHEIGHT) {
-	fprintf(stderr,"Font has actual width of %d, resetting from %d\n",
-		i, FONTHEIGHT);
-	FONTHEIGHT=i;
-    }
+    XSetFont(display,infodata.gc_info,font->fid);
 
     XSelectInput(display,infodata.win_info,
 	ButtonPressMask|KeyPressMask|KeyReleaseMask|ExposureMask|
@@ -1178,8 +1158,7 @@ static int get_stats_display() {
     gc_stats=XCreateGC(display,win_stats,0,0);
     XSetForeground(display,gc_stats,foreground);
     XSetBackground(display,gc_stats,background);
-    font=XLoadFont(display,font_text_stats);
-    XSetFont(display,gc_stats,font);
+    XSetFont(display,gc_stats,font->fid);
     XSelectInput(display,win_stats,KeyPressMask|KeyReleaseMask|ExposureMask);
     XMapRaised(display,win_stats);
    return 0;
@@ -1353,8 +1332,7 @@ static int get_message_display() {
     gc_message=XCreateGC(display,win_message,0,0);
     XSetForeground(display,gc_message,foreground);
     XSetBackground(display,gc_message,background);
-    font=XLoadFont(display,font_text_info);
-    XSetFont(display,gc_message,font);
+    XSetFont(display,gc_message,font->fid);
     XSelectInput(display,win_message,
 	       ButtonPressMask|KeyPressMask|KeyReleaseMask|ExposureMask);
     XMapRaised(display,win_message);
@@ -1916,8 +1894,7 @@ static void get_list_display(itemlist *l, int x, int y, int w, int h,
     XSetBackground (display, l->gc_status, background);
     XSetGraphicsExposures (display, l->gc_icon, False);
     XSetGraphicsExposures (display, l->gc_status, False);
-    font=XLoadFont (display, font_inv_text);
-    XSetFont (display, l->gc_text, font);
+    XSetFont (display, l->gc_text, font->fid);
     XSelectInput (display, l->win, ButtonPressMask|KeyPressMask|KeyReleaseMask|
 		ExposureMask|StructureNotifyMask);
     XMapRaised(display,l->win);
@@ -2161,6 +2138,17 @@ static int get_root_display(char *display_name) {
 	XMapRaised(display,win_root);
 	XNextEvent(display,&event);
     }
+    if ((cp=XGetDefault(display,X_PROG_NAME,"font")) != NULL) {
+	font_name = strdup_local(cp);
+    }
+    /* Failure will result in an uncaught X11 error */
+    font=XLoadQueryFont(display,font_name);
+    if (!font) {
+	fprintf(stderr,"Could not load font %s\n", font_name);
+	exit(1);
+    }
+    FONTWIDTH=font->max_bounds.width;
+    FONTHEIGHT=font->max_bounds.ascent + font->max_bounds.descent;
     return 0;
 }
 
@@ -2698,7 +2686,7 @@ static void usage(char *progname)
     puts("-split           - Use split windows.");
     puts("-nosplit         - Disable split windows (default action).");
     puts("-echo            - Echo the bound commands");
-    puts("-pix             - Use bitmaps instead of the font.");
+    puts("-pix             - Use bitmaps for display.");
 #ifdef HAVE_LIBXPM
     puts("-xpm             - Use color pixmaps (XPM) for display.");
 #endif
@@ -2713,6 +2701,8 @@ static void usage(char *progname)
     puts("-nocache         - Do not cache images (default action).");
     puts("-nosound         - Disable sound output.");
     puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
+    puts("-keepcache       - Keep already cached images even if server has different ones.");
+    puts("-font <name>     - Use <name> as font to display data.");
     exit(0);
 }
 
@@ -2808,6 +2798,14 @@ int init_windows(int argc, char **argv)
 	    infodata.maxlines = atoi(argv[on_arg]);
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-font")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-font requires a font name\n");
+		return 1;
+	    }
+	    font_name = argv[on_arg];
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-help")) {
 	    usage(argv[0]);
 	    continue;
@@ -2818,6 +2816,10 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
 	    updatekeycodes=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-keepcache")) {
+	    keepcache=TRUE;
 	    continue;
 	}
 	else {

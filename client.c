@@ -64,6 +64,7 @@ struct CmdMapping commands[] = {
     { "bitmap", BitMapCmd },
     { "image", ImageCmd },
     { "face", FaceCmd},
+    { "face1", Face1Cmd},
 
 
     { "sound", SoundCmd},

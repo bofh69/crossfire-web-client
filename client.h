@@ -45,7 +45,7 @@
 #endif
 
 #define VERSION_CS 1022
-#define VERSION_SC 1025
+#define VERSION_SC 1026
 
 #ifdef GTK_CLIENT
 #define VERSION_INFO "GTK C Client"

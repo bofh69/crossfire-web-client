@@ -42,7 +42,7 @@ char facecachedir[MAX_BUF];
 char *facetoname[MAXPIXMAPNUM];
 
 /* Can be set when user is moving to new machine type */
-int updatekeycodes=FALSE;
+int updatekeycodes=FALSE, keepcache=FALSE;
 
 /* Initializes the data for image caching */
 static void init_cache_data()
@@ -104,28 +104,20 @@ static void requestface(int pnum, char *facename, char *facepath)
     sprintf(buf,"%s/%c%c", facecachedir, facename[0], facename[1]);
     if (access(buf,R_OK)) make_path_to_dir(buf);
 }
+/* Rotate right from bsd sum. */
+#define ROTATE_RIGHT(c) if ((c) & 01) (c) = ((c) >>1) + 0x80000000; else (c) >>= 1;
 
-/* We only get here if the server believes we are caching images. */
-/* We rely on the fact that the server will only send a face command for
- * a particular number once - at current time, we have no way of knowing
- * if we have already received a face for a particular number.
- */
+/*#define CHECKSUM_DEBUG*/
 
-void FaceCmd(unsigned char *data,  int len)
+/* This is common for both face1 and face commands. */
+void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 {
-    int pnum;
-    char *face,buf[MAX_BUF];
+    char buf[MAX_BUF];
+    int fd,len;
+    char data[65536];
+    uint32 newsum=0;
+    Pixmap pixmap, mask;
 
-    /* A quick sanity check, since if client isn't caching, all the data
-     * structures may not be initialized.
-     */
-    if (!cache_images) {
-	fprintf(stderr,"Received a 'face' command when we are not caching\n");
-	return;
-    }
-    pnum = GetShort_String(data);
-    face = (char*)data+2;
-    data[len] = '\0';
     /* To prevent having a directory with 2000 images, we do a simple
      * split on the first 2 characters.
      */
@@ -135,40 +127,49 @@ void FaceCmd(unsigned char *data,  int len)
     else if (display_mode == Png_Display)
 	strcat(buf,".png");
 
-    /* check to see if we already have the file.  IF not, we need to request
-     * it from the server.
-     */
-    if (access(buf,R_OK)) {
+    if ((fd=open(buf, O_RDONLY))==-1) {
 	requestface(pnum, face, buf);
-    } else if (display_mode==Xpm_Display) {
+	return;
+    }
+    len=read(fd, data, 65535);
+    close(fd);
+
+    if (has_sum && !keepcache) {
+	for (fd=0; fd<len; fd++) {
+	    ROTATE_RIGHT(newsum);
+	    newsum += data[fd];
+	    newsum &= 0xffffffff;
+	}
+
+	if (newsum != checksum) {
+#ifdef CHECKSUM_DEBUG
+	    fprintf(stderr,"finish_face_command: checksums differ: %s, %x != %x\n",
+		    face, newsum, checksum);
+#endif
+	    requestface(pnum, face, buf);
+#ifdef CHECKSUM_DEBUG
+	} else {
+	    fprintf(stderr,"finish_face_command: checksums match: %s, %x == %x\n",
+		    face, newsum, checksum);
+#endif
+	}
+    }
+    if (display_mode==Xpm_Display) {
 	XpmAttributes xpm_attr;
-	Pixmap pixmap, mask;
 
 	xpm_attr.colormap = colormap;
 	xpm_attr.valuemask = XpmColormap;
-	/* Fail on this read, we will request a new copy */
-	if (XpmReadFileToPixmap(display,win_game,buf,
-                &pixmap,&mask,&xpm_attr)!=XpmSuccess) {
+	if (XpmCreatePixmapFromBuffer(display, win_game, data,
+                &pixmap, &mask, &xpm_attr)) {
 	    requestface(pnum, face, buf);
 	} else {
 	    pixmaps[pnum].pixmap = pixmap;
 	    pixmaps[pnum].mask = mask;
-/*	    fprintf(stderr,"Successfully loaded %s (%d) from cache\n", buf, pnum);*/
 	}
     } else if (display_mode==Png_Display) {
 #ifdef HAVE_LIBPNG
-	Pixmap pixmap, mask;
-	unsigned long w, h;
-	int fd,len;
-	char data[65536];
+	unsigned long w,h;
 
-	if ((fd=open(buf, O_RDONLY))==-1) {
-	    requestface(pnum, face, buf);
-	    return;
-	}
-	len=read(fd, data, 65535);
-	close(fd);
-	
 	/* Fail on this read, we will request a new copy */
 	if (png_to_xpixmap(display, win_game, data, len,
 			   &pixmap, &mask, colormap, &w, &h)) {
@@ -179,27 +180,16 @@ void FaceCmd(unsigned char *data,  int len)
 	}
 #endif
     } else if (display_mode==Pix_Display) {
-	FILE *bitmap, data[MAX_BUF];
-
-	if ((bitmap=fopen(buf,"r"))==NULL) {
-		fprintf(stderr,"Unable to open %s when we should have been able to\n",buf);
-		requestface(pnum, face, buf);
-	} else if (fread(data, 1, 72, bitmap)!=72)  {
-		fprintf(stderr,"Read incorrect number of bytes from %s\n",buf);
-		requestface(pnum, face, buf);
-		fclose(bitmap);
-	}
-	else {
-	    pixmaps[pnum].bitmap = XCreateBitmapFromData(display,
-                               RootWindow(display,DefaultScreen(display)),
-                               (char*)data,24,24);
-	    fread(&pixmaps[pnum].fg, 1, 4, bitmap);
-	    fread(&pixmaps[pnum].bg, 1, 4, bitmap);
-	    fclose(bitmap);
-/*	    fprintf(stderr,"Successfully loaded %s (%d) from cache\n", buf, pnum);*/
-	}
+	pixmaps[pnum].bitmap = XCreateBitmapFromData(display,
+		RootWindow(display,DefaultScreen(display)),
+		(char*)data,24,24);
+	pixmaps[pnum].fg = (data[24] << 24) + (data[25] << 16) + (data[26] << 8) +
+	    data[27];
+	pixmaps[pnum].bg = (data[28] << 24) + (data[29] << 16 )+ (data[30] << 8 )+
+	    data[31];
     }
 }
+
 
 
 static int allocate_colors(Display *disp, Window w, long screen_num,

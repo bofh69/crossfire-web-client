@@ -509,6 +509,7 @@ S->C: image <face><len><data>
 	images.
 
 S->C: face <num><name>
+S->C: face1 <num><checksum><name>
 	Informs the client that <num> (binary short) is associated with
 	<name>.  This is used when the client is caching images.  In normal
 	operation, when the server runs accross a face that it hasn't sent
@@ -520,6 +521,11 @@ S->C: face <num><name>
 	server.  For this reason, that is why this needs to be sent each
 	time through.  The client should be able to load/determine what face
 	to load via the name.
+	In sc version 1026 and later, the server will use the face1 command
+	which include a checksum that is a 32 bit value.  This can be used by
+	the client to know if its face is up to date.  The checksum is a 32
+	bit unsigned value.  If the client reports a sc_version of 1025
+	or earlier, the server will use the face command not not face1.
 
 C->S: setfacemode <val>
 	This tells the server what type of display mode the client is using.
@@ -839,7 +845,10 @@ SC version 1023 -> 1024: Server will send two part names (described in
 item command) which contains the singular & plural form of the name)
 
 SC version 1024 -> 1025: Support for sending all resistance
-values in the sttas command.
+values in the stats command.
+
+SC version 1025 -> 1026: Add face1 command that includes the image
+checksum.
 
 ------------------------------------------------------------------------------
 Todo:

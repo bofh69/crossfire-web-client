@@ -1009,7 +1009,7 @@ static void insert_key(KeySym keysym, KeyCode keycode, int flags, char *command)
     newkey->direction = direction;
 }
 
-int updatekeycodes=0;
+int updatekeycodes=0,keepcache=0;
 
 static void parse_keybind_line(char *buf, int line, int standard)
 {
@@ -1244,22 +1244,14 @@ static void requestface(int pnum, char *facename, char *facepath)
  * if we have already received a face for a particular number.
  */
 
-void FaceCmd(unsigned char *data,  int len)
+/* This is common for both face1 and face commands. */
+void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 {
-    int pnum;
-    char *face,buf[MAX_BUF];
-  
-    /* A quick sanity check, since if client isn't caching, all the data
-     * structures may not be initialized.
-     */
+    char buf[MAX_BUF];
+    int fd,len;
+    char data[65536];
+    uint32 newsum=0;
 
-    if (!cache_images) {
-	fprintf(stderr,"Received a 'face' command when we are not caching\n");
-	return;
-    }
-    pnum = GetShort_String(data);
-    face = (char *)data+2;
-    data[len] = '\0';
     /* To prevent having a directory with 2000 images, we do a simple
      * split on the first 2 characters.
      */
@@ -1270,46 +1262,50 @@ void FaceCmd(unsigned char *data,  int len)
     else if (display_mode == Png_Display)
 	strcat(buf,".png");
 
-    /* check to see if we already have the file.  IF not, we need to request
-     * it from the server.
-     */
-    if (access(buf,R_OK)) {
-    
+
+    if ((fd=open(buf, O_RDONLY))==-1) {
 	requestface(pnum, face, buf);
+	return;
+    }
+    len=read(fd, data, 65535);
+    close(fd);
+
+    if (has_sum && !keepcache) {
+	for (fd=0; fd<len; fd++)
+	    newsum = (newsum >> 1 ) + data[fd];
+	if (newsum != checksum) {
+#if 0
+	    fprintf(stderr,"finish_face_command: checksums differ: %d != %d\n",
+		    newsum, checksum);
+#endif
+	    requestface(pnum, face, buf);
+	    /* Hmm.  Comment this out - using the old face is still better.
+	     * than none at all.
+	     */
+/*	    return;*/
+	}
+    }
+    if (display_mode == Xpm_Display) {
     
-    } else {
-	if (display_mode == Xpm_Display) {
+	GtkStyle *style;
     
-	    GtkStyle *style;
-    
-	    style = gtk_widget_get_style(gtkwin_root);
-	    pixmaps[pnum].gdkpixmap = gdk_pixmap_create_from_xpm(gtkwin_root->window,
-							 &pixmaps[pnum].gdkmask,
-							 &style->bg[GTK_STATE_NORMAL],
-								     (gchar *) buf );
+	style = gtk_widget_get_style(gtkwin_root);
+	pixmaps[pnum].gdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
+					 &pixmaps[pnum].gdkmask,
+					 &style->bg[GTK_STATE_NORMAL],
+					     (gchar **) data );
 	    if (!pixmaps[pnum].gdkpixmap) {
 		requestface(pnum, face, buf);
 	    }
-	}
-	else if (display_mode == Png_Display) {
+    }
+    else if (display_mode == Png_Display) {
 #ifdef HAVE_LIBPNG
-	    int fd,len;
-	    char data[65536];
-
-	    if ((fd=open(buf, O_RDONLY))==-1) {
-		requestface(pnum, face, buf);
-		return;
-	    }
-	    len=read(fd, data, 65535);
-	    close(fd);
-
-	    if (png_to_gdkpixmap(gtkwin_root->window, data, len, &pixmaps[pnum].gdkpixmap, 
-			 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
-		fprintf(stderr,"Got error on png_to_gdkpixmap, file=%s\n",buf);
-		requestface(pnum, face, buf);
-	    }
-#endif
+	if (png_to_gdkpixmap(gtkwin_root->window, data, len, &pixmaps[pnum].gdkpixmap, 
+		 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
+	    fprintf(stderr,"Got error on png_to_gdkpixmap, file=%s\n",buf);
+	    requestface(pnum, face, buf);
 	}
+#endif
     } /* else Don't have image */
 }
 
@@ -6248,6 +6244,7 @@ static void usage(char *progname)
     puts("-nocache         - Do not cache images (default action).");
     puts("-nosound         - Disable sound output.");
     puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
+    puts("-keepcache       - Keep already cached images even if server has different ones.");
     exit(0);
 }
 
@@ -6344,6 +6341,10 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
 	    updatekeycodes=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-keepcache")) {
+	    keepcache=TRUE;
 	    continue;
 	}
 	else {
@@ -6607,6 +6608,7 @@ char *get_metaserver()
     while(cpl.input_state==Metaserver_Select) {
 	if (gtk_events_pending())
 	    gtk_main_iteration();
+	usleep(10*1000);    /* 10 milliseconds */
     }
     return cpl.input_text;
 }
