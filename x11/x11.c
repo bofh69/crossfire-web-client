@@ -170,14 +170,14 @@ static int FONTHEIGHT= 13;
 /* Width (and height) of the game window */
 #define GAME_WIDTH  (image_size * mapx + 5)
 
-#define STAT_HEIGHT 100
+#define STAT_HEIGHT 140
 
 /* Width of the inventory and look window */
 #define INV_WIDTH   300
 /* spacing between windows */
 #define WINDOW_SPACING	3
 /* Height of the master (root) window */
-#define ROOT_HEIGHT	482
+#define ROOT_HEIGHT	522
 
 static int gargc, old_mapx=11, old_mapy=11;
 
@@ -412,7 +412,7 @@ static int get_game_display() {
     int i;
    
     gamehint.x=INV_WIDTH + WINDOW_SPACING;
-    gamehint.y=104;
+    gamehint.y=STAT_HEIGHT + WINDOW_SPACING;
 
     gamehint.width=GAME_WIDTH;
     gamehint.height=gamehint.width;
@@ -1075,7 +1075,7 @@ static int get_stats_display() {
     stathint.x=INV_WIDTH + WINDOW_SPACING;
     stathint.y=0;
     stathint.width=GAME_WIDTH;
-    stathint.height=100;
+    stathint.height=STAT_HEIGHT;
     stathint.min_width=stathint.max_width=stathint.width;
     stathint.min_height=stathint.max_height=stathint.height;
     stathint.flags=PPosition | PSize;
@@ -1106,6 +1106,8 @@ static int get_stats_display() {
 void draw_stats(int redraw) {
   char buff[MAX_BUF];
   static char last_name[MAX_BUF]="", last_range[MAX_BUF]="";
+  int i;
+  char *s;
 
     if (strcmp(cpl.title, last_name) || redraw) {
 	strcpy(last_name,cpl.title);
@@ -1234,6 +1236,33 @@ void draw_stats(int redraw) {
  	strcat(buff,"                     ");
 	XDrawImageString(display,win_stats,
 	    gc_stats,10,94, buff,strlen(buff));
+    }
+
+    if (redraw) {
+      i = 0;
+    } else {
+      for (i=0; i<MAX_SKILL; i++) {
+	if (cpl.stats.skill_level[i] != last_stats.skill_level[i] ||
+	    cpl.stats.skill_exp[i] != last_stats.skill_exp[i])
+	  break;
+      }
+    }
+
+    if (i < MAX_SKILL) {
+      *buff = '\0';
+      s = buff;
+      for (i=0; i<MAX_SKILL; i++) {
+        last_stats.skill_level[i] = cpl.stats.skill_level[i];
+        last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
+	s += sprintf(s,"%.3s: %5d (%d) ", skill_names[i], cpl.stats.skill_exp[i],
+		cpl.stats.skill_level[i]);
+	if ((i % 2) == 1) {
+		XDrawImageString(display,win_stats,gc_stats,10,
+				108 + (14 * (i / 2)), buff,strlen(buff));
+		*buff = '\0';
+		s = buff;
+	}
+      }
     }
 }
 
@@ -2644,6 +2673,7 @@ int init_windows(int argc, char **argv)
     load_defaults();	/* Load these first, so they can get overwritten by
 			 * command line options.
 			 */
+    want_skill_exp=1;
     for (on_arg=1; on_arg<argc; on_arg++) {
 	if (!strcmp(argv[on_arg],"-display")) {
 	    if (++on_arg == argc) {

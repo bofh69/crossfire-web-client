@@ -137,8 +137,9 @@ uint8 updatekeycodes=FALSE;
 void init_cache_data()
 {
     int i;
-
+    Pixmap  ptmp;
 #include "pixmaps/question.111"
+    
 
     /* Currently, we can cache in all face modes currently supported,
      * so I removed the code that did checks on that.
@@ -146,7 +147,7 @@ void init_cache_data()
 
     pixmaps[0] = malloc(sizeof(struct PixmapInfo));
     pixmaps[0]->mask=None;
-    pixmaps[0]->bitmap=XCreateBitmapFromData(display,DefaultRootWindow(display),
+    ptmp=XCreateBitmapFromData(display,DefaultRootWindow(display),
 				question_bits,question_width,question_height);
 
     /* In xpm mode, XCopyArea is used from this data, so we need to copy
@@ -154,11 +155,10 @@ void init_cache_data()
      */
     pixmaps[0]->pixmap=XCreatePixmap(display, win_root, image_size, image_size, 
 	DefaultDepth(display,DefaultScreen(display)));
-    XCopyPlane(display, pixmaps[0]->bitmap, pixmaps[0]->pixmap, gc_game,
+    XCopyPlane(display, ptmp, pixmaps[0]->pixmap, gc_game,
 	       0,0,image_size,image_size,0,0,1);
+    XFreePixmap(display, ptmp);
 		
-    pixmaps[0]->bg = 0;
-    pixmaps[0]->fg = 1;
     facetoname[0]=NULL;
 
     /* Initialize all the images to be of the same value. */
@@ -167,12 +167,7 @@ void init_cache_data()
 	facetoname[i]=NULL;
     }
 
-    sprintf(facecachedir,"%s/.crossfire/images", getenv("HOME"));
-
-    if (make_path_to_dir(facecachedir)==-1) {
-	    fprintf(stderr,"Could not create directory %s, exiting\n", facecachedir);
-	    exit(1);
-    }
+    init_common_cache_data();
 
 }
 #endif
@@ -1910,4 +1905,13 @@ void reset_map_data()
 	    }
 	}
     }
+}
+
+void image_update_download_status(int start, int end, int total)
+{
+    char buf[MAX_BUF];
+
+    sprintf(buf,"Downloaded %d of %d images", start, total);
+
+    draw_info(buf,NDI_BLUE);
 }

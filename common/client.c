@@ -304,8 +304,10 @@ void negotiate_connection(int sound)
 		     */
 		    if (last_end == face_info.num_images) {
 			/* Mark that we're all done */
-			if (replyinfo_last_face == last_end)
+			if (replyinfo_last_face == last_end) {
 			    replyinfo_status |= RI_IMAGE_SUMS;
+			    image_update_download_status(face_info.num_images, face_info.num_images, face_info.num_images);
+			}
 		    } else {
 			/* If we are all caught up, request another
 			 * 100 sums.
@@ -315,7 +317,7 @@ void negotiate_connection(int sound)
 			    last_end += 100;
 			    if (last_end > face_info.num_images) last_end = face_info.num_images;
 			    cs_print_string(csocket.fd,"requestinfo image_sums %d %d", last_start, last_end);
-			    fprintf(stderr,"Requesting %d of %d faces\n", last_end, face_info.num_images);
+			    image_update_download_status(last_start, last_end, face_info.num_images);
 			}
 		    }
 		} /* Still have image_sums request to send */

@@ -68,6 +68,7 @@ extern int display_willcache(void);
 extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
 extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
 extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
+extern void image_update_download_status(int start, int end, int total);
 
 
 /* Item related commands */

@@ -567,7 +567,7 @@ void Image2Cmd(uint8 *data,  int len)
  */
 void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 {
-    char    filename[MAX_BUF];
+    char    filename[MAX_BUF], basename[MAX_BUF];
     uint8   *pngtmp;
     FILE *tmpfile;
     uint32 width, height, csum, i;
@@ -595,12 +595,17 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 	/* Decrease it by one since it will immediately get increased
 	 * in the loop below.
 	 */
+	if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix) 
+	    sprintf(basename,"%s.%s", facetoname[face], face_info.facesets[setnum].prefix);
+	else
+	    strcpy(basename, filename);
+
 	setnum--;
 	do {
 	    setnum++;
 	    sprintf(filename, "%s/.crossfire/crossfire-images/%c%c/%s.%d",
 		    getenv("HOME"), facetoname[face][0],
-		    facetoname[face][1], facetoname[face], setnum);
+		    facetoname[face][1], basename, setnum);
 	} while (access(filename, F_OK)==-0);
 
 	if ((tmpfile = fopen(filename,"w"))==NULL) {
@@ -618,7 +623,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 		csum &= 0xffffffff;
 	    }
 	    sprintf(filename, "%c%c/%s.%d", facetoname[face][0], facetoname[face][1], 
-		    facetoname[face], setnum);
+		    basename, setnum);
 	    ce = image_add_hash(facetoname[face], filename,  csum, 0);
 
 	    /* It may very well be more efficient to try to store these up
@@ -634,7 +639,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 	    else {
 		fprintf(tmpfile, "%s %u %c%c/%s.%d\n",
 			facetoname[face], csum, facetoname[face][0],
-			facetoname[face][1], facetoname[face], setnum);
+			facetoname[face][1], basename, setnum);
 		fclose(tmpfile);
 	    }
 	}

@@ -2,6 +2,40 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Various fixes/enhancements:
+1) For the files stored in the players cache, include the image set suffix
+   (eg, base, clsc) when saving the file.
+2) Add a gui update element to the gtk client when running with -download_all_faces.
+   For the cfclient, print the updates to the window.
+3) Apply patch by 'Alfie' that shows skill experience in the cfclientp
+4) Fix caching bugs with the cfclient that caused it to not work right.
+common/client.c: Add callbacks to image_update_download_status from the
+    download all image routine.  It is this callback that provides whatever
+    update mechanism for the player.
+common/external.h: add image_update_download_status
+common/image.c: Modify display_newpng to put in the image set name of the
+    saved cache files if that information is available.
+gtk/gtkproto.h: rebuilt.
+gtk/gx11.c: Make get_window_coord non static so other files can use it.
+gtk/image.c: Add image_update_download_status that draws a progress bar.
+   Convenient side effect is that other GUI elements are now updated
+   as part of this, so player can access other menu items.
+x11/png.c: Fix some bugs when using cached images - rgba_to_xpixmap was
+   using initialized bpp value - we now know this is always 4.
+   create_and_rescale_image_from_data did not match the parameters
+   as the common routines use.  Also missing some logic for
+   allocating the data and linking it back to the cache entry.
+x11/x11.c: Add display for skill experience.  This necessitated making
+   some of the windows bigger.
+x11/x11.h: Remove now unused fields from PixmapInfo structure (fg, bg,
+    bitmap)
+x11/x11proto.h: rebuilt
+x11/xutil.c: Remove code that was storing data into the unusued
+    fields in the PixmapInfo structure.  Add missing call to
+    init_common_cache_data.  Add image_update_download_status
+    function that just does a draw info.
+MSW 2002-03-26
+
 Many changes to image handling.  The most noteworthy are:
 1) Ability to use different image sets.
 2) Ability to get checksums of all images and download missing images

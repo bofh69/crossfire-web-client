@@ -5330,7 +5330,7 @@ void magic_map_flash_pos()
  * an exact copy out of the server.
  */
 
-static void get_window_coord(GtkWidget *win,
+void get_window_coord(GtkWidget *win,
                  int *x,int *y,
                  int *wx,int *wy,
                  int *w,int *h)

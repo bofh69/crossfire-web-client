@@ -259,3 +259,54 @@ void reset_image_data()
 }
 
 
+/* This function draws a little status bar showing where we our
+ * in terms of downloading all the image data.
+ * start is the start value just sent to the server, end is the end
+ * value.  total is the total number of images.
+ * A few hacks:
+ * If start is 1, this is the first batch, so it means we need to
+ * create the appropriate status window.
+ * if start = end = total, it means were finished, so destroy
+ * the gui element.
+ */
+static GtkWidget	*pbar=NULL, *pbar_window=NULL;
+static GtkAdjustment *padj=NULL;
+void image_update_download_status(int start, int end, int total)
+{
+    int x, y, wx, wy, w, h;
+
+    if (start == 1) {
+	padj = (GtkAdjustment*) gtk_adjustment_new (0, 1, total, 0, 0, 0);
+
+	pbar = gtk_progress_bar_new_with_adjustment(padj);
+	gtk_progress_set_format_string(GTK_PROGRESS(pbar), "Downloading image %v of %u (%p%% complete)");
+	gtk_progress_bar_set_bar_style(GTK_PROGRESS_BAR(pbar), GTK_PROGRESS_CONTINUOUS);
+	gtk_progress_set_show_text(GTK_PROGRESS(pbar), TRUE);
+	get_window_coord(gtkwin_root, &x,&y, &wx,&wy,&w,&h);
+
+	pbar_window = gtk_window_new(GTK_WINDOW_POPUP);
+	gtk_window_set_policy(GTK_WINDOW(pbar_window), TRUE, TRUE, FALSE);
+	gtk_window_set_transient_for(GTK_WINDOW(pbar_window), GTK_WINDOW (gtkwin_root));
+	/* we more or less want this window centered on the main crossfire window,
+	 * and not necessarily centered on the screen or in the upper left corner.
+	 */
+	gtk_widget_set_uposition(pbar_window, (wx + w)/2, (wy + h) / 2);
+
+	gtk_container_add(GTK_CONTAINER(pbar_window), pbar);
+	gtk_widget_show(pbar);
+	gtk_widget_show(pbar_window);
+    }
+    if (start == total) {
+	gtk_widget_destroy(pbar_window);
+	pbar = NULL;
+	pbar_window = NULL;
+	padj = NULL;
+	return;
+    }
+
+    gtk_progress_set_value(GTK_PROGRESS(pbar), start);
+    while ( gtk_events_pending() ) {
+        gtk_main_iteration();
+    }
+
+}

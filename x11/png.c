@@ -43,6 +43,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include "client-types.h"
+#include "client.h"
 #include "x11.h"
 
 /* Defines for PNG return values */
@@ -775,7 +776,7 @@ int rgba_to_xpixmap(Display *display, Drawable draw, uint8 *pixels,
 		   Pixmap *pix, Pixmap *mask, Colormap *cmap,
 		   unsigned long width, unsigned long height)
 {
-    int red,green,blue, lastred=-1, lastgreen=-1, lastblue=-1,alpha,bpp, x,y,
+    int red,green,blue, lastred=-1, lastgreen=-1, lastblue=-1,alpha,x,y,
 	cmask, lastcmask, lastcolor;
     GC	gc, gc_alpha;
 
@@ -805,10 +806,10 @@ int rgba_to_xpixmap(Display *display, Drawable draw, uint8 *pixels,
 
     for (y=0; y<height; y++) {
 	for (x=0; x<width; x++) {
-	    red=    pixels[(y * width + x)*bpp];
-	    green=  pixels[(y * width + x)*bpp + 1];
-	    blue=   pixels[(y * width + x)*bpp + 2];
-	    alpha = pixels[(y * width + x)*bpp + 3];
+	    red=    pixels[(y * width + x)*4];
+	    green=  pixels[(y * width + x)*4 + 1];
+	    blue=   pixels[(y * width + x)*4 + 2];
+	    alpha = pixels[(y * width + x)*4 + 3];
 	    if (alpha==0) {
 		XDrawPoint(display, *mask, gc_alpha, x, y);
 	    }
@@ -849,13 +850,20 @@ int rgba_to_xpixmap(Display *display, Drawable draw, uint8 *pixels,
  * stores the relevant data into the pixmap structure.
  * returns 1 on failure.
  */
-int create_and_rescale_image_from_data(int pixmap_num, uint8 *rgba_data, int width, int height)
+int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height)
 {
+    struct PixmapInfo  *pi;
 
+    pi = malloc(sizeof(struct PixmapInfo));
+
+    pixmaps[pixmap_num] = pi;
     rgba_to_xpixmap(display, win_game, rgba_data, &pixmaps[pixmap_num]->pixmap,
 		   &pixmaps[pixmap_num]->mask, &colormap, width, height);
 
     if (!pixmaps[pixmap_num]->pixmap || !pixmaps[pixmap_num]->mask) return 1;
+    if (ce) {
+	ce->image_data = pi;
+    }
     return 0;
 }
 

@@ -57,6 +57,7 @@ extern void x_set_echo(void);
 extern int do_timeout(void);
 extern void draw_magic_map(void);
 extern void magic_map_flash_pos(void);
+extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
 extern void save_winpos(void);
 extern void command_show(char *params);
 extern void set_window_pos(void);
@@ -73,6 +74,7 @@ extern int main(int argc, char *argv[]);
 extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
 extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
 extern void reset_image_data(void);
+extern void image_update_download_status(int start, int end, int total);
 /* keys.c */
 extern void init_keys(void);
 extern void bind_key(char *params);
