@@ -46,7 +46,7 @@ extern int per_pixel_lighting;
 extern int per_tile_lighting;
 extern int show_grid;
 extern uint8 sdlimage,cache_images,split_windows,map_did_scroll,keepcache;
-extern uint8 nopopups,updatekeycodes;;
+extern uint8 nopopups,updatekeycodes;
 extern int map_scale, icon_scale, updatelock;
 extern char *facetoname[MAXPIXMAPNUM];
 

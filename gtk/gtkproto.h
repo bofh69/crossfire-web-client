@@ -67,7 +67,7 @@ extern int display_usexpm(void);
 extern int display_usepng(void);
 extern int display_willcache(void);
 extern void resize_map_window(int x, int y);
-extern void display_newpng(long face, char *buf, long buflen);
+extern void display_newpng(long face, uint8 *buf, long buflen);
 extern void display_map_startupdate(void);
 extern char *get_metaserver(void);
 extern void load_defaults(void);
@@ -75,7 +75,7 @@ extern void save_defaults(void);
 extern int main(int argc, char *argv[]);
 /* image.c */
 extern void requestface(int pnum, char *facename, char *facepath);
-extern int create_and_rescale_image_from_data(int pixmap_num, char *rgba_data, int width, int height);
+extern int create_and_rescale_image_from_data(int pixmap_num, uint8 *rgba_data, int width, int height);
 extern void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face);
 extern int ReadImages(void);
 extern int find_face_in_private_cache(char *face, int checksum);
@@ -104,10 +104,10 @@ extern void display_mapscroll(int dx, int dy);
 extern void reset_map_data(void);
 extern void gtk_draw_map(void);
 /* png.c */
-extern char *png_to_data(char *data, int len, int *width, int *height);
-extern char *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
-extern int rgba_to_gdkpixmap(GdkWindow *window, char *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
-extern int png_to_gdkpixmap(GdkWindow *window, char *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
+extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
+extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
+extern int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
+extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 /* sdl.c */
 extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
 extern void do_sdl_per_pixel_lighting(int x, int y, int mx, int my);

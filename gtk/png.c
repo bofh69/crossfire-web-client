@@ -48,7 +48,7 @@
 #define PNGX_OUTOFMEM	2
 #define PNGX_DATA	3
 
-static char *data_cp;
+static uint8 *data_cp;
 static int data_len, data_start;
 
 static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
@@ -56,9 +56,9 @@ static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t lengt
     data_start += length;
 }
 
-char *png_to_data(char *data, int len, int *width, int *height)
+uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 {
-    char *pixels=NULL;
+    uint8 *pixels=NULL;
     static png_bytepp	rows=NULL;
     static int rows_byte=0;
 
@@ -148,7 +148,7 @@ char *png_to_data(char *data, int len, int *width, int *height)
     png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_uint_32*)height, &bit_depth,
 		 &color_type, &interlace_type, &compression_type, &filter_type);
 
-    pixels = (char*)malloc(*width * *height * 4);
+    pixels = (uint8*)malloc(*width * *height * 4);
 
     if (!pixels) {
 	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
@@ -214,7 +214,7 @@ char *png_to_data(char *data, int len, int *width, int *height)
 #define MAX_IMAGE_BYTES	512*512
 #define BPP 4
 
-char *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
+uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 {
     static    int xrow[BPP * MAX_IMAGE_BYTES], yrow[BPP*MAX_IMAGE_BYTES];
     static  uint8  *nrows[MAX_IMAGE_BYTES];
@@ -231,7 +231,7 @@ char *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
     /* clear old values these may have */
     memset(yrow, 0, sizeof(int) * *height * BPP);
 
-    ndata = (char*)malloc(new_width * new_height * BPP);
+    ndata = (uint8*)malloc(new_width * new_height * BPP);
 
     for (y=0; y<new_height; y++) 
 	nrows[y] = (png_bytep) (ndata + y * new_width * BPP);
@@ -367,7 +367,7 @@ guchar rgb[512*512*3];	/* Make this especially big to support larger images in t
  * of it.
  * Return non zero on error (currently, no checks for error conditions is done 
  */
-int rgba_to_gdkpixmap(GdkWindow *window, char *data,int width, int height,
+int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
 		   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
 {
     GdkGC	*gc, *gc_alpha;
@@ -418,10 +418,10 @@ int rgba_to_gdkpixmap(GdkWindow *window, char *data,int width, int height,
 }
 
 
-int png_to_gdkpixmap(GdkWindow *window, char *data, int len,
+int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
 		   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
 {
-    static char *pixels=NULL;
+    static uint8 *pixels=NULL;
     static int pixels_byte=0, rows_byte=0;
     static png_bytepp	rows=NULL;
     unsigned long width, height;
@@ -519,7 +519,7 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, int len,
      */
     if (pixels_byte==0) {
 	pixels_byte = width * height * bpp;
-	pixels = (char*)malloc(pixels_byte);
+	pixels = (uint8*)malloc(pixels_byte);
     } else if ((width * height * bpp) > pixels_byte) {
 	pixels_byte =width * height * bpp;
 	/* Doing a free/malloc is probably more efficient -
@@ -527,7 +527,7 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, int len,
 	 * buffer.
 	 */
 	free(pixels);
-	pixels= (char*)malloc(pixels_byte);
+	pixels= (uint8*)malloc(pixels_byte);
     }
 
     if (!pixels) {

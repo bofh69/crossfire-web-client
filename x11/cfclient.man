@@ -284,7 +284,7 @@ can also be edited by hand.
 .PP
 Please let me know about any bugs you find in the client.
 .SH AUTHOR
-Copyright (C) 1994,2000 Mark Wedel (mwedel@scruz.net)
+Copyright (C) 1994,2000 Mark Wedel (mwedel@sonic.net)
 GTK port by David Sundqvist (azzie@netpolicy.com)
 SDL support added by Scott MacFiggen (smurf@CSUA.Berkeley.EDU)
 

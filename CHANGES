@@ -3,6 +3,25 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+README: Update notes on needing png (and not xpm) library.  Update mailing
+    alias.
+configure.in, configure: As the seperate sound program (cfsndserv) is the
+    only supported sound configuration, remove new_sound_system defines
+    and ability to use the old (now non existant) sound system.
+    Have configure exit with error message if png library is not found, 
+    as it is critical to the build process.  Change it so that
+    gnome/Makefile is always built so that making of releases works.
+gnome/gnome-cfclient.man, help/about.h, x11/cfclient.man: Update mail address.
+gtk/gtkproto.h, x11/x11proto.h: Rebuilt, prototypes for some changed for
+    signed to unsigned characters.
+gtk/gx11.c, gtk/png.c, pixmaps/stipple.111, x11/png.c, x11/x11.c, x11/xutil.c,
+    pixmaps/stipple.111 pixmaps/stipple.112:
+    Mostly changes to fix compile warnings and make sure we are passing the
+    right types to the various image creation functions (8 bit data).
+sound-src/Makefile.in: Add soundsdef.h to list of things to build.
+x11/x11.h: Remove extra semicolon.
+MSW 2001-12-28
+
 common/config.h, gnome/gnome-cfclient.soundlist, sound-src/sounds,
     sound-src/soundsdef.h: Remove from CVS as it gets automatically generated
    as part of configure/build process.

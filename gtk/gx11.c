@@ -360,7 +360,7 @@ static StatWindow statwindow;
 /* gtk */
  
 GtkWidget *gtkwin_root, *gtkwin_info;
-static GtkWidget *gtkwin_info_text2, *gtkwin_info_text;;
+static GtkWidget *gtkwin_info_text2, *gtkwin_info_text;
 static GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_look, *gtkwin_inv;
 
 
@@ -2785,7 +2785,6 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, GtkWidget **li
 
   gtk_clist_set_selection_mode (GTK_CLIST(*list) , GTK_SELECTION_SINGLE);
   gtk_clist_set_row_height (GTK_CLIST(*list), image_size); 
-    fprintf(stderr,"setting row height to %d\n",image_size);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(*lists),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   liststyle = gtk_rc_get_style(*list);
@@ -5965,11 +5964,12 @@ void resize_map_window(int x, int y)
 /* If we are using ximage logic, we use a different mechanism to load the
  * image.
  */
-void display_newpng(long face,char *buf,long buflen)
+void display_newpng(long face,uint8 *buf,long buflen)
 {
-    char    *filename, *pngtmp;
+    char    *filename;
+    uint8   *pngtmp;
     FILE *tmpfile;
-    int width, height;
+    uint32 width, height;
 
     if (cache_images) {
 	if (facetoname[face]==NULL) {

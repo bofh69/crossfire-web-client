@@ -1,9 +1,9 @@
 /* png.c */
-extern char *png_to_data(char *data, int len, int *width, int *height);
-extern char *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
+extern uint8 *png_to_data(unsigned char *data, int len, int *width, int *height);
+extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
 extern long pngx_find_color(Display *display, Colormap *cmap, int red, int green, int blue);
 extern int init_pngx_loader(Display *display);
-extern int png_to_xpixmap(Display *display, Drawable draw, char *data, int len, Pixmap *pix, Pixmap *mask, Colormap *cmap, unsigned long *width, unsigned long *height);
+extern int png_to_xpixmap(Display *display, Drawable draw, unsigned char *data, int len, Pixmap *pix, Pixmap *mask, Colormap *cmap, unsigned long *width, unsigned long *height);
 /* sound.c */
 extern void signal_pipe(int i);
 extern int init_sounds(void);
@@ -38,7 +38,7 @@ extern int display_willcache(void);
 extern void resize_map_window(int x, int y);
 extern void x_set_echo(void);
 extern void display_map_doneupdate(int redraw);
-extern void display_newpng(long face, char *buf, long buflen);
+extern void display_newpng(long face, uint8 *buf, long buflen);
 extern void display_newbitmap(long face, long fg, long bg, char *buf);
 extern void redisplay_stats(void);
 extern void display_map_startupdate(void);

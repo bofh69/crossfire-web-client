@@ -31,7 +31,6 @@ AC_PATH_PROG(PERL, perl)
 AC_PATH_PROG(AR, ar)
 
 
-new_sound=yes
 SOUNDDIR=/usr/local/lib/sounds
 
 dnl Add some options to 'configure'.
@@ -51,9 +50,6 @@ dnl This is because some of us use OSS sound, even with ALSA libs installed
 
 AC_ARG_ENABLE(alsa, [  --disable-alsa          disable ALSA sound support [default=use alsa sound support if alsa libraries exist]],
 		alsa=no, alsa=yes )
-
-AC_ARG_ENABLE(old-sound, [  --enable-old-sound      use the old sound code       ],
-		new_sound=no)
 
 AC_ARG_WITH(sound-dir, [  --with-sound-dir=dir    Directory where the sounds are located (default=/usr/local/lib/sounds)        ],
 		SOUNDDIR="$withval")
@@ -169,39 +165,32 @@ if eval "test x$sound = xyes"; then
   AC_CHECK_HEADER(sys/soundcard.h, oss_sound=yes, oss_sound=no)
   AC_CHECK_HEADER(sys/audioio.h, sun_sound=yes, sun_sound=no)
 
-if eval "test x$alsa_sound = xyes"; then
+  if eval "test x$alsa_sound = xyes"; then
 	echo "Using ALSA sound system"
-	CFLAGS="$CFLAGS -DALSA_SOUND"
+	CFLAGS="$CFLAGS -DALSA_SOUND  -DBINDIR='\"$bindir/\"'"
 	SND_LIBS="-lasound -lm"
   else 
-  if eval "test x$sgi_sound = xyes"; then
+    if eval "test x$sgi_sound = xyes"; then
 	echo "Using SGI sound system"
-	CFLAGS="$CFLAGS -DSGI_SOUND"
+	CFLAGS="$CFLAGS -DSGI_SOUND -DBINDIR='\"$bindir/\"'"
 	SND_LIBS="-laudio"
     else
-    if eval "test x$oss_sound = xyes"; then
+      if eval "test x$oss_sound = xyes"; then
 	echo "Using OSS sound system"
-	CFLAGS="$CFLAGS -DOSS_SOUND"
+	CFLAGS="$CFLAGS -DOSS_SOUND -DBINDIR='\"$bindir/\"'"
 	SND_LIBS="-lm"
       else
-      if eval "test x$sun_sound = xyes"; then
-	echo "Using solaris sound system"
-	CFLAGS="$CFLAGS -DSUN_SOUND"
-	SND_LIBS="-lm"
-        else
-	    echo "No suitable sound system found - using old sound system"
-	    new_sound=no
+        if eval "test x$sun_sound = xyes"; then
+	      echo "Using solaris sound system"
+	      CFLAGS="$CFLAGS -DSUN_SOUND -DBINDIR='\"$bindir/\"'"
+	      SND_LIBS="-lm"
+	else
+	      echo "No suitable sound system found."
+        fi
       fi
     fi
   fi
-fi
-
-if eval "test x$new_sound = xyes"; then
-	CFLAGS="$CFLAGS -DNEW_SOUND -DBINDIR='\"$bindir/\"'"
-	TARGET="$TARGET cfsndserv"
-fi
-
-# this fi is for the sound == yes check above
+  # this fi is for the sound == yes check above
 fi
 
 AC_PATH_PROG(GNOMECONFIG, gnome-config)
@@ -312,7 +301,7 @@ AC_SUBST(LIBS)
 dnl sound.c needs sqrt.  So does png (on some systems)
 AC_CHECK_LIB(m, sqrt)
 
-AC_CHECK_LIB(png, main)
+AC_CHECK_LIB(png, main, , [AC_MSG_ERROR([You must have the png library installed to compile the client])])
 
 dnl not strictly needed, but since the X11 client uses it, lets use it here
 AC_CHECK_LIB(dmalloc, main, DMALLOC_LIB="-ldmalloc")
@@ -340,10 +329,10 @@ dnl Make all makefiles, even if SUBDIRS are not set for that directory.
 dnl since SUBDIRS won't be set in the top level makefile, we don't
 dnl descend into these subdirs.
 
-OUTPUT_FILES="Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile"
+OUTPUT_FILES="Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile gnome/Makefile"
 
 if eval "test x$gnome = xyes"; then
-	OUTPUT_FILES="$OUTPUT_FILES gnome/Makefile gnome/gnome-cfclient.soundlist"
+	OUTPUT_FILES="$OUTPUT_FILES gnome/gnome-cfclient.soundlist"
 fi
 
 AC_OUTPUT(${OUTPUT_FILES})

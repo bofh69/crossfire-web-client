@@ -1555,9 +1555,9 @@ static void create_status_icons ()
     }
 #endif
     icons[stipple1_icon].bitmap = XCreateBitmapFromData(display, 
-	RootWindow(display, screen_num), stipple_bits, 24, 24);
+	RootWindow(display, screen_num), (char*)stipple_bits, 24, 24);
     icons[stipple2_icon].bitmap = XCreateBitmapFromData(display, 
-	RootWindow(display, screen_num), stipple1_bits, 24, 24);
+	RootWindow(display, screen_num), (char*)stipple1_bits, 24, 24);
     if (icons[stipple1_icon].bitmap==None || icons[stipple2_icon].bitmap==None) {
 	fprintf(stderr, "Unable to create stipple pixmaps.\n");
 	exit(0);
@@ -2976,7 +2976,7 @@ void display_map_doneupdate(int redraw)
  * does this).  As such, we might as well just do it at the top level - plus
  * if we are caching, at least we only write the file once then.
  */
-void display_newpng(long face,char *buf,long buflen)
+void display_newpng(long face,uint8 *buf,long buflen)
 {
     char    *filename;
 

@@ -15,9 +15,9 @@ Install Steps:
     normally understood by configure should be available.
     The configure script will try to make all the right decisions.  It will
     search for the needed libraries and headers.   You may need to give
-    hints on the locations of some files (xpm library, gtk library).
+    hints on the locations of some files (png library, gtk library).
 
-    If configure finds gtk libraries, it will bind the gcfclient in addition
+    If configure finds gtk libraries, it will build the gcfclient in addition
     to the cfclient.  If you don't want this (only cfclient), use the
     --disable-gtk (there is no way to disable the cfclient at this time - 
     if you are able to compile the gtk client, you also have all the tools for
@@ -160,7 +160,7 @@ next buffer, before last is played.
 ------------------------------------------------------------------------------
 Authors of the client:
 
-Mark Wedel (mwedel@scruznet.com) - general client source and Xlib client
+Mark Wedel (mwedel@sonic.net) - general client source and Xlib client
 David Sundqvist (azzie@netpolicy.com) - GTK+ port
 Raphael Quinet (Raphael.Quinet@eed.ericsson.se) - Configure scripts and
 graphics

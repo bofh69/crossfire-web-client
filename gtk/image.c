@@ -107,7 +107,7 @@ void requestface(int pnum, char *facename, char *facepath)
 /*#define CHECKSUM_DEBUG*/
 
 /* These little helper functions just make the code below much more readable */
-static void create_icon_image(char *data, int pixmap_num)
+static void create_icon_image(uint8 *data, int pixmap_num)
 {
     if (rgba_to_gdkpixmap(gtkwin_root->window, data, pixmaps[pixmap_num].icon_width, pixmaps[pixmap_num].icon_height,
 		(GdkPixmap**)&pixmaps[pixmap_num].icon_image, (GdkBitmap**)&pixmaps[pixmap_num].icon_mask,
@@ -116,7 +116,7 @@ static void create_icon_image(char *data, int pixmap_num)
 }
 
 /* These little helper functions just make the code below much more readable */
-static void create_map_image(char *data, int pixmap_num)
+static void create_map_image(uint8 *data, int pixmap_num)
 {
     pixmaps[pixmap_num].map_image = NULL;
     pixmaps[pixmap_num].map_mask = NULL;
@@ -149,10 +149,10 @@ static void create_map_image(char *data, int pixmap_num)
  * stores the relevant data into the pixmap structure.
  * returns 1 on failure.
  */
-int create_and_rescale_image_from_data(int pixmap_num, char *rgba_data, int width, int height)
+int create_and_rescale_image_from_data(int pixmap_num, uint8 *rgba_data, int width, int height)
 {
     int nx, ny;
-    char *png_tmp;
+    uint8 *png_tmp;
 
     /* In all cases, the icon images are in native form. */
     if (icon_scale != 100) {
@@ -199,8 +199,9 @@ int create_and_rescale_image_from_data(int pixmap_num, char *rgba_data, int widt
 void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 {
     char buf[MAX_BUF];
-    int fd,len,nx,ny;
-    char data[65536], *png_tmp;
+    int fd,len;
+    uint32 nx,ny;
+    uint8 data[65536], *png_tmp;
     uint32 newsum=0;
 
     /* Check private cache first */
@@ -357,7 +358,7 @@ int ReadImages() {
 	}
 	if (num > last_face_num) last_face_num = num;
 
-	private_cache[num].png_data = png_to_data(databuf, len, &private_cache[num].width,
+	private_cache[num].png_data = png_to_data((uint8 *)databuf, len, &private_cache[num].width,
 			&private_cache[num].height);
 	if (!private_cache[num].png_data) {
 	    fprintf(stderr,"Got error on png_to_data, image num %d, name %s\n",num, private_cache[num].name);

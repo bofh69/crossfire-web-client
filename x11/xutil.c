@@ -204,7 +204,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 {
     char buf[MAX_BUF];
     int fd,len;
-    char data[65536];
+    uint8 data[65536];
     uint32 newsum=0;
 #ifndef GDK_XUTIL
     Pixmap pixmap, mask;
@@ -1368,7 +1368,7 @@ int ReadImages() {
 		fprintf(stderr,"Error loading png file.\n");
 	}
 #else
-	if (png_to_xpixmap(display, win_game, databuf, len, 
+	if (png_to_xpixmap(display, win_game, (uint8*)databuf, len, 
 		   &private_cache[num].pixmap, &private_cache[num].mask,
 		       &colormap, &x, &y)) {
 

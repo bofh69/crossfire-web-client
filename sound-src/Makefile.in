@@ -42,7 +42,7 @@ EXTRA_DIST = \
 SND_OBJS= $(SOURCES:.c=.o)
 
 
-all:  cfsndserv
+all:  soundsdef.h cfsndserv
 
 proto:
 	echo "Nothing to do for proto"
