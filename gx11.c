@@ -525,6 +525,7 @@ void event_loop()
 {
     gint fleep;
     extern int do_timeout();
+    int tag;
 
     if (MAX_TIME==0) {
 	timeout.tv_sec = 0;
@@ -544,7 +545,10 @@ void event_loop()
     csocket_fd = gdk_input_add ((gint) csocket.fd,
                               GDK_INPUT_READ,
                               (GdkInputFunction) do_network, &csocket);
+    tag = csocket_fd;
+
     gtk_main();
+    gtk_timeout_remove(tag);
 
     fprintf(stderr,"gtk_main exited, returning from event_loop\n");
 }
