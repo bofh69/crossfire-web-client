@@ -1,6 +1,6 @@
 %define Name crossfire
 %define extra client
-%define version 0.98.0
+%define version 1.0.0
 %define sndversion 0.95.4
 %define release 1
 %define prefix /usr/X11R6
@@ -96,10 +96,23 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/sounds/crossfire/*
 
 %changelog
-* Tue Mar 10 2001 Bob Tanner <tanner@real-time.com>
+* Mon May 14 2001 Bob Tanner <tanner@real-time.com>
+- Rolled new client 1.0.0
+
+* Sun May 13 2001 Mark Wedel <mwedel@scruz.net>
+- player.c: Fix for client crashes if player enters really long commands (like
+   say .....).
+- gx11.c,command.c: Remove some debug statements which really should not be
+  there for 1.0, and which are not really useful anyways.  items_types,
+  item_types.h: Varioius minor updates.
+- gx11.c: Fix bug that causes gtk client not to update weapon speed.
+  metaserver.c: Have the listing get sorted by hostname to make it easier to
+  find the host the user may want.
+
+* Wed Apr 11 2001 Bob Tanner <tanner@real-time.com>
 - Rolled new client 0.98.0 with Mark's changes listed next
 
-* Wed Mar 10 2001 Mark Wedel <mwedel@scruz.net>
+* Tue Apr 10 2001 Mark Wedel <mwedel@scruz.net>
 - Change matching for sword - hopefully this should fix problems with dancing
   sword spellbooks.
 - Move animations of the look window to the client.  All the necessary was
@@ -112,7 +125,7 @@ rm -rf $RPM_BUILD_ROOT
 * Wed Mar 21 2001 Bob Tanner <tanner@real-time.com>
 - Rolled new client 0.97.0 with Mark's changes listed next
 
-* Wed Mar 21 2001 Mark Wedel <mwedel@scruz.net>
+* Tue Mar 20 2001 Mark Wedel <mwedel@scruz.net>
 - Change so that containers on the ground still keep proper contents even if the
   map space itself changes (spells or other objects going onto the space). 
 - commands.c: update the cpl.container tags when opening/closing containers.
@@ -158,7 +171,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Feb 13 2001 Bob Tanner <tanner@real-time.com>
 - Rolled new client 0.96.0 with Mark's changes listed next
 
-* Tue Feb 13 2001 Mark Wedel <mwedel@scruz.net>
+* Mon Feb 12 2001 Mark Wedel <mwedel@scruz.net>
 - If compiled with dmalloc, add 'dmalloc command that verifies the heap.  Makes
   checking for memory corruption easier. 
 - CHANGES, configure configure.in crossfire-client.spec: Update for 0.96.0
@@ -189,8 +202,8 @@ rm -rf $RPM_BUILD_ROOT
 - server/apply.c: Don't display the message of random maps to the players
   as they enter them, as this message is random map parameters, and not
   a real message.
-- server/login.c: #if 0 out using of the player loading element in the structure.
-  this isn't used right now.
+- server/login.c: #if 0 out using of the player loading element in the
+  structure.  this isn't used right now.
 - server/main.c: Bulk of the changes.  main changes are to break apart
   the old enter_exit function into smaller functions that more
   logically do the needed function (random maps, unique maps, and
@@ -202,7 +215,6 @@ rm -rf $RPM_BUILD_ROOT
 - server/player.c: Remove usage of the loading variable in the player structure.
 
 * Sun Jan 14 2001 Bob Tanner <tanner@real-time.com>
-- MSW 2000/1/13 (except as mentioned, all changes by MSW):
 - Makefile.in: Create destination dirs, remove extra tab.  Patch also by Dave.
 - Protocol: typo fixed.
 - config.h, config.h.in: Add HVAE_DMALLOC_H #ifdefs.  Checks currently
@@ -224,8 +236,8 @@ rm -rf $RPM_BUILD_ROOT
 - Moved sounds into /usr/share/sounds/crossfire 
 - Moved the prefix to /usr/X11R6
 - Upgrade source file locations
-- Made the gtk client GNOME aware and put the crossfire picture into Program->Games
-- Sounds are noarch
+- Made the gtk client GNOME aware and put the crossfire picture into
+  Program->Games - Sounds are noarch
 
 * Tue Mar 16 1999 Toshio Kuratomi <badger@prtr-13.ucsc.edu> [0.95.2-2]
 - A few changes to conform to FHS 2.0
@@ -237,28 +249,22 @@ rm -rf $RPM_BUILD_ROOT
   gtk and the Athena binaries.
 
 * Sat Jan 30 1999 Kjetil Wiekhorst Jørgensen <jorgens+rpm@pvv.org> [0.95.2-1]
-
 - upgraded to version 0.95.2
 - fixed minor bug in Makefile
 
 * Sat Jan 23 1999 Kjetil Wiekhorst Jørgensen <jorgens+rpm@pvv.org> [0.95.1-2]
-
 - some bug fixes to the 0.95.1 release
 
 * Tue Dec  8 1998 Kjetil Wiekhorst Jørgensen <jorgens+rpm@pvv.org> [0.95.1-1]
-
 - upgraded to 0.95.1
 - install sounds in /usr/share/sounds
 - build both vanilla X client and GTK+ client
 
 * Wed Dec  2 1998 Kjetil Wiekhorst Jørgensen <jorgens+rpm@pvv.org> [0.94.4-1]
-
 - upgraded to 0.94.4
 
 * Fri Sep  4 1998 Kjetil Wiekhorst Jørgensen <jorgens+rpm@pvv.org> [0.94.3-1]
-
 - upgraded to version 0.94.3
 
 * Tue Jun 02 1998 Kjetil Wiekhorst Jørgensen <jorgens+rpm@pvv.org>
-
 - Initial release.
