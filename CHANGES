@@ -1,7 +1,12 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
-For top of CVS tree:
+
+Changes for 1.2.0:
+
+Makefile.in: add missing pixmaps file for archive.
+crossfire-client.spec, configure.in: Update for 1.2.0 release.
+MSW 2002-03-19
 
 Most of the changes are by Edgar Toernig - I've just applied them and
  checked them in.  The stripping out of the display_mode variable is

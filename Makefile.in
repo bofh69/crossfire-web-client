@@ -46,19 +46,26 @@ EXTRA_DIST = \
 
 PIXMAPS = \
 	pixmaps/all.xpm		\
+	pixmaps/applied.xbm	\
 	pixmaps/applied.xpm	\
 	pixmaps/bg.xpm		\
+	pixmaps/clear.xbm	\
+	pixmaps/close.xbm	\
 	pixmaps/close.xpm	\
 	pixmaps/coin.xpm	\
 	pixmaps/crossfiretitle.xpm	\
+	pixmaps/cursed.xbm	\
 	pixmaps/cursed.xpm	\
+	pixmaps/damned.xbm	\
 	pixmaps/damned.xpm	\
 	pixmaps/dot.xpm		\
 	pixmaps/hand.xpm	\
 	pixmaps/hand2.xpm	\
 	pixmaps/lock.xpm	\
+	pixmaps/locked.xbm	\
 	pixmaps/locked.xpm	\
 	pixmaps/mag.xpm		\
+	pixmaps/magic.xbm	\
 	pixmaps/magic.xpm	\
 	pixmaps/nonmag.xpm	\
 	pixmaps/question.111	\
@@ -69,6 +76,7 @@ PIXMAPS = \
 	pixmaps/stipple.112	\
 	pixmaps/test.xpm	\
 	pixmaps/unlock.xpm	\
+	pixmaps/unpaid.xbm	\
 	pixmaps/unpaid.xpm	
 
 HELP= \
