@@ -135,6 +135,15 @@ that image will be represented by a ? in the map.
 is slower than home directory access - this is likely to be the case
 except in case of nfs mounted home directories on the server on the local
 lan.
+
+.TP
+.B -darkness|-nodarkness
+Controls whether the server sends darkness information to the client
+or not.  Turning off darkness results in a savings off bandwidth
+for maps that use darkness code (currently, very few maps use darkness
+code).  Turning off darkness may also be desirable as in some graphics
+mode the quality of darkness may not add much to the map.
+
 .TP
 .B -updatekeycodes
 The standard behaviour when a player uses the bind command to bind

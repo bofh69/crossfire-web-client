@@ -117,11 +117,6 @@ void SetupCmd(char *buf, int len)
 		else
 		    cs_write_string(csocket.fd,"setsound 1", 10);
 	    }
-	}
-	else if (!strcmp(cmd,"sexp")) {
-	    if (!strcmp(param,"FALSE")) {
-		fprintf(stderr,"Server returned FALSE on setup sexp\n");
-	    }
 	} else if (!strcmp(cmd,"mapsize")) {
 	    int x, y=0;
 	    char *cp,tmpbuf[MAX_BUF];
@@ -168,10 +163,18 @@ void SetupCmd(char *buf, int len)
 		draw_info(tmpbuf,NDI_RED);
 	    }
 	} else {
-	    fprintf(stderr,"Got setup for a command we don't understand: %s %s\n",
+	    if (!strcmp(cmd,"sexp") || !strcmp(cmd,"darkness")) {
+		/* this really isn't an error or bug - in fact, it is expected if
+		 * the user is playing on an older server.
+		 */
+		if (!strcmp(param,"FALSE")) {
+		    fprintf(stderr,"Server returned FALSE on setup command %s\n",cmd);
+		}
+	    } else {
+		fprintf(stderr,"Got setup for a command we don't understand: %s %s\n",
 		    cmd, param);
+	    }
 	}
-
     }
 }
 

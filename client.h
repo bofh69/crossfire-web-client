@@ -217,7 +217,7 @@ extern int errno;
 extern char *resists_name[NUM_RESISTS];
 extern char *meta_server;
 extern int meta_port,want_skill_exp, want_mapx, want_mapy, mapx, mapy;
-extern int map1cmd,metaserver_on;
+extern int map1cmd,metaserver_on, want_darkness;
 
 /* Map size the client will request the map to be.  Bigger it is,
  * more memory it will use

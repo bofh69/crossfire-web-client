@@ -2638,6 +2638,8 @@ static void usage(char *progname)
     puts("-help            - Display this message.");
     puts("-cache           - Cache images for future use.");
     puts("-nocache         - Do not cache images (default action).");
+    puts("-darkness        - Enables darkness code (default)");
+    puts("-nodarkness      - Disables darkness code");
     puts("-nosound         - Disable sound output.");
     puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
     puts("-keepcache       - Keep already cached images even if server has different ones.");
@@ -2747,6 +2749,14 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-nocache")) {
 	    cache_images= FALSE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-darkness")) {
+	    want_darkness= TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-nodarkness")) {
+	    want_darkness= FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-split")) {

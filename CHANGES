@@ -1,7 +1,15 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
-For top of CVS tree
+For top of CVS tree:
+
+client.c,client.h: Add want_darkness global variable, include when in setup
+   command we send server.
+client.man,gx11.c,x11.c: Update to include -darkness/-nodarkness command
+    line options
+commands.c: Change handling of negative results from server on setup
+   command.
+MSW 2001-06-16
 
 The main thing this fixes is a major memory corruption problem when using
 -pngximage with the client.  Better darkness display is also when
