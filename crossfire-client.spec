@@ -2,7 +2,7 @@
 %define extra client
 %define version 0.96.0
 %define sndversion 0.95.4
-%define release 5
+%define release 1
 %define prefix /usr/X11R6
 
 Name: %{Name}-%{extra}
@@ -96,6 +96,15 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/sounds/crossfire/*
 
 %changelog
+* Tue Feb 13 2001 Bob Tanner <tanner@real-time.com>
+- Rolled new client 0.96.0 with Mark's changes listed next
+
+* Tue Feb 13 2001 Mark Wedel <mwedel@scruze.net>
+- If compiled with dmalloc, add 'dmalloc command that verifies the heap.  Makes
+  checking for memory corruption easier. 
+- CHANGES, configure configure.in crossfire-client.spec: Update for 0.96.0
+  release item_types item_types.h: Add some additional items.
+
 * Sat Feb 10 2001 Bob Tanner <tanner@real-time.com>
 - Created new Group for this package Amusements/Games/Crossfire
 
