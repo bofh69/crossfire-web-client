@@ -289,6 +289,14 @@ void extended_command(const char *ocommand) {
 	cpl.showmagic=1;
 	draw_magic_map();
     }
+#ifdef HAVE_DMALLOC_H
+    else if (!strcmp(cp,"dmalloc")) {
+	if (dmalloc_verify(NULL)==DMALLOC_VERIFY_NOERROR)
+	    draw_info("Heap checks out OK", NDI_BLACK);
+	else 
+	    draw_info("Heap corruption detected", NDI_RED);
+    }
+#endif
     else if (!strcmp(cp,"savewinpos")) {
 	save_winpos();
     }
