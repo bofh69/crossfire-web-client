@@ -2704,8 +2704,10 @@ static void list_button_event (GtkWidget *gtklist, gint row, gint column, GdkEve
     else {
       cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
       client_send_move (inv_list.env->tag, tmp->tag, cpl.count);
-      cpl.count=0;
-      
+      if (nopopups) {
+         gtk_spin_button_set_value(GTK_SPIN_BUTTON(counttext),0.0);
+         cpl.count=0;
+      }
     }
     
   }
