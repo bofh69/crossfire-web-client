@@ -1901,8 +1901,13 @@ void display_mapscroll(int dx,int dy)
 		/* basically, if using pngximage, don't want to update it, since the
 		 * scrolling below will effectively take care of our redraw
 		 */
-		if (!pngximage)
-		    newmap.cells[x][y].need_update=1;
+		if (!pngximage) {
+#ifdef HAVE_SDL
+		    if( !sdlimage)
+#endif
+		      newmap.cells[x][y].need_update=1;
+
+		}
 #else
 		newmap.cells[x][y].need_update=1;
 #endif
@@ -1914,7 +1919,12 @@ void display_mapscroll(int dx,int dy)
 		/* if using pngximage, we will instead set the map_did_scroll
 		 * to 1 - we don't want to regen the backing image
 		 */
-		if (!pngximage) newmap.cells[x][y].need_update=1;
+		if (!pngximage) {
+#ifdef HAVE_SDL
+		  if( !sdlimage)
+#endif
+		    newmap.cells[x][y].need_update=1;
+		}
 #else
 		newmap.cells[x][y].need_update=1;	/* new space needs to be redrawn */
 #endif
@@ -1952,6 +1962,55 @@ void display_mapscroll(int dx,int dy)
 	}
 	map_did_scroll=1;
     }
+#ifdef HAVE_SDL
+    if( sdlimage) 
+      {
+	/* a copy of what pngximage does except sdl specfic
+	 * mapsurface->pitch is the length of a scanline in bytes 
+	 * including alignment padding
+	 */
+
+	SDL_LockSurface( mapsurface);
+	if( dy < 0)
+	  {
+	    int offset= mapsurface->pitch * (-dy*image_size);
+	    memmove( mapsurface->pixels + offset, mapsurface->pixels, 
+		     mapsurface->pitch * (mapsurface->h + dy*image_size) );
+	  }
+	else if( dy > 0)
+	  {
+	    int offset= mapsurface->pitch * (dy*image_size);
+	    memmove( mapsurface->pixels,  mapsurface->pixels + offset,
+		     mapsurface->pitch * (mapsurface->h - dy*image_size) );
+	  }
+
+	if( dx)
+	  {
+	    int y;
+	    for( y= 0; y < mapsurface->h; y++)
+	      {
+		if( dx < 0)
+		  {
+		    char* start_of_row= mapsurface->pixels + mapsurface->pitch * y;
+		    int offset= ((mapsurface->pitch / mapy) * -dx);
+		    memmove( start_of_row + offset, start_of_row,
+			     mapsurface->pitch - offset);
+		  }
+		else 
+		  {
+		    char* start_of_row= mapsurface->pixels + mapsurface->pitch * y; 
+		    int offset= ((mapsurface->pitch / mapy) * dx);
+		    memmove( start_of_row, start_of_row + offset,
+			     mapsurface->pitch - offset);
+		  }
+	      }
+	  }
+	SDL_UnlockSurface( mapsurface);
+
+	map_did_scroll= 1;
+      }
+#endif /* HAVE_SDL */
+	    
 /*    fprintf(stderr,"scroll command: %d %d\n", dx, dy);*/
 #endif
 }

@@ -517,7 +517,7 @@ static void overlay_grid( int re_init, int ax, int ay)
 					  mapsurface->format->Bmask,
 					  mapsurface->format->Amask);
       if( grid_overlay == NULL)
-	abort();
+	do_SDL_error( "CreateRGBSurface", __FILE__, __LINE__);
 
       grid_overlay= SDL_DisplayFormatAlpha( grid_overlay);
 
@@ -544,7 +544,8 @@ static void overlay_grid( int re_init, int ax, int ay)
 	      pixel= (Uint32*)grid_overlay->pixels+y*grid_overlay->pitch/4+x;
 
 	      if( x == 0 || y == 0 || 
-		  ((x % image_size) == 0) || ((y % image_size) == 0 ) )
+		  ((x % image_size) == 0) || ((y % image_size) == 0 ) ||
+		  y == mapy*image_size-1 || x == mapx*image_size -1 )
 		{
 		  *pixel= SDL_MapRGBA( fmt, 255, 0, 0, SDL_ALPHA_OPAQUE);
 		}
@@ -6256,7 +6257,27 @@ int sdl_add_png_faces( int ax, int ay, int *faces, int num_faces, int dark[5])
       return 0;
     }
 
-  for( on_face= num_faces -1; on_face > -1; on_face--)
+  /* First go from the top down and find the highest non transparent face 
+   * The only way I really know is if SRCCOLORKEY is set, which indicates which
+   * color is transparent. Also check for an Alpha channel
+   * We don't bother checking the last image, we will have to
+   * draw it anyway if we get that far.
+   */
+  for( on_face= 0; on_face < num_faces - 1; on_face++)
+    {
+      if( (surfaces[faces[on_face]].surface->flags & SDL_SRCCOLORKEY) != 0)
+	continue;
+
+      if( surfaces[faces[on_face]].surface->format->Amask != 0)
+	continue;
+
+      /* if no color key is set and the Alpha mask is all zeros then it must
+       * be a completely opaque image. Stop here.
+       */
+      break;
+    }
+
+  for( ; on_face > -1; on_face--)
     {
       if( SDL_BlitSurface( surfaces[faces[on_face]].surface, NULL,
 			   mapsurface, &dst) < 0)
@@ -6663,9 +6684,9 @@ void display_map_doneupdate(int redraw)
 
 #ifdef HAVE_SDL
 	if (sdlimage && (need_updates > 0 || map_did_scroll)) {
-	    if( SDL_Flip( mapsurface) == 1 )
-	    do_SDL_error( "Flip", __FILE__, __LINE__);
-	    map_did_scroll= 0;
+	  if( SDL_Flip( mapsurface) == 1 )
+	      do_SDL_error( "Flip", __FILE__, __LINE__);
+	  map_did_scroll= 0;
 	}
 #endif
 
