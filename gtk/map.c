@@ -61,7 +61,6 @@ uint8	map_did_scroll=0;
  * FIX ME: Don't assume rectangle
  */
 
-int map_size= 0;
 PlayerPosition pl_pos;
 
 
@@ -77,41 +76,38 @@ PlayerPosition pl_pos;
  */
 void allocate_map( struct Map* new_map, int ax, int ay)
 {
+    int i= 0;
 
-  int i= 0;
+    if( new_map == NULL)
+	return;
 
-  if( new_map == NULL)
-    return;
-
-  if( ax < 1 || ay < 1) {
-    new_map->cells= NULL;
-    return;
-  }
-
-  new_map->cells= (struct MapCell**)calloc( sizeof( struct MapCell*) * ay 
-					    + sizeof( struct MapCell) *
-					    map_size * map_size, 1);
-  if( new_map->cells == NULL)
-    return;
-
-  /* Skip past the first row of pointers to rows and assign the start of
-   * the actual map data
-   */
-  new_map->cells[0]= (struct MapCell*)((char*)new_map->cells + 
-				       (sizeof( struct MapCell*) * ay));
-
-  /* Finish assigning the beginning of each row relative to the first row
-   * assigned above
-   */
-  for( i= 0; i < ay; i++) 
-    {
-      new_map->cells[i]= new_map->cells[0] + ( i * ax);
+    if( ax < 1 || ay < 1) {
+	new_map->cells= NULL;
+	return;
     }
 
-  new_map->x= ax;
-  new_map->y= ay;
+    new_map->cells= (struct MapCell**)calloc( sizeof( struct MapCell*) * ay
+		    + sizeof( struct MapCell) * ax * ay, 1);
 
-  return;
+    if( new_map->cells == NULL)
+	return;
+
+    /* Skip past the first row of pointers to rows and assign the start of
+     * the actual map data
+     */
+    new_map->cells[0]= (struct MapCell*)((char*)new_map->cells + 
+				       (sizeof( struct MapCell*) * ay));
+
+    /* Finish assigning the beginning of each row relative to the first row
+     * assigned above
+     */
+    for( i= 0; i < ay; i++)  {
+	new_map->cells[i]= new_map->cells[0] + ( i * ax);
+    }
+    new_map->x= ax;
+    new_map->y= ay;
+
+    return;
 }
 
 /*
@@ -121,44 +117,31 @@ void allocate_map( struct Map* new_map, int ax, int ay)
  */
 void reset_map()
 {
-    if( fog_of_war == TRUE)
+    int x= 0;
+    int y= 0;
+
+    pl_pos.x= the_map.x/2;
+    pl_pos.y= the_map.y/2;
+    memset( the_map.cells[0], 0, 
+	   sizeof( struct MapCell) * the_map.x * the_map.y);
+    for( x= pl_pos.x; x < (pl_pos.x + use_config[CONFIG_MAPWIDTH]); x++) 
     {
-	int x= 0;
-	int y= 0;
-	pl_pos.x= the_map.x/2;
-	pl_pos.y= the_map.y/2;
-	memset( the_map.cells[0], 0, 
-		sizeof( struct MapCell) * the_map.x * the_map.y);
-	for( x= pl_pos.x; x < (pl_pos.x + mapx); x++) 
+	for( y= pl_pos.y; y < (pl_pos.y + use_config[CONFIG_MAPHEIGHT]); y++)
 	{
-	    for( y= pl_pos.y; y < (pl_pos.y + mapy); y++)
-	    {
-		the_map.cells[x][y].need_update= 1;
-	    }
+	    the_map.cells[x][y].need_update= 1;
 	}
     }
-    else
-    {
-	int x= 0;
-	int y= 0;
-	memset( the_map.cells[0], 0, 
-		sizeof( struct MapCell) * the_map.x * the_map.y);
-	for( x= 0; x < mapx; x++)
-	{
-	    for( y= 0; y < mapy; y++)
-	    {
-		the_map.cells[x][y].need_update= 1;
-	    }
-	}
-    }
-    
     cs_print_string(csocket.fd, "mapredraw");
     return;
 }
 
 void display_map_clearcell(long x,long y)
 {
-    if( fog_of_war == TRUE)
+
+    x+= pl_pos.x;
+    y+= pl_pos.y;
+
+    if(use_config[CONFIG_FOGWAR] == TRUE)
     {
 	int i,got_one=0;
 
@@ -167,8 +150,6 @@ void display_map_clearcell(long x,long y)
 	 * we just mark that it has been cleared. Also mark it for
 	 * update so we can draw the proper fog cell over it
 	 */
-	x+= pl_pos.x;
-	y+= pl_pos.y;
 
 	/* If the space is completly black, don't mark this as a 
 	 * fog cell - that chews up extra cpu time.  Likewise,
@@ -210,9 +191,9 @@ void print_darkness()
     int x= 0;
     int y= 0;
 
-    for( y= 0; y < mapy; y++)
+    for( y= 0; y < use_config[CONFIG_MAPHEIGHT]; y++)
     {
-	for( x= 0; x < mapx; x++)
+	for( x= 0; x < use_config[CONFIG_MAPWIDTH]; x++)
 	{
 	    if( the_map.cells[x][y].count== 0)
 		fprintf( stderr, "[ - ]");
@@ -229,28 +210,21 @@ void print_map()
     int y= 0;
     int z= 0;
 
-    int local_mapx;
-    int local_mapy;
+    int local_mapx = pl_pos.x + use_config[CONFIG_MAPWIDTH];
+    int local_mapy = pl_pos.y + use_config[CONFIG_MAPHEIGHT];
 
-    if( fog_of_war == TRUE)
+    if( use_config[CONFIG_FOGWAR] == TRUE)
     {
-	local_mapx= pl_pos.x + mapx;
-	local_mapy= pl_pos.y + mapy;
 	printf( " Current X pos: %d -- Current Y pos: %d\n", 
 		pl_pos.x, pl_pos.y);
     }
-    else 
-    {
-	local_mapx= mapx;
-	local_mapy= mapy;
-    }
 
     fprintf( stderr, "-----------------------\n");
-    for( y= (fog_of_war == TRUE ? pl_pos.y : 0); y < local_mapy; y++)
+    for( y= pl_pos.y ; y < local_mapy; y++)
     {
 	for( z= 0; z < MAXFACES; z++)
 	{
-	    for( x= (fog_of_war == TRUE ? pl_pos.x : 0); x < local_mapx; x++)
+	    for( x= pl_pos.x ; x < local_mapx; x++)
 	    {
 		if( the_map.cells[x][y].count == 0)
 		    fprintf( stderr, "[ -- ]");
@@ -267,11 +241,8 @@ void print_map()
 
 void set_map_darkness(int x, int y, uint8 darkness)
 {
-  if( fog_of_war == TRUE)
-  {
-      x+= pl_pos.x;
-      y+= pl_pos.y;
-  }
+    x+= pl_pos.x;
+    y+= pl_pos.y;
 
     the_map.cells[x][y].have_darkness = 1;
     if (darkness != (255 - the_map.cells[x][y].darkness )) {
@@ -282,11 +253,11 @@ void set_map_darkness(int x, int y, uint8 darkness)
 	 * let the neighbors know they should update their darkness
 	 * now.
 	 */
-	if (sdlimage) {
+	if (use_config[CONFIG_SDL]) {
 	    if (x-1>0) the_map.cells[x-1][y].need_update = 1;
 	    if (y-1>0) the_map.cells[x][y-1].need_update = 1;
-	    if (x+1<mapx) the_map.cells[x+1][y].need_update = 1;
-	    if (y+1<mapy) the_map.cells[x][y+1].need_update = 1;
+	    if (x+1<use_config[CONFIG_MAPWIDTH]) the_map.cells[x+1][y].need_update = 1;
+	    if (y+1<use_config[CONFIG_MAPHEIGHT]) the_map.cells[x][y+1].need_update = 1;
 	}
     }
 }
@@ -297,45 +268,37 @@ void set_map_darkness(int x, int y, uint8 darkness)
  */
 void set_map_face(int x, int y, int layer, int face)
 {
-  if( fog_of_war == TRUE)
-  {
-      x+= pl_pos.x;
-      y+= pl_pos.y;
-  }
+    x+= pl_pos.x;
+    y+= pl_pos.y;
+    if(use_config[CONFIG_FOGWAR] && (the_map.cells[x][y].cleared == 1)) {
+	/* This cell has been cleared previously but now we are 
+	 * writing new data to do. So we have to clear it for real now 
+	 */
+	int i= 0;
 
-  if( (fog_of_war == TRUE) && (the_map.cells[x][y].cleared == 1) )
-  {
-      /* This cell has been cleared previously but now we are 
-       * writing new data to do. So we have to clear it for real now 
-       */
-      int i= 0;
-      the_map.cells[x][y].count= 0;
-      the_map.cells[x][y].darkness= 0;
-      the_map.cells[x][y].need_update= 1;
-      the_map.cells[x][y].have_darkness= 0;
-      the_map.cells[x][y].cleared= 0;
-      for (i=0; i<MAXFACES; i++)
-	  the_map.cells[x][y].faces[i]= -1;  /* empty/blank face */
-  }
+	the_map.cells[x][y].count= 0;
+	the_map.cells[x][y].darkness= 0;
+	the_map.cells[x][y].need_update= 1;
+	the_map.cells[x][y].have_darkness= 0;
+	the_map.cells[x][y].cleared= 0;
+	for (i=0; i<MAXFACES; i++)
+	    the_map.cells[x][y].faces[i]= -1;  /* empty/blank face */
+    }
 
-  the_map.cells[x][y].faces[layer] = face;
-  if ((layer+1) > the_map.cells[x][y].count)
-    the_map.cells[x][y].count = layer+1;
-  the_map.cells[x][y].need_update = 1;
-  the_map.cells[x][y].have_darkness = 1;
+    the_map.cells[x][y].faces[layer] = face;
+    if ((layer+1) > the_map.cells[x][y].count)
+	the_map.cells[x][y].count = layer+1;
+    the_map.cells[x][y].need_update = 1;
+    the_map.cells[x][y].have_darkness = 1;
 }
 
 
 void display_map_addbelow(long x,long y,long face)
 {
 
-    if( fog_of_war == TRUE) 
-    {
-	x+= pl_pos.x;
-	y+= pl_pos.y;
-    }
-    
-    if( (fog_of_war == TRUE) && (the_map.cells[x][y].cleared == 1) )
+    x+= pl_pos.x;
+    y+= pl_pos.y;
+    if (use_config[CONFIG_FOGWAR] && (the_map.cells[x][y].cleared == 1) )
     {
 	/* This cell has been cleared previously but now we are 
 	 * writing new data to do. So we have to clear it for real now 
@@ -363,8 +326,8 @@ void display_map_addbelow(long x,long y,long face)
 static int need_recenter_map( int dx, int dy)
 {
     
-    if( pl_pos.x + dx + mapx >= the_map.x ||
-	pl_pos.y + dx + mapy >= the_map.y ||
+    if( pl_pos.x + dx + use_config[CONFIG_MAPWIDTH] >= the_map.x ||
+	pl_pos.y + dx + use_config[CONFIG_MAPHEIGHT] >= the_map.y ||
 	pl_pos.x + dx <= 0                ||
 	pl_pos.y + dy <= 0 )
     {
@@ -417,12 +380,12 @@ static void recenter_virtual_map_view( struct Map *map)
      * coordinate is within 1/4 of the edge) we shift to the center.
      */
     if( pl_pos.x <= (map->x/4) || pl_pos.x >= (map->x*3/4) ||
-	pl_pos.x + mapx + 1 >= map->x )
+	pl_pos.x + use_config[CONFIG_MAPWIDTH] + 1 >= map->x )
     {
 	x_shift= map->x/2 - pl_pos.x;
     }
     if( pl_pos.y <= (map->y/4) || pl_pos.y >= (map->y*3/4) ||
-	pl_pos.y + mapy + 1 >= map->y )
+	pl_pos.y + use_config[CONFIG_MAPHEIGHT] + 1 >= map->y )
     {
 	y_shift= map->y/2 - pl_pos.y;
     }
@@ -469,100 +432,46 @@ static void recenter_virtual_map_view( struct Map *map)
 void display_mapscroll(int dx,int dy)
 {
     int x,y;
-    static struct Map newmap;
     int local_mapx= 0, local_mapy= 0;
 
-    if( fog_of_war == TRUE) 
-    {
-	/* We don't need to memcopy any of this stuff around cause 
-	 * we are keeping it in memory. We do need to update our
-	 * virtual position though
-	 */
+    /* We don't need to memcopy any of this stuff around cause 
+     * we are keeping it in memory. We do need to update our
+     * virtual position though
+     */
 	
-	if( need_recenter_map( dx, dy) == TRUE) 
-	{
-	    recenter_virtual_map_view( &the_map);
-	}
+    if( need_recenter_map( dx, dy) == TRUE) 
+	recenter_virtual_map_view( &the_map);
 	
-	pl_pos.x+= dx;
-	pl_pos.y+= dy;
-	local_mapx= pl_pos.x + mapx;
-	local_mapy= pl_pos.y + mapy;
+    pl_pos.x+= dx;
+    pl_pos.y+= dy;
+    local_mapx= pl_pos.x + use_config[CONFIG_MAPWIDTH];
+    local_mapy= pl_pos.y + use_config[CONFIG_MAPHEIGHT];
 	
-	/*
-	 * For cells about to enter the view, mark them as
-	 * needing an update. Cells that are already in 
-	 * view don't need to be updated since we just memcpy
-	 * the image data around. This is needed for proper 
-	 * drawing of blank or black tiles coming into view
-	 */
-	for( x= pl_pos.x; x < pl_pos.x + mapx; x++) {
-	    for( y= pl_pos.y; y < pl_pos.y + mapy; y++) {
-		if( (x + dx) < pl_pos.x || (x + dx) >= (mapx + pl_pos.x) ||
-		    (y + dy) < pl_pos.y || (y + dy) >= (mapy + pl_pos.y) ) 
-		{
-		    if( x < 0 || y < 0 || x >= the_map.x ||
-			y >= the_map.y)
-		    {
-			continue;
-		    }
+    /*
+     * For cells about to enter the view, mark them as
+     * needing an update. Cells that are already in 
+     * view don't need to be updated since we just memcpy
+     * the image data around. This is needed for proper 
+     * drawing of blank or black tiles coming into view
+     */
+    for( x= pl_pos.x; x < pl_pos.x + use_config[CONFIG_MAPWIDTH]; x++) {
+	for( y= pl_pos.y; y < pl_pos.y + use_config[CONFIG_MAPHEIGHT]; y++) {
+	    if( (x + dx) < pl_pos.x || (x + dx) >= (use_config[CONFIG_MAPWIDTH] + pl_pos.x) ||
+	       (y + dy) < pl_pos.y || (y + dy) >= (use_config[CONFIG_MAPHEIGHT] + pl_pos.y) ) 
+	    {
+		if( x < 0 || y < 0 || x >= the_map.x ||	y >= the_map.y)
+		    continue;
+
 		    
-		    the_map.cells[x][y].need_update= 1;
+		the_map.cells[x][y].need_update= 1;
+		if (use_config[CONFIG_FOGWAR])
 		    the_map.cells[x][y].cleared= 1;
-		}
-	    } /* for y */
-	} /* for x */
-    }
-    else 
-    {
-	local_mapx= mapx;
-	local_mapy= mapy;
-    }
-
-    if( newmap.cells == NULL)
-	allocate_map( &newmap, map_size, map_size);
-
-    /* Check to see if map_size changed since we allocated newmap */
-    if( newmap.x != map_size) 
-    {
-	if( newmap.cells)
-	    free( newmap.cells);
-	
-	allocate_map( &newmap, map_size, map_size);
-    }
-    
-    if( fog_of_war == FALSE) {
-      for(x=0;x<mapx;x++) {
-	for(y=0;y<mapy;y++) {
-	  /* In case its own of range, set the count to zero */
-	  if (x+dx < 0 || x+dx >= mapx ||y+dy < 0 || y+dy >= mapy) {
-	    memset((char*)&newmap.cells[x][y], 0, sizeof(struct MapCell));
-	    /*
-	     * Changed my smacfiggen 6/20/2001 -- When new cells come onto
-	     * the map and we aren't using the new map command we want to
-	     * mark these as updated or else blank tiles get blitted with
-	     * old info.
-	     *
-	     */
-	    if ( !map1cmd)
-	      newmap.cells[x][y].need_update=1;
-	  } else {
-	    memcpy((char*)&(newmap.cells[x][y]), (char*)&(the_map.cells[x+dx][y+dy]),
-		   sizeof(struct MapCell));
-	    /* if using pngximage, we will instead set the map_did_scroll
-	     * to 1 - we don't want to regen the backing image
-	     */
-	    if( !sdlimage) {
-		newmap.cells[x][y].need_update=1;
 	    }
-	  }
-	}
-      }
-      memcpy((char*)the_map.cells[0],(char*)newmap.cells[0],
-	     sizeof(struct MapCell)*newmap.x*newmap.y );
-    }
+	} /* for y */
+    } /* for x */
+
 #ifdef HAVE_SDL
-    if (sdlimage)
+    if (use_config[CONFIG_SDL])
 	sdl_mapscroll(dx,dy);
 #endif
 /*    fprintf(stderr,"scroll command: %d %d\n", dx, dy);*/
@@ -577,34 +486,18 @@ void display_mapscroll(int dx,int dy)
  */
 void reset_map_data()
 {
-    if( fog_of_war == TRUE)
+    int x= 0;
+    int y= 0;
+
+    pl_pos.x= the_map.x/2;
+    pl_pos.y= the_map.y/2;
+    memset( the_map.cells[0], 0,
+	   sizeof( struct MapCell) * the_map.x * the_map.y);
+    for( x= pl_pos.x; x < (pl_pos.x + use_config[CONFIG_MAPWIDTH]); x++)
     {
-	int x= 0;
-	int y= 0;
-	pl_pos.x= the_map.x/2;
-	pl_pos.y= the_map.y/2;
-	memset( the_map.cells[0], 0,
-		sizeof( struct MapCell) * the_map.x * the_map.y);
-	for( x= pl_pos.x; x < (pl_pos.x + mapx); x++)
+	for( y= pl_pos.y; y < (pl_pos.y + use_config[CONFIG_MAPHEIGHT]); y++)
 	{
-	    for( y= pl_pos.y; y < (pl_pos.y + mapy); y++)
-	    {
-		the_map.cells[x][y].need_update= 1;
-	    }
-	}
-    }
-    else
-    {
-	int x= 0;
-	int y= 0;
-	memset( the_map.cells[0], 0, 
-		sizeof( struct MapCell) * the_map.x * the_map.y);
-	for( x= 0; x < mapx; x++)
-	{
-	    for( y= 0; y < mapy; y++)
-	    {
-		the_map.cells[x][y].need_update= 1;
-	    }
+	    the_map.cells[x][y].need_update= 1;
 	}
     }
 }
@@ -629,22 +522,17 @@ void gtk_draw_map()
 	gettimeofday(&tv1, NULL);
 
     gdk_draw_rectangle (mapwindow, drawingarea->style->black_gc,
-		TRUE, 0,0, map_image_size*mapx, map_image_size * mapy);
+		TRUE, 0,0, map_image_size*use_config[CONFIG_MAPWIDTH], map_image_size * use_config[CONFIG_MAPHEIGHT]);
 
     for (onlayer=MAXFACES-1; onlayer>=0; onlayer--) {
 	if (map1cmd) layer = (MAXFACES -1)  - onlayer;
         else layer = onlayer;
 
 	/* Fog not currently supported, so don't need to worry about that complexity */
-	for( x= mapx-1; x>= 0; x--) {
-            for(y = mapy-1; y >= 0; y--) {
-		if (fog_of_war) {
-		    mx = x + pl_pos.x;
-		    my = y + pl_pos.y;
-		} else {
-		    mx=x;
-		    my=y;
-		}
+	for( x= use_config[CONFIG_MAPWIDTH]-1; x>= 0; x--) {
+            for(y = use_config[CONFIG_MAPHEIGHT]-1; y >= 0; y--) {
+		mx = x + pl_pos.x;
+		my = y + pl_pos.y;
 		
                 /* there must be a real face for this layer, and we must have data for that face. */
                 if ((the_map.cells[mx][my].faces[layer]>0) && 
@@ -705,7 +593,7 @@ void gtk_draw_map()
 	gettimeofday(&tv2, NULL);
 
     gdk_draw_pixmap(drawingarea->window, drawingarea->style->black_gc, mapwindow,
-		    0, 0, 0, 0, mapx * map_image_size, mapy * map_image_size);
+		    0, 0, 0, 0, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size);
 
     if (time_map_redraw) {
 	gettimeofday(&tv3, NULL);

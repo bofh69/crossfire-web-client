@@ -51,9 +51,8 @@
 char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
 char *image_file="";
 
-int port_num=EPORT, meta_port=META_PORT, want_skill_exp=0, mapx=11, mapy=11,
-    want_mapx=11, want_mapy=11, want_darkness=1, fog_of_war=0,
-    fast_tcp_send=1, replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
+int meta_port=META_PORT, want_skill_exp=0,
+    replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
     maxfd,map1cmd=0,metaserver_on=METASERVER;
 FILE *fpin,*fpout;
 Client_Player cpl;
@@ -211,7 +210,7 @@ int init_connection(char *host, int port)
 
 #ifdef TCP_NODELAY
     /* turn off nagle algorithm */
-    if (fast_tcp_send) {
+    if (use_config[CONFIG_FASTTCP]) {
 	int i=1;
 
 	if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1)
@@ -262,14 +261,15 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-	    "setup sound %d sexp %d darkness %d newmapcmd %d faceset %d facecache %d",
-	    sound>=0, want_skill_exp, want_darkness, fog_of_war, face_info.faceset,
-	    face_info.cache_images);
+	    "setup sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d",
+	    sound>=0, want_skill_exp, 
+		    want_config[CONFIG_FOGWAR], face_info.faceset,
+		    want_config[CONFIG_CACHE]);
 
-    mapx=11;
-    mapy=11;
-    if (want_mapx!=11 || want_mapy!=11)
-	cs_print_string(csocket.fd,"setup mapsize %dx%d",want_mapx, want_mapy);
+    use_config[CONFIG_MAPHEIGHT]=want_config[CONFIG_MAPHEIGHT];
+    use_config[CONFIG_MAPWIDTH]=want_config[CONFIG_MAPWIDTH];
+    if (use_config[CONFIG_MAPHEIGHT]!=11 || use_config[CONFIG_MAPWIDTH]!=11)
+	cs_print_string(csocket.fd,"setup mapsize %dx%d",use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 
 
     /* If the server will answer the requestinfo for image_info and image_data,
@@ -289,7 +289,7 @@ void negotiate_connection(int sound)
 
 	do {
 	    DoClient(&csocket);
-	    if (face_info.download_all_faces) {
+	    if (use_config[CONFIG_DOWNLOAD]) {
 		/* we need to know how many faces to
 		 * be able to make the request intelligently.
 		 * So only do the following block if we have that info.
@@ -325,7 +325,7 @@ void negotiate_connection(int sound)
 	    } /* endif download all faces */
 	} while (replyinfo_status != requestinfo_sent);
     }
-    if (face_info.download_all_faces) {
+    if (use_config[CONFIG_DOWNLOAD]) {
 	char buf[MAX_BUF];
 
 	sprintf(buf,"Download of images complete.  Found %d locally, downloaded %d from server\n",

@@ -30,6 +30,22 @@
 
 #include <client.h>
 
+/* Makes the load/save code trivial - basically, the
+ * entries here match the same numbers as the CONFIG_ values defined
+ * in common/client.h - this means the load and save just does
+ * something like a fprintf(outifle, "%s: %d", config_names[i],
+ *			    want_config[i]);
+ */
+char *config_names[CONFIG_NUMS] = {
+NULL, "colorinv", "colortext", "download_all_images", "echo_bindings",
+"fasttcpsend", "command_window", "cacheimages", "fog_of_war", "iconscale",
+"mapscale", "popups", "sdl", "showicon", "tooltips", "sound", "splitinfo",
+"split", "show_grid", "per_pixel_lighting", "per_tile_lighting",
+"map_width", "map_height", "foodbeep", "darkness", "port",
+"trim_info_window"};
+
+sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
+
 #define TEST_FREE_AND_CLEAR(xyz) {if (xyz) { free(xyz); xyz=NULL; } }
 
 void VersionCmd(char *data, int len)
@@ -79,7 +95,6 @@ void init_client_vars()
 {
     int i;
 
-
     /* I think environemental variables should be more important than
      * compiled in defaults, so these probably should be reversed. 
      */
@@ -112,21 +127,20 @@ void init_client_vars()
     cpl.below = map_item();
     cpl.magicmap=NULL;
     cpl.showmagic=0;
-    cpl.command_window = COMMAND_WINDOW;
+    
 
     csocket.command_sent=0;
     csocket.command_received=0;
     csocket.command_time=0;
 
     face_info.faceset = 0;
-    face_info.cache_images = FALSE;
     face_info.num_images = 0;
     face_info.bmaps_checksum = 0;
     face_info.old_bmaps_checksum = 0;
     face_info.want_faceset = NULL;
-    face_info.download_all_faces = 0;
     face_info.cache_hits=0;
     face_info.cache_misses=0;
+    face_info.have_faceset_info=0;
     for (i=0; i<MAX_FACE_SETS; i++) {
 	face_info.facesets[i].prefix = NULL;
 	face_info.facesets[i].fullname = NULL;
@@ -135,6 +149,40 @@ void init_client_vars()
 	face_info.facesets[i].extension = NULL;
 	face_info.facesets[i].comment = NULL;
     }
+    /* Makes just as much sense to initialize the arrays
+     * where they are declared, but I did this so I could 
+     * keep track of everything as I was updating
+     * the code.  Plus, the performance difference is virtually
+     * nothing.
+     */
+    want_config[CONFIG_COLORINV] = TRUE;
+    want_config[CONFIG_COLORTXT] = TRUE;
+    want_config[CONFIG_DOWNLOAD] = FALSE;
+    want_config[CONFIG_ECHO] = FALSE;
+    want_config[CONFIG_FASTTCP] = TRUE;
+    want_config[CONFIG_CWINDOW] = COMMAND_WINDOW;
+    want_config[CONFIG_CACHE] = FALSE;
+    want_config[CONFIG_FOGWAR] = TRUE;
+    want_config[CONFIG_ICONSCALE] = 100;
+    want_config[CONFIG_MAPSCALE] = 100;
+    want_config[CONFIG_POPUPS] = TRUE;
+    want_config[CONFIG_SDL] = FALSE;
+    want_config[CONFIG_SHOWICON] = FALSE;
+    want_config[CONFIG_TOOLTIPS] = TRUE;
+    want_config[CONFIG_SOUND] = TRUE;
+    want_config[CONFIG_SPLITINFO] = FALSE;
+    want_config[CONFIG_SPLITWIN] = FALSE;
+    want_config[CONFIG_SHOWGRID] = FALSE;
+    want_config[CONFIG_LT_PIXEL] = FALSE;
+    want_config[CONFIG_LT_TILE] = TRUE;
+    want_config[CONFIG_MAPWIDTH] = 11;
+    want_config[CONFIG_MAPHEIGHT] = 11;
+    want_config[CONFIG_FOODBEEP] = FALSE;
+    want_config[CONFIG_DARKNESS] = TRUE;
+    want_config[CONFIG_PORT] = EPORT;
+    want_config[CONFIG_TRIMINFO] = FALSE;
+    for (i=0; i<CONFIG_NUMS; i++) 
+	use_config[i] = want_config[i];
 
 }
 
@@ -146,7 +194,6 @@ void init_client_vars()
 void reset_client_vars()
 {
     int i;
-
 
     cpl.count_left = 0;
     cpl.container = NULL;
@@ -184,6 +231,7 @@ void reset_client_vars()
     face_info.bmaps_checksum = 0;
     face_info.cache_hits=0;
     face_info.cache_misses=0;
+    face_info.have_faceset_info=0;
     for (i=0; i<MAX_FACE_SETS; i++) {
 	TEST_FREE_AND_CLEAR(face_info.facesets[i].prefix);
 	TEST_FREE_AND_CLEAR(face_info.facesets[i].fullname);

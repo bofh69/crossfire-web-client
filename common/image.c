@@ -450,7 +450,7 @@ void reset_image_cache_data()
 {
     int i;
 
-    if (face_info.cache_images) for (i=1; i<MAXPIXMAPNUM; i++) {
+    if (want_config[CONFIG_CACHE]) for (i=1; i<MAXPIXMAPNUM; i++) {
 	if (facetoname[i]!=NULL) {
 	    free(facetoname[i]);
 	    facetoname[i]=NULL;
@@ -473,7 +473,7 @@ void FaceCmd(unsigned char *data,  int len)
     /* A quick sanity check, since if client isn't caching, all the data
      * structures may not be initialized.
      */
-    if (!face_info.cache_images) {
+    if (!use_config[CONFIG_CACHE]) {
 	fprintf(stderr,"Received a 'face' command when we are not caching\n");
 	return;
     }
@@ -494,7 +494,7 @@ void Face1Cmd(unsigned char *data,  int len)
     /* A quick sanity check, since if client isn't caching, all the data
      * structures may not be initialized.
      */
-    if (!face_info.cache_images) {
+    if (!use_config[CONFIG_CACHE]) {
 	fprintf(stderr,"Received a 'face' command when we are not caching\n");
 	return;
     }
@@ -516,7 +516,7 @@ void Face2Cmd(uint8 *data,  int len)
     /* A quick sanity check, since if client isn't caching, all the data
      * structures may not be initialized.
      */
-    if (!face_info.cache_images) {
+    if (!use_config[CONFIG_CACHE]) {
 	fprintf(stderr,"Received a 'face' command when we are not caching\n");
 	return;
     }
@@ -573,7 +573,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
     uint32 width, height, csum, i;
     Cache_Entry *ce=NULL;
 
-    if (face_info.cache_images) {
+    if (use_config[CONFIG_CACHE]) {
 	if (facetoname[face]==NULL) {
 	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
 	}
@@ -651,7 +651,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
     pngtmp = png_to_data(buf, buflen, &width, &height);
     create_and_rescale_image_from_data(ce, face, pngtmp, width, height);
 
-    if (face_info.cache_images) {
+    if (use_config[CONFIG_CACHE]) {
 	if (facetoname[face]) {
 	    free(facetoname[face]);
 	    facetoname[face]=NULL;
@@ -717,6 +717,7 @@ void get_image_info(char *data, int len)
 	lp = cp;
 	cp = strchr(lp, '\n');
     }
+    face_info.have_faceset_info = 1;
     /* if the user has requested a specific face set and that set
      * is not numeric, try to find a matching set and send the
      * relevent setup command.

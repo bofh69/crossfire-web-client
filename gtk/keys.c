@@ -426,7 +426,7 @@ static void parse_key_release(KeyCode kc, KeySym ks) {
     else if (kc==runkey[0] || ks==runkeysym[0] ||
 	kc==runkey[1] || ks==runkeysym[1]) {
 		cpl.run_on=0;
-		if (cpl.echo_bindings) draw_info("stop run",NDI_BLACK);
+		if (use_config[CONFIG_ECHO]) draw_info("stop run",NDI_BLACK);
 		clear_run();
 		gtk_label_set (GTK_LABEL(run_label),"   ");
 	}
@@ -448,7 +448,7 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
     char buf[MAX_BUF];
 
     if (keycode == commandkey && keysym==commandkeysym) {
-	if (split_windows) {
+	if (want_config[CONFIG_SPLITWIN]) {
 	    gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info));
 	    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
 	} else {
@@ -519,10 +519,10 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
 		strcpy(buf,first_match->command);
 		extended_command(first_match->command);
 	    }
-	    if (cpl.echo_bindings) draw_info(buf,NDI_BLACK);
+	    if (use_config[CONFIG_ECHO]) draw_info(buf,NDI_BLACK);
 	}
         else {
-	    if (cpl.echo_bindings) draw_info(first_match->command,NDI_BLACK);
+	    if (use_config[CONFIG_ECHO]) draw_info(first_match->command,NDI_BLACK);
 	    extended_command(first_match->command);
 	}
 	return;
@@ -994,7 +994,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
   char *text;
   updatelock=0;
 
-  if (nopopups) {
+  if (!use_config[CONFIG_POPUPS]) {
     if  (cpl.input_state == Reply_One) {
 	text=XKeysymToString(event->keyval);
 	send_reply(text);

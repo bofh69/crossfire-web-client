@@ -28,6 +28,7 @@
 #define GX11_H
 
 #include "client-types.h"
+#include "item.h"
 
 typedef struct 
 {
@@ -37,15 +38,10 @@ typedef struct
 
 extern PlayerPosition pl_pos;
 
-extern int fog_of_war;
-extern int map_size;
-extern int map_image_size, map_image_half_size;
-extern int per_pixel_lighting;
-extern int per_tile_lighting;
-extern int show_grid;
-extern uint8 sdlimage,split_windows,map_did_scroll;
-extern uint8 nopopups,updatekeycodes, time_map_redraw,redraw_needed;
-extern int map_scale, icon_scale, updatelock;
+extern int map_size, image_size, map_image_size, map_image_half_size;
+extern uint8 map_did_scroll;
+extern uint8 updatekeycodes, time_map_redraw,redraw_needed;
+extern int updatelock;
 
 /* Pixmap data.  This is abstracted in the sense that the
  * code here does not care what the data points to (hence the
@@ -59,6 +55,7 @@ extern int map_scale, icon_scale, updatelock;
  * As images can now be of variable size (and potentially re-sized),
  * the size information is stored here.
  */
+#define DEFAULT_IMAGE_SIZE	32
 #define MAXPIXMAPNUM 10000
 typedef struct {
     void	*icon_mask, *icon_image;
@@ -71,11 +68,78 @@ extern PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
 /* Some global widgetws */
 extern GtkWidget    *gtkwin_root,*drawingarea,*run_label,*fire_label;
-extern GtkWidget    *gtkwin_info;
+extern GtkWidget    *gtkwin_info, *gtkwin_stats, *gtkwin_message;
+extern GtkWidget    *gtkwin_look, *gtkwin_inv, *gtkwin_config;
 extern GtkWidget    *entrytext, *counttext;
 extern GdkPixmap    *mapwindow,*dark;
 extern GdkBitmap    *dark1, *dark2, *dark3;
 extern GdkGC	    *mapgc;
-extern GtkWidget *ckentrytext, *ckeyentrytext, *cmodentrytext,*cnumentrytext, *cclist;
+extern GtkWidget    *ckentrytext, *ckeyentrytext, *cmodentrytext,*cnumentrytext, *cclist;
+extern GtkTooltips  *tooltips;
+
+#define TYPE_LISTS 9
+/*
+ *  This is similar obwin, but totally redone for client
+ */
+typedef struct {
+  item *env;		  /* Environment shown in window */
+  char title[MAX_BUF];  /* title of item list */
+  char old_title[MAX_BUF];  /* previos title (avoid redrawns) */
+  
+  Window win;		  /* for X-windows */
+  GtkWidget *label;
+  GtkWidget *weightlabel;
+  GtkWidget *maxweightlabel;
+
+  /*  gint invrows;
+  gint appliedrows;
+  gint unappliedrows;
+  gint unpaidrows;
+  gint cursedrows;
+  gint magicalrows;
+  gint nonmagicalrows;
+  gint lockedrows;*/
+
+  float pos[TYPE_LISTS];
+
+  GtkWidget *gtk_list[TYPE_LISTS];
+  GtkWidget *gtk_lists[TYPE_LISTS];
+
+  GC gc_text;
+  GC gc_icon;
+  GC gc_status;
+  
+  uint8 multi_list:1;     /* view is multi type */
+  uint8 show_icon:1;	  /* show status icons */
+  uint8 show_weight:1;  /* show item's weight */
+  
+  char format_nw[20];	  /* sprintf-format for text (name and weight) */
+  char format_nwl[20];    /* sprintf-format for text (name, weight, limit) */
+  char format_n[20];	  /* sprintf-format for text (only name) */
+  sint16 text_len;	  /* How wide the text-field is */
+  
+  sint16 width;	  /* How wide the window is in pixels */
+  sint16 height;	  /* How height the window is in pixels */
+   
+  sint16 item_pos;	  /* The sequence number of the first drawn item */
+  sint16 item_used;	  /* How many items actually drawn. (0 - size) */
+  
+  sint16 size;	  /* How many items there is room to display */
+  sint16 *faces;	  /* [size] */
+  sint8 *icon1;	  /* status icon : locked */
+  sint8 *icon2;	  /* status icon : applied / unpaid */
+  sint8 *icon3;	  /* status icon : magic */
+  sint8 *icon4;	  /* status icon : damned / cursed */
+  char **names;	  /* [size][NAME_LEN] */
+  
+  /* The scrollbar */
+  sint16 bar_length; 	  /* the length of scrollbar in pixels */
+  sint16 bar_size;	  /* the current size of scrollbar in pixels */
+  sint16 bar_pos;	  /* the starting position of scrollbar in pixels */
+  uint32 weight_limit;   /* Weight limit for this list - used for title */
+} itemlist;
+
+extern itemlist inv_list, look_list;
+
 
 #endif

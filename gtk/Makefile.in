@@ -34,6 +34,7 @@ HEADERS= gx11.h			\
 	gtkproto.h
 
 SOURCES = \
+	config.c		\
 	gx11.c			\
 	image.c			\
 	keys.c			\

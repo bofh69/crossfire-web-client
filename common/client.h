@@ -94,8 +94,6 @@ typedef struct ClientSocket {
 
 extern ClientSocket csocket;
 
-extern int port_num;
-
 extern char *server, *client_libdir,*image_file;
 
 typedef enum Input_State {Playing, Reply_One, Reply_Many,
@@ -107,6 +105,60 @@ typedef enum rangetype {
   range_steal = 7,
   range_size = 8
 } rangetype;
+
+/* This is a structure that contains most all of the
+ * configuration options.  Instead of having a 
+ * whole mess of variables of different names, instead use
+ * a common 16 bit signed array, and index into these -
+ * this makes processing in the gui aspect of the GTK
+ * client much easier.  There are also 2 elements -
+ * want options, and use_options.  The former is what the
+ * player wants to use, the later is what is currently
+ * in use.  There are many options that can not be
+ * switched between during actual play, but we want to 
+ * record what the player has changed them to so that 
+ * when we save them out, we save what the player wants,
+ * and not what is currently being used.  Note that all the gui
+ * interfaces may not use all these values, but making them
+ * available here makes it easy for the GUI to present a 
+ * nice interface.
+ * 0 is intentially skipped so the index into this doesn't
+ * get a default if a table has a blank value
+ */
+#define CONFIG_COLORINV	    1
+#define CONFIG_COLORTXT	    2
+#define CONFIG_DOWNLOAD	    3
+#define CONFIG_ECHO	    4
+#define CONFIG_FASTTCP	    5
+#define CONFIG_CWINDOW	    6
+#define CONFIG_CACHE	    7
+#define CONFIG_FOGWAR	    8
+#define CONFIG_ICONSCALE    9
+#define CONFIG_MAPSCALE	    10
+#define CONFIG_POPUPS	    11
+#define CONFIG_SDL	    12
+#define CONFIG_SHOWICON	    13
+#define CONFIG_TOOLTIPS	    14
+#define CONFIG_SOUND	    15
+#define CONFIG_SPLITINFO    16
+#define CONFIG_SPLITWIN	    17
+#define CONFIG_SHOWGRID	    18
+#define CONFIG_LT_PIXEL	    19
+#define CONFIG_LT_TILE	    20
+#define CONFIG_MAPWIDTH	    21
+#define CONFIG_MAPHEIGHT    22
+#define CONFIG_FOODBEEP	    23
+#define CONFIG_DARKNESS	    24
+#define CONFIG_PORT	    25		/* Not sure if useful at all anymore */
+#define CONFIG_TRIMINFO	    26
+#define CONFIG_NUMS	    27
+
+extern sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
+/* see common/init.c - basically, this is a string to number
+ * mapping that is used when loading/saving the values.
+ */
+extern char *config_names[CONFIG_NUMS];
+
 
 typedef struct Stat_struct {
     sint8 Str,Dex,Con,Wis,Cha,Int,Pow;
@@ -138,7 +190,6 @@ typedef struct Player_Struct {
     uint16	count_left;	/* count for commands */
     Input_State input_state;	/* What the input state is */
     char	last_command[MAX_BUF];	/* Last command entered */
-    uint32	no_echo:1;	/* If TRUE, don't echo keystrokes */
     char	input_text[MAX_BUF];	/* keys typed (for long commands) */
     char	name[40];	/* name and password.  Only used while */
     char	password[40];	/* logging in. */
@@ -155,9 +206,7 @@ typedef struct Player_Struct {
     char	range[MAX_BUF];	/* Range attack chosen */
     uint32	fire_on:1;	/* True if fire key is pressed */
     uint32	run_on:1;	/* True if run key is on */
-    uint32	echo_bindings:1;/* If true, echo the command that the key */
-				/* is bound to */
-    uint32	food_beep:1;	/* if TRUE, then beep when food is low (red) */
+    uint32	no_echo:1;	/* If TRUE, don't echo keystrokes */
     uint32	count;		/* Repeat count on command */
     uint16	mmapx, mmapy;	/* size of magic map */
     uint16	pmapx, pmapy;	/* Where the player is on the magic map */
@@ -165,7 +214,6 @@ typedef struct Player_Struct {
     uint8	showmagic;	/* If 0, show normal map, otherwise, show
 				 * magic map.
 				 */
-    uint8	command_window;	/* How many outstanding commands to allow */
     uint16	mapxres,mapyres;/* resolution to draw on the magic map */
 
 } Client_Player;
@@ -193,8 +241,6 @@ typedef struct {
 typedef struct {
     uint8   faceset;
     char    *want_faceset;
-    uint8   cache_images;
-    uint8   download_all_faces;
     sint16  num_images;
     uint32  bmaps_checksum, old_bmaps_checksum;
     /* Just for debugging/logging purposes.  This is cleared
@@ -204,6 +250,7 @@ typedef struct {
      * that would count as both a hit and miss
      */
     sint16  cache_hits, cache_misses;
+    uint8	have_faceset_info;	/* Simple value to know if there is data in facesets[] */
     FaceSets	facesets[MAX_FACE_SETS];
 } Face_Information;
 
@@ -212,8 +259,6 @@ extern Face_Information face_info;
 
 extern Client_Player cpl;		/* Player object. */
 extern char *skill_names[MAX_SKILL];
-
-extern int nosound, fast_tcp_send; 
 
 /* We need to declare most of the structs before we can include this */
 #include <proto.h>
@@ -226,10 +271,8 @@ extern int errno;
 #define NUM_RESISTS 18
 extern char *resists_name[NUM_RESISTS];
 extern char *meta_server;
-extern int meta_port,want_skill_exp, want_mapx, want_mapy;
-extern int map1cmd,metaserver_on, want_darkness;
-extern int mapx, mapy;
-
+extern int meta_port,want_skill_exp;
+extern int map1cmd,metaserver_on;
 
 /* Map size the client will request the map to be.  Bigger it is,
  * more memory it will use

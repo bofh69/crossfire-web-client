@@ -2,6 +2,51 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Main change is to make all the configuration options now available in the
+configure window in the gtk client.  The way all the various values was
+stored was changed around, so it is now pretty trivial to add any future
+options.  For the most part, most of the logic of the other code is
+unchanged - one thing that is different is that the clients use the larger
+virtual maps that are normally used for fog of map - this means that fog
+of war can be turned on and off.
+There are probably some bugs in this, but it seems to basically work -
+no horrendous bugs that I noticed that prevent it from working at all.
+-
+common/client.c: replaced config values with new system.  Always
+   send setup mapredraw 1 to server to make toggling for fog of war easier, 
+   and it doesn't use any significant bandwidth.
+common/client.h: Add new value configuration system/defines.  remove
+   the old values.
+common/commands.c, common/image.c,common/metaserver.c,common/player.c
+	: update for new configuration value system
+common/init.c: Add config_names which is used for the load/save logic.
+   update the init and clear functions to set up new values.
+gtk/Makefile.in: add config.c file.
+gtk/gtkproto.h: rebuilt.
+gtk/config.c: New file - holds the config creating code, as well as the
+   load and save for the gdefaults file.
+gtk/gx11.c: Remove some widgets now in config.c, move itemlist to
+    gx11.h, remove some other values that are in the new configuration
+    scheme.
+gtk/gx11.h: Moved several structures and externs from gx11.c to gx11.h
+    so they are available to config.c.  Remove several values that
+    are done with the new config arrays.
+gtk/image.c, gtk/keys.c, gtk/sdl.c, gtk/sound.c:
+	: update for new configuration value system
+gtk/map.c: update for new configuration value system, modified so that
+    fog of war map logic is used all the time.  Change allocate_map to
+    no longer refer to map_size global - use the x and y values in the
+    map structure.
+x11/x11.c: update for new configuration value system - the x11 portion
+    still uses the old load/save method - this should get converted.
+    Many of the options available in the gtk client have no corresponding
+    use in the x11 client.
+x11/x11.h: update for new configuration value system
+x11/xutil.c: update for new configuration value system.  Most of the map
+    logic is now synced up with the gtk/map.c
+MSW 2002-04-03
+
+
 configure.in, configure:  Fix the --disable-sound configure option (when used,
 it won't look for sound support, and will not build the sound-src directory).
 Likewise, if that option is not used but configure does not find any supported

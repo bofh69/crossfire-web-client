@@ -143,7 +143,7 @@ void SetupCmd(char *buf, int len)
 	 */
 	if (!strcmp(cmd,"sound")) {
 	    if (!strcmp(param,"FALSE"))
-		cs_print_string(csocket.fd, "setsound %d", !nosound);
+		cs_print_string(csocket.fd, "setsound %d", want_config[CONFIG_SOUND]);
 	} else if (!strcmp(cmd,"mapsize")) {
 	    int x, y=0;
 	    char *cp,tmpbuf[MAX_BUF];
@@ -151,9 +151,9 @@ void SetupCmd(char *buf, int len)
 	    if (!strcasecmp(param, "false")) {
 		draw_info("Server only supports standard sized maps (11x11)", NDI_RED);
 		/* Do this because we may have been playing on a big server before */
-		mapx = 11;
-		mapy = 11;
-		resize_map_window(mapx,mapy);
+		use_config[CONFIG_MAPWIDTH]=11;
+		use_config[CONFIG_MAPHEIGHT]=11;
+		resize_map_window(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 		continue;
 	    }
 	    x = atoi(param);
@@ -166,19 +166,17 @@ void SetupCmd(char *buf, int len)
 	     * size to server maximum, and re-sent the setup command.
 	     * Update our want sizes, and also tell the player what we are doing
 	     */
-	    if (want_mapx > x || want_mapy > y) {
-		if (want_mapx > x) want_mapx = x;
-		if (want_mapy > y) want_mapy = y;
+	    if (use_config[CONFIG_MAPWIDTH] > x || use_config[CONFIG_MAPHEIGHT] > y) {
+		if (use_config[CONFIG_MAPWIDTH] > x) use_config[CONFIG_MAPWIDTH] = x;
+		if (use_config[CONFIG_MAPHEIGHT] > y) use_config[CONFIG_MAPHEIGHT] = y;
 		cs_print_string(csocket.fd,
-				"setup mapsize %dx%d", want_mapx, want_mapy);
+				"setup mapsize %dx%d", use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 		sprintf(tmpbuf,"Server supports a max mapsize of %d x %d - requesting a %d x %d mapsize",
-			x, y, want_mapx, want_mapy);
+			x, y, use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 		draw_info(tmpbuf,NDI_RED);
 	    }
-	    else if (want_mapx == x && want_mapy == y) {
-		mapx = x;
-		mapy = y;
-		resize_map_window(x,y);
+	    else if (use_config[CONFIG_MAPWIDTH] == x && use_config[CONFIG_MAPHEIGHT] == y) {
+		resize_map_window(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 	    }
 	    else {
 		/* Our request was not bigger than what server supports, and 
@@ -186,7 +184,7 @@ void SetupCmd(char *buf, int len)
 		 * something is wrong.
 		 */
 		sprintf(tmpbuf,"Unable to set mapsize on server - we wanted %d x %d, server returnd %d x %d",
-			want_mapx, want_mapy, x, y);
+			use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT], x, y);
 		draw_info(tmpbuf,NDI_RED);
 	    }
 	} else if (!strcmp(cmd,"sexp") || !strcmp(cmd,"darkness") || 
@@ -206,7 +204,7 @@ void SetupCmd(char *buf, int len)
 #endif
 		}
 	} else if (!strcmp(cmd, "facecache")) {
-	    if (!strcmp(param, "FALSE") && face_info.cache_images) {
+	    if (!strcmp(param, "FALSE") && want_config[CONFIG_CACHE]) {
 		SendSetFaceMode(csocket, CF_FACE_CACHE);
 	    }
 	} else if (!strcmp(cmd,"faceset")) {
@@ -687,8 +685,8 @@ void Map_unpacklayer(unsigned char *cur,unsigned char *end)
   while (cur < end && *cur != 255) {
     xy = *cur;
     cur++;
-    x = xy / mapy;
-    y = xy % mapy;
+    x = xy / use_config[CONFIG_MAPHEIGHT];
+    y = xy % use_config[CONFIG_MAPHEIGHT];
     display_map_clearcell(x,y);
   }
   cur++;
@@ -702,8 +700,8 @@ void Map_unpacklayer(unsigned char *cur,unsigned char *end)
     /* Now process all the spaces with this face */
     while(1) {
       xy = *cur & 0x7f;
-      x = xy / mapy;
-      y = xy % mapy;
+      x = xy / use_config[CONFIG_MAPHEIGHT];
+      y = xy % use_config[CONFIG_MAPHEIGHT];
       if (clear) {
 	display_map_clearcell(x,y);
       }

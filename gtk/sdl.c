@@ -122,12 +122,9 @@ static void overlay_grid( int re_init, int ax, int ay)
   Uint32 *pixel;
   SDL_PixelFormat* fmt;
 
-  if( fog_of_war == TRUE)
-  {
-    /* Need to convert back to screen coordinates */
-    ax-= pl_pos.x;
-    ay-= pl_pos.y;
-  }
+  /* Need to convert back to screen coordinates */
+  ax-= pl_pos.x;
+  ay-= pl_pos.y;
   
   if( re_init == TRUE)
     {
@@ -141,8 +138,8 @@ static void overlay_grid( int re_init, int ax, int ay)
   if( grid_overlay == NULL)
     {
       grid_overlay= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, 
-					  mapx*map_image_size,
-					  mapy*map_image_size,
+					  use_config[CONFIG_MAPWIDTH]*map_image_size,
+					  use_config[CONFIG_MAPHEIGHT]*map_image_size,
 					  mapsurface->format->BitsPerPixel,
 					  mapsurface->format->Rmask,
 					  mapsurface->format->Gmask,
@@ -168,16 +165,16 @@ static void overlay_grid( int re_init, int ax, int ay)
        */
       
       fmt= grid_overlay->format;
-      for( x= 0; x < map_image_size*mapx; x++)
+      for( x= 0; x < map_image_size*use_config[CONFIG_MAPWIDTH]; x++)
 	{
-	  for( y= 0; y < map_image_size*mapy; y++)
+	  for( y= 0; y < map_image_size*use_config[CONFIG_MAPHEIGHT]; y++)
 	    {
 	      /* FIXME: Only works for 32 bit displays right now */
 	      pixel= (Uint32*)grid_overlay->pixels+y*grid_overlay->pitch/4+x;
 
 	      if( x == 0 || y == 0 || 
 		  ((x % map_image_size) == 0) || ((y % map_image_size) == 0 ) ||
-		  y == mapy*map_image_size-1 || x == mapx*map_image_size -1 )
+		  y == use_config[CONFIG_MAPHEIGHT]*map_image_size-1 || x == use_config[CONFIG_MAPWIDTH]*map_image_size -1 )
 		{
 		  *pixel= SDL_MapRGBA( fmt, 255, 0, 0, SDL_ALPHA_OPAQUE);
 		}
@@ -195,8 +192,8 @@ static void overlay_grid( int re_init, int ax, int ay)
        */
       dst.x= 0;
       dst.y= 0;
-      dst.w= map_image_size*mapx;
-      dst.h= map_image_size*mapy;
+      dst.w= map_image_size*use_config[CONFIG_MAPWIDTH];
+      dst.h= map_image_size*use_config[CONFIG_MAPHEIGHT];
       SDL_BlitSurface( grid_overlay, NULL, mapsurface, &dst);
     } 
   else 
@@ -253,7 +250,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 	  gtk_main_quit();
 	}
 
-      mapsurface= SDL_SetVideoMode( map_image_size*mapx, map_image_size*mapy, 0, 
+      mapsurface= SDL_SetVideoMode( map_image_size*use_config[CONFIG_MAPWIDTH], map_image_size*use_config[CONFIG_MAPHEIGHT], 0, 
 				    SDL_HWSURFACE|SDL_DOUBLEBUF);
       
       if( mapsurface == NULL)
@@ -280,7 +277,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
       do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
     }
   
-  if( per_pixel_lighting)
+  if(use_config[CONFIG_LT_PIXEL])
     {
       /* Convert surface to have a full alpha channel if we are doing
        * per-pixel lighting */
@@ -317,7 +314,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
     }
 
 
-  if( show_grid == TRUE)
+  if(use_config[CONFIG_SHOWGRID] == TRUE)
     {
       overlay_grid( TRUE, 0, 0);
     }
@@ -364,10 +361,10 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
     if (my-1 < 0 || !the_map.cells[mx][my-1].have_darkness) dark1 = dark0;
     else dark1 = the_map.cells[mx][my-1].darkness;
 
-    if (mx+1 >= mapx || !the_map.cells[mx+1][my].have_darkness) dark2 = dark0;
+    if (mx+1 >= use_config[CONFIG_MAPWIDTH] || !the_map.cells[mx+1][my].have_darkness) dark2 = dark0;
     else dark2 = the_map.cells[mx+1][my].darkness;
 
-    if (my+1 >= mapy || !the_map.cells[mx][my+1].have_darkness) dark3 = dark0;
+    if (my+1 >= use_config[CONFIG_MAPHEIGHT] || !the_map.cells[mx][my+1].have_darkness) dark3 = dark0;
     else dark3 = the_map.cells[mx][my+1].darkness;
 
     if (mx-1 < 0 || !the_map.cells[mx-1][my].have_darkness) dark4 = dark0;
@@ -585,7 +582,7 @@ void sdl_gen_map(int redraw) {
 
 #ifndef ALL_IMAGES_ONE_SPACE
     /* Fill the entire map with black (default). */
-    dst.x = 0; dst.y = 0; dst.w = mapx * map_image_size; dst.h = mapy * map_image_size;
+    dst.x = 0; dst.y = 0; dst.w = use_config[CONFIG_MAPWIDTH] * map_image_size; dst.h = use_config[CONFIG_MAPHEIGHT] * map_image_size;
     SDL_FillRect(mapsurface, &dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
 #endif
     for (onlayer=MAXFACES-1; onlayer>=0; onlayer--) {
@@ -600,19 +597,14 @@ void sdl_gen_map(int redraw) {
 	/* we start at the lower right and work towards zero.  This because
 	 * big images will use the space they are on as the lower right origin.
 	 */
-	for( x= mapx-1; x>= 0; x--) {
-	    for(y = mapy-1; y >= 0; y--) {
+	for( x= use_config[CONFIG_MAPWIDTH]-1; x>= 0; x--) {
+	    for(y = use_config[CONFIG_MAPHEIGHT]-1; y >= 0; y--) {
 		/* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
 		 * if fog of wars, these do not match.  x and y (from the for loop)
 		 * represent the visable screen.
 		 */
-		if (fog_of_war) {
-		    mx = x + pl_pos.x;
-		    my = y + pl_pos.y;
-		} else {
-		    mx = x;
-		    my = y;
-		}
+		mx = x + pl_pos.x;
+		my = y + pl_pos.y;
 #ifdef ALL_IMAGES_ONE_SPACE
 		if (!redraw && !the_map.cells[mx][my].need_update) continue;
 		else if (onlayer == MAXFACES-1) {
@@ -648,7 +640,7 @@ void sdl_gen_map(int redraw) {
 		    /* Only worry about lighting if it is not a fog cell.  If it is
 		     * a fog cell, lighting information is probably bogus.
 		     */
-		    else if (per_tile_lighting) {
+		    else if (use_config[CONFIG_LT_TILE]) {
 			dst.x = x * map_image_size;
 			dst.y = y * map_image_size;
 			dst.w = map_image_size;
@@ -664,7 +656,7 @@ void sdl_gen_map(int redraw) {
 			    SDL_SetAlpha(lightmap, SDL_SRCALPHA|SDL_RLEACCEL, the_map.cells[mx][my].darkness);
 			    SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
 			}
-		    } else if (per_pixel_lighting) {
+		    } else if (use_config[CONFIG_LT_PIXEL]) {
 			do_sdl_per_pixel_lighting(x, y, mx, my);
 		    }
 		    /* note that if none of the lighting options are set, assume lighting

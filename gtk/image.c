@@ -53,9 +53,6 @@
 
 #include "gtkproto.h"
 
-/* size for icons and map images, represented as a percentage */
-int icon_scale=100, map_scale=100;
-
 struct {
     char    *name;
     uint32  checksum;
@@ -109,7 +106,7 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
     pi->map_image = NULL;
     pi->map_mask = NULL;
 
-    if (sdlimage) {
+    if (use_config[CONFIG_SDL]) {
 #if defined(HAVE_SDL)
     #if SDL_BYTEORDER == SDL_LIL_ENDIAN
 	pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
@@ -139,7 +136,7 @@ static void free_pixmap(PixmapInfo *pi)
     if (pi->map_mask) gdk_pixmap_unref(pi->map_mask);
     if (pi->map_image) {
 #ifdef HAVE_SDL
-	if (sdlimage) {
+	if (use_config[CONFIG_SDL]) {
 	    SDL_FreeSurface(pi->map_image);
 	    free(((SDL_Surface*)pi->map_image)->pixels);
 	}
@@ -167,10 +164,10 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     pi = malloc(sizeof(PixmapInfo));
 
     /* In all cases, the icon images are in native form. */
-    if (icon_scale != 100) {
+    if (use_config[CONFIG_ICONSCALE] != 100) {
 	nx=width;
 	ny=height;
-	png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, icon_scale);
+	png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, use_config[CONFIG_ICONSCALE]);
 	pi->icon_width = nx;
 	pi->icon_height = ny;
 	create_icon_image(png_tmp, pi, pixmap_num);
@@ -182,18 +179,18 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 	create_icon_image(rgba_data, pi, pixmap_num);
     }
 
-    /* We could try to be more intelligent if icon_scale matched map_scale,
+    /* We could try to be more intelligent if icon_scale matched use_config[CONFIG_MAPSCALE],
      * but this shouldn't be called too often, and this keeps the code
      * simpler.
      */
-    if (map_scale != 100) {
+    if (use_config[CONFIG_MAPSCALE] != 100) {
 	nx=width;
 	ny=height;
-	png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, map_scale);
+	png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, use_config[CONFIG_MAPSCALE]);
 	pi->map_width = nx;
 	pi->map_height = ny;
 	create_map_image(png_tmp, pi);
-	if (!sdlimage) free(png_tmp);
+	if (!use_config[CONFIG_SDL]) free(png_tmp);
     } else {
 	pi->map_width = width;
 	pi->map_height = height;
@@ -248,7 +245,7 @@ void reset_image_data()
      * rendered.
      */
     for (i=1; i<MAXPIXMAPNUM; i++) {
-	if (!face_info.cache_images && pixmaps[i] != pixmaps[0]) {
+	if (!want_config[CONFIG_CACHE] && pixmaps[i] != pixmaps[0]) {
 	    free_pixmap(pixmaps[i]);
 	    free(pixmaps[i]);
 	}

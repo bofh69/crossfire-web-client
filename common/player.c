@@ -201,7 +201,7 @@ int send_command(const char *command, int repeat, int must_send) {
 	/* if to many unanswer commands, not a must send, and command is
 	 * the same, drop it
 	 */
-	if (commdiff>cpl.command_window && !must_send && !strcmp(command, last_command)) {
+	if (commdiff>use_config[CONFIG_CWINDOW] && !must_send && !strcmp(command, last_command)) {
 	    if (repeat!=-1) cpl.count=0;
 	    return 0;
 #if 0 /* Obnoxious warning message we don't need */
@@ -350,9 +350,11 @@ void extended_command(const char *ocommand) {
 	if (!cpnext) {
 	    draw_info("cwindow command requires a number parameter", NDI_BLACK);
 	} else {
-	    cpl.command_window = atoi(cpnext);
-	    if (cpl.command_window<1 || cpl.command_window>127)
-		cpl.command_window=COMMAND_WINDOW;
+	    want_config[CONFIG_CWINDOW] = atoi(cpnext);
+	    if (want_config[CONFIG_CWINDOW]<1 || want_config[CONFIG_CWINDOW]>127)
+		want_config[CONFIG_CWINDOW]=COMMAND_WINDOW;
+	    else
+		use_config[CONFIG_CWINDOW] = want_config[CONFIG_CWINDOW];
 	}
     }
 
@@ -392,13 +394,14 @@ void extended_command(const char *ocommand) {
 	}
     }
     else if (!strcmp(cp,"foodbeep")) {
-	if (cpl.food_beep) {
-	    cpl.food_beep=0;
+	if (want_config[CONFIG_FOODBEEP]) {
+	    want_config[CONFIG_FOODBEEP]=0;
 	    draw_info("Warning bell when low on food disabled", NDI_BLACK);
 	} else {
-	    cpl.food_beep=1;
+	    want_config[CONFIG_FOODBEEP]=1;
 	    draw_info("Warning bell when low on food enabled", NDI_BLACK);
 	}
+	use_config[CONFIG_FOODBEEP] = want_config[CONFIG_FOODBEEP];
     } else {
 	/* just send the command(s)  (if `ocommand' is a compound command */
 	/* then split it and send each part seperately */

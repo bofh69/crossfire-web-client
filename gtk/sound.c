@@ -42,8 +42,6 @@
 #include "client.h"
 
 
-int nosound=0;
-
 /* Got a pipe signal.  As of now, only thing we are piped to is the
  * sound client.
  */
@@ -65,7 +63,7 @@ int init_sounds()
      * just return -1 - this way, the calling function only needs to check
      * the value of init_sounds, and not worry about checking nosound.
      */
-    if (nosound) return -1;
+    if (!want_config[CONFIG_SOUND]) return -1;
     
 
     sound_pipe=popen(BINDIR "/cfsndserv","w");
@@ -96,15 +94,15 @@ int init_sounds()
 
 static void play_sound(int soundnum, int soundtype, int x, int y)
 {
-    if (nosound) return;
+    if (!use_config[CONFIG_SOUND]) return;
 
     if (fprintf(sound_pipe,"%4x %4x %4x %4x\n",soundnum,soundtype,x,y)<=0) {
-	nosound=1;
+	use_config[CONFIG_SOUND]=0;
 	fclose(sound_pipe);
 	return;
     }
     if (fflush(sound_pipe)!=0) {
-	nosound=1;
+	use_config[CONFIG_SOUND]=0;
 	fclose(sound_pipe);
 	return;
    }

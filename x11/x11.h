@@ -39,15 +39,10 @@ typedef struct
 
 extern PlayerPosition pl_pos;
 
-extern int fog_of_war;
 extern int map_size;
-extern int map_image_size, map_image_half_size;
-extern int per_pixel_lighting;
-extern int per_tile_lighting;
-extern int show_grid;
-extern uint8 sdlimage,split_windows,map_did_scroll;
-extern uint8 nopopups,updatekeycodes;
-extern int map_scale, icon_scale, updatelock;
+extern uint8 map_did_scroll;
+extern uint8 updatekeycodes;
+extern int updatelock;
 extern char *facetoname[MAXPIXMAPNUM];
 
 struct PixmapInfo {

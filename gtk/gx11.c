@@ -94,9 +94,6 @@
 
 #ifdef HAVE_SDL
 /* These are only used in SDL mode at current time */
-static GtkWidget *cradiobutton1;
-static GtkWidget *cradiobutton2;
-static GtkWidget *ccheckbutton9;
 extern SDL_Surface* mapsurface;
 #endif
 
@@ -118,7 +115,7 @@ static char *colorname[] = {
 
 #define DEFAULT_IMAGE_SIZE	32
 
-static int image_size=DEFAULT_IMAGE_SIZE;
+int image_size=DEFAULT_IMAGE_SIZE;
 int map_image_size=DEFAULT_IMAGE_SIZE, map_image_half_size=DEFAULT_IMAGE_SIZE/2;
 PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
@@ -135,68 +132,6 @@ typedef enum inventory_show {
   show_mask=0xff
 } inventory_show;
 
-#define TYPE_LISTS 9
-
-/*
- *  This is similar obwin, but totally redone for client
- */
-typedef struct {
-  item *env;		  /* Environment shown in window */
-  char title[MAX_BUF];  /* title of item list */
-  char old_title[MAX_BUF];  /* previos title (avoid redrawns) */
-  
-  Window win;		  /* for X-windows */
-  GtkWidget *label;
-  GtkWidget *weightlabel;
-  GtkWidget *maxweightlabel;
-
-  /*  gint invrows;
-  gint appliedrows;
-  gint unappliedrows;
-  gint unpaidrows;
-  gint cursedrows;
-  gint magicalrows;
-  gint nonmagicalrows;
-  gint lockedrows;*/
-
-  float pos[TYPE_LISTS];
-
-  GtkWidget *gtk_list[TYPE_LISTS];
-  GtkWidget *gtk_lists[TYPE_LISTS];
-
-  GC gc_text;
-  GC gc_icon;
-  GC gc_status;
-  
-  uint8 multi_list:1;     /* view is multi type */
-  uint8 show_icon:1;	  /* show status icons */
-  uint8 show_weight:1;  /* show item's weight */
-  
-  char format_nw[20];	  /* sprintf-format for text (name and weight) */
-  char format_nwl[20];    /* sprintf-format for text (name, weight, limit) */
-  char format_n[20];	  /* sprintf-format for text (only name) */
-  sint16 text_len;	  /* How wide the text-field is */
-  
-  sint16 width;	  /* How wide the window is in pixels */
-  sint16 height;	  /* How height the window is in pixels */
-   
-  sint16 item_pos;	  /* The sequence number of the first drawn item */
-  sint16 item_used;	  /* How many items actually drawn. (0 - size) */
-  
-  sint16 size;	  /* How many items there is room to display */
-  sint16 *faces;	  /* [size] */
-  sint8 *icon1;	  /* status icon : locked */
-  sint8 *icon2;	  /* status icon : applied / unpaid */
-  sint8 *icon3;	  /* status icon : magic */
-  sint8 *icon4;	  /* status icon : damned / cursed */
-  char **names;	  /* [size][NAME_LEN] */
-  
-  /* The scrollbar */
-  sint16 bar_length; 	  /* the length of scrollbar in pixels */
-  sint16 bar_size;	  /* the current size of scrollbar in pixels */
-  sint16 bar_pos;	  /* the starting position of scrollbar in pixels */
-  uint32 weight_limit;   /* Weight limit for this list - used for title */
-} itemlist;
 
 
 typedef struct {
@@ -249,33 +184,17 @@ gint	csocket_fd=0;
 static int gargc;
 
 static uint8	
-    splitinfo=FALSE,
-    color_inv=FALSE,
-    color_text=FALSE,
-    tool_tips=FALSE,
-    trim_info_window=FALSE,
     bigmap=FALSE;	/* True if we've moved some windows around for big maps */
 
 uint8
-    nopopups=FALSE, 
-    sdlimage=FALSE,
-    split_windows=FALSE,
     time_map_redraw=FALSE,
     updatekeycodes=FALSE,
     redraw_needed=FALSE;
-
-/* Only used in SDL code, but we want to preserve values when loading/
- * saving even if we don't have SDL
- */
-int per_pixel_lighting= 1;
-int per_tile_lighting= 0;
-int show_grid= FALSE;
 
 
 /* Default size of scroll buffers is 100 K */
 static int info1_num_chars=0, info2_num_chars=0, info1_max_chars=100000,
     info2_max_chars=100000;
-
 
 
 typedef struct {
@@ -316,18 +235,10 @@ GdkPixmap *dark;
 #define INFOLINELEN 500
 #define XPMGCS 100
 
-static GtkWidget *ccheckbutton1;
-static GtkWidget *ccheckbutton2;
-static GtkWidget *ccheckbutton3;
-static GtkWidget *ccheckbutton4;
-static GtkWidget *ccheckbutton5;
-static GtkWidget *ccheckbutton6;
-static GtkWidget *ccheckbutton7;
-static GtkWidget *ccheckbutton8;
 static GtkWidget *inv_notebook;
 
 
-static GtkTooltips *tooltips;
+GtkTooltips *tooltips;
 
 static GtkWidget *dialogtext;
 static GtkWidget *dialog_window;
@@ -353,13 +264,13 @@ GtkWidget *gameframe, *stat_frame, *message_frame;
 /*
  * These are used for inventory and look window
  */
-static itemlist look_list, inv_list;
+itemlist look_list, inv_list;
 static StatWindow statwindow;
 /* gtk */
  
 GtkWidget *gtkwin_root, *gtkwin_info;
 static GtkWidget *gtkwin_info_text2, *gtkwin_info_text;
-static GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_look, *gtkwin_inv;
+GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_look, *gtkwin_inv;
 
 
 static GtkWidget *gtkwin_about = NULL;
@@ -367,7 +278,6 @@ static GtkWidget *gtkwin_splash = NULL;
 static GtkWidget *gtkwin_chelp = NULL;
 static GtkWidget *gtkwin_shelp = NULL;
 static GtkWidget *gtkwin_magicmap = NULL;
-static GtkWidget *gtkwin_config = NULL;
 
 /* these are the panes used in splitting up the window in non root
  * windows mode.  Need to be globals so we can get/set the
@@ -585,12 +495,12 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
   
   x=(int)event->x;
   y=(int)event->y;
-  dx=(x-2)/map_image_size-(mapx/2);
-  dy=(y-2)/map_image_size-(mapy/2);
-  xmidl=5*map_image_size-(mapx/2);
-  xmidh=6*map_image_size+(mapx/2);
-  ymidl=5*map_image_size-(mapy/2);
-  ymidh=6*map_image_size+(mapy/2);
+  dx=(x-2)/map_image_size-(use_config[CONFIG_MAPWIDTH]/2);
+  dy=(y-2)/map_image_size-(use_config[CONFIG_MAPHEIGHT]/2);
+  xmidl=5*map_image_size-(use_config[CONFIG_MAPWIDTH]/2);
+  xmidh=6*map_image_size+(use_config[CONFIG_MAPWIDTH]/2);
+  ymidl=5*map_image_size-(use_config[CONFIG_MAPHEIGHT]/2);
+  ymidh=6*map_image_size+(use_config[CONFIG_MAPHEIGHT]/2);
   
   switch (event->button) {
   case 1:
@@ -671,7 +581,7 @@ static void init_cache_data()
 							&style->bg[GTK_STATE_NORMAL],
 							(gchar **)question);
 #ifdef HAVE_SDL
-    if (sdlimage) {
+    if (use_config[CONFIG_SDL]) {
 	/* make a semi transparent question mark symbol to
 	 * use for the cached images.
 	 */
@@ -759,7 +669,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 {
 
 #ifdef HAVE_SDL
-    if(sdlimage) {
+    if(use_config[CONFIG_SDL]) {
 	/* When program first runs, mapsruface can be null.
 	 * either way, we want to catch it here.
 	 */
@@ -770,7 +680,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 #endif
     mapgc = gdk_gc_new (drawingarea->window);
 
-    if (!sdlimage) {
+    if (!use_config[CONFIG_SDL]) {
 	int x,y,count;
 	GdkGC	*darkgc;
 
@@ -817,7 +727,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 	     * instead of vertical lines - at least for datk1 and dark3
 	     */
 	}
-	mapwindow = gdk_pixmap_new(gtkwin_root->window, mapx * map_image_size, mapy * map_image_size, -1);
+	mapwindow = gdk_pixmap_new(gtkwin_root->window, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size, -1);
 	gdk_gc_unref(darkgc);
     }
     display_map_doneupdate(TRUE);
@@ -831,7 +741,7 @@ static gint
 expose_event (GtkWidget *widget, GdkEventExpose *event)
 {
 #ifdef HAVE_SDL
-    if(sdlimage &&  mapsurface) {
+    if(use_config[CONFIG_SDL] &&  mapsurface) {
 	SDL_UpdateRect( mapsurface, 0, 0, 0, 0);
 	return FALSE;
     }
@@ -855,7 +765,7 @@ static int get_game_display(GtkWidget *frame) {
     gtk_box_pack_start (GTK_BOX (gtvbox), gthbox, FALSE, FALSE, 1);
 
     drawingarea = gtk_drawing_area_new(); 
-    gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), map_image_size*mapx,map_image_size*mapy);
+    gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), map_image_size*use_config[CONFIG_MAPWIDTH],map_image_size*use_config[CONFIG_MAPHEIGHT]);
     /* Add mouseclick events to the drawing area */
 
     gtk_widget_set_events (drawingarea, GDK_BUTTON_PRESS_MASK);
@@ -1006,7 +916,7 @@ static void draw_list (itemlist *l)
 			    (GdkPixmap*)pixmaps[tmp->face]->icon_image,
 			    (GdkBitmap*)pixmaps[tmp->face]->icon_mask); 
       gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
-      if (color_inv) { 
+      if (use_config[CONFIG_COLORINV]) { 
 	if (tmp->cursed || tmp->damned) {
 	  gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
 				    &root_color[NDI_RED]);
@@ -1147,7 +1057,7 @@ static void draw_list (itemlist *l)
 	  tmpanimview->list=l->gtk_list[8];
 	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
 	}
-	if (color_inv) { 
+	if (use_config[CONFIG_COLORINV]) { 
 	    if (tmp->cursed || tmp->damned) {
 		gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
 				    &root_color[NDI_RED]);
@@ -1179,7 +1089,7 @@ static void draw_list (itemlist *l)
 	tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
 	anim_look_list = g_list_append (anim_look_list, tmpanim);
       }
-      if (color_inv) { 
+      if (use_config[CONFIG_COLORINV]) { 
 	if (tmp->cursed || tmp->damned) {
 	  gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
 				    &root_color[NDI_RED]);
@@ -1226,7 +1136,7 @@ static void enter_callback(GtkWidget *widget, GtkWidget *entry)
     gchar *entry_text;
 
     /* Next reply will reset this as necessary */
-    if (nopopups)
+    if (!use_config[CONFIG_POPUPS])
 	gtk_entry_set_visibility(GTK_ENTRY(entrytext), TRUE);
 
     entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
@@ -1317,7 +1227,7 @@ static int get_info_display(GtkWidget *frame) {
     FILE *infile;
 
     box1 = gtk_vbox_new (FALSE, 0);
-    if (splitinfo) {
+    if (use_config[CONFIG_SPLITINFO]) {
 	info_vpane = gtk_vpaned_new();
 	gtk_container_add (GTK_CONTAINER (frame), info_vpane);
 	gtk_widget_show(info_vpane);
@@ -1363,7 +1273,7 @@ static int get_info_display(GtkWidget *frame) {
   
     gtk_widget_realize (gtkwin_info_text);
 
-    if (splitinfo) {
+    if (use_config[CONFIG_SPLITINFO]) {
 
 	box1 = gtk_vbox_new (FALSE, 0);
 	gtk_widget_show (box1);
@@ -1477,10 +1387,9 @@ draw_prompt (const char *str)
 
     gint    found = FALSE;
 
-    if (nopopups)
+    if (!use_config[CONFIG_POPUPS])
       {
 	draw_info(str, NDI_BLACK);
-
       }
     else
       {
@@ -1977,12 +1886,12 @@ void draw_info(const char *str, int color) {
     }
 
     strcpy (last_str, str);
-    if (splitinfo && color != NDI_BLACK) {
+    if (use_config[CONFIG_SPLITINFO] && color != NDI_BLACK) {
 	if (!draw_info_freeze2){
 	    gtk_text_freeze (GTK_TEXT (gtkwin_info_text2));
 	    draw_info_freeze2=TRUE;
 	}
-	if (trim_info_window) {
+	if (use_config[CONFIG_TRIMINFO]) {
 	    info2_num_chars += strlen(str) + 1;
 	    /* Limit size of scrollback buffer. To be more efficient, delete a good
 	     * blob (5000) characters at a time - in that way, there will be some
@@ -2005,7 +1914,7 @@ void draw_info(const char *str, int color) {
 	    gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
 	    draw_info_freeze1=TRUE;
 	}
-	if (trim_info_window) {
+	if (use_config[CONFIG_TRIMINFO]) {
 	    info1_num_chars += strlen(str) + 1;
 	    if (info1_num_chars > info1_max_chars ) {
 #if 1
@@ -2037,17 +1946,14 @@ void draw_info(const char *str, int color) {
 
 
 void draw_color_info(int colr, const char *buf){
-
-  if (color_text){
-
-    draw_info(buf,colr);
-
-  }
-  else{
-    draw_info("==========================================",NDI_BLACK);
-    draw_info(buf,NDI_BLACK);
-    draw_info("==========================================",NDI_BLACK);
-  }
+    if (use_config[CONFIG_COLORTXT]){
+	draw_info(buf,colr);
+    }
+    else {
+	draw_info("==========================================",NDI_BLACK);
+	draw_info(buf,NDI_BLACK);
+	draw_info("==========================================",NDI_BLACK);
+    }
 }
 
 
@@ -2627,7 +2533,7 @@ void draw_message_window(int redraw) {
  * draw_all_list clears a window and after that draws all objects 
  * and a scrollbar
  */
-static void draw_all_list(itemlist *l)
+void draw_all_list(itemlist *l)
 {
     int i;
 
@@ -2698,7 +2604,7 @@ static void list_button_event (GtkWidget *gtklist, gint row, gint column, GdkEve
     } else if (l == &inv_list) {
       cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
       client_send_move (look_list.env->tag, tmp->tag, cpl.count);
-      if (nopopups) {
+      if (!use_config[CONFIG_POPUPS]) {
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(counttext),0.0);
         cpl.count=0;
       }
@@ -2706,7 +2612,7 @@ static void list_button_event (GtkWidget *gtklist, gint row, gint column, GdkEve
     else {
       cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
       client_send_move (inv_list.env->tag, tmp->tag, cpl.count);
-      if (nopopups) {
+      if (!use_config[CONFIG_POPUPS]) {
          gtk_spin_button_set_value(GTK_SPIN_BUTTON(counttext),0.0);
          cpl.count=0;
       }
@@ -3097,277 +3003,6 @@ void aboutdialog(GtkWidget *widget) {
   }
 }
 
-/* Ok, here it sets the config and saves it. This is sorta dangerous, and I'm not sure
- * if it's actually possible to do dynamic reconfiguration of everything this way. Something may
- * blow up in our faces.
- */
-
-void applyconfig () {
-  int sound;
-  if (GTK_TOGGLE_BUTTON (ccheckbutton1)->active)  {
-    face_info.cache_images=TRUE;
-  } else {
-    face_info.cache_images=FALSE;
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton2)->active) {
-    if (!split_windows) {
-      gtk_widget_destroy(gtkwin_root);
-      split_windows=TRUE;
-	create_windows();
-	display_map_doneupdate(TRUE);
-	draw_stats (1);
-      draw_all_list(&inv_list);
-      draw_all_list(&look_list);
-    }
-  } else {
-    if (split_windows) {
-      gtk_widget_destroy(gtkwin_root);
-      gtk_widget_destroy(gtkwin_info);
-      gtk_widget_destroy(gtkwin_stats);
-      gtk_widget_destroy(gtkwin_message);
-      gtk_widget_destroy(gtkwin_inv);
-      gtk_widget_destroy(gtkwin_look);
-      split_windows=FALSE;
-      create_windows();
-      display_map_doneupdate(TRUE);
-      draw_stats (1);
-      draw_all_list(&inv_list);
-      draw_all_list(&look_list);
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton3)->active) {
-    if (nosound) {
-      nosound=FALSE;
-      sound = init_sounds();
-      cs_print_string(csocket.fd, "setsound %d", sound >= 0);
-    }
-  } else {
-    if (!nosound) {
-      nosound=TRUE;
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton4)->active)   {
-    if (!color_inv) {
-      color_inv=TRUE;
-      draw_all_list(&inv_list);
-      draw_all_list(&look_list);
-    }
-  } else {
-    if (color_inv) {
-      color_inv=FALSE;
-      draw_all_list(&inv_list);
-      draw_all_list(&look_list);
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton5)->active)   {
-    if (!color_text) {
-      color_text=TRUE;
-    }
-  } else {
-    if (color_text) {
-      color_text=FALSE;
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton6)->active)   {
-    if (!tool_tips) {
-      gtk_tooltips_enable(tooltips);
-      tool_tips=TRUE;
-    }
-  } else {
-    if (tool_tips) {
-       gtk_tooltips_disable(tooltips);
-      tool_tips=FALSE;
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton7)->active)   {
-    if (!splitinfo) {
-      gtk_tooltips_enable(tooltips);
-      splitinfo=TRUE;
-    }
-  } else {
-    if (splitinfo) {
-       gtk_tooltips_disable(tooltips);
-      splitinfo=FALSE;
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton8)->active)   {
-    if (!nopopups) {
-      gtk_tooltips_enable(tooltips);
-      nopopups=TRUE;
-    }
-  } else {
-    if (nopopups) {
-       gtk_tooltips_disable(tooltips);
-      nopopups=FALSE;
-    }
-  }
-#ifdef HAVE_SDL
-    if (sdlimage) {
-	if( GTK_TOGGLE_BUTTON( cradiobutton1)->active) {
-	    if( per_pixel_lighting == 0) {
-		per_pixel_lighting= 1;
-		per_tile_lighting= 0;
-		init_SDL( NULL, 1);
-		if( csocket.fd)
-		    cs_print_string(csocket.fd, "mapredraw");
-	    }
-	} else {
-	    if( per_pixel_lighting == 1) {
-		per_pixel_lighting= 0;
-		per_tile_lighting= 1;
-		init_SDL( NULL, 1);
-		if( csocket.fd)
-		    cs_print_string(csocket.fd, "mapredraw");
-	    }
-	}
-	if( GTK_TOGGLE_BUTTON( ccheckbutton9)->active) {
-	    if( show_grid == FALSE)
-		show_grid= TRUE;
-	} else {
-	    if( show_grid == TRUE)
-		show_grid= FALSE;
-	}
-    } /* sdlimage */
-#endif
-}
-
-/* Ok, here it sets the config and saves it. This is sorta dangerous, and I'm not sure
- * if it's actually possible to do dynamic reconfiguration of everything this way.
- */
-
-void saveconfig () {
-  int sound;
-  if (GTK_TOGGLE_BUTTON (ccheckbutton1)->active) {
-    face_info.cache_images=TRUE;
-  } else {
-    face_info.cache_images=FALSE;
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton2)->active) {
-    if (!split_windows) {
-      gtk_widget_destroy(gtkwin_root);
-      split_windows=TRUE;
-      create_windows();
-      display_map_doneupdate(TRUE);
-      draw_stats (1);
-      draw_all_list(&inv_list);
-      draw_all_list(&look_list);
-      
-    }
-  } else {
-    if (split_windows) {
-      gtk_widget_destroy(gtkwin_root);
-      gtk_widget_destroy(gtkwin_info);
-      gtk_widget_destroy(gtkwin_stats);
-      gtk_widget_destroy(gtkwin_message);
-      gtk_widget_destroy(gtkwin_inv);
-      gtk_widget_destroy(gtkwin_look);
-      split_windows=FALSE;
-      create_windows();
-      display_map_doneupdate(TRUE);
-      draw_stats (1);
-      draw_all_list(&inv_list);
-      draw_all_list(&look_list);
-      
-      
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton3)->active) {
-    if (nosound) {
-      nosound=FALSE;
-      sound = init_sounds();
-      cs_print_string(csocket.fd, "setsound %d", sound >= 0);
-    }
-  } else {
-    if (!nosound) {
-      nosound=TRUE;
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton4)->active)  {
-    if (!color_inv) {
-      color_inv=TRUE;
-      draw_all_list(&inv_list);
-      draw_all_list(&look_list);
-
-    }
-  } else {
-    if (color_inv) {
-      color_inv=FALSE;
-      draw_all_list(&inv_list);
-      draw_all_list(&look_list);
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton5)->active)   {
-    if (!color_text) {
-      color_text=TRUE;
-    }
-  } else {
-    if (color_text) {
-      color_text=FALSE;
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton6)->active)   {
-    if (!tool_tips) {
-      gtk_tooltips_enable(tooltips);
-      tool_tips=TRUE;
-    }
-  } else {
-    if (tool_tips) {
-      gtk_tooltips_disable(tooltips);
-      tool_tips=FALSE;
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton7)->active)   {
-    if (!splitinfo) {
-      gtk_tooltips_enable(tooltips);
-      splitinfo=TRUE;
-    }
-  } else {
-    if (splitinfo) {
-      gtk_tooltips_disable(tooltips);
-      splitinfo=FALSE;
-    }
-  }
-  if (GTK_TOGGLE_BUTTON (ccheckbutton8)->active)   {
-    if (!nopopups) {
-      gtk_tooltips_enable(tooltips);
-      nopopups=TRUE;
-    }
-  } else {
-    if (nopopups) {
-      gtk_tooltips_disable(tooltips);
-      nopopups=FALSE;
-    }
-  }
-#ifdef HAVE_SDL
-  if (sdlimage) {
-    if( GTK_TOGGLE_BUTTON( cradiobutton1)->active) {
-	if( per_pixel_lighting == 0) {
-	    per_pixel_lighting= 1;
-	    per_tile_lighting= 0;
-	    init_SDL( NULL, 1);
-	    if (csocket.fd)
-		cs_print_string(csocket.fd, "mapredraw");
-	}
-    } else {
-	if( per_pixel_lighting == 1) {
-	    per_pixel_lighting= 0;
-	    per_tile_lighting= 1;
-	    init_SDL( NULL, 1);
-	    if (csocket.fd)
-		cs_print_string(csocket.fd, "mapredraw");
-	}
-    }
-    if( GTK_TOGGLE_BUTTON( ccheckbutton9)->active) {
-	if( show_grid == FALSE)
-	    show_grid= TRUE;
-    } else {
-	if( show_grid == TRUE)
-	    show_grid= FALSE;
-    }
-  } /* sdlimage */
-#endif
-  save_defaults();
-}
 
 
 void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButton *event) {
@@ -3393,363 +3028,6 @@ void disconnect(GtkWidget *widget) {
 	csocket_fd=0;
 	gtk_main_quit();
     }
-}
-
-/*
- *  GUI Config dialog. 
- *
- *
- */
-
-void configdialog(GtkWidget *widget) {
-  GtkWidget *vbox;
-  GtkWidget *hbox;
-  /*  GtkWidget *configtext;*/
-  /*  GtkStyle *style;*/
-
-  GtkWidget *tablabel;
-  GtkWidget *notebook;
-  GtkWidget *vbox1;
-  GtkWidget *vbox2;
-  GtkWidget *hbox1;
-  GtkWidget *applybutton;
-  GtkWidget *cancelbutton;
-  GtkWidget *savebutton;
-  GtkWidget *frame1;
-
-  GtkWidget *ehbox;
-  GtkWidget *clabel1, *clabel2, *clabel4, *clabel5, *cb1, *cb2, *cb3;
-  GtkWidget *cclists;
-
-  gchar *titles[] ={"#","Key","(#)","Mods","Command"};	   
-  /* If the window isnt already up (in which case it's just raised) */
-
-  if(!gtkwin_config) {
-    
-    gtkwin_config = gtk_window_new (GTK_WINDOW_DIALOG);
-    gtk_window_position (GTK_WINDOW (gtkwin_config), GTK_WIN_POS_CENTER);
-    gtk_widget_set_usize (gtkwin_config,450,400);
-    gtk_window_set_title (GTK_WINDOW (gtkwin_config), "Crossfire Configure");
-    gtk_window_set_policy (GTK_WINDOW (gtkwin_config), TRUE, TRUE, FALSE);
-
-    gtk_signal_connect (GTK_OBJECT (gtkwin_config), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_config);
-    
-    gtk_container_border_width (GTK_CONTAINER (gtkwin_config), 0);
-    vbox = gtk_vbox_new(FALSE, 2);
-    gtk_container_add (GTK_CONTAINER(gtkwin_config),vbox);
-    hbox = gtk_hbox_new(FALSE, 2);
-    gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
-
-    notebook = gtk_notebook_new ();
-    gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook), GTK_POS_TOP );
-    gtk_box_pack_start (GTK_BOX(hbox),notebook, TRUE, TRUE, 0);
-
-    tablabel = gtk_label_new ("General");
-    gtk_widget_show (tablabel);
-    vbox2 = gtk_vbox_new(FALSE, 0);
-  
-
-    gtk_notebook_append_page (GTK_NOTEBOOK (notebook), vbox2, tablabel);
-    frame1 = gtk_frame_new("General options");  
-    gtk_frame_set_shadow_type (GTK_FRAME(frame1), GTK_SHADOW_ETCHED_IN);
-    gtk_box_pack_start (GTK_BOX (vbox2), frame1, TRUE, TRUE, 0);
-    vbox1 = gtk_vbox_new(FALSE, 0);
-    gtk_container_add (GTK_CONTAINER(frame1), vbox1);
-    /* Add the checkbuttons to the notebook and set them according to current settings */
-    ccheckbutton1 = gtk_check_button_new_with_label ("Cache Images" );
-    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton1, FALSE, FALSE, 0);
-    if (face_info.cache_images) {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton1), TRUE);
-    } else {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton1), FALSE);
-    }
-
-    ccheckbutton2 = gtk_check_button_new_with_label ("Split Windows" );
-    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton2, FALSE, FALSE, 0);
-    if (split_windows) {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton2), TRUE);
-    } else {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton2), FALSE);
-    }
-
-    ccheckbutton3 = gtk_check_button_new_with_label ("Sound" );
-    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton3, FALSE, FALSE, 0);
-    if (nosound) {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton3), FALSE);
-    } else {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton3), TRUE);
-    }
-
-    ccheckbutton4 = gtk_check_button_new_with_label ("Color invlists" );
-    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton4, FALSE, FALSE, 0);
-    if (color_inv) {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton4), TRUE);
-    } else {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton4), FALSE);
-    }
-
-    ccheckbutton5 = gtk_check_button_new_with_label ("Color info text" );
-    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton5, FALSE, FALSE, 0);
-    if (color_text) {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton5), TRUE);
-    } else {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton5), FALSE);
-    }
-
-    ccheckbutton6 = gtk_check_button_new_with_label ("Show tooltips" );
-    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton6, FALSE, FALSE, 0);
-    if (tool_tips) {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton6), TRUE);
-    } else {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton6), FALSE);
-    }
-
-    ccheckbutton7 = gtk_check_button_new_with_label ("Split Information Window\n(Takes effect next run)" );
-    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton7, FALSE, FALSE, 0);
-    if (splitinfo) {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton7), TRUE);
-    } else {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton7), FALSE);
-    }
-
-    ccheckbutton8 = gtk_check_button_new_with_label ("No popup windows" );
-    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton8, FALSE, FALSE, 0);
-    if (nopopups) {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton8), TRUE);
-    } else {
-      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton8), FALSE);
-    }
-
-#ifdef HAVE_SDL
-    if (sdlimage) {
-	GtkWidget* label;
-	GtkWidget* separator = gtk_hseparator_new ();
-	gtk_box_pack_start (GTK_BOX (vbox1), separator, FALSE, TRUE, 0);
-
-
-	label= gtk_label_new((gchar*)"Lighting options, per pixel is prettier, per tile is faster");
-	gtk_box_pack_start( GTK_BOX( vbox1), label, FALSE, FALSE, 0);
-
-	cradiobutton1= gtk_radio_button_new_with_label( NULL, (gchar*)"Per Pixel Lighting");
-	cradiobutton2 = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(cradiobutton1),
-								  (gchar*)"Per Tile Lighting");
-      
-	gtk_box_pack_start( GTK_BOX( vbox1), cradiobutton1, FALSE, FALSE, 0);
-	gtk_box_pack_start( GTK_BOX( vbox1), cradiobutton2, FALSE, FALSE, 0);
-
-	gtk_widget_show( separator);
-	gtk_widget_show( label);
-
-	separator= gtk_hseparator_new();
-	gtk_box_pack_start( GTK_BOX( vbox1), separator, FALSE, TRUE, 0);
-	gtk_widget_show( separator);
-
-	ccheckbutton9= gtk_check_button_new_with_label( "Print Grid Overlay -- Slow, only really useful for debugging/development");
-	gtk_box_pack_start( GTK_BOX(vbox1), ccheckbutton9, FALSE, FALSE, 0);
-	if( show_grid) {
-	    gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON( ccheckbutton9), TRUE);
-	} else {
-	    gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON( ccheckbutton9), FALSE);
-	}
-    } /* sdlimage */
-
-#endif /* HAVE_SDL */
-
-    gtk_widget_show (ccheckbutton1);
-    gtk_widget_show (ccheckbutton2);
-    gtk_widget_show (ccheckbutton3);
-    gtk_widget_show (ccheckbutton4);
-    gtk_widget_show (ccheckbutton5);
-    gtk_widget_show (ccheckbutton6);
-    gtk_widget_show (ccheckbutton7);
-    gtk_widget_show (ccheckbutton8);
-#ifdef HAVE_SDL
-    if (sdlimage) {
-	gtk_widget_show (cradiobutton1);
-	gtk_widget_show (cradiobutton2);
-	gtk_widget_show (ccheckbutton9);
-    }
-#endif
-
-    gtk_widget_show (vbox1);
-    gtk_widget_show (frame1);
-    gtk_widget_show (vbox2);
- 
-
-    tablabel = gtk_label_new ("Keybindings");
-    gtk_widget_show (tablabel);
-    vbox2 = gtk_vbox_new(FALSE, 0);
-    gtk_notebook_append_page (GTK_NOTEBOOK (notebook), vbox2, tablabel);    
-    frame1 = gtk_frame_new("Keybindings");  
-    gtk_frame_set_shadow_type (GTK_FRAME(frame1), GTK_SHADOW_ETCHED_IN);
-    gtk_box_pack_start (GTK_BOX (vbox2), frame1, TRUE, TRUE, 0);
-    vbox1 = gtk_vbox_new(FALSE, 0);
-    gtk_container_add (GTK_CONTAINER(frame1), vbox1);
-    cclists = gtk_scrolled_window_new (0,0);
-    cclist = gtk_clist_new_with_titles (5, titles);
-
-    gtk_clist_set_column_width (GTK_CLIST(cclist), 0, 20);
-    gtk_clist_set_column_width (GTK_CLIST(cclist), 1, 50);
-    gtk_clist_set_column_width (GTK_CLIST(cclist), 2, 20);
-    gtk_clist_set_column_width (GTK_CLIST(cclist), 3, 40);
-    gtk_clist_set_column_width (GTK_CLIST(cclist), 4, 245);
-    gtk_clist_set_selection_mode (GTK_CLIST(cclist) , GTK_SELECTION_SINGLE);
-
-    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(cclists),
-				    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-    gtk_container_add (GTK_CONTAINER (cclists), cclist);
-    gtk_box_pack_start (GTK_BOX(vbox1),cclists, TRUE, TRUE, 0);
-    draw_keybindings (cclist);
-    
-    gtk_signal_connect_after (GTK_OBJECT(cclist),
-                              "select_row",
-                              GTK_SIGNAL_FUNC(cclist_button_event),
-                              NULL);
-
-    gtk_widget_show(cclist);
-    gtk_widget_show(cclists);
-    
-    ehbox=gtk_hbox_new(FALSE, 0);
-
-
-    clabel1 =  gtk_label_new ("Binding #:");
-    gtk_box_pack_start (GTK_BOX (ehbox),clabel1, FALSE, TRUE, 2);
-    gtk_widget_show (clabel1);
-
-    cnumentrytext = gtk_label_new ("0");
-    gtk_box_pack_start (GTK_BOX (ehbox),cnumentrytext, FALSE, TRUE, 2);
-    gtk_widget_set_usize (cnumentrytext, 25, 0);
-    gtk_widget_show (cnumentrytext);
-
-    clabel2 =  gtk_label_new ("Key:");
-    gtk_box_pack_start (GTK_BOX (ehbox),clabel2, FALSE, TRUE, 2);
-    gtk_widget_show (clabel2);
-
-    ckeyentrytext = gtk_entry_new ();
-    gtk_box_pack_start (GTK_BOX (ehbox),ckeyentrytext, TRUE, TRUE, 2);
-    gtk_widget_set_usize (ckeyentrytext, 110, 0);
-    gtk_signal_connect(GTK_OBJECT(ckeyentrytext), "key_press_event",
-		       GTK_SIGNAL_FUNC(ckeyentry_callback),
-		       ckeyentrytext);
-    /*  gtk_signal_connect(GTK_OBJECT(ckeyentrytext), "activate",
-		       GTK_SIGNAL_FUNC(ckeyentry_callback),
-		       ckeyentrytext);*/
-    gtk_widget_show (ckeyentrytext);
-     gtk_entry_set_text (GTK_ENTRY(ckeyentrytext),  "Press key to bind here");
-
-    /*    clabel3 =  gtk_label_new ("Key #:");
-    gtk_box_pack_start (GTK_BOX (ehbox),clabel3, FALSE, TRUE, 2);
-    gtk_widget_show (clabel3);
-
-    cknumentrytext = gtk_entry_new ();
-    gtk_box_pack_start (GTK_BOX (ehbox),cknumentrytext, FALSE, TRUE, 2);
-    gtk_signal_connect(GTK_OBJECT(cknumentrytext), "key_press_event",
-		       GTK_SIGNAL_FUNC(cknumentry_callback),
-		       cknumentrytext);
-    gtk_widget_set_usize (cknumentrytext, 35, 0);
-    gtk_widget_show (cknumentrytext);*/
-
-    clabel4 =  gtk_label_new ("Mods:");
-    gtk_box_pack_start (GTK_BOX (ehbox),clabel4, FALSE, TRUE, 2);
-    gtk_widget_show (clabel4);
-
-    cmodentrytext = gtk_entry_new ();
-    gtk_box_pack_start (GTK_BOX (ehbox),cmodentrytext, FALSE, TRUE, 2);
-    gtk_widget_set_usize (cmodentrytext, 45, 0);
-    gtk_widget_show (cmodentrytext);
-
-
-    gtk_box_pack_start (GTK_BOX (vbox1),ehbox, FALSE, TRUE, 2);
-
-    gtk_widget_show (ehbox);
-
-    ehbox=gtk_hbox_new(FALSE, 0);
-
-    clabel5 =  gtk_label_new ("Command:");
-    gtk_box_pack_start (GTK_BOX (ehbox),clabel5, FALSE, TRUE, 2);
-    gtk_widget_show (clabel5);
-
-    ckentrytext = gtk_entry_new ();
-    gtk_box_pack_start (GTK_BOX (ehbox),ckentrytext, TRUE, TRUE, 2);
-    gtk_widget_show (ckentrytext);
-
-
-    gtk_box_pack_start (GTK_BOX (vbox1),ehbox, FALSE, TRUE, 2);
-    
-    gtk_widget_show (ehbox);
-
-    ehbox=gtk_hbox_new(TRUE, 0);
-
-
-    cb1 = gtk_button_new_with_label ("Unbind");
-    gtk_box_pack_start (GTK_BOX (ehbox),cb1, FALSE, TRUE, 4);
-    /*gtk_widget_set_usize (cb1, 45, 0);*/
-    gtk_signal_connect_object (GTK_OBJECT (cb1), "clicked",
-			       GTK_SIGNAL_FUNC(ckeyunbind),
-			       NULL);
-    gtk_widget_show (cb1);
-    
-    cb2 = gtk_button_new_with_label ("Bind");
-    gtk_box_pack_start (GTK_BOX (ehbox),cb2, FALSE, TRUE, 4);
-    gtk_signal_connect_object (GTK_OBJECT (cb2), "clicked",
-			       GTK_SIGNAL_FUNC(bind_callback),
-			       NULL);
-    /*  gtk_widget_set_usize (cb2, 45, 0);*/
-    gtk_widget_show (cb2);
-
-    cb3 = gtk_button_new_with_label ("Clear");
-    gtk_box_pack_start (GTK_BOX (ehbox),cb3, FALSE, TRUE, 4);
-    /*    gtk_widget_set_usize (cb2, 45, 0);*/
-    gtk_signal_connect_object (GTK_OBJECT (cb3), "clicked",
-			       GTK_SIGNAL_FUNC(ckeyclear),
-			       NULL);
-    gtk_widget_show (cb3);
-    gtk_box_pack_start (GTK_BOX (vbox1),ehbox, FALSE, TRUE, 2);
-
-    gtk_widget_show (ehbox);
-
-
-    gtk_widget_show (vbox1);
-    gtk_widget_show (frame1);
-    gtk_widget_show (vbox2);
-
-
-    gtk_widget_show (notebook);
-    gtk_widget_show (hbox);
-
-    /* And give some options to actually do something with our new nifty configuration */
-
-    hbox1 = gtk_hbox_new(TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 6);
-    savebutton = gtk_button_new_with_label("Save");
-    gtk_signal_connect_object (GTK_OBJECT (savebutton), "clicked",
-			       GTK_SIGNAL_FUNC(saveconfig),
-			       NULL);
-    gtk_box_pack_start(GTK_BOX(hbox1), savebutton, FALSE, TRUE, 4);
-
-    applybutton = gtk_button_new_with_label("Apply");
-    gtk_signal_connect_object (GTK_OBJECT (applybutton), "clicked",
-			       GTK_SIGNAL_FUNC(applyconfig),
-			       NULL);
-    gtk_box_pack_start(GTK_BOX(hbox1), applybutton, FALSE, TRUE, 4);
-
-    cancelbutton = gtk_button_new_with_label("Close");
-    gtk_signal_connect_object (GTK_OBJECT (cancelbutton), "clicked",
-			       GTK_SIGNAL_FUNC(gtk_widget_destroy),
-			       GTK_OBJECT (gtkwin_config));
- 
-    gtk_box_pack_start(GTK_BOX(hbox1), cancelbutton, FALSE, TRUE, 4);
-    gtk_widget_show(savebutton);
-    gtk_widget_show(applybutton);
-    gtk_widget_show(cancelbutton);
-
-    gtk_widget_show (hbox1);
-    gtk_widget_show (vbox);
-    gtk_widget_show (gtkwin_config);
-  }
-  else { 
-    gdk_window_raise (gtkwin_config->window);
-  }
 }
 
 /* Ok, simplistic help system. Just put the text file up in a scrollable window */
@@ -4621,7 +3899,7 @@ void create_windows() {
 
   tooltips = gtk_tooltips_new();
 
-  if (split_windows==FALSE) {
+  if (want_config[CONFIG_SPLITWIN]==FALSE) {
     GtkStyle	*style;
     int gcw;
     int gch;
@@ -4643,14 +3921,14 @@ void create_windows() {
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
     fprintf(stderr, "Character Width : %d\n", gcw);
     fprintf(stderr, "Character Height: %d\n", gch);
-    if ((55*gcw)+(map_image_size*mapx) >= gdk_screen_width())
+    if ((55*gcw)+(map_image_size*use_config[CONFIG_MAPWIDTH]) >= gdk_screen_width())
     	rootwin_width = gdk_screen_width() - 10;
     else
-        rootwin_width = (55*gcw)+(map_image_size*mapx);
-    if ((33*gch)+(map_image_size*mapy) >= gdk_screen_height())
+        rootwin_width = (55*gcw)+(map_image_size*use_config[CONFIG_MAPWIDTH]);
+    if ((33*gch)+(map_image_size*use_config[CONFIG_MAPHEIGHT]) >= gdk_screen_height())
     	rootwin_height = gdk_screen_height() - 10;
     else
-        rootwin_height = (33*gch)+(map_image_size*mapy);
+        rootwin_height = (33*gch)+(map_image_size*use_config[CONFIG_MAPHEIGHT]);
     gtk_widget_set_usize (gtkwin_root,rootwin_width,rootwin_height);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
@@ -4702,7 +3980,7 @@ void create_windows() {
     gtk_paned_add1 (GTK_PANED (stat_info_hpane), stat_game_vpane);
 
     /* game - statbars */
-    if (want_mapx>15) {
+    if (want_config[CONFIG_MAPWIDTH]>15) {
 	bigmap=TRUE;
 
 	game_bar_vpane = gtk_hpaned_new ();
@@ -4716,7 +3994,7 @@ void create_windows() {
     /* Statbars frame */
     message_frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(message_frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (message_frame, (22*gcw)+6,  (map_image_size*mapy)+6);
+    gtk_widget_set_usize (message_frame, (22*gcw)+6,  (map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
     gtk_paned_add2 (GTK_PANED (game_bar_vpane), message_frame);
     
     get_message_display(message_frame);
@@ -4726,7 +4004,7 @@ void create_windows() {
     /* Game frame */
     gameframe = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(gameframe), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (gameframe, (map_image_size*mapx)+6, (map_image_size*mapy)+6);
+    gtk_widget_set_usize (gameframe, (map_image_size*use_config[CONFIG_MAPWIDTH])+6, (map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
 
     if (bigmap)
 	gtk_paned_add2 (GTK_PANED (stat_game_vpane), gameframe);
@@ -4791,7 +4069,7 @@ void create_windows() {
     gtk_widget_show (gtkwin_root);
 
 #ifdef HAVE_SDL
-    if (sdlimage) 
+    if (use_config[CONFIG_SDL]) 
 	init_SDL( drawingarea, 0);
 #endif
 
@@ -4803,7 +4081,7 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 300, 160);
-    gtk_widget_set_usize (gtkwin_root,(map_image_size*mapx)+6,(map_image_size*mapy)+6);
+    gtk_widget_set_usize (gtkwin_root,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,(map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire - view");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_root), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
@@ -4834,7 +4112,7 @@ void create_windows() {
     gtkwin_stats = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_stats, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_stats, 300, 0);
-    gtk_widget_set_usize (gtkwin_stats,(map_image_size*mapx)+6,140);
+    gtk_widget_set_usize (gtkwin_stats,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,140);
     gtk_window_set_title (GTK_WINDOW (gtkwin_stats), "Crossfire GTK Client");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_stats), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_stats);
@@ -4889,7 +4167,7 @@ void create_windows() {
     gtkwin_message = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_message, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_message, 300, 450);
-    gtk_widget_set_usize (gtkwin_message,(map_image_size*mapx)+6,170);
+    gtk_widget_set_usize (gtkwin_message,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,170);
     gtk_window_set_title (GTK_WINDOW (gtkwin_message), "Crossfire - vitals");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_message), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_message);
@@ -4982,7 +4260,7 @@ void create_windows() {
 			       GTK_SIGNAL_FUNC(keyrelfunc), GTK_OBJECT(gtkwin_stats));
 
 #ifdef HAVE_SDL
-    if (sdlimage)
+    if (use_config[CONFIG_SDL])
 	init_SDL( drawingarea, 0);
 #endif
 
@@ -4991,13 +4269,12 @@ void create_windows() {
   /* load window positions from file */
   set_window_pos();
   gtk_tooltips_set_delay(tooltips, 1000 );
-  if (tool_tips) {
+  if (use_config[CONFIG_TOOLTIPS]) {
     gtk_tooltips_enable(tooltips);
   }
 
 }
 
-int sync_display = 0;
 static int get_root_display(char *display_name,int gargc, char **gargv) {
     gtk_init (&gargc,&gargv);
     last_str=malloc(32767);
@@ -5064,7 +4341,7 @@ void do_clearlock () {
 }
 
 void x_set_echo() {
-  if (nopopups) {
+  if (!use_config[CONFIG_POPUPS]) {
     gtk_entry_set_visibility(GTK_ENTRY(entrytext), !cpl.no_echo);
   }
 }
@@ -5347,7 +4624,7 @@ void save_winpos()
     FILE    *fp;
     int	    x,y,w,h,wx,wy;
 
-    if (!split_windows)
+    if (!want_config[CONFIG_SPLITWIN])
 	sprintf(savename,"%s/.crossfire/gwinpos", getenv("HOME"));
     else
 	sprintf(savename,"%s/.crossfire/winpos", getenv("HOME"));
@@ -5360,7 +4637,7 @@ void save_winpos()
 
     get_window_coord(gtkwin_root, &x,&y, &wx,&wy,&w,&h);
     fprintf(fp,"win_game: %d %d %d %d\n", wx,wy, w, h);
-    if (split_windows) {
+    if (want_config[CONFIG_SPLITWIN]) {
 	get_window_coord(gtkwin_stats, &x,&y, &wx,&wy,&w,&h);
 	fprintf(fp,"win_stats: %d %d %d %d\n", wx,wy, w, h);
 	get_window_coord(gtkwin_info, &x,&y, &wx,&wy,&w,&h);
@@ -5389,7 +4666,7 @@ void save_winpos()
 		GTK_PANED(game_bar_vpane)->child1_size);
 	fprintf(fp,"inv_look_vpane: %d\n",
 		GTK_PANED(inv_look_vpane)->child1_size);
-	if (splitinfo)
+	if (use_config[CONFIG_SPLITINFO])
 	    fprintf(fp,"info_vpane: %d\n",
 		GTK_PANED(info_vpane)->child1_size);
     }
@@ -5451,7 +4728,7 @@ void set_window_pos()
     char buf[MAX_BUF],*cp;
     FILE *fp;
 
-    if (split_windows)
+    if (want_config[CONFIG_SPLITWIN])
 	sprintf(buf,"%s/.crossfire/winpos", getenv("HOME"));
     else
 	sprintf(buf,"%s/.crossfire/gwinpos", getenv("HOME"));
@@ -5471,14 +4748,14 @@ void set_window_pos()
 	    else if (!strcmp(buf, "stat_game_vpane:")) gtk_paned_set_position(GTK_PANED(stat_game_vpane),pos);
 	    else if (!strcmp(buf, "game_bar_vpane:")) gtk_paned_set_position(GTK_PANED(game_bar_vpane),pos);
 	    else if (!strcmp(buf, "inv_look_vpane:")) gtk_paned_set_position(GTK_PANED(inv_look_vpane),pos);
-	    else if (splitinfo && !strcmp(buf, "info_vpane:")) gtk_paned_set_position(GTK_PANED(info_vpane),pos);
+	    else if (use_config[CONFIG_SPLITINFO] && !strcmp(buf, "info_vpane:")) gtk_paned_set_position(GTK_PANED(info_vpane),pos);
 	    else fprintf(stderr,"Found bogus line in window position file:\n%s %s\n", buf, cp);
 	} else {
 	    if (!strcmp(buf,"win_game:")) {
 		gtk_widget_set_uposition (gtkwin_root, wx, wy);
 		gtk_widget_set_usize (gtkwin_root, w, h);
 	    }
-	    if (!split_windows) {
+	    if (!want_config[CONFIG_SPLITWIN]) {
 		fprintf(stderr,"Found bogus line in window position file:\n%s %s\n", buf, cp);
 		continue;
 	    }
@@ -5530,15 +4807,17 @@ static void usage(char *progname)
     puts("-darkness        - Enables darkness code (default)");
     puts("-nodarkness      - Disables darkness code");
     puts("-display <name>  - Use <name> instead if DISPLAY environment variable.");
+    puts("-download_all_faces - Download all needed faces before play starts");
     puts("-echo            - Echo the bound commands");
     puts("-noecho          - Do not echo the bound commands (default)");
     puts("-faceset <name>  - Use faceset <name> if available");
+    puts("-fasttcpsend     - Send data immediately to server, may increase bandwidth");
+    puts("-nofasttcpsend   - Disables fasttcpsend");
     puts("-fog             - Enable for of war code");
     puts("-help            - Display this message.");
     puts("-iconscale %%    - Set icon scale percentage");
     puts("-mapscale %%     - Set map scale percentage");
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces. (default 11x11)");
-    puts("-pngfile <name>  - Use <name> for source of images");
     puts("-popups          - Use pop up windows for input (default)");
     puts("-nopopups        - Don't use pop up windows for input");
     puts("-port <number>   - Use port <number> instead of the standard port number");
@@ -5549,7 +4828,6 @@ static void usage(char *progname)
     puts("-nosound         - Disable sound output.");
     puts("-split           - Use split windows.");
     puts("-splitinfo       - Use two information windows, segregated by information type.");
-    puts("-sync            - Synchronize on display");
     puts("-timemapredraw   - Print out timing information for map generation");
     puts("-triminfowindow  - Trims size of information window(s)");
     puts("-notriminfowindow  - Do not trims size of information window(s) (default)");
@@ -5581,19 +4859,19 @@ int init_windows(int argc, char **argv)
     want_skill_exp=1;
     for (on_arg=1; on_arg<argc; on_arg++) {
 	if (!strcmp(argv[on_arg],"-cache")) {
-	    face_info.cache_images= TRUE;
+	    want_config[CONFIG_CACHE]= TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nocache")) {
-	    face_info.cache_images= FALSE;
+	    want_config[CONFIG_CACHE]= FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-darkness")) {
-	    want_darkness= TRUE;
+	    want_config[CONFIG_DARKNESS]= TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nodarkness")) {
-	    want_darkness= FALSE;
+	    want_config[CONFIG_DARKNESS]= FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-display")) {
@@ -5605,15 +4883,15 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-download_all_faces")) {
-	    face_info.download_all_faces=TRUE;
+	    want_config[CONFIG_DOWNLOAD]= TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-echo")) {
-	    cpl.echo_bindings=TRUE;
+	    want_config[CONFIG_ECHO]= TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-noecho")) {
-	    cpl.echo_bindings=FALSE;
+	    want_config[CONFIG_ECHO]= FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-faceset")) {
@@ -5625,12 +4903,12 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else if( !strcmp( argv[on_arg],"-fog")) {
-	  fog_of_war= TRUE;
-	  continue;
+	    want_config[CONFIG_FOGWAR]= TRUE;
+	    continue;
 	}
 	else if( !strcmp( argv[on_arg],"-nofog")) {
-	  fog_of_war= FALSE;
-	  continue;
+	    want_config[CONFIG_FOGWAR]= FALSE;
+	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-help")) {
 	    usage(argv[0]);
@@ -5641,13 +4919,12 @@ int init_windows(int argc, char **argv)
 		fprintf(stderr,"-iconscale requires a percentage value\n");
 		return 1;
 	    }
-	    icon_scale = atoi(argv[on_arg]);
-	    if (icon_scale < 25 || icon_scale>200) {
+	    want_config[CONFIG_ICONSCALE] = atoi(argv[on_arg]);
+	    if (want_config[CONFIG_ICONSCALE] < 25 || want_config[CONFIG_ICONSCALE]>200) {
 		fprintf(stderr,"Valid range for -iconscale is 25 through 200\n");
-		icon_scale=100;
+		want_config[CONFIG_ICONSCALE]=100;
 		return 1;
 	    }
-	    image_size = DEFAULT_IMAGE_SIZE * icon_scale / 100;
 	    continue;
 	}
 	else if( !strcmp( argv[on_arg],"-mapscale")) {
@@ -5655,14 +4932,12 @@ int init_windows(int argc, char **argv)
 		fprintf(stderr,"-mapscale requires a percentage value\n");
 		return 1;
 	    }
-	    map_scale = atoi(argv[on_arg]);
-	    if (map_scale < 25 || map_scale>200) {
+	    want_config[CONFIG_MAPSCALE] = atoi(argv[on_arg]);
+	    if (want_config[CONFIG_MAPSCALE] < 25 || want_config[CONFIG_MAPSCALE]>200) {
 		fprintf(stderr,"Valid range for -mapscale is 25 through 200\n");
-		map_scale=100;
+		want_config[CONFIG_MAPSCALE]=100;
 		return 1;
 	    }
-	    map_image_size = DEFAULT_IMAGE_SIZE * map_scale / 100;
-	    map_image_half_size = DEFAULT_IMAGE_SIZE * map_scale / 200;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-mapsize")) {
@@ -5686,21 +4961,25 @@ int init_windows(int argc, char **argv)
 		fprintf(stderr,"Map size can not be larger than %d x %d \n", MAP_MAX_SIZE, MAP_MAX_SIZE);
 
 	    } else {
-		want_mapx=x;
-		want_mapy=y;
+		want_config[CONFIG_MAPWIDTH]=x;
+		want_config[CONFIG_MAPHEIGHT]=y;
 	    }
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-fasttcpsend")) {
+	    want_config[CONFIG_FASTTCP] = TRUE;
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-nofasttcpsend")) {
-	    fast_tcp_send=0;
+	    want_config[CONFIG_FASTTCP] = FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-popups")) {
-	    nopopups=FALSE;
+	    use_config[CONFIG_POPUPS] = TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nopopups")) {
-	    nopopups=TRUE;
+	    use_config[CONFIG_POPUPS] = FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-port")) {
@@ -5708,14 +4987,14 @@ int init_windows(int argc, char **argv)
 		fprintf(stderr,"-port requires a port number\n");
 		return 1;
 	    }
-	    port_num = atoi(argv[on_arg]);
+	    want_config[CONFIG_PORT] = atoi(argv[on_arg]);
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-sdl")) {
 #ifndef HAVE_SDL
 	    fprintf(stderr,"client not compiled with sdl support.  Ignoring -sdl\n");
 #else
-	    sdlimage=TRUE;
+	    want_config[CONFIG_SDL] = TRUE;
 #endif
 	    continue;
 	}
@@ -5728,31 +5007,27 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-showicon")) {
-	    inv_list.show_icon = TRUE;
+	    want_config[CONFIG_SHOWICON] = TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-sound")) {
-	    nosound=FALSE;
+	    want_config[CONFIG_SOUND] = TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nosound")) {
-	    nosound=TRUE;
+	    want_config[CONFIG_SOUND] = FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-split")) {
-	    split_windows=TRUE;
+	    want_config[CONFIG_SPLITWIN]=TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nosplit")) {
-	    split_windows=FALSE;
+	    want_config[CONFIG_SPLITWIN]=FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-splitinfo")) {
-	    splitinfo=TRUE;
-	    continue;
-	}
-	else if (strcmp(argv[on_arg],"-sync")==0) {
-	    sync_display = 1;
+	    want_config[CONFIG_SPLITINFO]=TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-timemapredraw")) {
@@ -5760,11 +5035,11 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-triminfowindow")) {
-	    trim_info_window=TRUE;
+	    want_config[CONFIG_TRIMINFO] = TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-notriminfowindow")) {
-	    trim_info_window=FALSE;
+	    want_config[CONFIG_TRIMINFO] = FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
@@ -5778,25 +5053,21 @@ int init_windows(int argc, char **argv)
 	}
     }
 
-    /* Fog should now work with png graphics mode */
-#if 0
-    if( fog_of_war == TRUE) {
-      if ( sdlimage == FALSE) {
-	fprintf( stderr, "fog of war only supported with sdl mode, ignoring fog of war option\n");
-	fog_of_war= FALSE;
-      }
+    /* Now copy over the values just loaded */
+    for (on_arg=0; on_arg<CONFIG_NUMS; on_arg++) {
+        use_config[on_arg] = want_config[on_arg];
     }
-#endif
-    map_size= (fog_of_war == TRUE) ? FOG_MAP_SIZE : MAP_MAX_SIZE;
 
-    allocate_map( &the_map, map_size, map_size);
+    image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
+    map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
+    map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
+    inv_list.show_icon = use_config[CONFIG_SHOWICON];
+    if (!use_config[CONFIG_CACHE]) use_config[CONFIG_DOWNLOAD] = FALSE;
 
-    if( fog_of_war == TRUE)
-    {
-      /* Stick us in the middle of the virtual map */
-      pl_pos.x= map_size / 2;
-      pl_pos.y= map_size / 2;
-    }
+    allocate_map( &the_map, FOG_MAP_SIZE, FOG_MAP_SIZE);
+    pl_pos.x= the_map.x / 2;
+    pl_pos.y= the_map.y / 2;
+
 
     /* Finished parsing all the command line options.  Now start
      * working on the display.
@@ -5812,7 +5083,7 @@ int init_windows(int argc, char **argv)
 		return 1;
 
     init_keys();
-    if (face_info.cache_images) init_cache_data();
+    if (want_config[CONFIG_CACHE]) init_cache_data();
     destroy_splash();
 
     return 0;
@@ -5828,7 +5099,7 @@ void display_map_doneupdate(int redraw)
 	updatelock++;
 
 #ifdef HAVE_SDL
-	if (sdlimage) sdl_gen_map(redraw);
+	if (use_config[CONFIG_SDL]) sdl_gen_map(redraw);
 	else
 #endif
 	gtk_draw_map();
@@ -5845,7 +5116,7 @@ void display_map_newmap()
 void resize_map_window(int x, int y)
 {
     gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), map_image_size * x, map_image_size * y);
-    if (!split_windows) {
+    if (!want_config[CONFIG_SPLITWIN]) {
 	/* 15 it is a purely arbitary value.  But basically, if the map window is
 	 * narrow, we then will have the stats on top, with message down below
 	 * the map window.  IF the map window is wide, we put these side
@@ -5931,13 +5202,13 @@ void resize_map_window(int x, int y)
 	    gtk_widget_unref(game_bar_vpane);
 	    game_bar_vpane = newpane;
 	}
-	gtk_widget_set_usize (gameframe, (map_image_size*mapx)+6, (map_image_size*mapy)+6);
+	gtk_widget_set_usize (gameframe, (map_image_size*use_config[CONFIG_MAPWIDTH])+6, (map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
     } else {
-      gtk_widget_set_usize (gtkwin_root,(map_image_size*mapx)+6,(map_image_size*mapy)+6);
+      gtk_widget_set_usize (gtkwin_root,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,(map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
     }
 
 #ifdef HAVE_SDL
-    if (sdlimage)
+    if (use_config[CONFIG_SDL])
 	init_SDL( drawingarea, FALSE);
 #endif
 
@@ -5964,221 +5235,6 @@ char *get_metaserver()
     }
     return cpl.input_text;
 }
-
-void load_defaults()
-{
-    char path[MAX_BUF],inbuf[MAX_BUF],*cp;
-    FILE *fp;
-
-    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
-    if ((fp=fopen(path,"r"))==NULL) return;
-    while (fgets(inbuf, MAX_BUF-1, fp)) {
-	inbuf[MAX_BUF-1]='\0';
-	inbuf[strlen(inbuf)-1]='\0';	/* kill newline */
-
-	if (inbuf[0]=='#') continue;
-	/* IF no colon, then we certainly don't have a real value, so just skip */
-	if (!(cp=strchr(inbuf,':'))) continue;
-	*cp='\0';
-	cp+=2;	    /* colon, space, then value */
-
-	if (!strcmp(inbuf,"cacheimages")) {
-	    if (!strcmp(cp,"True")) face_info.cache_images=TRUE;
-	    else face_info.cache_images=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"colorinv")) {
-	    if (!strcmp(cp,"True")) color_inv=TRUE;
-	    else color_inv=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"colortext")) {
-	    if (!strcmp(cp,"True")) color_text=TRUE;
-	    else color_text=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"command_window")) {
-	    cpl.command_window = atoi(cp);
-	    if (cpl.command_window<1 || cpl.command_window>127)
-		cpl.command_window=COMMAND_WINDOW;
-	    continue;
-	}
-	if (!strcmp(inbuf,"darkness")) {
-	    if (!strcmp(cp,"True")) want_darkness=TRUE;
-	    else want_darkness=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"echo_bindings")) {
-	    if (!strcmp(cp,"True")) cpl.echo_bindings=TRUE;
-	    else cpl.echo_bindings=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"fog_of_war")) {
-	    if (!strcmp(cp,"True")) fog_of_war=TRUE;
-	    else fog_of_war=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"foodbeep")) {
-	    if (!strcmp(cp,"True")) cpl.food_beep=TRUE;
-	    else cpl.food_beep=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"iconscale")) {
-	    int scale = atoi(cp);
-	    if (scale < 25 || scale > 200) {
-		fprintf(stderr,"ignoring iconscale value read for gdefaults file.\n");
-		fprintf(stderr,"Invalid iconscale range (%d), valid range for -iconscale is 25 through 200\n", scale);
-	    } else {
-		icon_scale = scale;
-		image_size = DEFAULT_IMAGE_SIZE * icon_scale / 100;
-	    }
-	    continue;
-	}
-	/* Only SDL actually uses these values, but we can still preserve
-	 * them even if they are not being used.
-	 */
-	if( !strcmp( inbuf,"Lighting")) {
-	    if( !strcmp( cp, "per_pixel")) {
-		per_pixel_lighting= 1;
-		per_tile_lighting= 0;
-	    } else if( !strcmp( cp, "per_tile")) {
-		per_pixel_lighting= 0;
-		per_tile_lighting= 1;
-	    }
-	    continue;
-	}
-	if (!strcmp(inbuf,"mapscale")) {
-	    int scale = atoi(cp);
-	    if (scale < 25 || scale > 200) {
-		fprintf(stderr,"ignoring mapscale value read for gdefaults file.\n");
-		fprintf(stderr,"Invalid mapscale range (%d), valid range for -mapscale is 25 through 200\n", scale);
-	    } else {
-		map_scale = scale;
-		map_image_size = DEFAULT_IMAGE_SIZE * map_scale / 100;
-		map_image_half_size = DEFAULT_IMAGE_SIZE * map_scale / 200;
-	    }
-	    continue;
-	}
-	if (!strcmp(inbuf,"mapsize")) {
-	    int w, h;
-	    if (sscanf(cp,"%dx%d", &w, &h)!=2) {
-		fprintf(stderr,"Malformed mapsize option in gdefaults.  Ignoring\n");
-	    } else {
-		if (w<9 || h<9) {
-		    fprintf(stderr,"mapsize option in gdefaults too small\nmap size must be positive values of at least 9\n");
-		} else if (w>MAP_MAX_SIZE || h>MAP_MAX_SIZE) {
-		    fprintf(stderr,"mapsize option in gdefaults too large\nMap size can not be larger than %d x %d \n", MAP_MAX_SIZE, MAP_MAX_SIZE);
-		} else {
-		    want_mapx=w;
-		    want_mapy=h;
-		}
-	    }
-	    continue;
-	}
-	if (!strcmp(inbuf,"nopopups")) {
-	    if (!strcmp(cp,"True")) nopopups=TRUE;
-	    else nopopups=FALSE;
-	    continue;
-	}  
-	if (!strcmp(inbuf, "port")) {
-	    port_num = atoi(cp);
-	    continue;
-	}
-	if (!strcmp(inbuf, "server")) {
-	    server = strdup_local(cp);	/* memory leak ! */
-	    continue;
-	}
-	if( !strcmp( inbuf,"show_grid")) {
-	    if( !strcmp( cp, "True")) show_grid = TRUE;
-	    else show_grid = FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"showicon")) {
-	    if (!strcmp(cp,"True")) inv_list.show_icon=TRUE;
-	    else inv_list.show_icon=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"sound")) {
-	    if (!strcmp(cp,"True")) nosound=FALSE;
-	    else nosound=TRUE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"split")) {
-	    if (!strcmp(cp,"True")) split_windows=TRUE;
-	    else split_windows=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"splitinfo")) {
-	  if (!strcmp(cp,"True")) splitinfo=TRUE;
-	  else splitinfo=FALSE;
-	  continue;
-	}  
-	if (!strcmp(inbuf,"tooltips")) {
-	  if (!strcmp(cp,"True")) tool_tips=TRUE;
-	  else tool_tips=FALSE;
-	  continue;
-	}  
-	if (!strcmp(inbuf,"trim_info_window")) {
-	  if (!strcmp(cp,"True")) trim_info_window=TRUE;
-	  else trim_info_window=FALSE;
-	  continue;
-	}  
-	fprintf(stderr,"Got line we did not understand: %s: %s\n", inbuf, cp);
-    }
-    fclose(fp);
-}
-
-#define TRUE_OR_FALSE(val)  (val?"True":"False")
-void save_defaults()
-{
-    char path[MAX_BUF],buf[MAX_BUF];
-    FILE *fp;
-
-    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
-    if (make_path_to_file(path)==-1) {
-	fprintf(stderr,"Could not create %s\n", path);
-	return;
-    }
-    if ((fp=fopen(path,"w"))==NULL) {
-	fprintf(stderr,"Could not open %s\n", path);
-	return;
-    }
-    fprintf(fp,"# This file is generated automatically by gcfclient.\n");
-    fprintf(fp,"# Manually editing is allowed, however gcfclient may be a bit finicky about\n");
-    fprintf(fp,"# some of the matching it does.  all comparisons are case sensitive.\n");
-    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values\n");
-
-    fprintf(fp,"cacheimages: %s\n", TRUE_OR_FALSE(face_info.cache_images));
-    fprintf(fp,"colorinv: %s\n", TRUE_OR_FALSE(color_inv));
-    fprintf(fp,"colortext: %s\n", TRUE_OR_FALSE(color_text));
-    fprintf(fp,"command_window: %d\n", cpl.command_window);
-    fprintf(fp,"darkness: %s\n", TRUE_OR_FALSE(want_darkness));
-    fprintf(fp,"display: png\n");   /* Currently, the only thing supported */
-    fprintf(fp,"echo_bindings: %s\n", TRUE_OR_FALSE(cpl.echo_bindings));
-    fprintf(fp,"fog_of_war: %s\n", TRUE_OR_FALSE(fog_of_war));
-    fprintf(fp,"foodbeep: %s\n", TRUE_OR_FALSE(cpl.food_beep));
-    fprintf(fp,"iconscale: %d\n", icon_scale);
-    if( per_pixel_lighting)
-      fprintf( fp, "Lighting: per_pixel\n");
-    else
-      fprintf( fp, "Lighting: per_tile\n");
-    fprintf(fp,"mapscale: %d\n", map_scale);
-    fprintf(fp,"mapsize: %dx%d\n", want_mapx, want_mapy);
-    fprintf(fp,"nopopups: %s\n", TRUE_OR_FALSE(nopopups));
-    fprintf(fp,"port: %d\n", port_num);
-    fprintf(fp,"server: %s\n", server);
-    fprintf(fp,"showicon: %s\n", TRUE_OR_FALSE(inv_list.show_icon));
-    fprintf(fp,"sound: %s\n", nosound?"False":"True");	/* this is really false or true */
-    fprintf(fp,"split: %s\n", TRUE_OR_FALSE(split_windows));
-    fprintf(fp,"splitinfo: %s\n", TRUE_OR_FALSE(splitinfo));
-    fprintf(fp,"show_grid: %s\n", TRUE_OR_FALSE(show_grid));
-    fprintf(fp,"tooltips: %s\n", TRUE_OR_FALSE(tool_tips));
-    fprintf(fp,"trim_info_window: %s\n", TRUE_OR_FALSE(trim_info_window));
-    fclose(fp);
-    sprintf(buf,"Defaults saved to %s",path);
-    draw_info(buf,NDI_BLUE);
-}
-
 
 
 int main(int argc, char *argv[])
@@ -6211,7 +5267,9 @@ int main(int argc, char *argv[])
     maxfd = getdtablesize();
 #endif
 
-    sound = init_sounds();
+    if (init_sounds() == -1) 
+	use_config[CONFIG_SOUND] = FALSE;
+    else use_config[CONFIG_SOUND] = TRUE;
 
     /* Loop to connect to server/metaserver and play the game */
     while (1) {
@@ -6238,7 +5296,7 @@ int main(int argc, char *argv[])
 	    } while (metaserver_select(ms));
 	    negotiate_connection(sound);
 	} else {
-	    csocket.fd=init_connection(server, port_num);
+	    csocket.fd=init_connection(server, use_config[CONFIG_PORT]);
 	    if (csocket.fd == -1) { /* specified server no longer valid */
 		server = SERVER;
 		continue;

@@ -168,7 +168,7 @@ static int FONTHEIGHT= 13;
  */
 
 /* Width (and height) of the game window */
-#define GAME_WIDTH  (image_size * mapx + 5)
+#define GAME_WIDTH  (image_size * use_config[CONFIG_MAPWIDTH] + 5)
 
 #define STAT_HEIGHT 140
 
@@ -229,7 +229,6 @@ InfoData infodata = {0, 0, 0, 0, 0, 0, INFOLINES, INFOLINES, NDI_BLACK,
 	NULL, 0, 0,0,0,0,0,0,0,0};
 
 static uint8	
-	split_windows=FALSE,
 	iscolor = TRUE;
 
 uint8	image_size=24;
@@ -426,7 +425,7 @@ static int get_game_display() {
     icon=XCreateBitmapFromData(display,win_game,
 	(_Xconst char *) crossfire_bits,
 	(unsigned int) crossfire_width, (unsigned int)crossfire_height);
-    if (split_windows) {
+    if (want_config[CONFIG_SPLITWIN]) {
 	iscolor=allocate_colors(display, win_root, def_screen,
 	    &colormap, discolor);
 	if (iscolor){
@@ -1214,12 +1213,12 @@ void draw_stats(int redraw) {
 	    sprintf(buff,"Speed: %3.2f (%1.2f) Food: *%d* HUNGRY!",
 		(double)cpl.stats.speed/FLOAT_MULTF,
 		weap_sp,cpl.stats.food);
-	    if (cpl.food_beep && (cpl.stats.food%4==3)) XBell(display, 0);
+	    if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3)) XBell(display, 0);
 	} else {
 	    sprintf(buff,"Speed: %3.2f (%1.2f)  Food: %3d",
 		(float)cpl.stats.speed/FLOAT_MULTF,
 		weap_sp, cpl.stats.food);
-	    if (cpl.food_beep && cpl.stats.food<1) XBell(display,100);
+	    if (use_config[CONFIG_FOODBEEP] && cpl.stats.food<1) XBell(display,100);
 	}
 
  	strcat(buff,"                     ");
@@ -2006,19 +2005,19 @@ static int get_root_display(char *display_name) {
      * be set unless the data can actually be saved, for example.)  If
      * this is not followed for then the client might very well crash.
      */
-    if (!split_windows && 
+    if (!want_config[CONFIG_SPLITWIN] && 
       (cp=XGetDefault(display,X_PROG_NAME,"splitwindow")) != NULL) {
 	if (!strcmp("on",cp) || !strcmp("yes",cp))
-	    split_windows = TRUE;
+	    want_config[CONFIG_SPLITWIN] = TRUE;
 	else if (!strcmp("off",cp) || !strcmp("no",cp))
-	    split_windows = FALSE;
+	    want_config[CONFIG_SPLITWIN] = FALSE;
     }
-    if (!cpl.echo_bindings &&
+    if (!use_config[CONFIG_ECHO] &&
       (cp=XGetDefault(display,X_PROG_NAME,"echo")) != NULL) {
 	if (!strcmp("on",cp) || !strcmp("yes",cp))
-	    cpl.echo_bindings = TRUE;
+	    use_config[CONFIG_ECHO] = TRUE;
 	else if (!strcmp("off",cp) || !strcmp("no",cp))
-	    cpl.echo_bindings = FALSE;
+	    use_config[CONFIG_ECHO] = FALSE;
     }
     if ((cp=XGetDefault(display,X_PROG_NAME, "scrollLines"))!=NULL) {
 	infodata.maxlines=atoi(cp);
@@ -2052,7 +2051,7 @@ static int get_root_display(char *display_name) {
     roothint.max_height=roothint.min_height=roothint.height;
     roothint.flags=PSize; /*ET: no PPosition. let window manager handle that. */
 
-    if(!split_windows) {
+    if(!want_config[CONFIG_SPLITWIN]) {
 	win_root=XCreateSimpleWindow(display,def_root,
 	    roothint.x,roothint.y,roothint.width,roothint.height,2,
 	    background,foreground);
@@ -2086,7 +2085,7 @@ static int get_root_display(char *display_name) {
 static void resize_win_root(XEvent *event) {
     int width, inv_width, info_width;
 
-    if (split_windows) {
+    if (want_config[CONFIG_SPLITWIN]) {
 	fprintf(stderr,"Got a resize root window in split windows mode\n");
 	return;
     }
@@ -2149,7 +2148,7 @@ static void resize_win_root(XEvent *event) {
 
 static void parse_game_button_press(int button, int x, int y)
 {
-    int dx=(x-2)/image_size-mapx/2,dy=(y-2)/image_size-mapy/2,i;
+    int dx=(x-2)/image_size-use_config[CONFIG_MAPWIDTH]/2,dy=(y-2)/image_size-use_config[CONFIG_MAPHEIGHT]/2,i;
 
     switch (button) {
 	case 1:
@@ -2157,7 +2156,7 @@ static void parse_game_button_press(int button, int x, int y)
 	    /* Its unlikely this will happen, but if the window is
 	     * resized, its possible to be out of bounds.
 	     */
-	    if(dx<(-mapx/2)||dx>(mapx/2)||dy<(-mapy/2)||dy>(mapy/2)) return;
+	    if(dx<(-use_config[CONFIG_MAPWIDTH]/2)||dx>(use_config[CONFIG_MAPWIDTH]/2)||dy<(-use_config[CONFIG_MAPHEIGHT]/2)||dy>(use_config[CONFIG_MAPHEIGHT]/2)) return;
 	    look_at(dx,dy);
 	}
 	break;
@@ -2487,7 +2486,7 @@ void check_x_events() {
 	 * more efficient than redrawing everything anytime we get a new image -
 	 * especially since we might get a bunch of images at the same time.
 	 */
-	if (face_info.cache_images && lastupdate>5 && newimages) {
+	if (want_config[CONFIG_CACHE] && lastupdate>5 && newimages) {
 	    update_icons_list(&inv_list);
 	    update_icons_list(&look_list);
 	    if (!cpl.showmagic) display_map_doneupdate(TRUE);
@@ -2541,7 +2540,7 @@ void check_x_events() {
 	    else if(event.xexpose.window==win_game) {
 		if (cpl.showmagic) draw_magic_map();
 		else display_map_doneupdate(TRUE);
-	    } else if(split_windows==FALSE && event.xexpose.window==win_root) {
+	    } else if(want_config[CONFIG_SPLITWIN]==FALSE && event.xexpose.window==win_root) {
 		XClearWindow(display,win_root);
 	    }
 	    break;
@@ -2692,7 +2691,7 @@ int init_windows(int argc, char **argv)
 		fprintf(stderr,"-port requires a port number\n");
 		return 1;
 	    }
-	    port_num = atoi(argv[on_arg]);
+	    use_config[CONFIG_PORT] = atoi(argv[on_arg]);
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-mapsize")) {
@@ -2716,8 +2715,8 @@ int init_windows(int argc, char **argv)
 	    } if (x>MAP_MAX_SIZE || y>MAP_MAX_SIZE) {
 		fprintf(stderr,"Map size can not be larger than %d x %d \n", MAP_MAX_SIZE, MAP_MAX_SIZE);
 	    } else {
-		want_mapx=x;
-		want_mapy=y;
+		want_config[CONFIG_MAPWIDTH]=x;
+		want_config[CONFIG_MAPHEIGHT]=y;
 	    }
             continue;
 	}
@@ -2730,39 +2729,31 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nofasttcpsend")) {
-	    fast_tcp_send=0;
-	    continue;
-	}
-	if (!strcmp(argv[on_arg],"-pngfile")) {
-	    if (++on_arg == argc) {
-		fprintf(stderr,"-pngfile requires a file name\n");
-		return 1;
-	    }
-	    image_file = argv[on_arg];
+	    use_config[CONFIG_FASTTCP]=0;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-cache")) {
-	    face_info.cache_images= TRUE;
+	    want_config[CONFIG_CACHE]= TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nocache")) {
-	    face_info.cache_images= FALSE;
+	    want_config[CONFIG_CACHE]= FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-darkness")) {
-	    want_darkness= TRUE;
+	    use_config[CONFIG_DARKNESS]= TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nodarkness")) {
-	    want_darkness= FALSE;
+	    use_config[CONFIG_DARKNESS]= FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-split")) {
-	    split_windows=TRUE;
+	    want_config[CONFIG_SPLITWIN]=TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nosplit")) {
-	    split_windows=FALSE;
+	    want_config[CONFIG_SPLITWIN]=FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-showicon")) {
@@ -2770,11 +2761,11 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
         else if (!strcmp(argv[on_arg],"-download_all_faces")) {
-            face_info.download_all_faces=TRUE;
+            use_config[CONFIG_DOWNLOAD]=TRUE;
             continue;
 	}
 	else if (!strcmp(argv[on_arg],"-echo")) {
-	    cpl.echo_bindings=TRUE;
+	    use_config[CONFIG_ECHO]=TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-faceset")) {
@@ -2806,7 +2797,7 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nosound")) {
-	    nosound=TRUE;
+	    want_config[CONFIG_SOUND]=FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
@@ -2839,8 +2830,6 @@ int init_windows(int argc, char **argv)
 #endif
 
 
-    map_size= ( fog_of_war == TRUE) ? FOG_MAP_SIZE : MAP_MAX_SIZE;
-
     allocate_map( &the_map, MAP_MAX_SIZE, MAP_MAX_SIZE);
     if( the_map.cells == NULL) {
       fprintf( stderr, "Error on allocation of map, malloc failed.\n");
@@ -2863,8 +2852,7 @@ int init_windows(int argc, char **argv)
 		return 1;
 
     init_keys();
-    if (face_info.cache_images) init_cache_data();
-    if (image_file[0] != '\0') ReadImages();
+    if (want_config[CONFIG_CACHE]) init_cache_data();
     set_window_pos();
     info_ratio=(float) infodata.width/ (float) (infodata.width + INV_WIDTH);
     return 0;
@@ -2873,6 +2861,7 @@ int init_windows(int argc, char **argv)
 
 void display_map_newmap()
 {
+    reset_map();
 }
 
 /* This can also get called for png.  Really, anything that gets rendered
@@ -2880,19 +2869,22 @@ void display_map_newmap()
  */
 void display_mapcell_pixmap(int ax,int ay)
 {
-    int k;
+    int k, mx, my;
     XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
 
+    mx = ax + pl_pos.x;
+    my = ay + pl_pos.y;
+
     if (map1cmd) {
-	for (k=0; k<the_map.cells[ax][ay].count; k++) {
-	    if (the_map.cells[ax][ay].faces[k] >0 ) {
-		gen_draw_face(xpm_pixmap, the_map.cells[ax][ay].faces[k], 0, 0);
+	for (k=0; k<the_map.cells[mx][my].count; k++) {
+	    if (the_map.cells[mx][my].faces[k] >0 ) {
+		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].faces[k], 0, 0);
 	    }
 	}
     } else {
 
-	for(k=the_map.cells[ax][ay].count-1;k>=0;k--) {
-	    gen_draw_face(xpm_pixmap,the_map.cells[ax][ay].faces[k],
+	for(k=the_map.cells[mx][my].count-1;k>=0;k--) {
+	    gen_draw_face(xpm_pixmap,the_map.cells[mx][my].faces[k],
 		  0,0);
 	}
     }
@@ -2900,19 +2892,10 @@ void display_mapcell_pixmap(int ax,int ay)
 	    2+image_size*ax,2+image_size*ay);
 }
 
-void display_mapcell_bitmap(int ax,int ay)
-{
-  gen_draw_face(win_game,the_map.cells[ax][ay].faces[0],
-		2+image_size*ax,2+image_size*ay);
-}
 
-int display_willcache()
-{
-    return face_info.cache_images;
-}
 void resize_map_window(int x, int y)
 {
-    if (!split_windows) {
+    if (!want_config[CONFIG_SPLITWIN]) {
 	XWindowAttributes attrib;
 	int width=0, height=0;
 
@@ -2921,9 +2904,9 @@ void resize_map_window(int x, int y)
 	 * but does a reasonable job.  Don't do shrinks
 	 */
 
-	if (mapx > old_mapx) width = (mapx - old_mapx)* image_size;
+	if (use_config[CONFIG_MAPWIDTH] > old_mapx) width = (use_config[CONFIG_MAPWIDTH] - old_mapx)* image_size;
 
-	if (mapy > old_mapy) height = (mapy - old_mapy)* image_size;
+	if (use_config[CONFIG_MAPHEIGHT] > old_mapy) height = (use_config[CONFIG_MAPHEIGHT] - old_mapy)* image_size;
 
 	/* if somethign to do */
 	if (width>0 || height > 0) {
@@ -2933,8 +2916,8 @@ void resize_map_window(int x, int y)
 	    XResizeWindow(display, win_game, x*image_size, y*image_size);
 	    XResizeWindow(display, win_root, width, height);
 	}
-	old_mapx=mapx;
-	old_mapy=mapy;
+	old_mapx=use_config[CONFIG_MAPWIDTH];
+	old_mapy=use_config[CONFIG_MAPHEIGHT];
     }
     else {
 	XResizeWindow(display, win_game, x*image_size, y*image_size);
@@ -2948,22 +2931,24 @@ void x_set_echo() { }
 
 void display_map_doneupdate(int redraw)
 {
-    int ax,ay;
+    int ax,ay, mx, my;
     if (cpl.showmagic) {
 	magic_map_flash_pos();
 	return;
     }
     XSetClipMask(display,gc_floor,None);
-    for(ax=0;ax<mapx;ax++) {
-	for(ay=0;ay<mapy;ay++) { 
-	    if (redraw || the_map.cells[ax][ay].need_update)  {
-		if (the_map.cells[ax][ay].count==0) {
+    for(ax=0;ax<use_config[CONFIG_MAPWIDTH];ax++) {
+	for(ay=0;ay<use_config[CONFIG_MAPHEIGHT];ay++) { 
+	    mx = ax + pl_pos.x;
+	    my = ay + pl_pos.y;
+	    if (redraw || the_map.cells[mx][my].need_update)  {
+		if (the_map.cells[mx][my].count==0) {
 		    XFillRectangle(display,win_game,gc_blank,2+image_size*ax,
 			   2+image_size*ay,image_size,image_size);
 		    continue;
 		}
 		display_mapcell_pixmap(ax,ay);
-		the_map.cells[ax][ay].need_update=0;
+		the_map.cells[mx][my].need_update=0;
 	    }
 	}
     }
@@ -3110,7 +3095,7 @@ void reset_image_data()
     int i;
 
     for (i=1; i<MAXPIXMAPNUM; i++) {
-	if (!face_info.cache_images && pixmaps[i] != pixmaps[0]) {
+	if (!want_config[CONFIG_CACHE] && pixmaps[i] != pixmaps[0]) {
 	    XFreePixmap(display, pixmaps[i]->pixmap);
 	    if (pixmaps[i]->mask) {
 		XFreePixmap(display, pixmaps[i]->mask);
@@ -3118,7 +3103,7 @@ void reset_image_data()
 	    free(pixmaps[i]);
 	    pixmaps[i] = pixmaps[0];
 	}
-	if (face_info.cache_images && facetoname[i]!=NULL) {
+	if (want_config[CONFIG_CACHE] && facetoname[i]!=NULL) {
 	    free(facetoname[i]);
 	    facetoname[i]=NULL;
 	}
@@ -3153,7 +3138,7 @@ void save_winpos()
     int	    x,y,wx,wy;
     unsigned int w,h;
 
-    if (!split_windows) {
+    if (!want_config[CONFIG_SPLITWIN]) {
 	draw_info("You can only save window positions in split windows mode", NDI_BLUE);
 	return;
     }
@@ -3194,7 +3179,7 @@ void set_window_pos()
     char buf[MAX_BUF],*cp;
     FILE *fp;
 
-    if (!split_windows) return;
+    if (!want_config[CONFIG_SPLITWIN]) return;
 
     sprintf(buf,"%s/.crossfire/winpos", getenv("HOME"));
     if (!(fp=fopen(buf,"r"))) return;
@@ -3240,7 +3225,7 @@ void load_defaults()
 	cp+=2;	    /* colon, space, then value */
 
 	if (!strcmp(inbuf, "port")) {
-	    port_num = atoi(cp);
+	    use_config[CONFIG_PORT] = atoi(cp);
 	    continue;
 	}
 	if (!strcmp(inbuf, "server")) {
@@ -3248,13 +3233,13 @@ void load_defaults()
 	    continue;
 	}
 	if (!strcmp(inbuf,"cacheimages")) {
-	    if (!strcmp(cp,"True")) face_info.cache_images=TRUE;
-	    else face_info.cache_images=FALSE;
+	    if (!strcmp(cp,"True")) want_config[CONFIG_CACHE]=TRUE;
+	    else want_config[CONFIG_CACHE]=FALSE;
 	    continue;
 	}
 	if (!strcmp(inbuf,"split")) {
-	    if (!strcmp(cp,"True")) split_windows=TRUE;
-	    else split_windows=FALSE;
+	    if (!strcmp(cp,"True")) want_config[CONFIG_SPLITWIN]=TRUE;
+	    else want_config[CONFIG_SPLITWIN]=FALSE;
 	    continue;
 	}
 	if (!strcmp(inbuf,"showicon")) {
@@ -3272,19 +3257,19 @@ void load_defaults()
 	    continue;
 	}
 	if (!strcmp(inbuf,"sound")) {
-	    if (!strcmp(cp,"True")) nosound=FALSE;
-	    else nosound=TRUE;
+	    if (!strcmp(cp,"True")) want_config[CONFIG_SOUND]=TRUE;
+	    else want_config[CONFIG_SOUND]=FALSE;
 	    continue;
 	}
 	if (!strcmp(inbuf,"command_window")) {
-	    cpl.command_window = atoi(cp);
-	    if (cpl.command_window<1 || cpl.command_window>127)
-		cpl.command_window=COMMAND_WINDOW;
+	    use_config[CONFIG_CWINDOW] = atoi(cp);
+	    if (use_config[CONFIG_CWINDOW]<1 || use_config[CONFIG_CWINDOW]>127)
+		use_config[CONFIG_CWINDOW]=COMMAND_WINDOW;
 	    continue;
 	}
 	if (!strcmp(inbuf,"foodbeep")) {
-	    if (!strcmp(cp,"True")) cpl.food_beep=TRUE;
-	    else cpl.food_beep=FALSE;
+	    if (!strcmp(cp,"True")) use_config[CONFIG_FOODBEEP]=TRUE;
+	    else use_config[CONFIG_FOODBEEP]=FALSE;
 	    continue;
 	}
 	if (!strcmp(inbuf,"noautorepeat")) {
@@ -3320,17 +3305,17 @@ void save_defaults()
     fprintf(fp,"# some of the matching it does.  all comparissons are case sensitive.\n");
     fprintf(fp,"# 'True' and 'False' are the proper cases for those two values\n");
 
-    fprintf(fp,"port: %d\n", port_num);
+    fprintf(fp,"port: %d\n", use_config[CONFIG_PORT]);
     fprintf(fp,"server: %s\n", server);
     fprintf(fp,"font: %s\n", font_name);
-    fprintf(fp,"cacheimages: %s\n", face_info.cache_images?"True":"False");
-    fprintf(fp,"split: %s\n", split_windows?"True":"False");
+    fprintf(fp,"cacheimages: %s\n", want_config[CONFIG_CACHE]?"True":"False");
+    fprintf(fp,"split: %s\n", want_config[CONFIG_SPLITWIN]?"True":"False");
     fprintf(fp,"showicon: %s\n", inv_list.show_icon?"True":"False");
     fprintf(fp,"scrolllines: %d\n", infodata.maxlines);
     fprintf(fp,"scrollinfo: %s\n", infodata.scroll_info_window?"True":"False");
-    fprintf(fp,"sound: %s\n", nosound?"False":"True");
-    fprintf(fp,"command_window: %d\n", cpl.command_window);
-    fprintf(fp,"foodbeep: %s\n", cpl.food_beep?"True":"False");
+    fprintf(fp,"sound: %s\n", want_config[CONFIG_SOUND]?"True":"False");
+    fprintf(fp,"command_window: %d\n", use_config[CONFIG_CWINDOW]);
+    fprintf(fp,"foodbeep: %s\n", use_config[CONFIG_FOODBEEP]?"True":"False");
     fprintf(fp,"noautorepeat: %s\n", noautorepeat?"True":"False");
 
     fclose(fp);
@@ -3439,7 +3424,7 @@ int main(int argc, char *argv[])
 	    } while (metaserver_select(ms));
 	    negotiate_connection(sound);
 	} else {
-	    csocket.fd=init_connection(server, port_num);
+	    csocket.fd=init_connection(server, use_config[CONFIG_PORT]);
 	    if (csocket.fd == -1) { /* specified server no longer valid */
 		server = SERVER;
 		continue;

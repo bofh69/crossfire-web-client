@@ -1,3 +1,9 @@
+/* config.c */
+extern void applyconfig(void);
+extern void saveconfig(void);
+extern void configdialog(GtkWidget *widget);
+extern void load_defaults(void);
+extern void save_defaults(void);
 /* gx11.c */
 extern void do_network(void);
 extern void event_loop(void);
@@ -12,6 +18,7 @@ extern void draw_color_info(int colr, const char *buf);
 extern void draw_stats(int redraw);
 extern void create_stat_bar(GtkWidget *mtable, gint row, gchar *label, gint bar, GtkWidget **plabel);
 extern void draw_message_window(int redraw);
+extern void draw_all_list(itemlist *l);
 extern void open_container(item *op);
 extern void close_container(item *op);
 extern void count_callback(GtkWidget *widget, GtkWidget *entry);
@@ -20,11 +27,8 @@ extern void draw_lists(void);
 extern void set_show_icon(char *s);
 extern void set_show_weight(char *s);
 extern void aboutdialog(GtkWidget *widget);
-extern void applyconfig(void);
-extern void saveconfig(void);
 extern void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButton *event);
 extern void disconnect(GtkWidget *widget);
-extern void configdialog(GtkWidget *widget);
 extern void chelpdialog(GtkWidget *widget);
 extern void shelpdialog(GtkWidget *widget);
 extern void new_menu_pickup(GtkWidget *button, int val);
@@ -67,8 +71,6 @@ extern void display_map_newmap(void);
 extern void resize_map_window(int x, int y);
 extern void display_map_startupdate(void);
 extern char *get_metaserver(void);
-extern void load_defaults(void);
-extern void save_defaults(void);
 extern int main(int argc, char *argv[]);
 /* image.c */
 extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
