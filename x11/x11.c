@@ -1986,6 +1986,12 @@ int get_info_width()
     return infodata.info_chars;
 }
 
+void menu_clear(void)
+{
+    draw_info("clearinfo command not implemented for this client", NDI_BLACK);
+    return;
+}
+
 /******************************************************************************
  * Root Window code
  ****************************************************************************/

@@ -255,6 +255,7 @@ static void command_help(char *cpnext) {
 	draw_info(" bind        - bind a command to key", NDI_BLACK);
 	draw_info(" unbind      - unbind a command, show", NDI_BLACK);
 	draw_info("               bindings", NDI_BLACK);
+	draw_info(" clearinfo   - clear the info window", NDI_BLACK);
 	draw_info(" cwindow <val> set size of command", NDI_BLACK);
 	draw_info("               window (if val is exceeded", NDI_BLACK);
 	draw_info("               client won't send new", NDI_BLACK);
@@ -336,7 +337,7 @@ void command_take (const char *command, char *cpnext)
  * we just send the command to the server, but there are a few that
  * we care about (bind, unbind)
  *
- * The command past to us can not be modified - if it is a keybinding,
+ * The command passsed to us can not be modified - if it is a keybinding,
  * we get passed the string that is that binding - modifying it effectively
  * changes the binding.
  */
@@ -368,6 +369,7 @@ void extended_command(const char *ocommand) {
      */
     if (!strcmp(cp,"autorepeat"))	    set_autorepeat(cpnext);
     else if (!strcmp(cp, "bind"))	    bind_key(cpnext);
+    else if (!strcmp(cp,"clearinfo"))	    menu_clear();
     else if (!strcmp(cp,"cwindow"))	    set_command_window(cpnext);
     else if (!strcmp(cp,"disconnect")) {
 	close(csocket.fd);
