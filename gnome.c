@@ -3865,7 +3865,7 @@ do_timeout()
 		draw_info_freeze2 = FALSE;
 	}
 	if (redraw_needed) {
-		display_map_doneupdate();
+		display_map_doneupdate(0);
 		draw_all_list(&inv_list);
 		draw_all_list(&look_list);
 		redraw_needed = FALSE;
@@ -4165,7 +4165,7 @@ display_willcache()
 }
 
 void
-display_map_doneupdate()
+display_map_doneupdate(int redraw)
 {
 	int ax, ay;
 	if (updatelock > 30)
