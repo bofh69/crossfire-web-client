@@ -128,7 +128,7 @@ void ReplyInfoCmd(char *buf, int len)
 	get_image_sums(cp, len - i - 1);   /* located in common/image.c */
     }
     else if (!strcmp(buf,"skill_info")) {
-	get_skill_info(cp, len - i - 1);   /* located in common/image.c */
+	get_skill_info(cp, len - i - 1);   /* located in common/commands.c */
     }
 }
     
@@ -1213,7 +1213,7 @@ void MapExtendedCmd(unsigned char *data, int len){
     if (!mapupdatesent)
         display_map_startupdate();
     mapupdatesent=1;
-	mask = GetChar_String(data+pos); pos+=1;
+    mask = GetChar_String(data+pos); pos+=1;
     if (mask&EMI_NOREDRAW)
         noredraw=1;
     if (mask&EMI_SMOOTH){

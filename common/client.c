@@ -45,6 +45,7 @@
 #include <client.h>
 #include <external.h>
 #include <errno.h>
+#include <script.h>
 
 /* actually declare the globals */
 
@@ -71,6 +72,7 @@ typedef void (*CmdProc)(unsigned char *, int len);
 struct CmdMapping {
   char *cmdname;
   void (*cmdproc)(unsigned char *, int );
+  enum CmdFormat cmdformat;
 };
 
 
@@ -78,48 +80,48 @@ struct CmdMapping commands[] = {
     /* Order of this table doesn't make a difference.  I tried to sort
      * of cluster the related stuff together.
      */
-    { "map1", Map1Cmd },
-    { "map1a", Map1aCmd },
-    { "map_scroll", (CmdProc)map_scrollCmd },
-    { "magicmap", MagicMapCmd},
-    { "newmap", NewmapCmd },
-    { "mapextended", MapExtendedCmd },
+    { "map1", Map1Cmd, SHORT_ARRAY },
+    { "map1a", Map1aCmd, SHORT_ARRAY },
+    { "map_scroll", (CmdProc)map_scrollCmd, ASCII },
+    { "magicmap", MagicMapCmd, MIXED /* ASCII, then binary */},
+    { "newmap", NewmapCmd, NODATA },
+    { "mapextended", MapExtendedCmd, MIXED /* chars, then SHORT_ARRAY */ },
 
-    { "item1", Item1Cmd },
-    { "item2", Item2Cmd },
-    { "upditem", UpdateItemCmd },
-    { "delitem", DeleteItem },
-    { "delinv",	DeleteInventory },
+    { "item1", Item1Cmd, MIXED /* differing length ints */ },
+    { "item2", Item2Cmd, MIXED },
+    { "upditem", UpdateItemCmd, MIXED },
+    { "delitem", DeleteItem, INT_ARRAY },
+    { "delinv",	DeleteInventory, ASCII },
 
-    { "drawinfo", (CmdProc)DrawInfoCmd },
-    { "stats", StatsCmd },
+    { "drawinfo", (CmdProc)DrawInfoCmd, ASCII },
+    { "stats", StatsCmd, STATS /* array of: int8, (int?s for that stat) */ },
 
-    { "image", ImageCmd },
-    { "image2", Image2Cmd },
-    { "face", FaceCmd},
-    { "face1", Face1Cmd},
-    { "face2", Face2Cmd},
+    { "image", ImageCmd, MIXED /* int, int, PNG */ },
+    { "image2", Image2Cmd, MIXED /* int, int8, int, PNG */ },
+    { "face", FaceCmd, MIXED /* int16, string */},
+    { "face1", Face1Cmd, MIXED /* int16, int32, string */},
+    { "face2", Face2Cmd, MIXED /* int16, int8, int32, string */},
 
 
-    { "sound", SoundCmd},
-    { "anim", AnimCmd},
-    { "smooth", SmoothCmd},
+    { "sound", SoundCmd, MIXED /* int8, int8, int16, int8 */},
+    { "anim", AnimCmd, SHORT_ARRAY},
+    { "smooth", SmoothCmd, SHORT_ARRAY},
 
-    { "player", PlayerCmd },
-    { "comc", CompleteCmd},
+    { "player", PlayerCmd, MIXED /* 3 ints, int8, str */ },
+    { "comc", CompleteCmd, SHORT_INT },
 
-    { "addme_failed", (CmdProc)AddMeFail },
-    { "addme_success", (CmdProc)AddMeSuccess },
-    { "version", (CmdProc)VersionCmd },
-    { "goodbye", (CmdProc)GoodbyeCmd },
-    { "setup", (CmdProc)SetupCmd},
-    { "ExtendedInfoSet", (CmdProc)ExtendedInfoSetCmd},
+    { "addme_failed", (CmdProc)AddMeFail, NODATA },
+    { "addme_success", (CmdProc)AddMeSuccess, NODATA },
+    { "version", (CmdProc)VersionCmd, ASCII },
+    { "goodbye", (CmdProc)GoodbyeCmd, NODATA },
+    { "setup", (CmdProc)SetupCmd, ASCII},
+    { "ExtendedInfoSet", (CmdProc)ExtendedInfoSetCmd, NODATA},
 
-    { "query", (CmdProc)handle_query},
-    { "replyinfo", (CmdProc)ReplyInfoCmd},
+    { "query", (CmdProc)handle_query, ASCII},
+    { "replyinfo", (CmdProc)ReplyInfoCmd, ASCII},
 };
 
-#define NCOMMANDS (sizeof(commands)/sizeof(struct CmdMapping))
+#define NCOMMANDS ((int)(sizeof(commands)/sizeof(struct CmdMapping)))
 
 void DoClient(ClientSocket *csocket)
 {
@@ -148,6 +150,7 @@ void DoClient(ClientSocket *csocket)
 	LOG(0,"Command:%s (%d)\n",csocket->inbuf.buf+2, len);
 	for(i=0;i < NCOMMANDS;i++) {
 	    if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {
+		    script_watch((char*)csocket->inbuf.buf+2,data,len,commands[i].cmdformat);
 		    commands[i].cmdproc(data,len);
 		    break;
 	    }

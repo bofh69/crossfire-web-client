@@ -27,6 +27,7 @@
  
 #include <client.h>
 #include <external.h>
+#include <script.h>
 
 /* This file handles various player related functions.  This includes
  * both things that operate on the player item, cpl structure, or
@@ -185,6 +186,7 @@ void run_dir(int dir) {
 int send_command(const char *command, int repeat, int must_send) {
     static char last_command[MAX_BUF]="";
 
+    script_monitor(command,repeat,must_send);
     if (cpl.input_state==Reply_One) {
 	fprintf(stderr,"Wont send command '%s' - since in reply mode!\n ",
 		command);
@@ -198,7 +200,7 @@ int send_command(const char *command, int repeat, int must_send) {
 
 	if (commdiff<0) commdiff +=256;
 
-	/* if to many unanswer commands, not a must send, and command is
+	/* if too many unanswered commands, not a must send, and command is
 	 * the same, drop it
 	 */
 	if (commdiff>use_config[CONFIG_CWINDOW] && !must_send && !strcmp(command, last_command)) {
@@ -239,6 +241,7 @@ void CompleteCmd(unsigned char *data, int len)
     }
     csocket.command_received = GetShort_String(data);
     csocket.command_time = GetInt_String(data+2);
+    script_sync(csocket.command_sent - csocket.command_received);
 }
 
 
@@ -300,6 +303,7 @@ static void set_command_window(char *cpnext)
 
 static void command_foodbep(char *cpnext)
 {
+   (void)cpnext; /* __UNUSED__ */
     if (want_config[CONFIG_FOODBEEP]) {
 	want_config[CONFIG_FOODBEEP]=0;
 	draw_info("Warning bell when low on food disabled", NDI_BLACK);
@@ -369,6 +373,10 @@ void extended_command(const char *ocommand) {
      */
     if (!strcmp(cp,"autorepeat"))	    set_autorepeat(cpnext);
     else if (!strcmp(cp, "bind"))	    bind_key(cpnext);
+    else if (!strcmp(cp, "script"))	    script_init(cpnext);
+    else if (!strcmp(cp, "scripts"))	    script_list();
+    else if (!strcmp(cp, "scriptkill"))	    script_kill(cpnext);
+    else if (!strcmp(cp, "scripttell"))	    script_tell(cpnext);
     else if (!strcmp(cp,"clearinfo"))	    menu_clear();
     else if (!strcmp(cp,"cwindow"))	    set_command_window(cpnext);
     else if (!strcmp(cp,"disconnect")) {
@@ -453,7 +461,7 @@ static char *commands[] = {
 "search", "search-items", "statistics", "take",
 "tell", "throw", "usekeys", "version","wimpy",
 "who", "stay"};
-#define NUM_COMMANDS (sizeof(commands) / sizeof(char*))
+#define NUM_COMMANDS ((int)(sizeof(commands) / sizeof(char*)))
 
 /* Player has entered 'command' and hit tab to complete it.  
  * See if we can find a completion.  Returns matching

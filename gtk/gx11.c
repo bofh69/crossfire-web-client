@@ -87,6 +87,7 @@
 #include "pixmaps/crossfiretitle.xpm"
 #include "gx11.h"
 #include "gtkproto.h"
+#include <script.h>
 
 
 
@@ -349,14 +350,19 @@ void do_network() {
     if (updatelock < 20) {
 	FD_ZERO(&tmp_read);
 	FD_SET(csocket.fd, &tmp_read);
+	script_fdset(&maxfd,&tmp_read);
 	pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
 	if (pollret==-1) {
 	    fprintf(stderr, "Got errno %d on select call.\n", errno);
 	}
 	else if ( pollret>0 ) {
-	   if (FD_ISSET(csocket.fd, &tmp_read)) {
-	      DoClient(&csocket);
-	   }
+	    if (FD_ISSET(csocket.fd, &tmp_read)) {
+		DoClient(&csocket);
+	    if ( pollret > 1 ) script_process(&tmp_read);
+	    }
+	    else {
+		script_process(&tmp_read);
+	    }
 	}
 #if ALTERNATE_MAP_REDRAW
 #ifdef HAVE_SDL
@@ -4289,8 +4295,6 @@ void create_windows() {
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
 
-    fprintf(stderr, "Character Width : %d\n", gcw);
-    fprintf(stderr, "Character Height: %d\n", gch);
     if ((55*gcw)+(map_image_size*use_config[CONFIG_MAPWIDTH]) >= gdk_screen_width())
     	rootwin_width = gdk_screen_width() - 30;
     else

@@ -36,6 +36,7 @@
 
 #include <client.h>
 #include <newclient.h>
+#include <script.h>
 
 /* The LOG function is normally part of the libcross.  If client compile,
  * we need to supply something since some of the common code calls this.
@@ -270,6 +271,8 @@ int cs_print_string(int fd, char *str, ...)
     va_start(args, str);
     sl.len += vsprintf(sl.buf + sl.len, str, args);
     va_end(args);
+
+    script_monitor_str(sl.buf);
 
     return SockList_Send(&sl, fd);
 }

@@ -76,6 +76,7 @@
 #include "clientbmap.h"
 #include <item.h>
 #include <config.h>
+#include <script.h>
 
 #ifdef HAVE_LIBXPM
 #include <X11/xpm.h>
@@ -318,6 +319,7 @@ void event_loop()
 
 	FD_ZERO(&tmp_read);
 	FD_SET(csocket.fd, &tmp_read);
+	script_fdset(&maxfd,&tmp_read);
 	if (MAX_TIME!=0) {
 	    timeout.tv_sec = MAX_TIME / 1000000;
 	    timeout.tv_usec = MAX_TIME % 1000000;
@@ -328,6 +330,9 @@ void event_loop()
 	}
 	else if (FD_ISSET(csocket.fd, &tmp_read)) {
 	    DoClient(&csocket);
+	}
+	else {
+	    script_process(&tmp_read);
 	}
 	animate_objects();  /* Do this before the x events, since they
 			     * can redraw this for us.

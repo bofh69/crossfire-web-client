@@ -27,7 +27,8 @@ HEADERS= \
 	item.h			\
 	item-types.h		\
         newclient.h		\
-	proto.h	
+	proto.h			\
+	script.h	
 
 SOURCES = \
 	client.c		\
@@ -38,7 +39,8 @@ SOURCES = \
 	metaserver.c		\
 	misc.c			\
 	newsocket.c		\
-	player.c
+	player.c		\
+	script.c
 
 OBJECTS = $(SOURCES:.c=.o)
 

@@ -210,16 +210,11 @@ typedef struct Player_Struct {
     Input_State input_state;	/* What the input state is */
     char	last_command[MAX_BUF];	/* Last command entered */
     char	input_text[MAX_BUF];	/* keys typed (for long commands) */
-    char	name[40];	/* name and password.  Only used while */
-    char	password[40];	/* logging in. */
-    rangetype	shoottype;	/* What type of range attack player has */
     item	*ranges[range_size];	/* Object that is used for that */
 				/* range type */
     uint8	ready_spell;	/* Index to spell that is readied */
     char	spells[255][40];	/* List of all the spells the */
 				/* player knows */
-    uint8	map_x, map_y;	/* These are offset values.  See object.c */
-				/* for more details */
     Stats	stats;		/* Player stats */
     char	title[MAX_BUF];	/* Title of character */
     char	range[MAX_BUF];	/* Range attack chosen */
@@ -233,7 +228,8 @@ typedef struct Player_Struct {
     uint8	showmagic;	/* If 0, show normal map, otherwise, show
 				 * magic map.
 				 */
-    uint16	mapxres,mapyres;/* resolution to draw on the magic map */
+    uint16	mapxres,mapyres;/* Resolution to draw on the magic map
+                                 * Only used in client-specific code, so it should move there. */
 
 } Client_Player;
 

@@ -30,6 +30,7 @@
 #include <item.h>
 #include <newclient.h>
 #include <external.h>
+#include <script.h>
 
 static item *free_items;	/* the list of free (unused) items */
 static item *player, *map;	/* these lists contains rest of items */
@@ -541,6 +542,8 @@ void toggle_locked (item *op)
     if (op->env->tag == 0)
 	return;	/* if item is on the ground, don't lock it */
 
+    sprintf(buf,"lock %c %d",!op->locked,op->tag);
+    script_monitor_str(buf);
     SockList_Init(&sl, buf);
     SockList_AddString(&sl, "lock "); 
     SockList_AddChar(&sl, !op->locked);
@@ -555,6 +558,8 @@ void send_mark_obj (item *op) {
     if (op->env->tag == 0)
 	return;	/* if item is on the ground, don't mark it */
 
+    sprintf(buf,"mark %d",op->tag);
+    script_monitor_str(buf);
     SockList_Init(&sl, buf);
     SockList_AddString(&sl, "mark ");
     SockList_AddInt(&sl, op->tag);

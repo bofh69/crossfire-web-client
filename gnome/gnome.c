@@ -33,6 +33,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include "def-keys.h"
 #include "client.h"
+#include "script.h"
 #include "item.h"
 #include "pixmaps/crossfiretitle.xpm"
 #include "pixmaps/question.xpm"
@@ -1223,7 +1224,7 @@ freexpmdata(char **strings)
 void
 do_network()
 {
-	fd_set tmp_read, tmp_exceptions;
+	fd_set tmp_read;
 	int pollret;
 	extern int updatelock;
 	if (csocket.fd == -1) {
@@ -1236,15 +1237,17 @@ do_network()
 	}
 	if (updatelock < 20) {
 		FD_ZERO(&tmp_read);
-		FD_ZERO(&tmp_exceptions);
 		FD_SET(csocket.fd, &tmp_read);
-		FD_SET(csocket.fd, &tmp_exceptions);
+                script_fdset(&maxfd,&tmp_read);
 		pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
 		if (pollret == -1) {
 			fprintf(stderr, "Got errno %d on select call.\n", errno);
 		} else if (FD_ISSET(csocket.fd, &tmp_read)) {
 			DoClient(&csocket);
 		}
+                else {
+                   script_process(&tmp_read);
+                }
 	} else {
 		printf("locked for network recieves.\n");
 	}

@@ -189,7 +189,7 @@ static uint32 image_hash_name(char *str, int tablesize) {
     for (p = str; *p!='\0' && *p != '.'; p++) {
         hash ^= (uint32) *p << rot;
         rot += 2;
-        if (rot >= (sizeof(uint32) - sizeof(char)) * 8)
+        if (rot >= (int)(sizeof(uint32) - sizeof(char)) * 8)
             rot = 0;
     }
     return (hash % tablesize);
@@ -672,7 +672,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 	    fwrite(buf, buflen, 1, tmpfile);
 	    fclose(tmpfile);
 	    csum=0;
-	    for (i=0; i<buflen; i++) {
+	    for (i=0; (int)i<buflen; i++) {
 		ROTATE_RIGHT(csum);
 		csum += buf[i];
 		csum &= 0xffffffff;

@@ -128,9 +128,6 @@ void init_client_vars()
 	skill_names[i] = NULL;
     }
 
-    cpl.map_x=0;
-    cpl.map_y=0;
-
     cpl.ob = player_item();
     cpl.below = map_item();
     cpl.magicmap=NULL;
@@ -244,9 +241,6 @@ void reset_client_vars()
 
     for (i=0; i<range_size; i++)
 	cpl.ranges[i]=NULL;
-
-    cpl.map_x=0;
-    cpl.map_y=0;
 
     cpl.magicmap=NULL;
     cpl.showmagic=0;
