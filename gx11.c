@@ -1,4 +1,9 @@
 /*
+ * static char *rcsid_xio_c =
+ *   "$Id$";
+ */
+
+/*
     CrossFire, A Multiplayer game for X-windows
 
     Copyright (C) 2001 Mark Wedel
@@ -22,9 +27,6 @@
 */
 
 /*
- * static char *rcsid_xio_c =
- *   "$Id$";
- *
  *
  * This file handles all the windowing stuff.  The idea is
  * that all of it is in one file, so to port to different systems
@@ -252,48 +254,25 @@ gint	csocket_fd=0;
 static int gargc;
 
 Display_Mode display_mode = DISPLAY_MODE;
-static char cache_images=FALSE, nopopups=FALSE, splitinfo=FALSE;
-
-/* This struct contains the information to draw 1 line of data. */
-typedef struct {
-    char	*info;		/* Actual character data for a line */
-    uint8	color;		/* Color to draw that line */
-} InfoLine;
-
-/* This contains all other information for the info window */
-typedef struct {
-    uint16	info_chars;	/* width in chars of info window */
-    uint16	infopos;	/* Where in the info arry to put new data */
-    uint16	infoline;	/* Where on the window to draw the line */
-    uint16	scroll_info_window:1;  /* True if we should scroll the window */
-    uint16	numlines;	/* How many have been stored the array */
-    uint16	maxlines;	/* Maxlines (how large the array below is) */
-    uint16	maxdisp;	/* How many lines can be displayed at once */
-    uint8	lastcolor;	/* Last color text was drawn in */
-    InfoLine	*data;		/* An array of lines */
-    Window	win_info;	/* Actual info window */
-    GC		gc_info;	/* GC for this window */
-    /* The scrollbar */
-    sint16 bar_length; 	  /* the max length of scrollbar in pixels */
-    sint16 bar_size;	  /* the current size (length) of scrollbar in pixels */
-    sint16 bar_pos;	  /* the starting position of scrollbar.  This is
-			   * an offset, which is the number of lines from
-			   * 0 for the text to end out.*/
-    sint16 bar_y;	  /* X starting position of scrollbar */
-    uint16	has_scrollbar:1;/* True if there is a scrollbar in the window */
-    sint16	width,height; /* Width and height of window */
-} InfoData;
-
-static InfoData infodata = {0, 0, 0, 0, 0, INFOLINES, INFOLINES, NDI_BLACK,
-	NULL, 0, 0,0,0,0,0,0,0,0};
 
 static uint8	
-	split_windows=FALSE;
-/*	iscolor = TRUE;*/
+    split_windows=FALSE,
+    cache_images=FALSE,
+    nopopups=FALSE, 
+    splitinfo=FALSE,
+    color_inv=FALSE,
+    color_text=FALSE,
+    tool_tips=FALSE;
 
-static uint8 color_inv=FALSE;
-static uint8 color_text=FALSE;
-static uint8 tool_tips=FALSE;
+
+/* Don't define this unless you want stability problems */
+#undef TRIM_INFO_WINDOW
+
+#ifdef TRIM_INFO_WINDOW
+/* Default size of scroll buffers is 100 K */
+static int info1_num_chars=0, info2_num_chars=0, info1_max_chars=10000,
+    info2_max_chars=10000;
+#endif
 
 #define MAXFACES 5
 #define MAXPIXMAPNUM 10000
@@ -377,7 +356,7 @@ static GdkPixmap *mappixmap=NULL;
 static GdkGC *mapgc;
 
 static GtkWidget *cclist;
-static gboolean draw_info_freeze=FALSE;
+static gboolean draw_info_freeze1=FALSE, draw_info_freeze2=FALSE;
 
 enum {
     locked_icon = 1, applied_icon, unpaid_icon,
@@ -1263,6 +1242,20 @@ static void draw_list (itemlist *l)
 	  tmpanimview->list=l->gtk_list[8];
 	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
 	}
+	if (color_inv) { 
+	    if (tmp->cursed || tmp->damned) {
+		gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
+				    &root_color[NDI_RED]);
+	    }
+	    if (tmp->magical) {
+		gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
+				    &root_color[NDI_BLUE]);
+	    }
+	    if ((tmp->cursed || tmp->damned) && tmp->magical) {
+		gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
+				    &root_color[NDI_NAVY]);
+	    }
+	}
       }
       
       
@@ -2065,8 +2058,15 @@ draw_prompt (const char *str)
  * results in a serious speed improvement for slow client machines (and
  * above all it avoids a gui lockup when the client becomes congested with
  * updates (which is often when you're in the middle of fighting something 
- *  serious and not a good time to get slow reaction time)). 
-*/
+ * serious and not a good time to get slow reaction time)). 
+ *
+ * MSW 2001-05-25: The removal of input from the text windows should
+ * work, and in fact does about 90% of the time.  But that 10% it
+ * doesn't, the client crashes.  The error itself is in the gtk library,
+ * to hopefully they will fix it someday.  The reason to do this is
+ * to keep these buffers a reasonable size so that performance stays
+ * good - otherewise, performance slowly degrades.
+ */
 
 void draw_info(const char *str, int color) {
     int ncolor = color;
@@ -2077,15 +2077,42 @@ void draw_info(const char *str, int color) {
 
     strcpy (last_str, str);
     if (splitinfo && color != NDI_BLACK) {
-	/* This window shouldn't get a lot of data, so we don't freeze it */
+	if (!draw_info_freeze2){
+	    gtk_text_freeze (GTK_TEXT (gtkwin_info_text2));
+	    draw_info_freeze2=TRUE;
+	}
+#ifdef TRIM_INFO_WINDOW
+	info2_num_chars += strlen(str) + 1;
+	/* Limit size of scrollback buffer. To be more efficient, delete a good
+	 * blob (5000) characters at a time - in that way, there will be some
+	 * time between needing to delete.
+	 */
+	if (info2_num_chars > info2_max_chars ) {
+	    gtk_text_set_point(GTK_TEXT(gtkwin_info_text2),0);
+	    gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text2), (info2_num_chars - info2_max_chars) + 5000);
+	    info2_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text2));
+	    gtk_text_set_point(GTK_TEXT(gtkwin_info_text2), info2_num_chars);
+	    fprintf(stderr,"reduced output buffer2 to %d chars\n", info1_num_chars);
+	}
+#endif
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, str , -1);
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, "\n" , -1);
 
     } else {
-	if (!draw_info_freeze){
+	/* all nootes in the above section apply here also */
+	if (!draw_info_freeze1){
 	    gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
-	    draw_info_freeze=TRUE;
+	    draw_info_freeze1=TRUE;
 	}
+#ifdef TRIM_INFO_WINDOW
+	info1_num_chars += strlen(str) + 1;
+	if (info1_num_chars > info1_max_chars ) {
+	    gtk_text_set_point(GTK_TEXT(gtkwin_info_text),0);
+	    gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text), (info1_num_chars - info1_max_chars) + 5000);
+	    info1_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text));
+	    gtk_text_set_point(GTK_TEXT(gtkwin_info_text), info1_num_chars);
+	}
+#endif
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, str , -1);
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, "\n" , -1);
     }
@@ -2621,6 +2648,7 @@ void draw_message_window(int redraw) {
 		    gtk_label_set(GTK_LABEL(resists[j]), buf);
 		    gtk_widget_draw(resists[j], NULL);
 		    j++;
+		    if (j >= SHOW_RESISTS) break;
 		}
 	    }
 	    /* Erase old/unused resistances */
@@ -4985,16 +5013,10 @@ void resize_win_info()
 
 int get_info_width()
 {
-    return infodata.info_chars;
+    return 40;	/* would be better to return some real info here  - I'll have to look at it later
+		 * to see how easy it is to get that */
 }
 
-
-/* Magic mapping code needs to be added.
- * The way I see it, server will send along data of the squares and what
- * color they should be in single character codes.  So if we are mapping a
- * 10x10 area, it would be something like: "1155123620", 1296639403",
- * etc.
- */
 
 
 /***********************************************************************
@@ -5029,11 +5051,17 @@ void x_set_echo() {
 int do_timeout() {
 
   updatelock=0;
-  if (draw_info_freeze) {
+  if (draw_info_freeze1) {
     gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
     gtk_adjustment_set_value(GTK_ADJUSTMENT(text_vadj), GTK_ADJUSTMENT(text_vadj)->upper-GTK_ADJUSTMENT(text_vadj)->page_size);
     gtk_text_set_adjustments(GTK_TEXT (gtkwin_info_text),GTK_ADJUSTMENT(text_hadj),GTK_ADJUSTMENT(text_vadj));
-    draw_info_freeze=FALSE;
+    draw_info_freeze1=FALSE;
+  }
+  if (draw_info_freeze2) {
+    gtk_text_thaw (GTK_TEXT (gtkwin_info_text2));
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(text_vadj2), GTK_ADJUSTMENT(text_vadj2)->upper-GTK_ADJUSTMENT(text_vadj2)->page_size);
+    gtk_text_set_adjustments(GTK_TEXT (gtkwin_info_text2),GTK_ADJUSTMENT(text_hadj2),GTK_ADJUSTMENT(text_vadj2));
+    draw_info_freeze2=FALSE;
   }
   if (redraw_needed) {
     display_map_doneupdate();
@@ -5552,14 +5580,6 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-echo")) {
 	    cpl.echo_bindings=TRUE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-scrolllines")) {
-	    if (++on_arg == argc) {
-		fprintf(stderr,"-scrolllines requires a number\n");
-		return 1;
-	    }
-	    infodata.maxlines = atoi(argv[on_arg]);
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-help")) {

@@ -1438,6 +1438,7 @@ void load_defaults()
 	    else inv_list.show_icon=FALSE;
 	    continue;
 	}
+#ifndef GDK_XUTIL
 	if (!strcmp(inbuf,"scrolllines")) {
 	    infodata.maxlines = atoi(cp);
 	    continue;
@@ -1447,6 +1448,7 @@ void load_defaults()
 	    else infodata.scroll_info_window=FALSE;
 	    continue;
 	}
+#endif
 	if (!strcmp(inbuf,"sound")) {
 	    if (!strcmp(cp,"True")) nosound=FALSE;
 	    else nosound=TRUE;
@@ -1490,7 +1492,7 @@ void load_defaults()
 	  continue;
 	}  
 #endif
-	fprintf(stderr,"Got line we did not understand: %s: %s", inbuf, cp);
+	fprintf(stderr,"Got line we did not understand: %s: %s\n", inbuf, cp);
     }
     fclose(fp);
 }
@@ -1530,8 +1532,10 @@ void save_defaults()
     fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
     fprintf(fp,"split: %s\n", split_windows?"True":"False");
     fprintf(fp,"showicon: %s\n", inv_list.show_icon?"True":"False");
+#ifndef GDK_XUTIL
     fprintf(fp,"scrolllines: %d\n", infodata.maxlines);
     fprintf(fp,"scrollinfo: %s\n", infodata.scroll_info_window?"True":"False");
+#endif
     fprintf(fp,"sound: %s\n", nosound?"False":"True");
     fprintf(fp,"command_window: %d\n", cpl.command_window);
     fprintf(fp,"foodbeep: %s\n", cpl.food_beep?"True":"False");

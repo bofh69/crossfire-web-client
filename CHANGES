@@ -3,6 +3,18 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree
 
+gx11.c: remove some unused code.  Add color for cursed/magic items in
+   the unlocked inventory pain (makes it easier to sort items picked up)
+   Add support for trimming the info window buffers - now gtk just has
+   to be fixed.  Have the second information window do the seem freeze
+   logic as the first.  Fix problem of trying to access to many resistance
+   labels (may fix some reliability problems).  Remove -scrolllines command
+   line option since the client does not use it.
+xutil.c: Don't load/save scrolllines line in config file when included
+   with gx11.c - gtk client has no use for it.  At newline to error
+   message about lines in default file we did not process.
+MSW 2001-05-25
+
 client.c: update call to metaserver_show
 client.h: make meta_server, meta_port vars available to other files.
 gx11.c: clear echo hiding after user completes entry in text
