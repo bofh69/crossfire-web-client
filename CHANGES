@@ -2,6 +2,10 @@
 Top of CVS tree:
 
 ------------------------------------------------------------------------------
+gtk/gx11.c: send text first, then close popup. Else won't work under
+  some circumstances, text is empty.
+Ryo 2005-01-07
+
 common/script.c: add 'signal.h' header, needed for NetBSD.
 gtk/keys.c: fix buffer overflow when binding a very long command.
   This fixes bug #1085729.

@@ -1439,8 +1439,8 @@ static void dialog_callback(GtkWidget *dialog)
       }
 #endif
 
-  gtk_widget_destroy (dialog_window);
   send_reply(dialog_text);
+  gtk_widget_destroy (dialog_window);
   cpl.input_state = Playing;
 }
 
