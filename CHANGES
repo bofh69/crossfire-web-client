@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/init.c: changed 'printf' to 'LOG' for HOME Win32-warning
+Ryo 2004-02-01
+
 common/image.c: fix stupid crashing mistake.
 common/rcs-id.h: remove ; after #define
 gtk/rcs-id.h: remove ; after #define

@@ -196,7 +196,7 @@ void init_client_vars()
     /* If HOME is not set, let's set it to . to avoid things like (null)/.crossfire paths */
     if ( !getenv( "HOME" ) )
         {
-        printf( "init_client_vars: HOME not set, setting it to .\n" );
+        LOG( LOG_INFO, "common::init.c", "init_client_vars: HOME not set, setting it to .\n" );
         putenv( "HOME=." );
         }
 #endif
