@@ -5,7 +5,7 @@
 !include "MUI.nsh"
 
 ;Title Of Your Application
-Name "Crossfire GTK Client (snapshot 2005-01-08)"
+Name "Crossfire GTK Client 1.7.1"
 
 ;Do A CRC Check
 CRCCheck On
@@ -69,7 +69,7 @@ Section "Install"
   File "crossfire.clsc"
   File "Release\GTKClient.exe"
   File "Win32Changes.txt"
-  File /oname=ChangeLog.rtf "..\..\Changes"
+  File /oname=ChangeLog.rtf "..\..\ChangeLog"
   File /oname=Copying.rtf "..\..\Copying"
   File ..\..\Documentation\Scripting.html
   File "Running.txt"

@@ -367,6 +367,13 @@ void do_network() {
     }
 }
 
+#ifdef WIN32 /* Win32 scripting support */
+int do_scriptout()
+{
+  script_process(NULL);
+  return(TRUE);
+}
+#endif /* WIN32 */
 
 void event_loop()
 {
@@ -4867,14 +4874,6 @@ void draw_info_windows()
     }
     }
 
-
-#ifdef WIN32 /* Win32 scripting support */
-int do_scriptout()
-{
-  script_process(NULL);
-  return(TRUE);
-}
-#endif /* WIN32 */
 
 int do_timeout() {
 

@@ -154,6 +154,10 @@ SOURCE=..\gx11.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\help.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\image.c
 
 !IF  "$(CFG)" == "GTKClient - Win32 Release"
@@ -474,6 +478,10 @@ SOURCE=..\..\common\newsocket.c
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\p_cmd.c
 # End Source File
 # Begin Source File
 
