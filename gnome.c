@@ -291,6 +291,7 @@ static GtkWidget *gtkwin_config = NULL;
 static GtkWidget *gameframe = NULL;
 static GtkWidget *invframe = NULL;
 static GtkWidget *lookframe = NULL;
+static GtkWidget *imagesizesb = NULL;
 static char *last_str;
 static int pickup_mode = 0;
 int updatelock = 0;
@@ -304,6 +305,7 @@ gboolean echobindings = FALSE;
 gboolean updatemapneed = FALSE;
 gboolean cast_menu_item_selected = FALSE;
 int mapsizeopt = -1;
+gboolean did_quit = FALSE;
 static char *colorname[] = {
 	"Black",
 	"White",
@@ -362,7 +364,28 @@ struct poptOption options[] = {
 	 NULL}
 };
 
-void set_map_darkness(int x, int y, uint8 darkness)
+void
+disconnect(GtkWidget * widget)
+{
+	close(csocket.fd);
+	csocket.fd = -1;
+	if (csocket_fd) {
+		gdk_input_remove(csocket_fd);
+		csocket_fd = 0;
+		gtk_main_quit();
+	}
+}
+
+void
+gnome_client_quit()
+{
+	disconnect(NULL);
+	gnome_config_sync();
+	exit(0);
+}
+
+void
+set_map_darkness(int x, int y, uint8 darkness)
 {
 	if (darkness != (255 - the_map.cells[x][y].darkness )) {
 		the_map.cells[x][y].darkness = 255 - darkness;
@@ -376,7 +399,8 @@ void set_map_darkness(int x, int y, uint8 darkness)
 	}
 }
 
-void set_map_face(int x, int y, int layer, int face)
+void
+set_map_face(int x, int y, int layer, int face)
 {
 	the_map.cells[x][y].faces[layer] = face;
 	if ((layer + 1) > the_map.cells[x][y].count)
@@ -384,7 +408,8 @@ void set_map_face(int x, int y, int layer, int face)
 	the_map.cells[x][y].need_update = 1;
 }
 
-void resize_map_window(int x, int y)
+void
+resize_map_window(int x, int y)
 {
 	gtk_drawing_area_size(GTK_DRAWING_AREA(drawable), image_size * x, image_size * y);
 	gtk_widget_set_usize(gameframe, (image_size * x) + 6, (image_size * y) + 6);
@@ -1300,11 +1325,11 @@ event_loop()
 	fleep = gtk_timeout_add(100, (GtkFunction) do_timeout, NULL);
 	csocket_fd = gdk_input_add((gint) csocket.fd, GDK_INPUT_READ, (GdkInputFunction) do_network, &csocket);
 	tag = csocket_fd;
+	did_quit = FALSE;
 	gtk_main();
 	gtk_timeout_remove(tag);
 	fprintf(stderr, "gtk_main exited, returning from event_loop\n");
 	gnome_config_sync();
-	exit(0);
 }
 
 void
@@ -2189,6 +2214,7 @@ draw_prompt(const char *str)
 				continue;
 			}
 			if (!strncmp(str, "Do you want to play", 18)) {
+				GtkWidget *quitbutton;
 				dialoglabel = gtk_label_new("Do you want to play again?");
 				gtk_box_pack_start(GTK_BOX(dbox), dialoglabel, FALSE, TRUE, 6);
 				gtk_widget_show(dialoglabel);
@@ -2196,12 +2222,16 @@ draw_prompt(const char *str)
 				yesbutton = gtk_button_new_with_label("Play again");
 				gtk_box_pack_start(GTK_BOX(hbox), yesbutton, TRUE, TRUE, 6);
 				gtk_signal_connect_object(GTK_OBJECT(yesbutton), "clicked", GTK_SIGNAL_FUNC(sendstr), GINT_TO_POINTER("a"));
-				nobutton = gtk_button_new_with_label("Quit");
+				nobutton = gtk_button_new_with_label("Quit Server");
 				gtk_box_pack_start(GTK_BOX(hbox), nobutton, TRUE, TRUE, 6);
 				gtk_signal_connect_object(GTK_OBJECT(nobutton), "clicked", GTK_SIGNAL_FUNC(sendstr), GINT_TO_POINTER("q"));
+				quitbutton = gtk_button_new_with_label("Quit Client");
+				gtk_box_pack_start(GTK_BOX(hbox), quitbutton, TRUE, TRUE, 6);
+				gtk_signal_connect_object(GTK_OBJECT(quitbutton), "clicked", GTK_SIGNAL_FUNC(gnome_client_quit), NULL);
 				gtk_box_pack_start(GTK_BOX(dbox), hbox, FALSE, TRUE, 6);
 				gtk_widget_show(yesbutton);
 				gtk_widget_show(nobutton);
+				gtk_widget_show(quitbutton);
 				gtk_widget_show(hbox);
 				found = TRUE;
 				continue;
@@ -3080,6 +3110,8 @@ void
 applyconfig()
 {
 	int sound;
+	image_size = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(imagesizesb));
+	reset_image_data();
 	if (GTK_TOGGLE_BUTTON(ccheckbutton3)->active) {
 		if (nosound) {
 			nosound = FALSE;
@@ -3300,18 +3332,6 @@ ckeyunbind(GtkWidget * gtklist, GdkEventButton * event)
 }
 
 void
-disconnect(GtkWidget * widget)
-{
-	close(csocket.fd);
-	csocket.fd = -1;
-	if (csocket_fd) {
-		gdk_input_remove(csocket_fd);
-		csocket_fd = 0;
-		gtk_main_quit();
-	}
-}
-
-void
 tbccb(GtkWidget *widget)
 {
 	gnome_property_box_changed(GNOME_PROPERTY_BOX(gtkwin_config));
@@ -3327,6 +3347,8 @@ configdialog(GtkWidget * widget)
 	GtkWidget *ehbox;
 	GtkWidget *clabel1, *clabel2, *clabel4, *clabel5, *cb1, *cb2, *cb3;
 	GtkWidget *cclists;
+	GtkWidget *slabel, *shbox;
+	GtkAdjustment *adjust;
 	gchar *titles[] = { "#", "Key", "(#)", "Mods", "Command" };
 	if (!gtkwin_config) {
 		gtkwin_config = gnome_property_box_new();
@@ -3341,6 +3363,15 @@ configdialog(GtkWidget * widget)
 		gtk_box_pack_start(GTK_BOX(vbox2), frame1, TRUE, TRUE, 0);
 		vbox1 = gtk_vbox_new(FALSE, 0);
 		gtk_container_add(GTK_CONTAINER(frame1), vbox1);
+		shbox = gtk_hbox_new(FALSE, 0);
+		slabel = gtk_label_new("Image Size [NxN]");
+		gtk_box_pack_start(GTK_BOX(shbox), slabel, FALSE, FALSE, 0);
+		adjust = GTK_ADJUSTMENT(gtk_adjustment_new(image_size, 12, 128, 1, 10, 10));
+		imagesizesb = gtk_spin_button_new(adjust, 1, 3);
+		gtk_box_pack_start(GTK_BOX(shbox), imagesizesb, FALSE, FALSE, 0);
+		gtk_signal_connect(GTK_OBJECT(imagesizesb), "changed", GTK_SIGNAL_FUNC(tbccb), NULL);
+		gtk_box_pack_start(GTK_BOX(vbox1), shbox, FALSE, FALSE, 0);
+		gtk_widget_show_all(shbox);
 		ccheckbutton3 = gtk_check_button_new_with_label("Sound");
 		gtk_box_pack_start(GTK_BOX(vbox1), ccheckbutton3, FALSE, FALSE, 0);
 		if (nosound) {
@@ -3745,7 +3776,7 @@ create_windows()
 	GnomeUIInfo filem[] = { {GNOME_APP_UI_ITEM, "Save Config", "Save your current configuration", &saveconfig, NULL, NULL, GNOME_APP_PIXMAP_STOCK, GNOME_STOCK_PIXMAP_SAVE, 0, (GdkModifierType) 0, NULL},
 	GNOMEUIINFO_SEPARATOR,
 	{GNOME_APP_UI_ITEM, "Quit Character", "Stop playing and delete the current character", &sexit, NULL, NULL, GNOME_APP_PIXMAP_STOCK, GNOME_STOCK_PIXMAP_CLOSE, 0, (GdkModifierType) 0, NULL},
-	{GNOME_APP_UI_ITEM, "Quit Client", "Exit the program and keep character", &gtk_main_quit, NULL, NULL, GNOME_APP_PIXMAP_STOCK, GNOME_STOCK_PIXMAP_QUIT, 0, (GdkModifierType) 0, NULL},
+	{GNOME_APP_UI_ITEM, "Quit Client", "Exit the program and keep character", &gnome_client_quit, NULL, NULL, GNOME_APP_PIXMAP_STOCK, GNOME_STOCK_PIXMAP_QUIT, 0, (GdkModifierType) 0, NULL},
 	GNOMEUIINFO_END
 	};
 	GnomeUIInfo clientm[] = { {GNOME_APP_UI_ITEM, "Clear Info", "Clear the information text", &menu_clear, NULL, NULL, GNOME_APP_PIXMAP_STOCK, GNOME_STOCK_PIXMAP_CLEAR, 0, (GdkModifierType) 0, NULL},
@@ -4063,14 +4094,6 @@ magic_map_flash_pos()
 	gtk_widget_draw(mapvbox, NULL);
 }
 
-static void
-get_window_coord(GtkWidget * win, int *x, int *y, int *wx, int *wy, int *w, int *h)
-{
-	int tmp;
-	gdk_window_get_geometry(win->window, x, y, w, h, &tmp);
-	gdk_window_get_origin(win->window, wx, wy);
-}
-
 void
 command_show(char *params)
 {
@@ -4103,15 +4126,15 @@ int
 init_windows(int argc, char **argv)
 {
 	poptContext pctx;
-	int on_arg = 1, x, y;
+	int on_arg = 1;
 	gchar **args;
 	gnome_init_with_popt_table(PACKAGE, VERSION, argc, argv, options, 0, &pctx);
 	load_defaults();
 	args = (gchar **) poptGetArgs(pctx);
 	if (echobindings == TRUE)
 		cpl.echo_bindings = TRUE;
-	if (mapsizeopt != -1 && ((mapsizeopt < 15 && mapsizeopt != 11) || mapsizeopt > MAP_MAX_SIZE)) {
-		printf("Mapsize must be 11 or between 15 and %d!\n", MAP_MAX_SIZE);
+	if (mapsizeopt != -1 && (mapsizeopt < 11 || mapsizeopt > MAP_MAX_SIZE)) {
+		printf("Mapsize must be between 11 and %d!\n", MAP_MAX_SIZE);
 		exit(0);
 	} else if (mapsizeopt != -1) {
 		want_mapx = mapsizeopt;
@@ -4166,7 +4189,7 @@ display_mapcell_pixmap(int ax, int ay)
 	int k;
 	if (the_map.cells[ax][ay].need_update == TRUE) {
 		gdk_draw_rectangle(pixmap, drawable->style->mid_gc[0], TRUE, ax * image_size, ay * image_size, image_size, image_size);
-		if (mapx >= 15 && mapy >= 15) {
+		if (mapx > 11 && mapy > 11) {
 			for (k = 0; k < the_map.cells[ax][ay].count; k++) {
 				if (the_map.cells[ax][ay].faces[k] > 0)
 					gen_draw_face(the_map.cells[ax][ay].faces[k], ax, ay);
@@ -4232,7 +4255,6 @@ display_mapscroll(int dx, int dy)
 {
 	int x, y, x2, y2;
 	struct Map newmap;
-	GdkPixmap *tmppixmap;
 	for(x = 0; x < mapx; x++) {
 		for(y = 0; y < mapy; y++) {
 			if (x + dx < 0 || x + dx >= mapx || y + dy < 0 || y + dy >= mapy) {
