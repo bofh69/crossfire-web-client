@@ -1,6 +1,7 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+Changes for 1.0.0:
 
 player.c: Fix for client crashes if player enters really long commands
 (like say .....).  MSW 2001-05-08
