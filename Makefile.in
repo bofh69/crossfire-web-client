@@ -7,11 +7,12 @@ TARGET = @TARGET@
 CFLAGS = @CFLAGS@ @CPPFLAGS@ -I.
 LDFLAGS = @LDFLAGS@
 CC = @CC@
-LIBS = @LIBS@ @LIBXPM_LIB@
+LIBS = @LIBS@ @LIBXPM_LIB@ 
 INSTALL = @INSTALL@
 DEPEND = @DEPEND@
 PERL = @PERL@
 SOUND_DIR = @SOUNDDIR@
+DMALLOC_LIB = @DMALLOC_LIB@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -135,10 +136,10 @@ INCLUDES = @X_CFLAGS@
 all:  @TARGET@ def-keys.h
 
 gcfclient: $(GTK_OBJS)
-	$(CC) -o gcfclient $(GTK_OBJS) $(LDFLAGS) $(LIBS) $(GTK_LIBS)
+	$(CC) -o gcfclient $(GTK_OBJS) $(LDFLAGS) $(LIBS) $(GTK_LIBS) $(DMALLOC_LIB)
 
 cfclient: $(X11_OBJS)
-	$(CC) -o cfclient $(X11_OBJS) $(LDFLAGS) $(LIBS) $(X_LIBS)
+	$(CC) -o cfclient $(X11_OBJS) $(LDFLAGS) $(LIBS) $(X_LIBS) $(DMALLOC_LIB)
 
 # grumble grumble.  cextract can't seem to handle gx11.c
 proto:
@@ -172,7 +173,7 @@ x11.o: x11.c
 	$(CC) $(CFLAGS) $(X_CFLAGS) $(INCLUDES) -c x11.c
 
 cfsndserv: $(SND_OBJS)
-	$(CC) -o cfsndserv $(SND_OBJS) $(LDFLAGS) $(SND_LIBS)
+	$(CC) -o cfsndserv $(SND_OBJS) $(LDFLAGS) $(SND_LIBS) $(DMALLOC_LIB)
 
 archive:
 	if [ -d /tmp/$(VERSION) ]; then $(RM) -rf /tmp/$(VERSION); fi

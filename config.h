@@ -26,7 +26,7 @@
 #define HAVE_STRCSPN 1
 
 /* Define if you have the <dmalloc.h> header file.  */
-/* #undef HAVE_DMALLOC_H */
+#define HAVE_DMALLOC_H 1
 
 /* Define if you have the <fcntl.h> header file.  */
 #define HAVE_FCNTL_H 1

@@ -1,6 +1,16 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+MSW 2001/03/06:
+Makefile.in: Add DMALLOC_LIB definition instead of it going in with the
+    the default libraries.  cfsndserv will now get properly linked with
+    dmalloc.
+configure.in, configure: add --disable-sound option, and make relevant
+    changes to use that option (which basically amounts to not checking
+    for any of the sound systems).  Add check for dmalloc.h.  change
+    substitution for -ldmalloc.
+
+
 cfsndserv.c: Modified so it now compiles with the modern ALSA sound system.
     No idea if it actually works.  MSW 2001/03/04
 
