@@ -200,6 +200,10 @@ fi
 # this fi is for the sound == yes check above
 fi
 
+if eval "test x`which gnome-config 2> /dev/null` = x"; then
+	gnome=no
+fi
+
 if eval "test x$gnome = xyes"; then
 	GNOME_INIT
 	GNOME_COMPILE_WARNINGS
