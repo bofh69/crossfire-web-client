@@ -2702,7 +2702,7 @@ void check_x_events() {
 		break;
         case ClientMessage:
             if(event.xclient.data.l[0] == wm_delete_window){
-                printf ("Window closed. Exiting.\n");
+                LOG(LOG_INFO,"x11::check_x_events","Window closed. Exiting.");
                 exit(0);
             }
         break;
@@ -2722,6 +2722,8 @@ void check_x_events() {
 	if (cpl.showmagic) magic_map_flash_pos();
 	clear_fire_run();
     }
+    /* a good place to check for childs */
+    monitorChilds();
 }
 
 
@@ -3536,6 +3538,25 @@ void command_show (char *params)
 int main(int argc, char *argv[])
 {
     int sound,got_one=0;
+    int i;
+/*
+ * output some version informations on LOG.
+ * usefull when reporting a bug.
+ */
+
+/* Loads from ../ because headers have same name and are in include path
+ * This prevents loading 2 times the same header.
+ */
+#include "../common/rcs-id.h"
+#include "rcs-id.h"
+#ifdef HAS_COMMON_RCSID
+    for (i=0;common_rcsid[i];i++)
+        LOG(LOG_INFO,"Version::common","%s",common_rcsid[i]);
+#endif
+#ifdef HAS_X11_RCSID
+    for (i=0;x11_rcsid[i];i++)
+        LOG(LOG_INFO,"Version::x11   ","%s",x11_rcsid[i]);
+#endif
 
     /* This needs to be done first.  In addition to being quite quick,
      * it also sets up some paths (client_libdir) that are needed by

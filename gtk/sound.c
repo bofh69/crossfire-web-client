@@ -57,36 +57,6 @@ ChildProcess* sound_process;
  * function will likely disable sound support/requests from the server.
  */
 
-int oldinit_sounds()
-{
-    /* Easy trick - global nosound is set in the arg processing - if set,
-     * just return -1 - this way, the calling function only needs to check
-     * the value of init_sounds, and not worry about checking nosound.
-     */
-    if (!want_config[CONFIG_SOUND]) return -1;
-
-    if (sound_pipe) fclose(sound_pipe);
-
-    sound_pipe=popen(BINDIR "/cfsndserv","w");
-    /* if its not in its proper place, let the users shell
-     * try to find it - it may have a better idea.
-     */
-    if (!sound_pipe)
-	sound_pipe=popen("cfsndserv","w");
-
-    if (!sound_pipe){
-      perror("cfsndserver");
-      return -1;
-    }
-    signal(SIGPIPE, signal_pipe);
-
-    return 0;
-}
-/* init_sounds open the audio device, and reads any configuration files
- * that need to be.  It returns 0 on success.  On failure, the calling
- * function will likely disable sound support/requests from the server.
- */
-
 int init_sounds()
 {
     /* Easy trick - global nosound is set in the arg processing - if set,

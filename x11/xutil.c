@@ -247,7 +247,7 @@ static void insert_key(KeySym keysym, KeyCode keycode, int flags, char *command)
     int i, direction=-1;
 
     if (keycode>MAX_KEYCODE) {
-	fprintf(stderr,"Warning insert_key:keycode that is passed is greater than 255.\n");
+	LOG(LOG_WARNING,"x11::insert_key", "keycode that is passed is greater than 255.");
 	keycode=0;	/* hopefully the rest of the data is OK */
     }
     if (keys[keycode]==NULL) {
@@ -302,7 +302,7 @@ void parse_keybind_line(char *buf, int line, int standard)
 
     if (buf[0]=='#' || buf[0]=='\n') return;
     if ((cpnext = strchr(buf,' '))==NULL) {
-	fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line,buf);
+	LOG(LOG_WARNING,"x11::parse_keybind_line","Line %d (%s) corrupted.", line,buf);
 	return;
     }
     /* Special keybinding line */
@@ -311,13 +311,13 @@ void parse_keybind_line(char *buf, int line, int standard)
 	while (*cpnext == ' ') ++cpnext;
 	cp = strchr(cpnext, ' ');
 	if (!cp) {
-	    fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line,buf);
+	    LOG(LOG_WARNING,"x11::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
 	    return;
 	}
 	*cp++ = 0;  /* Null terminate it */
 	cp1 = strchr(cp, ' ');
 	if (!cp1) {
-	    fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line,buf);
+	    LOG(LOG_WARNING,"x11::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
 	    return;
 	}
 	*cp1 ++ = 0;/* Null terminate it */
@@ -325,7 +325,7 @@ void parse_keybind_line(char *buf, int line, int standard)
 	keysym = XStringToKeysym(cp);
 	/* As of now, all these keys must have keysyms */
 	if (keysym == NoSymbol) {
-	    fprintf(stderr,"Could not convert %s into keysym\n", cp);
+	    LOG(LOG_WARNING,"x11::parse_keybind_line","Could not convert %s into keysym", cp);
 	    return;
 	}
 	if (!strcmp(cpnext,"commandkey")) {
@@ -376,7 +376,7 @@ void parse_keybind_line(char *buf, int line, int standard)
     keysym = XStringToKeysym(buf);
     cp = cpnext;
     if ((cpnext = strchr(cp,' '))==NULL) {
-	fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line, cp);
+	LOG(LOG_WARNING,"x11::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line, cp);
 	return;
     }
     *cpnext++ = '\0';
@@ -385,7 +385,7 @@ void parse_keybind_line(char *buf, int line, int standard)
     keycode = atoi(cp);
     cp = cpnext;
     if ((cpnext = strchr(cp,' '))==NULL) {
-	fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line, cp);
+	LOG(LOG_WARNING,"x11::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line, cp);
 	return;
     }
     *cpnext++ = '\0';
@@ -411,7 +411,7 @@ void parse_keybind_line(char *buf, int line, int standard)
 		flags |= KEYF_STANDARD;
 		break;
 	default:
-	    fprintf(stderr,"Warning:  Unknown flag (%c) line %d in key binding file\n",
+	    LOG(LOG_WARNING,"x11::parse_keybind_line","Unknown flag (%c) line %d in key binding file",
 		*cp, line);
         }
         cp++;
@@ -434,7 +434,7 @@ void parse_keybind_line(char *buf, int line, int standard)
          * it away, but at least print a warning message.
          */
         if (keycode==0) {
-	    fprintf(stderr,"Warning: could not convert keysym %s into keycode, ignoring\n",
+	    LOG(LOG_WARNING,"x11::parse_keybind_line","could not convert keysym %s into keycode, ignoring",
 		buf);
 	}
     }
@@ -516,7 +516,7 @@ void init_keys()
 
     sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
     if ((fp=fopen(buf,"r"))==NULL) {
-	fprintf(stderr,"Could not open ~/.crossfire/keys, trying to load global bindings\n");
+	LOG(LOG_INFO,"x11::init_keys","Could not open ~/.crossfire/keys, trying to load global bindings");
 	if (client_libdir==NULL) {
 	    init_default_keybindings();
 	    return;
@@ -951,7 +951,7 @@ static void save_keys()
 
     sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
     if (make_path_to_file(buf)==-1) {
-	fprintf(stderr,"Could not create %s\n", buf);
+	LOG(LOG_WARNING,"x11::save_keys","Could not create %s", buf);
 	return;
     }
     if ((fp=fopen(buf,"w"))==NULL) {
@@ -1110,7 +1110,7 @@ void unbind_key(char *params)
 			goto unbinded;
 		    }
 		}
-		fprintf(stderr,"unbind_key - found number entry, but could not find actual key\n");
+		LOG(LOG_ERROR,"x11::unbind_key","found number entry, but could not find actual key");
 	    }
 	}
     }

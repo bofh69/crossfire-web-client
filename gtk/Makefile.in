@@ -52,11 +52,20 @@ EXTRA_DIST = \
 all:  gcfclient
 
 
-gcfclient: $(OBJECTS) ../common/libcfclient.a
+gcfclient: rcs-id.h ../common/rcs-id.h $(OBJECTS) ../common/libcfclient.a
 	$(CC) -o gcfclient $(OBJECTS) $(LDFLAGS) $(LIBS) $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
 
-.c.o:
+.c.o: rcs-id.h ../common/rcs-id.h
 	$(CC) $(CFLAGS) $(SDL_CFLAGS) $(GTK_CFLAGS) $(INCLUDES) -c $*.c
+
+rcs-id.h: $(SOURCES)
+	@echo "Generating rcs-id.h"
+	@echo '/* Do not edit, generated file*/' > rcs-id.h
+	@echo '#define HAS_GTK_RCSID' >> rcs-id.h
+	@echo 'char* gtk_rcsid[]={' >> rcs-id.h
+	@echo '"     rcs-id generated' `date` '",' >> rcs-id.h
+	@for i in  $(SOURCES); do A='"';A=$${A}`ident $$i | grep '\$$Id.*\$$' | head -n 1`; A=$${A}'",' ;echo "$$A" >> rcs-id.h; done
+	@echo 'NULL};' >> rcs-id.h
 
 archive:
 	$(MKDIR) /tmp/$(VERSION)/gtk
@@ -64,6 +73,7 @@ archive:
 
 clean::
 	$(RM) -f $(OBJECTS) Makefile.bak
+	$(RM) -f rcs-id.h
 
 distclean::
 	$(MAKE) clean

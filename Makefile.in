@@ -85,7 +85,8 @@ PIXMAPS = \
 HELP= \
 	help/about.h		\
 	help/chelp.h		\
-	help/shelp.h
+	help/shelp.h		\
+	help/bugreport.h
 
 UTILS = \
 	utils/config.guess	\

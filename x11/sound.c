@@ -48,6 +48,7 @@ void signal_pipe(int i) {
 }
 
 FILE *sound_pipe;
+ChildProcess* sound_process;
 
 
 /* init_sounds open the audio device, and reads any configuration files
@@ -61,24 +62,17 @@ int init_sounds()
      * just return -1 - this way, the calling function only needs to check
      * the value of init_sounds, and not worry about checking nosound.
      */
-    if (nosound) return -1;
-    
+    if (!want_config[CONFIG_SOUND]) return -1;
 
-    sound_pipe=popen(BINDIR "/cfsndserv","w");
-    /* if its not in its proper place, let the users shell
-     * try to find it - it may have a better idea.
-     */
-    if (!sound_pipe)
-	sound_pipe=popen("cfsndserv","w");
+    //if (sound_process) //kill
 
-    if (!sound_pipe){
-      perror("cfsndserver");
-      return -1;
-    }
-    signal(SIGPIPE, signal_pipe);
-
+    sound_process=raiseChild(BINDIR "/cfsndserv",CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR);
+    logChildPipe(sound_process, LOG_INFO, CHILD_STDOUT|CHILD_STDERR);
+    sound_pipe=fdopen(sound_process->tube[0],"w");
+    signal(SIGPIPE, signal_pipe);/*perhaps throwing this out :\*/
     return 0;
 }
+
 
 
 /* Plays sound 'soundnum'.  soundtype is 0 for normal sounds, 1 for

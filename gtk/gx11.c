@@ -5851,10 +5851,23 @@ void gLogHandler (const gchar *log_domain, GLogLevelFlags log_level, const gchar
 int main(int argc, char *argv[])
 {
     int got_one=0;
-    /* This needs to be done first.  In addition to being quite quick,
-     * it also sets up some paths (client_libdir) that are needed by
-     * the other functions.
-     */
+    int i;
+#ifndef WIN32
+/* Loads from ../ because headers have same name and are in include path
+ * This prevents loading 2 times the same header.
+ */
+#include "../common/rcs-id.h"
+#include "rcs-id.h"
+/*output some version informations on LOG*/
+#ifdef HAS_COMMON_RCSID
+    for (i=0;common_rcsid[i];i++)
+        LOG(LOG_INFO,"Version::common","%s",common_rcsid[i]);
+#endif
+#ifdef HAS_GTK_RCSID
+    for (i=0;gtk_rcsid[i];i++)
+        LOG(LOG_INFO,"Version::gtk   ","%s",gtk_rcsid[i]);
+#endif
+#endif
     g_log_set_handler (NULL,G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL|G_LOG_LEVEL_ERROR|
             G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_WARNING |G_LOG_LEVEL_MESSAGE|G_LOG_LEVEL_INFO|
             G_LOG_LEVEL_DEBUG,(GLogFunc)gLogHandler,NULL);
@@ -5865,6 +5878,10 @@ int main(int argc, char *argv[])
             G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_WARNING |G_LOG_LEVEL_MESSAGE|G_LOG_LEVEL_INFO|
             G_LOG_LEVEL_DEBUG,(GLogFunc)gLogHandler,NULL);
 
+    /* This needs to be done first.  In addition to being quite quick,
+     * it also sets up some paths (client_libdir) that are needed by
+     * the other functions.
+     */
     init_client_vars();
     setLogListener(gtkLogListener);
     /* Call this very early.  It should parse all command
