@@ -6202,8 +6202,8 @@ int init_windows(int argc, char **argv)
     }
 
     if( fog_of_war == TRUE) {
-      if ( sdlimage == FALSE) {
-	fprintf( stderr, "fog of war only supported with sdl, ignoring fog of war option\n");
+      if ( sdlimage == FALSE && pngximage == FALSE) {
+	fprintf( stderr, "fog of war only supported with sdl or pngximage, ignoring fog of war option\n");
 	fog_of_war= FALSE;
       }
     }
@@ -6507,10 +6507,13 @@ int sdl_add_png_faces( int ax, int ay, int *faces, int num_faces, int dark[5])
 
 int add_png_faces(int ax, int ay, int *faces, int num_faces, int dark[5]) 
 {
+    int fog_cell= FALSE;
     int x,y, a, darkness ,pos=0, on_face,darkx[32], darky, screen_pos, rowy;
 
     if( fog_of_war == TRUE)
     {
+	if( the_map.cells[ax][ay].cleared == 1) 
+	    fog_cell= TRUE;
 	ax-= pl_pos.x;
 	ay-= pl_pos.y;
     }
@@ -6577,8 +6580,11 @@ int add_png_faces(int ax, int ay, int *faces, int num_faces, int dark[5])
 	     * would be to do a darkx^2 + darky^2 and take the sqrt of the
 	     * entire thing, and use 255 to mean totally dark and 0 to
 	     * be fully bright.  But this starts to get pretty costly.
+	     * if fog_cell darkness is really only used for partially transparent
+	     * images.
 	     */
-	    darkness = (darkx[x] + darky)  >> 1 ;
+	    if (fog_cell) darkness=127;
+	    else darkness = (darkx[x] + darky)  >> 1 ;
 
 	    /* what I do here is try to minimize the processing of the
 	     * face data - only copy/adjust what we need.
@@ -6589,7 +6595,16 @@ int add_png_faces(int ax, int ay, int *faces, int num_faces, int dark[5])
 		if (a == 0) continue;	/* Fully transparent - go to next face down */
 
 		if (a == 255) {
-		    if (darkness == 255) {
+		    if (fog_cell) {
+			/* do this as special case - a simple shift is a lot cheaper
+			 * than the multiply then shift.
+			 */
+			screen[screen_pos] = pixmaps[faces[on_face]].png_data[pos]>>1;
+			screen[screen_pos + 1] = pixmaps[faces[on_face]].png_data[pos+1]>>1;
+			screen[screen_pos + 2] = pixmaps[faces[on_face]].png_data[pos+2]>>1;
+
+		    }
+		    else if (darkness == 255) {
 			/* Fully opaque - copy the data over, and break from on_face processing loop */
 #if BPP == 4
 			int *ipos = &screen[screen_pos];
@@ -6646,7 +6661,7 @@ int add_png_faces(int ax, int ay, int *faces, int num_faces, int dark[5])
 	    pos+=4;
 	} /* for x loop */
     }
-    return 0;
+   return 0;
 }
 
 void display_mapcell_pixmap(int ax,int ay)
