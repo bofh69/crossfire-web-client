@@ -264,7 +264,7 @@ int metaserver_select(char *sel)
 	
     sprintf(buf,"Trying to connect to %s", server_name);
     draw_info(buf,NDI_BLACK);
-    csocket.fd=init_connection(server_ip, EPORT);
+    csocket.fd=init_connection(server_ip, port_num);
     if (csocket.fd==-1) {
 	draw_info("Unable to connect to server.", NDI_RED);
 	return 1;

@@ -1,6 +1,10 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+
+metaserver.c: Modified so it uses the value of -port if that command
+    line option is given by a user.  MSW 2001/03/01
+
 x11.c: Fixes for info window resizing.  This should fix some crashes
      and the code is a bit simpler now.  MSW 2001/02/28
 
