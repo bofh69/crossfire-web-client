@@ -31,13 +31,16 @@
 /* This is the default port to connect to the server with. */
 #define EPORT 13327
 
-/* Specifies the font to use.  This isn't retally supported, as there is
- * no way in changing images in the font - this then requires that the
- * client has the exact same font the server is using (which is
- * possible if the server site is also running a font server.
+/* Set to default display mode you want (one of Pix_Display, Xpm_Display, or
+ * Png_Display).
  */
-#define FONTNAME "crossfire"
-#define FONTDIR "/usr/lib/X11R6/lib/fonts/misc/"
+#define DISPLAY_MODE Xpm_Display
 
+/* Set to default server you want the client to connect to.  This can
+ * be especially useful if your installing the client binary on a LAN
+ * and want people to just be able to run it without options and connect
+ * to some server.  localhost is the default.  Remember to use double
+ * quotes around your server name.
+ */
 
-extern int errno;
+#define SERVER "localhost"

@@ -184,7 +184,7 @@ extern Client_Player cpl;		/* Player object. */
  * or values used, because Display_Mode will never be set to Xpm_Display
  */
 
-typedef enum Display_Mode {Font_Display, Pix_Display, Xpm_Display, Png_Display}
+typedef enum Display_Mode {Pix_Display, Xpm_Display, Png_Display}
 	Display_Mode;
 
 extern Display_Mode display_mode;
@@ -194,3 +194,4 @@ extern int nosound, updatekeycodes;
 /* WE need to declare most of the structs before we can include this */
 #include <proto.h>
 
+extern int errno;

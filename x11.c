@@ -167,7 +167,6 @@ typedef struct {
 
 static char font_text_stats[]="8x13", font_text_info[]="8x13",
 	font_inv_text[]="8x13",
-	font_graphic[]=FONTNAME, /* Defined in global.h */
 	**gargv;
 
 #define SCROLLBAR_WIDTH	16	/* +2+2 for border on each side */
@@ -201,7 +200,7 @@ static int FONTHEIGHT= 13;
 
 static int gargc;
 
-Display_Mode display_mode = Xpm_Display;
+Display_Mode display_mode = DISPLAY_MODE;
 static char cache_images=FALSE;
 static Display *display;
 static long screen_num;
@@ -502,10 +501,6 @@ static int get_game_display() {
 	XSetBackground(display,gc_game,background);
     }
     XSetGraphicsExposures(display, gc_game, False);
-    if(display_mode==Font_Display) {
-	font=XLoadFont(display,font_graphic);
-	XSetFont(display,gc_game,font);
-    }
     gc_floor = XCreateGC(display,win_game,0,0);
     XSetGraphicsExposures(display, gc_floor, False);
     gc_blank = XCreateGC(display,win_game,0,0);
@@ -2072,16 +2067,13 @@ static int get_root_display(char *display_name) {
 	else if (!strcmp("off",cp) || !strcmp("no",cp))
 	    cpl.echo_bindings = FALSE;
     }
-    if (display_mode==Font_Display &&
-      (cp=XGetDefault(display,X_PROG_NAME, "image")) != NULL) {
+    if ((cp=XGetDefault(display,X_PROG_NAME, "image")) != NULL) {
 	if (!strcmp("pixmap",cp))
 	    display_mode = Pix_Display;
 	else if (!strcmp("xpm",cp))
 	    display_mode = Xpm_Display;
 	else if (!strcmp("png",cp))
 	    display_mode = Png_Display;
-	else if (!strcmp("font",cp))
-	    display_mode = Font_Display;
 	else
 	    fprintf(stderr,"Warning: Unknown image option: %s\n", cp);
     }
@@ -2122,14 +2114,8 @@ static int get_root_display(char *display_name) {
     }
     else win_root = DefaultRootWindow(display);
 
-    if(display_mode==Font_Display)
-	(void) fixfontpath(display,"client");
 
     if(!split_windows) {
-	if(display_mode==Font_Display) {
-	    font=XLoadFont(display,font_graphic);
-	    XSetFont(display,gc_root,font);
-	}
 	XSelectInput(display,win_root,KeyPressMask|
 	     KeyReleaseMask|ExposureMask|StructureNotifyMask);
 	XMapRaised(display,win_root);
@@ -2667,30 +2653,15 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-xpm")) {
-#ifdef HAVE_LIBXPM
 	    display_mode = Xpm_Display;
-	    image_size=24;
 	    continue;
-#else
-	    fprintf(stderr,"Client not configured with Xpm display mode enabled\n");
-	    fprintf(stderr,"Ignoring -xpm flag\n");
-	    continue;
-#endif
 	}
 	if (!strcmp(argv[on_arg],"-png")) {
-#ifdef HAVE_LIBPNG
 	    display_mode = Png_Display;
-	    image_size=32;
 	    continue;
-#else
-	    fprintf(stderr,"Client not configured with Png display mode enabled\n");
-	    fprintf(stderr,"Ignoring -png flag\n");
-	    continue;
-#endif
 	}
 	else if (!strcmp(argv[on_arg],"-pix")) {
 	    display_mode = Pix_Display;
-	    image_size=24;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-cache")) {
@@ -2743,6 +2714,35 @@ int init_windows(int argc, char **argv)
 	    return 1;
 	}
     }
+    /* Moving processing and setting of display attributes down here.
+     * This is because a default display mode may also require special
+     * handling.
+     * This is not ideal, as if we don't have one of the optional modes,
+     * we just fall back to pixmap mode.  But I don't really want to get into
+     * a big nest of #ifdefs checking/setting modes.
+     */
+    if (display_mode == Png_Display) {
+#ifndef HAVE_LIBPNG
+	fprintf(stderr,"Client not configured with Png display mode enabled\n");
+	fprintf(stderr,"Will try using pixmap display mode\n");
+	display_mode = Pix_Display;
+#else
+	image_size=32;
+#endif
+    }
+    if (display_mode == Xpm_Display) {
+#ifndef HAVE_LIBXPM
+	    fprintf(stderr,"Client not configured with Xpm display mode enabled\n");
+	    fprintf(stderr,"Will use pixmap display mode\n");
+	    display_mode = Pix_Display;
+#else
+	    image_size=24;
+#endif
+    }
+    if (display_mode == Pix_Display) {
+	image_size=24;
+    }
+
     /* Finished parsing all the command line options.  Now start
      * working on the display.
      */
@@ -2813,11 +2813,6 @@ int display_usepng()
 int display_usebitmaps()
 {
   return display_mode == Pix_Display;
-}
-
-int display_noimages()
-{
-  return display_mode == Font_Display;
 }
 
 int display_willcache()

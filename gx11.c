@@ -251,7 +251,7 @@ struct timeval timeout;
 
 static int gargc;
 
-Display_Mode display_mode = Xpm_Display;
+Display_Mode display_mode = DISPLAY_MODE;
 static char cache_images=FALSE;
 
 /* This struct contains the information to draw 1 line of data. */
@@ -6282,26 +6282,11 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-xpm")) {
-#ifdef Xpm_Pix
 	    display_mode = Xpm_Display;
-	    image_size=24;
 	    continue;
-#else
-	    fprintf(stderr,"Client not configured with Xpm display mode enabled\n");
-	    fprintf(stderr,"Ignoring -xpm flag\n");
-	    continue;
-#endif
 	}
         if (!strcmp(argv[on_arg],"-png")) {
-#ifdef HAVE_LIBPNG
             display_mode = Png_Display;
-            image_size=32;
-            continue;
-#else
-            fprintf(stderr,"Client not configured with Png display mode enabled\n");
-            fprintf(stderr,"Ignoring -png flag\n");
-            continue;
-#endif
 	}
 	else if (!strcmp(argv[on_arg],"-cache")) {
 	    cache_images= TRUE;
@@ -6353,6 +6338,25 @@ int init_windows(int argc, char **argv)
 	    return 1;
 	}
     }
+    /* Moving processing and setting of display attributes down here.
+     * This is because a default display mode may also require special
+     * handling.
+     * This is basically same as x11.c, but we must have xpm mode and we don't
+     * have pixmap mode.
+     */
+    if (display_mode == Png_Display) {
+#ifndef HAVE_LIBPNG
+	fprintf(stderr,"Client not configured with Png display mode enabled\n");
+	fprintf(stderr,"Will try using xpm display mode\n");
+	display_mode = Xpm_Display;
+#else
+	image_size=32;
+#endif
+    }
+    if (display_mode == Xpm_Display) {
+	    image_size=24;
+    }
+
     /* Finished parsing all the command line options.  Now start
      * working on the display.
      */
@@ -6414,12 +6418,6 @@ int display_usepng()
 {
   return display_mode == Png_Display;
 }
-
-int display_noimages()
-{
-  return display_mode == Font_Display;
-}
-
 
 int display_willcache()
 {

@@ -20,7 +20,7 @@
 
 /* actually declare the globals */
 
-char *server="localhost",*client_libdir=NULL;
+char *server=SERVER,*client_libdir=NULL;
 int port_num=EPORT;
 FILE *fpin,*fpout;
 int fdin, fdout, basenrofpixmaps, pending_images=0,maxfiledescriptor,
@@ -218,8 +218,6 @@ int main(int argc, char *argv[])
 
     if (display_usebitmaps()) 
 	SendSetFaceMode(csocket,CF_FACE_BITMAP | cache); 
-    else if (display_noimages())
-	SendSetFaceMode(csocket,CF_FACE_NONE);
     else if (display_usexpm()) 
 	SendSetFaceMode(csocket,CF_FACE_XPM | cache);
     else if (display_usepng()) {

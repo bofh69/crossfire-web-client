@@ -67,8 +67,8 @@ int png_to_gdkpixmap(GdkWindow *window, char *filename,
     png_structp	png_ptr;
     png_infop	info_ptr, end_info;
     int bit_depth, color_type, interlace_type, compression_type, filter_type,
-	red,green,blue, alpha,bpp, x,y, lred=-1, lgreen=-1,lblue=-1,
-	has_alpha=0, num_palette;
+	red,green,blue, alpha,bpp, x,y,num_palette, lred=-1, lgreen=-1,lblue=-1,
+	has_alpha=0;
     GdkColor  scolor;
     GdkGC	*gc, *gc_alpha;
 

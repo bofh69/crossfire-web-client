@@ -1,6 +1,13 @@
 "$Id$"
 Top of CVS tree:
 
+Checking on 11/3 by MSW:
+Remove remaining font support for x11 client.
+Allow setting default display mode and server to connect to in the
+cconfig.h file.
+Files affected: CHANGES, cconfig.h, client.c, client.h, gx11.c, x11.c, 
+    xutil.c
+
 
 ------------------------------------------------------------------------------
 Changes for 0.95.7:
