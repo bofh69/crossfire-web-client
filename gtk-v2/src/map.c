@@ -88,7 +88,7 @@ void map_init(GtkWidget *window_root)
     gtk_widget_show(map_drawing_area);
     gtk_widget_add_events (map_drawing_area, GDK_BUTTON_PRESS_MASK);
 
-    if (!use_config[CONFIG_SDL]) {
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
 	int x,y,count;
 	GdkGC	*darkgc;
 
@@ -138,8 +138,13 @@ void map_init(GtkWidget *window_root)
 	gdk_gc_unref(darkgc);
     }
 #ifdef HAVE_SDL
-    else {
+    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
 	init_SDL(map_drawing_area,0);
+    }
+#endif
+#ifdef HAVE_OPENGL
+    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
+	init_opengl(map_drawing_area);
     }
 #endif
 }
@@ -277,7 +282,7 @@ void set_map_darkness(int x, int y, uint8 darkness)
 	 * let the neighbors know they should update their darkness
 	 * now.
 	 */
-	if (use_config[CONFIG_SDL] && 
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL && 
 	    (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL ||
 	     use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST)) {
 	    if (x-1>0) the_map.cells[x-1][y].need_update = 1;
@@ -444,7 +449,7 @@ void display_mapscroll(int dx,int dy)
     } /* for x */
 
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL])
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
 	sdl_mapscroll(dx,dy);
     else
 #endif
@@ -521,7 +526,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             sfaces[i]=0; /*black picture*/
         }else{      
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
-            sfaces[i]=getsmooth(the_map.cells[emx][emy].heads[layer].face);
+            sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
             dosmooth=1;
         }                    
     }
@@ -769,7 +774,7 @@ void draw_splash()
 
 #include "../../pixmaps/crossfiretitle.xpm"
 
-    if (!use_config[CONFIG_SDL]) {
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
 	if (!have_init) {
 	    splash = gdk_pixmap_create_from_xpm_d(map_drawing_area->window,
                                                &aboutgdkmask, NULL,
@@ -790,11 +795,17 @@ void draw_splash()
 void draw_map(int redraw)
 {
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL]) sdl_gen_map(redraw);
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(redraw);
     else
 #endif
-    if (cpl.input_state == Metaserver_Select) draw_splash();
-    else gtk_draw_map(redraw);
+#ifdef HAVE_SDL
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) opengl_gen_map(redraw);
+    else
+#endif
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
+	if (cpl.input_state == Metaserver_Select) draw_splash();
+	else gtk_draw_map(redraw);
+    }
 }
 	
 
@@ -803,9 +814,7 @@ on_drawingarea_map_expose_event        (GtkWidget       *widget,
                                         GdkEventExpose  *event,
                                         gpointer         user_data)
 {
-    fprintf(stderr,"got expose event\n");
     draw_map(TRUE);
-
     return FALSE;
 }
 
@@ -814,8 +823,62 @@ on_drawingarea_map_button_press_event  (GtkWidget       *widget,
                                         GdkEventButton  *event,
                                         gpointer         user_data)
 {
+    int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
+  
+    x=(int)event->x;
+    y=(int)event->y;
+    dx=(x-2)/map_image_size-(use_config[CONFIG_MAPWIDTH]/2);
+    dy=(y-2)/map_image_size-(use_config[CONFIG_MAPHEIGHT]/2);
+    xmidl=(use_config[CONFIG_MAPWIDTH]/2) * map_image_size;
+    xmidh=(use_config[CONFIG_MAPWIDTH]/2 + 1) * map_image_size;
+    ymidl=(use_config[CONFIG_MAPHEIGHT]/2) * map_image_size;
+    ymidh=(use_config[CONFIG_MAPHEIGHT]/2 + 1) * map_image_size;
 
-  return FALSE;
+    switch (event->button) {
+	case 1:
+	    look_at(dx,dy);
+	    break;
+
+	case 2:
+	case 3:
+	    if (x<xmidl)
+		i = 0;
+	    else if (x>xmidh)
+		i = 6;
+	    else i =3;
+    
+	    if (y>ymidh)
+		i += 2;
+	    else if (y>ymidl)
+		i++;
+    
+	    if (event->button==2) {
+		switch (i) {
+		    case 0: fire_dir (8);break;
+		    case 1: fire_dir (7);break;
+		    case 2: fire_dir (6);break;
+		    case 3: fire_dir (1);break;
+		    case 5: fire_dir (5);break;
+		    case 6: fire_dir (2);break;
+		    case 7: fire_dir (3);break;
+		    case 8: fire_dir (4);break;
+		}
+		/* Only want to fire once */
+		clear_fire();
+	    }
+	    else switch (i) {
+		case 0: move_player (8);break;
+		case 1: move_player (7);break;
+		case 2: move_player (6);break;
+		case 3: move_player (1);break;
+		case 5: move_player (5);break;
+		case 6: move_player (2);break;
+		case 7: move_player (3);break;
+		case 8: move_player (4);break;
+	    }
+    }
+
+    return FALSE;
 }
 
 /* This isn't used - it is basically a prequel - we know we got a
@@ -836,3 +899,5 @@ void display_map_doneupdate(int redraw)
 {
     map_updated=1;
 }
+
+

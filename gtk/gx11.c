@@ -354,7 +354,7 @@ void do_network() {
 	}
 #if ALTERNATE_MAP_REDRAW
 #ifdef HAVE_SDL
-	if (use_config[CONFIG_SDL]) sdl_gen_map(FALSE);
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(FALSE);
 	else
 #endif
 	gtk_draw_map(FALSE);
@@ -603,7 +603,7 @@ static void init_cache_data()
 							&style->bg[GTK_STATE_NORMAL],
 							(gchar **)question);
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL]) {
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	/* make a semi transparent question mark symbol to
 	 * use for the cached images.
 	 */
@@ -715,7 +715,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
     }
 
 #ifdef HAVE_SDL
-    if(use_config[CONFIG_SDL]) {
+    if(use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	/* When program first runs, mapsurface can be null.
 	 * either way, we want to catch it here.
 	 */
@@ -727,7 +727,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 
     mapgc = gdk_gc_new (drawingarea->window);
 
-    if (!use_config[CONFIG_SDL]) {
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
 	int x,y,count;
 	GdkGC	*darkgc;
 
@@ -788,7 +788,7 @@ static gint
 expose_event (GtkWidget *widget, GdkEventExpose *event)
 {
 #ifdef HAVE_SDL
-    if(use_config[CONFIG_SDL] &&  mapsurface) {
+    if(use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL && mapsurface) {
 	SDL_UpdateRect( mapsurface, 0, 0, 0, 0);
 	return FALSE;
     }
@@ -4587,7 +4587,7 @@ void create_windows() {
     gtk_widget_show (gtkwin_root);
 
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL]) 
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) 
 	init_SDL( drawingarea, 0);
 #endif
 
@@ -4779,7 +4779,7 @@ void create_windows() {
 			       GTK_SIGNAL_FUNC(keyrelfunc), GTK_OBJECT(gtkwin_stats));
 
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL])
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
 	init_SDL( drawingarea, 0);
 #endif
 
@@ -5355,6 +5355,7 @@ static void usage(char *progname)
     puts("-sdl             - Use sdl for drawing png (may not work on all hardware");
     puts("-server <name>   - Connect to <name> instead of localhost.");
     puts("-showicon        - Print status icons in inventory window");
+    puts("-smooth          - Enable smooth");
     puts("-sound           - Enable sound output (default).");
     puts("-nosound         - Disable sound output.");
     puts("-sound_server <path> - Executable to use to play sounds.");
@@ -5531,12 +5532,12 @@ int init_windows(int argc, char **argv)
 #ifndef HAVE_SDL
 	    LOG(LOG_WARNING,"gtk::init_windows","client not compiled with sdl support.  Ignoring -sdl");
 #else
-	    want_config[CONFIG_SDL] = TRUE;
+	    want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
 #endif
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"+sdl")) {
-	    want_config[CONFIG_SDL] = FALSE;
+	    want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-server")) {
@@ -5550,6 +5551,12 @@ int init_windows(int argc, char **argv)
 	else if (!strcmp(argv[on_arg],"-showicon")) {
 	    want_config[CONFIG_SHOWICON] = TRUE;
 	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-smooth")) {
+	    want_config[CONFIG_SMOOTH] = TRUE;
+	}
+	else if (!strcmp(argv[on_arg],"+smooth")) {
+	    want_config[CONFIG_SMOOTH] = FALSE;
 	}
 	else if (!strcmp(argv[on_arg],"-sound")) {
 	    want_config[CONFIG_SOUND] = TRUE;
@@ -5664,7 +5671,7 @@ void display_map_doneupdate(int redraw)
 
 #if !ALTERNATE_MAP_REDRAW
 #ifdef HAVE_SDL
-	if (use_config[CONFIG_SDL]) sdl_gen_map(redraw);
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(redraw);
 	else
 #endif
 	gtk_draw_map(redraw);
@@ -5776,7 +5783,7 @@ void resize_map_window(int x, int y)
     }
 
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL])
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
 	init_SDL( drawingarea, FALSE);
 #endif
 

@@ -39,6 +39,11 @@ AC_SUBST(PACKAGE_LIBS)
 AC_SUBST(INTLLIBS)
 CF_SUBDIRS="$CF_SUBDIRS gtk-v2"
 
+AC_CHECK_LIB(glut, main, OPENGL_LIBS="-lglut")
+AC_SUBST(OPENGL_LIBS)
+if eval "test x$OPENGL_LIBS != x"; then
+    AC_DEFINE(HAVE_OPENGL)
+fi
 dnl end of gtk-v2 stuff
 
 

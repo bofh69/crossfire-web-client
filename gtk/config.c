@@ -188,7 +188,7 @@ CButtons cbuttons[MAX_BUTTONS] = {
     "Map Scale (Takes effect next run)"},
 {NULL, 	    CBUTTON,	    CONFIG_SMOOTH,	FLAG_MAPPANE | FLAG_UPDATE,
     "Enable smoothing - Use additionnal CPU (Take effect on next connection)."},
-{NULL, 	    CBUTTON,	    CONFIG_SDL,		FLAG_MAPPANE,
+{NULL, 	    CBUTTON,	    CONFIG_DISPLAYMODE,	FLAG_MAPPANE,
     "SDL Image Support (Take effect next run)"},
 {NULL, 	    CBUTTON,	    CONFIG_SHOWGRID,	FLAG_MAPPANE | FLAG_UPDATE,
     "Print Grid Overlay (SDL only, Slow, useful for debugging/development"},
@@ -348,7 +348,7 @@ void applyconfig () {
 	    use_config[CONFIG_LIGHTING] = lighting;
 	}
 #ifdef HAVE_SDL
-	if (use_config[CONFIG_SDL])
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
 	    /* This is done to make the 'lightmap' in the proper format */
 	    init_SDL( NULL, 1);
 #endif

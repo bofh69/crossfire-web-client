@@ -19,6 +19,7 @@ PROTO_SOURCES = \
 	map.c \
 	magicmap.c \
 	menubar.c \
+	opengl.c \
 	png.c \
 	sdl.c \
 	sound.c \
@@ -30,7 +31,7 @@ gcfclient2_SOURCES = \
 	interface.c interface.h 
 
 
-gcfclient2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@
+gcfclient2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@ @OPENGL_LIBS@
 
 
 proto:

@@ -367,33 +367,6 @@ void init_common_cache_data()
 void requestsmooth (int pnum){
     cs_print_string (csocket.fd, "asksmooth %d",pnum);
 }
-int getsmooth (int face){
-    int i;
-    if (smoothused<1){
-        smooths[0].smoothid=face;
-        smooths[0].received=0;
-        requestsmooth(face);
-        smoothused++;
-        return 0;
-    }
-    for (i=0;i<smoothused;i++){
-        if (smooths[i].smoothid==face){
-            if (smooths[i].received)
-                return smooths[i].face;
-            else{
-                return -1;
-            }
-        }
-    }
-    if (smoothused<MAXSMOOTH){
-        smooths[smoothused].smoothid=face;
-        smooths[smoothused].received=0;
-        requestsmooth(face);
-        smoothused++;
-        return -1;
-    }
-    return -1;
-}
 
 /******************************************************************************
  *
@@ -506,11 +479,6 @@ void reset_image_cache_data()
 	    facetoname[i]=NULL;
 	}
     }
-    /* Also reset smooth data, considered to be part of image cache
-     * (Actually this is the better place to handle it) :P
-     */
-    smoothused=0;
-    memset (smooths,sizeof(Smooths)*MAXSMOOTH,0);
 }
 
 

@@ -138,14 +138,14 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
     pi->map_image = NULL;
     pi->map_mask = NULL;
 
-    if (use_config[CONFIG_SDL]) {
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 #if defined(HAVE_SDL)
 	int i;
 	SDL_Surface *fog;
 	uint32 g,*p;
 	uint8 *l;
 
-    #if SDL_BYTEORDER == SDL_LIL_ENDIAN
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
 	pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
 	        pi->map_height, 32, pi->map_width * 4,  0xff,
 			0xff00, 0xff0000, 0xff000000);
@@ -211,7 +211,13 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 
 #endif
     }
-    else {
+    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL){
+#ifdef HAVE_OPENGL
+	create_opengl_map_image(data, pi);
+#endif
+    }
+
+    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP){
 	rgba_to_gdkpixmap(window_root->window, data, pi->map_width, pi->map_height,
 		(GdkPixmap**)&pi->map_image, (GdkBitmap**)&pi->map_mask,
 		gtk_widget_get_colormap(window_root));
@@ -225,7 +231,7 @@ static void free_pixmap(PixmapInfo *pi)
     if (pi->map_mask) gdk_pixmap_unref(pi->map_mask);
     if (pi->map_image) {
 #ifdef HAVE_SDL
-	if (use_config[CONFIG_SDL]) {
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	    SDL_FreeSurface(pi->map_image);
 	    free(((SDL_Surface*)pi->map_image)->pixels);
 	    SDL_FreeSurface(pi->fog_image);
@@ -233,8 +239,13 @@ static void free_pixmap(PixmapInfo *pi)
 	}
 	else
 #endif
-	{
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
 	    gdk_pixmap_unref(pi->map_image);
+	}
+	else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
+#ifdef HAVE_OPENGL
+	    opengl_free_pixmap(pi);
+#endif
 	}
     }
 }
@@ -252,7 +263,7 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     uint8 *png_tmp;
     PixmapInfo	*pi;
 
-    pi = malloc(sizeof(PixmapInfo));
+    pi = calloc(1, sizeof(PixmapInfo));
 
     iscale = use_config[CONFIG_ICONSCALE];
 
@@ -299,14 +310,19 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 	pi->map_width = nx;
 	pi->map_height = ny;
 	create_map_image(png_tmp, pi);
-	if (!use_config[CONFIG_SDL]) free(png_tmp);
+	/* pixmap mode and opengl don't need the rgba data after they have
+	 * created the image, so we can free it.  SDL uses the
+	 * raw rgba data, so it can't be freed.
+	 */
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP || 
+	    use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) free(png_tmp);
     } else {
 	pi->map_width = width;
 	pi->map_height = height;
 	/* if using SDL mode, a copy of the rgba data needs to be
 	 * stored away. 
 	 */
-	if (use_config[CONFIG_SDL]) {
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	    png_tmp = malloc(width * height * BPP);
 	    memcpy(png_tmp, rgba_data, width * height * BPP);
 	} else
@@ -314,9 +330,10 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 	create_map_image(png_tmp, pi);
     }
     /* Not ideal, but basically, if it is missing the map or icon image, presume
-     * something failed.
+     * something failed.  However, opengl doesn't set the map_image, so if using
+     * that display mode, don't make this check.
      */
-    if (!pi->icon_image || !pi->map_image) {
+    if (!pi->icon_image || (!pi->map_image && use_config[CONFIG_DISPLAYMODE]!=CFG_DM_OPENGL)) {
 	free_pixmap(pi);
 	free(pi);
 	return 1;
@@ -326,6 +343,11 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     }
     pixmaps[pixmap_num] = pi;
     return 0;
+}
+
+void addsmooth(uint16 face, uint16 smooth_face)
+{
+    pixmaps[face]->smooth_face = smooth_face;
 }
 
 /* This functions associates the image_data in the cache entry
@@ -471,7 +493,7 @@ void init_cache_data()
 							&style->bg[GTK_STATE_NORMAL],
 							(gchar **)question);
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL]) {
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	/* make a semi transparent question mark symbol to
 	 * use for the cached images.
 	 */
@@ -482,10 +504,17 @@ void init_cache_data()
     }
     else
 #endif
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP)
     {
 	pixmaps[0]->map_image =  pixmaps[0]->icon_image;
 	pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
     }
+#ifdef HAVE_OPENGL
+    else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
+	create_opengl_question_mark();
+    }
+#endif
+
     pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
     facetoname[0]=NULL;
 

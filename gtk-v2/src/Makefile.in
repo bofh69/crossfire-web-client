@@ -55,7 +55,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = config.$(OBJEXT) image.$(OBJEXT) info.$(OBJEXT) \
 	inventory.$(OBJEXT) keys.$(OBJEXT) main.$(OBJEXT) \
 	map.$(OBJEXT) magicmap.$(OBJEXT) menubar.$(OBJEXT) \
-	png.$(OBJEXT) sdl.$(OBJEXT) sound.$(OBJEXT) stats.$(OBJEXT)
+	opengl.$(OBJEXT) png.$(OBJEXT) sdl.$(OBJEXT) sound.$(OBJEXT) \
+	stats.$(OBJEXT)
 am_gcfclient2_OBJECTS = $(am__objects_1) support.$(OBJEXT) \
 	interface.$(OBJEXT)
 gcfclient2_OBJECTS = $(am_gcfclient2_OBJECTS)
@@ -214,6 +215,7 @@ PROTO_SOURCES = \
 	map.c \
 	magicmap.c \
 	menubar.c \
+	opengl.c \
 	png.c \
 	sdl.c \
 	sound.c \
@@ -224,7 +226,7 @@ gcfclient2_SOURCES = \
 	support.c support.h \
 	interface.c interface.h 
 
-gcfclient2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@
+gcfclient2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@ @OPENGL_LIBS@
 all: all-am
 
 .SUFFIXES:
@@ -301,6 +303,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/map.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/menubar.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opengl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/png.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sound.Po@am__quote@

@@ -40,12 +40,24 @@
  */
 #define DEFAULT_IMAGE_SIZE	32
 #define MAXPIXMAPNUM 10000
+
+#ifdef HAVE_OPENGL
+#include <GL/gl.h>
+#endif
+
 typedef struct {
     void	*icon_mask, *icon_image;
     uint16	icon_width, icon_height;
     void	*map_mask, *map_image;
     uint16	map_width, map_height;
     void	*fog_image;
+    /* smooth_face is a pointer that points to the face we use
+     * for smoothing this particular face.
+     */
+    uint16	smooth_face;
+#ifdef HAVE_OPENGL
+    GLuint	map_texture, fog_texture;
+#endif
 } PixmapInfo;
 
 extern PixmapInfo *pixmaps[MAXPIXMAPNUM];

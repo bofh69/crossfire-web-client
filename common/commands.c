@@ -390,56 +390,25 @@ void AnimCmd(unsigned char *data, int len)
     LOG(LOG_DEBUG,"common::AnimCmd","Received animation %d, %d faces", anum, animations[anum].num_animations);
 }
 
-Smooths smooths[MAXSMOOTH];
-int smoothused=0;
+
+/* This receives the smooth mapping from the server.  Because this
+ * information is reference a lot, the smoothing face is stored
+ * in the pixmap data - this makes access much faster than searching
+ * an array of data for the face to use.
+ */
+
 void SmoothCmd(unsigned char *data, int len){
     uint16 faceid;
     uint16 smoothing;
-    static int dx[8]={0,1,1,1,0,-1,-1,-1};
-    static int dy[8]={-1,-1,0,1,1,1,0,-1};  
-    int i,j,x,y,layer;
-    int mx,my;
 
     /* len is unused.
      * We should check that we don't have an invalid short command.
      * Hence, the compiler warning is valid.
      */
-    display_map_startupdate();
-    if (smoothused>=MAXSMOOTH) /*no place to put*/
-        return;
+
     faceid=GetShort_String(data);
     smoothing=GetShort_String(data+2);
-    for (i=0;i<smoothused;i++){
-        if (smooths[i].smoothid==faceid)
-            break;
-    }
-    if (i==smoothused)
-        smoothused++;
-    smooths[i].smoothid=faceid;
-    smooths[i].received=1;
-    smooths[i].face=smoothing;    
-    /*update the map where needed*/
-    for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
-    for( y= 0; y<use_config[CONFIG_MAPHEIGHT]; y++){
-    for (layer=0;layer<MAXLAYERS;layer++){
-        mx = x + pl_pos.x;
-	    my = y + pl_pos.y;
-        if ( (the_map.cells[mx][my].smooth[layer]==0) ||
-             (the_map.cells[mx][my].heads[layer].face!=smooths[i].smoothid))
-            continue; /*not concerned*/
-        for (j=0;j<8;j++){
-            mx=x + pl_pos.x+dx[j];
-            my=y + pl_pos.y+dy[j];
-            if ( (mx<0) || (my<0) || (the_map.x<=mx) || (the_map.y<=my))
-                continue;
-            if (!the_map.cells[mx][my].cleared)
-                the_map.cells[mx][my].need_resmooth=1;
-        }
-    }
-    }
-    }
-    display_map_doneupdate(FALSE);
-    /*Should find some way to draw here, i suppose*/
+    addsmooth(faceid, smoothing);
 }
 
 void DrawInfoCmd(char *data, int len)

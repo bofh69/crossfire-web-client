@@ -1334,7 +1334,7 @@ void set_map_darkness(int x, int y, uint8 darkness)
 	 * let the neighbors know they should update their darkness
 	 * now.
 	 */
-	if (use_config[CONFIG_SDL]) {
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	    if (x-1>0) the_map.cells[x-1][y].need_update = 1;
 	    if (y-1>0) the_map.cells[x][y-1].need_update = 1;
 	    if (x+1<use_config[CONFIG_MAPWIDTH]) the_map.cells[x+1][y].need_update = 1;
@@ -1520,4 +1520,10 @@ void reset_map_data()
 	    the_map.cells[x][y].need_update= 1;
 	}
     }
+}
+
+
+/* x11 client doesn't do smoothing, so don't need to do anything with this */
+void addsmooth(uint16 face, uint smooth_face)
+{
 }

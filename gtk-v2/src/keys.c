@@ -55,6 +55,7 @@ typedef int KeyCode; /* Undefined type */
 #include "proto.h"
 #include "def-keys.h"
 
+#include "image.h"
 #include "gtk2proto.h"
 #include "p_cmd.h"
 

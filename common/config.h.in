@@ -95,3 +95,6 @@
 
 /* The size of a `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
+
+/* The size of a `long long', as computed by sizeof. */
+#undef HAVE_OPENGL

@@ -33,6 +33,7 @@ char *rcsid_gtk2_info_c =
 
 #include "client.h"
 
+#include "image.h"
 #include "gtk2proto.h"
 #include "interface.h"
 #include "support.h"
@@ -54,6 +55,8 @@ void info_init(GtkWidget *window_root)
 
     textview_info1 = lookup_widget(window_root,"textview_info1");
     textview_info2 = lookup_widget(window_root,"textview_info2");
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview_info1), GTK_WRAP_WORD);
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview_info2), GTK_WRAP_WORD);
     textbuf1=gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview_info1));
     textbuf2=gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview_info2));
 

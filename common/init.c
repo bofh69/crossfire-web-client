@@ -172,7 +172,7 @@ void init_client_vars()
     want_config[CONFIG_ICONSCALE] = 100;
     want_config[CONFIG_MAPSCALE] = 100;
     want_config[CONFIG_POPUPS] = TRUE;
-    want_config[CONFIG_SDL] = FALSE;
+    want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
     want_config[CONFIG_SHOWICON] = FALSE;
     want_config[CONFIG_TOOLTIPS] = TRUE;
     want_config[CONFIG_SOUND] = TRUE;

@@ -3,6 +3,7 @@ extern void load_defaults(void);
 extern void save_defaults(void);
 /* image.c */
 extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
+extern void addsmooth(uint16 face, uint16 smooth_face);
 extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
 extern void reset_image_data(void);
 extern void image_update_download_status(int start, int end, int total);
@@ -76,6 +77,8 @@ extern gboolean on_drawingarea_map_expose_event(GtkWidget *widget, GdkEventExpos
 extern gboolean on_drawingarea_map_button_press_event(GtkWidget *widget, GdkEventButton *event, gpointer user_data);
 extern void display_map_startupdate(void);
 extern void display_map_doneupdate(int redraw);
+extern gboolean on_drawingarea_map_window_state_event(GtkWidget *widget, GdkEvent *event, gpointer user_data);
+extern gboolean on_drawingarea_map_unmap_event(GtkWidget *widget, GdkEvent *event, gpointer user_data);
 /* magicmap.c */
 extern void draw_magic_map(void);
 extern void magic_map_flash_pos(void);
@@ -83,6 +86,12 @@ extern void magic_map_flash_pos(void);
 extern void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_about(GtkMenuItem *menuitem, gpointer user_data);
+/* opengl.c */
+extern void init_opengl(GtkWidget *drawingarea);
+extern void opengl_gen_map(int redraw);
+extern void create_opengl_map_image(uint8 *data, PixmapInfo *pi);
+extern void opengl_free_pixmap(PixmapInfo *pi);
+extern void create_opengl_question_mark(void);
 /* png.c */
 extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
 extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);

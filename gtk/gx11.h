@@ -56,6 +56,7 @@ typedef struct {
     void	*map_mask, *map_image;
     uint16	map_width, map_height;
     void	*fog_image;
+    uint16      smooth_face;
 } PixmapInfo;
 
 extern PixmapInfo *pixmaps[MAXPIXMAPNUM];

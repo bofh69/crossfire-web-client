@@ -133,7 +133,7 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
     pi->map_image = NULL;
     pi->map_mask = NULL;
 
-    if (use_config[CONFIG_SDL]) {
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 #if defined(HAVE_SDL)
 	int i;
 	SDL_Surface *fog;
@@ -234,7 +234,7 @@ static void free_pixmap(PixmapInfo *pi)
     if (pi->map_mask) gdk_pixmap_unref(pi->map_mask);
     if (pi->map_image) {
 #ifdef HAVE_SDL
-	if (use_config[CONFIG_SDL]) {
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	    free(((SDL_Surface*)pi->map_image)->pixels);
 	    SDL_FreeSurface(pi->map_image);
 	    SDL_FreeSurface(pi->fog_image);
@@ -261,7 +261,7 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     uint8 *png_tmp;
     PixmapInfo	*pi;
 
-    pi = malloc(sizeof(PixmapInfo));
+    pi = calloc(1, sizeof(PixmapInfo));
 
     iscale = use_config[CONFIG_ICONSCALE];
 
@@ -308,14 +308,14 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 	pi->map_width = nx;
 	pi->map_height = ny;
 	create_map_image(png_tmp, pi);
-	if (!use_config[CONFIG_SDL]) free(png_tmp);
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) free(png_tmp);
     } else {
 	pi->map_width = width;
 	pi->map_height = height;
 	/* if using SDL mode, a copy of the rgba data needs to be
 	 * stored away. 
 	 */
-	if (use_config[CONFIG_SDL]) {
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	    png_tmp = malloc(width * height * BPP);
 	    memcpy(png_tmp, rgba_data, width * height * BPP);
 	} else
@@ -336,6 +336,11 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     }
     pixmaps[pixmap_num] = pi;
     return 0;
+}
+
+void addsmooth(uint16 face, uint16 smooth_face)
+{
+    pixmaps[face]->smooth_face = smooth_face;
 }
 
 /* This functions associates the image_data in the cache entry

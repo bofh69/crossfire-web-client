@@ -39,6 +39,7 @@ char *rcsid_gtk2_main_c =
 #include "support.h"
 #include "main.h"
 #include "client.h"
+#include "image.h"
 #include "gtk2proto.h"
 #include "script.h"
 
@@ -119,7 +120,11 @@ void do_network() {
 	}
     }
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL]) sdl_gen_map(FALSE);
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(FALSE);
+    else
+#endif
+#ifdef HAVE_OPENGL
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) opengl_gen_map(FALSE);
     else
 #endif
     draw_map(FALSE);
@@ -193,8 +198,8 @@ static void usage(char *progname)
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces. (default 11x11)");
     puts("-splash          - Display the splash screen (default)");
     puts("-nosplash        - Don't display the splash screen (startup logo)");
-    puts("-popups          - Use pop up windows for input (default)");
-    puts("-nopopups        - Don't use pop up windows for input");
+    puts("-opengl          - Use opengl drawing code");
+    puts("-pixmap          - Use pixmap drawing code");
     puts("-port <number>   - Use port <number> instead of the standard port number");
     puts("-sdl             - Use sdl for drawing png (may not work on all hardware");
     puts("-server <name>   - Connect to <name> instead of localhost.");
@@ -352,13 +357,16 @@ int parse_args(int argc, char **argv)
 	    want_config[CONFIG_FASTTCP] = FALSE;
 	    continue;
 	}
-	else if (!strcmp(argv[on_arg],"-popups")) {
-	    want_config[CONFIG_POPUPS] = TRUE;
+	else if (!strcmp(argv[on_arg],"-opengl")) {
+#ifndef HAVE_OPENGL
+	    LOG(LOG_WARNING,"gtk::init_windows","client not compiled with opengl support.  Ignoring -opengl");
+#else
+	    want_config[CONFIG_DISPLAYMODE] = CFG_DM_OPENGL;
+#endif
 	    continue;
 	}
-	else if (!strcmp(argv[on_arg],"-nopopups")) {
-	    want_config[CONFIG_POPUPS] = FALSE;
-	    continue;
+	else if (!strcmp(argv[on_arg],"-pixmap")) {
+	    want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
 	}
 	else if (!strcmp(argv[on_arg],"-port")) {
 	    if (++on_arg == argc) {
@@ -372,12 +380,8 @@ int parse_args(int argc, char **argv)
 #ifndef HAVE_SDL
 	    LOG(LOG_WARNING,"gtk::init_windows","client not compiled with sdl support.  Ignoring -sdl");
 #else
-	    want_config[CONFIG_SDL] = TRUE;
+	    want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
 #endif
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"+sdl")) {
-	    want_config[CONFIG_SDL] = FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-server")) {
@@ -473,7 +477,6 @@ int parse_args(int argc, char **argv)
     pl_pos.x= the_map.x / 2;
     pl_pos.y= the_map.y / 2;
 
-    if (want_config[CONFIG_CACHE]) init_cache_data();
     return 0;
 }
 
@@ -550,6 +553,7 @@ main (int argc, char *argv[])
     keys_init(window_root);
     stats_init(window_root);
 
+
     /* We want this as late as possible in the process. This way,
      * adjustments that the widgets make on initialization are not
      * visible - this is most important with the inventory widget
@@ -563,6 +567,7 @@ main (int argc, char *argv[])
     map_init(window_root);
     magic_map = lookup_widget(window_root,"drawingarea_magic_map");
 
+    if (use_config[CONFIG_CACHE]) init_cache_data();
 
     /* Loop to connect to server/metaserver and play the game */
     while (1) {

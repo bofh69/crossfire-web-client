@@ -202,7 +202,7 @@ void set_map_darkness(int x, int y, uint8 darkness)
 	 * let the neighbors know they should update their darkness
 	 * now.
 	 */
-	if (use_config[CONFIG_SDL] && 
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL && 
 	    (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL ||
 	     use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST)) {
 	    if (x-1>0) the_map.cells[x-1][y].need_update = 1;
@@ -369,7 +369,7 @@ void display_mapscroll(int dx,int dy)
     } /* for x */
 
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL])
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
 	sdl_mapscroll(dx,dy);
     else
 #endif
@@ -447,7 +447,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             sfaces[i]=0; /*black picture*/
         }else{      
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
-            sfaces[i]=getsmooth(the_map.cells[emx][emy].heads[layer].face);
+            sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
             dosmooth=1;
         }                    
     }

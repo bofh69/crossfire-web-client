@@ -440,9 +440,7 @@ int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
  */
 int rgba_to_gdkpixbuf(uint8 *data,int width, int height,GdkPixbuf **pix)
 {
-    GdkGC	*gc, *gc_alpha;
-    int		has_alpha=0, alpha, rowstride;
-    GdkColor  scolor;
+    int		rowstride;
     guchar  *pixels, *p;
     int x,y;
 

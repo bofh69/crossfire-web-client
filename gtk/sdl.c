@@ -651,7 +651,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
             sfaces[i]=0; /*black picture*/
         }else{      
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
-            sfaces[i]=getsmooth(the_map.cells[emx][emy].heads[layer].face);
+            sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
             dosmooth=1;
         }                    
     }

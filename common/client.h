@@ -74,15 +74,6 @@ typedef struct Animations {
 
 extern Animations animations[MAXANIM];
 
-#define MAXSMOOTH 1000
-typedef struct Smooths {
-    uint8  received:1;
-    uint16 smoothid;
-    uint16  face;
-} Smooths;
-
-extern Smooths smooths[MAXSMOOTH];
-extern int smoothused;
 #define CAN_SMOOTH(__SMOOTHLEVEL) (__SMOOTHLEVEL)
 
 /* ClientSocket could probably hold more of the global values - it could
@@ -146,7 +137,7 @@ typedef enum rangetype {
 #define CONFIG_ICONSCALE    9
 #define CONFIG_MAPSCALE	    10
 #define CONFIG_POPUPS	    11
-#define CONFIG_SDL	    12
+#define CONFIG_DISPLAYMODE  12
 #define CONFIG_SHOWICON	    13
 #define CONFIG_TOOLTIPS	    14
 #define CONFIG_SOUND	    15
@@ -171,6 +162,14 @@ typedef enum rangetype {
 #define CFG_LT_TILE	    1
 #define CFG_LT_PIXEL	    2
 #define CFG_LT_PIXEL_BEST   3
+
+/* CONFIG_DISPLAYMODE can have several possible values.  Give
+ * defines for the possibilities.
+ */
+#define CFG_DM_PIXMAP	    0
+#define CFG_DM_SDL	    1
+#define CFG_DM_OPENGL	    2
+
 
 
 extern sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];

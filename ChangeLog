@@ -3,7 +3,75 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
-Applied patch #1161817 (cowboyatheart): Add wands/staves/rods/horns to new pickup (client).
+Main change of this is addition of opengl drawing for the map in the gtk-v2
+client.  On my system, the opengl code is about 10 times faster than the
+sdl code was, making it so I can turn on all the bells and whistles (smoothing,
+best lighting) and still use less than 10% cpu time.  As part of this, I
+redid the smoothing logic, so the client now requires a new server for
+smoothing to work (needs push logic, as client won't request smoothing
+info as that adds a lot of complication).  This change was done because
+the old smoothing code wasn't that efficient - now, we store the smoothing
+face along with the face it smooths, so finding the smoothing info is
+much faster.
+--
+configure.in, configure: Add check for -lglut - indication we have opengl
+  libraries available.
+common/client.h: Remove Smooths struct.  Change CONFIG_SDL to
+   CONFIG_DISPLAY, and add CFG_DM_... to denote different display modes,
+   since there is more than just sdl and not sdl now.
+common/commands.c: Don't have SmoothCmd try to update what spaces need
+   to be redrawn - for opengl, it doesn't care about that, and for
+   most other maps, it will figure it out when it needs to redraw
+   anyways.
+common/config.h.in: Addition of HAVE_OPENGL line.
+common/image.c: Remove getsmooth() - rely on push logic.
+common/init.c: Update  want_config[CONFIG_SDL] to
+   want_config[CONFIG_DISPLAYMODE]
+gtk/config.c: Change access to CONFIG_DISPLAYMODE
+gtk/gx11.c: Change access to CONFIG_DISPLAYMODE. Add -smooth command line
+  option.
+gtk/gx11.h: Add smooth_face to PixmapInfo struct.
+gtk/image.c: Change access to CONFIG_DISPLAYMODE.  When getting new
+   PixmapInfo struct, use calloc so we are sure all fields are initialized
+   to zero.  Add addsmooth().
+gtk/map.c: Change access to CONFIG_DISPLAYMODE.  Change how we access
+  smooth face info.
+gtk/sdl.c: Change how we access smooth face info.
+gtk-v2/src/Makefile.am, gtk-v2/src/Makefile.in: Add addition of OPENGL_LIBS
+   to link libs.  Add opengl.c file.
+gtk-v2/src/config.c: Add image.h include.
+gtk-v2/src/gtk2proto.h: Rebuilt.
+gtk-v2/src/image.c: Change access to CONFIG_DISPLAYMODE. Add hooks for
+  opengl image generation.  Change call for pixmap creation from malloc
+  to calloc.  Add addsmooth().
+gtk-v2/src/image.h. If we have opengl, include GL/gl.h.  Add fields
+  for opengl texture maps.
+gtk-v2/src/info.c: Update so text line wraps if it is too long.
+gtk-v2/src/inventory.c:  Add checks to make sure object face is
+  valid before trying to draw.  In icon mode, add code to cleanup
+  old fields (if you drop an item, it wouldn't erase the list item
+  in the list).  Also, free callbacks, as they effectively stack,
+  and we were using incorrect object pointers (pointer from first
+  callback, which didn't match current one).
+gtk-v2/src/keys.c: Add image.h to includes.
+gtk-v2/src/main.c: Add image.h to includes. Change access to
+    CONFIG_DISPLAYMODE.  Add -opengl command switch.  Remove
+    +sdl and popups command line options.  Relocate setup of
+   cache call setup to after we know all windows have been created.
+gtk-v2/src/map.c: Change access to CONFIG_DISPLAYMODE.  Add opengl
+   drawing hooks.  Change access for smooth info.  Implement
+   button press code for map window (basically grabbed from
+   gtk/map.c)
+gtk-v2/src/opengl.c: New file containing opengl draw code.
+gtk-v2/src/png.c: Remove some unused code resulting in compile warnings.
+gtk-v2/src/sdl.c: Remove some commented out code.  Change access method
+   for smoothing code.
+x11/xutil.c: Change access to CONFIG_DISPLAYMODE.  Add addsmooth()
+   function.
+MSW 2005-03-20
+
+Applied patch #1161817 (cowboyatheart): Add wands/staves/rods/horns to new
+   pickup (client).
 gtk/gx11.c: add new 'magic devices' menu option.
 Ryo 2005-03-13
 

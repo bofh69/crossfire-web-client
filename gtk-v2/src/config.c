@@ -38,6 +38,7 @@ char *rcsid_gtk2_config_c =
 #include "support.h"
 
 #include "main.h"
+#include "image.h"
 #include "gtk2proto.h"
 
 void load_defaults()

@@ -660,7 +660,13 @@ drawingarea_inventory_table_expose_event        (GtkWidget       *widget,
     tmp = (item*)user_data;
 
     gdk_window_clear(widget->window);
-    gdk_draw_pixbuf(widget->window, NULL, 
+
+    /* Can get cases when switching tabs that we get an expose event
+     * before the list is updated - if so, don't draw stuff we don't
+     * have faces for.
+     */
+    if (tmp->face) 
+	gdk_draw_pixbuf(widget->window, NULL, 
 			(GdkPixbuf*)pixmaps[tmp->face]->icon_image,
 			0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
     return TRUE;
@@ -673,9 +679,11 @@ middle click marks the object"
 
 void draw_inv_table()
 {
-    int x, y, rows, columns, num_items;
+    int x, y, rows, columns, num_items, i;
+    static int max_drawn=0;
     item *tmp;
     char buf[256];
+    gulong handler;
 
     num_items=0;
     for (tmp=cpl.ob->inv; tmp; tmp=tmp->next)
@@ -695,25 +703,44 @@ void draw_inv_table()
 	
     x=0;
     y=0;
-
     for (tmp=cpl.ob->inv; tmp; tmp=tmp->next) {
 	if (inv_table_children[x][y] == NULL) {
 	    inv_table_children[x][y] = gtk_drawing_area_new();
 	    gtk_drawing_area_size (GTK_DRAWING_AREA(inv_table_children[x][y]),
 				   image_size, image_size);
 
-	    /* Not positive precisely what events are need, but some events
-	     * beyond just the button press are necessary for the tooltips to
-	     * work.
-	     */
-	    gtk_widget_add_events (inv_table_children[x][y], GDK_ALL_EVENTS_MASK);
 	    gtk_table_attach(GTK_TABLE(inv_table), inv_table_children[x][y],
 			     x, x+1, y, y+1, GTK_FILL, GTK_FILL, 0, 0);
 
 	}
+	/* Need to clear out the old signals, since the signals are effectively
+	 * stacked - you can have 6 signal handlers tied to the same function.
+	 */
+	handler = g_signal_handler_find((gpointer)inv_table_children[x][y], 
+			G_SIGNAL_MATCH_FUNC, 0, 0, NULL, 
+			G_CALLBACK (drawingarea_inventory_table_button_press_event),
+			NULL);
+
+	if (handler) 
+	    g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+
+	handler = g_signal_handler_find((gpointer)inv_table_children[x][y], 
+			G_SIGNAL_MATCH_FUNC, 0, 0, NULL, 
+			G_CALLBACK (drawingarea_inventory_table_expose_event),
+			NULL);
+	if (handler) 
+	    g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+
+	/* Not positive precisely what events are need, but some events
+	 * beyond just the button press are necessary for the tooltips to
+	 * work.
+	 */
+	gtk_widget_add_events (inv_table_children[x][y], GDK_ALL_EVENTS_MASK);
+
 	g_signal_connect ((gpointer) inv_table_children[x][y], "button_press_event",
 		G_CALLBACK (drawingarea_inventory_table_button_press_event),
 		tmp);
+
 	g_signal_connect ((gpointer) inv_table_children[x][y], "expose_event",
 		G_CALLBACK (drawingarea_inventory_table_expose_event),
 		tmp);
@@ -722,6 +749,8 @@ void draw_inv_table()
 	gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL, 
 			(GdkPixbuf*)pixmaps[tmp->face]->icon_image,
 			0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
+
+	gtk_widget_show(inv_table_children[x][y]);
 
 	/* We use tooltips to provide additional detail about the icons.
 	 * Looking at the code, the tooltip widget will take care of removing
@@ -737,7 +766,40 @@ void draw_inv_table()
 	}
 
     }
-    gtk_widget_show_all(inv_table);
+    /* need to disconnect the callback functions cells we did not draw.
+     * otherwise, we get errors on objects that are drawn.
+     */
+    for (i=num_items; i<=max_drawn; i++) {
+	if (inv_table_children[x][y]) {
+	    gdk_window_clear(inv_table_children[x][y]->window);
+
+	    handler = g_signal_handler_find((gpointer)inv_table_children[x][y], 
+			G_SIGNAL_MATCH_FUNC, 0, 0, NULL, 
+			G_CALLBACK (drawingarea_inventory_table_button_press_event),
+			NULL);
+
+	    if (handler) 
+		g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+
+	    handler = g_signal_handler_find((gpointer)inv_table_children[x][y], 
+			G_SIGNAL_MATCH_FUNC, 0, 0, NULL, 
+			G_CALLBACK (drawingarea_inventory_table_expose_event),
+			NULL);
+	    if (handler) 
+		g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+
+	    /* Hide the widget so that the tooltips doesn't show up */
+	    gtk_widget_hide(inv_table_children[x][y]);
+	}
+	x++;
+	if (x == columns) {
+	    x=0;
+	    y++;
+	}
+    }
+    max_drawn = num_items;
+
+    gtk_widget_show(inv_table);
 }
 
 /* Draws the inventory.  Have to determine how to draw
@@ -754,9 +816,8 @@ void draw_inv(int tab)
 
     if (inv_notebooks[tab].type == INV_TREE)
 	draw_inv_list(tab);
-    else if (inv_notebooks[tab].type == INV_TABLE) {
+    else if (inv_notebooks[tab].type == INV_TABLE)
 	draw_inv_table();
-    }
 }
 
 /*
