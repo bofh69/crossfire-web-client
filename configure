@@ -309,7 +309,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MKDIR TAR DEPEND CP RM PERL AR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE LN_S CPP RANLIB ac_ct_RANLIB GTK_CONFIG GTK_CFLAGS GTK_LIBS CFGTK X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP GUI_OBJS GUI_SRCS SND_LIBS TARGET SUBDIRS SDL_CONFIG SDL_CFLAGS SDL_LIBS DMALLOC_LIB XPM SOUNDDIR LIBXPM_LIB LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MKDIR TAR DEPEND CP RM PERL AR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE LN_S CPP RANLIB ac_ct_RANLIB GTK_CONFIG GTK_CFLAGS GTK_LIBS CFGTK X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS EGREP GUI_OBJS GUI_SRCS SND_LIBS TARGET SUBDIRS SOUND_TARGETS ALSA9_LIBS SDL_CONFIG SDL_CFLAGS SDL_LIBS DMALLOC_LIB XPM SOUNDDIR LIBXPM_LIB LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -6579,23 +6579,28 @@ fi
 
 
 
+
   if eval "test x$alsa9_sound = xyes"; then
 	echo "Using ALSA sound system (0.9.x)"
 	CFLAGS="$CFLAGS -DALSA9_SOUND"
-	SND_LIBS="-lasound -lm"
-	SUBDIRS="$SUBDIRS sound-src"
-  else
+	SOUND_TARGETS="$SOUND_TARGETS cfsndserv-alsa9"
+	ALSA9_LIBS="-lasound -lm"
+	SOUND_SRC="sound-src";
+
+					alsa_sound="no";
+   fi
+
     if eval "test x$alsa_sound = xyes"; then
   	echo "Using ALSA sound system"
   	CFLAGS="$CFLAGS -DALSA_SOUND"
   	SND_LIBS="-lasound -lm"
-  	SUBDIRS="$SUBDIRS sound-src"
+	SOUND_SRC="sound-src";
     else
       if eval "test x$sgi_sound = xyes"; then
 	echo "Using SGI sound system"
   	CFLAGS="$CFLAGS -DSGI_SOUND"
   	SND_LIBS="-laudio"
-  	SUBDIRS="$SUBDIRS sound-src"
+	SOUND_SRC="sound-src";
       else
         if eval "test x$oss_sound = xyes"; then
 	  echo "Using OSS sound system"
@@ -6663,22 +6668,27 @@ if test $ac_cv_lib_ossaudio_main = yes; then
   SND_LIBS="$LIBS -lossaudio"
 fi
 
-	  SUBDIRS="$SUBDIRS sound-src"
+	  SOUND_SRC="sound-src";
         else
           if eval "test x$sun_sound = xyes"; then
   	      echo "Using solaris sound system"
   	      CFLAGS="$CFLAGS -DSUN_SOUND"
   	      SND_LIBS="-lm"
-  	      SUBDIRS="$SUBDIRS sound-src"
+	      SOUND_SRC="sound-src";
   	  else
   	      echo "No suitable sound system found."
           fi
         fi
       fi
     fi
-  fi
   # this fi is for the sound == yes check above
 fi
+
+if eval "test x$SOUND_SRC != x"; then
+    SUBDIRS="$SUBDIRS $SOUND_SRC";
+fi
+
+
 
 
 
@@ -10010,6 +10020,8 @@ s,@GUI_SRCS@,$GUI_SRCS,;t t
 s,@SND_LIBS@,$SND_LIBS,;t t
 s,@TARGET@,$TARGET,;t t
 s,@SUBDIRS@,$SUBDIRS,;t t
+s,@SOUND_TARGETS@,$SOUND_TARGETS,;t t
+s,@ALSA9_LIBS@,$ALSA9_LIBS,;t t
 s,@SDL_CONFIG@,$SDL_CONFIG,;t t
 s,@SDL_CFLAGS@,$SDL_CFLAGS,;t t
 s,@SDL_LIBS@,$SDL_LIBS,;t t

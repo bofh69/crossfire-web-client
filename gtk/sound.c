@@ -58,16 +58,40 @@ ChildProcess* sound_process;
 #ifndef WIN32
 int init_sounds()
 {
+    char sound_path[MAX_BUF];
+
     /* Easy trick - global nosound is set in the arg processing - if set,
      * just return -1 - this way, the calling function only needs to check
      * the value of init_sounds, and not worry about checking nosound.
      */
     if (!want_config[CONFIG_SOUND]) return -1;
 
-    //if (sound_process) //kill
+    if (sound_server[0] == '\0') {
+        LOG(LOG_ERROR,"init_sounds:", "sound-server variable not set to anything");
+	return -1;
+    }
+    /* if an absolute path is given, we use it unadorned.  Otherwise, we
+     * use the path in the BINDIR.
+     */
+    if (sound_server[0] == '/')
+	strcpy(sound_path, sound_server);
+    else
+	sprintf(sound_path, "%s/%s", BINDIR, sound_server);
 
-    sound_process=raiseChild(BINDIR "/cfsndserv",CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR);
+    if (access(sound_path, X_OK)<0) {
+	fprintf(stderr,"Unable to access %s sound server process\n", sound_path);
+	return -1;
+    }
+
+    sound_process=raiseChild(sound_path,CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR);
     logChildPipe(sound_process, LOG_INFO, CHILD_STDOUT|CHILD_STDERR);
+
+    if (fcntl(sound_process->tube[0], F_SETFL, O_NONBLOCK)<0) {
+	/* setting non blocking isn't 100% critical, but a good thing if
+	 * we can do it	
+	 */
+	perror("init_sounds: Warning - unable to set non blocking on sound pipe\n");
+    }
     sound_pipe=fdopen(sound_process->tube[0],"w");
     signal(SIGPIPE, signal_pipe);/*perhaps throwing this out :\*/
     return 0;

@@ -5351,6 +5351,7 @@ static void usage(char *progname)
     puts("-showicon        - Print status icons in inventory window");
     puts("-sound           - Enable sound output (default).");
     puts("-nosound         - Disable sound output.");
+    puts("-sound_server <path> - Executable to use to play sounds.");
     puts("-resists <val>   - Control look of resistances.");
     puts("-split           - Use split windows.");
     puts("-splitinfo       - Use two information windows, segregated by information type.");
@@ -5550,6 +5551,14 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-nosound")) {
 	    want_config[CONFIG_SOUND] = FALSE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-sound_server")) {
+	    if (++on_arg == argc) {
+		LOG(LOG_WARNING,"gtk::init_windows","-sound_server requires an executable pathname");
+		return 1;
+	    }
+	    sound_server = argv[on_arg];
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-split")) {

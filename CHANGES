@@ -3,6 +3,39 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Sound cleanup and redo for ALSA9.  The bulk of this is to break out the
+alsa9 code from the cfsndser.c and compile its own seperate cfsndserv-alsa9
+executable.  Add options to config file/gtk client to support setting
+which sound daemon to use.  Note that ALSA9 sound now works all
+properly - significant changes had to get made to the code for this
+to happen.
+--
+configure, configure.in:  The existence of ALSA9 sound does not preclude
+   compilation of OSS sound support (or others for that matter), so change
+   the logic accordingly to set variables only used for ALSA9.  Add
+   SOUND_TARGETS that can be used by the makefile, change logic of
+   setting SUBDIRS so we don't put sound-src in multiple times.
+common/client.c, common/client.h: Add sound_server variable.
+gtk/config.c: Add support for loading/saving sound_server line in gdefaults
+   file.
+gtk/gcfclient.man: Update about -sound_server option.
+gtk/gx11.c: Update help and command line processing to support -sound_server
+   option.
+gtk/sound.c: Change initialization of sound pipe to use sound_server variable
+   (set by options above) instead of hard coded cfsndserv.  Path can be
+   either be absolute or relative to to bindir.  Also change code so that
+   pipe is set for non blocking output, so if the sound daemon gets hung
+   up, won't effect rest of the client.
+sound-src/Makefile.in: Redone to handle cfsnserv-alsa9 binary.  uses
+   SOUND_TARGETS to know what to build.
+sound-src/cfsndserv.c: Remove all ALSA9 code, since that is now in
+   alsa9.c file.
+sound-src/alsa9.c, sound-src/common.c: Nwe files - alsa9.c contains
+   logic for playing sound.  common.c is common routines.  Idea being
+   that other code could get pulled from cfsndserv.c and use the common.c
+   routines for parsing sound file, etc.
+MSW 2005-02-13
+
 common/script.c: fix broken script with a parameter change.
 gtk/help.c: use 'const gchar' instead of 'gchar' as widget text.
 gtk/win32/config.h: snprintf => _snprintf

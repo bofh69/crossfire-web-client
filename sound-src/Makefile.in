@@ -17,6 +17,8 @@ AR = @AR@
 RANLIB = @RANLIB@
 INCLUDES = -I.. -I../common -I.
 SND_LIBS= @SND_LIBS@
+ALSA9_LIBS = @ALSA9_LIBS@
+SOUND_TARGETS=@SOUND_TARGETS@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -42,7 +44,7 @@ EXTRA_DIST = \
 SND_OBJS= $(SOURCES:.c=.o)
 
 
-all:  soundsdef.h cfsndserv
+all:  soundsdef.h cfsndserv $(SOUND_TARGETS)
 
 proto:
 	echo "Nothing to do for proto"
@@ -59,6 +61,9 @@ soundsdef.h: sounds
 cfsndserv: $(SND_OBJS) soundsdef.h
 	$(CC) -o cfsndserv $(SND_OBJS) $(LDFLAGS) $(SND_LIBS) $(DMALLOC_LIB)
 
+cfsndserv-alsa9: common.c alsa9.o soundsdef.h
+	$(CC) -o cfsndserv-alsa9 $(LDFLAGS) alsa9.o $(ALSA9_LIBS) $(DMALLOC_LIB)
+
 archive:
 	$(MKDIR) /tmp/$(VERSION)/sound-src
 	$(CP) $(HEARDERS) $(SOURCES) $(EXTRA_DIST) /tmp/$(VERSION)/sound-src
@@ -68,11 +73,18 @@ clean::
 
 distclean::
 	$(MAKE) clean
-	$(RM) -f Makefile cfsndserv sounds soundsdef.h
+	$(RM) -f Makefile cfsndserv sounds soundsdef.h cfsndserv-alsa9 
+
+clean::
+	$(RM) -f alsa9.o
 
 install:
 	$(INSTALL) -d ${bindir}
 	$(INSTALL) cfsndserv ${bindir}
+	@for file in $(SOUND_TARGETS); do \
+	    $(INSTALL) $$file ${bindir}; \
+	    echo $(INSTALL) $$file ${bindir}; \
+	done
 
 depend:
 	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(PROTOSOURCES) $(SOURCES)

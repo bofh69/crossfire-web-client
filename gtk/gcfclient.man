@@ -175,6 +175,18 @@ most useful if you do not want sound, due to lack of hardware or lack
 of desire for sound.  Default is sound is enabled.
 
 .TP
+.B -sound_server <executable>
+This is the name of the sound server process to execute.  If the path starts
+with a slash, this is the absolute path to the executable.  Otherwise,
+the value of BINDIR (install location of client executable) will be
+prepended.  This defaults to cfsndserv.  Changing this value may be necessary
+if the default sound daemon does not work as expected.
+
+Note that the input that the executable takes is special, requiring an
+executable especially designed for crossfire to work. You can not point
+generic sound playing programs and expect it to work.
+
+.TP
 .B -splash|-nosplash
 Enable/Disables splash screen.  When enabled, a window with a Crossfire logo is displayed
 while the client is starting up.

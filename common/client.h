@@ -104,7 +104,7 @@ typedef struct ClientSocket {
 
 extern ClientSocket csocket;
 
-extern char *server, *client_libdir,*image_file;
+extern char *server, *client_libdir,*image_file, *sound_server;
 
 typedef enum Input_State {Playing, Reply_One, Reply_Many,
 	Configure_Keys, Command_Mode, Metaserver_Select} Input_State;

@@ -173,44 +173,61 @@ if eval "test x$sound = xyes"; then
   AC_CHECK_HEADER(sys/soundcard.h, oss_sound=yes, oss_sound=no)
   AC_CHECK_HEADER(sys/audioio.h, sun_sound=yes, sun_sound=no)
 
+  dnl alsa9 sound support is now independent of other sound systems,
+  dnl so don't preclude compilation of others just because
+  dnl we find it.
+
   if eval "test x$alsa9_sound = xyes"; then
 	echo "Using ALSA sound system (0.9.x)"
 	CFLAGS="$CFLAGS -DALSA9_SOUND"
-	SND_LIBS="-lasound -lm"
-	SUBDIRS="$SUBDIRS sound-src"
-  else
+	SOUND_TARGETS="$SOUND_TARGETS cfsndserv-alsa9"
+	ALSA9_LIBS="-lasound -lm"
+	SOUND_SRC="sound-src";
+
+	dnl It appears that alsa9 sound while having the same headers, is
+	dnl not backwards compatible, so if you have alsa 0.9 or later, you
+	dnl can't compile the old old sound daemon, so if we find alsa9,
+	dnl disable old alsa.
+	alsa_sound="no";
+   fi
+
     if eval "test x$alsa_sound = xyes"; then
   	echo "Using ALSA sound system"
   	CFLAGS="$CFLAGS -DALSA_SOUND"
   	SND_LIBS="-lasound -lm"
-  	SUBDIRS="$SUBDIRS sound-src"
+	SOUND_SRC="sound-src";
     else 
       if eval "test x$sgi_sound = xyes"; then
 	echo "Using SGI sound system"
   	CFLAGS="$CFLAGS -DSGI_SOUND"
   	SND_LIBS="-laudio"
-  	SUBDIRS="$SUBDIRS sound-src"
+	SOUND_SRC="sound-src";
       else
         if eval "test x$oss_sound = xyes"; then
 	  echo "Using OSS sound system"
 	  CFLAGS="$CFLAGS -DOSS_SOUND"
 	  SND_LIBS="-lm"
 	  AC_CHECK_LIB(ossaudio, main, SND_LIBS="$LIBS -lossaudio")
-	  SUBDIRS="$SUBDIRS sound-src"
+	  SOUND_SRC="sound-src";
         else
           if eval "test x$sun_sound = xyes"; then
   	      echo "Using solaris sound system"
   	      CFLAGS="$CFLAGS -DSUN_SOUND"
   	      SND_LIBS="-lm"
-  	      SUBDIRS="$SUBDIRS sound-src"
+	      SOUND_SRC="sound-src";
   	  else
   	      echo "No suitable sound system found."
           fi
         fi
       fi
     fi
-  fi
   # this fi is for the sound == yes check above
+fi
+
+dnl basically, only want to put sound-src once in the
+dnl subdirs listing.
+if eval "test x$SOUND_SRC != x"; then
+    SUBDIRS="$SUBDIRS $SOUND_SRC";
 fi
 
 dnl AC_PATH_PROG(GNOMECONFIG, gnome-config)
@@ -236,6 +253,8 @@ AC_SUBST(SND_LIBS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(TARGET)
 AC_SUBST(SUBDIRS)
+AC_SUBST(SOUND_TARGETS)
+AC_SUBST(ALSA9_LIBS)
 
 dnl Check for SDL 1.1.3 and sdl_image
 dnl note SDL_image does not ship with an sdl-image-config

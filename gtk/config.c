@@ -769,6 +769,10 @@ void load_defaults()
 	    server = strdup_local(cp);	/* memory leak ! */
 	    continue;
 	}
+	else if (!strcmp(inbuf, "sound_server")) {
+	    sound_server = strdup_local(cp);	/* memory leak ! */
+	    continue;
+	}
 	else if (!strcmp(inbuf, "nopopups")) {
 	    /* Changed name from nopopups to popups, so inverse value */
 	    want_config[CONFIG_POPUPS] = !val;
@@ -873,6 +877,7 @@ void save_defaults()
     fprintf(fp,"# 'True' and 'False' are the proper cases for those two values\n");
     fprintf(fp,"# 'True' and 'False' have been replaced with 1 and 0 respectively\n");
     fprintf(fp,"server: %s\n", server);
+    fprintf(fp,"sound_server: %s\n", sound_server);
     fprintf(fp,"faceset: %s\n", face_info.want_faceset);
 
     /* This isn't quite as good as before, as instead of saving things as 'True'
