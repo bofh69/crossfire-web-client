@@ -1,7 +1,7 @@
 %define Name crossfire
 %define extra client
-%define version 1.0.0
-%define sndversion 0.95.4
+%define version 1.1.0
+%define sndversion 1.1.0
 %define release 1
 %define prefix /usr/X11R6
 
@@ -14,11 +14,8 @@ Copyright: GPL
 Vendor: Crossfire Development Team
 URL: http://crossfire.real-time.com
 Packager: Crossfire Development Team <crossfire-devel@lists.real-time.com>
-Source0 ftp://ftp.scruz.net/users/mwedel/public/crossfire-%{extra}-%{version}.tar.gz
-Source1: ftp://ftp.scruz.net/users/mwedel/public/client-%{sndversion}-au-sounds.tgz
-Source2: ftp://ftp.scruz.net/users/mwedel/public/client-%{sndversion}-raw-sounds.tgz
-Source3: client.gnome
-Source3: shield.png
+Source0: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/crossfire-client-%{version}.tar.gz
+Source1: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/crossfire-sounds-%{sndversion}.tar.gz
 BuildRoot: /var/tmp/%{Name}-%{extra}-%{version}-root
 
 %description
@@ -45,13 +42,18 @@ Group: X11/Games
 %description gtk
 GTK version of the crossfire client
 
+#Not supported yet
+#%package gnome
+#Summary:gnome client for %{Name}
+#Group: X11/Games
+#
+#%description gnome
+#gnome version of the crossfire client
+
 %prep
-%setup -a 1 -a 2 -n crossfire-%{extra}-%{version}
+%setup -a 1 -n %{Name}-client-%{version}
 
 %build
-
-# Prevent name clash with sounds.dist changed to sounds
-mv sounds sound-files
 
 chmod 755 configure
 CFLAGS="$RPM_OPT_FLAGS" \
@@ -74,35 +76,75 @@ make install \
     bindir=$RPM_BUILD_ROOT/usr/X11R6/bin \
     mandir=$RPM_BUILD_ROOT/usr/X11R6/man/man1
 
-install sound-files/* $RPM_BUILD_ROOT/usr/share/sounds/crossfire
+install %{Name}-sounds-%{sndversion}/* $RPM_BUILD_ROOT/usr/share/sounds/crossfire
 
-install -c client.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/cfclient.1
-install -c client.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gcfclient.1
-install -c $RPM_SOURCE_DIR/client.gnome $RPM_BUILD_ROOT/usr/share/gnome/apps/Games/crossfire.desktop
-install -c $RPM_SOURCE_DIR/shield.png $RPM_BUILD_ROOT/usr/share/pixmaps/
+install -c x11/cfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/cfclient.1
+install -c gtk/gcfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gcfclient.1
+# Not supported yet
+# install -c gnome/gnome-cfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gnome-cfclient.1
+
+install -c gnome/client.gnome $RPM_BUILD_ROOT/usr/share/gnome/apps/Games/crossfire.desktop
+install -c pixmaps/shield.png $RPM_BUILD_ROOT/usr/share/pixmaps/
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+# Cannot figure out how to get just the sounds to build as noarch, so this
+# is a hack to make it work
+mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{sndversion}-%{release}.%{_arch}.rpm %{_rpmdir}/noarch/%{Name}-client-sounds-%{sndversion}-%{release}.noarch.rpm
 
 %files
 %defattr(644,root,root,755)
-%doc README CHANGES COPYING Protocol sounds
+%doc CHANGES COPYING License NOTES README TODO
 %attr(755,root,root) /usr/X11R6/bin/cfclient
-/usr/X11R6/man/man1/cfclient.1.gz
+/usr/X11R6/man/man1/cfclient.1*
 
 %files gtk
 %defattr(644,root,root,755)
-%doc README CHANGES COPYING Protocol sounds
+%doc CHANGES COPYING License NOTES README TODO
 %attr(755,root,root) /usr/X11R6/bin/gcfclient
-/usr/X11R6/man/man1/gcfclient.1.gz
+/usr/X11R6/man/man1/gcfclient.1*
 /usr/share/gnome/apps/Games/crossfire.desktop
 /usr/share/pixmaps/shield.png
+
+# Not supported yet
+#%files gnome
+#%defattr(644,root,root,755)
+#%doc CHANGES COPYING License NOTES README TODO
+#%attr(755,root,root) /usr/X11R6/bin/gnome-cfclient
+#/usr/X11R6/man/man1/gnome-cfclient.1*
+#/usr/share/gnome/apps/Games/crossfire.desktop
+#/usr/share/pixmaps/shield.png
 
 %files sounds
 %defattr(644,root,root,755)
 /usr/share/sounds/crossfire/*
 
 %changelog
+* Mon Dec 31 2001 Bob Tanner <tanner@real-time.com>
+- Rolled 1.1.0 client
+- NOTE Mark's new email address
+- Fixed typo in install target for x11 client.
+
+* Sun Dec 30 2001 Mark Wedel <mwedel@sonic.net>
+- README: Update notes on needing png (and not xpm) library.  Update mailing 
+  alias.
+- configure.in, configure: As the seperate sound program (cfsndserv) is the
+  only supported sound configuration, remove new_sound_system defines
+  and ability to use the old (now non existant) sound system.
+  Have configure exit with error message if png library is not found, 
+  as it is critical to the build process.  Change it so that
+  gnome/Makefile is always built so that making of releases works.
+- gnome/gnome-cfclient.man, help/about.h, x11/cfclient.man: Update mail address.
+- gtk/gtkproto.h, x11/x11proto.h: Rebuilt, prototypes for some changed for
+  signed to unsigned characters.
+- gtk/gx11.c, gtk/png.c, pixmaps/stipple.111, x11/png.c, x11/x11.c, x11/xutil.c,
+  pixmaps/stipple.111 pixmaps/stipple.112:
+  Mostly changes to fix compile warnings and make sure we are passing the
+  right types to the various image creation functions (8 bit data).
+- sound-src/Makefile.in: Add soundsdef.h to list of things to build.
+- x11/x11.h: Remove extra semicolon.
+
 * Mon May 14 2001 Bob Tanner <tanner@real-time.com>
 - Rolled new client 1.0.0
 
