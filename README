@@ -150,7 +150,7 @@ Sounds data is multiplied by some ratio (<1) evaluated from it's position and
 volume and added to the buffers, starting from the next after the one being
 played. 
 
-So bigger buffer means bigger delay, before th sound is actually played, but
+So bigger buffer means bigger delay, before the sound is actually played, but
 the smaller buffer is, the bigger is possibility, we won't succeed filling the
 next buffer, before last is played.
 
