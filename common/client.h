@@ -286,6 +286,25 @@ extern Face_Information face_info;
 extern Client_Player cpl;		/* Player object. */
 extern char *skill_names[MAX_SKILL];
 
+
+typedef enum LogLevel {
+  LOG_DEBUG = 0, LOG_INFO = 1, LOG_WARNING = 2, LOG_ERROR = 3, LOG_CRITICAL = 4
+} LogLevel;
+
+typedef struct LogEntry{
+    char* message;
+    char* origin;
+    LogLevel level;
+    struct LogEntry* next;
+} LogEntry;
+extern LogEntry* LogFirst;
+extern LogEntry* LogLast;
+typedef void (*LogListener)(LogEntry*);
+#define LOG_APPEND(_Entry) if (LogLast) {LogLast->next=_Entry;} else {LogFirst=_Entry;};LogLast=_Entry;_Entry->next=NULL
+#define LOG_NEW_ENTRY (LogEntry*)calloc(1,sizeof(LogEntry))
+#define LOG_SETMESSAGE(_Entry,_msg) if (_Entry->message){free(_Entry->message);};_Entry->message=strdup(_msg)
+#define LOG_SETORIGIN(_Entry,_orig) if (_Entry->origin){free(_Entry->origin);};_Entry->origin=strdup(_orig)
+
 #ifndef CPROTO
 /* We need to declare most of the structs before we can include this */
 #include <proto.h>
@@ -417,3 +436,4 @@ typedef struct
 extern PlayerPosition pl_pos;
 
 extern struct Map the_map;
+

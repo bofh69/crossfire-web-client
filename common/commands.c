@@ -82,7 +82,7 @@ static void get_skill_info(char *data, int len)
 	}
 	sn = strchr(cp, ':');
 	if (!sn) {
-	    fprintf(stderr,"get_skill_info: corrupt line: %s\n", cp);
+	    LOG (LOG_WARNING,"common::get_skill_info","corrupt line: /%s/", cp);
 	    return;
 	}
 	*sn=0;
@@ -90,7 +90,7 @@ static void get_skill_info(char *data, int len)
 	val = atoi(cp);
 	val -= CS_STAT_SKILLINFO;
 	if (val < 0 || val> CS_NUM_SKILLS) {
-	    fprintf(stderr,"get_skill_info: invalid skill number %d\n", val);
+	    LOG (LOG_WARNING,"common::get_skill_info","invalid skill number %d", val);
 	    return;
 	}
 	if (skill_names[val]) free(skill_names[val]);
@@ -115,7 +115,7 @@ void ReplyInfoCmd(char *buf, int len)
     }
     if (i>=len) {
 	/* Don't print buf, as it may contain binary data */
-	fprintf(stderr,"ReplyInfoCmd: Never found a space in the replyinfo\n");
+	LOG (LOG_WARNING,"common::ReplyInfoCmd","Never found a space in the replyinfo");
 	return;
     }
     /* Null out the space and put cp beyond it */
@@ -150,7 +150,7 @@ void SetupCmd(char *buf, int len)
      * The client then must sort this out
      */
 
-    LOG(0,"Get SetupCmd:: %s\n", buf);
+    LOG(0,"commands.c","Get SetupCmd:: %s\n", buf);
     for(s=0;;) {
 	if(s>=len)	/* ugly, but for secure...*/
 	    break;
@@ -227,7 +227,7 @@ void SetupCmd(char *buf, int len)
 		 * the user is playing on an older server.
 		 */
 		if (!strcmp(param,"FALSE")) {
-		    fprintf(stderr,"Server returned FALSE on setup command %s\n",cmd);
+		    LOG (LOG_WARNING,"common::SetupCmd","Server returned FALSE on setup command %s",cmd);
 #if 0
 /* This should really be a callback to the gui if it needs to re-examine
  * the results here.
@@ -308,7 +308,7 @@ void SetupCmd(char *buf, int len)
         }
     }
 	else {
-		fprintf(stderr,"Got setup for a command we don't understand: %s %s\n",
+		LOG (LOG_INFO,"common::SetupCmd","Got setup for a command we don't understand: %s %s",
 		    cmd, param);
 	}
     }
@@ -331,7 +331,7 @@ void ExtendedInfoSetCmd (char *data, int len){
 void AddMeFail(char *data, int len)
 {
     (void)data;(void)len; /* __UNUSED__ */
-    LOG(0,"addme_failed received.\n");
+    LOG(1,"commands.c","addme_failed received.\n");
     return;
 }
 
@@ -341,7 +341,7 @@ void AddMeFail(char *data, int len)
 void AddMeSuccess(char *data, int len)
 {
     (void)data;(void)len; /* __UNUSED__ */
-    LOG(0,"addme_success received.\n");
+    LOG(1,"commands.c","addme_success received.\n");
     return;
 }
 
@@ -353,7 +353,7 @@ void GoodbyeCmd(char *data, int len)
      * reconnect to the server or a different server without having to
      * rerun the client.
      */
-    fprintf(stderr,"Received goodbye command from server - exiting\n");
+    LOG (LOG_WARNING,"common::GoodbyeCmd","Received goodbye command from server - exiting");
     exit(0);
 }
 
@@ -366,13 +366,13 @@ void AnimCmd(unsigned char *data, int len)
 
     anum=GetShort_String(data);
     if (anum<0 || anum > MAXANIM) {
-	fprintf(stderr,"AnimCmd: animation number invalid: %d\n", anum);
+	LOG (LOG_WARNING,"common::AnimCmd","animation number invalid: %d", anum);
 	return;
     }
     animations[anum].flags=GetShort_String(data+2);
     animations[anum].num_animations = (len-4)/2;
     if (animations[anum].num_animations<1) {
-	    fprintf(stderr,"AnimCmd: num animations invalid: %d\n",
+	    LOG (LOG_WARNING,"common::AnimCmd","num animations invalid: %d",
 		    animations[anum].num_animations);
 	    return;
     }
@@ -380,11 +380,12 @@ void AnimCmd(unsigned char *data, int len)
     for (i=4,j=0; i<len; i+=2,j++)
 	animations[anum].faces[j]=GetShort_String(data+i);
 
-    if (j!=animations[anum].num_animations) 
-	fprintf(stderr,"Calculated animations does not equal stored animations? (%d!=%d)\n",
+    if (j!=animations[anum].num_animations)
+	LOG(LOG_WARNING,"common::AnimCmd",
+        "Calculated animations does not equal stored animations? (%d!=%d)",
 		j, animations[anum].num_animations);
 
-    LOG(0,"Received animation %d, %d faces\n", anum, animations[anum].num_animations);
+    LOG(LOG_DEBUG,"common::AnimCmd","Received animation %d, %d faces", anum, animations[anum].num_animations);
 }
 
 Smooths smooths[MAXSMOOTH];
@@ -447,7 +448,7 @@ void DrawInfoCmd(char *data, int len)
     (void)len; /* __UNUSED__ */
     buf = strchr(data, ' ');
     if (!buf) {
-	fprintf(stderr,"DrawInfoCmd - got no data\n");
+	LOG(LOG_WARNING,"common::DrawInfoCmd","got no data");
 	buf="";
     }
     else buf++;
@@ -551,15 +552,15 @@ void StatsCmd(unsigned char *data, int len)
 		    break;
 		}
 		default:
-		    fprintf(stderr,"Unknown stat number %d\n",c);
+		    LOG(LOG_WARNING,"common::StatsCmd","Unknown stat number %d",c);
 /*		    abort();*/
 	    }
 	}
     }
 
     if (i>len) {
-	fprintf(stderr,"got stats overflow, processed %d bytes out of %d\n",
-		i, len);
+	    LOG(LOG_WARNING,"common::StatsCmd","got stats overflow, processed %d bytes out of %d",
+            i, len);
     }
     draw_stats(redraw);
     draw_message_window(0);
@@ -602,7 +603,7 @@ void handle_query (char *data, int len)
     /* Let the window system know this may have changed */
     x_set_echo();
 
-      LOG(0,"Received query.  Input state now %d\n", cpl.input_state);
+      LOG(0,"commands.c","Received query.  Input state now %d\n", cpl.input_state);
 }
 
 /* Sends a reply to the server.  text contains the null terminated
@@ -641,8 +642,8 @@ void PlayerCmd(unsigned char *data, int len)
     i+= nlen;
 
     if (i!=len) {
-	fprintf(stderr,"PlayerCmd: lengths do not match (%d!=%d)\n",
-		len, i);
+	LOG(LOG_WARNING,"common::PlayerCmd","lengths do not match (%d!=%d)",
+        len, i);
     }
     new_player(tag, name, weight, face);
 }
@@ -675,12 +676,12 @@ static void common_item_command(uint8 *data, int len, int revision)
     pos+=4;
 
     if (pos == len) {
-	fprintf(stderr,"ItemCmd: Got location with no other data\n");
-	return;
+        LOG(LOG_WARNING,"common::ItemCmd","Got location with no other data");
+        return;
     }
     else if (loc < 0) { /* delete following items */
-	fprintf(stderr,"ItemCmd: got location with negative value (%d)\n", loc);
-	return;
+        LOG(LOG_WARNING,"common::ItemCmd","Got location with negative value (%d)", loc);
+        return;
     } else {
 	while (pos < len) {
 	    tag=GetInt_String(data+pos); pos+=4;
@@ -703,7 +704,7 @@ static void common_item_command(uint8 *data, int len, int revision)
 	    item_actions (locate_item(tag));
 	}
 	if (pos>len) 
-	    fprintf(stderr,"ItemCmd: Overread buffer: %d > %d\n", pos, len);
+	    LOG(LOG_WARNING,"common::ItemCmd","Overread buffer: %d > %d", pos, len);
     }
 }
 
@@ -755,7 +756,7 @@ void UpdateItemCmd(unsigned char *data, int len)
     if (sendflags & UPD_LOCATION) {
 	loc=GetInt_String(data+pos);
 	env=locate_item(loc);
-	if (!env) fprintf(stderr,"UpdateItemCmd: got tag of unknown object (%d) for new location\n", loc);
+	LOG(LOG_WARNING,"common::UpdateItemCmd","Got tag of unknown object (%d) for new location", loc);
 	pos+=4;
     }
     if (sendflags & UPD_FLAGS) {
@@ -777,7 +778,7 @@ void UpdateItemCmd(unsigned char *data, int len)
 	    name[nlen]='\0';
     }
     if (pos>len)  {
-	    fprintf(stderr,"UpdateItemCmd: Overread buffer: %d > %d\n", pos, len);
+	    LOG(LOG_WARNING,"common::UpdateItemCmd","Overread buffer: %d > %d", pos, len);
 	    return; /* we have bad data, probably don't want to store it then */
     }
     if (sendflags & UPD_ANIM) {
@@ -809,7 +810,7 @@ void DeleteItem(unsigned char *data, int len)
 	delete_item(tag);
     }
     if (pos>len) 
-	fprintf(stderr,"ItemCmd: Overread buffer: %d > %d\n", pos, len);
+	LOG(LOG_WARNING,"common::ItemCmd","Overread buffer: %d > %d", pos, len);
 }
 
 void DeleteInventory(unsigned char *data, int len)
@@ -820,7 +821,7 @@ void DeleteInventory(unsigned char *data, int len)
     tag=atoi((const char*)data);
 
     if (tag<0) {
-	fprintf(stderr,"DeleteInventory: Invalid tag: %d\n", tag);
+	LOG(LOG_WARNING,"common::DeleteInventory","Invalid tag: %d", tag);
 	return;
     }
     remove_item_inventory(locate_item(tag));
@@ -885,7 +886,7 @@ static void expand_face(int hx, int hy, int dx, int dy, int oldface, int newface
 	    }
 	    /* Not found - either no space for a new face, or the oldface was already cleared out */
 	    if (i>= MAXLAYERS) {
-		fprintf(stderr,"expand_face: Did not find empty slot\n");
+		LOG(LOG_WARNING,"common::expand_face","Did not find empty slot");
 		return;
 	    }
 
@@ -1181,7 +1182,7 @@ void map_scrollCmd(char *data, int len)
     dx = atoi(data);
     buf = strchr(data,' ');
     if (!buf) {
-	fprintf(stderr,"map_scrollCmd: Got short packet.\n");
+	LOG(LOG_WARNING,"common::map_scrollCmd","Got short packet.");
 	return;
     }
     buf++;
@@ -1284,7 +1285,7 @@ void MagicMapCmd(unsigned char *data, int len)
     /* First, extract the size/position information. */
     if (sscanf((const char*)data,"%hd %hd %hd %hd", &cpl.mmapx, &cpl.mmapy, 
 	&cpl.pmapx, &cpl.pmapy)!=4) {
-	fprintf(stderr,"Was not able to properly extract magic map size, pos\n");
+	LOG(LOG_WARNING,"common::MagicMapCmd","Was not able to properly extract magic map size, pos");
 	return;
     }
     /* Now we need to find the start of the actual data.  There are 4
@@ -1293,12 +1294,12 @@ void MagicMapCmd(unsigned char *data, int len)
     for (cp=data, i=0; i<4 && cp < (data+len); cp++)
 	if (*cp==' ') i++;
     if (i!=4) {
-	fprintf(stderr,"Was unable to find start of magic map data\n");
+	LOG(LOG_WARNING,"common::MagicMapCmd","Was unable to find start of magic map data");
 	return;
     }
     i = len - (cp - data); /* This should be the number of bytes left */
     if (i != cpl.mmapx * cpl.mmapy) {
-	fprintf(stderr,"magic map size mismatch.  Have %d bytes, should have %d\n",
+	LOG(LOG_WARNING,"common::MagicMapCmd","Magic map size mismatch.  Have %d bytes, should have %d",
 		i, cpl.mmapx * cpl.mmapy);
 	return;
     }

@@ -115,7 +115,7 @@ void SoundCmd(unsigned char *data,  int len)
     int x, y, num, type;
 
     if (len!=5) {
-	fprintf(stderr,"Got invalid length on sound command: %d\n", len);
+	LOG(LOG_WARNING,"gtk::SoundCmd","Got invalid length on sound command: %d", len);
 	return;
     }
     x = data[0];

@@ -188,7 +188,7 @@ int send_command(const char *command, int repeat, int must_send) {
 
     script_monitor(command,repeat,must_send);
     if (cpl.input_state==Reply_One) {
-	fprintf(stderr,"Wont send command '%s' - since in reply mode!\n ",
+	LOG(LOG_ERROR,"common::send_command","Wont send command '%s' - since in reply mode!",
 		command);
 	cpl.count=0;
 	return 0;
@@ -237,7 +237,7 @@ int send_command(const char *command, int repeat, int must_send) {
 void CompleteCmd(unsigned char *data, int len)
 {
     if (len !=6) {
-	fprintf(stderr,"comc - invalid length %d - ignoring\n", len);
+	LOG(LOG_ERROR,"common::CompleteCmd","Invalid length %d - ignoring", len);
     }
     csocket.command_received = GetShort_String(data);
     csocket.command_time = GetInt_String(data+2);
@@ -427,7 +427,7 @@ void extended_command(const char *ocommand) {
     else if (!strcmp(cp,"showweight"))		set_show_weight (cpnext);
     else if (!strcmp(cp,"take"))		command_take(cp, cpnext);
     else if (!strcmp(cp,"unbind"))		unbind_key(cpnext);
-    else if (!strcmp(cp,"num_free_items"))	fprintf(stderr,"num_free_items=%d\n", num_free_items());
+    else if (!strcmp(cp,"num_free_items"))	LOG(LOG_INFO,"common::extended_command","num_free_items=%d", num_free_items());
     else {
 	/* just send the command(s)  (if `ocommand' is a compound command */
 	/* then split it and send each part seperately */

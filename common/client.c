@@ -147,7 +147,7 @@ void DoClient(ClientSocket *csocket)
 	}
         len = csocket->inbuf.len - (data - csocket->inbuf.buf);
 	/* Terminate the buffer */
-	LOG(0,"Command:%s (%d)\n",csocket->inbuf.buf+2, len);
+	LOG(0,"Common::DoClient","Command:%s (%d)",csocket->inbuf.buf+2, len);
 	for(i=0;i < NCOMMANDS;i++) {
 	    if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {
 		    script_watch((char*)csocket->inbuf.buf+2,data,len,commands[i].cmdformat);
@@ -183,12 +183,13 @@ int init_connection(char *host, int port)
     protox = getprotobyname("tcp");
     if (protox == (struct protoent  *) NULL)
     {
-	fprintf(stderr, "Error getting prorobyname (tcp)\n");
+	LOG (LOG_ERROR,"common::init_connection", "Error getting protobyname (tcp)");
 	return -1;
     }
     fd = socket(PF_INET, SOCK_STREAM, protox->p_proto);
     if (fd==-1) {
-	perror("init_connection:  Error on socket command.\n");
+	    perror("init_connection:  Error on socket command.\n");
+	    LOG (LOG_ERROR,"common::init_connection", "Error on socket command");
 	return -1;
     }
     insock.sin_family = AF_INET;
@@ -199,28 +200,30 @@ int init_connection(char *host, int port)
 	struct hostent *hostbn = gethostbyname(host);
 	if (hostbn == (struct hostent *) NULL)
 	{
-	    fprintf(stderr,"Unknown host: %s\n",host);
+	    LOG (LOG_ERROR,"common::init_connection","Unknown host: %s",host);
 	    return -1;
 	}
 	memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
     }
     if (connect(fd,(struct sockaddr *)&insock,sizeof(insock)) == (-1))
     {
-	perror("Can't connect to server");
-	return -1;
+        LOG (LOG_ERROR,"common::init_connection","Can't connect to server");
+	    perror("Can't connect to server");
+	    return -1;
     }
 #ifndef WIN32
     if (fcntl(fd, F_SETFL, O_NDELAY)==-1) {
-	fprintf(stderr,"InitConnection:  Error on fcntl.\n");
+	LOG (LOG_ERROR,"common::init_connection","Error on fcntl.");
     }
 #else
     {
 		unsigned long tmp = 1;
 		if (ioctlsocket(fd, FIONBIO, &tmp)<0) {
-	    fprintf(stderr,"InitConnection:  Error on ioctlsocket.\n");
+	    LOG (LOG_ERROR,"common::init_connection","Error on ioctlsocket.");
         }
 	}
 #endif
+
 #ifdef TCP_NODELAY
     /* turn off nagle algorithm */
     if (use_config[CONFIG_FASTTCP]) {
@@ -241,7 +244,7 @@ int init_connection(char *host, int port)
 
     if (oldbufsize<newbufsize) {
 	if(setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&newbufsize, sizeof(&newbufsize))) {
-            LOG(1,"InitConnection: setsockopt unable to set output buf size to %d\n", newbufsize);
+            LOG(LOG_WARNING,"InitConnection: setsockopt"," unable to set output buf size to %d", newbufsize);
 	    setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&oldbufsize, sizeof(&oldbufsize));
 	}
     }
@@ -285,9 +288,9 @@ void negotiate_connection(int sound)
     }
 
     if (csocket.sc_version<1023) {
-	fprintf(stderr,"Server does not support PNG images, yet that is all this client\n");
-	fprintf(stderr,"supports.  Either the server needs to be upgraded, or you need to\n");
-	fprintf(stderr,"downgrade your client.\n");
+	LOG (LOG_WARNING,"common::negotiate_connection","Server does not support PNG images, yet that is all this client");
+	LOG (LOG_WARNING,"common::negotiate_connection","supports.  Either the server needs to be upgraded, or you need to");
+	LOG (LOG_WARNING,"common::negotiate_connection","downgrade your client.");
 	exit(1);
     }
 

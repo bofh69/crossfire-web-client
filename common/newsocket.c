@@ -41,7 +41,7 @@
 /* The LOG function is normally part of the libcross.  If client compile,
  * we need to supply something since some of the common code calls this.
  */
-void LOG (int logLevel, char *format, ...)
+/*void LOG (int logLevel, char *format, ...)
 {
 #ifdef DEBUG
     va_list ap;
@@ -49,7 +49,7 @@ void LOG (int logLevel, char *format, ...)
     vfprintf(stderr, format, ap);
     va_end(ap);
 #endif
-}
+}*/
 
 
 /* We don't care what these values are in the client, since
@@ -79,11 +79,11 @@ static int write_socket(int fd, unsigned char *buf, int len)
 #endif
 
 	if (amt < 0) { /* We got an error */
-	    LOG(llevError,"New socket (fd=%d) write failed.\n", fd);
+	    LOG(llevError,"write_socket","New socket (fd=%d) write failed.\n", fd);
 	    return -1;
 	}
 	if (amt==0) {
-	    LOG(llevError,"Write_To_Socket: No data written out.\n");
+	    LOG(llevError,"write_socket","Write_To_Socket: No data written out.\n");
 	}
 	len -= amt;
 	pos += amt;
@@ -199,7 +199,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 	    if (WSAGetLastError()!=EAGAIN && WSAGetLastError()!=WSAEWOULDBLOCK) {
 #endif
 		perror("ReadPacket got an error.");
-		LOG(llevDebug,"ReadPacket got error %d, returning -1",errno);
+		LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning -1",errno);
 		return -1;
 	    }
 	    return 0;	/*Error */
@@ -218,7 +218,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
      */
     toread = 2+(sl->buf[0] << 8) + sl->buf[1] - sl->len;
     if ((toread + sl->len) > len) {
-	LOG(llevError,"SockList_ReadPacket: Want to read more bytes than will fit in buffer.\n");
+	LOG(llevError,"SockList_ReadPacket","Want to read more bytes than will fit in buffer.\n");
 	/* return error so the socket is closed */
 	return -1;
     }
@@ -238,7 +238,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 	    if (WSAGetLastError()!=EAGAIN && WSAGetLastError()!=WSAEWOULDBLOCK) {
 #endif
 		perror("ReadPacket got an error.");
-		LOG(llevDebug,"ReadPacket got error %d, returning 0",errno);
+		LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning 0",errno);
 	    }
 	    return 0;	/*Error */
 	}
@@ -251,7 +251,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 	toread -= stat;
 	if (toread==0) return 1;
 	if (toread < 0) {
-	    LOG(llevError,"SockList_ReadPacket: Read more bytes than desired.");
+	    LOG(llevError,"SockList_ReadPacket","SockList_ReadPacket: Read more bytes than desired.");
 	    return 1;
 	}
     } while (toread>0);

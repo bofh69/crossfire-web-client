@@ -32,8 +32,8 @@
 #include <unistd.h>
 #endif
 #include <png.h>
-
 #include <client-types.h>
+#include <client.h>
 
 /* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
@@ -158,7 +158,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 
     if (!pixels) {
 	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-	fprintf(stderr,"Out of memory - exiting\n");
+	LOG(LOG_CRITICAL,"gtk::png_to_data","Out of memory - exiting");
 	exit(1);
     }
 
@@ -238,7 +238,7 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
     if (*width > MAX_IMAGE_WIDTH || new_width > MAX_IMAGE_WIDTH
     || *height > MAX_IMAGE_HEIGHT || new_height > MAX_IMAGE_HEIGHT)
     {
-	fprintf(stderr, "Image too big\n");
+	LOG(LOG_CRITICAL,"gtk::rescale_rgba_data","Image too big");
 	exit(0);
     }
 

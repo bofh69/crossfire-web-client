@@ -126,7 +126,7 @@ static void create_icon_image(uint8 *data, PixmapInfo *pi, int pixmap_num)
     if (rgba_to_gdkpixmap(gtkwin_root->window, data, pi->icon_width, pi->icon_height,
 		(GdkPixmap**)&pi->icon_image, (GdkBitmap**)&pi->icon_mask,
 		gtk_widget_get_colormap(gtkwin_root)))
-		    fprintf(stderr,"Unable to create scaled image, dest num = %d\n", pixmap_num);
+		    LOG (LOG_ERROR,"gtk::create_icon_image","Unable to create scaled image, dest num = %d\n", pixmap_num);
 }
 
 /* These little helper functions just make the code below much more readable */

@@ -57,21 +57,21 @@ void VersionCmd(char *data, int len)
     csocket.cs_version = atoi(data);
     /* set sc_version in case it is an old server supplying only one version */
     csocket.sc_version = csocket.cs_version;
-    if (csocket.cs_version != atoi(data)) {
-	fprintf(stderr,"Differing C->S version numbers (%d,%d)\n",
-	   VERSION_CS,csocket.cs_version);
+    if (csocket.cs_version != VERSION_CS) {
+        LOG(LOG_WARNING,"common::VersionCmd","Differing C->S version numbers (%d,%d)",
+            VERSION_CS,csocket.cs_version);
 /*	exit(1);*/
     }
     cp = strchr(data,' ');
     if (!cp) return;
     csocket.sc_version = atoi(cp);
     if (csocket.sc_version != VERSION_SC) {
-	fprintf(stderr,"Differing S->C version numbers (%d,%d)\n",
-	   VERSION_SC,csocket.sc_version);
+    LOG(LOG_WARNING,"common::VersionCmd","Differing S->C version numbers (%d,%d)",
+        VERSION_SC,csocket.sc_version);
     }
     cp = strchr(cp+1, ' ');
     if (cp)
-	fprintf(stderr,"Playing on server type %s\n", cp);
+	LOG(LOG_INFO,"common::VersionCmd","Playing on server type %s", cp);
 }
 
 void SendVersion(ClientSocket csock)

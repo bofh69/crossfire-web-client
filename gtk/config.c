@@ -509,7 +509,7 @@ void configdialog(GtkWidget *widget) {
 		num_extras++;
 	    }
 	    else {
-		fprintf(stderr,"Unknown cbutton type %d\n", cbuttons[i].type);
+            LOG(LOG_WARNING,"gtk::configdialog","Unknown cbutton type %d", cbuttons[i].type);
 	    }
 	    if (cbuttons[i].widget) {
 		extras[num_extras++] = cbuttons[i].widget;
@@ -749,7 +749,7 @@ void load_defaults()
 	for (i=1; i<CONFIG_NUMS; i++) {
 	    if (!strcmp(config_names[i], inbuf)) {
 		if (val == -1) {
-		    fprintf(stderr,"Invalid value/line: %s: %s\n", inbuf, cp);
+		    LOG(LOG_WARNING,"gtk::load_defaults","Invalid value/line: %s: %s", inbuf, cp);
 		} else {
 		    want_config[i] = val;
 		}
@@ -764,7 +764,7 @@ void load_defaults()
 	 */
 	if (!strcmp(inbuf,"mapsize")) {
 	    if (sscanf(cp,"%hdx%hd", &want_config[CONFIG_MAPWIDTH], &want_config[CONFIG_MAPHEIGHT])!=2) {
-		fprintf(stderr,"Malformed mapsize option in gdefaults.  Ignoring\n");
+		LOG(LOG_WARNING,"gtk::load_defaults","Malformed mapsize option in gdefaults.  Ignoring");
 	    }
 	}
 	else if (!strcmp(inbuf, "server")) {
@@ -798,7 +798,7 @@ void load_defaults()
 	else if (!strcmp(inbuf, "resists")) {
 	    if (val) want_config[CONFIG_RESISTS] = val;
 	}
-	else fprintf(stderr,"Unknown line in gdefaults: %s %s\n", inbuf, cp);
+	else LOG(LOG_WARNING,"gtk::load_defaults","Unknown line in gdefaults: %s %s", inbuf, cp);
     }
     fclose(fp);
     /* Make sure some of the values entered are sane - since a user can
@@ -806,32 +806,39 @@ void load_defaults()
      * in
      */
     if (want_config[CONFIG_ICONSCALE]< 25 || want_config[CONFIG_ICONSCALE]>200) {
-	fprintf(stderr,"ignoring iconscale value read for gdefaults file.\n");
-	fprintf(stderr,"Invalid iconscale range (%d), valid range for -iconscale is 25 through 200\n", want_config[CONFIG_ICONSCALE]);
+	LOG(LOG_WARNING,"gtk::load_defaults","Ignoring iconscale value read for gdefaults file.\n"
+            "Invalid iconscale range (%d), valid range for -iconscale is 25 through 200",
+            want_config[CONFIG_ICONSCALE]);
 	want_config[CONFIG_ICONSCALE] = use_config[CONFIG_ICONSCALE];
     }
     if (want_config[CONFIG_MAPSCALE]< 25 || want_config[CONFIG_MAPSCALE]>200) {
-	fprintf(stderr,"ignoring mapscale value read for gdefaults file.\n");
-	fprintf(stderr,"Invalid mapscale range (%d), valid range for -iconscale is 25 through 200\n", want_config[CONFIG_MAPSCALE]);
+	LOG(LOG_WARNING,"gtk::load_defaults","ignoring mapscale value read for gdefaults file.\n"
+	        "Invalid mapscale range (%d), valid range for -iconscale is 25 through 200",
+            want_config[CONFIG_MAPSCALE]);
 	want_config[CONFIG_MAPSCALE] = use_config[CONFIG_MAPSCALE];
     }
     if (!want_config[CONFIG_LIGHTING]) {
-	fprintf(stderr,"No lighting mechanism selected - will not use darkness code\n");
+	LOG(LOG_WARNING,"gtk::load_defaults","No lighting mechanism selected - will not use darkness code");
 	want_config[CONFIG_DARKNESS] = FALSE;
     }
     if (want_config[CONFIG_RESISTS] > 2) {
-	fprintf(stderr,"ignoring resists display value read for gdafaults file.\n");
-	fprintf(stderr,"Invalid value (%d), must be one value of 0,1 or 2.\n",want_config[CONFIG_RESISTS]);
+	LOG(LOG_WARNING,"gtk::load_defaults","ignoring resists display value read for gdafaults file.\n"
+            "Invalid value (%d), must be one value of 0,1 or 2.",
+            want_config[CONFIG_RESISTS]);
 	want_config[CONFIG_RESISTS] = 0;
     }
     
     /* Make sure the map size os OK */
     if (want_config[CONFIG_MAPWIDTH] < 9 || want_config[CONFIG_MAPWIDTH] > MAP_MAX_SIZE) {
-	fprintf(stderr,"Invalid map width (%d) option in gdefaults. Valid range is 9 to %d\n", want_config[CONFIG_MAPWIDTH], MAP_MAX_SIZE);
+	LOG(LOG_WARNING,"gtk::load_defaults",
+            "Invalid map width (%d) option in gdefaults. Valid range is 9 to %d",
+            want_config[CONFIG_MAPWIDTH], MAP_MAX_SIZE);
 	want_config[CONFIG_MAPWIDTH] = use_config[CONFIG_MAPWIDTH];
     }
     if (want_config[CONFIG_MAPHEIGHT] < 9 || want_config[CONFIG_MAPHEIGHT] > MAP_MAX_SIZE) {
-	fprintf(stderr,"Invalid map height (%d) option in gdefaults. Valid range is 9 to %d\n", want_config[CONFIG_MAPHEIGHT], MAP_MAX_SIZE);
+	LOG(LOG_WARNING,"gtk::load_defaults",
+            "Invalid map height (%d) option in gdefaults. Valid range is 9 to %d",
+            want_config[CONFIG_MAPHEIGHT], MAP_MAX_SIZE);
 	want_config[CONFIG_MAPHEIGHT] = use_config[CONFIG_MAPHEIGHT];
     }
 
@@ -855,11 +862,11 @@ void save_defaults()
 
     sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
     if (make_path_to_file(path)==-1) {
-	fprintf(stderr,"Could not create %s\n", path);
+	LOG(LOG_ERROR,"gtk::save_defaults","Could not create %s", path);
 	return;
     }
     if ((fp=fopen(path,"w"))==NULL) {
-	fprintf(stderr,"Could not open %s\n", path);
+	LOG(LOG_ERROR,"gtk::save_defaults","Could not open %s", path);
 	return;
     }
     fprintf(fp,"# This file is generated automatically by gcfclient.\n");

@@ -276,10 +276,13 @@ GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_look, *gtkwin_inv;
 
 
 static GtkWidget *gtkwin_about = NULL;
+static GtkWidget *gtkwin_bug = NULL;
 static GtkWidget *gtkwin_splash = NULL;
 static GtkWidget *gtkwin_chelp = NULL;
 static GtkWidget *gtkwin_shelp = NULL;
 static GtkWidget *gtkwin_magicmap = NULL;
+
+static GtkWidget *bugtrack = NULL;
 
 /* these are the panes used in splitting up the window in non root
  * windows mode.  Need to be globals so we can get/set the
@@ -338,7 +341,7 @@ void do_network() {
 	script_fdset(&maxfd,&tmp_read);
 	pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
 	if (pollret==-1) {
-	    fprintf(stderr, "Got errno %d on select call.\n", errno);
+	    LOG(LOG_WARNING,"gtk::do_network", "Got errno %d on select call.", errno);
 	}
 	else if ( pollret>0 ) {
 	    if (FD_ISSET(csocket.fd, &tmp_read)) {
@@ -355,12 +358,12 @@ void do_network() {
 	else
 #endif
 	gtk_draw_map(FALSE);
-	LOG(0, "Map redrawn\n");
+	LOG(0,"gtk::do_network","Map redrawn\n");
 
 #endif
 
     } else {
-	printf ("locked for network recieves.\n");
+	LOG(LOG_INFO,"gtk::do_network","locked for network recieves.\n");
     }
 }
 
@@ -394,7 +397,7 @@ void event_loop()
     gtk_main();
     gtk_timeout_remove(tag);
 
-    fprintf(stderr,"gtk_main exited, returning from event_loop\n");
+    LOG(LOG_WARNING,"gtk::event_loop","gtk_main exited, returning from event_loop");
 }
 
 
@@ -580,7 +583,7 @@ static void init_cache_data()
 #include "pixmaps/question.xpm"
 
 
-    printf ("Init Cache\n");
+    LOG(LOG_INFO,"gtk::init_cache_data","Init Cache");
     
     style = gtk_widget_get_style(gtkwin_root);
     pixmaps[0] = malloc(sizeof(PixmapInfo));
@@ -1948,7 +1951,7 @@ void draw_info(const char *str, int color) {
 		gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text2), (info2_num_chars - info2_max_chars) + 5000);
 		info2_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text2));
 		gtk_text_set_point(GTK_TEXT(gtkwin_info_text2), info2_num_chars);
-		fprintf(stderr,"reduced output buffer2 to %d chars\n", info1_num_chars);
+		LOG(LOG_INFO,"gtk::draw_info","reduced output buffer2 to %d chars", info1_num_chars);
 	    }
 	}
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, str , -1);
@@ -1972,7 +1975,9 @@ void draw_info(const char *str, int color) {
 		gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text), to_delete);
 		info1_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text));
 		gtk_text_set_point(GTK_TEXT(gtkwin_info_text), info1_num_chars);
-		fprintf(stderr,"trim_info_window, deleted %d characters, %d remaining\n", to_delete, info1_num_chars);
+		LOG(LOG_INFO,"gtk::draw_info",
+                "trim_info_window, deleted %d characters, %d remaining",
+                to_delete, info1_num_chars);
 #else
 		/* This works, so it is possible to completely clear the window */
 		info1_num_chars = gtk_text_get_length(GTK_TEXT (gtkwin_info_text));
@@ -2448,7 +2453,7 @@ static int get_message_display(GtkWidget *frame) {
     /* stat bar part - start */
 
     /* initialize the vbox for the stat bars (Hp,Mana,Grace,Food)
-     * and pack it into the main hbox 
+     * and pack it into the main hbox
      */
     vbox = gtk_vbox_new (FALSE, 0);
     gtk_box_pack_start (GTK_BOX(res_mainbox), vbox, FALSE, TRUE, 0);
@@ -3276,12 +3281,118 @@ void aboutdialog(GtkWidget *widget) {
 		     NULL, text , -1);
     gtk_adjustment_set_value(GTK_TEXT(aboutlabel)->vadj, 0.0);
   }
-  else { 
+  else {
     gdk_window_raise (gtkwin_about->window);
   }
 }
 
+void createBugTracker(){
+    if (bugtrack ==NULL){
+        LogEntry* le;
+        bugtrack = gtk_text_new (NULL, NULL);
+        gtk_signal_connect (GTK_OBJECT (bugtrack), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &bugtrack);
+        gtk_text_set_editable (GTK_TEXT (bugtrack), FALSE);
+        gtk_text_insert (GTK_TEXT (bugtrack), NULL, &bugtrack->style->black,NULL, "MESSAGES TRACK:\n" , -1);
+        for (le=LogFirst;le;le=le->next)
+            gtk_text_insert (GTK_TEXT (bugtrack), NULL, &bugtrack->style->black,NULL, getLogText(le) , -1);
 
+    }
+}
+
+void bugdialog(GtkWidget *widget) {
+#include "help/bugreport.h"
+  GtkWidget *vbox;
+  GtkWidget *hbox;
+  GtkWidget *buglabel;
+  GtkWidget *vscrollbar;
+  GtkWidget *bugbutton;
+  GtkWidget *buggtkpixmap;
+  GdkPixmap *buggdkpixmap;
+  GdkBitmap *buggdkmask;
+
+  GtkStyle *style;
+  GdkFont* font;
+  if(!gtkwin_bug) {
+
+    gtkwin_bug = gtk_window_new (GTK_WINDOW_DIALOG);
+    gtk_window_position (GTK_WINDOW (gtkwin_bug), GTK_WIN_POS_CENTER);
+    gtk_widget_set_usize (gtkwin_bug,500,450);
+    gtk_window_set_title (GTK_WINDOW (gtkwin_bug), "Report a bug in Crossfire");
+
+    gtk_signal_connect (GTK_OBJECT (gtkwin_bug), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_bug);
+    //gtk_signal_connect (GTK_OBJECT (gtkwin_bug), "destroy", GTK_SIGNAL_FUNC(bugreportdestroy), &gtkwin_bug);
+
+    gtk_container_border_width (GTK_CONTAINER (gtkwin_bug), 0);
+    vbox = gtk_vbox_new(FALSE, 2);
+    gtk_container_add (GTK_CONTAINER(gtkwin_bug),vbox);
+    style = gtk_widget_get_style(gtkwin_bug);
+    gtk_widget_realize(gtkwin_bug);
+    buggdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_bug->window,
+						  &buggdkmask,
+						  &style->bg[GTK_STATE_NORMAL],
+						  (gchar **)crossfiretitle);
+    buggtkpixmap= gtk_pixmap_new (buggdkpixmap, buggdkmask);
+    gtk_box_pack_start (GTK_BOX (vbox),buggtkpixmap, FALSE, TRUE, 0);
+    gtk_widget_show (buggtkpixmap);
+
+    hbox = gtk_hbox_new(FALSE, 2);
+    gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
+
+    buglabel = gtk_text_new (NULL, NULL);
+    gtk_widget_set_style(buglabel,style);
+    //GtkStyle*   gtk_widget_get_style            (GtkWidget *widget);
+    gtk_text_set_editable (GTK_TEXT (buglabel), FALSE);
+    gtk_box_pack_start (GTK_BOX (hbox),buglabel, TRUE, TRUE, 0);
+    gtk_widget_show (buglabel);
+
+    vscrollbar = gtk_vscrollbar_new (GTK_TEXT (buglabel)->vadj);
+    gtk_box_pack_start (GTK_BOX (hbox),vscrollbar, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
+
+    gtk_widget_show (vscrollbar);
+
+    gtk_widget_show (hbox);
+
+    hbox = gtk_hbox_new(FALSE, 2);
+    createBugTracker();
+    font = gdk_font_load ("-*-fixed-*-*-*-*-12-*-*-*-*-*-*-*");
+    if (font){
+        style = gtk_style_copy(gtk_widget_get_style (bugtrack));
+        gdk_font_unref(style->font);
+        style->font=font; /*no ref since transfert*/
+        font=NULL;
+        gtk_widget_set_style(bugtrack,style);
+    }
+    gtk_box_pack_start (GTK_BOX (hbox),bugtrack, TRUE, TRUE, 0);
+    gtk_widget_show (bugtrack);
+    vscrollbar = gtk_vscrollbar_new (GTK_TEXT (bugtrack)->vadj);
+    gtk_box_pack_start (GTK_BOX (hbox),vscrollbar, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
+    gtk_widget_show (vscrollbar);
+    gtk_widget_show (hbox);
+
+    hbox = gtk_hbox_new(FALSE, 2);
+    bugbutton = gtk_button_new_with_label ("Close");
+    gtk_signal_connect_object (GTK_OBJECT (bugbutton), "clicked",
+			       GTK_SIGNAL_FUNC(gtk_widget_destroy),
+			       GTK_OBJECT (gtkwin_bug));
+    gtk_box_pack_start (GTK_BOX (hbox), bugbutton, TRUE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+    gtk_widget_show (bugbutton);
+    gtk_widget_show (hbox);
+
+    gtk_widget_show (vbox);
+    gtk_widget_show (gtkwin_bug);
+    gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
+		     NULL, VERSION_INFO , -1);
+    gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
+		     NULL, text , -1);
+    gtk_adjustment_set_value(GTK_TEXT(buglabel)->vadj, 0.0);
+  }
+  else {
+    gdk_window_raise (gtkwin_bug->window);
+  }
+}
 
 void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButton *event) {
   gchar *buf;
@@ -4136,13 +4247,13 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_widget_show (menu_items);
 
   menu_items = gtk_menu_item_new_with_label("About");
-  gtk_menu_append(GTK_MENU (helpmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (helpmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(aboutdialog), NULL);
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new ();
-  gtk_menu_append(GTK_MENU (helpmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (helpmenu), menu_items);
   gtk_widget_show(menu_items);
 
 
@@ -4159,6 +4270,15 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_widget_show(menu_items);
 
 
+  menu_items = gtk_menu_item_new ();
+  gtk_menu_append(GTK_MENU (helpmenu), menu_items);
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_menu_item_new_with_label("Report a bug");
+  gtk_menu_append(GTK_MENU (helpmenu), menu_items);
+  gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
+			    GTK_SIGNAL_FUNC(bugdialog), NULL);
+  gtk_widget_show(menu_items);
 
   root_helpmenu = gtk_menu_item_new_with_label("Help");
   
@@ -4866,7 +4986,7 @@ void draw_magic_map()
     cpl.mapxres = (262)/cpl.mmapx;
     cpl.mapyres = (262)/cpl.mmapy;
     if (cpl.mapxres < 1 || cpl.mapyres<1) {
-      fprintf(stderr,"magic map resolution less than 1, map is %dx%d\n",
+      LOG(LOG_WARNING,"gtk::draw_magic_map","magic map resolution less than 1, map is %dx%d",
 	      cpl.mmapx, cpl.mmapy);
       return;
     }
@@ -4919,7 +5039,7 @@ void draw_magic_map()
     cpl.mapxres = (262)/cpl.mmapx;
     cpl.mapyres = (262)/cpl.mmapy;
     if (cpl.mapxres < 1 || cpl.mapyres<1) {
-      fprintf(stderr,"magic map resolution less than 1, map is %dx%d\n",
+      LOG(LOG_WARNING,"gtk::draw_magic_map","magic map resolution less than 1, map is %dx%d\n",
 	      cpl.mmapx, cpl.mmapy);
       return;
     }
@@ -5127,14 +5247,14 @@ void set_window_pos()
 	    else if (!strcmp(buf, "game_bar_vpane:")) gtk_paned_set_position(GTK_PANED(game_bar_vpane),pos);
 	    else if (!strcmp(buf, "inv_look_vpane:")) gtk_paned_set_position(GTK_PANED(inv_look_vpane),pos);
 	    else if (use_config[CONFIG_SPLITINFO] && !strcmp(buf, "info_vpane:")) gtk_paned_set_position(GTK_PANED(info_vpane),pos);
-	    else fprintf(stderr,"Found bogus line in window position file:\n%s %s\n", buf, cp);
+	    else LOG(LOG_ERROR,"gtk::set_window_pos","Found bogus line in window position file:\n/%s/ /%s/", buf, cp);
 	} else {
 	    if (!strcmp(buf,"win_game:")) {
                 gdk_window_move_resize(gtkwin_root->window, wx, wy, w, h);
 		continue;
 	    }
 	    if (!want_config[CONFIG_SPLITWIN]) {
-		fprintf(stderr,"Found bogus line in window position file:\n%s %s\n", buf, cp);
+		LOG(LOG_ERROR,"gtk::set_window_pos","Found bogus line in window position file:\n%s %s", buf, cp);
 		continue;
 	    }
 	    if (!strcmp(buf,"win_stats:")) {
@@ -5233,7 +5353,7 @@ int init_windows(int argc, char **argv)
 #else
     strcpy(VERSION_INFO,"GTK Win32 Client " VERSION);
 #endif
-
+    LOG(LOG_INFO,"Client Version",VERSION_INFO);
     /* Set this global so we get skill experience - gtk client can display
      * it, so lets get the info.
      */
@@ -5257,7 +5377,7 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-display")) {
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-display requires a display name\n");
+		LOG(LOG_WARNING,"gtk::init_windows","-display requires a display name");
 		return 1;
 	    }
 	    display_name = argv[on_arg];
@@ -5277,7 +5397,7 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-faceset")) {
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-faceset requires a faceset name/number\n");
+		LOG(LOG_WARNING,"gtk::init_windows","-faceset requires a faceset name/number");
 		return 1;
 	    }
 	    face_info.want_faceset = argv[on_arg];
@@ -5297,12 +5417,12 @@ int init_windows(int argc, char **argv)
 	}
 	else if( !strcmp( argv[on_arg],"-iconscale")) {
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-iconscale requires a percentage value\n");
+		LOG(LOG_WARNING,"gtk::init_windows","-iconscale requires a percentage value");
 		return 1;
 	    }
 	    want_config[CONFIG_ICONSCALE] = atoi(argv[on_arg]);
 	    if (want_config[CONFIG_ICONSCALE] < 25 || want_config[CONFIG_ICONSCALE]>200) {
-		fprintf(stderr,"Valid range for -iconscale is 25 through 200\n");
+		LOG(LOG_WARNING,"gtk::init_windows","Valid range for -iconscale is 25 through 200");
 		want_config[CONFIG_ICONSCALE]=100;
 		return 1;
 	    }
@@ -5310,12 +5430,12 @@ int init_windows(int argc, char **argv)
 	}
 	else if( !strcmp( argv[on_arg],"-mapscale")) {
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-mapscale requires a percentage value\n");
+		LOG(LOG_WARNING,"gtk::init_windows","-mapscale requires a percentage value");
 		return 1;
 	    }
 	    want_config[CONFIG_MAPSCALE] = atoi(argv[on_arg]);
 	    if (want_config[CONFIG_MAPSCALE] < 25 || want_config[CONFIG_MAPSCALE]>200) {
-		fprintf(stderr,"Valid range for -mapscale is 25 through 200\n");
+		LOG(LOG_WARNING,"gtk::init_windows","Valid range for -mapscale is 25 through 200");
 		want_config[CONFIG_MAPSCALE]=100;
 		return 1;
 	    }
@@ -5324,7 +5444,7 @@ int init_windows(int argc, char **argv)
 	else if (!strcmp(argv[on_arg],"-mapsize")) {
 	    char *cp, x, y=0;
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-mapsize requires a XxY value\n");
+		LOG(LOG_WARNING,"gtk::init_windows","-mapsize requires a XxY value");
 		return 1;
 	    }
 	    x = atoi(argv[on_arg]);
@@ -5332,14 +5452,14 @@ int init_windows(int argc, char **argv)
 		if (*cp == 'x' || *cp == 'X') break;
 
 	    if (*cp==0) {
-		fprintf(stderr,"-mapsize requires both and X and Y value (ie, XxY - note the\nx in between.\n");
+		LOG(LOG_WARNING,"gtk::init_windows","-mapsize requires both and X and Y value (ie, XxY - note the\nx in between.");
 	    } else {
 		y = atoi(cp+1);
 	    }
 	    if (x<9 || y<9) {
-		fprintf(stderr,"map size must be positive values of at least 9\n");
+		LOG(LOG_WARNING,"gtk::init_windows","map size must be positive values of at least 9");
 	    } else if (x>MAP_MAX_SIZE || y>MAP_MAX_SIZE) {
-		fprintf(stderr,"Map size can not be larger than %d x %d \n", MAP_MAX_SIZE, MAP_MAX_SIZE);
+		LOG(LOG_WARNING,"gtk::init_windows","Map size can not be larger than %d x %d", MAP_MAX_SIZE, MAP_MAX_SIZE);
 
 	    } else {
 		want_config[CONFIG_MAPWIDTH]=x;
@@ -5365,7 +5485,7 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-port")) {
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-port requires a port number\n");
+		LOG(LOG_WARNING,"gtk::init_windows","-port requires a port number");
 		return 1;
 	    }
 	    want_config[CONFIG_PORT] = atoi(argv[on_arg]);
@@ -5373,7 +5493,7 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-sdl")) {
 #ifndef HAVE_SDL
-	    fprintf(stderr,"client not compiled with sdl support.  Ignoring -sdl\n");
+	    LOG(LOG_WARNING,"gtk::init_windows","client not compiled with sdl support.  Ignoring -sdl");
 #else
 	    want_config[CONFIG_SDL] = TRUE;
 #endif
@@ -5385,7 +5505,7 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-server")) {
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-server requires a host name\n");
+		LOG(LOG_WARNING,"gtk::init_windows","-server requires a host name");
 		return 1;
 	    }
 	    server = argv[on_arg];
@@ -5413,7 +5533,7 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-resists")) {
 	    if (++on_arg == argc) {
-		fprintf(stderr,"-resists requires a value\n");
+		LOG(LOG_WARNING,"gtk::init_windows","-resists requires a value");
 		return 1;
 	    }
 	    want_config[CONFIG_RESISTS]=atoi(argv[on_arg]);
@@ -5448,7 +5568,7 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else {
-	    fprintf(stderr,"Do not understand option %s\n", argv[on_arg]);
+	    LOG(LOG_WARNING,"gtk::init_windows","Do not understand option %s", argv[on_arg]);
 	    usage(argv[0]);
 	    return 1;
 	}
@@ -5639,19 +5759,104 @@ char *get_metaserver()
     }
     return cpl.input_text;
 }
+void gtkLogListener (LogEntry *le){
+    if (bugtrack)
+        gtk_text_insert (GTK_TEXT (bugtrack), NULL, &bugtrack->style->black,NULL, getLogText(le), -1);
+}
+#define MAX_RECURSE 50
+/* a handler for the glib error logging. USed so we care ourself of the gtk/gdk warnings
+ * and make them appear in message window
+ */
+void gLogHandler (const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data){
+    static char LogOrigin[4096];
+    static int recurse = 0;
+    LogLevel level;
+    gboolean in_recursion;
+    gboolean is_fatal;
+    /*printf ("hi i received a g error on %s with severity %d and message %s\n",log_domain,log_level,message);*/
+    if (recurse > MAX_RECURSE)
+        return; /*don't Log*/
+    if (recurse == MAX_RECURSE){
+        recurse++;
+        LOG(LOG_ERROR,"gtk::gLogHandler","Too many recurse, reached limit: %d",recurse);
+        recurse--;
+        return;
+    }
+    LogOrigin[0]='\0';
+    strcat (LogOrigin,"Library::");
+    in_recursion = (log_level & G_LOG_FLAG_RECURSION) != 0;
+    is_fatal = (log_level & G_LOG_FLAG_FATAL) != 0;
+    log_level &= G_LOG_LEVEL_MASK;
+
+    if (!message)
+        message = "gLogHandler: (NULL) message";
+    if (log_domain){
+        strcat(LogOrigin,log_domain);
+        strcat(LogOrigin,"-");
+    }else
+        strcat(LogOrigin, "** ");
 
 
+    switch (log_level)
+    {
+    case G_LOG_LEVEL_ERROR:/*Our critical*/
+        strcat (LogOrigin,"ERROR");
+        level=LOG_CRITICAL;
+        break;
+    case G_LOG_LEVEL_CRITICAL:/*our error*/
+        strcat (LogOrigin,"CRITICAL");
+        level=LOG_ERROR;
+        break;
+    case G_LOG_LEVEL_WARNING:/*our warning*/
+        strcat (LogOrigin,"WARNING");
+        level=LOG_WARNING;
+        break;
+    case G_LOG_LEVEL_MESSAGE:/* message */
+        strcat (LogOrigin,"Message");
+        level=LOG_INFO;
+        break;
+    case G_LOG_LEVEL_INFO:/* message */
+        strcat (LogOrigin,"Info");
+        level=LOG_INFO;
+        break;
+    case G_LOG_LEVEL_DEBUG:/*our debug*/
+        strcat (LogOrigin,"DEBUG");
+        level=LOG_DEBUG;
+        break;
+    default:
+        strcat (LogOrigin,"LOG");
+        level=LOG_WARNING;
+      break;
+    }
+    if (in_recursion)
+        strcat(LogOrigin," (recursed)");
+    /*else
+        strcat(LogOrigin,"**: ");*/
+    recurse++;
+    LOG(level,LogOrigin,"%s",message);
+    if (is_fatal)
+            LOG(level,LogOrigin,"Last Message was fatal, aborting...");
+    recurse--;
+}
 int main(int argc, char *argv[])
 {
     int got_one=0;
-
     /* This needs to be done first.  In addition to being quite quick,
      * it also sets up some paths (client_libdir) that are needed by
      * the other functions.
      */
+    g_log_set_handler (NULL,G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL|G_LOG_LEVEL_ERROR|
+            G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_WARNING |G_LOG_LEVEL_MESSAGE|G_LOG_LEVEL_INFO|
+            G_LOG_LEVEL_DEBUG,(GLogFunc)gLogHandler,NULL);
+    g_log_set_handler ("Gtk",G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL|G_LOG_LEVEL_ERROR|
+            G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_WARNING |G_LOG_LEVEL_MESSAGE|G_LOG_LEVEL_INFO|
+            G_LOG_LEVEL_DEBUG,(GLogFunc)gLogHandler,NULL);
+    g_log_set_handler ("Gdk",G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL|G_LOG_LEVEL_ERROR|
+            G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_WARNING |G_LOG_LEVEL_MESSAGE|G_LOG_LEVEL_INFO|
+            G_LOG_LEVEL_DEBUG,(GLogFunc)gLogHandler,NULL);
 
     init_client_vars();
-    
+    setLogListener(gtkLogListener);
     /* Call this very early.  It should parse all command
      * line arguments and set the pertinent ones up in
      * globals.  Also call it early so that if it can't set up
@@ -5660,7 +5865,7 @@ int main(int argc, char *argv[])
      * likely change on the server we connect to.
      */
     if (init_windows(argc, argv)) {	/* x11.c */
-	fprintf(stderr,"Failure to init windows.\n");
+	LOG(LOG_CRITICAL,"gtk::main","Failure to init windows.");
 	exit(1);
     }
     csocket.inbuf.buf=malloc(MAXSOCKBUF);
@@ -5673,7 +5878,7 @@ int main(int argc, char *argv[])
 		WORD Version = 0x0202;
 		WSADATA wsaData;
 		if (WSAStartup( Version, &wsaData ) != 0) {
-			fprintf(stderr, "Couldn't load winsock!\nExiting.\n");
+			LOG(LOG_CRITICAL,"gtk::main", "Couldn't load winsock!");
 			exit(1);
 		}
 	}

@@ -35,6 +35,7 @@
  */
 
 #include "client.h"
+#include <stdarg.h>
 
 #include <sys/stat.h>
 
@@ -106,6 +107,79 @@ char *strdup_local(char *str) {
   char *c=(char *)malloc(sizeof(char)*strlen(str)+1);
   strcpy(c,str);
   return c;
+}
+
+
+/* logging stuff */
+LogEntry* LogFirst=NULL;
+LogEntry* LogLast=NULL;
+LogListener loglist=NULL;
+int setLogListener(LogListener li){
+    if (loglist)
+        return 0;
+    loglist=li;
+    return 1;
+}
+void clearLogListener(){
+    loglist=NULL;
+}
+static char* LogLevelTexts[]={" DEBUG  ",
+                              "  INFO  ",
+                              "WARNING ",
+                              " ERROR  ",
+                              "CRITICAL",
+                              "UNKNOWN "};
+static inline char * getLogLevelText(LogLevel level){
+    return LogLevelTexts[level>LOG_CRITICAL?LOG_CRITICAL+1:level];
+}
+char* getLogTextRaw(LogLevel level, char* origin, char*message){
+    static char mybuf[20480];
+    mybuf[0]='\0';
+    sprintf(mybuf,"[%s] (%s) %s\n",getLogLevelText(level),origin,message);
+    return mybuf;
+}
+
+char* getLogText(LogEntry* le){
+    return getLogTextRaw(le->level,le->origin,le->message);
+}
+/*
+ * Logs a message to stderr and save it in memory.
+ * Or discards the message if it is of no importanse, and none have
+ * asked to hear messages of that logLevel.
+ *
+ * See client.h for possible logLevels.
+ */
+#ifdef DEBUG
+#define MINLOG 0
+#else
+#define MINLOG 1
+#endif
+void LOG (LogLevel level, char* origin, char *format, ...)
+{
+  if (level<MINLOG)
+    return;
+  char buf[20480];  /* This needs to be really really big - larger
+		     * than any other buffer, since that buffer may
+		     * need to be put in this one.
+		     */
+
+  va_list ap;
+  va_start(ap, format);
+
+  buf[0] = '\0';
+  vsprintf(buf, format, ap);
+  //fprintf(stderr,getLogTextRaw(level,origin,buf));
+  if (strlen(buf)>0){
+    LogEntry *le = LOG_NEW_ENTRY;
+    LOG_APPEND(le);
+    LOG_SETMESSAGE(le,buf);
+    LOG_SETORIGIN(le,origin);
+    le->level=level;
+    fprintf(stderr,getLogText(le));
+    if (loglist)
+        (*loglist)(le);
+  }
+  va_end(ap);
 }
 
 

@@ -142,7 +142,7 @@ void reset_map()
     return;
 }
 
-void print_darkness()
+void print_darkness()/*too complicate to pass thru log*/
 {
 
     int x= 0;
@@ -158,7 +158,7 @@ void print_darkness()
     }
 }
 
-void print_map()
+void print_map()/*too complicate to pass thru log*/
 {
     int x= 0;
     int y= 0;
@@ -679,7 +679,7 @@ void gtk_draw_map(int redraw) {
 	/* I care about performance for 'long' updates, so put the check in to make
 	 * these a little more noticable */
 	if ((elapsed1 + elapsed2)>10000)
-	    fprintf(stderr,"sdl_gen_map: gen took %7ld, flip took %7ld, total = %7ld\n",
+	    LOG(LOG_INFO,"gtk::sdl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
 		    elapsed1, elapsed2, elapsed1 + elapsed2);
     }
 }

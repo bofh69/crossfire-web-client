@@ -78,7 +78,7 @@ uint8 get_type_from_name(const char *name)
 	    pos++;
 	}
     }
-    fprintf(stderr,"Could not find match for %s\n", name);
+    LOG(LOG_WARNING,"common::get_type_from_name","Could not find match for %s", name);
     return 255;
 }
 

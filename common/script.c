@@ -246,7 +246,7 @@ void script_init(char *params)
       /* Clean up file descriptor space */
       r=dup2(pipe1[0],0);
       if ( r != 0 ) {
-         fprintf(stderr,"Failed to set pipe1 as stdin\n");
+         fprintf(stderr,"Script Child: Failed to set pipe1 as stdin\n");
       }
 #ifdef USE_PIPE
       r=dup2(pipe2[1],1);
@@ -254,7 +254,7 @@ void script_init(char *params)
       r=dup2(pipe1[0],1);
 #endif
       if ( r != 1 ) {
-         fprintf(stderr,"Failed to set pipe2 as stdout\n");
+         fprintf(stderr,"Script Child: Failed to set pipe2 as stdout\n");
       }
       for (i=3;i<100;++i) close(i);
 
@@ -270,7 +270,7 @@ void script_init(char *params)
 #endif
 
     if (fcntl(pipe1[1], F_SETFL, O_NDELAY)==-1) {
-	fprintf(stderr,"script_init:  Error on fcntl.\n");
+	    LOG(LOG_WARNING,"common::script_init","Error on fcntl.");
     }
 
    /* realloc script array to add new entry; fill in the data */

@@ -81,8 +81,11 @@ extern int metaserver_select(char *sel);
 extern int make_path_to_dir(char *directory);
 extern int make_path_to_file(char *filename);
 extern char *strdup_local(char *str);
+extern void clearLogListener();
+extern int setLogListener(LogListener li);
+extern char* getLogText(LogEntry* le);
+extern void LOG (LogLevel logLevel, char* origin, char *format, ...);
 /* newsocket.c */
-extern void LOG(int logLevel, char *format, ...);
 extern void SockList_Init(SockList *sl, char *buf);
 extern void SockList_AddChar(SockList *sl, char c);
 extern void SockList_AddShort(SockList *sl, uint16 data);

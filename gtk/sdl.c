@@ -61,7 +61,7 @@ static SDL_Surface* fogmap;
 
 static void do_SDL_error( char* SDL_function, char* file, int line)
 {
-  fprintf( stderr, "ERROR on %s in file %s line %d\n%s\n", SDL_function,
+  LOG(LOG_CRITICAL,"SDL_function","SDL error in file %s line %d\n%s", SDL_function,
 	   file, line, SDL_GetError());
   SDL_Quit();
   exit( 1);
@@ -240,7 +240,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
       
 	if( SDL_Init( SDL_INIT_VIDEO) < 0)
 	{
-	    fprintf( stderr, "Could not initialize SDL: %s\n", SDL_GetError());
+	    LOG(LOG_CRITICAL,"gtk::init_SDL", "Could not initialize SDL: %s", SDL_GetError());
 	    gtk_main_quit();
 	}
 
@@ -827,7 +827,7 @@ void sdl_gen_map(int redraw) {
 	/* I care about performance for 'long' updates, so put the check in to make
 	 * these a little more noticable */
 	if ((elapsed1 + elapsed2)>10000)
-	    fprintf(stderr,"sdl_gen_map: gen took %7ld, flip took %7ld, total = %7ld\n",
+	    LOG(LOG_INFO,"gtk::sdl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
 		    elapsed1, elapsed2, elapsed1 + elapsed2);
     }
 } /* sdl_gen_map function */

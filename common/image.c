@@ -81,7 +81,7 @@ static int load_image(char *filename, uint8 *data, int *len, int *csum)
 	offset = atoi(cp + 1);
 	lp = strchr(cp,':');
 	if (!lp) {
-	    fprintf(stderr,"Corrupt filename - has @ but no :?\n%s\n", filename);
+	    LOG(LOG_ERROR,"common::load_image","Corrupt filename - has '@' but no ':' ?(%s)", filename);
 	    return -1;
 	}
 	length = atoi(lp + 1);
@@ -93,7 +93,7 @@ static int load_image(char *filename, uint8 *data, int *len, int *csum)
 	/* Didn't find a matching entry yet, so make one */
 	if (i == MAX_FACE_SETS) {
 	    if (last == -1) {
-		fprintf(stderr,"fd_cache filled up?  unable to load matching cache entry\n");
+		LOG(LOG_WARNING,"common::load_image","fd_cache filled up?  unable to load matching cache entry");
 		*cp = '@';	/* put @ back in string */
 		return -1;
 	    }
@@ -102,7 +102,7 @@ static int load_image(char *filename, uint8 *data, int *len, int *csum)
 #else
 	    if ((fd_cache[last].fd = open(filename, O_RDONLY))==-1) {
 #endif
-		fprintf(stderr,"unable to load listed cache file %s\n",filename);
+		LOG(LOG_WARNING,"common::load_image","unable to load listed cache file %s",filename);
 		*cp = '@';	/* put @ back in string */
 		return -1;
 	    }
@@ -214,7 +214,7 @@ static sint32 image_find_hash(char *str)
     /* If the hash table is full, this is bad because we won't be able to
      * add any new entries.
      */
-    fprintf(stderr,"image_find_hash: Hash table is full, increase IMAGE_CACHE size\n");
+    LOG(LOG_WARNING,"common::image_find_hash","Hash table is full, increase IMAGE_CACHE size");
     return -1;
 }
 
@@ -225,7 +225,7 @@ static void image_remove_hash(char *imagename, Cache_Entry *ce)
 
     hash_entry = image_find_hash(imagename);
     if (hash_entry == -1) {
-	fprintf(stderr,"Unable to find cache entry for %s, %s\n", imagename, ce->filename);
+	LOG(LOG_ERROR,"common::image_remove_hash","Unable to find cache entry for %s, %s", imagename, ce->filename);
 	return;
     }
     if (image_cache[hash_entry].cache_entry == ce) {
@@ -237,7 +237,7 @@ static void image_remove_hash(char *imagename, Cache_Entry *ce)
     last = image_cache[hash_entry].cache_entry;
     while (last->next && last->next != ce) last=last->next;
     if (!last->next) {
-	fprintf(stderr,"Unable to find cache entry for %s, %s\n", imagename, ce->filename);
+	LOG(LOG_ERROR,"common::image_rmove_hash","Unable to find cache entry for %s, %s", imagename, ce->filename);
 	return;
     }
     last->next = ce->next;
@@ -282,7 +282,7 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 check
 	if (newhash == IMAGE_HASH) newhash=0;
 	/* If the hash table is full, can't do anything */
 	if (newhash == hash) {
-	    fprintf(stderr,"image_find_hash: Hash table is full, increase IMAGE_CACHE size\n");
+	    LOG(LOG_WARNING,"common::image_find_hash","Hash table is full, increase IMAGE_CACHE size");
 	    return NULL;
 	}
     }
@@ -320,7 +320,7 @@ static void image_process_line(char *line, uint32 public)
     if (sscanf(line, "%s %u %s", imagename, &checksum, filename)==3) {
 	image_add_hash(imagename, filename, checksum, public);
     } else {
-	fprintf(stderr,"Did not parse line %s properly?\n", line);
+	LOG(LOG_WARNING,"common::image_process_line","Did not parse line %s properly?", line);
     }
 }
 
@@ -357,7 +357,7 @@ void init_common_cache_data()
 	fd_cache[i].name[0] = '\0';
     }
 }
-    
+
 
 void requestsmooth (int pnum){
     cs_print_string (csocket.fd, "asksmooth %d",pnum);
@@ -453,7 +453,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 	    sprintf(filename,"%s/.crossfire/crossfire-images/%s",
 		    getenv("HOME"), ce->filename);
 	if (load_image(filename, data, &len, &newsum)==-1) {
-	    fprintf(stderr,"file %s listed in cache file, but unable to load\n", filename);
+	    LOG(LOG_WARNING,"common::finish_face_cmd","file %s listed in cache file, but unable to load", filename);
 	    requestface(pnum, face);
 	    return;
 	}
@@ -463,7 +463,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 
     if (!(png_tmp = png_to_data(data, len, &nx, &ny))) {
 	/* If the data is bad, remove it if it is in the players private cache */
-	fprintf(stderr,"Got error on png_to_data, image=%s\n",face);
+	LOG(LOG_WARNING,"common::finish_face_cmd","Got error on png_to_data, image=%s",face);
 	if (ce) {
 	    if (!ce->public) unlink(filename);
 	    image_remove_hash(face,ce);
@@ -476,7 +476,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
      * the gui section of the code.
      */
     if (create_and_rescale_image_from_data(ce, pnum, png_tmp,nx, ny)) {
-	fprintf(stderr,"Got error on create_and_rescale_image_from_data, file=%s\n",filename);
+	LOG(LOG_WARNING,"common::finish_face_cmd","Got error on create_and_rescale_image_from_data, file=%s",filename);
 	requestface(pnum, face);
     }
     if (png_tmp != NULL)
@@ -524,7 +524,7 @@ void FaceCmd(unsigned char *data,  int len)
      * structures may not be initialized.
      */
     if (!use_config[CONFIG_CACHE]) {
-	fprintf(stderr,"Received a 'face' command when we are not caching\n");
+	LOG(LOG_WARNING,"common::FaceCmd","Received a 'face' command when we are not caching");
 	return;
     }
     pnum = GetShort_String(data);
@@ -545,7 +545,7 @@ void Face1Cmd(unsigned char *data,  int len)
      * structures may not be initialized.
      */
     if (!use_config[CONFIG_CACHE]) {
-	fprintf(stderr,"Received a 'face' command when we are not caching\n");
+	LOG(LOG_WARNING,"common::Face1Cmd","Received a 'face' command when we are not caching");
 	return;
     }
     pnum = GetShort_String(data);
@@ -567,7 +567,7 @@ void Face2Cmd(uint8 *data,  int len)
      * structures may not be initialized.
      */
     if (!use_config[CONFIG_CACHE]) {
-	fprintf(stderr,"Received a 'face' command when we are not caching\n");
+	LOG(LOG_WARNING,"common::Face2Cmd","Received a 'face' command when we are not caching");
 	return;
     }
     pnum = GetShort_String(data);
@@ -586,7 +586,7 @@ void ImageCmd(uint8 *data,  int len)
     pnum = GetInt_String(data);
     plen = GetInt_String(data+4);
     if (len<8 || (len-8)!=plen) {
-	fprintf(stderr,"ImageCmd: Lengths don't compare (%d,%d)\n",
+	LOG(LOG_WARNING,"common::ImageCmd","Lengths don't compare (%d,%d)",
 		(len-8),plen);
 	return;
     }
@@ -603,7 +603,7 @@ void Image2Cmd(uint8 *data,  int len)
     setnum = data[4];
     plen = GetInt_String(data+5);
     if (len<9 || (len-9)!=plen) {
-	fprintf(stderr,"Image2Cmd: Lengths don't compare (%d,%d)\n",
+	LOG(LOG_WARNING,"common::Image2Cmd","Lengths don't compare (%d,%d)",
 		(len-9),plen);
 	return;
     }
@@ -625,7 +625,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 
     if (use_config[CONFIG_CACHE]) {
 	if (facetoname[face]==NULL) {
-	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
+	    LOG(LOG_WARNING,"common::display_newpng","Caching images, but name for %ld not set", face);
 	}
 	/* Make necessary leading directories */
 	sprintf(filename, "%s/.crossfire/crossfire-images",getenv("HOME"));
@@ -666,7 +666,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 #else
 	if ((tmpfile = fopen(filename,"w"))==NULL) {
 #endif
-	    fprintf(stderr,"Can not open %s for writing\n", filename);
+	    LOG(LOG_WARNING,"common::display_newpng","Can not open %s for writing", filename);
 	}
 	else {
 	    /* found a file we can write to */
@@ -691,7 +691,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 	     */
 	    sprintf(filename,"%s/.crossfire/crossfire-images/bmaps.client", getenv("HOME"));
 	    if ((tmpfile=fopen(filename, "a"))==NULL) {
-		fprintf(stderr,"Can not open %s for appending\n", filename);
+		LOG(LOG_WARNING,"common::display_newpng","Can not open %s for appending", filename);
 	    }
 	    else {
 		fprintf(tmpfile, "%s %u %c%c/%s.%d\n",
@@ -756,11 +756,11 @@ void get_image_info(char *data, int len)
             if (!(cps[i] = strtok(NULL, ":"))) badline=1;
 	}
         if (badline) {
-            fprintf(stderr,"get_image_info - bad data, ignoring line:\n  %s", lp);
+            LOG(LOG_WARNING,"common::get_image_info","bad data, ignoring line:/%s/", lp);
 	} else {
             onset = atoi(cps[0]);
             if (onset >=MAX_FACE_SETS) {
-		fprintf(stderr,"get_image_info: setnum is too high: %d > %d\n",
+		LOG(LOG_WARNING,"common::get_image_info","setnum is too high: %d > %d",
                     onset, MAX_FACE_SETS);
 	    }
             face_info.facesets[onset].prefix = strdup_local(cps[1]);
@@ -850,7 +850,7 @@ void get_image_sums(uint8 *data, int len)
 	 */
 	finish_face_cmd(imagenum, checksum, 1, cp, faceset);
 	if (imagenum > stop) 
-	    fprintf(stderr,"Received an image beyond our range? %d > %d\n", imagenum, stop);
+	    LOG(LOG_WARNING,"common::get_image_sums","Received an image beyond our range? %d > %d", imagenum, stop);
 	cp += slen;
     }
 }

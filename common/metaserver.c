@@ -83,7 +83,7 @@ char* get_line_from_sock(char* s, size_t n, int fd)
     if (!s) return s;
     if (n != MS_LARGE_BUF*4-1)
     {
-        fprintf(stderr,"Serious program logic error in get_line_from_sock().\n");
+        LOG(LOG_CRITICAL,"common::get_line_from_sock","Serious program logic error in get_line_from_sock().");
         exit(-1);
     }
 
@@ -137,6 +137,7 @@ char* get_line_from_sock(char* s, size_t n, int fd)
 
 #endif /* Win32 */
 
+
 /* This contacts the metaserver and gets the list of servers.  returns 0
  * on success, 1 on failure.  Errors will get dumped to stderr,
  * so most errors should be reasonably clear.
@@ -162,7 +163,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
     protox = getprotobyname("tcp");
     if (protox == (struct protoent  *) NULL)
     {
-        fprintf(stderr, "Error getting protobyname (tcp)\n");
+        LOG(LOG_WARNING,"common::metaserver_get_info","Error getting protobyname (tcp)");
         return 1;
     }
     fd = socket(PF_INET, SOCK_STREAM, protox->p_proto);
@@ -178,7 +179,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
         struct hostent *hostbn = gethostbyname(metaserver);
         if (hostbn == (struct hostent *) NULL)
         {
-            fprintf(stderr,"Unknown metaserver hostname: %s\n",metaserver);
+            LOG(LOG_WARNING,"common::metaserver_get_info","Unknown metaserver hostname: %s",metaserver);
 	    return 1;
 	}
         memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
@@ -220,7 +221,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	char *cp,*cp1;
 
 	if ((cp=strchr(inbuf,'|'))==NULL) {
-	    fprintf(stderr,"Corrupt line from server: %s\n", inbuf);
+	    LOG(LOG_WARNING,"common::metaserver_get_info","Corrupt line from server: %s", inbuf);
 	    break;
 	}
 	*cp=0;
@@ -231,13 +232,13 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	meta_servers[meta_numservers].idle_time = atoi(cp);
 
 	if ((cp1=strchr(cp,'|'))==NULL) {
-	    fprintf(stderr,"Corrupt line from server: %s\n", inbuf);
+	    LOG(LOG_WARNING,"common::metaserver_get_info","Corrupt line from server: %s", inbuf);
 	    break;
 	}
 	*cp1=0;
 
 	if ((cp=strchr(cp1+1,'|'))==NULL) {
-	    fprintf(stderr,"Corrupt line from server: %s\n", inbuf);
+	    LOG(LOG_WARNING,"common::metaserver_get_info","Corrupt line from server: %s", inbuf);
 	    break;
 	}
 	*cp=0;
@@ -251,13 +252,13 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	meta_servers[meta_numservers].players = atoi(cp);
 
 	if ((cp1=strchr(cp,'|'))==NULL) {
-	    fprintf(stderr,"Corrupt line from server: %s\n", inbuf);
+	    LOG(LOG_WARNING,"common::metaserver_get_info","Corrupt line from server: %s", inbuf);
 	    break;
 	}
 	*cp1=0;
 
 	if ((cp=strchr(cp1+1,'|'))==NULL) {
-	    fprintf(stderr,"Corrupt line from server: %s\n", inbuf);
+	    LOG(LOG_WARNING,"common::metaserver_get_info","Corrupt line from server: %s", inbuf);
 	    break;
 	}
 	*cp=0;
@@ -269,7 +270,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	*cp++='|';  /* cp now points to comment */
 
 	if ((cp1=strchr(cp,'\n'))==NULL) {
-	    fprintf(stderr,"Corrupt line from server: %s\n", inbuf);
+	    LOG(LOG_WARNING,"common::metaserver_get_info","Corrupt line from server: %s", inbuf);
 	    break;
 	}
 	*cp1=0;
