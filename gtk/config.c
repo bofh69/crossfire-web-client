@@ -156,7 +156,7 @@ CButtons cbuttons[MAX_BUTTONS] = {
 
 {NULL, 	    CBUTTON,	    CONFIG_CACHE,	FLAG_MAPPANE,
     "Cache Images"},
-{NULL, 	    CBUTTON,	    CONFIG_DOWNLOAD,	FLAG_MAPPANE,
+{NULL, 	    CBUTTON,	    CONFIG_DOWNLOAD,	FLAG_MAPPANE | FLAG_UPDATE,
     "Download All Image Information (Takes effect on next server connection)"},
 {NULL, 	    CBUTTON,	    CONFIG_FOGWAR,	FLAG_MAPPANE | FLAG_UPDATE,
     "Fog of War"},
