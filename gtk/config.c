@@ -318,10 +318,17 @@ void applyconfig () {
     }
     else if (IS_DIFFERENT(CONFIG_FASTTCP)) {
 #ifdef TCP_NODELAY
+#ifndef WIN32
 	int q = want_config[CONFIG_FASTTCP];
 
 	if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1)
 	    perror("TCP_NODELAY");
+#else
+	int q = want_config[CONFIG_FASTTCP];
+
+	if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, ( const char* )&q, sizeof(q)) == -1)
+	    perror("TCP_NODELAY");
+#endif
 #endif
 	use_config[CONFIG_FASTTCP] = want_config[CONFIG_FASTTCP];
     }

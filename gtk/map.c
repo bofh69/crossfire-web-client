@@ -42,6 +42,7 @@
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #else
+#include <time.h>
 #include <gdk/gdkwin32.h>
 #endif
 #include <gdk/gdkkeysyms.h>
