@@ -33,6 +33,7 @@ struct {
 #ifdef GDK_XUTIL
     GdkPixmap  *pixmap;
     GdkBitmap	*mask;
+    uint8    *png_data;
 #else
     Pixmap  pixmap, mask;
 #endif
@@ -204,6 +205,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 #ifdef GDK_XUTIL
 		pixmaps[pnum].gdkpixmap = private_cache[len].pixmap;
 		pixmaps[pnum].gdkmask = private_cache[len].mask;
+		pixmaps[pnum].png_data = private_cache[len].png_data;
 
 #else
 		pixmaps[pnum].pixmap = private_cache[len].pixmap;
@@ -269,6 +271,11 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
     }
     else if (display_mode == Png_Display) {
 #ifdef HAVE_LIBPNG
+	if (pngximage && !(pixmaps[pnum].png_data = png_to_data(data, (int)len))) {
+	    fprintf(stderr,"Got error on png_to_data, file=%s\n",buf);
+	    requestface(pnum, face, buf);
+	}
+	/* even if using pngximage, we standard image for the inventory list */
 	if (png_to_gdkpixmap(gtkwin_root->window, data, len, &pixmaps[pnum].gdkpixmap, 
 		 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
 	    fprintf(stderr,"Got error on png_to_gdkpixmap, file=%s\n",buf);
@@ -1679,6 +1686,10 @@ int ReadImages() {
 	if (num > last_face_num) last_face_num = num;
 #ifdef HAVE_LIBPNG
 #ifdef GDK_XUTIL
+	if (pngximage && !(private_cache[num].png_data = png_to_data(databuf, (int)len))) {
+	    fprintf(stderr,"Got error on png_to_data\n");
+	}
+	/* even if using pngximage, we standard image for the inventory list */
 	if (png_to_gdkpixmap(gtkwin_root->window, databuf, len, 
 		   &private_cache[num].pixmap, &private_cache[num].mask,
 			 gtk_widget_get_colormap(gtkwin_root))) {
@@ -1713,3 +1724,121 @@ int  find_face_in_private_cache(char *face, int checksum)
 	}
     return -1;
 }
+
+/* Start of map handling code.
+ * For the most part, this actually is not window system specific,
+ * but certainly how the client wants to store this may vary.
+ */
+
+#define MAXFACES 5
+#define MAXPIXMAPNUM 10000
+struct MapCell {
+  short faces[MAXFACES];
+  int count;
+  uint8 darkness;
+  uint8 need_update;
+};
+
+struct Map {
+  struct MapCell cells[MAP_MAX_SIZE][MAP_MAX_SIZE];
+};
+
+static struct Map the_map;
+
+void display_map_clearcell(long x,long y)
+{
+    int i;
+
+    the_map.cells[x][y].count = 0;
+    the_map.cells[x][y].darkness = 0;
+    the_map.cells[x][y].need_update = 1;
+    for (i=0; i<MAXFACES; i++)
+	the_map.cells[x][y].faces[i] = -1;  /* empty/blank face */
+}
+
+void set_map_darkness(int x, int y, uint8 darkness)
+{
+    the_map.cells[x][y].darkness = 255 - darkness;
+    the_map.cells[x][y].need_update = 1;
+}
+
+/* sets the face at layer to some value.  We just can't
+ * restact arbitrarily, as the server now sends faces only
+ * for layers that change, and not the entire space.
+ */
+void set_map_face(int x, int y, int layer, int face)
+{
+    the_map.cells[x][y].faces[layer] = face;
+    if ((layer+1) > the_map.cells[x][y].count)
+	the_map.cells[x][y].count = layer+1;
+    the_map.cells[x][y].need_update = 1;
+}
+
+
+void display_map_addbelow(long x,long y,long face)
+{
+    the_map.cells[x][y].faces[the_map.cells[x][y].count] = face&0xFFFF;
+    the_map.cells[x][y].count ++;
+    the_map.cells[x][y].need_update = 1;
+}
+
+void display_mapscroll(int dx,int dy)
+{
+    int x,y;
+    struct Map newmap;
+  
+    for(x=0;x<mapx;x++) {
+	for(y=0;y<mapy;y++) {
+	    /* In case its own of range, set the count to zero */
+	    if (x+dx < 0 || x+dx >= mapx ||y+dy < 0 || y+dy >= mapy) {
+		memset((char*)&(newmap.cells[x][y]), 0, sizeof(struct MapCell));
+	    } else {
+		memcpy((char*)&(newmap.cells[x][y]), (char*)&(the_map.cells[x+dx][y+dy]),
+		       sizeof(struct MapCell));
+#ifdef GDK_XUTIL
+		/* if using pngximage, we will instead set the map_did_scroll
+		 * to 1 - we don't want to regen the backing image
+		 */
+		if (!pngximage) newmap.cells[x][y].need_update=1;
+#else
+		newmap.cells[x][y].need_update=1;	/* new space needs to be redrawn */
+#endif
+	    }
+	}
+    }
+    memcpy((char*)&the_map,(char*)&newmap,sizeof(struct Map));
+#ifdef GDK_XUTIL
+    if (pngximage ) {
+	/* move the screen data around - this is more efficient than re-calculating it all 
+	 * memmove does support moving around overlapping data, so this is safe.
+	 * 
+	 */
+	if (dy<0) {
+	    int offset = -dy * mapx * image_size * image_size * 3;
+	    memmove(screen +offset, screen, mapx * (mapy + dy)* image_size * image_size * 3);
+	} else if (dy>0) {
+	    int offset = dy * mapx * image_size * image_size * 3;
+	    memmove(screen, screen + offset, mapx * (mapy + dy)* image_size * image_size * 3);
+	}
+	if (dx) {
+	    int y;
+
+	    for (y=0; y < mapy * image_size; y++) {
+		if (dx<0) 
+		    /* -dx because dx is already negative, so this effective adds */
+		    memmove(screen + y * mapx * image_size * 3 - dx * image_size * 3,
+			screen + y * mapx * image_size * 3,
+			(mapx + dx) * image_size * 3);
+		else /* dx is positive */
+		    memmove(screen + y * mapx * image_size * 3,
+			screen + y * mapx * image_size * 3 + dx * image_size * 3,
+			(mapx - dx) * image_size * 3);
+	    }
+	}
+	map_did_scroll=1;
+    }
+/*    fprintf(stderr,"scroll command: %d %d\n", dx, dy);*/
+#endif
+}
+
+

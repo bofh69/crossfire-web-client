@@ -23,7 +23,8 @@
 char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
 char *image_file="";
 
-int port_num=EPORT, meta_port=META_PORT, want_skill_exp=0;
+int port_num=EPORT, meta_port=META_PORT, want_skill_exp=0, mapx=11, mapy=11,
+    want_mapx=11, want_mapy=11;
 FILE *fpin,*fpout;
 int fdin, fdout, basenrofpixmaps, pending_images=0,maxfiledescriptor,
 	pending_archs=0,maxfd;
@@ -54,6 +55,7 @@ struct CmdMapping commands[] = {
      * of cluster the related stuff together.
      */
     { "map", MapCmd },
+    { "map1", Map1Cmd },
     { "map_scroll", (CmdProc)map_scrollCmd },
     { "magicmap", MagicMapCmd},
 
@@ -236,6 +238,12 @@ void negotiate_connection(int sound)
     cs_write_string(csocket.fd, buf, strlen(buf));
 
 #endif
+    mapx=11;
+    mapy=11;
+    if (want_mapx!=11 || want_mapy!=11) {
+	sprintf(buf,"setup mapsize %dx%d",want_mapx, want_mapy);
+	cs_write_string(csocket.fd, buf, strlen(buf));
+    }
 
     SendAddMe(csocket);
 }

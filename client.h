@@ -216,4 +216,9 @@ extern int errno;
 #define NUM_RESISTS 18
 extern char *resists_name[NUM_RESISTS];
 extern char *meta_server;
-extern int meta_port,want_skill_exp;
+extern int meta_port,want_skill_exp, want_mapx, want_mapy, mapx, mapy;
+
+/* Map size the client will request the map to be.  Bigger it is,
+ * more memory it will use
+ */
+#define MAP_MAX_SIZE	31

@@ -56,3 +56,14 @@
 
 #define META_SERVER "crossfire.real-time.com"
 #define META_PORT   13326
+
+/* If you uncomment this, the gtk client will dump information about
+ * how long it took to update the display.  If your having
+ * performance problems, this may be a more useful way to see
+ * what your performance really is like.  The data will be dumped
+ * to stderr, with timings in microseconds.  A general rule of thumb
+ * is you want the update times to be less than 100,000 microseconds
+ */
+/*
+#define TIME_MAP_REDRAW
+*/

@@ -3,6 +3,39 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree
 
+This is actually a fairly big checkin:
+1) add large map support into the client (use -mapsize option)
+2) using GdkRgb structure for drawing the map.  This prevents some more
+   advanced map handling functions (like true alpha) as well as much
+   better darkness support (use -pngximage option)
+
+cconfig.h: add TIME_MAP_REDRAW define.  I originally used this to benchmark
+   my improvements with the gdkrgb code, but throught it may be useful to
+   others
+client.c: add map sizing global variables.  Add map1 protocol pointer.
+   request different mapsize of server.
+client.h: add map sizing variables to extern declarations.
+client.man: add description of -mapsize and -pngximage
+commands.c: Make it more forgiving about extra spaces in setu command.
+   and support for mapsize option of setup command.  Add option
+   to map_doneupdate which controls if we want a full redraw or not.
+   Add Map1Cmd command which handles map1 protocol command.
+gx11.c: Add support for big maps as well as gdkrgb backing images. 
+   Add support for -mapsize and -pngximage command line options.  Lots
+   of new image drawing code for pngximage.  Add resize_map_window
+   function which is called when new map size is negotiated with server -
+   depending on new and old values, re-arrange some windows.
+png.c: add png_to_data function which takes the png image and and returns
+   rgba data.  used by pngximage code.
+x11.c Add big map support (-mapsize option).  It otherewise lacks many
+   of the other features I added to gx11.c
+xutil.c: add png_data to image structure, and have data put here when
+   using pngximage mode.  Move some of the basic map handling functions
+   here - not the stuff that draws the map, but what sets up the
+   server idea of wha the map looks like in terms of spaces.
+MSW 2001-06-04
+
+
 The three main things this checkin does:
     Ability to save relative sizes of gtk subwindows, and have those restored
       when re-running the client.

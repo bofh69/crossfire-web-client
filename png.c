@@ -61,6 +61,142 @@ void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
     data_start += length;
 }
 
+char *png_to_data(char *data, int len)
+{
+    char *pixels=NULL;
+    static png_bytepp	rows=NULL;
+    static int rows_byte=0;
+
+    unsigned long width, height;
+    png_structp	png_ptr;
+    png_infop	info_ptr, end_info;
+    int bit_depth, color_type, interlace_type, compression_type, filter_type, y;
+
+    data_len=len;
+    data_cp = data;
+    data_start=0;
+
+    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
+				     NULL, NULL, NULL);
+
+    if (!png_ptr) {
+	return NULL;
+    }
+    info_ptr = png_create_info_struct (png_ptr);
+
+    if (!info_ptr) {
+	png_destroy_read_struct (&png_ptr, NULL, NULL);
+	return NULL;
+    }
+    end_info = png_create_info_struct (png_ptr);
+    if (!end_info) {
+	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
+	return NULL;
+    }
+    if (setjmp (png_ptr->jmpbuf)) {
+	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	return NULL;
+    }
+
+    png_set_read_fn(png_ptr, NULL, user_read_data);
+    png_read_info (png_ptr, info_ptr);
+
+    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
+		 &color_type, &interlace_type, &compression_type, &filter_type);
+
+    if (color_type == PNG_COLOR_TYPE_PALETTE &&
+            bit_depth <= 8) {
+
+                /* Convert indexed images to RGB */
+                png_set_expand (png_ptr);
+
+    } else if (color_type == PNG_COLOR_TYPE_GRAY &&
+                   bit_depth < 8) {
+
+                /* Convert grayscale to RGB */
+                png_set_expand (png_ptr);
+
+    } else if (png_get_valid (png_ptr,
+                                  info_ptr, PNG_INFO_tRNS)) {
+
+                /* If we have transparency header, convert it to alpha
+                   channel */
+                png_set_expand(png_ptr);
+
+    } else if (bit_depth < 8) {
+
+                /* If we have < 8 scale it up to 8 */
+                png_set_expand(png_ptr);
+
+
+                /* Conceivably, png_set_packing() is a better idea;
+                 * God only knows how libpng works
+                 */
+    }
+        /* If we are 16-bit, convert to 8-bit */
+    if (bit_depth == 16) {
+                png_set_strip_16(png_ptr);
+    }
+
+        /* If gray scale, convert to RGB */
+    if (color_type == PNG_COLOR_TYPE_GRAY ||
+            color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
+                png_set_gray_to_rgb(png_ptr);
+    }
+
+        /* If interlaced, handle that */
+    if (interlace_type != PNG_INTERLACE_NONE) {
+                png_set_interlace_handling(png_ptr);
+    }
+
+    /* Update the info the reflect our transformations */
+    png_read_update_info(png_ptr, info_ptr);
+    /* re-read due to transformations just made */
+    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
+		 &color_type, &interlace_type, &compression_type, &filter_type);
+
+    /* pad it to 4 bytes to make processing easier */
+    if (!(color_type & PNG_COLOR_MASK_ALPHA))
+	png_set_filler(png_ptr, 255, PNG_FILLER_AFTER);
+
+    /* Allocate the memory we need once, and increase it if necessary.
+     * This is more efficient the allocating this block of memory every time.
+     */
+    pixels = (char*)malloc(width * height * 4);
+
+    if (!pixels) {
+	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	fprintf(stderr,"Out of memory - exiting\n");
+	exit(1);
+    }
+
+    /* the png library needs the rows, but we will just return the raw data */
+    if (rows_byte == 0) {
+	rows =(png_bytepp) malloc(sizeof(char*) * height);
+	rows_byte=height;
+    } else if (height > rows_byte) {
+	rows =(png_bytepp) realloc(rows, sizeof(char*) * height);
+	rows_byte=height;
+    }
+    if (!rows) {
+	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	return NULL;
+    }
+
+    if (!rows) {
+	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	fprintf(stderr,"Out of memory - exiting\n");
+	exit(1);
+    }
+
+    for (y=0; y<height; y++) 
+	rows[y] = pixels + y * width * 4;
+
+    png_read_image(png_ptr, rows);
+
+    return pixels;
+}
+
 #ifdef PNG_GDK
 
 guchar rgb[32*32*3];	/* Should be max size */

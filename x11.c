@@ -175,17 +175,14 @@ static int  FONTWIDTH= 8;
 static int FONTHEIGHT= 13;
 #define MAX_INFO_WIDTH 80
 #define MAXNAMELENGTH 50
-#define WINUPPER (-5)
-#define WINLOWER 5
-#define WINLEFT (-5)
-#define WINRIGHT 5
+#define MAXPIXMAPNUM 10000
 
 /* What follows is various constants (or calculations) for various
  * window sizes.
  */
 
 /* Width (and height) of the game window */
-#define GAME_WIDTH  (image_size * 11 + 5)
+#define GAME_WIDTH  (image_size * mapx + 5)
 
 #define STAT_HEIGHT 100
 
@@ -196,7 +193,7 @@ static int FONTHEIGHT= 13;
 /* Height of the master (root) window */
 #define ROOT_HEIGHT	482
 
-static int gargc;
+static int gargc, old_mapx=11, old_mapy=11;
 
 Display_Mode display_mode = DISPLAY_MODE;
 static char cache_images=FALSE;
@@ -251,24 +248,13 @@ static uint8
 	image_size=24;
 
 
-#define MAXFACES 100
-#define MAXPIXMAPNUM 10000
-struct MapCell {
-  short faces[MAXFACES];
-  int count;
-};
-
-struct Map {
-  struct MapCell cells[11][11];
-};
-
 struct PixmapInfo {
   Pixmap pixmap,mask;
   Pixmap bitmap;
   long fg,bg;
 };
 
-static struct Map the_map;
+
 static char stats_buff[7][600];
 static struct PixmapInfo pixmaps[MAXPIXMAPNUM];
 /* Off the 'free' space in the window, this floating number is the
@@ -549,12 +535,8 @@ static int get_info_display() {
     infohint.x=INV_WIDTH + GAME_WIDTH + WINDOW_SPACING*2;
     infohint.y=0;
     infohint.width=infodata.width=6+INFOCHARS*FONTWIDTH;
-#if 0
-    infohint.height=infodata.height=11+infodata.maxdisp*13;
-#else
     infohint.height=infodata.height=roothint.height;
     infodata.maxdisp = roothint.height/FONTHEIGHT;
-#endif
 
     infohint.min_width=100;
     infohint.min_height=30;
@@ -2195,12 +2177,15 @@ static void resize_win_root(XEvent *event) {
 
 static void parse_game_button_press(int button, int x, int y)
 {
-    int dx=(x-2)/image_size-5,dy=(y-2)/image_size-5,i;
+    int dx=(x-2)/image_size-mapx/2,dy=(y-2)/image_size-mapy/2,i;
 
     switch (button) {
 	case 1:
 	{
-	    if(dx<WINLEFT||dx>WINRIGHT||dy<WINUPPER||dy>WINLOWER) return;
+	    /* Its unlikely this will happen, but if the window is
+	     * resized, its possible to be out of bounds.
+	     */
+	    if(dx<(-mapx/2)||dx>(mapx/2)||dy<(-mapy/2)||dy>(mapy/2)) return;
 	    look_at(dx,dy);
 	}
 	break;
@@ -2270,7 +2255,7 @@ static void do_key_press()
     /* Turn off the magic map.  Perhaps this should be more selective? */
     if (cpl.showmagic) {
 	cpl.showmagic=0;
-	display_map_doneupdate();
+	display_map_doneupdate(TRUE);
     }
     if(!XLookupString(&event.xkey,text,10, &gkey,NULL)) {
 /*
@@ -2511,7 +2496,7 @@ void check_x_events() {
 	if (cache_images && lastupdate>5 && newimages) {
 	    draw_all_list(&inv_list);
 	    draw_all_list(&look_list);
-	    if (!cpl.showmagic) display_map_doneupdate();
+	    if (!cpl.showmagic) display_map_doneupdate(TRUE);
 	    newimages=0;
 	    lastupdate=0;
 	}
@@ -2560,7 +2545,7 @@ void check_x_events() {
 		draw_all_message();
 	    else if(event.xexpose.window==win_game) {
 		if (cpl.showmagic) draw_magic_map();
-		else display_map_doneupdate();
+		else display_map_doneupdate(TRUE);
 	    } else if(split_windows==FALSE && event.xexpose.window==win_root) {
 		XClearWindow(display,win_root);
 	    }
@@ -2658,6 +2643,7 @@ static void usage(char *progname)
     puts("-keepcache       - Keep already cached images even if server has different ones.");
     puts("-font <name>     - Use <name> as font to display data.");
     puts("-pngfile <name>  - Use <name> for source of images");
+    puts("-mapsize xXy     - Set the mapsize to be X by Y spaces.");
     exit(0);
 }
 
@@ -2700,6 +2686,32 @@ int init_windows(int argc, char **argv)
 	    }
 	    port_num = atoi(argv[on_arg]);
 	    continue;
+	}
+	if (!strcmp(argv[on_arg],"-mapsize")) {
+	    char *cp, x, y;
+
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-mapsize requires a XxY value\n");
+		return 1;
+	    }
+	    x = atoi(argv[on_arg]);
+	    for (cp = argv[on_arg]; *cp!='\0'; cp++)
+		if (*cp == 'x' || *cp == 'X') break;
+
+	    if (*cp==0) {
+		fprintf(stderr,"-mapsize requires both and X and Y value (ie, XxY - note the\nx in between.\n");
+	    } else {
+                y = atoi(cp+1);
+	    }
+	    if (x<=9 || y<=9) {
+		fprintf(stderr,"map size must be positive values of at least 9\n");
+	    } if (x>MAP_MAX_SIZE || y>MAP_MAX_SIZE) {
+		fprintf(stderr,"Map size can not be larger than %d x %d \n", MAP_MAX_SIZE, MAP_MAX_SIZE);
+	    } else {
+		want_mapx=x;
+		want_mapy=y;
+	    }
+            continue;
 	}
 	if (!strcmp(argv[on_arg],"-server")) {
 	    if (++on_arg == argc) {
@@ -2844,30 +2856,28 @@ int init_windows(int argc, char **argv)
 }
 
 
-void display_map_clearcell(long x,long y)
-{
-  the_map.cells[x][y].count = 0;
-}
-
-void display_map_addbelow(long x,long y,long face)
-{
-  the_map.cells[x][y].faces[the_map.cells[x][y].count] = face&0xFFFF;
-  the_map.cells[x][y].count ++;
-}
-
 /* This can also get called for png.  Really, anything that gets rendered
  * into a pixmap that does not need colors set or other specials done.
  */
 void display_mapcell_pixmap(int ax,int ay)
 {
-  int k;
-  XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
+    int k;
+    XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
 
-  for(k=the_map.cells[ax][ay].count-1;k>=0;k--) {
-    gen_draw_face(xpm_pixmap,the_map.cells[ax][ay].faces[k],
+    if (mapx > 15 || mapy>15) {
+	for (k=0; k<the_map.cells[ax][ay].count; k++) {
+	    if (the_map.cells[ax][ay].faces[k] >0 ) {
+		gen_draw_face(xpm_pixmap, the_map.cells[ax][ay].faces[k], 0, 0);
+	    }
+	}
+    } else {
+
+	for(k=the_map.cells[ax][ay].count-1;k>=0;k--) {
+	    gen_draw_face(xpm_pixmap,the_map.cells[ax][ay].faces[k],
 		  0,0);
-  }
-  XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,image_size,image_size,
+	}
+    }
+    XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,image_size,image_size,
 	    2+image_size*ax,2+image_size*ay);
 }
 
@@ -2896,62 +2906,74 @@ int display_willcache()
 {
     return cache_images;
 }
+void resize_map_window(int x, int y)
+{
+    if (!split_windows) {
+	XWindowAttributes attrib;
+	int width=0, height=0;
+
+	/* width and height are how much larger we need to make 
+	 * the window to keep it displayable.  This isn't perfect,
+	 * but does a reasonable job.  Don't do shrinks
+	 */
+
+	if (mapx > old_mapx) width = (mapx - old_mapx)* image_size;
+
+	if (mapy > old_mapy) height = (mapy - old_mapy)* image_size;
+
+	/* if somethign to do */
+	if (width>0 || height > 0) {
+	    XGetWindowAttributes(display, win_root, &attrib);
+	    width += attrib.width;  
+	    height += attrib.height;
+	    XResizeWindow(display, win_game, x*image_size, y*image_size);
+	    XResizeWindow(display, win_root, width, height);
+	}
+	old_mapx=mapx;
+	old_mapy=mapy;
+    }
+    else {
+	XResizeWindow(display, win_game, x*image_size, y*image_size);
+    }
+}
+
 
 /* we don't need to do anything, as we figure this out as needed */
 void x_set_echo() { }
 
 
-void display_map_doneupdate()
+void display_map_doneupdate(int redraw)
 {
-  int ax,ay;
-  if (cpl.showmagic) {
-    fprintf(stderr,"drawing magic map");
-    magic_map_flash_pos();
-    return;
-  }
-  XSetClipMask(display,gc_floor,None);
-  for(ax=0;ax<11;ax++) {
-    for(ay=0;ay<11;ay++) { 
-	if (the_map.cells[ax][ay].count==0) {
-	    XFillRectangle(display,win_game,gc_blank,2+image_size*ax,
+    int ax,ay;
+    if (cpl.showmagic) {
+	magic_map_flash_pos();
+	return;
+    }
+    XSetClipMask(display,gc_floor,None);
+    for(ax=0;ax<mapx;ax++) {
+	for(ay=0;ay<mapy;ay++) { 
+	    if (redraw || the_map.cells[ax][ay].need_update)  {
+		if (the_map.cells[ax][ay].count==0) {
+		    XFillRectangle(display,win_game,gc_blank,2+image_size*ax,
 			   2+image_size*ay,image_size,image_size);
-	    continue;
-	} 
-	if (display_mode == Xpm_Display || display_mode == Png_Display) {
-	    display_mapcell_pixmap(ax,ay);
-	} else if (display_mode == Pix_Display) {
-	    display_mapcell_bitmap(ax,ay);
-	} else {
-	    fprintf(stderr,"Unknown display mode '%d'\n",display_mode);
-	    abort();
+		    continue;
+		}
+		if (display_mode == Xpm_Display || display_mode == Png_Display) {
+		    display_mapcell_pixmap(ax,ay);
+		} else if (display_mode == Pix_Display) {
+		    display_mapcell_bitmap(ax,ay);
+		} else {
+		    fprintf(stderr,"Unknown display mode '%d'\n",display_mode);
+		    abort();
+		}
+		the_map.cells[ax][ay].need_update=0;
+	    }
 	}
     }
-  }
-  XFlush(display);
-  /*  printf("misses: %d/%d\n",misses,total);*/
+    XFlush(display);
 }
 
 
-
-void display_mapscroll(int dx,int dy)
-{
-  int x,y;
-  struct Map newmap;
-
-  for(x=0;x<11;x++) {
-    for(y=0;y<11;y++) {
-      newmap.cells[x][y].count = 0;
-      if (x+dx < 0 || x+dx >= 11)
-      continue;
-      if (y+dy < 0 || y+dy >= 11)
-      continue;
-	memcpy((char*)&(newmap.cells[x][y]), (char*)&(the_map.cells[x+dx][y+dy]),
-	       sizeof(struct MapCell));
-    }
-  }
- memcpy((char*)&the_map,(char*)&newmap,sizeof(struct Map));
-/*  display_map_doneupdate();*/
-}
 
 /* This is based a lot on the xpm function below */
 /* There is no good way to load the data directly to a pixmap -

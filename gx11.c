@@ -247,10 +247,6 @@ gint	csocket_fd=0;
 #define FONTHEIGHT 13
 #define MAX_INFO_WIDTH 80
 #define MAXNAMELENGTH 50
-#define WINUPPER (-5)
-#define WINLOWER 5
-#define WINLEFT (-5)
-#define WINRIGHT 5
 
 static int gargc;
 
@@ -263,8 +259,9 @@ static uint8
     splitinfo=FALSE,
     color_inv=FALSE,
     color_text=FALSE,
-    tool_tips=FALSE;
-
+    tool_tips=FALSE,
+    bigmap=FALSE,	/* True if we've moved some windows around for big maps */
+    pngximage=FALSE;
 
 /* Don't define this unless you want stability problems */
 #undef TRIM_INFO_WINDOW
@@ -275,21 +272,11 @@ static int info1_num_chars=0, info2_num_chars=0, info1_max_chars=10000,
     info2_max_chars=10000;
 #endif
 
-#define MAXFACES 5
-#define MAXPIXMAPNUM 10000
-struct MapCell {
-  short faces[MAXFACES];
-  int count;
-};
-
-struct Map {
-  struct MapCell cells[11][11];
-};
-
 struct PixmapInfo {
   long fg,bg;
   GdkPixmap *gdkpixmap;
   GdkBitmap *gdkmask;
+  uint8 *png_data;
 };
 
 struct GtkMap {
@@ -332,7 +319,6 @@ static GdkPixmap *magicgdkpixmap;
 static GdkGC *map_gc;
 static GtkWidget *mapvbox;
 
-static struct Map the_map;
 
 static struct PixmapInfo pixmaps[MAXPIXMAPNUM];
 #define INFOLINELEN 500
@@ -353,7 +339,7 @@ static GtkTooltips *tooltips;
 static GtkWidget *dialogtext;
 static GtkWidget *dialog_window;
 static GtkWidget *drawingarea;
-static GdkPixmap *mappixmap=NULL;
+
 static GdkGC *mapgc;
 
 static GtkWidget *cclist;
@@ -370,6 +356,7 @@ static GtkWidget *entrytext, *counttext;
 static gint redraw_needed=FALSE;
 static GtkObject *text_hadj,*text_vadj;
 static GtkObject *text_hadj2,*text_vadj2;
+GtkWidget *gameframe, *stat_frame, *message_frame;
 
 /*
  * These are used for inventory and look window
@@ -430,6 +417,12 @@ uint16 facecachemap[MAXPIXMAPNUM], cachelastused=0, cacheloaded=0;
 FILE *fcache;
 
 int misses=0,total=0;
+
+/* Size of image */
+/* Pixels representing entire viewable screen.  This amounts to about 3 mb */
+
+#define SCREEN_SIZE MAP_MAX_SIZE * MAP_MAX_SIZE*32*32*3
+static guchar screen[SCREEN_SIZE], map_did_scroll=0;
 
 #include "xutil.c"
 
@@ -545,15 +538,6 @@ void event_loop()
 
 
 
-/* Do the pixmap copy with gc to tile it onto the stack in the cell */
-
-static void gen_draw_face(int face,int x,int y)
-{
-  gdk_gc_set_clip_mask (mapgc, pixmaps[facecachemap[face]].gdkmask);
-  gdk_gc_set_clip_origin (mapgc, image_size*x, image_size*y);
-  gdk_window_copy_area (mappixmap, mapgc, image_size*x, image_size*y, pixmaps[facecachemap[face]].gdkpixmap,0,0,image_size,image_size);
-}
-
 void end_windows()
 {
   free(last_str);
@@ -647,12 +631,12 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
   
   x=(int)event->x;
   y=(int)event->y;
-  dx=(x-2)/image_size-5;
-  dy=(y-2)/image_size-5;
-  xmidl=5*image_size-5;
-  xmidh=6*image_size+5;
-  ymidl=5*image_size-5;
-  ymidh=6*image_size+5;
+  dx=(x-2)/image_size-(mapx/2);
+  dy=(y-2)/image_size-(mapy/2);
+  xmidl=5*image_size-(mapx/2);
+  xmidh=6*image_size+(mapx/2);
+  ymidl=5*image_size-(mapy/2);
+  ymidh=6*image_size+(mapy/2);
   
   switch (event->button) {
   case 1:
@@ -904,27 +888,13 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 /* Event handlers for map drawing area */
 
 
-/* Create a new backing pixmap of the appropriate size */
 static gint
 configure_event (GtkWidget *widget, GdkEventConfigure *event)
 {
-  if (mappixmap) {
-    gdk_pixmap_unref(mappixmap);
-    gdk_gc_unref(mapgc);
-  }
-  mappixmap = gdk_pixmap_new(widget->window,
-			     widget->allocation.width,
-			     widget->allocation.height,
-			     -1);
-  gdk_draw_rectangle (mappixmap,
-		      widget->style->white_gc,
-		      TRUE,
-		      0, 0,
-		      widget->allocation.width,
-		      widget->allocation.height);
-  mapgc = gdk_gc_new (drawingarea->window);
-  
-  return TRUE;
+
+    mapgc = gdk_gc_new (drawingarea->window);
+    display_map_doneupdate(TRUE);
+    return TRUE;
 }
 
 
@@ -933,14 +903,8 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 static gint
 expose_event (GtkWidget *widget, GdkEventExpose *event)
 {
-  gdk_draw_pixmap(widget->window,
-		  widget->style->fg_gc[GTK_WIDGET_STATE (widget)],
-		  mappixmap,
-		  event->area.x, event->area.y,
-		  event->area.x, event->area.y,
-		  event->area.width, event->area.height);
-  
-  return FALSE;
+    display_map_doneupdate(TRUE);
+    return FALSE;
 }
 
 /*
@@ -962,7 +926,7 @@ static int get_game_display(GtkWidget *frame) {
   gtk_box_pack_start (GTK_BOX (gtvbox), gthbox, FALSE, FALSE, 1);
   
   drawingarea = gtk_drawing_area_new();
-  gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), image_size*11,image_size*11);
+  gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), image_size*mapx,image_size*mapy);
   /* Add mouseclick events to the drawing area */
 
   gtk_widget_set_events (drawingarea, GDK_BUTTON_PRESS_MASK);
@@ -972,7 +936,6 @@ static int get_game_display(GtkWidget *frame) {
 		      (GtkSignalFunc) expose_event, NULL);
   gtk_signal_connect (GTK_OBJECT(drawingarea),"configure_event",
 		      (GtkSignalFunc) configure_event, NULL);
-
   /* Set up handling of mouseclicks in map */
  
   gtk_signal_connect (GTK_OBJECT(drawingarea),
@@ -3315,7 +3278,7 @@ void applyconfig () {
       gtk_widget_destroy(gtkwin_root);
       split_windows=TRUE;
 	create_windows();
-	display_map_doneupdate();
+	display_map_doneupdate(TRUE);
 	draw_stats (1);
       draw_all_list(&inv_list);
       draw_all_list(&look_list);
@@ -3330,7 +3293,7 @@ void applyconfig () {
       gtk_widget_destroy(gtkwin_look);
       split_windows=FALSE;
       create_windows();
-      display_map_doneupdate();
+      display_map_doneupdate(TRUE);
       draw_stats (1);
       draw_all_list(&inv_list);
       draw_all_list(&look_list);
@@ -3423,7 +3386,7 @@ void saveconfig () {
       gtk_widget_destroy(gtkwin_root);
       split_windows=TRUE;
       create_windows();
-      display_map_doneupdate();
+      display_map_doneupdate(TRUE);
       draw_stats (1);
       draw_all_list(&inv_list);
       draw_all_list(&look_list);
@@ -3439,7 +3402,7 @@ void saveconfig () {
       gtk_widget_destroy(gtkwin_look);
       split_windows=FALSE;
       create_windows();
-      display_map_doneupdate();
+      display_map_doneupdate(TRUE);
       draw_stats (1);
       draw_all_list(&inv_list);
       draw_all_list(&look_list);
@@ -4700,7 +4663,7 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
-    gtk_widget_set_usize (gtkwin_root,636+(image_size*11),336+(image_size*11));
+    gtk_widget_set_usize (gtkwin_root,636+(image_size*mapx),336+(image_size*mapy));
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
     
@@ -4757,33 +4720,34 @@ void create_windows() {
     
     
     /* Statbars frame */
-    frame = gtk_frame_new (NULL);
-    gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, (image_size*11)+6,  (image_size*11)+6);
-    gtk_paned_add2 (GTK_PANED (game_bar_vpane), frame);
+    message_frame = gtk_frame_new (NULL);
+    gtk_frame_set_shadow_type (GTK_FRAME(message_frame), GTK_SHADOW_ETCHED_IN);
+    gtk_widget_set_usize (message_frame, (image_size*mapx)+6,  (image_size*mapy)+6);
+    gtk_paned_add2 (GTK_PANED (game_bar_vpane), message_frame);
     
-    get_message_display(frame);
+    get_message_display(message_frame);
     
-    gtk_widget_show (frame);
+    gtk_widget_show (message_frame);
     
     /* Game frame */
-    frame = gtk_frame_new (NULL);
-    gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, (image_size*11)+6, (image_size*11)+6);
-    gtk_paned_add1 (GTK_PANED (game_bar_vpane), frame);
+    gameframe = gtk_frame_new (NULL);
+    gtk_frame_set_shadow_type (GTK_FRAME(gameframe), GTK_SHADOW_ETCHED_IN);
+    gtk_widget_set_usize (gameframe, (image_size*mapx)+6, (image_size*mapy)+6);
+
+    gtk_paned_add1 (GTK_PANED (game_bar_vpane), gameframe);
     
-    get_game_display (frame);
+    get_game_display (gameframe);
     
-    gtk_widget_show (frame);
+    gtk_widget_show (gameframe);
     
     /* stats frame */
-    frame = gtk_frame_new (NULL);
-    gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, (image_size*11)+6,  (image_size*11)+6);
-    gtk_paned_add1 (GTK_PANED (stat_game_vpane), frame);
-    get_stats_display (frame);
+    stat_frame = gtk_frame_new (NULL);
+    gtk_frame_set_shadow_type (GTK_FRAME(stat_frame), GTK_SHADOW_ETCHED_IN);
+/*    gtk_widget_set_usize (stat_frame, (image_size*mapx)+6,  (image_size*mapy)+6);*/
+    gtk_paned_add1 (GTK_PANED (stat_game_vpane), stat_frame);
+    get_stats_display (stat_frame);
     
-    gtk_widget_show (frame);
+    gtk_widget_show (stat_frame);
     
     gtk_widget_show (game_bar_vpane);
     gtk_widget_show (stat_game_vpane);
@@ -4835,7 +4799,7 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 300, 160);
-    gtk_widget_set_usize (gtkwin_root,(image_size*11)+6,(image_size*11)+6);
+    gtk_widget_set_usize (gtkwin_root,(image_size*mapx)+6,(image_size*mapy)+6);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire - view");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_root), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
@@ -4865,7 +4829,7 @@ void create_windows() {
     gtkwin_stats = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_stats, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_stats, 300, 0);
-    gtk_widget_set_usize (gtkwin_stats,(image_size*11)+6,140);
+    gtk_widget_set_usize (gtkwin_stats,(image_size*mapx)+6,140);
     gtk_window_set_title (GTK_WINDOW (gtkwin_stats), "Crossfire GTK Client");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_stats), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_stats);
@@ -4920,7 +4884,7 @@ void create_windows() {
     gtkwin_message = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_message, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_message, 300, 450);
-    gtk_widget_set_usize (gtkwin_message,(image_size*11)+6,170);
+    gtk_widget_set_usize (gtkwin_message,(image_size*mapx)+6,170);
     gtk_window_set_title (GTK_WINDOW (gtkwin_message), "Crossfire - vitals");
  gtk_window_set_policy (GTK_WINDOW (gtkwin_message), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_message);
@@ -5023,13 +4987,20 @@ void create_windows() {
 
 int sync_display = 0;
 static int get_root_display(char *display_name,int gargc, char **gargv) {
-  gtk_init (&gargc,&gargv);
-  last_str=malloc(32767);
+    gtk_init (&gargc,&gargv);
+    last_str=malloc(32767);
 
-  create_splash();
-  create_windows();
+    create_splash();
+    /* we need to call gdk_rgb_init very early on, as some of the
+     * create window functions may do call backs in which case we try
+     * to draw the game window.
+     */
+    if (display_mode == Png_Display) {
+	gdk_rgb_init();
+    }
+    create_windows();
   
-  return 0;
+    return 0;
 }
  
 /* null procedures. gtk does this for us. */
@@ -5107,7 +5078,7 @@ int do_timeout() {
     draw_info_freeze2=FALSE;
   }
   if (redraw_needed) {
-    display_map_doneupdate();
+    display_map_doneupdate(TRUE);
     draw_all_list(&inv_list);
     draw_all_list(&look_list);
     redraw_needed=FALSE;
@@ -5576,6 +5547,9 @@ static void usage(char *progname)
     puts("-pngfile <name>  - Use <name> for source of images");
     puts("-nopopups        - Don't use pop up windows for input");
     puts("-splitinfo       - Use two information windows, segregated by information type.");
+    puts("-mapsize xXy     - Set the mapsize to be X by Y spaces.");
+    puts("-pngximage       - Use ximage for drawing png (may not work on all hardware");
+
     exit(0);
 }
 
@@ -5617,6 +5591,32 @@ int init_windows(int argc, char **argv)
 		return 1;
 	    }
 	    port_num = atoi(argv[on_arg]);
+	    continue;
+	}
+	if (!strcmp(argv[on_arg],"-mapsize")) {
+	    char *cp, x, y;
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-mapsize requires a XxY value\n");
+		return 1;
+	    }
+	    x = atoi(argv[on_arg]);
+	    for (cp = argv[on_arg]; *cp!='\0'; cp++)
+		if (*cp == 'x' || *cp == 'X') break;
+
+	    if (*cp==0) {
+		fprintf(stderr,"-mapsize requires both and X and Y value (ie, XxY - note the\nx in between.\n");
+	    } else {
+		y = atoi(cp+1);
+	    }
+	    if (x<=9 || y<=9) {
+		fprintf(stderr,"map size must be positive values of at least 9\n");
+	    } if (x>MAP_MAX_SIZE || y>MAP_MAX_SIZE) {
+		fprintf(stderr,"Map size can not be larger than %d x %d \n", MAP_MAX_SIZE, MAP_MAX_SIZE);
+
+	    } else {
+		want_mapx=x;
+		want_mapy=y;
+	    }
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-server")) {
@@ -5690,6 +5690,10 @@ int init_windows(int argc, char **argv)
 	    splitinfo=TRUE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-pngximage")) {
+	    pngximage=TRUE;
+	    continue;
+	}
 	else {
 	    fprintf(stderr,"Do not understand option %s\n", argv[on_arg]);
 	    usage(argv[0]);
@@ -5726,12 +5730,9 @@ int init_windows(int argc, char **argv)
     for (on_arg = 0; on_arg<MAX_HISTORY; on_arg++)
 	history[on_arg][0]=0;
 
+
     if (get_root_display(display_name,gargc,gargv))
 		return 1;
-
-    if (display_mode == Png_Display) {
-	gdk_rgb_init();
-    }
 
     init_keys();
     if (cache_images) init_cache_data();
@@ -5742,24 +5743,206 @@ int init_windows(int argc, char **argv)
 }
 
 
-void display_map_clearcell(long x,long y)
+/* Do the pixmap copy with gc to tile it onto the stack in the cell */
+
+static void gen_draw_face(int face,int x,int y)
 {
-  the_map.cells[x][y].count = 0;
+    if (face == 0) fprintf(stderr,"gen draw face called with 0 face");
+
+#if 0
+    if (pixmaps[0].gdkpixmap == pixmaps[facecachemap[face]].gdkpixmap)
+	fprintf(stderr,"gen_draw_face - called with ? pixmap - num = %d, (%d,%d)\n", face, x,y);
+#endif
+    gdk_gc_set_clip_mask (mapgc, pixmaps[facecachemap[face]].gdkmask);
+    gdk_gc_set_clip_origin (mapgc, image_size*x, image_size*y);
+    gdk_window_copy_area (drawingarea->window, mapgc, image_size*x, image_size*y, pixmaps[facecachemap[face]].gdkpixmap,0,0,image_size,image_size);
 }
 
-void display_map_addbelow(long x,long y,long face)
-{
-  the_map.cells[x][y].faces[the_map.cells[x][y].count] = face&0xFFFF;
-  the_map.cells[x][y].count ++;
-}
 
 /* Draw the tiled pixmap tiles in the mapcell */
 
+
+
+/* return 0 on success, 1 on failure (facenum does not have
+ * png data but does have pixmap data).  In that case,
+ * it should fall back to traditional methods
+ *
+ * Note that we invert the darkness values when we get them
+ * from the server such that the_map.cells[][].darkness is
+ * 0 for full bright and 255 for full dark.  This makes
+ * it easier for initializition to zero, since default
+ * should really be full bright.
+ *
+ * faces[] is the number of face - 0 is top, faces[num_faces-1] is bottom
+ * darkness[] is an array of darkness for this and surround spaces.
+ *  darkness[0] = this space, 1=top, 2=right, 3=bottom, 4=left
+ */
+
+/* this differs from below in that we use one big image struture
+ * for the entire screen.  That is the 'screen' value above.
+ */
+
+int add_png_face_one(int ax, int ay, int *faces, int num_faces, int dark[5]) 
+{
+    int x,y, a, darkness ,pos=0, on_face,darkx[32], darky, screen_pos;
+
+    /* If we don't have png_data, can't proceed further */
+    for (on_face=0; on_face < num_faces; on_face ++ ) {
+	if (!pixmaps[faces[on_face]].png_data) {
+	    fprintf(stderr,"add_png_face - returning because of no png data \n");
+	    if (pixmaps[faces[on_face]].gdkpixmap) return 1;
+	    else return 0;
+	}
+    }
+
+    /* Precompute these values to save some time */
+    for (x=0; x<16; x++)
+	darkx[x] = (dark[4]*(16-x) + dark[0]*x) / 16;
+    for (x=16; x<32; x++)
+	darkx[x] = (dark[0]*(32-x) + dark[2]*(x-16))/ 16;
+
+    /* just black out some area */
+    if (!num_faces) {
+	for (y=0; y<image_size; y++)  {
+	    screen_pos = ax*96 + (ay * image_size +y) * image_size * 3 * mapx;
+	    memset(screen + screen_pos, 0, image_size*3);
+	}
+	return 0;
+    }
+
+    for (y=0; y<image_size; y++) {
+	if (y<16)
+	    darky = ((dark[1]*((image_size/2)-y)) + dark[0]*y)/(image_size/2);
+	else
+	    darky = (dark[0]*(image_size-y) + dark[3]*(y-(image_size/2)))/(image_size/2);
+
+	for (x=0; x<image_size; x++) {
+	    int on_face = 0, semi=0;
+
+	    /* each 'row' is 96 * MAX_MAP_SIZE (96 is 32 for images size * 3 bytes/pixel). */
+
+	    screen_pos = x*3 + ax*image_size * 3 + (ay * image_size +y) * image_size * 3 * mapx;
+	    if (screen_pos > SCREEN_SIZE) {
+		fprintf(stderr,"screen_pos out of range: %d > %d\n", screen_pos, MAP_MAX_SIZE * MAP_MAX_SIZE*image_size*image_size*3);
+		abort();
+	    }
+
+	    /* make default be black */
+	    screen[screen_pos] =0;
+	    screen[screen_pos+1] =0;
+	    screen[screen_pos+2] =0;
+
+	    /* interpolative darkness - we look at this space, surrounding 
+	     * spaces, and their darkness value to come up with one
+	     * While there are only 5 values, we reduce the complexity by
+	     * only have dark[0]* image_size once instead of dark[0] * image_size/2
+	     * for both x and y 
+	     */
+
+	    darkness = (darkx[x] + darky) / 2;
+
+	    /* what I do here is try to minimize the processing of the
+	     * face data - only copy/adjust what we need.
+	     */
+	    for (on_face=0; on_face < num_faces; on_face ++ ) {
+		a = pixmaps[faces[on_face]].png_data[pos+3];
+
+		if (a == 0) continue;	/* Fully transparent - go to next face down */
+
+		if (a == 255) {
+		    if (darkness == 255) {
+			/* Fully opaque - copy the data over, and break from on_face processing loop */
+			screen[screen_pos] = pixmaps[faces[on_face]].png_data[pos];
+			screen[screen_pos + 1] = pixmaps[faces[on_face]].png_data[pos+1];
+			screen[screen_pos + 2] = pixmaps[faces[on_face]].png_data[pos+2];
+		    } else {
+			/* Fully opaque - copy the data over, and break from on_face processing loop */
+			screen[screen_pos] = pixmaps[faces[on_face]].png_data[pos] * darkness / 255;
+			screen[screen_pos + 1] = pixmaps[faces[on_face]].png_data[pos+1] * darkness / 255;
+			screen[screen_pos + 2] = pixmaps[faces[on_face]].png_data[pos+2] * darkness / 255;
+		    }
+		    break;
+		}
+		/* Semi transparent image - we can't do anything with this until data below is filled out */
+		else semi++;
+	    }
+	    /* one of the images was semi transparent.  If we got here, the real data has been filled in,
+	     * so lets find the semi transparent information and process */
+	    if (semi) {
+		/* We only need to look at the images already processed */
+		for (on_face--; on_face>=0; on_face--) {
+		    a = pixmaps[faces[on_face]].png_data[pos+3];
+		    if (a!=0 && a!=255) { /* must be the semi transparent image */
+			if (darkness == 255) { 
+			    screen[screen_pos] = (pixmaps[faces[on_face]].png_data[pos] * a  / 255)
+				+ ((screen[screen_pos] * (255-a))/255);
+			    screen[screen_pos + 1] = (pixmaps[faces[on_face]].png_data[pos+1] * a / 255) 
+				+ ((screen[screen_pos+1] * (255-a))/255);
+			    screen[screen_pos + 2] = (pixmaps[faces[on_face]].png_data[pos+2] * a / 255) 
+				+ ((screen[screen_pos+2] * (255-a))/255);
+
+			} else {
+			    screen[screen_pos] = ((pixmaps[faces[on_face]].png_data[pos] * darkness / 255) * a / 255) 
+				+ ((screen[screen_pos] * (255-a))/255);
+			    screen[screen_pos + 1] = ((pixmaps[faces[on_face]].png_data[pos+1] * darkness / 255) * a / 255) 
+				+ ((screen[screen_pos+1] * (255-a))/255);
+			    screen[screen_pos + 2] = ((pixmaps[faces[on_face]].png_data[pos+2] * darkness / 255) * a / 255) 
+				+ ((screen[screen_pos+2] * (255-a))/255);
+			}
+			semi--;
+			if (semi == 0) break;	/* processed all the semi transparent images */
+		    }
+		}
+	    }
+	    pos+=4;
+	} /* for x loop */
+    }
+    return 0;
+}
+
+
 void display_mapcell_pixmap(int ax,int ay)
 {
-  int k;
+    int k, got_face=0, faces[MAXFACES],num_faces, darkness[5];
 
-  gdk_draw_rectangle (mappixmap, 
+    /* we use a different logic in this mode */
+    if (display_mode == Png_Display && pngximage) {
+
+	num_faces=0;
+	if (mapx > 15 || mapy > 15) {
+	    for(k=the_map.cells[ax][ay].count-1;k>-1;k--) {
+		if (the_map.cells[ax][ay].faces[k] >0 )
+		    faces[num_faces++] = the_map.cells[ax][ay].faces[k];
+	    }
+	    /* inverse the values here - thats a bit easeer than having
+	     * add_png_face do so */
+	    darkness[0] = 255 - the_map.cells[ax][ay].darkness;
+
+	    if (ay-1 < 0 || the_map.cells[ax][ay-1].count==0) darkness[1] = darkness[0];
+	    else darkness[1] = 255 - the_map.cells[ax][ay-1].darkness;
+
+	    if (ax+1 >= mapx || the_map.cells[ax+1][ay].count==0 ) darkness[2] = darkness[0];
+	    else darkness[2] = 255 - the_map.cells[ax+1][ay].darkness;
+
+	    if (ay+1 >= mapy || the_map.cells[ax][ay+1].count==0) darkness[3] = darkness[0];
+	    else darkness[3] = 255 - the_map.cells[ax][ay+1].darkness;
+
+	    if (ax-1 < 0 || the_map.cells[ax-1][ay].count==0) darkness[4] = darkness[0];
+	    else darkness[4] = 255 - the_map.cells[ax-1][ay].darkness;
+
+	} else {
+	    for(k=0; k<the_map.cells[ax][ay].count;k++) {
+		faces[num_faces++] = the_map.cells[ax][ay].faces[k];
+	    }
+	    /* old mode doesn't have darkness, so just set to full bright */
+	    darkness[0]=255;darkness[1]=255;darkness[2]=255;darkness[3]=255;darkness[4]=255;
+	}
+	if (add_png_face_one(ax,ay, faces, num_faces,darkness)) goto bail;
+	return;
+    }
+
+bail:
+    gdk_draw_rectangle (drawingarea->window,
 		      drawingarea->style->mid_gc[0],
 		      TRUE,
 		      image_size*ax,
@@ -5767,9 +5950,115 @@ void display_mapcell_pixmap(int ax,int ay)
 		      image_size,
 		      image_size);
 
-  for(k=the_map.cells[ax][ay].count-1;k>-1;k--) {
-    gen_draw_face(the_map.cells[ax][ay].faces[k], ax,ay);
-  }
+    if (mapx > 15 || mapy > 15) {
+	for(k=0; k<the_map.cells[ax][ay].count;k++) {
+	    /* 0 and -1 are empty faces - don't draw */
+	    if (the_map.cells[ax][ay].faces[k] >0 ) {
+		gen_draw_face(the_map.cells[ax][ay].faces[k], ax,ay);
+		got_face=1;
+	    }
+	}
+	if (!got_face) {
+	    /* If no faces to draw, reset value and draw black */
+	    the_map.cells[ax][ay].count=0;
+	    gdk_draw_rectangle (drawingarea->window, drawingarea->style->black_gc,
+		    TRUE,
+		    image_size*ax,
+		    image_size*ay,
+		    image_size,
+		    image_size);
+	}
+    }
+    else for(k=the_map.cells[ax][ay].count-1;k>-1;k--) {
+	gen_draw_face(the_map.cells[ax][ay].faces[k], ax,ay);
+    }
+}
+
+
+
+/* Do the map drawing */
+void display_map_doneupdate(int redraw)
+{
+    int ax,ay, need_updates=0;
+
+#ifdef TIME_MAP_REDRAW
+    struct timeval tv1, tv2, tv3;
+    long elapsed1, elapsed2;
+    gettimeofday(&tv1, NULL);
+#endif
+
+    if (updatelock < 30) {
+	updatelock++;
+
+	/* draw black on all non-visible squares, and tile pixmaps on the others */
+	for(ax=0;ax<mapx;ax++) {
+	    for(ay=0;ay<mapy;ay++) { 
+		if (pngximage) {
+		    if (the_map.cells[ax][ay].need_update) {
+			display_mapcell_pixmap(ax,ay);
+			need_updates++;
+		    }
+		} else if (redraw || the_map.cells[ax][ay].need_update) {
+		    if (the_map.cells[ax][ay].count==0) {
+			gdk_draw_rectangle (drawingarea->window, drawingarea->style->black_gc,
+						TRUE,
+						image_size*ax,
+						image_size*ay,
+						image_size,
+						image_size);
+		    } else {
+			display_mapcell_pixmap(ax,ay);
+		    }
+		    the_map.cells[ax][ay].need_update=0;
+		}
+	    } /* for ay */
+	} /* for ax */
+#ifdef TIME_MAP_REDRAW
+	gettimeofday(&tv2, NULL);
+#endif
+	if (pngximage) {
+	    int draw_each_space=1;
+	    /* if we need to redraw the entire thing or the number of changed spaces is
+	     * more than a quarter of the map, just put the the entire image to the
+	     * screen.
+	     */
+	    if (map_did_scroll || redraw || need_updates > (mapx * mapy / 4)) {
+		gdk_draw_rgb_image(drawingarea->window,mapgc,
+			   0, 0, mapx * image_size, mapy * image_size,
+			   GDK_RGB_DITHER_NONE, screen, mapx * image_size * 3);
+		draw_each_space=0;
+	    }
+	    /* Even if we put the entire image to the screen, we still need to clear
+	     * the need_update flags.
+	     */
+	    for(ax=0;ax<mapx;ax++) {
+		for(ay=0;ay<mapy;ay++) { 
+		    if (draw_each_space && the_map.cells[ax][ay].need_update) {
+			/* 3072 is 32 * 32 * 3 */
+			gdk_draw_rgb_image(drawingarea->window,mapgc,
+			   ax * image_size, ay * image_size, image_size, image_size,
+			   GDK_RGB_DITHER_NONE, screen + ax * 96 + ay * 3072 * mapx,
+					   mapx * image_size * 3);
+
+		    }
+		    the_map.cells[ax][ay].need_update=0;
+		}
+	    }
+	    map_did_scroll=0;
+	}
+    } /* if updatelock */
+
+#ifdef TIME_MAP_REDRAW
+    gettimeofday(&tv3, NULL);
+    elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
+    elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
+
+    /* I care about performance for 'long' updates, so put the check in to make
+     * these a little more noticable */
+    if ((elapsed1 + elapsed2)>10000) 
+	fprintf(stderr,"display_map_doneupdate: gen took %7ld, draw took %7ld, total = %7ld\n", elapsed1, elapsed2,
+		elapsed1 + elapsed2);
+#endif
 }
 
 
@@ -5791,74 +6080,103 @@ int display_willcache()
     return cache_images;
 }
 
-/* Do the map drawing */
-
-void display_map_doneupdate()
+void resize_map_window(int x, int y)
 {
-  int ax,ay;
-  /*  GdkGC *black_gc;*/
+    gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), image_size * x, image_size * y);
+    if (!split_windows) {
+	/* 15 it is a purely arbitary value.  But basically, if the map window is
+	 * narrow, we then will have the stats on top, with message down below
+	 * the map window.  IF the map window is wide, we put these side
+	 * by side at the top
+	 */
+	if (bigmap && x<15) {
+	    /* reverse of below basically. */
+	    GtkWidget	*newpane;   /* will take place of game_bar_vpane */
 
-  if (updatelock < 30) {
-  updatelock++;
+	    bigmap =FALSE;
 
-  /* draw black on all non-visible squares, and tile pixmaps on the others */
-  for(ax=0;ax<11;ax++) {
-    for(ay=0;ay<11;ay++) { 
-      if (the_map.cells[ax][ay].count==0) {
-	/*	black_gc = gtkmap[ax][ay].pixmap->style->black_gc;*/
-	gdk_draw_rectangle (mappixmap, drawingarea->style->black_gc,
-			    TRUE,
-			    image_size*ax,
-			    image_size*ay,
-			    image_size,
-			    image_size);
-	continue;
-      } 
-      display_mapcell_pixmap(ax,ay);
+	    newpane = gtk_vpaned_new(); /*game in pane1, bars in pane2 */
+
+	    /* Remove referance to the split - the stats frame takes its place */
+	    gtk_widget_ref(game_bar_vpane);
+	    gtk_container_remove(GTK_CONTAINER(stat_game_vpane), game_bar_vpane);
+
+	    /* Stat now gets the entire top pane to itself */
+	    gtk_widget_ref(stat_frame);
+	    gtk_container_remove(GTK_CONTAINER(game_bar_vpane), stat_frame);
+	    gtk_paned_add1(GTK_PANED(stat_game_vpane), stat_frame);
+	    gtk_widget_unref(stat_frame);
+
+	    /* statbars now second part of bottom frame */
+	    gtk_widget_ref(message_frame);
+	    gtk_container_remove(GTK_CONTAINER(game_bar_vpane), message_frame);
+	    gtk_paned_add2(GTK_PANED(newpane), message_frame);
+	    gtk_widget_unref(message_frame);
+
+	    /* game now first part of bottom frame */
+	    gtk_widget_ref(gameframe);
+	    gtk_container_remove(GTK_CONTAINER(stat_game_vpane), gameframe);
+	    gtk_paned_add1(GTK_PANED(newpane), gameframe);
+	    gtk_widget_unref(gameframe);
+
+
+	    gtk_paned_add2(GTK_PANED(stat_game_vpane), newpane);
+
+	    gtk_widget_show(newpane);
+	    /* This should also destroy it */
+	    gtk_widget_unref(game_bar_vpane);
+	    game_bar_vpane = newpane;
+
+	} else if (!bigmap && x>=15) {
+	    GtkWidget	*newpane;   /* will take place of game_bar_vpane */
+	    bigmap=TRUE;
+
+	    newpane = gtk_hpaned_new();
+
+	    /* We need to remove this here - the game pane is goind to
+	     * take game_bar_vpane as second position in the stat_game_vpane.
+	     * add a refcount so it isn't destroyed.
+	     */
+	    gtk_widget_ref(game_bar_vpane);
+	    gtk_container_remove(GTK_CONTAINER(stat_game_vpane), game_bar_vpane);
+
+
+	    /* Stat and message are now split on 'newpane' */
+	    gtk_widget_ref(stat_frame);
+	    gtk_container_remove(GTK_CONTAINER(stat_game_vpane), stat_frame);
+	    gtk_paned_add1(GTK_PANED(newpane), stat_frame);
+	    gtk_widget_unref(stat_frame);
+
+	    gtk_widget_ref(message_frame);
+	    gtk_container_remove(GTK_CONTAINER(game_bar_vpane), message_frame);
+	    gtk_paned_add2(GTK_PANED(newpane), message_frame);
+	    gtk_widget_unref(message_frame);
+
+	    /* the game is now part 2 of stat_game_vpane, and not part of
+	     * game_bar_vpane
+	     */
+
+	    gtk_widget_ref(gameframe);
+	    gtk_container_remove(GTK_CONTAINER(game_bar_vpane), gameframe);
+	    gtk_paned_add2(GTK_PANED(stat_game_vpane), gameframe);
+	    gtk_widget_unref(gameframe);
+
+	    /* Newpane (split stat/message) is now part one of stat_game_vpane */
+	    gtk_paned_add1(GTK_PANED(stat_game_vpane), newpane);
+
+	    gtk_widget_show(newpane);
+	    /* This should also destroy it */
+	    gtk_widget_unref(game_bar_vpane);
+	    game_bar_vpane = newpane;
+	}
+	gtk_widget_set_usize (gameframe, (image_size*mapx)+6, (image_size*mapy)+6);
+    } else {
+	gtk_widget_set_usize (gtkwin_root,(image_size*mapx)+6,(image_size*mapy)+6);
     }
-  }
-  gdk_draw_pixmap(drawingarea->window,
-		  drawingarea->style->fg_gc[GTK_WIDGET_STATE (drawingarea)],
-		  mappixmap,
-		  0, 0,
-		  0, 0,
-		  image_size*11,image_size*11);
-  /*
-  gtk_widget_draw (table, NULL);
-  */
-  }
-  else {
-    /*    printf ("WARNING - Frozen updates until updatelock is cleared!\n");*/
-  }
 }
 
-void display_mapscroll(int dx,int dy)
-{
-  int x,y;
-  struct Map newmap;
-  
-  for(x=0;x<11;x++) {
-    for(y=0;y<11;y++) {
-      newmap.cells[x][y].count = 0;
-      if (x+dx < 0 || x+dx >= 11)
-      continue;
-      if (y+dy < 0 || y+dy >= 11)
-      continue;
-	memcpy((char*)&(newmap.cells[x][y]), (char*)&(the_map.cells[x+dx][y+dy]),
-	       sizeof(struct MapCell));
-    }
-  }
-  memcpy((char*)&the_map,(char*)&newmap,sizeof(struct Map));
-
-}
-
-
-/* This is based a lot on the xpm function below */
-/* There is no good way to load the data directly to a pixmap -
- * even some function which would seem to do the job just hide the
- * writing to a temp function further down (Imlib_inlined_png_to_image
- * does this).  As such, we might as well just do it at the top level - plus
- * if we are caching, at least we only write the file once then.
+/* If we are using ximage logic, we use a different mechanism to load the
+ * image.
  */
 void display_newpng(long face,char *buf,long buflen)
 {
@@ -5880,7 +6198,12 @@ void display_newpng(long face,char *buf,long buflen)
 	    fclose(tmpfile);
 	}
     }
-
+    if (pngximage) {
+	if (!(pixmaps[face].png_data = png_to_data(buf, (int)buflen))) {
+	    fprintf(stderr,"unable to create image %ld\n", face);
+	}
+    }
+    /* even if using pngximage, we standard image for the inventory list */
     if (png_to_gdkpixmap(gtkwin_root->window, buf, buflen,
 			 &pixmaps[face].gdkpixmap, &pixmaps[face].gdkmask,
 			 gtk_widget_get_colormap(gtkwin_root))) {

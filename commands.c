@@ -95,6 +95,7 @@ void SetupCmd(char *buf, int len)
 	/* find the next space, and put a null there */
 	for(;buf[s] && buf[s] != ' ';s++) ;
 	buf[s++]=0;
+	while (buf[s] == ' ') s++;
 
 	if(s>=len)
 	    break;
@@ -103,6 +104,7 @@ void SetupCmd(char *buf, int len)
 
 	for(;buf[s] && buf[s] != ' ';s++) ;
 	buf[s++]=0;
+	while (buf[s] == ' ') s++;
 		
 	/* what we do with the returned data depends on what the server
 	 * returns to us.  In some cases, we may fall back to other
@@ -119,6 +121,51 @@ void SetupCmd(char *buf, int len)
 	else if (!strcmp(cmd,"sexp")) {
 	    if (!strcmp(param,"FALSE")) {
 		fprintf(stderr,"Server returned FALSE on setup sexp\n");
+	    }
+	} else if (!strcmp(cmd,"mapsize")) {
+	    int x, y=0;
+	    char *cp,tmpbuf[MAX_BUF];
+
+	    if (!strcasecmp(param, "false")) {
+		draw_info("Server only supports standard sized maps (11x11)", NDI_RED);
+		/* Do this because we may have been playing on a big server before */
+		mapx = 11;
+		mapy = 11;
+		resize_map_window(mapx,mapy);
+		continue;
+	    }
+	    x = atoi(param);
+	    for (cp = param; *cp!=0; cp++)
+		if (*cp == 'x' || *cp == 'X') {
+		    y = atoi(cp+1);
+		    break;
+		}
+	    /* we wanted a size larger than the server supports.  Reduce our
+	     * size to server maximum, and re-sent the setup command.
+	     * Update our want sizes, and also tell the player what we are doing
+	     */
+	    if (want_mapx > x || want_mapy > y) {
+		if (want_mapx > x) want_mapx = x;
+		if (want_mapy > y) want_mapy = y;
+		sprintf(tmpbuf," setup mapsize %dx%d", want_mapx, want_mapy);
+		cs_write_string(csocket.fd, tmpbuf, strlen(tmpbuf));
+		sprintf(tmpbuf,"Server supports a max mapsize of %d x %d - requesting a %d x %d mapsize",
+			x, y, want_mapx, want_mapy);
+		draw_info(tmpbuf,NDI_RED);
+	    }
+	    else if (want_mapx == x && want_mapy == y) {
+		mapx = x;
+		mapy = y;
+		resize_map_window(x,y);
+	    }
+	    else {
+		/* Our request was not bigger than what server supports, and 
+		 * not the same size, so whats the problem?  Tell the user that
+		 * something is wrong.
+		 */
+		sprintf(tmpbuf,"Unable to set mapsize on server - we wanted %d x %d, server returnd %d x %d",
+			want_mapx, want_mapy, x, y);
+		draw_info(tmpbuf,NDI_RED);
 	    }
 	} else {
 	    fprintf(stderr,"Got setup for a command we don't understand: %s %s\n",
@@ -739,12 +786,54 @@ void Map_unpacklayer(unsigned char *cur,unsigned char *end)
 void MapCmd(unsigned char *data, int len)
 {
     unsigned char *end;
-  
+
+#if 0
+    fprintf(stderr,"Got MapCmd - %d bytes\n", len);
+#endif
     end = data + len;
 
     display_map_startupdate();
     Map_unpacklayer(data,end);
-    display_map_doneupdate();
+    display_map_doneupdate(FALSE);
+}
+
+void Map1Cmd(unsigned char *data, int len)
+{
+    int mask, x, y, pos=0,face;
+
+#if 0
+    fprintf(stderr,"Got Map1Cmd - %d bytes\n", len);
+#endif
+    display_map_startupdate();
+
+    while (pos <len) {
+	mask = GetShort_String(data+pos); pos+=2;
+	x = (mask >>10) & 0x3f;
+	y = (mask >>4) & 0x3f;
+	/* If there are no low bits (face/darkness), this space is
+	 * not visible.
+	 */
+	if ((mask & 0xf) == 0) {
+	    display_map_clearcell(x,y);
+	}
+	if (mask & 0x8) { /* darkness bit */
+	    set_map_darkness(x,y, (uint8)(data[pos]));
+	    pos++;
+	}
+	if (mask & 0x4) { /* floor bit */
+	    face = GetShort_String(data+pos); pos +=2;
+	    set_map_face(x,y,0, face);
+	}
+	if (mask & 0x2) { /* middle face */
+	    face = GetShort_String(data+pos); pos +=2;
+	    set_map_face(x,y,1, face);
+	}
+	if (mask & 0x1) { /* top face */
+	    face = GetShort_String(data+pos); pos +=2;
+	    set_map_face(x,y,2, face);
+	}
+    }
+    display_map_doneupdate(FALSE);
 }
 
 void map_scrollCmd(char *data, int len)

@@ -51,6 +51,23 @@ that command actually was.  This option causes the commands to also be
 printed in the information window as they are sent to the server.
 
 .TP
+.B -mapsize XxY
+Sets the desired viewable map window.  X and Y are number of tiles.
+Note that larger map sizes are likely to consume more bandwidth,
+cpu time, as well as just screen real estate.
+
+The maximum map size may vary server to server.  The client will
+try to negotiate the largest viewable map in each dimension.  Note
+that there is no requirement that the viewable map be square.
+
+Due to performance issues, it is strongly suggested that expirementation
+is done with this value to find a size that gets acceptable performance
+(simple test - go to the start town, run in some direction, stop
+running and see how long it takes before the client stops moving
+you).
+
+
+.TP
 .B -pix|-xpm|-png
 This determines the graphic image types to use.  -pix uses pixmap images -
 these are two color images with no masking (one image per space.).  -xpm
@@ -63,8 +80,17 @@ further down.)  Png have all the same features of XPM, but are
 slightly larger (32x32 instead of 24x24), appear better, and do the the
 efficiency of the png format, actually take less bandwidth to transmit
 than the xpm images.  Using the png images require that the client
-
 has been compiled with png support.
+
+.TP
+.B -pngximage
+gcfclient only.  This option is only meaningful if png graphics are
+being used.  It uses a GdkRgb structure - this allows much
+better effects (especially darkness).  Performance may be worse
+when using this option - this depends on many factors.  Like
+the mapsize option above, it is suggested the experimentation is
+done to make performance is still acceptable.  This option does
+not affect bandwidth - it only affects cpu performancs.
 
 .TP
 .B -showicon
