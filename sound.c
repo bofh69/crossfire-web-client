@@ -348,7 +348,7 @@ int init_sounds()
 
 #else /* NEW_SOUND */
 
-    sound_pipe=popen("cfsndserv","w");
+    sound_pipe=popen(BINDIR "cfsndserv","w");
     if (!sound_pipe){
       perror("cfsndserver");
       return -1;
