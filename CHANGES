@@ -1,6 +1,17 @@
 "$Id$"
 Top of CVS tree:
 
+The following change removes imlib as are png loading/rendering library -
+instead, we use our own local function located in png.c.  libpng is
+still needed, but it removes the dependancy on imlib.  Also, my home
+spun function renders all the png images crossfire uses correctly, while
+imlib had several it did not do properly.  MSW 8/13/2000
+Files affected:
+config.h, config.h.in:  Change HAVE_IMLIB_H to HAVE_LIBPNG
+configure, configure.in: Change check from imlib to libpng.
+gx11.c,x11.c,xutil.c: Changed to use our functions and not imlib.
+png.c: new file that has our png support in it.
+
 cfsndserv.c: Make some changes so that sound on ultrasparc systems is played
 properly.  Missing FD_SET call to re-add the soundfd, as well as a missing
 wrap check for first_free_buffer.  MSW 8/10/2000

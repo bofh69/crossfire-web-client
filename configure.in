@@ -246,18 +246,20 @@ dnl Test for libXpm
   fi
 
 dnl Put this here so we get the gdk libs
-AC_CHECK_LIB(gdk_imlib, main,GTK_LIBS="$GTK_LIBS -lgdk_imlib")
+dnl AC_CHECK_LIB(gdk_imlib, main,GTK_LIBS="$GTK_LIBS -lgdk_imlib")
 
 dnl Need to check for Xext while we still have X_LIBS set.
 AC_CHECK_LIB(Xext, main, X_LIBS="$X_LIBS -lXext")
 
-AC_CHECK_LIB(Imlib, main, X_LIBS="$X_LIBS -lImlib")
+dnl AC_CHECK_LIB(Imlib, main, X_LIBS="$X_LIBS -lImlib")
 
 dnl Restore previous CPPFLAGS and LIBS.
 CPPFLAGS="$gcfc_save_CPPFLAGS"
 LIBS="$gcfc_save_LIBS"
 
 AC_SUBST(LIBS)
+
+AC_CHECK_LIB(png, main)
 
 dnl not strictly needed, but since the X11 client uses it, lets use it here
 AC_CHECK_LIB(dmalloc, main)
@@ -268,7 +270,7 @@ AC_CHECK_LIB(m, sqrt)
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h string.h sys/select.h Imlib.h)
+AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h string.h sys/select.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

@@ -105,8 +105,9 @@
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
 
-#ifdef HAVE_IMLIB_H
-#include <gdk_imlib.h>
+#ifdef HAVE_LIBPNG
+#define PNG_GDK
+#include "png.c"
 #endif
 
 static int image_size=24;
@@ -306,12 +307,9 @@ struct Map {
 };
 
 struct PixmapInfo {
-  Pixmap pixmap,mask;
-  Pixmap bitmap;
   long fg,bg;
   GdkPixmap *gdkpixmap;
   GdkBitmap *gdkmask;
-  GdkPixmap *gdkbitmap;
 };
 
 struct GtkMap {
@@ -1285,9 +1283,11 @@ void FaceCmd(unsigned char *data,  int len)
 	}
   }
   else if (display_mode == Png_Display) {
-#ifdef HAVE_IMLIB_H
-    if (gdk_imlib_load_file_to_pixmap(buf, &pixmaps[pnum].gdkpixmap, &pixmaps[pnum].gdkmask)==0) {
-	    fprintf(stderr,"Got error on Imlib_load_file_to_pixmap\n");
+#ifdef HAVE_LIBPNG
+
+    if (png_to_gdkpixmap(gtkwin_root->window, buf, &pixmaps[pnum].gdkpixmap, 
+			 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
+	    fprintf(stderr,"Got error on png_to_gdkpixmap\n");
 	    requestface(pnum, face, buf);
     }
 #endif
@@ -1970,7 +1970,6 @@ expose_event (GtkWidget *widget, GdkEventExpose *event)
 
 
 static int get_game_display(GtkWidget *frame) {
-  /*#include "pixmaps/bg.xpm"*/
   GtkWidget *gtvbox, *gthbox;
   
   gtvbox = gtk_vbox_new (FALSE, 0);
@@ -3404,18 +3403,6 @@ if (updatelock < 25) {
  *
  ****************************************************************************/
 
-
-/*#define draw_status_icon(l,x,y,face) \
-do { \
-    XClearArea(display, l->win, x, y, 24, 6, False); \
-    if (face) { \
-	XSetClipMask(display, l->gc_status, icons[face].mask), \
-	XSetClipOrigin(display, l->gc_status, x, y), \
-	XCopyArea(display, icons[face].pixmap, l->win, l->gc_status, \
-		  0, 0, 24, 6, x, y); \
-    } \
-} while (0)
-*/
 
 /*
  * draw_all_list clears a window and after that draws all objects 
@@ -6234,7 +6221,7 @@ static void usage(char *progname)
 #ifdef Xpm_Pix
     puts("-xpm             - Use color pixmaps (XPM) for display.");
 #endif
-#ifdef HAVE_IMLIB_H
+#ifdef HAVE_LIBPNG
     puts("-png             - Use png images for display.");
 #endif
     puts("-showicon        - Print status icons in inventory window");
@@ -6305,7 +6292,7 @@ int init_windows(int argc, char **argv)
 #endif
 	}
         if (!strcmp(argv[on_arg],"-png")) {
-#ifdef HAVE_IMLIB_H
+#ifdef HAVE_LIBPNG
             display_mode = Png_Display;
             image_size=32;
             continue;
@@ -6384,11 +6371,6 @@ int init_windows(int argc, char **argv)
     init_keys();
     if (cache_images) init_cache_data();
     destroy_splash();
-#ifdef HAVE_IMLIB_H
-    if (display_mode == Png_Display) {
-	gdk_imlib_init();
-    }
-#endif
     return 0;
 }
 
@@ -6519,7 +6501,7 @@ void display_mapscroll(int dx,int dy)
  */
 void display_newpng(long face,char *buf,long buflen)
 {
-#ifdef HAVE_IMLIB_H
+#ifdef HAVE_LIBPNG
     char    *filename;
 
     FILE *tmpfile;
@@ -6540,8 +6522,10 @@ void display_newpng(long face,char *buf,long buflen)
 	fclose(tmpfile);
     }
 
-    if (gdk_imlib_load_file_to_pixmap(filename, &pixmaps[face].gdkpixmap, &pixmaps[face].gdkmask)==0) {
-	fprintf(stderr,"Got error on Imlib_load_file_to_pixmap\n");
+    if (png_to_gdkpixmap(gtkwin_root->window, filename,
+			 &pixmaps[face].gdkpixmap, &pixmaps[face].gdkmask,
+			 gtk_widget_get_colormap(gtkwin_root))) {
+	    fprintf(stderr,"Got error on png_to_gdkpixmap\n");
     }
 
     if (cache_images) {

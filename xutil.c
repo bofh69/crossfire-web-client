@@ -156,11 +156,13 @@ void FaceCmd(unsigned char *data,  int len)
 /*	    fprintf(stderr,"Successfully loaded %s (%d) from cache\n", buf, pnum);*/
 	}
     } else if (display_mode==Png_Display) {
-#ifdef HAVE_IMLIB_H
+#ifdef HAVE_LIBPNG
 	Pixmap pixmap, mask;
+	unsigned long w, h;
 
 	/* Fail on this read, we will request a new copy */
-	if (Imlib_load_file_to_pixmap(id, buf, &pixmap, &mask)==0) { 
+	if (png_to_xpixmap(display, win_game, buf, 
+			   &pixmap, &mask, colormap, &w, &h)) {
 	    requestface(pnum, face, buf);
 	} else {
 	    pixmaps[pnum].pixmap = pixmap;

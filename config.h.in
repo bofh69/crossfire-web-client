@@ -51,5 +51,6 @@
 /* Define/not defined depending on the endianness of this system */
 #undef WORDS_BIGENDIAN
 
-/* Define/not defined depending on the endianness of this system */
-#undef HAVE_IMLIB_H
+/* Define if you have the <xpm.h> header file.  */
+#undef HAVE_LIBPNG
+

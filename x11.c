@@ -306,11 +306,10 @@ static Window win_root, win_game,win_stats,win_message;
 /* info win */
 #define INFOCHARS 50
 
-#ifdef HAVE_IMLIB_H
-#include <Imlib.h>
-static ImlibData *id;
-#endif
 
+#if defined(HAVE_LIBPNG) && !defined(__CEXTRACT__)
+#include <png.c>
+#endif
 #include <xutil.c>
 
 /* This is the loop that the client goes through once all the
@@ -324,6 +323,7 @@ static ImlibData *id;
  */
 
 extern int maxfd;
+
 void event_loop()
 {
     fd_set tmp_read, tmp_exceptions;
@@ -2604,7 +2604,7 @@ static void usage(char *progname)
 #ifdef HAVE_LIBXPM
     puts("-xpm             - Use color pixmaps (XPM) for display.");
 #endif
-#ifdef HAVE_IMLIB_H
+#ifdef HAVE_LIBPNG
     puts("-png             - Use png images for display.");
 #endif
     puts("-showicon        - Print status icons in inventory window");
@@ -2678,7 +2678,7 @@ int init_windows(int argc, char **argv)
 #endif
 	}
 	if (!strcmp(argv[on_arg],"-png")) {
-#ifdef HAVE_IMLIB_H
+#ifdef HAVE_LIBPNG
 	    display_mode = Png_Display;
 	    image_size=32;
 	    continue;
@@ -2762,11 +2762,6 @@ int init_windows(int argc, char **argv)
     if (cache_images) init_cache_data();
     set_window_pos();
     info_ratio=(float) infodata.width/ (float) (infodata.width + INV_WIDTH);
-#ifdef HAVE_IMLIB_H
-    if (display_mode == Png_Display) {
-	id=Imlib_init(display);
-    }
-#endif
     return 0;
 }
 
@@ -2891,11 +2886,12 @@ void display_mapscroll(int dx,int dy)
  */
 void display_newpng(long face,char *buf,long buflen)
 {
-#ifdef HAVE_IMLIB_H
+#ifdef HAVE_LIBPNG
     char    *filename;
 
     FILE *tmpfile;
     Pixmap pixmap, mask;
+    unsigned long w,h;
 
     if (cache_images) {
 	if (facetoname[face]==NULL) {
@@ -2913,7 +2909,8 @@ void display_newpng(long face,char *buf,long buflen)
 	fclose(tmpfile);
     }
 
-    if (Imlib_load_file_to_pixmap(id, filename, &pixmap, &mask)==0) {
+    if (png_to_xpixmap(display, win_game, filename, &pixmap, &mask,
+		       colormap, &w, &h)) {
 	fprintf(stderr,"Got error on Imlib_load_file_to_pixmap\n");
     }
 
