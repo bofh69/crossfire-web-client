@@ -8,3 +8,5 @@ crossfire.clsc
 *.ncb
 *.opt
 *.plg
+SDL_mixer.dll
+SDL.dll

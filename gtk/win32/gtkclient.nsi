@@ -5,7 +5,7 @@
 !include "MUI.nsh"
 
 ;Title Of Your Application
-Name "Crossfire GTK Client"
+Name "Crossfire GTK Client 1.7.0"
 
 ;Do A CRC Check
 CRCCheck On
@@ -70,6 +70,7 @@ Section "Install"
   File "Win32Changes.txt"
   File /oname=ChangeLog.rtf "..\..\Changes"
   File /oname=Copying.rtf "..\..\Copying"
+  File ..\..\Documentation\Scripting.html
   File "Running.txt"
   File "Building.txt"
   SetOutPath $INSTDIR\.crossfire
@@ -97,6 +98,7 @@ Section "Shortcuts"
   CreateShortcut "$SMPROGRAMS\Crossfire GTK Client\Changes.lnk" "$INSTDIR\\Win32Changes.txt"
   CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Full change log.lnk" "$INSTDIR\\ChangeLog.rtf"
   CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Running the client.lnk" "$INSTDIR\\Running.txt"
+  CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Scripting Guide.lnk" "$INSTDIR\\Scripting.html"
   CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Uninstall Crossfire GTK Client.lnk" "$INSTDIR\\Uninst.exe" 0
 SectionEnd
 
@@ -111,6 +113,7 @@ Section Uninstall
   Delete "$INSTDIR\.CROSSFIRE\gwinpos"
   Delete "$INSTDIR\.CROSSFIRE\gdefaults"
   Delete "$INSTDIR\.crossfire\keys"
+  Delete "$INSTDIR\Scripting.html"
   Delete "$INSTDIR\Win32Changes.txt"
   Delete "$INSTDIR\ChangeLog.rtf"
   Delete "$INSTDIR\Copying.rtf"

@@ -5,6 +5,12 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 Changes for 1.7.0:
 
+common/client.h: synced client version to 1023.
+gtk/win32/config.h: changed version numbers.
+gtk/win32/gtkclient.nsi: added scripting documentation. Checks for GTK.
+gtk/win32/Win32Changes.txt: updated.
+Ryo 2004-04-25
+
 gtk/win32/porting.c: tweaked SDL's sound support to use panning information.
    Added missing header files.
 Ryo 2004-04-11

@@ -1,4 +1,4 @@
-Readme for Crossfire's GTK client under Windows (February, 1st, 2004)
+Readme for Crossfire's GTK client under Windows (April, 25th, 2004)
 ---------------------------------------------------------------------
 
 This document contains notes and information about running Crossfire's GTK client under Win32.
@@ -9,14 +9,14 @@ Changes from previous versions are listed in 'Changes' or 'Full change log' file
 start menu.
 
 
-This is the official 1.6.1 release for Windows.
+This is the official 1.7.0 release for Windows.
 
 
 Requirements
 ------------
 The client requires GTK libraries to run. It has only been tested with libraries from http://www.dropline.net/gtk/.
 You only need to get the 'GTK runtime environment' if don't plan on compiling the client.
-Client has been compiled with version 2.2.4.1. Use older versions at your own risk.
+Client has been compiled with version 2.2.4.2. Use older versions at your own risk.
 
 Some other software, like GAIM (http://gaim.sf.net) will install GTK for you.
 

@@ -39,7 +39,7 @@
 #endif
 
 
-#define VERSION_CS 1022
+#define VERSION_CS 1023
 #define VERSION_SC 1027
 
 char VERSION_INFO[256];

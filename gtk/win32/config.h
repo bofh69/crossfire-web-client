@@ -89,7 +89,7 @@
 #define PACKAGE "gcfclient"
 
 /* Version number of package */
-#define VERSION "1.6.1"
+#define VERSION "1.7.0"
 
 /***********************/
 #ifdef WIN32

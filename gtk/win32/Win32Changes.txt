@@ -4,6 +4,13 @@ Changes for Win32 GTK client
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
 
+From version 1.6.1 to version 1.7.0
+-----------------------------------
+* sound support is back, but no sound files yet
+* default keybindings which make some sense
+* scripting support implemented (check 'scripting documentation' file)
+* installer now correctly checks for GTK installed
+
 From version 1.6.0 to version 1.6.1
 -----------------------------------
 * skills's level in statistics panel are now correctly displayed.
