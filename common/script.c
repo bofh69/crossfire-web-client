@@ -1018,6 +1018,7 @@ static void script_process_cmd(int i)
     * unwatch <command type>
     * request <data type>
     * issue <repeat> <must_send> <command>
+    * localcmd <command> [<params>]
     * draw <color> <text>
     * monitor
     * unmonitor
@@ -1352,6 +1353,25 @@ static void script_process_cmd(int i)
          else {
             cs_print_string(csocket.fd, "%s", c);
          }
+      }
+   }
+   else if ( strncmp(cmd,"localcmd",8)==0){
+      char* param;
+      c=cmd+8;
+      while (*c==' ') c++;
+      param=c;
+      while ( (*param!='\0') && (*param!=' ')) param++;
+      if (*param==' '){
+         *param='\0';
+         *param++;
+      } else
+         param=NULL;
+      if (!handle_local_command(c, param)){
+         char buf[1024];
+         sprintf(buf,"Script %s malfunction; localcmd not understood",scripts[i].name);
+         draw_info(buf,NDI_RED);
+         sprintf(buf,"Script <<localcmd %s %s>>",c,(param==NULL)?"":param);
+         draw_info(buf,NDI_RED);
       }
    }
    else if ( strncmp(cmd,"draw",4)==0 ) {

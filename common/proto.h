@@ -119,5 +119,6 @@ extern void run_dir(int dir);
 extern int send_command(const char *command, int repeat, int must_send);
 extern void CompleteCmd(unsigned char *data, int len);
 extern void command_take(const char *command, char *cpnext);
+extern int handle_local_command(const char* cp, char* cpnext);
 extern void extended_command(const char *ocommand);
 extern char *complete_command(char *command);

@@ -333,39 +333,13 @@ void command_take (const char *command, char *cpnext)
 		cpl.container->inv->tag, cpl.count);
     }
 }
-
-
-/* This is an extended command (ie, 'who, 'whatever, etc).  In general,
- * we just send the command to the server, but there are a few that
- * we care about (bind, unbind)
- *
- * The command passsed to us can not be modified - if it is a keybinding,
- * we get passed the string that is that binding - modifying it effectively
- * changes the binding.
+/* Tries to handle command cp (with optional params in cpnext, which may be null)
+ * as a local command. If this was a local command, returns true to indicate 
+ * command was handled.
+ * This code was moved from extended_command so scripts ca issue local commands
+ * to handle keybindings or anything else.
  */
-
-void extended_command(const char *ocommand) {
-    const char *cp = ocommand;
-    char *cpnext, command[MAX_BUF];
-
-    if ((cpnext = strchr(cp, ' '))!=NULL) {
-	int len = cpnext - ocommand;
-	if (len > (MAX_BUF -1 )) len = MAX_BUF-1;
-
-	strncpy(command, ocommand, len);
-	command[len] = '\0';
-	cp = command;
-	while (*cpnext == ' ')
-	    cpnext++;
-	if (*cpnext == 0)
-	    cpnext = NULL;
-    }
-
-    /* cp now contains the command (everything before first space),
-     * and cpnext contains everything after that first space.  cpnext
-     * could be NULL.
-     */
-
+int handle_local_command(const char* cp, char* cpnext){
     /* I alphabetized the list of commands below to make it easier to
      * find/see what the extended commands are and what they do.
      */
@@ -384,7 +358,6 @@ void extended_command(const char *ocommand) {
 	close(csocket.fd);
 #endif
 	csocket.fd=-1;
-	return;
     }
 #ifdef HAVE_DMALLOC_H
 #ifndef DMALLOC_VERIFY_NOERROR
@@ -430,7 +403,48 @@ void extended_command(const char *ocommand) {
     else if (!strcmp(cp,"take"))		command_take(cp, cpnext);
     else if (!strcmp(cp,"unbind"))		unbind_key(cpnext);
     else if (!strcmp(cp,"num_free_items"))	LOG(LOG_INFO,"common::extended_command","num_free_items=%d", num_free_items());
-    else {
+    else 
+        /* no match, this is not a local command*/
+        return 0;
+    
+    /* if we get here, one of the if before the last else was true,
+     * tell caller we handled the command as local
+     */
+    return 1;
+}
+
+/* This is an extended command (ie, 'who, 'whatever, etc).  In general,
+ * we just send the command to the server, but there are a few that
+ * we care about (bind, unbind)
+ *
+ * The command passsed to us can not be modified - if it is a keybinding,
+ * we get passed the string that is that binding - modifying it effectively
+ * changes the binding.
+ */
+
+void extended_command(const char *ocommand) {
+    const char *cp = ocommand;
+    char *cpnext, command[MAX_BUF];
+
+    if ((cpnext = strchr(cp, ' '))!=NULL) {
+	int len = cpnext - ocommand;
+	if (len > (MAX_BUF -1 )) len = MAX_BUF-1;
+
+	strncpy(command, ocommand, len);
+	command[len] = '\0';
+	cp = command;
+	while (*cpnext == ' ')
+	    cpnext++;
+	if (*cpnext == 0)
+	    cpnext = NULL;
+    }
+
+    /* cp now contains the command (everything before first space),
+     * and cpnext contains everything after that first space.  cpnext
+     * could be NULL.
+     */
+    if (!handle_local_command(cp, cpnext)){
+
 	/* just send the command(s)  (if `ocommand' is a compound command */
 	/* then split it and send each part seperately */
         strncpy(command, ocommand, MAX_BUF-1);
