@@ -530,6 +530,14 @@ SOURCE=.\config.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\GTKClient.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\GTKClient.rc
+# End Source File
+# Begin Source File
+
 SOURCE=.\porting.c
 
 !IF  "$(CFG)" == "GTKClient - Win32 Release"
@@ -542,6 +550,10 @@ SOURCE=.\porting.c
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=.\resource.h
 # End Source File
 # Begin Source File
 
