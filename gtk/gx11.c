@@ -698,8 +698,10 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 	if (((GdkEventConfigure*)event)->width == ox && ((GdkEventConfigure*)event)->height == oy)
 	    return TRUE;
 	else {
+#if 0
 	    fprintf(stderr, "ox=%d != %d, oy=%d != %d\n", ox, ((GdkEventConfigure*)event)->width,
 		    oy, ((GdkEventConfigure*)event)->height);
+#endif
 	    ox = ((GdkEventConfigure*)event)->width;
 	    oy = ((GdkEventConfigure*)event)->height;
 	}
@@ -707,7 +709,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 
 #ifdef HAVE_SDL
     if(use_config[CONFIG_SDL]) {
-	/* When program first runs, mapsruface can be null.
+	/* When program first runs, mapsurface can be null.
 	 * either way, we want to catch it here.
 	 */
 	if (mapsurface)

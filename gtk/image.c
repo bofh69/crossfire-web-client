@@ -193,13 +193,6 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 	}
 
 	for (i=0; i < pi->map_width * pi->map_height; i+= 4) {
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-	    p = (uint32) (fog->pixels + i);
-	    g = ( ((p >> 24) & 0xff)  + ((p >> 16) & 0xff) + ((p >> 8) & 0xff)) / 3;
-	    p = (g << 24) | (g << 16) | (g << 8) | (p & 0xff);
-	    l = (uint32*) fog->pixels + i;
-	    *(uint32*) l = p;
-#else
 	    /* The pointer arithemtic below looks suspicious, but it is a patch that
 	     * is submitted, so just putting it in as submitted.
 	     * MSW 2004-05-11
@@ -209,7 +202,6 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 	    p = (g << 24) | (g << 16) | (g << 8) | (*p & 0xff);
 	    l = (uint32*) fog->pixels + i;
 	    *(uint32*) l = *p;
-#endif
 	}
 
 	SDL_UnlockSurface(fog);
@@ -233,10 +225,10 @@ static void free_pixmap(PixmapInfo *pi)
     if (pi->map_image) {
 #ifdef HAVE_SDL
 	if (use_config[CONFIG_SDL]) {
-	    SDL_FreeSurface(pi->map_image);
 	    free(((SDL_Surface*)pi->map_image)->pixels);
+	    SDL_FreeSurface(pi->map_image);
 	    SDL_FreeSurface(pi->fog_image);
-	    free(((SDL_Surface*)pi->fog_image)->pixels);
+/*	    free(((SDL_Surface*)pi->fog_image)->pixels);*/
 	}
 	else
 #endif

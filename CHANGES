@@ -1,6 +1,13 @@
 "$Id$"
 Top of CVS tree:
+
 ------------------------------------------------------------------------------
+gtk/gx11.c: Comment out printing of size when we receive config event.
+gtk/image.c: Remove some superfluos LIL_ENDIAN code that would never
+  be used because it was already in an #ifdef LIL_ENDIAN/#else block.
+  Fix up freeing of data - need to free the pixel info before freeing
+  the surface, don't free the fog pixels since SDL will do that for us.
+MSW 2004-05-15
 
 gtk/image.c: Patch from bug list to fix compilation on big endian
   machines.
