@@ -659,7 +659,7 @@ void gtk_complete_command()
 	
     entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
     newcommand = complete_command(entry_text);
-    /* value differ, so update window */ 
+    /* value differ, so update window */
     if (strcmp(entry_text, newcommand)) {
 	gtk_entry_set_text(GTK_ENTRY(entrytext), newcommand);
 	gtk_entry_set_position(GTK_ENTRY(entrytext), strlen(newcommand));
@@ -3558,7 +3558,11 @@ void sexit()
     extended_command("quit");
 }
 
-/* get_menu_display 
+void client_exit(){
+    printf ("Exiting.\n");
+    exit(0);
+}
+/* get_menu_display
  * This sets up menus
  */
 
@@ -3634,7 +3638,7 @@ static int get_menu_display (GtkWidget *box) {
   menu_items = gtk_menu_item_new_with_label("Quit client");
   gtk_menu_append(GTK_MENU (filemenu), menu_items);   
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(exit), NULL);
+			    GTK_SIGNAL_FUNC(client_exit), NULL);
   gtk_widget_show(menu_items);
 
   /* This is the root menu, and will be the label
@@ -3683,7 +3687,7 @@ static int get_menu_display (GtkWidget *box) {
 
 
   menu_items = gtk_menu_item_new_with_label("Disconnect");
-  gtk_menu_append(GTK_MENU (clientmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (clientmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(disconnect), NULL);
   gtk_widget_show(menu_items);
@@ -4228,7 +4232,7 @@ void create_splash() {
     gtk_widget_show (vbox);
     gtk_widget_show (gtkwin_splash);
 
- 
+
     while ( gtk_events_pending() ) {
 	gtk_main_iteration();
     }
@@ -4250,7 +4254,7 @@ void destroy_splash() {
  * X11 error handler handle non fatal errors.
  */
 
- 
+
 void create_windows() {
   GtkWidget *rootvbox;
   GtkWidget *frame;
@@ -4294,8 +4298,9 @@ void create_windows() {
         rootwin_height = (33*gch)+(map_image_size*use_config[CONFIG_MAPHEIGHT]);
     gtk_widget_set_usize (gtkwin_root,rootwin_width,rootwin_height);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
-    gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
-    
+    //gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
+    gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(client_exit), NULL);
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_root), 0);
 
     /* Alloc colors.  colorname[] comes from xutil.c */
@@ -4424,7 +4429,7 @@ void create_windows() {
     gtk_widget_show (inv_look_vpane);
     
     gtk_widget_show (stat_info_hpane);
-    
+
     gtk_widget_show (inv_hpane);
     
 
@@ -4452,15 +4457,16 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_root,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,(map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire - view");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_root), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
+    //gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
+    gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(client_exit), NULL);
 
 
     gtk_container_border_width (GTK_CONTAINER (gtkwin_root), 0);
-    
- 
+
+
     rootvbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER (gtkwin_root), rootvbox);
-   
+
     gtk_widget_realize (rootvbox);
     
     gtk_widget_realize (gtkwin_root);
@@ -4483,7 +4489,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_stats,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,140);
     gtk_window_set_title (GTK_WINDOW (gtkwin_stats), "Crossfire GTK Client");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_stats), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_stats);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_stats);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_stats), 0);
     
@@ -4506,7 +4512,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_info,400,600);
     gtk_window_set_title (GTK_WINDOW (gtkwin_info), "Crossfire - info");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_info), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_info), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_info);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_info), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_info);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_info), 0);
     
@@ -4538,7 +4544,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_message,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,170);
     gtk_window_set_title (GTK_WINDOW (gtkwin_message), "Crossfire - vitals");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_message), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_message);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_message);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_message), 0);
     
@@ -4560,7 +4566,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_inv,290,400);
     gtk_window_set_title (GTK_WINDOW (gtkwin_inv), "Crossfire - inventory");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_inv), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_inv), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_inv);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_inv), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_inv);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_inv), 0);
     
@@ -4581,7 +4587,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_look,290,150);
     gtk_window_set_title (GTK_WINDOW (gtkwin_look), "Crossfire - look");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_look), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_look), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_look);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_look), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_look);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_look), 0);
     

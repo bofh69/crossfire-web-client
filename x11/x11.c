@@ -193,7 +193,7 @@ static XColor discolor[16];
 static XFontStruct *font;	/* Font loaded to display in the windows */
 static XEvent event;
 static XSizeHints messagehint, roothint;
-
+static Atom wm_delete_window;
 
 /* This struct contains the information to draw 1 line of data. */
 typedef struct {
@@ -485,7 +485,7 @@ static int get_game_display() {
     gc_xpm_object = XCreateGC(display,win_game,0,0);
     XSetGraphicsExposures(display, gc_xpm_object, False);
     XSetClipOrigin(display, gc_xpm_object,0, 0);
-    xpm_pixmap = XCreatePixmap(display, def_root, image_size, image_size, 
+    xpm_pixmap = XCreatePixmap(display, def_root, image_size, image_size,
 		DefaultDepth(display, DefaultScreen(display)));
     gc_clear_xpm = XCreateGC(display,xpm_pixmap,0,0);
     XSetGraphicsExposures(display,gc_clear_xpm,False);
@@ -493,6 +493,7 @@ static int get_game_display() {
 
     XSelectInput(display,win_game,
 	ButtonPressMask|KeyPressMask|KeyReleaseMask|ExposureMask);
+    XSetWMProtocols(display, win_game, &wm_delete_window, 1);
     XMapRaised(display,win_game);
     return 0;
 }
@@ -537,6 +538,7 @@ static int get_info_display() {
     XSelectInput(display,infodata.win_info,
 	ButtonPressMask|KeyPressMask|KeyReleaseMask|ExposureMask|
 	StructureNotifyMask);
+    XSetWMProtocols(display, infodata.win_info, &wm_delete_window, 1);
     XMapRaised(display,infodata.win_info);
     if (infodata.maxlines>infodata.maxdisp) infodata.has_scrollbar=1;
     infodata.info_chars = (infohint.width/FONTWIDTH)-1;
@@ -1146,6 +1148,7 @@ static int get_stats_display() {
     XSetFont(display,gc_stats,font->fid);
     XSelectInput(display,win_stats,KeyPressMask|KeyReleaseMask|ExposureMask);
     XMapRaised(display,win_stats);
+    XSetWMProtocols(display, win_stats, &wm_delete_window, 1);
    return 0;
 }
 
@@ -1358,6 +1361,7 @@ static int get_message_display() {
     XSetFont(display,gc_message,font->fid);
     XSelectInput(display,win_message,
 	       ButtonPressMask|KeyPressMask|KeyReleaseMask|ExposureMask);
+    XSetWMProtocols(display, win_message, &wm_delete_window, 1);
     XMapRaised(display,win_message);
    return 0;
 }
@@ -1908,7 +1912,7 @@ static void resize_list_info(itemlist *l, int w, int h)
     draw_all_list(l);	/* this also initializes above allocated tables */
 }
 
-static void get_list_display(itemlist *l, int x, int y, int w, int h, 
+static void get_list_display(itemlist *l, int x, int y, int w, int h,
 		   char *t, char *s) 
 {
     XSizeHints hint;
@@ -1944,6 +1948,7 @@ static void get_list_display(itemlist *l, int x, int y, int w, int h,
     XSetFont (display, l->gc_text, font->fid);
     XSelectInput (display, l->win, ButtonPressMask|KeyPressMask|KeyReleaseMask|
 		ExposureMask|StructureNotifyMask);
+    XSetWMProtocols(display, l->win, &wm_delete_window, 1);
     XMapRaised(display,l->win);
     create_status_icons();
     resize_list_info(l, w, h);
@@ -1957,7 +1962,7 @@ static int get_inv_display()
     inv_list.show_what = show_all;
     inv_list.weight_limit=0;
     get_list_display ( &inv_list, 0, 0, INV_WIDTH, 
-		      2*(roothint.height - WINDOW_SPACING) / 3, 
+		      2*(roothint.height - WINDOW_SPACING) / 3,
 		      "Crossfire - inventory",
 		      "crossinventory");
     return 0;
@@ -2060,7 +2065,7 @@ void menu_clear(void)
  * Root Window code
  ****************************************************************************/
 
-/* get_root_display: 
+/* get_root_display:
  * this sets up the root window (or none, if in split
  * windows mode, and also scans for any Xdefaults.  Right now, only
  * splitwindow and image are used.  image is the display
@@ -2082,6 +2087,7 @@ static int get_root_display(char *display_name) {
     static char errmsg[MAX_BUF];
 
     display=XOpenDisplay(display_name);
+    wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", 0);
     /* This generates warnings, but looking at the documenation,
      * it seems like it _should_ be ok.
      */
@@ -2177,10 +2183,10 @@ static int get_root_display(char *display_name) {
 	     KeyReleaseMask|ExposureMask|StructureNotifyMask);
 	XMapRaised(display,win_root);
 	XNextEvent(display,&event);	/*ET: this is bogus */
+    XSetWMProtocols(display, win_root, &wm_delete_window, 1);
     }
     else
 	win_root = def_root;
-
     return 0;
 }
 
@@ -2694,6 +2700,12 @@ void check_x_events() {
 		else
 		    do_key_press(0);	/* regular key */
 		break;
+        case ClientMessage:
+            if(event.xclient.data.l[0] == wm_delete_window){
+                printf ("Window closed. Exiting.\n");
+                exit(0);
+            }
+        break;
 	}
     }
     /* Below does not apply if we're not connected */
