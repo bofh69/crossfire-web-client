@@ -60,6 +60,7 @@
 #  define AUDIODEV "/dev/dsp"
 #elif defined(SGI_SOUND)
 #  include <audio.h>
+#  define AUDIODEV "/foo/bar"
 #elif defined(SUN_SOUND)
 #  include <sys/audioio.h>
 #  define AUDIODEV "/dev/audio"
