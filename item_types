@@ -1,10 +1,10 @@
 #
 # This file is parsed by the client and gets used for item orderings.
-# Order is how items will show in inventory (low numbers first).  The
+# Order is how items will show in inventory (low numbers first).  There
 # is no requirement that the numbers are consecutive.  Max number allowed
 # is 254 (255 is reserved for unmatched items.
 #
-# Note entries are case sensitive. 
+# Note: entries are case sensitive. 
 # Note2:  Many entries have a trailing space (ie, 'ring ').  This is
 # intentional - this is so they match more closely (otherwise ring
 # matches things like stormbringer.
@@ -61,6 +61,8 @@ firebrand
 Firestar
 Flame Tongue
 FlameTongue
+Frost Hammer
+Katana of Masamune
 Lightning sticks
 Mjoellnir
 Mournblade
@@ -240,7 +242,7 @@ skin
 stinger
 tongue
 tooth
-wing
+^wing
 # Misc alchemy items (minerals)
 71:
 dirt
