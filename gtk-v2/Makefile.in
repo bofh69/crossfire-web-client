@@ -37,8 +37,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = gtk-v2
-DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	AUTHORS ChangeLog NEWS
+DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -185,7 +184,10 @@ SUBDIRS = src
 EXTRA_DIST = \
 	autogen.sh \
 	gtk-v2.glade \
-	gtk-v2.gladep
+	gtk-v2.gladep \
+	README \
+	README-dev \
+	TODO
 
 all: all-recursive
 

@@ -9602,7 +9602,7 @@ _ACEOF
 
 
 
-                                                                                          ac_config_files="$ac_config_files Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile gnome/Makefile gtk-v2/Makefile gtk-v2/src/Makefile gtk-v2/po/Makefile"
+                                                                                ac_config_files="$ac_config_files Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile gnome/Makefile gtk-v2/Makefile gtk-v2/src/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -10167,7 +10167,6 @@ do
   "gnome/Makefile" ) CONFIG_FILES="$CONFIG_FILES gnome/Makefile" ;;
   "gtk-v2/Makefile" ) CONFIG_FILES="$CONFIG_FILES gtk-v2/Makefile" ;;
   "gtk-v2/src/Makefile" ) CONFIG_FILES="$CONFIG_FILES gtk-v2/src/Makefile" ;;
-  "gtk-v2/po/Makefile" ) CONFIG_FILES="$CONFIG_FILES gtk-v2/po/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "common/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS common/config.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5

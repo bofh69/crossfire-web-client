@@ -1,5 +1,8 @@
-char *rcsid_gtk2_image_h =
-    "$Id$";
+/*
+ * char *rcsid_gtk2_image_h =
+ *   "$Id$";
+ */
+
 /*
     Crossfire client, a client program for the crossfire program.
 

@@ -407,4 +407,4 @@ dnl descend into these subdirs.
 AC_OUTPUT([
 	Makefile gtk/Makefile x11/Makefile common/Makefile 
 	sound-src/Makefile gnome/Makefile gtk-v2/Makefile 
-	gtk-v2/src/Makefile gtk-v2/po/Makefile ] )
+	gtk-v2/src/Makefile  ] )
