@@ -3922,11 +3922,11 @@ void create_windows() {
     fprintf(stderr, "Character Width : %d\n", gcw);
     fprintf(stderr, "Character Height: %d\n", gch);
     if ((55*gcw)+(map_image_size*use_config[CONFIG_MAPWIDTH]) >= gdk_screen_width())
-    	rootwin_width = gdk_screen_width() - 10;
+    	rootwin_width = gdk_screen_width() - 30;
     else
         rootwin_width = (55*gcw)+(map_image_size*use_config[CONFIG_MAPWIDTH]);
     if ((33*gch)+(map_image_size*use_config[CONFIG_MAPHEIGHT]) >= gdk_screen_height())
-    	rootwin_height = gdk_screen_height() - 10;
+    	rootwin_height = gdk_screen_height() - 50;
     else
         rootwin_height = (33*gch)+(map_image_size*use_config[CONFIG_MAPHEIGHT]);
     gtk_widget_set_usize (gtkwin_root,rootwin_width,rootwin_height);
