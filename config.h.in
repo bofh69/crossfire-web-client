@@ -1,4 +1,4 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
 
 /* Define to empty if the keyword does not work.  */
 #undef const
@@ -15,6 +15,21 @@
 /* Define if you can safely include both <sys/time.h> and <time.h>.  */
 #undef TIME_WITH_SYS_TIME
 
+/* Define if your processor stores words with the most significant
+   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
+#undef WORDS_BIGENDIAN
+
+/* Define if the X Window System is missing or not being used.  */
+#undef X_DISPLAY_MISSING
+
+#undef ENABLE_NLS
+#undef HAVE_CATGETS
+#undef HAVE_GETTEXT
+#undef HAVE_LC_MESSAGES
+#undef HAVE_STPCPY
+#undef HAVE_LIBSM
+#undef HAVE_LIBXPM
+
 /* Define if you have the mkdir function.  */
 #undef HAVE_MKDIR
 
@@ -23,6 +38,12 @@
 
 /* Define if you have the strcspn function.  */
 #undef HAVE_STRCSPN
+
+/* Define if you have the sysconf function.  */
+#undef HAVE_SYSCONF
+
+/* Define if you have the <X11/SM/SMlib.h> header file.  */
+#undef HAVE_X11_SM_SMLIB_H
 
 /* Define if you have the <dmalloc.h> header file.  */
 #undef HAVE_DMALLOC_H
@@ -36,24 +57,24 @@
 /* Define if you have the <sys/ioctl.h> header file.  */
 #undef HAVE_SYS_IOCTL_H
 
-/* Define if you have the <sys/time.h> header file.  */
-#undef HAVE_SYS_TIME_H
-
 /* Define if you have the <sys/select.h> header file.  */
 #undef HAVE_SYS_SELECT_H
+
+/* Define if you have the <sys/time.h> header file.  */
+#undef HAVE_SYS_TIME_H
 
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
 
-/* Define if you have the <xpm.h> header file.  */
-#undef HAVE_LIBXPM
+/* Define if you have the m library (-lm).  */
+#undef HAVE_LIBM
 
-/* Define if you have the sysconf function.  */
-#undef HAVE_SYSCONF
-
-/* Define/not defined depending on the endianness of this system */
-#undef WORDS_BIGENDIAN
-
-/* Define if you have the <xpm.h> header file.  */
+/* Define if you have the png library (-lpng).  */
 #undef HAVE_LIBPNG
+
+/* Name of package */
+#undef PACKAGE
+
+/* Version number of package */
+#undef VERSION
 

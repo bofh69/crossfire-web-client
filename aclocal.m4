@@ -1,7 +1,7 @@
-dnl aclocal.m4 generated automatically by aclocal 1.3
+dnl aclocal.m4 generated automatically by aclocal 1.4-p2
 
-dnl Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
-dnl This Makefile.in is free software; the Free Software Foundation
+dnl Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
@@ -20,7 +20,7 @@ dnl Usage:
 dnl AM_INIT_AUTOMAKE(package,version, [no-define])
 
 AC_DEFUN(AM_INIT_AUTOMAKE,
-[AC_REQUIRE([AM_PROG_INSTALL])
+[AC_REQUIRE([AC_PROG_INSTALL])
 PACKAGE=[$1]
 AC_SUBST(PACKAGE)
 VERSION=[$2]
@@ -30,8 +30,8 @@ if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   AC_MSG_ERROR([source directory already configured; run "make distclean" there first])
 fi
 ifelse([$3],,
-AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
-AC_DEFINE_UNQUOTED(VERSION, "$VERSION"))
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Name of package])
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Version number of package]))
 AC_REQUIRE([AM_SANITY_CHECK])
 AC_REQUIRE([AC_ARG_PROGRAM])
 dnl FIXME This is truly gross.
@@ -42,15 +42,6 @@ AM_MISSING_PROG(AUTOMAKE, automake, $missing_dir)
 AM_MISSING_PROG(AUTOHEADER, autoheader, $missing_dir)
 AM_MISSING_PROG(MAKEINFO, makeinfo, $missing_dir)
 AC_REQUIRE([AC_PROG_MAKE_SET])])
-
-
-# serial 1
-
-AC_DEFUN(AM_PROG_INSTALL,
-[AC_REQUIRE([AC_PROG_INSTALL])
-test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL_PROGRAM}'
-AC_SUBST(INSTALL_SCRIPT)dnl
-])
 
 #
 # Check to make sure that the build environment is sane.
@@ -111,144 +102,40 @@ else
 fi
 AC_SUBST($1)])
 
-# Like AC_CONFIG_HEADER, but automatically create stamp file.
-
-AC_DEFUN(AM_CONFIG_HEADER,
-[AC_PREREQ([2.12])
-AC_CONFIG_HEADER([$1])
-dnl When config.status generates a header, we must update the stamp-h file.
-dnl This file resides in the same directory as the config header
-dnl that is generated.  We must strip everything past the first ":",
-dnl and everything past the last "/".
-AC_OUTPUT_COMMANDS(changequote(<<,>>)dnl
-ifelse(patsubst(<<$1>>, <<[^ ]>>, <<>>), <<>>,
-<<test -z "<<$>>CONFIG_HEADERS" || echo timestamp > patsubst(<<$1>>, <<^\([^:]*/\)?.*>>, <<\1>>)stamp-h<<>>dnl>>,
-<<am_indx=1
-for am_file in <<$1>>; do
-  case " <<$>>CONFIG_HEADERS " in
-  *" <<$>>am_file "*<<)>>
-    echo timestamp > `echo <<$>>am_file | sed -e 's%:.*%%' -e 's%[^/]*$%%'`stamp-h$am_indx
-    ;;
-  esac
-  am_indx=`expr "<<$>>am_indx" + 1`
-done<<>>dnl>>)
-changequote([,]))])
-
-# Add --enable-maintainer-mode option to configure.
-# From Jim Meyering
+# aclocal-include.m4
+# 
+# This macro adds the name macrodir to the set of directories
+# that `aclocal' searches for macros.  
 
 # serial 1
 
-AC_DEFUN(AM_MAINTAINER_MODE,
-[AC_MSG_CHECKING([whether to enable maintainer-specific portions of Makefiles])
-  dnl maintainer-mode is disabled by default
-  AC_ARG_ENABLE(maintainer-mode,
-[  --enable-maintainer-mode enable make rules and dependencies not useful
-                          (and sometimes confusing) to the casual installer],
-      USE_MAINTAINER_MODE=$enableval,
-      USE_MAINTAINER_MODE=no)
-  AC_MSG_RESULT($USE_MAINTAINER_MODE)
-  if test $USE_MAINTAINER_MODE = yes; then
-    MAINT=
-  else
-    MAINT='#M#'
-  fi
-  AC_SUBST(MAINT)dnl
-]
-)
+dnl AM_ACLOCAL_INCLUDE(macrodir)
+AC_DEFUN([AM_ACLOCAL_INCLUDE],
+[
+	AM_CONDITIONAL(INSIDE_GNOME_COMMON, test x = y)
 
+	test -n "$ACLOCAL_FLAGS" && ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
-# serial 1
-
-# @defmac AC_PROG_CC_STDC
-# @maindex PROG_CC_STDC
-# @ovindex CC
-# If the C compiler in not in ANSI C mode by default, try to add an option
-# to output variable @code{CC} to make it so.  This macro tries various
-# options that select ANSI C on some system or another.  It considers the
-# compiler to be in ANSI C mode if it handles function prototypes correctly.
-#
-# If you use this macro, you should check after calling it whether the C
-# compiler has been set to accept ANSI C; if not, the shell variable
-# @code{am_cv_prog_cc_stdc} is set to @samp{no}.  If you wrote your source
-# code in ANSI C, you can make an un-ANSIfied copy of it by using the
-# program @code{ansi2knr}, which comes with Ghostscript.
-# @end defmac
-
-AC_DEFUN(AM_PROG_CC_STDC,
-[AC_REQUIRE([AC_PROG_CC])
-AC_BEFORE([$0], [AC_C_INLINE])
-AC_BEFORE([$0], [AC_C_CONST])
-dnl Force this before AC_PROG_CPP.  Some cpp's, eg on HPUX, require
-dnl a magic option to avoid problems with ANSI preprocessor commands
-dnl like #elif.
-dnl FIXME: can't do this because then AC_AIX won't work due to a
-dnl circular dependency.
-dnl AC_BEFORE([$0], [AC_PROG_CPP])
-AC_MSG_CHECKING(for ${CC-cc} option to accept ANSI C)
-AC_CACHE_VAL(am_cv_prog_cc_stdc,
-[am_cv_prog_cc_stdc=no
-ac_save_CC="$CC"
-# Don't try gcc -ansi; that turns off useful extensions and
-# breaks some systems' header files.
-# AIX			-qlanglvl=ansi
-# Ultrix and OSF/1	-std1
-# HP-UX			-Aa -D_HPUX_SOURCE
-# SVR4			-Xc -D__EXTENSIONS__
-for ac_arg in "" -qlanglvl=ansi -std1 "-Aa -D_HPUX_SOURCE" "-Xc -D__EXTENSIONS__"
-do
-  CC="$ac_save_CC $ac_arg"
-  AC_TRY_COMPILE(
-[#include <stdarg.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-/* Most of the following tests are stolen from RCS 5.7's src/conf.sh.  */
-struct buf { int x; };
-FILE * (*rcsopen) (struct buf *, struct stat *, int);
-static char *e (p, i)
-     char **p;
-     int i;
-{
-  return p[i];
-}
-static char *f (char * (*g) (char **, int), char **p, ...)
-{
-  char *s;
-  va_list v;
-  va_start (v,p);
-  s = g (p, va_arg (v,int));
-  va_end (v);
-  return s;
-}
-int test (int i, double x);
-struct s1 {int (*f) (int a);};
-struct s2 {int (*f) (double a);};
-int pairnames (int, char **, FILE *(*)(struct buf *, struct stat *, int), int, int);
-int argc;
-char **argv;
-], [
-return f (e, argv, 0) != argv[0]  ||  f (e, argv, 1) != argv[1];
-],
-[am_cv_prog_cc_stdc="$ac_arg"; break])
-done
-CC="$ac_save_CC"
+	for k in $1 ; do ACLOCAL="$ACLOCAL -I $k" ; done
 ])
-if test -z "$am_cv_prog_cc_stdc"; then
-  AC_MSG_RESULT([none needed])
+
+# Define a conditional.
+
+AC_DEFUN(AM_CONDITIONAL,
+[AC_SUBST($1_TRUE)
+AC_SUBST($1_FALSE)
+if $2; then
+  $1_TRUE=
+  $1_FALSE='#'
 else
-  AC_MSG_RESULT($am_cv_prog_cc_stdc)
-fi
-case "x$am_cv_prog_cc_stdc" in
-  x|xno) ;;
-  *) CC="$CC $am_cv_prog_cc_stdc" ;;
-esac
-])
+  $1_TRUE='#'
+  $1_FALSE=
+fi])
 
 # Configure paths for GTK+
 # Owen Taylor     97-11-3
 
-dnl AM_PATH_GTK([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+dnl AM_PATH_GTK([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND [, MODULES]]]])
 dnl Test for GTK, and define GTK_CFLAGS and GTK_LIBS
 dnl
 AC_DEFUN(AM_PATH_GTK,
@@ -261,6 +148,15 @@ AC_ARG_WITH(gtk-exec-prefix,[  --with-gtk-exec-prefix=PFX Exec prefix where GTK 
             gtk_config_exec_prefix="$withval", gtk_config_exec_prefix="")
 AC_ARG_ENABLE(gtktest, [  --disable-gtktest       Do not try to compile and run a test GTK program],
 		    , enable_gtktest=yes)
+
+  for module in . $4
+  do
+      case "$module" in
+         gthread) 
+             gtk_config_args="$gtk_config_args gthread"
+         ;;
+      esac
+  done
 
   if test x$gtk_config_exec_prefix != x ; then
      gtk_config_args="$gtk_config_args --exec-prefix=$gtk_config_exec_prefix"
@@ -294,7 +190,7 @@ AC_ARG_ENABLE(gtktest, [  --disable-gtktest       Do not try to compile and run 
       ac_save_CFLAGS="$CFLAGS"
       ac_save_LIBS="$LIBS"
       CFLAGS="$CFLAGS $GTK_CFLAGS"
-      LIBS="$LIBS $GTK_LIBS"
+      LIBS="$GTK_LIBS $LIBS"
 dnl
 dnl Now check if the installed GTK is sufficiently new. (Also sanity
 dnl checks the results of gtk-config to some extent
@@ -303,15 +199,19 @@ dnl
       AC_TRY_RUN([
 #include <gtk/gtk.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int 
 main ()
 {
   int major, minor, micro;
+  char *tmp_version;
 
   system ("touch conf.gtktest");
 
-  if (sscanf("$min_gtk_version", "%d.%d.%d", &major, &minor, &micro) != 3) {
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = g_strdup("$min_gtk_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
      printf("%s, bad version string\n", "$min_gtk_version");
      exit(1);
    }
@@ -332,6 +232,17 @@ main ()
       printf("*** to point to the correct copy of gtk-config, and remove the file config.cache\n");
       printf("*** before re-running configure\n");
     } 
+#if defined (GTK_MAJOR_VERSION) && defined (GTK_MINOR_VERSION) && defined (GTK_MICRO_VERSION)
+  else if ((gtk_major_version != GTK_MAJOR_VERSION) ||
+	   (gtk_minor_version != GTK_MINOR_VERSION) ||
+           (gtk_micro_version != GTK_MICRO_VERSION))
+    {
+      printf("*** GTK+ header files (version %d.%d.%d) do not match\n",
+	     GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
+      printf("*** library (version %d.%d.%d)\n",
+	     gtk_major_version, gtk_minor_version, gtk_micro_version);
+    }
+#endif /* defined (GTK_MAJOR_VERSION) ... */
   else
     {
       if ((gtk_major_version > major) ||
@@ -414,5 +325,575 @@ main ()
   AC_SUBST(GTK_CFLAGS)
   AC_SUBST(GTK_LIBS)
   rm -f conf.gtktest
+])
+
+dnl
+dnl GNOME_INIT_HOOK (script-if-gnome-enabled, [failflag], [additional-inits])
+dnl
+dnl if failflag is "fail" then GNOME_INIT_HOOK will abort if gnomeConf.sh
+dnl is not found. 
+dnl
+
+AC_DEFUN([GNOME_INIT_HOOK],[
+	AC_SUBST(GNOME_LIBS)
+	AC_SUBST(GNOMEUI_LIBS)
+	AC_SUBST(GNOMEGNORBA_LIBS)
+	AC_SUBST(GTKXMHTML_LIBS)
+	AC_SUBST(ZVT_LIBS)
+	AC_SUBST(GNOME_LIBDIR)
+	AC_SUBST(GNOME_INCLUDEDIR)
+
+	AC_ARG_WITH(gnome-includes,
+	[  --with-gnome-includes   Specify location of GNOME headers],[
+	CFLAGS="$CFLAGS -I$withval"
+	])
+	
+	AC_ARG_WITH(gnome-libs,
+	[  --with-gnome-libs       Specify location of GNOME libs],[
+	LDFLAGS="$LDFLAGS -L$withval"
+	gnome_prefix=$withval
+	])
+
+	AC_ARG_WITH(gnome,
+	[  --with-gnome            Specify prefix for GNOME files],
+		if test x$withval = xyes; then
+	    		want_gnome=yes
+	    		dnl Note that an empty true branch is not
+			dnl valid sh syntax.
+	    		ifelse([$1], [], :, [$1])
+        	else
+	    		if test "x$withval" = xno; then
+	        		want_gnome=no
+	    		else
+	        		want_gnome=yes
+	    			LDFLAGS="$LDFLAGS -L$withval/lib"
+	    			CFLAGS="$CFLAGS -I$withval/include"
+	    			gnome_prefix=$withval/lib
+	    		fi
+  		fi,
+		want_gnome=yes)
+
+	if test "x$want_gnome" = xyes; then
+
+	    AC_PATH_PROG(GNOME_CONFIG,gnome-config,no)
+	    if test "$GNOME_CONFIG" = "no"; then
+	      no_gnome_config="yes"
+	    else
+	      AC_MSG_CHECKING(if $GNOME_CONFIG works)
+	      if $GNOME_CONFIG --libs-only-l gnome >/dev/null 2>&1; then
+	        AC_MSG_RESULT(yes)
+	        GNOME_GNORBA_HOOK([],$2)
+	        GNOME_LIBS="`$GNOME_CONFIG --libs-only-l gnome`"
+	        GNOMEUI_LIBS="`$GNOME_CONFIG --libs-only-l gnomeui`"
+	        GNOMEGNORBA_LIBS="`$GNOME_CONFIG --libs-only-l gnorba gnomeui`"
+	        GTKXMHTML_LIBS="`$GNOME_CONFIG --libs-only-l gtkxmhtml`"
+		ZVT_LIBS="`$GNOME_CONFIG --libs-only-l zvt`"
+	        GNOME_LIBDIR="`$GNOME_CONFIG --libs-only-L gnorba gnomeui`"
+	        GNOME_INCLUDEDIR="`$GNOME_CONFIG --cflags gnorba gnomeui`"
+                $1
+	      else
+	        AC_MSG_RESULT(no)
+	        no_gnome_config="yes"
+              fi
+            fi
+
+	    if test x$exec_prefix = xNONE; then
+	        if test x$prefix = xNONE; then
+		    gnome_prefix=$ac_default_prefix/lib
+	        else
+ 		    gnome_prefix=$prefix/lib
+	        fi
+	    else
+	        gnome_prefix=`eval echo \`echo $libdir\``
+	    fi
+	
+	    if test "$no_gnome_config" = "yes"; then
+              AC_MSG_CHECKING(for gnomeConf.sh file in $gnome_prefix)
+	      if test -f $gnome_prefix/gnomeConf.sh; then
+	        AC_MSG_RESULT(found)
+	        echo "loading gnome configuration from" \
+		     "$gnome_prefix/gnomeConf.sh"
+	        . $gnome_prefix/gnomeConf.sh
+	        $1
+	      else
+	        AC_MSG_RESULT(not found)
+ 	        if test x$2 = xfail; then
+	          AC_MSG_ERROR(Could not find the gnomeConf.sh file that is generated by gnome-libs install)
+ 	        fi
+	      fi
+            fi
+	fi
+
+	if test -n "$3"; then
+	  n="$3"
+	  for i in $n; do
+	    AC_MSG_CHECKING(extra library $i)
+	    case $i in 
+	      applets)
+		AC_SUBST(GNOME_APPLETS_LIBS)
+		GNOME_APPLETS_LIBS=`$GNOME_CONFIG --libs-only-l applets`
+		AC_MSG_RESULT($GNOME_APPLETS_LIBS);;
+	      capplet)
+		AC_SUBST(GNOME_CAPPLET_LIBS)
+		GNOME_CAPPLET_LIBS=`$GNOME_CONFIG --libs-only-l capplet`
+		AC_MSG_RESULT($GNOME_CAPPLET_LIBS);;
+	      *)
+		AC_MSG_RESULT(unknown library)
+	    esac
+	  done
+	fi
+])
+
+dnl
+dnl GNOME_INIT ([additional-inits])
+dnl
+
+AC_DEFUN([GNOME_INIT],[
+	GNOME_INIT_HOOK([],fail,$1)
+])
+
+dnl
+dnl GNOME_GNORBA_HOOK (script-if-gnorba-found, failflag)
+dnl
+dnl if failflag is "failure" it aborts if gnorba is not found.
+dnl
+
+AC_DEFUN([GNOME_GNORBA_HOOK],[
+	GNOME_ORBIT_HOOK([],$2)
+	AC_CACHE_CHECK([for gnorba libraries],gnome_cv_gnorba_found,[
+		gnome_cv_gnorba_found=no
+		if test x$gnome_cv_orbit_found = xyes; then
+			GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
+			GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
+			if test -n "$GNORBA_LIBS"; then
+				gnome_cv_gnorba_found=yes
+			fi
+		fi
+	])
+	AM_CONDITIONAL(HAVE_GNORBA, test x$gnome_cv_gnorba_found = xyes)
+	if test x$gnome_cv_orbit_found = xyes; then
+		$1
+		GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
+		GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
+		AC_SUBST(GNORBA_CFLAGS)
+		AC_SUBST(GNORBA_LIBS)
+	else
+	    	if test x$2 = xfailure; then
+			AC_MSG_ERROR(gnorba library not installed or installation problem)
+	    	fi
+	fi
+])
+
+AC_DEFUN([GNOME_GNORBA_CHECK], [
+	GNOME_GNORBA_HOOK([],failure)
+])
+
+dnl
+dnl GNOME_ORBIT_HOOK (script-if-orbit-found, failflag)
+dnl
+dnl if failflag is "failure" it aborts if orbit is not found.
+dnl
+
+AC_DEFUN([GNOME_ORBIT_HOOK],[
+	AC_PATH_PROG(ORBIT_CONFIG,orbit-config,no)
+	AC_PATH_PROG(ORBIT_IDL,orbit-idl,no)
+	AC_CACHE_CHECK([for working ORBit environment],gnome_cv_orbit_found,[
+		if test x$ORBIT_CONFIG = xno -o x$ORBIT_IDL = xno; then
+			gnome_cv_orbit_found=no
+		else
+			gnome_cv_orbit_found=yes
+		fi
+	])
+	AM_CONDITIONAL(HAVE_ORBIT, test x$gnome_cv_orbit_found = xyes)
+	if test x$gnome_cv_orbit_found = xyes; then
+		$1
+		ORBIT_CFLAGS=`orbit-config --cflags client server`
+		ORBIT_LIBS=`orbit-config --use-service=name --libs client server`
+		AC_SUBST(ORBIT_CFLAGS)
+		AC_SUBST(ORBIT_LIBS)
+	else
+    		if test x$2 = xfailure; then
+			AC_MSG_ERROR(ORBit not installed or installation problem)
+    		fi
+	fi
+])
+
+AC_DEFUN([GNOME_ORBIT_CHECK], [
+	GNOME_ORBIT_HOOK([],failure)
+])
+
+dnl GNOME_COMPILE_WARNINGS
+dnl Turn on many useful compiler warnings
+dnl For now, only works on GCC
+AC_DEFUN([GNOME_COMPILE_WARNINGS],[
+  AC_ARG_ENABLE(compile-warnings, 
+    [  --enable-compile-warnings=[no/minimum/yes]	Turn on compiler warnings.],,enable_compile_warnings=minimum)
+
+  AC_MSG_CHECKING(what warning flags to pass to the C compiler)
+  warnCFLAGS=
+  if test "x$GCC" != xyes; then
+    enable_compile_warnings=no
+  fi
+
+  if test "x$enable_compile_warnings" != "xno"; then
+    if test "x$GCC" = "xyes"; then
+      case " $CFLAGS " in
+      *[\ \	]-Wall[\ \	]*) ;;
+      *) warnCFLAGS="-Wall -Wno-unused" ;;
+      esac
+
+      ## -W is not all that useful.  And it cannot be controlled
+      ## with individual -Wno-xxx flags, unlike -Wall
+      if test "x$enable_compile_warnings" = "xyes"; then
+	warnCFLAGS="$warnCFLAGS -Wmissing-prototypes -Wmissing-declarations -Wpointer-arith"
+      fi
+    fi
+  fi
+  AC_MSG_RESULT($warnCFLAGS)
+
+  AC_ARG_ENABLE(iso-c,
+    [  --enable-iso-c          Try to warn if code is not ISO C ],,
+    enable_iso_c=no)
+
+  AC_MSG_CHECKING(what language compliance flags to pass to the C compiler)
+  complCFLAGS=
+  if test "x$enable_iso_c" != "xno"; then
+    if test "x$GCC" = "xyes"; then
+      case " $CFLAGS " in
+      *[\ \	]-ansi[\ \	]*) ;;
+      *) complCFLAGS="$complCFLAGS -ansi" ;;
+      esac
+
+      case " $CFLAGS " in
+      *[\ \	]-pedantic[\ \	]*) ;;
+      *) complCFLAGS="$complCFLAGS -pedantic" ;;
+      esac
+    fi
+  fi
+  AC_MSG_RESULT($complCFLAGS)
+  if test "x$cflags_set" != "xyes"; then
+    CFLAGS="$CFLAGS $warnCFLAGS $complCFLAGS"
+    cflags_set=yes
+    AC_SUBST(cflags_set)
+  fi
+])
+
+dnl For C++, do basically the same thing.
+
+AC_DEFUN([GNOME_CXX_WARNINGS],[
+  AC_ARG_ENABLE(cxx-warnings, 
+    [  --enable-cxx-warnings=[no/minimum/yes]	Turn on compiler warnings.],,enable_cxx_warnings=minimum)
+
+  AC_MSG_CHECKING(what warning flags to pass to the C++ compiler)
+  warnCXXFLAGS=
+  if test "x$GCC" != xyes; then
+    enable_compile_warnings=no
+  fi
+  if test "x$enable_cxx_warnings" != "xno"; then
+    if test "x$GCC" = "xyes"; then
+      case " $CXXFLAGS " in
+      *[\ \	]-Wall[\ \	]*) ;;
+      *) warnCXXFLAGS="-Wall -Wno-unused" ;;
+      esac
+
+      ## -W is not all that useful.  And it cannot be controlled
+      ## with individual -Wno-xxx flags, unlike -Wall
+      if test "x$enable_cxx_warnings" = "xyes"; then
+	warnCXXFLAGS="$warnCXXFLAGS -Wmissing-prototypes -Wmissing-declarations -Wpointer-arith -Wshadow -Woverloaded-virtual"
+      fi
+    fi
+  fi
+  AC_MSG_RESULT($warnCXXFLAGS)
+
+   AC_ARG_ENABLE(iso-cxx,
+     [  --enable-iso-cxx          Try to warn if code is not ISO C++ ],,
+     enable_iso_cxx=no)
+
+   AC_MSG_CHECKING(what language compliance flags to pass to the C++ compiler)
+   complCXXFLAGS=
+   if test "x$enable_iso_cxx" != "xno"; then
+     if test "x$GCC" = "xyes"; then
+      case " $CXXFLAGS " in
+      *[\ \	]-ansi[\ \	]*) ;;
+      *) complCXXFLAGS="$complCXXFLAGS -ansi" ;;
+      esac
+
+      case " $CXXFLAGS " in
+      *[\ \	]-pedantic[\ \	]*) ;;
+      *) complCXXFLAGS="$complCXXFLAGS -pedantic" ;;
+      esac
+     fi
+   fi
+  AC_MSG_RESULT($complCXXFLAGS)
+  if test "x$cxxflags_set" != "xyes"; then
+    CXXFLAGS="$CXXFLAGS $warnCXXFLAGS $complCXXFLAGS"
+    cxxflags_set=yes
+    AC_SUBST(cxxflags_set)
+  fi
+])
+
+dnl GNOME_X_CHECKS
+dnl
+dnl Basic X11 related checks for X11.  At the end, the following will be
+dnl defined/changed:
+dnl   GTK_{CFLAGS,LIBS}      From AM_PATH_GTK
+dnl   CPPFLAGS		     Will include $X_CFLAGS
+dnl   GNOME_HAVE_SM	     `true' or `false' depending on whether session
+dnl                          management is available.  It is available if
+dnl                          both -lSM and X11/SM/SMlib.h exist.  (Some
+dnl                          Solaris boxes have the library but not the header)
+dnl   XPM_LIBS               -lXpm if Xpm library is present, otherwise ""
+dnl
+dnl The following configure cache variables are defined (but not used):
+dnl   gnome_cv_passdown_{x_libs,X_LIBS,X_CFLAGS}
+dnl
+AC_DEFUN([GNOME_X_CHECKS],
+[
+	AM_PATH_GTK(1.2.0,,AC_MSG_ERROR(GTK not installed, or gtk-config not in path))
+	dnl Hope that GTK_CFLAGS have only -I and -D.  Otherwise, we could
+	dnl   test -z "$x_includes" || CPPFLAGS="$CPPFLAGS -I$x_includes"
+	dnl
+	dnl Use CPPFLAGS instead of CFLAGS because AC_CHECK_HEADERS uses
+	dnl CPPFLAGS, not CFLAGS
+        CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"
+
+        saved_ldflags="$LDFLAGS"
+        LDFLAGS="$LDFLAGS $GTK_LIBS"
+
+	gnome_cv_passdown_x_libs="$GTK_LIBS"
+	gnome_cv_passdown_X_LIBS="$GTK_LIBS"
+	gnome_cv_passdown_X_CFLAGS="$GTK_CFLAGS"
+	gnome_cv_passdown_GTK_LIBS="$GTK_LIBS"
+
+        LDFLAGS="$saved_ldflags $GTK_LIBS"
+
+dnl We are requiring GTK >= 1.1.1, which means this will be fine anyhow.
+	USE_DEVGTK=true
+
+dnl	AC_MSG_CHECKING([whether to use features from (unstable) GTK+ 1.1.x])
+dnl	AC_EGREP_CPP(answer_affirmatively,
+dnl	[#include <gtk/gtkfeatures.h>
+dnl	#ifdef GTK_HAVE_FEATURES_1_1_0
+dnl	   answer_affirmatively
+dnl	#endif
+dnl	], dev_gtk=yes, dev_gtk=no)
+dnl	if test "$dev_gtk" = "yes"; then
+dnl	   USE_DEVGTK=true
+dnl	fi
+dnl	AC_MSG_RESULT("$dev_gtk")
+
+	GNOME_HAVE_SM=true
+	case "$GTK_LIBS" in
+	 *-lSM*)
+	    dnl Already found it.
+	    ;;
+	 *)
+	    dnl Assume that if we have -lSM then we also have -lICE.
+	    AC_CHECK_LIB(SM, SmcSaveYourselfDone,
+	        [GTK_LIBS="-lSM -lICE $GTK_LIBS"],GNOME_HAVE_SM=false,
+		$x_libs -lICE)
+	    ;;
+	esac
+
+	if test "$GNOME_HAVE_SM" = true; then
+	   AC_CHECK_HEADERS(X11/SM/SMlib.h,,GNOME_HAVE_SM=false)
+	fi
+
+	if test "$GNOME_HAVE_SM" = true; then
+	   AC_DEFINE(HAVE_LIBSM)
+	fi
+
+	XPM_LIBS=""
+	AC_CHECK_LIB(Xpm, XpmFreeXpmImage, [XPM_LIBS="-lXpm"], , $x_libs)
+	AC_SUBST(XPM_LIBS)
+
+	AC_REQUIRE([GNOME_PTHREAD_CHECK])
+        LDFLAGS="$saved_ldflags"
+
+	AC_PROVIDE([GNOME_X_CHECKS])
+])
+
+dnl
+dnl And better, use gthreads instead...
+dnl
+
+AC_DEFUN([GNOME_PTHREAD_CHECK],[
+	PTHREAD_LIB=""
+	AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIB="-lpthread",
+		[AC_CHECK_LIB(pthreads, pthread_create, PTHREAD_LIB="-lpthreads",
+		    [AC_CHECK_LIB(c_r, pthread_create, PTHREAD_LIB="-lc_r",
+			[AC_CHECK_FUNC(pthread_create)]
+		    )]
+		)]
+	)
+	AC_SUBST(PTHREAD_LIB)
+	AC_PROVIDE([GNOME_PTHREAD_CHECK])
+])
+
+# Configure paths for gdk-pixbuf
+# Elliot Lee 2000-01-10
+# stolen from Raph Levien 98-11-18
+# stolen from Manish Singh    98-9-30
+# stolen back from Frank Belew
+# stolen from Manish Singh
+# Shamelessly stolen from Owen Taylor
+
+dnl AM_PATH_GDK_PIXBUF([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+dnl Test for GDK_PIXBUF, and define GDK_PIXBUF_CFLAGS and GDK_PIXBUF_LIBS
+dnl
+AC_DEFUN(AM_PATH_GDK_PIXBUF,
+[dnl 
+dnl Get the cflags and libraries from the gdk-pixbuf-config script
+dnl
+AC_ARG_WITH(gdk-pixbuf-prefix,[  --with-gdk-pixbuf-prefix=PFX   Prefix where GDK_PIXBUF is installed (optional)],
+            gdk_pixbuf_prefix="$withval", gdk_pixbuf_prefix="")
+AC_ARG_WITH(gdk-pixbuf-exec-prefix,[  --with-gdk-pixbuf-exec-prefix=PFX Exec prefix where GDK_PIXBUF is installed (optional)],
+            gdk_pixbuf_exec_prefix="$withval", gdk_pixbuf_exec_prefix="")
+AC_ARG_ENABLE(gdk_pixbuftest, [  --disable-gdk_pixbuftest       Do not try to compile and run a test GDK_PIXBUF program],
+		    , enable_gdk_pixbuftest=yes)
+
+  if test x$gdk_pixbuf_exec_prefix != x ; then
+     gdk_pixbuf_args="$gdk_pixbuf_args --exec-prefix=$gdk_pixbuf_exec_prefix"
+     if test x${GDK_PIXBUF_CONFIG+set} = xset ; then
+        GDK_PIXBUF_CONFIG=$gdk_pixbuf_exec_prefix/gdk-pixbuf-config
+     fi
+  fi
+  if test x$gdk_pixbuf_prefix != x ; then
+     gdk_pixbuf_args="$gdk_pixbuf_args --prefix=$gdk_pixbuf_prefix"
+     if test x${GDK_PIXBUF_CONFIG+set} = xset ; then
+        GDK_PIXBUF_CONFIG=$gdk_pixbuf_prefix/bin/gdk-pixbuf-config
+     fi
+  fi
+
+  AC_PATH_PROG(GDK_PIXBUF_CONFIG, gdk-pixbuf-config, no)
+  min_gdk_pixbuf_version=ifelse([$1], ,0.2.5,$1)
+  AC_MSG_CHECKING(for GDK_PIXBUF - version >= $min_gdk_pixbuf_version)
+  no_gdk_pixbuf=""
+  if test "$GDK_PIXBUF_CONFIG" = "no" ; then
+    no_gdk_pixbuf=yes
+  else
+    GDK_PIXBUF_CFLAGS=`$GDK_PIXBUF_CONFIG $gdk_pixbufconf_args --cflags`
+    GDK_PIXBUF_LIBS=`$GDK_PIXBUF_CONFIG $gdk_pixbufconf_args --libs`
+
+    gdk_pixbuf_major_version=`$GDK_PIXBUF_CONFIG $gdk_pixbuf_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
+    gdk_pixbuf_minor_version=`$GDK_PIXBUF_CONFIG $gdk_pixbuf_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
+    gdk_pixbuf_micro_version=`$GDK_PIXBUF_CONFIG $gdk_pixbuf_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
+    if test "x$enable_gdk_pixbuftest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $GDK_PIXBUF_CFLAGS"
+      LIBS="$LIBS $GDK_PIXBUF_LIBS"
+dnl
+dnl Now check if the installed GDK_PIXBUF is sufficiently new. (Also sanity
+dnl checks the results of gdk-pixbuf-config to some extent
+dnl
+      rm -f conf.gdk_pixbuftest
+      AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
+
+char*
+my_strdup (char *str)
+{
+  char *new_str;
+  
+  if (str)
+    {
+      new_str = malloc ((strlen (str) + 1) * sizeof(char));
+      strcpy (new_str, str);
+    }
+  else
+    new_str = NULL;
+  
+  return new_str;
+}
+
+int main ()
+{
+  int major, minor, micro;
+  char *tmp_version;
+
+  system ("touch conf.gdk_pixbuftest");
+
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = my_strdup("$min_gdk_pixbuf_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+     printf("%s, bad version string\n", "$min_gdk_pixbuf_version");
+     exit(1);
+   }
+
+   if (($gdk_pixbuf_major_version > major) ||
+      (($gdk_pixbuf_major_version == major) && ($gdk_pixbuf_minor_version > minor)) ||
+      (($gdk_pixbuf_major_version == major) && ($gdk_pixbuf_minor_version == minor) && ($gdk_pixbuf_micro_version >= micro)))
+    {
+      return 0;
+    }
+  else
+    {
+      printf("\n*** 'gdk-pixbuf-config --version' returned %d.%d.%d, but the minimum version\n", $gdk_pixbuf_major_version, $gdk_pixbuf_minor_version, $gdk_pixbuf_micro_version);
+      printf("*** of GDK_PIXBUF required is %d.%d.%d. If gdk-pixbuf-config is correct, then it is\n", major, minor, micro);
+      printf("*** best to upgrade to the required version.\n");
+      printf("*** If gdk-pixbuf-config was wrong, set the environment variable GDK_PIXBUF_CONFIG\n");
+      printf("*** to point to the correct copy of gdk-pixbuf-config, and remove the file\n");
+      printf("*** config.cache before re-running configure\n");
+      return 1;
+    }
+}
+
+],, no_gdk_pixbuf=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+     fi
+  fi
+  if test "x$no_gdk_pixbuf" = x ; then
+     AC_MSG_RESULT(yes)
+     ifelse([$2], , :, [$2])     
+  else
+     AC_MSG_RESULT(no)
+     if test "$GDK_PIXBUF_CONFIG" = "no" ; then
+       echo "*** The gdk-pixbuf-config script installed by GDK_PIXBUF could not be found"
+       echo "*** If GDK_PIXBUF was installed in PREFIX, make sure PREFIX/bin is in"
+       echo "*** your path, or set the GDK_PIXBUF_CONFIG environment variable to the"
+       echo "*** full path to gdk-pixbuf-config."
+     else
+       if test -f conf.gdk_pixbuftest ; then
+        :
+       else
+          echo "*** Could not run GDK_PIXBUF test program, checking why..."
+          CFLAGS="$CFLAGS $GDK_PIXBUF_CFLAGS"
+          LIBS="$LIBS $GDK_PIXBUF_LIBS"
+          AC_TRY_LINK([
+#include <stdio.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
+],      [ return 0; ],
+        [ echo "*** The test program compiled, but did not run. This usually means"
+          echo "*** that the run-time linker is not finding GDK_PIXBUF or finding the wrong"
+          echo "*** version of GDK_PIXBUF. If it is not finding GDK_PIXBUF, you'll need to set your"
+          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+          echo "*** is required on your system"
+	  echo "***"
+          echo "*** If you have an old version installed, it is best to remove it, although"
+          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
+        [ echo "*** The test program failed to compile or link. See the file config.log for the"
+          echo "*** exact error that occured. This usually means GDK_PIXBUF was incorrectly installed"
+          echo "*** or that you have moved GDK_PIXBUF since it was installed. In the latter case, you"
+          echo "*** may want to edit the gdk-pixbuf-config script: $GDK_PIXBUF_CONFIG" ])
+          CFLAGS="$ac_save_CFLAGS"
+          LIBS="$ac_save_LIBS"
+       fi
+     fi
+     GDK_PIXBUF_CFLAGS=""
+     GDK_PIXBUF_LIBS=""
+     ifelse([$3], , :, [$3])
+  fi
+  AC_SUBST(GDK_PIXBUF_CFLAGS)
+  AC_SUBST(GDK_PIXBUF_LIBS)
+  rm -f conf.gdk_pixbuftest
 ])
 

@@ -31,6 +31,9 @@
 /* This is the default port to connect to the server with. */
 #define EPORT 13327
 
+/* This is the default port to connect to the server with in string form. */
+#define DEFPORT "13327"
+
 /* Set to default display mode you want (one of Pix_Display, Xpm_Display, or
  * Png_Display).
  */

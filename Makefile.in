@@ -18,6 +18,9 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=@bindir@
 mandir=@mandir@/man1
+soundlistdir=@sysconfdir@/sound/events
+desktopdir=@prefix@/share/gnome/apps/Games
+pixmapsdir=@prefix@/share/pixmaps
 
 HEADERS= \
 	cconfig.h		\
@@ -51,6 +54,21 @@ X_LIBS=@X_LIBS@
 GTK_CFLAGS=@GTK_CFLAGS@
 GTK_LIBS=@GTK_LIBS@
 SND_LIBS=@SND_LIBS@
+
+GNOME_SOURCES = \
+	client.c		\
+	commands.c		\
+	init.c			\
+	item.c			\
+	metaserver.c		\
+	misc.c			\
+	newsocket.c		\
+	player.c		\
+	gnome-sound.c	\
+	gnome.c
+GNOME_OBJS= $(GNOME_SOURCES:.c=.o)
+GNOME_CFLAGS=-DSYSCONFDIR=\""@sysconfdir@"\" -DDATADIR=\""@datadir@"\" @GNOME_INCLUDEDIR@ @GDK_PIXBUF_CFLAGS@
+GNOME_LIBS=@GNOME_LIBDIR@ @GNOMEUI_LIBS@ @GDK_PIXBUF_LIBS@
 
 # proto only wants the .c files 
 
@@ -134,6 +152,16 @@ INCLUDES = @X_CFLAGS@
 
 all:  @TARGET@ def-keys.h
 
+gnome-cfclient: $(GNOME_OBJS)
+	$(CC) -o gnome-cfclient $(GNOME_OBJS) $(GNOME_LIBS) $(LDFLAGS) $(LIBS) $(DMALLOC_LIB)
+
+gnome.o: gnome.c
+	$(CC) $(CFLAGS) $(GNOME_CFLAGS) $(INCLUDES) -c gnome.c
+
+gnome-sound.o: gnome-sound.c
+	$(CC) $(CFLAGS) $(GNOME_CFLAGS) $(INCLUDES) -c gnome-sound.c
+
+
 gcfclient: $(GTK_OBJS)
 	$(CC) -o gcfclient $(GTK_OBJS) $(LDFLAGS) $(LIBS) $(GTK_LIBS) $(DMALLOC_LIB)
 
@@ -190,7 +218,7 @@ archive:
 
 
 clean::
-	$(RM) -f $(TARGET) $(GTK_OBJS) $(SND_OBJS) x11.o Makefile.bak
+	$(RM) -f $(TARGET) $(GTK_OBJS) $(SND_OBJS) x11.o gnome.o gnome-sound.o Makefile.bak
 
 distclean::
 	$(MAKE) clean
@@ -206,7 +234,14 @@ install:
 	done
 	$(INSTALL) client.man ${mandir}/cfclient.1
 	@if [ -x gcfclient ]; then \
-	    	$(INSTALL) client.man ${mandir}/gcfclient.1; \
+		$(INSTALL) client.man ${mandir}/gcfclient.1; \
+	fi
+	@if [ -x gnome-cfclient ]; then \
+		$(INSTALL) client.man ${mandir}/gnome-cfclient.1; \
+		$(INSTALL) gnome-cfclient.soundlist ${soundlistdir}/gnome-cfclient.soundlist; \
+		$(INSTALL) gnome-cfclient.desktop ${desktopdir}/gnome-cfclient.desktop; \
+		$(INSTALL) shield.png ${pixmapsdir}/shield.png; \
+		$(INSTALL) pixmaps/crossfiretitle.xpm ${pixmapsdir}/crossfiretitle.xpm; \
 	fi
 
 depend:

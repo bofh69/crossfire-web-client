@@ -1,0 +1,639 @@
+
+[__section_info__]
+description=Gnome Crossfire Client
+
+[normal_0]
+file=@SOUNDDIR@/su-fanf.wav
+description=New player
+
+[normal_1]
+file=@SOUNDDIR@/Teeswing.wav
+description=Fire arrow
+
+[normal_2]
+file=@SOUNDDIR@/chord.wav
+description=Learn spell
+
+[normal_3]
+file=@SOUNDDIR@/Missed.wav
+description=Fumble spell
+
+[normal_4]
+file=@SOUNDDIR@/Missed.wav
+description=Wand poof
+
+[normal_5]
+file=@SOUNDDIR@/Creaky-1.wav
+description=Open door
+
+[normal_6]
+file=@SOUNDDIR@/blip.wav
+description=Push player
+
+[normal_7]
+file=@SOUNDDIR@/click1.wav
+description=Player hits (1)
+
+[normal_8]
+file=@SOUNDDIR@/click2.wav
+description=Player hits (2)
+
+[normal_9]
+file=@SOUNDDIR@/click1.wav
+description=Player hits (3)
+
+[normal_10]
+file=@SOUNDDIR@/click2.wav
+description=Player hits (4)
+
+[normal_11]
+file=@SOUNDDIR@/FloorTom.wav
+description=Player is hit (1)
+
+[normal_12]
+file=@SOUNDDIR@/ouch1.wav
+description=Player is hit (2)
+
+[normal_13]
+file=@SOUNDDIR@/thru.wav
+description=Player is hit (3)
+
+[normal_14]
+file=@SOUNDDIR@/drip.wav
+description=Player kills
+
+[normal_15]
+file=@SOUNDDIR@/squish.wav
+description=Pet is killed
+
+[normal_16]
+file=@SOUNDDIR@/gong.wav
+description=Player dies
+
+[normal_17]
+file=@SOUNDDIR@/Whoosh.wav
+description=Object evaporates
+
+[normal_18]
+file=@SOUNDDIR@/Explosion.wav
+description=Object explodes
+
+[normal_19]
+file=@SOUNDDIR@/TowerClock.wav
+description=Clock
+
+[normal_20]
+file=@SOUNDDIR@/boink2.wav
+description=Turn handle
+
+[normal_21]
+file=@SOUNDDIR@/MetalCrash.wav
+description=Fall hole
+
+[normal_22]
+file=@SOUNDDIR@/Puke.wav
+description=Drink poison
+
+[spell_0]
+file=@SOUNDDIR@/magic.wav
+description=Default magic sound
+
+[spell_1]
+file=@SOUNDDIR@/swish.wav
+description=Magic bullet
+
+[spell_2]
+file=@SOUNDDIR@/swish.wav
+description=Small fireball
+
+[spell_3]
+file=@SOUNDDIR@/swish.wav
+description=Medium fireball
+
+[spell_4]
+file=@SOUNDDIR@/swish.wav
+description=Large fireball
+
+[spell_5]
+file=@SOUNDDIR@/magic.wav
+description=Burning hands
+
+[spell_6]
+file=@SOUNDDIR@/lightning1.wav
+description=Small lightning
+
+[spell_7]
+file=@SOUNDDIR@/lightning1.wav
+description=Large lightning
+
+[spell_8]
+file=@SOUNDDIR@/swish.wav
+description=Magic missile
+
+[spell_9]
+file=@SOUNDDIR@/magic.wav
+description=Create bomb
+
+[spell_10]
+file=@SOUNDDIR@/magic.wav
+description=Summon golem
+
+[spell_11]
+file=@SOUNDDIR@/magic.wav
+description=Summon fire elemental
+
+[spell_12]
+file=@SOUNDDIR@/magic.wav
+description=Summon earth elemental
+
+[spell_13]
+file=@SOUNDDIR@/magic.wav
+description=Summon water elemental
+
+[spell_14]
+file=@SOUNDDIR@/magic.wav
+description=Summon air elemental
+
+[spell_15]
+file=@SOUNDDIR@/first_try.wav
+description=Dimension door
+
+[spell_16]
+file=@SOUNDDIR@/magic.wav
+description=Create earth wall
+
+[spell_17]
+file=@SOUNDDIR@/Tear.wav
+description=Paralyze
+
+[spell_18]
+file=@SOUNDDIR@/Missle1.wav
+description=Icestorm
+
+[spell_19]
+file=@SOUNDDIR@/magic.wav
+description=Magic mapping
+
+[spell_20]
+file=@SOUNDDIR@/Tear.wav
+description=Turn undead
+
+[spell_21]
+file=@SOUNDDIR@/Tear.wav
+description=Fear
+
+[spell_22]
+file=@SOUNDDIR@/Missle1.wav
+description=Poison cloud
+
+[spell_23]
+file=@SOUNDDIR@/magic.wav
+description=Wonder
+
+[spell_24]
+file=@SOUNDDIR@/Explosion.wav
+description=Destruction
+
+[spell_25]
+file=@SOUNDDIR@/magic.wav
+description=Perceive self
+
+[spell_26]
+file=@SOUNDDIR@/sci_fi_gun.wav
+description=Word of recall
+
+[spell_27]
+file=@SOUNDDIR@/magic.wav
+description=Invisible
+
+[spell_28]
+file=@SOUNDDIR@/magic.wav
+description=Invisible to undead
+
+[spell_29]
+file=@SOUNDDIR@/magic.wav
+description=Probe
+
+[spell_30]
+file=@SOUNDDIR@/swish.wav
+description=Large bullet
+
+[spell_31]
+file=@SOUNDDIR@/magic.wav
+description=Improved invisibility
+
+[spell_32]
+file=@SOUNDDIR@/Tear.wav
+description=Holy word
+
+[spell_33]
+file=@SOUNDDIR@/magic.wav
+description=Minor healing
+
+[spell_34]
+file=@SOUNDDIR@/magic.wav
+description=Medium healing
+
+[spell_35]
+file=@SOUNDDIR@/magic.wav
+description=Major healing
+
+[spell_36]
+file=@SOUNDDIR@/magic.wav
+description=Heal
+
+[spell_37]
+file=@SOUNDDIR@/magic.wav
+description=Create food
+
+[spell_38]
+file=@SOUNDDIR@/Explosion.wav
+description=Earth to dust
+
+[spell_39]
+file=@SOUNDDIR@/magic.wav
+description=Armour
+
+[spell_40]
+file=@SOUNDDIR@/magic.wav
+description=Strength
+
+[spell_41]
+file=@SOUNDDIR@/magic.wav
+description=Dexterity
+
+[spell_42]
+file=@SOUNDDIR@/magic.wav
+description=Constitution
+
+[spell_43]
+file=@SOUNDDIR@/magic.wav
+description=Charisma
+
+[spell_44]
+file=@SOUNDDIR@/magic.wav
+description=Create fire wall
+
+[spell_45]
+file=@SOUNDDIR@/magic.wav
+description=Create frost wall
+
+[spell_46]
+file=@SOUNDDIR@/magic.wav
+description=Protection from cold
+
+[spell_47]
+file=@SOUNDDIR@/magic.wav
+description=Protection from electricity
+
+[spell_48]
+file=@SOUNDDIR@/magic.wav
+description=Protection from fire
+
+[spell_49]
+file=@SOUNDDIR@/magic.wav
+description=Protection from poison
+
+[spell_50]
+file=@SOUNDDIR@/magic.wav
+description=Protection from slow
+
+[spell_51]
+file=@SOUNDDIR@/magic.wav
+description=Protection from paralysis
+
+[spell_52]
+file=@SOUNDDIR@/magic.wav
+description=Protection from draining
+
+[spell_53]
+file=@SOUNDDIR@/magic.wav
+description=Protection from magic
+
+[spell_54]
+file=@SOUNDDIR@/magic.wav
+description=Protection from attack
+
+[spell_55]
+file=@SOUNDDIR@/magic.wav
+description=Levitate
+
+[spell_56]
+file=@SOUNDDIR@/Gun-5.wav
+description=Small speedball
+
+[spell_57]
+file=@SOUNDDIR@/Gun-5.wav
+description=Large speedball
+
+[spell_58]
+file=@SOUNDDIR@/Missle1.wav
+description=Hellfire
+
+[spell_59]
+file=@SOUNDDIR@/Missle1.wav
+description=Dragonbreath
+
+[spell_60]
+file=@SOUNDDIR@/Missle1.wav
+description=Large icestorm
+
+[spell_61]
+file=@SOUNDDIR@/magic.wav
+description=Charging
+
+[spell_62]
+file=@SOUNDDIR@/magic.wav
+description=Polymorph
+
+[spell_63]
+file=@SOUNDDIR@/swish.wav
+description=Cancellation
+
+[spell_64]
+file=@SOUNDDIR@/Tear.wav
+description=Confusion
+
+[spell_65]
+file=@SOUNDDIR@/Tear.wav
+description=Mass confusion
+
+[spell_66]
+file=@SOUNDDIR@/magic.wav
+description=Summon pet monster
+
+[spell_67]
+file=@SOUNDDIR@/magic.wav
+description=Slow
+
+[spell_68]
+file=@SOUNDDIR@/magic.wav
+description=Regenerate spellpoints
+
+[spell_69]
+file=@SOUNDDIR@/magic.wav
+description=Cure poison
+
+[spell_70]
+file=@SOUNDDIR@/magic.wav
+description=Protection from confusion
+
+[spell_71]
+file=@SOUNDDIR@/magic.wav
+description=Protection from cancellation
+
+[spell_72]
+file=@SOUNDDIR@/magic.wav
+description=Protection from depletion
+
+[spell_73]
+file=@SOUNDDIR@/magic.wav
+description=Alchemy
+
+[spell_74]
+file=@SOUNDDIR@/Evil_Laugh.wav
+description=Remove curse
+
+[spell_75]
+file=@SOUNDDIR@/Evil_Laugh.wav
+description=Remove damnation
+
+[spell_76]
+file=@SOUNDDIR@/magic.wav
+description=Identify
+
+[spell_77]
+file=@SOUNDDIR@/magic.wav
+description=Detect magic
+
+[spell_78]
+file=@SOUNDDIR@/magic.wav
+description=Detect monster
+
+[spell_79]
+file=@SOUNDDIR@/magic.wav
+description=Detect evil
+
+[spell_80]
+file=@SOUNDDIR@/magic.wav
+description=Detect curse
+
+[spell_81]
+file=@SOUNDDIR@/Explosion.wav
+description=Heroism
+
+[spell_82]
+file=@SOUNDDIR@/bugle_charge.wav
+description=Aggravation
+
+[spell_83]
+file=@SOUNDDIR@/magic.wav
+description=Firebolt
+
+[spell_84]
+file=@SOUNDDIR@/magic.wav
+description=Frostbolt
+
+[spell_85]
+file=@SOUNDDIR@/Explosion.wav
+description=Shockwave
+
+[spell_86]
+file=@SOUNDDIR@/magic.wav
+description=Color spray
+
+[spell_87]
+file=@SOUNDDIR@/magic.wav
+description=Haste
+
+[spell_88]
+file=@SOUNDDIR@/magic.wav
+description=Face of death
+
+[spell_89]
+file=@SOUNDDIR@/lightning1.wav
+description=Ball lightning
+
+[spell_90]
+file=@SOUNDDIR@/swish.wav
+description=Meteor swarm
+
+[spell_91]
+file=@SOUNDDIR@/swish.wav
+description=Comet
+
+[spell_92]
+file=@SOUNDDIR@/magic.wav
+description=Mystic fist
+
+[spell_93]
+file=@SOUNDDIR@/magic.wav
+description=Raise dead
+
+[spell_94]
+file=@SOUNDDIR@/magic.wav
+description=Resurrection
+
+[spell_95]
+file=@SOUNDDIR@/magic.wav
+description=Reincarnation
+
+[spell_96]
+file=@SOUNDDIR@/magic.wav
+description=Immune cold
+
+[spell_97]
+file=@SOUNDDIR@/magic.wav
+description=Immune electricity
+
+[spell_98]
+file=@SOUNDDIR@/magic.wav
+description=Immune fire
+
+[spell_99]
+file=@SOUNDDIR@/magic.wav
+description=Immune poison
+
+[spell_100]
+file=@SOUNDDIR@/magic.wav
+description=Immune slow
+
+[spell_101]
+file=@SOUNDDIR@/magic.wav
+description=Immune paralysis
+
+[spell_102]
+file=@SOUNDDIR@/magic.wav
+description=Immune drain
+
+[spell_103]
+file=@SOUNDDIR@/magic.wav
+description=Immune magic
+
+[spell_104]
+file=@SOUNDDIR@/magic.wav
+description=Immune attack
+
+[spell_105]
+file=@SOUNDDIR@/magic.wav
+description=Invulnerability
+
+[spell_106]
+file=@SOUNDDIR@/magic.wav
+description=Defense
+
+[spell_107]
+file=@SOUNDDIR@/magic.wav
+description=Rune fire
+
+[spell_108]
+file=@SOUNDDIR@/magic.wav
+description=Rune frost
+
+[spell_109]
+file=@SOUNDDIR@/magic.wav
+description=Rune shocking
+
+[spell_110]
+file=@SOUNDDIR@/magic.wav
+description=Rune blasting
+
+[spell_111]
+file=@SOUNDDIR@/magic.wav
+description=Rune death
+
+[spell_112]
+file=@SOUNDDIR@/magic.wav
+description=Marking rune
+
+[spell_113]
+file=@SOUNDDIR@/magic.wav
+description=Build director
+
+[spell_114]
+file=@SOUNDDIR@/magic.wav
+description=Pool of chaos
+
+[spell_115]
+file=@SOUNDDIR@/magic.wav
+description=Build bullet wall
+
+[spell_116]
+file=@SOUNDDIR@/magic.wav
+description=Build ligtning wall
+
+[spell_117]
+file=@SOUNDDIR@/magic.wav
+description=Build fireball wall
+
+[spell_118]
+file=@SOUNDDIR@/magic.wav
+description=Magic
+
+[spell_119]
+file=@SOUNDDIR@/magic.wav
+description=Rune of magic drain
+
+[spell_120]
+file=@SOUNDDIR@/magic.wav
+description=Antimagic rune
+
+[spell_121]
+file=@SOUNDDIR@/magic.wav
+description=Rune transferrence
+
+[spell_122]
+file=@SOUNDDIR@/magic.wav
+description=Transferrence
+
+[spell_123]
+file=@SOUNDDIR@/magic.wav
+description=Magic drain
+
+[spell_124]
+file=@SOUNDDIR@/magic.wav
+description=Counterspell
+
+[spell_125]
+file=@SOUNDDIR@/magic.wav
+description=Disarm
+
+[spell_126]
+file=@SOUNDDIR@/magic.wav
+description=Cure confusion
+
+[spell_127]
+file=@SOUNDDIR@/magic.wav
+description=Restoration
+
+[spell_128]
+file=@SOUNDDIR@/magic.wav
+description=Summon evil monster
+
+[spell_129]
+file=@SOUNDDIR@/magic.wav
+description=Counterwall
+
+[spell_130]
+file=@SOUNDDIR@/magic.wav
+description=Cause light wounds
+
+[spell_131]
+file=@SOUNDDIR@/magic.wav
+description=Cause medium wounds
+
+[spell_132]
+file=@SOUNDDIR@/magic.wav
+description=Cause serious wounds
+
+[spell_133]
+file=@SOUNDDIR@/magic.wav
+description=Charm monsters
+
+[spell_134]
+file=@SOUNDDIR@/magic.wav
+description=Banishment
+
+[spell_135]
+file=@SOUNDDIR@/magic.wav
+description=Create missile

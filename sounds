@@ -34,166 +34,166 @@
 #
 Standard Sounds:
 
-/usr/local/lib/sounds/su-fanf.au	 30	SOUND_NEW_PLAYER	0
-/usr/local/lib/sounds/Teeswing.au 	 80	SOUND_FIRE_ARROW	1
-/usr/local/lib/sounds/chord.au	100	SOUND_LEARN_SPELL	2
-/usr/local/lib/sounds/Missed.au	 70	SOUND_FUMBLE_SPELL	3
-/usr/local/lib/sounds/Missed.au	 70	SOUND_WAND_POOF		4
-/usr/local/lib/sounds/Creaky-1.au	 90	SOUND_OPEN_DOOR		5
-/usr/local/lib/sounds/blip.au 	 80	SOUND_PUSH_PLAYER	6
-/usr/local/lib/sounds/click1.au	 60	SOUND_PLAYER_HITS1	7
-/usr/local/lib/sounds/click2.au	 70	SOUND_PLAYER_HITS2	8
-/usr/local/lib/sounds/click1.au	 80	SOUND_PLAYER_HITS3	9
-/usr/local/lib/sounds/click2.au	 90	SOUND_PLAYER_HITS4	10
-/usr/local/lib/sounds/FloorTom.au	 70	SOUND_PLAYER_IS_HIT1	11
-/usr/local/lib/sounds/ouch1.au	 80	SOUND_PLAYER_IS_HIT2	12
-/usr/local/lib/sounds/thru.au 	 90	SOUND_PLAYER_IS_HIT3	13
-/usr/local/lib/sounds/drip.au 	 80	SOUND_PLAYER_KILLS	14
-/usr/local/lib/sounds/squish.au	 80	SOUND_PET_IS_KILLED	15
-/usr/local/lib/sounds/gong.au 	150	SOUND_PLAYER_DIES	16
-/usr/local/lib/sounds/Whoosh.au	100	SOUND_OB_EVAPORATE	17
-/usr/local/lib/sounds/Explosion.au	100	SOUND_OB_EXPLODE	18
-/usr/local/lib/sounds/TowerClock.au	130	SOUND_CLOCK		19
-/usr/local/lib/sounds/boink2.au 	 80	SOUND_TURN_HANDLE	20
-/usr/local/lib/sounds/MetalCrash.au 	200	SOUND_FALL_HOLE		21
-/usr/local/lib/sounds/Puke.au 	130	SOUND_DRINK_POISON     	22
+/usr/share/crossfire/sounds/su-fanf.au	 30	SOUND_NEW_PLAYER	0
+/usr/share/crossfire/sounds/Teeswing.au 	 80	SOUND_FIRE_ARROW	1
+/usr/share/crossfire/sounds/chord.au	100	SOUND_LEARN_SPELL	2
+/usr/share/crossfire/sounds/Missed.au	 70	SOUND_FUMBLE_SPELL	3
+/usr/share/crossfire/sounds/Missed.au	 70	SOUND_WAND_POOF		4
+/usr/share/crossfire/sounds/Creaky-1.au	 90	SOUND_OPEN_DOOR		5
+/usr/share/crossfire/sounds/blip.au 	 80	SOUND_PUSH_PLAYER	6
+/usr/share/crossfire/sounds/click1.au	 60	SOUND_PLAYER_HITS1	7
+/usr/share/crossfire/sounds/click2.au	 70	SOUND_PLAYER_HITS2	8
+/usr/share/crossfire/sounds/click1.au	 80	SOUND_PLAYER_HITS3	9
+/usr/share/crossfire/sounds/click2.au	 90	SOUND_PLAYER_HITS4	10
+/usr/share/crossfire/sounds/FloorTom.au	 70	SOUND_PLAYER_IS_HIT1	11
+/usr/share/crossfire/sounds/ouch1.au	 80	SOUND_PLAYER_IS_HIT2	12
+/usr/share/crossfire/sounds/thru.au 	 90	SOUND_PLAYER_IS_HIT3	13
+/usr/share/crossfire/sounds/drip.au 	 80	SOUND_PLAYER_KILLS	14
+/usr/share/crossfire/sounds/squish.au	 80	SOUND_PET_IS_KILLED	15
+/usr/share/crossfire/sounds/gong.au 	150	SOUND_PLAYER_DIES	16
+/usr/share/crossfire/sounds/Whoosh.au	100	SOUND_OB_EVAPORATE	17
+/usr/share/crossfire/sounds/Explosion.au	100	SOUND_OB_EXPLODE	18
+/usr/share/crossfire/sounds/TowerClock.au	130	SOUND_CLOCK		19
+/usr/share/crossfire/sounds/boink2.au 	 80	SOUND_TURN_HANDLE	20
+/usr/share/crossfire/sounds/MetalCrash.au 	200	SOUND_FALL_HOLE		21
+/usr/share/crossfire/sounds/Puke.au 	130	SOUND_DRINK_POISON     	22
 
 # Spells :		SOUND_CAST_SPELL_0      23, 24, 25 ...
 Spell Sounds:
 
-/usr/local/lib/sounds/magic.au	100	DEFAULT
-/usr/local/lib/sounds/swish.au	 70	"magic bullet" 			/* 0 */
-/usr/local/lib/sounds/swish.au	 60	"small fireball"
-/usr/local/lib/sounds/swish.au	 80	"medium fireball"
-/usr/local/lib/sounds/swish.au	100	"large fireball"
-/usr/local/lib/sounds/magic.au	100	"burning hands"
-/usr/local/lib/sounds/lightning1.au	 70	"small lightning"
-/usr/local/lib/sounds/lightning1.au	 90	"large lightning"
-/usr/local/lib/sounds/swish.au	100	"magic missile"
-/usr/local/lib/sounds/magic.au	100	"create bomb"
-/usr/local/lib/sounds/magic.au	100	"summon golem"
-/usr/local/lib/sounds/magic.au	100	"summon fire elemental"		/* 10 */
-/usr/local/lib/sounds/magic.au	100	"summon earth elemental"
-/usr/local/lib/sounds/magic.au	100	"summon water elemental"
-/usr/local/lib/sounds/magic.au	100	"summon air elemental"
-/usr/local/lib/sounds/first_try.au	100	"dimension door"
-/usr/local/lib/sounds/magic.au	100	"create earth wall"
-/usr/local/lib/sounds/Tear.au 	100	"paralyze"
-/usr/local/lib/sounds/Missle1.au	 80	"icestorm"
-/usr/local/lib/sounds/magic.au	100	"magic mapping"
-/usr/local/lib/sounds/Tear.au 	 90	"turn undead"
-/usr/local/lib/sounds/Tear.au 	 90	"fear"				/* 20 */
-/usr/local/lib/sounds/Missle1.au	100	"poison cloud"
-/usr/local/lib/sounds/magic.au	100	"wonder"
-/usr/local/lib/sounds/Explosion.au	 80	"destruction"
-/usr/local/lib/sounds/magic.au	100	"perceive self"
-/usr/local/lib/sounds/sci_fi_gun.au	100	"word of recall"
-/usr/local/lib/sounds/magic.au	100	"invisible"
-/usr/local/lib/sounds/magic.au	100	"invisible to undead"
-/usr/local/lib/sounds/magic.au	100	"probe"
-/usr/local/lib/sounds/swish.au	100	"large bullet"
-/usr/local/lib/sounds/magic.au	100	"improved invisibility"		/* 30 */
-/usr/local/lib/sounds/Tear.au 	100	"holy word"
-/usr/local/lib/sounds/magic.au	100	"minor healing"
-/usr/local/lib/sounds/magic.au	100	"medium healing"
-/usr/local/lib/sounds/magic.au	100	"major healing"
-/usr/local/lib/sounds/magic.au	100	"heal"
-/usr/local/lib/sounds/magic.au	100	"create food"
-/usr/local/lib/sounds/Explosion.au	 60	"earth to dust"
-/usr/local/lib/sounds/magic.au	100	"armour"
-/usr/local/lib/sounds/magic.au	100	"strength"
-/usr/local/lib/sounds/magic.au	100	"dexterity"			/* 40 */
-/usr/local/lib/sounds/magic.au	100	"constitution"
-/usr/local/lib/sounds/magic.au	100	"charisma"
-/usr/local/lib/sounds/magic.au	100	"create fire wall"
-/usr/local/lib/sounds/magic.au	100	"create frost wall"
-/usr/local/lib/sounds/magic.au	100	"protection from cold"
-/usr/local/lib/sounds/magic.au	100	"protection from electricity"
-/usr/local/lib/sounds/magic.au	100	"protection from fire"
-/usr/local/lib/sounds/magic.au	100	"protection from poison"
-/usr/local/lib/sounds/magic.au	100	"protection from slow"
-/usr/local/lib/sounds/magic.au	100	"protection from paralysis"	/* 50 */
-/usr/local/lib/sounds/magic.au	100	"protection from draining"
-/usr/local/lib/sounds/magic.au	100	"protection from magic"
-/usr/local/lib/sounds/magic.au	100	"protection from attack"
-/usr/local/lib/sounds/magic.au	100	"levitate"
-/usr/local/lib/sounds/Gun-5.au	100	"small speedball"
-/usr/local/lib/sounds/Gun-5.au	130	"large speedball"
-/usr/local/lib/sounds/Missle1.au	150	"hellfire"
-/usr/local/lib/sounds/Missle1.au	170	"dragonbreath"
-/usr/local/lib/sounds/Missle1.au	170	"large icestorm"
-/usr/local/lib/sounds/magic.au	100	"charging"			/* 60 */
-/usr/local/lib/sounds/magic.au	100	"polymorph"
-/usr/local/lib/sounds/swish.au	200	"cancellation"
-/usr/local/lib/sounds/Tear.au 	100	"confusion"
-/usr/local/lib/sounds/Tear.au 	150	"mass confusion"
-/usr/local/lib/sounds/magic.au	100	"summon pet monster"
-/usr/local/lib/sounds/magic.au 	100	"slow"
-/usr/local/lib/sounds/magic.au	100	"regenerate spellpoints"
-/usr/local/lib/sounds/magic.au	100	"cure poison"
-/usr/local/lib/sounds/magic.au	100	"protection from confusion"
-/usr/local/lib/sounds/magic.au	100	"protection from cancellation"	/* 70 */
-/usr/local/lib/sounds/magic.au	100	"protection from depletion"
-/usr/local/lib/sounds/magic.au	100	"alchemy"
-/usr/local/lib/sounds/Evil_Laugh.au	100	"remove curse"
-/usr/local/lib/sounds/Evil_Laugh.au	120	"remove damnation"
-/usr/local/lib/sounds/magic.au	100	"identify"
-/usr/local/lib/sounds/magic.au	100	"detect magic"
-/usr/local/lib/sounds/magic.au	100	"detect monster"
-/usr/local/lib/sounds/magic.au	100	"detect evil"
-/usr/local/lib/sounds/magic.au	100	"detect curse"
-/usr/local/lib/sounds/Explosion.au	100	"heroism"			/* 80 */
-/usr/local/lib/sounds/bugle_charge.au	100	"aggravation"
-/usr/local/lib/sounds/magic.au	100	"firebolt"
-/usr/local/lib/sounds/magic.au	100	"frostbolt"
-/usr/local/lib/sounds/Explosion.au	100	"shockwave"
-/usr/local/lib/sounds/magic.au	100	"color spray"
-/usr/local/lib/sounds/magic.au	100	"haste"
-/usr/local/lib/sounds/magic.au	100	"face of death"
-/usr/local/lib/sounds/lightning1.au	110	"ball lightning"
-/usr/local/lib/sounds/swish.au	100	"meteor swarm"
-/usr/local/lib/sounds/swish.au	100	"comet"				/* 90 */
-/usr/local/lib/sounds/magic.au	100	"mystic fist"
-/usr/local/lib/sounds/magic.au	100	"raise dead"
-/usr/local/lib/sounds/magic.au	100	"resurrection"
-/usr/local/lib/sounds/magic.au	100	"reincarnation"
-/usr/local/lib/sounds/magic.au	100	"immune cold"
-/usr/local/lib/sounds/magic.au	100	"immune electricity"
-/usr/local/lib/sounds/magic.au	100	"immune fire"
-/usr/local/lib/sounds/magic.au	100	"immune poison"
-/usr/local/lib/sounds/magic.au	100	"immune slow"
-/usr/local/lib/sounds/magic.au	100	"immune paralysis"		/* 100 */
-/usr/local/lib/sounds/magic.au	100	"immune drain"
-/usr/local/lib/sounds/magic.au	100	"immune magic"
-/usr/local/lib/sounds/magic.au	100	"immune attack"
-/usr/local/lib/sounds/magic.au	100	"invulnerability"
-/usr/local/lib/sounds/magic.au	100	"defense
-/usr/local/lib/sounds/magic.au	100	"rune fire"
-/usr/local/lib/sounds/magic.au	100	"rune frost"
-/usr/local/lib/sounds/magic.au	100	"rune shocking"
-/usr/local/lib/sounds/magic.au	100	"rune blasting"
-/usr/local/lib/sounds/magic.au	100	"rune death"			/* 110 */
-/usr/local/lib/sounds/magic.au	100	"marking rune"
-/usr/local/lib/sounds/magic.au	100	"build director"
-/usr/local/lib/sounds/magic.au	100	"pool of chaos"
-/usr/local/lib/sounds/magic.au	100	"build bullet wall"
-/usr/local/lib/sounds/magic.au	100	"build ligtning wall"
-/usr/local/lib/sounds/magic.au	100	"build fireball wall"
-/usr/local/lib/sounds/magic.au	100	"magic "
-/usr/local/lib/sounds/magic.au	100	"rune of magic drain"
-/usr/local/lib/sounds/magic.au	100	"antimagic rune"
-/usr/local/lib/sounds/magic.au	100	"rune transferrence"		/* 120 */
-/usr/local/lib/sounds/magic.au	100	"transferrence"
-/usr/local/lib/sounds/magic.au	100	"magic drain"
-/usr/local/lib/sounds/magic.au	100	"counterspell"
-/usr/local/lib/sounds/magic.au	100	"disarm"
-/usr/local/lib/sounds/magic.au	100	"cure confusion"
-/usr/local/lib/sounds/magic.au	100	"restoration"
-/usr/local/lib/sounds/magic.au	100	"summon evil monster"
-/usr/local/lib/sounds/magic.au	100	"counterwall"
-/usr/local/lib/sounds/magic.au	100	"cause light wounds"
-/usr/local/lib/sounds/magic.au	100	"cause medium wounds"		/* 130 */
-/usr/local/lib/sounds/magic.au	100	"cause serious wounds"
-/usr/local/lib/sounds/magic.au	100	"charm monsters"
-/usr/local/lib/sounds/magic.au	100	"banishment"
-/usr/local/lib/sounds/magic.au	100	"create missile"
+/usr/share/crossfire/sounds/magic.au	100	DEFAULT
+/usr/share/crossfire/sounds/swish.au	 70	"magic bullet" 			/* 0 */
+/usr/share/crossfire/sounds/swish.au	 60	"small fireball"
+/usr/share/crossfire/sounds/swish.au	 80	"medium fireball"
+/usr/share/crossfire/sounds/swish.au	100	"large fireball"
+/usr/share/crossfire/sounds/magic.au	100	"burning hands"
+/usr/share/crossfire/sounds/lightning1.au	 70	"small lightning"
+/usr/share/crossfire/sounds/lightning1.au	 90	"large lightning"
+/usr/share/crossfire/sounds/swish.au	100	"magic missile"
+/usr/share/crossfire/sounds/magic.au	100	"create bomb"
+/usr/share/crossfire/sounds/magic.au	100	"summon golem"
+/usr/share/crossfire/sounds/magic.au	100	"summon fire elemental"		/* 10 */
+/usr/share/crossfire/sounds/magic.au	100	"summon earth elemental"
+/usr/share/crossfire/sounds/magic.au	100	"summon water elemental"
+/usr/share/crossfire/sounds/magic.au	100	"summon air elemental"
+/usr/share/crossfire/sounds/first_try.au	100	"dimension door"
+/usr/share/crossfire/sounds/magic.au	100	"create earth wall"
+/usr/share/crossfire/sounds/Tear.au 	100	"paralyze"
+/usr/share/crossfire/sounds/Missle1.au	 80	"icestorm"
+/usr/share/crossfire/sounds/magic.au	100	"magic mapping"
+/usr/share/crossfire/sounds/Tear.au 	 90	"turn undead"
+/usr/share/crossfire/sounds/Tear.au 	 90	"fear"				/* 20 */
+/usr/share/crossfire/sounds/Missle1.au	100	"poison cloud"
+/usr/share/crossfire/sounds/magic.au	100	"wonder"
+/usr/share/crossfire/sounds/Explosion.au	 80	"destruction"
+/usr/share/crossfire/sounds/magic.au	100	"perceive self"
+/usr/share/crossfire/sounds/sci_fi_gun.au	100	"word of recall"
+/usr/share/crossfire/sounds/magic.au	100	"invisible"
+/usr/share/crossfire/sounds/magic.au	100	"invisible to undead"
+/usr/share/crossfire/sounds/magic.au	100	"probe"
+/usr/share/crossfire/sounds/swish.au	100	"large bullet"
+/usr/share/crossfire/sounds/magic.au	100	"improved invisibility"		/* 30 */
+/usr/share/crossfire/sounds/Tear.au 	100	"holy word"
+/usr/share/crossfire/sounds/magic.au	100	"minor healing"
+/usr/share/crossfire/sounds/magic.au	100	"medium healing"
+/usr/share/crossfire/sounds/magic.au	100	"major healing"
+/usr/share/crossfire/sounds/magic.au	100	"heal"
+/usr/share/crossfire/sounds/magic.au	100	"create food"
+/usr/share/crossfire/sounds/Explosion.au	 60	"earth to dust"
+/usr/share/crossfire/sounds/magic.au	100	"armour"
+/usr/share/crossfire/sounds/magic.au	100	"strength"
+/usr/share/crossfire/sounds/magic.au	100	"dexterity"			/* 40 */
+/usr/share/crossfire/sounds/magic.au	100	"constitution"
+/usr/share/crossfire/sounds/magic.au	100	"charisma"
+/usr/share/crossfire/sounds/magic.au	100	"create fire wall"
+/usr/share/crossfire/sounds/magic.au	100	"create frost wall"
+/usr/share/crossfire/sounds/magic.au	100	"protection from cold"
+/usr/share/crossfire/sounds/magic.au	100	"protection from electricity"
+/usr/share/crossfire/sounds/magic.au	100	"protection from fire"
+/usr/share/crossfire/sounds/magic.au	100	"protection from poison"
+/usr/share/crossfire/sounds/magic.au	100	"protection from slow"
+/usr/share/crossfire/sounds/magic.au	100	"protection from paralysis"	/* 50 */
+/usr/share/crossfire/sounds/magic.au	100	"protection from draining"
+/usr/share/crossfire/sounds/magic.au	100	"protection from magic"
+/usr/share/crossfire/sounds/magic.au	100	"protection from attack"
+/usr/share/crossfire/sounds/magic.au	100	"levitate"
+/usr/share/crossfire/sounds/Gun-5.au	100	"small speedball"
+/usr/share/crossfire/sounds/Gun-5.au	130	"large speedball"
+/usr/share/crossfire/sounds/Missle1.au	150	"hellfire"
+/usr/share/crossfire/sounds/Missle1.au	170	"dragonbreath"
+/usr/share/crossfire/sounds/Missle1.au	170	"large icestorm"
+/usr/share/crossfire/sounds/magic.au	100	"charging"			/* 60 */
+/usr/share/crossfire/sounds/magic.au	100	"polymorph"
+/usr/share/crossfire/sounds/swish.au	200	"cancellation"
+/usr/share/crossfire/sounds/Tear.au 	100	"confusion"
+/usr/share/crossfire/sounds/Tear.au 	150	"mass confusion"
+/usr/share/crossfire/sounds/magic.au	100	"summon pet monster"
+/usr/share/crossfire/sounds/magic.au 	100	"slow"
+/usr/share/crossfire/sounds/magic.au	100	"regenerate spellpoints"
+/usr/share/crossfire/sounds/magic.au	100	"cure poison"
+/usr/share/crossfire/sounds/magic.au	100	"protection from confusion"
+/usr/share/crossfire/sounds/magic.au	100	"protection from cancellation"	/* 70 */
+/usr/share/crossfire/sounds/magic.au	100	"protection from depletion"
+/usr/share/crossfire/sounds/magic.au	100	"alchemy"
+/usr/share/crossfire/sounds/Evil_Laugh.au	100	"remove curse"
+/usr/share/crossfire/sounds/Evil_Laugh.au	120	"remove damnation"
+/usr/share/crossfire/sounds/magic.au	100	"identify"
+/usr/share/crossfire/sounds/magic.au	100	"detect magic"
+/usr/share/crossfire/sounds/magic.au	100	"detect monster"
+/usr/share/crossfire/sounds/magic.au	100	"detect evil"
+/usr/share/crossfire/sounds/magic.au	100	"detect curse"
+/usr/share/crossfire/sounds/Explosion.au	100	"heroism"			/* 80 */
+/usr/share/crossfire/sounds/bugle_charge.au	100	"aggravation"
+/usr/share/crossfire/sounds/magic.au	100	"firebolt"
+/usr/share/crossfire/sounds/magic.au	100	"frostbolt"
+/usr/share/crossfire/sounds/Explosion.au	100	"shockwave"
+/usr/share/crossfire/sounds/magic.au	100	"color spray"
+/usr/share/crossfire/sounds/magic.au	100	"haste"
+/usr/share/crossfire/sounds/magic.au	100	"face of death"
+/usr/share/crossfire/sounds/lightning1.au	110	"ball lightning"
+/usr/share/crossfire/sounds/swish.au	100	"meteor swarm"
+/usr/share/crossfire/sounds/swish.au	100	"comet"				/* 90 */
+/usr/share/crossfire/sounds/magic.au	100	"mystic fist"
+/usr/share/crossfire/sounds/magic.au	100	"raise dead"
+/usr/share/crossfire/sounds/magic.au	100	"resurrection"
+/usr/share/crossfire/sounds/magic.au	100	"reincarnation"
+/usr/share/crossfire/sounds/magic.au	100	"immune cold"
+/usr/share/crossfire/sounds/magic.au	100	"immune electricity"
+/usr/share/crossfire/sounds/magic.au	100	"immune fire"
+/usr/share/crossfire/sounds/magic.au	100	"immune poison"
+/usr/share/crossfire/sounds/magic.au	100	"immune slow"
+/usr/share/crossfire/sounds/magic.au	100	"immune paralysis"		/* 100 */
+/usr/share/crossfire/sounds/magic.au	100	"immune drain"
+/usr/share/crossfire/sounds/magic.au	100	"immune magic"
+/usr/share/crossfire/sounds/magic.au	100	"immune attack"
+/usr/share/crossfire/sounds/magic.au	100	"invulnerability"
+/usr/share/crossfire/sounds/magic.au	100	"defense
+/usr/share/crossfire/sounds/magic.au	100	"rune fire"
+/usr/share/crossfire/sounds/magic.au	100	"rune frost"
+/usr/share/crossfire/sounds/magic.au	100	"rune shocking"
+/usr/share/crossfire/sounds/magic.au	100	"rune blasting"
+/usr/share/crossfire/sounds/magic.au	100	"rune death"			/* 110 */
+/usr/share/crossfire/sounds/magic.au	100	"marking rune"
+/usr/share/crossfire/sounds/magic.au	100	"build director"
+/usr/share/crossfire/sounds/magic.au	100	"pool of chaos"
+/usr/share/crossfire/sounds/magic.au	100	"build bullet wall"
+/usr/share/crossfire/sounds/magic.au	100	"build ligtning wall"
+/usr/share/crossfire/sounds/magic.au	100	"build fireball wall"
+/usr/share/crossfire/sounds/magic.au	100	"magic "
+/usr/share/crossfire/sounds/magic.au	100	"rune of magic drain"
+/usr/share/crossfire/sounds/magic.au	100	"antimagic rune"
+/usr/share/crossfire/sounds/magic.au	100	"rune transferrence"		/* 120 */
+/usr/share/crossfire/sounds/magic.au	100	"transferrence"
+/usr/share/crossfire/sounds/magic.au	100	"magic drain"
+/usr/share/crossfire/sounds/magic.au	100	"counterspell"
+/usr/share/crossfire/sounds/magic.au	100	"disarm"
+/usr/share/crossfire/sounds/magic.au	100	"cure confusion"
+/usr/share/crossfire/sounds/magic.au	100	"restoration"
+/usr/share/crossfire/sounds/magic.au	100	"summon evil monster"
+/usr/share/crossfire/sounds/magic.au	100	"counterwall"
+/usr/share/crossfire/sounds/magic.au	100	"cause light wounds"
+/usr/share/crossfire/sounds/magic.au	100	"cause medium wounds"		/* 130 */
+/usr/share/crossfire/sounds/magic.au	100	"cause serious wounds"
+/usr/share/crossfire/sounds/magic.au	100	"charm monsters"
+/usr/share/crossfire/sounds/magic.au	100	"banishment"
+/usr/share/crossfire/sounds/magic.au	100	"create missile"

@@ -15,10 +15,11 @@ AC_CONFIG_AUX_DIR(utils/)
 
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE(gcfclient, 1.0.0, no-define)
+AM_INIT_AUTOMAKE(gcfclient, 1.0.0)
 
 AC_CONFIG_HEADER(config.h)
 
+AM_ACLOCAL_INCLUDE(macros)
 
 dnl Check for some neeed programs
 AC_PATH_PROG(MKDIR, mkdir)
@@ -69,6 +70,9 @@ AC_ARG_WITH(includes, [  --with-includes=dir     provide different compiler opti
 
 AC_ARG_ENABLE(gtk, [  --disable-gtk           make x11 client [default=make gtk client if available]],
 		gtk=no, gtk=yes )
+
+AC_ARG_ENABLE(gnome, [  --disable-gnome         don't make gnome client [default=make gnome client if available]],
+		gnome=no, gnome=yes )
 
 AC_PROG_CC
 
@@ -196,6 +200,16 @@ fi
 # this fi is for the sound == yes check above
 fi
 
+if eval "test x$gnome = xyes"; then
+	GNOME_INIT
+	GNOME_COMPILE_WARNINGS
+	GNOME_X_CHECKS
+	AM_PATH_GDK_PIXBUF(0.11.0, , echo "gdk-pixbuf 0.11.0 or higher is needed for the Gnome client so I'm not building it." ; gnome=no)
+	if eval "test x$gnome = xyes"; then
+		TARGET="$TARGET gnome-cfclient"
+	fi
+fi
+
 AC_SUBST(GUI_OBJS)
 AC_SUBST(GUI_SRCS)
 AC_SUBST(SND_LIBS)
@@ -298,5 +312,9 @@ AC_SUBST(XPM)
 AC_SUBST(SOUNDDIR)
 AC_SUBST(LIBXPM_LIB)
 
-AC_OUTPUT(Makefile)
+OUTPUT_FILES=Makefile
+if eval "test x$gnome = xyes"; then
+	OUTPUT_FILES="$OUTPUT_FILES gnome-cfclient.soundlist"
+fi
 
+AC_OUTPUT(${OUTPUT_FILES})
