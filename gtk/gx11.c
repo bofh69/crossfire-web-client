@@ -497,61 +497,60 @@ void animate_list () {
 
 
 void button_map_event(GtkWidget *widget, GdkEventButton *event) {
-  int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
+    int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
   
-  x=(int)event->x;
-  y=(int)event->y;
-  dx=(x-2)/map_image_size-(use_config[CONFIG_MAPWIDTH]/2);
-  dy=(y-2)/map_image_size-(use_config[CONFIG_MAPHEIGHT]/2);
-  xmidl=5*map_image_size-(use_config[CONFIG_MAPWIDTH]/2);
-  xmidh=6*map_image_size+(use_config[CONFIG_MAPWIDTH]/2);
-  ymidl=5*map_image_size-(use_config[CONFIG_MAPHEIGHT]/2);
-  ymidh=6*map_image_size+(use_config[CONFIG_MAPHEIGHT]/2);
-  
-  switch (event->button) {
-  case 1:
-    {
-      look_at(dx,dy);
-    }
-    break;
-  case 2:
-  case 3:
-    if (x<xmidl)
-      i = 0;
-    else if (x>xmidh)
-      i = 6;
-    else i =3;
+    x=(int)event->x;
+    y=(int)event->y;
+    dx=(x-2)/map_image_size-(use_config[CONFIG_MAPWIDTH]/2);
+    dy=(y-2)/map_image_size-(use_config[CONFIG_MAPHEIGHT]/2);
+    xmidl=(use_config[CONFIG_MAPWIDTH]/2) * map_image_size;
+    xmidh=(use_config[CONFIG_MAPWIDTH]/2 + 1) * map_image_size;
+    ymidl=(use_config[CONFIG_MAPHEIGHT]/2) * map_image_size;
+    ymidh=(use_config[CONFIG_MAPHEIGHT]/2 + 1) * map_image_size;
+
+    switch (event->button) {
+	case 1:
+	    look_at(dx,dy);
+	    break;
+
+	case 2:
+	case 3:
+	    if (x<xmidl)
+		i = 0;
+	    else if (x>xmidh)
+		i = 6;
+	    else i =3;
     
-    if (y>ymidh)
-      i += 2;
-    else if (y>ymidl)
-      i++;
+	    if (y>ymidh)
+		i += 2;
+	    else if (y>ymidl)
+		i++;
     
-    if (event->button==2) {
-      switch (i) {
-      case 0: fire_dir (8);break;
-      case 1: fire_dir (7);break;
-      case 2: fire_dir (6);break;
-      case 3: fire_dir (1);break;
-      case 5: fire_dir (5);break;
-      case 6: fire_dir (2);break;
-      case 7: fire_dir (3);break;
-      case 8: fire_dir (4);break;
-      }
-      /* Only want to fire once */
-      clear_fire();
+	    if (event->button==2) {
+		switch (i) {
+		    case 0: fire_dir (8);break;
+		    case 1: fire_dir (7);break;
+		    case 2: fire_dir (6);break;
+		    case 3: fire_dir (1);break;
+		    case 5: fire_dir (5);break;
+		    case 6: fire_dir (2);break;
+		    case 7: fire_dir (3);break;
+		    case 8: fire_dir (4);break;
+		}
+		/* Only want to fire once */
+		clear_fire();
+	    }
+	    else switch (i) {
+		case 0: move_player (8);break;
+		case 1: move_player (7);break;
+		case 2: move_player (6);break;
+		case 3: move_player (1);break;
+		case 5: move_player (5);break;
+		case 6: move_player (2);break;
+		case 7: move_player (3);break;
+		case 8: move_player (4);break;
+	    }
     }
-    else switch (i) {
-    case 0: move_player (8);break;
-    case 1: move_player (7);break;
-    case 2: move_player (6);break;
-    case 3: move_player (1);break;
-    case 5: move_player (5);break;
-    case 6: move_player (2);break;
-    case 7: move_player (3);break;
-    case 8: move_player (4);break;
-    }
-  }  
 }
 
 

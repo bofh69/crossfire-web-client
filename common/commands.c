@@ -815,9 +815,10 @@ void DeleteItem(unsigned char *data, int len)
 void DeleteInventory(unsigned char *data, int len)
 {
     int tag;
-
     (void)len; /* __UNUSED__ */
+
     tag=atoi((const char*)data);
+
     if (tag<0) {
 	fprintf(stderr,"DeleteInventory: Invalid tag: %d\n", tag);
 	return;

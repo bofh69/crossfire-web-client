@@ -416,6 +416,16 @@ item *create_new_item (item *env, sint32 tag)
     return op;
 }
 
+int num_free_items()
+{
+    item *tmp;
+    int count=0;
+
+    for (tmp=free_items; tmp; tmp=tmp->next)
+	count++;
+    return count;
+}
+
 /*
  *  Hardcoded now, server could send these at initiation phase.
  */

@@ -2,6 +2,14 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/commands.c: Clean up some formatting.
+common/item.c: Add num_free_items() to try and help see some memory
+   laakage.
+common/player.c: Add num_free_items command which calls above routine. 
+gtk/gx11.c: Fix movement/firing by using mouse pointer.  Map size was
+   hard coded in, so didn't work correct if non standard map size was used.
+MSW 2003-10-09
+
 Add an option to the gtk client which controls what happens when you use apply
 to cycle through containers.  It used to be closed->applied->open->applied.
 Now, if you select the config option, it goes closed->applied->open->close->..

@@ -419,6 +419,7 @@ void extended_command(const char *ocommand) {
     else if (!strcmp(cp,"showweight"))		set_show_weight (cpnext);
     else if (!strcmp(cp,"take"))		command_take(cp, cpnext);
     else if (!strcmp(cp,"unbind"))		unbind_key(cpnext);
+    else if (!strcmp(cp,"num_free_items"))	fprintf(stderr,"num_free_items=%d\n", num_free_items());
     else {
 	/* just send the command(s)  (if `ocommand' is a compound command */
 	/* then split it and send each part seperately */
