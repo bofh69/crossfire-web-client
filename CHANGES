@@ -3,6 +3,10 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+gtk/gx11.c: Made the inventory lists respect the user's GTK font settings,
+  and made the various window parts use the font size to decide what size
+  to make the displays and the window.  TSB 2001-11-21
+
 configure.in, configure: Modified so that if not compiling the
   gnome client, we don't create the gnome Makefile.  MSW 2001-11-05
 

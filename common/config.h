@@ -73,7 +73,7 @@
 /* Define if you have the png library (-lpng).  */
 #define HAVE_LIBPNG 1
 
-#define HAVE_SDL 1
+/* #undef HAVE_SDL */
 
 /* Name of package */
 #define PACKAGE "gcfclient"

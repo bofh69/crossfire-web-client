@@ -2786,7 +2786,7 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, GtkWidget **li
     fprintf(stderr,"setting row height to %d\n",image_size);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(*lists),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-  liststyle = gtk_style_new ();
+  liststyle = gtk_rc_get_style(*list);
   liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
   liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
   gtk_widget_set_style (*list, liststyle);
@@ -2956,7 +2956,7 @@ static int get_look_display(GtkWidget *frame)
   gtk_clist_set_row_height (GTK_CLIST(look_list.gtk_list[0]), image_size); 
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(look_list.gtk_lists[0]),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-  liststyle = gtk_style_new ();
+  liststyle = gtk_rc_get_style (look_list.gtk_list[0]);
   liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
   liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
   gtk_widget_set_style (look_list.gtk_list[0], liststyle);
@@ -4623,10 +4623,16 @@ void create_windows() {
   tooltips = gtk_tooltips_new();
 
   if (split_windows==FALSE) {  
+    int gcw;
+    int gch;
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    gcw = gdk_char_width(gtk_rc_get_style(gtkwin_root)->font, '0') + 4;
+    gch = gdk_char_height(gtk_rc_get_style(gtkwin_root)->font, '0') + 2;
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
-    gtk_widget_set_usize (gtkwin_root,636+(map_image_size*mapx),336+(map_image_size*mapy));
+    fprintf(stderr, "Character Width : %d\n", gcw);
+    fprintf(stderr, "Character Height: %d\n", gch);
+    gtk_widget_set_usize (gtkwin_root,(55*gcw)+(map_image_size*mapx),(33*gch)+(map_image_size*mapy));
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
     
@@ -4691,7 +4697,7 @@ void create_windows() {
     /* Statbars frame */
     message_frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(message_frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (message_frame, (map_image_size*mapx)+6,  (map_image_size*mapy)+6);
+    gtk_widget_set_usize (message_frame, (22*gcw)+6,  (map_image_size*mapy)+6);
     gtk_paned_add2 (GTK_PANED (game_bar_vpane), message_frame);
     
     get_message_display(message_frame);
@@ -4733,7 +4739,7 @@ void create_windows() {
     /* inventory frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, 270, 400);
+    gtk_widget_set_usize (frame, (24*gcw), (33*gch));
     gtk_paned_add1 (GTK_PANED (inv_look_vpane), frame);
 
     get_inv_display (frame);
@@ -4743,7 +4749,7 @@ void create_windows() {
     /* look frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, 270, 200);
+    gtk_widget_set_usize (frame, (24*gcw), (12*gch));
     gtk_paned_add2 (GTK_PANED (inv_look_vpane), frame);
     
     get_look_display (frame);
@@ -6183,7 +6189,7 @@ void save_defaults()
     fprintf(fp,"# This file is generated automatically by gcfclient.\n");
     fprintf(fp,"# Manually editing is allowed, however gcfclient may be a bit finicky about\n");
     fprintf(fp,"# some of the matching it does.  all comparisons are case sensitive.\n");
-    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values");
+    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values\n");
 
     fprintf(fp,"cacheimages: %s\n", TRUE_OR_FALSE(cache_images));
     fprintf(fp,"colorinv: %s\n", TRUE_OR_FALSE(color_inv));
