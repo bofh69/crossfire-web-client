@@ -1898,16 +1898,18 @@ void display_mapscroll(int dx,int dy)
 	    if (x+dx < 0 || x+dx >= mapx ||y+dy < 0 || y+dy >= mapy) {
 		memset((char*)&(newmap.cells[x][y]), 0, sizeof(struct MapCell));
 #ifdef GDK_XUTIL
-		/* basically, if using pngximage, don't want to update it, since the
-		 * scrolling below will effectively take care of our redraw
+		/* basically, if using pngximage, don't want to update it, 
+		 * since the scrolling below will effectively take care of 
+		 * our redraw
+		 *
+		 * Changed my smacfiggen 6/20/2001 -- When new cells come onto
+		 * the map and we aren't using the new map command we want to 
+		 * mark these as updated or else blank tiles get blitted with 
+		 * old info.
+		 *
 		 */
-		if (!pngximage) {
-#ifdef HAVE_SDL
-		    if( !sdlimage)
-#endif
+		if ( !map1cmd)
 		      newmap.cells[x][y].need_update=1;
-
-		}
 #else
 		newmap.cells[x][y].need_update=1;
 #endif
