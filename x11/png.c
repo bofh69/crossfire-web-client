@@ -780,7 +780,7 @@ int rgba_to_xpixmap(Display *display, Drawable draw, uint8 *pixels,
 		   unsigned long width, unsigned long height)
 {
     int red,green,blue, lastred=-1, lastgreen=-1, lastblue=-1,alpha,x,y,
-	cmask, lastcmask, lastcolor;
+	cmask=-1, lastcmask, lastcolor=-1;
     GC	gc, gc_alpha;
 
     *pix = XCreatePixmap(display, draw, width, height, 

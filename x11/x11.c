@@ -285,7 +285,7 @@ extern int maxfd;
  * the crashes with the big image stuff - I need to know
  * what function is causing the crash.
  */
-void error_handler(Display *dp, XErrorEvent *xe)
+int error_handler(Display *dp, XErrorEvent *xe)
 {
     char buf[MAX_BUF];
 
@@ -295,6 +295,8 @@ void error_handler(Display *dp, XErrorEvent *xe)
      * the abort below.
      */
     abort();
+
+    return 0;	/* just to prevent warnings */
 }
 
 void event_loop()
