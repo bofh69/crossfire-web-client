@@ -1,6 +1,29 @@
 "$Id$"
 Top of CVS tree:
 
+The following matches a change made to the server which includes two
+piece item names to make the item names in the client appear more perfect.
+Protocol: Updated to document the new item name transmission method.
+client.h: Update SC version to 1024.
+item.h: Remove name and o_name from item structure, instead there is now
+  d_name, s_name, and p_name, representing the display name, singular name,
+  and plural name.  display name is derived from the s/p names plus nrof value.
+commands.c: Chance strncpy to memcpy, as a null character is used to seperate
+  the two name values.  UpdateItemCmd is also modified to supply an empty
+  string to set_item_values instead of the same name if the name is unchanged.
+gx11.c, player.c, x11.c: use d_name instead of name to correspond with
+  changes to item.h
+item.c: Update item initialization and clearing functions with new name
+  elements.  Update set_item_values with new two piece name support.
+  remove adding 'a' and 'an' prefix to singular objects, as it generally
+  doesn't look good in the look window and isn't all that useful in the
+  inventory window either.
+Mark Wedel 8/6/2000
+
+item_types, item_types.h:  Update with new item types - MSW 7/19/2000
+
+player.c: Comment out command buffering output - MSW 7/19/2000
+
 ------------------------------------------------------------------------------
 Changes for 0.95.6:
 

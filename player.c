@@ -34,7 +34,7 @@ void new_player (long tag, char *name, long weight, long face)
 {
     cpl.ob->tag    = tag;
     cpl.ob->nrof   = 1;
-    copy_name (cpl.ob->name, name);
+    copy_name (cpl.ob->d_name, name);
     cpl.ob->weight = (float) weight / 1000;
     cpl.ob->face   = face;
 }

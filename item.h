@@ -30,13 +30,14 @@ typedef struct item_struct {
     struct item_struct *prev;	/* previous item in inventory */
     struct item_struct *env;	/* which items inventory is this item */
     struct item_struct *inv;	/* items inventory */
-    char name[NAME_LEN];	/* item's full name w/o status information */
+    char d_name[NAME_LEN];	/* item's full name w/o status information */
+    char s_name[NAME_LEN];	/* item's singular name as sent to us */
+    char p_name[NAME_LEN];	/* item's plural name as sent to us */
     char flags[NAME_LEN];	/* item's status information */
     sint32 tag;			/* item identifier (0 = free) */
     sint32 nrof;		/* number of items */
     float weight;		/* how much item weights */
     sint16 face;		/* index for face array */
-    char o_name[NAME_LEN];	/* name as sent with item1 command */
     uint16 animation_id;	/* Index into animation array */
     uint8 anim_speed;		/* how often to animate */
     uint8 anim_state;		/* last face in sequence drawn */

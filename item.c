@@ -101,10 +101,6 @@ void update_item_sort(item *it)
     for (itmp = it->env->inv; itmp!=NULL; itmp=itmp->next) {
 	/* If the next item is higher in the order, insert here */
 	if (itmp->type >= it->type) {
-#if 0
-	    fprintf(stderr,"Inserting object %s (%d) before %s (%d)\n",
-		    it->name, it->type, itmp->name, itmp->type);
-#endif
 	    /* If we have a previous object, update the list.  If
 	     * not, we need to update the environment to point to us
 	     */
@@ -175,8 +171,9 @@ static item *new_item ()
 	exit(0);
 
     op->next = op->prev = NULL;
-    copy_name (op->name, "");
-    copy_name (op->o_name, "");
+    copy_name (op->d_name, "");
+    copy_name (op->s_name, "");
+    copy_name (op->p_name, "");
     op->inv = NULL;
     op->env = NULL;
     op->tag = 0;
@@ -294,8 +291,9 @@ void remove_item (item *op)
     op->prev = NULL;
     op->env = NULL;
     op->tag = 0;
-    copy_name (op->name, "");
-    copy_name (op->o_name, "");
+    copy_name (op->d_name, "");
+    copy_name (op->s_name, "");
+    copy_name (op->p_name, "");
     op->inv = NULL;
     op->env = NULL;
     op->tag = 0;
@@ -342,7 +340,6 @@ static void add_item (item *env, item *op)
 	    tmp->next->prev = op;
 	tmp->next = op;
     }
-/*    fprintf(stderr,"Added object %s to %s\n", op->name, env->name);*/
 }
 
 /*
@@ -463,30 +460,63 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 	return;
     }
     if (nrof<0) {
-	copy_name (op->name, name);
+	char *cp;
+	/* for s_name and p_name, we want to truncate the prefix (number
+	 * or a/an), so that when it gets remade, it looks OK.
+	 */
+	copy_name (op->d_name, name);
 	op->nrof = get_nrof(name);
+	cp = strchr(name, ' ');
+	if (cp) {
+	    cp++;
+	    copy_name (op->s_name, cp);
+	    copy_name (op->p_name, cp);
+	}
+	else {
+	    copy_name (op->s_name, name);
+	    copy_name (op->p_name, name);
+	}
     } else { /* we have a nrof - item1 command */
-	int need_new_name=0;
-
 	/* Program always expect at least 1 object internall */
 	if (nrof==0) nrof=1;
 
-	/* Little hack to force it to make a new name if nrof changes */
-	if (nrof != op->nrof) need_new_name=1;
-
 	op->nrof = nrof;
 
-	/* Bunch of hacks here.  First, the UpdItem command passes the
-	 * same name to us, and nrof has been set by the first item command.
-	 * So, if the name passed matches the name we used, don't 
-	 * recopy..
-	 */
-	if (strcmp(name, op->name)) {
-	    copy_name (op->o_name, name);
-	    sprintf(op->name,"%s %s", get_number(nrof), op->o_name);
+	if (*name!='\0') {
+	    copy_name(op->s_name, name);
+
+	    /* Unfortunately, we don't get a length parameter, so we just have
+	     * to assume that if it is a new server, it is giving us two piece
+	     * names.
+	     */
+	    if (csocket.sc_version>=1024) {
+		copy_name(op->p_name, name+strlen(name)+1);
+	    }
+	    else { /* If not new version, just use same for both */
+		copy_name(op->p_name, name);
+	    }
 	}
-	else if (need_new_name)
-	    sprintf(op->name,"%s %s", get_number(nrof), op->o_name);
+
+	/* Rather than try to get too clever on trying to figure out when
+	 * to up d_name, just do it all the time.
+	 */
+	if (op->nrof!=1) {
+		sprintf(op->d_name, "%s %s", get_number(nrof), op->p_name);
+	} else {
+	    strcpy(op->d_name, op->s_name);
+#if 0
+/* I don't think adding 'a' or 'an' to the name really adds much, and 
+ * I think it actually detracts as it reduces the displayed name by that
+ * much, so I have disabled this for now.
+ */
+	    /* Deal with our a/an prefix properly */
+	    if (*op->s_name=='a' || *op->s_name=='e' || *op->s_name=='i' ||
+		*op->s_name=='o' || *op->s_name=='u') 
+		sprintf(op->d_name, "an %s", op->s_name);
+	    else
+		sprintf(op->d_name, "a %s", op->s_name);
+#endif
+	}
     }
 
     if (op->env) op->env->inv_updated = 1;
@@ -497,7 +527,7 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
     get_flags (op, flags);
     /* We don't sort the map, so lets not do this either */
     if (op->env != map)
-	op->type =get_type_from_name(op->name);
+	op->type =get_type_from_name(op->s_name);
     update_item_sort(op);
 }
 
@@ -546,9 +576,7 @@ item *map_item ()
     return map;
 }
 
-/* This makes debugging much easier. declare it static so it isn't
- * multiple defined at the link stage.
- */
+/* Upates an item with new attributes. */
 void update_item(int tag, int loc, char *name, int weight, int face, int flags,
 		 int anim, int animspeed, int nrof)
 {
@@ -558,7 +586,10 @@ void update_item(int tag, int loc, char *name, int weight, int face, int flags,
      * being updated.
      */
     if (player->tag==tag) {
-	copy_name (player->name, name);
+	copy_name (player->d_name, name);
+	/* I don't think this makes sense, as you can have
+	 * two players merged together, so nrof should always be one
+	 */
 	player->nrof = get_nrof(name);
 	player->weight = (float) weight / 1000;
 	player->face = face;
@@ -581,6 +612,7 @@ void update_item(int tag, int loc, char *name, int weight, int face, int flags,
 
 /*
  *  Prints players inventory, contain extra information for debugging purposes
+ * This isn't pretty, but is only used for debugging, so it doesn't need to be.
  */
 void print_inventory (item *op)
 {
@@ -591,14 +623,14 @@ void print_inventory (item *op)
     int info_width = get_info_width();
 
     if (l == 0) {
-	sprintf (buf, "%s's inventory (%d):", op->name, op->tag);
+	sprintf (buf, "%s's inventory (%d):", op->d_name, op->tag);
 	sprintf (buf2, "%-*s%6.1f kg", info_width - 10, buf, op->weight);
 	draw_info (buf2,NDI_BLACK);
     }
 
     l += 2;
     for (tmp = op->inv; tmp; tmp=tmp->next) {
-	sprintf (buf, "%*s- %d %s%s (%d)", l - 2, "", tmp->nrof, tmp->name,
+	sprintf (buf, "%*s- %d %s%s (%d)", l - 2, "", tmp->nrof, tmp->d_name,
 		 tmp->flags, tmp->tag);
 	sprintf (buf2, "%-*s%6.1f kg", info_width - 8 - l, buf, tmp->nrof*tmp->weight);
 	draw_info (buf2,NDI_BLACK);

@@ -393,7 +393,9 @@ S->C: item1 <location><tag1><flags1><weight1><face1><name1><anim1>
 	to the client before actually sending a face number.
 
 	name is the name of the object.  The first byte of this field is the
-	text length of the name.
+	text length of the name.  Starting at SC 1024, this name is two
+	strings, with a null seperation.  The first byte (length) is the
+	length for both of these strings.
 
 	Below here are fields/differences for the item1 command.
 
@@ -827,6 +829,9 @@ questions.
 
 SC version 1022 -> 1023: Server supports sending png images (addition of
 image command).
+
+SC version 1023 -> 1024: Server will send two part names (described in
+item command) which contains the singular & plural form of the name)
 
 ------------------------------------------------------------------------------
 Todo:

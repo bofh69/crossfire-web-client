@@ -2104,7 +2104,7 @@ static void draw_list (itemlist *l)
 
     
     strcpy (buffer[0]," "); 
-    strcpy (buffer[1], tmp->name);
+    strcpy (buffer[1], tmp->d_name);
 
     if (l->show_icon == 0)
       strcat (buffer[1], tmp->flags);
@@ -3444,7 +3444,7 @@ static void draw_all_list(itemlist *l)
 void open_container (item *op) 
 {
   look_list.env = op;
-  sprintf (look_list.title, "%s:", op->name);
+  sprintf (look_list.title, "%s:", op->d_name);
   draw_list (&look_list);
 }
 

@@ -329,7 +329,7 @@ void PlayerCmd(unsigned char *data, int len)
     face= GetInt_String(data+i);
     i+=4;
     nlen=data[i++];
-    strncpy(name, (const char*)data+i, nlen);
+    memcpy(name, (const char*)data+i, nlen);
     name[nlen]='\0';
     i+= nlen;
 
@@ -382,7 +382,7 @@ void ItemCmd(unsigned char *data, int len)
 	    weight = GetInt_String(data+pos); pos+=4;
 	    face = GetInt_String(data+pos); pos+=4;
 	    nlen = data[pos++];
-	    strncpy(name, (char*)data+pos, nlen);
+	    memcpy(name, (char*)data+pos, nlen);
 	    pos += nlen;
 	    name[nlen]='\0';
 	    update_item (tag, loc, name, weight, face, flags,0,0,-1);
@@ -421,7 +421,7 @@ void Item1Cmd(unsigned char *data, int len)
 	    weight = GetInt_String(data+pos); pos+=4;
 	    face = GetInt_String(data+pos); pos+=4;
 	    nlen = data[pos++];
-	    strncpy(name, (char*)data+pos, nlen);
+	    memcpy(name, (char*)data+pos, nlen);
 	    pos += nlen;
 	    name[nlen]='\0';
 	    anim = GetShort_String(data+pos); pos+=2;
@@ -456,7 +456,7 @@ void UpdateItemCmd(unsigned char *data, int len)
     /* Copy all of these so we can pass the values to update_item and
      * don't need to figure out which ones were modified by this function.
      */
-    strcpy(name, ip->name);
+    *name='\0';
     loc=ip->env?ip->env->tag:0;
     weight=ip->weight * 1000;
     face = ip->face;
@@ -485,7 +485,7 @@ void UpdateItemCmd(unsigned char *data, int len)
     }
     if (sendflags & UPD_NAME) {
 	    nlen = data[pos++];
-	    strncpy(name, (char*)data+pos, nlen);
+	    memcpy(name, (char*)data+pos, nlen);
 	    pos += nlen;
 	    name[nlen]='\0';
     }
