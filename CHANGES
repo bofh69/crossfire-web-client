@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/item.c: check supplied argument to remove_item_inventory is
+   not NULL.
+Ryo 2004-01-25
+
 gtk/map.c, gnome/map.c: Apply patch by kirschbaum@myrealbox.com which fixes
 improper coordinate comparision.
 gtk/gx11.c: Remove some unused declarations.

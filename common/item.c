@@ -367,6 +367,8 @@ void remove_item (item *op)
  */
 void remove_item_inventory (item *op)
 {
+    if ( !op )
+        return;
     op->inv_updated = 1;
     while (op->inv)
 	remove_item (op->inv);
