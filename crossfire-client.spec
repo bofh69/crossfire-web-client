@@ -1,3 +1,7 @@
+# 05/02/2004 - given that Redhat 9 was deprecated on 04/30/2004 and the consumer
+# version of Redhat linux no longer exists, I've switched to Debian and will no
+# longer be maintaining the .spec file for Redhat/Fedora Linux. -Bob
+#
 #
 # Grab the crossfire-images archive of the sourceforge files list.  If
 # you have a copy of the arch directory, you can run the
