@@ -1,3 +1,9 @@
+Fix 'help command so that the draw info commands are formatted to fit 
+on the default window width (player.c - msw).
+
+Fix so that cwindow without options results in a message that an option
+is needed instead of causing the program to crash (player.c - msw)
+
 Update Makefile.in so that make install works again - msw
 
 Updated gtk client with speedups in text handling and drawing. It should

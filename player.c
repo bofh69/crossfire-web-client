@@ -1,3 +1,8 @@
+/*
+ * static char *rcsid_player_c =
+ *   "$Id$";
+ */
+ 
 #include <client.h>
 
 /* This file handles various player related functions.  This includes
@@ -223,19 +228,28 @@ void CompleteCmd(unsigned char *data, int len)
 /* Show a basic help message */
 void show_help() {
     draw_info("Client Side Commands", NDI_NAVY);
-    draw_info("  bind        - bind a command to key", NDI_BLACK);
-    draw_info("  unbind      - unbind a command, show bindings", NDI_BLACK);
-    draw_info("  cwindow <val>  - set size of command window (if val is exceeded", NDI_BLACK);
-    draw_info("     client won't send new commands to server", NDI_BLACK);
-    draw_info("  showicon    - draw status icons in inventory window", NDI_BLACK);
-    draw_info("  showweight  - show weight in inventory/look windows", NDI_BLACK);
-    draw_info("  scroll      - toggle scroll/wrap mode in info window", NDI_BLACK);
-    draw_info("  magicmap    - show last received magicmap", NDI_BLACK);
-    draw_info("  savewinpos  - save window positions (split mode", NDI_BLACK);
-    draw_info("  savedefaults- save various defaults into ~/.crossfire/defaults", NDI_BLACK);
-    draw_info("  inv         - show clients inventory (debug)", NDI_BLACK);
-    draw_info("  show        - determine what type of items to show in inventory", NDI_BLACK);
-    draw_info("  foodbeep    - toggle audible low on food warning", NDI_BLACK);
+    draw_info(" bind        - bind a command to key", NDI_BLACK);
+    draw_info(" unbind      - unbind a command, show", NDI_BLACK);
+    draw_info("               bindings", NDI_BLACK);
+    draw_info(" cwindow <val> set size of command", NDI_BLACK);
+    draw_info("               window (if val is exceeded", NDI_BLACK);
+    draw_info("               client won't send new", NDI_BLACK);
+    draw_info("               commands to server", NDI_BLACK);
+    draw_info(" foodbeep    - toggle audible low on food", NDI_BLACK);
+    draw_info("               warning", NDI_BLACK);
+    draw_info(" magicmap    - show last received magicmap", NDI_BLACK);
+    draw_info(" showicon    - draw status icons in", NDI_BLACK);
+    draw_info("               inventory window", NDI_BLACK);
+    draw_info(" showweight  - show weight in inventory", NDI_BLACK);
+    draw_info("               look windows", NDI_BLACK);
+    draw_info(" scroll      - toggle scroll/wrap mode in",NDI_BLACK);
+    draw_info("               info window", NDI_BLACK);
+    draw_info(" savewinpos  - save window positions - ", NDI_BLACK);
+    draw_info("               split windows mode only", NDI_BLACK);
+    draw_info(" savedefaults  save various defaults into", NDI_BLACK);
+    draw_info("               ~/.crossfire/defaults", NDI_BLACK);
+    draw_info(" show        - determine what type of items", NDI_BLACK);
+    draw_info("               to show in inventory", NDI_BLACK);
 
 }
 
@@ -280,13 +294,13 @@ void extended_command(const char *ocommand) {
 	save_defaults();
     }
     else if (!strcmp(cp,"cwindow")) {
-        /* check no arguments for cwindow */
-        if( cpnext == NULL )
-	    cpl.command_window=COMMAND_WINDOW;
-	else
+	if (!cpnext) {
+	    draw_info("cwindow command requires a number parameter", NDI_BLACK);
+	} else {
 	    cpl.command_window = atoi(cpnext);
-	if (cpl.command_window<1 || cpl.command_window>127)
-	    cpl.command_window=COMMAND_WINDOW;
+	    if (cpl.command_window<1 || cpl.command_window>127)
+		cpl.command_window=COMMAND_WINDOW;
+	}
     }
 
     else if (!strcmp(cp,"help")) {
