@@ -26,4 +26,4 @@ extern char *rcsid_common_script_c;
     rcsid_common_newsocket_c,\
     rcsid_common_player_c,\
     rcsid_common_script_c,\
-    NULL};
+    NULL}

@@ -23,6 +23,6 @@ extern char* rcsid_gtk_sound_c;
     rcsid_gtk_png_c,\
     rcsid_gtk_sdl_c,\
     rcsid_gtk_sound_c,\
-    NULL};
+    NULL}
 
 /*#ifdef HAVE_SDL*/

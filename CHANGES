@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/image.c: fix stupid crashing mistake.
+common/rcs-id.h: remove ; after #define
+gtk/rcs-id.h: remove ; after #define
+gtk/sound.c: #ifndef WIN32 for cfsndserv specific parts
+Ryo 2004-01-30
+
 all .c files:
 all Makefile.in:
 all rcs-id.h:
