@@ -143,15 +143,20 @@ typedef enum rangetype {
 #define CONFIG_SPLITINFO    16
 #define CONFIG_SPLITWIN	    17
 #define CONFIG_SHOWGRID	    18
-#define CONFIG_LT_PIXEL	    19
-#define CONFIG_LT_TILE	    20
+#define CONFIG_LIGHTING	    19
+#define CONFIG_TRIMINFO	    20
 #define CONFIG_MAPWIDTH	    21
 #define CONFIG_MAPHEIGHT    22
 #define CONFIG_FOODBEEP	    23
 #define CONFIG_DARKNESS	    24
 #define CONFIG_PORT	    25		/* Not sure if useful at all anymore */
-#define CONFIG_TRIMINFO	    26
-#define CONFIG_NUMS	    27
+#define CONFIG_NUMS	    26
+
+/* CONFIG_LIGHTING can have several possible values - set them accordingly */
+#define CFG_LT_TILE	    1
+#define CFG_LT_PIXEL	    2
+#define CFG_LT_PIXEL_BEST   3
+
 
 extern sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
 /* see common/init.c - basically, this is a string to number
@@ -288,15 +293,38 @@ extern int map1cmd,metaserver_on;
  * but certainly how the client wants to store this may vary.
  */
 
-#define MAXFACES 5
 #define MAXPIXMAPNUM 10000
+
+/* The protocol only supports 3 layers, so set MAXLAYERS accordingly.
+ * the heads[] in the mapcell is used for single part objects
+ * or the head piece for multipart.  The easiest way to think about
+ * it is that the heads[] contains the map information as specifically
+ * sent from the server.  for the heads value, the size_x and size_y
+ * represent how many spaces (up and to the left) that image extends
+ * into.
+ * the tails are values that the client fills in - if we get
+ * a big head value, we fill in the tails value so that the display
+ * logic can easily redraw one space.  In this case, the size_ values
+ * are offsets that point to the head.  In this way, the draw logic
+ * can look at the size of the image, look at these values, and
+ * know what portion of it to draw.
+ */
+
+#define MAXLAYERS 3
+
+struct MapCellLayer {
+    sint16  face;
+    sint8   size_x;
+    sint8   size_y;
+};
+
 struct MapCell {
-  short faces[MAXFACES];
-  int count;
-  uint8 darkness;
-  uint8 need_update:1;
-  uint8 have_darkness:1;
-  uint8 cleared:1; /* Used for fog of war code only */
+    struct MapCellLayer	heads[MAXLAYERS];
+    struct MapCellLayer	tails[MAXLAYERS];
+    uint8 darkness;
+    uint8 need_update:1;
+    uint8 have_darkness:1;
+    uint8 cleared:1; /* If set, this is a fog cell. */
 };
 
 
@@ -339,5 +367,13 @@ typedef struct Cache_Entry {
 #define RI_IMAGE_INFO	    0x1
 #define RI_IMAGE_SUMS	    0x2
 extern int  replyinfo_status, requestinfo_sent, replyinfo_last_face;
+
+typedef struct 
+{
+  int x;
+  int y;
+} PlayerPosition;
+
+extern PlayerPosition pl_pos;
 
 extern struct Map the_map;

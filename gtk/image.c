@@ -68,6 +68,27 @@ char *facetoname[MAXPIXMAPNUM];
 
 int last_face_num=0;
 
+/* this is used to rescale big images that will be drawn in the inventory/look
+ * lists.  What the code further below basically does is figure out how big
+ * the object is (in squares), and this looks at the icon_rescale_factor
+ * to figure what scale factor it gives.  Not that the icon_rescale_factor
+ * values are passed directly to the rescale routines.  These represent
+ * percentages - so even taking into account that the values diminish
+ * as the table grows, they will still appear larger if the location
+ * in the table times the factor is greater than 100.  We find
+ * the largest dimension that the image has.  The values in the comment
+ * is the effective scaling compared to the base image size that this
+ * big image will appear as.
+ * Using a table makes it easier to adjust the values so things
+ * look right.
+ */
+
+#define MAX_ICON_SPACES	    10
+static int icon_rescale_factor[MAX_ICON_SPACES] = {
+100, 100,	    80 /* 2 = 160 */,	60 /* 3 = 180 */, 
+50 /* 4 = 200 */,   45 /* 5 = 225 */,	40 /* 6 = 240 */,
+35 /* 7 = 259 */,   35 /* 8 = 280 */,	33 /* 9 = 300 */
+};
 
 /******************************************************************************
  *
@@ -157,17 +178,35 @@ static void free_pixmap(PixmapInfo *pi)
 
 int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height)
 {
-    int nx, ny;
+    int nx, ny, iscale, factor;
     uint8 *png_tmp;
     PixmapInfo	*pi;
 
     pi = malloc(sizeof(PixmapInfo));
 
+    iscale = use_config[CONFIG_ICONSCALE];
+
+    /* If the image is big, figure out what we should scale it to so it fits better display */
+    if (width > DEFAULT_IMAGE_SIZE || height>DEFAULT_IMAGE_SIZE) {
+	int ts = 100;
+
+	factor = width / DEFAULT_IMAGE_SIZE;
+	if (factor >= MAX_ICON_SPACES) factor = MAX_ICON_SPACES - 1;
+	if (icon_rescale_factor[factor] < ts) ts = icon_rescale_factor[factor];
+
+	factor = height / DEFAULT_IMAGE_SIZE;
+	if (factor >= MAX_ICON_SPACES) factor = MAX_ICON_SPACES - 1;
+	if (icon_rescale_factor[factor] < ts) ts = icon_rescale_factor[factor];
+
+	iscale = ts * use_config[CONFIG_ICONSCALE] / 100;
+    }
+
+
     /* In all cases, the icon images are in native form. */
-    if (use_config[CONFIG_ICONSCALE] != 100) {
+    if (iscale != 100) {
 	nx=width;
 	ny=height;
-	png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, use_config[CONFIG_ICONSCALE]);
+	png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, iscale);
 	pi->icon_width = nx;
 	pi->icon_height = ny;
 	create_icon_image(png_tmp, pi, pixmap_num);
@@ -306,4 +345,17 @@ void image_update_download_status(int start, int end, int total)
         gtk_main_iteration();
     }
 
+}
+
+void get_map_image_size(int face, uint8 *w, uint8 *h)
+{
+    /* We want to calculate the number of spaces this image
+     * uses it.  By adding the image size but substracting one,	
+     * we cover the cases where the image size is not an even
+     * increment.  EG, if the map_image_size is 32, and an image
+     * is 33 wide, we want that to register as two spaces.  By
+     * adding 31, that works out.
+     */
+    *w = (pixmaps[face]->map_width + map_image_size - 1)/ map_image_size;
+    *h = (pixmaps[face]->map_height + map_image_size - 1)/ map_image_size;
 }

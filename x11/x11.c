@@ -2869,27 +2869,29 @@ void display_map_newmap()
  */
 void display_mapcell_pixmap(int ax,int ay)
 {
-    int k, mx, my;
-    XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
+    int k, mx, my, got_one=0;
 
     mx = ax + pl_pos.x;
     my = ay + pl_pos.y;
 
-    if (map1cmd) {
-	for (k=0; k<the_map.cells[mx][my].count; k++) {
-	    if (the_map.cells[mx][my].faces[k] >0 ) {
-		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].faces[k], 0, 0);
+    XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
+    for (k=0; k<MAXLAYERS; k++) {
+	    if (the_map.cells[mx][my].heads[k].face >0 ) {
+		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].heads[k].face, 0, 0);
+		got_one = 1;
 	    }
-	}
-    } else {
-
-	for(k=the_map.cells[mx][my].count-1;k>=0;k--) {
-	    gen_draw_face(xpm_pixmap,the_map.cells[mx][my].faces[k],
-		  0,0);
-	}
+	    if (the_map.cells[mx][my].tails[k].face >0 ) {
+		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].tails[k].face, 0, 0);
+		got_one = 1;
+	    }
     }
-    XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,image_size,image_size,
+    if (got_one) {
+	XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,image_size,image_size,
 	    2+image_size*ax,2+image_size*ay);
+    } else {
+	XFillRectangle(display,win_game,gc_blank,2+image_size*ax,2+image_size*ay,image_size,image_size);
+    }
+
 }
 
 
@@ -2942,11 +2944,6 @@ void display_map_doneupdate(int redraw)
 	    mx = ax + pl_pos.x;
 	    my = ay + pl_pos.y;
 	    if (redraw || the_map.cells[mx][my].need_update)  {
-		if (the_map.cells[mx][my].count==0) {
-		    XFillRectangle(display,win_game,gc_blank,2+image_size*ax,
-			   2+image_size*ay,image_size,image_size);
-		    continue;
-		}
 		display_mapcell_pixmap(ax,ay);
 		the_map.cells[mx][my].need_update=0;
 	    }

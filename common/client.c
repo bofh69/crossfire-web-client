@@ -81,8 +81,8 @@ struct CmdMapping commands[] = {
     /* Order of this table doesn't make a difference.  I tried to sort
      * of cluster the related stuff together.
      */
-    { "map", MapCmd },
     { "map1", Map1Cmd },
+    { "map1a", Map1aCmd },
     { "map_scroll", (CmdProc)map_scrollCmd },
     { "magicmap", MagicMapCmd},
     { "newmap", NewmapCmd },
@@ -261,7 +261,7 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-	    "setup sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d",
+	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d",
 	    sound>=0, want_skill_exp, 
 		    want_config[CONFIG_FOGWAR], face_info.faceset,
 		    want_config[CONFIG_CACHE]);

@@ -89,7 +89,7 @@
  * appropraite thing (eg, stop/start sound daemon, etc)
  */
 
-#define MAX_BUTTONS	    27
+#define MAX_BUTTONS	    28
 #define RBUTTON	    1
 #define CBUTTON	    2
 #define SEPERATOR   3	    /* Seperator in the window */
@@ -171,9 +171,11 @@ CButtons cbuttons[MAX_BUTTONS] = {
 
 {NULL,	    SEPERATOR,		0,		FLAG_MAPPANE,
     "Lighting options, per pixel is prettier, per tile is faster.\nIf the darkness code is off, the pixel/tile options will be ignored."},
-{NULL, 	    RBUTTON,	    CONFIG_LT_PIXEL,	FLAG_MAPPANE | FLAG_UPDATE,
-    "Per Pixel Lighting"},
-{NULL, 	    RBUTTON,	    CONFIG_LT_TILE,	FLAG_MAPPANE | FLAG_UPDATE,
+{NULL, 	    RBUTTON,	    100 + CFG_LT_PIXEL_BEST,	FLAG_MAPPANE,
+    "Best Per Pixel Lighting (slowest)"},
+{NULL, 	    RBUTTON,	    100 + CFG_LT_PIXEL,	FLAG_MAPPANE,
+    "Fast Per Pixel Lighting"},
+{NULL, 	    RBUTTON,	    100 + CFG_LT_TILE,	FLAG_MAPPANE,
     "Per Tile Lighting"},
 {NULL, 	    CBUTTON,	    CONFIG_DARKNESS,	FLAG_MAPPANE | FLAG_UPDATE,
     "Enable darkness code - if off, all spaces will not be dimmed."},
@@ -230,6 +232,7 @@ static void toggle_splitwin(int newval)
 void applyconfig () {
 
     int onbutton;
+    int lighting = 0;
 
     if (face_info.want_faceset) free(face_info.want_faceset);
     face_info.want_faceset = strdup_local(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(faceset_combo)->entry)));
@@ -290,26 +293,31 @@ void applyconfig () {
 	     * map width and height.  It should be possible to dynamically
 	     * change the width and height values, but that is for another day.
 	     */
+
 	} else if (cbuttons[onbutton].type == RBUTTON) {
-	    if (IS_DIFFERENT(CONFIG_LT_PIXEL)) {
-		if (want_config[CONFIG_LT_PIXEL]) {
-		    want_config[CONFIG_LT_TILE] = FALSE;
-		    use_config[CONFIG_LT_TILE] = FALSE;
-		} else if (want_config[CONFIG_LT_TILE]) {
-		    want_config[CONFIG_LT_PIXEL] = FALSE;
-		    use_config[CONFIG_LT_PIXEL] = FALSE;
-		}
-#ifdef HAVE_SDL
-		/* Not sure why we need the init_SDL - maybe if player is messing with
-		 * this before we are connected?  Just took this code as it was before.
-		 */
-		init_SDL( NULL, 1);
-#endif
-		if( csocket.fd)
-		    cs_print_string(csocket.fd, "mapredraw");
+	    /* We know that the only radio buttons currently in use are those for
+	     * lighting.  IF other radio buttons are added later, this should
+	     * be changed.
+	     */
+	    if ( GTK_TOGGLE_BUTTON (cbuttons[onbutton].widget)->active) {
+		lighting = cbuttons[onbutton].config - 100;
 	    }
 	}
     } /* for onbutton ... loop */
+
+    /* Can't really do anything on this until we've gotten all the values */
+    if (lighting) {
+	if (want_config[CONFIG_LIGHTING] != lighting) {
+	    want_config[CONFIG_LIGHTING] = lighting;
+	    use_config[CONFIG_LIGHTING] = lighting;
+	}
+#ifdef HAVE_SDL
+	/* This is done to make the 'lightmap' in the proper format */
+	init_SDL( NULL, 1);
+#endif
+	if( csocket.fd)
+	    cs_print_string(csocket.fd, "mapredraw");
+    }
 }
 
 
@@ -724,6 +732,13 @@ void load_defaults()
 	    face_info.want_faceset = strdup_local(cp);	/* memory leak ! */
 	    continue;
 	}
+	/* legacy, as this is now just saved as 'lighting' */
+	else if (!strcmp(inbuf, "per_tile_lighting")) {
+	    if (val) want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
+	}
+	else if (!strcmp(inbuf, "per_pixel_lighting")) {
+	    if (val) want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL;
+	}
 	else fprintf(stderr,"Unknown line in gdefaults: %s %s\n", inbuf, cp);
     }
     fclose(fp);
@@ -741,25 +756,18 @@ void load_defaults()
 	fprintf(stderr,"Invalid mapscale range (%d), valid range for -iconscale is 25 through 200\n", want_config[CONFIG_MAPSCALE]);
 	want_config[CONFIG_MAPSCALE] = use_config[CONFIG_MAPSCALE];
     }
-    /* Can only use one or the other */
-    if (want_config[CONFIG_LT_PIXEL] && want_config[CONFIG_LT_TILE]) {
-	fprintf(stderr,"Both per pixel and per tile lighting selected - will use per tile\n");
-	want_config[CONFIG_LT_PIXEL] = FALSE;
-    }
-    /* Neither selected */
-    else if (want_config[CONFIG_LT_PIXEL] && want_config[CONFIG_LT_TILE]) {
-	fprintf(stderr,"Both per pixel and per tile lighting are disabled - will not use darkness code\n");
-	want_config[CONFIG_LT_TILE] = TRUE;
+    if (!want_config[CONFIG_LIGHTING]) {
+	fprintf(stderr,"No lighting mechanism slected - will not use darkness code\n");
 	want_config[CONFIG_DARKNESS] = FALSE;
     }
     
     /* Make sure the map size os OK */
     if (want_config[CONFIG_MAPWIDTH] < 9 || want_config[CONFIG_MAPWIDTH] > MAP_MAX_SIZE) {
-	fprintf(stderr,"Invalid map width option in gdefaults. Valid range is 9 to %d\n", MAP_MAX_SIZE);
+	fprintf(stderr,"Invalid map width (%d) option in gdefaults. Valid range is 9 to %d\n", want_config[CONFIG_MAPWIDTH], MAP_MAX_SIZE);
 	want_config[CONFIG_MAPWIDTH] = use_config[CONFIG_MAPWIDTH];
     }
     if (want_config[CONFIG_MAPHEIGHT] < 9 || want_config[CONFIG_MAPHEIGHT] > MAP_MAX_SIZE) {
-	fprintf(stderr,"Invalid map height option in gdefaults. Valid range is 9 to %d\n", MAP_MAX_SIZE);
+	fprintf(stderr,"Invalid map height (%d) option in gdefaults. Valid range is 9 to %d\n", want_config[CONFIG_MAPHEIGHT], MAP_MAX_SIZE);
 	want_config[CONFIG_MAPHEIGHT] = use_config[CONFIG_MAPHEIGHT];
     }
 
@@ -775,7 +783,6 @@ void load_defaults()
 
 }
 
-#define TRUE_OR_FALSE(val)  (val?"True":"False")
 void save_defaults()
 {
     char path[MAX_BUF],buf[MAX_BUF];

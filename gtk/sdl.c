@@ -67,7 +67,6 @@ static void do_SDL_error( char* SDL_function, char* file, int line)
   exit( 1);
 }
 
-#if 0
 /*
  * Set the pixel at (x, y) to the given value
  * NOTE: The surface must be locked before calling this!
@@ -107,7 +106,6 @@ static void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
         break;
     }
 }
-#endif
 
 static void overlay_grid( int re_init, int ax, int ay)
 {
@@ -221,77 +219,43 @@ static void overlay_grid( int re_init, int ax, int ay)
 void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 {
 
-  char SDL_windowhack[32];
+    char SDL_windowhack[32];
 
-  if( just_lightmap == 0)
-    {
-
-      g_assert( sdl_window != NULL);
-      if( SDL_WasInit( SDL_INIT_VIDEO) != 0)
-	{
-	  if( lightmap)
-	    SDL_FreeSurface( lightmap);
-	  if( mapsurface)
-	    SDL_FreeSurface( mapsurface);
-	  
-	  SDL_Quit();
+    if( just_lightmap == 0) {
+	g_assert( sdl_window != NULL);
+	if( SDL_WasInit( SDL_INIT_VIDEO) != 0) {
+	    if( lightmap)
+		SDL_FreeSurface( lightmap);
+	    if( mapsurface)
+		SDL_FreeSurface( mapsurface);
+	    SDL_Quit();
 	}
 
-      /* 
-       * SDL hack to tell SDL which xwindow to paint onto 
-       */
-      sprintf( SDL_windowhack, "SDL_WINDOWID=%ld",
+	/* 
+	 * SDL hack to tell SDL which xwindow to paint onto 
+	 */
+	sprintf( SDL_windowhack, "SDL_WINDOWID=%ld",
 	       GDK_WINDOW_XWINDOW(sdl_window->window) );
-      putenv( SDL_windowhack);
+	putenv( SDL_windowhack);
       
-      if( SDL_Init( SDL_INIT_VIDEO) < 0)
+	if( SDL_Init( SDL_INIT_VIDEO) < 0)
 	{
-	  fprintf( stderr, "Could not initialize SDL: %s\n", SDL_GetError());
-	  gtk_main_quit();
+	    fprintf( stderr, "Could not initialize SDL: %s\n", SDL_GetError());
+	    gtk_main_quit();
 	}
 
-      mapsurface= SDL_SetVideoMode( map_image_size*use_config[CONFIG_MAPWIDTH], map_image_size*use_config[CONFIG_MAPHEIGHT], 0, 
+	mapsurface= SDL_SetVideoMode( map_image_size*use_config[CONFIG_MAPWIDTH], map_image_size*use_config[CONFIG_MAPHEIGHT], 0, 
 				    SDL_HWSURFACE|SDL_DOUBLEBUF);
       
-      if( mapsurface == NULL)
+	if( mapsurface == NULL)
 	{
-	  do_SDL_error( "SetVideoMode", __FILE__, __LINE__);
+	    do_SDL_error( "SetVideoMode", __FILE__, __LINE__);
 	}
-    }
 
-  if( just_lightmap != 0)
-    {
-      if( lightmap) SDL_FreeSurface( lightmap);
-    }
-  
-  
-  lightmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, map_image_size,
-				  map_image_size,
-				  mapsurface->format->BitsPerPixel,
-				  mapsurface->format->Rmask,
-				  mapsurface->format->Gmask,
-				  mapsurface->format->Bmask,
-				  mapsurface->format->Amask);
-  if( lightmap == NULL)
-    {
-      do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
-    }
-  
-  if(use_config[CONFIG_LT_PIXEL])
-    {
-      /* Convert surface to have a full alpha channel if we are doing
-       * per-pixel lighting */
-      lightmap= SDL_DisplayFormatAlpha( lightmap);
-      if( lightmap == NULL)
-	{
-	  do_SDL_error( "DisplayFormatAlpha", __FILE__, __LINE__);
-	}
-    }
+	if( fogmap)
+	    SDL_FreeSurface( fogmap);
 
-  if( fogmap)
-    SDL_FreeSurface( fogmap);
-
-  fogmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, map_image_size,
+	fogmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, map_image_size,
 				map_image_size,
 				mapsurface->format->BitsPerPixel,
 				mapsurface->format->Rmask,
@@ -299,24 +263,50 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 				mapsurface->format->Bmask,
 				mapsurface->format->Amask);
 
-  if( fogmap == NULL)
-    {
-      do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
+	if( fogmap == NULL)
+	{
+	    do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
+	}
+
+	/* 
+	 * This is a persurface alpha value, not an alpha channel value.
+	 * So this surface doesn't actually need a full alpha channel
+	 */
+	if( SDL_SetAlpha( fogmap, SDL_SRCALPHA|SDL_RLEACCEL, 128) < 0)
+	{
+	    do_SDL_error( "SDL_SetAlpha", __FILE__, __LINE__);
+	}
     }
 
-  /* 
-   * This is a persurface alpha value, not an alpha channel value.
-   * So this surface doesn't actually need a full alpha channel
-   */
-  if( SDL_SetAlpha( fogmap, SDL_SRCALPHA|SDL_RLEACCEL, 128) < 0)
+    if( just_lightmap != 0 && lightmap)
+	SDL_FreeSurface( lightmap);
+  
+    lightmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, map_image_size,
+				  map_image_size,
+				  mapsurface->format->BitsPerPixel,
+				  mapsurface->format->Rmask,
+				  mapsurface->format->Gmask,
+				  mapsurface->format->Bmask,
+				  mapsurface->format->Amask);
+    if( lightmap == NULL)
     {
-      do_SDL_error( "SDL_SetAlpha", __FILE__, __LINE__);
+	do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
+    }
+  
+    if(use_config[CONFIG_LIGHTING] != CFG_LT_TILE)
+    {
+	/* Convert surface to have a full alpha channel if we are doing
+	 * per-pixel lighting */
+	lightmap= SDL_DisplayFormatAlpha( lightmap);
+	if( lightmap == NULL)
+	{
+	    do_SDL_error( "DisplayFormatAlpha", __FILE__, __LINE__);
+	}
     }
 
-
-  if(use_config[CONFIG_SHOWGRID] == TRUE)
+    if(use_config[CONFIG_SHOWGRID] == TRUE)
     {
-      overlay_grid( TRUE, 0, 0);
+	overlay_grid( TRUE, 0, 0);
     }
 }
 
@@ -347,6 +337,9 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
  * For now, I've just kept the old logic. MSW 2001-10-09
  */
 
+/* See note below about ALPHA_FUDGE - used to adjust lighting effects some */
+
+#define ALPHA_FUDGE(x)  (2*(x) / 3)
 void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 {
 
@@ -387,288 +380,275 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
     }
 
 
-#if 1
-
-
-    /* This almost works as well as the per pixel code below, but does have some various
-     * artifacts in the drawing.  It uses the same logic as the per pixel code below,
-     * bit since SDL does the blit, the alpha handling ends up being different
-     * (I think it ends up being additive).  This results in the darkness being
-     * darker, but you also don't get the smooth effects.  If you divide all the values
-     * by 2 (change ALPHA_FUDGE), the blending is smooth, but now the things are not dark
-     * enough, so the blending aganst solid black spaces does not look good.
-     * The reason this code is of interest is that on my system, it is about 50%
-     * faster than the code below (25 ms to darkness the church in the starting
-     * town vs 50 ms for the code further down)
-     * Setting ALPHA_FUDGE to 2/3 seems to reduce the artifacts described above
-     * to fairly minimal levels, while still keeping things dark enough.
-     * MSW 2001-10-12
-     */
-
-    #define ALPHA_FUDGE(x)  (2*(x) / 3)
-
-    {
-    int i;
-
-    if (dark1 == dark0) {
-	/* If we don't have usable darkness at the top, then this entire region
-	 * should be the same value.  Likewise, if the top value and center value
-	 * are the same, we can do the entire region.
+    if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL ) {
+	/* This almost works as well as the per pixel code below, but does have some various
+	 * artifacts in the drawing.  It uses the same logic as the per pixel code below,
+	 * bit since SDL does the blit, the alpha handling ends up being different
+	 * (I think it ends up being additive).  This results in the darkness being
+	 * darker, but you also don't get the smooth effects.  If you divide all the values
+	 * by 2 (change ALPHA_FUDGE), the blending is smooth, but now the things are not dark
+	 * enough, so the blending aganst solid black spaces does not look good.
+	 * The reason this code is of interest is that on my system, it is about 50%
+	 * faster than the code below (25 ms to darkness the church in the starting
+	 * town vs 50 ms for the code further down)
+	 * Setting ALPHA_FUDGE to 2/3 seems to reduce the artifacts described above
+	 * to fairly minimal levels, while still keeping things dark enough.
+	 * MSW 2001-10-12
 	 */
-	dst.x=0;
-	dst.y=0;
-	dst.w = map_image_size;
-	dst.h = map_image_half_size;
-	SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
-    }
-    else for (i=0; i<map_image_half_size; i++) {
-	/* Need to do it line by line */
 
-	dst.x = 0;
-	dst.y = i;
-	dst.w = map_image_size;
-	dst.h = 1;
-	SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, 
+	int i;
+
+	if (dark1 == dark0) {
+	    /* If we don't have usable darkness at the top, then this entire region
+	    * should be the same value.  Likewise, if the top value and center value
+	    * are the same, we can do the entire region.
+	    */
+	    dst.x=0;
+	    dst.y=0;
+	    dst.w = map_image_size;
+	    dst.h = map_image_half_size;
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
+	}
+	else for (i=0; i<map_image_half_size; i++) {
+	    /* Need to do it line by line */
+
+	    dst.x = 0;
+	    dst.y = i;
+	    dst.w = map_image_size;
+	    dst.h = 1;
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, 
 			ALPHA_FUDGE((map_image_half_size - i) * dark1 + i * dark0)/map_image_half_size));
 
-    }
-    /* All the following blocks are basically the same as above, just different
-     * darkness areas.
-     */
-    if (dark3 == dark0) {
-	dst.x=0;
-	dst.y=map_image_half_size;
-	dst.w = map_image_size;
-	dst.h = map_image_half_size;
-	SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
-    }
-    else for (i=map_image_half_size; i<map_image_size; i++) {
-	/* Need to do it line by line */
+	}
+	/* All the following blocks are basically the same as above, just different
+	 * darkness areas.
+	 */
+	if (dark3 == dark0) {
+	    dst.x=0;
+	    dst.y=map_image_half_size;
+	    dst.w = map_image_size;
+	    dst.h = map_image_half_size;
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
+	}
+	else for (i=map_image_half_size; i<map_image_size; i++) {
+	    /* Need to do it line by line */
 
-	dst.x = 0;
-	dst.y = i;
-	dst.w = map_image_size;
-	dst.h = 1;
-	SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, 
+	    dst.x = 0;
+	    dst.y = i;
+	    dst.w = map_image_size;
+	    dst.h = 1;
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, 
 			ALPHA_FUDGE(dark0*(map_image_size-i) + dark3*(i-map_image_half_size)) / map_image_half_size));
-    }
-    /* Blit this to the screen now.  Otherwise, we need to look at the alpha values
-     * and re-average.
-     */
+	}
+	/* Blit this to the screen now.  Otherwise, we need to look at the alpha values
+	 * and re-average.
+	 */
 
-    dst.x= x * map_image_size; 
-    dst.y= y * map_image_size;
-    SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
+	dst.x= x * map_image_size; 
+	dst.y= y * map_image_size;
+	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
 
-    if (dark4 == dark0) {
-	dst.x=0;
-	dst.y=0;
-	dst.w = map_image_half_size;
-	dst.h = map_image_size;
-	SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
-    }
-    else for (i=0; i<map_image_half_size; i++) {
-	/* Need to do it line by line */
-	dst.x = i;
-	dst.y = 0;
-	dst.w = 1;
-	dst.h = map_image_size;
-	SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0,
+	if (dark4 == dark0) {
+	    dst.x=0;
+	    dst.y=0;
+	    dst.w = map_image_half_size;
+	    dst.h = map_image_size;
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
+	}
+	else for (i=0; i<map_image_half_size; i++) {
+	    /* Need to do it line by line */
+	    dst.x = i;
+	    dst.y = 0;
+	    dst.w = 1;
+	    dst.h = map_image_size;
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0,
 			ALPHA_FUDGE(dark4*(map_image_half_size-i) + dark0*i) / map_image_half_size));
-    }
-    if (dark2 == dark0) {
-	dst.x=map_image_half_size;
-	dst.y=0;
-	dst.w = map_image_half_size;
-	dst.h = map_image_size;
-	SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
-    }
-    else for (i=map_image_half_size; i<map_image_size; i++) {
-	/* Need to do it line by line */
+	}
+	if (dark2 == dark0) {
+	    dst.x=map_image_half_size;
+	    dst.y=0;
+	    dst.w = map_image_half_size;
+	    dst.h = map_image_size;
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
+	}
+	else for (i=map_image_half_size; i<map_image_size; i++) {
+	    /* Need to do it line by line */
 
-	dst.x = i;
-	dst.y = 0;
-	dst.w = 1;
-	dst.h = map_image_size;
-	SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, 
+	    dst.x = i;
+	    dst.y = 0;
+	    dst.w = 1;
+	    dst.h = map_image_size;
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, 
 			ALPHA_FUDGE(dark0*(map_image_size-i) + dark2*(i-map_image_half_size)) / map_image_half_size));
-    }
-    dst.x= x * map_image_size; 
-    dst.y= y * map_image_size;
-    SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
+	}
+	dst.x= x * map_image_size; 
+	dst.y= y * map_image_size;
+	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
+    } else if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST ) {
+	int dx,dy;
+	static  int *darkx=NULL, *darky=NULL,darkx_allocated=0;
 
-    }
-#else
-   {
-    /* Old method */
-    int dx,dy;
-    static  int *darkx=NULL, *darky=NULL,darkx_allocated=0;
-
-
-    /* Generated stored for the darkx[] array.  Do it dynamically, but
-     * only allocate if the size needs to be expanded to keep performance
-     * better.  darkx could be null in the initial case, but realloc should
-     * just treat that as a malloc (so according to the man page)
-     */
-    if (map_image_size > darkx_allocated) {
-	darkx = realloc(darkx, map_image_size * sizeof(int));
-	darky = realloc(darky, map_image_size * sizeof(int));
-	darkx_allocated = map_image_size;
-    }
+	/* Generated stored for the darkx[] array.  Do it dynamically, but
+	 * only allocate if the size needs to be expanded to keep performance
+	 * better.  darkx could be null in the initial case, but realloc should
+	 * just treat that as a malloc (so according to the man page)
+	 */
+	if (map_image_size > darkx_allocated) {
+	    darkx = realloc(darkx, map_image_size * sizeof(int));
+	    darky = realloc(darky, map_image_size * sizeof(int));
+	    darkx_allocated = map_image_size;
+	}
 			
-    for( dx= 0; dx < map_image_half_size; dx++)
-	darkx[dx]= (dark4*(map_image_half_size-dx) + dark0*dx) / map_image_half_size;
-    for( dx= map_image_half_size; dx < map_image_size; dx++)
-	darkx[dx] = (dark0*(map_image_size-dx) + dark2*(dx-map_image_half_size)) / map_image_half_size;
+	for( dx= 0; dx < map_image_half_size; dx++)
+	    darkx[dx]= (dark4*(map_image_half_size-dx) + dark0*dx) / map_image_half_size;
+	for( dx= map_image_half_size; dx < map_image_size; dx++)
+	    darkx[dx] = (dark0*(map_image_size-dx) + dark2*(dx-map_image_half_size)) / map_image_half_size;
 
-    for( dy= 0; dy < map_image_half_size; dy++)
-	darky[dy]= (dark1*(map_image_half_size-dy) + dark0*dy) / map_image_half_size;
-    for( dy= map_image_half_size; dy < map_image_size; dy++)
-	darky[dy] = (dark0*(map_image_size-dy) + dark3*(dy-map_image_half_size)) / map_image_half_size;
+	for( dy= 0; dy < map_image_half_size; dy++)
+	    darky[dy]= (dark1*(map_image_half_size-dy) + dark0*dy) / map_image_half_size;
+	for( dy= map_image_half_size; dy < map_image_size; dy++)
+	    darky[dy] = (dark0*(map_image_size-dy) + dark3*(dy-map_image_half_size)) / map_image_half_size;
 
-    SDL_LockSurface( lightmap);
+	SDL_LockSurface( lightmap);
 
-    for (dx=0; dx<map_image_size; dx++)
-        for (dy=0; dy<map_image_size; dy++) 
-	    putpixel(lightmap, dx, dy, SDL_MapRGBA(lightmap->format, 0, 0, 0,(darkx[dx] + darky[dy])/2));
+	for (dx=0; dx<map_image_size; dx++)
+	    for (dy=0; dy<map_image_size; dy++) 
+		putpixel(lightmap, dx, dy, SDL_MapRGBA(lightmap->format, 0, 0, 0,(darkx[dx] + darky[dy])/2));
 
-    dst.w= map_image_size;
-    dst.h= map_image_size;
-    dst.x= x * map_image_size; 
-    dst.y= y * map_image_size;
-    SDL_UnlockSurface( lightmap);
-    SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
-   }
-#endif
+	dst.w= map_image_size;
+	dst.h= map_image_size;
+	dst.x= x * map_image_size; 
+	dst.y= y * map_image_size;
+	SDL_UnlockSurface( lightmap);
+	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
+    }
 }
 
 /* This generates a map in SDL mode.
+ * 
  * I had to totally change the logic on how we do this in SDL mode - 
  * to support variable sized images, the old method of generating each
  * space does not work, as one space may spill over to the other.
  * Instead, we first blit the bottom layer, then the layer above
- * that, and so on.
+ * that, and so on.  This results in the map being drawn a bit
+ * more correctly.  In fact, that logic actually isn't needed, as
+ * with the new map commands, we know the offset and size of the
+ * images.
  *
- * Currently, we just blit everything each tick.  Trying to just blit the
- * changed tiles become much trickier, because a space may not be marked as
- * having changed, but because a large tile spills over to it, it needs to be
- * updated.  To update only what has changed would result in looking at the size
- * of the images and see what they spill over into.
- */
-
-/* This is only temporary - it improves performance because we
- * then only draw the spaces that change.  Doing this optimzation is
- * very hard to do on variable sized images - it is easy enough to
- * see if an image on a space that is set to draw is oversized and thus
- * flows into other spaces, such that we would need to mark those
- * needing to get updated.  What is more difficult is that a space
- * that is not marked as needing to get redrawn may have an image that
- * flows over into a space that is getting redrawn.
+ * The logic here only redraws spaces that change.  The logic in the
+ * common/commands.c files the odd layers with links for 'big images'.
+ * for objects on these layers, we look at the size_x and size_y values
+ * to determine the offset from which we should be blitting.
+ *
+ * Old notes, but left in:
  * The performance here is very good in most cases - about 30 ms (on my system)
  * is used just for my flip at the bottom of the function, drawing only what
  * is needed generally saves a lot of time (<15 ms in most cases) compared to the
  * 80-120 ms usually needed on a 15x15 map.
  */
-#define ALL_IMAGES_ONE_SPACE
 
 void sdl_gen_map(int redraw) {
-    int mx,my, layer,onlayer,x,y;
-    SDL_Rect dst;
+    int mx,my, layer,x,y;
+    SDL_Rect dst, src;
     struct timeval tv1, tv2,tv3;
     long elapsed1, elapsed2;
 
     if (time_map_redraw)
 	gettimeofday(&tv1, NULL);
 
-#ifndef ALL_IMAGES_ONE_SPACE
-    /* Fill the entire map with black (default). */
-    dst.x = 0; dst.y = 0; dst.w = use_config[CONFIG_MAPWIDTH] * map_image_size; dst.h = use_config[CONFIG_MAPHEIGHT] * map_image_size;
-    SDL_FillRect(mapsurface, &dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
-#endif
-    for (onlayer=MAXFACES-1; onlayer>=0; onlayer--) {
+    for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
+	for(y = 0; y<use_config[CONFIG_MAPHEIGHT]; y++) {
+	    /* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
+	     * x and y (from the for loop) represent the visable screen.
+	     */
+	    mx = x + pl_pos.x;
+	    my = y + pl_pos.y;
 
-	/* map1cmd reverses the order of the faces compared to the old command!
-	 * the adjustment as necessary.
-	 */
-	if (map1cmd) layer = (MAXFACES -1)  - onlayer;
-	else layer = onlayer;
+	    /* Don't need to touch this space */
+	    if (!redraw && !the_map.cells[mx][my].need_update) continue;
 
+	    /* First, we need to black out this space. */
+	    dst.x = x * map_image_size; dst.y = y* map_image_size;
+	    dst.w = map_image_size; dst.h = map_image_size;
+	    SDL_FillRect(mapsurface, &dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
 
-	/* we start at the lower right and work towards zero.  This because
-	 * big images will use the space they are on as the lower right origin.
-	 */
-	for( x= use_config[CONFIG_MAPWIDTH]-1; x>= 0; x--) {
-	    for(y = use_config[CONFIG_MAPHEIGHT]-1; y >= 0; y--) {
-		/* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
-		 * if fog of wars, these do not match.  x and y (from the for loop)
-		 * represent the visable screen.
+	    /* now draw the different layers.  Only draw if using fog of war or the
+	     * space isn't clear.
+	     */
+	    if (use_config[CONFIG_FOGWAR] || !the_map.cells[mx][my].cleared) 
+		for (layer=0; layer<MAXLAYERS; layer++) {
+
+		    /* draw the tail first - this seems to get better results */
+		    if (the_map.cells[mx][my].tails[layer].face && 
+			pixmaps[the_map.cells[mx][my].tails[layer].face]->map_image) {
+
+			/* add one to the size values to take into account the actual width of the space */
+			src.x = pixmaps[the_map.cells[mx][my].tails[layer].face]->map_width - 
+			    (the_map.cells[mx][my].tails[layer].size_x + 1) * map_image_size;
+			src.y = pixmaps[the_map.cells[mx][my].tails[layer].face]->map_height - 
+			    (the_map.cells[mx][my].tails[layer].size_y + 1) * map_image_size;
+			src.w = map_image_size;
+			src.h = map_image_size;
+			dst.x = x * map_image_size;
+			dst.y = y * map_image_size;
+			if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].tails[layer].face]->map_image, 
+			    &src, mapsurface, &dst))
+				do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+		    }
+		    /* Draw the head now - logic is pretty much exactly the same
+		     * as that for the tail, except we know that we this is at the lower right,
+		     * so we don't need to adjust the origin as much.
+		     */
+		    if (the_map.cells[mx][my].heads[layer].face && 
+			pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image) {
+
+			src.x = pixmaps[the_map.cells[mx][my].heads[layer].face]->map_width - map_image_size;
+			src.y = pixmaps[the_map.cells[mx][my].heads[layer].face]->map_height - map_image_size;
+			src.w = map_image_size;
+			src.h = map_image_size;
+			dst.x = x * map_image_size;
+			dst.y = y * map_image_size;
+			if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image, 
+			    &src, mapsurface, &dst))
+				do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+		    }
+		} /* else for processing the layers */
+
+	    /* Do final logic for this map space */
+	    the_map.cells[mx][my].need_update=0;
+
+	    if (the_map.cells[mx][my].cleared == 1 && use_config[CONFIG_FOGWAR]) {
+		/* If this is a fogcell, copy over the fogmap */
+		dst.x = x * map_image_size;
+		dst.y = y * map_image_size;
+		SDL_BlitSurface(fogmap, NULL, mapsurface, &dst);
+	    }
+	    /* Only worry about lighting if it is not a fog cell.  If it is
+	     * a fog cell, lighting information is probably bogus.
+	     */
+	    else if (use_config[CONFIG_LIGHTING] == CFG_LT_TILE) {
+		dst.x = x * map_image_size;
+		dst.y = y * map_image_size;
+		dst.w = map_image_size;
+		dst.h = map_image_size;
+
+		/* Note - Instead of using a lightmap, I just fillrect
+		 * directly onto the map surface - I would think this should be
+		 * faster
 		 */
-		mx = x + pl_pos.x;
-		my = y + pl_pos.y;
-#ifdef ALL_IMAGES_ONE_SPACE
-		if (!redraw && !the_map.cells[mx][my].need_update) continue;
-		else if (onlayer == MAXFACES-1) {
-		    /* Black out this space. */
-		    dst.x = x * map_image_size; dst.y = y* map_image_size;
-		    dst.w = map_image_size; dst.h = map_image_size;
-		    SDL_FillRect(mapsurface, &dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
+		if (the_map.cells[mx][my].darkness == 255) {
+		    SDL_FillRect(mapsurface,&dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
+		} else if (the_map.cells[mx][my].darkness != 0) {
+		    SDL_SetAlpha(lightmap, SDL_SRCALPHA|SDL_RLEACCEL, the_map.cells[mx][my].darkness);
+		    SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
 		}
-#endif
-		    
-		/* there must be a real face for this layer, and we must have data for that face. */
-		if ((the_map.cells[mx][my].faces[layer]>0) && pixmaps[the_map.cells[mx][my].faces[layer]]->map_image) {
-		    /* Figure out how much data is being copied, and adjust the origin accordingly.
-		     * This probably needs additional checking in case the image extends beyond the
-		     * map boundries.
-		     */
-		    dst.x = (x+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]]->map_width;
-		    dst.y = (y+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]]->map_height;
-		    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].faces[layer]]->map_image, NULL, mapsurface, &dst))
-			do_SDL_error( "BlitSurface", __FILE__, __LINE__);
-
-		}
-		/* On last past, do our special processing
-		 * (dimming fog cells or applying darkness */
-		if (onlayer==0) {
-		    the_map.cells[mx][my].need_update=0;
-		    if (the_map.cells[mx][my].cleared == 1) {
-			/* If this is a fogcell, copy over the fogmap */
-			dst.x = x * map_image_size;
-			dst.y = y * map_image_size;
-			SDL_BlitSurface(fogmap, NULL, mapsurface, &dst);
-		    }
-		    /* Only worry about lighting if it is not a fog cell.  If it is
-		     * a fog cell, lighting information is probably bogus.
-		     */
-		    else if (use_config[CONFIG_LT_TILE]) {
-			dst.x = x * map_image_size;
-			dst.y = y * map_image_size;
-			dst.w = map_image_size;
-			dst.h = map_image_size;
-
-			/* Note - Instead of using a lightmap, I just fillrect
-			 * directly onto the map surface - I would think this should be
-			 * faster
-			 */
-			if (the_map.cells[mx][my].darkness == 255) {
-			    SDL_FillRect(mapsurface,&dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
-			} else if (the_map.cells[mx][my].darkness != 0) {
-			    SDL_SetAlpha(lightmap, SDL_SRCALPHA|SDL_RLEACCEL, the_map.cells[mx][my].darkness);
-			    SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
-			}
-		    } else if (use_config[CONFIG_LT_PIXEL]) {
-			do_sdl_per_pixel_lighting(x, y, mx, my);
-		    }
-		    /* note that if none of the lighting options are set, assume lighting
-		     * is turned off.
-		     */
-		}
-	    } /* For y spaces */
-	} /* for x spaces */
-    } /* for layers */
+	    } else if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL || use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST) {
+		do_sdl_per_pixel_lighting(x, y, mx, my);
+	    }
+	} /* For y spaces */
+    } /* for x spaces */
     if (time_map_redraw)
 	gettimeofday(&tv2, NULL);
-
 
     SDL_Flip(mapsurface);
 

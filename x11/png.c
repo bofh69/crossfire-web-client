@@ -867,6 +867,14 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     return 0;
 }
 
+void get_map_image_size(int face, uint8 *w, uint8 *h)
+{
+    /* This function is not implemented yet, so just return default values */
+    *w = 1;
+    *h = 1;
+}
+
+
 #if PNG_MAIN
 
 int main(int argc, char *argv[])

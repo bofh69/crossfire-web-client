@@ -2,6 +2,81 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+
+The bulk of this checkin adds support in the client for the map1a protocol
+command and the display of big images properly in the map window.  A lot
+of code cleanup was also done however, including removal for the support
+of the 'map' (original) command.  The map1 has been in the server code for
+quite a while.
+
+TODO: Update what needs to be done for the x11 client.
+common/client.c: Remove map command, add map1a command to dispatch table.
+  Modify setup we send to server to always try to use the map1a command -
+  there is no reason not to use it.
+common/client.h: Change some of the CONFIG_ values - basically, change it
+  so that there is just one entry for lighting configuration, but it can
+  have any number of values.  Modify MapCell so that instead of having
+  multiple arrays for the different values (faces, sizes), add a MapCellLayer
+  structure that contains the specific face information for that layer.
+  Move the PlayerPosition struct and value to this function so that more
+  of the map decompress logic can be handled in the common code.
+  Remove count value from MapCell since it wasn't really being used.
+common/commands.c: Add code to set the use_config[CONFIG_CACHE] value based on
+  what we get back from the server.  Add code to check the setup response for
+  the for the map1a and map1 options.  Add code to deal with expanding big
+  images into appropriate spaces.  Move some functions from the gui portion to
+  (display_map_clearcell, set_map_face).  Add code for map1_common function to
+  deal with map1a extensions.
+common/external.h: Remove display_map_clearcell and set_map_face from list of
+  external functions.  Add get_map_image_size function.
+common/init.c: change some values of the config values.  Update initialization
+  of config values for lighting.
+common/proto.h: rebuilt.
+gtk/config.c:  Add new button for lighting - best per pixel. Modify code
+  to properly deal with how lighting preference is now stored.  Add legacy
+  support for loading of per_tile_lighting and per_pixel_lighting values
+  from config file.  Add diagnostic of bad value if selected map/width
+  is out of range.
+gtk/gtkproto.h: rebuilt.
+gtk/gx11.c: Change formatting of draw_list.  Modify it so that it adjusts
+  the column/row width based on the largest image it needs to display - In
+  this way, if a player stands on a big building, the entire building is
+  displayed in the look list.  add row_height and column_width values so we
+  only need to call the function to change them if they are in fact different.
+  Add +sdl command line option to disable sdl code.  Modify gtk_draw_map to
+  include redraw parameter.
+gtk/gx11.h: remove PlayerPosition structure. add row_height, column_width
+  elements to itemlist structure.
+gtk/image.c: Add table that is used to determine the scaling used for big
+  images in the look list - in this way, big images still appear big, but not
+  necessary 2 or 3 times bigger.  Modify create_and_rescale_image_from_data to
+  use this logic.  Add get_map_image_size which the common code uses to
+  determine the number of spaces an image may be.
+gtk/map.c: remove display_map_clearcell and set_map_face functions - now in
+  common code.  Modify the dump map/darkness routines to use the new format of
+  the MapCell structure.  Modify set_darkness to only set adjoining spaces for
+  needing an update if lighting type is set that needs this.  Remove 
+  display_map_addbelow - only used for 'map' command.  Modify logic of
+  fog of war code to have it done all at display time - not when setting/clearing
+  a cells contents.  Modify gtk_draw_map - this basically follows the same
+  logic of sdl_draw_map - it is now better optimized to only draw the spaces
+  that have changed, and not the entire map - this should improve performance
+  considerably.
+gtk/sdl.c: Remove #if 0 around putpixel - used for best lighting.  Change
+  indention of init_SDL - modify it so that if just_lightmap is true, 
+  that really is the only thing that is changed.  Modify per_pixel_light
+  code to use both methods of per pixel lighting depending on player prefernce.
+  Modify sdl_gen_map to properly handle draw portion of big images.
+x11/png.c: Add get_map_image_size function.
+x11/x11.c: modify display_mapcell_pixmap to use new format of MapCell
+  structure.  Remove reference to count in MapCell structure.
+x11/x11.h: Remove PlayerPosition information - now in common code.
+x11/x11proto.h: rebuilt.
+x11/xutil.c: Remove display_map_clearcell and set_map_face functions.  Modify dump map
+  code for new MapCell structure layout.  Remove display_map_addbelow funtion.
+MSW 2002-05-21
+
+
 ------------------------------------------------------------------------------
 Changes for 1.2.1:
 Makefile.in: Add pixmaps/question.sdl to archive list.

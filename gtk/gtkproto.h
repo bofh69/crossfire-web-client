@@ -77,6 +77,7 @@ extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, u
 extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
 extern void reset_image_data(void);
 extern void image_update_download_status(int start, int end, int total);
+extern void get_map_image_size(int face, uint8 *w, uint8 *h);
 /* keys.c */
 extern void init_keys(void);
 extern void bind_key(char *params);
@@ -91,15 +92,12 @@ extern void ckeyclear(void);
 /* map.c */
 extern void allocate_map(struct Map *new_map, int ax, int ay);
 extern void reset_map(void);
-extern void display_map_clearcell(long x, long y);
 extern void print_darkness(void);
 extern void print_map(void);
 extern void set_map_darkness(int x, int y, uint8 darkness);
-extern void set_map_face(int x, int y, int layer, int face);
-extern void display_map_addbelow(long x, long y, long face);
 extern void display_mapscroll(int dx, int dy);
 extern void reset_map_data(void);
-extern void gtk_draw_map(void);
+extern void gtk_draw_map(int redraw);
 /* png.c */
 extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
 extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);

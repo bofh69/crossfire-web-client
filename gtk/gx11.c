@@ -816,311 +816,331 @@ static int get_game_display(GtkWidget *frame) {
 static void draw_list (itemlist *l)
 {
 
-  gint tmprow;
-  item *tmp;
-  animobject *tmpanim=NULL;
-  animview *tmpanimview;
-  char buf[MAX_BUF];
-  char buffer[3][MAX_BUF];
-  char *buffers[3];
-  gint list;
-
-  /* Is it the inventory or look list? */
-  if (l->multi_list) {
+    gint tmprow;
+    item *tmp;
+    animobject *tmpanim=NULL;
+    animview *tmpanimview;
+    char buf[MAX_BUF];
+    char buffer[3][MAX_BUF];
+    char *buffers[3];
+    gint list;
+    int mw=image_size, mh=image_size;	    /* max height/width of any image */
     
-    /* Ok, inventory list. Animations are handled in client code. First do the nice thing and
-     * free all allocated animation lists.
-     */
 
-    if (anim_inv_list) {
-      g_list_foreach (anim_inv_list, (GFunc) freeanimobject, NULL);
-      g_list_free (anim_inv_list);
-      anim_inv_list=NULL;
-    }
-    /* Freeze the CLists to avoid flickering (and to speed up the processing) */
-    for (list=0; list < TYPE_LISTS; list++) {
-      l->pos[list]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment->value;
-      gtk_clist_freeze (GTK_CLIST(l->gtk_list[list]));
-      gtk_clist_clear (GTK_CLIST(l->gtk_list[list]));
-    }
-  } else {
-    if (anim_look_list) {
-      g_list_foreach (anim_look_list, (GFunc) freeanimobject, NULL);
-      g_list_free (anim_look_list);
-      anim_look_list=NULL;
-    }
-    /* Just freeze the lists and clear them */
-    l->pos[0]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[0])->vscrollbar)->adjustment->value;
-    gtk_clist_freeze (GTK_CLIST(l->gtk_list[0]));
-    gtk_clist_clear (GTK_CLIST(l->gtk_list[0]));
-  }
-  
-  /* draw title and put stuff in widgets */
-  
-  if(l->env->weight < 0 || l->show_weight == 0) {
-    strcpy(buf, l->title);
-    gtk_label_set (GTK_LABEL(l->label), buf);
-    gtk_label_set (GTK_LABEL(l->weightlabel), " ");
-    gtk_label_set (GTK_LABEL(l->maxweightlabel), " ");
-    gtk_widget_draw (l->label, NULL);
-    gtk_widget_draw (l->weightlabel, NULL);
-    gtk_widget_draw (l->maxweightlabel, NULL);
-  }
-  else if (!l->weight_limit) {
-    strcpy(buf, l->title);
-    gtk_label_set (GTK_LABEL(l->label), buf);
-    sprintf (buf, "%6.1f",l->env->weight);
-    gtk_label_set (GTK_LABEL(l->weightlabel), buf);
-    gtk_label_set (GTK_LABEL(l->maxweightlabel), " ");
-    gtk_widget_draw (l->label, NULL);
-    gtk_widget_draw (l->weightlabel, NULL);
-    gtk_widget_draw (l->maxweightlabel, NULL);
-  } else {
-    strcpy(buf, l->title);
-    gtk_label_set (GTK_LABEL(l->label), buf);
-    sprintf (buf, "%6.1f",l->env->weight);
-    gtk_label_set (GTK_LABEL(l->weightlabel), buf);
-    sprintf (buf, "/ %4d",l->weight_limit/1000);
-    gtk_label_set (GTK_LABEL(l->maxweightlabel), buf);
-    gtk_widget_draw (l->label, NULL);
-    gtk_widget_draw (l->weightlabel, NULL);
-    gtk_widget_draw (l->maxweightlabel, NULL);
-  }
-
-  /* Ok, go through the objects and start appending rows to the lists */
-
-  for(tmp = l->env->inv; tmp ; tmp=tmp->next) {      
-
-    
-    strcpy (buffer[0]," "); 
-    strcpy (buffer[1], tmp->d_name);
-
-    if (l->show_icon == 0)
-      strcat (buffer[1], tmp->flags);
-    
-    if(tmp->weight < 0 || l->show_weight == 0) {
-      strcpy (buffer[2]," "); 
-    } else {
-      sprintf (buffer[2],"%6.1f" ,tmp->nrof * tmp->weight);
-    }
-    
-    buffers[0] = buffer[0];
-    buffers[1] = buffer[1];
-    buffers[2] = buffer[2];
-    
+    /* Is it the inventory or look list? */
     if (l->multi_list) {
-            
-      tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
-      /* Set original pixmap */
-      gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
+    
+	/* Ok, inventory list. Animations are handled in client code. First do the nice thing and
+	* free all allocated animation lists.
+	*/
+	if (anim_inv_list) {
+	    g_list_foreach (anim_inv_list, (GFunc) freeanimobject, NULL);
+	    g_list_free (anim_inv_list);
+	    anim_inv_list=NULL;
+	}
+	/* Freeze the CLists to avoid flickering (and to speed up the processing) */
+	for (list=0; list < TYPE_LISTS; list++) {
+	    l->pos[list]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment->value;
+	    gtk_clist_freeze (GTK_CLIST(l->gtk_list[list]));
+	    gtk_clist_clear (GTK_CLIST(l->gtk_list[list]));
+	}
+    } else {
+	if (anim_look_list) {
+	    g_list_foreach (anim_look_list, (GFunc) freeanimobject, NULL);
+	    g_list_free (anim_look_list);
+	    anim_look_list=NULL;
+	}
+	/* Just freeze the lists and clear them */
+	l->pos[0]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[0])->vscrollbar)->adjustment->value;
+	gtk_clist_freeze (GTK_CLIST(l->gtk_list[0]));
+	gtk_clist_clear (GTK_CLIST(l->gtk_list[0]));
+    }
+  
+    /* draw title and put stuff in widgets */
+  
+    if(l->env->weight < 0 || l->show_weight == 0) {
+	strcpy(buf, l->title);
+	gtk_label_set (GTK_LABEL(l->label), buf);
+	gtk_label_set (GTK_LABEL(l->weightlabel), " ");
+	gtk_label_set (GTK_LABEL(l->maxweightlabel), " ");
+	gtk_widget_draw (l->label, NULL);
+	gtk_widget_draw (l->weightlabel, NULL);
+	gtk_widget_draw (l->maxweightlabel, NULL);
+    }
+    else if (!l->weight_limit) {
+	strcpy(buf, l->title);
+	gtk_label_set (GTK_LABEL(l->label), buf);
+	sprintf (buf, "%6.1f",l->env->weight);
+	gtk_label_set (GTK_LABEL(l->weightlabel), buf);
+	gtk_label_set (GTK_LABEL(l->maxweightlabel), " ");
+	gtk_widget_draw (l->label, NULL);
+	gtk_widget_draw (l->weightlabel, NULL);
+	gtk_widget_draw (l->maxweightlabel, NULL);
+    } else {
+	strcpy(buf, l->title);
+	gtk_label_set (GTK_LABEL(l->label), buf);
+	sprintf (buf, "%6.1f",l->env->weight);
+	gtk_label_set (GTK_LABEL(l->weightlabel), buf);
+	sprintf (buf, "/ %4d",l->weight_limit/1000);
+	gtk_label_set (GTK_LABEL(l->maxweightlabel), buf);
+	gtk_widget_draw (l->label, NULL);
+	gtk_widget_draw (l->weightlabel, NULL);
+	gtk_widget_draw (l->maxweightlabel, NULL);
+    }
+
+    /* Ok, go through the objects and start appending rows to the lists */
+    for(tmp = l->env->inv; tmp ; tmp=tmp->next) {      
+
+	strcpy (buffer[0]," "); 
+	strcpy (buffer[1], tmp->d_name);
+
+	if (l->show_icon == 0)
+	    strcat (buffer[1], tmp->flags);
+    
+	if(tmp->weight < 0 || l->show_weight == 0) {
+	    strcpy (buffer[2]," "); 
+	} else {
+	    sprintf (buffer[2],"%6.1f" ,tmp->nrof * tmp->weight);
+	}
+    
+	buffers[0] = buffer[0];
+	buffers[1] = buffer[1];
+	buffers[2] = buffer[2];
+    
+	if (l->multi_list) {
+	    tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
+	    /* Set original pixmap */
+	    gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
 			    (GdkPixmap*)pixmaps[tmp->face]->icon_image,
 			    (GdkBitmap*)pixmaps[tmp->face]->icon_mask); 
-      gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
-      if (use_config[CONFIG_COLORINV]) { 
-	if (tmp->cursed || tmp->damned) {
-	  gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
+	    if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+	    if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
+
+	    gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
+	    if (use_config[CONFIG_COLORINV]) { 
+		if (tmp->cursed || tmp->damned) {
+		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
 				    &root_color[NDI_RED]);
-	}
-	if (tmp->magical) {
-	  gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
+		}
+		if (tmp->magical) {
+		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
 				    &root_color[NDI_BLUE]);
-	}
-	if ((tmp->cursed || tmp->damned) && tmp->magical) {
-	  gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
+		}
+		if ((tmp->cursed || tmp->damned) && tmp->magical) {
+		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
 				    &root_color[NDI_NAVY]);
-	}
-      }
-      /* If it's an animation, zap in an animation object to the list of
-         animations to be done */
+		}
+	    }
+	    /* If it's an animation, zap in an animation object to the list of
+	     animations to be done */
 
-      if (tmp->animation_id>0 && tmp->anim_speed) {
-	tmpanim = newanimobject();
-	tmpanim->item=tmp;
-	tmpanimview = newanimview();
-	tmpanimview->row=tmprow;
-	tmpanimview->list=l->gtk_list[0];
-	tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	anim_inv_list = g_list_append (anim_inv_list, tmpanim);
-      }
+	    if (tmp->animation_id>0 && tmp->anim_speed) {
+		tmpanim = newanimobject();
+		tmpanim->item=tmp;
+		tmpanimview = newanimview();
+		tmpanimview->row=tmprow;
+		tmpanimview->list=l->gtk_list[0];
+		tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		anim_inv_list = g_list_append (anim_inv_list, tmpanim);
+	    }
 
-      if (tmp->applied) {
-       	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[1]), buffers);
-	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[1]), tmprow, 0,
+	    if (tmp->applied) {
+		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[1]), buffers);
+		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[1]), tmprow, 0,
 			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
 			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[1]), tmprow, tmp); 
-	if (tmp->animation_id>0 && tmp->anim_speed) {
-	  tmpanimview = newanimview();
-	  tmpanimview->row=tmprow;
-	  tmpanimview->list=l->gtk_list[1];
-	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	}
+		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
 
-      }
-      if (!tmp->applied) {
-	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[2]), buffers);
-	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[2]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[2]), tmprow, tmp);
-	if (tmp->animation_id>0 && tmp->anim_speed) {
-	  tmpanimview = newanimview();
-	  tmpanimview->row=tmprow;
-	  tmpanimview->list=l->gtk_list[2];
-	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	}
-	
+		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[1]), tmprow, tmp); 
+		if (tmp->animation_id>0 && tmp->anim_speed) {
+		    tmpanimview = newanimview();
+		    tmpanimview->row=tmprow;
+		    tmpanimview->list=l->gtk_list[1];
+		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		}
 
-      }
-      if (tmp->unpaid) {
-	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[3]), buffers);
-	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[3]), tmprow, 0,
+	    }
+	    if (!tmp->applied) {
+		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[2]), buffers);
+		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[2]), tmprow, 0,
 			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
 			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[3]), tmprow, tmp);
-	if (tmp->animation_id>0 && tmp->anim_speed) {
-	  tmpanimview = newanimview();
-	      tmpanimview->row=tmprow;
-	      tmpanimview->list=l->gtk_list[3];
-	      tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	}
-	
+		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
 
-      }
-      if (tmp->cursed || tmp->damned) {
-	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[4]), buffers);
-	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[4]), tmprow, 0,
+		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[2]), tmprow, tmp);
+		if (tmp->animation_id>0 && tmp->anim_speed) {
+		    tmpanimview = newanimview();
+		    tmpanimview->row=tmprow;
+		    tmpanimview->list=l->gtk_list[2];
+		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		}
+	    }
+	    if (tmp->unpaid) {
+		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[3]), buffers);
+		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[3]), tmprow, 0,
 			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
 			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[4]), tmprow, tmp);
-	if (tmp->animation_id>0 && tmp->anim_speed) {
-	  tmpanimview = newanimview();
-	  tmpanimview->row=tmprow;
-	  tmpanimview->list=l->gtk_list[4];
-	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	}
-	
+		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
 
-      }
-      if (tmp->magical) {
-	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[5]), buffers);
-	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[5]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[5]), tmprow, tmp);
-	if (tmp->animation_id>0 && tmp->anim_speed) {
-	  tmpanimview = newanimview();
-	  tmpanimview->row=tmprow;
-	  tmpanimview->list=l->gtk_list[5];
-	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	}
-	
-
-      }
-      if (!tmp->magical) {
-	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[6]), buffers);
-	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[6]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[6]), tmprow, tmp);
-	if (tmp->animation_id>0 && tmp->anim_speed) {
-	  tmpanimview = newanimview();
-	  tmpanimview->row=tmprow;
-	  tmpanimview->list=l->gtk_list[6];
-	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	}
-	
-
-      }
-      if (tmp->locked) {
-	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[7]), buffers);
-	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[7]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[7]), tmprow, tmp);
-	if (tmp->animation_id>0 && tmp->anim_speed) {
-	  tmpanimview = newanimview();
-	  tmpanimview->row=tmprow;
-	  tmpanimview->list=l->gtk_list[7];
-	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	}
-      }
-      if (!tmp->locked) {
-	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[8]), buffers);
-	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[8]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[8]), tmprow, tmp);
-	if (tmp->animation_id>0 && tmp->anim_speed) {
-	  tmpanimview = newanimview();
-	  tmpanimview->row=tmprow;
-	  tmpanimview->list=l->gtk_list[8];
-	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	}
-	if (use_config[CONFIG_COLORINV]) { 
+		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[3]), tmprow, tmp);
+		if (tmp->animation_id>0 && tmp->anim_speed) {
+		    tmpanimview = newanimview();
+		    tmpanimview->row=tmprow;
+		    tmpanimview->list=l->gtk_list[3];
+		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		}
+	    }
 	    if (tmp->cursed || tmp->damned) {
-		gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
-				    &root_color[NDI_RED]);
+		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[4]), buffers);
+		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[4]), tmprow, 0,
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
+		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
+
+		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[4]), tmprow, tmp);
+		if (tmp->animation_id>0 && tmp->anim_speed) {
+		    tmpanimview = newanimview();
+		    tmpanimview->row=tmprow;
+		    tmpanimview->list=l->gtk_list[4];
+		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		}
 	    }
 	    if (tmp->magical) {
-		gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
-				    &root_color[NDI_BLUE]);
-	    }
-	    if ((tmp->cursed || tmp->damned) && tmp->magical) {
-		gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
-				    &root_color[NDI_NAVY]);
-	    }
-	}
-      }
-      
-      
-    } else {
-      tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
-      gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
+		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[5]), buffers);
+		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[5]), tmprow, 0,
 			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
 			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-      gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
-      if (tmp->animation_id>0 && tmp->anim_speed) {
-	tmpanim = newanimobject();
-	tmpanim->item=tmp;
-	tmpanimview = newanimview();
-	tmpanimview->row=tmprow;
-	tmpanimview->list=l->gtk_list[0];
-	tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	anim_look_list = g_list_append (anim_look_list, tmpanim);
-      }
-      if (use_config[CONFIG_COLORINV]) { 
-	if (tmp->cursed || tmp->damned) {
-	  gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
+		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
+
+		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[5]), tmprow, tmp);
+		if (tmp->animation_id>0 && tmp->anim_speed) {
+		    tmpanimview = newanimview();
+		    tmpanimview->row=tmprow;
+		    tmpanimview->list=l->gtk_list[5];
+		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		}
+	    }
+	    if (!tmp->magical) {
+		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[6]), buffers);
+		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[6]), tmprow, 0,
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
+		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
+
+		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[6]), tmprow, tmp);
+		if (tmp->animation_id>0 && tmp->anim_speed) {
+		    tmpanimview = newanimview();
+		    tmpanimview->row=tmprow;
+		    tmpanimview->list=l->gtk_list[6];
+		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		}
+	    }
+	    if (tmp->locked) {
+		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[7]), buffers);
+		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[7]), tmprow, 0,
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
+		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
+
+		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[7]), tmprow, tmp);
+		if (tmp->animation_id>0 && tmp->anim_speed) {
+		    tmpanimview = newanimview();
+		    tmpanimview->row=tmprow;
+		    tmpanimview->list=l->gtk_list[7];
+		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		}
+	    }
+	    if (!tmp->locked) {
+		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[8]), buffers);
+		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[8]), tmprow, 0,
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
+		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
+
+		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[8]), tmprow, tmp);
+		if (tmp->animation_id>0 && tmp->anim_speed) {
+		    tmpanimview = newanimview();
+		    tmpanimview->row=tmprow;
+		    tmpanimview->list=l->gtk_list[8];
+		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		}
+		if (use_config[CONFIG_COLORINV]) { 
+		    if (tmp->cursed || tmp->damned) {
+			gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
 				    &root_color[NDI_RED]);
-	}
-	if (tmp->magical) {
-	  gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
+		    }
+		    if (tmp->magical) {
+			gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
 				    &root_color[NDI_BLUE]);
-	}
-	if ((tmp->cursed || tmp->damned) && tmp->magical) {
-	  gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
+		    }
+		    if ((tmp->cursed || tmp->damned) && tmp->magical) {
+			gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
 				    &root_color[NDI_NAVY]);
+		    }
+		}
+	    }
+	} else {
+	    tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
+	    gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
+	    if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
+	    if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
+
+	    gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
+	    if (tmp->animation_id>0 && tmp->anim_speed) {
+		tmpanim = newanimobject();
+		tmpanim->item=tmp;
+		tmpanimview = newanimview();
+		tmpanimview->row=tmprow;
+		tmpanimview->list=l->gtk_list[0];
+		tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+		anim_look_list = g_list_append (anim_look_list, tmpanim);
+	    }
+	    if (use_config[CONFIG_COLORINV]) { 
+		if (tmp->cursed || tmp->damned) {
+		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
+				    &root_color[NDI_RED]);
+		}
+		if (tmp->magical) {
+		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
+				    &root_color[NDI_BLUE]);
+		}
+		if ((tmp->cursed || tmp->damned) && tmp->magical) {
+		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
+				    &root_color[NDI_NAVY]);
+		}
+	    }
 	}
-      }
-      
-    }  
-  }
-  
-  /* Ok, stuff is drawn, now replace the scrollbar positioning as far as possible */
-
-  if (l->multi_list) {
-    
-    for (list=0; list < TYPE_LISTS; list++) {
-      gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment), l->pos[list]);
-      gtk_clist_thaw (GTK_CLIST(l->gtk_list[list]));
     }
-    
-  } else {
-    gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[0])->vscrollbar)->adjustment), l->pos[0]);
-    gtk_clist_thaw (GTK_CLIST(l->gtk_list[0]));
-  }
 
+
+    /* Ok, stuff is drawn, now replace the scrollbar positioning as far as possible */
+    if (l->multi_list) {
+	for (list=0; list < TYPE_LISTS; list++) {
+	    gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment), l->pos[list]);
+	    gtk_clist_thaw (GTK_CLIST(l->gtk_list[list]));
+	}
+    } else {
+	if (l->column_width != mw) {
+	    gtk_clist_set_column_width(GTK_CLIST(l->gtk_list[0]), 0, mw);
+	    l->column_width = mw;
+	}
+	if (l->row_height != mh) {
+	    gtk_clist_set_row_height(GTK_CLIST(l->gtk_list[0]), mh);
+	    l->row_height = mh;
+	}
+	gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[0])->vscrollbar)->adjustment), l->pos[0]);
+	gtk_clist_thaw (GTK_CLIST(l->gtk_list[0]));
+    }
 }
 
 
@@ -2636,9 +2656,12 @@ static void resize_notebook_event (GtkWidget *widget, GtkAllocation *event) {
 	    gtk_clist_set_column_width (GTK_CLIST(inv_list.gtk_list[i]), 1, newwidth);
 	    gtk_clist_set_column_width (GTK_CLIST(inv_list.gtk_list[i]), 2, 50);
 	}
+	inv_list.column_width = image_size;
+
 	gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, image_size);
 	gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 1, newwidth);
 	gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 50);
+	look_list.column_width = image_size;
 
     }
 }
@@ -2809,9 +2832,10 @@ static int get_inv_display(GtkWidget *frame)
   gtk_widget_show (inv_notebook);
 
   inv_list.multi_list=1;
+  inv_list.row_height = image_size;
   draw_all_list(&inv_list);
  
-    return 0;
+  return 0;
 }
 
 static int get_look_display(GtkWidget *frame) 
@@ -2864,6 +2888,7 @@ static int get_look_display(GtkWidget *frame)
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 50);
   gtk_clist_set_selection_mode (GTK_CLIST(look_list.gtk_list[0]) , GTK_SELECTION_SINGLE);
   gtk_clist_set_row_height (GTK_CLIST(look_list.gtk_list[0]), image_size); 
+  look_list.row_height = image_size;
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(look_list.gtk_lists[0]),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   liststyle = gtk_rc_get_style (look_list.gtk_list[0]);
@@ -4998,6 +5023,10 @@ int init_windows(int argc, char **argv)
 #endif
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"+sdl")) {
+	    want_config[CONFIG_SDL] = FALSE;
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-server")) {
 	    if (++on_arg == argc) {
 		fprintf(stderr,"-server requires a host name\n");
@@ -5094,7 +5123,6 @@ int init_windows(int argc, char **argv)
 void display_map_doneupdate(int redraw)
 {
 
-
     if (updatelock < 30) {
 	updatelock++;
 
@@ -5102,7 +5130,7 @@ void display_map_doneupdate(int redraw)
 	if (use_config[CONFIG_SDL]) sdl_gen_map(redraw);
 	else
 #endif
-	gtk_draw_map();
+	gtk_draw_map(redraw);
 
     } /* if updatelock */
 

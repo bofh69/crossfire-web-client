@@ -1251,56 +1251,6 @@ void reset_map()
     return;
 }
 
-void display_map_clearcell(long x,long y)
-{
-
-    x+= pl_pos.x;
-    y+= pl_pos.y;
-
-    if(use_config[CONFIG_FOGWAR] == TRUE)
-    {
-	int i,got_one=0;
-
-	/* we don't want to clear out the values yet. We will do that
-	 * next time we try to write some data to this tile. For now
-	 * we just mark that it has been cleared. Also mark it for
-	 * update so we can draw the proper fog cell over it
-	 */
-
-	/* If the space is completly black, don't mark this as a 
-	 * fog cell - that chews up extra cpu time.  Likewise,
-	 * if the space is completely dark, don't draw it either.
-	 */
-	for (i=0; i<MAXFACES; i++)
-	    if (the_map.cells[x][y].faces[i]>0) got_one=1;
-
-	if (!got_one || the_map.cells[x][y].darkness>200) {
-	    the_map.cells[x][y].count = 0;
-	    the_map.cells[x][y].darkness = 0;
-	    the_map.cells[x][y].need_update = 1;
-	    the_map.cells[x][y].have_darkness = 0;
-	    the_map.cells[x][y].cleared= 0;
-	}
-	else {
-	    the_map.cells[x][y].cleared= 1;
-	    the_map.cells[x][y].need_update= 1;
-	}
-    }
-    else 
-    {
-	int i;
-	the_map.cells[x][y].count = 0;
-	the_map.cells[x][y].darkness = 0;
-	the_map.cells[x][y].need_update = 1;
-	the_map.cells[x][y].have_darkness = 0;
-	the_map.cells[x][y].cleared= 0;
-	for (i=0; i<MAXFACES; i++)
-	    the_map.cells[x][y].faces[i] = -1;  /* empty/blank face */
-    }
-
-    return;
-}
-
 void print_darkness()
 {
 
@@ -1311,10 +1261,7 @@ void print_darkness()
     {
 	for( x= 0; x < use_config[CONFIG_MAPWIDTH]; x++)
 	{
-	    if( the_map.cells[x][y].count== 0)
-		fprintf( stderr, "[ - ]");
-	    else
-		fprintf( stderr, "[%3d]", the_map.cells[x][y].darkness);
+	    fprintf( stderr, "[%3d]", the_map.cells[x][y].darkness);
 	}
 	fprintf( stderr, "\n");
     }
@@ -1342,10 +1289,10 @@ void print_map()
 	{
 	    for( x= pl_pos.x ; x < local_mapx; x++)
 	    {
-		if( the_map.cells[x][y].count == 0)
+		if(the_map.cells[x][y].heads[z].face  <= 0)
 		    fprintf( stderr, "[ -- ]");
 		else 
-		    fprintf( stderr, "[%4d]", the_map.cells[x][y].faces[z]);
+		    fprintf( stderr, "[%4d]", the_map.cells[x][y].heads[z].face);
 	    }
 	    fprintf( stderr, "\n");
 	}
@@ -1378,61 +1325,6 @@ void set_map_darkness(int x, int y, uint8 darkness)
     }
 }
 
-/* sets the face at layer to some value.  We just can't
- * restact arbitrarily, as the server now sends faces only
- * for layers that change, and not the entire space.
- */
-void set_map_face(int x, int y, int layer, int face)
-{
-    x+= pl_pos.x;
-    y+= pl_pos.y;
-    if(use_config[CONFIG_FOGWAR] && (the_map.cells[x][y].cleared == 1)) {
-	/* This cell has been cleared previously but now we are 
-	 * writing new data to do. So we have to clear it for real now 
-	 */
-	int i= 0;
-
-	the_map.cells[x][y].count= 0;
-	the_map.cells[x][y].darkness= 0;
-	the_map.cells[x][y].need_update= 1;
-	the_map.cells[x][y].have_darkness= 0;
-	the_map.cells[x][y].cleared= 0;
-	for (i=0; i<MAXFACES; i++)
-	    the_map.cells[x][y].faces[i]= -1;  /* empty/blank face */
-    }
-
-    the_map.cells[x][y].faces[layer] = face;
-    if ((layer+1) > the_map.cells[x][y].count)
-	the_map.cells[x][y].count = layer+1;
-    the_map.cells[x][y].need_update = 1;
-    the_map.cells[x][y].have_darkness = 1;
-}
-
-
-void display_map_addbelow(long x,long y,long face)
-{
-
-    x+= pl_pos.x;
-    y+= pl_pos.y;
-    if (use_config[CONFIG_FOGWAR] && (the_map.cells[x][y].cleared == 1) )
-    {
-	/* This cell has been cleared previously but now we are 
-	 * writing new data to do. So we have to clear it for real now 
-	 */
-	int i= 0;
-	the_map.cells[x][y].count= 0;
-	the_map.cells[x][y].darkness= 0;
-	the_map.cells[x][y].need_update= 1;
-	the_map.cells[x][y].have_darkness= 0;
-	the_map.cells[x][y].cleared= 0;
-	for (i=0; i<MAXFACES; i++)
-	    the_map.cells[x][y].faces[i]= -1;  /* empty/blank face */
-    }
-
-    the_map.cells[x][y].faces[the_map.cells[x][y].count] = face&0xFFFF;
-    the_map.cells[x][y].count ++;
-    the_map.cells[x][y].need_update = 1;
-}
 
 /* 
  * Returns true if virtual view is about to butt up against 

@@ -40,9 +40,9 @@ char *config_names[CONFIG_NUMS] = {
 NULL, "colorinv", "colortext", "download_all_images", "echo_bindings",
 "fasttcpsend", "command_window", "cacheimages", "fog_of_war", "iconscale",
 "mapscale", "popups", "sdl", "showicon", "tooltips", "sound", "splitinfo",
-"split", "show_grid", "per_pixel_lighting", "per_tile_lighting",
+"split", "show_grid", "lighting", "trim_info_window",
 "map_width", "map_height", "foodbeep", "darkness", "port",
-"trim_info_window"};
+};
 
 sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
 
@@ -173,8 +173,7 @@ void init_client_vars()
     want_config[CONFIG_SPLITINFO] = FALSE;
     want_config[CONFIG_SPLITWIN] = FALSE;
     want_config[CONFIG_SHOWGRID] = FALSE;
-    want_config[CONFIG_LT_PIXEL] = FALSE;
-    want_config[CONFIG_LT_TILE] = TRUE;
+    want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
     want_config[CONFIG_MAPWIDTH] = 11;
     want_config[CONFIG_MAPHEIGHT] = 11;
     want_config[CONFIG_FOODBEEP] = FALSE;

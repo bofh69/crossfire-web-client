@@ -30,13 +30,6 @@
 #include "client-types.h"
 #include "item.h"
 
-typedef struct 
-{
-  int x;
-  int y;
-} PlayerPosition;
-
-extern PlayerPosition pl_pos;
 
 extern int map_size, image_size, map_image_size, map_image_half_size;
 extern uint8 map_did_scroll;
@@ -137,6 +130,7 @@ typedef struct {
   sint16 bar_size;	  /* the current size of scrollbar in pixels */
   sint16 bar_pos;	  /* the starting position of scrollbar in pixels */
   uint32 weight_limit;   /* Weight limit for this list - used for title */
+  sint16 row_height, column_width;  /* height/width of pixmaps space as last drawn */
 } itemlist;
 
 extern itemlist inv_list, look_list;

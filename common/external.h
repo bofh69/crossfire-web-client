@@ -38,12 +38,10 @@ extern void SoundCmd(unsigned char *data,  int len);
 /* Map window related functions */
 extern void resize_map_window(int x, int y);
 extern void display_map_newmap(void);
-extern void display_map_clearcell(long x, long y);
 extern void display_map_addbelow(long x, long y, long face);
 extern void display_map_startupdate(void);
 extern void display_map_doneupdate(int redraw);
 extern void set_map_darkness(int x, int y, uint8 darkness);
-extern void set_map_face(int x, int y, int layer, int face);
 extern void display_mapscroll(int dx, int dy);
 extern void draw_magic_map(void);
 
@@ -69,7 +67,7 @@ extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, u
 extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
 extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
 extern void image_update_download_status(int start, int end, int total);
-
+extern void get_map_image_size(int face, uint8 *w, uint8 *h);
 
 /* Item related commands */
 extern void open_container(item *op);

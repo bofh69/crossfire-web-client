@@ -20,10 +20,11 @@ extern void Item1Cmd(unsigned char *data, int len);
 extern void UpdateItemCmd(unsigned char *data, int len);
 extern void DeleteItem(unsigned char *data, int len);
 extern void DeleteInventory(unsigned char *data, int len);
+extern void reset_cell_data(int x, int y);
+extern void display_map_clearcell(int x, int y);
 extern void NewmapCmd(unsigned char *data, int len);
-extern void Map_unpacklayer(unsigned char *cur, unsigned char *end);
-extern void MapCmd(unsigned char *data, int len);
 extern void Map1Cmd(unsigned char *data, int len);
+extern void Map1aCmd(unsigned char *data, int len);
 extern void map_scrollCmd(char *data, int len);
 extern void MagicMapCmd(unsigned char *data, int len);
 /* image.c */

@@ -31,14 +31,6 @@
 
 #define MAXPIXMAPNUM 10000
 
-typedef struct 
-{
-  int x;
-  int y;
-} PlayerPosition;
-
-extern PlayerPosition pl_pos;
-
 extern int map_size;
 extern uint8 map_did_scroll;
 extern uint8 updatekeycodes;
