@@ -15,7 +15,7 @@ AC_CONFIG_AUX_DIR(utils/)
 
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE(gcfclient, 0.97.0, no-define)
+AM_INIT_AUTOMAKE(gcfclient, 0.98.0, no-define)
 
 AC_CONFIG_HEADER(config.h)
 

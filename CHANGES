@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+
+------------------------------------------------------------------------------
+Changes for 0.98.0:
+
 item_types,item_types.h: Change matching for sword - hopefully this should
 fix problems with dancing sword spellbooks.  MSW 2001/04/06
 
