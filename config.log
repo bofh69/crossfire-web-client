@@ -1,0 +1,63 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:595: checking host system type
+configure:616: checking target system type
+configure:634: checking build system type
+configure:668: checking for a BSD compatible install
+configure:721: checking whether build environment is sane
+configure:778: checking whether make sets ${MAKE}
+configure:817: checking for working aclocal
+configure:830: checking for working autoconf
+configure:843: checking for working automake
+configure:856: checking for working autoheader
+configure:869: checking for working makeinfo
+configure:889: checking for mkdir
+configure:920: checking for tar
+configure:951: checking for makedepend
+configure:982: checking for cp
+configure:1013: checking for rm
+configure:1044: checking for perl
+configure:1137: checking for gcc
+configure:1214: checking whether the C compiler (gcc  ) works
+configure:1228: gcc -o conftest    conftest.c  1>&5
+configure:1248: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:1253: checking whether we are using GNU C
+configure:1277: checking whether gcc accepts -g
+configure:1337: checking for a BSD compatible install
+configure:1387: checking whether ln -s works
+configure:1408: checking whether make sets ${MAKE}
+configure:1435: checking how to run the C preprocessor
+configure:1540: checking for gtk-config
+configure:1571: checking for GTK - version >= 1.0.0
+configure:1657: gcc -o conftest -g -O2 -I/usr/lib/glib/include -I/usr/X11R6/include   conftest.c  -L/usr/lib -L/usr/X11R6/lib -lgtk -lgdk -lglib -lXi -lXext -lX11 -lm 1>&5
+configure:1749: checking for X
+configure:2063: checking for dnet_ntoa in -ldnet
+configure:2104: checking for dnet_ntoa in -ldnet_stub
+configure:2152: checking for gethostbyname
+configure:2250: checking for connect
+configure:2342: checking for remove
+configure:2434: checking for shmat
+configure:2535: checking for IceConnectionNumber in -lICE
+configure:2609: checking for main in -lasound
+configure:2645: checking for alNewConfig in -laudio
+configure:2686: checking for sys/soundcard.h
+configure:2863: checking for XpmReadFileToXpmImage in -lXpm
+configure:2903: checking for X11/xpm.h
+configure:2948: checking for main in -ldmalloc
+configure:2992: checking for sqrt in -lm
+configure:3041: checking for ANSI C header files
+configure:3148: checking for fcntl.h
+configure:3148: checking for sys/ioctl.h
+configure:3148: checking for sys/time.h
+configure:3148: checking for unistd.h
+configure:3148: checking for string.h
+configure:3148: checking for sys/select.h
+configure:3186: checking for working const
+configure:3261: checking whether time.h and sys/time.h may both be included
+configure:3298: checking whether gcc needs -traditional
+configure:3344: checking for vprintf
+configure:3451: checking for mkdir
+configure:3451: checking for socket
+configure:3451: checking for strcspn
+configure:3451: checking for sysconf

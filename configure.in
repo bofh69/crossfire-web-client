@@ -1,0 +1,263 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(player.c)
+
+
+dnl This file creates the configure script for the GTK CrossFire Client.
+dnl I borrowed some bits of code (CFLAGS hacks) from the GIMP's configure.in.
+dnl
+dnl ChangeLog:
+dnl 1998-05-24 Raphael Quinet: Wrote the first version.
+dnl 1998-06-03 Raphael Quinet: Re-wrote it from scratch after having
+dnl                            lost the first version accidentally.  Oops!
+dnl 1998-06-24 Raphael Quinet: Removed unused definitions of version number.
+
+AC_CONFIG_AUX_DIR(utils/)
+
+AC_CANONICAL_SYSTEM
+
+AM_INIT_AUTOMAKE(gcfclient, 0.95.3, no-define)
+
+AC_CONFIG_HEADER(config.h)
+
+
+dnl Check for some neeed programs
+AC_PATH_PROG(MKDIR, mkdir)
+AC_PATH_PROG(TAR, tar)
+AC_PATH_PROG(DEPEND, makedepend)
+AC_PATH_PROG(CP, cp)
+AC_PATH_PROG(RM, rm)
+AC_PATH_PROG(PERL, perl)
+
+new_sound=yes
+SOUNDDIR=/usr/local/lib/sounds
+
+dnl Add some options to 'configure'.
+AC_ARG_ENABLE(debug, [  --enable-debug          turn on debugging [default=no]],
+if eval "test x$enable_debug = xyes"; then
+  DEBUGFLAG="-g"
+fi)
+
+AC_ARG_ENABLE(ansi, [  --enable-ansi           turn on strict ansi [default=no]],
+		    , enable_ansi=no)
+
+AC_ARG_ENABLE(gtk, [  --disable-gtk             make x11 client [default=make gtk client if available]],
+		gtk=no, gtk=yes )
+
+
+dnl The follow two are really just a way to specify where the xpm information
+dnl resides if not with the normal X11 stuff (ie, in /usr/local and not /usr
+dnl /usr/X11
+
+AC_ARG_WITH(xpm-lib, [  --with-xpm-lib=dir     provide different directory to find xpm lib in        ],
+		XPMLIB="-L$withval")
+
+AC_ARG_WITH(xpm-inc, [  --with-xpm-inc=dir     provide different directory to find xpm includes in        ],
+		XPMINC="-I$withval")
+
+AC_ARG_WITH(sound-dir, [  --with-sound-dir=dir     Directory where the sounds are located (default=/usr/local/lib/sounds)        ],
+		SOUNDDIR="$withval")
+
+AC_ARG_ENABLE(old-sound, [  --enable-old-sound     use the old sound code       ],
+		new_sound=no)
+
+
+AC_PROG_CC
+
+networklibs="yes"
+
+case "$target" in
+  alpha-dec-osf*)
+    # If we are not using gcc, we want the ansi version of cc. 
+    if test -z "$GCC"; then
+#      CFLAGS="$CFLAGS -std1 -warnprotos" # Not yet ready for warnprotos...
+      CFLAGS="$CFLAGS -std1"
+    fi
+    ;;
+  dnl SGI systems don't need -lnsl -lsocket
+  mips*-sgi-irix*)
+	networklibs="no"
+	;;
+  dnl linux systems don't appear to need -lnsl
+  *-linux-*)
+	networklibs="no"
+	;;
+  *)
+    ;;
+esac
+
+
+dnl Checks for programs.
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_CPP
+
+dnl Check for GTK >= 1.0.0.
+dnl The XLib client (without GTK) should use AC_PATH_X instead of this.
+
+dnl Simple hack - if we want standard x11 client, don't check for the gtk
+dnl libraries.  Then we fall through below
+
+if eval "test x$gtk = xyes"; then
+AM_PATH_GTK(1.0.0,CFGTK="yes",CFGTK="no")
+fi
+
+
+AC_SUBST(CFGTK)
+
+AC_PATH_XTRA
+
+if eval "test x$CFGTK = xyes"; then
+	AC_MSG_RESULT(GTK found - building both gtk and x11 client)
+	X_LIBS="$X_LIBS -lX11"
+	AC_SUBST(X_LIBS)
+	AC_SUBST(X_CFLAGS)
+	TARGET="cfclient"
+	echo Xlibs: $X_LIBS
+	echo Extras: $X_EXTRA_LIBS
+	echo Xpre: $X_PRE_LIBS
+	GTK_LIBS=$GTK_LIBS
+	GTK_CFLAGS="$GTK_CFLAGS"
+	AC_SUBST(GTK_LIBS)
+	AC_SUBST(GTK_CFLAGS)
+	CPPFLAGS="$CPPFLAGS $XPMINC"
+	TARGET="gcfclient cfclient"
+	dnl AC_DEFINE(GTK_CLIENT)
+else
+	AC_MSG_RESULT(GTK not found - building xlib client)
+	X_LIBS="$X_LIBS -lX11"
+	AC_SUBST(X_LIBS)
+	AC_SUBST(X_CFLAGS)
+	TARGET="cfclient"
+	CPPFLAGS="$CPPFLAGS $XPMINC"
+	echo Xlibs: $X_LIBS
+	echo Extras: $X_EXTRA_LIBS
+	echo Xpre: $X_PRE_LIBS
+fi
+
+LDFLAGS="$LDFLAGS $XPMLIB"
+
+AC_CHECK_LIB(asound, main, alsa_sound=yes, , -lm)
+AC_CHECK_LIB(audio, alNewConfig, sgi_sound=yes, )
+AC_CHECK_HEADER(sys/soundcard.h, oss_sound=yes, oss_sound=no)
+
+if eval "test x$alsa_sound = xyes"; then
+	echo "Using ALSA sound system"
+	CFLAGS="$CFLAGS -DALSA_SOUND"
+	SND_LIBS="-lasound -lm"
+else 
+    if eval "test x$sgi_sound = xyes"; then
+       echo "Using SGI sound system"
+       CFLAGS="$CFLAGS -DSGI_SOUND"
+       SND_LIBS="-laudio"
+  else
+    if eval "test x$oss_sound = xyes"; then
+	echo "Using OSS sound system"
+	CFLAGS="$CFLAGS -DOSS_SOUND"
+	SND_LIBS="-lm"
+    else
+	echo "No suitable sound system found - using old sound system"
+	new_sound=no
+    fi
+  fi
+fi
+
+if eval "test x$new_sound = xyes"; then
+	CFLAGS="$CFLAGS -DNEW_SOUND"
+	TARGET="$TARGET cfsndserv"
+fi
+
+
+AC_SUBST(GUI_OBJS)
+AC_SUBST(GUI_SRCS)
+AC_SUBST(SND_LIBS)
+AC_SUBST(LDFLAGS)
+AC_SUBST(TARGET)
+
+
+dnl The following hacks for modifying CFLAGS were borrowed from the GIMP.
+if test -n "$DEBUGFLAG"; then
+  CFLAGS="$DEBUGFLAG $CFLAGS"
+fi
+
+if eval "test x$GCC = xyes"; then
+  if echo "$CFLAGS" | grep "\-Wall" > /dev/null 2> /dev/null; then
+    CFLAGS="$CFLAGS"
+  else
+    CFLAGS="$CFLAGS -Wall"
+  fi
+
+  if eval "test x$enable_ansi = xyes"; then
+    if echo "$CFLAGS" | grep "\-ansi" > /dev/null 2> /dev/null; then
+      CFLAGS="$CFLAGS"
+    else
+      CFLAGS="$CFLAGS -ansi"
+    fi
+
+    if echo "$CFLAGS" | grep "\-pedantic" > /dev/null 2> /dev/null; then
+      CFLAGS="$CFLAGS"
+    else
+      CFLAGS="$CFLAGS -pedantic"
+    fi
+  fi
+fi
+
+
+dnl We need to check for socket/nsl here - some versions of the windowing
+dnl systems need these to properly link with X (I though AC_PATH_XTRA should
+dnl take care of this, but apparantly is doesnt).  IF it isn't here,
+dnl the check for xpm files, and configure quits.
+
+if eval "test x$networklibs = xyes"; then
+  AC_CHECK_LIB(nsl, main, LIBS="$LIBS -lnsl")
+  AC_CHECK_LIB(socket, main, LIBS="$LIBS -lsocket")
+fi
+
+dnl Save and modify CPPFLAGS and LIBS (to include X and GTK paths temporarily).
+gcfc_save_CPPFLAGS="$CPPFLAGS"
+gcfc_save_LIBS="$LIBS"
+CPPFLAGS="$GTK_CFLAGS $CPPFLAGS"
+LIBS="$LIBS $GTK_LIBS $X_LIBS"
+
+dnl Test for libXpm
+  if test -z "$LIBXPM_LIB"; then
+    AC_CHECK_LIB(Xpm, XpmReadFileToXpmImage,
+	 AC_DEFINE(HAVE_LIBXPM)
+	 AC_CHECK_HEADER(X11/xpm.h,
+		XPM='xpm'; LIBXPM_LIB='-lXpm',
+		AC_MSG_ERROR(XPM header file not found - you may need to use --with-xpm-inc=dir)),
+      AC_MSG_ERROR(XPM library not found - you may need to use --with-xpm-lib=dir), $X_LIBS)
+  fi
+
+dnl Restore previous CPPFLAGS and LIBS.
+CPPFLAGS="$gcfc_save_CPPFLAGS"
+LIBS="$gcfc_save_LIBS"
+
+AC_SUBST(LIBS)
+
+dnl not strictly needed, but since the X11 client uses it, lets use it here
+AC_CHECK_LIB(dmalloc, main)
+
+dnl sound.c needs sqrt
+AC_CHECK_LIB(m, sqrt)
+
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h string.h sys/select.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_HEADER_TIME
+
+dnl Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS(mkdir socket strcspn sysconf)
+
+AC_SUBST(XPM)
+AC_SUBST(SOUNDDIR)
+AC_SUBST(LIBXPM_LIB)
+
+AC_OUTPUT(Makefile)
+

@@ -1,0 +1,188 @@
+#
+# This file is parsed by the client and gets used for item orderings.
+# Order is how items will show in inventory (low numbers first).  The
+# is no requirement that the numbers are consecutive.  Max number allowed
+# is 254 (255 is reserved for unmatched items.
+#
+# Note entries are case sensitive. 
+# Note2:  Many entries have a trailing space (ie, 'ring ').  This is
+# intentional - this is so they match more closely (otherwise ring
+# matches things like stormbringer.
+# Note3:  When finding matches for items, the client starts with the
+# lowest number and works upward.  So if you want generic matches, it
+# is better to put them at a later number so more specific matches will
+# happen first.
+#
+# containers
+# Moved containers to the top - this is because of stuff like quiver of
+# arrows, but also more convenient
+#
+1:
+sack
+Luggage
+pouch
+quiver
+bag
+chest
+# Weapon types
+2:
+sword
+mace
+hammer
+Dragonslayer
+Demonslayer
+Trident
+Flame Tongue
+Lightning sticks
+Stormbringer
+dagger
+quarterstaff
+club
+axe
+magnifying glass
+spear
+morningstar
+taifu
+scimitar
+sabre
+3:
+bow
+crossbow
+sling
+arrow
+bolt
+boulder
+# armor
+10:
+mail
+leather
+robe
+shirt
+11:
+helmet
+12:
+shield
+13:
+boot
+glove
+gauntlet
+shoe
+14:
+girdle
+15:
+cloak
+16:
+bracer
+# food
+20:
+food
+waybread
+roast bird
+water
+booze
+cabbage
+carrot
+chocolate
+clover
+mint sprig
+bread
+cake
+fish
+steak
+apple
+potato
+30:
+ruby
+diamond
+pearl
+emerald
+sapphire
+31:
+coin
+# magic
+50:
+rod
+Rod
+51:
+wand
+staff
+52:
+horn
+53:
+amulet
+54:
+ring 
+a ring
+55:
+scroll
+56:
+grimore
+treatise
+manual
+tome
+spellbook
+57:
+lab book
+guidebook
+notebook
+formulary
+tables
+recipe book
+pamphlet
+lab notes
+handbook
+guide 
+cookbook
+59:
+potion
+61:
+balm 
+dust 
+# Item building scrolls
+63:
+Improve
+Lower Weapon
+Enchant Weapon
+Prepare Weapon
+Enchant Armor
+# Misc skill objects
+65:
+talisman
+writing pen
+lockpick
+67:
+key
+Key
+#
+# body parts
+#
+70:
+pixie dust
+claw
+ectoplasm
+corpse
+wing
+residue
+lich dust
+heart
+liver
+orc chop
+stinger
+beholdereye
+head
+hand
+foot
+# Misc alchemy items (minerals)
+71:
+dirt
+#
+80:
+flint and steel
+torch
+#
+# Misc stuff - just to prevent error messages
+#
+90:
+icecube
+Glowing Crystal
+library card

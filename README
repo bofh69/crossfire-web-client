@@ -1,0 +1,142 @@
+Install Steps:
+
+1)  type './configure' to configure for your OS/system.  Most options 
+    normally understood by configure should be available.
+    The configure script will try to make all the right decisions.  It will
+    search for the needed libraries and headers.   You may need to give
+    hints on the locations of some files (xpm library, gtk library).
+
+    If configure finds gtk libraries, it will bind the gcfclient in addition
+    to the cfclient.  If you don't want this (only cfclient), use the
+    --disable-gtk (there is no way to disable the cfclient at this time - 
+    if you are able to compile the gtk client, you also have all the tools for
+    for the cfclient).
+
+    The system will use the new sound system if available (this is a seperate
+    sound daemon).  If you want to use the builtin sound system, use
+    the --enable-old-sound.  See sound notes further down.
+
+2) Type 'make depend; make' to compile the client. If you get link errors,
+    it may be because you have an older version of the gtk libraries.  If
+    you get errors like 'can't find target client.c', your make program
+    isn't very good and use should get/use gnu make instead.
+
+3)  Type 'make install' to install the binaries.
+
+4)  The client can be run by typing 'cfclient' for the X11 version, gcfclient
+     for the gtk client.
+
+If you wish to generate the X11 client after generating the gtk client,
+you just need to re-run configure with the appropriate options, do
+a make clean, and then make.
+
+------------------------------------------------------------------------------
+Converting keybindings from old save files for use with the client:
+
+
+1) You will need to get a copy of your character file.
+
+2) Type  "mkdir ~/.crossfire".  This will automatically be done the first
+   time you run the client.
+
+3) Type awk 'BEGIN {ORS=" "} /^key / 
+	{for (i=2; i<=NF; i++) print $i;printf "\n"}'
+	 infile > ~/.crossfire/keys
+	(Note that this should all be entered on one line, but is broken up
+	here to be more readable.)  
+	'infile' is the name of the character file.
+
+Note that the client use global keybindings, and not per character.  This
+means that the same keybindings will be for all characters you play with the
+client.
+
+The gtk client and x11 client both use the same keybindings file.
+
+------------------------------------------------------------------------------
+Sound support:
+
+If you wnat sound support (only useful if you have a system that has good
+sound hardware), you will also need to get some sounds for the program.  If
+using the new sound system (seperate sound daemon), you need the raw sound
+files, otherwise you need the au sound files.
+
+ The sounds file determines what file is played for what sound.  The default
+location for the sound files is /usr/local/lib/sounds.  You can set this to
+another directory at the configure stage by using
+--with-sound-dir=/some/directory.  This file is only used for compiled in
+defaults.  If you have a ~/.crossfire/sounds file (some format), that file
+will be used instead of the built in defaults.
+
+If using ALSA, you probably want to use the new sound system.  If using
+OSS, the new sound system doesn't seem to play the sounds at the right pitch,
+so you probaly want to use the old sound system.  Use --enable-old-sound 
+to use the old sound system.
+
+
+New Sound Support:
+
+Sound can now be played by separate process invoked from crossfire client.
+The process - called sound server - adjusts sounds' volume according to
+relative position of player and sound source on map and mixes the sounds
+together, so many sounds can be played simultaneously.
+
+CONFIG FILE
+
+The config file ~/.crossfire/sndconfig contains some configurable settings. If
+there is no such file, one with default settings will be created.
+
+The file contains following fields:
+
+stereo:  	1 means stereo sound, 0 - mono
+
+bits: 		bitrate of generated sound - 8 or 16
+		16 means better quality, especially when more sounds
+		are to be played simultaneously, but takes more memory
+		
+signed: 	if we should sent signed data to the soundcard. 1 means yes.
+
+frequency:	speed of playing data. This should be 11025, or sound pitch
+		will change 
+		
+buffers: 	how many buffers to allocate
+buflen: 	how big the buffers should be. buffers*buflen shouldn't be
+                smaller than the longest sound to be played.
+		
+simultaneously: home many sound can be played at the same time. When this
+		setting is bigger, each sound volume will decrease.
+
+HOW DOES IT WORK?
+
+The sound server gets information about sounds to be played on standard input.
+The information is a line:
+<sound number> <sound type> <relative x> <relative y>
+All those numbers are hex.
+The file ~/.crossfire/sounds contains description of sound numbers and types.
+For example:
+3 0 5 0
+Means that normal sound SOUND_FUMBLE spell should be played as it's source was
+5 units to the right of player.
+
+Sounds are mixed in special buffers, which are in fact one buffer, which should
+be big enough for the biggest sound to be played.
+
+The buffers, if contain anything, are sent one by one to the sound device.
+Each buffer is cleaned after playing.
+
+Sounds data is multiplied by some ratio (<1) evaluated from it's position and
+volume and added to the buffers, starting from the next after the one being
+played. 
+
+So bigger buffer means bigger delay, before th sound is actually played, but
+the smaller buffer is, the bigger is possibility, we won't succeed filling the
+next buffer, before last is played.
+
+------------------------------------------------------------------------------
+Authors of the client:
+
+Mark Wedel (mark@pyramid.com) - general client source and Xlib client
+David Sundqvist (azzie@netpolicy.com) - GTK+ port
+Raphael Quinet (Raphael.Quinet@eed.ericsson.se) - Configure scripts and
+graphics
+Jacek Konieczny <jajcus@zeus.polsl.gliwice.pl> - New Sound System support.
+Eric Anderson did a lot of initial work on the client.

@@ -1,0 +1,230 @@
+.\"$Id$
+.TH cfclient "November 29, 1998"
+.SH NAME
+cfclient - X11 client program for crossfire servers.
+.br
+gcfclient - gtk client program for crossfire servers.
+.SH SYNOPSIS
+.B client [-server server] [-port number] [-display display] [-split|-nosplit]
+[-echo] [-pix|-xpm] [-showicon] [-scrollines number] [-sync] [-help]
+[-cache|-nocache]
+.SH DESCRIPTION
+.PP
+.I Cfclient/gcflient
+is an X11 program for connecting to crossfire servers.  Crossfire is a
+multiplayer graphical adventure game that mixes aspects of Gauntlet (TM),
+nethack, moria, and Ultima (TM).
+
+This man page describes options for the X11 client of crossfire
+(cfclient).  Many of these options should also be valid for the gtk
+version (gcfclient).  The configure/make process will build the
+gtk version if it finds the necessary libraries, otherwise it will
+build the X11 version.
+
+.SH OPTIONS
+.TP
+.B -server <server>
+Sets the server to play on.  If no option is given, it will default to
+localhost.  
+.TP
+.B -port <number>
+The port number of the server to connect to.  By default, it will use
+port 13327 (standard port).  However, certain servers may use other
+ports.
+.TP
+.B -display <display>
+The display to open the windows on.  If this option is not given, it
+will use the DISPLAY environmental variable to determine the display.
+.TP
+.B -split|-nosplit
+-split starts the windows up in split windows mode.  In split windows
+mode, 6 seperate windows are created - these individual windows can then
+be moved around and resized as desired.  -nosplit starts the game up with
+a single window - this is the default.  The option is useful if your
+saved defaults are set for -split (see Saved Defaults further down).
+
+.TP
+.B -echo
+Echo commands as they are entered.  Normally, commands bound to keys
+are just sent to the server without any echoing on the client of what
+that command actually was.  This option causes the commands to also be
+printed in the information window as they are sent to the server.
+
+.TP
+.B -pix|-xpm
+This determines the graphic image types to use.  -pix uses pixmap images -
+these are two color images with no masking (one image per space.).  -xpm
+uses XPM format images - these are multi colored images with masking,
+so multiple images per space can be displayed.  XPM images require
+more local processing power (unless you are on a very old machine, this
+should not be an issue), the installation of the XPM library, and also
+require more bandwidth to download (however, see the -cache option
+further down.)
+
+.TP
+.B -showicon
+This shows a little icon next to items in your inventory that contains
+a brief description of some of the item properties (magic, cursed,
+equipped, etc.)  This can make spotting some items easier, but some
+players may not like the extra space these icons take up or the
+
+.TP
+.B -scollines <lines>
+This is the number of lines to use in the information window.  By default,
+the size of the window is used (no scrollback ability).  With this
+option, a scrollbar will be created and it is then possible to scroll back
+through old messages.  It is strongly recommended you set this to some
+value, since some areas output more data than will fit in the output
+window at one time.
+
+.TP
+.B -sync
+Runs the server in synchronous display mode.  This option tends only to
+be useful in debugging purposes - using this will slow down the display
+and not gain anything for the typical player.
+
+.TP
+.B -help
+Prints out a brief description of the options to standard output.
+
+.TP
+.B -cache|-nocache
+Determines if the client will cache images for future runs.  With -nocache,
+when the server is about to referance an image that the client has
+yet to receive, it sends that image along to the client.  These downloaded
+images are discarded once the client exists.  With -cache, the server
+sends information about the image it is about to referance.  The client
+can then check its local cache (stored in ~/.crossfire/images) - if it
+has the image, it creates it off the disk.  If it does not have it,
+it requests it from the server and then stores it in its cache.  In the
+brief time between the request of the image and it actually receives it,
+that image will be represented by a ? in the map.
+
+-cache option is strongly recommended anytime when your link to the server
+is slower than home directory access - this is likely to be the case
+except in case of nfs mounted home directories on the server on the local
+lan.
+
+
+.SH SAVED DEFAULTS
+
+ Once you have logged into the server, you can enter extended commands
+by typing ' (apostrophe) followed by the extended commands.  One of these
+extended commands is savedefaults.  This will save the server, port,
+image type, split windows mode, scrolllines, showicon, and cache options into
+~/.crossfire/defaults.
+
+If you are using split windows mode, you can enter savewinpos
+as an extended command.  This will save the current window positions
+and sizes into ~/.crossfire/winpos.  Next time you run the server
+in split mode, it will load these values and resize and move the windows
+as specified.
+
+.SH PLAYING WITH THE CLIENT
+
+This is by far a complete tutorial of gameplay.  This section is to
+provide a basic introduction to logging in and doing a few very
+basic actions.
+
+The first thing that will happen after the client successfully connects
+to the server is you will be prompted for a name.  There are some
+restrictions to the name you can choose, but alphanumeric characters
+are all safe.
+
+After entering the name, you will then be prompted for a password.  When
+creating a new character, enter whatever you want your password to be.
+If you get a 'login incorrect' someone else already has that character
+name with a different password - try another name.  If no one has used
+that name, you will be prompted for the password again to confirm it.
+
+You now start the character creation process.  It is beyond the scope
+of the document to fully describe the pros and cons of different
+stats and classes.  The creation process has different options for
+swapping stats and choosing a class.
+
+Once you have chosen your class, you will be in the middle of a town.
+The arrow keys will move you in the various directions.  There will be
+a red building almost directly above you - this is the inn where you
+save your character.  There are some signs to your right.  To read
+them, move on top of them and press the 'a' key.  This applies the
+object below you - in the case of signs, it reads it.  In the case of
+buildings, it will cause you to enter the building.
+
+To the left of the signs is a small building - this is the beginner
+dungeon.  Enter it, and follow the directions on the signs.  It provides
+a pretty good tutorial on some of the basic actions and features of
+the game.
+
+To enter extended commands, type the ' (apostrophe) followed by the
+command.  An example would be 'help (apostrophe followed by the
+help command).  Enter command to execute the command.
+
+.SH USEFUL EXTENDED COMMANDS
+
+.TP
+.B savewinpos savedefaults
+These commands were described in the SAVED DEFAULTS options above.
+
+.TP
+.B scroll
+This toggles whether or the information windows scrolls when it gets to 
+the bottom of the window or wraps to the top.  Wrapping is slighly less
+cpu intensive, but is generally harder to read.
+
+.TP
+.B bind unbind
+bind is used to add new keybindings.  Do you want to be able to press
+one key to cast a fireball?  This is what the bind command does.
+'help bind gives much more detailed information.  Once a command
+is bound, it is stored in ~/.crossfire/keys and will be used in future
+plays.
+
+.SH FILES
+.TP
+.B ~/.crossfire
+This is a directory that is created that is used to store various
+files.
+.TP
+.B ~/.crossfire/defaults
+This contains default setttings.  This file can in theory be edited
+by hand - just be careful to keep the same case and whitespace.
+.TP
+.B ~/.crossfire/images
+This directory is used for the image cache if -cache is being used.
+.TP
+.B ~/.crossfire/keys
+This contains keybindings you have edited.  This file can also be
+theoretically edited - changing existing entries is much safer than
+trying to figure out the syntax for new entries.
+.TP
+.B ~/.crossfire/winpos
+Window positions and sizes to use in split window mode.  This file
+can also be edited by hand.
+
+.PP
+Please let me know about any bugs you find in the client.
+.SH AUTHOR
+Copyright (C) 1994,1996,1998 Mark Wedel (mark@pyramid.com)
+GTK port by David Sundqvist (azzie@netpolicy.com)
+
+There are a great many other contributors to both the client and server
+that are not mentioned here.
+
+.ft R
+.RE
+.LP
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+.\" The author can be reached via e-mail to frankj@ifi.uio.no.

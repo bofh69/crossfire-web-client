@@ -1,0 +1,100 @@
+#
+# Default keys
+#
+# <keysym> <keynro> <flags> <string>
+#
+# <keynro> will typically be the keycode for that key.  While
+# keysyms are defined to work across different servers, keycodes are
+# server/machine specific. Keycodes are only needed because some keyboards
+# (sun's type 5 for one) have keys with no corresponding keysym.
+# When loading, all keysyms are converted to keycodes for matching.
+#
+# flags:
+#   N - Normal mode
+#   F - Fire mode
+#   R - Run mode
+#   A - All modes
+#   E - Leave in line edit mode
+#
+#quotedbl 1 AE  
+quotedbl 1 AE say 
+period 1 N stay fire
+# nethack keys
+h 1 A west
+j 1 A south
+k 1 A north
+l 1 A east
+y 1 A northwest
+u 1 A northeast
+b 1 A southwest
+n 1 A southeast
+H 1 A west
+J 1 A south
+K 1 A north
+L 1 A east
+Y 1 A northwest
+U 1 A northeast
+B 1 A southwest
+N 1 A southeast
+# default cursorkeys
+Up 1 A north
+Down 1 A south
+Left 1 A west
+Right 1 A east
+# numpad
+Up 76 A north
+Down 120 A south
+Left 98 A west
+Right 100 A east
+KP_8 1 A north
+KP_2 1 A south
+KP_4 1 A west
+KP_6 1 A east
+KP_7 1 A northwest
+KP_9 1 A northeast
+KP_5 1 A stay
+KP_1 1 A southwest
+KP_3 1 A southeast
+# Sun type 4 keyboards will often have different key names.
+KP_Up 1 A north
+KP_Down 1 A south
+KP_Right 1 A east
+KP_Left 1 A west
+KP_Home 1 A northwest
+KP_Prior 1 A northeast
+#Unfortunately, there is no name for the middle key.
+#KP_5 1 A stay
+KP_End 1 A southwest
+KP_Next 1 A southeast
+F28 1 A north
+F34 1 A south
+F30 1 A west
+F32 1 A east
+F27 1 A northwest
+F29 1 A northeast
+F31 1 A stay
+F33 1 A southwest
+F35 1 A southeast
+#
+a 1 N apply
+A 1 N apply inventory
+a 1 RF apply
+A 1 RF apply
+d 1 N disarm
+e 1 N examine inventory
+E 1 N examine inventory
+e 1 RF examine
+E 1 RF examine
+s 1 A search
+S 1 A brace
+t 1 A ready_skill throw
+x 1 NF show
+comma 1 A take
+Tab 1 N rotatespells 1
+Tab 1 FR rotatespells -1
+question 1 A help
+KP_Add 1 A rotateshoottype
+KP_Subtract 1 A rotateshoottype -
+minus 1 N rotateshoottype -1
+plus 1 NF rotateshoottype
+at 1 A pickup

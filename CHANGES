@@ -1,0 +1,378 @@
+Changes for 0.95.3:
+
+Don't link in -lnsl -lsocket on sgi systems.  Don't link in -lnsl on
+linux systems.  This list probably needs to be expanded.
+
+Gracefully handle failures of the sound daemon for whatever reason (most
+likely because there is no good sound support).  Client should now
+detect write errors and just stop trying to write stuff to the sound
+daemon.
+
+Improve logic in cfsndserv when adding to the buffers.  Prior, it would
+actually skip over buffers, and logic on determine the amount of
+data was faulty if a short sound was played after a long song.
+
+Fix in cfsndserv.c so that it will read the device entry in the
+~.crossfire/sndconfig properly.
+
+Include sys/select.h if we have it in cfsndserv.c.  Some systems appear
+to need to for proper compilation of that file.  Also, #ifdef for checks
+already done to determine if we should include some includes or not.
+
+Status line should now show hp/sp/gr successfully when player has totals
+greater than 100 in those stats (From Timo Kokkonen)
+
+Option to have system beep when low on food - setable via foodbeep command.
+(From Timo Kokkonen)
+
+Better logic to prevent 'You can not issue commands - state is not ST_PLAYING'
+warning from Timo Kokkonen)
+
+Various non functional changes that should prevent warnings during
+compile (From Timo Kokkonen)
+
+Have client create the ~/.crossfire directory if needed prior to saving
+keys.
+
+Change client help command so it will not display client side help information
+if the user is requesting help on a specific command.
+
+Ability to specify location of sound files at the configure state with
+--with-sound-dir=/some/path
+
+Support for SGI sound system added by Paul Mikell, configure detection
+for sgi sound by Pertti Karppinen (both untested by me since I don't have
+an sgi handy)
+
+------------------------------------------------------------------------------
+Changes for 0.95.2:
+
+Improve item_actions so it can handle getting pashed null objects (just
+return then)
+
+In create_item, only add to an objects environment if we actually have
+an environment to add to.
+
+configure.in changes - special check for alpha systems.  Add configure
+option for new/old sound, and auto detection of alsa (hopefully - untested)
+Build both gcf and cfclient if possible.
+
+Improved Makefile.in - more dependancies and automatic defaults have
+rules.  Support for building both the gcfclient and cfclient with the same
+common object files.  Support for building in other directories.  Include
+aclocal.m4 file in distribution so autoconf can be re-run
+
+Improved fire/run handling.  Previously, due to the auto repeat of the
+x-server, numerous fire starts and stops would be continuously sent because
+the code would see a keypress and keyrelease events.  Logic changed to
+eliminate that constant sending - only send the actual run/fire stop if
+when all x-events have been processed, the specific key is no longer
+being pressed.  This also seems to improve interact performance when
+using run to move in the game.  This is only fixed in the X11 client -
+wasn't able to figure out where in the gtk client to call the functions
+after all events had been processed.
+
+Size of command window setable.  The command window is the number of commands
+the client will let go unanswered before it stops sending commands.
+This is setable with the 'cwindow' command, and will be saved into the
+defaults file so it stays constant across multiple runs.
+
+Fixes to work on black and white systems (cfclient, both pixmap and
+xpm)
+
+Change update_item function to update open/close containers if the
+flags change.
+
+Remove rotateinventory from default keybindings - no reason to keep
+it around, since it isn't used anymore.
+
+Increase buffer size used when reading in key bindings.
+
+Fix for x11.c to hopefully prevent FPE's - it seems that at times
+the players weapon speed could be zero, and dividing by that resulted
+in the Fpe.  If the players weapon speed is zero, then we just display
+0 as the speed.
+
+Remove instruction from README telling the player to copy the
+def_keys into their custom key file.  Not needed, and clutters up the
+unbind list quite a bit.
+
+Patches from Tero Kivinen:  Fix help files so that they do not
+have embedded new lines (under ansi C, strings can not span multiple
+lines unless continued with a \ - gcc lets this behaviour go through
+however).  Also, change to configure.in to add -std1 to cc on digital
+unix.
+
+Include aclocal.m4 in distribution so end users can remake configure.in
+
+Strip leading spaces when sending complex commands.  Parsing of complex
+commands made a bit cleaner (patch from Maciej Kalisiak)
+
+GTK changes by David Sundqvist:
+ 
+Compiles for both gtk+-1.0 and development gtk+-1.1.12 and onwards.
+
+Close button for open things in the look window added.
+
+Included various patches by Maciej Kalisiak for locking and marking in
+inventory, as well as coloring damned items too. Some cosmetic code
+cleanups by Charles Duffy. 
+
+Tearoff menus for development version of GTK.
+
+Some small tooltips. I'd like more, but gtk is picky about what widgets it
+accepts tooltips for.
+
+Some fixup for drop count. Not entirely sure how that should work to be
+practical.
+
+Menu choice to clear info window.
+
+Speedup for image creation in non-cached mode. 
+
+Main loop moved into gx11.c to allow both clients to be built at once.
+
+
+------------------------------------------------------------------------------
+Changes for 0.95.1:
+
+Add 'depend' directive to makefile.  remove 'includes.h' as a distributed
+file.
+
+-nosplit option added to x11 client.  Useful if you don't want split
+modes but your default file is set for it.
+
+resizing of main window in non split mode for x11 client supported.  The
+sub windows will try to be maintained in the same proportions.
+
+use autoconf to determine if we have sysconf instead of by system type.
+
+Check to see if the item has an environment before setting the
+inv_updated flag of that environment.  This should fix some crashes.
+
+Add #ifdef of SOUND_DEBUG so we don't get verbose notifications in the
+sound code unless we want them.
+
+Clear item attributes after the item has been freed.  When the items
+are first created, they are initialized to sane values, and many areas
+of the code expect that new item will be initialized properly.  This change
+seems to fix the problem with item names being incorrect (ie, "two" and
+the like).
+
+Expanded item_types file to be more complete.
+
+GTK changes by David Sundqvist:
+
+981127
+  Further GUI configuration (keybindings too, needs more work tho)
+  
+  XPM caching now implemented
+
+  Color text in info window (warning: this may trigger a bug in pre 1.0.5
+  gtk, but you can turn it off in the GUI config :) )
+
+  Menu reorganizations and additions
+
+981114
+
+ Split windows mode
+   For those who want new fun layouts. (still has some problems with focus
+   here)
+ Color coded inventory
+   Now you can see cursed and magic items in color coding.
+ Smart dialogs
+   It will actually try to figure out what options you have in dialogs.
+ Fix for inventory count
+   Now pressing 0-9 should update count.
+ Configuration dialog
+   GUI configuration for some options.
+
+
+------------------------------------------------------------------------------
+Changes for 0.94.4:
+
+Set receive socket buf to 64K.
+
+Added item type detection and sorting (prior, items basically appeared
+in the inventory in which they were sent.)  Ordering can be changed/extended-
+see item_types file.
+
+Incorporate gtk version 0.94.3auto into this release to have one common
+client source base.
+
+Support for complex keybindings (more than one command bound to the same
+key, seperated by semicolons)
+
+added -nocache command line option (default behaviour, but option needed
+if your defaults file is set to cache).
+
+When receiving new xpm image from server, create xpm data from the
+data provided instead of saving it to a file and creating it from the
+file.  This should be much faster.  If we are caching images, we still
+save the data to a file but use the buffer to create the image (this
+is the same thing that pixmap display does).  This is only true for
+the x11 client - I am not sure what the gtk client does.
+
+Added support in the client to understand the 'goodbye' command from
+the server.  This is to allow the client clean exits.  SC protocol
+updated for 1022 for this.  'goodbye' will be in the 0.95.0 server.
+
+------------------------------------------------------------------------------
+Changes for 0.94.3:
+
+Only print debugging output on runs if compiled with -DDEBUG option.  
+Most fprintf(stderr,...) changed to use the LOG call instead.
+
+Updated protocol version to 1021.  This is for the ncom and commc
+commands (command windowing).
+
+Support for the ncom and comc functions above added to client.   Client
+will now stop sending repeat commands at a certain point.
+
+README cleaned up - README now contains more of the first level type
+instructions, where README.old contains some of the older discussion
+and background notes.
+
+README now includes very good notes on extracting keybindings from save
+files for use with client.
+
+------------------------------------------------------------------------------
+Changes for 0.94.2:
+
+Change Version command to include 2 versions strings - version of 
+of C->S commands and version of S->C commands.  Allows for better handling
+when versions are mismatched.  Current versions for both set to 1020.
+Also, version command can now take an optional string describing
+the client and server (ie, X11 C client, or Java client, etc)
+
+Client query command now will handle multi line text fields (seperated
+by newlines) as sent in the query command.  Before, it was never explicity
+set that this should be done, and was never an issue because there
+never was multiple lines sent.  However, to make input handling on
+some clients easier, text describing what the query is for is not sent
+via drawinfo, but now sent via the query command.
+
+When user enters the help command, send any options along to the
+server (ie, send 'help asdf' to server.  Before, it only
+sent the help.
+
+Added ability to mark items similar to server.  'mark' command added
+to protocol.
+
+Bug fix when using commans bound with 'bind -e'.Prior, when hitting return
+to finish the command, it would not advance to a new line.  It now does.
+
+nrof and item name with nrof now properly updated in inventory window
+when server sends and update command (prior, the client internally know
+the correct nrof, but the item name in the window was not properly
+updated)
+
+Changed local showicons command to showicon instead.  The later is what it
+should have been in the first place.
+
+------------------------------------------------------------------------------
+Changes for 0.94.1:
+
+CS_STAT_WEIGHT_LIM added to stats command.  Client will store value, and print
+it at top of inventory window (carried weight/limit)
+
+Handling of dmalloc library in makefiles better done.
+
+Don't assume gcc on mips machines.
+
+Minor updates to protocol file (more accurate, no change in actual commands
+save for weight limit above)
+
+Only send fire start/stop commands if in play state.
+
+cleaned up overly verbose messages in sound.c (comment out).  Also, soundcard.h
+assumed to only exist on linux systems.
+
+------------------------------------------------------------------------------
+Changes for 0.94.0:
+
+Client will handle item1, upditem, face, sound, and anim commands from
+server (new commands)
+
+Client will now animate objects.
+
+Fully handles caching of images - should be a big speed improvement over
+slow links.
+
+Client now handles numbering of commands on its own (item1 will send
+nrof)
+
+Handling of locked items now also handled on client.
+
+Created misc.c file - handles things like strdup, and creation of directories.
+
+Client will now send lookat command to server.
+
+sound.c file added - handles playing of sounds.  This should work on
+most systems that have a /dev/audio which can play .au files.  On linux
+(open sound system), more sophisticated handling is added (stereo support
+and volume control).  soundsdef.h file added which contains default
+sound information. -nosound option added to disable sounds.
+
+Added inventory show options (ie, magical, nonmagical, etc) - equivalant
+of 'x' command on oldserver.
+
+Bug fix that would cause grace bar to always be drawn same color as
+sp bar.
+
+Print fire on/run on informatin in the message window.
+
+Add KEYF_STANDARD flag to keybindings, so when do an unbind, we can
+only show custom keybindings.
+
+Can now save window positions (in -split mode) accross runs.  Saved
+in ~/.crossfire/winpos
+
+Can now save standard defaults (sound, scrollboard, port, tec) in
+~/.crossfire/defaults
+
+Protocol file updated with new commands.
+
+Added some client side 'help command - shows commands the client
+handles locally.
+
+New local commands added: savewinpos, savedefaults, help, show.
+
+------------------------------------------------------------------------------
+Changes for 0.93.7:
+
+Fixed make proto directive to exclude inline functions in the proto.h
+file.
+
+Added support to using debug malloc library (dmalloc.)  Change Extra_Flags,
+LOCAL_LIBRARIES in the Imakefile to disable this.
+
+made update_item a non static function in item.c.  Also, no will probably
+find the player object for weight updates.
+
+Removed carrying field in the item structure.
+
+Fixed bugs in resizing the info window which would cause program to crash -
+left over problems from when the scrollbar was added.
+
+Can now drop a portion of a group of objects (ie, 50 of 100 arrows)
+
+------------------------------------------------------------------------------
+Changes for 0.93.6:
+
+Change the select loop to reset the timeout each time - looks like linux
+select resets this to zero (undocumented feature?)
+
+Use correct length in SendAddMe function.
+
+Started adding code for local face caching.
+
+Protocol file updated to be more accurate/complete.
+------------------------------------------------------------------------------
+Changes for 0.93.5:
+
+Added support for multi line input.
+------------------------------------------------------------------------------
+Changes of 0.92.2-a:
+
+Scrollback buffer for the info window added.
