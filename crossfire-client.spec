@@ -16,6 +16,7 @@ URL: http://crossfire.real-time.com
 Packager: Crossfire Development Team <crossfire-devel@lists.real-time.com>
 Source0: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/crossfire-client-%{version}.tar.gz
 Source1: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/crossfire-sounds-%{sndversion}.tar.gz
+Provides: crossfire-client
 BuildRoot: /var/tmp/%{Name}-%{extra}-%{version}-root
 
 %description
@@ -31,6 +32,7 @@ package.
 %package sounds
 Summary: Sound effects for the crossfire game
 Group: X11/Games
+Requires: crossfire-client
 
 %description sounds
 Sound effects for people who want sounds with their game.
@@ -38,6 +40,7 @@ Sound effects for people who want sounds with their game.
 %package gtk
 Summary: GTK client for %{Name}
 Group: X11/Games
+Provides: crossfire-client
 
 %description gtk
 GTK version of the crossfire client
@@ -46,6 +49,7 @@ GTK version of the crossfire client
 #%package gnome
 #Summary:gnome client for %{Name}
 #Group: X11/Games
+#Provides: crossfire-client
 #
 #%description gnome
 #gnome version of the crossfire client
@@ -125,6 +129,8 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{sndversion}-%{release}.%{_arch}.r
 - Rolled 1.1.0 client
 - NOTE Mark's new email address
 - Fixed typo in install target for x11 client.
+- Make all clients Provide: crossfire-client
+- Make sounds dependent on crossfire-client.
 
 * Sun Dec 30 2001 Mark Wedel <mwedel@sonic.net>
 - README: Update notes on needing png (and not xpm) library.  Update mailing 
