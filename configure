@@ -1289,7 +1289,7 @@ fi
 
 PACKAGE=gcfclient
 
-VERSION=1.2.0
+VERSION=1.2.1
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { { echo "$as_me:1295: error: source directory already configured; run \"make distclean\" there first" >&5

@@ -69,6 +69,7 @@ PIXMAPS = \
 	pixmaps/magic.xpm	\
 	pixmaps/nonmag.xpm	\
 	pixmaps/question.111	\
+	pixmaps/question.sdl	\
 	pixmaps/question.xpm	\
 	pixmaps/shield.png	\
 	pixmaps/skull.xpm	\

@@ -1,6 +1,13 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Changes for 1.2.1:
+Makefile.in: Add pixmaps/question.sdl to archive list.
+configure, configure.in: Update for 1.2.1 release.
+MSW 2002-04-28
+
 gtk/config.c: Allocate string data for want_faceset - data returned by
    gtk_entry_get_text is non persistent.  MSW 2002-04-28
 
