@@ -3,6 +3,12 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+Speed optimization to the SDL rendering code. sdl_add_png_face
+now exits when all 5 dark[] array values are set to full bright.
+gx11.c: Added a line in the per_pixel lighting section that exits
+        right away if all darkness values are set to 255.
+SMACFIGGEN 2001-06-23
+
 Quick fix to the get_metaserver function. It was originally calling
 gtk_main_interation() in a while loop. This is really really really
 slooooow. I replaced it with a call to gtk_main(). gtk_main_quit

@@ -6324,6 +6324,15 @@ int sdl_add_png_faces( int ax, int ay, int *faces, int num_faces, int dark[5])
     }
   else if( per_pixel_lighting) 
     {
+
+      /*
+       * If all darkness values are set to full bright, just exit here
+       */
+      if( ( dark[0] & dark[1] & dark[2] & dark[3] & dark[4] ) == 255 )
+        {
+          return 0;
+        }
+
       for( x= 0; x < 16; x++)
 	{
 	  darkx[x]= (dark[4]*(16-x) + dark[0]*x) / 16;
@@ -6638,7 +6647,6 @@ bail:
 	gen_draw_face(the_map.cells[ax][ay].faces[k], ax,ay);
     }
 }
-
 
 /* Do the map drawing */
 void display_map_doneupdate(int redraw)
