@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------
+Changes for 1.5.0:
+
 gtk/png.c, x11/png.c: Fix bug in rescale_rgba_data() that was potentially
     causing a 1 byte overrun of malloc'd data, that could result
     in crashes or other odd problems.

@@ -17,3 +17,21 @@ Have containers present number of objects/number of different objects in
 
 Add a damfactor display to the client (this would be weapon speed *
 damage of the weapon)
+
+Allow the seperation character for keybinding to be set to things other
+than semicolon - changes for this would really be to fix up the strtok
+in extended_command (common/player.c) to pass in the appropriate string,
+and some option in the config pane or someplace to change it - note that
+if it is changed by the player, then that function would have to go through
+all the keybindings updating the current set of complex keybindings for the
+new characters.  MSW 2003-02-19
+
+Have inventory/look/container display mechanism which only show icons and
+numbers, and not full names - in a sense, a much condensed view of things.
+
+Add a seperate container view (when one is open) in addition to the ground
+one, so it is easier to move things here and there (perhaps support drag and
+drop operations for this)
+
+Add a 'paper doll' display which shows what is equipped and where.
+
