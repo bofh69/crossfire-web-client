@@ -4,8 +4,9 @@ Changes for Win32 GTK client
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
 
-From version 1.7.0
-------------------
+Since version 1.7.0
+-------------------
+* fix a password issue which prevented entering player password
 * some memory leak fix
 * fix a crash if using 'script' command with no argument
 
