@@ -61,7 +61,7 @@ distclean::
 install:
 	$(INSTALL) -d ${bindir}
 	$(INSTALL) -d ${mandir}
-	$(INSTALL) cfclient ${bindir}/gcfclient
+	$(INSTALL) cfclient ${bindir}/cfclient
 	$(INSTALL) cfclient.man ${mandir}/cfclient.1
 
 depend:
