@@ -1,7 +1,5 @@
-/*
- * static char *rcsid_x11_c =
- *   "$Id$";
- */
+char *rcsid_x11_x11_c =
+    "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
 
@@ -3534,21 +3532,28 @@ void command_show (char *params)
     inv_list.env->inv_updated =1;
 }
 
-
-int main(int argc, char *argv[])
-{
-    int sound,got_one=0;
-    int i;
-/*
- * output some version informations on LOG.
- * usefull when reporting a bug.
- */
-
 /* Loads from ../ because headers have same name and are in include path
  * This prevents loading 2 times the same header.
  */
 #include "../common/rcs-id.h"
 #include "rcs-id.h"
+
+int main(int argc, char *argv[])
+{
+    int sound,got_one=0;
+    int i;
+
+#ifdef HAS_COMMON_RCSID
+    INIT_COMMON_RCSID;
+#endif
+#ifdef HAS_X11_RCSID
+    INIT_X11_RCSID;
+#endif
+/*
+ * output some version informations on LOG.
+ * usefull when reporting a bug.
+ */
+
 #ifdef HAS_COMMON_RCSID
     for (i=0;common_rcsid[i];i++)
         LOG(LOG_INFO,"Version::common","%s",common_rcsid[i]);

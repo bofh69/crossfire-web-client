@@ -1,7 +1,5 @@
-/*
- * static char *rcsid_keys_c =
- *   "$Id$";
- */
+char *rcsid_gtk_keys_c =
+    "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
 

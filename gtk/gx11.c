@@ -1,7 +1,5 @@
-/*
- * static char *rcsid_gx11_c =
- *   "$Id$";
- */
+char *rcsid_gtk_gx11_c =
+    "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
 
@@ -5848,17 +5846,29 @@ void gLogHandler (const gchar *log_domain, GLogLevelFlags log_level, const gchar
             LOG(level,LogOrigin,"Last Message was fatal, aborting...");
     recurse--;
 }
-int main(int argc, char *argv[])
-{
-    int got_one=0;
-    int i;
-#ifndef WIN32
+
+
 /* Loads from ../ because headers have same name and are in include path
  * This prevents loading 2 times the same header.
  */
 #include "../common/rcs-id.h"
 #include "rcs-id.h"
-/*output some version informations on LOG*/
+
+
+int main(int argc, char *argv[])
+{
+    int got_one=0;
+    int i;
+#ifdef HAS_COMMON_RCSID
+    INIT_COMMON_RCSID;
+#endif
+#ifdef HAS_GTK_RCSID
+    INIT_GTK_RCSID;
+#endif
+/*
+ * output some version informations on LOG
+ * Those will be useful for debugging.
+ */
 #ifdef HAS_COMMON_RCSID
     for (i=0;common_rcsid[i];i++)
         LOG(LOG_INFO,"Version::common","%s",common_rcsid[i]);
@@ -5866,7 +5876,6 @@ int main(int argc, char *argv[])
 #ifdef HAS_GTK_RCSID
     for (i=0;gtk_rcsid[i];i++)
         LOG(LOG_INFO,"Version::gtk   ","%s",gtk_rcsid[i]);
-#endif
 #endif
     g_log_set_handler (NULL,G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL|G_LOG_LEVEL_ERROR|
             G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_WARNING |G_LOG_LEVEL_MESSAGE|G_LOG_LEVEL_INFO|

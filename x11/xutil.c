@@ -1,7 +1,5 @@
-/*
- * static char *rcsid_xutil_c =
- *   "$Id$";
- */
+char *rcsid_x11_xutil_c =
+    "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
 
@@ -24,7 +22,7 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This contains varous 'support' functions.  These functions will probably
+/* This contains various 'support' functions.  These functions will probably
  * go mostly unaltered between different toolkits, as long as X11 is still
  * used. 
  */

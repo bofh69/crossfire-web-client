@@ -1,7 +1,5 @@
-/*
- * static char *rcsid_sound_c =
- *   "$Id$";
- */
+char *rcsid_gtk_sound_c =
+    "$Id$";
 
 /*
     CrossFire, A Multiplayer game for X-windows

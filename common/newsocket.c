@@ -1,7 +1,5 @@
-/*
- * static char *rcsid_newsocket_c =
- *   "$Id$";
- */
+char *rcsid_common_newsocket_c =
+    "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
 

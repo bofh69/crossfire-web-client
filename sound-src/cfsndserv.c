@@ -1,7 +1,5 @@
-/*
- * static char *rcsid_cfsndserv_c =
- *   "$Id$";
- */
+static char *rcsid_cfsndserv_c =
+    "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
 
@@ -373,6 +371,7 @@ int init_audio() {
   sample_size = (snd_pcm_format_physical_width(format) * channels);
   #ifdef SOUND_DEBUG
 	printf("init_audio(): sample_size = %d\n",sample_size);
+    fflush(stdout);
   #endif
 
  
@@ -547,10 +546,12 @@ int audio_play(int buffer,int off){
 #ifdef SOUND_DEBUG
     printf("audio play - writing starting at %d, %d bytes",
 	  settings.buflen*buffer+off,settings.buflen-off);
+    fflush(stdout);
 #endif
   wrote=write(soundfd,buffers+settings.buflen*buffer+off,settings.buflen-off);
 #ifdef SOUND_DEBUG
     printf("...wrote %d bytes\n", wrote);
+    fflush(stdout);
 #endif
   return wrote;
 }
@@ -697,10 +698,12 @@ int audio_play(int buffer,int off){
 #ifdef SOUND_DEBUG
     printf("audio play - writing starting at %d, %d bytes",
 	  settings.buflen*buffer+off,settings.buflen-off);
+    fflush(stdout);
 #endif
   wrote=write(soundfd,buffers+settings.buflen*buffer+off,settings.buflen-off);
 #ifdef SOUND_DEBUG
     printf("...wrote %d bytes\n", wrote);
+    fflush(stdout);
 #endif
   return wrote;
 }
@@ -888,6 +891,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
         diff=1;
 #ifdef SOUND_DEBUG    
       printf("diff: %f\n",diff);
+      fflush(stdout);
 #endif
       if (x<0) right_ratio*=diff;
       else left_ratio*=diff;
@@ -968,6 +972,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
       int wrote = audio_play(current_buffer, sndbuf_pos);
 #ifdef SOUND_DEBUG
       printf("play_sound(): wrote %d\n",wrote);
+      fflush(stdout);
 #endif
       if (wrote < settings.buflen-sndbuf_pos) sndbuf_pos+=wrote;
       else{ 
@@ -1082,6 +1087,8 @@ int main(int argc, char *argv[])
 #endif
     fd_set inset,outset;
 
+    printf ("%s\n",rcsid_cfsndserv_c);
+    fflush(stdout);
     if (read_settings()) write_settings();
     if (init_sounds()) return 1;
 #ifndef ALSA9_SOUND

@@ -1,7 +1,5 @@
-/*
- * static char *rcsid_metaserver_c =
- *   "$Id$";
- */
+char *rcsid_common_metaserver_c =
+    "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
 

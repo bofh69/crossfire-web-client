@@ -28,7 +28,8 @@ HEADERS= \
 	item-types.h		\
         newclient.h		\
 	proto.h			\
-	script.h	
+	script.h	\
+	rcs-id.h
 
 SOURCES = \
 	client.c		\
@@ -52,7 +53,7 @@ EXTRA_DIST = \
 	items.pl		\
 	Makefile.in
 
-all: def-keys.h rcs-id.h item-types.h libcfclient.a
+all: def-keys.h item-types.h libcfclient.a
 
 libcfclient.a: $(OBJECTS)
 	$(RM) -f $@
@@ -69,15 +70,7 @@ item-types.h: item-types
 def-keys.h: def-keys
 	utils/mdk.sh
 
-rcs-id.h: $(SOURCES)
-	@echo "Generating rcs-id.h"
-	@echo '/* Do not edit, generated file*/' > rcs-id.h
-	@echo '#define HAS_COMMON_RCSID' >> rcs-id.h
-	@echo 'char* common_rcsid[]={' >> rcs-id.h
-	@echo '"     rcs-id generated' `date` '",' >> rcs-id.h
-	@for i in  $(SOURCES); do A='"';A=$${A}`ident $$i | grep '\$$Id.*\$$' | head -n 1`; A=$${A}'",' ;echo "$$A" >> rcs-id.h; done
-	@echo 'NULL};' >> rcs-id.h
-.c.o: rcs-id.h
+.c.o:
 	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
 
 
@@ -87,7 +80,6 @@ archive:
 
 clean::
 	$(RM) -f $(OBJECTS)
-	$(RM) -f rcs-id.h
 
 distclean::
 	$(MAKE) clean

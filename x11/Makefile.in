@@ -25,6 +25,7 @@ HEADERS= \
 	clientbmap.h		\
 	x11.h			\
 	x11proto.h		\
+	rsc-id.h
 
 SOURCES = \
 	png.c			\
@@ -41,20 +42,11 @@ EXTRA_DIST = \
 
 all:  cfclient
 
-cfclient: rcs-id.h ../common/rcs-id.h $(OBJECTS) ../common/libcfclient.a
+cfclient: $(OBJECTS) ../common/libcfclient.a
 	$(CC) -o cfclient $(OBJECTS) $(LDFLAGS) $(LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
 
-.c.o: ./rcs-id.h ../common/rcs-id.h
+.c.o:
 	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
-
-rcs-id.h: $(SOURCES)
-	@echo "Generating rcs-id.h"
-	@echo '/* Do not edit, generated file*/' > rcs-id.h
-	@echo '#define HAS_X11_RCSID' >> rcs-id.h
-	@echo 'char* x11_rcsid[]={' >> rcs-id.h
-	@echo '"     rcs-id generated' `date` '",' >> rcs-id.h
-	@for i in  $(SOURCES); do A='"';A=$${A}`ident $$i | grep '\$$Id.*\$$' | head -n 1`; A=$${A}'",' ;echo "$$A" >> rcs-id.h; done
-	@echo 'NULL};' >> rcs-id.h
 
 archive:
 	$(MKDIR) /tmp/$(VERSION)/x11
@@ -62,7 +54,6 @@ archive:
 
 clean::
 	$(RM) -f $(OBJECTS) Makefile.bak
-	$(RM) -f rcs-id.h
 
 distclean::
 	$(MAKE) clean
