@@ -78,7 +78,7 @@ extern Animations animations[MAXANIM];
 typedef struct Smooths {
     uint8  received:1;
     uint16 smoothid;
-    uint16  faces[8];
+    uint16  face;
 } Smooths;
 
 extern Smooths smooths[MAXSMOOTH];

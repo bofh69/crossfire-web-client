@@ -348,7 +348,7 @@ void init_common_cache_data()
 void requestsmooth (int pnum){
     cs_print_string (csocket.fd, "asksmooth %d",pnum);
 }
-int getsmooth (int face, int weight){
+int getsmooth (int face){
     int i;
     if (smoothused<1){
         smooths[0].smoothid=face;
@@ -360,7 +360,7 @@ int getsmooth (int face, int weight){
     for (i=0;i<smoothused;i++){
         if (smooths[i].smoothid==face){
             if (smooths[i].received)
-                return smooths[i].faces[weight];
+                return smooths[i].face;
             else{
                 return -1;
             }

@@ -113,7 +113,7 @@ struct CmdMapping commands[] = {
     { "version", (CmdProc)VersionCmd },
     { "goodbye", (CmdProc)GoodbyeCmd },
     { "setup", (CmdProc)SetupCmd},
-    { "ExtendedInfoSet", ExtendedInfoSetCmd},
+    { "ExtendedInfoSet", (CmdProc)ExtendedInfoSetCmd},
 
     { "query", (CmdProc)handle_query},
     { "replyinfo", (CmdProc)ReplyInfoCmd},

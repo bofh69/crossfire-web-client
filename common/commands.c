@@ -303,7 +303,7 @@ void SetupCmd(char *buf, int len)
              * Should regroup everything for easyness
              */
             if (use_config[CONFIG_SMOOTH]){
-                cs_print_string(csocket.fd,"toggleextendedinfos smoothing");
+                cs_print_string(csocket.fd,"toggleextendedinfos smooth");
             }    
         }
     }
@@ -387,26 +387,16 @@ Smooths smooths[MAXSMOOTH];
 int smoothused=0;
 void SmoothCmd(unsigned char *data, int len){
     uint16 faceid;
-    uint16 smoothing[8];
+    uint16 smoothing;
     static int dx[8]={0,1,1,1,0,-1,-1,-1};
-    static int dy[8]={-1,-1,0,1,1,1,0,-1};
-    char* buf;
+    static int dy[8]={-1,-1,0,1,1,1,0,-1};  
     int i,j,x,y,layer;
     int mx,my;
     display_map_startupdate();
     if (smoothused>=MAXSMOOTH) /*no place to put*/
         return;
-    faceid=atoi(data);
-    buf=data;
-    for (i=0;i<8;i++){
-        buf = strchr(buf, ' ');
-        if (!buf) {
-            fprintf(stderr,"SmoothCmd - can't have smooth picture %d\n",i);
-            return;
-        }
-        else buf++;
-        smoothing[i]=atoi (buf);
-    }
+    faceid=GetShort_String(data);
+    smoothing=GetShort_String(data+2);
     for (i=0;i<smoothused;i++){
         if (smooths[i].smoothid==faceid)
             break;
@@ -415,14 +405,7 @@ void SmoothCmd(unsigned char *data, int len){
         smoothused++;
     smooths[i].smoothid=faceid;
     smooths[i].received=1;
-    smooths[i].faces[0]=smoothing[0];
-    smooths[i].faces[1]=smoothing[1];
-    smooths[i].faces[2]=smoothing[2];
-    smooths[i].faces[3]=smoothing[3];
-    smooths[i].faces[4]=smoothing[4];
-    smooths[i].faces[5]=smoothing[5];
-    smooths[i].faces[6]=smoothing[6];
-    smooths[i].faces[7]=smoothing[7];
+    smooths[i].face=smoothing;    
     /*update the map where needed*/
     for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
     for( y= 0; y<use_config[CONFIG_MAPHEIGHT]; y++){
@@ -1086,6 +1069,10 @@ static void map1_common(unsigned char *data, int len, int rev)
 	for (layer=NUM_LAYERS; layer>=0; layer--) {
 	    if (mask & (1 << layer)) {
 		face = GetShort_String(data+pos); pos +=2;
+        if ( (face<0) || (face>10000)){
+            printf ("BUG: face %d for %dx%d at layer %d\n",face,x,y,NUM_LAYERS - layer);
+            printf ("     mask was %2X\n",mask);
+        }
 		set_map_face(x, y, NUM_LAYERS - layer, face);
 	    }
 	}
@@ -1161,7 +1148,6 @@ int ExtSmooth(unsigned char* data,int len,int x,int y,int layer){
             continue;
         the_map.cells[x][y].need_resmooth=1;            
     }
-    //the_map.cells[x][y].need_resmooth = 1; 
     the_map.cells[x][y].smooth[layer]=GetChar_String(data);
     return 1;/*Cause smooth infos only use 1 byte*/
 }
@@ -1206,18 +1192,25 @@ void MapExtendedCmd(unsigned char *data, int len){
                 if (pos+entrysize>len)/*erroneous packet*/
                     break;
                 startpackentry=pos;
+                /* If you had extended infos to the server, this
+                 * is where, in the client, you may add your code
+                 */
                 if (hassmooth)
                     pos=pos+ExtSmooth(data+pos,len-pos,x,y,NUM_LAYERS - layer);
-                /* continue with other if when you add new extended 
-                 * infos to server*/
+                /* continue with other if you add new extended 
+                 * infos to server
+                 */
+                 
                 /* Now point to the next data */
                 pos=startpackentry+entrysize; 
                 
             }
         }
 	}
-    if (!noredraw)        
+    if (!noredraw){        
         display_map_doneupdate(FALSE);
+        mapupdatesent=0;
+    }
 }
 
 

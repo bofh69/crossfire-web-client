@@ -396,38 +396,7 @@ void reset_map_data()
     }
 }
 
-/* This draws the map using GdkPixmaps/GdkBitmaps.  It is based off of sdl_gen_map.
- * We draw on a GdkPixmap drawable (mapwindow), which we then copy to the 
- * visible area on the screen.  Doing this reduces flickering that otherwise happen
- * if we draw directly to the window.
- * The performance of this function seems to be very good - presumably because
- * most of this data is stored in the x-server in a format native to it.  Also,
- * per pixel manipulations are not done - either the entire pixel is copied,
- * or it is not, no blending is done.  This means that true alpha blending
- * is not supported, but nothing uses that now anyways.
- */
-GdkBitmap *createpartialmask (GdkBitmap* mask,int x, int y, 
-                              int width, int height,
-                              int maskwidth, int maskheight){
-    GdkBitmap *newmask;
-    GdkGC *newgc;
-    GdkColor  scolor;
-    scolor.pixel=0;
-    newmask=gdk_pixmap_new (mapwindow,maskwidth,maskheight,1);
-    newgc=gdk_gc_new(newmask);
-    gdk_gc_set_foreground(newgc, &scolor);    
-    gdk_gc_set_function(newgc,GDK_COPY);
-    gdk_draw_rectangle (newmask,newgc,TRUE,0,0,maskwidth,maskheight);
-    scolor.pixel=1;
-    gdk_gc_set_foreground(newgc, &scolor);
-    gdk_draw_rectangle (newmask,newgc,TRUE,x,y,width,height);
-    gdk_gc_set_function(newgc,GDK_AND);
-    if (mask)
-        gdk_draw_pixmap (newmask, newgc,mask,
-             0,0,0,0,map_image_size,map_image_size);
-    gdk_gc_destroy(newgc);
-return newmask;         
-}
+         
 /* Draw anything in adjacent squares that could smooth on given square
  * mx,my square to smooth on. you should not call this function to
  * smooth on a 'completly black' square.
@@ -437,27 +406,29 @@ return newmask;
 void drawsmooth (int mx,int my,int layer,int picx,int picy){
     static int dx[8]={0,1,1,1,0,-1,-1,-1};
     static int dy[8]={-1,-1,0,1,1,1,0,-1};
-    static int weights[8]={1,2,4,2,1,2,4,2};
-    static int part[12]={6,7,0,0,1,2,2,3,4,4,5,6};
-    static int maskx[4]={0,1,1,0};
-    static int masky[4]={0,0,1,1};
-    int partdone[12]={0,0,0,0,0,0,0,0,0,0,0,0};
+    static int bweights[8]={2,0,4,0,8,0,1,0};
+    static int cweights[8]={0,2,0,4,0,8,0,1};
+    static int bc_exclude[8]={
+                 1+2,/*north exclude northwest (bit0) and northeast(bit1)*/
+                 0,
+                 2+4,/*east exclude northeast and southeast*/
+                 0,
+                 4+8,/*and so on*/
+                 0,
+                 8+1,
+                 0
+                };
+    int partdone[8]={0,0,0,0,0,0,0,0};
     int slevels[8];
     int sfaces[8];
-    int i,highest,weight;
+    int i,lowest,weight,weightC;
     int emx,emy;
     int smoothface;
-    int posi;
     int dosmooth=0;
-    GdkBitmap* mask;
-    /*collect faces and smoothlevels*/
-    //printf ("\n---startup (%d,%d,%d)---\n",mx,my,layer);
     for (i=0;i<8;i++){
         emx=mx+dx[i];
         emy=my+dy[i];
-        //printf ("smoothlevel is %d,%d,%d: %d\n",emx,emy,layer,the_map.cells[emx][emy].smooth[layer]);
         if ( (emx<0) || (emy<0) || (the_map.x<=emx) || (the_map.y<=emy)){
-            /*printf ("error: smooth outside of map :(\n");*/
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         }
@@ -466,83 +437,80 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             sfaces[i]=0; /*black picture*/
         }else{      
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
-            sfaces[i]=the_map.cells[emx][emy].heads[layer].face; 
-            /*printf ("found smooth of %d\n",slevels[i]);
-            printf ("head the_map.cells[%d][%d] is %d\n",emx,emy,the_map.cells[emx][emy].heads[layer].face);
-            printf ("tail the_map.cells[%d][%d] is %d\n",emx,emy,the_map.cells[emx][emy].tails[layer].face);*/
+            sfaces[i]=getsmooth(the_map.cells[emx][emy].heads[layer].face); 
             dosmooth=1;
         }                    
     }
     /* ok, now we have a list of smoothlevel higher than current square.
      * there are at most 8 different levels. so... let's check 8 times
-     * for the highest one.
-     * _______
-     * | 0| 1|
-     * |--+--|
-     * | 3| 2|
-     * -------
-     */ 
-     /*if (dosmooth)
-         printf ("%3d %3d %3d\n%3d     %3d\n%3d %3d %3d\n",
-            slevels[7],slevels[0],slevels[1],
-            slevels[6],           slevels[2],
-            slevels[5],slevels[4],slevels[3]);*/
-    for (posi=0;posi<4;posi++){/*foreachsubsquare*/
-      //for (posi=3;posi==3;posi++){
-        /*if (dosmooth)
-            printf ("posi: %d\n",posi);*/
-        highest=-1;
-        while (1){
-            highest = -1;
-            for (i=0;i<3;i++){
-                if ( (slevels[part[posi*3+i]]>0) && (!partdone[posi*3+i]) &&
-                    ((highest<0) || (slevels[part[posi*3+i]]>slevels[highest]))
-                   )
-                        highest=part[posi*3+i];    
+     * for the lowest one (we draw from botto to top!).
+     */
+    lowest=-1;
+    while (1){
+        lowest = -1;
+        for (i=0;i<8;i++){
+            if ( (slevels[i]>0) && (!partdone[i]) &&
+                ((lowest<0) || (slevels[i]<slevels[lowest]))
+               )
+                    lowest=i;    
+        }
+        if (lowest<0)
+            break;   /*no more smooth to do on this square*/
+        /*printf ("hey, must smooth something...%d\n",sfaces[lowest]);*/
+        /*here we know 'what' to smooth*/
+        /* we need to calculate the weight
+         * for border and weight for corners.
+         * then we 'markdone' 
+         * the corresponding squares
+         */
+        /*first, the border, which may exclude some corners*/
+        weight=0;
+        weightC=15; /*works in backward. remove where there is nothing*/
+        /*for (i=0;i<8;i++)
+            cornermask[i]=1;*/
+        for (i=0;i<8;i++){ /*check all nearby squares*/
+            if ( (slevels[i]==slevels[lowest]) &&
+                 (sfaces[i]==sfaces[lowest])){
+                partdone[i]=1;
+                weight=weight+bweights[i];
+                weightC&=~bc_exclude[i];
+            }else{
+                /*must rmove the weight of a corner if not in smoothing*/
+                weightC&=~cweights[i];
             }
-            if (highest<0)
-                break;   /*no more smooth to do on this part*/
-            /*printf ("hey, must smooth something...%d\n",sfaces[highest]);*/
-            /*here we know 'what' to smooth*/
-            /* we need to calculate the weight and 'markdone' 
-             * the corresponding squares*/
-            weight=0;
-            for (i=0;i<3;i++){ /*check all nearby squares*/
-                if ( (slevels[part[posi*3+i]]==slevels[highest]) &&
-                     (sfaces[part[posi*3+i]]==sfaces[highest])){
-                    partdone[posi*3+i]=1;
-                    weight=weight+weights[part[posi*3+i]];
-                }
-                
-            }
-            if (weight>=8)
-                printf ("Alerte! un poids trop fort de %d\n",weight);
-            if (sfaces[highest]<=0)
-                continue;  /*Can't smooth black*/
-            smoothface=getsmooth(sfaces[highest],weight);
-            if (smoothface<=0){
-                continue;  /*picture for smoothing not yet available*/
-            }
-            if ( (!pixmaps[smoothface]->map_image) ||
-                 (pixmaps[smoothface] == pixmaps[0]))
-                continue;   /*don't have the picture associated*/
-            /* ok i have the face to use for 'smoothing'
-             * now let's create the mask according to this face and
-             * the square subregion we are in then.. let's draw and hope*/
-             mask=createpartialmask (pixmaps[smoothface]->map_mask,
-                 maskx[posi]*map_image_size/2, masky[posi]*map_image_size/2, 
-                 map_image_size/2, map_image_size/2,
-                 map_image_size, map_image_size);
-             gdk_gc_set_clip_mask (mapgc, mask);
-             gdk_gc_set_clip_origin(mapgc, picx,picy);
-             gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
-				    0, 0, picx, picy,map_image_size, map_image_size);
-             if (mask)
-                gdk_pixmap_unref(mask);
-			
             
-        }/*while there's some smooth to do*/
-    } /*end for each subsquare*/    
+        }
+        /*We can't do this before since we need the partdone to be adjusted*/
+        if (sfaces[lowest]<=0)
+            continue;  /*Can't smooth black*/
+        smoothface=sfaces[lowest];
+        if (smoothface<=0){
+            continue;  /*picture for smoothing not yet available*/
+        }
+        /* now, it's quite easy. We must draw using a 32x32 part of
+         * the picture smoothface. 
+         * This part is located using the 2 weights calculated: 
+         * (32*weight,0) and (32*weightC,32)
+         */
+        if ( (!pixmaps[smoothface]->map_image) ||
+             (pixmaps[smoothface] == pixmaps[0]))
+            continue;   /*don't have the picture associated*/
+        gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
+         
+        gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weight,picy);
+        gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
+	        map_image_size*weight, 0, picx, picy,
+            map_image_size, map_image_size);
+            gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
+            
+        gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
+        gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weightC,picy-map_image_size);
+        gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
+		  map_image_size*weightC, map_image_size, picx, picy,
+          map_image_size, map_image_size);
+		
+            
+    }/*while there's some smooth to do*/
 }
 void gtk_draw_map(int redraw) {
     int mx,my, layer,x,y, src_x, src_y;
@@ -561,7 +529,7 @@ void gtk_draw_map(int redraw) {
 	    my = y + pl_pos.y;
 
 	    /* Don't need to touch this space */
-	    //if (!redraw && !the_map.cells[mx][my].need_update && !map_did_scroll) continue;
+	    /*if (!redraw && !the_map.cells[mx][my].need_update && !map_did_scroll) continue;*/
 
 	    /* First, we need to black out this space. */
 	    gdk_draw_rectangle(mapwindow, drawingarea->style->black_gc, TRUE, x * map_image_size, y * map_image_size, map_image_size, map_image_size);

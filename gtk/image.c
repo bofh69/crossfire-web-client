@@ -415,7 +415,7 @@ void get_map_image_size(int face, uint8 *w, uint8 *h)
      * is 33 wide, we want that to register as two spaces.  By
      * adding 31, that works out.
      */
-    if (face == 0) {
+    if ( (face <= 0) || (!pixmaps[face]) ) {
 	*w = 1;
 	*h = 1;
     } else {

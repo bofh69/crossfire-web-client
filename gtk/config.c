@@ -94,7 +94,7 @@
  * options, 200-299 is for the resistance options, etc.
  */
 
-#define MAX_BUTTONS	    34
+#define MAX_BUTTONS	    35
 #define RBUTTON	    1
 #define CBUTTON	    2
 #define SEPERATOR   3	    /* Seperator in the window */

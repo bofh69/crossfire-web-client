@@ -34,7 +34,7 @@ extern void MagicMapCmd(unsigned char *data, int len);
 /* image.c */
 extern void init_common_cache_data(void);
 extern void requestsmooth(int pnum);
-extern int getsmooth(int face, int weight);
+extern int getsmooth(int face);
 extern void requestface(int pnum, char *facename);
 extern void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int faceset);
 extern void reset_image_cache_data(void);

@@ -1,6 +1,10 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+common and gtk:
+   Client understand the smoothing protocol and the gtk client is
+   able to draw the smoothing information.
+Tchize 2003-07-08
 
 gtk/gx11.c: Change skill experience display - instead of skill
    name and exp/level being the same string and same table element,
