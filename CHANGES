@@ -3,6 +3,15 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+Add reset_map_function into xutil.c that gets called after we lose a 
+connection to the server.  This fixes a problem of some leftover images
+from the previous session appearing in the map windows.  MSW 2001-08-12
+client.c: add call to reset_map_data
+proto.h: rebuilt
+xutil.c: Add reset_map_function (mostly a copy of reset_map), make some
+   other functions 'static' so they don't show up in proto.h
+
+
 Fog of war code checkin. This is a fairly complex check in so
 hopefully not too much breaks. This adds the feature where
 tiles that have been seen but have since moved out of LOS 

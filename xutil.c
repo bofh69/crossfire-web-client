@@ -1848,7 +1848,7 @@ PlayerPosition pl_pos;
  * the_map.cells to the_map->cells...
  * The returned map memory is zero'ed.
  */
-void allocate_map( struct Map* new_map, int ax, int ay)
+static void allocate_map( struct Map* new_map, int ax, int ay)
 {
 
   int i= 0;
@@ -2117,7 +2117,7 @@ void display_map_addbelow(long x,long y,long face)
  * the side of the virtual map on the next scroll
  * Only used for fog of war code
  */
-int need_recenter_map( int dx, int dy)
+static int need_recenter_map( int dx, int dy)
 {
     
     if( pl_pos.x + dx + mapx >= the_map.x ||
@@ -2138,7 +2138,7 @@ int need_recenter_map( int dx, int dy)
  * state in memory as possible
  * If view is already close to center it won't move it
  */
-void recenter_virtual_map_view( struct Map *map)
+static void recenter_virtual_map_view( struct Map *map)
 {
     static struct Map tmpmap;
     struct MapCell **tmpcells;
@@ -2418,3 +2418,42 @@ void display_mapscroll(int dx,int dy)
 }
 
 
+
+/*
+ * Clears all map data - this is only called when we have lost our connection
+ * to a server - this way bogus data won't be around when we connect
+ * to the new server
+ */
+void reset_map_data()
+{
+    if( fog_of_war == TRUE)
+    {
+	int x= 0;
+	int y= 0;
+	pl_pos.x= the_map.x/2;
+	pl_pos.y= the_map.y/2;
+	memset( the_map.cells[0], 0, 
+		sizeof( struct MapCell) * the_map.x * the_map.y);
+	for( x= pl_pos.x; x < (pl_pos.x + mapx); x++) 
+	{
+	    for( y= pl_pos.y; y < (pl_pos.y + mapy); y++)
+	    {
+		the_map.cells[x][y].need_update= 1;
+	    }
+	}
+    }
+    else
+    {
+	int x= 0;
+	int y= 0;
+	memset( the_map.cells[0], 0, 
+		sizeof( struct MapCell) * the_map.x * the_map.y);
+	for( x= 0; x < mapx; x++)
+	{
+	    for( y= 0; y < mapy; y++)
+	    {
+		the_map.cells[x][y].need_update= 1;
+	    }
+	}
+    }
+}

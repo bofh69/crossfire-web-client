@@ -331,6 +331,7 @@ int main(int argc, char *argv[])
 	 * we still use locate.
 	 */
 	remove_item_inventory(locate_item(0));
+	reset_map_data();
     }
     exit(0);	/* never reached */
 }
