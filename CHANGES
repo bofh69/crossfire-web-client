@@ -5,6 +5,7 @@ Top of CVS tree:
 Those fixes are all Win32-specific, except the last one on keys.c
 common/commands.c: Use correct Win32 function for closing socket.
 common/image.c: Added missing headers, use correct mkdir syntax.
+   Change a call to 'read', to be on the safe side.
 common/misc.c: Added missing headers, use correct mkdir syntax, stub
    functions not yet ported.
 common/player.c: Use correct Win32 function for closing socket.

@@ -122,11 +122,15 @@ static int load_image(char *filename, uint8 *data, int *len, int *csum)
     }
     else {
 #ifdef WIN32
+    int length = 0;
 	if ((fd=open(filename, O_RDONLY | O_BINARY))==-1) return -1;
+    length = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_CUR);
+    *len=read(fd, data, length);
 #else
 	if ((fd=open(filename, O_RDONLY))==-1) return -1;
-#endif
 	*len=read(fd, data, 65535);
+#endif
 	close(fd);
     }
 
