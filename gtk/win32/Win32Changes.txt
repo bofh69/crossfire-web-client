@@ -4,6 +4,11 @@ Changes for Win32 GTK client
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
 
+From version 1.7.0
+------------------
+* some memory leak fix
+* fix a crash if using 'script' command with no argument
+
 From version 1.6.1 to version 1.7.0
 -----------------------------------
 * sound support is back, but no sound files yet
