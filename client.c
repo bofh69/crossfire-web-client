@@ -27,7 +27,7 @@ int port_num=EPORT, meta_port=META_PORT, want_skill_exp=0, mapx=11, mapy=11,
     want_mapx=11, want_mapy=11;
 FILE *fpin,*fpout;
 int fdin, fdout, basenrofpixmaps, pending_images=0,maxfiledescriptor,
-	pending_archs=0,maxfd;
+	pending_archs=0,maxfd,map1cmd=0,metaserver_on=METASERVER;
 Client_Player cpl;
 ClientSocket csocket;
 

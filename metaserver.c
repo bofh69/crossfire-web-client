@@ -81,6 +81,11 @@ int metaserver_get_info(char *metaserver, int meta_port)
     FILE *fp;
     char    inbuf[MS_LARGE_BUF*4];
 
+    if (!metaserver_on) {
+	meta_numservers=0;
+	return 0;
+    }
+
     protox = getprotobyname("tcp");
     if (protox == (struct protoent  *) NULL)
     {

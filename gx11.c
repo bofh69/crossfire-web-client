@@ -418,11 +418,23 @@ FILE *fcache;
 
 int misses=0,total=0;
 
-/* Size of image */
-/* Pixels representing entire viewable screen.  This amounts to about 3 mb */
+/* BPP is byte per pixels we use for drawing to the screen.
+ * In my testing, the overall drawing time took pretty close
+ * to the same.  BPP 4 saved some time on the generation
+ * (able to do full byte copies), but that was lost on the 
+ * actual putting of the image to the screen.  Given its a 
+ * wash, might as well use 3 BPP - if nothing else, that saves
+ * memory.
+ */
+#define BPP	3
 
-#define SCREEN_SIZE MAP_MAX_SIZE * MAP_MAX_SIZE*32*32*3
-static guchar screen[SCREEN_SIZE], map_did_scroll=0;
+/* Pixels representing entire viewable screen.  This amounts to about <BPP> mb */
+
+#define SCREEN_SIZE MAP_MAX_SIZE * MAP_MAX_SIZE*32*32*BPP
+static uint8 screen[SCREEN_SIZE];
+
+
+static guchar map_did_scroll=0;
 
 #include "xutil.c"
 
@@ -4714,9 +4726,15 @@ void create_windows() {
     gtk_paned_add1 (GTK_PANED (stat_info_hpane), stat_game_vpane);
     
     /* game - statbars */
-    
-    game_bar_vpane = gtk_vpaned_new ();
-    gtk_paned_add2 (GTK_PANED (stat_game_vpane), game_bar_vpane);
+    if (want_mapx>15) {
+	bigmap=TRUE;
+
+	game_bar_vpane = gtk_hpaned_new ();
+	gtk_paned_add1 (GTK_PANED (stat_game_vpane), game_bar_vpane);
+    } else {
+	game_bar_vpane = gtk_vpaned_new ();
+	gtk_paned_add2 (GTK_PANED (stat_game_vpane), game_bar_vpane);
+    }
     
     
     /* Statbars frame */
@@ -4734,7 +4752,10 @@ void create_windows() {
     gtk_frame_set_shadow_type (GTK_FRAME(gameframe), GTK_SHADOW_ETCHED_IN);
     gtk_widget_set_usize (gameframe, (image_size*mapx)+6, (image_size*mapy)+6);
 
-    gtk_paned_add1 (GTK_PANED (game_bar_vpane), gameframe);
+    if (bigmap)
+	gtk_paned_add2 (GTK_PANED (stat_game_vpane), gameframe);
+    else
+	gtk_paned_add1 (GTK_PANED (game_bar_vpane), gameframe);
     
     get_game_display (gameframe);
     
@@ -4743,8 +4764,11 @@ void create_windows() {
     /* stats frame */
     stat_frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(stat_frame), GTK_SHADOW_ETCHED_IN);
-/*    gtk_widget_set_usize (stat_frame, (image_size*mapx)+6,  (image_size*mapy)+6);*/
-    gtk_paned_add1 (GTK_PANED (stat_game_vpane), stat_frame);
+    if (bigmap)
+	gtk_paned_add1 (GTK_PANED (game_bar_vpane), stat_frame);
+    else
+	gtk_paned_add1 (GTK_PANED (stat_game_vpane), stat_frame);
+
     get_stats_display (stat_frame);
     
     gtk_widget_show (stat_frame);
@@ -5594,7 +5618,7 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-mapsize")) {
-	    char *cp, x, y;
+	    char *cp, x, y=0;
 	    if (++on_arg == argc) {
 		fprintf(stderr,"-mapsize requires a XxY value\n");
 		return 1;
@@ -5608,9 +5632,9 @@ int init_windows(int argc, char **argv)
 	    } else {
 		y = atoi(cp+1);
 	    }
-	    if (x<=9 || y<=9) {
+	    if (x<9 || y<9) {
 		fprintf(stderr,"map size must be positive values of at least 9\n");
-	    } if (x>MAP_MAX_SIZE || y>MAP_MAX_SIZE) {
+	    } else if (x>MAP_MAX_SIZE || y>MAP_MAX_SIZE) {
 		fprintf(stderr,"Map size can not be larger than %d x %d \n", MAP_MAX_SIZE, MAP_MAX_SIZE);
 
 	    } else {
@@ -5755,7 +5779,8 @@ static void gen_draw_face(int face,int x,int y)
 #endif
     gdk_gc_set_clip_mask (mapgc, pixmaps[facecachemap[face]].gdkmask);
     gdk_gc_set_clip_origin (mapgc, image_size*x, image_size*y);
-    gdk_window_copy_area (drawingarea->window, mapgc, image_size*x, image_size*y, pixmaps[facecachemap[face]].gdkpixmap,0,0,image_size,image_size);
+    gdk_window_copy_area (drawingarea->window, mapgc, image_size*x, image_size*y, 
+			  pixmaps[facecachemap[face]].gdkpixmap,0,0,image_size,image_size);
 }
 
 
@@ -5782,9 +5807,9 @@ static void gen_draw_face(int face,int x,int y)
  * for the entire screen.  That is the 'screen' value above.
  */
 
-int add_png_face_one(int ax, int ay, int *faces, int num_faces, int dark[5]) 
+int add_png_faces(int ax, int ay, int *faces, int num_faces, int dark[5]) 
 {
-    int x,y, a, darkness ,pos=0, on_face,darkx[32], darky, screen_pos;
+    int x,y, a, darkness ,pos=0, on_face,darkx[32], darky, screen_pos, rowy;
 
     /* If we don't have png_data, can't proceed further */
     for (on_face=0; on_face < num_faces; on_face ++ ) {
@@ -5795,20 +5820,28 @@ int add_png_face_one(int ax, int ay, int *faces, int num_faces, int dark[5])
 	}
     }
 
-    /* Precompute these values to save some time */
-    for (x=0; x<16; x++)
-	darkx[x] = (dark[4]*(16-x) + dark[0]*x) / 16;
-    for (x=16; x<32; x++)
-	darkx[x] = (dark[0]*(32-x) + dark[2]*(x-16))/ 16;
-
     /* just black out some area */
     if (!num_faces) {
 	for (y=0; y<image_size; y++)  {
-	    screen_pos = ax*96 + (ay * image_size +y) * image_size * 3 * mapx;
-	    memset(screen + screen_pos, 0, image_size*3);
+	    screen_pos = ax*32 * BPP + (ay * image_size +y) * image_size * BPP * mapx;
+	    memset(screen + screen_pos, 0, image_size*BPP);
 	}
 	return 0;
     }
+
+    /* interpolative darkness - we look at this space, surrounding 
+     * spaces, and their darkness value to come up with one
+     * While there are only 5 values, we reduce the complexity by
+     * only have dark[0]* image_size once instead of dark[0] * image_size/2
+     * for both x and y 
+     */
+
+    /* Precompute these values to save some time */
+    for (x=0; x<16; x++)
+	darkx[x] = (dark[4]*((image_size/2)-x) + dark[0]*x) / (image_size/2);
+    for (x=16; x<32; x++)
+	darkx[x] = (dark[0]*(image_size-x) + dark[2]*(x-(image_size/2)))/ (image_size/2);
+
 
     for (y=0; y<image_size; y++) {
 	if (y<16)
@@ -5816,30 +5849,32 @@ int add_png_face_one(int ax, int ay, int *faces, int num_faces, int dark[5])
 	else
 	    darky = (dark[0]*(image_size-y) + dark[3]*(y-(image_size/2)))/(image_size/2);
 
+	rowy = (ay * image_size +y) * image_size * BPP * mapx;
+
 	for (x=0; x<image_size; x++) {
 	    int on_face = 0, semi=0;
 
 	    /* each 'row' is 96 * MAX_MAP_SIZE (96 is 32 for images size * 3 bytes/pixel). */
 
-	    screen_pos = x*3 + ax*image_size * 3 + (ay * image_size +y) * image_size * 3 * mapx;
+	    screen_pos = rowy + (x + ax*image_size) * BPP;
+#if 0
 	    if (screen_pos > SCREEN_SIZE) {
-		fprintf(stderr,"screen_pos out of range: %d > %d\n", screen_pos, MAP_MAX_SIZE * MAP_MAX_SIZE*image_size*image_size*3);
+		fprintf(stderr,"screen_pos out of range: %d > %d\n", screen_pos, SCREEN_SIZE);
 		abort();
 	    }
-
 	    /* make default be black */
 	    screen[screen_pos] =0;
 	    screen[screen_pos+1] =0;
 	    screen[screen_pos+2] =0;
+#endif
 
-	    /* interpolative darkness - we look at this space, surrounding 
-	     * spaces, and their darkness value to come up with one
-	     * While there are only 5 values, we reduce the complexity by
-	     * only have dark[0]* image_size once instead of dark[0] * image_size/2
-	     * for both x and y 
+	    /* This actually isn't perfect, but does an OK job given
+	     * the amount of information provided.  A better method probably
+	     * would be to do a darkx^2 + darky^2 and take the sqrt of the
+	     * entire thing, and use 255 to mean totally dark and 0 to
+	     * be fully bright.  But this starts to get pretty costly.
 	     */
-
-	    darkness = (darkx[x] + darky) / 2;
+	    darkness = (darkx[x] + darky)  >> 1 ;
 
 	    /* what I do here is try to minimize the processing of the
 	     * face data - only copy/adjust what we need.
@@ -5852,14 +5887,24 @@ int add_png_face_one(int ax, int ay, int *faces, int num_faces, int dark[5])
 		if (a == 255) {
 		    if (darkness == 255) {
 			/* Fully opaque - copy the data over, and break from on_face processing loop */
+#if BPP == 4
+			int *ipos = &screen[screen_pos];
+
+			*(int*)(&screen[screen_pos]) = *((int*)(pixmaps[faces[on_face]].png_data+pos));
+
+#else
 			screen[screen_pos] = pixmaps[faces[on_face]].png_data[pos];
 			screen[screen_pos + 1] = pixmaps[faces[on_face]].png_data[pos+1];
 			screen[screen_pos + 2] = pixmaps[faces[on_face]].png_data[pos+2];
+#endif
 		    } else {
-			/* Fully opaque - copy the data over, and break from on_face processing loop */
-			screen[screen_pos] = pixmaps[faces[on_face]].png_data[pos] * darkness / 255;
-			screen[screen_pos + 1] = pixmaps[faces[on_face]].png_data[pos+1] * darkness / 255;
-			screen[screen_pos + 2] = pixmaps[faces[on_face]].png_data[pos+2] * darkness / 255;
+			/*
+			 * shift by 8 instead of dividing by 255 - not quite as accurate, but close
+			 * enough and should save some cpu time.
+			 */
+			screen[screen_pos] = pixmaps[faces[on_face]].png_data[pos] * darkness >> 8;
+			screen[screen_pos + 1] = pixmaps[faces[on_face]].png_data[pos+1] * darkness >> 8;
+			screen[screen_pos + 2] = pixmaps[faces[on_face]].png_data[pos+2] * darkness >> 8;
 		    }
 		    break;
 		}
@@ -5874,20 +5919,20 @@ int add_png_face_one(int ax, int ay, int *faces, int num_faces, int dark[5])
 		    a = pixmaps[faces[on_face]].png_data[pos+3];
 		    if (a!=0 && a!=255) { /* must be the semi transparent image */
 			if (darkness == 255) { 
-			    screen[screen_pos] = (pixmaps[faces[on_face]].png_data[pos] * a  / 255)
-				+ ((screen[screen_pos] * (255-a))/255);
-			    screen[screen_pos + 1] = (pixmaps[faces[on_face]].png_data[pos+1] * a / 255) 
-				+ ((screen[screen_pos+1] * (255-a))/255);
-			    screen[screen_pos + 2] = (pixmaps[faces[on_face]].png_data[pos+2] * a / 255) 
-				+ ((screen[screen_pos+2] * (255-a))/255);
+			    screen[screen_pos] = (pixmaps[faces[on_face]].png_data[pos] * a + 
+				+ (screen[screen_pos] * (255-a)) ) >> 8;
+			    screen[screen_pos + 1] = (pixmaps[faces[on_face]].png_data[pos+1] * a +
+				+ (screen[screen_pos+1] * (255-a)) ) >> 8;
+			    screen[screen_pos + 2] = (pixmaps[faces[on_face]].png_data[pos+2] * a +
+				+ (screen[screen_pos+2] * (255-a)) ) >> 8;
 
 			} else {
-			    screen[screen_pos] = ((pixmaps[faces[on_face]].png_data[pos] * darkness / 255) * a / 255) 
-				+ ((screen[screen_pos] * (255-a))/255);
-			    screen[screen_pos + 1] = ((pixmaps[faces[on_face]].png_data[pos+1] * darkness / 255) * a / 255) 
-				+ ((screen[screen_pos+1] * (255-a))/255);
-			    screen[screen_pos + 2] = ((pixmaps[faces[on_face]].png_data[pos+2] * darkness / 255) * a / 255) 
-				+ ((screen[screen_pos+2] * (255-a))/255);
+			    screen[screen_pos] = (pixmaps[faces[on_face]].png_data[pos] * darkness * a >> 16)
+				+ ((screen[screen_pos] * (255-a)) >> 8);
+			    screen[screen_pos + 1] = (pixmaps[faces[on_face]].png_data[pos+1] * darkness * a >> 16) 
+				+ ((screen[screen_pos+1] * (255-a)) >> 8);
+			    screen[screen_pos + 2] = (pixmaps[faces[on_face]].png_data[pos+2] * darkness * a >> 16) 
+				+ ((screen[screen_pos+2] * (255-a)) >> 8);
 			}
 			semi--;
 			if (semi == 0) break;	/* processed all the semi transparent images */
@@ -5909,25 +5954,26 @@ void display_mapcell_pixmap(int ax,int ay)
     if (display_mode == Png_Display && pngximage) {
 
 	num_faces=0;
-	if (mapx > 15 || mapy > 15) {
+	if (map1cmd) {
 	    for(k=the_map.cells[ax][ay].count-1;k>-1;k--) {
 		if (the_map.cells[ax][ay].faces[k] >0 )
 		    faces[num_faces++] = the_map.cells[ax][ay].faces[k];
 	    }
-	    /* inverse the values here - thats a bit easeer than having
-	     * add_png_face do so */
+	    /* inverse the values here - thats a bit easier than having
+	     * add_png_face do so.  Also, even if the space in question
+	     * has */
 	    darkness[0] = 255 - the_map.cells[ax][ay].darkness;
 
-	    if (ay-1 < 0 || the_map.cells[ax][ay-1].count==0) darkness[1] = darkness[0];
+	    if (ay-1 < 0 || !the_map.cells[ax][ay-1].have_darkness) darkness[1] = darkness[0];
 	    else darkness[1] = 255 - the_map.cells[ax][ay-1].darkness;
 
-	    if (ax+1 >= mapx || the_map.cells[ax+1][ay].count==0 ) darkness[2] = darkness[0];
+	    if (ax+1 >= mapx || !the_map.cells[ax+1][ay].have_darkness) darkness[2] = darkness[0];
 	    else darkness[2] = 255 - the_map.cells[ax+1][ay].darkness;
 
-	    if (ay+1 >= mapy || the_map.cells[ax][ay+1].count==0) darkness[3] = darkness[0];
+	    if (ay+1 >= mapy || !the_map.cells[ax][ay+1].have_darkness) darkness[3] = darkness[0];
 	    else darkness[3] = 255 - the_map.cells[ax][ay+1].darkness;
 
-	    if (ax-1 < 0 || the_map.cells[ax-1][ay].count==0) darkness[4] = darkness[0];
+	    if (ax-1 < 0 || !the_map.cells[ax-1][ay].have_darkness) darkness[4] = darkness[0];
 	    else darkness[4] = 255 - the_map.cells[ax-1][ay].darkness;
 
 	} else {
@@ -5937,11 +5983,17 @@ void display_mapcell_pixmap(int ax,int ay)
 	    /* old mode doesn't have darkness, so just set to full bright */
 	    darkness[0]=255;darkness[1]=255;darkness[2]=255;darkness[3]=255;darkness[4]=255;
 	}
-	if (add_png_face_one(ax,ay, faces, num_faces,darkness)) goto bail;
+	if (add_png_faces(ax,ay, faces, num_faces,darkness)) goto bail;
 	return;
     }
 
 bail:
+#if 0
+    /* commenting this out eliminates flickering you will otherwise see.
+     * The problem is that if there are any maps that still don't have
+     * floors, this probably won't draw objects on top properly.
+     * but I don't think there are any maps like that anymore.
+     */
     gdk_draw_rectangle (drawingarea->window,
 		      drawingarea->style->mid_gc[0],
 		      TRUE,
@@ -5949,8 +6001,9 @@ bail:
 		      image_size*ay,
 		      image_size,
 		      image_size);
+#endif
 
-    if (mapx > 15 || mapy > 15) {
+    if (map1cmd) {
 	for(k=0; k<the_map.cells[ax][ay].count;k++) {
 	    /* 0 and -1 are empty faces - don't draw */
 	    if (the_map.cells[ax][ay].faces[k] >0 ) {
@@ -6023,9 +6076,15 @@ void display_map_doneupdate(int redraw)
 	     * screen.
 	     */
 	    if (map_did_scroll || redraw || need_updates > (mapx * mapy / 4)) {
+#if BPP == 4
+		gdk_draw_rgb_32_image(drawingarea->window,mapgc,
+			   0, 0, mapx * image_size, mapy * image_size,
+			   GDK_RGB_DITHER_NONE, screen, mapx * image_size * BPP);
+#else
 		gdk_draw_rgb_image(drawingarea->window,mapgc,
 			   0, 0, mapx * image_size, mapy * image_size,
-			   GDK_RGB_DITHER_NONE, screen, mapx * image_size * 3);
+			   GDK_RGB_DITHER_NONE, screen, mapx * image_size * BPP);
+#endif
 		draw_each_space=0;
 	    }
 	    /* Even if we put the entire image to the screen, we still need to clear
@@ -6034,11 +6093,17 @@ void display_map_doneupdate(int redraw)
 	    for(ax=0;ax<mapx;ax++) {
 		for(ay=0;ay<mapy;ay++) { 
 		    if (draw_each_space && the_map.cells[ax][ay].need_update) {
-			/* 3072 is 32 * 32 * 3 */
+#if BPP == 4
+			gdk_draw_rgb_32_image(drawingarea->window,mapgc,
+			   ax * image_size, ay * image_size, image_size, image_size,
+			   GDK_RGB_DITHER_NONE, screen + ax * 32 *BPP + ay * 1024 * BPP * mapx,
+					   mapx * image_size * BPP);
+#else
 			gdk_draw_rgb_image(drawingarea->window,mapgc,
 			   ax * image_size, ay * image_size, image_size, image_size,
-			   GDK_RGB_DITHER_NONE, screen + ax * 96 + ay * 3072 * mapx,
-					   mapx * image_size * 3);
+			   GDK_RGB_DITHER_NONE, screen + ax * 32 * BPP + ay * 1024 * BPP * mapx,
+					   mapx * image_size * BPP);
+#endif
 
 		    }
 		    the_map.cells[ax][ay].need_update=0;
@@ -6047,8 +6112,12 @@ void display_map_doneupdate(int redraw)
 	    map_did_scroll=0;
 	}
     } /* if updatelock */
-
 #ifdef TIME_MAP_REDRAW
+    /* this else branches fro the if updatelock above - without it
+     * tv2 is uninitialized.
+     */
+    else
+	gettimeofday(&tv2, NULL);
     gettimeofday(&tv3, NULL);
     elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
     elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);

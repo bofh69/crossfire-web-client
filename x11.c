@@ -2688,7 +2688,7 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-mapsize")) {
-	    char *cp, x, y;
+	    char *cp, x, y=0;
 
 	    if (++on_arg == argc) {
 		fprintf(stderr,"-mapsize requires a XxY value\n");
@@ -2864,7 +2864,7 @@ void display_mapcell_pixmap(int ax,int ay)
     int k;
     XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
 
-    if (mapx > 15 || mapy>15) {
+    if (map1cmd) {
 	for (k=0; k<the_map.cells[ax][ay].count; k++) {
 	    if (the_map.cells[ax][ay].faces[k] >0 ) {
 		gen_draw_face(xpm_pixmap, the_map.cells[ax][ay].faces[k], 0, 0);

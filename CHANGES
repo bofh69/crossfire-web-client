@@ -3,6 +3,45 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree
 
+The main thing this fixes is a major memory corruption problem when using
+-pngximage with the client.  Better darkness display is also when
+using -pngximage, but it depends on a server change (the change basically
+lets the client do blending from completely dark spaces.
+++
+cconfig.h: add METASERVER define option which determines if client should
+   try to contact metaserver or not (useful to turn off if behind a firewall
+   so you don't have to wait for the timeout)
+client.c: add metaserver_on, map1cmd to global variables
+commands.c: divide by mapy value instead of 11 when using old map
+   command - needed if playing with smaller maps.  set map1cmd
+   value on/off depending on type of map command we receive from server.
+gx11.c: Add BPP define for internal testing to see if using 4 bytes/pixel
+   gives any speed of 3 (answer is performance is the same or slightly
+   worse with 4bpp).  when run with mapsize with x>15, create windows
+   with bigmap outlook (message & stats above map, and not above/below).
+   Fix bug in -mapsize processing which would set invalid sizes.
+   Various cleanups to use image_size instead of 32.  Changes in
+   drawing to also use BPP define value instead of 3 is various
+   areas.  Optimizations for darkness rendering.  Use map1cmd global
+   variable to know the packing form instead of looking at map size.
+   Improved darkness handling to know if adjoining spaces have valid 
+   darkness information instead of looking at number of tiles.
+metaserver.c: if metaserver_on isn't set, don't try to get metaserver
+   information.
+png.c: remove end_ptr processing - wasn't getting used, so not allocating/
+   freeing it should improve performance a little.  Also, move
+   png_set_filler call to before calling png_read_update_info - this
+   fixes a memory corruption problem.
+x11.c: use map1cmd for determine packing information in map,
+   fix bug in -mapsize command processing which could result in invalid
+   values being used.
+xutil.c: add have_darkness value to mapcell structure.  Set
+   value when we have valid darkness information for this space.  This
+   allows the client to use darkness for blocked spaces if the server
+   provides it.  update to use BPP instead of 3 for copies of image
+   data.
+MSW 2001-06-12
+
 This is actually a fairly big checkin:
 1) add large map support into the client (use -mapsize option)
 2) using GdkRgb structure for drawing the map.  This prevents some more

@@ -69,7 +69,7 @@ char *png_to_data(char *data, int len)
 
     unsigned long width, height;
     png_structp	png_ptr;
-    png_infop	info_ptr, end_info;
+    png_infop	info_ptr;
     int bit_depth, color_type, interlace_type, compression_type, filter_type, y;
 
     data_len=len;
@@ -88,13 +88,8 @@ char *png_to_data(char *data, int len)
 	png_destroy_read_struct (&png_ptr, NULL, NULL);
 	return NULL;
     }
-    end_info = png_create_info_struct (png_ptr);
-    if (!end_info) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-	return NULL;
-    }
     if (setjmp (png_ptr->jmpbuf)) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	return NULL;
     }
 
@@ -149,23 +144,20 @@ char *png_to_data(char *data, int len)
                 png_set_interlace_handling(png_ptr);
     }
 
+    /* pad it to 4 bytes to make processing easier */
+    if (!(color_type & PNG_COLOR_MASK_ALPHA))
+	png_set_filler(png_ptr, 255, PNG_FILLER_AFTER);
+
     /* Update the info the reflect our transformations */
     png_read_update_info(png_ptr, info_ptr);
     /* re-read due to transformations just made */
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
 		 &color_type, &interlace_type, &compression_type, &filter_type);
 
-    /* pad it to 4 bytes to make processing easier */
-    if (!(color_type & PNG_COLOR_MASK_ALPHA))
-	png_set_filler(png_ptr, 255, PNG_FILLER_AFTER);
-
-    /* Allocate the memory we need once, and increase it if necessary.
-     * This is more efficient the allocating this block of memory every time.
-     */
     pixels = (char*)malloc(width * height * 4);
 
     if (!pixels) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	fprintf(stderr,"Out of memory - exiting\n");
 	exit(1);
     }
@@ -179,20 +171,15 @@ char *png_to_data(char *data, int len)
 	rows_byte=height;
     }
     if (!rows) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	return NULL;
-    }
-
-    if (!rows) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
-	fprintf(stderr,"Out of memory - exiting\n");
-	exit(1);
     }
 
     for (y=0; y<height; y++) 
 	rows[y] = pixels + y * width * 4;
 
     png_read_image(png_ptr, rows);
+    png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 
     return pixels;
 }
@@ -209,7 +196,7 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
     static png_bytepp	rows=NULL;
     unsigned long width, height;
     png_structp	png_ptr;
-    png_infop	info_ptr, end_info;
+    png_infop	info_ptr;
     int bit_depth, color_type, interlace_type, compression_type, filter_type,
 	bpp, x,y,has_alpha=0,i,alpha;
     GdkColor  scolor;
@@ -231,13 +218,8 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
 	png_destroy_read_struct (&png_ptr, NULL, NULL);
 	return PNGX_OUTOFMEM;
     }
-    end_info = png_create_info_struct (png_ptr);
-    if (!end_info) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-	return PNGX_OUTOFMEM;
-    }
     if (setjmp (png_ptr->jmpbuf)) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	png_destroy_read_struct (&png_ptr, &info_ptr,NULL);
 	return PNGX_DATA;
     }
 
@@ -310,11 +292,16 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
 	pixels = (char*)malloc(pixels_byte);
     } else if ((width * height * bpp) > pixels_byte) {
 	pixels_byte =width * height * bpp;
-	pixels=realloc(pixels, pixels_byte);
+	/* Doing a free/malloc is probably more efficient -
+	 * we don't care about the old data in this
+	 * buffer.
+	 */
+	free(pixels);
+	pixels= (char*)malloc(pixels_byte);
     }
 
     if (!pixels) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	pixels_byte=0;
 	return PNGX_OUTOFMEM;
     }
@@ -326,7 +313,7 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
 	rows_byte=height;
     }
     if (!rows) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	pixels_byte=0;
 	return PNGX_OUTOFMEM;
     }
@@ -379,7 +366,7 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
 	}
     }
     gdk_draw_rgb_image(*pix, gc,  0, 0, 32, 32, GDK_RGB_DITHER_NONE, rgb, 32*3);
-    png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+    png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
     if (has_alpha)
 	gdk_gc_destroy(gc_alpha);
     gdk_gc_destroy(gc);
@@ -572,10 +559,10 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, int len,
     static png_bytepp	rows=NULL;
     
     png_structp	png_ptr=NULL;
-    png_infop	info_ptr=NULL, end_info=NULL;
+    png_infop	info_ptr=NULL;
     int bit_depth, color_type, interlace_type, compression_type, filter_type,
 	red,green,blue, lastred=-1, lastgreen=-1, lastblue=-1,alpha,bpp, x,y,
-	has_alpha=0,cmask, lastcmask=-1, lastcolor=-1;
+	has_alpha=0,cmask=-1, lastcmask=-1, lastcolor=-1;
     GC	gc, gc_alpha;
 
 
@@ -593,13 +580,8 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, int len,
 	png_destroy_read_struct (&png_ptr, NULL, NULL);
 	return PNGX_OUTOFMEM;
     }
-    end_info = png_create_info_struct (png_ptr);
-    if (!end_info) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-	return PNGX_OUTOFMEM;
-    }
     if (setjmp (png_ptr->jmpbuf)) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	return PNGX_DATA;
     }
 
@@ -677,7 +659,7 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, int len,
 
     if (!pixels) {
 	pixels_byte=0;
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	return PNGX_OUTOFMEM;
     }
     if (rows_byte == 0) {
@@ -689,7 +671,7 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, int len,
     }
     if (!rows) {
 	pixels_byte=0;
-	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	return PNGX_OUTOFMEM;
     }
 
@@ -772,7 +754,7 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, int len,
     if (has_alpha)
 	XFreeGC(display, gc_alpha);
     XFreeGC(display, gc);
-    png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+    png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
     return 0;
 }
 #endif

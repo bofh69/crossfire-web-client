@@ -51,11 +51,15 @@
 /* Server to contact to get information about crossfire servers.
  * This is not the server you play on, but rather a central repository
  * that lists the servers.
- * 
+ * METASERVER controls default behaviour (same as -metaserver options) -
+ * if set to TRUE, we try to get metaserver information, if false, we do
+ * not.  If you are behind a firewall, you probably want this off by
+ * default.
  */
 
 #define META_SERVER "crossfire.real-time.com"
 #define META_PORT   13326
+#define METASERVER  TRUE
 
 /* If you uncomment this, the gtk client will dump information about
  * how long it took to update the display.  If your having

@@ -746,8 +746,8 @@ void Map_unpacklayer(unsigned char *cur,unsigned char *end)
   while (cur < end && *cur != 255) {
     xy = *cur;
     cur++;
-    x = xy / 11;
-    y = xy % 11;
+    x = xy / mapy;
+    y = xy % mapy;
     display_map_clearcell(x,y);
   }
   cur++;
@@ -761,8 +761,8 @@ void Map_unpacklayer(unsigned char *cur,unsigned char *end)
     /* Now process all the spaces with this face */
     while(1) {
       xy = *cur & 0x7f;
-      x = xy / 11;
-      y = xy % 11;
+      x = xy / mapy;
+      y = xy % mapy;
       if (clear) {
 	display_map_clearcell(x,y);
       }
@@ -790,6 +790,7 @@ void MapCmd(unsigned char *data, int len)
 #if 0
     fprintf(stderr,"Got MapCmd - %d bytes\n", len);
 #endif
+    map1cmd=0;
     end = data + len;
 
     display_map_startupdate();
@@ -801,6 +802,7 @@ void Map1Cmd(unsigned char *data, int len)
 {
     int mask, x, y, pos=0,face;
 
+    map1cmd=1;
 #if 0
     fprintf(stderr,"Got Map1Cmd - %d bytes\n", len);
 #endif

@@ -1617,7 +1617,7 @@ int ReadImages() {
 
     int		len,i,num ;
     FILE	*infile;
-    char	*cp, databuf[10000], *last_cp;
+    char	*cp, databuf[10000], *last_cp=NULL;
     unsigned long  x;
 #ifndef GDK_XUTIL
     unsigned long y;
@@ -1736,7 +1736,8 @@ struct MapCell {
   short faces[MAXFACES];
   int count;
   uint8 darkness;
-  uint8 need_update;
+  uint8 need_update:1;
+  uint8 have_darkness:1;
 };
 
 struct Map {
@@ -1752,12 +1753,14 @@ void display_map_clearcell(long x,long y)
     the_map.cells[x][y].count = 0;
     the_map.cells[x][y].darkness = 0;
     the_map.cells[x][y].need_update = 1;
+    the_map.cells[x][y].have_darkness = 0;
     for (i=0; i<MAXFACES; i++)
 	the_map.cells[x][y].faces[i] = -1;  /* empty/blank face */
 }
 
 void set_map_darkness(int x, int y, uint8 darkness)
 {
+    the_map.cells[x][y].have_darkness = 1;
     if (darkness != (255 - the_map.cells[x][y].darkness )) {
 	the_map.cells[x][y].darkness = 255 - darkness;
 	the_map.cells[x][y].need_update = 1;
@@ -1787,6 +1790,7 @@ void set_map_face(int x, int y, int layer, int face)
     if ((layer+1) > the_map.cells[x][y].count)
 	the_map.cells[x][y].count = layer+1;
     the_map.cells[x][y].need_update = 1;
+    the_map.cells[x][y].have_darkness = 1;
 }
 
 
@@ -1807,6 +1811,16 @@ void display_mapscroll(int dx,int dy)
 	    /* In case its own of range, set the count to zero */
 	    if (x+dx < 0 || x+dx >= mapx ||y+dy < 0 || y+dy >= mapy) {
 		memset((char*)&(newmap.cells[x][y]), 0, sizeof(struct MapCell));
+#ifdef GDK_XUTIL
+		/* basically, if using pngximage, don't want to update it, since the
+		 * scrolling below will effectively take care of our redraw
+		 */
+		if (!pngximage)
+		    newmap.cells[x][y].need_update=1;
+#else
+		newmap.cells[x][y].need_update=1;
+#endif
+
 	    } else {
 		memcpy((char*)&(newmap.cells[x][y]), (char*)&(the_map.cells[x+dx][y+dy]),
 		       sizeof(struct MapCell));
@@ -1829,11 +1843,11 @@ void display_mapscroll(int dx,int dy)
 	 * 
 	 */
 	if (dy<0) {
-	    int offset = -dy * mapx * image_size * image_size * 3;
-	    memmove(screen +offset, screen, mapx * (mapy + dy)* image_size * image_size * 3);
+	    int offset = -dy * mapx * image_size * image_size * BPP;
+	    memmove(screen +offset, screen, mapx * (mapy + dy)* image_size * image_size * BPP);
 	} else if (dy>0) {
-	    int offset = dy * mapx * image_size * image_size * 3;
-	    memmove(screen, screen + offset, mapx * (mapy + dy)* image_size * image_size * 3);
+	    int offset = dy * mapx * image_size * image_size * BPP;
+	    memmove(screen, screen + offset, mapx * (mapy + dy)* image_size * image_size * BPP);
 	}
 	if (dx) {
 	    int y;
@@ -1841,13 +1855,13 @@ void display_mapscroll(int dx,int dy)
 	    for (y=0; y < mapy * image_size; y++) {
 		if (dx<0) 
 		    /* -dx because dx is already negative, so this effective adds */
-		    memmove(screen + y * mapx * image_size * 3 - dx * image_size * 3,
-			screen + y * mapx * image_size * 3,
-			(mapx + dx) * image_size * 3);
+		    memmove(screen + y * mapx * image_size * BPP - dx * image_size * BPP,
+			screen + y * mapx * image_size * BPP,
+			(mapx + dx) * image_size * BPP);
 		else /* dx is positive */
-		    memmove(screen + y * mapx * image_size * 3,
-			screen + y * mapx * image_size * 3 + dx * image_size * 3,
-			(mapx - dx) * image_size * 3);
+		    memmove(screen + y * mapx * image_size * BPP,
+			screen + y * mapx * image_size * BPP + dx * image_size * BPP,
+			(mapx - dx) * image_size * BPP);
 	    }
 	}
 	map_did_scroll=1;
