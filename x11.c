@@ -214,7 +214,7 @@ static Font font; /* I don't see why we should try to support fonts,
 		- eanders@cs.berkeley.edu */
 static XEvent event;
 static XSizeHints messagehint, roothint;
-;
+
 
 /* This struct contains the information to draw 1 line of data. */
 typedef struct {
@@ -2896,11 +2896,10 @@ void display_mapcell_pixmap(int ax,int ay)
 {
   int k;
   XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
-  
+
   for(k=the_map.cells[ax][ay].count-1;k>=0;k--) {
     gen_draw_face(xpm_pixmap,the_map.cells[ax][ay].faces[k],
 		  0,0);
-
   }
   XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,image_size,image_size,
 	    2+image_size*ax,2+image_size*ay);
@@ -3016,7 +3015,7 @@ void display_newpng(long face,char *buf,long buflen)
 
     if (png_to_xpixmap(display, win_game, buf, buflen, &pixmap, &mask,
 		       colormap, &w, &h)) {
-	fprintf(stderr,"Got error on Imlib_load_file_to_pixmap\n");
+	fprintf(stderr,"Got error on Imlib_load_file_to_pixmap, face=%ld\n",face);
     }
 
 /*    printf("newpixmap #%ld: (%ld,%ld)\n",face,pixmap,mask);*/

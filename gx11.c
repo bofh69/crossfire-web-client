@@ -399,7 +399,7 @@ static StatWindow statwindow;
 /* gtk */
  
 static GtkWidget *gtkwin_root,  *gtkwin_info_text;
-static GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_info, *gtkwin_look,*gtkwin_info_text, *gtkwin_inv;
+static GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_info, *gtkwin_look, *gtkwin_inv;
 
 
 /*static GtkWidget *gtkwin_history = NULL;*/
@@ -2290,7 +2290,7 @@ static void draw_list (itemlist *l)
  *****************************************************************************/
 
 
-void enter_callback(GtkWidget *widget, GtkWidget *entry)
+static void enter_callback(GtkWidget *widget, GtkWidget *entry)
 {
     gchar *entry_text;
 	
@@ -2309,11 +2309,45 @@ void enter_callback(GtkWidget *widget, GtkWidget *entry)
     gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info_text));
 }
 
-void dobuttoncmd (GtkWidget *button, gchar *command) {
-  printf ("Button command: %s\n",command);
-  extended_command(command);
-}
+static gboolean
+info_text_button_press_event (GtkWidget *widget, GdkEventButton *event,
+                              gpointer user_data)
+{
+  GtkAdjustment *vadj;
+  gboolean shifted;
+  gfloat v_value;
 
+  vadj = GTK_TEXT (gtkwin_info_text)->vadj;
+  v_value = vadj->value;
+
+  shifted = (event->state & GDK_SHIFT_MASK) != 0;
+
+  switch (event->button)
+  {
+    case 4:
+      if (shifted)
+        v_value -= vadj->page_size;
+      else
+        v_value -= vadj->step_increment * 5;
+      break;
+
+    case 5:
+      if (shifted)
+        v_value += vadj->page_size;
+      else
+        v_value += vadj->step_increment * 5;
+      break;
+
+    default:
+      return FALSE;
+  }
+
+  v_value = CLAMP (v_value, vadj->lower, vadj->upper - vadj->page_size);
+
+  gtk_adjustment_set_value (vadj, v_value);
+
+  return TRUE;
+}
 
 static int get_info_display(GtkWidget *frame) {
   GtkWidget *box1;
@@ -2356,7 +2390,11 @@ static int get_info_display(GtkWidget *frame) {
   gtk_table_attach (GTK_TABLE (tablet), vscrollbar, 1, 2, 0, 1,
 		    GTK_FILL, GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
   gtk_widget_show (vscrollbar);
-  
+
+  gtk_signal_connect (GTK_OBJECT (gtkwin_info_text), "button_press_event",
+                      GTK_SIGNAL_FUNC (info_text_button_press_event),
+                      vscrollbar);
+
   gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
   
   gtk_widget_realize (gtkwin_info_text);
@@ -2398,7 +2436,7 @@ static int get_info_display(GtkWidget *frame) {
 
 /* Various replies */
 
-void sendstr(char *sendstr)
+static void sendstr(char *sendstr)
 {
   gtk_widget_destroy (dialog_window);
   send_reply(sendstr);
@@ -2413,7 +2451,7 @@ void sendstr(char *sendstr)
 
 
 
-void dialog_callback(GtkWidget *dialog)
+static void dialog_callback(GtkWidget *dialog)
 {
   gchar *dialog_text;
   dialog_text = gtk_entry_get_text(GTK_ENTRY(dialogtext));
@@ -4120,7 +4158,7 @@ void saveconfig () {
 
 
 
-void ckeyentry_callback (GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
+static void ckeyentry_callback (GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
   /*  configure_keys(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);*/
   gtk_entry_set_text (GTK_ENTRY(ckeyentrytext),  XKeysymToString(event->keyval));
   

@@ -1,6 +1,21 @@
 "$Id$"
 Top of CVS tree:
 
+MSW 2000/1/13 (except as mentioned, all changes by MSW):
+Makefile.in: Create destination dirs, remove extra tab.  Patch also by Dave.
+Protocol: typo fixed.
+config.h, config.h.in: Add HVAE_DMALLOC_H #ifdefs.  Checks currently
+    disable in configure.in, as with it, the sound won't like properly since
+    it needs -ldmalloc, and I haven't bothered investing that much time
+    into fixing the Makefile.
+gx11.c: Patches by Dave Peticolas - mostly code cleanup, but one new feature is
+    support of wheel mice to move the scrollbars.
+png.c: No real code change, just adjustments in some ordering which I think
+    makes the code appear a little simpler.
+x11.c: Minor code cleanups, some formatting changes, some to make better
+    error messages.
+End of MSW 2000/1/13 checkin.
+
 MSW 2001/1/8:
 client.h: Change damage type to be 16 bits.
 

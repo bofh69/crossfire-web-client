@@ -543,7 +543,7 @@ S->C: map <ecell1><ecell2>...<255>[<face1><cell1...><face2><cell2...>]
 	transmitted as binary data.
 
 	<ecell1><ecell2>... is a list of cells that are empty.  This list
-	could be empty.  255 is used to mark the lend of this list, whether
+	could be empty.  255 is used to mark the end of this list, whether
 	anything is included or not.  Note that the max xy hash value is
 	121, so we never need to worry about this value appearing as a map
 	cell.

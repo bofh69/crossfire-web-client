@@ -196,6 +196,8 @@ distclean::
 	$(RM) -f cfsndserv cfclient gcfclient
 
 install:
+	$(INSTALL) -d ${bindir}
+	$(INSTALL) -d ${mandir}
 	$(INSTALL) $(TARGET) ${bindir}
 	$(INSTALL) client.man ${mandir}/cfclient.1
 	@if [ -x gcfclient ]; then \
@@ -204,4 +206,3 @@ install:
 
 depend:
 	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(PROTOSOURCES) $(SND_SOURCES)
-	

@@ -171,11 +171,11 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
      * This is more efficient the allocating this block of memory every time.
      */
     if (pixels_byte==0) {
-	pixels = (char*)malloc(width * height * bpp);
-	pixels_byte =width * height * bpp;
+	pixels_byte = width * height * bpp;
+	pixels = (char*)malloc(pixels_byte);
     } else if ((width * height * bpp) > pixels_byte) {
-	pixels=realloc(pixels, width * height * bpp);
 	pixels_byte =width * height * bpp;
+	pixels=realloc(pixels, pixels_byte);
     }
 
     if (!pixels) {
