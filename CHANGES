@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/image.c: Patch from bug list to fix compilation on big endian
+  machines.
+MSW 2004-05-11
+
 gtk/gx11.c: Fix configure_event() to only allocate new data structures if
   the size of the map area has in fact change.  This fixes a major memory
   leak, as it seems gtk erroneously generates configure events.
