@@ -237,9 +237,13 @@ install:
 		$(INSTALL) client.man ${mandir}/gcfclient.1; \
 	fi
 	@if [ -x gnome-cfclient ]; then \
+		mkdir -p ${mandir}; \
 		$(INSTALL) client.man ${mandir}/gnome-cfclient.1; \
+		mkdir -p ${soundlistdir}; \
 		$(INSTALL) gnome-cfclient.soundlist ${soundlistdir}/gnome-cfclient.soundlist; \
+		mkdir -p ${desktopdir}; \
 		$(INSTALL) gnome-cfclient.desktop ${desktopdir}/gnome-cfclient.desktop; \
+		mkdir -p ${pixmapsdir}; \
 		$(INSTALL) shield.png ${pixmapsdir}/shield.png; \
 		$(INSTALL) pixmaps/crossfiretitle.xpm ${pixmapsdir}/crossfiretitle.xpm; \
 	fi

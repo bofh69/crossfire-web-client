@@ -389,8 +389,8 @@ void resize_map_window(int x, int y)
 	gtk_drawing_area_size(GTK_DRAWING_AREA(drawable), image_size * x, image_size * y);
 	gtk_widget_set_usize(gameframe, (image_size * x) + 6, (image_size * y) + 6);
 	gtk_widget_set_usize(drawable, (image_size * x), (image_size * y));
-	gtk_widget_set_usize(invframe, 230, (((image_size * y) / 4) * 3));
-	gtk_widget_set_usize(lookframe, 230, ((image_size * y) / 4));
+	gtk_widget_set_usize(invframe, 230, (((image_size * y) / 3) * 2));
+	gtk_widget_set_usize(lookframe, 230, ((image_size * y) / 3));
 }
 
 static void
@@ -3818,12 +3818,12 @@ create_windows()
 	gnome_app_add_docked(GNOME_APP(gtkwin_root), frame, "InfoBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_BOTTOM, 0, 1, 0);
 	gtk_widget_show_all(frame);
 	invframe = gtk_frame_new(NULL);
-	gtk_widget_set_usize(invframe, 230, (((mapy * image_size) / 4) * 3));
+	gtk_widget_set_usize(invframe, 230, (((mapy * image_size) / 3) * 2));
 	get_inv_display(invframe);
 	gnome_app_add_docked(GNOME_APP(gtkwin_root), invframe, "InvBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_LEFT, 0, 0, 0);
 	gtk_widget_show_all(invframe);
 	lookframe = gtk_frame_new(NULL);
-	gtk_widget_set_usize(lookframe, 230, ((mapy * image_size) / 4));
+	gtk_widget_set_usize(lookframe, 230, ((mapy * image_size) / 3));
 	get_look_display(lookframe);
 	gnome_app_add_docked(GNOME_APP(gtkwin_root), lookframe, "LookBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_LEFT, 0, 1, 0);
 	gtk_widget_show_all(lookframe);
@@ -4105,8 +4105,8 @@ init_windows(int argc, char **argv)
 	poptContext pctx;
 	int on_arg = 1, x, y;
 	gchar **args;
-	load_defaults();
 	gnome_init_with_popt_table(PACKAGE, VERSION, argc, argv, options, 0, &pctx);
+	load_defaults();
 	args = (gchar **) poptGetArgs(pctx);
 	if (echobindings == TRUE)
 		cpl.echo_bindings = TRUE;
