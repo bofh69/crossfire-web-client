@@ -2289,6 +2289,8 @@ void draw_stats(int redraw) {
       sprintf(buff,"Food: %3d",cpl.stats.food);
       gtk_label_set (GTK_LABEL(statwindow.food), buff);
       gtk_widget_draw (statwindow.food, NULL);
+      if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3))
+	XBell(GDK_DISPLAY(), 0);
     }
     
     if(redraw || strcmp(cpl.range, last_range)) {

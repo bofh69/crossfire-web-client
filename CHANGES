@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/item.c: Update comment about possible sorting improvements.
+gtk/gx11.c: Add missing foodbeep functionality to GTK client.
+MSW 2002-08-13
+
 gtk/config.c: Fix crash when trying to apply config changes when compiled
    with SDL support but user is not using it.  Fix bug where settings
    were not being properly updated.

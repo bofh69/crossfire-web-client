@@ -149,6 +149,10 @@ void update_item_sort(item *it)
 	     * have a few unidentified wands, as the position of a wand
 	     * which you know the effect will move around as you equip others.
 	     */
+	    /* Hmm.  We can actually use the tag value of the items to reduce
+	     * this a bit - do this by grouping, but if name is equal, then
+	     * sort by tag.  Needs further investigation.
+	     */
 
 	    /* applied items go first */
 	    if (itmp->applied) continue;
