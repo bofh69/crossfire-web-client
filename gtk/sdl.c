@@ -639,12 +639,6 @@ void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
                         &src, mapsurface, &dst))
                     do_SDL_error( "BlitSurface", __FILE__, __LINE__);
             }
-        /*gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
-
-        gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weight,picy);
-        gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
-	        map_image_size*weight, 0, picx, picy,
-            map_image_size, map_image_size);*/
         }
         if (weightC>0){
             src.x=map_image_size*weightC;
@@ -658,13 +652,6 @@ void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
                         &src, mapsurface, &dst))
                     do_SDL_error( "BlitSurface", __FILE__, __LINE__);
             }
-
-        //gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
-        //gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weightC,picy-map_image_size);
-        //gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
-		  //map_image_size*weightC, map_image_size, picx, picy,
-          //map_image_size, map_image_size);
-
         }
 
 
