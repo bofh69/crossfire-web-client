@@ -2,6 +2,13 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: Fix configure_event() to only allocate new data structures if
+  the size of the map area has in fact change.  This fixes a major memory
+  leak, as it seems gtk erroneously generates configure events.
+gtk/map.c: Clean out some commented out code, clean up the formatting of the
+  draw_map function - no actual code change.
+MSW 2004-05-08
+
 ------------------------------------------------------------------------------
 Changes for 1.7.0:
 

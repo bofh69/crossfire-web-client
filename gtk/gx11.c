@@ -677,11 +677,33 @@ void gtk_complete_command()
 
 
 /* Event handlers for map drawing area */
-
+/* For a reason I don't know, this gets called a whole bunch.
+ * every time a monster is killed, this gets called for a reason
+ * I can't figure out.
+ */
 
 static gint
 configure_event (GtkWidget *widget, GdkEventConfigure *event)
 {
+    static sint16  ox=-1, oy=-1;
+
+    /* Handle the surplus number of events that this causes to be generated.
+     * basically, if the size of the window hasn't changed, we really don't
+     * care - position of the window isn't important.
+     * note that we could be more clever and free up the other data even on
+     * requests that do change the size,
+     * but this will fix the most horrendous memory leak
+     */
+    if (event->type == GDK_CONFIGURE) {
+	if (((GdkEventConfigure*)event)->width == ox && ((GdkEventConfigure*)event)->height == oy)
+	    return TRUE;
+	else {
+	    fprintf(stderr, "ox=%d != %d, oy=%d != %d\n", ox, ((GdkEventConfigure*)event)->width,
+		    oy, ((GdkEventConfigure*)event)->height);
+	    ox = ((GdkEventConfigure*)event)->width;
+	    oy = ((GdkEventConfigure*)event)->height;
+	}
+    }
 
 #ifdef HAVE_SDL
     if(use_config[CONFIG_SDL]) {
@@ -693,6 +715,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 	return TRUE;
     }
 #endif
+
     mapgc = gdk_gc_new (drawingarea->window);
 
     if (!use_config[CONFIG_SDL]) {

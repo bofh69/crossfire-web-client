@@ -431,6 +431,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
     int emx,emy;
     int smoothface;
     int dosmooth=0;
+
     if ( (the_map.cells[mx][my].heads[0].face==0)
          || !CAN_SMOOTH(the_map.cells[mx][my].smooth[layer]) )
         return;
@@ -527,6 +528,7 @@ void gtk_draw_map(int redraw) {
     int mx,my, layer,x,y, src_x, src_y;
     struct timeval tv1, tv2,tv3;
     long elapsed1, elapsed2;
+
     if (time_map_redraw)
 	gettimeofday(&tv1, NULL);
 
@@ -540,7 +542,8 @@ void gtk_draw_map(int redraw) {
 
 	    /* Don't need to touch this space */
 	    if (!redraw && !the_map.cells[mx][my].need_update && !map_did_scroll&& !the_map.cells[mx][my].need_resmooth)
-            continue;
+		continue;
+
 	    /* First, we need to black out this space. */
 	    gdk_draw_rectangle(mapwindow, drawingarea->style->black_gc, TRUE, x * map_image_size, y * map_image_size, map_image_size, map_image_size);
 	    /* now draw the different layers.  Only draw if using fog of war or the
@@ -581,12 +584,7 @@ void gtk_draw_map(int redraw) {
 			src_y = pixmaps[the_map.cells[mx][my].heads[layer].face]->map_height - map_image_size;
 
             
-            gdk_gc_set_clip_mask (mapgc, pixmaps[the_map.cells[mx][my].heads[layer].face]->map_mask);
-			/*GdkBitmap *newmask=NULL;
-            newmask=createpartialmask(pixmaps[the_map.cells[mx][my].heads[layer].face]->map_mask,
-                map_image_size/4,map_image_size/4,map_image_size/2,map_image_size/2,
-                map_image_size,map_image_size);
-            gdk_gc_set_clip_mask (mapgc, newmask);*/
+			gdk_gc_set_clip_mask (mapgc, pixmaps[the_map.cells[mx][my].heads[layer].face]->map_mask);
 			gdk_gc_set_clip_origin(mapgc, 
 					       (x + 1 - the_map.cells[mx][my].heads[layer].size_x) * map_image_size,
 					       (y + 1 - the_map.cells[mx][my].heads[layer].size_y) * map_image_size);
@@ -595,27 +593,26 @@ void gtk_draw_map(int redraw) {
 				    pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image,
 				    src_x, src_y, x * map_image_size, y * map_image_size,
 					map_image_size, map_image_size);
-            /*We draw the pic. Now, smooth adjacent squares on it*/
-            if ( use_config[CONFIG_SMOOTH])
-                drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
-            }
-            /*Sometimes, it may happens we need to draw the smooth while there
-              is nothing to draw at that layer (but there was something at lower
-              layers). This is handled here. The else part is to take into account
-              cases where the smooth as already been handled 2 code lines before*/
-            else if ( use_config[CONFIG_SMOOTH] &&
-                 the_map.cells[mx][my].need_resmooth )
-                drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
+			/*We draw the pic. Now, smooth adjacent squares on it*/
+			if ( use_config[CONFIG_SMOOTH])
+			    drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
+		    }
+		    /* Sometimes, it may happens we need to draw the smooth while there
+		     * is nothing to draw at that layer (but there was something at lower
+		     * layers). This is handled here. The else part is to take into account
+		     * cases where the smooth as already been handled 2 code lines before
+		     */
+		    else if ( use_config[CONFIG_SMOOTH] &&
+			     the_map.cells[mx][my].need_resmooth )
+			drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
             
-            /*if (newmask)
-                gdk_pixmap_unref(newmask);*/
-
 		    
 		} /* else for processing the layers */
-        the_map.cells[mx][my].need_resmooth=0;
+	    the_map.cells[mx][my].need_resmooth=0;
 
 	    /* Do final logic for this map space */
 	    the_map.cells[mx][my].need_update=0;
+
 	    /* If this is a fog cell, do darknening of the space.
 	     * otherwise, process light/darkness - only do those if not a 
 	     * fog cell.
@@ -654,9 +651,9 @@ void gtk_draw_map(int redraw) {
 
 	} /* For y spaces */
     } /* for x spaces */
-
     if (time_map_redraw)
 	gettimeofday(&tv2, NULL);
+
 
     /* map_did_scroll is set if the map scrolls for example.  In this case, we need to redraw
      * the entire map.
