@@ -37,6 +37,8 @@ SOURCES = \
 
 EXTRA_DIST = \
 	Makefile.in		\
+	alsa9.c			\
+	common.c		\
 	sounds			\
 	sounds.dist
 
@@ -66,7 +68,7 @@ cfsndserv-alsa9: common.c alsa9.o soundsdef.h
 
 archive:
 	$(MKDIR) /tmp/$(VERSION)/sound-src
-	$(CP) $(HEARDERS) $(SOURCES) $(EXTRA_DIST) /tmp/$(VERSION)/sound-src
+	$(CP) $(HEADERS) $(SOURCES) $(EXTRA_DIST) /tmp/$(VERSION)/sound-src
 
 clean::
 	$(RM) -f $(SND_OBJS)

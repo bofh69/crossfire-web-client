@@ -3,6 +3,13 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------
+Changes for 1.7.1:
+configure, configure.in: Rev for 1.7.1 release
+sound-src/Makefile.in: Add files to EXTRA_DIST, fix typo so that make
+  arhive works.
+MSW 2005-02-27
+
 Add 'show' command back in to list of commands.
 common/external.h: Change prototype of command_show() to match p_cmd.c
    prototype.
