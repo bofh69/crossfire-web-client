@@ -280,7 +280,11 @@ void extended_command(const char *ocommand) {
 	save_defaults();
     }
     else if (!strcmp(cp,"cwindow")) {
-	cpl.command_window = atoi(cpnext);
+        /* check no arguments for cwindow */
+        if( cpnext == NULL )
+	    cpl.command_window=COMMAND_WINDOW;
+	else
+	    cpl.command_window = atoi(cpnext);
 	if (cpl.command_window<1 || cpl.command_window>127)
 	    cpl.command_window=COMMAND_WINDOW;
     }
