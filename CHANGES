@@ -2,6 +2,10 @@
 Top of CVS tree:
 
 ------------------------------------------------------------------------------
+gtk/win32/config.h: Add parentheses around arguments of sleep and usleep
+  macros.
+Andreas Kirschbaum 2004-09-19
+
 common/script.c: warn when script start failure (Linux), patch courtesy Kevin Rudat.
   Check there actually is a parameter to 'script', else that'd crash nicely.
 Ryo 2004-08-16
