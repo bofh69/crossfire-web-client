@@ -192,7 +192,7 @@ static int write_socket(int fd, unsigned char *buf, int len)
 	if (amt==0) {
 	    LOG(llevError,"Write_To_Socket: No data written out.\n");
 	}
-	len =- amt;
+	len -= amt;
 	pos += amt;
     }
     return 0;
