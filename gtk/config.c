@@ -140,6 +140,8 @@ CButtons cbuttons[MAX_BUTTONS] = {
     "Gradually change stat bar color based on value of the stat.\nThis option will result in some extra CPU usage."},
 {NULL, 	    CBUTTON,	    CONFIG_POPUPS,	FLAG_UPDATE,
     "Popup Windows"},
+{NULL, 	    CBUTTON,	    CONFIG_SPLASH,	FLAG_UPDATE,
+    "Splash Window"},
 {NULL, 	    CBUTTON,	    CONFIG_SHOWICON,	FLAG_UPDATE,
     "Show Inventory Icon"},
 {NULL, 	    CBUTTON,	    CONFIG_TOOLTIPS,	0,
@@ -758,6 +760,14 @@ void load_defaults()
 	else if (!strcmp(inbuf, "nopopups")) {
 	    /* Changed name from nopopups to popups, so inverse value */
 	    want_config[CONFIG_POPUPS] = !val;
+	    continue;
+	}
+	else if (!strcmp(inbuf, "nosplash")) {
+	    want_config[CONFIG_SPLASH] = !val;
+	    continue;
+	}
+	else if (!strcmp(inbuf, "splash")) {
+	    want_config[CONFIG_SPLASH] = val;
 	    continue;
 	}
 	else if (!strcmp(inbuf, "faceset")) {

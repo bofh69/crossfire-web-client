@@ -4566,7 +4566,7 @@ static int get_root_display(char *display_name,int gargc, char **gargv) {
     gtk_init (&gargc,&gargv);
     last_str=malloc(32767);
 
-    create_splash();
+    if (want_config[CONFIG_SPLASH]) create_splash();
     /* we need to call gdk_rgb_init very early on, as some of the
      * create window functions may do call backs in which case we try
      * to draw the game window.
@@ -5104,6 +5104,8 @@ static void usage(char *progname)
     puts("-iconscale %%    - Set icon scale percentage");
     puts("-mapscale %%     - Set map scale percentage");
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces. (default 11x11)");
+    puts("-splash          - Display the splash screen (default)");
+    puts("-nosplash        - Don't display the splash screen (startup logo)");
     puts("-popups          - Use pop up windows for input (default)");
     puts("-nopopups        - Don't use pop up windows for input");
     puts("-port <number>   - Use port <number> instead of the standard port number");
@@ -5345,6 +5347,14 @@ int init_windows(int argc, char **argv)
 	    updatekeycodes=TRUE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-splash")) {
+	    want_config[CONFIG_SPLASH] = TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-nosplash")) {
+	    want_config[CONFIG_SPLASH] = FALSE;
+	    continue;
+	}
 	else {
 	    fprintf(stderr,"Do not understand option %s\n", argv[on_arg]);
 	    usage(argv[0]);
@@ -5383,7 +5393,7 @@ int init_windows(int argc, char **argv)
 
     init_keys();
     if (want_config[CONFIG_CACHE]) init_cache_data();
-    destroy_splash();
+    if (want_config[CONFIG_SPLASH]) destroy_splash();
 
     return 0;
 }

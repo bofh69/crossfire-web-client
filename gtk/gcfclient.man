@@ -6,7 +6,7 @@ gcfclient - gtk client program for crossfire servers.
 .B gcfclient 
 [-server server] [-port number] [-display display] [-split|-nosplit] [-download_all_faces]
 [-echo] [faceset name] [-showicon] [-scrollines number] [-sync] [-help]
-[-cache|-nocache] [-darkness|-nodarkness] [-nosound]
+[-cache|-nocache] [-darkness|-nodarkness] [-nosound] [-nosplash]
 [-updatekeycodes] [-nopopups] [-splitinfo] [-mapsize xXy] [-sdl]
 [-mapscale percentage] [-iconscale percentage] [-triminfo] [-timemapredraw]
 .SH DESCRIPTION
@@ -170,9 +170,15 @@ players may not like the extra space these icons take up or the
 
 .TP
 .B -sound|-nosound
-Enalbe/Disables sound effects.  Disabling sound has a minor savings on bandwidth.  It is
+Enable/Disables sound effects.  Disabling sound has a minor savings on bandwidth.  It is
 most useful if you do not want sound, due to lack of hardware or lack
 of desire for sound.  Default is sound is enabled.
+
+.TP
+.B -splash|-nosplash
+Enable/Disables splash screen.  When enabled, a window with a Crossfire logo is displayed
+while the client is starting up.
+Default is the splash screen is enabled.
 
 .TP
 .B -split|-nosplit
