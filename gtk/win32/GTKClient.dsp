@@ -501,6 +501,14 @@ SOURCE=..\..\common\proto.h
 !ENDIF 
 
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\common\script.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\script.h
+# End Source File
 # End Group
 # Begin Group "Win32 specific files"
 
