@@ -1,5 +1,7 @@
 ;NSIS Script For Crossfire GTK Client
 
+;This script can run just like that, doesn't need anything special...
+
 !include "MUI.nsh"
 
 ;Title Of Your Application
@@ -18,13 +20,13 @@ InstallDirRegKey HKCU "Software\Crossfire GTK Client" ""
 !define MUI_ABORTWARNING
 
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "G:\Projets\GPL\Crossfire\crossfire-main\COPYING"
+!insertmacro MUI_PAGE_LICENSE "..\..\COPYING"
 !insertmacro MUI_PAGE_DIRECTORY
 ;;!insertmacro MUI_PAGE_STARTMENU page_id variable
 !insertmacro MUI_PAGE_INSTFILES
 
 !define MUI_FINISHPAGE_RUN $INSTDIR\GTKClient.exe
-!define MUI_FINISHPAGE_SHOWREADME $INSTDIR\Win32Changes.txt
+!define MUI_FINISHPAGE_SHOWREADME $INSTDIR\Running.txt
 
 !insertmacro MUI_PAGE_FINISH
 
@@ -35,11 +37,11 @@ Var GTKPath
 Function .onInit
 
          Banner::Show /NOUNLOAD "Checking for GTK 2"
-         
+
          ;Check for GTK, and get registry key
          ReadRegStr $GTKPath HKLM Software\GTK\2.0 DllPath
          StrCmp $GTKPath "" 0 GTKOk
-                ; GTK not found, abort
+                ; GTK not found, abort (unless user is really sure)
                 MessageBox MB_YESNOCANCEL|MB_ICONEXCLAMATION "The installer cannot find GTK!$\rCrossfire client requires GTK 2, which is available from http://www.dropline.net/gtk/.$\r$\rDo you want to go to the site now?$\r$\rPress 'Yes' to open Dropline's web site.$\rPress 'No' to exit the installer.$\rPress 'Cancel' to continue the installation (use at your own risk!)" IDNO abort IDCANCEL ignoregtk
                 
                 ExecShell open http://www.dropline.net/gtk
@@ -48,6 +50,7 @@ Function .onInit
                 Quit
                 
                 ignoregtk:
+                ;User chose to really install, just warn one more time :)
                 MessageBox MB_OK|MB_ICONINFORMATION "You have chosen to install even if GTK was not detected.$\rNo registry key will be set for Crossfire, so you may need to set it manually.$\rIts location should be HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\App Paths\GTKClient.exe$\rand the default value should point to GTK's lib subdirectory."
                 
          GTKOk:
@@ -55,47 +58,18 @@ Function .onInit
          
 FunctionEnd
 
-;vieux
-
-;License Page Introduction
-;LicenseText "You must agree to this license before installing."
-
-;License Data
-;LicenseData "G:\Projets\GPL\Crossfire\crossfire-main\COPYING"
-
-;The text to prompt the user to enter a directory
-;DirText "Please select the folder below"
-
-;CompletedText "Installation complete. Please CHECK README file."
-
 Section "Install"
   ;Install Files
   SetOutPath $INSTDIR
   SetCompress Auto
   SetOverwrite IfNewer
-;  File "G:\Projets\GPL\Crossfire\client-port\gtk\win32\bmaps.client"
-;  File "G:\Projets\GPL\Crossfire\client-port\gtk\win32\crossfire.base"
-;  File "G:\Projets\GPL\Crossfire\client-port\gtk\win32\crossfire.clsc"
-;  File "G:\Projets\GPL\Crossfire\client-port\gtk\win32\Release\GTKClient.exe"
-;  File "G:\Projets\GPL\Crossfire\client-port\gtk\win32\Win32Changes.txt"
-;  File "G:\Projets\GPL\Crossfire\client-port\Win32-Readme.txt"
-;  File "G:\Projets\GPL\Crossfire\client-port\NOTES"
-;  File "G:\Projets\GPL\Crossfire\client-port\README"
-;  File "G:\Projets\GPL\Crossfire\client-port\CHANGES"
-;  File "G:\Projets\GPL\Crossfire\client-port\gtk\win32\Running.txt"
-;  File "G:\Projets\GPL\Crossfire\client-port\gtk\win32\Building.txt"
-;  SetOutPath $INSTDIR\.crossfire
-;  File "G:\Projets\GPL\Crossfire\client-port\gtk\win32\.crossfire\gwinpos"
-;  File "G:\Projets\GPL\Crossfire\client-port\gtk\win32\.crossfire\gdefaults"
   File "bmaps.client"
   File "crossfire.base"
   File "crossfire.clsc"
   File "Release\GTKClient.exe"
   File "Win32Changes.txt"
-  File "..\..\Win32-Readme.txt"
-  File "..\..\NOTES"
-  File "..\..\README"
-  File "..\..\CHANGES"
+  File /oname=ChangeLog.rtf "..\..\Changes"
+  File /oname=Copying.rtf "..\..\Copying"
   File "Running.txt"
   File "Building.txt"
   SetOutPath $INSTDIR\.crossfire
@@ -119,8 +93,10 @@ Section "Shortcuts"
   SetOutPath $INSTDIR
   CreateDirectory "$SMPROGRAMS\Crossfire GTK Client"
   CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Crossfire GTK Client.lnk" "$INSTDIR\\GTKClient.exe" "" "$INSTDIR\\GTKClient.exe" 0
+  CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\License.lnk" "$INSTDIR\\Copying.rtf"
   CreateShortcut "$SMPROGRAMS\Crossfire GTK Client\Changes.lnk" "$INSTDIR\\Win32Changes.txt"
-  CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Readme.lnk" "$INSTDIR\\Running.txt"
+  CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Full change log.lnk" "$INSTDIR\\ChangeLog.rtf"
+  CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Running the client.lnk" "$INSTDIR\\Running.txt"
   CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Uninstall Crossfire GTK Client.lnk" "$INSTDIR\\Uninst.exe" 0
 SectionEnd
 
@@ -135,11 +111,9 @@ Section Uninstall
   Delete "$INSTDIR\.CROSSFIRE\gwinpos"
   Delete "$INSTDIR\.CROSSFIRE\gdefaults"
   Delete "$INSTDIR\.crossfire\keys"
-  Delete "$INSTDIR\Win32-Readme.txt"
   Delete "$INSTDIR\Win32Changes.txt"
-  Delete "$INSTDIR\NOTES"
-  Delete "$INSTDIR\README"
-  Delete "$INSTDIR\CHANGES"
+  Delete "$INSTDIR\ChangeLog.rtf"
+  Delete "$INSTDIR\Copying.rtf"
   Delete "$INSTDIR\Running.txt"
   Delete "$INSTDIR\Building.txt"
   ;Delete directories, but only if empty
