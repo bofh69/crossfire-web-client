@@ -2,14 +2,14 @@
 %define extra client
 %define version 0.96.0
 %define sndversion 0.95.4
-%define release 2
+%define release 5
 %define prefix /usr/X11R6
 
 Name: %{Name}-%{extra}
 Version: %{version}
 Release: %{release}
 Summary: Client for connecting to crossfire servers.
-Group: X11/Games
+Group: Amusements/Games/Crossfire
 Copyright: GPL
 Vendor: Crossfire Development Team
 URL: http://crossfire.real-time.com
@@ -96,10 +96,62 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/sounds/crossfire/*
 
 %changelog
-* Wed Jan 08 2001 Bob Tanner<tanner@real-time.com>
+* Sat Feb 10 2001 Bob Tanner <tanner@real-time.com>
+- Created new Group for this package Amusements/Games/Crossfire
+
+* Fri Feb 02 2001 Bob Tanner <tanner@real-time.com>
+- Rolled new client with Mark's changes listed next 
+
+* Tue Jan 30 2001 Mark Wedel <mwedel@scruze.net>
+- Complete rewrite of the exit handling code.  Hopefully as an effect,
+  this will fix the player appearing in the middle of the oceans.  I
+  think the code should also work better in many other areas.  Main
+  enhancements is a 3x3 area for pets to follow player to new map, as
+  well as golems now following players to the new  maps. 
+- include/sproto.h, random_maps/rproto.h - rebuilt.
+- random_maps/random_map.c: Change generate_random_map to take a structure 
+  with the random map paremeters.
+- random_maps/reader.l, reader.c: Add set_random_map_variable function that
+  reads the map parameters from a char buffer.  Also, remove some leftover
+  comments that were from the common/loader.l file.
+- random_maps/rogue_layout.c: Change some functions to be static so make proto
+  doesn't collect them.
+- random_maps/standalone.c: Add opening of parms file into main function since
+  it ws removed from the random_map.c file.
+- server/apply.c: Don't display the message of random maps to the players
+  as they enter them, as this message is random map parameters, and not
+  a real message.
+- server/login.c: #if 0 out using of the player loading element in the structure.
+  this isn't used right now.
+- server/main.c: Bulk of the changes.  main changes are to break apart
+  the old enter_exit function into smaller functions that more
+  logically do the needed function (random maps, unique maps, and
+  transferring the player to the new map).  random map code now passes
+  the parameters via structure instead of file in /tmp.  Code is much
+  more understandable now and hopefully bugfree.
+- server/pets.c: minor changes/bugfixes.  Search full SIZEOFFREE array, use
+  real owner variable when print out messages.
+- server/player.c: Remove usage of the loading variable in the player structure.
+
+* Sun Jan 14 2001 Bob Tanner <tanner@real-time.com>
+- MSW 2000/1/13 (except as mentioned, all changes by MSW):
+- Makefile.in: Create destination dirs, remove extra tab.  Patch also by Dave.
+- Protocol: typo fixed.
+- config.h, config.h.in: Add HVAE_DMALLOC_H #ifdefs.  Checks currently
+  disable in configure.in, as with it, the sound won't like properly since
+  it needs -ldmalloc, and I haven't bothered investing that much time
+  into fixing the Makefile.
+- gx11.c: Patches by Dave Peticolas - mostly code cleanup, but one new feature
+  is support of wheel mice to move the scrollbars.
+- png.c: No real code change, just adjustments in some ordering which I think
+  makes the code appear a little simpler.
+- x11.c: Minor code cleanups, some formatting changes, some to make better
+  error messages.
+
+* Wed Jan 08 2001 Bob Tanner <tanner@real-time.com>
 - Applied MSW patch to change damge type to 16 bits
 
-* Wed Jan 03 2001 Bob Tanner<tanner@real-time.com> [0.95.8-1]
+* Wed Jan 03 2001 Bob Tanner <tanner@real-time.com> [0.95.8-1]
 - Upgraded client to 0.95.8
 - Moved sounds into /usr/share/sounds/crossfire 
 - Moved the prefix to /usr/X11R6
