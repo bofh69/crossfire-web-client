@@ -1,6 +1,17 @@
 "$Id$"
 Top of CVS tree:
 
+x11.c: Fix bug introduced in 4/20 update which would cause xpm display
+mode to fail with no such face warnings - code check was in the
+wrong place - MSW 5/7/2000
+
+xutil.c:  Improve logic for built in keybindings - if the 
+def_keys specifies a unique keycode, we don't update the keycode - this
+is necessary for some keyboards to have working keybindings (for example,
+sun Type 5 keyboards use the Up keysym for both the arrows and the keypad,
+so we can't get the keycode for both with the XKeysymToKeycode file -
+MSW 5/7/2000
+
 Add key ring to item_types and item_types.h file in the container
 category. MSW 4/21/2000
 
