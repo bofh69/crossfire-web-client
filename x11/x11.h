@@ -45,7 +45,7 @@ extern int map_image_size, map_image_half_size;
 extern int per_pixel_lighting;
 extern int per_tile_lighting;
 extern int show_grid;
-extern uint8 sdlimage,cache_images,split_windows,map_did_scroll,keepcache;
+extern uint8 sdlimage,split_windows,map_did_scroll;
 extern uint8 nopopups,updatekeycodes;
 extern int map_scale, icon_scale, updatelock;
 extern char *facetoname[MAXPIXMAPNUM];
@@ -56,7 +56,7 @@ struct PixmapInfo {
   long fg,bg;
 };
 
-extern struct PixmapInfo pixmaps[MAXPIXMAPNUM];
+extern struct PixmapInfo *pixmaps[MAXPIXMAPNUM];
 extern Display *display;
 extern uint8   image_size;
 extern Window win_root,win_game;

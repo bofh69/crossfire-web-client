@@ -648,20 +648,20 @@ void gtk_draw_map()
 		
                 /* there must be a real face for this layer, and we must have data for that face. */
                 if ((the_map.cells[mx][my].faces[layer]>0) && 
-		    pixmaps[the_map.cells[mx][my].faces[layer]].map_image) {
+		    pixmaps[the_map.cells[mx][my].faces[layer]]->map_image) {
                     /* Figure out how much data is being copied, and adjust the origin accordingly.
                      * This probably needs additional checking in case the image extends beyond the
                      * map boundries.
                      */
-                    dst_x = (x+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]].map_width;
-                    dst_y = (y+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]].map_height;
-		    gdk_gc_set_clip_mask (mapgc, pixmaps[the_map.cells[mx][my].faces[layer]].map_mask);
+                    dst_x = (x+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]]->map_width;
+                    dst_y = (y+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]]->map_height;
+		    gdk_gc_set_clip_mask (mapgc, pixmaps[the_map.cells[mx][my].faces[layer]]->map_mask);
 		    gdk_gc_set_clip_origin(mapgc, dst_x, dst_y);
 		    gdk_draw_pixmap(mapwindow, mapgc,
-				    pixmaps[the_map.cells[mx][my].faces[layer]].map_image,
+				    pixmaps[the_map.cells[mx][my].faces[layer]]->map_image,
 				    0, 0, dst_x, dst_y, 
-				    pixmaps[the_map.cells[mx][my].faces[layer]].map_width,
-				    pixmaps[the_map.cells[mx][my].faces[layer]].map_height);
+				    pixmaps[the_map.cells[mx][my].faces[layer]]->map_width,
+				    pixmaps[the_map.cells[mx][my].faces[layer]]->map_height);
 		}
                 /* On last past, do our special processing, like applying darkness */
                 if (onlayer==0) {

@@ -64,7 +64,7 @@ int init_sounds()
     if (nosound) return -1;
     
 
-    sound_pipe=popen(BINDIR "cfsndserv","w");
+    sound_pipe=popen(BINDIR "/cfsndserv","w");
     /* if its not in its proper place, let the users shell
      * try to find it - it may have a better idea.
      */

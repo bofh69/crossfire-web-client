@@ -3,14 +3,12 @@ extern void DoClient(ClientSocket *csocket);
 extern int init_connection(char *host, int port);
 extern void negotiate_connection(int sound);
 /* commands.c */
+extern void ReplyInfoCmd(char *buf, int len);
 extern void SetupCmd(char *buf, int len);
-extern void FaceCmd(unsigned char *data, int len);
-extern void Face1Cmd(unsigned char *data, int len);
 extern void AddMeFail(char *data, int len);
 extern void AddMeSuccess(char *data, int len);
 extern void GoodbyeCmd(char *data, int len);
 extern void AnimCmd(unsigned char *data, int len);
-extern void ImageCmd(unsigned char *data, int len);
 extern void DrawInfoCmd(char *data, int len);
 extern void StatsCmd(unsigned char *data, int len);
 extern void handle_query(char *data, int len);
@@ -28,6 +26,19 @@ extern void MapCmd(unsigned char *data, int len);
 extern void Map1Cmd(unsigned char *data, int len);
 extern void map_scrollCmd(char *data, int len);
 extern void MagicMapCmd(unsigned char *data, int len);
+/* image.c */
+extern void init_common_cache_data(void);
+extern void requestface(int pnum, char *facename);
+extern void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int faceset);
+extern void reset_image_cache_data(void);
+extern void FaceCmd(unsigned char *data, int len);
+extern void Face1Cmd(unsigned char *data, int len);
+extern void Face2Cmd(uint8 *data, int len);
+extern void ImageCmd(uint8 *data, int len);
+extern void Image2Cmd(uint8 *data, int len);
+extern void display_newpng(long face, uint8 *buf, long buflen, int setnum);
+extern void get_image_info(char *data, int len);
+extern void get_image_sums(uint8 *data, int len);
 /* init.c */
 extern void VersionCmd(char *data, int len);
 extern void SendVersion(ClientSocket csock);

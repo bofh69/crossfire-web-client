@@ -63,23 +63,15 @@ extern void set_window_pos(void);
 extern int init_windows(int argc, char **argv);
 extern void display_map_doneupdate(int redraw);
 extern void display_map_newmap(void);
-extern int display_usebitmaps(void);
-extern int display_usexpm(void);
-extern int display_usepng(void);
-extern int display_willcache(void);
 extern void resize_map_window(int x, int y);
-extern void display_newpng(long face, uint8 *buf, long buflen);
 extern void display_map_startupdate(void);
 extern char *get_metaserver(void);
 extern void load_defaults(void);
 extern void save_defaults(void);
 extern int main(int argc, char *argv[]);
 /* image.c */
-extern void requestface(int pnum, char *facename, char *facepath);
-extern int create_and_rescale_image_from_data(int pixmap_num, uint8 *rgba_data, int width, int height);
-extern void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face);
-extern int ReadImages(void);
-extern int find_face_in_private_cache(char *face, int checksum);
+extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
+extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
 extern void reset_image_data(void);
 /* keys.c */
 extern void init_keys(void);
@@ -110,6 +102,10 @@ extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 extern int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 /* sdl.c */
+extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
+extern void do_sdl_per_pixel_lighting(int x, int y, int mx, int my);
+extern void sdl_gen_map(int redraw);
+extern void sdl_mapscroll(int dx, int dy);
 /* sound.c */
 extern void signal_pipe(int i);
 extern int init_sounds(void);

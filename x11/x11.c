@@ -181,7 +181,6 @@ static int FONTHEIGHT= 13;
 
 static int gargc, old_mapx=11, old_mapy=11;
 
-uint8 cache_images=FALSE;
 Display *display;
 static Window def_root;	/* default root window */
 static long def_screen;	/* default screen number */
@@ -238,7 +237,7 @@ uint8	image_size=24;
 
 
 static char stats_buff[7][600];
-struct PixmapInfo pixmaps[MAXPIXMAPNUM];
+struct PixmapInfo *pixmaps[MAXPIXMAPNUM];
 /* Off the 'free' space in the window, this floating number is the
  * portion that the info takes up.
  */
@@ -332,8 +331,8 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	fprintf(stderr,"Invalid face number: %d @ %d, %d\n", face, x, y);
 	return;
     }
-    if (pixmaps[face].mask == None) {
-	    XCopyArea(display, pixmaps[face].pixmap,
+    if (pixmaps[face]->mask == None) {
+	    XCopyArea(display, pixmaps[face]->pixmap,
 	      where,gc_floor,
 	      0,0,image_size,image_size,x,y);
 
@@ -346,7 +345,7 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	Pixmap mask;
 	GC gc;
 	total++;
-	mask = pixmaps[face].mask;
+	mask = pixmaps[face]->mask;
 	/* Lets see if we can find a stored mask with matching gc */
 	for(gcnum=0;gcnum<XPMGCS;gcnum++) {
 	    if (xpm_masks[gcnum] == mask)
@@ -374,7 +373,7 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	 * window drawing code.
 	 */
 	XSetClipOrigin(display, gc_xpm[0], x, y);
-	XCopyArea(display, pixmaps[face].pixmap,
+	XCopyArea(display, pixmaps[face]->pixmap,
 	    where,gc_xpm[0],
 	    0,0,image_size,image_size,x,y);
     }
@@ -2459,7 +2458,7 @@ void check_x_events() {
 	 * more efficient than redrawing everything anytime we get a new image -
 	 * especially since we might get a bunch of images at the same time.
 	 */
-	if (cache_images && lastupdate>5 && newimages) {
+	if (face_info.cache_images && lastupdate>5 && newimages) {
 	    update_icons_list(&inv_list);
 	    update_icons_list(&look_list);
 	    if (!cpl.showmagic) display_map_doneupdate(TRUE);
@@ -2713,11 +2712,11 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-cache")) {
-	    cache_images= TRUE;
+	    face_info.cache_images= TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nocache")) {
-	    cache_images= FALSE;
+	    face_info.cache_images= FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-darkness")) {
@@ -2740,8 +2739,20 @@ int init_windows(int argc, char **argv)
 	    inv_list.show_icon = TRUE;
 	    continue;
 	}
+        else if (!strcmp(argv[on_arg],"-download_all_faces")) {
+            face_info.download_all_faces=TRUE;
+            continue;
+	}
 	else if (!strcmp(argv[on_arg],"-echo")) {
 	    cpl.echo_bindings=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-faceset")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-faceset requires a faceset name/number\n");
+		return 1;
+	    }
+	    face_info.want_faceset = argv[on_arg];
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-scrolllines")) {
@@ -2770,10 +2781,6 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
 	    updatekeycodes=TRUE;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-keepcache")) {
-	    keepcache=TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-autorepeat")) {
@@ -2826,7 +2833,7 @@ int init_windows(int argc, char **argv)
 		return 1;
 
     init_keys();
-    if (cache_images) init_cache_data();
+    if (face_info.cache_images) init_cache_data();
     if (image_file[0] != '\0') ReadImages();
     set_window_pos();
     info_ratio=(float) infodata.width/ (float) (infodata.width + INV_WIDTH);
@@ -2871,7 +2878,7 @@ void display_mapcell_bitmap(int ax,int ay)
 
 int display_willcache()
 {
-    return cache_images;
+    return face_info.cache_images;
 }
 void resize_map_window(int x, int y)
 {
@@ -2934,125 +2941,19 @@ void display_map_doneupdate(int redraw)
 }
 
 
-
-/* This is based a lot on the xpm function below */
-/* There is no good way to load the data directly to a pixmap -
- * even some function which would seem to do the job just hide the
- * writing to a temp function further down (Imlib_inlined_png_to_image
- * does this).  As such, we might as well just do it at the top level - plus
- * if we are caching, at least we only write the file once then.
+/* This functions associates the image_data in the cache entry
+ * with the specific pixmap number.  Returns 0 on success, -1
+ * on failure.  Currently, there is no failure condition, but
+ * there is the potential that in the future, we want to more
+ * closely look at the data and if it isn't valid, return
+ * the failure code.
  */
-void display_newpng(long face,uint8 *buf,long buflen)
+int associate_cache_entry(Cache_Entry *ce, int pixnum)
 {
-    char    *filename;
 
-    FILE *tmpfile;
-    Pixmap pixmap, mask;
-    unsigned long w,h;
-
-    if (cache_images) {
-	if (facetoname[face]==NULL) {
-	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
-	}
-	filename = facetoname[face];
-	if ((tmpfile = fopen(filename,"w"))==NULL) {
-	    fprintf(stderr,"Can not open %s for writing\n", filename);
-	}
-	else {
-	    fwrite(buf, buflen, 1, tmpfile);
-	    fclose(tmpfile);
-	}
-    }
-
-    if (png_to_xpixmap(display, win_game, buf, buflen, &pixmap, &mask,
-		       &colormap, &w, &h)) {
-	fprintf(stderr,"Got error on Imlib_load_file_to_pixmap, face=%ld\n",face);
-    }
-
-/*    printf("newpixmap #%ld: (%ld,%ld)\n",face,pixmap,mask);*/
-    pixmaps[face].pixmap = pixmap;
-    pixmaps[face].mask = mask;
-    newimages++;
-
-    if (cache_images) {
-	if (facetoname[face]) {
-	    free(facetoname[face]);
-	    facetoname[face]=NULL;
-	}
-    }
-
+    pixmaps[pixnum] = ce->image_data;
+    return 0;
 }
-
-#if 0
-void display_newpixmap(long face,char *buf,long buflen)
-{
-    FILE *tmpfile;
-    Pixmap pixmap, mask;
-    XpmAttributes xpm_attr;
-    int error;
-
-    xpm_attr.colormap = colormap;
-    xpm_attr.valuemask = XpmColormap;
-    if (cache_images) {
-	if (facetoname[face]==NULL) {
-	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
-	}
-	else if ((tmpfile = fopen(facetoname[face],"w"))==NULL) {
-	    fprintf(stderr,"Can not open %s for writing\n", facetoname[face]);
-	}
-	else {
-	    fprintf(tmpfile,"%s",buf);
-	    fclose(tmpfile);
-	}
-    }
-    error = XpmCreatePixmapFromBuffer(display, win_game, buf,
-		&pixmap, &mask, &xpm_attr);
-
-    if (error) fprintf(stderr,"Got error %d on XpmCreate\n", error);
-
-/*    printf("newpixmap #%ld: (%ld,%ld)\n",face,pixmap,mask);*/
-    pixmaps[face].pixmap = pixmap;
-    pixmaps[face].mask = mask;
-    newimages++;
-
-    if (facetoname[face] && cache_images) {
-	free(facetoname[face]);
-	facetoname[face]=NULL;
-    }
-}
-#endif
-
-void display_newbitmap(long face,long fg,long bg,char *buf)
-{
-    Pixmap bitmap;
-
-    FILE *tmpfile=NULL;
-    if (cache_images) {
-	if (facetoname[face]==NULL) {
-	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
-	}
-	else {
-	    if ((tmpfile = fopen(facetoname[face],"w"))==NULL)
-		fprintf(stderr,"Can not open %s for writing\n", facetoname[face]);
-	    free(facetoname[face]);
-	    facetoname[face]=NULL;	    
-	}
-    }
-
-    bitmap = XCreateBitmapFromData(display,def_root,buf,image_size,image_size);
-    newimages++;
-    pixmaps[face].bitmap = bitmap;
-    pixmaps[face].fg = fg;
-    pixmaps[face].bg = bg;
-    /* tmpfile will be non null if caching images */
-    if (tmpfile) {
-	fwrite(buf, 1, 72, tmpfile);
-	fwrite(&fg, 1, 4, tmpfile);
-	fwrite(&bg, 1, 4, tmpfile); 
-	fclose(tmpfile);
-    }
-}
-
 
 void redisplay_stats()
 {
@@ -3179,15 +3080,15 @@ void reset_image_data()
     int i;
 
     for (i=1; i<MAXPIXMAPNUM; i++) {
-	if (pixmaps[i].pixmap && (pixmaps[i].pixmap!=pixmaps[0].pixmap)) {
-	    XFreePixmap(display, pixmaps[i].pixmap);
-	    pixmaps[i].pixmap=(Pixmap)NULL;
-	    if (pixmaps[i].mask) {
-		XFreePixmap(display, pixmaps[i].mask);
-		pixmaps[i].mask=(Pixmap)NULL;
+	if (!face_info.cache_images && pixmaps[i] != pixmaps[0]) {
+	    XFreePixmap(display, pixmaps[i]->pixmap);
+	    if (pixmaps[i]->mask) {
+		XFreePixmap(display, pixmaps[i]->mask);
 	    }
+	    free(pixmaps[i]);
+	    pixmaps[i] = pixmaps[0];
 	}
-	if (cache_images && facetoname[i]!=NULL) {
+	if (face_info.cache_images && facetoname[i]!=NULL) {
 	    free(facetoname[i]);
 	    facetoname[i]=NULL;
 	}
@@ -3317,8 +3218,8 @@ void load_defaults()
 	    continue;
 	}
 	if (!strcmp(inbuf,"cacheimages")) {
-	    if (!strcmp(cp,"True")) cache_images=TRUE;
-	    else cache_images=FALSE;
+	    if (!strcmp(cp,"True")) face_info.cache_images=TRUE;
+	    else face_info.cache_images=FALSE;
 	    continue;
 	}
 	if (!strcmp(inbuf,"split")) {
@@ -3392,7 +3293,7 @@ void save_defaults()
     fprintf(fp,"port: %d\n", port_num);
     fprintf(fp,"server: %s\n", server);
     fprintf(fp,"font: %s\n", font_name);
-    fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
+    fprintf(fp,"cacheimages: %s\n", face_info.cache_images?"True":"False");
     fprintf(fp,"split: %s\n", split_windows?"True":"False");
     fprintf(fp,"showicon: %s\n", inv_list.show_icon?"True":"False");
     fprintf(fp,"scrolllines: %d\n", infodata.maxlines);

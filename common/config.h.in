@@ -80,3 +80,12 @@
 /* Version number of package */
 #undef VERSION
 
+/* Location of various directories, as determined by the user using
+ * the appropriate -prefix when running configure
+ */
+
+/* Location of other binaries */
+#define BINDIR ""
+
+/* Location of read-only machine independent data */
+#define DATADIR ""

@@ -82,26 +82,20 @@ The gtk client and x11 client both use the same keybindings file.
 Sound support:
 
 If you wnat sound support (only useful if you have a system that has good
-sound hardware), you will also need to get some sounds for the program.  If
-using the new sound system (seperate sound daemon), you need the raw sound
-files, otherwise you need the au sound files.
+sound hardware), you will also need to get some sounds for the program.
+You will need the raw sound files - the .au files no longer work with the
+client.
 
  The sounds file determines what file is played for what sound.  The default
-location for the sound files is /usr/local/lib/sounds.  You can set this to
-another directory at the configure stage by using
+location for the sound files is <prefix>/share/cfclient/sounds. <prefix>
+is the -prefix= option given when running configure, default of /usr/local.
+
+You can set this to another directory at the configure stage by using
 --with-sound-dir=/some/directory.  This file is only used for compiled in
 defaults.  If you have a ~/.crossfire/sounds file (some format), that file
 will be used instead of the built in defaults.
 
-If using ALSA, you probably want to use the new sound system.  If using
-OSS, the new sound system doesn't seem to play the sounds at the right pitch,
-so you probaly want to use the old sound system.  Use --enable-old-sound 
-to use the old sound system.
-
-
-New Sound Support:
-
-Sound can now be played by separate process invoked from crossfire client.
+Sound are now played by separate process invoked from crossfire client.
 The process - called sound server - adjusts sounds' volume according to
 relative position of player and sound source on map and mixes the sounds
 together, so many sounds can be played simultaneously.
@@ -156,6 +150,35 @@ played.
 So bigger buffer means bigger delay, before th sound is actually played, but
 the smaller buffer is, the bigger is possibility, we won't succeed filling the
 next buffer, before last is played.
+
+------------------------------------------------------------------------------
+IMAGES
+
+The client will get any images that it is missing from the server.  This
+can include the entire image set.
+
+To decrease bandwidth used when actually playing the sounds, it is suggested
+you download the image archive and install it.  The default location
+for the archive is <prefix>/share/cfclient/, where <prefix> is deteremined
+by the -prefix= option given when running configure.
+
+The mechanism the client uses to find a matching image file when the 
+server tells it an image name is thus:
+
+1) Look in ~/.crossfire/gfx.  If an image is found here, irrespective of the
+set and checksum of the image on the server, it will be used.  The only
+way images are placed into the gfx directory is by the user actually
+copying them to that directory.  The gfx directory allows a user to override
+images with versions he prefers.
+
+2) Look in ~/.crossfire/crossfire-images then <prefix>/share/cfclient/crossfire-images.
+If the checksum matches the image from the
+respective directory is used.  Note that if the checksums match, it really doesn't
+matter what image location we use, as it is the same image.
+
+4) Get the image from the server.  If -cache is set, a copy of it is put into
+~/.crossfire/crossfire-images.
+
 
 ------------------------------------------------------------------------------
 Authors of the client:

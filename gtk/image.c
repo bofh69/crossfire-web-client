@@ -69,7 +69,7 @@ struct {
 char *facetoname[MAXPIXMAPNUM];
 
 
-int use_private_cache=0, last_face_num=0;
+int last_face_num=0;
 
 
 /******************************************************************************
@@ -89,47 +89,36 @@ typedef struct Keys {
 } Key_Entry;
 
 
-void requestface(int pnum, char *facename, char *facepath)
-{
-    char buf[MAX_BUF];
-
-    facetoname[pnum] = strdup_local(facepath);
-    cs_print_string(csocket.fd, "askface %d", pnum);
-    /* Need to make sure we have the directory */
-    sprintf(buf,"%s/%c%c", facecachedir, facename[0], facename[1]);
-    if (access(buf,R_OK)) make_path_to_dir(buf);
-}
-
 /* Rotate right from bsd sum. */
 #define ROTATE_RIGHT(c) if ((c) & 01) (c) = ((c) >>1) + 0x80000000; else (c) >>= 1;
 
 /*#define CHECKSUM_DEBUG*/
 
 /* These little helper functions just make the code below much more readable */
-static void create_icon_image(uint8 *data, int pixmap_num)
+static void create_icon_image(uint8 *data, PixmapInfo *pi, int pixmap_num)
 {
-    if (rgba_to_gdkpixmap(gtkwin_root->window, data, pixmaps[pixmap_num].icon_width, pixmaps[pixmap_num].icon_height,
-		(GdkPixmap**)&pixmaps[pixmap_num].icon_image, (GdkBitmap**)&pixmaps[pixmap_num].icon_mask,
+    if (rgba_to_gdkpixmap(gtkwin_root->window, data, pi->icon_width, pi->icon_height,
+		(GdkPixmap**)&pi->icon_image, (GdkBitmap**)&pi->icon_mask,
 		gtk_widget_get_colormap(gtkwin_root)))
 		    fprintf(stderr,"Unable to create scaled image, dest num = %d\n", pixmap_num);
 }
 
 /* These little helper functions just make the code below much more readable */
-static void create_map_image(uint8 *data, int pixmap_num)
+static void create_map_image(uint8 *data, PixmapInfo *pi)
 {
-    pixmaps[pixmap_num].map_image = NULL;
-    pixmaps[pixmap_num].map_mask = NULL;
+    pi->map_image = NULL;
+    pi->map_mask = NULL;
 
     if (sdlimage) {
 #if defined(HAVE_SDL)
     #if SDL_BYTEORDER == SDL_LIL_ENDIAN
-	pixmaps[pixmap_num].map_image = SDL_CreateRGBSurfaceFrom(data, pixmaps[pixmap_num].map_width,
-	        pixmaps[pixmap_num].map_height, 32, pixmaps[pixmap_num].map_width * 4,  0xff,
+	pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
+	        pi->map_height, 32, pi->map_width * 4,  0xff,
 			0xff00, 0xff0000, 0xff000000);
     #else
 	/* Big endian */
-	pixmaps[pixmap_num].map_image = SDL_CreateRGBSurfaceFrom(data, pixmaps[pixmap_num].map_width,
-	        pixmaps[pixmap_num].map_height, 32, pixmaps[pixmap_num].map_width * 4,  0xff000000,
+	pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
+	        pi->map_height, 32, pi->map_width * 4,  0xff000000,
 			0xff0000, 0xff00, 0xff);
 
     #endif
@@ -137,9 +126,28 @@ static void create_map_image(uint8 *data, int pixmap_num)
 #endif
     }
     else {
-	rgba_to_gdkpixmap(gtkwin_root->window, data, pixmaps[pixmap_num].map_width, pixmaps[pixmap_num].map_height,
-		(GdkPixmap**)&pixmaps[pixmap_num].map_image, (GdkBitmap**)&pixmaps[pixmap_num].map_mask,
+	rgba_to_gdkpixmap(gtkwin_root->window, data, pi->map_width, pi->map_height,
+		(GdkPixmap**)&pi->map_image, (GdkBitmap**)&pi->map_mask,
 		gtk_widget_get_colormap(gtkwin_root));
+    }
+}
+
+static void free_pixmap(PixmapInfo *pi)
+{
+    if (pi->icon_image) gdk_pixmap_unref(pi->icon_image);
+    if (pi->icon_mask) gdk_pixmap_unref(pi->icon_mask);
+    if (pi->map_mask) gdk_pixmap_unref(pi->map_mask);
+    if (pi->map_image) {
+#ifdef HAVE_SDL
+	if (sdlimage) {
+	    SDL_FreeSurface(pi->map_image);
+	    free(((SDL_Surface*)pi->map_image)->pixels);
+	}
+	else
+#endif
+	{
+	    gdk_pixmap_unref(pi->map_image);
+	}
     }
 }
 
@@ -147,26 +155,31 @@ static void create_map_image(uint8 *data, int pixmap_num)
  * data (ie, already loaded with png_to_data).  Scales and
  * stores the relevant data into the pixmap structure.
  * returns 1 on failure.
+ * ce can be NULL
  */
-int create_and_rescale_image_from_data(int pixmap_num, uint8 *rgba_data, int width, int height)
+
+int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height)
 {
     int nx, ny;
     uint8 *png_tmp;
+    PixmapInfo	*pi;
+
+    pi = malloc(sizeof(PixmapInfo));
 
     /* In all cases, the icon images are in native form. */
     if (icon_scale != 100) {
 	nx=width;
 	ny=height;
 	png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, icon_scale);
-	pixmaps[pixmap_num].icon_width = nx;
-	pixmaps[pixmap_num].icon_height = ny;
-	create_icon_image(png_tmp, pixmap_num);
+	pi->icon_width = nx;
+	pi->icon_height = ny;
+	create_icon_image(png_tmp, pi, pixmap_num);
 	free(png_tmp);
     }
     else {
-	pixmaps[pixmap_num].icon_width = width;
-	pixmaps[pixmap_num].icon_height = height;
-	create_icon_image(rgba_data, pixmap_num);
+	pi->icon_width = width;
+	pi->icon_height = height;
+	create_icon_image(rgba_data, pi, pixmap_num);
     }
 
     /* We could try to be more intelligent if icon_scale matched map_scale,
@@ -177,212 +190,43 @@ int create_and_rescale_image_from_data(int pixmap_num, uint8 *rgba_data, int wid
 	nx=width;
 	ny=height;
 	png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, map_scale);
-	pixmaps[pixmap_num].map_width = nx;
-	pixmaps[pixmap_num].map_height = ny;
-	create_map_image(png_tmp, pixmap_num);
+	pi->map_width = nx;
+	pi->map_height = ny;
+	create_map_image(png_tmp, pi);
 	if (!sdlimage) free(png_tmp);
     } else {
-	pixmaps[pixmap_num].map_width = width;
-	pixmaps[pixmap_num].map_height = height;
-	create_map_image(rgba_data, pixmap_num);
+	pi->map_width = width;
+	pi->map_height = height;
+	create_map_image(rgba_data, pi);
     }
     /* Not ideal, but basically, if it is missing the map or icon image, presume
      * something failed.
      */
-    if (!pixmaps[pixmap_num].icon_image || !pixmaps[pixmap_num].map_image) return 1;
+    if (!pi->icon_image || !pi->map_image) {
+	free_pixmap(pi);
+	free(pi);
+	return 1;
+    }
+    if (ce) {
+	ce->image_data = pi;
+	redraw_needed=1;
+    }
+    pixmaps[pixmap_num] = pi;
     return 0;
 }
 
-
-/* This is common for both face1 and face commands. */
-void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
-{
-    char buf[MAX_BUF];
-    int fd,len;
-    uint32 nx,ny;
-    uint8 data[65536], *png_tmp;
-    uint32 newsum=0;
-
-    /* Check private cache first */
-    sprintf(buf,"%s/.crossfire/gfx/%s", getenv("HOME"), face);
-    strcat(buf,".png");
-
-    if ((fd=open(buf, O_RDONLY))!=-1) {
-	len=read(fd, data, 65535);
-	close(fd);
-	has_sum=0;  /* Maybe not really true, but we want to use this image
-		     * and not request a replacement.
-		     */
-    } else {
-
-	/* Hmm.  Should we use this file first, or look in our home
-	 * dir cache first?
-	 */
-	if (use_private_cache) {
-	    len = find_face_in_private_cache(face, checksum);
-	    if ( len > 0 ) {
-		create_and_rescale_image_from_data(pnum, private_cache[len].png_data,
-				private_cache[len].width, private_cache[len].height);
-		/* we may want to find a better match */
-		if (private_cache[len].checksum == checksum ||
-		    !has_sum || keepcache) return;
-	    }
-	}
-
-	/* To prevent having a directory with 2000 images, we do a simple
-	 * split on the first 2 characters.
-	 */
-	sprintf(buf,"%s/%c%c/%s.png", facecachedir, face[0], face[1],face);
-
-	if ((fd=open(buf, O_RDONLY))==-1) {
-	    requestface(pnum, face, buf);
-	    return;
-	}
-	len=read(fd, data, 65535);
-	close(fd);
-    }
-
-    if (has_sum && !keepcache) {
-	for (fd=0; fd<len; fd++) {
-	    ROTATE_RIGHT(newsum);
-	    newsum += data[fd];
-	    newsum &= 0xffffffff;
-	}
-
-	if (newsum != checksum) {
-#ifdef CHECKSUM_DEBUG
-	    fprintf(stderr,"finish_face_command: checksums differ: %s, %x != %x\n",
-		    face, newsum, checksum);
-#endif
-	    requestface(pnum, face, buf);
-#ifdef CHECKSUM_DEBUG
-	} else {
-	    fprintf(stderr,"finish_face_command: checksums match: %s, %x == %x\n",
-		    face, newsum, checksum);
-#endif
-	}
-    }
-
-    if (!(png_tmp = png_to_data(data, len, &nx, &ny))) {
-	fprintf(stderr,"Got error on png_to_data, file=%s\n",buf);
-	requestface(pnum, face, buf);
-    }
-    if (create_and_rescale_image_from_data(pnum, png_tmp,nx, ny)) {
-	    fprintf(stderr,"Got error on create_and_rescale_image_from_data, file=%s\n",buf);
-	    requestface(pnum, face, buf);
-    }
-}
-
-
-/* This code is somewhat from the crossedit/xutil.c.
- * What we do is create a private copy of all the images
- * for ourselves.  Then, if we get a request to GDK_DISPLAY()
- * a new image, we see if we have it in this cache.
- *
- * This is only supported for PNG images.  I see now reason
- * to support the older image formats since they will be 
- * going away.
- * Note that this does not actually create/render the image, rather it
- * just stores the png data that will then get used to create something
- * later on.  This allows this code to be more general, and also takes
- * into account potential resizing issues.
+/* This functions associates the image_data in the cache entry
+ * with the specific pixmap number.  Returns 0 on success, -1
+ * on failure.  Currently, there is no failure condition, but
+ * there is the potential that in the future, we want to more
+ * closely look at the data and if it isn't valid, return
+ * the failure code.
  */
+int associate_cache_entry(Cache_Entry *ce, int pixnum)
+{
 
-int ReadImages() {
-
-    int		len,i,num ;
-    FILE	*infile;
-    char	*cp, databuf[10000], *last_cp=NULL;
-    unsigned long  x;
-
-    if (image_file[0] == 0) return 0;
-
-    if (!cache_images) {
-	cache_images=1;	    /* we want face commands from server */
-	keepcache=TRUE;	    /* Reduce requests for new image */
-    }
-
-    if ((infile = fopen(image_file,"r"))==NULL) {
-        fprintf(stderr,"Unable to open %s\n", image_file);
-	return 0;
-    }
-    for (i=0; i<MAXPIXMAPNUM; i++)
-	private_cache[0].name = NULL;
-
-    i=0;
-    while (fgets(databuf,MAX_BUF,infile)) {
-
-	/* First, verify that that image header line is OK */
-        if(strncmp(databuf,"IMAGE ",6)!=0) {
-	    fprintf(stderr,"ReadImages:Bad image line - not IMAGE, instead\n%s",databuf);
-	    return 0;
-	}
-        num = atoi(databuf+6);
-        if (num<0 || num > MAXPIXMAPNUM) {
-            fprintf(stderr,"Pixmap number less than zero: %d, %s\n",num, databuf);
-            return 0;
-	}
-	/* Skip accross the number data */
-	for (cp=databuf+6; *cp!=' '; cp++) ;
-	len = atoi(cp);
-	if (len==0 || len>10000) {
-	    fprintf(stderr,"ReadImages: length not valid: %d\n%s",
-                    len,databuf);
-                return 0;
-	}
-	/* We need the name so that when an FaceCmd comes in, we can look for
-	 the matching name.
-	 */
-	while (*cp!=' ' && *cp!='\n') cp++; /* skip over len */
-
-	/* We only want the last component of the name - not the full path */
-	while (*cp != '\n') {
-	    if (*cp == '/') last_cp = cp+1; /* don't want the slah either */
-	    cp++;
-	}
-	*cp = '\0';	/* Clear newline */
-
-	private_cache[num].name = strdup_local(last_cp);
-
-	if (fread(databuf, 1, len, infile)!=len) {
-           fprintf(stderr,"read_client_images: Did not read desired amount of data, wanted %d\n%s",
-                    len, databuf);
-                    return 0;
-	}
-	private_cache[num].checksum=0;
-	for (x=0; x<len; x++) {
-	    ROTATE_RIGHT(private_cache[num].checksum);
-	    private_cache[num].checksum += databuf[x];
-	    private_cache[num].checksum &= 0xffffffff;
-	}
-	if (num > last_face_num) last_face_num = num;
-
-	private_cache[num].png_data = png_to_data((uint8 *)databuf, len, &private_cache[num].width,
-			&private_cache[num].height);
-	if (!private_cache[num].png_data) {
-	    fprintf(stderr,"Got error on png_to_data, image num %d, name %s\n",num, private_cache[num].name);
-	    free(private_cache[num].name);
-	    private_cache[num].name=NULL;
-	    private_cache[num].checksum=0;
-	}
-    }
-    fclose(infile);
-    use_private_cache=1;
+    pixmaps[pixnum] = ce->image_data;
     return 0;
-}
-
-/* try to find a face in our private cache.  We return the face
- * number if we find one, -1 for no face match
- */
-int find_face_in_private_cache(char *face, int checksum)
-{
-    int i;
-
-    for (i=1; i<=last_face_num; i++)
-	if (!strcmp(face, private_cache[i].name)) {
-	    return i;
-	}
-    return -1;
 }
 
 /* We can now connect to different servers, so we need to clear out
@@ -396,42 +240,20 @@ int find_face_in_private_cache(char *face, int checksum)
 void reset_image_data()
 {
     int i;
+    reset_image_cache_data();
 
+    /* The entries in the pixmaps array are also tracked in the image cache in
+     * the common area.  We will try to recyle those images that we can - thus, if
+     * we connect to a new server, we can just re-use the images we have already
+     * rendered.
+     */
     for (i=1; i<MAXPIXMAPNUM; i++) {
-	if (pixmaps[i].icon_image) {
-	    gdk_pixmap_unref(pixmaps[i].icon_image);
-	    pixmaps[i].icon_image=NULL;
-	    if (pixmaps[i].icon_mask) {
-		gdk_pixmap_unref(pixmaps[i].icon_mask);
-		pixmaps[i].icon_mask=NULL;
-	    }
+	if (!face_info.cache_images && pixmaps[i] != pixmaps[0]) {
+	    free_pixmap(pixmaps[i]);
+	    free(pixmaps[i]);
 	}
-	if (cache_images && facetoname[i]!=NULL) {
-	    free(facetoname[i]);
-	    facetoname[i]=NULL;
-	}
-	if (pixmaps[i].map_image) {
-#ifdef HAVE_SDL
-	    if (sdlimage) {
-		SDL_FreeSurface(pixmaps[i].map_image);
-		free(((SDL_Surface*)pixmaps[i].map_image)->pixels);
-	    }
-	    else
-
-#endif
-	    {
-		gdk_pixmap_unref(pixmaps[i].map_image);
-		pixmaps[i].map_image=NULL;
-		if (pixmaps[i].map_mask) {
-		    gdk_pixmap_unref(pixmaps[i].map_mask);
-		    pixmaps[i].icon_mask=NULL;
-		}
-	    }
-	}
+	pixmaps[i] = pixmaps[0];
     }
-    /*
-    memset(&the_map, 0, sizeof(struct Map));
-    */
     memset( the_map.cells[0], 0, sizeof( sizeof( struct MapCell)*
 					 the_map.x * the_map.y ));
 }

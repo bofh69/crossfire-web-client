@@ -29,16 +29,6 @@
  * here can provide nice defaults.
  */
 
-/* Directory to store cached images (only makes a difference if run
- * with the -cache option.)  If not set, then we store in ~/.crossfire/images
- * This should be good enough for most people.  However, if you have a site
- * with many people running the client, you might want to make a standard
- * depository (note that permissions on the repository might need to be
- * pretty wide open.
- */
-
-/*#define IMAGECACHEDIR "/tmp" */
-
 /* This is how often the client checks for X events, as well as how often
  * it performs animations (or will).  This value can be most anything.
  * IT is only configurable because the exact value it needs to be set to
@@ -54,11 +44,6 @@
 
 /* This is the default port to connect to the server with in string form. */
 #define DEFPORT "13327"
-
-/* Set to default display mode you want (one of Pix_Display, Xpm_Display, or
- * Png_Display).
- */
-#define DISPLAY_MODE Png_Display
 
 /* Set to default server you want the client to connect to.  This can
  * be especially useful if your installing the client binary on a LAN

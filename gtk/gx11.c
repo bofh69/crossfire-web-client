@@ -64,6 +64,9 @@
 
 #include "config.h"
 
+#ifdef __CYGWIN__
+#include <errno.h>
+#endif
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -117,7 +120,7 @@ static char *colorname[] = {
 
 static int image_size=DEFAULT_IMAGE_SIZE;
 int map_image_size=DEFAULT_IMAGE_SIZE, map_image_half_size=DEFAULT_IMAGE_SIZE/2;
-PixmapInfo pixmaps[MAXPIXMAPNUM];
+PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
 
 /* All the following are static because these variables should
@@ -254,13 +257,12 @@ static uint8
     bigmap=FALSE;	/* True if we've moved some windows around for big maps */
 
 uint8
-    cache_images=FALSE,
-    keepcache=FALSE,
     nopopups=FALSE, 
     sdlimage=FALSE,
     split_windows=FALSE,
     time_map_redraw=FALSE,
-    updatekeycodes=FALSE;
+    updatekeycodes=FALSE,
+    redraw_needed=FALSE;
 
 /* Only used in SDL code, but we want to preserve values when loading/
  * saving even if we don't have SDL
@@ -344,7 +346,6 @@ enum {
 
 
 GtkWidget *entrytext, *counttext;
-static gint redraw_needed=FALSE;
 static GtkObject *text_hadj,*text_vadj;
 static GtkObject *text_hadj2,*text_vadj2;
 GtkWidget *gameframe, *stat_frame, *message_frame;
@@ -390,17 +391,14 @@ int updatelock = 0;
 /* this is used for caching the images across runs.  When we get a face
  * command from the server, we check the facecache for that name.  If
  * so, we can then use the num to find out what face number it is on the
- * local side.  the facecachemap does something similar - when the
- * server sends us saying to draw face XXX (server num), the facecacehmap
- * can then be used to determine what XXX is locally.  If not caching,
- * facecachemap is just a 1:1 mapping.
+ * local side.
  */
 struct FaceCache {
     char    *name;
     uint16  num;
 } facecache[MAXPIXMAPNUM];
 
-uint16 facecachemap[MAXPIXMAPNUM], cachelastused=0, cacheloaded=0;
+uint16 cachelastused=0, cacheloaded=0;
 
 FILE *fcache;
 
@@ -534,11 +532,11 @@ static void freeanimobject (animobject *data, gpointer user_data) {
 
 static void animateview (animview *data, gint user_data) {
     /* If no data (because of cache), use face 0 */
-    if (!pixmaps[facecachemap[user_data]].icon_image) user_data=0;
+    if (!pixmaps[user_data]->icon_image) user_data=0;
 
     gtk_clist_set_pixmap (GTK_CLIST (data->list), data->row, 0,
-		    (GdkPixmap*)pixmaps[facecachemap[user_data]].icon_image,
-		    (GdkBitmap*)pixmaps[facecachemap[user_data]].icon_mask);
+		    (GdkPixmap*)pixmaps[user_data]->icon_image,
+		    (GdkBitmap*)pixmaps[user_data]->icon_mask);
 }
 
 /* Run through the animations and update them */
@@ -650,7 +648,6 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
  *
  *****************************************************************************/
 
-char facecachedir[MAX_BUF];
 
 /* This holds the name we recieve with the 'face' command so we know what
  * to save it as when we actually get the face.
@@ -668,13 +665,28 @@ static void init_cache_data()
     printf ("Init Cache\n");
     
     style = gtk_widget_get_style(gtkwin_root);
-    pixmaps[0].icon_image = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
-							(GdkBitmap**) &pixmaps[0].icon_mask,
+    pixmaps[0] = malloc(sizeof(PixmapInfo));
+    pixmaps[0]->icon_image = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
+							(GdkBitmap**)&pixmaps[0]->icon_mask,
 							&style->bg[GTK_STATE_NORMAL],
 							(gchar **)question);
-    pixmaps[0].map_image =  pixmaps[0].icon_image;
-    pixmaps[0].map_mask =  pixmaps[0].icon_mask;
-    pixmaps[0].icon_width = pixmaps[0].icon_height = pixmaps[0].map_width = pixmaps[0].map_height = map_image_size;
+#ifdef HAVE_SDL
+    if (sdlimage) {
+	/* make a semi transparent question mark symbol to
+	 * use for the cached images.
+	 */
+#include "pixmaps/question.sdl"
+	pixmaps[0]->map_image = SDL_CreateRGBSurfaceFrom(question_sdl,
+		32, 32, 1, 4, 1, 1, 1, 1);
+	SDL_SetAlpha(pixmaps[0]->map_image, SDL_SRCALPHA, 70);
+    }
+    else
+#endif
+    {
+	pixmaps[0]->map_image =  pixmaps[0]->icon_image;
+	pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
+    }
+    pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
     facetoname[0]=NULL;
 
     /* Don't do anything special for SDL image - rather, that drawing
@@ -683,21 +695,11 @@ static void init_cache_data()
 
     /* Initialize all the images to be of the same value. */
     for (i=1; i<MAXPIXMAPNUM; i++)  {
-	memset(&pixmaps[i], 0, sizeof(PixmapInfo));
+	pixmaps[i] = pixmaps[0];
 	facetoname[i]=NULL;
     }
 
-#ifdef IMAGECACHEDIR
-    strcpy(facecachedir, IMAGECACHEDIR);
-#else
-    sprintf(facecachedir,"%s/.crossfire/images", getenv("HOME"));
-#endif
-
-    if (make_path_to_dir(facecachedir)==-1) {
-	    fprintf(stderr,"Could not create directory %s, exiting\n", facecachedir);
-	    exit(1);
-    }
-
+    init_common_cache_data();
 }
 
 /* Deals with command history.  if direction is 0, we are going backwards,
@@ -1001,8 +1003,8 @@ static void draw_list (itemlist *l)
       tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
       /* Set original pixmap */
       gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
-			    (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			    (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask); 
+			    (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			    (GdkBitmap*)pixmaps[tmp->face]->icon_mask); 
       gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
       if (color_inv) { 
 	if (tmp->cursed || tmp->damned) {
@@ -1034,8 +1036,8 @@ static void draw_list (itemlist *l)
       if (tmp->applied) {
        	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[1]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[1]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[1]), tmprow, tmp); 
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1048,8 +1050,8 @@ static void draw_list (itemlist *l)
       if (!tmp->applied) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[2]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[2]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[2]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1063,8 +1065,8 @@ static void draw_list (itemlist *l)
       if (tmp->unpaid) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[3]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[3]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[3]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1078,8 +1080,8 @@ static void draw_list (itemlist *l)
       if (tmp->cursed || tmp->damned) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[4]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[4]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[4]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1093,8 +1095,8 @@ static void draw_list (itemlist *l)
       if (tmp->magical) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[5]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[5]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[5]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1108,8 +1110,8 @@ static void draw_list (itemlist *l)
       if (!tmp->magical) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[6]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[6]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[6]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1123,8 +1125,8 @@ static void draw_list (itemlist *l)
       if (tmp->locked) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[7]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[7]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[7]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1136,8 +1138,8 @@ static void draw_list (itemlist *l)
       if (!tmp->locked) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[8]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[8]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[8]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1165,8 +1167,8 @@ static void draw_list (itemlist *l)
     } else {
       tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
       gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
-			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
+			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
+			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
       gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
       if (tmp->animation_id>0 && tmp->anim_speed) {
 	tmpanim = newanimobject();
@@ -3103,9 +3105,9 @@ void aboutdialog(GtkWidget *widget) {
 void applyconfig () {
   int sound;
   if (GTK_TOGGLE_BUTTON (ccheckbutton1)->active)  {
-    cache_images=TRUE;
+    face_info.cache_images=TRUE;
   } else {
-    cache_images=FALSE;
+    face_info.cache_images=FALSE;
   }
   if (GTK_TOGGLE_BUTTON (ccheckbutton2)->active) {
     if (!split_windows) {
@@ -3236,9 +3238,9 @@ void applyconfig () {
 void saveconfig () {
   int sound;
   if (GTK_TOGGLE_BUTTON (ccheckbutton1)->active) {
-    cache_images=TRUE;
+    face_info.cache_images=TRUE;
   } else {
-    cache_images=FALSE;
+    face_info.cache_images=FALSE;
   }
   if (GTK_TOGGLE_BUTTON (ccheckbutton2)->active) {
     if (!split_windows) {
@@ -3456,7 +3458,7 @@ void configdialog(GtkWidget *widget) {
     /* Add the checkbuttons to the notebook and set them according to current settings */
     ccheckbutton1 = gtk_check_button_new_with_label ("Cache Images" );
     gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton1, FALSE, FALSE, 0);
-    if (cache_images) {
+    if (face_info.cache_images) {
       gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton1), TRUE);
     } else {
       gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton1), FALSE);
@@ -5530,10 +5532,10 @@ static void usage(char *progname)
     puts("-display <name>  - Use <name> instead if DISPLAY environment variable.");
     puts("-echo            - Echo the bound commands");
     puts("-noecho          - Do not echo the bound commands (default)");
+    puts("-faceset <name>  - Use faceset <name> if available");
     puts("-fog             - Enable for of war code");
     puts("-help            - Display this message.");
     puts("-iconscale %%    - Set icon scale percentage");
-    puts("-keepcache       - Keep already cached images even if server has different ones.");
     puts("-mapscale %%     - Set map scale percentage");
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces. (default 11x11)");
     puts("-pngfile <name>  - Use <name> for source of images");
@@ -5579,11 +5581,11 @@ int init_windows(int argc, char **argv)
     want_skill_exp=1;
     for (on_arg=1; on_arg<argc; on_arg++) {
 	if (!strcmp(argv[on_arg],"-cache")) {
-	    cache_images= TRUE;
+	    face_info.cache_images= TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-nocache")) {
-	    cache_images= FALSE;
+	    face_info.cache_images= FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-darkness")) {
@@ -5602,12 +5604,24 @@ int init_windows(int argc, char **argv)
 	    display_name = argv[on_arg];
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-download_all_faces")) {
+	    face_info.download_all_faces=TRUE;
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-echo")) {
 	    cpl.echo_bindings=TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-noecho")) {
 	    cpl.echo_bindings=FALSE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-faceset")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-faceset requires a faceset name/number\n");
+		return 1;
+	    }
+	    face_info.want_faceset = argv[on_arg];
 	    continue;
 	}
 	else if( !strcmp( argv[on_arg],"-fog")) {
@@ -5634,10 +5648,6 @@ int init_windows(int argc, char **argv)
 		return 1;
 	    }
 	    image_size = DEFAULT_IMAGE_SIZE * icon_scale / 100;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-keepcache")) {
-	    keepcache=TRUE;
 	    continue;
 	}
 	else if( !strcmp( argv[on_arg],"-mapscale")) {
@@ -5683,14 +5693,6 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-nofasttcpsend")) {
 	    fast_tcp_send=0;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-pngfile")) {
-	    if (++on_arg == argc) {
-		fprintf(stderr,"-pngfile requires a file name\n");
-		return 1;
-	    }
-	    image_file = argv[on_arg];
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-popups")) {
@@ -5801,8 +5803,6 @@ int init_windows(int argc, char **argv)
      */
     gargc=argc;
     gargv=argv;
-    for (on_arg=0; on_arg<MAXPIXMAPNUM; on_arg++)
-	facecachemap[on_arg]=on_arg;
 
     for (on_arg = 0; on_arg<MAX_HISTORY; on_arg++)
 	history[on_arg][0]=0;
@@ -5812,8 +5812,7 @@ int init_windows(int argc, char **argv)
 		return 1;
 
     init_keys();
-    if (cache_images) init_cache_data();
-    if (image_file[0] != '\0') ReadImages();
+    if (face_info.cache_images) init_cache_data();
     destroy_splash();
 
     return 0;
@@ -5829,7 +5828,7 @@ void display_map_doneupdate(int redraw)
 	updatelock++;
 
 #ifdef HAVE_SDL
-	if (sdlimage) sdl_gen_map();
+	if (sdlimage) sdl_gen_map(redraw);
 	else
 #endif
 	gtk_draw_map();
@@ -5841,11 +5840,6 @@ void display_map_doneupdate(int redraw)
 void display_map_newmap()
 {
     reset_map();
-}
-
-int display_willcache()
-{
-    return cache_images;
 }
 
 void resize_map_window(int x, int y)
@@ -5950,41 +5944,6 @@ void resize_map_window(int x, int y)
 }
 
 
-/* If we are using ximage logic, we use a different mechanism to load the
- * image.
- */
-void display_newpng(long face,uint8 *buf,long buflen)
-{
-    char    *filename;
-    uint8   *pngtmp;
-    FILE *tmpfile;
-    uint32 width, height;
-
-    if (cache_images) {
-	if (facetoname[face]==NULL) {
-	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
-	}
-	filename = facetoname[face];
-	if ((tmpfile = fopen(filename,"w"))==NULL) {
-	    fprintf(stderr,"Can not open %s for writing\n", filename);
-	}
-	else {
-	    fwrite(buf, buflen, 1, tmpfile);
-	    fclose(tmpfile);
-	}
-    }
-
-    pngtmp = png_to_data(buf, buflen, &width, &height);
-    create_and_rescale_image_from_data(face, pngtmp, width, height);
-
-    if (cache_images) {
-	if (facetoname[face]) {
-	    free(facetoname[face]);
-	    facetoname[face]=NULL;
-	}
-    }
-}
-
 void display_map_startupdate()
 {
 }
@@ -6024,8 +5983,8 @@ void load_defaults()
 	cp+=2;	    /* colon, space, then value */
 
 	if (!strcmp(inbuf,"cacheimages")) {
-	    if (!strcmp(cp,"True")) cache_images=TRUE;
-	    else cache_images=FALSE;
+	    if (!strcmp(cp,"True")) face_info.cache_images=TRUE;
+	    else face_info.cache_images=FALSE;
 	    continue;
 	}
 	if (!strcmp(inbuf,"colorinv")) {
@@ -6073,11 +6032,6 @@ void load_defaults()
 		icon_scale = scale;
 		image_size = DEFAULT_IMAGE_SIZE * icon_scale / 100;
 	    }
-	    continue;
-	}
-	if (!strcmp(inbuf,"keepcache")) {
-	    if (!strcmp(cp,"True")) keepcache=TRUE;
-	    else keepcache=FALSE;
 	    continue;
 	}
 	/* Only SDL actually uses these values, but we can still preserve
@@ -6194,7 +6148,7 @@ void save_defaults()
     fprintf(fp,"# some of the matching it does.  all comparisons are case sensitive.\n");
     fprintf(fp,"# 'True' and 'False' are the proper cases for those two values\n");
 
-    fprintf(fp,"cacheimages: %s\n", TRUE_OR_FALSE(cache_images));
+    fprintf(fp,"cacheimages: %s\n", TRUE_OR_FALSE(face_info.cache_images));
     fprintf(fp,"colorinv: %s\n", TRUE_OR_FALSE(color_inv));
     fprintf(fp,"colortext: %s\n", TRUE_OR_FALSE(color_text));
     fprintf(fp,"command_window: %d\n", cpl.command_window);
@@ -6204,7 +6158,6 @@ void save_defaults()
     fprintf(fp,"fog_of_war: %s\n", TRUE_OR_FALSE(fog_of_war));
     fprintf(fp,"foodbeep: %s\n", TRUE_OR_FALSE(cpl.food_beep));
     fprintf(fp,"iconscale: %d\n", icon_scale);
-    fprintf(fp,"keepcache: %s\n", TRUE_OR_FALSE(keepcache));
     if( per_pixel_lighting)
       fprintf( fp, "Lighting: per_pixel\n");
     else

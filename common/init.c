@@ -30,6 +30,7 @@
 
 #include <client.h>
 
+#define TEST_FREE_AND_CLEAR(xyz) {if (xyz) { free(xyz); xyz=NULL; } }
 
 void VersionCmd(char *data, int len)
 {
@@ -117,6 +118,24 @@ void init_client_vars()
     csocket.command_received=0;
     csocket.command_time=0;
 
+    face_info.faceset = 0;
+    face_info.cache_images = FALSE;
+    face_info.num_images = 0;
+    face_info.bmaps_checksum = 0;
+    face_info.old_bmaps_checksum = 0;
+    face_info.want_faceset = NULL;
+    face_info.download_all_faces = 0;
+    face_info.cache_hits=0;
+    face_info.cache_misses=0;
+    for (i=0; i<MAX_FACE_SETS; i++) {
+	face_info.facesets[i].prefix = NULL;
+	face_info.facesets[i].fullname = NULL;
+	face_info.facesets[i].fallback = 0;
+	face_info.facesets[i].size = NULL;
+	face_info.facesets[i].extension = NULL;
+	face_info.facesets[i].comment = NULL;
+    }
+
 }
 
 /* This is used to clear values between connections to different
@@ -154,5 +173,24 @@ void reset_client_vars()
     csocket.command_sent=0;
     csocket.command_received=0;
     csocket.command_time=0;
+
+    face_info.faceset = 0;
+    face_info.num_images = 0;
+    /* Preserve the old one - this can be used to see if the next
+     * server has the same name -> number mapping so that we don't
+     * need to rebuild all the images.
+     */
+    face_info.old_bmaps_checksum = face_info.bmaps_checksum;
+    face_info.bmaps_checksum = 0;
+    face_info.cache_hits=0;
+    face_info.cache_misses=0;
+    for (i=0; i<MAX_FACE_SETS; i++) {
+	TEST_FREE_AND_CLEAR(face_info.facesets[i].prefix);
+	TEST_FREE_AND_CLEAR(face_info.facesets[i].fullname);
+	face_info.facesets[i].fallback = 0;
+	TEST_FREE_AND_CLEAR(face_info.facesets[i].size);
+	TEST_FREE_AND_CLEAR(face_info.facesets[i].extension);
+	TEST_FREE_AND_CLEAR(face_info.facesets[i].comment);
+    }
 
 }

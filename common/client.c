@@ -52,13 +52,12 @@ char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
 char *image_file="";
 
 int port_num=EPORT, meta_port=META_PORT, want_skill_exp=0, mapx=11, mapy=11,
-    want_mapx=11, want_mapy=11, want_darkness=1, fog_of_war=0;
+    want_mapx=11, want_mapy=11, want_darkness=1, fog_of_war=0,
+    fast_tcp_send=1, replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
+    maxfd,map1cmd=0,metaserver_on=METASERVER;
 FILE *fpin,*fpout;
-int fdin, fdout, basenrofpixmaps, pending_images=0,maxfiledescriptor,
-	pending_archs=0,maxfd,map1cmd=0,metaserver_on=METASERVER;
 Client_Player cpl;
 ClientSocket csocket;
-int fast_tcp_send=1;
 
 char *resists_name[NUM_RESISTS] = {
 "armor", "magic", "fire", "elec", 
@@ -99,8 +98,10 @@ struct CmdMapping commands[] = {
     { "stats", StatsCmd },
 
     { "image", ImageCmd },
+    { "image2", Image2Cmd },
     { "face", FaceCmd},
     { "face1", Face1Cmd},
+    { "face2", Face2Cmd},
 
 
     { "sound", SoundCmd},
@@ -116,6 +117,7 @@ struct CmdMapping commands[] = {
     { "setup", (CmdProc)SetupCmd},
 
     { "query", (CmdProc)handle_query},
+    { "replyinfo", (CmdProc)ReplyInfoCmd},
 };
 
 #define NCOMMANDS (sizeof(commands)/sizeof(struct CmdMapping))
@@ -235,8 +237,6 @@ int init_connection(char *host, int port)
 
 void negotiate_connection(int sound)
 {
-    int cache;
-
     SendVersion(csocket);
 
     /* We need to get the version command fairly early on because
@@ -250,44 +250,92 @@ void negotiate_connection(int sound)
 	DoClient(&csocket);
     }
 
-
-    cache = display_willcache();
-    if (cache) cache = CF_FACE_CACHE;
-
     if (csocket.sc_version<1023) {
 	fprintf(stderr,"Server does not support PNG images, yet that is all this client\n");
 	fprintf(stderr,"supports.  Either the server needs to be upgraded, or you need to\n");
 	fprintf(stderr,"downgrade your client.\n");
 	exit(1);
     }
-    /* Other than cache, this doesn't do anything.  However, in the
-     * future, it may be possible to select other image sets (eg, iso)
+
+    /* If the user has specified a numeric face id, use it. If it is a string
+     * like base, then that resolves to 0, so no real harm in that.
      */
-    SendSetFaceMode(csocket,CF_FACE_PNG | cache);
-
-#if 0
-    if (display_usebitmaps()) 
-	SendSetFaceMode(csocket,CF_FACE_BITMAP | cache); 
-    else if (display_usexpm()) 
-	SendSetFaceMode(csocket,CF_FACE_XPM | cache);
-    else if (display_usepng()) {
-	if (csocket.sc_version<1023) {
-	    SendSetFaceMode(csocket,CF_FACE_XPM | cache);
-	    draw_info("Server does not support PNG images.  Will use XPM instead", NDI_RED);
-	}
-	else SendSetFaceMode(csocket,CF_FACE_PNG | cache);
-    }
-#endif
-
+    if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-		    "setup sound %d sexp %d darkness %d newmapcmd %d",
-		    sound>=0, want_skill_exp, want_darkness, fog_of_war);
+	    "setup sound %d sexp %d darkness %d newmapcmd %d faceset %d facecache %d",
+	    sound>=0, want_skill_exp, want_darkness, fog_of_war, face_info.faceset,
+	    face_info.cache_images);
 
     mapx=11;
     mapy=11;
     if (want_mapx!=11 || want_mapy!=11)
 	cs_print_string(csocket.fd,"setup mapsize %dx%d",want_mapx, want_mapy);
 
+
+    /* If the server will answer the requestinfo for image_info and image_data,
+     * send it and wait for the response.
+     */
+    if (csocket.sc_version >= 1027) {
+	cs_print_string(csocket.fd,"requestinfo image_info");
+	requestinfo_sent = RI_IMAGE_INFO;
+	replyinfo_status = 0;
+	replyinfo_last_face = 0;
+
+	/* last_start is -99.  This means the first face requested will
+	 * be 1 (not 0) - this is OK because 0 is defined as the blank
+	 * face.
+	 */
+	int last_end=0, last_start=-99;
+	do {
+	    DoClient(&csocket);
+	    if (face_info.download_all_faces) {
+		/* we need to know how many faces to
+		 * be able to make the request intelligently.
+		 * So only do the following block if we have that info.
+		 * By setting the sent flag, we will never exit
+		 * this loop until that happens.
+		 */
+		requestinfo_sent |= RI_IMAGE_SUMS;
+		if (face_info.num_images != 0) {
+		    /* Sort of fake things out - if we have sent the
+		     * request for image sums but have not got them all answered
+		     * yet, we then clear the bit from the status
+		     * so we continue to loop.
+		     */
+		    if (last_end == face_info.num_images) {
+			/* Mark that we're all done */
+			if (replyinfo_last_face == last_end)
+			    replyinfo_status |= RI_IMAGE_SUMS;
+		    } else {
+			/* If we are all caught up, request another
+			 * 100 sums.
+			 */
+			if (last_end == replyinfo_last_face) {
+			    last_start += 100;
+			    last_end += 100;
+			    if (last_end > face_info.num_images) last_end = face_info.num_images;
+			    cs_print_string(csocket.fd,"requestinfo image_sums %d %d", last_start, last_end);
+			    fprintf(stderr,"Requesting %d of %d faces\n", last_end, face_info.num_images);
+			}
+		    }
+		} /* Still have image_sums request to send */
+	    } /* endif download all faces */
+	} while (replyinfo_status != requestinfo_sent);
+    }
+    if (face_info.download_all_faces) {
+	char buf[MAX_BUF];
+
+	sprintf(buf,"Download of images complete.  Found %d locally, downloaded %d from server\n",
+		face_info.cache_hits, face_info.cache_misses);
+	draw_info(buf, NDI_GOLD);
+    }
+
+    /* This needs to get changed around - we really don't want to send
+     * the SendAddMe until we do all of our negotiation, which may include
+     * things like downloading all the images and whatnot - this is more an
+     * issue if the user is not using the default face set, as in that case,
+     * we might end up building images from the wrong set.
+     */
     SendAddMe(csocket);
 }
 

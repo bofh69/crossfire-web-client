@@ -24,7 +24,10 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* Header file for new client. */
+/* This file includes the various dependencies header files needed
+ * by most everything.  It also declares structures and other variables
+ * that the gui portion needs
+ */
 
 #include <config.h>
 #include <client-types.h>
@@ -37,7 +40,7 @@
 
 
 #define VERSION_CS 1022
-#define VERSION_SC 1026
+#define VERSION_SC 1027
 
 char VERSION_INFO[256];
 
@@ -91,11 +94,7 @@ typedef struct ClientSocket {
 
 extern ClientSocket csocket;
 
-extern int port_num,
-	basenrofpixmaps;	/* needed so that we know where to
-				 * start when creating the additional
-				 * images in x11.c
-				 */
+extern int port_num;
 
 extern char *server, *client_libdir,*image_file;
 
@@ -171,12 +170,52 @@ typedef struct Player_Struct {
 
 } Client_Player;
 
+
+/* This faceset information is pretty much grabbed right from
+ * server/socket/image.c
+ */
+
+#define MAX_FACE_SETS   20
+typedef struct {
+    uint8   setnum;
+    char    *prefix;
+    char    *fullname;
+    uint8   fallback;
+    char    *size;
+    char    *extension;
+    char    *comment;
+} FaceSets;
+
+
+/* Make one struct that holds most of the image related data.
+ * reduces danger of namespace collision.
+ */
+typedef struct {
+    uint8   faceset;
+    char    *want_faceset;
+    uint8   cache_images;
+    uint8   download_all_faces;
+    sint16  num_images;
+    uint32  bmaps_checksum, old_bmaps_checksum;
+    /* Just for debugging/logging purposes.  This is cleared
+     * on each new server connection.  This may not be
+     * 100% precise (as we increment cache_hits when we
+     * find a suitable image to load - if the data is bad,
+     * that would count as both a hit and miss
+     */
+    sint16  cache_hits, cache_misses;
+    FaceSets	facesets[MAX_FACE_SETS];
+} Face_Information;
+
+extern Face_Information face_info;
+    
+
 extern Client_Player cpl;		/* Player object. */
 extern char *skill_names[MAX_SKILL];
 
 extern int nosound, fast_tcp_send; 
 
-/* WE need to declare most of the structs before we can include this */
+/* We need to declare most of the structs before we can include this */
 #include <proto.h>
 
 extern int errno;
@@ -190,6 +229,7 @@ extern char *meta_server;
 extern int meta_port,want_skill_exp, want_mapx, want_mapy;
 extern int map1cmd,metaserver_on, want_darkness;
 extern int mapx, mapy;
+
 
 /* Map size the client will request the map to be.  Bigger it is,
  * more memory it will use
@@ -225,5 +265,36 @@ struct Map {
   int x;
   int y;
 };
+
+/* This is used mostly in the cache.c file, however, it
+ * can be returned to the graphic side of things so that they
+ * can update the image_data field.  Since the common side
+ * has no idea what data the graphic side will point to, 
+ * we use a void pointer for that - it is completely up to
+ * the graphic side to allocate/deallocate and cast that
+ * pointer as needed.
+ */
+typedef struct Cache_Entry {
+    char    *filename;
+    uint32  checksum;
+    uint32  public:1;
+    void    *image_data;
+    struct Cache_Entry	*next;
+} Cache_Entry;
+
+/* These values are used for various aspects of the library to 
+ * hold state on what requestinfo's we have gotten replyinfo
+ * for and what data was received.  In this way, common/client.c
+ * can loop until it has gotten replies for all the requestinfos
+ * it has sent.  This can be useful - we don't want the addme
+ * command sent for example if we are going to use a different
+ * image set.  The GUI stuff should really never chnage these
+ * variables, but could I suppose look at them for debugging/
+ * status information.
+ */
+
+#define RI_IMAGE_INFO	    0x1
+#define RI_IMAGE_SUMS	    0x2
+extern int  replyinfo_status, requestinfo_sent, replyinfo_last_face;
 
 extern struct Map the_map;

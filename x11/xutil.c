@@ -130,7 +130,7 @@ static Key_Entry *keys[256];
 char *facetoname[MAXPIXMAPNUM];
 
 /* Can be set when user is moving to new machine type */
-uint8 updatekeycodes=FALSE, keepcache=FALSE;
+uint8 updatekeycodes=FALSE;
 
 #ifndef GDK_XUTIL
 /* Initializes the data for image caching */
@@ -144,20 +144,21 @@ void init_cache_data()
      * so I removed the code that did checks on that.
      */
 
-    pixmaps[0].mask=None;
-    pixmaps[0].bitmap=XCreateBitmapFromData(display,DefaultRootWindow(display),
+    pixmaps[0] = malloc(sizeof(struct PixmapInfo));
+    pixmaps[0]->mask=None;
+    pixmaps[0]->bitmap=XCreateBitmapFromData(display,DefaultRootWindow(display),
 				question_bits,question_width,question_height);
 
     /* In xpm mode, XCopyArea is used from this data, so we need to copy
      * the image into an pixmap of appropriate depth.
      */
-    pixmaps[0].pixmap=XCreatePixmap(display, win_root, image_size, image_size, 
+    pixmaps[0]->pixmap=XCreatePixmap(display, win_root, image_size, image_size, 
 	DefaultDepth(display,DefaultScreen(display)));
-    XCopyPlane(display, pixmaps[0].bitmap, pixmaps[0].pixmap, gc_game,
+    XCopyPlane(display, pixmaps[0]->bitmap, pixmaps[0]->pixmap, gc_game,
 	       0,0,image_size,image_size,0,0,1);
 		
-    pixmaps[0].bg = 0;
-    pixmaps[0].fg = 1;
+    pixmaps[0]->bg = 0;
+    pixmaps[0]->fg = 1;
     facetoname[0]=NULL;
 
     /* Initialize all the images to be of the same value. */
@@ -166,11 +167,7 @@ void init_cache_data()
 	facetoname[i]=NULL;
     }
 
-#ifdef IMAGECACHEDIR
-    strcpy(facecachedir, IMAGECACHEDIR);
-#else
     sprintf(facecachedir,"%s/.crossfire/images", getenv("HOME"));
-#endif
 
     if (make_path_to_dir(facecachedir)==-1) {
 	    fprintf(stderr,"Could not create directory %s, exiting\n", facecachedir);
@@ -180,112 +177,11 @@ void init_cache_data()
 }
 #endif
 
-static void requestface(int pnum, char *facename, char *facepath)
-{
-    char buf[MAX_BUF];
-
-    facetoname[pnum] = strdup_local(facepath);
-    cs_print_string(csocket.fd, "askface %d", pnum);
-    /* Need to make sure we have the directory */
-    sprintf(buf,"%s/%c%c", facecachedir, facename[0], facename[1]);
-    if (access(buf,R_OK)) make_path_to_dir(buf);
-}
 /* Rotate right from bsd sum. */
 #define ROTATE_RIGHT(c) if ((c) & 01) (c) = ((c) >>1) + 0x80000000; else (c) >>= 1;
 
 /*#define CHECKSUM_DEBUG*/
 
-/* This is common for both face1 and face commands. */
-void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
-{
-    char buf[MAX_BUF];
-    int fd,len;
-    uint8 data[65536];
-    uint32 newsum=0;
-#ifndef GDK_XUTIL
-    Pixmap pixmap, mask;
-#endif
-    unsigned long w,h;
-
-    /* Check private cache first */
-    sprintf(buf,"%s/.crossfire/gfx/%s.png", getenv("HOME"), face);
-
-    if ((fd=open(buf, O_RDONLY))!=-1) {
-	len=read(fd, data, 65535);
-	close(fd);
-	has_sum=0;  /* Maybe not really true, but we want to use this image
-		     * and not request a replacement.
-		     */
-    } else {
-
-	/* Hmm.  Should we use this file first, or look in our home
-	 * dir cache first?
-	 */
-	if (use_private_cache) {
-	    len = find_face_in_private_cache(face, checksum);
-	    if ( len > 0 ) {
-#ifdef GDK_XUTIL
-		pixmaps[pnum].gdkpixmap = private_cache[len].pixmap;
-		pixmaps[pnum].gdkmask = private_cache[len].mask;
-		pixmaps[pnum].png_data = private_cache[len].png_data;
-
-#else
-		pixmaps[pnum].pixmap = private_cache[len].pixmap;
-		pixmaps[pnum].mask = private_cache[len].mask;
-#endif
-		/* we may want to find a better match */
-		if (private_cache[len].checksum == checksum ||
-		    !has_sum || keepcache) return;
-	    }
-	}
-
-
-	/* To prevent having a directory with 2000 images, we do a simple
-	 * split on the first 2 characters.
-	 */
-	sprintf(buf,"%s/%c%c/%s.png", facecachedir, face[0], face[1],face);
-
-	if ((fd=open(buf, O_RDONLY))==-1) {
-	    requestface(pnum, face, buf);
-	    return;
-	}
-	len=read(fd, data, 65535);
-	close(fd);
-    }
-
-    if (has_sum && !keepcache) {
-	for (fd=0; fd<len; fd++) {
-	    ROTATE_RIGHT(newsum);
-	    newsum += data[fd];
-	    newsum &= 0xffffffff;
-	}
-
-	if (newsum != checksum) {
-#ifdef CHECKSUM_DEBUG
-	    fprintf(stderr,"finish_face_command: checksums differ: %s, %x != %x\n",
-		    face, newsum, checksum);
-#endif
-	    requestface(pnum, face, buf);
-#ifdef CHECKSUM_DEBUG
-	} else {
-	    fprintf(stderr,"finish_face_command: checksums match: %s, %x == %x\n",
-		    face, newsum, checksum);
-#endif
-	}
-    }
-
-    /* Fail on this read, we will request a new copy */
-    if (png_to_xpixmap(display, win_game, data, len,
-		       &pixmap, &mask, &colormap, &w, &h)) {
-	requestface(pnum, face, buf);
-    } else {
-	pixmaps[pnum].pixmap = pixmap;
-	pixmaps[pnum].mask = mask;
-    }
-}
-
-
-#ifndef GDK_XUTIL
 
 int allocate_colors(Display *disp, Window w, long screen_num,
         Colormap *colormap, XColor discolor[16])
@@ -340,7 +236,6 @@ try_private:
   return iscolor;
 }
 
-#endif /* GDK_XUTIL */
 
 
 
@@ -1279,9 +1174,8 @@ int ReadImages() {
 
     if (image_file[0] == 0) return 0;
 
-    if (!cache_images) {
-	cache_images=1;	    /* we want face commands from server */
-	keepcache=TRUE;	    /* Reduce requests for new image */
+    if (!face_info.cache_images) {
+	face_info.cache_images=1;	    /* we want face commands from server */
     }
 
     if ((infile = fopen(image_file,"r"))==NULL) {

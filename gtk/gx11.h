@@ -43,8 +43,8 @@ extern int map_image_size, map_image_half_size;
 extern int per_pixel_lighting;
 extern int per_tile_lighting;
 extern int show_grid;
-extern uint8 sdlimage,cache_images,split_windows,map_did_scroll,keepcache;
-extern uint8 nopopups,updatekeycodes, time_map_redraw;
+extern uint8 sdlimage,split_windows,map_did_scroll;
+extern uint8 nopopups,updatekeycodes, time_map_redraw,redraw_needed;
 extern int map_scale, icon_scale, updatelock;
 
 /* Pixmap data.  This is abstracted in the sense that the
@@ -67,7 +67,7 @@ typedef struct {
     uint16	map_width, map_height;
 } PixmapInfo;
 
-extern PixmapInfo pixmaps[MAXPIXMAPNUM];
+extern PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
 /* Some global widgetws */
 extern GtkWidget    *gtkwin_root,*drawingarea,*run_label,*fire_label;

@@ -4,8 +4,8 @@
 gcfclient - gtk client program for crossfire servers.
 .SH SYNOPSIS
 .B gcfclient 
-[-server server] [-port number] [-display display] [-split|-nosplit]
-[-echo] [-showicon] [-scrollines number] [-sync] [-help]
+[-server server] [-port number] [-display display] [-split|-nosplit] [-download_all_faces]
+[-echo] [faceset name] [-showicon] [-scrollines number] [-sync] [-help]
 [-cache|-nocache] [-darkness|-nodarkness] [-nosound]
 [-updatekeycodes] [-nopopups] [-splitinfo] [-mapsize xXy] [-sdl]
 [-mapscale percentage] [-iconscale percentage] [-triminfo] [-timemapredraw]
@@ -54,11 +54,26 @@ The display to open the windows on.  If this option is not given, it
 will use the DISPLAY environmental variable to determine the display.
 
 .TP
+.B -download_all_faces
+The client will get all the checksums from the server, and download any
+images necessary before starting play.  This saves a small amount of
+bandwidth, but more importantly reduces possible latency during
+important play when it may not be desirable.
+
+.TP
 .B -echo|-noecho
 Echo commands as they are entered.  Normally, commands bound to keys
 are just sent to the server without any echoing on the client of what
 that command actually was.  This option causes the commands to also be
 printed in the information window as they are sent to the server.
+
+.TP
+.B -faceset <name>
+Uses faceset <name> if available on the server.  What facesets are available
+on each server may differ.  The client will request the information
+about the different facesets available on the server, and try to find the
+one that matches best.  The default is the standard set.  At current
+time (March 2002), the only one typically available is the classic set.
 
 .TP
 .B -fog
@@ -116,11 +131,6 @@ n(simple test - go to the start town, run in some direction, stop
 running and see how long it takes before the client stops moving
 you).
 
-.TP
-.B -pngfile <file>
-This can be used to have the client use an image file (format 
-same as that on the server) to load images.  This option will likely
-be obsoleted and instead replaced by images in local cache directories.
 
 .TP
 .B -popops|-nopopups

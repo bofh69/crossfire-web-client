@@ -67,7 +67,7 @@ static void do_SDL_error( char* SDL_function, char* file, int line)
   exit( 1);
 }
 
-
+#if 0
 /*
  * Set the pixel at (x, y) to the given value
  * NOTE: The surface must be locked before calling this!
@@ -107,7 +107,7 @@ static void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
         break;
     }
 }
-
+#endif
 
 static void overlay_grid( int re_init, int ax, int ay)
 {
@@ -574,7 +574,7 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
  */
 #define ALL_IMAGES_ONE_SPACE
 
-void sdl_gen_map() {
+void sdl_gen_map(int redraw) {
     int mx,my, layer,onlayer,x,y;
     SDL_Rect dst;
     struct timeval tv1, tv2,tv3;
@@ -614,7 +614,7 @@ void sdl_gen_map() {
 		    my = y;
 		}
 #ifdef ALL_IMAGES_ONE_SPACE
-		if (!the_map.cells[mx][my].need_update) continue;
+		if (!redraw && !the_map.cells[mx][my].need_update) continue;
 		else if (onlayer == MAXFACES-1) {
 		    /* Black out this space. */
 		    dst.x = x * map_image_size; dst.y = y* map_image_size;
@@ -624,14 +624,14 @@ void sdl_gen_map() {
 #endif
 		    
 		/* there must be a real face for this layer, and we must have data for that face. */
-		if ((the_map.cells[mx][my].faces[layer]>0) && pixmaps[the_map.cells[mx][my].faces[layer]].map_image) {
+		if ((the_map.cells[mx][my].faces[layer]>0) && pixmaps[the_map.cells[mx][my].faces[layer]]->map_image) {
 		    /* Figure out how much data is being copied, and adjust the origin accordingly.
 		     * This probably needs additional checking in case the image extends beyond the
 		     * map boundries.
 		     */
-		    dst.x = (x+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]].map_width;
-		    dst.y = (y+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]].map_height;
-		    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].faces[layer]].map_image, NULL, mapsurface, &dst))
+		    dst.x = (x+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]]->map_width;
+		    dst.y = (y+1) * map_image_size - pixmaps[the_map.cells[mx][my].faces[layer]]->map_height;
+		    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].faces[layer]]->map_image, NULL, mapsurface, &dst))
 			do_SDL_error( "BlitSurface", __FILE__, __LINE__);
 
 		}

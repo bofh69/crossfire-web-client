@@ -4,6 +4,8 @@ extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 extern long pngx_find_color(Display *display, Colormap *cmap, int red, int green, int blue);
 extern int init_pngx_loader(Display *display);
 extern int png_to_xpixmap(Display *display, Drawable draw, unsigned char *data, int len, Pixmap *pix, Pixmap *mask, Colormap *cmap, unsigned long *width, unsigned long *height);
+extern int rgba_to_xpixmap(Display *display, Drawable draw, uint8 *pixels, Pixmap *pix, Pixmap *mask, Colormap *cmap, unsigned long width, unsigned long height);
+extern int create_and_rescale_image_from_data(int pixmap_num, uint8 *rgba_data, int width, int height);
 /* sound.c */
 extern void signal_pipe(int i);
 extern int init_sounds(void);
@@ -39,7 +41,6 @@ extern int display_willcache(void);
 extern void resize_map_window(int x, int y);
 extern void x_set_echo(void);
 extern void display_map_doneupdate(int redraw);
-extern void display_newpng(long face, uint8 *buf, long buflen);
 extern void display_newbitmap(long face, long fg, long bg, char *buf);
 extern void redisplay_stats(void);
 extern void display_map_startupdate(void);
@@ -54,7 +55,6 @@ extern void command_show(char *params);
 extern int main(int argc, char *argv[]);
 /* xutil.c */
 extern void init_cache_data(void);
-extern void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face);
 extern int allocate_colors(Display *disp, Window w, long screen_num, Colormap *colormap, XColor discolor[16]);
 extern void parse_keybind_line(char *buf, int line, int standard);
 extern void init_keys(void);

@@ -2,6 +2,81 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Many changes to image handling.  The most noteworthy are:
+1) Ability to use different image sets.
+2) Ability to get checksums of all images and download missing images
+   before play starts.
+3) Storing cache information for images in a bmaps.client file so that
+   it can know if it has a match without needing to load the image
+   and checksum it.
+4) Can use crossfire-image archives to bootstrap the client with a large
+   number of images to save the time of downloading them later.
+README: Update some out of data information about sounds, add section
+   describing the image handling.
+configure,configure.in: Make the SOUNDDIR be based and datadir and not
+   an absolute path - this means using a different -prefix changes
+   the location of where it will find the sound file.  Moved some
+   of the defines into the config.h file so that we don't need to pass
+   them as -D compiler options.  Add code to properly substitute
+   DATADIR and BINDIR values.
+common/Makefile.in: Add image.c to list of files.  Fix depend
+   directive.
+common/cconfig.h: Remove some options that no longer did anything.
+common/client.c: clean up some unused global variables, add a few new ones.
+   and support for replyinfo protocol command.  Modify negotiate connection
+   to issue requestinfo requests, set up face set to use, use
+   setup command to set caching behaviour, and support for it to download
+   all image sums and missing images before play starts.
+common/client.h: Update VERSION_SC to 1027.  Remove some unused
+   global externs.  Add FaceSets structure, Face_Information structure,
+   the later which holds some user preferences.  Add Cache_Entry
+   structure, as well as some state when negotiating the connection.
+common/commands.c: Add ReplyInfoCmd function.  Move FaceCmd
+   to common/image.c.  Add handling of received setup command for
+   faceache and faceset information.  Remove some dead code.
+common/config.h.in: Add BINDIR and DATADIR defines so we don't need to
+   pass them on the command line.
+common/external.h: Add some more functions that are called back from the
+   common area.
+common/image.c: New file - cache logic, png image load code, and protocol
+   image related commands in this file.  This removes some of the code
+   that was previously in the GUI area of the client into a common area.
+common/init.c: Add TEST_FREE_AND_CLEAR macro.  Add code to clear
+   some of the newly added structures.
+common/proto.h: rebuilt.
+gnome/gnome-cf.h: remove cache_images extern.
+gtk/gcfclient.man: Update man page for new options (-download_all_faces,
+   -faceset)
+gtk/gtkproto.h: rebuilt.
+gtk/gx11.c: add redraw_needed flag so the map window is properly redrawn
+   when caching images and new images show up.  Change some other
+   variables to deal with new image code.  pixmaps changed to a pointer
+   so that a copy can be held in the common cache structure.  Add support
+   for new options.  Remove some code that is now in the common/image.c
+   file.
+gtk/gx11.h: Remove keepcache, change cache_images, add redraw_needed,
+   and change type of pixmaps to be a pointer.
+gtk/image.c: Move requestface to the common/image.c, change pixmaps
+   to pointer type.  remove finish_face_cmd and ReadImages command.
+gtk/map.c: Change pixmaps to pointer types.
+gtk/sdl.c: add redraw paramter to sdl_gen_map.  change pixmaps type
+   to pointer.
+gtk/sound.c: Add missing / when running cfsndserv.
+x11/png.c: Remove gdk related code from the file.  Add rgba_to_xpixmap
+   data so tha the common area can load the png file.
+x11/sound.c: Add missing / when running cfsndserv.
+x11/x11.c: change pixmap type to pointer.  Add new options (-faceset and
+    -download_all_faces).  Remove -keepcache option.  change
+    cache_images to face_info.cache_images.  Change how the
+    pixmaps are generated
+x11/x11.h: remove keepcache and cache_images variables.  Change
+   pixmaps to pointer type.
+x11/x11proto.h: rebuilt.
+x11/xutil.c: remove keepcache option.  Change pixmap type to pointer.
+    Move requestface and finish_face_cmd to common/image.c
+MSW 2002-03-25
+
+------------------------------------------------------------------------------
 Changes for 1.2.0:
 
 Makefile.in: add missing pixmaps file for archive.

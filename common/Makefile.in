@@ -32,6 +32,7 @@ HEADERS= \
 SOURCES = \
 	client.c		\
 	commands.c		\
+	image.c			\
 	init.c			\
 	item.c			\
 	metaserver.c		\
@@ -86,4 +87,4 @@ install:
 	echo "Nothing to be done for make install"
 
 depend:
-	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(PROTOSOURCES) $(SND_SOURCES) gx11.c
+	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(SOURCES)

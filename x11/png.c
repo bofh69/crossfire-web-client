@@ -43,7 +43,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include "client-types.h"
-
+#include "x11.h"
 
 /* Defines for PNG return values */
 /* These should be in a header file, but currently our calling functions
@@ -62,7 +62,6 @@ static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t lengt
     data_start += length;
 }
 
-#ifdef PNG_GDK
 
 uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
 {
@@ -374,252 +373,6 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
     *height = new_height;
     return ndata;
 }
-
-
-guchar rgb[512*512*3];	/* Make this especially big to support larger images in the future */
-
-/* This takes data that has already been converted into RGBA format (via
- * png_to_data above perhaps) and creates a GdkPixmap and GdkBitmap out
- * of it.
- * Return non zero on error (currently, no checks for error conditions is done 
- */
-int rgba_to_gdkpixmap(GdkWindow *window, char *data,int width, int height,
-		   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
-{
-    GdkGC	*gc, *gc_alpha;
-    int		has_alpha=0, alpha;
-    GdkColor  scolor;
-    int x,y;
-
-    *pix = gdk_pixmap_new(window, width, height, -1);
-
-    gc=gdk_gc_new(*pix);
-    gdk_gc_set_function(gc, GDK_COPY);
-
-    *mask=gdk_pixmap_new(window, width, height,1);
-    gc_alpha=gdk_gc_new(*mask);
-    gdk_gc_set_function(gc_alpha, GDK_COPY);
-
-    scolor.pixel=1;
-    gdk_gc_set_foreground(gc_alpha, &scolor);
-    gdk_draw_rectangle(*mask, gc_alpha, 1, 0, 0, width, height);
-
-    scolor.pixel=0;
-    gdk_gc_set_foreground(gc_alpha, &scolor);
-
-    /* we need to draw the alpha channel.  The image may not in fact
-     * have alpha, but no way to know at this point other than to try
-     * and draw it.
-     */
-    for (y=0; y<height; y++) {
-	for (x=0; x<width; x++) {
-	    alpha = data[(y * width + x) * 4 +3];
-	    /* Transparent bit */
-	    if (alpha==0) {
-		gdk_draw_point(*mask, gc_alpha, x, y);
-		has_alpha=1;
-	    }
-	}
-    }
-
-    gdk_draw_rgb_32_image(*pix, gc,  0, 0, width, height, GDK_RGB_DITHER_NONE, data, width*4);
-    if (!has_alpha) {
-	gdk_pixmap_unref(*mask);
-	*mask = NULL;
-    }
-
-    gdk_gc_destroy(gc_alpha);
-    gdk_gc_destroy(gc);
-    return 0;
-}
-
-
-int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
-		   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
-{
-    static char *pixels=NULL;
-    static int pixels_byte=0, rows_byte=0;
-    static png_bytepp	rows=NULL;
-    unsigned long width, height;
-    png_structp	png_ptr;
-    png_infop	info_ptr;
-    int bit_depth, color_type, interlace_type, compression_type, filter_type,
-	bpp, x,y,has_alpha,i,alpha;
-    GdkColor  scolor;
-    GdkGC	*gc, *gc_alpha;
-
-    data_len=len;
-    data_cp = data;
-    data_start=0;
-
-    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
-				     NULL, NULL, NULL);
-
-    if (!png_ptr) {
-	return PNGX_OUTOFMEM;
-    }
-    info_ptr = png_create_info_struct (png_ptr);
-
-    if (!info_ptr) {
-	png_destroy_read_struct (&png_ptr, NULL, NULL);
-	return PNGX_OUTOFMEM;
-    }
-    if (setjmp (png_ptr->jmpbuf)) {
-	png_destroy_read_struct (&png_ptr, &info_ptr,NULL);
-	return PNGX_DATA;
-    }
-    has_alpha=0;
-    png_set_read_fn(png_ptr, NULL, user_read_data);
-    png_read_info (png_ptr, info_ptr);
-
-    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
-		 &color_type, &interlace_type, &compression_type, &filter_type);
-
-    if (color_type == PNG_COLOR_TYPE_PALETTE &&
-            bit_depth <= 8) {
-
-                /* Convert indexed images to RGB */
-                png_set_expand (png_ptr);
-
-    } else if (color_type == PNG_COLOR_TYPE_GRAY &&
-                   bit_depth < 8) {
-
-                /* Convert grayscale to RGB */
-                png_set_expand (png_ptr);
-
-    } else if (png_get_valid (png_ptr,
-                                  info_ptr, PNG_INFO_tRNS)) {
-
-                /* If we have transparency header, convert it to alpha
-                   channel */
-                png_set_expand(png_ptr);
-
-    } else if (bit_depth < 8) {
-
-                /* If we have < 8 scale it up to 8 */
-                png_set_expand(png_ptr);
-
-
-                /* Conceivably, png_set_packing() is a better idea;
-                 * God only knows how libpng works
-                 */
-    }
-        /* If we are 16-bit, convert to 8-bit */
-    if (bit_depth == 16) {
-                png_set_strip_16(png_ptr);
-    }
-
-        /* If gray scale, convert to RGB */
-    if (color_type == PNG_COLOR_TYPE_GRAY ||
-            color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
-                png_set_gray_to_rgb(png_ptr);
-    }
-
-        /* If interlaced, handle that */
-    if (interlace_type != PNG_INTERLACE_NONE) {
-                png_set_interlace_handling(png_ptr);
-    }
-
-    /* Update the info the reflect our transformations */
-    png_read_update_info(png_ptr, info_ptr);
-    /* re-read due to transformations just made */
-    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
-		 &color_type, &interlace_type, &compression_type, &filter_type);
-    if (color_type & PNG_COLOR_MASK_ALPHA)
-                bpp = 4;
-    else
-                bpp = 3;
-
-    /* Allocate the memory we need once, and increase it if necessary.
-     * This is more efficient the allocating this block of memory every time.
-     */
-    if (pixels_byte==0) {
-	pixels_byte = width * height * bpp;
-	pixels = (char*)malloc(pixels_byte);
-    } else if ((width * height * bpp) > pixels_byte) {
-	pixels_byte =width * height * bpp;
-	/* Doing a free/malloc is probably more efficient -
-	 * we don't care about the old data in this
-	 * buffer.
-	 */
-	free(pixels);
-	pixels= (char*)malloc(pixels_byte);
-    }
-
-    if (!pixels) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-	pixels_byte=0;
-	return PNGX_OUTOFMEM;
-    }
-    if (rows_byte == 0) {
-	rows =(png_bytepp) malloc(sizeof(char*) * height);
-	rows_byte=height;
-    } else if (height > rows_byte) {
-	rows =(png_bytepp) realloc(rows, sizeof(char*) * height);
-	rows_byte=height;
-    }
-    if (!rows) {
-	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-	pixels_byte=0;
-	return PNGX_OUTOFMEM;
-    }
-
-    for (y=0; y<height; y++) 
-	rows[y] = pixels + y * width * bpp;
-
-    png_read_image(png_ptr, rows);
-#if 0
-    fprintf(stderr,"image is %d X %d, bpp=%d, color_type=%d\n",
-	    width, height, bpp, color_type);
-#endif
-
-    *pix = gdk_pixmap_new(window, width, height, -1);
-
-
-    gc=gdk_gc_new(*pix);
-    gdk_gc_set_function(gc, GDK_COPY);
-
-    if (color_type & PNG_COLOR_MASK_ALPHA) {
-	*mask=gdk_pixmap_new(window, width, height,1);
-	gc_alpha=gdk_gc_new(*mask);
-	gdk_gc_set_function(gc_alpha, GDK_COPY);
-
-	scolor.pixel=1;
-	gdk_gc_set_foreground(gc_alpha, &scolor);
-	gdk_draw_rectangle(*mask, gc_alpha, 1, 0, 0, width, height);
-
-	scolor.pixel=0;
-	gdk_gc_set_foreground(gc_alpha, &scolor);
-	has_alpha=1;
-    }
-    else {
-	*mask = None;
-	gc_alpha = None;    /* Prevent compile warnings */
-    }
-    i=0;
-    for (y=0; y<height; y++) {
-	for (x=0; x<width; x++) {
-	    rgb[i++]=rows[y][x*bpp];	/* red */
-	    rgb[i++]=rows[y][x*bpp+1];	/* green */
-	    rgb[i++]=rows[y][x*bpp+2];	/* blue */
-	    if (has_alpha) {
-		alpha = rows[y][x*bpp+3];
-		/* Transparent bit */
-		if (alpha==0) {
-		    gdk_draw_point(*mask, gc_alpha, x, y);
-		}
-	    }
-	}
-    }
-    gdk_draw_rgb_image(*pix, gc,  0, 0, 32, 32, GDK_RGB_DITHER_NONE, rgb, 32*3);
-    png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-    if (has_alpha)
-	gdk_gc_destroy(gc_alpha);
-    gdk_gc_destroy(gc);
-    return 0;
-}
-
-#else
 
 
 static XImage   *ximage;
@@ -1012,7 +765,99 @@ int png_to_xpixmap(Display *display, Drawable draw, unsigned char *data, int len
     png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
     return 0;
 }
-#endif
+
+
+/* like png_to_xpixmap above, but the data has already been decompressed
+ * into rgba data.
+ */
+
+int rgba_to_xpixmap(Display *display, Drawable draw, uint8 *pixels,
+		   Pixmap *pix, Pixmap *mask, Colormap *cmap,
+		   unsigned long width, unsigned long height)
+{
+    int red,green,blue, lastred=-1, lastgreen=-1, lastblue=-1,alpha,bpp, x,y,
+	cmask, lastcmask, lastcolor;
+    GC	gc, gc_alpha;
+
+
+    *pix = XCreatePixmap(display, draw, width, height, 
+			DefaultDepth(display,  DefaultScreen(display)));
+
+    gc=XCreateGC(display, *pix, 0, NULL);
+    XSetFunction(display, gc, GXcopy);
+    XSetPlaneMask(display, gc, AllPlanes);
+
+    /* The foreground/background colors are not really
+     * colors, but rather values to set in the mask.
+     * The values used below work properly on at least
+     * 8 bit and 16 bit display - using things like
+     * blackpixel & whitepixel does NO work on
+     * both types of display.
+     */
+
+    *mask=XCreatePixmap(display ,draw, width, height,1);
+    gc_alpha=XCreateGC(display, *mask, 0, NULL);
+    XSetFunction(display, gc_alpha, GXcopy);
+    XSetPlaneMask(display, gc_alpha, AllPlanes);
+    XSetForeground(display, gc_alpha, 1);
+    XFillRectangle(display, *mask, gc_alpha, 0, 0, width, height);
+    XSetForeground(display, gc_alpha, 0);
+
+    for (y=0; y<height; y++) {
+	for (x=0; x<width; x++) {
+	    red=    pixels[(y * width + x)*bpp];
+	    green=  pixels[(y * width + x)*bpp + 1];
+	    blue=   pixels[(y * width + x)*bpp + 2];
+	    alpha = pixels[(y * width + x)*bpp + 3];
+	    if (alpha==0) {
+		XDrawPoint(display, *mask, gc_alpha, x, y);
+	    }
+	    if (need_color_alloc) {
+		/* We only use cmask to avoid calling pngx_find_color repeatedly.
+		 * when the color has not changed from the last pixel.
+		 */
+		if ((lastred != red) && (lastgreen != green) && (lastblue != blue)) {
+		    lastcolor = pngx_find_color(display, cmap, red, green, blue);
+		    lastcmask = cmask;
+		}
+		XPutPixel(ximage, x, y, lastcolor);
+	    } else {
+		if ((lastred != red) && (lastgreen != green) && (lastblue != blue)) {
+		    if (rev_rshift) red >>= rshift;
+		    else red <<= rshift;
+		    if (rev_gshift) green >>= gshift;
+		    else green <<= gshift;
+		    if (rev_bshift) blue >>= bshift;
+		    else blue <<= bshift;
+
+		    cmask = (red & rmask) | (green  & gmask) | (blue  & bmask);
+		}
+		XPutPixel(ximage, x, y, cmask);
+	    }
+	}
+    }
+
+    XPutImage(display, *pix, gc, ximage, 0, 0, 0, 0, 32, 32);
+    XFreeGC(display, gc_alpha);
+    XFreeGC(display, gc);
+    return 0;
+}
+
+
+/* Takes the pixmap to put the data into, as well as the rgba
+ * data (ie, already loaded with png_to_data).  Scales and
+ * stores the relevant data into the pixmap structure.
+ * returns 1 on failure.
+ */
+int create_and_rescale_image_from_data(int pixmap_num, uint8 *rgba_data, int width, int height)
+{
+
+    rgba_to_xpixmap(display, win_game, rgba_data, &pixmaps[pixmap_num]->pixmap,
+		   &pixmaps[pixmap_num]->mask, &colormap, width, height);
+
+    if (!pixmaps[pixmap_num]->pixmap || !pixmaps[pixmap_num]->mask) return 1;
+    return 0;
+}
 
 #if PNG_MAIN
 
@@ -1074,3 +919,4 @@ int main(int argc, char *argv[])
     exit(0);
 }
 #endif
+

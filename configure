@@ -1654,7 +1654,7 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-SOUNDDIR=/usr/local/lib/sounds
+SOUNDDIR="${datadir}/crossfire-client/sounds"
 
 # Check whether --enable-debug or --disable-debug was given.
 if test "${enable_debug+set}" = set; then
@@ -5085,22 +5085,22 @@ fi
 
   if eval "test x$alsa_sound = xyes"; then
 	echo "Using ALSA sound system"
-	CFLAGS="$CFLAGS -DALSA_SOUND  -DBINDIR='\"$bindir/\"'"
+	CFLAGS="$CFLAGS -DALSA_SOUND"
 	SND_LIBS="-lasound -lm"
   else
     if eval "test x$sgi_sound = xyes"; then
 	echo "Using SGI sound system"
-	CFLAGS="$CFLAGS -DSGI_SOUND -DBINDIR='\"$bindir/\"'"
+	CFLAGS="$CFLAGS -DSGI_SOUND"
 	SND_LIBS="-laudio"
     else
       if eval "test x$oss_sound = xyes"; then
 	echo "Using OSS sound system"
-	CFLAGS="$CFLAGS -DOSS_SOUND -DBINDIR='\"$bindir/\"'"
+	CFLAGS="$CFLAGS -DOSS_SOUND"
 	SND_LIBS="-lm"
       else
         if eval "test x$sun_sound = xyes"; then
 	      echo "Using solaris sound system"
-	      CFLAGS="$CFLAGS -DSUN_SOUND -DBINDIR='\"$bindir/\"'"
+	      CFLAGS="$CFLAGS -DSUN_SOUND"
 	      SND_LIBS="-lm"
 	else
 	      echo "No suitable sound system found."
@@ -8153,6 +8153,22 @@ _ACEOF
 fi
 done
 
+test "x$prefix" = xNONE && prefix=$ac_default_prefix
+test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
+
+ndatadir=`eval echo ${datadir}`
+
+nbindir=`eval echo ${bindir}`
+nbindir=`eval echo ${nbindir}`
+
+cat >>confdefs.h <<_ACEOF
+#define DATADIR "${ndatadir}/crossfire-client"
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define BINDIR "${nbindir}"
+_ACEOF
+
 OUTPUT_FILES="Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile gnome/Makefile"
 
 if eval "test x$gnome = xyes"; then
@@ -8239,7 +8255,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:8242: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:8258: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -8439,7 +8455,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:8442: error: ambiguous option: $1
+    { { echo "$as_me:8458: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -8458,7 +8474,7 @@ Try \`$0 --help' for more information." >&2;}
     ac_need_defaults=false;;
 
   # This is an error.
-  -*) { { echo "$as_me:8461: error: unrecognized option: $1
+  -*) { { echo "$as_me:8477: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -8479,7 +8495,7 @@ do
   # Handling of arguments.
   "${OUTPUT_FILES}" ) CONFIG_FILES="$CONFIG_FILES ${OUTPUT_FILES}" ;;
   "common/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS common/config.h" ;;
-  *) { { echo "$as_me:8482: error: invalid argument: $ac_config_target" >&5
+  *) { { echo "$as_me:8498: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -8733,7 +8749,7 @@ for as_mkdir_dir in `IFS='/\\'; set X $as_dummy; shift; echo "$@"`; do
       as_incr_dir=$as_incr_dir/$as_mkdir_dir
       test -d "$as_incr_dir" ||
         mkdir "$as_incr_dir" ||
-	{ { echo "$as_me:8736: error: cannot create \"$ac_dir\"" >&5
+	{ { echo "$as_me:8752: error: cannot create \"$ac_dir\"" >&5
 echo "$as_me: error: cannot create \"$ac_dir\"" >&2;}
    { (exit 1); exit 1; }; }
     ;;
@@ -8770,7 +8786,7 @@ esac
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:8773: creating $ac_file" >&5
+    { echo "$as_me:8789: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -8788,7 +8804,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:8791: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:8807: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -8801,7 +8817,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:8804: error: cannot find input file: $f" >&5
+           { { echo "$as_me:8820: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -8862,7 +8878,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:8865: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:8881: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -8873,7 +8889,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:8876: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:8892: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -8886,7 +8902,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:8889: error: cannot find input file: $f" >&5
+           { { echo "$as_me:8905: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -9003,7 +9019,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:9006: $ac_file is unchanged" >&5
+      { echo "$as_me:9022: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
@@ -9030,7 +9046,7 @@ for as_mkdir_dir in `IFS='/\\'; set X $as_dummy; shift; echo "$@"`; do
       as_incr_dir=$as_incr_dir/$as_mkdir_dir
       test -d "$as_incr_dir" ||
         mkdir "$as_incr_dir" ||
-	{ { echo "$as_me:9033: error: cannot create \"$ac_dir\"" >&5
+	{ { echo "$as_me:9049: error: cannot create \"$ac_dir\"" >&5
 echo "$as_me: error: cannot create \"$ac_dir\"" >&2;}
    { (exit 1); exit 1; }; }
     ;;

@@ -69,6 +69,36 @@
 #include <external.h>
 
 
+/* handles the response from a 'requestinfo' command.  This function doesn't
+ * do much itself other than dispatch to other functions.
+ */
+
+void ReplyInfoCmd(char *buf, int len)
+{
+    char *cp;
+    int i;
+
+    for (i=0; i<len; i++) {
+	/* Either a space or newline represents a break */
+	if (*(buf+i) == ' ' || *(buf+i) == '\n' ) break;
+    }
+    if (i>=len) {
+	/* Don't print buf, as it may contain binary data */
+	fprintf(stderr,"ReplyInfoCmd: Never found a space in the replyinfo\n");
+	return;
+    }
+    /* Null out the space and put cp beyond it */
+    cp = buf + i;
+    *cp++ = '\0';
+    if (!strcmp(buf,"image_info")) {
+	get_image_info(cp, len - i - 1);   /* located in common/image.c */
+    }
+    else if (!strcmp(buf,"image_sums")) {
+	get_image_sums(cp, len - i - 1);   /* located in common/image.c */
+    }
+}
+    
+
 /* Received a response to a setup from the server.
  * This function is basically the same as the server side function - we
  * just do some different processing on the data.
@@ -159,8 +189,7 @@ void SetupCmd(char *buf, int len)
 			want_mapx, want_mapy, x, y);
 		draw_info(tmpbuf,NDI_RED);
 	    }
-	} else {
-	    if (!strcmp(cmd,"sexp") || !strcmp(cmd,"darkness") || 
+	} else if (!strcmp(cmd,"sexp") || !strcmp(cmd,"darkness") || 
 		!strcmp(cmd,"newmapcmd") ) {
 	        /* this really isn't an error or bug - in fact, it is expected if
 		 * the user is playing on an older server.
@@ -176,65 +205,21 @@ void SetupCmd(char *buf, int len)
 		    }
 #endif
 		}
-	    } else {
+	} else if (!strcmp(cmd, "facecache")) {
+	    if (!strcmp(param, "FALSE") && face_info.cache_images) {
+		SendSetFaceMode(csocket, CF_FACE_CACHE);
+	    }
+	} else if (!strcmp(cmd,"faceset")) {
+	    if (!strcmp(param, "FALSE")) {
+		draw_info("Server does not support other image sets, will use default", NDI_RED);
+		face_info.faceset=0;
+	    }
+	} else {
 		fprintf(stderr,"Got setup for a command we don't understand: %s %s\n",
 		    cmd, param);
-	    }
 	}
     }
 }
-
-/* Move these here - they don't contain any windows dependant
- * code.
- */
-
-/* We only get here if the server believes we are caching images. */
-/* We rely on the fact that the server will only send a face command for
- * a particular number once - at current time, we have no way of knowing
- * if we have already received a face for a particular number.
- */
-
-void FaceCmd(unsigned char *data,  int len)
-{
-    int pnum;
-    char *face;
-
-    /* A quick sanity check, since if client isn't caching, all the data
-     * structures may not be initialized.
-     */
-    if (!display_willcache()) {
-	fprintf(stderr,"Received a 'face' command when we are not caching\n");
-	return;
-    }
-    pnum = GetShort_String(data);
-    face = (char*)data+2;
-    data[len] = '\0';
-
-    finish_face_cmd(pnum, 0, 0, face);
-
-}
-
-void Face1Cmd(unsigned char *data,  int len)
-{
-    int pnum;
-    uint32  checksum;
-    char *face;
-
-    /* A quick sanity check, since if client isn't caching, all the data
-     * structures may not be initialized.
-     */
-    if (!display_willcache()) {
-	fprintf(stderr,"Received a 'face' command when we are not caching\n");
-	return;
-    }
-    pnum = GetShort_String(data);
-    checksum = GetInt_String(data+2);
-    face = (char*)data+6;
-    data[len] = '\0';
-
-    finish_face_cmd(pnum, checksum, 1, face);
-}
-
 
 
 /* Handles when the server says we can't be added.  In reality, we need to
@@ -297,51 +282,6 @@ void AnimCmd(unsigned char *data, int len)
     LOG(0,"Received animation %d, %d faces\n", anum, animations[anum].num_animations);
 }
 
-#if 0
-void PixMapCmd(unsigned char *data,  int len)
-{  
-    int pnum,plen;
-
-    pnum = GetInt_String(data);
-    plen = GetInt_String(data+4);
-/*    fprintf(stderr,"Recieved pixmap %d, len %d", pnum, plen);*/
-    if (len<8 || (len-8)!=plen) {
-	fprintf(stderr,"PixMapCmd: Lengths don't compare (%d,%d)\n",
-		(len-8),plen);
-	return;
-    }
-    display_newpixmap(pnum,(char*)data+8,plen);
-}
-#endif
-
-void ImageCmd(unsigned char *data,  int len)
-{  
-    int pnum,plen;
-
-    pnum = GetInt_String(data);
-    plen = GetInt_String(data+4);
-/*    fprintf(stderr,"Recieved pixmap %d, len %d", pnum, plen);*/
-    if (len<8 || (len-8)!=plen) {
-	fprintf(stderr,"PixMapCmd: Lengths don't compare (%d,%d)\n",
-		(len-8),plen);
-	return;
-    }
-    display_newpng(pnum,(char*)data+8,plen);
-#if 0
-    /* Currently, the image command should only really be used for 
-     * for png, but it could just as easily get used for xpm with no
-     * significant changes.
-     */
-    if (display_usexpm()) {
-	display_newpixmap(pnum,(char*)data+8,plen);
-    } else if (display_usepng()) {
-	display_newpng(pnum,(char*)data+8,plen);
-    }
-    else {
-	fprintf(stderr,"Image command called with unknown image type.\n");
-    }
-#endif
-}
 
 void DrawInfoCmd(char *data, int len)
 {
