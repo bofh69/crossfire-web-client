@@ -114,6 +114,7 @@ Someday this will be fixed :)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <signal.h>
 #endif
 
 #include <client.h>

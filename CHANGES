@@ -2,6 +2,7 @@
 Top of CVS tree:
 
 ------------------------------------------------------------------------------
+common/script.c: add 'signal.h' header, needed for NetBSD.
 gtk/keys.c: fix buffer overflow when binding a very long command.
   This fixes bug #1085729.
 gtk/win32/config.h: fix S_ISDIR macro, even if not used.
