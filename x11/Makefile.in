@@ -19,7 +19,7 @@ CFLAGS = @CFLAGS@ @CPPFLAGS@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=@bindir@
-mandir=@mandir@/man1
+mandir=@mandir@/man6
 
 HEADERS= \
 	clientbmap.h		\
@@ -63,7 +63,7 @@ install:
 	$(INSTALL) -d ${bindir}
 	$(INSTALL) -d ${mandir}
 	$(INSTALL) cfclient ${bindir}/cfclient
-	$(INSTALL) cfclient.man ${mandir}/cfclient.1
+	$(INSTALL) -m 444 cfclient.man ${mandir}/cfclient.6
 
 depend:
 	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(SOURCES)

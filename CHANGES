@@ -2,6 +2,23 @@
 Top of CVS tree:
 
 ------------------------------------------------------------------------------
+
+Makefile.in: Fix up distclean directive to go into all directories.
+configure.in, configure: Fix configure so the --enable-feature and
+   --disable-feature flags follow proper standard (from patch on
+   sourceforge).  Add check for -lossaudio.  Modify check for 
+   -lSDL_image library - don't require it for SDL support (if we
+   have it, we'll use it, but for newer versions of SDL, it doesn't
+   seem to exist anymore)
+common/client-types.h: Minor formatting change.
+common/script.h:  add defines for PF_LOCAL and AF_LOCAL if they are
+   missing.
+gtk/Makefile.in: Install man page into section 6.
+sound-src/Makefile.in: Fix up depend command - had wrong variable.
+    Fix up distclean to remove automatically generated files.
+x11/Makefile.in: Install man page into section 6.
+MSW 2005-02-04
+
 gtk/gx11.c: send text first, then close popup. Else won't work under
   some circumstances, text is empty. Fix party password dialog containing
   only ':' (missing case in dialog handling).

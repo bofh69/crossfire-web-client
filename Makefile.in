@@ -126,7 +126,7 @@ clean:
 
 distclean:
 	$(RM) -f Makefile Makefile.bak config.cache config.log config.status
-	@for dir in $(SUBDIRS); \
+	@for dir in $(ALLSUBDIRS); \
 	    do \
 	    echo "making distclean in $$dir..."; \
 	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' distclean; ) \

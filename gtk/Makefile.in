@@ -25,7 +25,7 @@ INCLUDES = @X_CFLAGS@ -I.. -I../common -I../pixmaps
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=@bindir@
-mandir=@mandir@/man1
+mandir=@mandir@/man6
 soundlistdir=@sysconfdir@/sound/events
 desktopdir=@prefix@/share/gnome/apps/Games
 pixmapsdir=@prefix@/share/pixmaps
@@ -75,7 +75,7 @@ install:
 	$(INSTALL) -d ${bindir}
 	$(INSTALL) -d ${mandir}
 	$(INSTALL) gcfclient ${bindir}/gcfclient
-	$(INSTALL) gcfclient.man ${mandir}/gcfclient.1
+	$(INSTALL) -m 444 gcfclient.man ${mandir}/gcfclient.6
 
 depend:
 	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(SDL_CFLAGS) $(GTK_CFLAGS) $(INCLUDES)  -- $(SOURCES)

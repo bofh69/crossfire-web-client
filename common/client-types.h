@@ -63,7 +63,6 @@
 #define TRUE 1
 #endif
 
-
 #ifndef WIN32
 
 /* Set of common types used through the program and modules */

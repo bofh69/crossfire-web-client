@@ -27,6 +27,13 @@
 #ifndef SCRIPT_H
 #define SCRIPT_H
 
+#ifndef PF_LOCAL
+#define      PF_LOCAL         PF_UNIX /* Old BSD name for PF_LOCAL.  */
+#endif
+#ifndef AF_LOCAL
+#define      AF_LOCAL        PF_LOCAL
+#endif
+
 enum CmdFormat {
    ASCII,
    SHORT_ARRAY,

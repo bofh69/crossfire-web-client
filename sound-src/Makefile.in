@@ -68,11 +68,11 @@ clean::
 
 distclean::
 	$(MAKE) clean
-	$(RM) -f Makefile cfsndserv
+	$(RM) -f Makefile cfsndserv sounds soundsdef.h
 
 install:
 	$(INSTALL) -d ${bindir}
 	$(INSTALL) cfsndserv ${bindir}
 
 depend:
-	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(PROTOSOURCES) $(SND_SOURCES)
+	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(PROTOSOURCES) $(SOURCES)
