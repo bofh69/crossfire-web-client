@@ -510,7 +510,9 @@ void UpdateItemCmd(unsigned char *data, int len)
     pos+=4;
     ip = locate_item(tag);
     if (!ip) {
+/*
 	fprintf(stderr,"Got update_item command for item we don't have (%d)\n", tag);
+*/
 	return;
     }
     /* Copy all of these so we can pass the values to update_item and

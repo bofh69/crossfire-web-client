@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gx11.c,command.c: Remove some debug statements which really should not be
+   there for 1.0, and which are not really useful anyways.
+items_types, item_types.h: Varioius minor updates.
+MSW 2001-05-04
+
 gx11.c: Fix bug that causes gtk client not to update weapon speed.
 metaserver.c: Have the listing get sorted by hostname to make it easier to
    find the host the user may want.

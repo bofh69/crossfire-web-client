@@ -1831,7 +1831,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
       case Playing:
 	if (cpl.run_on) {
 	  if (!(event->state & GDK_CONTROL_MASK)) {
-	    printf ("Run is on while ctrl is not\n");
+/*	    printf ("Run is on while ctrl is not\n");*/
 	    gtk_label_set (GTK_LABEL(run_label),"   ");
 	    cpl.run_on=0;
 	    stop_run();
@@ -1839,7 +1839,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	}
 	if (cpl.fire_on) {
 	  if (!(event->state & GDK_SHIFT_MASK)) {
-	    printf ("Fire is on while shift is not\n");
+/*	    printf ("Fire is on while shift is not\n");*/
 	    gtk_label_set (GTK_LABEL(fire_label),"   ");
 	    cpl.fire_on=0;
 	    stop_fire();

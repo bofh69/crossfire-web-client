@@ -47,10 +47,11 @@ quarterstaff
 sabre
 scimitar
 shovel
-spear
+^spear
 stake
 ^sword
 Belzebub's sword
+Firebrand
 Harakiri sword
 broadsword
 light sword
@@ -79,6 +80,7 @@ Trident
 3:
 ^bow
 elven bow
+long bow
 crossbow
 sling
 arrow
@@ -204,6 +206,7 @@ potion
 bottle
 61:
 ^balm
+^dust
 dust 
 figurine
 # Item building scrolls
