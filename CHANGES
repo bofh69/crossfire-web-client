@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/keys.c: Windows now uses default 'keys' file if player file not found for
+   key loading.
+Ryo 2004-03-04
+
 configure.in: Remove checks for gnome libraries, since we no longer use 
 gnome/build a gnome client.
 aclocal.m4: downgrade requirement for needed autoconf version.

@@ -44,6 +44,7 @@ char *rcsid_gtk_keys_c =
 #include <gdk/gdkwin32.h>
 #define NoSymbol 0L /* Special KeySym */
 typedef int KeyCode; /* Undefined type */
+#include <io.h> /* access( ) */
 #endif
 #include <gdk/gdkkeysyms.h>
 
@@ -340,7 +341,14 @@ void init_keys()
 #ifdef WIN32
     /* For Windows, use player name if defined for key file */
     if ( strlen( cpl.name ) )
+        {
         sprintf( buf, "%s/.crossfire/%s.keys", getenv( "HOME" ), cpl.name );
+        if ( access( buf, 0 ) == -1 )
+            {
+            /* Client key file not found, reverting to default file */
+            sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
+            }
+        }
     else
         sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
 #else
