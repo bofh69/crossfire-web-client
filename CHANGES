@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/client.h: readded (Win32 only) player's name. Used for specific
+   key bindings file loading/saving.
+common/script.c: made dummy functions to correctly compile under Win32.
+   Actual implementation will come someday :)
+Ryo 2003-11-10
+
 x11/x11.c: Fix button pressing in the game window so it properly deals with
    non standard size maps.
 MSW 2003-10-26

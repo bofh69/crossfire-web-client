@@ -231,6 +231,9 @@ typedef struct Player_Struct {
     uint16	mapxres,mapyres;/* Resolution to draw on the magic map
                                  * Only used in client-specific code, so it should move there. */
 
+#ifdef WIN32
+    char    name[ 40 ]; /* Player's name, for player-specific key files */
+#endif
 } Client_Player;
 
 

@@ -104,6 +104,14 @@
 /*
  * Include files
  */
+
+/*
+This does not work under Windows for now.
+Someday this will be fixed :)
+*/
+
+#ifndef WIN32
+
 #include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -1159,3 +1167,72 @@ static void script_send_item(int i,char *head,item *it)
    sprintf(buf,"%s%d %d %f %d %d %s\n",head,it->tag,it->nrof,it->weight,flags,it->type,it->d_name);
    write(scripts[i].out_fd,buf,strlen(buf));
 }
+
+#else
+
+/* dummy Win32 functions */
+#include <client.h>
+#include <external.h>
+#include <script.h>
+
+void script_init(char *params)
+    {
+    }
+
+void script_sync(int commdiff)
+    {
+    }
+
+void script_list(void)
+    {
+    }
+
+void script_kill(char *params)
+    {
+    }
+
+void script_fdset(int *maxfd,fd_set *set)
+    {
+    }
+
+void script_process(fd_set *set)
+    {
+    }
+
+void script_watch(char *cmd,char *data, int len, enum CmdFormat format)
+    {
+    }
+
+void script_monitor(const char *command, int repeat, int must_send)
+    {
+    }
+
+void script_monitor_str(const char *command)
+    {
+    }
+
+void script_tell(char *params)
+    {
+    }
+
+static int script_by_name(char *name)
+    {
+    }
+
+static void script_dead(int i)
+    {
+    }
+
+static void send_map(int i,int x,int y)
+    {
+    }
+
+static void script_process_cmd(int i)
+    {
+    }
+
+static void script_send_item(int i,char *head,item *it)
+    {
+    }
+
+#endif /* WIN32 */
