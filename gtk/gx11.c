@@ -4631,6 +4631,8 @@ void create_windows() {
     GtkStyle	*style;
     int gcw;
     int gch;
+    int rootwin_width;
+    int rootwin_height;
 
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     style = gtk_rc_get_style(gtkwin_root);
@@ -4647,7 +4649,15 @@ void create_windows() {
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
     fprintf(stderr, "Character Width : %d\n", gcw);
     fprintf(stderr, "Character Height: %d\n", gch);
-    gtk_widget_set_usize (gtkwin_root,(55*gcw)+(map_image_size*mapx),(33*gch)+(map_image_size*mapy));
+    if ((55*gcw)+(map_image_size*mapx) >= gdk_screen_width())
+    	rootwin_width = gdk_screen_width() - 10;
+    else
+        rootwin_width = (55*gcw)+(map_image_size*mapx);
+    if ((33*gch)+(map_image_size*mapy) >= gdk_screen_height())
+    	rootwin_height = gdk_screen_height() - 10;
+    else
+        rootwin_height = (33*gch)+(map_image_size*mapy);
+    gtk_widget_set_usize (gtkwin_root,rootwin_width,rootwin_height);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
     
@@ -4687,7 +4697,7 @@ void create_windows() {
     
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, 300, 400);
+    gtk_widget_set_usize (frame, (25*gcw), (30*gch));
     gtk_paned_add2 (GTK_PANED (stat_info_hpane), frame);
     
     get_info_display (frame);
