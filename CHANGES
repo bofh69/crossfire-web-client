@@ -2,6 +2,38 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Bulk of this change is to support the upcoming split skill experience system.
+skill names are now sent to the client.  Backwards compatibility with older
+servers is in place - however, the client will now only show those skills
+which the player has a non zero exp total in the stat window.
+--
+configure, configure.in: Add checks for size of long and long long - needed to
+   have 64 bit types.
+common/Makefile.in: modify proto to define CPROTO so we can avoid including
+   proto.h when cproto runs.
+common/client-types.h: Add checks to define uint64/sint64 types.
+common/client.c: Modify setup command to send 'exp64' request.  Change
+   definition of skill_names.
+common/client.h: Make MAX skilled tied in with CS_NUM_SKILLS.  update exp and
+   skill_exp to 64 bit types.  Don't include proto.h if CPROTO is defined.
+common/commands.c: Add get_skill_info() which gets skill number->name mapping.
+   Add code to handle exp64 setup request/failure.  Update StatsCmd to support
+   64 bit exp for new skill mapping, as well as 64 bit overall exp for player.
+common/config.h.in: Add SIZEOF_LONG and SIZEOF_LONG_LONG for autoconf.
+common/external.h: Add menu_clear() protoype.
+common/init.c:  Add code to init skill values/names.
+common/newclient.h: Resync from server code.
+common/newsocket.c: Add GetInt64_String() function.
+common/proto.h: rebuilt.
+gtk/gx11.c: always include errno.h.  Modify layout of skill exp table
+   (properly set up rows/columns).  Add some padding to the entries, and don't
+   pre-set the names.  Modify draw logic to handle 64 bit values.  Modify draw
+   to only draw skills which player has exp in.
+x11/x11.c: update draw logic to handle 64 bit exp values, only draw
+   skill exp when player has exp in the category.
+MSW 2003-05-17
+   
+
 common/client.c: Add some usleeps()  in negotiate_connection() - this reduces
    cpu load when negotiating the connection (given 10 ms for data to actually
    come in before checking for new data).  Also, add a count and if we don't

@@ -50,6 +50,7 @@
 
 char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
 char *image_file="";
+char *skill_names[MAX_SKILL];
 
 int meta_port=META_PORT, want_skill_exp=0,
     replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
@@ -64,10 +65,6 @@ char *resists_name[NUM_RESISTS] = {
 "ghit", "pois", "slow", "para",
 "t undead", "fear", "depl","death", 
 "hword", "blind"};
-
-char *skill_names[MAX_SKILL] = {
-"agility", "personality", "mental", "physique", "magic", "wisdom"
-};
 
 typedef void (*CmdProc)(unsigned char *, int len);
 
@@ -274,7 +271,7 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d itemcmd 2",
+	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d exp64 1 itemcmd 2",
 	    sound>=0, want_skill_exp, 
 		    want_config[CONFIG_LIGHTING]?1:0, face_info.faceset,
 		    want_config[CONFIG_CACHE]);

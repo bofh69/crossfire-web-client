@@ -57,9 +57,8 @@ libcfclient.a: $(OBJECTS)
 	$(AR) $(ARFLAGS) $@ $(OBJECTS)
 	$(RANLIB) $@
 
-# grumble grumble.  cextract can't seem to handle gx11.c
 proto:
-	cproto -e -o proto.h -DCFCLIENT $(INCLUDES) -I. $(SOURCES)
+	cproto -e -o proto.h -DCPROTO -DCFCLIENT $(INCLUDES) -I. $(SOURCES)
 	chmod 664 proto.h
 
 item-types.h: item-types

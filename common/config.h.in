@@ -89,3 +89,9 @@
 
 /* Location of read-only machine independent data */
 #define DATADIR ""
+
+/* The size of a `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* The size of a `long long', as computed by sizeof. */
+#undef SIZEOF_LONG_LONG

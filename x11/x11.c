@@ -1147,7 +1147,7 @@ void draw_stats(int redraw) {
 
     if(redraw || cpl.stats.exp!=last_stats.exp ||
       cpl.stats.level!=last_stats.level) {
-	sprintf(buff,"Score: %5d  Level: %d",cpl.stats.exp,
+	sprintf(buff,"Score: %5lld  Level: %d",cpl.stats.exp,
 	    cpl.stats.level);
  	strcat(buff,"                     ");
 	XDrawImageString(display,win_stats,
@@ -1270,27 +1270,36 @@ void draw_stats(int redraw) {
       i = 0;
     } else {
       for (i=0; i<MAX_SKILL; i++) {
-	if (cpl.stats.skill_level[i] != last_stats.skill_level[i] ||
-	    cpl.stats.skill_exp[i] != last_stats.skill_exp[i])
+	if ((cpl.stats.skill_level[i] != last_stats.skill_level[i] ||
+	    cpl.stats.skill_exp[i] != last_stats.skill_exp[i]) &&
+	    skill_names[i] && cpl.stats.skill_exp[i])
 	  break;
       }
     }
 
     if (i < MAX_SKILL) {
-      *buff = '\0';
-      s = buff;
-      for (i=0; i<MAX_SKILL; i++) {
-        last_stats.skill_level[i] = cpl.stats.skill_level[i];
-        last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
-	s += sprintf(s,"%.3s: %5d (%d) ", skill_names[i], cpl.stats.skill_exp[i],
+	int on_skill=0;
+
+	*buff = '\0';
+	s = buff;
+	for (i=0; i<MAX_SKILL; i++) {
+	    if (!skill_names[i] || !cpl.stats.skill_exp[i]) continue;
+
+	    last_stats.skill_level[i] = cpl.stats.skill_level[i];
+	    last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
+	    s += sprintf(s,"%.3s: %7lld (%d) ", skill_names[i], cpl.stats.skill_exp[i],
 		cpl.stats.skill_level[i]);
-	if ((i % 2) == 1) {
+	    if ((on_skill % 2) == 1) {
 		XDrawImageString(display,win_stats,gc_stats,10,
-				108 + (14 * (i / 2)), buff,strlen(buff));
+				108 + (14 * (on_skill / 2)), buff,strlen(buff));
 		*buff = '\0';
 		s = buff;
+	    }
+	    on_skill++;
 	}
-      }
+	if (*buff) 
+	    XDrawImageString(display,win_stats,gc_stats,10,
+			108 + (14 * (on_skill / 2)), buff,strlen(buff));
     }
 }
 

@@ -2,10 +2,12 @@
  * static char *rcsid_newclient_h =
  *   "$Id$";
  */
-/*
-    Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+/*
+    CrossFire, A Multiplayer game for X-windows
+
+    Copyright (C) 2002 Mark Wedel & Crossfire Development Team
+    Copyright (C) 1992 Frank Tore Johansen
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +23,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    The author can be reached via e-mail to crossfire-devel@real-time.com
+    The authors can be reached via e-mail at crossfire-devel@real-time.com
 */
 
 /* This file defines various flags that both the new client and
@@ -96,6 +98,7 @@
 #define CS_STAT_MAXGRACE	24
 #define CS_STAT_FLAGS	25
 #define CS_STAT_WEIGHT_LIM	26
+#define CS_STAT_EXP64	28
 
 /* Start & end of resistances, inclusive. */
 #define CS_STAT_RESIST_START	100
@@ -134,6 +137,15 @@
 #define CS_STAT_SKILLEXP_MALEVEL 127
 #define CS_STAT_SKILLEXP_WISDOM 128
 #define CS_STAT_SKILLEXP_WILEVEL 129
+
+/* CS_STAT_SKILLINFO is used as the starting index point.  Skill number->name
+ * map is generated dynamically for the client, so a bunch of entries will
+ * be used here.  CS_NUM_SKILLS does not match how many skills there really
+ * are - instead, it is used as a range of values so that the client
+ * can have some idea how many skill categories there may be.
+ */
+#define CS_STAT_SKILLINFO   140
+#define CS_NUM_SKILLS	     50
 
 /* These are used with CS_STAT_FLAGS above to communicate S->C what the
  * server thinks the fireon & runon states are.

@@ -68,6 +68,37 @@
 #include <client.h>
 #include <external.h>
 
+static void get_skill_info(char *data, int len)
+{
+    char *cp, *nl, *sn;
+    int val;
+
+    cp = data;
+    do {
+	nl = strchr(cp, '\n');
+	if (nl) {
+	    *nl=0;
+	    nl++;
+	}
+	sn = strchr(cp, ':');
+	if (!sn) {
+	    fprintf(stderr,"get_skill_info: corrupt line: %s\n", cp);
+	    return;
+	}
+	*sn=0;
+	sn++;
+	val = atoi(cp);
+	val -= CS_STAT_SKILLINFO;
+	if (val < 0 || val> CS_NUM_SKILLS) {
+	    fprintf(stderr,"get_skill_info: invalid skill number %d\n", val);
+	    return;
+	}
+	if (skill_names[val]) free(skill_names[val]);
+	skill_names[val] = strdup_local(sn);
+	cp = nl;
+    } while (cp < (data + len));
+}
+
 
 /* handles the response from a 'requestinfo' command.  This function doesn't
  * do much itself other than dispatch to other functions.
@@ -95,6 +126,9 @@ void ReplyInfoCmd(char *buf, int len)
     }
     else if (!strcmp(buf,"image_sums")) {
 	get_image_sums(cp, len - i - 1);   /* located in common/image.c */
+    }
+    else if (!strcmp(buf,"skill_info")) {
+	get_skill_info(cp, len - i - 1);   /* located in common/image.c */
     }
 }
     
@@ -233,6 +267,33 @@ void SetupCmd(char *buf, int len)
 	     * are used in the future, we should probably fall back one at
 	     * a time or the like.
 	     */
+	} else if (!strcmp(cmd,"exp64")) {
+	    /* If this server does not support the new skill code,
+	     * fall back to the old which uses experience categories.
+	     * for that, initialize the skill names appropriately.
+	     * by doing so, the actual display code can be the same
+	     * for both old and new.  If the server does support
+	     * new exp system, send a request to get the mapping
+	     * information.
+	     */
+	    if (!strcmp(param,"FALSE")) {
+		int i;
+		for (i=0; i<MAX_SKILL; i++) {
+		    if (skill_names[i]) {
+			free(skill_names[i]);
+			skill_names[i] = NULL;
+		    }
+		}
+		skill_names[0] = strdup_local("agility");
+		skill_names[1] = strdup_local("personality");
+		skill_names[2] = strdup_local("mental");
+		skill_names[3] = strdup_local("physique");
+		skill_names[4] = strdup_local("magic");
+		skill_names[5] = strdup_local("wisdom");
+	    }
+	    else {
+		cs_print_string(csocket.fd,"requestinfo skill_info");
+	    }
 	}
 
 	else {
@@ -324,8 +385,8 @@ void DrawInfoCmd(char *data, int len)
 
 void StatsCmd(unsigned char *data, int len)
 {
-  int i=0;
-  int c;
+    int i=0, c, redraw=0;
+    sint64 last_exp;
 
     while (i<len) {
 	c=data[i++];
@@ -333,31 +394,47 @@ void StatsCmd(unsigned char *data, int len)
 	    cpl.stats.resists[c-CS_STAT_RESIST_START]=GetShort_String(data+i);
 	    i+=2;
 	    cpl.stats.resist_change=1;
+	} else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
+	    /* We track to see if the exp has gone from 0 to some total value -
+	     * we do this because the draw logic currently only draws skills where
+	     * the player has exp.  We need to communicate to the draw function
+	     * that it should draw all the players skills.  Using redraw is
+	     * a little overkill, because a lot of the data may not be changing.
+	     * OTOH, such a transition should only happen rarely, not not be a very
+	     * big deal.
+	     */
+	    cpl.stats.skill_level[c - CS_STAT_SKILLINFO] = data[i++];
+	    last_exp = cpl.stats.skill_exp[c - CS_STAT_SKILLINFO];
+	    cpl.stats.skill_exp[c - CS_STAT_SKILLINFO] = GetInt64_String(data+i);
+	    if (last_exp == 0 && cpl.stats.skill_exp[c - CS_STAT_SKILLINFO])
+		redraw=1;
+	    i += 8;
 	} else {
 	    switch (c) {
 		case CS_STAT_HP:	cpl.stats.hp=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_MAXHP:cpl.stats.maxhp=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_MAXHP:	cpl.stats.maxhp=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_SP:	cpl.stats.sp=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_MAXSP:cpl.stats.maxsp=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_GRACE:cpl.stats.grace=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_MAXGRACE:cpl.stats.maxgrace=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_MAXSP:	cpl.stats.maxsp=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_GRACE:	cpl.stats.grace=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_MAXGRACE:	cpl.stats.maxgrace=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_STR:	cpl.stats.Str=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_INT:	cpl.stats.Int=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_POW:	cpl.stats.Pow=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_WIS:	cpl.stats.Wis=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_DEX:	cpl.stats.Dex=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_CON:	cpl.stats.Con=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_CHA:  cpl.stats.Cha=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_EXP:  cpl.stats.exp=GetInt_String(data+i); i+=4; break;
-		case CS_STAT_LEVEL:cpl.stats.level=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_WC:   cpl.stats.wc=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_AC:   cpl.stats.ac=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_DAM:  cpl.stats.dam=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_ARMOUR:cpl.stats.resists[0]=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_SPEED: cpl.stats.speed=GetInt_String(data+i); i+=4; break;
-		case CS_STAT_FOOD:  cpl.stats.food=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_WEAP_SP:cpl.stats.weapon_sp=GetInt_String(data+i); i+=4; break;
-		case CS_STAT_FLAGS:cpl.stats.flags=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_CHA:	cpl.stats.Cha=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_EXP:	cpl.stats.exp=GetInt_String(data+i); i+=4; break;
+		case CS_STAT_EXP64:	cpl.stats.exp=GetInt64_String(data+i); i+=8; break;
+		case CS_STAT_LEVEL:	cpl.stats.level=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_WC:	cpl.stats.wc=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_AC:	cpl.stats.ac=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_DAM:	cpl.stats.dam=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_ARMOUR:    cpl.stats.resists[0]=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_SPEED:	cpl.stats.speed=GetInt_String(data+i); i+=4; break;
+		case CS_STAT_FOOD:	cpl.stats.food=GetShort_String(data+i); i+=2; break;
+		case CS_STAT_WEAP_SP:	cpl.stats.weapon_sp=GetInt_String(data+i); i+=4; break;
+		case CS_STAT_FLAGS:	cpl.stats.flags=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_WEIGHT_LIM:set_weight_limit(GetInt_String(data+i)); i+=4; break;
 
 		/* Skill experience handling */
@@ -404,11 +481,12 @@ void StatsCmd(unsigned char *data, int len)
 	    }
 	}
     }
+
     if (i>len) {
 	fprintf(stderr,"got stats overflow, processed %d bytes out of %d\n",
 		i, len);
     }
-    draw_stats(0);
+    draw_stats(redraw);
     draw_message_window(0);
 }
 

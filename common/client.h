@@ -54,7 +54,7 @@ char VERSION_INFO[256];
 /* How many skill types server supports/client will get sent to it.
  * If more skills are added to server, this needs to get increased.
  */
-#define MAX_SKILL   6
+#define MAX_SKILL   CS_NUM_SKILLS
 
 #define MAXANIM 2000
 
@@ -177,7 +177,7 @@ typedef struct Stat_struct {
     sint16 maxsp;	    /* Max spell points. */
     sint16 grace;	    /* Spell points.  Used to cast spells. */
     sint16 maxgrace;	    /* Max spell points. */
-    sint32 exp;		    /* Experience.  Killers gain 1/10. */
+    sint64 exp;		    /* Experience.  Killers gain 1/10. */
     sint16 food;	    /* How much food in stomach.  0 = starved. */
     sint16 dam;		    /* How much damage this object does when hitting */
     sint32 speed;	    /* Gets converted to a float for display*/
@@ -186,7 +186,7 @@ typedef struct Stat_struct {
     sint16 resists[30];	    /* Resistant values */
     uint32 resist_change:1; /* Resistant value has changed */
     sint16 skill_level[MAX_SKILL];  /* Level and experience totals for */
-    sint32 skill_exp[MAX_SKILL];    /* skills */
+    sint64 skill_exp[MAX_SKILL];    /* skills */
 } Stats;
 
 
@@ -267,8 +267,10 @@ extern Face_Information face_info;
 extern Client_Player cpl;		/* Player object. */
 extern char *skill_names[MAX_SKILL];
 
+#ifndef CPROTO
 /* We need to declare most of the structs before we can include this */
 #include <proto.h>
+#endif
 
 extern int errno;
 

@@ -140,6 +140,14 @@ int GetInt_String(unsigned char *data)
     return ((data[0]<<24) + (data[1]<<16) + (data[2]<<8) + data[3]);
 }
 
+/* 64 bit version of the above */
+sint64 GetInt64_String(unsigned char *data)
+{
+    return (((uint64)data[0]<<56) + ((uint64)data[1]<<48) + 
+	    ((uint64)data[2]<<40) + ((uint64)data[3]<<32) +
+	    (data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
+}
+
 short GetShort_String(unsigned char *data) {
     return ((data[0]<<8)+data[1]);
 }

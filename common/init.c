@@ -120,6 +120,12 @@ void init_client_vars()
     for (i=0; i<range_size; i++)
 	cpl.ranges[i]=NULL;
 
+    for (i=0; i<MAX_SKILL; i++) {
+	cpl.stats.skill_exp[i]=0;
+	cpl.stats.skill_level[i] = 0;
+	skill_names[i] = NULL;
+    }
+
     cpl.map_x=0;
     cpl.map_y=0;
 

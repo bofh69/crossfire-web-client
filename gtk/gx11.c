@@ -64,9 +64,7 @@
 
 #include "config.h"
 
-#ifdef __CYGWIN__
 #include <errno.h>
-#endif
 
 /* gtk */
 #include <gtk/gtk.h>
@@ -2106,14 +2104,14 @@ static int get_stats_display(GtkWidget *frame) {
      * so that spacing is uniform - this should look better.
      */
 
-    table = gtk_table_new (2, 3, TRUE);
+    table = gtk_table_new (4, 2, TRUE);
     x=0;
     y=0;
     /* this is all the same - we just pack it in different places */
     for (i=0; i<MAX_SKILL; i++) {
 	sprintf(buf,"%s: %d (%d)", skill_names[i], 0, 0);
-	statwindow.skill_exp[i] = gtk_label_new(buf);
-	gtk_table_attach(GTK_TABLE(table), statwindow.skill_exp[i], x, x+1, y, y+1, GTK_EXPAND | GTK_FILL, 0, 0, 0);
+	statwindow.skill_exp[i] = gtk_label_new("");
+	gtk_table_attach(GTK_TABLE(table), statwindow.skill_exp[i], x, x+1, y, y+1, GTK_FILL, 0, 10, 0);
 	x++;
 	if (x==2) { x=0; y++; }
 	gtk_widget_show(statwindow.skill_exp[i]);
@@ -2139,7 +2137,7 @@ void draw_stats(int redraw) {
 
   float weap_sp;
   char buff[MAX_BUF];
-  int i;
+  int i, on_skill;
 
   if (!init_before) {
     init_before=1;
@@ -2157,7 +2155,7 @@ void draw_stats(int redraw) {
     
     if(redraw || cpl.stats.exp!=last_stats.exp) {
       last_stats.exp = cpl.stats.exp;
-      sprintf(buff,"Score: %5d",cpl.stats.exp);
+      sprintf(buff,"Score: %5lld",cpl.stats.exp);
       gtk_label_set (GTK_LABEL(statwindow.score), buff);
       gtk_widget_draw (statwindow.score, NULL);
     }
@@ -2300,11 +2298,18 @@ void draw_stats(int redraw) {
       gtk_label_set (GTK_LABEL(statwindow.skill), cpl.range);
       gtk_widget_draw (statwindow.skill, NULL);
     }
+    on_skill=0;
     for (i=0; i<MAX_SKILL; i++) {
-	if (redraw || cpl.stats.skill_level[i] != last_stats.skill_level[i] ||
-	    cpl.stats.skill_exp[i] != last_stats.skill_exp[i]) {
-	    sprintf(buff,"%s: %d (%d)", skill_names[i], cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
-	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[i]), buff);
+	/* Drawing a particular skill entry is tricky - only draw if
+	 * different, and only draw if we have a name for the skill
+	 * and the player has some exp in the skill - don't draw
+	 * all 30 skills for no reason.
+	 */
+	if ((redraw || cpl.stats.skill_level[i] != last_stats.skill_level[i] ||
+	    cpl.stats.skill_exp[i] != last_stats.skill_exp[i]) &&
+	    skill_names[i] && cpl.stats.skill_exp[i]){
+	    sprintf(buff,"%s: %lld (%d)", skill_names[i], cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
+	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
 	    last_stats.skill_level[i] = cpl.stats.skill_level[i];
 	    last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
 	}

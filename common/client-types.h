@@ -72,6 +72,18 @@ typedef signed short    sint16;
 typedef unsigned char   uint8;
 typedef signed char     sint8;
 
+#if SIZEOF_LONG == 8
+typedef unsigned long       uint64;
+typedef signed long         sint64;
+#elif SIZEOF_LONG_LONG == 8
+typedef unsigned long long      uint64;
+typedef signed long long        sint64;
+#else
+error do not know how to get a 64 bit value on this system.
+error correct and send mail to crossfire-devel on how to do this
+#endif
+
+
 #ifndef SOL_TCP
 #define SOL_TCP IPPROTO_TCP
 #endif
