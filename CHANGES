@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------
+Changes for 1.3.0:
+
 Add support for the 'item2' command.  This lets us get the item type
 from the server so that we don't need to figure it out for ourselves.
 Also, remove support for the 'item' command - that has long since
