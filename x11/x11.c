@@ -2648,6 +2648,7 @@ static void usage(char *progname)
     puts("-pngfile <name>  - Use <name> for source of images");
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces.");
     puts("-noautorepeat    - Auto repeat on directional keys is ignored.");
+    puts("-faceset <num>   - Select a specific facset to use.");
     exit(0);
 }
 

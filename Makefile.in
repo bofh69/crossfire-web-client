@@ -45,6 +45,9 @@ EXTRA_DIST = \
 
 
 PIXMAPS = \
+	pixmaps/16x16.png	\
+	pixmaps/32x32.png	\
+	pixmaps/48x48.png	\
 	pixmaps/all.xpm		\
 	pixmaps/applied.xbm	\
 	pixmaps/applied.xpm	\
@@ -71,7 +74,6 @@ PIXMAPS = \
 	pixmaps/question.111	\
 	pixmaps/question.sdl	\
 	pixmaps/question.xpm	\
-	pixmaps/shield.png	\
 	pixmaps/skull.xpm	\
 	pixmaps/stipple.111	\
 	pixmaps/stipple.112	\

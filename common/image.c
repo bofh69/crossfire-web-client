@@ -285,6 +285,7 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 check
     new_entry->filename = strdup(filename);
     new_entry->checksum = checksum;
     new_entry->public = public;
+    new_entry->image_data = NULL;
     new_entry->next = image_cache[newhash].cache_entry;
     image_cache[newhash].cache_entry = new_entry;
     return new_entry;
