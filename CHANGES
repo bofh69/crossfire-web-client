@@ -1,6 +1,99 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+For top of CVS tree
+
+client.c: update call to metaserver_show
+client.h: make meta_server, meta_port vars available to other files.
+gx11.c: clear echo hiding after user completes entry in text
+    window.
+metaserver.c: Add parameter to metaserver_show which determines if
+    we display instructions for selecting metaserver.  Re-get
+    metaserver information if user hits enter on metaserver selection.
+player.c: Add metaserver command that gets updated metaserver information.
+proto.h: rebuilt.
+MSW 2001-04-29
+
+gx11.c: Add disconnect menu item and callback function to disconnect
+   from server.
+player.c: Fix/improve firing logic.  Was problem with gtk client in
+   that it would stop firing after a little while when holding shift
+   direction.  This was because the outgoing command queue got filled
+   up and never emptied because it still sent fire_stop commands.
+   Add 'disconnect command to disconnect from server.
+MSW 2001-04-28
+
+Makefile.in: Add gx11.c to depend directive, so it recompiles properly
+   on changes to png.c, xutil.c
+command.c: clear no_echo instead of letting the graphic handler do this.
+   also add call to x_set_echo - this fixes cases in nopopups mode of
+   it not switching to echo things properly.
+gx11.c: Add nopopups/splitinfo options to configure menu.  Add x_set_echo
+   function, and remove detection of this from do_timeout.
+proto.h: automatic rebuild.
+x11.c: Add setup x_set_echo function.
+xutil.c: Add saving/loading of splitinfo and nopopups value to/from
+   ~/.crossfire/gdefaults file.
+MSW 2001-04-27
+
+Note: by default, the command history forward/back keys are not bound
+   to anything.  At least on Sparc/Solaris systems, the up key in
+   the cluster of 4 arrow keys is the same keysym as the the 
+   key on the keypad, so by automatically binding these, you basically
+   make it so the player can not move north/south, so I figure its better
+   to let players bind them safely.
+gx11.c: Make the command completion key as well as history move backwards/
+   forwards custom settable by the player.  Also, resize the width of the
+   name/weight window for the look window the same way we do for the inv
+   window.
+xutil.c: Add support for binding command completion and history scroll
+   keys.  Also, add support of loading/saving these bindings (As well
+   as those for fire keys, run keys, command keys.
+MSW 2001-04-20
+
+gx11.c: Have it hide password entered when using -nopopups mode.
+  Add command completion with tab.
+  remove some dead code.
+  Add command history.  Accessible through the up/down arrow keys
+   (the 4 keys between the standard keys and the keypad, not the
+   arrow keys on the keypad.)  This feature is barely tested.
+  Most of the editing functionality used here is what gtk provides.
+MSW 2001-04-20
+
+client.c: add image_file declaration.  Also, properly handle cases where
+  the option given by -server (or config file) is not a valid server -
+  go back to metaserver selection instead of looping infinitely.
+client.h: add image_file declaration.
+gx11.c: Lots of changes.  remove duplicate code between this file
+  and xutil.c. Add show_unlocked inventory tab selection.
+  Add -nopopups command line option which prevents pop up windows.  Also
+    results in the count value getting cleared when used.
+  Add -splitinfo command line option that results in two info (Text)
+    windows - one for colored text, one for normal text.
+  When resizing pane that has inventory listing, now updates inventory
+    headings so weight keeps constant width so that the space for the
+    name increases.
+  Implement command_show options so that 'show' command will rotate
+    through tabs (or goes directly to tab if right name is given)
+    of inventory display options.
+  Add handling for -pngfile option.
+player.c: add complete_command function that returns complete
+  server command when partial string is passed to it
+  (currently only used by x11.c)
+x11.c: Add unlocked inventory show option.
+  Add command completion via tab key when entering an extended
+    command.
+  Add -pngfile support processing.
+xutil.c: Modified with #ifdef GDK_XUTIL so the gx11.c file
+  can include this file to reduce duplicate code.
+  Have cache code look in gfx directory first for images to load.  Also
+    have cache code then look at images loaded by -pngfile for match
+    before looking in images previously download, then request image
+    from server if we still don't have an image.
+MSW 2001-04-19
+
+
+------------------------------------------------------------------------------
 Changes for 1.0.0:
 
 player.c: Fix for client crashes if player enters really long commands
@@ -15,7 +108,6 @@ gx11.c: Fix bug that causes gtk client not to update weapon speed.
 metaserver.c: Have the listing get sorted by hostname to make it easier to
    find the host the user may want.
 MSW 2001-05-02
-
 
 ------------------------------------------------------------------------------
 Changes for 0.98.0:

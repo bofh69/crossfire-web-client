@@ -25,6 +25,7 @@
  * static char *rcsid_xio_c =
  *   "$Id$";
  *
+ *
  * This file handles all the windowing stuff.  The idea is
  * that all of it is in one file, so to port to different systems
  * or toolkits, only this file needs to be updated.  All windowing
@@ -92,8 +93,6 @@
 #include "client.h"
 /*#include "clientbmap.h"*/
 #include "item.h"
-#include "def-keys.h"
-#include <X11/keysym.h>
 #include "pixmaps/crossfiretitle.xpm"
 
 #include <X11/Xlib.h>
@@ -110,6 +109,9 @@
 #include "png.c"
 #endif
 
+#define MAXPIXMAPNUM 10000
+#define GDK_XUTIL
+
 static int image_size=24;
 
 /* All the following are static because these variables should
@@ -120,10 +122,11 @@ static int image_size=24;
 typedef enum inventory_show {
   show_all = 0, show_applied = 0x1, show_unapplied = 0x2, show_unpaid = 0x4,
   show_cursed = 0x8, show_magical = 0x10, show_nonmagical = 0x20,
-  show_locked = 0x40,
-  show_mask=0x7f
+  show_locked = 0x40, show_unlocked=0x80,
+  show_mask=0xff
 } inventory_show;
 
+#define TYPE_LISTS 9
 
 /*
  *  This is similar obwin, but totally redone for client
@@ -147,10 +150,10 @@ typedef struct {
   gint nonmagicalrows;
   gint lockedrows;*/
 
-  float pos[8];
+  float pos[TYPE_LISTS];
 
-  GtkWidget *gtk_list[8];
-  GtkWidget *gtk_lists[8];
+  GtkWidget *gtk_list[TYPE_LISTS];
+  GtkWidget *gtk_lists[TYPE_LISTS];
 
   GC gc_text;
   GC gc_icon;
@@ -183,7 +186,6 @@ typedef struct {
   sint16 bar_length; 	  /* the length of scrollbar in pixels */
   sint16 bar_size;	  /* the current size of scrollbar in pixels */
   sint16 bar_pos;	  /* the starting position of scrollbar in pixels */
-  inventory_show show_what;   /* What to show in inventory */
   uint32 weight_limit;   /* Weight limit for this list - used for title */
 } itemlist;
 
@@ -223,14 +225,12 @@ typedef struct {
   
 static char **gargv;
 
-/*typedef struct {
-  gchar *command;
-} historyitem;
-*/
-
+#define MAX_HISTORY 50
+#define MAX_COMMAND_LEN 256
+char history[MAX_HISTORY][MAX_COMMAND_LEN];
+static int cur_history_position=0, scroll_history_position=0;
 
 GList *anim_inv_list=NULL, *anim_look_list=NULL;
-/*GList *history=NULL;*/
 
 extern int maxfd;
 struct timeval timeout;
@@ -252,7 +252,7 @@ gint	csocket_fd=0;
 static int gargc;
 
 Display_Mode display_mode = DISPLAY_MODE;
-static char cache_images=FALSE;
+static char cache_images=FALSE, nopopups=FALSE, splitinfo=FALSE;
 
 /* This struct contains the information to draw 1 line of data. */
 typedef struct {
@@ -364,6 +364,9 @@ static GtkWidget *ccheckbutton3;
 static GtkWidget *ccheckbutton4;
 static GtkWidget *ccheckbutton5;
 static GtkWidget *ccheckbutton6;
+static GtkWidget *ccheckbutton7;
+static GtkWidget *ccheckbutton8;
+static GtkWidget *inv_notebook;
 
 static GtkTooltips *tooltips;
 
@@ -386,6 +389,7 @@ enum {
 static GtkWidget *entrytext, *counttext;
 static gint redraw_needed=FALSE;
 static GtkObject *text_hadj,*text_vadj;
+static GtkObject *text_hadj2,*text_vadj2;
 
 /*
  * These are used for inventory and look window
@@ -394,17 +398,15 @@ static itemlist look_list, inv_list;
 static StatWindow statwindow;
 /* gtk */
  
-static GtkWidget *gtkwin_root,  *gtkwin_info_text;
+static GtkWidget *gtkwin_root,  *gtkwin_info_text, *gtkwin_info_text2;
 static GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_info, *gtkwin_look, *gtkwin_inv;
 
 
-/*static GtkWidget *gtkwin_history = NULL;*/
 static GtkWidget *gtkwin_about = NULL;
 static GtkWidget *gtkwin_splash = NULL;
 static GtkWidget *gtkwin_chelp = NULL;
 static GtkWidget *gtkwin_shelp = NULL;
 static GtkWidget *gtkwin_magicmap = NULL;
-/*static GtkWidget *history_list = NULL;*/
 static GtkWidget *gtkwin_config = NULL;
 
 static char *last_str;
@@ -434,15 +436,9 @@ uint16 facecachemap[MAXPIXMAPNUM], cachelastused=0, cacheloaded=0;
 
 FILE *fcache;
 
-/* I don't know why this was not included - it seems like there is
- * a lot of duplicate code/extra work to copy all of what is in that
- * file over in this file - that is twice as many files to update.
- * If there is a good reason why this should not be included, please let
- * me know - MSW 4/20/2000
- */
-/* #include <xutil.c> */
-
 int misses=0,total=0;
+
+#include "xutil.c"
 
 void create_windows (void);
 
@@ -570,14 +566,6 @@ void end_windows()
   free(last_str);
 }
 
-/*static historyitem *newhistoryitem(gchar *text) {
-  historyitem *op = malloc (sizeof(historyitem));
-  gchar *command = malloc (strlen(text));
-  strcpy (command, text);
-  op->command=command;
-  return op;
-  }*/
-
 
 /* Animation allocations */
 
@@ -598,33 +586,7 @@ static animobject *newanimobject() {
   return op;
 }
 
-/*void printhistory (historyitem *data, gpointer user_data) {
-  gchar buf[MAX_BUF];
-  strcpy (buf, data->command);
-    printf ("History: %s \n", buf);
-}
 
-void addhistorylist (historyitem *data, gpointer user_data) {
-  gint tmprow;
-  tmprow = gtk_clist_append (GTK_CLIST (history_list), &data->command);
-  gtk_clist_set_row_data (GTK_CLIST(history_list), tmprow, data);
-
-}
-
-
-void addhistoryitem(gchar *text) {
-  gint tmprow;
-  historyitem *tmphist;
-  tmphist=newhistoryitem(text);
-  history = g_list_append (history, tmphist);
-  if(gtkwin_history) {
-     tmprow = gtk_clist_append (GTK_CLIST (history_list), &tmphist->command);
-     gtk_clist_set_row_data (GTK_CLIST(history_list), tmprow, tmphist);
-  }
-  
-}
-
-*/
 /* Free allocations for animations */
 
 void freeanimview (gpointer data, gpointer user_data) {
@@ -682,36 +644,6 @@ void animate_list () {
 }
 
 
-
-
-/*static void history_button_event (GtkWidget *gtklist, GdkEventButton *event)
-{
-  GList *node;
-  historyitem *tmp;
-  if (event->type==GDK_BUTTON_PRESS && event->button==1) {
-    for (node =  GTK_CLIST(gtklist)->selection ; node ; node = node->next) {
-      tmp = gtk_clist_get_row_data (GTK_CLIST(gtklist), (gint)node->data); 
-      extended_command(tmp->command);
-      printf("History command: %s\n", tmp->command);
-    }
-  }
-
-  if (event->type==GDK_BUTTON_PRESS && event->button==3) {
-
-    if (GTK_CLIST(gtklist)->selection) {
-      node =  GTK_CLIST(gtklist)->selection;
-      tmp = gtk_clist_get_row_data (GTK_CLIST(gtklist), (gint)node->data); 
-      gtk_clist_remove (GTK_CLIST(gtklist), (gint)node->data);
-
-      free (tmp->command);
-
-      history = g_list_remove (history, tmp); 
-      free (tmp);
-    }
-  }
-  
-}
-*/
 
 
 /* Handle mouse presses in the game window */
@@ -779,389 +711,6 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
 
 
 
-
-/***********************************************************************
- *
- * Key board input translations are handled here.  We don't deal with
- * the events, but rather KeyCodes and KeySyms.
- *
- * It would be nice to deal with only KeySyms, but many keyboards
- * have keys that do not correspond to a KeySym, so we do need to
- * support KeyCodes.
- *
- ***********************************************************************/
-
-
-static KeyCode firekey[2], runkey[2], commandkey, *bind_keycode;
-static KeySym firekeysym[2], runkeysym[2], commandkeysym,*bind_keysym;
-static int bind_flags=0;
-static char bind_buf[MAX_BUF];
-
-#define KEYF_NORMAL	0x01	/* Used in normal mode */
-#define KEYF_FIRE	0x02	/* Used in fire mode */
-#define KEYF_RUN	0x04	/* Used in run mode */
-#define KEYF_MODIFIERS	0x07	/* Mask for actual keyboard modifiers, */
-				/* not action modifiers */
-#define KEYF_EDIT	0x08	/* Line editor */
-#define KEYF_STANDARD	0x10	/* For standard (built in) key definitions */
-
-extern char *directions[9];
-
-
-typedef struct Keys {
-    uint8	flags;
-    sint8	direction;
-    KeySym	keysym;
-    char	*command;
-    struct Keys	*next;
-} Key_Entry;
-
-/* Key codes can only be from 8-255 (at least according to
- * the X11 manual.  This is easier than using a hash
- * table, quicker, and doesn't use much more space.
- */
-
-#define MAX_KEYCODE 255
-static Key_Entry *keys[256];
-
-
-void load_defaults()
-{
-    char path[MAX_BUF],inbuf[MAX_BUF],*cp;
-    FILE *fp;
-
-    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
-    if ((fp=fopen(path,"r"))==NULL) return;
-    while (fgets(inbuf, MAX_BUF-1, fp)) {
-	inbuf[MAX_BUF-1]='\0';
-	inbuf[strlen(inbuf)-1]='\0';	/* kill newline */
-
-	if (inbuf[0]=='#') continue;
-	/* IF no colon, then we certainly don't have a real value, so just skip */
-	if (!(cp=strchr(inbuf,':'))) continue;
-	*cp='\0';
-	cp+=2;	    /* colon, space, then value */
-
-	if (!strcmp(inbuf, "port")) {
-	    port_num = atoi(cp);
-	    continue;
-	}
-	if (!strcmp(inbuf, "server")) {
-	    server = strdup_local(cp);	/* memory leak ! */
-	    continue;
-	}
-	if (!strcmp(inbuf,"display")) {
-	    if (!strcmp(cp,"xpm")) 
-		display_mode=Xpm_Display;
-	    if (!strcmp(cp,"png")) 
-		display_mode=Png_Display;
-	    else fprintf(stderr,"Unknown display specication in %s, %s",
-			   path, cp);
-	    continue;
-	}
-	if (!strcmp(inbuf,"cacheimages")) {
-	    if (!strcmp(cp,"True")) cache_images=TRUE;
-	    else cache_images=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"split")) {
-	    if (!strcmp(cp,"True")) split_windows=TRUE;
-	    else split_windows=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"showicon")) {
-	    if (!strcmp(cp,"True")) inv_list.show_icon=TRUE;
-	    else inv_list.show_icon=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"scrolllines")) {
-	    infodata.maxlines = atoi(cp);
-	    continue;
-	}
-	if (!strcmp(inbuf,"scrollinfo")) {
-	    if (!strcmp(cp,"True")) infodata.scroll_info_window=TRUE;
-	    else infodata.scroll_info_window=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"sound")) {
-	    if (!strcmp(cp,"True")) nosound=FALSE;
-	    else nosound=TRUE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"colorinv")) {
-	    if (!strcmp(cp,"True")) color_inv=TRUE;
-	    else color_inv=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"colortext")) {
-	    if (!strcmp(cp,"True")) color_text=TRUE;
-	    else color_text=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"tooltips")) {
-	  if (!strcmp(cp,"True")) tool_tips=TRUE;
-	  else tool_tips=FALSE;
-	  continue;
-	}  
-	fprintf(stderr,"Got line we did not understand: %s: %s", inbuf, cp);
-    }
-    fclose(fp);
-
-}
-
-void save_defaults()
-{
-    char path[MAX_BUF],buf[MAX_BUF];
-    FILE *fp;
-
-    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
-    if (make_path_to_file(path)==-1) {
-	fprintf(stderr,"Could not create %s\n", path);
-	return;
-    }
-    if ((fp=fopen(path,"w"))==NULL) {
-	fprintf(stderr,"Could not open %s\n", path);
-	return;
-    }
-    fprintf(fp,"# This file is generated automatically by cfclient.\n");
-    fprintf(fp,"# Manually editing is allowed, however cfclient may be a bit finicky about\n");
-    fprintf(fp,"# some of the matching it does.  all comparissons are case sensitive.\n");
-    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values.\n");
-
-    fprintf(fp,"port: %d\n", port_num);
-    fprintf(fp,"server: %s\n", server);
-    if (display_mode==Xpm_Display) {
-	fprintf(fp,"display: xpm\n");
-    } else if (display_mode==Png_Display) {
-	fprintf(fp,"display: png\n");
-    }
-    fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
-    fprintf(fp,"split: %s\n", split_windows?"True":"False");
-    fprintf(fp,"showicon: %s\n", inv_list.show_icon?"True":"False");
-    fprintf(fp,"scrolllines: %d\n", infodata.maxlines);
-    fprintf(fp,"scrollinfo: %s\n", infodata.scroll_info_window?"True":"False");
-    fprintf(fp,"sound: %s\n", nosound?"False":"True");
-    fprintf(fp,"colorinv: %s\n", color_inv?"True":"False");
-    fprintf(fp,"colortext: %s\n", color_text?"True":"False");
-    fprintf(fp,"tooltips: %s\n", color_text?"True":"False");
-    fclose(fp);
-    sprintf(buf,"Defaults saved to %s",path);
-    draw_info(buf,NDI_BLUE);
-    /* Save the gcfclient specifics */
-}
-
-
-/* Updates the keys array with the keybinding that is passed.  All the
- * arguments are pretty self explanatory.  flags is the various state
- * that the keyboard is in.
- */
-static void insert_key(KeySym keysym, KeyCode keycode, int flags, char *command)
-{
-
-    Key_Entry *newkey;
-    int i, direction=-1;
-
-    if (keycode>MAX_KEYCODE) {
-	fprintf(stderr,"Warning insert_key:keycode that is passed is greater than 255.\n");
-	keycode=0;	/* hopefully the rest of the data is OK */
-    }
-    if (keys[keycode]==NULL) {
-	keys[keycode]=malloc(sizeof(Key_Entry));
-	keys[keycode]->command=NULL;
-	keys[keycode]->next=NULL;
-    }
-    newkey=keys[keycode];
-
-    /* Try to find out if the command is a direction command.  If so, we
-     * then want to keep track of this fact, so in fire or run mode,
-     * things work correctly.
-     */
-    for (i=0; i<9; i++)
-	if (!strcmp(command, directions[i])) {
-		direction=i;
-		break;
-	}
-
-    if (keys[keycode]->command!=NULL) {
-	/* if keys[keycode]->command is not null, then newkey is
-	 * the same as keys[keycode]->command.
-	 */
-	while (newkey->next!=NULL)
-	    newkey = newkey->next;
-	newkey->next = malloc(sizeof(Key_Entry));
-	newkey = newkey->next;
-	/* This is the only initializing we need to do - the other fields
-	 * will get filled in by the passed parameters
-	 */
-	newkey->next = NULL;
-    }
-    newkey->keysym = keysym;
-    newkey->flags = flags;
-    newkey->command = strdup_local(command);
-    newkey->direction = direction;
-}
-
-int updatekeycodes=0,keepcache=0;
-
-static void parse_keybind_line(char *buf, int line, int standard)
-{
-    char *cp, *cpnext;
-    KeySym keysym;
-    KeyCode keycode;
-    int flags;
-
-    if (buf[0]=='#' || buf[0]=='\n') return;
-    if ((cpnext = strchr(buf,' '))==NULL) {
-	fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line,buf);
-	return;
-    }
-    if (standard) standard=KEYF_STANDARD;
-    else standard=0;
-
-    *cpnext++ = '\0';
-    keysym = XStringToKeysym(buf);
-    cp = cpnext;
-    if ((cpnext = strchr(cp,' '))==NULL) {
-	fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line, cp);
-	return;
-    }
-    *cpnext++ = '\0';
-
-    /* If we can, convert the keysym into a keycode.  */
-    keycode = atoi(cp);
-
-    cp = cpnext;
-    if ((cpnext = strchr(cp,' '))==NULL) {
-	fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line, cp);
-	return;
-    }
-    *cpnext++ = '\0';
-    flags = standard;
-    while (*cp!='\0') {
-        switch (*cp) {
-	case 'A':
-		flags |= KEYF_NORMAL | KEYF_FIRE | KEYF_RUN;
-		break;
-	case 'N':
-		flags |= KEYF_NORMAL;
-		break;
-	case 'F':
-		flags |= KEYF_FIRE;
-		break;
-	case 'R':
-		flags |= KEYF_RUN;
-		break;
-	case 'E':
-		flags |= KEYF_EDIT;
-		break;
-	case 'S':
-		flags |= KEYF_STANDARD;
-		break;
-	default:
-	    fprintf(stderr,"Warning:  Unknown flag (%c) line %d in key binding file\n",
-		*cp, line);
-        }
-        cp++;
-    }
-    /* Rest of the line is the actual command.  Lets kill the newline */
-    cpnext[strlen(cpnext)-1]='\0';
-    if (keysym!=NoSymbol && ((flags & KEYF_STANDARD) || updatekeycodes)) {
-        keycode = XKeysymToKeycode(GDK_DISPLAY(), keysym);
-
-        /* It is possible that we get a keysym that we can not convert
-         * into a keycode (such a case might be binding the key on
-         * one system, and later trying to run on another system that
-         * doesn't have that key.
-         * While the client will not be able to use it this invocation,
-         * it may be able to use it in the future.  As such, don't throw
-         * it away, but at least print a warning message.
-         */
-        if (keycode==0) {
-	fprintf(stderr,"Warning: could not convert keysym %s into keycode, ignoring\n",
-		buf);
-        }
-    }
-    insert_key(keysym, keycode, flags | standard, cpnext);
-}
-
-static void init_default_keybindings(void)
-{
-  char buf[MAX_BUF];
-  int i;
-
-  for(i=0;i< sizeof(def_keys)/sizeof(char *);i++) {
-    strcpy(buf,def_keys[i]);
-    parse_keybind_line(buf,i,1);
-  }
-}
-
-
-/* This reads in the keybindings, and initializes any special values.
- * called by init_windows.
- */
-
-static void init_keys(void)
-{
-    int i, line=0;
-    FILE *fp;
-    char buf[MAX_BUF];
-
-    commandkeysym = XK_apostrophe;
-    commandkey = XKeysymToKeycode(GDK_DISPLAY(),XK_apostrophe);
-    if (!commandkey) {
-      commandkeysym =XK_acute;
-      commandkey = XKeysymToKeycode(GDK_DISPLAY(), XK_acute);
-    }
-    firekeysym[0] = XK_Shift_L;
-    firekey[0] = XKeysymToKeycode(GDK_DISPLAY(), XK_Shift_L);
-    firekeysym[1] = XK_Shift_R;
-    firekey[1] = XKeysymToKeycode(GDK_DISPLAY(), XK_Shift_R);
-    runkeysym[0] = XK_Control_L;
-    runkey[0] = XKeysymToKeycode(GDK_DISPLAY(), XK_Control_L);
-    runkeysym[1] = XK_Control_R;
-    runkey[1] = XKeysymToKeycode(GDK_DISPLAY(), XK_Control_R);
-
-    for (i=0; i<=MAX_KEYCODE; i++) {
-	keys[i] = NULL;
-    }
-
-    /* We now try to load the keybindings.  First place to look is the
-     * users home directory, "~/.crossfire/keys".  Using a directory
-     * seems like a good idea, in the future, additional stuff may be
-     * stored.
-     *
-     * The format is described in the def_keys file.  Note that this file
-     * is the same as what it was in the server distribution.  To convert
-     * bindings in character files to this format, all that needs to be done
-     * is remove the 'key ' at the start of each line.
-     *
-     * We need at least one of these keybinding files to exist - this is
-     * where the various commands are defined.  In theory, we actually
-     * don't need to have any of these defined -- the player could just
-     * bind everything.  Probably not a good idea, however.
-     */
-
-    sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
-    if ((fp=fopen(buf,"r"))==NULL) {
-	fprintf(stderr,"Could not open ~/.crossfire/keys, trying to load global bindings\n");
-	if (client_libdir==NULL) {
-	    init_default_keybindings();
-	    return;
-	}
-	sprintf(buf,"%s/def_keys", client_libdir);
-	if ((fp=fopen(buf,"r"))==NULL) {
-	    init_default_keybindings();
-	    return;
-	}
-    }
-    while (fgets(buf, MAX_BUF, fp)) {
-	line++;
-	parse_keybind_line(buf,line,0);
-    }
-    fclose(fp);
-}
-
-
 /******************************************************************************
  *
  * Code related to face caching.
@@ -1216,598 +765,53 @@ static void init_cache_data()
 
 }
 
-static void requestface(int pnum, char *facename, char *facepath)
-{
-    char buf[MAX_BUF];
-
-
-    facetoname[pnum] = strdup_local(facepath);
-    sprintf(buf,"askface %d", pnum);
-    cs_write_string(csocket.fd, buf, strlen(buf));
-    /* Need to make sure we have the directory */
-    sprintf(buf,"%s/%c%c", facecachedir, facename[0], facename[1]);
-
-    if (access(buf,R_OK)) make_path_to_dir(buf);
-}
-
-/* We only get here if the server believes we are caching images. */
-/* We rely on the fact that the server will only send a face command for
- * a particular number once - at current time, we have no way of knowing
- * if we have already received a face for a particular number.
+/* Deals with command history.  if direction is 0, we are going backwards,
+ * if 1, we are moving forward.
  */
 
-/* This is common for both face1 and face commands. */
-void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
+void gtk_command_history(int direction)
 {
-    char buf[MAX_BUF];
-    int fd,len;
-    char data[65536];
-    uint32 newsum=0;
-
-    /* To prevent having a directory with 2000 images, we do a simple
-     * split on the first 2 characters.
-     */
-    sprintf(buf,"%s/%c%c/%s", facecachedir, face[0], face[1],face);
-
-    if (display_mode == Xpm_Display) 
-	strcat(buf,".xpm");
-    else if (display_mode == Png_Display)
-	strcat(buf,".png");
-
-    if ((fd=open(buf, O_RDONLY))==-1) {
-	requestface(pnum, face, buf);
-	return;
-    }
-    len=read(fd, data, 65535);
-    close(fd);
-
-    if (has_sum && !keepcache) {
-	for (fd=0; fd<len; fd++)
-	    newsum = (newsum >> 1 ) + data[fd];
-	if (newsum != checksum) {
-#if 0
-	    fprintf(stderr,"finish_face_command: checksums differ: %d != %d\n",
-		    newsum, checksum);
-#endif
-	    requestface(pnum, face, buf);
-	    /* Hmm.  Comment this out - using the old face is still better.
-	     * than none at all.
-	     */
-/*	    return;*/
-	}
-    }
-    if (display_mode == Xpm_Display) {
-    
-	GtkStyle *style;
-    
-	style = gtk_widget_get_style(gtkwin_root);
-	pixmaps[pnum].gdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
-					 &pixmaps[pnum].gdkmask,
-					 &style->bg[GTK_STATE_NORMAL],
-					     (gchar **) data );
-	    if (!pixmaps[pnum].gdkpixmap) {
-		requestface(pnum, face, buf);
-	    }
-    }
-    else if (display_mode == Png_Display) {
-#ifdef HAVE_LIBPNG
-	if (png_to_gdkpixmap(gtkwin_root->window, data, len, &pixmaps[pnum].gdkpixmap, 
-		 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
-	    fprintf(stderr,"Got error on png_to_gdkpixmap, file=%s\n",buf);
-	    requestface(pnum, face, buf);
-	}
-#endif
-    } /* else Don't have image */
-}
-
-
-
-
-/* The only things we actually care about is the run and fire keys.
- * Other key releases are not important.
- * If it is the release of a run or fire key, we tell the client
- * to stop firing or running.  In some cases, it is possible that we
- * actually are not running or firing, and in such cases, the server
- * will just ignore the command.
- */
-
-
-static void parse_key_release(KeyCode kc, KeySym ks) {
-
-    /* Only send stop firing/running commands if we are in actual
-     * play mode.  Something smart does need to be done when the character
-     * enters a non play mode with fire or run mode already set, however.
-     */
-#if 0	/* I think this causes more problems than it solves */
-    if (cpl.input_state != Playing) return;
-#endif
-
-    if (kc==firekey[0] || ks==firekeysym[0] || 
-	kc==firekey[1] || ks==firekeysym[1]) {
-#if 0	/* Nice idea, but unfortunately prints too many false results */
-		if (cpl.echo_bindings) draw_info("stop fire",NDI_BLACK);
-#endif
-		cpl.fire_on=0;
-		clear_fire();
-		/*		draw_message_window(0);*/
-		gtk_label_set (GTK_LABEL(fire_label),"    ");
-	}
-    else if (kc==runkey[0] || ks==runkeysym[0] ||
-	kc==runkey[1] || ks==runkeysym[1]) {
-		cpl.run_on=0;
-		if (cpl.echo_bindings) draw_info("stop run",NDI_BLACK);
-		clear_run();
-		/*		draw_message_window(0);*/
-		gtk_label_set (GTK_LABEL(run_label),"   ");
-	}
-    /* Firing is handled on server side.  However, to keep more like the
-     * old version, if you release the direction key, you want the firing
-     * to stop.  This should do that.
-     */
-    else if (cpl.fire_on) clear_fire();
-}
-
-/* This parses a keypress.  It should only be called win in Playing
- * mode.
- */
-static void parse_key(char key, KeyCode keycode, KeySym keysym)
-{
-    Key_Entry *keyentry, *first_match=NULL;
-    int present_flags=0;
-    char buf[MAX_BUF];
-
-    if (keycode == commandkey && keysym==commandkeysym) {
-      /*draw_prompt(">");*/
-      if (split_windows) {
-	gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info));
-	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-      } else {
-	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-      }
-	cpl.input_state = Command_Mode;
-	cpl.no_echo=FALSE;
-	return;
-    }
-    if (keycode == firekey[0] || keysym==firekeysym[0] ||
-	keycode == firekey[1] || keysym==firekeysym[1]) {
-		cpl.fire_on=1;
-		gtk_label_set (GTK_LABEL(fire_label),"Fire");
-		/*		draw_message_window(0);*/
-		return;
-	}
-    if (keycode == runkey[0] || keysym==runkeysym[0] ||
-	keycode==runkey[1] || keysym==runkeysym[1]) {
-		cpl.run_on=1;
-		gtk_label_set (GTK_LABEL(run_label),"Run");
-		/*draw_message_window(0);*/
-		return;
-	}
-
-    if (cpl.run_on) present_flags |= KEYF_RUN;
-    if (cpl.fire_on) present_flags |= KEYF_FIRE;
-    if (present_flags ==0) present_flags = KEYF_NORMAL;
-
-    keyentry = keys[keycode];
-    while (keyentry!=NULL) {
-	if ((keyentry->keysym!=NoSymbol && keyentry->keysym!=keysym) ||
-	    (!(keyentry->flags & present_flags))) {
-		keyentry=keyentry->next;
-		continue;
-	    }
-	first_match = keyentry;
-	/* Try to find a perfect match */
-	if ((keyentry->flags & KEYF_MODIFIERS) != present_flags) {
-		keyentry=keyentry->next;
-		continue;
-	}
-	else break;
-    }
-    if (first_match!=NULL) {
-	char buf[MAX_BUF];
-
-	if (first_match->flags & KEYF_EDIT) {
-	  	    strcpy(cpl.input_text, first_match->command);
-	    cpl.input_state = Command_Mode;
-	    sprintf(buf,"%s", cpl.input_text);
-   	    gtk_entry_set_text(GTK_ENTRY(entrytext),buf);
-	    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+    int i=scroll_history_position;
+    if (direction) {
+	i--;
+	if (i<0) i+=MAX_HISTORY;
+	if (i == cur_history_position) return;
+    } else {
+	i++;
+	if (i>=MAX_HISTORY) i = 0;
+	if (i == cur_history_position) {
+	    /* User has forwarded to what should be current entry - reset it now. */
+	    gtk_entry_set_text(GTK_ENTRY(entrytext), "");
+	    gtk_entry_set_position(GTK_ENTRY(entrytext), 0);
+	    scroll_history_position=cur_history_position;
 	    return;
 	}
-
-	if (first_match->direction>=0) {
-	    if (cpl.fire_on) {
-		sprintf(buf,"fire %s", first_match->command);
-		fire_dir(first_match->direction);
-	    }
-	    else if (cpl.run_on) {
-		run_dir(first_match->direction);
-		sprintf(buf,"run %s", first_match->command);
-	    }
-	    else {
-		strcpy(buf,first_match->command);
-		extended_command(first_match->command);
-	    }
-	    if (cpl.echo_bindings) draw_info(buf,NDI_BLACK);
-	}
-        else {
-	    if (cpl.echo_bindings) draw_info(first_match->command,NDI_BLACK);
-	    extended_command(first_match->command);
-	}
-	return;
     }
-    if (key>='0' && key<='9') {
 
-	cpl.count = cpl.count*10 + (key-'0');
+    if (history[i][0] == 0) return;
 
-	if (cpl.count>100000) cpl.count%=100000;
-	gtk_spin_button_set_value (GTK_SPIN_BUTTON(counttext), (float) cpl.count );
-
-
-	return;
-    }
-    sprintf(buf, "Key unused (%s%s%s)",
-          (cpl.fire_on? "Fire&": ""),
-          (cpl.run_on ? "Run&" : ""),
-          XKeysymToString(keysym));
-    draw_info(buf,NDI_BLACK);
-    cpl.count=0;
+    scroll_history_position=i;
+/*    fprintf(stderr,"resetting postion to %d, data = %s\n", i, history[i]);*/
+    gtk_entry_set_text(GTK_ENTRY(entrytext), history[i]);
+    gtk_entry_set_position(GTK_ENTRY(entrytext), strlen(history[i]));
+    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+    cpl.input_state = Command_Mode;
 }
 
-
-/* This returns a character string desribing the key. */
-/* If save_mode is true, it means that the format used for saving
- * the information is used, instead of the usual format for displaying
- * the information in a friendly manner.
- */
-
-
-static char * get_key_info(Key_Entry *key, KeyCode kc, int save_mode)
+void gtk_complete_command()
 {
-    static char buf[MAX_BUF];
-    char buff[MAX_BUF];
-    int bi=0;
-
-    if ((key->flags & KEYF_MODIFIERS) == KEYF_MODIFIERS)
-	buff[bi++] ='A';
-    else {
-	if (key->flags & KEYF_NORMAL)
-	  buff[bi++] ='N';
-	if (key->flags & KEYF_FIRE)
-	  buff[bi++] ='F';
-	if (key->flags & KEYF_RUN)
-	  buff[bi++] ='R';
-    }
-    if (key->flags & KEYF_EDIT)
-	buff[bi++] ='E';
-    if (key->flags & KEYF_STANDARD)
-	buff[bi++] ='S';
-
-    buff[bi]='\0';
-    if (save_mode) {
-	if(key->keysym == NoSymbol) {
-	  sprintf(buf, "(null) %i %s %s",
-		kc,buff, key->command);
-	}
-	else {
-	  sprintf(buf, "%s %i %s %s",
-		    XKeysymToString(key->keysym), kc,
-		    buff, key->command);
-	}
-    }
-    else {
-	if(key->keysym == NoSymbol) {
-	  sprintf(buf, "key (null) (%i) %s %s",
-		kc,buff, key->command);
-	}
-	else {
-	  sprintf(buf, "key %s (%i) %s %s",
-		    XKeysymToString(key->keysym), kc,
-		    buff, key->command);
-	}
-    }
-    return buf;
-}
-
-/* Shows all the keybindings.  allbindings me we also show the standard
- * (default) keybindings.
- */
-
-static void show_keys(int allbindings)
-{
-  int i, count=1;
-  Key_Entry *key;
-  char buf[MAX_BUF];
-
-  sprintf(buf, "Commandkey %s (%d)", XKeysymToString(commandkeysym),
-	commandkey);
-  draw_info(buf,NDI_BLACK);
-  sprintf(buf, "Firekeys 1: %s (%d), 2: %s (%d)",
-	  XKeysymToString(firekeysym[0]), firekey[0],
-	  XKeysymToString(firekeysym[1]), firekey[1]);
-  draw_info(buf,NDI_BLACK);
-  sprintf(buf, "Runkeys 1: %s (%d), 2: %s (%d)",
-	  XKeysymToString(runkeysym[0]), runkey[0],
-	  XKeysymToString(runkeysym[1]), runkey[1]);
-  draw_info(buf,NDI_BLACK);
-
-
-  /* Perhaps we should start at 8, so0 that we only show 'active'
-   * keybindings?
-   */
-  for (i=0; i<=MAX_KEYCODE; i++) {
-    for (key=keys[i]; key!=NULL; key =key->next) {
-	if (key->flags & KEYF_STANDARD && !allbindings) continue;
-
-	sprintf(buf,"%3d %s",count,  get_key_info(key,i,0));
-	draw_info(buf,NDI_BLACK);
-	count++;
-    }
-  }
-}
-
-
-
-
-void bind_key(char *params)
-{
-  char buf[MAX_BUF];
-
-  if (!params) {
-    draw_info("Usage: bind [-nfre] {<commandline>/commandkey/firekey{1/2}/runkey{1/2}}",NDI_BLACK);
-    return;
-  }
-
-  if (!strcmp(params, "commandkey")) {
-    bind_keycode = &commandkey;
-    bind_keysym = &commandkeysym;
-    draw_info("Push key to bind new commandkey.",NDI_BLACK);
-    cpl.input_state = Configure_Keys;
-    return;
-  }
-  if (!strcmp(params, "firekey1")) {
-    bind_keycode = &firekey[0];
-    bind_keysym = & firekeysym[0];
-    draw_info("Push key to bind new firekey 1.",NDI_BLACK);
-    cpl.input_state = Configure_Keys;
-    return;
-  }
-  if (!strcmp(params, "firekey2")) {
-    bind_keycode = &firekey[1];
-    bind_keysym = & firekeysym[1];
-    draw_info("Push key to bind new firekey 2.",NDI_BLACK);
-    cpl.input_state = Configure_Keys;
-    return;
-  }
-  if (!strcmp(params, "runkey1")) {
-    bind_keycode = &runkey[0];
-    bind_keysym = &runkeysym[0];
-    draw_info("Push key to bind new runkey 1.",NDI_BLACK);
-    cpl.input_state = Configure_Keys;
-    return;
-  }
-  if (!strcmp(params, "runkey2")) {
-    bind_keycode = &runkey[1];
-    bind_keysym = &runkeysym[1];
-    draw_info("Push key to bind new runkey 2.",NDI_BLACK);
-    cpl.input_state = Configure_Keys;
-    return;
-  }
-
-  /* Skip over any spaces we may have */
-  while (*params==' ') params++;
-
-  if (params[0] != '-')
-    bind_flags =KEYF_MODIFIERS;
-  else {
-    bind_flags =0;
-    bind_keysym=NULL;
-    bind_keycode=NULL;
-    for (params++; *params != ' '; params++)
-      switch (*params) {
-      case 'n':
-	bind_flags |= KEYF_NORMAL;
-	break;
-      case 'f':
-	bind_flags |= KEYF_FIRE;
-	break;
-      case 'r':
-	bind_flags |= KEYF_RUN;
-	break;
-      case 'e':
-	bind_flags |= KEYF_EDIT;
-	break;
-      case '\0':
-	draw_info("Try unbind to remove bindings..",NDI_BLACK);
-	return;
-      default:
-	sprintf(buf, "Unknown flag to bind: '%c'", *params);
-	draw_info(buf,NDI_BLACK);
-	return;
-      }
-    params++;
-  }
-
-  if (!(bind_flags & KEYF_MODIFIERS))
-    bind_flags |= KEYF_MODIFIERS;
-
-  if (!params[0]) {
-    draw_info("Try unbind to remove bindings..",NDI_BLACK);
-    return;
-  }
-
-  sprintf(buf, "Push key to bind '%s'.", params);
-  draw_info(buf,NDI_BLACK);
-  strcpy(bind_buf, params);
-  bind_keycode=NULL;
-  cpl.input_state = Configure_Keys;
-  return;
-}
-
-
-/* This is a recursive function that saves all the entries for a particular
- * entry.  We save the first element first, and then go through
- * and save the rest of the elements.  In this way, the ordering of the key
- * entries in the
- * file remains the same.
- */
-
-static void save_individual_key(FILE *fp, Key_Entry *key, KeyCode kc)
-{
-    if (key==NULL) return;
-    fprintf(fp, "%s\n", get_key_info(key, kc, 1));
-    save_individual_key(fp, key->next, kc);
-}
-
-static void save_keys()
-{
-    char buf[MAX_BUF], buf2[MAX_BUF];
-    int i;
-    FILE *fp;
-
-    sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
-    if ((fp=fopen(buf,"w"))==NULL) {
-	sprintf(buf2,"Could not open %s, key bindings not saved\n", buf);
-	draw_info(buf2,NDI_BLACK);
-	return;
-    }
-
-    for (i=0; i<=MAX_KEYCODE; i++) {
-	save_individual_key(fp, keys[i], i);
-    }
-    fclose(fp);
-    /* Should probably check return value on all writes to be sure, but... */
-    draw_info("key bindings successfully saved.",NDI_BLACK);
-}
-
-static void configure_keys(KeyCode k, KeySym keysym)
-{
-  char buf[MAX_BUF];
-
-  if (bind_keycode==NULL) {
-    if(k == firekey[0] || k == firekey[1]) {
-	cpl.fire_on =1;
-	draw_message_window(0);
-	return;
-    }
-    if(k == runkey[0] || k == runkey[1]) {
-	cpl.run_on =1;
-	draw_message_window(0);
-	return;
-    }
-  }
-  cpl.input_state = Playing;
-  /* Try to be clever - take into account shift/control keys being
-   * held down when binding keys - in this way, player does not have to use
-   * -f and -r flags to bind for many simple binds.
-   */
+    gchar *entry_text, *newcommand;
 	
-  if ((cpl.fire_on || cpl.run_on) && (bind_flags & KEYF_MODIFIERS)==KEYF_MODIFIERS) {
-	bind_flags &= ~KEYF_MODIFIERS;
-	if (cpl.fire_on) bind_flags |= KEYF_FIRE;
-	if (cpl.run_on) bind_flags |= KEYF_RUN;
-  }
-
-  if (bind_keycode!=NULL) {
-	*bind_keycode = k;
-	*bind_keysym=keysym;
-  }
-  else {
-	insert_key(keysym, k, bind_flags, bind_buf);
-  }
-
-  sprintf(buf, "Binded to key '%s' (%i)", XKeysymToString(keysym), (int)k);
-  draw_info(buf,NDI_BLACK);
-  cpl.fire_on=0;
-  cpl.run_on=0;
-  draw_message_window(0);
-
-  /* Do this each time a new key is bound.  This way, we are never actually
-   * storing any information that needs to be saved when the connection
-   * dies or the player quits.
-   */
-  save_keys();
-  return;
+    entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
+    newcommand = complete_command(entry_text);
+    /* value differ, so update window */ 
+    if (strcmp(entry_text, newcommand)) {
+	gtk_entry_set_text(GTK_ENTRY(entrytext), newcommand);
+	gtk_entry_set_position(GTK_ENTRY(entrytext), strlen(newcommand));
+	/* regrab focus, since we've just updated this */
+	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+    }
 }
-
-
-void unbind_key(char *params)
-{
-    int count=0, keyentry, onkey,global=0;
-    Key_Entry *key, *tmp;
-    char buf[MAX_BUF];
-
-    if (params==NULL || params[0]=='\0') {
-	show_keys(0);
-	return;
-    }
-    if (!strcmp(params,"-a")) {
-	show_keys(1);
-	return;
-    }
-    if (!strncmp(params,"-g",2)) {
-	global=1;
-	if (!(params=strchr(params,' ')))  {
-	    draw_info("Usage: unbind <entry_number> or",NDI_BLACK);
-	    draw_info("Usage: unbind [-a] to show existing bindings (-a shows all bindings)",NDI_BLACK);
-	    return;
-	}
-    }
-    if ((keyentry=atoi(params))==0) {
-	draw_info("Usage: unbind <entry_number> or",NDI_BLACK);
-	draw_info("Usage: unbind [-a] to show existing bindings (-a shows all bindings)",NDI_BLACK);
-	return;
-    }
-
-    for (onkey=0; onkey<=MAX_KEYCODE; onkey++) {
-	for (key=keys[onkey]; key; key =key->next) {
-	    if (global || !(key->flags&KEYF_STANDARD)) count++;
-	    /* We found the key we want to unbind */
-	    if (keyentry==count) {
-
-		/* If it is the first entry, it is easy */
-		if (key == keys[onkey]) {
-		    keys[onkey] = key->next;
-		    goto unbinded;
-		}
-		/* Otherwise, we need to figure out where in the link list
-		 * the entry is.
-		 */
-		for (tmp=keys[onkey]; tmp->next!=NULL; tmp=tmp->next) {
-		    if (tmp->next == key) {
-			tmp->next =key->next;
-			goto unbinded;
-		    }
-		}
-		fprintf(stderr,"unbind_key - found number entry, but could not find actual key\n");
-	    }
-	}
-    }
-    /* Makes things look better to draw the blank line */
-    draw_info("",NDI_BLACK);
-    draw_info("No such entry. Try 'unbind' with no options to find entry.",NDI_BLACK);
-    return;
-
-    /*
-     * Found. Now remove it.
-     */
-
-unbinded:
-
-    sprintf(buf,"Removed binding: %3d %s", count, get_key_info(key,onkey,0));
-
-
-    draw_info(buf,NDI_BLACK);
-    if (key->command) free(key->command);
-    free(key);
-    save_keys();
-}
-
-
-
-
-
-
-/*----------------------------- end key functions ------------------------- */
 
 
 void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
@@ -1826,13 +830,39 @@ void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
   char *text;
   updatelock=0;
+
+  if (nopopups) {
+    if  (cpl.input_state == Reply_One) {
+	text=XKeysymToString(event->keyval);
+	send_reply(text);
+	cpl.input_state = Playing;
+	return;
+    }
+    else if (cpl.input_state == Reply_Many) {
+	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+	return;
+    }
+  }
+
   /* Better check for really weirdo keys, X doesnt like keyval 0*/
   if (event->keyval>0) {
     if (GTK_WIDGET_HAS_FOCUS (entrytext) /*|| GTK_WIDGET_HAS_FOCUS(counttext)*/) {
+	if (event->keyval == completekeysym) gtk_complete_command();
+	if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
+	    gtk_command_history(event->keyval==nextkeysym?0:1);
     }  else {
       
       switch(cpl.input_state) {
       case Playing:
+	/* Specials - do command history - many times, the player
+	 * will want to go the previous command when nothing is entered
+	 * in the command window.
+	 */
+	if (event->keyval == prevkeysym || event->keyval == nextkeysym) {
+	    gtk_command_history(event->keyval==nextkeysym?0:1);
+	    return;
+	}
+
 	if (cpl.run_on) {
 	  if (!(event->state & GDK_CONTROL_MASK)) {
 /*	    printf ("Run is on while ctrl is not\n");*/
@@ -1850,9 +880,8 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	  }
 	}
 	
-	text=XKeysymToString(event->keyval);
 	
-	parse_key(text[0], XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
+	parse_key(event->string[0], XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
 	gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
 	break;
       case Configure_Keys:
@@ -1860,6 +889,11 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
 	break;
       case Command_Mode:
+	if (event->keyval == completekeysym) gtk_complete_command();
+	if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
+	    gtk_command_history(event->keyval==nextkeysym?0:1);
+	else gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+
       case Metaserver_Select:
 	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
       break;
@@ -2002,7 +1036,7 @@ static void draw_list (itemlist *l)
       anim_inv_list=NULL;
     }
     /* Freeze the CLists to avoid flickering (and to speed up the processing) */
-    for (list=0; list < 8; list++) {
+    for (list=0; list < TYPE_LISTS; list++) {
 #ifdef GTK_HAVE_FEATURES_1_1_12
       l->pos[list]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment->value;
 #else
@@ -2216,8 +1250,19 @@ static void draw_list (itemlist *l)
 	  tmpanimview->list=l->gtk_list[7];
 	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
 	}
-	
-
+      }
+      if (!tmp->locked) {
+	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[8]), buffers);
+	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[8]), tmprow, 0,
+			      pixmaps[facecachemap[tmp->face]].gdkpixmap,
+			      pixmaps[facecachemap[tmp->face]].gdkmask);
+	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[8]), tmprow, tmp);
+	if (tmp->animation_id>0 && tmp->anim_speed) {
+	  tmpanimview = newanimview();
+	  tmpanimview->row=tmprow;
+	  tmpanimview->list=l->gtk_list[8];
+	  tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+	}
       }
       
       
@@ -2258,7 +1303,7 @@ static void draw_list (itemlist *l)
 
   if (l->multi_list) {
     
-    for (list=0; list < 8; list++) {
+    for (list=0; list < TYPE_LISTS; list++) {
 #ifdef GTK_HAVE_FEATURES_1_1_12
       gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment), l->pos[list]);
 #else
@@ -2293,17 +1338,37 @@ static void draw_list (itemlist *l)
 static void enter_callback(GtkWidget *widget, GtkWidget *entry)
 {
     gchar *entry_text;
-	
+
+    /* Next reply will reset this as necessary */
+    if (nopopups)
+	gtk_entry_set_visibility(GTK_ENTRY(entrytext), TRUE);
 
     entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
 	 /*         printf("Entry contents: %s\n", entry_text);*/
+
     if (cpl.input_state==Metaserver_Select) {
 	cpl.input_state = Playing;
 	strcpy(cpl.input_text, entry_text);
+    } else if (cpl.input_state == Reply_One ||
+	       cpl.input_state == Reply_Many) {
+	cpl.input_state = Playing;
+	strcpy(cpl.input_text, entry_text);
+	if (cpl.input_state == Reply_One)
+	    cpl.input_text[1] = 0;
+
+        send_reply(cpl.input_text);
 
     } else {
 	cpl.input_state = Playing;
-	extended_command(entry_text);
+	/* No reason to do anything for a null string */
+	if (entry_text[0] != 0) {
+	    strncpy(history[cur_history_position], entry_text, MAX_COMMAND_LEN);
+	    history[cur_history_position][MAX_COMMAND_LEN] = 0;
+	    cur_history_position++;
+	    cur_history_position %= MAX_HISTORY;
+	    scroll_history_position = cur_history_position;
+	    extended_command(entry_text);
+	}
     }
     gtk_entry_set_text(GTK_ENTRY(entrytext),"");
     gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info_text));
@@ -2317,7 +1382,7 @@ info_text_button_press_event (GtkWidget *widget, GdkEventButton *event,
   gboolean shifted;
   gfloat v_value;
 
-  vadj = GTK_TEXT (gtkwin_info_text)->vadj;
+  vadj = GTK_TEXT (widget)->vadj;
   v_value = vadj->value;
 
   shifted = (event->state & GDK_SHIFT_MASK) != 0;
@@ -2350,54 +1415,93 @@ info_text_button_press_event (GtkWidget *widget, GdkEventButton *event,
 }
 
 static int get_info_display(GtkWidget *frame) {
-  GtkWidget *box1;
-  GtkWidget *box2;
-  GtkWidget *tablet;
-  GtkWidget *vscrollbar;
+    GtkWidget *box1;
+    GtkWidget *box2;
+    GtkWidget *tablet;
+    GtkWidget *vscrollbar;
+    FILE *infile;
+    GtkWidget *vpane;
 
+    box1 = gtk_vbox_new (FALSE, 0);
+    if (splitinfo) {
+	vpane = gtk_vpaned_new();
+	gtk_container_add (GTK_CONTAINER (frame), vpane);
+	gtk_widget_show(vpane);
+	gtk_paned_add2(GTK_PANED(vpane), box1);
+    } else {
+	gtk_container_add (GTK_CONTAINER (frame), box1);
+    }
+    gtk_widget_show (box1);
+  
+    box2 = gtk_vbox_new (FALSE, 3);
+    gtk_container_border_width (GTK_CONTAINER (box2), 3);
+    gtk_box_pack_start (GTK_BOX (box1), box2, TRUE, TRUE, 0);
+    gtk_widget_show (box2);
+  
+  
+    tablet = gtk_table_new (2, 2, FALSE);
+    gtk_table_set_row_spacing (GTK_TABLE (tablet), 0, 2);
+    gtk_table_set_col_spacing (GTK_TABLE (tablet), 0, 2);
+    gtk_box_pack_start (GTK_BOX (box2), tablet, TRUE, TRUE, 0);
+    gtk_widget_show (tablet);
+  
+    text_hadj = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
+    text_vadj = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
 
-  FILE *infile;
-
-  box1 = gtk_vbox_new (FALSE, 0);
-  gtk_container_add (GTK_CONTAINER (frame), box1);
-  gtk_widget_show (box1);
-  
-  
-  box2 = gtk_vbox_new (FALSE, 3);
-  gtk_container_border_width (GTK_CONTAINER (box2), 3);
-  gtk_box_pack_start (GTK_BOX (box1), box2, TRUE, TRUE, 0);
-  gtk_widget_show (box2);
-  
-  
-  tablet = gtk_table_new (2, 2, FALSE);
-  gtk_table_set_row_spacing (GTK_TABLE (tablet), 0, 2);
-  gtk_table_set_col_spacing (GTK_TABLE (tablet), 0, 2);
-  gtk_box_pack_start (GTK_BOX (box2), tablet, TRUE, TRUE, 0);
-  gtk_widget_show (tablet);
-  
-  text_hadj = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
-  text_vadj = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
-
-  gtkwin_info_text = gtk_text_new (GTK_ADJUSTMENT(text_hadj),GTK_ADJUSTMENT(text_vadj));
-  gtk_text_set_editable (GTK_TEXT (gtkwin_info_text), FALSE);
-  gtk_table_attach (GTK_TABLE (tablet), gtkwin_info_text, 0, 1, 0, 1,
+    gtkwin_info_text = gtk_text_new (GTK_ADJUSTMENT(text_hadj),GTK_ADJUSTMENT(text_vadj));
+    gtk_text_set_editable (GTK_TEXT (gtkwin_info_text), FALSE);
+    gtk_table_attach (GTK_TABLE (tablet), gtkwin_info_text, 0, 1, 0, 1,
 		    GTK_EXPAND | GTK_SHRINK | GTK_FILL,
 		    GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
-  gtk_widget_show (gtkwin_info_text);
-  
-  
-  vscrollbar = gtk_vscrollbar_new (GTK_TEXT (gtkwin_info_text)->vadj);
-  gtk_table_attach (GTK_TABLE (tablet), vscrollbar, 1, 2, 0, 1,
-		    GTK_FILL, GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
-  gtk_widget_show (vscrollbar);
+    gtk_widget_show (gtkwin_info_text);
 
-  gtk_signal_connect (GTK_OBJECT (gtkwin_info_text), "button_press_event",
+  
+    vscrollbar = gtk_vscrollbar_new (GTK_TEXT (gtkwin_info_text)->vadj);
+    gtk_table_attach (GTK_TABLE (tablet), vscrollbar, 1, 2, 0, 1,
+		     GTK_FILL, GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
+    gtk_widget_show (vscrollbar);
+
+    gtk_signal_connect (GTK_OBJECT (gtkwin_info_text), "button_press_event",
                       GTK_SIGNAL_FUNC (info_text_button_press_event),
                       vscrollbar);
 
-  gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
+    gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
   
-  gtk_widget_realize (gtkwin_info_text);
+    gtk_widget_realize (gtkwin_info_text);
+
+    if (splitinfo) {
+
+	box1 = gtk_vbox_new (FALSE, 0);
+	gtk_widget_show (box1);
+	gtk_paned_add1(GTK_PANED(vpane), box1);
+
+	tablet = gtk_table_new (2, 2, FALSE);
+	gtk_table_set_row_spacing (GTK_TABLE (tablet), 0, 2);
+	gtk_table_set_col_spacing (GTK_TABLE (tablet), 0, 2);
+	gtk_box_pack_start (GTK_BOX (box1), tablet, TRUE, TRUE, 0);
+	gtk_widget_show (tablet);
+
+	text_hadj2 = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
+	text_vadj2 = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
+
+	gtkwin_info_text2 = gtk_text_new (GTK_ADJUSTMENT(text_hadj2),GTK_ADJUSTMENT(text_vadj2));
+
+	gtk_text_set_editable (GTK_TEXT (gtkwin_info_text2), FALSE);
+	gtk_table_attach (GTK_TABLE (tablet), gtkwin_info_text2, 0, 1, 0, 1,
+		    GTK_EXPAND | GTK_SHRINK | GTK_FILL,
+		    GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
+	gtk_widget_show (gtkwin_info_text2);
+  
+	vscrollbar = gtk_vscrollbar_new (GTK_TEXT (gtkwin_info_text2)->vadj);
+	gtk_table_attach (GTK_TABLE (tablet), vscrollbar, 1, 2, 0, 1,
+		     GTK_FILL, GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
+	gtk_widget_show (vscrollbar);
+	gtk_signal_connect (GTK_OBJECT (gtkwin_info_text2), "button_press_event",
+                      GTK_SIGNAL_FUNC (info_text_button_press_event),
+                      vscrollbar);
+
+	gtk_widget_realize (gtkwin_info_text2);
+    }
   
   infile = fopen("Welcome", "r");
   
@@ -2467,379 +1571,492 @@ static void dialog_callback(GtkWidget *dialog)
  * wanted.
  */
 
-void draw_prompt(const char *str)
+void
+draw_prompt (const char *str)
 {
-  GtkWidget *dbox;
-  GtkWidget *hbox;
-  GtkWidget *dialoglabel;
-  GtkWidget *yesbutton, *nobutton;
-  GtkWidget *strbutton, *dexbutton, *conbutton, *intbutton, *wisbutton, *powbutton, *chabutton;
-  
-  gint found=FALSE;
+    GtkWidget *dbox;
+    GtkWidget *hbox;
+    GtkWidget *dialoglabel;
+    GtkWidget *yesbutton, *nobutton;
+    GtkWidget *strbutton, *dexbutton, *conbutton, *intbutton, *wisbutton,
+	*powbutton, *chabutton;
 
-  dialog_window = gtk_window_new (GTK_WINDOW_DIALOG);
+    gint    found = FALSE;
 
-  gtk_window_set_policy (GTK_WINDOW(dialog_window), TRUE, TRUE, FALSE);
-  gtk_window_set_title (GTK_WINDOW (dialog_window), "Dialog");
-  gtk_window_set_transient_for (GTK_WINDOW (dialog_window),
-                                GTK_WINDOW (gtkwin_root));
+    if (nopopups)
+      {
+	draw_info(str, NDI_BLACK);
 
-  dbox = gtk_vbox_new (FALSE, 6);
-  gtk_container_add (GTK_CONTAINER (dialog_window), dbox);
-
-  /* Ok, here we start generating the contents */
- 
-  /*  printf ("Last info draw: %s\n", last_str);*/
-  while (!found) {
-    if (!strcmp(str, ":")) {
-      if (!strcmp(last_str, "What is your name?")) {
-
-	dialoglabel = gtk_label_new ("What is your name?");
-	gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
-	gtk_widget_show (dialoglabel);
-
-	hbox = gtk_hbox_new(FALSE, 6);
-	dialogtext = gtk_entry_new ();
-	gtk_signal_connect(GTK_OBJECT(dialogtext), "activate",
-			   GTK_SIGNAL_FUNC(dialog_callback),
-			   dialog_window);
-	gtk_box_pack_start (GTK_BOX (hbox),dialogtext, TRUE, TRUE, 6);
-      	gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);
-	
-	gtk_widget_show (hbox);
-	gtk_widget_show (dialogtext);
-	gtk_widget_grab_focus (dialogtext);
-	found=TRUE;
-	continue;
       }
+    else
+      {
+	  dialog_window = gtk_window_new (GTK_WINDOW_DIALOG);
 
-      if (!strcmp(last_str, "What is your password?")) {
+	  gtk_window_set_policy (GTK_WINDOW (dialog_window), TRUE, TRUE,
+				 FALSE);
+	  gtk_window_set_title (GTK_WINDOW (dialog_window), "Dialog");
+	  gtk_window_set_transient_for (GTK_WINDOW (dialog_window),
+					GTK_WINDOW (gtkwin_root));
 
-	dialoglabel = gtk_label_new ("What is your password?");
-	gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
-	gtk_widget_show (dialoglabel);
+	  dbox = gtk_vbox_new (FALSE, 6);
+	  gtk_container_add (GTK_CONTAINER (dialog_window), dbox);
 
-	hbox = gtk_hbox_new(FALSE, 6);
-	dialogtext = gtk_entry_new ();
-	gtk_entry_set_visibility(GTK_ENTRY(dialogtext), FALSE);
-	gtk_signal_connect(GTK_OBJECT(dialogtext), "activate",
-			   GTK_SIGNAL_FUNC(dialog_callback),
-			   dialog_window);
-	gtk_box_pack_start (GTK_BOX (hbox),dialogtext, TRUE, TRUE, 6);
-      	gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);
-	
-	gtk_widget_show (hbox);
-      
-	gtk_widget_show (dialogtext);
-	gtk_widget_grab_focus (dialogtext);
-	found=TRUE;
-	continue;;
+	  /* Ok, here we start generating the contents */
+
+	  /*  printf ("Last info draw: %s\n", last_str); */
+	  while (!found)
+	    {
+		if (!strcmp (str, ":"))
+		  {
+		      if (!strcmp (last_str, "What is your name?"))
+			{
+
+			    dialoglabel =
+				gtk_label_new ("What is your name?");
+			    gtk_box_pack_start (GTK_BOX (dbox), dialoglabel,
+						FALSE, TRUE, 6);
+			    gtk_widget_show (dialoglabel);
+
+			    hbox = gtk_hbox_new (FALSE, 6);
+			    dialogtext = gtk_entry_new ();
+			    gtk_signal_connect (GTK_OBJECT (dialogtext),
+						"activate",
+						GTK_SIGNAL_FUNC
+						(dialog_callback),
+						dialog_window);
+			    gtk_box_pack_start (GTK_BOX (hbox), dialogtext,
+						TRUE, TRUE, 6);
+			    gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE,
+						TRUE, 6);
+
+			    gtk_widget_show (hbox);
+			    gtk_widget_show (dialogtext);
+			    gtk_widget_grab_focus (dialogtext);
+			    found = TRUE;
+			    continue;
+			}
+
+		      if (!strcmp (last_str, "What is your password?"))
+			{
+
+			    dialoglabel =
+				gtk_label_new ("What is your password?");
+			    gtk_box_pack_start (GTK_BOX (dbox), dialoglabel,
+						FALSE, TRUE, 6);
+			    gtk_widget_show (dialoglabel);
+
+			    hbox = gtk_hbox_new (FALSE, 6);
+			    dialogtext = gtk_entry_new ();
+			    gtk_entry_set_visibility (GTK_ENTRY (dialogtext),
+						      FALSE);
+			    gtk_signal_connect (GTK_OBJECT (dialogtext),
+						"activate",
+						GTK_SIGNAL_FUNC
+						(dialog_callback),
+						dialog_window);
+			    gtk_box_pack_start (GTK_BOX (hbox), dialogtext,
+						TRUE, TRUE, 6);
+			    gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE,
+						TRUE, 6);
+
+			    gtk_widget_show (hbox);
+
+			    gtk_widget_show (dialogtext);
+			    gtk_widget_grab_focus (dialogtext);
+			    found = TRUE;
+			    continue;;
+			}
+		      if (!strcmp
+			  (last_str, "Please type your password again."))
+			{
+
+			    dialoglabel =
+				gtk_label_new
+				("Please type your password again.");
+			    gtk_box_pack_start (GTK_BOX (dbox), dialoglabel,
+						FALSE, TRUE, 6);
+			    gtk_widget_show (dialoglabel);
+
+			    hbox = gtk_hbox_new (FALSE, 6);
+			    dialogtext = gtk_entry_new ();
+			    gtk_entry_set_visibility (GTK_ENTRY (dialogtext),
+						      FALSE);
+			    gtk_signal_connect (GTK_OBJECT (dialogtext),
+						"activate",
+						GTK_SIGNAL_FUNC
+						(dialog_callback),
+						dialog_window);
+			    gtk_box_pack_start (GTK_BOX (hbox), dialogtext,
+						TRUE, TRUE, 6);
+			    gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE,
+						TRUE, 6);
+
+			    gtk_widget_show (hbox);
+			    gtk_widget_show (dialogtext);
+			    gtk_widget_grab_focus (dialogtext);
+			    found = TRUE;
+			    continue;
+			}
+		  }
+		/* Ok, tricky ones. */
+		if (!strcmp (last_str, "[1-7] [1-7] to swap stats.")
+		    || !strncmp (last_str, "Str d", 5)
+		    || !strncmp (last_str, "Dex d", 5)
+		    || !strncmp (last_str, "Con d", 5)
+		    || !strncmp (last_str, "Int d", 5)
+		    || !strncmp (last_str, "Wis d", 5)
+		    || !strncmp (last_str, "Pow d", 5)
+		    || !strncmp (last_str, "Cha d", 5))
+		  {
+
+		      dialoglabel =
+			  gtk_label_new ("Roll again or exchange ability.");
+		      gtk_box_pack_start (GTK_BOX (dbox), dialoglabel, FALSE,
+					  TRUE, 6);
+		      gtk_widget_show (dialoglabel);
+
+		      hbox = gtk_hbox_new (TRUE, 2);
+		      strbutton = gtk_button_new_with_label ("Str");
+		      gtk_box_pack_start (GTK_BOX (hbox), strbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (strbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("1"));
+
+
+		      dexbutton = gtk_button_new_with_label ("Dex");
+		      gtk_box_pack_start (GTK_BOX (hbox), dexbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (dexbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("2"));
+
+		      conbutton = gtk_button_new_with_label ("Con");
+		      gtk_box_pack_start (GTK_BOX (hbox), conbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (conbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("3"));
+
+		      intbutton = gtk_button_new_with_label ("Int");
+		      gtk_box_pack_start (GTK_BOX (hbox), intbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (intbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("4"));
+
+		      wisbutton = gtk_button_new_with_label ("Wis");
+		      gtk_box_pack_start (GTK_BOX (hbox), wisbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (wisbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("5"));
+
+		      powbutton = gtk_button_new_with_label ("Pow");
+		      gtk_box_pack_start (GTK_BOX (hbox), powbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (powbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("6"));
+
+		      chabutton = gtk_button_new_with_label ("Cha");
+		      gtk_box_pack_start (GTK_BOX (hbox), chabutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (chabutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("7"));
+
+		      gtk_widget_show (strbutton);
+		      gtk_widget_show (dexbutton);
+		      gtk_widget_show (conbutton);
+		      gtk_widget_show (intbutton);
+		      gtk_widget_show (wisbutton);
+		      gtk_widget_show (powbutton);
+		      gtk_widget_show (chabutton);
+
+
+
+		      gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE, TRUE,
+					  6);
+		      gtk_widget_show (hbox);
+
+		      hbox = gtk_hbox_new (FALSE, 6);
+
+		      yesbutton = gtk_button_new_with_label ("Roll again");
+		      gtk_box_pack_start (GTK_BOX (hbox), yesbutton, TRUE,
+					  TRUE, 6);
+		      gtk_signal_connect_object (GTK_OBJECT (yesbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("y"));
+
+		      nobutton = gtk_button_new_with_label ("Keep this");
+		      gtk_box_pack_start (GTK_BOX (hbox), nobutton, TRUE,
+					  TRUE, 6);
+		      gtk_signal_connect_object (GTK_OBJECT (nobutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("n"));
+
+		      gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE, TRUE,
+					  6);
+
+		      gtk_widget_show (yesbutton);
+		      gtk_widget_show (nobutton);
+		      gtk_widget_show (hbox);
+
+		      found = TRUE;
+		      continue;
+		  }
+		if (!strncmp (last_str, "Str -", 5) ||
+		    !strncmp (last_str, "Dex -", 5)
+		    || !strncmp (last_str, "Con -", 5)
+		    || !strncmp (last_str, "Int -", 5)
+		    || !strncmp (last_str, "Wis -", 5)
+		    || !strncmp (last_str, "Pow -", 5)
+		    || !strncmp (last_str, "Cha -", 5))
+		  {
+
+
+		      dialoglabel =
+			  gtk_label_new ("Exchange with which ability?");
+		      gtk_box_pack_start (GTK_BOX (dbox), dialoglabel, FALSE,
+					  TRUE, 6);
+		      gtk_widget_show (dialoglabel);
+
+		      hbox = gtk_hbox_new (TRUE, 2);
+		      strbutton = gtk_button_new_with_label ("Str");
+		      gtk_box_pack_start (GTK_BOX (hbox), strbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (strbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("1"));
+
+
+		      dexbutton = gtk_button_new_with_label ("Dex");
+		      gtk_box_pack_start (GTK_BOX (hbox), dexbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (dexbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("2"));
+
+		      conbutton = gtk_button_new_with_label ("Con");
+		      gtk_box_pack_start (GTK_BOX (hbox), conbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (conbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("3"));
+
+		      intbutton = gtk_button_new_with_label ("Int");
+		      gtk_box_pack_start (GTK_BOX (hbox), intbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (intbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("4"));
+
+		      wisbutton = gtk_button_new_with_label ("Wis");
+		      gtk_box_pack_start (GTK_BOX (hbox), wisbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (wisbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("5"));
+
+		      powbutton = gtk_button_new_with_label ("Pow");
+		      gtk_box_pack_start (GTK_BOX (hbox), powbutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (powbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("6"));
+
+		      chabutton = gtk_button_new_with_label ("Cha");
+		      gtk_box_pack_start (GTK_BOX (hbox), chabutton, TRUE,
+					  TRUE, 1);
+		      gtk_signal_connect_object (GTK_OBJECT (chabutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("7"));
+
+		      gtk_widget_show (strbutton);
+		      gtk_widget_show (dexbutton);
+		      gtk_widget_show (conbutton);
+		      gtk_widget_show (intbutton);
+		      gtk_widget_show (wisbutton);
+		      gtk_widget_show (powbutton);
+		      gtk_widget_show (chabutton);
+
+
+		      gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE, TRUE,
+					  6);
+		      gtk_widget_show (hbox);
+
+		      found = TRUE;
+		      continue;
+		  }
+
+		if (!strncmp (last_str, "Press `d'", 9))
+		  {
+
+
+		      dialoglabel = gtk_label_new ("Choose a character.");
+		      gtk_box_pack_start (GTK_BOX (dbox), dialoglabel, FALSE,
+					  TRUE, 6);
+		      gtk_widget_show (dialoglabel);
+
+		      hbox = gtk_hbox_new (FALSE, 6);
+
+		      yesbutton = gtk_button_new_with_label ("Show next");
+		      gtk_box_pack_start (GTK_BOX (hbox), yesbutton, TRUE,
+					  TRUE, 6);
+		      gtk_signal_connect_object (GTK_OBJECT (yesbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER (" "));
+
+		      nobutton = gtk_button_new_with_label ("Keep this");
+		      gtk_box_pack_start (GTK_BOX (hbox), nobutton, TRUE,
+					  TRUE, 6);
+		      gtk_signal_connect_object (GTK_OBJECT (nobutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("d"));
+
+		      gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE, TRUE,
+					  6);
+
+		      gtk_widget_show (yesbutton);
+		      gtk_widget_show (nobutton);
+		      gtk_widget_show (hbox);
+
+		      found = TRUE;
+		      continue;
+		  }
+
+		if (!strncmp (str, "Do you want to play", 18))
+		  {
+
+
+		      dialoglabel =
+			  gtk_label_new ("Do you want to play again?");
+		      gtk_box_pack_start (GTK_BOX (dbox), dialoglabel, FALSE,
+					  TRUE, 6);
+		      gtk_widget_show (dialoglabel);
+
+		      hbox = gtk_hbox_new (FALSE, 6);
+
+		      yesbutton = gtk_button_new_with_label ("Play again");
+		      gtk_box_pack_start (GTK_BOX (hbox), yesbutton, TRUE,
+					  TRUE, 6);
+		      gtk_signal_connect_object (GTK_OBJECT (yesbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("a"));
+
+		      nobutton = gtk_button_new_with_label ("Quit");
+		      gtk_box_pack_start (GTK_BOX (hbox), nobutton, TRUE,
+					  TRUE, 6);
+		      gtk_signal_connect_object (GTK_OBJECT (nobutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("q"));
+
+		      gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE, TRUE,
+					  6);
+
+		      gtk_widget_show (yesbutton);
+		      gtk_widget_show (nobutton);
+		      gtk_widget_show (hbox);
+
+		      found = TRUE;
+		      continue;
+		  }
+
+		if (!strncmp (str, "Are you sure you want", 21))
+		  {
+
+
+		      dialoglabel =
+			  gtk_label_new ("Are you sure you want to quit?");
+		      gtk_box_pack_start (GTK_BOX (dbox), dialoglabel, FALSE,
+					  TRUE, 6);
+		      gtk_widget_show (dialoglabel);
+
+		      hbox = gtk_hbox_new (FALSE, 6);
+
+		      yesbutton = gtk_button_new_with_label ("Yes, quit");
+		      gtk_box_pack_start (GTK_BOX (hbox), yesbutton, TRUE,
+					  TRUE, 6);
+		      gtk_signal_connect_object (GTK_OBJECT (yesbutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("y"));
+
+		      nobutton = gtk_button_new_with_label ("Don't quit");
+		      gtk_box_pack_start (GTK_BOX (hbox), nobutton, TRUE,
+					  TRUE, 6);
+		      gtk_signal_connect_object (GTK_OBJECT (nobutton),
+						 "clicked",
+						 GTK_SIGNAL_FUNC (sendstr),
+						 GINT_TO_POINTER ("n"));
+
+		      gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE, TRUE,
+					  6);
+
+		      gtk_widget_show (yesbutton);
+		      gtk_widget_show (nobutton);
+		      gtk_widget_show (hbox);
+
+		      found = TRUE;
+		      continue;
+		  }
+
+		if (!found)
+		  {
+		      dialoglabel = gtk_label_new (str);
+		      gtk_box_pack_start (GTK_BOX (dbox), dialoglabel, FALSE,
+					  TRUE, 6);
+		      gtk_widget_show (dialoglabel);
+
+		      hbox = gtk_hbox_new (FALSE, 6);
+		      dialogtext = gtk_entry_new ();
+
+		      gtk_signal_connect (GTK_OBJECT (dialogtext), "activate",
+					  GTK_SIGNAL_FUNC (dialog_callback),
+					  dialog_window);
+		      gtk_box_pack_start (GTK_BOX (hbox), dialogtext, TRUE,
+					  TRUE, 6);
+		      gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE, TRUE,
+					  6);
+
+		      gtk_widget_show (hbox);
+		      gtk_widget_show (dialogtext);
+		      gtk_widget_grab_focus (dialogtext);
+		      found = TRUE;
+		      continue;
+		  }
+	    }
+
+	  /* Finished with the contents. */
+
+
+	  gtk_widget_show (dbox);
+	  gtk_widget_show (dialog_window);
       }
-      if (!strcmp(last_str, "Please type your password again.")) {
-
-	dialoglabel = gtk_label_new ("Please type your password again.");
-	gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
-	gtk_widget_show (dialoglabel);
-	
-      	hbox = gtk_hbox_new(FALSE, 6);
-	dialogtext = gtk_entry_new ();
-	gtk_entry_set_visibility(GTK_ENTRY(dialogtext), FALSE);
-	gtk_signal_connect(GTK_OBJECT(dialogtext), "activate",
-			   GTK_SIGNAL_FUNC(dialog_callback),
-			   dialog_window);
-	gtk_box_pack_start (GTK_BOX (hbox),dialogtext, TRUE, TRUE, 6);
-      	gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);
-	
-	gtk_widget_show (hbox);
-	gtk_widget_show (dialogtext);
-	gtk_widget_grab_focus (dialogtext);
-	found=TRUE;
-	continue;
-      }
-    }
-    /* Ok, tricky ones. */
-    if (!strcmp(last_str, "[1-7] [1-7] to swap stats.") || !strncmp(last_str, "Str d", 5) ||
-	!strncmp(last_str, "Dex d", 5) || !strncmp(last_str, "Con d", 5) ||
-	!strncmp(last_str, "Int d", 5) || !strncmp(last_str, "Wis d", 5) ||
-	!strncmp(last_str, "Pow d", 5) || !strncmp(last_str, "Cha d", 5)) {
-      
-      dialoglabel = gtk_label_new ("Roll again or exchange ability.");
-      gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
-      gtk_widget_show (dialoglabel);
-
-      hbox = gtk_hbox_new(TRUE, 2);
-      strbutton=gtk_button_new_with_label("Str");
-      gtk_box_pack_start (GTK_BOX (hbox),strbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (strbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("1"));
-
-
-      dexbutton=gtk_button_new_with_label("Dex");
-      gtk_box_pack_start (GTK_BOX (hbox),dexbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (dexbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			        GINT_TO_POINTER("2"));
-
-      conbutton=gtk_button_new_with_label("Con");
-      gtk_box_pack_start (GTK_BOX (hbox),conbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (conbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			        GINT_TO_POINTER("3"));
-
-      intbutton=gtk_button_new_with_label("Int");
-      gtk_box_pack_start (GTK_BOX (hbox),intbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (intbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			        GINT_TO_POINTER("4"));
-
-      wisbutton=gtk_button_new_with_label("Wis");
-      gtk_box_pack_start (GTK_BOX (hbox),wisbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (wisbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			        GINT_TO_POINTER("5"));
-
-      powbutton=gtk_button_new_with_label("Pow");
-      gtk_box_pack_start (GTK_BOX (hbox),powbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (powbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			        GINT_TO_POINTER("6"));
-
-      chabutton=gtk_button_new_with_label("Cha");
-      gtk_box_pack_start (GTK_BOX (hbox),chabutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (chabutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			        GINT_TO_POINTER("7"));
-    
-      gtk_widget_show(strbutton);
-      gtk_widget_show(dexbutton);
-      gtk_widget_show(conbutton);
-      gtk_widget_show(intbutton);
-      gtk_widget_show(wisbutton);
-      gtk_widget_show(powbutton);
-      gtk_widget_show(chabutton);
-     
- 
-
-      gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);   	
-      gtk_widget_show (hbox);      
-
-      hbox = gtk_hbox_new(FALSE, 6);
-
-      yesbutton=gtk_button_new_with_label("Roll again");
-      gtk_box_pack_start (GTK_BOX (hbox),yesbutton, TRUE, TRUE, 6);
-      gtk_signal_connect_object (GTK_OBJECT (yesbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("y"));
-
-      nobutton=gtk_button_new_with_label("Keep this");
-      gtk_box_pack_start (GTK_BOX (hbox),nobutton, TRUE, TRUE, 6);
-      gtk_signal_connect_object (GTK_OBJECT (nobutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("n"));
-
-      gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);
-	
-      gtk_widget_show(yesbutton);
-      gtk_widget_show(nobutton);
-      gtk_widget_show (hbox);
-      
-      found=TRUE;
-      continue;
-    }    
-    if (!strncmp(last_str, "Str -", 5) ||
-	!strncmp(last_str, "Dex -", 5) || !strncmp(last_str, "Con -", 5) ||
-	!strncmp(last_str, "Int -", 5) || !strncmp(last_str, "Wis -", 5) ||
-	!strncmp(last_str, "Pow -", 5) || !strncmp(last_str, "Cha -", 5)) {
-      
-
-      dialoglabel = gtk_label_new ("Exchange with which ability?");
-      gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
-      gtk_widget_show (dialoglabel);
-
-      hbox = gtk_hbox_new(TRUE, 2);
-      strbutton=gtk_button_new_with_label("Str");
-      gtk_box_pack_start (GTK_BOX (hbox),strbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (strbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("1"));
-
-
-      dexbutton=gtk_button_new_with_label("Dex");
-      gtk_box_pack_start (GTK_BOX (hbox),dexbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (dexbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("2"));
-
-      conbutton=gtk_button_new_with_label("Con");
-      gtk_box_pack_start (GTK_BOX (hbox),conbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (conbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("3"));
-
-      intbutton=gtk_button_new_with_label("Int");
-      gtk_box_pack_start (GTK_BOX (hbox),intbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (intbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("4"));
-
-      wisbutton=gtk_button_new_with_label("Wis");
-      gtk_box_pack_start (GTK_BOX (hbox),wisbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (wisbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("5"));
-
-      powbutton=gtk_button_new_with_label("Pow");
-      gtk_box_pack_start (GTK_BOX (hbox),powbutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (powbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("6"));
-
-      chabutton=gtk_button_new_with_label("Cha");
-      gtk_box_pack_start (GTK_BOX (hbox),chabutton, TRUE, TRUE, 1);
-      gtk_signal_connect_object (GTK_OBJECT (chabutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("7"));
-    
-      gtk_widget_show(strbutton);
-      gtk_widget_show(dexbutton);
-      gtk_widget_show(conbutton);
-      gtk_widget_show(intbutton);
-      gtk_widget_show(wisbutton);
-      gtk_widget_show(powbutton);
-      gtk_widget_show(chabutton);
-     
- 
-
-      gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);   	
-      gtk_widget_show (hbox);
-     
-      found=TRUE;
-      continue;
-    }    
-
-    if (!strncmp(last_str, "Press `d'", 9)) {
-      
-
-      dialoglabel = gtk_label_new ("Choose a character.");
-      gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
-      gtk_widget_show (dialoglabel);
-
-      hbox = gtk_hbox_new(FALSE, 6);
-
-      yesbutton=gtk_button_new_with_label("Show next");
-      gtk_box_pack_start (GTK_BOX (hbox),yesbutton, TRUE, TRUE, 6);
-      gtk_signal_connect_object (GTK_OBJECT (yesbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER(" "));
-
-      nobutton=gtk_button_new_with_label("Keep this");
-      gtk_box_pack_start (GTK_BOX (hbox),nobutton, TRUE, TRUE, 6);
-      gtk_signal_connect_object (GTK_OBJECT (nobutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("d"));
-
-      gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);
-	
-      gtk_widget_show(yesbutton);
-      gtk_widget_show(nobutton);
-      gtk_widget_show (hbox);
-      
-      found=TRUE;
-      continue;
-    }    
-
-   if (!strncmp(str, "Do you want to play", 18)) {
-      
-
-      dialoglabel = gtk_label_new ("Do you want to play again?");
-      gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
-      gtk_widget_show (dialoglabel);
-
-      hbox = gtk_hbox_new(FALSE, 6);
-
-      yesbutton=gtk_button_new_with_label("Play again");
-      gtk_box_pack_start (GTK_BOX (hbox),yesbutton, TRUE, TRUE, 6);
-      gtk_signal_connect_object (GTK_OBJECT (yesbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("a"));
-
-      nobutton=gtk_button_new_with_label("Quit");
-      gtk_box_pack_start (GTK_BOX (hbox),nobutton, TRUE, TRUE, 6);
-      gtk_signal_connect_object (GTK_OBJECT (nobutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("q"));
-
-      gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);
-	
-      gtk_widget_show(yesbutton);
-      gtk_widget_show(nobutton);
-      gtk_widget_show (hbox);
-      
-      found=TRUE;
-      continue;
-    }    
-
-  if (!strncmp(str, "Are you sure you want", 21)) {
-      
-
-      dialoglabel = gtk_label_new ("Are you sure you want to quit?");
-      gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
-      gtk_widget_show (dialoglabel);
-
-      hbox = gtk_hbox_new(FALSE, 6);
-
-      yesbutton=gtk_button_new_with_label("Yes, quit");
-      gtk_box_pack_start (GTK_BOX (hbox),yesbutton, TRUE, TRUE, 6);
-      gtk_signal_connect_object (GTK_OBJECT (yesbutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("y"));
-
-      nobutton=gtk_button_new_with_label("Don't quit");
-      gtk_box_pack_start (GTK_BOX (hbox),nobutton, TRUE, TRUE, 6);
-      gtk_signal_connect_object (GTK_OBJECT (nobutton), "clicked",
-			       GTK_SIGNAL_FUNC(sendstr),
-			       GINT_TO_POINTER("n"));
-
-      gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);
-	
-      gtk_widget_show(yesbutton);
-      gtk_widget_show(nobutton);
-      gtk_widget_show (hbox);
-      
-      found=TRUE;
-      continue;
-    }    
-
-    if (!found) {
-      dialoglabel = gtk_label_new (str);
-      gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
-      gtk_widget_show (dialoglabel);
-      
-      hbox = gtk_hbox_new(FALSE, 6);
-      dialogtext = gtk_entry_new ();
-
-      gtk_signal_connect(GTK_OBJECT(dialogtext), "activate",
-			 GTK_SIGNAL_FUNC(dialog_callback),
-			 dialog_window);
-      gtk_box_pack_start (GTK_BOX (hbox),dialogtext, TRUE, TRUE, 6);
-      gtk_box_pack_start (GTK_BOX (dbox),hbox, FALSE, TRUE, 6);
-	
-      gtk_widget_show (hbox);      
-      gtk_widget_show (dialogtext);
-      gtk_widget_grab_focus (dialogtext);
-      found=TRUE;
-      continue;
-    }
-  }
-
-  /* Finished with the contents. */
-
-
-  gtk_widget_show (dbox);
-  gtk_widget_show (dialog_window);
 
 }
+
 /* draw_info adds a line to the info window. For speed reasons it will 
  * automatically freeze the info window when adding text to it, set the
  * draw_info_freeze variable true and the actual drawing will take place
@@ -2852,18 +2069,26 @@ void draw_prompt(const char *str)
 */
 
 void draw_info(const char *str, int color) {
+    int ncolor = color;
   
-  if (color==NDI_WHITE) {
-    color=NDI_BLACK;
-  }
+    if (ncolor==NDI_WHITE) {
+	ncolor=NDI_BLACK;
+    }
 
-  strcpy (last_str, str);
-  if (!draw_info_freeze){
-    gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
-    draw_info_freeze=TRUE;
-  }
-  gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[color], NULL, str , -1);
-  gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[color], NULL, "\n" , -1);
+    strcpy (last_str, str);
+    if (splitinfo && color != NDI_BLACK) {
+	/* This window shouldn't get a lot of data, so we don't freeze it */
+	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, str , -1);
+	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, "\n" , -1);
+
+    } else {
+	if (!draw_info_freeze){
+	    gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
+	    draw_info_freeze=TRUE;
+	}
+	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, str , -1);
+	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, "\n" , -1);
+    }
 }
 
 
@@ -3463,10 +2688,6 @@ void close_container (item *op)
   }
 }
 
-static void resize_list_info(itemlist *l, int w, int h)
-{
-    draw_all_list(l);	/* this also initializes above allocated tables */
-}
 
 /* Handle mouse presses in the lists */
 #ifdef GTK_HAVE_FEATURES_1_1_12
@@ -3502,7 +2723,11 @@ static void list_button_event (GtkWidget *gtklist, gint row, gint column, GdkEve
     } else if (l == &inv_list) {
       cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
       client_send_move (look_list.env->tag, tmp->tag, cpl.count);
+      if (nopopups) {
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(counttext),0.0);
+        cpl.count=0;
       }
+    }
     else {
       cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
       client_send_move (inv_list.env->tag, tmp->tag, cpl.count);
@@ -3552,6 +2777,10 @@ static void list_button_event (GtkWidget *gtklist, GdkEventButton *event, itemli
       } else if (l == &inv_list) {
 	cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
 	client_send_move (look_list.env->tag, tmp->tag, cpl.count);
+	if (nopopups) {
+	    gtk_spin_button_set_value(GTK_SPIN_BUTTON(counttext),0.0);
+	    cpl.count=0;
+	}1
       }
       else {
 	cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
@@ -3564,6 +2793,26 @@ static void list_button_event (GtkWidget *gtklist, GdkEventButton *event, itemli
   
 }
 #endif
+
+static void resize_notebook_event (GtkWidget *widget, GtkAllocation *event) {
+    int i, newwidth;
+    static int oldwidth=0;
+
+    newwidth = GTK_CLIST(inv_list.gtk_list[0])->clist_window_width - image_size - 75;
+
+    if (newwidth != oldwidth) {
+	oldwidth = newwidth;
+	for (i=0; i<TYPE_LISTS; i++) {
+	    gtk_clist_set_column_width (GTK_CLIST(inv_list.gtk_list[i]), 0, image_size);
+	    gtk_clist_set_column_width (GTK_CLIST(inv_list.gtk_list[i]), 1, newwidth);
+	    gtk_clist_set_column_width (GTK_CLIST(inv_list.gtk_list[i]), 2, 50);
+	}
+	gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, image_size);
+	gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 1, newwidth);
+	gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 50);
+
+    }
+}
 
 void count_callback(GtkWidget *widget, GtkWidget *entry)
        {
@@ -3610,7 +2859,15 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, gchar **label)
 
   gtk_clist_set_column_width (GTK_CLIST(*list), 0, image_size);
   gtk_clist_set_column_width (GTK_CLIST(*list), 1, 150);
-  gtk_clist_set_column_width (GTK_CLIST(*list), 2, 20);
+  gtk_clist_set_column_width (GTK_CLIST(*list), 2, 50);
+  /* Since the program will automatically adjust these, any changes
+   * the user makes can get obliterated, so just don't let the user
+   * make changes.
+   */
+  gtk_clist_set_column_resizeable(GTK_CLIST(*list), 0, FALSE);
+  gtk_clist_set_column_resizeable(GTK_CLIST(*list), 1, FALSE);
+  gtk_clist_set_column_resizeable(GTK_CLIST(*list), 2, FALSE);
+
   gtk_clist_set_selection_mode (GTK_CLIST(*list) , GTK_SELECTION_SINGLE);
   gtk_clist_set_row_height (GTK_CLIST(*list), image_size); 
 #ifdef GTK_HAVE_FEATURES_1_1_12
@@ -3641,7 +2898,6 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, gchar **label)
                               GTK_SIGNAL_FUNC(list_button_event),
                               &inv_list);
 #endif
-
   gtk_widget_show (*list);
 #ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_container_add (GTK_CONTAINER (*lists), *list);
@@ -3650,6 +2906,10 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, gchar **label)
 #else
   gtk_box_pack_start (GTK_BOX(vbox1),*list, TRUE, TRUE, 0);
 #endif
+
+  gtk_signal_connect (GTK_OBJECT(*list),"size-allocate",
+		      (GtkSignalFunc) resize_notebook_event, NULL);
+
   gtk_widget_show (vbox1);
 }
 
@@ -3665,17 +2925,16 @@ static int get_inv_display(GtkWidget *frame)
 #include "pixmaps/mag.xpm"
 #include "pixmaps/nonmag.xpm"
 #include "pixmaps/lock.xpm"
+#include "pixmaps/unlock.xpm"
   
   GtkWidget *vbox2;
   GtkWidget *hbox1;
   GtkWidget *invlabel;
-  GtkWidget *notebook;
   GtkAdjustment *adj;
 
   strcpy (inv_list.title, "Inventory:");
   inv_list.env = cpl.ob;
   inv_list.show_weight = 1;
-  inv_list.show_what = show_all;
   inv_list.weight_limit=0;
   
   vbox2 = gtk_vbox_new(FALSE, 0); /* separation here */
@@ -3707,6 +2966,7 @@ static int get_inv_display(GtkWidget *frame)
   adj = (GtkAdjustment *) gtk_adjustment_new (0.0, 0.0, 100000.0, 1.0,
                                                   100.0, 0.0);
   counttext = gtk_spin_button_new (adj, 1.0, 0);
+
   gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (counttext), FALSE);
   gtk_widget_set_usize (counttext, 65, 0);
   gtk_spin_button_set_update_policy (GTK_SPIN_BUTTON (counttext),
@@ -3715,43 +2975,46 @@ static int get_inv_display(GtkWidget *frame)
 		     GTK_SIGNAL_FUNC(count_callback),
 		     counttext);
 
+
   gtk_box_pack_start (GTK_BOX (hbox1),counttext, FALSE, FALSE, 0);
 
   gtk_widget_show (counttext);
   gtk_tooltips_set_tip (tooltips, counttext, "This sets the number of items you wish to pickup or drop. You can also use the keys 0-9 to set it.", NULL);
 
-  notebook = gtk_notebook_new ();
-  gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook), GTK_POS_TOP );
+  inv_notebook = gtk_notebook_new ();
+  gtk_notebook_set_tab_pos (GTK_NOTEBOOK (inv_notebook), GTK_POS_TOP );
 
 
-  gtk_box_pack_start (GTK_BOX(vbox2),notebook, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX(vbox2),inv_notebook, TRUE, TRUE, 0);
 
 #ifdef GTK_HAVE_FEATURES_1_1_12
-  create_notebook_page (notebook, &inv_list.gtk_list[0], &inv_list.gtk_lists[0], all_xpm); 
-  create_notebook_page (notebook, &inv_list.gtk_list[1], &inv_list.gtk_lists[1], hand_xpm); 
-  create_notebook_page (notebook, &inv_list.gtk_list[2], &inv_list.gtk_lists[2], hand2_xpm); 
-  create_notebook_page (notebook, &inv_list.gtk_list[3], &inv_list.gtk_lists[3], coin_xpm);
-  create_notebook_page (notebook, &inv_list.gtk_list[4], &inv_list.gtk_lists[4], skull_xpm);
-  create_notebook_page (notebook, &inv_list.gtk_list[5], &inv_list.gtk_lists[5], mag_xpm);
-  create_notebook_page (notebook, &inv_list.gtk_list[6], &inv_list.gtk_lists[6], nonmag_xpm);
-  create_notebook_page (notebook, &inv_list.gtk_list[7], &inv_list.gtk_lists[7], lock_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[0], &inv_list.gtk_lists[0], all_xpm); 
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[1], &inv_list.gtk_lists[1], hand_xpm); 
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[2], &inv_list.gtk_lists[2], hand2_xpm); 
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[3], &inv_list.gtk_lists[3], coin_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[4], &inv_list.gtk_lists[4], skull_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[5], &inv_list.gtk_lists[5], mag_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[6], &inv_list.gtk_lists[6], nonmag_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[7], &inv_list.gtk_lists[7], lock_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[8], &inv_list.gtk_lists[8], unlock_xpm);
+
 #else
-  create_notebook_page (notebook, &inv_list.gtk_list[0], all_xpm); 
-  create_notebook_page (notebook, &inv_list.gtk_list[1], hand_xpm); 
-  create_notebook_page (notebook, &inv_list.gtk_list[2], hand2_xpm); 
-  create_notebook_page (notebook, &inv_list.gtk_list[3], coin_xpm);
-  create_notebook_page (notebook, &inv_list.gtk_list[4], skull_xpm);
-  create_notebook_page (notebook, &inv_list.gtk_list[5], mag_xpm);
-  create_notebook_page (notebook, &inv_list.gtk_list[6], nonmag_xpm);
-  create_notebook_page (notebook, &inv_list.gtk_list[7], lock_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[0], all_xpm); 
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[1], hand_xpm); 
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[2], hand2_xpm); 
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[3], coin_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[4], skull_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[5], mag_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[6], nonmag_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[7], lock_xpm);
+  create_notebook_page (inv_notebook, &inv_list.gtk_list[8], unlock_xpm);
 #endif
   gtk_widget_show (vbox2);
-  gtk_widget_show (notebook);
+  gtk_widget_show (inv_notebook);
 
   inv_list.multi_list=1;
-  resize_list_info(&inv_list,300,300);
+  draw_all_list(&inv_list);
  
-  
     return 0;
 }
 
@@ -3768,7 +3031,6 @@ static int get_look_display(GtkWidget *frame)
   look_list.env = cpl.below;
   strcpy (look_list.title, "You see:");
   look_list.show_weight = 1;
-  look_list.show_what = show_all;
   look_list.weight_limit = 0;
     
 
@@ -3805,7 +3067,7 @@ static int get_look_display(GtkWidget *frame)
   look_list.gtk_list[0] = gtk_clist_new_with_titles (3,titles);;
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, image_size);
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 1, 150);
-  gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 20);
+  gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 50);
   gtk_clist_set_selection_mode (GTK_CLIST(look_list.gtk_list[0]) , GTK_SELECTION_SINGLE);
   gtk_clist_set_row_height (GTK_CLIST(look_list.gtk_list[0]), image_size); 
 #ifdef GTK_HAVE_FEATURES_1_1_12
@@ -3848,7 +3110,7 @@ static int get_look_display(GtkWidget *frame)
 #endif
   gtk_widget_show (vbox1);
   look_list.multi_list=0;
-  resize_list_info(&look_list,300,300);
+  draw_all_list(&look_list);
 
     return 0;
 }
@@ -3871,15 +3133,14 @@ void draw_lists ()
   }
 }
 
-
 void set_show_icon (char *s)
 {
     if (s == NULL || *s == 0 || strncmp ("inventory", s, strlen(s)) == 0) {
 	inv_list.show_icon = ! inv_list.show_icon; /* toggle */
-	resize_list_info(&inv_list, inv_list.width, inv_list.height);
+	draw_all_list(&inv_list);
     } else if (strncmp ("look", s, strlen(s)) == 0) {
 	look_list.show_icon = ! look_list.show_icon; /* toggle */
-	resize_list_info(&look_list, look_list.width, look_list.height);
+	draw_all_list(&look_list);
     }
 }
 
@@ -4049,6 +3310,28 @@ void applyconfig () {
       tool_tips=FALSE;
     }
   }
+  if (GTK_TOGGLE_BUTTON (ccheckbutton7)->active)   {
+    if (!splitinfo) {
+      gtk_tooltips_enable(tooltips);
+      splitinfo=TRUE;
+    }
+  } else {
+    if (splitinfo) {
+       gtk_tooltips_disable(tooltips);
+      splitinfo=FALSE;
+    }
+  }
+  if (GTK_TOGGLE_BUTTON (ccheckbutton8)->active)   {
+    if (!nopopups) {
+      gtk_tooltips_enable(tooltips);
+      nopopups=TRUE;
+    }
+  } else {
+    if (nopopups) {
+       gtk_tooltips_disable(tooltips);
+      nopopups=FALSE;
+    }
+  }
 }
 
 /* Ok, here it sets the config and saves it. This is sorta dangerous, and I'm not sure
@@ -4137,6 +3420,28 @@ void saveconfig () {
     if (tool_tips) {
       gtk_tooltips_disable(tooltips);
       tool_tips=FALSE;
+    }
+  }
+  if (GTK_TOGGLE_BUTTON (ccheckbutton7)->active)   {
+    if (!splitinfo) {
+      gtk_tooltips_enable(tooltips);
+      splitinfo=TRUE;
+    }
+  } else {
+    if (splitinfo) {
+      gtk_tooltips_disable(tooltips);
+      splitinfo=FALSE;
+    }
+  }
+  if (GTK_TOGGLE_BUTTON (ccheckbutton8)->active)   {
+    if (!nopopups) {
+      gtk_tooltips_enable(tooltips);
+      nopopups=TRUE;
+    }
+  } else {
+    if (nopopups) {
+      gtk_tooltips_disable(tooltips);
+      nopopups=FALSE;
     }
   }
   save_defaults();
@@ -4339,6 +3644,16 @@ void ckeyunbind (GtkWidget *gtklist, GdkEventButton *event) {
   }
 }
 
+void disconnect(GtkWidget *widget) {
+    close(csocket.fd);
+    csocket.fd = -1;
+    if (csocket_fd) {
+	gdk_input_remove(csocket_fd);
+	csocket_fd=0;
+	gtk_main_quit();
+    }
+}
+
 /*
  *  GUI Config dialog. 
  *
@@ -4450,12 +3765,30 @@ void configdialog(GtkWidget *widget) {
       gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton6), FALSE);
     }
 
+    ccheckbutton7 = gtk_check_button_new_with_label ("Split Information Window\n(Takes effect next run)" );
+    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton7, FALSE, FALSE, 0);
+    if (splitinfo) {
+      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton7), TRUE);
+    } else {
+      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton7), FALSE);
+    }
+
+    ccheckbutton8 = gtk_check_button_new_with_label ("No popup windows" );
+    gtk_box_pack_start(GTK_BOX(vbox1),ccheckbutton8, FALSE, FALSE, 0);
+    if (nopopups) {
+      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton8), TRUE);
+    } else {
+      gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton8), FALSE);
+    }
+
     gtk_widget_show (ccheckbutton1);
     gtk_widget_show (ccheckbutton2);
     gtk_widget_show (ccheckbutton3);
     gtk_widget_show (ccheckbutton4);
     gtk_widget_show (ccheckbutton5);
     gtk_widget_show (ccheckbutton6);
+    gtk_widget_show (ccheckbutton7);
+    gtk_widget_show (ccheckbutton8);
 
     gtk_widget_show (vbox1);
     gtk_widget_show (frame1);
@@ -4864,6 +4197,12 @@ void menu_clear () {
   gtk_text_set_point(GTK_TEXT (gtkwin_info_text), 0);
   gtk_text_forward_delete (GTK_TEXT (gtkwin_info_text), size );
   gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
+
+  size = gtk_text_get_length(GTK_TEXT (gtkwin_info_text2));
+  gtk_text_freeze (GTK_TEXT (gtkwin_info_text2));
+  gtk_text_set_point(GTK_TEXT (gtkwin_info_text2), 0);
+  gtk_text_forward_delete (GTK_TEXT (gtkwin_info_text2), size );
+  gtk_text_thaw (GTK_TEXT (gtkwin_info_text2));
 }
 
 void sexit()
@@ -4960,13 +4299,6 @@ static int get_menu_display (GtkWidget *box) {
 			    GTK_SIGNAL_FUNC(navbut), NULL);
 			    gtk_widget_show(menu_items);*/
 
-  /*  menu_items = gtk_menu_item_new_with_label("Command history");
-  gtk_menu_append(GTK_MENU (clientmenu), menu_items);   
-  gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(menu_history), NULL);
-  gtk_widget_show(menu_items);
-  */
-
 #ifdef GTK_HAVE_FEATURES_1_1_12
   menu_items = gtk_tearoff_menu_item_new ();
   gtk_menu_append (GTK_MENU (clientmenu), menu_items);
@@ -4990,6 +4322,13 @@ static int get_menu_display (GtkWidget *box) {
   gtk_menu_append(GTK_MENU (clientmenu), menu_items);   
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(configdialog), NULL);
+  gtk_widget_show(menu_items);
+
+
+  menu_items = gtk_menu_item_new_with_label("Disconnect");
+  gtk_menu_append(GTK_MENU (clientmenu), menu_items);   
+  gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
+			    GTK_SIGNAL_FUNC(disconnect), NULL);
   gtk_widget_show(menu_items);
 
 
@@ -5284,7 +4623,7 @@ void create_windows() {
   GtkWidget *ghpaned;
   GtkWidget *gvpaned;
   GtkWidget *vpaned;
-  gint callocfailed=0;
+  int i;
 
   tooltips = gtk_tooltips_new();
 
@@ -5298,86 +4637,15 @@ void create_windows() {
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_root), 0);
 
-    /* Alloc colors */
-    if ( !gdk_color_parse("Black", &root_color[0])) {
-      printf ("cparse failed\n");
+    /* Alloc colors.  colorname[] comes from xutil.c */
+    for (i=0; i<=12; i++ ) {
+	if ( !gdk_color_parse(colorname[i], &root_color[i])) {
+	    printf ("cparse failed (%s)\n",colorname[i]);
+	}
+	if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[i])) {
+	    printf ("calloc failed\n");
+	}
     }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[0])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("White", &root_color[1])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[1])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("Navy", &root_color[2])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[2])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("Red", &root_color[3])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[3])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("Orange", &root_color[4])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[4])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("DodgerBlue", &root_color[5])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[5])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("DarkOrange2", &root_color[6])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[6])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("SeaGreen", &root_color[7])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[7])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("DarkSeaGreen", &root_color[8])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[8])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("Grey50", &root_color[9])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[9])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("Sienna", &root_color[10])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[10])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("Gold", &root_color[11])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[11])) {
-      printf ("calloc failed\n");
-    }
-    if ( !gdk_color_parse("Khaki", &root_color[12])) {
-      printf ("cparse failed\n");
-    }
-    if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_root), &root_color[12])) {
-     printf ("calloc failed\n");
-    }
-
     
     /* menu / windows division */
     rootvbox = gtk_vbox_new(FALSE, 0);
@@ -5393,7 +4661,7 @@ void create_windows() {
     gtk_box_pack_start (GTK_BOX (rootvbox), mhpaned, TRUE, TRUE, 0);
     gtk_container_border_width (GTK_CONTAINER(mhpaned), 5);
     gtk_widget_show (mhpaned);
-    
+
     /* Divisior game+stats | text */
     
     ghpaned = gtk_hpaned_new ();
@@ -5459,7 +4727,7 @@ void create_windows() {
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
     gtk_widget_set_usize (frame, 270, 400);
     gtk_paned_add1 (GTK_PANED (vpaned), frame);
-    
+
     get_inv_display (frame);
     
     gtk_widget_show (frame);
@@ -5490,7 +4758,7 @@ void create_windows() {
     gtk_widget_show (gtkwin_root);
     
 
-  } else {
+  } else { /* split window mode */
 
  
   /* game window */
@@ -5559,32 +4827,15 @@ void create_windows() {
     gtk_container_border_width (GTK_CONTAINER (gtkwin_info), 0);
     
     /* Alloc colors - not entirely necessary, really, since GTK should do this */
-    callocfailed = gdk_color_parse("Black", &root_color[0]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[0]);
-    callocfailed = gdk_color_parse("White", &root_color[1]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[1]);
-    callocfailed = gdk_color_parse("Navy", &root_color[2]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[2]);
-    callocfailed = gdk_color_parse("Red", &root_color[3]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[3]);
-    callocfailed = gdk_color_parse("Orange", &root_color[4]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[4]);
-    callocfailed = gdk_color_parse("DodgerBlue", &root_color[5]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[5]);
-    callocfailed = gdk_color_parse("DarkOrange2", &root_color[6]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[6]);
-    callocfailed = gdk_color_parse("SeaGreen", &root_color[7]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[7]);
-    callocfailed = gdk_color_parse("DarkSeaGreen", &root_color[8]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[8]);
-    callocfailed = gdk_color_parse("Grey50", &root_color[9]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[9]);
-    callocfailed = gdk_color_parse("Sienna", &root_color[10]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[10]);
-    callocfailed = gdk_color_parse("Gold", &root_color[11]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[11]);
-    callocfailed = gdk_color_parse("Khaki", &root_color[12]);
-    callocfailed = gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[12]);
+    /* colorname[] comes from xutil.c */
+    for (i=0; i<=12; i++ ) {
+	if ( !gdk_color_parse(colorname[i], &root_color[i])) {
+	    printf ("cparse failed (%s)\n",colorname[i]);
+	}
+	if ( !gdk_color_alloc (gtk_widget_get_colormap (gtkwin_info), &root_color[i])) {
+	    printf ("calloc failed\n");
+	}
+    }
 
     rootvbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER (gtkwin_info), rootvbox);
@@ -5769,8 +5020,14 @@ int get_info_width()
 void do_clearlock () {
 }
 
+void x_set_echo() {
+  if (nopopups) {
+    gtk_entry_set_visibility(GTK_ENTRY(entrytext), !cpl.no_echo);
+  }
+}
+
 int do_timeout() {
-  
+
   updatelock=0;
   if (draw_info_freeze) {
     gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
@@ -6080,6 +5337,42 @@ void save_winpos()
 
 void command_show (char *params)
 {
+    if(!params)  {
+	/* Shouldn't need to get current page, but next_page call is not wrapping
+	 * like the docs claim it should.
+	 */
+	if (gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook))==8)
+	    gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 0);
+	else 
+	    gtk_notebook_next_page(GTK_NOTEBOOK(inv_notebook));
+
+    } else if (!strncmp(params, "all", strlen(params)))
+	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 0);
+    else if (!strncmp(params, "applied", strlen(params)))
+	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 1);
+
+    else if (!strncmp(params, "unapplied", strlen(params)))
+	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 2);
+
+    else if (!strncmp(params, "unpaid", strlen(params)))
+	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 3);
+
+    else if (!strncmp(params, "cursed", strlen(params)))
+	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 4);
+
+    else if (!strncmp(params, "magical", strlen(params)))
+	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 5);
+
+    else if (!strncmp(params, "nonmagical", strlen(params)))
+	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 6);
+
+    else if (!strncmp(params, "locked", strlen(params)))
+	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 7);
+
+    else if (!strncmp(params, "unlocked", strlen(params)))
+	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 8);
+
+
 }
 
 /* Reads in the winpos file created by the above function and sets the
@@ -6172,6 +5465,9 @@ static void usage(char *progname)
     puts("-nosound         - Disable sound output.");
     puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
     puts("-keepcache       - Keep already cached images even if server has different ones.");
+    puts("-pngfile <name>  - Use <name> for source of images");
+    puts("-nopopups        - Don't use pop up windows for input");
+    puts("-splitinfo       - Use two information windows, segregated by information type.");
     exit(0);
 }
 
@@ -6217,6 +5513,14 @@ int init_windows(int argc, char **argv)
 		return 1;
 	    }
 	    server = argv[on_arg];
+	    continue;
+	}
+	if (!strcmp(argv[on_arg],"-pngfile")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-pngfile requires a file name\n");
+		return 1;
+	    }
+	    image_file = argv[on_arg];
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-xpm")) {
@@ -6274,6 +5578,14 @@ int init_windows(int argc, char **argv)
 	    keepcache=TRUE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-nopopups")) {
+	    nopopups=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-splitinfo")) {
+	    splitinfo=TRUE;
+	    continue;
+	}
 	else {
 	    fprintf(stderr,"Do not understand option %s\n", argv[on_arg]);
 	    usage(argv[0]);
@@ -6307,6 +5619,9 @@ int init_windows(int argc, char **argv)
     for (on_arg=0; on_arg<MAXPIXMAPNUM; on_arg++)
 	facecachemap[on_arg]=on_arg;
 
+    for (on_arg = 0; on_arg<MAX_HISTORY; on_arg++)
+	history[on_arg][0]=0;
+
     if (get_root_display(display_name,gargc,gargv))
 		return 1;
 
@@ -6316,7 +5631,9 @@ int init_windows(int argc, char **argv)
 
     init_keys();
     if (cache_images) init_cache_data();
+    if (image_file[0] != '\0') ReadImages();
     destroy_splash();
+
     return 0;
 }
 

@@ -349,6 +349,11 @@ void handle_query (char *data, int len)
 
     if (flags & CS_QUERY_HIDEINPUT)		/* no echo */
 	cpl.no_echo=1;
+    else
+	cpl.no_echo=0;
+
+    /* Let the window system know this may have changed */
+    x_set_echo();
 
       LOG(0,"Received query.  Input state now %d\n", cpl.input_state);
 }

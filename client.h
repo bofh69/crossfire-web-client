@@ -106,7 +106,7 @@ extern int port_num,
 				 * images in x11.c
 				 */
 
-extern char *server, *client_libdir;
+extern char *server, *client_libdir,*image_file;
 
 typedef enum Input_State {Playing, Reply_One, Reply_Many,
 	Configure_Keys, Command_Mode, Metaserver_Select} Input_State;
@@ -206,4 +206,5 @@ extern int errno;
  */
 #define NUM_RESISTS 18
 extern char *resists_name[NUM_RESISTS];
-
+extern char *meta_server;
+extern int meta_port;

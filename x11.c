@@ -118,8 +118,8 @@
 typedef enum inventory_show {
   show_all = 0, show_applied = 0x1, show_unapplied = 0x2, show_unpaid = 0x4,
   show_cursed = 0x8, show_magical = 0x10, show_nonmagical = 0x20,
-  show_locked = 0x40,
-  show_mask=0x7f
+  show_locked = 0x40, show_unlocked = 0x80,
+  show_mask=0xff
 } inventory_show;
 
 /*
@@ -644,32 +644,46 @@ void write_ch(char key)
 	return;
     }
 
-    if ((key < 32 || (unsigned char) key > 127) && key != 8)
-	return;
-    c2[0] = key;
-    c2[1] ='\0';
-
     if (infodata.lastcolor!=NDI_BLACK) {
 	XSetForeground(display,infodata.gc_info,discolor[NDI_BLACK].pixel);
 	infodata.lastcolor=NDI_BLACK;
     }
 
-    if(key==8||key==127) {
-	/* By backspacking enough, let them get out of command mode */
-	if (cpl.input_text[0]=='\0' && cpl.input_state==Command_Mode) {
-	    cpl.input_state=Playing;
-	    /* Erase the prompt */
-	    XDrawImageString(display,infodata.win_info,infodata.gc_info,
-		FONTWIDTH,(infodata.infoline+1)*FONTHEIGHT," ",1);
-	}
-	delete_ch();
-	return;
-    }
-    /* Give some leeway here */
-    if(strlen(cpl.input_text)>=(MAX_BUF-15))
-	return;
+    if (key == 9) { /* Tab */
+	char *str = complete_command(infodata.data[infodata.infopos].info);
 
-    strcat(cpl.input_text,c2);
+	/* +1 so that we keep our > at start of line.  Don't
+	 * recopy the data on top of ourself.
+	 */
+	if (str != (infodata.data[infodata.infopos].info+1)) {
+	    strcpy(infodata.data[infodata.infopos].info+1, str);
+	    strcpy(cpl.input_text,str);
+	}
+    } else {
+
+	if ((key < 32 || (unsigned char) key > 127) && key != 8)
+	    return;
+	c2[0] = key;
+	c2[1] ='\0';
+
+
+	if(key==8||key==127) {
+	    /* By backspacking enough, let them get out of command mode */
+	    if (cpl.input_text[0]=='\0' && cpl.input_state==Command_Mode) {
+		cpl.input_state=Playing;
+		/* Erase the prompt */
+		XDrawImageString(display,infodata.win_info,infodata.gc_info,
+				 FONTWIDTH,(infodata.infoline+1)*FONTHEIGHT," ",1);
+	    }
+	    delete_ch();
+	    return;
+	}
+	/* Give some leeway here */
+	if(strlen(cpl.input_text)>=(MAX_BUF-15))
+	    return;
+
+	strcat(cpl.input_text,c2);
+    }
     if(strlen(infodata.data[infodata.infopos].info)>=(infodata.info_chars-2)) {
         /* Draw the currently line and scroll down one */
 	draw_info(infodata.data[infodata.infopos].info,NDI_BLACK);
@@ -683,7 +697,7 @@ void write_ch(char key)
 		strlen(infodata.data[infodata.infopos].info));
     }
 
-    strcat(infodata.data[infodata.infopos].info,(cpl.no_echo? "?": c2));
+    if (key != 9 ) strcat(infodata.data[infodata.infopos].info,(cpl.no_echo? "?": c2));
 
     XDrawImageString(display,infodata.win_info,infodata.gc_info,
 	FONTWIDTH,(infodata.infoline+1)*FONTHEIGHT,
@@ -1526,6 +1540,7 @@ static int show_object(item *ip, inventory_show flags)
     if ((flags & show_magical) && (ip->magical)) return 1;
     if ((flags & show_nonmagical) && (!ip->magical)) return 1;
     if ((flags & show_locked) && (ip->locked)) return 1;
+    if ((flags & show_unlocked) && (!ip->locked)) return 1;
 
     /* Doesn't match - probalby don't want it then */
     return 0;
@@ -1606,6 +1621,7 @@ static void draw_list (itemlist *l)
 	if (l->show_what & show_magical) strcat(buf2,"magical, ");
 	if (l->show_what & show_nonmagical) strcat(buf2,"nonmagical, ");
 	if (l->show_what & show_locked) strcat(buf2,"locked, ");
+	if (l->show_what & show_unlocked) strcat(buf2,"unlocked, ");
 	/* want to kill the comma we put in above.  Replace it with the paren */
 	buf2[strlen(buf2)-2]=')';
 	buf2[strlen(buf2)-1]='\0';
@@ -2641,6 +2657,7 @@ static void usage(char *progname)
     puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
     puts("-keepcache       - Keep already cached images even if server has different ones.");
     puts("-font <name>     - Use <name> as font to display data.");
+    puts("-pngfile <name>  - Use <name> for source of images");
     exit(0);
 }
 
@@ -2690,6 +2707,14 @@ int init_windows(int argc, char **argv)
 		return 1;
 	    }
 	    server = argv[on_arg];
+	    continue;
+	}
+	if (!strcmp(argv[on_arg],"-pngfile")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-pngfile requires a file name\n");
+		return 1;
+	    }
+	    image_file = argv[on_arg];
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-xpm")) {
@@ -2812,6 +2837,7 @@ int init_windows(int argc, char **argv)
 
     init_keys();
     if (cache_images) init_cache_data();
+    if (image_file[0] != '\0') ReadImages();
     set_window_pos();
     info_ratio=(float) infodata.width/ (float) (infodata.width + INV_WIDTH);
     return 0;
@@ -2870,6 +2896,10 @@ int display_willcache()
 {
     return cache_images;
 }
+
+/* we don't need to do anything, as we figure this out as needed */
+void x_set_echo() { }
+
 
 void display_map_doneupdate()
 {

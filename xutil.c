@@ -11,7 +11,6 @@
 #include <X11/keysym.h>
 #include "def-keys.h"
 
-
 static char *colorname[] = {
 "Black",                /* 0  */
 "White",                /* 1  */
@@ -28,6 +27,20 @@ static char *colorname[] = {
 "Khaki"                 /* 12 */
 };
 
+struct {
+    char    *name;
+    uint32  checksum;
+#ifdef GDK_XUTIL
+    GdkPixmap  *pixmap;
+    GdkBitmap	*mask;
+#else
+    Pixmap  pixmap, mask;
+#endif
+} private_cache[MAXPIXMAPNUM];
+
+int use_private_cache=0, last_face_num=0;
+
+
 /******************************************************************************
  *
  * Code related to face caching.
@@ -35,6 +48,51 @@ static char *colorname[] = {
  *****************************************************************************/
 
 char facecachedir[MAX_BUF];
+
+typedef struct Keys {
+    uint8	flags;
+    sint8	direction;
+    KeySym	keysym;
+    char	*command;
+    struct Keys	*next;
+} Key_Entry;
+
+/***********************************************************************
+ *
+ * Key board input translations are handled here.  We don't deal with
+ * the events, but rather KeyCodes and KeySyms.
+ *
+ * It would be nice to deal with only KeySyms, but many keyboards
+ * have keys that do not correspond to a KeySym, so we do need to
+ * support KeyCodes.
+ *
+ ***********************************************************************/
+
+
+static KeyCode firekey[2], runkey[2], commandkey, *bind_keycode, prevkey, nextkey,
+    completekey;
+static KeySym firekeysym[2], runkeysym[2], commandkeysym,*bind_keysym,
+    prevkeysym, nextkeysym, completekeysym;
+static int bind_flags=0;
+static char bind_buf[MAX_BUF];
+
+#define KEYF_NORMAL	0x01	/* Used in normal mode */
+#define KEYF_FIRE	0x02	/* Used in fire mode */
+#define KEYF_RUN	0x04	/* Used in run mode */
+#define KEYF_MODIFIERS	0x07	/* Mask for actual keyboard modifiers, */
+				/* not action modifiers */
+#define KEYF_EDIT	0x08	/* Line editor */
+#define KEYF_STANDARD	0x10	/* For standard (built in) key definitions */
+
+extern char *directions[9];
+
+/* Key codes can only be from 8-255 (at least according to
+ * the X11 manual.  This is easier than using a hash
+ * table, quicker, and doesn't use much more space.
+ */
+
+#define MAX_KEYCODE 255
+static Key_Entry *keys[256];
 
 /* This holds the name we recieve with the 'face' command so we know what
  * to save it as when we actually get the face.
@@ -44,6 +102,7 @@ char *facetoname[MAXPIXMAPNUM];
 /* Can be set when user is moving to new machine type */
 int updatekeycodes=FALSE, keepcache=FALSE;
 
+#ifndef GDK_XUTIL
 /* Initializes the data for image caching */
 static void init_cache_data()
 {
@@ -92,6 +151,7 @@ static void init_cache_data()
     }
 
 }
+#endif
 
 static void requestface(int pnum, char *facename, char *facepath)
 {
@@ -116,23 +176,62 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
     int fd,len;
     char data[65536];
     uint32 newsum=0;
+#ifndef GDK_XUTIL
     Pixmap pixmap, mask;
+#endif
 
-    /* To prevent having a directory with 2000 images, we do a simple
-     * split on the first 2 characters.
-     */
-    sprintf(buf,"%s/%c%c/%s", facecachedir, face[0], face[1],face);
+    /* Check private cache first */
+    sprintf(buf,"%s/.crossfire/gfx/%s", getenv("HOME"), face);
     if (display_mode == Xpm_Display)
 	strcat(buf,".xpm");
     else if (display_mode == Png_Display)
 	strcat(buf,".png");
 
-    if ((fd=open(buf, O_RDONLY))==-1) {
-	requestface(pnum, face, buf);
-	return;
+    if ((fd=open(buf, O_RDONLY))!=-1) {
+	len=read(fd, data, 65535);
+	close(fd);
+	has_sum=0;  /* Maybe not really true, but we want to use this image
+		     * and not request a replacement.
+		     */
+    } else {
+
+	/* Hmm.  Should we use this file first, or look in our home
+	 * dir cache first?
+	 */
+	if (use_private_cache) {
+	    len = find_face_in_private_cache(face, checksum);
+	    if ( len > 0 ) {
+#ifdef GDK_XUTIL
+		pixmaps[pnum].gdkpixmap = private_cache[len].pixmap;
+		pixmaps[pnum].gdkmask = private_cache[len].mask;
+
+#else
+		pixmaps[pnum].pixmap = private_cache[len].pixmap;
+		pixmaps[pnum].mask = private_cache[len].mask;
+#endif
+		/* we may want to find a better match */
+		if (private_cache[len].checksum == checksum ||
+		    !has_sum || keepcache) return;
+	    }
+	}
+
+
+	/* To prevent having a directory with 2000 images, we do a simple
+	 * split on the first 2 characters.
+	 */
+	sprintf(buf,"%s/%c%c/%s", facecachedir, face[0], face[1],face);
+	if (display_mode == Xpm_Display)
+	    strcat(buf,".xpm");
+	else if (display_mode == Png_Display)
+	    strcat(buf,".png");
+
+	if ((fd=open(buf, O_RDONLY))==-1) {
+	    requestface(pnum, face, buf);
+	    return;
+	}
+	len=read(fd, data, 65535);
+	close(fd);
     }
-    len=read(fd, data, 65535);
-    close(fd);
 
     if (has_sum && !keepcache) {
 	for (fd=0; fd<len; fd++) {
@@ -154,6 +253,30 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 #endif
 	}
     }
+#ifdef GDK_XUTIL
+    if (display_mode == Xpm_Display) {
+    
+	GtkStyle *style;
+    
+	style = gtk_widget_get_style(gtkwin_root);
+	pixmaps[pnum].gdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
+					 &pixmaps[pnum].gdkmask,
+					 &style->bg[GTK_STATE_NORMAL],
+					     (gchar **) data );
+	    if (!pixmaps[pnum].gdkpixmap) {
+		requestface(pnum, face, buf);
+	    }
+    }
+    else if (display_mode == Png_Display) {
+#ifdef HAVE_LIBPNG
+	if (png_to_gdkpixmap(gtkwin_root->window, data, len, &pixmaps[pnum].gdkpixmap, 
+		 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
+	    fprintf(stderr,"Got error on png_to_gdkpixmap, file=%s\n",buf);
+	    requestface(pnum, face, buf);
+	}
+#endif
+    }
+#else
     if (display_mode==Xpm_Display) {
 	XpmAttributes xpm_attr;
 
@@ -188,9 +311,11 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	pixmaps[pnum].bg = (data[28] << 24) + (data[29] << 16 )+ (data[30] << 8 )+
 	    data[31];
     }
+#endif
 }
 
 
+#ifndef GDK_XUTIL
 
 static int allocate_colors(Display *disp, Window w, long screen_num,
         Colormap *colormap, XColor discolor[16])
@@ -245,49 +370,7 @@ try_private:
   return iscolor;
 }
 
-/***********************************************************************
- *
- * Key board input translations are handled here.  We don't deal with
- * the events, but rather KeyCodes and KeySyms.
- *
- * It would be nice to deal with only KeySyms, but many keyboards
- * have keys that do not correspond to a KeySym, so we do need to
- * support KeyCodes.
- *
- ***********************************************************************/
-
-
-static KeyCode firekey[2], runkey[2], commandkey, *bind_keycode;
-static KeySym firekeysym[2], runkeysym[2], commandkeysym,*bind_keysym;
-static int bind_flags=0;
-static char bind_buf[MAX_BUF];
-
-#define KEYF_NORMAL	0x01	/* Used in normal mode */
-#define KEYF_FIRE	0x02	/* Used in fire mode */
-#define KEYF_RUN	0x04	/* Used in run mode */
-#define KEYF_MODIFIERS	0x07	/* Mask for actual keyboard modifiers, */
-				/* not action modifiers */
-#define KEYF_EDIT	0x08	/* Line editor */
-#define KEYF_STANDARD	0x10	/* For standard (built in) key definitions */
-
-extern char *directions[9];
-
-
-typedef struct Keys {
-    uint8	flags;
-    sint8	direction;
-    KeySym	keysym;
-    char	*command;
-    struct Keys	*next;
-} Key_Entry;
-
-/* Key codes can only be from 8-255 (at least according to
- * the X11 manual.  This is easier than using a hash
- * table, quicker, and doesn't use much more space.
- */
-
-#define MAX_KEYCODE 255
-static Key_Entry *keys[256];
+#endif /* GDK_XUTIL */
 
 
 
@@ -295,6 +378,7 @@ static Key_Entry *keys[256];
 /* Updates the keys array with the keybinding that is passed.  All the
  * arguments are pretty self explanatory.  flags is the various state
  * that the keyboard is in.
+ * This function is common to both gdk and x11 client
  */
 static void insert_key(KeySym keysym, KeyCode keycode, int flags, char *command)
 {
@@ -343,6 +427,12 @@ static void insert_key(KeySym keysym, KeyCode keycode, int flags, char *command)
 }
 
 
+#ifdef GDK_XUTIL
+#define display GDK_DISPLAY()
+#endif
+
+/* This function is common to both gdk and x11 client */
+
 static void parse_keybind_line(char *buf, int line, int standard)
 {
     char *cp, *cpnext;
@@ -354,6 +444,70 @@ static void parse_keybind_line(char *buf, int line, int standard)
     if ((cpnext = strchr(buf,' '))==NULL) {
 	fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line,buf);
 	return;
+    }
+    /* Special keybinding line */
+    if (buf[0] == '!') {
+	char *cp1;
+	while (*cpnext == ' ') ++cpnext;
+	cp = strchr(cpnext, ' ');
+	if (!cp) {
+	    fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line,buf);
+	    return;
+	}
+	*cp++ = 0;  /* Null terminate it */
+	cp1 = strchr(cp, ' ');
+	if (!cp1) {
+	    fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line,buf);
+	    return;
+	}
+	*cp1 ++ = 0;/* Null terminate it */
+	keycode = atoi(cp1);
+	keysym = XStringToKeysym(cp);
+	/* As of now, all these keys must have keysyms */
+	if (keysym == NoSymbol) {
+	    fprintf(stderr,"Could not convert %s into keysym\n", cp);
+	    return;
+	}
+	if (!strcmp(cpnext,"commandkey")) {
+	    commandkeysym = keysym;
+	    commandkey = keycode;
+	    return;
+	}
+	if (!strcmp(cpnext,"firekey0")) {
+	    firekeysym[0] = keysym;
+	    firekey[0] = keycode;
+	    return;
+	}
+	if (!strcmp(cpnext,"firekey1")) {
+	    firekeysym[1] = keysym;
+	    firekey[1] = keycode;
+	    return;
+	}
+	if (!strcmp(cpnext,"runkey0")) {
+	    runkeysym[0] = keysym;
+	    runkey[0] = keycode;
+	    return;
+	}
+	if (!strcmp(cpnext,"runkey1")) {
+	    runkeysym[1] = keysym;
+	    runkey[1] = keycode;
+	    return;
+	}
+	if (!strcmp(cpnext,"completekey")) {
+	    completekeysym = keysym;
+	    completekey = keycode;
+	    return;
+	}
+	if (!strcmp(cpnext,"nextkey")) {
+	    nextkeysym = keysym;
+	    nextkey = keycode;
+	    return;
+	}
+	if (!strcmp(cpnext,"prevkey")) {
+	    prevkeysym = keysym;
+	    prevkey = keycode;
+	    return;
+	}
     }
     if (standard) standard=KEYF_STANDARD;
     else standard=0;
@@ -429,6 +583,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
     insert_key(keysym, keycode, flags | standard, cpnext);
 }
 
+/* This code is common to both x11 and gdk client */
 static void init_default_keybindings()
 {
   char buf[MAX_BUF];
@@ -444,6 +599,7 @@ static void init_default_keybindings()
 /* This reads in the keybindings, and initializes any special values.
  * called by init_windows.
  */
+/* This function is common to both x11 and gdk client */
 
 static void init_keys()
 {
@@ -465,6 +621,18 @@ static void init_keys()
     runkey[0]  =XKeysymToKeycode(display, XK_Control_L);
     runkeysym[1]  =XK_Control_R;
     runkey[1]  =XKeysymToKeycode(display, XK_Control_R);
+
+    completekeysym = XK_Tab;
+    completekey = XKeysymToKeycode(display, XK_Tab);
+    /* Don't set these to anything by default.  At least on sun
+     * keyboards, the keysym for up on both the keypad and arrow
+     * keys is the same, so player needs to rebind this so we get proper
+     * keycode.  Very unfriendly to log in and not be able to move north/south.
+     */
+    nextkeysym = NoSymbol;
+    nextkey = 0;
+    prevkeysym = NoSymbol;
+    prevkey = 0;
 
     for (i=0; i<=MAX_KEYCODE; i++) {
 	keys[i] = NULL;
@@ -514,38 +682,50 @@ static void init_keys()
  * will just ignore the command.
  */
 
-
+/* This code is used by gdk and x11 client, but has
+ *  a fair number of #ifdefs to get the right
+ * behavioiur
+ */
 static void parse_key_release(KeyCode kc, KeySym ks) {
 
     /* Only send stop firing/running commands if we are in actual
      * play mode.  Something smart does need to be done when the character
      * enters a non play mode with fire or run mode already set, however.
      */
-#if 0	/* I think this causes more problems than it solves */
-    if (cpl.input_state != Playing) return;
-#endif
 
     if (kc==firekey[0] || ks==firekeysym[0] || 
 	kc==firekey[1] || ks==firekeysym[1]) {
-#if 0	/* Nice idea, but unfortunately prints too many false results */
-		if (cpl.echo_bindings) draw_info("stop fire",NDI_BLACK);
-#endif
 		cpl.fire_on=0;
+#ifdef GDK_XUTIL
+		clear_fire();
+		gtk_label_set (GTK_LABEL(fire_label),"    ");
+#else	
 		stop_fire();
 		draw_message_window(0);
+#endif
 	}
     else if (kc==runkey[0] || ks==runkeysym[0] ||
 	kc==runkey[1] || ks==runkeysym[1]) {
 		cpl.run_on=0;
 		if (cpl.echo_bindings) draw_info("stop run",NDI_BLACK);
+#ifdef GDK_XUTIL
+		clear_run();
+		gtk_label_set (GTK_LABEL(run_label),"   ");
+#else
 		stop_run();
 		draw_message_window(0);
+#endif
 	}
     /* Firing is handled on server side.  However, to keep more like the
      * old version, if you release the direction key, you want the firing
      * to stop.  This should do that.
      */
-    else if (cpl.fire_on) stop_fire();
+    else if (cpl.fire_on) 
+#ifdef GDK_XUTIL
+	clear_fire();
+#else
+	stop_fire();
+#endif
 }
 
 /* This parses a keypress.  It should only be called when in Playing
@@ -558,7 +738,18 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
     char buf[MAX_BUF];
 
     if (keycode == commandkey && keysym==commandkeysym) {
+#ifdef GDK_XUTIL
+      if (split_windows) {
+	gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info));
+	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+      } else {
+	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+      }
+      gtk_entry_set_visibility(GTK_ENTRY(entrytext), 1);
+
+#else
 	draw_prompt(">");
+#endif
 	cpl.input_state = Command_Mode;
 	cpl.no_echo=FALSE;
 	return;
@@ -566,13 +757,21 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
     if (keycode == firekey[0] || keysym==firekeysym[0] ||
 	keycode == firekey[1] || keysym==firekeysym[1]) {
 		cpl.fire_on=1;
+#ifdef GDK_XUTIL
+		gtk_label_set (GTK_LABEL(fire_label),"Fire");
+#else
 		draw_message_window(0);
+#endif
 		return;
 	}
     if (keycode == runkey[0] || keysym==runkeysym[0] ||
 	keycode==runkey[1] || keysym==runkeysym[1]) {
 		cpl.run_on=1;
+#ifdef GDK_XUTIL
+		gtk_label_set (GTK_LABEL(run_label),"Run");
+#else
 		draw_message_window(0);
+#endif
 		return;
 	}
 
@@ -601,8 +800,14 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
 	if (first_match->flags & KEYF_EDIT) {
 	    strcpy(cpl.input_text, first_match->command);
 	    cpl.input_state = Command_Mode;
+#ifdef GDK_XUTIL
+	    sprintf(buf,"%s", cpl.input_text);
+   	    gtk_entry_set_text(GTK_ENTRY(entrytext),buf);
+	    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+#else
 	    sprintf(buf,">%s", cpl.input_text);
 	    draw_prompt(buf);
+#endif
 	    return;
 	}
 
@@ -630,6 +835,9 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
     if (key>='0' && key<='9') {
 	cpl.count = cpl.count*10 + (key-'0');
 	if (cpl.count>100000) cpl.count%=100000;
+#ifdef GDK_XUTIL
+        gtk_spin_button_set_value (GTK_SPIN_BUTTON(counttext), (float) cpl.count );
+#endif
 	return;
     }
     sprintf(buf, "Key unused (%s%s%s)",
@@ -716,8 +924,23 @@ static void show_keys(int allbindings)
 	  runkeysym[1]==NoSymbol?"unknown":XKeysymToString(runkeysym[1]), runkey[1]);
   draw_info(buf,NDI_BLACK);
 
+  sprintf(buf, "Command Completion Key %s (%d)", 
+	  completekeysym==NoSymbol?"unknown":XKeysymToString(completekeysym),
+	  completekey);
+  draw_info(buf,NDI_BLACK);
 
-  /* Perhaps we should start at 8, so0 that we only show 'active'
+  sprintf(buf, "Next Command in History Key %s (%d)", 
+	  nextkeysym==NoSymbol?"unknown":XKeysymToString(nextkeysym),
+	  nextkey);
+  draw_info(buf,NDI_BLACK);
+
+  sprintf(buf, "Previous Command in History Key %s (%d)", 
+	  prevkeysym==NoSymbol?"unknown":XKeysymToString(prevkeysym),
+	  prevkey);
+  draw_info(buf,NDI_BLACK);
+
+
+  /* Perhaps we should start at 8, so that we only show 'active'
    * keybindings?
    */
   for (i=0; i<=MAX_KEYCODE; i++) {
@@ -739,7 +962,8 @@ void bind_key(char *params)
   char buf[MAX_BUF];
 
   if (!params) {
-    draw_info("Usage: bind [-nfre] {<commandline>/commandkey/firekey{1/2}/runkey{1/2}}",NDI_BLACK);
+    draw_info("Usage: bind [-nfre] {<commandline>/commandkey/firekey{1/2}/runkey{1/2}/",NDI_BLACK);
+    draw_info("           completekey/nextkey/prevkey}",NDI_BLACK);
     return;
   }
 
@@ -781,6 +1005,31 @@ void bind_key(char *params)
     cpl.input_state = Configure_Keys;
     return;
   }
+
+  if (!strcmp(params, "completekey")) {
+    bind_keycode = &completekey;
+    bind_keysym = &completekeysym;
+    draw_info("Push key to bind new command completeion key",NDI_BLACK);
+    cpl.input_state = Configure_Keys;
+    return;
+  }
+
+  if (!strcmp(params, "prevkey")) {
+    bind_keycode = &prevkey;
+    bind_keysym = &prevkeysym;
+    draw_info("Push key to bind new previous command in history key.",NDI_BLACK);
+    cpl.input_state = Configure_Keys;
+    return;
+  }
+
+  if (!strcmp(params, "nextkey")) {
+    bind_keycode = &nextkey;
+    bind_keysym = &nextkeysym;
+    draw_info("Push key to bind new next command in history key.",NDI_BLACK);
+    cpl.input_state = Configure_Keys;
+    return;
+  }
+
 
   if (params[0] != '-')
     bind_flags =KEYF_MODIFIERS;
@@ -859,6 +1108,39 @@ static void save_keys()
 	sprintf(buf2,"Could not open %s, key bindings not saved\n", buf);
 	draw_info(buf2,NDI_BLACK);
 	return;
+    }
+    if (commandkeysym != XK_apostrophe && commandkeysym != NoSymbol) {
+	fprintf(fp, "! commandkey %s %d\n",
+		XKeysymToString(commandkeysym), commandkey);
+    }
+    if (firekeysym[0] != XK_Shift_L && firekeysym[0] != NoSymbol) {
+	fprintf(fp, "! firekey0 %s %d\n",
+		XKeysymToString(firekeysym[0]), firekey[0]);
+    }
+    if (firekeysym[1] != XK_Shift_R && firekeysym[1] != NoSymbol) {
+	fprintf(fp, "! firekey1 %s %d\n",
+		XKeysymToString(firekeysym[1]), firekey[1]);
+    }
+    if (runkeysym[0] != XK_Control_L && runkeysym[0] != NoSymbol) {
+	fprintf(fp, "! runkey0 %s %d\n",
+		XKeysymToString(runkeysym[0]), runkey[0]);
+    }
+    if (runkeysym[1] != XK_Control_R && runkeysym[1] != NoSymbol) {
+	fprintf(fp, "! runkey1 %s %d\n",
+		XKeysymToString(runkeysym[1]), runkey[1]);
+    }
+    if (completekeysym != XK_Tab && completekeysym != NoSymbol) {
+	fprintf(fp, "! completekey %s %d\n",
+		XKeysymToString(completekeysym), completekey);
+    }
+    /* No defaults for these, so if it is set to anything, assume its valid */
+    if (nextkeysym != NoSymbol) {
+	fprintf(fp, "! nextkey %s %d\n",
+		XKeysymToString(nextkeysym), nextkey);
+    }
+    if (prevkeysym != NoSymbol) {
+	fprintf(fp, "! prevkey %s %d\n",
+		XKeysymToString(prevkeysym), prevkey);
     }
 
     for (i=0; i<=MAX_KEYCODE; i++) {
@@ -1002,6 +1284,7 @@ unbinded:
     save_keys();
 }
 
+#ifndef GDK_XUTIL
 
 /* Gets a specified windows coordinates.  This function is pretty much
  * an exact copy out of the server.
@@ -1096,13 +1379,18 @@ void set_window_pos()
     }
 }
 
+#endif
 
 void load_defaults()
 {
     char path[MAX_BUF],inbuf[MAX_BUF],*cp;
     FILE *fp;
 
+#ifdef GDK_XUTIL
+    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
+#else
     sprintf(path,"%s/.crossfire/defaults", getenv("HOME"));
+#endif
     if ((fp=fopen(path,"r"))==NULL) return;
     while (fgets(inbuf, MAX_BUF-1, fp)) {
 	inbuf[MAX_BUF-1]='\0';
@@ -1127,8 +1415,10 @@ void load_defaults()
 		display_mode=Xpm_Display;
 	    if (!strcmp(cp,"png")) 
 		display_mode=Png_Display;
+#ifndef GDK_XUTIL	/* Gdk doesn't support pixmap */
 	    else if (!strcmp(cp,"pixmap"))
 		display_mode = Pix_Display;
+#endif
 	    else fprintf(stderr,"Unknown display specication in %s, %s",
 			   path, cp);
 	    continue;
@@ -1173,7 +1463,33 @@ void load_defaults()
 	    else cpl.food_beep=FALSE;
 	    continue;
 	}
-
+#ifdef GDK_XUTIL
+	if (!strcmp(inbuf,"colorinv")) {
+	    if (!strcmp(cp,"True")) color_inv=TRUE;
+	    else color_inv=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"colortext")) {
+	    if (!strcmp(cp,"True")) color_text=TRUE;
+	    else color_text=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"tooltips")) {
+	  if (!strcmp(cp,"True")) tool_tips=TRUE;
+	  else tool_tips=FALSE;
+	  continue;
+	}  
+	if (!strcmp(inbuf,"splitinfo")) {
+	  if (!strcmp(cp,"True")) splitinfo=TRUE;
+	  else splitinfo=FALSE;
+	  continue;
+	}  
+	if (!strcmp(inbuf,"nopopups")) {
+	  if (!strcmp(cp,"True")) nopopups=TRUE;
+	  else nopopups=FALSE;
+	  continue;
+	}  
+#endif
 	fprintf(stderr,"Got line we did not understand: %s: %s", inbuf, cp);
     }
     fclose(fp);
@@ -1184,7 +1500,11 @@ void save_defaults()
     char path[MAX_BUF],buf[MAX_BUF];
     FILE *fp;
 
+#ifdef GDK_XUTIL
+    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
+#else
     sprintf(path,"%s/.crossfire/defaults", getenv("HOME"));
+#endif
     if (make_path_to_file(path)==-1) {
 	fprintf(stderr,"Could not create %s\n", path);
 	return;
@@ -1215,11 +1535,19 @@ void save_defaults()
     fprintf(fp,"sound: %s\n", nosound?"False":"True");
     fprintf(fp,"command_window: %d\n", cpl.command_window);
     fprintf(fp,"foodbeep: %s\n", cpl.food_beep?"True":"False");
+#ifdef GDK_XUTIL
+    fprintf(fp,"colorinv: %s\n", color_inv?"True":"False");
+    fprintf(fp,"colortext: %s\n", color_text?"True":"False");
+    fprintf(fp,"tooltips: %s\n", color_text?"True":"False");
+    fprintf(fp,"splitinfo: %s\n", splitinfo?"True":"False");
+    fprintf(fp,"nopopups: %s\n", nopopups?"True":"False");
+#endif
     fclose(fp);
     sprintf(buf,"Defaults saved to %s",path);
     draw_info(buf,NDI_BLUE);
 }
 
+#ifndef GDK_XUTIL
 /* determine what we show in the inventory window.  This is a slightly
  * more complicated version than the server side, since we use a bitmask
  * which means we could show things like magical and cursed, or unpaid
@@ -1257,7 +1585,127 @@ void command_show (char *params)
         inv_list.show_what = show_nonmagical;
     else if (!strncmp(params, "locked", strlen(params)))
         inv_list.show_what = show_locked;
+    else if (!strncmp(params, "unlocked", strlen(params)))
+        inv_list.show_what = show_unlocked;
 
     inv_list.env->inv_updated =1;
 }
+#endif
 
+/* This code is somewhat from the crossedit/xutil.c.
+ * What we do is create a private copy of all the images
+ * for ourselves.  Then, if we get a request to display
+ * a new image, we see if we have it in this cache.
+ *
+ * This is only supported for PNG images.  I see now reason
+ * to support the older image formats since they will be 
+ * going away.
+ */
+
+int ReadImages() {
+
+    int		len,i,num ;
+    FILE	*infile;
+    char	*cp, databuf[10000], *last_cp;
+    unsigned long  x;
+#ifndef GDK_XUTIL
+    unsigned long y;
+#endif
+
+    if ((display_mode != Png_Display) || (image_file[0] == 0)) return 0;
+
+    if (!cache_images) {
+	cache_images=1;	    /* we want face commands from server */
+	keepcache=TRUE;	    /* Reduce requests for new image */
+    }
+
+    if ((infile = fopen(image_file,"r"))==NULL) {
+        fprintf(stderr,"Unable to open %s\n", image_file);
+	return 0;
+    }
+    for (i=0; i<MAXPIXMAPNUM; i++)
+	private_cache[0].name = NULL;
+
+    i=0;
+    while (fgets(databuf,MAX_BUF,infile)) {
+
+	/* First, verify that that image header line is OK */
+        if(strncmp(databuf,"IMAGE ",6)!=0) {
+	    fprintf(stderr,"ReadImages:Bad image line - not IMAGE, instead\n%s",databuf);
+	    return 0;
+	}
+        num = atoi(databuf+6);
+        if (num<0 || num > MAXPIXMAPNUM) {
+            fprintf(stderr,"Pixmap number less than zero: %d, %s\n",num, databuf);
+            return 0;
+	}
+	/* Skip accross the number data */
+	for (cp=databuf+6; *cp!=' '; cp++) ;
+	len = atoi(cp);
+	if (len==0 || len>10000) {
+	    fprintf(stderr,"ReadImages: length not valid: %d\n%s",
+                    len,databuf);
+                return 0;
+	}
+	/* We need the name so that when an FaceCmd comes in, we can look for
+	 the matching name.
+	 */
+	while (*cp!=' ' && *cp!='\n') cp++; /* skip over len */
+
+	/* We only want the last component of the name - not the full path */
+	while (*cp != '\n') {
+	    if (*cp == '/') last_cp = cp+1; /* don't want the slah either */
+	    cp++;
+	}
+	*cp = '\0';	/* Clear newline */
+
+	private_cache[num].name = strdup_local(last_cp);
+
+	if (fread(databuf, 1, len, infile)!=len) {
+           fprintf(stderr,"read_client_images: Did not read desired amount of data, wanted %d\n%s",
+                    len, databuf);
+                    return 0;
+	}
+	private_cache[num].checksum=0;
+	for (x=0; x<len; x++) {
+	    ROTATE_RIGHT(private_cache[num].checksum);
+	    private_cache[num].checksum += databuf[x];
+	    private_cache[num].checksum &= 0xffffffff;
+	}
+	if (num > last_face_num) last_face_num = num;
+#ifdef HAVE_LIBPNG
+#ifdef GDK_XUTIL
+	if (png_to_gdkpixmap(gtkwin_root->window, databuf, len, 
+		   &private_cache[num].pixmap, &private_cache[num].mask,
+			 gtk_widget_get_colormap(gtkwin_root))) {
+
+		fprintf(stderr,"Error loading png file.\n");
+	}
+#else
+	if (png_to_xpixmap(display, win_game, databuf, len, 
+		   &private_cache[num].pixmap, &private_cache[num].mask,
+		       &colormap, &x, &y)) {
+
+		fprintf(stderr,"Error loading png file.\n");
+	}
+#endif
+#endif
+    }
+    fclose(infile);
+    use_private_cache=1;
+    return 0;
+}
+
+/* try to find a face in our private cache.  We return the face
+ * number if we find one, -1 for no face match
+ */
+int  find_face_in_private_cache(char *face, int checksum)
+{
+    int i;
+
+    for (i=1; i<=last_face_num; i++)
+	if (!strcmp(face, private_cache[i].name)) {
+	    return i;
+	}
+    return -1;
+}

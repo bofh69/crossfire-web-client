@@ -21,6 +21,8 @@
 /* actually declare the globals */
 
 char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
+char *image_file="";
+
 int port_num=EPORT, meta_port=META_PORT;
 FILE *fpin,*fpout;
 int fdin, fdout, basenrofpixmaps, pending_images=0,maxfiledescriptor,
@@ -277,13 +279,17 @@ int main(int argc, char *argv[])
 	if (!strcmp(server, SERVER) || got_one) {
 	    char *ms;
 	    metaserver_get_info(meta_server, meta_port);
-	    metaserver_show();
+	    metaserver_show(TRUE);
 	    do {
 		ms=get_metaserver();
 	    } while (metaserver_select(ms));
 	    negotiate_connection(sound);
 	} else {
 	    csocket.fd=init_connection(server, port_num);
+	    if (csocket.fd == -1) { /* specified server no longer valid */
+		server = SERVER;
+		continue;
+	    }
 	    negotiate_connection(sound);
 	}
 

@@ -131,11 +131,13 @@ void fire_dir(int dir) {
     char buf[MAX_BUF];
 
     if (cpl.input_state != Playing) return;
-    dfire &= 0xff;
     if (dir!= dfire) {
 	sprintf(buf,"fire %d", dir);
-	send_command(buf, -1, SC_NORMAL);
-	dfire=dir;
+	if (send_command(buf, -1, SC_NORMAL)) {
+	    dfire=dir;
+	}
+    } else {
+	dfire &= 0xff;	/* Mark it so that we need a stop_fire */
     }
 }
 
@@ -148,11 +150,12 @@ void stop_run()
 void run_dir(int dir) {
     char buf[MAX_BUF];
 
-    drun &= 0xff;
     if (dir!=drun) {
 	sprintf(buf,"run %d", dir);
-	send_command(buf, -1, SC_NORMAL);
-	drun=dir;
+	if (send_command(buf, -1, SC_NORMAL))
+	    drun=dir;
+    } else {
+	drun &= 0xff;
     }
 }
 
@@ -164,9 +167,10 @@ void run_dir(int dir) {
  * must_send means we must send this command no matter what (ie, it is
  * an administrative type of command like fire_stop, and failure to send
  * it will cause definate problems
+ * return 1 if command was sent, 0 if not sent.
  */
 
-void send_command(const char *command, int repeat, int must_send) {
+int send_command(const char *command, int repeat, int must_send) {
     char buf[MAX_BUF];
     static char last_command[MAX_BUF]="";
 
@@ -174,7 +178,7 @@ void send_command(const char *command, int repeat, int must_send) {
 	fprintf(stderr,"Wont send command '%s' - since in reply mode!\n ",
 		command);
 	cpl.count=0;
-	return;
+	return 0;
     }
 
     /* Does the server understand 'ncom'? If so, special code */
@@ -187,6 +191,8 @@ void send_command(const char *command, int repeat, int must_send) {
 	 * the same, drop it
 	 */
 	if (commdiff>cpl.command_window && !must_send && !strcmp(command, last_command)) {
+	    if (repeat!=-1) cpl.count=0;
+	    return 0;
 #if 0 /* Obnoxious warning message we don't need */
 	    fprintf(stderr,"Wont send command %s - window oversized %d %d\n",
 		    command, csocket.command_sent, csocket.command_received);
@@ -216,6 +222,7 @@ void send_command(const char *command, int repeat, int must_send) {
 	cs_write_string(csocket.fd, buf, strlen(buf));
     }
     if (repeat!=-1) cpl.count=0;
+    return 1;
 }
 
 void CompleteCmd(unsigned char *data, int len)
@@ -240,7 +247,12 @@ void show_help() {
     draw_info("               commands to server", NDI_BLACK);
     draw_info(" foodbeep    - toggle audible low on food", NDI_BLACK);
     draw_info("               warning", NDI_BLACK);
+    draw_info(" disconnect  - close connection to server", NDI_BLACK);
     draw_info(" magicmap    - show last received magicmap", NDI_BLACK);
+    draw_info(" metaserver  - Get updated list of metaservers", NDI_BLACK);
+    draw_info("               and show it.  Warning: This may", NDI_BLACK);
+    draw_info("               freeze the client until it gets", NDI_BLACK);
+    draw_info("               the update.", NDI_BLACK);
     draw_info(" showicon    - draw status icons in", NDI_BLACK);
     draw_info("               inventory window", NDI_BLACK);
     draw_info(" showweight  - show weight in inventory", NDI_BLACK);
@@ -295,6 +307,12 @@ void extended_command(const char *ocommand) {
 	cpl.showmagic=1;
 	draw_magic_map();
     }
+    else if (!strcmp(cp,"metaserver")) {
+	if (!metaserver_get_info(meta_server, meta_port))
+	    metaserver_show(FALSE);
+	else
+	    draw_info("Unable to get metaserver information.", NDI_BLACK);
+    }
 #ifdef HAVE_DMALLOC_H
 #ifndef DMALLOC_VERIFY_NOERROR
   #define DMALLOC_VERIFY_NOERROR  1
@@ -341,6 +359,11 @@ void extended_command(const char *ocommand) {
     else if (!strcmp(cp,"show")) {
 	command_show(cpnext);
     }
+    else if (!strcmp(cp,"disconnect")) {
+	close(csocket.fd);
+	csocket.fd=-1;
+	return;
+    }
     else if (!strcmp(cp,"inv")) {/* inventory command is sended to server
 				   for debugging purposes */
 	print_inventory (cpl.ob);
@@ -378,3 +401,42 @@ void extended_command(const char *ocommand) {
     }
 }
  
+static char *commands[] = {
+"save", "sound", "party", "gsay", "apply", "brace",
+"cast", "disarm", "disconnect", "drop", "dropall", "examine",
+"get", "help", "hiscore", "inventory", "invoke",
+"listen", "maps", "mapinfo", "mark", "motd",
+"output-sync", "output-count", "peaceful",
+"pickup", "players", "prepare", "quit",
+"rotateshoottype", "rotatespells", "say",
+"shout", "skills", "use_skill", "ready_skill",
+"search", "search-items", "statistics", "take",
+"tell", "throw", "usekeys", "version","wimpy",
+"who", "stay"};
+#define NUM_COMMANDS (sizeof(commands) / sizeof(char*))
+
+/* Player has entered 'command' and hit tab to complete it.  
+ * See if we can find a completion.  Returns matching
+ * command.
+ */
+
+char * complete_command(char *command)
+{
+    int i, match=-1, len;
+    char *cp;
+
+    if (command[0] == '>') cp = command+1;
+    else cp = command;
+    len  = strlen(cp);
+
+    if (len == 0) return cp;
+
+    for (i=0; i<NUM_COMMANDS; i++) {
+	if (!strncmp(cp, commands[i], len)) {
+	    if (match != -1) return cp;
+	    else match = i;
+	}
+    }
+    if (match == -1) return cp;
+    else return commands[match];
+}

@@ -201,7 +201,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
 /* show the metaservers to the player.  we use the draw_info to do
  * that, and also let the player know they can enter their own host name.
  */
-void metaserver_show()
+void metaserver_show(int show_selection)
 {
     int i;
     char buf[256];
@@ -215,13 +215,16 @@ void metaserver_show()
 		meta_servers[i].idle_time);
 	draw_info(buf, NDI_BLACK);
     }
-    /* Show default/current server */
-    sprintf(buf,"%2d)  %s (default)", meta_numservers+1, server);
-    draw_info(buf, NDI_BLACK);
+    if (show_selection) {
+	/* Show default/current server */
+	sprintf(buf,"%2d)  %s (default)", meta_numservers+1, server);
+	draw_info(buf, NDI_BLACK);
 
-    draw_info("Choose one of the entries above", NDI_BLACK);
-    draw_info("or type in a hostname/ip address", NDI_BLACK);
-    draw_info("Enter 0 to exit the program.", NDI_BLACK);
+	draw_info("Choose one of the entries above", NDI_BLACK);
+	draw_info("or type in a hostname/ip address", NDI_BLACK);
+	draw_info("Hit enter to re-update this list", NDI_BLACK);
+	draw_info("Enter 0 to exit the program.", NDI_BLACK);
+    }
 }
 
 /* String contains the selection that the player made for the metaserver.
@@ -234,6 +237,13 @@ int metaserver_select(char *sel)
     int num=atoi(sel);
     char buf[MAX_BUF], *server_name=NULL,*server_ip;
 
+
+    /* User hit return */
+    if (sel[0] == 0) {
+	metaserver_get_info(meta_server, meta_port);
+	metaserver_show(TRUE);
+	return 1;
+    }
 
     /* Special case - player really entered a 0, so exit the
      * program.
