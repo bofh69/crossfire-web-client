@@ -321,7 +321,7 @@ static int need_recenter_map( int dx, int dy)
 {
     
     if( pl_pos.x + dx + mapx >= the_map.x ||
-	pl_pos.y + dx + mapy >= the_map.y ||
+	pl_pos.y + dy + mapy >= the_map.y ||
 	pl_pos.x + dx <= 0                ||
 	pl_pos.y + dy <= 0 )
     {

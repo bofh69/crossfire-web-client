@@ -316,21 +316,6 @@ FILE *fcache;
 
 int misses=0,total=0;
 
-/* BPP is byte per pixels we use for drawing to the screen.
- * In my testing, the overall drawing time took pretty close
- * to the same.  BPP 4 saved some time on the generation
- * (able to do full byte copies), but that was lost on the 
- * actual putting of the image to the screen.  Given its a 
- * wash, might as well use 3 BPP - if nothing else, that saves
- * memory.
- */
-#define BPP	3
-
-/* Pixels representing entire viewable screen.  This amounts to about <BPP> mb */
-
-
-void create_windows (void);
-
 	
 /* main loop iteration related stuff */
 void do_network() {

@@ -226,7 +226,7 @@ static int need_recenter_map( int dx, int dy)
 {
     
     if( pl_pos.x + dx + use_config[CONFIG_MAPWIDTH] +2 >= the_map.x ||
-	pl_pos.y + dx + use_config[CONFIG_MAPHEIGHT] +2 >= the_map.y ||
+	pl_pos.y + dy + use_config[CONFIG_MAPHEIGHT] +2 >= the_map.y ||
 	pl_pos.x + dx -2 <= 0                ||
 	pl_pos.y + dy -2 <= 0 )
     {
@@ -363,14 +363,7 @@ void display_mapscroll(int dx,int dy)
 
 
 		the_map.cells[x][y].need_update= 1;
-        /*After long long long investigations on why the multipart objects did
-          disappear when entering map view from right or bottom, scrolling
-          through whole server code, i concluded the following line should be
-          commented. If a multipart object was on a square outside of map,
-          containing the tail, tail may be cleared by following process and
-          so we end up with things like tower disappearance.
-                    tchize@myrealbox.com*/
-		/*the_map.cells[x][y].cleared= 1;*/
+		the_map.cells[x][y].cleared= 1;
 	    }
 	} /* for y */
     } /* for x */
