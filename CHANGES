@@ -3,6 +3,18 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Add 'show' command back in to list of commands.
+common/external.h: Change prototype of command_show() to match p_cmd.c
+   prototype.
+common/p_cmd.c: Add 'show' to command dispatch table.
+gtk/gtkproto.h: rebuilt
+gtk/gx11.c: change declaration of command_show() to take const char *.
+gtk/sdl.c: Make drawsmooth_sdl() static so it won't be put into gtkproto.h
+   file, which causes compilations to fail.
+x11/x11.c: change declaration of command_show() to take const char *.
+x11/x11proto.h: rebuilt
+MSW 2005-02-26
+
 common/metaserver.c: Once we have read in limit of number of
   metaservers, don't do anymore processing - otherwise, client just
   crashes.

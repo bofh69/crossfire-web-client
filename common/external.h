@@ -84,4 +84,4 @@ extern void unbind_key(const char *params);
 /* Misc commands */
 extern void save_winpos(void);
 extern void save_defaults(void);
-extern void command_show(char *params);
+extern void command_show(const char *params);

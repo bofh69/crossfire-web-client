@@ -705,6 +705,11 @@ static ConsoleCommand CommonCommands[] = {
         do_num_free_items, NULL,
 	"log the number of free items?"
     },
+    {
+        "show", COMM_CAT_SETUP,
+        command_show, NULL,
+	"Change what items to show in inventory"
+    },
 
 };
 

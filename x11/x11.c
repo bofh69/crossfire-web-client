@@ -3500,7 +3500,7 @@ void save_defaults()
  *
  */
 
-void command_show (char *params)
+void command_show (const char *params)
 {
     if(!params) {
 	if (inv_list.show_what==show_all) inv_list.show_what = show_applied;

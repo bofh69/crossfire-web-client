@@ -5202,7 +5202,7 @@ void save_winpos()
     draw_info(buf,NDI_BLUE);
 }
 
-void command_show (char *params)
+void command_show (const char *params)
 {
     if(!params)  {
 	/* Shouldn't need to get current page, but next_page call is not wrapping

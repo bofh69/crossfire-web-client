@@ -1,6 +1,3 @@
-/* Including external.h makes sures that the type definitions agree */
-
-#include <external.h>
 /* config.c */
 extern void applyconfig(void);
 extern void saveconfig(void);
@@ -26,13 +23,17 @@ extern void draw_message_window(int redraw);
 extern void draw_all_list(itemlist *l);
 extern void open_container(item *op);
 extern void close_container(item *op);
+extern void close_container_callback(item *op);
 extern void count_callback(GtkWidget *widget, GtkWidget *entry);
 extern void create_notebook_page(GtkWidget *notebook, GtkWidget **list, GtkWidget **lists, gchar **label);
 extern void draw_lists(void);
+extern void set_show_icon(const char *s);
+extern void set_show_weight(const char *s);
 extern void aboutdialog(GtkWidget *widget);
+extern void createBugTracker(void);
+extern void bugdialog(GtkWidget *widget);
 extern void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButton *event);
 extern void disconnect(GtkWidget *widget);
-extern void chelpdialog(GtkWidget *widget);
 extern void shelpdialog(GtkWidget *widget);
 extern void new_menu_pickup(GtkWidget *button, int val);
 extern void menu_pickup0(void);
@@ -52,22 +53,24 @@ extern void menu_disarm(void);
 extern void menu_spells(void);
 extern void menu_clear(void);
 extern void sexit(void);
+extern void client_exit(void);
 extern void create_splash(void);
 extern void destroy_splash(void);
 extern void create_windows(void);
 extern void set_weight_limit(uint32 wlim);
+extern void set_scroll(const char *s);
+extern void set_autorepeat(const char *s);
 extern int get_info_width(void);
 extern void do_clearlock(void);
 extern void x_set_echo(void);
+extern void draw_info_windows(void);
 extern int do_timeout(void);
-#ifdef WIN32
-extern int do_scriptout(void);
-#endif
+extern int gtk_checkchilds(void);
 extern void draw_magic_map(void);
 extern void magic_map_flash_pos(void);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
 extern void save_winpos(void);
-extern void command_show(char *params);
+extern void command_show(const char *params);
 extern void set_window_pos(void);
 extern int init_windows(int argc, char **argv);
 extern void display_map_doneupdate(int redraw);
@@ -75,7 +78,11 @@ extern void display_map_newmap(void);
 extern void resize_map_window(int x, int y);
 extern void display_map_startupdate(void);
 extern char *get_metaserver(void);
+extern void gtkLogListener(LogEntry *le);
+extern void gLogHandler(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data);
 extern int main(int argc, char *argv[]);
+/* help.c */
+extern void chelpdialog(GtkWidget *widget);
 /* image.c */
 extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
 extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
@@ -84,6 +91,8 @@ extern void image_update_download_status(int start, int end, int total);
 extern void get_map_image_size(int face, uint8 *w, uint8 *h);
 /* keys.c */
 extern void init_keys(void);
+extern void bind_key(const char *params);
+extern void unbind_key(const char *params);
 extern void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void draw_keybindings(GtkWidget *keylist);
@@ -99,7 +108,6 @@ extern void print_map(void);
 extern void set_map_darkness(int x, int y, uint8 darkness);
 extern void display_mapscroll(int dx, int dy);
 extern void reset_map_data(void);
-extern GdkBitmap *createpartialmask(GdkBitmap *mask, int x, int y, int width, int height, int maskwidth, int maskheight);
 extern void drawsmooth(int mx, int my, int layer, int picx, int picy);
 extern void gtk_draw_map(int redraw);
 /* png.c */
@@ -108,9 +116,12 @@ extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 extern int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 /* sdl.c */
-void init_SDL( GtkWidget* sdl_window, int just_lightmap);
-void sdl_gen_map(int redraw);
-void sdl_mapscroll(int dx, int dy);
+extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
+extern void drawquarterlightmap_sdl(int tl, int tr, int bl, int br, int width, int height, int startx, int starty, int endx, int endy, int destx, int desty);
+extern void do_sdl_per_pixel_lighting(int x, int y, int mx, int my);
+extern int sdl_square_need_redraw(int mx, int my);
+extern void sdl_gen_map(int redraw);
+extern void sdl_mapscroll(int dx, int dy);
 /* sound.c */
 extern void signal_pipe(int i);
 extern int init_sounds(void);

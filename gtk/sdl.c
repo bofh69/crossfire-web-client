@@ -611,7 +611,7 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
  * layer layer to examine (we smooth only one layer at a time)
  * dst place on the mapwindow to draw
  */
-void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
+static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
     static int dx[8]={0,1,1,1,0,-1,-1,-1};
     static int dy[8]={-1,-1,0,1,1,1,0,-1};
     static int bweights[8]={2,0,4,0,8,0,1,0};

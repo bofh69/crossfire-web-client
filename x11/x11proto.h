@@ -1,6 +1,5 @@
-#include <external.h>
-
 /* png.c */
+extern uint8 *png_to_data(unsigned char *data, int len, int *width, int *height);
 extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
 extern long pngx_find_color(Display *display, Colormap *cmap, int red, int green, int blue);
 extern int init_pngx_loader(Display *display);
@@ -13,6 +12,7 @@ extern void signal_pipe(int i);
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
 /* x11.c */
+extern int error_handler(Display *dp, XErrorEvent *xe);
 extern void event_loop(void);
 extern void end_windows(void);
 extern void write_ch(char key);
@@ -24,7 +24,11 @@ extern void draw_message_window(int redraw);
 extern void open_container(item *op);
 extern void close_container(item *op);
 extern void draw_lists(void);
+extern void set_show_icon(const char *s);
+extern void set_show_weight(const char *s);
 extern void set_weight_limit(uint32 wlim);
+extern void set_scroll(const char *s);
+extern void set_autorepeat(const char *s);
 extern int get_info_width(void);
 extern void menu_clear(void);
 extern char *get_metaserver(void);
@@ -45,7 +49,7 @@ extern void save_winpos(void);
 extern void set_window_pos(void);
 extern void load_defaults(void);
 extern void save_defaults(void);
-extern void command_show(char *params);
+extern void command_show(const char *params);
 extern int main(int argc, char *argv[]);
 /* xutil.c */
 extern void init_cache_data(void);
@@ -54,7 +58,9 @@ extern void parse_keybind_line(char *buf, int line, int standard);
 extern void init_keys(void);
 extern void parse_key_release(KeyCode kc, KeySym ks);
 extern void parse_key(char key, KeyCode keycode, KeySym keysym, int repeated);
+extern void bind_key(const char *params);
 extern void configure_keys(KeyCode k, KeySym keysym);
+extern void unbind_key(const char *params);
 extern int find_face_in_private_cache(char *face, int checksum);
 extern void image_update_download_status(int start, int end, int total);
 extern void allocate_map(struct Map *new_map, int ax, int ay);
