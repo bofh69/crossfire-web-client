@@ -153,14 +153,14 @@ int GetInt_String(unsigned char *data)
 /* 64 bit version of the above */
 sint64 GetInt64_String(unsigned char *data)
 {
-#ifndef WIN32
-     return (((uint64)data[0]<<56) + ((uint64)data[1]<<48) + 
- 	    ((uint64)data[2]<<40) + ((uint64)data[3]<<32) +
- 	    (data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
-#else
+#ifdef WIN32
     return (((sint64)data[0]<<56) + ((sint64)data[1]<<48) + 
 	    ((sint64)data[2]<<40) + ((sint64)data[3]<<32) +
 	    ((sint64)data[4]<<24) + ((sint64)data[5]<<16) + ((sint64)data[6]<<8) + (sint64)data[7]);
+#else
+     return (((uint64)data[0]<<56) + ((uint64)data[1]<<48) +
+ 	    ((uint64)data[2]<<40) + ((uint64)data[3]<<32) +
+ 	    ((uint64)data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
 #endif
 }
 
