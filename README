@@ -134,7 +134,7 @@ next buffer, before last is played.
 ------------------------------------------------------------------------------
 Authors of the client:
 
-Mark Wedel (mark@pyramid.com) - general client source and Xlib client
+Mark Wedel (mwedel@scruznet.com) - general client source and Xlib client
 David Sundqvist (azzie@netpolicy.com) - GTK+ port
 Raphael Quinet (Raphael.Quinet@eed.ericsson.se) - Configure scripts and
 graphics
