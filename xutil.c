@@ -1,10 +1,16 @@
-#include <X11/keysym.h>
-#include "def-keys.h"
-/* This contains varous 'support' functions.  These functions will probably
+/*
+ * static char *rcsid_xio_c =
+ *   "$Id$";
+ *
+ * This contains varous 'support' functions.  These functions will probably
  * go mostly unaltered between different toolkits, as long as X11 is still
  * used.  This file is not compiled seperately, rather it is included by
  * x11.c, so all statics will still work fine.
  */
+
+#include <X11/keysym.h>
+#include "def-keys.h"
+
 
 static char *colorname[] = {
 "Black",                /* 0  */
@@ -710,7 +716,7 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
     sprintf(buf, "Key unused (%s%s%s)",
           (cpl.fire_on? "Fire&": ""),
           (cpl.run_on ? "Run&" : ""),
-          XKeysymToString(keysym));
+          keysym==NoSymbol? "unknown": XKeysymToString(keysym));
     draw_info(buf,NDI_BLACK);
     cpl.count=0;
 }
@@ -778,16 +784,17 @@ static void show_keys(int allbindings)
   Key_Entry *key;
   char buf[MAX_BUF];
 
-  sprintf(buf, "Commandkey %s (%d)", XKeysymToString(commandkeysym),
-	commandkey);
+  sprintf(buf, "Commandkey %s (%d)", 
+	  commandkeysym==NoSymbol?"unknown":XKeysymToString(commandkeysym),
+	  commandkey);
   draw_info(buf,NDI_BLACK);
   sprintf(buf, "Firekeys 1: %s (%d), 2: %s (%d)",
-	  XKeysymToString(firekeysym[0]), firekey[0],
-	  XKeysymToString(firekeysym[1]), firekey[1]);
+	  firekeysym[0]==NoSymbol?"unknown":XKeysymToString(firekeysym[0]), firekey[0],
+	  firekeysym[1]==NoSymbol?"unknown":XKeysymToString(firekeysym[1]), firekey[1]);
   draw_info(buf,NDI_BLACK);
   sprintf(buf, "Runkeys 1: %s (%d), 2: %s (%d)",
-	  XKeysymToString(runkeysym[0]), runkey[0],
-	  XKeysymToString(runkeysym[1]), runkey[1]);
+	  runkeysym[0]==NoSymbol?"unknown":XKeysymToString(runkeysym[0]), runkey[0],
+	  runkeysym[1]==NoSymbol?"unknown":XKeysymToString(runkeysym[1]), runkey[1]);
   draw_info(buf,NDI_BLACK);
 
 
@@ -979,7 +986,8 @@ static void configure_keys(KeyCode k, KeySym keysym)
 	insert_key(keysym, k, bind_flags, bind_buf);
   }
 
-  sprintf(buf, "Binded to key '%s' (%i)", XKeysymToString(keysym), (int)k);
+  sprintf(buf, "Binded to key '%s' (%i)", 
+	  keysym==NoSymbol?"unknown":XKeysymToString(keysym), (int)k);
   draw_info(buf,NDI_BLACK);
   cpl.fire_on=0;
   cpl.run_on=0;

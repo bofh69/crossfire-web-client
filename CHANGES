@@ -1,5 +1,9 @@
 Changes for CVS tree top:
 
+Add checks to xutil.c to verify we have a valid keysym before trying
+to convert it to a string and print it out.  Before, this could result
+in trying to print null strings, which would cause a crash - msw.
+
 fix unbind and bind in xutil.c so they properly skip over leading spaces
 - msw.
 
