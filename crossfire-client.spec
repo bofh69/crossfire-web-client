@@ -96,6 +96,19 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/sounds/crossfire/*
 
 %changelog
+* Tue Mar 10 2001 Bob Tanner <tanner@real-time.com>
+- Rolled new client 0.98.0 with Mark's changes listed next
+
+* Wed Mar 10 2001 Mark Wedel <mwedel@scruz.net>
+- Change matching for sword - hopefully this should fix problems with dancing
+  sword spellbooks.
+- Move animations of the look window to the client.  All the necessary was
+  already being sent to the client - it was just needed for the client to use 
+  this information.  Also remove some 
+- Only resort items based on name if the name has changed.  This fixes a problem
+  with items moving around in the inventory if you lock/apply/unapply/unlock 
+  them. 
+
 * Wed Mar 21 2001 Bob Tanner <tanner@real-time.com>
 - Rolled new client 0.97.0 with Mark's changes listed next
 
