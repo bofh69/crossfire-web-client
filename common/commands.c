@@ -1020,7 +1020,7 @@ static void set_map_face(int x, int y, int layer, int face)
                 ry=y+dy[i];
                 if ( (rx<0) || (ry<0) || (the_map.x<=rx) || (the_map.y<=ry))
                     continue;
-                the_map.cells[x][y].need_resmooth=1;  
+                the_map.cells[rx][ry].need_resmooth=1;  
             }
     }
     the_map.cells[x][y].need_update = 1;
