@@ -6,6 +6,7 @@
     Crossfire client, a client program for the crossfire program.
 
     Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2003 Tim Hentenaar
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,12 +40,14 @@
  * If you have any problems please e-mail me.
  */
 
+/* ALSA9 Support added by Tim Henteaar (3/10/2003) */
+
 /*#define ALSA_SOUND*/
 /*#define OSS_SOUND*/
 /*#define SGI_SOUND*/
 /*#define SUN_SOUND*/
 
-/*#define SOUND_DEBUG*/
+#define SOUND_DEBUG
 
 #include "config.h"
 
@@ -86,7 +89,16 @@
 #if defined(ALSA_SOUND)
 #  include <sys/asoundlib.h>
 #  define AUDIODEV "/dev/dsp"
-snd_pcm_t *handle=NULL;
+    snd_pcm_t *handle=NULL;
+#elif defined(ALSA9_SOUND)
+#define ALSA_PCM_NEW_HW_PARAMS_API
+#include <alsa/asoundlib.h>
+#include <alsa/pcm_plugin.h>
+#define AUDIODEV "default:0,0"
+snd_pcm_t *handle = NULL;
+int sndbuf_pos=0;
+#define ALSA9_ERROR(str,err) { \
+		fprintf(stderr,"ALSA9 Error: %s %s\n",str,snd_strerror(err)); }
 #elif defined(OSS_SOUND)
 #  include <sys/soundcard.h>
 #  define AUDIODEV "/dev/dsp"
@@ -96,12 +108,12 @@ snd_pcm_t *handle=NULL;
 #elif defined(SUN_SOUND)
 #  include <sys/audioio.h>
 #  define AUDIODEV "/dev/audio"
-#else 
+#else
 #error Not known sound system defined
 #endif
 
 #define CONFIG_FILE "/.crossfire/sndconfig"
-#define MAX_SOUNDS 1024 
+#define MAX_SOUNDS 1024
 
 /*
  * A replacement of strdup(), since it's not defined at some
@@ -275,6 +287,117 @@ static void parse_sound_line(char *line, int lineno) {
 	lastnum=newnum;
     }
 }
+
+#ifdef ALSA9_SOUND
+
+snd_pcm_hw_params_t *params;
+int err = 0;
+
+void alsa_audio_close() { snd_pcm_close(handle); }
+
+void alsa_recover(int e) {
+	/* Recover from various errors */
+	if (e == -EPIPE) {
+		err = snd_pcm_prepare(handle);
+		if (err < 0) {
+			ALSA9_ERROR("alsa_recover(): Unable to recover from underrun. ",err);
+			return;
+		}
+	} else if (e == -ESTRPIPE) {
+		while ((err = snd_pcm_resume(handle)) == -EAGAIN) sleep(1);
+		if (err < 0) {
+			err = snd_pcm_prepare(handle);
+			if (err < 0) {
+				ALSA9_ERROR("alsa_recover(): Unable to recover from suspend. ",err);
+				return;
+			}
+		}
+	} else ALSA9_ERROR("alsa_recover(): ",e);
+	
+}
+	
+
+int init_audio() {
+
+  /* open the PCM device */
+  if ((err = snd_pcm_open(&handle,AUDIODEV,SND_PCM_STREAM_PLAYBACK,0)) <0) {
+	ALSA9_ERROR("init_audio(): ",err);
+	exit(1);
+  }
+
+  atexit(alsa_audio_close);
+
+  /* allocate and zero out params */
+  snd_pcm_hw_params_alloca(&params);
+  if ((err = snd_pcm_hw_params_any(handle,params)) <0) {
+	ALSA9_ERROR("init_audio(): ",err);
+	exit(1);
+  }
+
+  /* set the access mode (interleaved) */
+  if ((err = snd_pcm_hw_params_set_access(handle,params,SND_PCM_ACCESS_RW_INTERLEAVED)) <0) {
+	ALSA9_ERROR("init_audio(): ",err);
+	exit(1);
+  }
+
+  /* set the format */
+  
+  unsigned int format;
+
+  if (settings.bit8)
+	format = settings.sign?SND_PCM_FORMAT_S8:SND_PCM_FORMAT_U8;
+  else 
+	format = settings.sign?SND_PCM_FORMAT_S16:SND_PCM_FORMAT_U16;
+
+  if ((err = snd_pcm_hw_params_set_format(handle,params,format))<0) {
+	ALSA9_ERROR("init_audio(): ",err);
+	exit(1);
+  }
+
+  /* set the number of channels */
+  unsigned int channels = settings.stereo?2:1;
+  if ((err = snd_pcm_hw_params_set_channels(handle,params,channels))<0) {
+	ALSA9_ERROR("init_audio(): ",err);
+	exit(1);
+   }
+
+  stereo = settings.stereo?1:0;
+
+  /* set the rate (our frequency, or closest match) */
+  unsigned int r = (unsigned int)settings.frequency;
+  if (r == 0) r = 41100;
+  int dir = 0;
+  frequency = snd_pcm_hw_params_set_rate_near(handle,params,&r,&dir);
+
+  /* get sample size */
+  sample_size = (snd_pcm_format_physical_width(format) * channels);
+  #ifdef SOUND_DEBUG
+	printf("init_audio(): sample_size = %d\n",sample_size);
+  #endif
+
+ 
+
+  /* apply the settings */
+  if ((err = snd_pcm_hw_params(handle,params))<0) {
+	ALSA9_ERROR("init_audio(): ",err);
+	exit(1);
+  }
+
+  return 0;
+}
+
+int audio_play(int buffer, int off) {
+	snd_pcm_prepare(handle);
+	err = snd_pcm_writei(handle,buffers+settings.buflen*buffer+off,settings.buflen-off);
+	if (err < 0) {
+		alsa_recover(err);
+		return 0;
+	} else return err;
+}
+
+
+	
+#endif
 
 #if defined(ALSA_SOUND)
 int init_audio(){
@@ -681,7 +804,9 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
     double dist;
 
     buf=current_buffer;
-    if (buf>=settings.buffers) buf=0;
+    if (buf>=settings.buffers) buf=1;
+
+    if (buf == 0) buf++;
 
     /* check if the buffer isn't full */
 #ifdef SOUND_DEBUG    
@@ -693,10 +818,14 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 	fprintf(stderr,"Invalid sound number: %d\n", soundnum);
 	return;
     }
+#ifndef ALSA9_SOUND
     if (soundfd==-1) {
 	fprintf(stderr,"Sound device is not open\n");
 	return;
     }
+#endif
+
+    if (soundtype < SOUND_NORMAL || soundtype == 0) soundtype = SOUND_NORMAL;
 
     if (soundtype==SOUND_NORMAL) {
 	si = &normal_sounds[soundnum];
@@ -832,6 +961,26 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 		first_free_buffer = buf+1;
     }
     if (first_free_buffer >= settings.buffers) first_free_buffer=0;
+
+#ifdef ALSA9_SOUND
+    /* if we use ALSA9 we need to play it here too */
+     if (current_buffer != first_free_buffer) {  
+      int wrote = audio_play(current_buffer, sndbuf_pos);
+#ifdef SOUND_DEBUG
+      printf("play_sound(): wrote %d\n",wrote);
+#endif
+      if (wrote < settings.buflen-sndbuf_pos) sndbuf_pos+=wrote;
+      else{ 
+             /* clean the buffer */
+	     memset(buffers+settings.buflen*current_buffer,zerolevel,settings.buflen);
+             sounds_in_buffer[current_buffer]=0;
+	     sndbuf_pos=0;
+	     current_buffer++;
+             if (current_buffer>=settings.buffers) current_buffer=0;
+       } 
+     } 
+    
+#endif
 }
 
 int SoundCmd(unsigned char *data,  int len)
@@ -926,16 +1075,25 @@ int main(int argc, char *argv[])
 {
     int infd;
     char inbuf[1024];
+#ifndef ALSA9_SOUND
     int inbuf_pos=0,sndbuf_pos=0;
+#else
+    int inbuf_pos=0;
+#endif
     fd_set inset,outset;
 
     if (read_settings()) write_settings();
     if (init_sounds()) return 1;
+#ifndef ALSA9_SOUND
+    /* we don't use the file descriptor method */
     if (!soundfd) return 1;
+#endif
     infd=fileno(stdin);
     FD_ZERO(&inset);
     FD_ZERO(&outset);
+#ifndef ALSA9_SOUND
     FD_SET(soundfd,&outset);
+#endif
     FD_SET(infd,&inset);
     while(1){
 #if defined(SGI_SOUND)
@@ -947,6 +1105,10 @@ int main(int argc, char *argv[])
       */
       ALsetfillpoint(soundport,100000);
 #endif
+
+#ifdef ALSA9_SOUND
+      select(FD_SETSIZE,&inset,NULL,NULL,NULL);
+#else
 
       select(FD_SETSIZE,&inset,&outset,NULL,NULL);
 
@@ -972,6 +1134,8 @@ int main(int argc, char *argv[])
 	 */
 	FD_SET(soundfd,&outset);
       }
+#endif
+
       if (FD_ISSET(infd,&inset)){
         int err=read(infd,inbuf+inbuf_pos,1);
 	if (err<1 && errno!=EINTR){
@@ -980,7 +1144,11 @@ int main(int argc, char *argv[])
 	}  
         if (inbuf[inbuf_pos]=='\n'){
 	  inbuf[inbuf_pos++]=0;
+#ifndef ALSA9_SOUND
           if (!SoundCmd((unsigned char*)inbuf,inbuf_pos)) FD_SET(soundfd,&outset);
+#else
+	  SoundCmd((unsigned char *)inbuf,inbuf_pos);
+#endif
           inbuf_pos=0;
         }
         else{
@@ -993,5 +1161,6 @@ int main(int argc, char *argv[])
       }
       FD_SET(infd,&inset);
     }
+
     return 0;
 }
