@@ -275,7 +275,28 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	    fprintf(stderr,"Got error on png_to_data, file=%s\n",buf);
 	    requestface(pnum, face, buf);
 	}
-	/* even if using pngximage, we standard image for the inventory list */
+#ifdef HAVE_SDL
+	else if (sdlimage) {
+	    SDL_RWops *ops= SDL_RWFromMem( data, len);
+	    surfaces[pnum].surface= IMG_LoadTyped_RW( ops, 1, (char*)"PNG");
+	
+	    /*
+	     * Not sure if this is an error condition or not...
+	     * below it makes a call to requestface but if he does it,
+	     * we don't have to.
+	     */
+	    /* Just leaving this code from Scott in place.  Maybe it will be used
+	     * at some point? - MSW
+	     */
+	    if( surfaces[pnum].surface == NULL)
+	    {
+	    }
+	    else 
+	    {
+	    }
+	}
+#endif /* HAVE_SDL */
+	/* even if using pngximage or SDL we still need standard image for the inventory list */
 	if (png_to_gdkpixmap(gtkwin_root->window, data, len, &pixmaps[pnum].gdkpixmap, 
 		 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
 	    fprintf(stderr,"Got error on png_to_gdkpixmap, file=%s\n",buf);
@@ -283,7 +304,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	}
 #endif
     }
-#else
+#else /* Not GDK_XUTIL */
     if (display_mode==Xpm_Display) {
 	XpmAttributes xpm_attr;
 
@@ -308,7 +329,29 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	    pixmaps[pnum].pixmap = pixmap;
 	    pixmaps[pnum].mask = mask;
 	}
-#endif
+
+#if defined(GDK_XUTIL) && defined(HAVE_SDL)
+	if (sdlimage) {
+	    fprintf( stdout, "Getting PNG face %d data from memory\n", pnum);
+	    SDL_RWops *ops= SDL_RWFromMem( data, len);
+	    surfaces[pnum].surface= IMG_LoadTyped_RW( ops, 1, (char*)"PNG");
+	
+	    /*
+	     * Not sure if this is an error condition or not...
+	     * below it makes a call to requestface but if he does it,
+	     * we don't have to.
+	     */
+	    if( surfaces[pnum].surface == NULL)
+	    {
+	    }
+	    else 
+	    {
+	    }
+	}
+    }
+#endif /* GDK_XUTIL and HAVE_SDL*/
+
+#endif /* HAVE_LIBPNG */
     } else if (display_mode==Pix_Display) {
 	pixmaps[pnum].bitmap = XCreateBitmapFromData(display,
 		RootWindow(display,DefaultScreen(display)),
@@ -1498,7 +1541,25 @@ void load_defaults()
 	  else nopopups=FALSE;
 	  continue;
 	}  
-#endif
+	/* Only SDL actually uses these values, but we can still preserver
+	 * them even if they are not being used.
+	 */
+	if( !strcmp( inbuf,"Lighting")) {
+	  if( !strcmp( cp, "per_pixel")) {
+	    per_pixel_lighting= 1;
+	    per_tile_lighting= 0;
+	  } else if( !strcmp( cp, "per_tile")) {
+	    per_pixel_lighting= 0;
+	    per_tile_lighting= 1;
+	  }
+	  continue;
+	}
+	if( !strcmp( inbuf,"show_grid")) {
+	  if( !strcmp( cp, "True")) show_grid = TRUE;
+	  else show_grid = FALSE;
+	  continue;
+	}
+#endif	/* GDK_XUTIL */
 	fprintf(stderr,"Got line we did not understand: %s: %s\n", inbuf, cp);
     }
     fclose(fp);
@@ -1552,7 +1613,13 @@ void save_defaults()
     fprintf(fp,"tooltips: %s\n", color_text?"True":"False");
     fprintf(fp,"splitinfo: %s\n", splitinfo?"True":"False");
     fprintf(fp,"nopopups: %s\n", nopopups?"True":"False");
-#endif
+    if( per_pixel_lighting)
+      fprintf( fp, "Lighting: per_pixel\n");
+    else
+      fprintf( fp, "Lighting: per_tile\n");
+    fprintf( fp,"show_grid: %s\n", show_grid?"True":"False");
+#endif /* GDK_XUTIL */
+
     fclose(fp);
     sprintf(buf,"Defaults saved to %s",path);
     draw_info(buf,NDI_BLUE);
@@ -1758,6 +1825,25 @@ void display_map_clearcell(long x,long y)
 	the_map.cells[x][y].faces[i] = -1;  /* empty/blank face */
 }
 
+void print_darkness()
+{
+
+  int x= 0;
+  int y= 0;
+
+  for( y= 0; y < mapy; y++)
+    {
+      for( x= 0; x < mapx; x++)
+	{
+	  if( the_map.cells[x][y].count== 0)
+	    fprintf( stderr, "[ - ]");
+	  else
+	    fprintf( stderr, "[%3d]", the_map.cells[x][y].darkness);
+	}
+      fprintf( stderr, "\n");
+    }
+}
+
 void set_map_darkness(int x, int y, uint8 darkness)
 {
     the_map.cells[x][y].have_darkness = 1;
@@ -1770,13 +1856,13 @@ void set_map_darkness(int x, int y, uint8 darkness)
 	 * let the neighbors know they should update their darkness
 	 * now.
 	 */
-	if (pngximage) {
+	if (pngximage || sdlimage) {
 	    if (x-1>0) the_map.cells[x-1][y].need_update = 1;
 	    if (y-1>0) the_map.cells[x][y-1].need_update = 1;
 	    if (x+1<mapx) the_map.cells[x+1][y].need_update = 1;
 	    if (y+1<mapy) the_map.cells[x][y+1].need_update = 1;
 	}
-#endif
+#endif /* GDK_XUTIL */
     }
 }
 

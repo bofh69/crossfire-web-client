@@ -93,6 +93,15 @@ done to make performance is still acceptable.  This option does
 not affect bandwidth - it only affects cpu performancs.
 
 .TP
+.B -sdl
+gcfclient only.  Will only be available if the SDL library was
+available when the client was compiles.  This is similar to
+-pngximage above - it still uses png images, but uses the SDL
+library to actualy draw them to the screen.  This is slightly faster
+than -pngximage - if you have SDL, you should use this instead of
+-pngximage.
+
+.TP
 .B -showicon
 This shows a little icon next to items in your inventory that contains
 a brief description of some of the item properties (magic, cursed,
@@ -277,6 +286,7 @@ Please let me know about any bugs you find in the client.
 .SH AUTHOR
 Copyright (C) 1994,2000 Mark Wedel (mwedel@scruz.net)
 GTK port by David Sundqvist (azzie@netpolicy.com)
+SDL support added by Scott MacFiggen (smurf@CSUA.Berkeley.EDU)
 
 There are a great many other contributors to both the client and server
 that are not mentioned here.

@@ -72,6 +72,8 @@
 /* Define if you have the png library (-lpng).  */
 #undef HAVE_LIBPNG
 
+#undef HAVE_SDL
+
 /* Name of package */
 #undef PACKAGE
 

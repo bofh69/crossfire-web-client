@@ -3,6 +3,20 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+This checkin puts Scott MacFiggen's SDL support into the gtk client.
+I've made some enhancements to the code - it can now co-exist with 
+the other image formats (so if all the libraries are available, you can
+choose from -xpm, vanilla -png, -png -pngximage or -sdl (which also
+forces -png).
+aclocal.m4, configure, configure.in: Add checks for SDL.
+client.man: Update with -sdl option.
+config.h, config.h.in: Add HAVE_SDL define
+gx11.c, xutil.c: Support for SDL drawing.  A lot of the code in
+    xutil.c is command with that of pngximage.  gx11.c adds some additional
+    options beyond just the drawing - per tile darkness and gridline options
+    available under the client config window.
+MSW 2001-06-17
+
 client.c,client.h: Add want_darkness global variable, include when in setup
    command we send server.
 client.man,gx11.c,x11.c: Update to include -darkness/-nodarkness command

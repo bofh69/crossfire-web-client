@@ -28,7 +28,7 @@
 /* #undef HAVE_GETTEXT */
 /* #undef HAVE_LC_MESSAGES */
 /* #undef HAVE_STPCPY */
-#define HAVE_LIBSM 1
+/* #undef HAVE_LIBSM */
 #define HAVE_LIBXPM 1
 
 /* Define if you have the mkdir function.  */
@@ -44,10 +44,10 @@
 #define HAVE_SYSCONF 1
 
 /* Define if you have the <X11/SM/SMlib.h> header file.  */
-#define HAVE_X11_SM_SMLIB_H 1
+/* #undef HAVE_X11_SM_SMLIB_H */
 
 /* Define if you have the <dmalloc.h> header file.  */
-/* #undef HAVE_DMALLOC_H */
+#define HAVE_DMALLOC_H 1
 
 /* Define if you have the <fcntl.h> header file.  */
 #define HAVE_FCNTL_H 1
@@ -72,6 +72,8 @@
 
 /* Define if you have the png library (-lpng).  */
 #define HAVE_LIBPNG 1
+
+#define HAVE_SDL 1
 
 /* Name of package */
 #define PACKAGE "gcfclient"

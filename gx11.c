@@ -111,6 +111,26 @@
 #include "png.c"
 #endif
 
+#ifdef HAVE_SDL
+#include <SDL.h>
+#include <SDL_image.h>
+
+
+static void do_SDL_error( gchar* SDL_function, gchar* file, int line)
+{
+  fprintf( stderr, "ERROR on %s in file %s line %d\n%s\n", SDL_function,
+	   file, line, SDL_GetError());
+  SDL_Quit();
+  exit( 1);
+}
+
+typedef struct 
+{
+  SDL_Surface *surface;
+} SurfaceInfo;
+
+#endif /* HAVE_SDL */
+
 #define MAXPIXMAPNUM 10000
 #define GDK_XUTIL
 
@@ -252,6 +272,7 @@ static int gargc;
 
 Display_Mode display_mode = DISPLAY_MODE;
 
+
 static uint8	
     split_windows=FALSE,
     cache_images=FALSE,
@@ -261,7 +282,16 @@ static uint8
     color_text=FALSE,
     tool_tips=FALSE,
     bigmap=FALSE,	/* True if we've moved some windows around for big maps */
-    pngximage=FALSE;
+    pngximage=FALSE,
+    sdlimage=FALSE;
+
+/* Only used in SDL code, but we want to preserve values when loading/
+ * saving even if we don't have SDL
+ */
+static int per_pixel_lighting= 1;
+static int per_tile_lighting= 0;
+static int show_grid= FALSE;
+
 
 /* Don't define this unless you want stability problems */
 #undef TRIM_INFO_WINDOW
@@ -321,6 +351,15 @@ static GtkWidget *mapvbox;
 
 
 static struct PixmapInfo pixmaps[MAXPIXMAPNUM];
+
+#ifdef HAVE_SDL
+static SurfaceInfo surfaces[MAXPIXMAPNUM];
+
+/* Actual SDL surface the game view is painted on */
+static SDL_Surface* mapsurface;
+static SDL_Surface* lightmap;
+#endif
+
 #define INFOLINELEN 500
 #define XPMGCS 100
 
@@ -333,6 +372,12 @@ static GtkWidget *ccheckbutton6;
 static GtkWidget *ccheckbutton7;
 static GtkWidget *ccheckbutton8;
 static GtkWidget *inv_notebook;
+
+#ifdef HAVE_SDL
+static GtkWidget *cradiobutton1;
+static GtkWidget *cradiobutton2;
+static GtkWidget *ccheckbutton9;
+#endif
 
 static GtkTooltips *tooltips;
 
@@ -437,6 +482,187 @@ static uint8 screen[SCREEN_SIZE];
 static guchar map_did_scroll=0;
 
 #include "xutil.c"
+
+#ifdef HAVE_SDL
+static void overlay_grid( int re_init, int ax, int ay)
+{
+
+  static SDL_Surface* grid_overlay;
+
+  static int first_pass;
+
+  int x= 0;
+  int y= 0;
+  SDL_Rect dst;
+  Uint32 *pixel;
+  SDL_PixelFormat* fmt;
+
+  if( re_init == TRUE)
+    {
+      if( grid_overlay)
+	SDL_FreeSurface( grid_overlay);
+
+      first_pass= 0;
+      grid_overlay= NULL;
+    }
+
+  if( grid_overlay == NULL)
+    {
+      grid_overlay= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, 
+					  mapx*image_size,
+					  mapy*image_size,
+					  mapsurface->format->BitsPerPixel,
+					  mapsurface->format->Rmask,
+					  mapsurface->format->Gmask,
+					  mapsurface->format->Bmask,
+					  mapsurface->format->Amask);
+      if( grid_overlay == NULL)
+	abort();
+
+      grid_overlay= SDL_DisplayFormatAlpha( grid_overlay);
+
+      first_pass= 0;
+    }
+
+  /* 
+   * If this is our first time drawing the grid, we need to build up the 
+   * grid overlay
+   */
+  if( first_pass== 0)
+    {
+
+      /* Red pixels around the edge and along image borders
+       * fully transparent pixels everywhere else
+       */
+      
+      fmt= grid_overlay->format;
+      for( x= 0; x < image_size*mapx; x++)
+	{
+	  for( y= 0; y < image_size*mapy; y++)
+	    {
+	      /* FIXME: Only works for 32 bit displays right now */
+	      pixel= (Uint32*)grid_overlay->pixels+y*grid_overlay->pitch/4+x;
+
+	      if( x == 0 || y == 0 || 
+		  ((x % image_size) == 0) || ((y % image_size) == 0 ) )
+		{
+		  *pixel= SDL_MapRGBA( fmt, 255, 0, 0, SDL_ALPHA_OPAQUE);
+		}
+	      else 
+		{
+		  *pixel= SDL_MapRGBA( fmt, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
+		}
+	    }
+	}
+      first_pass= 1;
+
+      /* 
+       * If this is our first pass then we need to overlay the entire grid
+       * now. Otherwise we just update the tile we are on
+       */
+      dst.x= 0;
+      dst.y= 0;
+      dst.w= image_size*mapx;
+      dst.h= image_size*mapy;
+      SDL_BlitSurface( grid_overlay, NULL, mapsurface, &dst);
+    } 
+  else 
+    {
+      dst.x= ax* image_size;
+      dst.y= ay* image_size;
+      dst.w= image_size;
+      dst.h= image_size;
+      /* One to one pixel mapping of grid and mapsurface so we
+       * can share the SDL_Rect
+       */
+      SDL_BlitSurface( grid_overlay, &dst, mapsurface, &dst);
+    }
+
+  return;
+}
+
+/*
+ * Takes two args, the first is the GtkWindow to draw on, this should always
+ * be 'drawingarea'. The second is a boolean, if 0 then the whole
+ * SDL system in initialized or reinited if already run once before,
+ * if non zero then only the lightmap is rebuilt, if we switch between
+ * per-pixel or per-tile lighting 
+ */
+static void init_SDL( GtkWidget* sdl_window, int just_lightmap)
+{
+
+  char SDL_windowhack[32];
+
+  if( just_lightmap == 0)
+    {
+
+      g_assert( sdl_window != NULL);
+      if( SDL_WasInit( SDL_INIT_VIDEO) != 0)
+	{
+	  if( lightmap)
+	    SDL_FreeSurface( lightmap);
+	  if( mapsurface)
+	    SDL_FreeSurface( mapsurface);
+	  
+	  SDL_Quit();
+	}
+
+      /* 
+       * SDL hack to tell SDL which xwindow to paint onto 
+       */
+      sprintf( SDL_windowhack, "SDL_WINDOWID=%ld",
+	       GDK_WINDOW_XWINDOW(sdl_window->window) );
+      putenv( SDL_windowhack);
+      
+      if( SDL_Init( SDL_INIT_VIDEO) < 0)
+	{
+	  fprintf( stderr, "Could not initialize SDL: %s\n", SDL_GetError());
+	  gtk_main_quit();
+	}
+
+      mapsurface= SDL_SetVideoMode( image_size*mapx, image_size*mapy, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
+      
+      if( mapsurface == NULL)
+	{
+	  do_SDL_error( "SetVideoMode", __FILE__, __LINE__);
+	}
+    }
+
+  if( just_lightmap != 0)
+    {
+      if( lightmap) SDL_FreeSurface( lightmap);
+    }
+  
+  
+  lightmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, image_size,
+				  image_size,
+				  mapsurface->format->BitsPerPixel,
+				  mapsurface->format->Rmask,
+				  mapsurface->format->Gmask,
+				  mapsurface->format->Bmask,
+				  mapsurface->format->Amask);
+  if( lightmap == NULL)
+    {
+      do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
+    }
+  
+  if( per_pixel_lighting)
+    {
+      /* Convert surface to have a full alpha channel if we are doing
+       * per-pixel lighting */
+      lightmap= SDL_DisplayFormatAlpha( lightmap);
+      if( lightmap == NULL)
+	{
+	  do_SDL_error( "DisplayFormatAlpha", __FILE__, __LINE__);
+	}
+    }
+
+  if( show_grid == TRUE)
+    {
+      overlay_grid( TRUE, 0, 0);
+    }
+}
+#endif /* HAVE_SDL */
 
 void create_windows (void);
 
@@ -731,6 +957,30 @@ static void init_cache_data()
 							&style->bg[GTK_STATE_NORMAL],
 							(gchar **)question);
     
+#ifdef HAVE_SDL
+    /* SDL has totally lame support for loading XPM images, its rgb.txt database
+     * consists of 6 colors so we will just use a blue tile or something
+     * instead of a question mark
+     */
+    if (sdlimage) {
+	surfaces[0].surface= SDL_CreateRGBSurface( SDL_HWSURFACE,
+					       image_size,
+					       image_size,
+					       mapsurface->format->BitsPerPixel,
+					       mapsurface->format->Rmask,
+					       mapsurface->format->Gmask,
+					       mapsurface->format->Bmask,
+					       mapsurface->format->Amask);
+
+	if( surfaces[0].surface == NULL)
+	    do_SDL_error( "CreateRGBSurface", __FILE__, __LINE__);
+
+	if ( SDL_FillRect( surfaces[0].surface, NULL, 
+			  SDL_MapRGB( mapsurface->format, 0, 0, 255)) < 0)
+	do_SDL_error( "FillRect", __FILE__, __LINE__);
+    }
+#endif
+
     pixmaps[0].bg = 0;
     pixmaps[0].fg = 1;
     facetoname[0]=NULL;
@@ -738,6 +988,10 @@ static void init_cache_data()
     /* Initialize all the images to be of the same value. */
     for (i=1; i<MAXPIXMAPNUM; i++)  {
 	pixmaps[i]=pixmaps[0];
+#ifdef HAVE_SDL
+	if (sdlimage)
+	    surfaces[i]= surfaces[0];
+#endif
 	facetoname[i]=NULL;
     }
 
@@ -904,6 +1158,12 @@ static gint
 configure_event (GtkWidget *widget, GdkEventConfigure *event)
 {
 
+#ifdef HAVE_SDL
+    if(sdlimage && mapsurface) {
+	SDL_UpdateRect( mapsurface, 0, 0, 0, 0);
+	return TRUE;
+    }
+#endif
     mapgc = gdk_gc_new (drawingarea->window);
     display_map_doneupdate(TRUE);
     return TRUE;
@@ -915,6 +1175,12 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 static gint
 expose_event (GtkWidget *widget, GdkEventExpose *event)
 {
+#ifdef HAVE_SDL
+    if(sdlimage &&  mapsurface) {
+	SDL_UpdateRect( mapsurface, 0, 0, 0, 0);
+	return FALSE;
+    }
+#endif
     display_map_doneupdate(TRUE);
     return FALSE;
 }
@@ -925,19 +1191,14 @@ expose_event (GtkWidget *widget, GdkEventExpose *event)
  * actual drawing routines later.
  */
 
-
-
-
-
 static int get_game_display(GtkWidget *frame) {
   GtkWidget *gtvbox, *gthbox;
-  
   gtvbox = gtk_vbox_new (FALSE, 0);
   gtk_container_add (GTK_CONTAINER (frame), gtvbox);
   gthbox = gtk_hbox_new (FALSE, 0);
   gtk_box_pack_start (GTK_BOX (gtvbox), gthbox, FALSE, FALSE, 1);
-  
-  drawingarea = gtk_drawing_area_new();
+
+  drawingarea = gtk_drawing_area_new(); 
   gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), image_size*mapx,image_size*mapy);
   /* Add mouseclick events to the drawing area */
 
@@ -963,7 +1224,19 @@ static int get_game_display(GtkWidget *frame) {
 
   gtk_widget_show(gthbox);
   gtk_widget_show(gtvbox);
+
+
+  gtk_signal_connect (GTK_OBJECT (frame), "expose_event",
+		      (GtkSignalFunc) expose_event, NULL);
+  gtk_signal_connect (GTK_OBJECT(frame),"configure_event",	
+		      (GtkSignalFunc) configure_event, NULL);
+
   gtk_widget_show (frame);
+
+
+#ifdef HAVE_SDL
+  /*  init_SDL( drawingarea, 0); */
+#endif
   return 0;
 }
 
@@ -3380,6 +3653,34 @@ void applyconfig () {
       nopopups=FALSE;
     }
   }
+#ifdef HAVE_SDL
+    if (sdlimage) {
+	if( GTK_TOGGLE_BUTTON( cradiobutton1)->active) {
+	    if( per_pixel_lighting == 0) {
+		per_pixel_lighting= 1;
+		per_tile_lighting= 0;
+		init_SDL( NULL, 1);
+		if( csocket.fd)
+		    cs_write_string( csocket.fd, "mapredraw", 9);
+	    }
+	} else {
+	    if( per_pixel_lighting == 1) {
+		per_pixel_lighting= 0;
+		per_tile_lighting= 1;
+		init_SDL( NULL, 1);
+		if( csocket.fd)
+		    cs_write_string( csocket.fd, "mapredraw", 9);
+	    }
+	}
+	if( GTK_TOGGLE_BUTTON( ccheckbutton9)->active) {
+	    if( show_grid == FALSE)
+		show_grid= TRUE;
+	} else {
+	    if( show_grid == TRUE)
+		show_grid= FALSE;
+	}
+    } /* sdlimage */
+#endif
 }
 
 /* Ok, here it sets the config and saves it. This is sorta dangerous, and I'm not sure
@@ -3492,6 +3793,34 @@ void saveconfig () {
       nopopups=FALSE;
     }
   }
+#ifdef HAVE_SDL
+  if (sdlimage) {
+    if( GTK_TOGGLE_BUTTON( cradiobutton1)->active) {
+	if( per_pixel_lighting == 0) {
+	    per_pixel_lighting= 1;
+	    per_tile_lighting= 0;
+	    init_SDL( NULL, 1);
+	    if( csocket.fd)
+	    cs_write_string( csocket.fd, "mapredraw", 9);
+	}
+    } else {
+	if( per_pixel_lighting == 1) {
+	    per_pixel_lighting= 0;
+	    per_tile_lighting= 1;
+	    init_SDL( NULL, 1);
+	    if( csocket.fd)
+	    cs_write_string( csocket.fd, "mapredraw", 9);
+	}
+    }
+    if( GTK_TOGGLE_BUTTON( ccheckbutton9)->active) {
+	if( show_grid == FALSE)
+	    show_grid= TRUE;
+    } else {
+	if( show_grid == TRUE)
+	    show_grid= FALSE;
+    }
+  } /* sdlimage */
+#endif
   save_defaults();
 }
 
@@ -3737,7 +4066,7 @@ void configdialog(GtkWidget *widget) {
     
     gtkwin_config = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_position (GTK_WINDOW (gtkwin_config), GTK_WIN_POS_CENTER);
-    gtk_widget_set_usize (gtkwin_config,450,360);
+    gtk_widget_set_usize (gtkwin_config,450,400);
     gtk_window_set_title (GTK_WINDOW (gtkwin_config), "Crossfire Configure");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_config), TRUE, TRUE, FALSE);
 
@@ -3829,6 +4158,41 @@ void configdialog(GtkWidget *widget) {
       gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(ccheckbutton8), FALSE);
     }
 
+#ifdef HAVE_SDL
+    if (sdlimage) {
+	GtkWidget* label;
+	GtkWidget* separator = gtk_hseparator_new ();
+	gtk_box_pack_start (GTK_BOX (vbox1), separator, FALSE, TRUE, 0);
+
+
+	label= gtk_label_new((gchar*)"Lighting options, per pixel is prettier, per tile is faster");
+	gtk_box_pack_start( GTK_BOX( vbox1), label, FALSE, FALSE, 0);
+
+	cradiobutton1= gtk_radio_button_new_with_label( NULL, (gchar*)"Per Pixel Lighting");
+	cradiobutton2 = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(cradiobutton1),
+								  (gchar*)"Per Tile Lighting");
+      
+	gtk_box_pack_start( GTK_BOX( vbox1), cradiobutton1, FALSE, FALSE, 0);
+	gtk_box_pack_start( GTK_BOX( vbox1), cradiobutton2, FALSE, FALSE, 0);
+
+	gtk_widget_show( separator);
+	gtk_widget_show( label);
+
+	separator= gtk_hseparator_new();
+	gtk_box_pack_start( GTK_BOX( vbox1), separator, FALSE, TRUE, 0);
+	gtk_widget_show( separator);
+
+	ccheckbutton9= gtk_check_button_new_with_label( "Print Grid Overlay -- Slow, only really useful for debugging/development");
+	gtk_box_pack_start( GTK_BOX(vbox1), ccheckbutton9, FALSE, FALSE, 0);
+	if( show_grid) {
+	    gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON( ccheckbutton9), TRUE);
+	} else {
+	    gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON( ccheckbutton9), FALSE);
+	}
+    } /* sdlimage */
+
+#endif /* HAVE_SDL */
+
     gtk_widget_show (ccheckbutton1);
     gtk_widget_show (ccheckbutton2);
     gtk_widget_show (ccheckbutton3);
@@ -3837,6 +4201,13 @@ void configdialog(GtkWidget *widget) {
     gtk_widget_show (ccheckbutton6);
     gtk_widget_show (ccheckbutton7);
     gtk_widget_show (ccheckbutton8);
+#ifdef HAVE_SDL
+    if (sdlimage) {
+	gtk_widget_show (cradiobutton1);
+	gtk_widget_show (cradiobutton2);
+	gtk_widget_show (ccheckbutton9);
+    }
+#endif
 
     gtk_widget_show (vbox1);
     gtk_widget_show (frame1);
@@ -4760,7 +5131,7 @@ void create_windows() {
     get_game_display (gameframe);
     
     gtk_widget_show (gameframe);
-    
+
     /* stats frame */
     stat_frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(stat_frame), GTK_SHADOW_ETCHED_IN);
@@ -4813,7 +5184,11 @@ void create_windows() {
     gtk_signal_connect_object (GTK_OBJECT (gtkwin_root), "key_release_event",
 			       GTK_SIGNAL_FUNC(keyrelfunc), GTK_OBJECT(gtkwin_root));
     gtk_widget_show (gtkwin_root);
-    
+
+#ifdef HAVE_SDL
+    if (sdlimage) 
+	init_SDL( drawingarea, 0);
+#endif
 
   } else { /* split window mode */
 
@@ -4827,7 +5202,8 @@ void create_windows() {
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire - view");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_root), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
-    
+
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_root), 0);
     
  
@@ -4878,7 +5254,7 @@ void create_windows() {
     gtk_widget_set_uposition (gtkwin_info, 570, 0);
     gtk_widget_set_usize (gtkwin_info,400,600);
     gtk_window_set_title (GTK_WINDOW (gtkwin_info), "Crossfire - info");
-     gtk_window_set_policy (GTK_WINDOW (gtkwin_info), TRUE, TRUE, FALSE);
+    gtk_window_set_policy (GTK_WINDOW (gtkwin_info), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_info), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_info);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_info), 0);
@@ -4999,6 +5375,12 @@ void create_windows() {
 			       GTK_SIGNAL_FUNC(keyfunc), GTK_OBJECT(gtkwin_stats));
     gtk_signal_connect_object (GTK_OBJECT (gtkwin_stats), "key_release_event",
 			       GTK_SIGNAL_FUNC(keyrelfunc), GTK_OBJECT(gtkwin_stats));
+
+#ifdef HAVE_SDL
+    if (sdlimage)
+	init_SDL( drawingarea, 0);
+#endif
+
   } /* else split windows */
 
   /* load window positions from file */
@@ -5007,6 +5389,7 @@ void create_windows() {
   if (tool_tips) {
     gtk_tooltips_enable(tooltips);
   }
+
 }
 
 int sync_display = 0;
@@ -5023,7 +5406,7 @@ static int get_root_display(char *display_name,int gargc, char **gargv) {
 	gdk_rgb_init();
     }
     create_windows();
-  
+
     return 0;
 }
  
@@ -5555,7 +5938,7 @@ static void usage(char *progname)
     puts("-echo            - Echo the bound commands");
 #ifdef Xpm_Pix
     puts("-xpm             - Use color pixmaps (XPM) for display.");
-#endif
+#endif /* Xpm_Pix */
 #ifdef HAVE_LIBPNG
     puts("-png             - Use png images for display.");
 #endif
@@ -5575,6 +5958,7 @@ static void usage(char *progname)
     puts("-splitinfo       - Use two information windows, segregated by information type.");
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces.");
     puts("-pngximage       - Use ximage for drawing png (may not work on all hardware");
+    puts("-sdl             - Use sdl for drawing png (may not work on all hardware");
 
     exit(0);
 }
@@ -5725,7 +6109,18 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-pngximage")) {
+	    sdlimage=FALSE;
 	    pngximage=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-sdl")) {
+#ifndef HAVE_SDL
+	    fprintf(stderr,"client not compiled with sdl support.  Ignoring -sdl\n");
+#else
+	    sdlimage=TRUE;
+	    pngximage=FALSE;
+	    display_mode = Png_Display;
+#endif
 	    continue;
 	}
 	else {
@@ -5781,6 +6176,24 @@ int init_windows(int argc, char **argv)
 
 static void gen_draw_face(int face,int x,int y)
 {
+#ifdef HAVE_SDL
+    if (sdlimage) {
+	SDL_Rect dst;
+	dst.x= x* image_size;
+	dst.y= y* image_size;
+	dst.w= image_size;
+	dst.h= image_size;
+
+	if( SDL_BlitSurface( surfaces[ facecachemap[face]].surface, NULL,
+		       mapsurface, &dst) < 0)
+	{
+	    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+	}
+	return;
+    }
+#endif
+    /* get here is not using sdlimage */
+
     if (face == 0) fprintf(stderr,"gen draw face called with 0 face");
 
 #if 0
@@ -5816,6 +6229,158 @@ static void gen_draw_face(int face,int x,int y)
 /* this differs from below in that we use one big image struture
  * for the entire screen.  That is the 'screen' value above.
  */
+
+#ifdef HAVE_SDL
+int sdl_add_png_faces( int ax, int ay, int *faces, int num_faces, int dark[5])
+{
+
+  int x, y, darkness, on_face, darkx[32], darky;
+  Uint32 pixel;
+  SDL_PixelFormat *fmt;
+  int semi= 0;
+  SDL_Rect dst;
+
+  dst.x= ax* image_size;
+  dst.y= ay* image_size;
+  dst.w= image_size;
+  dst.h= image_size;
+
+
+
+  /* Nothing to draw here, so paint a black square */
+  if( !num_faces)
+    {
+      if( SDL_FillRect( mapsurface, &dst, 
+			SDL_MapRGB( mapsurface->format, 0, 0, 0)) < 0)
+	do_SDL_error( "FillRect", __FILE__, __LINE__);
+      return 0;
+    }
+
+  for( on_face= num_faces -1; on_face > -1; on_face--)
+    {
+      if( SDL_BlitSurface( surfaces[faces[on_face]].surface, NULL,
+			   mapsurface, &dst) < 0)
+	{
+	  do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+	}
+    }
+
+  if( per_tile_lighting)
+    {
+      if( dark[0] == 255)
+	{
+	  /* Fully bright, no reason to blit a light map */
+	  return 0;
+	}
+      else if( dark[0] == 0)
+	{
+	  /* Fully dark, just paint black */
+	  SDL_FillRect( lightmap, NULL, 
+			SDL_MapRGB( lightmap->format, 0, 0, 0));
+	  SDL_BlitSurface( lightmap, NULL, mapsurface, &dst);
+
+	  return 0;
+	}
+      else {
+	SDL_FillRect( lightmap, NULL, 
+		      SDL_MapRGB( lightmap->format, 0, 0, 0));
+	/* Set per surface alpha channel */
+	SDL_SetAlpha( lightmap, SDL_SRCALPHA, SDL_ALPHA_OPAQUE - dark[0]);
+	SDL_BlitSurface( lightmap, NULL, mapsurface, &dst);
+
+	return 0;
+      }
+
+    }
+  else if( per_pixel_lighting) 
+    {
+      for( x= 0; x < 16; x++)
+	{
+	  darkx[x]= (dark[4]*(16-x) + dark[0]*x) / 16;
+	}
+      for( x= 16; x < 32; x++)
+	{
+	  darkx[x] = (dark[0]*(32-x) + dark[2]*(x-16)) / 16;
+	}
+
+      /* 
+       * Make sure lightmap in initialized to full bright
+       */
+      SDL_FillRect( lightmap, NULL,
+		    SDL_MapRGBA( lightmap->format, 0, 0, 0, 
+                                 SDL_ALPHA_TRANSPARENT));
+
+      fmt= lightmap->format;
+      SDL_LockSurface( lightmap);
+      for( y= 0; y < image_size; y++)
+	{
+	  if( y < 16)
+	    {
+	      darky = ((dark[1]*((image_size/2)-y)) + dark[0]*y) / 
+                       (image_size / 2);
+	    }
+	  else 
+	    {
+	      darky= (dark[0]*(image_size-y) + dark[3]*(y-(image_size/2))) /
+		      (image_size / 2);
+	    }
+	  
+	  for( x= 0; x < image_size; x++)
+	    {
+	      
+	      darkness= (darkx[x] + darky) / 2;
+	      if( darkness == 255)
+		continue;
+	      else 
+		semi++;
+	      
+	      /* Need to invert the transparancy level.. */
+	      pixel= SDL_MapRGBA( fmt, 0, 0, 0, SDL_ALPHA_OPAQUE - darkness);
+	      
+	      switch (fmt->BytesPerPixel) 
+		{
+		case 1:
+		  *((Uint8 *)lightmap->pixels+y*lightmap->pitch+x) = pixel;
+		  break;
+		case 2:
+		  *((Uint16 *)lightmap->pixels+y*lightmap->pitch/2+x) = pixel;
+		  break;
+		case 3:
+		  /* Don't think we will get here if we have a full alpha 
+                   * channel. If so that implies 6|6|6|6 RGBA packing which 
+                   * is kinda weird..  
+                   */
+		  ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[0] = 0;
+		  ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[1] = 0;
+		  ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[2] = 0;
+		  break;
+		case 4:
+		  *((Uint32 *)lightmap->pixels+y*lightmap->pitch/4+x) = pixel;
+		  break;
+		}
+	    }
+	}
+      SDL_UnlockSurface( lightmap);
+      
+      if( semi > 0)
+	{
+	  if( SDL_BlitSurface( lightmap, NULL, mapsurface, &dst) < 0)
+	    {
+	      do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+	    }
+	}
+    }
+  else
+    {
+      /* Unknown lighting style */
+      fprintf( stderr, "Error, unknowing lighting style in %s at line %d\n",
+	       __FILE__, __LINE__);
+    }
+
+  return 0;
+}
+
+#endif /* HAVE_SDL */
 
 int add_png_faces(int ax, int ay, int *faces, int num_faces, int dark[5]) 
 {
@@ -5955,14 +6520,13 @@ int add_png_faces(int ax, int ay, int *faces, int num_faces, int dark[5])
     return 0;
 }
 
-
 void display_mapcell_pixmap(int ax,int ay)
 {
-    int k, got_face=0, faces[MAXFACES],num_faces, darkness[5];
+    int k, faces[MAXFACES],num_faces, darkness[5];
+    int got_face= 0;
 
     /* we use a different logic in this mode */
-    if (display_mode == Png_Display && pngximage) {
-
+    if (display_mode == Png_Display && (pngximage || sdlimage)) {
 	num_faces=0;
 	if (map1cmd) {
 	    for(k=the_map.cells[ax][ay].count-1;k>-1;k--) {
@@ -5993,10 +6557,18 @@ void display_mapcell_pixmap(int ax,int ay)
 	    /* old mode doesn't have darkness, so just set to full bright */
 	    darkness[0]=255;darkness[1]=255;darkness[2]=255;darkness[3]=255;darkness[4]=255;
 	}
+#ifdef HAVE_SDL
+	if (sdlimage) {
+	    sdl_add_png_faces( ax, ay, faces, num_faces, darkness);
+	    return;
+	}
+#endif
 	if (add_png_faces(ax,ay, faces, num_faces,darkness)) goto bail;
 	return;
-    }
+    } /* if display mode is png and pngximage or sdlimage */
 
+
+/* This does not handle SDL support */
 bail:
 #if 0
     /* commenting this out eliminates flickering you will otherwise see.
@@ -6038,7 +6610,6 @@ bail:
 }
 
 
-
 /* Do the map drawing */
 void display_map_doneupdate(int redraw)
 {
@@ -6056,6 +6627,19 @@ void display_map_doneupdate(int redraw)
 	/* draw black on all non-visible squares, and tile pixmaps on the others */
 	for(ax=0;ax<mapx;ax++) {
 	    for(ay=0;ay<mapy;ay++) { 
+#ifdef HAVE_SDL
+		if (sdlimage) {
+		    if( the_map.cells[ax][ay].need_update) {
+			display_mapcell_pixmap( ax, ay);
+			if( show_grid == TRUE) {
+			    overlay_grid( FALSE, ax, ay);
+			}
+			need_updates++;
+			the_map.cells[ax][ay].need_update= 0;
+		    }
+		    continue;	/* want to skip the stuff below */
+		}
+#endif
 		if (pngximage) {
 		    if (the_map.cells[ax][ay].need_update) {
 			display_mapcell_pixmap(ax,ay);
@@ -6076,9 +6660,19 @@ void display_map_doneupdate(int redraw)
 		}
 	    } /* for ay */
 	} /* for ax */
+
+#ifdef HAVE_SDL
+	if (sdlimage && (need_updates > 0 || map_did_scroll)) {
+	    if( SDL_Flip( mapsurface) == 1 )
+	    do_SDL_error( "Flip", __FILE__, __LINE__);
+	    map_did_scroll= 0;
+	}
+#endif
+
 #ifdef TIME_MAP_REDRAW
 	gettimeofday(&tv2, NULL);
 #endif
+
 	if (pngximage) {
 	    int draw_each_space=1;
 	    /* if we need to redraw the entire thing or the number of changed spaces is
@@ -6120,8 +6714,9 @@ void display_map_doneupdate(int redraw)
 		}
 	    }
 	    map_did_scroll=0;
-	}
+	} /* if pngximage */
     } /* if updatelock */
+
 #ifdef TIME_MAP_REDRAW
     /* this else branches fro the if updatelock above - without it
      * tv2 is uninitialized.
@@ -6169,6 +6764,7 @@ void resize_map_window(int x, int y)
 	 * by side at the top
 	 */
 	if (bigmap && x<15) {
+
 	    /* reverse of below basically. */
 	    GtkWidget	*newpane;   /* will take place of game_bar_vpane */
 
@@ -6198,7 +6794,6 @@ void resize_map_window(int x, int y)
 	    gtk_paned_add1(GTK_PANED(newpane), gameframe);
 	    gtk_widget_unref(gameframe);
 
-
 	    gtk_paned_add2(GTK_PANED(stat_game_vpane), newpane);
 
 	    gtk_widget_show(newpane);
@@ -6207,9 +6802,9 @@ void resize_map_window(int x, int y)
 	    game_bar_vpane = newpane;
 
 	} else if (!bigmap && x>=15) {
+
 	    GtkWidget	*newpane;   /* will take place of game_bar_vpane */
 	    bigmap=TRUE;
-
 	    newpane = gtk_hpaned_new();
 
 	    /* We need to remove this here - the game pane is goind to
@@ -6250,8 +6845,15 @@ void resize_map_window(int x, int y)
 	}
 	gtk_widget_set_usize (gameframe, (image_size*mapx)+6, (image_size*mapy)+6);
     } else {
-	gtk_widget_set_usize (gtkwin_root,(image_size*mapx)+6,(image_size*mapy)+6);
+      gtk_widget_set_usize (gtkwin_root,(image_size*mapx)+6,(image_size*mapy)+6);
     }
+
+#ifdef HAVE_SDL
+    if (sdlimage)
+	init_SDL( drawingarea, FALSE);
+#endif
+
+
 }
 
 /* If we are using ximage logic, we use a different mechanism to load the
@@ -6282,7 +6884,21 @@ void display_newpng(long face,char *buf,long buflen)
 	    fprintf(stderr,"unable to create image %ld\n", face);
 	}
     }
-    /* even if using pngximage, we standard image for the inventory list */
+#ifdef HAVE_SDL
+    if (sdlimage) {
+	SDL_RWops* ops= SDL_RWFromMem( buf, (int)buflen);
+	surfaces[face].surface= IMG_LoadTyped_RW( ops, 1, (char*)"PNG");
+	if( surfaces[face].surface == NULL) {
+	    do_SDL_error( "IMG_LoadTyped_RW", __FILE__, __LINE__);
+	}
+	/* If this surface has transparent elements, enable RLE acceleration */
+	if( (surfaces[face].surface->flags & SDL_SRCCOLORKEY) == SDL_SRCCOLORKEY) {
+	    SDL_SetColorKey( surfaces[face].surface, SDL_SRCCOLORKEY|SDL_RLEACCEL, 
+			   surfaces[face].surface->format->colorkey);
+	}
+    }
+#endif
+    /* even if using pngximage or SDL, we standard image for the inventory list */
     if (png_to_gdkpixmap(gtkwin_root->window, buf, buflen,
 			 &pixmaps[face].gdkpixmap, &pixmaps[face].gdkmask,
 			 gtk_widget_get_colormap(gtkwin_root))) {
@@ -6295,7 +6911,7 @@ void display_newpng(long face,char *buf,long buflen)
 	    facetoname[face]=NULL;
 	}
     }
-#endif
+#endif /* HAVE_LIBPNG */
 }
 
 void display_newpixmap(long face,char *buf,long buflen)
@@ -6392,6 +7008,10 @@ void reset_image_data()
 	    free(facetoname[i]);
 	    facetoname[i]=NULL;
 	}
+#ifdef HAVE_SDL
+	if(sdlimage && surfaces[i].surface && (surfaces[i].surface != surfaces[0].surface) )
+	  SDL_FreeSurface( surfaces[i].surface);
+#endif
     }
     memset(&the_map, 0, sizeof(struct Map));
     look_list.env=cpl.below;
