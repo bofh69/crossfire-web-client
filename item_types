@@ -52,12 +52,17 @@ stake
 sword
 taifu
 trident
+BoneCrusher
 Darkblade
 Demonslayer
 Dragonslayer
+Excalibur
+firebrand
+Firestar
 Flame Tongue
 FlameTongue
 Lightning sticks
+Mjoellnir
 Mournblade
 Sting
 Stormbringer
@@ -74,7 +79,7 @@ boulder
 10:
 mail
 leather
-robe
+^robe
 shirt
 apron
 hauberk
@@ -85,6 +90,7 @@ Crown
 crown
 12:
 shield
+Demonspawn Shield
 13:
 boot
 glove
@@ -118,7 +124,7 @@ potato
 roast bird
 steak
 waybread
-water
+^water
 # gems
 30:
 diamond
@@ -260,6 +266,7 @@ icecube
 library card
 Port Pass
 rose
+Apartment Extender
 100:
 chair
 table

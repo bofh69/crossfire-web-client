@@ -335,6 +335,9 @@ void event_loop()
     while (1) {
 	if (csocket.fd==-1) return;
 
+	/* Do a quick check here for better performance */
+	check_x_events();
+
 	FD_ZERO(&tmp_read);
 	FD_ZERO(&tmp_exceptions);
 	FD_SET(csocket.fd, &tmp_read);
@@ -2485,48 +2488,13 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
  */
 char *get_metaserver()
 {
-    KeySym gkey=0;
     static char ret_buf[MAX_BUF];
 
     cpl.input_state = Metaserver_Select;
     draw_prompt(":");
     while (cpl.input_state == Metaserver_Select) {
-
-	XNextEvent(display,&event);
-	switch(event.type) {
-	    /* We care about expose events so that it will re-draw
-	     * the selections.
-	     */
-
-	    case Expose:
-		/* No point redrawing windows if there are more Exposes to
-		 * to come.
-		 */
-		if (event.xexpose.count!=0) continue;
-		if(event.xexpose.window==win_stats) {
-			XClearWindow(display,win_stats);
-			draw_stats(1);
-		} else if(event.xexpose.window==infodata.win_info)
-		    draw_all_info();
-		else if(event.xexpose.window==win_message)
-		    draw_all_message();
-		else if(split_windows==FALSE && event.xexpose.window==win_root) {
-		    XClearWindow(display,win_root);
-		}
-		break;
-
-	    case MappingNotify:
-		XRefreshKeyboardMapping(&event.xmapping);
-		break;
-
-	    case KeyRelease:
-		parse_key_release(event.xkey.keycode, gkey);
-		break;
-
-	    case KeyPress:
-		do_key_press();
-		break;
-	} /* switch event type */
+	check_x_events();
+	usleep(100);
     } /* while input state is metaserver select. */
 
     /* We need to clear out cpl.input_text - otherwise the next
@@ -2553,114 +2521,126 @@ char *get_metaserver()
  */
 
 void check_x_events() {
-  KeySym gkey=0;
-  static int lastupdate=0;
+    KeySym gkey=0;
+    static int lastupdate=0;
 
-  /* We need to periodically redraw stuff if we are caching images - otherwise
-   * the default images might be display indefinately.  This is tuned so
-   * that we should only be redrawing stuff if we got new images from
-   * the last draw and enough time has passed.  This should be a bit
-   * more efficient than redrawing everything anytime we get a new image -
-   * especially since we might get a bunch of images at the same time.
-   */
-  if (cache_images && lastupdate>5 && newimages) {
-    draw_all_list(&inv_list);
-    draw_all_list(&look_list);
-    if (!cpl.showmagic) display_map_doneupdate();
-    newimages=0;
-    lastupdate=0;
-  }
-  else {
-    if (newimages)
-	lastupdate++;
-    draw_lists();		/* testing if this can work this way */
-  }
+    /* If not connected, the below area does not apply, so don't deal with it */
+    if (cpl.input_state != Metaserver_Select) {
+
+	/* We need to periodically redraw stuff if we are caching images - otherwise
+	 * the default images might be display indefinately.  This is tuned so
+	 * that we should only be redrawing stuff if we got new images from
+	 * the last draw and enough time has passed.  This should be a bit
+	 * more efficient than redrawing everything anytime we get a new image -
+	 * especially since we might get a bunch of images at the same time.
+	 */
+	if (cache_images && lastupdate>5 && newimages) {
+	    draw_all_list(&inv_list);
+	    draw_all_list(&look_list);
+	    if (!cpl.showmagic) display_map_doneupdate();
+	    newimages=0;
+	    lastupdate=0;
+	}
+	else {
+	    if (newimages)
+		lastupdate++;
+	    draw_lists();		/* testing if this can work this way */
+	}
+    }
   
 
-  while (XPending(display)!=0) {
-    XNextEvent(display,&event);
-    switch(event.type) {
+    while (XPending(display)!=0) {
+	XNextEvent(display,&event);
+	switch(event.type) {
 
-    case ConfigureNotify:
-      if(event.xconfigure.window==infodata.win_info)
-	resize_win_info(event.xconfigure.width, event.xconfigure.height);
-      else if(event.xconfigure.window==inv_list.win)
-	resize_list_info(&inv_list, event.xconfigure.width,
+	    case ConfigureNotify:
+		if(event.xconfigure.window==infodata.win_info)
+		    resize_win_info(event.xconfigure.width, event.xconfigure.height);
+		else if(event.xconfigure.window==inv_list.win)
+		    resize_list_info(&inv_list, event.xconfigure.width,
 			 event.xconfigure.height);
-      else if(event.xconfigure.window==look_list.win)
-	resize_list_info(&look_list, event.xconfigure.width,
+		else if(event.xconfigure.window==look_list.win)
+		    resize_list_info(&look_list, event.xconfigure.width,
 			 event.xconfigure.height);
-      else if(event.xconfigure.window==win_root)
-	resize_win_root(&event);
-      else if(event.xconfigure.window==win_message)
-	resize_win_message(event.xconfigure.width, event.xconfigure.height);
-      break;
+		else if(event.xconfigure.window==win_root)
+		    resize_win_root(&event);
+		else if(event.xconfigure.window==win_message)
+		    resize_win_message(event.xconfigure.width, event.xconfigure.height);
+		break;
 
-    case Expose:
-      /* No point redrawing windows if there are more Expose's to
-       * to come.
-       */
-      if (event.xexpose.count!=0) continue;
-      if(event.xexpose.window==win_stats) {
-	XClearWindow(display,win_stats);
-	draw_stats(1);
-      } else if(event.xexpose.window==infodata.win_info)
-	draw_all_info();
-      else if(event.xexpose.window==inv_list.win)
-	draw_all_list(&inv_list);
-      else if(event.xexpose.window==look_list.win)
-	draw_all_list(&look_list);
-      else if(event.xexpose.window==win_message)
-	draw_all_message();
-      else if(event.xexpose.window==win_game) {
-	if (cpl.showmagic) draw_magic_map();
-	else display_map_doneupdate();
-      } else if(split_windows==FALSE && event.xexpose.window==win_root) {
-	XClearWindow(display,win_root);
-      }
-      break;
+	    case Expose:
+	    /* No point redrawing windows if there are more Expose's to
+	     * to come.
+	     */
+	    if (event.xexpose.count!=0) continue;
+	    if(event.xexpose.window==win_stats) {
+		XClearWindow(display,win_stats);
+		draw_stats(1);
+	    } else if(event.xexpose.window==infodata.win_info)
+		draw_all_info();
+	    else if(event.xexpose.window==inv_list.win)
+		draw_all_list(&inv_list);
+	    else if(event.xexpose.window==look_list.win)
+		draw_all_list(&look_list);
+	    else if(event.xexpose.window==win_message)
+		draw_all_message();
+	    else if(event.xexpose.window==win_game) {
+		if (cpl.showmagic) draw_magic_map();
+		else display_map_doneupdate();
+	    } else if(split_windows==FALSE && event.xexpose.window==win_root) {
+		XClearWindow(display,win_root);
+	    }
+	    break;
 
-    case MappingNotify:
-      XRefreshKeyboardMapping(&event.xmapping);
-      break;
+	    case MappingNotify:
+		XRefreshKeyboardMapping(&event.xmapping);
+		break;
 
 
-    case ButtonPress:
-	if(event.xbutton.window==win_game) {
-	  parse_game_button_press(event.xbutton.button,event.xbutton.x,
-		event.xbutton.y);
+	    case ButtonPress:
+		/* Most of these will try to send requests to the server - since we
+		 * are not connected, this will probably fail in some bad way.
+		 */
+		if (cpl.input_state != Metaserver_Select) {
 
-	} else if(event.xbutton.window==inv_list.win) {
-		buttonpress_in_list(&inv_list, &event.xbutton);
+		    if(event.xbutton.window==win_game) {
+			parse_game_button_press(event.xbutton.button,event.xbutton.x,
+						event.xbutton.y);
+		    } else if(event.xbutton.window==inv_list.win) {
+			buttonpress_in_list(&inv_list, &event.xbutton);
 
-	} else if(event.xbutton.window==look_list.win) {
-	  buttonpress_in_list(&look_list, &event.xbutton);
+		    } else if(event.xbutton.window==look_list.win) {
+			buttonpress_in_list(&look_list, &event.xbutton);
+		    }
+		    else if (event.xbutton.window==infodata.win_info) {
+			buttonpress_in_info(&event.xbutton);
+		    }
+		    break;
+		}
+
+	    case KeyRelease:
+		parse_key_release(event.xkey.keycode, gkey);
+		break;
+
+	    case KeyPress:
+		do_key_press();
+		break;
 	}
-	else if (event.xbutton.window==infodata.win_info) {
-	  buttonpress_in_info(&event.xbutton);
-	}
-      break;
-
-    case KeyRelease:
-	parse_key_release(event.xkey.keycode, gkey);
-	break;
-
-    case KeyPress:
-	do_key_press();
-	break;
     }
-  }
-  /* Since we cycle through all the Xevents, there is no need to do
-   * keyboard flushing.  All commands get sent to the server.  There really
-   * does need to be some decent way to flush the commands we have sent,
-   * but there is no real way to do that.  This is at least somewhat
-   * true because the client and server will never be completely 
-   * synchronized.
-   */
+    /* Below does not apply if we're not connected */
+    if (cpl.input_state != Metaserver_Select) {
+	/* Since we cycle through all the Xevents, there is no need to do
+	 * keyboard flushing.  All commands get sent to the server.  There really
+	 * does need to be some decent way to flush the commands we have sent,
+	 * but there is no real way to do that.  This is at least somewhat
+	 * true because the client and server will never be completely 
+	 * synchronized.
+	 */
 
-    /* Need to do this to show the players position */
-    if (cpl.showmagic) magic_map_flash_pos();
-    clear_fire_run();
+	/* Need to do this to show the players position */
+	if (cpl.showmagic) magic_map_flash_pos();
+	clear_fire_run();
+    }
 }
 
 

@@ -198,7 +198,10 @@ distclean::
 install:
 	$(INSTALL) -d ${bindir}
 	$(INSTALL) -d ${mandir}
-	$(INSTALL) $(TARGET) ${bindir}
+	@for i in $(TARGET); do \
+		echo "Installing $$i"; \
+		$(INSTALL) $$i ${bindir}; \
+	done
 	$(INSTALL) client.man ${mandir}/cfclient.1
 	@if [ -x gcfclient ]; then \
 	    	$(INSTALL) client.man ${mandir}/gcfclient.1; \

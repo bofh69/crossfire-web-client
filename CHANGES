@@ -1,6 +1,20 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+Makefile.in: Modify so that it installs the target (cfclient, gcfclient,
+    cfsndserv) one at a time so it works with the install script.
+item.c: add insert_item_before_item function.  Modify the sorting function
+    so it first sorts by type, then by locked/unlocked status, and then
+    by alphabetical order (not including the number prefix).
+item_types, item_types.h: More updates of missing objects or ones that
+    need more specific matching rules.
+x11.c: Remove a lot of duplicate code that was in place for metaserver
+    support - instead, just add checks to the existing X event handling
+    code to know not to do some things if we're in metaserver selection
+    mode.  This fixes a bug in that resize events would not be handled
+    if in metaserver selection mode.
+MSW 2001/02/22
+
 Changes for 0.96.0:
 
 MSW 2001/02/02:

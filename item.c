@@ -77,6 +77,28 @@ uint8 get_type_from_name(const char *name)
 }
 
 
+/* Does what is says - inserts newitem before the object.
+ * the parameters can not be null
+ */
+static void insert_item_before_item(item *newitem, item *before)
+{
+
+    if (before->prev) {
+	before->prev->next = newitem;
+    } else {
+	newitem->env->inv = newitem;
+    }
+
+    newitem->prev = before->prev;
+
+    before->prev = newitem;
+    newitem->next = before;
+
+    if (newitem->env) 
+	newitem->env->inv_updated = 1;
+}
+
+
 /* Item it has gotten an item type, so we need to resort its location */
 
 void update_item_sort(item *it)
@@ -90,11 +112,18 @@ void update_item_sort(item *it)
      */
     if (!it->env || it->env==it || it->env==map) return;
 
-    /* If we have the same type as either the previous or next object,
-     * we are already in the right place, so don't change.
+    /* If we are already sorted properly, don't do anything further.
+     * this is prevents the order of the inventory from changing around
+     * if you just equip something.
      */
-    if ((it->prev && it->prev->type == it->type) ||
-	(it->next && it->next->type == it->type)) return;
+
+    if (it->prev && it->prev->type == it->type &&
+	it->prev->locked == it->locked && 
+	!strcasecmp(it->prev->s_name, it->s_name)) return;
+
+    if (it->next && it->next->type == it->type &&
+	it->next->locked == it->locked && 
+	!strcasecmp(it->next->s_name, it->s_name)) return;
 
     /* Remove this item from the list */
     if (it->prev)	it->prev->next = it->next;
@@ -102,27 +131,33 @@ void update_item_sort(item *it)
     if (it->env->inv==it)   it->env->inv = it->next;
 
     for (itmp = it->env->inv; itmp!=NULL; itmp=itmp->next) {
-	/* If the next item is higher in the order, insert here */
-	if (itmp->type >= it->type) {
-	    /* If we have a previous object, update the list.  If
-	     * not, we need to update the environment to point to us
-	     */
-	    if (last) {
-		last->next = it;
-		it->prev = last;
-	    }
-	    else {
-		it->env->inv = it;
-		it->prev=NULL;
-	    }
-	    it->next = itmp;
-	    itmp->prev = it;
+	last = itmp;
 
-	    /* Update so we get a redraw */
-	    it->env->inv_updated = 1;
+	/* If the next item is higher in the order, insert here */
+	if (itmp->type > it->type) {
+	    insert_item_before_item(it, itmp);
 	    return;
 	}
-	last = itmp;
+	else if (itmp->type == it->type) {
+#if 0
+	    /* This could be a nice idea, but doesn't work very well if you
+	     * have a few unidentified wands, as the position of a wand
+	     * which you know the effect will move around as you equip others.
+	     */
+
+	    /* applied items go first */
+	    if (itmp->applied) continue;
+	    /* put locked items before others */
+	    if (itmp->locked && !it->locked) continue;
+#endif
+
+	    /* Now alphabetise */
+	    if (strcasecmp(itmp->s_name, it->s_name) < 0) continue;
+
+	    /* IF we got here, it means it passed all our sorting tests */
+	    insert_item_before_item(it, itmp);
+	    return;
+	}
     }
     /* No match - put it at the end */
 
@@ -507,18 +542,6 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 		sprintf(op->d_name, "%s %s", get_number(nrof), op->p_name);
 	} else {
 	    strcpy(op->d_name, op->s_name);
-#if 0
-/* I don't think adding 'a' or 'an' to the name really adds much, and 
- * I think it actually detracts as it reduces the displayed name by that
- * much, so I have disabled this for now.
- */
-	    /* Deal with our a/an prefix properly */
-	    if (*op->s_name=='a' || *op->s_name=='e' || *op->s_name=='i' ||
-		*op->s_name=='o' || *op->s_name=='u') 
-		sprintf(op->d_name, "an %s", op->s_name);
-	    else
-		sprintf(op->d_name, "a %s", op->s_name);
-#endif
 	}
     }
 
@@ -528,9 +551,11 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
     op->animation_id = anim;
     op->anim_speed=animspeed;
     get_flags (op, flags);
+
     /* We don't sort the map, so lets not do this either */
-    if (op->env != map)
+    if (op->env != map) {
 	op->type =get_type_from_name(op->s_name);
+    }
     update_item_sort(op);
 }
 
