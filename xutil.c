@@ -41,6 +41,9 @@ char facecachedir[MAX_BUF];
  */
 char *facetoname[MAXPIXMAPNUM];
 
+/* Can be set when user is moving to new machine type */
+int updatekeycodes=FALSE;
+
 /* Initializes the data for image caching */
 static void init_cache_data()
 {
@@ -456,22 +459,6 @@ static void parse_keybind_line(char *buf, int line, int standard)
 
     /* If we can, convert the keysym into a keycode.  */
     keycode = atoi(cp);
-    if (keysym!=NoSymbol) {
-        keycode = XKeysymToKeycode(display, keysym);
-
-        /* It is possible that we get a keysym that we can not convert
-         * into a keycode (such a case might be binding the key on
-         * one system, and later trying to run on another system that
-         * doesn't have that key.
-         * While the client will not be able to use it this invocation,
-         * it may be able to use it in the future.  As such, don't throw
-         * it away, but at least print a warning message.
-         */
-        if (keycode==0) {
-	fprintf(stderr,"Warning: could not convert keysym %s into keycode, ignoring\n",
-		buf);
-        }
-    }
     cp = cpnext;
     if ((cpnext = strchr(cp,' '))==NULL) {
 	fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line, cp);
@@ -504,6 +491,22 @@ static void parse_keybind_line(char *buf, int line, int standard)
 		*cp, line);
         }
         cp++;
+    }
+    if (keysym!=NoSymbol && ((flags&KEYF_STANDARD) || updatekeycodes)) {
+        keycode = XKeysymToKeycode(display, keysym);
+
+        /* It is possible that we get a keysym that we can not convert
+         * into a keycode (such a case might be binding the key on
+         * one system, and later trying to run on another system that
+         * doesn't have that key.
+         * While the client will not be able to use it this invocation,
+         * it may be able to use it in the future.  As such, don't throw
+         * it away, but at least print a warning message.
+         */
+        if (keycode==0) {
+	    fprintf(stderr,"Warning: could not convert keysym %s into keycode, ignoring\n",
+		buf);
+        }
     }
     /* Rest of the line is the actual command.  Lets kill the newline */
     cpnext[strlen(cpnext)-1]='\0';
@@ -629,7 +632,7 @@ static void parse_key_release(KeyCode kc, KeySym ks) {
     else if (cpl.fire_on) stop_fire();
 }
 
-/* This parses a keypress.  It should only be called win in Playing
+/* This parses a keypress.  It should only be called when in Playing
  * mode.
  */
 static void parse_key(char key, KeyCode keycode, KeySym keysym)

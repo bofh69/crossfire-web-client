@@ -2579,6 +2579,8 @@ static void usage(char *progname)
     puts("-help            - Display this message.");
     puts("-cache           - Cache images for future use.");
     puts("-nocache         - Do not cache images (default action).");
+    puts("-nosound         - Disable sound output.");
+    puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
     exit(0);
 }
 
@@ -2682,6 +2684,10 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-nosound")) {
 	    nosound=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
+	    updatekeycodes=TRUE;
 	    continue;
 	}
 	else {

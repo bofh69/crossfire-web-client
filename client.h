@@ -190,7 +190,7 @@ typedef enum Display_Mode {Font_Display, Pix_Display, Xpm_Display}
 
 extern Display_Mode display_mode;
 
-extern int nosound;
+extern int nosound, updatekeycodes;
 
 /* WE need to declare most of the structs before we can include this */
 #include <proto.h>
