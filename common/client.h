@@ -83,6 +83,7 @@ typedef struct Smooths {
 
 extern Smooths smooths[MAXSMOOTH];
 extern int smoothused;
+#define CAN_SMOOTH(__SMOOTHLEVEL) (__SMOOTHLEVEL)
 
 /* ClientSocket could probably hold more of the global values - it could
  * probably hold most all socket/communication related values instead

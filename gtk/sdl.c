@@ -523,6 +523,153 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
     }
 }
+/* Draw anything in adjacent squares that could smooth on given square
+ * mx,my square to smooth on. you should not call this function to
+ * smooth on a 'completly black' square. (simply for visual result)
+ * layer layer to examine (we smooth only one layer at a time)
+ * dst place on the mapwindow to draw
+ */
+void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
+    static int dx[8]={0,1,1,1,0,-1,-1,-1};
+    static int dy[8]={-1,-1,0,1,1,1,0,-1};
+    static int bweights[8]={2,0,4,0,8,0,1,0};
+    static int cweights[8]={0,2,0,4,0,8,0,1};
+    static int bc_exclude[8]={
+                 1+2,/*north exclude northwest (bit0) and northeast(bit1)*/
+                 0,
+                 2+4,/*east exclude northeast and southeast*/
+                 0,
+                 4+8,/*and so on*/
+                 0,
+                 8+1,
+                 0
+                };
+    int partdone[8]={0,0,0,0,0,0,0,0};
+    int slevels[8];
+    int sfaces[8];
+    int i,lowest,weight,weightC;
+    int emx,emy;
+    int smoothface;
+    int dosmooth=0;
+    SDL_Rect src;
+    src.w=dst.w;
+    src.h=dst.h;
+    if ( (the_map.cells[mx][my].heads[0].face==0)
+         || !CAN_SMOOTH(the_map.cells[mx][my].smooth[layer]) )
+        return;
+    for (i=0;i<8;i++){
+        emx=mx+dx[i];
+        emy=my+dy[i];
+        if ( (emx<0) || (emy<0) || (the_map.x<=emx) || (the_map.y<=emy)){
+            slevels[i]=0;
+            sfaces[i]=0; /*black picture*/
+        }
+        if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
+            slevels[i]=0;
+            sfaces[i]=0; /*black picture*/
+        }else{      
+            slevels[i]=the_map.cells[emx][emy].smooth[layer];
+            sfaces[i]=getsmooth(the_map.cells[emx][emy].heads[layer].face);
+            dosmooth=1;
+        }                    
+    }
+    /* ok, now we have a list of smoothlevel higher than current square.
+     * there are at most 8 different levels. so... let's check 8 times
+     * for the lowest one (we draw from botto to top!).
+     */
+    lowest=-1;
+    while (1){
+        lowest = -1;
+        for (i=0;i<8;i++){
+            if ( (slevels[i]>0) && (!partdone[i]) &&
+                ((lowest<0) || (slevels[i]<slevels[lowest]))
+               )
+                    lowest=i;    
+        }
+        if (lowest<0)
+            break;   /*no more smooth to do on this square*/
+        /*printf ("hey, must smooth something...%d\n",sfaces[lowest]);*/
+        /*here we know 'what' to smooth*/
+        /* we need to calculate the weight
+         * for border and weight for corners.
+         * then we 'markdone' 
+         * the corresponding squares
+         */
+        /*first, the border, which may exclude some corners*/
+        weight=0;
+        weightC=15; /*works in backward. remove where there is nothing*/
+        /*for (i=0;i<8;i++)
+            cornermask[i]=1;*/
+        for (i=0;i<8;i++){ /*check all nearby squares*/
+            if ( (slevels[i]==slevels[lowest]) &&
+                 (sfaces[i]==sfaces[lowest])){
+                partdone[i]=1;
+                weight=weight+bweights[i];
+                weightC&=~bc_exclude[i];
+            }else{
+                /*must rmove the weight of a corner if not in smoothing*/
+                weightC&=~cweights[i];
+            }
+            
+        }
+        /*We can't do this before since we need the partdone to be adjusted*/
+        if (sfaces[lowest]<=0)
+            continue;  /*Can't smooth black*/
+        smoothface=sfaces[lowest];
+        if (smoothface<=0){
+            continue;  /*picture for smoothing not yet available*/
+        }
+        /* now, it's quite easy. We must draw using a 32x32 part of
+         * the picture smoothface. 
+         * This part is located using the 2 weights calculated: 
+         * (32*weight,0) and (32*weightC,32)
+         */
+        if ( (!pixmaps[smoothface]->map_image) ||
+             (pixmaps[smoothface] == pixmaps[0]))
+            continue;   /*don't have the picture associated*/
+        if (weight>0){
+            src.x=map_image_size*weight;
+            src.y=0;
+            if (the_map.cells[mx][my].cleared) {
+                if (SDL_BlitSurface(pixmaps[smoothface]->fog_image,
+                        &src, mapsurface, &dst))
+                    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+            } else {
+                if (SDL_BlitSurface(pixmaps[smoothface]->map_image,
+                        &src, mapsurface, &dst))
+                    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+            }
+        /*gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
+
+        gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weight,picy);
+        gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
+	        map_image_size*weight, 0, picx, picy,
+            map_image_size, map_image_size);*/
+        }
+        if (weightC>0){
+            src.x=map_image_size*weightC;
+            src.y=map_image_size;
+            if (the_map.cells[mx][my].cleared) {
+                if (SDL_BlitSurface(pixmaps[smoothface]->fog_image,
+                        &src, mapsurface, &dst))
+                    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+            } else {
+                if (SDL_BlitSurface(pixmaps[smoothface]->map_image,
+                        &src, mapsurface, &dst))
+                    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+            }
+
+        //gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
+        //gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weightC,picy-map_image_size);
+        //gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
+		  //map_image_size*weightC, map_image_size, picx, picy,
+          //map_image_size, map_image_size);
+
+        }
+
+
+    }/*while there's some smooth to do*/
+}
 
 /* This generates a map in SDL mode.
  * 
@@ -572,7 +719,8 @@ void sdl_gen_map(int redraw) {
 	    my = y + pl_pos.y;
 
 	    /* Don't need to touch this space */
-	    if (!redraw && !the_map.cells[mx][my].need_update) continue;
+	    if (!redraw && !the_map.cells[mx][my].need_update && !the_map.cells[mx][my].need_resmooth)
+            continue;
 
 	    /* First, we need to black out this space. */
 	    dst.x = x * map_image_size; dst.y = y* map_image_size;
@@ -586,7 +734,7 @@ void sdl_gen_map(int redraw) {
 		for (layer=0; layer<MAXLAYERS; layer++) {
 
 		    /* draw the tail first - this seems to get better results */
-		    if (the_map.cells[mx][my].tails[layer].face && 
+		    if (the_map.cells[mx][my].tails[layer].face &&
 			pixmaps[the_map.cells[mx][my].tails[layer].face]->map_image) {
 
 			/* add one to the size values to take into account the actual width of the space */
@@ -622,15 +770,25 @@ void sdl_gen_map(int redraw) {
 			dst.x = x * map_image_size;
 			dst.y = y * map_image_size;
 			if (the_map.cells[mx][my].cleared) {
-			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->fog_image, 
+			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->fog_image,
 				&src, mapsurface, &dst))
 				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
 			} else {
-			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image, 
+			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image,
 				&src, mapsurface, &dst))
 				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
 			}
-		    }
+            /*We have added either a head. Let's draw nearby squares coverts*/
+		    if ( use_config[CONFIG_SMOOTH])
+                drawsmooth_sdl (mx,my,layer,dst);
+            }
+            /*Sometimes, it may happens we need to draw the smooth while there
+              is nothing to draw at that layer (but there was something at lower
+              layers). This is handled here. The else part is to take into account
+              cases where the smooth as already been handled 2 code lines before*/
+            else if ( use_config[CONFIG_SMOOTH] &&
+                 the_map.cells[mx][my].need_resmooth )
+                drawsmooth_sdl (mx,my,layer,dst);
 		} /* else for processing the layers */
 
 	    /* Do final logic for this map space */

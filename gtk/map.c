@@ -431,7 +431,8 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
     int emx,emy;
     int smoothface;
     int dosmooth=0;
-    if (the_map.cells[mx][my].heads[0].face==0)
+    if ( (the_map.cells[mx][my].heads[0].face==0)
+         || !CAN_SMOOTH(the_map.cells[mx][my].smooth[layer]) )
         return;
     for (i=0;i<8;i++){
         emx=mx+dx[i];
@@ -440,7 +441,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         }
-        if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){            
+        if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         }else{      
@@ -602,7 +603,7 @@ void gtk_draw_map(int redraw) {
               is nothing to draw at that layer (but there was something at lower
               layers). This is handled here. The else part is to take into account
               cases where the smooth as already been handled 2 code lines before*/
-            else if ( use_config[CONFIG_SMOOTH] && 
+            else if ( use_config[CONFIG_SMOOTH] &&
                  the_map.cells[mx][my].need_resmooth )
                 drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
             
