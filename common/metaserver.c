@@ -149,7 +149,9 @@ int metaserver_get_info(char *metaserver, int meta_port)
     struct protoent *protox;
     int fd;
     struct sockaddr_in insock;
+#ifndef WIN32
     FILE *fp;
+#endif
     char    inbuf[MS_LARGE_BUF*4];
 
     if (!metaserver_on) {
@@ -278,11 +280,11 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	meta_numservers++;
     }
 #ifdef WIN32
-    close( fd );
+    closesocket( fd );
 #else
     fclose(fp);
 #endif
-    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)())meta_sort);
+    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void*, const void*))meta_sort);
     return 0;
 }
 

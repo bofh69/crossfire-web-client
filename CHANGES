@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/metaserver.c: small Win32 fixes, explicitely cast meta_sort
+   in qsort
+Ryo 2004-01-27
+
 common/item.c: check supplied argument to remove_item_inventory is
    not NULL.
 Ryo 2004-01-25
