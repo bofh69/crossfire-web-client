@@ -5,6 +5,8 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 Changes for 0.95.7:
 
+Makefile.in:  Update to include png.c when packing up distributions.
+
 configure.in, configure:  Move check for -lm before png check, and
 libpng on sparc/solaris systems require math library for proper linking.
 Also, change the -with-xpm* to -with-ldflags and -with-includes to be

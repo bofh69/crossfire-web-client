@@ -84,6 +84,7 @@ EXTRA_DIST = \
 	x11.c			\
 	xutil.c			\
 	gx11.c			\
+	png.c			\
 	cfsndserv.c
 
 PIXMAPS = \
