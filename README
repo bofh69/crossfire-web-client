@@ -4,8 +4,8 @@ Install Steps:
     You will need the XPM library to compile the client.
     If you want to run the gtk client, you will need to install the gtk
     libraries.
-    If you want png support, you will need to install the Imlib and png
-    library.  There may be other requisites for the Imlib file.
+    If you want png support, you will need to install the png
+    library.
 
 1)  type './configure' to configure for your OS/system.  Most options 
     normally understood by configure should be available.
@@ -23,6 +23,20 @@ Install Steps:
     sound daemon).  If you want to use the builtin sound system, use
     the --enable-old-sound.  See sound notes further down.
 
+    To specify additional places to find header files, use the 
+    --with-includes=value - this includes any -I or other options to provide
+    the compiler.  Example:  
+    ./configure --with-includes="-I/usr/local/include -I/opt/xpm/include"
+
+    Similarly, there is a --with-ldflags option.  Example:
+    ./configure --with-ldflags"-L/usr/local/lib -R/usr/local/lib"
+    -R is used on many systems to specify run location for libraries so
+    you don't need to set LD_LIBRARY_PATH.
+
+    Generally, if you are setting --with-includes, your probably need to
+    set --with-ldflags, as if one is not in a standard place, the other
+    probably is not either.
+
 2) Type 'make depend; make' to compile the client. If you get link errors,
     it may be because you have an older version of the gtk libraries.  If
     you get errors like 'can't find target client.c', your make program
@@ -32,10 +46,6 @@ Install Steps:
 
 4)  The client can be run by typing 'cfclient' for the X11 version, gcfclient
      for the gtk client.
-
-If you wish to generate the X11 client after generating the gtk client,
-you just need to re-run configure with the appropriate options, do
-a make clean, and then make.
 
 ------------------------------------------------------------------------------
 Converting keybindings from old save files for use with the client:

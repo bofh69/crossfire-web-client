@@ -48,11 +48,11 @@ dnl The follow two are really just a way to specify where the xpm information
 dnl resides if not with the normal X11 stuff (ie, in /usr/local and not /usr
 dnl /usr/X11
 
-AC_ARG_WITH(xpm-lib, [  --with-xpm-lib=dir     provide different directory to find xpm lib in        ],
-		XPMLIB="-L$withval" XPMRUN="-R$withval")
+AC_ARG_WITH(ldflags, [  --with-ldflags=dir     provide addition linker directives to find libraries ],
+		EXTRA_LIB="$withval")
 
-AC_ARG_WITH(xpm-inc, [  --with-xpm-inc=dir     provide different directory to find xpm includes in        ],
-		XPMINC="-I$withval")
+AC_ARG_WITH(includes, [  --with-includes=dir     provide different compiler options to find headers with ],
+		EXTRA_INC="$withval")
 
 AC_ARG_WITH(sound-dir, [  --with-sound-dir=dir     Directory where the sounds are located (default=/usr/local/lib/sounds)        ],
 		SOUNDDIR="$withval")
@@ -125,7 +125,6 @@ if eval "test x$CFGTK = xyes"; then
 	GTK_CFLAGS="$GTK_CFLAGS"
 	AC_SUBST(GTK_LIBS)
 	AC_SUBST(GTK_CFLAGS)
-	CPPFLAGS="$CPPFLAGS $XPMINC"
 	TARGET="gcfclient cfclient"
 	dnl AC_DEFINE(GTK_CLIENT)
 else
@@ -134,15 +133,15 @@ else
 	AC_SUBST(X_LIBS)
 	AC_SUBST(X_CFLAGS)
 	TARGET="cfclient"
-	CPPFLAGS="$CPPFLAGS $XPMINC"
 	echo Xlibs: $X_LIBS
 	echo Extras: $X_EXTRA_LIBS
 	echo Xpre: $X_PRE_LIBS
 fi
 
-LDFLAGS="$LDFLAGS $XPMLIB"
+CPPFLAGS="$CPPFLAGS $EXTRA_INC"
+LDFLAGS="$LDFLAGS $EXTRA_LIB"
 if eval "test x$need_r_flag = xyes"; then
-    LDFLAGS="$LDFLAGS $XPMRUN"
+    LDFLAGS="$LDFLAGS"
 fi
 
 AC_CHECK_LIB(asound, main, alsa_sound=yes, , -lm)
@@ -187,7 +186,6 @@ AC_SUBST(GUI_OBJS)
 AC_SUBST(GUI_SRCS)
 AC_SUBST(SND_LIBS)
 AC_SUBST(LDFLAGS)
-AC_SUBST(XPMRUN)
 AC_SUBST(TARGET)
 
 
@@ -232,7 +230,7 @@ fi
 dnl Save and modify CPPFLAGS and LIBS (to include X and GTK paths temporarily).
 gcfc_save_CPPFLAGS="$CPPFLAGS"
 gcfc_save_LIBS="$LIBS"
-CPPFLAGS="$GTK_CFLAGS $CPPFLAGS $X_CFLAGS"
+CPPFLAGS="$GTK_CFLAGS $CPPFLAGS $X_CFLAGS $EXTRA_INC"
 LIBS="$LIBS $GTK_LIBS $X_LIBS"
 
 dnl Test for libXpm
@@ -241,8 +239,8 @@ dnl Test for libXpm
 	 AC_DEFINE(HAVE_LIBXPM)
 	 AC_CHECK_HEADER(X11/xpm.h,
 		XPM='xpm'; LIBXPM_LIB='-lXpm',
-		AC_MSG_ERROR(XPM header file not found - you may need to use --with-xpm-inc=dir)),
-      AC_MSG_ERROR(XPM library not found - you may need to use --with-xpm-lib=dir), $X_LIBS)
+		AC_MSG_ERROR(XPM header file not found - you may need to use --with-includes=-Idir)),
+      AC_MSG_ERROR(XPM library not found - you may need to use --with-ldflags=-Ldir), $X_LIBS)
   fi
 
 dnl Put this here so we get the gdk libs
@@ -259,13 +257,14 @@ LIBS="$gcfc_save_LIBS"
 
 AC_SUBST(LIBS)
 
+dnl sound.c needs sqrt.  So does png (on some systems)
+AC_CHECK_LIB(m, sqrt)
+
 AC_CHECK_LIB(png, main)
 
 dnl not strictly needed, but since the X11 client uses it, lets use it here
 AC_CHECK_LIB(dmalloc, main)
 
-dnl sound.c needs sqrt
-AC_CHECK_LIB(m, sqrt)
 
 
 dnl Checks for header files.

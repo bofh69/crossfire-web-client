@@ -1,6 +1,22 @@
 "$Id$"
 Top of CVS tree:
 
+configure.in, configure:  Move check for -lm before png check, and
+libpng on sparc/solaris systems require math library for proper linking.
+Also, change the -with-xpm* to -with-ldflags and -with-includes to be
+more general since extra values may be needed for more than just xpm
+library.
+client.man: Updated for information about png images and
+cwindow command.
+README:  Updated with changes mentioned above with the --with-png options.
+gx11.c: Remove all support for pixmap images.  They didn't work anyways,
+but you could specify -pix on the command line and get no images - 
+now it will at least result in an error message.  Also, savedefaults
+will now save png status properly.
+xutil.c: Modified so that it will save png status when savedefaults
+is issued.
+MSW 8/24/2000
+
 The following change removes imlib as are png loading/rendering library -
 instead, we use our own local function located in png.c.  libpng is
 still needed, but it removes the dependancy on imlib.  Also, my home

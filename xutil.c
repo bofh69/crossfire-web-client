@@ -1220,6 +1220,8 @@ void load_defaults()
 	if (!strcmp(inbuf,"display")) {
 	    if (!strcmp(cp,"xpm")) 
 		display_mode=Xpm_Display;
+	    if (!strcmp(cp,"png")) 
+		display_mode=Png_Display;
 	    else if (!strcmp(cp,"pixmap"))
 		display_mode = Pix_Display;
 	    else fprintf(stderr,"Unknown display specication in %s, %s",
@@ -1297,6 +1299,8 @@ void save_defaults()
 	fprintf(fp,"display: xpm\n");
     } else if (display_mode==Pix_Display) {
 	fprintf(fp,"display: pixmap\n");
+    } else if (display_mode==Png_Display) {
+	fprintf(fp,"display: png\n");
     }
     fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
     fprintf(fp,"split: %s\n", split_windows?"True":"False");

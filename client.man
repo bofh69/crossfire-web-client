@@ -1,12 +1,12 @@
 .\"$Id$
-.TH cfclient "November 29, 1998"
+.TH cfclient
 .SH NAME
 cfclient - X11 client program for crossfire servers.
 .br
 gcfclient - gtk client program for crossfire servers.
 .SH SYNOPSIS
 .B client [-server server] [-port number] [-display display] [-split|-nosplit]
-[-echo] [-pix|-xpm] [-showicon] [-scrollines number] [-sync] [-help]
+[-echo] [-pix|-xpm|-png] [-showicon] [-scrollines number] [-sync] [-help]
 [-cache|-nocache]
 .SH DESCRIPTION
 .PP
@@ -51,7 +51,7 @@ that command actually was.  This option causes the commands to also be
 printed in the information window as they are sent to the server.
 
 .TP
-.B -pix|-xpm
+.B -pix|-xpm|-png
 This determines the graphic image types to use.  -pix uses pixmap images -
 these are two color images with no masking (one image per space.).  -xpm
 uses XPM format images - these are multi colored images with masking,
@@ -59,7 +59,12 @@ so multiple images per space can be displayed.  XPM images require
 more local processing power (unless you are on a very old machine, this
 should not be an issue), the installation of the XPM library, and also
 require more bandwidth to download (however, see the -cache option
-further down.)
+further down.)  Png have all the same features of XPM, but are
+slightly larger (32x32 instead of 24x24), appear better, and do the the
+efficiency of the png format, actually take less bandwidth to transmit
+than the xpm images.  Using the png images require that the client
+
+has been compiled with png support.
 
 .TP
 .B -showicon
@@ -186,6 +191,29 @@ one key to cast a fireball?  This is what the bind command does.
 'help bind gives much more detailed information.  Once a command
 is bound, it is stored in ~/.crossfire/keys and will be used in future
 plays.
+.TP
+.B scroll
+Cfclient only. Toggles between scroll and wrap mode.
+In wrap mode, when text gets to the bottom of the
+message window, it starts new messages at the top.
+Scroll is only really useful on very slow systems where
+the performance hit of scrolling the window is too costly.
+.TP
+.B magicmap
+Displays the data from the last time the magic mapping
+spell was cast.  This information can be completely useless
+if you are now on another map.
+.TP
+.B cwindow <number>
+Specifies the number of unprocessed commands to the server.
+The server processes player commands as the character has
+actions to perform them - having this number too high
+can result in extended lengths of time that after you stop
+entering commands the character is still performing actions.
+Having this value too low on slow links can result in the
+character sitting idle even though they have an action
+comming to them.
+
 
 .SH FILES
 .TP
@@ -212,7 +240,7 @@ can also be edited by hand.
 .PP
 Please let me know about any bugs you find in the client.
 .SH AUTHOR
-Copyright (C) 1994,1996,1998 Mark Wedel (mark@pyramid.com)
+Copyright (C) 1994,2000 Mark Wedel (mwedel@scruz.net)
 GTK port by David Sundqvist (azzie@netpolicy.com)
 
 There are a great many other contributors to both the client and server

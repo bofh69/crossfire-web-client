@@ -853,8 +853,8 @@ void load_defaults()
 	if (!strcmp(inbuf,"display")) {
 	    if (!strcmp(cp,"xpm")) 
 		display_mode=Xpm_Display;
-	    else if (!strcmp(cp,"pixmap"))
-		display_mode = Pix_Display;
+	    if (!strcmp(cp,"png")) 
+		display_mode=Png_Display;
 	    else fprintf(stderr,"Unknown display specication in %s, %s",
 			   path, cp);
 	    continue;
@@ -932,8 +932,8 @@ void save_defaults()
     fprintf(fp,"server: %s\n", server);
     if (display_mode==Xpm_Display) {
 	fprintf(fp,"display: xpm\n");
-    } else if (display_mode==Pix_Display) {
-	fprintf(fp,"display: pixmap\n");
+    } else if (display_mode==Png_Display) {
+	fprintf(fp,"display: png\n");
     }
     fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
     fprintf(fp,"split: %s\n", split_windows?"True":"False");
@@ -1238,60 +1238,62 @@ static void requestface(int pnum, char *facename, char *facepath)
 
 void FaceCmd(unsigned char *data,  int len)
 {
-  int pnum;
-  char *face,buf[MAX_BUF];
+    int pnum;
+    char *face,buf[MAX_BUF];
   
-  /* A quick sanity check, since if client isn't caching, all the data
-   * structures may not be initialized.
-   */
+    /* A quick sanity check, since if client isn't caching, all the data
+     * structures may not be initialized.
+     */
 
-  if (!cache_images) {
-    fprintf(stderr,"Received a 'face' command when we are not caching\n");
-    return;
-  }
-  pnum = GetShort_String(data);
-  face = (char *)data+2;
-  data[len] = '\0';
-  /* To prevent having a directory with 2000 images, we do a simple
-   * split on the first 2 characters.
-   */
-  sprintf(buf,"%s/%c%c/%s", facecachedir, face[0], face[1],face);
+    if (!cache_images) {
+	fprintf(stderr,"Received a 'face' command when we are not caching\n");
+	return;
+    }
+    pnum = GetShort_String(data);
+    face = (char *)data+2;
+    data[len] = '\0';
+    /* To prevent having a directory with 2000 images, we do a simple
+     * split on the first 2 characters.
+     */
+    sprintf(buf,"%s/%c%c/%s", facecachedir, face[0], face[1],face);
 
-  if (display_mode == Xpm_Display) 
-    strcat(buf,".xpm");
-  else if (display_mode == Png_Display)
-    strcat(buf,".png");
+    if (display_mode == Xpm_Display) 
+	strcat(buf,".xpm");
+    else if (display_mode == Png_Display)
+	strcat(buf,".png");
 
-  /* check to see if we already have the file.  IF not, we need to request
-   * it from the server.
-   */
-  if (access(buf,R_OK)) {
+    /* check to see if we already have the file.  IF not, we need to request
+     * it from the server.
+     */
+    if (access(buf,R_OK)) {
     
-    requestface(pnum, face, buf);
+	requestface(pnum, face, buf);
     
-  } else if (display_mode == Xpm_Display) {
+    } else {
+	if (display_mode == Xpm_Display) {
     
-	GtkStyle *style;
+	    GtkStyle *style;
     
-	style = gtk_widget_get_style(gtkwin_root);
-	pixmaps[pnum].gdkpixmap = gdk_pixmap_create_from_xpm(gtkwin_root->window,
+	    style = gtk_widget_get_style(gtkwin_root);
+	    pixmaps[pnum].gdkpixmap = gdk_pixmap_create_from_xpm(gtkwin_root->window,
 							 &pixmaps[pnum].gdkmask,
 							 &style->bg[GTK_STATE_NORMAL],
 								     (gchar *) buf );
-	if (!pixmaps[pnum].gdkpixmap) {
-	    requestface(pnum, face, buf);
+	    if (!pixmaps[pnum].gdkpixmap) {
+		requestface(pnum, face, buf);
+	    }
 	}
-  }
-  else if (display_mode == Png_Display) {
+	else if (display_mode == Png_Display) {
 #ifdef HAVE_LIBPNG
 
-    if (png_to_gdkpixmap(gtkwin_root->window, buf, &pixmaps[pnum].gdkpixmap, 
+	    if (png_to_gdkpixmap(gtkwin_root->window, buf, &pixmaps[pnum].gdkpixmap, 
 			 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
-	    fprintf(stderr,"Got error on png_to_gdkpixmap\n");
-	    requestface(pnum, face, buf);
-    }
+		fprintf(stderr,"Got error on png_to_gdkpixmap\n");
+		requestface(pnum, face, buf);
+	    }
 #endif
-  }
+	}
+    } /* else Don't have image */
 }
 
 
@@ -6217,7 +6219,6 @@ static void usage(char *progname)
     puts("-display <name>  - Use <name> instead if DISPLAY environment variable.\n");
     puts("-split           - Use split windows.");
     puts("-echo            - Echo the bound commands");
-    puts("-pix             - Use bitmaps instead of the font.");
 #ifdef Xpm_Pix
     puts("-xpm             - Use color pixmaps (XPM) for display.");
 #endif
@@ -6301,11 +6302,6 @@ int init_windows(int argc, char **argv)
             fprintf(stderr,"Ignoring -png flag\n");
             continue;
 #endif
-	}
-	else if (!strcmp(argv[on_arg],"-pix")) {
-	    display_mode = Pix_Display;
-	    image_size=24;
-	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-cache")) {
 	    cache_images= TRUE;
