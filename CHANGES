@@ -1,6 +1,18 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+
+MSW 2001/03/13:
+png.c: New png -> X11 (or gdk) creation routines that are much faster.  This
+   should make a noticable difference in performance.  Note that the X11
+   and gdk implementations are very different now - the gdk implementation
+   lets the gdk library do most of the work.
+gx11.c: remove some dead code, add call to gdk_rgb_init() if using
+   png images - needed by new png loader.
+x11.c: Add call to init_pngx_loader if running in png mode.  Also pass colormap
+   by pointer so png_to_xpixmap can modify it.
+xutil.c: pass colormap by pointer to init_pngx_loader (same reason as above)
+
 MSW 2001/03/06:
 Makefile.in: Add DMALLOC_LIB definition instead of it going in with the
     the default libraries.  cfsndserv will now get properly linked with

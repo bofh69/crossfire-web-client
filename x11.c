@@ -2064,6 +2064,7 @@ static int get_root_display(char *display_name) {
     if (display_mode==Png_Display) {
 	roothint.width += 88;
 	roothint.height+= 88;
+	init_pngx_loader(display);
     }
     roothint.max_width=roothint.min_width=roothint.width;
     roothint.max_height=roothint.min_height=roothint.height;
@@ -2953,7 +2954,7 @@ void display_newpng(long face,char *buf,long buflen)
     }
 
     if (png_to_xpixmap(display, win_game, buf, buflen, &pixmap, &mask,
-		       colormap, &w, &h)) {
+		       &colormap, &w, &h)) {
 	fprintf(stderr,"Got error on Imlib_load_file_to_pixmap, face=%ld\n",face);
     }
 

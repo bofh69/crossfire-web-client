@@ -325,10 +325,6 @@ typedef struct {
   int y;
 } MapPos;
 
-/*static struct GtkMap gtkmap [11][11];
-
-static GdkPixmap *gdkmask[11][11];
-static MapPos mappos [11][11];*/
 
 /* vitals window */
 
@@ -568,23 +564,6 @@ static void gen_draw_face(int face,int x,int y)
 void end_windows()
 {
   free(last_str);
-
-  /*    XFreeGC(display, gc_root);
-    XFreeGC(display, gc_game);
-    XFreeGC(display, gc_stats);
-    XFreeGC(display, infodata.gc_info);
-    XFreeGC(display, inv_list.gc_text);
-    XFreeGC(display, inv_list.gc_icon);
-    XFreeGC(display, inv_list.gc_status);
-    XFreeGC(display, look_list.gc_text);
-    XFreeGC(display, look_list.gc_icon);
-    XFreeGC(display, look_list.gc_status);
-    XFreeGC(display, gc_message);
-    if (display_mode==Xpm_Display) {
-	XFreeGC(display, gc_xpm_object);
-    }
-    XDestroyWindow(display,win_game);
-    XCloseDisplay(display);*/
 }
 
 /*static historyitem *newhistoryitem(gchar *text) {
@@ -1261,7 +1240,6 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	strcat(buf,".xpm");
     else if (display_mode == Png_Display)
 	strcat(buf,".png");
-
 
     if ((fd=open(buf, O_RDONLY))==-1) {
 	requestface(pnum, face, buf);
@@ -6381,6 +6359,10 @@ int init_windows(int argc, char **argv)
 
     if (get_root_display(display_name,gargc,gargv))
 		return 1;
+
+    if (display_mode == Png_Display) {
+	gdk_rgb_init();
+    }
 
     init_keys();
     if (cache_images) init_cache_data();

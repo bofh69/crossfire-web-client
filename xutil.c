@@ -172,7 +172,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 
 	/* Fail on this read, we will request a new copy */
 	if (png_to_xpixmap(display, win_game, data, len,
-			   &pixmap, &mask, colormap, &w, &h)) {
+			   &pixmap, &mask, &colormap, &w, &h)) {
 	    requestface(pnum, face, buf);
 	} else {
 	    pixmaps[pnum].pixmap = pixmap;
