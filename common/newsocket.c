@@ -1,13 +1,11 @@
-
 /*
- * static char *rcsid_sockets_c =
- *    "$Id$";
+ * static char *rcsid_newsocket_c =
+ *   "$Id$";
  */
-
 /*
-    CrossFire, A Multiplayer game for X-windows
+    Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 1992 Frank Tore Johansen
+    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,7 +21,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    The author can be reached via e-mail to mark@pyramid.com
+    The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
 /* Made this either client or server specific for 0.95.2 release - getting

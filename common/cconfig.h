@@ -1,12 +1,33 @@
-/* This is a config file for the client.  Many of the options are
- * taken from the standard config.h file.  However, a few new ones unique
- * to the client are here.  Also, if the client ever became a totally
- * seperate distibution, this would be needed in any case.
+/*
+ * static char *rcsid_commands_c =
+ *   "$Id$";
  */
+/*
+    Crossfire client, a client program for the crossfire program.
 
+    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
 
-/* X_PROG_NAME is the name that is used to read X resources. */
-#define X_PROG_NAME "cfclient"
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+    The author can be reached via e-mail to crossfire-devel@real-time.com
+*/
+
+/* This contains various configuration options.  Most all of thse
+ * can be overridden via command line options, but setting them
+ * here can provide nice defaults.
+ */
 
 /* Directory to store cached images (only makes a difference if run
  * with the -cache option.)  If not set, then we store in ~/.crossfire/images
