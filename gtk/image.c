@@ -66,6 +66,8 @@ struct {
     uint32  width, height;
 } private_cache[MAXPIXMAPNUM];
 
+#define BPP 4
+
 /* This holds the name we recieve with the 'face' command so we know what
  * to save it as when we actually get the face.
  */
@@ -298,7 +300,15 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     } else {
 	pi->map_width = width;
 	pi->map_height = height;
-	create_map_image(rgba_data, pi);
+	/* if using SDL mode, a copy of the rgba data needs to be
+	 * stored away. 
+	 */
+	if (use_config[CONFIG_SDL]) {
+	    png_tmp = malloc(width * height * BPP);
+	    memcpy(png_tmp, rgba_data, width * height * BPP);
+	} else
+	    png_tmp = rgba_data;
+	create_map_image(png_tmp, pi);
     }
     /* Not ideal, but basically, if it is missing the map or icon image, presume
      * something failed.
