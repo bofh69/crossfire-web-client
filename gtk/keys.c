@@ -629,7 +629,7 @@ void bind_key(char *params)
 
     if (!strcmp(params, "firekey1")) {
 	bind_keysym = & firekeysym[0];
-	draw_info("Push key to bind new firekey 1.",NDI_BLACK);
+    draw_info("Push key to bind new firekey 1.",NDI_BLACK);
 	cpl.input_state = Configure_Keys;
 	return;
     }
@@ -715,6 +715,8 @@ void bind_key(char *params)
 
     if (strlen(params) >= sizeof(bind_buf)) {
 	params[sizeof(bind_buf) - 1] = '\0';
+    draw_info("Keybinding too long! Truncated:",NDI_RED);
+    draw_info(params,NDI_RED);
     }
     sprintf(buf, "Push key to bind '%s'.", params);
     draw_info(buf,NDI_BLACK);
@@ -839,14 +841,15 @@ static void configure_keys(uint32 keysym)
     }
 
     if (bind_keysym!=NULL) {
-	*bind_keysym=keysym;
+        *bind_keysym=keysym;
+        bind_keysym=NULL;
     }
     else {
 	insert_key(keysym, bind_flags, bind_buf);
     }
 
-    sprintf(buf, "Binded to key '%s' (%i)", 
-	  keysym==NoSymbol?"unknown":gdk_keyval_name(keysym), 0);
+    sprintf(buf, "Binded to key '%s' (%i)",
+	  keysym==NoSymbol?"unknown":gdk_keyval_name(keysym), keysym);
     draw_info(buf,NDI_BLACK);
     cpl.fire_on=0;
     cpl.run_on=0;

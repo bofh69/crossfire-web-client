@@ -937,6 +937,8 @@ bind_key(char *params)
 	}
         if (strlen(params) >= sizeof(bind_buf)) {
 	    params[sizeof(bind_buf) - 1] = '\0';
+        draw_info("Keybinding too long! Truncated:",NDI_RED);
+        draw_info(params,NDI_RED);
 	}
 	sprintf(buf, "Push key to bind '%s'.", params);
 	draw_info(buf, NDI_BLACK);
