@@ -276,16 +276,17 @@ void negotiate_connection(int sound)
      * send it and wait for the response.
      */
     if (csocket.sc_version >= 1027) {
-	cs_print_string(csocket.fd,"requestinfo image_info");
-	requestinfo_sent = RI_IMAGE_INFO;
-	replyinfo_status = 0;
-	replyinfo_last_face = 0;
-
 	/* last_start is -99.  This means the first face requested will
 	 * be 1 (not 0) - this is OK because 0 is defined as the blank
 	 * face.
 	 */
 	int last_end=0, last_start=-99;
+
+	cs_print_string(csocket.fd,"requestinfo image_info");
+	requestinfo_sent = RI_IMAGE_INFO;
+	replyinfo_status = 0;
+	replyinfo_last_face = 0;
+
 	do {
 	    DoClient(&csocket);
 	    if (face_info.download_all_faces) {
