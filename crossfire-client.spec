@@ -13,7 +13,7 @@
 
 Name: %{Name}-%{extra}
 Version: %{version}
-Release: realtime.2
+Release: realtime.3
 Summary: Client for connecting to crossfire servers.
 Group: Amusements/Games/Crossfire
 Copyright: GPL
@@ -72,7 +72,9 @@ GTK version of the crossfire client
 
 %build
 chmod 755 configure
-CFLAGS="$RPM_OPT_FLAGS" %configure --datadir=/usr/share/games/crossfire
+%configure --datadir=/usr/share/games/crossfire \
+	--with-sound-dir=/usr/share/sounds/crossfire
+
 %{__make} %{?_smp_mflags}
 
 %install
@@ -184,6 +186,10 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %attr(755,root,root) %{_bindir}/cfsndserv
 
 %changelog
+* Wed Jul 10 2002 Bob Tanner <tanner@real-time.com>
+  + crossfire-client-1.3.1-realtime.3
+  - fixed location of sound files [kbulgrien@worldnet.att.net]
+
 * Wed Jul 02 2002 Bob Tanner <tanner@real-time.com>
   + crossfire-client-1.3.1-realtime.2
   - added 16x16, 32x32, 48x48 icons for proper KDE support
