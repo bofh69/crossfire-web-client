@@ -4281,7 +4281,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
 
   /*  sub_pickupmenu = gtk_menu_item_new_with_label("Action");
-  
+
   gtk_widget_show(sub_pickupmenu);*/
   gtk_menu_item_set_submenu(GTK_MENU_ITEM (pickup_menu_item), pickupmenu);
 /* ENDPICKUP */
@@ -4691,7 +4691,7 @@ void create_windows() {
     /* game & statbars below, stats above */
     stat_game_vpane = gtk_vpaned_new ();
     gtk_paned_add1 (GTK_PANED (stat_info_hpane), stat_game_vpane);
-    
+
     /* game - statbars */
     if (want_mapx>15) {
 	bigmap=TRUE;
@@ -5737,16 +5737,16 @@ int init_windows(int argc, char **argv)
     }
 
     map_size= (fog_of_war == TRUE) ? FOG_MAP_SIZE : MAP_MAX_SIZE;
-    
+
     allocate_map( &the_map, map_size, map_size);
-    
+
     if( fog_of_war == TRUE)
     {
       /* Stick us in the middle of the virtual map */
       pl_pos.x= map_size / 2;
       pl_pos.y= map_size / 2;
     }
-      
+
     /* Finished parsing all the command line options.  Now start
      * working on the display.
      */
@@ -5781,8 +5781,9 @@ void display_map_doneupdate(int redraw)
 
 #ifdef HAVE_SDL
 	if (sdlimage) sdl_gen_map();
+	else
 #endif
-	else gtk_draw_map();
+	gtk_draw_map();
 
     } /* if updatelock */
 

@@ -368,7 +368,7 @@ int find_face_in_private_cache(char *face, int checksum)
  * a new server and get a name, we should try to re-arrange our cache
  * or the like.
  */
- 
+
 void reset_image_data()
 {
     int i;
@@ -392,9 +392,10 @@ void reset_image_data()
 		SDL_FreeSurface(pixmaps[i].map_image);
 		free(((SDL_Surface*)pixmaps[i].map_image)->pixels);
 	    }
+	    else
 
 #endif
-	    else {
+	    {
 		gdk_pixmap_unref(pixmaps[i].map_image);
 		pixmaps[i].map_image=NULL;
 		if (pixmaps[i].map_mask) {

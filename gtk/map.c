@@ -491,8 +491,8 @@ void display_mapscroll(int dx,int dy)
 	    memset((char*)&newmap.cells[x][y], 0, sizeof(struct MapCell));
 	    /*
 	     * Changed my smacfiggen 6/20/2001 -- When new cells come onto
-	     * the map and we aren't using the new map command we want to 
-	     * mark these as updated or else blank tiles get blitted with 
+	     * the map and we aren't using the new map command we want to
+	     * mark these as updated or else blank tiles get blitted with
 	     * old info.
 	     *
 	     */
@@ -513,9 +513,10 @@ void display_mapscroll(int dx,int dy)
       memcpy((char*)the_map.cells[0],(char*)newmap.cells[0],
 	     sizeof(struct MapCell)*newmap.x*newmap.y );
     }
-    if (sdlimage) 
+#ifdef HAVE_SDL
+    if (sdlimage)
 	sdl_mapscroll(dx,dy);
-	
+#endif
 /*    fprintf(stderr,"scroll command: %d %d\n", dx, dy);*/
 }
 
@@ -534,9 +535,9 @@ void reset_map_data()
 	int y= 0;
 	pl_pos.x= the_map.x/2;
 	pl_pos.y= the_map.y/2;
-	memset( the_map.cells[0], 0, 
+	memset( the_map.cells[0], 0,
 		sizeof( struct MapCell) * the_map.x * the_map.y);
-	for( x= pl_pos.x; x < (pl_pos.x + mapx); x++) 
+	for( x= pl_pos.x; x < (pl_pos.x + mapx); x++)
 	{
 	    for( y= pl_pos.y; y < (pl_pos.y + mapy); y++)
 	    {
