@@ -87,8 +87,8 @@ struct CmdMapping commands[] = {
     { "magicmap", MagicMapCmd},
     { "newmap", NewmapCmd },
 
-    { "item", ItemCmd },
     { "item1", Item1Cmd },
+    { "item2", Item2Cmd },
     { "upditem", UpdateItemCmd },
     { "delitem", DeleteItem },
     { "delinv",	DeleteInventory },
@@ -261,7 +261,7 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d",
+	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d itemcmd 2",
 	    sound>=0, want_skill_exp, 
 		    want_config[CONFIG_FOGWAR], face_info.faceset,
 		    want_config[CONFIG_CACHE]);

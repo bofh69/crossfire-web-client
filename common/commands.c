@@ -227,6 +227,12 @@ void SetupCmd(char *buf, int len)
 		close(csocket.fd);
 		csocket.fd = -1;
 	    }
+	} else if (!strcmp(cmd,"itemcmd")) {
+	    /* don't really care - currently, the server will just
+	     * fall back to the item1 transport mode.  If more item modes
+	     * are used in the future, we should probably fall back one at
+	     * a time or the like.
+	     */
 	}
 
 	else {
@@ -503,48 +509,15 @@ void item_actions (item *op)
 */
 }
 
-/* ItemCmd grabs and display information for items in the inventory */
-void ItemCmd(unsigned char *data, int len)
+
+/* common_item_cmd parses the data send to us from the server.
+ * revision is what item command the data came from - newer
+ * ones have addition fields.
+ */
+static void common_item_command(uint8 *data, int len, int revision)
 {
-    int weight, loc, tag, face, flags,pos=0,nlen;
-    char name[MAX_BUF];
 
-    loc = GetInt_String(data);
-    pos+=4;
-
-    if (pos == len) {
-	/* An empty item command can be used to delete the whole
-	 * inventory of item 'loc'. Esspecially if loc is 0, then
-	 * there is no floor under the player.
-	 */
-/*	delete_item_inventory(loc);*/
-	fprintf(stderr,"ItemCmd: Got location with no other data\n");
-    }
-    else if (loc < 0) { /* delele following items */
-	fprintf(stderr,"ItemCmd: got location with negative value (%d)\n", loc);
-	return;
-    } else {
-	while (pos < len) {
-	    tag=GetInt_String(data+pos); pos+=4;
-	    flags = GetInt_String(data+pos); pos+=4;
-	    weight = GetInt_String(data+pos); pos+=4;
-	    face = GetInt_String(data+pos); pos+=4;
-	    nlen = data[pos++];
-	    memcpy(name, (char*)data+pos, nlen);
-	    pos += nlen;
-	    name[nlen]='\0';
-	    update_item (tag, loc, name, weight, face, flags,0,0,-1);
-	    item_actions (locate_item(tag));
-	}
-	if (pos>len) 
-	    fprintf(stderr,"ItemCmd: Overread buffer: %d > %d\n", pos, len);
-    }
-}
-
-/* ItemCmd grabs and display information for items in the inventory */
-void Item1Cmd(unsigned char *data, int len)
-{
-    int weight, loc, tag, face, flags,pos=0,nlen,anim,nrof;
+    int weight, loc, tag, face, flags,pos=0,nlen,anim,nrof, type;
     uint8 animspeed;
     char name[MAX_BUF];
 
@@ -552,14 +525,10 @@ void Item1Cmd(unsigned char *data, int len)
     pos+=4;
 
     if (pos == len) {
-	/* An empty item command can be used to delete the whole
-	 * inventory of item 'loc'. Esspecially if loc is 0, then
-	 * there is no floor under the player.
-	 */
-/*	delete_item_inventory(loc);*/
 	fprintf(stderr,"ItemCmd: Got location with no other data\n");
+	return;
     }
-    else if (loc < 0) { /* delele following items */
+    else if (loc < 0) { /* delete following items */
 	fprintf(stderr,"ItemCmd: got location with negative value (%d)\n", loc);
 	return;
     } else {
@@ -575,14 +544,32 @@ void Item1Cmd(unsigned char *data, int len)
 	    anim = GetShort_String(data+pos); pos+=2;
 	    animspeed = data[pos++];
 	    nrof = GetInt_String(data+pos); pos+=4;
+	    if (revision >= 2) {
+		type = GetShort_String(data+pos); pos+=2;
+	    } else
+		type = NO_ITEM_TYPE;
 	    update_item (tag, loc, name, weight, face, flags, anim,
-			 animspeed, nrof);
+			 animspeed, nrof, type);
 	    item_actions (locate_item(tag));
 	}
 	if (pos>len) 
 	    fprintf(stderr,"ItemCmd: Overread buffer: %d > %d\n", pos, len);
     }
 }
+
+/* parsing the item data is 95% the same - we just need to pass the
+ * revision so that the function knows what values to extact.
+ */
+void Item1Cmd(unsigned char *data, int len)
+{
+    common_item_command(data, len, 1);
+}
+
+void Item2Cmd(unsigned char *data, int len)
+{
+    common_item_command(data, len, 2);
+}
+
 
 /* UpdateItemCmd updates some attributes of an item */
 void UpdateItemCmd(unsigned char *data, int len)
@@ -659,7 +646,7 @@ void UpdateItemCmd(unsigned char *data, int len)
      * calling update_item is a little bit of overkill, since we
      * already determined some of the values in this function.
      */
-    update_item (tag, loc, name, weight, face, flags,anim,animspeed,nrof);
+    update_item (tag, loc, name, weight, face, flags,anim,animspeed,nrof, ip->type);
     item_actions (locate_item(tag));
 }
 

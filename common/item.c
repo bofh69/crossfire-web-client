@@ -230,7 +230,7 @@ static item *new_item ()
     op->anim_state=0;
     op->nrof=0;
     op->open=0;
-    op->type=255;
+    op->type=NO_ITEM_TYPE;
     return op;
 }
 
@@ -354,7 +354,7 @@ void remove_item (item *op)
     op->anim_state=0;
     op->nrof=0;
     op->open=0;
-    op->type=255;
+    op->type=NO_ITEM_TYPE;
 }
 
 /*
@@ -459,48 +459,10 @@ static void get_flags (item *op, uint16 flags)
 }
 
 
-/*
- *  get_nrof() functions tries to get number of items from the item name
- */
-static sint32 get_nrof(char *name) 
-{
-    static char *numbers[21] = {
-	"no ","a ","two ","three ","four ","five ","six ","seven ","eight ",
-	"nine ","ten ","eleven ","twelve ","thirteen ","fourteen ","fifteen ",
-	"sixteen ","seventeen ","eighteen ","nineteen ","twenty "
-    };
-    static char *numbers_10[10] = {
-	"zero ","ten ","twenty ","thirty ","fourty ","fifty ","sixty ",
-	"seventy ","eighty ","ninety "
-    };
-    sint32 nrof = 0;
-    int i;
-
-    if (isdigit (*name))
-	nrof = atol (name);
-    else if (strncmp (name, "a ", 2) == 0 || strncmp (name, "an ", 3) == 0)
-	nrof = 1;
-    else {
-	for (i=1; i<sizeof(numbers)/sizeof(numbers[0]); i++)
-	    if (strncmp (name, numbers[i], strlen (numbers[i])) == 0) {
-		nrof = i;
-		break;
-	    }
-	if ( !nrof ) {
-	    for (i=1; i<sizeof(numbers_10)/sizeof(numbers_10[0]); i++)
-		if (strncmp(name, numbers_10[i], strlen(numbers_10[i])) == 0) {
-		    nrof = i * 10;
-		    break;
-		}
-	}
-    }
-    
-    return nrof ? nrof : 1; 
-}
 
 void set_item_values (item *op, char *name, sint32 weight, uint16 face, 
 		      uint16 flags, uint16 anim, uint16 animspeed,
-		      sint32 nrof) 
+		      sint32 nrof, uint16 type) 
 {
     int resort=1;
 
@@ -508,54 +470,35 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 	printf ("Error in set_item_values(): item pointer is NULL.\n");
 	return;
     }
-    if (nrof<0) {
-	char *cp;
-	/* for s_name and p_name, we want to truncate the prefix (number
-	 * or a/an), so that when it gets remade, it looks OK.
+    /* Program always expect at least 1 object internall */
+    if (nrof==0) nrof=1;
+
+    op->nrof = nrof;
+
+    if (*name!='\0') {
+	copy_name(op->s_name, name);
+
+	/* Unfortunately, we don't get a length parameter, so we just have
+	 * to assume that if it is a new server, it is giving us two piece
+	 * names.
 	 */
-	copy_name (op->d_name, name);
-	op->nrof = get_nrof(name);
-	cp = strchr(name, ' ');
-	if (cp) {
-	    cp++;
-	    copy_name (op->s_name, cp);
-	    copy_name (op->p_name, cp);
+	if (csocket.sc_version>=1024) {
+	    copy_name(op->p_name, name+strlen(name)+1);
 	}
-	else {
-	    copy_name (op->s_name, name);
-	    copy_name (op->p_name, name);
+	else { /* If not new version, just use same for both */
+	    copy_name(op->p_name, name);
 	}
-    } else { /* we have a nrof - item1 command */
-	/* Program always expect at least 1 object internall */
-	if (nrof==0) nrof=1;
+    } else {
+	resort=0;	/* no name - don't resort */
+    }
 
-	op->nrof = nrof;
-
-	if (*name!='\0') {
-	    copy_name(op->s_name, name);
-
-	    /* Unfortunately, we don't get a length parameter, so we just have
-	     * to assume that if it is a new server, it is giving us two piece
-	     * names.
-	     */
-	    if (csocket.sc_version>=1024) {
-		copy_name(op->p_name, name+strlen(name)+1);
-	    }
-	    else { /* If not new version, just use same for both */
-		copy_name(op->p_name, name);
-	    }
-	} else {
-	    resort=0;	/* no name - don't resort */
-	}
-
-	/* Rather than try to get too clever on trying to figure out when
-	 * to up d_name, just do it all the time.
-	 */
-	if (op->nrof!=1) {
-		sprintf(op->d_name, "%s %s", get_number(nrof), op->p_name);
-	} else {
-	    strcpy(op->d_name, op->s_name);
-	}
+    /* Rather than try to get too clever on trying to figure out when
+     * to up d_name, just do it all the time.
+     */
+    if (op->nrof!=1) {
+	    sprintf(op->d_name, "%s %s", get_number(nrof), op->p_name);
+    } else {
+	strcpy(op->d_name, op->s_name);
     }
 
     if (op->env) op->env->inv_updated = 1;
@@ -563,10 +506,14 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
     op->face = face;
     op->animation_id = anim;
     op->anim_speed=animspeed;
+    op->type = type;
     get_flags (op, flags);
 
-    /* We don't sort the map, so lets not do this either */
-    if (op->env != map) {
+    /* We don't sort the map, so lets not bother figuring out the
+     * type.  Likewiwse, only figure out item type if this
+     * doesn't have a type (item2 provides us with a type
+     */
+    if (op->env != map && op->type == NO_ITEM_TYPE) {
 	op->type =get_type_from_name(op->s_name);
     }
     if (resort) update_item_sort(op);
@@ -616,7 +563,7 @@ item *map_item ()
 
 /* Upates an item with new attributes. */
 void update_item(int tag, int loc, char *name, int weight, int face, int flags,
-		 int anim, int animspeed, int nrof)
+		 int anim, int animspeed, int nrof, int type)
 {
     item *ip = locate_item(tag), *env=locate_item(loc);
 
@@ -628,7 +575,7 @@ void update_item(int tag, int loc, char *name, int weight, int face, int flags,
 	/* I don't think this makes sense, as you can have
 	 * two players merged together, so nrof should always be one
 	 */
-	player->nrof = get_nrof(name);
+	player->nrof = nrof;
 	player->weight = (float) weight / 1000;
 	player->face = face;
 	get_flags (player, flags);
@@ -643,7 +590,7 @@ void update_item(int tag, int loc, char *name, int weight, int face, int flags,
 	    ip=NULL;
 	}
 	set_item_values(ip?ip:create_new_item(env,tag), name, weight, face, flags,
-			anim, animspeed,nrof);
+			anim, animspeed,nrof, type);
     }
 }
 

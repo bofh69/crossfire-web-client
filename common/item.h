@@ -37,6 +37,7 @@
 #define NAME_LEN	128
 #define copy_name(t,f) strncpy(t, f, NAME_LEN-1); t[NAME_LEN-1]=0;
 
+#define NO_ITEM_TYPE		30000
 /*
  *  item structure keeps all information what player 
  *  (= client) knows about items in its inventory
@@ -71,7 +72,7 @@ typedef struct item_struct {
 				   routines can use this to redraw things */
     uint8 apply_type;		/* how item is applied (worn/wield/etc) */
     uint32 flagsval;		/* unmodified flags value as sent from the server*/
-    uint8   type;		/* Item type for ordering */
+    uint16   type;		/* Item type for ordering */
 } item;
 
 /*

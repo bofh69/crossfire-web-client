@@ -2,6 +2,27 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Add support for the 'item2' command.  This lets us get the item type
+from the server so that we don't need to figure it out for ourselves.
+Also, remove support for the 'item' command - that has long since
+been obseleted by the 'item1' command.
+--
+common/client.c: Remove 'item' from dispatch table, add 'item2'.
+   Add 'itemcmd 2' as part of setup command we send to server.
+common/commands.c: Add handling for response of 'itemcmd' setup command from
+   server.  Remove ItemCmd() function.  Add type to calls to update_item().
+   Change Item1Cmd() function to be called common_item_command() since both
+   item1 and item2 use almost exactly the same logic.  Add Item1Cmd() and
+   Item2Cmd() which just call common_item_command()
+common/item.c: Init item types to 'NO_ITEM_TYPE'.  Remove get_nrof() as it was
+   no longer being used.  Add type argument to set_item_values() and
+   update_item().  Simplify code in case of name handling, since we know that
+   we will be using at least the 'itemcmd'.  Don't worry about getting proper
+   nrof for the player object - its nrof isn't really meaningful anyways.
+common/item.h: Add #define NO_ITEM_TYPE.  Update type field in item
+   to be 16 bits.
+common/proto.h: rebuilt.
+MSW 2002-05-30
 
 The bulk of this checkin adds support in the client for the map1a protocol
 command and the display of big images properly in the map window.  A lot
