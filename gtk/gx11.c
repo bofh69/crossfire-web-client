@@ -4844,21 +4844,26 @@ void x_set_echo() {
   }
 }
 
+void draw_info_windows()
+    {
+    if (draw_info_freeze1) {
+        gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
+        gtk_adjustment_set_value(GTK_ADJUSTMENT(text_vadj), GTK_ADJUSTMENT(text_vadj)->upper-GTK_ADJUSTMENT(text_vadj)->page_size);
+        gtk_text_set_adjustments(GTK_TEXT (gtkwin_info_text),GTK_ADJUSTMENT(text_hadj),GTK_ADJUSTMENT(text_vadj));
+        draw_info_freeze1=FALSE;
+    }
+    if (draw_info_freeze2) {
+        gtk_text_thaw (GTK_TEXT (gtkwin_info_text2));
+        gtk_adjustment_set_value(GTK_ADJUSTMENT(text_vadj2), GTK_ADJUSTMENT(text_vadj2)->upper-GTK_ADJUSTMENT(text_vadj2)->page_size);
+        gtk_text_set_adjustments(GTK_TEXT (gtkwin_info_text2),GTK_ADJUSTMENT(text_hadj2),GTK_ADJUSTMENT(text_vadj2));
+        draw_info_freeze2=FALSE;
+    }
+    }
+
 int do_timeout() {
 
   updatelock=0;
-  if (draw_info_freeze1) {
-    gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
-    gtk_adjustment_set_value(GTK_ADJUSTMENT(text_vadj), GTK_ADJUSTMENT(text_vadj)->upper-GTK_ADJUSTMENT(text_vadj)->page_size);
-    gtk_text_set_adjustments(GTK_TEXT (gtkwin_info_text),GTK_ADJUSTMENT(text_hadj),GTK_ADJUSTMENT(text_vadj));
-    draw_info_freeze1=FALSE;
-  }
-  if (draw_info_freeze2) {
-    gtk_text_thaw (GTK_TEXT (gtkwin_info_text2));
-    gtk_adjustment_set_value(GTK_ADJUSTMENT(text_vadj2), GTK_ADJUSTMENT(text_vadj2)->upper-GTK_ADJUSTMENT(text_vadj2)->page_size);
-    gtk_text_set_adjustments(GTK_TEXT (gtkwin_info_text2),GTK_ADJUSTMENT(text_hadj2),GTK_ADJUSTMENT(text_vadj2));
-    draw_info_freeze2=FALSE;
-  }
+  draw_info_windows();
   if (redraw_needed) {
     display_map_doneupdate(TRUE);
     draw_all_list(&inv_list);
@@ -5951,7 +5956,8 @@ int main(int argc, char *argv[])
 	    metaserver_get_info(meta_server, meta_port);
 	    metaserver_show(TRUE);
 	    do {
-		ms=get_metaserver();
+            draw_info_windows();
+            ms=get_metaserver();
 	    } while (metaserver_select(ms));
 	    negotiate_connection(use_config[CONFIG_SOUND]);
 	} else {

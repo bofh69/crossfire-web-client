@@ -167,7 +167,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
     fd = socket(PF_INET, SOCK_STREAM, protox->p_proto);
     if (fd==-1) {
         perror("get_metaserver_info:  Error on socket command.\n");
-	return 1;
+	    return 1;
     }
     insock.sin_family = AF_INET;
     insock.sin_port = htons((unsigned short)meta_port);
@@ -178,14 +178,15 @@ int metaserver_get_info(char *metaserver, int meta_port)
         if (hostbn == (struct hostent *) NULL)
         {
             LOG(LOG_WARNING,"common::metaserver_get_info","Unknown metaserver hostname: %s",metaserver);
-	    return 1;
-	}
+	        return 1;
+	    }
         memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
     }
     if (connect(fd,(struct sockaddr *)&insock,sizeof(insock)) == (-1))
     {
-        perror("Can't connect to server");
-	return 1;
+        perror("Can't connect to metaserver");
+        draw_info("\nCan't connect to metaserver.",NDI_BLACK);
+    	return 1;
     }
 
 #ifndef WIN32 /* Windows doesn't support this */
@@ -370,7 +371,7 @@ int metaserver_select(char *sel)
     draw_info(buf,NDI_BLACK);
     csocket.fd=init_connection(server_ip, use_config[CONFIG_PORT]);
     if (csocket.fd==-1) {
-	draw_info("Unable to connect to server.", NDI_RED);
+	draw_info("Unable to connect to server.", NDI_BLACK);
 	return 1;
     }
     return 0;

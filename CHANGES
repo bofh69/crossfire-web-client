@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/metaserver.c: use 'draw_info' to report being unable to connect
+   to metaserver. Also changed failure color from red to black, so it appears
+   after the 'trying to connect' even in split window mode.
+gtk/gx11.c: correctly refresh text windows so failure messages appear.
+Ryo 2004-03-12
+
 gtk/keys.c: Windows now uses default 'keys' file if player file not found for
    key loading.
 Ryo 2004-03-04
