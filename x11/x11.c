@@ -87,6 +87,8 @@
 #include "x11proto.h"
 #include "x11.h"
 
+#include <errno.h>
+
 #if defined(__pyrsoft)
 #define _Xconst 
 #endif

@@ -44,6 +44,8 @@
 
 #include <client.h>
 #include <external.h>
+#include <errno.h>
+
 /* actually declare the globals */
 
 char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
