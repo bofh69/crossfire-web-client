@@ -3,6 +3,11 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+common/metaserver.c: Once we have read in limit of number of
+  metaservers, don't do anymore processing - otherwise, client just
+  crashes.
+MSW 2005-02-19
+
 Sound cleanup and redo for ALSA9.  The bulk of this is to break out the
 alsa9 code from the cfsndser.c and compile its own seperate cfsndserv-alsa9
 executable.  Add options to config file/gtk client to support setting

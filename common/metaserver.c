@@ -281,6 +281,13 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	meta_servers[meta_numservers].comment[MS_LARGE_BUF]=0;
 
 	meta_numservers++;
+	/* has to be 1 less than array size, since array starts counting
+	 * at 0.
+	 */
+	if (meta_numservers >= (MAX_METASERVER-1)) {
+	    LOG(LOG_WARNING,"common:metaserver_get_info", "Have reached maximum metaserver count\n");
+	    break;
+	}
     }
 #ifdef WIN32
     closesocket( fd );
