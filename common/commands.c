@@ -314,6 +314,7 @@ void SetupCmd(char *buf, int len)
     }
 }
 void ExtendedInfoSetCmd (char *data, int len){
+    (void)data;(void)len; /* __UNUSED__ */
     /* Do nothing for now, perhaps later add some
      * support to check what server knows.
      */
@@ -329,6 +330,7 @@ void ExtendedInfoSetCmd (char *data, int len){
  */
 void AddMeFail(char *data, int len)
 {
+    (void)data;(void)len; /* __UNUSED__ */
     LOG(0,"addme_failed received.\n");
     return;
 }
@@ -338,12 +340,14 @@ void AddMeFail(char *data, int len)
  */
 void AddMeSuccess(char *data, int len)
 {
+    (void)data;(void)len; /* __UNUSED__ */
     LOG(0,"addme_success received.\n");
     return;
 }
 
 void GoodbyeCmd(char *data, int len)
 {
+    (void)data;(void)len; /* __UNUSED__ */
     /* This could probably be greatly improved - I am not sure if anything
      * needs to be saved here, but certainly it should be possible to
      * reconnect to the server or a different server without having to
@@ -392,6 +396,11 @@ void SmoothCmd(unsigned char *data, int len){
     static int dy[8]={-1,-1,0,1,1,1,0,-1};  
     int i,j,x,y,layer;
     int mx,my;
+
+    /* len is unused.
+     * We should check that we don't have an invalid short command.
+     * Hence, the compiler warning is valid.
+     */
     display_map_startupdate();
     if (smoothused>=MAXSMOOTH) /*no place to put*/
         return;
@@ -435,6 +444,7 @@ void DrawInfoCmd(char *data, int len)
     int color=atoi(data);
     char *buf;
 
+    (void)len; /* __UNUSED__ */
     buf = strchr(data, ' ');
     if (!buf) {
 	fprintf(stderr,"DrawInfoCmd - got no data\n");
@@ -560,6 +570,7 @@ void handle_query (char *data, int len)
     char *buf,*cp;
     uint8 flags = atoi(data);
 
+    (void)len; /* __UNUSED__ */
     /* The actual text is optional */
     buf = strchr(data,' ');
     if (buf) buf++;
@@ -809,6 +820,7 @@ void DeleteInventory(unsigned char *data, int len)
 {
     int tag;
 
+    (void)len; /* __UNUSED__ */
     tag=atoi((const char*)data);
     if (tag<0) {
 	fprintf(stderr,"DeleteInventory: Invalid tag: %d\n", tag);
@@ -1030,6 +1042,7 @@ static void set_map_face(int x, int y, int layer, int face)
 
 void NewmapCmd(unsigned char *data, int len)
 {
+    (void)data;(void)len; /* __UNUSED__ */
     display_map_newmap();
 }
 /* This is the common processing block for the map1 and
@@ -1134,6 +1147,7 @@ void map_scrollCmd(char *data, int len)
     int dx,dy;
     char *buf;
 
+    (void)len; /* __UNUSED__ */
     dx = atoi(data);
     buf = strchr(data,' ');
     if (!buf) {
