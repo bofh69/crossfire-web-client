@@ -1,0 +1,45 @@
+How to make the client installer, March 04th, 2004
+--------------------------------------------------
+
+The installer script, gtkclient.nsi, is a NSIS script.
+NSIS is available from http://nsis.sourceforge.net
+You must install NSIS first, then launch the script.
+
+
+Requirements
+------------
+You must make the gtkclient.nsi file in the gtk\win32 directory, else it won't work.
+Hint: this is the directory where this file you are reading is.
+
+
+Required files
+--------------
+To make the installer, you also need to have, in the same gtk\win32 directory, the following
+files:
+ * bmaps.client
+ * crossfire.base
+ * crossfire.clsc
+
+Those files are bitmaps, to avoid having to download all from server.
+But how they are generated, right now that's a mystery ^.^;;;
+(this is on my todo/tocheck list)
+
+
+How to build
+------------
+Simply launch nsis, specifying gtkclient.nsi as .nsi file:
+
+ makensis gtkclient.nsi
+
+If everything works fine, you'll have a 'crossfire-client-windows.exe' installer.
+
+
+Troubleshooting
+---------------
+If something fails, check you did everything as this file says.
+If still no go, either:
+* check Sourceforge's bug page, http://sourceforge.net/tracker/?group_id=13833&atid=113833
+* check the messageboard, http://www.metalforge.net/cfmb
+
+If you report a problem, paste the output of the makensis command. This will make it easier
+to spot issues.
