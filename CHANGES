@@ -3,6 +3,32 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+Quick fix to the get_metaserver function. It was originally calling
+gtk_main_interation() in a while loop. This is really really really
+slooooow. I replaced it with a call to gtk_main(). gtk_main_quit
+for this invocation of gtk_main is called in enter_callback() when
+the user types in the metaserver he wants to play on. This is WAY
+faster then the old method.
+
+gx11.c: Changed get_main_interation to gtk_main in get_metaserver.
+        Added call to gtk_main_quit() in enter_callback() when
+        state changes from Metaserver_Select to Playing.
+SMACFIGGEN 2001-06-19
+
+Fix for the sdl/pngximage clients where the client would draw
+stale data on blank squares after a mapscroll. Basically if you
+had say an image of a wall on the bottom of your screen and
+you walked down one tile. If the new tile on the bottom of
+the screen is now blank, the client would have drawn the wall
+again and you get a funky recursive effect. The fix is in
+the display_mapscroll function in xutil.c.
+
+xutil.c: Modifed display_mapscroll so that new cells just coming onto
+the screen would be marked as the_map.cells[ax][ay].need_update= 1.
+For cells that are already on screen and just moving, we still leave
+need_update= 0.
+SMACFIGGEN 2001-06-19
+
 This checkin puts Scott MacFiggen's SDL support into the gtk client.
 I've made some enhancements to the code - it can now co-exist with 
 the other image formats (so if all the libraries are available, you can

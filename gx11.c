@@ -1603,7 +1603,6 @@ static void enter_callback(GtkWidget *widget, GtkWidget *entry)
 	 /*         printf("Entry contents: %s\n", entry_text);*/
 
     if (cpl.input_state==Metaserver_Select) {
-	cpl.input_state = Playing;
 	strcpy(cpl.input_text, entry_text);
     } else if (cpl.input_state == Reply_One ||
 	       cpl.input_state == Reply_Many) {
@@ -1628,6 +1627,16 @@ static void enter_callback(GtkWidget *widget, GtkWidget *entry)
     }
     gtk_entry_set_text(GTK_ENTRY(entrytext),"");
     gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info_text));
+
+    if( cpl.input_state == Metaserver_Select)
+    {
+      cpl.input_state= Playing;
+      /* This is the gtk_main that is started up by get_metaserver
+       * The client will start another one once it is connected
+       * to a crossfire server
+       */
+      gtk_main_quit();
+    }
 }
 
 static gboolean
@@ -6997,8 +7006,12 @@ char *get_metaserver()
 
 
     while(cpl.input_state==Metaserver_Select) {
-	if (gtk_events_pending())
-	    gtk_main_iteration();
+        /* 
+         * This gtk_main will be quit inside of event_callback
+         * when the user enters data into the input_text box
+         * at which point the input_state will change.
+         */
+        gtk_main();
 	usleep(10*1000);    /* 10 milliseconds */
     }
     return cpl.input_text;
