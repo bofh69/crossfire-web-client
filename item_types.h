@@ -7,7 +7,7 @@
 
 static char *item_types[256][64] = {
 { NULL }, 
-{ "sack", "Luggage", "pouch", "quiver", "bag", "chest", NULL }, 
+{ "sack", "Luggage", "pouch", "quiver", "bag", "chest", "key ring", NULL }, 
 { "sword", "mace", "hammer", "Dragonslayer", "Demonslayer", "Trident", "Flame Tongue", "Lightning sticks", "Stormbringer", "dagger", "quarterstaff", "club", "axe", "magnifying glass", "spear", "morningstar", "taifu", "scimitar", "sabre", NULL }, 
 { "bow", "crossbow", "sling", "arrow", "bolt", "boulder", NULL }, 
 { NULL }, 

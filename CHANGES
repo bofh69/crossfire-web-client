@@ -1,6 +1,9 @@
 "$Id$"
 Top of CVS tree:
 
+Add key ring to item_types and item_types.h file in the container
+category. MSW 4/21/2000
+
 Change Makefile.in to use perl that configure has found when
 running items.pl script - MSW 4/21/2000
 
