@@ -1,4 +1,6 @@
-Changes for CVS tree top:
+Changes for 0.95.4:
+
+README updated to give better install directions - msw.
 
 Add checks to xutil.c to verify we have a valid keysym before trying
 to convert it to a string and print it out.  Before, this could result

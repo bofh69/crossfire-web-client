@@ -1,5 +1,5 @@
 # Generated automatically from Makefile.in by configure.
-VERSION = crossfire-client-0.95.3
+VERSION = crossfire-client-0.95.4
 MKDIR = /bin/mkdir
 CP = /bin/cp
 TAR = /usr/local/bin/tar
@@ -191,7 +191,11 @@ clean::
 
 install:
 	$(INSTALL) $(TARGET) ${bindir}
-	$(INSTALL) client.man ${mandir}/$(TARGET).1
+	$(INSTALL) client.man ${mandir}/cfclient.1
+	@if [ -x gcfclient ]; then \
+	    	$(INSTALL) client.man ${mandir}/gcfclient.1; \
+	fi
 
 depend:
-	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(SOURCES) $(SND_SOURCES)
+	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(PROTOSOURCES) $(SND_SOURCES)
+	

@@ -2,7 +2,7 @@
 # Generated automatically by configure.
 # Run this file to recreate the current configuration.
 # This directory was configured as follows,
-# on host hugin.isdn.pyramid.com:
+# on host hugin:
 #
 # ./configure 
 #
@@ -75,7 +75,7 @@ s%@INSTALL_PROGRAM@%${INSTALL}%g
 s%@INSTALL_DATA@%${INSTALL} -m 644%g
 s%@INSTALL_SCRIPT@%${INSTALL_PROGRAM}%g
 s%@PACKAGE@%gcfclient%g
-s%@VERSION@%0.95.3%g
+s%@VERSION@%0.95.4%g
 s%@ACLOCAL@%aclocal%g
 s%@AUTOCONF@%autoconf%g
 s%@AUTOMAKE@%automake%g
