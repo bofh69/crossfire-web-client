@@ -12,6 +12,8 @@
 /*#define ALSA_SOUND*/
 /*#define OSS_SOUND*/
 /*#define SGI_SOUND*/
+/*#define SUN_SOUND*/
+
 /*#define SOUND_DEBUG*/
 
 #include <config.h>
@@ -51,12 +53,16 @@
 
 
 #if defined(ALSA_SOUND)
-#include <sys/asoundlib.h>
+#  include <sys/asoundlib.h>
+#  define AUDIODEV "/dev/dsp"
 #elif defined(OSS_SOUND)
-#include <sys/soundcard.h>
-#define AUDIODEV "/dev/dsp"
+#  include <sys/soundcard.h>
+#  define AUDIODEV "/dev/dsp"
 #elif defined(SGI_SOUND)
-#include <audio.h>
+#  include <audio.h>
+#elif defined(SUN_SOUND)
+#  include <sys/audioio.h>
+#  define AUDIODEV "/dev/audio"
 #else 
 #error Not known sound system defined
 #endif
@@ -91,10 +97,20 @@ int soundfd=0;
 /* sound device parameters */
 int stereo=0,bit8=0,sample_size=0,frequency=0,sign=0,zerolevel=0;
 
+#ifdef SUN_SOUND
 struct sound_settings{
     int stereo, bit8, sign, frequency, buffers, buflen,simultaneously;
     const char *audiodev;
-} settings={0,1,0,11025,100,1024,4,"/dev/dsp"};
+} settings={0,1,1,11025,100,4096,4,AUDIODEV};
+
+#else
+
+struct sound_settings{
+    int stereo, bit8, sign, frequency, buffers, buflen,simultaneously;
+    const char *audiodev;
+} settings={0,1,0,11025,100,1024,4,AUDIODEV};
+
+#endif
 
 /* parses a line from the sound file.  This is a little uglier because
  * we store some static values in the function so we know what we are doing -
@@ -447,7 +463,89 @@ int audio_play(int buffer,int off)
 	return settings.buflen-off;
 }
 
+#elif defined(SUN_SOUND)
+
+int init_audio(){
+
+  const char *audiodev;
+  int value,format,tmp;
+  audio_info_t	audio_info;
+  audio_device_t audio_device;
+
+  /* Open the audio device */
+  if ( (audiodev=getenv("AUDIODEV")) == NULL ) {
+          audiodev = settings.audiodev;
+  }
+  soundfd = open(audiodev, (O_WRONLY|O_NONBLOCK), 0);
+  if ( soundfd < 0 ) {
+           fprintf(stderr,"Couldn't open %s: %s\n", audiodev, strerror(errno));                return(-1);
+  }
+
+  if (ioctl(soundfd, AUDIO_GETDEV, &audio_device) < 0) {
+    fprintf(stderr,"Couldn't get audio device ioctl\n");
+    return(-1);
+  }
+  if ( ioctl(soundfd, AUDIO_GETINFO, &audio_info) < 0 ) {
+    fprintf(stderr,"Couldn't get audio information ioctl\n");
+    return(-1);
+  }
+  /* The capabilities on different sun hardware vary wildly.
+   * We attempt to get a working setup no matter what hardware we are
+   * running on.
+   */
+
+   /* This is sparc 10, sparc 20 class systems */
+   if (!strcmp(audio_device.name, "SUNW,dbri")) {
+	/* To use linear encoding, we must use 16 bit and some fixed
+	 * frequencies.  11025 matches what the rest of the systems use
+	 */
+	audio_info.play.precision = 16;
+	audio_info.play.encoding=AUDIO_ENCODING_LINEAR;
+	audio_info.play.sample_rate=11025;
+   }
+    /* This is used on many of the ultra machines */
+   else if (!strcmp(audio_device.name, "SUNW,CS4231")) {
+	/* To use linear encoding, we must use 16 bit and some fixed
+	 * frequencies.  11025 matches what the rest of the systems use
+	 */
+	audio_info.play.precision = 16;
+	audio_info.play.encoding=AUDIO_ENCODING_LINEAR;
+	audio_info.play.sample_rate=11025;
+   }
+
+  audio_info.play.channels = settings.stereo?2:1;
+  stereo= settings.stereo;
+    
+  bit8=(audio_info.play.precision==8)?1:0;
+  frequency=settings.frequency;
+  sample_size=(bit8?1:2)*(stereo?2:1);
+  fprintf(stderr,"SUN_SOUND: bit8=%d, stereo=%d, freq=%d, sample_size=%d\n",
+	  bit8, stereo, frequency, sample_size);
+
+  if ( ioctl(soundfd, AUDIO_SETINFO, &audio_info) < 0 ) {
+            perror("Couldn't set audio information ioctl");
+            return(-1);
+  }
+  return 0;
+}
+
+int audio_play(int buffer,int off){
+    int wrote;
+#ifdef SOUND_DEBUG
+    printf("audio play - writing starting at %d, %d bytes",
+	  settings.buflen*buffer+off,settings.buflen-off);
 #endif
+  wrote=write(soundfd,buffers+settings.buflen*buffer+off,settings.buflen-off);
+#ifdef SOUND_DEBUG
+    printf("...wrote %d bytes\n", wrote);
+#endif
+  return wrote;
+}
+/* End of Sun sound */
+
+#endif
+
+
 
 /* init_sounds open the audio device, and reads any configuration files
  * that need to be.  It returns 0 on success.  On failure, the calling
@@ -464,7 +562,8 @@ int init_sounds()
     fprintf( stderr,"Settings: bits: %i, ",settings.bit8?8:16);
     fprintf( stderr,"%s, ",settings.sign?"signed":"unsigned");
     fprintf( stderr,"%s, ",settings.stereo?"stereo":"mono");
-    fprintf( stderr,"frequency: %i\n",settings.frequency);
+    fprintf( stderr,"frequency: %i, ",settings.frequency);
+    fprintf( stderr,"device: %s\n",settings.audiodev);
 #endif
 
     buffers = (char *)malloc( settings.buffers * settings.buflen );
@@ -596,7 +695,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
                     settings.buflen*(settings.buffers-1)/sample_size);
           return;
        }
-       si->data=(char *)malloc(si->size);	
+       si->data=(unsigned char *)malloc(si->size);	
        f=fopen(si->filename,"r"); 
        if (!f){
            perror(si->filename);
@@ -607,7 +706,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
     }
 
 #ifdef SOUND_DEBUG    
-    fprintf(stderr,"Playing sound %i (%s), volume %i\n",soundnum,si->symbolic,si->volume);
+    fprintf(stderr,"Playing sound %i (%s), volume %i, x,y=%d,%d\n",soundnum,si->symbolic,si->volume,x,y);
 #endif
     /* calculate volume multiplers */
     dist=sqrt(x*x+y*y);
@@ -644,8 +743,19 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 	    buffers[buf*settings.buflen+off+1]+=(dat*right_ratio)>>16;
 	  }
         }
-        else{
+        else{ /* 16 bit output */
 	  if (!stereo){
+#ifdef WORDS_BIGENDIAN
+	     buffers[buf*settings.buflen+off+1]+=((dat*left_ratio)>>8)&0xff;
+	     buffers[buf*settings.buflen+off]+=(dat*left_ratio)>>16;
+	  }  
+          else{
+	    buffers[buf*settings.buflen+off+1]+=((dat*left_ratio)>>8)&0xff;
+	    buffers[buf*settings.buflen+off]+=(dat*left_ratio)>>16;
+	    buffers[buf*settings.buflen+off+3]+=((dat*right_ratio)>>8)&0xff;
+	    buffers[buf*settings.buflen+off+2]+=(dat*right_ratio)>>16;
+	  }
+#else
 	     buffers[buf*settings.buflen+off]+=((dat*left_ratio)>>8)&0xff;
 	     buffers[buf*settings.buflen+off+1]+=(dat*left_ratio)>>16;
 	  }  
@@ -655,6 +765,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 	    buffers[buf*settings.buflen+off+2]+=((dat*right_ratio)>>8)&0xff;
 	    buffers[buf*settings.buflen+off+3]+=(dat*right_ratio)>>16;
 	  }
+#endif
         }
 	
         off+=sample_size;
@@ -687,7 +798,7 @@ int SoundCmd(unsigned char *data,  int len)
     int x, y, num, type;
     int i;
     
-    i=sscanf(data,"%x %x %x %x",&num,&type,&x,&y);
+    i=sscanf((char *)data,"%x %x %x %x",&num,&type,&x,&y);
     if (i!=4){
         fprintf(stderr,"Wrong input!\n");
 	return -1;
@@ -721,59 +832,61 @@ char *path;
   fprintf(f,"buffers: %i\n",settings.buffers);
   fprintf(f,"buflen: %i\n",settings.buflen);
   fprintf(f,"simultaneously: %i\n",settings.simultaneously);
-  fprintf(f,"device: %s\n",settings.audiodev);
+/*  fprintf(f,"device: %s\n",settings.audiodev);*/
   fclose(f);
   return 0;
 }
 
 int read_settings(){
-FILE *f;
-char *home;
-char *path;
-char linebuf[1024];
-  if ( (home=getenv("HOME")) == NULL ) return 0;
+    FILE *f;
+    char *home;
+    char *path;
+    char linebuf[1024];
+    if ( (home=getenv("HOME")) == NULL ) return 0;
 
-  path=(char *)malloc(strlen(home)+strlen(CONFIG_FILE)+1);
-  if (!path) return 0;
+    path=(char *)malloc(strlen(home)+strlen(CONFIG_FILE)+1);
+    if (!path) return 0;
 
-  strcpy(path,home);
-  strcat(path,CONFIG_FILE);
+    strcpy(path,home);
+    strcat(path,CONFIG_FILE);
 
-  f=fopen(path,"r");
-  if (!f) return -1;
+    f=fopen(path,"r");
+    if (!f) return -1;
   
-  while(fgets(linebuf,1023,f)!=NULL) {
-    linebuf[1023]=0;
-    /* Strip off the newline */
-    linebuf[strlen(linebuf)-1]=0;
+    while(fgets(linebuf,1023,f)!=NULL) {
+	linebuf[1023]=0;
+	/* Strip off the newline */
+	linebuf[strlen(linebuf)-1]=0;
 
-    if (strncmp(linebuf,"stereo:",strlen("stereo:"))==0)
-       settings.stereo=atoi(linebuf+strlen("stereo:"))?1:0;
-    else if (strncmp(linebuf,"bits:",strlen("bits:"))==0)
-       settings.bit8=(atoi(linebuf+strlen("bits:"))==8)?1:0;
-    else if (strncmp(linebuf,"signed:",strlen("signed:"))==0)
-       settings.sign=atoi(linebuf+strlen("signed:"))?1:0;
-    else if (strncmp(linebuf,"buffers:",strlen("buffers:"))==0)
-       settings.buffers=atoi(linebuf+strlen("buffers:"));
-    else if (strncmp(linebuf,"buflen:",strlen("buflen:"))==0)
-       settings.buflen=atoi(linebuf+strlen("buflen:"));
-    else if (strncmp(linebuf,"frequency:",strlen("frequency:"))==0)
-      settings.frequency=atoi(linebuf+strlen("frequency:"));
-    else if (strncmp(linebuf,"simultaneously:",strlen("simultaneously:"))==0)
-      settings.simultaneously=atoi(linebuf+strlen("simultaneously:"));
-    else if (strncmp(linebuf,"device: ",strlen("device: "))==0)
-      settings.audiodev=strdup_local(linebuf+strlen("device: "));
-  }
-  fclose(f);
-  return 0;
+	if (strncmp(linebuf,"stereo:",strlen("stereo:"))==0)
+	    settings.stereo=atoi(linebuf+strlen("stereo:"))?1:0;
+	else if (strncmp(linebuf,"bits:",strlen("bits:"))==0)
+	    settings.bit8=(atoi(linebuf+strlen("bits:"))==8)?1:0;
+	else if (strncmp(linebuf,"signed:",strlen("signed:"))==0)
+	    settings.sign=atoi(linebuf+strlen("signed:"))?1:0;
+	else if (strncmp(linebuf,"buffers:",strlen("buffers:"))==0)
+	    settings.buffers=atoi(linebuf+strlen("buffers:"));
+	else if (strncmp(linebuf,"buflen:",strlen("buflen:"))==0)
+	    settings.buflen=atoi(linebuf+strlen("buflen:"));
+	else if (strncmp(linebuf,"frequency:",strlen("frequency:"))==0)
+	    settings.frequency=atoi(linebuf+strlen("frequency:"));
+	else if (strncmp(linebuf,"simultaneously:",strlen("simultaneously:"))==0)
+	    settings.simultaneously=atoi(linebuf+strlen("simultaneously:"));
+#if 0
+	else if (strncmp(linebuf,"device: ",strlen("device: "))==0)
+		settings.audiodev=strdup_local(linebuf+strlen("device: "));
+#endif
+    }
+    fclose(f);
+    return 0;
 }
 
 int main(int argc, char *argv[])
 {
-int infd;
-char inbuf[1024];
-int inbuf_pos=0,sndbuf_pos=0;
-fd_set inset,outset;
+    int infd;
+    char inbuf[1024];
+    int inbuf_pos=0,sndbuf_pos=0;
+    fd_set inset,outset;
 
     if (read_settings()) write_settings();
     if (init_sounds()) return 1;
@@ -821,7 +934,7 @@ fd_set inset,outset;
 	}  
         if (inbuf[inbuf_pos]=='\n'){
 	  inbuf[inbuf_pos++]=0;
-          if (!SoundCmd(inbuf,inbuf_pos)) FD_SET(soundfd,&outset);
+          if (!SoundCmd((unsigned char*)inbuf,inbuf_pos)) FD_SET(soundfd,&outset);
           inbuf_pos=0;
         }
         else{
