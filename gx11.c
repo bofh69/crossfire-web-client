@@ -105,6 +105,7 @@
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
 #define MAX_BUF 256
+#define XPM_SIZE 24
 
 /* All the following are static because these variables should
  * be local only to this file.  Since the idea is to have only
@@ -322,10 +323,10 @@ typedef struct {
   int y;
 } MapPos;
 
-static struct GtkMap gtkmap [11][11];
+/*static struct GtkMap gtkmap [11][11];
 
 static GdkPixmap *gdkmask[11][11];
-static MapPos mappos [11][11];
+static MapPos mappos [11][11];*/
 
 /* vitals window */
 
@@ -368,8 +369,10 @@ static GtkTooltips *tooltips;
 
 static GtkWidget *dialogtext;
 static GtkWidget *dialog_window;
-static GtkWidget *table;
-	  
+static GtkWidget *drawingarea;
+static GdkPixmap *mappixmap=NULL;
+static GdkGC *mapgc;
+
 static GtkWidget *cclist;
 static gboolean draw_info_freeze=FALSE;
 
@@ -382,6 +385,7 @@ enum {
 
 static GtkWidget *entrytext, *counttext;
 static gint redraw_needed=FALSE;
+static GtkObject *text_hadj,*text_vadj;
 
 /*
  * These are used for inventory and look window
@@ -540,8 +544,9 @@ void event_loop()
 
 static void gen_draw_face(int face,int x,int y)
 {
-  gdk_gc_set_clip_mask (gtkmap[x][y].gc, pixmaps[facecachemap[face]].gdkmask);
-  gdk_window_copy_area (gtkmap[x][y].gdkpixmap, gtkmap[x][y].gc, 0, 0, pixmaps[facecachemap[face]].gdkpixmap,0,0,24,24);
+  gdk_gc_set_clip_mask (mapgc, pixmaps[facecachemap[face]].gdkmask);
+  gdk_gc_set_clip_origin (mapgc, XPM_SIZE*x, XPM_SIZE*y);
+  gdk_window_copy_area (mappixmap, mapgc, XPM_SIZE*x, XPM_SIZE*y, pixmaps[facecachemap[face]].gdkpixmap,0,0,XPM_SIZE,XPM_SIZE);
 }
 
 void end_windows()
@@ -705,57 +710,62 @@ void animate_list () {
 /* Handle mouse presses in the game window */
 
 
-
-void button_map_event(GtkWidget *widget, GdkEventButton *event, MapPos *pos) {
-  int i;
-  printf("Button clicked in map, x %d y %d\n", pos->x, pos->y );
-  if (event->type==GDK_BUTTON_PRESS && event->button==1) {
-    look_at(pos->x, pos->y);
-  }
-  if (event->type==GDK_BUTTON_PRESS && event->button==2) {
-    if  (pos->x<0)
-      i=0;
-    else if (pos->x>0)
-      i=6;
-    else i=3;
-    if (pos->y>0)
-      i+=2;
-    else if (pos->y>-1)
-      i++;
-    switch(i) {
-    case 0: fire_dir(8); break;
-    case 1: fire_dir(7); break;
-    case 2: fire_dir(6); break;
-    case 3: fire_dir(1); break;
-    case 5: fire_dir(5); break;
-    case 6: fire_dir(2); break;
-    case 7: fire_dir(3); break;
-    case 8: fire_dir(4); break;
+void button_map_event(GtkWidget *widget, GdkEventButton *event) {
+  int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
+  
+  x=(int)event->x;
+  y=(int)event->y;
+  dx=(x-2)/XPM_SIZE-5;
+  dy=(y-2)/XPM_SIZE-5;
+  xmidl=5*XPM_SIZE-5;
+  xmidh=6*XPM_SIZE+5;
+  ymidl=5*XPM_SIZE-5;
+  ymidh=6*XPM_SIZE+5;
+  
+  switch (event->button) {
+  case 1:
+    {
+      look_at(dx,dy);
     }
-    stop_fire();
-    clear_fire_run();
-  }
-  if (event->type==GDK_BUTTON_PRESS && event->button==3) {
-    if  (pos->x<0)
-      i=0;
-    else if (pos->x>0)
-      i=6;
-    else i=3;
-    if (pos->y>0)
-      i+=2;
-    else if (pos->y>-1)
+    break;
+  case 2:
+  case 3:
+    if (x<xmidl)
+      i = 0;
+    else if (x>xmidh)
+      i = 6;
+    else i =3;
+    
+    if (y>ymidh)
+      i += 2;
+    else if (y>ymidl)
       i++;
-    switch(i) {
-    case 0: move_player(8); break;
-    case 1: move_player(7); break;
-    case 2: move_player(6); break;
-    case 3: move_player(1); break;
-    case 5: move_player(5); break;
-    case 6: move_player(2); break;
-    case 7: move_player(3); break;
-    case 8: move_player(4); break;
+    
+    if (event->button==2) {
+      switch (i) {
+      case 0: fire_dir (8);break;
+      case 1: fire_dir (7);break;
+      case 2: fire_dir (6);break;
+      case 3: fire_dir (1);break;
+      case 5: fire_dir (5);break;
+      case 6: fire_dir (2);break;
+      case 7: fire_dir (3);break;
+      case 8: fire_dir (4);break;
+      }
+      /* Only want to fire once */
+      clear_fire();
     }
-  }
+    else switch (i) {
+    case 0: move_player (8);break;
+    case 1: move_player (7);break;
+    case 2: move_player (6);break;
+    case 3: move_player (1);break;
+    case 5: move_player (5);break;
+    case 6: move_player (2);break;
+    case 7: move_player (3);break;
+    case 8: move_player (4);break;
+    }
+  }  
 }
 
 
@@ -1171,20 +1181,6 @@ static void init_cache_data()
     printf ("Init Cache\n");
     sprintf(buf,"%s/.crossfire/images.xpm", getenv("HOME"));
     
-    /*
-      pixmaps[0].mask=None;
-      pixmaps[0].bitmap=XCreateBitmapFromData(display, 
-      RootWindow(display, screen_num), question_bits, 24,24);
-    */
-    /* In xpm mode, XCopyArea is used from this data, so we need to copy
-     * the image into an pixmap of appropriate depth.
-     */
-
-    /*    pixmaps[0].pixmap=XCreatePixmap(display, win_root, 24, 24, 
-	  DefaultDepth(display,DefaultScreen(display)));
-	  XCopyPlane(display, pixmaps[0].bitmap, pixmaps[0].pixmap, gc_game,
-	  0,0,24,24,0,0,1);*/
-    
     style = gtk_widget_get_style(gtkwin_root);
     pixmaps[0].gdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
 							&pixmaps[0].gdkmask,
@@ -1248,7 +1244,7 @@ void FaceCmd(unsigned char *data,  int len)
     return;
   }
   pnum = GetShort_String(data);
-  face = (char*)data+2;
+  face = (char *)data+2;
   data[len] = '\0';
   /* To prevent having a directory with 2000 images, we do a simple
    * split on the first 2 characters.
@@ -1797,56 +1793,60 @@ unbinded:
 void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
   
   updatelock=0;
-  if (GTK_WIDGET_HAS_FOCUS (entrytext) /*|| GTK_WIDGET_HAS_FOCUS(counttext)*/ ) {
-  } else {
-    parse_key_release(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
-    gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_release_event") ;
+  if (event->keyval>0) {
+    if (GTK_WIDGET_HAS_FOCUS (entrytext) /*|| GTK_WIDGET_HAS_FOCUS(counttext)*/ ) {
+    } else {
+      parse_key_release(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
+      gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_release_event") ;
+    }
   }
 }
+
 
 void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
   char *text;
   updatelock=0;
-  if (GTK_WIDGET_HAS_FOCUS (entrytext) /*|| GTK_WIDGET_HAS_FOCUS(counttext)*/) {
-  }  else {
-       
-    switch(cpl.input_state) {
-    case Playing:
-      if (cpl.run_on) {
-	if (!(event->state & GDK_CONTROL_MASK)) {
-	  printf ("Run is on while ctrl is not\n");
-	  gtk_label_set (GTK_LABEL(run_label),"   ");
-	  cpl.run_on=0;
-	  stop_run();
+  /* Better check for really weirdo keys, X doesnt like keyval 0*/
+  if (event->keyval>0) {
+    if (GTK_WIDGET_HAS_FOCUS (entrytext) /*|| GTK_WIDGET_HAS_FOCUS(counttext)*/) {
+    }  else {
+      
+      switch(cpl.input_state) {
+      case Playing:
+	if (cpl.run_on) {
+	  if (!(event->state & GDK_CONTROL_MASK)) {
+	    printf ("Run is on while ctrl is not\n");
+	    gtk_label_set (GTK_LABEL(run_label),"   ");
+	    cpl.run_on=0;
+	    stop_run();
+	  }
 	}
-      }
-      if (cpl.fire_on) {
-	if (!(event->state & GDK_SHIFT_MASK)) {
-	  printf ("Fire is on while shift is not\n");
-	  gtk_label_set (GTK_LABEL(fire_label),"   ");
-	  cpl.fire_on=0;
-	  stop_fire();
+	if (cpl.fire_on) {
+	  if (!(event->state & GDK_SHIFT_MASK)) {
+	    printf ("Fire is on while shift is not\n");
+	    gtk_label_set (GTK_LABEL(fire_label),"   ");
+	    cpl.fire_on=0;
+	    stop_fire();
+	  }
 	}
+	
+	text=XKeysymToString(event->keyval);
+	
+	parse_key(text[0], XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
+	gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
+	break;
+      case Configure_Keys:
+	configure_keys(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
+	gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
+	break;
+      case Command_Mode:
+	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+      break;
+      default:
+	fprintf(stderr,"Unknown input state: %d\n", cpl.input_state);
       }
- 
-      text=XKeysymToString(event->keyval);
- 
-
-      parse_key(text[0], XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
-      gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
-      break;
-    case Configure_Keys:
-      configure_keys(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
-      gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
-      break;
-    case Command_Mode:
-      gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-      break;
-    default:
-      fprintf(stderr,"Unknown input state: %d\n", cpl.input_state);
+      
     }
-    
-    
     
   }
 }
@@ -1901,7 +1901,47 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 */
 
 
+/* Event handlers for map drawing area */
 
+
+/* Create a new backing pixmap of the appropriate size */
+static gint
+configure_event (GtkWidget *widget, GdkEventConfigure *event)
+{
+  if (mappixmap) {
+    gdk_pixmap_unref(mappixmap);
+    gdk_gc_unref(mapgc);
+  }
+  mappixmap = gdk_pixmap_new(widget->window,
+			     widget->allocation.width,
+			     widget->allocation.height,
+			     -1);
+  gdk_draw_rectangle (mappixmap,
+		      widget->style->white_gc,
+		      TRUE,
+		      0, 0,
+		      widget->allocation.width,
+		      widget->allocation.height);
+  mapgc = gdk_gc_new (drawingarea->window);
+  
+  return TRUE;
+}
+
+
+
+/* Redraw the screen from the backing pixmap */
+static gint
+expose_event (GtkWidget *widget, GdkEventExpose *event)
+{
+  gdk_draw_pixmap(widget->window,
+		  widget->style->fg_gc[GTK_WIDGET_STATE (widget)],
+		  mappixmap,
+		  event->area.x, event->area.y,
+		  event->area.x, event->area.y,
+		  event->area.width, event->area.height);
+  
+  return FALSE;
+}
 
 /*
  * Sets up player game view window, implemented as a gtk table. Cells are initialized
@@ -1910,56 +1950,43 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
  */
 
 
+
+
+
 static int get_game_display(GtkWidget *frame) {
-#include "pixmaps/bg.xpm"
+  /*#include "pixmaps/bg.xpm"*/
   GtkWidget *gtvbox, *gthbox;
-  GtkStyle *style;
-  GtkWidget *eventbox;
-  gint cnt=0;
-  int mx,my;
-  
   
   gtvbox = gtk_vbox_new (FALSE, 0);
   gtk_container_add (GTK_CONTAINER (frame), gtvbox);
   gthbox = gtk_hbox_new (FALSE, 0);
   gtk_box_pack_start (GTK_BOX (gtvbox), gthbox, FALSE, FALSE, 1);
   
-  table = gtk_table_new (11,11,FALSE);
-  gtk_box_pack_start (GTK_BOX (gthbox), table, FALSE, FALSE, 1);
+  drawingarea = gtk_drawing_area_new();
+  gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), XPM_SIZE*11,XPM_SIZE*11);
+  /* Add mouseclick events to the drawing area */
 
-  style = gtk_widget_get_style(gtkwin_root);
+  gtk_widget_set_events (drawingarea, GDK_BUTTON_PRESS_MASK);
 
-  /* Set up table cells, connect mouse events and stuff */
+  /* Set up X redraw routine signalling */
+  gtk_signal_connect (GTK_OBJECT (drawingarea), "expose_event",
+		      (GtkSignalFunc) expose_event, NULL);
+  gtk_signal_connect (GTK_OBJECT(drawingarea),"configure_event",
+		      (GtkSignalFunc) configure_event, NULL);
 
-  for (my=0 ; my<11 ; my++) {
-    for (mx=0 ; mx<11 ; mx++) {
-     
-      eventbox = gtk_event_box_new ();
-     
-      gtk_widget_show (eventbox);
-      mappos[mx][my].x=mx-5;
-      mappos[mx][my].y=my-5;
-      gtk_widget_set_events (eventbox, GDK_BUTTON_PRESS_MASK);
-      gtk_signal_connect (GTK_OBJECT(eventbox),
-			  "button_press_event",
-			  GTK_SIGNAL_FUNC(button_map_event),
-			  &mappos[mx][my]);
-      gtk_table_attach_defaults (GTK_TABLE (table), eventbox, mx, mx+1, my, my+1);
-      gtk_widget_realize (eventbox);
-      gtkmap[mx][my].gdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
-							      &gdkmask[mx][my],
-							      &style->bg[GTK_STATE_NORMAL],
-							      (gchar **)bg_xpm);
-      gtkmap[mx][my].pixmap = gtk_pixmap_new (gtkmap[mx][my].gdkpixmap, gtkmap[mx][my].gdkmask);
+  /* Set up handling of mouseclicks in map */
+ 
+  gtk_signal_connect (GTK_OBJECT(drawingarea),
+		      "button_press_event",
+		      GTK_SIGNAL_FUNC(button_map_event),
+		      NULL);
 
-      gtk_container_add (GTK_CONTAINER(eventbox), gtkmap[mx][my].pixmap); 
-      gtk_widget_show(gtkmap[mx][my].pixmap);
-      gtkmap[mx][my].gc = gdk_gc_new (gtkmap[mx][my].gdkpixmap);
-      cnt++;
-    }
-  }
+  /* Pack it up and show it */
 
-  gtk_widget_show(table);
+  gtk_box_pack_start (GTK_BOX (gthbox), drawingarea, FALSE, FALSE, 1);
+  
+  gtk_widget_show(drawingarea);
+
   gtk_widget_show(gthbox);
   gtk_widget_show(gtvbox);
   gtk_widget_show (frame);
@@ -2239,7 +2266,7 @@ static void draw_list (itemlist *l)
       }
 
       
-    } 
+    }  
   }
   
   /* Ok, stuff is drawn, now replace the scrollbar positioning as far as possible */
@@ -2325,7 +2352,10 @@ static int get_info_display(GtkWidget *frame) {
   gtk_box_pack_start (GTK_BOX (box2), tablet, TRUE, TRUE, 0);
   gtk_widget_show (tablet);
   
-  gtkwin_info_text = gtk_text_new (NULL, NULL);
+  text_hadj = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
+  text_vadj = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
+
+  gtkwin_info_text = gtk_text_new (GTK_ADJUSTMENT(text_hadj),GTK_ADJUSTMENT(text_vadj));
   gtk_text_set_editable (GTK_TEXT (gtkwin_info_text), FALSE);
   gtk_table_attach (GTK_TABLE (tablet), gtkwin_info_text, 0, 1, 0, 1,
 		    GTK_EXPAND | GTK_SHRINK | GTK_FILL,
@@ -2377,24 +2407,10 @@ static int get_info_display(GtkWidget *frame) {
   return 0;
 }
 
-/*static void delete_ch() {
-  
-}*/
-
-/* Writes one character to the screen.  Used when player is typing
- * stuff we that we want to appear, or used to give prompts.
- */
-
-void write_ch(char key)
-{
-}
-
 /* Various replies */
 
 void sendstr(char *sendstr)
 {
-  /*    printf("Entry contents: %s\n", sendstr);*/
- 
   gtk_widget_destroy (dialog_window);
   send_reply(sendstr);
   cpl.input_state = Playing;
@@ -2412,8 +2428,6 @@ void dialog_callback(GtkWidget *dialog)
 {
   gchar *dialog_text;
   dialog_text = gtk_entry_get_text(GTK_ENTRY(dialogtext));
-  /*  printf("Entry contents: %s\n", dialog_text);*/
-	 /*send_reply(cpl.input_text);*/
   
   gtk_widget_destroy (dialog_window);
   send_reply(dialog_text);
@@ -2810,38 +2824,30 @@ void draw_prompt(const char *str)
   gtk_widget_show (dialog_window);
 
 }
-/* draw_info adds a line to the info window. */
+/* draw_info adds a line to the info window. For speed reasons it will 
+ * automatically freeze the info window when adding text to it, set the
+ * draw_info_freeze variable true and the actual drawing will take place
+ * during the next do_timeout at which point it is unfrozen again. That way
+ * we handle massive amounts of text addition with a single gui event, which
+ * results in a serious speed improvement for slow client machines (and
+ * above all it avoids a gui lockup when the client becomes congested with
+ * updates (which is often when you're in the middle of fighting something 
+ *  serious and not a good time to get slow reaction time)). 
+*/
 
 void draw_info(const char *str, int color) {
-  guint size;
+  
   if (color==NDI_WHITE) {
     color=NDI_BLACK;
   }
 
   strcpy (last_str, str);
-  if (updatelock < 25) {
-    updatelock++;
-    
-    gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[color], NULL, str , -1);
-    gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[color], NULL, "\n" , -1);
-
-    
-    size = gtk_text_get_point (GTK_TEXT (gtkwin_info_text));
-    gtk_text_set_point (GTK_TEXT (gtkwin_info_text), size);
-
-    gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[color], NULL, " " , -1);
-    gtk_text_backward_delete (GTK_TEXT (gtkwin_info_text), 1);
-    
-  } else {
-    /*    printf ("WARNING -- RACE. Frozen text updates until updatelock is cleared!\n");*/
-    if (!draw_info_freeze){
-      gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
-      draw_info_freeze=TRUE;
-    }
-    gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[color], NULL, str , -1);
-    gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[color], NULL, "\n" , -1);
-    
-  } 
+  if (!draw_info_freeze){
+    gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
+    draw_info_freeze=TRUE;
+  }
+  gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[color], NULL, str , -1);
+  gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[color], NULL, "\n" , -1);
 }
 
 
@@ -3383,7 +3389,7 @@ if (updatelock < 25) {
  ****************************************************************************/
 
 
-#define draw_status_icon(l,x,y,face) \
+/*#define draw_status_icon(l,x,y,face) \
 do { \
     XClearArea(display, l->win, x, y, 24, 6, False); \
     if (face) { \
@@ -3393,7 +3399,7 @@ do { \
 		  0, 0, 24, 6, x, y); \
     } \
 } while (0)
-
+*/
 
 /*
  * draw_all_list clears a window and after that draws all objects 
@@ -3581,11 +3587,11 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, gchar **label)
 #endif
   *list = gtk_clist_new_with_titles (3, titles);
 
-  gtk_clist_set_column_width (GTK_CLIST(*list), 0, 24);
+  gtk_clist_set_column_width (GTK_CLIST(*list), 0, XPM_SIZE);
   gtk_clist_set_column_width (GTK_CLIST(*list), 1, 150);
   gtk_clist_set_column_width (GTK_CLIST(*list), 2, 20);
   gtk_clist_set_selection_mode (GTK_CLIST(*list) , GTK_SELECTION_SINGLE);
-  gtk_clist_set_row_height (GTK_CLIST(*list), 24); 
+  gtk_clist_set_row_height (GTK_CLIST(*list), XPM_SIZE); 
 #ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(*lists),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -3776,11 +3782,11 @@ static int get_look_display(GtkWidget *frame)
   look_list.gtk_lists[0] = gtk_scrolled_window_new (0,0);
 #endif
   look_list.gtk_list[0] = gtk_clist_new_with_titles (3,titles);;
-  gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, 24);
+  gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, XPM_SIZE);
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 1, 150);
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 20);
   gtk_clist_set_selection_mode (GTK_CLIST(look_list.gtk_list[0]) , GTK_SELECTION_SINGLE);
-  gtk_clist_set_row_height (GTK_CLIST(look_list.gtk_list[0]), 24); 
+  gtk_clist_set_row_height (GTK_CLIST(look_list.gtk_list[0]), XPM_SIZE); 
 #ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(look_list.gtk_lists[0]),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -5265,7 +5271,7 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
-    gtk_widget_set_usize (gtkwin_root,900,600);
+    gtk_widget_set_usize (gtkwin_root,636+(XPM_SIZE*11),336+(XPM_SIZE*11));
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
     
@@ -5395,7 +5401,7 @@ void create_windows() {
     /* Statbars frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, 270, 100);
+    gtk_widget_set_usize (frame, (XPM_SIZE*11)+6, 100);
     gtk_paned_add2 (GTK_PANED (vpaned), frame);
     
     get_message_display(frame);
@@ -5405,7 +5411,7 @@ void create_windows() {
     /* Game frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, 270, 270);
+    gtk_widget_set_usize (frame, (XPM_SIZE*11)+6, (XPM_SIZE*11)+6);
     gtk_paned_add1 (GTK_PANED (vpaned), frame);
     
     get_game_display (frame);
@@ -5415,7 +5421,7 @@ void create_windows() {
     /* stats frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, 270, 110);
+    gtk_widget_set_usize (frame, (XPM_SIZE*11)+6, 110);
     gtk_paned_add1 (GTK_PANED (gvpaned), frame);
     get_stats_display (frame);
     
@@ -5471,7 +5477,7 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 300, 160);
-    gtk_widget_set_usize (gtkwin_root,270,270);
+    gtk_widget_set_usize (gtkwin_root,(XPM_SIZE*11)+6,(XPM_SIZE*11)+6);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire - view");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_root), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
@@ -5501,7 +5507,7 @@ void create_windows() {
     gtkwin_stats = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_stats, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_stats, 300, 0);
-    gtk_widget_set_usize (gtkwin_stats,270,140);
+    gtk_widget_set_usize (gtkwin_stats,(XPM_SIZE*11)+6,140);
     gtk_window_set_title (GTK_WINDOW (gtkwin_stats), "Crossfire GTK Client");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_stats), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_stats);
@@ -5573,7 +5579,7 @@ void create_windows() {
     gtkwin_message = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_message, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_message, 300, 450);
-    gtk_widget_set_usize (gtkwin_message,270,170);
+    gtk_widget_set_usize (gtkwin_message,(XPM_SIZE*11)+6,170);
     gtk_window_set_title (GTK_WINDOW (gtkwin_message), "Crossfire - vitals");
  gtk_window_set_policy (GTK_WINDOW (gtkwin_message), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_message);
@@ -5746,12 +5752,9 @@ int do_timeout() {
   
   updatelock=0;
   if (draw_info_freeze) {
-    guint size;
     gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
-    size = gtk_text_get_point (GTK_TEXT (gtkwin_info_text));
-    gtk_text_set_point (GTK_TEXT (gtkwin_info_text), size);
-    gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &gtkwin_info_text->style->black, NULL, " " , -1);
-    gtk_text_backward_delete (GTK_TEXT (gtkwin_info_text), 1);
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(text_vadj), GTK_ADJUSTMENT(text_vadj)->upper-GTK_ADJUSTMENT(text_vadj)->page_size);
+    gtk_text_set_adjustments(GTK_TEXT (gtkwin_info_text),GTK_ADJUSTMENT(text_hadj),GTK_ADJUSTMENT(text_vadj));
     draw_info_freeze=FALSE;
   }
   if (redraw_needed) {
@@ -6363,13 +6366,13 @@ void display_mapcell_pixmap(int ax,int ay)
 {
   int k;
 
- gdk_draw_rectangle (gtkmap[ax][ay].gdkpixmap, 
-		     gtkmap[ax][ay].pixmap->style->mid_gc[0],
-		     TRUE,
-		     0,
-		     0,
-		     24,
-		     24);
+  gdk_draw_rectangle (mappixmap, 
+		      drawingarea->style->mid_gc[0],
+		      TRUE,
+		      XPM_SIZE*ax,
+		      XPM_SIZE*ay,
+		      XPM_SIZE,
+		      XPM_SIZE);
 
   for(k=the_map.cells[ax][ay].count-1;k>-1;k--) {
     gen_draw_face(the_map.cells[ax][ay].faces[k], ax,ay);
@@ -6398,7 +6401,7 @@ int display_willcache()
 void display_map_doneupdate()
 {
   int ax,ay;
-  GdkGC *black_gc;
+  /*  GdkGC *black_gc;*/
 
   if (updatelock < 30) {
   updatelock++;
@@ -6407,19 +6410,27 @@ void display_map_doneupdate()
   for(ax=0;ax<11;ax++) {
     for(ay=0;ay<11;ay++) { 
       if (the_map.cells[ax][ay].count==0) {
-	black_gc = gtkmap[ax][ay].pixmap->style->black_gc;
-	gdk_draw_rectangle (gtkmap[ax][ay].gdkpixmap, black_gc,
+	/*	black_gc = gtkmap[ax][ay].pixmap->style->black_gc;*/
+	gdk_draw_rectangle (mappixmap, drawingarea->style->black_gc,
 			    TRUE,
-			    0,
-			    0,
-			    24,
-			    24);
+			    XPM_SIZE*ax,
+			    XPM_SIZE*ay,
+			    XPM_SIZE,
+			    XPM_SIZE);
 	continue;
       } 
       display_mapcell_pixmap(ax,ay);
     }
   }
+  gdk_draw_pixmap(drawingarea->window,
+		  drawingarea->style->fg_gc[GTK_WIDGET_STATE (drawingarea)],
+		  mappixmap,
+		  0, 0,
+		  0, 0,
+		  XPM_SIZE*11,XPM_SIZE*11);
+  /*
   gtk_widget_draw (table, NULL);
+  */
   }
   else {
     /*    printf ("WARNING - Frozen updates until updatelock is cleared!\n");*/
