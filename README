@@ -29,7 +29,7 @@ Install Steps:
     ./configure --with-includes="-I/usr/local/include -I/opt/xpm/include"
 
     Similarly, there is a --with-ldflags option.  Example:
-    ./configure --with-ldflags"-L/usr/local/lib -R/usr/local/lib"
+    ./configure --with-ldflags="-L/usr/local/lib -R/usr/local/lib"
     -R is used on many systems to specify run location for libraries so
     you don't need to set LD_LIBRARY_PATH.
 
