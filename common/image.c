@@ -479,6 +479,8 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 	fprintf(stderr,"Got error on create_and_rescale_image_from_data, file=%s\n",filename);
 	requestface(pnum, face);
     }
+    if (png_tmp != NULL)
+        free(png_tmp);
 }
 
 
@@ -677,7 +679,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 		csum += buf[i];
 		csum &= 0xffffffff;
 	    }
-	    sprintf(filename, "%c%c/%s.%d", facetoname[face][0], facetoname[face][1], 
+	    sprintf(filename, "%c%c/%s.%d", facetoname[face][0], facetoname[face][1],
 		    basename, setnum);
 	    ce = image_add_hash(facetoname[face], filename,  csum, 0);
 
@@ -709,6 +711,8 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 	    facetoname[face]=NULL;
 	}
     }
+    if (pngtmp != NULL)
+        free(pngtmp);
 }
 
 
@@ -720,7 +724,7 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
  * operations with safety.
  * In each block, we find the newline - if we find one, we presume
  * the data is good, and update the face_info accordingly.
- * if we don't find a newline, we return.  
+ * if we don't find a newline, we return.
  */
 void get_image_info(char *data, int len)
 {
