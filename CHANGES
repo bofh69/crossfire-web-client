@@ -1,6 +1,9 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+Makefile.in: if no makedepend, don't run make depend directive.
+README: Add not about ALSA revisions and possible problems compiling.
+MSW 2002-07-10
 
 This commit adds graduated colored statbars to the gtk client.  What
 this means is that the color of the statbar goes smoothly from red to yellow

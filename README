@@ -45,6 +45,9 @@ Install Steps:
     set --with-ldflags, as if one is not in a standard place, the other
     probably is not either.
 
+    The client works with the 0.5 version of the ALSA sound system.
+    If you are using a newer version and are having troubles compiling,
+    try running configure with the '--disable-alsa' option.
 
 2) Type 'make depend; make' to compile the client. If you get link errors,
     it may be because you have an older version of the gtk libraries.  If

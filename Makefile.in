@@ -104,11 +104,15 @@ all:
 
 
 depend:
-	@for dir in $(SUBDIRS); \
-	    do \
-	    echo "making depend in $$dir..."; \
-	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' depend; ) \
-	done;
+	@if [ "X$(DEPEND)" = "X" ] ; then \
+	    echo "No makedepend - will not depend files"; \
+	else \
+	    for dir in $(SUBDIRS); \
+		do \
+	    	echo "making depend in $$dir..."; \
+	    	(cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' depend; ) \
+	    done; \
+	fi
 
 clean:
 	@for dir in $(SUBDIRS); \
