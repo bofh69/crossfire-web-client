@@ -23,7 +23,7 @@
 char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
 char *image_file="";
 
-int port_num=EPORT, meta_port=META_PORT;
+int port_num=EPORT, meta_port=META_PORT, want_skill_exp=0;
 FILE *fpin,*fpout;
 int fdin, fdout, basenrofpixmaps, pending_images=0,maxfiledescriptor,
 	pending_archs=0,maxfd;
@@ -36,6 +36,10 @@ char *resists_name[NUM_RESISTS] = {
 "ghit", "pois", "slow", "para",
 "t undead", "fear", "depl","death", 
 "hword", "blind"};
+
+char *skill_names[MAX_SKILL] = {
+"agility", "personality", "mental", "physique", "magic", "wisdom"
+};
 
 typedef void (*CmdProc)(unsigned char *, int len);
 
@@ -79,6 +83,7 @@ struct CmdMapping commands[] = {
     { "addme_success", (CmdProc)AddMeSuccess },
     { "version", (CmdProc)VersionCmd },
     { "goodbye", (CmdProc)GoodbyeCmd },
+    { "setup", (CmdProc)SetupCmd},
 
     { "query", (CmdProc)handle_query},
 };
@@ -189,6 +194,7 @@ void negotiate_connection(int sound)
 {
 
     int cache;
+    char buf[BIG_BUF];
 
     SendVersion(csocket);
 
@@ -219,10 +225,17 @@ void negotiate_connection(int sound)
 	else SendSetFaceMode(csocket,CF_FACE_PNG | cache);
     }
 
+# if 0
     if (sound<0)
 	cs_write_string(csocket.fd,"setsound 0", 10);
     else
 	cs_write_string(csocket.fd,"setsound 1", 10);
+#else
+    sprintf(buf,"setup sound %d sexp %d",
+	    (sound<0?0:1), want_skill_exp);
+    cs_write_string(csocket.fd, buf, strlen(buf));
+
+#endif
 
     SendAddMe(csocket);
 }

@@ -213,6 +213,7 @@ typedef struct {
   GtkWidget *speed;
   GtkWidget *food;
   GtkWidget *skill;
+  GtkWidget *skill_exp[MAX_SKILL];
 } StatWindow;
 
 typedef struct {
@@ -387,6 +388,19 @@ static GtkWidget *gtkwin_chelp = NULL;
 static GtkWidget *gtkwin_shelp = NULL;
 static GtkWidget *gtkwin_magicmap = NULL;
 static GtkWidget *gtkwin_config = NULL;
+
+/* these are the panes used in splitting up the window in non root
+ * windows mode.  Need to be globals so we can get/set the
+ * information when loading/saving the positions.
+ */
+
+static GtkWidget
+    *inv_hpane,		/* Split between inv,message window and stats/game/.. window */
+    *stat_info_hpane,	/* game/stats on left, info windows on right */
+    *stat_game_vpane,	/* status window/game window split */
+    *game_bar_vpane,	/* game/scroll split */
+    *inv_look_vpane,	/* inventory/look split */
+    *info_vpane;	/* split for 2 info windows */
 
 static char *last_str;
 
@@ -1413,14 +1427,13 @@ static int get_info_display(GtkWidget *frame) {
     GtkWidget *tablet;
     GtkWidget *vscrollbar;
     FILE *infile;
-    GtkWidget *vpane;
 
     box1 = gtk_vbox_new (FALSE, 0);
     if (splitinfo) {
-	vpane = gtk_vpaned_new();
-	gtk_container_add (GTK_CONTAINER (frame), vpane);
-	gtk_widget_show(vpane);
-	gtk_paned_add2(GTK_PANED(vpane), box1);
+	info_vpane = gtk_vpaned_new();
+	gtk_container_add (GTK_CONTAINER (frame), info_vpane);
+	gtk_widget_show(info_vpane);
+	gtk_paned_add2(GTK_PANED(info_vpane), box1);
     } else {
 	gtk_container_add (GTK_CONTAINER (frame), box1);
     }
@@ -1466,7 +1479,7 @@ static int get_info_display(GtkWidget *frame) {
 
 	box1 = gtk_vbox_new (FALSE, 0);
 	gtk_widget_show (box1);
-	gtk_paned_add1(GTK_PANED(vpane), box1);
+	gtk_paned_add1(GTK_PANED(info_vpane), box1);
 
 	tablet = gtk_table_new (2, 2, FALSE);
 	gtk_table_set_row_spacing (GTK_TABLE (tablet), 0, 2);
@@ -2143,129 +2156,146 @@ void draw_color_info(int colr, const char *buf){
  ***********************************************************************/
 
 static int get_stats_display(GtkWidget *frame) {
-  /*  GtkWidget *label_playername;*/
-  GtkWidget *stats_vbox;
-  GtkWidget *stats_box_1;
-  GtkWidget *stats_box_2;
-  GtkWidget *stats_box_4;
-  GtkWidget *stats_box_5;
-  GtkWidget *stats_box_6;
-  GtkWidget *stats_box_7;
+    GtkWidget *stats_vbox;
+    GtkWidget *stats_box_1;
+    GtkWidget *stats_box_2;
+    GtkWidget *stats_box_4;
+    GtkWidget *stats_box_5;
+    GtkWidget *stats_box_6;
+    GtkWidget *stats_box_7;
+    GtkWidget *table;
+    char    buf[MAX_BUF];
+    int i,x,y;
   
 
-      stats_vbox = gtk_vbox_new (FALSE, 0);
-      /* 1st row */
-      stats_box_1 = gtk_hbox_new (FALSE, 0);
+    stats_vbox = gtk_vbox_new (FALSE, 0);
 
-      statwindow.playername = gtk_label_new("Player: ");
-      gtk_box_pack_start (GTK_BOX (stats_box_1), statwindow.playername, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.playername);
+    /* 1st row  - Player name */
+    stats_box_1 = gtk_hbox_new (FALSE, 0);
 
-      gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_1, FALSE, FALSE, 0);
-      gtk_widget_show (stats_box_1);
+    statwindow.playername = gtk_label_new("Player: ");
+    gtk_box_pack_start (GTK_BOX (stats_box_1), statwindow.playername, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.playername);
 
-      /* 2nd row */
+    gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_1, FALSE, FALSE, 0);
+    gtk_widget_show (stats_box_1);
 
-      stats_box_2 = gtk_hbox_new (FALSE, 0);
-      statwindow.score = gtk_label_new("Score: 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_2), statwindow.score, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.score);
+    /* 2nd row - score and level */
+    stats_box_2 = gtk_hbox_new (FALSE, 0);
+    statwindow.score = gtk_label_new("Score: 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_2), statwindow.score, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.score);
 
-      statwindow.level = gtk_label_new("Level: 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_2), statwindow.level, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.level);
+    statwindow.level = gtk_label_new("Level: 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_2), statwindow.level, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.level);
 
-      gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_2, FALSE, FALSE, 0);
-      gtk_widget_show (stats_box_2);
+    gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_2, FALSE, FALSE, 0);
+    gtk_widget_show (stats_box_2);
       
 
-      /* 4th row */
+      /* 4th row (really the thrid) - the stats - str, dex, con, etc */
       stats_box_4 = gtk_hbox_new (FALSE, 0);
 
-      statwindow.Str = gtk_label_new("S 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Str, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.Str);
+    statwindow.Str = gtk_label_new("S 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Str, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.Str);
 
-      statwindow.Dex = gtk_label_new("D 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Dex, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.Dex);
+    statwindow.Dex = gtk_label_new("D 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Dex, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.Dex);
 
-      statwindow.Con = gtk_label_new("Co 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Con, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.Con);
+    statwindow.Con = gtk_label_new("Co 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Con, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.Con);
 
-      statwindow.Int = gtk_label_new("I 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Int, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.Int);
+    statwindow.Int = gtk_label_new("I 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Int, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.Int);
 
-      statwindow.Wis = gtk_label_new("W 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Wis, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.Wis);
+    statwindow.Wis = gtk_label_new("W 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Wis, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.Wis);
 
-      statwindow.Pow = gtk_label_new("P 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Pow, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.Pow);
+    statwindow.Pow = gtk_label_new("P 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Pow, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.Pow);
 
-      statwindow.Cha = gtk_label_new("Ch 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Cha, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.Cha);
+    statwindow.Cha = gtk_label_new("Ch 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Cha, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.Cha);
 
-      gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_4, FALSE, FALSE, 0);
-      gtk_widget_show (stats_box_4);
+    gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_4, FALSE, FALSE, 0);
+    gtk_widget_show (stats_box_4);
 
-      /* 5th row */
+    /* 5th row wc, dam, ac, armor*/
 
-      stats_box_5 = gtk_hbox_new (FALSE, 0);
+    stats_box_5 = gtk_hbox_new (FALSE, 0);
 
-      statwindow.wc = gtk_label_new("Wc: 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_5), statwindow.wc, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.wc);
+    statwindow.wc = gtk_label_new("Wc: 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_5), statwindow.wc, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.wc);
 
-      statwindow.dam = gtk_label_new("Dam: 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_5), statwindow.dam, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.dam);
+    statwindow.dam = gtk_label_new("Dam: 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_5), statwindow.dam, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.dam);
 
-      statwindow.ac = gtk_label_new("Ac: 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_5), statwindow.ac, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.ac);
+    statwindow.ac = gtk_label_new("Ac: 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_5), statwindow.ac, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.ac);
 
-      statwindow.armor = gtk_label_new("Armor: 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_5), statwindow.armor, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.armor);
+    statwindow.armor = gtk_label_new("Armor: 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_5), statwindow.armor, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.armor);
 
-      gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_5, FALSE, FALSE, 0);
-      gtk_widget_show (stats_box_5);
+    gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_5, FALSE, FALSE, 0);
+    gtk_widget_show (stats_box_5);
 
-      /* 6th row */
+    /* 6th row speed and weapon speed */
 
-      stats_box_6 = gtk_hbox_new (FALSE, 0);
+    stats_box_6 = gtk_hbox_new (FALSE, 0);
 
-      statwindow.speed = gtk_label_new("Speed: 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_6), statwindow.speed, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.speed);
+    statwindow.speed = gtk_label_new("Speed: 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_6), statwindow.speed, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.speed);
 
-      gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_6, FALSE, FALSE, 0);
-      gtk_widget_show (stats_box_6);
+    gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_6, FALSE, FALSE, 0);
+    gtk_widget_show (stats_box_6);
 
-      /* 7th row */
+    /* 7th row - range */
 
-      stats_box_7 = gtk_hbox_new (FALSE, 0);
+    stats_box_7 = gtk_hbox_new (FALSE, 0);
 
-      statwindow.skill = gtk_label_new("Skill: 0");
-      gtk_box_pack_start (GTK_BOX (stats_box_7), statwindow.skill, FALSE, FALSE, 5);
-      gtk_widget_show (statwindow.skill);
-
-
-      gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_7, FALSE, FALSE, 0);
-      gtk_widget_show (stats_box_7);
+    statwindow.skill = gtk_label_new("Skill: 0");
+    gtk_box_pack_start (GTK_BOX (stats_box_7), statwindow.skill, FALSE, FALSE, 5);
+    gtk_widget_show (statwindow.skill);
+    gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_7, FALSE, FALSE, 0);
+    gtk_widget_show (stats_box_7);
 
 
+    /* Start of experience display - we do it in a 2 X 3 array.  Use a table
+     * so that spacing is uniform - this should look better.
+     */
 
-      gtk_container_add (GTK_CONTAINER (frame), stats_vbox);
-      gtk_widget_show (stats_vbox);
+    table = gtk_table_new (2, 3, TRUE);
+    x=0;
+    y=0;
+    /* this is all the same - we just pack it in different places */
+    for (i=0; i<MAX_SKILL; i++) {
+	sprintf(buf,"%s: %d (%d)", skill_names[i], 0, 0);
+	statwindow.skill_exp[i] = gtk_label_new(buf);
+	gtk_table_attach(GTK_TABLE(table), statwindow.skill_exp[i], x, x+1, y, y+1, GTK_EXPAND | GTK_FILL, 0, 0, 0);
+	x++;
+	if (x==2) { x=0; y++; }
+	gtk_widget_show(statwindow.skill_exp[i]);
+    }
+    gtk_box_pack_start (GTK_BOX (stats_vbox), table, TRUE, TRUE, 0);
+    gtk_widget_show(table);
 
+    gtk_container_add (GTK_CONTAINER (frame), stats_vbox);
+    gtk_widget_show (stats_vbox);
 
-   return 0;
+    return 0;
 }
 
 /* This draws the stats window.  If redraw is true, it means
@@ -2274,11 +2304,18 @@ static int get_stats_display(GtkWidget *frame) {
  */
 
 void draw_stats(int redraw) {
+  static Stats last_stats;
+  static char last_name[MAX_BUF]="", last_range[MAX_BUF]="";
+  static int init_before=0;
+
   float weap_sp;
   char buff[MAX_BUF];
+  int i;
 
-  static Stats last_stats = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  static char last_name[MAX_BUF]="", last_range[MAX_BUF]="";
+  if (!init_before) {
+    init_before=1;
+    memset(&last_stats, 0, sizeof(Stats));
+  }
 
   if (updatelock < 25) {
     updatelock++;
@@ -2426,11 +2463,19 @@ void draw_stats(int redraw) {
     
     if(redraw || strcmp(cpl.range, last_range)) {
       strcpy(last_range, cpl.range);
-      sprintf(buff,cpl.range);
-      gtk_label_set (GTK_LABEL(statwindow.skill), buff);
+      gtk_label_set (GTK_LABEL(statwindow.skill), cpl.range);
       gtk_widget_draw (statwindow.skill, NULL);
     }
-  }
+    for (i=0; i<MAX_SKILL; i++) {
+	if (redraw || cpl.stats.skill_level[i] != last_stats.skill_level[i] ||
+	    cpl.stats.skill_exp[i] != last_stats.skill_exp[i]) {
+	    sprintf(buff,"%s: %d (%d)", skill_names[i], cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
+	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[i]), buff);
+	    last_stats.skill_level[i] = cpl.stats.skill_level[i];
+	    last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
+	}
+    }
+  } /* updatelock < 25 */
 }
 
 
@@ -4647,10 +4692,6 @@ void destroy_splash() {
 void create_windows() {
   GtkWidget *rootvbox;
   GtkWidget *frame;
-  GtkWidget *mhpaned;
-  GtkWidget *ghpaned;
-  GtkWidget *gvpaned;
-  GtkWidget *vpaned;
   int i;
 
   tooltips = gtk_tooltips_new();
@@ -4684,42 +4725,42 @@ void create_windows() {
     
     /* first horizontal division. inv+obj on left, rest on right */
     
-    mhpaned = gtk_hpaned_new ();
-    /*  gtk_container_add (GTK_CONTAINER (gtkwin_root), mhpaned);*/
-    gtk_box_pack_start (GTK_BOX (rootvbox), mhpaned, TRUE, TRUE, 0);
-    gtk_container_border_width (GTK_CONTAINER(mhpaned), 5);
-    gtk_widget_show (mhpaned);
+    inv_hpane = gtk_hpaned_new ();
+
+    gtk_box_pack_start (GTK_BOX (rootvbox), inv_hpane, TRUE, TRUE, 0);
+    gtk_container_border_width (GTK_CONTAINER(inv_hpane), 5);
+    gtk_widget_show (inv_hpane);
 
     /* Divisior game+stats | text */
     
-    ghpaned = gtk_hpaned_new ();
-    gtk_paned_add2 (GTK_PANED (mhpaned), ghpaned);
+    stat_info_hpane = gtk_hpaned_new ();
+    gtk_paned_add2 (GTK_PANED (inv_hpane), stat_info_hpane);
     
     /* text frame */
     
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
     gtk_widget_set_usize (frame, 300, 400);
-    gtk_paned_add2 (GTK_PANED (ghpaned), frame);
+    gtk_paned_add2 (GTK_PANED (stat_info_hpane), frame);
     
     get_info_display (frame);
     gtk_widget_show (frame);
+
     /* game & statbars below, stats above */
-    
-    gvpaned = gtk_vpaned_new ();
-    gtk_paned_add1 (GTK_PANED (ghpaned), gvpaned);
+    stat_game_vpane = gtk_vpaned_new ();
+    gtk_paned_add1 (GTK_PANED (stat_info_hpane), stat_game_vpane);
     
     /* game - statbars */
     
-    vpaned = gtk_vpaned_new ();
-    gtk_paned_add2 (GTK_PANED (gvpaned), vpaned);
+    game_bar_vpane = gtk_vpaned_new ();
+    gtk_paned_add2 (GTK_PANED (stat_game_vpane), game_bar_vpane);
     
     
     /* Statbars frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, (image_size*11)+6, 100);
-    gtk_paned_add2 (GTK_PANED (vpaned), frame);
+    gtk_widget_set_usize (frame, (image_size*11)+6,  (image_size*11)+6);
+    gtk_paned_add2 (GTK_PANED (game_bar_vpane), frame);
     
     get_message_display(frame);
     
@@ -4729,7 +4770,7 @@ void create_windows() {
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
     gtk_widget_set_usize (frame, (image_size*11)+6, (image_size*11)+6);
-    gtk_paned_add1 (GTK_PANED (vpaned), frame);
+    gtk_paned_add1 (GTK_PANED (game_bar_vpane), frame);
     
     get_game_display (frame);
     
@@ -4738,23 +4779,23 @@ void create_windows() {
     /* stats frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, (image_size*11)+6, 110);
-    gtk_paned_add1 (GTK_PANED (gvpaned), frame);
+    gtk_widget_set_usize (frame, (image_size*11)+6,  (image_size*11)+6);
+    gtk_paned_add1 (GTK_PANED (stat_game_vpane), frame);
     get_stats_display (frame);
     
     gtk_widget_show (frame);
     
-    gtk_widget_show (vpaned);
-    gtk_widget_show (gvpaned);
+    gtk_widget_show (game_bar_vpane);
+    gtk_widget_show (stat_game_vpane);
     
-    vpaned = gtk_vpaned_new ();
-    gtk_paned_add1 (GTK_PANED (mhpaned), vpaned);
+    inv_look_vpane = gtk_vpaned_new ();
+    gtk_paned_add1 (GTK_PANED (inv_hpane), inv_look_vpane);
     
     /* inventory frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
     gtk_widget_set_usize (frame, 270, 400);
-    gtk_paned_add1 (GTK_PANED (vpaned), frame);
+    gtk_paned_add1 (GTK_PANED (inv_look_vpane), frame);
 
     get_inv_display (frame);
     
@@ -4764,17 +4805,17 @@ void create_windows() {
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
     gtk_widget_set_usize (frame, 270, 200);
-    gtk_paned_add2 (GTK_PANED (vpaned), frame);
+    gtk_paned_add2 (GTK_PANED (inv_look_vpane), frame);
     
     get_look_display (frame);
     
     gtk_widget_show (frame);
     
-    gtk_widget_show (vpaned);
+    gtk_widget_show (inv_look_vpane);
     
-    gtk_widget_show (ghpaned);
+    gtk_widget_show (stat_info_hpane);
     
-    gtk_widget_show (mhpaned);
+    gtk_widget_show (inv_hpane);
     
 
     /* Connect signals */
@@ -4970,8 +5011,10 @@ void create_windows() {
 			       GTK_SIGNAL_FUNC(keyfunc), GTK_OBJECT(gtkwin_stats));
     gtk_signal_connect_object (GTK_OBJECT (gtkwin_stats), "key_release_event",
 			       GTK_SIGNAL_FUNC(keyrelfunc), GTK_OBJECT(gtkwin_stats));
-    set_window_pos();
-  }
+  } /* else split windows */
+
+  /* load window positions from file */
+  set_window_pos();
   gtk_tooltips_set_delay(tooltips, 1000 );
   if (tool_tips) {
     gtk_tooltips_enable(tooltips);
@@ -5328,39 +5371,59 @@ static void get_window_coord(GtkWidget *win,
 
 void save_winpos()
 {
-  char savename[MAX_BUF],buf[MAX_BUF];
-  FILE    *fp;
-  int	    x,y,w,h,wx,wy;
-  
-  if (!split_windows) {
-    draw_info("You can only save window positions in split windows mode", NDI_BLUE);
+    char savename[MAX_BUF],buf[MAX_BUF];
+    FILE    *fp;
+    int	    x,y,w,h,wx,wy;
+
+    if (!split_windows)
+	sprintf(savename,"%s/.crossfire/gwinpos", getenv("HOME"));
+    else
+	sprintf(savename,"%s/.crossfire/winpos", getenv("HOME"));
+
+    if (!(fp=fopen(savename,"w"))) {
+	sprintf(buf,"Unable to open %s, window positions not saved",savename);
+	draw_info(buf,NDI_BLUE);
 	return;
-  }
-  sprintf(savename,"%s/.crossfire/winpos", getenv("HOME"));
-  if (!(fp=fopen(savename,"w"))) {
-    sprintf(buf,"Unable to open %s, window positions not saved",savename);
-    draw_info(buf,NDI_BLUE);
-    return;
     }
-  /* This is a bit simpler than what the server was doing - it has
-   * some code to handle goofy window managers which I am not sure
-   * is still needed.
-   */
-  get_window_coord(gtkwin_root, &x,&y, &wx,&wy,&w,&h);
-  fprintf(fp,"win_game: %d %d %d %d\n", wx,wy, w, h);
-  get_window_coord(gtkwin_stats, &x,&y, &wx,&wy,&w,&h);
-  fprintf(fp,"win_stats: %d %d %d %d\n", wx,wy, w, h);
-  get_window_coord(gtkwin_info, &x,&y, &wx,&wy,&w,&h);
-  fprintf(fp,"win_info: %d %d %d %d\n", wx,wy, w, h);
-  get_window_coord(gtkwin_inv, &x,&y, &wx,&wy,&w,&h);
-  fprintf(fp,"win_inv: %d %d %d %d\n", wx,wy, w, h);
-  get_window_coord(gtkwin_look, &x,&y, &wx,&wy,&w,&h);
-  fprintf(fp,"win_look: %d %d %d %d\n", wx,wy, w, h);
-  get_window_coord(gtkwin_message, &x,&y, &wx,&wy,&w,&h);
-  fprintf(fp,"win_message: %d %d %d %d\n", wx,wy, w, h);
-  fclose(fp);
-  sprintf(buf,"Window positions saved to %s",savename);
-  draw_info(buf,NDI_BLUE);
+
+    get_window_coord(gtkwin_root, &x,&y, &wx,&wy,&w,&h);
+    fprintf(fp,"win_game: %d %d %d %d\n", wx,wy, w, h);
+    if (split_windows) {
+	get_window_coord(gtkwin_stats, &x,&y, &wx,&wy,&w,&h);
+	fprintf(fp,"win_stats: %d %d %d %d\n", wx,wy, w, h);
+	get_window_coord(gtkwin_info, &x,&y, &wx,&wy,&w,&h);
+	fprintf(fp,"win_info: %d %d %d %d\n", wx,wy, w, h);
+	get_window_coord(gtkwin_inv, &x,&y, &wx,&wy,&w,&h);
+	fprintf(fp,"win_inv: %d %d %d %d\n", wx,wy, w, h);
+	get_window_coord(gtkwin_look, &x,&y, &wx,&wy,&w,&h);
+	fprintf(fp,"win_look: %d %d %d %d\n", wx,wy, w, h);
+	get_window_coord(gtkwin_message, &x,&y, &wx,&wy,&w,&h);
+	fprintf(fp,"win_message: %d %d %d %d\n", wx,wy, w, h);
+    } else {
+	/* in non split mode, we really want the position of the
+	    * various panes.  Current versions do not have a proper
+	 * way (ie, function call/macro) to do this - future
+	 * versions of gtk will have a gtk_paned_get_position.
+	 * That code basically does the same thing as what we
+	 * are doing below (version 1.3)
+	 */
+	fprintf(fp,"inv_hpane: %d\n",
+		GTK_PANED(inv_hpane)->child1_size);
+	fprintf(fp,"stat_info_hpane: %d\n",
+		GTK_PANED(stat_info_hpane)->child1_size);
+	fprintf(fp,"stat_game_vpane: %d\n",
+		GTK_PANED(stat_game_vpane)->child1_size);
+	fprintf(fp,"game_bar_vpane: %d\n",
+		GTK_PANED(game_bar_vpane)->child1_size);
+	fprintf(fp,"inv_look_vpane: %d\n",
+		GTK_PANED(inv_look_vpane)->child1_size);
+	if (splitinfo)
+	    fprintf(fp,"info_vpane: %d\n",
+		GTK_PANED(info_vpane)->child1_size);
+    }
+    fclose(fp);
+    sprintf(buf,"Window positions saved to %s",savename);
+    draw_info(buf,NDI_BLUE);
 }
 
 void command_show (char *params)
@@ -5408,50 +5471,67 @@ void command_show (char *params)
  */
 void set_window_pos()
 {
-  gint wx=0;
-  gint wy=0;
-  gint w=0;
-  gint h=0;
+    gint wx=0;
+    gint wy=0;
+    gint w=0;
+    gint h=0;
 
     char buf[MAX_BUF],*cp;
     FILE *fp;
 
-    if (!split_windows) return;
+    if (split_windows)
+	sprintf(buf,"%s/.crossfire/winpos", getenv("HOME"));
+    else
+	sprintf(buf,"%s/.crossfire/gwinpos", getenv("HOME"));
 
-    sprintf(buf,"%s/.crossfire/winpos", getenv("HOME"));
     if (!(fp=fopen(buf,"r"))) return;
 
     while(fgets(buf,MAX_BUF-1, fp)!=NULL) {
 	buf[MAX_BUF-1]='\0';
 	if (!(cp=strchr(buf,' '))) continue;
 	*cp++='\0';
-	if (sscanf(cp,"%d %d %d %d",&wx,&wy,&w,&h)!=4)
-	    continue;
-	if (!strcmp(buf,"win_game:")) {
-	  gtk_widget_set_uposition (gtkwin_root, wx, wy);
-	  gtk_widget_set_usize (gtkwin_root, w, h);
-	}
-	if (!strcmp(buf,"win_stats:")) {
-	  gtk_widget_set_uposition (gtkwin_stats, wx, wy);
-	  gtk_widget_set_usize (gtkwin_stats, w, h);
-	}
-	if (!strcmp(buf,"win_info:")) {
-	  gtk_widget_set_uposition (gtkwin_info, wx, wy);
-	  gtk_widget_set_usize (gtkwin_info, w, h);
-	}
-	if (!strcmp(buf,"win_inv:")) {
-	  gtk_widget_set_uposition (gtkwin_inv, wx, wy);
-	  gtk_widget_set_usize (gtkwin_inv, w, h);
-	}
-	if (!strcmp(buf,"win_look:")) {
-	  gtk_widget_set_uposition (gtkwin_look, wx, wy);
-	  gtk_widget_set_usize (gtkwin_look, w, h);
-	}
-	if (!strcmp(buf,"win_message:")) {
-	  gtk_widget_set_uposition (gtkwin_message, wx, wy);
-	  gtk_widget_set_usize (gtkwin_message, w, h);
-	}
-    }
+	if (sscanf(cp,"%d %d %d %d",&wx,&wy,&w,&h)!=4) {
+	    gint pos = atoi(cp);
+	    if (pos == 0) continue;
+
+	    if (!strcmp(buf, "inv_hpane:")) gtk_paned_set_position(GTK_PANED(inv_hpane),pos);
+	    else if (!strcmp(buf, "stat_info_hpane:")) gtk_paned_set_position(GTK_PANED(stat_info_hpane),pos);
+	    else if (!strcmp(buf, "stat_game_vpane:")) gtk_paned_set_position(GTK_PANED(stat_game_vpane),pos);
+	    else if (!strcmp(buf, "game_bar_vpane:")) gtk_paned_set_position(GTK_PANED(game_bar_vpane),pos);
+	    else if (!strcmp(buf, "inv_look_vpane:")) gtk_paned_set_position(GTK_PANED(inv_look_vpane),pos);
+	    else if (splitinfo && !strcmp(buf, "info_vpane:")) gtk_paned_set_position(GTK_PANED(info_vpane),pos);
+	    else fprintf(stderr,"Found bogus line in window position file:\n%s %s\n", buf, cp);
+	} else {
+	    if (!strcmp(buf,"win_game:")) {
+		gtk_widget_set_uposition (gtkwin_root, wx, wy);
+		gtk_widget_set_usize (gtkwin_root, w, h);
+	    }
+	    if (!split_windows) {
+		fprintf(stderr,"Found bogus line in window position file:\n%s %s\n", buf, cp);
+		continue;
+	    }
+	    if (!strcmp(buf,"win_stats:")) {
+		gtk_widget_set_uposition (gtkwin_stats, wx, wy);
+		gtk_widget_set_usize (gtkwin_stats, w, h);
+	    }
+	    if (!strcmp(buf,"win_info:")) {
+		gtk_widget_set_uposition (gtkwin_info, wx, wy);
+		gtk_widget_set_usize (gtkwin_info, w, h);
+	    }
+	    if (!strcmp(buf,"win_inv:")) {
+		gtk_widget_set_uposition (gtkwin_inv, wx, wy);
+		gtk_widget_set_usize (gtkwin_inv, w, h);
+	    }
+	    if (!strcmp(buf,"win_look:")) {
+		gtk_widget_set_uposition (gtkwin_look, wx, wy);
+		gtk_widget_set_usize (gtkwin_look, w, h);
+	    }
+	    if (!strcmp(buf,"win_message:")) {
+		gtk_widget_set_uposition (gtkwin_message, wx, wy);
+		gtk_widget_set_usize (gtkwin_message, w, h);
+	    }
+	} /* else if split windows */
+    } /* while fgets */
 }
 
 
@@ -5514,6 +5594,10 @@ int init_windows(int argc, char **argv)
     char *display_name="";
     load_defaults(); 
 
+    /* Set this global so we get skill experience - gtk client can display
+     * it, so lets get the info.
+     */
+    want_skill_exp=1;
     for (on_arg=1; on_arg<argc; on_arg++) {
 	if (!strcmp(argv[on_arg],"-display")) {
 	    if (++on_arg == argc) {

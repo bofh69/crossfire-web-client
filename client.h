@@ -62,6 +62,11 @@
 #define MAX_BUF 256
 #define BIG_BUF 1024
 
+/* How many skill types server supports/client will get sent to it.
+ * If more skills are added to server, this needs to get increased.
+ */
+#define MAX_SKILL   6
+
 #define MAXANIM 2000
 
 /* Values for send_command option */
@@ -136,6 +141,8 @@ typedef struct Stat_struct {
     uint16 flags;	    /* contains fire on/run on flags */
     sint16 resists[30];	    /* Resistant values */
     uint32 resist_change:1; /* Resistant value has changed */
+    sint16 skill_level[MAX_SKILL];  /* Level and experience totals for */
+    sint32 skill_exp[MAX_SKILL];    /* skills */
 } Stats;
 
 
@@ -179,6 +186,8 @@ typedef struct Player_Struct {
 } Client_Player;
 
 extern Client_Player cpl;		/* Player object. */
+extern char *skill_names[MAX_SKILL];
+
 
 /* To handle XPM display mode, #ifdef Xpm_Pix are only used in areas
  * that make XPM function calls, or areas where using certain display
@@ -207,4 +216,4 @@ extern int errno;
 #define NUM_RESISTS 18
 extern char *resists_name[NUM_RESISTS];
 extern char *meta_server;
-extern int meta_port;
+extern int meta_port,want_skill_exp;

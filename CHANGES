@@ -3,15 +3,47 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree
 
+The three main things this checkin does:
+    Ability to save relative sizes of gtk subwindows, and have those restored
+      when re-running the client.
+    Use of the setup protocol command to set configuration values.
+    Receipt of skill experience information, and display of that in the 
+      gtk client.
+++
+Makefile.in: Remove Protocol entry
+Protocol: Removed - now located in server/doc directory.
+client.c: Add value to determine if we want this option, initialize global
+    array that maps the number to skill names.  Add support for 'setup'
+    protocol command.  Send sound selection using new setup command.
+client.h: add MAX_SKILL to no max number of skills.  And skill experience
+    and level total to Stats structure, put extern for skill_names
+    array and want_skill_exp value.
+commands.c: Add SetupCmd function which handles processing of
+    'setup' protocol command.  If sound setting fails with setup command,
+    fall back to old method.  In StatsCmd, add code to get skill
+    experience and level totals.
+gx11.c: Add ability to save window size and relative pane positions
+    in non split mode, as well as loading and setting of those
+    values (required moving pane information widgets from create_windows
+    to global values) - while at it, renamed this to be more descriptive.
+    Have client now display skill experience totals in stats window.
+metaserver.c: Make meta_sort a static function so that it does not
+    get put into proto files.  Its only used within the metaserver.c
+    file in any case.
+newclient.h: Add CS_STAT_SKILL* values (to keep in sync with server
+    version of this file)
+proto.h: automatic rebuild needed for SetupCmd function.
+MSW 2001-05-28
+
 gx11.c: remove some unused code.  Add color for cursed/magic items in
-   the unlocked inventory pain (makes it easier to sort items picked up)
+   the unlocked inventory pane (makes it easier to sort items picked up)
    Add support for trimming the info window buffers - now gtk just has
    to be fixed.  Have the second information window do the seem freeze
    logic as the first.  Fix problem of trying to access to many resistance
    labels (may fix some reliability problems).  Remove -scrolllines command
    line option since the client does not use it.
 xutil.c: Don't load/save scrolllines line in config file when included
-   with gx11.c - gtk client has no use for it.  At newline to error
+   with gx11.c - gtk client has no use for it.  Add newline to error
    message about lines in default file we did not process.
 MSW 2001-05-25
 

@@ -67,6 +67,67 @@
 
 #include <client.h>
 
+
+/* Received a response to a setup from the server.
+ * This function is basically the same as the server side function - we
+ * just do some different processing on the data.
+ */
+
+void SetupCmd(char *buf, int len)
+{
+    int s;
+    char *cmd, *param;
+
+    /* run through the cmds of setup
+     * syntax is setup <cmdname1> <parameter> <cmdname2> <parameter> ...
+     *
+     * we send the status of the cmd back, or a FALSE is the cmd is the server unknown
+     * The client then must sort this out
+     */
+
+    LOG(0,"Get SetupCmd:: %s\n", buf);
+    for(s=0;;) {
+	if(s>=len)	/* ugly, but for secure...*/
+	    break;
+
+	cmd = &buf[s];
+
+	/* find the next space, and put a null there */
+	for(;buf[s] && buf[s] != ' ';s++) ;
+	buf[s++]=0;
+
+	if(s>=len)
+	    break;
+
+	param = &buf[s];
+
+	for(;buf[s] && buf[s] != ' ';s++) ;
+	buf[s++]=0;
+		
+	/* what we do with the returned data depends on what the server
+	 * returns to us.  In some cases, we may fall back to other
+	 * methods, just report on error, or try another setup command.
+	 */
+	if (!strcmp(cmd,"sound")) {
+	    if (!strcmp(param,"FALSE")) {
+		if (nosound)
+		    cs_write_string(csocket.fd,"setsound 0", 10);
+		else
+		    cs_write_string(csocket.fd,"setsound 1", 10);
+	    }
+	}
+	else if (!strcmp(cmd,"sexp")) {
+	    if (!strcmp(param,"FALSE")) {
+		fprintf(stderr,"Server returned FALSE on setup sexp\n");
+	    }
+	} else {
+	    fprintf(stderr,"Got setup for a command we don't understand: %s %s\n",
+		    cmd, param);
+	}
+
+    }
+}
+
 /* Move these here - they don't contain any windows dependant
  * code.
  */
@@ -290,6 +351,30 @@ void StatsCmd(unsigned char *data, int len)
 		case CS_STAT_WEAP_SP:cpl.stats.weapon_sp=GetInt_String(data+i); i+=4; break;
 		case CS_STAT_FLAGS:cpl.stats.flags=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_WEIGHT_LIM:set_weight_limit(GetInt_String(data+i)); i+=4; break;
+
+		/* Skill experience handling */
+		/* We make the assumption based on current bindings in the protocol
+		 * that these skip 2 values and are otherwise in order.
+		 */
+		case CS_STAT_SKILLEXP_AGILITY:
+		case CS_STAT_SKILLEXP_PERSONAL:
+		case CS_STAT_SKILLEXP_MENTAL:
+		case CS_STAT_SKILLEXP_PHYSIQUE:
+		case CS_STAT_SKILLEXP_MAGIC:
+		case CS_STAT_SKILLEXP_WISDOM:
+		    cpl.stats.skill_exp[(c-CS_STAT_SKILLEXP_START)/2] = GetInt_String(data+i);
+		    i+=4;
+		    break;
+
+		case CS_STAT_SKILLEXP_AGLEVEL:
+		case CS_STAT_SKILLEXP_PELEVEL:
+		case CS_STAT_SKILLEXP_MELEVEL:
+		case CS_STAT_SKILLEXP_PHLEVEL:
+		case CS_STAT_SKILLEXP_MALEVEL:
+		case CS_STAT_SKILLEXP_WILEVEL:
+		    cpl.stats.skill_level[(c-CS_STAT_SKILLEXP_START-1)/2] = GetShort_String(data+i);
+		    i+=2;
+		    break;
 
 		case CS_STAT_RANGE: {
 		    int rlen=data[i++];
