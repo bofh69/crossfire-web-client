@@ -39,8 +39,6 @@ OBJECTS = $(SOURCES:.c=.o)
 
 EXTRA_DIST = \
 	Makefile.in		\
-	client.gnome		\
-	gnome-cfclient.desktop	\
 	gnome-cfclient.soundlist.in	\
 	gnome-cfclient.man
 

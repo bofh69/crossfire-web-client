@@ -25,7 +25,7 @@ HEADERS= \
 	clientbmap.h		\
 	x11.h			\
 	x11proto.h		\
-	rsc-id.h
+	rcs-id.h
 
 SOURCES = \
 	png.c			\

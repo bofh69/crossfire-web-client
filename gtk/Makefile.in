@@ -32,7 +32,7 @@ pixmapsdir=@prefix@/share/pixmaps
 
 HEADERS= gx11.h			\
 	gtkproto.h\
-	rsc-id.h
+	rcs-id.h
 
 SOURCES = \
 	config.c		\

@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------
+Changes for 1.7.0:
+
 gtk/win32/porting.c: tweaked SDL's sound support to use panning information.
    Added missing header files.
 Ryo 2004-04-11
