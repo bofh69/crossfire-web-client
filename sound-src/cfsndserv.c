@@ -47,7 +47,7 @@
 /*#define SGI_SOUND*/
 /*#define SUN_SOUND*/
 
-#define SOUND_DEBUG
+/*#define SOUND_DEBUG*/
 
 #include "config.h"
 
