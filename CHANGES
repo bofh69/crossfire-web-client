@@ -2,6 +2,21 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+all .c files:
+all Makefile.in:
+all rcs-id.h:
+   Basic logging is now complete. All console messages sent by
+   client are now sent to LOG(). All source files versions have
+   are sent to LOG() at startup too (except for the still non 
+   compilable gnome client!). Gtk client can show the Logs in
+   'Help -> Report a Bug' along with a small doc on how to bug report
+Tchize 2004-01-30
+
+Documentation/
+   Have added a Documentation directory. It contains a first 
+   basic how-to related to client side scripting with two examples.
+Tchize 2004-01-29
+
 Those fixes are all Win32-specific, except the last one on keys.c
 common/commands.c: Use correct Win32 function for closing socket.
 common/image.c: Added missing headers, use correct mkdir syntax.
