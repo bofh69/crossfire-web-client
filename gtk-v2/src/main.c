@@ -567,7 +567,7 @@ main (int argc, char *argv[])
     map_init(window_root);
     magic_map = lookup_widget(window_root,"drawingarea_magic_map");
 
-    if (use_config[CONFIG_CACHE]) init_cache_data();
+    init_cache_data();
 
     /* Loop to connect to server/metaserver and play the game */
     while (1) {

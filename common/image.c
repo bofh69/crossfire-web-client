@@ -171,7 +171,7 @@ char	home_dir[MAX_BUF];
 /* This holds the name we recieve with the 'face' command so we know what
  * to save it as when we actually get the face.
  */
-char *facetoname[MAXPIXMAPNUM];
+static char *facetoname[MAXPIXMAPNUM];
 
 
 struct Image_Cache {
@@ -334,6 +334,12 @@ void init_common_cache_data()
     FILE *fp;
     char    bmaps[MAX_BUF], inbuf[MAX_BUF];
     int i;
+
+    if (!want_config[CONFIG_CACHE])
+	return;
+
+    for (i = 0; i < MAXPIXMAPNUM; i++)
+	facetoname[i] = NULL;
 
     /* First, make sure that image_cache is nulled out */
     memset(image_cache, 0, IMAGE_HASH * sizeof(struct Image_Cache));
@@ -684,7 +690,9 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
     }
 
     pngtmp = png_to_data(buf, buflen, &width, &height);
-    create_and_rescale_image_from_data(ce, face, pngtmp, width, height);
+    if(create_and_rescale_image_from_data(ce, face, pngtmp, width, height)) {
+	LOG(LOG_WARNING, "common::display_newpng", "create_and_rescale_image_from_data failed for face %ld", face);
+    }
 
     if (use_config[CONFIG_CACHE]) {
 	if (facetoname[face]) {

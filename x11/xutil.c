@@ -123,11 +123,6 @@ extern char *directions[9];
 #define MAX_KEYCODE 255
 static Key_Entry *keys[256];
 
-/* This holds the name we recieve with the 'face' command so we know what
- * to save it as when we actually get the face.
- */
-char *facetoname[MAXPIXMAPNUM];
-
 /* Can be set when user is moving to new machine type */
 uint8 updatekeycodes=FALSE;
 
@@ -154,16 +149,15 @@ void init_cache_data()
      */
     pixmaps[0]->pixmap=XCreatePixmap(display, win_root, image_size, image_size, 
 	DefaultDepth(display,DefaultScreen(display)));
+    pixmaps[0]->width = 1;
+    pixmaps[0]->height = 1;
     XCopyPlane(display, ptmp, pixmaps[0]->pixmap, gc_game,
 	       0,0,image_size,image_size,0,0,1);
     XFreePixmap(display, ptmp);
 		
-    facetoname[0]=NULL;
-
     /* Initialize all the images to be of the same value. */
     for (i=1; i<MAXPIXMAPNUM; i++)  {
 	pixmaps[i]=pixmaps[0];
-	facetoname[i]=NULL;
     }
 
     init_common_cache_data();

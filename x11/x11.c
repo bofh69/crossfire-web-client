@@ -350,7 +350,7 @@ int misses=0,total=0,newimages=0;
 
 static void gen_draw_face(Drawable where,int face,int x,int y, int sx, int sy)
 {
-    if (face<0) {
+    if (face < 0 || face >= MAXPIXMAPNUM) {
 	fprintf(stderr,"Invalid face number: %d @ %d, %d\n", face, x, y);
 	return;
     }
@@ -2985,7 +2985,7 @@ int init_windows(int argc, char **argv)
 		return 1;
 
     init_keys();
-    if (want_config[CONFIG_CACHE]) init_cache_data();
+    init_cache_data();
     set_window_pos();
     info_ratio=(float) infodata.width/ (float) (infodata.width + INV_WIDTH);
     return 0;
@@ -3262,6 +3262,8 @@ void reset_image_data()
 {
     int i;
 
+    reset_image_cache_data();
+
     for (i=1; i<MAXPIXMAPNUM; i++) {
 	if (!want_config[CONFIG_CACHE] && pixmaps[i] != pixmaps[0]) {
 	    XFreePixmap(display, pixmaps[i]->pixmap);
@@ -3270,10 +3272,6 @@ void reset_image_data()
 	    }
 	    free(pixmaps[i]);
 	    pixmaps[i] = pixmaps[0];
-	}
-	if (want_config[CONFIG_CACHE] && facetoname[i]!=NULL) {
-	    free(facetoname[i]);
-	    facetoname[i]=NULL;
 	}
     }
     memset((char*)&the_map.cells[0][0], 0, sizeof(struct MapCell)*the_map.x*the_map.y);

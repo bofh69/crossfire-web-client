@@ -3,6 +3,25 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+This patch fixes a few memory leaks related to image caching in all clients.
+common/image.c: Declare facetoname[] as static. Add all code accessing this
+   array. Print warning if image cannot be created.
+gtk/gx11.c, gtk/image.c, gtk-v2/src/image.c, x11/x11.c, x11/xutil.c: Remove
+   code accessing facetoname[].
+gtk/gx11.c, gtk-v2/src/main.c, x11/x11.c: Always call init_cache_data() to
+   initialize pixmaps[] array.
+gtk/image.c, gtk-v2/src/image.c, x11/png.c: Reject invalid face
+   numbers and fix resource leak in create_and_rescale_image_from_data().
+gtk/image.c, gtk-v2/src/image.c, get_map_image_size: Pretend invalid faces to
+   be of size 1x1 in get_map_image_size().
+gtk-v2/src/image.c: Properly free opengl resources in free_pixmap(). Fix
+   resource leak when freeing old pixmaps in reset_image_data().
+x11/png.c: Properly free resources if an error occurs.
+x11/x11.c: Ignore invalid face numbers.
+x11/x11.h Remove duplicate definition of MAXPIXMAPNUM and facetoname[].
+x11/xutil.c: Initialize size of pixmaps[0].
+Andreas Kirschbaum 2005-03-27
+		  
 gtk-v2/src/map.c: Fix typo to make it compile without opengl.
 Andreas Kirschbaum 2005-03-26
 

@@ -70,11 +70,6 @@ struct {
 
 #define BPP 4
 
-/* This holds the name we recieve with the 'face' command so we know what
- * to save it as when we actually get the face.
- */
-char *facetoname[MAXPIXMAPNUM];
-
 PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
 int last_face_num=0;
@@ -229,23 +224,24 @@ static void free_pixmap(PixmapInfo *pi)
     if (pi->icon_image) g_object_unref(pi->icon_image);
     if (pi->icon_mask) g_object_unref(pi->icon_mask);
     if (pi->map_mask) gdk_pixmap_unref(pi->map_mask);
-    if (pi->map_image) {
-#ifdef HAVE_SDL
 	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
+#ifdef HAVE_SDL
+	if (pi->map_image) {
 	    SDL_FreeSurface(pi->map_image);
 	    free(((SDL_Surface*)pi->map_image)->pixels);
 	    SDL_FreeSurface(pi->fog_image);
 	    free(((SDL_Surface*)pi->fog_image)->pixels);
 	}
-	else
 #endif
-	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
-	    gdk_pixmap_unref(pi->map_image);
 	}
-	else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
+    else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
 #ifdef HAVE_OPENGL
 	    opengl_free_pixmap(pi);
 #endif
+	}
+    else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
+	if (pi->map_image) {
+	    gdk_pixmap_unref(pi->map_image);
 	}
     }
 }
@@ -262,6 +258,15 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     int nx, ny, iscale, factor;
     uint8 *png_tmp;
     PixmapInfo	*pi;
+
+    if (pixmap_num <= 0 || pixmap_num >= MAXPIXMAPNUM)
+	return 1;
+
+    if (pixmaps[pixmap_num] != pixmaps[0]) {
+	free_pixmap(pixmaps[pixmap_num]);
+	free(pixmaps[pixmap_num]);
+	pixmaps[pixmap_num] = pixmaps[0];
+    }
 
     pi = calloc(1, sizeof(PixmapInfo));
 
@@ -386,8 +391,8 @@ void reset_image_data()
 	if (!want_config[CONFIG_CACHE] && pixmaps[i] != pixmaps[0]) {
 	    free_pixmap(pixmaps[i]);
 	    free(pixmaps[i]);
-	}
 	pixmaps[i] = pixmaps[0];
+    }
     }
     memset( the_map.cells[0], 0, sizeof( sizeof( struct MapCell)*
 					 the_map.x * the_map.y ));
@@ -455,7 +460,7 @@ void get_map_image_size(int face, uint8 *w, uint8 *h)
      * is 33 wide, we want that to register as two spaces.  By
      * adding 31, that works out.
      */
-    if ( (face <= 0) || (!pixmaps[face]) ) {
+    if ( face < 0 || face >= MAXPIXMAPNUM) {
 	*w = 1;
 	*h = 1;
     } else {
@@ -469,12 +474,6 @@ void get_map_image_size(int face, uint8 *w, uint8 *h)
  * Code related to face caching.
  *
  *****************************************************************************/
-
-
-/* This holds the name we recieve with the 'face' command so we know what
- * to save it as when we actually get the face.
- */
-char *facetoname[MAXPIXMAPNUM];
 
 /* Initializes the data for image caching */
 void init_cache_data()
@@ -516,7 +515,6 @@ void init_cache_data()
 #endif
 
     pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
-    facetoname[0]=NULL;
 
     /* Don't do anything special for SDL image - rather, that drawing
      * code will check to see if there is no data
@@ -525,7 +523,6 @@ void init_cache_data()
     /* Initialize all the images to be of the same value. */
     for (i=1; i<MAXPIXMAPNUM; i++)  {
 	pixmaps[i] = pixmaps[0];
-	facetoname[i]=NULL;
     }
 
     init_common_cache_data();

@@ -66,12 +66,6 @@ struct {
 
 #define BPP 4
 
-/* This holds the name we recieve with the 'face' command so we know what
- * to save it as when we actually get the face.
- */
-char *facetoname[MAXPIXMAPNUM];
-
-
 int last_face_num=0;
 
 /* this is used to rescale big images that will be drawn in the inventory/look
@@ -261,6 +255,15 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     uint8 *png_tmp;
     PixmapInfo	*pi;
 
+    if (pixmap_num <= 0 || pixmap_num >= MAXPIXMAPNUM)
+	return 1;
+
+    if (pixmaps[pixmap_num] != pixmaps[0]) {
+	free_pixmap(pixmaps[pixmap_num]);
+	free(pixmaps[pixmap_num]);
+	pixmaps[pixmap_num] = pixmaps[0];
+    }
+
     pi = calloc(1, sizeof(PixmapInfo));
 
     iscale = use_config[CONFIG_ICONSCALE];
@@ -448,7 +451,7 @@ void get_map_image_size(int face, uint8 *w, uint8 *h)
      * is 33 wide, we want that to register as two spaces.  By
      * adding 31, that works out.
      */
-    if ( (face <= 0) || (!pixmaps[face]) ) {
+    if (face < 0 || face >= MAXPIXMAPNUM) {
 	*w = 1;
 	*h = 1;
     } else {

@@ -856,26 +856,47 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 {
     struct PixmapInfo  *pi;
 
+    if (pixmap_num <= 0 || pixmap_num >= MAXPIXMAPNUM)
+	return 1;
+
+    if (pixmaps[pixmap_num] != pixmaps[0]) {
+	XFreePixmap(display, pixmaps[pixmap_num]->pixmap);
+	if (pixmaps[pixmap_num]->mask)
+	    XFreePixmap(display, pixmaps[pixmap_num]->mask);
+	free(pixmaps[pixmap_num]);
+	pixmaps[pixmap_num] = pixmaps[0];
+    }
+
     pi = malloc(sizeof(struct PixmapInfo));
+    if (rgba_to_xpixmap(display, win_game, rgba_data, &pi->pixmap,
+		   &pi->mask, &colormap, width, height) != 0) {
+	free(pi);
+	return 1;
+    }
 
-    pixmaps[pixmap_num] = pi;
-    rgba_to_xpixmap(display, win_game, rgba_data, &pixmaps[pixmap_num]->pixmap,
-		   &pixmaps[pixmap_num]->mask, &colormap, width, height);
+    if (!pi->pixmap || !pi->mask) {
+	if (pi->pixmap)
+	    XFreePixmap(display, pi->pixmap);
+	if (pi->mask)
+	    XFreePixmap(display, pi->mask);
+	free(pi);
+	return 1;
+    }
 
-    if (!pixmaps[pixmap_num]->pixmap || !pixmaps[pixmap_num]->mask) return 1;
-    pixmaps[pixmap_num]->width = width / image_size;
-    pixmaps[pixmap_num]->height = height / image_size;
+    pi->width = width / image_size;
+    pi->height = height / image_size;
 
     if (ce) {
 	ce->image_data = pi;
     }
+    pixmaps[pixmap_num] = pi;
     return 0;
 }
 
 void get_map_image_size(int face, uint8 *w, uint8 *h)
 {
     /* This function is not implemented yet, so just return default values */
-    if (face == 0 || pixmaps[face] == NULL) {
+    if (face < 0 || face >= MAXPIXMAPNUM) {
 	*w = 1;
 	*h = 1;
     }

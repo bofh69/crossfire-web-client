@@ -580,12 +580,6 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
  *
  *****************************************************************************/
 
-
-/* This holds the name we recieve with the 'face' command so we know what
- * to save it as when we actually get the face.
- */
-char *facetoname[MAXPIXMAPNUM];
-
 /* Initializes the data for image caching */
 static void init_cache_data()
 {
@@ -619,7 +613,6 @@ static void init_cache_data()
 	pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
     }
     pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
-    facetoname[0]=NULL;
 
     /* Don't do anything special for SDL image - rather, that drawing
      * code will check to see if there is no data
@@ -628,7 +621,6 @@ static void init_cache_data()
     /* Initialize all the images to be of the same value. */
     for (i=1; i<MAXPIXMAPNUM; i++)  {
 	pixmaps[i] = pixmaps[0];
-	facetoname[i]=NULL;
     }
 
     init_common_cache_data();
@@ -5655,7 +5647,7 @@ int init_windows(int argc, char **argv)
 		return 1;
 
     init_keys();
-    if (want_config[CONFIG_CACHE]) init_cache_data();
+    init_cache_data();
     if (want_config[CONFIG_SPLASH]) destroy_splash();
     gtk_timeout_add (10,(GtkFunction)gtk_checkchilds,NULL);
     return 0;

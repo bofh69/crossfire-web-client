@@ -29,17 +29,14 @@
 
 #include "client-types.h"
 
-#define MAXPIXMAPNUM 10000
-
 extern int map_size;
 extern uint8 map_did_scroll;
 extern uint8 updatekeycodes;
 extern int updatelock;
-extern char *facetoname[MAXPIXMAPNUM];
 
 struct PixmapInfo {
   Pixmap pixmap,mask;
-  uint8 width, height;
+  uint8 width, height;		/* size of pixmap in tiles */
 };
 
 extern struct PixmapInfo *pixmaps[MAXPIXMAPNUM];
