@@ -213,7 +213,8 @@ static Font font; /* I don't see why we should try to support fonts,
 		downloading entire .pcf files, etc. 
 		- eanders@cs.berkeley.edu */
 static XEvent event;
-static XSizeHints messagehint;
+static XSizeHints messagehint, roothint;
+;
 
 /* This struct contains the information to draw 1 line of data. */
 typedef struct {
@@ -337,6 +338,8 @@ void event_loop()
     }
     maxfd = csocket.fd + 1;
     while (1) {
+	if (csocket.fd==-1) return;
+
 	FD_ZERO(&tmp_read);
 	FD_ZERO(&tmp_exceptions);
 	FD_SET(csocket.fd, &tmp_read);
@@ -548,7 +551,13 @@ static int get_info_display() {
     infohint.x=INV_WIDTH + GAME_WIDTH + WINDOW_SPACING*2;
     infohint.y=0;
     infohint.width=infodata.width=6+INFOCHARS*FONTWIDTH;
+#if 0
     infohint.height=infodata.height=11+infodata.maxdisp*13;
+#else
+    infohint.height=infodata.height=roothint.height;
+    infodata.maxdisp = roothint.height/FONTHEIGHT;
+#endif
+
     infohint.min_width=100;
     infohint.min_height=30;
     infohint.flags=PPosition | PSize;
@@ -1327,7 +1336,7 @@ static int get_message_display() {
     /* Game window is square so we can use the width */
     messagehint.y=GAME_WIDTH + STAT_HEIGHT+WINDOW_SPACING*2;
     messagehint.width=GAME_WIDTH;
-    messagehint.height=ROOT_HEIGHT - messagehint.y;
+    messagehint.height=roothint.height - messagehint.y;
     messagehint.max_width=messagehint.min_width=messagehint.width;
     messagehint.max_height=STAT_HEIGHT;
     messagehint.min_height=messagehint.height;
@@ -1924,7 +1933,7 @@ static int get_inv_display()
     inv_list.show_what = show_all;
     inv_list.weight_limit=0;
     get_list_display ( &inv_list, 0, 0, INV_WIDTH, 
-		      2*(ROOT_HEIGHT - WINDOW_SPACING) / 3, 
+		      2*(roothint.height - WINDOW_SPACING) / 3, 
 		      "Crossfire - inventory",
 		      "crossinventory");
     return 0;
@@ -1938,9 +1947,9 @@ static int get_look_display()
     look_list.show_what = show_all;
     inv_list.weight_limit = 0;
     get_list_display ( &look_list, 0, 
-	      (2*(ROOT_HEIGHT - WINDOW_SPACING) / 3) + WINDOW_SPACING,
+	      (2*(roothint.height - WINDOW_SPACING) / 3) + WINDOW_SPACING,
 		      INV_WIDTH, 
-		      (ROOT_HEIGHT - WINDOW_SPACING) / 3,
+		      (roothint.height - WINDOW_SPACING) / 3,
 		      "Crossfire - look",
 		    "crosslook");
     return 0;
@@ -2055,7 +2064,6 @@ int sync_display = 0;
 
 static int get_root_display(char *display_name) {
     char *cp;
-    XSizeHints roothint;
     static char errmsg[MAX_BUF];
 
     display=XOpenDisplay(display_name);
@@ -2113,6 +2121,13 @@ static int get_root_display(char *display_name) {
     roothint.y=0;
     roothint.width=582+6+INFOCHARS*FONTWIDTH;
     roothint.height=ROOT_HEIGHT;
+    /* Make up for the extra size of the game window.  88 is
+     * 11 tiles * 8 pixels/tile bigger size.
+     */
+    if (display_mode==Png_Display) {
+	roothint.width += 88;
+	roothint.height+= 88;
+    }
     roothint.max_width=roothint.min_width=roothint.width;
     roothint.max_height=roothint.min_height=roothint.height;
     roothint.flags=PPosition | PSize;
@@ -2324,8 +2339,13 @@ static void do_key_press()
 
 	case Reply_Many:
 	case Command_Mode:
+	case Metaserver_Select:
 	    if (text[0]==13) {
 		enum Input_State old_state=cpl.input_state;
+		if (cpl.input_state==Metaserver_Select) {
+		    cpl.input_state=Playing;
+		    return;
+		}
 		if (cpl.input_state==Reply_Many)
 		    send_reply(cpl.input_text);
 		else {
@@ -2468,6 +2488,69 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
     }
     return 1;
 }
+
+
+/* get_metaserver returns a string for what the user has selected as
+ * their metaserver.  It basically does a subset of check_x_events.
+ * and keeps looping until the user finishes selecting the metaserver
+ * (detected by change of state.
+ */
+char *get_metaserver()
+{
+    KeySym gkey=0;
+    static char ret_buf[MAX_BUF];
+
+    cpl.input_state = Metaserver_Select;
+    draw_prompt(":");
+    while (cpl.input_state == Metaserver_Select) {
+
+	XNextEvent(display,&event);
+	switch(event.type) {
+	    /* We care about expose events so that it will re-draw
+	     * the selections.
+	     */
+
+	    case Expose:
+		/* No point redrawing windows if there are more Exposes to
+		 * to come.
+		 */
+		if (event.xexpose.count!=0) continue;
+		if(event.xexpose.window==win_stats) {
+			XClearWindow(display,win_stats);
+			draw_stats(1);
+		} else if(event.xexpose.window==infodata.win_info)
+		    draw_all_info();
+		else if(event.xexpose.window==win_message)
+		    draw_all_message();
+		else if(split_windows==FALSE && event.xexpose.window==win_root) {
+		    XClearWindow(display,win_root);
+		}
+		break;
+
+	    case MappingNotify:
+		XRefreshKeyboardMapping(&event.xmapping);
+		break;
+
+	    case KeyRelease:
+		parse_key_release(event.xkey.keycode, gkey);
+		break;
+
+	    case KeyPress:
+		do_key_press();
+		break;
+	} /* switch event type */
+    } /* while input state is metaserver select. */
+
+    /* We need to clear out cpl.input_text - otherwise the next
+     * long input (like player name) won't work right.
+     * so copy it to a private buffer and return.
+     */
+    strncpy(ret_buf, cpl.input_text, MAX_BUF-1);
+    ret_buf[MAX_BUF-1]=0;
+    cpl.input_text[0]=0;
+    return ret_buf;
+}
+
 
 /* This function handles the reading of the X Events and then
  * doing the appropriate action.  For most input events, it is calling
@@ -3134,3 +3217,33 @@ void magic_map_flash_pos()
     XFillRectangle(display, win_game, gc_game, 2+cpl.mapxres*cpl.pmapx, 
 		   2+cpl.mapyres*cpl.pmapy, cpl.mapxres, cpl.mapyres);
 }
+
+/* We can now connect to different servers, so we need to clear out
+ * any old images.  We try to free the data also to prevent memory
+ * leaks.
+ * This could be more clever, ie, if we're caching images and go to
+ * a new server and get a name, we should try to re-arrange our cache
+ * or the like.
+ */
+ 
+void reset_image_data()
+{
+    int i;
+
+    for (i=1; i<MAXPIXMAPNUM; i++) {
+	if (pixmaps[i].pixmap && (pixmaps[i].pixmap!=pixmaps[0].pixmap)) {
+	    XFreePixmap(display, pixmaps[i].pixmap);
+	    pixmaps[i].pixmap=(Pixmap*)NULL;
+	    if (pixmaps[i].mask) {
+		XFreePixmap(display, pixmaps[i].mask);
+		pixmaps[i].mask=(Pixmap*)NULL;
+	    }
+	}
+	if (cache_images && facetoname[i]!=NULL) {
+	    free(facetoname[i]);
+	    facetoname[i]=NULL;
+	}
+    }
+}
+
+

@@ -234,7 +234,7 @@ GList *anim_list=NULL;
 
 extern int maxfd;
 struct timeval timeout;
-
+gint	csocket_fd=0;
 
  /* Defined in global.h */
 #define SCROLLBAR_WIDTH	16	/* +2+2 for border on each side */
@@ -493,32 +493,41 @@ void freexpmdata (char **strings) {
 	
 /* main loop iteration related stuff */
 void do_network() {
-  fd_set tmp_read, tmp_exceptions;
-  int pollret;
-  extern int updatelock;
-  
-  if (updatelock < 20) {
-    FD_ZERO(&tmp_read);
-    FD_ZERO(&tmp_exceptions);
-    FD_SET(csocket.fd, &tmp_read);
-    FD_SET(csocket.fd, &tmp_exceptions);
+    fd_set tmp_read, tmp_exceptions;
+    int pollret;
+    extern int updatelock;
 
-    pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
-    if (pollret==-1) {
-      fprintf(stderr, "Got errno %d on select call.\n", errno);
+    if (csocket.fd==-1) {
+	if (csocket_fd) {
+	    gdk_input_remove(csocket_fd);
+	    csocket_fd=0;
+	    gtk_main_quit();
+	}
+	return;
     }
-    else if (FD_ISSET(csocket.fd, &tmp_read)) {
-      DoClient(&csocket);
+  
+    if (updatelock < 20) {
+	FD_ZERO(&tmp_read);
+	FD_ZERO(&tmp_exceptions);
+	FD_SET(csocket.fd, &tmp_read);
+	FD_SET(csocket.fd, &tmp_exceptions);
+
+	pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
+	if (pollret==-1) {
+	    fprintf(stderr, "Got errno %d on select call.\n", errno);
+	}
+	else if (FD_ISSET(csocket.fd, &tmp_read)) {
+	    DoClient(&csocket);
+	}
+    } else {
+	printf ("locked for network recieves.\n");
     }
-  } else {
-    printf ("locked for network recieves.\n");
-  }
 }
+
 
 void event_loop()
 {
-    fd_set tmp_read, tmp_exceptions;  
-    gint flerp,fleep;
+    gint fleep;
     extern int do_timeout();
 
     if (MAX_TIME==0) {
@@ -526,31 +535,28 @@ void event_loop()
 	timeout.tv_usec = 0;
     }
     maxfd = csocket.fd + 1;
-    while (1) {
-	FD_ZERO(&tmp_read);
-	FD_ZERO(&tmp_exceptions);
-	FD_SET(csocket.fd, &tmp_read);
-	FD_SET(csocket.fd, &tmp_exceptions);
 
-	if (MAX_TIME!=0) {
- 	    timeout.tv_sec = 0;/* MAX_TIME / 1000000;*/
-	    timeout.tv_usec = 0;/* MAX_TIME % 1000000;*/
-	}
+    if (MAX_TIME!=0) {
+	timeout.tv_sec = 0;/* MAX_TIME / 1000000;*/
+	timeout.tv_usec = 0;/* MAX_TIME % 1000000;*/
+    }
 
-	fleep =  gtk_timeout_add (100,
-				  (GtkFunction) do_timeout,
-				  NULL);
+    fleep =  gtk_timeout_add (100,
+			  (GtkFunction) do_timeout,
+			  NULL);
 	
-        flerp = gdk_input_add ((gint) csocket.fd,
+    csocket_fd = gdk_input_add ((gint) csocket.fd,
                               GDK_INPUT_READ,
                               (GdkInputFunction) do_network, &csocket);
-	gtk_main();
-    }
+    gtk_main();
+
+    fprintf(stderr,"gtk_main exited, returning from event_loop\n");
 }
 
+
+
+
 /* Do the pixmap copy with gc to tile it onto the stack in the cell */
-
-
 
 static void gen_draw_face(int face,int x,int y)
 {
@@ -1432,14 +1438,12 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
 	    }
 	    else {
 		strcpy(buf,first_match->command);
-/*		send_command(first_match->command);*/
 		extended_command(first_match->command);
 	    }
 	    if (cpl.echo_bindings) draw_info(buf,NDI_BLACK);
 	}
         else {
 	    if (cpl.echo_bindings) draw_info(first_match->command,NDI_BLACK);
-	    /*send_command(first_match->command);*/
 	    extended_command(first_match->command);
 	}
 	return;
@@ -1869,6 +1873,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
 	break;
       case Command_Mode:
+      case Metaserver_Select:
 	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
       break;
       default:
@@ -1880,54 +1885,6 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
   }
 }
 
-
-
-
-/*void menu_history(GtkWidget *widget) {
-  GtkWidget *vbox;
-  gchar *titles[] ={"Command"};	   
-
-  if(!gtkwin_history) {
-    
-    gtkwin_history = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_widget_set_events (gtkwin_history, GDK_KEY_RELEASE_MASK);
-    gtk_widget_set_usize (gtkwin_history,160,200);
-    gtk_window_set_title (GTK_WINDOW (gtkwin_history), "Command history");
-    gtk_signal_connect (GTK_OBJECT (gtkwin_history), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_history);
-    gtk_signal_connect_object (GTK_OBJECT (gtkwin_history), "key_press_event",
-			       GTK_SIGNAL_FUNC(keyfunc), GTK_OBJECT(gtkwin_history));
-    gtk_signal_connect_object (GTK_OBJECT (gtkwin_history), "key_release_event",
-			       GTK_SIGNAL_FUNC(keyrelfunc), GTK_OBJECT(gtkwin_history));
-
-    gtk_container_border_width (GTK_CONTAINER (gtkwin_history), 0);
-    vbox = gtk_vbox_new(TRUE, 2);
-    gtk_container_add (GTK_CONTAINER(gtkwin_history),vbox);
-  
-    history_list = gtk_clist_new_with_titles (1, titles);
-    gtk_clist_set_selection_mode (GTK_CLIST(history_list) , GTK_SELECTION_BROWSE);
-
-    gtk_clist_set_policy (GTK_CLIST (history_list), GTK_POLICY_AUTOMATIC,
-			  GTK_POLICY_AUTOMATIC);
-    gtk_signal_connect_after (GTK_OBJECT(history_list),
-                              "button_press_event",
-                              GTK_SIGNAL_FUNC(history_button_event),
-                              NULL);
-
-    
-    gtk_widget_show (history_list);
-    g_list_foreach (history, (GFunc) addhistorylist, NULL);
-
-    gtk_box_pack_start (GTK_BOX(vbox),history_list, TRUE, TRUE, 0);
-
-    gtk_widget_show (vbox);
-
-    gtk_widget_show (gtkwin_history);
-  }
-  else { 
-    gdk_window_raise (gtkwin_history->window);
-  }
-}
-*/
 
 
 /* Event handlers for map drawing area */
@@ -2334,19 +2291,23 @@ static void draw_list (itemlist *l)
 
 
 void enter_callback(GtkWidget *widget, GtkWidget *entry)
-       {
-         gchar *entry_text;
+{
+    gchar *entry_text;
 	
 
-         entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
+    entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
 	 /*         printf("Entry contents: %s\n", entry_text);*/
-	 cpl.input_state = Playing;
-	 extended_command(entry_text);
+    if (cpl.input_state==Metaserver_Select) {
+	cpl.input_state = Playing;
+	strcpy(cpl.input_text, entry_text);
 
-	 gtk_entry_set_text(GTK_ENTRY(entrytext),"");
-	 gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info_text));
-	 
-       }
+    } else {
+	cpl.input_state = Playing;
+	extended_command(entry_text);
+    }
+    gtk_entry_set_text(GTK_ENTRY(entrytext),"");
+    gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info_text));
+}
 
 void dobuttoncmd (GtkWidget *button, gchar *command) {
   printf ("Button command: %s\n",command);
@@ -6611,12 +6572,43 @@ void display_map_startupdate()
 {
 }
 
-/* This function draws the magic map in the game window.  I guess if
- * we wanted to get clever, we could open up some other window or
- * something.
- *
- * A lot of this code was taken from server/xio.c  But being all
- * the map data has been figured, it tends to be much simpler.
- */
+char *get_metaserver()
+{
+    cpl.input_state = Metaserver_Select;
 
+
+    while(cpl.input_state==Metaserver_Select) {
+	if (gtk_events_pending())
+	    gtk_main_iteration();
+    }
+    return cpl.input_text;
+}
+
+/* We can now connect to different servers, so we need to clear out
+ * any old images.  We try to free the data also to prevent memory
+ * leaks.
+ * This could be more clever, ie, if we're caching images and go to
+ * a new server and get a name, we should try to re-arrange our cache
+ * or the like.
+ */
+ 
+void reset_image_data()
+{
+    int i;
+
+    for (i=1; i<MAXPIXMAPNUM; i++) {
+	if (pixmaps[i].gdkpixmap && (pixmaps[i].gdkpixmap!=pixmaps[0].gdkpixmap)) {
+	    gdk_pixmap_unref(pixmaps[i].gdkpixmap);
+	    pixmaps[i].gdkpixmap=NULL;
+	    if (pixmaps[i].gdkmask) {
+		gdk_pixmap_unref(pixmaps[i].gdkmask);
+		pixmaps[i].gdkmask=NULL;
+	    }
+	}
+	if (cache_images && facetoname[i]!=NULL) {
+	    free(facetoname[i]);
+	    facetoname[i]=NULL;
+	}
+    }
+}
 

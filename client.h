@@ -105,7 +105,7 @@ extern int port_num,
 extern char *server, *client_libdir;
 
 typedef enum Input_State {Playing, Reply_One, Reply_Many,
-	Configure_Keys, Command_Mode} Input_State;
+	Configure_Keys, Command_Mode, Metaserver_Select} Input_State;
 
 typedef enum rangetype {
   range_bottom = -1, range_none = 0, range_bow = 1, range_magic = 2,
@@ -200,10 +200,6 @@ extern int errno;
 /* translation of the STAT_RES names into printable names,
  * in matching order.
  */
-static char *resists_name[] = {
-"armor", "magic", "fire", "elec", 
-"cold", "conf", "acid", "drain",
-"ghit", "pois", "slow", "para",
-"t undead", "fear", "depl",
-"death", "hword", "blind"};
-#define NUM_RESISTS sizeof(resists_name)/sizeof(char *)
+#define NUM_RESISTS 18
+extern char *resists_name[NUM_RESISTS];
+

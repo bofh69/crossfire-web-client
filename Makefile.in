@@ -33,6 +33,7 @@ SOURCES = \
 	commands.c		\
 	init.c			\
 	item.c			\
+	metaserver.c		\
 	misc.c			\
 	newsocket.c		\
 	player.c		\
@@ -57,6 +58,7 @@ PROTOSOURCES= \
 	commands.c		\
 	init.c			\
 	item.c			\
+	metaserver.c		\
 	misc.c			\
 	newsocket.c		\
 	player.c		\

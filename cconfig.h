@@ -44,3 +44,12 @@
  */
 
 #define SERVER "localhost"
+
+/* Server to contact to get information about crossfire servers.
+ * This is not the server you play on, but rather a central repository
+ * that lists the servers.
+ * 
+ */
+
+#define META_SERVER "tavern.santa-clara.ca.us"
+#define META_PORT   13326

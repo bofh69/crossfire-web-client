@@ -1,6 +1,38 @@
 "$Id$"
 Top of CVS tree:
 
+MSW 2000/12/19:
+Metaserver update.  Most files updated.  This change has the client
+connect the metaserver and lets the user choose which server to connect
+to.  Also, if the client loses a connection (either because the player
+has quit playing or the server died), the client will no longer exit and
+instead go back to the server selection screen.
+A few unrelated changes (cfclient):  when running cache, non downloaded
+images should look better.  Also, client starts up with larger window in
+Png mode to take into account the extra space png images takes up in the
+game window.
+
+Changes by file:
+Makefile.in: Add metaserver.c file.
+cconfig.h:  Add metaserver configuration information.
+client.c: Add meta_ variables, move resists_name to this file, no longer
+	have DoClient exit if it gets an error on the socket (instead
+	mark the fd as -1 and return), change main loop such that if
+	connection to server has been lost, go through loop to establish
+	a new connection.
+client.h: Add Metaserver_Select input state.  Change resists_name from
+	a static to extern.
+gx11.c:  Remove some unused code, various code cleanups, and additions to
+	support the metaserver connection process.
+init.c: Add reset_client_vars - call it between connections to servers.
+proto.h: rebuilt for new functions.
+x11.c: Update for metaserver connection status.  If running Png mode,
+	have windows created larger.
+xutil.c: When creating default images for cache, create 32x32 images for
+	png mode, not 24x24 images.
+metaserver.c: New file for metaserver code.
+End MSW 2000/12/19 checkin.
+
 MSW 2000/12/10:
 png.c, gx11.c, x11.c, xutil.c: modified to use in memory loading of
 png's.  This means that if not caching images, we don't need to write it out 

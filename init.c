@@ -99,3 +99,41 @@ void init_client_vars()
     csocket.command_time=0;
 
 }
+
+/* This is used to clear values between connections to different
+ * servers.  This needs to be called after init_client_vars has
+ * been called because it does not re-allocated some values.
+ */
+
+void reset_client_vars()
+{
+    int i;
+
+
+    cpl.count_left = 0;
+    cpl.container = NULL;
+    memset(&cpl.stats,0, sizeof(Stats));
+    cpl.stats.maxsp=1;	/* avoid div by 0 errors */
+    cpl.stats.maxhp=1;	/* ditto */
+    cpl.stats.maxgrace=1;	/* ditto */
+    /* ditto - displayed weapon speed is weapon speed/speed */
+    cpl.stats.speed=1;
+    cpl.input_text[0]='\0';
+    cpl.title[0] = '\0';
+    cpl.range[0] = '\0';
+    cpl.last_command[0] = '\0';
+
+    for (i=0; i<range_size; i++)
+	cpl.ranges[i]=NULL;
+
+    cpl.map_x=0;
+    cpl.map_y=0;
+
+    cpl.magicmap=NULL;
+    cpl.showmagic=0;
+
+    csocket.command_sent=0;
+    csocket.command_received=0;
+    csocket.command_time=0;
+
+}

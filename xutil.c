@@ -57,7 +57,7 @@ static void init_cache_data()
 
     pixmaps[0].mask=None;
     pixmaps[0].bitmap=XCreateBitmapFromData(display, 
-	RootWindow(display, screen_num), (const char*)question_bits, 24,24);
+	RootWindow(display, screen_num), (const char*)question_bits, image_size,image_size);
 
     /* In xpm mode, XCopyArea is used from this data, so we need to copy
      * the image into an pixmap of appropriate depth.
