@@ -1,6 +1,9 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+x11.c: Fixes for info window resizing.  This should fix some crashes
+     and the code is a bit simpler now.  MSW 2001/02/28
+
 Makefile.in: Modify so that it installs the target (cfclient, gcfclient,
     cfsndserv) one at a time so it works with the install script.
 item.c: add insert_item_before_item function.  Modify the sorting function

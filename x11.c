@@ -220,6 +220,7 @@ typedef struct {
 /* This contains all other information for the info window */
 typedef struct {
     uint16	info_chars;	/* width in chars of info window */
+    uint16	max_info_chars;	/* Max value of info_chars */
     uint16	infopos;	/* Where in the info arry to put new data */
     uint16	infoline;	/* Where on the window to draw the line */
     uint16	scroll_info_window:1;  /* True if we should scroll the window */
@@ -241,7 +242,7 @@ typedef struct {
     sint16	width,height; /* Width and height of window */
 } InfoData;
 
-static InfoData infodata = {0, 0, 0, 0, 0, INFOLINES, INFOLINES, NDI_BLACK,
+static InfoData infodata = {0, 0, 0, 0, 0, 0, INFOLINES, INFOLINES, NDI_BLACK,
 	NULL, 0, 0,0,0,0,0,0,0,0};
 
 static uint8	
@@ -580,6 +581,7 @@ static int get_info_display() {
     if (infodata.maxlines>infodata.maxdisp) infodata.has_scrollbar=1;
     infodata.info_chars = (infohint.width/FONTWIDTH)-1;
     if (infodata.has_scrollbar) infodata.info_chars -=3;
+    infodata.max_info_chars=infodata.info_chars;
     infodata.data=(InfoLine *) malloc(sizeof(InfoLine) * infodata.maxlines);
     infodata.bar_length=infodata.height - 8;
     for (i=0; i<infodata.maxlines; i++) {
@@ -999,9 +1001,10 @@ static void resize_win_info(int width, int height) {
     int chars=(width/FONTWIDTH)-1;
     int lines=(height/FONTHEIGHT)-1;
     int i;
+    InfoLine	*newlines;
 
     if (infodata.width==width &&
-	infodata.height==height/FONTHEIGHT) return;
+	infodata.height==height) return;
 
     if(chars<3 || lines<3)
 	return;
@@ -1009,123 +1012,99 @@ static void resize_win_info(int width, int height) {
     infodata.width=width;
     infodata.height=height;
     infodata.bar_length=infodata.height - 8;
+    if (infodata.has_scrollbar) chars-=3;
 
-    /* IF the window has shrunk, and if the number of lines equals
-     * the array size, we end up shrinking the array.  if maxlines==maxdisp,
-     * then there is no scrollback buffer, and we assume that one is
-     * is not desired.  IF we have scrollback, then don't adjust the
-     * array, we will just need to redraw things.
-     */
 
     /* We have a scrollback buffer.  All we need to change then is maxdisp */
     if (infodata.maxdisp != infodata.maxlines && lines<infodata.maxlines) {
+	/* Move insert line to bottom of the screen if we are already there
+	 * or it would otherwise be off the screen.
+	 */
+	if (((infodata.infoline+1) == infodata.maxdisp) ||
+	    (infodata.infoline >= lines)) infodata.infoline = lines - 1;
 	infodata.maxdisp=lines;
     }
-    else if (lines<infodata.maxdisp) {
-
-	/* Case 1 - buffer not fill, we just need to keep the first 'lines'
-	 * lines, and that's it.
-	 */
-	if (lines>=infodata.numlines) {
-	    int i;
-
-	    for (i=lines; i<infodata.maxlines; i++)
-		free(infodata.data[i].info);
-	    infodata.data = realloc(infodata.data, sizeof(InfoLine) * lines);
-	    infodata.maxdisp=lines;
-	    infodata.maxlines=lines;
-	    infodata.infopos=lines;
-	}
-	/* Case 2 - we need to delete some lines.  We delete the oldest
-	 * lines.
-	 */
-	else {
-	    InfoLine *newlines;
-	    int start=infodata.numlines-lines,i,j=0;
-
-	    if (start<0) start+=infodata.maxlines;
-	    newlines=malloc(sizeof(InfoLine) * (lines+1));
-
-	    for (i=0; i<lines; i++) {
-		j=(start+i)%infodata.maxlines;
-		newlines[i]=infodata.data[j];
-	    }
-	    j++;
-	    while (j!=start) {
-		free(infodata.data[j].info);
-		j++;
-	    }
-	    free(infodata.data);
-	    infodata.data=newlines;
-	    infodata.maxlines=lines;
-	    infodata.numlines=lines;
-	    infodata.maxdisp=lines;
-	    if (infodata.infoline>=lines) infodata.infoline = lines-1;
-	    if (infodata.infopos>=lines) infodata.infopos = lines-1;
-	}
-    }
-    /* In this case, the window is growing */
-    else  {
-	/* We only care if the buffer is not large enough and needs to be
-	 * made bigger.
-	 */
-	if (infodata.maxlines<lines) {
-	    /* In this case, the lines are already in order, so we just need
-	     * to grow the array.
-	     */
-	    if (infodata.numlines==infodata.infopos) {
-		int i;
-
-		infodata.data = realloc(infodata.data, sizeof(InfoLine)*(lines+1));
-		for (i=infodata.maxlines; i<lines; i++) {
-		    infodata.data[i].info=malloc(sizeof(char)*(infodata.info_chars+1));
-		    infodata.data[i].info[0]='\0';
-		    infodata.data[i].color=0;
-		}
-	    }
-	    /* In this case, we need to re-order the lines */
-	    else {
-		InfoLine *newlines;
-		int start=infodata.infopos-infodata.numlines,i;
-
-		newlines=malloc(sizeof(InfoLine)*(lines+1));
-
-		if (start<0) start+=infodata.maxlines;
-
-		for (i=0; i<lines; i++)
-		    newlines[i]=infodata.data[(start+i)%infodata.maxlines];
-		free(infodata.data);
-		infodata.data=newlines;
-		for (i=infodata.maxlines; i<lines; i++) {
-		    infodata.data[i].info=malloc(sizeof(char)*(infodata.info_chars+1));
-		    infodata.data[i].info[0]='\0';
-		    infodata.data[i].color=0;
-		}
-		infodata.infoline=lines-1;
-		infodata.infopos=infodata.maxlines;
-	    }
-	    infodata.maxlines=lines;
-	    infodata.maxdisp=lines;
-	}
-    }
-    if (infodata.maxlines>infodata.maxdisp) infodata.has_scrollbar=1;
-
-    /* The way we deal with resizing probably is not the most efficient, but
-     * it is probably clearer.  Plus, I don't think the window will be resized
-     * all that often, so not being totally efficient should be that big of
-     * a deal.
+    /* The window has changed size, but the amount of data we can display
+     * has not.  so just redraw the window and return.
      */
+    if (chars == infodata.info_chars && lines == infodata.maxdisp) {
+	draw_all_info();
+	return;
+    }	
 
-    if (infodata.has_scrollbar) chars-=3;
-    /* First, lets deal with the width */
-    if (chars!=infodata.info_chars) {
+    /* Either we have a scrollbar (as above), or the window has not
+     * changed in height, so we just need to change the size of the
+     * buffers.
+     */
+    if (lines == infodata.maxdisp) {
 	for (i=0; i<infodata.maxlines; i++) {
-	    infodata.data[i].info= realloc(infodata.data[i].info, sizeof(char) * (chars+1));
+	    if (chars>infodata.max_info_chars) {
+		infodata.data[i].info= realloc(infodata.data[i].info, sizeof(char) * (chars+1));
+	    }
+	    /* Terminate buffer in both cases */
 	    infodata.data[i].info[chars]='\0';
 	}
 	infodata.info_chars=chars;
+	draw_all_info();
+	return;
     }
+    /* IF we get here, the window has grown or shrunk, and we don't have
+     * a scrollbar.  This code is a lot simpler than what was here before,
+     * but probably is not as efficient (But with the number of resize
+     * events likely, this should not be a big deal).
+     */
 
+    /* First, allocate new storage */
+    newlines = malloc(sizeof(InfoLine) * lines);
+    for (i=0; i<lines; i++) {
+	newlines[i].info = malloc(sizeof(char) * (chars +1));
+	newlines[i].info[0]='\0';
+	newlines[i].color=0;
+    }
+    /* First case - we can keep all the old data.  Note that the old
+     * buffer could have been filled up, so we still need to do some
+     * checking to find the start
+     */
+    if (infodata.numlines <= lines) {
+	int start=0,k;
+
+	/* Buffer was full, so the start could be someplace else */
+	if (infodata.numlines == infodata.maxlines) {
+	    start = infodata.infopos+1;
+	}
+	for (i=0; i<infodata.numlines; i++) {
+	    k= (start+i) % infodata.maxlines;
+	    strncpy(newlines[i].info, infodata.data[k].info, chars);
+	    newlines[i].info[chars]=0;
+	    newlines[i].color = infodata.data[k].color;
+	}
+    }
+    else {
+	/* We have to lose data, so keep the most recent. */
+
+	int start=infodata.infopos-lines,k;
+
+	if (start<0) start += infodata.maxlines;
+	for (i=0; i<lines; i++) {
+	    k= (start+i) % infodata.maxlines;
+	    strncpy(newlines[i].info, infodata.data[k].info, chars);
+	    newlines[i].info[chars]=0;
+	    newlines[i].color = infodata.data[k].color;
+	}
+	infodata.infopos = 0;
+	newlines[0].info[0] = '\0';
+	infodata.infoline = lines-1;
+	infodata.numlines = lines;
+	infodata.bar_pos = lines;
+    }
+    infodata.maxdisp = lines;
+    for (i=0; i<infodata.maxlines; i++) {
+	free(infodata.data[i].info);
+    }
+    free(infodata.data);
+    infodata.data = newlines;
+    infodata.maxlines = lines;
+    infodata.info_chars=chars;
     draw_all_info();
 }
 
@@ -1993,28 +1972,6 @@ void set_scroll(char *s)
 	infodata.scroll_info_window=0;
     }
 }
-
-#if 0
-/* Support in the protocol to have the client clear the info window
- * should probably be added at some time.
- */
-void clear_infodata.win_info(object *op) {
-  int i;
-
-	/* don't clear if in scroll mode MSW */
-  if((op->type==PLAYER)  &&  (op->contr->scroll)) return;
-
-  for(i=0;i<op->contr->maxinfodata.infolines;i++) {
-    (void) memset((void *)op->contr->infodata.data[i],' ',op->contr->infodata.info_chars);
-    op->contr->infodata.data[i][op->contr->infodata.info_chars]='\0';
-  }
-  XClearWindow(display,infodata.win_info);
-/*refresh_infodata.win_info(op); */
-  op->contr->infodata.infoline=0;
-  op->contr->infodata.infopos=0;
-}
-
-#endif
 
 int get_info_width()
 {
