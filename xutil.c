@@ -930,6 +930,13 @@ static void configure_keys(KeyCode k, KeySym keysym)
   return;
 }
 
+static void unbind_usage()
+{
+    draw_info("Usage: unbind <entry_number> or",NDI_BLACK);
+    draw_info("Usage: unbind [-a] [-g] to show existing bindings", NDI_BLACK);
+    draw_info("    -a shows all (global) bindings", NDI_BLACK);
+    draw_info("    -g unbinds a global binding", NDI_BLACK);
+}
 
 void unbind_key(char *params)
 {
@@ -952,14 +959,12 @@ void unbind_key(char *params)
     if (!strncmp(params,"-g",2)) {
 	global=1;
 	if (!(params=strchr(params,' ')))  {
-	    draw_info("Usage: unbind <entry_number> or",NDI_BLACK);
-	    draw_info("Usage: unbind [-a] to show existing bindings (-a shows all bindings)",NDI_BLACK);
+	    unbind_usage();
 	    return;
 	}
     }
     if ((keyentry=atoi(params))==0) {
-	draw_info("Usage: unbind <entry_number> or",NDI_BLACK);
-	draw_info("Usage: unbind [-a] to show existing bindings (-a shows all bindings)",NDI_BLACK);
+	unbind_usage();
 	return;
     }
 

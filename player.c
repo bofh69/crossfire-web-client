@@ -292,6 +292,9 @@ void extended_command(const char *ocommand) {
     else if (!strcmp(cp,"savewinpos")) {
 	save_winpos();
     }
+    else if (!strcmp(cp,"mapredraw")) {
+	cs_write_string(csocket.fd, "mapredraw",9);
+    }
     else if (!strcmp(cp,"savedefaults")) {
 	save_defaults();
     }

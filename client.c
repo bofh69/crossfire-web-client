@@ -104,7 +104,7 @@ void DoClient(ClientSocket *csocket)
 	}
         len = csocket->inbuf.len - (data - csocket->inbuf.buf);
 	/* Terminate the buffer */
-	LOG(0,"Command:%s\n",csocket->inbuf.buf+2);
+	LOG(0,"Command:%s (%d)\n",csocket->inbuf.buf+2, len);
 	for(i=0;i < NCOMMANDS;i++) {
 	    if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {
 		    commands[i].cmdproc(data,len);
@@ -296,6 +296,12 @@ int main(int argc, char *argv[])
 	 * memory leaks.
 	 */
 	reset_image_data();
+	remove_item_inventory(cpl.ob);
+	/* We know the following is the private map structure in
+	 * item.c.  But we don't have direct access to it, so
+	 * we still use locate.
+	 */
+	remove_item_inventory(locate_item(0));
     }
     exit(0);	/* never reached */
 }

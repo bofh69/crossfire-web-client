@@ -3232,10 +3232,10 @@ void reset_image_data()
     for (i=1; i<MAXPIXMAPNUM; i++) {
 	if (pixmaps[i].pixmap && (pixmaps[i].pixmap!=pixmaps[0].pixmap)) {
 	    XFreePixmap(display, pixmaps[i].pixmap);
-	    pixmaps[i].pixmap=(Pixmap*)NULL;
+	    pixmaps[i].pixmap=(Pixmap)NULL;
 	    if (pixmaps[i].mask) {
 		XFreePixmap(display, pixmaps[i].mask);
-		pixmaps[i].mask=(Pixmap*)NULL;
+		pixmaps[i].mask=(Pixmap)NULL;
 	    }
 	}
 	if (cache_images && facetoname[i]!=NULL) {
@@ -3243,6 +3243,6 @@ void reset_image_data()
 	    facetoname[i]=NULL;
 	}
     }
+    memset(&the_map, 0, sizeof(struct Map));
+    look_list.env=cpl.below;
 }
-
-

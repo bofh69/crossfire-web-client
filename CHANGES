@@ -1,7 +1,21 @@
 "$Id$"
 Top of CVS tree:
 
-MSW 2000/1/13 (except as mentioned, all changes by MSW):
+MSW 2001/01/31:
+client.c: Clear player inventory and look windows after disconnection
+   from server.  Prevents client crashes.
+gx11.c: various fixes - window placement no longer always centered on screen
+   (very obnoxious if running xinerama), various prototypes fixed up,
+   clear map data after clearing image data.
+player.c: Add suport for 'mapredraw' command.  Not that this should ever
+   really be needed, but the server supports it, so its nice to be able to
+   use it.
+x11.c: Fixes prototype/casting problems when clearing pixmaps.  Like gx11.c,
+   clear map data.
+xutil.c: add better description to the unbind command.
+
+
+MSW 2001/1/13 (except as mentioned, all changes by MSW):
 Makefile.in: Create destination dirs, remove extra tab.  Patch also by Dave.
 Protocol: typo fixed.
 config.h, config.h.in: Add HVAE_DMALLOC_H #ifdefs.  Checks currently

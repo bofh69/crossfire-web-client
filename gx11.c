@@ -652,7 +652,7 @@ void freeanimview (gpointer data, gpointer user_data) {
 void freeanimobject (animobject *data, gpointer user_data) {
   if (data)
     g_list_foreach (data->view, freeanimview, 0);
-    g_free (data);
+  g_free (data);
 }
 
 /* Update the pixmap */
@@ -1044,7 +1044,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
 	return;
     }
     *cpnext++ = '\0';
-    flags = 0;
+    flags = standard;
     while (*cp!='\0') {
         switch (*cp) {
 	case 'A':
@@ -1092,7 +1092,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
     insert_key(keysym, keycode, flags | standard, cpnext);
 }
 
-static void init_default_keybindings()
+static void init_default_keybindings(void)
 {
   char buf[MAX_BUF];
   int i;
@@ -1108,7 +1108,7 @@ static void init_default_keybindings()
  * called by init_windows.
  */
 
-static void init_keys()
+static void init_keys(void)
 {
     int i, line=0;
     FILE *fp;
@@ -2479,15 +2479,10 @@ void draw_prompt(const char *str)
 
   dialog_window = gtk_window_new (GTK_WINDOW_DIALOG);
 
-  gtk_window_position (GTK_WINDOW (dialog_window), GTK_WIN_POS_CENTER);
-  gtk_widget_set_usize (dialog_window, 200, 100);
   gtk_window_set_policy (GTK_WINDOW(dialog_window), TRUE, TRUE, FALSE);
-
   gtk_window_set_title (GTK_WINDOW (dialog_window), "Dialog");
-  gtk_widget_realize (dialog_window);
-  XSetTransientForHint (GDK_WINDOW_XDISPLAY (dialog_window->window),
-			GDK_WINDOW_XWINDOW (dialog_window->window),
-			GDK_WINDOW_XWINDOW (gtkwin_root->window));
+  gtk_window_set_transient_for (GTK_WINDOW (dialog_window),
+                                GTK_WINDOW (gtkwin_root));
 
   dbox = gtk_vbox_new (FALSE, 6);
   gtk_container_add (GTK_CONTAINER (dialog_window), dbox);
@@ -2568,8 +2563,6 @@ void draw_prompt(const char *str)
 	!strncmp(last_str, "Int d", 5) || !strncmp(last_str, "Wis d", 5) ||
 	!strncmp(last_str, "Pow d", 5) || !strncmp(last_str, "Cha d", 5)) {
       
-
-      gtk_widget_set_usize (dialog_window, 250, 120);
       dialoglabel = gtk_label_new ("Roll again or exchange ability.");
       gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
       gtk_widget_show (dialoglabel);
@@ -2660,7 +2653,6 @@ void draw_prompt(const char *str)
 	!strncmp(last_str, "Pow -", 5) || !strncmp(last_str, "Cha -", 5)) {
       
 
-      gtk_widget_set_usize (dialog_window, 250, 120);
       dialoglabel = gtk_label_new ("Exchange with which ability?");
       gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
       gtk_widget_show (dialoglabel);
@@ -2729,7 +2721,6 @@ void draw_prompt(const char *str)
     if (!strncmp(last_str, "Press `d'", 9)) {
       
 
-      gtk_widget_set_usize (dialog_window, 200, 100);
       dialoglabel = gtk_label_new ("Choose a character.");
       gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
       gtk_widget_show (dialoglabel);
@@ -2761,7 +2752,6 @@ void draw_prompt(const char *str)
    if (!strncmp(str, "Do you want to play", 18)) {
       
 
-      gtk_widget_set_usize (dialog_window, 200, 100);
       dialoglabel = gtk_label_new ("Do you want to play again?");
       gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
       gtk_widget_show (dialoglabel);
@@ -2793,7 +2783,6 @@ void draw_prompt(const char *str)
   if (!strncmp(str, "Are you sure you want", 21)) {
       
 
-      gtk_widget_set_usize (dialog_window, 200, 100);
       dialoglabel = gtk_label_new ("Are you sure you want to quit?");
       gtk_box_pack_start (GTK_BOX (dbox),dialoglabel, FALSE, TRUE, 6);
       gtk_widget_show (dialoglabel);
@@ -6648,5 +6637,7 @@ void reset_image_data()
 	    facetoname[i]=NULL;
 	}
     }
+    memset(&the_map, 0, sizeof(struct Map));
+    look_list.env=cpl.below;
 }
 
