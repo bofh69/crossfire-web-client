@@ -290,6 +290,9 @@ void extended_command(const char *ocommand) {
 	draw_magic_map();
     }
 #ifdef HAVE_DMALLOC_H
+#ifndef DMALLOC_VERIFY_NOERROR
+  #define DMALLOC_VERIFY_NOERROR  1
+#endif
     else if (!strcmp(cp,"dmalloc")) {
 	if (dmalloc_verify(NULL)==DMALLOC_VERIFY_NOERROR)
 	    draw_info("Heap checks out OK", NDI_BLACK);
