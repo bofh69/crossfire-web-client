@@ -70,7 +70,6 @@ EXTRA_DIST = \
 	Makefile.in		\
 	Protocol		\
 	README			\
-	README.old		\
 	aclocal.m4		\
 	client.man		\
 	config.h.in		\
