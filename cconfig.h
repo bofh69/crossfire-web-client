@@ -51,5 +51,5 @@
  * 
  */
 
-#define META_SERVER "tavern.santa-clara.ca.us"
+#define META_SERVER "crossfire.real-time.com"
 #define META_PORT   13326
