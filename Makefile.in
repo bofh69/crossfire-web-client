@@ -148,7 +148,7 @@ proto:
 	chmod 664 proto.h
 
 item_types.h: item_types
-	items.pl
+	$(PERL) items.pl
 
 def-keys.h: def_keys
 	utils/mdk.sh

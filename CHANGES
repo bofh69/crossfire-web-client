@@ -1,6 +1,9 @@
 "$Id$"
 Top of CVS tree:
 
+Change Makefile.in to use perl that configure has found when
+running items.pl script - MSW 4/21/2000
+
 License: Add license file for the client - MSW 4/20/2000
 
 cfsndserv.c: Various changes
