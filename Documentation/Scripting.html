@@ -23,8 +23,7 @@ manual</h3>
       <td style="vertical-align: top; width: 20px;"><br>
       </td>
       <td style="vertical-align: top;">This Howto covers the scripting
-interface present in gtk and x11 client under linux. At the time of
-this writing, the win32 GTK client does not yet support scripting. <br>
+interface present in gtk and x11 client under linux and Windows (see notes at end). <br>
       </td>
     </tr>
     <tr>
@@ -565,6 +564,30 @@ transfer from client to script. Helpful.<br>
 ** NOTE more command to be added here, incomplete liste **<br>
       </td>
     </tr>
+    <tr>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; width: 250px;">
+      <h3>Windows-specific notes</h3>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;">
+	  Scripting works thanks to a patch from archaios. Known issues are:
+		<ul>
+		<li>If you want to run a Perl script for instance, you need to issue
+		'perl &lt;script_name.pl&gt;, even if .pl is correctly seen as perl script.
+		<li>If script doesn't output anything, try turning off buffering (in perl $| = 1)
+		or flush your pipe, or add a sleep at end of program. It seems Windows closes pipes
+		at script termination before client gets time to grab output.
+		</ul>
+	  </td>
   </tbody>
 </table>
 <br>
