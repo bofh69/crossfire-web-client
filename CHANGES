@@ -1,3 +1,22 @@
+"$Id$"
+Top of CVS tree:
+
+Makefile, config.cache, config.status: Removed from CVS tree it should not be
+distributed - rather each person should generate it on their own by using the
+configure script. One advantage of removing these is that a 'cvs diff'
+of the directory won't show the diffs of these automatically generated
+files.  Mark Wedel, 4/12/2000
+
+commands.c, client.h: Change animation code to dynamically allocate space
+needed for animations instead of using a statically defined/sized array to
+contain the face information.  This fixes a bug with icors causing the client
+to crash (it had more animations than the static array had), and this method
+is just generally a good idea.  Mark Wedel, 4/12/2000
+
+x11.c: Add code into gen_draw_face so if a request to draw a nonexistant face
+is performed, it will handle the problem gracefully.  Mark Wedel, 4/12/2000
+
+------------------------------------------------------------------------------
 Changes for 0.95.4:
 
 README updated to give better install directions - msw.
