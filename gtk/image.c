@@ -152,12 +152,17 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 
 	for (i=0; i < pi->map_width * pi->map_height; i++) {
 	    l = (uint8 *) (data + i*4);
-#if 1
-	    g = MAX(*l, *(l+1));
-	    g = MAX(g, *(l+2));
-#else
-	    g = ( *l +  *(l+1) + *(l+2)) / 3;
-#endif
+            /* The effective luminance of a pixel is calculated with the following formula:
+             *      Y=0.3RED+0.59GREEN+0.11Blue
+             * This is the way you are supposed to convert color to grayscale
+             * for best 'natural' results. Using maxes, mins or simple mean is
+             * gives awfull results with darkness code.
+             * For speed reason i work here in integers
+             *      (77RED+151GREEN+28BLUE)>>8
+             *
+             *                          Tchize 22 May 2004
+             */
+            g=(77*(*l)+151*(*(l+1))+28*(*(l+2)))>>8;
 	    p = (uint32*) fog->pixels + i;
 	    *(uint32*) p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
 	}
@@ -182,12 +187,17 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 	 */
 	for (i=0; i < pi->map_width * pi->map_height; i++) {
 	    l = (uint8 *) (data + i*4);
-#if 1
-	    g = MAX(*l, *(l+1));
-	    g = MAX(g, *(l+2));
-#else
-	    g = ( *l +  *(l+1) + *(l+2)) / 3;
-#endif
+            /* The effective luminance of a pixel is calculated with the following formula:
+             *      Y=0.3RED+0.59GREEN+0.11Blue
+             * This is the way you are supposed to convert color to grayscale
+             * for best 'natural' results. Using maxes, mins or simple mean is
+             * gives awfull results with darkness code.
+             * For speed reason i work here in integers
+             *      (77RED+151GREEN+28BLUE)>>8
+             *
+             *                          Tchize 22 May 2004
+             */
+            g=(77*(*l)+151*(*(l+1))+28*(*(l+2)))>>8;
 	    p = (uint32*) fog->pixels + i;
 	    *(uint32*) p = (g << 8) | (g << 16) | (g << 24) | *(l + 3);
 	}

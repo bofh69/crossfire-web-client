@@ -308,6 +308,38 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
     }
 }
 
+
+/* Draw a alpha square on lightmap. Topleft corner is at startx,starty. 
+ * values for topleft, topright, bottomleft,bottomright corners are knowns
+ * This use bilinear interpolation for other points. Width and heights are given
+ * for surrouding known values square. Interpolation is done in a small square whose
+ * coordinates are given by start{x|y} and end{x|y}
+ * dest{x|y} is top-left corner in destination map.
+ *                             Tchize 22 May 2004
+ */
+ 
+void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,                /*colors*/
+			     int width, int height,                         /*color square size*/
+			     int startx, int starty, int endx, int endy,    /*interpolation region*/
+			     int destx, int desty){                         /*where in lightmap to save result*/
+	int x,y;
+	int top,bottom,val;
+	for (x=startx;x<endx;x++){
+		top= ((x*(tr-tl))/ width)+tl;    /*linear interpolation for top color*/
+		bottom= ((x*(br-bl))/ width)+bl;  /*linear interpolation for bottom color*/
+		for (y=starty;y<endy;y++){
+			val=((y*(bottom-top))/height)+top; /*linear interpolation between top and bottom*/
+			if (val>255)
+				val=255;
+			if (val<0)
+				val=0;
+			//printf("writing pel at %d,%d\n",destx+x,desty+y);
+			putpixel(lightmap, destx+x-startx, desty+y-starty,
+				SDL_MapRGBA(lightmap->format, 0, 0, 0, val));
+		}
+	}
+}
+
 /* Do the lighting on a per pixel basis.
  * x and y are coordinates on the drawable map surfaces (but in terms of
  * spaces, not pixels).  mx and my are indexes into the
@@ -338,6 +370,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 /* See note below about ALPHA_FUDGE - used to adjust lighting effects some */
 
 #define ALPHA_FUDGE(x)  (2*(x) / 3)
+#define GENDARK(x,y) ( (((x)&(y) & 1) == 1)?255:0 )
 void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 {
 
@@ -361,8 +394,19 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
     if (x-1 < 0 || !the_map.cells[mx-1][my].have_darkness) dark4 = dark0;
     else dark4 = the_map.cells[mx-1][my].darkness;
 
-    /* If they are all the same, processing is easy */
-    if (dark0 == dark1 && dark0 == dark2 && dark0 == dark3 && dark0 == dark4) {
+    /*dark0=GENDARK(mx,my);
+    dark1=GENDARK(mx,my-1);
+    dark2=GENDARK(mx+1,my);
+    dark3=GENDARK(mx,my+1);
+    dark4=GENDARK(mx+1,my);*/
+    /* If they are all the same, processing is easy
+     *
+     * Note, the best lightining algorithm also uses diagonals
+     * so we should check the diagonals are same too
+     * We don't check for now, simply do all raw computation on best mode
+     * Tchize 19 may 2004
+     */
+    if (dark0 == dark1 && dark0 == dark2 && dark0 == dark3 && dark0 == dark4 && (use_config[CONFIG_LIGHTING] != CFG_LT_PIXEL_BEST)) {
 	dst.x = x * map_image_size;
 	dst.y = y * map_image_size;
 	dst.w = map_image_size;
@@ -483,6 +527,7 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 	dst.y= y * map_image_size;
 	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
     } else if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST ) {
+#if 0
 	int dx,dy;
 	static  int *darkx=NULL, *darky=NULL,darkx_allocated=0;
 
@@ -512,13 +557,52 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 	for (dx=0; dx<map_image_size; dx++)
 	    for (dy=0; dy<map_image_size; dy++) 
 		putpixel(lightmap, dx, dy, SDL_MapRGBA(lightmap->format, 0, 0, 0,(darkx[dx] + darky[dy])/2));
+#else
+	/*we need additionnal surrounding infos*/
+	int dark5, dark6, dark7, dark8;
+	if ( (y-1 < 0) || (x+1 >= use_config[CONFIG_MAPWIDTH])
+		|| !the_map.cells[mx+1][my-1].have_darkness) dark5 = (dark1+dark2)>>1; /*(fast div 2)*/
+	else dark5 = the_map.cells[mx+1][my-1].darkness;
 
+	if ( (x+1 >= use_config[CONFIG_MAPWIDTH]) 
+		|| (y+1 >= use_config[CONFIG_MAPHEIGHT])
+		|| !the_map.cells[mx+1][my+1].have_darkness) dark6 = (dark2+dark3)>>1;
+	else dark6 = the_map.cells[mx+1][my+1].darkness;
+
+	if ( (y+1 >= use_config[CONFIG_MAPHEIGHT]) || (x-1 < 0)
+		|| !the_map.cells[mx-1][my+1].have_darkness) dark7 = (dark3+dark4)>>1;
+	else dark7 = the_map.cells[mx-1][my+1].darkness;
+	
+	if ( (x-1 < 0) || (y-1 < 0)
+		|| !the_map.cells[mx-1][my-1].have_darkness) dark8 = (dark4+dark1)>>1;
+	else dark8 = the_map.cells[mx-1][my-1].darkness;
+	/*upper left lightmap quarter*/
+	drawquarterlightmap_sdl(dark8, dark1, dark4, dark0,                /*colors*/
+			     map_image_size, map_image_size,               /*color square size*/
+			     map_image_half_size, map_image_half_size, map_image_size, map_image_size,    /*interpolation region*/
+			     0, 0);                         /*where in lightmap to save result*/
+	/*upper right lightmap quarter*/
+	drawquarterlightmap_sdl(dark1, dark5, dark0, dark2,                /*colors*/
+			     map_image_size, map_image_size,               /*color square size*/
+			     0, map_image_half_size, map_image_half_size, map_image_size,    /*interpolation region*/
+			     map_image_half_size, 0);                         /*where in lightmap to save result*/
+	/*bottom left lightmap quarter*/
+	drawquarterlightmap_sdl(dark4, dark0, dark7, dark3,                /*colors*/
+			     map_image_size, map_image_size,               /*color square size*/
+			     map_image_half_size, 0, map_image_size, map_image_half_size,    /*interpolation region*/
+			     0, map_image_half_size);                         /*where in lightmap to save result*/
+	/*bottom right lightmap quarter*/
+	drawquarterlightmap_sdl(dark0, dark2, dark3, dark6,                /*colors*/
+			     map_image_size, map_image_size,               /*color square size*/
+			     0, 0, map_image_half_size, map_image_half_size,    /*interpolation region*/
+			     map_image_half_size, map_image_half_size);                         /*where in lightmap to save result*/
+#endif
 	dst.w= map_image_size;
 	dst.h= map_image_size;
 	dst.x= x * map_image_size; 
 	dst.y= y * map_image_size;
-	SDL_UnlockSurface( lightmap);
-	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
+	SDL_UnlockSurface(lightmap);
+	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);	
     }
 }
 /* Draw anything in adjacent squares that could smooth on given square
@@ -656,6 +740,40 @@ void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
     }/*while there's some smooth to do*/
 }
 
+/* This function tells if a specifi square need to be redrawn
+ * Reason for redrawing can be content change, smoothing change or 
+ * surrounding lightning change. Conditions depend on type of 
+ * lightning code used.
+ *                              Tchize 22 May 2004
+ */
+int sdl_square_need_redraw(int mx, int my){
+#define SDL_LIGHT_CHANGED(_x_,_y_) ( ( ( (_x_)<0) || ( (_y_)<0) || ( (_x_)>=the_map.x) || ( (_y_)>=the_map.y) )?0: the_map.cells[_x_][_y_].need_update )
+    if ( (the_map.cells[mx][my].need_update) || (the_map.cells[mx][my].need_resmooth))
+        return 1;
+        
+    if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL){
+        /*The fast per pixel uses 4 additionnal datas which may have changed:*/
+        /*we suppose need_redraw -> lightr may have change. in future maybe we could add a need_relight toggle*/
+        if (SDL_LIGHT_CHANGED(mx-1,my) ||
+            SDL_LIGHT_CHANGED(mx,my-1) ||
+            SDL_LIGHT_CHANGED(mx+1,my) ||
+            SDL_LIGHT_CHANGED(mx,my+1))
+            return 1;
+    }
+    if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST){
+        if (SDL_LIGHT_CHANGED(mx-1,my) ||
+            SDL_LIGHT_CHANGED(mx,my-1) ||
+            SDL_LIGHT_CHANGED(mx+1,my) ||
+            SDL_LIGHT_CHANGED(mx,my+1) ||
+            SDL_LIGHT_CHANGED(mx-1,my+1) ||
+            SDL_LIGHT_CHANGED(mx-1,my-1) ||
+            SDL_LIGHT_CHANGED(mx+1,my-1) ||
+            SDL_LIGHT_CHANGED(mx+1,my+1) )
+            return 1;
+    }
+    return 0; /*no need to redraw :)*/
+}
+
 /* This generates a map in SDL mode.
  * 
  * I had to totally change the logic on how we do this in SDL mode - 
@@ -684,9 +802,36 @@ void sdl_gen_map(int redraw) {
     SDL_Rect dst, src;
     struct timeval tv1, tv2,tv3;
     long elapsed1, elapsed2;
-
+    
+    static int last_mapwidth=0;
+    static int last_mapheight=0;
+    static uint8 *redrawbitmap=NULL;
+    
     if (time_map_redraw)
 	gettimeofday(&tv1, NULL);
+        
+    /* In per pixel lightning code, some square may have to be
+     * redrawn just because a surrounding square did change
+     * However, informations on changed square do get toggle
+     * during the redraw process. To keep track of which 
+     * squares really need redraw (instead of redrawing eveything in
+     * per pixel lightning case), we need to save this info in a array
+     *                             Tchize, 22 May 2004
+     */
+    if ( (use_config[CONFIG_MAPWIDTH] != last_mapwidth) ||
+         (use_config[CONFIG_MAPHEIGHT] != last_mapheight) ){
+        /* reallocate array */     
+        last_mapwidth=use_config[CONFIG_MAPWIDTH];
+        last_mapheight=use_config[CONFIG_MAPHEIGHT];    
+        redrawbitmap=(uint8*)malloc(sizeof(uint8)*last_mapwidth*last_mapheight);        
+    }
+    if (redrawbitmap==NULL){
+        LOG(LOG_ERROR,"sdl::sdl_gen_map",
+                "The redraw bitmap is NULL. Not enough memory? (width:%d,height:%d)",
+                last_mapwidth,last_mapheight);
+        return; /*without this bitmap, no drawing possible*/
+    }
+    
 
 #if !ALTERNATE_MAP_REDRAW
     if (map_did_scroll) {
@@ -696,6 +841,11 @@ void sdl_gen_map(int redraw) {
 #endif
 
     for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
+        for(y = 0; y<use_config[CONFIG_MAPHEIGHT]; y++) {
+            redrawbitmap[x+y*last_mapwidth]=(uint8)sdl_square_need_redraw(x+pl_pos.x,y+pl_pos.y);
+        }
+    }
+    for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
 	for(y = 0; y<use_config[CONFIG_MAPHEIGHT]; y++) {
 	    /* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
 	     * x and y (from the for loop) represent the visable screen.
@@ -704,9 +854,8 @@ void sdl_gen_map(int redraw) {
 	    my = y + pl_pos.y;
 
 	    /* Don't need to touch this space */
-	    if (!redraw && !the_map.cells[mx][my].need_update && !the_map.cells[mx][my].need_resmooth)
-            continue;
-
+            if (!redrawbitmap[x+y*last_mapwidth])
+                continue;
 	    /* First, we need to black out this space. */
 	    dst.x = x * map_image_size; dst.y = y* map_image_size;
 	    dst.w = map_image_size; dst.h = map_image_size;
