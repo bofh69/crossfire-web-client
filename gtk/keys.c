@@ -606,7 +606,7 @@ static void show_keys(int allbindings)
 
 void bind_key(char *params)
 {
-    char buf[MAX_BUF];
+    char buf[MAX_BUF + 16];
 
     if (!params) {
 	draw_info("Usage: bind [-nfre] {<commandline>/commandkey/firekey{1/2}/runkey{1/2}/",NDI_BLACK);
@@ -710,8 +710,12 @@ void bind_key(char *params)
 	return;
     }
 
+    if (strlen(params) >= sizeof(bind_buf)) {
+	params[sizeof(bind_buf) - 1] = '\0';
+    }
     sprintf(buf, "Push key to bind '%s'.", params);
     draw_info(buf,NDI_BLACK);
+
     strcpy(bind_buf, params);
     cpl.input_state = Configure_Keys;
     return;

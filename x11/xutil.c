@@ -917,6 +917,9 @@ void bind_key(char *params)
     return;
   }
 
+    if (strlen(params) >= sizeof(bind_buf)) {
+	params[sizeof(bind_buf) - 1] = '\0';
+    }
   sprintf(buf, "Push key to bind '%s'.", params);
   draw_info(buf,NDI_BLACK);
   strcpy(bind_buf, params);
