@@ -25,7 +25,7 @@
 */
 
 /*
- * This file handles all the windowing stuff.  The idea is
+ * This file handles mose of the windowing stuff.  The idea is
  * that all of it is in one file, so to port to different systems
  * or toolkits, only this file needs to be updated.  All windowing
  * variables (display, gc's, windows, etc), should be stored in
