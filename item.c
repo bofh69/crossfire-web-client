@@ -1,7 +1,7 @@
 /*
     CrossFire, A Multiplayer game for X-windows
 
-    Copryight (C) 1994 Mark Wedel
+    Copryight (C) 2000 Mark Wedel
     Copyright (C) 1992 Frank Tore Johansen
 
     This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    The author can be reached via e-mail to mark@pyramid.com
+    The author can be reached via e-mail to mwedel@scruz.net
 */
 
 #include <ctype.h>	/* needed for isdigit */
@@ -192,7 +192,7 @@ static item *new_item ()
     op->open=0;
     op->type=255;
     return op;
-};
+}
 
 /*
  *  alloc_items() returns pointer to list of allocated objects
