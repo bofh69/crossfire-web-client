@@ -3,6 +3,10 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+gx11.c: Modified to know about new pickup mode (frontend - most all the
+work is still done on the server).  Patch by Nils Lohner.
+MSW 2001-08-28
+
 Add reset_map_function into xutil.c that gets called after we lose a 
 connection to the server.  This fixes a problem of some leftover images
 from the previous session appearing in the map windows.  MSW 2001-08-12
