@@ -104,7 +104,15 @@ that image will be represented by a ? in the map.
 is slower than home directory access - this is likely to be the case
 except in case of nfs mounted home directories on the server on the local
 lan.
-
+.TP
+.B -updatekeycodes
+The standard behaviour when a player uses the bind command to bind
+new actions is that they keycode is saved with that binding.  Keycodes
+are specific to keyboards - a sun keyboard will generate a different
+keycode compared to a PC style keyboard.  In most cases, it is not
+always desirable to have the keycodes get updated, as this may make
+some bindings unavailable.  Using this option will force custom keybindings
+to get updated for the current keyboard when the client is run.
 
 .SH SAVED DEFAULTS
 
