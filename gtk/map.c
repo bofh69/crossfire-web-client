@@ -355,9 +355,16 @@ void display_mapscroll(int dx,int dy)
 		if( x < 0 || y < 0 || x >= the_map.x ||	y >= the_map.y)
 		    continue;
 
-		    
+
 		the_map.cells[x][y].need_update= 1;
-		the_map.cells[x][y].cleared= 1;
+        /*After long long long investigations on why the multipart objects did
+          disappear when entering map view from right or bottom, scrolling
+          through whole server code, i concluded the following line should be
+          commented. If a multipart object was on a square outside of map,
+          containing the tail, tail may be cleared by following process and
+          so we end up with things like tower disappearance.
+                    tchize@myrealbox.com*/
+		/*the_map.cells[x][y].cleared= 1;*/
 	    }
 	} /* for y */
     } /* for x */
@@ -365,7 +372,7 @@ void display_mapscroll(int dx,int dy)
 #ifdef HAVE_SDL
     if (use_config[CONFIG_SDL])
 	sdl_mapscroll(dx,dy);
-    else 
+    else
 #endif
 	map_did_scroll = 1;
 /*    fprintf(stderr,"scroll command: %d %d\n", dx, dy);*/
@@ -439,7 +446,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             sfaces[i]=0; /*black picture*/
         }else{      
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
-            sfaces[i]=getsmooth(the_map.cells[emx][emy].heads[layer].face); 
+            sfaces[i]=getsmooth(the_map.cells[emx][emy].heads[layer].face);
             dosmooth=1;
         }                    
     }
@@ -532,7 +539,7 @@ void gtk_draw_map(int redraw) {
 	    my = y + pl_pos.y;
 
 	    /* Don't need to touch this space */
-	    if (!redraw && !the_map.cells[mx][my].need_update && !map_did_scroll&& !the_map.cells[mx][my].need_resmooth) 
+	    if (!redraw && !the_map.cells[mx][my].need_update && !map_did_scroll&& !the_map.cells[mx][my].need_resmooth)
             continue;
 	    /* First, we need to black out this space. */
 	    gdk_draw_rectangle(mapwindow, drawingarea->style->black_gc, TRUE, x * map_image_size, y * map_image_size, map_image_size, map_image_size);
