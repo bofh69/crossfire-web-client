@@ -4879,32 +4879,26 @@ void set_window_pos()
 	    else fprintf(stderr,"Found bogus line in window position file:\n%s %s\n", buf, cp);
 	} else {
 	    if (!strcmp(buf,"win_game:")) {
-		gtk_widget_set_uposition (gtkwin_root, wx, wy);
-		gtk_widget_set_usize (gtkwin_root, w, h);
+                gdk_window_move_resize(gtkwin_root->window, wx, wy, w, h);
 	    }
 	    if (!want_config[CONFIG_SPLITWIN]) {
 		fprintf(stderr,"Found bogus line in window position file:\n%s %s\n", buf, cp);
 		continue;
 	    }
 	    if (!strcmp(buf,"win_stats:")) {
-		gtk_widget_set_uposition (gtkwin_stats, wx, wy);
-		gtk_widget_set_usize (gtkwin_stats, w, h);
+                gdk_window_move_resize(gtkwin_stats->window, wx, wy, w, h);
 	    }
 	    if (!strcmp(buf,"win_info:")) {
-		gtk_widget_set_uposition (gtkwin_info, wx, wy);
-		gtk_widget_set_usize (gtkwin_info, w, h);
+                gdk_window_move_resize(gtkwin_info->window, wx, wy, w, h);
 	    }
 	    if (!strcmp(buf,"win_inv:")) {
-		gtk_widget_set_uposition (gtkwin_inv, wx, wy);
-		gtk_widget_set_usize (gtkwin_inv, w, h);
+                gdk_window_move_resize(gtkwin_inv->window, wx, wy, w, h);
 	    }
 	    if (!strcmp(buf,"win_look:")) {
-		gtk_widget_set_uposition (gtkwin_look, wx, wy);
-		gtk_widget_set_usize (gtkwin_look, w, h);
+                gdk_window_move_resize(gtkwin_look->window, wx, wy, w, h);
 	    }
 	    if (!strcmp(buf,"win_message:")) {
-		gtk_widget_set_uposition (gtkwin_message, wx, wy);
-		gtk_widget_set_usize (gtkwin_message, w, h);
+               gdk_window_move_resize(gtkwin_message->window, wx, wy, w, h);
 	    }
 	} /* else if split windows */
     } /* while fgets */

@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: Add patch by jshelley@ictransnet.com that fixes save window
+   positions.  MSW 2002-10-03
+
 ------------------------------------------------------------------------------
 Changes for 1.4.0:
 
