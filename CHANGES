@@ -2,6 +2,21 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Patch by scachi@gmx.de to add different display options for the players
+resistances.
+common/client.h: increase CONFIG_NUMS and add CONFIG_RESISTS
+common/init.c: extend resists_table, initialize resist value to proper
+   value.
+gtk/config.c: Add config option for selecting different options for
+   resistance displays.  Add comment about radio button usage.  Increase
+   size of config window.
+gtk/gtkproto.h: rebuilt.
+gtk/gx11.c: Update get_message_display to support different resistance
+   display options.  Add resisze_resistance_table function.  Disable
+   code the causes the message window to get relocated next to the
+   stats display on wide displays.
+MSW 2003-01-12
+
 x11/x11.c: Patch by Jochen Suckfuell that fixes problem of lines
    printed out while entering extended commands causes the extended command
    line to get overwritten - the extended command line is now copied to the

@@ -213,7 +213,10 @@ typedef struct {
 
 static Vitals vitals[4];
 GtkWidget *run_label, *fire_label;
-#define SHOW_RESISTS 7
+GtkWidget *restable;	/* resistance table */
+GtkWidget *res_scrolled_window;	/* window the resistances are in */
+
+#define SHOW_RESISTS 24
 static GtkWidget *resists[SHOW_RESISTS];
 GtkWidget *ckentrytext, *ckeyentrytext, *cmodentrytext, *cnumentrytext;
 
@@ -2366,55 +2369,190 @@ void reset_stat_bars() {
 }
 
 static int get_message_display(GtkWidget *frame) {
-  GtkWidget *plabel;
-  GtkWidget *mtable;
-  GtkWidget *vbox;
-  int i;
+    GtkWidget *mtable;
+    GtkWidget *vbox;
+    GtkWidget *res_mainbox;
+    GtkWidget *reswindow;
 
-  vbox = gtk_vbox_new (TRUE, 0);
-  gtk_container_add (GTK_CONTAINER(frame),vbox);
+    int i, left=0, right=0;
 
-  mtable = gtk_table_new (2,9,FALSE);
-  gtk_box_pack_start (GTK_BOX(vbox),mtable,TRUE,FALSE,0);
+    /* initialize the main hbox */
+    res_mainbox = gtk_hbox_new (TRUE,0);
+    gtk_container_add (GTK_CONTAINER(frame), res_mainbox);
+
+    /* stat bar part - start */
+
+    /* initialize the vbox for the stat bars (Hp,Mana,Grace,Food)
+     * and pack it into the main hbox 
+     */
+    vbox = gtk_vbox_new (FALSE, 0);
+    gtk_box_pack_start (GTK_BOX(res_mainbox), vbox, FALSE, TRUE, 0);
+  
+    /* initialize the table and pack this into the vbox */
+    mtable = gtk_table_new (2,4,FALSE);
+    gtk_box_pack_start (GTK_BOX(vbox),mtable,FALSE,FALSE,0);  
+
+    /* create the stat bars and place them in the table */
+    create_stat_bar (mtable, 1,"Hp: 0",0, &statwindow.hp);
+    create_stat_bar (mtable, 3,"Mana: 0",1, &statwindow.sp);
+    create_stat_bar (mtable, 5,"Grace: 0",2, &statwindow.gr);
+    create_stat_bar (mtable, 7,"Food: 0",3, &statwindow.food);
+  
+    /* stat bar part - end */
 
 
+    /* resistances table part - start */
 
-  create_stat_bar (mtable, 1,"Hp: 0",0, &statwindow.hp);
+    /* initialize the hbox for the resistances table */
+    reswindow = gtk_hbox_new (TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(res_mainbox), reswindow, FALSE, TRUE, 0);
 
-  create_stat_bar (mtable, 3,"Mana: 0",1, &statwindow.sp);
+    /* initialize labels for all modes of CONFIG_RESISTS */
+    fire_label = gtk_label_new ("    ");
+    run_label = gtk_label_new ("   ");
+  
+    /* place labels for mode 2 of CONFIG_RESISTS */
+    if (use_config[CONFIG_RESISTS]==2) {
+	restable = gtk_table_new (4,12,FALSE);
+	gtk_table_attach (GTK_TABLE(restable), fire_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	gtk_table_attach (GTK_TABLE(restable), run_label, 3, 4, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+    }
 
-  create_stat_bar (mtable, 5,"Grace: 0",2, &statwindow.gr);
+    /* place labels for mode 1 and 0 of CONFIG_RESISTS */  
+    if (use_config[CONFIG_RESISTS]<=1) {
+	restable = gtk_table_new (2,24,FALSE);
+	gtk_table_attach (GTK_TABLE(restable), fire_label, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	gtk_table_attach (GTK_TABLE(restable), run_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+    }
+  
+    /* show labels for all modes of CONFIG_RESISTS */
+    gtk_widget_show (fire_label);
+    gtk_widget_show (run_label);
 
-  create_stat_bar (mtable, 7,"Food: 0",3, &statwindow.food);
+    /* make and place labels for showing the resistances - start */
+    for (i=0; i< SHOW_RESISTS ; i++) {
+	resists[i] = gtk_label_new("          ");    
+  
+	/* place the labels for mode 2 in the table restable */
+	if (use_config[CONFIG_RESISTS]==2) {
+	    if ((i/2)*2 != i) {
+		left++;
+		gtk_table_attach (GTK_TABLE(restable), resists[i], 1, 2, 3+left, 4+left, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	    } else {
+		right++;
+		gtk_table_attach (GTK_TABLE(restable), resists[i], 3, 4, 3+right, 4+right, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	    }
+	    gtk_widget_show (resists[i]);
+	}
 
+	/* place the labels for mode 1 in the table restable */
+	else if (use_config[CONFIG_RESISTS]==1) {
+	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	    gtk_widget_show (resists[i]);
+	}
 
-  plabel = gtk_label_new ("Status");
-  gtk_table_attach(GTK_TABLE(mtable), plabel, 1,2,1,2,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
-  gtk_widget_show (plabel);
+	/* place the labels for mode 0 in the table restable - only seven - old style */  
+	else if ( (use_config[CONFIG_RESISTS]==0) && (i <= 6) ) {
+	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	    gtk_widget_show (resists[i]);
+	}
+    }
+    /* make and place labels for showing the resistances - stop */
 
-  fire_label = gtk_label_new ("    ");
-  gtk_table_attach(GTK_TABLE(mtable), fire_label, 1,2,2,3,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
-  gtk_widget_show (fire_label);
+    /* packing the restable for mode not 0 - scrollable*/  
+    res_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+    gtk_container_set_border_width (GTK_CONTAINER (res_scrolled_window), 0);
+    if (want_config[CONFIG_RESISTS] ==0) 
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
+    else
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
-  run_label = gtk_label_new ("   ");
-  gtk_table_attach(GTK_TABLE(mtable), run_label, 1,2,3,4,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
-  gtk_widget_show (run_label);
+    gtk_box_pack_start(GTK_BOX(reswindow), res_scrolled_window, TRUE, TRUE, 0);
+    gtk_widget_show (res_scrolled_window);
+    gtk_scrolled_window_add_with_viewport ( GTK_SCROLLED_WINDOW (res_scrolled_window), restable);
+    /* resistances table part - end */
 
-  for (i=0; i<SHOW_RESISTS; i++) {
-    resists[i] = gtk_label_new("          ");
-    gtk_table_attach(GTK_TABLE(mtable), resists[i], 1,2,4+i, 5+i,GTK_FILL | GTK_EXPAND,GTK_FILL | GTK_EXPAND,0,0);
-    gtk_widget_show (resists[i]);
-  }
-			  
+    /* now showing all not already showed widgets */
+    gtk_widget_show (res_mainbox);
+    gtk_widget_show (reswindow);
+    gtk_widget_show (restable);
+    gtk_widget_show (mtable);
+    gtk_widget_show (vbox);
+    return 0;
+}
 
-  gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[0].bar), 1);
-  gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[1].bar), 1);
-  gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[2].bar), 1);
-  gtk_progress_bar_update (GTK_PROGRESS_BAR (vitals[3].bar), 1);
+/* This changes the layout of the resistance window.
+ * We end up just removing (and thus freeing) all the data and
+ * then create new entries.  This keeps things simpler, because
+ * in basic mode, not all the resist[] widgets are attached,
+ */
+void resize_resistance_table(int resists_show)
+{
+    int i, left=0, right=0;
 
-  gtk_widget_show (mtable);
-  gtk_widget_show (vbox);
-  return 0;
+    while (GTK_TABLE(restable)->children) {
+	GtkTableChild *child;
+	child = GTK_TABLE(restable)->children->data;
+
+	gtk_container_remove(GTK_CONTAINER(restable), 
+			     child->widget);
+    }
+
+    /* initialize labels for all modes of CONFIG_RESISTS */
+    fire_label = gtk_label_new ("    ");
+    run_label = gtk_label_new ("   ");
+
+    /* place labels for mode 2 of CONFIG_RESISTS */
+    if (resists_show == 2) {
+	gtk_table_resize(GTK_TABLE(restable), 4,12);
+	gtk_table_attach (GTK_TABLE(restable), fire_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	gtk_table_attach (GTK_TABLE(restable), run_label, 3, 4, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+    }
+
+    /* place labels for mode 1 and 0 of CONFIG_RESISTS */  
+    if (resists_show<=1) {
+	gtk_table_resize(GTK_TABLE(restable), 2,24);
+	gtk_table_attach (GTK_TABLE(restable), fire_label, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	gtk_table_attach (GTK_TABLE(restable), run_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+
+    }
+    /* show labels for all modes of CONFIG_RESISTS */
+    gtk_widget_show (fire_label);
+    gtk_widget_show (run_label);
+    /* make and place labels for showing the resistances - start */
+
+    for (i=0; i< SHOW_RESISTS ; i++) {
+	resists[i] = gtk_label_new("          ");    
+  
+	/* place the labels for mode 2 in the table restable */
+	if (resists_show==2) {
+	    if ((i/2)*2 != i) {
+		left++;
+		gtk_table_attach (GTK_TABLE(restable), resists[i], 1, 2, 3+left, 4+left, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	    } else {
+		right++;
+		gtk_table_attach (GTK_TABLE(restable), resists[i], 3, 4, 3+right, 4+right, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	    }
+	    gtk_widget_show (resists[i]);
+	}
+
+	/* place the labels for mode 1 in the table restable */
+	else if (resists_show==1) {
+	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	    gtk_widget_show (resists[i]);
+	}
+
+	/* place the labels for mode 0 in the table restable - only seven - old style */  
+	else if ( (resists_show==0) && (i <= 6) ) {
+	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
+	    gtk_widget_show (resists[i]);
+	}
+    }
+
+    if (resists_show ==0) 
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
+    else
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 }
 
 static void draw_stat_bar(int bar_pos, float bar, int is_alert)
@@ -4050,6 +4188,7 @@ void create_windows() {
 
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
+
     fprintf(stderr, "Character Width : %d\n", gcw);
     fprintf(stderr, "Character Height: %d\n", gch);
     if ((55*gcw)+(map_image_size*use_config[CONFIG_MAPWIDTH]) >= gdk_screen_width())
@@ -4110,6 +4249,7 @@ void create_windows() {
     stat_game_vpane = gtk_vpaned_new ();
     gtk_paned_add1 (GTK_PANED (stat_info_hpane), stat_game_vpane);
 
+#if 0
     /* game - statbars */
     if (want_config[CONFIG_MAPWIDTH]>15) {
 	bigmap=TRUE;
@@ -4120,6 +4260,10 @@ void create_windows() {
 	game_bar_vpane = gtk_vpaned_new ();
 	gtk_paned_add2 (GTK_PANED (stat_game_vpane), game_bar_vpane);
     }
+#else
+    game_bar_vpane = gtk_vpaned_new ();
+    gtk_paned_add2 (GTK_PANED (stat_game_vpane), game_bar_vpane);
+#endif
     
     
     /* Statbars frame */
@@ -4884,6 +5028,7 @@ void set_window_pos()
 	} else {
 	    if (!strcmp(buf,"win_game:")) {
                 gdk_window_move_resize(gtkwin_root->window, wx, wy, w, h);
+		continue;
 	    }
 	    if (!want_config[CONFIG_SPLITWIN]) {
 		fprintf(stderr,"Found bogus line in window position file:\n%s %s\n", buf, cp);
@@ -4951,6 +5096,7 @@ static void usage(char *progname)
     puts("-showicon        - Print status icons in inventory window");
     puts("-sound           - Enable sound output (default).");
     puts("-nosound         - Disable sound output.");
+    puts("-resists <val>   - Control look of resistances.");
     puts("-split           - Use split windows.");
     puts("-splitinfo       - Use two information windows, segregated by information type.");
     puts("-timemapredraw   - Print out timing information for map generation");
@@ -5155,6 +5301,14 @@ int init_windows(int argc, char **argv)
 	    want_config[CONFIG_SPLITWIN]=FALSE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-resists")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-resists requires a value\n");
+		return 1;
+	    }
+	    want_config[CONFIG_RESISTS]=atoi(argv[on_arg]);
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-splitinfo")) {
 	    want_config[CONFIG_SPLITINFO]=TRUE;
 	    continue;
@@ -5245,6 +5399,7 @@ void resize_map_window(int x, int y)
 {
     gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), map_image_size * x, map_image_size * y);
     if (!want_config[CONFIG_SPLITWIN]) {
+#if 0
 	/* 15 it is a purely arbitary value.  But basically, if the map window is
 	 * narrow, we then will have the stats on top, with message down below
 	 * the map window.  IF the map window is wide, we put these side
@@ -5330,6 +5485,7 @@ void resize_map_window(int x, int y)
 	    gtk_widget_unref(game_bar_vpane);
 	    game_bar_vpane = newpane;
 	}
+#endif
 	gtk_widget_set_usize (gameframe, (map_image_size*use_config[CONFIG_MAPWIDTH])+6, (map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
     } else {
       gtk_widget_set_usize (gtkwin_root,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,(map_image_size*use_config[CONFIG_MAPHEIGHT])+6);

@@ -87,9 +87,22 @@
  * runtime do not have this flag set simply so that it
  * is easier to notice if it has changed and do the
  * appropraite thing (eg, stop/start sound daemon, etc)
+ *
+ * Note on RBUTTON (radio button usage):  Since a radio
+ * button is a collection of buttons of only which one can
+ * be pressed, the logic the program uses is this:
+ * 1) If the previous widget was a radio button, we add
+ * this one to the same group.  This means if you want to
+ * have multiple sets of radio buttons, you should seperate
+ * them with something.
+ * 2) Since the radio button is several widgets, its not as simple
+ * as normal buttons to map them to a config value.  Instead,
+ * use a range so that it is easy to tell what config value
+ * your button belongs to, ie, 100-199 is for the lighting
+ * options, 200-299 is for the resistance options, etc.
  */
 
-#define MAX_BUTTONS	    29
+#define MAX_BUTTONS	    33
 #define RBUTTON	    1
 #define CBUTTON	    2
 #define SEPERATOR   3	    /* Seperator in the window */
@@ -149,6 +162,14 @@ CButtons cbuttons[MAX_BUTTONS] = {
     "Trims text in the information window - " /**/
     "improves performance but bugs in\n gtk make the client unstable if this is used." /**/
     "This may work better with gtk 2.0"},
+{NULL,	    SEPERATOR,		0,		0,
+    "Options on how to display resistances:"},
+{NULL, 	    RBUTTON,	    200,		0,
+    "Don't use a scrollbar, will show a maximum of 7 resistances."},
+{NULL, 	    RBUTTON,	    201,		0,
+    "Display all resistances in a single column, will use a single scrollbar."},
+{NULL, 	    RBUTTON,	    202,		0,
+    "Display all resistances in the form of a double column, may result in one\nor two scrollbars being created"},
 
 /* The following items are shown in the map tag.
  * I grouped them together to make reading them a bit easier,
@@ -235,7 +256,7 @@ static void toggle_splitwin(int newval)
 void applyconfig () {
 
     int onbutton;
-    int lighting = 0;
+    int lighting = 0, resistances=0;
 
     if (face_info.want_faceset) free(face_info.want_faceset);
     face_info.want_faceset = strdup_local(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(faceset_combo)->entry)));
@@ -256,7 +277,10 @@ void applyconfig () {
 	     * be changed.
 	     */
 	    if ( GTK_TOGGLE_BUTTON (cbuttons[onbutton].widget)->active) {
-		lighting = cbuttons[onbutton].config - 100;
+		if ( cbuttons[onbutton].config >= 100 &&  cbuttons[onbutton].config < 200)
+		    lighting = cbuttons[onbutton].config - 100;
+		else if ( cbuttons[onbutton].config >= 200 &&  cbuttons[onbutton].config < 300)
+		    resistances = cbuttons[onbutton].config - 200;
 	    }
 	}
     } /* for onbutton ... loop */
@@ -303,6 +327,9 @@ void applyconfig () {
 	draw_all_list(&inv_list);
 	use_config[CONFIG_SHOWICON] = want_config[CONFIG_SHOWICON];
     }
+    if (IS_DIFFERENT(CONFIG_RESISTS)) {    
+	use_config[CONFIG_RESISTS] = want_config[CONFIG_RESISTS];
+    }
     if (!use_config[CONFIG_GRAD_COLOR]) {
 	reset_stat_bars();
     }
@@ -319,6 +346,12 @@ void applyconfig () {
 #endif
 	if( csocket.fd)
 	    cs_print_string(csocket.fd, "mapredraw");
+    }
+    want_config[CONFIG_RESISTS] = resistances;
+    if (want_config[CONFIG_RESISTS] != use_config[CONFIG_RESISTS]) {
+	resize_resistance_table(want_config[CONFIG_RESISTS]);
+	use_config[CONFIG_RESISTS] = want_config[CONFIG_RESISTS];
+	draw_message_window(1);
     }
 }
 
@@ -379,7 +412,7 @@ void configdialog(GtkWidget *widget) {
 	/*gtk_window_position (GTK_WINDOW (gtkwin_config), GTK_WIN_POS_CENTER);*/
         get_window_coord(gtkwin_root, &x,&y, &wx,&wy,&w,&h);
         gtk_widget_set_uposition(gtkwin_config, (wx + w - 450)/2, (wy + h-500) / 2);
-	gtk_widget_set_usize (gtkwin_config,450,500);
+	gtk_widget_set_usize (gtkwin_config,450,600);
 	gtk_window_set_title (GTK_WINDOW (gtkwin_config), "Crossfire Configure");
 	gtk_window_set_policy (GTK_WINDOW (gtkwin_config), TRUE, TRUE, FALSE);
 
@@ -435,6 +468,8 @@ void configdialog(GtkWidget *widget) {
 		    cbuttons[i].widget = gtk_radio_button_new_with_label(NULL, cbuttons[i].label);
 		}
 		if ((want_config[CONFIG_LIGHTING]+100) == cbuttons[i].config)
+		    gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(cbuttons[i].widget), 1);
+		if ((want_config[CONFIG_RESISTS]+200) == cbuttons[i].config)
 		    gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(cbuttons[i].widget), 1);
 	    }
 	    else if (cbuttons[i].type & SPIN) {
@@ -742,6 +777,9 @@ void load_defaults()
 	else if (!strcmp(inbuf, "per_pixel_lighting")) {
 	    if (val) want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL;
 	}
+	else if (!strcmp(inbuf, "resists")) {
+	    if (val) want_config[CONFIG_RESISTS] = val;
+	}
 	else fprintf(stderr,"Unknown line in gdefaults: %s %s\n", inbuf, cp);
     }
     fclose(fp);
@@ -760,8 +798,13 @@ void load_defaults()
 	want_config[CONFIG_MAPSCALE] = use_config[CONFIG_MAPSCALE];
     }
     if (!want_config[CONFIG_LIGHTING]) {
-	fprintf(stderr,"No lighting mechanism slected - will not use darkness code\n");
+	fprintf(stderr,"No lighting mechanism selected - will not use darkness code\n");
 	want_config[CONFIG_DARKNESS] = FALSE;
+    }
+    if (want_config[CONFIG_RESISTS] > 2) {
+	fprintf(stderr,"ignoring resists display value read for gdafaults file.\n");
+	fprintf(stderr,"Invalid value (%d), must be one value of 0,1 or 2.\n",want_config[CONFIG_RESISTS]);
+	want_config[CONFIG_RESISTS] = 0;
     }
     
     /* Make sure the map size os OK */
@@ -821,5 +864,3 @@ void save_defaults()
     sprintf(buf,"Defaults saved to %s",path);
     draw_info(buf,NDI_BLUE);
 }
-
-

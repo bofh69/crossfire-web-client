@@ -41,7 +41,7 @@ NULL, "colorinv", "colortext", "download_all_images", "echo_bindings",
 "fasttcpsend", "command_window", "cacheimages", "fog_of_war", "iconscale",
 "mapscale", "popups", "sdl", "showicon", "tooltips", "sound", "splitinfo",
 "split", "show_grid", "lighting", "trim_info_window",
-"map_width", "map_height", "foodbeep", "darkness", "port", "grad_color_bars"
+"map_width", "map_height", "foodbeep", "darkness", "port", "grad_color_bars", "resists"
 };
 
 sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
@@ -180,6 +180,7 @@ void init_client_vars()
     want_config[CONFIG_DARKNESS] = TRUE;
     want_config[CONFIG_PORT] = EPORT;
     want_config[CONFIG_TRIMINFO] = FALSE;
+    want_config[CONFIG_RESISTS] = 0;
     for (i=0; i<CONFIG_NUMS; i++) 
 	use_config[i] = want_config[i];
 
