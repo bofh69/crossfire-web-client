@@ -798,7 +798,7 @@ void draw_map(int redraw)
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(redraw);
     else
 #endif
-#ifdef HAVE_SDL
+#ifdef HAVE_OPENGL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) opengl_gen_map(redraw);
     else
 #endif

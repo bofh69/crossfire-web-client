@@ -3,6 +3,9 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+gtk-v2/src/map.c: Fix typo to make it compile without opengl.
+Andreas Kirschbaum 2005-03-26
+
 Main change of this is addition of opengl drawing for the map in the gtk-v2
 client.  On my system, the opengl code is about 10 times faster than the
 sdl code was, making it so I can turn on all the bells and whistles (smoothing,
