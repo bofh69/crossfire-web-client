@@ -1,6 +1,16 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+
+gtk/config.c: Fix crash when trying to apply config changes when compiled
+   with SDL support but user is not using it.  Fix bug where settings
+   were not being properly updated.
+gtk/sound.c: initialize sound_pipe to NULL, and have init_sounds close
+   the sound pipe if there is currently one open - fixes bug when switching
+   sound control many times in that multiple cfsndserv processes could get
+   started.
+MSW 2002-07-25
+
 Makefile.in: if no makedepend, don't run make depend directive.
 README: Add not about ALSA revisions and possible problems compiling.
 MSW 2002-07-10

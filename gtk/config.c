@@ -230,7 +230,8 @@ static void toggle_splitwin(int newval)
  * blow up in our faces.
  */
 
-#define IS_DIFFERENT(TYPE) (cbuttons[onbutton].config == TYPE && want_config[TYPE] != use_config[TYPE])
+#define IS_DIFFERENT(TYPE) (want_config[TYPE] != use_config[TYPE])
+
 void applyconfig () {
 
     int onbutton;
@@ -312,8 +313,9 @@ void applyconfig () {
 	    use_config[CONFIG_LIGHTING] = lighting;
 	}
 #ifdef HAVE_SDL
-	/* This is done to make the 'lightmap' in the proper format */
-	init_SDL( NULL, 1);
+	if (use_config[CONFIG_SDL])
+	    /* This is done to make the 'lightmap' in the proper format */
+	    init_SDL( NULL, 1);
 #endif
 	if( csocket.fd)
 	    cs_print_string(csocket.fd, "mapredraw");

@@ -49,7 +49,7 @@ void signal_pipe(int i) {
     /* do nothing, but perhaps do something more in the future */
 }
 
-FILE *sound_pipe;
+FILE *sound_pipe=NULL;
 
 
 /* init_sounds open the audio device, and reads any configuration files
@@ -65,6 +65,7 @@ int init_sounds()
      */
     if (!want_config[CONFIG_SOUND]) return -1;
     
+    if (sound_pipe) fclose(sound_pipe);
 
     sound_pipe=popen(BINDIR "/cfsndserv","w");
     /* if its not in its proper place, let the users shell
