@@ -1758,8 +1758,23 @@ void display_map_clearcell(long x,long y)
 
 void set_map_darkness(int x, int y, uint8 darkness)
 {
-    the_map.cells[x][y].darkness = 255 - darkness;
-    the_map.cells[x][y].need_update = 1;
+    if (darkness != (255 - the_map.cells[x][y].darkness )) {
+	the_map.cells[x][y].darkness = 255 - darkness;
+	the_map.cells[x][y].need_update = 1;
+#ifdef GDK_XUTIL
+	/* pretty ugly - since the light code with pngximage uses
+	 * neighboring spaces to adjust the darkness, we now need to
+	 * let the neighbors know they should update their darkness
+	 * now.
+	 */
+	if (pngximage) {
+	    if (x-1>0) the_map.cells[x-1][y].need_update = 1;
+	    if (y-1>0) the_map.cells[x][y-1].need_update = 1;
+	    if (x+1<mapx) the_map.cells[x+1][y].need_update = 1;
+	    if (y+1<mapy) the_map.cells[x][y+1].need_update = 1;
+	}
+#endif
+    }
 }
 
 /* sets the face at layer to some value.  We just can't
