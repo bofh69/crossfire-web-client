@@ -3,6 +3,9 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+configure.in, configure: Add --disable-dmalloc option to configure.
+MSW 2005-02-28
+
 ------------------------------------------------------------------------------
 Changes for 1.7.1:
 configure, configure.in: Rev for 1.7.1 release
