@@ -284,7 +284,7 @@ extern int maxfd;
 
 void event_loop()
 {
-    fd_set tmp_read, tmp_exceptions;
+    fd_set tmp_read;
     int pollret;
     struct timeval timeout;
 
@@ -301,9 +301,7 @@ void event_loop()
 	check_x_events();
 
 	FD_ZERO(&tmp_read);
-	FD_ZERO(&tmp_exceptions);
 	FD_SET(csocket.fd, &tmp_read);
-	FD_SET(csocket.fd, &tmp_exceptions);
 	if (MAX_TIME!=0) {
 	    timeout.tv_sec = MAX_TIME / 1000000;
 	    timeout.tv_usec = MAX_TIME % 1000000;
@@ -3317,6 +3315,7 @@ void set_window_pos()
 	    XConfigureWindow(display,win_message,xwc_mask, &xwc);
 
     }
+    fclose(fp);
 }
 
 
