@@ -202,6 +202,7 @@ fi
 
 if eval "test x`which gnome-config 2> /dev/null` = x"; then
 	gnome=no
+	echo "Can't find gnome-config, not building Gnome client."
 fi
 
 if eval "test x$gnome = xyes"; then
