@@ -2,6 +2,7 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/client.c: Win32-specific fixes.
 common/metaserver.c: small Win32 fixes, explicitely cast meta_sort
    in qsort
 Ryo 2004-01-27

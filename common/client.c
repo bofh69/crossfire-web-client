@@ -226,8 +226,13 @@ int init_connection(char *host, int port)
     if (use_config[CONFIG_FASTTCP]) {
 	int i=1;
 
+#ifdef WIN32
+	if (setsockopt(fd, SOL_TCP, TCP_NODELAY, ( const char* )&i, sizeof(i)) == -1)
+	    perror("TCP_NODELAY");
+#else
 	if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1)
 	    perror("TCP_NODELAY");
+#endif
     }
 #endif
 
@@ -269,7 +274,11 @@ void negotiate_connection(int sound)
 	tries++;
 	/* If we have't got a response in 10 seconds, bail out */
 	if (tries > 1000) {
+#ifdef WIN32
+	    closesocket(csocket.fd);
+#else
 	    close(csocket.fd);
+#endif
 	    csocket.fd=-1;
 	    return;
 	}
