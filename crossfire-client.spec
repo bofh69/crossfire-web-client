@@ -17,6 +17,8 @@ Packager: Crossfire Development Team <crossfire-devel@lists.real-time.com>
 Source0 ftp://ftp.scruz.net/users/mwedel/public/crossfire-%{extra}-%{version}.tar.gz
 Source1: ftp://ftp.scruz.net/users/mwedel/public/client-%{sndversion}-au-sounds.tgz
 Source2: ftp://ftp.scruz.net/users/mwedel/public/client-%{sndversion}-raw-sounds.tgz
+Source3: client.gnome
+Source3: shield.png
 BuildRoot: /var/tmp/%{Name}-%{extra}-%{version}-root
 
 %description
@@ -76,21 +78,21 @@ install sound-files/* $RPM_BUILD_ROOT/usr/share/sounds/crossfire
 
 install -c client.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/cfclient.1
 install -c client.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gcfclient.1
-install -c client.gnome $RPM_BUILD_ROOT/usr/share/gnome/apps/Games/crossfire.desktop
-install -c shield.png $RPM_BUILD_ROOT/usr/share/pixmaps/
+install -c $RPM_SOURCE_DIR/client.gnome $RPM_BUILD_ROOT/usr/share/gnome/apps/Games/crossfire.desktop
+install -c $RPM_SOURCE_DIR/shield.png $RPM_BUILD_ROOT/usr/share/pixmaps/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc README CHANGES COPYING Protocol
+%doc README CHANGES COPYING Protocol sounds
 %attr(755,root,root) /usr/X11R6/bin/cfclient
 /usr/X11R6/man/man1/cfclient.1.gz
 
 %files gtk
 %defattr(644,root,root,755)
-%doc README CHANGES COPYING Protocol
+%doc README CHANGES COPYING Protocol sounds
 %attr(755,root,root) /usr/X11R6/bin/gcfclient
 /usr/X11R6/man/man1/gcfclient.1.gz
 /usr/share/gnome/apps/Games/crossfire.desktop
