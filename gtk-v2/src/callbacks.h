@@ -53,3 +53,8 @@ list_row_collapse                      (GtkTreeView     *treeview,
                                         GtkTreeIter     *iter,
                                         GtkTreePath     *path,
                                         gpointer         user_data);
+
+gboolean
+on_drawingarea_magic_map_expose_event  (GtkWidget       *widget,
+                                        GdkEventExpose  *event,
+                                        gpointer         user_data);

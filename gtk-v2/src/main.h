@@ -31,3 +31,6 @@ GtkWidget *window_root, *spinbutton_count;
 #define DEFAULT_IMAGE_SIZE      32
 extern int map_image_size, map_image_half_size, image_size;
 
+
+/* Notebook page of the magic map */
+#define MAGIC_MAP_PAGE	1

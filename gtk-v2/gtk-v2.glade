@@ -180,7 +180,7 @@
 	      <property name="position">847</property>
 
 	      <child>
-		<widget class="GtkNotebook" id="notebook4">
+		<widget class="GtkNotebook" id="map_notebook">
 		  <property name="visible">True</property>
 		  <property name="can_focus">True</property>
 		  <property name="show_tabs">True</property>
@@ -293,6 +293,7 @@
 		  <child>
 		    <widget class="GtkDrawingArea" id="drawingarea-magic-map">
 		      <property name="visible">True</property>
+		      <signal name="expose_event" handler="on_drawingarea_magic_map_expose_event" last_modification_time="Wed, 06 Apr 2005 06:35:33 GMT"/>
 		    </widget>
 		    <packing>
 		      <property name="tab_expand">False</property>

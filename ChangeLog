@@ -3,6 +3,22 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Fix so that magic map works properly on the gtkv2 client.
+gtk-v2/gtk-v2.glade: change name of map notebook to map_notebook.  Add
+  signal to handle expose events of the magic map area.
+gtk-v2/src/callbacks.h: Rebuilt with addition of expose callback.
+gtk-v2/src/interface.c: Rebuilt with addition of expose, change of name.
+gtk-v2/src/magicmap.c: Have magic map switch the notebook page to the
+  magic map page to ensure widget is realized - also good for expected
+  behaviour.  Add some checks for null values so if user switches
+  before getting magic map data, doesn't crash.  Add check in
+  magic_map_flash_pos() to see if still on the magic map notebook page.
+  Add expose callback.
+gtk-v2/src/main.h: Add MAGIC_MAP_PAGE which defines which notebook page
+  is the magic map one.
+gtk-v2/src/map.c: Have it look up the map_notebook widget.
+MSW 2005-04-05
+
 Various minor bugfixes:
 configure.in, configure: Add warning message if we can't find gtk+ 2.0 or
    later, but continue configure process instead of exiting.

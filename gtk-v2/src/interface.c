@@ -45,7 +45,7 @@ create_window_root (void)
   GtkWidget *filler;
   GtkWidget *hpaned_map_other;
   GtkWidget *vpaned_map_stats;
-  GtkWidget *notebook4;
+  GtkWidget *map_notebook;
   GtkWidget *table_map;
   GtkWidget *drawingarea_map;
   GtkWidget *hscrollbar_map;
@@ -199,14 +199,14 @@ create_window_root (void)
   gtk_paned_pack1 (GTK_PANED (hpaned_map_other), vpaned_map_stats, FALSE, TRUE);
   gtk_paned_set_position (GTK_PANED (vpaned_map_stats), 847);
 
-  notebook4 = gtk_notebook_new ();
-  gtk_widget_show (notebook4);
-  gtk_paned_pack1 (GTK_PANED (vpaned_map_stats), notebook4, FALSE, TRUE);
-  gtk_notebook_set_show_border (GTK_NOTEBOOK (notebook4), FALSE);
+  map_notebook = gtk_notebook_new ();
+  gtk_widget_show (map_notebook);
+  gtk_paned_pack1 (GTK_PANED (vpaned_map_stats), map_notebook, FALSE, TRUE);
+  gtk_notebook_set_show_border (GTK_NOTEBOOK (map_notebook), FALSE);
 
   table_map = gtk_table_new (2, 2, FALSE);
   gtk_widget_show (table_map);
-  gtk_container_add (GTK_CONTAINER (notebook4), table_map);
+  gtk_container_add (GTK_CONTAINER (map_notebook), table_map);
 
   drawingarea_map = gtk_drawing_area_new ();
   gtk_widget_show (drawingarea_map);
@@ -235,15 +235,15 @@ create_window_root (void)
 
   label46 = gtk_label_new (_("Map"));
   gtk_widget_show (label46);
-  gtk_notebook_set_tab_label (GTK_NOTEBOOK (notebook4), gtk_notebook_get_nth_page (GTK_NOTEBOOK (notebook4), 0), label46);
+  gtk_notebook_set_tab_label (GTK_NOTEBOOK (map_notebook), gtk_notebook_get_nth_page (GTK_NOTEBOOK (map_notebook), 0), label46);
 
   drawingarea_magic_map = gtk_drawing_area_new ();
   gtk_widget_show (drawingarea_magic_map);
-  gtk_container_add (GTK_CONTAINER (notebook4), drawingarea_magic_map);
+  gtk_container_add (GTK_CONTAINER (map_notebook), drawingarea_magic_map);
 
   label47 = gtk_label_new (_("Magic Map"));
   gtk_widget_show (label47);
-  gtk_notebook_set_tab_label (GTK_NOTEBOOK (notebook4), gtk_notebook_get_nth_page (GTK_NOTEBOOK (notebook4), 1), label47);
+  gtk_notebook_set_tab_label (GTK_NOTEBOOK (map_notebook), gtk_notebook_get_nth_page (GTK_NOTEBOOK (map_notebook), 1), label47);
 
   hbox2 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox2);
@@ -622,6 +622,9 @@ create_window_root (void)
   g_signal_connect ((gpointer) drawingarea_map, "button_press_event",
                     G_CALLBACK (on_drawingarea_map_button_press_event),
                     NULL);
+  g_signal_connect ((gpointer) drawingarea_magic_map, "expose_event",
+                    G_CALLBACK (on_drawingarea_magic_map_expose_event),
+                    NULL);
   g_signal_connect ((gpointer) entry_commands, "activate",
                     G_CALLBACK (on_entry_commands_activate),
                     NULL);
@@ -652,7 +655,7 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, filler, "filler");
   GLADE_HOOKUP_OBJECT (window_root, hpaned_map_other, "hpaned_map_other");
   GLADE_HOOKUP_OBJECT (window_root, vpaned_map_stats, "vpaned_map_stats");
-  GLADE_HOOKUP_OBJECT (window_root, notebook4, "notebook4");
+  GLADE_HOOKUP_OBJECT (window_root, map_notebook, "map_notebook");
   GLADE_HOOKUP_OBJECT (window_root, table_map, "table_map");
   GLADE_HOOKUP_OBJECT (window_root, drawingarea_map, "drawingarea_map");
   GLADE_HOOKUP_OBJECT (window_root, hscrollbar_map, "hscrollbar_map");

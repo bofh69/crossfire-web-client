@@ -39,7 +39,7 @@ char *rcsid_gtk2_magicmap_c =
 #include "main.h"
 
 /* in main.c - this is the drawing area for the magic map */
-extern GtkWidget *magic_map;
+extern GtkWidget *magic_map, *map_notebook;
 extern GdkColor root_color[NUM_COLORS];
 
 
@@ -52,6 +52,19 @@ static GdkGC *magic_map_gc=NULL;
 void draw_magic_map()
 {
     int x=0, y=0;
+
+    /* This can happen if a person selects the magic map pane before
+     * actually getting any magic map data
+     */
+    if (!cpl.magicmap) return;
+
+    /* Have to set this so that the gtk_widget_show below actually
+     * creates teh widget.  also nice to switch to this page when
+     * person actually casts magic map spell.
+     */
+    gtk_notebook_set_current_page(map_notebook, MAGIC_MAP_PAGE);
+
+    gtk_widget_show(magic_map);
  
     if (!magic_map_gc) magic_map_gc = gdk_gc_new (magic_map->window);
 
@@ -102,6 +115,14 @@ void draw_magic_map()
 /* Basically, this just flashes the player position on the magic map */
 void magic_map_flash_pos()
 {
+
+    /* Don't want to keep doing this if the user switches back
+     * to the map window.
+     */
+    if (gtk_notebook_get_current_page(map_notebook)!=MAGIC_MAP_PAGE) {
+	cpl.showmagic=0;
+    }
+
     if (!cpl.showmagic) return;
 
     cpl.showmagic ^=2;
@@ -116,5 +137,15 @@ void magic_map_flash_pos()
 		      cpl.mapyres*cpl.pmapy,
 		      cpl.mapxres,
 		      cpl.mapyres);
+}
+
+
+gboolean
+on_drawingarea_magic_map_expose_event  (GtkWidget       *widget,
+                                        GdkEventExpose  *event,
+                                        gpointer         user_data)
+{
+    draw_magic_map();
+    return FALSE;
 }
 

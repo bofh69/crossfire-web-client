@@ -68,7 +68,7 @@ uint8	map_did_scroll=0, map_updated=0;
 
 PlayerPosition pl_pos;
 
-GtkWidget *map_drawing_area;
+GtkWidget *map_drawing_area, *map_notebook;
 GdkGC *mapgc;
 int map_image_size=DEFAULT_IMAGE_SIZE;
 int map_image_half_size=DEFAULT_IMAGE_SIZE/2;
@@ -84,6 +84,7 @@ int time_map_redraw=0;
 void map_init(GtkWidget *window_root)
 {
     map_drawing_area = lookup_widget(window_root,"drawingarea_map");
+    map_notebook = lookup_widget(window_root,"map_notebook");
     mapgc = gdk_gc_new(map_drawing_area->window);
     gtk_widget_show(map_drawing_area);
     gtk_widget_add_events (map_drawing_area, GDK_BUTTON_PRESS_MASK);
