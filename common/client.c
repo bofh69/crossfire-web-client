@@ -289,6 +289,12 @@ void negotiate_connection(int sound)
 
 	do {
 	    DoClient(&csocket);
+
+	    /* it's rare, the connection can die while getting
+	     * this info.
+	     */
+	    if (csocket.fd == -1) return;
+
 	    if (use_config[CONFIG_DOWNLOAD]) {
 		/* we need to know how many faces to
 		 * be able to make the request intelligently.

@@ -571,13 +571,14 @@ void write_ch(char key)
      * the command into the buffer.
      */
     if (key==13) {
-	/* We need to copy to our own buffer instead of passing the
-	 * infodata along.  This is because draw_info modified
-	 * that var before it uses it, and it doesn't work then.
+        /* We turn off command mode for the draw_info call, because
+         * it has special handling for normal output during command
+         * mode; but we do this manually now. 
 	 */
-	char ourbuf[MAX_BUF];
-	strcpy(ourbuf, infodata.data[infodata.infopos].info);
-	draw_info(ourbuf,NDI_BLACK);
+        Input_State old_state = cpl.input_state;
+        cpl.input_state = Playing;
+	draw_info(infodata.data[infodata.infopos].info,NDI_BLACK);
+        cpl.input_state = old_state;
 	return;
     }
 
@@ -621,11 +622,19 @@ void write_ch(char key)
 
 	strcat(cpl.input_text,c2);
     }
+    
     if(strlen(infodata.data[infodata.infopos].info)>=(infodata.info_chars-2)) {
         /* Draw the currently line and scroll down one */
+
+        /* We turn off command mode for the draw_info call, because
+         * it has special handling for normal output during command
+         * mode; but we do this manually now. 
+	 */
+        cpl.input_state = Playing;
 	draw_info(infodata.data[infodata.infopos].info,NDI_BLACK);
-	infodata.data[infodata.infopos].info[0]=(strlen(cpl.input_text)/ 
-	    infodata.info_chars)+49;
+        cpl.input_state = Command_Mode;
+	infodata.data[infodata.infopos].info[0]=(((strlen(cpl.input_text)/ 
+	    infodata.info_chars))%10)+49;
         infodata.data[infodata.infopos].info[1]='>';
 	infodata.data[infodata.infopos].info[2]=0;
 	XDrawImageString(display,infodata.win_info,infodata.gc_info,
@@ -718,6 +727,7 @@ static void draw_info_scrollbar(int redraw)
 
 void draw_info(const char *str, int color) {
   char *cp;
+  uint16 new_infopos = (infodata.infopos+1)% infodata.maxlines ;
 
   if(str == (char *) NULL) {
     draw_info("[NULL]",color);
@@ -731,7 +741,7 @@ void draw_info(const char *str, int color) {
      */
     char obuf[4096],*buf = obuf;
 
-    strcpy(buf,str);
+    strncpy(buf,str, 4095);
     do {
       if ((cp = strchr(buf, '\n'))) {
 	*cp='\0';
@@ -769,10 +779,20 @@ void draw_info(const char *str, int color) {
 	    return;
 	}
   }
+  
   /* This is the real code here - stuff above is just formating and making
    * it look nice.  This stuff here is actually drawing the code
    */
 
+  /* clear the new last line in window */
+  memset(infodata.data[new_infopos].info, 32, infodata.info_chars-1);
+  if(cpl.input_state == Command_Mode)
+  {
+      /* we copy the last command line to the new last line in window */
+      strcpy(infodata.data[new_infopos].info, infodata.data[infodata.infopos].info);
+  }
+  infodata.data[new_infopos].info[infodata.info_chars] = '\0';
+  
   strncpy(infodata.data[infodata.infopos].info,str,infodata.info_chars);
   infodata.data[infodata.infopos].info[infodata.info_chars] = '\0';
   infodata.data[infodata.infopos].color=color;
@@ -836,17 +856,26 @@ void draw_info(const char *str, int color) {
    	infodata.infoline=0;
     }
   }
-  infodata.infopos = (infodata.infopos+1)% infodata.maxlines ;
 
-  /* Now we set up the next line we plan to use.  Clear it to blanks,
-   * And draw it.
-   */
-  memset(infodata.data[infodata.infopos].info, 32, infodata.info_chars-1);
-  infodata.data[infodata.infopos].info[infodata.info_chars] = '\0';
+  infodata.infopos = new_infopos;
+
   if (!infodata.has_scrollbar || infodata.bar_pos>=infodata.numlines) {
-    XDrawImageString(display,infodata.win_info,
-	infodata.gc_info,FONTWIDTH,(infodata.infoline+1)*FONTHEIGHT,
-	infodata.data[infodata.infopos].info, infodata.info_chars-1);
+        if(cpl.input_state == Command_Mode)
+        {
+                uint8 endpos = strlen(infodata.data[infodata.infopos].info);
+
+                infodata.data[infodata.infopos].info[endpos] = ' ';
+                XDrawImageString(display,infodata.win_info,
+	        infodata.gc_info,FONTWIDTH,(infodata.infoline+1)*FONTHEIGHT,
+	        infodata.data[infodata.infopos].info, infodata.info_chars-1);
+                infodata.data[infodata.infopos].info[endpos] = '\0';
+        }
+        else
+        {
+                XDrawImageString(display,infodata.win_info,
+	        infodata.gc_info,FONTWIDTH,(infodata.infoline+1)*FONTHEIGHT,
+	        infodata.data[infodata.infopos].info, infodata.info_chars-1);
+        }
   }
 
   /* If in a reply state, grab the input buffer and store it.

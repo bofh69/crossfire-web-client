@@ -167,7 +167,8 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 	     */
 	    if (errno!=EAGAIN && errno!=EWOULDBLOCK) {
 		perror("ReadPacket got an error.");
-		LOG(llevDebug,"ReadPacket got error %d, returning 0",errno);
+		LOG(llevDebug,"ReadPacket got error %d, returning -1",errno);
+		return -1;
 	    }
 	    return 0;	/*Error */
 	}

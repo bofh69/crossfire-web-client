@@ -2,6 +2,17 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+x11/x11.c: Patch by Jochen Suckfuell that fixes problem of lines
+   printed out while entering extended commands causes the extended command
+   line to get overwritten - the extended command line is now copied to the
+   next line.
+common/client.c: Add handling of client if it loses its connection to
+   server during setup phase.
+common/newsocket.c: Have SockList_ReadPacket return -1 if it gets
+   a real error on read - in this way, callers can tell if error is
+   terminal or retryable (return code 0)
+MSW 2003-01-03
+
 common/player.c: Break out some of the extended commands into there
    own function to make the extended_command function more readable.
    Alphabetize strcmps in extended_command.  Add special processing
