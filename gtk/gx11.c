@@ -5239,7 +5239,7 @@ char *get_metaserver()
 
 int main(int argc, char *argv[])
 {
-    int sound,got_one=0;
+    int got_one=0;
 
     /* This needs to be done first.  In addition to being quite quick,
      * it also sets up some paths (client_libdir) that are needed by
@@ -5294,14 +5294,14 @@ int main(int argc, char *argv[])
 	    do {
 		ms=get_metaserver();
 	    } while (metaserver_select(ms));
-	    negotiate_connection(sound);
+	    negotiate_connection(use_config[CONFIG_SOUND]);
 	} else {
 	    csocket.fd=init_connection(server, use_config[CONFIG_PORT]);
 	    if (csocket.fd == -1) { /* specified server no longer valid */
 		server = SERVER;
 		continue;
 	    }
-	    negotiate_connection(sound);
+	    negotiate_connection(use_config[CONFIG_SOUND]);
 	}
 
 	got_one=1;

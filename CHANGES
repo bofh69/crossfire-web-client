@@ -1,6 +1,9 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+gtk/gx11.c: Fix bug in that the wrong variable was being passed to
+   negotiate_connection, resulting in the sound not being properly
+   communicated to the client.  MSW 2002-04-19
 
 Main change is to make all the configuration options now available in the
 configure window in the gtk client.  The way all the various values was
