@@ -379,7 +379,7 @@ static void set_flag_string (item *op)
     if (op->locked) 
 	strcat (op->flags, " *");
     if (op->apply_type) {
-	if (op->apply_type <= sizeof (apply_string) / sizeof(apply_string[0])) 
+	if (op->apply_type < sizeof (apply_string) / sizeof(apply_string[0])) 
 	    strcat (op->flags, apply_string[op->apply_type]);
 	else 
 	    strcat (op->flags, " (undefined)");
