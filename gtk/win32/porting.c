@@ -488,9 +488,9 @@ void Sleep(long SleepMilliseconds)
 }
 */
 
-int strncasecmp(char *s1, char *s2, int n)
+int strncasecmp(const char *s1, const char *s2, int n)
 {
-  register int c1, c2;
+  register char c1, c2;
 
   while (*s1 && *s2 && n) {
     c1 = tolower(*s1);
@@ -506,9 +506,9 @@ int strncasecmp(char *s1, char *s2, int n)
   return (int) (*s1 - *s2);
 }
 
-int strcasecmp(char *s1, char*s2)
+int strcasecmp(const char *s1, const char*s2)
 {
-  register int c1, c2;
+  register char c1, c2;
 
   while (*s1 && *s2) {
     c1 = tolower(*s1);
