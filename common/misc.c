@@ -232,7 +232,7 @@ void monitorChilds(){
             if (last)
                 last->next=next;
             else
-                FirstChild=last->next;
+                FirstChild=cp->next;
             cp=next;
             continue;
         }
@@ -443,5 +443,6 @@ ChildProcess* raiseChild(char* name, int flag){
     else
         FirstChild=cp;
     LastChild=cp;
+    cp->next=NULL;
     return cp;
 }
