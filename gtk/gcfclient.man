@@ -289,7 +289,7 @@ can also be edited by hand.
 .PP
 Please let me know about any bugs you find in the client.
 .SH AUTHOR
-Copyright (C) 1994,2000 Mark Wedel (mwedel@scruz.net)
+Copyright (C) 1994,2001 Mark Wedel & Crossfire Development Team
 GTK port by David Sundqvist (azzie@netpolicy.com)
 SDL support added by Scott MacFiggen (smurf@CSUA.Berkeley.EDU)
 
@@ -313,4 +313,4 @@ that are not mentioned here.
 .\" along with this program; if not, write to the Free Software
 .\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-.\" The author can be reached via e-mail to frankj@ifi.uio.no.
+.\" The author can be reached via e-mail to crossfire-devel@real-time.com
