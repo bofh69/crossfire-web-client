@@ -1,6 +1,10 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+
+item_types,item_types.h: Change matching for sword - hopefully this should
+fix problems with dancing sword spellbooks.  MSW 2001/04/06
+
 gx11.c, item.c: move animations of the look window to the client.  All
 the necessary was already being sent to the client - it was just needed
 for the client to use this information.  Also remove some

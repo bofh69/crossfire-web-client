@@ -49,7 +49,14 @@ scimitar
 shovel
 spear
 stake
-sword
+^sword
+Belzebub's sword
+Harakiri sword
+broadsword
+light sword
+Serpentman sword
+shortsword
+long sword
 taifu
 trident
 BoneCrusher
@@ -266,6 +273,7 @@ Glowing Crystal
 gravestone
 icecube
 library card
+Passport
 Port Pass
 rose
 Apartment Extender
