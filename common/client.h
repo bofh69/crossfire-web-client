@@ -242,6 +242,13 @@ typedef struct Player_Struct {
  */
 
 #define MAX_FACE_SETS   20
+
+/* Max size of image in each direction.  This
+ * is needed for the x11 client, which wants to
+ * initalize some data once.  Increasing this would
+ * likely only need a bigger footrpint
+ */
+#define MAX_IMAGE_SIZE 320
 typedef struct {
     uint8   setnum;
     char    *prefix;
@@ -298,6 +305,22 @@ extern int map1cmd,metaserver_on;
  * more memory it will use
  */
 #define MAP_MAX_SIZE	31
+
+/* This is basically the smallest the map structure
+ * used for the client can be.  It needs to be bigger than
+ * the min map size above simply because we have to deal with
+ * off map big images, Also, we move the center point
+ * around within this map, so that if the player moves one space,
+ * we don't have to move around all the data.
+ */
+#define MIN_ALLOCATED_MAP_SIZE	MAP_MAX_SIZE * 2
+
+/* This is how many spaces an object might extend off the map.
+ * Eg, for bigimage stuff, the head of the image may be off the
+ * the map edge.  This is the most it may be off.  This is needed
+ * To cover case of need_recenter_map routines.
+ */
+#define MAX_MAP_OFFSET	6
 
 /* Fog of war stuff */
 #define FOG_MAP_SIZE 512   /* Default size of virtual map */

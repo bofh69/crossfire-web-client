@@ -543,12 +543,12 @@ int init_pngx_loader(Display *display)
     ximage = XCreateImage(display, visual,
 		      depth,
 		      ZPixmap, 0, 0, 
-		      32, 32,  pad, 0);
+		      MAX_IMAGE_SIZE, MAX_IMAGE_SIZE,  pad, 0);
     if (!ximage) {
 	fprintf(stderr,"Failed to create Ximage\n");
 	return 1;
     }
-    ximage->data = malloc(ximage->bytes_per_line * 32);
+    ximage->data = malloc(ximage->bytes_per_line * MAX_IMAGE_SIZE);
     if (!ximage->data) {
 	fprintf(stderr,"Failed to create Ximage data\n");
 	return 1;
@@ -785,7 +785,6 @@ int rgba_to_xpixmap(Display *display, Drawable draw, uint8 *pixels,
 	cmask, lastcmask, lastcolor;
     GC	gc, gc_alpha;
 
-
     *pix = XCreatePixmap(display, draw, width, height, 
 			DefaultDepth(display,  DefaultScreen(display)));
 
@@ -843,7 +842,7 @@ int rgba_to_xpixmap(Display *display, Drawable draw, uint8 *pixels,
 	}
     }
 
-    XPutImage(display, *pix, gc, ximage, 0, 0, 0, 0, 32, 32);
+    XPutImage(display, *pix, gc, ximage, 0, 0, 0, 0, width, height);
     XFreeGC(display, gc_alpha);
     XFreeGC(display, gc);
     return 0;
@@ -866,6 +865,9 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 		   &pixmaps[pixmap_num]->mask, &colormap, width, height);
 
     if (!pixmaps[pixmap_num]->pixmap || !pixmaps[pixmap_num]->mask) return 1;
+    pixmaps[pixmap_num]->width = width / image_size;
+    pixmaps[pixmap_num]->height = height / image_size;
+
     if (ce) {
 	ce->image_data = pi;
     }
@@ -879,8 +881,8 @@ void get_map_image_size(int face, uint8 *w, uint8 *h)
 	*w = 1;
 	*h = 1;
     }
-    *w = 1;
-    *h = 1;
+    *w = pixmaps[face]->width;
+    *h = pixmaps[face]->height;
 }
 
 

@@ -2,6 +2,23 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Bulk of this commit is to fix big image support for the X11 client.
+common/client.h: Add a couple new defines to denote how big the largest
+   image may be, minimum reasonable map size for the_map structure,
+   and how far off the map a head could be.
+x11/png.c: Remove hard coded values of images being 32 pixels wide/high.
+   Also, store away actual size of images, needed for big image stuff
+   to get filled in properly.
+x11/x11.c: Add an error handler to make it easier to catch bugs
+   (gets real stack trace instead of the program exiting).  Fix
+   up the gen_draw_face to properly draw big images, change
+   call to allocate map to pass in new larger values.
+x11/x11.h: Add width, height values to Pixmap data structure.
+x11/xutil.c: Change the routine to recenter virtual map some - we need
+   to take into account that there can be big images, so include that 
+   value in when seeing if we are too close to the map edge.
+MSW 2003-10-05
+
 common/commands.c: Add call to reset_player_data() - necessarily for
     data to be sanely displayed for next time player logs in.
 common/init.c: add reset_player_data - clears out skill data.

@@ -282,6 +282,22 @@ static Stats last_stats = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 extern int maxfd;
 
+/* Handle errors.  I really needed this when debugging
+ * the crashes with the big image stuff - I need to know
+ * what function is causing the crash.
+ */
+void error_handler(Display *dp, XErrorEvent *xe)
+{
+    char buf[MAX_BUF];
+
+    XGetErrorText(dp, xe->error_code, buf, MAX_BUF-1);
+    fprintf(stderr,buf);
+    /* If you want to try to live through errors, comment out
+     * the abort below.
+     */
+    abort();
+}
+
 void event_loop()
 {
     fd_set tmp_read;
@@ -322,7 +338,11 @@ void event_loop()
 
 int misses=0,total=0,newimages=0;
 
-static void gen_draw_face(Drawable where,int face,int x,int y)
+/* Draws 'face' onto 'where' at x,y.
+ * sx and sy is the the offset to draw from.
+ */
+
+static void gen_draw_face(Drawable where,int face,int x,int y, int sx, int sy)
 {
     if (face<0) {
 	fprintf(stderr,"Invalid face number: %d @ %d, %d\n", face, x, y);
@@ -331,7 +351,7 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
     if (pixmaps[face]->mask == None) {
 	    XCopyArea(display, pixmaps[face]->pixmap,
 	      where,gc_floor,
-	      0,0,image_size,image_size,x,y);
+	      sx,sy,image_size,image_size,x,y);
 
     /* Xpm and png do exactly the same thing */
     } else {
@@ -369,10 +389,10 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	/* Hopefully, this isn't too costly - needed for the inventory and look
 	 * window drawing code.
 	 */
-	XSetClipOrigin(display, gc_xpm[0], x, y);
+	XSetClipOrigin(display, gc_xpm[0], x - sx , y - sy);
 	XCopyArea(display, pixmaps[face]->pixmap,
 	    where,gc_xpm[0],
-	    0,0,image_size,image_size,x,y);
+	    sx,sy,image_size,image_size,x,y);
     }
 }
 
@@ -1683,7 +1703,7 @@ static void draw_list (itemlist *l)
 	    l->faces[i] = tmp->face;
 	    XClearArea(display, l->win, 4, 16 + image_size * i, 
 		       image_size, image_size, False);
-	    gen_draw_face (l->win, tmp->face,4, 16 + image_size * i);
+	    gen_draw_face (l->win, tmp->face,4, 16 + image_size * i, 0, 0);
 	}
 	/* draw status icon */
 	if (l->show_icon) {
@@ -2057,7 +2077,10 @@ static int get_root_display(char *display_name) {
     static char errmsg[MAX_BUF];
 
     display=XOpenDisplay(display_name);
-
+    /* This generates warnings, but looking at the documenation,
+     * it seems like it _should_ be ok.
+     */
+    XSetErrorHandler(error_handler);
 
     if (!display) {
 	sprintf(errmsg, "Can't open display %s.", display_name);
@@ -2913,7 +2936,7 @@ int init_windows(int argc, char **argv)
 #endif
 
 
-    allocate_map( &the_map, MAP_MAX_SIZE, MAP_MAX_SIZE);
+    allocate_map( &the_map, MIN_ALLOCATED_MAP_SIZE, MIN_ALLOCATED_MAP_SIZE);
     if( the_map.cells == NULL) {
       fprintf( stderr, "Error on allocation of map, malloc failed.\n");
       exit( 1);
@@ -2965,11 +2988,18 @@ void display_mapcell_pixmap(int ax,int ay)
     XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
     for (k=0; k<MAXLAYERS; k++) {
 	    if (the_map.cells[mx][my].heads[k].face >0 ) {
-		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].heads[k].face, 0, 0);
+		/* Always draw the lower right corner of the heads. */
+		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].heads[k].face, 0, 0,
+		   (pixmaps[the_map.cells[mx][my].heads[k].face]->width - 1) * image_size,
+		   (pixmaps[the_map.cells[mx][my].heads[k].face]->height - 1) * image_size
+			      );
 		got_one = 1;
 	    }
 	    if (the_map.cells[mx][my].tails[k].face >0 ) {
-		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].tails[k].face, 0, 0);
+		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].tails[k].face, 0, 0,
+		   (pixmaps[the_map.cells[mx][my].tails[k].face]->width - the_map.cells[mx][my].tails[k].size_x - 1) * image_size,
+		   (pixmaps[the_map.cells[mx][my].tails[k].face]->height - the_map.cells[mx][my].tails[k].size_y - 1) * image_size
+			      );
 		got_one = 1;
 	    }
     }

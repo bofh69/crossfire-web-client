@@ -39,8 +39,7 @@ extern char *facetoname[MAXPIXMAPNUM];
 
 struct PixmapInfo {
   Pixmap pixmap,mask;
-/*  Pixmap bitmap;*/
-/*  long fg,bg;*/
+  uint8 width, height;
 };
 
 extern struct PixmapInfo *pixmaps[MAXPIXMAPNUM];

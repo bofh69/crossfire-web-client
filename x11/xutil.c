@@ -1333,9 +1333,8 @@ void set_map_darkness(int x, int y, uint8 darkness)
  */
 static int need_recenter_map( int dx, int dy)
 {
-    
-    if( pl_pos.x + dx + use_config[CONFIG_MAPWIDTH] >= the_map.x ||
-	pl_pos.y + dx + use_config[CONFIG_MAPHEIGHT] >= the_map.y ||
+    if( pl_pos.x + dx + use_config[CONFIG_MAPWIDTH] + MAX_MAP_OFFSET >= the_map.x ||
+	pl_pos.y + dy + use_config[CONFIG_MAPHEIGHT] + MAX_MAP_OFFSET >= the_map.y ||
 	pl_pos.x + dx <= 0                ||
 	pl_pos.y + dy <= 0 )
     {
@@ -1387,12 +1386,12 @@ static void recenter_virtual_map_view( struct Map *map)
      * virtual maps with large views this could happen before our 0,0 view
      * coordinate is within 1/4 of the edge) we shift to the center.
      */
-    if( pl_pos.x <= (map->x/4) || pl_pos.x >= (map->x*3/4) ||
+    if( pl_pos.x <= (map->x/4) || (pl_pos.x +MAX_MAP_OFFSET) >= (map->x*3/4) ||
 	pl_pos.x + use_config[CONFIG_MAPWIDTH] + 1 >= map->x )
     {
 	x_shift= map->x/2 - pl_pos.x;
     }
-    if( pl_pos.y <= (map->y/4) || pl_pos.y >= (map->y*3/4) ||
+    if( pl_pos.y <= (map->y/4) || (pl_pos.y + MAX_MAP_OFFSET) >= (map->y*3/4) ||
 	pl_pos.y + use_config[CONFIG_MAPHEIGHT] + 1 >= map->y )
     {
 	y_shift= map->y/2 - pl_pos.y;
