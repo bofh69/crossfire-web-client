@@ -1,5 +1,12 @@
 Install Steps:
 
+0) Prerequisites:
+    You will need the XPM library to compile the client.
+    If you want to run the gtk client, you will need to install the gtk
+    libraries.
+    If you want png support, you will need to install the Imlib and png
+    library.  There may be other requisites for the Imlib file.
+
 1)  type './configure' to configure for your OS/system.  Most options 
     normally understood by configure should be available.
     The configure script will try to make all the right decisions.  It will

@@ -109,8 +109,6 @@
 #define _Xconst 
 #endif
 
-#define MAX_BUF 300
-
 /* All the following are static because these variables should
  * be local only to this file.  Since the idea is to have only
  * this file be replaced for different windowing systems, use of

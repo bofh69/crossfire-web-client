@@ -1,6 +1,13 @@
 "$Id$"
 Top of CVS tree:
 
+------------------------------------------------------------------------------
+Changes for 0.95.6:
+
+configure.in: Update for 0.95.6 release.
+
+x11.c: Change MAX_BUF definition in to match that in config.h
+
 Update README for necessary libraries.
 configure.in, configure: Re-order testing of Xext, Imlib where we still
 have the any special link flags set.  Also, when finding these, explicity
