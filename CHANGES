@@ -2,6 +2,14 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/commands.c: improve expand_face() - there was the problem if multipart
+   object that overlapped not always being drawn properly.  This is because
+   expand_face would basicaly put the first one it received on the lower
+   stack - this is fine if you came from above, but was incorrect if you
+   approached from the south.  expand_face() now checks to see which one
+   should overlap the other, based on where the coordinates would put it.
+MSW 2003-10-07
+
 Bulk of this commit is to fix big image support for the X11 client.
 common/client.h: Add a couple new defines to denote how big the largest
    image may be, minimum reasonable map size for the_map structure,

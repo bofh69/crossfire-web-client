@@ -893,6 +893,23 @@ static void expand_face(int hx, int hy, int dx, int dy, int oldface, int newface
 		return;
 	    }
 
+	    /* the layer we were supposed to go on is filled by some other object.
+	     * In this case, we want to see what object is more to the lower right - that
+	     * should go on the higher layer so that overlaps look proper.
+	     * Not positive if the rationale here is correct, but what I have is the 
+	     * y axis is most important.  If y is equal, then further to the right
+	     * is more important
+	     */
+	    if (l > layer) {
+		if ((the_map.cells[zx][zy].tails[layer].size_y > y) ||
+		    (the_map.cells[zx][zy].tails[layer].size_y == y && (the_map.cells[zx][zy].tails[layer].size_x > x))) {
+			the_map.cells[zx][zy].tails[l].size_x = the_map.cells[zx][zy].tails[layer].size_x;
+			the_map.cells[zx][zy].tails[l].size_y = the_map.cells[zx][zy].tails[layer].size_y;
+			the_map.cells[zx][zy].tails[l].face = the_map.cells[zx][zy].tails[layer].face;
+			l = layer;
+		    }
+	    }
+
 	    the_map.cells[zx][zy].tails[l].face = newface;
 	    /* only set the size_ values if there is an actual image */
 	    if (newface) {
