@@ -620,15 +620,14 @@ void reset_map_data()
  * or it is not, no blending is done.  This means that true alpha blending
  * is not supported, but nothing uses that now anyways.
  */
-#define TIME_MAP_REDRAW
 void gtk_draw_map()
 {
     int x,y,onlayer,layer, dst_x, dst_y,mx,my;
-#ifdef TIME_MAP_REDRAW
     struct timeval tv1, tv2, tv3;
     long elapsed1, elapsed2;
-    gettimeofday(&tv1, NULL);
-#endif
+
+    if (time_map_redraw)
+	gettimeofday(&tv1, NULL);
 
     gdk_draw_rectangle (mapwindow, drawingarea->style->black_gc,
 		TRUE, 0,0, map_image_size*mapx, map_image_size * mapy);
@@ -703,22 +702,22 @@ void gtk_draw_map()
 	} /* for x */
     } /* for layers */
 
-#ifdef TIME_MAP_REDRAW
-    gettimeofday(&tv2, NULL);
-#endif
+    if (time_map_redraw)
+	gettimeofday(&tv2, NULL);
+
     gdk_draw_pixmap(drawingarea->window, drawingarea->style->black_gc, mapwindow,
 		    0, 0, 0, 0, mapx * map_image_size, mapy * map_image_size);
 
-#ifdef TIME_MAP_REDRAW
-    gettimeofday(&tv3, NULL);
-    elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
-    elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
+    if (time_map_redraw) {
+	gettimeofday(&tv3, NULL);
+	elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
+	elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
 
-    /* I care about performance for 'long' updates, so put the check in to make
-     * these a little more noticable */
-    if ((elapsed1 + elapsed2)>10000)
-        fprintf(stderr,"gtk_draw_map: gen took %7ld, flip took %7ld, total = %7ld\n",
+	/* I care about performance for 'long' updates, so put the check in to make
+	 * these a little more noticable */
+	if ((elapsed1 + elapsed2)>10000)
+	    fprintf(stderr,"gtk_draw_map: gen took %7ld, flip took %7ld, total = %7ld\n",
                     elapsed1, elapsed2, elapsed1 + elapsed2);
-#endif
+    }
 }
 

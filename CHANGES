@@ -3,6 +3,14 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+gtk/gcfclient.man: Add -timemapredraw documentation to man page.
+gtk/gx11.c: Update size of buffers to 100k, instead of 10k.  Add some
+   debugging information to when info window is trimmed.  Add -timemapredraw
+   command instead of it being a compile time option.
+gtk/gx11.h: Add extern for time_map_redraw.
+gtk/map.c,gtk/sdl.c: use time_map_redraw variable instead of define option.
+MSW 2001-11-04
+
 gtk/gcfclient.man: Update man page to include all options supported
    by gtk client.
 gtk/gx11.c: remove some unused #defines.  add -trim_info_window option which

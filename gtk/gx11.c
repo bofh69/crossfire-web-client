@@ -262,6 +262,7 @@ uint8
     nopopups=FALSE, 
     sdlimage=FALSE,
     split_windows=FALSE,
+    time_map_redraw=FALSE,
     updatekeycodes=FALSE;
 
 /* Only used in SDL code, but we want to preserve values when loading/
@@ -273,8 +274,8 @@ int show_grid= FALSE;
 
 
 /* Default size of scroll buffers is 100 K */
-static int info1_num_chars=0, info2_num_chars=0, info1_max_chars=10000,
-    info2_max_chars=10000;
+static int info1_num_chars=0, info2_num_chars=0, info1_max_chars=100000,
+    info2_max_chars=100000;
 
 
 
@@ -2008,12 +2009,25 @@ void draw_info(const char *str, int color) {
 	if (trim_info_window) {
 	    info1_num_chars += strlen(str) + 1;
 	    if (info1_num_chars > info1_max_chars ) {
+#if 1
+		int to_delete = (info1_num_chars - info1_max_chars) + 5000;
 		gtk_text_set_point(GTK_TEXT(gtkwin_info_text),0);
-		gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text), (info1_num_chars - info1_max_chars) + 5000);
+		gtk_text_forward_delete(GTK_TEXT(gtkwin_info_text), to_delete);
 		info1_num_chars = gtk_text_get_length(GTK_TEXT(gtkwin_info_text));
 		gtk_text_set_point(GTK_TEXT(gtkwin_info_text), info1_num_chars);
+		fprintf(stderr,"trim_info_window, deleted %d characters, %d remaining\n", to_delete, info1_num_chars);
+#else
+		/* This works, so it is possible to completely clear the window */
+		info1_num_chars = gtk_text_get_length(GTK_TEXT (gtkwin_info_text));
+		gtk_text_set_point(GTK_TEXT (gtkwin_info_text), 0);
+		gtk_text_forward_delete (GTK_TEXT (gtkwin_info_text), info1_num_chars );
+		gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
+		info1_num_chars=0;
+#endif
 	    }
+	    
 	}
+
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, str , -1);
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, "\n" , -1);
     }
@@ -5509,6 +5523,7 @@ static void usage(char *progname)
     puts("-split           - Use split windows.");
     puts("-splitinfo       - Use two information windows, segregated by information type.");
     puts("-sync            - Synchronize on display");
+    puts("-timemapredraw   - Print out timing information for map generation");
     puts("-triminfowindow  - Trims size of information window(s)");
     puts("-notriminfowindow  - Do not trims size of information window(s) (default)");
     puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
@@ -5704,6 +5719,10 @@ int init_windows(int argc, char **argv)
 	}
 	else if (strcmp(argv[on_arg],"-sync")==0) {
 	    sync_display = 1;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-timemapredraw")) {
+	    time_map_redraw=TRUE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-triminfowindow")) {

@@ -8,7 +8,7 @@ gcfclient - gtk client program for crossfire servers.
 [-echo] [-showicon] [-scrollines number] [-sync] [-help]
 [-cache|-nocache] [-darkness|-nodarkness] [-nosound]
 [-updatekeycodes] [-nopopups] [-splitinfo] [-mapsize xXy] [-sdl]
-[-mapscale percentage] [-iconscale percentage]
+[-mapscale percentage] [-iconscale percentage] [-triminfo] [-timemapredraw]
 .SH DESCRIPTION
 .PP
 .I gcflient
@@ -184,6 +184,13 @@ levels, etc.
 Runs the server in synchronous display mode.  This option tends only to
 be useful in debugging purposes - using this will slow down the display
 and not gain anything for the typical player.
+
+.TP
+.B -timemapredraw
+Prints out debugging time information to stderr.  This timing information
+can be useful when trying to find performance problems, or just how
+different client options change the time it takes for the map to get
+drawn, which is the biggest cpu consumer in the client.
 
 .TP
 .B -triminfowindow | -notriminfowindw

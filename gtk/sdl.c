@@ -574,16 +574,14 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
  */
 #define ALL_IMAGES_ONE_SPACE
 
-#define TIME_SDL_MAP_DRAW
 void sdl_gen_map() {
     int mx,my, layer,onlayer,x,y;
     SDL_Rect dst;
-
-#ifdef TIME_SDL_MAP_DRAW
     struct timeval tv1, tv2,tv3;
     long elapsed1, elapsed2;
-    gettimeofday(&tv1, NULL);
-#endif
+
+    if (time_map_redraw)
+	gettimeofday(&tv1, NULL);
 
 #ifndef ALL_IMAGES_ONE_SPACE
     /* Fill the entire map with black (default). */
@@ -676,24 +674,23 @@ void sdl_gen_map() {
 	    } /* For y spaces */
 	} /* for x spaces */
     } /* for layers */
-#ifdef TIME_SDL_MAP_DRAW
-    gettimeofday(&tv2, NULL);
-#endif
+    if (time_map_redraw)
+	gettimeofday(&tv2, NULL);
+
 
     SDL_Flip(mapsurface);
 
-#ifdef TIME_SDL_MAP_DRAW
-    gettimeofday(&tv3, NULL);
-    elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
-    elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
+    if (time_map_redraw) {
+	gettimeofday(&tv3, NULL);
+	elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
+	elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
 
-    /* I care about performance for 'long' updates, so put the check in to make
-     * these a little more noticable */
-    if ((elapsed1 + elapsed2)>10000)
-        fprintf(stderr,"sdl_gen_map: gen took %7ld, flip took %7ld, total = %7ld\n",
+	/* I care about performance for 'long' updates, so put the check in to make
+	 * these a little more noticable */
+	if ((elapsed1 + elapsed2)>10000)
+	    fprintf(stderr,"sdl_gen_map: gen took %7ld, flip took %7ld, total = %7ld\n",
 		    elapsed1, elapsed2, elapsed1 + elapsed2);
-#endif
-
+    }
 } /* sdl_gen_map function */
 
 void sdl_mapscroll(int dx, int dy)
