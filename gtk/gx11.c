@@ -5094,7 +5094,7 @@ static void usage(char *progname)
     puts("-faceset <name>  - Use faceset <name> if available");
     puts("-fasttcpsend     - Send data immediately to server, may increase bandwidth");
     puts("-nofasttcpsend   - Disables fasttcpsend");
-    puts("-fog             - Enable for of war code");
+    puts("-fog             - Enable fog of war code");
     puts("-help            - Display this message.");
     puts("-iconscale %%    - Set icon scale percentage");
     puts("-mapscale %%     - Set map scale percentage");
