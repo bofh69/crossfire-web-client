@@ -1,6 +1,9 @@
 "$Id$"
 Top of CVS tree:
 
+------------------------------------------------------------------------------
+Changes for 0.95.8:
+
 Checkin on 2000-11-7 by MSW:
 item.h:  Update NAME_LEN to 128, as the server may send us names that
 long.  Also, terminate the name after we copy it.
