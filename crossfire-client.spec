@@ -1,6 +1,6 @@
 %define Name crossfire
 %define extra client
-%define version 0.96.0
+%define version 0.98.0
 %define sndversion 0.95.4
 %define release 1
 %define prefix /usr/X11R6
@@ -96,10 +96,56 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/sounds/crossfire/*
 
 %changelog
+* Wed Mar 21 2001 Bob Tanner <tanner@real-time.com>
+- Rolled new client 0.97.0 with Mark's changes listed next
+
+* Wed Mar 21 2001 Mark Wedel <mwedel@scruz.net>
+- Change so that containers on the ground still keep proper contents even if the
+  map space itself changes (spells or other objects going onto the space). 
+- commands.c: update the cpl.container tags when opening/closing containers.
+- item.c: Have locate_object see if the container matches the tag.  Don't have
+  remove_item remove the object contents of other attributes if it is the
+  container, but still remove it from the list it is on.  
+- item.h: remove function prototypes - these are in proto.h
+- png.c: New png -> X11 (or gdk) creation routines that are much faster.  This
+  should make a noticable difference in performance.  Note that the X11
+  and gdk implementations are very different now - the gdk implementation
+  lets the gdk library do most of the work.
+- gx11.c: remove some dead code, add call to gdk_rgb_init() if using
+  png images - needed by new png loader.
+- x11.c: Add call to init_pngx_loader if running in png mode.  Also pass 
+  colormap by pointer so png_to_xpixmap can modify it.
+- xutil.c: pass colormap by pointer to init_pngx_loader (same reason as above)
+- Makefile.in: Add DMALLOC_LIB definition instead of it going in with the
+  the default libraries.  cfsndserv will now get properly linked with
+  dmalloc.
+- configure.in, configure: add --disable-sound option, and make relevant
+  changes to use that option (which basically amounts to not checking
+  for any of the sound systems).  Add check for dmalloc.h.  change
+  substitution for -ldmalloc.
+- cfsndserv.c: Modified so it now compiles with the modern ALSA sound system.
+  No idea if it actually works.  MSW 2001/03/04
+- metaserver.c: Modified so it uses the value of -port if that command
+  line option is given by a user.  MSW 2001/03/01
+- x11.c: Fixes for info window resizing.  This should fix some crashes
+  and the code is a bit simpler now.  MSW 2001/02/28
+- Makefile.in: Modify so that it installs the target (cfclient, gcfclient,
+  cfsndserv) one at a time so it works with the install script.
+- item.c: add insert_item_before_item function.  Modify the sorting function
+  so it first sorts by type, then by locked/unlocked status, and then
+ by alphabetical order (not including the number prefix).
+- item_types, item_types.h: More updates of missing objects or ones that
+  need more specific matching rules.
+- x11.c: Remove a lot of duplicate code that was in place for metaserver
+  support - instead, just add checks to the existing X event handling
+  code to know not to do some things if we're in metaserver selection
+  mode.  This fixes a bug in that resize events would not be handled
+  if in metaserver selection mode.
+
 * Tue Feb 13 2001 Bob Tanner <tanner@real-time.com>
 - Rolled new client 0.96.0 with Mark's changes listed next
 
-* Tue Feb 13 2001 Mark Wedel <mwedel@scruze.net>
+* Tue Feb 13 2001 Mark Wedel <mwedel@scruz.net>
 - If compiled with dmalloc, add 'dmalloc command that verifies the heap.  Makes
   checking for memory corruption easier. 
 - CHANGES, configure configure.in crossfire-client.spec: Update for 0.96.0
