@@ -247,6 +247,7 @@ void negotiate_connection(int sound)
      */
     while (csocket.cs_version==0) {
 	DoClient(&csocket);
+	if (csocket.fd == -1) return;
     }
 
     if (csocket.sc_version<1023) {
