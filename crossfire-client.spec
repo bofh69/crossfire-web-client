@@ -2,7 +2,7 @@
 %define extra client
 %define version 1.1.0
 %define sndversion 1.1.0
-%define release 1
+%define release 2
 %define prefix /usr/X11R6
 
 Name: %{Name}-%{extra}
@@ -14,8 +14,8 @@ Copyright: GPL
 Vendor: Crossfire Development Team
 URL: http://crossfire.real-time.com
 Packager: Crossfire Development Team <crossfire-devel@lists.real-time.com>
-Source0: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/crossfire-client-%{version}.tar.gz
-Source1: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/crossfire-sounds-%{sndversion}.tar.gz
+Source0: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/%{name}-%{version}.tar.gz
+Source1: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/%{name}-sounds-%{sndversion}.tar.gz
 Provides: crossfire-client
 BuildRoot: /var/tmp/%{Name}-%{extra}-%{version}-root
 
@@ -72,6 +72,7 @@ install -d $RPM_BUILD_ROOT/usr/X11R6/bin
 install -d $RPM_BUILD_ROOT/usr/X11R6/man/man1
 install -d $RPM_BUILD_ROOT/usr/share/sounds/crossfire
 install -d $RPM_BUILD_ROOT/usr/share/gnome/apps/Games
+install -d $RPM_BUILD_ROOT/usr/share/gnome/ximian/Programs/Games
 install -d $RPM_BUILD_ROOT/usr/share/pixmaps
 
 
@@ -80,7 +81,7 @@ make install \
     bindir=$RPM_BUILD_ROOT/usr/X11R6/bin \
     mandir=$RPM_BUILD_ROOT/usr/X11R6/man/man1
 
-install %{Name}-sounds-%{sndversion}/* $RPM_BUILD_ROOT/usr/share/sounds/crossfire
+install sounds/*.raw $RPM_BUILD_ROOT/usr/share/sounds/crossfire
 
 install -c x11/cfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/cfclient.1
 install -c gtk/gcfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gcfclient.1
@@ -88,6 +89,7 @@ install -c gtk/gcfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gcfclient.1
 # install -c gnome/gnome-cfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gnome-cfclient.1
 
 install -c gnome/client.gnome $RPM_BUILD_ROOT/usr/share/gnome/apps/Games/crossfire.desktop
+install -c gnome/client.gnome $RPM_BUILD_ROOT/usr/share/gnome/ximian/Programs/Games/crossfire.desktop
 install -c pixmaps/shield.png $RPM_BUILD_ROOT/usr/share/pixmaps/
 
 
@@ -109,6 +111,7 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{sndversion}-%{release}.%{_arch}.r
 %attr(755,root,root) /usr/X11R6/bin/gcfclient
 /usr/X11R6/man/man1/gcfclient.1*
 /usr/share/gnome/apps/Games/crossfire.desktop
+/usr/share/gnome/ximian/Programs/Games/crossfire.desktop
 /usr/share/pixmaps/shield.png
 
 # Not supported yet
@@ -125,6 +128,43 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{sndversion}-%{release}.%{_arch}.r
 /usr/share/sounds/crossfire/*
 
 %changelog
+* Thu Feb 14 2002 Bob Tanner <tanner@real-time.com>
+- configure.in, configure: Add check for zlib before png lib check, as on
+  some systems, png requires -lz.
+- common/client-types.h: Add #ifdef check for SOL_TCP
+- common/client.c: Add fast_tcp_send variable, comment out printing of error
+  from socket EOF.  Use TCP_NODELAY for sending data to the server
+  if TCP_NODELAY is available.  cs_write_string modified to use
+  cs_print_string.
+- common/client.h: Remove display_mode enum, add fast_tcp_send extern.
+- common/commands.c, common/init.c,gtk/image.c, gtk/map.c
+  cs_write_sting modified to use cs_print_string
+- common/external.h: set_autorepeat extern added.
+- common/newsocket.c: Modified to be better optimized for using TCP_NODELAY -
+  cs_print_string function added.
+- common/player.c: modified to use cs_print_string , autorepeat client side
+  command added.
+- common/proto.h, gtk/gtkproto.h: updated with new functions
+- gnome/gnome.c: display_mode variable removed, cs_write_string
+  replaced with cs_print_string
+- gtk/gx11.c: display_mode variable removed, cs_write_string replaced with
+  cs_print_string, -nofog option added
+- pixmaps/question.111: Resized to be 32x32
+  pixmaps/*.xbm - used for inventory icons in X11 client, replacing xpm
+  files
+- sound-src/cfsndserv.c: Better error handling, include time.h
+- x11/cfclient.man: -font and -noautorepeat options added.
+- x11/png.c: better error checking for rescaling images
+- x11/x11.c: noautorepeat variable added, display_mode removed, image icon
+  functionality re-enabled, images now created from xbm files,
+  set_autorepeat function added, add ability to set font, add mouse
+  wheel support
+- x11/x11.h: remove screen_num extern.
+- x11/x11proto.h: Updated with new functions.
+- x11/xutil.c: Modified to use image_size instead of hardcoded 24x24 value
+  for the status icons.  cs_write_replaced with cs_print_string, no
+  auto repeat functionality added.
+
 * Mon Dec 31 2001 Bob Tanner <tanner@real-time.com>
 - Rolled 1.1.0 client
 - NOTE Mark's new email address
