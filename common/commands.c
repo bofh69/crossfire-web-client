@@ -420,7 +420,8 @@ void SmoothCmd(unsigned char *data, int len){
             my=y + pl_pos.y+dy[j];
             if ( (mx<0) || (my<0) || (the_map.x<=mx) || (the_map.y<=my))
                 continue;
-            the_map.cells[mx][my].need_resmooth=1;   
+            if (!the_map.cells[mx][my].cleared)
+                the_map.cells[mx][my].need_resmooth=1;   
         }
     }
     }
@@ -986,6 +987,9 @@ void display_map_clearcell(int x,int y)
  */
 static void set_map_face(int x, int y, int layer, int face)
 {
+    static int dx[8]={0,1,1,1,0,-1,-1,-1};
+    static int dy[8]={-1,-1,0,1,1,1,0,-1};
+    int rx,ry,i;
     x+= pl_pos.x;
     y+= pl_pos.y;
 
@@ -1008,6 +1012,17 @@ static void set_map_face(int x, int y, int layer, int face)
 		    &the_map.cells[x][y].heads[layer].size_x, 
 		    &the_map.cells[x][y].heads[layer].size_y);
 
+    /*If this square has a smoothlevel, need to resmooth adjacent squares too*/
+    if (use_config[CONFIG_SMOOTH]){
+        if (the_map.cells[x][y].smooth[layer]>0)
+            for (i=0;i<8;i++){
+                rx=x+dx[i];
+                ry=y+dy[i];
+                if ( (rx<0) || (ry<0) || (the_map.x<=rx) || (the_map.y<=ry))
+                    continue;
+                the_map.cells[x][y].need_resmooth=1;  
+            }
+    }
     the_map.cells[x][y].need_update = 1;
     the_map.cells[x][y].have_darkness = 1;
 }
@@ -1137,10 +1152,13 @@ int ExtSmooth(unsigned char* data,int len,int x,int y,int layer){
     static int dx[8]={0,1,1,1,0,-1,-1,-1};
     static int dy[8]={-1,-1,0,1,1,1,0,-1};
     int i,rx,ry;
+    int newsm;
     if (len<1)
         return 0;
     x+= pl_pos.x;
 	y+= pl_pos.y;
+    newsm=GetChar_String(data);
+    if (the_map.cells[x][y].smooth[layer]!=newsm)
     for (i=0;i<8;i++){
         rx=x+dx[i];
         ry=y+dy[i];
@@ -1148,7 +1166,7 @@ int ExtSmooth(unsigned char* data,int len,int x,int y,int layer){
             continue;
         the_map.cells[x][y].need_resmooth=1;            
     }
-    the_map.cells[x][y].smooth[layer]=GetChar_String(data);
+    the_map.cells[x][y].smooth[layer]=newsm;
     return 1;/*Cause smooth infos only use 1 byte*/
 }
 /* Handle MapExtended command

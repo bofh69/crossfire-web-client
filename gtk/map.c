@@ -495,19 +495,21 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
         if ( (!pixmaps[smoothface]->map_image) ||
              (pixmaps[smoothface] == pixmaps[0]))
             continue;   /*don't have the picture associated*/
+        if (weight>0){
         gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
          
         gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weight,picy);
         gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
 	        map_image_size*weight, 0, picx, picy,
             map_image_size, map_image_size);
-            gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
-            
+        }
+        if (weightC>0){
         gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
         gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weightC,picy-map_image_size);
         gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
 		  map_image_size*weightC, map_image_size, picx, picy,
-          map_image_size, map_image_size);
+          map_image_size, map_image_size);          
+        }
 		
             
     }/*while there's some smooth to do*/
@@ -516,7 +518,6 @@ void gtk_draw_map(int redraw) {
     int mx,my, layer,x,y, src_x, src_y;
     struct timeval tv1, tv2,tv3;
     long elapsed1, elapsed2;
-
     if (time_map_redraw)
 	gettimeofday(&tv1, NULL);
 
@@ -656,7 +657,6 @@ void gtk_draw_map(int redraw) {
 		    0, 0, 0, 0, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size);
 	map_did_scroll = 0;
     }
-
 
     if (time_map_redraw) {
 	gettimeofday(&tv3, NULL);
