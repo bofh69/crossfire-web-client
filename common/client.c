@@ -236,6 +236,8 @@ int init_connection(char *host, int port)
 
 void negotiate_connection(int sound)
 {
+    int tries;
+
     SendVersion(csocket);
 
     /* We need to get the version command fairly early on because
@@ -245,9 +247,19 @@ void negotiate_connection(int sound)
      * However, if it doesn't send the version command, we have no idea
      * what we are dealing with.
      */
+    tries=0;
     while (csocket.cs_version==0) {
 	DoClient(&csocket);
 	if (csocket.fd == -1) return;
+
+	usleep(10*1000);    /* 10 milliseconds */
+	tries++;
+	/* If we have't got a response in 10 seconds, bail out */
+	if (tries > 1000) {
+	    close(csocket.fd);
+	    csocket.fd=-1;
+	    return;
+	}
     }
 
     if (csocket.sc_version<1023) {
@@ -330,6 +342,13 @@ void negotiate_connection(int sound)
 		    }
 		} /* Still have image_sums request to send */
 	    } /* endif download all faces */
+
+	    usleep(10*1000);    /* 10 milliseconds */
+	    /* Don't put in an upper time limit with tries like we did above - if the
+	     * player is downloading all the images, the time this takes could be
+	     * considerable.
+	     */
+
 	} while (replyinfo_status != requestinfo_sent);
     }
     if (use_config[CONFIG_DOWNLOAD]) {

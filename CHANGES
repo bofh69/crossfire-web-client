@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/client.c: Add some usleeps()  in negotiate_connection() - this reduces
+   cpu load when negotiating the connection (given 10 ms for data to actually
+   come in before checking for new data).  Also, add a count and if we don't
+   get a response back from the server in the time frame, bail out.
+MSW 2003-03-24
+
 configure.in, configure: checks added for alsa9 sound - update for cfsndserv.c
    should come shortly.
 common/client.c: Fix setup problem - it was using FOGWAR setting when
