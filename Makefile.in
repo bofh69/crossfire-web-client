@@ -166,7 +166,7 @@ soundsdef.h: sounds
 .c.o:
 	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
 
-sound.o:: soundsdef.h
+sound.o: soundsdef.h
 
 gx11.o: gx11.c
 	$(CC) $(CFLAGS) $(GTK_CFLAGS) $(INCLUDES) -c gx11.c
