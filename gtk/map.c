@@ -563,9 +563,8 @@ void gtk_draw_map(int redraw) {
 		     * as that for the tail, except we know that we this is at the lower right,
 		     * so we don't need to adjust the origin as much.
 		     */
-		    if ( (the_map.cells[mx][my].heads[layer].face && 
-			pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image)
-            ||the_map.cells[mx][my].need_resmooth){
+		    if (the_map.cells[mx][my].heads[layer].face && 
+			pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image){
 
 			/* add one to the size values to take into account the actual width of the space */
 			src_x = pixmaps[the_map.cells[mx][my].heads[layer].face]->map_width - map_image_size;
@@ -586,13 +585,22 @@ void gtk_draw_map(int redraw) {
 				    pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image,
 				    src_x, src_y, x * map_image_size, y * map_image_size,
 					map_image_size, map_image_size);
-            if (use_config[CONFIG_SMOOTH])
+            /*We draw the pic. Now, smooth adjacent squares on it*/
+            if ( use_config[CONFIG_SMOOTH])
+                drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
+            }
+            /*Sometimes, it may happens we need to draw the smooth while there
+              is nothing to draw at that layer (but there was something at lower
+              layers). This is handled here. The else part is to take into account
+              cases where the smooth as already been handled 2 code lines before*/
+            else if ( use_config[CONFIG_SMOOTH] && 
+                 the_map.cells[mx][my].need_resmooth )
                 drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
             
             /*if (newmask)
                 gdk_pixmap_unref(newmask);*/
 
-		    }
+		    
 		} /* else for processing the layers */
         the_map.cells[mx][my].need_resmooth=0;
 
