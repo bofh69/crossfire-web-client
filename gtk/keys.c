@@ -261,7 +261,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
 		    flags |= KEYF_STANDARD;
 		    break;
 		default:
-		    LOG(LOG_WARNING,"gtk::parse_keybind_line","Warning:  Unknown flag (%c) line %d in key binding file",
+		    LOG(LOG_WARNING,"gtk::parse_keybind_line","Unknown flag (%c) line %d in key binding file",
 			    *cp, line);
 	    }
 	    cp++;
@@ -269,6 +269,10 @@ static void parse_keybind_line(char *buf, int line, int standard)
 
 	/* Rest of the line is the actual command.  Lets kill the newline */
 	cpnext[strlen(cpnext)-1]='\0';
+    if (strlen(cpnext)>(sizeof(bind_buf)-1)){
+        cpnext[sizeof(bind_buf)-1]='\0';
+        LOG(LOG_WARNING,"gtk::parse_keybind_line","Had to truncate a too long command");
+    }
 	insert_key(keysym, flags | standard, cpnext);
     } /* else if not special binding line */
 }
@@ -356,6 +360,7 @@ void init_keys()
     }
     while (fgets(buf, BIG_BUF, fp)) {
 	line++;
+    buf[BIG_BUF-1]='\0';
 	parse_keybind_line(buf,line,0);
     }
     fclose(fp);
@@ -509,7 +514,11 @@ static void parse_key(char key, uint32 keysym)
  */
 static char * get_key_info(Key_Entry *key, int save_mode)
 {
-    static char buf[MAX_BUF];
+    /* bind buf is the maximum space allowed for a
+     * binded command. We will add additional datas to
+     * it so we increase by MAX_BUF*/
+    static char buf[MAX_BUF+sizeof(bind_buf)];
+
     char buff[MAX_BUF];
     int bi=0;
 

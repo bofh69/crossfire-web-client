@@ -438,6 +438,10 @@ void parse_keybind_line(char *buf, int line, int standard)
     }
     /* Rest of the line is the actual command.  Lets kill the newline */
     cpnext[strlen(cpnext)-1]='\0';
+    if (strlen(cpnext)>(sizeof(bind_buf)-1)){
+        cpnext[sizeof(bind_buf)-1]='\0';
+        LOG(LOG_WARNING,"gtk::parse_keybind_line","Had to truncate a too long command");
+    }
     insert_key(keysym, keycode, flags | standard, cpnext);
 }
 
@@ -701,7 +705,10 @@ void parse_key(char key, KeyCode keycode, KeySym keysym, int repeated)
  */
 static char * get_key_info(Key_Entry *key, KeyCode kc, int save_mode)
 {
-    static char buf[MAX_BUF];
+    /* bind buf is the maximum space allowed for a
+     * binded command. We will add additional datas to
+     * it so we increase by MAX_BUF*/
+    static char buf[MAX_BUF+sizeof(bind_buf)];
     char buff[MAX_BUF];
     int bi=0;
 
