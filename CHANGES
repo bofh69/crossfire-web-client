@@ -2,6 +2,21 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/config.c: Fix setting of radio button set state - it was always setting
+   the same (last) radio button as the active button, which did not match
+   state - now it sets the proper button active - this is for the lighting
+   control toggle.
+gtk/map.c: Add/subtract 2 to the need_recenter_map function - in this
+   way, code that checks known display position +/-1 will still be within
+   map array.
+gtk/sdl.c: Fix per pixel (fastest and best) lighting code - this got
+   broken quite a while - it was looking to see if the coordinates for the
+   map structure where within range, and not the real coordinates.  Since
+   the map coordinates would almost never be within range, the effect was
+   that the per pixel effects more ore less looked like the per tile
+   effects.
+MSW 2002-07-03
+
 ------------------------------------------------------------------------------
 Changes for 1.3.0:
 

@@ -212,15 +212,17 @@ void set_map_darkness(int x, int y, uint8 darkness)
 /* 
  * Returns true if virtual view is about to butt up against 
  * the side of the virtual map on the next scroll
- * Only used for fog of war code
+ * Add 2 as a fudge factor - in this way, code that checks
+ * within the displayable area but +/-1 of the edges will
+ * still process data within bounds.
  */
 static int need_recenter_map( int dx, int dy)
 {
     
-    if( pl_pos.x + dx + use_config[CONFIG_MAPWIDTH] >= the_map.x ||
-	pl_pos.y + dx + use_config[CONFIG_MAPHEIGHT] >= the_map.y ||
-	pl_pos.x + dx <= 0                ||
-	pl_pos.y + dy <= 0 )
+    if( pl_pos.x + dx + use_config[CONFIG_MAPWIDTH] +2 >= the_map.x ||
+	pl_pos.y + dx + use_config[CONFIG_MAPHEIGHT] +2 >= the_map.y ||
+	pl_pos.x + dx -2 <= 0                ||
+	pl_pos.y + dy -2 <= 0 )
     {
 	return TRUE;
     }

@@ -351,16 +351,16 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
      */
     dark0 = the_map.cells[mx][my].darkness;
 
-    if (my-1 < 0 || !the_map.cells[mx][my-1].have_darkness) dark1 = dark0;
+    if (y-1 < 0 || !the_map.cells[mx][my-1].have_darkness) dark1 = dark0;
     else dark1 = the_map.cells[mx][my-1].darkness;
 
-    if (mx+1 >= use_config[CONFIG_MAPWIDTH] || !the_map.cells[mx+1][my].have_darkness) dark2 = dark0;
+    if (x+1 >= use_config[CONFIG_MAPWIDTH] || !the_map.cells[mx+1][my].have_darkness) dark2 = dark0;
     else dark2 = the_map.cells[mx+1][my].darkness;
 
-    if (my+1 >= use_config[CONFIG_MAPHEIGHT] || !the_map.cells[mx][my+1].have_darkness) dark3 = dark0;
+    if (y+1 >= use_config[CONFIG_MAPHEIGHT] || !the_map.cells[mx][my+1].have_darkness) dark3 = dark0;
     else dark3 = the_map.cells[mx][my+1].darkness;
 
-    if (mx-1 < 0 || !the_map.cells[mx-1][my].have_darkness) dark4 = dark0;
+    if (x-1 < 0 || !the_map.cells[mx-1][my].have_darkness) dark4 = dark0;
     else dark4 = the_map.cells[mx-1][my].darkness;
 
     /* If they are all the same, processing is easy */

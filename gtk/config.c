@@ -432,7 +432,8 @@ void configdialog(GtkWidget *widget) {
 		} else {
 		    cbuttons[i].widget = gtk_radio_button_new_with_label(NULL, cbuttons[i].label);
 		}
-		gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(cbuttons[i].widget), want_config[cbuttons[i].config]);
+		if ((want_config[CONFIG_LIGHTING]+100) == cbuttons[i].config)
+		    gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(cbuttons[i].widget), 1);
 	    }
 	    else if (cbuttons[i].type & SPIN) {
 		GtkAdjustment *adj;
