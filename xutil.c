@@ -492,7 +492,13 @@ static void parse_keybind_line(char *buf, int line, int standard)
         }
         cp++;
     }
-    if (keysym!=NoSymbol && ((flags&KEYF_STANDARD) || updatekeycodes)) {
+
+    /* This gets tricky - if we are reading the keycodes from the built
+     * in defaults and keycodes are specified there, we want to honor them.
+     */
+    if ((keysym!=NoSymbol) &&
+	(( (keycode == 1) && standard) || (flags&KEYF_STANDARD) || updatekeycodes)) {
+
         keycode = XKeysymToKeycode(display, keysym);
 
         /* It is possible that we get a keysym that we can not convert
@@ -506,7 +512,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
         if (keycode==0) {
 	    fprintf(stderr,"Warning: could not convert keysym %s into keycode, ignoring\n",
 		buf);
-        }
+	}
     }
     /* Rest of the line is the actual command.  Lets kill the newline */
     cpnext[strlen(cpnext)-1]='\0';
