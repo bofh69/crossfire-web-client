@@ -270,12 +270,17 @@ void extended_command(const char *ocommand) {
     char *cpnext, command[MAX_BUF];
 
     if ((cpnext = strchr(cp, ' '))!=NULL) {
-        strncpy(command, ocommand, MAX_BUF-1);
-	command[MAX_BUF-1] = '\0';
+	int len = cpnext - ocommand;
+	if (len > (MAX_BUF -1 )) len = MAX_BUF-1;
+
+	strncpy(command, ocommand, len);
+	command[len] = '\0';
 	cp = command;
     }
-
-
+    /* cp now contains the command (everything before first space),
+     * and cpnext contains everything after that first space.  cpnext
+     * could be NULL.
+     */
     if (!strcmp(cp, "bind"))
 	bind_key(cpnext);
     else if (!strcmp(cp,"unbind"))
