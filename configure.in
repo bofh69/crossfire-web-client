@@ -206,7 +206,7 @@ fi
 
 AC_PATH_PROG(GNOMECONFIG, gnome-config)
 
-if test -n "GNOMECONFIG" ; then
+if test -z "$GNOMECONFIG" ; then
 	gnome=no
 	echo "Can't find gnome-config, not building Gnome client."
 fi
