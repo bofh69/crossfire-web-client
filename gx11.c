@@ -675,7 +675,7 @@ void animate (animobject *data, gpointer user_data) {
       }
       data->item->face = animations[data->item->animation_id].faces[data->item->anim_state];
       data->item->last_anim=0;
-      g_list_foreach (data->view, (GFunc) animateview, (gpointer)data->item->face);
+      g_list_foreach (data->view, (GFunc) animateview, GINT_TO_POINTER((gint)data->item->face));
     }
     
   }
