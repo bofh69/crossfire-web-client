@@ -1903,6 +1903,37 @@ draw_prompt (const char *str)
 		      continue;
 		  }
 
+        if (!strcmp (last_str, "What is the password?"))
+			{
+
+			    dialoglabel =
+				gtk_label_new ("What is the party password?");
+			    gtk_box_pack_start (GTK_BOX (dbox), dialoglabel,
+						FALSE, TRUE, 6);
+			    gtk_widget_show (dialoglabel);
+
+			    hbox = gtk_hbox_new (FALSE, 6);
+			    dialogtext = gtk_entry_new ();
+			    gtk_entry_set_visibility (GTK_ENTRY (dialogtext),
+						      FALSE);
+			    gtk_signal_connect (GTK_OBJECT (dialogtext),
+						"activate",
+						GTK_SIGNAL_FUNC
+						(dialog_callback),
+						dialog_window);
+			    gtk_box_pack_start (GTK_BOX (hbox), dialogtext,
+						TRUE, TRUE, 6);
+			    gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE,
+						TRUE, 6);
+
+			    gtk_widget_show (hbox);
+
+			    gtk_widget_show (dialogtext);
+			    gtk_widget_grab_focus (dialogtext);
+			    found = TRUE;
+			    continue;;
+			}
+
 		if (!found)
 		  {
 		      dialoglabel = gtk_label_new (str);

@@ -3,7 +3,8 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 gtk/gx11.c: send text first, then close popup. Else won't work under
-  some circumstances, text is empty.
+  some circumstances, text is empty. Fix party password dialog containing
+  only ':' (missing case in dialog handling).
 Ryo 2005-01-07
 
 common/script.c: add 'signal.h' header, needed for NetBSD.
