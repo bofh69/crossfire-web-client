@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+x11/x11.c: Add darkness and fog of war tiling stipling, so it is now
+   clearer what spaces are dark and which spaces are fog of war
+   spaces.  Add -fogofwar and -nofogofwar command line options.
+MSW 2003-05-18
+
 Bulk of this change is to support the upcoming split skill experience system.
 skill names are now sent to the client.  Backwards compatibility with older
 servers is in place - however, the client will now only show those skills

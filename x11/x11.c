@@ -252,7 +252,7 @@ enum {
 };
 static Pixmap icons[max_icons];
 
-static Pixmap icon,xpm_pixmap,xpm_masks[XPMGCS]; 
+static Pixmap icon,xpm_pixmap,xpm_masks[XPMGCS], dark1, dark2, dark3;
 static GC gc_root,gc_stats,gc_message,
 	gc_floor,gc_xpm_object,gc_clear_xpm,gc_xpm[XPMGCS],
 	gc_blank; 
@@ -1561,7 +1561,10 @@ static void create_status_icons ()
 #include "pixmaps/close.xbm"
 #include "pixmaps/stipple.111"
 #include "pixmaps/stipple.112"
+
     static int hasinit=0;
+    int x, y;
+    GC tmpgc;
 
     if (hasinit) return;
     hasinit=1;
@@ -1586,7 +1589,36 @@ static void create_status_icons ()
 	fprintf(stderr, "Unable to create pixmaps.\n");
 	exit (0);
     }
-#undef CREATEPM
+    dark1 = XCreatePixmap(display, def_root, image_size, image_size, 1);
+    dark2 = XCreatePixmap(display, def_root, image_size, image_size, 1);
+    dark3 = XCreatePixmap(display, def_root, image_size, image_size, 1);
+    tmpgc = XCreateGC(display, dark1, 0, 0);
+    XSetFillStyle(display, tmpgc, FillSolid);
+    XSetForeground(display, tmpgc, 1);
+    XFillRectangle(display, dark1, tmpgc, 0, 0, image_size, image_size);
+    XFillRectangle(display, dark2, tmpgc, 0, 0, image_size, image_size);
+    XFillRectangle(display, dark3, tmpgc, 0, 0, image_size, image_size);
+    XSetForeground(display, tmpgc, 0);
+    for (x=0; x<image_size; x++) {
+	for (y=0; y<image_size; y++) {
+	    /* we just fill in points every X pixels - dark1 is the darkest, dark3 is the li!
+	     * dark1 has 50% of the pixels filled in, dark2 has 33%, dark3 has 25%
+	     * The formula's here are not perfect - dark2 will not match perfectly with an
+	     * adjacent dark2 image.  dark3 results in diagonal stripes.  OTOH, these will
+	     * change depending on the image size.
+	     */
+	    if ((x+y) % 2) {
+		XDrawPoint(display, dark1, tmpgc, x, y);
+	    }
+	    if ((x+y) %3) {
+		XDrawPoint(display, dark2, tmpgc, x, y);
+	    }
+	    if ((x+y) % 4) {
+		XDrawPoint(display, dark3, tmpgc, x, y);
+	    }
+	}
+    }
+    XFreeGC(display, tmpgc);
 }
 
 /*
@@ -2793,6 +2825,14 @@ int init_windows(int argc, char **argv)
 	    use_config[CONFIG_DARKNESS]= FALSE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-fogofwar")) {
+	    use_config[CONFIG_FOGWAR]= TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-nofogofwar")) {
+	    use_config[CONFIG_FOGWAR]= FALSE;
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-split")) {
 	    want_config[CONFIG_SPLITWIN]=TRUE;
 	    continue;
@@ -2919,6 +2959,11 @@ void display_mapcell_pixmap(int ax,int ay)
     mx = ax + pl_pos.x;
     my = ay + pl_pos.y;
 
+    if (the_map.cells[mx][my].cleared && !use_config[CONFIG_FOGWAR]) {
+	XFillRectangle(display,win_game,gc_blank,2+image_size*ax,2+image_size*ay,image_size,image_size);
+	return;
+    }
+
     XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
     for (k=0; k<MAXLAYERS; k++) {
 	    if (the_map.cells[mx][my].heads[k].face >0 ) {
@@ -2931,6 +2976,28 @@ void display_mapcell_pixmap(int ax,int ay)
 	    }
     }
     if (got_one) {
+	if (the_map.cells[mx][my].cleared) {
+	    XSetClipOrigin(display, gc_xpm[XPMGCS-1], 0, 0);
+	    XSetForeground(display, gc_xpm[XPMGCS-1], discolor[0].pixel);
+	    XSetClipMask(display, gc_xpm[XPMGCS-1], dark2);
+	    XCopyPlane(display, dark2, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
+	}
+	else if (use_config[CONFIG_DARKNESS] && the_map.cells[mx][my].have_darkness) {
+	    XSetClipOrigin(display, gc_xpm[XPMGCS-1], 0, 0);
+	    XSetForeground(display, gc_xpm[XPMGCS-1], discolor[0].pixel);
+	    if (the_map.cells[mx][my].darkness > 192) {
+		XSetClipMask(display, gc_xpm[XPMGCS-1], dark1);
+		XCopyPlane(display, dark1, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
+	    }
+	    else if (the_map.cells[mx][my].darkness > 128) {
+		XSetClipMask(display, gc_xpm[XPMGCS-1], dark2);
+		XCopyPlane(display, dark2, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
+	    }
+	    else if (the_map.cells[mx][my].darkness > 64) {
+		XSetClipMask(display, gc_xpm[XPMGCS-1], dark3);
+		XCopyPlane(display, dark3, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
+	    }
+	}
 	XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,image_size,image_size,
 	    2+image_size*ax,2+image_size*ay);
     } else {
