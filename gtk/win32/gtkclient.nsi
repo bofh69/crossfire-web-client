@@ -5,7 +5,7 @@
 !include "MUI.nsh"
 
 ;Title Of Your Application
-Name "Crossfire GTK Client 1.7.0"
+Name "Crossfire GTK Client (snapshot 2005-01-08)"
 
 ;Do A CRC Check
 CRCCheck On
@@ -42,11 +42,12 @@ Function .onInit
          ReadRegStr $GTKPath HKLM Software\GTK\2.0 DllPath
          StrCmp $GTKPath "" 0 GTKOk
                 ; GTK not found, abort (unless user is really sure)
-                MessageBox MB_YESNOCANCEL|MB_ICONEXCLAMATION "The installer cannot find GTK!$\rCrossfire client requires GTK 2, which is available from http://www.dropline.net/gtk/.$\r$\rDo you want to go to the site now?$\r$\rPress 'Yes' to open Dropline's web site.$\rPress 'No' to exit the installer.$\rPress 'Cancel' to continue the installation (use at your own risk!)" IDNO abort IDCANCEL ignoregtk
-                
-                ExecShell open http://www.dropline.net/gtk
+                MessageBox MB_YESNOCANCEL|MB_ICONEXCLAMATION "The installer cannot find GTK!$\rCrossfire client requires GTK 2, which is available from http://gaim.sourceforge.net/win32/index.php#wingtk.$\r$\rDo you want to go to the site now?$\r$\rPress 'Yes' to open Gaim's web site.$\rPress 'No' to exit the installer.$\rPress 'Cancel' to continue the installation (use at your own risk!)" IDNO abort IDCANCEL ignoregtk
+
+                ExecShell open http://gaim.sourceforge.net/win32/index.php#wingtk
 
                 abort:
+                Banner::Destroy
                 Quit
                 
                 ignoregtk:

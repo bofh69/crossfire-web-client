@@ -1,5 +1,6 @@
 Changes for Win32 GTK client
 ----------------------------
+(snapshot 2005-01-08)
 
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
