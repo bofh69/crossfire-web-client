@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+player.c: Fix for client crashes if player enters really long commands
+(like say .....).  MSW 2001-05-08
+
 gx11.c,command.c: Remove some debug statements which really should not be
    there for 1.0, and which are not really useful anyways.
 items_types, item_types.h: Varioius minor updates.

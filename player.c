@@ -206,7 +206,8 @@ void send_command(const char *command, int repeat, int must_send) {
 	    sl.len=5;
 	    SockList_AddShort(&sl, csocket.command_sent);
 	    SockList_AddInt(&sl, repeat);
-	    strcpy((char*)sl.buf + sl.len, command);
+	    strncpy((char*)sl.buf + sl.len, command, MAX_BUF - sl.len);
+	    sl.buf[MAX_BUF-1]=0;
 	    sl.len += strlen(command);
 	    send_socklist(csocket.fd, sl);
 	}
@@ -269,8 +270,8 @@ void extended_command(const char *ocommand) {
     char *cpnext, command[MAX_BUF];
 
     if ((cpnext = strchr(cp, ' '))!=NULL) {
-        strncpy(command, ocommand, cpnext - ocommand);
-	command[cpnext - ocommand] = '\0';
+        strncpy(command, ocommand, MAX_BUF-1);
+	command[MAX_BUF-1] = '\0';
 	cp = command;
     }
 
@@ -360,7 +361,8 @@ void extended_command(const char *ocommand) {
     } else {
 	/* just send the command(s)  (if `ocommand' is a compound command */
 	/* then split it and send each part seperately */
-        strcpy(command, ocommand);
+        strncpy(command, ocommand, MAX_BUF-1);
+	command[MAX_BUF-1]=0;
 	cp = strtok(command, ";");
 	while ( cp ) {
 	  while( *cp == ' ' ) cp++; /* throw out leading spaces; server
