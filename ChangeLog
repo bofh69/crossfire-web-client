@@ -3,6 +3,10 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Applied patch #1161817 (cowboyatheart): Add wands/staves/rods/horns to new pickup (client).
+gtk/gx11.c: add new 'magic devices' menu option.
+Ryo 2005-03-13
+
 More improvements for the gtkv2 client, mostly adding SDL support:
 gtk-v2/TODO: updated
 gtk-v2/src/logfile: Removed - don't need dmalloc logfile.

@@ -4013,6 +4013,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 #define PU_SPELLBOOK		0x00100000
 #define PU_SKILLSCROLL		0x00200000
 #define PU_READABLES		0x00400000
+#define PU_MAGIC_DEVICE		0x00800000
 
   /* root of the NEWPickup menu */
   newpickupmenu = gtk_menu_new();
@@ -4249,6 +4250,12 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_POTION));
   gtk_widget_show(menu_items);
 
+  menu_items = gtk_check_menu_item_new_with_label("Magic Devices");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+  GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MAGIC_DEVICE));
+  gtk_widget_show(menu_items);
 
 /* --------------------------------------------------------------------- */ 
 /* --------------------------------------------------------------------- */ 
