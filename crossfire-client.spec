@@ -1,6 +1,6 @@
 %define Name crossfire
 %define extra client
-%define version 0.95.8
+%define version 0.96.0
 %define sndversion 0.95.4
 %define release 2
 %define prefix /usr/X11R6

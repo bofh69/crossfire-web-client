@@ -29,23 +29,19 @@ bag
 chest
 key ring
 # Weapon types
+# Stylistically, I seperate the artifacts here to make it
+# a little clear.  It could be said that actually having a different
+# element for the artifacts is desirable.
 2:
 axe
 club
 dagger
-Darkblade
-Demonslayer
-Dragonslayer
 falchion
-Flame Tongue
-FlameTongue
 hammer
 katana
-Lightning sticks
 mace
 magnifying glass
 morningstar
-Mournblade
 nunchacu
 quarterstaff
 sabre
@@ -54,12 +50,21 @@ shovel
 spear
 stake
 sword
-Stormbringer
 taifu
-Trident
 trident
+Darkblade
+Demonslayer
+Dragonslayer
+Flame Tongue
+FlameTongue
+Lightning sticks
+Mournblade
+Sting
+Stormbringer
+Trident
 3:
-bow
+^bow
+elven bow
 crossbow
 sling
 arrow
@@ -125,11 +130,12 @@ sapphire
 31:
 coin
 # magic
-50:
+45:
 rod
 Rod
-51:
+47:
 wand
+48:
 staff
 52:
 horn
@@ -160,6 +166,7 @@ codex
 collection
 compendium
 compilation
+divine text
 divine work
 encyclopedia
 exposition
@@ -181,7 +188,7 @@ volume
 potion
 bottle
 61:
-balm 
+^balm
 dust 
 figurine
 # Item building scrolls
@@ -210,6 +217,7 @@ corpse
 dragon scale
 ectoplasm
 eye
+finger
 foot
 hand
 head
@@ -252,3 +260,6 @@ icecube
 library card
 Port Pass
 rose
+100:
+chair
+table

@@ -1,5 +1,7 @@
 "$Id$"
 Top of CVS tree:
+------------------------------------------------------------------------------
+Changes for 0.96.0:
 
 MSW 2001/02/02:
 Protocol: Update with new face1 command that includes checksum.
