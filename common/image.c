@@ -587,19 +587,22 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 	if (access(filename, R_OK | W_OK | X_OK)== -1) 
 	    mkdir(filename,0755);
 
-	/* We do pretty simple logic - we start at setnum, and try
-	 * to find a file that doesn't exist.  Our naming is poor, as
-	 * we put the name at the end of the filename, so they will be
-	 * things like .png.1, .png.2, etc.
-	 */
-	/* Decrease it by one since it will immediately get increased
-	 * in the loop below.
+	/* If setnum is valid, and we have faceset information for it,
+	 * put that prefix in.  This will make it easier later on to 
+	 * allow the client to switch image sets on the fly, as it can
+	 * determine what set the image belongs to.
+	 * We also append the number to it - there could be several versions
+	 * of 'face.base.111.x' if different servers have different image
+	 * values.
 	 */
 	if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix) 
 	    sprintf(basename,"%s.%s", facetoname[face], face_info.facesets[setnum].prefix);
 	else
-	    strcpy(basename, filename);
+	    strcpy(basename, facetoname[face]);
 
+	/* Decrease it by one since it will immediately get increased
+	 * in the loop below.
+	 */
 	setnum--;
 	do {
 	    setnum++;
