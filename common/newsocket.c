@@ -259,7 +259,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 /*
  * Send a printf-formatted packet to the socket.
  */
-int cs_print_string(int fd, char *str, ...)
+int cs_print_string(int fd, const char *str, ...)
 {
     va_list args;
     SockList sl;

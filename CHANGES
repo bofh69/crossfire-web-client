@@ -3,6 +3,19 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+common/client-types.h: use char instead of __int8 under Windows.
+common/commands.c: use 'const' for strings when possible.
+common/misc.c: use 'const' for strings when possible.
+common/newsocket.c: use 'const' for strings when possible.
+common/player.c: use 'const' for strings when possible.
+common/proto.h: use 'const' for strings when possible.
+gtk/gx11.c: use 'const' for strings when possible.
+gtk/keys.c: fix a buffer overflow in 'unbind' when displaying keys. Use
+   'const' for strings when possible.
+gtk/win32/config.h: don't define 'G_DISABLE_CONST_RETURNS' anymore, strings
+   are now correctly const.
+Ryo 2005-02-05
+
 Makefile.in: Fix up distclean directive to go into all directories.
 configure.in, configure: Fix configure so the --enable-feature and
    --disable-feature flags follow proper standard (from patch on

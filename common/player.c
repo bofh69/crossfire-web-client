@@ -465,7 +465,7 @@ void extended_command(const char *ocommand) {
  * the commands the server supports.
  */
  
-static char *commands[] = {
+static const char *commands[] = {
 "save", "sound", "party", "gsay", "apply", "brace",
 "cast", "disarm", "disconnect", "drop", "dropall", "examine",
 "get", "help", "hiscore", "inventory", "invoke",
@@ -484,10 +484,10 @@ static char *commands[] = {
  * command.
  */
 
-char * complete_command(char *command)
+const char * complete_command(const char *command)
 {
     int i, match=-1, len;
-    char *cp;
+    const char *cp;
 
     if (command[0] == '>') cp = command+1;
     else cp = command;

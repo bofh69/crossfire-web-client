@@ -93,8 +93,8 @@ typedef unsigned __int32    uint32;
 typedef signed __int32      sint32;
 typedef unsigned __int16    uint16;
 typedef signed __int16      sint16;
-typedef unsigned __int8     uint8;
-typedef signed __int8       sint8;
+typedef unsigned char     uint8;
+typedef signed char       sint8;
 
 #endif
 

@@ -130,7 +130,7 @@ int strncasecmp(const char *s1, const char *s2, int n);
 #define GTK_WINDOW_DIALOG GTK_WINDOW_TOPLEVEL
 #define GC GdkGC
 /* To avoid const issues with GTK widgets */
-#define G_DISABLE_CONST_RETURNS
+/*#define G_DISABLE_CONST_RETURNS*/
 
 #endif
 

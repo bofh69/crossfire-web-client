@@ -662,7 +662,7 @@ void gtk_command_history(int direction)
 
 void gtk_complete_command()
 {
-    gchar *entry_text, *newcommand;
+    const gchar *entry_text, *newcommand;
 	
     entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
     newcommand = complete_command(entry_text);
@@ -1193,7 +1193,7 @@ static void draw_list (itemlist *l)
 
 static void enter_callback(GtkWidget *widget, GtkWidget *entry)
 {
-    gchar *entry_text;
+    const gchar *entry_text;
 
     /* Next reply will reset this as necessary */
     if (!use_config[CONFIG_POPUPS])
@@ -1426,7 +1426,7 @@ static int iNameDialog = 0;
 
 static void dialog_callback(GtkWidget *dialog)
 {
-  gchar *dialog_text;
+  const gchar *dialog_text;
   dialog_text = gtk_entry_get_text(GTK_ENTRY(dialogtext));
 
 #ifdef WIN32
@@ -2982,7 +2982,7 @@ static void resize_notebook_event (GtkWidget *widget, GtkAllocation *event) {
 
 void count_callback(GtkWidget *widget, GtkWidget *entry)
 {
-    gchar *count_text;
+    const gchar *count_text;
 
     count_text = gtk_entry_get_text(GTK_ENTRY(counttext));
     cpl.count = atoi (count_text);

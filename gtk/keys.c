@@ -110,7 +110,7 @@ static Key_Entry *keys[KEYHASH];
  * that the keyboard is in.
  * This function is common to both gdk and x11 client
  */
-static void insert_key(uint32 keysym, int flags, char *command)
+static void insert_key(uint32 keysym, int flags, const char *command)
 {
 
     Key_Entry *newkey;
@@ -579,7 +579,7 @@ static void show_keys(int allbindings)
 {
     int i, count=1;
     Key_Entry *key;
-    char buf[MAX_BUF];
+    char buf[MAX_BUF + sizeof( bind_buf )];
 
   sprintf(buf, "Commandkey %s", 
 	  commandkeysym==NoSymbol?"unknown":gdk_keyval_name(commandkeysym));
@@ -1135,9 +1135,9 @@ void draw_keybindings (GtkWidget *keylist) {
     
 void bind_callback (GtkWidget *gtklist, GdkEventButton *event) {
     KeySym keysym;
-    gchar *entry_text;
-    gchar *cpnext;
-    gchar *mod="";
+    const gchar *entry_text;
+    const gchar *cpnext;
+    const gchar *mod="";
     char buf[MAX_BUF];
       
     bind_flags = KEYF_MODIFIERS;

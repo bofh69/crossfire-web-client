@@ -613,7 +613,7 @@ void handle_query (char *data, int len)
  * the stuff up.
  */
 
-void send_reply(char *text)
+void send_reply(const char *text)
 {
     cs_print_string(csocket.fd, "reply %s", text);
 }

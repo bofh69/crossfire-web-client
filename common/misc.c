@@ -121,7 +121,7 @@ int make_path_to_file (char *filename)
  * unix variants.
  */
 
-char *strdup_local(char *str) {
+char *strdup_local(const char *str) {
   char *c=(char *)malloc(sizeof(char)*strlen(str)+1);
   strcpy(c,str);
   return c;
