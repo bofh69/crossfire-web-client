@@ -64,6 +64,8 @@
 #endif
 
 
+#ifndef WIN32
+
 /* Set of common types used through the program and modules */
 typedef unsigned int    uint32;
 typedef signed int      sint32;
@@ -81,6 +83,20 @@ typedef signed long long        sint64;
 #else
 error do not know how to get a 64 bit value on this system.
 error correct and send mail to crossfire-devel on how to do this
+#endif
+
+#else
+/* Windows specific defines */
+
+typedef unsigned __int64    uint64;
+typedef signed __int64      sint64;
+typedef unsigned __int32    uint32;
+typedef signed __int32      sint32;
+typedef unsigned __int16    uint16;
+typedef signed __int16      sint16;
+typedef unsigned __int8     uint8;
+typedef signed __int8       sint8;
+
 #endif
 
 

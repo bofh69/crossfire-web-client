@@ -32,13 +32,21 @@
 #include "config.h"
 #include <stdlib.h>
 #include <sys/stat.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 /*#include <X11/keysym.h>*/
 
 /* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
+#ifndef WIN32
 #include <gdk/gdkx.h>
+#else
+#include <gdk/gdkwin32.h>
+#define NoSymbol 0L /* Special KeySym */
+typedef int KeyCode; /* Undefined type */
+#endif
 #include <gdk/gdkkeysyms.h>
 
 #include "client-types.h"
@@ -325,7 +333,15 @@ void init_keys()
      * bind everything.  Probably not a good idea, however.
      */
 
+#ifdef WIN32
+    /* For Windows, use player name if defined for key file */
+    if ( strlen( cpl.name ) )
+        sprintf( buf, "%s/.crossfire/%s.keys", getenv( "HOME" ), cpl.name );
+    else
+        sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
+#else
     sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
+#endif
     if ((fp=fopen(buf,"r"))==NULL) {
 	fprintf(stderr,"Could not open ~/.crossfire/keys, trying to load global bindings\n");
 	if (client_libdir==NULL) {
@@ -722,7 +738,16 @@ static void save_keys()
     int i;
     FILE *fp;
 
+#ifdef WIN32
+    /* Use player's name if available */
+    if ( strlen( cpl.name ) )
+        sprintf( buf,"%s/.crossfire/%s.keys", getenv("HOME"), cpl.name );
+    else
+        sprintf( buf,"%s/.crossfire/keys", getenv("HOME") );
+#else
     sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
+#endif
+
     if (make_path_to_file(buf)==-1) {
 	fprintf(stderr,"Could not create %s\n", buf);
 	return;
@@ -767,7 +792,7 @@ static void save_keys()
     }
 
     for (i=0; i<KEYHASH; i++) {
-	save_individual_key(fp, keys[i], 0);
+    save_individual_key(fp, keys[i], 0);
     }
     fclose(fp);
     /* Should probably check return value on all writes to be sure, but... */
@@ -947,6 +972,10 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	if (event->keyval == completekeysym) gtk_complete_command();
 	if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
 	    gtk_command_history(event->keyval==nextkeysym?0:1);
+#ifdef WIN32
+    else
+        gtk_widget_event(GTK_WIDGET(entrytext), (GdkEvent*)event);
+#endif
     } else {
 	switch(cpl.input_state) {
 	    case Playing:

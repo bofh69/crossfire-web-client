@@ -37,7 +37,11 @@
 
 /* gtk */
 #include <gtk/gtk.h>
+#ifndef WIN32
 #include <gdk/gdkx.h>
+#else
+#include <gdk/gdkwin32.h>
+#endif
 #include <gdk/gdkkeysyms.h>
 
 

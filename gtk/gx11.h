@@ -80,7 +80,9 @@ typedef struct {
   char title[MAX_BUF];  /* title of item list */
   char old_title[MAX_BUF];  /* previos title (avoid redrawns) */
   
+#ifndef WIN32
   Window win;		  /* for X-windows */
+#endif
   GtkWidget *label;
   GtkWidget *weightlabel;
   GtkWidget *maxweightlabel;

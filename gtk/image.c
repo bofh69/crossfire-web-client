@@ -34,12 +34,18 @@
 #include "config.h"
 #include <stdlib.h>
 #include <sys/stat.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 #include <png.h>
 
 /* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
+#ifndef WIN32
 #include <gdk/gdkx.h>
+#else
+#include <gdk/gdkwin32.h>
+#endif
 #include <gdk/gdkkeysyms.h>
 
 #ifdef HAVE_SDL

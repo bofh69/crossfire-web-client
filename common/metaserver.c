@@ -29,12 +29,14 @@
  * to the server when requested.
  */
 
+#ifndef WIN32
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <ctype.h>
 #include <arpa/inet.h>
+#endif
 #include <stdio.h>
 
 #include <client.h>
@@ -66,6 +68,74 @@ Meta_Info *meta_servers=NULL;
 int meta_numservers=0;
 
 static int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
+
+#ifdef WIN32
+/* This gets input from a socket, and returns it one line at a time.
+ */
+/* This is a Windows-specific function, since you can't use fgets under Win32 */
+char* get_line_from_sock(char* s, size_t n, int fd)
+{
+    static long charsleft = 0;
+    static char inbuf[MS_LARGE_BUF*4];
+    char* cp;
+	int ct;
+
+    if (!s) return s;
+    if (n != MS_LARGE_BUF*4-1)
+    {
+        fprintf(stderr,"Serious program logic error in get_line_from_sock().\n");
+        exit(-1);
+    }
+
+    if ( (charsleft > (MS_LARGE_BUF*4-3)) && (strchr(inbuf,'\n')==NULL) )
+    {
+        draw_info("Metaserver returned an overly long line.", NDI_BLACK);
+        return NULL;
+    }
+
+	/* If there is no line in the buffer */
+    while ( (charsleft==0) || ((cp=strchr(inbuf,'\n'))==NULL) )
+    {
+        FD_SET fdset = {1,fd};
+        TIMEVAL tv = {3,0}; /* 3 second timeout on reads */
+        int nlen;
+        if ( select(0,&fdset,NULL,NULL,&tv) == 0 )
+        {
+            draw_info("Metaserver timed out.", NDI_BLACK);
+            return NULL;
+        }
+        else
+        {
+            nlen = recv(fd,inbuf+charsleft-1,MS_LARGE_BUF*4-1-charsleft,0);
+            if ((nlen == SOCKET_ERROR) || (nlen <= 0)) /* Probably EOF */
+                return NULL;
+			else
+				charsleft += nlen;
+        }
+    }
+
+    /* OK, inbuf contains a null terminated string with at least one \n
+     * Copy the string up to the \n to s, and then move the rest of the
+     * inbuf string to the beginning of the buffer.  And finally, set
+     * charsleft to the number of characters left in inbuf, or 0.
+     * Oh, and cp contains the location of the \n.
+     */
+
+    memcpy(s, inbuf, cp-inbuf+1); /* Extract the line, including the \n. */
+	s[cp-inbuf+1] = 0; /* null terminate it */
+
+    /* Copy cp to inbuf up to the \0, (skipping the \n) */
+    ct = 0;
+    while (cp[++ct] != 0) {
+		inbuf[ct-1] = cp[ct];
+	}
+	inbuf[ct-1] = 0;
+    charsleft = ct;    /* And keep track of how many characters are left. */
+
+    return s;
+}
+
+#endif /* Win32 */
 
 /* This contacts the metaserver and gets the list of servers.  returns 0
  * on success, 1 on failure.  Errors will get dumped to stderr,
@@ -116,6 +186,8 @@ int metaserver_get_info(char *metaserver, int meta_port)
         perror("Can't connect to server");
 	return 1;
     }
+
+#ifndef WIN32 /* Windows doesn't support this */
     /* Turn this into a file handle - this will break it on newlines
      * for us, which makes our processing much easier - it basically
      * means one line/server
@@ -124,6 +196,8 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	perror("fdopen failed.");
 	return 1;
     }
+#endif
+
     /* Don't reset this until here - that way if we successfully got
      * a list before, we can still use it.
      */
@@ -136,7 +210,11 @@ int metaserver_get_info(char *metaserver, int meta_port)
      * this is so if there is a corrupt entry, it gets displayed as
      * originally received from the server.
      */
+#ifndef WIN32 /* Windows doesn't support this */
     while (fgets(inbuf, MS_LARGE_BUF*4-1, fp)!=NULL) {
+#else
+    while (get_line_from_sock(inbuf, MS_LARGE_BUF*4-1, fd)!=NULL) {
+#endif
 	char *cp,*cp1;
 
 	if ((cp=strchr(inbuf,'|'))==NULL) {
@@ -199,7 +277,11 @@ int metaserver_get_info(char *metaserver, int meta_port)
 
 	meta_numservers++;
     }
+#ifdef WIN32
+    close( fd );
+#else
     fclose(fp);
+#endif
     qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)())meta_sort);
     return 0;
 }

@@ -69,8 +69,13 @@ static int write_socket(int fd, unsigned char *buf, int len)
     /* If we manage to write more than we wanted, take it as a bonus */
     while (len>0) {
 	do {
+#ifndef WIN32
 	    amt=write(fd, pos, len);
 	} while ((amt<0) && (errno==EINTR));
+#else
+	    amt=send(fd, pos, len, 0);
+	} while ((amt<0) && (WSAGetLastError()==EINTR));
+#endif
 
 	if (amt < 0) { /* We got an error */
 	    LOG(llevError,"New socket (fd=%d) write failed.\n", fd);
@@ -147,9 +152,15 @@ int GetInt_String(unsigned char *data)
 /* 64 bit version of the above */
 sint64 GetInt64_String(unsigned char *data)
 {
-    return (((uint64)data[0]<<56) + ((uint64)data[1]<<48) + 
-	    ((uint64)data[2]<<40) + ((uint64)data[3]<<32) +
-	    (data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
+#ifndef WIN32
+     return (((uint64)data[0]<<56) + ((uint64)data[1]<<48) + 
+ 	    ((uint64)data[2]<<40) + ((uint64)data[3]<<32) +
+ 	    (data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
+#else
+    return (((sint64)data[0]<<56) + ((sint64)data[1]<<48) + 
+	    ((sint64)data[2]<<40) + ((sint64)data[3]<<32) +
+	    ((sint64)data[4]<<24) + ((sint64)data[5]<<16) + ((sint64)data[6]<<8) + (sint64)data[7]);
+#endif
 }
 
 short GetShort_String(unsigned char *data) {
@@ -170,13 +181,22 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
     /* We already have a partial packet */
     if (sl->len<2) {
 	do {
+#ifndef WIN32
 	    stat=read(fd, sl->buf + sl->len, 2-sl->len);
 	} while ((stat==-1) && (errno==EINTR));
+#else
+	    stat=recv(fd, sl->buf + sl->len, 2-sl->len, 0);
+	} while ((stat==-1) && (WSAGetLastError()==EINTR));
+#endif
 	if (stat<0) {
 	    /* In non blocking mode, EAGAIN is set when there is no
 	     * data available.
 	     */
+#ifndef WIN32
 	    if (errno!=EAGAIN && errno!=EWOULDBLOCK) {
+#else
+	    if (WSAGetLastError()!=EAGAIN && WSAGetLastError()!=WSAEWOULDBLOCK) {
+#endif
 		perror("ReadPacket got an error.");
 		LOG(llevDebug,"ReadPacket got error %d, returning -1",errno);
 		return -1;
@@ -203,10 +223,19 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
     }
     do {
 	do {
+#ifndef WIN32
 	    stat = read(fd, sl->buf+ sl->len, toread);
 	} while ((stat<0) && (errno==EINTR));
+#else
+	    stat = recv(fd, sl->buf+ sl->len, toread, 0);
+	} while ((stat<0) && (WSAGetLastError()==EINTR));
+#endif
 	if (stat<0) {
+#ifndef WIN32
 	    if (errno!=EAGAIN && errno!=EWOULDBLOCK) {
+#else
+	    if (WSAGetLastError()!=EAGAIN && WSAGetLastError()!=WSAEWOULDBLOCK) {
+#endif
 		perror("ReadPacket got an error.");
 		LOG(llevDebug,"ReadPacket got error %d, returning 0",errno);
 	    }

@@ -33,7 +33,9 @@
 #include "config.h"
 #include <stdlib.h>
 #include <sys/stat.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 #include <ctype.h>
 
 #include "client.h"
@@ -95,7 +97,11 @@ static int load_image(char *filename, uint8 *data, int *len, int *csum)
 		*cp = '@';	/* put @ back in string */
 		return -1;
 	    }
+#ifdef WIN32
+	    if ((fd_cache[last].fd = open(filename, O_RDONLY | O_BINARY))==-1) {
+#else
 	    if ((fd_cache[last].fd = open(filename, O_RDONLY))==-1) {
+#endif
 		fprintf(stderr,"unable to load listed cache file %s\n",filename);
 		*cp = '@';	/* put @ back in string */
 		return -1;
@@ -104,11 +110,19 @@ static int load_image(char *filename, uint8 *data, int *len, int *csum)
 	    i=last;
 	}
 	lseek(fd_cache[i].fd, offset, SEEK_SET);
+#ifdef WIN32
+	*len = read(fd_cache[i].fd, data, length);
+#else
 	*len = read(fd_cache[i].fd, data, 65535);
+#endif
 	*cp = '@';
     }
     else {
+#ifdef WIN32
+	if ((fd=open(filename, O_RDONLY | O_BINARY))==-1) return -1;
+#else
 	if ((fd=open(filename, O_RDONLY))==-1) return -1;
+#endif
 	*len=read(fd, data, 65535);
 	close(fd);
     }
@@ -645,7 +659,11 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 		    facetoname[face][1], basename, setnum);
 	} while (access(filename, F_OK)==-0);
 
+#ifdef WIN32
+	if ((tmpfile = fopen(filename,"wb"))==NULL) {
+#else
 	if ((tmpfile = fopen(filename,"w"))==NULL) {
+#endif
 	    fprintf(stderr,"Can not open %s for writing\n", filename);
 	}
 	else {

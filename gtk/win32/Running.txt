@@ -1,0 +1,48 @@
+Readme for Crossfire's GTK client under Windows (October 26th, 2003)
+--------------------------------------------------------------------
+
+This document contains notes and information about running Crossfire's GTK client under Win32.
+More information about Crossfire can be found at http://crossfire.real-time.com
+
+Building instructions can be found in Building.txt, located in the same directory.
+
+
+
+This client is based on CVS sources of October, 26th, 2003. It is at least equivalent to the official 1.6.0 client.
+
+
+Requirements:
+The client requires GTK libraries to be correctly installed. It has been tested with libraries from http://www.dropline.net/gtk/.
+You only need to get the 'GTK runtime environment' if you only intend to run the client.
+
+Additionally, if you installed the client via an installer, it probably installed GTK for you.
+Or some other software, like GAIM (http://gaim.sf.net) will install it for you.
+
+Installation
+------------
+Note: if you installed via an installer, you can skip this section.
+
+The client can run from any directory.
+A .crossfire directory will be created to store settings and cached images.
+If the environment variable 'HOME' is set, .crossfire will be created as $HOME/.crossfire
+Else working directory will be used.
+
+You probably will want to get image files bmaps.client, crossfire.base and crossfire.clsc
+They should be available in CVS or in client's tarball.
+
+Release notes & known issues
+----------------------------
+* each player has its own player_name.keys file in .crossfire. This makes it easier to play multiple chars.
+* there is no sound currently.
+* if the client loads multisquare building images, display will be mess up until this building goes out of view.
+* split windows mode may not work, it hasn't be tested much.
+
+
+Troubleshooting
+---------------
+If something goes wrong, report your troubles to:
+* Crossfire's messageboard: http://www.metalforge.net/cfmb/index.php
+* Crossfire's mailing list: see http://crossfire.real-time.com for instructions on how to join it
+* #crossfire on irc.freenode.org
+
+Also check Crossfire's bugs page at http://sourceforge.net/tracker/?group_id=13833&atid=113833

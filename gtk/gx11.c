@@ -68,7 +68,11 @@
 
 /* gtk */
 #include <gtk/gtk.h>
+#ifndef WIN32
 #include <gdk/gdkx.h>
+#else
+#include <gdk/gdkwin32.h>
+#endif
 #include <gdk/gdkkeysyms.h>
 
 #ifdef HAVE_SDL
@@ -435,13 +439,21 @@ static animobject *newanimobject() {
 
 static void freeanimview (gpointer data, gpointer user_data) {
   if (data)
+#ifdef WIN32
+      free( data );
+#else
     g_free (data);
+#endif
 }
 
 static void freeanimobject (animobject *data, gpointer user_data) {
   if (data)
     g_list_foreach (data->view, freeanimview, 0);
+#ifdef WIN32
+  free( data );
+#else
   g_free (data);
+#endif
 }
 
 /* Update the pixmap */
@@ -1377,6 +1389,11 @@ static void sendstr(char *sendstr)
 }
 
 
+#ifdef WIN32
+/* Used to catch player name, to load custom key bindings */
+static int iNameDialog = 0;
+#endif
+
 /* This is similar to draw_info below, but doesn't advance to a new
  * line.  Generally, queries use this function to draw the prompt for
  * the name, password, etc.
@@ -1388,7 +1405,17 @@ static void dialog_callback(GtkWidget *dialog)
 {
   gchar *dialog_text;
   dialog_text = gtk_entry_get_text(GTK_ENTRY(dialogtext));
-  
+
+#ifdef WIN32
+  if ( 1 == iNameDialog )
+  /* Now is a good time to load player's specific key bindings */
+      {
+      iNameDialog = 0;
+      strcpy( cpl.name, dialog_text );
+      init_keys( );
+      }
+#endif
+
   gtk_widget_destroy (dialog_window);
   send_reply(dialog_text);
   cpl.input_state = Playing;
@@ -1461,6 +1488,9 @@ draw_prompt (const char *str)
 			    gtk_widget_show (dialogtext);
 			    gtk_widget_grab_focus (dialogtext);
 			    found = TRUE;
+#ifdef WIN32
+                iNameDialog = 1;
+#endif
 			    continue;
 			}
 
@@ -2163,7 +2193,11 @@ void draw_stats(int redraw) {
     
     if(redraw || cpl.stats.exp!=last_stats.exp) {
       last_stats.exp = cpl.stats.exp;
+#ifndef WIN32
       sprintf(buff,"Score: %5lld",cpl.stats.exp);
+#else
+      sprintf(buff,"Score: %I64d",cpl.stats.exp);
+#endif
       gtk_label_set (GTK_LABEL(statwindow.score), buff);
       gtk_widget_draw (statwindow.score, NULL);
     }
@@ -2295,10 +2329,18 @@ void draw_stats(int redraw) {
       gtk_label_set (GTK_LABEL(statwindow.food), buff);
       gtk_widget_draw (statwindow.food, NULL);
       if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3) && (cpl.stats.food < 200))
-	XBell(GDK_DISPLAY(), 0);
+#ifndef WIN32
+        XBell(GDK_DISPLAY(), 0);
+#else
+	    gdk_beep( );
+#endif
     } else if (use_config[CONFIG_FOODBEEP] && cpl.stats.food == 0 && ++lastbeep == 5) {
 	lastbeep = 0;
-	XBell(GDK_DISPLAY(), 0);
+#ifndef WIN32
+    XBell(GDK_DISPLAY(), 0);
+#else
+    gdk_beep( );
+#endif
     }
     
     if(redraw || strcmp(cpl.range, last_range)) {
@@ -3502,11 +3544,18 @@ void menu_clear () {
   gtk_text_forward_delete (GTK_TEXT (gtkwin_info_text), size );
   gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
 
+#ifdef WIN32
+  if ( gtkwin_info_text2 )
+      {
+#endif
   size = gtk_text_get_length(GTK_TEXT (gtkwin_info_text2));
   gtk_text_freeze (GTK_TEXT (gtkwin_info_text2));
   gtk_text_set_point(GTK_TEXT (gtkwin_info_text2), 0);
   gtk_text_forward_delete (GTK_TEXT (gtkwin_info_text2), size );
   gtk_text_thaw (GTK_TEXT (gtkwin_info_text2));
+#ifdef WIN32
+      }
+#endif
 }
 
 void sexit()
@@ -4224,8 +4273,13 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     style = gtk_rc_get_style(gtkwin_root);
     if (style) {
+#ifdef WIN32 /* GTK 2.2 stuff */
+	gcw = gdk_char_width(gdk_font_from_description(style->font_desc), '0') + 4;
+	gch = gdk_char_height(gdk_font_from_description(style->font_desc), '0') + 2;
+#else
 	gcw = gdk_char_width(style->font, '0') + 4;
 	gch = gdk_char_height(style->font, '0') + 2;
+#endif
     } else {
 	/* These are what the old defaults values were */
 	gcw = 11;
@@ -5175,7 +5229,11 @@ int init_windows(int argc, char **argv)
     char *display_name="";
     load_defaults(); 
 
+#ifndef WIN32
     strcpy(VERSION_INFO,"GTK Unix Client " VERSION);
+#else
+    strcpy(VERSION_INFO,"GTK Win32 Client " VERSION);
+#endif
 
     /* Set this global so we get skill experience - gtk client can display
      * it, so lets get the info.
@@ -5608,11 +5666,25 @@ int main(int argc, char *argv[])
     }
     csocket.inbuf.buf=malloc(MAXSOCKBUF);
 
+#ifdef WIN32 /* def WIN32 */
+	maxfd = 0; /* This is ignored on win32 platforms */
+
+	/* This is required for sockets to be used under win32 */
+	{
+		WORD Version = 0x0202;
+		WSADATA wsaData;
+		if (WSAStartup( Version, &wsaData ) != 0) {
+			fprintf(stderr, "Couldn't load winsock!\nExiting.\n");
+			exit(1);
+		}
+	}
+#else /* def WIN32 */
 #ifdef HAVE_SYSCONF
     maxfd = sysconf(_SC_OPEN_MAX);
 #else
     maxfd = getdtablesize();
 #endif
+#endif /* def WIN32 */
 
     if (init_sounds() == -1) 
 	use_config[CONFIG_SOUND] = FALSE;

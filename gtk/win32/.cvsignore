@@ -1,0 +1,9 @@
+.crossfire
+Debug
+Release
+bmaps.client
+crossfire.base
+crossfire.clsc
+*.ncb
+*.opt
+*.plg

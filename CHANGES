@@ -2,6 +2,30 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Those fixes are for Windows compilation ('for Windows' is implicit everywhere).
+Most code was borrowed from Philip aka Somebdy's previous GTK port.
+Note: the changed code is embedded in #if(n)def WIN32 / #endif.
+---
+Win32-Readme.txt: added to tell about supported clients under Windows.
+common/client-types.h: Windows-specific typedefs.
+common/client.c: missing include fixed, changed fcntl for ioctlsocket.
+common/image.c: forced opening of files in binary mode to avoid bad troubles.
+common/init.c: make sure HOME is set, to correctly find paths.
+common/metaserver.c: made it work, with a specific function (fgets can't work).
+common/newsocket.c: fix GetInt64_String. Make write_socket and SockList_ReadPacket work.
+gtk/config.c: use correct header file
+gtk/gx11.c: fix bad header files. Fix g_free() / free() issue. Catch player's name
+    to load specific keys. Fix score display issue. Other specific stuff.
+gtk/gx11.h: fix undefined X-Window specific type (Window).
+gtk/image.c: fix headers.
+gtk/keys.c: fix headers. Key file uses player's name, when known. Fix input
+    issue with 'entrytext'. Fix missing KeyCode type.
+gtk/map.c: fix headers.
+gtk/png.c: fix headers.
+gtk/win32: Windows specific files.
+
+Ryo 2003-10-26
+
 common/client.h, common/newsocket.c: Remove 'extern in errno' lines -
   errno.h is included, which takes care of the problem.
 MSW 2003-10-25

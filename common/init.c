@@ -197,6 +197,14 @@ void init_client_vars()
     for (i=0; i<CONFIG_NUMS; i++) 
 	use_config[i] = want_config[i];
 
+#ifdef WIN32
+    /* If HOME is not set, let's set it to . to avoid things like (null)/.crossfire paths */
+    if ( !getenv( "HOME" ) )
+        {
+        printf( "init_client_vars: HOME not set, setting it to .\n" );
+        putenv( "HOME=." );
+        }
+#endif
 }
 
 /* This is basically called each time a new player logs

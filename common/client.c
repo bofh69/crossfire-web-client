@@ -159,6 +159,7 @@ void DoClient(ClientSocket *csocket)
     }
 }
 
+#ifndef WIN32
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -166,6 +167,7 @@ void DoClient(ClientSocket *csocket)
 #include <netinet/tcp.h>
 #include <ctype.h>
 #include <arpa/inet.h>
+#endif
 
 /* returns the fd of the connected socket, -1 on failure. */
 
@@ -204,10 +206,18 @@ int init_connection(char *host, int port)
 	perror("Can't connect to server");
 	return -1;
     }
+#ifndef WIN32
     if (fcntl(fd, F_SETFL, O_NDELAY)==-1) {
 	fprintf(stderr,"InitConnection:  Error on fcntl.\n");
     }
-
+#else
+    {
+		unsigned long tmp = 1;
+		if (ioctlsocket(fd, FIONBIO, &tmp)<0) {
+	    fprintf(stderr,"InitConnection:  Error on ioctlsocket.\n");
+        }
+	}
+#endif
 #ifdef TCP_NODELAY
     /* turn off nagle algorithm */
     if (use_config[CONFIG_FASTTCP]) {
