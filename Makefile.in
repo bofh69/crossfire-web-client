@@ -190,7 +190,10 @@ clean::
 
 install:
 	$(INSTALL) $(TARGET) ${bindir}
-	$(INSTALL) client.man ${mandir}/$(TARGET).1
+	$(INSTALL) client.man ${mandir}/cfclient.1
+	@if [ -x gcfclient ]; then \
+	    	$(INSTALL) client.man ${mandir}/gcfclient.1; \
+	fi
 
 depend:
 	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(SOURCES) $(SND_SOURCES)
