@@ -13,6 +13,14 @@ DEPEND = @DEPEND@
 PERL = @PERL@
 SOUND_DIR = @SOUNDDIR@
 DMALLOC_LIB = @DMALLOC_LIB@
+AR = @AR@
+RANLIB = @RANLIB@
+
+SUBDIRS = @SUBDIRS@
+
+# Put all them here - by default, SUBDIRS will change depending on libraries
+# and other stuff detected.  ALLBSUBDIRS is used for the archive creation.
+ALLSUBDIRS = common gtk gnome sound-src x11
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -22,89 +30,19 @@ soundlistdir=@sysconfdir@/sound/events
 desktopdir=@prefix@/share/gnome/apps/Games
 pixmapsdir=@prefix@/share/pixmaps
 
-HEADERS= \
-	cconfig.h		\
-	client.h		\
-	clientbmap.h		\
-	item.h			\
-	item_types.h		\
-        newclient.h		\
-	proto.h			\
-	soundsdef.h		
-
-SOURCES = \
-	client.c		\
-	commands.c		\
-	init.c			\
-	item.c			\
-	metaserver.c		\
-	misc.c			\
-	newsocket.c		\
-	player.c		\
-	sound.c
-
-GTK_SOURCES = $(SOURCES) gx11.c
-GTK_OBJS= $(GTK_SOURCES:.c=.o)
-
-X11_SOURCES = $(SOURCES) x11.c
-X11_OBJS= $(X11_SOURCES:.c=.o)
-X_CFLAGS=@X_CFLAGS@
-X_LIBS=@X_LIBS@
-
-GTK_CFLAGS=@GTK_CFLAGS@
-GTK_LIBS=@GTK_LIBS@
-SND_LIBS=@SND_LIBS@
-
-GNOME_SOURCES = \
-	client.c		\
-	commands.c		\
-	init.c			\
-	item.c			\
-	metaserver.c		\
-	misc.c			\
-	newsocket.c		\
-	player.c		\
-	gnome-sound.c	\
-	gnome.c
-GNOME_OBJS= $(GNOME_SOURCES:.c=.o)
-GNOME_CFLAGS=-DSYSCONFDIR=\""@sysconfdir@"\" -DDATADIR=\""@datadir@"\" @GNOME_INCLUDEDIR@ @GDK_PIXBUF_CFLAGS@
-GNOME_LIBS=@GNOME_LIBDIR@ @GNOMEUI_LIBS@ @GDK_PIXBUF_LIBS@
-
-# proto only wants the .c files 
-
-PROTOSOURCES= \
-	client.c		\
-	commands.c		\
-	init.c			\
-	item.c			\
-	metaserver.c		\
-	misc.c			\
-	newsocket.c		\
-	player.c		\
-	sound.c			\
-	x11.c
-
 EXTRA_DIST = \
-	aclocal.m4		\
 	CHANGES			\
 	COPYING			\
+	License			\
 	Makefile.in		\
+	NOTES			\
 	README			\
+	TODO			\
 	aclocal.m4		\
-	client.man		\
-	config.h.in		\
 	configure		\
 	configure.in		\
-	def_keys		\
-	def-keys.h		\
-	item_types		\
-	items.pl		\
-	sounds.dist		\
-	x11.c			\
-	xutil.c			\
-	gx11.c			\
-	png.c			\
-	cfsndserv.c
+	crossfire-client.spec
+
 
 PIXMAPS = \
 	pixmaps/all.xpm		\
@@ -115,6 +53,7 @@ PIXMAPS = \
 	pixmaps/crossfiretitle.xpm	\
 	pixmaps/cursed.xpm	\
 	pixmaps/damned.xpm	\
+	pixmaps/dot.xpm		\
 	pixmaps/hand.xpm	\
 	pixmaps/hand2.xpm	\
 	pixmaps/lock.xpm	\
@@ -124,129 +63,86 @@ PIXMAPS = \
 	pixmaps/nonmag.xpm	\
 	pixmaps/question.111	\
 	pixmaps/question.xpm	\
+	pixmaps/shield.png	\
 	pixmaps/skull.xpm	\
 	pixmaps/stipple.111	\
 	pixmaps/stipple.112	\
 	pixmaps/test.xpm	\
+	pixmaps/unlock.xpm	\
 	pixmaps/unpaid.xpm	
 
 HELP= \
+	help/about.h		\
 	help/chelp.h		\
-	help/shelp.h		\
-	help/about.h
+	help/shelp.h
 
 UTILS = \
 	utils/config.guess	\
 	utils/config.sub	\
-	utils/mdk.sh		\
 	utils/deftoheader.pl	\
 	utils/install-sh	\
+	utils/mdk.sh		\
 	utils/missing		\
 	utils/mkinstalldirs
 
-SND_SOURCES = cfsndserv.c misc.c
-SND_OBJS= $(SND_SOURCES:.c=.o)
+
+all:
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making all in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' all; ) \
+	done;
 
 
-INCLUDES = @X_CFLAGS@
+depend:
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making depend in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' depend; ) \
+	done;
 
-all:  @TARGET@ def-keys.h
+clean:
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making clean in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' clean; ) \
+	done;
 
-gnome-cfclient: $(GNOME_OBJS)
-	$(CC) -o gnome-cfclient $(GNOME_OBJS) $(GNOME_LIBS) $(LDFLAGS) $(LIBS) $(DMALLOC_LIB)
+distclean:
+	$(RM) -f Makefile Makefile.bak config.cache config.log config.status
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making distclean in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' distclean; ) \
+	done;
 
-gnome.o: gnome.c
-	$(CC) $(CFLAGS) $(GNOME_CFLAGS) $(INCLUDES) -c gnome.c
-
-gnome-sound.o: gnome-sound.c
-	$(CC) $(CFLAGS) $(GNOME_CFLAGS) $(INCLUDES) -c gnome-sound.c
-
-
-gcfclient: $(GTK_OBJS)
-	$(CC) -o gcfclient $(GTK_OBJS) $(LDFLAGS) $(LIBS) $(GTK_LIBS) $(DMALLOC_LIB)
-
-cfclient: $(X11_OBJS)
-	$(CC) -o cfclient $(X11_OBJS) $(LDFLAGS) $(LIBS) $(X_LIBS) $(DMALLOC_LIB)
-
-# grumble grumble.  cextract can't seem to handle gx11.c
 proto:
-	cextract +p -P -o proto.h.bak -DCFCLIENT \
-	-cpp-program="gcc -E -C" $(INCLUDES) -I. $(PROTOSOURCES)
-	sed -e "s/#if __STDC__/#ifdef __STDC__/" -e "/__inline/d" < \
-	proto.h.bak > proto.h
-	$(RM) -f proto.h.bak
-	chmod 664 proto.h
-
-item_types.h: item_types
-	$(PERL) items.pl
-
-def-keys.h: def_keys
-	utils/mdk.sh
-
-sounds: sounds.dist Makefile
-	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUND_DIR)# sounds.dist > sounds
-
-
-soundsdef.h: sounds
-	$(PERL) utils/deftoheader.pl sounds soundsdef.h def_sounds
-
-.c.o:
-	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
-
-sound.o: soundsdef.h
-
-gx11.o: gx11.c
-	$(CC) $(CFLAGS) $(GTK_CFLAGS) $(INCLUDES) -c gx11.c
-
-x11.o: x11.c
-	$(CC) $(CFLAGS) $(X_CFLAGS) $(INCLUDES) -c x11.c
-
-cfsndserv: $(SND_OBJS) soundsdef.h
-	$(CC) -o cfsndserv $(SND_OBJS) $(LDFLAGS) $(SND_LIBS) $(DMALLOC_LIB)
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making proto in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' proto; ) \
+	done;
 
 archive:
 	if [ -d /tmp/$(VERSION) ]; then $(RM) -rf /tmp/$(VERSION); fi
 	$(MKDIR) /tmp/$(VERSION) /tmp/$(VERSION)/utils /tmp/$(VERSION)/help /tmp/$(VERSION)/pixmaps
-	$(CP) $(HEADERS) $(SOURCES) $(EXTRA_DIST) /tmp/$(VERSION)
+	$(CP) $(EXTRA_DIST) /tmp/$(VERSION)
 	$(CP) $(PIXMAPS) /tmp/$(VERSION)/pixmaps
 	$(CP) $(HELP) /tmp/$(VERSION)/help
 	$(CP) $(UTILS) /tmp/$(VERSION)/utils
+	@for dir in $(ALLSUBDIRS); \
+	    do \
+	    echo "making archive in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' archive; ) \
+	done;
 	(cd /tmp; $(RM) $(VERSION).tgz; \
 		$(TAR) cvfhz $(VERSION).tar.gz $(VERSION) )
 	$(CP) /tmp/$(VERSION).tar.gz ../
 	$(RM) -rf /tmp/$(VERSION) /tmp/$(VERSION).tar.gz
 
-
-clean::
-	$(RM) -f $(TARGET) $(GTK_OBJS) $(SND_OBJS) x11.o gnome.o gnome-sound.o Makefile.bak
-
-distclean::
-	$(MAKE) clean
-	$(RM) -f config.status config.log config.cache
-	$(RM) -f cfsndserv cfclient gcfclient
-
 install:
-	$(INSTALL) -d ${bindir}
-	$(INSTALL) -d ${mandir}
-	@for i in $(TARGET); do \
-		echo "Installing $$i"; \
-		$(INSTALL) $$i ${bindir}; \
-	done
-	$(INSTALL) client.man ${mandir}/cfclient.1
-	@if [ -x gcfclient ]; then \
-		$(INSTALL) client.man ${mandir}/gcfclient.1; \
-	fi
-	@if [ -x gnome-cfclient ]; then \
-		mkdir -p ${mandir}; \
-		$(INSTALL) client.man ${mandir}/gnome-cfclient.1; \
-		mkdir -p ${soundlistdir}; \
-		$(INSTALL) gnome-cfclient.soundlist ${soundlistdir}/gnome-cfclient.soundlist; \
-		mkdir -p ${desktopdir}; \
-		$(INSTALL) gnome-cfclient.desktop ${desktopdir}/gnome-cfclient.desktop; \
-		mkdir -p ${pixmapsdir}; \
-		$(INSTALL) shield.png ${pixmapsdir}/shield.png; \
-		$(INSTALL) pixmaps/crossfiretitle.xpm ${pixmapsdir}/crossfiretitle.xpm; \
-	fi
-
-depend:
-	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(PROTOSOURCES) $(SND_SOURCES) gx11.c
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making install in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' install; ) \
+	done;

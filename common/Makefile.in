@@ -1,0 +1,89 @@
+VERSION = crossfire-client-@VERSION@
+MKDIR = @MKDIR@
+CP = @CP@
+TAR = @TAR@
+RM = @RM@
+CFLAGS = @CFLAGS@ @CPPFLAGS@ -I.
+LDFLAGS = @LDFLAGS@
+CC = @CC@
+LIBS = @LIBS@
+INSTALL = @INSTALL@
+DEPEND = @DEPEND@
+PERL = @PERL@
+DMALLOC_LIB = @DMALLOC_LIB@
+AR = @AR@
+RANLIB = @RANLIB@
+
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+
+HEADERS= \
+	cconfig.h		\
+	client.h		\
+	client-types.h		\
+	external.h		\
+	item.h			\
+	item-types.h		\
+        newclient.h		\
+	proto.h	
+
+SOURCES = \
+	client.c		\
+	commands.c		\
+	init.c			\
+	item.c			\
+	metaserver.c		\
+	misc.c			\
+	newsocket.c		\
+	player.c
+
+OBJECTS = $(SOURCES:.c=.o)
+
+EXTRA_DIST = \
+	config.h.in		\
+	def-keys		\
+	def-keys.h		\
+	item-types		\
+	items.pl		\
+	Makefile.in
+
+all: def-keys.h item-types.h libcfclient.a
+
+libcfclient.a: $(OBJECTS)
+	$(RM) -f $@
+	$(AR) $(ARFLAGS) $@ $(OBJECTS)
+	$(RANLIB) $@
+
+# grumble grumble.  cextract can't seem to handle gx11.c
+proto:
+	cproto -e -o proto.h -DCFCLIENT $(INCLUDES) -I. $(SOURCES)
+	chmod 664 proto.h
+
+item-types.h: item-types
+	$(PERL) items.pl
+
+def-keys.h: def-keys
+	utils/mdk.sh
+
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
+
+
+archive:
+	$(MKDIR) -p /tmp/$(VERSION)/common
+	$(CP) $(HEADERS) $(SOURCES) $(EXTRA_DIST) /tmp/$(VERSION)/common
+
+clean::
+	$(RM) -f $(OBJECTS)
+
+distclean::
+	$(MAKE) clean
+	$(RM) -f libcfclient.a Makefile
+
+install:
+	echo "Nothing to be done for make install"
+
+depend:
+	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(PROTOSOURCES) $(SND_SOURCES) gx11.c

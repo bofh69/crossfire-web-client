@@ -37,7 +37,7 @@
 /* Set to default display mode you want (one of Pix_Display, Xpm_Display, or
  * Png_Display).
  */
-#define DISPLAY_MODE Xpm_Display
+#define DISPLAY_MODE Png_Display
 
 /* Set to default server you want the client to connect to.  This can
  * be especially useful if your installing the client binary on a LAN

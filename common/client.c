@@ -17,7 +17,7 @@
 
 
 #include <client.h>
-
+#include <external.h>
 /* actually declare the globals */
 
 char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
@@ -69,8 +69,6 @@ struct CmdMapping commands[] = {
     { "drawinfo", (CmdProc)DrawInfoCmd },
     { "stats", StatsCmd },
 
-    { "pixmap", PixMapCmd },
-    { "bitmap", BitMapCmd },
     { "image", ImageCmd },
     { "face", FaceCmd},
     { "face1", Face1Cmd},
@@ -216,6 +214,18 @@ void negotiate_connection(int sound)
     cache = display_willcache();
     if (cache) cache = CF_FACE_CACHE;
 
+    if (csocket.sc_version<1023) {
+	fprintf(stderr,"Server does not support PNG images, yet that is all this client\n");
+	fprintf(stderr,"supports.  Either the server needs to be upgraded, or you need to\n");
+	fprintf(stderr,"downgrade your client.\n");
+	exit(1);
+    }
+    /* Other than cache, this doesn't do anything.  However, in the
+     * future, it may be possible to select other image sets (eg, iso)
+     */
+    SendSetFaceMode(csocket,CF_FACE_PNG | cache);
+
+#if 0
     if (display_usebitmaps()) 
 	SendSetFaceMode(csocket,CF_FACE_BITMAP | cache); 
     else if (display_usexpm()) 
@@ -227,18 +237,12 @@ void negotiate_connection(int sound)
 	}
 	else SendSetFaceMode(csocket,CF_FACE_PNG | cache);
     }
+#endif
 
-# if 0
-    if (sound<0)
-	cs_write_string(csocket.fd,"setsound 0", 10);
-    else
-	cs_write_string(csocket.fd,"setsound 1", 10);
-#else
     sprintf(buf,"setup sound %d sexp %d darkness %d newmapcmd %d",
 	    (sound<0?0:1), want_skill_exp, want_darkness, fog_of_war);
     cs_write_string(csocket.fd, buf, strlen(buf));
 
-#endif
     mapx=11;
     mapy=11;
     if (want_mapx!=11 || want_mapy!=11) {
@@ -250,88 +254,3 @@ void negotiate_connection(int sound)
 }
 
 
-int main(int argc, char *argv[])
-{
-    int sound,got_one=0;
-
-    /* This needs to be done first.  In addition to being quite quick,
-     * it also sets up some paths (client_libdir) that are needed by
-     * the other functions.
-     */
-
-    init_client_vars();
-    
-    /* Call this very early.  It should parse all command
-     * line arguments and set the pertinent ones up in
-     * globals.  Also call it early so that if it can't set up
-     * the windowing system, we get an error before trying to
-     * to connect to the server.  And command line options will
-     * likely change on the server we connect to.
-     */
-    if (init_windows(argc, argv)) {	/* x11.c */
-	fprintf(stderr,"Failure to init windows.\n");
-	exit(1);
-    }
-    csocket.inbuf.buf=malloc(MAXSOCKBUF);
-
-#ifdef HAVE_SYSCONF
-    maxfd = sysconf(_SC_OPEN_MAX);
-#else
-    maxfd = getdtablesize();
-#endif
-
-    sound = init_sounds();
-
-    /* Loop to connect to server/metaserver and play the game */
-    while (1) {
-	reset_client_vars();
-	csocket.inbuf.len=0;
-	csocket.cs_version=0;
-
-	/* Perhaps not the best assumption, but we are taking it that
-	 * if the player has not specified a server (ie, server
-	 * matches compiled in default), we use the meta server.
-	 * otherwise, use the server provided, bypassing metaserver.
-	 * Also, if the player has already played on a server once (defined
-	 * by got_one), go to the metaserver.  That gives them the oppurtunity
-	 * to quit the client or select another server.  We should really add
-	 * an entry for the last server there also.
-	 */
-
-	if (!strcmp(server, SERVER) || got_one) {
-	    char *ms;
-	    metaserver_get_info(meta_server, meta_port);
-	    metaserver_show(TRUE);
-	    do {
-		ms=get_metaserver();
-	    } while (metaserver_select(ms));
-	    negotiate_connection(sound);
-	} else {
-	    csocket.fd=init_connection(server, port_num);
-	    if (csocket.fd == -1) { /* specified server no longer valid */
-		server = SERVER;
-		continue;
-	    }
-	    negotiate_connection(sound);
-	}
-
-	got_one=1;
-	event_loop();
-	/* if event_loop has exited, we most of lost our connection, so we
-	 * loop again to establish a new one.
-	 */
-
-	/* Need to reset the images so they match up properly and prevent
-	 * memory leaks.
-	 */
-	reset_image_data();
-	remove_item_inventory(cpl.ob);
-	/* We know the following is the private map structure in
-	 * item.c.  But we don't have direct access to it, so
-	 * we still use locate.
-	 */
-	remove_item_inventory(locate_item(0));
-	reset_map_data();
-    }
-    exit(0);	/* never reached */
-}

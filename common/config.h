@@ -1,4 +1,4 @@
-/* config.h.  Generated automatically by configure.  */
+/* common/config.h.  Generated automatically by configure.  */
 /* config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
 
 /* Define to empty if the keyword does not work.  */
@@ -28,8 +28,8 @@
 /* #undef HAVE_GETTEXT */
 /* #undef HAVE_LC_MESSAGES */
 /* #undef HAVE_STPCPY */
-/* #undef HAVE_LIBSM */
-#define HAVE_LIBXPM 1
+#define HAVE_LIBSM 1
+/* #undef HAVE_LIBXPM */
 
 /* Define if you have the mkdir function.  */
 #define HAVE_MKDIR 1
@@ -44,7 +44,7 @@
 #define HAVE_SYSCONF 1
 
 /* Define if you have the <X11/SM/SMlib.h> header file.  */
-/* #undef HAVE_X11_SM_SMLIB_H */
+#define HAVE_X11_SM_SMLIB_H 1
 
 /* Define if you have the <dmalloc.h> header file.  */
 #define HAVE_DMALLOC_H 1
@@ -79,5 +79,5 @@
 #define PACKAGE "gcfclient"
 
 /* Version number of package */
-#define VERSION "1.0.0"
+#define VERSION "1.1.0"
 

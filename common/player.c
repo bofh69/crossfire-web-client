@@ -4,6 +4,7 @@
  */
  
 #include <client.h>
+#include <external.h>
 
 /* This file handles various player related functions.  This includes
  * both things that operate on the player item, cpl structure, or

@@ -47,6 +47,9 @@
 #include "pixmaps/unlock.xpm"
 #include "pixmaps/dot.xpm"
 
+#include "gnome-cf.h"
+#include "gnomeproto.h"
+
 #define PNGX_NOFILE	1
 #define PNGX_OUTOFMEM	2
 #define PNGX_DATA	3
@@ -84,25 +87,6 @@
 #define display GDK_DISPLAY()
 #define MAX_BARS_MESSAGE 80
 
-struct MapCell {
-	short faces[MAXFACES];
-	int count;
-	uint8 darkness;
-	uint8 need_update;
-};
-
-struct Map {
-	struct MapCell cells[MAP_MAX_SIZE][MAP_MAX_SIZE];
-};
-
-struct PixmapInfo {
-	long fg, bg;
-	GdkPixbuf *gdkpixbuf;
-	GdkPixmap *gdkpixmap;
-	GdkBitmap *gdkbitmap;
-	GdkPixmap *gdkpixmap12;
-	GdkBitmap *gdkbitmap12;
-};
 
 typedef struct {
 	int x;
@@ -131,9 +115,9 @@ struct {
 	uint32 checksum;
 	GdkPixbuf *gdkpixbuf;
 	GdkPixmap *gdkpixmap;
-	GdkBitmap *gdkbitmap;
-	GdkPixmap *gdkpixmap12;
-	GdkBitmap *gdkbitmap12;
+	GdkBitmap *map_mask;
+	GdkPixmap *icon_image;
+	GdkBitmap *icon_mask;
 } private_cache[MAXPIXMAPNUM];
 
 typedef enum inventory_show {
@@ -226,6 +210,8 @@ typedef struct Keys {
 GtkWidget *drawable;
 GdkPixmap *pixmap;
 GdkGC *gc;
+GdkBitmap *dark1, *dark2, *dark3;
+GdkPixmap *dark;
 char facecachedir[MAX_BUF];
 static KeyCode firekey[2], runkey[2], commandkey, *bind_keycode, prevkey, nextkey, completekey;
 static KeySym firekeysym[2], runkeysym[2], commandkeysym, *bind_keysym, prevkeysym, nextkeysym, completekeysym;
@@ -234,9 +220,9 @@ static char bind_buf[MAX_BUF];
 extern char *directions[9];
 static Key_Entry *keys[256];
 char *facetoname[MAXPIXMAPNUM];
-int updatekeycodes = FALSE, keepcache = FALSE;
+uint8 updatekeycodes = FALSE, keepcache = FALSE;
 guchar rgb[32 * 32 * 3];
-static int image_size = 32;
+int image_size = 32, map_image_size=32;
 char history[MAX_HISTORY][MAX_COMMAND_LEN];
 static int cur_history_position = 0, scroll_history_position = 0;
 GList *anim_inv_list = NULL, *anim_look_list = NULL;
@@ -260,8 +246,7 @@ static GdkColor root_color[16];
 static GdkPixmap *magicgdkpixmap;
 static GdkGC *map_gc;
 static GtkWidget *mapvbox;
-static struct Map the_map;
-static struct PixmapInfo pixmaps[MAXPIXMAPNUM];
+PixmapInfo pixmaps[MAXPIXMAPNUM];
 static GtkWidget *ccheckbutton1;
 static GtkWidget *ccheckbutton3;
 static GtkWidget *ccheckbutton4;
@@ -384,38 +369,16 @@ gnome_client_quit()
 	exit(0);
 }
 
-void
-set_map_darkness(int x, int y, uint8 darkness)
-{
-	if (darkness != (255 - the_map.cells[x][y].darkness )) {
-		the_map.cells[x][y].darkness = 255 - darkness;
-		the_map.cells[x][y].need_update = 1;
-/*		if (pngximage) {
-			if (x-1>0) the_map.cells[x-1][y].need_update = 1;
-			if (y-1>0) the_map.cells[x][y-1].need_update = 1;
-			if (x+1<mapx) the_map.cells[x+1][y].need_update = 1;
-			if (y+1<mapy) the_map.cells[x][y+1].need_update = 1;
-		}*/
-	}
-}
 
-void
-set_map_face(int x, int y, int layer, int face)
-{
-	the_map.cells[x][y].faces[layer] = face;
-	if ((layer + 1) > the_map.cells[x][y].count)
-		the_map.cells[x][y].count = layer + 1;
-	the_map.cells[x][y].need_update = 1;
-}
 
 void
 resize_map_window(int x, int y)
 {
-	gtk_drawing_area_size(GTK_DRAWING_AREA(drawable), image_size * x, image_size * y);
-	gtk_widget_set_usize(gameframe, (image_size * x) + 6, (image_size * y) + 6);
-	gtk_widget_set_usize(drawable, (image_size * x), (image_size * y));
-	gtk_widget_set_usize(invframe, 230, (((image_size * y) / 3) * 2));
-	gtk_widget_set_usize(lookframe, 230, ((image_size * y) / 3));
+	gtk_drawing_area_size(GTK_DRAWING_AREA(drawable), map_image_size * x, map_image_size * y);
+	gtk_widget_set_usize(gameframe, (map_image_size * x) + 6, (map_image_size * y) + 6);
+	gtk_widget_set_usize(drawable, (map_image_size * x), (map_image_size * y));
+	gtk_widget_set_usize(invframe, 230, (((map_image_size * y) / 3) * 2));
+	gtk_widget_set_usize(lookframe, 230, ((map_image_size * y) / 3));
 }
 
 static void
@@ -449,10 +412,10 @@ finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 		len = find_face_in_private_cache(face, checksum);
 		if (len > 0) {
 			pixmaps[pnum].gdkpixbuf = private_cache[len].gdkpixbuf;
-			pixmaps[pnum].gdkpixmap = private_cache[len].gdkpixmap;
-			pixmaps[pnum].gdkbitmap = private_cache[len].gdkbitmap;
-			pixmaps[pnum].gdkpixmap12 = private_cache[len].gdkpixmap12;
-			pixmaps[pnum].gdkbitmap12 = private_cache[len].gdkbitmap12;
+			pixmaps[pnum].map_image = private_cache[len].gdkpixmap;
+			pixmaps[pnum].map_mask = private_cache[len].map_mask;
+			pixmaps[pnum].icon_image = private_cache[len].icon_image;
+			pixmaps[pnum].icon_mask = private_cache[len].icon_mask;
 			if (private_cache[len].checksum == checksum || !has_sum || keepcache)
 				return;
 		}
@@ -468,10 +431,13 @@ finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 		close(fd);
 		pixmaps[pnum].gdkpixbuf = gdk_pixbuf_new_from_file(buf);
 	}
-	tmppixbuf = gdk_pixbuf_scale_simple(pixmaps[pnum].gdkpixbuf, image_size, image_size, GDK_INTERP_BILINEAR);
-	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[pnum].gdkpixmap, &pixmaps[pnum].gdkbitmap, 1);
+	pixmaps[pnum].map_width = gdk_pixbuf_get_width(pixmaps[pnum].gdkpixbuf);
+	pixmaps[pnum].map_height = gdk_pixbuf_get_height(pixmaps[pnum].gdkpixbuf);
+
+/*	tmppixbuf = gdk_pixbuf_scale_simple(pixmaps[pnum].gdkpixbuf, map_image_size, map_image_size, GDK_INTERP_BILINEAR);*/
+	gdk_pixbuf_render_pixmap_and_mask(pixmaps[pnum].gdkpixbuf, &pixmaps[pnum].map_image, &pixmaps[pnum].map_mask, 1);
 	tmppixbuf = gdk_pixbuf_scale_simple(pixmaps[pnum].gdkpixbuf, 12, 12, GDK_INTERP_BILINEAR);
-	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[pnum].gdkpixmap12, &pixmaps[pnum].gdkbitmap12, 1);
+	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[pnum].icon_image, &pixmaps[pnum].icon_mask, 1);
 	if (!pixmaps[pnum].gdkpixbuf) {
 		requestface(pnum, face, buf);
 	}
@@ -1179,6 +1145,8 @@ load_defaults()
 	image_size = gnome_config_get_int_with_default("gnome-cfclient/Options/ImageSize=24", &diddef);
 	if (diddef)
 		gnome_config_set_int("gnome-cfclient/Options/ImageSize", image_size);
+	map_image_size = image_size;
+
 	inv_list.show_icon = gnome_config_get_bool_with_default("gnome-cfclient/Options/ShowIcon=TRUE", &diddef);
 	if (diddef)
 		gnome_config_set_bool("gnome-cfclient/Options/ShowIcon", inv_list.show_icon);
@@ -1366,7 +1334,7 @@ freeanimview(gpointer data, gpointer user_data)
 		g_free(data);
 }
 
-void
+static void
 freeanimobject(animobject * data, gpointer user_data)
 {
 	if (data)
@@ -1374,13 +1342,13 @@ freeanimobject(animobject * data, gpointer user_data)
 	g_free(data);
 }
 
-void
+static void
 animateview(animview * data, gint user_data)
 {
-	gtk_clist_set_pixmap(GTK_CLIST(data->list), data->row, 0, pixmaps[facecachemap[user_data]].gdkpixmap12, pixmaps[facecachemap[user_data]].gdkbitmap12);
+	gtk_clist_set_pixmap(GTK_CLIST(data->list), data->row, 0, pixmaps[facecachemap[user_data]].icon_image, pixmaps[facecachemap[user_data]].icon_mask);
 }
 
-void
+static void
 animate(animobject * data, gpointer user_data)
 {
 	if (data) {
@@ -1414,12 +1382,12 @@ button_map_event(GtkWidget * widget, GdkEventButton * event)
 	int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
 	x = (int)event->x;
 	y = (int)event->y;
-	dx = (x - 2) / image_size - (mapx / 2);
-	dy = (y - 2) / image_size - (mapy / 2);
-	xmidl = 5 * image_size - (mapx / 2);
-	xmidh = 6 * image_size + (mapx / 2);
-	ymidl = 5 * image_size - (mapy / 2);
-	ymidh = 6 * image_size + (mapy / 2);
+	dx = (x - 2) / map_image_size - (mapx / 2);
+	dy = (y - 2) / map_image_size - (mapy / 2);
+	xmidl = 5 * map_image_size - (mapx / 2);
+	xmidh = 6 * map_image_size + (mapx / 2);
+	ymidl = 5 * map_image_size - (mapy / 2);
+	ymidh = 6 * map_image_size + (mapy / 2);
 	switch (event->button) {
 	case 1:
 		{
@@ -1504,10 +1472,10 @@ init_cache_data()
 	GdkPixbuf *tmppixbuf;
 	printf("Init Cache\n");
 	pixmaps[0].gdkpixbuf = gdk_pixbuf_new_from_xpm_data((const char **) question);
-	tmppixbuf = gdk_pixbuf_scale_simple(pixmaps[0].gdkpixbuf, image_size, image_size, GDK_INTERP_BILINEAR);
-	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[0].gdkpixmap, &pixmaps[0].gdkbitmap, 1);
+	tmppixbuf = gdk_pixbuf_scale_simple(pixmaps[0].gdkpixbuf, map_image_size, map_image_size, GDK_INTERP_BILINEAR);
+	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[0].map_image, &pixmaps[0].map_mask, 1);
 	tmppixbuf = gdk_pixbuf_scale_simple(pixmaps[0].gdkpixbuf, 12, 12, GDK_INTERP_BILINEAR);
-	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[0].gdkpixmap12, &pixmaps[0].gdkbitmap12, 1);
+	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[0].icon_image, &pixmaps[0].icon_mask, 1);
 	pixmaps[0].bg = 0;
 	pixmaps[0].fg = 1;
 	facetoname[0] = NULL;
@@ -1601,7 +1569,60 @@ configure_event(GtkWidget *widget, GdkEventConfigure *event)
 	pixmap = gdk_pixmap_new(widget->window, widget->allocation.width, widget->allocation.height, -1);
 	gdk_draw_rectangle(pixmap, widget->style->white_gc, TRUE, 0, 0, widget->allocation.width, widget->allocation.height);
 	gc = gdk_gc_new(widget->window);
-	return TRUE;
+
+#if 0
+/*    if (!sdlimage) */
+        {
+	int x,y,count;
+	GdkGC	*darkgc;
+
+	/* this is used when drawing with GdkPixmaps.  Create another surface,
+         * as well as some light/dark images
+         */
+	dark = gdk_pixmap_new(drawable->window, map_image_size, map_image_size, -1);
+	gdk_draw_rectangle(dark, drawable->style->black_gc, TRUE, 0, 0, map_image_size, map_image_size);
+	dark1 = gdk_pixmap_new(drawable->window, map_image_size, map_image_size, 1);
+	dark2 = gdk_pixmap_new(drawable->window, map_image_size, map_image_size, 1);
+	dark3 = gdk_pixmap_new(drawable->window, map_image_size, map_image_size, 1);
+
+	/* We need our own GC here because we are working with single bit depth images */
+	darkgc = gdk_gc_new(dark1);
+	gdk_gc_set_foreground(darkgc, &root_color[NDI_WHITE]);
+	/* Clear any garbage values we get when we create the bitmaps */
+	gdk_draw_rectangle(dark1, darkgc, TRUE, 0, 0, map_image_size, map_image_size);
+	gdk_draw_rectangle(dark2, darkgc, TRUE, 0, 0, map_image_size, map_image_size);
+	gdk_draw_rectangle(dark3, darkgc, TRUE, 0, 0, map_image_size, map_image_size);
+	gdk_gc_set_foreground(darkgc, &root_color[NDI_BLACK]);
+	count=0;
+	for (x=0; x<map_image_size; x++) {
+	    for (y=0; y<map_image_size; y++) {
+
+		/* we just fill in points every X pixels - dark1 is the darkest, dark3 is the lightest.
+		 * dark1 has 50% of the pixels filled in, dark2 has 33%, dark3 has 25%
+		 * The formula's here are not perfect - dark2 will not match perfectly with an
+		 * adjacent dark2 image.  dark3 results in diagonal stripes.  OTOH, these will
+		 * change depending on the image size.
+		 */
+		if ((x+y) % 2) {
+		    gdk_draw_point(dark1, darkgc, x, y);
+		}
+		if ((x+y) %3) {
+		    gdk_draw_point(dark2, darkgc, x, y);
+		}
+		if ((x+y) % 4) {
+		    gdk_draw_point(dark3, darkgc, x, y);
+		}
+		/* dark1 gets filled on 0x01, 0x11, 0x10, only leaving 0x00 empty */
+	    }
+	    /* if the row size is even, we put an extra value in count - in this
+	     * way, the pixels will be even on one line, odd on the next, etc
+	     * instead of vertical lines - at least for datk1 and dark3
+	     */
+	}
+	gdk_gc_unref(darkgc);
+    }
+#endif
+    return TRUE;
 }
 
 static gint
@@ -1620,7 +1641,7 @@ get_game_display(GtkWidget * frame)
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
 	drawable = gtk_drawing_area_new();
-	gtk_widget_set_usize(drawable, (image_size * mapx), (image_size * mapy));
+	gtk_widget_set_usize(drawable, (map_image_size * mapx), (map_image_size * mapy));
 	gtk_widget_set_events(drawable, GDK_BUTTON_PRESS_MASK);
 	gtk_signal_connect(GTK_OBJECT(drawable), "button_press_event", GTK_SIGNAL_FUNC(button_map_event), NULL);
 	gtk_signal_connect(GTK_OBJECT(drawable), "configure_event", GTK_SIGNAL_FUNC(configure_event), NULL);
@@ -1708,7 +1729,7 @@ draw_list(itemlist * l)
 		buffers[2] = buffer[2];
 		if (l->multi_list) {
 			tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[0]), buffers);
-			gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[0]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+			gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[0]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 			gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
 			if (color_inv) {
 				if (tmp->cursed || tmp->damned) {
@@ -1732,7 +1753,7 @@ draw_list(itemlist * l)
 			}
 			if (tmp->applied) {
 				tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[1]), buffers);
-				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[1]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[1]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 				gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[1]), tmprow, tmp);
 				if (tmp->animation_id > 0 && tmp->anim_speed) {
 					tmpanimview = newanimview();
@@ -1743,7 +1764,7 @@ draw_list(itemlist * l)
 			}
 			if (!tmp->applied) {
 				tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[2]), buffers);
-				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[2]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[2]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 				gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[2]), tmprow, tmp);
 				if (tmp->animation_id > 0 && tmp->anim_speed) {
 					tmpanimview = newanimview();
@@ -1754,7 +1775,7 @@ draw_list(itemlist * l)
 			}
 			if (tmp->unpaid) {
 				tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[3]), buffers);
-				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[3]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[3]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 				gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[3]), tmprow, tmp);
 				if (tmp->animation_id > 0 && tmp->anim_speed) {
 					tmpanimview = newanimview();
@@ -1765,7 +1786,7 @@ draw_list(itemlist * l)
 			}
 			if (tmp->cursed || tmp->damned) {
 				tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[4]), buffers);
-				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[4]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[4]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 				gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[4]), tmprow, tmp);
 				if (tmp->animation_id > 0 && tmp->anim_speed) {
 					tmpanimview = newanimview();
@@ -1776,7 +1797,7 @@ draw_list(itemlist * l)
 			}
 			if (tmp->magical) {
 				tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[5]), buffers);
-				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[5]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[5]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 				gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[5]), tmprow, tmp);
 				if (tmp->animation_id > 0 && tmp->anim_speed) {
 					tmpanimview = newanimview();
@@ -1787,7 +1808,7 @@ draw_list(itemlist * l)
 			}
 			if (!tmp->magical) {
 				tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[6]), buffers);
-				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[6]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[6]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 				gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[6]), tmprow, tmp);
 				if (tmp->animation_id > 0 && tmp->anim_speed) {
 					tmpanimview = newanimview();
@@ -1798,7 +1819,7 @@ draw_list(itemlist * l)
 			}
 			if (tmp->locked) {
 				tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[7]), buffers);
-				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[7]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[7]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 				gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[7]), tmprow, tmp);
 				if (tmp->animation_id > 0 && tmp->anim_speed) {
 					tmpanimview = newanimview();
@@ -1809,7 +1830,7 @@ draw_list(itemlist * l)
 			}
 			if (!tmp->locked) {
 				tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[8]), buffers);
-				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[8]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+				gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[8]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 				gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[8]), tmprow, tmp);
 				if (tmp->animation_id > 0 && tmp->anim_speed) {
 					tmpanimview = newanimview();
@@ -1831,7 +1852,7 @@ draw_list(itemlist * l)
 			}
 		} else {
 			tmprow = gtk_clist_append(GTK_CLIST(l->gtk_list[0]), buffers);
-			gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[0]), tmprow, 0, pixmaps[facecachemap[tmp->face]].gdkpixmap12, pixmaps[facecachemap[tmp->face]].gdkbitmap12);
+			gtk_clist_set_pixmap(GTK_CLIST(l->gtk_list[0]), tmprow, 0, pixmaps[facecachemap[tmp->face]].icon_image, pixmaps[facecachemap[tmp->face]].icon_mask);
 			gtk_clist_set_row_data(GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
 			if (tmp->animation_id > 0 && tmp->anim_speed) {
 				tmpanim = newanimobject();
@@ -3111,6 +3132,7 @@ applyconfig()
 {
 	int sound;
 	image_size = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(imagesizesb));
+	map_image_size = image_size;
 	reset_image_data();
 	if (GTK_TOGGLE_BUTTON(ccheckbutton3)->active) {
 		if (nosound) {
@@ -3849,12 +3871,12 @@ create_windows()
 	gnome_app_add_docked(GNOME_APP(gtkwin_root), frame, "InfoBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_BOTTOM, 0, 1, 0);
 	gtk_widget_show_all(frame);
 	invframe = gtk_frame_new(NULL);
-	gtk_widget_set_usize(invframe, 230, (((mapy * image_size) / 3) * 2));
+	gtk_widget_set_usize(invframe, 230, (((mapy * map_image_size) / 3) * 2));
 	get_inv_display(invframe);
 	gnome_app_add_docked(GNOME_APP(gtkwin_root), invframe, "InvBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_LEFT, 0, 0, 0);
 	gtk_widget_show_all(invframe);
 	lookframe = gtk_frame_new(NULL);
-	gtk_widget_set_usize(lookframe, 230, ((mapy * image_size) / 3));
+	gtk_widget_set_usize(lookframe, 230, ((mapy * map_image_size) / 3));
 	get_look_display(lookframe);
 	gnome_app_add_docked(GNOME_APP(gtkwin_root), lookframe, "LookBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_LEFT, 0, 1, 0);
 	gtk_widget_show_all(lookframe);
@@ -3865,12 +3887,12 @@ create_windows()
 	gtk_widget_show_all(frame);
 	gnome_app_set_contents(GNOME_APP(gtkwin_root), frame);
 	gameframe = gtk_frame_new(NULL);
-	gtk_widget_set_usize(gameframe, (image_size * mapx) + 6, (image_size * mapy) + 6);
+	gtk_widget_set_usize(gameframe, (map_image_size * mapx) + 6, (map_image_size * mapy) + 6);
 	get_game_display(gameframe);
 	gtk_box_pack_start(GTK_BOX(hbox), gameframe, FALSE, FALSE, 0);
 	gtk_widget_show_all(gameframe);
 	frame = gtk_frame_new(NULL);
-/*	gtk_widget_set_usize(frame, 300, (image_size * mapy) + 6);*/
+/*	gtk_widget_set_usize(frame, 300, (map_image_size * mapy) + 6);*/
 	gtk_box_pack_end(GTK_BOX(hbox), frame, TRUE, TRUE, 0);
 	gtk_widget_show_all(frame);
 	get_message_display(frame);
@@ -4122,65 +4144,14 @@ command_show(char *params)
 		gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 8);
 }
 
-int
-init_windows(int argc, char **argv)
-{
-	poptContext pctx;
-	int on_arg = 1;
-	gchar **args;
-	gnome_init_with_popt_table(PACKAGE, VERSION, argc, argv, options, 0, &pctx);
-	load_defaults();
-	args = (gchar **) poptGetArgs(pctx);
-	if (echobindings == TRUE)
-		cpl.echo_bindings = TRUE;
-	if (mapsizeopt != -1 && (mapsizeopt < 11 || mapsizeopt > MAP_MAX_SIZE)) {
-		printf("Mapsize must be between 11 and %d!\n", MAP_MAX_SIZE);
-		exit(0);
-	} else if (mapsizeopt != -1) {
-		want_mapx = mapsizeopt;
-		want_mapy = mapsizeopt;
-	}
-	poptFreeContext(pctx);
-	want_skill_exp = 1;
-	last_str = malloc(32767);
-	create_splash();
-	create_windows();
-	if (display_mode == Png_Display) {
-		gdk_rgb_init();
-	}
-	for (on_arg = 0; on_arg < MAXPIXMAPNUM; on_arg++)
-		facecachemap[on_arg] = on_arg;
-	init_keys();
-	init_cache_data();
-	destroy_splash();
-	return 0;
-}
 
-void
-display_map_clearcell(long x, long y)
-{
-	int i;
-	the_map.cells[x][y].count = 0;
-	the_map.cells[x][y].darkness = 0;
-	the_map.cells[x][y].need_update = 1;
-	for (i = 0; i < MAXFACES; i++)
-		the_map.cells[x][y].faces[i] = -1;
-}
-
-void
-display_map_addbelow(long x, long y, long face)
-{
-	the_map.cells[x][y].faces[the_map.cells[x][y].count] = face & 0xFFFF;
-	the_map.cells[x][y].count++;
-	the_map.cells[x][y].need_update = 1;
-}
 
 static void
 gen_draw_face(int face, int x, int y)
 {
-	gdk_gc_set_clip_mask(gc, pixmaps[facecachemap[face]].gdkbitmap);
-	gdk_gc_set_clip_origin(gc, x * image_size, y * image_size);
-	gdk_window_copy_area(pixmap, gc, x * image_size, y * image_size, pixmaps[facecachemap[face]].gdkpixmap, 0, 0, image_size, image_size);
+	gdk_gc_set_clip_mask(gc, pixmaps[facecachemap[face]].map_mask);
+	gdk_gc_set_clip_origin(gc, x * map_image_size, y * map_image_size);
+	gdk_window_copy_area(pixmap, gc, x * map_image_size, y * map_image_size, pixmaps[facecachemap[face]].map_image, 0, 0, map_image_size, map_image_size);
 }
 
 void
@@ -4188,7 +4159,7 @@ display_mapcell_pixmap(int ax, int ay)
 {
 	int k;
 	if (the_map.cells[ax][ay].need_update == TRUE) {
-		gdk_draw_rectangle(pixmap, drawable->style->mid_gc[0], TRUE, ax * image_size, ay * image_size, image_size, image_size);
+		gdk_draw_rectangle(pixmap, drawable->style->mid_gc[0], TRUE, ax * map_image_size, ay * map_image_size, map_image_size, map_image_size);
 		if (mapx > 11 && mapy > 11) {
 			for (k = 0; k < the_map.cells[ax][ay].count; k++) {
 				if (the_map.cells[ax][ay].faces[k] > 0)
@@ -4235,54 +4206,11 @@ display_map_newmap()
 void
 display_map_doneupdate(int redraw)
 {
-	int ax, ay;
-	if (updatelock > 30)
-		return;
-	for (ax = 0; ax < mapx; ax++) {
-		for (ay = 0; ay < mapy; ay++) {
-			if (the_map.cells[ax][ay].count == 0) {
-				gdk_draw_rectangle(pixmap, drawable->style->black_gc, TRUE, ax * image_size, ay * image_size, image_size, image_size);
-			} else
-				display_mapcell_pixmap(ax, ay);
-		}
-	}
-	gdk_draw_pixmap(drawable->window, drawable->style->fg_gc[GTK_WIDGET_STATE(drawable)], pixmap, 0, 0, 0, 0, image_size * mapx, image_size * mapy);
-	updatelock++;
+    if (updatelock > 30)
+	    return;
+    gtk_draw_map();
 }
 
-void
-display_mapscroll(int dx, int dy)
-{
-	int x, y, x2, y2;
-	struct Map newmap;
-	for(x = 0; x < mapx; x++) {
-		for(y = 0; y < mapy; y++) {
-			if (x + dx < 0 || x + dx >= mapx || y + dy < 0 || y + dy >= mapy) {
-				memset((char*)&(newmap.cells[x][y]), 0, sizeof(struct MapCell));
-				newmap.cells[x][y].need_update = 1;
-			} else
-				memcpy((char*)&(newmap.cells[x][y]), (char*)&(the_map.cells[x + dx][y + dy]), sizeof(struct MapCell));
-		}
-	}
-	x = x2 = 0;
-	y = y2 = 0;
-	if (dx < 0) {
-		x = (0 - dx);
-		x2 = 0;
-	} else if (dx > 0) {
-		x = 0;
-		x2 = dx;
-	}
-	if (dy < 0) {
-		y = (0 - dy);
-		y2 = 0;
-	} else if (dy > 0) {
-		y = 0;
-		y2 = dy;
-	}
-	gdk_window_copy_area(pixmap, drawable->style->fg_gc[GTK_WIDGET_STATE(drawable)], image_size * x, image_size * y, pixmap, image_size * x2, image_size * y2, image_size * (mapx - x - x2), image_size * (mapy - y - y2));
-	memcpy((char*)&the_map, (char*)&newmap, sizeof(struct Map));
-}
 
 void
 display_newpix(long face, char *buf, long buflen)
@@ -4301,10 +4229,10 @@ display_newpix(long face, char *buf, long buflen)
 		fclose(tmpfile);
 	}
 	pixmaps[face].gdkpixbuf = gdk_pixbuf_new_from_file(filename);
-	tmppixbuf = gdk_pixbuf_scale_simple(pixmaps[face].gdkpixbuf, image_size, image_size, GDK_INTERP_BILINEAR);
-	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[face].gdkpixmap, &pixmaps[face].gdkbitmap, 1);
+	tmppixbuf = gdk_pixbuf_scale_simple(pixmaps[face].gdkpixbuf, map_image_size, map_image_size, GDK_INTERP_BILINEAR);
+	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[face].map_image, &pixmaps[face].map_mask, 1);
 	tmppixbuf = gdk_pixbuf_scale_simple(pixmaps[face].gdkpixbuf, 12, 12, GDK_INTERP_BILINEAR);
-	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[face].gdkpixmap12, &pixmaps[face].gdkbitmap12, 1);
+	gdk_pixbuf_render_pixmap_and_mask(tmppixbuf, &pixmaps[face].icon_image, &pixmaps[face].icon_mask, 1);
 	if (!pixmaps[face].gdkpixbuf) {
 		fprintf(stderr, "Got error on image load\n");
 	}
@@ -4365,3 +4293,105 @@ void
 save_winpos()
 {
 }
+
+int
+main(int argc, char **argv)
+{
+    poptContext pctx;
+    int on_arg = 1, got_one, sound;
+    gchar **args;
+
+    init_client_vars();
+
+    strcpy(VERSION_INFO,"Gnome Unix Client " VERSION);
+    gnome_init_with_popt_table(PACKAGE, VERSION, argc, argv, options, 0, &pctx);
+    load_defaults();
+    args = (gchar **) poptGetArgs(pctx);
+    if (echobindings == TRUE)
+	cpl.echo_bindings = TRUE;
+    if (mapsizeopt != -1 && (mapsizeopt < 11 || mapsizeopt > MAP_MAX_SIZE)) {
+	    printf("Mapsize must be between 11 and %d!\n", MAP_MAX_SIZE);
+	    exit(0);
+    } else if (mapsizeopt != -1) {
+	    want_mapx = mapsizeopt;
+	    want_mapy = mapsizeopt;
+    }
+    poptFreeContext(pctx);
+    want_skill_exp = 1;
+    last_str = malloc(32767);
+    create_splash();
+    create_windows();
+    if (display_mode == Png_Display) {
+	    gdk_rgb_init();
+    }
+    for (on_arg = 0; on_arg < MAXPIXMAPNUM; on_arg++)
+	facecachemap[on_arg] = on_arg;
+    init_keys();
+    init_cache_data();
+    destroy_splash();
+    allocate_map(&the_map, want_mapx, want_mapy);
+        csocket.inbuf.buf=malloc(MAXSOCKBUF);
+
+#ifdef HAVE_SYSCONF
+    maxfd = sysconf(_SC_OPEN_MAX);
+#else
+    maxfd = getdtablesize();
+#endif
+
+    sound=init_sounds();
+
+    /* Loop to connect to server/metaserver and play the game */
+    while (1) {
+	reset_client_vars();
+	csocket.inbuf.len=0;
+	csocket.cs_version=0;
+
+	/* Perhaps not the best assumption, but we are taking it that
+	 * if the player has not specified a server (ie, server
+	 * matches compiled in default), we use the meta server.
+	 * otherwise, use the server provided, bypassing metaserver.
+	 * Also, if the player has already played on a server once (defined
+	 * by got_one), go to the metaserver.  That gives them the oppurtunity
+	 * to quit the client or select another server.  We should really add
+	 * an entry for the last server there also.
+	 */
+
+	if (!strcmp(server, SERVER) || got_one) {
+	    char *ms;
+	    metaserver_get_info(meta_server, meta_port);
+	    metaserver_show(TRUE);
+	    do {
+		ms=get_metaserver();
+	    } while (metaserver_select(ms));
+	    negotiate_connection(sound);
+	} else {
+	    csocket.fd=init_connection(server, port_num);
+	    if (csocket.fd == -1) { /* specified server no longer valid */
+		server = SERVER;
+		continue;
+	    }
+	    negotiate_connection(sound);
+	}
+
+	got_one=1;
+	event_loop();
+	/* if event_loop has exited, we most of lost our connection, so we
+	 * loop again to establish a new one.
+	 */
+
+	/* Need to reset the images so they match up properly and prevent
+	 * memory leaks.
+	 */
+	reset_image_data();
+	remove_item_inventory(cpl.ob);
+	/* We know the following is the private map structure in
+	 * item.c.  But we don't have direct access to it, so
+	 * we still use locate.
+	 */
+	remove_item_inventory(locate_item(0));
+	reset_map_data();
+	look_list.env=cpl.below;
+    }
+    exit(0);	/* never reached */
+}
+

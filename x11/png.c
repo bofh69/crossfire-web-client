@@ -42,6 +42,7 @@
 #include <png.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include "client-types.h"
 
 
 /* Defines for PNG return values */
@@ -56,18 +57,17 @@
 static char *data_cp;
 static int data_len, data_start;
 
-void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
     memcpy(data, data_cp + data_start, length);
     data_start += length;
 }
 
-char *png_to_data(char *data, int len)
+char *png_to_data(char *data, int len, int *width, int *height)
 {
     char *pixels=NULL;
     static png_bytepp	rows=NULL;
     static int rows_byte=0;
 
-    unsigned long width, height;
     png_structp	png_ptr;
     png_infop	info_ptr;
     int bit_depth, color_type, interlace_type, compression_type, filter_type, y;
@@ -96,7 +96,7 @@ char *png_to_data(char *data, int len)
     png_set_read_fn(png_ptr, NULL, user_read_data);
     png_read_info (png_ptr, info_ptr);
 
-    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
+    png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_uint_32*)height, &bit_depth,
 		 &color_type, &interlace_type, &compression_type, &filter_type);
 
     if (color_type == PNG_COLOR_TYPE_PALETTE &&
@@ -151,10 +151,10 @@ char *png_to_data(char *data, int len)
     /* Update the info the reflect our transformations */
     png_read_update_info(png_ptr, info_ptr);
     /* re-read due to transformations just made */
-    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
+    png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_uint_32*)height, &bit_depth,
 		 &color_type, &interlace_type, &compression_type, &filter_type);
 
-    pixels = (char*)malloc(width * height * 4);
+    pixels = (char*)malloc(*width * *height * 4);
 
     if (!pixels) {
 	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
@@ -164,19 +164,19 @@ char *png_to_data(char *data, int len)
 
     /* the png library needs the rows, but we will just return the raw data */
     if (rows_byte == 0) {
-	rows =(png_bytepp) malloc(sizeof(char*) * height);
-	rows_byte=height;
-    } else if (height > rows_byte) {
-	rows =(png_bytepp) realloc(rows, sizeof(char*) * height);
-	rows_byte=height;
+	rows =(png_bytepp) malloc(sizeof(char*) * *height);
+	rows_byte=*height;
+    } else if (*height > rows_byte) {
+	rows =(png_bytepp) realloc(rows, sizeof(char*) * *height);
+	rows_byte=*height;
     }
     if (!rows) {
 	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	return NULL;
     }
 
-    for (y=0; y<height; y++) 
-	rows[y] = pixels + y * width * 4;
+    for (y=0; y<*height; y++) 
+	rows[y] = pixels + y * *width * 4;
 
     png_read_image(png_ptr, rows);
     png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
@@ -184,9 +184,246 @@ char *png_to_data(char *data, int len)
     return pixels;
 }
 
+
+/* rescale_png_image takes png data and scales it accordingly.
+ * This function is based on pnmscale, but has been modified to support alpha
+ * channel - instead of blending the alpha channel, it takes the most opaque
+ * value - blending it is not likely to give sane results IMO - for any image
+ * that has transparent information, if we blended the alpha, the result would
+ * be the edges of that region being partially transparent.
+ * This function has also been re-written to use more static data - in the
+ * case of the client, it will be called thousands of times, so it doesn't make
+ * sense to free the data and then re-allocate it.
+ *
+ * For pixels that are fully transparent, the end result after scaling is they
+ * will be tranparent black.  This is a needed effect for blending to work properly.
+ *
+ * This function returns a new pointer to the scaled image data.  This is
+ * malloc'd data, so should be freed at some point to prevent leaks.
+ * This function does not modify the data passed to it - the caller is responsible
+ * for freeing it if it is no longer needed.
+ *
+ * function arguments:
+ * data: PNG data - really, this is any 4 byte per pixel data, in RGBA format.
+ * *width, *height: The source width and height.  These values are modified
+ *   to contain the new image size.
+ * scale: percentage size that new image should be.  100 is a same size
+ *    image - values larger than 100 will result in zoom, values less than
+ *    100 will result in a shrinkage.
+ */
+
+/* RATIO is used to know what units scale is - in this case, a percentage, so 
+ * it is set to 100
+ */
+#define RATIO	100
+
+#define MAX_IMAGE_BYTES	512*512
+#define BPP 4
+
+char *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
+{
+    static    int xrow[BPP * MAX_IMAGE_BYTES], yrow[BPP*MAX_IMAGE_BYTES];
+    static  uint8  *nrows[MAX_IMAGE_BYTES];
+
+    /* Figure out new height/width */
+    int new_width = *width  * scale / RATIO, new_height = *height * scale / RATIO;
+
+    int sourcerow=0, ytoleft, ytofill, xtoleft, xtofill, dest_column=0, source_column=0, needcol,
+	destrow=0;
+    int x,y;
+    uint8 *ndata;
+    uint8 r,g,b,a;
+
+    /* clear old values these may have */
+    memset(yrow, 0, sizeof(int) * *height * BPP);
+
+    ndata = (char*)malloc(new_width * new_height * BPP);
+
+    for (y=0; y<new_height; y++) 
+	nrows[y] = (png_bytep) (ndata + y * new_width * BPP);
+
+    ytoleft = scale;
+    ytofill = RATIO;
+
+    for (y=0,sourcerow=0; y < new_height; y++) {
+	memset(xrow, 0, sizeof(int) * *width * BPP);
+	while (ytoleft < ytofill) {
+	    for (x=0; x< *width; ++x) {
+		/* Only want to copy the data if this is not a transperent pixel.
+		 * If it is transparent, the color information is has is probably
+		 * bogus, and blending that makes the results look worse.
+		 */
+		if (data[(sourcerow * *width + x)*BPP+3] > 0 ) {
+		    yrow[x*BPP] += ytoleft * data[(sourcerow * *width + x)*BPP]/RATIO;
+		    yrow[x*BPP+1] += ytoleft * data[(sourcerow * *width + x)*BPP+1]/RATIO;
+		    yrow[x*BPP+2] += ytoleft * data[(sourcerow * *width + x)*BPP+2]/RATIO;
+		}
+		/* Alpha is a bit special - we don't want to blend it -
+		 * we want to take whatever is the more opaque value.
+		 */
+		if (data[(sourcerow * *width + x)*BPP+3] > yrow[x*BPP+3])
+		    yrow[x*BPP+3] = data[(sourcerow * *width + x)*BPP+3];
+	    }
+	    ytofill -= ytoleft;
+	    ytoleft = scale;
+	    if (sourcerow < *height)
+		sourcerow++;
+	}
+
+	for (x=0; x < *width; ++x) {
+	    if (data[(sourcerow * *width + x)*BPP+3] > 0 ) {
+		xrow[x*BPP] = yrow[x*BPP] + ytofill * data[(sourcerow * *width + x)*BPP] / RATIO;
+		xrow[x*BPP+1] = yrow[x*BPP+1] + ytofill * data[(sourcerow * *width + x)*BPP+1] / RATIO;
+		xrow[x*BPP+2] = yrow[x*BPP+2] + ytofill * data[(sourcerow * *width + x)*BPP+2] / RATIO;
+	    }
+	    if (data[(sourcerow * *width + x)*BPP+3] > xrow[x*BPP+3])
+		xrow[x*BPP+3] = data[(sourcerow * *width + x)*BPP+3];
+	    yrow[x*BPP]=0; yrow[x*BPP+1]=0; yrow[x*BPP+2]=0; yrow[x*BPP+3]=0;
+	}
+
+	ytoleft -= ytofill;
+	if (ytoleft <= 0) {
+	    ytoleft = scale;
+	    if (sourcerow < *height)
+		sourcerow++;
+	}
+
+	ytofill = RATIO;
+	xtofill = RATIO;
+	dest_column = 0;
+	source_column=0;
+	needcol=0;
+	r=0; g=0; b=0; a=0;
+
+	for (x=0; x< *width; x++) {
+	    xtoleft = scale;
+
+	    while (xtoleft >= xtofill) {
+		if (needcol) {
+		    dest_column++;
+		    r=0; g=0; b=0; a=0;
+		}
+
+		if (xrow[source_column*BPP+3] > 0) {
+		    r += xtofill * xrow[source_column*BPP] / RATIO;
+		    g += xtofill * xrow[1+source_column*BPP] / RATIO;
+		    b += xtofill * xrow[2+source_column*BPP] / RATIO;
+		}
+		if (xrow[3+source_column*BPP] > a)
+		    a = xrow[3+source_column*BPP];
+
+		nrows[destrow][dest_column * BPP] = r;
+		nrows[destrow][1+dest_column * BPP] = g;
+		nrows[destrow][2+dest_column * BPP] = b;
+		nrows[destrow][3+dest_column * BPP] = a;
+		xtoleft -= xtofill;
+		xtofill = RATIO;
+		needcol=1;
+	    }
+
+	    if (xtoleft > 0 ){
+		if (needcol) {
+		    dest_column++;
+		    r=0; g=0; b=0; a=0;
+		    needcol=0;
+		}
+
+		if (xrow[3+source_column*BPP] > 0) {
+		    r += xtoleft * xrow[source_column*BPP] / RATIO;
+		    g += xtoleft * xrow[1+source_column*BPP] / RATIO;
+		    b += xtoleft * xrow[2+source_column*BPP] / RATIO;
+		}
+		if (xrow[3+source_column*BPP] > a)
+		    a = xrow[3+source_column*BPP];
+
+		xtofill -= xtoleft;
+	    }
+	    source_column++;
+	}
+
+	if (xtofill > 0 ) {
+	    source_column--;
+	    if (xrow[3+source_column*BPP] > 0) {
+		r += xtofill * xrow[source_column*BPP] / RATIO;
+		g += xtofill * xrow[1+source_column*BPP] / RATIO;
+		b += xtofill * xrow[2+source_column*BPP] / RATIO;
+	    }
+	    if (xrow[3+source_column*BPP] > a)
+		a = xrow[3+source_column*BPP];
+	}
+
+	if (!needcol) {
+		nrows[destrow][dest_column * BPP] = r;
+		nrows[destrow][1+dest_column * BPP] = g;
+		nrows[destrow][2+dest_column * BPP] = b;
+		nrows[destrow][3+dest_column * BPP] = a;
+	}
+	destrow++;
+    }
+    *width = new_width;
+    *height = new_height;
+    return ndata;
+}
+
 #ifdef PNG_GDK
 
-guchar rgb[32*32*3];	/* Should be max size */
+guchar rgb[512*512*3];	/* Make this especially big to support larger images in the future */
+
+/* This takes data that has already been converted into RGBA format (via
+ * png_to_data above perhaps) and creates a GdkPixmap and GdkBitmap out
+ * of it.
+ * Return non zero on error (currently, no checks for error conditions is done 
+ */
+int rgba_to_gdkpixmap(GdkWindow *window, char *data,int width, int height,
+		   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
+{
+    GdkGC	*gc, *gc_alpha;
+    int		has_alpha=0, alpha;
+    GdkColor  scolor;
+    int x,y;
+
+    *pix = gdk_pixmap_new(window, width, height, -1);
+
+    gc=gdk_gc_new(*pix);
+    gdk_gc_set_function(gc, GDK_COPY);
+
+    *mask=gdk_pixmap_new(window, width, height,1);
+    gc_alpha=gdk_gc_new(*mask);
+    gdk_gc_set_function(gc_alpha, GDK_COPY);
+
+    scolor.pixel=1;
+    gdk_gc_set_foreground(gc_alpha, &scolor);
+    gdk_draw_rectangle(*mask, gc_alpha, 1, 0, 0, width, height);
+
+    scolor.pixel=0;
+    gdk_gc_set_foreground(gc_alpha, &scolor);
+
+    /* we need to draw the alpha channel.  The image may not in fact
+     * have alpha, but no way to know at this point other than to try
+     * and draw it.
+     */
+    for (y=0; y<height; y++) {
+	for (x=0; x<width; x++) {
+	    alpha = data[(y * width + x) * 4 +3];
+	    /* Transparent bit */
+	    if (alpha==0) {
+		gdk_draw_point(*mask, gc_alpha, x, y);
+		has_alpha=1;
+	    }
+	}
+    }
+
+    gdk_draw_rgb_32_image(*pix, gc,  0, 0, width, height, GDK_RGB_DITHER_NONE, data, width*4);
+    if (!has_alpha) {
+	gdk_pixmap_unref(*mask);
+	*mask = NULL;
+    }
+
+    gdk_gc_destroy(gc_alpha);
+    gdk_gc_destroy(gc);
+    return 0;
+}
+
 
 int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
 		   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)

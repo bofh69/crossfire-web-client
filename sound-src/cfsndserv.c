@@ -16,7 +16,7 @@
 
 /*#define SOUND_DEBUG*/
 
-#include <config.h>
+#include "config.h"
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -72,7 +72,18 @@ snd_pcm_t *handle=NULL;
 #define CONFIG_FILE "/.crossfire/sndconfig"
 #define MAX_SOUNDS 1024 
 
-extern char *strdup_local(const char *s);
+/*
+ * A replacement of strdup(), since it's not defined at some
+ * unix variants.
+ */
+
+char *strdup_local(char *str) {
+  char *c=(char *)malloc(sizeof(char)*strlen(str)+1);
+  strcpy(c,str);
+  return c;
+}
+
+
 
 typedef struct Sound_Info {
     char *filename;

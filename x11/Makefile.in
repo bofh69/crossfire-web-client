@@ -1,0 +1,73 @@
+VERSION = crossfire-client-@VERSION@
+MKDIR = @MKDIR@
+CP = @CP@
+TAR = @TAR@
+RM = @RM@
+TARGET = @TARGET@
+CFLAGS = @CFLAGS@ @CPPFLAGS@ -I.
+LDFLAGS = @LDFLAGS@
+CC = @CC@
+LIBS = @LIBS@ @X_LIBS@
+INSTALL = @INSTALL@
+DEPEND = @DEPEND@
+PERL = @PERL@
+SOUND_DIR = @SOUNDDIR@
+DMALLOC_LIB = @DMALLOC_LIB@
+INCLUDES = @X_CFLAGS@ -I.. -I../common -I.
+CFLAGS = @CFLAGS@ @CPPFLAGS@ 
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+mandir=@mandir@/man1
+
+HEADERS= \
+	clientbmap.h		\
+	x11.h			\
+	x11proto.h		\
+
+SOURCES = \
+	png.c			\
+	sound.c			\
+	x11.c			\
+	xutil.c
+
+OBJECTS = $(SOURCES:.c=.o)
+
+
+EXTRA_DIST = \
+	Makefile.in
+
+
+all:  cfclient
+
+cfclient: $(OBJECTS) ../common/libcfclient.a
+	$(CC) -o cfclient $(OBJECTS) $(LDFLAGS) $(LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
+
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
+
+archive:
+	$(MKDIR) /tmp/$(VERSION)/x11
+	$(CP) $(HEADERS) $(SOURCES) $(EXTRA_DIST) /tmp/$(VERSION)/x11
+
+clean::
+	$(RM) -f $(OBJECTS) Makefile.bak
+
+distclean::
+	$(MAKE) clean
+	$(RM) -f cfclient Makefile
+
+install:
+	$(INSTALL) -d ${bindir}
+	$(INSTALL) -d ${mandir}
+	$(INSTALL) cfclient ${bindir}/gcfclient
+	$(INSTALL) cfclient.man ${mandir}/cfclient.1
+
+depend:
+	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(SOURCES)
+
+proto:
+	cproto -e -o x11proto.h $(INCLUDES) $(SOURCES) 
+	chmod 644 x11proto.h
+

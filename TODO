@@ -1,0 +1,15 @@
+Things to do in no particular order:
+
+gnome client: Make it work.  IT compiles, but there is something in the
+  map code (or someplace else) causing stack overflows.  What really needs
+  to get done is for it to share much more of the code with the gtk client.
+
+x11: Modify to support variable sized images.  create_status_icons
+   needs to be redone to load png files instead of Xpm's (since we
+   no longer check for Xpm
+
+Have containers present number of objects/number of different objects in
+ name.
+
+Add a damfactor display to the client (this would be weapon speed *
+damage of the weapon)

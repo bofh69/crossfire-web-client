@@ -1,57 +1,19 @@
 /* Header file for new client. */
 
-#include <cconfig.h>
-
-/* If using autoconf, use it to pick up the necessary files.  Otherwise,
- * we will draw on includes.h
- */
-#include "config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-
-#ifdef HAVE_SYS_TIME_H
-#   include <sys/time.h>
-#endif
-
-#include <time.h>
-
-#ifdef HAVE_STRING_H
-#   include <string.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
-#   include <unistd.h>
-#endif
-
-#ifdef HAVE_FCNTL_H
-#  include <fcntl.h>
-#endif
+#include <config.h>
+#include <client-types.h>
+#include <newclient.h>
+#include <item.h>
 
 #ifdef HAVE_DMALLOC_H
 #  include <dmalloc.h>
 #endif
 
-#include <newclient.h>
-#include <item.h>
-
-
-/* Just some handy ones I like to use */
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE 1
-#endif
 
 #define VERSION_CS 1022
 #define VERSION_SC 1026
 
-#ifdef GTK_CLIENT
-#define VERSION_INFO "GTK C Client"
-#else
-#define VERSION_INFO "X11 C Client"
-#endif
+char VERSION_INFO[256];
 
 /* Don't send more than this many outstanding commands to the server 
  * this is only a default value.
@@ -59,8 +21,6 @@
 #define COMMAND_WINDOW 10
 
 #define STRINGCOMMAND 0
-#define MAX_BUF 256
-#define BIG_BUF 1024
 
 /* How many skill types server supports/client will get sent to it.
  * If more skills are added to server, this needs to get increased.
@@ -203,7 +163,7 @@ typedef enum Display_Mode {Pix_Display, Xpm_Display, Png_Display}
 
 extern Display_Mode display_mode;
 
-extern int nosound, updatekeycodes;
+extern int nosound; 
 
 /* WE need to declare most of the structs before we can include this */
 #include <proto.h>
@@ -216,8 +176,9 @@ extern int errno;
 #define NUM_RESISTS 18
 extern char *resists_name[NUM_RESISTS];
 extern char *meta_server;
-extern int meta_port,want_skill_exp, want_mapx, want_mapy, mapx, mapy;
+extern int meta_port,want_skill_exp, want_mapx, want_mapy;
 extern int map1cmd,metaserver_on, want_darkness;
+extern int mapx, mapy;
 
 /* Map size the client will request the map to be.  Bigger it is,
  * more memory it will use
@@ -227,18 +188,31 @@ extern int map1cmd,metaserver_on, want_darkness;
 /* Fog of war stuff */
 #define FOG_MAP_SIZE 512   /* Default size of virtual map */
 
-/*
- * This is the only way I can tell if we are compiling the gnome client
- * or not
+
+/* Start of map handling code.
+ * For the most part, this actually is not window system specific,
+ * but certainly how the client wants to store this may vary.
  */
-#ifndef NEED_GNOMESUPPORT_H
-typedef struct 
-{
+
+#define MAXFACES 5
+#define MAXPIXMAPNUM 10000
+struct MapCell {
+  short faces[MAXFACES];
+  int count;
+  uint8 darkness;
+  uint8 need_update:1;
+  uint8 have_darkness:1;
+  uint8 cleared:1; /* Used for fog of war code only */
+};
+
+
+struct Map {
+  struct MapCell **cells;
+  /* Store size of map so we know if map_size has changed
+   * since the last time we allocated this;
+   */
   int x;
   int y;
-} PlayerPosition;
+};
 
-extern PlayerPosition pl_pos;
-extern int fog_of_war;
-extern int map_size;
-#endif
+extern struct Map the_map;

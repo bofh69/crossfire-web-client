@@ -1,0 +1,82 @@
+VERSION = crossfire-client-@VERSION@
+MKDIR = @MKDIR@
+CP = @CP@
+TAR = @TAR@
+RM = @RM@
+CPPFLAGS = @CPPFLAGS@
+CFLAGS = @CFLAGS@ @CPPFLAGS@ -I.
+LDFLAGS = @LDFLAGS@
+CC = @CC@
+LIBS = @LIBS@
+INSTALL = @INSTALL@
+DEPEND = @DEPEND@
+PERL = @PERL@
+SOUND_DIR = @SOUNDDIR@
+DMALLOC_LIB = @DMALLOC_LIB@
+GTK_CFLAGS=@GTK_CFLAGS@
+GTK_LIBS=@GTK_LIBS@
+
+SDL_CFLAGS=@SDL_CFLAGS@
+SDL_LIBS=@SDL_LIBS@
+
+
+INCLUDES = @X_CFLAGS@ -I.. -I../common -I../pixmaps
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+mandir=@mandir@/man1
+soundlistdir=@sysconfdir@/sound/events
+desktopdir=@prefix@/share/gnome/apps/Games
+pixmapsdir=@prefix@/share/pixmaps
+
+HEADERS= gx11.h			\
+	gtkproto.h
+
+SOURCES = \
+	gx11.c			\
+	image.c			\
+	keys.c			\
+	map.c			\
+	png.c			\
+	sdl.c			\
+	sound.c
+
+OBJECTS = $(SOURCES:.c=.o)
+
+EXTRA_DIST = \
+	Makefile.in		\
+	gcfclient.man
+
+all:  gcfclient
+
+
+gcfclient: $(OBJECTS) ../common/libcfclient.a
+	$(CC) -o gcfclient $(OBJECTS) $(LDFLAGS) $(LIBS) $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
+
+.c.o:
+	$(CC) $(CFLAGS) $(SDL_CFLAGS) $(GTK_CFLAGS) $(INCLUDES) -c $*.c
+
+archive:
+	$(MKDIR) /tmp/$(VERSION)/gtk
+	$(CP) $(HEADERS) $(SOURCES) $(EXTRA_DIST) /tmp/$(VERSION)/gtk
+
+clean::
+	$(RM) -f $(OBJECTS) Makefile.bak
+
+distclean::
+	$(MAKE) clean
+	$(RM) -f cfsndserv cfclient gcfclient Makefile
+
+install:
+	$(INSTALL) -d ${bindir}
+	$(INSTALL) -d ${mandir}
+	$(INSTALL) gcfclient ${bindir}/gcfclient
+	$(INSTALL) gcfclient.man ${mandir}/gcfclient.1
+
+depend:
+	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(SDL_CFLAGS) $(GTK_CFLAGS) $(INCLUDES)  -- $(SOURCES)
+
+proto:
+	cproto -e -o gtkproto.h $(SDL_CFLAGS) $(GTK_CFLAGS) $(INCLUDES) $(SOURCES) 
+	chmod 644 gtkproto.h

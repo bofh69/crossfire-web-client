@@ -2,16 +2,6 @@
 #define ITEM_H
 
 /*
- *  These should probably be in a separate file
- */
-typedef unsigned int    uint32;
-typedef signed int      sint32;
-typedef unsigned short  uint16;
-typedef signed short    sint16;
-typedef unsigned char   uint8;
-typedef signed char     sint8;
-
-/*
  *  Use static buffer for object names. Item names are changing so
  *  often that mallocing them it just a waste of time. Also there is
  *  probably some upper limits for names that client can show, Note

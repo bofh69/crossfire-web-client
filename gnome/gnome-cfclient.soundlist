@@ -1,0 +1,639 @@
+
+[__section_info__]
+description=Gnome Crossfire Client
+
+[normal_0]
+file=/usr/local/lib/sounds/su-fanf.wav
+description=New player
+
+[normal_1]
+file=/usr/local/lib/sounds/Teeswing.wav
+description=Fire arrow
+
+[normal_2]
+file=/usr/local/lib/sounds/chord.wav
+description=Learn spell
+
+[normal_3]
+file=/usr/local/lib/sounds/Missed.wav
+description=Fumble spell
+
+[normal_4]
+file=/usr/local/lib/sounds/Missed.wav
+description=Wand poof
+
+[normal_5]
+file=/usr/local/lib/sounds/Creaky-1.wav
+description=Open door
+
+[normal_6]
+file=/usr/local/lib/sounds/blip.wav
+description=Push player
+
+[normal_7]
+file=/usr/local/lib/sounds/click1.wav
+description=Player hits (1)
+
+[normal_8]
+file=/usr/local/lib/sounds/click2.wav
+description=Player hits (2)
+
+[normal_9]
+file=/usr/local/lib/sounds/click1.wav
+description=Player hits (3)
+
+[normal_10]
+file=/usr/local/lib/sounds/click2.wav
+description=Player hits (4)
+
+[normal_11]
+file=/usr/local/lib/sounds/FloorTom.wav
+description=Player is hit (1)
+
+[normal_12]
+file=/usr/local/lib/sounds/ouch1.wav
+description=Player is hit (2)
+
+[normal_13]
+file=/usr/local/lib/sounds/thru.wav
+description=Player is hit (3)
+
+[normal_14]
+file=/usr/local/lib/sounds/drip.wav
+description=Player kills
+
+[normal_15]
+file=/usr/local/lib/sounds/squish.wav
+description=Pet is killed
+
+[normal_16]
+file=/usr/local/lib/sounds/gong.wav
+description=Player dies
+
+[normal_17]
+file=/usr/local/lib/sounds/Whoosh.wav
+description=Object evaporates
+
+[normal_18]
+file=/usr/local/lib/sounds/Explosion.wav
+description=Object explodes
+
+[normal_19]
+file=/usr/local/lib/sounds/TowerClock.wav
+description=Clock
+
+[normal_20]
+file=/usr/local/lib/sounds/boink2.wav
+description=Turn handle
+
+[normal_21]
+file=/usr/local/lib/sounds/MetalCrash.wav
+description=Fall hole
+
+[normal_22]
+file=/usr/local/lib/sounds/Puke.wav
+description=Drink poison
+
+[spell_0]
+file=/usr/local/lib/sounds/magic.wav
+description=Default magic sound
+
+[spell_1]
+file=/usr/local/lib/sounds/swish.wav
+description=Magic bullet
+
+[spell_2]
+file=/usr/local/lib/sounds/swish.wav
+description=Small fireball
+
+[spell_3]
+file=/usr/local/lib/sounds/swish.wav
+description=Medium fireball
+
+[spell_4]
+file=/usr/local/lib/sounds/swish.wav
+description=Large fireball
+
+[spell_5]
+file=/usr/local/lib/sounds/magic.wav
+description=Burning hands
+
+[spell_6]
+file=/usr/local/lib/sounds/lightning1.wav
+description=Small lightning
+
+[spell_7]
+file=/usr/local/lib/sounds/lightning1.wav
+description=Large lightning
+
+[spell_8]
+file=/usr/local/lib/sounds/swish.wav
+description=Magic missile
+
+[spell_9]
+file=/usr/local/lib/sounds/magic.wav
+description=Create bomb
+
+[spell_10]
+file=/usr/local/lib/sounds/magic.wav
+description=Summon golem
+
+[spell_11]
+file=/usr/local/lib/sounds/magic.wav
+description=Summon fire elemental
+
+[spell_12]
+file=/usr/local/lib/sounds/magic.wav
+description=Summon earth elemental
+
+[spell_13]
+file=/usr/local/lib/sounds/magic.wav
+description=Summon water elemental
+
+[spell_14]
+file=/usr/local/lib/sounds/magic.wav
+description=Summon air elemental
+
+[spell_15]
+file=/usr/local/lib/sounds/first_try.wav
+description=Dimension door
+
+[spell_16]
+file=/usr/local/lib/sounds/magic.wav
+description=Create earth wall
+
+[spell_17]
+file=/usr/local/lib/sounds/Tear.wav
+description=Paralyze
+
+[spell_18]
+file=/usr/local/lib/sounds/Missle1.wav
+description=Icestorm
+
+[spell_19]
+file=/usr/local/lib/sounds/magic.wav
+description=Magic mapping
+
+[spell_20]
+file=/usr/local/lib/sounds/Tear.wav
+description=Turn undead
+
+[spell_21]
+file=/usr/local/lib/sounds/Tear.wav
+description=Fear
+
+[spell_22]
+file=/usr/local/lib/sounds/Missle1.wav
+description=Poison cloud
+
+[spell_23]
+file=/usr/local/lib/sounds/magic.wav
+description=Wonder
+
+[spell_24]
+file=/usr/local/lib/sounds/Explosion.wav
+description=Destruction
+
+[spell_25]
+file=/usr/local/lib/sounds/magic.wav
+description=Perceive self
+
+[spell_26]
+file=/usr/local/lib/sounds/sci_fi_gun.wav
+description=Word of recall
+
+[spell_27]
+file=/usr/local/lib/sounds/magic.wav
+description=Invisible
+
+[spell_28]
+file=/usr/local/lib/sounds/magic.wav
+description=Invisible to undead
+
+[spell_29]
+file=/usr/local/lib/sounds/magic.wav
+description=Probe
+
+[spell_30]
+file=/usr/local/lib/sounds/swish.wav
+description=Large bullet
+
+[spell_31]
+file=/usr/local/lib/sounds/magic.wav
+description=Improved invisibility
+
+[spell_32]
+file=/usr/local/lib/sounds/Tear.wav
+description=Holy word
+
+[spell_33]
+file=/usr/local/lib/sounds/magic.wav
+description=Minor healing
+
+[spell_34]
+file=/usr/local/lib/sounds/magic.wav
+description=Medium healing
+
+[spell_35]
+file=/usr/local/lib/sounds/magic.wav
+description=Major healing
+
+[spell_36]
+file=/usr/local/lib/sounds/magic.wav
+description=Heal
+
+[spell_37]
+file=/usr/local/lib/sounds/magic.wav
+description=Create food
+
+[spell_38]
+file=/usr/local/lib/sounds/Explosion.wav
+description=Earth to dust
+
+[spell_39]
+file=/usr/local/lib/sounds/magic.wav
+description=Armour
+
+[spell_40]
+file=/usr/local/lib/sounds/magic.wav
+description=Strength
+
+[spell_41]
+file=/usr/local/lib/sounds/magic.wav
+description=Dexterity
+
+[spell_42]
+file=/usr/local/lib/sounds/magic.wav
+description=Constitution
+
+[spell_43]
+file=/usr/local/lib/sounds/magic.wav
+description=Charisma
+
+[spell_44]
+file=/usr/local/lib/sounds/magic.wav
+description=Create fire wall
+
+[spell_45]
+file=/usr/local/lib/sounds/magic.wav
+description=Create frost wall
+
+[spell_46]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from cold
+
+[spell_47]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from electricity
+
+[spell_48]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from fire
+
+[spell_49]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from poison
+
+[spell_50]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from slow
+
+[spell_51]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from paralysis
+
+[spell_52]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from draining
+
+[spell_53]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from magic
+
+[spell_54]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from attack
+
+[spell_55]
+file=/usr/local/lib/sounds/magic.wav
+description=Levitate
+
+[spell_56]
+file=/usr/local/lib/sounds/Gun-5.wav
+description=Small speedball
+
+[spell_57]
+file=/usr/local/lib/sounds/Gun-5.wav
+description=Large speedball
+
+[spell_58]
+file=/usr/local/lib/sounds/Missle1.wav
+description=Hellfire
+
+[spell_59]
+file=/usr/local/lib/sounds/Missle1.wav
+description=Dragonbreath
+
+[spell_60]
+file=/usr/local/lib/sounds/Missle1.wav
+description=Large icestorm
+
+[spell_61]
+file=/usr/local/lib/sounds/magic.wav
+description=Charging
+
+[spell_62]
+file=/usr/local/lib/sounds/magic.wav
+description=Polymorph
+
+[spell_63]
+file=/usr/local/lib/sounds/swish.wav
+description=Cancellation
+
+[spell_64]
+file=/usr/local/lib/sounds/Tear.wav
+description=Confusion
+
+[spell_65]
+file=/usr/local/lib/sounds/Tear.wav
+description=Mass confusion
+
+[spell_66]
+file=/usr/local/lib/sounds/magic.wav
+description=Summon pet monster
+
+[spell_67]
+file=/usr/local/lib/sounds/magic.wav
+description=Slow
+
+[spell_68]
+file=/usr/local/lib/sounds/magic.wav
+description=Regenerate spellpoints
+
+[spell_69]
+file=/usr/local/lib/sounds/magic.wav
+description=Cure poison
+
+[spell_70]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from confusion
+
+[spell_71]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from cancellation
+
+[spell_72]
+file=/usr/local/lib/sounds/magic.wav
+description=Protection from depletion
+
+[spell_73]
+file=/usr/local/lib/sounds/magic.wav
+description=Alchemy
+
+[spell_74]
+file=/usr/local/lib/sounds/Evil_Laugh.wav
+description=Remove curse
+
+[spell_75]
+file=/usr/local/lib/sounds/Evil_Laugh.wav
+description=Remove damnation
+
+[spell_76]
+file=/usr/local/lib/sounds/magic.wav
+description=Identify
+
+[spell_77]
+file=/usr/local/lib/sounds/magic.wav
+description=Detect magic
+
+[spell_78]
+file=/usr/local/lib/sounds/magic.wav
+description=Detect monster
+
+[spell_79]
+file=/usr/local/lib/sounds/magic.wav
+description=Detect evil
+
+[spell_80]
+file=/usr/local/lib/sounds/magic.wav
+description=Detect curse
+
+[spell_81]
+file=/usr/local/lib/sounds/Explosion.wav
+description=Heroism
+
+[spell_82]
+file=/usr/local/lib/sounds/bugle_charge.wav
+description=Aggravation
+
+[spell_83]
+file=/usr/local/lib/sounds/magic.wav
+description=Firebolt
+
+[spell_84]
+file=/usr/local/lib/sounds/magic.wav
+description=Frostbolt
+
+[spell_85]
+file=/usr/local/lib/sounds/Explosion.wav
+description=Shockwave
+
+[spell_86]
+file=/usr/local/lib/sounds/magic.wav
+description=Color spray
+
+[spell_87]
+file=/usr/local/lib/sounds/magic.wav
+description=Haste
+
+[spell_88]
+file=/usr/local/lib/sounds/magic.wav
+description=Face of death
+
+[spell_89]
+file=/usr/local/lib/sounds/lightning1.wav
+description=Ball lightning
+
+[spell_90]
+file=/usr/local/lib/sounds/swish.wav
+description=Meteor swarm
+
+[spell_91]
+file=/usr/local/lib/sounds/swish.wav
+description=Comet
+
+[spell_92]
+file=/usr/local/lib/sounds/magic.wav
+description=Mystic fist
+
+[spell_93]
+file=/usr/local/lib/sounds/magic.wav
+description=Raise dead
+
+[spell_94]
+file=/usr/local/lib/sounds/magic.wav
+description=Resurrection
+
+[spell_95]
+file=/usr/local/lib/sounds/magic.wav
+description=Reincarnation
+
+[spell_96]
+file=/usr/local/lib/sounds/magic.wav
+description=Immune cold
+
+[spell_97]
+file=/usr/local/lib/sounds/magic.wav
+description=Immune electricity
+
+[spell_98]
+file=/usr/local/lib/sounds/magic.wav
+description=Immune fire
+
+[spell_99]
+file=/usr/local/lib/sounds/magic.wav
+description=Immune poison
+
+[spell_100]
+file=/usr/local/lib/sounds/magic.wav
+description=Immune slow
+
+[spell_101]
+file=/usr/local/lib/sounds/magic.wav
+description=Immune paralysis
+
+[spell_102]
+file=/usr/local/lib/sounds/magic.wav
+description=Immune drain
+
+[spell_103]
+file=/usr/local/lib/sounds/magic.wav
+description=Immune magic
+
+[spell_104]
+file=/usr/local/lib/sounds/magic.wav
+description=Immune attack
+
+[spell_105]
+file=/usr/local/lib/sounds/magic.wav
+description=Invulnerability
+
+[spell_106]
+file=/usr/local/lib/sounds/magic.wav
+description=Defense
+
+[spell_107]
+file=/usr/local/lib/sounds/magic.wav
+description=Rune fire
+
+[spell_108]
+file=/usr/local/lib/sounds/magic.wav
+description=Rune frost
+
+[spell_109]
+file=/usr/local/lib/sounds/magic.wav
+description=Rune shocking
+
+[spell_110]
+file=/usr/local/lib/sounds/magic.wav
+description=Rune blasting
+
+[spell_111]
+file=/usr/local/lib/sounds/magic.wav
+description=Rune death
+
+[spell_112]
+file=/usr/local/lib/sounds/magic.wav
+description=Marking rune
+
+[spell_113]
+file=/usr/local/lib/sounds/magic.wav
+description=Build director
+
+[spell_114]
+file=/usr/local/lib/sounds/magic.wav
+description=Pool of chaos
+
+[spell_115]
+file=/usr/local/lib/sounds/magic.wav
+description=Build bullet wall
+
+[spell_116]
+file=/usr/local/lib/sounds/magic.wav
+description=Build ligtning wall
+
+[spell_117]
+file=/usr/local/lib/sounds/magic.wav
+description=Build fireball wall
+
+[spell_118]
+file=/usr/local/lib/sounds/magic.wav
+description=Magic
+
+[spell_119]
+file=/usr/local/lib/sounds/magic.wav
+description=Rune of magic drain
+
+[spell_120]
+file=/usr/local/lib/sounds/magic.wav
+description=Antimagic rune
+
+[spell_121]
+file=/usr/local/lib/sounds/magic.wav
+description=Rune transferrence
+
+[spell_122]
+file=/usr/local/lib/sounds/magic.wav
+description=Transferrence
+
+[spell_123]
+file=/usr/local/lib/sounds/magic.wav
+description=Magic drain
+
+[spell_124]
+file=/usr/local/lib/sounds/magic.wav
+description=Counterspell
+
+[spell_125]
+file=/usr/local/lib/sounds/magic.wav
+description=Disarm
+
+[spell_126]
+file=/usr/local/lib/sounds/magic.wav
+description=Cure confusion
+
+[spell_127]
+file=/usr/local/lib/sounds/magic.wav
+description=Restoration
+
+[spell_128]
+file=/usr/local/lib/sounds/magic.wav
+description=Summon evil monster
+
+[spell_129]
+file=/usr/local/lib/sounds/magic.wav
+description=Counterwall
+
+[spell_130]
+file=/usr/local/lib/sounds/magic.wav
+description=Cause light wounds
+
+[spell_131]
+file=/usr/local/lib/sounds/magic.wav
+description=Cause medium wounds
+
+[spell_132]
+file=/usr/local/lib/sounds/magic.wav
+description=Cause serious wounds
+
+[spell_133]
+file=/usr/local/lib/sounds/magic.wav
+description=Charm monsters
+
+[spell_134]
+file=/usr/local/lib/sounds/magic.wav
+description=Banishment
+
+[spell_135]
+file=/usr/local/lib/sounds/magic.wav
+description=Create missile

@@ -66,6 +66,7 @@
  */
 
 #include <client.h>
+#include <external.h>
 
 
 /* Received a response to a setup from the server.
@@ -170,9 +171,14 @@ void SetupCmd(char *buf, int len)
 		 */
 		if (!strcmp(param,"FALSE")) {
 		    fprintf(stderr,"Server returned FALSE on setup command %s\n",cmd);
+#if 0
+/* This should really be a callback to the gui if it needs to re-examine
+ * the results here.
+ */
 		    if( !strcmp( cmd, "newmapcmd") && fog_of_war == TRUE) {
 			fprintf( stderr, "**Warning: Fog of war is active but server does not support the newmap command\n");
 		    }
+#endif
 		}
 	    } else {
 		fprintf(stderr,"Got setup for a command we don't understand: %s %s\n",
@@ -295,6 +301,7 @@ void AnimCmd(unsigned char *data, int len)
     LOG(0,"Received animation %d, %d faces\n", anum, animations[anum].num_animations);
 }
 
+#if 0
 void PixMapCmd(unsigned char *data,  int len)
 {  
     int pnum,plen;
@@ -309,6 +316,7 @@ void PixMapCmd(unsigned char *data,  int len)
     }
     display_newpixmap(pnum,(char*)data+8,plen);
 }
+#endif
 
 void ImageCmd(unsigned char *data,  int len)
 {  
@@ -322,6 +330,8 @@ void ImageCmd(unsigned char *data,  int len)
 		(len-8),plen);
 	return;
     }
+    display_newpng(pnum,(char*)data+8,plen);
+#if 0
     /* Currently, the image command should only really be used for 
      * for png, but it could just as easily get used for xpm with no
      * significant changes.
@@ -334,21 +344,8 @@ void ImageCmd(unsigned char *data,  int len)
     else {
 	fprintf(stderr,"Image command called with unknown image type.\n");
     }
+#endif
 }
-
-void BitMapCmd(unsigned char *data, int len)
-{
-    int pnum = GetInt_String(data);
-
-    /* We take off 6 bytes for image number, fg, bg */
-    if ((len-6) != (24*3)) {
-	fprintf(stderr,"Incorrect length on bitmap buffer should be %d was %d\n",
-		24*3,len-6);
-	return;
-    }
-    display_newbitmap(pnum,data[4],data[5],(char*)data+6);
-}
-
 
 void DrawInfoCmd(char *data, int len)
 {

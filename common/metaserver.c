@@ -39,6 +39,7 @@
 
 #include <client.h>
 #include <cconfig.h>
+#include <external.h>
 
 /* Arbitrary size.  At some point, we would need to cut this off simply
  * for display/selection reasons.

@@ -8,8 +8,22 @@
  * x11.c, so all statics will still work fine.
  */
 
+#include <client.h>
+#include <item.h>
+#include <config.h>
+
+#ifdef HAVE_LIBXPM
+#include <X11/xpm.h>
+#endif
+
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <X11/keysym.h>
+
 #include "def-keys.h"
+#include "x11proto.h"
+#include "x11.h"
+
 
 static char *colorname[] = {
 "Black",                /* 0  */
@@ -30,13 +44,7 @@ static char *colorname[] = {
 struct {
     char    *name;
     uint32  checksum;
-#ifdef GDK_XUTIL
-    GdkPixmap  *pixmap;
-    GdkBitmap	*mask;
-    uint8    *png_data;
-#else
     Pixmap  pixmap, mask;
-#endif
 } private_cache[MAXPIXMAPNUM];
 
 int use_private_cache=0, last_face_num=0;
@@ -101,11 +109,11 @@ static Key_Entry *keys[256];
 char *facetoname[MAXPIXMAPNUM];
 
 /* Can be set when user is moving to new machine type */
-int updatekeycodes=FALSE, keepcache=FALSE;
+uint8 updatekeycodes=FALSE, keepcache=FALSE;
 
 #ifndef GDK_XUTIL
 /* Initializes the data for image caching */
-static void init_cache_data()
+void init_cache_data()
 {
     int i;
 
@@ -183,9 +191,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 
     /* Check private cache first */
     sprintf(buf,"%s/.crossfire/gfx/%s", getenv("HOME"), face);
-    if (display_mode == Xpm_Display)
-	strcat(buf,".xpm");
-    else if (display_mode == Png_Display)
+    if (display_mode == Png_Display)
 	strcat(buf,".png");
 
     if ((fd=open(buf, O_RDONLY))!=-1) {
@@ -222,9 +228,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	 * split on the first 2 characters.
 	 */
 	sprintf(buf,"%s/%c%c/%s", facecachedir, face[0], face[1],face);
-	if (display_mode == Xpm_Display)
-	    strcat(buf,".xpm");
-	else if (display_mode == Png_Display)
+	if (display_mode == Png_Display)
 	    strcat(buf,".png");
 
 	if ((fd=open(buf, O_RDONLY))==-1) {
@@ -255,70 +259,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 #endif
 	}
     }
-#ifdef GDK_XUTIL
-    if (display_mode == Xpm_Display) {
-    
-	GtkStyle *style;
-    
-	style = gtk_widget_get_style(gtkwin_root);
-	pixmaps[pnum].gdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
-					 &pixmaps[pnum].gdkmask,
-					 &style->bg[GTK_STATE_NORMAL],
-					     (gchar **) data );
-	    if (!pixmaps[pnum].gdkpixmap) {
-		requestface(pnum, face, buf);
-	    }
-    }
-    else if (display_mode == Png_Display) {
-#ifdef HAVE_LIBPNG
-	if (pngximage && !(pixmaps[pnum].png_data = png_to_data(data, (int)len))) {
-	    fprintf(stderr,"Got error on png_to_data, file=%s\n",buf);
-	    requestface(pnum, face, buf);
-	}
-#ifdef HAVE_SDL
-	else if (sdlimage) {
-	    SDL_RWops *ops= SDL_RWFromMem( data, len);
-	    surfaces[pnum].surface= IMG_LoadTyped_RW( ops, 1, (char*)"PNG");
-	
-	    /*
-	     * Not sure if this is an error condition or not...
-	     * below it makes a call to requestface but if he does it,
-	     * we don't have to.
-	     */
-	    /* Just leaving this code from Scott in place.  Maybe it will be used
-	     * at some point? - MSW
-	     */
-	    if( surfaces[pnum].surface == NULL)
-	    {
-	    }
-	    else 
-	    {
-	    }
-	}
-#endif /* HAVE_SDL */
-	/* even if using pngximage or SDL we still need standard image for the inventory list */
-	if (png_to_gdkpixmap(gtkwin_root->window, data, len, &pixmaps[pnum].gdkpixmap, 
-		 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
-	    fprintf(stderr,"Got error on png_to_gdkpixmap, file=%s\n",buf);
-	    requestface(pnum, face, buf);
-	}
-#endif
-    }
-#else /* Not GDK_XUTIL */
-    if (display_mode==Xpm_Display) {
-	XpmAttributes xpm_attr;
-
-	xpm_attr.colormap = colormap;
-	xpm_attr.valuemask = XpmColormap;
-	if (XpmCreatePixmapFromBuffer(display, win_game, data,
-                &pixmap, &mask, &xpm_attr)) {
-	    requestface(pnum, face, buf);
-	} else {
-	    pixmaps[pnum].pixmap = pixmap;
-	    pixmaps[pnum].mask = mask;
-	}
-    } else if (display_mode==Png_Display) {
-#ifdef HAVE_LIBPNG
+    if (display_mode==Png_Display) {
 	unsigned long w,h;
 
 	/* Fail on this read, we will request a new copy */
@@ -330,28 +271,6 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	    pixmaps[pnum].mask = mask;
 	}
 
-#if defined(GDK_XUTIL) && defined(HAVE_SDL)
-	if (sdlimage) {
-	    fprintf( stdout, "Getting PNG face %d data from memory\n", pnum);
-	    SDL_RWops *ops= SDL_RWFromMem( data, len);
-	    surfaces[pnum].surface= IMG_LoadTyped_RW( ops, 1, (char*)"PNG");
-	
-	    /*
-	     * Not sure if this is an error condition or not...
-	     * below it makes a call to requestface but if he does it,
-	     * we don't have to.
-	     */
-	    if( surfaces[pnum].surface == NULL)
-	    {
-	    }
-	    else 
-	    {
-	    }
-	}
-    }
-#endif /* GDK_XUTIL and HAVE_SDL*/
-
-#endif /* HAVE_LIBPNG */
     } else if (display_mode==Pix_Display) {
 	pixmaps[pnum].bitmap = XCreateBitmapFromData(display,
 		RootWindow(display,DefaultScreen(display)),
@@ -361,13 +280,12 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	pixmaps[pnum].bg = (data[28] << 24) + (data[29] << 16 )+ (data[30] << 8 )+
 	    data[31];
     }
-#endif
 }
 
 
 #ifndef GDK_XUTIL
 
-static int allocate_colors(Display *disp, Window w, long screen_num,
+int allocate_colors(Display *disp, Window w, long screen_num,
         Colormap *colormap, XColor discolor[16])
 {
   int i, tried = 0, depth=0, iscolor;
@@ -483,7 +401,7 @@ static void insert_key(KeySym keysym, KeyCode keycode, int flags, char *command)
 
 /* This function is common to both gdk and x11 client */
 
-static void parse_keybind_line(char *buf, int line, int standard)
+void parse_keybind_line(char *buf, int line, int standard)
 {
     char *cp, *cpnext;
     KeySym keysym;
@@ -651,7 +569,7 @@ static void init_default_keybindings()
  */
 /* This function is common to both x11 and gdk client */
 
-static void init_keys()
+void init_keys()
 {
     int i, line=0;
     FILE *fp;
@@ -736,7 +654,7 @@ static void init_keys()
  *  a fair number of #ifdefs to get the right
  * behavioiur
  */
-static void parse_key_release(KeyCode kc, KeySym ks) {
+void parse_key_release(KeyCode kc, KeySym ks) {
 
     /* Only send stop firing/running commands if we are in actual
      * play mode.  Something smart does need to be done when the character
@@ -781,7 +699,7 @@ static void parse_key_release(KeyCode kc, KeySym ks) {
 /* This parses a keypress.  It should only be called when in Playing
  * mode.
  */
-static void parse_key(char key, KeyCode keycode, KeySym keysym)
+void parse_key(char key, KeyCode keycode, KeySym keysym)
 {
     Key_Entry *keyentry, *first_match=NULL;
     int present_flags=0;
@@ -1201,7 +1119,7 @@ static void save_keys()
     draw_info("key bindings successfully saved.",NDI_BLACK);
 }
 
-static void configure_keys(KeyCode k, KeySym keysym)
+void configure_keys(KeyCode k, KeySym keysym)
 {
   char buf[MAX_BUF];
 
@@ -1334,341 +1252,6 @@ unbinded:
     save_keys();
 }
 
-#ifndef GDK_XUTIL
-
-/* Gets a specified windows coordinates.  This function is pretty much
- * an exact copy out of the server.
- */
- 
-static void get_window_coord(Window win,
-                 int *x,int *y,
-                 int *wx,int *wy,
-                 unsigned int *w,unsigned int *h)
-{
-  Window root,child;
-  unsigned int tmp;
-
-  XGetGeometry(display,win,&root,x,y,w,h,&tmp,&tmp);
-  XTranslateCoordinates(display,win,root,0,0,wx,wy, &child);
-}
-
-
-
-void save_winpos()
-{
-    char savename[MAX_BUF],buf[MAX_BUF];
-    FILE    *fp;
-    int	    x,y,wx,wy;
-    unsigned int w,h;
-
-    if (!split_windows) {
-	draw_info("You can only save window positions in split windows mode", NDI_BLUE);
-	return;
-    }
-    sprintf(savename,"%s/.crossfire/winpos", getenv("HOME"));
-    if (!(fp=fopen(savename,"w"))) {
-	sprintf(buf,"Unable to open %s, window positions not saved",savename);
-	draw_info(buf,NDI_BLUE);
-	return;
-    }
-    /* This is a bit simpler than what the server was doing - it has
-     * some code to handle goofy window managers which I am not sure
-     * is still needed.
-     */
-    get_window_coord(win_game, &x,&y, &wx,&wy,&w,&h);
-    fprintf(fp,"win_game: %d %d %d %d\n", wx,wy, w, h);
-    get_window_coord(win_stats, &x,&y, &wx,&wy,&w,&h);
-    fprintf(fp,"win_stats: %d %d %d %d\n", wx,wy, w, h);
-    get_window_coord(infodata.win_info, &x,&y, &wx,&wy,&w,&h);
-    fprintf(fp,"win_info: %d %d %d %d\n", wx,wy, w, h);
-    get_window_coord(inv_list.win, &x,&y, &wx,&wy,&w,&h);
-    fprintf(fp,"win_inv: %d %d %d %d\n", wx,wy, w, h);
-    get_window_coord(look_list.win, &x,&y, &wx,&wy,&w,&h);
-    fprintf(fp,"win_look: %d %d %d %d\n", wx,wy, w, h);
-    get_window_coord(win_message, &x,&y, &wx,&wy,&w,&h);
-    fprintf(fp,"win_message: %d %d %d %d\n", wx,wy, w, h);
-    fclose(fp);
-    sprintf(buf,"Window positions saved to %s",savename);
-    draw_info(buf,NDI_BLUE);
-}
-
-/* Reads in the winpos file created by the above function and sets the
- * the window positions appropriately.
- */
-void set_window_pos()
-{
-    unsigned int xwc_mask = CWX|CWY|CWWidth|CWHeight;
-    XWindowChanges xwc;
-    char buf[MAX_BUF],*cp;
-    FILE *fp;
-
-    if (!split_windows) return;
-
-    sprintf(buf,"%s/.crossfire/winpos", getenv("HOME"));
-    if (!(fp=fopen(buf,"r"))) return;
-
-    while(fgets(buf,MAX_BUF-1, fp)!=NULL) {
-	buf[MAX_BUF-1]='\0';
-	if (!(cp=strchr(buf,' '))) continue;
-	*cp++='\0';
-	if (sscanf(cp,"%d %d %d %d",&xwc.x,&xwc.y,&xwc.width,&xwc.height)!=4)
-	    continue;
-	if (!strcmp(buf,"win_game:")) 
-	    XConfigureWindow(display,win_game,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_stats:")) 
-	    XConfigureWindow(display,win_stats,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_info:")) 
-	    XConfigureWindow(display,infodata.win_info,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_inv:")) 
-	    XConfigureWindow(display,inv_list.win,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_look:")) 
-	    XConfigureWindow(display,look_list.win,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_message:")) 
-	    XConfigureWindow(display,win_message,xwc_mask, &xwc);
-
-    }
-}
-
-#endif
-
-void load_defaults()
-{
-    char path[MAX_BUF],inbuf[MAX_BUF],*cp;
-    FILE *fp;
-
-#ifdef GDK_XUTIL
-    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
-#else
-    sprintf(path,"%s/.crossfire/defaults", getenv("HOME"));
-#endif
-    if ((fp=fopen(path,"r"))==NULL) return;
-    while (fgets(inbuf, MAX_BUF-1, fp)) {
-	inbuf[MAX_BUF-1]='\0';
-	inbuf[strlen(inbuf)-1]='\0';	/* kill newline */
-
-	if (inbuf[0]=='#') continue;
-	/* IF no colon, then we certainly don't have a real value, so just skip */
-	if (!(cp=strchr(inbuf,':'))) continue;
-	*cp='\0';
-	cp+=2;	    /* colon, space, then value */
-
-	if (!strcmp(inbuf, "port")) {
-	    port_num = atoi(cp);
-	    continue;
-	}
-	if (!strcmp(inbuf, "server")) {
-	    server = strdup_local(cp);	/* memory leak ! */
-	    continue;
-	}
-	if (!strcmp(inbuf,"display")) {
-	    if (!strcmp(cp,"xpm")) 
-		display_mode=Xpm_Display;
-	    if (!strcmp(cp,"png")) 
-		display_mode=Png_Display;
-#ifndef GDK_XUTIL	/* Gdk doesn't support pixmap */
-	    else if (!strcmp(cp,"pixmap"))
-		display_mode = Pix_Display;
-#endif
-	    else fprintf(stderr,"Unknown display specication in %s, %s",
-			   path, cp);
-	    continue;
-	}
-	if (!strcmp(inbuf,"cacheimages")) {
-	    if (!strcmp(cp,"True")) cache_images=TRUE;
-	    else cache_images=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"split")) {
-	    if (!strcmp(cp,"True")) split_windows=TRUE;
-	    else split_windows=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"showicon")) {
-	    if (!strcmp(cp,"True")) inv_list.show_icon=TRUE;
-	    else inv_list.show_icon=FALSE;
-	    continue;
-	}
-#ifndef GDK_XUTIL
-	if (!strcmp(inbuf,"scrolllines")) {
-	    infodata.maxlines = atoi(cp);
-	    continue;
-	}
-	if (!strcmp(inbuf,"scrollinfo")) {
-	    if (!strcmp(cp,"True")) infodata.scroll_info_window=TRUE;
-	    else infodata.scroll_info_window=FALSE;
-	    continue;
-	}
-#endif
-	if (!strcmp(inbuf,"sound")) {
-	    if (!strcmp(cp,"True")) nosound=FALSE;
-	    else nosound=TRUE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"command_window")) {
-	    cpl.command_window = atoi(cp);
-	    if (cpl.command_window<1 || cpl.command_window>127)
-		cpl.command_window=COMMAND_WINDOW;
-	    continue;
-	}
-	if (!strcmp(inbuf,"foodbeep")) {
-	    if (!strcmp(cp,"True")) cpl.food_beep=TRUE;
-	    else cpl.food_beep=FALSE;
-	    continue;
-	}
-#ifdef GDK_XUTIL
-	if (!strcmp(inbuf,"colorinv")) {
-	    if (!strcmp(cp,"True")) color_inv=TRUE;
-	    else color_inv=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"colortext")) {
-	    if (!strcmp(cp,"True")) color_text=TRUE;
-	    else color_text=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"tooltips")) {
-	  if (!strcmp(cp,"True")) tool_tips=TRUE;
-	  else tool_tips=FALSE;
-	  continue;
-	}  
-	if (!strcmp(inbuf,"splitinfo")) {
-	  if (!strcmp(cp,"True")) splitinfo=TRUE;
-	  else splitinfo=FALSE;
-	  continue;
-	}  
-	if (!strcmp(inbuf,"nopopups")) {
-	  if (!strcmp(cp,"True")) nopopups=TRUE;
-	  else nopopups=FALSE;
-	  continue;
-	}  
-	/* Only SDL actually uses these values, but we can still preserve
-	 * them even if they are not being used.
-	 */
-	if( !strcmp( inbuf,"Lighting")) {
-	  if( !strcmp( cp, "per_pixel")) {
-	    per_pixel_lighting= 1;
-	    per_tile_lighting= 0;
-	  } else if( !strcmp( cp, "per_tile")) {
-	    per_pixel_lighting= 0;
-	    per_tile_lighting= 1;
-	  }
-	  continue;
-	}
-	if( !strcmp( inbuf,"show_grid")) {
-	  if( !strcmp( cp, "True")) show_grid = TRUE;
-	  else show_grid = FALSE;
-	  continue;
-	}
-#endif	/* GDK_XUTIL */
-	fprintf(stderr,"Got line we did not understand: %s: %s\n", inbuf, cp);
-    }
-    fclose(fp);
-}
-
-void save_defaults()
-{
-    char path[MAX_BUF],buf[MAX_BUF];
-    FILE *fp;
-
-#ifdef GDK_XUTIL
-    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
-#else
-    sprintf(path,"%s/.crossfire/defaults", getenv("HOME"));
-#endif
-    if (make_path_to_file(path)==-1) {
-	fprintf(stderr,"Could not create %s\n", path);
-	return;
-    }
-    if ((fp=fopen(path,"w"))==NULL) {
-	fprintf(stderr,"Could not open %s\n", path);
-	return;
-    }
-    fprintf(fp,"# This file is generated automatically by cfclient.\n");
-    fprintf(fp,"# Manually editing is allowed, however cfclient may be a bit finicky about\n");
-    fprintf(fp,"# some of the matching it does.  all comparissons are case sensitive.\n");
-    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values");
-
-    fprintf(fp,"port: %d\n", port_num);
-    fprintf(fp,"server: %s\n", server);
-    if (display_mode==Xpm_Display) {
-	fprintf(fp,"display: xpm\n");
-    } else if (display_mode==Pix_Display) {
-	fprintf(fp,"display: pixmap\n");
-    } else if (display_mode==Png_Display) {
-	fprintf(fp,"display: png\n");
-    }
-    fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
-    fprintf(fp,"split: %s\n", split_windows?"True":"False");
-    fprintf(fp,"showicon: %s\n", inv_list.show_icon?"True":"False");
-#ifndef GDK_XUTIL
-    fprintf(fp,"scrolllines: %d\n", infodata.maxlines);
-    fprintf(fp,"scrollinfo: %s\n", infodata.scroll_info_window?"True":"False");
-#endif
-    fprintf(fp,"sound: %s\n", nosound?"False":"True");
-    fprintf(fp,"command_window: %d\n", cpl.command_window);
-    fprintf(fp,"foodbeep: %s\n", cpl.food_beep?"True":"False");
-#ifdef GDK_XUTIL
-    fprintf(fp,"colorinv: %s\n", color_inv?"True":"False");
-    fprintf(fp,"colortext: %s\n", color_text?"True":"False");
-    fprintf(fp,"tooltips: %s\n", color_text?"True":"False");
-    fprintf(fp,"splitinfo: %s\n", splitinfo?"True":"False");
-    fprintf(fp,"nopopups: %s\n", nopopups?"True":"False");
-    if( per_pixel_lighting)
-      fprintf( fp, "Lighting: per_pixel\n");
-    else
-      fprintf( fp, "Lighting: per_tile\n");
-    fprintf( fp,"show_grid: %s\n", show_grid?"True":"False");
-#endif /* GDK_XUTIL */
-
-    fclose(fp);
-    sprintf(buf,"Defaults saved to %s",path);
-    draw_info(buf,NDI_BLUE);
-}
-
-#ifndef GDK_XUTIL
-/* determine what we show in the inventory window.  This is a slightly
- * more complicated version than the server side, since we use a bitmask
- * which means we could show things like magical and cursed, or unpaid
- * and magical, etc.  Current time, we don't really support setting it
- * all that well.
- *
- */
-
-void command_show (char *params)
-{
-    if(!params) {
-	if (inv_list.show_what==show_all) inv_list.show_what = show_applied;
-	else { /* rotate the bit.  If no valid bits are set, start over */
-	    inv_list.show_what = inv_list.show_what << 1;
-	    if (!(inv_list.show_what & show_mask))
-		inv_list.show_what = show_all;
-	}
-	inv_list.env->inv_updated =1;
-	return;
-    }
-
-    if (!strncmp(params, "all", strlen(params)))
-        inv_list.show_what = show_all;
-    else if (!strncmp(params, "applied", strlen(params)))
-        inv_list.show_what = show_applied;
-    else if (!strncmp(params, "unapplied", strlen(params)))
-        inv_list.show_what = show_unapplied;
-    else if (!strncmp(params, "unpaid", strlen(params)))
-        inv_list.show_what = show_unpaid;
-    else if (!strncmp(params, "cursed", strlen(params)))
-        inv_list.show_what = show_cursed;
-    else if (!strncmp(params, "magical", strlen(params)))
-        inv_list.show_what = show_magical;
-    else if (!strncmp(params, "nonmagical", strlen(params)))
-        inv_list.show_what = show_nonmagical;
-    else if (!strncmp(params, "locked", strlen(params)))
-        inv_list.show_what = show_locked;
-    else if (!strncmp(params, "unlocked", strlen(params)))
-        inv_list.show_what = show_unlocked;
-
-    inv_list.env->inv_updated =1;
-}
-#endif
 
 /* This code is somewhat from the crossedit/xutil.c.
  * What we do is create a private copy of all the images
@@ -1799,33 +1382,7 @@ int  find_face_in_private_cache(char *face, int checksum)
 
 #define MAXFACES 5
 #define MAXPIXMAPNUM 10000
-struct MapCell {
-  short faces[MAXFACES];
-  int count;
-  uint8 darkness;
-  uint8 need_update:1;
-  uint8 have_darkness:1;
-  uint8 cleared:1; /* Used for fog of war code only */
-};
 
-#if 0
-struct Map {
-  struct MapCell cells[MAP_MAX_SIZE][MAP_MAX_SIZE];
-};
-
-static struct Map the_map;
-#endif
-
-struct Map {
-  struct MapCell **cells;
-  /* Store size of map so we know if map_size has changed
-   * since the last time we allocated this;
-   */
-  int x;
-  int y;
-};
-
-static struct Map the_map;
 
 /*
  * Added for fog of war. Current size of the map structure in memory.
@@ -1848,7 +1405,7 @@ PlayerPosition pl_pos;
  * the_map.cells to the_map->cells...
  * The returned map memory is zero'ed.
  */
-static void allocate_map( struct Map* new_map, int ax, int ay)
+void allocate_map( struct Map* new_map, int ax, int ay)
 {
 
   int i= 0;

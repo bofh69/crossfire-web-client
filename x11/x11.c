@@ -94,7 +94,7 @@
 
 
 #include <client.h>
-#include <clientbmap.h>
+#include "clientbmap.h"
 #include <item.h>
 #include <config.h>
 
@@ -104,6 +104,9 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+
+#include "x11proto.h"
+#include "x11.h"
 
 #if defined(__pyrsoft)
 #define _Xconst 
@@ -166,6 +169,7 @@ typedef struct {
 } itemlist;
 
 static char *font_name="8x13",	**gargv;
+struct Map the_map;
 
 #define SCROLLBAR_WIDTH	16	/* +2+2 for border on each side */
 #define INFOCHARS 50
@@ -175,7 +179,6 @@ static int  FONTWIDTH= 8;
 static int FONTHEIGHT= 13;
 #define MAX_INFO_WIDTH 80
 #define MAXNAMELENGTH 50
-#define MAXPIXMAPNUM 10000
 
 /* What follows is various constants (or calculations) for various
  * window sizes.
@@ -196,12 +199,13 @@ static int FONTHEIGHT= 13;
 static int gargc, old_mapx=11, old_mapy=11;
 
 Display_Mode display_mode = DISPLAY_MODE;
-static char cache_images=FALSE;
-static Display *display;
-static long screen_num;
+uint8 cache_images=FALSE;
+Display *display;
+long screen_num;
 static unsigned long foreground,background;
-static Window win_root, win_game,win_stats,win_message;
-static Colormap colormap;
+Window win_stats,win_message;
+Window win_root,win_game;
+Colormap colormap;
 static XColor discolor[16];
 static XFontStruct *font;	/* Font loaded to display in the windows */
 static XEvent event;
@@ -239,24 +243,19 @@ typedef struct {
     sint16	width,height; /* Width and height of window */
 } InfoData;
 
-static InfoData infodata = {0, 0, 0, 0, 0, 0, INFOLINES, INFOLINES, NDI_BLACK,
+InfoData infodata = {0, 0, 0, 0, 0, 0, INFOLINES, INFOLINES, NDI_BLACK,
 	NULL, 0, 0,0,0,0,0,0,0,0};
 
 static uint8	
 	split_windows=FALSE,
-	iscolor = TRUE,
-	image_size=24;
+	iscolor = TRUE;
 
+uint8	image_size=24;
 
-struct PixmapInfo {
-  Pixmap pixmap,mask;
-  Pixmap bitmap;
-  long fg,bg;
-};
 
 
 static char stats_buff[7][600];
-static struct PixmapInfo pixmaps[MAXPIXMAPNUM];
+struct PixmapInfo pixmaps[MAXPIXMAPNUM];
 /* Off the 'free' space in the window, this floating number is the
  * portion that the info takes up.
  */
@@ -273,9 +272,10 @@ enum {
 static struct PixmapInfo icons[max_icons];
 
 static Pixmap icon,xpm_pixmap,xpm_masks[XPMGCS]; 
-static GC gc_root,gc_game,gc_stats,gc_message,
+static GC gc_root,gc_stats,gc_message,
 	gc_floor,gc_xpm_object,gc_clear_xpm,gc_xpm[XPMGCS],
 	gc_blank; 
+GC gc_game;
 
 /*
  * These are used for inventory and look window
@@ -285,15 +285,9 @@ static itemlist look_list, inv_list;
 /* Used to know what stats has changed */
 static Stats last_stats = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-static Window win_root, win_game,win_stats,win_message;
 /* info win */
 #define INFOCHARS 50
 
-
-#if defined(HAVE_LIBPNG) && !defined(__CEXTRACT__)
-#include <png.c>
-#endif
-#include <xutil.c>
 
 /* This is the loop that the client goes through once all the
  * initialization is done.  Basically, it checks for input and
@@ -367,14 +361,13 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	}
 	XCopyPlane(display,pixmaps[face].bitmap,where,gc_game,
 	     0,0,24,24,x,y,1);
-    } else if ((display_mode == Xpm_Display || display_mode==Png_Display)
-	       && pixmaps[face].mask == None) {
+    } else if (display_mode==Png_Display && pixmaps[face].mask == None) {
 	    XCopyArea(display, pixmaps[face].pixmap,
 	      where,gc_floor,
 	      0,0,image_size,image_size,x,y);
 
     /* Xpm and png do exactly the same thing */
-    } else if ((display_mode == Xpm_Display) || (display_mode == Png_Display)) {
+    } else if (display_mode == Png_Display) {
 	/* Basically, what it looks like all this does is to try and preserve
 	 * gc's with various clipmasks set. */
 
@@ -432,7 +425,7 @@ void end_windows()
     XFreeGC(display, look_list.gc_icon);
     XFreeGC(display, look_list.gc_status);
     XFreeGC(display, gc_message);
-    if (display_mode==Xpm_Display || display_mode==Png_Display) {
+    if (display_mode==Png_Display) {
 	XFreeGC(display, gc_xpm_object);
     }
     XDestroyWindow(display,win_game);
@@ -495,7 +488,7 @@ static int get_game_display() {
     gc_blank = XCreateGC(display,win_game,0,0);
     XSetForeground(display,gc_blank,discolor[0].pixel);	/*set to black*/
     XSetGraphicsExposures(display,gc_blank,False);
-    if (display_mode==Xpm_Display || display_mode==Png_Display) {
+    if (display_mode==Png_Display) {
 	int i;
 	for (i=0; i<XPMGCS; i++) {
 	    gc_xpm[i] = XCreateGC(display, win_game, 0,0);
@@ -1497,6 +1490,11 @@ static void draw_all_message() {
  ****************************************************************************/
 
 
+#if 1
+/* Do nothing - status icons are not being created - FIX THIS */
+#define draw_status_icon(l,x,y,face) 
+
+#else
 #define draw_status_icon(l,x,y,face) \
 do { \
     XClearArea(display, l->win, x, y, 24, 6, False); \
@@ -1507,7 +1505,7 @@ do { \
 		  0, 0, 24, 6, x, y); \
     } \
 } while (0)
-
+#endif
 /* compares the 'flags' against the item.  return 1 if we should draw
  * that object, 0 if it should not be drawn.
  */
@@ -1534,6 +1532,9 @@ static int show_object(item *ip, inventory_show flags)
 
 static void create_status_icons ()
 {
+#include "pixmaps/stipple.111"
+#include "pixmaps/stipple.112"
+#if 0
 #include "pixmaps/locked.xpm"
 #include "pixmaps/unpaid.xpm"
 #include "pixmaps/applied.xpm"
@@ -1541,8 +1542,6 @@ static void create_status_icons ()
 #include "pixmaps/damned.xpm"
 #include "pixmaps/cursed.xpm"
 #include "pixmaps/close.xpm"
-#include "pixmaps/stipple.111"
-#include "pixmaps/stipple.112"
     static int hasinit=0;
 
     if (hasinit) return;
@@ -1573,6 +1572,7 @@ static void create_status_icons ()
 	fprintf(stderr, "Unable to create icon pixmaps.\n");
 	exit (0);
     }
+#endif
     icons[stipple1_icon].bitmap = XCreateBitmapFromData(display, 
 	RootWindow(display, screen_num), stipple_bits, 24, 24);
     icons[stipple2_icon].bitmap = XCreateBitmapFromData(display, 
@@ -2038,8 +2038,6 @@ static int get_root_display(char *display_name) {
     if ((cp=XGetDefault(display,X_PROG_NAME, "image")) != NULL) {
 	if (!strcmp("pixmap",cp))
 	    display_mode = Pix_Display;
-	else if (!strcmp("xpm",cp))
-	    display_mode = Xpm_Display;
 	else if (!strcmp("png",cp))
 	    display_mode = Png_Display;
 	else
@@ -2665,6 +2663,8 @@ int init_windows(int argc, char **argv)
     int on_arg=1;
     char *display_name="";
 
+    strcpy(VERSION_INFO,"X11 Unix Client " VERSION);
+
     load_defaults();	/* Load these first, so they can get overwritten by
 			 * command line options.
 			 */
@@ -2732,7 +2732,7 @@ int init_windows(int argc, char **argv)
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-xpm")) {
-	    display_mode = Xpm_Display;
+	    fprintf(stderr,"-xpm is no longer supported\n");
 	    continue;
 	}
 	if (!strcmp(argv[on_arg],"-png")) {
@@ -2829,15 +2829,6 @@ int init_windows(int argc, char **argv)
 	image_size=32;
 #endif
     }
-    if (display_mode == Xpm_Display) {
-#ifndef HAVE_LIBXPM
-	    fprintf(stderr,"Client not configured with Xpm display mode enabled\n");
-	    fprintf(stderr,"Will use pixmap display mode\n");
-	    display_mode = Pix_Display;
-#else
-	    image_size=24;
-#endif
-    }
     if (display_mode == Pix_Display) {
 	image_size=24;
     }
@@ -2911,7 +2902,7 @@ void display_mapcell_bitmap(int ax,int ay)
 
 int display_usexpm()
 {
-  return display_mode == Xpm_Display;
+    return 0;
 }
 
 int display_usepng()
@@ -2980,7 +2971,7 @@ void display_map_doneupdate(int redraw)
 			   2+image_size*ay,image_size,image_size);
 		    continue;
 		}
-		if (display_mode == Xpm_Display || display_mode == Png_Display) {
+		if (display_mode == Png_Display) {
 		    display_mapcell_pixmap(ax,ay);
 		} else if (display_mode == Pix_Display) {
 		    display_mapcell_bitmap(ax,ay);
@@ -3006,7 +2997,6 @@ void display_map_doneupdate(int redraw)
  */
 void display_newpng(long face,char *buf,long buflen)
 {
-#ifdef HAVE_LIBPNG
     char    *filename;
 
     FILE *tmpfile;
@@ -3044,9 +3034,9 @@ void display_newpng(long face,char *buf,long buflen)
 	}
     }
 
-#endif
 }
 
+#if 0
 void display_newpixmap(long face,char *buf,long buflen)
 {
     FILE *tmpfile;
@@ -3083,7 +3073,7 @@ void display_newpixmap(long face,char *buf,long buflen)
 	facetoname[face]=NULL;
     }
 }
-
+#endif
 
 void display_newbitmap(long face,long fg,long bg,char *buf)
 {
@@ -3259,4 +3249,347 @@ void reset_image_data()
     }
     memset((char*)&the_map.cells[0][0], 0, sizeof(struct MapCell)*the_map.x*the_map.y);
     look_list.env=cpl.below;
+}
+
+
+/* Gets a specified windows coordinates.  This function is pretty much
+ * an exact copy out of the server.
+ */
+ 
+static void get_window_coord(Window win,
+                 int *x,int *y,
+                 int *wx,int *wy,
+                 unsigned int *w,unsigned int *h)
+{
+  Window root,child;
+  unsigned int tmp;
+
+  XGetGeometry(display,win,&root,x,y,w,h,&tmp,&tmp);
+  XTranslateCoordinates(display,win,root,0,0,wx,wy, &child);
+}
+
+
+
+void save_winpos()
+{
+    char savename[MAX_BUF],buf[MAX_BUF];
+    FILE    *fp;
+    int	    x,y,wx,wy;
+    unsigned int w,h;
+
+    if (!split_windows) {
+	draw_info("You can only save window positions in split windows mode", NDI_BLUE);
+	return;
+    }
+    sprintf(savename,"%s/.crossfire/winpos", getenv("HOME"));
+    if (!(fp=fopen(savename,"w"))) {
+	sprintf(buf,"Unable to open %s, window positions not saved",savename);
+	draw_info(buf,NDI_BLUE);
+	return;
+    }
+    /* This is a bit simpler than what the server was doing - it has
+     * some code to handle goofy window managers which I am not sure
+     * is still needed.
+     */
+    get_window_coord(win_game, &x,&y, &wx,&wy,&w,&h);
+    fprintf(fp,"win_game: %d %d %d %d\n", wx,wy, w, h);
+    get_window_coord(win_stats, &x,&y, &wx,&wy,&w,&h);
+    fprintf(fp,"win_stats: %d %d %d %d\n", wx,wy, w, h);
+    get_window_coord(infodata.win_info, &x,&y, &wx,&wy,&w,&h);
+    fprintf(fp,"win_info: %d %d %d %d\n", wx,wy, w, h);
+    get_window_coord(inv_list.win, &x,&y, &wx,&wy,&w,&h);
+    fprintf(fp,"win_inv: %d %d %d %d\n", wx,wy, w, h);
+    get_window_coord(look_list.win, &x,&y, &wx,&wy,&w,&h);
+    fprintf(fp,"win_look: %d %d %d %d\n", wx,wy, w, h);
+    get_window_coord(win_message, &x,&y, &wx,&wy,&w,&h);
+    fprintf(fp,"win_message: %d %d %d %d\n", wx,wy, w, h);
+    fclose(fp);
+    sprintf(buf,"Window positions saved to %s",savename);
+    draw_info(buf,NDI_BLUE);
+}
+
+/* Reads in the winpos file created by the above function and sets the
+ * the window positions appropriately.
+ */
+void set_window_pos()
+{
+    unsigned int xwc_mask = CWX|CWY|CWWidth|CWHeight;
+    XWindowChanges xwc;
+    char buf[MAX_BUF],*cp;
+    FILE *fp;
+
+    if (!split_windows) return;
+
+    sprintf(buf,"%s/.crossfire/winpos", getenv("HOME"));
+    if (!(fp=fopen(buf,"r"))) return;
+
+    while(fgets(buf,MAX_BUF-1, fp)!=NULL) {
+	buf[MAX_BUF-1]='\0';
+	if (!(cp=strchr(buf,' '))) continue;
+	*cp++='\0';
+	if (sscanf(cp,"%d %d %d %d",&xwc.x,&xwc.y,&xwc.width,&xwc.height)!=4)
+	    continue;
+	if (!strcmp(buf,"win_game:")) 
+	    XConfigureWindow(display,win_game,xwc_mask, &xwc);
+	if (!strcmp(buf,"win_stats:")) 
+	    XConfigureWindow(display,win_stats,xwc_mask, &xwc);
+	if (!strcmp(buf,"win_info:")) 
+	    XConfigureWindow(display,infodata.win_info,xwc_mask, &xwc);
+	if (!strcmp(buf,"win_inv:")) 
+	    XConfigureWindow(display,inv_list.win,xwc_mask, &xwc);
+	if (!strcmp(buf,"win_look:")) 
+	    XConfigureWindow(display,look_list.win,xwc_mask, &xwc);
+	if (!strcmp(buf,"win_message:")) 
+	    XConfigureWindow(display,win_message,xwc_mask, &xwc);
+
+    }
+}
+
+
+void load_defaults()
+{
+    char path[MAX_BUF],inbuf[MAX_BUF],*cp;
+    FILE *fp;
+
+    sprintf(path,"%s/.crossfire/defaults", getenv("HOME"));
+    if ((fp=fopen(path,"r"))==NULL) return;
+    while (fgets(inbuf, MAX_BUF-1, fp)) {
+	inbuf[MAX_BUF-1]='\0';
+	inbuf[strlen(inbuf)-1]='\0';	/* kill newline */
+
+	if (inbuf[0]=='#') continue;
+	/* IF no colon, then we certainly don't have a real value, so just skip */
+	if (!(cp=strchr(inbuf,':'))) continue;
+	*cp='\0';
+	cp+=2;	    /* colon, space, then value */
+
+	if (!strcmp(inbuf, "port")) {
+	    port_num = atoi(cp);
+	    continue;
+	}
+	if (!strcmp(inbuf, "server")) {
+	    server = strdup_local(cp);	/* memory leak ! */
+	    continue;
+	}
+	if (!strcmp(inbuf,"display")) {
+	    if (!strcmp(cp,"png")) 
+		display_mode=Png_Display;
+	    else fprintf(stderr,"Unknown display specication in %s, %s",
+			   path, cp);
+	    continue;
+	}
+	if (!strcmp(inbuf,"cacheimages")) {
+	    if (!strcmp(cp,"True")) cache_images=TRUE;
+	    else cache_images=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"split")) {
+	    if (!strcmp(cp,"True")) split_windows=TRUE;
+	    else split_windows=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"showicon")) {
+	    if (!strcmp(cp,"True")) inv_list.show_icon=TRUE;
+	    else inv_list.show_icon=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"scrolllines")) {
+	    infodata.maxlines = atoi(cp);
+	    continue;
+	}
+	if (!strcmp(inbuf,"scrollinfo")) {
+	    if (!strcmp(cp,"True")) infodata.scroll_info_window=TRUE;
+	    else infodata.scroll_info_window=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"sound")) {
+	    if (!strcmp(cp,"True")) nosound=FALSE;
+	    else nosound=TRUE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"command_window")) {
+	    cpl.command_window = atoi(cp);
+	    if (cpl.command_window<1 || cpl.command_window>127)
+		cpl.command_window=COMMAND_WINDOW;
+	    continue;
+	}
+	if (!strcmp(inbuf,"foodbeep")) {
+	    if (!strcmp(cp,"True")) cpl.food_beep=TRUE;
+	    else cpl.food_beep=FALSE;
+	    continue;
+	}
+	fprintf(stderr,"Got line we did not understand: %s: %s\n", inbuf, cp);
+    }
+    fclose(fp);
+}
+
+void save_defaults()
+{
+    char path[MAX_BUF],buf[MAX_BUF];
+    FILE *fp;
+
+    sprintf(path,"%s/.crossfire/defaults", getenv("HOME"));
+    if (make_path_to_file(path)==-1) {
+	fprintf(stderr,"Could not create %s\n", path);
+	return;
+    }
+    if ((fp=fopen(path,"w"))==NULL) {
+	fprintf(stderr,"Could not open %s\n", path);
+	return;
+    }
+    fprintf(fp,"# This file is generated automatically by cfclient.\n");
+    fprintf(fp,"# Manually editing is allowed, however cfclient may be a bit finicky about\n");
+    fprintf(fp,"# some of the matching it does.  all comparissons are case sensitive.\n");
+    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values");
+
+    fprintf(fp,"port: %d\n", port_num);
+    fprintf(fp,"server: %s\n", server);
+    if (display_mode==Pix_Display) {
+	fprintf(fp,"display: pixmap\n");
+    } else if (display_mode==Png_Display) {
+	fprintf(fp,"display: png\n");
+    }
+    fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
+    fprintf(fp,"split: %s\n", split_windows?"True":"False");
+    fprintf(fp,"showicon: %s\n", inv_list.show_icon?"True":"False");
+    fprintf(fp,"scrolllines: %d\n", infodata.maxlines);
+    fprintf(fp,"scrollinfo: %s\n", infodata.scroll_info_window?"True":"False");
+    fprintf(fp,"sound: %s\n", nosound?"False":"True");
+    fprintf(fp,"command_window: %d\n", cpl.command_window);
+    fprintf(fp,"foodbeep: %s\n", cpl.food_beep?"True":"False");
+
+    fclose(fp);
+    sprintf(buf,"Defaults saved to %s",path);
+    draw_info(buf,NDI_BLUE);
+}
+
+/* determine what we show in the inventory window.  This is a slightly
+ * more complicated version than the server side, since we use a bitmask
+ * which means we could show things like magical and cursed, or unpaid
+ * and magical, etc.  Current time, we don't really support setting it
+ * all that well.
+ *
+ */
+
+void command_show (char *params)
+{
+    if(!params) {
+	if (inv_list.show_what==show_all) inv_list.show_what = show_applied;
+	else { /* rotate the bit.  If no valid bits are set, start over */
+	    inv_list.show_what = inv_list.show_what << 1;
+	    if (!(inv_list.show_what & show_mask))
+		inv_list.show_what = show_all;
+	}
+	inv_list.env->inv_updated =1;
+	return;
+    }
+
+    if (!strncmp(params, "all", strlen(params)))
+        inv_list.show_what = show_all;
+    else if (!strncmp(params, "applied", strlen(params)))
+        inv_list.show_what = show_applied;
+    else if (!strncmp(params, "unapplied", strlen(params)))
+        inv_list.show_what = show_unapplied;
+    else if (!strncmp(params, "unpaid", strlen(params)))
+        inv_list.show_what = show_unpaid;
+    else if (!strncmp(params, "cursed", strlen(params)))
+        inv_list.show_what = show_cursed;
+    else if (!strncmp(params, "magical", strlen(params)))
+        inv_list.show_what = show_magical;
+    else if (!strncmp(params, "nonmagical", strlen(params)))
+        inv_list.show_what = show_nonmagical;
+    else if (!strncmp(params, "locked", strlen(params)))
+        inv_list.show_what = show_locked;
+    else if (!strncmp(params, "unlocked", strlen(params)))
+        inv_list.show_what = show_unlocked;
+
+    inv_list.env->inv_updated =1;
+}
+
+
+int main(int argc, char *argv[])
+{
+    int sound,got_one=0;
+
+    /* This needs to be done first.  In addition to being quite quick,
+     * it also sets up some paths (client_libdir) that are needed by
+     * the other functions.
+     */
+
+    init_client_vars();
+    
+    /* Call this very early.  It should parse all command
+     * line arguments and set the pertinent ones up in
+     * globals.  Also call it early so that if it can't set up
+     * the windowing system, we get an error before trying to
+     * to connect to the server.  And command line options will
+     * likely change on the server we connect to.
+     */
+    if (init_windows(argc, argv)) {	/* x11.c */
+	fprintf(stderr,"Failure to init windows.\n");
+	exit(1);
+    }
+    csocket.inbuf.buf=malloc(MAXSOCKBUF);
+
+#ifdef HAVE_SYSCONF
+    maxfd = sysconf(_SC_OPEN_MAX);
+#else
+    maxfd = getdtablesize();
+#endif
+
+    sound = init_sounds();
+
+    /* Loop to connect to server/metaserver and play the game */
+    while (1) {
+	reset_client_vars();
+	csocket.inbuf.len=0;
+	csocket.cs_version=0;
+
+	/* Perhaps not the best assumption, but we are taking it that
+	 * if the player has not specified a server (ie, server
+	 * matches compiled in default), we use the meta server.
+	 * otherwise, use the server provided, bypassing metaserver.
+	 * Also, if the player has already played on a server once (defined
+	 * by got_one), go to the metaserver.  That gives them the oppurtunity
+	 * to quit the client or select another server.  We should really add
+	 * an entry for the last server there also.
+	 */
+
+	if (!strcmp(server, SERVER) || got_one) {
+	    char *ms;
+	    metaserver_get_info(meta_server, meta_port);
+	    metaserver_show(TRUE);
+	    do {
+		ms=get_metaserver();
+	    } while (metaserver_select(ms));
+	    negotiate_connection(sound);
+	} else {
+	    csocket.fd=init_connection(server, port_num);
+	    if (csocket.fd == -1) { /* specified server no longer valid */
+		server = SERVER;
+		continue;
+	    }
+	    negotiate_connection(sound);
+	}
+
+	got_one=1;
+	event_loop();
+	/* if event_loop has exited, we most of lost our connection, so we
+	 * loop again to establish a new one.
+	 */
+
+	/* Need to reset the images so they match up properly and prevent
+	 * memory leaks.
+	 */
+	reset_image_data();
+	remove_item_inventory(cpl.ob);
+	/* We know the following is the private map structure in
+	 * item.c.  But we don't have direct access to it, so
+	 * we still use locate.
+	 */
+	remove_item_inventory(locate_item(0));
+	reset_map_data();
+	look_list.env=cpl.below;
+    }
+    exit(0);	/* never reached */
 }

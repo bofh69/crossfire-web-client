@@ -3,6 +3,13 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+Complete client re-org.  Create common, gtk, gnome, sounds, and x11 subdirs.
+Gtk client: only image support is png.  Also add resizing options for
+the images (-mapscale/-iconscale), remove pngximage, update sdl
+image and normal draw image to support arbitrary image sizes.
+sound: Only support new sound system.
+MSW 2001-11-01
+
 gx11.c: Modified to know about new pickup mode (frontend - most all the
 work is still done on the server).  Patch by Nils Lohner.
 MSW 2001-08-28

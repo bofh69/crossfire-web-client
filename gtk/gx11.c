@@ -75,27 +75,8 @@
  */
 
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#include <time.h>
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
-#include "client.h"
-/*#include "clientbmap.h"*/
-#include "item.h"
-#include "pixmaps/crossfiretitle.xpm"
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -106,35 +87,51 @@
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
 
-#ifdef HAVE_LIBPNG
-#define PNG_GDK
-#include "png.c"
-#endif
-
 #ifdef HAVE_SDL
 #include <SDL.h>
 #include <SDL_image.h>
+#endif
+
+/* always include our local headers after the system headers are included */
+#include "client.h"
+/*#include "clientbmap.h"*/
+#include "item.h"
+#include "pixmaps/crossfiretitle.xpm"
+#include "gx11.h"
+#include "gtkproto.h"
 
 
-static void do_SDL_error( gchar* SDL_function, gchar* file, int line)
-{
-  fprintf( stderr, "ERROR on %s in file %s line %d\n%s\n", SDL_function,
-	   file, line, SDL_GetError());
-  SDL_Quit();
-  exit( 1);
-}
 
-typedef struct 
-{
-  SDL_Surface *surface;
-} SurfaceInfo;
+#ifdef HAVE_SDL
+/* These are only used in SDL mode at current time */
+static GtkWidget *cradiobutton1;
+static GtkWidget *cradiobutton2;
+static GtkWidget *ccheckbutton9;
+extern SDL_Surface* mapsurface;
+#endif
 
-#endif /* HAVE_SDL */
+static char *colorname[] = {
+"Black",                /* 0  */
+"White",                /* 1  */
+"Navy",                 /* 2  */
+"Red",                  /* 3  */
+"Orange",               /* 4  */
+"DodgerBlue",           /* 5  */
+"DarkOrange2",          /* 6  */
+"SeaGreen",             /* 7  */
+"DarkSeaGreen",         /* 8  */        /* Used for window background color */
+"Grey50",               /* 9  */
+"Sienna",               /* 10 */
+"Gold",                 /* 11 */
+"Khaki"                 /* 12 */
+};
 
-#define MAXPIXMAPNUM 10000
-#define GDK_XUTIL
+#define DEFAULT_IMAGE_SIZE	32
 
-static int image_size=24;
+static int image_size=DEFAULT_IMAGE_SIZE;
+int map_image_size=DEFAULT_IMAGE_SIZE, map_image_half_size=DEFAULT_IMAGE_SIZE/2;
+PixmapInfo pixmaps[MAXPIXMAPNUM];
+
 
 /* All the following are static because these variables should
  * be local only to this file.  Since the idea is to have only
@@ -274,23 +271,26 @@ Display_Mode display_mode = DISPLAY_MODE;
 
 
 static uint8	
-    split_windows=FALSE,
-    cache_images=FALSE,
-    nopopups=FALSE, 
     splitinfo=FALSE,
     color_inv=FALSE,
     color_text=FALSE,
     tool_tips=FALSE,
-    bigmap=FALSE,	/* True if we've moved some windows around for big maps */
-    pngximage=FALSE,
-    sdlimage=FALSE;
+    bigmap=FALSE;	/* True if we've moved some windows around for big maps */
+
+uint8
+    cache_images=FALSE,
+    keepcache=FALSE,
+    nopopups=FALSE, 
+    sdlimage=FALSE,
+    split_windows=FALSE,
+    updatekeycodes=FALSE;
 
 /* Only used in SDL code, but we want to preserve values when loading/
  * saving even if we don't have SDL
  */
-static int per_pixel_lighting= 1;
-static int per_tile_lighting= 0;
-static int show_grid= FALSE;
+int per_pixel_lighting= 1;
+int per_tile_lighting= 0;
+int show_grid= FALSE;
 
 
 /* Don't define this unless you want stability problems */
@@ -302,19 +302,6 @@ static int info1_num_chars=0, info2_num_chars=0, info1_max_chars=10000,
     info2_max_chars=10000;
 #endif
 
-struct PixmapInfo {
-  long fg,bg;
-  GdkPixmap *gdkpixmap;
-  GdkBitmap *gdkmask;
-  uint8 *png_data;
-};
-
-struct GtkMap {
-  GtkWidget *pixmap;
-  GdkPixmap *gdkpixmap;
-  GdkBitmap *gdkmask;
-  GdkGC *gc;
-};
 
 
 typedef struct {
@@ -332,10 +319,10 @@ typedef struct {
 } Vitals;
 
 static Vitals vitals[4];
-static GtkWidget *run_label, *fire_label;
+GtkWidget *run_label, *fire_label;
 #define SHOW_RESISTS 7
 static GtkWidget *resists[SHOW_RESISTS];
-static GtkWidget *ckentrytext, *ckeyentrytext, *cmodentrytext, *cnumentrytext;
+GtkWidget *ckentrytext, *ckeyentrytext, *cmodentrytext, *cnumentrytext;
 
 GdkColor gdk_green =    { 0, 0, 0xcfff, 0 };
 GdkColor gdk_red =    { 0, 0xcfff, 0, 0 };
@@ -346,20 +333,11 @@ GdkColor gdkdiscolor;
 static GdkColor map_color[16];
 static GdkColor root_color[16];
 static GdkPixmap *magicgdkpixmap;
-static GdkGC *map_gc;
+static GdkGC *magic_map_gc;
 static GtkWidget *mapvbox;
-
-
-static struct PixmapInfo pixmaps[MAXPIXMAPNUM];
-
-#ifdef HAVE_SDL
-static SurfaceInfo surfaces[MAXPIXMAPNUM];
-
-/* Actual SDL surface the game view is painted on */
-static SDL_Surface* mapsurface;
-static SDL_Surface* lightmap;
-static SDL_Surface* fogmap;
-#endif
+GdkPixmap   *mapwindow;
+GdkBitmap *dark1, *dark2, *dark3;
+GdkPixmap *dark;
 
 #define INFOLINELEN 500
 #define XPMGCS 100
@@ -374,21 +352,16 @@ static GtkWidget *ccheckbutton7;
 static GtkWidget *ccheckbutton8;
 static GtkWidget *inv_notebook;
 
-#ifdef HAVE_SDL
-static GtkWidget *cradiobutton1;
-static GtkWidget *cradiobutton2;
-static GtkWidget *ccheckbutton9;
-#endif
 
 static GtkTooltips *tooltips;
 
 static GtkWidget *dialogtext;
 static GtkWidget *dialog_window;
-static GtkWidget *drawingarea;
+GtkWidget *drawingarea;
 
-static GdkGC *mapgc;
+GdkGC *mapgc;
 
-static GtkWidget *cclist;
+GtkWidget *cclist;
 static gboolean draw_info_freeze1=FALSE, draw_info_freeze2=FALSE;
 
 enum {
@@ -398,7 +371,7 @@ enum {
 };
 
 
-static GtkWidget *entrytext, *counttext;
+GtkWidget *entrytext, *counttext;
 static gint redraw_needed=FALSE;
 static GtkObject *text_hadj,*text_vadj;
 static GtkObject *text_hadj2,*text_vadj2;
@@ -411,8 +384,9 @@ static itemlist look_list, inv_list;
 static StatWindow statwindow;
 /* gtk */
  
-static GtkWidget *gtkwin_root,  *gtkwin_info_text, *gtkwin_info_text2;
-static GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_info, *gtkwin_look, *gtkwin_inv;
+GtkWidget *gtkwin_root, *gtkwin_info;
+static GtkWidget *gtkwin_info_text2, *gtkwin_info_text;;
+static GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_look, *gtkwin_inv;
 
 
 static GtkWidget *gtkwin_about = NULL;
@@ -476,271 +450,9 @@ int misses=0,total=0;
 
 /* Pixels representing entire viewable screen.  This amounts to about <BPP> mb */
 
-#define SCREEN_SIZE MAP_MAX_SIZE * MAP_MAX_SIZE*32*32*BPP
-static uint8 screen[SCREEN_SIZE];
-
-static guchar map_did_scroll=0;
-
-#include "xutil.c"
-
-#ifdef HAVE_SDL
-static void overlay_grid( int re_init, int ax, int ay)
-{
-
-  static SDL_Surface* grid_overlay;
-
-  static int first_pass;
-
-  int x= 0;
-  int y= 0;
-  SDL_Rect dst;
-  Uint32 *pixel;
-  SDL_PixelFormat* fmt;
-
-  if( fog_of_war == TRUE)
-  {
-    /* Need to convert back to screen coordinates */
-    ax-= pl_pos.x;
-    ay-= pl_pos.y;
-  }
-  
-  if( re_init == TRUE)
-    {
-      if( grid_overlay)
-	SDL_FreeSurface( grid_overlay);
-
-      first_pass= 0;
-      grid_overlay= NULL;
-    }
-
-  if( grid_overlay == NULL)
-    {
-      grid_overlay= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, 
-					  mapx*image_size,
-					  mapy*image_size,
-					  mapsurface->format->BitsPerPixel,
-					  mapsurface->format->Rmask,
-					  mapsurface->format->Gmask,
-					  mapsurface->format->Bmask,
-					  mapsurface->format->Amask);
-      if( grid_overlay == NULL)
-	do_SDL_error( "CreateRGBSurface", __FILE__, __LINE__);
-
-      grid_overlay= SDL_DisplayFormatAlpha( grid_overlay);
-
-      first_pass= 0;
-    }
-
-  /* 
-   * If this is our first time drawing the grid, we need to build up the 
-   * grid overlay
-   */
-  if( first_pass== 0)
-    {
-
-      /* Red pixels around the edge and along image borders
-       * fully transparent pixels everywhere else
-       */
-      
-      fmt= grid_overlay->format;
-      for( x= 0; x < image_size*mapx; x++)
-	{
-	  for( y= 0; y < image_size*mapy; y++)
-	    {
-	      /* FIXME: Only works for 32 bit displays right now */
-	      pixel= (Uint32*)grid_overlay->pixels+y*grid_overlay->pitch/4+x;
-
-	      if( x == 0 || y == 0 || 
-		  ((x % image_size) == 0) || ((y % image_size) == 0 ) ||
-		  y == mapy*image_size-1 || x == mapx*image_size -1 )
-		{
-		  *pixel= SDL_MapRGBA( fmt, 255, 0, 0, SDL_ALPHA_OPAQUE);
-		}
-	      else 
-		{
-		  *pixel= SDL_MapRGBA( fmt, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
-		}
-	    }
-	}
-      first_pass= 1;
-
-      /* 
-       * If this is our first pass then we need to overlay the entire grid
-       * now. Otherwise we just update the tile we are on
-       */
-      dst.x= 0;
-      dst.y= 0;
-      dst.w= image_size*mapx;
-      dst.h= image_size*mapy;
-      SDL_BlitSurface( grid_overlay, NULL, mapsurface, &dst);
-    } 
-  else 
-    {
-      dst.x= ax* image_size;
-      dst.y= ay* image_size;
-      dst.w= image_size;
-      dst.h= image_size;
-      /* One to one pixel mapping of grid and mapsurface so we
-       * can share the SDL_Rect
-       */
-      SDL_BlitSurface( grid_overlay, &dst, mapsurface, &dst);
-    }
-
-  return;
-}
-
-/*
- * Takes two args, the first is the GtkWindow to draw on, this should always
- * be 'drawingarea'. The second is a boolean, if 0 then the whole
- * SDL system in initialized or reinited if already run once before,
- * if non zero then only the lightmap is rebuilt, if we switch between
- * per-pixel or per-tile lighting 
- */
-static void init_SDL( GtkWidget* sdl_window, int just_lightmap)
-{
-
-  char SDL_windowhack[32];
-
-  if( just_lightmap == 0)
-    {
-
-      g_assert( sdl_window != NULL);
-      if( SDL_WasInit( SDL_INIT_VIDEO) != 0)
-	{
-	  if( lightmap)
-	    SDL_FreeSurface( lightmap);
-	  if( mapsurface)
-	    SDL_FreeSurface( mapsurface);
-	  
-	  SDL_Quit();
-	}
-
-      /* 
-       * SDL hack to tell SDL which xwindow to paint onto 
-       */
-      sprintf( SDL_windowhack, "SDL_WINDOWID=%ld",
-	       GDK_WINDOW_XWINDOW(sdl_window->window) );
-      putenv( SDL_windowhack);
-      
-      if( SDL_Init( SDL_INIT_VIDEO) < 0)
-	{
-	  fprintf( stderr, "Could not initialize SDL: %s\n", SDL_GetError());
-	  gtk_main_quit();
-	}
-
-      mapsurface= SDL_SetVideoMode( image_size*mapx, image_size*mapy, 0, 
-				    SDL_HWSURFACE|SDL_DOUBLEBUF);
-      
-      if( mapsurface == NULL)
-	{
-	  do_SDL_error( "SetVideoMode", __FILE__, __LINE__);
-	}
-    }
-
-  if( just_lightmap != 0)
-    {
-      if( lightmap) SDL_FreeSurface( lightmap);
-    }
-  
-  
-  lightmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, image_size,
-				  image_size,
-				  mapsurface->format->BitsPerPixel,
-				  mapsurface->format->Rmask,
-				  mapsurface->format->Gmask,
-				  mapsurface->format->Bmask,
-				  mapsurface->format->Amask);
-  if( lightmap == NULL)
-    {
-      do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
-    }
-  
-  if( per_pixel_lighting)
-    {
-      /* Convert surface to have a full alpha channel if we are doing
-       * per-pixel lighting */
-      lightmap= SDL_DisplayFormatAlpha( lightmap);
-      if( lightmap == NULL)
-	{
-	  do_SDL_error( "DisplayFormatAlpha", __FILE__, __LINE__);
-	}
-    }
-
-  if( fogmap)
-    SDL_FreeSurface( fogmap);
-
-  fogmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, image_size,
-				image_size,
-				mapsurface->format->BitsPerPixel,
-				mapsurface->format->Rmask,
-				mapsurface->format->Gmask,
-				mapsurface->format->Bmask,
-				mapsurface->format->Amask);
-
-  if( fogmap == NULL)
-    {
-      do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
-    }
-
-  /* 
-   * This is a persurface alpha value, not an alpha channel value.
-   * So this surface doesn't actually need a full alpha channel
-   */
-  if( SDL_SetAlpha( fogmap, SDL_SRCALPHA|SDL_RLEACCEL, 128) < 0)
-    {
-      do_SDL_error( "SDL_SetAlpha", __FILE__, __LINE__);
-    }
-
-
-  if( show_grid == TRUE)
-    {
-      overlay_grid( TRUE, 0, 0);
-    }
-}
-#endif /* HAVE_SDL */
 
 void create_windows (void);
 
-
-/* Convert xpm memory buffer to xpm data (needed since GTK/GDK doesnt have a
- * function to create from buffer rather than data
-*/
-
-char **xpmbuffertodata (char *buffer) {
-  char *buf=NULL;
-  char **strings=NULL;
-  int i=0,q=0,z=0;
-
-  for (i=1; buffer[i]!=';' ;i++) {
-    if (buffer[i]=='"') {
-      z=0;
-      for (i++; buffer[i]!='"';i++) {
-        buf=(char *)realloc(buf, (z+2)*sizeof(char));
-        buf[z]=buffer[i];
-        z++; 
-      }
-      buf[z]='\0';
-      strings=(char **)realloc(strings, (q+2)*sizeof(char *));
-      strings[q]=(char *)strdup(buf);    
-      q++;
-    }
-  }
-  strings=(char **)realloc(strings, (q+2)*sizeof(char *));
-  strings[q]=(char *)NULL;
-  free(buf);
-  buf=NULL;
-  return (strings);
-} 
-
-/* free the memeory allocated for the xpm data */
-
-void freexpmdata (char **strings) {
-  int q=0;
-  for (q=0; strings[q]!=NULL ; q++) {
-    free (strings[q]);
-  }
-  free (strings);
-}
 	
 /* main loop iteration related stuff */
 void do_network() {
@@ -839,12 +551,12 @@ static animobject *newanimobject() {
 
 /* Free allocations for animations */
 
-void freeanimview (gpointer data, gpointer user_data) {
+static void freeanimview (gpointer data, gpointer user_data) {
   if (data)
     g_free (data);
 }
 
-void freeanimobject (animobject *data, gpointer user_data) {
+static void freeanimobject (animobject *data, gpointer user_data) {
   if (data)
     g_list_foreach (data->view, freeanimview, 0);
   g_free (data);
@@ -852,15 +564,18 @@ void freeanimobject (animobject *data, gpointer user_data) {
 
 /* Update the pixmap */
 
-void animateview (animview *data, gint user_data) {
-      gtk_clist_set_pixmap (GTK_CLIST (data->list), data->row, 0,
-			    pixmaps[facecachemap[user_data]].gdkpixmap,
-			    pixmaps[facecachemap[user_data]].gdkmask);
+static void animateview (animview *data, gint user_data) {
+    /* If no data (because of cache), use face 0 */
+    if (!pixmaps[facecachemap[user_data]].icon_image) user_data=0;
+
+    gtk_clist_set_pixmap (GTK_CLIST (data->list), data->row, 0,
+		    (GdkPixmap*)pixmaps[facecachemap[user_data]].icon_image,
+		    (GdkBitmap*)pixmaps[facecachemap[user_data]].icon_mask);
 }
 
 /* Run through the animations and update them */
 
-void animate (animobject *data, gpointer user_data) {
+static void animate (animobject *data, gpointer user_data) {
   if (data) {
     data->item->last_anim++;
     if (data->item->last_anim>=data->item->anim_speed) {
@@ -904,12 +619,12 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
   
   x=(int)event->x;
   y=(int)event->y;
-  dx=(x-2)/image_size-(mapx/2);
-  dy=(y-2)/image_size-(mapy/2);
-  xmidl=5*image_size-(mapx/2);
-  xmidh=6*image_size+(mapx/2);
-  ymidl=5*image_size-(mapy/2);
-  ymidh=6*image_size+(mapy/2);
+  dx=(x-2)/map_image_size-(mapx/2);
+  dy=(y-2)/map_image_size-(mapy/2);
+  xmidl=5*map_image_size-(mapx/2);
+  xmidh=6*map_image_size+(mapx/2);
+  ymidl=5*map_image_size-(mapy/2);
+  ymidh=6*map_image_size+(mapy/2);
   
   switch (event->button) {
   case 1:
@@ -978,55 +693,29 @@ char *facetoname[MAXPIXMAPNUM];
 static void init_cache_data()
 {
     int i;
-    char buf[MAX_BUF];
     GtkStyle *style;
 #include "pixmaps/question.xpm"
 
 
     printf ("Init Cache\n");
-    sprintf(buf,"%s/.crossfire/images.xpm", getenv("HOME"));
     
     style = gtk_widget_get_style(gtkwin_root);
-    pixmaps[0].gdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
-							&pixmaps[0].gdkmask,
+    pixmaps[0].icon_image = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
+							(GdkBitmap**) &pixmaps[0].icon_mask,
 							&style->bg[GTK_STATE_NORMAL],
 							(gchar **)question);
-    
-#ifdef HAVE_SDL
-    /* SDL has totally lame support for loading XPM images, its rgb.txt database
-     * consists of 6 colors so we will just use a blue tile or something
-     * instead of a question mark
-     */
-    if (sdlimage) {
-	surfaces[0].surface= SDL_CreateRGBSurface( SDL_HWSURFACE,
-					       image_size,
-					       image_size,
-					       mapsurface->format->BitsPerPixel,
-					       mapsurface->format->Rmask,
-					       mapsurface->format->Gmask,
-					       mapsurface->format->Bmask,
-					       mapsurface->format->Amask);
-
-	if( surfaces[0].surface == NULL)
-	    do_SDL_error( "CreateRGBSurface", __FILE__, __LINE__);
-
-	if ( SDL_FillRect( surfaces[0].surface, NULL, 
-			  SDL_MapRGB( mapsurface->format, 0, 0, 255)) < 0)
-	do_SDL_error( "FillRect", __FILE__, __LINE__);
-    }
-#endif
-
-    pixmaps[0].bg = 0;
-    pixmaps[0].fg = 1;
+    pixmaps[0].map_image =  pixmaps[0].icon_image;
+    pixmaps[0].map_mask =  pixmaps[0].icon_mask;
+    pixmaps[0].icon_width = pixmaps[0].icon_height = pixmaps[0].map_width = pixmaps[0].map_height = map_image_size;
     facetoname[0]=NULL;
+
+    /* Don't do anything special for SDL image - rather, that drawing
+     * code will check to see if there is no data
+     */
 
     /* Initialize all the images to be of the same value. */
     for (i=1; i<MAXPIXMAPNUM; i++)  {
-	pixmaps[i]=pixmaps[0];
-#ifdef HAVE_SDL
-	if (sdlimage)
-	    surfaces[i]= surfaces[0];
-#endif
+	memset(&pixmaps[i], 0, sizeof(PixmapInfo));
 	facetoname[i]=NULL;
     }
 
@@ -1092,105 +781,6 @@ void gtk_complete_command()
 }
 
 
-void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
-  
-  updatelock=0;
-  if (event->keyval>0) {
-    if (GTK_WIDGET_HAS_FOCUS (entrytext) /*|| GTK_WIDGET_HAS_FOCUS(counttext)*/ ) {
-    } else {
-      parse_key_release(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
-      gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_release_event") ;
-    }
-  }
-}
-
-
-void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
-  char *text;
-  updatelock=0;
-
-  if (nopopups) {
-    if  (cpl.input_state == Reply_One) {
-	text=XKeysymToString(event->keyval);
-	send_reply(text);
-	cpl.input_state = Playing;
-	return;
-    }
-    else if (cpl.input_state == Reply_Many) {
-	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-	return;
-    }
-  }
-
-  /* Better check for really weirdo keys, X doesnt like keyval 0*/
-  if (event->keyval>0) {
-    if (GTK_WIDGET_HAS_FOCUS (entrytext) /*|| GTK_WIDGET_HAS_FOCUS(counttext)*/) {
-	if (event->keyval == completekeysym) gtk_complete_command();
-	if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
-	    gtk_command_history(event->keyval==nextkeysym?0:1);
-    }  else {
-      
-      switch(cpl.input_state) {
-      case Playing:
-	/* Specials - do command history - many times, the player
-	 * will want to go the previous command when nothing is entered
-	 * in the command window.
-	 */
-	if (event->keyval == prevkeysym || event->keyval == nextkeysym) {
-	    gtk_command_history(event->keyval==nextkeysym?0:1);
-	    return;
-	}
-
-	if (cpl.run_on) {
-	  if (!(event->state & GDK_CONTROL_MASK)) {
-/*	    printf ("Run is on while ctrl is not\n");*/
-	    gtk_label_set (GTK_LABEL(run_label),"   ");
-	    cpl.run_on=0;
-	    stop_run();
-	  }
-	}
-	if (cpl.fire_on) {
-	  if (!(event->state & GDK_SHIFT_MASK)) {
-/*	    printf ("Fire is on while shift is not\n");*/
-	    gtk_label_set (GTK_LABEL(fire_label),"   ");
-	    cpl.fire_on=0;
-	    stop_fire();
-	  }
-	}
-
-	if( (event->state & GDK_CONTROL_MASK) && (event->state & GDK_SHIFT_MASK) && 
-	    (event->keyval == GDK_i || event->keyval == GDK_I) ) {
-	    reset_map();
-	}
-	
-	
-	parse_key(event->string[0], XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
-	gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
-	break;
-      case Configure_Keys:
-	configure_keys(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
-	gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
-	break;
-      case Command_Mode:
-	if (event->keyval == completekeysym) gtk_complete_command();
-	if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
-	    gtk_command_history(event->keyval==nextkeysym?0:1);
-	else gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-
-      case Metaserver_Select:
-	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-      break;
-      default:
-	fprintf(stderr,"Unknown input state: %d\n", cpl.input_state);
-      }
-      
-    }
-    
-  }
-}
-
-
-
 /* Event handlers for map drawing area */
 
 
@@ -1199,12 +789,67 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 {
 
 #ifdef HAVE_SDL
-    if(sdlimage && mapsurface) {
-	SDL_UpdateRect( mapsurface, 0, 0, 0, 0);
+    if(sdlimage) {
+	/* When program first runs, mapsruface can be null.
+	 * either way, we want to catch it here.
+	 */
+	if (mapsurface)
+	    SDL_UpdateRect( mapsurface, 0, 0, 0, 0);
 	return TRUE;
     }
 #endif
     mapgc = gdk_gc_new (drawingarea->window);
+
+    if (!sdlimage) {
+	int x,y,count;
+	GdkGC	*darkgc;
+
+	/* this is used when drawing with GdkPixmaps.  Create another surface,
+         * as well as some light/dark images
+         */
+	dark = gdk_pixmap_new(drawingarea->window, map_image_size, map_image_size, -1);
+	gdk_draw_rectangle(dark, drawingarea->style->black_gc, TRUE, 0, 0, map_image_size, map_image_size);
+	dark1 = gdk_pixmap_new(drawingarea->window, map_image_size, map_image_size, 1);
+	dark2 = gdk_pixmap_new(drawingarea->window, map_image_size, map_image_size, 1);
+	dark3 = gdk_pixmap_new(drawingarea->window, map_image_size, map_image_size, 1);
+
+	/* We need our own GC here because we are working with single bit depth images */
+	darkgc = gdk_gc_new(dark1);
+	gdk_gc_set_foreground(darkgc, &root_color[NDI_WHITE]);
+	/* Clear any garbage values we get when we create the bitmaps */
+	gdk_draw_rectangle(dark1, darkgc, TRUE, 0, 0, map_image_size, map_image_size);
+	gdk_draw_rectangle(dark2, darkgc, TRUE, 0, 0, map_image_size, map_image_size);
+	gdk_draw_rectangle(dark3, darkgc, TRUE, 0, 0, map_image_size, map_image_size);
+	gdk_gc_set_foreground(darkgc, &root_color[NDI_BLACK]);
+	count=0;
+	for (x=0; x<map_image_size; x++) {
+	    for (y=0; y<map_image_size; y++) {
+
+		/* we just fill in points every X pixels - dark1 is the darkest, dark3 is the lightest.
+		 * dark1 has 50% of the pixels filled in, dark2 has 33%, dark3 has 25%
+		 * The formula's here are not perfect - dark2 will not match perfectly with an
+		 * adjacent dark2 image.  dark3 results in diagonal stripes.  OTOH, these will
+		 * change depending on the image size.
+		 */
+		if ((x+y) % 2) {
+		    gdk_draw_point(dark1, darkgc, x, y);
+		}
+		if ((x+y) %3) {
+		    gdk_draw_point(dark2, darkgc, x, y);
+		}
+		if ((x+y) % 4) {
+		    gdk_draw_point(dark3, darkgc, x, y);
+		}
+		/* dark1 gets filled on 0x01, 0x11, 0x10, only leaving 0x00 empty */
+	    }
+	    /* if the row size is even, we put an extra value in count - in this
+	     * way, the pixels will be even on one line, odd on the next, etc
+	     * instead of vertical lines - at least for datk1 and dark3
+	     */
+	}
+	mapwindow = gdk_pixmap_new(gtkwin_root->window, mapx * map_image_size, mapy * map_image_size, -1);
+	gdk_gc_unref(darkgc);
+    }
     display_map_doneupdate(TRUE);
     return TRUE;
 }
@@ -1232,51 +877,47 @@ expose_event (GtkWidget *widget, GdkEventExpose *event)
  */
 
 static int get_game_display(GtkWidget *frame) {
-  GtkWidget *gtvbox, *gthbox;
-  gtvbox = gtk_vbox_new (FALSE, 0);
-  gtk_container_add (GTK_CONTAINER (frame), gtvbox);
-  gthbox = gtk_hbox_new (FALSE, 0);
-  gtk_box_pack_start (GTK_BOX (gtvbox), gthbox, FALSE, FALSE, 1);
+    GtkWidget *gtvbox, *gthbox;
 
-  drawingarea = gtk_drawing_area_new(); 
-  gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), image_size*mapx,image_size*mapy);
-  /* Add mouseclick events to the drawing area */
+    gtvbox = gtk_vbox_new (FALSE, 0);
+    gtk_container_add (GTK_CONTAINER (frame), gtvbox);
+    gthbox = gtk_hbox_new (FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (gtvbox), gthbox, FALSE, FALSE, 1);
 
-  gtk_widget_set_events (drawingarea, GDK_BUTTON_PRESS_MASK);
+    drawingarea = gtk_drawing_area_new(); 
+    gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), map_image_size*mapx,map_image_size*mapy);
+    /* Add mouseclick events to the drawing area */
 
-  /* Set up X redraw routine signalling */
-  gtk_signal_connect (GTK_OBJECT (drawingarea), "expose_event",
+    gtk_widget_set_events (drawingarea, GDK_BUTTON_PRESS_MASK);
+
+    /* Set up X redraw routine signalling */
+    gtk_signal_connect (GTK_OBJECT (drawingarea), "expose_event",
 		      (GtkSignalFunc) expose_event, NULL);
-  gtk_signal_connect (GTK_OBJECT(drawingarea),"configure_event",
+    gtk_signal_connect (GTK_OBJECT(drawingarea),"configure_event",
 		      (GtkSignalFunc) configure_event, NULL);
-  /* Set up handling of mouseclicks in map */
+    /* Set up handling of mouseclicks in map */
  
-  gtk_signal_connect (GTK_OBJECT(drawingarea),
+    gtk_signal_connect (GTK_OBJECT(drawingarea),
 		      "button_press_event",
 		      GTK_SIGNAL_FUNC(button_map_event),
 		      NULL);
 
-  /* Pack it up and show it */
+    /* Pack it up and show it */
 
-  gtk_box_pack_start (GTK_BOX (gthbox), drawingarea, FALSE, FALSE, 1);
+    gtk_box_pack_start (GTK_BOX (gthbox), drawingarea, FALSE, FALSE, 1);
   
-  gtk_widget_show(drawingarea);
+    gtk_widget_show(drawingarea);
 
-  gtk_widget_show(gthbox);
-  gtk_widget_show(gtvbox);
+    gtk_widget_show(gthbox);
+    gtk_widget_show(gtvbox);
 
 
-  gtk_signal_connect (GTK_OBJECT (frame), "expose_event",
+    gtk_signal_connect (GTK_OBJECT (frame), "expose_event",
 		      (GtkSignalFunc) expose_event, NULL);
-  gtk_signal_connect (GTK_OBJECT(frame),"configure_event",	
+    gtk_signal_connect (GTK_OBJECT(frame),"configure_event",	
 		      (GtkSignalFunc) configure_event, NULL);
 
-  gtk_widget_show (frame);
-
-
-#ifdef HAVE_SDL
-  /*  init_SDL( drawingarea, 0); */
-#endif
+    gtk_widget_show (frame);
   return 0;
 }
 
@@ -1318,11 +959,7 @@ static void draw_list (itemlist *l)
     }
     /* Freeze the CLists to avoid flickering (and to speed up the processing) */
     for (list=0; list < TYPE_LISTS; list++) {
-#ifdef GTK_HAVE_FEATURES_1_1_12
       l->pos[list]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment->value;
-#else
-      l->pos[list]=GTK_RANGE (GTK_CLIST(l->gtk_list[list])->vscrollbar)->adjustment->value;
-#endif
       gtk_clist_freeze (GTK_CLIST(l->gtk_list[list]));
       gtk_clist_clear (GTK_CLIST(l->gtk_list[list]));
     }
@@ -1333,11 +970,7 @@ static void draw_list (itemlist *l)
       anim_look_list=NULL;
     }
     /* Just freeze the lists and clear them */
-#ifdef GTK_HAVE_FEATURES_1_1_12
     l->pos[0]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[0])->vscrollbar)->adjustment->value;
-#else
-    l->pos[0]=GTK_RANGE (GTK_CLIST(l->gtk_list[0])->vscrollbar)->adjustment->value;
-#endif
     gtk_clist_freeze (GTK_CLIST(l->gtk_list[0]));
     gtk_clist_clear (GTK_CLIST(l->gtk_list[0]));
   }
@@ -1400,8 +1033,8 @@ static void draw_list (itemlist *l)
       tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
       /* Set original pixmap */
       gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
-			    pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			    pixmaps[facecachemap[tmp->face]].gdkmask); 
+			    (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			    (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask); 
       gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
       if (color_inv) { 
 	if (tmp->cursed || tmp->damned) {
@@ -1433,8 +1066,8 @@ static void draw_list (itemlist *l)
       if (tmp->applied) {
        	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[1]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[1]), tmprow, 0,
-			      pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			      pixmaps[facecachemap[tmp->face]].gdkmask);
+			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[1]), tmprow, tmp); 
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1447,8 +1080,8 @@ static void draw_list (itemlist *l)
       if (!tmp->applied) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[2]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[2]), tmprow, 0,
-			      pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			      pixmaps[facecachemap[tmp->face]].gdkmask);
+			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[2]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1462,8 +1095,8 @@ static void draw_list (itemlist *l)
       if (tmp->unpaid) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[3]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[3]), tmprow, 0,
-			      pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			      pixmaps[facecachemap[tmp->face]].gdkmask);
+			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[3]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1477,8 +1110,8 @@ static void draw_list (itemlist *l)
       if (tmp->cursed || tmp->damned) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[4]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[4]), tmprow, 0,
-			      pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			      pixmaps[facecachemap[tmp->face]].gdkmask);
+			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[4]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1492,8 +1125,8 @@ static void draw_list (itemlist *l)
       if (tmp->magical) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[5]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[5]), tmprow, 0,
-			      pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			      pixmaps[facecachemap[tmp->face]].gdkmask);
+			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[5]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1507,8 +1140,8 @@ static void draw_list (itemlist *l)
       if (!tmp->magical) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[6]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[6]), tmprow, 0,
-			      pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			      pixmaps[facecachemap[tmp->face]].gdkmask);
+			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[6]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1522,8 +1155,8 @@ static void draw_list (itemlist *l)
       if (tmp->locked) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[7]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[7]), tmprow, 0,
-			      pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			      pixmaps[facecachemap[tmp->face]].gdkmask);
+			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[7]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1535,8 +1168,8 @@ static void draw_list (itemlist *l)
       if (!tmp->locked) {
 	tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[8]), buffers);
 	gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[8]), tmprow, 0,
-			      pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			      pixmaps[facecachemap[tmp->face]].gdkmask);
+			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
 	gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[8]), tmprow, tmp);
 	if (tmp->animation_id>0 && tmp->anim_speed) {
 	  tmpanimview = newanimview();
@@ -1564,8 +1197,8 @@ static void draw_list (itemlist *l)
     } else {
       tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
       gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
-			    pixmaps[facecachemap[tmp->face]].gdkpixmap,
-			    pixmaps[facecachemap[tmp->face]].gdkmask);
+			      (GdkPixmap*)pixmaps[facecachemap[tmp->face]].icon_image,
+			      (GdkBitmap*)pixmaps[facecachemap[tmp->face]].icon_mask);
       gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
       if (tmp->animation_id>0 && tmp->anim_speed) {
 	tmpanim = newanimobject();
@@ -1599,25 +1232,13 @@ static void draw_list (itemlist *l)
   if (l->multi_list) {
     
     for (list=0; list < TYPE_LISTS; list++) {
-#ifdef GTK_HAVE_FEATURES_1_1_12
       gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment), l->pos[list]);
-#else
-      gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_CLIST(l->gtk_list[list])->vscrollbar)->adjustment), l->pos[list]);
-#endif
       gtk_clist_thaw (GTK_CLIST(l->gtk_list[list]));
-      /*      gtk_widget_draw_children (l->gtk_list[list]);
-	      gtk_widget_draw (l->gtk_list[list],NULL);*/
     }
     
   } else {
-#ifdef GTK_HAVE_FEATURES_1_1_12
     gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[0])->vscrollbar)->adjustment), l->pos[0]);
-#else
-    gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_CLIST(l->gtk_list[0])->vscrollbar)->adjustment), l->pos[0]);
-#endif
     gtk_clist_thaw (GTK_CLIST(l->gtk_list[0]));
-    /*    gtk_widget_draw_children (l->gtk_list[0]);
-	  gtk_widget_draw (l->gtk_list[0],NULL);*/
   }
 
 }
@@ -2491,8 +2112,8 @@ static int get_stats_display(GtkWidget *frame) {
     gtk_widget_show (stats_box_2);
       
 
-      /* 4th row (really the thrid) - the stats - str, dex, con, etc */
-      stats_box_4 = gtk_hbox_new (FALSE, 0);
+    /* 4th row (really the thrid) - the stats - str, dex, con, etc */
+    stats_box_4 = gtk_hbox_new (FALSE, 0);
 
     statwindow.Str = gtk_label_new("S 0");
     gtk_box_pack_start (GTK_BOX (stats_box_4), statwindow.Str, FALSE, FALSE, 5);
@@ -3009,7 +2630,6 @@ void draw_message_window(int redraw) {
 
  
 
-
 /****************************************************************************
  *
  * Inventory window functions follow
@@ -3060,7 +2680,6 @@ void close_container (item *op)
 
 
 /* Handle mouse presses in the lists */
-#ifdef GTK_HAVE_FEATURES_1_1_12
 static void list_button_event (GtkWidget *gtklist, gint row, gint column, GdkEventButton *event, itemlist *l)
 {
   item *tmp;
@@ -3108,61 +2727,7 @@ static void list_button_event (GtkWidget *gtklist, gint row, gint column, GdkEve
   }
   
 }
-#else
-static void list_button_event (GtkWidget *gtklist, GdkEventButton *event, itemlist *l)
-{
-  GList *node;
-  item *tmp;
-  if (event->type==GDK_BUTTON_PRESS && event->button==1) {
-    if (GTK_CLIST(gtklist)->selection) {
-      node =  GTK_CLIST(gtklist)->selection;
-      tmp = gtk_clist_get_row_data (GTK_CLIST(gtklist), (gint)node->data); 
-      gtk_clist_unselect_row (GTK_CLIST(gtklist), (gint)node->data, 0);
-      if (event->state & GDK_SHIFT_MASK)
-	toggle_locked(tmp);
-      else
-	client_send_examine (tmp->tag);     
-    }
-  }
-  if (event->type==GDK_BUTTON_PRESS && event->button==2) {
-    if (GTK_CLIST(gtklist)->selection) {
-      node =  GTK_CLIST(gtklist)->selection;
-      tmp = gtk_clist_get_row_data (GTK_CLIST(gtklist), (gint)node->data); 
 
-      gtk_clist_unselect_row (GTK_CLIST(gtklist), (gint)node->data, 0);
-      if (event->state & GDK_SHIFT_MASK)
-	send_mark_obj(tmp);
-      else
-	client_send_apply (tmp->tag);
-    }
-  }
-  if (event->type==GDK_BUTTON_PRESS && event->button==3) {
-    if (GTK_CLIST(gtklist)->selection) {
-      node =  GTK_CLIST(gtklist)->selection;
-      tmp = gtk_clist_get_row_data (GTK_CLIST(gtklist), (gint)node->data);
-      gtk_clist_unselect_row (GTK_CLIST(gtklist), (gint)node->data, 0);
-
-      if (tmp->locked) {
-	draw_info ("This item is locked.",NDI_BLACK);
-      } else if (l == &inv_list) {
-	cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
-	client_send_move (look_list.env->tag, tmp->tag, cpl.count);
-	if (nopopups) {
-	    gtk_spin_button_set_value(GTK_SPIN_BUTTON(counttext),0.0);
-	    cpl.count=0;
-	}1
-      }
-      else {
-	cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
-	client_send_move (inv_list.env->tag, tmp->tag, cpl.count);
-      cpl.count=0;
-      }
-    }
-    
-  }
-  
-}
-#endif
 
 static void resize_notebook_event (GtkWidget *widget, GtkAllocation *event) {
     int i, newwidth;
@@ -3196,11 +2761,7 @@ void count_callback(GtkWidget *widget, GtkWidget *entry)
 
 
 /* Create tabbed notebook page */
-#ifdef GTK_HAVE_FEATURES_1_1_12
 void create_notebook_page (GtkWidget *notebook, GtkWidget **list, GtkWidget **lists, gchar **label) {
-#else
-void create_notebook_page (GtkWidget *notebook, GtkWidget **list, gchar **label) {
-#endif
   GtkWidget *vbox1;
   GtkStyle *liststyle, *tabstyle;
   GdkPixmap *labelgdkpixmap;
@@ -3222,9 +2783,7 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, gchar **label)
 
   vbox1 = gtk_vbox_new(FALSE, 0);
   gtk_notebook_append_page (GTK_NOTEBOOK (notebook), vbox1, tablabel);
-#ifdef GTK_HAVE_FEATURES_1_1_12
   *lists = gtk_scrolled_window_new (0,0);
-#endif
   *list = gtk_clist_new_with_titles (3, titles);
 
   gtk_clist_set_column_width (GTK_CLIST(*list), 0, image_size);
@@ -3240,18 +2799,13 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, gchar **label)
 
   gtk_clist_set_selection_mode (GTK_CLIST(*list) , GTK_SELECTION_SINGLE);
   gtk_clist_set_row_height (GTK_CLIST(*list), image_size); 
-#ifdef GTK_HAVE_FEATURES_1_1_12
+    fprintf(stderr,"setting row height to %d\n",image_size);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(*lists),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#else 
-  gtk_clist_set_policy (GTK_CLIST (*list), GTK_POLICY_AUTOMATIC,
-			GTK_POLICY_AUTOMATIC);
-#endif  
   liststyle = gtk_style_new ();
   liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
   liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
   gtk_widget_set_style (*list, liststyle);
-#ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_clist_set_button_actions (GTK_CLIST(*list),
 				1,
 				GTK_BUTTON_SELECTS);
@@ -3262,20 +2816,10 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, gchar **label)
 		      "select_row",
 		      GTK_SIGNAL_FUNC(list_button_event),
 		      &inv_list);
-#else
-  gtk_signal_connect_after (GTK_OBJECT(*list),
-                              "button_press_event",
-                              GTK_SIGNAL_FUNC(list_button_event),
-                              &inv_list);
-#endif
   gtk_widget_show (*list);
-#ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_container_add (GTK_CONTAINER (*lists), *list);
   gtk_box_pack_start (GTK_BOX(vbox1),*lists, TRUE, TRUE, 0);
   gtk_widget_show (*lists);
-#else
-  gtk_box_pack_start (GTK_BOX(vbox1),*list, TRUE, TRUE, 0);
-#endif
 
   gtk_signal_connect (GTK_OBJECT(*list),"size-allocate",
 		      (GtkSignalFunc) resize_notebook_event, NULL);
@@ -3357,7 +2901,6 @@ static int get_inv_display(GtkWidget *frame)
 
   gtk_box_pack_start (GTK_BOX(vbox2),inv_notebook, TRUE, TRUE, 0);
 
-#ifdef GTK_HAVE_FEATURES_1_1_12
   create_notebook_page (inv_notebook, &inv_list.gtk_list[0], &inv_list.gtk_lists[0], all_xpm); 
   create_notebook_page (inv_notebook, &inv_list.gtk_list[1], &inv_list.gtk_lists[1], hand_xpm); 
   create_notebook_page (inv_notebook, &inv_list.gtk_list[2], &inv_list.gtk_lists[2], hand2_xpm); 
@@ -3368,17 +2911,6 @@ static int get_inv_display(GtkWidget *frame)
   create_notebook_page (inv_notebook, &inv_list.gtk_list[7], &inv_list.gtk_lists[7], lock_xpm);
   create_notebook_page (inv_notebook, &inv_list.gtk_list[8], &inv_list.gtk_lists[8], unlock_xpm);
 
-#else
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[0], all_xpm); 
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[1], hand_xpm); 
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[2], hand2_xpm); 
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[3], coin_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[4], skull_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[5], mag_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[6], nonmag_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[7], lock_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[8], unlock_xpm);
-#endif
   gtk_widget_show (vbox2);
   gtk_widget_show (inv_notebook);
 
@@ -3431,28 +2963,20 @@ static int get_look_display(GtkWidget *frame)
   gtk_box_pack_start (GTK_BOX(hbox1),look_list.maxweightlabel, TRUE, FALSE, 2);
   gtk_widget_show (look_list.maxweightlabel);
 
-#ifdef GTK_HAVE_FEATURES_1_1_12
   look_list.gtk_lists[0] = gtk_scrolled_window_new (0,0);
-#endif
   look_list.gtk_list[0] = gtk_clist_new_with_titles (3,titles);;
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, image_size);
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 1, 150);
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 50);
   gtk_clist_set_selection_mode (GTK_CLIST(look_list.gtk_list[0]) , GTK_SELECTION_SINGLE);
   gtk_clist_set_row_height (GTK_CLIST(look_list.gtk_list[0]), image_size); 
-#ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(look_list.gtk_lists[0]),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#else
-  gtk_clist_set_policy (GTK_CLIST (look_list.gtk_list[0]), GTK_POLICY_AUTOMATIC,
-			GTK_POLICY_AUTOMATIC);
-#endif
- liststyle = gtk_style_new ();
+  liststyle = gtk_style_new ();
   liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
   liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
   gtk_widget_set_style (look_list.gtk_list[0], liststyle);
 
-#ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_clist_set_button_actions (GTK_CLIST(look_list.gtk_list[0]),
 				1,
 				GTK_BUTTON_SELECTS);
@@ -3463,26 +2987,15 @@ static int get_look_display(GtkWidget *frame)
 		      "select_row",
 		      GTK_SIGNAL_FUNC(list_button_event),
 		      &look_list);
-#else
-  gtk_signal_connect_after (GTK_OBJECT(look_list.gtk_list[0]),
-                              "button_press_event",
-                              GTK_SIGNAL_FUNC(list_button_event),
-                              &look_list);
-#endif
 
   gtk_widget_show (look_list.gtk_list[0]);
-#ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_container_add (GTK_CONTAINER (look_list.gtk_lists[0]), look_list.gtk_list[0]);
   gtk_box_pack_start (GTK_BOX(vbox1),look_list.gtk_lists[0], TRUE, TRUE, 0);
   gtk_widget_show (look_list.gtk_lists[0]);
-#else
-  gtk_box_pack_start (GTK_BOX(vbox1),look_list.gtk_list[0], TRUE, TRUE, 0);
-#endif
   gtk_widget_show (vbox1);
   look_list.multi_list=0;
   draw_all_list(&look_list);
-
-    return 0;
+  return 0;
 }
 
 
@@ -3873,49 +3386,7 @@ void saveconfig () {
   save_defaults();
 }
 
-/*void cknumentry_callback (GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
-  gtk_entry_set_text (GTK_ENTRY(ckeyentrytext),  XKeysymToString(event->keyval));
-  gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event"); 
-  }*/
 
-
-
-static void ckeyentry_callback (GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
-  /*  configure_keys(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);*/
-  gtk_entry_set_text (GTK_ENTRY(ckeyentrytext),  XKeysymToString(event->keyval));
-
-  switch (event->state) {
-  case GDK_CONTROL_MASK:
-    gtk_entry_set_text (GTK_ENTRY(cmodentrytext),  "R");
-    break;
-  case GDK_SHIFT_MASK:
-    gtk_entry_set_text (GTK_ENTRY(cmodentrytext),  "F");
-    break;
-  default:
-    gtk_entry_set_text (GTK_ENTRY(cmodentrytext),  "A");
-  }
-  /*  XKeysymToString(event->keyval);*/
-  gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event"); 
-}
-
-/*void ckeyentry_callback (GtkWidget *entry) {
-  KeySym keysym;
-  gchar *key;
-  key=gtk_entry_get_text(GTK_ENTRY(entry));
-  printf ("Text: %s\n", key);
-  keysym = XStringToKeysym(key);
-  printf ("Keysym: %i\n", keysym);
-
-  }
-*/
-void ckeyclear () {
-  gtk_label_set (GTK_LABEL(cnumentrytext), "0"); 
-  gtk_entry_set_text (GTK_ENTRY(ckeyentrytext), "Press key to bind here"); 
-  /*  gtk_entry_set_text (GTK_ENTRY(cknumentrytext), ""); */
-  gtk_entry_set_text (GTK_ENTRY(cmodentrytext), ""); 
-  gtk_entry_set_text (GTK_ENTRY(ckentrytext), ""); 
-}
-#ifdef GTK_HAVE_FEATURES_1_1_12
 void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButton *event) {
   gchar *buf;
   if (event->button==1) {
@@ -3929,146 +3400,7 @@ void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButt
     gtk_entry_set_text (GTK_ENTRY(ckentrytext), buf); 
   } 
 }
-#else
-void cclist_button_event(GtkWidget *gtklist, GdkEventButton *event) {
-  gchar *buf;
-  GList *node;
 
-  node =  GTK_CLIST(gtklist)->selection;
-  if (node) {
-    if (event->type==GDK_BUTTON_PRESS && event->button==1) {
-      gtk_clist_get_text (GTK_CLIST(cclist), (gint)node->data, 0, &buf); 
-      gtk_label_set (GTK_LABEL(cnumentrytext), buf); 
-      gtk_clist_get_text (GTK_CLIST(cclist), (gint)node->data, 1, &buf); 
-      gtk_entry_set_text (GTK_ENTRY(ckeyentrytext), buf); 
-      /*      gtk_clist_get_text (GTK_CLIST(cclist), (gint)node->data, 2, &buf); 
-	      gtk_entry_set_text (GTK_ENTRY(cknumentrytext), buf); */
-      gtk_clist_get_text (GTK_CLIST(cclist), (gint)node->data, 3, &buf); 
-      gtk_entry_set_text (GTK_ENTRY(cmodentrytext), buf); 
-      gtk_clist_get_text (GTK_CLIST(cclist), (gint)node->data, 4, &buf); 
-      gtk_entry_set_text (GTK_ENTRY(ckentrytext), buf); 
-    } 
-  } else {
-    gtk_label_set (GTK_LABEL(cnumentrytext), "0"); 
-    gtk_entry_set_text (GTK_ENTRY(ckeyentrytext), "Press key to bind here"); 
-    /*    gtk_entry_set_text (GTK_ENTRY(cknumentrytext), "");*/ 
-    gtk_entry_set_text (GTK_ENTRY(cmodentrytext), ""); 
-    gtk_entry_set_text (GTK_ENTRY(ckentrytext), ""); 
-  }
-}
-#endif
-
-/*void draw_keybindings (GtkWidget *keylist) {*/
-void draw_keybindings (GtkWidget *keylist) {
-  int i, count=1;
-  Key_Entry *key;
-  int allbindings=0;
-  /*  static char buf[MAX_BUF];*/
-  char buff[MAX_BUF];
-  int bi=0;
-  char buffer[5][MAX_BUF];
-  char *buffers[5];
-  gint tmprow; 
-
-  gtk_clist_clear (GTK_CLIST(keylist));
-     for (i=0; i<=MAX_KEYCODE; i++) {
-      for (key=keys[i]; key!=NULL; key =key->next) {
-	if (key->flags & KEYF_STANDARD && !allbindings) continue;
-	bi=0;
-	
-	if ((key->flags & KEYF_MODIFIERS) == KEYF_MODIFIERS)
-	  buff[bi++] ='A';
-	else {
-	  if (key->flags & KEYF_NORMAL)
-	    buff[bi++] ='N';
-	  if (key->flags & KEYF_FIRE)
-	    buff[bi++] ='F';
-	  if (key->flags & KEYF_RUN)
-	    buff[bi++] ='R';
-	}
-	if (key->flags & KEYF_EDIT)
-	  buff[bi++] ='E';
-	if (key->flags & KEYF_STANDARD)
-	  buff[bi++] ='S';
-	
-	buff[bi]='\0';
-	
-	if(key->keysym == NoSymbol) {
-	  /*	  sprintf(buf, "key (null) (%i) %s %s",
-		  kc,buff, key->command);
-	  */
-	}
-	  else {
-	    sprintf(buffer[0], "%i",count);
-	    sprintf(buffer[1], "%s", XKeysymToString(key->keysym));
-	    sprintf(buffer[2], "%i",i);
-	    sprintf(buffer[3], "%s",buff);
-	    sprintf(buffer[4], "%s", key->command);
-	    buffers[0] = buffer[0];
-	    buffers[1] = buffer[1];
-	    buffers[2] = buffer[2];
-	    buffers[3] = buffer[3];
-	    buffers[4] = buffer[4];
-	    tmprow = gtk_clist_append (GTK_CLIST (keylist), buffers);
-	  }
-	
-	/*	sprintf(buf,"%3d %s",count,  get_key_info(key,i,0));
-		draw_info(buf,NDI_BLACK);*/
-	count++;
-      }
-    }
-}
-    
-void bind_callback (GtkWidget *gtklist, GdkEventButton *event) {
-  KeySym keysym;
-  gchar *entry_text;
-  gchar *cpnext;
-  KeyCode k;
-  gchar *mod="";
-  char buf[MAX_BUF];
-  /*  int flags=0;*/
-  /*  int standard=1;
-      
-      if (standard) standard=KEYF_STANDARD;
-      else standard=0;*/
-  bind_flags = KEYF_MODIFIERS;
-  
-  if ((bind_flags & KEYF_MODIFIERS)==KEYF_MODIFIERS) {
-    bind_flags &= ~KEYF_MODIFIERS;
-    mod=gtk_entry_get_text (GTK_ENTRY(cmodentrytext));
-    if (!strcmp(mod, "F")) {
-      bind_flags |= KEYF_FIRE;
-    }
-    if (!strcmp(mod, "R")) {
-      bind_flags |= KEYF_RUN;
-      }
-    if (!strcmp(mod, "A")) {
-      bind_flags |= KEYF_MODIFIERS;
-    }
-  }
-  cpnext = gtk_entry_get_text (GTK_ENTRY(ckentrytext));
-  entry_text = gtk_entry_get_text (GTK_ENTRY(ckeyentrytext));
-  keysym = XStringToKeysym(entry_text);
-  k = XKeysymToKeycode(GDK_DISPLAY(), keysym);
-  insert_key(keysym, k,  bind_flags, cpnext);
-  save_keys();
-  draw_keybindings (cclist);
-  sprintf(buf, "Binded to key '%s' (%i)", XKeysymToString(keysym), (int)k);
-  draw_info(buf,NDI_BLACK);
-}
-
-void ckeyunbind (GtkWidget *gtklist, GdkEventButton *event) {
-  gchar *buf;
-  GList *node;
-  node =  GTK_CLIST(cclist)->selection;
-  if (node) {
-    gtk_clist_get_text (GTK_CLIST(cclist), (gint)node->data, 0, &buf); 
-
-    unbind_key(buf);
-    draw_keybindings (cclist);
-
-  }
-}
 
 void disconnect(GtkWidget *widget) {
     close(csocket.fd);
@@ -4104,9 +3436,7 @@ void configdialog(GtkWidget *widget) {
 
   GtkWidget *ehbox;
   GtkWidget *clabel1, *clabel2, *clabel4, *clabel5, *cb1, *cb2, *cb3;
-#ifdef GTK_HAVE_FEATURES_1_1_12
   GtkWidget *cclists;
-#endif 
 
   gchar *titles[] ={"#","Key","(#)","Mods","Command"};	   
   /* If the window isnt already up (in which case it's just raised) */
@@ -4272,9 +3602,7 @@ void configdialog(GtkWidget *widget) {
     gtk_box_pack_start (GTK_BOX (vbox2), frame1, TRUE, TRUE, 0);
     vbox1 = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER(frame1), vbox1);
-#ifdef GTK_HAVE_FEATURES_1_1_12
     cclists = gtk_scrolled_window_new (0,0);
-#endif 
     cclist = gtk_clist_new_with_titles (5, titles);
 
     gtk_clist_set_column_width (GTK_CLIST(cclist), 0, 20);
@@ -4284,34 +3612,19 @@ void configdialog(GtkWidget *widget) {
     gtk_clist_set_column_width (GTK_CLIST(cclist), 4, 245);
     gtk_clist_set_selection_mode (GTK_CLIST(cclist) , GTK_SELECTION_SINGLE);
 
-#ifdef GTK_HAVE_FEATURES_1_1_12
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(cclists),
 				    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
     gtk_container_add (GTK_CONTAINER (cclists), cclist);
     gtk_box_pack_start (GTK_BOX(vbox1),cclists, TRUE, TRUE, 0);
-#else
-    gtk_clist_set_policy (GTK_CLIST (cclist), GTK_POLICY_AUTOMATIC,
-			  GTK_POLICY_AUTOMATIC);
-    gtk_box_pack_start (GTK_BOX(vbox1),cclist, TRUE, TRUE, 0);
-#endif
     draw_keybindings (cclist);
     
-#ifdef GTK_HAVE_FEATURES_1_1_12
     gtk_signal_connect_after (GTK_OBJECT(cclist),
                               "select_row",
                               GTK_SIGNAL_FUNC(cclist_button_event),
                               NULL);
-#else
-    gtk_signal_connect_after (GTK_OBJECT(cclist),
-                              "button_press_event",
-                              GTK_SIGNAL_FUNC(cclist_button_event),
-                              NULL);
-#endif
 
     gtk_widget_show(cclist);
-#ifdef GTK_HAVE_FEATURES_1_1_12
- gtk_widget_show(cclists);
-#endif  
+    gtk_widget_show(cclists);
     
     ehbox=gtk_hbox_new(FALSE, 0);
 
@@ -4347,7 +3660,7 @@ void configdialog(GtkWidget *widget) {
 
     cknumentrytext = gtk_entry_new ();
     gtk_box_pack_start (GTK_BOX (ehbox),cknumentrytext, FALSE, TRUE, 2);
-   gtk_signal_connect(GTK_OBJECT(cknumentrytext), "key_press_event",
+    gtk_signal_connect(GTK_OBJECT(cknumentrytext), "key_press_event",
 		       GTK_SIGNAL_FUNC(cknumentry_callback),
 		       cknumentrytext);
     gtk_widget_set_usize (cknumentrytext, 35, 0);
@@ -4736,11 +4049,9 @@ static int get_menu_display (GtkWidget *box) {
    * signal on each of the menu items and setup a callback for it,
    * but it's omitted here to save space. */
 
-#ifdef GTK_HAVE_FEATURES_1_1_12
   menu_items = gtk_tearoff_menu_item_new ();
   gtk_menu_append (GTK_MENU (filemenu), menu_items);
   gtk_widget_show (menu_items);
-#endif
 
   menu_items = gtk_menu_item_new_with_label("Save config");
   gtk_menu_append(GTK_MENU (filemenu), menu_items);   
@@ -4792,11 +4103,9 @@ static int get_menu_display (GtkWidget *box) {
 			    GTK_SIGNAL_FUNC(navbut), NULL);
 			    gtk_widget_show(menu_items);*/
 
-#ifdef GTK_HAVE_FEATURES_1_1_12
   menu_items = gtk_tearoff_menu_item_new ();
   gtk_menu_append (GTK_MENU (clientmenu), menu_items);
   gtk_widget_show (menu_items);
-#endif
 
   menu_items = gtk_menu_item_new_with_label("Clear info");
   gtk_menu_append(GTK_MENU (clientmenu), menu_items);   
@@ -4834,11 +4143,9 @@ static int get_menu_display (GtkWidget *box) {
 
   actionmenu = gtk_menu_new();
 
-#ifdef GTK_HAVE_FEATURES_1_1_12
   menu_items = gtk_tearoff_menu_item_new ();
   gtk_menu_append (GTK_MENU (actionmenu), menu_items);
   gtk_widget_show (menu_items);
-#endif
 
   menu_items = gtk_menu_item_new_with_label("Who");
   gtk_menu_append(GTK_MENU (actionmenu), menu_items);   
@@ -4895,11 +4202,9 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 ``pick up all magic items'', ``pick up all coins and gems''. Whenever you move over a pile of stuff your pickup*/
   pickupgroup=NULL;
 
-#ifdef GTK_HAVE_FEATURES_1_1_12
   menu_items = gtk_tearoff_menu_item_new ();
   gtk_menu_append (GTK_MENU (pickupmenu), menu_items);
   gtk_widget_show (menu_items);
-#endif
 
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Don't pick up");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
@@ -5020,49 +4325,45 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
   newpickupmenu = gtk_menu_new();
   
-#ifdef GTK_HAVE_FEATURES_1_1_12
   menu_items = gtk_tearoff_menu_item_new ();
   gtk_menu_append (GTK_MENU (newpickupmenu), menu_items);
   gtk_widget_show (menu_items);
-#endif
 
   menu_items = gtk_check_menu_item_new_with_label("Enable NEW autopickup");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_NEWMODE);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_NEWMODE));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Inhibit autopickup");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_INHIBIT);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_INHIBIT));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Stop before pickup");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_STOP);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_STOP));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Debug autopickup");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_DEBUG);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DEBUG));
   gtk_widget_show(menu_items);
 
 
   /* the ratio pickup submenu */
   ratiopickupmenu = gtk_menu_new();
   
-#ifdef GTK_HAVE_FEATURES_1_1_12
   menu_items = gtk_tearoff_menu_item_new ();
   gtk_menu_append (GTK_MENU (ratiopickupmenu), menu_items);
   gtk_widget_show (menu_items);
-#endif
 
   ratiopickupgroup=NULL;
 
@@ -5089,7 +4390,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
     gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
     gtk_menu_append(GTK_MENU (ratiopickupmenu), menu_items);   
     gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-	GTK_SIGNAL_FUNC(new_menu_pickup), i);
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(i));
     gtk_widget_show(menu_items);
   }
   gtk_menu_item_set_submenu(GTK_MENU_ITEM (ratiopickup_menu_item), ratiopickupmenu);
@@ -5101,98 +4402,98 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_FOOD);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_FOOD));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Drinks");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_DRINK);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DRINK));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Valuables (Money, Gems)");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_VALUABLES);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_VALUABLES));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Bows");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_BOW);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOW));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Arrows");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_ARROW);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARROW));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Helmets");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_HELMET);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_HELMET));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Shields");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_SHIELD);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SHIELD));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Armour");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_ARMOUR);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARMOUR));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Boots");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_BOOTS);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOOTS));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Gloves");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_GLOVES);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_GLOVES));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Cloaks");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_CLOAK);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_CLOAK));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Keys");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_KEY);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_KEY));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Missile Weapons");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_MISSILEWEAPON);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MISSILEWEAPON));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("All weapons");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_ALLWEAPON);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ALLWEAPON));
   gtk_widget_show(menu_items);
   menu_items = gtk_check_menu_item_new_with_label("Magical Items");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_MAGICAL);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MAGICAL));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Potions");
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
   gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), PU_POTION);
+			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_POTION));
   gtk_widget_show(menu_items);
 
 
@@ -5206,11 +4507,9 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   /*Do the helpmenu */
   helpmenu = gtk_menu_new();
   
-#ifdef GTK_HAVE_FEATURES_1_1_12
   menu_items = gtk_tearoff_menu_item_new ();
   gtk_menu_append (GTK_MENU (helpmenu), menu_items);
   gtk_widget_show (menu_items);
-#endif
 
   menu_items = gtk_menu_item_new_with_label("About");
   gtk_menu_append(GTK_MENU (helpmenu), menu_items);   
@@ -5281,45 +4580,42 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 /* Create the splash window at startup */
 
 void create_splash() {
-  GtkWidget *vbox;
+    GtkWidget *vbox;
+    GtkWidget *aboutgtkpixmap;
+    GdkPixmap *aboutgdkpixmap;
+    GdkBitmap *aboutgdkmask;
+    GtkStyle *style;
 
-  GtkWidget *aboutgtkpixmap;
-  GdkPixmap *aboutgdkpixmap;
-  GdkBitmap *aboutgdkmask;
-
-  GtkStyle *style;
-
- gtkwin_splash = gtk_window_new (GTK_WINDOW_DIALOG);
- gtk_window_position (GTK_WINDOW (gtkwin_splash), GTK_WIN_POS_CENTER);
- gtk_widget_set_usize (gtkwin_splash,346,87);
- gtk_window_set_title (GTK_WINDOW (gtkwin_splash), "Welcome to Crossfire");
- gtk_signal_connect (GTK_OBJECT (gtkwin_splash), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_splash);
+    gtkwin_splash = gtk_window_new (GTK_WINDOW_DIALOG);
+    gtk_window_position (GTK_WINDOW (gtkwin_splash), GTK_WIN_POS_CENTER);
+    gtk_widget_set_usize (gtkwin_splash,346,87);
+    gtk_window_set_title (GTK_WINDOW (gtkwin_splash), "Welcome to Crossfire");
+    gtk_signal_connect (GTK_OBJECT (gtkwin_splash), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_splash);
     
- gtk_container_border_width (GTK_CONTAINER (gtkwin_splash), 0);
- vbox = gtk_vbox_new(FALSE, 0);
- gtk_container_add (GTK_CONTAINER(gtkwin_splash),vbox);
- style = gtk_widget_get_style(gtkwin_splash);
- gtk_widget_realize(gtkwin_splash);
- aboutgdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_splash->window,
+    gtk_container_border_width (GTK_CONTAINER (gtkwin_splash), 0);
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_container_add (GTK_CONTAINER(gtkwin_splash),vbox);
+    style = gtk_widget_get_style(gtkwin_splash);
+    gtk_widget_realize(gtkwin_splash);
+    aboutgdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_splash->window,
 					       &aboutgdkmask,
 						  &style->bg[GTK_STATE_NORMAL],
 					       (gchar **)crossfiretitle);
- aboutgtkpixmap= gtk_pixmap_new (aboutgdkpixmap, aboutgdkmask);
- gtk_box_pack_start (GTK_BOX (vbox),aboutgtkpixmap, FALSE, TRUE, 0);
- gtk_widget_show (aboutgtkpixmap);
- 
+    aboutgtkpixmap= gtk_pixmap_new (aboutgdkpixmap, aboutgdkmask);
+    gtk_box_pack_start (GTK_BOX (vbox),aboutgtkpixmap, FALSE, TRUE, 0);
+    gtk_widget_show (aboutgtkpixmap);
 
- gtk_widget_show (vbox);
- gtk_widget_show (gtkwin_splash);
+    gtk_widget_show (vbox);
+    gtk_widget_show (gtkwin_splash);
 
  
- while ( gtk_events_pending() ) {
-   gtk_main_iteration();
- }
- sleep (1);
- while ( gtk_events_pending() ) {
-   gtk_main_iteration();
- }
+    while ( gtk_events_pending() ) {
+	gtk_main_iteration();
+    }
+    sleep (1);
+    while ( gtk_events_pending() ) {
+	gtk_main_iteration();
+    }
 
 }
 
@@ -5346,7 +4642,7 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
-    gtk_widget_set_usize (gtkwin_root,636+(image_size*mapx),336+(image_size*mapy));
+    gtk_widget_set_usize (gtkwin_root,636+(map_image_size*mapx),336+(map_image_size*mapy));
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
     
@@ -5411,7 +4707,7 @@ void create_windows() {
     /* Statbars frame */
     message_frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(message_frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (message_frame, (image_size*mapx)+6,  (image_size*mapy)+6);
+    gtk_widget_set_usize (message_frame, (map_image_size*mapx)+6,  (map_image_size*mapy)+6);
     gtk_paned_add2 (GTK_PANED (game_bar_vpane), message_frame);
     
     get_message_display(message_frame);
@@ -5421,7 +4717,7 @@ void create_windows() {
     /* Game frame */
     gameframe = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(gameframe), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (gameframe, (image_size*mapx)+6, (image_size*mapy)+6);
+    gtk_widget_set_usize (gameframe, (map_image_size*mapx)+6, (map_image_size*mapy)+6);
 
     if (bigmap)
 	gtk_paned_add2 (GTK_PANED (stat_game_vpane), gameframe);
@@ -5498,7 +4794,7 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 300, 160);
-    gtk_widget_set_usize (gtkwin_root,(image_size*mapx)+6,(image_size*mapy)+6);
+    gtk_widget_set_usize (gtkwin_root,(map_image_size*mapx)+6,(map_image_size*mapy)+6);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire - view");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_root), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
@@ -5529,7 +4825,7 @@ void create_windows() {
     gtkwin_stats = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_stats, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_stats, 300, 0);
-    gtk_widget_set_usize (gtkwin_stats,(image_size*mapx)+6,140);
+    gtk_widget_set_usize (gtkwin_stats,(map_image_size*mapx)+6,140);
     gtk_window_set_title (GTK_WINDOW (gtkwin_stats), "Crossfire GTK Client");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_stats), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_stats);
@@ -5584,9 +4880,9 @@ void create_windows() {
     gtkwin_message = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_message, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_message, 300, 450);
-    gtk_widget_set_usize (gtkwin_message,(image_size*mapx)+6,170);
+    gtk_widget_set_usize (gtkwin_message,(map_image_size*mapx)+6,170);
     gtk_window_set_title (GTK_WINDOW (gtkwin_message), "Crossfire - vitals");
- gtk_window_set_policy (GTK_WINDOW (gtkwin_message), TRUE, TRUE, FALSE);
+    gtk_window_set_policy (GTK_WINDOW (gtkwin_message), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_message);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_message), 0);
@@ -5723,13 +5019,6 @@ void set_scroll(char *s)
 {
 }
 
-void draw_all_info()
-{
-}
-
-void resize_win_info()
-{
-}
 
 
 int get_info_width()
@@ -5805,10 +5094,6 @@ int do_timeout() {
 /* ----------------------------------------------------------------------------*/
 
 
-void display_newbitmap(long face,long fg,long bg,char *buf)
-{
-}
-
 /* This function draws the magic map in the game window.  I guess if
  * we wanted to get clever, we could open up some other window or
  * something.
@@ -5830,7 +5115,6 @@ void draw_magic_map()
  
 
   static GdkBitmap *magicgdkmask;
- 
  
 
   if (!cpl.magicmap) {
@@ -5907,11 +5191,11 @@ void draw_magic_map()
     gdk_color_alloc (gtk_widget_get_colormap (magicgtkpixmap), &map_color[12]);
 
 
-    map_gc = gdk_gc_new (magicgdkpixmap);
+    magic_map_gc = gdk_gc_new (magicgdkpixmap);
 
 
-  gdk_gc_set_foreground (map_gc, &map_color[0]);
-   gdk_draw_rectangle (magicgdkpixmap, map_gc,	       
+   gdk_gc_set_foreground (magic_map_gc, &map_color[0]);
+   gdk_draw_rectangle (magicgdkpixmap, magic_map_gc,	       
 		       TRUE,
 		       0,
 		       0,
@@ -5942,9 +5226,9 @@ void draw_magic_map()
       for (x = 0; x < cpl.mmapx; x++) {
 	uint8 val = cpl.magicmap[y*cpl.mmapx + x];
 
-    gdk_gc_set_foreground (map_gc, &map_color[val&FACE_COLOR_MASK]);
+    gdk_gc_set_foreground (magic_map_gc, &map_color[val&FACE_COLOR_MASK]);
 
-	gdk_draw_rectangle (magicgdkpixmap, map_gc,
+	gdk_draw_rectangle (magicgdkpixmap, magic_map_gc,
 			    TRUE,
 			    2+cpl.mapxres*x,
 			    2+cpl.mapyres*y,
@@ -5952,7 +5236,7 @@ void draw_magic_map()
 			    cpl.mapyres);
       } /* Saw into this space */
     }
-    /*    gdk_gc_destroy (map_gc);*/
+    /*    gdk_gc_destroy (magic_map_gc);*/
     gtk_widget_draw (mapvbox,NULL);
   }
   
@@ -5962,8 +5246,8 @@ void draw_magic_map()
     gdk_window_raise (gtkwin_magicmap->window);
     /* --------------------------- */
  
-   gdk_gc_set_foreground (map_gc, &map_color[0]);
-   gdk_draw_rectangle (magicgdkpixmap, map_gc,	       
+   gdk_gc_set_foreground (magic_map_gc, &map_color[0]);
+   gdk_draw_rectangle (magicgdkpixmap, magic_map_gc,	       
 		       TRUE,
 		       0,
 		       0,
@@ -5994,9 +5278,9 @@ void draw_magic_map()
       for (x = 0; x < cpl.mmapx; x++) {
 	uint8 val = cpl.magicmap[y*cpl.mmapx + x];
 
-    gdk_gc_set_foreground (map_gc, &map_color[val&FACE_COLOR_MASK]);
+    gdk_gc_set_foreground (magic_map_gc, &map_color[val&FACE_COLOR_MASK]);
 
-	gdk_draw_rectangle (magicgdkpixmap, map_gc,
+	gdk_draw_rectangle (magicgdkpixmap, magic_map_gc,
 			    TRUE,
 			    2+cpl.mapxres*x,
 			    2+cpl.mapyres*y,
@@ -6007,7 +5291,6 @@ void draw_magic_map()
 
     }
  gtk_widget_draw (mapvbox,NULL);
-    /*---------------------------*/
   }
 }
 
@@ -6019,11 +5302,11 @@ void magic_map_flash_pos()
   if (!gtkwin_magicmap) return;
   cpl.showmagic ^=2;
   if (cpl.showmagic & 2) {
-    gdk_gc_set_foreground (map_gc, &map_color[0]);
+    gdk_gc_set_foreground (magic_map_gc, &map_color[0]);
   } else {
-    gdk_gc_set_foreground (map_gc, &map_color[1]);
+    gdk_gc_set_foreground (magic_map_gc, &map_color[1]);
   }
-  gdk_draw_rectangle (magicgdkpixmap, map_gc,
+  gdk_draw_rectangle (magicgdkpixmap, magic_map_gc,
 		      TRUE,
 		      2+cpl.mapxres*cpl.pmapx,
 		      2+cpl.mapyres*cpl.pmapy,
@@ -6236,14 +5519,7 @@ static void usage(char *progname)
     puts("-display <name>  - Use <name> instead if DISPLAY environment variable.\n");
     puts("-split           - Use split windows.");
     puts("-echo            - Echo the bound commands");
-#ifdef Xpm_Pix
-    puts("-xpm             - Use color pixmaps (XPM) for display.");
-#endif /* Xpm_Pix */
-#ifdef HAVE_LIBPNG
-    puts("-png             - Use png images for display.");
-#endif
     puts("-showicon        - Print status icons in inventory window");
-    puts("-scrolllines <number>    - number of lines for scrollback");
     puts("-sync            - Synchronize on display");
     puts("-help            - Display this message.");
     puts("-cache           - Cache images for future use.");
@@ -6257,8 +5533,9 @@ static void usage(char *progname)
     puts("-nopopups        - Don't use pop up windows for input");
     puts("-splitinfo       - Use two information windows, segregated by information type.");
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces.");
-    puts("-pngximage       - Use ximage for drawing png (may not work on all hardware");
     puts("-sdl             - Use sdl for drawing png (may not work on all hardware");
+    puts("-mapscale %%     - Set map scale percentage");
+    puts("-iconscale %%    - Set icon scale percentage");
 
     exit(0);
 }
@@ -6277,6 +5554,8 @@ int init_windows(int argc, char **argv)
     int on_arg=1;
     char *display_name="";
     load_defaults(); 
+
+    strcpy(VERSION_INFO,"GTK Unix Client " VERSION);
 
     /* Set this global so we get skill experience - gtk client can display
      * it, so lets get the info.
@@ -6345,13 +5624,6 @@ int init_windows(int argc, char **argv)
 	    image_file = argv[on_arg];
 	    continue;
 	}
-	if (!strcmp(argv[on_arg],"-xpm")) {
-	    display_mode = Xpm_Display;
-	    continue;
-	}
-        if (!strcmp(argv[on_arg],"-png")) {
-            display_mode = Png_Display;
-	}
 	else if (!strcmp(argv[on_arg],"-cache")) {
 	    cache_images= TRUE;
 	    continue;
@@ -6408,17 +5680,11 @@ int init_windows(int argc, char **argv)
 	    splitinfo=TRUE;
 	    continue;
 	}
-	else if (!strcmp(argv[on_arg],"-pngximage")) {
-	    sdlimage=FALSE;
-	    pngximage=TRUE;
-	    continue;
-	}
 	else if (!strcmp(argv[on_arg],"-sdl")) {
 #ifndef HAVE_SDL
 	    fprintf(stderr,"client not compiled with sdl support.  Ignoring -sdl\n");
 #else
 	    sdlimage=TRUE;
-	    pngximage=FALSE;
 	    display_mode = Png_Display;
 #endif
 	    continue;
@@ -6427,34 +5693,45 @@ int init_windows(int argc, char **argv)
 	  fog_of_war= TRUE;
 	  continue;
 	}
+	else if( !strcmp( argv[on_arg],"-mapscale")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-mapscale requires a percentage value\n");
+		return 1;
+	    }
+	    map_scale = atoi(argv[on_arg]);
+	    if (map_scale < 25 || map_scale>200) {
+		fprintf(stderr,"Valid range for -mapscale is 25 through 200\n");
+		map_scale=100;
+		return 1;
+	    }
+	    map_image_size = DEFAULT_IMAGE_SIZE * map_scale / 100;
+	    map_image_half_size = DEFAULT_IMAGE_SIZE * map_scale / 200;
+	    continue;
+	}
+	else if( !strcmp( argv[on_arg],"-iconscale")) {
+	    if (++on_arg == argc) {
+		fprintf(stderr,"-iconscale requires a percentage value\n");
+		return 1;
+	    }
+	    icon_scale = atoi(argv[on_arg]);
+	    if (icon_scale < 25 || icon_scale>200) {
+		fprintf(stderr,"Valid range for -iconscale is 25 through 200\n");
+		icon_scale=100;
+		return 1;
+	    }
+	    image_size = DEFAULT_IMAGE_SIZE * icon_scale / 100;
+	    continue;
+	}
 	else {
 	    fprintf(stderr,"Do not understand option %s\n", argv[on_arg]);
 	    usage(argv[0]);
 	    return 1;
 	}
     }
-    /* Moving processing and setting of display attributes down here.
-     * This is because a default display mode may also require special
-     * handling.
-     * This is basically same as x11.c, but we must have xpm mode and we don't
-     * have pixmap mode.
-     */
-    if (display_mode == Png_Display) {
-#ifndef HAVE_LIBPNG
-	fprintf(stderr,"Client not configured with Png display mode enabled\n");
-	fprintf(stderr,"Will try using xpm display mode\n");
-	display_mode = Xpm_Display;
-#else
-	image_size=32;
-#endif
-    }
-    if (display_mode == Xpm_Display) {
-	    image_size=24;
-    }
 
     if( fog_of_war == TRUE) {
-      if ( sdlimage == FALSE && pngximage == FALSE) {
-	fprintf( stderr, "fog of war only supported with sdl or pngximage, ignoring fog of war option\n");
+      if ( sdlimage == FALSE) {
+	fprintf( stderr, "fog of war only supported with sdl mode, ignoring fog of war option\n");
 	fog_of_war= FALSE;
       }
     }
@@ -6494,671 +5771,21 @@ int init_windows(int argc, char **argv)
 }
 
 
-/* Do the pixmap copy with gc to tile it onto the stack in the cell */
-
-static void gen_draw_face(int face,int x,int y)
-{
-
-  if( fog_of_war == TRUE)
-  {
-      x = pl_pos.x - x;
-      y = pl_pos.y - y;
-  }
-
-#ifdef HAVE_SDL
-    if (sdlimage) {
-	SDL_Rect dst;
-	dst.x= x* image_size;
-	dst.y= y* image_size;
-	dst.w= image_size;
-	dst.h= image_size;
-
-	if( SDL_BlitSurface( surfaces[ facecachemap[face]].surface, NULL,
-		       mapsurface, &dst) < 0)
-	{
-	    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
-	}
-	return;
-    }
-#endif
-    /* get here is not using sdlimage */
-
-    if (face == 0) fprintf(stderr,"gen draw face called with 0 face");
-
-#if 0
-    if (pixmaps[0].gdkpixmap == pixmaps[facecachemap[face]].gdkpixmap)
-	fprintf(stderr,"gen_draw_face - called with ? pixmap - num = %d, (%d,%d)\n", face, x,y);
-#endif
-    gdk_gc_set_clip_mask (mapgc, pixmaps[facecachemap[face]].gdkmask);
-    gdk_gc_set_clip_origin (mapgc, image_size*x, image_size*y);
-    gdk_window_copy_area (drawingarea->window, mapgc, image_size*x, image_size*y, 
-			  pixmaps[facecachemap[face]].gdkpixmap,0,0,image_size,image_size);
-}
-
-
-/* Draw the tiled pixmap tiles in the mapcell */
-
-
-
-/* return 0 on success, 1 on failure (facenum does not have
- * png data but does have pixmap data).  In that case,
- * it should fall back to traditional methods
- *
- * Note that we invert the darkness values when we get them
- * from the server such that the_map.cells[][].darkness is
- * 0 for full bright and 255 for full dark.  This makes
- * it easier for initializition to zero, since default
- * should really be full bright.
- *
- * faces[] is the number of face - 0 is top, faces[num_faces-1] is bottom
- * darkness[] is an array of darkness for this and surround spaces.
- *  darkness[0] = this space, 1=top, 2=right, 3=bottom, 4=left
- */
-
-/* this differs from below in that we use one big image struture
- * for the entire screen.  That is the 'screen' value above.
- */
-
-#ifdef HAVE_SDL
-int sdl_add_png_faces( int ax, int ay, int *faces, int num_faces, int dark[5])
-{
-
-  int x, y, darkness, on_face, darkx[32], darky;
-  Uint32 pixel;
-  SDL_PixelFormat *fmt;
-  int semi= 0;
-  SDL_Rect dst;
-  int fog_cell= FALSE;
-
-  if( fog_of_war == TRUE)
-  {
-      if( the_map.cells[ax][ay].cleared == 1) 
-      {
-	  fog_cell= TRUE;
-      }
-      
-      ax-= pl_pos.x;
-      ay-= pl_pos.y;
-  }
-  
-  dst.x= ax* image_size;
-  dst.y= ay* image_size;
-  dst.w= image_size;
-  dst.h= image_size;
-
-
-
-  /* Nothing to draw here, so paint a black square */
-  if( !num_faces)
-    {
-      if( SDL_FillRect( mapsurface, &dst, 
-			SDL_MapRGB( mapsurface->format, 0, 0, 0)) < 0)
-	do_SDL_error( "FillRect", __FILE__, __LINE__);
-      return 0;
-    }
-
-  /* First go from the top down and find the highest non transparent face 
-   * The only way I really know is if SRCCOLORKEY is set, which indicates which
-   * color is transparent. Also check for an Alpha channel
-   * We don't bother checking the last image, we will have to
-   * draw it anyway if we get that far.
-   */
-  for( on_face= 0; on_face < num_faces - 1; on_face++)
-    {
-      if( (surfaces[faces[on_face]].surface->flags & SDL_SRCCOLORKEY) != 0)
-	continue;
-
-      if( surfaces[faces[on_face]].surface->format->Amask != 0)
-	continue;
-
-      /* if no color key is set and the Alpha mask is all zeros then it must
-       * be a completely opaque image. Stop here.
-       */
-      break;
-    }
-
-  for( ; on_face > -1; on_face--)
-    {
-      if( SDL_BlitSurface( surfaces[faces[on_face]].surface, NULL,
-			   mapsurface, &dst) < 0)
-	{
-	  do_SDL_error( "BlitSurface", __FILE__, __LINE__);
-	}
-    }
-
-  if( per_tile_lighting)
-    {
-      if( dark[0] == 255)
-	{
-	  /* Fully bright, no reason to blit a light map */
-	}
-      else if( dark[0] == 0)
-	{
-	  /* Fully dark, just paint black */
-	  SDL_FillRect( lightmap, NULL, 
-			SDL_MapRGB( lightmap->format, 0, 0, 0));
-	  SDL_BlitSurface( lightmap, NULL, mapsurface, &dst);
-	}
-      else {
-	SDL_FillRect( lightmap, NULL, 
-		      SDL_MapRGB( lightmap->format, 0, 0, 0));
-	/* Set per surface alpha channel */
-	SDL_SetAlpha( lightmap, SDL_SRCALPHA, SDL_ALPHA_OPAQUE - dark[0]);
-	SDL_BlitSurface( lightmap, NULL, mapsurface, &dst);
-      }
-
-    }
-  else if( per_pixel_lighting) 
-    {
-      /*
-       * If all darkness values are set to full bright, just exit here
-       */
-      if( ( dark[0] & dark[1] & dark[2] & dark[3] & dark[4] ) != 255 )
-        {
-	  for( x= 0; x < 16; x++)
-	    {
-	      darkx[x]= (dark[4]*(16-x) + dark[0]*x) / 16;
-	    }
-	  for( x= 16; x < 32; x++)
-	    {
-	      darkx[x] = (dark[0]*(32-x) + dark[2]*(x-16)) / 16;
-	    }
-	  
-	  /* 
-	   * Make sure lightmap in initialized to full bright
-	   */
-	  SDL_FillRect( lightmap, NULL,
-			SDL_MapRGBA( lightmap->format, 0, 0, 0, 
-				     SDL_ALPHA_TRANSPARENT));
-	  
-	  fmt= lightmap->format;
-	  SDL_LockSurface( lightmap);
-	  for( y= 0; y < image_size; y++)
-	    {
-	      if( y < 16)
-		{
-		  darky = ((dark[1]*((image_size/2)-y)) + dark[0]*y) / 
-		    (image_size / 2);
-		}
-	      else 
-		{
-		  darky= (dark[0]*(image_size-y) + dark[3]*(y-(image_size/2))) /
-		    (image_size / 2);
-		}
-	      
-	      for( x= 0; x < image_size; x++)
-		{
-		  
-		  darkness= (darkx[x] + darky) / 2;
-		  if( darkness == 255)
-		    continue;
-		  else 
-		    semi++;
-		  
-		  /* Need to invert the transparancy level.. */
-		  pixel= SDL_MapRGBA( fmt, 0, 0, 0, SDL_ALPHA_OPAQUE - darkness);
-		  
-		  switch (fmt->BytesPerPixel) 
-		    {
-		    case 1:
-		      *((Uint8 *)lightmap->pixels+y*lightmap->pitch+x) = pixel;
-		      break;
-		    case 2:
-		      *((Uint16 *)lightmap->pixels+y*lightmap->pitch/2+x) = pixel;
-		      break;
-		    case 3:
-		      /* Don't think we will get here if we have a full alpha 
-		       * channel. If so that implies 6|6|6|6 RGBA packing which 
-		       * is kinda weird..  
-		       */
-		      ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[0] = 0;
-		      ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[1] = 0;
-		      ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[2] = 0;
-		      break;
-		    case 4:
-		      *((Uint32 *)lightmap->pixels+y*lightmap->pitch/4+x) = pixel;
-		      break;
-		    }
-		}
-	    }
-	  SDL_UnlockSurface( lightmap);
-	  
-	  if( semi > 0)
-	    {
-	      if( SDL_BlitSurface( lightmap, NULL, mapsurface, &dst) < 0)
-		{
-		  do_SDL_error( "BlitSurface", __FILE__, __LINE__);
-		}
-	    }
-	} /* if all darkness tiles don't equal 255 */
-    } /* if per_pixel darkness */
-  else
-    {
-      /* Unknown lighting style */
-      fprintf( stderr, "Error, unknowing lighting style in %s at line %d\n",
-	       __FILE__, __LINE__);
-    }
-
-  /*
-   * Shouldn't matter if we do this now or after the lighting blits but we exit
-   * early if all tiles are set to full bright so easier if we do it here.
-   */
-  if( fog_cell == TRUE)
-    {
-      if( SDL_BlitSurface( fogmap, NULL, mapsurface, &dst) < 0)
-	{
-	  do_SDL_error( "BlitSurface", __FILE__, __LINE__);
-	}
-    }
-
-  return 0;
-}
-
-#endif /* HAVE_SDL */
-
-int add_png_faces(int ax, int ay, int *faces, int num_faces, int dark[5]) 
-{
-    int fog_cell= FALSE;
-    int x,y, a, darkness ,pos=0, on_face,darkx[32], darky, screen_pos, rowy;
-
-    if( fog_of_war == TRUE)
-    {
-	if( the_map.cells[ax][ay].cleared == 1) 
-	    fog_cell= TRUE;
-	ax-= pl_pos.x;
-	ay-= pl_pos.y;
-    }
-    
-    /* If we don't have png_data, can't proceed further */
-    for (on_face=0; on_face < num_faces; on_face ++ ) {
-	if (!pixmaps[faces[on_face]].png_data) {
-	    fprintf(stderr,"add_png_face - returning because of no png data, face num %d\n",
-		    faces[on_face]);
-	    if (pixmaps[faces[on_face]].gdkpixmap) return 1;
-	    else return 0;
-	}
-    }
-
-    /* just black out some area */
-    if (!num_faces) {
-	for (y=0; y<image_size; y++)  {
-	    screen_pos = ax*32 * BPP + (ay * image_size +y) * image_size * BPP * mapx;
-	    memset(screen + screen_pos, 0, image_size*BPP);
-	}
-	return 0;
-    }
-
-    /* interpolative darkness - we look at this space, surrounding 
-     * spaces, and their darkness value to come up with one
-     * While there are only 5 values, we reduce the complexity by
-     * only have dark[0]* image_size once instead of dark[0] * image_size/2
-     * for both x and y 
-     */
-
-    /* Precompute these values to save some time */
-    for (x=0; x<16; x++)
-	darkx[x] = (dark[4]*((image_size/2)-x) + dark[0]*x) / (image_size/2);
-    for (x=16; x<32; x++)
-	darkx[x] = (dark[0]*(image_size-x) + dark[2]*(x-(image_size/2)))/ (image_size/2);
-
-
-    for (y=0; y<image_size; y++) {
-	if (y<16)
-	    darky = ((dark[1]*((image_size/2)-y)) + dark[0]*y)/(image_size/2);
-	else
-	    darky = (dark[0]*(image_size-y) + dark[3]*(y-(image_size/2)))/(image_size/2);
-
-	rowy = (ay * image_size +y) * image_size * BPP * mapx;
-
-	for (x=0; x<image_size; x++) {
-	    int on_face = 0, semi=0;
-
-	    /* each 'row' is 96 * MAX_MAP_SIZE (96 is 32 for images size * 3 bytes/pixel). */
-
-	    screen_pos = rowy + (x + ax*image_size) * BPP;
-#if 0
-	    if (screen_pos > SCREEN_SIZE) {
-		fprintf(stderr,"screen_pos out of range: %d > %d\n", screen_pos, SCREEN_SIZE);
-		abort();
-	    }
-	    /* make default be black */
-	    screen[screen_pos] =0;
-	    screen[screen_pos+1] =0;
-	    screen[screen_pos+2] =0;
-#endif
-
-	    /* This actually isn't perfect, but does an OK job given
-	     * the amount of information provided.  A better method probably
-	     * would be to do a darkx^2 + darky^2 and take the sqrt of the
-	     * entire thing, and use 255 to mean totally dark and 0 to
-	     * be fully bright.  But this starts to get pretty costly.
-	     * if fog_cell darkness is really only used for partially transparent
-	     * images.
-	     */
-	    if (fog_cell) darkness=127;
-	    else darkness = (darkx[x] + darky)  >> 1 ;
-
-	    /* what I do here is try to minimize the processing of the
-	     * face data - only copy/adjust what we need.
-	     */
-	    for (on_face=0; on_face < num_faces; on_face ++ ) {
-		a = pixmaps[faces[on_face]].png_data[pos+3];
-
-		if (a == 0) continue;	/* Fully transparent - go to next face down */
-
-		if (a == 255) {
-		    if (fog_cell) {
-			/* do this as special case - a simple shift is a lot cheaper
-			 * than the multiply then shift.
-			 */
-			screen[screen_pos] = pixmaps[faces[on_face]].png_data[pos]>>1;
-			screen[screen_pos + 1] = pixmaps[faces[on_face]].png_data[pos+1]>>1;
-			screen[screen_pos + 2] = pixmaps[faces[on_face]].png_data[pos+2]>>1;
-
-		    }
-		    else if (darkness == 255) {
-			/* Fully opaque - copy the data over, and break from on_face processing loop */
-#if BPP == 4
-			int *ipos = &screen[screen_pos];
-
-			*(int*)(&screen[screen_pos]) = *((int*)(pixmaps[faces[on_face]].png_data+pos));
-
-#else
-			screen[screen_pos] = pixmaps[faces[on_face]].png_data[pos];
-			screen[screen_pos + 1] = pixmaps[faces[on_face]].png_data[pos+1];
-			screen[screen_pos + 2] = pixmaps[faces[on_face]].png_data[pos+2];
-#endif
-		    } else {
-			/*
-			 * shift by 8 instead of dividing by 255 - not quite as accurate, but close
-			 * enough and should save some cpu time.
-			 */
-			screen[screen_pos] = pixmaps[faces[on_face]].png_data[pos] * darkness >> 8;
-			screen[screen_pos + 1] = pixmaps[faces[on_face]].png_data[pos+1] * darkness >> 8;
-			screen[screen_pos + 2] = pixmaps[faces[on_face]].png_data[pos+2] * darkness >> 8;
-		    }
-		    break;
-		}
-		/* Semi transparent image - we can't do anything with this until data below is filled out */
-		else semi++;
-	    }
-	    /* one of the images was semi transparent.  If we got here, the real data has been filled in,
-	     * so lets find the semi transparent information and process */
-	    if (semi) {
-		/* We only need to look at the images already processed */
-		for (on_face--; on_face>=0; on_face--) {
-		    a = pixmaps[faces[on_face]].png_data[pos+3];
-		    if (a!=0 && a!=255) { /* must be the semi transparent image */
-			if (darkness == 255) { 
-			    screen[screen_pos] = (pixmaps[faces[on_face]].png_data[pos] * a + 
-				+ (screen[screen_pos] * (255-a)) ) >> 8;
-			    screen[screen_pos + 1] = (pixmaps[faces[on_face]].png_data[pos+1] * a +
-				+ (screen[screen_pos+1] * (255-a)) ) >> 8;
-			    screen[screen_pos + 2] = (pixmaps[faces[on_face]].png_data[pos+2] * a +
-				+ (screen[screen_pos+2] * (255-a)) ) >> 8;
-
-			} else {
-			    screen[screen_pos] = (pixmaps[faces[on_face]].png_data[pos] * darkness * a >> 16)
-				+ ((screen[screen_pos] * (255-a)) >> 8);
-			    screen[screen_pos + 1] = (pixmaps[faces[on_face]].png_data[pos+1] * darkness * a >> 16) 
-				+ ((screen[screen_pos+1] * (255-a)) >> 8);
-			    screen[screen_pos + 2] = (pixmaps[faces[on_face]].png_data[pos+2] * darkness * a >> 16) 
-				+ ((screen[screen_pos+2] * (255-a)) >> 8);
-			}
-			semi--;
-			if (semi == 0) break;	/* processed all the semi transparent images */
-		    }
-		}
-	    }
-	    pos+=4;
-	} /* for x loop */
-    }
-   return 0;
-}
-
-void display_mapcell_pixmap(int ax,int ay)
-{
-    int k, faces[MAXFACES],num_faces, darkness[5];
-    int got_face= 0;
-    int local_mapx= 0, local_mapy= 0;
-    int screen_ax= 0, screen_ay= 0;
-    if( fog_of_war == TRUE)
-    {
-	local_mapx= mapx + pl_pos.x;
-	local_mapy= mapy + pl_pos.y;
-	screen_ax= ax - pl_pos.x;
-	screen_ay= ay - pl_pos.y;
-    }
-    else
-    {
-	local_mapx= mapx;
-	local_mapy= mapy;
-	screen_ax= ax;
-	screen_ay= ay;
-    }
-
-    /* we use a different logic in this mode */
-    if (display_mode == Png_Display && (pngximage || sdlimage)) {
-	num_faces=0;
-	if (map1cmd) {
-	    for(k=the_map.cells[ax][ay].count-1;k>-1;k--) {
-		if (the_map.cells[ax][ay].faces[k] >0 )
-		    faces[num_faces++] = the_map.cells[ax][ay].faces[k];
-	    }
-	    /* inverse the values here - thats a bit easier than having
-	     * add_png_face do so.  Also, even if the space in question
-	     * has */
-	    darkness[0] = 255 - the_map.cells[ax][ay].darkness;
-
-	    if (ay-1 < 0 || !the_map.cells[ax][ay-1].have_darkness) darkness[1] = darkness[0];
-	    else darkness[1] = 255 - the_map.cells[ax][ay-1].darkness;
-
-	    if (ax+1 >= local_mapx || !the_map.cells[ax+1][ay].have_darkness) darkness[2] = darkness[0];
-	    else darkness[2] = 255 - the_map.cells[ax+1][ay].darkness;
-
-	    if (ay+1 >= local_mapy || !the_map.cells[ax][ay+1].have_darkness) darkness[3] = darkness[0];
-	    else darkness[3] = 255 - the_map.cells[ax][ay+1].darkness;
-
-	    if (ax-1 < 0 || !the_map.cells[ax-1][ay].have_darkness) darkness[4] = darkness[0];
-	    else darkness[4] = 255 - the_map.cells[ax-1][ay].darkness;
-
-	} else {
-	    for(k=0; k<the_map.cells[ax][ay].count;k++) {
-		faces[num_faces++] = the_map.cells[ax][ay].faces[k];
-	    }
-	    /* old mode doesn't have darkness, so just set to full bright */
-	    darkness[0]=255;darkness[1]=255;darkness[2]=255;darkness[3]=255;darkness[4]=255;
-	}
-#ifdef HAVE_SDL
-	if (sdlimage) {
-	    sdl_add_png_faces( ax, ay, faces, num_faces, darkness);
-	    return;
-	}
-#endif
-	if (add_png_faces(ax,ay, faces, num_faces,darkness)) goto bail;
-	return;
-    } /* if display mode is png and pngximage or sdlimage */
-
-
-/* This does not handle SDL support */
-bail:
-#if 0
-    /* commenting this out eliminates flickering you will otherwise see.
-     * The problem is that if there are any maps that still don't have
-     * floors, this probably won't draw objects on top properly.
-     * but I don't think there are any maps like that anymore.
-     */
-    gdk_draw_rectangle (drawingarea->window,
-		      drawingarea->style->mid_gc[0],
-		      TRUE,
-		      image_size*screen_ax,
-		      image_size*screen_ay,
-		      image_size,
-		      image_size);
-#endif
-
-    if (map1cmd) {
-	for(k=0; k<the_map.cells[ax][ay].count;k++) {
-	    /* 0 and -1 are empty faces - don't draw */
-	    if (the_map.cells[ax][ay].faces[k] >0 ) {
-		gen_draw_face(the_map.cells[ax][ay].faces[k], ax,ay);
-		got_face=1;
-	    }
-	}
-	if (!got_face) {
-	    /* If no faces to draw, reset value and draw black */
-	    the_map.cells[ax][ay].count=0;
-	    gdk_draw_rectangle (drawingarea->window, drawingarea->style->black_gc,
-		    TRUE,
-		    image_size*screen_ax,
-		    image_size*screen_ay,
-		    image_size,
-		    image_size);
-	}
-    }
-    else for(k=the_map.cells[ax][ay].count-1;k>-1;k--) {
-	gen_draw_face(the_map.cells[ax][ay].faces[k], ax,ay);
-    }
-}
-
 /* Do the map drawing */
 void display_map_doneupdate(int redraw)
 {
-    int ax,ay, need_updates=0;
-    int screen_ax= 0, screen_ay= 0;
-    int local_mapx= 0, local_mapy= 0;
 
-    if( fog_of_war == TRUE)
-    {
-	local_mapx= pl_pos.x + mapx;
-	local_mapy= pl_pos.y + mapy;
-    }
-    else 
-    {
-	local_mapx= mapx;
-	local_mapy= mapy;
-    }
-
-#ifdef TIME_MAP_REDRAW
-    struct timeval tv1, tv2, tv3;
-    long elapsed1, elapsed2;
-    gettimeofday(&tv1, NULL);
-#endif
 
     if (updatelock < 30) {
 	updatelock++;
 
-	/* draw black on all non-visible squares, and tile pixmaps on the others */
-	for( ax= (fog_of_war == TRUE ? pl_pos.x : 0) ; ax<local_mapx;ax++) {
-	    for(ay= (fog_of_war == TRUE ? pl_pos.y : 0) ; ay<local_mapy;ay++) { 
 #ifdef HAVE_SDL
-		if (sdlimage) {
-		    if( the_map.cells[ax][ay].need_update) {
-			display_mapcell_pixmap( ax, ay);
-			if( show_grid == TRUE) {
-			    overlay_grid( FALSE, ax, ay);
-			}
-			need_updates++;
-			the_map.cells[ax][ay].need_update= 0;
-		    }
-		    continue;	/* want to skip the stuff below */
-		}
+	if (sdlimage) sdl_gen_map();
 #endif
-		if (pngximage) {
-		    if (the_map.cells[ax][ay].need_update) {
-			display_mapcell_pixmap(ax,ay);
-			need_updates++;
-		    }
-		} else if (redraw || the_map.cells[ax][ay].need_update) {
-		    if (the_map.cells[ax][ay].count==0) {
-		        screen_ax= fog_of_war == TRUE ? (ax - pl_pos.x) : ax;
-		        screen_ay= fog_of_war == TRUE ? (ay - pl_pos.y) : ay;
-			gdk_draw_rectangle (drawingarea->window, drawingarea->style->black_gc,
-						TRUE,
-						image_size*ax,
-						image_size*ay,
-						image_size,
-						image_size);
-		    } else {
-			display_mapcell_pixmap(ax,ay);
-		    }
-		    the_map.cells[ax][ay].need_update=0;
-		}
-	    } /* for ay */
-	} /* for ax */
+	else gtk_draw_map();
 
-#ifdef HAVE_SDL
-	if (sdlimage && (need_updates > 0 || map_did_scroll)) {
-	  if( SDL_Flip( mapsurface) == 1 )
-	      do_SDL_error( "Flip", __FILE__, __LINE__);
-	  map_did_scroll= 0;
-	}
-#endif
-
-#ifdef TIME_MAP_REDRAW
-	gettimeofday(&tv2, NULL);
-#endif
-
-	if (pngximage) {
-	    int draw_each_space=1;
-	    /* if we need to redraw the entire thing or the number of changed spaces is
-	     * more than a quarter of the map, just put the the entire image to the
-	     * screen.
-	     */
-	    if (map_did_scroll || redraw || need_updates > (mapx * mapy / 4)) {
-#if BPP == 4
-		gdk_draw_rgb_32_image(drawingarea->window,mapgc,
-			   0, 0, mapx * image_size, mapy * image_size,
-			   GDK_RGB_DITHER_NONE, screen, mapx * image_size * BPP);
-#else
-		gdk_draw_rgb_image(drawingarea->window,mapgc,
-			   0, 0, mapx * image_size, mapy * image_size,
-			   GDK_RGB_DITHER_NONE, screen, mapx * image_size * BPP);
-#endif
-		draw_each_space=0;
-	    }
-	    /* Even if we put the entire image to the screen, we still need to clear
-	     * the need_update flags.
-	     */
-	    for(ax=0;ax<mapx;ax++) {
-		for(ay=0;ay<mapy;ay++) { 
-		    if (draw_each_space && the_map.cells[ax][ay].need_update) {
-#if BPP == 4
-			gdk_draw_rgb_32_image(drawingarea->window,mapgc,
-			   ax * image_size, ay * image_size, image_size, image_size,
-			   GDK_RGB_DITHER_NONE, screen + ax * 32 *BPP + ay * 1024 * BPP * mapx,
-					   mapx * image_size * BPP);
-#else
-			gdk_draw_rgb_image(drawingarea->window,mapgc,
-			   ax * image_size, ay * image_size, image_size, image_size,
-			   GDK_RGB_DITHER_NONE, screen + ax * 32 * BPP + ay * 1024 * BPP * mapx,
-					   mapx * image_size * BPP);
-#endif
-
-		    }
-		    the_map.cells[ax][ay].need_update=0;
-		}
-	    }
-	    map_did_scroll=0;
-	} /* if pngximage */
     } /* if updatelock */
 
-#ifdef TIME_MAP_REDRAW
-    /* this else branches fro the if updatelock above - without it
-     * tv2 is uninitialized.
-     */
-    else
-	gettimeofday(&tv2, NULL);
-    gettimeofday(&tv3, NULL);
-    elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
-    elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
-
-    /* I care about performance for 'long' updates, so put the check in to make
-     * these a little more noticable */
-    if ((elapsed1 + elapsed2)>10000) 
-	fprintf(stderr,"display_map_doneupdate: gen took %7ld, draw took %7ld, total = %7ld\n", elapsed1, elapsed2,
-		elapsed1 + elapsed2);
-#endif
 }
 
 void display_map_newmap()
@@ -7186,7 +5813,7 @@ int display_willcache()
 
 void resize_map_window(int x, int y)
 {
-    gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), image_size * x, image_size * y);
+    gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), map_image_size * x, map_image_size * y);
     if (!split_windows) {
 	/* 15 it is a purely arbitary value.  But basically, if the map window is
 	 * narrow, we then will have the stats on top, with message down below
@@ -7273,9 +5900,9 @@ void resize_map_window(int x, int y)
 	    gtk_widget_unref(game_bar_vpane);
 	    game_bar_vpane = newpane;
 	}
-	gtk_widget_set_usize (gameframe, (image_size*mapx)+6, (image_size*mapy)+6);
+	gtk_widget_set_usize (gameframe, (map_image_size*mapx)+6, (map_image_size*mapy)+6);
     } else {
-      gtk_widget_set_usize (gtkwin_root,(image_size*mapx)+6,(image_size*mapy)+6);
+      gtk_widget_set_usize (gtkwin_root,(map_image_size*mapx)+6,(map_image_size*mapy)+6);
     }
 
 #ifdef HAVE_SDL
@@ -7283,18 +5910,17 @@ void resize_map_window(int x, int y)
 	init_SDL( drawingarea, FALSE);
 #endif
 
-
 }
+
 
 /* If we are using ximage logic, we use a different mechanism to load the
  * image.
  */
 void display_newpng(long face,char *buf,long buflen)
 {
-#ifdef HAVE_LIBPNG
-    char    *filename;
-
+    char    *filename, *pngtmp;
     FILE *tmpfile;
+    int width, height;
 
     if (cache_images) {
 	if (facetoname[face]==NULL) {
@@ -7309,31 +5935,9 @@ void display_newpng(long face,char *buf,long buflen)
 	    fclose(tmpfile);
 	}
     }
-    if (pngximage) {
-	if (!(pixmaps[face].png_data = png_to_data(buf, (int)buflen))) {
-	    fprintf(stderr,"unable to create image %ld\n", face);
-	}
-    }
-#ifdef HAVE_SDL
-    if (sdlimage) {
-	SDL_RWops* ops= SDL_RWFromMem( buf, (int)buflen);
-	surfaces[face].surface= IMG_LoadTyped_RW( ops, 1, (char*)"PNG");
-	if( surfaces[face].surface == NULL) {
-	    do_SDL_error( "IMG_LoadTyped_RW", __FILE__, __LINE__);
-	}
-	/* If this surface has transparent elements, enable RLE acceleration */
-	if( (surfaces[face].surface->flags & SDL_SRCCOLORKEY) == SDL_SRCCOLORKEY) {
-	    SDL_SetColorKey( surfaces[face].surface, SDL_SRCCOLORKEY|SDL_RLEACCEL, 
-			   surfaces[face].surface->format->colorkey);
-	}
-    }
-#endif
-    /* even if using pngximage or SDL, we standard image for the inventory list */
-    if (png_to_gdkpixmap(gtkwin_root->window, buf, buflen,
-			 &pixmaps[face].gdkpixmap, &pixmaps[face].gdkmask,
-			 gtk_widget_get_colormap(gtkwin_root))) {
-	    fprintf(stderr,"Got error on png_to_gdkpixmap\n");
-    }
+
+    pngtmp = png_to_data(buf, buflen, &width, &height);
+    create_and_rescale_image_from_data(face, pngtmp, width, height);
 
     if (cache_images) {
 	if (facetoname[face]) {
@@ -7341,59 +5945,6 @@ void display_newpng(long face,char *buf,long buflen)
 	    facetoname[face]=NULL;
 	}
     }
-#endif /* HAVE_LIBPNG */
-}
-
-void display_newpixmap(long face,char *buf,long buflen)
-{
-  FILE *tmpfile;
-
-  GtkStyle *style;
-  gchar **xpmbuffer;
-  
-  
-  if (cache_images) {
-    if (facetoname[face]==NULL) {
-      fprintf(stderr,"Caching images, but name for %ld not set\n", face);
-    }
-    else if ((tmpfile = fopen(facetoname[face],"w"))==NULL) {
-      fprintf(stderr,"Can not open %s for writing\n", facetoname[face]);
-    }
-    else {
-      fprintf(tmpfile,"%s",buf);
-      fclose(tmpfile);
-    }
-    style = gtk_widget_get_style(gtkwin_root);
-
-   xpmbuffer=xpmbuffertodata(buf);
-    pixmaps[face].gdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
-							 &pixmaps[face].gdkmask,
-							 &style->bg[GTK_STATE_NORMAL],
-							 (gchar **) xpmbuffer );
-    
-
-    freexpmdata (xpmbuffer);
-
-    redraw_needed=TRUE;
-
-  } else {
-
-    style = gtk_widget_get_style(gtkwin_root);
-
-    xpmbuffer=xpmbuffertodata(buf);
-    pixmaps[face].gdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
-							 &pixmaps[face].gdkmask,
-							 &style->bg[GTK_STATE_NORMAL],
-							 (gchar **) xpmbuffer );
-    
-
-    freexpmdata (xpmbuffer);
-  }
-
-  if (facetoname[face] && cache_images) {
-    free(facetoname[face]);
-    facetoname[face]=NULL;
-  }
 }
 
 void display_map_startupdate()
@@ -7417,42 +5968,256 @@ char *get_metaserver()
     return cpl.input_text;
 }
 
-/* We can now connect to different servers, so we need to clear out
- * any old images.  We try to free the data also to prevent memory
- * leaks.
- * This could be more clever, ie, if we're caching images and go to
- * a new server and get a name, we should try to re-arrange our cache
- * or the like.
- */
- 
-void reset_image_data()
+void load_defaults()
 {
-    int i;
+    char path[MAX_BUF],inbuf[MAX_BUF],*cp;
+    FILE *fp;
 
-    for (i=1; i<MAXPIXMAPNUM; i++) {
-	if (pixmaps[i].gdkpixmap && (pixmaps[i].gdkpixmap!=pixmaps[0].gdkpixmap)) {
-	    gdk_pixmap_unref(pixmaps[i].gdkpixmap);
-	    pixmaps[i].gdkpixmap=NULL;
-	    if (pixmaps[i].gdkmask) {
-		gdk_pixmap_unref(pixmaps[i].gdkmask);
-		pixmaps[i].gdkmask=NULL;
-	    }
+    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
+    if ((fp=fopen(path,"r"))==NULL) return;
+    while (fgets(inbuf, MAX_BUF-1, fp)) {
+	inbuf[MAX_BUF-1]='\0';
+	inbuf[strlen(inbuf)-1]='\0';	/* kill newline */
+
+	if (inbuf[0]=='#') continue;
+	/* IF no colon, then we certainly don't have a real value, so just skip */
+	if (!(cp=strchr(inbuf,':'))) continue;
+	*cp='\0';
+	cp+=2;	    /* colon, space, then value */
+
+	if (!strcmp(inbuf, "port")) {
+	    port_num = atoi(cp);
+	    continue;
 	}
-	if (cache_images && facetoname[i]!=NULL) {
-	    free(facetoname[i]);
-	    facetoname[i]=NULL;
+	if (!strcmp(inbuf, "server")) {
+	    server = strdup_local(cp);	/* memory leak ! */
+	    continue;
 	}
-#ifdef HAVE_SDL
-	if(sdlimage && surfaces[i].surface && (surfaces[i].surface != surfaces[0].surface) )
-	  SDL_FreeSurface( surfaces[i].surface);
-#endif
+	if (!strcmp(inbuf,"display")) {
+	    /* Currently, only png is supported.  But in the future, this may
+	     * become things like 'iso' or 'alternate' to specify different png
+	     * sets.
+	     */
+	    if (!strcmp(cp,"png")) 
+		display_mode=Png_Display;
+	    else fprintf(stderr,"Unknown display specication in %s, %s",
+			   path, cp);
+	    continue;
+	}
+	if (!strcmp(inbuf,"cacheimages")) {
+	    if (!strcmp(cp,"True")) cache_images=TRUE;
+	    else cache_images=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"split")) {
+	    if (!strcmp(cp,"True")) split_windows=TRUE;
+	    else split_windows=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"showicon")) {
+	    if (!strcmp(cp,"True")) inv_list.show_icon=TRUE;
+	    else inv_list.show_icon=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"sound")) {
+	    if (!strcmp(cp,"True")) nosound=FALSE;
+	    else nosound=TRUE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"command_window")) {
+	    cpl.command_window = atoi(cp);
+	    if (cpl.command_window<1 || cpl.command_window>127)
+		cpl.command_window=COMMAND_WINDOW;
+	    continue;
+	}
+	if (!strcmp(inbuf,"foodbeep")) {
+	    if (!strcmp(cp,"True")) cpl.food_beep=TRUE;
+	    else cpl.food_beep=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"colorinv")) {
+	    if (!strcmp(cp,"True")) color_inv=TRUE;
+	    else color_inv=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"colortext")) {
+	    if (!strcmp(cp,"True")) color_text=TRUE;
+	    else color_text=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"tooltips")) {
+	  if (!strcmp(cp,"True")) tool_tips=TRUE;
+	  else tool_tips=FALSE;
+	  continue;
+	}  
+	if (!strcmp(inbuf,"splitinfo")) {
+	  if (!strcmp(cp,"True")) splitinfo=TRUE;
+	  else splitinfo=FALSE;
+	  continue;
+	}  
+	if (!strcmp(inbuf,"nopopups")) {
+	  if (!strcmp(cp,"True")) nopopups=TRUE;
+	  else nopopups=FALSE;
+	  continue;
+	}  
+	/* Only SDL actually uses these values, but we can still preserve
+	 * them even if they are not being used.
+	 */
+	if( !strcmp( inbuf,"Lighting")) {
+	  if( !strcmp( cp, "per_pixel")) {
+	    per_pixel_lighting= 1;
+	    per_tile_lighting= 0;
+	  } else if( !strcmp( cp, "per_tile")) {
+	    per_pixel_lighting= 0;
+	    per_tile_lighting= 1;
+	  }
+	  continue;
+	}
+	if( !strcmp( inbuf,"show_grid")) {
+	  if( !strcmp( cp, "True")) show_grid = TRUE;
+	  else show_grid = FALSE;
+	  continue;
+	}
+	fprintf(stderr,"Got line we did not understand: %s: %s\n", inbuf, cp);
     }
-    /*
-    memset(&the_map, 0, sizeof(struct Map));
-    */
-    memset( the_map.cells[0], 0, sizeof( sizeof( struct MapCell)*
-					 the_map.x * the_map.y ));
-					 
-    look_list.env=cpl.below;
+    fclose(fp);
 }
 
+void save_defaults()
+{
+    char path[MAX_BUF],buf[MAX_BUF];
+    FILE *fp;
+
+    sprintf(path,"%s/.crossfire/gdefaults", getenv("HOME"));
+    if (make_path_to_file(path)==-1) {
+	fprintf(stderr,"Could not create %s\n", path);
+	return;
+    }
+    if ((fp=fopen(path,"w"))==NULL) {
+	fprintf(stderr,"Could not open %s\n", path);
+	return;
+    }
+    fprintf(fp,"# This file is generated automatically by cfclient.\n");
+    fprintf(fp,"# Manually editing is allowed, however cfclient may be a bit finicky about\n");
+    fprintf(fp,"# some of the matching it does.  all comparissons are case sensitive.\n");
+    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values");
+
+    fprintf(fp,"port: %d\n", port_num);
+    fprintf(fp,"server: %s\n", server);
+    if (display_mode==Xpm_Display) {
+	fprintf(fp,"display: xpm\n");
+    } else if (display_mode==Pix_Display) {
+	fprintf(fp,"display: pixmap\n");
+    } else if (display_mode==Png_Display) {
+	fprintf(fp,"display: png\n");
+    }
+    fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
+    fprintf(fp,"split: %s\n", split_windows?"True":"False");
+    fprintf(fp,"showicon: %s\n", inv_list.show_icon?"True":"False");
+    fprintf(fp,"sound: %s\n", nosound?"False":"True");
+    fprintf(fp,"command_window: %d\n", cpl.command_window);
+    fprintf(fp,"foodbeep: %s\n", cpl.food_beep?"True":"False");
+    fprintf(fp,"colorinv: %s\n", color_inv?"True":"False");
+    fprintf(fp,"colortext: %s\n", color_text?"True":"False");
+    fprintf(fp,"tooltips: %s\n", color_text?"True":"False");
+    fprintf(fp,"splitinfo: %s\n", splitinfo?"True":"False");
+    fprintf(fp,"nopopups: %s\n", nopopups?"True":"False");
+    if( per_pixel_lighting)
+      fprintf( fp, "Lighting: per_pixel\n");
+    else
+      fprintf( fp, "Lighting: per_tile\n");
+    fprintf( fp,"show_grid: %s\n", show_grid?"True":"False");
+
+    fclose(fp);
+    sprintf(buf,"Defaults saved to %s",path);
+    draw_info(buf,NDI_BLUE);
+}
+
+
+
+int main(int argc, char *argv[])
+{
+    int sound,got_one=0;
+
+    /* This needs to be done first.  In addition to being quite quick,
+     * it also sets up some paths (client_libdir) that are needed by
+     * the other functions.
+     */
+
+    init_client_vars();
+    
+    /* Call this very early.  It should parse all command
+     * line arguments and set the pertinent ones up in
+     * globals.  Also call it early so that if it can't set up
+     * the windowing system, we get an error before trying to
+     * to connect to the server.  And command line options will
+     * likely change on the server we connect to.
+     */
+    if (init_windows(argc, argv)) {	/* x11.c */
+	fprintf(stderr,"Failure to init windows.\n");
+	exit(1);
+    }
+    csocket.inbuf.buf=malloc(MAXSOCKBUF);
+
+#ifdef HAVE_SYSCONF
+    maxfd = sysconf(_SC_OPEN_MAX);
+#else
+    maxfd = getdtablesize();
+#endif
+
+    sound = init_sounds();
+
+    /* Loop to connect to server/metaserver and play the game */
+    while (1) {
+	reset_client_vars();
+	csocket.inbuf.len=0;
+	csocket.cs_version=0;
+
+	/* Perhaps not the best assumption, but we are taking it that
+	 * if the player has not specified a server (ie, server
+	 * matches compiled in default), we use the meta server.
+	 * otherwise, use the server provided, bypassing metaserver.
+	 * Also, if the player has already played on a server once (defined
+	 * by got_one), go to the metaserver.  That gives them the oppurtunity
+	 * to quit the client or select another server.  We should really add
+	 * an entry for the last server there also.
+	 */
+
+	if (!strcmp(server, SERVER) || got_one) {
+	    char *ms;
+	    metaserver_get_info(meta_server, meta_port);
+	    metaserver_show(TRUE);
+	    do {
+		ms=get_metaserver();
+	    } while (metaserver_select(ms));
+	    negotiate_connection(sound);
+	} else {
+	    csocket.fd=init_connection(server, port_num);
+	    if (csocket.fd == -1) { /* specified server no longer valid */
+		server = SERVER;
+		continue;
+	    }
+	    negotiate_connection(sound);
+	}
+
+	got_one=1;
+	event_loop();
+	/* if event_loop has exited, we most of lost our connection, so we
+	 * loop again to establish a new one.
+	 */
+
+	/* Need to reset the images so they match up properly and prevent
+	 * memory leaks.
+	 */
+	reset_image_data();
+	remove_item_inventory(cpl.ob);
+	/* We know the following is the private map structure in
+	 * item.c.  But we don't have direct access to it, so
+	 * we still use locate.
+	 */
+	remove_item_inventory(locate_item(0));
+	reset_map_data();
+	look_list.env=cpl.below;
+    }
+    exit(0);	/* never reached */
+}

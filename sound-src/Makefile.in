@@ -1,0 +1,78 @@
+VERSION = crossfire-client-@VERSION@
+MKDIR = @MKDIR@
+CP = @CP@
+TAR = @TAR@
+RM = @RM@
+TARGET = @TARGET@
+CFLAGS = @CFLAGS@ @CPPFLAGS@ -I.
+LDFLAGS = @LDFLAGS@
+CC = @CC@
+LIBS = @LIBS@ @LIBXPM_LIB@ 
+INSTALL = @INSTALL@
+DEPEND = @DEPEND@
+PERL = @PERL@
+SOUND_DIR = @SOUNDDIR@
+DMALLOC_LIB = @DMALLOC_LIB@
+AR = @AR@
+RANLIB = @RANLIB@
+INCLUDES = -I.. -I../common -I.
+SND_LIBS= @SND_LIBS@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+mandir=@mandir@/man1
+soundlistdir=@sysconfdir@/sound/events
+desktopdir=@prefix@/share/gnome/apps/Games
+pixmapsdir=@prefix@/share/pixmaps
+
+HEADERS= \
+	soundsdef.h
+
+SOURCES = \
+	cfsndserv.c
+
+
+EXTRA_DIST = \
+	Makefile.in		\
+	sounds			\
+	sounds.dist
+
+
+SND_OBJS= $(SOURCES:.c=.o)
+
+
+all:  cfsndserv
+
+proto:
+	echo "Nothing to do for proto"
+
+sounds: sounds.dist Makefile
+	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUND_DIR)# sounds.dist > sounds
+
+soundsdef.h: sounds
+	$(PERL) ../utils/deftoheader.pl sounds soundsdef.h def_sounds
+
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
+
+cfsndserv: $(SND_OBJS) soundsdef.h
+	$(CC) -o cfsndserv $(SND_OBJS) $(LDFLAGS) $(SND_LIBS) $(DMALLOC_LIB)
+
+archive:
+	$(MKDIR) /tmp/$(VERSION)/sound-src
+	$(CP) $(HEARDERS) $(SOURCES) $(EXTRA_DIST) /tmp/$(VERSION)/sound-src
+
+clean::
+	$(RM) -f $(SND_OBJS)
+
+distclean::
+	$(MAKE) clean
+	$(RM) -f Makefile cfsndserv
+
+install:
+	$(INSTALL) -d ${bindir}
+	$(INSTALL) cfsndserv ${bindir}
+
+depend:
+	$(DEPEND) $(DEPENDFLAGS) -- $(CFLAGS) $(INCLUDES)  -- $(PROTOSOURCES) $(SND_SOURCES) gx11.c

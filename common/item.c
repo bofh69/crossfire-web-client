@@ -25,6 +25,7 @@
 #include <client.h>
 #include <item.h>
 #include <newclient.h>
+#include <external.h>
 
 static item *free_items;	/* the list of free (unused) items */
 static item *player, *map;	/* these lists contains rest of items */
@@ -35,7 +36,7 @@ static item *player, *map;	/* these lists contains rest of items */
 
 
 
-#include <item_types.h>
+#include <item-types.h>
 /* This should be modified to read the definition from a file */
 void init_item_types()
 {
@@ -656,7 +657,14 @@ void print_inventory (item *op)
     char buf2[MAX_BUF];
     item *tmp;
     static int l = 0;
+#if 0
     int info_width = get_info_width();
+#else
+    /* A callback for a debugging command seems pretty pointless.  If anything,
+     * it may be more useful to dump this out to stderr
+     */
+    int info_width = 40;
+#endif
 
     if (l == 0) {
 	sprintf (buf, "%s's inventory (%d):", op->d_name, op->tag);
