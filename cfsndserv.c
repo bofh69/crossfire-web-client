@@ -55,6 +55,7 @@
 #if defined(ALSA_SOUND)
 #  include <sys/asoundlib.h>
 #  define AUDIODEV "/dev/dsp"
+snd_pcm_t *handle=NULL;
 #elif defined(OSS_SOUND)
 #  include <sys/soundcard.h>
 #  define AUDIODEV "/dev/dsp"
@@ -92,7 +93,6 @@ int *sounds_in_buffer=NULL;
 int current_buffer=0; /* Next buffer we will write out */
 int first_free_buffer=0; /* So we know when to stop playing sounds */
 
-void *handle=NULL;
 int soundfd=0;
 
 /* sound device parameters */
@@ -237,35 +237,41 @@ static void parse_sound_line(char *line, int lineno) {
 #if defined(ALSA_SOUND)
 int init_audio(){
 
-     int card=0,device=0,err;
-     snd_pcm_format_t format;
-     snd_pcm_playback_params_t params;
+    int card=0,device=0,err;
+    snd_pcm_channel_params_t params;
 
-     if ( (err = snd_pcm_open( &handle, card, device, SND_PCM_OPEN_PLAYBACK )) <0 ) {
-         fprintf( stderr, "open failed: %s\n", snd_strerror( err ) );
-         return -1;
-     }
+    if ( (err = snd_pcm_open( &handle, card, device, SND_PCM_OPEN_PLAYBACK )) <0 ) {
+	fprintf( stderr, "open failed: %s\n", snd_strerror( err ) );
+	return -1;
+    }
      
-     if (settings.bit8)
-       format.format = settings.sign?SND_PCM_SFMT_S8:SND_PCM_SFMT_U8;
-     else 
-       format.format = settings.sign?SND_PCM_SFMT_S16_LE:SND_PCM_SFMT_U16_LE;
+    params.channel = SND_PCM_CHANNEL_PLAYBACK;
+    params.mode = SND_PCM_MODE_BLOCK;
+
+    if (settings.bit8)
+	params.format.format = settings.sign?SND_PCM_SFMT_S8:SND_PCM_SFMT_U8;
+    else 
+	params.format.format = settings.sign?SND_PCM_SFMT_S16_LE:SND_PCM_SFMT_U16_LE;
        
-     format.rate = settings.frequency;
-     format.channels = settings.stereo?2:1;
-     if ( (err = snd_pcm_playback_format( handle, &format )) < 0 ) {
-       fprintf( stderr, "format setup failed: %s\nTrying defaults\n"
+     params.format.rate = settings.frequency;
+     params.format.voices = settings.stereo?2:1;
+     params.buf.block.frag_size = settings.buflen/2;
+     params.buf.block.frags_max = 2;
+     params.buf.block.frags_min = 1;
+
+     if ( (err = snd_pcm_channel_params( handle, &params )) < 0 ) {
+	fprintf( stderr, "format setup failed: %s\nTrying defaults\n"
                                  , snd_strerror( err ) );
-       format.format = SND_PCM_SFMT_U8;
-       format.rate = 11025;
-       format.channels = 1;
-       if ( (err = snd_pcm_playback_format( handle, &format )) < 0 ) {
-         fprintf( stderr, "format setup failed: %s\n", snd_strerror( err ) );
-         snd_pcm_close( handle );
-         return -1;
-       }	 
+	params.format.format = SND_PCM_SFMT_U8;
+	params.format.rate = 11025;
+	params.format.voices = 1;
+	if ( (err = snd_pcm_channel_params( handle, &params )) < 0 ) {
+	    fprintf( stderr, "format setup failed: %s\n", snd_strerror( err ) );
+	    snd_pcm_close( handle );
+	    return -1;
+	}
      }
-     switch(format.format){
+     switch(params.format.format){
 	case SND_PCM_SFMT_S8:
   	   bit8=1;
 	   sign=1;
@@ -287,21 +293,12 @@ int init_audio(){
            return -1;
      }
  
-     sample_size=format.channels*(bit8?1:2);
-     stereo=(format.channels==1)?0:1;
-     frequency=format.rate;
+     sample_size=params.format.voices*(bit8?1:2);
+     stereo=(params.format.voices==1)?0:1;
+     frequency=params.format.rate;
      
-     params.fragment_size = settings.buflen/2;
-     params.fragments_max = 2;
-     params.fragments_room = 1;
-     if ( (err = snd_pcm_playback_params( handle, &params )) < 0 ) {
-       fprintf( stderr, "params setup failed: %s\n", snd_strerror( err ) );
-       snd_pcm_close( handle );
-       return -1;
-     }
-
-     soundfd=snd_pcm_file_descriptor(handle);
-     snd_pcm_block_mode( handle, 0 );
+     soundfd=snd_pcm_file_descriptor(handle,SND_PCM_CHANNEL_PLAYBACK);
+     snd_pcm_nonblock_mode( handle, 1 );
      
      return 0;
 }

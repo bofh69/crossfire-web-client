@@ -1,6 +1,8 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+cfsndserv.c: Modified so it now compiles with the modern ALSA sound system.
+    No idea if it actually works.  MSW 2001/03/04
 
 metaserver.c: Modified so it uses the value of -port if that command
     line option is given by a user.  MSW 2001/03/01
