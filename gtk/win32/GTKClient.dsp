@@ -227,6 +227,10 @@ SOURCE=..\sdl.c
 !ENDIF 
 
 # End Source File
+# Begin Source File
+
+SOURCE=..\sound.c
+# End Source File
 # End Group
 # Begin Group "Common files"
 
