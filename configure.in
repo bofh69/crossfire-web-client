@@ -77,9 +77,6 @@ AC_ARG_WITH(includes, [  --with-includes=dir     provide different compiler opti
 AC_ARG_ENABLE(gtk, [  --disable-gtk           make x11 client [default=make gtk client if available]],
 		gtk=no, gtk=yes )
 
-AC_ARG_ENABLE(gnome, [  --disable-gnome         don't make gnome client [default=make gnome client if available]],
-		gnome=no, gnome=yes )
-
 AC_ARG_ENABLE(sdl, [  --disable-sdl              Disable linking with the SDL library, default is to use it if available ],
                 use_sdl=no, use_sdl=yes)
 
@@ -215,22 +212,22 @@ if eval "test x$sound = xyes"; then
   # this fi is for the sound == yes check above
 fi
 
-AC_PATH_PROG(GNOMECONFIG, gnome-config)
-
-if test -z "$GNOMECONFIG" ; then
-	gnome=no
-	echo "Can't find gnome-config, not building Gnome client."
-fi
-
-if eval "test x$gnome = xyes"; then
-	GNOME_INIT
-	GNOME_COMPILE_WARNINGS
-	GNOME_X_CHECKS
-	AM_PATH_GDK_PIXBUF(0.11.0, , echo "gdk-pixbuf 0.11.0 or higher is needed for the Gnome client so I'm not building it." ; gnome=no)
-	if eval "test x$gnome = xyes"; then
-		SUBDIRS="$SUBDIRS gnome"
-	fi
-fi
+dnl AC_PATH_PROG(GNOMECONFIG, gnome-config)
+dnl 
+dnl if test -z "$GNOMECONFIG" ; then
+dnl 	gnome=no
+dnl 	echo "Can't find gnome-config, not building Gnome client."
+dnl fi
+dnl 
+dnl if eval "test x$gnome = xyes"; then
+dnl 	GNOME_INIT
+dnl 	GNOME_COMPILE_WARNINGS
+dnl 	GNOME_X_CHECKS
+dnl 	AM_PATH_GDK_PIXBUF(0.11.0, , echo "gdk-pixbuf 0.11.0 or higher is needed for the Gnome client so I'm not building it." ; gnome=no)
+dnl 	if eval "test x$gnome = xyes"; then
+dnl 		SUBDIRS="$SUBDIRS gnome"
+dnl 	fi
+dnl fi
 
 AC_SUBST(GUI_OBJS)
 AC_SUBST(GUI_SRCS)
@@ -377,8 +374,8 @@ dnl descend into these subdirs.
 
 OUTPUT_FILES="Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile gnome/Makefile"
 
-if eval "test x$gnome = xyes"; then
-	OUTPUT_FILES="$OUTPUT_FILES gnome/gnome-cfclient.soundlist"
-fi
+dnl if eval "test x$gnome = xyes"; then
+dnl 	OUTPUT_FILES="$OUTPUT_FILES gnome/gnome-cfclient.soundlist"
+dnl fi
 
 AC_OUTPUT(${OUTPUT_FILES})

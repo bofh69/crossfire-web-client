@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure.in: Remove checks for gnome libraries, since we no longer use 
+gnome/build a gnome client.
+aclocal.m4: downgrade requirement for needed autoconf version.
+MSW 2004-02-05
+
 common/init.c: changed 'printf' to 'LOG' for HOME Win32-warning
 Ryo 2004-02-01
 
