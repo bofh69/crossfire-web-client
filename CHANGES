@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------
+Changes for 0.97.0:
+
 MSW 2001/03/18
 Change so that containers on the ground still keep proper contents even if the
 map space itself changes (spells or other objects going onto the space).  This
@@ -57,6 +60,7 @@ x11.c: Remove a lot of duplicate code that was in place for metaserver
     if in metaserver selection mode.
 MSW 2001/02/22
 
+------------------------------------------------------------------------------
 Changes for 0.96.0:
 
 MSW 2001/02/02:
