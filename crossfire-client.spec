@@ -6,8 +6,8 @@
 #
 %define Name crossfire
 %define extra client
-%define version 1.3.0
-%define sndversion 1.3.0
+%define version 1.3.1
+%define sndversion 1.3.1
 %define release 2
 %define prefix /usr/X11R6
 
@@ -184,6 +184,14 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %attr(755,root,root) %{_bindir}/cfsndserv
 
 %changelog
+* Wed Jul 02 2002 Bob Tanner <tanner@real-time.com>
+  + crossfire-client-1.3.1-realtime.1
+  - released 1.3.1 client
+  - BUG Fix 
+    http://mailman.real-time.com/pipermail/crossfire-devel/2002-July/003273.html  - Enhancement
+    http://www.geocrawler.com/lists/3/SourceForge/7318/0/9103079/
+    http://www.geocrawler.com/lists/3/SourceForge/7318/0/9093313/
+
 * Wed Jul 02 2002 Bob Tanner <tanner@real-time.com>
   + crossfire-client-1.3.0-realtime.1
   - released 1.3.0 client
