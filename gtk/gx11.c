@@ -3360,6 +3360,9 @@ void new_menu_pickup(GtkWidget *button, int val)
   fprintf(stderr,"mode=0x%8x\n",pmode);
 #endif
 
+  sprintf(modestr,"bind pickup %u",pmode);
+  draw_info("To set this pickup mode to a key, use:",NDI_BLACK);
+  draw_info(modestr,NDI_BLACK);
   sprintf(modestr,"pickup %u",pmode);
   send_command(modestr, -1, 0);
 }
