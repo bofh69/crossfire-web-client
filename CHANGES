@@ -2,6 +2,17 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+This is related to Win32 scripting. It now works correctly thanks
+to archaios's patch. I tweaked it some, so if it doesn't work,
+my mistake :)
+
+common/metaserver.c: call 'script_killall' under Win32 when exiting.
+common/script.c: some Win32-specific magic to make it work.
+common/script.h: add Win32-specific function.
+gtk/gtkproto.h: Win32-specific function.
+gtk/gx11.c: call the scripting functions for Win32, not like other platforms.
+Ryo 2004-04-04
+
 common/metaserver.c: use 'draw_info' to report being unable to connect
    to metaserver. Also changed failure color from red to black, so it appears
    after the 'trying to connect' even in split window mode.

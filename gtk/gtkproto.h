@@ -61,6 +61,9 @@ extern int get_info_width(void);
 extern void do_clearlock(void);
 extern void x_set_echo(void);
 extern int do_timeout(void);
+#ifdef WIN32
+extern int do_scriptout(void);
+#endif
 extern void draw_magic_map(void);
 extern void magic_map_flash_pos(void);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);

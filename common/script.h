@@ -41,6 +41,9 @@ void script_init(char *params);
 void script_list(void);
 void script_sync(int cmddiff);
 void script_kill(char *params);
+#ifdef WIN32
+void script_killall(void);
+#endif
 void script_fdset(int *maxfd,fd_set *set);
 void script_process(fd_set *set);
 void script_watch(char *cmd,char *data, int len, enum CmdFormat format);

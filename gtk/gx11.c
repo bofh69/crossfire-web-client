@@ -344,7 +344,9 @@ void do_network() {
 	else if ( pollret>0 ) {
 	    if (FD_ISSET(csocket.fd, &tmp_read)) {
 		DoClient(&csocket);
+#ifndef WIN32
 	    if ( pollret > 1 ) script_process(&tmp_read);
+#endif
 	    }
 	    else {
 		script_process(&tmp_read);
@@ -386,7 +388,11 @@ void event_loop()
     fleep =  gtk_timeout_add (100,
 			  (GtkFunction) do_timeout,
 			  NULL);
-	
+
+#ifdef WIN32
+	gtk_timeout_add (25, (GtkFunction) do_scriptout, NULL);
+#endif
+    
     csocket_fd = gdk_input_add ((gint) csocket.fd,
                               GDK_INPUT_READ,
                               (GdkInputFunction) do_network, &csocket);
@@ -3675,6 +3681,9 @@ void sexit()
 
 void client_exit(){
     LOG(LOG_INFO,"gtk::client_exit","Exiting with return value 0.");
+#ifdef WIN32
+   	script_killall();
+#endif
     exit(0);
 }
 /* get_menu_display
@@ -4859,6 +4868,15 @@ void draw_info_windows()
         draw_info_freeze2=FALSE;
     }
     }
+
+
+#ifdef WIN32 /* Win32 scripting support */
+int do_scriptout()
+{
+  script_process(NULL);
+  return(TRUE);
+}
+#endif /* WIN32 */
 
 int do_timeout() {
 

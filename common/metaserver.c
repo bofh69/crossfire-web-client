@@ -34,7 +34,7 @@ char *rcsid_common_metaserver_c =
 #include <netinet/in.h>
 #include <ctype.h>
 #include <arpa/inet.h>
-#endif
+#endif /* WIN32 */
 #include <stdio.h>
 
 #include <client.h>
@@ -68,6 +68,9 @@ int meta_numservers=0;
 static int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
 
 #ifdef WIN32
+/* Need script.h for script_killall */
+#include <script.h>
+
 /* This gets input from a socket, and returns it one line at a time.
  */
 /* This is a Windows-specific function, since you can't use fgets under Win32 */
@@ -338,7 +341,13 @@ int metaserver_select(char *sel)
     /* Special case - player really entered a 0, so exit the
      * program.
      */
-    if (num==0 && sel[0]=='0') exit(0);
+    if (num==0 && sel[0]=='0')
+        {
+#ifdef WIN32
+    	script_killall();
+#endif
+        exit(0);
+        }
 
     /* if the entry is not a number (selection from the list), 
      * or is a selection but also has a dot (suggesting 

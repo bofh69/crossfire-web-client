@@ -109,12 +109,12 @@ Someday this will be fixed :)
 */
 
 #ifndef WIN32
-
 #include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#endif
 
 #include <client.h>
 #include <external.h>
@@ -126,14 +126,23 @@ Someday this will be fixed :)
 struct script {
    char *name; /* the script name */
    char *params; /* the script parameters, if any */
+#ifndef WIN32
    int out_fd; /* the file descriptor to which the client writes to the script */
    int in_fd; /* the file descriptor from which we read commands from the script */
+#else
+   HANDLE out_fd; /* the file descriptor to which the client writes to the script */
+   HANDLE in_fd; /* the file descriptor from which we read commands from the script */
+#endif /* WIN32 */
    int monitor; /* true if this script is monitoring commands sent to the server */
    int num_watch; /* number of commands we're watching */
    char **watch; /* array of commands that we're watching */
    int cmd_count; /* bytes already read in */
    char cmd[1024]; /* command from the script */
+#ifndef WIN32
    int pid;
+#else
+   DWORD pid;	/* Handle to Win32 process ID */
+#endif
    int sync_watch;
 };
 
@@ -157,8 +166,42 @@ static void script_send_item(int i,char *head,item *it);
  * Functions
  */
 
+#ifdef WIN32
+
+#define write(x,y,z) emulate_write(x,y,z)
+#define read(x,y,z) emulate_read(x,y,z)
+
+static int emulate_read(HANDLE fd, char *buf, int len)
+{
+   DWORD dwBytesRead;
+   BOOL	rc;
+
+   rc = ReadFile(fd, buf, len, &dwBytesRead, NULL);
+   if (rc == FALSE)
+      return(-1);
+   buf[dwBytesRead] = '\0';
+
+   return(dwBytesRead);
+}
+
+static int emulate_write(HANDLE fd, char *buf, int len)
+{
+   DWORD dwBytesWritten;
+   BOOL	rc;
+
+   rc = WriteFile(fd, buf, len, &dwBytesWritten, NULL);
+   if (rc == FALSE)
+      return(-1);
+
+   return(dwBytesWritten);
+}
+ 
+
+#endif /* WIN32 */
+
 void script_init(char *params)
 {
+#ifndef WIN32
    int pipe1[2];
 #ifdef USE_PIPE
    int pipe2[2];
@@ -288,6 +331,124 @@ void script_init(char *params)
    scripts[num_scripts].pid=pid;
    scripts[num_scripts].sync_watch = -1;
    ++num_scripts;
+
+#else /* WIN32 */
+
+   char *name,*args;
+   SECURITY_ATTRIBUTES saAttr;
+   PROCESS_INFORMATION piProcInfo;
+   STARTUPINFO siStartupInfo;
+   HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, hChildStdoutRd;
+   HANDLE hChildStdoutWr, hChildStdoutRdDup, hSaveStdin, hSaveStdout;
+
+   /* Get name and args */
+   name=params;
+   args=name;
+   while ( *args && *args!=' ' ) ++args;
+   while ( *args && *args==' ' ) ++args;
+   if ( *args==0 )
+   {
+      args=NULL;
+   }
+   else
+   {
+      args[-1]=0;
+   }
+
+   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
+   saAttr.bInheritHandle = TRUE;
+   saAttr.lpSecurityDescriptor = NULL;
+
+   hSaveStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+   if (!CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0))
+   {
+	   draw_info("Script support: stdout CreatePipe() failed", NDI_RED);
+	   return;
+   }
+
+   if (!SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr))
+   {
+	   draw_info("Script support: failed to redirect stdout using SetStdHandle()", NDI_RED);
+	   return;
+   }
+
+   if (!DuplicateHandle(GetCurrentProcess(), hChildStdoutRd, GetCurrentProcess(), 
+	   &hChildStdoutRdDup, 0, FALSE, DUPLICATE_SAME_ACCESS))
+   {
+	   draw_info("Script support: failed to duplicate stdout using DuplicateHandle()", NDI_RED);
+	   return;
+   }
+
+   CloseHandle(hChildStdoutRd);
+
+   hSaveStdin = GetStdHandle(STD_INPUT_HANDLE);
+   if (!CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0))
+   {
+	   draw_info("Script support: stdin CreatePipe() failed", NDI_RED);
+	   return;
+   }
+
+   if (!SetStdHandle(STD_INPUT_HANDLE, hChildStdinRd))
+   {
+	   draw_info("Script support: failed to redirect stdin using SetStdHandle()", NDI_RED);
+	   return;
+   }
+
+   if (!DuplicateHandle(GetCurrentProcess(), hChildStdinWr, GetCurrentProcess(),
+	   &hChildStdinWrDup, 0, FALSE, DUPLICATE_SAME_ACCESS))
+   {
+	   draw_info("Script support: failed to duplicate stdin using DuplicateHandle()", NDI_RED);
+	   return;
+   }
+
+   CloseHandle(hChildStdinWr);
+
+   ZeroMemory(&piProcInfo, sizeof(PROCESS_INFORMATION));
+   ZeroMemory(&siStartupInfo, sizeof(STARTUPINFO));
+   siStartupInfo.cb = sizeof(STARTUPINFO);
+
+   if (args)
+	   args[-1] = ' ';
+
+   if (!CreateProcess(NULL, name, NULL, NULL, TRUE, CREATE_NEW_PROCESS_GROUP, NULL, NULL, &siStartupInfo, &piProcInfo))
+   {
+	   draw_info("Script support: CreateProcess() failed", NDI_RED);
+	   return;
+   }
+
+   CloseHandle(piProcInfo.hProcess);
+   CloseHandle(piProcInfo.hThread);
+
+   if (args)
+	   args[-1] = '\0';
+
+	if (!SetStdHandle(STD_INPUT_HANDLE, hSaveStdin))
+	{
+		draw_info("Script support: restoring original stdin failed", NDI_RED);
+		return;
+	}
+
+	if (!SetStdHandle(STD_OUTPUT_HANDLE, hSaveStdout))
+	{
+		draw_info("Script support: restoring original stdout failed", NDI_RED);
+		return;
+	}
+
+   /* realloc script array to add new entry; fill in the data */
+   scripts=realloc(scripts,sizeof(scripts[0])*(num_scripts+1));
+   scripts[num_scripts].name=strdup(name);
+   scripts[num_scripts].params=args?strdup(args):NULL;
+   scripts[num_scripts].out_fd=hChildStdinWrDup;
+   scripts[num_scripts].in_fd=hChildStdoutRdDup;
+   scripts[num_scripts].monitor=0;
+   scripts[num_scripts].num_watch=0;
+   scripts[num_scripts].watch=NULL;
+   scripts[num_scripts].cmd_count=0;
+   scripts[num_scripts].pid=piProcInfo.dwProcessId;
+   scripts[num_scripts].sync_watch = -1;
+   ++num_scripts;
+
+#endif /* WIN32 */
 }
 
 void script_sync(int commdiff)
@@ -341,12 +502,28 @@ void script_kill(char *params)
       draw_info("No such running script",NDI_BLACK);
       return;
    }
+#ifndef WIN32
    kill(scripts[i].pid,SIGHUP);
+#else
+    GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[i].pid);
+#endif /* WIN32 */
    script_dead(i);
 }
 
+#ifdef WIN32
+void script_killall(void)
+{
+   while (num_scripts > 0)
+   {
+      GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[0].pid);
+      script_dead(0);
+   }
+}
+#endif /* WIN32 */
+
 void script_fdset(int *maxfd,fd_set *set)
 {
+#ifndef WIN32
    int i;
 
    for ( i=0;i<num_scripts;++i)
@@ -354,17 +531,29 @@ void script_fdset(int *maxfd,fd_set *set)
       FD_SET(scripts[i].in_fd,set);
       if ( scripts[i].in_fd >= *maxfd ) *maxfd = scripts[i].in_fd+1;
    }
+#endif /* WIN32 */
 }
 
 void script_process(fd_set *set)
 {
    int i;
    int r;
+#ifdef WIN32
+   DWORD nAvailBytes = 0;
+   char cTmp;
+   BOOL bRC;
+#endif
+
 
    /* Determine which script's fd is set */
    for(i=0;i<num_scripts;++i)
    {
+#ifndef WIN32
       if ( FD_ISSET(scripts[i].in_fd,set) )
+#else
+      bRC = PeekNamedPipe(scripts[i].in_fd, &cTmp, 1, NULL, &nAvailBytes, NULL);
+	  if (nAvailBytes)
+#endif /* WIN32 */
       {
          /* Read in script[i].cmd */
          r=read(scripts[i].in_fd,scripts[i].cmd+scripts[i].cmd_count,sizeof(scripts[i].cmd)-scripts[i].cmd_count-1);
@@ -372,7 +561,11 @@ void script_process(fd_set *set)
          {
             scripts[i].cmd_count+=r;
          }
+#ifndef WIN32
          else if ( r==0 || errno==EBADF )
+#else
+         else if ( r==0 || GetLastError() == ERROR_BROKEN_PIPE )
+#endif
          {
             /* Script has exited; delete it */
             script_dead(i);
@@ -381,13 +574,21 @@ void script_process(fd_set *set)
          /* If a newline or full buffer has been reached, process it */
          scripts[i].cmd[scripts[i].cmd_count]=0; /* terminate string */
          while ( scripts[i].cmd_count == sizeof(scripts[i].cmd)-1
+#ifndef WIN32
               || strchr(scripts[i].cmd,'\n') )
+#else
+              || strchr(scripts[i].cmd,'\r\n') )
+#endif /* WIN32 */
          {
             script_process_cmd(i);
             scripts[i].cmd[scripts[i].cmd_count]=0; /* terminate string */
          }
          return; /* Only process one script at a time */
       }
+#ifdef WIN32
+	  else if (!bRC) /* Error: assume dead */
+		 script_dead(i);
+#endif /* WIN32 */
    }
 }
 
@@ -662,7 +863,7 @@ void script_tell(char *params)
    /* Send the message */
    write(scripts[i].out_fd,"scripttell ",11);
    write(scripts[i].out_fd,params,strlen(params));
-   write(scripts[i].out_fd,"\n",1);
+   write(scripts[i].out_fd,"\r\n",2);
 }
 
 static int script_by_name(char *name)
@@ -698,14 +899,21 @@ static void script_dead(int i)
    int w;
 
    /* Release resources */
+#ifndef WIN32
    close(scripts[i].in_fd);
    close(scripts[i].out_fd);
+#else
+   CloseHandle(scripts[i].in_fd);
+   CloseHandle(scripts[i].out_fd);
+#endif
    free(scripts[i].name);
    if ( scripts[i].params ) free(scripts[i].params);
    for(w=0;w<scripts[i].num_watch;++w) free(scripts[i].watch[w]);
    if ( scripts[i].watch ) free(scripts[i].watch);
 
+#ifndef WIN32
    waitpid(-1,NULL,WNOHANG);
+#endif
 
    /* Move scripts with higher index numbers down one slot */
    if ( i < (num_scripts-1) )
@@ -756,7 +964,11 @@ static void script_process_cmd(int i)
    }
    ++l;
    memcpy(cmd,scripts[i].cmd,l);
+#ifndef WIN32
    cmd[l-1]=0;
+#else
+   cmd[l-2]=0;
+#endif
    if ( l<scripts[i].cmd_count )
    {
       memmove(scripts[i].cmd,scripts[i].cmd+l,scripts[i].cmd_count-l);
@@ -1168,72 +1380,3 @@ static void script_send_item(int i,char *head,item *it)
    sprintf(buf,"%s%d %d %f %d %d %s\n",head,it->tag,it->nrof,it->weight,flags,it->type,it->d_name);
    write(scripts[i].out_fd,buf,strlen(buf));
 }
-
-#else
-
-/* dummy Win32 functions */
-#include <client.h>
-#include <external.h>
-#include <script.h>
-
-void script_init(char *params)
-    {
-    }
-
-void script_sync(int commdiff)
-    {
-    }
-
-void script_list(void)
-    {
-    }
-
-void script_kill(char *params)
-    {
-    }
-
-void script_fdset(int *maxfd,fd_set *set)
-    {
-    }
-
-void script_process(fd_set *set)
-    {
-    }
-
-void script_watch(char *cmd,char *data, int len, enum CmdFormat format)
-    {
-    }
-
-void script_monitor(const char *command, int repeat, int must_send)
-    {
-    }
-
-void script_monitor_str(const char *command)
-    {
-    }
-
-void script_tell(char *params)
-    {
-    }
-
-static int script_by_name(char *name)
-    {
-    }
-
-static void script_dead(int i)
-    {
-    }
-
-static void send_map(int i,int x,int y)
-    {
-    }
-
-static void script_process_cmd(int i)
-    {
-    }
-
-static void script_send_item(int i,char *head,item *it)
-    {
-    }
-
-#endif /* WIN32 */
