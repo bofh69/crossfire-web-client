@@ -2,6 +2,10 @@
 Top of CVS tree:
 
 ------------------------------------------------------------------------------
+common/script.c: warn when script start failure (Linux), patch courtesy Kevin Rudat.
+  Check there actually is a parameter to 'script', else that'd crash nicely.
+Ryo 2004-08-16
+
 gnome/gnome.c, gtk/gx11.c: Fix improper access to history buffer variable.
 Andreas Kirschbaum 2004-05-24
 

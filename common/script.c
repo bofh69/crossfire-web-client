@@ -209,6 +209,12 @@ void script_init(char *params)
    int pid;
    char *name,*args;
 
+   if ( !params )
+       {
+       draw_info( "Please specifiy a script to launch!", NDI_RED );
+       return;
+       }
+
    /* Get name and args */
    name=params;
    args=name;
@@ -300,8 +306,22 @@ void script_init(char *params)
       for (i=3;i<100;++i) close(i);
 
       /* EXEC */
-      execvp(argv[0],argv);
-      exit(1); /* Should not be reached */
+      r = execvp(argv[0],argv);
+
+      /* If we get here, then there's been an failure of some sort.
+       * In my case, it's often that I don't know what script name to
+       * give to /script, so exec() can't find the script.
+       *
+       * Forward the error back to the client, using the script pipes. 
+       */
+
+      if (r != -1) {
+          printf("draw %d Script child: no error, but no execvp().\n", NDI_RED);
+      } else {
+          printf("draw %d Script child failed to start: %s\n", NDI_RED, strerror(errno));
+      }
+
+      exit(1);
    }
 
    /* Close the child's pipe ends */
@@ -340,6 +360,12 @@ void script_init(char *params)
    STARTUPINFO siStartupInfo;
    HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, hChildStdoutRd;
    HANDLE hChildStdoutWr, hChildStdoutRdDup, hSaveStdin, hSaveStdout;
+
+   if ( !params )
+        {
+        draw_info( "Please specifiy a script to launch!", NDI_RED );
+        return;
+        }
 
    /* Get name and args */
    name=params;
@@ -507,6 +533,7 @@ void script_kill(char *params)
 #else
     GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[i].pid);
 #endif /* WIN32 */
+   draw_info( "Killed script.", NDI_RED );
    script_dead(i);
 }
 
