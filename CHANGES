@@ -1,6 +1,12 @@
 "$Id$"
 Top of CVS tree:
 
+Update README for necessary libraries.
+configure.in, configure: Re-order testing of Xext, Imlib where we still
+have the any special link flags set.  Also, when finding these, explicity
+set them in the X_LIBS variable and not the default, since they are only
+needed for the X11 client.  MSW 6/16/2000
+
 Protocol: Update for png information - addition of image command.
 client.c: Add support for image command.  Change initializing so we get
 	the protocol from the server early on - we need to know it before
