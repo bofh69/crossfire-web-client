@@ -149,6 +149,8 @@ typedef struct {
     uint32  weight_limit;   /* Weight limit for this list - used for title */
 } itemlist;
 
+int noautorepeat = FALSE;	/* turn off autorepeat detection */
+
 static char *font_name="8x13",	**gargv;
 struct Map the_map;
 
@@ -179,10 +181,10 @@ static int FONTHEIGHT= 13;
 
 static int gargc, old_mapx=11, old_mapy=11;
 
-Display_Mode display_mode = DISPLAY_MODE;
 uint8 cache_images=FALSE;
 Display *display;
-long screen_num;
+static Window def_root;	/* default root window */
+static long def_screen;	/* default screen number */
 static unsigned long foreground,background;
 Window win_stats,win_message;
 Window win_root,win_game;
@@ -246,11 +248,11 @@ static float info_ratio=0;
 #define XPMGCS 100
 
 enum {
-    locked_icon = 1, applied_icon, unpaid_icon,
+    no_icon = 0, locked_icon, applied_icon, unpaid_icon,
     damned_icon, cursed_icon, magic_icon, close_icon, 
     stipple1_icon, stipple2_icon, max_icons
 };
-static struct PixmapInfo icons[max_icons];
+static Pixmap icons[max_icons];
 
 static Pixmap icon,xpm_pixmap,xpm_masks[XPMGCS]; 
 static GC gc_root,gc_stats,gc_message,
@@ -330,25 +332,13 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	fprintf(stderr,"Invalid face number: %d @ %d, %d\n", face, x, y);
 	return;
     }
-    if (display_mode == Pix_Display) {
-	if (pixmaps[face].bitmap == 0) {
-	    fprintf (stderr, "gen_draw_face: Requested to draw null pixmap (num=%d)\n",
-		 face);
-	return;
-	}
-	if (iscolor) {
-	    XSetForeground(display,gc_game,discolor[pixmaps[face].fg].pixel);
-	    XSetBackground(display,gc_game,discolor[pixmaps[face].bg].pixel);
-	}
-	XCopyPlane(display,pixmaps[face].bitmap,where,gc_game,
-	     0,0,24,24,x,y,1);
-    } else if (display_mode==Png_Display && pixmaps[face].mask == None) {
+    if (pixmaps[face].mask == None) {
 	    XCopyArea(display, pixmaps[face].pixmap,
 	      where,gc_floor,
 	      0,0,image_size,image_size,x,y);
 
     /* Xpm and png do exactly the same thing */
-    } else if (display_mode == Png_Display) {
+    } else {
 	/* Basically, what it looks like all this does is to try and preserve
 	 * gc's with various clipmasks set. */
 
@@ -387,9 +377,6 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	XCopyArea(display, pixmaps[face].pixmap,
 	    where,gc_xpm[0],
 	    0,0,image_size,image_size,x,y);
-    } else {
-	fprintf(stderr,"Unknown display mode %d\n",display_mode);
-	abort();
     }
 }
 
@@ -406,9 +393,7 @@ void end_windows()
     XFreeGC(display, look_list.gc_icon);
     XFreeGC(display, look_list.gc_status);
     XFreeGC(display, gc_message);
-    if (display_mode==Png_Display) {
-	XFreeGC(display, gc_xpm_object);
-    }
+    XFreeGC(display, gc_xpm_object);
     XDestroyWindow(display,win_game);
     XCloseDisplay(display);
 }
@@ -425,6 +410,7 @@ void end_windows()
 
 static int get_game_display() {
     XSizeHints gamehint;
+    int i;
    
     gamehint.x=INV_WIDTH + WINDOW_SPACING;
     gamehint.y=104;
@@ -442,7 +428,7 @@ static int get_game_display() {
 	(_Xconst char *) crossfire_bits,
 	(unsigned int) crossfire_width, (unsigned int)crossfire_height);
     if (split_windows) {
-	iscolor=allocate_colors(display, win_root, screen_num,
+	iscolor=allocate_colors(display, win_root, def_screen,
 	    &colormap, discolor);
 	if (iscolor){
 	    foreground=discolor[0].pixel;
@@ -469,23 +455,20 @@ static int get_game_display() {
     gc_blank = XCreateGC(display,win_game,0,0);
     XSetForeground(display,gc_blank,discolor[0].pixel);	/*set to black*/
     XSetGraphicsExposures(display,gc_blank,False);
-    if (display_mode==Png_Display) {
-	int i;
-	for (i=0; i<XPMGCS; i++) {
+
+    for (i=0; i<XPMGCS; i++) {
 	    gc_xpm[i] = XCreateGC(display, win_game, 0,0);
 	    XSetClipOrigin(display, gc_xpm[i], 0, 0);
 	    XSetGraphicsExposures(display, gc_xpm[i], False);
-	}
-	gc_xpm_object = XCreateGC(display,win_game,0,0);
-	XSetGraphicsExposures(display, gc_xpm_object, False);
-	XSetClipOrigin(display, gc_xpm_object,0, 0);
-	xpm_pixmap = XCreatePixmap(display, RootWindow(display,
-		DefaultScreen(display)), image_size, image_size, 
-		DefaultDepth(display, DefaultScreen(display)));
-	gc_clear_xpm = XCreateGC(display,xpm_pixmap,0,0);
-	XSetGraphicsExposures(display,gc_clear_xpm,False);
-	XSetForeground(display,gc_clear_xpm,discolor[12].pixel); /* khaki */
     }
+    gc_xpm_object = XCreateGC(display,win_game,0,0);
+    XSetGraphicsExposures(display, gc_xpm_object, False);
+    XSetClipOrigin(display, gc_xpm_object,0, 0);
+    xpm_pixmap = XCreatePixmap(display, def_root, image_size, image_size, 
+		DefaultDepth(display, DefaultScreen(display)));
+    gc_clear_xpm = XCreateGC(display,xpm_pixmap,0,0);
+    XSetGraphicsExposures(display,gc_clear_xpm,False);
+    XSetForeground(display,gc_clear_xpm,discolor[12].pixel); /* khaki */
 
     XSelectInput(display,win_game,
 	ButtonPressMask|KeyPressMask|KeyReleaseMask|ExposureMask);
@@ -1471,22 +1454,12 @@ static void draw_all_message() {
  ****************************************************************************/
 
 
-#if 1
-/* Do nothing - status icons are not being created - FIX THIS */
-#define draw_status_icon(l,x,y,face) 
+static void draw_status_icon(itemlist *l, int x, int y, int face)
+{
+    XCopyPlane(display, icons[face], l->win, l->gc_status, 0,0, 24,6, x,y, 1);
+}
 
-#else
-#define draw_status_icon(l,x,y,face) \
-do { \
-    XClearArea(display, l->win, x, y, 24, 6, False); \
-    if (face) { \
-	XSetClipMask(display, l->gc_status, icons[face].mask), \
-	XSetClipOrigin(display, l->gc_status, x, y), \
-	XCopyArea(display, icons[face].pixmap, l->win, l->gc_status, \
-		  0, 0, 24, 6, x, y); \
-    } \
-} while (0)
-#endif
+
 /* compares the 'flags' against the item.  return 1 if we should draw
  * that object, 0 if it should not be drawn.
  */
@@ -1513,55 +1486,42 @@ static int show_object(item *ip, inventory_show flags)
 
 static void create_status_icons ()
 {
+#include "pixmaps/clear.xbm"
+#include "pixmaps/locked.xbm"
+#include "pixmaps/applied.xbm"
+#include "pixmaps/unpaid.xbm"
+#include "pixmaps/damned.xbm"
+#include "pixmaps/cursed.xbm"
+#include "pixmaps/magic.xbm"
+#include "pixmaps/close.xbm"
 #include "pixmaps/stipple.111"
 #include "pixmaps/stipple.112"
-#if 0
-#include "pixmaps/locked.xpm"
-#include "pixmaps/unpaid.xpm"
-#include "pixmaps/applied.xpm"
-#include "pixmaps/magic.xpm"
-#include "pixmaps/damned.xpm"
-#include "pixmaps/cursed.xpm"
-#include "pixmaps/close.xpm"
     static int hasinit=0;
 
     if (hasinit) return;
     hasinit=1;
 
+#define CREATEPM(name,data) \
+    (icons[name] = XCreateBitmapFromData(display, def_root,\
+			    data##_bits, data##_width, data##_height))
 
-    if (XpmCreatePixmapFromData(display, RootWindow(display, screen_num), 
-				locked_xpm, &(icons[locked_icon].pixmap), 
-				&(icons[locked_icon].mask), NULL)
-	|| XpmCreatePixmapFromData(display, RootWindow(display, screen_num), 
-				applied_xpm, &(icons[applied_icon].pixmap), 
-				&(icons[applied_icon].mask), NULL)
-	|| XpmCreatePixmapFromData(display, RootWindow(display, screen_num), 
-				unpaid_xpm, &(icons[unpaid_icon].pixmap), 
-				&(icons[unpaid_icon].mask), NULL)
-	|| XpmCreatePixmapFromData(display, RootWindow(display, screen_num), 
-				magic_xpm, &(icons[magic_icon].pixmap), 
-				&(icons[magic_icon].mask), NULL)
-	|| XpmCreatePixmapFromData(display, RootWindow(display, screen_num), 
-				damned_xpm, &(icons[damned_icon].pixmap), 
-				&(icons[damned_icon].mask), NULL)
-	|| XpmCreatePixmapFromData(display, RootWindow(display, screen_num), 
-				cursed_xpm, &(icons[cursed_icon].pixmap), 
-				&(icons[cursed_icon].mask), NULL)
-	|| XpmCreatePixmapFromData(display, RootWindow(display, screen_num), 
-				close_xpm, &(icons[close_icon].pixmap), 
-				&(icons[close_icon].mask), NULL)) {
-	fprintf(stderr, "Unable to create icon pixmaps.\n");
+    if (0
+	|| CREATEPM(no_icon, clear) == None
+	|| CREATEPM(locked_icon, locked) == None
+	|| CREATEPM(applied_icon, applied) == None
+	|| CREATEPM(unpaid_icon, unpaid) == None
+	|| CREATEPM(damned_icon, damned) == None
+	|| CREATEPM(cursed_icon, cursed) == None
+	|| CREATEPM(magic_icon, magic) == None
+	|| CREATEPM(close_icon, close) == None
+	|| CREATEPM(stipple1_icon, stipple) == None
+	|| CREATEPM(stipple2_icon, stipple1) == None
+    )
+    {
+	fprintf(stderr, "Unable to create pixmaps.\n");
 	exit (0);
     }
-#endif
-    icons[stipple1_icon].bitmap = XCreateBitmapFromData(display, 
-	RootWindow(display, screen_num), (char*)stipple_bits, 24, 24);
-    icons[stipple2_icon].bitmap = XCreateBitmapFromData(display, 
-	RootWindow(display, screen_num), (char*)stipple1_bits, 24, 24);
-    if (icons[stipple1_icon].bitmap==None || icons[stipple2_icon].bitmap==None) {
-	fprintf(stderr, "Unable to create stipple pixmaps.\n");
-	exit(0);
-    }
+#undef CREATEPM
 }
 
 /*
@@ -1598,13 +1558,8 @@ static void draw_list (itemlist *l)
 		l->weight_limit/1000);
 
     if (strcmp (buf, l->old_title)) {
-	XClearArea(display, l->win, 2, 2, image_size, 13, False);
-	if (l->env->open) {
-	    XSetClipMask(display, l->gc_status, icons[close_icon].mask);
-	    XSetClipOrigin(display, l->gc_status, 2, 2);
-	    XCopyArea(display, icons[close_icon].pixmap, l->win, l->gc_status,
-		      0, 0, image_size, 13, 2, 2); \
-	}
+	XCopyPlane(display, icons[l->env->open ? close_icon : no_icon], 
+			    l->win, l->gc_status, 0,0, image_size,13, 2,2, 1);
 	strcpy (l->old_title, buf);
 	XDrawImageString(display, l->win, l->gc_text, 
 			 (l->show_icon ? image_size+24+4 : image_size+4),
@@ -1638,24 +1593,24 @@ static void draw_list (itemlist *l)
 	/* draw status icon */
 	if (l->show_icon) {
 	    sint8 tmp_icon;
-	    tmp_icon = tmp->locked ? locked_icon : 0;
+	    tmp_icon = tmp->locked ? locked_icon : no_icon;
 	    if (l->icon1[i] != tmp_icon) {
 		l->icon1[i] = tmp_icon;
 		draw_status_icon (l, image_size+4, 16 + image_size * i, tmp_icon);
 	    }
 	    tmp_icon = tmp->applied ? applied_icon :
-		       tmp->unpaid  ? unpaid_icon : 0;
+		       tmp->unpaid  ? unpaid_icon : no_icon;
 	    if (l->icon2[i] != tmp_icon) {
 		l->icon2[i] = tmp_icon;
 		draw_status_icon (l, image_size+4, 22 + image_size * i, tmp_icon);
 	    }
-	    tmp_icon = tmp->magical ? magic_icon : 0;
+	    tmp_icon = tmp->magical ? magic_icon : no_icon;
 	    if (l->icon3[i] != tmp_icon) {
 		l->icon3[i] = tmp_icon;
 		draw_status_icon (l, image_size+4, 28 + image_size * i, tmp_icon);
 	    }
 	    tmp_icon = tmp->damned ? damned_icon : 
-		       tmp->cursed ? cursed_icon : 0;
+		       tmp->cursed ? cursed_icon : no_icon;
 	    if (l->icon4[i] != tmp_icon) {
 		l->icon4[i] = tmp_icon;
 		draw_status_icon (l, image_size+4, 34 + image_size * i, tmp_icon);
@@ -1745,6 +1700,17 @@ static void draw_all_list(itemlist *l)
     l->bar_size = 1;    /* so scroll bar is drawn */
     draw_list (l);
 }
+
+
+/* we have received new images.  update these only */
+static void update_icons_list(itemlist *l)
+{
+    int i;
+    for (i = 0; i < l->size; ++i)
+	l->faces[i] = 0;
+    draw_list(l);
+}
+
 
 void open_container (item *op) 
 {
@@ -1866,7 +1832,7 @@ static void get_list_display(itemlist *l, int x, int y, int w, int h,
 static int get_inv_display()
 {
     inv_list.env = cpl.ob;
-    strcpy (inv_list.title, "Inventory:");
+    strcpy (inv_list.title, ""/*ET: too long: "Inventory:"*/);
     inv_list.show_weight = 1;
     inv_list.show_what = show_all;
     inv_list.weight_limit=0;
@@ -1952,6 +1918,13 @@ void set_scroll(char *s)
     }
 }
 
+void set_autorepeat(char *s)
+{
+    noautorepeat = noautorepeat ? FALSE : TRUE;
+    draw_info(noautorepeat ? "Autorepeat is disabled":"Autorepeat is enabled",
+	      NDI_BLACK);
+}
+
 int get_info_width()
 {
     return infodata.info_chars;
@@ -1992,6 +1965,9 @@ static int get_root_display(char *display_name) {
     if ((getenv("ERIC_SYNC")!= NULL) || sync_display)
 	XSynchronize(display,True);
 
+    def_root = DefaultRootWindow(display);
+    def_screen = DefaultScreen(display);
+
     /* For both split_windows and display mode, check to make sure that
      * the command line has not set the value.  Command line settings
      * should always have precedence over settings in the Xdefaults file.
@@ -2016,21 +1992,23 @@ static int get_root_display(char *display_name) {
 	else if (!strcmp("off",cp) || !strcmp("no",cp))
 	    cpl.echo_bindings = FALSE;
     }
-    if ((cp=XGetDefault(display,X_PROG_NAME, "image")) != NULL) {
-	if (!strcmp("pixmap",cp))
-	    display_mode = Pix_Display;
-	else if (!strcmp("png",cp))
-	    display_mode = Png_Display;
-	else
-	    fprintf(stderr,"Warning: Unknown image option: %s\n", cp);
-    }
     if ((cp=XGetDefault(display,X_PROG_NAME, "scrollLines"))!=NULL) {
 	infodata.maxlines=atoi(cp);
     }
+    if ((cp=XGetDefault(display,X_PROG_NAME,"font")) != NULL) {
+	font_name = strdup_local(cp);
+    }
+    /* Failure will result in an uncaught X11 error */
+    font=XLoadQueryFont(display,font_name);
+    if (!font) {
+	fprintf(stderr,"Could not load font %s\n", font_name);
+	exit(1);
+    }
+    FONTWIDTH=font->max_bounds.width;
+    FONTHEIGHT=font->max_bounds.ascent + font->max_bounds.descent;
 
-    screen_num=DefaultScreen(display);
-    background=WhitePixel(display,screen_num);
-    foreground=BlackPixel(display,screen_num);
+    background=WhitePixel(display,def_screen);
+    foreground=BlackPixel(display,def_screen);
     roothint.x=0;
     roothint.y=0;
     roothint.width=582+6+INFOCHARS*FONTWIDTH;
@@ -2038,21 +2016,20 @@ static int get_root_display(char *display_name) {
     /* Make up for the extra size of the game window.  88 is
      * 11 tiles * 8 pixels/tile bigger size.
      */
-    if (display_mode==Png_Display) {
-	roothint.width += 88;
-	roothint.height+= 88;
-	init_pngx_loader(display);
-    }
+    roothint.width += 88;
+    roothint.height+= 88;
+    init_pngx_loader(display);
+
     roothint.max_width=roothint.min_width=roothint.width;
     roothint.max_height=roothint.min_height=roothint.height;
-    roothint.flags=PPosition | PSize;
+    roothint.flags=PSize; /*ET: no PPosition. let window manager handle that. */
 
     if(!split_windows) {
-	win_root=XCreateSimpleWindow(display,DefaultRootWindow(display),
+	win_root=XCreateSimpleWindow(display,def_root,
 	    roothint.x,roothint.y,roothint.width,roothint.height,2,
 	    background,foreground);
 
-	iscolor=allocate_colors(display, win_root, screen_num,
+	iscolor=allocate_colors(display, win_root, def_screen,
 	    &colormap, discolor);
 	if (iscolor){
 	    foreground=discolor[0].pixel;
@@ -2066,27 +2043,15 @@ static int get_root_display(char *display_name) {
 	gc_root=XCreateGC(display,win_root,0,0);
 	XSetForeground(display,gc_root,foreground);
 	XSetBackground(display,gc_root,background);
-    }
-    else win_root = DefaultRootWindow(display);
 
-
-    if(!split_windows) {
 	XSelectInput(display,win_root,KeyPressMask|
 	     KeyReleaseMask|ExposureMask|StructureNotifyMask);
 	XMapRaised(display,win_root);
-	XNextEvent(display,&event);
+	XNextEvent(display,&event);	/*ET: this is bogus */
     }
-    if ((cp=XGetDefault(display,X_PROG_NAME,"font")) != NULL) {
-	font_name = strdup_local(cp);
-    }
-    /* Failure will result in an uncaught X11 error */
-    font=XLoadQueryFont(display,font_name);
-    if (!font) {
-	fprintf(stderr,"Could not load font %s\n", font_name);
-	exit(1);
-    }
-    FONTWIDTH=font->max_bounds.width;
-    FONTHEIGHT=font->max_bounds.ascent + font->max_bounds.descent;
+    else
+	win_root = def_root;
+
     return 0;
 }
 
@@ -2226,7 +2191,7 @@ static void parse_game_button_press(int button, int x, int y)
  * do this anyways, so it is not a problem.
  */
 
-static void do_key_press()
+static void do_key_press(int repeated)
 {
     KeySym gkey;
     char text[10];
@@ -2249,7 +2214,7 @@ static void do_key_press()
     }
     switch(cpl.input_state) {
 	case Playing:
-	    parse_key(text[0],event.xkey.keycode,gkey);
+	    parse_key(text[0],event.xkey.keycode,gkey,repeated);
 	    break;
 
 	case Reply_One:
@@ -2306,7 +2271,10 @@ static void buttonpress_in_info(XButtonEvent *xbutton)
 {
     int y = xbutton->y-16, x=xbutton->x, button = xbutton->button,dy,pos=0;
 
-    if (!infodata.has_scrollbar || x<=(infodata.width-SCROLLBAR_WIDTH-4))
+    if (!infodata.has_scrollbar)
+	return;
+
+    if (button < 4 && x <= infodata.width-SCROLLBAR_WIDTH-4)
 	return;
 
     dy = y / FONTHEIGHT > 0 ? y / FONTHEIGHT : 1;
@@ -2322,6 +2290,14 @@ static void buttonpress_in_info(XButtonEvent *xbutton)
 
 	  case 3:
 	    pos = infodata.bar_pos + dy;
+	    break;
+
+	  case 4:
+	    pos = infodata.bar_pos - 1;
+	    break;
+
+	  case 5:
+	    pos = infodata.bar_pos + 1;
 	    break;
 
     }
@@ -2357,6 +2333,16 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
  
     if (y < 0 || y > image_size * l->size)
 	return 1;
+
+    if (button == 4 || button == 5)
+    {
+	if (button == 4)
+	    l->item_pos--;
+	else
+	    l->item_pos++;
+	draw_list(l);
+	return 1;
+    }
 
     if (x > l->width-23) {    /* scrollbar */
 
@@ -2432,7 +2418,7 @@ char *get_metaserver()
     draw_prompt(":");
     while (cpl.input_state == Metaserver_Select) {
 	check_x_events();
-	usleep(100);
+	usleep(50000);	/* 1/20 sec */
     } /* while input state is metaserver select. */
 
     /* We need to clear out cpl.input_text - otherwise the next
@@ -2461,6 +2447,7 @@ char *get_metaserver()
 void check_x_events() {
     KeySym gkey=0;
     static int lastupdate=0;
+    static XEvent prev_event;	/* to detect autorepeated keys */
 
     /* If not connected, the below area does not apply, so don't deal with it */
     if (cpl.input_state != Metaserver_Select) {
@@ -2473,8 +2460,8 @@ void check_x_events() {
 	 * especially since we might get a bunch of images at the same time.
 	 */
 	if (cache_images && lastupdate>5 && newimages) {
-	    draw_all_list(&inv_list);
-	    draw_all_list(&look_list);
+	    update_icons_list(&inv_list);
+	    update_icons_list(&look_list);
 	    if (!cpl.showmagic) display_map_doneupdate(TRUE);
 	    newimages=0;
 	    lastupdate=0;
@@ -2488,6 +2475,7 @@ void check_x_events() {
   
 
     while (XPending(display)!=0) {
+	prev_event = event;
 	XNextEvent(display,&event);
 	switch(event.type) {
 
@@ -2561,7 +2549,14 @@ void check_x_events() {
 		break;
 
 	    case KeyPress:
-		do_key_press();
+		if (noautorepeat
+		    && prev_event.type == KeyRelease
+		    && prev_event.xkey.keycode == event.xkey.keycode
+		    && prev_event.xkey.state == event.xkey.state
+		    && prev_event.xkey.time == event.xkey.time)
+		    do_key_press(1);	/* auto-repeated key */
+		else
+		    do_key_press(0);	/* regular key */
 		break;
 	}
     }
@@ -2625,6 +2620,7 @@ static void usage(char *progname)
     puts("-font <name>     - Use <name> as font to display data.");
     puts("-pngfile <name>  - Use <name> for source of images");
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces.");
+    puts("-noautorepeat    - Auto repeat on directional keys is ignored.");
     exit(0);
 }
 
@@ -2704,24 +2700,16 @@ int init_windows(int argc, char **argv)
 	    server = argv[on_arg];
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-nofasttcpsend")) {
+	    fast_tcp_send=0;
+	    continue;
+	}
 	if (!strcmp(argv[on_arg],"-pngfile")) {
 	    if (++on_arg == argc) {
 		fprintf(stderr,"-pngfile requires a file name\n");
 		return 1;
 	    }
 	    image_file = argv[on_arg];
-	    continue;
-	}
-	if (!strcmp(argv[on_arg],"-xpm")) {
-	    fprintf(stderr,"-xpm is no longer supported\n");
-	    continue;
-	}
-	if (!strcmp(argv[on_arg],"-png")) {
-	    display_mode = Png_Display;
-	    continue;
-	}
-	else if (!strcmp(argv[on_arg],"-pix")) {
-	    display_mode = Pix_Display;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-cache")) {
@@ -2788,6 +2776,10 @@ int init_windows(int argc, char **argv)
 	    keepcache=TRUE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-autorepeat")) {
+	    noautorepeat=TRUE;
+	    continue;
+	}
 	else {
 	    fprintf(stderr,"Do not understand option %s\n", argv[on_arg]);
 	    usage(argv[0]);
@@ -2801,18 +2793,14 @@ int init_windows(int argc, char **argv)
      * we just fall back to pixmap mode.  But I don't really want to get into
      * a big nest of #ifdefs checking/setting modes.
      */
-    if (display_mode == Png_Display) {
 #ifndef HAVE_LIBPNG
-	fprintf(stderr,"Client not configured with Png display mode enabled\n");
-	fprintf(stderr,"Will try using pixmap display mode\n");
-	display_mode = Pix_Display;
+    fprintf(stderr,"Client not configured with Png display mode enabled\n");
+    fprintf(stderr,"Install the png library and try recompiling.\n");
+    exit(1);
 #else
-	image_size=32;
+    image_size=32;
 #endif
-    }
-    if (display_mode == Pix_Display) {
-	image_size=24;
-    }
+
 
     map_size= ( fog_of_war == TRUE) ? FOG_MAP_SIZE : MAP_MAX_SIZE;
 
@@ -2881,21 +2869,6 @@ void display_mapcell_bitmap(int ax,int ay)
 		2+image_size*ax,2+image_size*ay);
 }
 
-int display_usexpm()
-{
-    return 0;
-}
-
-int display_usepng()
-{
-  return display_mode == Png_Display;
-}
-
-int display_usebitmaps()
-{
-  return display_mode == Pix_Display;
-}
-
 int display_willcache()
 {
     return cache_images;
@@ -2952,14 +2925,7 @@ void display_map_doneupdate(int redraw)
 			   2+image_size*ay,image_size,image_size);
 		    continue;
 		}
-		if (display_mode == Png_Display) {
-		    display_mapcell_pixmap(ax,ay);
-		} else if (display_mode == Pix_Display) {
-		    display_mapcell_bitmap(ax,ay);
-		} else {
-		    fprintf(stderr,"Unknown display mode '%d'\n",display_mode);
-		    abort();
-		}
+		display_mapcell_pixmap(ax,ay);
 		the_map.cells[ax][ay].need_update=0;
 	    }
 	}
@@ -3073,9 +3039,7 @@ void display_newbitmap(long face,long fg,long bg,char *buf)
 	}
     }
 
-    bitmap = XCreateBitmapFromData(display,
-                               RootWindow(display,DefaultScreen(display)),
-                               buf,image_size,image_size);
+    bitmap = XCreateBitmapFromData(display,def_root,buf,image_size,image_size);
     newimages++;
     pixmaps[face].bitmap = bitmap;
     pixmaps[face].fg = fg;
@@ -3171,12 +3135,12 @@ void draw_magic_map()
 		} else { /* interesting object */
 		    
 		    if ((val & FACE_COLOR_MASK)==0)
-			XCopyPlane(display, icons[stipple2_icon].bitmap,
+			XCopyPlane(display, icons[stipple2_icon],
 			       win_game, gc_game,
 			       0, 0, cpl.mapxres,cpl.mapyres, 2+cpl.mapxres*x, 2+cpl.mapyres*y,
 			       1);
 		    else
-			XCopyPlane(display, icons[stipple1_icon].bitmap,
+			XCopyPlane(display, icons[stipple1_icon],
 			       win_game, gc_game,
 			       0, 0, cpl.mapxres,cpl.mapyres, 2+cpl.mapxres*x, 2+cpl.mapyres*y,
 			       1);
@@ -3352,13 +3316,6 @@ void load_defaults()
 	    server = strdup_local(cp);	/* memory leak ! */
 	    continue;
 	}
-	if (!strcmp(inbuf,"display")) {
-	    if (!strcmp(cp,"png")) 
-		display_mode=Png_Display;
-	    else fprintf(stderr,"Unknown display specication in %s, %s",
-			   path, cp);
-	    continue;
-	}
 	if (!strcmp(inbuf,"cacheimages")) {
 	    if (!strcmp(cp,"True")) cache_images=TRUE;
 	    else cache_images=FALSE;
@@ -3399,6 +3356,15 @@ void load_defaults()
 	    else cpl.food_beep=FALSE;
 	    continue;
 	}
+	if (!strcmp(inbuf,"noautorepeat")) {
+	    if (!strcmp(cp,"True")) noautorepeat=TRUE;
+	    else noautorepeat=FALSE;
+	    continue;
+	}
+	if (!strcmp(inbuf,"font")) {
+	    font_name = strdup_local(cp);
+	    continue;
+	}
 	fprintf(stderr,"Got line we did not understand: %s: %s\n", inbuf, cp);
     }
     fclose(fp);
@@ -3421,15 +3387,11 @@ void save_defaults()
     fprintf(fp,"# This file is generated automatically by cfclient.\n");
     fprintf(fp,"# Manually editing is allowed, however cfclient may be a bit finicky about\n");
     fprintf(fp,"# some of the matching it does.  all comparissons are case sensitive.\n");
-    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values");
+    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values\n");
 
     fprintf(fp,"port: %d\n", port_num);
     fprintf(fp,"server: %s\n", server);
-    if (display_mode==Pix_Display) {
-	fprintf(fp,"display: pixmap\n");
-    } else if (display_mode==Png_Display) {
-	fprintf(fp,"display: png\n");
-    }
+    fprintf(fp,"font: %s\n", font_name);
     fprintf(fp,"cacheimages: %s\n", cache_images?"True":"False");
     fprintf(fp,"split: %s\n", split_windows?"True":"False");
     fprintf(fp,"showicon: %s\n", inv_list.show_icon?"True":"False");
@@ -3438,6 +3400,7 @@ void save_defaults()
     fprintf(fp,"sound: %s\n", nosound?"False":"True");
     fprintf(fp,"command_window: %d\n", cpl.command_window);
     fprintf(fp,"foodbeep: %s\n", cpl.food_beep?"True":"False");
+    fprintf(fp,"noautorepeat: %s\n", noautorepeat?"True":"False");
 
     fclose(fp);
     sprintf(buf,"Defaults saved to %s",path);

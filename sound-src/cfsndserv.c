@@ -51,6 +51,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -974,7 +975,7 @@ int main(int argc, char *argv[])
       if (FD_ISSET(infd,&inset)){
         int err=read(infd,inbuf+inbuf_pos,1);
 	if (err<1 && errno!=EINTR){
-	  perror("read");
+	  if (err<0) perror("read");
 	  break;
 	}  
         if (inbuf[inbuf_pos]=='\n'){

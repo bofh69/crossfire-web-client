@@ -94,8 +94,7 @@ void requestface(int pnum, char *facename, char *facepath)
     char buf[MAX_BUF];
 
     facetoname[pnum] = strdup_local(facepath);
-    sprintf(buf,"askface %d", pnum);
-    cs_write_string(csocket.fd, buf, strlen(buf));
+    cs_print_string(csocket.fd, "askface %d", pnum);
     /* Need to make sure we have the directory */
     sprintf(buf,"%s/%c%c", facecachedir, facename[0], facename[1]);
     if (access(buf,R_OK)) make_path_to_dir(buf);

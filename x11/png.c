@@ -62,6 +62,8 @@ static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t lengt
     data_start += length;
 }
 
+#ifdef PNG_GDK
+
 uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
 {
     uint8 *pixels=NULL;
@@ -217,13 +219,14 @@ uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
  */
 #define RATIO	100
 
-#define MAX_IMAGE_BYTES	512*512
+#define MAX_IMAGE_WIDTH		1024
+#define MAX_IMAGE_HEIGHT	1024
 #define BPP 4
 
 uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 {
-    static    int xrow[BPP * MAX_IMAGE_BYTES], yrow[BPP*MAX_IMAGE_BYTES];
-    static  uint8  *nrows[MAX_IMAGE_BYTES];
+    static    int xrow[BPP * MAX_IMAGE_WIDTH], yrow[BPP*MAX_IMAGE_HEIGHT];
+    static  uint8  *nrows[MAX_IMAGE_HEIGHT];
 
     /* Figure out new height/width */
     int new_width = *width  * scale / RATIO, new_height = *height * scale / RATIO;
@@ -233,6 +236,13 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
     int x,y;
     uint8 *ndata;
     uint8 r,g,b,a;
+
+    if (*width > MAX_IMAGE_WIDTH || new_width > MAX_IMAGE_WIDTH
+    || *height > MAX_IMAGE_HEIGHT || new_height > MAX_IMAGE_HEIGHT)
+    {
+	fprintf(stderr, "Image too big\n");
+	exit(0);
+    }
 
     /* clear old values these may have */
     memset(yrow, 0, sizeof(int) * *height * BPP);
@@ -365,7 +375,6 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
     return ndata;
 }
 
-#ifdef PNG_GDK
 
 guchar rgb[512*512*3];	/* Make this especially big to support larger images in the future */
 
@@ -611,6 +620,8 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
 }
 
 #else
+
+
 static XImage   *ximage;
 static int rmask=0, bmask=0,gmask=0,need_color_alloc=0, rshift=16, bshift=0, gshift=8,
     rev_rshift=0, rev_gshift=0, rev_bshift=0;

@@ -72,6 +72,11 @@ typedef signed short    sint16;
 typedef unsigned char   uint8;
 typedef signed char     sint8;
 
+#ifndef SOL_TCP
+#define SOL_TCP IPPROTO_TCP
+#endif
+
+
 #define MAX_BUF 256
 #define BIG_BUF 1024
 

@@ -64,36 +64,24 @@ void new_player (long tag, char *name, long weight, long face)
 
 void look_at(int x, int y)
 {
-    char buf[MAX_BUF];
-
-    sprintf(buf,"lookat %d %d", x, y);
-    cs_write_string(csocket.fd, buf, strlen(buf));
+    cs_print_string(csocket.fd, "lookat %d %d", x, y);
 }
 
 void client_send_apply (int tag)
 {
-    char buf[MAX_BUF];
-
-    sprintf(buf,"apply %d", tag);
-    cs_write_string(csocket.fd, buf, strlen(buf));
+    cs_print_string(csocket.fd, "apply %d", tag);
 }
 
 void client_send_examine (int tag)
 {
-    char buf[MAX_BUF];
-
-    sprintf(buf,"examine %d", tag);
-    cs_write_string(csocket.fd, buf, strlen(buf));
+    cs_print_string(csocket.fd, "examine %d", tag);
 
 }
 
 /* Requests nrof objects of tag get moved to loc. */
 void client_send_move (int loc, int tag, int nrof)
 {
-    char buf[MAX_BUF];
-
-    sprintf(buf,"move %d %d %d", loc, tag, nrof);
-    cs_write_string(csocket.fd, buf, strlen(buf));
+    cs_print_string(csocket.fd, "move %d %d %d", loc, tag, nrof);
 }
 
 
@@ -195,7 +183,6 @@ void run_dir(int dir) {
  */
 
 int send_command(const char *command, int repeat, int must_send) {
-    char buf[MAX_BUF];
     static char last_command[MAX_BUF]="";
 
     if (cpl.input_state==Reply_One) {
@@ -231,19 +218,15 @@ int send_command(const char *command, int repeat, int must_send) {
 	    csocket.command_sent++;
 	    csocket.command_sent &= 0xff;   /* max out at 255 */
 
-	    sl.buf = (unsigned char*)buf;
-	    strcpy((char*)sl.buf,"ncom ");
-	    sl.len=5;
+	    SockList_Init(&sl, buf);
+	    SockList_AddString(&sl, "ncom ");
 	    SockList_AddShort(&sl, csocket.command_sent);
 	    SockList_AddInt(&sl, repeat);
-	    strncpy((char*)sl.buf + sl.len, command, MAX_BUF - sl.len);
-	    sl.buf[MAX_BUF-1]=0;
-	    sl.len += strlen(command);
-	    send_socklist(csocket.fd, sl);
+	    SockList_AddString(&sl, command);
+	    SockList_Send(&sl, csocket.fd);
 	}
     } else {
-	sprintf(buf,"command %d %s", repeat,command);
-	cs_write_string(csocket.fd, buf, strlen(buf));
+	cs_print_string(csocket.fd, "command %d %s", repeat,command);
     }
     if (repeat!=-1) cpl.count=0;
     return 1;
@@ -289,7 +272,7 @@ void show_help() {
     draw_info("               ~/.crossfire/defaults", NDI_BLACK);
     draw_info(" show        - determine what type of items", NDI_BLACK);
     draw_info("               to show in inventory", NDI_BLACK);
-
+    draw_info(" autorepeat  - toggle autorepeat", NDI_BLACK);
 }
 
 /* This is an extended command (ie, 'who, 'whatever, etc).  In general,
@@ -312,6 +295,10 @@ void extended_command(const char *ocommand) {
 	strncpy(command, ocommand, len);
 	command[len] = '\0';
 	cp = command;
+	while (*cpnext == ' ')
+	    cpnext++;
+	if (*cpnext == 0)
+	    cpnext = NULL;
     }
     /* cp now contains the command (everything before first space),
      * and cpnext contains everything after that first space.  cpnext
@@ -327,6 +314,8 @@ void extended_command(const char *ocommand) {
 	set_show_weight (cpnext);
     else if (!strcmp(cp,"scroll"))
 	set_scroll(cpnext);
+    else if (!strcmp(cp,"autorepeat"))
+	set_autorepeat(cpnext);
     else if (!strcmp(cp,"magicmap")) {
 	cpl.showmagic=1;
 	draw_magic_map();
@@ -352,7 +341,7 @@ void extended_command(const char *ocommand) {
 	save_winpos();
     }
     else if (!strcmp(cp,"mapredraw")) {
-	cs_write_string(csocket.fd, "mapredraw",9);
+	cs_print_string(csocket.fd, "mapredraw");
     }
     else if (!strcmp(cp,"savedefaults")) {
 	save_defaults();

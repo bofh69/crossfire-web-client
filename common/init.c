@@ -57,26 +57,20 @@ void VersionCmd(char *data, int len)
 
 void SendVersion(ClientSocket csock)
 {
-    char buf[MAX_BUF];
-
-    sprintf(buf,"version %d %d %s", VERSION_CS, VERSION_SC, VERSION_INFO);
-    cs_write_string(csock.fd, buf, strlen(buf));
+    cs_print_string(csock.fd,
+		    "version %d %d %s", VERSION_CS, VERSION_SC, VERSION_INFO);
 }
 
 
 void SendAddMe(ClientSocket csock)
 {
-
-    cs_write_string(csock.fd, "addme",5);
+    cs_print_string(csock.fd, "addme");
 }
 
 
 void SendSetFaceMode(ClientSocket csock,int mode)
 {
-    char buf[MAX_BUF];
-
-    sprintf(buf,"setfacemode %d", mode);
-    cs_write_string(csock.fd, buf, strlen(buf));
+    cs_print_string(csock.fd, "setfacemode %d", mode);
 }
 
 

@@ -58,6 +58,7 @@ int fdin, fdout, basenrofpixmaps, pending_images=0,maxfiledescriptor,
 	pending_archs=0,maxfd,map1cmd=0,metaserver_on=METASERVER;
 Client_Player cpl;
 ClientSocket csocket;
+int fast_tcp_send=1;
 
 char *resists_name[NUM_RESISTS] = {
 "armor", "magic", "fire", "elec", 
@@ -128,7 +129,9 @@ void DoClient(ClientSocket *csocket)
 	i=SockList_ReadPacket(csocket->fd, &csocket->inbuf, MAXSOCKBUF-1);
 	if (i==-1) {
 	    /* Need to add some better logic here */
+	    /*ET: not an error.  It's EOF!  At least errno isn't valid.
 	    fprintf(stderr,"Got error on read (error %d)\n", errno);
+	    */
 	    csocket->fd=-1;
 	    return;
 	}
@@ -159,6 +162,7 @@ void DoClient(ClientSocket *csocket)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <ctype.h>
 #include <arpa/inet.h>
 
@@ -203,6 +207,16 @@ int init_connection(char *host, int port)
 	fprintf(stderr,"InitConnection:  Error on fcntl.\n");
     }
 
+#ifdef TCP_NODELAY
+    /* turn off nagle algorithm */
+    if (fast_tcp_send) {
+	int i=1;
+
+	if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1)
+	    perror("TCP_NODELAY");
+    }
+#endif
+
     if (getsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&oldbufsize, &buflen)==-1)
         oldbufsize=0;
 
@@ -221,9 +235,7 @@ int init_connection(char *host, int port)
 
 void negotiate_connection(int sound)
 {
-
     int cache;
-    char buf[BIG_BUF];
 
     SendVersion(csocket);
 
@@ -267,16 +279,14 @@ void negotiate_connection(int sound)
     }
 #endif
 
-    sprintf(buf,"setup sound %d sexp %d darkness %d newmapcmd %d",
-	    (sound<0?0:1), want_skill_exp, want_darkness, fog_of_war);
-    cs_write_string(csocket.fd, buf, strlen(buf));
+    cs_print_string(csocket.fd,
+		    "setup sound %d sexp %d darkness %d newmapcmd %d",
+		    sound>=0, want_skill_exp, want_darkness, fog_of_war);
 
     mapx=11;
     mapy=11;
-    if (want_mapx!=11 || want_mapy!=11) {
-	sprintf(buf,"setup mapsize %dx%d",want_mapx, want_mapy);
-	cs_write_string(csocket.fd, buf, strlen(buf));
-    }
+    if (want_mapx!=11 || want_mapy!=11)
+	cs_print_string(csocket.fd,"setup mapsize %dx%d",want_mapx, want_mapy);
 
     SendAddMe(csocket);
 }

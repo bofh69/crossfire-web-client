@@ -575,32 +575,29 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 void toggle_locked (item *op)
 {
     SockList sl;
-    char    buf[MAX_BUF];
+    char buf[MAX_BUF];
 
     if (op->env->tag == 0)
 	return;	/* if item is on the ground, don't lock it */
 
-    sl.buf = (unsigned char*)buf;
-    strcpy((char*)sl.buf, "lock ");
-    sl.len=5;
-    if (op->locked) sl.buf[sl.len++]=0;
-    else sl.buf[sl.len++]=1;
+    SockList_Init(&sl, buf);
+    SockList_AddString(&sl, "lock "); 
+    SockList_AddChar(&sl, !op->locked);
     SockList_AddInt(&sl, op->tag);
-    send_socklist(csocket.fd, sl);
+    SockList_Send(&sl, csocket.fd);
 }
 
 void send_mark_obj (item *op) {
     SockList sl;
-    char    buf[MAX_BUF];
+    char buf[MAX_BUF];
 
     if (op->env->tag == 0)
 	return;	/* if item is on the ground, don't mark it */
 
-    sl.buf = (unsigned char*)buf;
-    strcpy((char*)sl.buf, "mark ");
-    sl.len=5;
+    SockList_Init(&sl, buf);
+    SockList_AddString(&sl, "mark ");
     SockList_AddInt(&sl, op->tag);
-    send_socklist(csocket.fd, sl);
+    SockList_Send(&sl, csocket.fd);
 }
 
 

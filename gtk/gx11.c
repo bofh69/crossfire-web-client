@@ -245,9 +245,6 @@ gint	csocket_fd=0;
 
 static int gargc;
 
-Display_Mode display_mode = DISPLAY_MODE;
-
-
 static uint8	
     splitinfo=FALSE,
     color_inv=FALSE,
@@ -3138,10 +3135,7 @@ void applyconfig () {
     if (nosound) {
       nosound=FALSE;
       sound = init_sounds();
-      if (sound<0)
-	cs_write_string(csocket.fd,"setsound 0", 10);
-      else
-	cs_write_string(csocket.fd,"setsound 1", 10);
+      cs_print_string(csocket.fd, "setsound %d", sound >= 0);
     }
   } else {
     if (!nosound) {
@@ -3211,7 +3205,7 @@ void applyconfig () {
 		per_tile_lighting= 0;
 		init_SDL( NULL, 1);
 		if( csocket.fd)
-		    cs_write_string( csocket.fd, "mapredraw", 9);
+		    cs_print_string(csocket.fd, "mapredraw");
 	    }
 	} else {
 	    if( per_pixel_lighting == 1) {
@@ -3219,7 +3213,7 @@ void applyconfig () {
 		per_tile_lighting= 1;
 		init_SDL( NULL, 1);
 		if( csocket.fd)
-		    cs_write_string( csocket.fd, "mapredraw", 9);
+		    cs_print_string(csocket.fd, "mapredraw");
 	    }
 	}
 	if( GTK_TOGGLE_BUTTON( ccheckbutton9)->active) {
@@ -3277,10 +3271,7 @@ void saveconfig () {
     if (nosound) {
       nosound=FALSE;
       sound = init_sounds();
-      if (sound<0)
-	cs_write_string(csocket.fd,"setsound 0", 10);
-      else
-	cs_write_string(csocket.fd,"setsound 1", 10);
+      cs_print_string(csocket.fd, "setsound %d", sound >= 0);
     }
   } else {
     if (!nosound) {
@@ -3350,16 +3341,16 @@ void saveconfig () {
 	    per_pixel_lighting= 1;
 	    per_tile_lighting= 0;
 	    init_SDL( NULL, 1);
-	    if( csocket.fd)
-	    cs_write_string( csocket.fd, "mapredraw", 9);
+	    if (csocket.fd)
+		cs_print_string(csocket.fd, "mapredraw");
 	}
     } else {
 	if( per_pixel_lighting == 1) {
 	    per_pixel_lighting= 0;
 	    per_tile_lighting= 1;
 	    init_SDL( NULL, 1);
-	    if( csocket.fd)
-	    cs_write_string( csocket.fd, "mapredraw", 9);
+	    if (csocket.fd)
+		cs_print_string(csocket.fd, "mapredraw");
 	}
     }
     if( GTK_TOGGLE_BUTTON( ccheckbutton9)->active) {
@@ -5012,9 +5003,7 @@ static int get_root_display(char *display_name,int gargc, char **gargv) {
      * create window functions may do call backs in which case we try
      * to draw the game window.
      */
-    if (display_mode == Png_Display) {
-	gdk_rgb_init();
-    }
+    gdk_rgb_init();
     create_windows();
 
     return 0;
@@ -5033,6 +5022,10 @@ void set_scroll(char *s)
 {
 }
 
+
+void set_autorepeat(char *s)
+{
+}
 
 
 int get_info_width()
@@ -5619,6 +5612,10 @@ int init_windows(int argc, char **argv)
 	  fog_of_war= TRUE;
 	  continue;
 	}
+	else if( !strcmp( argv[on_arg],"-nofog")) {
+	  fog_of_war= FALSE;
+	  continue;
+	}
 	else if (!strcmp(argv[on_arg],"-help")) {
 	    usage(argv[0]);
 	    continue;
@@ -5682,6 +5679,10 @@ int init_windows(int argc, char **argv)
 	    }
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-nofasttcpsend")) {
+	    fast_tcp_send=0;
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-pngfile")) {
 	    if (++on_arg == argc) {
 		fprintf(stderr,"-pngfile requires a file name\n");
@@ -5711,7 +5712,6 @@ int init_windows(int argc, char **argv)
 	    fprintf(stderr,"client not compiled with sdl support.  Ignoring -sdl\n");
 #else
 	    sdlimage=TRUE;
-	    display_mode = Png_Display;
 #endif
 	    continue;
 	}
@@ -5839,19 +5839,6 @@ void display_map_doneupdate(int redraw)
 void display_map_newmap()
 {
     reset_map();
-}
-
-int display_usebitmaps()
-{
-  return display_mode == Pix_Display;
-}
-int display_usexpm()
-{
-  return display_mode == Xpm_Display;
-}
-int display_usepng()
-{
-  return display_mode == Png_Display;
 }
 
 int display_willcache()
@@ -6058,17 +6045,6 @@ void load_defaults()
 	if (!strcmp(inbuf,"darkness")) {
 	    if (!strcmp(cp,"True")) want_darkness=TRUE;
 	    else want_darkness=FALSE;
-	    continue;
-	}
-	if (!strcmp(inbuf,"display")) {
-	    /* Currently, only png is supported.  But in the future, this may
-	     * become things like 'iso' or 'alternate' to specify different png
-	     * sets.
-	     */
-	    if (!strcmp(cp,"png")) 
-		display_mode=Png_Display;
-	    else fprintf(stderr,"Unknown display specication in %s, %s",
-			   path, cp);
 	    continue;
 	}
 	if (!strcmp(inbuf,"echo_bindings")) {

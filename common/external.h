@@ -53,6 +53,7 @@ extern void draw_color_info(int colr, const char *buf);
 extern void draw_prompt(const char *str);
 extern void x_set_echo(void);
 extern void set_scroll(char *s);
+extern void set_autorepeat(char *s);
 
 /* Stats related commands */
 extern void draw_stats(int redraw);

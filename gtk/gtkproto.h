@@ -50,6 +50,7 @@ extern void destroy_splash(void);
 extern void create_windows(void);
 extern void set_weight_limit(uint32 wlim);
 extern void set_scroll(char *s);
+extern void set_autorepeat(char *s);
 extern int get_info_width(void);
 extern void do_clearlock(void);
 extern void x_set_echo(void);
@@ -109,10 +110,6 @@ extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 extern int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 /* sdl.c */
-extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
-extern void do_sdl_per_pixel_lighting(int x, int y, int mx, int my);
-extern void sdl_gen_map(void);
-extern void sdl_mapscroll(int dx, int dy);
 /* sound.c */
 extern void signal_pipe(int i);
 extern int init_sounds(void);

@@ -211,13 +211,14 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
  */
 #define RATIO	100
 
-#define MAX_IMAGE_BYTES	512*512
+#define MAX_IMAGE_WIDTH		1024
+#define MAX_IMAGE_HEIGHT	1024
 #define BPP 4
 
 uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 {
-    static    int xrow[BPP * MAX_IMAGE_BYTES], yrow[BPP*MAX_IMAGE_BYTES];
-    static  uint8  *nrows[MAX_IMAGE_BYTES];
+    static int xrow[BPP * MAX_IMAGE_WIDTH], yrow[BPP*MAX_IMAGE_HEIGHT];
+    static uint8 *nrows[MAX_IMAGE_HEIGHT];
 
     /* Figure out new height/width */
     int new_width = *width  * scale / RATIO, new_height = *height * scale / RATIO;
@@ -227,6 +228,13 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
     int x,y;
     uint8 *ndata;
     uint8 r,g,b,a;
+
+    if (*width > MAX_IMAGE_WIDTH || new_width > MAX_IMAGE_WIDTH
+    || *height > MAX_IMAGE_HEIGHT || new_height > MAX_IMAGE_HEIGHT)
+    {
+	fprintf(stderr, "Image too big\n");
+	exit(0);
+    }
 
     /* clear old values these may have */
     memset(yrow, 0, sizeof(int) * *height * BPP);

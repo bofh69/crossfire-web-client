@@ -112,12 +112,8 @@ void SetupCmd(char *buf, int len)
 	 * methods, just report on error, or try another setup command.
 	 */
 	if (!strcmp(cmd,"sound")) {
-	    if (!strcmp(param,"FALSE")) {
-		if (nosound)
-		    cs_write_string(csocket.fd,"setsound 0", 10);
-		else
-		    cs_write_string(csocket.fd,"setsound 1", 10);
-	    }
+	    if (!strcmp(param,"FALSE"))
+		cs_print_string(csocket.fd, "setsound %d", !nosound);
 	} else if (!strcmp(cmd,"mapsize")) {
 	    int x, y=0;
 	    char *cp,tmpbuf[MAX_BUF];
@@ -143,8 +139,8 @@ void SetupCmd(char *buf, int len)
 	    if (want_mapx > x || want_mapy > y) {
 		if (want_mapx > x) want_mapx = x;
 		if (want_mapy > y) want_mapy = y;
-		sprintf(tmpbuf," setup mapsize %dx%d", want_mapx, want_mapy);
-		cs_write_string(csocket.fd, tmpbuf, strlen(tmpbuf));
+		cs_print_string(csocket.fd,
+				"setup mapsize %dx%d", want_mapx, want_mapy);
 		sprintf(tmpbuf,"Server supports a max mapsize of %d x %d - requesting a %d x %d mapsize",
 			x, y, want_mapx, want_mapy);
 		draw_info(tmpbuf,NDI_RED);
@@ -501,11 +497,7 @@ void handle_query (char *data, int len)
 
 void send_reply(char *text)
 {
-    char buf[MAXSOCKBUF];
-
-    sprintf(buf,"reply %s", text);
-
-    cs_write_string(csocket.fd, buf, strlen(buf));
+    cs_print_string(csocket.fd, "reply %s", text);
 }
 
 

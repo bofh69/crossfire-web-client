@@ -30,15 +30,16 @@
  */
 
 
-#ifdef DEBUG
 #include <stdio.h>
 #include <stdarg.h>
-#endif
+#include <errno.h>
+
+#include <client.h>
+#include <newclient.h>
 
 /* The LOG function is normally part of the libcross.  If client compile,
  * we need to supply something since some of the common code calls this.
  */
-#include <client.h>
 void LOG (int logLevel, char *format, ...)
 {
 #ifdef DEBUG
@@ -48,41 +49,88 @@ void LOG (int logLevel, char *format, ...)
     va_end(ap);
 #endif
 }
+
+
 /* We don't care what these values are in the client, since
  * we toss them
  */
 #define llevDebug 0
 #define llevError 0
-#include <errno.h>
 
-#include <newclient.h>
 
-void SockList_Init(SockList *sl)
+/*
+ * This writes data to the socket.
+ */
+static int write_socket(int fd, unsigned char *buf, int len)
+{
+    int amt=0;
+    unsigned char *pos=buf;
+
+    /* If we manage to write more than we wanted, take it as a bonus */
+    while (len>0) {
+	do {
+	    amt=write(fd, pos, len);
+	} while ((amt<0) && (errno==EINTR));
+
+	if (amt < 0) { /* We got an error */
+	    LOG(llevError,"New socket (fd=%d) write failed.\n", fd);
+	    return -1;
+	}
+	if (amt==0) {
+	    LOG(llevError,"Write_To_Socket: No data written out.\n");
+	}
+	len -= amt;
+	pos += amt;
+    }
+    return 0;
+}
+
+
+
+void SockList_Init(SockList *sl, char *buf)
 {
     sl->len=0;
-    sl->buf=NULL;
+    sl->buf=buf + 2;	/* reserve two bytes for total length */
 }
 
 void SockList_AddChar(SockList *sl, char c)
 {
-    sl->buf[sl->len]=c;
-    sl->len++;
+    sl->buf[sl->len++]=c;
 }
 
 void SockList_AddShort(SockList *sl, uint16 data)
 {
-    sl->buf[sl->len++]= (data>>8)&0xff;
+    sl->buf[sl->len++] = (data>>8)&0xff;
     sl->buf[sl->len++] = data & 0xff;
 }
 
 
 void SockList_AddInt(SockList *sl, uint32 data)
 {
-    sl->buf[sl->len++]= (data>>24)&0xff;
-    sl->buf[sl->len++]= (data>>16)&0xff;
-    sl->buf[sl->len++]= (data>>8)&0xff;
+    sl->buf[sl->len++] = (data>>24)&0xff;
+    sl->buf[sl->len++] = (data>>16)&0xff;
+    sl->buf[sl->len++] = (data>>8)&0xff;
     sl->buf[sl->len++] = data & 0xff;
 }
+
+void SockList_AddString(SockList *sl, const char *str)
+{
+    int len = strlen(str);
+
+    if (sl->len + len > MAX_BUF-2)
+	len = MAX_BUF-2 - sl->len;
+    memcpy(sl->buf + sl->len, str, len);
+    sl->len += len;
+}
+
+int SockList_Send(SockList *sl, int fd)
+{
+    sl->buf[-2] = sl->len / 256;
+    sl->buf[-1] = sl->len % 256;
+
+    return write_socket(fd, sl->buf-2, sl->len+2);
+}
+
 
 /* Basically does the reverse of SockList_AddInt, but on
  * strings instead.  Same for the GetShort, but for 16 bits.
@@ -168,56 +216,19 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
     return 0;
 }
 
-/* This writes data to the socket.  we precede the len information on the
- * packet.  Len needs to be passed here because buf could be binary
- * data
+/*
+ * Send a printf-formatted packet to the socket.
  */
-static int write_socket(int fd, unsigned char *buf, int len)
+int cs_print_string(int fd, char *str, ...)
 {
-    int amt=0;
-    unsigned char *pos=buf;
-
-    /* If we manage to write more than we wanted, take it as a bonus */
-    while (len>0) {
-	do {
-	    amt=write(fd, pos, len);
-	} while ((amt<0) && (errno==EINTR));
-
-	if (amt < 0) { /* We got an error */
-	    LOG(llevError,"New socket (fd=%d) write failed.\n", fd);
-	    return -1;
-	}
-	if (amt==0) {
-	    LOG(llevError,"Write_To_Socket: No data written out.\n");
-	}
-	len -= amt;
-	pos += amt;
-    }
-    return 0;
-}
-
-/* Send With Handling - cnum is the client number, msg is what we want
- * to send.
- */
-int send_socklist(int fd,SockList  msg)
-{
-    unsigned char sbuf[2];
-
-    sbuf[0] = ((uint32)(msg.len) >> 8) & 0xFF;
-    sbuf[1] = ((uint32)(msg.len)) & 0xFF;
-
-    write_socket(fd, sbuf, 2);
-    return write_socket(fd, msg.buf, msg.len);
-}
-
-/* Takes a string of data, and writes it out to the socket. A very handy
- * shortcut function.
- */
-int cs_write_string(int fd, char *buf, int len)
-{
+    va_list args;
     SockList sl;
+    char buf[MAX_BUF];
 
-    sl.len = len;
-    sl.buf = (unsigned char*)buf;
-    return send_socklist(fd, sl);
+    SockList_Init(&sl, buf);
+    va_start(args, str);
+    sl.len += vsprintf(sl.buf + sl.len, str, args);
+    va_end(args);
+
+    return SockList_Send(&sl, fd);
 }

@@ -51,7 +51,7 @@ static char *colorname[] = {
 "White",                /* 1  */
 "Navy",                 /* 2  */
 "Red",                  /* 3  */
-"Orange",               /* 4  */
+"Chocolate",            /* 4  was Orange, but impossible to read on DarkSeaGreen */
 "DodgerBlue",           /* 5  */
 "DarkOrange2",          /* 6  */
 "SeaGreen",             /* 7  */
@@ -145,19 +145,16 @@ void init_cache_data()
      */
 
     pixmaps[0].mask=None;
-    pixmaps[0].bitmap=XCreateBitmapFromData(display, 
-	RootWindow(display, screen_num), (const char*)question_bits, image_size,image_size);
+    pixmaps[0].bitmap=XCreateBitmapFromData(display,DefaultRootWindow(display),
+				question_bits,question_width,question_height);
 
     /* In xpm mode, XCopyArea is used from this data, so we need to copy
      * the image into an pixmap of appropriate depth.
-     * Note that while are image created is the image size, since we know
-     * that are filler image is currently only 24x24, we only copy that much
-     * data.
      */
     pixmaps[0].pixmap=XCreatePixmap(display, win_root, image_size, image_size, 
 	DefaultDepth(display,DefaultScreen(display)));
     XCopyPlane(display, pixmaps[0].bitmap, pixmaps[0].pixmap, gc_game,
-	       0,0,24,24,0,0,1);
+	       0,0,image_size,image_size,0,0,1);
 		
     pixmaps[0].bg = 0;
     pixmaps[0].fg = 1;
@@ -188,8 +185,7 @@ static void requestface(int pnum, char *facename, char *facepath)
     char buf[MAX_BUF];
 
     facetoname[pnum] = strdup_local(facepath);
-    sprintf(buf,"askface %d", pnum);
-    cs_write_string(csocket.fd, buf, strlen(buf));
+    cs_print_string(csocket.fd, "askface %d", pnum);
     /* Need to make sure we have the directory */
     sprintf(buf,"%s/%c%c", facecachedir, facename[0], facename[1]);
     if (access(buf,R_OK)) make_path_to_dir(buf);
@@ -209,11 +205,10 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 #ifndef GDK_XUTIL
     Pixmap pixmap, mask;
 #endif
+    unsigned long w,h;
 
     /* Check private cache first */
-    sprintf(buf,"%s/.crossfire/gfx/%s", getenv("HOME"), face);
-    if (display_mode == Png_Display)
-	strcat(buf,".png");
+    sprintf(buf,"%s/.crossfire/gfx/%s.png", getenv("HOME"), face);
 
     if ((fd=open(buf, O_RDONLY))!=-1) {
 	len=read(fd, data, 65535);
@@ -248,9 +243,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	/* To prevent having a directory with 2000 images, we do a simple
 	 * split on the first 2 characters.
 	 */
-	sprintf(buf,"%s/%c%c/%s", facecachedir, face[0], face[1],face);
-	if (display_mode == Png_Display)
-	    strcat(buf,".png");
+	sprintf(buf,"%s/%c%c/%s.png", facecachedir, face[0], face[1],face);
 
 	if ((fd=open(buf, O_RDONLY))==-1) {
 	    requestface(pnum, face, buf);
@@ -280,26 +273,14 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 #endif
 	}
     }
-    if (display_mode==Png_Display) {
-	unsigned long w,h;
 
-	/* Fail on this read, we will request a new copy */
-	if (png_to_xpixmap(display, win_game, data, len,
-			   &pixmap, &mask, &colormap, &w, &h)) {
-	    requestface(pnum, face, buf);
-	} else {
-	    pixmaps[pnum].pixmap = pixmap;
-	    pixmaps[pnum].mask = mask;
-	}
-
-    } else if (display_mode==Pix_Display) {
-	pixmaps[pnum].bitmap = XCreateBitmapFromData(display,
-		RootWindow(display,DefaultScreen(display)),
-		(char*)data,24,24);
-	pixmaps[pnum].fg = (data[24] << 24) + (data[25] << 16) + (data[26] << 8) +
-	    data[27];
-	pixmaps[pnum].bg = (data[28] << 24) + (data[29] << 16 )+ (data[30] << 8 )+
-	    data[31];
+    /* Fail on this read, we will request a new copy */
+    if (png_to_xpixmap(display, win_game, data, len,
+		       &pixmap, &mask, &colormap, &w, &h)) {
+	requestface(pnum, face, buf);
+    } else {
+	pixmaps[pnum].pixmap = pixmap;
+	pixmaps[pnum].mask = mask;
     }
 }
 
@@ -720,7 +701,7 @@ void parse_key_release(KeyCode kc, KeySym ks) {
 /* This parses a keypress.  It should only be called when in Playing
  * mode.
  */
-void parse_key(char key, KeyCode keycode, KeySym keysym)
+void parse_key(char key, KeyCode keycode, KeySym keysym, int repeated)
 {
     Key_Entry *keyentry, *first_match=NULL;
     int present_flags=0;
@@ -809,10 +790,12 @@ void parse_key(char key, KeyCode keycode, KeySym keysym)
 		run_dir(first_match->direction);
 		sprintf(buf,"run %s", first_match->command);
 	    }
-	    else {
+	    else if (!repeated) {
 		strcpy(buf,first_match->command);
 		extended_command(first_match->command);
 	    }
+	    else
+		sprintf(buf,"move %s (ignored)", first_match->command);
 	    if (cpl.echo_bindings) draw_info(buf,NDI_BLACK);
 	}
         else {
@@ -1294,7 +1277,7 @@ int ReadImages() {
     unsigned long y;
 #endif
 
-    if ((display_mode != Png_Display) || (image_file[0] == 0)) return 0;
+    if (image_file[0] == 0) return 0;
 
     if (!cache_images) {
 	cache_images=1;	    /* we want face commands from server */
@@ -1503,8 +1486,7 @@ void reset_map()
 	}
     }
     
-    cs_write_string( csocket.fd, "mapredraw", 9);
-    
+    cs_print_string(csocket.fd, "mapredraw");
     return;
 }
 

@@ -229,7 +229,6 @@ GList *anim_inv_list = NULL, *anim_look_list = NULL;
 extern int maxfd;
 struct timeval timeout;
 gint csocket_fd = 0;
-Display_Mode display_mode = DISPLAY_MODE;
 static uint8 nopopups = FALSE, splitinfo = FALSE, color_inv = TRUE, color_text = TRUE, tool_tips = TRUE;
 static Vitals vitals[4];
 static GtkWidget *run_label, *fire_label;
@@ -385,9 +384,9 @@ static void
 requestface(int pnum, char *facename, char *facepath)
 {
 	char buf[MAX_BUF];
+
 	facetoname[pnum] = strdup_local(facepath);
-	sprintf(buf, "askface %d", pnum);
-	cs_write_string(csocket.fd, buf, strlen(buf));
+	cs_print_string(csocket.fd, "askface %d", pnum);
 	sprintf(buf, "%s/%c%c", facecachedir, facename[0], facename[1]);
 	if (access(buf, R_OK))
 		make_path_to_dir(buf);
@@ -399,11 +398,8 @@ finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 	char buf[MAX_BUF];
 	int fd, len;
 	GdkPixbuf *tmppixbuf;
-	sprintf(buf, "%s/.gnome/cfgfx/%s", getenv("HOME"), face);
-	if (display_mode == Xpm_Display)
-		strcat(buf, ".xpm");
-	else if (display_mode == Png_Display)
-		strcat(buf, ".png");
+	sprintf(buf, "%s/.gnome/cfgfx/%s.png", getenv("HOME"), face);
+
 	if ((fd = open(buf, O_RDONLY)) != -1) {
 		close(fd);
 		pixmaps[pnum].gdkpixbuf = gdk_pixbuf_new_from_file(buf);
@@ -419,11 +415,8 @@ finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face)
 			if (private_cache[len].checksum == checksum || !has_sum || keepcache)
 				return;
 		}
-		sprintf(buf, "%s/%c%c/%s", facecachedir, face[0], face[1], face);
-		if (display_mode == Xpm_Display)
-			strcat(buf, ".xpm");
-		else if (display_mode == Png_Display)
-			strcat(buf, ".png");
+		sprintf(buf, "%s/%c%c/%s.png", facecachedir, face[0], face[1], face);
+
 		if ((fd = open(buf, O_RDONLY)) == -1) {
 			requestface(pnum, face, buf);
 			return;
@@ -1129,19 +1122,7 @@ load_defaults()
 	dispstr = gnome_config_get_string_with_default(tmpstr, &diddef);
 	if (diddef)
 		gnome_config_set_string("gnome-cfclient/Options/Display", dispstr);
-	if (!strcmp(dispstr, "xpm"))
-		display_mode = Xpm_Display;
-	else if (!strcmp(dispstr, "png"))
-		display_mode = Png_Display;
-	else {
-		fprintf(stderr, "Unknown display specication %s", dispstr);
-		if (DISPLAY_MODE == Png_Display)
-			tmpstr = "png";
-		if (DISPLAY_MODE == Xpm_Display)
-			tmpstr = "xpm";
-		gnome_config_set_string("gnome-cfclient/Options/Display", tmpstr);
-		display_mode = DISPLAY_MODE;
-	}
+
 	image_size = gnome_config_get_int_with_default("gnome-cfclient/Options/ImageSize=24", &diddef);
 	if (diddef)
 		gnome_config_set_int("gnome-cfclient/Options/ImageSize", image_size);
@@ -1179,12 +1160,6 @@ save_defaults()
 	char *dispstr;
 	gnome_config_set_int("gnome-cfclient/Options/Port", port_num);
 	gnome_config_set_string("gnome-cfclient/Options/Server", server);
-	if (display_mode == Xpm_Display)
-		dispstr = "xpm";
-	else if (display_mode == Png_Display)
-		dispstr = "png";
-	else
-		dispstr = "png";
 	gnome_config_set_string("gnome-cfclient/Options/Display", dispstr);
 	gnome_config_set_bool("gnome-cfclient/Options/ShowIcon", inv_list.show_icon);
 	gnome_config_set_bool("gnome-cfclient/Options/Sound", !nosound);
@@ -3138,10 +3113,7 @@ applyconfig()
 		if (nosound) {
 			nosound = FALSE;
 			sound = init_sounds();
-			if (sound < 0)
-				cs_write_string(csocket.fd, "setsound 0", 10);
-			else
-				cs_write_string(csocket.fd, "setsound 1", 10);
+			cs_print_string(csocket.fd, "setsound %d", sound >= 0);
 		}
 	} else {
 		if (!nosound) {
@@ -3916,6 +3888,11 @@ set_scroll(char *s)
 }
 
 void
+set_autorepeat(char *s)
+{
+}
+
+void
 draw_all_info()
 {
 }
@@ -4175,24 +4152,6 @@ display_mapcell_pixmap(int ax, int ay)
 }
 
 int
-display_usebitmaps()
-{
-	return display_mode == Pix_Display;
-}
-
-int
-display_usexpm()
-{
-	return display_mode == Xpm_Display;
-}
-
-int
-display_usepng()
-{
-	return display_mode == Png_Display;
-}
-
-int
 display_willcache()
 {
 	return TRUE;
@@ -4321,9 +4280,7 @@ main(int argc, char **argv)
     last_str = malloc(32767);
     create_splash();
     create_windows();
-    if (display_mode == Png_Display) {
-	    gdk_rgb_init();
-    }
+    gdk_rgb_init();
     for (on_arg = 0; on_arg < MAXPIXMAPNUM; on_arg++)
 	facecachemap[on_arg] = on_arg;
     init_keys();

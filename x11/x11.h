@@ -58,7 +58,6 @@ struct PixmapInfo {
 
 extern struct PixmapInfo pixmaps[MAXPIXMAPNUM];
 extern Display *display;
-extern long screen_num;
 extern uint8   image_size;
 extern Window win_root,win_game;
 extern GC gc_game;

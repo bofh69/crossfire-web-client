@@ -63,15 +63,16 @@ extern int make_path_to_file(char *filename);
 extern char *strdup_local(char *str);
 /* newsocket.c */
 extern void LOG(int logLevel, char *format, ...);
-extern void SockList_Init(SockList *sl);
+extern void SockList_Init(SockList *sl, char *buf);
 extern void SockList_AddChar(SockList *sl, char c);
 extern void SockList_AddShort(SockList *sl, uint16 data);
 extern void SockList_AddInt(SockList *sl, uint32 data);
+extern void SockList_AddString(SockList *sl, const char *str);
+extern int SockList_Send(SockList *sl, int fd);
 extern int GetInt_String(unsigned char *data);
 extern short GetShort_String(unsigned char *data);
 extern int SockList_ReadPacket(int fd, SockList *sl, int len);
-extern int send_socklist(int fd, SockList msg);
-extern int cs_write_string(int fd, char *buf, int len);
+extern int cs_print_string(int fd, char *str, ...);
 /* player.c */
 extern void new_player(long tag, char *name, long weight, long face);
 extern void look_at(int x, int y);

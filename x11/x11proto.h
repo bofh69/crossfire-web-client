@@ -24,6 +24,7 @@ extern void set_show_icon(char *s);
 extern void set_show_weight(char *s);
 extern void set_weight_limit(uint32 wlim);
 extern void set_scroll(char *s);
+extern void set_autorepeat(char *s);
 extern int get_info_width(void);
 extern char *get_metaserver(void);
 extern void check_x_events(void);
@@ -58,7 +59,7 @@ extern int allocate_colors(Display *disp, Window w, long screen_num, Colormap *c
 extern void parse_keybind_line(char *buf, int line, int standard);
 extern void init_keys(void);
 extern void parse_key_release(KeyCode kc, KeySym ks);
-extern void parse_key(char key, KeyCode keycode, KeySym keysym);
+extern void parse_key(char key, KeyCode keycode, KeySym keysym, int repeated);
 extern void bind_key(char *params);
 extern void configure_keys(KeyCode k, KeySym keysym);
 extern void unbind_key(char *params);

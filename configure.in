@@ -301,6 +301,9 @@ AC_SUBST(LIBS)
 dnl sound.c needs sqrt.  So does png (on some systems)
 AC_CHECK_LIB(m, sqrt)
 
+dnl png on some systems need the zlib, so check for it
+AC_CHECK_LIB(z, main)
+
 AC_CHECK_LIB(png, main, , [AC_MSG_ERROR([You must have the png library installed to compile the client])])
 
 dnl not strictly needed, but since the X11 client uses it, lets use it here

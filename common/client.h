@@ -174,22 +174,7 @@ typedef struct Player_Struct {
 extern Client_Player cpl;		/* Player object. */
 extern char *skill_names[MAX_SKILL];
 
-
-/* To handle XPM display mode, #ifdef Xpm_Pix are only used in areas
- * that make XPM function calls, or areas where using certain display
- * methods is a lot more efficient.
- *
- * Xpm_Display can only be set if Xpm_Pix is defined.  Thus, a lot
- * of the #ifdefs can be removed - those functions will never be called,
- * or values used, because Display_Mode will never be set to Xpm_Display
- */
-
-typedef enum Display_Mode {Pix_Display, Xpm_Display, Png_Display}
-	Display_Mode;
-
-extern Display_Mode display_mode;
-
-extern int nosound; 
+extern int nosound, fast_tcp_send; 
 
 /* WE need to declare most of the structs before we can include this */
 #include <proto.h>

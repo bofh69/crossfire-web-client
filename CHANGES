@@ -3,6 +3,45 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+Most of the changes are by Edgar Toernig - I've just applied them and
+ checked them in.  The stripping out of the display_mode variable is
+ my doing however.
+configure.in, configure: Add check for zlib before png lib check, as on
+   some systems, png requires -lz.
+common/client-types.h: Add #ifdef check for SOL_TCP
+common/client.c: Add fast_tcp_send variable, comment out printing of error
+   from socket EOF.  Use TCP_NODELAY for sending data to the server
+   if TCP_NODELAY is available.  cs_write_string modified to use
+   cs_print_string.
+common/client.h: Remove display_mode enum, add fast_tcp_send extern.
+common/commands.c, common/init.c,gtk/image.c, gtk/map.c
+    cs_write_sting modified to use cs_print_string
+common/external.h: set_autorepeat extern added.
+common/newsocket.c: Modified to be better optimized for using TCP_NODELAY -
+  cs_print_string function added.
+common/player.c: modified to use cs_print_string , autorepeat client side
+  command added.
+common/proto.h, gtk/gtkproto.h: updated with new functions
+gnome/gnome.c: display_mode variable removed, cs_write_string
+  replaced with cs_print_string
+gtk/gx11.c: display_mode variable removed, cs_write_string replaced with
+  cs_print_string, -nofog option added
+pixmaps/question.111: Resized to be 32x32
+pixmaps/*.xbm - used for inventory icons in X11 client, replacing xpm
+  files
+sound-src/cfsndserv.c: Better error handling, include time.h
+x11/cfclient.man: -font and -noautorepeat options added.
+x11/png.c: better error checking for rescaling images
+x11/x11.c: noautorepeat variable added, display_mode removed, image icon
+  functionality re-enabled, images now created from xbm files,
+  set_autorepeat function added, add ability to set font, add mouse
+  wheel support
+x11/x11.h: remove screen_num extern.
+x11/x11proto.h: Updated with new functions.
+x11/xutil.c: Modified to use image_size instead of hardcoded 24x24 value
+  for the status icons.  cs_write_replaced with cs_print_string, no
+  auto repeat functionality added.
+MSW 2001-01-14
 
 ------------------------------------------------------------------------------
 Changes for 1.1.0:
