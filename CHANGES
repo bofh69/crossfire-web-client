@@ -1,6 +1,55 @@
 "$Id$"
 Top of CVS tree:
 
+cfsndserv.c: Various changes
+1) Add support for sound on Sun (solaris) systems - another init_audio
+function added.
+2) If in SOUND_DEBUG mode, also print out the audio device we would try to
+use.  Also, add x,y coordinates when printing debug information when
+playing a sound.
+3) Add various casts to reduce compiler warnings on going from
+signed char to unsigned char data types.
+4) For 16 bit output, big endian (sparc) should now work - have two
+sections when packing the sound information to pack it the write direction
+depending on endianess of the machine.
+5) Ignore the device entry in the .crossfire/sndstat file - using that
+resulted in incompatibilities between system types.  If player needs
+to use a specific audio device, the AUDIODEV environmental variable
+can be used.
+--MSW 4/20/2000
+
+configure.in (and configure): Many fixes:
+1) On solaris, add -R flag to linker options if --with-xpm-lib=dir is
+used - needed to run the client when dynamic linking is used.
+2) Add AC_C_BIGENDIAN check - we need to know the byte order for sound
+to work on both sparc and other systems properly.  NOTE - when running
+autoconf, you will get a warning about that line.
+3) Add detecition for solaris audio include, and add appropriate declarations
+to use it.
+4) Fix for xpm check - if X11 includes are in a nonstandard place,
+it would fail to find xpm.h since that includes some standard X11 files.
+Add X_CFLAGS which includes any necessary -I options for this to work.
+--MSW 4/20/2000
+
+config.h, config.h.in: Add WORDS_BIGENDIAN define to file.  MSW 4/20/2000
+
+x11.c, xutil.c, client.h, client.man:  Only update keycodes for the
+local keyboard for standard keybindings.  Custom keybindings will keep their
+old/original keycodes, which is often needed.  Add -updatekeycodes option so
+have it update all keycodes. client.man updated to describe the
+-updatekeycodes command.  MSW 4/20/2000
+
+gx11.c: Above update for keycodes added.  Also, update so that it
+has the same set of command line options that x11.c does (-nocache, -nosound)
+MSW 4/20/2000
+
+x11.c:add closing comment - the missing close comment was just resulting in
+warnings of 'comment detected inside comment' - the change does not affect the
+execution of the code.  MSW 4/20/2000
+
+item.c: Remove extra semicolon that was resulting in compiler warnings.
+Update mail address/copyright date.  Mark Wedel 4/18/2000
+
 Makefile, config.cache, config.status: Removed from CVS tree it should not be
 distributed - rather each person should generate it on their own by using the
 configure script. One advantage of removing these is that a 'cvs diff'
