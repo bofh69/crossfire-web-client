@@ -1,23 +1,36 @@
+#
+# Grab the crossfire-images archive of the sourceforge files list.  If
+# you have a copy of the arch directory, you can run the
+# adm/collect_images -archive from the lib directory of the server and
+# it will make the archive.
+#
 %define Name crossfire
 %define extra client
-%define version 1.2.0
-%define sndversion 1.2.0
+%define version 1.3.0
+%define sndversion 1.3.0
 %define release 2
 %define prefix /usr/X11R6
 
 Name: %{Name}-%{extra}
 Version: %{version}
-Release: %{release}
+Release: realtime.1
 Summary: Client for connecting to crossfire servers.
 Group: Amusements/Games/Crossfire
 Copyright: GPL
-Vendor: Crossfire Development Team
+Vendor: Real Time Enterprises, Inc. <support@real-time.com>
+Packager: Real Time Enterprises, Inc. <support@real-time.com>
+Distribution: Red Hat Linux 7.3 / i386
 URL: http://crossfire.real-time.com
-Packager: Crossfire Development Team <crossfire-devel@lists.real-time.com>
-Source0: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/%{name}-%{version}.tar.gz
-Source1: ftp://ftp.sourceforge.net/pub/sourceforge/crossfire/%{name}-sounds-%{sndversion}.tar.gz
+Source0: %{name}-%{version}.tar.bz2
+Source1: %{name}-sounds-%{version}.tar.bz2
+Source2: %{name}-images-%{version}.tar.bz2
 Provides: crossfire-client
-BuildRoot: /var/tmp/%{Name}-%{extra}-%{version}-root
+Epoch: 1
+BuildRoot: %{_tmppath}/%{name}-%{version}-root
+#
+# To setup appropriate KDE and GNOME menu options
+#
+Requires: tclug-menu
 
 %description
 Crossfire is a highly graphical role-playing adventure game with
@@ -26,7 +39,7 @@ It has multiplayer capability and presently runs under X11.
 
 Client for playing the new client/server based version of Crossfire.
 This package allows you to connect to crossfire servers around the world.
-You do not need to install the crossfire program in order to use this
+You do not need install the crossfire program in order to use this
 package.
 
 %package sounds
@@ -55,64 +68,105 @@ GTK version of the crossfire client
 #gnome version of the crossfire client
 
 %prep
-%setup -a 1 -n %{Name}-client-%{version}
+%setup -a 1 -a 2 -n %{Name}-client-%{version}
 
 %build
-
 chmod 755 configure
-CFLAGS="$RPM_OPT_FLAGS" \
-./configure --prefix=/usr/X11R6 --exec-prefix=/usr/X11R6/bin \
-    --bindir=/usr/X11R6/bin --mandir=/usr/X11R6/man \
-    --with-sound-dir=/usr/share/sounds/crossfire
-make
+CFLAGS="$RPM_OPT_FLAGS" %configure --datadir=/usr/share/games/crossfire
+%{__make}
 
 %install
-rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/usr/X11R6/bin
-install -d $RPM_BUILD_ROOT/usr/X11R6/man/man1
-install -d $RPM_BUILD_ROOT/usr/share/sounds/crossfire
-install -d $RPM_BUILD_ROOT/usr/share/gnome/apps/Games
-install -d $RPM_BUILD_ROOT/usr/share/gnome/ximian/Programs/Games
-install -d $RPM_BUILD_ROOT/usr/share/pixmaps
+rm -rf %{buildroot}
 
+%{__install} -d %{buildroot}%{_datadir}/sounds/crossfire
+#
+# Redhat and Ximian GNOME
+#
+%{__install} -d %{buildroot}%{_datadir}/gnome/apps/Games/Tclug
+%{__install} -d %{buildroot}%{_datadir}/gnome/ximian/Programs/Games/Tclug
+%{__install} -d %{buildroot}%{_datadir}/pixmaps
+%{__install} -d %{buildroot}%{_datadir}/games/crossfire/crossfire-client
+#
+# KDE3
+#
+%{__install} -d %{buildroot}%{_datadir}/applnk/Games/Adventure
+%{__install} -d %{buildroot}%{_datadir}/icons/hicolor/16x16/apps
+%{__install} -d %{buildroot}%{_datadir}/icons/hicolor/32x32/apps
+%{__install} -d %{buildroot}%{_datadir}/icons/hicolor/48x48/apps
+%{__install} -d %{buildroot}%{_datadir}/icons/locolor/16x16/apps
+%{__install} -d %{buildroot}%{_datadir}/icons/locolor/32x32/apps
+%{__install} -d %{buildroot}%{_datadir}/icons/locolor/48x48/apps
 
-make install \
-    DESTDIR=$RPM_BUILD_ROOT \
-    bindir=$RPM_BUILD_ROOT/usr/X11R6/bin \
-    mandir=$RPM_BUILD_ROOT/usr/X11R6/man/man1
+%{__make} install \
+    DESTDIR=%{buildroot} \
+    bindir=%{buildroot}%{_bindir} \
+    mandir=%{buildroot}%{_mandir}/man1
 
-install sounds/*.raw $RPM_BUILD_ROOT/usr/share/sounds/crossfire
+%{__install} %{name}-sounds-%{version}/*.raw %{buildroot}%{_datadir}/sounds/crossfire
 
-install -c x11/cfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/cfclient.1
-install -c gtk/gcfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gcfclient.1
+%{__install}  %{name}-images-%{version}/* %{buildroot}%{_datadir}/games/crossfire/crossfire-client
+
+%{__install} -c x11/cfclient.man %{buildroot}%{_mandir}/man1/cfclient.1
+%{__install} -c gtk/gcfclient.man %{buildroot}%{_mandir}/man1/gcfclient.1
+
 # Not supported yet
-# install -c gnome/gnome-cfclient.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gnome-cfclient.1
+#%{__install} -c gnome/gnome-cfclient.man %{buildroot}/usr/X11R6/man/man1/gnome-cfclient.1
+#
+# Gnome
+#
+%{__install} -c gnome/client.gnome %{buildroot}%{_datadir}/gnome/apps/Games/Tclug/crossfire.desktop
+%{__install} -c gnome/client.gnome %{buildroot}%{_datadir}/gnome/ximian/Programs/Games/Tclug/crossfire.desktop
+%{__install} -c pixmaps/shield.png %{buildroot}%{_datadir}/pixmaps/
+#
+# KDE
+#
+%{__install} -m 644 -c gnome/client.gnome %{buildroot}%{_datadir}/applnk/Games/Adventure/crossfire.desktop
+%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
 
-install -c gnome/client.gnome $RPM_BUILD_ROOT/usr/share/gnome/apps/Games/crossfire.desktop
-install -c gnome/client.gnome $RPM_BUILD_ROOT/usr/share/gnome/ximian/Programs/Games/crossfire.desktop
-install -c pixmaps/shield.png $RPM_BUILD_ROOT/usr/share/pixmaps/
 
+%post
+rm -f %{_datadir}/gnome/apps/Games/crossfire.desktop
+rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
+
 # Cannot figure out how to get just the sounds to build as noarch, so this
 # is a hack to make it work
-mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{sndversion}-%{release}.%{_arch}.rpm %{_rpmdir}/noarch/%{Name}-client-sounds-%{sndversion}-%{release}.noarch.rpm
+mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm %{_rpmdir}/noarch/%{Name}-client-sounds-%{version}-%{release}.noarch.rpm
 
 %files
 %defattr(644,root,root,755)
 %doc CHANGES COPYING License NOTES README TODO
-%attr(755,root,root) /usr/X11R6/bin/cfclient
-/usr/X11R6/man/man1/cfclient.1*
+%attr(755,root,root) %{_bindir}/cfclient
+%{_mandir}/man1/cfclient.1*
 
 %files gtk
 %defattr(644,root,root,755)
 %doc CHANGES COPYING License NOTES README TODO
-%attr(755,root,root) /usr/X11R6/bin/gcfclient
-/usr/X11R6/man/man1/gcfclient.1*
-/usr/share/gnome/apps/Games/crossfire.desktop
-/usr/share/gnome/ximian/Programs/Games/crossfire.desktop
-/usr/share/pixmaps/shield.png
+%attr(755,root,root) %{_bindir}/gcfclient
+%{_mandir}/man1/gcfclient.1*
+%dir %{_datadir}/games/crossfire/crossfire-client
+%attr(0444,root,root) %{_datadir}/games/crossfire/crossfire-client/*
+%{_datadir}/gnome/apps/Games/Tclug/crossfire.desktop
+%{_datadir}/gnome/ximian/Programs/Games/Tclug/crossfire.desktop
+%{_datadir}/pixmaps/shield.png
+#
+# KDE
+#
+%{_datadir}/applnk/Games/Adventure/crossfire.desktop
+%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
+%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
+%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
+%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
+%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
+%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
+
 
 # Not supported yet
 #%files gnome
@@ -120,14 +174,37 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{sndversion}-%{release}.%{_arch}.r
 #%doc CHANGES COPYING License NOTES README TODO
 #%attr(755,root,root) /usr/X11R6/bin/gnome-cfclient
 #/usr/X11R6/man/man1/gnome-cfclient.1*
-#/usr/share/gnome/apps/Games/crossfire.desktop
+#/usr/share/gnome/apps/Games/Tclug/crossfire.desktop
 #/usr/share/pixmaps/shield.png
 
 %files sounds
 %defattr(644,root,root,755)
-/usr/share/sounds/crossfire/*
+%dir %{_datadir}/sounds/crossfire
+%attr(444,root,root) %{_datadir}/sounds/crossfire/*
+%attr(755,root,root) %{_bindir}/cfsndserv
 
 %changelog
+* Wed Jul 02 2002 Bob Tanner <tanner@real-time.com>
+  + crossfire-client-1.3.0-realtime.1
+  - released 1.3.0 client
+  - CHANGELOG 
+    http://mailman.real-time.com/pipermail/crossfire-list/2002-July/000943.html
+
+* Mon May 06 2002 Bob Tanner <tanner@real-time.com>
+  + crossfire-client-20020424-realtime.5
+  - missing some files dealing with cache images
+
+* Tue Apr 30 2002 Bob Tanner <tanner@real-time.com>
+  + crossfire-client-20020424-realtime.4
+  - moved desktop entries to the tclug sub-menu
+
+* Wed Apr 24 2002 Bob Tanner <tanner@real-time.com>
+  + crossfire-client-20020424-realtime.2
+  - change hard coded commands to rpms macros
+  - change several file locations to comply with LSB 
+  - add crossfire-client to tclug-gampak; An apt4redhat virtual package
+  - tclug-gamepak via apt rpm ftp://ftp.real-time.com/linux/apt realtime/7.2/i386 tclug
+
 * Thu Feb 14 2002 Bob Tanner <tanner@real-time.com>
 - configure.in, configure: Add check for zlib before png lib check, as on
   some systems, png requires -lz.
@@ -250,7 +327,7 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{sndversion}-%{release}.%{_arch}.r
   line option is given by a user.  MSW 2001/03/01
 - x11.c: Fixes for info window resizing.  This should fix some crashes
   and the code is a bit simpler now.  MSW 2001/02/28
-- Makefile.in: Modify so that it installs the target (cfclient, gcfclient,
+- Makefile.in: Modify so that installs the target (cfclient, gcfclient,
   cfsndserv) one at a time so it works with the install script.
 - item.c: add insert_item_before_item function.  Modify the sorting function
   so it first sorts by type, then by locked/unlocked status, and then
