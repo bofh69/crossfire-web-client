@@ -241,9 +241,10 @@ void monitorChilds(){
         if (!cp)
             return; /*no child to monitor*/
         if (waitpid(cp->pid,NULL,WNOHANG)){
+            ChildProcess* next;
+
             /*pid is dead*/
             LOG(LOG_INFO,"common::monitorChilds","Child %s died. Removing and closing pipes",cp->name?cp->name:"UNKNOWN");
-            ChildProcess* next;
             if (cp==LastChild)
                 LastChild=last;
             next=cp->next;

@@ -3,6 +3,18 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Various minor bugfixes:
+configure.in, configure: Add warning message if we can't find gtk+ 2.0 or
+   later, but continue configure process instead of exiting.
+common/misc.c: Fix code so that it compiles with older C compilers.
+gtk-v2/src/map.c:  Change code on need_recenter_map() - use MAX_MAP_OFFSET
+   instead of hard coded value of 2 - found a crash here when running
+   around the world map - could have been caused by a big image and/or
+   the fact my character moved 2 spaces in one tick.  either way, this
+   change shouldn't impact things, as it is seldom the virtual map needs
+   to be recentered.
+MSW 2005-03-27
+
 This patch fixes a few memory leaks related to image caching in all clients.
 common/image.c: Declare facetoname[] as static. Add all code accessing this
    array. Print warning if image cannot be created.

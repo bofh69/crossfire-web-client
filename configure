@@ -2227,7 +2227,7 @@ echo "${ECHO_T}$PACKAGE_LIBS" >&6
             ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
             PACKAGE_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$pkg_modules"`
-            echo $PACKAGE_PKG_ERRORS
+
         fi
 
 
@@ -2239,11 +2239,10 @@ echo "${ECHO_T}$PACKAGE_LIBS" >&6
   fi
 
   if test $succeeded = yes; then
-     :
+     CF_SUBDIRS="$CF_SUBDIRS gtk-v2"
   else
-     { { echo "$as_me:$LINENO: error: Library requirements ($pkg_modules) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&5
-echo "$as_me: error: Library requirements ($pkg_modules) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&2;}
-   { (exit 1); exit 1; }; }
+     { echo "$as_me:$LINENO: WARNING: GTK v2 libraries not found - will not build gtkv2 client" >&5
+echo "$as_me: WARNING: GTK v2 libraries not found - will not build gtkv2 client" >&2;}
   fi
 
 
@@ -2273,7 +2272,6 @@ fi
 
 
 
-CF_SUBDIRS="$CF_SUBDIRS gtk-v2"
 
 DEPDIR="${am__leading_dot}deps"
 

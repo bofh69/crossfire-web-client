@@ -32,12 +32,12 @@ AC_PATH_PROG(AR, ar)
 
 dnl for gtk-v2 client
 pkg_modules="gtk+-2.0 >= 2.0.0"
-PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
+PKG_CHECK_MODULES(PACKAGE, [$pkg_modules], CF_SUBDIRS="$CF_SUBDIRS gtk-v2", 
+    AC_MSG_WARN(GTK v2 libraries not found - will not build gtkv2 client) )
 
 AM_MAINTAINER_MODE
 AC_SUBST(PACKAGE_LIBS)
 AC_SUBST(INTLLIBS)
-CF_SUBDIRS="$CF_SUBDIRS gtk-v2"
 
 AC_CHECK_LIB(glut, main, OPENGL_LIBS="-lglut")
 AC_SUBST(OPENGL_LIBS)
