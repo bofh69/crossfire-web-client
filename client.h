@@ -67,14 +67,12 @@
 #define SC_FIRERUN 1
 #define SC_ALWAYS 2
 
-#define MAXANIMFACES	32
-
 typedef struct Animations {
     uint16  flags;
     uint8   num_animations; /* number of animations.  Value of 2 means
 			     * only faces[0],[1] have meaningfull values.
 			     */
-    uint16  faces[MAXANIMFACES];
+    uint16  *faces;
 } Animations;
 
 extern Animations animations[MAXANIM];
