@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Crossfire Client
+Comment=GTK Crossfire Client
+Exec=gcfclient
+Icon=shield.png
+Terminal=0
+Type=Application
+
