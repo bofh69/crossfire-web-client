@@ -174,7 +174,7 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
 	pixels = (char*)malloc(width * height * bpp);
 	pixels_byte =width * height * bpp;
     } else if ((width * height * bpp) > pixels_byte) {
-	realloc(pixels, width * height * bpp);
+	pixels=realloc(pixels, width * height * bpp);
 	pixels_byte =width * height * bpp;
     }
 
@@ -337,6 +337,7 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, png_size_t len,
 	return PNGX_OUTOFMEM;
     }
     if (setjmp (png_ptr->jmpbuf)) {
+	fprintf(stderr,"Data error in png_to_xpixmap\n");
 	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
 	return PNGX_DATA;
     }
@@ -406,11 +407,11 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, png_size_t len,
      * This is more efficient the allocating this block of memory every time.
      */
     if (pixels_byte==0) {
-	pixels = (char*)malloc(*width * *height * bpp);
-	pixels_byte =*width * *height * bpp;
+	pixels_byte = *width * *height * bpp;
+	pixels = (char*)malloc(pixels_byte);
     } else if ((*width * *height * bpp) > pixels_byte) {
-	realloc(pixels, *width * *height * bpp);
 	pixels_byte =*width * *height * bpp;
+	pixels=realloc(pixels, pixels_byte);
     }
 
     if (!pixels) {
@@ -432,7 +433,7 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, png_size_t len,
     }
 
     for (y=0; y<*height; y++) 
-	rows[y] = pixels + y * *width * bpp;
+	rows[y] = pixels + y * (*width) * bpp;
 
     png_read_image(png_ptr, rows);
 #if 0
@@ -560,11 +561,18 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, png_size_t len,
     png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
     return 0;
 }
-#if 0
+
+#if PNG_MAIN
+#include <X11/Xutil.h>
+#include <X11/extensions/shape.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+
 int main(int argc, char *argv[])
 {
     Display *disp;
-    char    data[256];
+    char    data[256],buf[1024*1024];
     int	    fd,i,z, alpha;
     unsigned long  width, height;
     Window  window;
@@ -588,13 +596,21 @@ int main(int argc, char *argv[])
     window=XCreateWindow(disp, DefaultRootWindow(disp), 0, 0,
 	 32, 32, 0, CopyFromParent, InputOutput, CopyFromParent,
 	CWBackingStore|CWBackPixel, &wattrs);
-    png_to_xpixmap(disp, window, argv[1], &pix, &mask, DefaultColormap(disp,
-				DefaultScreen(disp)), &width, &height);
+
+    i = open(argv[1], O_RDONLY);
+    z=read(i, buf, 1024*1024);
+    close(i);
+    fprintf(stderr,"Read %d bytes from %s\n", z, argv[1]);
+    png_to_xpixmap(disp, window, buf, z, &pix, &mask, DefaultColormap(disp,
+                                DefaultScreen(disp)), &width, &height);
+
     XResizeWindow(disp, window, width, height);
     if (!window) {
 	fprintf(stderr,"Unable to create window\n");
 	exit(1);
     }
+    if (mask) XShapeCombineMask(disp,window,ShapeBounding,0,0,mask,ShapeSet);
+
     XMapWindow(disp, window);
     XFlush(disp);
     gc=XCreateGC(disp, pix, 0, NULL);

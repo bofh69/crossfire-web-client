@@ -1,6 +1,17 @@
 "$Id$"
 Top of CVS tree:
 
+MSW 2000/12/24:
+png.c: Fix a major memory corruption issue - the png function
+was re-allocing for a larger hunk of data, but did not update the
+pointer and was still using the pointer to the smaller hunk.
+Severity of this bug depended on luck - if the first png downloaded
+happened to have the full 4 bytes/pixel, it never needed to do a realloc
+so would work fine.  Otherwise, a matter of luck what data got stomped
+over.  Also, modified the main function in this file so that it
+you can compile against it and it now works with the new in memory
+data read.
+
 MSW 2000/12/19:
 Metaserver update.  Most files updated.  This change has the client
 connect the metaserver and lets the user choose which server to connect
