@@ -158,7 +158,7 @@ sounds: sounds.dist Makefile
 
 
 soundsdef.h: sounds
-	utils/deftoheader.pl sounds soundsdef.h def_sounds
+	$(PERL) utils/deftoheader.pl sounds soundsdef.h def_sounds
 
 .c.o:
 	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
