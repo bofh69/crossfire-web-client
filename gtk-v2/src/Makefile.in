@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-SOURCES = $(gtk_v2_SOURCES)
+SOURCES = $(gcfclient2_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -39,7 +39,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-bin_PROGRAMS = gtk-v2$(EXEEXT)
+bin_PROGRAMS = gcfclient2$(EXEEXT)
 subdir = gtk-v2/src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -55,12 +55,13 @@ PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = config.$(OBJEXT) image.$(OBJEXT) info.$(OBJEXT) \
 	inventory.$(OBJEXT) keys.$(OBJEXT) main.$(OBJEXT) \
 	map.$(OBJEXT) magicmap.$(OBJEXT) menubar.$(OBJEXT) \
-	png.$(OBJEXT) sound.$(OBJEXT) stats.$(OBJEXT)
-am_gtk_v2_OBJECTS = $(am__objects_1) support.$(OBJEXT) \
+	png.$(OBJEXT) sdl.$(OBJEXT) sound.$(OBJEXT) stats.$(OBJEXT)
+am_gcfclient2_OBJECTS = $(am__objects_1) support.$(OBJEXT) \
 	interface.$(OBJEXT)
-gtk_v2_OBJECTS = $(am_gtk_v2_OBJECTS)
+gcfclient2_OBJECTS = $(am_gcfclient2_OBJECTS)
 am__DEPENDENCIES_1 =
-gtk_v2_DEPENDENCIES = $(am__DEPENDENCIES_1) ../../common/libcfclient.a
+gcfclient2_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	../../common/libcfclient.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/utils/depcomp
 am__depfiles_maybe = depfiles
@@ -68,8 +69,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(gtk_v2_SOURCES)
-DIST_SOURCES = $(gtk_v2_SOURCES)
+SOURCES = $(gcfclient2_SOURCES)
+DIST_SOURCES = $(gcfclient2_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -214,15 +215,16 @@ PROTO_SOURCES = \
 	magicmap.c \
 	menubar.c \
 	png.c \
+	sdl.c \
 	sound.c \
 	stats.c
 
-gtk_v2_SOURCES = \
+gcfclient2_SOURCES = \
 	$(PROTO_SOURCES) \
 	support.c support.h \
 	interface.c interface.h 
 
-gtk_v2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@
+gcfclient2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@
 all: all-am
 
 .SUFFIXES:
@@ -279,9 +281,9 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-gtk-v2$(EXEEXT): $(gtk_v2_OBJECTS) $(gtk_v2_DEPENDENCIES) 
-	@rm -f gtk-v2$(EXEEXT)
-	$(LINK) $(gtk_v2_LDFLAGS) $(gtk_v2_OBJECTS) $(gtk_v2_LDADD) $(LIBS)
+gcfclient2$(EXEEXT): $(gcfclient2_OBJECTS) $(gcfclient2_DEPENDENCIES) 
+	@rm -f gcfclient2$(EXEEXT)
+	$(LINK) $(gcfclient2_LDFLAGS) $(gcfclient2_OBJECTS) $(gcfclient2_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -300,6 +302,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/map.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/menubar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/png.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sound.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/support.Po@am__quote@

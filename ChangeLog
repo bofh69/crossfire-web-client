@@ -3,6 +3,24 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+More improvements for the gtkv2 client, mostly adding SDL support:
+gtk-v2/TODO: updated
+gtk-v2/src/logfile: Removed - don't need dmalloc logfile.
+gtk-v2/src/Makefile.am, gtk-v2/src/Makefile.in: Change program name from
+   'gtk-v2' to 'gcfclient2'.  Add sdl.c to list of files.
+gtk-v2/src/gtk2proto.h: Rebuilt
+gtk-v2/src/inventory.c: Fix bug in show_nonmagical() (which corresponds
+   to inventory tab) - was showing unpaid objects, not nonmagical objects.
+gtk-v2/src/main.c: Remove time_map_redraw declaration from function, since
+   it is declared in map.c.  Change map logic to draw when we finish processing
+   network data.  Change client naem as it reports itself to server to GTK2
+   ... Client.
+gtk-v2/src/map.c: Add map_updated variable which is set by display_map_doneupdate -
+   used by map draw function to know if anything has changed.  Clean up some
+   formatting, remove unused code.
+gtk-v2/src/sdl.c: New file containing sdl support.
+MSW 2005-03-07
+
 Commit for GTKv2 client - please read gtk-v2/README before using this client.
 The bulk of the changes are limited to the gtk-v2 directory (addition),
 but some changes elsewhere as related to using automake.  You will need

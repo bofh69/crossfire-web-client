@@ -7,7 +7,7 @@ INCLUDES = \
 	@PACKAGE_CFLAGS@ \
 	@SDL_CFLAGS@
 
-bin_PROGRAMS = gtk-v2
+bin_PROGRAMS = gcfclient2
 
 PROTO_SOURCES = \
 	config.c \
@@ -20,16 +20,17 @@ PROTO_SOURCES = \
 	magicmap.c \
 	menubar.c \
 	png.c \
+	sdl.c \
 	sound.c \
 	stats.c
 
-gtk_v2_SOURCES = \
+gcfclient2_SOURCES = \
 	$(PROTO_SOURCES) \
 	support.c support.h \
 	interface.c interface.h 
 
 
-gtk_v2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@
+gcfclient2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@
 
 
 proto:

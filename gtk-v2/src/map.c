@@ -57,7 +57,7 @@ char *rcsid_gtk2_map_c =
  */
 
 struct Map the_map;
-uint8	map_did_scroll=0;
+uint8	map_did_scroll=0, map_updated=0;
 
 /*
  * Added for fog of war. Current size of the map structure in memory.
@@ -79,14 +79,6 @@ static GdkPixmap *dark;
  * someplace that displays frame rate.
  */
 int time_map_redraw=0;
-
-void sdl_gen_map(int redraw) {
-}
-
-void sdl_mapscroll(int dx, int dy)
-{
-}
-
 
 /* This initializes the stuff we need for the map. */
 void map_init(GtkWidget *window_root)
@@ -145,6 +137,11 @@ void map_init(GtkWidget *window_root)
 	}
 	gdk_gc_unref(darkgc);
     }
+#ifdef HAVE_SDL
+    else {
+	init_SDL(map_drawing_area,0);
+    }
+#endif
 }
 
 /*
@@ -618,9 +615,11 @@ void gtk_draw_map(int redraw) {
 
 	    /* Don't need to touch this space */
 	    if (!redraw && !the_map.cells[mx][my].need_update && !map_did_scroll&& !the_map.cells[mx][my].need_resmooth)
-            continue;
+		continue;
+
 	    /* First, we need to black out this space. */
 	    gdk_draw_rectangle(map_drawing_area->window, map_drawing_area->style->black_gc, TRUE, x * map_image_size, y * map_image_size, map_image_size, map_image_size);
+
 	    /* now draw the different layers.  Only draw if using fog of war or the
 	     * space isn't clear.
 	     */
@@ -672,23 +671,21 @@ void gtk_draw_map(int redraw) {
 			    if ( use_config[CONFIG_SMOOTH])
 				drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
 			}
-            /*Sometimes, it may happens we need to draw the smooth while there
-              is nothing to draw at that layer (but there was something at lower
-              layers). This is handled here. The else part is to take into account
-              cases where the smooth as already been handled 2 code lines before*/
-            else if ( use_config[CONFIG_SMOOTH] &&
-                 the_map.cells[mx][my].need_resmooth )
-                drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
-            
-            /*if (newmask)
-                gdk_pixmap_unref(newmask);*/
+		    /* Sometimes, it may happens we need to draw the smooth while there
+		     * is nothing to draw at that layer (but there was something at lower
+		     * layers). This is handled here. The else part is to take into account
+		     * cases where the smooth as already been handled 2 code lines before
+		     */
 
-		    
+		    else if ( use_config[CONFIG_SMOOTH] && the_map.cells[mx][my].need_resmooth )
+			drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
+            
 		} /* else for processing the layers */
-        the_map.cells[mx][my].need_resmooth=0;
+	    the_map.cells[mx][my].need_resmooth=0;
 
 	    /* Do final logic for this map space */
 	    the_map.cells[mx][my].need_update=0;
+
 	    /* If this is a fog cell, do darknening of the space.
 	     * otherwise, process light/darkness - only do those if not a 
 	     * fog cell.
@@ -719,28 +716,13 @@ void gtk_draw_map(int redraw) {
 		gdk_draw_pixmap(map_drawing_area->window, mapgc, dark, 0, 0,
 				x * map_image_size, y*map_image_size, map_image_size, map_image_size);
 	    }
-	    /* Don't redraw this space if we're going to redraw the entire map below */
-	    /*if (!map_did_scroll) 
-		gdk_draw_pixmap(map_drawing_area->window, map_drawing_area->style->black_gc, map_drawing_area->window, 
-			    x * map_image_size, y*map_image_size, x * map_image_size, y * map_image_size,
-			    map_image_size, map_image_size);*/
-
 	} /* For y spaces */
     } /* for x spaces */
 
     if (time_map_redraw)
 	gettimeofday(&tv2, NULL);
 
-    /* map_did_scroll is set if the map scrolls for example.  In this case, we need to redraw
-     * the entire map.
-     */
-    if (map_did_scroll) {
-	gdk_draw_pixmap(map_drawing_area->window, map_drawing_area->style->black_gc, map_drawing_area->window,
-		    0, 0, 0, 0, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size);
-	map_did_scroll = 0;
-    }
-    else gdk_draw_pixmap(map_drawing_area->window, map_drawing_area->style->black_gc, map_drawing_area->window,
-		    0, 0, 0, 0, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size);
+    map_did_scroll = 0;
 
     if (time_map_redraw) {
 	gettimeofday(&tv3, NULL);
@@ -764,30 +746,6 @@ void display_map_newmap()
 }
 
 
-/* This isn't used - it is basically a prequel - we know we got a
- * map command from the server, but have digested it all yet.
- * this can be useful if there is info we know we need to store away
- * or the like before it is destroyed, but there isn't anything like
- * that for the gtk client.
- */
-void display_map_startupdate()
-{
-}
-
-/* This is called after the map has been all digested.
- * this should perhaps be removed, and left to
- * being done from from the main event loop.
- */
-void display_map_doneupdate(int redraw)
-{
-
-#ifdef HAVE_SDL
-        if (use_config[CONFIG_SDL]) sdl_gen_map(redraw);
-        else
-#endif
-        gtk_draw_map(redraw);
-
-}
 
 /* resize_map_window is a NOOP for the time being - not sure
  * if it will in fact need to do something, since there are scrollbars
@@ -829,21 +787,27 @@ void draw_splash()
 
 	
 
+void draw_map(int redraw)
+{
+#ifdef HAVE_SDL
+    if (use_config[CONFIG_SDL]) sdl_gen_map(redraw);
+    else
+#endif
+    if (cpl.input_state == Metaserver_Select) draw_splash();
+    else gtk_draw_map(redraw);
+}
+	
+
 gboolean
 on_drawingarea_map_expose_event        (GtkWidget       *widget,
                                         GdkEventExpose  *event,
                                         gpointer         user_data)
 {
-#ifdef HAVE_SDL
-    if (use_config[CONFIG_SDL]) sdl_gen_map(1);
-    else
-#endif
-    if (cpl.input_state == Metaserver_Select) draw_splash();
-    else gtk_draw_map(1);
+    fprintf(stderr,"got expose event\n");
+    draw_map(TRUE);
 
     return FALSE;
 }
-
 
 gboolean
 on_drawingarea_map_button_press_event  (GtkWidget       *widget,
@@ -854,3 +818,21 @@ on_drawingarea_map_button_press_event  (GtkWidget       *widget,
   return FALSE;
 }
 
+/* This isn't used - it is basically a prequel - we know we got a
+ * map command from the server, but have digested it all yet.
+ * this can be useful if there is info we know we need to store away
+ * or the like before it is destroyed, but there isn't anything like
+ * that for the gtk client.
+ */
+void display_map_startupdate()
+{
+}
+
+/* This is called after the map has been all digested.
+ * this should perhaps be removed, and left to
+ * being done from from the main event loop.
+ */
+void display_map_doneupdate(int redraw)
+{
+    map_updated=1;
+}

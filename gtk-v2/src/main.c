@@ -66,9 +66,9 @@ struct timeval timeout;
 extern int maxfd;
 gint    csocket_fd=0;
 static uint8
-	updatekeycodes=FALSE,
-        time_map_redraw=FALSE;
+	updatekeycodes=FALSE;
 
+extern int time_map_redraw;
 
 #include "metaserver.c"
 
@@ -118,15 +118,13 @@ void do_network() {
 	    script_process(&tmp_read);
 	}
     }
-#if ALTERNATE_MAP_REDRAW
 #ifdef HAVE_SDL
     if (use_config[CONFIG_SDL]) sdl_gen_map(FALSE);
     else
 #endif
-    gtk_draw_map(FALSE);
+    draw_map(FALSE);
     LOG(0,"gtk::do_network","Map redrawn\n");
 
-#endif
     draw_lists();
 }
 
@@ -228,9 +226,9 @@ int parse_args(int argc, char **argv)
     load_defaults(); 
 
 #ifndef WIN32
-    strcpy(VERSION_INFO,"GTK Unix Client " VERSION);
+    strcpy(VERSION_INFO,"GTK2 Unix Client " VERSION);
 #else
-    strcpy(VERSION_INFO,"GTK Win32 Client " VERSION);
+    strcpy(VERSION_INFO,"GTK2 Win32 Client " VERSION);
 #endif
     LOG(LOG_INFO,"Client Version",VERSION_INFO);
     /* Set this global so we get skill experience - gtk client can display

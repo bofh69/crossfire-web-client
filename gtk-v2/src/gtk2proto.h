@@ -30,6 +30,7 @@ extern void get_row_color(item *it, int *fg, int *bg);
 extern void draw_look_list(void);
 extern void draw_inv_list(int tab);
 extern gboolean drawingarea_inventory_table_button_press_event(GtkWidget *widget, GdkEventButton *event, gpointer user_data);
+extern gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
 extern void draw_inv_table(void);
 extern void draw_inv(int tab);
 extern void draw_lists(void);
@@ -57,8 +58,6 @@ extern int main(int argc, char *argv[]);
 extern void save_winpos(void);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
 /* map.c */
-extern void sdl_gen_map(int redraw);
-extern void sdl_mapscroll(int dx, int dy);
 extern void map_init(GtkWidget *window_root);
 extern void allocate_map(struct Map *new_map, int ax, int ay);
 extern void reset_map(void);
@@ -70,12 +69,13 @@ extern void reset_map_data(void);
 extern void drawsmooth(int mx, int my, int layer, int picx, int picy);
 extern void gtk_draw_map(int redraw);
 extern void display_map_newmap(void);
-extern void display_map_startupdate(void);
-extern void display_map_doneupdate(int redraw);
 extern void resize_map_window(int x, int y);
 extern void draw_splash(void);
+extern void draw_map(int redraw);
 extern gboolean on_drawingarea_map_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
 extern gboolean on_drawingarea_map_button_press_event(GtkWidget *widget, GdkEventButton *event, gpointer user_data);
+extern void display_map_startupdate(void);
+extern void display_map_doneupdate(int redraw);
 /* magicmap.c */
 extern void draw_magic_map(void);
 extern void magic_map_flash_pos(void);
@@ -89,6 +89,13 @@ extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 extern int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 extern int rgba_to_gdkpixbuf(uint8 *data, int width, int height, GdkPixbuf **pix);
 extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
+/* sdl.c */
+extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
+extern void drawquarterlightmap_sdl(int tl, int tr, int bl, int br, int width, int height, int startx, int starty, int endx, int endy, int destx, int desty);
+extern void do_sdl_per_pixel_lighting(int x, int y, int mx, int my);
+extern int sdl_square_need_redraw(int mx, int my);
+extern void sdl_gen_map(int redraw);
+extern void sdl_mapscroll(int dx, int dy);
 /* sound.c */
 extern void signal_pipe(int i);
 extern int init_sounds(void);

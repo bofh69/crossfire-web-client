@@ -3,8 +3,6 @@ to be done, in no particular order (thus, unnumbered)
 
 - Make an image for the 'icons' inventory tab (perhaps an eye?)
 
-- add support for SDL client.
-
 - Perhaps add opengl support
 
 - Implement the arrow buttons to scroll map around so that the player does not
@@ -27,3 +25,9 @@ or not, perhaps same for information messages?
 
 - Fix any of the probably numerous bugs.
 
+- Implement drag and drop for the inventory/look windows (would allow moving
+objects from a container directly to the ground for example.
+
+- Change container handling - the client can properly handle multiple containers
+now.  On the client side, not much needs to be changed.  On the server side,
+the server will need to update all active containers when their contents change.

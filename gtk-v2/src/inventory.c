@@ -99,7 +99,7 @@ static int show_unapplied(item *it) { return (it->applied?0:INV_SHOW_ITEM); }
 static int show_unpaid(item *it)    { return (it->unpaid?INV_SHOW_ITEM:0); }
 static int show_cursed(item *it)    { return ((it->cursed | it->damned)?INV_SHOW_ITEM:0); }
 static int show_magical(item *it)   { return (it->magical?INV_SHOW_ITEM:0); }
-static int show_nonmagical(item *it){ return (it->unpaid?0:INV_SHOW_ITEM); }
+static int show_nonmagical(item *it){ return (it->magical?0:INV_SHOW_ITEM); }
 static int show_locked(item *it)    { return (it->locked?(INV_SHOW_ITEM|INV_SHOW_COLOR):0); }
 static int show_unlocked(item *it)  { return (it->locked?0:(INV_SHOW_ITEM|INV_SHOW_COLOR)); }
 
