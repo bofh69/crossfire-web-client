@@ -587,8 +587,13 @@ S->C: magicmap <width> <height> <px> <py> <data>
 	This gives the client information from a magic map command.
 	<width> <height> and text integers of the size.  <px> <py> is
 	the players location, and data is binary data of the
-	appropriate color.  It is 1 byte per color, stored in left to
-	right, then up to down fashion.
+	appropriate color.  It is 1 byte per space, with the low
+	nibble containing the color information, and the high nibble
+	containing extra flags, like the existance of walls and floors.
+	See the FACE_FLOOR and FACE_WALL values.
+	The string of data represents the space from left to right,
+	then up to down.
+
 
 ******************************************************************************
 SOUND RELATED COMMANDS:
