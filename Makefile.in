@@ -166,13 +166,15 @@ soundsdef.h: sounds
 .c.o:
 	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
 
+sound.o:: soundsdef.h
+
 gx11.o: gx11.c
 	$(CC) $(CFLAGS) $(GTK_CFLAGS) $(INCLUDES) -c gx11.c
 
 x11.o: x11.c
 	$(CC) $(CFLAGS) $(X_CFLAGS) $(INCLUDES) -c x11.c
 
-cfsndserv: $(SND_OBJS)
+cfsndserv: $(SND_OBJS) soundsdef.h
 	$(CC) -o cfsndserv $(SND_OBJS) $(LDFLAGS) $(SND_LIBS) $(DMALLOC_LIB)
 
 archive:
