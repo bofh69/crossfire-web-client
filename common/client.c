@@ -264,7 +264,7 @@ void negotiate_connection(int sound)
     cs_print_string(csocket.fd,
 	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d itemcmd 2",
 	    sound>=0, want_skill_exp, 
-		    want_config[CONFIG_FOGWAR], face_info.faceset,
+		    want_config[CONFIG_LIGHTING]?1:0, face_info.faceset,
 		    want_config[CONFIG_CACHE]);
 
     use_config[CONFIG_MAPHEIGHT]=want_config[CONFIG_MAPHEIGHT];

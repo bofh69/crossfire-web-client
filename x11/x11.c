@@ -2441,13 +2441,13 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
     if (tmp) {
 	switch(button) {
 	  case 1:
-	    if (xbutton->state == ShiftMask)
+	    if (xbutton->state & ShiftMask)
 		toggle_locked(tmp);
 	    else
 		client_send_examine (tmp->tag);
 	    break;
 	  case 2:
-	    if (xbutton->state == ShiftMask)
+	    if (xbutton->state & ShiftMask)
 		send_mark_obj(tmp);
 	    else
 		client_send_apply (tmp->tag);

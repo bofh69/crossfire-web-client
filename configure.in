@@ -162,34 +162,42 @@ if eval "test x$sound = xyes"; then
     AC_CHECK_LIB(asound, main, alsa_sound=yes, , -lm)
   fi
   AC_CHECK_LIB(audio, alNewConfig, sgi_sound=yes, )
+  AC_CHECK_HEADER(alsa/asoundlib.h, alsa9_sound=yes, alsa_sound=no)
   AC_CHECK_HEADER(sys/soundcard.h, oss_sound=yes, oss_sound=no)
   AC_CHECK_HEADER(sys/audioio.h, sun_sound=yes, sun_sound=no)
 
-  if eval "test x$alsa_sound = xyes"; then
-	echo "Using ALSA sound system"
-	CFLAGS="$CFLAGS -DALSA_SOUND"
+  if eval "test x$alsa9_sound = xyes"; then
+	echo "Using ALSA sound system (0.9.x)"
+	CFLAGS="$CFLAGS -DALSA9_SOUND"
 	SND_LIBS="-lasound -lm"
 	SUBDIRS="$SUBDIRS sound-src"
-  else 
-    if eval "test x$sgi_sound = xyes"; then
+  else
+    if eval "test x$alsa_sound = xyes"; then
+  	echo "Using ALSA sound system"
+  	CFLAGS="$CFLAGS -DALSA_SOUND"
+  	SND_LIBS="-lasound -lm"
+  	SUBDIRS="$SUBDIRS sound-src"
+    else 
+      if eval "test x$sgi_sound = xyes"; then
 	echo "Using SGI sound system"
-	CFLAGS="$CFLAGS -DSGI_SOUND"
-	SND_LIBS="-laudio"
-	SUBDIRS="$SUBDIRS sound-src"
-    else
-      if eval "test x$oss_sound = xyes"; then
-	echo "Using OSS sound system"
-	CFLAGS="$CFLAGS -DOSS_SOUND"
-	SND_LIBS="-lm"
-	SUBDIRS="$SUBDIRS sound-src"
+  	CFLAGS="$CFLAGS -DSGI_SOUND"
+  	SND_LIBS="-laudio"
+  	SUBDIRS="$SUBDIRS sound-src"
       else
-        if eval "test x$sun_sound = xyes"; then
-	      echo "Using solaris sound system"
-	      CFLAGS="$CFLAGS -DSUN_SOUND"
-	      SND_LIBS="-lm"
-	      SUBDIRS="$SUBDIRS sound-src"
-	else
-	      echo "No suitable sound system found."
+        if eval "test x$oss_sound = xyes"; then
+	  echo "Using OSS sound system"
+	  CFLAGS="$CFLAGS -DOSS_SOUND"
+	  SND_LIBS="-lm"
+	  SUBDIRS="$SUBDIRS sound-src"
+        else
+          if eval "test x$sun_sound = xyes"; then
+  	      echo "Using solaris sound system"
+  	      CFLAGS="$CFLAGS -DSUN_SOUND"
+  	      SND_LIBS="-lm"
+  	      SUBDIRS="$SUBDIRS sound-src"
+  	  else
+  	      echo "No suitable sound system found."
+          fi
         fi
       fi
     fi

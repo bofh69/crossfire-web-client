@@ -591,9 +591,15 @@ void sdl_gen_map(int redraw) {
 			src.h = map_image_size;
 			dst.x = x * map_image_size;
 			dst.y = y * map_image_size;
-			if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].tails[layer].face]->map_image, 
-			    &src, mapsurface, &dst))
-				do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+			if (the_map.cells[mx][my].cleared) {
+			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].tails[layer].face]->fog_image, 
+				&src, mapsurface, &dst))
+				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+			} else {
+			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].tails[layer].face]->map_image, 
+				&src, mapsurface, &dst))
+				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+			}
 		    }
 		    /* Draw the head now - logic is pretty much exactly the same
 		     * as that for the tail, except we know that we this is at the lower right,
@@ -608,15 +614,22 @@ void sdl_gen_map(int redraw) {
 			src.h = map_image_size;
 			dst.x = x * map_image_size;
 			dst.y = y * map_image_size;
-			if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image, 
-			    &src, mapsurface, &dst))
-				do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+			if (the_map.cells[mx][my].cleared) {
+			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->fog_image, 
+				&src, mapsurface, &dst))
+				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+			} else {
+			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image, 
+				&src, mapsurface, &dst))
+				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+			}
 		    }
 		} /* else for processing the layers */
 
 	    /* Do final logic for this map space */
 	    the_map.cells[mx][my].need_update=0;
 
+#if 0
 	    if (the_map.cells[mx][my].cleared == 1 && use_config[CONFIG_FOGWAR]) {
 		/* If this is a fogcell, copy over the fogmap */
 		dst.x = x * map_image_size;
@@ -626,7 +639,9 @@ void sdl_gen_map(int redraw) {
 	    /* Only worry about lighting if it is not a fog cell.  If it is
 	     * a fog cell, lighting information is probably bogus.
 	     */
-	    else if (use_config[CONFIG_LIGHTING] == CFG_LT_TILE) {
+	    else 
+#endif
+	    if (use_config[CONFIG_LIGHTING] == CFG_LT_TILE) {
 		dst.x = x * map_image_size;
 		dst.y = y * map_image_size;
 		dst.w = map_image_size;

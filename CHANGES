@@ -2,6 +2,32 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure.in, configure: checks added for alsa9 sound - update for cfsndserv.c
+   should come shortly.
+common/client.c: Fix setup problem - it was using FOGWAR setting when
+   determining if client wanted darkness - should have been using darkness
+   setting.  This was resulting in darkness not being used if fog of war was
+   turned off.
+x11/x11.c: Modify handling of mouse button press logic - rather than only
+   modifier being shift, do appropriate logic if the shift mask is set,
+   but does not have to be only modifier set.
+--
+The following bits changes how fog of war looks in SDL mode.  Now, fog of
+war spaces are drawn in greyscale, instead of half darkness.  This makes
+it clearer what the status of the space is (fog of war/darkness).  This change
+probably uses less cpu to draw, but uses more memory for the images (as it
+now has to store a rendered greyscale image).  If not using SDL, you'll still
+have the old behaviour (dimmed spaces for fog of war), and no significant
+amount of extra memory will be used.
+--
+gtk/gx11.h: Add fog_image pointer to PixmapInfo structure.
+gtk/image.c: Add code to render greyscale image.  Also add code to free 
+   greyscale image.
+gtk/sdl.c: Modify map draw code to use grey fog image if space is fog of
+   war space.  Disable dimming of fog spaces - no longer necessary as
+   space now looks different.
+MSW 2003-03-24
+
 ------------------------------------------------------------------------------
 Changes for 1.5.0:
 

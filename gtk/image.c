@@ -129,16 +129,73 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 
     if (use_config[CONFIG_SDL]) {
 #if defined(HAVE_SDL)
+	int i;
+	SDL_Surface *fog;
+	uint32 g,*p;
+	uint8 *l;
+
     #if SDL_BYTEORDER == SDL_LIL_ENDIAN
 	pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
 	        pi->map_height, 32, pi->map_width * 4,  0xff,
 			0xff00, 0xff0000, 0xff000000);
+
+	fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE, 
+		pi->map_width,  pi->map_height, 32, 0xff,
+			0xff00, 0xff0000, 0xff000000);
+	SDL_LockSurface(fog);
+
+	for (i=0; i < pi->map_width * pi->map_height; i++) {
+	    l = (uint8 *) (data + i*4);
+#if 1
+	    g = MAX(*l, *(l+1));
+	    g = MAX(g, *(l+2));
+#else
+	    g = ( *l +  *(l+1) + *(l+2)) / 3;
+#endif
+	    p = (uint32*) fog->pixels + i;
+	    *(uint32*) p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
+	}
+
+	SDL_UnlockSurface(fog);
+	pi->fog_image = fog;
     #else
 	/* Big endian */
 	pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
 	        pi->map_height, 32, pi->map_width * 4,  0xff000000,
 			0xff0000, 0xff00, 0xff);
 
+	fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE, 
+		pi->map_width,  pi->map_height, 32, 0xff000000,
+			0xff0000, 0xff00, 0xff);
+	SDL_LockSurface(fog);
+
+	/* I think this works out, but haven't tried it on a big
+	 * endian machine - my recollection is that the png data
+	 * would be in the same order, just the bytes for it to go
+	 * on teh screen are reversed.
+	 */
+	for (i=0; i < pi->map_width * pi->map_height; i++) {
+	    l = (uint8 *) (data + i*4);
+#if 1
+	    g = MAX(*l, *(l+1));
+	    g = MAX(g, *(l+2));
+#else
+	    g = ( *l +  *(l+1) + *(l+2)) / 3;
+#endif
+	    p = (uint32*) fog->pixels + i;
+	    *(uint32*) p = (g << 8) | (g << 16) | (g << 24) | *(l + 3);
+	}
+
+	for (i=0; i < pi->map_width * pi->map_height; i+= 4) {
+	    p = (uint32) (fog->pixels + i);
+	    g = ( ((p >> 24) & 0xff)  + ((p >> 16) & 0xff) + ((p >> 8) & 0xff)) / 3;
+	    p = (g << 24) | (g << 16) | (g << 8) | (p & 0xff);
+	    l = (uint32*) fog->pixels + i;
+	    *(uint32*) l = p;
+	}
+
+	SDL_UnlockSurface(fog);
+	pi->fog_image = fog;
     #endif
 
 #endif
@@ -160,6 +217,8 @@ static void free_pixmap(PixmapInfo *pi)
 	if (use_config[CONFIG_SDL]) {
 	    SDL_FreeSurface(pi->map_image);
 	    free(((SDL_Surface*)pi->map_image)->pixels);
+	    SDL_FreeSurface(pi->fog_image);
+	    free(((SDL_Surface*)pi->fog_image)->pixels);
 	}
 	else
 #endif
