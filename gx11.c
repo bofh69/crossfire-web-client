@@ -434,7 +434,13 @@ uint16 facecachemap[MAXPIXMAPNUM], cachelastused=0, cacheloaded=0;
 
 FILE *fcache;
 
-/*#include <xutil.c>*/
+/* I don't know why this was not included - it seems like there is
+ * a lot of duplicate code/extra work to copy all of what is in that
+ * file over in this file - that is twice as many files to update.
+ * If there is a good reason why this should not be included, please let
+ * me know - MSW 4/20/2000
+ */
+/* #include <xutil.c> */
 
 int misses=0,total=0;
 
@@ -660,7 +666,6 @@ void animate (animobject *data, gpointer user_data) {
       data->item->face = animations[data->item->animation_id].faces[data->item->anim_state];
       data->item->last_anim=0;
       g_list_foreach (data->view, (GFunc) animateview, (gpointer)data->item->face);
-      
     }
     
   }
@@ -767,9 +772,6 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
     }
   }  
 }
-
-
-
 
 
 
@@ -997,6 +999,7 @@ static void insert_key(KeySym keysym, KeyCode keycode, int flags, char *command)
     newkey->direction = direction;
 }
 
+int updatekeycodes=0;
 
 static void parse_keybind_line(char *buf, int line, int standard)
 {
@@ -1024,22 +1027,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
 
     /* If we can, convert the keysym into a keycode.  */
     keycode = atoi(cp);
-    if (keysym!=NoSymbol) {
-        keycode = XKeysymToKeycode(GDK_DISPLAY(), keysym);
 
-        /* It is possible that we get a keysym that we can not convert
-         * into a keycode (such a case might be binding the key on
-         * one system, and later trying to run on another system that
-         * doesn't have that key.
-         * While the client will not be able to use it this invocation,
-         * it may be able to use it in the future.  As such, don't throw
-         * it away, but at least print a warning message.
-         */
-        if (keycode==0) {
-	fprintf(stderr,"Warning: could not convert keysym %s into keycode, ignoring\n",
-		buf);
-        }
-    }
     cp = cpnext;
     if ((cpnext = strchr(cp,' '))==NULL) {
 	fprintf(stderr,"Line %d (%s) corrupted in keybinding file.\n", line, cp);
@@ -1075,6 +1063,22 @@ static void parse_keybind_line(char *buf, int line, int standard)
     }
     /* Rest of the line is the actual command.  Lets kill the newline */
     cpnext[strlen(cpnext)-1]='\0';
+    if (keysym!=NoSymbol && ((flags & KEYF_STANDARD) || updatekeycodes)) {
+        keycode = XKeysymToKeycode(GDK_DISPLAY(), keysym);
+
+        /* It is possible that we get a keysym that we can not convert
+         * into a keycode (such a case might be binding the key on
+         * one system, and later trying to run on another system that
+         * doesn't have that key.
+         * While the client will not be able to use it this invocation,
+         * it may be able to use it in the future.  As such, don't throw
+         * it away, but at least print a warning message.
+         */
+        if (keycode==0) {
+	fprintf(stderr,"Warning: could not convert keysym %s into keycode, ignoring\n",
+		buf);
+        }
+    }
     insert_key(keysym, keycode, flags | standard, cpnext);
 }
 
@@ -6229,6 +6233,10 @@ static void usage(char *progname)
     puts("-image           - get all images from server at startup");
     puts("-sync            - Synchronize on display");
     puts("-help            - Display this message.");
+    puts("-cache           - Cache images for future use.");
+    puts("-nocache         - Do not cache images (default action).");
+    puts("-nosound         - Disable sound output.");
+    puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
     exit(0);
 }
 
@@ -6294,8 +6302,16 @@ int init_windows(int argc, char **argv)
 	    cache_images= TRUE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-nocache")) {
+	    cache_images= FALSE;
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-split")) {
 	    split_windows=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-nosplit")) {
+	    split_windows=FALSE;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-showicon")) {
@@ -6316,6 +6332,14 @@ int init_windows(int argc, char **argv)
 	}
 	else if (!strcmp(argv[on_arg],"-help")) {
 	    usage(argv[0]);
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-nosound")) {
+	    nosound=TRUE;
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
+	    updatekeycodes=TRUE;
 	    continue;
 	}
 	else {
@@ -6542,12 +6566,5 @@ void display_map_startupdate()
  * A lot of this code was taken from server/xio.c  But being all
  * the map data has been figured, it tends to be much simpler.
  */
-
-
-
-
-
-
-
 
 
