@@ -3010,7 +3010,7 @@ if eval "test x$alsa_sound = xyes"; then
 fi
 
 if eval "test x$new_sound = xyes"; then
-	CFLAGS="$CFLAGS -DNEW_SOUND"
+	CFLAGS="$CFLAGS -DNEW_SOUND -DBINDIR='\"$bindir/\"'"
 	TARGET="$TARGET cfsndserv"
 fi
 
