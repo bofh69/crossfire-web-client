@@ -198,7 +198,7 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
     png_structp	png_ptr;
     png_infop	info_ptr;
     int bit_depth, color_type, interlace_type, compression_type, filter_type,
-	bpp, x,y,has_alpha=0,i,alpha;
+	bpp, x,y,has_alpha,i,alpha;
     GdkColor  scolor;
     GdkGC	*gc, *gc_alpha;
 
@@ -222,7 +222,7 @@ int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
 	png_destroy_read_struct (&png_ptr, &info_ptr,NULL);
 	return PNGX_DATA;
     }
-
+    has_alpha=0;
     png_set_read_fn(png_ptr, NULL, user_read_data);
     png_read_info (png_ptr, info_ptr);
 
@@ -562,7 +562,7 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, int len,
     png_infop	info_ptr=NULL;
     int bit_depth, color_type, interlace_type, compression_type, filter_type,
 	red,green,blue, lastred=-1, lastgreen=-1, lastblue=-1,alpha,bpp, x,y,
-	has_alpha=0,cmask=-1, lastcmask=-1, lastcolor=-1;
+	has_alpha, cmask, lastcmask, lastcolor;
     GC	gc, gc_alpha;
 
 
@@ -584,6 +584,13 @@ int png_to_xpixmap(Display *display, Drawable draw, char *data, int len,
 	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	return PNGX_DATA;
     }
+    /* put these here to prevent compiler warnings about them getting
+     * clobbered by setjmp
+     */
+    has_alpha=0;
+    cmask=-1;
+    lastcmask=-1;
+    lastcolor=-1;
 
     png_set_read_fn(png_ptr, NULL, user_read_data);
     png_read_info (png_ptr, info_ptr);
