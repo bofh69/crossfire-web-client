@@ -8,12 +8,12 @@
 %define extra client
 %define version 1.3.1
 %define sndversion 1.3.1
-%define release 2
+%define release 3
 %define prefix /usr/X11R6
 
 Name: %{Name}-%{extra}
 Version: %{version}
-Release: realtime.1
+Release: realtime.2
 Summary: Client for connecting to crossfire servers.
 Group: Amusements/Games/Crossfire
 Copyright: GPL
@@ -73,7 +73,7 @@ GTK version of the crossfire client
 %build
 chmod 755 configure
 CFLAGS="$RPM_OPT_FLAGS" %configure --datadir=/usr/share/games/crossfire
-%{__make}
+%{__make} %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
@@ -114,19 +114,19 @@ rm -rf %{buildroot}
 #
 # Gnome
 #
-%{__install} -c gnome/client.gnome %{buildroot}%{_datadir}/gnome/apps/Games/Tclug/crossfire.desktop
-%{__install} -c gnome/client.gnome %{buildroot}%{_datadir}/gnome/ximian/Programs/Games/Tclug/crossfire.desktop
-%{__install} -c pixmaps/shield.png %{buildroot}%{_datadir}/pixmaps/
+%{__install} -c gnome/crossfire-client.desktop %{buildroot}%{_datadir}/gnome/apps/Games/Tclug/
+%{__install} -c gnome/crossfire-client.desktop %{buildroot}%{_datadir}/gnome/ximian/Programs/Games/Tclug/
+%{__install} -c pixmaps/48x48.png %{buildroot}%{_datadir}/pixmaps/crossfire-client.png
 #
 # KDE
 #
-%{__install} -m 644 -c gnome/client.gnome %{buildroot}%{_datadir}/applnk/Games/Adventure/crossfire.desktop
-%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
-%{__install} -m 644 pixmaps/shield.png %{buildroot}%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
+%{__install} -m 644 -c gnome/crossfire-client.desktop %{buildroot}%{_datadir}/applnk/Games/Adventure/crossfire.desktop
+%{__install} -m 644 pixmaps/16x16.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/32x32.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/48x48.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/16x16.png %{buildroot}%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/32x32.png %{buildroot}%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
+%{__install} -m 644 pixmaps/48x48.png %{buildroot}%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
 
 
 %post
@@ -153,13 +153,13 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %{_mandir}/man1/gcfclient.1*
 %dir %{_datadir}/games/crossfire/crossfire-client
 %attr(0444,root,root) %{_datadir}/games/crossfire/crossfire-client/*
-%{_datadir}/gnome/apps/Games/Tclug/crossfire.desktop
-%{_datadir}/gnome/ximian/Programs/Games/Tclug/crossfire.desktop
-%{_datadir}/pixmaps/shield.png
+%{_datadir}/gnome/apps/Games/Tclug/*.desktop
+%{_datadir}/gnome/ximian/Programs/Games/Tclug/*.desktop
+%{_datadir}/pixmaps/crossfire-client.png
 #
 # KDE
 #
-%{_datadir}/applnk/Games/Adventure/crossfire.desktop
+%{_datadir}/applnk/Games/Adventure/*.desktop
 %{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
 %{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
 %{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
@@ -184,6 +184,11 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %attr(755,root,root) %{_bindir}/cfsndserv
 
 %changelog
+* Wed Jul 02 2002 Bob Tanner <tanner@real-time.com>
+  + crossfire-client-1.3.1-realtime.2
+  - added 16x16, 32x32, 48x48 icons for proper KDE support
+  - added support for SMP builds
+
 * Wed Jul 02 2002 Bob Tanner <tanner@real-time.com>
   + crossfire-client-1.3.1-realtime.1
   - released 1.3.1 client
