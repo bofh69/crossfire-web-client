@@ -49,6 +49,7 @@ OBJECTS = $(SOURCES:.c=.o)
 
 EXTRA_DIST = \
 	Makefile.in		\
+	crossfire-client.desktop	\
 	gcfclient.man
 
 all:  gcfclient

@@ -1,38 +1,39 @@
-# 05/02/2004 - given that Redhat 9 was deprecated on 04/30/2004 and the consumer
-# version of Redhat linux no longer exists, I've switched to Debian and will no
-# longer be maintaining the .spec file for Redhat/Fedora Linux. -Bob
-#
 #
 # Grab the crossfire-images archive of the sourceforge files list.  If
 # you have a copy of the arch directory, you can run the
 # adm/collect_images -archive from the lib directory of the server and
 # it will make the archive.
 #
+# Now maintaining this - easy enough to do if it proves useful.
+# MSW 2005-02-28
+#
 %define Name crossfire
 %define extra client
-%define version 1.5.0
-%define sndversion 1.5.0
+%define version 1.7.1
+%define sndversion 1.7.1
 %define release 1
 %define prefix /usr/X11R6
+%define _sourcedir /export/home/crossfire/Client
+%define _srcrpmdir /export/home/crossfire/RPMS
+%define _rpmdir /export/home/crossfire/RPMS
 
 Name: %{Name}-%{extra}
 Version: %{version}
-Release: 1.realtime
+Release: 1
 Summary: Client for connecting to crossfire servers.
 Group: Amusements/Games/Crossfire
 Copyright: GPL
-Vendor: Real Time Enterprises, Inc. <support@real-time.com>
-Packager: Real Time Enterprises, Inc. <support@real-time.com>
-Distribution: Red Hat Linux 7.3 / i386
 URL: http://crossfire.real-time.com
-Source0: %{name}-%{version}.tar.bz2
-Source1: %{name}-sounds-%{version}.tar.bz2
-Source2: %{name}-images-%{version}.tar.bz2
+Source0: %{name}-%{version}.tar.gz
+Source1: %{name}-sounds-%{version}.tar.gz
+Source2: %{name}-images-%{version}.tar.gz
 Provides: crossfire-client
 Requires: SDL
 Requires: SDL_image
+Requires: alsa-lib
 BuildRequires: SDL-devel
-Requires: SDL_image-devel
+BuildRequires: SDL_image-devel
+BuildRequires: alsa-lib-devel
 Epoch: 4
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
@@ -62,22 +63,13 @@ Provides: crossfire-client
 %description gtk
 GTK version of the crossfire client
 
-#Not supported yet
-#%package gnome
-#Summary:gnome client for %{Name}
-#Group: X11/Games
-#Provides: crossfire-client
-#
-#%description gnome
-#gnome version of the crossfire client
-
 %prep
 %setup -q -a 1 -a 2 -n %{Name}-client-%{version}
 
 %build
 chmod 755 configure
 %configure --datadir=/usr/share/games/crossfire \
-	--with-sound-dir=/usr/share/sounds/crossfire
+	--with-sound-dir=/usr/share/sounds/crossfire --disable-dmalloc
 
 make %{?_smp_mflags}
 
@@ -87,12 +79,15 @@ make %{?_smp_mflags}
 # Sounds
 #
 install -d %{buildroot}%{_datadir}/sounds/crossfire
-install %{name}-sounds-%{version}/*.raw %{buildroot}%{_datadir}/sounds/crossfire
+install sounds/*.raw %{buildroot}%{_datadir}/sounds/crossfire
 #
 # Client images cd lib; adm/collect_images -archive
 #
 install -d %{buildroot}%{_datadir}/games/crossfire/%{name}
-install %{name}-images-%{version}/* %{buildroot}%{_datadir}/games/crossfire/%{name}
+install crossfire.clsc %{buildroot}%{_datadir}/games/crossfire/%{name}
+install crossfire.base %{buildroot}%{_datadir}/games/crossfire/%{name}
+install bmaps.client %{buildroot}%{_datadir}/games/crossfire/%{name}
+install README %{buildroot}%{_datadir}/games/crossfire/%{name}
 #
 # KDE
 #
@@ -146,13 +141,13 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %defattr(644,root,root,755)
 %doc CHANGES COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/cfclient
-%{_mandir}/man1/cfclient.1*
+%{_mandir}/man1/cfclient.6*
 
 %files gtk
 %defattr(644,root,root,755)
 %doc CHANGES COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/gcfclient
-%{_mandir}/man1/gcfclient.1*
+%{_mandir}/man1/gcfclient.6*
 %dir %{_datadir}/games/crossfire/%{name}
 %attr(0444,root,root) %{_datadir}/games/crossfire/%{name}/*
 
@@ -182,8 +177,13 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %dir %{_datadir}/sounds/crossfire
 %attr(444,root,root) %{_datadir}/sounds/crossfire/*
 %attr(755,root,root) %{_bindir}/cfsndserv
+%attr(755,root,root) %{_bindir}/cfsndserv-alsa9
 
 %changelog
+* Mon Feb 28 2005 Mark Wedel <mwedel@sonic.net>
++ crossfire-client-1.7.1-1
+- new release 1.7.1
+
 * Wed Feb 26 2003 Bob Tanner <tanner@real-time.com>
 + crossfire-client-1.5.0-1.realtime
 - new release 1.5.0

@@ -3,6 +3,12 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+crossfire-client.spec: Update for 1.7.1 release, make some other changes that
+   better match my system since I don't think anyone else is using it.
+gtk/Makefile.in: Add crossfire-client.desktop to list of files to add
+  to distribution.
+README.rpm: removed - had info that didn't really apply to me making RPM
+  files
 configure.in, configure: Add --disable-dmalloc option to configure.
 MSW 2005-02-28
 
