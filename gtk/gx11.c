@@ -3336,6 +3336,9 @@ static int get_menu_display (GtkWidget *box) {
   GtkWidget *pickupmenu;
   GtkWidget *newpickupmenu;
   GtkWidget *ratiopickupmenu;
+  GtkWidget *weaponpickupmenu;
+  GtkWidget *armourpickupmenu;
+  GtkWidget *bookspickupmenu;
   GtkWidget *clientmenu;
   GtkWidget *helpmenu;
   GtkWidget *menu_bar;
@@ -3348,6 +3351,9 @@ static int get_menu_display (GtkWidget *box) {
   GtkWidget *pickup_menu_item;
   GtkWidget *newpickup_menu_item;
   GtkWidget *ratiopickup_menu_item;
+  GtkWidget *weaponpickup_menu_item;
+  GtkWidget *armourpickup_menu_item;
+  GtkWidget *bookspickup_menu_item;
   GSList *pickupgroup;
   GSList *ratiopickupgroup;
   int i;
@@ -3640,182 +3646,247 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 #define PU_MAGICAL              0x00040000
 #define PU_POTION               0x00080000
 
+#define PU_SPELLBOOK		0x00100000
+#define PU_SKILLSCROLL		0x00200000
+#define PU_READABLES		0x00400000
+
+  /* root of the NEWPickup menu */
   newpickupmenu = gtk_menu_new();
-  
-  menu_items = gtk_tearoff_menu_item_new ();
-  gtk_menu_append (GTK_MENU (newpickupmenu), menu_items);
-  gtk_widget_show (menu_items);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(newpickup_menu_item), newpickupmenu);
+
+  menu_items = gtk_tearoff_menu_item_new();
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
+  gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Enable NEW autopickup");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_NEWMODE));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_NEWMODE));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Inhibit autopickup");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_INHIBIT));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_INHIBIT));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Stop before pickup");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_STOP));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_STOP));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Debug autopickup");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DEBUG));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DEBUG));
   gtk_widget_show(menu_items);
 
 
   /* the ratio pickup submenu */
   ratiopickupmenu = gtk_menu_new();
-  
-  menu_items = gtk_tearoff_menu_item_new ();
-  gtk_menu_append (GTK_MENU (ratiopickupmenu), menu_items);
-  gtk_widget_show (menu_items);
+  ratiopickup_menu_item = gtk_menu_item_new_with_label("Weight/Value Ratio");
+  gtk_menu_append(GTK_MENU(newpickupmenu), ratiopickup_menu_item);
+  gtk_widget_show(ratiopickup_menu_item);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(ratiopickup_menu_item), ratiopickupmenu);
 
   ratiopickupgroup=NULL;
 
-  menu_items = gtk_check_menu_item_new_with_label("Ratio Pickup");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  ratiopickup_menu_item = gtk_menu_item_new_with_label("Weight/Value Ratio");
-  gtk_menu_append(GTK_MENU (newpickupmenu), ratiopickup_menu_item);
-  gtk_widget_show(ratiopickup_menu_item);
-
-  menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Pick up all magic items.");
-  pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
-  gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(menu_pickup6), NULL);
+  menu_items = gtk_tearoff_menu_item_new();
+  gtk_menu_append(GTK_MENU(ratiopickupmenu), menu_items);
   gtk_widget_show(menu_items);
 
-  for(i=0;i<16;i++)
+  for (i=0;i<16;i++)
   {
-    if(i==0) sprintf(menustring,"Ratio pickup OFF");
+    if (i==0) sprintf(menustring,"Ratio pickup OFF");
     else sprintf(menustring,"Ratio >= %d",i*5);
     menu_items = gtk_radio_menu_item_new_with_label(ratiopickupgroup, menustring);
-    ratiopickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
-    gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-    gtk_menu_append(GTK_MENU (ratiopickupmenu), menu_items);   
+    ratiopickupgroup = gtk_radio_menu_item_group(GTK_RADIO_MENU_ITEM(menu_items));
+    gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+    gtk_menu_append(GTK_MENU(ratiopickupmenu), menu_items);   
     gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(i));
     gtk_widget_show(menu_items);
   }
-  gtk_menu_item_set_submenu(GTK_MENU_ITEM (ratiopickup_menu_item), ratiopickupmenu);
+
+
+  /* weapon pickup menu */
+  weaponpickupmenu = gtk_menu_new();
+  weaponpickup_menu_item = gtk_menu_item_new_with_label("Weapons");
+  gtk_menu_append(GTK_MENU(newpickupmenu), weaponpickup_menu_item);
+  gtk_widget_show(weaponpickup_menu_item);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(weaponpickup_menu_item), weaponpickupmenu);
+
+  menu_items = gtk_tearoff_menu_item_new();
+  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("All weapons");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ALLWEAPON));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Missile Weapons");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MISSILEWEAPON));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Bows");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOW));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Arrows");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARROW));
+  gtk_widget_show(menu_items);
+
+
+  /* armour pickup menu */
+  armourpickupmenu = gtk_menu_new();
+  armourpickup_menu_item = gtk_menu_item_new_with_label("Armour");
+  gtk_menu_append(GTK_MENU(newpickupmenu), armourpickup_menu_item);
+  gtk_widget_show(armourpickup_menu_item);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(armourpickup_menu_item), armourpickupmenu);
+
+  menu_items = gtk_tearoff_menu_item_new();
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Helmets");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_HELMET));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Shields");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SHIELD));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Body Armour");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARMOUR));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Boots");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOOTS));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Gloves");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_GLOVES));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Cloaks");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_CLOAK));
+  gtk_widget_show(menu_items);
+
+
+  /* books pickup menu */
+  bookspickupmenu = gtk_menu_new();
+  bookspickup_menu_item = gtk_menu_item_new_with_label("Books");
+  gtk_menu_append(GTK_MENU(newpickupmenu), bookspickup_menu_item);
+  gtk_widget_show(bookspickup_menu_item);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(bookspickup_menu_item), bookspickupmenu);
+
+  menu_items = gtk_tearoff_menu_item_new();
+  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Spellbooks");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SPELLBOOK));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Skillscrolls");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SKILLSCROLL));
+  gtk_widget_show(menu_items);
+
+  menu_items = gtk_check_menu_item_new_with_label("Normal Books/Scrolls");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_READABLES));
+  gtk_widget_show(menu_items);
 
 
   /* continue with the rest of the stuff... */
 
   menu_items = gtk_check_menu_item_new_with_label("Food");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_FOOD));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_FOOD));
   gtk_widget_show(menu_items);
+
   menu_items = gtk_check_menu_item_new_with_label("Drinks");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DRINK));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DRINK));
   gtk_widget_show(menu_items);
+
   menu_items = gtk_check_menu_item_new_with_label("Valuables (Money, Gems)");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_VALUABLES));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_VALUABLES));
   gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("Bows");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOW));
-  gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("Arrows");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARROW));
-  gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("Helmets");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_HELMET));
-  gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("Shields");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SHIELD));
-  gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("Armour");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARMOUR));
-  gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("Boots");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOOTS));
-  gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("Gloves");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_GLOVES));
-  gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("Cloaks");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_CLOAK));
-  gtk_widget_show(menu_items);
+
   menu_items = gtk_check_menu_item_new_with_label("Keys");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_KEY));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_KEY));
   gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("Missile Weapons");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MISSILEWEAPON));
-  gtk_widget_show(menu_items);
-  menu_items = gtk_check_menu_item_new_with_label("All weapons");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
-  gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ALLWEAPON));
-  gtk_widget_show(menu_items);
+
   menu_items = gtk_check_menu_item_new_with_label("Magical Items");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MAGICAL));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MAGICAL));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Potions");
-  gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (newpickupmenu), menu_items);   
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_POTION));
+	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_POTION));
   gtk_widget_show(menu_items);
 
 
-  gtk_menu_item_set_submenu(GTK_MENU_ITEM (newpickup_menu_item), newpickupmenu);
-
+/* --------------------------------------------------------------------- */ 
 /* --------------------------------------------------------------------- */ 
 /* --------------------------------------------------------------------- */ 
 /* --------------------------------------------------------------------- */ 
