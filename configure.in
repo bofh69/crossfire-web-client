@@ -238,7 +238,7 @@ if eval "test x$use_sdl = xyes"; then
       if eval "test x$have_sdlimage = xyes"; then
           SDL_LIBS="$SDL_LIBS -lSDL_image"
       else
-          no_sdl= "yes"
+          no_sdl=yes
       fi
   fi
 
