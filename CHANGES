@@ -1,3 +1,10 @@
+Changes for CVS tree top:
+
+fix unbind and bind in xutil.c so they properly skip over leading spaces
+- msw.
+
+fix Makefile.in so make depend will pick up x11.c dependencies - msw.
+
 Fix 'help command so that the draw info commands are formatted to fit 
 on the default window width (player.c - msw).
 

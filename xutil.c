@@ -817,6 +817,9 @@ void bind_key(char *params)
     return;
   }
 
+  /* Skip over any spaces we may have */
+  while (*params==' ') params++;
+
   if (!strcmp(params, "commandkey")) {
     bind_keycode = &commandkey;
     bind_keysym = &commandkeysym;
@@ -852,9 +855,6 @@ void bind_key(char *params)
     cpl.input_state = Configure_Keys;
     return;
   }
-
-  /* Skip over any spaces we may have */
-  while (*params==' ') params++;
 
   if (params[0] != '-')
     bind_flags =KEYF_MODIFIERS;
@@ -1004,6 +1004,10 @@ void unbind_key(char *params)
 	show_keys(0);
 	return;
     }
+
+    /* Skip over any spaces we may have */
+    while (*params==' ') params++;
+
     if (!strcmp(params,"-a")) {
 	show_keys(1);
 	return;
