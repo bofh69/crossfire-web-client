@@ -3,6 +3,10 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+
+------------------------------------------------------------------------------
+Changes for 1.1.0:
+
 README: Update notes on needing png (and not xpm) library.  Update mailing
     alias.
 configure.in, configure: As the seperate sound program (cfsndserv) is the
