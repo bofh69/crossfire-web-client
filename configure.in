@@ -200,7 +200,9 @@ fi
 # this fi is for the sound == yes check above
 fi
 
-if eval "test x`which gnome-config 2> /dev/null` = x"; then
+AC_PATH_PROG(GNOMECONFIG, gnome-config)
+
+if test -n "GNOMECONFIG" ; then
 	gnome=no
 	echo "Can't find gnome-config, not building Gnome client."
 fi
