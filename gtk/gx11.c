@@ -68,10 +68,6 @@
 #include <errno.h>
 #endif
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/xpm.h>
-
 /* gtk */
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>

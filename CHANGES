@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/config.c, gtk/gx11.c: remove including some files which we don't need included.
+gtk/keys.c: Modify to not use X11 for keybinding - instead, uses gdk
+    functionality - this should make it more portable.
+MSW 2003-01-22
+
 Patch by scachi@gmx.de to add different display options for the players
 resistances.
 common/client.h: increase CONFIG_NUMS and add CONFIG_RESISTS

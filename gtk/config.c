@@ -35,19 +35,11 @@
 #include <errno.h>
 #endif
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/xpm.h>
-
 /* gtk */
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
 
-#ifdef HAVE_SDL
-#include <SDL.h>
-#include <SDL_image.h>
-#endif
 
 /* always include our local headers after the system headers are included */
 #include "client.h"
