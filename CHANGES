@@ -3,6 +3,9 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+configure.in, configure: Modified so that if not compiling the
+  gnome client, we don't create the gnome Makefile.  MSW 2001-11-05
+
 gtk/gcfclient.man: Add -timemapredraw documentation to man page.
 gtk/gx11.c: Update size of buffers to 100k, instead of 10k.  Add some
    debugging information to when info window is trimmed.  Add -timemapredraw

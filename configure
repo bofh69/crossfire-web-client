@@ -8107,10 +8107,10 @@ _ACEOF
 fi
 done
 
-OUTPUT_FILES="Makefile gnome/Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile"
+OUTPUT_FILES="Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile"
 
 if eval "test x$gnome = xyes"; then
-	OUTPUT_FILES="$OUTPUT_FILES gnome/gnome-cfclient.soundlist"
+	OUTPUT_FILES="$OUTPUT_FILES gnome/Makefile gnome/gnome-cfclient.soundlist"
 fi
 
 ac_config_files="$ac_config_files ${OUTPUT_FILES}"

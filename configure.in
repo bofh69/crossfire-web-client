@@ -340,10 +340,10 @@ dnl Make all makefiles, even if SUBDIRS are not set for that directory.
 dnl since SUBDIRS won't be set in the top level makefile, we don't
 dnl descend into these subdirs.
 
-OUTPUT_FILES="Makefile gnome/Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile"
+OUTPUT_FILES="Makefile gtk/Makefile x11/Makefile common/Makefile sound-src/Makefile"
 
 if eval "test x$gnome = xyes"; then
-	OUTPUT_FILES="$OUTPUT_FILES gnome/gnome-cfclient.soundlist"
+	OUTPUT_FILES="$OUTPUT_FILES gnome/Makefile gnome/gnome-cfclient.soundlist"
 fi
 
 AC_OUTPUT(${OUTPUT_FILES})
