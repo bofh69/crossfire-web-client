@@ -1,6 +1,10 @@
 "$Id$"
 Top of CVS tree:
 
+
+------------------------------------------------------------------------------
+Changes for 0.95.7:
+
 configure.in, configure:  Move check for -lm before png check, and
 libpng on sparc/solaris systems require math library for proper linking.
 Also, change the -with-xpm* to -with-ldflags and -with-includes to be
@@ -39,6 +43,7 @@ client.h: Update SC version to 1024.
 item.h: Remove name and o_name from item structure, instead there is now
   d_name, s_name, and p_name, representing the display name, singular name,
   and plural name.  display name is derived from the s/p names plus nrof value.
+
 commands.c: Chance strncpy to memcpy, as a null character is used to seperate
   the two name values.  UpdateItemCmd is also modified to supply an empty
   string to set_item_values instead of the same name if the name is unchanged.
