@@ -425,6 +425,8 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
     int emx,emy;
     int smoothface;
     int dosmooth=0;
+    if (the_map.cells[mx][my].heads[0].face==0)
+        return;
     for (i=0;i<8;i++){
         emx=mx+dx[i];
         emy=my+dy[i];
@@ -530,8 +532,8 @@ void gtk_draw_map(int redraw) {
 	    my = y + pl_pos.y;
 
 	    /* Don't need to touch this space */
-	    /*if (!redraw && !the_map.cells[mx][my].need_update && !map_did_scroll) continue;*/
-
+	    if (!redraw && !the_map.cells[mx][my].need_update && !map_did_scroll&& !the_map.cells[mx][my].need_resmooth) 
+            continue;
 	    /* First, we need to black out this space. */
 	    gdk_draw_rectangle(mapwindow, drawingarea->style->black_gc, TRUE, x * map_image_size, y * map_image_size, map_image_size, map_image_size);
 	    /* now draw the different layers.  Only draw if using fog of war or the
@@ -638,10 +640,10 @@ void gtk_draw_map(int redraw) {
 				x * map_image_size, y*map_image_size, map_image_size, map_image_size);
 	    }
 	    /* Don't redraw this space if we're going to redraw the entire map below */
-	    if (!map_did_scroll) 
+	    /*if (!map_did_scroll) 
 		gdk_draw_pixmap(drawingarea->window, drawingarea->style->black_gc, mapwindow, 
 			    x * map_image_size, y*map_image_size, x * map_image_size, y * map_image_size,
-			    map_image_size, map_image_size);
+			    map_image_size, map_image_size);*/
 
 	} /* For y spaces */
     } /* for x spaces */
@@ -657,6 +659,8 @@ void gtk_draw_map(int redraw) {
 		    0, 0, 0, 0, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size);
 	map_did_scroll = 0;
     }
+    else gdk_draw_pixmap(drawingarea->window, drawingarea->style->black_gc, mapwindow,
+		    0, 0, 0, 0, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size);
 
     if (time_map_redraw) {
 	gettimeofday(&tv3, NULL);
