@@ -187,8 +187,10 @@ void send_command(const char *command, int repeat, int must_send) {
 	 * the same, drop it
 	 */
 	if (commdiff>cpl.command_window && !must_send && !strcmp(command, last_command)) {
+#if 0 /* Obnoxious warning message we don't need */
 	    fprintf(stderr,"Wont send command %s - window oversized %d %d\n",
 		    command, csocket.command_sent, csocket.command_received);
+#endif
 	}
 	else {
 	    SockList sl;

@@ -13,6 +13,9 @@
 # is better to put them at a later number so more specific matches will
 # happen first.
 #
+# While this has not been done for all categories, please try to order
+# the entries for each category (number) in alphabetical order.
+#
 # containers
 # Moved containers to the top - this is because of stuff like quiver of
 # arrows, but also more convenient
@@ -27,25 +30,34 @@ chest
 key ring
 # Weapon types
 2:
-sword
-mace
-hammer
-Dragonslayer
-Demonslayer
-Trident
-Flame Tongue
-Lightning sticks
-Stormbringer
-dagger
-quarterstaff
-club
 axe
+club
+dagger
+Darkblade
+Demonslayer
+Dragonslayer
+falchion
+Flame Tongue
+FlameTongue
+hammer
+katana
+Lightning sticks
+mace
 magnifying glass
-spear
 morningstar
-taifu
-scimitar
+Mournblade
+nunchacu
+quarterstaff
 sabre
+scimitar
+shovel
+spear
+stake
+sword
+Stormbringer
+taifu
+Trident
+trident
 3:
 bow
 crossbow
@@ -59,8 +71,12 @@ mail
 leather
 robe
 shirt
+apron
+# Headware
 11:
 helmet
+Crown
+crown
 12:
 shield
 13:
@@ -76,27 +92,34 @@ cloak
 bracer
 # food
 20:
-food
-waybread
-roast bird
-water
+apple
 booze
+bread
 cabbage
+cake
 carrot
 chocolate
 clover
-mint sprig
-bread
-cake
+cup 
+egg
 fish
-steak
-apple
+food
+mint sprig
+mushroom
+onion
+orange
 potato
+roast bird
+steak
+waybread
+water
+# gems
 30:
-ruby
 diamond
-pearl
 emerald
+gold nugget
+pearl
+ruby
 sapphire
 31:
 coin
@@ -112,45 +135,67 @@ horn
 53:
 amulet
 54:
-ring 
-a ring
+ring
+Ring 
 55:
 scroll
+# Spellbooks
 56:
 grimore
-treatise
+grimoire
+hymnal
 manual
-tome
+prayerbook
+sacred text
 spellbook
+testiment
+treatise
+tome
+# Readables.  Note we included the generic book here.
 57:
-lab book
-guidebook
-notebook
+book
+catalog
+codex
+collection
+compendium
+compilation
+divine work
+encyclopedia
+exposition
+file 
 formulary
-tables
-recipe book
-pamphlet
-lab notes
-handbook
 guide 
-cookbook
+holy book 
+holy record 
+index
+moral text
+notes
+note
+pamphlet
+record 
+tables
+transcript
+volume
 59:
 potion
+bottle
 61:
 balm 
 dust 
+figurine
 # Item building scrolls
 63:
 Improve
 Lower Weapon
 Enchant Weapon
 Prepare Weapon
-Enchant Armor
+Enchant Armour
 # Misc skill objects
 65:
+holy symbol
+lockpick
 talisman
 writing pen
-lockpick
 67:
 key
 Key
@@ -158,24 +203,36 @@ Key
 # body parts
 #
 70:
-pixie dust
+arm
 claw
-ectoplasm
 corpse
-wing
-residue
-lich dust
+dragon scale
+ectoplasm
+eye
+foot
+hand
+head
 heart
+icor
+leg
+lich dust
 liver
 orc chop
+pixie dust
+residue
+skin
 stinger
-beholdereye
-head
-hand
-foot
+tongue
+tooth
+wing
 # Misc alchemy items (minerals)
 71:
 dirt
+lead
+mandrake root
+pile
+rock
+stone
 #
 80:
 flint and steel
@@ -184,6 +241,12 @@ torch
 # Misc stuff - just to prevent error messages
 #
 90:
-icecube
+clock
+flower
+Gate Pass
 Glowing Crystal
+gravestone
+icecube
 library card
+Port Pass
+rose
