@@ -877,12 +877,14 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 void get_map_image_size(int face, uint8 *w, uint8 *h)
 {
     /* This function is not implemented yet, so just return default values */
-    if (face == 0) {
+    if (face == 0 || pixmaps[face] == NULL) {
 	*w = 1;
 	*h = 1;
     }
-    *w = pixmaps[face]->width;
-    *h = pixmaps[face]->height;
+    else {
+	*w = pixmaps[face]->width;
+	*h = pixmaps[face]->height;
+    }
 }
 
 
