@@ -94,7 +94,7 @@
  * options, 200-299 is for the resistance options, etc.
  */
 
-#define MAX_BUTTONS	    35
+#define MAX_BUTTONS	    36
 #define RBUTTON	    1
 #define CBUTTON	    2
 #define SEPERATOR   3	    /* Seperator in the window */
@@ -156,6 +156,9 @@ CButtons cbuttons[MAX_BUTTONS] = {
     "Trims text in the information window - " /**/
     "improves performance but bugs in\n gtk make the client unstable if this is used." /**/
     "This may work better with gtk 2.0"},
+{NULL, 	    CBUTTON,	    CONFIG_APPLY_CONTAINER,	FLAG_UPDATE,
+    "Automatically re-applies a container when you use apply to close it.  If off, when you use apply to close the container, it stays unapplied"},
+
 {NULL,	    SEPERATOR,		0,		0,
     "Options on how to display resistances:"},
 {NULL, 	    RBUTTON,	    200,		0,

@@ -2,6 +2,18 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Add an option to the gtk client which controls what happens when you use apply
+to cycle through containers.  It used to be closed->applied->open->applied.
+Now, if you select the config option, it goes closed->applied->open->close->..
+common/client.h: Add new config variable.
+common/commands.c: Remove some dead commented out code.
+common/init.c: Update save name for config value.
+gtk/config.c: Update to have menu option in config window.
+gtk/gx11.c: Change close_container() to send/not send apply based on setting.
+   Add close_container_callback() which is used for the 'close' button,
+   which has to always send the apply command.
+MSW 2003-10-08
+
 common/commands.c: improve expand_face() - there was the problem if multipart
    object that overlapped not always being drawn properly.  This is because
    expand_face would basicaly put the first one it received on the lower

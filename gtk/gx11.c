@@ -2778,7 +2778,23 @@ void open_container (item *op)
   draw_list (&look_list);
 }
 
-void close_container (item *op) 
+void close_container(item *op)
+{
+  if (look_list.env != cpl.below) {
+    if (use_config[CONFIG_APPLY_CONTAINER])
+	client_send_apply (look_list.env->tag);
+    look_list.env = cpl.below;
+    strcpy (look_list.title, "You see:");
+    draw_list (&look_list);
+  }
+}
+
+/* This is basically the same as above, but is used for the callback
+ * of the close button.  As such, it has to always send the apply.
+ * However, since its a callback, its not like we can just easily
+ * pass additional parameters.
+ */
+void close_container_callback(item *op)
 {
   if (look_list.env != cpl.below) {
     client_send_apply (look_list.env->tag);
@@ -2787,7 +2803,6 @@ void close_container (item *op)
     draw_list (&look_list);
   }
 }
-
 
 /* Handle mouse presses in the lists */
 static void list_button_event (GtkWidget *gtklist, gint row, gint column, GdkEventButton *event, itemlist *l)
@@ -3061,7 +3076,7 @@ static int get_look_display(GtkWidget *frame)
 
   closebutton = gtk_button_new_with_label ("Close");
   gtk_signal_connect_object (GTK_OBJECT (closebutton), "clicked",
-			       GTK_SIGNAL_FUNC(close_container),
+			       GTK_SIGNAL_FUNC(close_container_callback),
 			       NULL);
   gtk_box_pack_start (GTK_BOX(hbox1),closebutton, FALSE, FALSE, 2);
   gtk_widget_show (closebutton);

@@ -657,11 +657,6 @@ void item_actions (item *op)
 	close_container (op);
 	cpl.container=NULL;
     }
-/*
-    if (op->env == cpl.below) {
-	check_auto_pickup (op);
-    }
-*/
 }
 
 
