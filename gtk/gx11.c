@@ -345,7 +345,7 @@ void do_network() {
 	    if (FD_ISSET(csocket.fd, &tmp_read)) {
 		DoClient(&csocket);
 #ifndef WIN32
-	    if ( pollret > 1 ) script_process(&tmp_read);
+		if ( pollret > 1 ) script_process(&tmp_read);
 #endif
 	    }
 	    else {
