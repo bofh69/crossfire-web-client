@@ -45,7 +45,7 @@ EXTRA_DIST = \
 	gnome-cfclient.man
 
 all: 
-	echo "Gnome client currently not supported"
+	-echo "Gnome client currently not supported"
 
 gnome-cfclient: $(OBJECTS) ../common/libcfclient.a
 	$(CC) -o gnome-cfclient $(OBJECTS) $(GNOME_LIBS) $(LDFLAGS) $(LIBS) $(DMALLOC_LIB) ../common/libcfclient.a

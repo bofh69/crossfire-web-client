@@ -2,12 +2,10 @@
  * static char *rcsid_png_c =
  *   "$Id$";
  */
-
 /*
-    CrossFire, A Multiplayer game for X-windows
+    Crossfire client, a client program for the crossfire program.
 
     Copyright (C) 2001 Mark Wedel & Crossfire Development Team
-    Copyright (C) 1992 Frank Tore Johansen
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,6 +23,7 @@
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
+
 
 #include "config.h"
 #include <stdlib.h>

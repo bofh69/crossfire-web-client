@@ -1,13 +1,33 @@
 /*
- * static char *rcsid_xio_c =
+ * static char *rcsid_keys_c =
  *   "$Id$";
- *
- * This contains varous 'support' functions.  These functions will probably
- * go mostly unaltered between different toolkits, as long as X11 is still
- * used.  This file is not compiled seperately, rather it is included by
- * x11.c, so all statics will still work fine.
  */
+/*
+    Crossfire client, a client program for the crossfire program.
 
+    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+    The author can be reached via e-mail to crossfire-devel@real-time.com
+*/
+
+/* This file handles most of the keyboard related functions - binding
+ * and unbinding keys, and handling keypresses and looking up the
+ * keys.
+ */
 
 #include "config.h"
 #include <stdlib.h>

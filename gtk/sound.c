@@ -4,9 +4,33 @@
  */
 
 /*
- * This file contains the sound support for the client.  It is written to
- * be optimized for linux, however it should probably work on any system
- * with /dev/audio support (will just lose the stereo and volume adjustments.)
+    CrossFire, A Multiplayer game for X-windows
+
+    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 1992 Frank Tore Johansen
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+    The author can be reached via e-mail to crossfire-devel@real-time.com
+*/
+
+
+/*
+ * This file contains the sound support for the client.  It does not
+ * actually play sounds, but rather tries to run cfsndserver, which
+ * is responsible for playing sounds.
  */
 
 #include "config.h"

@@ -1,5 +1,5 @@
 /*
- * static char *rcsid_xio_c =
+ * static char *rcsid_sdl_c =
  *   "$Id$";
  */
 
@@ -25,7 +25,6 @@
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
-
 
 #include "config.h"
 #ifdef HAVE_SDL
