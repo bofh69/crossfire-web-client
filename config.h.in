@@ -50,3 +50,6 @@
 
 /* Define/not defined depending on the endianness of this system */
 #undef WORDS_BIGENDIAN
+
+/* Define/not defined depending on the endianness of this system */
+#undef HAVE_IMLIB_H

@@ -245,6 +245,9 @@ dnl Test for libXpm
       AC_MSG_ERROR(XPM library not found - you may need to use --with-xpm-lib=dir), $X_LIBS)
   fi
 
+dnl Put this here so we get the gdk libs
+AC_CHECK_LIB(gdk_imlib, main,GTK_LIBS="$GTK_LIBS -lgdk_imlib")
+
 dnl Restore previous CPPFLAGS and LIBS.
 CPPFLAGS="$gcfc_save_CPPFLAGS"
 LIBS="$gcfc_save_LIBS"
@@ -254,13 +257,17 @@ AC_SUBST(LIBS)
 dnl not strictly needed, but since the X11 client uses it, lets use it here
 AC_CHECK_LIB(dmalloc, main)
 
+dnl Imlib uses x-extensions, so we check for that before imlib.
+AC_CHECK_LIB(Xext, main)
+AC_CHECK_LIB(Imlib, main,X_LIBS="$X_LIBS -lImlib")
+
 dnl sound.c needs sqrt
 AC_CHECK_LIB(m, sqrt)
 
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h string.h sys/select.h)
+AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h string.h sys/select.h Imlib.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

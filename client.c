@@ -56,6 +56,7 @@ struct CmdMapping commands[] = {
 
     { "pixmap", PixMapCmd },
     { "bitmap", BitMapCmd },
+    { "image", ImageCmd },
     { "face", FaceCmd},
 
 
@@ -201,6 +202,17 @@ int main(int argc, char *argv[])
 
     SendVersion(csocket);
 
+    /* We need to get the version command fairly early on because
+     * we need to know if the server will support a request to use
+     * png images.  This isn't done the best, because if the server
+     * never sends the version command, we can loop here forever.
+     * However, if it doesn't send the version command, we have no idea
+     * what we are dealing with.
+     */
+    while (csocket.cs_version==0) {
+	DoClient(&csocket);
+    }
+
     cache = display_willcache();
     if (cache) cache = CF_FACE_CACHE;
 
@@ -208,11 +220,18 @@ int main(int argc, char *argv[])
 	SendSetFaceMode(csocket,CF_FACE_BITMAP | cache); 
     else if (display_noimages())
 	SendSetFaceMode(csocket,CF_FACE_NONE);
-    else if (cache) {
-	/* by default, xpm mode is used, so se only need to send XPM mode
-	 * if cachine.
-	 */
-	SendSetFaceMode(csocket, CF_FACE_XPM | CF_FACE_CACHE);
+    else if (display_usexpm()) 
+	SendSetFaceMode(csocket,CF_FACE_XPM | cache);
+    else if (display_usepng()) {
+	if (csocket.sc_version<1023) {
+	    fprintf(stderr,"Server does not support Png images\n");
+	    /* Perhaps we should do something better like go to xpm mode
+	     * or the like, but I am not sure if making such a fallback would
+	     * always be desirable or not.
+	     */
+	    exit(1);
+	}
+	else SendSetFaceMode(csocket,CF_FACE_PNG | cache);
     }
 
     sound = init_sounds();

@@ -188,16 +188,16 @@ S->C: version <csval> [scval [vinfo]]
 	ignores).  It is really up to the client to enforce versioning and
 	quit if the versions don't match.
 
-	scval and vinfo was added starting in 1020.  Before that version, there was
-	only one version sent in the version command.
+	scval and vinfo was added starting in 1020.  Before that version,
+	there was only one version sent in the version command.
 
 	The version are currently integers, in the form ABCD.  
 	A = 1, and will	likely for quite a while.  This will only really change
 	if needed from rollover of B.
 
-  	B represents major protocol changes - if B mismatches, the clients will 
-	be totally unusable.  Such an example would be change of map or item
-	sending commands (either new commands or new format.)
+  	B represents major protocol changes - if B mismatches, the clients
+	will be totally unusable.  Such an example would be change of map or
+	item sending commands (either new commands or new format.)
 
 	C represents more minor but still significant changes - clients might 
 	still work together, but some features that used to work may now fail
@@ -496,6 +496,16 @@ S->C: bitmap <face><fg><bg><data>
 	foreground and background colors.  <data> is 72 bytes of data.
 	(Images are 24x24, but you get 8 bits/byte, so 24*24/8 = 72)
 
+S->C: image <face><len><data>
+	Command added in SC version 1023.
+	This command is much the same as the pixmap command above. face
+	and len are 4 binary bytes.  Data is the information necessary
+	to render the image.  Image can be of any of numerous types as
+	support gets added for new images - however, it is guaranteed that
+	the server will send the image type the client has requested with
+	the facemode command.  Currently, this is only used for png
+	images.
+
 S->C: face <num><name>
 	Informs the client that <num> (binary short) is associated with
 	<name>.  This is used when the client is caching images.  In normal
@@ -512,6 +522,7 @@ S->C: face <num><name>
 C->S: setfacemode <val>
 	This tells the server what type of display mode the client is using.
 	<val> is a plaintext integer.  0=no faces, 1=bitmap, 2=xpm (pixmap).
+	3=png (added in CS version 1022)
 	If the 5'th bit is true (ie, 0x10 & val is true), that then informs
 	the server that client is caching the images, and only send image
 	names.
@@ -806,10 +817,19 @@ to still request all the images, but isstill doing pretty constand redraws
 of the data.)  But times after that, performance is greatly improved.
 
 ------------------------------------------------------------------------------
-Todo:
+Changes:
 
- These are some ideas that might be nice to do, but probably don't make sense
-to do until the X11 support is removed from the server.
+This area documents changes in the protocol version and what happened between
+them:
+
+CS version 1021 -> 1022: Client supports sending of verbal image type
+questions.
+
+SC version 1022 -> 1023: Server supports sending png images (addition of
+image command).
+
+------------------------------------------------------------------------------
+Todo:
 
  It probably makes more sense to do a more preemptive handling of socket
 events.  That is, instead of sleeping 120 ms, then checking all the 

@@ -143,6 +143,32 @@ void PixMapCmd(unsigned char *data,  int len)
     display_newpixmap(pnum,(char*)data+8,plen);
 }
 
+void ImageCmd(unsigned char *data,  int len)
+{  
+    int pnum,plen;
+
+    pnum = GetInt_String(data);
+    plen = GetInt_String(data+4);
+/*    fprintf(stderr,"Recieved pixmap %d, len %d", pnum, plen);*/
+    if (len<8 || (len-8)!=plen) {
+	fprintf(stderr,"PixMapCmd: Lengths don't compare (%d,%d)\n",
+		(len-8),plen);
+	return;
+    }
+    /* Currently, the image command should only really be used for 
+     * for png, but it could just as easily get used for xpm with no
+     * significant changes.
+     */
+    if (display_usexpm()) {
+	display_newpixmap(pnum,(char*)data+8,plen);
+    } else if (display_usepng()) {
+	display_newpng(pnum,(char*)data+8,plen);
+    }
+    else {
+	fprintf(stderr,"Image command called with unknown image type.\n");
+    }
+}
+
 void BitMapCmd(unsigned char *data, int len)
 {
     int pnum = GetInt_String(data);

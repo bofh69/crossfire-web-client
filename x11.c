@@ -109,7 +109,7 @@
 #define _Xconst 
 #endif
 
-#define MAX_BUF 256
+#define MAX_BUF 300
 
 /* All the following are static because these variables should
  * be local only to this file.  Since the idea is to have only
@@ -185,8 +185,15 @@ static int FONTHEIGHT= 13;
 #define WINLEFT (-5)
 #define WINRIGHT 5
 
+/* What follows is various constants (or calculations) for various
+ * window sizes.
+ */
+
 /* Width (and height) of the game window */
-#define GAME_WIDTH  269
+#define GAME_WIDTH  (image_size * 11 + 5)
+
+#define STAT_HEIGHT 100
+
 /* Width of the inventory and look window */
 #define INV_WIDTH   300
 /* spacing between windows */
@@ -245,7 +252,8 @@ static InfoData infodata = {0, 0, 0, 0, 0, INFOLINES, INFOLINES, NDI_BLACK,
 
 static uint8	
 	split_windows=FALSE,
-	iscolor = TRUE;
+	iscolor = TRUE,
+	image_size=24;
 
 
 #define MAXFACES 100
@@ -299,6 +307,11 @@ static Stats last_stats = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 static Window win_root, win_game,win_stats,win_message;
 /* info win */
 #define INFOCHARS 50
+
+#ifdef HAVE_IMLIB_H
+#include <Imlib.h>
+static ImlibData *id;
+#endif
 
 #include <xutil.c>
 
@@ -368,14 +381,17 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	}
 	XCopyPlane(display,pixmaps[face].bitmap,where,gc_game,
 	     0,0,24,24,x,y,1);
-    } else if (display_mode == Xpm_Display && pixmaps[face].mask == None) {
+    } else if ((display_mode == Xpm_Display || display_mode==Png_Display)
+	       && pixmaps[face].mask == None) {
 	    XCopyArea(display, pixmaps[face].pixmap,
 	      where,gc_floor,
-	      0,0,24,24,x,y);
-    } else if (display_mode == Xpm_Display) {
+	      0,0,image_size,image_size,x,y);
+
+    /* Xpm and png do exactly the same thing */
+    } else if ((display_mode == Xpm_Display) || (display_mode == Png_Display)) {
 	/* Basically, what it looks like all this does is to try and preserve
-	 * gc's with various clipmasks set.
-	 */
+	 * gc's with various clipmasks set. */
+
 	int gcnum,i;
 	Pixmap mask;
 	GC gc;
@@ -410,7 +426,7 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 	XSetClipOrigin(display, gc_xpm[0], x, y);
 	XCopyArea(display, pixmaps[face].pixmap,
 	    where,gc_xpm[0],
-	    0,0,24,24,x,y);
+	    0,0,image_size,image_size,x,y);
     } else {
 	fprintf(stderr,"Unknown display mode %d\n",display_mode);
 	abort();
@@ -430,7 +446,7 @@ void end_windows()
     XFreeGC(display, look_list.gc_icon);
     XFreeGC(display, look_list.gc_status);
     XFreeGC(display, gc_message);
-    if (display_mode==Xpm_Display) {
+    if (display_mode==Xpm_Display || display_mode==Png_Display) {
 	XFreeGC(display, gc_xpm_object);
     }
     XDestroyWindow(display,win_game);
@@ -452,8 +468,10 @@ static int get_game_display() {
    
     gamehint.x=INV_WIDTH + WINDOW_SPACING;
     gamehint.y=104;
+
     gamehint.width=GAME_WIDTH;
-    gamehint.height=GAME_WIDTH;
+    gamehint.height=gamehint.width;
+
     gamehint.max_width=gamehint.min_width=gamehint.width;
     gamehint.max_height=gamehint.min_height=gamehint.height;
     gamehint.flags=PPosition | PSize;
@@ -495,7 +513,7 @@ static int get_game_display() {
     gc_blank = XCreateGC(display,win_game,0,0);
     XSetForeground(display,gc_blank,discolor[0].pixel);	/*set to black*/
     XSetGraphicsExposures(display,gc_blank,False);
-    if (display_mode==Xpm_Display) {
+    if (display_mode==Xpm_Display || display_mode==Png_Display) {
 	int i;
 	for (i=0; i<XPMGCS; i++) {
 	    gc_xpm[i] = XCreateGC(display, win_game, 0,0);
@@ -506,8 +524,8 @@ static int get_game_display() {
 	XSetGraphicsExposures(display, gc_xpm_object, False);
 	XSetClipOrigin(display, gc_xpm_object,0, 0);
 	xpm_pixmap = XCreatePixmap(display, RootWindow(display,
-		DefaultScreen(display)), 24, 24, DefaultDepth(display,
-		DefaultScreen(display)));
+		DefaultScreen(display)), image_size, image_size, 
+		DefaultDepth(display, DefaultScreen(display)));
 	gc_clear_xpm = XCreateGC(display,xpm_pixmap,0,0);
 	XSetGraphicsExposures(display,gc_clear_xpm,False);
 	XSetForeground(display,gc_clear_xpm,discolor[12].pixel); /* khaki */
@@ -1309,11 +1327,13 @@ static int get_message_display() {
     XSizeHints messagehint;
 
     messagehint.x=INV_WIDTH + WINDOW_SPACING;
-    messagehint.y=378;
+    /* Game window is square so we can use the width */
+    messagehint.y=GAME_WIDTH + STAT_HEIGHT+WINDOW_SPACING*2;
     messagehint.width=GAME_WIDTH;
-    messagehint.height=101;
+    messagehint.height=ROOT_HEIGHT - messagehint.y;
     messagehint.max_width=messagehint.min_width=messagehint.width;
-    messagehint.max_height=messagehint.min_height=messagehint.height;
+    messagehint.max_height=STAT_HEIGHT;
+    messagehint.min_height=messagehint.height;
     messagehint.flags=PPosition | PSize;
     win_message=XCreateSimpleWindow(display,win_root,
 	messagehint.x,messagehint.y,messagehint.width,
@@ -1612,15 +1632,16 @@ static void draw_list (itemlist *l)
 		l->weight_limit/1000);
 
     if (strcmp (buf, l->old_title)) {
-	XClearArea(display, l->win, 2, 2, 24, 13, False);
+	XClearArea(display, l->win, 2, 2, image_size, 13, False);
 	if (l->env->open) {
 	    XSetClipMask(display, l->gc_status, icons[close_icon].mask);
 	    XSetClipOrigin(display, l->gc_status, 2, 2);
 	    XCopyArea(display, icons[close_icon].pixmap, l->win, l->gc_status,
-		      0, 0, 24, 13, 2, 2); \
+		      0, 0, image_size, 13, 2, 2); \
 	}
 	strcpy (l->old_title, buf);
-	XDrawImageString(display, l->win, l->gc_text, (l->show_icon ? 56 : 32),
+	XDrawImageString(display, l->win, l->gc_text, 
+			 (l->show_icon ? image_size+24+4 : image_size+4),
 			 13, buf, strlen(buf));
     }
 
@@ -1644,8 +1665,9 @@ static void draw_list (itemlist *l)
 	/* draw face */
 	if(l->faces[i] != tmp->face) {
 	    l->faces[i] = tmp->face;
-	    XClearArea(display, l->win, 4, 16 + 24 * i, 24, 24, False);
-	    gen_draw_face (l->win, tmp->face,4, 16 + 24 * i);
+	    XClearArea(display, l->win, 4, 16 + image_size * i, 
+		       image_size, image_size, False);
+	    gen_draw_face (l->win, tmp->face,4, 16 + image_size * i);
 	}
 	/* draw status icon */
 	if (l->show_icon) {
@@ -1653,24 +1675,24 @@ static void draw_list (itemlist *l)
 	    tmp_icon = tmp->locked ? locked_icon : 0;
 	    if (l->icon1[i] != tmp_icon) {
 		l->icon1[i] = tmp_icon;
-		draw_status_icon (l, 28, 16 + 24 * i, tmp_icon);
+		draw_status_icon (l, image_size+4, 16 + image_size * i, tmp_icon);
 	    }
 	    tmp_icon = tmp->applied ? applied_icon :
 		       tmp->unpaid  ? unpaid_icon : 0;
 	    if (l->icon2[i] != tmp_icon) {
 		l->icon2[i] = tmp_icon;
-		draw_status_icon (l, 28, 22 + 24 * i, tmp_icon);
+		draw_status_icon (l, image_size+4, 22 + image_size * i, tmp_icon);
 	    }
 	    tmp_icon = tmp->magical ? magic_icon : 0;
 	    if (l->icon3[i] != tmp_icon) {
 		l->icon3[i] = tmp_icon;
-		draw_status_icon (l, 28, 28 + 24 * i, tmp_icon);
+		draw_status_icon (l, image_size+4, 28 + image_size * i, tmp_icon);
 	    }
 	    tmp_icon = tmp->damned ? damned_icon : 
 		       tmp->cursed ? cursed_icon : 0;
 	    if (l->icon4[i] != tmp_icon) {
 		l->icon4[i] = tmp_icon;
-		draw_status_icon (l, 28, 34 + 24 * i, tmp_icon);
+		draw_status_icon (l, image_size+4, 34 + image_size * i, tmp_icon);
 	    }
 	}
 	/* draw name */
@@ -1685,8 +1707,9 @@ static void draw_list (itemlist *l)
 
 	if(!l->names[i] || strcmp(buf, l->names[i])) {
 	    copy_name (l->names[i], buf);
-	    XDrawImageString(display, l->win, l->gc_text, (l->show_icon?56:32),
-			     34 + 24 * i, buf, strlen(buf));
+	    XDrawImageString(display, l->win, l->gc_text, 
+			     (l->show_icon?image_size+24+4:image_size+4),
+			     34 + image_size * i, buf, strlen(buf));
 	}
 	i++;
     }
@@ -1695,8 +1718,8 @@ static void draw_list (itemlist *l)
      * then set the unused ares to nothing.
      */
     if(items < l->item_used) {
-	XClearArea(display, l->win, 0, 16 + 24 * i, l->width - 23,
-		   24 * (l->size - i) , False);
+	XClearArea(display, l->win, 0, 16 + image_size * i, l->width - 23,
+		   image_size * (l->size - i) , False);
 	while (i < l->item_used) {
 	    copy_name (l->names[i], "");
 	    l->faces[i] = 0;
@@ -1793,9 +1816,9 @@ static void resize_list_info(itemlist *l, int w, int h)
     }
     l->width  = w;
     l->height = h;
-    l->size = (l->height - FONTHEIGHT - 8) / 24;
+    l->size = (l->height - FONTHEIGHT - 8) / image_size;
     l->text_len = (l->width - (l->show_icon ? 84 : 60)) / FONTWIDTH;
-    l->bar_length = l->size * 24;
+    l->bar_length = l->size * image_size;
     sprintf (l->format_nw, "%%-%d.%ds%%6.1f", l->text_len-6, l->text_len-6);
     sprintf (l->format_nwl, "%%-%d.%ds%%6.1f/%%4d", l->text_len-11, l->text_len-11);
     sprintf (l->format_n, "%%-%d.%ds", l->text_len, l->text_len);
@@ -1845,7 +1868,7 @@ static void get_list_display(itemlist *l, int x, int y, int w, int h,
     hint.width  = w;
     hint.height = h;
     hint.min_width  = 60 + 10 * FONTWIDTH;
-    hint.min_height = FONTHEIGHT + 8 + 24 * 2;
+    hint.min_height = FONTHEIGHT + 8 + image_size * 2;
     hint.flags = PPosition | PSize;
     l->win = XCreateSimpleWindow(display, win_root, hint.x, hint.y, hint.width,
 			       hint.height, 2, foreground, background);
@@ -2057,6 +2080,8 @@ static int get_root_display(char *display_name) {
 	    display_mode = Pix_Display;
 	else if (!strcmp("xpm",cp))
 	    display_mode = Xpm_Display;
+	else if (!strcmp("png",cp))
+	    display_mode = Png_Display;
 	else if (!strcmp("font",cp))
 	    display_mode = Font_Display;
 	else
@@ -2131,13 +2156,21 @@ static void resize_win_root(XEvent *event) {
     info_width = width * info_ratio;
     inv_width = width - info_width;
 
+    /* With png (and 32x32 images), the message window can get scrunched,
+     * so lets make it taller if we can - there is no reason not to, as otherwise
+     * that space is lost anyways.
+     */
+    XMoveResizeWindow(display, win_message, inv_width + WINDOW_SPACING, 
+		GAME_WIDTH + STAT_HEIGHT + WINDOW_SPACING*2, GAME_WIDTH,
+		event->xconfigure.height - GAME_WIDTH + STAT_HEIGHT + WINDOW_SPACING*2);
+
     /* These windows just need to be relocated.  The y constants are
      * hardcoded - those windows don't really benefit from being resized
      * (actually, no code in place to currently do it), so no reason
      * to get trick with those just now.
      */
-    XMoveWindow(display, win_message, inv_width + WINDOW_SPACING, 378);
-    XMoveWindow(display, win_game, inv_width + WINDOW_SPACING, 104);
+
+    XMoveWindow(display, win_game, inv_width + WINDOW_SPACING, STAT_HEIGHT + WINDOW_SPACING);
     XMoveWindow(display, win_stats, inv_width + WINDOW_SPACING, 0);
 
     /* Resize the info window */
@@ -2171,7 +2204,7 @@ static void resize_win_root(XEvent *event) {
 
 static void parse_game_button_press(int button, int x, int y)
 {
-    int dx=(x-2)/24-5,dy=(y-2)/24-5,i;
+    int dx=(x-2)/image_size-5,dy=(y-2)/image_size-5,i;
 
     switch (button) {
 	case 1:
@@ -2362,12 +2395,12 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
     if (y < 0 && l->env->open) /* close the sack */
 	client_send_apply (l->env->tag);
  
-    if (y < 0 || y > 24 * l->size)
+    if (y < 0 || y > image_size * l->size)
 	return 1;
 
     if (x > l->width-23) {    /* scrollbar */
 
-	dy = y / 24 > 0 ? y / 24 : 1;
+	dy = y / image_size > 0 ? y / image_size : 1;
       
 	switch(button) {
 	  case 1:
@@ -2392,7 +2425,7 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
 	return 1;
     }
 
-    pos = l->item_pos + y / 24;
+    pos = l->item_pos + y / image_size;
     for(tmp=l->env->inv, items=0; tmp; tmp=tmp->next) {
 	if (show_object(tmp, l->show_what)) items++;
 	if (items>pos) break;
@@ -2573,6 +2606,9 @@ static void usage(char *progname)
 #ifdef HAVE_LIBXPM
     puts("-xpm             - Use color pixmaps (XPM) for display.");
 #endif
+#ifdef HAVE_IMLIB_H
+    puts("-png             - Use png images for display.");
+#endif
     puts("-showicon        - Print status icons in inventory window");
     puts("-scrolllines <number>    - number of lines for scrollback");
     puts("-sync            - Synchronize on display");
@@ -2635,6 +2671,7 @@ int init_windows(int argc, char **argv)
 	if (!strcmp(argv[on_arg],"-xpm")) {
 #ifdef HAVE_LIBXPM
 	    display_mode = Xpm_Display;
+	    image_size=24;
 	    continue;
 #else
 	    fprintf(stderr,"Client not configured with Xpm display mode enabled\n");
@@ -2642,8 +2679,20 @@ int init_windows(int argc, char **argv)
 	    continue;
 #endif
 	}
+	if (!strcmp(argv[on_arg],"-png")) {
+#ifdef HAVE_IMLIB_H
+	    display_mode = Png_Display;
+	    image_size=32;
+	    continue;
+#else
+	    fprintf(stderr,"Client not configured with Png display mode enabled\n");
+	    fprintf(stderr,"Ignoring -png flag\n");
+	    continue;
+#endif
+	}
 	else if (!strcmp(argv[on_arg],"-pix")) {
 	    display_mode = Pix_Display;
+	    image_size=24;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-cache")) {
@@ -2715,6 +2764,11 @@ int init_windows(int argc, char **argv)
     if (cache_images) init_cache_data();
     set_window_pos();
     info_ratio=(float) infodata.width/ (float) (infodata.width + INV_WIDTH);
+#ifdef HAVE_IMLIB_H
+    if (display_mode == Png_Display) {
+	id=Imlib_init(display);
+    }
+#endif
     return 0;
 }
 
@@ -2730,23 +2784,37 @@ void display_map_addbelow(long x,long y,long face)
   the_map.cells[x][y].count ++;
 }
 
+/* This can also get called for png.  Really, anything that gets rendered
+ * into a pixmap that does not need colors set or other specials done.
+ */
 void display_mapcell_pixmap(int ax,int ay)
 {
   int k;
-  XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,24,24);
+  XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
   
   for(k=the_map.cells[ax][ay].count-1;k>=0;k--) {
     gen_draw_face(xpm_pixmap,the_map.cells[ax][ay].faces[k],
 		  0,0);
 
   }
-  XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,24,24,2+24*ax,2+24*ay);
+  XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,image_size,image_size,
+	    2+image_size*ax,2+image_size*ay);
 }
 
 void display_mapcell_bitmap(int ax,int ay)
 {
   gen_draw_face(win_game,the_map.cells[ax][ay].faces[0],
-		2+24*ax,2+24*ay);
+		2+image_size*ax,2+image_size*ay);
+}
+
+int display_usexpm()
+{
+  return display_mode == Xpm_Display;
+}
+
+int display_usepng()
+{
+  return display_mode == Png_Display;
 }
 
 int display_usebitmaps()
@@ -2776,10 +2844,11 @@ void display_map_doneupdate()
   for(ax=0;ax<11;ax++) {
     for(ay=0;ay<11;ay++) { 
 	if (the_map.cells[ax][ay].count==0) {
-	    XFillRectangle(display,win_game,gc_blank,2+24*ax,2+24*ay,24,24);
+	    XFillRectangle(display,win_game,gc_blank,2+image_size*ax,
+			   2+image_size*ay,image_size,image_size);
 	    continue;
 	} 
-	if (display_mode == Xpm_Display) {
+	if (display_mode == Xpm_Display || display_mode == Png_Display) {
 	    display_mapcell_pixmap(ax,ay);
 	} else if (display_mode == Pix_Display) {
 	    display_mapcell_bitmap(ax,ay);
@@ -2813,6 +2882,57 @@ void display_mapscroll(int dx,int dy)
   }
  memcpy((char*)&the_map,(char*)&newmap,sizeof(struct Map));
 /*  display_map_doneupdate();*/
+}
+
+/* This is based a lot on the xpm function below */
+/* There is no good way to load the data directly to a pixmap -
+ * even some function which would seem to do the job just hide the
+ * writing to a temp function further down (Imlib_inlined_png_to_image
+ * does this).  As such, we might as well just do it at the top level - plus
+ * if we are caching, at least we only write the file once then.
+ */
+void display_newpng(long face,char *buf,long buflen)
+{
+#ifdef HAVE_IMLIB_H
+    char    *filename;
+
+    FILE *tmpfile;
+    Pixmap pixmap, mask;
+
+    if (cache_images) {
+	if (facetoname[face]==NULL) {
+	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
+	}
+	filename = facetoname[face];
+    } else {
+	filename=tmpnam(NULL);
+    }
+    if ((tmpfile = fopen(filename,"w"))==NULL) {
+	fprintf(stderr,"Can not open %s for writing\n", filename);
+    }
+    else {
+	fwrite(buf, buflen, 1, tmpfile);
+	fclose(tmpfile);
+    }
+
+    if (Imlib_load_file_to_pixmap(id, filename, &pixmap, &mask)==0) {
+	fprintf(stderr,"Got error on Imlib_load_file_to_pixmap\n");
+    }
+
+/*    printf("newpixmap #%ld: (%ld,%ld)\n",face,pixmap,mask);*/
+    pixmaps[face].pixmap = pixmap;
+    pixmaps[face].mask = mask;
+    newimages++;
+
+    if (cache_images) {
+	if (facetoname[face]) {
+	    free(facetoname[face]);
+	    facetoname[face]=NULL;
+	}
+    } else {
+	unlink(filename);
+    }
+#endif
 }
 
 void display_newpixmap(long face,char *buf,long buflen)
@@ -2872,7 +2992,7 @@ void display_newbitmap(long face,long fg,long bg,char *buf)
 
     bitmap = XCreateBitmapFromData(display,
                                RootWindow(display,DefaultScreen(display)),
-                               buf,24,24);
+                               buf,image_size,image_size);
     newimages++;
     pixmaps[face].bitmap = bitmap;
     pixmaps[face].fg = fg;

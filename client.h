@@ -40,8 +40,8 @@
 #define TRUE 1
 #endif
 
-#define VERSION_CS 1021
-#define VERSION_SC 1022
+#define VERSION_CS 1022
+#define VERSION_SC 1023
 
 #ifdef GTK_CLIENT
 #define VERSION_INFO "GTK C Client"
@@ -59,7 +59,6 @@
 #define BIG_BUF 1024
 
 #define MAXANIM 2000
-/* Maximum number of faces a particular animation will use */
 
 /* Values for send_command option */
 
@@ -185,7 +184,7 @@ extern Client_Player cpl;		/* Player object. */
  * or values used, because Display_Mode will never be set to Xpm_Display
  */
 
-typedef enum Display_Mode {Font_Display, Pix_Display, Xpm_Display}
+typedef enum Display_Mode {Font_Display, Pix_Display, Xpm_Display, Png_Display}
 	Display_Mode;
 
 extern Display_Mode display_mode;

@@ -104,8 +104,12 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
-#define MAX_BUF 256
-#define XPM_SIZE 24
+
+#ifdef HAVE_IMLIB_H
+#include <gdk_imlib.h>
+#endif
+
+static int image_size=24;
 
 /* All the following are static because these variables should
  * be local only to this file.  Since the idea is to have only
@@ -551,8 +555,8 @@ void event_loop()
 static void gen_draw_face(int face,int x,int y)
 {
   gdk_gc_set_clip_mask (mapgc, pixmaps[facecachemap[face]].gdkmask);
-  gdk_gc_set_clip_origin (mapgc, XPM_SIZE*x, XPM_SIZE*y);
-  gdk_window_copy_area (mappixmap, mapgc, XPM_SIZE*x, XPM_SIZE*y, pixmaps[facecachemap[face]].gdkpixmap,0,0,XPM_SIZE,XPM_SIZE);
+  gdk_gc_set_clip_origin (mapgc, image_size*x, image_size*y);
+  gdk_window_copy_area (mappixmap, mapgc, image_size*x, image_size*y, pixmaps[facecachemap[face]].gdkpixmap,0,0,image_size,image_size);
 }
 
 void end_windows()
@@ -720,12 +724,12 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
   
   x=(int)event->x;
   y=(int)event->y;
-  dx=(x-2)/XPM_SIZE-5;
-  dy=(y-2)/XPM_SIZE-5;
-  xmidl=5*XPM_SIZE-5;
-  xmidh=6*XPM_SIZE+5;
-  ymidl=5*XPM_SIZE-5;
-  ymidh=6*XPM_SIZE+5;
+  dx=(x-2)/image_size-5;
+  dy=(y-2)/image_size-5;
+  xmidl=5*image_size-5;
+  xmidh=6*image_size+5;
+  ymidl=5*image_size-5;
+  ymidh=6*image_size+5;
   
   switch (event->button) {
   case 1:
@@ -1255,7 +1259,10 @@ void FaceCmd(unsigned char *data,  int len)
    */
   sprintf(buf,"%s/%c%c/%s", facecachedir, face[0], face[1],face);
 
-  strcat(buf,".xpm");
+  if (display_mode == Xpm_Display) 
+    strcat(buf,".xpm");
+  else if (display_mode == Png_Display)
+    strcat(buf,".png");
 
   /* check to see if we already have the file.  IF not, we need to request
    * it from the server.
@@ -1264,21 +1271,26 @@ void FaceCmd(unsigned char *data,  int len)
     
     requestface(pnum, face, buf);
     
-  } else {
+  } else if (display_mode == Xpm_Display) {
     
-    GtkStyle *style;
+	GtkStyle *style;
     
-    style = gtk_widget_get_style(gtkwin_root);
-    pixmaps[pnum].gdkpixmap = gdk_pixmap_create_from_xpm(gtkwin_root->window,
+	style = gtk_widget_get_style(gtkwin_root);
+	pixmaps[pnum].gdkpixmap = gdk_pixmap_create_from_xpm(gtkwin_root->window,
 							 &pixmaps[pnum].gdkmask,
 							 &style->bg[GTK_STATE_NORMAL],
-							 (gchar *) buf );
-    if (pixmaps[pnum].gdkpixmap) {
-      
-    } else {
-      requestface(pnum, face, buf);
-      
+								     (gchar *) buf );
+	if (!pixmaps[pnum].gdkpixmap) {
+	    requestface(pnum, face, buf);
+	}
+  }
+  else if (display_mode == Png_Display) {
+#ifdef HAVE_IMLIB_H
+    if (gdk_imlib_load_file_to_pixmap(buf, &pixmaps[pnum].gdkpixmap, &pixmaps[pnum].gdkmask)==0) {
+	    fprintf(stderr,"Got error on Imlib_load_file_to_pixmap\n");
+	    requestface(pnum, face, buf);
     }
+#endif
   }
 }
 
@@ -1967,7 +1979,7 @@ static int get_game_display(GtkWidget *frame) {
   gtk_box_pack_start (GTK_BOX (gtvbox), gthbox, FALSE, FALSE, 1);
   
   drawingarea = gtk_drawing_area_new();
-  gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), XPM_SIZE*11,XPM_SIZE*11);
+  gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), image_size*11,image_size*11);
   /* Add mouseclick events to the drawing area */
 
   gtk_widget_set_events (drawingarea, GDK_BUTTON_PRESS_MASK);
@@ -3591,11 +3603,11 @@ void create_notebook_page (GtkWidget *notebook, GtkWidget **list, gchar **label)
 #endif
   *list = gtk_clist_new_with_titles (3, titles);
 
-  gtk_clist_set_column_width (GTK_CLIST(*list), 0, XPM_SIZE);
+  gtk_clist_set_column_width (GTK_CLIST(*list), 0, image_size);
   gtk_clist_set_column_width (GTK_CLIST(*list), 1, 150);
   gtk_clist_set_column_width (GTK_CLIST(*list), 2, 20);
   gtk_clist_set_selection_mode (GTK_CLIST(*list) , GTK_SELECTION_SINGLE);
-  gtk_clist_set_row_height (GTK_CLIST(*list), XPM_SIZE); 
+  gtk_clist_set_row_height (GTK_CLIST(*list), image_size); 
 #ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(*lists),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -3786,11 +3798,11 @@ static int get_look_display(GtkWidget *frame)
   look_list.gtk_lists[0] = gtk_scrolled_window_new (0,0);
 #endif
   look_list.gtk_list[0] = gtk_clist_new_with_titles (3,titles);;
-  gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, XPM_SIZE);
+  gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, image_size);
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 1, 150);
   gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 20);
   gtk_clist_set_selection_mode (GTK_CLIST(look_list.gtk_list[0]) , GTK_SELECTION_SINGLE);
-  gtk_clist_set_row_height (GTK_CLIST(look_list.gtk_list[0]), XPM_SIZE); 
+  gtk_clist_set_row_height (GTK_CLIST(look_list.gtk_list[0]), image_size); 
 #ifdef GTK_HAVE_FEATURES_1_1_12
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(look_list.gtk_lists[0]),
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -5275,7 +5287,7 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 0, 0);
-    gtk_widget_set_usize (gtkwin_root,636+(XPM_SIZE*11),336+(XPM_SIZE*11));
+    gtk_widget_set_usize (gtkwin_root,636+(image_size*11),336+(image_size*11));
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
     
@@ -5405,7 +5417,7 @@ void create_windows() {
     /* Statbars frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, (XPM_SIZE*11)+6, 100);
+    gtk_widget_set_usize (frame, (image_size*11)+6, 100);
     gtk_paned_add2 (GTK_PANED (vpaned), frame);
     
     get_message_display(frame);
@@ -5415,7 +5427,7 @@ void create_windows() {
     /* Game frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, (XPM_SIZE*11)+6, (XPM_SIZE*11)+6);
+    gtk_widget_set_usize (frame, (image_size*11)+6, (image_size*11)+6);
     gtk_paned_add1 (GTK_PANED (vpaned), frame);
     
     get_game_display (frame);
@@ -5425,7 +5437,7 @@ void create_windows() {
     /* stats frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-    gtk_widget_set_usize (frame, (XPM_SIZE*11)+6, 110);
+    gtk_widget_set_usize (frame, (image_size*11)+6, 110);
     gtk_paned_add1 (GTK_PANED (gvpaned), frame);
     get_stats_display (frame);
     
@@ -5481,7 +5493,7 @@ void create_windows() {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_root, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_root, 300, 160);
-    gtk_widget_set_usize (gtkwin_root,(XPM_SIZE*11)+6,(XPM_SIZE*11)+6);
+    gtk_widget_set_usize (gtkwin_root,(image_size*11)+6,(image_size*11)+6);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire - view");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_root), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
@@ -5511,7 +5523,7 @@ void create_windows() {
     gtkwin_stats = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_stats, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_stats, 300, 0);
-    gtk_widget_set_usize (gtkwin_stats,(XPM_SIZE*11)+6,140);
+    gtk_widget_set_usize (gtkwin_stats,(image_size*11)+6,140);
     gtk_window_set_title (GTK_WINDOW (gtkwin_stats), "Crossfire GTK Client");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_stats), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_stats);
@@ -5583,7 +5595,7 @@ void create_windows() {
     gtkwin_message = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_message, GDK_KEY_RELEASE_MASK);
     gtk_widget_set_uposition (gtkwin_message, 300, 450);
-    gtk_widget_set_usize (gtkwin_message,(XPM_SIZE*11)+6,170);
+    gtk_widget_set_usize (gtkwin_message,(image_size*11)+6,170);
     gtk_window_set_title (GTK_WINDOW (gtkwin_message), "Crossfire - vitals");
  gtk_window_set_policy (GTK_WINDOW (gtkwin_message), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_message);
@@ -5781,12 +5793,6 @@ int do_timeout() {
 /* Here are the old Xutil commands needed. */
 /* ----------------------------------------------------------------------------*/
 
-
-/*void FaceCmd(unsigned char *data,  int len)
-{
-
-}
-*/
 
 void display_newbitmap(long face,long fg,long bg,char *buf)
 {
@@ -6228,6 +6234,9 @@ static void usage(char *progname)
 #ifdef Xpm_Pix
     puts("-xpm             - Use color pixmaps (XPM) for display.");
 #endif
+#ifdef HAVE_IMLIB_H
+    puts("-png             - Use png images for display.");
+#endif
     puts("-showicon        - Print status icons in inventory window");
     puts("-scrolllines <number>    - number of lines for scrollback");
     puts("-image           - get all images from server at startup");
@@ -6287,6 +6296,7 @@ int init_windows(int argc, char **argv)
 	if (!strcmp(argv[on_arg],"-xpm")) {
 #ifdef Xpm_Pix
 	    display_mode = Xpm_Display;
+	    image_size=24;
 	    continue;
 #else
 	    fprintf(stderr,"Client not configured with Xpm display mode enabled\n");
@@ -6294,8 +6304,20 @@ int init_windows(int argc, char **argv)
 	    continue;
 #endif
 	}
+        if (!strcmp(argv[on_arg],"-png")) {
+#ifdef HAVE_IMLIB_H
+            display_mode = Png_Display;
+            image_size=32;
+            continue;
+#else
+            fprintf(stderr,"Client not configured with Png display mode enabled\n");
+            fprintf(stderr,"Ignoring -png flag\n");
+            continue;
+#endif
+	}
 	else if (!strcmp(argv[on_arg],"-pix")) {
 	    display_mode = Pix_Display;
+	    image_size=24;
 	    continue;
 	}
 	else if (!strcmp(argv[on_arg],"-cache")) {
@@ -6356,19 +6378,17 @@ int init_windows(int argc, char **argv)
     for (on_arg=0; on_arg<MAXPIXMAPNUM; on_arg++)
 	facecachemap[on_arg]=on_arg;
 
-    if (get_root_display(display_name,gargc,gargv)
-	/*get_game_display() ||*/
-	/*get_stats_display() ||*/
-	/*	get_info_display() ||*/
-	/*get_inv_display() ||*/
-	/*get_look_display() ||
-	get_message_display()*/
-	)
+    if (get_root_display(display_name,gargc,gargv))
 		return 1;
 
     init_keys();
     if (cache_images) init_cache_data();
     destroy_splash();
+#ifdef HAVE_IMLIB_H
+    if (display_mode == Png_Display) {
+	gdk_imlib_init();
+    }
+#endif
     return 0;
 }
 
@@ -6393,10 +6413,10 @@ void display_mapcell_pixmap(int ax,int ay)
   gdk_draw_rectangle (mappixmap, 
 		      drawingarea->style->mid_gc[0],
 		      TRUE,
-		      XPM_SIZE*ax,
-		      XPM_SIZE*ay,
-		      XPM_SIZE,
-		      XPM_SIZE);
+		      image_size*ax,
+		      image_size*ay,
+		      image_size,
+		      image_size);
 
   for(k=the_map.cells[ax][ay].count-1;k>-1;k--) {
     gen_draw_face(the_map.cells[ax][ay].faces[k], ax,ay);
@@ -6407,6 +6427,14 @@ void display_mapcell_pixmap(int ax,int ay)
 int display_usebitmaps()
 {
   return display_mode == Pix_Display;
+}
+int display_usexpm()
+{
+  return display_mode == Xpm_Display;
+}
+int display_usepng()
+{
+  return display_mode == Png_Display;
 }
 
 int display_noimages()
@@ -6437,10 +6465,10 @@ void display_map_doneupdate()
 	/*	black_gc = gtkmap[ax][ay].pixmap->style->black_gc;*/
 	gdk_draw_rectangle (mappixmap, drawingarea->style->black_gc,
 			    TRUE,
-			    XPM_SIZE*ax,
-			    XPM_SIZE*ay,
-			    XPM_SIZE,
-			    XPM_SIZE);
+			    image_size*ax,
+			    image_size*ay,
+			    image_size,
+			    image_size);
 	continue;
       } 
       display_mapcell_pixmap(ax,ay);
@@ -6451,7 +6479,7 @@ void display_map_doneupdate()
 		  mappixmap,
 		  0, 0,
 		  0, 0,
-		  XPM_SIZE*11,XPM_SIZE*11);
+		  image_size*11,image_size*11);
   /*
   gtk_widget_draw (table, NULL);
   */
@@ -6460,8 +6488,6 @@ void display_map_doneupdate()
     /*    printf ("WARNING - Frozen updates until updatelock is cleared!\n");*/
   }
 }
-
-
 
 void display_mapscroll(int dx,int dy)
 {
@@ -6483,26 +6509,52 @@ void display_mapscroll(int dx,int dy)
 
 }
 
-/*void display_newpixmap(long face,char *buf,long buflen)
+
+/* This is based a lot on the xpm function below */
+/* There is no good way to load the data directly to a pixmap -
+ * even some function which would seem to do the job just hide the
+ * writing to a temp function further down (Imlib_inlined_png_to_image
+ * does this).  As such, we might as well just do it at the top level - plus
+ * if we are caching, at least we only write the file once then.
+ */
+void display_newpng(long face,char *buf,long buflen)
 {
-  FILE *tmpfile;
-  char tmpfilename[200];
+#ifdef HAVE_IMLIB_H
+    char    *filename;
 
-  GtkStyle *style;
+    FILE *tmpfile;
 
-  sprintf(tmpfilename,"/tmp/xclient.%d",(int)getpid());
-  tmpfile = fopen(tmpfilename,"w");
-  fprintf(tmpfile,"%s",buf);
-  fclose(tmpfile);
+    if (cache_images) {
+	if (facetoname[face]==NULL) {
+	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
+	}
+	filename = facetoname[face];
+    } else {
+	filename=tmpnam(NULL);
+    }
+    if ((tmpfile = fopen(filename,"w"))==NULL) {
+	fprintf(stderr,"Can not open %s for writing\n", filename);
+    }
+    else {
+	fwrite(buf, buflen, 1, tmpfile);
+	fclose(tmpfile);
+    }
 
-  style = gtk_widget_get_style(gtkwin_root);
+    if (gdk_imlib_load_file_to_pixmap(filename, &pixmaps[face].gdkpixmap, &pixmaps[face].gdkmask)==0) {
+	fprintf(stderr,"Got error on Imlib_load_file_to_pixmap\n");
+    }
 
-  pixmaps[face].gdkpixmap = gdk_pixmap_create_from_xpm(gtkwin_root->window,
-                                              &pixmaps[face].gdkmask,
-                                               &style->bg[GTK_STATE_NORMAL],
-                                              (gchar *) tmpfilename );
-  
-}*/
+    if (cache_images) {
+	if (facetoname[face]) {
+	    free(facetoname[face]);
+	    facetoname[face]=NULL;
+	}
+    } else {
+	unlink(filename);
+    }
+#endif
+}
+
 void display_newpixmap(long face,char *buf,long buflen)
 {
   FILE *tmpfile;

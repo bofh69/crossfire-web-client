@@ -48,20 +48,12 @@ int updatekeycodes=FALSE;
 static void init_cache_data()
 {
     int i;
-    char buf[MAX_BUF];
 
 #include "pixmaps/question.111"
 
-
-    if (display_mode == Xpm_Display) {
-	sprintf(buf,"%s/.crossfire/images.xpm", getenv("HOME"));
-    } else if (display_mode == Pix_Display) {
-	sprintf(buf,"%s/.crossfire/images", getenv("HOME"));
-    }
-    else { 
-	fprintf(stderr,"Can only cache images in Pix and Xpm mode.\n");
-	return;
-    }
+    /* Currently, we can cache in all face modes currently supported,
+     * so I removed the code that did checks on that.
+     */
 
     pixmaps[0].mask=None;
     pixmaps[0].bitmap=XCreateBitmapFromData(display, 
@@ -69,8 +61,11 @@ static void init_cache_data()
 
     /* In xpm mode, XCopyArea is used from this data, so we need to copy
      * the image into an pixmap of appropriate depth.
+     * Note that while are image created is the image size, since we know
+     * that are filler image is currently only 24x24, we only copy that much
+     * data.
      */
-    pixmaps[0].pixmap=XCreatePixmap(display, win_root, 24, 24, 
+    pixmaps[0].pixmap=XCreatePixmap(display, win_root, image_size, image_size, 
 	DefaultDepth(display,DefaultScreen(display)));
     XCopyPlane(display, pixmaps[0].bitmap, pixmaps[0].pixmap, gc_game,
 	       0,0,24,24,0,0,1);
@@ -137,6 +132,8 @@ void FaceCmd(unsigned char *data,  int len)
     sprintf(buf,"%s/%c%c/%s", facecachedir, face[0], face[1],face);
     if (display_mode == Xpm_Display)
 	strcat(buf,".xpm");
+    else if (display_mode == Png_Display)
+	strcat(buf,".png");
 
     /* check to see if we already have the file.  IF not, we need to request
      * it from the server.
@@ -158,6 +155,18 @@ void FaceCmd(unsigned char *data,  int len)
 	    pixmaps[pnum].mask = mask;
 /*	    fprintf(stderr,"Successfully loaded %s (%d) from cache\n", buf, pnum);*/
 	}
+    } else if (display_mode==Png_Display) {
+#ifdef HAVE_IMLIB_H
+	Pixmap pixmap, mask;
+
+	/* Fail on this read, we will request a new copy */
+	if (Imlib_load_file_to_pixmap(id, buf, &pixmap, &mask)==0) { 
+	    requestface(pnum, face, buf);
+	} else {
+	    pixmaps[pnum].pixmap = pixmap;
+	    pixmaps[pnum].mask = mask;
+	}
+#endif
     } else if (display_mode==Pix_Display) {
 	FILE *bitmap, data[MAX_BUF];
 
@@ -280,7 +289,6 @@ static void set_font_path(Display *dpy, char *path) {
       fprintf(stderr,"Couldn't get memory for new fontpath.\n");
       return;
     }
-/* #if defined(SYSV) || defined(SVR4) */
     memcpy((void *)newList,(void *)directoryList,
            (unsigned) (ndirs*sizeof (char *)));
     memcpy((void *) (newList + ndirs), (void *) currentList,

@@ -1,6 +1,39 @@
 "$Id$"
 Top of CVS tree:
 
+Protocol: Update for png information - addition of image command.
+client.c: Add support for image command.  Change initializing so we get
+	the protocol from the server early on - we need to know it before
+	we tell it what facemode we want, as it may not support png
+	images.  do protocol version check and if the server does not 
+	support it and the user request png, fail out.
+client.h: Increase versions of protocol.  Add Png_Display to possible display
+	modes.
+command.c: Add ImageCmd function which processes the image command 
+	(used for receipt of png images).  the use of the image command
+	can be abstracted in the future for other image formats quite easily.
+config.h.in (& config.h): Add HAVE_IMLIB_H define which lets us know if
+	the imlib is available.
+configure.in (& configure): Add detection for imlib and set the appropriate
+	variables so that they get linked properly.  Also add check
+	for Imlib.h
+gx11.c: Update for png support - add display_newpng command, change
+	XPM_SIZE to image_size and make it a variable and not a define.
+	Pull in appropriate imlib support, as well as rendering of
+	png data.  Some dead code removed.  display_usepng, 
+	display_usxpm, and display_newpng functions added.
+newclient.h: Add CF_FACE_PNG constant for CS communication.
+proto.h: Updated for new png functions.
+x11.c: Many of the same changes as gx11.c above.  More work was done here
+	as the 24 image size was hardcoded into this file - it is
+	now a variable also, so supporting other image sizes in the future
+	should also be quite easy.  Once the Png's are rendered, they are
+	drawn the same was as the Xpm's are, so many checks for
+	display_mode==Xpm_Display also check for Png_Display.
+xutil.c: Support for PNG images added.  Changes are mostly related to
+	caching code.
+Changes by Mark Wedel, 6/2/2000
+
 Makfile.in:  Have cfsndserv.o removed when make clean is done.
 Also add a 'distclean' directive which removes the config.cache/log/status
 files as well as the executables.  MSW 5/29/2000
