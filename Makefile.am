@@ -1,0 +1,134 @@
+SUBDIRS=@CF_SUBDIRS@
+
+EXTRA_DIST = \
+	CHANGES			\
+	COPYING			\
+	License			\
+	Makefile.in		\
+	NOTES			\
+	README			\
+	TODO			\
+	aclocal.m4		\
+	configure		\
+	configure.in		\
+	crossfire-client.spec
+
+
+PIXMAPS = \
+	pixmaps/16x16.png	\
+	pixmaps/32x32.png	\
+	pixmaps/48x48.png	\
+	pixmaps/all.xpm		\
+	pixmaps/applied.xbm	\
+	pixmaps/applied.xpm	\
+	pixmaps/bg.xpm		\
+	pixmaps/clear.xbm	\
+	pixmaps/close.xbm	\
+	pixmaps/close.xpm	\
+	pixmaps/coin.xpm	\
+	pixmaps/crossfiretitle.xpm	\
+	pixmaps/cursed.xbm	\
+	pixmaps/cursed.xpm	\
+	pixmaps/damned.xbm	\
+	pixmaps/damned.xpm	\
+	pixmaps/dot.xpm		\
+	pixmaps/hand.xpm	\
+	pixmaps/hand2.xpm	\
+	pixmaps/lock.xpm	\
+	pixmaps/locked.xbm	\
+	pixmaps/locked.xpm	\
+	pixmaps/mag.xpm		\
+	pixmaps/magic.xbm	\
+	pixmaps/magic.xpm	\
+	pixmaps/nonmag.xpm	\
+	pixmaps/question.111	\
+	pixmaps/question.sdl	\
+	pixmaps/question.xpm	\
+	pixmaps/skull.xpm	\
+	pixmaps/stipple.111	\
+	pixmaps/stipple.112	\
+	pixmaps/test.xpm	\
+	pixmaps/unlock.xpm	\
+	pixmaps/unpaid.xbm	\
+	pixmaps/unpaid.xpm	
+
+HELP= \
+	help/about.h		\
+	help/chelp.h		\
+	help/shelp.h		\
+	help/bugreport.h
+
+UTILS = \
+	utils/config.guess	\
+	utils/config.sub	\
+	utils/deftoheader.pl	\
+	utils/install-sh	\
+	utils/mdk.sh		\
+	utils/missing		\
+	utils/mkinstalldirs
+
+
+all:
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making all in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' all; ) \
+	done;
+
+
+depend:
+	@if [ "X$(DEPEND)" = "X" ] ; then \
+	    echo "No makedepend - will not depend files"; \
+	else \
+	    for dir in $(SUBDIRS); \
+		do \
+	    	echo "making depend in $$dir..."; \
+	    	(cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' depend; ) \
+	    done; \
+	fi
+
+clean:
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making clean in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' clean; ) \
+	done;
+
+distclean:
+	$(RM) -f Makefile Makefile.bak config.cache config.log config.status
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making distclean in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' distclean; ) \
+	done;
+
+proto:
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making proto in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' proto; ) \
+	done;
+
+archive:
+	if [ -d /tmp/$(VERSION) ]; then $(RM) -rf /tmp/$(VERSION); fi
+	$(MKDIR) /tmp/$(VERSION) /tmp/$(VERSION)/utils /tmp/$(VERSION)/help /tmp/$(VERSION)/pixmaps
+	$(CP) $(EXTRA_DIST) /tmp/$(VERSION)
+	$(CP) $(PIXMAPS) /tmp/$(VERSION)/pixmaps
+	$(CP) $(HELP) /tmp/$(VERSION)/help
+	$(CP) $(UTILS) /tmp/$(VERSION)/utils
+	@for dir in $(ALLSUBDIRS); \
+	    do \
+	    echo "making archive in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' archive; ) \
+	done;
+	(cd /tmp; $(RM) $(VERSION).tgz; \
+		$(TAR) cvfhz $(VERSION).tar.gz $(VERSION) )
+	$(CP) /tmp/$(VERSION).tar.gz ../
+	$(RM) -rf /tmp/$(VERSION) /tmp/$(VERSION).tar.gz
+
+install:
+	@for dir in $(SUBDIRS); \
+	    do \
+	    echo "making install in $$dir..."; \
+	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' install; ) \
+	done;

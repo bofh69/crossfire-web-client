@@ -3,6 +3,23 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Commit for GTKv2 client - please read gtk-v2/README before using this client.
+The bulk of the changes are limited to the gtk-v2 directory (addition),
+but some changes elsewhere as related to using automake.  You will need
+to run configure for the gtk-v2 client to be built (it should be built
+automatically if you have the needed libraries)
+--
+Changelog: Replaces CHANGES file to meet automake standards.
+Makefile.am: New file for use with automake.
+Makefile.in: rebult from Makefile.am
+aclocal.m4: Updated with macros to check for gtk-v2.
+configure.in: checks for gtk-v2 added.  Chane SUBDIRS to CF_SUBDIRS as
+    using SUBDIRS causes conflicts.
+utils/config.guess, utils/config.sub, utils/missing: Updated as part of
+    automake changes.
+gtk-v2/*, gtk-v2/src/*: Files related to gtk-v2 client.
+MSW 2005-03-01
+
 crossfire-client.spec: Update for 1.7.1 release, make some other changes that
    better match my system since I don't think anyone else is using it.
 gtk/Makefile.in: Add crossfire-client.desktop to list of files to add

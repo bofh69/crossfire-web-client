@@ -1,0 +1,57 @@
+This is an implementation of the crossfire client for gtk v2.
+
+At current time, this should be considered somewhere between alpha and beta
+quality code.
+
+I consider it complete enough that you should be able to play the game using
+this client.  However, all the feature certainly are not implemented.  It is
+just at the point of development where I consider it useful enough to make
+available and get feedback (as well as hopefully some others to help finish
+some things up).
+
+The client was designed largely to my tastes - this, what is implemented
+reflects the options I tend to use and the display I like.
+
+Please note some of the mechanics are a little different now.  Containers
+are now displayed inline with inventory/look windows using tree widgets.
+
+The gtk-v2 client should be built automatically if you have the requisite
+libraries on your system (configure will detect them, add gtk-v2 to
+the list of directories to build).
+
+Note that the defaults file that this client uses for loading defaults
+is ~/.crossfire/gdefaults2.  It uses the same keybinding and other files
+as the other clients.
+
+The following limitations/issues are known:
+
+1) Many of the config options available in the gtk client are not available.
+It is likely some number of these will never re-appear (IMO, the GTK client
+had a problem of more and more options, which makes the code messier and
+messier).
+
+2) The layout was designed for screens at 1280x1024 resolution or higher.
+Resizing the images and moving the panes around _may_ work on lower
+resolutions, but that wasn't my design goal.
+
+3) SDL support is not yet implemented.
+
+4) At least on my system, it overall seems slower than the gtk client -
+especially the inventory drawing area.  I think this is a gtkv2 issue.
+
+5) Map drawing is probably slower - rather than trying to redraw just changed
+spaces, it redraws the entire map - this should fix up some of the erroneous
+drawing as related to big images, but can be slower.
+
+If you find bugs, please report them on the sourceforge tracker:
+
+http://sourceforge.net/tracker/?group_id=13833&atid=113833
+
+Please use the category gtk2-client.
+
+If you plan to work on code for the client, please browse the TODO
+file as well as the README-dev file.
+
+Mark Wedel
+March 1, 2005
+

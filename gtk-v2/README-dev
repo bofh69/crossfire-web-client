@@ -1,0 +1,151 @@
+The client was designed using glade-2.  Any changes to the graphical elements
+should be done with glade - otherwise such changes may get blown away
+the next time someone really does update it with glade-2.  The
+glade files are located in this directory as gtk-v2.glade and gtk-v2.gladep.
+
+My main motivations for writing this:
+
+1) The old client layout wasn't originally designed for the map window size
+that people are now using.
+
+2) Using an interface designer will make it much easier to add new
+window elements in the future.
+
+3) Having a client fully gtk2 compliant would be nice.
+
+Note that because of point #1 above, the interface was designed for a window
+size of about 1200x1000.  That is to say, on a system whose resolution is
+1280x1024, the window will use almost the entire screen.
+
+I have no particular interests in patches that make it work on smaller
+screens - if that is your requirement, use one of the other clients
+(Gtk v1 client for example).  One problem with the older client is that
+there is so much cruft trying to deal with different size screens, options
+to change various sizing, etc.
+
+Below are some of the core widgets - I mostly wrote this up so that
+I didn't have to refer back to glade to see what was what.  I also include
+some notes on what I did what.
+
+window-root: The core window.
+hpaned-map-other: Left side of this hpane is the map area, right side is the
+   text/inventory/look area.
+vpaned-map-stats: Above is map, below is various character stat info.
+
+table-map: table that contains the map and scrollbars.
+drawingarea-map: The map drawing area.
+hscrollbar-map: scrollbar to move the map horizontally.
+vscrollbar-map: scrollbar to move the map horizontally.
+button-map-recenter: When clicked, map recenters.
+
+drawingarea-magic-map: Area to draw the magic map
+
+Note: The reason I use scrollbars instead of a simple scrolled window is
+that I don't believe it is feasible to draw much more than what the player
+is currently viewing.  If we use a scrolled window, then we may end up
+drawing a lot of stuff the player is not seeing, as well as not redrawing
+fog stuff the player is seeing.  By using scrollbars, it is easier to trap
+when the player tries to scroll the map, and redraw the new portion, as
+well as track where the map is currently positioned, without needing
+a much larger draw area.
+
+vpaned-info-inventory: seperator for the text window vs inventory area.
+vbox-info-entry: Top portion is text information, bottom is area for text
+  entry.
+entry-commands: Where the player enters extended commands.
+
+notebook-info: notebook for different text information
+textview-info1: area where messages are displayed.
+textview-info2: area where messages are displayed.
+The two info are in a tabbed area - more tabs could in fact be added.  The
+idea is to keep the two info panes as before, but in less space.  The
+primary tab (1) will get all messages.  Important messages (colored in
+this case) will also go to tab 2.  Perhaps down the road, there will be
+smarter filtering of these messages.
+
+label-inv-weight: Shows current weight of characters inventory.
+spinbutton-count: Current count set by the player.
+
+notebook-inv: Notebook for the various inventory panes.
+
+label-stats-hp:
+label-stats-sp:
+label-stats-grace:
+label-stats-food: Text label showing hp/sp/
+
+progressbar-hp:
+progressbar-sp:
+progressbar-grace:
+progressbar-food: progressbar for the stats.
+
+label-str, label-dex, label-con,label-int, label-wis, label-pow, label-cha,
+label-wc, label-dam, label-ac, label-armor, label-range, label-exp:
+Actual stat value for those values.
+
+table-stats-exp: Table hold the skills and exp values.  Note that 
+initializing this is not done in glade - it is easier to do on the
+client side, so that it can make an array of labels for this.
+
+table-protections: Like table-stats-exp above, but this is for protections.
+
+
+Note that the inventory tabs are done in the code - glade really doesn't
+let one fully set up a gtktreewidget (the number of columns, renderer
+type, etc), so it just made it easier to do in the actual code.)
+
+Some notes for those wishing to do development:
+
+1) Send a note to crossfire@metalforge.org about what you
+plan to work on so that multiple people don't work on the same thing.
+
+2) Try to work with up to date cvs to minimize merge problems.
+
+3) If looking for something to work on, look at the TODO file.
+
+4) Try to add new graphical elements using glade-2 and not coding
+them in by hand - this will make it easier for future modifications.
+
+5) glade will create various files not included in CVS - these are not
+used in the current client.  The most notable is callbacks.c.  While 
+glade will write this file out, I prefer the callbacks to be with the
+rest of the routines related to a feature, and not have a bunch of
+unrelated callbacks.c in that one file.  Thus, inventory callbacks are
+in inventory.c.  Looking at the callbacks.c can be nice to get the
+function prototype you use when adding callbacks.
+
+6) callbacks.h is largely included because interface.c, which is built
+by glade, includes it.  Most of the other .c files should get there
+info by including gtk2proto.h.
+
+7) Using menubar with icons next to the action for some reason
+takes 10 seconds to render on my system, and freezes most everything
+else why that is happening.  For that reason, I don't use any
+menubars that include icons.
+
+8) The GtkTree widget seems very slow - haven't investigated, but it
+seems to me I'm not doing anything wrong, so may just be the widget.
+
+9) Source files which are not automatically generated include the
+standard copyright info - this should prove a clue on which is and
+is not automatically generated.  If you add new source files, make
+sure to include the copyright.  All comment strings should be
+named as 'rcsid_gtk2_<filename>'
+
+10) The source files are arranged by functionalilty - try to keep
+the functionality related to elements in the same file, but
+at the same time, don't put so much stuff in one file to make it
+unmanageable.
+
+11) One of the motivations was to use pure gtkv2 calls and not use any of the
+deprecated wigets/toolkits withing GTK.  Please try to keep to that model
+(note that this does not mean things are 100% perfect, as for widgets that are
+not deprecated, I often copied the code completely over from the gtk client,
+but certain functions may be deprecated in that copied code).  But dealing
+with that is certainly easier down the road if/when those functions really
+disappear than having to redo code for a widget that just no longer exists.
+
+12) Probably others I'm forgetting and will add later.
+
+
+Mark Wedel
+March 1, 2005

@@ -1,0 +1,29 @@
+This file is meant to be a short list of things that need
+to be done, in no particular order (thus, unnumbered)
+
+- Make an image for the 'icons' inventory tab (perhaps an eye?)
+
+- add support for SDL client.
+
+- Perhaps add opengl support
+
+- Implement the arrow buttons to scroll map around so that the player does not
+have to be in the middle (eg, after you thing you have completed a level, you
+should be able to scroll around and look at the fog of war spaces and see if
+you've missed anything).
+
+- add a window for metaserver selection - popup window would be nice
+because it can then show the full info of the metaserver - right now, for
+reasons of compactness, the comment section of the metaserver is stripped off.
+
+- Add a window for configuration selection, as well as key binding/unbinding.
+
+- Perhaps a better splash graphic to show while not connected, since there is
+a lot more space that is not being used.
+
+- perhaps tie in some display options with scripting?  Eg, and inventory tab
+in which an external script can be used to determine whether to show objects
+or not, perhaps same for information messages?
+
+- Fix any of the probably numerous bugs.
+
