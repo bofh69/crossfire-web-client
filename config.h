@@ -48,3 +48,6 @@
 
 /* Define if you have the sysconf function.  */
 #define HAVE_SYSCONF 1
+
+/* Define/not defined depending on the endianness of this system */
+/* #undef WORDS_BIGENDIAN */
