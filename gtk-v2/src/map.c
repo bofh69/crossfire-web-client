@@ -512,7 +512,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
     int smoothface;
     int dosmooth=0;
     if ( (the_map.cells[mx][my].heads[0].face==0)
-         || !CAN_SMOOTH(the_map.cells[mx][my].smooth[layer]) )
+         || !CAN_SMOOTH(the_map.cells[mx][my],layer) )
         return;
     for (i=0;i<8;i++){
         emx=mx+dx[i];

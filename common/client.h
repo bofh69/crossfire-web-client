@@ -74,7 +74,12 @@ typedef struct Animations {
 
 extern Animations animations[MAXANIM];
 
-#define CAN_SMOOTH(__SMOOTHLEVEL) (__SMOOTHLEVEL)
+#define CAN_SMOOTH(__SQUARE,__LEVEL) ( (                                       \
+                                            (__SQUARE.heads[__LEVEL].face==0)  \
+                                            && (__LEVEL >0)                    \
+                                        )                                      \
+                                        || (__SQUARE.smooth[layer])            \
+                                     )
 
 /* ClientSocket could probably hold more of the global values - it could
  * probably hold most all socket/communication related values instead

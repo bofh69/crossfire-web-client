@@ -649,7 +649,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
     src.w=dst.w;
     src.h=dst.h;
     if ( (the_map.cells[mx][my].heads[0].face==0)
-         || !CAN_SMOOTH(the_map.cells[mx][my].smooth[layer]) )
+         || !CAN_SMOOTH(the_map.cells[mx][my],layer) )
         return;
     for (i=0;i<8;i++){
         emx=mx+dx[i];

@@ -429,7 +429,7 @@ static void draw_smoothing(int layer)
 	    my = y + pl_pos.y;
 
 	    if ( the_map.cells[mx][my].heads[layer].face!=0 &&
-		CAN_SMOOTH(the_map.cells[mx][my].smooth[layer]))
+		CAN_SMOOTH(the_map.cells[mx][my],layer))
 		drawsmooth_opengl(x, y, mx, my, layer);
 	}
     }
@@ -624,7 +624,7 @@ void opengl_gen_map(int redraw) {
 
 			    glEnd();
 			}
-			if (use_config[CONFIG_SMOOTH] && CAN_SMOOTH(the_map.cells[mx][my].smooth[layer]) &&
+			if (use_config[CONFIG_SMOOTH] && CAN_SMOOTH(the_map.cells[mx][my],layer) &&
 			    the_map.cells[mx][my].heads[layer].face !=0) {
 
 			    got_smooth=1;
