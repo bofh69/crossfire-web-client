@@ -403,8 +403,10 @@ void item_actions (item *op)
     if (!op) return;
     if (op->open) {
 	open_container (op);
+	cpl.container = op;
     } else if (op->was_open) {
 	close_container (op);
+	cpl.container=NULL;
     }
 /*
     if (op->env == cpl.below) {

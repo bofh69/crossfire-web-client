@@ -293,6 +293,8 @@ item *locate_item (sint32 tag)
     if ((op=locate_item_from_item(player, tag)) != NULL)
 	return op;
 
+    if (cpl.container && (cpl.container->tag == tag))
+	return cpl.container;
     return NULL;
 }
 
@@ -300,14 +302,14 @@ item *locate_item (sint32 tag)
  *  remove_item() inserts op the the list of free items
  *  Note that it don't clear all fields in item
  */
-void remove_item (item *op) 
+void remove_item (item *op)
 {
     /* IF no op, or it is the player */
     if (!op || op==player || op==map) return;
     op->env->inv_updated = 1;
 
     /* Do we really want to do this? */
-    if (op->inv)
+    if (op->inv && op != cpl.container)
 	remove_item_inventory (op);
 
     if (op->prev) {
@@ -318,6 +320,8 @@ void remove_item (item *op)
     if (op->next) {
 	op->next->prev = op->prev;
     }
+
+    if (cpl.container == op) return;	/* Don't free this! */
 
     /* add object to a list of free objects */
     op->next = free_items;

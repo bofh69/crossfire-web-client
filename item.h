@@ -58,16 +58,6 @@ typedef struct item_struct {
     uint8   type;		/* Item type for ordering */
 } item;
 
-
-extern void free_all_items (item *);
-extern void dump_inv (item *);
-extern item *locate_item (sint32);
-extern void remove_item (item *);
-extern void remove_item_inventory (item *);
-extern item *create_new_item (item *, sint32);
-extern item *player_item (void);
-extern item *map_item (void);
-
 /*
  *  A few macros to make clear interface 
  *  These will change (especially update_item and add_new_item)

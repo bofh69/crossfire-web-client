@@ -2,6 +2,17 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+MSW 2001/03/18
+Change so that containers on the ground still keep proper contents even if the
+map space itself changes (spells or other objects going onto the space).  This
+is done by using the cpl.container pointer and when getting an updated map
+space, seeing if one of the map space object tags match that.
+commands.c: update the cpl.container tags when opening/closing containers.
+item.c: Have locate_object see if the container matches the tag.  Don't have
+    remove_item remove the object contents of other attributes if it is the
+    container, but still remove it from the list it is on.
+item.h: remove function prototypes - these are in proto.h
+
 MSW 2001/03/13:
 png.c: New png -> X11 (or gdk) creation routines that are much faster.  This
    should make a noticable difference in performance.  Note that the X11
