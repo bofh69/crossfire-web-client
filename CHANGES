@@ -1,3 +1,8 @@
+Updated gtk client with speedups in text handling and drawing. It should
+now remain responsive during massive text updates on slower machines.
+Prepared with a single define (XPM_SIZE) for 32x32 graphic tiles.
+/David
+
 Changes for 0.95.3:
 
 Don't link in -lnsl -lsocket on sgi systems.  Don't link in -lnsl on
