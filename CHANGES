@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: fixed invalid level display for skills under Win32
+    (int64 issue, %lld doesn't work under Win32)
+	Also removed dumb Win-newlines from previous commits.
+Ryo 2003-11-22
+
 common/client.h: readded (Win32 only) player's name. Used for specific
    key bindings file loading/saving.
 common/script.c: made dummy functions to correctly compile under Win32.

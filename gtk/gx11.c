@@ -2364,7 +2364,11 @@ void draw_stats(int redraw) {
 	if ((redraw || cpl.stats.skill_exp[i] != last_stats.skill_exp[i]) &&
 	    skill_names[i] && cpl.stats.skill_exp[i]){
 	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), skill_names[i]);
+#ifdef WIN32
+	    sprintf(buff,"%I64d (%d)", cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
+#else
 	    sprintf(buff,"%lld (%d)", cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
+#endif
 	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
 	    last_stats.skill_level[i] = cpl.stats.skill_level[i];
 	    last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
