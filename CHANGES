@@ -2,6 +2,19 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/player.c: Break out some of the extended commands into there
+   own function to make the extended_command function more readable.
+   Alphabetize strcmps in extended_command.  Add special processing
+   for the 'take' command so that it handles open containers properly.
+gtk/gx11.c: Add version information to the About dialogue box.
+gtk/key.c: Fix bug in that extended commands (') didn't work right and
+   would crash the client if not entered in info window.  Entering
+   these now works properly, and crashes are removed.  Clean up formatting
+   of affected function keyfunc().
+help/about.h: Add extra newline to text to make it look better with
+   the version string above.
+MSW 2002-11-30
+
 gtk/gx11.c: Add patch by jshelley@ictransnet.com that fixes save window
    positions.  MSW 2002-10-03
 

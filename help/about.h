@@ -1,5 +1,5 @@
 /* Client aboutfile */
-gchar *text="GTK Crossfire Client\n\
+gchar *text="\n\
 Authors of the client: \n\
 Mark Wedel (mwedel@sonic.net) - general client source and Xlib client\n\
 David Sundqvist (azzie@netpolicy.com) - GTK+ port\n\

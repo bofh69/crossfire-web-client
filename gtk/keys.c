@@ -448,7 +448,7 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
     char buf[MAX_BUF];
 
     if (keycode == commandkey && keysym==commandkeysym) {
-	if (want_config[CONFIG_SPLITWIN]) {
+	if (use_config[CONFIG_SPLITWIN]) {
 	    gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info));
 	    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
 	} else {
@@ -991,87 +991,102 @@ void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 
 
 void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
-  char *text;
-  updatelock=0;
+    char *text;
+    updatelock=0;
 
-  if (!use_config[CONFIG_POPUPS]) {
-    if  (cpl.input_state == Reply_One) {
-	text=XKeysymToString(event->keyval);
-	send_reply(text);
-	cpl.input_state = Playing;
-	return;
+    if (!use_config[CONFIG_POPUPS]) {
+	if  (cpl.input_state == Reply_One) {
+	    text=XKeysymToString(event->keyval);
+	    send_reply(text);
+	    cpl.input_state = Playing;
+	    return;
+	}
+	else if (cpl.input_state == Reply_Many) {
+	    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+	    return;
+	}
     }
-    else if (cpl.input_state == Reply_Many) {
-	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-	return;
-    }
-  }
 
-  /* Better check for really weirdo keys, X doesnt like keyval 0*/
-  if (event->keyval>0) {
+    /* Better check for really weirdo keys, X doesnt like keyval 0*/
+    if (event->keyval<=0) return;
+
     if (GTK_WIDGET_HAS_FOCUS (entrytext) /*|| GTK_WIDGET_HAS_FOCUS(counttext)*/) {
 	if (event->keyval == completekeysym) gtk_complete_command();
 	if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
 	    gtk_command_history(event->keyval==nextkeysym?0:1);
-    }  else {
-      
-      switch(cpl.input_state) {
-      case Playing:
-	/* Specials - do command history - many times, the player
-	 * will want to go the previous command when nothing is entered
-	 * in the command window.
-	 */
-	if (event->keyval == prevkeysym || event->keyval == nextkeysym) {
-	    gtk_command_history(event->keyval==nextkeysym?0:1);
-	    return;
-	}
+    } else {
+	switch(cpl.input_state) {
+	    case Playing:
+		/* Specials - do command history - many times, the player
+		 * will want to go the previous command when nothing is entered
+		 * in the command window.
+		 */
+		if (event->keyval == prevkeysym || event->keyval == nextkeysym) {
+		    gtk_command_history(event->keyval==nextkeysym?0:1);
+		    return;
+		}
 
-	if (cpl.run_on) {
-	  if (!(event->state & GDK_CONTROL_MASK)) {
-/*	    printf ("Run is on while ctrl is not\n");*/
-	    gtk_label_set (GTK_LABEL(run_label),"   ");
-	    cpl.run_on=0;
-	    stop_run();
-	  }
-	}
-	if (cpl.fire_on) {
-	  if (!(event->state & GDK_SHIFT_MASK)) {
-/*	    printf ("Fire is on while shift is not\n");*/
-	    gtk_label_set (GTK_LABEL(fire_label),"   ");
-	    cpl.fire_on=0;
-	    stop_fire();
-	  }
-	}
+		if (cpl.run_on) {
+		    if (!(event->state & GDK_CONTROL_MASK)) {
+			/*printf ("Run is on while ctrl is not\n");*/
+			gtk_label_set (GTK_LABEL(run_label),"   ");
+			cpl.run_on=0;
+			stop_run();
+		    }
+		}
+		if (cpl.fire_on) {
+		    if (!(event->state & GDK_SHIFT_MASK)) {
+			/* printf ("Fire is on while shift is not\n");*/
+			gtk_label_set (GTK_LABEL(fire_label),"   ");
+			cpl.fire_on=0;
+			stop_fire();
+		    }
+		}
 
-	if( (event->state & GDK_CONTROL_MASK) && (event->state & GDK_SHIFT_MASK) && 
-	    (event->keyval == GDK_i || event->keyval == GDK_I) ) {
-	    reset_map();
-	}
+		if( (event->state & GDK_CONTROL_MASK) && (event->state & GDK_SHIFT_MASK) && 
+		   (event->keyval == GDK_i || event->keyval == GDK_I) ) {
+		    reset_map();
+		}
 	
 	
-	parse_key(event->string[0], XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
-	gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
-	break;
-      case Configure_Keys:
-	configure_keys(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
-	gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
-	break;
-      case Command_Mode:
-	if (event->keyval == completekeysym) gtk_complete_command();
-	if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
-	    gtk_command_history(event->keyval==nextkeysym?0:1);
-	else gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+		parse_key(event->string[0], XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
+		gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
+		break;
 
-      case Metaserver_Select:
-	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-      break;
-      default:
-	fprintf(stderr,"Unknown input state: %d\n", cpl.input_state);
-      }
+	    case Configure_Keys:
+		configure_keys(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);
+		gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
+		break;
+
+	    case Command_Mode:
+		if (event->keyval == completekeysym) gtk_complete_command();
+		if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
+		gtk_command_history(event->keyval==nextkeysym?0:1);
+		else {
+		    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+		    /* When running in split windows mode, entrytext can't get focus because 
+		     * it is in a different window.  So we have to pass the event to it
+		     * explicitly
+		     */
+		    if (GTK_WIDGET_HAS_FOCUS(entrytext)==0)
+			gtk_widget_event(GTK_WIDGET(entrytext), (GdkEvent*)event);
+		}
+		/*
+		 * Don't pass signal along to default handlers - otherwise, we get
+		 * get crashes in the clist area (gtk fault I believe)
+		 */
+		gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
+		break;
+
+	    case Metaserver_Select:
+		gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+		break;
+
+	    default:
+		fprintf(stderr,"Unknown input state: %d\n", cpl.input_state);
+	}
       
     }
-    
-  }
 }
 
 

@@ -3001,7 +3001,6 @@ void aboutdialog(GtkWidget *widget) {
   GdkBitmap *aboutgdkmask;
 
   GtkStyle *style;
-  /*  gchar *text="GTK Crossfire Client\nGTK porting by David Sundqvist\nOriginal client code by Mark Wedel and others\nLogo and configure scripts by Raphael Quinet\nThis software is licensed according to the terms set forth\nin the GNU General Public License\n";*/
 
   if(!gtkwin_about) {
     
@@ -3037,6 +3036,7 @@ void aboutdialog(GtkWidget *widget) {
     gtk_box_pack_start (GTK_BOX (hbox),vscrollbar, FALSE, FALSE, 0);
  
     gtk_widget_show (vscrollbar);
+
     gtk_widget_show (hbox);
 
     hbox = gtk_hbox_new(FALSE, 2);
@@ -3052,7 +3052,11 @@ void aboutdialog(GtkWidget *widget) {
 
     gtk_widget_show (vbox);
     gtk_widget_show (gtkwin_about);
-    gtk_text_insert (GTK_TEXT (aboutlabel), NULL, &aboutlabel->style->black, NULL, text , -1);    
+    gtk_text_insert (GTK_TEXT (aboutlabel), NULL, &aboutlabel->style->black,
+		     NULL, VERSION_INFO , -1);
+    gtk_text_insert (GTK_TEXT (aboutlabel), NULL, &aboutlabel->style->black,
+		     NULL, text , -1);
+    gtk_adjustment_set_value(GTK_TEXT(aboutlabel)->vadj, 0.0);
   }
   else { 
     gdk_window_raise (gtkwin_about->window);

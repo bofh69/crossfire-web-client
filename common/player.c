@@ -243,37 +243,94 @@ void CompleteCmd(unsigned char *data, int len)
 
 
 /* Show a basic help message */
-void show_help() {
-    draw_info("Client Side Commands", NDI_NAVY);
-    draw_info(" bind        - bind a command to key", NDI_BLACK);
-    draw_info(" unbind      - unbind a command, show", NDI_BLACK);
-    draw_info("               bindings", NDI_BLACK);
-    draw_info(" cwindow <val> set size of command", NDI_BLACK);
-    draw_info("               window (if val is exceeded", NDI_BLACK);
-    draw_info("               client won't send new", NDI_BLACK);
-    draw_info("               commands to server", NDI_BLACK);
-    draw_info(" foodbeep    - toggle audible low on food", NDI_BLACK);
-    draw_info("               warning", NDI_BLACK);
-    draw_info(" disconnect  - close connection to server", NDI_BLACK);
-    draw_info(" magicmap    - show last received magicmap", NDI_BLACK);
-    draw_info(" metaserver  - Get updated list of metaservers", NDI_BLACK);
-    draw_info("               and show it.  Warning: This may", NDI_BLACK);
-    draw_info("               freeze the client until it gets", NDI_BLACK);
-    draw_info("               the update.", NDI_BLACK);
-    draw_info(" showicon    - draw status icons in", NDI_BLACK);
-    draw_info("               inventory window", NDI_BLACK);
-    draw_info(" showweight  - show weight in inventory", NDI_BLACK);
-    draw_info("               look windows", NDI_BLACK);
-    draw_info(" scroll      - toggle scroll/wrap mode in",NDI_BLACK);
-    draw_info("               info window", NDI_BLACK);
-    draw_info(" savewinpos  - save window positions - ", NDI_BLACK);
-    draw_info("               split windows mode only", NDI_BLACK);
-    draw_info(" savedefaults  save various defaults into", NDI_BLACK);
-    draw_info("               ~/.crossfire/defaults", NDI_BLACK);
-    draw_info(" show        - determine what type of items", NDI_BLACK);
-    draw_info("               to show in inventory", NDI_BLACK);
-    draw_info(" autorepeat  - toggle autorepeat", NDI_BLACK);
+static void command_help(char *cpnext) {
+    char buf[MAX_BUF];
+
+    if (cpnext) {
+	sprintf(buf,"help %s", cpnext);
+	/* maybe not a must send, but we probably don't want to drop it */
+	send_command(buf, -1, 1);
+    } else {
+	draw_info("Client Side Commands", NDI_NAVY);
+	draw_info(" bind        - bind a command to key", NDI_BLACK);
+	draw_info(" unbind      - unbind a command, show", NDI_BLACK);
+	draw_info("               bindings", NDI_BLACK);
+	draw_info(" cwindow <val> set size of command", NDI_BLACK);
+	draw_info("               window (if val is exceeded", NDI_BLACK);
+	draw_info("               client won't send new", NDI_BLACK);
+	draw_info("               commands to server", NDI_BLACK);
+	draw_info(" foodbeep    - toggle audible low on food", NDI_BLACK);
+	draw_info("               warning", NDI_BLACK);
+	draw_info(" disconnect  - close connection to server", NDI_BLACK);
+	draw_info(" magicmap    - show last received magicmap", NDI_BLACK);
+	draw_info(" metaserver  - Get updated list of metaservers", NDI_BLACK);
+	draw_info("               and show it.  Warning: This may", NDI_BLACK);
+	draw_info("               freeze the client until it gets", NDI_BLACK);
+	draw_info("               the update.", NDI_BLACK);
+	draw_info(" showicon    - draw status icons in", NDI_BLACK);
+	draw_info("               inventory window", NDI_BLACK);
+	draw_info(" showweight  - show weight in inventory", NDI_BLACK);
+	draw_info("               look windows", NDI_BLACK);
+	draw_info(" scroll      - toggle scroll/wrap mode in",NDI_BLACK);
+	draw_info("               info window", NDI_BLACK);
+	draw_info(" savewinpos  - save window positions - ", NDI_BLACK);
+	draw_info("               split windows mode only", NDI_BLACK);
+	draw_info(" savedefaults  save various defaults into", NDI_BLACK);
+	draw_info("               ~/.crossfire/defaults", NDI_BLACK);
+	draw_info(" show        - determine what type of items", NDI_BLACK);
+	draw_info("               to show in inventory", NDI_BLACK);
+	draw_info(" autorepeat  - toggle autorepeat", NDI_BLACK);
+	send_command("help", -1, 1);
+    }
 }
+
+static void set_command_window(char *cpnext)
+{
+    if (!cpnext) {
+	draw_info("cwindow command requires a number parameter", NDI_BLACK);
+    } else {
+	want_config[CONFIG_CWINDOW] = atoi(cpnext);
+	if (want_config[CONFIG_CWINDOW]<1 || want_config[CONFIG_CWINDOW]>127)
+	    want_config[CONFIG_CWINDOW]=COMMAND_WINDOW;
+	else
+	    use_config[CONFIG_CWINDOW] = want_config[CONFIG_CWINDOW];
+    }
+}
+
+static void command_foodbep(char *cpnext)
+{
+    if (want_config[CONFIG_FOODBEEP]) {
+	want_config[CONFIG_FOODBEEP]=0;
+	draw_info("Warning bell when low on food disabled", NDI_BLACK);
+    } else {
+	want_config[CONFIG_FOODBEEP]=1;
+	draw_info("Warning bell when low on food enabled", NDI_BLACK);
+    }
+    use_config[CONFIG_FOODBEEP] = want_config[CONFIG_FOODBEEP];
+}
+
+/* This does special processing on the 'take' command.  If the
+ * player has a container open, we want to specifiy what object
+ * to move from that since we've sorted it.  command is
+ * the command as tped, cpnext is any optional params.
+ */
+void command_take (const char *command, char *cpnext)
+{
+    /* If the player has specified optional data, or the player
+     * does not have a container open, just issue the command
+     * as normal
+     */
+    if (cpnext || cpl.container == NULL)
+	send_command(command, cpl.count, 0);
+    else {
+	if (cpl.container->inv == NULL) 
+	    draw_info("There is nothing in the container to move", NDI_BLACK);
+	else
+	    cs_print_string(csocket.fd,"move %d %d %d", cpl.ob->tag, 
+		cpl.container->inv->tag, cpl.count);
+    }
+}
+
 
 /* This is an extended command (ie, 'who, 'whatever, etc).  In general,
  * we just send the command to the server, but there are a few that
@@ -300,31 +357,22 @@ void extended_command(const char *ocommand) {
 	if (*cpnext == 0)
 	    cpnext = NULL;
     }
+
     /* cp now contains the command (everything before first space),
      * and cpnext contains everything after that first space.  cpnext
      * could be NULL.
      */
-    if (!strcmp(cp, "bind"))
-	bind_key(cpnext);
-    else if (!strcmp(cp,"unbind"))
-	unbind_key(cpnext);
-    else if (!strcmp(cp,"showicon"))
-	set_show_icon (cpnext);
-    else if (!strcmp(cp,"showweight"))
-	set_show_weight (cpnext);
-    else if (!strcmp(cp,"scroll"))
-	set_scroll(cpnext);
-    else if (!strcmp(cp,"autorepeat"))
-	set_autorepeat(cpnext);
-    else if (!strcmp(cp,"magicmap")) {
-	cpl.showmagic=1;
-	draw_magic_map();
-    }
-    else if (!strcmp(cp,"metaserver")) {
-	if (!metaserver_get_info(meta_server, meta_port))
-	    metaserver_show(FALSE);
-	else
-	    draw_info("Unable to get metaserver information.", NDI_BLACK);
+
+    /* I alphabetized the list of commands below to make it easier to
+     * find/see what the extended commands are and what they do.
+     */
+    if (!strcmp(cp,"autorepeat"))	    set_autorepeat(cpnext);
+    else if (!strcmp(cp, "bind"))	    bind_key(cpnext);
+    else if (!strcmp(cp,"cwindow"))	    set_command_window(cpnext);
+    else if (!strcmp(cp,"disconnect")) {
+	close(csocket.fd);
+	csocket.fd=-1;
+	return;
     }
 #ifdef HAVE_DMALLOC_H
 #ifndef DMALLOC_VERIFY_NOERROR
@@ -337,51 +385,19 @@ void extended_command(const char *ocommand) {
 	    draw_info("Heap corruption detected", NDI_RED);
     }
 #endif
-    else if (!strcmp(cp,"savewinpos")) {
-	save_winpos();
+    else if (!strcmp(cp,"foodbeep")) command_foodbep(cpnext);
+    else if (!strcmp(cp,"help"))		command_help(cpnext);
+    else if (!strcmp(cp,"inv"))			print_inventory (cpl.ob);
+    else if (!strcmp(cp,"magicmap")) {
+	cpl.showmagic=1;
+	draw_magic_map();
     }
-    else if (!strcmp(cp,"mapredraw")) {
-	cs_print_string(csocket.fd, "mapredraw");
-    }
-    else if (!strcmp(cp,"savedefaults")) {
-	save_defaults();
-    }
-    else if (!strcmp(cp,"cwindow")) {
-	if (!cpnext) {
-	    draw_info("cwindow command requires a number parameter", NDI_BLACK);
-	} else {
-	    want_config[CONFIG_CWINDOW] = atoi(cpnext);
-	    if (want_config[CONFIG_CWINDOW]<1 || want_config[CONFIG_CWINDOW]>127)
-		want_config[CONFIG_CWINDOW]=COMMAND_WINDOW;
-	    else
-		use_config[CONFIG_CWINDOW] = want_config[CONFIG_CWINDOW];
-	}
-    }
-
-    else if (!strcmp(cp,"help")) {
-	char buf[MAX_BUF];
-
-	if (cpnext) {
-	    sprintf(buf,"help %s", cpnext);
-	    /* maybe not a must send, but we probably don't want to drop it */
-	    send_command(buf, -1, 1);
-	} else {
-	    show_help();
-	    send_command("help", -1, 1);
-	}
-
-    }
-    else if (!strcmp(cp,"show")) {
-	command_show(cpnext);
-    }
-    else if (!strcmp(cp,"disconnect")) {
-	close(csocket.fd);
-	csocket.fd=-1;
-	return;
-    }
-    else if (!strcmp(cp,"inv")) {/* inventory command is sended to server
-				   for debugging purposes */
-	print_inventory (cpl.ob);
+    else if (!strcmp(cp,"mapredraw"))		cs_print_string(csocket.fd, "mapredraw");
+    else if (!strcmp(cp,"metaserver")) {
+	if (!metaserver_get_info(meta_server, meta_port))
+	    metaserver_show(FALSE);
+	else
+	    draw_info("Unable to get metaserver information.", NDI_BLACK);
     }
     else if (!strcmp(cp,"resist")) {
 	/* For debugging only */
@@ -393,16 +409,15 @@ void extended_command(const char *ocommand) {
 	    draw_info(buf, NDI_BLACK);
 	}
     }
-    else if (!strcmp(cp,"foodbeep")) {
-	if (want_config[CONFIG_FOODBEEP]) {
-	    want_config[CONFIG_FOODBEEP]=0;
-	    draw_info("Warning bell when low on food disabled", NDI_BLACK);
-	} else {
-	    want_config[CONFIG_FOODBEEP]=1;
-	    draw_info("Warning bell when low on food enabled", NDI_BLACK);
-	}
-	use_config[CONFIG_FOODBEEP] = want_config[CONFIG_FOODBEEP];
-    } else {
+    else if (!strcmp(cp,"savedefaults"))	save_defaults();
+    else if (!strcmp(cp,"savewinpos"))		save_winpos();
+    else if (!strcmp(cp,"scroll"))		set_scroll(cpnext);
+    else if (!strcmp(cp,"show"))		command_show(cpnext);
+    else if (!strcmp(cp,"showicon"))		set_show_icon (cpnext);
+    else if (!strcmp(cp,"showweight"))		set_show_weight (cpnext);
+    else if (!strcmp(cp,"take"))		command_take(cp, cpnext);
+    else if (!strcmp(cp,"unbind"))		unbind_key(cpnext);
+    else {
 	/* just send the command(s)  (if `ocommand' is a compound command */
 	/* then split it and send each part seperately */
         strncpy(command, ocommand, MAX_BUF-1);
@@ -416,6 +431,12 @@ void extended_command(const char *ocommand) {
 	}
     }
 }
+
+/* This list is used for the 'tab' completion, and nothing else.
+ * Therefore, if it is out of date, it isn't that terrible, but
+ * ideally it should stay somewhat up to date with regards to
+ * the commands the server supports.
+ */
  
 static char *commands[] = {
 "save", "sound", "party", "gsay", "apply", "brace",
