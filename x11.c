@@ -2922,18 +2922,16 @@ void display_newpng(long face,char *buf,long buflen)
 	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
 	}
 	filename = facetoname[face];
-    } else {
-	filename=tmpnam(NULL);
-    }
-    if ((tmpfile = fopen(filename,"w"))==NULL) {
-	fprintf(stderr,"Can not open %s for writing\n", filename);
-    }
-    else {
-	fwrite(buf, buflen, 1, tmpfile);
-	fclose(tmpfile);
+	if ((tmpfile = fopen(filename,"w"))==NULL) {
+	    fprintf(stderr,"Can not open %s for writing\n", filename);
+	}
+	else {
+	    fwrite(buf, buflen, 1, tmpfile);
+	    fclose(tmpfile);
+	}
     }
 
-    if (png_to_xpixmap(display, win_game, filename, &pixmap, &mask,
+    if (png_to_xpixmap(display, win_game, buf, buflen, &pixmap, &mask,
 		       colormap, &w, &h)) {
 	fprintf(stderr,"Got error on Imlib_load_file_to_pixmap\n");
     }
@@ -2948,9 +2946,8 @@ void display_newpng(long face,char *buf,long buflen)
 	    free(facetoname[face]);
 	    facetoname[face]=NULL;
 	}
-    } else {
-	unlink(filename);
     }
+
 #endif
 }
 

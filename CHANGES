@@ -1,6 +1,16 @@
 "$Id$"
 Top of CVS tree:
 
+MSW 2000/12/10:
+png.c, gx11.c, x11.c, xutil.c: modified to use in memory loading of
+png's.  This means that if not caching images, we don't need to write it out 
+to a temp file.  This should result in a minor performance gain, but
+also remove the need of using tmpnam.  Also, modified gx11.c so that
+it uses same logic as the x11 client for extended command key (').
+Before gx11.c client would use both ' and ", and there was no way to unbind
+the later - since one can always bind the command key, I found that a bit
+annoying.
+
 Updated to display resistance values in the message window.  Except for
 armour, this is only displayed when running against serves with PR
 code.  Change for both cfclient and gcfclient. Files affected:

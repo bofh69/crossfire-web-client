@@ -159,9 +159,18 @@ void FaceCmd(unsigned char *data,  int len)
 #ifdef HAVE_LIBPNG
 	Pixmap pixmap, mask;
 	unsigned long w, h;
+	int fd,len;
+	char data[65536];
 
+	if ((fd=open(buf, O_RDONLY))==-1) {
+	    requestface(pnum, face, buf);
+	    return;
+	}
+	len=read(fd, data, 65535);
+	close(fd);
+	
 	/* Fail on this read, we will request a new copy */
-	if (png_to_xpixmap(display, win_game, buf, 
+	if (png_to_xpixmap(display, win_game, data, len,
 			   &pixmap, &mask, colormap, &w, &h)) {
 	    requestface(pnum, face, buf);
 	} else {

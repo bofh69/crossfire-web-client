@@ -1287,10 +1287,19 @@ void FaceCmd(unsigned char *data,  int len)
 	}
 	else if (display_mode == Png_Display) {
 #ifdef HAVE_LIBPNG
+	    int fd,len;
+	    char data[65536];
 
-	    if (png_to_gdkpixmap(gtkwin_root->window, buf, &pixmaps[pnum].gdkpixmap, 
+	    if ((fd=open(buf, O_RDONLY))==-1) {
+		requestface(pnum, face, buf);
+		return;
+	    }
+	    len=read(fd, data, 65535);
+	    close(fd);
+
+	    if (png_to_gdkpixmap(gtkwin_root->window, data, len, &pixmaps[pnum].gdkpixmap, 
 			 &pixmaps[pnum].gdkmask,gtk_widget_get_colormap(gtkwin_root))) {
-		fprintf(stderr,"Got error on png_to_gdkpixmap\n");
+		fprintf(stderr,"Got error on png_to_gdkpixmap, file=%s\n",buf);
 		requestface(pnum, face, buf);
 	    }
 #endif
@@ -1354,7 +1363,7 @@ static void parse_key(char key, KeyCode keycode, KeySym keysym)
     int present_flags=0;
     char buf[MAX_BUF];
 
-    if (keycode == commandkey || keysym==commandkeysym) {
+    if (keycode == commandkey && keysym==commandkeysym) {
       /*draw_prompt(">");*/
       if (split_windows) {
 	gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info));
@@ -6522,18 +6531,16 @@ void display_newpng(long face,char *buf,long buflen)
 	    fprintf(stderr,"Caching images, but name for %ld not set\n", face);
 	}
 	filename = facetoname[face];
-    } else {
-	filename=tmpnam(NULL);
-    }
-    if ((tmpfile = fopen(filename,"w"))==NULL) {
-	fprintf(stderr,"Can not open %s for writing\n", filename);
-    }
-    else {
-	fwrite(buf, buflen, 1, tmpfile);
-	fclose(tmpfile);
+	if ((tmpfile = fopen(filename,"w"))==NULL) {
+	    fprintf(stderr,"Can not open %s for writing\n", filename);
+	}
+	else {
+	    fwrite(buf, buflen, 1, tmpfile);
+	    fclose(tmpfile);
+	}
     }
 
-    if (png_to_gdkpixmap(gtkwin_root->window, filename,
+    if (png_to_gdkpixmap(gtkwin_root->window, buf, buflen,
 			 &pixmaps[face].gdkpixmap, &pixmaps[face].gdkmask,
 			 gtk_widget_get_colormap(gtkwin_root))) {
 	    fprintf(stderr,"Got error on png_to_gdkpixmap\n");
@@ -6544,8 +6551,6 @@ void display_newpng(long face,char *buf,long buflen)
 	    free(facetoname[face]);
 	    facetoname[face]=NULL;
 	}
-    } else {
-	unlink(filename);
     }
 #endif
 }

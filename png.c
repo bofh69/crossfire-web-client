@@ -52,9 +52,18 @@
 #define PNGX_OUTOFMEM	2
 #define PNGX_DATA	3
 
+static char *data_cp;
+static int data_len, data_start;
+
+void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+    memcpy(data, data_cp + data_start, length);
+    data_start += length;
+}
+
+
 
 #ifdef PNG_GDK
-int png_to_gdkpixmap(GdkWindow *window, char *filename,
+int png_to_gdkpixmap(GdkWindow *window, char *data, png_size_t len,
 		   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
 {
     static char *pixels=NULL;
@@ -62,7 +71,6 @@ int png_to_gdkpixmap(GdkWindow *window, char *filename,
     static png_bytepp	rows=NULL;
     unsigned long width, height;
 
-    FILE    *fp;
     png_colorp	palette;
     png_structp	png_ptr;
     png_infop	info_ptr, end_info;
@@ -72,13 +80,13 @@ int png_to_gdkpixmap(GdkWindow *window, char *filename,
     GdkColor  scolor;
     GdkGC	*gc, *gc_alpha;
 
-    fp=fopen(filename,"r");
-    if (!fp) {
-	fprintf(stderr,"Unable to open %s\n", filename);
-	return  PNGX_NOFILE;
-    }
+    data_len=len;
+    data_cp = data;
+    data_start=0;
+
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
 				     NULL, NULL, NULL);
+
     if (!png_ptr) {
 	return PNGX_OUTOFMEM;
     }
@@ -95,11 +103,10 @@ int png_to_gdkpixmap(GdkWindow *window, char *filename,
     }
     if (setjmp (png_ptr->jmpbuf)) {
 	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
-	fclose(fp);
 	return PNGX_DATA;
     }
 
-    png_init_io (png_ptr, fp);
+    png_set_read_fn(png_ptr, NULL, user_read_data);
     png_read_info (png_ptr, info_ptr);
 
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
@@ -288,12 +295,11 @@ int png_to_gdkpixmap(GdkWindow *window, char *filename,
     if (has_alpha)
 	gdk_gc_destroy(gc_alpha);
     gdk_gc_destroy(gc);
-    fclose(fp);
     return 0;
 }
 #endif
 
-int png_to_xpixmap(Display *display, Drawable draw, char *filename,
+int png_to_xpixmap(Display *display, Drawable draw, char *data, png_size_t len,
 		   Pixmap *pix, Pixmap *mask, Colormap cmap,
 		   unsigned long *width, unsigned long *height)
 {
@@ -304,19 +310,16 @@ int png_to_xpixmap(Display *display, Drawable draw, char *filename,
     png_structp	png_ptr=NULL;
     png_infop	info_ptr=NULL, end_info=NULL;
     png_colorp	palette;
-    FILE    *fp;
     int bit_depth, color_type, interlace_type, compression_type, filter_type,
 	red,green,blue, alpha,bpp, x,y, lred=-1, lgreen=-1,lblue=-1,
 	has_alpha=0, num_palette;
     XColor  scolor;
     GC	gc, gc_alpha;
 
-    fp=fopen(filename,"r");
+    data_len=len;
+    data_cp = data;
+    data_start=0;
 
-    if (!fp) {
-	fprintf(stderr,"Unable to open %s\n", filename);
-	return  PNGX_NOFILE;
-    }
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
 				     NULL, NULL, NULL);
     if (!png_ptr) {
@@ -335,11 +338,10 @@ int png_to_xpixmap(Display *display, Drawable draw, char *filename,
     }
     if (setjmp (png_ptr->jmpbuf)) {
 	png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
-	fclose(fp);
 	return PNGX_DATA;
     }
 
-    png_init_io (png_ptr, fp);
+    png_set_read_fn(png_ptr, NULL, user_read_data);
     png_read_info (png_ptr, info_ptr);
 
     png_get_IHDR(png_ptr, info_ptr, width, height, &bit_depth,
@@ -555,7 +557,6 @@ int png_to_xpixmap(Display *display, Drawable draw, char *filename,
     if (has_alpha)
 	XFreeGC(display, gc_alpha);
     XFreeGC(display, gc);
-    fclose(fp);
     png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
     return 0;
 }
