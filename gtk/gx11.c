@@ -397,7 +397,7 @@ void event_loop()
     gtk_main();
     gtk_timeout_remove(tag);
 
-    LOG(LOG_WARNING,"gtk::event_loop","gtk_main exited, returning from event_loop");
+    LOG(LOG_INFO,"gtk::event_loop","gtk_main exited, returning from event_loop");
 }
 
 
@@ -3347,12 +3347,10 @@ void bugdialog(GtkWidget *widget) {
 
     vscrollbar = gtk_vscrollbar_new (GTK_TEXT (buglabel)->vadj);
     gtk_box_pack_start (GTK_BOX (hbox),vscrollbar, FALSE, FALSE, 0);
-    gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
 
     gtk_widget_show (vscrollbar);
 
     gtk_widget_show (hbox);
-
     hbox = gtk_hbox_new(FALSE, 2);
     createBugTracker();
     font = gdk_font_load ("-*-fixed-*-*-*-*-12-*-*-*-*-*-*-*");
@@ -3370,7 +3368,6 @@ void bugdialog(GtkWidget *widget) {
     gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
     gtk_widget_show (vscrollbar);
     gtk_widget_show (hbox);
-
     hbox = gtk_hbox_new(FALSE, 2);
     bugbutton = gtk_button_new_with_label ("Close");
     gtk_signal_connect_object (GTK_OBJECT (bugbutton), "clicked",
@@ -3670,7 +3667,7 @@ void sexit()
 }
 
 void client_exit(){
-    printf ("Exiting.\n");
+    LOG(LOG_INFO,"gtk::client_exit","Exiting with return value 0.");
     exit(0);
 }
 /* get_menu_display
@@ -4869,6 +4866,10 @@ int do_timeout() {
   return TRUE;
 }
 
+int gtk_checkchilds(){
+    monitorChilds();
+    return FALSE;
+}
 
 
 
@@ -5606,7 +5607,7 @@ int init_windows(int argc, char **argv)
     init_keys();
     if (want_config[CONFIG_CACHE]) init_cache_data();
     if (want_config[CONFIG_SPLASH]) destroy_splash();
-
+    gtk_timeout_add (10,(GtkFunction)gtk_checkchilds,NULL);
     return 0;
 }
 
@@ -5764,8 +5765,8 @@ void gtkLogListener (LogEntry *le){
         gtk_text_insert (GTK_TEXT (bugtrack), NULL, &bugtrack->style->black,NULL, getLogText(le), -1);
 }
 #define MAX_RECURSE 50
-/* a handler for the glib error logging. USed so we care ourself of the gtk/gdk warnings
- * and make them appear in message window
+/* a handler for the glib error logging. Used so we care ourself of the gtk/gdk warnings
+ * and make them appear in message window using the logging facility
  */
 void gLogHandler (const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data){
     static char LogOrigin[4096];

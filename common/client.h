@@ -305,6 +305,29 @@ typedef void (*LogListener)(LogEntry*);
 #define LOG_SETMESSAGE(_Entry,_msg) if (_Entry->message){free(_Entry->message);};_Entry->message=strdup(_msg)
 #define LOG_SETORIGIN(_Entry,_orig) if (_Entry->origin){free(_Entry->origin);};_Entry->origin=strdup(_orig)
 
+typedef struct{
+    char* name;
+    LogLevel level;
+    int log; /*yes or no to log*/
+}PipeLog;
+#define CHILD_STDIN 1
+#define CHILD_STDOUT 2
+#define CHILD_STDERR 4
+#define CHILD_SILENTFAIL 8
+#define CHILD_TUBE (CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR)
+typedef struct ChildProcess{
+    char* name;
+    int flag;
+    int pid;
+    int tube[3];
+    PipeLog logger[3];
+    struct ChildProcess* next;
+}ChildProcess;
+#define CHILD_PIPEIN(__child) (__child->tube[0])
+#define CHILD_PIPEOUT(__child) (__child->tube[1])
+#define CHILD_PIPEERR(__child) (__child->tube[2])
+
+
 #ifndef CPROTO
 /* We need to declare most of the structs before we can include this */
 #include <proto.h>

@@ -36,9 +36,11 @@
 
 #include "client.h"
 #include <stdarg.h>
-
+#include <stdio.h>
+#include <errno.h>
 #include <sys/stat.h>
-
+#include <sys/types.h>
+#include <sys/wait.h>
 
 /*
  * Verifies that the directory exists, creates it if necessary
@@ -182,4 +184,264 @@ void LOG (LogLevel level, char* origin, char *format, ...)
   va_end(ap);
 }
 
+ChildProcess* FirstChild=NULL;
+ChildProcess* LastChild=NULL;
 
+void purgePipe(ChildProcess* cp, int pipe){
+    char buf[512];
+    int len;
+    len=read (cp->tube[pipe],buf,511);
+    if (len<1){
+        if (errno==EAGAIN)
+            return;
+        LOG(LOG_ERROR,"common::purgePipe","Child %s: could not read from pipe %d!",cp->name?cp->name:"UNKNOWN",pipe);
+    }
+    if (len>0){
+        char* next;
+        char* current=buf;
+        buf[len<512?len:511]='\0';
+        if (strlen(buf)==0)
+            return;
+        for (;;){
+            if (!current)
+                return;
+            next=strstr(current,"\n");
+            if (next){
+                next[0]='\0';
+                next+=strlen("\n");
+            }
+            LOG(cp->logger[pipe].level,cp->logger[pipe].name,current);
+            current=next;
+        }
+    }
+}
+
+void monitorChilds(){
+    ChildProcess* cp=FirstChild;
+    ChildProcess* last=NULL;
+    for (;;){
+        if (!cp)
+            return; /*no child to monitor*/
+        if (waitpid(cp->pid,NULL,WNOHANG)){
+            /*pid is dead*/
+            LOG(LOG_INFO,"common::monitorChilds","Child %s died. Removing and closing pipes",cp->name?cp->name:"UNKNOWN");
+            ChildProcess* next;
+            if (cp==LastChild)
+                LastChild=last;
+            next=cp->next;
+            if (last)
+                last->next=next;
+            else
+                FirstChild=last->next;
+            cp=next;
+            continue;
+        }
+        if (cp->logger[1].log)
+            purgePipe(cp,1);
+        if (cp->logger[2].log)
+            purgePipe(cp,2);
+        last=cp;
+        cp=cp->next;
+    }
+}
+
+void logPipe(ChildProcess *child, LogLevel level, int pipe){
+    char buf[1024];
+    if ( (pipe<1) || (pipe>2))/*can't log stdin as it's write only*/
+        return;
+    if (!child->logger[pipe].name){
+        sprintf(buf,"Child%d::%s::%d",child->pid,child->name?child->name:"NONAME",pipe);
+        child->logger[pipe].name=strdup(buf);
+    }
+    if (fcntl(child->tube[pipe], F_SETFL, O_NDELAY)==-1) {
+        LOG(LOG_WARNING,"common::logPipe","Error on fcntl.");
+        child->logger[pipe].log=0; /*We don't log it*/
+        return;
+    }
+    child->logger[pipe].log=1; /*We log it*/
+    child->logger[pipe].level=level;
+}
+
+void unLogPipe(ChildProcess* child, int pipe){
+    if ( (pipe<1) || (pipe>2))/*can't log stdin as it's write only*/
+        return;
+    free(child->logger[pipe].name);
+    child->logger[pipe].name=NULL;
+    child->logger[pipe].log=0;
+}
+
+void logChildPipe(ChildProcess* child, LogLevel level, int flag){
+    if (child->flag & flag & CHILD_STDOUT)
+        logPipe(child,level,1);
+    if (child->flag & flag & CHILD_STDERR)
+        logPipe(child,level,2);
+}
+
+void unLogChildPipe(ChildProcess* child, int flag){
+    if (flag&CHILD_STDOUT)
+        unLogPipe(child,1);
+    if (flag&CHILD_STDERR)
+        unLogPipe(child,2);
+}
+
+ChildProcess* raiseChild(char* name, int flag){
+    ChildProcess* cp;
+    int pipe_in[2];
+    int pipe_out[2];
+    int pipe_err[2];
+    int pid;
+    LogLevel deferror;
+    char *args;
+    deferror=(flag & CHILD_SILENTFAIL)?LOG_INFO:LOG_ERROR;
+    LOG(LOG_INFO,"common::raiseChild","Raising %s with flags %d",name,flag);
+    flag=flag & (~CHILD_SILENTFAIL);
+    if (flag & (~CHILD_TUBE)){
+        LOG(LOG_ERROR,"common::raiseChild",
+                "Serious CHILD error, unknown pipe requested: 0x%X for %s",
+                flag,name);
+        return NULL; /**/
+    }
+    cp = (ChildProcess*)calloc(1,sizeof(ChildProcess));
+    if (cp==NULL)
+        return NULL; /*No log here, we are out of memory for a few DWORDs, no chance to log*/
+
+    /* Separate name and args */
+    args=name;
+    while ( *args && *args!=' ' ) ++args;
+    while ( *args && *args==' ' ) ++args;
+    if ( *args==0 )
+        args=NULL;
+    else
+        args[-1]=0;
+    /*let's pipe a bit*/
+    if (flag&CHILD_STDERR)
+        if ( pipe(pipe_err) ){
+            LOG(LOG_ERROR,"common::raiseChild","Couldn't create stderr pipe for %s",name);
+            free(cp);
+            return NULL;
+        }
+    if (flag&CHILD_STDIN)
+        if ( pipe(pipe_in) ){
+            LOG(LOG_ERROR,"common::raiseChild","Couldn't create stdin pipe for %s",name);
+            if (flag&CHILD_STDERR){
+                close(pipe_err[0]);
+                close(pipe_err[1]);
+            }
+            free(cp);
+            return NULL;
+        }
+    if (flag&CHILD_STDOUT)
+        if ( pipe(pipe_out) ){
+            LOG(LOG_ERROR,"common::raiseChild","Couldn't create stdout pipe for %s",name);
+            if (flag&CHILD_STDERR){
+                close(pipe_err[0]);
+                close(pipe_err[1]);
+            }
+            if (flag&CHILD_STDIN){
+                close(pipe_in[0]);
+                close(pipe_in[1]);
+            }
+            free(cp);
+            return NULL;
+        }
+
+    pid=fork();
+    if (pid==-1){/*failed to fork*/
+        LOG(LOG_ERROR,"common::raiseChild","Couldn't create child for %s. Closing pipes",name);
+        if (flag&CHILD_STDIN){
+            close(pipe_in[0]);
+            close(pipe_in[1]);
+        }
+        if (flag&CHILD_STDOUT){
+            close(pipe_out[0]);
+            close(pipe_out[1]);
+        }
+        if (flag&CHILD_STDERR){
+            close(pipe_err[0]);
+            close(pipe_err[1]);
+        }
+        free(cp);
+        return NULL;
+    }
+    if (pid==0){ /*we are the child (yeah))*/
+        int i;
+        int r;
+        char *argv[256];
+
+        /* Fill in argv[] */
+        argv[0]=name;
+        i=1;
+        while (args && *args)
+        {
+            argv[i]=args;
+            ++i;
+            while ( *args && *args!=' ' ) ++args;
+            if ( *args )
+            {
+                *args=0;
+                ++args;
+            }
+            while ( *args && *args==' ' ) ++args;
+        }
+        argv[i]=NULL;
+
+        /* Clean up file descriptor space */
+        if (flag&CHILD_STDERR){
+            r=dup2(pipe_err[1],2);
+            close(pipe_err[0]);
+            if ( r != 2 ) {
+                /*No call to log, we are the child, don't mess! Console is only soluce.*/
+                fprintf(stderr,"common::raiseChild Failed to set pipe_err as stderr\n");
+            }
+        }
+        if (flag&CHILD_STDOUT){
+            r=dup2(pipe_out[1],1);
+            close(pipe_out[0]);
+            if ( r != 1 ) {
+                /*No call to log Father will catch us if he cares of our stderr*/
+                fprintf(stderr,"common::raiseChild Failed to set pipe_out as stdout\n");
+            }
+        }
+        if (flag&CHILD_STDIN){
+            r=dup2(pipe_in[0],0);
+            close(pipe_in[1]);
+            if ( r != 0 ) {
+                /*No call to log Father will catch us if he cares of our stderr*/
+                fprintf(stderr,"common::raiseChild Failed to set pipe_in as stdin\n");
+            }
+        }
+        for (i=3;i<100;++i) close(i);
+
+        /* EXEC */
+        execvp(argv[0],argv);
+        exit(-1); /* Should not be reached */
+    }
+    /*We are in father here*/
+    if (flag&CHILD_STDIN){
+        close (pipe_in[0]); /*close read access to stdin, we are the writer*/
+        CHILD_PIPEIN(cp)=pipe_in[1];
+    } else
+        CHILD_PIPEIN(cp)=-1;
+
+    if (flag&CHILD_STDOUT){
+        close (pipe_out[1]); /*close write access to stdout, we are the reader*/
+        CHILD_PIPEOUT(cp)=pipe_out[0];
+    } else
+        CHILD_PIPEOUT(cp)=-1;
+
+    if (flag&CHILD_STDERR){
+        close (pipe_err[1]); /*close write access to stderr, we are the reader*/
+        CHILD_PIPEERR(cp)=pipe_err[0];
+    } else
+        CHILD_PIPEERR(cp)=-1;
+    cp->pid=pid;
+    cp->name=strdup(name);
+    cp->flag=flag;
+    /*add to chained list*/
+    if (FirstChild)
+        LastChild->next=cp;
+    else
+        FirstChild=cp;
+    LastChild=cp;
+    return cp;
+}

@@ -85,6 +85,10 @@ extern void clearLogListener();
 extern int setLogListener(LogListener li);
 extern char* getLogText(LogEntry* le);
 extern void LOG (LogLevel logLevel, char* origin, char *format, ...);
+extern void monitorChilds();
+extern ChildProcess* raiseChild(char* name, int flag);
+extern void unLogChildPipe(ChildProcess* child, int flag);
+extern void logChildPipe(ChildProcess* child, LogLevel level, int flag);
 /* newsocket.c */
 extern void SockList_Init(SockList *sl, char *buf);
 extern void SockList_AddChar(SockList *sl, char c);

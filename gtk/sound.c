@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <signal.h>
+#include <errno.h>
 #include <client-types.h>
 #include "client.h"
 
@@ -50,21 +51,20 @@ void signal_pipe(int i) {
 }
 
 FILE *sound_pipe=NULL;
-
-
+ChildProcess* sound_process;
 /* init_sounds open the audio device, and reads any configuration files
  * that need to be.  It returns 0 on success.  On failure, the calling
  * function will likely disable sound support/requests from the server.
  */
 
-int init_sounds()
+int oldinit_sounds()
 {
     /* Easy trick - global nosound is set in the arg processing - if set,
      * just return -1 - this way, the calling function only needs to check
      * the value of init_sounds, and not worry about checking nosound.
      */
     if (!want_config[CONFIG_SOUND]) return -1;
-    
+
     if (sound_pipe) fclose(sound_pipe);
 
     sound_pipe=popen(BINDIR "/cfsndserv","w");
@@ -82,11 +82,32 @@ int init_sounds()
 
     return 0;
 }
+/* init_sounds open the audio device, and reads any configuration files
+ * that need to be.  It returns 0 on success.  On failure, the calling
+ * function will likely disable sound support/requests from the server.
+ */
+
+int init_sounds()
+{
+    /* Easy trick - global nosound is set in the arg processing - if set,
+     * just return -1 - this way, the calling function only needs to check
+     * the value of init_sounds, and not worry about checking nosound.
+     */
+    if (!want_config[CONFIG_SOUND]) return -1;
+
+    //if (sound_process) //kill
+
+    sound_process=raiseChild(BINDIR "/cfsndserv",CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR);
+    logChildPipe(sound_process, LOG_INFO, CHILD_STDOUT|CHILD_STDERR);
+    sound_pipe=fdopen(sound_process->tube[0],"w");
+    signal(SIGPIPE, signal_pipe);/*perhaps throwing this out :\*/
+    return 0;
+}
 
 
 /* Plays sound 'soundnum'.  soundtype is 0 for normal sounds, 1 for
  * spell_sounds.  This might get extended in the future.  x,y are offset
- * (assumed from player) to play sound.  This information is used to 
+ * (assumed from player) to play sound.  This information is used to
  * determine value and left vs right speaker balance.
  *
  * This procedure seems to be very slow - much slower than I would
@@ -95,23 +116,21 @@ int init_sounds()
 
 static void play_sound(int soundnum, int soundtype, int x, int y)
 {
-    if (!use_config[CONFIG_SOUND]) return;
 
-    if (fprintf(sound_pipe,"%4x %4x %4x %4x\n",soundnum,soundtype,x,y)<=0) {
-	use_config[CONFIG_SOUND]=0;
-	fclose(sound_pipe);
-	return;
+    if (!use_config[CONFIG_SOUND]) return;
+    if ( (fprintf(sound_pipe,"%4x %4x %4x %4x\n",soundnum,soundtype,x,y)<=0) ||
+         (fflush(sound_pipe)!=0) ){
+        LOG(LOG_ERROR,"gtk::play_sound","couldn't write to sound pipe: %d",errno);
+        use_config[CONFIG_SOUND]=0;
+        fclose(sound_pipe);
+        sound_process=NULL;
+        return;
     }
-    if (fflush(sound_pipe)!=0) {
-	use_config[CONFIG_SOUND]=0;
-	fclose(sound_pipe);
-	return;
-   }
 }
 
 
 void SoundCmd(unsigned char *data,  int len)
-{  
+{
     int x, y, num, type;
 
     if (len!=5) {
