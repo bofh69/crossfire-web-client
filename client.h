@@ -28,6 +28,10 @@
 #  include <fcntl.h>
 #endif
 
+#ifdef HAVE_DMALLOC_H
+#  include <dmalloc.h>
+#endif
+
 #include <newclient.h>
 #include <item.h>
 
@@ -126,7 +130,7 @@ typedef struct Stat_struct {
     sint16 maxgrace;	    /* Max spell points. */
     sint32 exp;		    /* Experience.  Killers gain 1/10. */
     sint16 food;	    /* How much food in stomach.  0 = starved. */
-    sint8 dam;		    /* How much damage this object does when hitting */
+    sint16 dam;		    /* How much damage this object does when hitting */
     sint32 speed;	    /* Gets converted to a float for display*/
     sint32 weapon_sp;	    /* Gets converted to a float for display */
     uint16 flags;	    /* contains fire on/run on flags */

@@ -1,6 +1,9 @@
 "$Id$"
 Top of CVS tree:
 
+MSW 2001/1/8:
+client.h: Change damage type to be 16 bits.
+
 MSW 2000/12/24:
 png.c: Fix a major memory corruption issue - the png function
 was re-allocing for a larger hunk of data, but did not update the
