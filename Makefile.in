@@ -186,7 +186,12 @@ archive:
 
 
 clean::
-	$(RM) -f $(TARGET) $(GTK_OBJS) x11.o Makefile.bak
+	$(RM) -f $(TARGET) $(GTK_OBJS) $(SND_OBJS) x11.o Makefile.bak
+
+distclean::
+	$(MAKE) clean
+	$(RM) -f config.status config.log config.cache
+	$(RM) -f cfsndserv cfclient gcfclient
 
 install:
 	$(INSTALL) $(TARGET) ${bindir}
