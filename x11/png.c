@@ -225,8 +225,8 @@ uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
 
 uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 {
-    static    int xrow[BPP * MAX_IMAGE_WIDTH], yrow[BPP*MAX_IMAGE_HEIGHT];
-    static  uint8  *nrows[MAX_IMAGE_HEIGHT];
+    static int xrow[BPP * MAX_IMAGE_WIDTH], yrow[BPP*MAX_IMAGE_HEIGHT];
+    static uint8 *nrows[MAX_IMAGE_HEIGHT];
 
     /* Figure out new height/width */
     int new_width = *width  * scale / RATIO, new_height = *height * scale / RATIO;
@@ -362,11 +362,16 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 		a = xrow[3+source_column*BPP];
 	}
 
-	if (!needcol) {
-		nrows[destrow][dest_column * BPP] = r;
-		nrows[destrow][1+dest_column * BPP] = g;
-		nrows[destrow][2+dest_column * BPP] = b;
-		nrows[destrow][3+dest_column * BPP] = a;
+	/* Not positve, but without the bound checking for dest_column,
+	 * we were overrunning the buffer.  My guess is this only really
+	 * showed up if when the images are being scaled - there is probably
+	 * something like half a pixel left over.
+	 */
+	if (!needcol && (dest_column < new_width)) {
+	    nrows[destrow][dest_column * BPP] = r;
+	    nrows[destrow][1+dest_column * BPP] = g;
+	    nrows[destrow][2+dest_column * BPP] = b;
+	    nrows[destrow][3+dest_column * BPP] = a;
 	}
 	destrow++;
     }

@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/png.c, x11/png.c: Fix bug in rescale_rgba_data() that was potentially
+    causing a 1 byte overrun of malloc'd data, that could result
+    in crashes or other odd problems.
+MSW 2003-02-19
+
 common/init.c: Make sure we initalize all the config values.
 gtk/gx11.c: fix foodbeep - now only beep when food is low, and continue
    to beep when food reaches 0.
