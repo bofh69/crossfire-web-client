@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gx11.c: Fix bug that causes gtk client not to update weapon speed.
+metaserver.c: Have the listing get sorted by hostname to make it easier to
+   find the host the user may want.
+MSW 2001-05-02
+
 
 ------------------------------------------------------------------------------
 Changes for 0.98.0:

@@ -60,8 +60,11 @@ typedef struct Meta_Info {
 
 
 
-Meta_Info meta_servers[MAX_METASERVER];
+Meta_Info *meta_servers=NULL;
+
 int meta_numservers=0;
+
+int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
 
 /* This contacts the metaserver and gets the list of servers.  returns 0
  * on success, 1 on failure.  Errors will get dumped to stderr,
@@ -119,6 +122,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
      * a list before, we can still use it.
      */
     meta_numservers=0;
+    if (!meta_servers) meta_servers=malloc(sizeof(Meta_Info) * MAX_METASERVER);
 
     /* The loop goes through and unpacks the data from the metaserver
      * into its individual components.  We do a little extra work and
@@ -190,6 +194,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	meta_numservers++;
     }
     fclose(fp);
+    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)())meta_sort);
     return 0;
 }
 

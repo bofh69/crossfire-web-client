@@ -3151,8 +3151,10 @@ void draw_stats(int redraw) {
       gtk_widget_draw (statwindow.armor, NULL);
     }
     
-    if(redraw || cpl.stats.speed!=last_stats.speed) {
+    if(redraw || cpl.stats.speed!=last_stats.speed ||
+       cpl.stats.weapon_sp != last_stats.weapon_sp) {
       last_stats.speed=cpl.stats.speed;
+      last_stats.weapon_sp=cpl.stats.weapon_sp;
       weap_sp = (float) cpl.stats.speed/((float)cpl.stats.weapon_sp);
       sprintf(buff,"Speed: %3.2f (%1.2f)",(float)cpl.stats.speed/FLOAT_MULTF,weap_sp);
       gtk_label_set (GTK_LABEL(statwindow.speed), buff);
