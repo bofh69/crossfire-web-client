@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------
+Changes for 1.6.0:
+
 common/commands.c: Clean up some formatting.
 common/item.c: Add num_free_items() to try and help see some memory
    laakage.

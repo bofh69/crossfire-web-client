@@ -64,6 +64,7 @@ extern item *locate_item(sint32 tag);
 extern void remove_item(item *op);
 extern void remove_item_inventory(item *op);
 extern item *create_new_item(item *env, sint32 tag);
+extern int num_free_items(void);
 extern void set_item_values(item *op, char *name, sint32 weight, uint16 face, uint16 flags, uint16 anim, uint16 animspeed, sint32 nrof, uint16 type);
 extern void toggle_locked(item *op);
 extern void send_mark_obj(item *op);
