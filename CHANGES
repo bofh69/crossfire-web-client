@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/map.c, gnome/map.c: Apply patch by kirschbaum@myrealbox.com which fixes
+improper coordinate comparision.
+gtk/gx11.c: Remove some unused declarations.
+gtk/map.c: always set the cleared flag as spaces come into view.
+MSW 2003-11-28
+
 gtk/gx11.c: fixed invalid level display for skills under Win32
     (int64 issue, %lld doesn't work under Win32)
 	Also removed dumb Win-newlines from previous commits.
