@@ -6237,7 +6237,6 @@ static void usage(char *progname)
 #endif
     puts("-showicon        - Print status icons in inventory window");
     puts("-scrolllines <number>    - number of lines for scrollback");
-    puts("-image           - get all images from server at startup");
     puts("-sync            - Synchronize on display");
     puts("-help            - Display this message.");
     puts("-cache           - Cache images for future use.");
