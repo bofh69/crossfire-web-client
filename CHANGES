@@ -1,6 +1,8 @@
 "$Id$"
 Top of CVS tree:
 
+License: Add license file for the client - MSW 4/20/2000
+
 cfsndserv.c: Various changes
 1) Add support for sound on Sun (solaris) systems - another init_audio
 function added.
