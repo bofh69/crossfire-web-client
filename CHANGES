@@ -1,6 +1,10 @@
 "$Id$"
 Top of CVS tree:
 
+cfsndserv.c: Make some changes so that sound on ultrasparc systems is played
+properly.  Missing FD_SET call to re-add the soundfd, as well as a missing
+wrap check for first_free_buffer.  MSW 8/10/2000
+
 The following matches a change made to the server which includes two
 piece item names to make the item names in the client appear more perfect.
 Protocol: Updated to document the new item name transmission method.

@@ -791,6 +791,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 	    (first_free_buffer >= current_buffer))
 		first_free_buffer = buf+1;
     }
+    if (first_free_buffer >= settings.buffers) first_free_buffer=0;
 }
 
 int SoundCmd(unsigned char *data,  int len)
@@ -925,6 +926,11 @@ int main(int argc, char *argv[])
              if (current_buffer>=settings.buffers) current_buffer=0;
            }
 	}   
+      } else {
+	/* We need to reset this if it is not set - otherwise, we will never
+	 * finish playing the sounds
+	 */
+	FD_SET(soundfd,&outset);
       }
       if (FD_ISSET(infd,&inset)){
         int err=read(infd,inbuf+inbuf_pos,1);
