@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/client.h, common/newsocket.c: Remove 'extern in errno' lines -
+  errno.h is included, which takes care of the problem.
+MSW 2003-10-25
+
 ------------------------------------------------------------------------------
 Changes for 1.6.0:
 

@@ -166,7 +166,6 @@ short GetShort_String(unsigned char *data) {
 int SockList_ReadPacket(int fd, SockList *sl, int len)
 {
     int stat,toread,readsome=0;
-    extern int errno;
 
     /* We already have a partial packet */
     if (sl->len<2) {

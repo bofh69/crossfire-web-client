@@ -291,8 +291,6 @@ extern char *skill_names[MAX_SKILL];
 #include <proto.h>
 #endif
 
-extern int errno;
-
 /* translation of the STAT_RES names into printable names,
  * in matching order.
  */
