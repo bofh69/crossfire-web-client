@@ -593,7 +593,10 @@ void script_watch(char *cmd,char *data, int len, enum CmdFormat format)
                default: {
                      int be;
                      int p;
-
+                     
+                     /*we may receive an null data, in which case len has no meaning*/
+                     if (!data)
+                        len=0;
                      be=sprintf(buf,"watch %s %d bytes unparsed:",cmd,len);
                      for(p=0;p<len && p<100;++p) {
                         be+=sprintf(buf+be," %02x",data[p]);
