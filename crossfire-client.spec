@@ -47,6 +47,10 @@ GTK version of the crossfire client
 %setup -a 1 -a 2 -n crossfire-%{extra}-%{version}
 
 %build
+
+# Prevent name clash with sounds.dist changed to sounds
+mv sounds sound-files
+
 chmod 755 configure
 CFLAGS="$RPM_OPT_FLAGS" \
 ./configure --prefix=/usr/X11R6 --exec-prefix=/usr/X11R6/bin \
@@ -62,12 +66,13 @@ install -d $RPM_BUILD_ROOT/usr/share/sounds/crossfire
 install -d $RPM_BUILD_ROOT/usr/share/gnome/apps/Games
 install -d $RPM_BUILD_ROOT/usr/share/pixmaps
 
+
 make install \
     DESTDIR=$RPM_BUILD_ROOT \
     bindir=$RPM_BUILD_ROOT/usr/X11R6/bin \
     mandir=$RPM_BUILD_ROOT/usr/X11R6/man/man1
 
-install sounds/* $RPM_BUILD_ROOT/usr/share/sounds/crossfire
+install sound-files/* $RPM_BUILD_ROOT/usr/share/sounds/crossfire
 
 install -c client.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/cfclient.1
 install -c client.man $RPM_BUILD_ROOT/usr/X11R6/man/man1/gcfclient.1
