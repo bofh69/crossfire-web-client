@@ -231,7 +231,8 @@ void applyconfig () {
 
     int onbutton;
 
-    face_info.want_faceset = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(faceset_combo)->entry));
+    if (face_info.want_faceset) free(face_info.want_faceset);
+    face_info.want_faceset = strdup_local(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(faceset_combo)->entry)));
     for (onbutton =0; onbutton < MAX_BUTTONS; onbutton++) {
 	if (cbuttons[onbutton].type == CBUTTON) {
 	    set_config_value(onbutton, GTK_TOGGLE_BUTTON (cbuttons[onbutton].widget)->active);

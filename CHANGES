@@ -1,6 +1,9 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+gtk/config.c: Allocate string data for want_faceset - data returned by
+   gtk_entry_get_text is non persistent.  MSW 2002-04-28
+
 gtk/gx11.c: Fix bug in that the wrong variable was being passed to
    negotiate_connection, resulting in the sound not being properly
    communicated to the client.  MSW 2002-04-19
