@@ -2245,7 +2245,14 @@ static void resize_win_root(XEvent *event) {
 
 static void parse_game_button_press(int button, int x, int y)
 {
-    int dx=(x-2)/image_size-use_config[CONFIG_MAPWIDTH]/2,dy=(y-2)/image_size-use_config[CONFIG_MAPHEIGHT]/2,i;
+    int dx, dy, i, xmidl, xmidh, ymidl, ymidh;
+
+    dx = (x-2)/image_size-use_config[CONFIG_MAPWIDTH]/2;
+    dy= (y-2)/image_size-use_config[CONFIG_MAPHEIGHT]/2;
+    xmidl=(use_config[CONFIG_MAPWIDTH]/2) * image_size;
+    xmidh=(use_config[CONFIG_MAPWIDTH]/2 + 1) * image_size;
+    ymidl=(use_config[CONFIG_MAPHEIGHT]/2) * image_size;
+    ymidh=(use_config[CONFIG_MAPHEIGHT]/2 + 1) * image_size;
 
     switch (button) {
 	case 1:
@@ -2259,15 +2266,15 @@ static void parse_game_button_press(int button, int x, int y)
 	break;
 	case 2:
 	case 3:
-	    if (x<115)
+	    if (x<xmidl)
 		i = 0;
-	    else if (x>149)
+	    else if (x>xmidh)
 	       i = 6;
 	    else i =3;
 
-	    if (y>152)
+	    if (y>ymidh)
 	      i += 2;
-	    else if (y>115)
+	    else if (y>ymidl)
 	      i++;
 
 	    if (button==2) {

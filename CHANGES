@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+x11/x11.c: Fix button pressing in the game window so it properly deals with
+   non standard size maps.
+MSW 2003-10-26
+
 Those fixes are for Windows compilation ('for Windows' is implicit everywhere).
 Most code was borrowed from Philip aka Somebdy's previous GTK port.
 Note: the changed code is embedded in #if(n)def WIN32 / #endif.
