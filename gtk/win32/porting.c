@@ -36,6 +36,13 @@
 #include "client.h"
 #include "soundsdef.h"
 
+#ifdef HAVE_SDL
+#include <math.h>
+#include "sdl_mixer.h"
+#pragma comment( lib, "sdl.lib" )
+#pragma comment( lib, "sdl_mixer.lib" )
+#endif /* HAVE_SDL */
+
 #define MAX_SOUNDS 1024
 #define SOUND_NORMAL 0
 #define SOUND_SPELL 1
@@ -347,7 +354,7 @@ int init_sounds()
  * the buffer to be played later on.
  */
 
-static void play_sound(int soundnum, int soundtype, int x, int y )
+static void play_sound(int soundnum, int soundtype, sint8 x, sint8 y )
 {
 	Sound_Info *si;
 	double dist;
@@ -376,6 +383,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y )
 	} 
 	if (si->data) {
 		int playchannel;
+        int angle;
 
 		playchannel = 0;
 		si->data->volume = si->volume;
@@ -386,12 +394,23 @@ static void play_sound(int soundnum, int soundtype, int x, int y )
 			}
 		}
 		dist = sqrt(x*x+y*y);
+        if ( x == 0 )
+            {
+            angle = ( y < 0 ) ? 0 : 180;
+            }
+        else
+            {
+            angle = ( asin( ( double )x / ( double )dist ) ) * 180. / 3.14159;
+            if ( y < 0 )
+                angle = - angle;
+            }
 		
 		if ( Mix_Playing(playchannel) ) {
 			Mix_HaltChannel(playchannel);
 		}
 
-		Mix_SetDistance(playchannel,dist);
+		/*Mix_SetDistance(playchannel,dist);*/
+        Mix_SetPosition( playchannel, angle, dist );
 
 		Mix_PlayChannel(playchannel,si->data,0);
 		
@@ -402,7 +421,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y )
 	 * Load the sound if it is not loaded yet
 	 *
 	 */
-	if ( !si->data ) {
+/*	if ( !si->data ) {
 		FILE *f;
 		struct stat sbuf;
 		fprintf(stderr,"Loading file: %s\n",si->filename );
@@ -437,11 +456,13 @@ static void play_sound(int soundnum, int soundtype, int x, int y )
 	PlaySound(si->data,NULL,SND_ASYNC | SND_MEMORY );
 
 	return;
+    */
 }	
 
 void SoundCmd(unsigned char *data, int len)
 {
-	int x, y, num, type;
+	int num, type;
+    sint8 x, y;
 
     if (len!=5) {
 	fprintf(stderr,"Got invalid length on sound command: %d\n", len);

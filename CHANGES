@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/win32/porting.c: tweaked SDL's sound support to use panning information.
+   Added missing header files.
+Ryo 2004-04-11
+
 gtk/win32/porting.c: implemented basic sound with PlaySound.
 gtk/win32/gtkclient.dsp: added winmm.lib to link list.
 Ryo 2004-04-11
