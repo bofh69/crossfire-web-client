@@ -1,7 +1,29 @@
 /*
- * static char *rcsid_xio_c =
+ * static char *rcsid_x11_c =
  *   "$Id$";
- *
+/*
+    Crossfire client, a client program for the crossfire program.
+
+    Copyright (C) 2000 Mark Wedel
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+    The author can be reached via e-mail to mwedel@scruz.net
+*/
+
+/*
  * This file handles all the windowing stuff.  The idea is
  * that all of it is in one file, so to port to different systems
  * or toolkits, only this file needs to be updated.  All windowing
@@ -331,6 +353,11 @@ static void gen_draw_face(Drawable where,int face,int x,int y)
 {
     if (face<0) {
 	fprintf(stderr,"Invalid face number: %d @ %d, %d\n", face, x, y);
+	return;
+    }
+    if (pixmaps[face].bitmap == 0) {
+	fprintf (stderr, "gen_draw_face: Requested to draw null pixmap (num=%d)\n",
+		 face);
 	return;
     }
     if (display_mode == Pix_Display) {
