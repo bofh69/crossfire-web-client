@@ -258,7 +258,11 @@ void SetupCmd(char *buf, int len)
 	    /* Not much we can do about someone playing on an ancient server. */
 	    if (!strcmp(param,"FALSE")) {
 		draw_info("Server does not support map1cmd - This server is too old to support this client!", NDI_RED);
+#ifdef WIN32
+		closesocket(csocket.fd);
+#else
 		close(csocket.fd);
+#endif
 		csocket.fd = -1;
 	    }
 	} else if (!strcmp(cmd,"itemcmd")) {

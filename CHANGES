@@ -2,6 +2,20 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Those fixes are all Win32-specific, except the last one on keys.c
+common/commands.c: Use correct Win32 function for closing socket.
+common/image.c: Added missing headers, use correct mkdir syntax.
+common/misc.c: Added missing headers, use correct mkdir syntax, stub
+   functions not yet ported.
+common/player.c: Use correct Win32 function for closing socket.
+gtk/gx11.c: Disabled bug window font setting, as GTK2 apparently doesn't
+   use the same fonts. Use correct function for closing socket.
+gtk/keys.c: Don't display 'Key unused' for left-alt & windows key
+   (as they are often used to switch away from CF).
+   Also fix a potential use of a variable not initialized (rare
+   line corruption case)
+Ryo 2004-01-29
+
 common/client.c: Win32-specific fixes.
 common/metaserver.c: small Win32 fixes, explicitely cast meta_sort
    in qsort.

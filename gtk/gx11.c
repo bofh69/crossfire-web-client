@@ -3311,7 +3311,9 @@ void bugdialog(GtkWidget *widget) {
   GdkBitmap *buggdkmask;
 
   GtkStyle *style;
+#ifndef WIN32
   GdkFont* font;
+#endif
   if(!gtkwin_bug) {
 
     gtkwin_bug = gtk_window_new (GTK_WINDOW_DIALOG);
@@ -3353,6 +3355,8 @@ void bugdialog(GtkWidget *widget) {
     gtk_widget_show (hbox);
     hbox = gtk_hbox_new(FALSE, 2);
     createBugTracker();
+#ifndef WIN32
+    /* Win32 uses GTK2, this apparently doesn't work... */
     font = gdk_font_load ("-*-fixed-*-*-*-*-12-*-*-*-*-*-*-*");
     if (font){
         style = gtk_style_copy(gtk_widget_get_style (bugtrack));
@@ -3361,6 +3365,7 @@ void bugdialog(GtkWidget *widget) {
         font=NULL;
         gtk_widget_set_style(bugtrack,style);
     }
+#endif
     gtk_box_pack_start (GTK_BOX (hbox),bugtrack, TRUE, TRUE, 0);
     gtk_widget_show (bugtrack);
     vscrollbar = gtk_vscrollbar_new (GTK_TEXT (bugtrack)->vadj);
@@ -3407,7 +3412,11 @@ void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButt
 
 
 void disconnect(GtkWidget *widget) {
+#ifdef WIN32
+    closesocket(csocket.fd);
+#else
     close(csocket.fd);
+#endif
     csocket.fd = -1;
     if (csocket_fd) {
 	gdk_input_remove(csocket_fd);

@@ -40,7 +40,13 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifndef WIN32
 #include <sys/wait.h>
+#else
+#define inline __inline
+#include <direct.h>
+#include <io.h>
+#endif
 
 /*
  * Verifies that the directory exists, creates it if necessary
@@ -58,7 +64,11 @@ int make_path_to_dir (char *directory)
     while ((cp = strchr (cp + 1, (int) '/'))) {
 	*cp = '\0';
 	if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
+#ifdef WIN32
+	    if (mkdir (buf)) {
+#else
 	    if (mkdir (buf, 0777)) {
+#endif
 		perror ("Couldn't make path to file");
 		return -1;
 	    }
@@ -67,7 +77,11 @@ int make_path_to_dir (char *directory)
     }
     /* Need to make the final component */
     if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
+#ifdef WIN32
+    if (mkdir (buf)) {
+#else
 	if (mkdir (buf, 0777)) {
+#endif
 	    perror ("Couldn't make path to file");
 	    return -1;
 	}
@@ -91,7 +105,11 @@ int make_path_to_file (char *filename)
     while ((cp = strchr (cp + 1, (int) '/'))) {
 	*cp = '\0';
 	if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
+#ifdef WIN32
+	    if (mkdir (buf)) {
+#else
 	    if (mkdir (buf, 0777)) {
+#endif
 		perror ("Couldn't make path to file");
 		return -1;
 	    }
@@ -218,6 +236,7 @@ void purgePipe(ChildProcess* cp, int pipe){
 }
 
 void monitorChilds(){
+#ifndef WIN32
     ChildProcess* cp=FirstChild;
     ChildProcess* last=NULL;
     for (;;){
@@ -244,9 +263,11 @@ void monitorChilds(){
         last=cp;
         cp=cp->next;
     }
+#endif
 }
 
 void logPipe(ChildProcess *child, LogLevel level, int pipe){
+#ifndef WIN32
     char buf[1024];
     if ( (pipe<1) || (pipe>2))/*can't log stdin as it's write only*/
         return;
@@ -261,6 +282,7 @@ void logPipe(ChildProcess *child, LogLevel level, int pipe){
     }
     child->logger[pipe].log=1; /*We log it*/
     child->logger[pipe].level=level;
+#endif
 }
 
 void unLogPipe(ChildProcess* child, int pipe){
@@ -286,6 +308,7 @@ void unLogChildPipe(ChildProcess* child, int flag){
 }
 
 ChildProcess* raiseChild(char* name, int flag){
+#ifndef WIN32
     ChildProcess* cp;
     int pipe_in[2];
     int pipe_out[2];
@@ -446,4 +469,7 @@ ChildProcess* raiseChild(char* name, int flag){
     LastChild=cp;
     cp->next=NULL;
     return cp;
+#else
+    return NULL;
+#endif
 }

@@ -35,6 +35,9 @@
 #include <sys/stat.h>
 #ifndef WIN32
 #include <unistd.h>
+#else
+#include <io.h>
+#include <direct.h>
 #endif
 #include <ctype.h>
 
@@ -630,12 +633,20 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
 	/* Make necessary leading directories */
 	sprintf(filename, "%s/.crossfire/crossfire-images",getenv("HOME"));
 	if (access(filename, R_OK | W_OK | X_OK)== -1) 
+#ifdef WIN32
+	    mkdir(filename);
+#else
 	    mkdir(filename, 0755);
+#endif
 
 	sprintf(filename, "%s/.crossfire/crossfire-images/%c%c", getenv("HOME"),
 		 facetoname[face][0], facetoname[face][1]);
 	if (access(filename, R_OK | W_OK | X_OK)== -1) 
+#ifdef WIN32
+	    mkdir(filename);
+#else
 	    mkdir(filename,0755);
+#endif
 
 	/* If setnum is valid, and we have faceset information for it,
 	 * put that prefix in.  This will make it easier later on to 

@@ -157,6 +157,8 @@ static void parse_keybind_line(char *buf, int line, int standard)
     uint32 keysym;
     int flags;
 
+    cp = NULL; /* There may be a rare error case when cp is used uninitialized. So let's be safe */
+
     if (buf[0]=='#' || buf[0]=='\n') return;
     if ((cpnext = strchr(buf,' '))==NULL) {
 	LOG(LOG_WARNING,"gtk::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
@@ -494,6 +496,9 @@ static void parse_key(char key, uint32 keysym)
           (cpl.fire_on? "Fire&": ""),
           (cpl.run_on ? "Run&" : ""),
           keysym==NoSymbol? "unknown": gdk_keyval_name(keysym));
+#ifdef WIN32
+       if ( ( 65513 != keysym ) && ( 65511 != keysym ) )
+#endif
     draw_info(buf,NDI_BLACK);
     cpl.count=0;
 }

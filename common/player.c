@@ -380,7 +380,11 @@ void extended_command(const char *ocommand) {
     else if (!strcmp(cp,"clearinfo"))	    menu_clear();
     else if (!strcmp(cp,"cwindow"))	    set_command_window(cpnext);
     else if (!strcmp(cp,"disconnect")) {
+#ifdef WIN32
+	closesocket(csocket.fd);
+#else
 	close(csocket.fd);
+#endif
 	csocket.fd=-1;
 	return;
     }
