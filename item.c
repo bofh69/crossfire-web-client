@@ -497,6 +497,8 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 		      uint16 flags, uint16 anim, uint16 animspeed,
 		      sint32 nrof) 
 {
+    int resort=1;
+
     if (!op) {
 	printf ("Error in set_item_values(): item pointer is NULL.\n");
 	return;
@@ -537,6 +539,8 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 	    else { /* If not new version, just use same for both */
 		copy_name(op->p_name, name);
 	    }
+	} else {
+	    resort=0;	/* no name - don't resort */
 	}
 
 	/* Rather than try to get too clever on trying to figure out when
@@ -560,7 +564,7 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
     if (op->env != map) {
 	op->type =get_type_from_name(op->s_name);
     }
-    update_item_sort(op);
+    if (resort) update_item_sort(op);
 }
 
 void toggle_locked (item *op)
