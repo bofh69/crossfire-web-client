@@ -3,6 +3,24 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Makefile.in, common/Makefile.in, gnome/Makefile.in, gtk/Makefile.in, 
+    sound-src/Makefile.in, x11/Makefile.in: Add ${DESTDIR} prefix for
+    installation into other directories.  Patch from sourcefore #1061895
+    MSW 2005-02-09
+
+common/external.h, common/init.c, common/player.c, common/proto.h,
+    common/script.c, common/script.h, common/p_cmd.c (new file),
+    common/p_cmd.h (new file), gtk/gtkproto.h, gtk/gx11.c, gtk/help.c (new
+    file), gtk/keys.c, help/chelp.h, x11/x11.c, x11/x11proto.h, x11/xutil.c:
+    Install command table for client side commands - makes adding commands a
+    little easier, but also makes it easier to have better help.  Bulk of the
+    changes are in p_cmd.c file, which pulled some code out of player.c.
+    Other source files modified to clean up function parameters (all now take
+    const char * as the command options).  Patch from sourceforge 1022245,
+    with some work done by me.  Addition fix in gtk/keys.c unbind - buffer
+    overflow would result if unbinding very long binding.
+    MSW 2005-02-09
+
 common/client-types.h: use char instead of __int8 under Windows.
 common/commands.c: use 'const' for strings when possible.
 common/misc.c: use 'const' for strings when possible.

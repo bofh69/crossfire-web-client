@@ -75,6 +75,7 @@ char *rcsid_x11_x11_c =
 #include <item.h>
 #include <config.h>
 #include <script.h>
+#include <p_cmd.h>
 
 #ifdef HAVE_LIBXPM
 #include <X11/xpm.h>
@@ -613,7 +614,7 @@ void write_ch(char key)
     }
 
     if (key == 9) { /* Tab */
-	char *str = complete_command(infodata.data[infodata.infopos].info);
+	const char *str = complete_command(infodata.data[infodata.infopos].info);
 
 	/* +1 so that we keep our > at start of line.  Don't
 	 * recopy the data on top of ourself.
@@ -2000,7 +2001,7 @@ void draw_lists ()
 }
 
 
-void set_show_icon (char *s)
+void set_show_icon (const char *s)
 {
     if (s == NULL || *s == 0 || strncmp ("inventory", s, strlen(s)) == 0) {
 	inv_list.show_icon = ! inv_list.show_icon; /* toggle */
@@ -2011,7 +2012,7 @@ void set_show_icon (char *s)
     }
 }
 
-void set_show_weight (char *s)
+void set_show_weight (const char *s)
 {
     if (s == NULL || *s == 0 || strncmp ("inventory", s, strlen(s)) == 0) {
 	inv_list.show_weight = ! inv_list.show_weight; /* toggle */
@@ -2027,7 +2028,7 @@ void set_weight_limit (uint32 wlim)
     inv_list.weight_limit = wlim;
 }
 
-void set_scroll(char *s)
+void set_scroll(const char *s)
 {
     if (!infodata.scroll_info_window) {
 	infodata.scroll_info_window=1;
@@ -2043,7 +2044,7 @@ void set_scroll(char *s)
     }
 }
 
-void set_autorepeat(char *s)
+void set_autorepeat(const char *s)
 {
     noautorepeat = noautorepeat ? FALSE : TRUE;
     draw_info(noautorepeat ? "Autorepeat is disabled":"Autorepeat is enabled",

@@ -20,11 +20,11 @@ SND_LIBS= @SND_LIBS@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-bindir=@bindir@
-mandir=@mandir@/man1
-soundlistdir=@sysconfdir@/sound/events
-desktopdir=@prefix@/share/gnome/apps/Games
-pixmapsdir=@prefix@/share/pixmaps
+bindir=${DESTDIR}@bindir@
+mandir=${DESTDIR}@mandir@/man1
+soundlistdir=${DESTDIR}@sysconfdir@/sound/events
+desktopdir=${DESTDIR}@prefix@/share/gnome/apps/Games
+pixmapsdir=${DESTDIR}@prefix@/share/pixmaps
 
 HEADERS= \
 	soundsdef.h

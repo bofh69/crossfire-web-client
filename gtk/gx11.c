@@ -86,6 +86,7 @@ char *rcsid_gtk_gx11_c =
 #include "gx11.h"
 #include "gtkproto.h"
 #include <script.h>
+#include <p_cmd.h>
 
 
 
@@ -276,7 +277,6 @@ GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_look, *gtkwin_inv;
 static GtkWidget *gtkwin_about = NULL;
 static GtkWidget *gtkwin_bug = NULL;
 static GtkWidget *gtkwin_splash = NULL;
-static GtkWidget *gtkwin_chelp = NULL;
 static GtkWidget *gtkwin_shelp = NULL;
 static GtkWidget *gtkwin_magicmap = NULL;
 
@@ -3250,7 +3250,7 @@ void draw_lists ()
   }
 }
 
-void set_show_icon (char *s)
+void set_show_icon (const char *s)
 {
     if (s == NULL || *s == 0 || strncmp ("inventory", s, strlen(s)) == 0) {
 	inv_list.show_icon = ! inv_list.show_icon; /* toggle */
@@ -3261,7 +3261,7 @@ void set_show_icon (char *s)
     }
 }
 
-void set_show_weight (char *s)
+void set_show_weight (const char *s)
 {
     if (s == NULL || *s == 0 || strncmp ("inventory", s, strlen(s)) == 0) {
 	inv_list.show_weight = ! inv_list.show_weight; /* toggle */
@@ -3486,65 +3486,6 @@ void disconnect(GtkWidget *widget) {
 }
 
 /* Ok, simplistic help system. Just put the text file up in a scrollable window */
-
-void chelpdialog(GtkWidget *widget) {
-#include "help/chelp.h"
-  GtkWidget *vbox;
-  GtkWidget *hbox;
-  GtkWidget *chelptext;
-  GtkWidget *helpbutton;
-  GtkWidget *vscrollbar;
-  /*  GtkStyle *style;*/
-
-
-  if(!gtkwin_chelp) {
-    
-    gtkwin_chelp = gtk_window_new (GTK_WINDOW_DIALOG);
-    gtk_window_position (GTK_WINDOW (gtkwin_chelp), GTK_WIN_POS_CENTER);
-    gtk_widget_set_usize (gtkwin_chelp,400,300);
-    gtk_window_set_title (GTK_WINDOW (gtkwin_chelp), "Crossfire Client Help");
-    gtk_window_set_policy (GTK_WINDOW (gtkwin_chelp), TRUE, TRUE, FALSE);
-
-    gtk_signal_connect (GTK_OBJECT (gtkwin_chelp), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_chelp);
-    
-    gtk_container_border_width (GTK_CONTAINER (gtkwin_chelp), 0);
-    vbox = gtk_vbox_new(FALSE, 2);
-    gtk_container_add (GTK_CONTAINER(gtkwin_chelp),vbox);
-    hbox = gtk_hbox_new(FALSE, 2);
-    gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
-
-    chelptext = gtk_text_new (NULL, NULL);
-    gtk_text_set_editable (GTK_TEXT (chelptext), FALSE);
-    gtk_box_pack_start (GTK_BOX (hbox),chelptext, TRUE, TRUE, 0);
-    gtk_widget_show (chelptext);
-
-    vscrollbar = gtk_vscrollbar_new (GTK_TEXT (chelptext)->vadj);
-    gtk_box_pack_start (GTK_BOX (hbox),vscrollbar, FALSE, FALSE, 0);
- 
-    gtk_widget_show (vscrollbar);
-    gtk_widget_show (hbox);
-
-    hbox = gtk_hbox_new(FALSE, 2);
-    
-    helpbutton = gtk_button_new_with_label ("Close");
-    gtk_signal_connect_object (GTK_OBJECT (helpbutton), "clicked",
-			       GTK_SIGNAL_FUNC(gtk_widget_destroy),
-			       GTK_OBJECT (gtkwin_chelp));
-    gtk_box_pack_start (GTK_BOX (hbox), helpbutton, TRUE, FALSE, 0);
-    gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-    gtk_widget_show (helpbutton);
-    gtk_widget_show (hbox);
-
-    gtk_widget_show (vbox);
-    gtk_widget_show (gtkwin_chelp);
-    gtk_text_insert (GTK_TEXT (chelptext), NULL, &chelptext->style->black, NULL, text , -1);    
-  }
-  else { 
-    gdk_window_raise (gtkwin_chelp->window);
-  }
-}
-
-/* Same simplistic help system. Serverside help this time. */
 
 void shelpdialog(GtkWidget *widget) {
 #include "help/shelp.h"
@@ -4315,38 +4256,39 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_menu_append (GTK_MENU (helpmenu), menu_items);
   gtk_widget_show (menu_items);
 
-  menu_items = gtk_menu_item_new_with_label("About");
+  menu_items = gtk_menu_item_new_with_label("Client commands");
   gtk_menu_append(GTK_MENU (helpmenu), menu_items);
-  gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(aboutdialog), NULL);
-  gtk_widget_show(menu_items);
-
-  menu_items = gtk_menu_item_new ();
-  gtk_menu_append(GTK_MENU (helpmenu), menu_items);
-  gtk_widget_show(menu_items);
-
-
-  menu_items = gtk_menu_item_new_with_label("Client help");
-  gtk_menu_append(GTK_MENU (helpmenu), menu_items);   
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(chelpdialog), NULL);
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Server help");
-  gtk_menu_append(GTK_MENU (helpmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (helpmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(shelpdialog), NULL);
   gtk_widget_show(menu_items);
 
+  menu_items = gtk_menu_item_new ();
+  gtk_menu_append(GTK_MENU (helpmenu), menu_items);   
+  gtk_widget_show(menu_items);
+
+  /* Link to things like the client-walkthrough and the playbook? */
+
+  menu_items = gtk_menu_item_new_with_label("Report a bug");
+  gtk_menu_append(GTK_MENU (helpmenu), menu_items);   
+  gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
+			    GTK_SIGNAL_FUNC(bugdialog), NULL);
+  gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new ();
   gtk_menu_append(GTK_MENU (helpmenu), menu_items);
   gtk_widget_show(menu_items);
 
-  menu_items = gtk_menu_item_new_with_label("Report a bug");
+
+  menu_items = gtk_menu_item_new_with_label("About");
   gtk_menu_append(GTK_MENU (helpmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
-			    GTK_SIGNAL_FUNC(bugdialog), NULL);
+			    GTK_SIGNAL_FUNC(aboutdialog), NULL);
   gtk_widget_show(menu_items);
 
   root_helpmenu = gtk_menu_item_new_with_label("Help");
@@ -4862,12 +4804,12 @@ void set_weight_limit (uint32 wlim)
 }
 
 
-void set_scroll(char *s)
+void set_scroll(const char *s)
 {
 }
 
 
-void set_autorepeat(char *s)
+void set_autorepeat(const char *s)
 {
 }
 

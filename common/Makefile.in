@@ -17,7 +17,7 @@ RANLIB = @RANLIB@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-bindir=@bindir@
+bindir=${DESTDIR}@bindir@
 
 HEADERS= \
 	cconfig.h		\
@@ -26,7 +26,8 @@ HEADERS= \
 	external.h		\
 	item.h			\
 	item-types.h		\
-        newclient.h		\
+	newclient.h		\
+	p_cmd.h			\
 	proto.h			\
 	script.h	\
 	rcs-id.h
@@ -41,6 +42,7 @@ SOURCES = \
 	misc.c			\
 	newsocket.c		\
 	player.c		\
+	p_cmd.c			\
 	script.c
 
 OBJECTS = $(SOURCES:.c=.o)

@@ -1,5 +1,6 @@
+#include <external.h>
+
 /* png.c */
-extern uint8 *png_to_data(unsigned char *data, int len, int *width, int *height);
 extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
 extern long pngx_find_color(Display *display, Colormap *cmap, int red, int green, int blue);
 extern int init_pngx_loader(Display *display);
@@ -23,11 +24,7 @@ extern void draw_message_window(int redraw);
 extern void open_container(item *op);
 extern void close_container(item *op);
 extern void draw_lists(void);
-extern void set_show_icon(char *s);
-extern void set_show_weight(char *s);
 extern void set_weight_limit(uint32 wlim);
-extern void set_scroll(char *s);
-extern void set_autorepeat(char *s);
 extern int get_info_width(void);
 extern void menu_clear(void);
 extern char *get_metaserver(void);
@@ -57,9 +54,7 @@ extern void parse_keybind_line(char *buf, int line, int standard);
 extern void init_keys(void);
 extern void parse_key_release(KeyCode kc, KeySym ks);
 extern void parse_key(char key, KeyCode keycode, KeySym keysym, int repeated);
-extern void bind_key(char *params);
 extern void configure_keys(KeyCode k, KeySym keysym);
-extern void unbind_key(char *params);
 extern int find_face_in_private_cache(char *face, int checksum);
 extern void image_update_download_status(int start, int end, int total);
 extern void allocate_map(struct Map *new_map, int ax, int ay);

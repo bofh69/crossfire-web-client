@@ -44,10 +44,10 @@ enum CmdFormat {
    NODATA
 };
 
-void script_init(char *params);
+void script_init(const char *params);
 void script_list(void);
 void script_sync(int cmddiff);
-void script_kill(char *params);
+void script_kill(const char *params);
 #ifdef WIN32
 void script_killall(void);
 #endif
@@ -56,6 +56,6 @@ void script_process(fd_set *set);
 void script_watch(char *cmd,char *data, int len, enum CmdFormat format);
 void script_monitor(const char *command, int repeat, int must_send);
 void script_monitor_str(const char *command);
-void script_tell(char *params);
+void script_tell(const char *params);
 
 #endif /*  SCRIPT_H */

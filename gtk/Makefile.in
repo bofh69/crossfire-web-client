@@ -24,11 +24,11 @@ INCLUDES = @X_CFLAGS@ -I.. -I../common -I../pixmaps
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-bindir=@bindir@
-mandir=@mandir@/man6
-soundlistdir=@sysconfdir@/sound/events
-desktopdir=@prefix@/share/gnome/apps/Games
-pixmapsdir=@prefix@/share/pixmaps
+bindir=${DESTDIR}@bindir@
+mandir=${DESTDIR}@mandir@/man6
+soundlistdir=${DESTDIR}@sysconfdir@/sound/events
+desktopdir=${DESTDIR}@prefix@/share/gnome/apps/Games
+pixmapsdir=${DESTDIR}@prefix@/share/pixmaps
 
 HEADERS= gx11.h			\
 	gtkproto.h\
@@ -37,6 +37,7 @@ HEADERS= gx11.h			\
 SOURCES = \
 	config.c		\
 	gx11.c			\
+	help.c			\
 	image.c			\
 	keys.c			\
 	map.c			\

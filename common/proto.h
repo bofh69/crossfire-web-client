@@ -81,14 +81,18 @@ extern int metaserver_select(char *sel);
 extern int make_path_to_dir(char *directory);
 extern int make_path_to_file(char *filename);
 extern char *strdup_local(const char *str);
-extern void clearLogListener();
 extern int setLogListener(LogListener li);
-extern char* getLogText(LogEntry* le);
-extern void LOG (LogLevel logLevel, char* origin, char *format, ...);
-extern void monitorChilds();
-extern ChildProcess* raiseChild(char* name, int flag);
-extern void unLogChildPipe(ChildProcess* child, int flag);
-extern void logChildPipe(ChildProcess* child, LogLevel level, int flag);
+extern void clearLogListener(void);
+extern char *getLogTextRaw(LogLevel level, char *origin, char *message);
+extern char *getLogText(LogEntry *le);
+extern void LOG(LogLevel level, char *origin, char *format, ...);
+extern void purgePipe(ChildProcess *cp, int pipe);
+extern void monitorChilds(void);
+extern void logPipe(ChildProcess *child, LogLevel level, int pipe);
+extern void unLogPipe(ChildProcess *child, int pipe);
+extern void logChildPipe(ChildProcess *child, LogLevel level, int flag);
+extern void unLogChildPipe(ChildProcess *child, int flag);
+extern ChildProcess *raiseChild(char *name, int flag);
 /* newsocket.c */
 extern void SockList_Init(SockList *sl, char *buf);
 extern void SockList_AddChar(SockList *sl, char c);
@@ -118,7 +122,6 @@ extern void stop_run(void);
 extern void run_dir(int dir);
 extern int send_command(const char *command, int repeat, int must_send);
 extern void CompleteCmd(unsigned char *data, int len);
-extern void command_take(const char *command, char *cpnext);
-extern int handle_local_command(const char* cp, char* cpnext);
-extern void extended_command(const char *ocommand);
-extern const char *complete_command(const char *command);
+extern void command_take(const char *command, const char *cpnext);
+/* p_cmd.c */
+/* script.c */

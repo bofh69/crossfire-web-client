@@ -23,6 +23,12 @@ char *rcsid_common_script_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/* This file has its own script.h for prototypes, so don't want to include
+ * this when doing a 'make proto'
+ */
+#ifndef CPROTO
+
+
 /*
  * This file handles the client-side scripting interface.
  *
@@ -120,6 +126,7 @@ Someday this will be fixed :)
 #include <client.h>
 #include <external.h>
 #include <script.h>
+#include <p_cmd.h>
 
 /*
  * Data structures
@@ -156,7 +163,7 @@ static int num_scripts = 0;
 /*
  * Prototypes
  */
-static int script_by_name(char *name);
+static int script_by_name(const char *name);
 static void script_dead(int i);
 static void script_process_cmd(int i);
 static void send_map(int i,int x,int y);
@@ -200,7 +207,7 @@ static int emulate_write(HANDLE fd, char *buf, int len)
 
 #endif /* WIN32 */
 
-void script_init(char *params)
+void script_init(const char *cparams)
 {
 #ifndef WIN32
    int pipe1[2];
@@ -208,13 +215,20 @@ void script_init(char *params)
    int pipe2[2];
 #endif
    int pid;
-   char *name,*args;
+   char *name, *args, params[MAX_BUF];
 
-   if ( !params )
+   if ( !cparams )
        {
        draw_info( "Please specifiy a script to launch!", NDI_RED );
        return;
        }
+
+    /* cparams as passed in is a const value, so need to copy it
+     * to data we can write over.
+     */
+    strncpy(params, cparams, MAX_BUF-1);
+    params[MAX_BUF-1]=0;
+    
 
    /* Get name and args */
    name=params;
@@ -225,10 +239,12 @@ void script_init(char *params)
    {
       args=NULL;
    }
+#if 0
    else
    {
       args[-1]=0;
    }
+#endif
 
 #ifdef USE_PIPE
    /* Create two pipes */
@@ -518,7 +534,7 @@ void script_list(void)
    }
 }
 
-void script_kill(char *params)
+void script_kill(const char *params)
 {
    int i;
 
@@ -876,7 +892,7 @@ void script_monitor_str(const char *command)
    }
 }
 
-void script_tell(char *params)
+void script_tell(const char *params)
 {
    int i;
 
@@ -894,7 +910,7 @@ void script_tell(char *params)
    write(scripts[i].out_fd,"\r\n",2);
 }
 
-static int script_by_name(char *name)
+static int script_by_name(const char *name)
 {
    int i;
    int l;
@@ -1426,3 +1442,5 @@ static void script_send_item(int i,char *head,item *it)
    sprintf(buf,"%s%d %d %f %d %d %s\n",head,it->tag,it->nrof,it->weight,flags,it->type,it->d_name);
    write(scripts[i].out_fd,buf,strlen(buf));
 }
+
+#endif /* CPROTO */

@@ -51,6 +51,7 @@ typedef int KeyCode; /* Undefined type */
 #include "client-types.h"
 #include "gx11.h"
 #include "client.h"
+#include "p_cmd.h"
 
 #include "def-keys.h"
 
@@ -624,7 +625,7 @@ static void show_keys(int allbindings)
 
 
 
-void bind_key(char *params)
+void bind_key(const char *params)
 {
     /* Must have enough room for MAX_BUF and 'Push key to bind to ''.' */
     char buf[MAX_BUF + 20];
@@ -731,15 +732,20 @@ void bind_key(char *params)
 	return;
     }
 
+    /* params is read only, so we need to the truncation on
+     * the buffer we will store it in, not params
+     */
+    strncpy(bind_buf, params, sizeof(bind_buf)-1);
+    bind_buf[sizeof(bind_buf)-1] = 0;
+
     if (strlen(params) >= sizeof(bind_buf)) {
-	params[sizeof(bind_buf) - 1] = '\0';
-    draw_info("Keybinding too long! Truncated:",NDI_RED);
-    draw_info(params,NDI_RED);
+	draw_info("Keybinding too long! Truncated:",NDI_RED);
+	draw_info(bind_buf,NDI_RED);
     }
-    sprintf(buf, "Push key to bind '%s'.", params);
+
+    sprintf(buf, "Push key to bind '%s'.", bind_buf);
     draw_info(buf,NDI_BLACK);
 
-    strcpy(bind_buf, params);
     cpl.input_state = Configure_Keys;
     return;
 }
@@ -889,11 +895,14 @@ static void unbind_usage()
     draw_info("    -g unbinds a global binding", NDI_BLACK);
 }
 
-void unbind_key(char *params)
+void unbind_key(const char *params)
 {
     int count=0, keyentry, onkey,global=0;
     Key_Entry *key, *tmp;
-    char buf[MAX_BUF];
+    /* the key macro itself can be bind_buf long, and we need some extra
+     * space for the sprintf unbind message.
+     */
+    char buf[sizeof(bind_buf)+60];
 
     if (params==NULL || params[0]=='\0') {
 	show_keys(0);

@@ -50,9 +50,10 @@ extern void draw_info(const char *str, int color);
 extern void draw_color_info(int colr, const char *buf);
 extern void draw_prompt(const char *str);
 extern void x_set_echo(void);
-extern void set_scroll(char *s);
-extern void set_autorepeat(char *s);
+extern void set_scroll(const char *s);
+extern void set_autorepeat(const char *s);
 extern void menu_clear();
+extern int get_info_width();
 
 /* Stats related commands */
 extern void draw_stats(int redraw);
@@ -73,12 +74,12 @@ extern void get_map_image_size(int face, uint8 *w, uint8 *h);
 /* Item related commands */
 extern void open_container(item *op);
 extern void close_container(item *op);
-extern void set_show_icon(char *s);
-extern void set_show_weight(char *s);
+extern void set_show_icon(const char *s);
+extern void set_show_weight(const char *s);
 
 /* Keybinding relatated commands - this probably should not be a callback */
-extern void bind_key(char *params);
-extern void unbind_key(char *params);
+extern void bind_key(const char *params);
+extern void unbind_key(const char *params);
 
 /* Misc commands */
 extern void save_winpos(void);

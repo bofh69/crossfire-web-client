@@ -1,3 +1,6 @@
+/* Including external.h makes sures that the type definitions agree */
+
+#include <external.h>
 /* config.c */
 extern void applyconfig(void);
 extern void saveconfig(void);
@@ -26,8 +29,6 @@ extern void close_container(item *op);
 extern void count_callback(GtkWidget *widget, GtkWidget *entry);
 extern void create_notebook_page(GtkWidget *notebook, GtkWidget **list, GtkWidget **lists, gchar **label);
 extern void draw_lists(void);
-extern void set_show_icon(char *s);
-extern void set_show_weight(char *s);
 extern void aboutdialog(GtkWidget *widget);
 extern void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButton *event);
 extern void disconnect(GtkWidget *widget);
@@ -55,8 +56,6 @@ extern void create_splash(void);
 extern void destroy_splash(void);
 extern void create_windows(void);
 extern void set_weight_limit(uint32 wlim);
-extern void set_scroll(char *s);
-extern void set_autorepeat(char *s);
 extern int get_info_width(void);
 extern void do_clearlock(void);
 extern void x_set_echo(void);
@@ -85,8 +84,6 @@ extern void image_update_download_status(int start, int end, int total);
 extern void get_map_image_size(int face, uint8 *w, uint8 *h);
 /* keys.c */
 extern void init_keys(void);
-extern void bind_key(char *params);
-extern void unbind_key(char *params);
 extern void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void draw_keybindings(GtkWidget *keylist);

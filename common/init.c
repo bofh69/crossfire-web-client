@@ -27,6 +27,9 @@ char *rcsid_common_init_c =
  */
 
 #include <client.h>
+#include "p_cmd.h" /* init_commands() */
+
+/* XXX Does the x11 client *use* these? */
 
 /* Makes the load/save code trivial - basically, the
  * entries here match the same numbers as the CONFIG_ values defined
@@ -200,6 +203,7 @@ void init_client_vars()
         putenv( "HOME=." );
         }
 #endif
+    init_commands(); /* pcmd.c */
 }
 
 /* This is basically called each time a new player logs

@@ -30,6 +30,7 @@ char *rcsid_x11_xutil_c =
 #include <client.h>
 #include <item.h>
 #include <config.h>
+#include <p_cmd.h>
 
 #ifdef HAVE_LIBXPM
 #include <X11/xpm.h>
@@ -244,10 +245,16 @@ static void insert_key(KeySym keysym, KeyCode keycode, int flags, char *command)
     Key_Entry *newkey;
     int i, direction=-1;
 
+#if 0
+    /* This is at least a meaningless check on my system that results in
+     * a compile warning (always false result), so may was well comment it
+     * out - MSW 2005-02-09
+     */
     if (keycode>MAX_KEYCODE) {
 	LOG(LOG_WARNING,"x11::insert_key", "keycode that is passed is greater than 255.");
 	keycode=0;	/* hopefully the rest of the data is OK */
     }
+#endif
     if (keys[keycode]==NULL) {
 	keys[keycode]=malloc(sizeof(Key_Entry));
 	keys[keycode]->command=NULL;
@@ -809,7 +816,7 @@ static void show_keys(int allbindings)
 
 
 
-void bind_key(char *params)
+void bind_key(const char *params)
 {
   char buf[MAX_BUF];
 
@@ -922,14 +929,15 @@ void bind_key(char *params)
     return;
   }
 
-    if (strlen(params) >= sizeof(bind_buf)) {
-	params[sizeof(bind_buf) - 1] = '\0';
+  strncpy(bind_buf, params, sizeof(bind_buf)-1);
+  bind_buf[sizeof(bind_buf)-1]=0;
+  if (strlen(params) >= sizeof(bind_buf)) {
     draw_info("Keybinding too long! Truncated:",NDI_RED);
-    draw_info(params,NDI_RED);
-    }
-  sprintf(buf, "Push key to bind '%s'.", params);
+    draw_info(bind_buf,NDI_RED);
+  }
+
+  sprintf(buf, "Push key to bind '%s'.", bind_buf);
   draw_info(buf,NDI_BLACK);
-  strcpy(bind_buf, params);
   bind_keycode=NULL;
   cpl.input_state = Configure_Keys;
   return;
@@ -1067,7 +1075,7 @@ static void unbind_usage()
     draw_info("    -g unbinds a global binding", NDI_BLACK);
 }
 
-void unbind_key(char *params)
+void unbind_key(const char *params)
 {
     int count=0, keyentry, onkey,global=0;
     Key_Entry *key, *tmp;
