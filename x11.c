@@ -1,6 +1,7 @@
 /*
  * static char *rcsid_x11_c =
  *   "$Id$";
+ */
 /*
     Crossfire client, a client program for the crossfire program.
 
