@@ -2842,6 +2842,14 @@ int init_windows(int argc, char **argv)
 	image_size=24;
     }
 
+    map_size= ( fog_of_war == TRUE) ? FOG_MAP_SIZE : MAP_MAX_SIZE;
+
+    allocate_map( &the_map, MAP_MAX_SIZE, MAP_MAX_SIZE);
+    if( the_map.cells == NULL) {
+      fprintf( stderr, "Error on allocation of map, malloc failed.\n");
+      exit( 1);
+    }
+
     /* Finished parsing all the command line options.  Now start
      * working on the display.
      */
@@ -2865,6 +2873,10 @@ int init_windows(int argc, char **argv)
     return 0;
 }
 
+
+void display_map_newmap()
+{
+}
 
 /* This can also get called for png.  Really, anything that gets rendered
  * into a pixmap that does not need colors set or other specials done.
@@ -3245,6 +3257,6 @@ void reset_image_data()
 	    facetoname[i]=NULL;
 	}
     }
-    memset(&the_map, 0, sizeof(struct Map));
+    memset((char*)&the_map.cells[0][0], 0, sizeof(struct MapCell)*the_map.x*the_map.y);
     look_list.env=cpl.below;
 }

@@ -4205,6 +4205,11 @@ display_willcache()
 }
 
 void
+display_map_newmap()
+{
+}
+
+void
 display_map_doneupdate(int redraw)
 {
 	int ax, ay;

@@ -3,6 +3,56 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 For top of CVS tree:
 
+Fog of war code checkin. This is a fairly complex check in so
+hopefully not too much breaks. This adds the feature where
+tiles that have been seen but have since moved out of LOS 
+are still shown on screen but with a 50% transparent black
+tile over it show it is no longer in LOS.  Whatever was in that
+tile is still shown until a new update comes in from the server at
+which point the tile is cleared of all old info.
+The old way was to just paint an opaque black tile.  To do this
+the client now keeps state of as many tiles as it can and remembers
+which tiles have been marked as cleared.  This is a fair amount
+of memory so when -fog is not specified, the code reverts back to
+a much smaller in memory map. To allow this, the map structure
+is now dynamically allocated.  I also had to add a new protocol
+command "newmap" so the client knows when to reinit its map state.
+NOTE: This feature only works when the client is using SDL. No
+      reason the other blitters can't take advantage of it, just
+      hasn't been done yet.
+client.c: fog_of_war global variable and newmap cmd added to CmdMapping
+          Added "newmapcmd" to SetUp command.
+client.h: FOG_MAP_SIZE macro and Player_Position struct
+commands.c: handled "newmapcmd" sent from server, added NewmapCmd
+              which just calls display_map_newmap();
+gnome.c: stub function for display_map_newmap();
+gx11.c: Modified all commands that take x,y coordinates to convert
+          to the virtual coordinate system if fog_of_war is active.
+        Added code to sdl_add_png_face to paint a fog_of_war cell
+          over cleared but still in view tiles.
+        Added handling of Control-shift-i to simulate a newmap cmd.
+        Added -fog cmd line option.
+        Added display_map_newmap() function that resets the virtual map state.
+        Correctly deal with dynamically allocate map structure.
+proto.h: Added new prototypes by hand.
+x11.c: Added code to dynamically allocate map structure.
+       Added stub function for display_map_newmap();
+xutil.c: Modified functions to convert to virtual coordinate system 
+         when fog_of_war is active. 
+         Modified display_map_clearcell to not clear cell when fog_of_war
+           is active, now just marks the tile as cleared.
+         New function "allocate_map" to dynamically allocate a new
+           map structure and setup the 2 dimensional array pointers
+           correctly.
+         New function, reset_map that clears out the map structure and
+           resets to coordinate system if fog_of_war is active.
+         Changed map_scroll to only update the virtual coordinates
+           on scroll instead of moving memory around if fog_of_war is
+           active. Also checks if the view is close to the edge of the
+           virtual map and recenters it if so.
+SMACFIGGEN 2001-07-21
+
+
 Speed optimization to the SDL rendering code. sdl_add_png_face
 now exits when all 5 dark[] array values are set to full bright.
 gx11.c: Added a line in the per_pixel lighting section that exits

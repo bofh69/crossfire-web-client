@@ -24,7 +24,7 @@ char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
 char *image_file="";
 
 int port_num=EPORT, meta_port=META_PORT, want_skill_exp=0, mapx=11, mapy=11,
-    want_mapx=11, want_mapy=11, want_darkness=1;
+    want_mapx=11, want_mapy=11, want_darkness=1, fog_of_war=0;
 FILE *fpin,*fpout;
 int fdin, fdout, basenrofpixmaps, pending_images=0,maxfiledescriptor,
 	pending_archs=0,maxfd,map1cmd=0,metaserver_on=METASERVER;
@@ -58,6 +58,7 @@ struct CmdMapping commands[] = {
     { "map1", Map1Cmd },
     { "map_scroll", (CmdProc)map_scrollCmd },
     { "magicmap", MagicMapCmd},
+    { "newmap", NewmapCmd },
 
     { "item", ItemCmd },
     { "item1", Item1Cmd },
@@ -233,8 +234,8 @@ void negotiate_connection(int sound)
     else
 	cs_write_string(csocket.fd,"setsound 1", 10);
 #else
-    sprintf(buf,"setup sound %d sexp %d darkness %d",
-	    (sound<0?0:1), want_skill_exp, want_darkness);
+    sprintf(buf,"setup sound %d sexp %d darkness %d newmapcmd %d",
+	    (sound<0?0:1), want_skill_exp, want_darkness, fog_of_war);
     cs_write_string(csocket.fd, buf, strlen(buf));
 
 #endif

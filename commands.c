@@ -163,12 +163,16 @@ void SetupCmd(char *buf, int len)
 		draw_info(tmpbuf,NDI_RED);
 	    }
 	} else {
-	    if (!strcmp(cmd,"sexp") || !strcmp(cmd,"darkness")) {
-		/* this really isn't an error or bug - in fact, it is expected if
+	    if (!strcmp(cmd,"sexp") || !strcmp(cmd,"darkness") || 
+		!strcmp(cmd,"newmapcmd") ) {
+	        /* this really isn't an error or bug - in fact, it is expected if
 		 * the user is playing on an older server.
 		 */
 		if (!strcmp(param,"FALSE")) {
 		    fprintf(stderr,"Server returned FALSE on setup command %s\n",cmd);
+		    if( !strcmp( cmd, "newmapcmd") && fog_of_war == TRUE) {
+			fprintf( stderr, "**Warning: Fog of war is active but server does not support the newmap command\n");
+		    }
 		}
 	    } else {
 		fprintf(stderr,"Got setup for a command we don't understand: %s %s\n",
@@ -739,6 +743,11 @@ void DeleteInventory(unsigned char *data, int len)
     remove_item_inventory(locate_item(tag));
 }
 
+void NewmapCmd(unsigned char *data, int len)
+{
+    display_map_newmap();
+}
+
 void Map_unpacklayer(unsigned char *cur,unsigned char *end)
 {
   long x,y,face;
@@ -785,6 +794,7 @@ void Map_unpacklayer(unsigned char *cur,unsigned char *end)
       clear = 0; /* end of first layer (or some layer after the first) */
   }
 }
+
 
 void MapCmd(unsigned char *data, int len)
 {

@@ -223,3 +223,22 @@ extern int map1cmd,metaserver_on, want_darkness;
  * more memory it will use
  */
 #define MAP_MAX_SIZE	31
+
+/* Fog of war stuff */
+#define FOG_MAP_SIZE 512   /* Default size of virtual map */
+
+/*
+ * This is the only way I can tell if we are compiling the gnome client
+ * or not
+ */
+#ifndef NEED_GNOMESUPPORT_H
+typedef struct 
+{
+  int x;
+  int y;
+} PlayerPosition;
+
+extern PlayerPosition pl_pos;
+extern int fog_of_war;
+extern int map_size;
+#endif

@@ -358,6 +358,7 @@ static SurfaceInfo surfaces[MAXPIXMAPNUM];
 /* Actual SDL surface the game view is painted on */
 static SDL_Surface* mapsurface;
 static SDL_Surface* lightmap;
+static SDL_Surface* fogmap;
 #endif
 
 #define INFOLINELEN 500
@@ -478,7 +479,6 @@ int misses=0,total=0;
 #define SCREEN_SIZE MAP_MAX_SIZE * MAP_MAX_SIZE*32*32*BPP
 static uint8 screen[SCREEN_SIZE];
 
-
 static guchar map_did_scroll=0;
 
 #include "xutil.c"
@@ -497,6 +497,13 @@ static void overlay_grid( int re_init, int ax, int ay)
   Uint32 *pixel;
   SDL_PixelFormat* fmt;
 
+  if( fog_of_war == TRUE)
+  {
+    /* Need to convert back to screen coordinates */
+    ax-= pl_pos.x;
+    ay-= pl_pos.y;
+  }
+  
   if( re_init == TRUE)
     {
       if( grid_overlay)
@@ -621,7 +628,8 @@ static void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 	  gtk_main_quit();
 	}
 
-      mapsurface= SDL_SetVideoMode( image_size*mapx, image_size*mapy, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
+      mapsurface= SDL_SetVideoMode( image_size*mapx, image_size*mapy, 0, 
+				    SDL_HWSURFACE|SDL_DOUBLEBUF);
       
       if( mapsurface == NULL)
 	{
@@ -657,6 +665,32 @@ static void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 	  do_SDL_error( "DisplayFormatAlpha", __FILE__, __LINE__);
 	}
     }
+
+  if( fogmap)
+    SDL_FreeSurface( fogmap);
+
+  fogmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, image_size,
+				image_size,
+				mapsurface->format->BitsPerPixel,
+				mapsurface->format->Rmask,
+				mapsurface->format->Gmask,
+				mapsurface->format->Bmask,
+				mapsurface->format->Amask);
+
+  if( fogmap == NULL)
+    {
+      do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
+    }
+
+  /* 
+   * This is a persurface alpha value, not an alpha channel value.
+   * So this surface doesn't actually need a full alpha channel
+   */
+  if( SDL_SetAlpha( fogmap, SDL_SRCALPHA|SDL_RLEACCEL, 128) < 0)
+    {
+      do_SDL_error( "SDL_SetAlpha", __FILE__, __LINE__);
+    }
+
 
   if( show_grid == TRUE)
     {
@@ -1122,6 +1156,11 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	    cpl.fire_on=0;
 	    stop_fire();
 	  }
+	}
+
+	if( (event->state & GDK_CONTROL_MASK) && (event->state & GDK_SHIFT_MASK) && 
+	    (event->keyval == GDK_i || event->keyval == GDK_I) ) {
+	    reset_map();
 	}
 	
 	
@@ -3844,7 +3883,7 @@ void saveconfig () {
 static void ckeyentry_callback (GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
   /*  configure_keys(XKeysymToKeycode(GDK_DISPLAY(), event->keyval), event->keyval);*/
   gtk_entry_set_text (GTK_ENTRY(ckeyentrytext),  XKeysymToString(event->keyval));
-  
+
   switch (event->state) {
   case GDK_CONTROL_MASK:
     gtk_entry_set_text (GTK_ENTRY(cmodentrytext),  "R");
@@ -6133,6 +6172,10 @@ int init_windows(int argc, char **argv)
 #endif
 	    continue;
 	}
+	else if( !strcmp( argv[on_arg],"-fog")) {
+	  fog_of_war= TRUE;
+	  continue;
+	}
 	else {
 	    fprintf(stderr,"Do not understand option %s\n", argv[on_arg]);
 	    usage(argv[0]);
@@ -6158,6 +6201,24 @@ int init_windows(int argc, char **argv)
 	    image_size=24;
     }
 
+    if( fog_of_war == TRUE) {
+      if ( sdlimage == FALSE) {
+	fprintf( stderr, "fog of war only supported with sdl, ignoring fog of war option\n");
+	fog_of_war= FALSE;
+      }
+    }
+
+    map_size= (fog_of_war == TRUE) ? FOG_MAP_SIZE : MAP_MAX_SIZE;
+    
+    allocate_map( &the_map, map_size, map_size);
+    
+    if( fog_of_war == TRUE)
+    {
+      /* Stick us in the middle of the virtual map */
+      pl_pos.x= map_size / 2;
+      pl_pos.y= map_size / 2;
+    }
+      
     /* Finished parsing all the command line options.  Now start
      * working on the display.
      */
@@ -6186,6 +6247,13 @@ int init_windows(int argc, char **argv)
 
 static void gen_draw_face(int face,int x,int y)
 {
+
+  if( fog_of_war == TRUE)
+  {
+      x = pl_pos.x - x;
+      y = pl_pos.y - y;
+  }
+
 #ifdef HAVE_SDL
     if (sdlimage) {
 	SDL_Rect dst;
@@ -6249,7 +6317,19 @@ int sdl_add_png_faces( int ax, int ay, int *faces, int num_faces, int dark[5])
   SDL_PixelFormat *fmt;
   int semi= 0;
   SDL_Rect dst;
+  int fog_cell= FALSE;
 
+  if( fog_of_war == TRUE)
+  {
+      if( the_map.cells[ax][ay].cleared == 1) 
+      {
+	  fog_cell= TRUE;
+      }
+      
+      ax-= pl_pos.x;
+      ay-= pl_pos.y;
+  }
+  
   dst.x= ax* image_size;
   dst.y= ay* image_size;
   dst.w= image_size;
@@ -6300,7 +6380,6 @@ int sdl_add_png_faces( int ax, int ay, int *faces, int num_faces, int dark[5])
       if( dark[0] == 255)
 	{
 	  /* Fully bright, no reason to blit a light map */
-	  return 0;
 	}
       else if( dark[0] == 0)
 	{
@@ -6308,8 +6387,6 @@ int sdl_add_png_faces( int ax, int ay, int *faces, int num_faces, int dark[5])
 	  SDL_FillRect( lightmap, NULL, 
 			SDL_MapRGB( lightmap->format, 0, 0, 0));
 	  SDL_BlitSurface( lightmap, NULL, mapsurface, &dst);
-
-	  return 0;
 	}
       else {
 	SDL_FillRect( lightmap, NULL, 
@@ -6317,103 +6394,110 @@ int sdl_add_png_faces( int ax, int ay, int *faces, int num_faces, int dark[5])
 	/* Set per surface alpha channel */
 	SDL_SetAlpha( lightmap, SDL_SRCALPHA, SDL_ALPHA_OPAQUE - dark[0]);
 	SDL_BlitSurface( lightmap, NULL, mapsurface, &dst);
-
-	return 0;
       }
 
     }
   else if( per_pixel_lighting) 
     {
-
       /*
        * If all darkness values are set to full bright, just exit here
        */
-      if( ( dark[0] & dark[1] & dark[2] & dark[3] & dark[4] ) == 255 )
+      if( ( dark[0] & dark[1] & dark[2] & dark[3] & dark[4] ) != 255 )
         {
-          return 0;
-        }
-
-      for( x= 0; x < 16; x++)
-	{
-	  darkx[x]= (dark[4]*(16-x) + dark[0]*x) / 16;
-	}
-      for( x= 16; x < 32; x++)
-	{
-	  darkx[x] = (dark[0]*(32-x) + dark[2]*(x-16)) / 16;
-	}
-
-      /* 
-       * Make sure lightmap in initialized to full bright
-       */
-      SDL_FillRect( lightmap, NULL,
-		    SDL_MapRGBA( lightmap->format, 0, 0, 0, 
-                                 SDL_ALPHA_TRANSPARENT));
-
-      fmt= lightmap->format;
-      SDL_LockSurface( lightmap);
-      for( y= 0; y < image_size; y++)
-	{
-	  if( y < 16)
+	  for( x= 0; x < 16; x++)
 	    {
-	      darky = ((dark[1]*((image_size/2)-y)) + dark[0]*y) / 
-                       (image_size / 2);
+	      darkx[x]= (dark[4]*(16-x) + dark[0]*x) / 16;
 	    }
-	  else 
+	  for( x= 16; x < 32; x++)
 	    {
-	      darky= (dark[0]*(image_size-y) + dark[3]*(y-(image_size/2))) /
-		      (image_size / 2);
+	      darkx[x] = (dark[0]*(32-x) + dark[2]*(x-16)) / 16;
 	    }
 	  
-	  for( x= 0; x < image_size; x++)
+	  /* 
+	   * Make sure lightmap in initialized to full bright
+	   */
+	  SDL_FillRect( lightmap, NULL,
+			SDL_MapRGBA( lightmap->format, 0, 0, 0, 
+				     SDL_ALPHA_TRANSPARENT));
+	  
+	  fmt= lightmap->format;
+	  SDL_LockSurface( lightmap);
+	  for( y= 0; y < image_size; y++)
 	    {
-	      
-	      darkness= (darkx[x] + darky) / 2;
-	      if( darkness == 255)
-		continue;
-	      else 
-		semi++;
-	      
-	      /* Need to invert the transparancy level.. */
-	      pixel= SDL_MapRGBA( fmt, 0, 0, 0, SDL_ALPHA_OPAQUE - darkness);
-	      
-	      switch (fmt->BytesPerPixel) 
+	      if( y < 16)
 		{
-		case 1:
-		  *((Uint8 *)lightmap->pixels+y*lightmap->pitch+x) = pixel;
-		  break;
-		case 2:
-		  *((Uint16 *)lightmap->pixels+y*lightmap->pitch/2+x) = pixel;
-		  break;
-		case 3:
-		  /* Don't think we will get here if we have a full alpha 
-                   * channel. If so that implies 6|6|6|6 RGBA packing which 
-                   * is kinda weird..  
-                   */
-		  ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[0] = 0;
-		  ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[1] = 0;
-		  ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[2] = 0;
-		  break;
-		case 4:
-		  *((Uint32 *)lightmap->pixels+y*lightmap->pitch/4+x) = pixel;
-		  break;
+		  darky = ((dark[1]*((image_size/2)-y)) + dark[0]*y) / 
+		    (image_size / 2);
+		}
+	      else 
+		{
+		  darky= (dark[0]*(image_size-y) + dark[3]*(y-(image_size/2))) /
+		    (image_size / 2);
+		}
+	      
+	      for( x= 0; x < image_size; x++)
+		{
+		  
+		  darkness= (darkx[x] + darky) / 2;
+		  if( darkness == 255)
+		    continue;
+		  else 
+		    semi++;
+		  
+		  /* Need to invert the transparancy level.. */
+		  pixel= SDL_MapRGBA( fmt, 0, 0, 0, SDL_ALPHA_OPAQUE - darkness);
+		  
+		  switch (fmt->BytesPerPixel) 
+		    {
+		    case 1:
+		      *((Uint8 *)lightmap->pixels+y*lightmap->pitch+x) = pixel;
+		      break;
+		    case 2:
+		      *((Uint16 *)lightmap->pixels+y*lightmap->pitch/2+x) = pixel;
+		      break;
+		    case 3:
+		      /* Don't think we will get here if we have a full alpha 
+		       * channel. If so that implies 6|6|6|6 RGBA packing which 
+		       * is kinda weird..  
+		       */
+		      ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[0] = 0;
+		      ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[1] = 0;
+		      ((Uint8 *)lightmap->pixels+y*lightmap->pitch+x)[2] = 0;
+		      break;
+		    case 4:
+		      *((Uint32 *)lightmap->pixels+y*lightmap->pitch/4+x) = pixel;
+		      break;
+		    }
 		}
 	    }
-	}
-      SDL_UnlockSurface( lightmap);
-      
-      if( semi > 0)
-	{
-	  if( SDL_BlitSurface( lightmap, NULL, mapsurface, &dst) < 0)
+	  SDL_UnlockSurface( lightmap);
+	  
+	  if( semi > 0)
 	    {
-	      do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+	      if( SDL_BlitSurface( lightmap, NULL, mapsurface, &dst) < 0)
+		{
+		  do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+		}
 	    }
-	}
-    }
+	} /* if all darkness tiles don't equal 255 */
+    } /* if per_pixel darkness */
   else
     {
       /* Unknown lighting style */
       fprintf( stderr, "Error, unknowing lighting style in %s at line %d\n",
 	       __FILE__, __LINE__);
+    }
+
+  /*
+   * Shouldn't matter if we do this now or after the lighting blits but we exit
+   * early if all tiles are set to full bright so easier if we do it here.
+   */
+  if( fog_cell == TRUE)
+    {
+      if( SDL_BlitSurface( fogmap, NULL, mapsurface, &dst) < 0)
+	{
+	  do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+	}
     }
 
   return 0;
@@ -6425,6 +6509,12 @@ int add_png_faces(int ax, int ay, int *faces, int num_faces, int dark[5])
 {
     int x,y, a, darkness ,pos=0, on_face,darkx[32], darky, screen_pos, rowy;
 
+    if( fog_of_war == TRUE)
+    {
+	ax-= pl_pos.x;
+	ay-= pl_pos.y;
+    }
+    
     /* If we don't have png_data, can't proceed further */
     for (on_face=0; on_face < num_faces; on_face ++ ) {
 	if (!pixmaps[faces[on_face]].png_data) {
@@ -6563,6 +6653,22 @@ void display_mapcell_pixmap(int ax,int ay)
 {
     int k, faces[MAXFACES],num_faces, darkness[5];
     int got_face= 0;
+    int local_mapx= 0, local_mapy= 0;
+    int screen_ax= 0, screen_ay= 0;
+    if( fog_of_war == TRUE)
+    {
+	local_mapx= mapx + pl_pos.x;
+	local_mapy= mapy + pl_pos.y;
+	screen_ax= ax - pl_pos.x;
+	screen_ay= ay - pl_pos.y;
+    }
+    else
+    {
+	local_mapx= mapx;
+	local_mapy= mapy;
+	screen_ax= ax;
+	screen_ay= ay;
+    }
 
     /* we use a different logic in this mode */
     if (display_mode == Png_Display && (pngximage || sdlimage)) {
@@ -6580,10 +6686,10 @@ void display_mapcell_pixmap(int ax,int ay)
 	    if (ay-1 < 0 || !the_map.cells[ax][ay-1].have_darkness) darkness[1] = darkness[0];
 	    else darkness[1] = 255 - the_map.cells[ax][ay-1].darkness;
 
-	    if (ax+1 >= mapx || !the_map.cells[ax+1][ay].have_darkness) darkness[2] = darkness[0];
+	    if (ax+1 >= local_mapx || !the_map.cells[ax+1][ay].have_darkness) darkness[2] = darkness[0];
 	    else darkness[2] = 255 - the_map.cells[ax+1][ay].darkness;
 
-	    if (ay+1 >= mapy || !the_map.cells[ax][ay+1].have_darkness) darkness[3] = darkness[0];
+	    if (ay+1 >= local_mapy || !the_map.cells[ax][ay+1].have_darkness) darkness[3] = darkness[0];
 	    else darkness[3] = 255 - the_map.cells[ax][ay+1].darkness;
 
 	    if (ax-1 < 0 || !the_map.cells[ax-1][ay].have_darkness) darkness[4] = darkness[0];
@@ -6618,8 +6724,8 @@ bail:
     gdk_draw_rectangle (drawingarea->window,
 		      drawingarea->style->mid_gc[0],
 		      TRUE,
-		      image_size*ax,
-		      image_size*ay,
+		      image_size*screen_ax,
+		      image_size*screen_ay,
 		      image_size,
 		      image_size);
 #endif
@@ -6637,8 +6743,8 @@ bail:
 	    the_map.cells[ax][ay].count=0;
 	    gdk_draw_rectangle (drawingarea->window, drawingarea->style->black_gc,
 		    TRUE,
-		    image_size*ax,
-		    image_size*ay,
+		    image_size*screen_ax,
+		    image_size*screen_ay,
 		    image_size,
 		    image_size);
 	}
@@ -6652,6 +6758,19 @@ bail:
 void display_map_doneupdate(int redraw)
 {
     int ax,ay, need_updates=0;
+    int screen_ax= 0, screen_ay= 0;
+    int local_mapx= 0, local_mapy= 0;
+
+    if( fog_of_war == TRUE)
+    {
+	local_mapx= pl_pos.x + mapx;
+	local_mapy= pl_pos.y + mapy;
+    }
+    else 
+    {
+	local_mapx= mapx;
+	local_mapy= mapy;
+    }
 
 #ifdef TIME_MAP_REDRAW
     struct timeval tv1, tv2, tv3;
@@ -6663,8 +6782,8 @@ void display_map_doneupdate(int redraw)
 	updatelock++;
 
 	/* draw black on all non-visible squares, and tile pixmaps on the others */
-	for(ax=0;ax<mapx;ax++) {
-	    for(ay=0;ay<mapy;ay++) { 
+	for( ax= (fog_of_war == TRUE ? pl_pos.x : 0) ; ax<local_mapx;ax++) {
+	    for(ay= (fog_of_war == TRUE ? pl_pos.y : 0) ; ay<local_mapy;ay++) { 
 #ifdef HAVE_SDL
 		if (sdlimage) {
 		    if( the_map.cells[ax][ay].need_update) {
@@ -6685,6 +6804,8 @@ void display_map_doneupdate(int redraw)
 		    }
 		} else if (redraw || the_map.cells[ax][ay].need_update) {
 		    if (the_map.cells[ax][ay].count==0) {
+		        screen_ax= fog_of_war == TRUE ? (ax - pl_pos.x) : ax;
+		        screen_ay= fog_of_war == TRUE ? (ay - pl_pos.y) : ay;
 			gdk_draw_rectangle (drawingarea->window, drawingarea->style->black_gc,
 						TRUE,
 						image_size*ax,
@@ -6773,6 +6894,10 @@ void display_map_doneupdate(int redraw)
 #endif
 }
 
+void display_map_newmap()
+{
+    reset_map();
+}
 
 int display_usebitmaps()
 {
@@ -7055,7 +7180,12 @@ void reset_image_data()
 	  SDL_FreeSurface( surfaces[i].surface);
 #endif
     }
+    /*
     memset(&the_map, 0, sizeof(struct Map));
+    */
+    memset( the_map.cells[0], 0, sizeof( sizeof( struct MapCell)*
+					 the_map.x * the_map.y ));
+					 
     look_list.env=cpl.below;
 }
 
