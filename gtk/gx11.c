@@ -329,7 +329,7 @@ void create_windows (void);
 	
 /* main loop iteration related stuff */
 void do_network() {
-    fd_set tmp_read, tmp_exceptions;
+    fd_set tmp_read;
     int pollret;
     extern int updatelock;
 
@@ -344,16 +344,15 @@ void do_network() {
   
     if (updatelock < 20) {
 	FD_ZERO(&tmp_read);
-	FD_ZERO(&tmp_exceptions);
 	FD_SET(csocket.fd, &tmp_read);
-	FD_SET(csocket.fd, &tmp_exceptions);
-
 	pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
 	if (pollret==-1) {
 	    fprintf(stderr, "Got errno %d on select call.\n", errno);
 	}
-	else if (FD_ISSET(csocket.fd, &tmp_read)) {
-	    DoClient(&csocket);
+	else if ( pollret>0 ) {
+	   if (FD_ISSET(csocket.fd, &tmp_read)) {
+	      DoClient(&csocket);
+	   }
 	}
     } else {
 	printf ("locked for network recieves.\n");
@@ -5067,6 +5066,7 @@ void set_window_pos()
 	    }
 	} /* else if split windows */
     } /* while fgets */
+    fclose(fp);
 }
 
 
