@@ -1218,7 +1218,7 @@ static void enter_callback(GtkWidget *widget, GtkWidget *entry)
 	/* No reason to do anything for a null string */
 	if (entry_text[0] != 0) {
 	    strncpy(history[cur_history_position], entry_text, MAX_COMMAND_LEN);
-	    history[cur_history_position][MAX_COMMAND_LEN] = 0;
+	    history[cur_history_position][MAX_COMMAND_LEN-1] = 0;
 	    cur_history_position++;
 	    cur_history_position %= MAX_HISTORY;
 	    scroll_history_position = cur_history_position;

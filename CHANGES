@@ -2,6 +2,9 @@
 Top of CVS tree:
 
 ------------------------------------------------------------------------------
+gnome/gnome.c, gtk/gx11.c: Fix improper access to history buffer variable.
+Andreas Kirschbaum 2004-05-24
+
 gtk/gx11.c: Comment out printing of size when we receive config event.
 gtk/image.c: Remove some superfluos LIL_ENDIAN code that would never
   be used because it was already in an #ifdef LIL_ENDIAN/#else block.
