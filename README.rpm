@@ -1,0 +1,36 @@
+The RPM packages have been signed with gnupg and my personal key.
+
+MD5:
+
+4241aa6f913945e20d03482ffbd2fb4b crossfire-client-1.3.1-realtime.3.i386.rpm
+01a80594bbeef21a3300b5ee6a066baf crossfire-client-gtk-1.3.1-realtime.3.i386.rpm
+2672d9ea2f235b79a5d7a911ea22e5e7 crossfire-client-sounds-1.3.1-realtime.3.noarch.rpm
+
+To get my personal key:
+
+	$ gpg --recv-key 2CC1B288
+
+To check my personal key:
+
+	$ gpg --fingerprint 2CC1B288
+	Key fingerprint = AB15 0BDF BCDE 4369 5B42  1973 7CF1 A709 2CC1 B288
+
+To check the RPM package:
+
+	$ rpm --checksig crossfire-client-sounds-1.3.1-realtime.3.noarch.rpm
+	crossfire-client-sounds-1.3.1-realtime.3.noarch.rpm: md5 gpg OK
+
+	$ rpm --checksig crossfire-client-1.3.1-realtime.3.i386.rpm
+	crossfire-client-1.3.1-realtime.3.i386.rpm: md5 gpg OK
+
+	$ rpm --checksig crossfire-client-gtk-1.3.1-realtime.3.i386.rpm
+	crossfire-client-gtk-1.3.1-realtime.3.i386.rpm: md5 gpg OK
+
+Primary:
+    ftp://ftp.sourceforge.net/pub/sourceforge/crossfire
+
+Secondary:
+    ftp://ftp.real-time.com/linux/apt/realtime/7.3/i386/RPMS.tclug
+
+Bob Tanner 
+tanner@real-time.com
