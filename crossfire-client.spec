@@ -2,7 +2,7 @@
 %define extra client
 %define version 0.95.8
 %define sndversion 0.95.4
-%define release 1
+%define release 2
 %define prefix /usr/X11R6
 
 Name: %{Name}-%{extra}
@@ -47,6 +47,7 @@ GTK version of the crossfire client
 %setup -a 1 -a 2 -n crossfire-%{extra}-%{version}
 
 %build
+chmod 755 configure
 CFLAGS="$RPM_OPT_FLAGS" \
 ./configure --prefix=/usr/X11R6 --exec-prefix=/usr/X11R6/bin \
     --bindir=/usr/X11R6/bin --mandir=/usr/X11R6/man \
@@ -95,6 +96,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/sounds/crossfire/*
 
 %changelog
+* Wed Jan 08 2001 Bob Tanner<tanner@real-time.com>
+- Applied MSW patch to change damge type to 16 bits
+
 * Wed Jan 03 2001 Bob Tanner<tanner@real-time.com> [0.95.8-1]
 - Upgraded client to 0.95.8
 - Moved sounds into /usr/share/sounds/crossfire 
