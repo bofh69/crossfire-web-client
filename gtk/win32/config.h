@@ -6,7 +6,6 @@
 /* config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
 
 /* Define to empty if the keyword does not work.  */
-#define const
 /* #undef const */
 
 /* Define if you don't have vprintf but do have _doprnt.  */
@@ -113,11 +112,14 @@
 #define X_OK 04
 #define F_OK 00
 
-#define close(x) closesocket(x)
-
 #define None NULL
 
 #define access(x,y) _access(x,y)
+
+/* Function prototypes */
+void gettimeofday(struct timeval *tv, void* unused);
+int strcasecmp(const char *s1, const char*s2);
+int strncasecmp(const char *s1, const char *s2, int n);
 
 /* Sleep(x) [Win32] sleeps x milliseconds.  sleep(x) [Unix] sleeps x seconds */
 #define usleep(x) Sleep(x/1000)
