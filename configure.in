@@ -49,7 +49,7 @@ dnl resides if not with the normal X11 stuff (ie, in /usr/local and not /usr
 dnl /usr/X11
 
 AC_ARG_WITH(xpm-lib, [  --with-xpm-lib=dir     provide different directory to find xpm lib in        ],
-		XPMLIB="-L$withval")
+		XPMLIB="-L$withval" XPMRUN="-R$withval")
 
 AC_ARG_WITH(xpm-inc, [  --with-xpm-inc=dir     provide different directory to find xpm includes in        ],
 		XPMINC="-I$withval")
@@ -62,6 +62,8 @@ AC_ARG_ENABLE(old-sound, [  --enable-old-sound     use the old sound code       
 
 
 AC_PROG_CC
+
+AC_C_BIGENDIAN
 
 networklibs="yes"
 
@@ -80,6 +82,9 @@ case "$target" in
   dnl linux systems don't appear to need -lnsl
   *-linux-*)
 	networklibs="no"
+	;;
+  *-*-solaris2*)
+	need_r_flag="yes"
 	;;
   *)
     ;;
@@ -136,28 +141,38 @@ else
 fi
 
 LDFLAGS="$LDFLAGS $XPMLIB"
+if eval "test x$need_r_flag = xyes"; then
+    LDFLAGS="$LDFLAGS $XPMRUN"
+fi
 
 AC_CHECK_LIB(asound, main, alsa_sound=yes, , -lm)
 AC_CHECK_LIB(audio, alNewConfig, sgi_sound=yes, )
 AC_CHECK_HEADER(sys/soundcard.h, oss_sound=yes, oss_sound=no)
+AC_CHECK_HEADER(sys/audioio.h, sun_sound=yes, sun_sound=no)
 
 if eval "test x$alsa_sound = xyes"; then
 	echo "Using ALSA sound system"
 	CFLAGS="$CFLAGS -DALSA_SOUND"
 	SND_LIBS="-lasound -lm"
-else 
-    if eval "test x$sgi_sound = xyes"; then
-       echo "Using SGI sound system"
-       CFLAGS="$CFLAGS -DSGI_SOUND"
-       SND_LIBS="-laudio"
-  else
+  else 
+  if eval "test x$sgi_sound = xyes"; then
+	echo "Using SGI sound system"
+	CFLAGS="$CFLAGS -DSGI_SOUND"
+	SND_LIBS="-laudio"
+    else
     if eval "test x$oss_sound = xyes"; then
 	echo "Using OSS sound system"
 	CFLAGS="$CFLAGS -DOSS_SOUND"
 	SND_LIBS="-lm"
-    else
-	echo "No suitable sound system found - using old sound system"
-	new_sound=no
+      else
+      if eval "test x$sun_sound = xyes"; then
+	echo "Using solaris sound system"
+	CFLAGS="$CFLAGS -DSUN_SOUND"
+	SND_LIBS="-lm"
+        else
+	    echo "No suitable sound system found - using old sound system"
+	    new_sound=no
+      fi
     fi
   fi
 fi
@@ -172,6 +187,7 @@ AC_SUBST(GUI_OBJS)
 AC_SUBST(GUI_SRCS)
 AC_SUBST(SND_LIBS)
 AC_SUBST(LDFLAGS)
+AC_SUBST(XPMRUN)
 AC_SUBST(TARGET)
 
 
@@ -206,7 +222,7 @@ fi
 dnl We need to check for socket/nsl here - some versions of the windowing
 dnl systems need these to properly link with X (I though AC_PATH_XTRA should
 dnl take care of this, but apparantly is doesnt).  IF it isn't here,
-dnl the check for xpm files, and configure quits.
+dnl the check for xpm fails, and configure quits.
 
 if eval "test x$networklibs = xyes"; then
   AC_CHECK_LIB(nsl, main, LIBS="$LIBS -lnsl")
@@ -216,7 +232,7 @@ fi
 dnl Save and modify CPPFLAGS and LIBS (to include X and GTK paths temporarily).
 gcfc_save_CPPFLAGS="$CPPFLAGS"
 gcfc_save_LIBS="$LIBS"
-CPPFLAGS="$GTK_CFLAGS $CPPFLAGS"
+CPPFLAGS="$GTK_CFLAGS $CPPFLAGS $X_CFLAGS"
 LIBS="$LIBS $GTK_LIBS $X_LIBS"
 
 dnl Test for libXpm
