@@ -108,6 +108,9 @@ extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 extern int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 /* sdl.c */
+void init_SDL( GtkWidget* sdl_window, int just_lightmap);
+void sdl_gen_map(int redraw);
+void sdl_mapscroll(int dx, int dy);
 /* sound.c */
 extern void signal_pipe(int i);
 extern int init_sounds(void);
