@@ -83,7 +83,7 @@ AC_C_BIGENDIAN
 networklibs="yes"
 
 dnl these are subdirectories that have make files in them
-SUBDIRS="common sound-src x11"
+SUBDIRS="common x11"
 
 case "$target" in
   alpha-dec-osf*)
@@ -169,21 +169,25 @@ if eval "test x$sound = xyes"; then
 	echo "Using ALSA sound system"
 	CFLAGS="$CFLAGS -DALSA_SOUND"
 	SND_LIBS="-lasound -lm"
+	SUBDIRS="$SUBDIRS sound-src"
   else 
     if eval "test x$sgi_sound = xyes"; then
 	echo "Using SGI sound system"
 	CFLAGS="$CFLAGS -DSGI_SOUND"
 	SND_LIBS="-laudio"
+	SUBDIRS="$SUBDIRS sound-src"
     else
       if eval "test x$oss_sound = xyes"; then
 	echo "Using OSS sound system"
 	CFLAGS="$CFLAGS -DOSS_SOUND"
 	SND_LIBS="-lm"
+	SUBDIRS="$SUBDIRS sound-src"
       else
         if eval "test x$sun_sound = xyes"; then
 	      echo "Using solaris sound system"
 	      CFLAGS="$CFLAGS -DSUN_SOUND"
 	      SND_LIBS="-lm"
+	      SUBDIRS="$SUBDIRS sound-src"
 	else
 	      echo "No suitable sound system found."
         fi

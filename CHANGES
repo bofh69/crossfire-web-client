@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure.in, configure:  Fix the --disable-sound configure option (when used,
+it won't look for sound support, and will not build the sound-src directory).
+Likewise, if that option is not used but configure does not find any supported
+sound systems, it also will not build the sound-src directory.  MSW 2002-03-31
+	
+
 Various fixes/enhancements:
 1) For the files stored in the players cache, include the image set suffix
    (eg, base, clsc) when saving the file.
