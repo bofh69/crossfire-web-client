@@ -682,7 +682,7 @@ void animate_objects()
     item *ip;
     int got_one=0;
 
-    /* For now, only the players inventory needs to be animated */
+    /* Animate players inventory */
     for (ip=player->inv; ip; ip=ip->next) {
 	if (ip->animation_id>0 && ip->anim_speed) {
 	    ip->last_anim++;
@@ -699,5 +699,38 @@ void animate_objects()
 #ifndef GTK_CLIENT
     if (got_one) player->inv_updated=1;
 #endif
+    if (cpl.container) {
+	/* Now do a container if one is active */
+	for (ip=cpl.container->inv; ip; ip=ip->next) {
+	    if (ip->animation_id>0 && ip->anim_speed) {
+		ip->last_anim++;
+		if (ip->last_anim>=ip->anim_speed) {
+		    ip->anim_state++;
+		    if (ip->anim_state >= animations[ip->animation_id].num_animations)
+			ip->anim_state=0;
+		    ip->face = animations[ip->animation_id].faces[ip->anim_state];
+		    ip->last_anim=0;
+		    got_one=1;
+		}
+	    }
+	}
+	if (got_one) cpl.container->inv_updated=1;
+    } else {
+	/* Now do the map (look window) */
+	for (ip=cpl.below->inv; ip; ip=ip->next) {
+	    if (ip->animation_id>0 && ip->anim_speed) {
+		ip->last_anim++;
+		if (ip->last_anim>=ip->anim_speed) {
+		    ip->anim_state++;
+		    if (ip->anim_state >= animations[ip->animation_id].num_animations)
+			ip->anim_state=0;
+		    ip->face = animations[ip->animation_id].faces[ip->anim_state];
+		    ip->last_anim=0;
+		    got_one=1;
+		}
+	    }
+	}
+	if (got_one) cpl.below->inv_updated=1;
+    }
 }
 

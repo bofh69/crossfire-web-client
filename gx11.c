@@ -1,24 +1,7 @@
 /*
- * static char *rcsid_xio_c =
- *   "$Id$";
- *
- * This file handles all the windowing stuff.  The idea is
- * that all of it is in one file, so to port to different systems
- * or toolkits, only this file needs to be updated.  All windowing
- * variables (display, gc's, windows, etc), should be stored in
- * this file as statics.
- *
- * This file is largely a combination of the common/xutil.c and server/xio.c
- * file.  While I don't think this was a particulary great interface, the code
- * was there, and I figured it was probably easier to re-use that
- * code instead of writing new code, plus the old code worked.
- *
- */
-
-/*
     CrossFire, A Multiplayer game for X-windows
 
-    Copyright (C) 1994 Mark Wedel
+    Copyright (C) 2001 Mark Wedel
     Copyright (C) 1992 Frank Tore Johansen
 
     This program is free software; you can redistribute it and/or modify
@@ -35,8 +18,25 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    The author can be reached via e-mail to mark@pyramid.com
+    The author can be reached via e-mail to mwedel@scruz.net
 */
+
+/*
+ * static char *rcsid_xio_c =
+ *   "$Id$";
+ *
+ * This file handles all the windowing stuff.  The idea is
+ * that all of it is in one file, so to port to different systems
+ * or toolkits, only this file needs to be updated.  All windowing
+ * variables (display, gc's, windows, etc), should be stored in
+ * this file as statics.
+ *
+ * This file is largely a combination of the common/xutil.c and server/xio.c
+ * file.  While I don't think this was a particulary great interface, the code
+ * was there, and I figured it was probably easier to re-use that
+ * code instead of writing new code, plus the old code worked.
+ *
+ */
 
 /* Most functions in this file are private.  Here is a list of
  * the global functions:
@@ -229,7 +229,7 @@ static char **gargv;
 */
 
 
-GList *anim_list=NULL;
+GList *anim_inv_list=NULL, *anim_look_list=NULL;
 /*GList *history=NULL;*/
 
 extern int maxfd;
@@ -663,8 +663,17 @@ void animate (animobject *data, gpointer user_data) {
 /* Run through the lists of animation and do each */
 
 void animate_list () {
-  if (anim_list) {
-    g_list_foreach     (anim_list, (GFunc) animate, NULL);
+  if (anim_inv_list) {
+    g_list_foreach     (anim_inv_list, (GFunc) animate, NULL);
+  }
+  /* If this list needs to be updated, don't try and animated -
+   * the contents of the lists are no longer valid.  this should
+   * perhaps be done for the inventory list above, but the
+   * removal of an animated object with a non animated one within
+   * the timeframe if this being called is unlikely.
+   */
+  if (anim_look_list && !look_list.env->inv_updated) {
+    g_list_foreach     (anim_look_list, (GFunc) animate, NULL);
   }
 }
 
@@ -1983,10 +1992,10 @@ static void draw_list (itemlist *l)
      * free all allocated animation lists.
      */
 
-    if (anim_list) {
-      g_list_foreach (anim_list, (GFunc) freeanimobject, NULL);
-      g_list_free (anim_list);
-      anim_list=NULL;
+    if (anim_inv_list) {
+      g_list_foreach (anim_inv_list, (GFunc) freeanimobject, NULL);
+      g_list_free (anim_inv_list);
+      anim_inv_list=NULL;
     }
     /* Freeze the CLists to avoid flickering (and to speed up the processing) */
     for (list=0; list < 8; list++) {
@@ -1999,6 +2008,11 @@ static void draw_list (itemlist *l)
       gtk_clist_clear (GTK_CLIST(l->gtk_list[list]));
     }
   } else {
+    if (anim_look_list) {
+      g_list_foreach (anim_look_list, (GFunc) freeanimobject, NULL);
+      g_list_free (anim_look_list);
+      anim_look_list=NULL;
+    }
     /* Just freeze the lists and clear them */
 #ifdef GTK_HAVE_FEATURES_1_1_12
     l->pos[0]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[0])->vscrollbar)->adjustment->value;
@@ -2094,7 +2108,7 @@ static void draw_list (itemlist *l)
 	tmpanimview->row=tmprow;
 	tmpanimview->list=l->gtk_list[0];
 	tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-	anim_list = g_list_append (anim_list, tmpanim);
+	anim_inv_list = g_list_append (anim_inv_list, tmpanim);
       }
 
       if (tmp->applied) {
@@ -2209,6 +2223,15 @@ static void draw_list (itemlist *l)
 			    pixmaps[facecachemap[tmp->face]].gdkpixmap,
 			    pixmaps[facecachemap[tmp->face]].gdkmask);
       gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
+      if (tmp->animation_id>0 && tmp->anim_speed) {
+	tmpanim = newanimobject();
+	tmpanim->item=tmp;
+	tmpanimview = newanimview();
+	tmpanimview->row=tmprow;
+	tmpanimview->list=l->gtk_list[0];
+	tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
+	anim_look_list = g_list_append (anim_look_list, tmpanim);
+      }
       if (color_inv) { 
 	if (tmp->cursed || tmp->damned) {
 	  gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
@@ -2223,7 +2246,6 @@ static void draw_list (itemlist *l)
 				    &root_color[NDI_NAVY]);
 	}
       }
-
       
     }  
   }
@@ -6106,85 +6128,7 @@ void set_window_pos()
 }
 
 
-/* -------------------------------------------------------------------------*/
 
-#if 0
-void check_x_events() {
-  KeySym gkey;
- 
-  draw_lists();		
-
-  while (XPending(display)!=0) {
-    XNextEvent(display,&event);
-    switch(event.type) {
-
-    case ConfigureNotify:
-      if(event.xconfigure.window==infodata.win_info)
-	resize_win_info(&event);
-      else if(event.xconfigure.window==inv_list.win)
-	resize_list_info(&inv_list, event.xconfigure.width,
-			 event.xconfigure.height);
-      else if(event.xconfigure.window==look_list.win)
-	resize_list_info(&look_list, event.xconfigure.width,
-			 event.xconfigure.height);
-      break;
-
-    case Expose:
-
-      if (event.xexpose.count!=0) continue;
-      if(event.xexpose.window==win_stats) {
-	XClearWindow(display,win_stats);
-	draw_stats(1);
-      } else if(event.xexpose.window==infodata.win_info)
-	draw_all_info();
-      else if(event.xexpose.window==inv_list.win)
-	draw_all_list(&inv_list);
-      else if(event.xexpose.window==look_list.win)
-	draw_all_list(&look_list);
-      else if(event.xexpose.window==win_message)
-	draw_all_message();
-      else if(event.xexpose.window==win_game) {
-	if (cpl.showmagic) draw_magic_map();
-	else display_map_doneupdate();
-      } else if(split_windows==FALSE && event.xexpose.window==win_root) {
-	XClearWindow(display,win_root);
-      }
-      break;
-
-    case MappingNotify:
-      XRefreshKeyboardMapping(&event.xmapping);
-      break;
-
-
-    case ButtonPress:
-	if(event.xbutton.window==win_game) {
-	  parse_game_button_press(event.xbutton.button,event.xbutton.x,
-		event.xbutton.y);
-
-	} else if(event.xbutton.window==inv_list.win) {
-		buttonpress_in_list(&inv_list, &event.xbutton);
-
-	} else if(event.xbutton.window==look_list.win) {
-	  buttonpress_in_list(&look_list, &event.xbutton);
-	}
-	else if (event.xbutton.window==infodata.win_info) {
-	  buttonpress_in_info(&event.xbutton);
-	}
-      break;
-
-    case KeyRelease:
-	parse_key_release(event.xkey.keycode, gkey);
-	break;
-
-    case KeyPress:
-	do_key_press();
-	break;
-    }
-  }
-    if (cpl.showmagic) magic_map_flash_pos();
-}
-
-#endif
 
 /***********************************************************************
  *

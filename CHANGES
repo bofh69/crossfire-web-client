@@ -1,6 +1,10 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+gx11.c, item.c: move animations of the look window to the client.  All
+the necessary was already being sent to the client - it was just needed
+for the client to use this information.  Also remove some
+#if 0 code from gx11.c.  MSW 2001/03/28
 
 item.c: set_item_values - only resort items based on name if the name
    has changed.  This fixes a problem with items moving around in the 
