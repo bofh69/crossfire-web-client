@@ -158,14 +158,15 @@ char* getLogText(LogEntry* le){
 #endif
 void LOG (LogLevel level, char* origin, char *format, ...)
 {
-  if (level<MINLOG)
-    return;
+
+  va_list ap;
   char buf[20480];  /* This needs to be really really big - larger
 		     * than any other buffer, since that buffer may
 		     * need to be put in this one.
 		     */
+  if (level<MINLOG)
+    return;
 
-  va_list ap;
   va_start(ap, format);
 
   buf[0] = '\0';
