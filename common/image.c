@@ -319,7 +319,7 @@ void init_common_cache_data()
     memset(image_cache, 0, IMAGE_HASH * sizeof(struct Image_Cache));
 
 
-    sprintf(bmaps,"%s/crossfire-images/bmaps.client",DATADIR);
+    sprintf(bmaps,"%s/bmaps.client",DATADIR);
     if ((fp=fopen(bmaps,"r"))!=NULL) {
 	while (fgets(inbuf, MAX_BUF-1, fp)!=NULL) {
 	    image_process_line(inbuf, 1);
@@ -404,7 +404,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 	    if (!associate_cache_entry(ce, pnum)) return;
 	}
 	if (ce->public)
-	    sprintf(filename,"%s/crossfire-images/%s",
+	    sprintf(filename,"%s/%s",
 		    DATADIR, ce->filename);
 	else
 	    sprintf(filename,"%s/.crossfire/crossfire-images/%s",
