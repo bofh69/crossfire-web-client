@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/win32/porting.c: implemented basic sound with PlaySound.
+gtk/win32/gtkclient.dsp: added winmm.lib to link list.
+Ryo 2004-04-11
+
 This is related to Win32 scripting. It now works correctly thanks
 to archaios's patch. I tweaked it some, so if it doesn't work,
 my mistake :)

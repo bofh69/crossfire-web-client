@@ -34,15 +34,9 @@
 #include <stdio.h>
 #include <mmsystem.h>
 #include "client.h"
-
-#ifdef HAVE_SDL  /* HAVE_SDL */
 #include "soundsdef.h"
 
-#include <SDL.h>
-#include <SDL_Mixer.h>
-
 #define MAX_SOUNDS 1024
-#define CONFIG_FILE ".crossfire/sndconfig"
 #define SOUND_NORMAL 0
 #define SOUND_SPELL 1
 
@@ -51,7 +45,11 @@ typedef struct Sound_Info {
 	char *symbolic;
 	unsigned char volume;
 	int size;
+#ifdef HAVE_SDL
 	Mix_Chunk *data;
+#else
+    char* data;
+#endif
 } Sound_Info;
 
 Sound_Info normal_sounds[MAX_SOUNDS], spell_sounds[MAX_SOUNDS],
@@ -59,23 +57,6 @@ Sound_Info normal_sounds[MAX_SOUNDS], spell_sounds[MAX_SOUNDS],
 
 
 #define SOUND_DECREASE 0.1
-
-/* mixer variables */
-char *buffers = NULL;
-int *sounds_in_buffer=NULL;
-int current_buffer=0; /* Next buffer we will write out */
-int first_free_buffer=0; /* So we know when to stop playing sounds */
-
-/* sound device parameters */
-int stereo=0,bit8=0,sample_size=0,frequency=0,sign=0,zerolevel=0;
-
-struct sound_settings{
-	int stereo,bit8,sign,frequency,buffers,buflen,simultaneously;
-} settings={0,1,0,11025,100,1024,4};
-
-
-/* Background music */
-Mix_Music *music = NULL;
 
 /* Parse a line from the sound config file.
  */
@@ -194,15 +175,78 @@ static void parse_sound_line(char *line, int lineno)
 	}
 }
 
+void load_sounds_file( )
+    {
+    int i;
+	FILE *fp;
+	char path[256], buf[512];
+
+    for ( i=0;i<MAX_SOUNDS; i++ ) {
+		normal_sounds[i].filename = NULL;
+		spell_sounds[i].filename = NULL;
+		normal_sounds[i].size = -1;
+		spell_sounds[i].size = -1;
+	}
+	default_normal.filename = NULL;
+	default_spell.filename = NULL;
+
+	sprintf(path,"%s/sounds", getenv("HOME"));
+	i=0;
+	if ( !(fp=fopen(path,"r"))) {
+		fprintf(stderr,"Unable to open %s - will use built in defaults\n", path);
+		for (; i<sizeof(def_sounds)/sizeof(char*); i++ ) {
+			strcpy(buf,def_sounds[i]);
+			parse_sound_line(buf,i);
+		}
+	} else {
+		while(fgets(buf,511,fp)!=NULL) {
+			buf[511] = '\0';
+			parse_sound_line(buf,++i);
+		}
+        fclose( fp );
+	}
+	/* Note in both cases below, we leave the symbolic name untouched */
+	for ( i=0; i<MAX_SOUNDS; i++ ) {
+		if ( !normal_sounds[i].filename ) {
+			normal_sounds[i].filename = strdup( default_normal.filename );
+			normal_sounds[i].volume = default_normal.volume;
+		}
+		if ( !spell_sounds[i].filename ) {
+			spell_sounds[i].filename= strdup( default_spell.filename );
+			spell_sounds[i].volume = default_spell.volume;
+		}
+		normal_sounds[i].data = NULL;
+		spell_sounds[i].volume = 0;
+	}
+    }
+
+#ifdef HAVE_SDL  /* HAVE_SDL */
+
+#include <SDL.h>
+#include <SDL_Mixer.h>
+
+/* mixer variables */
+char *buffers = NULL;
+int *sounds_in_buffer=NULL;
+int current_buffer=0; /* Next buffer we will write out */
+int first_free_buffer=0; /* So we know when to stop playing sounds */
+
+/* sound device parameters */
+int stereo=0,bit8=0,sample_size=0,frequency=0,sign=0,zerolevel=0;
+
+struct sound_settings{
+	int stereo,bit8,sign,frequency,buffers,buflen,simultaneously;
+} settings={0,1,0,11025,100,1024,4};
+
+
+/* Background music */
+Mix_Music *music = NULL;
+
+
 /* Initialize SDL sound.
  */
 int init_sounds()
 {
-
-	int i;
-	FILE *fp;
-	char path[256], buf[512];
-
 #ifdef DEBUG
 	fprintf( stderr,"Settings: bits: %i, ",settings.bit8?8:16);
 	fprintf( stderr,"%s, ",settings.sign?"signed":"unsigned");
@@ -289,44 +333,9 @@ int init_sounds()
 	fprintf( stderr,"0level: %i\n",zerolevel);
 #endif
 
-	for ( i=0;i<MAX_SOUNDS; i++ ) {
-		normal_sounds[i].filename = NULL;
-		spell_sounds[i].filename = NULL;
-		normal_sounds[i].size = -1;
-		spell_sounds[i].size = -1;
-	}
-	default_normal.filename = NULL;
-	default_spell.filename = NULL;
-
-	sprintf(path,"%s/sounds", getenv("HOME"));
-	i=0;
-	if ( !(fp=fopen(path,"r"))) {
-		fprintf(stderr,"Unable to open %s - will use built in defaults\n", path);
-		for (; i<sizeof(def_sounds)/sizeof(char*); i++ ) {
-			strcpy(buf,def_sounds[i]);
-			parse_sound_line(buf,i);
-		}
-	} else {
-		while(fgets(buf,511,fp)!=NULL) {
-			buf[511] = '\0';
-			parse_sound_line(buf,++i);
-		}
-	}
-	/* Note in both cases below, we leave the symbolic name untouched */
-	for ( i=0; i<MAX_SOUNDS; i++ ) {
-		if ( !normal_sounds[i].filename ) {
-			normal_sounds[i].filename = default_normal.filename;
-			normal_sounds[i].volume = default_normal.volume;
-		}
-		if ( !spell_sounds[i].filename ) {
-			spell_sounds[i].filename=default_spell.filename;
-			spell_sounds[i].volume = default_spell.volume;
-		}
-		normal_sounds[i].data = NULL;
-		spell_sounds[i].volume = NULL;
-	}
-
+    load_sounds_file( );
 	PlaySound(NULL,NULL,SND_ASYNC);
+
 	return 0;
 }
 
@@ -452,16 +461,65 @@ void SoundCmd(unsigned char *data, int len)
 }
 
 #else  /* HAVE_SDL */
-/* Sound under win32 requires SDL audio and SDL Mixer.
+/* No SDL, let's use dumb PlaySound (better than nothing).
  */
 
 int init_sounds() 
 {
-	return -1;
+    LOG(LOG_INFO,"init_sounds","using regular Windows PlaySound");
+	PlaySound(NULL,NULL,SND_ASYNC);
+    load_sounds_file( );
+	return 0;
 }
 
 void SoundCmd(unsigned char *data, int len) 
 {
+	int num, type;
+    Sound_Info* si;
+
+    if (len!=5) {
+	LOG(LOG_WARNING,"SoundCmd(win)","Got invalid length on sound command: %d\n", len);
+	return;
+    }
+    num = GetShort_String(data+2);
+    type = data[4];
+
+	if (type == SOUND_NORMAL ) {
+		si = &normal_sounds[ num ];
+	} else if ( type == SOUND_SPELL ) {
+		si = &spell_sounds[ num ];
+    } else {
+        LOG(LOG_WARNING,"SoundCmd(win)","invalid sound type %d",type);
+        return;
+    }
+
+    if ( !si->filename )
+        /* Already tried to load sound, failed, let's stop here. */
+        return;
+
+    if ( !si->data )
+        {
+        /* Let's try to load the sound */
+        FILE* fsound;
+        struct stat sbuf;
+
+		if ( ( stat( si->filename, &sbuf ) == -1 ) || ( ( fsound = fopen( si->filename, "rb" ) ) == NULL ) )
+            {
+            // Failed to load it, clear name & such so we don't try again.
+            LOG( LOG_WARNING, "SoundCmd(win)", "Can't open sound %s", si->filename );
+			perror( si->filename );
+            free( si->filename );
+            si->filename = NULL;
+			return;
+		    }
+
+		si->size=sbuf.st_size;
+        si->data = malloc( si->size );
+        fread( si->data, si->size, 1, fsound );
+        fclose( fsound );
+        }
+
+    PlaySound( si->data, NULL, SND_ASYNC | SND_MEMORY | SND_NOWAIT);
 }
 
 #endif /* HAVE_SDL */
