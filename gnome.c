@@ -87,8 +87,8 @@
 struct MapCell {
 	short faces[MAXFACES];
 	int count;
-	int darkness;
-	gboolean need_update;
+	uint8 darkness;
+	uint8 need_update;
 };
 
 struct Map {
@@ -288,6 +288,9 @@ static GtkWidget *gtkwin_chelp = NULL;
 static GtkWidget *gtkwin_shelp = NULL;
 static GtkWidget *gtkwin_magicmap = NULL;
 static GtkWidget *gtkwin_config = NULL;
+static GtkWidget *gameframe = NULL;
+static GtkWidget *invframe = NULL;
+static GtkWidget *lookframe = NULL;
 static char *last_str;
 static int pickup_mode = 0;
 int updatelock = 0;
@@ -300,6 +303,7 @@ char *facetoname[MAXPIXMAPNUM];
 gboolean echobindings = FALSE;
 gboolean updatemapneed = FALSE;
 gboolean cast_menu_item_selected = FALSE;
+int mapsizeopt = -1;
 static char *colorname[] = {
 	"Black",
 	"White",
@@ -341,6 +345,14 @@ struct poptOption options[] = {
 	 N_("Echo bindings."),
 	 NULL},
 	{
+	 "mapsize",
+	 'm',
+	 POPT_ARG_INT,
+	 &mapsizeopt,
+	 0,
+	 N_("Sets map size to NxN."),
+	 NULL},
+	{
 	 NULL,
 	 '\0',
 	 0,
@@ -375,7 +387,10 @@ void set_map_face(int x, int y, int layer, int face)
 void resize_map_window(int x, int y)
 {
 	gtk_drawing_area_size(GTK_DRAWING_AREA(drawable), image_size * x, image_size * y);
+	gtk_widget_set_usize(gameframe, (image_size * x) + 6, (image_size * y) + 6);
 	gtk_widget_set_usize(drawable, (image_size * x), (image_size * y));
+	gtk_widget_set_usize(invframe, 230, (((image_size * y) / 4) * 3));
+	gtk_widget_set_usize(lookframe, 230, ((image_size * y) / 4));
 }
 
 static void
@@ -1374,12 +1389,12 @@ button_map_event(GtkWidget * widget, GdkEventButton * event)
 	int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
 	x = (int)event->x;
 	y = (int)event->y;
-	dx = (x - 2) / image_size - 5;
-	dy = (y - 2) / image_size - 5;
-	xmidl = 5 * image_size - 5;
-	xmidh = 6 * image_size + 5;
-	ymidl = 5 * image_size - 5;
-	ymidh = 6 * image_size + 5;
+	dx = (x - 2) / image_size - (mapx / 2);
+	dy = (y - 2) / image_size - (mapy / 2);
+	xmidl = 5 * image_size - (mapx / 2);
+	xmidh = 6 * image_size + (mapx / 2);
+	ymidl = 5 * image_size - (mapy / 2);
+	ymidh = 6 * image_size + (mapy / 2);
 	switch (event->button) {
 	case 1:
 		{
@@ -2883,8 +2898,8 @@ create_notebook_page(GtkWidget * notebook, GtkWidget ** list, GtkWidget ** lists
 	gtk_clist_set_column_width(GTK_CLIST(*list), 1, 150);
 	gtk_clist_set_column_width(GTK_CLIST(*list), 2, 50);
 	gtk_clist_set_column_resizeable(GTK_CLIST(*list), 0, FALSE);
-	gtk_clist_set_column_resizeable(GTK_CLIST(*list), 1, FALSE);
-	gtk_clist_set_column_resizeable(GTK_CLIST(*list), 2, FALSE);
+	gtk_clist_set_column_resizeable(GTK_CLIST(*list), 1, TRUE);
+	gtk_clist_set_column_resizeable(GTK_CLIST(*list), 2, TRUE);
 	gtk_clist_set_selection_mode(GTK_CLIST(*list), GTK_SELECTION_SINGLE);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(*lists), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	liststyle = gtk_style_new();
@@ -3793,38 +3808,38 @@ create_windows()
 	}
 	gtk_widget_show_all(gtkwin_root);
 	frame = gtk_frame_new(NULL);
-	gtk_widget_set_usize(frame, 350, 175);
+/*	gtk_widget_set_usize(frame, 350, 175);*/
 	get_stats_display(frame);
 	gnome_app_add_docked(GNOME_APP(gtkwin_root), frame, "StatsBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_BOTTOM, 0, 0, 0);
 	gtk_widget_show_all(frame);
 	frame = gtk_frame_new(NULL);
-	gtk_widget_set_usize(frame, 350, 175);
+/*	gtk_widget_set_usize(frame, 350, 175);*/
 	get_info_display(frame);
 	gnome_app_add_docked(GNOME_APP(gtkwin_root), frame, "InfoBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_BOTTOM, 0, 1, 0);
 	gtk_widget_show_all(frame);
-	frame = gtk_frame_new(NULL);
-	gtk_widget_set_usize(frame, 240, 300);
-	get_inv_display(frame);
-	gnome_app_add_docked(GNOME_APP(gtkwin_root), frame, "InvBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_LEFT, 0, 0, 0);
-	gtk_widget_show_all(frame);
-	frame = gtk_frame_new(NULL);
-	gtk_widget_set_usize(frame, 240, 150);
-	get_look_display(frame);
-	gnome_app_add_docked(GNOME_APP(gtkwin_root), frame, "LookBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_LEFT, 0, 1, 0);
-	gtk_widget_show_all(frame);
+	invframe = gtk_frame_new(NULL);
+	gtk_widget_set_usize(invframe, 230, (((mapy * image_size) / 4) * 3));
+	get_inv_display(invframe);
+	gnome_app_add_docked(GNOME_APP(gtkwin_root), invframe, "InvBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_LEFT, 0, 0, 0);
+	gtk_widget_show_all(invframe);
+	lookframe = gtk_frame_new(NULL);
+	gtk_widget_set_usize(lookframe, 230, ((mapy * image_size) / 4));
+	get_look_display(lookframe);
+	gnome_app_add_docked(GNOME_APP(gtkwin_root), lookframe, "LookBox", GNOME_DOCK_ITEM_BEH_NORMAL, GNOME_DOCK_LEFT, 0, 1, 0);
+	gtk_widget_show_all(lookframe);
 	hbox = gtk_hbox_new(FALSE, 0);
 	frame = gtk_frame_new(NULL);
 	gtk_container_add(GTK_CONTAINER(frame), hbox);
 	gtk_widget_show_all(hbox);
 	gtk_widget_show_all(frame);
 	gnome_app_set_contents(GNOME_APP(gtkwin_root), frame);
+	gameframe = gtk_frame_new(NULL);
+	gtk_widget_set_usize(gameframe, (image_size * mapx) + 6, (image_size * mapy) + 6);
+	get_game_display(gameframe);
+	gtk_box_pack_start(GTK_BOX(hbox), gameframe, FALSE, FALSE, 0);
+	gtk_widget_show_all(gameframe);
 	frame = gtk_frame_new(NULL);
-	gtk_widget_set_usize(frame, (image_size * mapx) + 6, (image_size * mapy) + 6);
-	get_game_display(frame);
-	gtk_box_pack_start(GTK_BOX(hbox), frame, FALSE, FALSE, 0);
-	gtk_widget_show_all(frame);
-	frame = gtk_frame_new(NULL);
-	gtk_widget_set_usize(frame, 300, (image_size * mapy) + 6);
+/*	gtk_widget_set_usize(frame, 300, (image_size * mapy) + 6);*/
 	gtk_box_pack_end(GTK_BOX(hbox), frame, TRUE, TRUE, 0);
 	gtk_widget_show_all(frame);
 	get_message_display(frame);
@@ -4095,6 +4110,13 @@ init_windows(int argc, char **argv)
 	args = (gchar **) poptGetArgs(pctx);
 	if (echobindings == TRUE)
 		cpl.echo_bindings = TRUE;
+	if (mapsizeopt != -1 && ((mapsizeopt < 15 && mapsizeopt != 11) || mapsizeopt > MAP_MAX_SIZE)) {
+		printf("Mapsize must be 11 or between 15 and %d!\n", MAP_MAX_SIZE);
+		exit(0);
+	} else if (mapsizeopt != -1) {
+		want_mapx = mapsizeopt;
+		want_mapy = mapsizeopt;
+	}
 	poptFreeContext(pctx);
 	want_skill_exp = 1;
 	last_str = malloc(32767);
@@ -4144,8 +4166,16 @@ display_mapcell_pixmap(int ax, int ay)
 	int k;
 	if (the_map.cells[ax][ay].need_update == TRUE) {
 		gdk_draw_rectangle(pixmap, drawable->style->mid_gc[0], TRUE, ax * image_size, ay * image_size, image_size, image_size);
-		for (k = the_map.cells[ax][ay].count - 1; k > -1; k--) {
-			gen_draw_face(the_map.cells[ax][ay].faces[k], ax, ay);
+		if (mapx >= 15 && mapy >= 15) {
+			for (k = 0; k < the_map.cells[ax][ay].count; k++) {
+				if (the_map.cells[ax][ay].faces[k] > 0)
+					gen_draw_face(the_map.cells[ax][ay].faces[k], ax, ay);
+			}
+		} else {
+			for (k = the_map.cells[ax][ay].count - 1; k > -1; k--) {
+				if (the_map.cells[ax][ay].faces[k] > 0)
+					gen_draw_face(the_map.cells[ax][ay].faces[k], ax, ay);
+			}
 		}
 	}
 }
@@ -4200,12 +4230,11 @@ display_mapscroll(int dx, int dy)
 	GdkPixmap *tmppixmap;
 	for(x = 0; x < mapx; x++) {
 		for(y = 0; y < mapy; y++) {
-			newmap.cells[x][y].count = 0;
-			if (x + dx < 0 || x + dx >= mapx)
-				continue;
-			if (y + dy < 0 || y + dy >= mapy)
-				continue;
-			memcpy((char*)&(newmap.cells[x][y]), (char*)&(the_map.cells[x + dx][y + dy]), sizeof(struct MapCell));
+			if (x + dx < 0 || x + dx >= mapx || y + dy < 0 || y + dy >= mapy) {
+				memset((char*)&(newmap.cells[x][y]), 0, sizeof(struct MapCell));
+				newmap.cells[x][y].need_update = 1;
+			} else
+				memcpy((char*)&(newmap.cells[x][y]), (char*)&(the_map.cells[x + dx][y + dy]), sizeof(struct MapCell));
 		}
 	}
 	x = x2 = 0;
