@@ -1,7 +1,11 @@
 "$Id$"
 Top of CVS tree:
 
-Checking on 11/3 by MSW:
+Checkin on 2000-11-7 by MSW:
+item.h:  Update NAME_LEN to 128, as the server may send us names that
+long.  Also, terminate the name after we copy it.
+
+Checkin on 11/3 by MSW:
 Remove remaining font support for x11 client.
 Allow setting default display mode and server to connect to in the
 cconfig.h file.

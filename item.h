@@ -18,8 +18,8 @@ typedef signed char     sint8;
  *  that total number of items is small (<100) so this don't even
  *  waste too much memory
  */
-#define NAME_LEN	64
-#define copy_name(t,f) strncpy(t, f, NAME_LEN-1)
+#define NAME_LEN	128
+#define copy_name(t,f) strncpy(t, f, NAME_LEN-1); t[NAME_LEN-1]=0;
 
 /*
  *  item structure keeps all information what player 
