@@ -2393,14 +2393,14 @@ void display_mapscroll(int dx,int dy)
 		if( dx < 0)
 		  {
 		    char* start_of_row= mapsurface->pixels + mapsurface->pitch * y;
-		    int offset= ((mapsurface->pitch / mapy) * -dx);
+		    int offset= ( mapsurface->format->BytesPerPixel * image_size * -dx);
 		    memmove( start_of_row + offset, start_of_row,
 			     mapsurface->pitch - offset);
 		  }
 		else 
 		  {
 		    char* start_of_row= mapsurface->pixels + mapsurface->pitch * y; 
-		    int offset= ((mapsurface->pitch / mapy) * dx);
+		    int offset= ( mapsurface->format->BytesPerPixel * image_size * dx);
 		    memmove( start_of_row, start_of_row + offset,
 			     mapsurface->pitch - offset);
 		  }
