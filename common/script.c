@@ -1096,14 +1096,12 @@ static void script_process_cmd(int i)
          sprintf(buf,"request range %s\n",cpl.range);
          write(scripts[i].out_fd,buf,strlen(buf));
       }
-#if 0
       else if ( strncmp(c,"weight",5)==0 ) {
          char buf[1024];
 
-         sprintf(buf,"request weight %d %d\n",inv_list.weight_limit,inv_list.show_weight);
+         sprintf(buf,"request weight %d %d\n",cpl.stats.weight_limit,(int)(cpl.ob->weight*1000));
          write(scripts[i].out_fd,buf,strlen(buf));
       }
-#endif
       else if ( strncmp(c,"stat ",5)==0 ) {
          c+=4;
          while ( *c && *c!=' ' ) ++c;
@@ -1201,7 +1199,7 @@ static void script_process_cmd(int i)
          if ( strncmp(c,"on",2)==0 ) {
             char *buf;
 
-            item *it=cpl.below;
+            item *it=cpl.below->inv;
             while (it) {
                script_send_item(i,"request items on ",it);
                it=it->next;
@@ -1212,7 +1210,7 @@ static void script_process_cmd(int i)
          if ( strncmp(c,"cont",4)==0 ) {
             char *buf;
 
-            item *it=cpl.container;
+            item *it=cpl.container->inv;
             while (it) {
                script_send_item(i,"request items cont ",it);
                it=it->next;
@@ -1271,7 +1269,7 @@ static void script_process_cmd(int i)
       else {
          char buf[1024];
 
-         sprintf(buf,"Script %d %s malfunction; unimplemented request:",i,scripts[i].name);
+         sprintf(buf,"Script %d %s malfunction; unimplemented request:",i+1,scripts[i].name);
          draw_info(buf,NDI_RED);
          draw_info(cmd,NDI_RED);
       }
@@ -1299,7 +1297,7 @@ static void script_process_cmd(int i)
             if ( r!=1 ) {
                char buf[1024];
 
-               sprintf(buf,"Script %d %s malfunction; command not sent",i,scripts[i].name);
+               sprintf(buf,"Script %d %s malfunction; command not sent",i+1,scripts[i].name);
                draw_info(buf,NDI_RED);
                draw_info(cmd,NDI_RED);
             }
@@ -1392,7 +1390,7 @@ static void script_process_cmd(int i)
    else {
       char buf[1024];
 
-      sprintf(buf,"Script %d %s malfunction; invalid command:",i,scripts[i].name);
+      sprintf(buf,"Script %d %s malfunction; invalid command:",i+1,scripts[i].name);
       draw_info(buf,NDI_RED);
       draw_info(cmd,NDI_RED);
    }

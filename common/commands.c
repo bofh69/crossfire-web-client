@@ -513,7 +513,7 @@ void StatsCmd(unsigned char *data, int len)
 		case CS_STAT_FOOD:	cpl.stats.food=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_WEAP_SP:	cpl.stats.weapon_sp=GetInt_String(data+i); i+=4; break;
 		case CS_STAT_FLAGS:	cpl.stats.flags=GetShort_String(data+i); i+=2; break;
-		case CS_STAT_WEIGHT_LIM:set_weight_limit(GetInt_String(data+i)); i+=4; break;
+		case CS_STAT_WEIGHT_LIM:set_weight_limit(cpl.stats.weight_limit=GetInt_String(data+i)); i+=4; break;
 
 		/* Skill experience handling */
 		/* We make the assumption based on current bindings in the protocol

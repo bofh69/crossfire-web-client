@@ -200,6 +200,7 @@ typedef struct Stat_struct {
     uint32 resist_change:1; /* Resistant value has changed */
     sint16 skill_level[MAX_SKILL];  /* Level and experience totals for */
     sint64 skill_exp[MAX_SKILL];    /* skills */
+    uint32 weight_limit;    /* weight limit */
 } Stats;
 
 
