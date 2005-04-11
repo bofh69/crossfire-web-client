@@ -1394,7 +1394,7 @@
 		      <property name="enable_popup">False</property>
 
 		      <child>
-			<widget class="GtkScrolledWindow" id="scrolledwindow1">
+			<widget class="GtkScrolledWindow" id="scrolledwindow-textview1">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
 			  <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
@@ -1448,7 +1448,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkScrolledWindow" id="scrolledwindow2">
+			<widget class="GtkScrolledWindow" id="scrolledwindow-textview2">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
 			  <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>

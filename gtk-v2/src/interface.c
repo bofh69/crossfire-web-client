@@ -110,10 +110,10 @@ create_window_root (void)
   GtkWidget *vpaned_info_inventory;
   GtkWidget *vbox_info_entry;
   GtkWidget *notebook_info;
-  GtkWidget *scrolledwindow1;
+  GtkWidget *scrolledwindow_textview1;
   GtkWidget *textview_info1;
   GtkWidget *label1;
-  GtkWidget *scrolledwindow2;
+  GtkWidget *scrolledwindow_textview2;
   GtkWidget *textview_info2;
   GtkWidget *label2;
   GtkWidget *entry_commands;
@@ -493,14 +493,14 @@ create_window_root (void)
   gtk_widget_show (notebook_info);
   gtk_box_pack_start (GTK_BOX (vbox_info_entry), notebook_info, TRUE, TRUE, 0);
 
-  scrolledwindow1 = gtk_scrolled_window_new (NULL, NULL);
-  gtk_widget_show (scrolledwindow1);
-  gtk_container_add (GTK_CONTAINER (notebook_info), scrolledwindow1);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow1), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+  scrolledwindow_textview1 = gtk_scrolled_window_new (NULL, NULL);
+  gtk_widget_show (scrolledwindow_textview1);
+  gtk_container_add (GTK_CONTAINER (notebook_info), scrolledwindow_textview1);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow_textview1), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
 
   textview_info1 = gtk_text_view_new ();
   gtk_widget_show (textview_info1);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow1), textview_info1);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow_textview1), textview_info1);
   gtk_text_view_set_editable (GTK_TEXT_VIEW (textview_info1), FALSE);
   gtk_text_view_set_accepts_tab (GTK_TEXT_VIEW (textview_info1), FALSE);
   gtk_text_view_set_cursor_visible (GTK_TEXT_VIEW (textview_info1), FALSE);
@@ -509,14 +509,14 @@ create_window_root (void)
   gtk_widget_show (label1);
   gtk_notebook_set_tab_label (GTK_NOTEBOOK (notebook_info), gtk_notebook_get_nth_page (GTK_NOTEBOOK (notebook_info), 0), label1);
 
-  scrolledwindow2 = gtk_scrolled_window_new (NULL, NULL);
-  gtk_widget_show (scrolledwindow2);
-  gtk_container_add (GTK_CONTAINER (notebook_info), scrolledwindow2);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow2), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+  scrolledwindow_textview2 = gtk_scrolled_window_new (NULL, NULL);
+  gtk_widget_show (scrolledwindow_textview2);
+  gtk_container_add (GTK_CONTAINER (notebook_info), scrolledwindow_textview2);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow_textview2), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
 
   textview_info2 = gtk_text_view_new ();
   gtk_widget_show (textview_info2);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow2), textview_info2);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow_textview2), textview_info2);
   gtk_text_view_set_editable (GTK_TEXT_VIEW (textview_info2), FALSE);
   gtk_text_view_set_accepts_tab (GTK_TEXT_VIEW (textview_info2), FALSE);
   gtk_text_view_set_cursor_visible (GTK_TEXT_VIEW (textview_info2), FALSE);
@@ -720,10 +720,10 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, vpaned_info_inventory, "vpaned_info_inventory");
   GLADE_HOOKUP_OBJECT (window_root, vbox_info_entry, "vbox_info_entry");
   GLADE_HOOKUP_OBJECT (window_root, notebook_info, "notebook_info");
-  GLADE_HOOKUP_OBJECT (window_root, scrolledwindow1, "scrolledwindow1");
+  GLADE_HOOKUP_OBJECT (window_root, scrolledwindow_textview1, "scrolledwindow_textview1");
   GLADE_HOOKUP_OBJECT (window_root, textview_info1, "textview_info1");
   GLADE_HOOKUP_OBJECT (window_root, label1, "label1");
-  GLADE_HOOKUP_OBJECT (window_root, scrolledwindow2, "scrolledwindow2");
+  GLADE_HOOKUP_OBJECT (window_root, scrolledwindow_textview2, "scrolledwindow_textview2");
   GLADE_HOOKUP_OBJECT (window_root, textview_info2, "textview_info2");
   GLADE_HOOKUP_OBJECT (window_root, label2, "label2");
   GLADE_HOOKUP_OBJECT (window_root, entry_commands, "entry_commands");

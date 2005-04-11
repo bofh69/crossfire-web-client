@@ -3,6 +3,20 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Improve behaviour of information windows on gtkv2 client - before this patch,
+they would always scroll to bottom when getting new output, making it
+difficult to look at shop listings or other long listings that require
+going back in the scroll buffer.  With this change, if the buffer isn't
+at the end, the scroll position isn't changed.  IF it it at the end, it
+keeps it at the end.
+--
+gtk-v2/gtk-v2.glade:  Chane scrolledwindows used by the textbuffers to
+  have a meaningful name.
+gtk-v2/src/info.c: Add code that gets position of scroll bar (adjustment)
+  and compares it with maximum, and if not at end, don't scroll window.
+gtk-v2/src/interface.c: Rebuilt.
+MSW 2005-04-11
+
 Fix so that magic map works properly on the gtkv2 client.
 gtk-v2/gtk-v2.glade: change name of map notebook to map_notebook.  Add
   signal to handle expose events of the magic map area.

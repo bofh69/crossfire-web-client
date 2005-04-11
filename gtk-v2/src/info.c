@@ -40,12 +40,13 @@ char *rcsid_gtk2_info_c =
 
 #include "main.h"
 
-GtkWidget *textview_info1, *textview_info2;
+GtkWidget *textview_info1, *textview_info2, *sw1, *sw2;
 GtkTextBuffer *textbuf1, *textbuf2;
 GtkTextMark *textmark1, *textmark2;
 
 /* text_tag2 to represent it for for textbuffer 2 */
 GtkTextTag	*text_tag1[NUM_COLORS], *text_tag2[NUM_COLORS];
+GtkAdjustment   *adj1, *adj2;
 
 void info_init(GtkWidget *window_root)
 {
@@ -55,10 +56,14 @@ void info_init(GtkWidget *window_root)
 
     textview_info1 = lookup_widget(window_root,"textview_info1");
     textview_info2 = lookup_widget(window_root,"textview_info2");
+    sw1 = lookup_widget(window_root, "scrolledwindow_textview1");
+    sw2 = lookup_widget(window_root, "scrolledwindow_textview2");
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview_info1), GTK_WRAP_WORD);
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview_info2), GTK_WRAP_WORD);
     textbuf1=gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview_info1));
     textbuf2=gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview_info2));
+    adj1 = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(sw1));
+    adj2 = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(sw2));
 
     gtk_text_buffer_get_end_iter(textbuf1, &end);
     textmark1 =  gtk_text_buffer_create_mark(textbuf1, NULL, &end, FALSE);
@@ -82,27 +87,52 @@ void info_init(GtkWidget *window_root)
 void draw_info(const char *str, int color) {
     int ncolor = color;
     GtkTextIter end;
+    GdkRectangle rect;
+    int scroll_to_end=0;
   
     if (ncolor==NDI_WHITE) {
 	ncolor=NDI_BLACK;
     }
 
+    /* This seems more complicated than it should be, but we need to see if
+     * the window is scrolled at the end.  If it is, we want to keep scrolling
+     * it down with new info.  If not, we don't want to change position - otherwise,
+     * it makes it very difficult to look back at the old info (like old messages
+     * missed during combat, looking at the shop listing while people are chatting,
+     * etc)
+     * We need to find out the position before putting in new text -
+     * otherwise, that operation will mess up our position, and
+     * not giv us right info.
+     */
+    gtk_text_view_get_visible_rect(GTK_TEXT_VIEW(textview_info1), &rect);
+    if ((adj1->value + rect.height) >= adj1->upper ) scroll_to_end=1;
 
     if (color == NDI_BLACK) {
 	gtk_text_buffer_get_end_iter(textbuf1, &end);
 	gtk_text_buffer_insert(textbuf1, &end, str , strlen(str));
 	gtk_text_buffer_insert(textbuf1, &end, "\n" , 1);
-	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(textview_info1), textmark1);
+
+	if (scroll_to_end)
+	    gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(textview_info1), textmark1);
     } else {
 	gtk_text_buffer_get_end_iter(textbuf1, &end);
 	gtk_text_buffer_insert_with_tags(textbuf1, &end, str , strlen(str), text_tag1[ncolor], NULL);
 	gtk_text_buffer_insert(textbuf1, &end, "\n" , 1);
-	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(textview_info1), textmark1);
+
+	if (scroll_to_end)
+	    gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(textview_info1), textmark1);
+
+	gtk_text_view_get_visible_rect(GTK_TEXT_VIEW(textview_info2), &rect);
+	if ((adj2->value + rect.height) >= adj2->upper ) scroll_to_end=1;
+	else scroll_to_end=0;
 
 	gtk_text_buffer_get_end_iter(textbuf2, &end);
 	gtk_text_buffer_insert_with_tags(textbuf2, &end, str , strlen(str), text_tag2[ncolor], NULL);
 	gtk_text_buffer_insert_at_cursor(textbuf2, "\n" , 1);
 	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(textview_info2), textmark2);
+	gtk_text_view_get_visible_rect(GTK_TEXT_VIEW(textview_info2), &rect);
+	if (scroll_to_end)
+	    gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(textview_info2), textmark2);
     }
 }
 
