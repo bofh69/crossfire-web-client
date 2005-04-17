@@ -3,6 +3,18 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Add newpickup support to the gtkv2 client.  Didn't add old support (still
+available by specific commands) as I think the interface gets confusing
+to have them both - would be better to extend newpickup logic if necessary
+to support anything old pickup does that newpickup doesn't.
+--
+gtk-v2/Makefile.in: Rebuilt
+gtk-v2/gtk-v2.glade: Add menu options for newpickup
+gtk-v2/src/Makefile.am, gtk-v2/src/Makefile.in: Add pickup.c file
+gtk-v2/src/callbacks.h, gtk-v2/src/interface.c: Rebuilt by glade-2
+gtk-v2/src/pickup.c: New file - handles pickup logic.
+MSW 2005-04-17
+
 gtk/image.c: Apply patch from bug 1120881 that fixes pointer operations
    on netbsd/macppc.  Changed code still works on linux/x86.
 MSW 2005-04-16

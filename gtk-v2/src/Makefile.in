@@ -55,8 +55,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = config.$(OBJEXT) image.$(OBJEXT) info.$(OBJEXT) \
 	inventory.$(OBJEXT) keys.$(OBJEXT) main.$(OBJEXT) \
 	map.$(OBJEXT) magicmap.$(OBJEXT) menubar.$(OBJEXT) \
-	opengl.$(OBJEXT) png.$(OBJEXT) sdl.$(OBJEXT) sound.$(OBJEXT) \
-	stats.$(OBJEXT)
+	opengl.$(OBJEXT) pickup.$(OBJEXT) png.$(OBJEXT) sdl.$(OBJEXT) \
+	sound.$(OBJEXT) stats.$(OBJEXT)
 am_gcfclient2_OBJECTS = $(am__objects_1) support.$(OBJEXT) \
 	interface.$(OBJEXT)
 gcfclient2_OBJECTS = $(am_gcfclient2_OBJECTS)
@@ -126,6 +126,7 @@ MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
 MKDIR = @MKDIR@
 OBJEXT = @OBJEXT@
+OPENGL_LIBS = @OPENGL_LIBS@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_CFLAGS = @PACKAGE_CFLAGS@
@@ -216,6 +217,7 @@ PROTO_SOURCES = \
 	magicmap.c \
 	menubar.c \
 	opengl.c \
+	pickup.c \
 	png.c \
 	sdl.c \
 	sound.c \
@@ -304,6 +306,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/map.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/menubar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opengl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pickup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/png.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sound.Po@am__quote@

@@ -69,6 +69,411 @@
 	      </child>
 
 	      <child>
+		<widget class="GtkMenuItem" id="pickup1">
+		  <property name="visible">True</property>
+		  <property name="label" translatable="yes">Pickup</property>
+		  <property name="use_underline">True</property>
+
+		  <child>
+		    <widget class="GtkMenu" id="pickup1_menu">
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="don't_pickup1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Don't Pickup</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_dont_pickup_activate" last_modification_time="Sun, 17 Apr 2005 05:04:52 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="stop_before_pickup1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Stop Before Pickup</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_stop_before_pickup_activate" last_modification_time="Sun, 17 Apr 2005 05:04:52 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkMenuItem" id="armor1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Armor</property>
+			  <property name="use_underline">True</property>
+
+			  <child>
+			    <widget class="GtkMenu" id="armor1_menu">
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="body_armor1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Body Armor</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_body_armor_activate" last_modification_time="Sun, 17 Apr 2005 05:21:18 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="boots1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Boots</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_boots_activate" last_modification_time="Sun, 17 Apr 2005 05:22:10 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="cloaks1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Cloaks</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_cloaks_activate" last_modification_time="Sun, 17 Apr 2005 05:22:10 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="gloves1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Gloves</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_gloves_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="helmets1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Helmets</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_helmets_activate" last_modification_time="Sun, 17 Apr 2005 05:20:39 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="shields1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Shields</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_shields_activate" last_modification_time="Sun, 17 Apr 2005 05:21:18 GMT"/>
+				</widget>
+			      </child>
+			    </widget>
+			  </child>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkMenuItem" id="books1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Books</property>
+			  <property name="use_underline">True</property>
+
+			  <child>
+			    <widget class="GtkMenu" id="books1_menu">
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="skillscrolls1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Skillscrolls</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_skillscrolls_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="normal_book_scrolls1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Normal Books &amp; Scrolls</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_normal_book_scrolls_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="spellbooks1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Spellbooks</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_spellbooks_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+				</widget>
+			      </child>
+			    </widget>
+			  </child>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="drinks1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Drinks</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_drinks_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="food1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Food</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_food_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="keys1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Keys</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_keys_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="magical_items">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Magical Items</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_magical_items_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="potions">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Potions</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_potions_activate" last_modification_time="Sun, 17 Apr 2005 06:08:54 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="valuables">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Valuables (Money &amp; Gems)</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_valuables_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="wands_rods_horns">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Wands/Rods/Horns</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_wands_rods_horns_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkMenuItem" id="weapons1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Weapons</property>
+			  <property name="use_underline">True</property>
+
+			  <child>
+			    <widget class="GtkMenu" id="weapons1_menu">
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="all_weapons">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">All Weapons</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_all_weapons_activate" last_modification_time="Sun, 17 Apr 2005 05:14:33 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="missile_weapons1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Missile Weapons</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_missile_weapons_activate" last_modification_time="Sun, 17 Apr 2005 05:14:33 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="bows1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Bows</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_bows_activate" last_modification_time="Sun, 17 Apr 2005 05:19:16 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckMenuItem" id="arrows1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Arrows</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <signal name="activate" handler="on_menu_arrows_activate" last_modification_time="Sun, 17 Apr 2005 05:19:31 GMT"/>
+				</widget>
+			      </child>
+			    </widget>
+			  </child>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkMenuItem" id="weight/value_1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Weight/Value </property>
+			  <property name="use_underline">True</property>
+
+			  <child>
+			    <widget class="GtkMenu" id="weight/value_1_menu">
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_pickup_off1">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio Pickup Off</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">True</property>
+				  <signal name="activate" handler="on_menu_ratio_pickup_off_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_5">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 5</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">True</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_5_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_10">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 10</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_10_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_15">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 15</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_15_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_20">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 20</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_20_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_25">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 25</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_25_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_30">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 30</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_35_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_35">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 35</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_35_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_40">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 40</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_40_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_45">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 45</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_45_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+
+			      <child>
+				<widget class="GtkRadioMenuItem" id="ratio_50">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Ratio &gt;= 50</property>
+				  <property name="use_underline">True</property>
+				  <property name="active">False</property>
+				  <property name="group">ratio_pickup_off1</property>
+				  <signal name="activate" handler="on_menu_ratio_50_activate" last_modification_time="Sun, 17 Apr 2005 05:08:21 GMT"/>
+				</widget>
+			      </child>
+			    </widget>
+			  </child>
+			</widget>
+		      </child>
+		    </widget>
+		  </child>
+		</widget>
+	      </child>
+
+	      <child>
 		<widget class="GtkMenuItem" id="menuitem4">
 		  <property name="visible">True</property>
 		  <property name="label" translatable="yes">_Help</property>

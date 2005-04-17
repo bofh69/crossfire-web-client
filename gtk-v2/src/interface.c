@@ -37,6 +37,50 @@ create_window_root (void)
   GtkWidget *menuitem1_menu;
   GtkWidget *quit_character1;
   GtkWidget *quit2;
+  GtkWidget *pickup1;
+  GtkWidget *pickup1_menu;
+  GtkWidget *don_t_pickup1;
+  GtkWidget *stop_before_pickup1;
+  GtkWidget *armor1;
+  GtkWidget *armor1_menu;
+  GtkWidget *body_armor1;
+  GtkWidget *boots1;
+  GtkWidget *cloaks1;
+  GtkWidget *gloves1;
+  GtkWidget *helmets1;
+  GtkWidget *shields1;
+  GtkWidget *books1;
+  GtkWidget *books1_menu;
+  GtkWidget *skillscrolls1;
+  GtkWidget *normal_book_scrolls1;
+  GtkWidget *spellbooks1;
+  GtkWidget *drinks1;
+  GtkWidget *food1;
+  GtkWidget *keys1;
+  GtkWidget *magical_items;
+  GtkWidget *potions;
+  GtkWidget *valuables;
+  GtkWidget *wands_rods_horns;
+  GtkWidget *weapons1;
+  GtkWidget *weapons1_menu;
+  GtkWidget *all_weapons;
+  GtkWidget *missile_weapons1;
+  GtkWidget *bows1;
+  GtkWidget *arrows1;
+  GtkWidget *weight_value_1;
+  GtkWidget *weight_value_1_menu;
+  GSList *ratio_pickup_off1_group = NULL;
+  GtkWidget *ratio_pickup_off1;
+  GtkWidget *ratio_5;
+  GtkWidget *ratio_10;
+  GtkWidget *ratio_15;
+  GtkWidget *ratio_20;
+  GtkWidget *ratio_25;
+  GtkWidget *ratio_30;
+  GtkWidget *ratio_35;
+  GtkWidget *ratio_40;
+  GtkWidget *ratio_45;
+  GtkWidget *ratio_50;
   GtkWidget *menuitem4;
   GtkWidget *menuitem4_menu;
   GtkWidget *about1;
@@ -165,6 +209,186 @@ create_window_root (void)
   quit2 = gtk_menu_item_new_with_mnemonic (_("_Quit"));
   gtk_widget_show (quit2);
   gtk_container_add (GTK_CONTAINER (menuitem1_menu), quit2);
+
+  pickup1 = gtk_menu_item_new_with_mnemonic (_("Pickup"));
+  gtk_widget_show (pickup1);
+  gtk_container_add (GTK_CONTAINER (menubar1), pickup1);
+
+  pickup1_menu = gtk_menu_new ();
+  gtk_menu_item_set_submenu (GTK_MENU_ITEM (pickup1), pickup1_menu);
+
+  don_t_pickup1 = gtk_check_menu_item_new_with_mnemonic (_("Don't Pickup"));
+  gtk_widget_show (don_t_pickup1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), don_t_pickup1);
+
+  stop_before_pickup1 = gtk_check_menu_item_new_with_mnemonic (_("Stop Before Pickup"));
+  gtk_widget_show (stop_before_pickup1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), stop_before_pickup1);
+
+  armor1 = gtk_menu_item_new_with_mnemonic (_("Armor"));
+  gtk_widget_show (armor1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), armor1);
+
+  armor1_menu = gtk_menu_new ();
+  gtk_menu_item_set_submenu (GTK_MENU_ITEM (armor1), armor1_menu);
+
+  body_armor1 = gtk_check_menu_item_new_with_mnemonic (_("Body Armor"));
+  gtk_widget_show (body_armor1);
+  gtk_container_add (GTK_CONTAINER (armor1_menu), body_armor1);
+
+  boots1 = gtk_check_menu_item_new_with_mnemonic (_("Boots"));
+  gtk_widget_show (boots1);
+  gtk_container_add (GTK_CONTAINER (armor1_menu), boots1);
+
+  cloaks1 = gtk_check_menu_item_new_with_mnemonic (_("Cloaks"));
+  gtk_widget_show (cloaks1);
+  gtk_container_add (GTK_CONTAINER (armor1_menu), cloaks1);
+
+  gloves1 = gtk_check_menu_item_new_with_mnemonic (_("Gloves"));
+  gtk_widget_show (gloves1);
+  gtk_container_add (GTK_CONTAINER (armor1_menu), gloves1);
+
+  helmets1 = gtk_check_menu_item_new_with_mnemonic (_("Helmets"));
+  gtk_widget_show (helmets1);
+  gtk_container_add (GTK_CONTAINER (armor1_menu), helmets1);
+
+  shields1 = gtk_check_menu_item_new_with_mnemonic (_("Shields"));
+  gtk_widget_show (shields1);
+  gtk_container_add (GTK_CONTAINER (armor1_menu), shields1);
+
+  books1 = gtk_menu_item_new_with_mnemonic (_("Books"));
+  gtk_widget_show (books1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), books1);
+
+  books1_menu = gtk_menu_new ();
+  gtk_menu_item_set_submenu (GTK_MENU_ITEM (books1), books1_menu);
+
+  skillscrolls1 = gtk_check_menu_item_new_with_mnemonic (_("Skillscrolls"));
+  gtk_widget_show (skillscrolls1);
+  gtk_container_add (GTK_CONTAINER (books1_menu), skillscrolls1);
+
+  normal_book_scrolls1 = gtk_check_menu_item_new_with_mnemonic (_("Normal Books & Scrolls"));
+  gtk_widget_show (normal_book_scrolls1);
+  gtk_container_add (GTK_CONTAINER (books1_menu), normal_book_scrolls1);
+
+  spellbooks1 = gtk_check_menu_item_new_with_mnemonic (_("Spellbooks"));
+  gtk_widget_show (spellbooks1);
+  gtk_container_add (GTK_CONTAINER (books1_menu), spellbooks1);
+
+  drinks1 = gtk_check_menu_item_new_with_mnemonic (_("Drinks"));
+  gtk_widget_show (drinks1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), drinks1);
+
+  food1 = gtk_check_menu_item_new_with_mnemonic (_("Food"));
+  gtk_widget_show (food1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), food1);
+
+  keys1 = gtk_check_menu_item_new_with_mnemonic (_("Keys"));
+  gtk_widget_show (keys1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), keys1);
+
+  magical_items = gtk_check_menu_item_new_with_mnemonic (_("Magical Items"));
+  gtk_widget_show (magical_items);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), magical_items);
+
+  potions = gtk_check_menu_item_new_with_mnemonic (_("Potions"));
+  gtk_widget_show (potions);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), potions);
+
+  valuables = gtk_check_menu_item_new_with_mnemonic (_("Valuables (Money & Gems)"));
+  gtk_widget_show (valuables);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), valuables);
+
+  wands_rods_horns = gtk_check_menu_item_new_with_mnemonic (_("Wands/Rods/Horns"));
+  gtk_widget_show (wands_rods_horns);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), wands_rods_horns);
+
+  weapons1 = gtk_menu_item_new_with_mnemonic (_("Weapons"));
+  gtk_widget_show (weapons1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), weapons1);
+
+  weapons1_menu = gtk_menu_new ();
+  gtk_menu_item_set_submenu (GTK_MENU_ITEM (weapons1), weapons1_menu);
+
+  all_weapons = gtk_check_menu_item_new_with_mnemonic (_("All Weapons"));
+  gtk_widget_show (all_weapons);
+  gtk_container_add (GTK_CONTAINER (weapons1_menu), all_weapons);
+
+  missile_weapons1 = gtk_check_menu_item_new_with_mnemonic (_("Missile Weapons"));
+  gtk_widget_show (missile_weapons1);
+  gtk_container_add (GTK_CONTAINER (weapons1_menu), missile_weapons1);
+
+  bows1 = gtk_check_menu_item_new_with_mnemonic (_("Bows"));
+  gtk_widget_show (bows1);
+  gtk_container_add (GTK_CONTAINER (weapons1_menu), bows1);
+
+  arrows1 = gtk_check_menu_item_new_with_mnemonic (_("Arrows"));
+  gtk_widget_show (arrows1);
+  gtk_container_add (GTK_CONTAINER (weapons1_menu), arrows1);
+
+  weight_value_1 = gtk_menu_item_new_with_mnemonic (_("Weight/Value "));
+  gtk_widget_show (weight_value_1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), weight_value_1);
+
+  weight_value_1_menu = gtk_menu_new ();
+  gtk_menu_item_set_submenu (GTK_MENU_ITEM (weight_value_1), weight_value_1_menu);
+
+  ratio_pickup_off1 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio Pickup Off"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_pickup_off1));
+  gtk_widget_show (ratio_pickup_off1);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_pickup_off1);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_pickup_off1), TRUE);
+
+  ratio_5 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 5"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_5));
+  gtk_widget_show (ratio_5);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_5);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_5), TRUE);
+
+  ratio_10 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 10"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_10));
+  gtk_widget_show (ratio_10);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_10);
+
+  ratio_15 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 15"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_15));
+  gtk_widget_show (ratio_15);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_15);
+
+  ratio_20 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 20"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_20));
+  gtk_widget_show (ratio_20);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_20);
+
+  ratio_25 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 25"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_25));
+  gtk_widget_show (ratio_25);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_25);
+
+  ratio_30 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 30"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_30));
+  gtk_widget_show (ratio_30);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_30);
+
+  ratio_35 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 35"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_35));
+  gtk_widget_show (ratio_35);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_35);
+
+  ratio_40 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 40"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_40));
+  gtk_widget_show (ratio_40);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_40);
+
+  ratio_45 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 45"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_45));
+  gtk_widget_show (ratio_45);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_45);
+
+  ratio_50 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 50"));
+  ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_50));
+  gtk_widget_show (ratio_50);
+  gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_50);
 
   menuitem4 = gtk_menu_item_new_with_mnemonic (_("_Help"));
   gtk_widget_show (menuitem4);
@@ -613,6 +837,105 @@ create_window_root (void)
   g_signal_connect ((gpointer) quit2, "activate",
                     G_CALLBACK (menu_quit_program),
                     NULL);
+  g_signal_connect ((gpointer) don_t_pickup1, "activate",
+                    G_CALLBACK (on_menu_dont_pickup_activate),
+                    NULL);
+  g_signal_connect ((gpointer) stop_before_pickup1, "activate",
+                    G_CALLBACK (on_menu_stop_before_pickup_activate),
+                    NULL);
+  g_signal_connect ((gpointer) body_armor1, "activate",
+                    G_CALLBACK (on_menu_body_armor_activate),
+                    NULL);
+  g_signal_connect ((gpointer) boots1, "activate",
+                    G_CALLBACK (on_menu_boots_activate),
+                    NULL);
+  g_signal_connect ((gpointer) cloaks1, "activate",
+                    G_CALLBACK (on_menu_cloaks_activate),
+                    NULL);
+  g_signal_connect ((gpointer) gloves1, "activate",
+                    G_CALLBACK (on_menu_gloves_activate),
+                    NULL);
+  g_signal_connect ((gpointer) helmets1, "activate",
+                    G_CALLBACK (on_menu_helmets_activate),
+                    NULL);
+  g_signal_connect ((gpointer) shields1, "activate",
+                    G_CALLBACK (on_menu_shields_activate),
+                    NULL);
+  g_signal_connect ((gpointer) skillscrolls1, "activate",
+                    G_CALLBACK (on_menu_skillscrolls_activate),
+                    NULL);
+  g_signal_connect ((gpointer) normal_book_scrolls1, "activate",
+                    G_CALLBACK (on_menu_normal_book_scrolls_activate),
+                    NULL);
+  g_signal_connect ((gpointer) spellbooks1, "activate",
+                    G_CALLBACK (on_menu_spellbooks_activate),
+                    NULL);
+  g_signal_connect ((gpointer) drinks1, "activate",
+                    G_CALLBACK (on_menu_drinks_activate),
+                    NULL);
+  g_signal_connect ((gpointer) food1, "activate",
+                    G_CALLBACK (on_menu_food_activate),
+                    NULL);
+  g_signal_connect ((gpointer) keys1, "activate",
+                    G_CALLBACK (on_menu_keys_activate),
+                    NULL);
+  g_signal_connect ((gpointer) magical_items, "activate",
+                    G_CALLBACK (on_menu_magical_items_activate),
+                    NULL);
+  g_signal_connect ((gpointer) potions, "activate",
+                    G_CALLBACK (on_menu_potions_activate),
+                    NULL);
+  g_signal_connect ((gpointer) valuables, "activate",
+                    G_CALLBACK (on_menu_valuables_activate),
+                    NULL);
+  g_signal_connect ((gpointer) wands_rods_horns, "activate",
+                    G_CALLBACK (on_menu_wands_rods_horns_activate),
+                    NULL);
+  g_signal_connect ((gpointer) all_weapons, "activate",
+                    G_CALLBACK (on_menu_all_weapons_activate),
+                    NULL);
+  g_signal_connect ((gpointer) missile_weapons1, "activate",
+                    G_CALLBACK (on_menu_missile_weapons_activate),
+                    NULL);
+  g_signal_connect ((gpointer) bows1, "activate",
+                    G_CALLBACK (on_menu_bows_activate),
+                    NULL);
+  g_signal_connect ((gpointer) arrows1, "activate",
+                    G_CALLBACK (on_menu_arrows_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_pickup_off1, "activate",
+                    G_CALLBACK (on_menu_ratio_pickup_off_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_5, "activate",
+                    G_CALLBACK (on_menu_ratio_5_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_10, "activate",
+                    G_CALLBACK (on_menu_ratio_10_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_15, "activate",
+                    G_CALLBACK (on_menu_ratio_15_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_20, "activate",
+                    G_CALLBACK (on_menu_ratio_20_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_25, "activate",
+                    G_CALLBACK (on_menu_ratio_25_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_30, "activate",
+                    G_CALLBACK (on_menu_ratio_35_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_35, "activate",
+                    G_CALLBACK (on_menu_ratio_35_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_40, "activate",
+                    G_CALLBACK (on_menu_ratio_40_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_45, "activate",
+                    G_CALLBACK (on_menu_ratio_45_activate),
+                    NULL);
+  g_signal_connect ((gpointer) ratio_50, "activate",
+                    G_CALLBACK (on_menu_ratio_50_activate),
+                    NULL);
   g_signal_connect ((gpointer) about1, "activate",
                     G_CALLBACK (menu_about),
                     NULL);
@@ -647,6 +970,49 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, menuitem1_menu, "menuitem1_menu");
   GLADE_HOOKUP_OBJECT (window_root, quit_character1, "quit_character1");
   GLADE_HOOKUP_OBJECT (window_root, quit2, "quit2");
+  GLADE_HOOKUP_OBJECT (window_root, pickup1, "pickup1");
+  GLADE_HOOKUP_OBJECT (window_root, pickup1_menu, "pickup1_menu");
+  GLADE_HOOKUP_OBJECT (window_root, don_t_pickup1, "don_t_pickup1");
+  GLADE_HOOKUP_OBJECT (window_root, stop_before_pickup1, "stop_before_pickup1");
+  GLADE_HOOKUP_OBJECT (window_root, armor1, "armor1");
+  GLADE_HOOKUP_OBJECT (window_root, armor1_menu, "armor1_menu");
+  GLADE_HOOKUP_OBJECT (window_root, body_armor1, "body_armor1");
+  GLADE_HOOKUP_OBJECT (window_root, boots1, "boots1");
+  GLADE_HOOKUP_OBJECT (window_root, cloaks1, "cloaks1");
+  GLADE_HOOKUP_OBJECT (window_root, gloves1, "gloves1");
+  GLADE_HOOKUP_OBJECT (window_root, helmets1, "helmets1");
+  GLADE_HOOKUP_OBJECT (window_root, shields1, "shields1");
+  GLADE_HOOKUP_OBJECT (window_root, books1, "books1");
+  GLADE_HOOKUP_OBJECT (window_root, books1_menu, "books1_menu");
+  GLADE_HOOKUP_OBJECT (window_root, skillscrolls1, "skillscrolls1");
+  GLADE_HOOKUP_OBJECT (window_root, normal_book_scrolls1, "normal_book_scrolls1");
+  GLADE_HOOKUP_OBJECT (window_root, spellbooks1, "spellbooks1");
+  GLADE_HOOKUP_OBJECT (window_root, drinks1, "drinks1");
+  GLADE_HOOKUP_OBJECT (window_root, food1, "food1");
+  GLADE_HOOKUP_OBJECT (window_root, keys1, "keys1");
+  GLADE_HOOKUP_OBJECT (window_root, magical_items, "magical_items");
+  GLADE_HOOKUP_OBJECT (window_root, potions, "potions");
+  GLADE_HOOKUP_OBJECT (window_root, valuables, "valuables");
+  GLADE_HOOKUP_OBJECT (window_root, wands_rods_horns, "wands_rods_horns");
+  GLADE_HOOKUP_OBJECT (window_root, weapons1, "weapons1");
+  GLADE_HOOKUP_OBJECT (window_root, weapons1_menu, "weapons1_menu");
+  GLADE_HOOKUP_OBJECT (window_root, all_weapons, "all_weapons");
+  GLADE_HOOKUP_OBJECT (window_root, missile_weapons1, "missile_weapons1");
+  GLADE_HOOKUP_OBJECT (window_root, bows1, "bows1");
+  GLADE_HOOKUP_OBJECT (window_root, arrows1, "arrows1");
+  GLADE_HOOKUP_OBJECT (window_root, weight_value_1, "weight_value_1");
+  GLADE_HOOKUP_OBJECT (window_root, weight_value_1_menu, "weight_value_1_menu");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_pickup_off1, "ratio_pickup_off1");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_5, "ratio_5");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_10, "ratio_10");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_15, "ratio_15");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_20, "ratio_20");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_25, "ratio_25");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_30, "ratio_30");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_35, "ratio_35");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_40, "ratio_40");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_45, "ratio_45");
+  GLADE_HOOKUP_OBJECT (window_root, ratio_50, "ratio_50");
   GLADE_HOOKUP_OBJECT (window_root, menuitem4, "menuitem4");
   GLADE_HOOKUP_OBJECT (window_root, menuitem4_menu, "menuitem4_menu");
   GLADE_HOOKUP_OBJECT (window_root, about1, "about1");

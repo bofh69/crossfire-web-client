@@ -37,7 +37,8 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = gtk-v2
-DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
+DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	AUTHORS ChangeLog NEWS TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -108,6 +109,7 @@ MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
 MKDIR = @MKDIR@
 OBJEXT = @OBJEXT@
+OPENGL_LIBS = @OPENGL_LIBS@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_CFLAGS = @PACKAGE_CFLAGS@
