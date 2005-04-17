@@ -62,7 +62,7 @@ void draw_magic_map()
      * creates teh widget.  also nice to switch to this page when
      * person actually casts magic map spell.
      */
-    gtk_notebook_set_current_page(map_notebook, MAGIC_MAP_PAGE);
+    gtk_notebook_set_current_page(GTK_NOTEBOOK(map_notebook), MAGIC_MAP_PAGE);
 
     gtk_widget_show(magic_map);
  
@@ -119,7 +119,7 @@ void magic_map_flash_pos()
     /* Don't want to keep doing this if the user switches back
      * to the map window.
      */
-    if (gtk_notebook_get_current_page(map_notebook)!=MAGIC_MAP_PAGE) {
+    if (gtk_notebook_get_current_page(GTK_NOTEBOOK(map_notebook))!=MAGIC_MAP_PAGE) {
 	cpl.showmagic=0;
     }
 
