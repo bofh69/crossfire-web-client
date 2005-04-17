@@ -3,6 +3,10 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+gtk/image.c: Apply patch from bug 1120881 that fixes pointer operations
+   on netbsd/macppc.  Changed code still works on linux/x86.
+MSW 2005-04-16
+
 Improve behaviour of information windows on gtkv2 client - before this patch,
 they would always scroll to bottom when getting new output, making it
 difficult to look at shop listings or other long listings that require

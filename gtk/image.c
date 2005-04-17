@@ -203,9 +203,9 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 	     */
 	    p = (uint32*) (fog->pixels + i);
 	    g = ( ((*p >> 24) & 0xff)  + ((*p >> 16) & 0xff) + ((*p >> 8) & 0xff)) / 3;
-	    p = (g << 24) | (g << 16) | (g << 8) | (*p & 0xff);
-	    l = (uint32*) fog->pixels + i;
-	    *(uint32*) l = *p;
+            l = (uint32*) fog->pixels + i;
++ 	    *(uint32*) l = (g << 24) | (g << 16) | (g << 8) | (*p & 0xff);
+
 	}
 
 	SDL_UnlockSurface(fog);
