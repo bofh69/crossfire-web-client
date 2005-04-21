@@ -496,7 +496,7 @@ main (int argc, char *argv[])
 
     gtk_set_locale ();
     gtk_init (&argc, &argv);
-
+#define PACKAGE_DATA_DIR "."
     add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
 
     /* parse_args() has to com after init_client_vars() */
