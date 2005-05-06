@@ -1442,8 +1442,222 @@ static void dialog_callback(GtkWidget *dialog)
   gtk_widget_destroy (dialog_window);
   cpl.input_state = Playing;
 }
+GtkWidget *userText = NULL;
+GtkWidget *passwordText = NULL;
+GtkWidget *passwordText2 = NULL;
+GtkWidget *loginWindow = NULL;
+GtkWidget *motdText = NULL;
+GtkWidget *loginButtonOk = NULL;
+GtkWidget *loginButtonCancel = NULL;
+GtkWidget *loginMessage = NULL;
 
+char password[64]="";
+void setUserPass(GtkButton* button, gpointer func_data){
+    gchar* user;
+    gchar* pass;
+    user=gtk_editable_get_chars (GTK_EDITABLE(userText),0,-1);
+    pass=gtk_editable_get_chars (GTK_EDITABLE(passwordText),0,-1);
+    strncpy(password,pass,sizeof(password));
+    send_reply(user);
+    g_free(user);
+    g_free(pass);
+    gtk_widget_hide(loginWindow);
+}
+void confirmUserPass(GtkButton* button, gpointer func_data){
+    gchar* pass;
+    pass=gtk_editable_get_chars (GTK_EDITABLE(passwordText2),0,-1);
+    send_reply(pass);
+    g_free(pass);
+    gtk_widget_hide(loginWindow);
+}
+void cancelConnection(GtkButton* button, gpointer func_data){
+    printf("Connection canceled \n");
+    gtk_widget_hide(loginWindow);
+    disconnect(GTK_WIDGET(button));
+}
 
+void disable_ok_if_empty(gpointer button,GtkEditable* entry){
+    gchar *passcontent,*txtcontent;
+    txtcontent = gtk_editable_get_chars(GTK_EDITABLE(userText),0,-1);
+    passcontent= gtk_editable_get_chars(GTK_EDITABLE(passwordText)  ,0,-1);
+    if ( passcontent && txtcontent && 
+         (strlen(txtcontent)>=1)&& 
+         (strlen(passcontent)>=1))
+        gtk_widget_set_sensitive(GTK_WIDGET(loginButtonOk),TRUE);
+    else
+        gtk_widget_set_sensitive(GTK_WIDGET(loginButtonOk),FALSE);
+    if (txtcontent && (strlen (txtcontent)>0))
+        gtk_widget_show(passwordText);
+    else
+        gtk_widget_hide(passwordText);
+    g_free(txtcontent);
+    g_free(passcontent);    
+}
+void change_focus(GtkWidget* focusTo, GtkEditable *entry){
+
+    char *txtcontent = gtk_editable_get_chars(entry,0,-1);
+    printf("switch focus\n");
+    if (txtcontent && (strlen(txtcontent)>0))
+            gtk_widget_grab_focus(focusTo);
+}
+void activate_ok_if_not_empty(GtkWidget* button, GtkEditable *entry){
+    char *txtcontent = gtk_editable_get_chars(entry,0,-1);    
+    if (txtcontent && (strlen(txtcontent)>0))
+        gtk_widget_activate(button);
+}
+void buildLoginDialog(){
+    if (loginWindow==NULL){
+        GtkWidget *vbox, *table, *label, *hbox, *vscroll;
+        loginWindow= gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        gtk_window_set_policy (GTK_WINDOW (loginWindow), TRUE, TRUE,
+                 FALSE);      
+        gtk_window_set_transient_for (GTK_WINDOW (loginWindow),
+                 GTK_WINDOW (gtkwin_root));
+        gtk_window_set_title (GTK_WINDOW (loginWindow), "Login");
+        gtk_window_set_transient_for(GTK_WINDOW (loginWindow),
+                    GTK_WINDOW (gtkwin_root)); 
+        vbox=gtk_vbox_new(FALSE,4);
+        
+        /*build motd*/
+        hbox=gtk_hbox_new(FALSE,2);
+        motdText = gtk_text_new(NULL,NULL);        
+        vscroll = gtk_vscrollbar_new (GTK_TEXT (motdText)->vadj);
+        gtk_box_pack_start(GTK_BOX(hbox),motdText,TRUE,TRUE,0);
+        gtk_box_pack_start(GTK_BOX(hbox),vscroll,FALSE,TRUE,0);
+        gtk_widget_show(hbox);
+        gtk_widget_show(motdText);
+        gtk_widget_show(vscroll);
+        gtk_box_pack_start(GTK_BOX(vbox),hbox,TRUE,TRUE,0);
+        
+        
+        /* message information */
+        loginMessage = gtk_label_new(NULL);
+        gtk_box_pack_start(GTK_BOX(vbox),loginMessage,FALSE,FALSE,0);
+        gtk_widget_show(loginMessage);
+        
+        /* user-pass table*/
+        table=gtk_table_new(3,2,FALSE);
+           /* TODO for strange reason justify do not work. 
+            * May someone fix this?*/
+        label=gtk_label_new("User:");
+        gtk_table_attach(GTK_TABLE(table),label,0,1,0,1,GTK_EXPAND|GTK_FILL,0,2,2);
+        gtk_label_set_justify(GTK_LABEL(label),GTK_JUSTIFY_RIGHT);
+        gtk_widget_show(label);
+        label=gtk_label_new("Password:");
+        gtk_table_attach(GTK_TABLE(table),label,0,1,1,2,GTK_EXPAND|GTK_FILL,0,2,2);
+        gtk_label_set_justify(GTK_LABEL(label),GTK_JUSTIFY_RIGHT);
+        gtk_widget_show(label);
+        label=gtk_label_new("Re-type password:");
+        gtk_table_attach(GTK_TABLE(table),label,0,1,2,3,GTK_EXPAND|GTK_FILL,0,2,2);                
+        gtk_label_set_justify(GTK_LABEL(label),GTK_JUSTIFY_RIGHT);
+        gtk_widget_show(label);
+        userText=gtk_entry_new();
+        gtk_widget_show(userText);
+        gtk_table_attach(GTK_TABLE(table),userText,1,2,0,1,GTK_EXPAND|GTK_FILL,0,2,2);
+        passwordText= gtk_entry_new();
+        gtk_entry_set_visibility(GTK_ENTRY(passwordText),FALSE);
+        gtk_widget_show(passwordText);
+        gtk_table_attach(GTK_TABLE(table),passwordText,1,2,1,2,GTK_EXPAND|GTK_FILL,0,2,2);
+        passwordText2= gtk_entry_new();
+        gtk_entry_set_visibility(GTK_ENTRY(passwordText2),FALSE);
+        gtk_entry_set_editable(GTK_ENTRY(passwordText2),FALSE);
+        gtk_table_attach(GTK_TABLE(table),passwordText2,1,2,2,3,GTK_EXPAND|GTK_FILL,0,2,2);
+        gtk_widget_show(passwordText2);        
+        gtk_box_pack_start(GTK_BOX(vbox),table,FALSE,FALSE,0);
+        
+        
+        hbox=gtk_hbox_new(FALSE,2);
+        loginButtonOk = gtk_button_new_with_label("Ok");
+        loginButtonCancel = gtk_button_new_with_label("Cancel");
+        gtk_box_pack_start(GTK_BOX(hbox),loginButtonOk,TRUE,FALSE,0);
+        gtk_box_pack_start(GTK_BOX(hbox),loginButtonCancel,TRUE,FALSE,0);
+        gtk_widget_show(hbox);
+        gtk_widget_show(loginButtonOk);
+        gtk_widget_show(loginButtonCancel);
+        
+        /*manage events on login widgets*/
+        gtk_signal_connect_object (GTK_OBJECT (loginButtonCancel),
+                "clicked",
+                GTK_SIGNAL_FUNC (cancelConnection),
+                NULL);
+        gtk_signal_connect_object (GTK_OBJECT (userText),
+                "changed",
+                GTK_SIGNAL_FUNC (disable_ok_if_empty),
+                GINT_TO_POINTER(loginButtonOk));
+        gtk_signal_connect_object (GTK_OBJECT (passwordText),
+                "changed",
+                GTK_SIGNAL_FUNC (disable_ok_if_empty),
+                GINT_TO_POINTER(loginButtonOk));
+        gtk_signal_connect_object (GTK_OBJECT (userText),
+                "activate",
+                GTK_SIGNAL_FUNC (change_focus),
+                GINT_TO_POINTER(passwordText));
+        gtk_signal_connect_object (GTK_OBJECT (userText),
+                "activate",
+                GTK_SIGNAL_FUNC (change_focus),
+                GINT_TO_POINTER(passwordText));
+        gtk_box_pack_start(GTK_BOX(vbox),hbox,FALSE,FALSE,0);
+        gtk_signal_connect_object (GTK_OBJECT (passwordText),
+                "activate",
+                GTK_SIGNAL_FUNC (activate_ok_if_not_empty),
+                GINT_TO_POINTER(loginButtonOk));
+        gtk_signal_connect_object (GTK_OBJECT (passwordText2),
+                "activate",
+                GTK_SIGNAL_FUNC (activate_ok_if_not_empty),
+                GINT_TO_POINTER(loginButtonOk));
+        gtk_box_pack_start(GTK_BOX(vbox),hbox,FALSE,FALSE,0);
+        gtk_widget_show(table);
+        gtk_widget_show(vbox);
+        gtk_container_add(GTK_CONTAINER(loginWindow),vbox);     
+        gtk_window_set_default_size(GTK_WINDOW(loginWindow),500,400);
+        gtk_window_set_position(GTK_WINDOW(loginWindow),GTK_WIN_POS_CENTER);    
+    }
+    gtk_editable_delete_text(GTK_EDITABLE(motdText),0,-1);
+    write_media(GTK_TEXT(motdText), getMOTD());
+    gtk_widget_show(loginWindow);     
+}
+guint signalLoginDialogClicked = -1;
+void logUserIn(){
+    buildLoginDialog();    
+    gtk_label_set_text(GTK_LABEL(loginMessage),"Type in user name and password");
+    gtk_entry_set_editable(GTK_ENTRY(userText),TRUE);
+    gtk_entry_set_editable(GTK_ENTRY(passwordText),TRUE);
+    gtk_entry_set_editable(GTK_ENTRY(passwordText2),FALSE);
+    gtk_widget_show(GTK_WIDGET(passwordText));
+    gtk_widget_hide(GTK_WIDGET(passwordText2));
+    if (signalLoginDialogClicked!=-1)
+        gtk_signal_disconnect(GTK_OBJECT (loginButtonOk),
+                signalLoginDialogClicked);
+    signalLoginDialogClicked = gtk_signal_connect_object (GTK_OBJECT (loginButtonOk),
+            "clicked",
+            GTK_SIGNAL_FUNC (setUserPass),
+            NULL);
+    gtk_widget_set_sensitive(GTK_WIDGET(loginButtonOk),TRUE);
+    gtk_entry_set_text(GTK_ENTRY(userText),"");
+    gtk_entry_set_text(GTK_ENTRY(passwordText),"");
+    gtk_entry_set_text(GTK_ENTRY(passwordText2),"");
+    gtk_widget_grab_focus(userText);
+}
+void sendPassword(){
+    send_reply(password);
+}
+void confirmPassword(){
+    buildLoginDialog();
+    gtk_label_set_text(GTK_LABEL(loginMessage),"Creating new user, please confirm password");
+    gtk_entry_set_editable(GTK_ENTRY(userText),FALSE);
+    gtk_entry_set_editable(GTK_ENTRY(passwordText),FALSE);
+    gtk_entry_set_editable(GTK_ENTRY(passwordText2),TRUE);
+    gtk_widget_hide(GTK_WIDGET(passwordText));
+    gtk_widget_show(GTK_WIDGET(passwordText2));
+    if (signalLoginDialogClicked!=-1)
+        gtk_signal_disconnect(GTK_OBJECT (loginButtonOk),
+                signalLoginDialogClicked);
+    signalLoginDialogClicked = gtk_signal_connect_object (GTK_OBJECT (loginButtonOk),
+            "clicked",
+            GTK_SIGNAL_FUNC (confirmUserPass),
+            NULL);
+    gtk_widget_grab_focus(passwordText2);
+}
 /* Draw a prompt dialog window */
 /* Ok, now this is trying to be smart and decide what sort of dialog is
  * wanted.
@@ -1487,8 +1701,9 @@ draw_prompt (const char *str)
 		  {
 		      if (!strcmp (last_str, "What is your name?"))
 			{
-
-			    dialoglabel =
+logUserIn();
+return;
+/*			    dialoglabel =
 				gtk_label_new ("What is your name?");
 			    gtk_box_pack_start (GTK_BOX (dbox), dialoglabel,
 						FALSE, TRUE, 6);
@@ -1508,17 +1723,19 @@ draw_prompt (const char *str)
 
 			    gtk_widget_show (hbox);
 			    gtk_widget_show (dialogtext);
-			    gtk_widget_grab_focus (dialogtext);
+			    gtk_widget_grab_focus (dialogtext);*/
 			    found = TRUE;
 #ifdef WIN32
                 iNameDialog = 1;
 #endif
+
 			    continue;
 			}
 
 		      if (!strcmp (last_str, "What is your password?"))
 			{
-
+sendPassword();
+return;/*
 			    dialoglabel =
 				gtk_label_new ("What is your password?");
 			    gtk_box_pack_start (GTK_BOX (dbox), dialoglabel,
@@ -1542,14 +1759,15 @@ draw_prompt (const char *str)
 			    gtk_widget_show (hbox);
 
 			    gtk_widget_show (dialogtext);
-			    gtk_widget_grab_focus (dialogtext);
+			    gtk_widget_grab_focus (dialogtext);*/
 			    found = TRUE;
 			    continue;;
 			}
 		      if (!strcmp
 			  (last_str, "Please type your password again."))
 			{
-
+confirmPassword();
+return;/*
 			    dialoglabel =
 				gtk_label_new
 				("Please type your password again.");
@@ -1573,7 +1791,7 @@ draw_prompt (const char *str)
 
 			    gtk_widget_show (hbox);
 			    gtk_widget_show (dialogtext);
-			    gtk_widget_grab_focus (dialogtext);
+			    gtk_widget_grab_focus (dialogtext);*/
 			    found = TRUE;
 			    continue;
 			}
@@ -5927,6 +6145,7 @@ int main(int argc, char *argv[])
      * the other functions.
      */
     init_client_vars();
+    init_text_callbacks();
     setLogListener(gtkLogListener);
     /* Call this very early.  It should parse all command
      * line arguments and set the pertinent ones up in

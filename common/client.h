@@ -465,3 +465,7 @@ extern PlayerPosition pl_pos;
 
 extern struct Map the_map;
 
+
+
+extern TextManager* firstTextManager;
+

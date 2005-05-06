@@ -92,6 +92,7 @@ struct CmdMapping commands[] = {
     { "delinv",	DeleteInventory, ASCII },
 
     { "drawinfo", (CmdProc)DrawInfoCmd, ASCII },
+    { "drawextinfo", (CmdProc)DrawExtInfoCmd, ASCII},
     { "stats", StatsCmd, STATS /* array of: int8, (int?s for that stat) */ },
 
     { "image", ImageCmd, MIXED /* int, int, PNG */ },
@@ -312,6 +313,7 @@ void negotiate_connection(int sound)
         cs_print_string(csocket.fd,"setup extendedMapInfos 1");
         /*will handle all special infos requested when setup answer this command*/
     }
+    cs_print_string(csocket.fd,"setup extendedTextInfos 1");
 
     /* If the server will answer the requestinfo for image_info and image_data,
      * send it and wait for the response.

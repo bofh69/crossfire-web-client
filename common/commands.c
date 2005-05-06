@@ -309,6 +309,20 @@ void SetupCmd(char *buf, int len)
             }    
         }
     }
+    else if (!strcmp(cmd,"extendedTextInfos")){
+        if (strcmp(param,"FALSE")){ /* server didn't send FALSE*/
+            /* Server seems to accept extended text infos. Let's tell
+             * it what extended text info we want
+             */
+            char exttext[MAX_BUF];
+            TextManager* manager = firstTextManager;
+            while (manager){
+                snprintf(exttext,sizeof(exttext),"toggleextendedtext %d",manager->type);
+                cs_print_string(csocket.fd,exttext);
+                manager=manager->next;
+            }
+        }
+    }
 	else {
 		LOG (LOG_INFO,"common::SetupCmd","Got setup for a command we don't understand: %s %s",
 		    cmd, param);
@@ -429,7 +443,72 @@ void DrawInfoCmd(char *data, int len)
 	draw_info(buf,NDI_BLACK);
 
 }
+TextManager* firstTextManager = NULL;
 
+void setTextManager(int type, ExtTextManager callback){
+    TextManager* current = firstTextManager;
+    while (current!=NULL){
+        if (current->type == type){            
+            current->callback=callback;
+            return;
+        }
+        current = current -> next;
+    }
+    current = malloc(sizeof(TextManager));
+    current->type = type;
+    current->callback=callback;
+    current->next = firstTextManager;
+    firstTextManager=current;
+}
+ExtTextManager getTextManager(int type){
+    TextManager* current = firstTextManager;
+    while (current!=NULL){
+        if (current->type == type){            
+            return current->callback;
+        }
+        current = current -> next;
+    }
+    return NULL;
+}
+/* We must extract color, type, subtype and dispatch to callback*/
+void DrawExtInfoCmd(char *data, int len)
+{
+    int color;
+    int type, subtype;
+    char *buf=data;
+    int wordCount=3;
+    while(wordCount>0){
+    	while (buf[0]==' ')
+            buf++;
+        wordCount--;
+        while(buf[0]!=' ')
+            if (buf[0]=='\0'){
+                LOG(LOG_WARNING,
+                    "common::DrawExtInfoCmd","Data is missing %d parameters %s",
+                    wordCount,
+                    data
+                );
+                return;
+            } else
+                buf++; 
+    }
+    wordCount = sscanf(data,"%d %d %d",&color, &type, &subtype);
+    if (wordCount!=3){
+        LOG(LOG_WARNING,
+            "common::DrawExtInfoCmd","Wrong parameters received. Could only parse %d out of 3 int in %s",
+            wordCount,
+            data);
+        return;
+    }
+    ExtTextManager fnct = getTextManager(type);
+    if (fnct == NULL){
+        LOG(LOG_WARNING,
+            "common::DrawExtInfoCmd","Server send us a type %d but i can't find any callback for it",
+            type);
+        return;
+    }
+    fnct(color,type,subtype,buf);
+}
 void StatsCmd(unsigned char *data, int len)
 {
     int i=0, c, redraw=0;

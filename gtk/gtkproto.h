@@ -126,3 +126,7 @@ extern void sdl_mapscroll(int dx, int dy);
 extern void signal_pipe(int i);
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
+/* text.c */
+extern void init_text_callbacks();
+extern void write_media(GtkText* textarea, char* message);
+extern char* getMOTD();

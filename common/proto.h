@@ -12,6 +12,8 @@ extern void GoodbyeCmd(char *data, int len);
 extern void AnimCmd(unsigned char *data, int len);
 extern void SmoothCmd(unsigned char *data, int len);
 extern void DrawInfoCmd(char *data, int len);
+extern void setTextManager(int type, ExtTextManager callback);
+extern void DrawExtInfoCmd(char *data, int len);
 extern void StatsCmd(unsigned char *data, int len);
 extern void handle_query(char *data, int len);
 extern void send_reply(const char *text);
