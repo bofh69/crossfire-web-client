@@ -1701,99 +1701,20 @@ draw_prompt (const char *str)
 		  {
 		      if (!strcmp (last_str, "What is your name?"))
 			{
-logUserIn();
-return;
-/*			    dialoglabel =
-				gtk_label_new ("What is your name?");
-			    gtk_box_pack_start (GTK_BOX (dbox), dialoglabel,
-						FALSE, TRUE, 6);
-			    gtk_widget_show (dialoglabel);
-
-			    hbox = gtk_hbox_new (FALSE, 6);
-			    dialogtext = gtk_entry_new ();
-			    gtk_signal_connect (GTK_OBJECT (dialogtext),
-						"activate",
-						GTK_SIGNAL_FUNC
-						(dialog_callback),
-						dialog_window);
-			    gtk_box_pack_start (GTK_BOX (hbox), dialogtext,
-						TRUE, TRUE, 6);
-			    gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE,
-						TRUE, 6);
-
-			    gtk_widget_show (hbox);
-			    gtk_widget_show (dialogtext);
-			    gtk_widget_grab_focus (dialogtext);*/
-			    found = TRUE;
-#ifdef WIN32
-                iNameDialog = 1;
-#endif
-
-			    continue;
+                logUserIn();
+                return;
 			}
 
 		      if (!strcmp (last_str, "What is your password?"))
 			{
-sendPassword();
-return;/*
-			    dialoglabel =
-				gtk_label_new ("What is your password?");
-			    gtk_box_pack_start (GTK_BOX (dbox), dialoglabel,
-						FALSE, TRUE, 6);
-			    gtk_widget_show (dialoglabel);
-
-			    hbox = gtk_hbox_new (FALSE, 6);
-			    dialogtext = gtk_entry_new ();
-			    gtk_entry_set_visibility (GTK_ENTRY (dialogtext),
-						      FALSE);
-			    gtk_signal_connect (GTK_OBJECT (dialogtext),
-						"activate",
-						GTK_SIGNAL_FUNC
-						(dialog_callback),
-						dialog_window);
-			    gtk_box_pack_start (GTK_BOX (hbox), dialogtext,
-						TRUE, TRUE, 6);
-			    gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE,
-						TRUE, 6);
-
-			    gtk_widget_show (hbox);
-
-			    gtk_widget_show (dialogtext);
-			    gtk_widget_grab_focus (dialogtext);*/
-			    found = TRUE;
-			    continue;;
+                sendPassword();
+                return;
 			}
 		      if (!strcmp
 			  (last_str, "Please type your password again."))
 			{
-confirmPassword();
-return;/*
-			    dialoglabel =
-				gtk_label_new
-				("Please type your password again.");
-			    gtk_box_pack_start (GTK_BOX (dbox), dialoglabel,
-						FALSE, TRUE, 6);
-			    gtk_widget_show (dialoglabel);
-
-			    hbox = gtk_hbox_new (FALSE, 6);
-			    dialogtext = gtk_entry_new ();
-			    gtk_entry_set_visibility (GTK_ENTRY (dialogtext),
-						      FALSE);
-			    gtk_signal_connect (GTK_OBJECT (dialogtext),
-						"activate",
-						GTK_SIGNAL_FUNC
-						(dialog_callback),
-						dialog_window);
-			    gtk_box_pack_start (GTK_BOX (hbox), dialogtext,
-						TRUE, TRUE, 6);
-			    gtk_box_pack_start (GTK_BOX (dbox), hbox, FALSE,
-						TRUE, 6);
-
-			    gtk_widget_show (hbox);
-			    gtk_widget_show (dialogtext);
-			    gtk_widget_grab_focus (dialogtext);*/
-			    found = TRUE;
-			    continue;
+                confirmPassword();
+                return;
 			}
 		  }
 		/* Ok, tricky ones. */
