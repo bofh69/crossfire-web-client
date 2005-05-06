@@ -235,6 +235,10 @@ SOURCE=..\sdl.c
 
 SOURCE=..\sound.c
 # End Source File
+# Begin Source File
+
+SOURCE=..\text.c
+# End Source File
 # End Group
 # Begin Group "Common files"
 
@@ -585,7 +589,7 @@ SOURCE=.\soundsdef.h
 # End Group
 # Begin Source File
 
-SOURCE=..\..\CHANGES
+SOURCE=..\..\ChangeLog
 # End Source File
 # End Target
 # End Project

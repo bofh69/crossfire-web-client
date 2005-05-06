@@ -21,6 +21,7 @@ char *rcsid_gtk_text_c =
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
+#include "config.h"
 #include <stdio.h>
 #include <gtk/gtk.h>
 #ifndef WIN32
@@ -178,11 +179,11 @@ void init_fonts(){
 }
 void write_media(GtkText* textarea, char* message){   
      
-    init_fonts();
     char *current, *marker, *original;
     int flavor = 0;
     GdkFont** current_style = style_print;
     GdkColor* fore = NULL;
+    init_fonts();
     current=malloc(strlen(message)+1);
     if (current==NULL){
         LOG(LOG_ERROR,"gtk::write_media","couldn't alloc memory for string manipualtion. Dropping media\n");

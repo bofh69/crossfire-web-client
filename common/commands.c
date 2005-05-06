@@ -477,6 +477,7 @@ void DrawExtInfoCmd(char *data, int len)
     int type, subtype;
     char *buf=data;
     int wordCount=3;
+    ExtTextManager fnct;
     while(wordCount>0){
     	while (buf[0]==' ')
             buf++;
@@ -500,7 +501,7 @@ void DrawExtInfoCmd(char *data, int len)
             data);
         return;
     }
-    ExtTextManager fnct = getTextManager(type);
+    fnct = getTextManager(type);
     if (fnct == NULL){
         LOG(LOG_WARNING,
             "common::DrawExtInfoCmd","Server send us a type %d but i can't find any callback for it",
