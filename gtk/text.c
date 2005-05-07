@@ -181,9 +181,10 @@ void write_media(GtkText* textarea, char* message){
      
     char *current, *marker, *original;
     int flavor = 0;
-    GdkFont** current_style = style_print;
+    GdkFont** current_style;
     GdkColor* fore = NULL;
     init_fonts();
+    current_style = style_print;
     current=malloc(strlen(message)+1);
     if (current==NULL){
         LOG(LOG_ERROR,"gtk::write_media","couldn't alloc memory for string manipualtion. Dropping media\n");
