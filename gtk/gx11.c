@@ -1701,6 +1701,9 @@ draw_prompt (const char *str)
 		  {
 		      if (!strcmp (last_str, "What is your name?"))
 			{
+#ifdef WIN32
+                iNameDialog = 1;
+#endif
                 logUserIn();
                 return;
 			}
