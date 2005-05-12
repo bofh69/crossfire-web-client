@@ -635,8 +635,6 @@ void handle_query (char *data, int len)
 	    draw_info(cp, NDI_BLACK);
 	    cp = buf;
 	}
-	if (cp) draw_prompt(cp);
-    }
     /* Yes/no - don't do anything with it now */
     if (flags & CS_QUERY_YESNO) {}
 
@@ -646,6 +644,8 @@ void handle_query (char *data, int len)
     else
 	cpl.input_state = Reply_Many;
 
+    if (cp) draw_prompt(cp);
+    }
     if (flags & CS_QUERY_HIDEINPUT)		/* no echo */
 	cpl.no_echo=1;
     else

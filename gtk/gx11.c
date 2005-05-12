@@ -1459,6 +1459,7 @@ void setUserPass(GtkButton* button, gpointer func_data){
     pass=gtk_editable_get_chars (GTK_EDITABLE(passwordText),0,-1);
     strncpy(password,pass,sizeof(password));
     send_reply(user);
+    cpl.input_state = Playing;
     g_free(user);
     g_free(pass);
     gtk_widget_hide(loginWindow);
@@ -1467,12 +1468,13 @@ void confirmUserPass(GtkButton* button, gpointer func_data){
     gchar* pass;
     pass=gtk_editable_get_chars (GTK_EDITABLE(passwordText2),0,-1);
     send_reply(pass);
+    cpl.input_state = Playing;
     g_free(pass);
     gtk_widget_hide(loginWindow);
 }
 void cancelConnection(GtkButton* button, gpointer func_data){
-    printf("Connection canceled \n");
     gtk_widget_hide(loginWindow);
+    cpl.input_state = Metaserver_Select;
     disconnect(GTK_WIDGET(button));
 }
 
@@ -1640,6 +1642,7 @@ void logUserIn(){
 }
 void sendPassword(){
     send_reply(password);
+    cpl.input_state = Playing;
 }
 void confirmPassword(){
     buildLoginDialog();
