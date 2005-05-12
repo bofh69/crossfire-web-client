@@ -3,6 +3,10 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: Windows has player-specific keys, get'em (was broken with new
+ login window)
+Ryo 2005-05-12
+
 Add newpickup support to the gtkv2 client.  Didn't add old support (still
 available by specific commands) as I think the interface gets confusing
 to have them both - would be better to extend newpickup logic if necessary

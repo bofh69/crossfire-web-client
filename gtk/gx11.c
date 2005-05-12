@@ -1411,11 +1411,6 @@ static void sendstr(char *sendstr)
 }
 
 
-#ifdef WIN32
-/* Used to catch player name, to load custom key bindings */
-static int iNameDialog = 0;
-#endif
-
 /* This is similar to draw_info below, but doesn't advance to a new
  * line.  Generally, queries use this function to draw the prompt for
  * the name, password, etc.
@@ -1427,17 +1422,6 @@ static void dialog_callback(GtkWidget *dialog)
 {
   const gchar *dialog_text;
   dialog_text = gtk_entry_get_text(GTK_ENTRY(dialogtext));
-
-#ifdef WIN32
-  if ( 1 == iNameDialog )
-  /* Now is a good time to load player's specific key bindings */
-      {
-      iNameDialog = 0;
-      strcpy( cpl.name, dialog_text );
-      init_keys( );
-      }
-#endif
-
   send_reply(dialog_text);
   gtk_widget_destroy (dialog_window);
   cpl.input_state = Playing;
@@ -1459,6 +1443,11 @@ void setUserPass(GtkButton* button, gpointer func_data){
     pass=gtk_editable_get_chars (GTK_EDITABLE(passwordText),0,-1);
     strncpy(password,pass,sizeof(password));
     send_reply(user);
+#ifdef WIN32
+  /* Now is a good time to load player's specific key bindings */
+    strcpy( cpl.name, user );
+    init_keys( );
+#endif
     cpl.input_state = Playing;
     g_free(user);
     g_free(pass);
@@ -1498,7 +1487,7 @@ void disable_ok_if_empty(gpointer button,GtkEditable* entry){
 void change_focus(GtkWidget* focusTo, GtkEditable *entry){
 
     char *txtcontent = gtk_editable_get_chars(entry,0,-1);
-    printf("switch focus\n");
+/*    printf("switch focus\n"); */
     if (txtcontent && (strlen(txtcontent)>0))
             gtk_widget_grab_focus(focusTo);
 }
@@ -1704,9 +1693,6 @@ draw_prompt (const char *str)
 		  {
 		      if (!strcmp (last_str, "What is your name?"))
 			{
-#ifdef WIN32
-                iNameDialog = 1;
-#endif
                 logUserIn();
                 return;
 			}
