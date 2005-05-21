@@ -118,6 +118,7 @@ struct CmdMapping commands[] = {
 
     { "query", (CmdProc)handle_query, ASCII},
     { "replyinfo", (CmdProc)ReplyInfoCmd, ASCII},
+    { "ExtendedTextSet", (CmdProc)SinkCmd, NODATA},
 };
 
 #define NCOMMANDS ((int)(sizeof(commands)/sizeof(struct CmdMapping)))

@@ -491,7 +491,9 @@ void DrawExtInfoCmd(char *data, int len)
                 );
                 return;
             } else
-                buf++; 
+                buf++;
+        if (buf[0]==' ')
+            buf++; /*remove trailing space to send clean data to callback */
     }
     wordCount = sscanf(data,"%d %d %d",&color, &type, &subtype);
     if (wordCount!=3){
@@ -1364,4 +1366,7 @@ void MagicMapCmd(unsigned char *data, int len)
     memcpy(cpl.magicmap, cp, cpl.mmapx * cpl.mmapy);
     cpl.showmagic=1;
     draw_magic_map();
+}
+
+void SinkCmd(unsigned char *data, int len){
 }

@@ -270,7 +270,7 @@ static StatWindow statwindow;
 /* gtk */
  
 GtkWidget *gtkwin_root, *gtkwin_info;
-static GtkWidget *gtkwin_info_text2, *gtkwin_info_text;
+GtkWidget *gtkwin_info_text2, *gtkwin_info_text;
 GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_look, *gtkwin_inv;
 
 

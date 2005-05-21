@@ -33,11 +33,33 @@ char *rcsid_gtk_text_c =
 #include "gx11.h"
 #include "gtkproto.h"
 char* NO_TITLE="[no title]";
+
+#include "pixmaps/sign_flat.xpm"
+#include "pixmaps/sign_west.xpm"
+#include "pixmaps/sign_east.xpm"
 GtkWidget* book_root = NULL;
 GtkWidget* book_notes = NULL;
 GdkBitmap* btnClose_bm = NULL;
 GdkPixmap* btnClose_pm = NULL;
 
+typedef struct picture_message_struct {
+    char* title;
+    char** xpm;
+    int x;
+    int y;
+    int width;
+    int height;
+    int window_width;
+    int window_height;
+    GdkPixmap *picture;
+    
+} picture_message;
+
+picture_message sign_message[] = {
+    {"sign",sign_flat_xpm,70,45,390,305,500,500,NULL},
+    {"left sign",sign_west_xpm,95,85,615,190,750,400,NULL},
+    {"right sign",sign_east_xpm,45,85,615,190,750,400,NULL},
+    {"direction sign",sign_flat_xpm,70,45,390,305,500,500,NULL} };
 void prepare_book_window(){
     if (!book_root){
         #include "pixmaps/close.xpm"
@@ -56,6 +78,47 @@ void prepare_book_window(){
         gtk_window_set_default_size(GTK_WINDOW(book_root),500,600);
         gtk_window_set_position(GTK_WINDOW(book_root),GTK_WIN_POS_CENTER);
     }
+}
+GtkWidget* create_text_picture_window(picture_message* layout, char* message){
+    GtkWidget *window, *content, *fixed, *scroll;    
+    window = gtk_window_new (GTK_WINDOW_DIALOG);
+    gtk_window_set_title(GTK_WINDOW(window),layout->title);
+    gtk_widget_set_app_paintable(window,TRUE);
+    gtk_widget_realize(window);
+    if (layout->picture == NULL){
+        layout->picture = gdk_pixmap_create_from_xpm_d(window->window,NULL,
+                &gtk_widget_get_style(window)->bg[GTK_STATE_NORMAL],
+                (gchar**)layout->xpm);        
+    }
+    gdk_window_set_back_pixmap(window->window,layout->picture,FALSE);
+    content = gtk_text_new(NULL,NULL);
+    gtk_text_set_editable(GTK_TEXT(content),FALSE);
+    gtk_text_set_word_wrap(GTK_TEXT(content),TRUE);
+    gtk_text_set_line_wrap(GTK_TEXT(content),TRUE);
+    write_media(GTK_TEXT(content),message);
+    gtk_window_set_default_size(GTK_WINDOW(window),layout->window_width,layout->window_height);
+    gtk_window_set_position(GTK_WINDOW(window),GTK_WIN_POS_CENTER);
+    fixed=gtk_fixed_new();
+    gtk_widget_set_app_paintable(fixed,TRUE);
+    gtk_container_add(GTK_CONTAINER(window),fixed);
+    gtk_widget_realize(fixed);
+    gdk_window_set_back_pixmap(fixed->window,layout->picture,TRUE);
+    
+    scroll = gtk_scrolled_window_new (NULL, NULL);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
+                                    GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    gtk_widget_show (scroll);
+    gtk_widget_set_usize(scroll,layout->width,layout->height);
+    gtk_fixed_put(GTK_FIXED(fixed),scroll,layout->x,layout->y);
+    gtk_widget_show(fixed);
+    gtk_widget_show(content);
+    
+    gtk_container_add(GTK_CONTAINER(scroll),content);
+    gtk_text_set_adjustments(GTK_TEXT(content),
+            NULL,
+            gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll))
+        );
+    return window;
 }
 /**
  * Parse message, extract multimedia information, and push
@@ -298,10 +361,47 @@ void motd_callback(int flag, int type, int subtype, char* message){
     else
         strcpy(last_motd,message);    
 }
+void void_callback(int flag, int type, int subtype, char* message){
+    
+    LOG(LOG_INFO,"gtk::void_callback","got message --\n%s\n",message);
+    
+}
+/* we need access to those when a sign is auto applied. 
+ * We don't want to show player a new window while his character
+ * keeps running in background
+ */
+extern GtkWidget* gtkwin_info_text;
+extern GtkWidget* gtkwin_info_text2;
+void sign_callback(int flag, int type, int subtype, char* message){
+    GtkWidget *window;
+    int flags;
+    if ( (subtype>4) || (subtype <1))    
+        subtype=1;
+    sscanf(message,"%d",&flags);
+    /*strip leading flag and it's space*/
+    message=strchr(message,' ');
+    if (message==NULL)
+        return;
+    message++;
+    
+    if (flags&0x01) /*autoapply*/{
+        if (use_config[CONFIG_SPLITINFO])
+            write_media(GTK_TEXT(gtkwin_info_text2),message);
+        else
+            write_media(GTK_TEXT(gtkwin_info_text),message);
+    }else{
+        window=create_text_picture_window(&(sign_message[subtype-1]), message);
+        gtk_window_set_transient_for(GTK_WINDOW(window),GTK_WINDOW(gtkwin_root));
+        gtk_widget_show(window);
+    }
+    
+}
 char* getMOTD(){    
     return last_motd==NULL?"Please read motd written\nin [i]green[/i] inside main\nmessage window":last_motd;
 }
 void init_text_callbacks(){
     setTextManager(MSG_TYPE_BOOK,book_callback);
     setTextManager(MSG_TYPE_MOTD,motd_callback);
+    setTextManager(MSG_TYPE_MONUMENT,void_callback);
+    setTextManager(MSG_TYPE_SIGN,sign_callback);
 }

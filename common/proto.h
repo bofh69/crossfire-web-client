@@ -33,6 +33,7 @@ extern void map_scrollCmd(char *data, int len);
 extern int ExtSmooth(unsigned char *data, int len, int x, int y, int layer);
 extern void MapExtendedCmd(unsigned char *data, int len);
 extern void MagicMapCmd(unsigned char *data, int len);
+extern void SinkCmd(unsigned char *data, int len);
 /* image.c */
 extern void init_common_cache_data(void);
 extern void requestsmooth(int pnum);
