@@ -405,3 +405,8 @@ void init_text_callbacks(){
     setTextManager(MSG_TYPE_MONUMENT,void_callback);
     setTextManager(MSG_TYPE_SIGN,sign_callback);
 }
+void cleanup_textmanagers(){
+    if (last_motd)
+        free(last_motd);
+    last_motd=NULL;
+}

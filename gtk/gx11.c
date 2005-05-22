@@ -408,6 +408,7 @@ void event_loop()
     gtk_main();
     gtk_timeout_remove(tag);
 
+    cleanup_textmanagers();
     LOG(LOG_INFO,"gtk::event_loop","gtk_main exited, returning from event_loop");
 }
 
@@ -3613,6 +3614,7 @@ void disconnect(GtkWidget *widget) {
 	csocket_fd=0;
 	gtk_main_quit();
     }
+    cleanup_textmanagers();
 }
 
 /* Ok, simplistic help system. Just put the text file up in a scrollable window */

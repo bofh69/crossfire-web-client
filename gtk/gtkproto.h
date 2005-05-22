@@ -130,3 +130,4 @@ extern void SoundCmd(unsigned char *data, int len);
 extern void init_text_callbacks();
 extern void write_media(GtkText* textarea, char* message);
 extern char* getMOTD();
+extern void cleanup_textmanagers();
