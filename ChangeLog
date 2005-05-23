@@ -3,6 +3,10 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+common/metaserver.c: add server cache.
+gtk/gx11.c: initialize server cache filename.
+Ryo 2005-05-23
+
 gtk/gx11.c: Windows has player-specific keys, get'em (was broken with new
  login window)
 Ryo 2005-05-12

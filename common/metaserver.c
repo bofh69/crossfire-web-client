@@ -65,6 +65,13 @@ Meta_Info *meta_servers=NULL;
 
 int meta_numservers=0;
 
+int cached_servers_num = 0;
+#define CACHED_SERVERS_MAX  10
+char* cached_servers_name[ CACHED_SERVERS_MAX ];
+char* cached_servers_ip[ CACHED_SERVERS_MAX ];
+int cached_servers_loaded = 0;
+const char* cached_server_file = NULL;
+
 static int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
 
 #ifdef WIN32
@@ -138,6 +145,61 @@ char* get_line_from_sock(char* s, size_t n, int fd)
 
 #endif /* Win32 */
 
+void metaserver_load_cache( )
+    {
+    FILE* cache;
+    char buf[ MS_LARGE_BUF ];
+    int name;
+    if ( cached_servers_loaded || !cached_server_file )
+        return;
+
+    /* If failure, we don't want to load again */
+    cached_servers_loaded = 1;
+    cached_servers_num = 0;
+
+    cache = fopen( cached_server_file, "r" );
+    if ( !cache )
+        return;
+
+    name = 0;
+    while ( ( fgets( buf, MS_LARGE_BUF, cache ) ) && ( cached_servers_num < CACHED_SERVERS_MAX ) )
+        {
+        buf[ strlen( buf ) - 1 ] = 0;
+        if ( !name )
+            {
+            name = 1;
+            cached_servers_name[ cached_servers_num ] = strdup( buf );
+            }
+        else
+            {
+            name = 0;
+            cached_servers_ip[ cached_servers_num++ ] = strdup( buf );
+            }
+        }
+    fclose( cache );
+    if ( name )
+        /* Missing IP? */
+        cached_servers_num--;
+    }
+
+void metaserver_save_cache( )
+    {
+    FILE* cache;
+    int server;
+    if ( !cached_server_file )
+        return;
+
+    cache = fopen( cached_server_file, "w" );
+    if ( !cache )
+        return;
+
+    for ( server = 0; server < cached_servers_num; server++ )
+        {
+        fprintf( cache, "%s\n", cached_servers_name[ server ] );
+        fprintf( cache, "%s\n", cached_servers_ip[ server ] );
+        }
+    fclose( cache );
+    }
 
 /* This contacts the metaserver and gets the list of servers.  returns 0
  * on success, 1 on failure.  Errors will get dumped to stderr,
@@ -160,6 +222,8 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	meta_numservers=0;
 	return 0;
     }
+
+    metaserver_load_cache( );
 
     protox = getprotobyname("tcp");
     if (protox == (struct protoent  *) NULL)
@@ -295,6 +359,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
     fclose(fp);
 #endif
     qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void*, const void*))meta_sort);
+
     return 0;
 }
 
@@ -306,18 +371,29 @@ void metaserver_show(int show_selection)
     int i;
     char buf[256];
 
+    if ( cached_servers_num )
+        {
+        draw_info("\nLast servers you connected to:\n", NDI_BLACK );
+        for ( i = 0; i < cached_servers_num; i++ )
+            {
+            sprintf( buf, "%2d) %-20.20s %-20.20s", i + meta_numservers + 1, cached_servers_name[ i ], cached_servers_ip[ i ] );
+            draw_info( buf, NDI_BLACK );
+            }
+        draw_info( " ", NDI_BLACK );
+        }
+
     draw_info(" #)     Server        #     version   idle", NDI_BLACK);
     draw_info("         Name      players           seconds", NDI_BLACK);
     for (i=0; i<meta_numservers; i++) {
 	sprintf(buf,"%2d)  %-15.15s %2d   %-12.12s %2d",
-		i+1, meta_servers[i].hostname,
+		i + 1 + cached_servers_num, meta_servers[i].hostname,
 		meta_servers[i].players, meta_servers[i].version,
 		meta_servers[i].idle_time);
 	draw_info(buf, NDI_BLACK);
     }
     if (show_selection) {
 	/* Show default/current server */
-	sprintf(buf,"%2d)  %s (default)", meta_numservers+1, server);
+	sprintf(buf,"%2d)  %s (default)", meta_numservers + 1 + cached_servers_num, server);
 	draw_info(buf, NDI_BLACK);
 
 	draw_info("Choose one of the entries above", NDI_BLACK);
@@ -364,19 +440,23 @@ int metaserver_select(char *sel)
 	server_name=sel;
 	server_ip=sel;
     } else {
-	num--;
-	if (num<0 || num>meta_numservers) {
+	if (num<=0 || num>meta_numservers + cached_servers_num + 1) {
 	    draw_info("Invalid selection. Try again", NDI_BLACK);
 	    return 1;
 	}
-	if (num==meta_numservers){
+	if (num == meta_numservers + cached_servers_num + 1){
 	    server_name=server;
 	    server_ip=server;
 	}
-	else {
-	    server_name=meta_servers[num].hostname;
-	    server_ip = meta_servers[num].ip_addr;
+	else if ( num > cached_servers_num ) {
+	    server_name=meta_servers[num - cached_servers_num - 1 ].hostname;
+	    server_ip = meta_servers[num - cached_servers_num - 1 ].ip_addr;
 	}
+    else
+        {
+        server_name = cached_servers_name[ num - 1 ];
+        server_ip = cached_servers_ip[ num - 1 ];
+        }
     }
     if (!server_name) {
 	draw_info("Bad selection. Try again", NDI_BLACK);
@@ -390,6 +470,48 @@ int metaserver_select(char *sel)
 	draw_info("Unable to connect to server.", NDI_BLACK);
 	return 1;
     }
+
+    /* Add server to cache */
+    if ( ( !num ) || ( ( num > 0 ) && ( num <= cached_servers_num ) ) )
+        {
+        int index;
+        for ( index = 0; index < cached_servers_num; index++ )
+            {
+            if ( !strcmp( server_name, cached_servers_name[ index ] ) )
+                break;
+            }
+        if ( index || !cached_servers_num )
+            {
+            char* name;
+            char* ip;
+            int copy;
+            if ( index == cached_servers_num )
+                {
+                name = strdup( server_name );
+                ip = strdup( server_ip );
+                cached_servers_num++;
+                if ( cached_servers_num > CACHED_SERVERS_MAX )
+                    {
+                    cached_servers_num--;
+                    free( cached_servers_name[ cached_servers_num - 1 ] );
+                    free( cached_servers_ip[ cached_servers_num - 1 ] );
+                    }
+                }
+            else
+                {
+                name = cached_servers_name[ index ];
+                ip = cached_servers_ip[ index ];
+                }
+            for ( copy = min( index, CACHED_SERVERS_MAX - 1 ); copy > 0; copy-- )
+                {
+                cached_servers_name[ copy ] = cached_servers_name[ copy - 1 ];
+                cached_servers_ip[ copy ] = cached_servers_ip[ copy - 1 ];
+                }
+            cached_servers_name[ 0 ] = name;
+            cached_servers_ip[ 0 ] = ip;
+            metaserver_save_cache( );
+            }
+        }
     return 0;
 }
 

@@ -6022,11 +6022,13 @@ void gLogHandler (const gchar *log_domain, GLogLevelFlags log_level, const gchar
 #include "../common/rcs-id.h"
 #include "rcs-id.h"
 
+extern char* cached_server_file;
 
 int main(int argc, char *argv[])
 {
     int got_one=0;
     int i;
+    static char file_cache[ MAX_BUF ];
 #ifdef HAS_COMMON_RCSID
     INIT_COMMON_RCSID;
 #endif
@@ -6060,6 +6062,8 @@ int main(int argc, char *argv[])
      * the other functions.
      */
     init_client_vars();
+    snprintf( file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv( "HOME" ) );
+    cached_server_file = file_cache;
     init_text_callbacks();
     setLogListener(gtkLogListener);
     /* Call this very early.  It should parse all command
