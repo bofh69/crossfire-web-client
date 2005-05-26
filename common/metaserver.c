@@ -502,7 +502,7 @@ int metaserver_select(char *sel)
                 name = cached_servers_name[ index ];
                 ip = cached_servers_ip[ index ];
                 }
-            for ( copy = min( index, CACHED_SERVERS_MAX - 1 ); copy > 0; copy-- )
+            for ( copy = MIN( index, CACHED_SERVERS_MAX - 1 ); copy > 0; copy-- )
                 {
                 cached_servers_name[ copy ] = cached_servers_name[ copy - 1 ];
                 cached_servers_ip[ copy ] = cached_servers_ip[ copy - 1 ];
