@@ -1432,6 +1432,9 @@ GtkWidget *passwordText = NULL;
 GtkWidget *passwordText2 = NULL;
 GtkWidget *loginWindow = NULL;
 GtkWidget *motdText = NULL;
+GtkWidget *rulesText = NULL;
+GtkWidget *newsText = NULL;
+GtkWidget *loginTabs = NULL;
 GtkWidget *loginButtonOk = NULL;
 GtkWidget *loginButtonCancel = NULL;
 GtkWidget *loginMessage = NULL;
@@ -1497,8 +1500,20 @@ void activate_ok_if_not_empty(GtkWidget* button, GtkEditable *entry){
     if (txtcontent && (strlen(txtcontent)>0))
         gtk_widget_activate(button);
 }
+void fill_news(GtkWidget* o, news_entry* news){
+    media_state state;
+    while(news){
+        state = write_media(GTK_TEXT(o),"[b]");
+        write_media_with_state(GTK_TEXT(o),news->title,state);
+        write_media(GTK_TEXT(o),"\n\n");
+        write_media(GTK_TEXT(o),news->content);
+        write_media(GTK_TEXT(o),"\n\n");
+        news=news->next;
+    }
+}
 void buildLoginDialog(){
     if (loginWindow==NULL){
+        /* build window */
         GtkWidget *vbox, *table, *label, *hbox, *vscroll;
         loginWindow= gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_policy (GTK_WINDOW (loginWindow), TRUE, TRUE,
@@ -1510,7 +1525,36 @@ void buildLoginDialog(){
                     GTK_WINDOW (gtkwin_root)); 
         vbox=gtk_vbox_new(FALSE,4);
         
-        /*build motd*/
+        /* build it's notebook */
+        loginTabs = gtk_notebook_new();
+        /* notebook -> news */
+        hbox=gtk_hbox_new(FALSE,2);
+        newsText = gtk_text_new(NULL,NULL);
+        gtk_text_set_word_wrap(GTK_TEXT(newsText),TRUE);
+        gtk_text_set_line_wrap(GTK_TEXT(newsText),TRUE);      
+        vscroll = gtk_vscrollbar_new (GTK_TEXT (newsText)->vadj);
+        gtk_box_pack_start(GTK_BOX(hbox),newsText,TRUE,TRUE,0);
+        gtk_box_pack_start(GTK_BOX(hbox),vscroll,FALSE,TRUE,0);
+        label = gtk_label_new("News");
+        gtk_notebook_append_page(GTK_NOTEBOOK(loginTabs),hbox,label);
+        gtk_widget_show(vscroll);
+        gtk_widget_show(newsText);
+        gtk_widget_show(hbox);
+        /* notebook -> rules */
+        hbox=gtk_hbox_new(FALSE,2);
+        rulesText = gtk_text_new(NULL,NULL);
+        gtk_text_set_word_wrap(GTK_TEXT(rulesText),TRUE);
+        gtk_text_set_line_wrap(GTK_TEXT(rulesText),TRUE);      
+        vscroll = gtk_vscrollbar_new (GTK_TEXT (rulesText)->vadj);
+        gtk_box_pack_start(GTK_BOX(hbox),rulesText,TRUE,TRUE,0);
+        gtk_box_pack_start(GTK_BOX(hbox),vscroll,FALSE,TRUE,0);
+        label = gtk_label_new("Rules");
+        gtk_notebook_append_page(GTK_NOTEBOOK(loginTabs),hbox,label);
+        gtk_widget_show(vscroll);
+        gtk_widget_show(rulesText);
+        gtk_widget_show(hbox);
+        
+        /*notebook -> login*/
         hbox=gtk_hbox_new(FALSE,2);
         motdText = gtk_text_new(NULL,NULL);        
         vscroll = gtk_vscrollbar_new (GTK_TEXT (motdText)->vadj);
@@ -1600,12 +1644,19 @@ void buildLoginDialog(){
         gtk_box_pack_start(GTK_BOX(vbox),hbox,FALSE,FALSE,0);
         gtk_widget_show(table);
         gtk_widget_show(vbox);
-        gtk_container_add(GTK_CONTAINER(loginWindow),vbox);     
+        label=gtk_label_new("login");
+        gtk_notebook_append_page(GTK_NOTEBOOK(loginTabs),vbox,label);
+        gtk_container_add(GTK_CONTAINER(loginWindow),loginTabs);
+        gtk_widget_show(loginTabs);
         gtk_window_set_default_size(GTK_WINDOW(loginWindow),500,400);
         gtk_window_set_position(GTK_WINDOW(loginWindow),GTK_WIN_POS_CENTER);    
     }
     gtk_editable_delete_text(GTK_EDITABLE(motdText),0,-1);
     write_media(GTK_TEXT(motdText), getMOTD());
+    gtk_editable_delete_text(GTK_EDITABLE(rulesText),0,-1);
+    write_media(GTK_TEXT(rulesText),get_rules());
+    gtk_editable_delete_text(GTK_EDITABLE(newsText),0,-1);
+    fill_news(newsText,get_news());
     gtk_widget_show(loginWindow);     
 }
 guint signalLoginDialogClicked = -1;

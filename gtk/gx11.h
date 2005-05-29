@@ -142,6 +142,17 @@ extern itemlist inv_list, look_list;
 /* This was just a test I put in to try different redraw methods */
 #define ALTERNATE_MAP_REDRAW	0
 
+typedef struct news_entry{
+    char* title;
+    char* content;
+    struct news_entry* next;
+} news_entry;
 
+typedef struct media_state{
+    GdkColor fore;
+    GdkFont **style;
+    int has_color:1;
+    int flavor;
+} media_state;
 #endif
 

@@ -120,6 +120,33 @@ GtkWidget* create_text_picture_window(picture_message* layout, char* message){
         );
     return window;
 }
+void show_media_message(const char* title, const char* message){
+    GtkWidget *window, *scroll, *content;
+    window = gtk_window_new (GTK_WINDOW_DIALOG);
+    gtk_window_set_title(GTK_WINDOW(window),message);
+    gtk_window_set_default_size(GTK_WINDOW(window),500,500);
+    gtk_window_set_position(GTK_WINDOW(window),GTK_WIN_POS_CENTER);
+
+    content = gtk_text_new(NULL,NULL);
+    gtk_text_set_editable(GTK_TEXT(content),FALSE);
+    gtk_text_set_word_wrap(GTK_TEXT(content),TRUE);
+    gtk_text_set_line_wrap(GTK_TEXT(content),TRUE);
+    write_media(GTK_TEXT(content),message);
+    gtk_widget_show(content);
+
+    scroll = gtk_scrolled_window_new (NULL, NULL);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
+                                    GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    gtk_container_add(GTK_CONTAINER(scroll),content);
+    gtk_text_set_adjustments(GTK_TEXT(content),
+            NULL,
+            gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll))
+        );
+
+    gtk_widget_show(content);
+    gtk_widget_show (scroll);    
+    gtk_widget_show (window);
+}
 /**
  * Parse message, extract multimedia information, and push
  * as appropriate in the GtkText
@@ -240,52 +267,62 @@ void init_fonts(){
         style_inited=1;
     }
 }
-void write_media(GtkText* textarea, char* message){   
+media_state write_media(GtkText* textarea, const char* message){
+    media_state simple_state;
+    simple_state.style=style_print;
+    simple_state.has_color=0;
+    simple_state.flavor=0;
+    return write_media_with_state(textarea,message, simple_state);
+}
+media_state write_media_with_state(GtkText* textarea, const char* message, media_state current_state){   
      
     char *current, *marker, *original;
-    int flavor = 0;
-    GdkFont** current_style;
-    GdkColor* fore = NULL;
+    if (message==NULL)
+        return current_state;
     init_fonts();
-    current_style = style_print;
     current=malloc(strlen(message)+1);
     if (current==NULL){
         LOG(LOG_ERROR,"gtk::write_media","couldn't alloc memory for string manipualtion. Dropping media\n");
-        return;
+        return current_state;
     }
     strcpy(current,message);
     original=current;
     while( (marker=strchr(current,'['))!=NULL){
         *marker='\0';
-        gtk_text_insert(textarea,current_style[flavor],fore,NULL,current,marker-current);
+        gtk_text_insert(textarea,current_state.style[current_state.flavor],current_state.has_color?&current_state.fore:NULL,NULL,current,marker-current);
         current = marker+1;
         if ( (marker = strchr(current,']')) ==NULL)
-            return;  
+            return current_state;  
         *marker='\0';
         if (!strcmp(current,"b"))
-            flavor |=STYLE_BOLD;
+            current_state.flavor |=STYLE_BOLD;
         else if (!strcmp(current,"i"))
-            flavor |=STYLE_ITALIC;
+            current_state.flavor |=STYLE_ITALIC;
         else if (!strcmp(current,"/b"))
-            flavor &=!STYLE_BOLD;
+            current_state.flavor &=!STYLE_BOLD;
         else if (!strcmp(current,"/i"))
-            flavor &=!STYLE_ITALIC;
+            current_state.flavor &=!STYLE_ITALIC;
+        else if (!strcmp(current,"/color"))
+            current_state.has_color = 0;
+        else if (!strncmp(current,"color=",6))
+            current_state.has_color = gdk_color_parse(current+6,&current_state.fore);
         else if (!strcmp(current,"fixed"))
-            current_style = style_fixed;
+            current_state.style = style_fixed;
         else if (!strcmp(current,"arcane"))
-            current_style = style_arcane;
+            current_state.style = style_arcane;
         else if (!strcmp(current,"hand"))
-            current_style = style_hand;
+            current_state.style = style_hand;
         else if (!strcmp(current,"strange"))
-            current_style = style_strange;
+            current_state.style = style_strange;
         else if (!strcmp(current,"print"))
-            current_style = style_print;
+            current_state.style = style_print;
         else
-            printf("unidentified message: %s",current);
+            LOG(LOG_INFO,"gtk::write_media_with_state","unidentified message: %s",current);
         current=marker+1;
     }
-    gtk_text_insert(textarea,current_style[flavor],fore,NULL,current,marker-current);
+    gtk_text_insert(textarea,current_state.style[current_state.flavor],current_state.has_color?&current_state.fore:NULL,NULL,current,marker-current);
     free(original);
+    return current_state;
 }
 void add_book(char* title, char* message){
     GtkWidget *content,*label,*hbox, *scroll, *panel, *close, *closepic;
@@ -399,14 +436,83 @@ void sign_callback(int flag, int type, int subtype, char* message){
 char* getMOTD(){    
     return last_motd==NULL?"Please read motd written\nin [i]green[/i] inside main\nmessage window":last_motd;
 }
+char *rules = NULL;
+news_entry* first_news = NULL;
+char* get_rules(){
+    return rules;    
+}
+news_entry* get_news(){
+    return first_news;    
+}
+void admin_callback(int flag, int type, int subtype, char* message){
+    char* str1;
+    news_entry* new;
+    switch (subtype){
+        case MSG_TYPE_ADMIN_NEWS:
+            str1 = strstr(message,"\n");
+            if (str1){
+                *str1= '\0';
+                str1+=strlen("\n");
+                new = malloc(sizeof(news_entry));
+                if (new){
+                    new->title= malloc(strlen(message)+1);
+                    new->content=malloc(strlen(str1)+1);
+                    if ( (!new->title) || (!new->content)){
+                        if (new->title)
+                            free(new->title);
+                        if (new->content)
+                            free(new->content);
+                        LOG(LOG_ERROR,"gtk::admin_callback","Outa memory, no save of news");
+                        free(new);
+                        return;
+                    }
+                    strcpy(new->title,message);
+                    strcpy(new->content,str1);
+                    new->next=first_news;
+                    first_news=new;
+                } else {
+                    LOG(LOG_ERROR,"gtk::admin_callback","Outa memory, no save of news");
+                }
+                return;
+            }
+            break;
+        case MSG_TYPE_ADMIN_RULES:
+            if (rules)
+                free(rules);
+            rules = malloc(strlen(message)+1);
+            if (rules){
+                strcpy(rules,message);
+            }
+            else
+                LOG(LOG_ERROR,"gtk::admin_callback","Outa memory, no save of rules");
+            return;
+    }
+    show_media_message("Unknown admin message",message);
+}
 void init_text_callbacks(){
     setTextManager(MSG_TYPE_BOOK,book_callback);
     setTextManager(MSG_TYPE_MOTD,motd_callback);
     setTextManager(MSG_TYPE_MONUMENT,void_callback);
     setTextManager(MSG_TYPE_SIGN,sign_callback);
+    setTextManager(MSG_TYPE_ADMIN,admin_callback);
 }
 void cleanup_textmanagers(){
+    news_entry* last_entry;
     if (last_motd)
         free(last_motd);
     last_motd=NULL;
+    if (rules)
+        free(rules);
+    rules = NULL;
+    last_entry= first_news;
+    while (last_entry){
+        first_news=last_entry->next;
+        if (last_entry->content)
+            free(last_entry->content);
+        if (last_entry->title)
+            free(last_entry->title);
+        free(last_entry);
+        last_entry=first_news;
+    }
+    
 }

@@ -128,6 +128,9 @@ extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
 /* text.c */
 extern void init_text_callbacks();
-extern void write_media(GtkText* textarea, char* message);
+extern media_state write_media(GtkText* textarea, const char* message);
+extern media_state write_media_with_state(GtkText* textarea, const char* message,media_state current_state);
 extern char* getMOTD();
+extern char* get_rules();
+extern news_entry* get_news();
 extern void cleanup_textmanagers();
