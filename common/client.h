@@ -469,4 +469,6 @@ extern struct Map the_map;
 
 extern TextManager* firstTextManager;
 
+#ifndef MIN
 #define MIN(X__,Y__) ( (X__)<(Y__)?(X__):(Y__) )
+#endif
