@@ -1,8 +1,12 @@
-Changes for Win32 GTK client 1.7.1
-----------------------------------
+Changes for Win32 GTK client 1.7.1 snapshot May, 21st, 2005
+-----------------------------------------------------------
 
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
+
+From version 1.7.1
+------------------
+New login dialog. New messages/signs interface.
 
 From version 1.7.0 to version 1.7.1
 -----------------------------------

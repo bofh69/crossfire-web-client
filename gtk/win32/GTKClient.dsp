@@ -173,6 +173,10 @@ SOURCE=..\image.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\inventory.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\keys.c
 
 !IF  "$(CFG)" == "GTKClient - Win32 Release"

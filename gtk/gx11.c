@@ -46,8 +46,6 @@ char *rcsid_gtk_gx11_c =
  * draw_message_window(int) - draws the message window.  Pass 1 to redraw
  *	all the bars, not only those that changed.
  *
- * draw_look, draw_inv:  Update the look and inventory windows.
- *
  * NOTE: create_pixmap and create_xpm can be empty functions if the
  * client will always use fonts - in that case, it should never
  * request Bitmap or Pixmap data, and thus not need the create
@@ -118,17 +116,6 @@ int map_image_size=DEFAULT_IMAGE_SIZE, map_image_half_size=DEFAULT_IMAGE_SIZE/2;
 PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
 
-/* All the following are static because these variables should
- * be local only to this file.  Since the idea is to have only
- * this file be replaced for different windowing systems, use of
- * any of these variables anyplace else would not be portable.
- */
-typedef enum inventory_show {
-  show_all = 0, show_applied = 0x1, show_unapplied = 0x2, show_unpaid = 0x4,
-  show_cursed = 0x8, show_magical = 0x10, show_nonmagical = 0x20,
-  show_locked = 0x40, show_unlocked=0x80,
-  show_mask=0xff
-} inventory_show;
 
 
 
@@ -156,16 +143,6 @@ typedef struct {
   GtkWidget *skill_exp[MAX_SKILL*2];
 } StatWindow;
 
-typedef struct {
-  gint row;
-  GtkWidget *list;
-} animview;
-
-typedef struct {
-  item *item;
-  GList *view;
-} animobject;
-  
 static char **gargv;
 
 #define MAX_HISTORY 50
@@ -225,7 +202,8 @@ GdkColor gdk_black = { 0, 0, 0, 0 };
 
 GdkColor gdkdiscolor;
 static GdkColor map_color[16];
-static GdkColor root_color[16];
+/* Not static so it can be used in inventory.c for highlighting. */
+GdkColor root_color[16]; 
 static GdkPixmap *magicgdkpixmap;
 static GdkGC *magic_map_gc;
 static GtkWidget *mapvbox;
@@ -235,8 +213,6 @@ GdkPixmap *dark;
 
 #define INFOLINELEN 500
 #define XPMGCS 100
-
-static GtkWidget *inv_notebook;
 
 
 GtkTooltips *tooltips;
@@ -257,20 +233,17 @@ enum {
 };
 
 
-GtkWidget *entrytext, *counttext;
+GtkWidget *entrytext; /* "Command-line" frame, built in get_info_display(). */
 static GtkObject *text_hadj,*text_vadj;
 static GtkObject *text_hadj2,*text_vadj2;
 GtkWidget *gameframe, *stat_frame, *message_frame;
 
-/*
- * These are used for inventory and look window
- */
-itemlist look_list, inv_list;
 static StatWindow statwindow;
 /* gtk */
  
 GtkWidget *gtkwin_root, *gtkwin_info;
-GtkWidget *gtkwin_info_text2, *gtkwin_info_text;
+GtkWidget *gtkwin_info_text; /* Referenced by inventory::count_callback. */
+GtkWidget *gtkwin_info_text2; /* Used when CONFIG_SPLITINFO */
 GtkWidget *gtkwin_stats, *gtkwin_message, *gtkwin_look, *gtkwin_inv;
 
 
@@ -378,7 +351,7 @@ int do_scriptout()
 void event_loop()
 {
     gint fleep;
-    extern int do_timeout();
+    extern int do_timeout(); /* forward */
     int tag;
 
     if (MAX_TIME==0) {
@@ -421,92 +394,8 @@ void end_windows()
 }
 
 
-/* Animation allocations */
-
-static animview *newanimview() {
-  animview *op = malloc (sizeof(animview));
-  if (! op) 
-    exit(0);
-  op->row=0;
-  op->list = NULL;
-  return op;
-}
-
-static animobject *newanimobject() {
-  animobject *op = malloc (sizeof(animobject));
-  if (! op) 
-    exit(0);
-  op->view = NULL;
-  return op;
-}
 
 
-/* Free allocations for animations */
-
-static void freeanimview (gpointer data, gpointer user_data) {
-  if (data)
-#ifdef WIN32
-      free( data );
-#else
-    g_free (data);
-#endif
-}
-
-static void freeanimobject (animobject *data, gpointer user_data) {
-  if (data)
-    g_list_foreach (data->view, freeanimview, 0);
-#ifdef WIN32
-  free( data );
-#else
-  g_free (data);
-#endif
-}
-
-/* Update the pixmap */
-
-static void animateview (animview *data, gint user_data) {
-    /* If no data (because of cache), use face 0 */
-    if (!pixmaps[user_data]->icon_image) user_data=0;
-
-    gtk_clist_set_pixmap (GTK_CLIST (data->list), data->row, 0,
-		    (GdkPixmap*)pixmaps[user_data]->icon_image,
-		    (GdkBitmap*)pixmaps[user_data]->icon_mask);
-}
-
-/* Run through the animations and update them */
-
-static void animate (animobject *data, gpointer user_data) {
-  if (data) {
-    data->item->last_anim++;
-    if (data->item->last_anim>=data->item->anim_speed) {
-      data->item->anim_state++;
-      if (data->item->anim_state >= animations[data->item->animation_id].num_animations) {
-	data->item->anim_state=0;
-      }
-      data->item->face = animations[data->item->animation_id].faces[data->item->anim_state];
-      data->item->last_anim=0;
-      g_list_foreach (data->view, (GFunc) animateview, GINT_TO_POINTER((gint)data->item->face));
-    }
-    
-  }
-}
-
-/* Run through the lists of animation and do each */
-
-void animate_list () {
-  if (anim_inv_list) {
-    g_list_foreach     (anim_inv_list, (GFunc) animate, NULL);
-  }
-  /* If this list needs to be updated, don't try and animated -
-   * the contents of the lists are no longer valid.  this should
-   * perhaps be done for the inventory list above, but the
-   * removal of an animated object with a non animated one within
-   * the timeframe if this being called is unlikely.
-   */
-  if (anim_look_list && !look_list.env->inv_updated) {
-    g_list_foreach     (anim_look_list, (GFunc) animate, NULL);
-  }
-}
 
 
 
@@ -843,347 +732,6 @@ static int get_game_display(GtkWidget *frame) {
 
 
 
-/* ----------------------------------- inventory ---------------------------------------------*/
-
-/*
- * Ugh. Ok, this is a Really Nasty Function From Hell (tm). Dont ask me what it does. 
- * Well, actually, it attempts to keep track of the different inventory object views.
- * This should only be called if an actual object is updated. It handles both the look
- * and inventory object window.
- */
-
-
-static void draw_list (itemlist *l)
-{
-
-    gint tmprow;
-    item *tmp;
-    animobject *tmpanim=NULL;
-    animview *tmpanimview;
-    char buf[MAX_BUF];
-    char buffer[3][MAX_BUF];
-    char *buffers[3];
-    gint list;
-    int mw=image_size, mh=image_size;	    /* max height/width of any image */
-    
-
-    /* Is it the inventory or look list? */
-    if (l->multi_list) {
-    
-	/* Ok, inventory list. Animations are handled in client code. First do the nice thing and
-	* free all allocated animation lists.
-	*/
-	if (anim_inv_list) {
-	    g_list_foreach (anim_inv_list, (GFunc) freeanimobject, NULL);
-	    g_list_free (anim_inv_list);
-	    anim_inv_list=NULL;
-	}
-	/* Freeze the CLists to avoid flickering (and to speed up the processing) */
-	for (list=0; list < TYPE_LISTS; list++) {
-	    l->pos[list]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment->value;
-	    gtk_clist_freeze (GTK_CLIST(l->gtk_list[list]));
-	    gtk_clist_clear (GTK_CLIST(l->gtk_list[list]));
-	}
-    } else {
-	if (anim_look_list) {
-	    g_list_foreach (anim_look_list, (GFunc) freeanimobject, NULL);
-	    g_list_free (anim_look_list);
-	    anim_look_list=NULL;
-	}
-	/* Just freeze the lists and clear them */
-	l->pos[0]=GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[0])->vscrollbar)->adjustment->value;
-	gtk_clist_freeze (GTK_CLIST(l->gtk_list[0]));
-	gtk_clist_clear (GTK_CLIST(l->gtk_list[0]));
-    }
-  
-    /* draw title and put stuff in widgets */
-  
-    if(l->env->weight < 0 || l->show_weight == 0) {
-	strcpy(buf, l->title);
-	gtk_label_set (GTK_LABEL(l->label), buf);
-	gtk_label_set (GTK_LABEL(l->weightlabel), " ");
-	gtk_label_set (GTK_LABEL(l->maxweightlabel), " ");
-	gtk_widget_draw (l->label, NULL);
-	gtk_widget_draw (l->weightlabel, NULL);
-	gtk_widget_draw (l->maxweightlabel, NULL);
-    }
-    else if (!l->weight_limit) {
-	strcpy(buf, l->title);
-	gtk_label_set (GTK_LABEL(l->label), buf);
-	sprintf (buf, "%6.1f",l->env->weight);
-	gtk_label_set (GTK_LABEL(l->weightlabel), buf);
-	gtk_label_set (GTK_LABEL(l->maxweightlabel), " ");
-	gtk_widget_draw (l->label, NULL);
-	gtk_widget_draw (l->weightlabel, NULL);
-	gtk_widget_draw (l->maxweightlabel, NULL);
-    } else {
-	strcpy(buf, l->title);
-	gtk_label_set (GTK_LABEL(l->label), buf);
-	sprintf (buf, "%6.1f",l->env->weight);
-	gtk_label_set (GTK_LABEL(l->weightlabel), buf);
-	sprintf (buf, "/ %4d",l->weight_limit/1000);
-	gtk_label_set (GTK_LABEL(l->maxweightlabel), buf);
-	gtk_widget_draw (l->label, NULL);
-	gtk_widget_draw (l->weightlabel, NULL);
-	gtk_widget_draw (l->maxweightlabel, NULL);
-    }
-
-    /* Ok, go through the objects and start appending rows to the lists */
-    for(tmp = l->env->inv; tmp ; tmp=tmp->next) {      
-
-	strcpy (buffer[0]," "); 
-	strcpy (buffer[1], tmp->d_name);
-
-	if (l->show_icon == 0)
-	    strcat (buffer[1], tmp->flags);
-    
-	if(tmp->weight < 0 || l->show_weight == 0) {
-	    strcpy (buffer[2]," "); 
-	} else {
-	    sprintf (buffer[2],"%6.1f" ,tmp->nrof * tmp->weight);
-	}
-    
-	buffers[0] = buffer[0];
-	buffers[1] = buffer[1];
-	buffers[2] = buffer[2];
-    
-	if (l->multi_list) {
-	    tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
-	    /* Set original pixmap */
-	    gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
-			    (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			    (GdkBitmap*)pixmaps[tmp->face]->icon_mask); 
-	    if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-	    if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-	    gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
-	    if (use_config[CONFIG_COLORINV]) { 
-		if (tmp->cursed || tmp->damned) {
-		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
-				    &root_color[NDI_RED]);
-		}
-		if (tmp->magical) {
-		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
-				    &root_color[NDI_BLUE]);
-		}
-		if ((tmp->cursed || tmp->damned) && tmp->magical) {
-		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
-				    &root_color[NDI_NAVY]);
-		}
-	    }
-	    /* If it's an animation, zap in an animation object to the list of
-	     animations to be done */
-
-	    if (tmp->animation_id>0 && tmp->anim_speed) {
-		tmpanim = newanimobject();
-		tmpanim->item=tmp;
-		tmpanimview = newanimview();
-		tmpanimview->row=tmprow;
-		tmpanimview->list=l->gtk_list[0];
-		tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		anim_inv_list = g_list_append (anim_inv_list, tmpanim);
-	    }
-
-	    if (tmp->applied) {
-		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[1]), buffers);
-		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[1]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[1]), tmprow, tmp); 
-		if (tmp->animation_id>0 && tmp->anim_speed) {
-		    tmpanimview = newanimview();
-		    tmpanimview->row=tmprow;
-		    tmpanimview->list=l->gtk_list[1];
-		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		}
-
-	    }
-	    if (!tmp->applied) {
-		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[2]), buffers);
-		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[2]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[2]), tmprow, tmp);
-		if (tmp->animation_id>0 && tmp->anim_speed) {
-		    tmpanimview = newanimview();
-		    tmpanimview->row=tmprow;
-		    tmpanimview->list=l->gtk_list[2];
-		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		}
-	    }
-	    if (tmp->unpaid) {
-		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[3]), buffers);
-		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[3]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[3]), tmprow, tmp);
-		if (tmp->animation_id>0 && tmp->anim_speed) {
-		    tmpanimview = newanimview();
-		    tmpanimview->row=tmprow;
-		    tmpanimview->list=l->gtk_list[3];
-		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		}
-	    }
-	    if (tmp->cursed || tmp->damned) {
-		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[4]), buffers);
-		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[4]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[4]), tmprow, tmp);
-		if (tmp->animation_id>0 && tmp->anim_speed) {
-		    tmpanimview = newanimview();
-		    tmpanimview->row=tmprow;
-		    tmpanimview->list=l->gtk_list[4];
-		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		}
-	    }
-	    if (tmp->magical) {
-		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[5]), buffers);
-		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[5]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[5]), tmprow, tmp);
-		if (tmp->animation_id>0 && tmp->anim_speed) {
-		    tmpanimview = newanimview();
-		    tmpanimview->row=tmprow;
-		    tmpanimview->list=l->gtk_list[5];
-		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		}
-	    }
-	    if (!tmp->magical) {
-		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[6]), buffers);
-		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[6]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[6]), tmprow, tmp);
-		if (tmp->animation_id>0 && tmp->anim_speed) {
-		    tmpanimview = newanimview();
-		    tmpanimview->row=tmprow;
-		    tmpanimview->list=l->gtk_list[6];
-		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		}
-	    }
-	    if (tmp->locked) {
-		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[7]), buffers);
-		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[7]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[7]), tmprow, tmp);
-		if (tmp->animation_id>0 && tmp->anim_speed) {
-		    tmpanimview = newanimview();
-		    tmpanimview->row=tmprow;
-		    tmpanimview->list=l->gtk_list[7];
-		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		}
-	    }
-	    if (!tmp->locked) {
-		tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[8]), buffers);
-		gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[8]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-		if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-		if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-		gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[8]), tmprow, tmp);
-		if (tmp->animation_id>0 && tmp->anim_speed) {
-		    tmpanimview = newanimview();
-		    tmpanimview->row=tmprow;
-		    tmpanimview->list=l->gtk_list[8];
-		    tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		}
-		if (use_config[CONFIG_COLORINV]) { 
-		    if (tmp->cursed || tmp->damned) {
-			gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
-				    &root_color[NDI_RED]);
-		    }
-		    if (tmp->magical) {
-			gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
-				    &root_color[NDI_BLUE]);
-		    }
-		    if ((tmp->cursed || tmp->damned) && tmp->magical) {
-			gtk_clist_set_background (GTK_CLIST(l->gtk_list[8]), tmprow,
-				    &root_color[NDI_NAVY]);
-		    }
-		}
-	    }
-	} else {
-	    tmprow = gtk_clist_append (GTK_CLIST (l->gtk_list[0]), buffers);
-	    gtk_clist_set_pixmap (GTK_CLIST (l->gtk_list[0]), tmprow, 0,
-			      (GdkPixmap*)pixmaps[tmp->face]->icon_image,
-			      (GdkBitmap*)pixmaps[tmp->face]->icon_mask);
-	    if (pixmaps[tmp->face]->icon_width > mw) mw = pixmaps[tmp->face]->icon_width;
-	    if (pixmaps[tmp->face]->icon_height > mh) mh = pixmaps[tmp->face]->icon_height;
-
-	    gtk_clist_set_row_data (GTK_CLIST(l->gtk_list[0]), tmprow, tmp);
-	    if (tmp->animation_id>0 && tmp->anim_speed) {
-		tmpanim = newanimobject();
-		tmpanim->item=tmp;
-		tmpanimview = newanimview();
-		tmpanimview->row=tmprow;
-		tmpanimview->list=l->gtk_list[0];
-		tmpanim->view = g_list_append (tmpanim->view, tmpanimview);
-		anim_look_list = g_list_append (anim_look_list, tmpanim);
-	    }
-	    if (use_config[CONFIG_COLORINV]) { 
-		if (tmp->cursed || tmp->damned) {
-		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
-				    &root_color[NDI_RED]);
-		}
-		if (tmp->magical) {
-		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
-				    &root_color[NDI_BLUE]);
-		}
-		if ((tmp->cursed || tmp->damned) && tmp->magical) {
-		    gtk_clist_set_background (GTK_CLIST(l->gtk_list[0]), tmprow,
-				    &root_color[NDI_NAVY]);
-		}
-	    }
-	}
-    }
-
-
-    /* Ok, stuff is drawn, now replace the scrollbar positioning as far as possible */
-    if (l->multi_list) {
-	for (list=0; list < TYPE_LISTS; list++) {
-	    gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[list])->vscrollbar)->adjustment), l->pos[list]);
-	    gtk_clist_thaw (GTK_CLIST(l->gtk_list[list]));
-	}
-    } else {
-	if (l->column_width != mw) {
-	    gtk_clist_set_column_width(GTK_CLIST(l->gtk_list[0]), 0, mw);
-	    l->column_width = mw;
-	}
-	if (l->row_height != mh) {
-	    gtk_clist_set_row_height(GTK_CLIST(l->gtk_list[0]), mh);
-	    l->row_height = mh;
-	}
-	gtk_adjustment_set_value (GTK_ADJUSTMENT (GTK_RANGE (GTK_SCROLLED_WINDOW(l->gtk_lists[0])->vscrollbar)->adjustment), l->pos[0]);
-	gtk_clist_thaw (GTK_CLIST(l->gtk_list[0]));
-    }
-}
-
-
 /******************************************************************************
  *
  * The functions dealing with the info window follow
@@ -1239,6 +787,7 @@ static void enter_callback(GtkWidget *widget, GtkWidget *entry)
     }
 }
 
+/* Can use a wheeled mouse to scroll the info window */
 static gboolean
 info_text_button_press_event (GtkWidget *widget, GdkEventButton *event,
                               gpointer user_data)
@@ -1683,7 +1232,7 @@ void logUserIn(){
 }
 void sendPassword(){
     send_reply(password);
-    cpl.input_state = Playing;
+	cpl.input_state = Playing;
 }
 void confirmPassword(){
     buildLoginDialog();
@@ -3023,436 +2572,14 @@ void draw_message_window(int redraw) {
 
  
 
+
+
+
 /****************************************************************************
  *
- * Inventory window functions follow
+ * Dialogue boxes and the menus that raise them.
  *
  ****************************************************************************/
-
-
-/*
- * draw_all_list clears a window and after that draws all objects 
- * and a scrollbar
- */
-void draw_all_list(itemlist *l)
-{
-    int i;
-
-    strcpy (l->old_title, "");
-
-    for(i=0; i<l->size; i++) {
-	copy_name(l->names[i], "");
-	l->faces[i] = 0;
-	l->icon1[i] = 0;
-	l->icon2[i] = 0;
-	l->icon3[i] = 0;
-	l->icon4[i] = 0;
-    }
-
-    l->bar_size = 1;    /* so scroll bar is drawn */
-    draw_list (l);
-
-}
-
-void open_container (item *op) 
-{
-  look_list.env = op;
-  sprintf (look_list.title, "%s:", op->d_name);
-  draw_list (&look_list);
-}
-
-void close_container(item *op)
-{
-  if (look_list.env != cpl.below) {
-    if (use_config[CONFIG_APPLY_CONTAINER])
-	client_send_apply (look_list.env->tag);
-    look_list.env = cpl.below;
-    strcpy (look_list.title, "You see:");
-    draw_list (&look_list);
-  }
-}
-
-/* This is basically the same as above, but is used for the callback
- * of the close button.  As such, it has to always send the apply.
- * However, since its a callback, its not like we can just easily
- * pass additional parameters.
- */
-void close_container_callback(item *op)
-{
-  if (look_list.env != cpl.below) {
-    client_send_apply (look_list.env->tag);
-    look_list.env = cpl.below;
-    strcpy (look_list.title, "You see:");
-    draw_list (&look_list);
-  }
-}
-
-/* Handle mouse presses in the lists */
-static void list_button_event (GtkWidget *gtklist, gint row, gint column, GdkEventButton *event, itemlist *l)
-{
-  item *tmp;
-  if (event->button==1) {
-      tmp = gtk_clist_get_row_data (GTK_CLIST(gtklist), row); 
-      gtk_clist_unselect_row (GTK_CLIST(gtklist), row, 0);
-      if (event->state & GDK_SHIFT_MASK)
-	toggle_locked(tmp);
-      else
-	client_send_examine (tmp->tag);     
-
-  }
-  if (event->button==2) {
-      tmp = gtk_clist_get_row_data (GTK_CLIST(gtklist), row); 
-
-      gtk_clist_unselect_row (GTK_CLIST(gtklist), row, 0);
-      if (event->state & GDK_SHIFT_MASK)
-	send_mark_obj(tmp);
-      else
-	client_send_apply (tmp->tag);
-
-  }
-  if (event->button==3) {
-
-    tmp = gtk_clist_get_row_data (GTK_CLIST(gtklist), row);
-    gtk_clist_unselect_row (GTK_CLIST(gtklist), row, 0);
-    
-    if (tmp->locked) {
-      draw_info ("This item is locked.",NDI_BLACK);
-    } else if (l == &inv_list) {
-      cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
-      client_send_move (look_list.env->tag, tmp->tag, cpl.count);
-      if (!use_config[CONFIG_POPUPS]) {
-	gtk_spin_button_set_value(GTK_SPIN_BUTTON(counttext),0.0);
-        cpl.count=0;
-      }
-    }
-    else {
-      cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
-      client_send_move (inv_list.env->tag, tmp->tag, cpl.count);
-      if (!use_config[CONFIG_POPUPS]) {
-         gtk_spin_button_set_value(GTK_SPIN_BUTTON(counttext),0.0);
-         cpl.count=0;
-      }
-    }
-    
-  }
-  
-}
-
-
-static void resize_notebook_event (GtkWidget *widget, GtkAllocation *event) {
-    int i, newwidth;
-    static int oldwidth=0;
-
-    newwidth = GTK_CLIST(inv_list.gtk_list[0])->clist_window_width - image_size - 75;
-
-    if (newwidth != oldwidth) {
-	oldwidth = newwidth;
-	for (i=0; i<TYPE_LISTS; i++) {
-	    gtk_clist_set_column_width (GTK_CLIST(inv_list.gtk_list[i]), 0, image_size);
-	    gtk_clist_set_column_width (GTK_CLIST(inv_list.gtk_list[i]), 1, newwidth);
-	    gtk_clist_set_column_width (GTK_CLIST(inv_list.gtk_list[i]), 2, 50);
-	}
-	inv_list.column_width = image_size;
-
-	gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, image_size);
-	gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 1, newwidth);
-	gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 50);
-	look_list.column_width = image_size;
-
-    }
-}
-
-void count_callback(GtkWidget *widget, GtkWidget *entry)
-{
-    const gchar *count_text;
-
-    count_text = gtk_entry_get_text(GTK_ENTRY(counttext));
-    cpl.count = atoi (count_text);
-    gtk_widget_grab_focus (GTK_WIDGET(gtkwin_info_text)); 
-}
-
-
-/* Create tabbed notebook page */
-void create_notebook_page (GtkWidget *notebook, GtkWidget **list, GtkWidget **lists, gchar **label) {
-  GtkWidget *vbox1;
-  GtkStyle *liststyle, *tabstyle;
-  GdkPixmap *labelgdkpixmap;
-  GdkBitmap *labelgdkmask;
-  GtkWidget *tablabel;
-
-  gchar *titles[] ={"?","Name","Weight"};	   
-
-  tabstyle = gtk_widget_get_style(gtkwin_root);
-
-  labelgdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
-					    &labelgdkmask,
-					    &tabstyle->bg[GTK_STATE_NORMAL],
-					    (gchar **) label );
-
- 
-  tablabel = gtk_pixmap_new (labelgdkpixmap, labelgdkmask);
-  gtk_widget_show (tablabel);
-
-  vbox1 = gtk_vbox_new(FALSE, 0);
-  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), vbox1, tablabel);
-  *lists = gtk_scrolled_window_new (0,0);
-  *list = gtk_clist_new_with_titles (3, titles);
-
-  gtk_clist_set_column_width (GTK_CLIST(*list), 0, image_size);
-  gtk_clist_set_column_width (GTK_CLIST(*list), 1, 150);
-  gtk_clist_set_column_width (GTK_CLIST(*list), 2, 50);
-  /* Since the program will automatically adjust these, any changes
-   * the user makes can get obliterated, so just don't let the user
-   * make changes.
-   */
-  gtk_clist_set_column_resizeable(GTK_CLIST(*list), 0, FALSE);
-  gtk_clist_set_column_resizeable(GTK_CLIST(*list), 1, FALSE);
-  gtk_clist_set_column_resizeable(GTK_CLIST(*list), 2, FALSE);
-
-  gtk_clist_set_selection_mode (GTK_CLIST(*list) , GTK_SELECTION_SINGLE);
-  gtk_clist_set_row_height (GTK_CLIST(*list), image_size); 
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(*lists),
-				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-  liststyle = gtk_rc_get_style(*list);
-  if (liststyle) {
-	liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
-	liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
-	gtk_widget_set_style (*list, liststyle);
-  }
-  gtk_clist_set_button_actions (GTK_CLIST(*list),
-				1,
-				GTK_BUTTON_SELECTS);
-  gtk_clist_set_button_actions (GTK_CLIST(*list),
-				2,
-				GTK_BUTTON_SELECTS);
-  gtk_signal_connect (GTK_OBJECT(*list),
-		      "select_row",
-		      GTK_SIGNAL_FUNC(list_button_event),
-		      &inv_list);
-  gtk_widget_show (*list);
-  gtk_container_add (GTK_CONTAINER (*lists), *list);
-  gtk_box_pack_start (GTK_BOX(vbox1),*lists, TRUE, TRUE, 0);
-  gtk_widget_show (*lists);
-
-  gtk_signal_connect (GTK_OBJECT(*list),"size-allocate",
-		      (GtkSignalFunc) resize_notebook_event, NULL);
-
-  gtk_widget_show (vbox1);
-}
-
-
-static int get_inv_display(GtkWidget *frame)
-{
-  /*  GtkWidget *vbox1;*/
-#include "pixmaps/all.xpm" 
-#include "pixmaps/hand.xpm" 
-#include "pixmaps/hand2.xpm" 
-#include "pixmaps/coin.xpm"
-#include "pixmaps/skull.xpm"
-#include "pixmaps/mag.xpm"
-#include "pixmaps/nonmag.xpm"
-#include "pixmaps/lock.xpm"
-#include "pixmaps/unlock.xpm"
-  
-  GtkWidget *vbox2;
-  GtkWidget *hbox1;
-  GtkWidget *invlabel;
-  GtkAdjustment *adj;
-
-  strcpy (inv_list.title, "Inventory:");
-  inv_list.env = cpl.ob;
-  inv_list.show_weight = 1;
-  inv_list.weight_limit=0;
-  
-  vbox2 = gtk_vbox_new(FALSE, 0); /* separation here */
-  
-  gtk_container_add (GTK_CONTAINER(frame), vbox2); 
-
-  hbox1 = gtk_hbox_new(FALSE, 2);
-  gtk_box_pack_start (GTK_BOX(vbox2),hbox1, FALSE, FALSE, 0);
-  gtk_widget_show (hbox1);
-
-
-  inv_list.label = gtk_label_new ("Inventory:");
-  gtk_box_pack_start (GTK_BOX(hbox1),inv_list.label, TRUE, FALSE, 2);
-  gtk_widget_show (inv_list.label);
-
-  inv_list.weightlabel = gtk_label_new ("0");
-  gtk_box_pack_start (GTK_BOX(hbox1),inv_list.weightlabel, TRUE, FALSE, 2);
-  gtk_widget_show (inv_list.weightlabel);
-
-
-  inv_list.maxweightlabel = gtk_label_new ("0");
-  gtk_box_pack_start (GTK_BOX(hbox1),inv_list.maxweightlabel, TRUE, FALSE, 2);
-  gtk_widget_show (inv_list.maxweightlabel);
-
-  invlabel = gtk_label_new ("Count:");
-  gtk_box_pack_start (GTK_BOX(hbox1),invlabel, FALSE, FALSE, 5);
-  gtk_widget_show (invlabel);
-
-  adj = (GtkAdjustment *) gtk_adjustment_new (0.0, 0.0, 100000.0, 1.0,
-                                                  100.0, 0.0);
-  counttext = gtk_spin_button_new (adj, 1.0, 0);
-
-  gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (counttext), FALSE);
-  gtk_widget_set_usize (counttext, 65, 0);
-  gtk_spin_button_set_update_policy (GTK_SPIN_BUTTON (counttext),
-				     GTK_UPDATE_ALWAYS);
-   gtk_signal_connect(GTK_OBJECT(counttext), "activate",
-		     GTK_SIGNAL_FUNC(count_callback),
-		     counttext);
-
-
-  gtk_box_pack_start (GTK_BOX (hbox1),counttext, FALSE, FALSE, 0);
-
-  gtk_widget_show (counttext);
-  gtk_tooltips_set_tip (tooltips, counttext, "This sets the number of items you wish to pickup or drop. You can also use the keys 0-9 to set it.", NULL);
-
-  inv_notebook = gtk_notebook_new ();
-  gtk_notebook_set_tab_pos (GTK_NOTEBOOK (inv_notebook), GTK_POS_TOP );
-
-
-  gtk_box_pack_start (GTK_BOX(vbox2),inv_notebook, TRUE, TRUE, 0);
-
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[0], &inv_list.gtk_lists[0], all_xpm); 
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[1], &inv_list.gtk_lists[1], hand_xpm); 
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[2], &inv_list.gtk_lists[2], hand2_xpm); 
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[3], &inv_list.gtk_lists[3], coin_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[4], &inv_list.gtk_lists[4], skull_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[5], &inv_list.gtk_lists[5], mag_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[6], &inv_list.gtk_lists[6], nonmag_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[7], &inv_list.gtk_lists[7], lock_xpm);
-  create_notebook_page (inv_notebook, &inv_list.gtk_list[8], &inv_list.gtk_lists[8], unlock_xpm);
-
-  gtk_widget_show (vbox2);
-  gtk_widget_show (inv_notebook);
-
-  inv_list.multi_list=1;
-  inv_list.row_height = image_size;
-  draw_all_list(&inv_list);
- 
-  return 0;
-}
-
-static int get_look_display(GtkWidget *frame) 
-{
-  GtkWidget *vbox1;
-  GtkWidget *hbox1;
-  GtkWidget *closebutton;
-  GtkStyle *liststyle;
-  
-  /*  gchar *test[] ={"testamer","testa","test"};*/
-  gchar *titles[] ={"?","Name","Weight"};
-  
-  look_list.env = cpl.below;
-  strcpy (look_list.title, "You see:");
-  look_list.show_weight = 1;
-  look_list.weight_limit = 0;
-    
-
-  vbox1 = gtk_vbox_new(FALSE, 0);/*separation here*/
-  gtk_container_add (GTK_CONTAINER(frame), vbox1);
-
-  hbox1 = gtk_hbox_new(FALSE, 2);
-  gtk_box_pack_start (GTK_BOX(vbox1),hbox1, FALSE, FALSE, 0);
-  gtk_widget_show (hbox1);
-
-  closebutton = gtk_button_new_with_label ("Close");
-  gtk_signal_connect_object (GTK_OBJECT (closebutton), "clicked",
-			       GTK_SIGNAL_FUNC(close_container_callback),
-			       NULL);
-  gtk_box_pack_start (GTK_BOX(hbox1),closebutton, FALSE, FALSE, 2);
-  gtk_widget_show (closebutton);
-  gtk_tooltips_set_tip (tooltips,closebutton , "This will close an item if you have one open.", NULL);
-
-  look_list.label = gtk_label_new ("You see:");
-  gtk_box_pack_start (GTK_BOX(hbox1),look_list.label, TRUE, FALSE, 2);
-  gtk_widget_show (look_list.label);
-
-  look_list.weightlabel = gtk_label_new ("0");
-  gtk_box_pack_start (GTK_BOX(hbox1),look_list.weightlabel, TRUE, FALSE, 2);
-  gtk_widget_show (look_list.weightlabel);
-
-  look_list.maxweightlabel = gtk_label_new ("0");
-  gtk_box_pack_start (GTK_BOX(hbox1),look_list.maxweightlabel, TRUE, FALSE, 2);
-  gtk_widget_show (look_list.maxweightlabel);
-
-  look_list.gtk_lists[0] = gtk_scrolled_window_new (0,0);
-  look_list.gtk_list[0] = gtk_clist_new_with_titles (3,titles);;
-  gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 0, image_size);
-  gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 1, 150);
-  gtk_clist_set_column_width (GTK_CLIST(look_list.gtk_list[0]), 2, 50);
-  gtk_clist_set_selection_mode (GTK_CLIST(look_list.gtk_list[0]) , GTK_SELECTION_SINGLE);
-  gtk_clist_set_row_height (GTK_CLIST(look_list.gtk_list[0]), image_size); 
-  look_list.row_height = image_size;
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(look_list.gtk_lists[0]),
-				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-  liststyle = gtk_rc_get_style (look_list.gtk_list[0]);
-  if (liststyle) {
-    liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
-    liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
-    gtk_widget_set_style (look_list.gtk_list[0], liststyle);
-  }
-  gtk_clist_set_button_actions (GTK_CLIST(look_list.gtk_list[0]),
-				1,
-				GTK_BUTTON_SELECTS);
-  gtk_clist_set_button_actions (GTK_CLIST(look_list.gtk_list[0]),
-				2,
-				GTK_BUTTON_SELECTS);
-  gtk_signal_connect (GTK_OBJECT(look_list.gtk_list[0]),
-		      "select_row",
-		      GTK_SIGNAL_FUNC(list_button_event),
-		      &look_list);
-
-  gtk_widget_show (look_list.gtk_list[0]);
-  gtk_container_add (GTK_CONTAINER (look_list.gtk_lists[0]), look_list.gtk_list[0]);
-  gtk_box_pack_start (GTK_BOX(vbox1),look_list.gtk_lists[0], TRUE, TRUE, 0);
-  gtk_widget_show (look_list.gtk_lists[0]);
-  gtk_widget_show (vbox1);
-  look_list.multi_list=0;
-  draw_all_list(&look_list);
-  return 0;
-}
-
-
-/*
- *  draw_lists() redraws inventory and look windows when necessary
- */
-void draw_lists ()
-{
-  if (inv_list.env->inv_updated) {
-
-    draw_list (&inv_list);
-    inv_list.env->inv_updated = 0;
-  } else {
-    if (look_list.env->inv_updated) {
-      draw_list (&look_list);
-      look_list.env->inv_updated = 0;
-    }
-  }
-}
-
-void set_show_icon (const char *s)
-{
-    if (s == NULL || *s == 0 || strncmp ("inventory", s, strlen(s)) == 0) {
-	inv_list.show_icon = ! inv_list.show_icon; /* toggle */
-	draw_all_list(&inv_list);
-    } else if (strncmp ("look", s, strlen(s)) == 0) {
-	look_list.show_icon = ! look_list.show_icon; /* toggle */
-	draw_all_list(&look_list);
-    }
-}
-
-void set_show_weight (const char *s)
-{
-    if (s == NULL || *s == 0 || strncmp ("inventory", s, strlen(s)) == 0) {
-	inv_list.show_weight = ! inv_list.show_weight; /* toggle */
-	draw_list (&inv_list);
-    } else if (strncmp ("look", s, strlen(s)) == 0) {
-	look_list.show_weight = ! look_list.show_weight; /* toggle */
-	draw_list (&look_list);
-    }
-}
 
 void aboutdialog(GtkWidget *widget) {
 #include "help/about.h"
@@ -4985,29 +4112,28 @@ static int get_root_display(char *display_name,int gargc, char **gargv) {
     return 0;
 }
  
+
 /* null procedures. gtk does this for us. */
 
-
-void set_weight_limit (uint32 wlim)
-{
-    inv_list.weight_limit = wlim;
-}
-
-
+/* TODO Make these commands specific to x11 toolkit. */
 void set_scroll(const char *s)
 {
 }
 
 
-void set_autorepeat(const char *s)
+void set_autorepeat(const char *s) /* ...and what does this one *do*, anyway? */
 {
 }
 
 
 int get_info_width()
 {
-    return 40;	/* would be better to return some real info here  - I'll have to look at it later
-		 * to see how easy it is to get that */
+    /* 
+     * TODO Have crossfire-server send paragraphs rather than lines, so to
+     * speak. Except for ASCII maps and things. Then this can go away
+     * completely.
+     */ 
+    return 40;
 }
 
 
@@ -5061,18 +4187,15 @@ void draw_info_windows()
 int do_timeout() {
 
   updatelock=0;
+  
+  inventory_tick();
+  
   draw_info_windows();
   if (redraw_needed) {
     display_map_doneupdate(TRUE);
-    draw_all_list(&inv_list);
-    draw_all_list(&look_list);
     redraw_needed=FALSE;
   }
-  if (!inv_list.env->inv_updated) {
-    animate_list();
-  }
   if (cpl.showmagic) magic_map_flash_pos();
-  draw_lists();
   return TRUE;
 }
 
@@ -5384,45 +4507,6 @@ void save_winpos()
     draw_info(buf,NDI_BLUE);
 }
 
-void command_show (const char *params)
-{
-    if(!params)  {
-	/* Shouldn't need to get current page, but next_page call is not wrapping
-	 * like the docs claim it should.
-	 */
-	if (gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook))==8)
-	    gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 0);
-	else 
-	    gtk_notebook_next_page(GTK_NOTEBOOK(inv_notebook));
-
-    } else if (!strncmp(params, "all", strlen(params)))
-	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 0);
-    else if (!strncmp(params, "applied", strlen(params)))
-	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 1);
-
-    else if (!strncmp(params, "unapplied", strlen(params)))
-	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 2);
-
-    else if (!strncmp(params, "unpaid", strlen(params)))
-	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 3);
-
-    else if (!strncmp(params, "cursed", strlen(params)))
-	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 4);
-
-    else if (!strncmp(params, "magical", strlen(params)))
-	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 5);
-
-    else if (!strncmp(params, "nonmagical", strlen(params)))
-	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 6);
-
-    else if (!strncmp(params, "locked", strlen(params)))
-	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 7);
-
-    else if (!strncmp(params, "unlocked", strlen(params)))
-	gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 8);
-
-
-}
 
 /* Reads in the winpos file created by the above function and sets the
  * the window positions appropriately.
@@ -5809,7 +4893,7 @@ int init_windows(int argc, char **argv)
     image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
     map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
     map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
-    inv_list.show_icon = use_config[CONFIG_SHOWICON];
+    itemlist_set_show_icon(&inv_list, use_config[CONFIG_SHOWICON]);
     if (!use_config[CONFIG_CACHE]) use_config[CONFIG_DOWNLOAD] = FALSE;
 
     allocate_map( &the_map, FOG_MAP_SIZE, FOG_MAP_SIZE);
@@ -6199,13 +5283,9 @@ int main(int argc, char *argv[])
 	 */
 	reset_image_data();
 	remove_item_inventory(cpl.ob);
-	/* We know the following is the private map structure in
-	 * item.c.  But we don't have direct access to it, so
-	 * we still use locate.
-	 */
-	remove_item_inventory(locate_item(0));
+	remove_item_inventory(cpl.below);
 	reset_map_data();
-	look_list.env=cpl.below;
+	set_look_list_env(cpl.below);
     }
     exit(0);	/* never reached */
 }

@@ -5,7 +5,7 @@
 !include "MUI.nsh"
 
 ;Title Of Your Application
-Name "Crossfire GTK Client 1.7.1"
+Name "Crossfire GTK Client snapshot 2005-05-21"
 
 ;Do A CRC Check
 CRCCheck On

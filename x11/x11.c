@@ -2062,6 +2062,11 @@ void menu_clear(void)
     return;
 }
 
+/* TODO Figure out if/how to *use* these events here. */
+void item_event_item_deleting(item * it) {}
+void item_event_container_clearing(item * container) {}
+void item_event_item_changed(item * it) {}
+
 /******************************************************************************
  * Root Window code
  ****************************************************************************/

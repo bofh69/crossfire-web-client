@@ -3,6 +3,14 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Committed patch #1197437 courtesy Kevin Rudat (krudat).
+This patch moves inventory-related functions in GTK client to
+ one specific file. Also makes inventory refresh less often.
+Affected files:
+ * common: client.h item.c item.h p_cmd.c proto.h
+ * gtk: config.c gtkproto.h gx11.c gx11.h inventory.c Makefile.in
+ * x11: x11.c x11proto.h
+
 common/metaserver.c: add server cache.
 gtk/gx11.c: initialize server cache filename.
 Ryo 2005-05-23

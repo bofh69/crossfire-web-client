@@ -27,9 +27,17 @@
 #ifndef GX11_H
 #define GX11_H
 
+/* gtk */
+#include <gtk/gtk.h>
+#ifndef WIN32
+#include <gdk/gdkx.h>
+#else
+#include <gdk/gdkwin32.h>
+#endif
+#include <gdk/gdkkeysyms.h>
+
 #include "client-types.h"
 #include "item.h"
-
 
 extern int map_size, image_size, map_image_size, map_image_half_size;
 extern uint8 map_did_scroll;
@@ -72,69 +80,21 @@ extern GdkGC	    *mapgc;
 extern GtkWidget    *ckentrytext, *ckeyentrytext, *cmodentrytext,*cnumentrytext, *cclist;
 extern GtkTooltips  *tooltips;
 
-#define TYPE_LISTS 9
 /*
  *  This is similar obwin, but totally redone for client
  */
 typedef struct {
   item *env;		  /* Environment shown in window */
   char title[MAX_BUF];  /* title of item list */
-  char old_title[MAX_BUF];  /* previos title (avoid redrawns) */
   
-#ifndef WIN32
-  Window win;		  /* for X-windows */
-#endif
-  GtkWidget *label;
+  GtkWidget *label; /* e.g. "Inventory:", "keyring:" */
   GtkWidget *weightlabel;
   GtkWidget *maxweightlabel;
 
-  /*  gint invrows;
-  gint appliedrows;
-  gint unappliedrows;
-  gint unpaidrows;
-  gint cursedrows;
-  gint magicalrows;
-  gint nonmagicalrows;
-  gint lockedrows;*/
-
-  float pos[TYPE_LISTS];
-
-  GtkWidget *gtk_list[TYPE_LISTS];
-  GtkWidget *gtk_lists[TYPE_LISTS];
-
-  GC gc_text;
-  GC gc_icon;
-  GC gc_status;
-  
-  uint8 multi_list:1;     /* view is multi type */
   uint8 show_icon:1;	  /* show status icons */
   uint8 show_weight:1;  /* show item's weight */
   
-  char format_nw[20];	  /* sprintf-format for text (name and weight) */
-  char format_nwl[20];    /* sprintf-format for text (name, weight, limit) */
-  char format_n[20];	  /* sprintf-format for text (only name) */
-  sint16 text_len;	  /* How wide the text-field is */
-  
-  sint16 width;	  /* How wide the window is in pixels */
-  sint16 height;	  /* How height the window is in pixels */
-   
-  sint16 item_pos;	  /* The sequence number of the first drawn item */
-  sint16 item_used;	  /* How many items actually drawn. (0 - size) */
-  
-  sint16 size;	  /* How many items there is room to display */
-  sint16 *faces;	  /* [size] */
-  sint8 *icon1;	  /* status icon : locked */
-  sint8 *icon2;	  /* status icon : applied / unpaid */
-  sint8 *icon3;	  /* status icon : magic */
-  sint8 *icon4;	  /* status icon : damned / cursed */
-  char **names;	  /* [size][NAME_LEN] */
-  
-  /* The scrollbar */
-  sint16 bar_length; 	  /* the length of scrollbar in pixels */
-  sint16 bar_size;	  /* the current size of scrollbar in pixels */
-  sint16 bar_pos;	  /* the starting position of scrollbar in pixels */
   uint32 weight_limit;   /* Weight limit for this list - used for title */
-  sint16 row_height, column_width;  /* height/width of pixmaps space as last drawn */
 } itemlist;
 
 extern itemlist inv_list, look_list;

@@ -87,4 +87,10 @@ typedef struct item_struct {
     set_item_values(create_new_item (locate_item(loc),tag), \
 		    name,weight,face,flags)
 
+/* Toolkits implement these. */
+extern void item_event_item_deleting(item * it);
+extern void item_event_container_clearing(item * container);
+/* TODO More fine-grained event - but how to handle it? */
+extern void item_event_item_changed(item * it);
+
 #endif /* ITEM_H */

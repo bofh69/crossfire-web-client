@@ -314,6 +314,9 @@ void remove_item (item *op)
 {
     /* IF no op, or it is the player */
     if (!op || op==player || op==map) return;
+    
+    item_event_item_deleting(op);
+    
     op->env->inv_updated = 1;
 
     /* Do we really want to do this? */
@@ -367,6 +370,9 @@ void remove_item_inventory (item *op)
 {
     if ( !op )
         return;
+    
+    item_event_container_clearing(op);
+        
     op->inv_updated = 1;
     while (op->inv)
 	remove_item (op->inv);
@@ -488,8 +494,6 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
     /* Program always expect at least 1 object internall */
     if (nrof==0) nrof=1;
 
-    op->nrof = nrof;
-
     if (*name!='\0') {
 	copy_name(op->s_name, name);
 
@@ -507,13 +511,14 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 	resort=0;	/* no name - don't resort */
     }
 
-    /* Rather than try to get too clever on trying to figure out when
-     * to up d_name, just do it all the time.
-     */
-    if (op->nrof!=1) {
+    if (op->nrof != nrof) {
+        if (nrof !=1 ) {
 	    sprintf(op->d_name, "%s %s", get_number(nrof), op->p_name);
     } else {
 	strcpy(op->d_name, op->s_name);
+    }
+
+        op->nrof = nrof;
     }
 
     if (op->env) op->env->inv_updated = 1;
@@ -532,6 +537,8 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 	op->type =get_type_from_name(op->s_name);
     }
     if (resort) update_item_sort(op);
+    
+    item_event_item_changed(op);
 }
 
 void toggle_locked (item *op)

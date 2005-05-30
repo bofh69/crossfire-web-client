@@ -37,6 +37,7 @@ HEADERS= gx11.h			\
 SOURCES = \
 	config.c		\
 	gx11.c			\
+	inventory.c		\
 	help.c			\
 	image.c			\
 	keys.c			\

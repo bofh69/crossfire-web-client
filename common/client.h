@@ -130,6 +130,16 @@ typedef enum rangetype {
  * nice interface.
  * 0 is intentially skipped so the index into this doesn't
  * get a default if a table has a blank value
+ *
+ * CONFIG_NUMS is the number of configuration options; don't 
+ * forget to add to some of
+ *   common/init.c config_names, 
+ *                 init_client_vars,
+ *   x11/x11.c load_defaults
+ *             save_defaults
+ *   gtk/config.c load_defaults
+ *                save_defaults
+ * probably among other places, if you add a new option. 
  */
 #define CONFIG_COLORINV	    1
 #define CONFIG_COLORTXT	    2

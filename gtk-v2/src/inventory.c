@@ -524,6 +524,11 @@ void get_row_color(item *it, int *fg, int *bg)
  *    insertions and removals are more difficult.
  */
 
+void item_event_item_deleting(item * it) {}
+void item_event_container_clearing(item * container) {}
+void item_event_item_changed(item * it) {}
+
+
 /* Adds a row to the treestore.
  * it is the object to add
  * store is the TreeStore object.

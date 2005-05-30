@@ -509,6 +509,21 @@ static const char * help_scriptkill(void) {
         "Stop scripts named <name>.\n"
 	"(Not guaranteed to work?)";
 }
+
+static const char * help_showweight(void) {
+    return
+        "Syntax:\n"
+        "\n"
+        "    showweight\n"
+        "    showweight inventory\n"
+        "    showweight look\n"
+        "\n"
+        "(Or any prefix of the arguments.)"
+        "Toggles if you see the weight of"
+        "items in your inventory (also if"
+        "no argument given) or your"
+        "look-window.";
+}
 	
 /*
 *	draw_info("Information Commands", NDI_NAVY);*
@@ -684,8 +699,8 @@ static ConsoleCommand CommonCommands[] = {
 
     {
         "showweight", COMM_CAT_SETUP,
-        set_show_weight, NULL,
-        "Toggles if you see item weights in the inventory pane."
+        set_show_weight, help_showweight,
+        "Toggles if you see item weights in inventory look windows."
     },
 
     {

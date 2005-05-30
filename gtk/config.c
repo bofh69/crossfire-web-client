@@ -223,28 +223,25 @@ static void set_config_value(int cval, int value)
 
 static void toggle_splitwin(int newval)
 {
-    /* Currently don't have it, but want splitwindows */
+    inventory_splitwin_toggling();
+	gtk_widget_destroy(gtkwin_root);
+        
     if (newval) {
-	gtk_widget_destroy(gtkwin_root);
-	create_windows();
-	display_map_doneupdate(TRUE);
-	draw_stats (1);
-	draw_all_list(&inv_list);
-	draw_all_list(&look_list);
-    }
-    else { /* opposite - do have it, but don't want it */
-	gtk_widget_destroy(gtkwin_root);
+        ; /* Currently don't have it, but want splitwindows */
+    } else { 
+        /* opposite - do have it, but don't want it */
 	gtk_widget_destroy(gtkwin_info);
 	gtk_widget_destroy(gtkwin_stats);
 	gtk_widget_destroy(gtkwin_message);
 	gtk_widget_destroy(gtkwin_inv);
 	gtk_widget_destroy(gtkwin_look);
+    }
+
 	create_windows();
 	display_map_doneupdate(TRUE);
 	draw_stats (1);
-	draw_all_list(&inv_list);
-	draw_all_list(&look_list);
-    }
+    update_list_labels(&inv_list); /* After exploding or unexploding client, redraw weight labels. */
+    update_list_labels(&look_list);
 }
 
 /* Ok, here it sets the config and saves it. This is sorta dangerous, and I'm not sure
@@ -305,9 +302,8 @@ void applyconfig () {
 	use_config[CONFIG_SOUND] = want_config[CONFIG_SOUND];
     }
     if (IS_DIFFERENT(CONFIG_COLORINV)) {
-	draw_all_list(&inv_list);
-	draw_all_list(&look_list);
 	use_config[CONFIG_COLORINV] = want_config[CONFIG_COLORINV];
+	inventory_update_colorinv();
     }
     if (IS_DIFFERENT(CONFIG_TOOLTIPS)) {
 	if (want_config[CONFIG_TOOLTIPS]) gtk_tooltips_enable(tooltips);
@@ -331,8 +327,8 @@ void applyconfig () {
 	use_config[CONFIG_FASTTCP] = want_config[CONFIG_FASTTCP];
     }
     if (IS_DIFFERENT(CONFIG_SHOWICON)) {
-	inv_list.show_icon = want_config[CONFIG_SHOWICON];
-	draw_all_list(&inv_list);
+	itemlist_set_show_icon(&inv_list, want_config[CONFIG_SHOWICON]);
+	/* TODO What about the look list? And should showicon propogate back here? */
 	use_config[CONFIG_SHOWICON] = want_config[CONFIG_SHOWICON];
     }
     if (IS_DIFFERENT(CONFIG_RESISTS)) {    
@@ -852,7 +848,7 @@ void load_defaults()
     image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
     map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
     map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
-    inv_list.show_icon = use_config[CONFIG_SHOWICON];
+    itemlist_set_show_icon(&inv_list, use_config[CONFIG_SHOWICON]); 
 
 }
 
