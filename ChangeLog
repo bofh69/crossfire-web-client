@@ -3,6 +3,9 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+gtk/gx11.h: Patch from Kari Pahula to remove incorrect variable declaration.
+Andreas Kirschbaum 2005-06-01
+	
 Committed patch #1197437 courtesy Kevin Rudat (krudat).
 This patch moves inventory-related functions in GTK client to
  one specific file. Also makes inventory refresh less often.

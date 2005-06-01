@@ -72,7 +72,7 @@ extern PixmapInfo *pixmaps[MAXPIXMAPNUM];
 /* Some global widgetws */
 extern GtkWidget    *gtkwin_root,*drawingarea,*run_label,*fire_label;
 extern GtkWidget    *gtkwin_info, *gtkwin_stats, *gtkwin_message;
-extern GtkWidget    *gtkwin_look, *gtkwin_inv, *gtkwin_config;
+extern GtkWidget    *gtkwin_look, *gtkwin_inv;
 extern GtkWidget    *entrytext, *counttext;
 extern GdkPixmap    *mapwindow,*dark;
 extern GdkBitmap    *dark1, *dark2, *dark3;
