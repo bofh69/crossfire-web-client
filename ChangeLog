@@ -3,6 +3,8 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+crossfire-client.spec, gnome/Makefile.in, x11/Makefile.in: Patch from Kari
+   Pahula to fix manpage paths.
 gtk/gx11.h: Patch from Kari Pahula to remove incorrect variable declaration.
 Andreas Kirschbaum 2005-06-01
 	

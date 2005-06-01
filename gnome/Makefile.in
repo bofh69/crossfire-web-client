@@ -21,7 +21,7 @@ GNOME_LIBS=@GNOME_LIBDIR@ @GNOMEUI_LIBS@ @GDK_PIXBUF_LIBS@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=${DESTDIR}@bindir@
-mandir=${DESTDIR}@mandir@/man1
+mandir=${DESTDIR}@mandir@/man6
 soundlistdir=${DESTDIR}@sysconfdir@/sound/events
 desktopdir=${DESTDIR}@prefix@/share/gnome/apps/Games
 pixmapsdir=${DESTDIR}@prefix@/share/pixmaps
@@ -69,7 +69,7 @@ install:
 # working
 install-fix:
 	$(INSTALL) -d ${mandir}
-	$(INSTALL) gnome-cfclient.man ${mandir}/gnome-gcfclient.1
+	$(INSTALL) gnome-cfclient.man ${mandir}/gnome-gcfclient.6
 	$(INSTALL) -d ${soundlistdir}
 	$(INSTALL) gnome-cfclient.soundlist ${soundlistdir}/gnome-cfclient.soundlist
 	$(INSTALL) -d ${desktopdir}

@@ -19,7 +19,7 @@ CFLAGS = @CFLAGS@ @CPPFLAGS@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=${DESTDIR}@bindir@
-mandir=${DESTDIR}@mandir@/man1
+mandir=${DESTDIR}@mandir@/man6
 
 HEADERS= \
 	clientbmap.h		\

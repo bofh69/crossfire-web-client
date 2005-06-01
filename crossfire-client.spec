@@ -102,9 +102,9 @@ install -d %{buildroot}%{_datadir}/icons/locolor/48x48/apps
 #%{__make} install \
 #    DESTDIR=%{buildroot} \
 #    bindir=%{buildroot}%{_bindir} \
-#    mandir=%{buildroot}%{_mandir}/man1
+#    mandir=%{buildroot}%{_mandir}/man6
 
-%makeinstall mandir=%{buildroot}%{_mandir}/man1
+%makeinstall mandir=%{buildroot}%{_mandir}/man6
 
 #
 # KDE
@@ -141,13 +141,13 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %defattr(644,root,root,755)
 %doc CHANGES COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/cfclient
-%{_mandir}/man1/cfclient.6*
+%{_mandir}/man6/cfclient.6*
 
 %files gtk
 %defattr(644,root,root,755)
 %doc CHANGES COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/gcfclient
-%{_mandir}/man1/gcfclient.6*
+%{_mandir}/man6/gcfclient.6*
 %dir %{_datadir}/games/crossfire/%{name}
 %attr(0444,root,root) %{_datadir}/games/crossfire/%{name}/*
 
@@ -168,7 +168,7 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 #%defattr(644,root,root,755)
 #%doc CHANGES COPYING License NOTES README TODO
 #%attr(755,root,root) /usr/X11R6/bin/gnome-cfclient
-#/usr/X11R6/man/man1/gnome-cfclient.1*
+#/usr/X11R6/man/man6/gnome-cfclient.6*
 #/usr/share/gnome/apps/Games/Tclug/crossfire.desktop
 #/usr/share/pixmaps/shield.png
 
