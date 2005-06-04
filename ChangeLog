@@ -3,6 +3,13 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+configure.in, configure: Turn of the use of dmalloc as the default - if
+   dmalloc is disabled, it has to be intentionally set.  gtkv2 client runs
+   dog slow if dmalloc is used, so that isn't a good default
+common/item.c: Fix bug that resulted in the item names not being updated
+   properly - bug introduced in patch 1197437.
+MSW 2005-06-04
+
 crossfire-client.spec, gnome/Makefile.in, x11/Makefile.in: Patch from Kari
    Pahula to fix manpage paths.
 gtk/gx11.h: Patch from Kari Pahula to remove incorrect variable declaration.

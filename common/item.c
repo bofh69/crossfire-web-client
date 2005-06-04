@@ -507,6 +507,9 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 	else { /* If not new version, just use same for both */
 	    copy_name(op->p_name, name);
 	}
+
+	/* Necessary so that d_name is updated below */
+	op->nrof = nrof + 1;
     } else {
 	resort=0;	/* no name - don't resort */
     }
@@ -514,10 +517,9 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
     if (op->nrof != nrof) {
         if (nrof !=1 ) {
 	    sprintf(op->d_name, "%s %s", get_number(nrof), op->p_name);
-    } else {
-	strcpy(op->d_name, op->s_name);
-    }
-
+	} else {
+	    strcpy(op->d_name, op->s_name);
+	}
         op->nrof = nrof;
     }
 
