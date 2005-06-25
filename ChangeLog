@@ -3,6 +3,9 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+common/metaserver.c: wrong number displayed for cached servers.
+Ryo 2005-06-25
+
 configure.in, configure: Turn of the use of dmalloc as the default - if
    dmalloc is disabled, it has to be intentionally set.  gtkv2 client runs
    dog slow if dmalloc is used, so that isn't a good default

@@ -376,7 +376,7 @@ void metaserver_show(int show_selection)
         draw_info("\nLast servers you connected to:\n", NDI_BLACK );
         for ( i = 0; i < cached_servers_num; i++ )
             {
-            sprintf( buf, "%2d) %-20.20s %-20.20s", i + meta_numservers + 1, cached_servers_name[ i ], cached_servers_ip[ i ] );
+            sprintf( buf, "%2d) %-20.20s %-20.20s", i + 1, cached_servers_name[ i ], cached_servers_ip[ i ] );
             draw_info( buf, NDI_BLACK );
             }
         draw_info( " ", NDI_BLACK );
