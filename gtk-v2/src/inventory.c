@@ -682,7 +682,12 @@ drawingarea_inventory_table_expose_event        (GtkWidget       *widget,
 Right click drops the object.  Shift left click locks/unlocks the object.  Shift \
 middle click marks the object"
 
-void draw_inv_table()
+/* draws the table of image icons. 
+ * if 'animate' is non zero, then this is an animation run -
+ * flip the animation state of the objects, and only draw
+ * those that need to be drawn.
+ */
+void draw_inv_table(int animate)
 {
     int x, y, rows, columns, num_items, i;
     static int max_drawn=0;
@@ -718,52 +723,74 @@ void draw_inv_table()
 			     x, x+1, y, y+1, GTK_FILL, GTK_FILL, 0, 0);
 
 	}
-	/* Need to clear out the old signals, since the signals are effectively
-	 * stacked - you can have 6 signal handlers tied to the same function.
-	 */
-	handler = g_signal_handler_find((gpointer)inv_table_children[x][y], 
+	if (animate) {
+	    /* This is an object with animations */
+	    if (tmp->animation_id >0 && tmp->anim_speed) {
+		tmp->last_anim++;
+
+		/* Time to change the face for this one */
+		if (tmp->last_anim >= tmp->anim_speed) {
+		    tmp->anim_state++;
+		    if (tmp->anim_state >= animations[tmp->animation_id].num_animations)
+			tmp->anim_state=0;
+		    tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
+		    tmp->last_anim=0;
+
+		    gdk_window_clear(inv_table_children[x][y]->window);
+		    gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL, 
+			(GdkPixbuf*)pixmaps[tmp->face]->icon_image,
+			0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
+		}
+	    }
+	    /* On animation run, so don't do any of the remaining logic */
+	} else {
+	    /* Need to clear out the old signals, since the signals are effectively
+	     * stacked - you can have 6 signal handlers tied to the same function.
+	     */
+	    handler = g_signal_handler_find((gpointer)inv_table_children[x][y], 
 			G_SIGNAL_MATCH_FUNC, 0, 0, NULL, 
 			G_CALLBACK (drawingarea_inventory_table_button_press_event),
 			NULL);
 
-	if (handler) 
-	    g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+	    if (handler) 
+		g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
 
-	handler = g_signal_handler_find((gpointer)inv_table_children[x][y], 
+	    handler = g_signal_handler_find((gpointer)inv_table_children[x][y], 
 			G_SIGNAL_MATCH_FUNC, 0, 0, NULL, 
 			G_CALLBACK (drawingarea_inventory_table_expose_event),
 			NULL);
-	if (handler) 
-	    g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+	    if (handler) 
+		g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
 
-	/* Not positive precisely what events are need, but some events
-	 * beyond just the button press are necessary for the tooltips to
-	 * work.
-	 */
-	gtk_widget_add_events (inv_table_children[x][y], GDK_ALL_EVENTS_MASK);
+	    /* Not positive precisely what events are need, but some events
+	     * beyond just the button press are necessary for the tooltips to
+	     * work.
+	     */
+	    gtk_widget_add_events (inv_table_children[x][y], GDK_ALL_EVENTS_MASK);
 
-	g_signal_connect ((gpointer) inv_table_children[x][y], "button_press_event",
+	    g_signal_connect ((gpointer) inv_table_children[x][y], "button_press_event",
 		G_CALLBACK (drawingarea_inventory_table_button_press_event),
 		tmp);
 
-	g_signal_connect ((gpointer) inv_table_children[x][y], "expose_event",
+	    g_signal_connect ((gpointer) inv_table_children[x][y], "expose_event",
 		G_CALLBACK (drawingarea_inventory_table_expose_event),
 		tmp);
 
-	gdk_window_clear(inv_table_children[x][y]->window);
-	gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL, 
+	    gdk_window_clear(inv_table_children[x][y]->window);
+	    gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL, 
 			(GdkPixbuf*)pixmaps[tmp->face]->icon_image,
 			0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
 
-	gtk_widget_show(inv_table_children[x][y]);
+	    gtk_widget_show(inv_table_children[x][y]);
 
-	/* We use tooltips to provide additional detail about the icons.
-	 * Looking at the code, the tooltip widget will take care of removing
-	 * the old tooltip, freeing strings, etc.
-	 */
-	snprintf(buf, 255, "%s %s", tmp->d_name, tmp->flags);
-	gtk_tooltips_set_tip(inv_table_tooltips, inv_table_children[x][y],
+	    /* We use tooltips to provide additional detail about the icons.
+	     * Looking at the code, the tooltip widget will take care of removing
+	     * the old tooltip, freeing strings, etc.
+	     */
+	    snprintf(buf, 255, "%s %s", tmp->d_name, tmp->flags);
+	    gtk_tooltips_set_tip(inv_table_tooltips, inv_table_children[x][y],
 			     buf, INVHELPTEXT);
+	}
 	x++;
 	if (x == columns) {
 	    x=0;
@@ -771,6 +798,9 @@ void draw_inv_table()
 	}
 
     }
+    /* Don't need to do the logic below if only doing animation run */
+    if (animate) return;
+
     /* need to disconnect the callback functions cells we did not draw.
      * otherwise, we get errors on objects that are drawn.
      */
@@ -822,7 +852,7 @@ void draw_inv(int tab)
     if (inv_notebooks[tab].type == INV_TREE)
 	draw_inv_list(tab);
     else if (inv_notebooks[tab].type == INV_TABLE)
-	draw_inv_table();
+	draw_inv_table(0);
 }
 
 /*
@@ -881,7 +911,77 @@ on_inv_table_expose_event              (GtkWidget       *widget,
                                         GdkEventExpose  *event,
                                         gpointer         user_data)
 {
-    draw_inv_table();
+    draw_inv_table(0);
     return TRUE;
 }
 
+
+
+void animate_inventory()
+{
+    gboolean valid;
+    GtkTreeIter iter;
+    item *tmp;
+    int page;
+    GtkTreeStore    *store;
+    static int tick=0;
+
+    /* The gtk client timeout is 12 times faster than that of the server
+     * so we slow it down here.  If we were really clever, we'd find
+     * what the timeout on the server actually is, and do gettimeofday
+     * calls here to remain very closely in sync.
+     */
+    tick++;
+    if (tick < 12) return;
+    tick=0;
+
+    page = gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook));
+
+    /* Still need to do logic for the table view. */
+    if (inv_notebooks[page].type == INV_TABLE) {
+	draw_inv_table(1);
+	return;
+    }
+
+    store = inv_notebooks[page].treestore;
+
+    /* Get the first iter in the list */
+    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(store), &iter);
+
+    while (valid) {
+	gtk_tree_model_get (GTK_TREE_MODEL(store), &iter, 
+                          LIST_OBJECT, &tmp, 
+                          -1);
+
+	/* This is an object with animations */
+	if (tmp->animation_id >0 && tmp->anim_speed) {
+	    tmp->last_anim++;
+
+	    /* Time to change the face for this one */
+	    if (tmp->last_anim >= tmp->anim_speed) {
+		tmp->anim_state++;
+		if (tmp->anim_state >= animations[tmp->animation_id].num_animations)
+		    tmp->anim_state=0;
+		tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
+		tmp->last_anim=0;
+
+		/* Update image in the tree store */
+		gtk_tree_store_set(store, &iter,
+				   LIST_ICON, (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
+				   -1);
+
+	    }
+	}
+	valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(store), &iter);
+    }
+}
+
+
+
+/* This is called periodically from main.c - basically a timeout,
+ * used to animate the inventory.
+ */
+void inventory_tick()
+{
+    animate_inventory();
+}

@@ -3,6 +3,15 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Add inventory animation to the gtk2 client.
+gtk2proto.h: rebuilt
+inventory.c: Add new function that animates inventory.  Have draw_table() take
+   a second param that determines if it is doing an animation run or just
+   a normal draw.
+main.c: Move PACKAGE_DATA_DIR to be within WIN32 defines.  Add call to
+   inventory_tick() in do_timeout()
+MSW 2005-06-26
+
 common/metaserver.c: wrong number displayed for cached servers.
 Ryo 2005-06-25
 

@@ -74,6 +74,8 @@ extern int time_map_redraw;
 #include "metaserver.c"
 
 #ifdef WIN32 /* Win32 scripting support */
+#define PACKAGE_DATA_DIR "."
+
 int do_scriptout()
 {
     script_process(NULL);
@@ -84,6 +86,7 @@ int do_scriptout()
 int do_timeout() 
 {
     if (cpl.showmagic) magic_map_flash_pos();
+    inventory_tick();
     return TRUE;
 }
 
@@ -496,7 +499,7 @@ main (int argc, char *argv[])
 
     gtk_set_locale ();
     gtk_init (&argc, &argv);
-#define PACKAGE_DATA_DIR "."
+
     add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
 
     /* parse_args() has to com after init_client_vars() */
