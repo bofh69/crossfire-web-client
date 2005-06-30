@@ -3,6 +3,11 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+gtk-v2/src/inventory.c: Remove call to check to display object in inventory
+    tab for container objects - if we show the container object, so
+    all objects within the container (bug 1226968)
+MSW 2005-06-29
+
 Add inventory animation to the gtk2 client.
 gtk2proto.h: rebuilt
 inventory.c: Add new function that animates inventory.  Have draw_table() take

@@ -633,8 +633,14 @@ void draw_inv_list(int tab)
 		/* Wonder if we really want this logic for objects in containers?
 		 * my thought is yes - being able to see all cursed objects in
 		 * the container could be quite useful.
+		 * Unfortunately, that doesn't quite work as intended, because
+		 * we will only get here if the container object is being displayed.
+		 * Since container objects can't be cursed, can't use that as
+		 * a filter.
 		 */
+		/*
 		rowflag = inv_notebooks[tab].show_func(tmp2);
+		*/
 		if (!(rowflag & INV_SHOW_ITEM)) continue;
 		add_object_to_store(tmp2, inv_notebooks[tab].treestore, &iter1, &iter,
 				    rowflag & INV_SHOW_COLOR);
