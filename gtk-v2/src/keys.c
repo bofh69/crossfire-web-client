@@ -363,6 +363,12 @@ void keys_init(GtkWidget *window_root)
 #else
     sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
 #endif
+
+    fire_label = lookup_widget(window_root,"fire_label");
+    run_label = lookup_widget(window_root,"run_label");
+    entry_commands = lookup_widget(window_root,"entry_commands");
+    spinbutton_count = lookup_widget(window_root,"spinbutton_count");
+
     if ((fp=fopen(buf,"r"))==NULL) {
 	LOG(LOG_INFO,"gtk::init_keys","Could not open ~/.crossfire/keys, trying to load global bindings");
 	if (client_libdir==NULL) {
@@ -382,10 +388,6 @@ void keys_init(GtkWidget *window_root)
     }
     fclose(fp);
 
-    fire_label = lookup_widget(window_root,"fire_label");
-    run_label = lookup_widget(window_root,"run_label");
-    entry_commands = lookup_widget(window_root,"entry_commands");
-    spinbutton_count = lookup_widget(window_root,"spinbutton_count");
 }
 
 /* The only things we actually care about is the run and fire keys.
