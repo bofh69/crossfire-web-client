@@ -3,6 +3,8 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c: Remove extra lines of code for scrolling.  Have
+   newlines be inserted in the correct place for the color info tab.
 gtk-v2/src/inventory.c: Remove call to check to display object in inventory
     tab for container objects - if we show the container object, so
     all objects within the container (bug 1226968)

@@ -128,9 +128,8 @@ void draw_info(const char *str, int color) {
 
 	gtk_text_buffer_get_end_iter(textbuf2, &end);
 	gtk_text_buffer_insert_with_tags(textbuf2, &end, str , strlen(str), text_tag2[ncolor], NULL);
-	gtk_text_buffer_insert_at_cursor(textbuf2, "\n" , 1);
-	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(textview_info2), textmark2);
-	gtk_text_view_get_visible_rect(GTK_TEXT_VIEW(textview_info2), &rect);
+	gtk_text_buffer_insert(textbuf2, &end, "\n" , 1);
+
 	if (scroll_to_end)
 	    gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(textview_info2), textmark2);
     }
