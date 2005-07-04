@@ -8,9 +8,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifndef WIN32
 #include <unistd.h>
-#endif
 #include <string.h>
 #include <stdio.h>
 
@@ -1113,5 +1111,94 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, treeview_look, "treeview_look");
 
   return window_root;
+}
+
+GtkWidget*
+create_metaserver_window (void)
+{
+  GtkWidget *metaserver_window;
+  GtkWidget *vbox7;
+  GtkWidget *label83;
+  GtkWidget *scrolledwindow7;
+  GtkWidget *treeview_metaserver;
+  GtkWidget *hbox10;
+  GtkWidget *label81;
+  GtkWidget *metaserver_status;
+  GtkWidget *hbox11;
+  GtkWidget *metaserver_select;
+  GtkWidget *button_metaserver_quit;
+
+  metaserver_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  GTK_WIDGET_SET_FLAGS (metaserver_window, GTK_CAN_FOCUS);
+  gtk_window_set_title (GTK_WINDOW (metaserver_window), _("Metaserver Selection"));
+  gtk_window_set_position (GTK_WINDOW (metaserver_window), GTK_WIN_POS_CENTER_ON_PARENT);
+  gtk_window_set_default_size (GTK_WINDOW (metaserver_window), 805, 400);
+
+  vbox7 = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (vbox7);
+  gtk_container_add (GTK_CONTAINER (metaserver_window), vbox7);
+
+  label83 = gtk_label_new (_("Please Select a Server to Play On"));
+  gtk_widget_show (label83);
+  gtk_box_pack_start (GTK_BOX (vbox7), label83, FALSE, FALSE, 0);
+
+  scrolledwindow7 = gtk_scrolled_window_new (NULL, NULL);
+  gtk_widget_show (scrolledwindow7);
+  gtk_box_pack_start (GTK_BOX (vbox7), scrolledwindow7, TRUE, TRUE, 0);
+
+  treeview_metaserver = gtk_tree_view_new ();
+  gtk_widget_show (treeview_metaserver);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow7), treeview_metaserver);
+
+  hbox10 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox10);
+  gtk_box_pack_start (GTK_BOX (vbox7), hbox10, FALSE, FALSE, 0);
+
+  label81 = gtk_label_new (_("Status:"));
+  gtk_widget_show (label81);
+  gtk_box_pack_start (GTK_BOX (hbox10), label81, FALSE, FALSE, 0);
+
+  metaserver_status = gtk_label_new ("");
+  gtk_widget_show (metaserver_status);
+  gtk_box_pack_start (GTK_BOX (hbox10), metaserver_status, FALSE, FALSE, 0);
+
+  hbox11 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox11);
+  gtk_box_pack_start (GTK_BOX (vbox7), hbox11, FALSE, FALSE, 0);
+
+  metaserver_select = gtk_button_new_with_mnemonic (_("Connect"));
+  gtk_widget_show (metaserver_select);
+  gtk_box_pack_start (GTK_BOX (hbox11), metaserver_select, TRUE, FALSE, 0);
+  gtk_widget_set_sensitive (metaserver_select, FALSE);
+  GTK_WIDGET_UNSET_FLAGS (metaserver_select, GTK_CAN_FOCUS);
+
+  button_metaserver_quit = gtk_button_new_from_stock ("gtk-quit");
+  gtk_widget_show (button_metaserver_quit);
+  gtk_box_pack_start (GTK_BOX (hbox11), button_metaserver_quit, TRUE, FALSE, 0);
+
+  g_signal_connect ((gpointer) treeview_metaserver, "row_activated",
+                    G_CALLBACK (on_treeview_metaserver_row_activated),
+                    NULL);
+  g_signal_connect ((gpointer) metaserver_select, "clicked",
+                    G_CALLBACK (on_metaserver_select_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) button_metaserver_quit, "pressed",
+                    G_CALLBACK (on_button_metaserver_quit_pressed),
+                    NULL);
+
+  /* Store pointers to all widgets, for use by lookup_widget(). */
+  GLADE_HOOKUP_OBJECT_NO_REF (metaserver_window, metaserver_window, "metaserver_window");
+  GLADE_HOOKUP_OBJECT (metaserver_window, vbox7, "vbox7");
+  GLADE_HOOKUP_OBJECT (metaserver_window, label83, "label83");
+  GLADE_HOOKUP_OBJECT (metaserver_window, scrolledwindow7, "scrolledwindow7");
+  GLADE_HOOKUP_OBJECT (metaserver_window, treeview_metaserver, "treeview_metaserver");
+  GLADE_HOOKUP_OBJECT (metaserver_window, hbox10, "hbox10");
+  GLADE_HOOKUP_OBJECT (metaserver_window, label81, "label81");
+  GLADE_HOOKUP_OBJECT (metaserver_window, metaserver_status, "metaserver_status");
+  GLADE_HOOKUP_OBJECT (metaserver_window, hbox11, "hbox11");
+  GLADE_HOOKUP_OBJECT (metaserver_window, metaserver_select, "metaserver_select");
+  GLADE_HOOKUP_OBJECT (metaserver_window, button_metaserver_quit, "button_metaserver_quit");
+
+  return metaserver_window;
 }
 

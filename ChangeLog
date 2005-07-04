@@ -3,6 +3,34 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+Bulk of this change is the addition of a pop up window in the gtk-v2
+client for metaserver selection, as well as other updates.  The files
+to the common area was really to pull the metaserver defines and data
+structures from the C file to a header file so that the gtk-v2 code
+can access them:
+--
+AUTHORS: New file, required by automake, data pulled README file.
+NEWS: New file, required by automake.
+Makefile.in, aclocal.m4: Rebuilt
+README: Remove author info from this file, move it to AUTHORS.
+common/Makefile.in: add metaserver.h file
+common/metaserver.h: New file containing metaserver defines and structures.
+common/metaserver.c: Pull out defines/structures from this file, moved to
+   metaserver.h.  Have it strip packets/byte count info from comment
+   section that metaserver reports.
+gtk-v2/Makefile.in: Rebuilt.
+gtk-v2/gtk-v2.glade: Added new metaserver window.
+gtk-v2/src/Makefile.am: Add metaserver.c as a standalone file that gets
+   compiled
+gtk-v2/src/Makefile.in: Rebuilt
+gtk-v2/src/callbacks.h, gtk-v2/src/interface.c, gtk-v2/src/interface.h: Updated
+    by glade2
+gtk-v2/src/main.c: Remove metaserver.c inclusion.  Initialize 
+    cached_server_file.  Change metaserver selection/display code.
+gtk-v2/src/metaserver.c: Lots of new code - have it display window,
+   handle selections, connect to server, etc.
+MSW 2005-07-04
+
 gtk-v2/src/info.c: Remove extra lines of code for scrolling.  Have
    newlines be inserted in the correct place for the color info tab.
 gtk-v2/src/inventory.c: Remove call to check to display object in inventory

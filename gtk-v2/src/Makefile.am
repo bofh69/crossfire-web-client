@@ -19,6 +19,7 @@ PROTO_SOURCES = \
 	map.c \
 	magicmap.c \
 	menubar.c \
+	metaserver.c \
 	opengl.c \
 	pickup.c \
 	png.c \

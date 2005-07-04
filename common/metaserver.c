@@ -41,35 +41,18 @@ char *rcsid_common_metaserver_c =
 #include <cconfig.h>
 #include <external.h>
 
-/* Arbitrary size.  At some point, we would need to cut this off simply
- * for display/selection reasons.
- */
-#define MAX_METASERVER 100
-
-/* Various constants we use in the structure */
-#define MS_SMALL_BUF	20
-#define MS_LARGE_BUF	256
-
-typedef struct Meta_Info {
-    char    ip_addr[MS_SMALL_BUF];
-    int	    idle_time;
-    char    hostname[MS_LARGE_BUF];
-    int	    players;
-    char    version[MS_SMALL_BUF];
-    char    comment[MS_LARGE_BUF];
-} Meta_Info;
-
-
+#include <metaserver.h>
 
 Meta_Info *meta_servers=NULL;
 
 int meta_numservers=0;
 
 int cached_servers_num = 0;
-#define CACHED_SERVERS_MAX  10
+
 char* cached_servers_name[ CACHED_SERVERS_MAX ];
 char* cached_servers_ip[ CACHED_SERVERS_MAX ];
 int cached_servers_loaded = 0;
+
 const char* cached_server_file = NULL;
 
 static int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
@@ -340,6 +323,12 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	    break;
 	}
 	*cp1=0;
+	/* There is extra info included, like the bytes to/from the server
+	 * that we dont' care about, so strip them off so they don't show up in
+	 * the comment.
+	 */
+	if ((cp1 = strchr(cp, '|'))!=NULL) 
+	    *cp1=0;
 	
 	strncpy(meta_servers[meta_numservers].comment, cp, MS_LARGE_BUF);
 	meta_servers[meta_numservers].comment[MS_LARGE_BUF]=0;

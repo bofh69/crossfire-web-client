@@ -1,0 +1,13 @@
+Authors of the client:
+(Note this is hardly a complete list - feel free to add yourself as
+you work on the client)
+
+------------------------------------------------------------------------------
+Mark Wedel (mwedel@sonic.net) - general client source, gtk, gtkv2, Xlib client,
+    opengl for gtkv2 client.
+David Sundqvist (azzie@netpolicy.com) - GTK+ port
+Raphael Quinet (Raphael.Quinet@eed.ericsson.se) - Configure scripts and
+graphics
+Jacek Konieczny <jajcus@zeus.polsl.gliwice.pl> - New Sound System support.
+Eric Anderson did a lot of initial work on the client.
+Scott MacFiggen (smurf@CSUA.Berkeley.EDU) - SDL support

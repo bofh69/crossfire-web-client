@@ -42,6 +42,7 @@ char *rcsid_gtk2_main_c =
 #include "image.h"
 #include "gtk2proto.h"
 #include "script.h"
+#include "metaserver.h"
 
 GtkWidget *window_root, *magic_map;
 
@@ -70,8 +71,6 @@ static uint8
 	updatekeycodes=FALSE;
 
 extern int time_map_redraw;
-
-#include "metaserver.c"
 
 #ifdef WIN32 /* Win32 scripting support */
 #define PACKAGE_DATA_DIR "."
@@ -490,6 +489,7 @@ main (int argc, char *argv[])
 {
     int i, got_one=0;
     extern GtkWidget *entry_commands;
+    static char file_cache[ MAX_BUF ];
 
 #ifdef ENABLE_NLS
     bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
@@ -570,6 +570,9 @@ main (int argc, char *argv[])
     map_init(window_root);
     magic_map = lookup_widget(window_root,"drawingarea_magic_map");
 
+    snprintf( file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv( "HOME" ) );
+    cached_server_file = file_cache;
+
     init_cache_data();
 
     /* Loop to connect to server/metaserver and play the game */
@@ -594,11 +597,7 @@ main (int argc, char *argv[])
 
 	    draw_splash();
 	    metaserver_get_info(meta_server, meta_port);
-	    metaserver_show(TRUE);
-	    gtk_widget_grab_focus (GTK_WIDGET(entry_commands)); 
-	    do {
-		ms=get_metaserver();
-	    } while (metaserver_select(ms));
+	    ms=get_metaserver();
 	    negotiate_connection(use_config[CONFIG_SOUND]);
 	} else {
 	    csocket.fd=init_connection(server, use_config[CONFIG_PORT]);

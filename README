@@ -183,13 +183,3 @@ matter what image location we use, as it is the same image.
 ~/.crossfire/crossfire-images.
 
 
-------------------------------------------------------------------------------
-Authors of the client:
-
-Mark Wedel (mwedel@sonic.net) - general client source and Xlib client
-David Sundqvist (azzie@netpolicy.com) - GTK+ port
-Raphael Quinet (Raphael.Quinet@eed.ericsson.se) - Configure scripts and
-graphics
-Jacek Konieczny <jajcus@zeus.polsl.gliwice.pl> - New Sound System support.
-Eric Anderson did a lot of initial work on the client.
-Scott MacFiggen (smurf@CSUA.Berkeley.EDU) - SDL support

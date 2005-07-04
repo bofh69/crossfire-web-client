@@ -26,6 +26,7 @@ HEADERS= \
 	external.h		\
 	item.h			\
 	item-types.h		\
+        metaserver.h		\
 	newclient.h		\
 	p_cmd.h			\
 	proto.h			\
