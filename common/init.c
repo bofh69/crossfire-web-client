@@ -199,8 +199,18 @@ void init_client_vars()
     /* If HOME is not set, let's set it to . to avoid things like (null)/.crossfire paths */
     if ( !getenv( "HOME" ) )
         {
-        LOG( LOG_INFO, "common::init.c", "init_client_vars: HOME not set, setting it to .\n" );
-        putenv( "HOME=." );
+        if ( getenv( "APPDATA" ) )
+            {
+            char env[ MAX_BUF ];
+            _snprintf( env, MAX_BUF, "HOME=%s", getenv( "APPDATA" ) );
+            LOG( LOG_INFO, "common::inic.c", "init_client_vars: HOME set to %APPDATA%.\n" );
+            putenv( env );
+            }
+        else
+            {
+            LOG( LOG_INFO, "common::init.c", "init_client_vars: HOME not set, setting it to .\n" );
+            putenv( "HOME=." );
+            }
         }
 #endif
     init_commands(); /* pcmd.c */

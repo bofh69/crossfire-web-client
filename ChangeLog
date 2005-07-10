@@ -3,6 +3,9 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+common/init.c: Win32 should use %APPDATA% instead of . for home directory.
+Ryo 2005-07-10
+
 Bulk of this change is the addition of a pop up window in the gtk-v2
 client for metaserver selection, as well as other updates.  The files
 to the common area was really to pull the metaserver defines and data
