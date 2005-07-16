@@ -66,7 +66,7 @@ extern uint8 map_did_scroll, map_updated;
 
 static void do_SDL_error( char* SDL_function, char* file, int line)
 {
-  LOG(LOG_CRITICAL,"SDL_function","SDL error in file %s line %d\n%s", SDL_function,
+  LOG(LOG_CRITICAL,SDL_function,"SDL error in file %s line %d\n%s",
 	   file, line, SDL_GetError());
   SDL_Quit();
   exit( 1);

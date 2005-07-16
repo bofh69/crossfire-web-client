@@ -3,6 +3,9 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+gtk/sdl.c, gtk-v2/src/sdl.c: Fix printf like format specifiers.
+Andreas Kirschbaum 2005-07-16
+
 common/init.c: Win32 should use %APPDATA% instead of . for home directory.
 Ryo 2005-07-10
 
