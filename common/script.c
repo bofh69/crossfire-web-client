@@ -386,6 +386,7 @@ void script_init(const char *cparams)
         }
 
    strncpy(params, cparams, MAX_BUF-1);
+   params[MAX_BUF-1] = '\0';
 
    /* Get name and args */
    name=params;

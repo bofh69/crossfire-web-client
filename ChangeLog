@@ -3,6 +3,9 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+common/script.c: Properly terminate string with '\0' in script_init().
+Andreas Kirschbaum 2005-07-18
+
 gtk/sdl.c, gtk-v2/src/sdl.c: Fix printf like format specifiers.
 Andreas Kirschbaum 2005-07-16
 
