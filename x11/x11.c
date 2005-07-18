@@ -2090,19 +2090,19 @@ int sync_display = 0;
 
 static int get_root_display(char *display_name) {
     char *cp;
-    static char errmsg[MAX_BUF];
 
     display=XOpenDisplay(display_name);
+    if (!display) {
+	fprintf(stderr, "Can't open display %s.\n", display_name);
+	return 1;
+    }
+
     wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", 0);
     /* This generates warnings, but looking at the documenation,
      * it seems like it _should_ be ok.
      */
     XSetErrorHandler(error_handler);
 
-    if (!display) {
-	sprintf(errmsg, "Can't open display %s.", display_name);
-	return 1;
-    }
     if ((getenv("ERIC_SYNC")!= NULL) || sync_display)
 	XSynchronize(display,True);
 
