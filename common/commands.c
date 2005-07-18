@@ -215,7 +215,7 @@ void SetupCmd(char *buf, int len)
 		 * not the same size, so whats the problem?  Tell the user that
 		 * something is wrong.
 		 */
-		sprintf(tmpbuf,"Unable to set mapsize on server - we wanted %d x %d, server returnd %d x %d",
+		sprintf(tmpbuf,"Unable to set mapsize on server - we wanted %d x %d, server returned %d x %d",
 			use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT], x, y);
 		draw_info(tmpbuf,NDI_RED);
 	    }
