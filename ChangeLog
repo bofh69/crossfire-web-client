@@ -3,6 +3,9 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+gtk/image.c: Remove stray '+' at beginning of line.
+Andreas Kirschbaum 2005-07-21
+
 x11/x11.c: Fix crash if display cannot be opened.
 common/script.c: Properly terminate string with '\0' in script_init().
 Andreas Kirschbaum 2005-07-18
