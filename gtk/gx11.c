@@ -1060,6 +1060,11 @@ void fill_news(GtkWidget* o, news_entry* news){
         news=news->next;
     }
 }
+static gint dialog_delete_event_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
+    {
+    loginWindow = NULL;
+    return FALSE;
+    }
 void buildLoginDialog(){
     if (loginWindow==NULL){
         /* build window */
@@ -1161,6 +1166,10 @@ void buildLoginDialog(){
         gtk_widget_show(loginButtonCancel);
         
         /*manage events on login widgets*/
+        gtk_signal_connect_object (GTK_OBJECT (loginWindow),
+                "delete_event",
+                GTK_SIGNAL_FUNC (dialog_delete_event_callback),
+                NULL);
         gtk_signal_connect_object (GTK_OBJECT (loginButtonCancel),
                 "clicked",
                 GTK_SIGNAL_FUNC (cancelConnection),

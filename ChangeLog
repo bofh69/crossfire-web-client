@@ -3,6 +3,9 @@ Top of CVS tree:
 
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: fix a crash if closing login window. Weird behaviour, but no crash.
+Ryo 2005-07-29
+
 gtk/image.c: Remove stray '+' at beginning of line.
 Andreas Kirschbaum 2005-07-21
 
