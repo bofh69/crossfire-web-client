@@ -473,6 +473,9 @@ static void parse_key(char key, uint32 keysym)
 	    cpl.input_state = Command_Mode;
    	    gtk_entry_set_text(GTK_ENTRY(entrytext),cpl.input_text);
 	    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+#ifdef WIN32
+        gtk_editable_select_region(GTK_EDITABLE(entrytext),strlen(cpl.input_text),-1);
+#endif
 	    return;
 	}
 
