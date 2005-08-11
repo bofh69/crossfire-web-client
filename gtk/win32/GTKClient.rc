@@ -28,8 +28,8 @@ LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,6,1,0
- PRODUCTVERSION 1,6,1,0
+ FILEVERSION 1,8,0,0
+ PRODUCTVERSION 1,8,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -42,25 +42,25 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040c04b0"
+        BLOCK "000004b0"
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "GTKClient\0"
-            VALUE "FileVersion", "1, 6, 1, 0\0"
+            VALUE "FileVersion", "1, 8, 0, 0\0"
             VALUE "InternalName", "GTKClient\0"
             VALUE "LegalCopyright", "Copyright © 2003\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "GTKClient.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "1, 6, 1, 0\0"
+            VALUE "ProductVersion", "1, 8, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x40c, 1200
+        VALUE "Translation", 0x0, 1200
     END
 END
 

@@ -1,12 +1,16 @@
-Changes for Win32 GTK client 1.7.1 snapshot May, 21st, 2005
------------------------------------------------------------
+Changes for Win32 GTK client 1.8.0 August, 11th, 2005
+-----------------------------------------------------
 
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
 
-From version 1.7.1
-------------------
-New login dialog. New messages/signs interface.
+From version 1.7.1 to version 1.8.0
+-----------------------------------
+* Client can now use GTK 2.6.
+* New login dialog. New messages/signs interface.
+* Settings & such storage path changed from client's installation directory to
+   user's "Application Data" path. Installer should handle the copying, other users
+   need to copy manually the .crossfire directory.
 
 From version 1.7.0 to version 1.7.1
 -----------------------------------

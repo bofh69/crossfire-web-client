@@ -1,4 +1,4 @@
-Readme for Crossfire's GTK client under Windows (May, 21st, 2005)
+Readme for Crossfire's GTK client under Windows (August, 21st, 2005)
 ---------------------------------------------------------------------
 
 This document contains notes and information about running Crossfire's GTK client under Win32.
@@ -9,7 +9,7 @@ Changes from previous versions are listed in 'Changes' or 'Full change log' file
 start menu.
 
 
-This is a snapshot including all changes since 1.7.1.
+This is release 1.8.0 of the client.
 
 
 Requirements
@@ -18,9 +18,7 @@ The client requires GTK libraries to run. It has been tested with libraries from
 and the ones provided by GAIM.
 
 You only need to get the 'GTK runtime environment' if don't plan on compiling the client.
-Client has been compiled with version 2.2.4.2. Use older versions at your own risk. Newer versions should be ok.
-
-WARNING: there is an issue with WinXP and GTK 2.4.x. If client doesn't work, try downgrading GTK.
+Client has been compiled with version 2.4.6. Use older versions at your own risk. Newer versions should be ok.
 
 Some other software, like GAIM (http://gaim.sf.net) will install GTK for you.
 
@@ -39,13 +37,7 @@ Note: if you installed via an installer, you can skip this section.
 The client can run from any directory.
 A .crossfire directory will be created to store settings and cached images.
 If the environment variable 'HOME' is set, .crossfire will be created as $HOME/.crossfire
-Else working directory will be used.
-
-If you have a previous version already installed:
-* copy the .crossfire\<player>.keys files
-* uninstall the old client
-* install this client (already done prolly :)
-* put your <player>.keys files back in <Crossfire GTK Client path>\.crossfire
+Else your application's directory will be used.
 
 
 Release notes & known issues

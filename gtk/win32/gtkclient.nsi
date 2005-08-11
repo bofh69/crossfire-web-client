@@ -5,7 +5,14 @@
 !include "MUI.nsh"
 
 ;Title Of Your Application
-Name "Crossfire GTK Client snapshot 2005-05-21"
+Name "Crossfire GTK Client 1.8.0"
+
+VIAddVersionKey "ProductName" "Crossfire GTK client installer"
+VIAddVersionKey "Comments" "Website: http://crossfire.real-time.com"
+VIAddVersionKey "FileDescription" "Crossfire GTK client installer"
+VIAddVersionKey "FileVersion" "1.8.0"
+VIAddVersionKey "LegalCopyright" "Crossfire is released under the GPL."
+VIProductVersion "1.8.0.0"
 
 ;Do A CRC Check
 CRCCheck On
@@ -18,6 +25,9 @@ InstallDir "$PROGRAMFILES\Crossfire GTK Client"
 InstallDirRegKey HKCU "Software\Crossfire GTK Client" ""
 
 !define MUI_ABORTWARNING
+
+!define MUI_ICON "GTKClient.ico"
+!define MUI_UNICON "GTKClient.ico"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\..\COPYING"
@@ -187,6 +197,10 @@ Section "Install"
   File ".crossfire\gwinpos"
   File ".crossfire\gdefaults"
   File ".crossfire\keys"
+
+  ; Copy files to user's appdata directory
+  CreateDirectory "$APPDATA\.crossfire"
+  CopyFiles "$INSTDIR\.crossfire\*" "$APPDATA\.crossfire"
   
   ; Write AppPath key
   StrCmp $GTKPath "" +2
@@ -195,7 +209,7 @@ Section "Install"
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Crossfire GTK Client" "DisplayName" "Crossfire GTK Client (remove only)"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Crossfire GTK Client" "UninstallString" "$INSTDIR\Uninst.exe"
-WriteUninstaller "Uninst.exe"
+  WriteUninstaller "Uninst.exe"
 SectionEnd
 
 Section "Shortcuts"
