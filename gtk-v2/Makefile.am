@@ -31,3 +31,8 @@ dist-hook:
 	  done \
 	fi
 
+
+archive:
+	$(MKDIR) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/gtk-v2
+	$(CP) $(EXTRA_DIST) $(DIST_COMMON) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/gtk-v2
+	(cd src; make archive)

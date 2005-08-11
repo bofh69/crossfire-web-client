@@ -1,7 +1,7 @@
 SUBDIRS=@CF_SUBDIRS@
 
 EXTRA_DIST = \
-	CHANGES			\
+	ChangeLog		\
 	COPYING			\
 	License			\
 	Makefile.in		\
@@ -44,6 +44,9 @@ PIXMAPS = \
 	pixmaps/question.111	\
 	pixmaps/question.sdl	\
 	pixmaps/question.xpm	\
+	pixmaps/sign_east.xpm   \
+	pixmaps/sign_flat.xpm   \
+	pixmaps/sign_west.xpm   \
 	pixmaps/skull.xpm	\
 	pixmaps/stipple.111	\
 	pixmaps/stipple.112	\
@@ -61,6 +64,7 @@ HELP= \
 UTILS = \
 	utils/config.guess	\
 	utils/config.sub	\
+	utils/depcomp		\
 	utils/deftoheader.pl	\
 	utils/install-sh	\
 	utils/mdk.sh		\
@@ -110,21 +114,21 @@ proto:
 	done;
 
 archive:
-	if [ -d /tmp/$(VERSION) ]; then $(RM) -rf /tmp/$(VERSION); fi
-	$(MKDIR) /tmp/$(VERSION) /tmp/$(VERSION)/utils /tmp/$(VERSION)/help /tmp/$(VERSION)/pixmaps
-	$(CP) $(EXTRA_DIST) /tmp/$(VERSION)
-	$(CP) $(PIXMAPS) /tmp/$(VERSION)/pixmaps
-	$(CP) $(HELP) /tmp/$(VERSION)/help
-	$(CP) $(UTILS) /tmp/$(VERSION)/utils
-	@for dir in $(ALLSUBDIRS); \
+	if [ -d /tmp/$(PACKAGE_TARNAME)-$(VERSION) ]; then $(RM) -rf /tmp/$(PACKAGE_TARNAME)-$(VERSION); fi
+	$(MKDIR) /tmp/$(PACKAGE_TARNAME)-$(VERSION) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/utils /tmp/$(PACKAGE_TARNAME)-$(VERSION)/help /tmp/$(PACKAGE_TARNAME)-$(VERSION)/pixmaps
+	$(CP) $(EXTRA_DIST) /tmp/$(PACKAGE_TARNAME)-$(VERSION)
+	$(CP) $(PIXMAPS) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/pixmaps
+	$(CP) $(HELP) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/help
+	$(CP) $(UTILS) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/utils
+	@for dir in $(DIST_SUBDIRS); \
 	    do \
 	    echo "making archive in $$dir..."; \
 	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' archive; ) \
 	done;
-	(cd /tmp; $(RM) $(VERSION).tgz; \
-		$(TAR) cvfhz $(VERSION).tar.gz $(VERSION) )
-	$(CP) /tmp/$(VERSION).tar.gz ../
-	$(RM) -rf /tmp/$(VERSION) /tmp/$(VERSION).tar.gz
+	(cd /tmp; $(RM) $(PACKAGE_TARNAME)-$(VERSION).tgz; \
+		$(TAR) cvfhz $(PACKAGE_TARNAME)-$(VERSION).tar.gz $(PACKAGE_TARNAME)-$(VERSION) )
+	$(CP) /tmp/$(PACKAGE_TARNAME)-$(VERSION).tar.gz ../
+	$(RM) -rf /tmp/$(PACKAGE_TARNAME)-$(VERSION) /tmp/$(PACKAGE_TARNAME)-$(VERSION).tar.gz
 
 install:
 	@for dir in $(SUBDIRS); \

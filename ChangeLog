@@ -1,7 +1,19 @@
 "$Id$"
 Top of CVS tree:
+------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
+Changes for 1.8.0:
+
+Makefile.am, Makefile.in: Add missing pixmaps, change CHANGES to ChangeLog,
+   update archive directive so it works.
+aclocal.m4: updated
+configure, configure.in: Updated for 1.8.0 release. Remove gnome/Makefile
+   from list of Makefiles to create.
+gtk-v2/Makefile.am, gtk-v2/Makefile.in: Add archive directive.
+gtk-v2/src/Makefile.{am|in}: Add missing soruces to list so that archive
+   works correctly. Add archive directive.
+MSW 2005-08-10
 
 gtk/keys.c: don't select text in widget under Windows.
 Ryo 2005-07-30
