@@ -19,12 +19,9 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-SUBDIRS = src
+dist_noinst_SCRIPTS = \
+	deftoheader.pl	\
+	mdk.sh	
 
-EXTRA_DIST = \
-	gtk-v2.glade \
-	gtk-v2.gladep \
-	README \
-	README-dev \
-	TODO
+
 

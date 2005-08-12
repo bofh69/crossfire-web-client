@@ -1,5 +1,5 @@
 #
-# Makefile for crossfire client
+# Makefile for crossfire-client
 #
 #   Copyright (C) 2005 Mark Wedel & Crossfire Development Team
 #
@@ -19,12 +19,49 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-SUBDIRS = src
+noinst_LIBRARIES = libcfclient.a
+
+libcfclient_a_SOURCES = \
+	client.c \
+	commands.c \
+	image.c \
+	init.c \
+	item.c \
+	metaserver.c \
+	misc.c \
+	newsocket.c \
+	p_cmd.c \
+	player.c \
+	script.c
+
+noinst_HEADERS = \
+	cconfig.h \
+	client-types.h \
+	client.h \
+	config.h \
+	def-keys.h \
+	external.h \
+	item-types.h \
+	item.h \
+	metaserver.h \
+	newclient.h \
+	p_cmd.h \
+	proto.h \
+	rcs-id.h \
+	script.h
+
 
 EXTRA_DIST = \
-	gtk-v2.glade \
-	gtk-v2.gladep \
-	README \
-	README-dev \
-	TODO
+	def-keys \
+	item-types \
+	items.pl
 
+proto:
+	cproto -e -o proto.h -DCPROTO -DCFCLIENT $(CPPFLAGS) $(AM_CPPFLAGS) \
+	chmod 644 proto.h
+
+item-types.h: item-types
+	$(PERL) items.pl
+
+def-keys.h: def-keys
+	../utils/mdk.sh

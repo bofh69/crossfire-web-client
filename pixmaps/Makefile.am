@@ -19,12 +19,44 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-SUBDIRS = src
-
-EXTRA_DIST = \
-	gtk-v2.glade \
-	gtk-v2.gladep \
-	README \
-	README-dev \
-	TODO
+noinst_HEADERS = \
+	16x16.png	\
+	32x32.png	\
+	48x48.png	\
+	all.xpm		\
+	applied.xbm	\
+	applied.xpm	\
+	bg.xpm		\
+	clear.xbm	\
+	close.xbm	\
+	close.xpm	\
+	coin.xpm	\
+	crossfiretitle.xpm	\
+	cursed.xbm	\
+	cursed.xpm	\
+	damned.xbm	\
+	damned.xpm	\
+	dot.xpm		\
+	hand.xpm	\
+	hand2.xpm	\
+	lock.xpm	\
+	locked.xbm	\
+	locked.xpm	\
+	mag.xpm		\
+	magic.xbm	\
+	magic.xpm	\
+	nonmag.xpm	\
+	question.111	\
+	question.sdl	\
+	question.xpm	\
+	sign_east.xpm   \
+	sign_flat.xpm   \
+	sign_west.xpm   \
+	skull.xpm	\
+	stipple.111	\
+	stipple.112	\
+	test.xpm	\
+	unlock.xpm	\
+	unpaid.xbm	\
+	unpaid.xpm	
 

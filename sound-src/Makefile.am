@@ -19,12 +19,28 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-SUBDIRS = src
 
-EXTRA_DIST = \
-	gtk-v2.glade \
-	gtk-v2.gladep \
-	README \
-	README-dev \
-	TODO
+bin_PROGRAMS = cfsndserv cfsndserv-alsa9
+
+EXTRA_DIST = common.c sounds.dist
+
+noinst_HEADERS = \
+	soundsdef.h
+
+cfsndserv_SOURCES = cfsndserv.c
+cfsndserv_LDADD = $(SND_LIBS) $(DMALLOC_LIB)
+
+cfsndserv_alsa9_SOURCES = alsa9.c
+cfsndserv_alsa9_LDADD =  $(ALSA9_LIBS) $(DMALLOC_LIB)
+
+
+sounds: sounds.dist Makefile
+	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUND_DIR)# sounds.dist > sounds
+
+soundsdef.h: sounds
+	$(PERL) ../utils/deftoheader.pl sounds soundsdef.h def_sounds
+
+
+proto:
+	echo "Nothing to do for proto"
 

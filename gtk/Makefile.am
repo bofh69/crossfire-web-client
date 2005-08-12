@@ -19,12 +19,45 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-SUBDIRS = src
+
+bin_PROGRAMS = gcfclient
+
+gcfclient_SOURCES = \
+	config.c \
+	gx11.c \
+	help.c \
+	image.c \
+	inventory.c \
+	keys.c \
+	map.c \
+	png.c \
+	sdl.c \
+	sound.c \
+	text.c
+
+noinst_HEADERS = \
+	gtkproto.h \
+	gx11.h \
+	rcs-id.h
 
 EXTRA_DIST = \
-	gtk-v2.glade \
-	gtk-v2.gladep \
-	README \
-	README-dev \
-	TODO
+	crossfire-client.desktop
+
+dist_man6_MANS = \
+	gcfclient.man
+
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/common -I$(top_srcdir)/pixmaps $(GTK_CFLAGS) $(SDL_CFLAGS) 
+gcfclient_LDADD = $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
+
+../common/libcfclient.a:
+	( cd ../common ; make libcfclient.a )
+
+
+# Check if everything is installed as it should
+installcheck-local:
+	$(bindir)/gcfclient -help
+
+proto:
+	cproto -e -o gtkproto.h $(AM_CPPFLAGS) $(gcfclient_SOURCES) 
+	chmod 644 gtkproto.h
 

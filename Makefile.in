@@ -13,6 +13,27 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
+#
+# Makefile for crossfire client
+#
+#   Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#   The author can be reached via e-mail to crossfire-devel@real-time.com
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -37,14 +58,10 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/common/Makefile.in \
-	$(top_srcdir)/common/config.h.in $(top_srcdir)/configure \
-	$(top_srcdir)/gtk/Makefile.in \
-	$(top_srcdir)/sound-src/Makefile.in \
-	$(top_srcdir)/x11/Makefile.in AUTHORS COPYING ChangeLog \
-	INSTALL NEWS TODO config.guess config.sub utils//config.guess \
-	utils//config.sub utils//depcomp utils//install-sh \
-	utils//missing utils//mkinstalldirs
+	$(srcdir)/Makefile.in $(top_srcdir)/configure AUTHORS COPYING \
+	ChangeLog INSTALL NEWS TODO config.guess config.sub \
+	utils//config.guess utils//config.sub utils//depcomp \
+	utils//install-sh utils//missing utils//mkinstalldirs
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
@@ -54,8 +71,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(SHELL) $(top_srcdir)/utils/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/common/config.h
-CONFIG_CLEAN_FILES = gtk/Makefile x11/Makefile common/Makefile \
-	sound-src/Makefile
+CONFIG_CLEAN_FILES =
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -216,63 +232,6 @@ EXTRA_DIST = \
 	configure.in		\
 	crossfire-client.spec
 
-PIXMAPS = \
-	pixmaps/16x16.png	\
-	pixmaps/32x32.png	\
-	pixmaps/48x48.png	\
-	pixmaps/all.xpm		\
-	pixmaps/applied.xbm	\
-	pixmaps/applied.xpm	\
-	pixmaps/bg.xpm		\
-	pixmaps/clear.xbm	\
-	pixmaps/close.xbm	\
-	pixmaps/close.xpm	\
-	pixmaps/coin.xpm	\
-	pixmaps/crossfiretitle.xpm	\
-	pixmaps/cursed.xbm	\
-	pixmaps/cursed.xpm	\
-	pixmaps/damned.xbm	\
-	pixmaps/damned.xpm	\
-	pixmaps/dot.xpm		\
-	pixmaps/hand.xpm	\
-	pixmaps/hand2.xpm	\
-	pixmaps/lock.xpm	\
-	pixmaps/locked.xbm	\
-	pixmaps/locked.xpm	\
-	pixmaps/mag.xpm		\
-	pixmaps/magic.xbm	\
-	pixmaps/magic.xpm	\
-	pixmaps/nonmag.xpm	\
-	pixmaps/question.111	\
-	pixmaps/question.sdl	\
-	pixmaps/question.xpm	\
-	pixmaps/sign_east.xpm   \
-	pixmaps/sign_flat.xpm   \
-	pixmaps/sign_west.xpm   \
-	pixmaps/skull.xpm	\
-	pixmaps/stipple.111	\
-	pixmaps/stipple.112	\
-	pixmaps/test.xpm	\
-	pixmaps/unlock.xpm	\
-	pixmaps/unpaid.xbm	\
-	pixmaps/unpaid.xpm	
-
-HELP = \
-	help/about.h		\
-	help/chelp.h		\
-	help/shelp.h		\
-	help/bugreport.h
-
-UTILS = \
-	utils/config.guess	\
-	utils/config.sub	\
-	utils/depcomp		\
-	utils/deftoheader.pl	\
-	utils/install-sh	\
-	utils/mdk.sh		\
-	utils/missing		\
-	utils/mkinstalldirs
-
 all: all-recursive
 
 .SUFFIXES:
@@ -309,31 +268,6 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(srcdir) && $(AUTOCONF)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
-
-common/config.h: common/stamp-h1
-	@if test ! -f $@; then \
-	  rm -f common/stamp-h1; \
-	  $(MAKE) common/stamp-h1; \
-	else :; fi
-
-common/stamp-h1: $(top_srcdir)/common/config.h.in $(top_builddir)/config.status
-	@rm -f common/stamp-h1
-	cd $(top_builddir) && $(SHELL) ./config.status common/config.h
-$(top_srcdir)/common/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
-	cd $(top_srcdir) && $(AUTOHEADER)
-	rm -f common/stamp-h1
-	touch $@
-
-distclean-hdr:
-	-rm -f common/config.h common/stamp-h1
-gtk/Makefile: $(top_builddir)/config.status $(top_srcdir)/gtk/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-x11/Makefile: $(top_builddir)/config.status $(top_srcdir)/x11/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-common/Makefile: $(top_builddir)/config.status $(top_srcdir)/common/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-sound-src/Makefile: $(top_builddir)/config.status $(top_srcdir)/sound-src/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
 uninstall-info-am:
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -471,7 +405,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/common $(distdir)/gtk $(distdir)/sound-src $(distdir)/utils $(distdir)/x11
+	$(mkdir_p) $(distdir)/utils
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -615,6 +549,7 @@ check: check-recursive
 all-am: Makefile
 installdirs: installdirs-recursive
 installdirs-am:
+install: install-recursive
 install-exec: install-exec-recursive
 install-data: install-data-recursive
 uninstall: uninstall-recursive
@@ -638,9 +573,14 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+clean: clean-recursive
+
 clean-am: clean-generic mostlyclean-am
 
-distclean-am: clean-am distclean-generic distclean-hdr distclean-tags
+distclean: distclean-recursive
+	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
+	-rm -f Makefile
+distclean-am: clean-am distclean-generic distclean-tags
 
 dvi: dvi-recursive
 
@@ -688,80 +628,22 @@ uninstall-info: uninstall-info-recursive
 	check-am clean clean-generic clean-recursive ctags \
 	ctags-recursive dist dist-all dist-bzip2 dist-gzip dist-shar \
 	dist-tarZ dist-zip distcheck distclean distclean-generic \
-	distclean-hdr distclean-recursive distclean-tags \
-	distcleancheck distdir distuninstallcheck dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-man install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic maintainer-clean-recursive \
-	mostlyclean mostlyclean-generic mostlyclean-recursive pdf \
-	pdf-am ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-info-am
+	distclean-recursive distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-exec \
+	install-exec-am install-info install-info-am install-man \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	maintainer-clean-recursive mostlyclean mostlyclean-generic \
+	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-info-am
 
-
-all:
-	@for dir in $(SUBDIRS); \
-	    do \
-	    echo "making all in $$dir..."; \
-	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' all; ) \
-	done;
-
-depend:
-	@if [ "X$(DEPEND)" = "X" ] ; then \
-	    echo "No makedepend - will not depend files"; \
-	else \
-	    for dir in $(SUBDIRS); \
-		do \
-	    	echo "making depend in $$dir..."; \
-	    	(cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' depend; ) \
-	    done; \
-	fi
-
-clean:
-	@for dir in $(SUBDIRS); \
-	    do \
-	    echo "making clean in $$dir..."; \
-	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' clean; ) \
-	done;
-
-distclean:
-	$(RM) -f Makefile Makefile.bak config.cache config.log config.status
-	@for dir in $(SUBDIRS); \
-	    do \
-	    echo "making distclean in $$dir..."; \
-	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' distclean; ) \
-	done;
 
 proto:
 	@for dir in $(SUBDIRS); \
 	    do \
 	    echo "making proto in $$dir..."; \
 	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' proto; ) \
-	done;
-
-archive:
-	if [ -d /tmp/$(PACKAGE_TARNAME)-$(VERSION) ]; then $(RM) -rf /tmp/$(PACKAGE_TARNAME)-$(VERSION); fi
-	$(MKDIR) /tmp/$(PACKAGE_TARNAME)-$(VERSION) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/utils /tmp/$(PACKAGE_TARNAME)-$(VERSION)/help /tmp/$(PACKAGE_TARNAME)-$(VERSION)/pixmaps
-	$(CP) $(EXTRA_DIST) /tmp/$(PACKAGE_TARNAME)-$(VERSION)
-	$(CP) $(PIXMAPS) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/pixmaps
-	$(CP) $(HELP) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/help
-	$(CP) $(UTILS) /tmp/$(PACKAGE_TARNAME)-$(VERSION)/utils
-	@for dir in $(DIST_SUBDIRS); \
-	    do \
-	    echo "making archive in $$dir..."; \
-	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' archive; ) \
-	done;
-	(cd /tmp; $(RM) $(PACKAGE_TARNAME)-$(VERSION).tgz; \
-		$(TAR) cvfhz $(PACKAGE_TARNAME)-$(VERSION).tar.gz $(PACKAGE_TARNAME)-$(VERSION) )
-	$(CP) /tmp/$(PACKAGE_TARNAME)-$(VERSION).tar.gz ../
-	$(RM) -rf /tmp/$(PACKAGE_TARNAME)-$(VERSION) /tmp/$(PACKAGE_TARNAME)-$(VERSION).tar.gz
-
-install:
-	@for dir in $(SUBDIRS); \
-	    do \
-	    echo "making install in $$dir..."; \
-	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' install; ) \
 	done;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

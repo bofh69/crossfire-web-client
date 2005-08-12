@@ -19,12 +19,37 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-SUBDIRS = src
 
-EXTRA_DIST = \
-	gtk-v2.glade \
-	gtk-v2.gladep \
-	README \
-	README-dev \
-	TODO
+bin_PROGRAMS = cfclient
+
+cfclient_SOURCES = \
+	png.c  \
+	sound.c  \
+	x11.c  \
+	xutil.c
+
+
+noinst_HEADERS = \
+	clientbmap.h\
+	rcs-id.h \
+	x11.h \
+	x11proto.h
+
+dist_man6_MANS = \
+	cfclient.man
+
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/common -I$(top_srcdir)/pixmaps
+cfclient_LDADD = $(DMALLOC_LIB) $(X_LIBS) ../common/libcfclient.a
+
+../common/libcfclient.a:
+	( cd ../common ; make libcfclient.a )
+
+
+# Check if everything is installed as it should
+installcheck-local:
+	$(bindir)/cfclient -help
+
+proto:
+	cproto -e -o x11proto.h $(AM_CPPFLAGS) $(cfclient_SOURCES)
+	chmod 644 x11proto.h
 

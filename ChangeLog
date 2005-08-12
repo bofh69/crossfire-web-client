@@ -2,6 +2,24 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+This commit adds full automake support for the client - previously, only the
+gtk-v2 directory used automake, rest was Makefile.in - now everything is
+automake - makes maintenance and distributions easier.
+--
+common/Makefile.am gtk/Makefile.am help/Makefile.am pixmaps/Makefile.am
+ sound-src/Makefile.am utils/Makefile.am x11/Makefile.am pixmaps/Makefile.in 
+ utils/Makefile.in help/Makefile.in: New Makefiles
+Makefile.am, Makefile.in: Removed unneeded rules, move pixmap, help, util
+   handling to makefiles in their own directories.
+configure, configure.in: Update to include pixmap, help, util as
+   directories.
+gtk-v2/Makefile.am, gtk-v2/Makefile.in: Clean up some rules in this makefile.
+common/Makefile.in, gtk/Makefile.in, sound-src/Makefile.in, x11/Makefile.in:
+   Rebuilt as part of automake.
+gtk-v2/src/Makefile.am, gtk-v2/src/Makefile.in: Add banner copyright, remove
+   uneeded rules.
+MSW 2005-08-11
+
 ------------------------------------------------------------------------------
 Changes for 1.8.0:
 
