@@ -41,7 +41,6 @@ char *rcsid_common_misc_c =
 #ifndef WIN32
 #include <sys/wait.h>
 #else
-#define inline __inline
 #include <direct.h>
 #include <io.h>
 #endif
@@ -147,7 +146,7 @@ static char* LogLevelTexts[]={" DEBUG  ",
                               " ERROR  ",
                               "CRITICAL",
                               "UNKNOWN "};
-static inline char * getLogLevelText(LogLevel level){
+static char * getLogLevelText(LogLevel level){
     return LogLevelTexts[level>LOG_CRITICAL?LOG_CRITICAL+1:level];
 }
 char* getLogTextRaw(LogLevel level, char* origin, char*message){
@@ -187,7 +186,7 @@ void LOG (LogLevel level, char* origin, char *format, ...)
 
   buf[0] = '\0';
   vsprintf(buf, format, ap);
-  //fprintf(stderr,getLogTextRaw(level,origin,buf));
+  /*fprintf(stderr,getLogTextRaw(level,origin,buf));*/
   if (strlen(buf)>0){
     LogEntry *le = LOG_NEW_ENTRY;
     LOG_APPEND(le);

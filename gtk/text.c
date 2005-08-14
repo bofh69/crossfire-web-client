@@ -348,9 +348,9 @@ void add_book(char* title, char* message){
     gtk_box_pack_start (GTK_BOX (panel), hbox, TRUE, TRUE, 0);
     
     label = gtk_label_new(title);
-//    tab = gtk_hbox_new();
-//    button_pic = gtk_pixmap_new(btnClose_pm, btnClose_bm);
-//    button = gtk_button_new();
+/*    tab = gtk_hbox_new();*/
+/*    button_pic = gtk_pixmap_new(btnClose_pm, btnClose_bm);*/
+/*    button = gtk_button_new();*/
     
     gtk_notebook_append_page(GTK_NOTEBOOK(book_notes),panel,label);
     gtk_widget_show(content);    

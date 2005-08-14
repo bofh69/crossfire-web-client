@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/misc.c, gtk/{gx11.c,sdl.c,text.c}, gtk-v2/src/sdl.c, x11/sound.c:
+   Fix non-Ansi C89 code: remove "inline" function specifier, replace "//"
+   comments.
 common/metaserver.c: Fix buffer overflow in metaserver_get_info().
 x11/x11proto.h, x11/xutil.c: Use correct parameter type "uint16" for
    addsmooth().

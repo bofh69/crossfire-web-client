@@ -2700,7 +2700,7 @@ void bugdialog(GtkWidget *widget) {
     gtk_window_set_title (GTK_WINDOW (gtkwin_bug), "Report a bug in Crossfire");
 
     gtk_signal_connect (GTK_OBJECT (gtkwin_bug), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_bug);
-    //gtk_signal_connect (GTK_OBJECT (gtkwin_bug), "destroy", GTK_SIGNAL_FUNC(bugreportdestroy), &gtkwin_bug);
+    /*gtk_signal_connect (GTK_OBJECT (gtkwin_bug), "destroy", GTK_SIGNAL_FUNC(bugreportdestroy), &gtkwin_bug);*/
 
     gtk_container_border_width (GTK_CONTAINER (gtkwin_bug), 0);
     vbox = gtk_vbox_new(FALSE, 2);
@@ -2720,7 +2720,7 @@ void bugdialog(GtkWidget *widget) {
 
     buglabel = gtk_text_new (NULL, NULL);
     gtk_widget_set_style(buglabel,style);
-    //GtkStyle*   gtk_widget_get_style            (GtkWidget *widget);
+    /*GtkStyle*   gtk_widget_get_style            (GtkWidget *widget);*/
     gtk_text_set_editable (GTK_TEXT (buglabel), FALSE);
     gtk_box_pack_start (GTK_BOX (hbox),buglabel, TRUE, TRUE, 0);
     gtk_widget_show (buglabel);
@@ -3755,7 +3755,7 @@ void create_windows() {
         rootwin_height = (33*gch)+(map_image_size*use_config[CONFIG_MAPHEIGHT]);
     gtk_widget_set_usize (gtkwin_root,rootwin_width,rootwin_height);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
-    //gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
+    /*gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);*/
     gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(client_exit), NULL);
 
     gtk_container_border_width (GTK_CONTAINER (gtkwin_root), 0);
@@ -3914,7 +3914,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_root,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,(map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire - view");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_root), TRUE, TRUE, FALSE);
-    //gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);
+    /*gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);*/
     gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(client_exit), NULL);
 
 

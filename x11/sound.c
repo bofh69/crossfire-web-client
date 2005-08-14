@@ -62,7 +62,7 @@ int init_sounds()
      */
     if (!want_config[CONFIG_SOUND]) return -1;
 
-    //if (sound_process) //kill
+    /*if (sound_process) //kill*/
 
     sound_process=raiseChild(BINDIR "/cfsndserv",CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR);
     logChildPipe(sound_process, LOG_INFO, CHILD_STDOUT|CHILD_STDERR);

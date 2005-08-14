@@ -350,7 +350,7 @@ void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,                /*co
 				val=255;
 			if (val<0)
 				val=0;
-			//printf("writing pel at %d,%d\n",destx+x,desty+y);
+			/*printf("writing pel at %d,%d\n",destx+x,desty+y);*/
 			putpixel(lightmap, destx+x-startx, desty+y-starty,
 				SDL_MapRGBA(lightmap->format, 0, 0, 0, val));
 		}
