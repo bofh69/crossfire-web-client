@@ -200,6 +200,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
     FILE *fp;
 #endif
     char    inbuf[MS_LARGE_BUF*4];
+    Meta_Info *current;
 
     if (!metaserver_on) {
 	meta_numservers=0;
@@ -274,11 +275,14 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	    break;
 	}
 	*cp=0;
-	strncpy(meta_servers[meta_numservers].ip_addr, inbuf, MS_SMALL_BUF);
-	meta_servers[meta_numservers].ip_addr[MS_SMALL_BUF]=0;
+
+	current = &meta_servers[meta_numservers];
+
+	strncpy(current->ip_addr, inbuf, sizeof(current->ip_addr)-1);
+	current->ip_addr[sizeof(current->ip_addr)-1] = '\0';
 	*cp++='|';
 
-	meta_servers[meta_numservers].idle_time = atoi(cp);
+	current->idle_time = atoi(cp);
 
 	if ((cp1=strchr(cp,'|'))==NULL) {
 	    LOG(LOG_WARNING,"common::metaserver_get_info","Corrupt line from server: %s", inbuf);
@@ -292,13 +296,13 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	}
 	*cp=0;
 	/* cp1 points at start of comment, cp points at end */
-	strncpy(meta_servers[meta_numservers].hostname, cp1+1, MS_LARGE_BUF);
-	meta_servers[meta_numservers].hostname[MS_LARGE_BUF]=0;
+	strncpy(current->hostname, cp1+1, sizeof(current->hostname)-1);
+	current->hostname[sizeof(current->hostname)-1] = '\0';
 
 	*cp1++='|';
 	*cp++='|';  /* cp now points to num players */
 	
-	meta_servers[meta_numservers].players = atoi(cp);
+	current->players = atoi(cp);
 
 	if ((cp1=strchr(cp,'|'))==NULL) {
 	    LOG(LOG_WARNING,"common::metaserver_get_info","Corrupt line from server: %s", inbuf);
@@ -312,8 +316,8 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	}
 	*cp=0;
 	/* cp1 is start of version, cp is end */
-	strncpy(meta_servers[meta_numservers].version, cp1+1, MS_SMALL_BUF);
-	meta_servers[meta_numservers].version[MS_SMALL_BUF]=0;
+	strncpy(current->version, cp1+1, sizeof(current->version)-1);
+	current->version[sizeof(current->version)-1] = '\0';
 
 	*cp1++='|';
 	*cp++='|';  /* cp now points to comment */
@@ -330,8 +334,8 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	if ((cp1 = strchr(cp, '|'))!=NULL) 
 	    *cp1=0;
 	
-	strncpy(meta_servers[meta_numservers].comment, cp, MS_LARGE_BUF);
-	meta_servers[meta_numservers].comment[MS_LARGE_BUF]=0;
+	strncpy(current->comment, cp, sizeof(current->comment)-1);
+	current->comment[sizeof(current->comment)-1] = '\0';
 
 	meta_numservers++;
 	/* has to be 1 less than array size, since array starts counting

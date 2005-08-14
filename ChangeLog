@@ -2,6 +2,7 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/metaserver.c: Fix buffer overflow in metaserver_get_info().
 x11/x11proto.h, x11/xutil.c: Use correct parameter type "uint16" for
    addsmooth().
 Andreas Kirschbaum 2005-08-14
