@@ -70,4 +70,4 @@ extern void print_map(void);
 extern void set_map_darkness(int x, int y, uint8 darkness);
 extern void display_mapscroll(int dx, int dy);
 extern void reset_map_data(void);
-extern void addsmooth(uint16 face, uint smooth_face);
+extern void addsmooth(uint16 face, uint16 smooth_face);

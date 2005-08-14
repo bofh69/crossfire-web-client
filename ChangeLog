@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+x11/x11proto.h, x11/xutil.c: Use correct parameter type "uint16" for
+   addsmooth().
+Andreas Kirschbaum 2005-08-14
+
 This commit adds full automake support for the client - previously, only the
 gtk-v2 directory used automake, rest was Makefile.in - now everything is
 automake - makes maintenance and distributions easier.

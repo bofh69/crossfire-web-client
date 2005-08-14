@@ -1518,6 +1518,6 @@ void reset_map_data()
 
 
 /* x11 client doesn't do smoothing, so don't need to do anything with this */
-void addsmooth(uint16 face, uint smooth_face)
+void addsmooth(uint16 face, uint16 smooth_face)
 {
 }
