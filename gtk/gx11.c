@@ -3755,8 +3755,7 @@ void create_windows() {
         rootwin_height = (33*gch)+(map_image_size*use_config[CONFIG_MAPHEIGHT]);
     gtk_widget_set_usize (gtkwin_root,rootwin_width,rootwin_height);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
-    /*gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);*/
-    gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(client_exit), NULL);
+    gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(main_window_destroyed), NULL); 
 
     gtk_container_border_width (GTK_CONTAINER (gtkwin_root), 0);
 
@@ -3914,8 +3913,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_root,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,(map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire - view");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_root), TRUE, TRUE, FALSE);
-    /*gtk_signal_connect (GTK_OBJECT (gtkwin_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_root);*/
-    gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(client_exit), NULL);
+    gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(main_window_destroyed), NULL);
 
 
     gtk_container_border_width (GTK_CONTAINER (gtkwin_root), 0);
@@ -3946,7 +3944,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_stats,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,140);
     gtk_window_set_title (GTK_WINDOW (gtkwin_stats), "Crossfire GTK Client");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_stats), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_stats);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_stats);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_stats), 0);
     
@@ -3969,7 +3967,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_info,400,600);
     gtk_window_set_title (GTK_WINDOW (gtkwin_info), "Crossfire - info");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_info), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_info), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_info);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_info), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_info);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_info), 0);
     
@@ -4001,7 +3999,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_message,(map_image_size*use_config[CONFIG_MAPWIDTH])+6,170);
     gtk_window_set_title (GTK_WINDOW (gtkwin_message), "Crossfire - vitals");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_message), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_message);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_message);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_message), 0);
     
@@ -4023,7 +4021,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_inv,290,400);
     gtk_window_set_title (GTK_WINDOW (gtkwin_inv), "Crossfire - inventory");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_inv), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_inv), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_inv);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_inv), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_inv);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_inv), 0);
     
@@ -4044,7 +4042,7 @@ void create_windows() {
     gtk_widget_set_usize (gtkwin_look,290,150);
     gtk_window_set_title (GTK_WINDOW (gtkwin_look), "Crossfire - look");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_look), TRUE, TRUE, FALSE);
-    gtk_signal_connect (GTK_OBJECT (gtkwin_look), "destroy", GTK_SIGNAL_FUNC(client_exit), &gtkwin_look);
+    gtk_signal_connect (GTK_OBJECT (gtkwin_look), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_look);
     
     gtk_container_border_width (GTK_CONTAINER (gtkwin_look), 0);
     

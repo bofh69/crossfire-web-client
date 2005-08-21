@@ -1,4 +1,5 @@
 /* config.c */
+extern void main_window_destroyed(void);
 extern void applyconfig(void);
 extern void saveconfig(void);
 extern void configdialog(GtkWidget *widget);

@@ -805,6 +805,12 @@ static void resize_left_widget_one(gpointer view_x, gpointer total_width_x) {
     inventory_viewer  * view = (inventory_viewer *)view_x;
     gint total_width = GPOINTER_TO_INT(total_width_x);
     
+    if (view == NULL) {
+        /* Weird. This is never set as a signal handler, but somehow gtk1.2
+           decides to call this with a NULL view when going to split windows.
+        */
+        return;
+    }
     
     gtk_clist_set_column_width(GTK_CLIST(view->list),
         1, total_width - view->image_width);
@@ -823,9 +829,18 @@ hand, I don't know any alternative, aside from using clist's automatic sizing fe
 
 static void resize_left_widgets(GtkWidget *widget, GtkAllocation *event) {
     static gint old_total_width = 0;
+    inventory_viewer * hack; 
+    gint total_width; 
+    
+    /* If GTK can unexpectedly call resize_left_widget_one() as a signal
+       handler when the inventory widgets temporarily don't exist, then we
+       might as well watch our tail here, too. */
+    if (inv_viewers == NULL) return;
+    if (look_viewer == NULL) return;
+    
     /* HACK Extract the first inventory-viewer. */
-    inventory_viewer * hack = (inventory_viewer *)(inv_viewers->data);
-    gint total_width = GTK_CLIST(hack->list)->clist_window_width - MAGIC_SAFE_WIDTH; 
+    hack = (inventory_viewer *)(inv_viewers->data);
+    total_width = GTK_CLIST(hack->list)->clist_window_width - MAGIC_SAFE_WIDTH; 
     
     if (old_total_width == total_width) return;
     old_total_width = total_width;

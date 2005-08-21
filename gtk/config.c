@@ -220,9 +220,18 @@ static void set_config_value(int cval, int value)
 	use_config[cbuttons[cval].config] = value;
 }
 
+static int splitwin_toggling = FALSE;
+ 
+void main_window_destroyed() {
+    if (!splitwin_toggling) {
+        client_exit();
+    }
+}
 
 static void toggle_splitwin(int newval)
 {
+    splitwin_toggling = TRUE;
+
     inventory_splitwin_toggling();
 	gtk_widget_destroy(gtkwin_root);
         
@@ -242,6 +251,8 @@ static void toggle_splitwin(int newval)
 	draw_stats (1);
     update_list_labels(&inv_list); /* After exploding or unexploding client, redraw weight labels. */
     update_list_labels(&look_list);
+
+    splitwin_toggling = FALSE;
 }
 
 /* Ok, here it sets the config and saves it. This is sorta dangerous, and I'm not sure
