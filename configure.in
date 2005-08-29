@@ -193,7 +193,7 @@ if eval "test x$sound = xyes"; then
   if eval "test x$alsa9_sound = xyes"; then
 	echo "Using ALSA sound system (0.9.x)"
 	CFLAGS="$CFLAGS -DALSA9_SOUND"
-	SOUND_TARGETS="$SOUND_TARGETS cfsndserv-alsa9"
+	ALSA9_TARGET='cfsndserv_alsa9$(EXEEXT)'
 	ALSA9_LIBS="-lasound -lm"
 	SOUND_SRC="sound-src";
 
@@ -266,7 +266,7 @@ AC_SUBST(SND_LIBS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(TARGET)
 AC_SUBST(CF_SUBDIRS)
-AC_SUBST(SOUND_TARGETS)
+AC_SUBST(ALSA9_TARGET)
 AC_SUBST(ALSA9_LIBS)
 
 dnl Check for SDL 1.1.3 and sdl_image

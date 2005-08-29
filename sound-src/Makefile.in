@@ -61,7 +61,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-bin_PROGRAMS = cfsndserv$(EXEEXT) cfsndserv-alsa9$(EXEEXT)
+bin_PROGRAMS = cfsndserv$(EXEEXT) @ALSA9_TARGET@
+EXTRA_PROGRAMS = cfsndserv_alsa9$(EXEEXT)
 subdir = sound-src
 DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
@@ -98,6 +99,7 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALSA9_LIBS = @ALSA9_LIBS@
+ALSA9_TARGET = @ALSA9_TARGET@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
@@ -168,7 +170,6 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SND_LIBS = @SND_LIBS@
 SOUNDDIR = @SOUNDDIR@
-SOUND_TARGETS = @SOUND_TARGETS@
 STRIP = @STRIP@
 TAR = @TAR@
 TARGET = @TARGET@
@@ -287,8 +288,8 @@ clean-binPROGRAMS:
 cfsndserv$(EXEEXT): $(cfsndserv_OBJECTS) $(cfsndserv_DEPENDENCIES) 
 	@rm -f cfsndserv$(EXEEXT)
 	$(LINK) $(cfsndserv_LDFLAGS) $(cfsndserv_OBJECTS) $(cfsndserv_LDADD) $(LIBS)
-cfsndserv-alsa9$(EXEEXT): $(cfsndserv_alsa9_OBJECTS) $(cfsndserv_alsa9_DEPENDENCIES) 
-	@rm -f cfsndserv-alsa9$(EXEEXT)
+cfsndserv_alsa9$(EXEEXT): $(cfsndserv_alsa9_OBJECTS) $(cfsndserv_alsa9_DEPENDENCIES) 
+	@rm -f cfsndserv_alsa9$(EXEEXT)
 	$(LINK) $(cfsndserv_alsa9_LDFLAGS) $(cfsndserv_alsa9_OBJECTS) $(cfsndserv_alsa9_LDADD) $(LIBS)
 
 mostlyclean-compile:

@@ -20,7 +20,8 @@
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
 
-bin_PROGRAMS = cfsndserv cfsndserv-alsa9
+bin_PROGRAMS = cfsndserv @ALSA9_TARGET@
+EXTRA_PROGRAMS = cfsndserv_alsa9
 
 EXTRA_DIST = common.c sounds.dist
 

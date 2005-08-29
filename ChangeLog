@@ -2,6 +2,15 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix sound compilation so it only tries to compile alsa9 helper if we
+in fact have alsa 9 libs.
+*/Makefile.in: Rebuilt
+configure.in, configure: Add ALSA9_TARGET, replacing SOUND_TARGETS which
+   was no longer being used.
+sound-src/Makefile.am: add EXTRA_PROGRAMS line for cfsndserv_alsa9 so
+   don't get errors from automake, add @ALSA9_TARGET@ to bin_PROGRAMS.
+MSW 2005-08-28
+
 gtk/config.c, gtkproto.h, gx11.c, inventory.c: 
 Commit patch #1265199 from Kevin Rudat to fix client crash when using split 
 window mode
