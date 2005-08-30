@@ -180,7 +180,7 @@ void update_stat(int stat_no, int max_stat, int current_stat, const char *name)
 	return;
 
     if (max_stat > 0) bar = (float) current_stat / (float) max_stat;
-    else bar = 0.01;
+    else bar = 0.0;
 
     /* Simple check to see if current stat is less than 25% */
     if (current_stat * 4 < max_stat) is_alert=1;
@@ -221,6 +221,7 @@ void update_stat(int stat_no, int max_stat, int current_stat, const char *name)
 	last_alert[stat_no] = is_alert;
     }
     if (bar > 1.0) bar = 1.0;
+    if (bar < 0.0) bar = 0.0;
 
     gtk_progress_set_percentage(GTK_PROGRESS(stat_bar[stat_no]), bar);
     sprintf(buf, "%s %d/%d", name, current_stat, max_stat);

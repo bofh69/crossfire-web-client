@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix bug #1245535 (negative grace showss up as positive amount):
+gtk-v2/src/stats.c: Clip negative stat values to zero.
+Andreas Kirschbaum 2005-08-30
+
 Fix sound compilation so it only tries to compile alsa9 helper if we
 in fact have alsa 9 libs.
 */Makefile.in: Rebuilt
