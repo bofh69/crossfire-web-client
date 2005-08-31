@@ -171,7 +171,8 @@ typedef enum rangetype {
 #define CONFIG_SMOOTH       28
 #define CONFIG_SPLASH	    29
 #define CONFIG_APPLY_CONTAINER	30	/* Reapply container */
-#define CONFIG_NUMS	    31
+#define CONFIG_MAPSCROLL    31		/* Use bitmap operations for map scrolling */
+#define CONFIG_NUMS	    32
 
 /* CONFIG_LIGHTING can have several possible values - set them accordingly */
 #define CFG_LT_TILE	    1
@@ -378,61 +379,12 @@ extern int map1cmd,metaserver_on;
  */
 #define MAX_MAP_OFFSET	6
 
-/* Fog of war stuff */
-#define FOG_MAP_SIZE 512   /* Default size of virtual map */
-
-
 /* Start of map handling code.
  * For the most part, this actually is not window system specific,
  * but certainly how the client wants to store this may vary.
  */
 
 #define MAXPIXMAPNUM 10000
-
-/* The protocol only supports 3 layers, so set MAXLAYERS accordingly.
- * the heads[] in the mapcell is used for single part objects
- * or the head piece for multipart.  The easiest way to think about
- * it is that the heads[] contains the map information as specifically
- * sent from the server.  for the heads value, the size_x and size_y
- * represent how many spaces (up and to the left) that image extends
- * into.
- * the tails are values that the client fills in - if we get
- * a big head value, we fill in the tails value so that the display
- * logic can easily redraw one space.  In this case, the size_ values
- * are offsets that point to the head.  In this way, the draw logic
- * can look at the size of the image, look at these values, and
- * know what portion of it to draw.
- */
-
-#define MAXLAYERS 3
-
-struct MapCellLayer {
-    sint16  face;
-    sint8   size_x;
-    sint8   size_y;
-};
-
-struct MapCell {
-    struct MapCellLayer	heads[MAXLAYERS];
-    struct MapCellLayer	tails[MAXLAYERS];
-    uint16 smooth[MAXLAYERS];
-    uint8 darkness;
-    uint8 need_update:1;
-    uint8 have_darkness:1;
-    uint8 need_resmooth:1;  /*same has need update but for smoothing only*/
-    uint8 cleared:1; /* If set, this is a fog cell. */
-    uint8 keephead:1;
-};
-
-
-struct Map {
-  struct MapCell **cells;
-  /* Store size of map so we know if map_size has changed
-   * since the last time we allocated this;
-   */
-  int x;
-  int y;
-};
 
 /* This is used mostly in the cache.c file, however, it
  * can be returned to the graphic side of things so that they
@@ -472,10 +424,6 @@ typedef struct
 } PlayerPosition;
 
 extern PlayerPosition pl_pos;
-
-extern struct Map the_map;
-
-
 
 extern TextManager* firstTextManager;
 

@@ -49,6 +49,7 @@ char *rcsid_gtk_map_c =
 #include "gx11.h"
 #include "client.h"
 #include "gtkproto.h"
+#include "mapdata.h"
 
 
 /* Start of map handling code.
@@ -57,7 +58,6 @@ char *rcsid_gtk_map_c =
  */
 
 struct Map the_map;
-uint8	map_did_scroll=0;
 
 /*
  * Added for fog of war. Current size of the map structure in memory.
@@ -70,339 +70,31 @@ PlayerPosition pl_pos;
 
 
 /*
- * Takes three args, first is a return value that is a pointer
- * we should put map info into. Next two are map dimensions.
- * This function supports non rectangular maps but the client
- * pretty much doesn't. The caller is responsible for freeing
- * the data. I have the caller pass in a map struct instead of
- * returning a pointer because I didn't want to change all the
- * the_map.cells to the_map->cells...
- * The returned map memory is zero'ed.
- */
-void allocate_map( struct Map* new_map, int ax, int ay)
-{
-    int i= 0;
-
-    if( new_map == NULL)
-	return;
-
-    if( ax < 1 || ay < 1) {
-	new_map->cells= NULL;
-	return;
-    }
-
-    new_map->cells= (struct MapCell**)calloc( sizeof( struct MapCell*) * ay
-		    + sizeof( struct MapCell) * ax * ay, 1);
-
-    if( new_map->cells == NULL)
-	return;
-
-    /* Skip past the first row of pointers to rows and assign the start of
-     * the actual map data
-     */
-    new_map->cells[0]= (struct MapCell*)((char*)new_map->cells + 
-				       (sizeof( struct MapCell*) * ay));
-
-    /* Finish assigning the beginning of each row relative to the first row
-     * assigned above
-     */
-    for( i= 0; i < ay; i++)  {
-	new_map->cells[i]= new_map->cells[0] + ( i * ax);
-    }
-    new_map->x= ax;
-    new_map->y= ay;
-
-    return;
-}
-
-/*
- * Clears out all the cells in the current view (which is 
- * the whole map if not using fog_of_war, and request
- * a map update from the server 
+ * Request a map update from the server. This is to circumvent a bug in some
+ * server versions.
  */
 void reset_map()
 {
-    int x= 0;
-    int y= 0;
-
-    pl_pos.x= the_map.x/2;
-    pl_pos.y= the_map.y/2;
-    memset( the_map.cells[0], 0, 
-	   sizeof( struct MapCell) * the_map.x * the_map.y);
-    for( x= pl_pos.x; x < (pl_pos.x + use_config[CONFIG_MAPWIDTH]); x++) 
-    {
-	for( y= pl_pos.y; y < (pl_pos.y + use_config[CONFIG_MAPHEIGHT]); y++)
-	{
-	    the_map.cells[x][y].need_update= 1;
-	}
-    }
     cs_print_string(csocket.fd, "mapredraw");
-    return;
 }
-
-void print_darkness()/*too complicate to pass thru log*/
-{
-
-    int x= 0;
-    int y= 0;
-
-    for( y= 0; y < use_config[CONFIG_MAPHEIGHT]; y++)
-    {
-	for( x= 0; x < use_config[CONFIG_MAPWIDTH]; x++)
-	{
-	    fprintf( stderr, "[%3d]", the_map.cells[x][y].darkness);
-	}
-	fprintf( stderr, "\n");
-    }
-}
-
-void print_map()/*too complicate to pass thru log*/
-{
-    int x= 0;
-    int y= 0;
-    int z= 0;
-
-    int local_mapx = pl_pos.x + use_config[CONFIG_MAPWIDTH];
-    int local_mapy = pl_pos.y + use_config[CONFIG_MAPHEIGHT];
-
-    if( use_config[CONFIG_FOGWAR] == TRUE)
-    {
-	printf( " Current X pos: %d -- Current Y pos: %d\n", 
-		pl_pos.x, pl_pos.y);
-    }
-
-    fprintf( stderr, "-----------------------\n");
-    for( y= pl_pos.y ; y < local_mapy; y++)
-    {
-	for( z= 0; z < MAXLAYERS; z++)
-	{
-	    for( x= pl_pos.x ; x < local_mapx; x++)
-	    {
-		fprintf( stderr, "[%4d]", the_map.cells[x][y].heads[z].face);
-	    }
-	    fprintf( stderr, "\n");
-	}
-	fprintf( stderr, "\n");
-    }
-    fprintf( stderr, "-----------------------\n");
-    return;
-}
-
-void set_map_darkness(int x, int y, uint8 darkness)
-{
-    x+= pl_pos.x;
-    y+= pl_pos.y;
-
-    the_map.cells[x][y].have_darkness = 1;
-    if (darkness != (255 - the_map.cells[x][y].darkness )) {
-	the_map.cells[x][y].darkness = 255 - darkness;
-	the_map.cells[x][y].need_update = 1;
-	/* pretty ugly - since the light code with pngximage uses
-	 * neighboring spaces to adjust the darkness, we now need to
-	 * let the neighbors know they should update their darkness
-	 * now.
-	 */
-	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL && 
-	    (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL ||
-	     use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST)) {
-	    if (x-1>0) the_map.cells[x-1][y].need_update = 1;
-	    if (y-1>0) the_map.cells[x][y-1].need_update = 1;
-	    if (x+1<use_config[CONFIG_MAPWIDTH]) the_map.cells[x+1][y].need_update = 1;
-	    if (y+1<use_config[CONFIG_MAPHEIGHT]) the_map.cells[x][y+1].need_update = 1;
-	}
-    }
-}
-
-
-/* 
- * Returns true if virtual view is about to butt up against 
- * the side of the virtual map on the next scroll
- * Add 2 as a fudge factor - in this way, code that checks
- * within the displayable area but +/-1 of the edges will
- * still process data within bounds.
- */
-static int need_recenter_map( int dx, int dy)
-{
     
-    if( pl_pos.x + dx + use_config[CONFIG_MAPWIDTH] +2 >= the_map.x ||
-	pl_pos.y + dy + use_config[CONFIG_MAPHEIGHT] +2 >= the_map.y ||
-	pl_pos.x + dx -2 <= 0                ||
-	pl_pos.y + dy -2 <= 0 )
-    {
-	return TRUE;
-    }
-    
-    return FALSE;
+static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int clipy, void *mask, void *image)
+{
+    gdk_gc_set_clip_mask(mapgc, mask);
+    gdk_gc_set_clip_origin(mapgc, clipx, clipy);
+    gdk_draw_pixmap(mapwindow, mapgc, image, srcx, srcy, dstx, dsty, map_image_size, map_image_size);
 }
 
-/*
- * Only used in fog of war code.
- * Will recenter the virtual coordinates of the player view 
- * to the center of the map and try to keep as much current
- * state in memory as possible
- * If view is already close to center it won't move it
- */
-static void recenter_virtual_map_view( struct Map *map)
-{
-    static struct Map tmpmap;
-    struct MapCell **tmpcells;
-    int y_shift= 0;
-    int x_shift= 0;
-    int x= 0, y= 0;
-
-    if( map == NULL)
-	return;
-
-
-    if( tmpmap.cells == NULL)
+int display_mapscroll(int dx, int dy)
     {
-	allocate_map( &tmpmap, map->x, map->y);
-    }
-
-    /* 
-     * If mapsize changed, allocate a new map
-     */
-    if( tmpmap.x != map->x || tmpmap.y != map->y)
-    {
-	if( tmpmap.cells)
-	    free( tmpmap.cells);
-
-	allocate_map( &tmpmap, map->x, map->y);
-    }
-
-
-    /*
-     * If we are less then 1/4 away from either edge of the virtual map
-     * or the next move would push us up against the edge (for small
-     * virtual maps with large views this could happen before our 0,0 view
-     * coordinate is within 1/4 of the edge) we shift to the center.
-     */
-    if( pl_pos.x <= (map->x/4) || pl_pos.x >= (map->x*3/4) ||
-	pl_pos.x + use_config[CONFIG_MAPWIDTH] + 1 >= map->x )
-    {
-	x_shift= map->x/2 - pl_pos.x;
-    }
-    if( pl_pos.y <= (map->y/4) || pl_pos.y >= (map->y*3/4) ||
-	pl_pos.y + use_config[CONFIG_MAPHEIGHT] + 1 >= map->y )
-    {
-	y_shift= map->y/2 - pl_pos.y;
-    }
-
-
-    if( x_shift == 0 && y_shift == 0)
-	return;
-
-    for( x= 0; x < map->x; x++)
-    {
-	if( x + x_shift >= map->x || x + x_shift < 0)
-	    continue;
-
-	for( y= 0; y < map->y; y++)
-	{
-	    if( y + y_shift >= map->y || y + y_shift < 0)
-		continue;
-
-	    memcpy( (char*)&tmpmap.cells[x + x_shift][y + y_shift],
-		    (char*)&map->cells[x][y],
-		    sizeof( struct MapCell) );
-	}
-    }
-
-
-    pl_pos.x+= x_shift;
-    pl_pos.y+= y_shift;
-
-
-    /*
-     * Swap cell arrays then zero out the old cells to avoid another big memcopy
-     */
-    tmpcells= map->cells;
-    map->cells= tmpmap.cells;
-    tmpmap.cells= tmpcells;
-
-    memset( (char*)&tmpmap.cells[0][0], 0,
-	    sizeof( struct MapCell) * tmpmap.x * tmpmap.y);
-
-    return;
-}
-
-  
-void display_mapscroll(int dx,int dy)
-{
-    int x,y;
-    int local_mapx= 0, local_mapy= 0;
-
-    /* We don't need to memcopy any of this stuff around cause 
-     * we are keeping it in memory. We do need to update our
-     * virtual position though
-     */
-	
-    if( need_recenter_map( dx, dy) == TRUE)
-	recenter_virtual_map_view( &the_map);
-
-    pl_pos.x+= dx;
-    pl_pos.y+= dy;
-    local_mapx= pl_pos.x + use_config[CONFIG_MAPWIDTH];
-    local_mapy= pl_pos.y + use_config[CONFIG_MAPHEIGHT];
-	
-    /*
-     * For cells about to enter the view, mark them as
-     * needing an update. Cells that are already in 
-     * view don't need to be updated since we just memcpy
-     * the image data around. This is needed for proper 
-     * drawing of blank or black tiles coming into view
-     */
-    for( x= pl_pos.x; x < pl_pos.x + use_config[CONFIG_MAPWIDTH]; x++) {
-	for( y= pl_pos.y; y < pl_pos.y + use_config[CONFIG_MAPHEIGHT]; y++) {
-	    if( (x + dx) < pl_pos.x || (x + dx) >= (use_config[CONFIG_MAPWIDTH] + pl_pos.x) ||
-	       (y + dy) < pl_pos.y || (y + dy) >= (use_config[CONFIG_MAPHEIGHT] + pl_pos.y) )
-	    {
-		if( x < 0 || y < 0 || x >= the_map.x ||	y >= the_map.y)
-		    continue;
-
-
-		the_map.cells[x][y].need_update= 1;
-		the_map.cells[x][y].cleared= 1;
-        the_map.cells[x][y].keephead = 1;/*otherwise we will also mark the multipart as cleared*/
-	    }
-	} /* for y */
-    } /* for x */
-
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
-	sdl_mapscroll(dx,dy);
+	return sdl_mapscroll(dx,dy);
     else
 #endif
-	map_did_scroll = 1;
-/*    fprintf(stderr,"scroll command: %d %d\n", dx, dy);*/
+    return 0;
 }
 
-
-
-/*
- * Clears all map data - this is only called when we have lost our connection
- * to a server - this way bogus data won't be around when we connect
- * to the new server
- */
-void reset_map_data()
-{
-    int x= 0;
-    int y= 0;
-
-    pl_pos.x= the_map.x/2;
-    pl_pos.y= the_map.y/2;
-    memset( the_map.cells[0], 0,
-	   sizeof( struct MapCell) * the_map.x * the_map.y);
-    for( x= pl_pos.x; x < (pl_pos.x + use_config[CONFIG_MAPWIDTH]); x++)
-    {
-	for( y= pl_pos.y; y < (pl_pos.y + use_config[CONFIG_MAPHEIGHT]); y++)
-	{
-	    the_map.cells[x][y].need_update= 1;
-	}
-    }
-}
-
-         
 /* Draw anything in adjacent squares that could smooth on given square
  * mx,my square to smooth on. you should not call this function to
  * smooth on a 'completly black' square.
@@ -430,11 +122,11 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
     int i,lowest,weight,weightC;
     int emx,emy;
     int smoothface;
-    int dosmooth=0;
 
-    if ( (the_map.cells[mx][my].heads[0].face==0)
+    if (the_map.cells[mx][my].heads[layer].face == 0
          || !CAN_SMOOTH(the_map.cells[mx][my],layer) )
         return;
+
     for (i=0;i<8;i++){
         emx=mx+dx[i];
         emy=my+dy[i];
@@ -442,13 +134,12 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         }
-        if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
+        else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         }else{      
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
-            dosmooth=1;
         }                    
     }
     /* ok, now we have a list of smoothlevel higher than current square.
@@ -506,166 +197,120 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
              (pixmaps[smoothface] == pixmaps[0]))
             continue;   /*don't have the picture associated*/
         if (weight>0){
-        gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
-         
-        gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weight,picy);
-        gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
-	        map_image_size*weight, 0, picx, picy,
-            map_image_size, map_image_size);
+	    draw_pixmap(
+		weight*map_image_size, 0,
+		picx, picy,
+		picx-weight*map_image_size, picy,
+		pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image);
         }
         if (weightC>0){
-        gdk_gc_set_clip_mask (mapgc, pixmaps[smoothface]->map_mask);
-        gdk_gc_set_clip_origin(mapgc, picx-map_image_size*weightC,picy-map_image_size);
-        gdk_draw_pixmap(mapwindow, mapgc,pixmaps[smoothface]->map_image,
-		  map_image_size*weightC, map_image_size, picx, picy,
-          map_image_size, map_image_size);          
+	    draw_pixmap(
+		weightC*map_image_size, map_image_size,
+		picx, picy,
+		picx-weightC*map_image_size, picy-map_image_size,
+		pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image);
         }
-		
-            
     }/*while there's some smooth to do*/
 }
-void gtk_draw_map(int redraw) {
-    int mx,my, layer,x,y, src_x, src_y;
-    struct timeval tv1, tv2,tv3;
-    long elapsed1, elapsed2;
 
-    if (time_map_redraw)
-	gettimeofday(&tv1, NULL);
+static void display_mapcell(int ax, int ay, int mx, int my)
+{
+    int layer;
 
-    for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
-	for(y = 0; y<use_config[CONFIG_MAPHEIGHT]; y++) {
-	    /* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
-	     * x and y (from the for loop) represent the visable screen.
-	     */
-	    mx = x + pl_pos.x;
-	    my = y + pl_pos.y;
+    /* First, we need to black out this space. */
+    gdk_draw_rectangle(mapwindow, drawingarea->style->black_gc, TRUE, ax*map_image_size, ay*map_image_size, map_image_size, map_image_size);
 
-	    /* Don't need to touch this space */
-	    if (!redraw && !the_map.cells[mx][my].need_update && !map_did_scroll&& !the_map.cells[mx][my].need_resmooth)
-		continue;
+    /* now draw the different layers.  Only draw if using fog of war or the
+     * space isn't clear.
+     */
+    if (use_config[CONFIG_FOGWAR] || !the_map.cells[mx][my].cleared) {
+	for (layer=0; layer<MAXLAYERS; layer++) {
+	    int sx, sy;
 
-	    /* First, we need to black out this space. */
-	    gdk_draw_rectangle(mapwindow, drawingarea->style->black_gc, TRUE, x * map_image_size, y * map_image_size, map_image_size, map_image_size);
-	    /* now draw the different layers.  Only draw if using fog of war or the
-	     * space isn't clear.
-	     */
-	    if (use_config[CONFIG_FOGWAR] || !the_map.cells[mx][my].cleared || map_did_scroll) 
-		for (layer=0; layer<MAXLAYERS; layer++) {
+	    /* draw single-tile faces first */
+	    int face = mapdata_face(ax, ay, layer);
+	    if (face > 0 && pixmaps[face]->map_image != NULL) {
+		int w = pixmaps[face]->map_width;
+		int h = pixmaps[face]->map_height;
+		draw_pixmap(
+		    w-map_image_size, h-map_image_size,
+		    ax*map_image_size, ay*map_image_size,
+		    ax*map_image_size+map_image_size-w, ay*map_image_size+map_image_size-h,
+		    pixmaps[face]->map_mask, pixmaps[face]->map_image);
 
-		    /* draw the tail first - this seems to get better results */
-		    if (the_map.cells[mx][my].tails[layer].face && 
-			pixmaps[the_map.cells[mx][my].tails[layer].face]->map_image) {
-
-			/* add one to the size values to take into account the actual width of the space */
-			src_x = pixmaps[the_map.cells[mx][my].tails[layer].face]->map_width - 
-			    (the_map.cells[mx][my].tails[layer].size_x + 1) * map_image_size;
-			src_y = pixmaps[the_map.cells[mx][my].tails[layer].face]->map_height - 
-			    (the_map.cells[mx][my].tails[layer].size_y + 1) * map_image_size;
-
-			gdk_gc_set_clip_mask (mapgc, pixmaps[the_map.cells[mx][my].tails[layer].face]->map_mask);
-			gdk_gc_set_clip_origin(mapgc, 
-			    (x - (pixmaps[the_map.cells[mx][my].tails[layer].face]->map_width-1)/map_image_size  + the_map.cells[mx][my].tails[layer].size_x)* map_image_size, 
-			    (y - (pixmaps[the_map.cells[mx][my].tails[layer].face]->map_height-1)/map_image_size + the_map.cells[mx][my].tails[layer].size_y)* map_image_size);
-
-			gdk_draw_pixmap(mapwindow, mapgc,
-				    pixmaps[the_map.cells[mx][my].tails[layer].face]->map_image,
-				    src_x, src_y, x * map_image_size, y * map_image_size,
-					map_image_size, map_image_size);
-		    }
-		    /* Draw the head now - logic is pretty much exactly the same
-		     * as that for the tail, except we know that we this is at the lower right,
-		     * so we don't need to adjust the origin as much.
-		     */
-		    if (the_map.cells[mx][my].heads[layer].face && 
-			pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image){
-
-			/* add one to the size values to take into account the actual width of the space */
-			src_x = pixmaps[the_map.cells[mx][my].heads[layer].face]->map_width - map_image_size;
-			src_y = pixmaps[the_map.cells[mx][my].heads[layer].face]->map_height - map_image_size;
-
-            
-			gdk_gc_set_clip_mask (mapgc, pixmaps[the_map.cells[mx][my].heads[layer].face]->map_mask);
-			gdk_gc_set_clip_origin(mapgc, 
-					       (x + 1 - the_map.cells[mx][my].heads[layer].size_x) * map_image_size,
-					       (y + 1 - the_map.cells[mx][my].heads[layer].size_y) * map_image_size);
-
-			gdk_draw_pixmap(mapwindow, mapgc,
-				    pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image,
-				    src_x, src_y, x * map_image_size, y * map_image_size,
-					map_image_size, map_image_size);
-			/*We draw the pic. Now, smooth adjacent squares on it*/
 			if ( use_config[CONFIG_SMOOTH])
-			    drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
+		    drawsmooth(mx, my, layer, ax*map_image_size, ay*map_image_size);
 		    }
 		    /* Sometimes, it may happens we need to draw the smooth while there
 		     * is nothing to draw at that layer (but there was something at lower
 		     * layers). This is handled here. The else part is to take into account
 		     * cases where the smooth as already been handled 2 code lines before
 		     */
-		    else if ( use_config[CONFIG_SMOOTH] &&
-			     the_map.cells[mx][my].need_resmooth )
-			drawsmooth (mx,my,layer,x * map_image_size,y * map_image_size);
-            
+	    else if (use_config[CONFIG_SMOOTH] && the_map.cells[mx][my].need_resmooth)
+		drawsmooth (mx, my, layer, ax*map_image_size, ay*map_image_size);
 		    
-		} /* else for processing the layers */
-	    the_map.cells[mx][my].need_resmooth=0;
+	    /* draw big faces last (should overlap other objects) */
+	    face = mapdata_bigface(ax, ay, layer, &sx, &sy);
+	    if (face > 0 && pixmaps[face]->map_image != NULL) {
+		draw_pixmap(
+		    sx*map_image_size, sy*map_image_size,
+		    ax*map_image_size, ay*map_image_size,
+		    (ax-sx)*map_image_size, (ay-sy)*map_image_size,
+		    pixmaps[face]->map_mask, pixmaps[face]->map_image);
+	    }
+	} /* else for processing the layers */
+    }
 
-	    /* Do final logic for this map space */
-	    the_map.cells[mx][my].need_update=0;
+    /* If this is a fog cell, do darknening of the space.
+     * otherwise, process light/darkness - only do those if not a 
+     * fog cell.
+     */
+    if (use_config[CONFIG_FOGWAR] && the_map.cells[mx][my].cleared) {
+	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark1, dark);
+    }
+    else if (the_map.cells[mx][my].darkness > 192) { /* Full dark */
+	gdk_draw_rectangle (mapwindow, drawingarea->style->black_gc,
+	    TRUE,map_image_size*ax, map_image_size*ay,
+	    map_image_size, map_image_size);
+    } else if (the_map.cells[mx][my].darkness> 128) {
+	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark1, dark);
+    } else if (the_map.cells[mx][my].darkness> 64) {
+	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark2, dark);
+    } else if (the_map.cells[mx][my].darkness> 1) {
+	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark3, dark);
+    }
+}
 
-	    /* If this is a fog cell, do darknening of the space.
-	     * otherwise, process light/darkness - only do those if not a 
-	     * fog cell.
+void gtk_draw_map(int redraw) {
+    int mx, my;
+    int x, y;
+    struct timeval tv1, tv2,tv3;
+    long elapsed1, elapsed2;
+
+    if (time_map_redraw)
+	gettimeofday(&tv1, NULL);
+
+    for(x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
+	for(y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
+	    /* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
+	     * x and y (from the for loop) represent the visable screen.
 	     */
-	    if (the_map.cells[mx][my].cleared == 1) {
-		gdk_gc_set_clip_mask(mapgc, dark1);
-		gdk_gc_set_clip_origin(mapgc, x * map_image_size, y*map_image_size);
-		gdk_draw_pixmap(mapwindow, mapgc, dark, 0, 0,
-				x * map_image_size, y*map_image_size, map_image_size, map_image_size);
+	    mx = pl_pos.x+x;
+	    my = pl_pos.y+y;
+	    if (redraw
+	    || the_map.cells[mx][my].need_update
+	    || the_map.cells[mx][my].need_resmooth) {
+		display_mapcell(x, y, mx, my);
+		the_map.cells[mx][my].need_update=0;
 	    }
-	    else if (the_map.cells[mx][my].darkness > 192) { /* Full dark */
-		gdk_draw_rectangle (mapwindow, drawingarea->style->black_gc,
-				    TRUE,map_image_size*x, map_image_size *y,
-				    map_image_size, map_image_size);
-	    } else if (the_map.cells[mx][my].darkness> 128) {
-		gdk_gc_set_clip_mask(mapgc, dark1);
-		gdk_gc_set_clip_origin(mapgc, x * map_image_size, y*map_image_size);
-		gdk_draw_pixmap(mapwindow, mapgc, dark, 0, 0,
-				x * map_image_size, y*map_image_size, map_image_size, map_image_size);
-	    } else if (the_map.cells[mx][my].darkness> 64) {
-		gdk_gc_set_clip_mask(mapgc, dark2);
-		gdk_gc_set_clip_origin(mapgc, x * map_image_size, y*map_image_size);
-		gdk_draw_pixmap(mapwindow, mapgc, dark, 0, 0,
-				x * map_image_size, y*map_image_size, map_image_size, map_image_size);
-	    } else if (the_map.cells[mx][my].darkness> 1) {
-		gdk_gc_set_clip_mask(mapgc, dark3);
-		gdk_gc_set_clip_origin(mapgc, x * map_image_size, y*map_image_size);
-		gdk_draw_pixmap(mapwindow, mapgc, dark, 0, 0,
-				x * map_image_size, y*map_image_size, map_image_size, map_image_size);
-	    }
-	    /* Don't redraw this space if we're going to redraw the entire map below */
-	    /*if (!map_did_scroll) 
-		gdk_draw_pixmap(drawingarea->window, drawingarea->style->black_gc, mapwindow, 
-			    x * map_image_size, y*map_image_size, x * map_image_size, y * map_image_size,
-			    map_image_size, map_image_size);*/
+	}
+    }
 
-	} /* For y spaces */
-    } /* for x spaces */
     if (time_map_redraw)
 	gettimeofday(&tv2, NULL);
 
-
-    /* map_did_scroll is set if the map scrolls for example.  In this case, we need to redraw
-     * the entire map.
-     */
-    if (map_did_scroll) {
-	gdk_draw_pixmap(drawingarea->window, drawingarea->style->black_gc, mapwindow,
-		    0, 0, 0, 0, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size);
-	map_did_scroll = 0;
-    }
-    else gdk_draw_pixmap(drawingarea->window, drawingarea->style->black_gc, mapwindow,
-		    0, 0, 0, 0, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size);
-
+    gdk_draw_pixmap(drawingarea->window, drawingarea->style->black_gc, mapwindow,
+	0, 0, 0, 0, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size);
     if (time_map_redraw) {
 	gettimeofday(&tv3, NULL);
 	elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);

@@ -27,6 +27,7 @@ libcfclient_a_SOURCES = \
 	image.c \
 	init.c \
 	item.c \
+	mapdata.c \
 	metaserver.c \
 	misc.c \
 	newsocket.c \
@@ -43,6 +44,7 @@ noinst_HEADERS = \
 	external.h \
 	item-types.h \
 	item.h \
+	mapdata.h \
 	metaserver.h \
 	newclient.h \
 	p_cmd.h \

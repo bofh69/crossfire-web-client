@@ -66,6 +66,9 @@ int mapupdatesent=0;
 #include <client.h>
 #include <external.h>
 
+#include "mapdata.h"
+
+
 static void get_skill_info(char *data, int len)
 {
     char *cp, *nl, *sn;
@@ -185,6 +188,7 @@ void SetupCmd(char *buf, int len)
 		/* Do this because we may have been playing on a big server before */
 		use_config[CONFIG_MAPWIDTH]=11;
 		use_config[CONFIG_MAPHEIGHT]=11;
+		mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 		resize_map_window(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 		continue;
 	    }
@@ -201,6 +205,7 @@ void SetupCmd(char *buf, int len)
 	    if (use_config[CONFIG_MAPWIDTH] > x || use_config[CONFIG_MAPHEIGHT] > y) {
 		if (use_config[CONFIG_MAPWIDTH] > x) use_config[CONFIG_MAPWIDTH] = x;
 		if (use_config[CONFIG_MAPHEIGHT] > y) use_config[CONFIG_MAPHEIGHT] = y;
+		mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 		cs_print_string(csocket.fd,
 				"setup mapsize %dx%d", use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 		sprintf(tmpbuf,"Server supports a max mapsize of %d x %d - requesting a %d x %d mapsize",
@@ -208,6 +213,7 @@ void SetupCmd(char *buf, int len)
 		draw_info(tmpbuf,NDI_RED);
 	    }
 	    else if (use_config[CONFIG_MAPWIDTH] == x && use_config[CONFIG_MAPHEIGHT] == y) {
+		mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 		resize_map_window(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 	    }
 	    else {
@@ -884,250 +890,10 @@ void DeleteInventory(unsigned char *data, int len)
  * Start of map commands
  *****************************************************************************/
 
-/* expand_face sets (or clears) big_face information.  IT basically starts
- * at hx,hy (in the_map spaces), and expands to dx,dy (in the negative direction.)
- * it looks in these spaces for values that matches oldface.  If it finds
- * such a value, it sets it with newface.
- * if oldface is zero and newface is nonzero, it then sets the size_x and size_y
- * values to positive values which point to where the base of the face is -
- * this is used for drawing.
- * If oldface is nonzero and newface is zero, then it only clears
- * those values in which the size_ values match.
- * layer is the preferred layer that a new face should be put on.
- */
-static void expand_face(int hx, int hy, int dx, int dy, int oldface, int newface, int layer)
-{
-    int x, y, i, zx, zy, l;
-
-/*
-    fprintf(stderr,"expand_face: hx=%d, hy=%d, dx=%d, dy=%d, old=%d, new=%d, layer=%d\n",
-	    hx, hy, dx, dy, oldface, newface,layer);
-*/
-
-    for (x=0; x<dx; x++) {
-	zx = hx - x;
-	if (zx < 0) zx+= the_map.x;
-	for (y=0; y<dy; y++) {
-	    if (x==0 && y==0) continue;	    /* Special - don't expand into ourselves */
-	    zy = hy - y;
-	    if (zy < 0) zy += the_map.y;
-
-	    /* This loop here tries to find a tails slot to put this info
-	     * into.  we use l as the offset to better try and match the layer
-	     * to store this on.
-	     */
-	    for (i=0; i < MAXLAYERS; i++) {
-		l = (i + layer) % MAXLAYERS;
-
-		/* We try to match oldface - this can be non
-		 * zero when we are removing a big image - in that case, we need
-		 * to make sure the size values are the same.
-		 */
-		if (the_map.cells[zx][zy].tails[l].face == oldface) {
-		    if (oldface == 0 || 
-			(the_map.cells[zx][zy].tails[l].size_x == x &&
-			 the_map.cells[zx][zy].tails[l].size_y == y))
-			    break;
-		}
-		/* If we already have this face information, break out - the code below
-		 * will fill in the same values, but that isn't any big deal.
-		 */
-		if (the_map.cells[zx][zy].tails[l].face == newface &&
-		    the_map.cells[zx][zy].tails[l].size_x == x &&
-		    the_map.cells[zx][zy].tails[l].size_y == y) break;
-
-	    }
-	    /* Not found - either no space for a new face, or the oldface was already cleared out */
-	    if (i>= MAXLAYERS) {
-		LOG(LOG_WARNING,"common::expand_face","Did not find empty slot");
-		return;
-	    }
-
-	    /* the layer we were supposed to go on is filled by some other object.
-	     * In this case, we want to see what object is more to the lower right - that
-	     * should go on the higher layer so that overlaps look proper.
-	     * Not positive if the rationale here is correct, but what I have is the 
-	     * y axis is most important.  If y is equal, then further to the right
-	     * is more important
-	     */
-	    if (l > layer) {
-		if ((the_map.cells[zx][zy].tails[layer].size_y > y) ||
-		    (the_map.cells[zx][zy].tails[layer].size_y == y && (the_map.cells[zx][zy].tails[layer].size_x > x))) {
-			the_map.cells[zx][zy].tails[l].size_x = the_map.cells[zx][zy].tails[layer].size_x;
-			the_map.cells[zx][zy].tails[l].size_y = the_map.cells[zx][zy].tails[layer].size_y;
-			the_map.cells[zx][zy].tails[l].face = the_map.cells[zx][zy].tails[layer].face;
-			l = layer;
-		    }
-	    }
-
-	    the_map.cells[zx][zy].tails[l].face = newface;
-	    /* only set the size_ values if there is an actual image */
-	    if (newface) {
-		the_map.cells[zx][zy].tails[l].size_x = x;
-		the_map.cells[zx][zy].tails[l].size_y = y;
-	    }
-	    /* Else setting to empty face */
-	    else {
-		the_map.cells[zx][zy].tails[l].size_x = 0;
-		the_map.cells[zx][zy].tails[l].size_y = 0;
-	    }
-	    the_map.cells[zx][zy].need_update = 1;
-	} /* for y */
-    } /* for x */
-}
-
-/* This does the task of actually clearing the data in a cell.
- * This is called if this space was cleared but we still wanted
- * to display the data for fog of war code.  This is called
- * when we have real data to over-write the contents of this
- * cell.
- * The multisquares heads are not cleared if the keephead flag is set,
- * meaning the cleared flags comes from a mapscroll but there may exist
- * multisquares head entering map at same time.
- */
-void reset_cell_data(int x, int y)
-{
-
-    /* This cell has been cleared previously but now we are
-     * writing new data to do. So we have to clear it for real now 
-     */
-    int i= 0;
-
-    the_map.cells[x][y].darkness= 0;
-    the_map.cells[x][y].need_update= 1;
-    the_map.cells[x][y].have_darkness= 0;
-    the_map.cells[x][y].cleared= 0;
-    /* only clear the even faces - those explicitly sent to us by the server */
-    for (i=0; i<MAXLAYERS; i++) {
-        /* If we are clearing out a 'big image', we need to clear the faces that
-         * this points into.
-         */
-         if ( (the_map.cells[x][y].heads[i].face != 0)
-              && (the_map.cells[x][y].heads[i].size_x>1
-                    || the_map.cells[x][y].heads[i].size_y>1)
-            )
-         { /*if multisquare head*/
-            if (!the_map.cells[x][y].keephead){
-                /*Touch a multisquare head only if keehead not set*/
-                expand_face(x, y,
-                        the_map.cells[x][y].heads[i].size_x,
-                        the_map.cells[x][y].heads[i].size_y,
-                        the_map.cells[x][y].heads[i].face, 0, i);
-                the_map.cells[x][y].heads[i].face= 0;  /* empty/blank face */
-                the_map.cells[x][y].heads[i].size_x = 0;
-                the_map.cells[x][y].heads[i].size_y = 0;
-            }
-        } else{ /*simple square*/
-            the_map.cells[x][y].heads[i].face= 0;  /* empty/blank face */
-            the_map.cells[x][y].heads[i].size_x = 0;
-            the_map.cells[x][y].heads[i].size_y = 0;
-        }
-    }
-    the_map.cells[x][y].keephead= 0;
-}
-/* Modified the logic of this.  Basically, we always act as if
- * we are using the fog mode in terms of clearing the data.  We'll
- * leave it to the display logic to determine if it should draw
- * the space black or draw it in fog fashion.
- * This makes the logic much easier when dealing with the big images,
- * as we sort of need to track that a portion of a multipart image is
- * in fact on that space, because when the space re-appears in view,
- * we may not know otherwise know that we need to update that space
- * again.
- */
-void display_map_clearcell(int x,int y)
-{
-
-    int i,got_one=0;
-
-    x+= pl_pos.x;
-    y+= pl_pos.y;
-
-    /* If the space is completly blank, don't mark this as a 
-     * fog cell - that chews up extra cpu time.  Likewise,
-     * if the space is completely dark, don't draw it either.
-     * We do check the odd values (heads on other spaces),
-     * because we are only checking to see if we should
-     * in fact draw this space.
-     */
-    for (i=0; i<MAXLAYERS; i++) {
-	if (the_map.cells[x][y].heads[i].face>0) got_one=1;
-	if (the_map.cells[x][y].tails[i].face>0) got_one=1;
-    }
-
-    /* This spell is either already blank or completely dark */
-#if 0
-    if (!got_one || the_map.cells[x][y].darkness>200) {
-#else
-    if (!got_one) {
-#endif
-	reset_cell_data(x,y);
-    }
-    /* else this space has stuff we want to draw */
-    else {
-	the_map.cells[x][y].cleared= 1;
-	the_map.cells[x][y].need_update= 1;
-    }
-    return;
-}
-
-
-/* sets the face at layer to some value.  We just can't
- * restact arbitrarily, as the server now sends faces only
- * for layers that change, and not the entire space.
- * offx and offy are typically zero - this is where the head
- * of the face is located.  This can be used by the client
- * to only blit the portions on the actual space.  This
- * is very important in the case where the head may be off the
- * viewable area, but a portion is visible.
- */
-static void set_map_face(int x, int y, int layer, int face)
-{
-    static int dx[8]={0,1,1,1,0,-1,-1,-1};
-    static int dy[8]={-1,-1,0,1,1,1,0,-1};
-    int rx,ry,i;
-    x+= pl_pos.x;
-    y+= pl_pos.y;
-
-    /* this space is getting changed.  If the old face was a 'big face',
-     * we need to clear the spaces that we were set to draw.
-     * This loop basically just looks through the spaces that the face
-     * we are clearing out extends to, and marks them as blank.
-     * Set the new face to zero - the logic below will re-set this face
-     * if this is a case of a face changing (eg, animated)
-     */
-
-    if (the_map.cells[x][y].heads[layer].face != 0 &&
-       (the_map.cells[x][y].heads[layer].size_x>1 || the_map.cells[x][y].heads[layer].size_y>1))
-	    expand_face(x, y, the_map.cells[x][y].heads[layer].size_x, the_map.cells[x][y].heads[layer].size_y,
-		    the_map.cells[x][y].heads[layer].face, 0, layer);
-
-
-    the_map.cells[x][y].heads[layer].face = face;
-    get_map_image_size(face, 
-		    &the_map.cells[x][y].heads[layer].size_x, 
-		    &the_map.cells[x][y].heads[layer].size_y);
-
-    /*If this square has a smoothlevel, need to resmooth adjacent squares too*/
-    if (use_config[CONFIG_SMOOTH]){
-        if (the_map.cells[x][y].smooth[layer]>0)
-            for (i=0;i<8;i++){
-                rx=x+dx[i];
-                ry=y+dy[i];
-                if ( (rx<0) || (ry<0) || (the_map.x<=rx) || (the_map.y<=ry))
-                    continue;
-                the_map.cells[rx][ry].need_resmooth=1;  
-            }
-    }
-    the_map.cells[x][y].need_update = 1;
-    the_map.cells[x][y].have_darkness = 1;
-}
-
-
 void NewmapCmd(unsigned char *data, int len)
 {
     (void)data;(void)len; /* __UNUSED__ */
-    display_map_newmap();
+    mapdata_newmap();
 }
 /* This is the common processing block for the map1 and
  * map1a protocol commands.  The map1a mieks minor extensions
@@ -1138,27 +904,27 @@ void NewmapCmd(unsigned char *data, int len)
  * 1 for map1a.  It conceivable that there could be future
  * revisions.
  */
-#define NUM_LAYERS 2
+#define NUM_LAYERS (MAXLAYERS-1)
 static void map1_common(unsigned char *data, int len, int rev)
 {
-    int mask, x, y, pos=0,face, layer;
+    int mask, x, y, pos = 0, layer;
+    int darkness;
+    int faces[MAXLAYERS];
 
     map1cmd=1;
     if (!mapupdatesent) /* see MapExtendedCmd */
         display_map_startupdate();
-/*    fprintf(stderr,"map1 bytes %d\n", len);*/
 
     while (pos <len) {
 	mask = GetShort_String(data+pos); pos+=2;
 	x = (mask >>10) & 0x3f;
 	y = (mask >>4) & 0x3f;
 
-
 	/* If there are no low bits (face/darkness), this space is
 	 * not visible.
 	 */
 	if ((mask & 0xf) == 0) {
-	    display_map_clearcell(x,y);
+	    mapdata_set_face(x, y, -1, -1, -1, -1);
 	    continue;	/* if empty mask, none of the checks will be true. */
 	}
 	/* If this space was previously stored for fog of war, need to clear
@@ -1166,48 +932,30 @@ static void map1_common(unsigned char *data, int len, int rev)
 	 * might want to store in it.
 	 */
 
-	if(the_map.cells[x+pl_pos.x][y+pl_pos.y].cleared == 1) {
-	    reset_cell_data(x+pl_pos.x, y+pl_pos.y);
+	if (mask & 0x8) { /* darkness bit */
+	    darkness = data[pos++];
+	}
+	else {
+	    darkness = -1;
 	}
 
-	if (mask & 0x8) { /* darkness bit */
-	    set_map_darkness(x,y, (uint8)(data[pos]));
-	    pos++;
-	}
 	/* Reduce redundant by putting the get image
 	 * and flags in a common block.  The layers
 	 * are the inverse of the bit order unfortunately.
 	 */
 	for (layer=NUM_LAYERS; layer>=0; layer--) {
 	    if (mask & (1 << layer)) {
-		face = GetShort_String(data+pos); pos +=2;
-        if ( (face<0) || (face>10000)){
-            printf ("BUG: face %d for %dx%d at layer %d\n",face,x,y,NUM_LAYERS - layer);
-            printf ("     mask was %2X\n",mask);
-        }
-		set_map_face(x, y, NUM_LAYERS - layer, face);
+		faces[NUM_LAYERS-layer] = GetShort_String(data+pos); pos +=2;
+	    }
+	    else {
+		faces[NUM_LAYERS-layer] = -1;
 	    }
 	}
 
-	/* If this is a big space, need to tell spaces that this extends into about it.
-	 * We do this this after filling in all the faces for the space.  This
-	 * is necessary because expand_face collapses duplicates.  But we can get
-	 * into cases were layer 2 adds a space and layer 1 removes it because it used
-	 * to be on layer 1.  This results in it completely disappearing.  So
-	 * we do this here, because layer 2 still has the right value.
-	 */
-	x+= pl_pos.x;
-	y+= pl_pos.y;
-	for (layer=0; layer<MAXLAYERS; layer++) {
-	    if (the_map.cells[x][y].heads[layer].face &&
-		(the_map.cells[x][y].heads[layer].size_x>1 || the_map.cells[x][y].heads[layer].size_y>1))
-		expand_face(x, y, the_map.cells[x][y].heads[layer].size_x,
-		    the_map.cells[x][y].heads[layer].size_y,
-		    0, the_map.cells[x][y].heads[layer].face, layer);
-	}
+	mapdata_set_face(x, y, darkness, faces[0], faces[1], faces[2]);
     }
     mapupdatesent=0;
-    display_map_doneupdate(FALSE);
+    display_map_doneupdate(FALSE, FALSE);
 
 }
 
@@ -1240,7 +988,10 @@ void map_scrollCmd(char *data, int len)
     }
     buf++;
     dy = atoi(buf);
-    display_mapscroll(dx,dy);
+
+    display_map_startupdate();
+    mapdata_scroll(dx, dy);
+    display_map_doneupdate(FALSE, TRUE);
 }
 
 /* Extract smoothing infos from an extendedmapinfo packet part
@@ -1324,7 +1075,7 @@ void MapExtendedCmd(unsigned char *data, int len){
         }
 	}
     if (!noredraw){        
-        display_map_doneupdate(FALSE);
+        display_map_doneupdate(FALSE, FALSE);
         mapupdatesent=0;
     }
 }

@@ -247,7 +247,7 @@ static void toggle_splitwin(int newval)
     }
 
 	create_windows();
-	display_map_doneupdate(TRUE);
+	display_map_doneupdate(TRUE, FALSE);
 	draw_stats (1);
     update_list_labels(&inv_list); /* After exploding or unexploding client, redraw weight labels. */
     update_list_labels(&look_list);

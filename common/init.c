@@ -44,7 +44,7 @@ NULL, "colorinv", "colortext", "download_all_images", "echo_bindings",
 "split", "show_grid", "lighting", "trim_info_window",
 "map_width", "map_height", "foodbeep", "darkness", "port",
 "grad_color_bars", "resists", "smoothing", "nosplash",
-"auto_apply_container"
+"auto_apply_container", "mapscroll"
 };
 
 sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
@@ -192,6 +192,7 @@ void init_client_vars()
     want_config[CONFIG_SMOOTH] = 0;
     want_config[CONFIG_SPLASH] = TRUE;
     want_config[CONFIG_APPLY_CONTAINER] = TRUE;	    /* Same behavior before this option was put in */
+    want_config[CONFIG_MAPSCROLL] = TRUE;
     for (i=0; i<CONFIG_NUMS; i++) 
 	use_config[i] = want_config[i];
 

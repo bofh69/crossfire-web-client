@@ -2,6 +2,40 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix bug #1102991 (Duplicate grapical display of the same monster):
+common/Makefile.am: Add new files mapdata.c and mapdata.h.
+common/{client.c, commands.c}: Tell mapdata module the current display size.
+common/commands.c: Remove functions to handle map updates. Rewrite
+   map1_common() to pass information into mapdata module.
+common/init.c, gtk/gx11.c: Add new config options -mapscroll and -nomapscroll
+   to enable/disable scrolling the map view with bitmap operations.
+common/mapdata.[ch]: Add new module to handle all updates to the_map.
+gtk/gx11.c: Remove code for #if ALTERNATE_MAP_REDRAW. Initialize question mark
+   face for fog of war. Remove code to allocate the_map.
+gtk/image.c: Do not clear the_map in reset_image_data() anymore.
+gtk/map.c: Move code to update map data into mapdata module.
+   draw_pixmap(): New function to draw one face.
+   drawsmooth(): Check correct layer instead of fixed layer zero. Fix out of
+      bounds array access.
+   display_mapcell(): New function to draw one cell.
+   gtk_draw_map(): Move map drawing code into display_mapcell().
+gtk/sdl.c: Basically the same changes as in gtk/map.c
+gtk-v2/src/image.c: Basically the same changes as in gtk/gx11.c.
+gtk-v2/src/main.c: Add config options -smooth/-nosmooth to enable/disable
+   smoothing. Remove code to allocate the_map.
+gtk-v2/src/map.c: Basically the same changes as in gtk/map.c.
+gtk-v2/src/opengl.c: Fix out of bounds array access. Initialize question mark
+   face for fog of war.
+gtk-v2/src/sdl.c: Basically the same changes as in gtk/map.c.
+x11/x11.c: Implement map scrolling by using XCopyArea(). Add config options
+   -mapscroll/-nomapscroll to enable/disable this. Remove code to allocate or
+   clear the_map. Add new function display_mapcell() to draw one cell. Move
+   map drawing code from display_map_doneupdate() into display_mapcell().
+   Remove two pixel border around map window; is was used inconsistently, and
+   the window size was four pixels too small.
+x11/xutil.c: Move code to update map data into mapdata module.
+Andreas Kirschbaum 2005-08-31
+
 Fix bug #1245535 (negative grace showss up as positive amount):
 gtk-v2/src/stats.c: Clip negative stat values to zero.
 Andreas Kirschbaum 2005-08-30

@@ -86,6 +86,7 @@ char *rcsid_gtk_gx11_c =
 #include <script.h>
 #include <p_cmd.h>
 
+#include "mapdata.h"
 
 
 #ifdef HAVE_SDL
@@ -325,16 +326,6 @@ void do_network() {
 		script_process(&tmp_read);
 	    }
 	}
-#if ALTERNATE_MAP_REDRAW
-#ifdef HAVE_SDL
-	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(FALSE);
-	else
-#endif
-	gtk_draw_map(FALSE);
-	LOG(0,"gtk::do_network","Map redrawn\n");
-
-#endif
-
     } else {
 	LOG(LOG_INFO,"gtk::do_network","locked for network recieves.\n");
     }
@@ -495,11 +486,15 @@ static void init_cache_data()
 	pixmaps[0]->map_image = SDL_CreateRGBSurfaceFrom(question_sdl,
 		32, 32, 1, 4, 1, 1, 1, 1);
 	SDL_SetAlpha(pixmaps[0]->map_image, SDL_SRCALPHA, 70);
+	pixmaps[0]->fog_image = SDL_CreateRGBSurfaceFrom(question_sdl,
+		32, 32, 1, 4, 1, 1, 1, 1);
+	SDL_SetAlpha(pixmaps[0]->fog_image, SDL_SRCALPHA, 70);
     }
     else
 #endif
     {
 	pixmaps[0]->map_image =  pixmaps[0]->icon_image;
+	pixmaps[0]->fog_image =  pixmaps[0]->icon_image;
 	pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
     }
     pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
@@ -659,7 +654,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 	mapwindow = gdk_pixmap_new(gtkwin_root->window, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size, -1);
 	gdk_gc_unref(darkgc);
     }
-    display_map_doneupdate(TRUE);
+    display_map_doneupdate(TRUE, FALSE);
     return TRUE;
 }
 
@@ -675,7 +670,7 @@ expose_event (GtkWidget *widget, GdkEventExpose *event)
 	return FALSE;
     }
 #endif
-    display_map_doneupdate(TRUE);
+    display_map_doneupdate(TRUE, FALSE);
     return FALSE;
 }
 
@@ -4199,7 +4194,7 @@ int do_timeout() {
   
   draw_info_windows();
   if (redraw_needed) {
-    display_map_doneupdate(TRUE);
+    display_map_doneupdate(TRUE, FALSE);
     redraw_needed=FALSE;
   }
   if (cpl.showmagic) magic_map_flash_pos();
@@ -4623,6 +4618,9 @@ static void usage(char *progname)
     puts("-server <name>   - Connect to <name> instead of localhost.");
     puts("-showicon        - Print status icons in inventory window");
     puts("-smooth          - Enable smooth");
+    puts("-nosmooth        - Disable smooth");
+    puts("-mapscroll       - Enable mapscrolling by bitmap operations");
+    puts("-nomapscroll     - Disable mapscrolling by bitmap operations");
     puts("-sound           - Enable sound output (default).");
     puts("-nosound         - Disable sound output.");
     puts("-sound_server <path> - Executable to use to play sounds.");
@@ -4822,8 +4820,14 @@ int init_windows(int argc, char **argv)
 	else if (!strcmp(argv[on_arg],"-smooth")) {
 	    want_config[CONFIG_SMOOTH] = TRUE;
 	}
-	else if (!strcmp(argv[on_arg],"+smooth")) {
+	else if (!strcmp(argv[on_arg],"-nosmooth")) {
 	    want_config[CONFIG_SMOOTH] = FALSE;
+	}
+	else if (!strcmp(argv[on_arg],"-mapscroll")) {
+	    want_config[CONFIG_MAPSCROLL] = TRUE;
+	}
+	else if (!strcmp(argv[on_arg],"-nomapscroll")) {
+	    want_config[CONFIG_MAPSCROLL] = FALSE;
 	}
 	else if (!strcmp(argv[on_arg],"-sound")) {
 	    want_config[CONFIG_SOUND] = TRUE;
@@ -4903,10 +4907,7 @@ int init_windows(int argc, char **argv)
     itemlist_set_show_icon(&inv_list, use_config[CONFIG_SHOWICON]);
     if (!use_config[CONFIG_CACHE]) use_config[CONFIG_DOWNLOAD] = FALSE;
 
-    allocate_map( &the_map, FOG_MAP_SIZE, FOG_MAP_SIZE);
-    pl_pos.x= the_map.x / 2;
-    pl_pos.y= the_map.y / 2;
-
+    mapdata_init();
 
     /* Finished parsing all the command line options.  Now start
      * working on the display.
@@ -4929,23 +4930,29 @@ int init_windows(int argc, char **argv)
 }
 
 
-/* Do the map drawing */
-void display_map_doneupdate(int redraw)
+/** Do the map drawing
+ *
+ * If redraw is set, force redraw of all tiles.
+ *
+ * If notice is set, another call will follow soon.
+ */
+void display_map_doneupdate(int redraw, int notice)
 {
+    if (notice)
+	return;
 
     if (updatelock < 30) {
 	updatelock++;
 
-#if !ALTERNATE_MAP_REDRAW
 #ifdef HAVE_SDL
 	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(redraw);
 	else
 #endif
 	gtk_draw_map(redraw);
-
-#endif
     } /* if updatelock */
-
+    else {
+	redraw_needed = TRUE;
+    }
 }
 
 void display_map_newmap()
@@ -5285,13 +5292,13 @@ int main(int argc, char *argv[])
 	 * loop again to establish a new one.
 	 */
 
+	mapdata_reset();
 	/* Need to reset the images so they match up properly and prevent
 	 * memory leaks.
 	 */
 	reset_image_data();
 	remove_item_inventory(cpl.ob);
 	remove_item_inventory(cpl.below);
-	reset_map_data();
 	set_look_list_env(cpl.below);
     }
     exit(0);	/* never reached */

@@ -84,6 +84,7 @@ char *rcsid_x11_x11_c =
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include "mapdata.h"
 #include "x11proto.h"
 #include "x11.h"
 
@@ -152,7 +153,6 @@ typedef struct {
 int noautorepeat = FALSE;	/* turn off autorepeat detection */
 
 static char *font_name="8x13",	**gargv;
-struct Map the_map;
 
 #define SCROLLBAR_WIDTH	16	/* +2+2 for border on each side */
 #define INFOCHARS 50
@@ -257,6 +257,7 @@ static GC gc_root,gc_stats,gc_message,
 	gc_floor,gc_xpm_object,gc_clear_xpm,gc_xpm[XPMGCS],
 	gc_blank; 
 GC gc_game;
+static GC gc_copy;		/* used for copying when scrolling map view */
 
 /*
  * These are used for inventory and look window
@@ -406,6 +407,7 @@ void end_windows()
 {
     XFreeGC(display, gc_root);
     XFreeGC(display, gc_game);
+    XFreeGC(display, gc_copy);
     XFreeGC(display, gc_stats);
     XFreeGC(display, infodata.gc_info);
     XFreeGC(display, inv_list.gc_text);
@@ -472,6 +474,8 @@ static int get_game_display() {
 	XSetBackground(display,gc_game,background);
     }
     XSetGraphicsExposures(display, gc_game, False);
+    gc_copy=XCreateGC(display,win_game,0,0);
+    XSetGraphicsExposures(display, gc_game, True);
     gc_floor = XCreateGC(display,win_game,0,0);
     XSetGraphicsExposures(display, gc_floor, False);
     gc_blank = XCreateGC(display,win_game,0,0);
@@ -2347,7 +2351,7 @@ static void do_key_press(int repeated)
     /* Turn off the magic map.  Perhaps this should be more selective? */
     if (cpl.showmagic) {
 	cpl.showmagic=0;
-	display_map_doneupdate(TRUE);
+	display_map_doneupdate(TRUE, FALSE);
     }
     if(!XLookupString(&event.xkey,text,10, &gkey,NULL)) {
 /*
@@ -2610,7 +2614,7 @@ void check_x_events() {
 	if (want_config[CONFIG_CACHE] && lastupdate>5 && newimages) {
 	    update_icons_list(&inv_list);
 	    update_icons_list(&look_list);
-	    if (!cpl.showmagic) display_map_doneupdate(TRUE);
+	    if (!cpl.showmagic) display_map_doneupdate(TRUE, FALSE);
 	    newimages=0;
 	    lastupdate=0;
 	}
@@ -2644,7 +2648,7 @@ void check_x_events() {
 
 	    case Expose:
 	    /* No point redrawing windows if there are more Expose's to
-	     * to come.
+	     * come.
 	     */
 	    if (event.xexpose.count!=0) continue;
 	    if(event.xexpose.window==win_stats) {
@@ -2660,11 +2664,22 @@ void check_x_events() {
 		draw_all_message();
 	    else if(event.xexpose.window==win_game) {
 		if (cpl.showmagic) draw_magic_map();
-		else display_map_doneupdate(TRUE);
+		else display_map_doneupdate(TRUE, FALSE);
 	    } else if(want_config[CONFIG_SPLITWIN]==FALSE && event.xexpose.window==win_root) {
 		XClearWindow(display,win_root);
 	    }
 	    break;
+
+	    case GraphicsExpose:
+		/* No point redrawing windows if there are more GraphicExpose's
+		 * to come.
+		 */
+		if (event.xgraphicsexpose.count!=0) continue;
+		if(event.xgraphicsexpose.drawable==win_game) {
+		    if (cpl.showmagic) draw_magic_map();
+		    else display_map_doneupdate(TRUE, FALSE);
+		}
+		break;
 
 	    case MappingNotify:
 		XRefreshKeyboardMapping(&event.xmapping);
@@ -2768,6 +2783,8 @@ static void usage(char *progname)
     puts("-help            - Display this message.");
     puts("-cache           - Cache images for future use.");
     puts("-nocache         - Do not cache images (default action).");
+    puts("-mapscroll       - Enable mapscrolling by bitmap operations");
+    puts("-nomapscroll     - Disable mapscrolling by bitmap operations");
     puts("-darkness        - Enables darkness code (default)");
     puts("-nodarkness      - Disables darkness code");
     puts("-nosound         - Disable sound output.");
@@ -2870,6 +2887,12 @@ int init_windows(int argc, char **argv)
 	    want_config[CONFIG_CACHE]= FALSE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-mapscroll")) {
+	    want_config[CONFIG_MAPSCROLL] = TRUE;
+	}
+	else if (!strcmp(argv[on_arg],"-nomapscroll")) {
+	    want_config[CONFIG_MAPSCROLL] = FALSE;
+	}
 	else if (!strcmp(argv[on_arg],"-darkness")) {
 	    use_config[CONFIG_DARKNESS]= TRUE;
 	    continue;
@@ -2967,12 +2990,7 @@ int init_windows(int argc, char **argv)
     image_size=32;
 #endif
 
-
-    allocate_map( &the_map, MIN_ALLOCATED_MAP_SIZE, MIN_ALLOCATED_MAP_SIZE);
-    if( the_map.cells == NULL) {
-      fprintf( stderr, "Error on allocation of map, malloc failed.\n");
-      exit( 1);
-    }
+    mapdata_init();
 
     /* Finished parsing all the command line options.  Now start
      * working on the display.
@@ -3005,33 +3023,35 @@ void display_map_newmap()
 /* This can also get called for png.  Really, anything that gets rendered
  * into a pixmap that does not need colors set or other specials done.
  */
-void display_mapcell_pixmap(int ax,int ay)
+static void display_mapcell(int ax, int ay)
 {
-    int k, mx, my, got_one=0;
+    int layer, mx, my, got_one = 0;
 
-    mx = ax + pl_pos.x;
-    my = ay + pl_pos.y;
+    mx = pl_pos.x+ax;
+    my = pl_pos.y+ay;
 
-    if (the_map.cells[mx][my].cleared && !use_config[CONFIG_FOGWAR]) {
-	XFillRectangle(display,win_game,gc_blank,2+image_size*ax,2+image_size*ay,image_size,image_size);
+    if (!use_config[CONFIG_FOGWAR] && the_map.cells[mx][my].cleared) {
+	XFillRectangle(display,win_game,gc_blank,image_size*ax,image_size*ay,image_size,image_size);
 	return;
     }
 
     XFillRectangle(display,xpm_pixmap,gc_clear_xpm,0,0,image_size,image_size);
-    for (k=0; k<MAXLAYERS; k++) {
-	    if (the_map.cells[mx][my].heads[k].face >0 ) {
-		/* Always draw the lower right corner of the heads. */
-		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].heads[k].face, 0, 0,
-		   (pixmaps[the_map.cells[mx][my].heads[k].face]->width - 1) * image_size,
-		   (pixmaps[the_map.cells[mx][my].heads[k].face]->height - 1) * image_size
-			      );
+    for (layer=0; layer<MAXLAYERS; layer++) {
+	int sx, sy;
+
+	/* draw single-tile faces first */
+	int face = mapdata_face(ax, ay, layer);
+	if (face > 0) {
+	    int w = pixmaps[face]->width;
+	    int h = pixmaps[face]->height;
+	    gen_draw_face(xpm_pixmap, face, 0, 0, (w-1)*image_size, (h-1)*image_size);
 		got_one = 1;
 	    }
-	    if (the_map.cells[mx][my].tails[k].face >0 ) {
-		gen_draw_face(xpm_pixmap, the_map.cells[mx][my].tails[k].face, 0, 0,
-		   (pixmaps[the_map.cells[mx][my].tails[k].face]->width - the_map.cells[mx][my].tails[k].size_x - 1) * image_size,
-		   (pixmaps[the_map.cells[mx][my].tails[k].face]->height - the_map.cells[mx][my].tails[k].size_y - 1) * image_size
-			      );
+
+	/* draw big faces last (should overlap other objects) */
+	face = mapdata_bigface(ax, ay, layer, &sx, &sy);
+	if (face > 0) {
+	    gen_draw_face(xpm_pixmap, face, 0, 0, sx*image_size, sy*image_size);
 		got_one = 1;
 	    }
     }
@@ -3044,32 +3064,31 @@ void display_mapcell_pixmap(int ax,int ay)
 	    xpm_masks[XPMGCS-1] = dark2;
 	}
 	else if (use_config[CONFIG_DARKNESS] && the_map.cells[mx][my].have_darkness) {
+	    int darkness;
 	    XSetClipOrigin(display, gc_xpm[XPMGCS-1], 0, 0);
 	    XSetForeground(display, gc_xpm[XPMGCS-1], discolor[0].pixel);
-	    if (the_map.cells[mx][my].darkness > 192) {
+	    darkness = the_map.cells[mx][my].darkness;
+	    if (darkness > 192) {
 		XSetClipMask(display, gc_xpm[XPMGCS-1], dark1);
 		XCopyPlane(display, dark1, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
 		xpm_masks[XPMGCS-1] = dark1;
 	    }
-	    else if (the_map.cells[mx][my].darkness > 128) {
+	    else if (darkness > 128) {
 		XSetClipMask(display, gc_xpm[XPMGCS-1], dark2);
 		XCopyPlane(display, dark2, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
 		xpm_masks[XPMGCS-1] = dark2;
 	    }
-	    else if (the_map.cells[mx][my].darkness > 64) {
+	    else if (darkness > 64) {
 		XSetClipMask(display, gc_xpm[XPMGCS-1], dark3);
 		XCopyPlane(display, dark3, xpm_pixmap, gc_xpm[XPMGCS-1], 0, 0, image_size, image_size, 0, 0, 1);
 		xpm_masks[XPMGCS-1] = dark3;
 	    }
 	}
-	XCopyArea(display,xpm_pixmap,win_game,gc_game,0,0,image_size,image_size,
-	    2+image_size*ax,2+image_size*ay);
+	XCopyArea(display, xpm_pixmap, win_game, gc_game, 0, 0, image_size, image_size, image_size*ax, image_size*ay);
     } else {
-	XFillRectangle(display,win_game,gc_blank,2+image_size*ax,2+image_size*ay,image_size,image_size);
+	XFillRectangle(display, win_game, gc_blank, image_size*ax, image_size*ay, image_size, image_size);
     }
-
 }
-
 
 void resize_map_window(int x, int y)
 {
@@ -3102,32 +3121,65 @@ void resize_map_window(int x, int y)
     }
 }
 
-
 /* we don't need to do anything, as we figure this out as needed */
 void x_set_echo() { }
 
 
-void display_map_doneupdate(int redraw)
+/**
+ * If redraw is set, force redraw of all tiles.
+ *
+ * If notice is set, another call will follow soon.
+ */
+void display_map_doneupdate(int redraw, int notice)
 {
     int ax,ay, mx, my;
+
+    if(notice) {
+	return;
+    }
+
     if (cpl.showmagic) {
 	magic_map_flash_pos();
 	return;
     }
+
     XSetClipMask(display,gc_floor,None);
     for(ax=0;ax<use_config[CONFIG_MAPWIDTH];ax++) {
 	for(ay=0;ay<use_config[CONFIG_MAPHEIGHT];ay++) { 
-	    mx = ax + pl_pos.x;
-	    my = ay + pl_pos.y;
+	    mx = pl_pos.x+ax;
+	    my = pl_pos.y+ay;
 	    if (redraw || the_map.cells[mx][my].need_update)  {
-		display_mapcell_pixmap(ax,ay);
-		the_map.cells[mx][my].need_update=0;
+		display_mapcell(ax, ay);
 	    }
 	}
     }
     XFlush(display);
 }
 
+int display_mapscroll(int dx, int dy)
+{
+    int srcx, srcy;
+    int dstx, dsty;
+    int w, h;
+
+    srcx = dx > 0 ? image_size : 0;
+    srcy = dy > 0 ? image_size : 0;
+    dstx = dx < 0 ? image_size : 0;
+    dsty = dy < 0 ? image_size : 0;
+
+    w = use_config[CONFIG_MAPWIDTH];
+    if(dx != 0)
+        w--;
+    h = use_config[CONFIG_MAPHEIGHT];
+    if(dy != 0)
+        h--;
+    XCopyArea(display, win_game, win_game, gc_copy,
+        srcx, srcy,
+        w*image_size, h*image_size,
+        dstx, dsty);
+
+    return 1;
+}
 
 /* This functions associates the image_data in the cache entry
  * with the specific pixmap number.  Returns 0 on success, -1
@@ -3138,7 +3190,6 @@ void display_map_doneupdate(int redraw)
  */
 int associate_cache_entry(Cache_Entry *ce, int pixnum)
 {
-
     pixmaps[pixnum] = ce->image_data;
     return 0;
 }
@@ -3211,7 +3262,7 @@ void draw_magic_map()
 		XSetForeground(display,gc_game,
 		    discolor[val&FACE_COLOR_MASK].pixel);
 		XFillRectangle(display,win_game,
-                       gc_game, 2+cpl.mapxres*x, 2+cpl.mapyres*y, cpl.mapxres, cpl.mapyres);
+                       gc_game, cpl.mapxres*x, cpl.mapyres*y, cpl.mapxres, cpl.mapyres);
 	    }
 	    else { /* if on black/white system */
 		/* don't draw floors */
@@ -3219,19 +3270,19 @@ void draw_magic_map()
 
 		if (val & FACE_WALL) {
 		    XFillRectangle(display,win_game,
-                       gc_game, 2+cpl.mapxres*x, 2+cpl.mapyres*y, cpl.mapxres, cpl.mapyres);
+                       gc_game, cpl.mapxres*x, cpl.mapyres*y, cpl.mapxres, cpl.mapyres);
 
 		} else { /* interesting object */
 		    
 		    if ((val & FACE_COLOR_MASK)==0)
 			XCopyPlane(display, icons[stipple2_icon],
 			       win_game, gc_game,
-			       0, 0, cpl.mapxres,cpl.mapyres, 2+cpl.mapxres*x, 2+cpl.mapyres*y,
+			       0, 0, cpl.mapxres,cpl.mapyres, cpl.mapxres*x, cpl.mapyres*y,
 			       1);
 		    else
 			XCopyPlane(display, icons[stipple1_icon],
 			       win_game, gc_game,
-			       0, 0, cpl.mapxres,cpl.mapyres, 2+cpl.mapxres*x, 2+cpl.mapyres*y,
+			       0, 0, cpl.mapxres,cpl.mapyres, cpl.mapxres*x, cpl.mapyres*y,
 			       1);
 		} /* interesting object */
 	    } /* black/white system */
@@ -3251,8 +3302,8 @@ void magic_map_flash_pos()
 	XSetForeground(display, gc_game, background);
 	XSetBackground(display, gc_game, foreground);
     }
-    XFillRectangle(display, win_game, gc_game, 2+cpl.mapxres*cpl.pmapx, 
-		   2+cpl.mapyres*cpl.pmapy, cpl.mapxres, cpl.mapyres);
+    XFillRectangle(display, win_game, gc_game, cpl.mapxres*cpl.pmapx,
+		   cpl.mapyres*cpl.pmapy, cpl.mapxres, cpl.mapyres);
 }
 
 /* We can now connect to different servers, so we need to clear out
@@ -3279,7 +3330,6 @@ void reset_image_data()
 	    pixmaps[i] = pixmaps[0];
 	}
     }
-    memset((char*)&the_map.cells[0][0], 0, sizeof(struct MapCell)*the_map.x*the_map.y);
     look_list.env=cpl.below;
 }
 
@@ -3613,6 +3663,7 @@ int main(int argc, char *argv[])
 	 * an entry for the last server there also.
 	 */
 
+	display_map_doneupdate(FALSE, FALSE);
 	if (!strcmp(server, SERVER) || got_one) {
 	    char *ms;
 	    metaserver_get_info(meta_server, meta_port);
@@ -3636,6 +3687,7 @@ int main(int argc, char *argv[])
 	 * loop again to establish a new one.
 	 */
 
+	mapdata_reset();
 	/* Need to reset the images so they match up properly and prevent
 	 * memory leaks.
 	 */
@@ -3646,7 +3698,6 @@ int main(int argc, char *argv[])
 	 * we still use locate.
 	 */
 	remove_item_inventory(locate_item(0));
-	reset_map_data();
 	look_list.env=cpl.below;
     }
     exit(0);	/* never reached */

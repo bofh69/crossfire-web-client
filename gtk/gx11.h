@@ -40,7 +40,6 @@
 #include "item.h"
 
 extern int map_size, image_size, map_image_size, map_image_half_size;
-extern uint8 map_did_scroll;
 extern uint8 updatekeycodes, time_map_redraw,redraw_needed;
 extern int updatelock;
 
@@ -98,9 +97,6 @@ typedef struct {
 } itemlist;
 
 extern itemlist inv_list, look_list;
-
-/* This was just a test I put in to try different redraw methods */
-#define ALTERNATE_MAP_REDRAW	0
 
 typedef struct news_entry{
     char* title;

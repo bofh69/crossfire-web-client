@@ -37,6 +37,7 @@ char *rcsid_gtk_sdl_c =
 
 #include "gx11.h"
 #include <client.h>
+#include "mapdata.h"
 
 /* Actual SDL surface the game view is painted on */
 SDL_Surface* mapsurface;
@@ -370,10 +371,8 @@ void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,                /*co
 /* See note below about ALPHA_FUDGE - used to adjust lighting effects some */
 
 #define ALPHA_FUDGE(x)  (2*(x) / 3)
-#define GENDARK(x,y) ( (((x)&(y) & 1) == 1)?255:0 )
-void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
+static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 {
-
     int dark0, dark1, dark2, dark3, dark4;
     SDL_Rect dst;
 
@@ -394,11 +393,6 @@ void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
     if (x-1 < 0 || !the_map.cells[mx-1][my].have_darkness) dark4 = dark0;
     else dark4 = the_map.cells[mx-1][my].darkness;
 
-    /*dark0=GENDARK(mx,my);
-    dark1=GENDARK(mx,my-1);
-    dark2=GENDARK(mx+1,my);
-    dark3=GENDARK(mx,my+1);
-    dark4=GENDARK(mx+1,my);*/
     /* If they are all the same, processing is easy
      *
      * Note, the best lightining algorithm also uses diagonals
@@ -632,14 +626,16 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
     int i,lowest,weight,weightC;
     int emx,emy;
     int smoothface;
-    int dosmooth=0;
     SDL_Rect src;
-    src.w=dst.w;
-    src.h=dst.h;
-    if ( (the_map.cells[mx][my].heads[0].face==0)
+
+    if (the_map.cells[mx][my].heads[layer].face == 0
          || !CAN_SMOOTH(the_map.cells[mx][my],layer) ){
         return;
     }
+
+    src.w = dst.w;
+    src.h = dst.h;
+
     for (i=0;i<8;i++){
         emx=mx+dx[i];
         emy=my+dy[i];
@@ -647,13 +643,12 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         }
-        if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
+        else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         }else{      
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
-            dosmooth=1;
         }                    
     }
     /* ok, now we have a list of smoothlevel higher than current square.
@@ -736,8 +731,6 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
                     do_SDL_error( "BlitSurface", __FILE__, __LINE__);
             }
         }
-
-
     }/*while there's some smooth to do*/
 }
 
@@ -747,8 +740,8 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
  * lightning code used.
  *                              Tchize 22 May 2004
  */
-int sdl_square_need_redraw(int mx, int my){
-#define SDL_LIGHT_CHANGED(_x_,_y_) ( ( ( (_x_)<0) || ( (_y_)<0) || ( (_x_)>=the_map.x) || ( (_y_)>=the_map.y) )?0: the_map.cells[_x_][_y_].need_update )
+static int sdl_square_need_redraw(int mx, int my){
+#define SDL_LIGHT_CHANGED(_x_,_y_) (!mapdata_is_inside((_x_), (_y_)) ? 0 : the_map.cells[_x_][_y_].need_update)
     if ( (the_map.cells[mx][my].need_update) || (the_map.cells[mx][my].need_resmooth))
         return 1;
         
@@ -775,6 +768,97 @@ int sdl_square_need_redraw(int mx, int my){
     return 0; /*no need to redraw :)*/
 }
 
+static void display_mapcell(int ax, int ay, int mx, int my)
+{
+    SDL_Rect dst, src;
+    int layer;
+
+    /* First, we need to black out this space. */
+    dst.x = ax*map_image_size;
+    dst.y = ay*map_image_size;
+    dst.w = map_image_size;
+    dst.h = map_image_size;
+    SDL_FillRect(mapsurface, &dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
+
+    /* now draw the different layers.  Only draw if using fog of war or the
+     * space isn't clear.
+     */
+    if (use_config[CONFIG_FOGWAR] || !the_map.cells[mx][my].cleared) {
+        for (layer=0; layer<MAXLAYERS; layer++) {
+            int sx, sy;
+
+            /* draw single-tile faces first */
+            int face = mapdata_face(ax, ay, layer);
+            if (face > 0 && pixmaps[face]->map_image != NULL) {
+                int w = pixmaps[face]->map_width;
+                int h = pixmaps[face]->map_height;
+                /* add one to the size values to take into account the actual width of the space */
+                src.x = w-map_image_size;
+                src.y = h-map_image_size;
+                src.w = map_image_size;
+                src.h = map_image_size;
+                dst.x = ax*map_image_size;
+                dst.y = ay*map_image_size;
+                if (the_map.cells[mx][my].cleared) {
+                    if (SDL_BlitSurface(pixmaps[face]->fog_image, &src, mapsurface, &dst))
+                        do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+                } else {
+                    if (SDL_BlitSurface(pixmaps[face]->map_image, &src, mapsurface, &dst))
+                        do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+                }
+
+                if (use_config[CONFIG_SMOOTH])
+                    drawsmooth_sdl(mx, my, layer, dst);
+            }
+            /* Sometimes, it may happens we need to draw the smooth while there
+             * is nothing to draw at that layer (but there was something at lower
+             * layers). This is handled here. The else part is to take into account
+             * cases where the smooth as already been handled 2 code lines before
+             */
+            else if (use_config[CONFIG_SMOOTH] && the_map.cells[mx][my].need_resmooth)
+                drawsmooth_sdl(mx, my, layer, dst);
+
+           /* draw big faces last (should overlap other objects) */
+            face = mapdata_bigface(ax, ay, layer, &sx, &sy);
+            if (face > 0 && pixmaps[face]->map_image != NULL) {
+                src.x = sx*map_image_size;
+                src.y = sy*map_image_size;
+                src.w = map_image_size;
+                src.h = map_image_size;
+                dst.x = ax*map_image_size;
+                dst.y = ay*map_image_size;
+                if (the_map.cells[mx][my].cleared) {
+                    if (SDL_BlitSurface(pixmaps[face]->fog_image, &src, mapsurface, &dst))
+                        do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+                } else {
+                    if (SDL_BlitSurface(pixmaps[face]->map_image, &src, mapsurface, &dst))
+                        do_SDL_error( "BlitSurface", __FILE__, __LINE__);
+                }
+            } /* else for processing the layers */
+        }
+    }
+
+    if (use_config[CONFIG_LIGHTING] == CFG_LT_TILE) {
+        dst.x = ax*map_image_size;
+        dst.y = ay*map_image_size;
+        dst.w = map_image_size;
+        dst.h = map_image_size;
+
+        /* Note - Instead of using a lightmap, I just fillrect
+         * directly onto the map surface - I would think this should be
+         * faster
+         */
+        if (the_map.cells[mx][my].darkness == 255) {
+            SDL_FillRect(mapsurface,&dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
+        } else if (the_map.cells[mx][my].darkness != 0) {
+            SDL_SetAlpha(lightmap, SDL_SRCALPHA|SDL_RLEACCEL, the_map.cells[mx][my].darkness);
+            SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
+        }
+    } else if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL || use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST) {
+        do_sdl_per_pixel_lighting(ax, ay, mx, my);
+    }
+}
+
 /* This generates a map in SDL mode.
  * 
  * I had to totally change the logic on how we do this in SDL mode - 
@@ -799,8 +883,7 @@ int sdl_square_need_redraw(int mx, int my){
  */
 
 void sdl_gen_map(int redraw) {
-    int mx,my, layer,x,y;
-    SDL_Rect dst, src;
+    int mx, my, x, y;
     struct timeval tv1, tv2,tv3;
     long elapsed1, elapsed2;
     
@@ -833,14 +916,6 @@ void sdl_gen_map(int redraw) {
         return; /*without this bitmap, no drawing possible*/
     }
     
-
-#if !ALTERNATE_MAP_REDRAW
-    if (map_did_scroll) {
-	redraw=1;
-	map_did_scroll=0;
-    }
-#endif
-
     for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
         for(y = 0; y<use_config[CONFIG_MAPHEIGHT]; y++) {
             redrawbitmap[x+y*last_mapwidth]=(uint8)sdl_square_need_redraw(x+pl_pos.x,y+pl_pos.y);
@@ -851,117 +926,16 @@ void sdl_gen_map(int redraw) {
 	    /* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
 	     * x and y (from the for loop) represent the visable screen.
 	     */
-	    mx = x + pl_pos.x;
-	    my = y + pl_pos.y;
-
-	    /* Don't need to touch this space */
-            if (!redrawbitmap[x+y*last_mapwidth])
-                continue;
-	    /* First, we need to black out this space. */
-	    dst.x = x * map_image_size; dst.y = y* map_image_size;
-	    dst.w = map_image_size; dst.h = map_image_size;
-	    SDL_FillRect(mapsurface, &dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
-
-	    /* now draw the different layers.  Only draw if using fog of war or the
-	     * space isn't clear.
-	     */
-	    if (use_config[CONFIG_FOGWAR] || !the_map.cells[mx][my].cleared) 
-		for (layer=0; layer<MAXLAYERS; layer++) {
-
-		    /* draw the tail first - this seems to get better results */
-		    if (the_map.cells[mx][my].tails[layer].face &&
-			pixmaps[the_map.cells[mx][my].tails[layer].face]->map_image) {
-
-			/* add one to the size values to take into account the actual width of the space */
-			src.x = pixmaps[the_map.cells[mx][my].tails[layer].face]->map_width - 
-			    (the_map.cells[mx][my].tails[layer].size_x + 1) * map_image_size;
-			src.y = pixmaps[the_map.cells[mx][my].tails[layer].face]->map_height - 
-			    (the_map.cells[mx][my].tails[layer].size_y + 1) * map_image_size;
-			src.w = map_image_size;
-			src.h = map_image_size;
-			dst.x = x * map_image_size;
-			dst.y = y * map_image_size;
-			if (the_map.cells[mx][my].cleared) {
-			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].tails[layer].face]->fog_image, 
-				&src, mapsurface, &dst))
-				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
-			} else {
-			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].tails[layer].face]->map_image, 
-				&src, mapsurface, &dst))
-				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
-			}
-		    }
-		    /* Draw the head now - logic is pretty much exactly the same
-		     * as that for the tail, except we know that we this is at the lower right,
-		     * so we don't need to adjust the origin as much.
-		     */
-		    if (the_map.cells[mx][my].heads[layer].face && 
-			pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image) {
-
-			src.x = pixmaps[the_map.cells[mx][my].heads[layer].face]->map_width - map_image_size;
-			src.y = pixmaps[the_map.cells[mx][my].heads[layer].face]->map_height - map_image_size;
-			src.w = map_image_size;
-			src.h = map_image_size;
-			dst.x = x * map_image_size;
-			dst.y = y * map_image_size;
-			if (the_map.cells[mx][my].cleared) {
-			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->fog_image,
-				&src, mapsurface, &dst))
-				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
-			} else {
-			    if (SDL_BlitSurface(pixmaps[the_map.cells[mx][my].heads[layer].face]->map_image,
-				&src, mapsurface, &dst))
-				    do_SDL_error( "BlitSurface", __FILE__, __LINE__);
-			}
-            /*We have added either a head. Let's draw nearby squares coverts*/
-		    if ( use_config[CONFIG_SMOOTH])
-                drawsmooth_sdl (mx,my,layer,dst);
-            }
-            /*Sometimes, it may happens we need to draw the smooth while there
-              is nothing to draw at that layer (but there was something at lower
-              layers). This is handled here. The else part is to take into account
-              cases where the smooth as already been handled 2 code lines before*/
-            else if ( use_config[CONFIG_SMOOTH] &&
-                 the_map.cells[mx][my].need_resmooth )
-                drawsmooth_sdl (mx,my,layer,dst);
-		} /* else for processing the layers */
-
-	    /* Do final logic for this map space */
+	    mx = pl_pos.x+x;
+	    my = pl_pos.y+y;
+            if (redraw || redrawbitmap[x+y*last_mapwidth]) {
+		display_mapcell(x, y, mx, my);
 	    the_map.cells[mx][my].need_update=0;
-
-#if 0
-	    if (the_map.cells[mx][my].cleared == 1 && use_config[CONFIG_FOGWAR]) {
-		/* If this is a fogcell, copy over the fogmap */
-		dst.x = x * map_image_size;
-		dst.y = y * map_image_size;
-		SDL_BlitSurface(fogmap, NULL, mapsurface, &dst);
+		the_map.cells[mx][my].need_resmooth = 0;
 	    }
-	    /* Only worry about lighting if it is not a fog cell.  If it is
-	     * a fog cell, lighting information is probably bogus.
-	     */
-	    else 
-#endif
-	    if (use_config[CONFIG_LIGHTING] == CFG_LT_TILE) {
-		dst.x = x * map_image_size;
-		dst.y = y * map_image_size;
-		dst.w = map_image_size;
-		dst.h = map_image_size;
-
-		/* Note - Instead of using a lightmap, I just fillrect
-		 * directly onto the map surface - I would think this should be
-		 * faster
-		 */
-		if (the_map.cells[mx][my].darkness == 255) {
-		    SDL_FillRect(mapsurface,&dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
-		} else if (the_map.cells[mx][my].darkness != 0) {
-		    SDL_SetAlpha(lightmap, SDL_SRCALPHA|SDL_RLEACCEL, the_map.cells[mx][my].darkness);
-		    SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
 		}
-	    } else if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL || use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST) {
-		do_sdl_per_pixel_lighting(x, y, mx, my);
 	    }
-	} /* For y spaces */
-    } /* for x spaces */
+
     if (time_map_redraw)
 	gettimeofday(&tv2, NULL);
 
@@ -980,7 +954,7 @@ void sdl_gen_map(int redraw) {
     }
 } /* sdl_gen_map function */
 
-void sdl_mapscroll(int dx, int dy)
+int sdl_mapscroll(int dx, int dy)
 {
     /* a copy of what pngximage does except sdl specfic
      * mapsurface->pitch is the length of a scanline in bytes 
@@ -1016,10 +990,8 @@ void sdl_mapscroll(int dx, int dy)
 	}
     }
     SDL_UnlockSurface( mapsurface);
-    map_did_scroll= 1;
+	    
+    return 1;
 }
 
-	    
-
 #endif
-

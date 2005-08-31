@@ -62,7 +62,7 @@ extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, i
 extern void save_winpos(void);
 extern void set_window_pos(void);
 extern int init_windows(int argc, char **argv);
-extern void display_map_doneupdate(int redraw);
+extern void display_map_doneupdate(int redraw, int notice);
 extern void display_map_newmap(void);
 extern void resize_map_window(int x, int y);
 extern void display_map_startupdate(void);
@@ -109,13 +109,8 @@ extern void ckeyunbind(GtkWidget *gtklist, GdkEventButton *event);
 extern void ckeyentry_callback(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void ckeyclear(void);
 /* map.c */
-extern void allocate_map(struct Map *new_map, int ax, int ay);
 extern void reset_map(void);
-extern void print_darkness(void);
-extern void print_map(void);
-extern void set_map_darkness(int x, int y, uint8 darkness);
-extern void display_mapscroll(int dx, int dy);
-extern void reset_map_data(void);
+extern int display_mapscroll(int dx, int dy);
 extern void drawsmooth(int mx, int my, int layer, int picx, int picy);
 extern void gtk_draw_map(int redraw);
 /* png.c */
@@ -126,10 +121,8 @@ extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap *
 /* sdl.c */
 extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
 extern void drawquarterlightmap_sdl(int tl, int tr, int bl, int br, int width, int height, int startx, int starty, int endx, int endy, int destx, int desty);
-extern void do_sdl_per_pixel_lighting(int x, int y, int mx, int my);
-extern int sdl_square_need_redraw(int mx, int my);
 extern void sdl_gen_map(int redraw);
-extern void sdl_mapscroll(int dx, int dy);
+extern int sdl_mapscroll(int dx, int dy);
 /* sound.c */
 extern void signal_pipe(int i);
 extern int init_sounds(void);

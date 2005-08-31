@@ -45,6 +45,8 @@ char *rcsid_common_client_c =
 #include <errno.h>
 #include <script.h>
 
+#include "mapdata.h"
+
 /* actually declare the globals */
 
 char *server=SERVER,*client_libdir=NULL,*meta_server=META_SERVER;
@@ -306,6 +308,7 @@ void negotiate_connection(int sound)
 
     use_config[CONFIG_MAPHEIGHT]=want_config[CONFIG_MAPHEIGHT];
     use_config[CONFIG_MAPWIDTH]=want_config[CONFIG_MAPWIDTH];
+    mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
     if (use_config[CONFIG_MAPHEIGHT]!=11 || use_config[CONFIG_MAPWIDTH]!=11)
 	cs_print_string(csocket.fd,"setup mapsize %dx%d",use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 

@@ -30,7 +30,6 @@
 #include "client-types.h"
 
 extern int map_size;
-extern uint8 map_did_scroll;
 extern uint8 updatekeycodes;
 extern int updatelock;
 

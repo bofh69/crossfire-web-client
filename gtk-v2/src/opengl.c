@@ -48,6 +48,7 @@ char *rcsid_gtk_opengl_c =
 #include "main.h"
 #include "image.h"
 #include <client.h>
+#include "mapdata.h"
 
 #include "gtk2proto.h"
 
@@ -315,7 +316,7 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         }
-        if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer] ||
+        else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer] ||
 	    the_map.cells[emx][emy].heads[layer].face == 0){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
@@ -828,7 +829,13 @@ void create_opengl_question_mark()
     glTexImage2D(GL_TEXTURE_2D, 0, 4, question_width, question_height, 
                0, GL_RGBA, GL_UNSIGNED_BYTE, &question[0][0][0]);
 
-    pixmaps[0]->fog_texture=0;
+    glGenTextures(1, &pixmaps[0]->fog_texture);
+    glBindTexture(GL_TEXTURE_2D, pixmaps[0]->fog_texture);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, question_width, question_height,
+               0, GL_RGBA, GL_UNSIGNED_BYTE, &question[0][0][0]);
 }
 
 #endif

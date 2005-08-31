@@ -127,6 +127,7 @@ Someday this will be fixed :)
 #include <external.h>
 #include <script.h>
 #include <p_cmd.h>
+#include "mapdata.h"
 
 /*
  * Data structures

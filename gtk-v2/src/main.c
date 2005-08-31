@@ -43,6 +43,7 @@ char *rcsid_gtk2_main_c =
 #include "gtk2proto.h"
 #include "script.h"
 #include "metaserver.h"
+#include "mapdata.h"
 
 GtkWidget *window_root, *magic_map;
 
@@ -206,6 +207,8 @@ static void usage(char *progname)
     puts("-sdl             - Use sdl for drawing png (may not work on all hardware");
     puts("-server <name>   - Connect to <name> instead of localhost.");
     puts("-showicon        - Print status icons in inventory window");
+    puts("-smooth          - Enable smooth");
+    puts("-nosmooth        - Disable smooth (default)");
     puts("-sound           - Enable sound output (default).");
     puts("-nosound         - Disable sound output.");
     puts("-sound_server <path> - Executable to use to play sounds.");
@@ -398,6 +401,12 @@ int parse_args(int argc, char **argv)
 	    want_config[CONFIG_SHOWICON] = TRUE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-smooth")) {
+	    want_config[CONFIG_SMOOTH] = TRUE;
+	}
+	else if (!strcmp(argv[on_arg],"-nosmooth")) {
+	    want_config[CONFIG_SMOOTH] = FALSE;
+	}
 	else if (!strcmp(argv[on_arg],"-sound")) {
 	    want_config[CONFIG_SOUND] = TRUE;
 	    continue;
@@ -475,9 +484,7 @@ int parse_args(int argc, char **argv)
     map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
     if (!use_config[CONFIG_CACHE]) use_config[CONFIG_DOWNLOAD] = FALSE;
 
-    allocate_map( &the_map, FOG_MAP_SIZE, FOG_MAP_SIZE);
-    pl_pos.x= the_map.x / 2;
-    pl_pos.y= the_map.y / 2;
+    mapdata_init();
 
     return 0;
 }
@@ -624,11 +631,11 @@ main (int argc, char *argv[])
 	remove_item_inventory(locate_item(0));
 	draw_look_list();
 
+	mapdata_reset();
 	/* Need to reset the images so they match up properly and prevent
 	 * memory leaks.
 	 */
 	reset_image_data();
-	reset_map_data();
     }
     exit(0);	/* never reached */
 

@@ -385,8 +385,6 @@ void reset_image_data()
 	}
 	pixmaps[i] = pixmaps[0];
     }
-    memset( the_map.cells[0], 0, sizeof( sizeof( struct MapCell)*
-					 the_map.x * the_map.y ));
 }
 
 

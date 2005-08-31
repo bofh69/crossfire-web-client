@@ -55,6 +55,7 @@ char *rcsid_gtk2_image_c =
 #include "client.h"
 #include "image.h"
 #include "main.h"
+#include "mapdata.h"
 #include "gtk2proto.h"
 
 /* In main.c */
@@ -394,8 +395,6 @@ void reset_image_data()
 	pixmaps[i] = pixmaps[0];
     }
     }
-    memset( the_map.cells[0], 0, sizeof( sizeof( struct MapCell)*
-					 the_map.x * the_map.y ));
 }
 
 
@@ -500,12 +499,16 @@ void init_cache_data()
 	pixmaps[0]->map_image = SDL_CreateRGBSurfaceFrom(question_sdl,
 		32, 32, 1, 4, 1, 1, 1, 1);
 	SDL_SetAlpha(pixmaps[0]->map_image, SDL_SRCALPHA, 70);
+	pixmaps[0]->fog_image = SDL_CreateRGBSurfaceFrom(question_sdl,
+		32, 32, 1, 4, 1, 1, 1, 1);
+	SDL_SetAlpha(pixmaps[0]->fog_image, SDL_SRCALPHA, 70);
     }
     else
 #endif
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP)
     {
 	pixmaps[0]->map_image =  pixmaps[0]->icon_image;
+	pixmaps[0]->fog_image =  pixmaps[0]->icon_image;
 	pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
     }
 #ifdef HAVE_OPENGL
