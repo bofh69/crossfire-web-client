@@ -23,7 +23,7 @@
 bin_PROGRAMS = cfsndserv @ALSA9_TARGET@
 EXTRA_PROGRAMS = cfsndserv_alsa9
 
-EXTRA_DIST = common.c sounds.dist
+EXTRA_DIST = common.c sounds.dist soundsdef.h
 
 noinst_HEADERS = \
 	soundsdef.h
@@ -41,7 +41,9 @@ sounds: sounds.dist Makefile
 soundsdef.h: sounds
 	$(PERL) ../utils/deftoheader.pl sounds soundsdef.h def_sounds
 
+cfsndserv.o: soundsdef.h
 
+alsa9.o: soundsdef.h
 proto:
 	echo "Nothing to do for proto"
 
