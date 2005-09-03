@@ -96,7 +96,7 @@ char *rcsid_gtk_config_c =
  * options, 200-299 is for the resistance options, etc.
  */
 
-#define MAX_BUTTONS	    36
+#define MAX_BUTTONS	    37
 #define RBUTTON	    1
 #define CBUTTON	    2
 #define SEPERATOR   3	    /* Seperator in the window */
@@ -142,6 +142,8 @@ CButtons cbuttons[MAX_BUTTONS] = {
     "Gradually change stat bar color based on value of the stat.\nThis option will result in some extra CPU usage."},
 {NULL, 	    CBUTTON,	    CONFIG_POPUPS,	FLAG_UPDATE,
     "Popup Windows"},
+{NULL, 	    CBUTTON,	    CONFIG_SIGNPOPUP,	FLAG_UPDATE,
+    "Popup Sign Windows (need Popup Windows checked to be used)"},
 {NULL, 	    CBUTTON,	    CONFIG_SPLASH,	FLAG_UPDATE,
     "Splash Window"},
 {NULL, 	    CBUTTON,	    CONFIG_SHOWICON,	FLAG_UPDATE,

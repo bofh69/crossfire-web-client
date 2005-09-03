@@ -172,7 +172,8 @@ typedef enum rangetype {
 #define CONFIG_SPLASH	    29
 #define CONFIG_APPLY_CONTAINER	30	/* Reapply container */
 #define CONFIG_MAPSCROLL    31		/* Use bitmap operations for map scrolling */
-#define CONFIG_NUMS	    32
+#define CONFIG_SIGNPOPUP    32
+#define CONFIG_NUMS	    33
 
 /* CONFIG_LIGHTING can have several possible values - set them accordingly */
 #define CFG_LT_TILE	    1

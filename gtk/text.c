@@ -37,6 +37,7 @@ char* NO_TITLE="[no title]";
 #include "pixmaps/sign_flat.xpm"
 #include "pixmaps/sign_west.xpm"
 #include "pixmaps/sign_east.xpm"
+#include "pixmaps/close.xpm"
 GtkWidget* book_root = NULL;
 GtkWidget* book_notes = NULL;
 GdkBitmap* btnClose_bm = NULL;
@@ -60,31 +61,34 @@ picture_message sign_message[] = {
     {"left sign",sign_west_xpm,95,85,615,190,750,400,NULL},
     {"right sign",sign_east_xpm,45,85,615,190,750,400,NULL},
     {"direction sign",sign_flat_xpm,70,45,390,305,500,500,NULL} };
+void init_pictures (GtkWidget* refWindow){ 
+    if (btnClose_pm==NULL)          
+        btnClose_pm = gdk_pixmap_create_from_xpm_d(refWindow->window,&btnClose_bm,
+                &gtk_widget_get_style(refWindow)->bg[GTK_STATE_NORMAL],
+                (gchar**)close_xpm);
+}
 void prepare_book_window(){
-    if (!book_root){
-        #include "pixmaps/close.xpm"
+    if (!book_root){    
         book_root= gtk_window_new (GTK_WINDOW_TOPLEVEL);
         gtk_window_set_title(GTK_WINDOW(book_root),"books");
         book_notes = gtk_notebook_new();
         gtk_notebook_set_tab_pos(GTK_NOTEBOOK(book_notes),GTK_POS_LEFT);
         gtk_container_add(GTK_CONTAINER(book_root),book_notes);
         gtk_widget_show(GTK_WIDGET(book_notes));  
-        gtk_widget_show(GTK_WIDGET(book_root));              
-        btnClose_pm = gdk_pixmap_create_from_xpm_d(book_root->window,&btnClose_bm,
-                &gtk_widget_get_style(book_root)->bg[GTK_STATE_NORMAL],
-                (gchar**)close_xpm);
-            
-        gtk_signal_connect (GTK_OBJECT (book_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &book_root);      
+        gtk_widget_show(GTK_WIDGET(book_root));
+        init_pictures (book_root);
+        gtk_signal_connect (GTK_OBJECT (book_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &book_root);
         gtk_window_set_default_size(GTK_WINDOW(book_root),500,600);
         gtk_window_set_position(GTK_WINDOW(book_root),GTK_WIN_POS_CENTER);
     }
 }
 GtkWidget* create_text_picture_window(picture_message* layout, char* message){
-    GtkWidget *window, *content, *fixed, *scroll;    
+    GtkWidget *window, *content, *fixed, *scroll, *close;    
     window = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_set_title(GTK_WINDOW(window),layout->title);
     gtk_widget_set_app_paintable(window,TRUE);
     gtk_widget_realize(window);
+    init_pictures(window);
     if (layout->picture == NULL){
         layout->picture = gdk_pixmap_create_from_xpm_d(window->window,NULL,
                 &gtk_widget_get_style(window)->bg[GTK_STATE_NORMAL],
@@ -110,6 +114,9 @@ GtkWidget* create_text_picture_window(picture_message* layout, char* message){
     gtk_widget_show (scroll);
     gtk_widget_set_usize(scroll,layout->width,layout->height);
     gtk_fixed_put(GTK_FIXED(fixed),scroll,layout->x,layout->y);
+    close=gtk_button_new();    
+    gtk_widget_set_usize(close,0,0);
+    gtk_fixed_put(GTK_FIXED(fixed),close,0,0);
     gtk_widget_show(fixed);
     gtk_widget_show(content);
     
@@ -118,6 +125,11 @@ GtkWidget* create_text_picture_window(picture_message* layout, char* message){
             NULL,
             gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll))
         );
+	
+    gtk_signal_connect_object (GTK_OBJECT (close), "clicked",
+                   GTK_SIGNAL_FUNC(gtk_widget_destroy),
+                   GTK_OBJECT (window));    
+    gtk_widget_grab_focus (GTK_WIDGET(close));
     return window;
 }
 void show_media_message(const char* title, const char* message){
@@ -331,7 +343,7 @@ void add_book(char* title, char* message){
     content = gtk_text_new(NULL,NULL);
     gtk_text_set_editable(GTK_TEXT(content),FALSE);
     gtk_text_set_word_wrap(GTK_TEXT(content),FALSE);
-    gtk_text_set_line_wrap(GTK_TEXT(content),FALSE);
+    gtk_text_set_line_wrap(GTK_TEXT(content),TRUE);
     write_media(GTK_TEXT(content),message);
     
     panel = gtk_vbox_new(FALSE,0);
@@ -364,12 +376,18 @@ void add_book(char* title, char* message){
     
     gtk_notebook_set_page(GTK_NOTEBOOK(book_notes),gtk_notebook_page_num(GTK_NOTEBOOK(book_notes),panel));
     gdk_window_raise (book_root->window);
-    
+    gtk_widget_grab_focus (GTK_WIDGET(close));
     gtk_signal_connect_object (GTK_OBJECT (close), "clicked",
                    GTK_SIGNAL_FUNC(gtk_widget_destroy),
                    GTK_OBJECT (panel));    
        
 }
+/* we need access to those when a sign is auto applied. 
+ * We don't want to show player a new window while his character
+ * keeps running in background
+ */
+extern GtkWidget* gtkwin_info_text;
+extern GtkWidget* gtkwin_info_text2;
 void book_callback(int flag, int type, int subtype, char* message){
     LOG(LOG_DEBUG,"gtk::book_callback","got callback %d subtype %d\n",type,subtype);
     if (message!=NULL){
@@ -383,8 +401,15 @@ void book_callback(int flag, int type, int subtype, char* message){
         if (*message=='\0'){
             message=title;
             title=NO_TITLE;
-        }  
-        add_book(title,message);
+        }
+        if (!want_config[CONFIG_POPUPS]) /*autoapply*/{
+            if (use_config[CONFIG_SPLITINFO])
+                write_media(GTK_TEXT(gtkwin_info_text2),message);
+            else
+                write_media(GTK_TEXT(gtkwin_info_text),message);
+	} else
+            add_book(title,message);
+	
     }    
 }
 char* last_motd=NULL;
@@ -403,12 +428,6 @@ void void_callback(int flag, int type, int subtype, char* message){
     LOG(LOG_INFO,"gtk::void_callback","got message --\n%s\n",message);
     
 }
-/* we need access to those when a sign is auto applied. 
- * We don't want to show player a new window while his character
- * keeps running in background
- */
-extern GtkWidget* gtkwin_info_text;
-extern GtkWidget* gtkwin_info_text2;
 void sign_callback(int flag, int type, int subtype, char* message){
     GtkWidget *window;
     int flags;
@@ -421,7 +440,7 @@ void sign_callback(int flag, int type, int subtype, char* message){
         return;
     message++;
     
-    if (flags&0x01) /*autoapply*/{
+    if ((!want_config[CONFIG_POPUPS]) || (!want_config[CONFIG_SIGNPOPUP]) ||(flags&0x01)) /*autoapply*/{
         if (use_config[CONFIG_SPLITINFO])
             write_media(GTK_TEXT(gtkwin_info_text2),message);
         else
