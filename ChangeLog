@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+*Makefile.in, aclocal.m4, configure: Rebuilt.
+Andreas Kirschbaum 2005-09-03
+
 Fix bug #1102991 (Duplicate grapical display of the same monster):
 common/Makefile.am: Add new files mapdata.c and mapdata.h.
 common/{client.c, commands.c}: Tell mapdata module the current display size.

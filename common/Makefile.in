@@ -77,8 +77,9 @@ libcfclient_a_AR = $(AR) $(ARFLAGS)
 libcfclient_a_LIBADD =
 am_libcfclient_a_OBJECTS = client.$(OBJEXT) commands.$(OBJEXT) \
 	image.$(OBJEXT) init.$(OBJEXT) item.$(OBJEXT) \
-	metaserver.$(OBJEXT) misc.$(OBJEXT) newsocket.$(OBJEXT) \
-	p_cmd.$(OBJEXT) player.$(OBJEXT) script.$(OBJEXT)
+	mapdata.$(OBJEXT) metaserver.$(OBJEXT) misc.$(OBJEXT) \
+	newsocket.$(OBJEXT) p_cmd.$(OBJEXT) player.$(OBJEXT) \
+	script.$(OBJEXT)
 libcfclient_a_OBJECTS = $(am_libcfclient_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I.
 depcomp = $(SHELL) $(top_srcdir)/utils/depcomp
@@ -178,6 +179,7 @@ X_PRE_LIBS = @X_PRE_LIBS@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
+ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__include = @am__include@
@@ -224,6 +226,7 @@ libcfclient_a_SOURCES = \
 	image.c \
 	init.c \
 	item.c \
+	mapdata.c \
 	metaserver.c \
 	misc.c \
 	newsocket.c \
@@ -240,6 +243,7 @@ noinst_HEADERS = \
 	external.h \
 	item-types.h \
 	item.h \
+	mapdata.h \
 	metaserver.h \
 	newclient.h \
 	p_cmd.h \
@@ -322,6 +326,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/image.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/item.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mapdata.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/metaserver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/newsocket.Po@am__quote@
