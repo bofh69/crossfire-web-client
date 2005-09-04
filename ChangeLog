@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/map.c: need_resmooth needs to be cleared too, else drawing routines called
+ all the time.
+Ryo 2005-09-04
+
 *Makefile.in, aclocal.m4, configure: Rebuilt.
 Andreas Kirschbaum 2005-09-03
 

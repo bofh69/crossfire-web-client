@@ -68,7 +68,6 @@ struct Map the_map;
 
 PlayerPosition pl_pos;
 
-
 /*
  * Request a map update from the server. This is to circumvent a bug in some
  * server versions.
@@ -302,6 +301,7 @@ void gtk_draw_map(int redraw) {
 	    || the_map.cells[mx][my].need_resmooth) {
 		display_mapcell(x, y, mx, my);
 		the_map.cells[mx][my].need_update=0;
+		the_map.cells[mx][my].need_resmooth=0;
 	    }
 	}
     }
