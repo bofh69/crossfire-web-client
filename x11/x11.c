@@ -3150,6 +3150,7 @@ void display_map_doneupdate(int redraw, int notice)
 	    my = pl_pos.y+ay;
 	    if (redraw || the_map.cells[mx][my].need_update)  {
 		display_mapcell(ax, ay);
+		the_map.cells[mx][my].need_update = 0;
 	    }
 	}
     }

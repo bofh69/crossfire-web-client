@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+x11/x11.c: Fix similar problem for x11 client: need_update needs to be cleared
+    too.
+Andreas Kirschbaum 2005-09-04
+
 gtk/map.c: need_resmooth needs to be cleared too, else drawing routines called
  all the time.
 Ryo 2005-09-04
