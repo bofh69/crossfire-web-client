@@ -175,7 +175,7 @@ void LOG (LogLevel level, char* origin, char *format, ...)
 {
 
   va_list ap;
-  char buf[20480];  /* This needs to be really really big - larger
+  static char buf[20480];  /* This needs to be really really big - larger
 		     * than any other buffer, since that buffer may
 		     * need to be put in this one.
 		     */

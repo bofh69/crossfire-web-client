@@ -8,6 +8,11 @@ Andreas Kirschbaum 2005-09-04
 
 gtk/map.c: need_resmooth needs to be cleared too, else drawing routines called
  all the time.
+common/misc.c: LOG buffer made static to avoid stack creation/destruction.
+common/script.c: removed unused variable/call.
+gtk/gx11.c: no need to refresh game area when window gets focus.
+gtk/gx11.h: add cache fields for listinfo.
+gtk/inventory.c: don't refresh list labels if not changed.
 Ryo 2005-09-04
 
 *Makefile.in, aclocal.m4, configure: Rebuilt.

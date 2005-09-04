@@ -85,6 +85,9 @@ extern GtkTooltips  *tooltips;
 typedef struct {
   item *env;		  /* Environment shown in window */
   char title[MAX_BUF];  /* title of item list */
+  char last_title[MAX_BUF];
+  char last_weight[MAX_BUF];
+  char last_maxweight[MAX_BUF];
   
   GtkWidget *label; /* e.g. "Inventory:", "keyring:" */
   GtkWidget *weightlabel;

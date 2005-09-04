@@ -1010,6 +1010,9 @@ void get_look_display(GtkWidget *frame)
   
   look_list.env = cpl.below;
   strcpy (look_list.title, "You see:");
+  strcpy (look_list.last_title, look_list.title);
+  strcpy (look_list.last_weight, "0");
+  strcpy (look_list.last_maxweight, "0");
   look_list.show_weight = TRUE;
   look_list.weight_limit = 0;
     
@@ -1070,6 +1073,9 @@ void get_inv_display(GtkWidget *frame)
   GtkAdjustment *adj;
 
   strcpy (inv_list.title, "Inventory:");
+  strcpy (inv_list.last_title, inv_list.title);
+  strcpy (inv_list.last_weight, "0");
+  strcpy (inv_list.last_maxweight, "0");
   inv_list.env = cpl.ob;
   inv_list.show_weight = TRUE;
   inv_list.weight_limit = 0;
@@ -1159,31 +1165,40 @@ void command_show (const char *params) {
 
 void update_list_labels (itemlist *l)
 {
-    char buf[MAX_BUF];
+    char weight[MAX_BUF];
+    char max_weight[MAX_BUF];
   
     /* draw title and put stuff in widgets */
-  
-    strcpy(buf, l->title);
-    gtk_label_set (GTK_LABEL(l->label), buf);
+
+    if ( strcmp( l->title, l->last_title ) ) {
+        strcpy(l->last_title, l->title);
+        strcpy(weight,l->title);
+        gtk_label_set (GTK_LABEL(l->label), weight);
+        gtk_widget_draw (l->label, NULL);
+    }
 
     if(l->env->weight < 0 || !l->show_weight) {
-	gtk_label_set (GTK_LABEL(l->weightlabel), " ");
-	gtk_label_set (GTK_LABEL(l->maxweightlabel), " ");
+	    strcpy(weight, " ");
+	    strcpy(max_weight, " ");
     }
     else if (!l->weight_limit) {
-	sprintf (buf, "%6.1f",l->env->weight);
-	gtk_label_set (GTK_LABEL(l->weightlabel), buf);
-	gtk_label_set (GTK_LABEL(l->maxweightlabel), " ");
+	    sprintf (weight, "%6.1f",l->env->weight);
+        strcpy (max_weight, " ");
     } else {
-	sprintf (buf, "%6.1f",l->env->weight);
-	gtk_label_set (GTK_LABEL(l->weightlabel), buf);
-	sprintf (buf, "/ %4d",l->weight_limit / 1000);
-	gtk_label_set (GTK_LABEL(l->maxweightlabel), buf);
+	    sprintf (weight, "%6.1f",l->env->weight);
+	    sprintf (max_weight, "/ %4d",l->weight_limit / 1000);
     }
 
-    gtk_widget_draw (l->label, NULL);
-    gtk_widget_draw (l->weightlabel, NULL);
-    gtk_widget_draw (l->maxweightlabel, NULL);
+    if ( strcmp( weight, l->last_weight ) ) {
+        strcpy(l->last_weight, weight);
+    	gtk_label_set (GTK_LABEL(l->weightlabel), weight);
+        gtk_widget_draw (l->weightlabel, NULL);
+    }
+    if ( strcmp( max_weight, l->last_maxweight ) ) {
+        strcpy(l->last_maxweight, max_weight);
+	    gtk_label_set (GTK_LABEL(l->maxweightlabel), max_weight);
+        gtk_widget_draw (l->maxweightlabel, NULL);
+    }
     
     l->env->inv_updated = FALSE;
 }

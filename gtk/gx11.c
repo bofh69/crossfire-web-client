@@ -670,7 +670,7 @@ expose_event (GtkWidget *widget, GdkEventExpose *event)
 	return FALSE;
     }
 #endif
-    display_map_doneupdate(TRUE, FALSE);
+    display_map_doneupdate(FALSE, FALSE);
     return FALSE;
 }
 

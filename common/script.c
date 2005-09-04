@@ -646,9 +646,6 @@ void script_watch(char *cmd,char *data, int len, enum CmdFormat format)
    int i;
    int w;
    int l;
-   int cl;
-
-   cl=strlen(cmd);
 
    /* For each script... */
    for (i=0;i<num_scripts;++i)
