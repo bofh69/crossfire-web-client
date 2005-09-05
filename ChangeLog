@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/mapdata.c: remove parasite #define NDEBUG
+gtk/image.c: if icon and map scales are the same, just gdk_pixmap_ref image and mask.
+ This saves graphical resources and time.
+gtk/map.c: don't draw black rectangle if no face with transparency.
+
 x11/x11.c: Fix similar problem for x11 client: need_update needs to be cleared
     too.
 Andreas Kirschbaum 2005-09-04

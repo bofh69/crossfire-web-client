@@ -215,9 +215,18 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
 static void display_mapcell(int ax, int ay, int mx, int my)
 {
     int layer;
+    int face;
 
     /* First, we need to black out this space. */
-    gdk_draw_rectangle(mapwindow, drawingarea->style->black_gc, TRUE, ax*map_image_size, ay*map_image_size, map_image_size, map_image_size);
+    for (layer=0; layer<MAXLAYERS; layer++) {
+        face = mapdata_face(ax, ay, layer);
+        if ((face > 0) && (!pixmaps[face]->map_mask))
+            break;
+    }
+    /* Only draw rectangle if all faces have transparency */
+    if (layer==MAXLAYERS)
+        gdk_draw_rectangle(mapwindow, drawingarea->style->black_gc, TRUE, ax*map_image_size, ay*map_image_size, map_image_size, map_image_size);
+
 
     /* now draw the different layers.  Only draw if using fog of war or the
      * space isn't clear.
@@ -227,7 +236,7 @@ static void display_mapcell(int ax, int ay, int mx, int my)
 	    int sx, sy;
 
 	    /* draw single-tile faces first */
-	    int face = mapdata_face(ax, ay, layer);
+	    face = mapdata_face(ax, ay, layer);
 	    if (face > 0 && pixmaps[face]->map_image != NULL) {
 		int w = pixmaps[face]->map_width;
 		int h = pixmaps[face]->map_height;

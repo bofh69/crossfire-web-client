@@ -303,8 +303,20 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     /* We could try to be more intelligent if icon_scale matched use_config[CONFIG_MAPSCALE],
      * but this shouldn't be called too often, and this keeps the code
      * simpler.
+     *
+     *  maybe, but it uses graphical resources, and takes time (don't laugh, some people use
+     *   slow old comps! :p)
+     *  Ryo 2005-09-05
      */
-    if (use_config[CONFIG_MAPSCALE] != 100) {
+    if (iscale == use_config[CONFIG_MAPSCALE]) {
+        pi->map_height = pi->icon_height;
+        pi->map_width = pi->icon_width;
+        pi->map_mask = pi->icon_mask;
+        pi->map_image = pi->icon_image;
+        gdk_pixmap_ref(pi->map_image);
+        if (pi->map_mask)
+            gdk_pixmap_ref(pi->map_mask);
+    } else if (use_config[CONFIG_MAPSCALE] != 100) {
 	nx=width;
 	ny=height;
 	png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, use_config[CONFIG_MAPSCALE]);

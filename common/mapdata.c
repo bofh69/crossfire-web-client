@@ -21,7 +21,6 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-#define NDEBUG
 #include <assert.h>
 
 #include "client.h"
