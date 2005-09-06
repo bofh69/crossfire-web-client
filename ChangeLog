@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure, configure.in: Move check for X11 early in the process so that
+  gtk dependencies on them should be resolved.
+MSW 2005-09-05
+
 common/mapdata.c: remove parasite #define NDEBUG
 gtk/image.c: if icon and map scales are the same, just gdk_pixmap_ref image and mask.
  This saves graphical resources and time.

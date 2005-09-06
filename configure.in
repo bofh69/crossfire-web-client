@@ -30,6 +30,9 @@ AC_PATH_PROG(RM, rm)
 AC_PATH_PROG(PERL, perl)
 AC_PATH_PROG(AR, ar)
 
+dnl Put this early on, since gtk may rely on it.
+AC_PATH_XTRA
+
 dnl for gtk-v2 client
 pkg_modules="gtk+-2.0 >= 2.0.0"
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules], CF_SUBDIRS="$CF_SUBDIRS gtk-v2", 
@@ -146,8 +149,6 @@ fi
 
 
 AC_SUBST(CFGTK)
-
-AC_PATH_XTRA
 
 if eval "test x$CFGTK = xyes"; then
 	AC_MSG_RESULT(GTK found - building both gtk and x11 client)
