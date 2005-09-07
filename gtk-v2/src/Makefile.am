@@ -53,7 +53,7 @@ gcfclient2_SOURCES = \
 	image.h main.h gtk2proto.h \
 	callbacks.h 
 
-gcfclient2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@ @OPENGL_LIBS@
+gcfclient2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(X_LIBS) $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@ @OPENGL_LIBS@
 
 proto:
 	cproto -e -o gtk2proto.h  $(SDL_CFLAGS) $(PACKAGE_CFLAGS) $(DEFAULT_INCLUDES) $(PROTO_SOURCES)
