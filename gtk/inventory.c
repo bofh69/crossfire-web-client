@@ -948,7 +948,7 @@ static GtkWidget * get_inv_widget(void) {
         
         gtk_signal_connect(GTK_OBJECT(view->list), 
             "size-allocate",
-            resize_left_widgets,
+            (GtkSignalFunc)resize_left_widgets,
             NULL);
 
         /* Since the program will automatically adjust these, any changes
@@ -964,7 +964,7 @@ static GtkWidget * get_inv_widget(void) {
         redraws dirty tabs when they *become* visible. */
         gtk_signal_connect(GTK_OBJECT(view->list),
             "visibility-notify-event",
-            redraw_on_show,
+            (GtkSignalFunc)redraw_on_show,
             view);
         
          gtk_widget_add_events(view->list, GDK_VISIBILITY_NOTIFY_MASK);        

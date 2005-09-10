@@ -69,6 +69,7 @@ extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
 extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
 extern void image_update_download_status(int start, int end, int total);
 extern void get_map_image_size(int face, uint8 *w, uint8 *h);
+extern void addsmooth(uint16 face, uint16 smooth_face);
 
 /* Item related commands */
 extern void open_container(item *op);

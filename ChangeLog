@@ -2,14 +2,13 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/external.h: add definition of addsmooth.
+gtl/inventory.c: explicit cast of parameters.
+Ryo 2005-09-10
+
 configure, configure.in: Move check for X11 early in the process so that
   gtk dependencies on them should be resolved.
 MSW 2005-09-05
-
-common/mapdata.c: remove parasite #define NDEBUG
-gtk/image.c: if icon and map scales are the same, just gdk_pixmap_ref image and mask.
- This saves graphical resources and time.
-gtk/map.c: don't draw black rectangle if no face with transparency.
 
 x11/x11.c: Fix similar problem for x11 client: need_update needs to be cleared
     too.
@@ -22,6 +21,10 @@ common/script.c: removed unused variable/call.
 gtk/gx11.c: no need to refresh game area when window gets focus.
 gtk/gx11.h: add cache fields for listinfo.
 gtk/inventory.c: don't refresh list labels if not changed.
+common/mapdata.c: remove parasite #define NDEBUG
+gtk/image.c: if icon and map scales are the same, just gdk_pixmap_ref image and mask.
+ This saves graphical resources and time.
+gtk/map.c: don't draw black rectangle if no face with transparency.
 Ryo 2005-09-04
 
 *Makefile.in, aclocal.m4, configure: Rebuilt.
