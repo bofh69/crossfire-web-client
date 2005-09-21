@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/image.c copy part of gtk1 image.c to fix a compile issue on
+mac.
+Brendan Lally 2005-09-21
+
 common/external.h: add definition of addsmooth.
 gtl/inventory.c: explicit cast of parameters.
 Ryo 2005-09-10
