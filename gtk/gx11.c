@@ -85,6 +85,7 @@ char *rcsid_gtk_gx11_c =
 #include "gtkproto.h"
 #include <script.h>
 #include <p_cmd.h>
+#include <time.h>
 
 #include "mapdata.h"
 
@@ -1724,11 +1725,17 @@ draw_prompt (const char *str)
 
 void draw_info(const char *str, int color) {
     int ncolor = color;
-  
+    char timestamp[11]="";
+
     if (ncolor==NDI_WHITE) {
 	ncolor=NDI_BLACK;
     }
-
+    if (use_config[CONFIG_TIMESTAMP] && color != NDI_BLACK) {
+	struct tm *now;
+	time_t currenttime = time(0);
+	now = localtime(&currenttime);
+	strftime(timestamp, 10, "%I:%M: ", now);
+    }
     strcpy (last_str, str);
     if (use_config[CONFIG_SPLITINFO] && color != NDI_BLACK) {
 	if (!draw_info_freeze2){
@@ -1749,7 +1756,9 @@ void draw_info(const char *str, int color) {
 		LOG(LOG_INFO,"gtk::draw_info","reduced output buffer2 to %d chars", info1_num_chars);
 	    }
 	}
-	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, str , -1);
+	if (use_config[CONFIG_TIMESTAMP])
+	    gtk_text_insert(GTK_TEXT (gtkwin_info_text2), NULL, &root_color[NDI_GREY], NULL, timestamp, -1);
+	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, str, -1);
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, "\n" , -1);
 
     } else {
@@ -1784,7 +1793,8 @@ void draw_info(const char *str, int color) {
 	    }
 	    
 	}
-
+	if (use_config[CONFIG_TIMESTAMP])
+	    gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[NDI_GREY], NULL, timestamp, -1);
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, str , -1);
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, &root_color[ncolor], NULL, "\n" , -1);
     }

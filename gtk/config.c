@@ -96,7 +96,7 @@ char *rcsid_gtk_config_c =
  * options, 200-299 is for the resistance options, etc.
  */
 
-#define MAX_BUTTONS	    37
+#define MAX_BUTTONS	    38
 #define RBUTTON	    1
 #define CBUTTON	    2
 #define SEPERATOR   3	    /* Seperator in the window */
@@ -132,6 +132,8 @@ CButtons cbuttons[MAX_BUTTONS] = {
     "Colored Inventory Lists"},
 {NULL, 	    CBUTTON,	    CONFIG_COLORTXT,	FLAG_UPDATE,
     "Colored Information Text"},
+{NULL, 	    CBUTTON,	    CONFIG_TIMESTAMP,	FLAG_UPDATE,
+    "Timestamp Messages"},
 {NULL, 	    SPIN_CWINDOW,   CONFIG_CWINDOW,	FLAG_UPDATE,
     "Command Window"},
 {NULL, 	    CBUTTON,	    CONFIG_ECHO,	FLAG_UPDATE,

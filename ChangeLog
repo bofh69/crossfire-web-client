@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/{client.h, init.c}, gtk/{config.c, gx11.c}: Add configuration option
+to allow clients to timestamp incoming coloured messages. This implements RFE
+#1090049
+Brendan Lally 2005-09-22
+
 gtk-v2/src/image.c copy part of gtk1 image.c to fix a compile issue on
 mac.
 Brendan Lally 2005-09-21
