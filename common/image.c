@@ -275,7 +275,7 @@ static Cache_Entry *image_find_cache_entry(char *imagename, uint32 checksum, int
 }
 
 /* Add a hash entry.  Returns the entry we added, NULL on failure.. */
-static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 checksum, uint32 public)
+static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 checksum, uint32 ispublic)
 {
     Cache_Entry *new_entry;
     uint32  hash = image_hash_name(imagename, IMAGE_HASH), newhash;
@@ -303,7 +303,7 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 check
     new_entry = malloc(sizeof(struct Cache_Entry));
     new_entry->filename = strdup(filename);
     new_entry->checksum = checksum;
-    new_entry->public = public;
+    new_entry->ispublic = ispublic;
     new_entry->image_data = NULL;
     new_entry->next = image_cache[newhash].cache_entry;
     image_cache[newhash].cache_entry = new_entry;
@@ -315,7 +315,7 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 check
  * but we try to be lenient/follow some conventions.
  * Note that this is destructive to the data passed in line.
  */
-static void image_process_line(char *line, uint32 public)
+static void image_process_line(char *line, uint32 ispublic)
 {
     char imagename[MAX_BUF], filename[MAX_BUF];
     uint32 checksum;
@@ -323,7 +323,7 @@ static void image_process_line(char *line, uint32 public)
     if (line[0] == '#') return;		    /* Ignore comments */
 
     if (sscanf(line, "%s %u %s", imagename, &checksum, filename)==3) {
-	image_add_hash(imagename, filename, checksum, public);
+	image_add_hash(imagename, filename, checksum, ispublic);
     } else {
 	LOG(LOG_WARNING,"common::image_process_line","Did not parse line %s properly?", line);
     }
@@ -430,7 +430,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 	    /* If this has image_data, then it has already been rendered */
 	    if (!associate_cache_entry(ce, pnum)) return;
 	}
-	if (ce->public)
+	if (ce->ispublic)
 	    sprintf(filename,"%s/%s",
 		    DATADIR, ce->filename);
 	else
@@ -449,7 +449,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 	/* If the data is bad, remove it if it is in the players private cache */
 	LOG(LOG_WARNING,"common::finish_face_cmd","Got error on png_to_data, image=%s",face);
 	if (ce) {
-	    if (!ce->public) unlink(filename);
+	    if (!ce->ispublic) unlink(filename);
 	    image_remove_hash(face,ce);
 	}
 

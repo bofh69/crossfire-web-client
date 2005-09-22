@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Avoid using c++ reserved words, in case one wants to link a c++ program to 
+client.h
+Alex Schultz 2005-09-22
+
 common/{client.h, init.c}, gtk/{config.c, gx11.c}: Add configuration option
 to allow clients to timestamp incoming coloured messages. This implements RFE
 #1090049

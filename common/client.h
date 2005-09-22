@@ -399,7 +399,7 @@ extern int map1cmd,metaserver_on;
 typedef struct Cache_Entry {
     char    *filename;
     uint32  checksum;
-    uint32  public:1;
+    uint32  ispublic:1;
     void    *image_data;
     struct Cache_Entry	*next;
 } Cache_Entry;
