@@ -151,6 +151,7 @@ struct script {
    int pid;
 #else
    DWORD pid;	/* Handle to Win32 process ID */
+   HANDLE process; /* Handle of Win32 process */
 #endif
    int sync_watch;
 };
@@ -464,7 +465,6 @@ void script_init(const char *cparams)
 	   return;
    }
 
-   CloseHandle(piProcInfo.hProcess);
    CloseHandle(piProcInfo.hThread);
 
    if (args)
@@ -493,6 +493,7 @@ void script_init(const char *cparams)
    scripts[num_scripts].watch=NULL;
    scripts[num_scripts].cmd_count=0;
    scripts[num_scripts].pid=piProcInfo.dwProcessId;
+   scripts[num_scripts].process = piProcInfo.hProcess;
    scripts[num_scripts].sync_watch = -1;
    ++num_scripts;
 
@@ -591,6 +592,8 @@ void script_process(fd_set *set)
    DWORD nAvailBytes = 0;
    char cTmp;
    BOOL bRC;
+   DWORD dwStatus;
+   BOOL bStatus;
 #endif
 
 
@@ -600,6 +603,8 @@ void script_process(fd_set *set)
 #ifndef WIN32
       if ( FD_ISSET(scripts[i].in_fd,set) )
 #else
+
+      bStatus = GetExitCodeProcess(scripts[i].process,&dwStatus);
       bRC = PeekNamedPipe(scripts[i].in_fd, &cTmp, 1, NULL, &nAvailBytes, NULL);
 	  if (nAvailBytes)
 #endif /* WIN32 */
@@ -635,7 +640,7 @@ void script_process(fd_set *set)
          return; /* Only process one script at a time */
       }
 #ifdef WIN32
-	  else if (!bRC) /* Error: assume dead */
+	  else if (!bRC || ( bStatus && ( dwStatus != STILL_ACTIVE ) ) ) /* Error: assume dead */
 		 script_dead(i);
 #endif /* WIN32 */
    }
@@ -951,6 +956,7 @@ static void script_dead(int i)
 #else
    CloseHandle(scripts[i].in_fd);
    CloseHandle(scripts[i].out_fd);
+   CloseHandle(scripts[i].process);
 #endif
    free(scripts[i].name);
    if ( scripts[i].params ) free(scripts[i].params);

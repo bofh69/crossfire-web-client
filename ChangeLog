@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/script.c: fix Win32 that didn't detect end of script correctly.
+Ryo 2005-10-16
+
 Avoid using c++ reserved words, in case one wants to link a c++ program to 
 client.h
 Alex Schultz 2005-09-22
