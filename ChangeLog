@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/script.c: Make parameters passed to scripts work again.
+Andreas Kirschbaum 2005-10-28
+
 common/script.c: fix Win32 that didn't detect end of script correctly.
 Ryo 2005-10-16
 

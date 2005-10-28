@@ -236,17 +236,11 @@ void script_init(const char *cparams)
    name=params;
    args=name;
    while ( *args && *args!=' ' ) ++args;
-   while ( *args && *args==' ' ) ++args;
+   while ( *args && *args==' ' ) *args++ = '\0';
    if ( *args==0 )
    {
       args=NULL;
    }
-#if 0
-   else
-   {
-      args[-1]=0;
-   }
-#endif
 
 #ifdef USE_PIPE
    /* Create two pipes */
@@ -295,17 +289,11 @@ void script_init(const char *cparams)
       /* Fill in argv[] */
       argv[0]=name;
       i=1;
-      while (args && *args)
+      while (args && *args && i < sizeof(argv)/sizeof(*argv)-1)
       {
-         argv[i]=args;
-         ++i;
+         argv[i++]=args;
          while ( *args && *args!=' ' ) ++args;
-         if ( *args )
-         {
-            *args=0;
-            ++args;
-         }
-         while ( *args && *args==' ' ) ++args;
+         while ( *args && *args==' ' ) *args++ = '\0';
       }
       argv[i]=NULL;
 
@@ -394,14 +382,10 @@ void script_init(const char *cparams)
    name=params;
    args=name;
    while ( *args && *args!=' ' ) ++args;
-   while ( *args && *args==' ' ) ++args;
+   while ( *args && *args==' ' ) *args++ = '\0';
    if ( *args==0 )
    {
       args=NULL;
-   }
-   else
-   {
-      args[-1]=0;
    }
 
    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
