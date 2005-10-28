@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Documentation/Scripting.html: Clarify the repeat parameter for the issue
+command.
+Andreas Kirschbaum 2005-10-28
+
 common/script.c: Make parameters passed to scripts work again.
 Andreas Kirschbaum 2005-10-28
 
