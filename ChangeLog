@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/text.c: Print MOTD into text window if using -nopopups mode. Previously it
+was discarded in -nopopups mode.
+Andreas Kirschbaum 2005-10-28
+
 Documentation/Scripting.html: Clarify the repeat parameter for the issue
 command.
 Andreas Kirschbaum 2005-10-28

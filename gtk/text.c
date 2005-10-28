@@ -422,6 +422,10 @@ void motd_callback(int flag, int type, int subtype, char* message){
         LOG(LOG_ERROR,"gtk::motd_callback","Outa memory, no save of motd");
     else
         strcpy(last_motd,message);    
+
+    if (!want_config[CONFIG_POPUPS] || last_motd == NULL) {
+        write_media(GTK_TEXT(gtkwin_info_text), message);
+    }
 }
 void void_callback(int flag, int type, int subtype, char* message){
     
