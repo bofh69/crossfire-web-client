@@ -87,7 +87,7 @@ extern void init_toolkit_commands(void);
  */
 extern void init_commands(void);
 
-extern const int get_num_commands(void);
+extern int get_num_commands(void);
 /**
  * Returns a pointer to the head of an array of ConsoleCommands
  * sorted by category, then by name.

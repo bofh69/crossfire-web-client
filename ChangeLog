@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/p_cmd.{c,h}: Remove superfluous "const" from get_num_commands() return
+   value.
+Andreas Kirschbaum 2005-10-29
+
 gtk/text.c: Print MOTD into text window if using -nopopups mode. Previously it
 was discarded in -nopopups mode.
 Andreas Kirschbaum 2005-10-28

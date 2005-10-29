@@ -740,7 +740,7 @@ extern const int ToolkitCommandsSize;
 
 int num_commands;
 
-const int get_num_commands(void) { return num_commands; }
+int get_num_commands(void) { return num_commands; }
 
 static ConsoleCommand ** name_sorted_commands;
 
