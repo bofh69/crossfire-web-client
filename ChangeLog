@@ -2,6 +2,17 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix bug #1288647 (typing text in password mode). Now hidden input (for
+password entry) is reliably turned off afterwards.
+--
+common/command.c: Enable hidden input before printing the query; this allows
+   the gtk client to enable it in his callback function. Also: reset hidden
+   input mode after sending a reply to the server.
+gtk/gx11.c: Enable/disable hidden input in non-popup input area even if popup
+   mode is enabled. Otherwise hidden input mode will not be disabled when
+   switching to popup mode while entering a password.
+Andreas Kirschbaum 2005-10-29
+
 common/p_cmd.{c,h}: Remove superfluous "const" from get_num_commands() return
    value.
 Andreas Kirschbaum 2005-10-29

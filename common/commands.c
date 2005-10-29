@@ -631,6 +631,15 @@ void handle_query (char *data, int len)
     uint8 flags = atoi(data);
 
     (void)len; /* __UNUSED__ */
+
+    if (flags & CS_QUERY_HIDEINPUT)		/* no echo */
+	cpl.no_echo=1;
+    else
+	cpl.no_echo=0;
+
+    /* Let the window system know this may have changed */
+    x_set_echo();
+
     /* The actual text is optional */
     buf = strchr(data,' ');
     if (buf) buf++;
@@ -654,13 +663,6 @@ void handle_query (char *data, int len)
 
     if (cp) draw_prompt(cp);
     }
-    if (flags & CS_QUERY_HIDEINPUT)		/* no echo */
-	cpl.no_echo=1;
-    else
-	cpl.no_echo=0;
-
-    /* Let the window system know this may have changed */
-    x_set_echo();
 
       LOG(0,"commands.c","Received query.  Input state now %d\n", cpl.input_state);
 }
@@ -673,6 +675,10 @@ void handle_query (char *data, int len)
 void send_reply(const char *text)
 {
     cs_print_string(csocket.fd, "reply %s", text);
+
+    /* Let the window system know that the (possibly hidden) query is over. */
+    cpl.no_echo = 0;
+    x_set_echo();
 }
 
 

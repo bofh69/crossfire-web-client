@@ -740,8 +740,7 @@ static void enter_callback(GtkWidget *widget, GtkWidget *entry)
     const gchar *entry_text;
 
     /* Next reply will reset this as necessary */
-    if (!use_config[CONFIG_POPUPS])
-	gtk_entry_set_visibility(GTK_ENTRY(entrytext), TRUE);
+    gtk_entry_set_visibility(GTK_ENTRY(entrytext), TRUE);
 
     entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
 	 /*         printf("Entry contents: %s\n", entry_text);*/
@@ -4174,9 +4173,7 @@ void do_clearlock () {
 }
 
 void x_set_echo() {
-  if (!use_config[CONFIG_POPUPS]) {
-    gtk_entry_set_visibility(GTK_ENTRY(entrytext), !cpl.no_echo);
-  }
+  gtk_entry_set_visibility(GTK_ENTRY(entrytext), !cpl.no_echo);
 }
 
 void draw_info_windows()
