@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/config.c: fallback to PIXMAP display mode when SDL is not built in.
+Ryo 2005-11-01
+
 Fix bug #1288647 (typing text in password mode). Now hidden input (for
 password entry) is reliably turned off afterwards.
 --

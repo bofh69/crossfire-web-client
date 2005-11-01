@@ -855,6 +855,11 @@ void load_defaults()
 	want_config[CONFIG_MAPHEIGHT] = use_config[CONFIG_MAPHEIGHT];
     }
 
+#ifndef HAVE_SDL
+	/* If SDL is not built in, having SDL mode turned on causes many issues. */
+    want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
+#endif
+
     /* Now copy over the values just loaded */
     for (i=0; i<CONFIG_NUMS; i++) {
 	use_config[i] = want_config[i];
