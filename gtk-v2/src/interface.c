@@ -81,6 +81,7 @@ create_window_root (void)
   GtkWidget *ratio_40;
   GtkWidget *ratio_45;
   GtkWidget *ratio_50;
+  GtkWidget *not_cursed1;
   GtkWidget *menuitem4;
   GtkWidget *menuitem4_menu;
   GtkWidget *about1;
@@ -389,6 +390,10 @@ create_window_root (void)
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_50));
   gtk_widget_show (ratio_50);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_50);
+
+  not_cursed1 = gtk_check_menu_item_new_with_mnemonic (_("Ignore cursed"));
+  gtk_widget_show (not_cursed1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), not_cursed1);
 
   menuitem4 = gtk_menu_item_new_with_mnemonic (_("_Help"));
   gtk_widget_show (menuitem4);
@@ -778,7 +783,7 @@ create_window_root (void)
   gtk_widget_show (label5);
   gtk_box_pack_start (GTK_BOX (hbox1), label5, FALSE, FALSE, 5);
 
-  spinbutton_count_adj = gtk_adjustment_new (0, 0, 1e+06, 1, 10, 10);
+  spinbutton_count_adj = gtk_adjustment_new (0, 0, 1000000, 1, 10, 10);
   spinbutton_count = gtk_spin_button_new (GTK_ADJUSTMENT (spinbutton_count_adj), 1, 0);
   gtk_widget_show (spinbutton_count);
   gtk_box_pack_start (GTK_BOX (hbox1), spinbutton_count, TRUE, TRUE, 0);
@@ -936,6 +941,9 @@ create_window_root (void)
   g_signal_connect ((gpointer) ratio_50, "activate",
                     G_CALLBACK (on_menu_ratio_50_activate),
                     NULL);
+  g_signal_connect ((gpointer) not_cursed1, "activate",
+                    G_CALLBACK (on_menu_not_cursed_activate),
+                    NULL);
   g_signal_connect ((gpointer) about1, "activate",
                     G_CALLBACK (menu_about),
                     NULL);
@@ -1013,6 +1021,7 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, ratio_40, "ratio_40");
   GLADE_HOOKUP_OBJECT (window_root, ratio_45, "ratio_45");
   GLADE_HOOKUP_OBJECT (window_root, ratio_50, "ratio_50");
+  GLADE_HOOKUP_OBJECT (window_root, not_cursed1, "not_cursed1");
   GLADE_HOOKUP_OBJECT (window_root, menuitem4, "menuitem4");
   GLADE_HOOKUP_OBJECT (window_root, menuitem4_menu, "menuitem4_menu");
   GLADE_HOOKUP_OBJECT (window_root, about1, "about1");

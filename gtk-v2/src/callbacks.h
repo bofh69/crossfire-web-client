@@ -148,7 +148,7 @@ on_menu_ratio_50_activate              (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
-on_item1_activate                      (GtkMenuItem     *menuitem,
+on_menu_not_cursed_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
@@ -191,35 +191,14 @@ list_row_collapse                      (GtkTreeView     *treeview,
                                         GtkTreePath     *path,
                                         gpointer         user_data);
 
-gboolean
-on_metaserver_treeview_select_cursor_row
-                                        (GtkTreeView     *treeview,
-                                        gboolean         start_editing,
-                                        gpointer         user_data);
-
-void
-on_metaserver_select_clicked           (GtkButton       *button,
-                                        gpointer         user_data);
-
 void
 on_treeview_metaserver_row_activated   (GtkTreeView     *treeview,
                                         GtkTreePath     *path,
                                         GtkTreeViewColumn *column,
                                         gpointer         user_data);
 
-gboolean
-on_treeview_metaserver_select_cursor_row
-                                        (GtkTreeView     *treeview,
-                                        gboolean         start_editing,
-                                        gpointer         user_data);
-
-gboolean
-on_treeview_metaserver_toggle_cursor_row
-                                        (GtkTreeView     *treeview,
-                                        gpointer         user_data);
-
 void
-on_button_metaserver_quit_activate     (GtkButton       *button,
+on_metaserver_select_clicked           (GtkButton       *button,
                                         gpointer         user_data);
 
 void

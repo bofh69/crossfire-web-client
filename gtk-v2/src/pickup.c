@@ -80,6 +80,8 @@ char *rcsid_gtk_pickup_c =
 #define PU_READABLES		0x00400000
 #define PU_MAGIC_DEVICE		0x00800000
 
+#define PU_NOT_CURSED		0x01000000
+
 static unsigned int pmode=0;
 
 /* This covers the pickup operations.  Unfortunately, it isn't easy (possible?)
@@ -254,6 +256,14 @@ on_menu_wands_rods_horns_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_MAGIC_DEVICE);
+
+}
+
+void
+on_menu_not_cursed_activate            (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_NOT_CURSED);
 
 }
 

@@ -2,6 +2,15 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Add support for newpickup PU_NOT_CURSED (ignore cursed items) flag.
+--
+gtk/gx11.c: Add flag #define and menu entry.
+gtk-v2/gtk-v2.glade: Add menu entry.
+gtk-v2/src/{callbacks.h,interface.c}: Rebuilt.
+gtk-v2/src/gtk2proto.h: Add prototype for menu callback.
+gtk-v2/src/pickup.c: Add #define and menu callback function.
+Andreas Kirschbaum 2005-11-01
+
 gtk/config.c: fallback to PIXMAP display mode when SDL is not built in.
 Ryo 2005-11-01
 
