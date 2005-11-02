@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c, gtk-v2/src/image.c: Initialize smooth_face field when allocating
+   pixmaps array.
+Andreas Kirschbaum 2005-11-02
+
 Add support for newpickup PU_NOT_CURSED (ignore cursed items) flag.
 --
 gtk/gx11.c: Add flag #define and menu entry.

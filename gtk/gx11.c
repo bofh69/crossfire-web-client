@@ -499,6 +499,7 @@ static void init_cache_data()
 	pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
     }
     pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
+    pixmaps[0]->smooth_face = 0;
 
     /* Don't do anything special for SDL image - rather, that drawing
      * code will check to see if there is no data
