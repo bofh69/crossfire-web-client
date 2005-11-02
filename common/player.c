@@ -236,6 +236,7 @@ void CompleteCmd(unsigned char *data, int len)
 {
     if (len !=6) {
 	LOG(LOG_ERROR,"common::CompleteCmd","Invalid length %d - ignoring", len);
+	return;
     }
     csocket.command_received = GetShort_String(data);
     csocket.command_time = GetInt_String(data+2);

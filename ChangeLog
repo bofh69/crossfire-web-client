@@ -2,6 +2,7 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/player.c: Properly ignore received comc commands with invalid length.
 gtk/gx11.c, gtk-v2/src/image.c: Initialize smooth_face field when allocating
    pixmaps array.
 Andreas Kirschbaum 2005-11-02
