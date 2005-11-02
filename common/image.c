@@ -143,7 +143,7 @@ static int load_image(char *filename, uint8 *data, int *len, int *csum)
 	    ROTATE_RIGHT(*csum);
 	    *csum += data[i];
 	    *csum &= 0xffffffff;
-p	}
+	}
 #endif
 
 }
