@@ -3334,6 +3334,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
 #define PU_NOT_CURSED		0x01000000
 
+#define PU_JEWELS			0x02000000
 
   /* root of the NEWPickup menu */
   newpickupmenu = gtk_menu_new();
@@ -3584,6 +3585,12 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_NOT_CURSED));
   gtk_widget_show(menu_items);
 
+  menu_items = gtk_check_menu_item_new_with_label("Jewelry");
+  gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_signal_connect(GTK_OBJECT(menu_items),"activate",
+    GTK_SIGNAL_FUNC(new_menu_pickup),GINT_TO_POINTER(PU_JEWELS));
+  gtk_widget_show(menu_items);
 /* --------------------------------------------------------------------- */ 
 /* --------------------------------------------------------------------- */ 
 /* --------------------------------------------------------------------- */ 

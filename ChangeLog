@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Apply patch 1352490 "newpickup rings/amulets client side" courtesy anonymous.
+Modified files:
+ gtk/gx11.c
+Ryo 2005-11-12
+
 common/player.c: Properly ignore received comc commands with invalid length.
 gtk/gx11.c, gtk-v2/src/image.c: Initialize smooth_face field when allocating
    pixmaps array.
