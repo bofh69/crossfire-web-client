@@ -190,7 +190,7 @@ void metaserver_save_cache( )
  * metaserver and meta_port are the server name and port number
  * to connect to.
  */
- 
+
 int metaserver_get_info(char *metaserver, int meta_port)
 {
     struct protoent *protox;
@@ -301,7 +301,7 @@ int metaserver_get_info(char *metaserver, int meta_port)
 
 	*cp1++='|';
 	*cp++='|';  /* cp now points to num players */
-	
+
 	current->players = atoi(cp);
 
 	if ((cp1=strchr(cp,'|'))==NULL) {
@@ -331,9 +331,9 @@ int metaserver_get_info(char *metaserver, int meta_port)
 	 * that we dont' care about, so strip them off so they don't show up in
 	 * the comment.
 	 */
-	if ((cp1 = strchr(cp, '|'))!=NULL) 
+	if ((cp1 = strchr(cp, '|'))!=NULL)
 	    *cp1=0;
-	
+
 	strncpy(current->comment, cp, sizeof(current->comment)-1);
 	current->comment[sizeof(current->comment)-1] = '\0';
 
@@ -425,8 +425,8 @@ int metaserver_select(char *sel)
         exit(0);
         }
 
-    /* if the entry is not a number (selection from the list), 
-     * or is a selection but also has a dot (suggesting 
+    /* if the entry is not a number (selection from the list),
+     * or is a selection but also has a dot (suggesting
      * a.b.c.d selection), just try to connect with given name.
      */
     if ((num==0) || (num && strchr(sel,'.'))) {
@@ -455,10 +455,14 @@ int metaserver_select(char *sel)
 	draw_info("Bad selection. Try again", NDI_BLACK);
 	return 1;
     }
-	
+
     sprintf(buf,"Trying to connect to %s", server_name);
     draw_info(buf,NDI_BLACK);
+#ifdef MULTKEYS
+    csocket.fd=init_connection(server_name, use_config[CONFIG_PORT]);
+#else
     csocket.fd=init_connection(server_ip, use_config[CONFIG_PORT]);
+#endif
     if (csocket.fd==-1) {
 	draw_info("Unable to connect to server.", NDI_BLACK);
 	return 1;
@@ -512,7 +516,7 @@ int metaserver_select(char *sel)
 
 #ifdef MS_STANDALONE
 /* This is here just to verify that the code seems to be working
- * properly 
+ * properly
  * To use this code, compile as:
  *  gcc -o metaserver -I. -DMS_STANDALONE metaserver.c
  */

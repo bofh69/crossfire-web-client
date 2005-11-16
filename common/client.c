@@ -33,9 +33,9 @@ char *rcsid_common_client_c =
   *
   * The DoClient function recieves a message (an ArgList), unpacks it, and
   * in a slow for loop dispatches the command to the right function through
-  * the commands table.   ArgLists are essentially like RPC things, only 
+  * the commands table.   ArgLists are essentially like RPC things, only
   * they don't require going through RPCgen, and it's easy to get variable
-  * length lists.  They are just lists of longs, strings, characters, and 
+  * length lists.  They are just lists of longs, strings, characters, and
   * byte arrays that can be converted to a machine independent format
  */
 
@@ -61,10 +61,10 @@ Client_Player cpl;
 ClientSocket csocket;
 
 char *resists_name[NUM_RESISTS] = {
-"armor", "magic", "fire", "elec", 
+"armor", "magic", "fire", "elec",
 "cold", "conf", "acid", "drain",
 "ghit", "pois", "slow", "para",
-"t undead", "fear", "depl","death", 
+"t undead", "fear", "depl","death",
 "hword", "blind"};
 
 typedef void (*CmdProc)(unsigned char *, int len);
@@ -141,7 +141,7 @@ void DoClient(ClientSocket *csocket)
 	    return;
 	}
 	if (i==0) return;   /* Don't have a full packet */
-	csocket->inbuf.buf[csocket->inbuf.len]='\0';    
+	csocket->inbuf.buf[csocket->inbuf.len]='\0';
         data = (unsigned char *)strchr((char*)csocket->inbuf.buf +2, ' ');
 	if (data) {
 	    *data='\0';
@@ -206,6 +206,10 @@ int init_connection(char *host, int port)
 	    return -1;
 	}
 	memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
+    if (csocket.servername != NULL)
+        free(csocket.servername);
+    csocket.servername = malloc(sizeof(char)*(strlen(host)+1));
+    strcpy(csocket.servername, host);
     }
     if (connect(fd,(struct sockaddr *)&insock,sizeof(insock)) == (-1))
     {
@@ -302,7 +306,7 @@ void negotiate_connection(int sound)
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
 	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d exp64 1 itemcmd 2",
-	    sound>=0, want_skill_exp, 
+	    sound>=0, want_skill_exp,
 		    want_config[CONFIG_LIGHTING]?1:0, face_info.faceset,
 		    want_config[CONFIG_CACHE]);
 

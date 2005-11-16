@@ -160,7 +160,7 @@ gint	csocket_fd=0;
 
 static int gargc;
 
-static uint8	
+static uint8
     bigmap=FALSE;	/* True if we've moved some windows around for big maps */
 
 uint8
@@ -205,7 +205,7 @@ GdkColor gdk_black = { 0, 0, 0, 0 };
 GdkColor gdkdiscolor;
 static GdkColor map_color[16];
 /* Not static so it can be used in inventory.c for highlighting. */
-GdkColor root_color[16]; 
+GdkColor root_color[16];
 static GdkPixmap *magicgdkpixmap;
 static GdkGC *magic_map_gc;
 static GtkWidget *mapvbox;
@@ -230,7 +230,7 @@ static gboolean draw_info_freeze1=FALSE, draw_info_freeze2=FALSE;
 
 enum {
     locked_icon = 1, applied_icon, unpaid_icon,
-    damned_icon, cursed_icon, magic_icon, close_icon, 
+    damned_icon, cursed_icon, magic_icon, close_icon,
     stipple1_icon, stipple2_icon, max_icons
 };
 
@@ -242,7 +242,7 @@ GtkWidget *gameframe, *stat_frame, *message_frame;
 
 static StatWindow statwindow;
 /* gtk */
- 
+
 GtkWidget *gtkwin_root, *gtkwin_info;
 GtkWidget *gtkwin_info_text; /* Referenced by inventory::count_callback. */
 GtkWidget *gtkwin_info_text2; /* Used when CONFIG_SPLITINFO */
@@ -292,7 +292,7 @@ FILE *fcache;
 
 int misses=0,total=0;
 
-	
+
 /* main loop iteration related stuff */
 void do_network() {
     fd_set tmp_read;
@@ -307,7 +307,7 @@ void do_network() {
 	}
 	return;
     }
-  
+
     if (updatelock < 20) {
 	FD_ZERO(&tmp_read);
 	FD_SET(csocket.fd, &tmp_read);
@@ -364,7 +364,7 @@ void event_loop()
 #ifdef WIN32
 	gtk_timeout_add (25, (GtkFunction) do_scriptout, NULL);
 #endif
-    
+
     csocket_fd = gdk_input_add ((gint) csocket.fd,
                               GDK_INPUT_READ,
                               (GdkInputFunction) do_network, &csocket);
@@ -397,7 +397,7 @@ void end_windows()
 
 void button_map_event(GtkWidget *widget, GdkEventButton *event) {
     int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
-  
+
     x=(int)event->x;
     y=(int)event->y;
     dx=(x-2)/map_image_size-(use_config[CONFIG_MAPWIDTH]/2);
@@ -419,12 +419,12 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
 	    else if (x>xmidh)
 		i = 6;
 	    else i =3;
-    
+
 	    if (y>ymidh)
 		i += 2;
 	    else if (y>ymidl)
 		i++;
-    
+
 	    if (event->button==2) {
 		switch (i) {
 		    case 0: fire_dir (8);break;
@@ -471,7 +471,7 @@ static void init_cache_data()
 
 
     LOG(LOG_INFO,"gtk::init_cache_data","Init Cache");
-    
+
     style = gtk_widget_get_style(gtkwin_root);
     pixmaps[0] = malloc(sizeof(PixmapInfo));
     pixmaps[0]->icon_image = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
@@ -549,7 +549,7 @@ void gtk_command_history(int direction)
 void gtk_complete_command()
 {
     const gchar *entry_text, *newcommand;
-	
+
     entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
     newcommand = complete_command(entry_text);
     /* value differ, so update window */
@@ -690,7 +690,7 @@ static int get_game_display(GtkWidget *frame) {
     gthbox = gtk_hbox_new (FALSE, 0);
     gtk_box_pack_start (GTK_BOX (gtvbox), gthbox, FALSE, FALSE, 1);
 
-    drawingarea = gtk_drawing_area_new(); 
+    drawingarea = gtk_drawing_area_new();
     gtk_drawing_area_size(GTK_DRAWING_AREA(drawingarea), map_image_size*use_config[CONFIG_MAPWIDTH],map_image_size*use_config[CONFIG_MAPHEIGHT]);
     /* Add mouseclick events to the drawing area */
 
@@ -702,7 +702,7 @@ static int get_game_display(GtkWidget *frame) {
     gtk_signal_connect (GTK_OBJECT(drawingarea),"configure_event",
 		      (GtkSignalFunc) configure_event, NULL);
     /* Set up handling of mouseclicks in map */
- 
+
     gtk_signal_connect (GTK_OBJECT(drawingarea),
 		      "button_press_event",
 		      GTK_SIGNAL_FUNC(button_map_event),
@@ -711,7 +711,7 @@ static int get_game_display(GtkWidget *frame) {
     /* Pack it up and show it */
 
     gtk_box_pack_start (GTK_BOX (gthbox), drawingarea, FALSE, FALSE, 1);
-  
+
     gtk_widget_show(drawingarea);
 
     gtk_widget_show(gthbox);
@@ -720,7 +720,7 @@ static int get_game_display(GtkWidget *frame) {
 
     gtk_signal_connect (GTK_OBJECT (frame), "expose_event",
 		      (GtkSignalFunc) expose_event, NULL);
-    gtk_signal_connect (GTK_OBJECT(frame),"configure_event",	
+    gtk_signal_connect (GTK_OBJECT(frame),"configure_event",
 		      (GtkSignalFunc) configure_event, NULL);
 
     gtk_widget_show (frame);
@@ -841,19 +841,19 @@ static int get_info_display(GtkWidget *frame) {
 	gtk_container_add (GTK_CONTAINER (frame), box1);
     }
     gtk_widget_show (box1);
-  
+
     box2 = gtk_vbox_new (FALSE, 3);
     gtk_container_border_width (GTK_CONTAINER (box2), 3);
     gtk_box_pack_start (GTK_BOX (box1), box2, TRUE, TRUE, 0);
     gtk_widget_show (box2);
-  
-  
+
+
     tablet = gtk_table_new (2, 2, FALSE);
     gtk_table_set_row_spacing (GTK_TABLE (tablet), 0, 2);
     gtk_table_set_col_spacing (GTK_TABLE (tablet), 0, 2);
     gtk_box_pack_start (GTK_BOX (box2), tablet, TRUE, TRUE, 0);
     gtk_widget_show (tablet);
-  
+
     text_hadj = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
     text_vadj = gtk_adjustment_new(1, 0, 1, 0.01, 0.1, 40);
 
@@ -864,7 +864,7 @@ static int get_info_display(GtkWidget *frame) {
 		    GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
     gtk_widget_show (gtkwin_info_text);
 
-  
+
     vscrollbar = gtk_vscrollbar_new (GTK_TEXT (gtkwin_info_text)->vadj);
     gtk_table_attach (GTK_TABLE (tablet), vscrollbar, 1, 2, 0, 1,
 		     GTK_FILL, GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
@@ -875,7 +875,7 @@ static int get_info_display(GtkWidget *frame) {
                       vscrollbar);
 
     gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
-  
+
     gtk_widget_realize (gtkwin_info_text);
 
     if (use_config[CONFIG_SPLITINFO]) {
@@ -900,7 +900,7 @@ static int get_info_display(GtkWidget *frame) {
 		    GTK_EXPAND | GTK_SHRINK | GTK_FILL,
 		    GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
 	gtk_widget_show (gtkwin_info_text2);
-  
+
 	vscrollbar = gtk_vscrollbar_new (GTK_TEXT (gtkwin_info_text2)->vadj);
 	gtk_table_attach (GTK_TABLE (tablet), vscrollbar, 1, 2, 0, 1,
 		     GTK_FILL, GTK_EXPAND | GTK_SHRINK | GTK_FILL, 0, 0);
@@ -911,30 +911,30 @@ static int get_info_display(GtkWidget *frame) {
 
 	gtk_widget_realize (gtkwin_info_text2);
     }
-  
+
   infile = fopen("Welcome", "r");
-  
+
   if (infile)
     {
       char buffer[1024];
       int nchars;
-      
+
       while (1)
 	{
 	  nchars = fread(buffer, 1, 1024, infile);
 	  gtk_text_insert (GTK_TEXT (gtkwin_info_text), NULL, NULL,
 			   NULL, buffer, nchars);
-	  
+
 	  if (nchars < 1024)
 	    break;
 	}
-      
+
       fclose (infile);
     }
-  
+
   gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
-  
-  
+
+
   entrytext = gtk_entry_new ();
   gtk_signal_connect(GTK_OBJECT(entrytext), "activate",
 		     GTK_SIGNAL_FUNC(enter_callback),
@@ -943,7 +943,7 @@ static int get_info_display(GtkWidget *frame) {
   GTK_WIDGET_SET_FLAGS (entrytext, GTK_CAN_DEFAULT);
   gtk_widget_grab_default (entrytext);
   gtk_widget_show (entrytext);
-  
+
   return 0;
 }
 
@@ -992,9 +992,12 @@ void setUserPass(GtkButton* button, gpointer func_data){
     pass=gtk_editable_get_chars (GTK_EDITABLE(passwordText),0,-1);
     strncpy(password,pass,sizeof(password));
     send_reply(user);
-#ifdef WIN32
+#ifdef MULTKEYS
   /* Now is a good time to load player's specific key bindings */
-    strcpy( cpl.name, user );
+    if (csocket.servername != NULL)
+        sprintf(cpl.name, "%s.%s", user, csocket.servername);
+    else
+        strcpy( cpl.name, user );
     init_keys( );
 #endif
     cpl.input_state = Playing;
@@ -1020,8 +1023,8 @@ void disable_ok_if_empty(gpointer button,GtkEditable* entry){
     gchar *passcontent,*txtcontent;
     txtcontent = gtk_editable_get_chars(GTK_EDITABLE(userText),0,-1);
     passcontent= gtk_editable_get_chars(GTK_EDITABLE(passwordText)  ,0,-1);
-    if ( passcontent && txtcontent && 
-         (strlen(txtcontent)>=1)&& 
+    if ( passcontent && txtcontent &&
+         (strlen(txtcontent)>=1)&&
          (strlen(passcontent)>=1))
         gtk_widget_set_sensitive(GTK_WIDGET(loginButtonOk),TRUE);
     else
@@ -1031,7 +1034,7 @@ void disable_ok_if_empty(gpointer button,GtkEditable* entry){
     else
         gtk_widget_hide(passwordText);
     g_free(txtcontent);
-    g_free(passcontent);    
+    g_free(passcontent);
 }
 void change_focus(GtkWidget* focusTo, GtkEditable *entry){
 
@@ -1041,7 +1044,7 @@ void change_focus(GtkWidget* focusTo, GtkEditable *entry){
             gtk_widget_grab_focus(focusTo);
 }
 void activate_ok_if_not_empty(GtkWidget* button, GtkEditable *entry){
-    char *txtcontent = gtk_editable_get_chars(entry,0,-1);    
+    char *txtcontent = gtk_editable_get_chars(entry,0,-1);
     if (txtcontent && (strlen(txtcontent)>0))
         gtk_widget_activate(button);
 }
@@ -1067,21 +1070,21 @@ void buildLoginDialog(){
         GtkWidget *vbox, *table, *label, *hbox, *vscroll;
         loginWindow= gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_policy (GTK_WINDOW (loginWindow), TRUE, TRUE,
-                 FALSE);      
+                 FALSE);
         gtk_window_set_transient_for (GTK_WINDOW (loginWindow),
                  GTK_WINDOW (gtkwin_root));
         gtk_window_set_title (GTK_WINDOW (loginWindow), "Login");
         gtk_window_set_transient_for(GTK_WINDOW (loginWindow),
-                    GTK_WINDOW (gtkwin_root)); 
+                    GTK_WINDOW (gtkwin_root));
         vbox=gtk_vbox_new(FALSE,4);
-        
+
         /* build it's notebook */
         loginTabs = gtk_notebook_new();
         /* notebook -> news */
         hbox=gtk_hbox_new(FALSE,2);
         newsText = gtk_text_new(NULL,NULL);
         gtk_text_set_word_wrap(GTK_TEXT(newsText),TRUE);
-        gtk_text_set_line_wrap(GTK_TEXT(newsText),TRUE);      
+        gtk_text_set_line_wrap(GTK_TEXT(newsText),TRUE);
         vscroll = gtk_vscrollbar_new (GTK_TEXT (newsText)->vadj);
         gtk_box_pack_start(GTK_BOX(hbox),newsText,TRUE,TRUE,0);
         gtk_box_pack_start(GTK_BOX(hbox),vscroll,FALSE,TRUE,0);
@@ -1094,7 +1097,7 @@ void buildLoginDialog(){
         hbox=gtk_hbox_new(FALSE,2);
         rulesText = gtk_text_new(NULL,NULL);
         gtk_text_set_word_wrap(GTK_TEXT(rulesText),TRUE);
-        gtk_text_set_line_wrap(GTK_TEXT(rulesText),TRUE);      
+        gtk_text_set_line_wrap(GTK_TEXT(rulesText),TRUE);
         vscroll = gtk_vscrollbar_new (GTK_TEXT (rulesText)->vadj);
         gtk_box_pack_start(GTK_BOX(hbox),rulesText,TRUE,TRUE,0);
         gtk_box_pack_start(GTK_BOX(hbox),vscroll,FALSE,TRUE,0);
@@ -1103,10 +1106,10 @@ void buildLoginDialog(){
         gtk_widget_show(vscroll);
         gtk_widget_show(rulesText);
         gtk_widget_show(hbox);
-        
+
         /*notebook -> login*/
         hbox=gtk_hbox_new(FALSE,2);
-        motdText = gtk_text_new(NULL,NULL);        
+        motdText = gtk_text_new(NULL,NULL);
         vscroll = gtk_vscrollbar_new (GTK_TEXT (motdText)->vadj);
         gtk_box_pack_start(GTK_BOX(hbox),motdText,TRUE,TRUE,0);
         gtk_box_pack_start(GTK_BOX(hbox),vscroll,FALSE,TRUE,0);
@@ -1114,16 +1117,16 @@ void buildLoginDialog(){
         gtk_widget_show(motdText);
         gtk_widget_show(vscroll);
         gtk_box_pack_start(GTK_BOX(vbox),hbox,TRUE,TRUE,0);
-        
-        
+
+
         /* message information */
         loginMessage = gtk_label_new(NULL);
         gtk_box_pack_start(GTK_BOX(vbox),loginMessage,FALSE,FALSE,0);
         gtk_widget_show(loginMessage);
-        
+
         /* user-pass table*/
         table=gtk_table_new(3,2,FALSE);
-           /* TODO for strange reason justify do not work. 
+           /* TODO for strange reason justify do not work.
             * May someone fix this?*/
         label=gtk_label_new("User:");
         gtk_table_attach(GTK_TABLE(table),label,0,1,0,1,GTK_EXPAND|GTK_FILL,0,2,2);
@@ -1134,7 +1137,7 @@ void buildLoginDialog(){
         gtk_label_set_justify(GTK_LABEL(label),GTK_JUSTIFY_RIGHT);
         gtk_widget_show(label);
         label=gtk_label_new("Re-type password:");
-        gtk_table_attach(GTK_TABLE(table),label,0,1,2,3,GTK_EXPAND|GTK_FILL,0,2,2);                
+        gtk_table_attach(GTK_TABLE(table),label,0,1,2,3,GTK_EXPAND|GTK_FILL,0,2,2);
         gtk_label_set_justify(GTK_LABEL(label),GTK_JUSTIFY_RIGHT);
         gtk_widget_show(label);
         userText=gtk_entry_new();
@@ -1148,10 +1151,10 @@ void buildLoginDialog(){
         gtk_entry_set_visibility(GTK_ENTRY(passwordText2),FALSE);
         gtk_entry_set_editable(GTK_ENTRY(passwordText2),FALSE);
         gtk_table_attach(GTK_TABLE(table),passwordText2,1,2,2,3,GTK_EXPAND|GTK_FILL,0,2,2);
-        gtk_widget_show(passwordText2);        
+        gtk_widget_show(passwordText2);
         gtk_box_pack_start(GTK_BOX(vbox),table,FALSE,FALSE,0);
-        
-        
+
+
         hbox=gtk_hbox_new(FALSE,2);
         loginButtonOk = gtk_button_new_with_label("Ok");
         loginButtonCancel = gtk_button_new_with_label("Cancel");
@@ -1160,7 +1163,7 @@ void buildLoginDialog(){
         gtk_widget_show(hbox);
         gtk_widget_show(loginButtonOk);
         gtk_widget_show(loginButtonCancel);
-        
+
         /*manage events on login widgets*/
         gtk_signal_connect_object (GTK_OBJECT (loginWindow),
                 "delete_event",
@@ -1203,7 +1206,7 @@ void buildLoginDialog(){
         gtk_container_add(GTK_CONTAINER(loginWindow),loginTabs);
         gtk_widget_show(loginTabs);
         gtk_window_set_default_size(GTK_WINDOW(loginWindow),500,400);
-        gtk_window_set_position(GTK_WINDOW(loginWindow),GTK_WIN_POS_CENTER);    
+        gtk_window_set_position(GTK_WINDOW(loginWindow),GTK_WIN_POS_CENTER);
     }
     gtk_editable_delete_text(GTK_EDITABLE(motdText),0,-1);
     write_media(GTK_TEXT(motdText), getMOTD());
@@ -1211,11 +1214,11 @@ void buildLoginDialog(){
     write_media(GTK_TEXT(rulesText),get_rules());
     gtk_editable_delete_text(GTK_EDITABLE(newsText),0,-1);
     fill_news(newsText,get_news());
-    gtk_widget_show(loginWindow);     
+    gtk_widget_show(loginWindow);
 }
 guint signalLoginDialogClicked = -1;
 void logUserIn(){
-    buildLoginDialog();    
+    buildLoginDialog();
     gtk_label_set_text(GTK_LABEL(loginMessage),"Type in user name and password");
     gtk_entry_set_editable(GTK_ENTRY(userText),TRUE);
     gtk_entry_set_editable(GTK_ENTRY(passwordText),TRUE);
@@ -1705,15 +1708,15 @@ draw_prompt (const char *str)
 
 }
 
-/* draw_info adds a line to the info window. For speed reasons it will 
+/* draw_info adds a line to the info window. For speed reasons it will
  * automatically freeze the info window when adding text to it, set the
  * draw_info_freeze variable true and the actual drawing will take place
  * during the next do_timeout at which point it is unfrozen again. That way
  * we handle massive amounts of text addition with a single gui event, which
  * results in a serious speed improvement for slow client machines (and
  * above all it avoids a gui lockup when the client becomes congested with
- * updates (which is often when you're in the middle of fighting something 
- * serious and not a good time to get slow reaction time)). 
+ * updates (which is often when you're in the middle of fighting something
+ * serious and not a good time to get slow reaction time)).
  *
  * MSW 2001-05-25: The removal of input from the text windows should
  * work, and in fact does about 90% of the time.  But that 10% it
@@ -1791,7 +1794,7 @@ void draw_info(const char *str, int color) {
 		info1_num_chars=0;
 #endif
 	    }
-	    
+
 	}
 	if (use_config[CONFIG_TIMESTAMP])
 	    gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[NDI_GREY], NULL, timestamp, -1);
@@ -1831,7 +1834,7 @@ static int get_stats_display(GtkWidget *frame) {
     GtkWidget *stats_box_7;
     GtkWidget *table;
     int i,x,y;
-  
+
 
     stats_vbox = gtk_vbox_new (FALSE, 0);
 
@@ -1857,7 +1860,7 @@ static int get_stats_display(GtkWidget *frame) {
 
     gtk_box_pack_start (GTK_BOX (stats_vbox), stats_box_2, FALSE, FALSE, 0);
     gtk_widget_show (stats_box_2);
-      
+
 
     /* 4th row (really the thrid) - the stats - str, dex, con, etc */
     stats_box_4 = gtk_hbox_new (FALSE, 0);
@@ -1991,7 +1994,7 @@ void draw_stats(int redraw) {
       gtk_label_set (GTK_LABEL(statwindow.playername), cpl.title);
       gtk_widget_draw (statwindow.playername, NULL);
     }
-    
+
     if(redraw || cpl.stats.exp!=last_stats.exp) {
       last_stats.exp = cpl.stats.exp;
 #ifndef WIN32
@@ -2002,15 +2005,15 @@ void draw_stats(int redraw) {
       gtk_label_set (GTK_LABEL(statwindow.score), buff);
       gtk_widget_draw (statwindow.score, NULL);
     }
-    
+
     if(redraw || cpl.stats.level!=last_stats.level) {
       last_stats.level = cpl.stats.level;
       sprintf(buff,"Level: %d",cpl.stats.level);
       gtk_label_set (GTK_LABEL(statwindow.level), buff);
       gtk_widget_draw (statwindow.level, NULL);
     }
-    
-    if(redraw || 
+
+    if(redraw ||
        cpl.stats.hp!=last_stats.hp || cpl.stats.maxhp!=last_stats.maxhp) {
       last_stats.hp=cpl.stats.hp;
       last_stats.maxhp=cpl.stats.maxhp;
@@ -2018,8 +2021,8 @@ void draw_stats(int redraw) {
       gtk_label_set (GTK_LABEL(statwindow.hp), buff);
       gtk_widget_draw (statwindow.hp, NULL);
     }
-    
-    if(redraw || 
+
+    if(redraw ||
        cpl.stats.sp!=last_stats.sp || cpl.stats.maxsp!=last_stats.maxsp) {
       last_stats.sp=cpl.stats.sp;
       last_stats.maxsp=cpl.stats.maxsp;
@@ -2027,8 +2030,8 @@ void draw_stats(int redraw) {
       gtk_label_set (GTK_LABEL(statwindow.sp), buff);
       gtk_widget_draw (statwindow.sp, NULL);
     }
-    
-    if(redraw || 
+
+    if(redraw ||
        cpl.stats.grace!=last_stats.grace || cpl.stats.maxgrace!=last_stats.maxgrace) {
       last_stats.grace=cpl.stats.grace;
       last_stats.maxgrace=cpl.stats.maxgrace;
@@ -2036,84 +2039,84 @@ void draw_stats(int redraw) {
       gtk_label_set (GTK_LABEL(statwindow.gr), buff);
       gtk_widget_draw (statwindow.gr, NULL);
     }
-    
+
     if(redraw || cpl.stats.Str!=last_stats.Str) {
       last_stats.Str=cpl.stats.Str;
       sprintf(buff,"S%2d",cpl.stats.Str);
       gtk_label_set (GTK_LABEL(statwindow.Str), buff);
       gtk_widget_draw (statwindow.Str, NULL);
     }
-    
+
     if(redraw || cpl.stats.Dex!=last_stats.Dex) {
       last_stats.Dex=cpl.stats.Dex;
       sprintf(buff,"D%2d",cpl.stats.Dex);
       gtk_label_set (GTK_LABEL(statwindow.Dex), buff);
       gtk_widget_draw (statwindow.Dex, NULL);
     }
-    
+
     if(redraw || cpl.stats.Con!=last_stats.Con) {
       last_stats.Con=cpl.stats.Con;
       sprintf(buff,"Co%2d",cpl.stats.Con);
       gtk_label_set (GTK_LABEL(statwindow.Con), buff);
       gtk_widget_draw (statwindow.Con, NULL);
     }
-    
+
     if(redraw || cpl.stats.Int!=last_stats.Int) {
       last_stats.Int=cpl.stats.Int;
       sprintf(buff,"I%2d",cpl.stats.Int);
       gtk_label_set (GTK_LABEL(statwindow.Int), buff);
       gtk_widget_draw (statwindow.Int, NULL);
     }
-    
+
     if(redraw || cpl.stats.Wis!=last_stats.Wis) {
       last_stats.Wis=cpl.stats.Wis;
       sprintf(buff,"W%2d",cpl.stats.Wis);
       gtk_label_set (GTK_LABEL(statwindow.Wis), buff);
       gtk_widget_draw (statwindow.Wis, NULL);
     }
-    
+
     if(redraw || cpl.stats.Pow!=last_stats.Pow) {
       last_stats.Pow=cpl.stats.Pow;
       sprintf(buff,"P%2d",cpl.stats.Pow);
       gtk_label_set (GTK_LABEL(statwindow.Pow), buff);
       gtk_widget_draw (statwindow.Pow, NULL);
     }
-    
+
     if(redraw || cpl.stats.Cha!=last_stats.Cha) {
       last_stats.Cha=cpl.stats.Cha;
       sprintf(buff,"Ch%2d",cpl.stats.Cha);
       gtk_label_set (GTK_LABEL(statwindow.Cha), buff);
       gtk_widget_draw (statwindow.Cha, NULL);
     }
-    
+
     if(redraw || cpl.stats.wc!=last_stats.wc) {
       last_stats.wc=cpl.stats.wc;
       sprintf(buff,"Wc%3d",cpl.stats.wc);
       gtk_label_set (GTK_LABEL(statwindow.wc), buff);
       gtk_widget_draw (statwindow.wc, NULL);
     }
-    
+
     if(redraw || cpl.stats.dam!=last_stats.dam) {
       last_stats.dam=cpl.stats.dam;
       sprintf(buff,"Dam%3d",cpl.stats.dam);
       gtk_label_set (GTK_LABEL(statwindow.dam), buff);
       gtk_widget_draw (statwindow.dam, NULL);
     }
-    
+
     if(redraw || cpl.stats.ac!=last_stats.ac) {
       last_stats.ac=cpl.stats.ac;
       sprintf(buff,"Ac%3d",cpl.stats.ac);
       gtk_label_set (GTK_LABEL(statwindow.ac), buff);
       gtk_widget_draw (statwindow.ac, NULL);
     }
-    
+
     if(redraw || cpl.stats.resists[0]!=last_stats.resists[0]) {
       last_stats.resists[0]=cpl.stats.resists[0];
       sprintf(buff,"Arm%3d",cpl.stats.resists[0]);
       gtk_label_set (GTK_LABEL(statwindow.armor), buff);
       gtk_widget_draw (statwindow.armor, NULL);
     }
-    
+
     if(redraw || cpl.stats.speed!=last_stats.speed ||
        cpl.stats.weapon_sp != last_stats.weapon_sp) {
       last_stats.speed=cpl.stats.speed;
@@ -2123,7 +2126,7 @@ void draw_stats(int redraw) {
       gtk_label_set (GTK_LABEL(statwindow.speed), buff);
       gtk_widget_draw (statwindow.speed, NULL);
     }
-    
+
     if(redraw || cpl.stats.food!=last_stats.food) {
       last_stats.food=cpl.stats.food;
       sprintf(buff,"Food: %3d",cpl.stats.food);
@@ -2143,7 +2146,7 @@ void draw_stats(int redraw) {
     gdk_beep( );
 #endif
     }
-    
+
     if(redraw || strcmp(cpl.range, last_range)) {
       strcpy(last_range, cpl.range);
       gtk_label_set (GTK_LABEL(statwindow.skill), cpl.range);
@@ -2207,7 +2210,7 @@ void create_stat_bar (GtkWidget *mtable, gint row, gchar *label, gint bar, GtkWi
   gtk_table_attach(GTK_TABLE(mtable), vitals[bar].bar, 0,1,row+1,row+2,GTK_FILL | GTK_EXPAND, 0 ,3,0);
   gtk_widget_set_usize (vitals[bar].bar,100,15);
 
-    
+
   gtk_widget_show (vitals[bar].bar);
 
 
@@ -2238,7 +2241,7 @@ void reset_stat_bars() {
 	gtk_widget_set_style(vitals[i].bar, vitals[i].style[1]);
 	gtk_widget_set_style(vitals[i].bar, vitals[i].style[0]);
 	vitals[i].state = 0;
-	
+
     }
     draw_message_window(1);
 }
@@ -2262,17 +2265,17 @@ static int get_message_display(GtkWidget *frame) {
      */
     vbox = gtk_vbox_new (FALSE, 0);
     gtk_box_pack_start (GTK_BOX(res_mainbox), vbox, FALSE, TRUE, 0);
-  
+
     /* initialize the table and pack this into the vbox */
     mtable = gtk_table_new (2,4,FALSE);
-    gtk_box_pack_start (GTK_BOX(vbox),mtable,FALSE,FALSE,0);  
+    gtk_box_pack_start (GTK_BOX(vbox),mtable,FALSE,FALSE,0);
 
     /* create the stat bars and place them in the table */
     create_stat_bar (mtable, 1,"Hp: 0",0, &statwindow.hp);
     create_stat_bar (mtable, 3,"Mana: 0",1, &statwindow.sp);
     create_stat_bar (mtable, 5,"Grace: 0",2, &statwindow.gr);
     create_stat_bar (mtable, 7,"Food: 0",3, &statwindow.food);
-  
+
     /* stat bar part - end */
 
 
@@ -2285,7 +2288,7 @@ static int get_message_display(GtkWidget *frame) {
     /* initialize labels for all modes of CONFIG_RESISTS */
     fire_label = gtk_label_new ("    ");
     run_label = gtk_label_new ("   ");
-  
+
     /* place labels for mode 2 of CONFIG_RESISTS */
     if (use_config[CONFIG_RESISTS]==2) {
 	restable = gtk_table_new (4,12,FALSE);
@@ -2293,21 +2296,21 @@ static int get_message_display(GtkWidget *frame) {
 	gtk_table_attach (GTK_TABLE(restable), run_label, 3, 4, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
     }
 
-    /* place labels for mode 1 and 0 of CONFIG_RESISTS */  
+    /* place labels for mode 1 and 0 of CONFIG_RESISTS */
     if (use_config[CONFIG_RESISTS]<=1) {
 	restable = gtk_table_new (2,24,FALSE);
 	gtk_table_attach (GTK_TABLE(restable), fire_label, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	gtk_table_attach (GTK_TABLE(restable), run_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
     }
-  
+
     /* show labels for all modes of CONFIG_RESISTS */
     gtk_widget_show (fire_label);
     gtk_widget_show (run_label);
 
     /* make and place labels for showing the resistances - start */
     for (i=0; i< SHOW_RESISTS ; i++) {
-	resists[i] = gtk_label_new("          ");    
-  
+	resists[i] = gtk_label_new("          ");
+
 	/* place the labels for mode 2 in the table restable */
 	if (use_config[CONFIG_RESISTS]==2) {
 	    if ((i/2)*2 != i) {
@@ -2326,7 +2329,7 @@ static int get_message_display(GtkWidget *frame) {
 	    gtk_widget_show (resists[i]);
 	}
 
-	/* place the labels for mode 0 in the table restable - only seven - old style */  
+	/* place the labels for mode 0 in the table restable - only seven - old style */
 	else if ( (use_config[CONFIG_RESISTS]==0) && (i <= 6) ) {
 	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	    gtk_widget_show (resists[i]);
@@ -2334,10 +2337,10 @@ static int get_message_display(GtkWidget *frame) {
     }
     /* make and place labels for showing the resistances - stop */
 
-    /* packing the restable for mode not 0 - scrollable*/  
+    /* packing the restable for mode not 0 - scrollable*/
     res_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
     gtk_container_set_border_width (GTK_CONTAINER (res_scrolled_window), 0);
-    if (want_config[CONFIG_RESISTS] ==0) 
+    if (want_config[CONFIG_RESISTS] ==0)
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
     else
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -2369,7 +2372,7 @@ void resize_resistance_table(int resists_show)
 	GtkTableChild *child;
 	child = GTK_TABLE(restable)->children->data;
 
-	gtk_container_remove(GTK_CONTAINER(restable), 
+	gtk_container_remove(GTK_CONTAINER(restable),
 			     child->widget);
     }
 
@@ -2384,7 +2387,7 @@ void resize_resistance_table(int resists_show)
 	gtk_table_attach (GTK_TABLE(restable), run_label, 3, 4, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
     }
 
-    /* place labels for mode 1 and 0 of CONFIG_RESISTS */  
+    /* place labels for mode 1 and 0 of CONFIG_RESISTS */
     if (resists_show<=1) {
 	gtk_table_resize(GTK_TABLE(restable), 2,24);
 	gtk_table_attach (GTK_TABLE(restable), fire_label, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
@@ -2397,8 +2400,8 @@ void resize_resistance_table(int resists_show)
     /* make and place labels for showing the resistances - start */
 
     for (i=0; i< SHOW_RESISTS ; i++) {
-	resists[i] = gtk_label_new("          ");    
-  
+	resists[i] = gtk_label_new("          ");
+
 	/* place the labels for mode 2 in the table restable */
 	if (resists_show==2) {
 	    if ((i/2)*2 != i) {
@@ -2417,14 +2420,14 @@ void resize_resistance_table(int resists_show)
 	    gtk_widget_show (resists[i]);
 	}
 
-	/* place the labels for mode 0 in the table restable - only seven - old style */  
+	/* place the labels for mode 0 in the table restable - only seven - old style */
 	else if ( (resists_show==0) && (i <= 6) ) {
 	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	    gtk_widget_show (resists[i]);
 	}
     }
 
-    if (resists_show ==0) 
+    if (resists_show ==0)
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
     else
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -2517,7 +2520,7 @@ void draw_message_window(int redraw) {
 
 	/* draw sp bar.  Let draw_stats_bar handle high values */
 	bar=(float)cpl.stats.sp/cpl.stats.maxsp;
-	if(bar<=0) 
+	if(bar<=0)
 	    bar=(float)0.01;
 
 	is_alert=(cpl.stats.sp <= cpl.stats.maxsp/4);
@@ -2540,10 +2543,10 @@ void draw_message_window(int redraw) {
 
 	scrollsize_grace=bar;
 	scrollgrace_alert=is_alert;
-  
+
 	/* draw food bar */
 	bar=(float)cpl.stats.food/999;
-	if(bar<=0) 
+	if(bar<=0)
 	    bar=(float)0.01;
 	is_alert=(cpl.stats.food <= 999/4);
 
@@ -2584,7 +2587,7 @@ void draw_message_window(int redraw) {
 }
 
 
- 
+
 
 
 
@@ -2609,14 +2612,14 @@ void aboutdialog(GtkWidget *widget) {
   GtkStyle *style;
 
   if(!gtkwin_about) {
-    
+
     gtkwin_about = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_position (GTK_WINDOW (gtkwin_about), GTK_WIN_POS_CENTER);
     gtk_widget_set_usize (gtkwin_about,500,210);
     gtk_window_set_title (GTK_WINDOW (gtkwin_about), "About Crossfire");
 
     gtk_signal_connect (GTK_OBJECT (gtkwin_about), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_about);
-    
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_about), 0);
     vbox = gtk_vbox_new(FALSE, 2);
     gtk_container_add (GTK_CONTAINER(gtkwin_about),vbox);
@@ -2640,13 +2643,13 @@ void aboutdialog(GtkWidget *widget) {
 
     vscrollbar = gtk_vscrollbar_new (GTK_TEXT (aboutlabel)->vadj);
     gtk_box_pack_start (GTK_BOX (hbox),vscrollbar, FALSE, FALSE, 0);
- 
+
     gtk_widget_show (vscrollbar);
 
     gtk_widget_show (hbox);
 
     hbox = gtk_hbox_new(FALSE, 2);
-    
+
     aboutbutton = gtk_button_new_with_label ("Close");
     gtk_signal_connect_object (GTK_OBJECT (aboutbutton), "clicked",
 			       GTK_SIGNAL_FUNC(gtk_widget_destroy),
@@ -2782,15 +2785,15 @@ void bugdialog(GtkWidget *widget) {
 void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButton *event) {
   gchar *buf;
   if (event->button==1) {
-    gtk_clist_get_text (GTK_CLIST(cclist), row, 0, &buf); 
-    gtk_label_set (GTK_LABEL(cnumentrytext), buf); 
-    gtk_clist_get_text (GTK_CLIST(cclist), row, 1, &buf); 
-    gtk_entry_set_text (GTK_ENTRY(ckeyentrytext), buf); 
-    gtk_clist_get_text (GTK_CLIST(cclist), row, 3, &buf); 
-    gtk_entry_set_text (GTK_ENTRY(cmodentrytext), buf); 
-    gtk_clist_get_text (GTK_CLIST(cclist), row, 4, &buf); 
-    gtk_entry_set_text (GTK_ENTRY(ckentrytext), buf); 
-  } 
+    gtk_clist_get_text (GTK_CLIST(cclist), row, 0, &buf);
+    gtk_label_set (GTK_LABEL(cnumentrytext), buf);
+    gtk_clist_get_text (GTK_CLIST(cclist), row, 1, &buf);
+    gtk_entry_set_text (GTK_ENTRY(ckeyentrytext), buf);
+    gtk_clist_get_text (GTK_CLIST(cclist), row, 3, &buf);
+    gtk_entry_set_text (GTK_ENTRY(cmodentrytext), buf);
+    gtk_clist_get_text (GTK_CLIST(cclist), row, 4, &buf);
+    gtk_entry_set_text (GTK_ENTRY(ckentrytext), buf);
+  }
 }
 
 
@@ -2821,7 +2824,7 @@ void shelpdialog(GtkWidget *widget) {
   /*  GtkStyle *style;*/
 
   if(!gtkwin_shelp) {
-    
+
     gtkwin_shelp = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_position (GTK_WINDOW (gtkwin_shelp), GTK_WIN_POS_CENTER);
     gtk_widget_set_usize (gtkwin_shelp,400,300);
@@ -2829,7 +2832,7 @@ void shelpdialog(GtkWidget *widget) {
     gtk_window_set_policy (GTK_WINDOW (gtkwin_shelp), TRUE, TRUE, FALSE);
 
     gtk_signal_connect (GTK_OBJECT (gtkwin_shelp), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_shelp);
-    
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_shelp), 0);
     vbox = gtk_vbox_new(FALSE, 2);
     gtk_container_add (GTK_CONTAINER(gtkwin_shelp),vbox);
@@ -2843,12 +2846,12 @@ void shelpdialog(GtkWidget *widget) {
 
     vscrollbar = gtk_vscrollbar_new (GTK_TEXT (shelptext)->vadj);
     gtk_box_pack_start (GTK_BOX (hbox),vscrollbar, FALSE, FALSE, 0);
- 
+
     gtk_widget_show (vscrollbar);
     gtk_widget_show (hbox);
 
     hbox = gtk_hbox_new(FALSE, 2);
-    
+
     helpbutton = gtk_button_new_with_label ("Close");
     gtk_signal_connect_object (GTK_OBJECT (helpbutton), "clicked",
 			       GTK_SIGNAL_FUNC(gtk_widget_destroy),
@@ -2862,7 +2865,7 @@ void shelpdialog(GtkWidget *widget) {
     gtk_widget_show (gtkwin_shelp);
     gtk_text_insert (GTK_TEXT (shelptext), NULL, &shelptext->style->black, NULL, text , -1);
   }
-  else { 
+  else {
     gdk_window_raise (gtkwin_shelp->window);
   }
 }
@@ -2919,7 +2922,7 @@ void menu_pickup4 () {
 void menu_pickup5 () {
   pickup_mode = 5;
   send_command("pickup 5", -1, 0);
-  
+
 }
 
 void menu_pickup6 () {
@@ -2974,7 +2977,7 @@ void menu_spells () {
 
 void menu_clear () {
   guint size;
-  
+
   size = gtk_text_get_length(GTK_TEXT (gtkwin_info_text));
   gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
   gtk_text_set_point(GTK_TEXT (gtkwin_info_text), 0);
@@ -3042,11 +3045,11 @@ static int get_menu_display (GtkWidget *box) {
 
 
   /* Init the menu-widget, and remember -- never
-   * gtk_show_widget() the menu widget!! 
+   * gtk_show_widget() the menu widget!!
    * This is the menu that holds the menu items, the one that
    * will pop up when you click on the "Root Menu" in the app */
   filemenu = gtk_menu_new();
-  
+
   /* Next we make a little loop that makes three menu-entries for "test-menu".
    * Notice the call to gtk_menu_append.  Here we are adding a list of
    * menu items to our menu.  Normally, we'd also catch the "clicked"
@@ -3058,30 +3061,30 @@ static int get_menu_display (GtkWidget *box) {
   gtk_widget_show (menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Save config");
-  gtk_menu_append(GTK_MENU (filemenu), menu_items);   
+  gtk_menu_append(GTK_MENU (filemenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(save_defaults), NULL);
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Save window positions");
-  gtk_menu_append(GTK_MENU (filemenu), menu_items);   
+  gtk_menu_append(GTK_MENU (filemenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(save_winpos), NULL);
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new ();
-  gtk_menu_append(GTK_MENU (filemenu), menu_items);   
+  gtk_menu_append(GTK_MENU (filemenu), menu_items);
   gtk_widget_show(menu_items);
 
 
   menu_items = gtk_menu_item_new_with_label("Quit character");
-  gtk_menu_append(GTK_MENU (filemenu), menu_items);   
+  gtk_menu_append(GTK_MENU (filemenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(sexit), NULL);
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Quit client");
-  gtk_menu_append(GTK_MENU (filemenu), menu_items);   
+  gtk_menu_append(GTK_MENU (filemenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(client_exit), NULL);
   gtk_widget_show(menu_items);
@@ -3090,9 +3093,9 @@ static int get_menu_display (GtkWidget *box) {
    * displayed on the menu bar.  There won't be a signal handler attached,
    * as it only pops up the rest of the menu when pressed. */
   root_filemenu = gtk_menu_item_new_with_label("File");
-  
+
   gtk_widget_show(root_filemenu);
-  
+
   /* Now we specify that we want our newly created "menu" to be the menu
    * for the "root menu" */
   gtk_menu_item_set_submenu(GTK_MENU_ITEM (root_filemenu), filemenu);
@@ -3100,9 +3103,9 @@ static int get_menu_display (GtkWidget *box) {
  /* Do the clientmenu */
 
   clientmenu = gtk_menu_new();
-  
+
   /*  menu_items = gtk_menu_item_new_with_label("Navigator");
-  gtk_menu_append(GTK_MENU (clientmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (clientmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(navbut), NULL);
 			    gtk_widget_show(menu_items);*/
@@ -3112,20 +3115,20 @@ static int get_menu_display (GtkWidget *box) {
   gtk_widget_show (menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Clear info");
-  gtk_menu_append(GTK_MENU (clientmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (clientmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_clear), NULL);
   gtk_widget_show(menu_items);
 
 
   menu_items = gtk_menu_item_new_with_label("Spells");
-  gtk_menu_append(GTK_MENU (clientmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (clientmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_spells), NULL);
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Configure");
-  gtk_menu_append(GTK_MENU (clientmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (clientmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(configdialog), NULL);
   gtk_widget_show(menu_items);
@@ -3139,7 +3142,7 @@ static int get_menu_display (GtkWidget *box) {
 
 
   root_clientmenu = gtk_menu_item_new_with_label("Client");
-  
+
   gtk_widget_show(root_clientmenu);
   gtk_menu_item_set_submenu(GTK_MENU_ITEM (root_clientmenu), clientmenu);
 
@@ -3152,19 +3155,19 @@ static int get_menu_display (GtkWidget *box) {
   gtk_widget_show (menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Who");
-  gtk_menu_append(GTK_MENU (actionmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (actionmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_who), NULL);
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Cast...");
-  gtk_menu_append(GTK_MENU (actionmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (actionmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_cast), NULL);
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Apply");
-  gtk_menu_append(GTK_MENU (actionmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (actionmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_apply), NULL);
   gtk_widget_show(menu_items);
@@ -3180,27 +3183,27 @@ static int get_menu_display (GtkWidget *box) {
   gtk_widget_show(newpickup_menu_item);
 
   menu_items = gtk_menu_item_new_with_label("Search");
-  gtk_menu_append(GTK_MENU (actionmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (actionmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_search), NULL);
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new_with_label("Disarm");
-  gtk_menu_append(GTK_MENU (actionmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (actionmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_disarm), NULL);
   gtk_widget_show(menu_items);
 
 
   root_actionmenu = gtk_menu_item_new_with_label("Action");
-  
+
   gtk_widget_show(root_actionmenu);
   gtk_menu_item_set_submenu(GTK_MENU_ITEM (root_actionmenu), actionmenu);
 
  /* Do the submenu */
 
   pickupmenu = gtk_menu_new();
-  
+
   /*  This allows you to change your pickup status. Eight different modes for pick up exist: ``don't pick up'',``pick up 1
 item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all items'', pick up all items and stop'',
 ``pick up all magic items'', ``pick up all coins and gems''. Whenever you move over a pile of stuff your pickup*/
@@ -3213,7 +3216,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Don't pick up");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_pickup0), NULL);
   gtk_widget_show(menu_items);
@@ -3221,7 +3224,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Pick up 1 item");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_pickup1), NULL);
   gtk_widget_show(menu_items);
@@ -3230,7 +3233,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Pick up 1 item and stop");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_pickup2), NULL);
   gtk_widget_show(menu_items);
@@ -3238,7 +3241,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Stop before picking up.");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_pickup3), NULL);
   gtk_widget_show(menu_items);
@@ -3246,7 +3249,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Pick up all items.");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_pickup4), NULL);
   gtk_widget_show(menu_items);
@@ -3254,7 +3257,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Pick up all items and stop.");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_pickup5), NULL);
   gtk_widget_show(menu_items);
@@ -3262,7 +3265,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Pick up all magic items.");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_pickup6), NULL);
   gtk_widget_show(menu_items);
@@ -3270,7 +3273,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Pick up all coins and gems.");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_pickup7), NULL);
   gtk_widget_show(menu_items);
@@ -3278,7 +3281,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   menu_items = gtk_radio_menu_item_new_with_label(pickupgroup, "Pickup silver and higher value/weight.");
   pickupgroup = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (menu_items));
   gtk_check_menu_item_set_show_toggle (GTK_CHECK_MENU_ITEM (menu_items), TRUE);
-  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (pickupmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(menu_pickup10), NULL);
   gtk_widget_show(menu_items);
@@ -3290,11 +3293,11 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_menu_item_set_submenu(GTK_MENU_ITEM (pickup_menu_item), pickupmenu);
 /* ENDPICKUP */
 
-/* --------------------------------------------------------------------- */ 
-/* --------------------------------------------------------------------- */ 
-/* --------------------------------------------------------------------- */ 
-/* --------------------------------------------------------------------- */ 
-/* --------------------------------------------------------------------- */ 
+/* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
 
   /* copy from server: include/define.h */
@@ -3346,28 +3349,28 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
   menu_items = gtk_check_menu_item_new_with_label("Enable NEW autopickup");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_NEWMODE));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Inhibit autopickup");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_INHIBIT));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Stop before pickup");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_STOP));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Debug autopickup");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DEBUG));
   gtk_widget_show(menu_items);
@@ -3393,7 +3396,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
     menu_items = gtk_radio_menu_item_new_with_label(ratiopickupgroup, menustring);
     ratiopickupgroup = gtk_radio_menu_item_group(GTK_RADIO_MENU_ITEM(menu_items));
     gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-    gtk_menu_append(GTK_MENU(ratiopickupmenu), menu_items);   
+    gtk_menu_append(GTK_MENU(ratiopickupmenu), menu_items);
     gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(i));
     gtk_widget_show(menu_items);
@@ -3413,28 +3416,28 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
   menu_items = gtk_check_menu_item_new_with_label("All weapons");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ALLWEAPON));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Missile Weapons");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MISSILEWEAPON));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Bows");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOW));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Arrows");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(weaponpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARROW));
   gtk_widget_show(menu_items);
@@ -3453,42 +3456,42 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
   menu_items = gtk_check_menu_item_new_with_label("Helmets");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_HELMET));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Shields");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SHIELD));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Body Armour");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARMOUR));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Boots");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOOTS));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Gloves");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_GLOVES));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Cloaks");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(armourpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_CLOAK));
   gtk_widget_show(menu_items);
@@ -3507,21 +3510,21 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
   menu_items = gtk_check_menu_item_new_with_label("Spellbooks");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SPELLBOOK));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Skillscrolls");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SKILLSCROLL));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Normal Books/Scrolls");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(bookspickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_READABLES));
   gtk_widget_show(menu_items);
@@ -3531,49 +3534,49 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
   menu_items = gtk_check_menu_item_new_with_label("Food");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_FOOD));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Drinks");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DRINK));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Valuables (Money, Gems)");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_VALUABLES));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Keys");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_KEY));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Magical Items");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MAGICAL));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Potions");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_POTION));
   gtk_widget_show(menu_items);
 
   menu_items = gtk_check_menu_item_new_with_label("Magic Devices");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
   GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MAGIC_DEVICE));
   gtk_widget_show(menu_items);
@@ -3587,19 +3590,19 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
   menu_items = gtk_check_menu_item_new_with_label("Jewelry");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
-  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);   
+  gtk_menu_append(GTK_MENU(newpickupmenu), menu_items);
   gtk_signal_connect(GTK_OBJECT(menu_items),"activate",
     GTK_SIGNAL_FUNC(new_menu_pickup),GINT_TO_POINTER(PU_JEWELS));
   gtk_widget_show(menu_items);
-/* --------------------------------------------------------------------- */ 
-/* --------------------------------------------------------------------- */ 
-/* --------------------------------------------------------------------- */ 
-/* --------------------------------------------------------------------- */ 
-/* --------------------------------------------------------------------- */ 
+/* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
   /*Do the helpmenu */
   helpmenu = gtk_menu_new();
-  
+
   menu_items = gtk_tearoff_menu_item_new ();
   gtk_menu_append (GTK_MENU (helpmenu), menu_items);
   gtk_widget_show (menu_items);
@@ -3617,13 +3620,13 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_widget_show(menu_items);
 
   menu_items = gtk_menu_item_new ();
-  gtk_menu_append(GTK_MENU (helpmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (helpmenu), menu_items);
   gtk_widget_show(menu_items);
 
   /* Link to things like the client-walkthrough and the playbook? */
 
   menu_items = gtk_menu_item_new_with_label("Report a bug");
-  gtk_menu_append(GTK_MENU (helpmenu), menu_items);   
+  gtk_menu_append(GTK_MENU (helpmenu), menu_items);
   gtk_signal_connect_object(GTK_OBJECT(menu_items), "activate",
 			    GTK_SIGNAL_FUNC(bugdialog), NULL);
   gtk_widget_show(menu_items);
@@ -3640,17 +3643,17 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_widget_show(menu_items);
 
   root_helpmenu = gtk_menu_item_new_with_label("Help");
-  
+
   gtk_widget_show(root_helpmenu);
   gtk_menu_item_set_submenu(GTK_MENU_ITEM (root_helpmenu), helpmenu);
 
   /* Create a menu-bar to hold the menus and add it to our main window */
- 
+
 
   menu_bar = gtk_menu_bar_new();
   gtk_box_pack_start(GTK_BOX(box), menu_bar, FALSE, FALSE, 2);
   gtk_widget_show(menu_bar);
-  
+
   /* Create a button to which to attach menu as a popup */
 
   /* And finally we append the menu-item to the menu-bar -- this is the
@@ -3660,16 +3663,16 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_menu_bar_append(GTK_MENU_BAR (menu_bar), root_actionmenu);
   gtk_menu_item_right_justify (GTK_MENU_ITEM(root_helpmenu));
   gtk_menu_bar_append(GTK_MENU_BAR (menu_bar), root_helpmenu);
-  
+
   /* always display the window as the last step so it all splashes on
    * the screen at once. */
-  
+
   return 0;
 }
 
 
 
-/* get_root_display: 
+/* get_root_display:
  * this sets up the root window (or none, if in split
  * windows mode, and also scans for any Xdefaults.  Right now, only
  * splitwindow and image are used.  image is the display
@@ -3694,7 +3697,7 @@ void create_splash() {
     gtk_widget_set_usize (gtkwin_splash,346,87);
     gtk_window_set_title (GTK_WINDOW (gtkwin_splash), "Welcome to Crossfire");
     gtk_signal_connect (GTK_OBJECT (gtkwin_splash), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_splash);
-    
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_splash), 0);
     vbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER(gtkwin_splash),vbox);
@@ -3777,7 +3780,7 @@ void create_windows() {
         rootwin_height = (33*gch)+(map_image_size*use_config[CONFIG_MAPHEIGHT]);
     gtk_widget_set_usize (gtkwin_root,rootwin_width,rootwin_height);
     gtk_window_set_title (GTK_WINDOW (gtkwin_root), "Crossfire GTK Client");
-    gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(main_window_destroyed), NULL); 
+    gtk_signal_connect_object(GTK_OBJECT(gtkwin_root), "destroy",GTK_SIGNAL_FUNC(main_window_destroyed), NULL);
 
     gtk_container_border_width (GTK_CONTAINER (gtkwin_root), 0);
 
@@ -3790,16 +3793,16 @@ void create_windows() {
 	    printf ("calloc failed\n");
 	}
     }
-    
+
     /* menu / windows division */
     rootvbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER (gtkwin_root), rootvbox);
     gtk_widget_show (rootvbox);
-    
+
     get_menu_display(rootvbox);
-    
+
     /* first horizontal division. inv+obj on left, rest on right */
-    
+
     inv_hpane = gtk_hpaned_new ();
 
     gtk_box_pack_start (GTK_BOX (rootvbox), inv_hpane, TRUE, TRUE, 0);
@@ -3807,17 +3810,17 @@ void create_windows() {
     gtk_widget_show (inv_hpane);
 
     /* Divisior game+stats | text */
-    
+
     stat_info_hpane = gtk_hpaned_new ();
     gtk_paned_add2 (GTK_PANED (inv_hpane), stat_info_hpane);
-    
+
     /* text frame */
-    
+
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
     gtk_widget_set_usize (frame, (25*gcw), (30*gch));
     gtk_paned_add2 (GTK_PANED (stat_info_hpane), frame);
-    
+
     get_info_display (frame);
     gtk_widget_show (frame);
 
@@ -3840,18 +3843,18 @@ void create_windows() {
     game_bar_vpane = gtk_vpaned_new ();
     gtk_paned_add2 (GTK_PANED (stat_game_vpane), game_bar_vpane);
 #endif
-    
-    
+
+
     /* Statbars frame */
     message_frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(message_frame), GTK_SHADOW_ETCHED_IN);
     gtk_widget_set_usize (message_frame, (22*gcw)+6,  (map_image_size*use_config[CONFIG_MAPHEIGHT])+6);
     gtk_paned_add2 (GTK_PANED (game_bar_vpane), message_frame);
-    
+
     get_message_display(message_frame);
-    
+
     gtk_widget_show (message_frame);
-    
+
     /* Game frame */
     gameframe = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(gameframe), GTK_SHADOW_ETCHED_IN);
@@ -3861,9 +3864,9 @@ void create_windows() {
 	gtk_paned_add2 (GTK_PANED (stat_game_vpane), gameframe);
     else
 	gtk_paned_add1 (GTK_PANED (game_bar_vpane), gameframe);
-    
+
     get_game_display (gameframe);
-    
+
     gtk_widget_show (gameframe);
 
     /* stats frame */
@@ -3875,15 +3878,15 @@ void create_windows() {
 	gtk_paned_add1 (GTK_PANED (stat_game_vpane), stat_frame);
 
     get_stats_display (stat_frame);
-    
+
     gtk_widget_show (stat_frame);
-    
+
     gtk_widget_show (game_bar_vpane);
     gtk_widget_show (stat_game_vpane);
-    
+
     inv_look_vpane = gtk_vpaned_new ();
     gtk_paned_add1 (GTK_PANED (inv_hpane), inv_look_vpane);
-    
+
     /* inventory frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
@@ -3891,28 +3894,28 @@ void create_windows() {
     gtk_paned_add1 (GTK_PANED (inv_look_vpane), frame);
 
     get_inv_display (frame);
-    
+
     gtk_widget_show (frame);
-    
+
     /* look frame */
     frame = gtk_frame_new (NULL);
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
     gtk_widget_set_usize (frame, (24*gcw), (12*gch));
     gtk_paned_add2 (GTK_PANED (inv_look_vpane), frame);
-    
+
     get_look_display (frame);
-    
+
     gtk_widget_show (frame);
-    
+
     gtk_widget_show (inv_look_vpane);
-    
+
     gtk_widget_show (stat_info_hpane);
 
     gtk_widget_show (inv_hpane);
-    
+
 
     /* Connect signals */
-    
+
     gtk_signal_connect_object (GTK_OBJECT (gtkwin_root), "key_press_event",
 			       GTK_SIGNAL_FUNC(keyfunc), GTK_OBJECT(gtkwin_root));
     gtk_signal_connect_object (GTK_OBJECT (gtkwin_root), "key_release_event",
@@ -3920,13 +3923,13 @@ void create_windows() {
     gtk_widget_show (gtkwin_root);
 
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) 
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
 	init_SDL( drawingarea, 0);
 #endif
 
   } else { /* split window mode */
 
- 
+
   /* game window */
 
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -3945,17 +3948,17 @@ void create_windows() {
     gtk_container_add (GTK_CONTAINER (gtkwin_root), rootvbox);
 
     gtk_widget_realize (rootvbox);
-    
-    gtk_widget_realize (gtkwin_root);
-    
 
- 
-    gtk_widget_show (rootvbox);   
+    gtk_widget_realize (gtkwin_root);
+
+
+
+    gtk_widget_show (rootvbox);
     gtk_widget_show (gtkwin_root);
     gtk_widget_draw (gtkwin_root,NULL);
     gtk_widget_draw (rootvbox,NULL);
 
-    get_game_display(rootvbox);     
+    get_game_display(rootvbox);
 
 
 
@@ -3967,21 +3970,21 @@ void create_windows() {
     gtk_window_set_title (GTK_WINDOW (gtkwin_stats), "Crossfire GTK Client");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_stats), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_stats), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_stats);
-    
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_stats), 0);
-    
+
 
     rootvbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER (gtkwin_stats), rootvbox);
     gtk_widget_show (rootvbox);
-    
+
     get_menu_display(rootvbox);
     get_stats_display (rootvbox);
     gtk_widget_realize (gtkwin_stats);
     gdk_window_set_group (gtkwin_stats->window, gtkwin_root->window);
     gtk_widget_show (gtkwin_stats);
-    
- 
+
+
    /* info window - text and messages */
     gtkwin_info = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_widget_set_events (gtkwin_info, GDK_KEY_RELEASE_MASK);
@@ -3990,9 +3993,9 @@ void create_windows() {
     gtk_window_set_title (GTK_WINDOW (gtkwin_info), "Crossfire - info");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_info), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_info), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_info);
-    
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_info), 0);
-    
+
     /* Alloc colors - not entirely necessary, really, since GTK should do this */
     /* colorname[] comes from xutil.c */
     for (i=0; i<=12; i++ ) {
@@ -4007,7 +4010,7 @@ void create_windows() {
     rootvbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER (gtkwin_info), rootvbox);
     gtk_widget_show (rootvbox);
-    
+
     get_info_display(rootvbox);
 
     gtk_widget_show (gtkwin_info);
@@ -4022,16 +4025,16 @@ void create_windows() {
     gtk_window_set_title (GTK_WINDOW (gtkwin_message), "Crossfire - vitals");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_message), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_message), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_message);
-    
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_message), 0);
-    
-    
+
+
     rootvbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER (gtkwin_message), rootvbox);
     gtk_widget_show (rootvbox);
-    
+
     get_message_display(rootvbox);
-    
+
     gtk_widget_show (gtkwin_message);
     gtk_widget_realize (gtkwin_message);
     gdk_window_set_group (gtkwin_message->window, gtkwin_root->window);
@@ -4044,16 +4047,16 @@ void create_windows() {
     gtk_window_set_title (GTK_WINDOW (gtkwin_inv), "Crossfire - inventory");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_inv), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_inv), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_inv);
-    
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_inv), 0);
-    
-    
+
+
     rootvbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER (gtkwin_inv), rootvbox);
     gtk_widget_show (rootvbox);
-    
+
     get_inv_display(rootvbox);
-    
+
     gtk_widget_show (gtkwin_inv);
     gtk_widget_realize (gtkwin_inv);
     gdk_window_set_group (gtkwin_inv->window, gtkwin_root->window);
@@ -4065,26 +4068,26 @@ void create_windows() {
     gtk_window_set_title (GTK_WINDOW (gtkwin_look), "Crossfire - look");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_look), TRUE, TRUE, FALSE);
     gtk_signal_connect (GTK_OBJECT (gtkwin_look), "destroy", GTK_SIGNAL_FUNC(main_window_destroyed), &gtkwin_look);
-    
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_look), 0);
-    
-    
+
+
     rootvbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add (GTK_CONTAINER (gtkwin_look), rootvbox);
     gtk_widget_show (rootvbox);
-    
+
     get_look_display(rootvbox);
-    
+
     gtk_widget_show (gtkwin_look);
     gtk_widget_realize (gtkwin_look);
     gdk_window_set_group (gtkwin_look->window, gtkwin_root->window);
     /* Setup key events */
-    
+
     gtk_signal_connect_object (GTK_OBJECT (gtkwin_message), "key_press_event",
 			       GTK_SIGNAL_FUNC(keyfunc), GTK_OBJECT(gtkwin_message));
     gtk_signal_connect_object (GTK_OBJECT (gtkwin_message), "key_release_event",
 			       GTK_SIGNAL_FUNC(keyrelfunc), GTK_OBJECT(gtkwin_message));
-  
+
     gtk_signal_connect_object (GTK_OBJECT (gtkwin_root), "key_press_event",
 			       GTK_SIGNAL_FUNC(keyfunc), GTK_OBJECT(gtkwin_root));
     gtk_signal_connect_object (GTK_OBJECT (gtkwin_root), "key_release_event",
@@ -4140,7 +4143,7 @@ static int get_root_display(char *display_name,int gargc, char **gargv) {
 
     return 0;
 }
- 
+
 
 /* null procedures. gtk does this for us. */
 
@@ -4157,11 +4160,11 @@ void set_autorepeat(const char *s) /* ...and what does this one *do*, anyway? */
 
 int get_info_width()
 {
-    /* 
+    /*
      * TODO Have crossfire-server send paragraphs rather than lines, so to
      * speak. Except for ASCII maps and things. Then this can go away
      * completely.
-     */ 
+     */
     return 40;
 }
 
@@ -4214,9 +4217,9 @@ void draw_info_windows()
 int do_timeout() {
 
   updatelock=0;
-  
+
   inventory_tick();
-  
+
   draw_info_windows();
   if (redraw_needed) {
     display_map_doneupdate(TRUE, FALSE);
@@ -4249,30 +4252,30 @@ void draw_magic_map()
 
   int x=0;
   int y=0;
- 
+
   GtkWidget *hbox;
   GtkWidget *closebutton;
   GtkStyle *style;
 
   static GtkWidget *magicgtkpixmap;
- 
+
 
   static GdkBitmap *magicgdkmask;
- 
+
 
   if (!cpl.magicmap) {
     draw_info ("You have yet to cast magic map.",NDI_BLACK);
     return;
   }
-  
+
   if(!gtkwin_magicmap) {
-    
+
     gtkwin_magicmap = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_position (GTK_WINDOW (gtkwin_magicmap), GTK_WIN_POS_CENTER);
     gtk_widget_set_usize (gtkwin_magicmap,264,300);
     gtk_window_set_title (GTK_WINDOW (gtkwin_magicmap), "Magic map");
     gtk_window_set_policy (GTK_WINDOW (gtkwin_magicmap), FALSE, FALSE, FALSE);
-    
+
     gtk_signal_connect (GTK_OBJECT (gtkwin_magicmap), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_magicmap);
 
     mapvbox = gtk_vbox_new(FALSE, 0);
@@ -4290,9 +4293,9 @@ void draw_magic_map()
     magicgtkpixmap= gtk_pixmap_new (magicgdkpixmap, magicgdkmask);
     gtk_box_pack_start (GTK_BOX (mapvbox),magicgtkpixmap, FALSE, FALSE, 0);
     gtk_widget_show (magicgtkpixmap);
-    
+
     hbox = gtk_hbox_new(FALSE, 2);
-    
+
     closebutton = gtk_button_new_with_label ("Close");
     gtk_signal_connect_object (GTK_OBJECT (closebutton), "clicked",
 			       GTK_SIGNAL_FUNC(gtk_widget_destroy),
@@ -4304,8 +4307,8 @@ void draw_magic_map()
 
     gtk_widget_show (mapvbox);
     gtk_widget_show (gtkwin_magicmap);
-    
-    
+
+
     gdk_color_parse("Black", &map_color[0]);
     gdk_color_alloc (gtk_widget_get_colormap (magicgtkpixmap), &map_color[0]);
     gdk_color_parse("White", &map_color[1]);
@@ -4338,7 +4341,7 @@ void draw_magic_map()
 
 
    gdk_gc_set_foreground (magic_map_gc, &map_color[0]);
-   gdk_draw_rectangle (magicgdkpixmap, magic_map_gc,	       
+   gdk_draw_rectangle (magicgdkpixmap, magic_map_gc,
 		       TRUE,
 		       0,
 		       0,
@@ -4357,7 +4360,7 @@ void draw_magic_map()
      */
     if (cpl.mapxres>cpl.mapyres) cpl.mapxres=cpl.mapyres;
     else cpl.mapyres=cpl.mapxres;
-    
+
     if (cpl.mapxres>24) {
       cpl.mapxres=24;
       cpl.mapyres=24;
@@ -4382,21 +4385,21 @@ void draw_magic_map()
     /*    gdk_gc_destroy (magic_map_gc);*/
     gtk_widget_draw (mapvbox,NULL);
   }
-  
-  else { 
+
+  else {
     /* ------------------ There is already a magic map up - replace it ---------*/
 
     gdk_window_raise (gtkwin_magicmap->window);
     /* --------------------------- */
- 
+
    gdk_gc_set_foreground (magic_map_gc, &map_color[0]);
-   gdk_draw_rectangle (magicgdkpixmap, magic_map_gc,	       
+   gdk_draw_rectangle (magicgdkpixmap, magic_map_gc,
 		       TRUE,
 		       0,
 		       0,
 		       264,
 		       264);
-   
+
     cpl.mapxres = (262)/cpl.mmapx;
     cpl.mapyres = (262)/cpl.mmapy;
     if (cpl.mapxres < 1 || cpl.mapyres<1) {
@@ -4407,7 +4410,7 @@ void draw_magic_map()
 
     if (cpl.mapxres>cpl.mapyres) cpl.mapxres=cpl.mapyres;
     else cpl.mapyres=cpl.mapxres;
-    
+
 
 
     if (cpl.mapxres>24) {
@@ -4429,8 +4432,8 @@ void draw_magic_map()
 			    2+cpl.mapyres*y,
 			    cpl.mapxres,
 			    cpl.mapyres);
-	
-      } 
+
+      }
 
     }
  gtk_widget_draw (mapvbox,NULL);
@@ -4673,7 +4676,7 @@ int init_windows(int argc, char **argv)
 {
     int on_arg=1;
     char *display_name="";
-    load_defaults(); 
+    load_defaults();
 
 #ifndef WIN32
     strcpy(VERSION_INFO,"GTK Unix Client " VERSION);
@@ -5099,7 +5102,7 @@ char *get_metaserver()
 
 
     while(cpl.input_state==Metaserver_Select) {
-        /* 
+        /*
          * This gtk_main will be quit inside of event_callback
          * when the user enters data into the input_text box
          * at which point the input_state will change.
@@ -5273,7 +5276,7 @@ int main(int argc, char *argv[])
 #endif
 #endif /* def WIN32 */
 
-    if (init_sounds() == -1) 
+    if (init_sounds() == -1)
 	use_config[CONFIG_SOUND] = FALSE;
     else use_config[CONFIG_SOUND] = TRUE;
 

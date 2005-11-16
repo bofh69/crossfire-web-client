@@ -38,13 +38,14 @@
 #  include <dmalloc.h>
 #endif
 
+#define MULTKEYS
 
 #define VERSION_CS 1023
 #define VERSION_SC 1027
 
 char VERSION_INFO[256];
 
-/* Don't send more than this many outstanding commands to the server 
+/* Don't send more than this many outstanding commands to the server
  * this is only a default value.
  */
 #define COMMAND_WINDOW 10
@@ -95,7 +96,7 @@ typedef struct ClientSocket {
     int command_sent, command_received;
     /* Time (in ms) players commands currently take to execute */
     int command_time;
-	    
+    char* servername;
 } ClientSocket;
 
 extern ClientSocket csocket;
@@ -113,7 +114,7 @@ typedef enum rangetype {
 } rangetype;
 
 /* This is a structure that contains most all of the
- * configuration options.  Instead of having a 
+ * configuration options.  Instead of having a
  * whole mess of variables of different names, instead use
  * a common 16 bit signed array, and index into these -
  * this makes processing in the gui aspect of the GTK
@@ -121,25 +122,25 @@ typedef enum rangetype {
  * want options, and use_options.  The former is what the
  * player wants to use, the later is what is currently
  * in use.  There are many options that can not be
- * switched between during actual play, but we want to 
- * record what the player has changed them to so that 
+ * switched between during actual play, but we want to
+ * record what the player has changed them to so that
  * when we save them out, we save what the player wants,
  * and not what is currently being used.  Note that all the gui
  * interfaces may not use all these values, but making them
- * available here makes it easy for the GUI to present a 
+ * available here makes it easy for the GUI to present a
  * nice interface.
  * 0 is intentially skipped so the index into this doesn't
  * get a default if a table has a blank value
  *
- * CONFIG_NUMS is the number of configuration options; don't 
+ * CONFIG_NUMS is the number of configuration options; don't
  * forget to add to some of
- *   common/init.c config_names, 
+ *   common/init.c config_names,
  *                 init_client_vars,
  *   x11/x11.c load_defaults
  *             save_defaults
  *   gtk/config.c load_defaults
  *                save_defaults
- * probably among other places, if you add a new option. 
+ * probably among other places, if you add a new option.
  */
 #define CONFIG_COLORINV	    1
 #define CONFIG_COLORTXT	    2
@@ -250,7 +251,7 @@ typedef struct Player_Struct {
     uint16	mapxres,mapyres;/* Resolution to draw on the magic map
                                  * Only used in client-specific code, so it should move there. */
 
-#ifdef WIN32
+#ifdef MULTKEYS
     char    name[ 40 ]; /* Player's name, for player-specific key files */
 #endif
 } Client_Player;
@@ -299,7 +300,7 @@ typedef struct {
 } Face_Information;
 
 extern Face_Information face_info;
-    
+
 
 extern Client_Player cpl;		/* Player object. */
 extern char *skill_names[MAX_SKILL];
@@ -391,7 +392,7 @@ extern int map1cmd,metaserver_on;
 /* This is used mostly in the cache.c file, however, it
  * can be returned to the graphic side of things so that they
  * can update the image_data field.  Since the common side
- * has no idea what data the graphic side will point to, 
+ * has no idea what data the graphic side will point to,
  * we use a void pointer for that - it is completely up to
  * the graphic side to allocate/deallocate and cast that
  * pointer as needed.
@@ -404,7 +405,7 @@ typedef struct Cache_Entry {
     struct Cache_Entry	*next;
 } Cache_Entry;
 
-/* These values are used for various aspects of the library to 
+/* These values are used for various aspects of the library to
  * hold state on what requestinfo's we have gotten replyinfo
  * for and what data was received.  In this way, common/client.c
  * can loop until it has gotten replies for all the requestinfos
@@ -419,7 +420,7 @@ typedef struct Cache_Entry {
 #define RI_IMAGE_SUMS	    0x2
 extern int  replyinfo_status, requestinfo_sent, replyinfo_last_face;
 
-typedef struct 
+typedef struct
 {
   int x;
   int y;
