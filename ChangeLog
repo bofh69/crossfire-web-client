@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/{map.c,sdl.c}, x11/x11.c: General cleanup - just whitespace changes.
+Andreas Kirschbaum 2005-12-11
+
 Apply patch 1352490 "newpickup rings/amulets client side" courtesy anonymous.
 Modified files:
  gtk/gx11.c

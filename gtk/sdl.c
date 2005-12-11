@@ -930,11 +930,11 @@ void sdl_gen_map(int redraw) {
 	    my = pl_pos.y+y;
             if (redraw || redrawbitmap[x+y*last_mapwidth]) {
 		display_mapcell(x, y, mx, my);
-	    the_map.cells[mx][my].need_update=0;
+		the_map.cells[mx][my].need_update = 0;
 		the_map.cells[mx][my].need_resmooth = 0;
 	    }
-		}
-	    }
+	}
+    }
 
     if (time_map_redraw)
 	gettimeofday(&tv2, NULL);

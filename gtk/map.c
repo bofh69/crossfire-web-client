@@ -246,14 +246,14 @@ static void display_mapcell(int ax, int ay, int mx, int my)
 		    ax*map_image_size+map_image_size-w, ay*map_image_size+map_image_size-h,
 		    pixmaps[face]->map_mask, pixmaps[face]->map_image);
 
-			if ( use_config[CONFIG_SMOOTH])
+		if ( use_config[CONFIG_SMOOTH])
 		    drawsmooth(mx, my, layer, ax*map_image_size, ay*map_image_size);
-		    }
-		    /* Sometimes, it may happens we need to draw the smooth while there
-		     * is nothing to draw at that layer (but there was something at lower
-		     * layers). This is handled here. The else part is to take into account
-		     * cases where the smooth as already been handled 2 code lines before
-		     */
+	    }
+	    /* Sometimes, it may happens we need to draw the smooth while there
+	     * is nothing to draw at that layer (but there was something at lower
+	     * layers). This is handled here. The else part is to take into account
+	     * cases where the smooth as already been handled 2 code lines before
+	     */
 	    else if (use_config[CONFIG_SMOOTH] && the_map.cells[mx][my].need_resmooth)
 		drawsmooth (mx, my, layer, ax*map_image_size, ay*map_image_size);
 		    

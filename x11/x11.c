@@ -356,9 +356,9 @@ static void gen_draw_face(Drawable where,int face,int x,int y, int sx, int sy)
 	return;
     }
     if (pixmaps[face]->mask == None) {
-	    XCopyArea(display, pixmaps[face]->pixmap,
-	      where,gc_floor,
-	      sx,sy,image_size,image_size,x,y);
+	XCopyArea(display, pixmaps[face]->pixmap,
+	    where,gc_floor,
+	    sx,sy,image_size,image_size,x,y);
 
     /* Xpm and png do exactly the same thing */
     } else {
@@ -373,7 +373,7 @@ static void gen_draw_face(Drawable where,int face,int x,int y, int sx, int sy)
 	/* Lets see if we can find a stored mask with matching gc */
 	for(gcnum=0;gcnum<XPMGCS;gcnum++) {
 	    if (xpm_masks[gcnum] == mask)
-	    break;
+		break;
 	}
 	/* Nope - we didn't. set one up, but only temporarily */
 	if (gcnum == XPMGCS) {
@@ -3045,15 +3045,15 @@ static void display_mapcell(int ax, int ay)
 	    int w = pixmaps[face]->width;
 	    int h = pixmaps[face]->height;
 	    gen_draw_face(xpm_pixmap, face, 0, 0, (w-1)*image_size, (h-1)*image_size);
-		got_one = 1;
-	    }
+	    got_one = 1;
+	}
 
 	/* draw big faces last (should overlap other objects) */
 	face = mapdata_bigface(ax, ay, layer, &sx, &sy);
 	if (face > 0) {
 	    gen_draw_face(xpm_pixmap, face, 0, 0, sx*image_size, sy*image_size);
-		got_one = 1;
-	    }
+	    got_one = 1;
+	}
     }
     if (got_one) {
 	if (the_map.cells[mx][my].cleared) {
