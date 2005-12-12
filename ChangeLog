@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/image.c: Remove call to free fog pixels (SDL) - with call in place,
+   client crashes on double free in SDL mode after disconnecting from
+   server.
+MSW 2005-12-11
+
 gtk/{map.c,sdl.c}, x11/x11.c: General cleanup - just whitespace changes.
 Andreas Kirschbaum 2005-12-11
 

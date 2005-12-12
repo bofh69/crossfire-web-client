@@ -234,7 +234,16 @@ static void free_pixmap(PixmapInfo *pi)
 	    SDL_FreeSurface(pi->map_image);
 	    free(((SDL_Surface*)pi->map_image)->pixels);
 	    SDL_FreeSurface(pi->fog_image);
-	    free(((SDL_Surface*)pi->fog_image)->pixels);
+	    /* Minor memory leak here - SDL_FreeSurface() frees the pixel
+	     * data _unless_ SDL_CreateRGBSurfaceFrom() was used to create
+	     * the surface.  SDL_CreateRGBSurfaceFrom() is used to create the
+	     * map data, which is why we need the free there.  The reason this
+	     * is a minor memory look is because SDL_CreateRGBSurfaceFrom() is
+	     * used to create the question mark image, and without this
+	     * free, that data is not freed.  However, with this, client
+	     * crashes after disconnecting from server with double free.
+	     */
+/*	    free(((SDL_Surface*)pi->fog_image)->pixels);*/
 	}
 #endif
 	}
