@@ -187,18 +187,23 @@ void update_item_sort(item *it)
  * It is currently only used by the query_name() function.
  */
 
-char *get_number(int i) {
+char *get_number(uint32 i) {
 static char numbers[21][20] = {
   "no","a","two","three","four","five","six","seven","eight","nine","ten",
   "eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen",
   "eighteen","nineteen","twenty"
 };
+  static char buf[MAX_BUF];
 
+  if(i<0)
+  {
+	  sprintf(buf,"negative");
+	  return buf;
+  }
 
   if(i<=20)
     return numbers[i];
   else {
-    static char buf[MAX_BUF];
     sprintf(buf,"%d",i);
     return buf;
   }
@@ -483,7 +488,7 @@ static void get_flags (item *op, uint16 flags)
 
 void set_item_values (item *op, char *name, sint32 weight, uint16 face, 
 		      uint16 flags, uint16 anim, uint16 animspeed,
-		      sint32 nrof, uint16 type) 
+		      uint32 nrof, uint16 type) 
 {
     int resort=1;
 
@@ -591,7 +596,7 @@ item *map_item ()
 
 /* Upates an item with new attributes. */
 void update_item(int tag, int loc, char *name, int weight, int face, int flags,
-		 int anim, int animspeed, int nrof, int type)
+		 int anim, int animspeed, uint32 nrof, int type)
 {
     item *ip = locate_item(tag), *env=locate_item(loc);
 

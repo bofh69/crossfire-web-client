@@ -52,7 +52,7 @@ typedef struct item_struct {
     char p_name[NAME_LEN];	/* item's plural name as sent to us */
     char flags[NAME_LEN];	/* item's status information */
     sint32 tag;			/* item identifier (0 = free) */
-    sint32 nrof;		/* number of items */
+    uint32 nrof;		/* number of items */
     float weight;		/* how much item weights */
     sint16 face;		/* index for face array */
     uint16 animation_id;	/* Index into animation array */

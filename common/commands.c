@@ -790,7 +790,8 @@ void Item2Cmd(unsigned char *data, int len)
 /* UpdateItemCmd updates some attributes of an item */
 void UpdateItemCmd(unsigned char *data, int len)
 {
-    int weight, loc, tag, face, sendflags,flags,pos=0,nlen,anim,nrof;
+    int weight, loc, tag, face, sendflags,flags,pos=0,nlen,anim;
+	uint32 nrof;
     char name[MAX_BUF];
     item *ip,*env=NULL;
     uint8 animspeed;
@@ -854,7 +855,7 @@ void UpdateItemCmd(unsigned char *data, int len)
 	    animspeed = data[pos++];
     }
     if (sendflags & UPD_NROF) {
-	    nrof = GetInt_String(data+pos);
+	    nrof = (uint32)GetInt_String(data+pos);
 	    pos+=4;
     }
     /* update_item calls set_item_values which will then set the list
