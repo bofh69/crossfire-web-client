@@ -70,7 +70,7 @@ uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
 
     png_structp	png_ptr;
     png_infop	info_ptr;
-    int bit_depth, color_type, interlace_type, compression_type, filter_type, y;
+    int bit_depth, color_type, interlace_type, compression_type, y;
 
     data_len=len;
     data_cp = data;
@@ -96,8 +96,15 @@ uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
     png_set_read_fn(png_ptr, NULL, user_read_data);
     png_read_info (png_ptr, info_ptr);
 
-    png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_uint_32*)height, &bit_depth,
-		 &color_type, &interlace_type, &compression_type, &filter_type);
+    /* Breaking these out instead of using png_get_IHDR fixes bug
+     * 1249877 - problems on 64 bit systems (amd64 at least)
+     */
+    *width = png_get_image_width(png_ptr, info_ptr);
+    *height = png_get_image_height(png_ptr, info_ptr);
+    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    color_type = png_get_color_type(png_ptr, info_ptr);
+    interlace_type = png_get_interlace_type(png_ptr, info_ptr);
+    compression_type = png_get_compression_type(png_ptr, info_ptr);
 
     if (color_type == PNG_COLOR_TYPE_PALETTE &&
             bit_depth <= 8) {
@@ -150,9 +157,17 @@ uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
 
     /* Update the info the reflect our transformations */
     png_read_update_info(png_ptr, info_ptr);
+
     /* re-read due to transformations just made */
-    png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_uint_32*)height, &bit_depth,
-		 &color_type, &interlace_type, &compression_type, &filter_type);
+    /* Breaking these out instead of using png_get_IHDR fixes bug
+     * 1249877 - problems on 64 bit systems (amd64 at least)
+     */
+    *width = png_get_image_width(png_ptr, info_ptr);
+    *height = png_get_image_height(png_ptr, info_ptr);
+    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    color_type = png_get_color_type(png_ptr, info_ptr);
+    interlace_type = png_get_interlace_type(png_ptr, info_ptr);
+    compression_type = png_get_compression_type(png_ptr, info_ptr);
 
     pixels = (uint8*)malloc(*width * *height * 4);
 
@@ -565,7 +580,7 @@ int png_to_xpixmap(Display *display, Drawable draw, unsigned char *data, int len
     
     png_structp	png_ptr=NULL;
     png_infop	info_ptr=NULL;
-    int bit_depth, color_type, interlace_type, compression_type, filter_type,
+    int bit_depth, color_type, interlace_type, compression_type,
 	red,green,blue, lastred=-1, lastgreen=-1, lastblue=-1,alpha,bpp, x,y,
 	has_alpha, cmask, lastcmask, lastcolor;
     GC	gc, gc_alpha;
@@ -600,8 +615,16 @@ int png_to_xpixmap(Display *display, Drawable draw, unsigned char *data, int len
     png_set_read_fn(png_ptr, NULL, user_read_data);
     png_read_info (png_ptr, info_ptr);
 
-    png_get_IHDR(png_ptr, info_ptr, width, height, &bit_depth,
-		 &color_type, &interlace_type, &compression_type, &filter_type);
+    /* re-read due to transformations just made */
+    /* Breaking these out instead of using png_get_IHDR fixes bug
+     * 1249877 - problems on 64 bit systems (amd64 at least)
+     */
+    *width = png_get_image_width(png_ptr, info_ptr);
+    *height = png_get_image_height(png_ptr, info_ptr);
+    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    color_type = png_get_color_type(png_ptr, info_ptr);
+    interlace_type = png_get_interlace_type(png_ptr, info_ptr);
+    compression_type = png_get_compression_type(png_ptr, info_ptr);
 
     if (color_type == PNG_COLOR_TYPE_PALETTE &&
             bit_depth <= 8) {
@@ -651,8 +674,18 @@ int png_to_xpixmap(Display *display, Drawable draw, unsigned char *data, int len
     /* Update the info the reflect our transformations */
     png_read_update_info(png_ptr, info_ptr);
     /* re-read due to transformations just made */
-    png_get_IHDR(png_ptr, info_ptr, width, height, &bit_depth,
-		 &color_type, &interlace_type, &compression_type, &filter_type);
+    /* re-read due to transformations just made */
+
+    /* Breaking these out instead of using png_get_IHDR fixes bug
+     * 1249877 - problems on 64 bit systems (amd64 at least)
+     */
+    *width = png_get_image_width(png_ptr, info_ptr);
+    *height = png_get_image_height(png_ptr, info_ptr);
+    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    color_type = png_get_color_type(png_ptr, info_ptr);
+    interlace_type = png_get_interlace_type(png_ptr, info_ptr);
+    compression_type = png_get_compression_type(png_ptr, info_ptr);
+
     if (color_type & PNG_COLOR_MASK_ALPHA)
                 bpp = 4;
     else

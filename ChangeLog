@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+x11/png.c: Add same workaround from gtk/png.c to make it work on 64 bit
+systems.
+MSW 2006-01-01
+
 Made item's nrof uint32, like server-side. Fix a crash in get_number if nrof < 0
  (not supposed to happen, server bug, but still).
 Modified files:
