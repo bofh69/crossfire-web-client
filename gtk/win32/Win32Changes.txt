@@ -1,8 +1,17 @@
-Changes for Win32 GTK client 1.8.0 August, 11th, 2005
------------------------------------------------------
+Changes for Win32 GTK client 1.8.0 (snapshot) January, 2nd, 2006
+----------------------------------------------------------------
 
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
+
+From version 1.8.0
+------------------
+* support for newpickup PU_NOT_CURSED (ignore cursed items) and rings/amulets flag
+* print MOTD into text window if using -nopopups mode
+* fixed display issues with multipart monsters.
+* speed improvements.
+* fixed split mode crashing.
+* timestamp option for messages.
 
 From version 1.7.1 to version 1.8.0
 -----------------------------------

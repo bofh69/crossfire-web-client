@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "." /I "c:\program files\fichiers communs\gtk\2.6\include" /I "..\..\common" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\gtk-2.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\glib-2.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\lib\glib-2.0\include" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\pango-1.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\lib\gtk-2.0\include" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\atk-1.0" /I "..\.." /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "GTK_ENABLE_BROKEN" /FR /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "." /I "c:\program files\fichiers communs\gtk\2.6\include" /I "..\..\common" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\gtk-2.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\glib-2.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\lib\glib-2.0\include" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\pango-1.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\lib\gtk-2.0\include" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\atk-1.0" /I "..\.." /I "f:\projets\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "GTK_ENABLE_BROKEN" /FR /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x40c /d "NDEBUG"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "." /I "c:\program files\fichiers communs\gtk\2.6\include" /I "..\..\common" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\gtk-2.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\glib-2.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\lib\glib-2.0\include" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\pango-1.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\lib\gtk-2.0\include" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\atk-1.0" /I "..\.." /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "GTK_ENABLE_BROKEN" /Fr /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "." /I "c:\program files\fichiers communs\gtk\2.6\include" /I "..\..\common" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\gtk-2.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\glib-2.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\lib\glib-2.0\include" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\pango-1.0" /I "C:\Program Files\Fichiers communs\GTK\2.6\lib\gtk-2.0\include" /I "C:\Program Files\Fichiers communs\GTK\2.6\include\atk-1.0" /I "..\.." /I "f:\projets\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "GTK_ENABLE_BROKEN" /Fr /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x40c /d "_DEBUG"
