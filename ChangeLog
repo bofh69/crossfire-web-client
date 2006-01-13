@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/commands.c: In DeleteItem() properly handle more than one item.
+Andreas Kirschbaum 2006-01-13
+
 x11/png.c: Add same workaround from gtk/png.c to make it work on 64 bit
 systems.
 MSW 2006-01-01

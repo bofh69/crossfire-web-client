@@ -872,7 +872,7 @@ void DeleteItem(unsigned char *data, int len)
     int pos=0,tag;
 
     while (pos<len) {
-	tag=GetInt_String(data); pos+=4;
+	tag=GetInt_String(data+pos); pos+=4;
 	delete_item(tag);
     }
     if (pos>len) 
