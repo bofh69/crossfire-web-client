@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/inventory.c: grey out close button when it won't do anything
+Brendan Lally 2006-01-16
+
 common/commands.c: In DeleteItem() properly handle more than one item.
 Andreas Kirschbaum 2006-01-13
 
