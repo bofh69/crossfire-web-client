@@ -192,6 +192,8 @@ static Vitals vitals[4];
 GtkWidget *run_label, *fire_label;
 GtkWidget *restable;	/* resistance table */
 GtkWidget *res_scrolled_window;	/* window the resistances are in */
+GtkWidget *skill_scrolled_window; /* window the skills are in */
+
 
 #define SHOW_RESISTS 24
 static GtkWidget *resists[SHOW_RESISTS];
@@ -1953,16 +1955,22 @@ static int get_stats_display(GtkWidget *frame) {
     /* this is all the same - we just pack it in different places */
     for (i=0; i<MAX_SKILL*2; i++) {
 	statwindow.skill_exp[i] = gtk_label_new("");
-	gtk_table_attach(GTK_TABLE(table), statwindow.skill_exp[i], x, x+1, y, y+1, GTK_FILL, 0, 10, 0);
+	gtk_table_attach(GTK_TABLE(table), statwindow.skill_exp[i], x, x+1, y, y+1, GTK_FILL  | GTK_EXPAND, 0, 10, 0);
 	x++;
 	if (x==4) { x=0; y++; }
 	gtk_widget_show(statwindow.skill_exp[i]);
     }
-    gtk_box_pack_start (GTK_BOX (stats_vbox), table, TRUE, TRUE, 0);
+    skill_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+    gtk_container_set_border_width (GTK_CONTAINER (res_scrolled_window), 0);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (skill_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    gtk_box_pack_start(GTK_BOX(stats_vbox), skill_scrolled_window, TRUE, TRUE, 0);
+    gtk_scrolled_window_add_with_viewport ( GTK_SCROLLED_WINDOW (skill_scrolled_window), table);
+
     gtk_widget_show(table);
 
     gtk_container_add (GTK_CONTAINER (frame), stats_vbox);
     gtk_widget_show (stats_vbox);
+    gtk_widget_show (skill_scrolled_window);
 
     return 0;
 }
@@ -2160,7 +2168,7 @@ void draw_stats(int redraw) {
 	 * all 30 skills for no reason.
 	 */
 	if ((redraw || cpl.stats.skill_exp[i] != last_stats.skill_exp[i]) &&
-	    skill_names[i] && cpl.stats.skill_exp[i]){
+	    skill_names[i] && cpl.stats.skill_level[i]) {
 	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), skill_names[i]);
 #ifdef WIN32
 	    sprintf(buff,"%I64d (%d)", cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
@@ -2170,7 +2178,7 @@ void draw_stats(int redraw) {
 	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
 	    last_stats.skill_level[i] = cpl.stats.skill_level[i];
 	    last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
-	} else if (cpl.stats.skill_exp[i]) {
+	} else if (cpl.stats.skill_level[i]) {
 	    /* don't need to draw the skill, but need to update the position
 	     * of where to draw the next one.
 	     */

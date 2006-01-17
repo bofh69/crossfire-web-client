@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: make skills display in a scroll pane, display all known skills,
+   not just those with exp
+Brendan Lally 2006-01-17
+
 gtk/inventory.c: grey out close button when it won't do anything
 Brendan Lally 2006-01-16
 
