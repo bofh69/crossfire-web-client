@@ -955,13 +955,13 @@ void UpdspellCmd(unsigned char *data, int len) {
 	return;
     }
     if (flags & UPD_SP_MANA) {
-	tmp->sp = GetChar_String(data+pos); pos+=2;
+	tmp->sp = GetShort_String(data+pos); pos+=2;
     }
     if (flags & UPD_SP_GRACE) {
-	tmp->grace = GetChar_String(data+pos); pos+=2;
+	tmp->grace = GetShort_String(data+pos); pos+=2;
     }
     if (flags & UPD_SP_DAMAGE) {
-	tmp->dam = GetChar_String(data+pos); pos+=2;
+	tmp->dam = GetShort_String(data+pos); pos+=2;
     }
     if (pos>len) 
 	LOG(LOG_WARNING,"common::UpdspellCmd","Overread buffer: %d > %d", pos, len);
