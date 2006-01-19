@@ -226,7 +226,7 @@ void SetupCmd(char *buf, int len)
 		draw_info(tmpbuf,NDI_RED);
 	    }
 	} else if (!strcmp(cmd,"sexp") || !strcmp(cmd,"darkness") || 
-		!strcmp(cmd,"newmapcmd") ) {
+		!strcmp(cmd,"newmapcmd") || !strcmp(cmd, "spellmon") ) {
 	        /* this really isn't an error or bug - in fact, it is expected if
 		 * the user is playing on an older server.
 		 */
@@ -569,6 +569,13 @@ void StatsCmd(unsigned char *data, int len)
 		case CS_STAT_SPEED:	cpl.stats.speed=GetInt_String(data+i); i+=4; break;
 		case CS_STAT_FOOD:	cpl.stats.food=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_WEAP_SP:	cpl.stats.weapon_sp=GetInt_String(data+i); i+=4; break;
+		case CS_STAT_SPELL_ATTUNE:cpl.stats.attuned=GetInt_String(data+i); i+=4; 
+						cpl.spells_updated = 1; break;
+		case CS_STAT_SPELL_REPEL:cpl.stats.repelled=GetInt_String(data+i); i+=4;
+						cpl.spells_updated = 1; break;
+		case CS_STAT_SPELL_DENY:cpl.stats.denied=GetInt_String(data+i); i+=4;
+						cpl.spells_updated = 1; break;
+
 		case CS_STAT_FLAGS:	cpl.stats.flags=GetShort_String(data+i); i+=2; break;
 		case CS_STAT_WEIGHT_LIM:set_weight_limit(cpl.stats.weight_limit=GetInt_String(data+i)); i+=4; break;
 
@@ -891,6 +898,103 @@ void DeleteInventory(unsigned char *data, int len)
 	return;
     }
     remove_item_inventory(locate_item(tag));
+}
+
+/******************************************************************************
+ * Start of spell commands
+ *****************************************************************************/
+
+void AddspellCmd(unsigned char *data, int len) {
+    uint8 nlen;
+    uint16 mlen, pos = 0;
+    Spell *newspell, *tmp;
+    while (pos < len) {
+	newspell = calloc(1, sizeof(Spell));
+	newspell->tag = GetInt_String(data+pos); pos +=4;
+	newspell->level = GetShort_String(data+pos); pos +=2;
+	newspell->time = GetShort_String(data+pos); pos +=2;
+	newspell->sp = GetShort_String(data+pos); pos +=2;
+	newspell->grace = GetShort_String(data+pos); pos +=2;
+	newspell->dam = GetShort_String(data+pos); pos +=2;
+	newspell->skill_number = GetChar_String(data+pos); pos +=1;
+	newspell->path = GetInt_String(data+pos); pos +=4;
+	newspell->face = GetInt_String(data+pos); pos +=4;
+	nlen=GetChar_String(data+pos); pos +=1;
+	strncpy(newspell->name, (char*)data+pos, nlen); pos+=nlen;
+	newspell->name[nlen]='\0'; /* to ensure we are null terminated */
+	mlen=GetShort_String(data+pos); pos +=2;
+	strncpy(newspell->message, (char*)data+pos, mlen); pos+=mlen;
+	newspell->message[mlen]='\0'; /* to ensure we are null terminated */
+	newspell->skill = skill_names[newspell->skill_number - CS_STAT_SKILLINFO];
+
+	/* ok, we're done with putting in data, now to add to the player struct */
+	if (!cpl.spelldata) cpl.spelldata=newspell;
+	else { 
+	    for (tmp=cpl.spelldata;tmp->next;tmp=tmp->next); 
+	    tmp->next=newspell; 
+	}
+	/* now we'll check to see if we have more spells */
+    }
+    if (pos>len) 
+	LOG(LOG_WARNING,"common::AddspellCmd","Overread buffer: %d > %d", pos, len);
+    cpl.spells_updated = 1;
+}
+
+void UpdspellCmd(unsigned char *data, int len) {
+    int flags, tag, pos = 0;
+    Spell *tmp;
+    if (!cpl.spelldata) {
+	LOG(LOG_WARNING,"common::UpdspellCmd","I know no spells to update");
+	return;
+    }
+    flags = GetChar_String(data+pos); pos +=1;
+    tag = GetInt_String(data+pos); pos +=4;
+    for (tmp=cpl.spelldata;tmp && tmp->tag != tag;tmp=tmp->next);
+    if (!tmp) {
+	LOG(LOG_WARNING,"common::UpdspellCmd","Invalid tag: %d", tag);
+	return;
+    }
+    if (flags & UPD_SP_MANA) {
+	tmp->sp = GetChar_String(data+pos); pos+=2;
+    }
+    if (flags & UPD_SP_GRACE) {
+	tmp->grace = GetChar_String(data+pos); pos+=2;
+    }
+    if (flags & UPD_SP_DAMAGE) {
+	tmp->dam = GetChar_String(data+pos); pos+=2;
+    }
+    if (pos>len) 
+	LOG(LOG_WARNING,"common::UpdspellCmd","Overread buffer: %d > %d", pos, len);
+    cpl.spells_updated = 1;
+
+}
+
+void DeleteSpell(unsigned char *data, int len) {
+    int tag;
+    Spell *tmp, *target;
+    if (!cpl.spelldata) {
+	LOG(LOG_WARNING,"common::DeleteSpell","I know no spells to delete");
+	return;
+    }
+    tag = GetInt_String(data);
+    /* special case, the first spell is the one removed */
+    if (cpl.spelldata->tag == tag) {
+	target = cpl.spelldata;
+	if (target->next) cpl.spelldata = target->next;
+	else cpl.spelldata = NULL;
+	free(target);
+	return;
+    }
+    for (tmp=cpl.spelldata;tmp->next && tmp->next->tag != tag;tmp=tmp->next);
+    if (!tmp->next) {
+	LOG(LOG_WARNING,"common::DeleteSpell","Invalid tag: %d", tag);
+	return;
+    }
+    target=tmp->next;
+    if (target->next) tmp->next = target->next;
+    else tmp->next = NULL;
+    free(target);
+    cpl.spells_updated = 1;
 }
 
 /******************************************************************************

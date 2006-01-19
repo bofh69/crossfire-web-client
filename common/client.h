@@ -213,6 +213,9 @@ typedef struct Stat_struct {
     sint16 dam;		    /* How much damage this object does when hitting */
     sint32 speed;	    /* Gets converted to a float for display*/
     sint32 weapon_sp;	    /* Gets converted to a float for display */
+    uint32 attuned;         /* The spell paths to which the player is attuned */
+    uint32 repelled;        /* The spell paths to which the player is repelled */
+    uint32 denied;          /* The spell paths denied to the player*/
     uint16 flags;	    /* contains fire on/run on flags */
     sint16 resists[30];	    /* Resistant values */
     uint32 resist_change:1; /* Resistant value has changed */
@@ -221,6 +224,22 @@ typedef struct Stat_struct {
     uint32 weight_limit;    /* weight limit */
 } Stats;
 
+
+typedef struct Spell_struct {
+    struct Spell_struct *next;
+    char name[256]; /* the protocol allows one length bit, so 256 is the maximum name length */
+    char message[10000]; /* this is plenty, the packets can't be much bigger than this anyway */
+    uint32 tag; /* used to identify the spell by updspell */
+    uint16 level;
+    uint16 time; /* number of ticks to cast */
+    uint16 sp;
+    uint16 grace;
+    uint16 dam;
+    uint8 skill_number; /* the index in the skill arrays, plus CS_STAT_SKILLINFO */
+    char *skill; /* pointer to the skill name, derived from the skill number */
+    uint32 path; /* the bitmask of paths this spell belongs to */
+    sint32 face; 
+} Spell;
 
 typedef struct Player_Struct {
     item	*ob;		/* Player object */
@@ -236,8 +255,10 @@ typedef struct Player_Struct {
     char	spells[255][40];	/* List of all the spells the */
 				/* player knows */
     Stats	stats;		/* Player stats */
+    Spell	*spelldata;	/* linked list of spells known to the player */
     char	title[MAX_BUF];	/* Title of character */
     char	range[MAX_BUF];	/* Range attack chosen */
+    uint32	spells_updated; /* tracks whether the spells updated*/ 
     uint32	fire_on:1;	/* True if fire key is pressed */
     uint32	run_on:1;	/* True if run key is on */
     uint32	no_echo:1;	/* If TRUE, don't echo keystrokes */

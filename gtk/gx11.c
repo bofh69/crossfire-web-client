@@ -2959,8 +2959,8 @@ void menu_apply () {
 }
 
 void menu_cast () {
-  gtk_entry_set_text(GTK_ENTRY(entrytext),"cast ");
-  gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+    gtk_entry_set_text(GTK_ENTRY(entrytext),"cast ");
+    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
 }
 
 void menu_search () {
@@ -2972,15 +2972,161 @@ void menu_disarm () {
 }
 
 
-void menu_spells () {
-  char buf[MAX_BUF];
-  int i;
-  for (i=0; i<25 ; i++) {
-    sprintf(buf,"Range: spell (%s)", cpl.spells[cpl.ready_spell]);
+static GtkWidget *gtkwin_spell = NULL; /* spell window */
+static GtkWidget *description  = NULL; /* the text box containing spell description */
+static GtkWidget *list         = NULL;
 
-    /*    strcpy (buf, cpl.spells[i]);*/
-    printf ("Spell: %s\n", cpl.spells[cpl.ready_spell]);
-  }
+static void select_spell_event(GtkWidget *gtklist, gint row, gint column, 
+    GdkEventButton *event) {
+
+    char command[MAX_BUF], message[MAX_BUF];
+    Spell *spell = gtk_clist_get_row_data (GTK_CLIST(gtklist), row);
+
+    if (!event) return; /* we have nothing to do */
+    if (event->button==1) { /* left click, select spell, show description */
+	gtk_text_freeze(GTK_TEXT(description));
+	gtk_text_set_point(GTK_TEXT(description), 0);
+	gtk_text_forward_delete(GTK_TEXT(description), gtk_text_get_length(GTK_TEXT(description)));
+	sprintf(message, "%s - level %d %s spell\n\n%s", spell->name, spell->level, spell->skill, spell->message);
+	gtk_text_insert(GTK_TEXT(description), NULL, NULL, NULL, message, -1);
+	gtk_text_thaw(GTK_TEXT(description));
+    }
+    else if (event->button==2) { /* middle click, invoke spell */
+	sprintf(command, "invoke %d", spell->tag);
+	send_command(command, -1, 1);
+    }
+    else if (event->button==3) { /* right click, cast spell */
+	sprintf(command, "cast %d", spell->tag);
+	send_command(command, -1, 1);
+    }
+}
+
+static void update_spell_list(int force) {
+    gint row; 
+    char buffer[3][MAX_BUF];
+    char *columns[3];
+    Spell *spell;
+
+    /* only update if we have to */
+    if (!force && !cpl.spells_updated) return;
+    if (!gtkwin_spell || !GTK_IS_CLIST(list) || !GTK_WIDGET_VISIBLE(gtkwin_spell)) return; 
+
+    gtk_clist_freeze(GTK_CLIST(list));
+
+    /* we are about to recreate the entire spell list, so remove the existing one first */
+    gtk_clist_clear(GTK_CLIST(list));
+
+    for (spell = cpl.spelldata; spell; spell=spell->next) {
+	if (!spell) break;
+	PixmapInfo * pixmap = pixmaps[spell->face];
+	buffer[2][0]='\0';
+	buffer[0][0]='\0';
+	strcpy(buffer[1], spell->name);
+	columns[0] = buffer[0];
+	columns[1] = buffer[1];
+	columns[2] = buffer[2];
+	if (spell->sp) sprintf(buffer[2], "%d mana ", spell->sp);
+	if (spell->grace) sprintf(buffer[2]+strlen(buffer[2]), "%d grace ", spell->grace);
+	if (spell->dam) sprintf(buffer[2]+strlen(buffer[2]), "%d damage ", spell->dam);
+
+	/* the columns array doesn't yet contain the data we need, but we can't set the 
+	 * row colour until we create the row, so we create the row with gtk_clist_append()
+	 *  set the colour, then reset the text in the second column 
+	 */
+	row = gtk_clist_append(GTK_CLIST(list), columns);
+	gtk_clist_set_row_data(GTK_CLIST(list), row, spell); 
+	if (spell->path & cpl.stats.denied) {
+	    gtk_clist_set_background (GTK_CLIST(list), row, &root_color[NDI_RED]);
+	    strcat(buffer[2], "(DENIED) ");
+	}
+	else if (spell->path & cpl.stats.attuned) {
+	    gtk_clist_set_background (GTK_CLIST(list), row, &root_color[NDI_GREEN]);
+	    strcat(buffer[2], "(attuned) ");
+	}
+	else if (spell->path & cpl.stats.repelled) {
+	    gtk_clist_set_background (GTK_CLIST(list), row, &root_color[NDI_ORANGE]);
+	    strcat(buffer[2], "(repelled) ");
+	}
+	gtk_clist_set_text(GTK_CLIST(list), row, 2, columns[2]);
+	gtk_clist_set_pixmap (GTK_CLIST (list), row, 0,
+	    (GdkPixmap*)pixmap->icon_image, (GdkBitmap*)pixmap->icon_mask);
+    }
+    gtk_clist_thaw(GTK_CLIST(list));
+    cpl.spells_updated =0;
+}
+
+void menu_spells () {
+    GtkWidget * scroll_window;
+    GtkStyle * liststyle;
+    GtkWidget *cancelbutton;
+    GtkWidget * vbox;
+
+    if (gtkwin_spell && GTK_IS_CLIST(list)) {
+	  /* the window is already created, re-present it */
+	if (GTK_WIDGET_VISIBLE(gtkwin_spell)) { 
+	    gdk_window_raise(gtkwin_spell->window);
+	    return; 
+	}
+
+	/* the window is hidden at the moment, but we can reshow, and update, 
+	 * so we don't need to recreate it again */
+	gtk_widget_show_all(gtkwin_spell);
+	update_spell_list(1);
+	return;
+    }
+
+    gtkwin_spell = gtk_window_new (GTK_WINDOW_DIALOG);
+    gtk_window_set_default_size(GTK_WINDOW(gtkwin_spell), 400+image_size, 400+image_size);
+    gtk_window_set_title(GTK_WINDOW (gtkwin_spell), "Cast Spell");
+
+    scroll_window = gtk_scrolled_window_new (0,0);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll_window),
+	GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+
+    gchar *titles[] = {" ", "Name", "Cost"};
+    list = gtk_clist_new_with_titles(3, titles);
+    gtk_clist_set_column_width(GTK_CLIST(list), 1, image_size);
+    gtk_clist_set_column_width(GTK_CLIST(list), 1, 200);
+    gtk_clist_set_column_width(GTK_CLIST(list), 2, 200);
+    gtk_clist_set_selection_mode(GTK_CLIST(list) , GTK_SELECTION_BROWSE);
+    gtk_clist_set_row_height (GTK_CLIST(list), image_size); 
+    liststyle = gtk_rc_get_style(list);
+    if (liststyle) {
+	liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
+	liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
+	gtk_widget_set_style (list, liststyle);
+    }
+    /* set the actions for the mouse buttons to trigger the callback function */
+    gtk_clist_set_button_actions(GTK_CLIST(list), 1, GTK_BUTTON_SELECTS);
+    gtk_clist_set_button_actions(GTK_CLIST(list), 2, GTK_BUTTON_SELECTS);
+    gtk_signal_connect(GTK_OBJECT(list), "select_row",
+	GTK_SIGNAL_FUNC(select_spell_event), NULL);
+
+    /* add a close button to the window */
+    cancelbutton = gtk_button_new_with_label("Close");
+    gtk_signal_connect_object (GTK_OBJECT (cancelbutton), "clicked",
+	GTK_SIGNAL_FUNC(gtk_widget_hide_all), GTK_OBJECT (gtkwin_spell));
+
+    /* vbox splits the window - top portion is the spell list, bottom
+     * portion is for the descriptions of the spells
+     */
+    vbox = gtk_vbox_new(FALSE, 2);
+
+    description = gtk_text_new(NULL, NULL);
+    gtk_text_set_editable(GTK_TEXT (description), FALSE);
+
+
+    /* ok, time to pack it all up */
+    gtk_container_add(GTK_CONTAINER(gtkwin_spell), vbox);
+    gtk_container_add(GTK_CONTAINER(scroll_window), list);
+    gtk_box_pack_start(GTK_BOX(vbox), scroll_window, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), description, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), cancelbutton, FALSE, FALSE, 0);
+
+    gtk_widget_show_all(gtkwin_spell);
+
+    /* let's add the spells to the list now */
+    update_spell_list(1);
 }
 
 void menu_clear () {
@@ -4227,7 +4373,7 @@ int do_timeout() {
   updatelock=0;
 
   inventory_tick();
-
+  update_spell_list(0);
   draw_info_windows();
   if (redraw_needed) {
     display_map_doneupdate(TRUE, FALSE);

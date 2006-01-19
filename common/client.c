@@ -93,6 +93,10 @@ struct CmdMapping commands[] = {
     { "delitem", DeleteItem, INT_ARRAY },
     { "delinv",	DeleteInventory, ASCII },
 
+    { "addspell", AddspellCmd, MIXED },
+    { "updspell", UpdspellCmd, MIXED },
+    { "delspell", DeleteSpell, INT_ARRAY },
+
     { "drawinfo", (CmdProc)DrawInfoCmd, ASCII },
     { "drawextinfo", (CmdProc)DrawExtInfoCmd, ASCII},
     { "stats", StatsCmd, STATS /* array of: int8, (int?s for that stat) */ },
@@ -305,7 +309,7 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 faceset %d facecache %d exp64 1 itemcmd 2",
+	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 spellmon 1 faceset %d facecache %d exp64 1 itemcmd 2",
 	    sound>=0, want_skill_exp,
 		    want_config[CONFIG_LIGHTING]?1:0, face_info.faceset,
 		    want_config[CONFIG_CACHE]);

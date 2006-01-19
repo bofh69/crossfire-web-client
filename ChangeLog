@@ -2,6 +2,20 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Add spell listing support to gcfclient and common, in particular:
+common/client.c: addspell, updspell, delspell function pointers, send
+   spellmon in setup
+common/client.h: Spell struct, add attuned, repelled, denied to stats, add
+   spelldata and spells_updated to player struct
+common/commands.c: parse stat details concerning spell paths, addspell,
+delspell, and updspell packet handling
+common/newclient.h: new flags related to this
+common/proto.h: function declarations
+gtk/gx11.c: make the client->spells menu option show a window displaying all
+   spells known to the player, have a function update_spell_list to update it,
+   add a call to this to do_timeout.
+Brendan Lally 2006-01-19
+
 gtk/gx11.c: make skills display in a scroll pane, display all known skills,
    not just those with exp
 Brendan Lally 2006-01-17
