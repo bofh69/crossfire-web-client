@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fixed compilation for some compilers.
+gtk/gx11.c inventory.c
+Ryo 2006-01-19
+
 common/commands.c: actually read the right amount of data on an updspell
 --
 Add spell listing support to gcfclient and common, in particular:

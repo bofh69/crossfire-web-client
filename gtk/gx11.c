@@ -3006,6 +3006,7 @@ static void update_spell_list(int force) {
     char buffer[3][MAX_BUF];
     char *columns[3];
     Spell *spell;
+    PixmapInfo * pixmap;
 
     /* only update if we have to */
     if (!force && !cpl.spells_updated) return;
@@ -3018,7 +3019,7 @@ static void update_spell_list(int force) {
 
     for (spell = cpl.spelldata; spell; spell=spell->next) {
 	if (!spell) break;
-	PixmapInfo * pixmap = pixmaps[spell->face];
+	pixmap = pixmaps[spell->face];
 	buffer[2][0]='\0';
 	buffer[0][0]='\0';
 	strcpy(buffer[1], spell->name);
@@ -3060,6 +3061,7 @@ void menu_spells () {
     GtkStyle * liststyle;
     GtkWidget *cancelbutton;
     GtkWidget * vbox;
+    gchar *titles[] = {" ", "Name", "Cost"};
 
     if (gtkwin_spell && GTK_IS_CLIST(list)) {
 	  /* the window is already created, re-present it */
@@ -3083,7 +3085,6 @@ void menu_spells () {
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll_window),
 	GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
-    gchar *titles[] = {" ", "Name", "Cost"};
     list = gtk_clist_new_with_titles(3, titles);
     gtk_clist_set_column_width(GTK_CLIST(list), 1, image_size);
     gtk_clist_set_column_width(GTK_CLIST(list), 1, 200);

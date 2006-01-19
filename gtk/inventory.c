@@ -1029,7 +1029,7 @@ void get_look_display(GtkWidget *frame)
   gtk_signal_connect_object (GTK_OBJECT (closebutton), "clicked",
 			       GTK_SIGNAL_FUNC(close_container_callback),
 			       NULL);
-  gtk_widget_set_sensitive(closebutton, False);
+  gtk_widget_set_sensitive(closebutton, FALSE);
   gtk_box_pack_start (GTK_BOX(hbox1),closebutton, FALSE, FALSE, 2);
   gtk_widget_show (closebutton);
   gtk_tooltips_set_tip (tooltips, closebutton, 
@@ -1337,7 +1337,7 @@ void set_look_list_env(item * op) {
 void open_container (item *op) {
   set_look_list_env(op); 
   sprintf (look_list.title, "%s:", op->d_name);
-  gtk_widget_set_sensitive(closebutton, True);
+  gtk_widget_set_sensitive(closebutton, TRUE);
 
   update_list_labels (&look_list);
 }
@@ -1349,7 +1349,7 @@ void close_container(item *op)
 	client_send_apply (look_list.env->tag);
     set_look_list_env(cpl.below);
     strcpy (look_list.title, "You see:");
-    gtk_widget_set_sensitive(closebutton, False);
+    gtk_widget_set_sensitive(closebutton, FALSE);
     update_list_labels (&look_list);
   }
 }
@@ -1365,7 +1365,7 @@ static void close_container_callback(item *op)
     client_send_apply (look_list.env->tag);
     set_look_list_env(cpl.below);
     strcpy (look_list.title, "You see:");
-    gtk_widget_set_sensitive(closebutton, False);
+    gtk_widget_set_sensitive(closebutton, FALSE);
 
     update_list_labels (&look_list);
   }
