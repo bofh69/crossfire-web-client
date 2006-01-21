@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: add a 'spell options' box to allow extra options to be passed to
+spells, make any mouse button change the spell description, not just the
+left one and reorder some gtk function calls to improve clarity
+Brendan Lally 2006-10-21
+
 Fixed compilation for some compilers.
 gtk/gx11.c inventory.c
 Ryo 2006-01-19

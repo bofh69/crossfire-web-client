@@ -2975,29 +2975,34 @@ void menu_disarm () {
 static GtkWidget *gtkwin_spell = NULL; /* spell window */
 static GtkWidget *description  = NULL; /* the text box containing spell description */
 static GtkWidget *list         = NULL;
+static GtkWidget *spelloptions = NULL; /* text box with extra options to pass to the spell */
 
 static void select_spell_event(GtkWidget *gtklist, gint row, gint column, 
     GdkEventButton *event) {
 
     char command[MAX_BUF], message[MAX_BUF];
     Spell *spell = gtk_clist_get_row_data (GTK_CLIST(gtklist), row);
+    char *options = NULL;
 
     if (!event) return; /* we have nothing to do */
-    if (event->button==1) { /* left click, select spell, show description */
-	gtk_text_freeze(GTK_TEXT(description));
-	gtk_text_set_point(GTK_TEXT(description), 0);
-	gtk_text_forward_delete(GTK_TEXT(description), gtk_text_get_length(GTK_TEXT(description)));
-	sprintf(message, "%s - level %d %s spell\n\n%s", spell->name, spell->level, spell->skill, spell->message);
-	gtk_text_insert(GTK_TEXT(description), NULL, NULL, NULL, message, -1);
-	gtk_text_thaw(GTK_TEXT(description));
-    }
-    else if (event->button==2) { /* middle click, invoke spell */
-	sprintf(command, "invoke %d", spell->tag);
+    /* any click will select the spell, and show it's description */
+    gtk_text_freeze(GTK_TEXT(description));
+    gtk_text_set_point(GTK_TEXT(description), 0);
+    gtk_text_forward_delete(GTK_TEXT(description), gtk_text_get_length(GTK_TEXT(description)));
+    sprintf(message, "%s - level %d %s spell\n\n%s", spell->name, spell->level, spell->skill, spell->message);
+    gtk_text_insert(GTK_TEXT(description), NULL, NULL, NULL, message, -1);
+    gtk_text_thaw(GTK_TEXT(description));
+    if (event->button==2) { /* on middle click, also invoke the spell */
+	options = gtk_editable_get_chars(GTK_EDITABLE(spelloptions), 0, -1);
+	sprintf(command, "invoke %d %s", spell->tag, options);
 	send_command(command, -1, 1);
+	g_free(options);
     }
-    else if (event->button==3) { /* right click, cast spell */
-	sprintf(command, "cast %d", spell->tag);
+    else if (event->button==3) { /* on right click, also cast the spell */
+	options = gtk_editable_get_chars(GTK_EDITABLE(spelloptions), 0, -1);
+	sprintf(command, "cast %d %s", spell->tag, options);
 	send_command(command, -1, 1);
+	g_free(options);
     }
 }
 
@@ -3061,6 +3066,8 @@ void menu_spells () {
     GtkStyle * liststyle;
     GtkWidget *cancelbutton;
     GtkWidget * vbox;
+    GtkWidget * optionsbox;
+    GtkWidget * spelloptionslabel;
     gchar *titles[] = {" ", "Name", "Cost"};
 
     if (gtkwin_spell && GTK_IS_CLIST(list)) {
@@ -3070,21 +3077,33 @@ void menu_spells () {
 	    return; 
 	}
 
-	/* the window is hidden at the moment, but we can reshow, and update, 
-	 * so we don't need to recreate it again */
+	/* the window is hidden at the moment, we don't need to recreate it, 
+         * we can merely reshow it, but the spell list won't have updated whilst
+         * it was hidden so we have to force an update */
 	gtk_widget_show_all(gtkwin_spell);
 	update_spell_list(1);
 	return;
     }
 
+    /* we can't use an existing version, so we must create a new one, first we 
+     * will deal with the window itself */
     gtkwin_spell = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_set_default_size(GTK_WINDOW(gtkwin_spell), 400+image_size, 400+image_size);
     gtk_window_set_title(GTK_WINDOW (gtkwin_spell), "Cast Spell");
 
+    /* Now for its contents: first we'll deal with the options widget */
+    spelloptions = gtk_entry_new();
+    spelloptionslabel = gtk_label_new("Spell Options:");
+    optionsbox = gtk_hbox_new(FALSE, 2);
+    gtk_box_pack_start(GTK_BOX(optionsbox), spelloptionslabel, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(optionsbox), spelloptions, TRUE, TRUE, 0);
+
+    /* now the list scroll window */
     scroll_window = gtk_scrolled_window_new (0,0);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll_window),
 	GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
+    /* and the spell list itself */
     list = gtk_clist_new_with_titles(3, titles);
     gtk_clist_set_column_width(GTK_CLIST(list), 1, image_size);
     gtk_clist_set_column_width(GTK_CLIST(list), 1, 200);
@@ -3103,23 +3122,24 @@ void menu_spells () {
     gtk_signal_connect(GTK_OBJECT(list), "select_row",
 	GTK_SIGNAL_FUNC(select_spell_event), NULL);
 
-    /* add a close button to the window */
+    /* with all that done, we can now add it to the scroll window */
+    gtk_container_add(GTK_CONTAINER(scroll_window), list);
+
+    /* now we'll create the description box */
+    description = gtk_text_new(NULL, NULL);
+    gtk_text_set_editable(GTK_TEXT (description), FALSE);
+
+    /* finally add a close button to the window */
     cancelbutton = gtk_button_new_with_label("Close");
     gtk_signal_connect_object (GTK_OBJECT (cancelbutton), "clicked",
 	GTK_SIGNAL_FUNC(gtk_widget_hide_all), GTK_OBJECT (gtkwin_spell));
 
-    /* vbox splits the window - top portion is the spell list, bottom
-     * portion is for the descriptions of the spells
-     */
+    /* vbox holds all the widgets we just created, in order */
     vbox = gtk_vbox_new(FALSE, 2);
-
-    description = gtk_text_new(NULL, NULL);
-    gtk_text_set_editable(GTK_TEXT (description), FALSE);
-
 
     /* ok, time to pack it all up */
     gtk_container_add(GTK_CONTAINER(gtkwin_spell), vbox);
-    gtk_container_add(GTK_CONTAINER(scroll_window), list);
+    gtk_box_pack_start(GTK_BOX(vbox), optionsbox, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), scroll_window, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), description, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), cancelbutton, FALSE, FALSE, 0);
