@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/opengl.c: For opengl mode, create a subwindow of the map window
+  with the needed visual.  On many systems, the visual that glXChooseVisual()
+  returns doesn't match the default visual of the system, thus resulting
+  in opengl not being able to create a context.
+MSW 2006-01-28
+
 gtk/gx11.c: add a 'spell options' box to allow extra options to be passed to
 spells, make any mouse button change the spell description, not just the
 left one and reorder some gtk function calls to improve clarity

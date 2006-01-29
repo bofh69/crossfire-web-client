@@ -118,13 +118,36 @@ void init_opengl(GtkWidget* drawingarea)
 	GLX_ALPHA_SIZE, 4, 
 	GLX_DEPTH_SIZE, 16,
 	None };
+    XSetWindowAttributes attr;
+    Visual *v;
 
     /* Need to tuck these away, because they are needed for glXSwappBuffers() */
     display = GDK_WINDOW_XDISPLAY(drawingarea->window);
-    window = GDK_WINDOW_XID(drawingarea->window);
-
     vi = glXChooseVisual(display,
 			 gdk_x11_get_default_screen (), attrListDbl);
+
+    width = drawingarea->allocation.width;
+    height = drawingarea->allocation.height;
+
+    /* On many systems, the default visual used by the display doesn't
+     * have the features we need (alpha channel, etc).  The only way
+     * around this is to create a subwindow with the ideal
+     * visual.  As an oddity, we need to create a colormap
+     * if using a different visual or we get a BadMatch error.
+     */
+    v = DefaultVisual(display, gdk_x11_get_default_screen ());
+    attr.colormap= XCreateColormap(display, GDK_WINDOW_XID(drawingarea->window),
+				   vi->visual, AllocNone);
+
+    window = XCreateWindow(display, GDK_WINDOW_XID(drawingarea->window),
+		0, 0, width, height, 0, 
+			   vi->depth,
+			InputOutput, 
+			   vi->visual,
+			   CWColormap, &attr);
+
+    XMapWindow(display,window);
+
     if (!vi) {
 	LOG(LOG_WARNING,"gtk::init_opengl", "Could not get double buffered screen!\n");
     }
@@ -140,8 +163,6 @@ void init_opengl(GtkWidget* drawingarea)
     else
 	LOG(LOG_INFO,"gtk::init_opengl", "Direct rendering is not available!\n");
 
-    width = drawingarea->allocation.width;
-    height = drawingarea->allocation.height;
     init_opengl_common();
 }
 
