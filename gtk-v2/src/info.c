@@ -136,15 +136,7 @@ void draw_info(const char *str, int color) {
 }
 
 void draw_color_info(int colr, const char *buf){
-    if (use_config[CONFIG_COLORTXT]){
         draw_info(buf,colr);
-    }
-    else {
-	/* White draws as black, but will also put it into the alternate text pane */
-        draw_info("==========================================",NDI_WHITE);
-        draw_info(buf,NDI_WHITE);
-        draw_info("==========================================",NDI_WHITE);
-    }
 }
 
 

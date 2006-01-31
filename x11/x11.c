@@ -228,9 +228,6 @@ typedef struct {
 InfoData infodata = {0, 0, 0, 0, 0, 0, INFOLINES, INFOLINES, NDI_BLACK,
 	NULL, 0, 0,0,0,0,0,0,0,0};
 
-static uint8	
-	iscolor = TRUE;
-
 uint8	image_size=24;
 
 
@@ -452,12 +449,10 @@ static int get_game_display() {
 	(_Xconst char *) crossfire_bits,
 	(unsigned int) crossfire_width, (unsigned int)crossfire_height);
     if (want_config[CONFIG_SPLITWIN]) {
-	iscolor=allocate_colors(display, win_root, def_screen,
+	allocate_colors(display, win_root, def_screen,
 	    &colormap, discolor);
-	if (iscolor){
-	    foreground=discolor[0].pixel;
-	    background=discolor[8].pixel;
-	}
+	foreground=discolor[0].pixel;
+	background=discolor[9].pixel;
     } else
 	XSetWindowColormap(display, win_game, colormap);
 
@@ -465,14 +460,9 @@ static int get_game_display() {
 	icon,gargv,gargc, &(gamehint));
 
     gc_game=XCreateGC(display,win_game,0,0);
-    if (iscolor){
-	XSetForeground(display,gc_game,discolor[0].pixel);
-	XSetBackground(display,gc_game,discolor[12].pixel);
-    }
-    else {
-	XSetForeground(display,gc_game,foreground);
-	XSetBackground(display,gc_game,background);
-    }
+    XSetForeground(display,gc_game,discolor[0].pixel);
+    XSetBackground(display,gc_game,discolor[9].pixel);
+
     XSetGraphicsExposures(display, gc_game, False);
     gc_copy=XCreateGC(display,win_game,0,0);
     XSetGraphicsExposures(display, gc_game, True);
@@ -861,7 +851,7 @@ void draw_info(const char *str, int color) {
     /*
      * The XDrawImageString draws the line.
      */
-    if (infodata.lastcolor!=color && iscolor) {
+    if (infodata.lastcolor!=color) {
       XSetForeground(display,infodata.gc_info,discolor[color].pixel);
       infodata.lastcolor=color;
     }
@@ -929,17 +919,7 @@ void draw_info(const char *str, int color) {
  */
 
 void draw_color_info(int colr, const char *buf){
-
-  if (iscolor){
-/*    XSetForeground(display,infodata.gc_info,discolor[colr].pixel);*/
     draw_info(buf,colr);
-/*    XSetForeground(display,infodata.gc_info,discolor[0].pixel);*/
-  }
-  else{
-    draw_info("==========================================",NDI_BLACK);
-    draw_info(buf,NDI_BLACK);
-    draw_info("==========================================",NDI_BLACK);
-  }
 }
 
 
@@ -972,7 +952,7 @@ static void draw_all_info() {
      }
 
      for (i=0; i<infodata.maxdisp; i++) {
-	if (iscolor && infodata.lastcolor!=infodata.data[startline].color)  {
+	if (infodata.lastcolor!=infodata.data[startline].color) {
 		XSetForeground(display,infodata.gc_info,
 			       discolor[infodata.data[startline].color].pixel);
 		infodata.lastcolor=infodata.data[startline].color;
@@ -989,7 +969,7 @@ static void draw_all_info() {
   }
   else  {
       for(i=0;i<=infodata.numlines;i++) {
-	if (iscolor && infodata.lastcolor!=infodata.data[i].color)  {
+	if (infodata.lastcolor!=infodata.data[i].color)  {
 		XSetForeground(display,infodata.gc_info,
 			       discolor[infodata.data[i].color].pixel);
 		infodata.lastcolor=infodata.data[i].color;
@@ -1389,14 +1369,14 @@ static void draw_stat_bar(int bar_pos, int height, int is_alert)
   if(height==0)			/* empty bar */
     return;
 
-  if(is_alert && iscolor) /* this should have its own gc */
+  if(is_alert) /* this should have its own gc */
 	XSetForeground(display,look_list.gc_text,
 			discolor[3].pixel);
 
   XFillRectangle(display,win_message,
 	 look_list.gc_text, bar_pos, 4+MAX_BARS_MESSAGE-height, 10, height);
 
-  if(is_alert && iscolor)
+  if(is_alert)
 	 XSetForeground(display,look_list.gc_text,
 			foreground);
 }
@@ -2174,12 +2154,9 @@ static int get_root_display(char *display_name) {
 	    roothint.x,roothint.y,roothint.width,roothint.height,2,
 	    background,foreground);
 
-	iscolor=allocate_colors(display, win_root, def_screen,
-	    &colormap, discolor);
-	if (iscolor){
-	    foreground=discolor[0].pixel;
-	    background=discolor[8].pixel;
-	}
+	allocate_colors(display, win_root, def_screen, &colormap, discolor);
+	foreground=discolor[0].pixel;
+	background=discolor[9].pixel;
 	icon=XCreateBitmapFromData(display,win_root,
 	    (_Xconst char *) crossfire_bits,
 	    (unsigned int) crossfire_width, (unsigned int)crossfire_height);
@@ -3259,34 +3236,10 @@ void draw_magic_map()
     for (y = 0; y < cpl.mmapy; y++) {
 	for (x = 0; x < cpl.mmapx; x++) {
 	    uint8 val = cpl.magicmap[y*cpl.mmapx + x];
-	    if (iscolor) {
-		XSetForeground(display,gc_game,
-		    discolor[val&FACE_COLOR_MASK].pixel);
-		XFillRectangle(display,win_game,
-                       gc_game, cpl.mapxres*x, cpl.mapyres*y, cpl.mapxres, cpl.mapyres);
-	    }
-	    else { /* if on black/white system */
-		/* don't draw floors */
-		if (val & FACE_FLOOR) continue;
-
-		if (val & FACE_WALL) {
-		    XFillRectangle(display,win_game,
-                       gc_game, cpl.mapxres*x, cpl.mapyres*y, cpl.mapxres, cpl.mapyres);
-
-		} else { /* interesting object */
-		    
-		    if ((val & FACE_COLOR_MASK)==0)
-			XCopyPlane(display, icons[stipple2_icon],
-			       win_game, gc_game,
-			       0, 0, cpl.mapxres,cpl.mapyres, cpl.mapxres*x, cpl.mapyres*y,
-			       1);
-		    else
-			XCopyPlane(display, icons[stipple1_icon],
-			       win_game, gc_game,
-			       0, 0, cpl.mapxres,cpl.mapyres, cpl.mapxres*x, cpl.mapyres*y,
-			       1);
-		} /* interesting object */
-	    } /* black/white system */
+	    XSetForeground(display,gc_game,
+		discolor[val&FACE_COLOR_MASK].pixel);
+	    XFillRectangle(display,win_game,
+                gc_game, cpl.mapxres*x, cpl.mapyres*y, cpl.mapxres, cpl.mapyres);
 	} /* Saw into this space */
     }
 }

@@ -931,10 +931,8 @@ static GtkWidget * get_inv_widget(void) {
         view = new_inventory_viewer(cpl.ob, i->filter, cpl.below); /* player to ground */
         view->face_column_resizes = FALSE;
                 
-        if (use_config[CONFIG_COLORINV]) {
-            inventory_viewer_set_highlight(view, i->highlight);
-            highlit_inv_viewers = g_list_append(highlit_inv_viewers, view);
-        }
+        inventory_viewer_set_highlight(view, i->highlight);
+        highlit_inv_viewers = g_list_append(highlit_inv_viewers, view);
         
         inv_viewers = g_list_append(inv_viewers, view);
 
@@ -1233,23 +1231,6 @@ void set_weight_limit (uint32 wlim)
     inv_list.weight_limit = wlim;
     update_list_labels(&inv_list);
 }
-
- 
-
-/* Called when CONFIG_COLORINV is changed. */
-
-static void set_colorinv_one(gpointer view_x, gpointer unused) {
-    inventory_viewer * view = (inventory_viewer *)view_x;
-
-    inventory_viewer_set_highlight(view, use_config[CONFIG_COLORINV]);
-}
-
-void inventory_update_colorinv(void) {
-    inventory_viewer_set_highlight(look_viewer, use_config[CONFIG_COLORINV]);
-            
-    g_list_foreach(highlit_inv_viewers, set_colorinv_one, NULL);
-}
-
 
 /* toggle weight */
 

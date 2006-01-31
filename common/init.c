@@ -38,7 +38,7 @@ char *rcsid_common_init_c =
  *			    want_config[i]);
  */
 char *config_names[CONFIG_NUMS] = {
-NULL, "colorinv", "colortext", "download_all_images", "echo_bindings",
+NULL, "download_all_images", "echo_bindings",
 "fasttcpsend", "command_window", "cacheimages", "fog_of_war", "iconscale",
 "mapscale", "popups", "sdl", "showicon", "tooltips", "sound", "splitinfo",
 "split", "show_grid", "lighting", "trim_info_window",
@@ -161,8 +161,6 @@ void init_client_vars()
      * the code.  Plus, the performance difference is virtually
      * nothing.
      */
-    want_config[CONFIG_COLORINV] = TRUE;
-    want_config[CONFIG_COLORTXT] = TRUE;
     want_config[CONFIG_DOWNLOAD] = FALSE;
     want_config[CONFIG_ECHO] = FALSE;
     want_config[CONFIG_FASTTCP] = TRUE;

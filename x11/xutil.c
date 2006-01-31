@@ -54,8 +54,8 @@ static char *colorname[] = {
 "DodgerBlue",           /* 5  */
 "DarkOrange2",          /* 6  */
 "SeaGreen",             /* 7  */
-"DarkSeaGreen",         /* 8  */        /* Used for window background color */
-"Grey50",               /* 9  */
+"DarkSeaGreen",         /* 8  */ 
+"Grey80",               /* 9  */	/* Used for window background color */
 "Sienna",               /* 10 */
 "Gold",                 /* 11 */
 "Khaki"                 /* 12 */
@@ -171,15 +171,13 @@ void init_cache_data()
 /*#define CHECKSUM_DEBUG*/
 
 
-int allocate_colors(Display *disp, Window w, long screen_num,
-        Colormap *colormap, XColor discolor[16])
-{
-  int i, tried = 0, depth=0, iscolor;
+void allocate_colors(Display *disp, Window w, long screen_num,
+        Colormap *colormap, XColor discolor[16]) {
+  int i, tried = 0, depth=0;
   Status status;
   Visual *vis;
   XColor exactcolor;
 
-  iscolor = 1;
   vis = DefaultVisual(disp,screen_num);
   if (vis->class >= StaticColor) {
     *colormap = DefaultColormap(disp,screen_num);
@@ -187,20 +185,18 @@ int allocate_colors(Display *disp, Window w, long screen_num,
   }
   else {
     *colormap = DefaultColormap(disp,screen_num);
-    printf("Switching to black and white.\n");
     printf("You have a black and white terminal.\n");
-    return 0;
+    printf("These are no longer supported by cfclient.\n");
+    return;
   }
 try_private:
-  if (depth > 3 && iscolor) {
+  if (depth > 3) {
     unsigned long pixels[13];
     for (i=0; i<13; i++){
       status = XLookupColor(disp,*colormap, colorname[i],&exactcolor,
                             &discolor[i]);
       if (!status){
         printf("Can't find colour %s.\n", colorname[i]);
-        printf("Switching to black and white.\n");
-        iscolor = 0;
         break;
       }
       status = XAllocColor(disp,*colormap,&discolor[i]);
@@ -212,21 +208,12 @@ try_private:
           XSetWindowColormap(disp, w, *colormap);
           tried = 1;
           goto try_private;
-        } else {
-          printf( "Failed. Switching to black and white.\n");
-          iscolor = 0;
-          break;
-        }
+        } else break;
       }
       pixels[i] = discolor[i].pixel;
     }
   }
-  return iscolor;
 }
-
-
-
-
 
 /* Updates the keys array with the keybinding that is passed.  All the
  * arguments are pretty self explanatory.  flags is the various state

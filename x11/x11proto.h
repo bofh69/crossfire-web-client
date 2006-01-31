@@ -53,7 +53,7 @@ extern void command_show(const char *params);
 extern int main(int argc, char *argv[]);
 /* xutil.c */
 extern void init_cache_data(void);
-extern int allocate_colors(Display *disp, Window w, long screen_num, Colormap *colormap, XColor discolor[16]);
+extern void allocate_colors(Display *disp, Window w, long screen_num, Colormap *colormap, XColor discolor[16]);
 extern void parse_keybind_line(char *buf, int line, int standard);
 extern void init_keys(void);
 extern void parse_key_release(KeyCode kc, KeySym ks);

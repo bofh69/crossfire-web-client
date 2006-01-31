@@ -2,6 +2,18 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Remove coloured inventory and text options, as well as all supporting code
+for them. Make text always print in colour. Remove special code for 
+initialising black and white monitors in cfclient, and change its background
+colour to colour number 9 (to not be the same as so many draw_info's from the
+server). Change colour number 9 to a pale grey to make text show up better.
+Affected files:
+common/client.h, init.c
+gtk/config.c, gtkproto.h, gx11.c, inventory.c
+gtk-v2/src/info.c, inventory.c
+x11/x11.c, x11proto.h, xutil.c
+Brendan Lally 2006-01-31
+
 gtk-v2/src/opengl.c: For opengl mode, create a subwindow of the map window
   with the needed visual.  On many systems, the visual that glXChooseVisual()
   returns doesn't match the default visual of the system, thus resulting

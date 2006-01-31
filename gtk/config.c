@@ -128,10 +128,6 @@ static GtkWidget *gtkwin_config = NULL,	    /* main window */
 CButtons cbuttons[MAX_BUTTONS] = {
 {NULL, 	    CBUTTON,	    CONFIG_FOODBEEP,	FLAG_UPDATE,
     "Beep When Food is Low"},
-{NULL, 	    CBUTTON,	    CONFIG_COLORINV,	0,
-    "Colored Inventory Lists"},
-{NULL, 	    CBUTTON,	    CONFIG_COLORTXT,	FLAG_UPDATE,
-    "Colored Information Text"},
 {NULL, 	    CBUTTON,	    CONFIG_TIMESTAMP,	FLAG_UPDATE,
     "Timestamp Messages"},
 {NULL, 	    SPIN_CWINDOW,   CONFIG_CWINDOW,	FLAG_UPDATE,
@@ -315,10 +311,6 @@ void applyconfig () {
 		cs_print_string(csocket.fd, "setup sound 0");
 	}
 	use_config[CONFIG_SOUND] = want_config[CONFIG_SOUND];
-    }
-    if (IS_DIFFERENT(CONFIG_COLORINV)) {
-	use_config[CONFIG_COLORINV] = want_config[CONFIG_COLORINV];
-	inventory_update_colorinv();
     }
     if (IS_DIFFERENT(CONFIG_TOOLTIPS)) {
 	if (want_config[CONFIG_TOOLTIPS]) gtk_tooltips_enable(tooltips);

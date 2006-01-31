@@ -1807,18 +1807,8 @@ void draw_info(const char *str, int color) {
 
 
 void draw_color_info(int colr, const char *buf){
-    if (use_config[CONFIG_COLORTXT]){
 	draw_info(buf,colr);
-    }
-    else {
-	draw_info("==========================================",NDI_BLACK);
-	draw_info(buf,NDI_BLACK);
-	draw_info("==========================================",NDI_BLACK);
-    }
 }
-
-
-
 
 /***********************************************************************
  *

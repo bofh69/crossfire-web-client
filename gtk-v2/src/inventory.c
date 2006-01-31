@@ -489,18 +489,13 @@ void set_weight_limit (uint32 wlim)
 void get_row_color(item *it, int *fg, int *bg)
 {
     *fg = NDI_BLACK;
-    if (!use_config[CONFIG_COLORINV]) {
-	*bg = NDI_WHITE;
-	*fg = NDI_BLACK;
-    } else {
-	if (it->cursed || it->damned) {
-	    if (it->magical) *bg = NDI_NAVY;
-	    else *bg = NDI_RED;
-	} else if (it->magical) {
-	    *bg = NDI_BLUE;
-	}
-	else *bg = NDI_WHITE;
+    if (it->cursed || it->damned) {
+	if (it->magical) *bg = NDI_NAVY;
+	else *bg = NDI_RED;
+    } else if (it->magical) {
+	*bg = NDI_BLUE;
     }
+    else *bg = NDI_WHITE;
 }
 
 /***************************************************************************

@@ -80,7 +80,6 @@ extern void get_inv_display(GtkWidget *frame);
 extern void command_show(const char *params);
 extern void update_list_labels(itemlist *l);
 extern void set_weight_limit(uint32 wlim);
-extern void inventory_update_colorinv(void);
 extern void set_show_weight(const char *s);
 extern void itemlist_set_show_icon(itemlist *l, int new_setting);
 extern void set_show_icon(const char *s);

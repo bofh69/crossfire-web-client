@@ -142,40 +142,38 @@ typedef enum rangetype {
  *                save_defaults
  * probably among other places, if you add a new option.
  */
-#define CONFIG_COLORINV	    1
-#define CONFIG_COLORTXT	    2
-#define CONFIG_DOWNLOAD	    3
-#define CONFIG_ECHO	    4
-#define CONFIG_FASTTCP	    5
-#define CONFIG_CWINDOW	    6
-#define CONFIG_CACHE	    7
-#define CONFIG_FOGWAR	    8
-#define CONFIG_ICONSCALE    9
-#define CONFIG_MAPSCALE	    10
-#define CONFIG_POPUPS	    11
-#define CONFIG_DISPLAYMODE  12
-#define CONFIG_SHOWICON	    13
-#define CONFIG_TOOLTIPS	    14
-#define CONFIG_SOUND	    15
-#define CONFIG_SPLITINFO    16
-#define CONFIG_SPLITWIN	    17
-#define CONFIG_SHOWGRID	    18
-#define CONFIG_LIGHTING	    19
-#define CONFIG_TRIMINFO	    20
-#define CONFIG_MAPWIDTH	    21
-#define CONFIG_MAPHEIGHT    22
-#define CONFIG_FOODBEEP	    23
-#define CONFIG_DARKNESS	    24
-#define CONFIG_PORT	    25		/* Not sure if useful at all anymore */
-#define CONFIG_GRAD_COLOR   26
-#define CONFIG_RESISTS      27
-#define CONFIG_SMOOTH       28
-#define CONFIG_SPLASH	    29
-#define CONFIG_APPLY_CONTAINER	30	/* Reapply container */
-#define CONFIG_MAPSCROLL    31		/* Use bitmap operations for map scrolling */
-#define CONFIG_SIGNPOPUP    32
-#define CONFIG_TIMESTAMP    33
-#define CONFIG_NUMS	    34		/* This should always be the last value in the list */
+#define CONFIG_DOWNLOAD	    1
+#define CONFIG_ECHO	    2
+#define CONFIG_FASTTCP	    3
+#define CONFIG_CWINDOW	    4
+#define CONFIG_CACHE	    5
+#define CONFIG_FOGWAR	    6
+#define CONFIG_ICONSCALE    7
+#define CONFIG_MAPSCALE	    8
+#define CONFIG_POPUPS	    9
+#define CONFIG_DISPLAYMODE  10
+#define CONFIG_SHOWICON	    11
+#define CONFIG_TOOLTIPS	    12
+#define CONFIG_SOUND	    13
+#define CONFIG_SPLITINFO    14
+#define CONFIG_SPLITWIN	    15
+#define CONFIG_SHOWGRID	    16
+#define CONFIG_LIGHTING	    17
+#define CONFIG_TRIMINFO	    18
+#define CONFIG_MAPWIDTH	    19
+#define CONFIG_MAPHEIGHT    20
+#define CONFIG_FOODBEEP	    21
+#define CONFIG_DARKNESS	    22
+#define CONFIG_PORT	    23		/* Not sure if useful at all anymore */
+#define CONFIG_GRAD_COLOR   24
+#define CONFIG_RESISTS      25
+#define CONFIG_SMOOTH       26
+#define CONFIG_SPLASH	    27
+#define CONFIG_APPLY_CONTAINER	28	/* Reapply container */
+#define CONFIG_MAPSCROLL    29		/* Use bitmap operations for map scrolling */
+#define CONFIG_SIGNPOPUP    30
+#define CONFIG_TIMESTAMP    31
+#define CONFIG_NUMS	    32		/* This should always be the last value in the list */
 
 /* CONFIG_LIGHTING can have several possible values - set them accordingly */
 #define CFG_LT_TILE	    1
