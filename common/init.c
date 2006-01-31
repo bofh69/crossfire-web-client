@@ -43,7 +43,7 @@ NULL, "download_all_images", "echo_bindings",
 "mapscale", "popups", "sdl", "showicon", "tooltips", "sound", "splitinfo",
 "split", "show_grid", "lighting", "trim_info_window",
 "map_width", "map_height", "foodbeep", "darkness", "port",
-"grad_color_bars", "resists", "smoothing", "nosplash",
+"grad_color_bars", "resistances", "smoothing", "nosplash",
 "auto_apply_container", "mapscroll", "sign_popups", "message_timestamping"
 };
 

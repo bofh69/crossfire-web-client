@@ -92,11 +92,11 @@ char *rcsid_gtk_config_c =
  * 2) Since the radio button is several widgets, its not as simple
  * as normal buttons to map them to a config value.  Instead,
  * use a range so that it is easy to tell what config value
- * your button belongs to, ie, 100-199 is for the lighting
- * options, 200-299 is for the resistance options, etc.
+ * your button belongs to, eg, 100-199 is for the lighting
+ * options.
  */
 
-#define MAX_BUTTONS	    38
+#define MAX_BUTTONS	    33
 #define RBUTTON	    1
 #define CBUTTON	    2
 #define SEPERATOR   3	    /* Seperator in the window */
@@ -159,16 +159,10 @@ CButtons cbuttons[MAX_BUTTONS] = {
     "improves performance but bugs in\n gtk make the client unstable if this is used." /**/
     "This may work better with gtk 2.0"},
 {NULL, 	    CBUTTON,	    CONFIG_APPLY_CONTAINER,	FLAG_UPDATE,
-    "Automatically re-applies a container when you use apply to close it.  If off, when you use apply to close the container, it stays unapplied"},
+    "Automatically re-applies a container when you use apply to close it. \nIf off, when you use apply to close the container, it stays unapplied"},
 
-{NULL,	    SEPERATOR,		0,		0,
-    "Options on how to display resistances:"},
-{NULL, 	    RBUTTON,	    200,		0,
-    "Don't use a scrollbar, will show a maximum of 7 resistances."},
-{NULL, 	    RBUTTON,	    201,		0,
-    "Display all resistances in a single column, will use a single scrollbar."},
-{NULL, 	    RBUTTON,	    202,		0,
-    "Display all resistances in the form of a double column, may result in one\nor two scrollbars being created"},
+{NULL, 	    CBUTTON,	    CONFIG_RESISTS,	0,
+    "Display resistances in two columns rather than only one."},
 
 /* The following items are shown in the map tag.
  * I grouped them together to make reading them a bit easier,
@@ -265,7 +259,7 @@ static void toggle_splitwin(int newval)
 void applyconfig () {
 
     int onbutton;
-    int lighting = 0, resistances=0;
+    int lighting = 0;
 
     if (face_info.want_faceset) free(face_info.want_faceset);
     face_info.want_faceset = strdup_local(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(faceset_combo)->entry)));
@@ -288,8 +282,6 @@ void applyconfig () {
 	    if ( GTK_TOGGLE_BUTTON (cbuttons[onbutton].widget)->active) {
 		if ( cbuttons[onbutton].config >= 100 &&  cbuttons[onbutton].config < 200)
 		    lighting = cbuttons[onbutton].config - 100;
-		else if ( cbuttons[onbutton].config >= 200 &&  cbuttons[onbutton].config < 300)
-		    resistances = cbuttons[onbutton].config - 200;
 	    }
 	}
     } /* for onbutton ... loop */
@@ -340,6 +332,7 @@ void applyconfig () {
     }
     if (IS_DIFFERENT(CONFIG_RESISTS)) {    
 	use_config[CONFIG_RESISTS] = want_config[CONFIG_RESISTS];
+	resize_resistance_table(use_config[CONFIG_RESISTS]);
     }
     if (!use_config[CONFIG_GRAD_COLOR]) {
 	reset_stat_bars();
@@ -358,7 +351,6 @@ void applyconfig () {
 	if( csocket.fd)
 	    cs_print_string(csocket.fd, "mapredraw");
     }
-    want_config[CONFIG_RESISTS] = resistances;
     if (want_config[CONFIG_RESISTS] != use_config[CONFIG_RESISTS]) {
 	resize_resistance_table(want_config[CONFIG_RESISTS]);
 	use_config[CONFIG_RESISTS] = want_config[CONFIG_RESISTS];
@@ -479,8 +471,6 @@ void configdialog(GtkWidget *widget) {
 		    cbuttons[i].widget = gtk_radio_button_new_with_label(NULL, cbuttons[i].label);
 		}
 		if ((want_config[CONFIG_LIGHTING]+100) == cbuttons[i].config)
-		    gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(cbuttons[i].widget), 1);
-		if ((want_config[CONFIG_RESISTS]+200) == cbuttons[i].config)
 		    gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(cbuttons[i].widget), 1);
 	    }
 	    else if (cbuttons[i].type & SPIN) {
@@ -793,16 +783,11 @@ void load_defaults()
 	    face_info.want_faceset = strdup_local(cp);	/* memory leak ! */
 	    continue;
 	}
-	/* legacy, as this is now just saved as 'lighting' */
-	else if (!strcmp(inbuf, "per_tile_lighting")) {
-	    if (val) want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
-	}
-	else if (!strcmp(inbuf, "per_pixel_lighting")) {
-	    if (val) want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL;
-	}
+	/* legacy support for the old resistances values, we need to adjust the values to the new form */
 	else if (!strcmp(inbuf, "resists")) {
-	    if (val) want_config[CONFIG_RESISTS] = val;
+	    if (val) want_config[CONFIG_RESISTS] = val-1;
 	}
+	
 	else LOG(LOG_WARNING,"gtk::load_defaults","Unknown line in gdefaults: %s %s", inbuf, cp);
     }
     fclose(fp);
@@ -825,12 +810,6 @@ void load_defaults()
     if (!want_config[CONFIG_LIGHTING]) {
 	LOG(LOG_WARNING,"gtk::load_defaults","No lighting mechanism selected - will not use darkness code");
 	want_config[CONFIG_DARKNESS] = FALSE;
-    }
-    if (want_config[CONFIG_RESISTS] > 2) {
-	LOG(LOG_WARNING,"gtk::load_defaults","ignoring resists display value read for gdafaults file.\n"
-            "Invalid value (%d), must be one value of 0,1 or 2.",
-            want_config[CONFIG_RESISTS]);
-	want_config[CONFIG_RESISTS] = 0;
     }
     
     /* Make sure the map size os OK */

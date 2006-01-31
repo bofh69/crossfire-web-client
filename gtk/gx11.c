@@ -195,8 +195,7 @@ GtkWidget *res_scrolled_window;	/* window the resistances are in */
 GtkWidget *skill_scrolled_window; /* window the skills are in */
 
 
-#define SHOW_RESISTS 24
-static GtkWidget *resists[SHOW_RESISTS];
+static GtkWidget *resists[NUM_RESISTS];
 GtkWidget *ckentrytext, *ckeyentrytext, *cmodentrytext, *cnumentrytext;
 
 GdkColor gdk_green =    { 0, 0, 0xcfff, 0 };
@@ -2250,8 +2249,6 @@ static int get_message_display(GtkWidget *frame) {
     GtkWidget *res_mainbox;
     GtkWidget *reswindow;
 
-    int i, left=0, right=0;
-
     /* initialize the main hbox */
     res_mainbox = gtk_hbox_new (TRUE,0);
     gtk_container_add (GTK_CONTAINER(frame), res_mainbox);
@@ -2283,69 +2280,21 @@ static int get_message_display(GtkWidget *frame) {
     reswindow = gtk_hbox_new (TRUE, 0);
     gtk_box_pack_start(GTK_BOX(res_mainbox), reswindow, FALSE, TRUE, 0);
 
-    /* initialize labels for all modes of CONFIG_RESISTS */
-    fire_label = gtk_label_new ("    ");
-    run_label = gtk_label_new ("   ");
+    /* create the resistance table*/
+    restable = gtk_table_new (4,12,FALSE);
 
-    /* place labels for mode 2 of CONFIG_RESISTS */
-    if (use_config[CONFIG_RESISTS]==2) {
-	restable = gtk_table_new (4,12,FALSE);
-	gtk_table_attach (GTK_TABLE(restable), fire_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	gtk_table_attach (GTK_TABLE(restable), run_label, 3, 4, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-    }
-
-    /* place labels for mode 1 and 0 of CONFIG_RESISTS */
-    if (use_config[CONFIG_RESISTS]<=1) {
-	restable = gtk_table_new (2,24,FALSE);
-	gtk_table_attach (GTK_TABLE(restable), fire_label, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	gtk_table_attach (GTK_TABLE(restable), run_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-    }
-
-    /* show labels for all modes of CONFIG_RESISTS */
-    gtk_widget_show (fire_label);
-    gtk_widget_show (run_label);
-
-    /* make and place labels for showing the resistances - start */
-    for (i=0; i< SHOW_RESISTS ; i++) {
-	resists[i] = gtk_label_new("          ");
-
-	/* place the labels for mode 2 in the table restable */
-	if (use_config[CONFIG_RESISTS]==2) {
-	    if ((i/2)*2 != i) {
-		left++;
-		gtk_table_attach (GTK_TABLE(restable), resists[i], 1, 2, 3+left, 4+left, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	    } else {
-		right++;
-		gtk_table_attach (GTK_TABLE(restable), resists[i], 3, 4, 3+right, 4+right, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	    }
-	    gtk_widget_show (resists[i]);
-	}
-
-	/* place the labels for mode 1 in the table restable */
-	else if (use_config[CONFIG_RESISTS]==1) {
-	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	    gtk_widget_show (resists[i]);
-	}
-
-	/* place the labels for mode 0 in the table restable - only seven - old style */
-	else if ( (use_config[CONFIG_RESISTS]==0) && (i <= 6) ) {
-	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	    gtk_widget_show (resists[i]);
-	}
-    }
-    /* make and place labels for showing the resistances - stop */
-
-    /* packing the restable for mode not 0 - scrollable*/
+    /* packing the restable in a scrollable window*/
     res_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
     gtk_container_set_border_width (GTK_CONTAINER (res_scrolled_window), 0);
-    if (want_config[CONFIG_RESISTS] ==0)
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
-    else
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),
+	GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
     gtk_box_pack_start(GTK_BOX(reswindow), res_scrolled_window, TRUE, TRUE, 0);
     gtk_widget_show (res_scrolled_window);
     gtk_scrolled_window_add_with_viewport ( GTK_SCROLLED_WINDOW (res_scrolled_window), restable);
+
+    /* finally, draw the resistances table */
+    resize_resistance_table(use_config[CONFIG_RESISTS]);
+
     /* resistances table part - end */
 
     /* now showing all not already showed widgets */
@@ -2357,13 +2306,12 @@ static int get_message_display(GtkWidget *frame) {
     return 0;
 }
 
-/* This changes the layout of the resistance window.
+/* This handles layout of the resistance window.
  * We end up just removing (and thus freeing) all the data and
  * then create new entries.  This keeps things simpler, because
  * in basic mode, not all the resist[] widgets are attached,
  */
-void resize_resistance_table(int resists_show)
-{
+void resize_resistance_table(int resists_show) {
     int i, left=0, right=0;
 
     while (GTK_TABLE(restable)->children) {
@@ -2378,30 +2326,27 @@ void resize_resistance_table(int resists_show)
     fire_label = gtk_label_new ("    ");
     run_label = gtk_label_new ("   ");
 
-    /* place labels for mode 2 of CONFIG_RESISTS */
-    if (resists_show == 2) {
+    /* place labels for dual-column mode of CONFIG_RESISTS */
+    if (resists_show) {
 	gtk_table_resize(GTK_TABLE(restable), 4,12);
 	gtk_table_attach (GTK_TABLE(restable), fire_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	gtk_table_attach (GTK_TABLE(restable), run_label, 3, 4, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-    }
-
-    /* place labels for mode 1 and 0 of CONFIG_RESISTS */
-    if (resists_show<=1) {
+    } 
+    else { /* single column mode */
 	gtk_table_resize(GTK_TABLE(restable), 2,24);
 	gtk_table_attach (GTK_TABLE(restable), fire_label, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	gtk_table_attach (GTK_TABLE(restable), run_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-
     }
     /* show labels for all modes of CONFIG_RESISTS */
     gtk_widget_show (fire_label);
     gtk_widget_show (run_label);
     /* make and place labels for showing the resistances - start */
 
-    for (i=0; i< SHOW_RESISTS ; i++) {
+    for (i=0; i< NUM_RESISTS; i++) {
 	resists[i] = gtk_label_new("          ");
 
-	/* place the labels for mode 2 in the table restable */
-	if (resists_show==2) {
+	/* place the labels for dual columns in the table restable */
+	if (resists_show) {
 	    if ((i/2)*2 != i) {
 		left++;
 		gtk_table_attach (GTK_TABLE(restable), resists[i], 1, 2, 3+left, 4+left, GTK_FILL | GTK_EXPAND, 0, 0, 0);
@@ -2411,24 +2356,12 @@ void resize_resistance_table(int resists_show)
 	    }
 	    gtk_widget_show (resists[i]);
 	}
-
-	/* place the labels for mode 1 in the table restable */
-	else if (resists_show==1) {
-	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-	    gtk_widget_show (resists[i]);
-	}
-
-	/* place the labels for mode 0 in the table restable - only seven - old style */
-	else if ( (resists_show==0) && (i <= 6) ) {
+	else { /* single column style */
 	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	    gtk_widget_show (resists[i]);
 	}
     }
-
-    if (resists_show ==0)
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
-    else
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 }
 
 static void draw_stat_bar(int bar_pos, float bar, int is_alert)
@@ -2568,11 +2501,11 @@ void draw_message_window(int redraw) {
 		    gtk_label_set(GTK_LABEL(resists[j]), buf);
 		    gtk_widget_draw(resists[j], NULL);
 		    j++;
-		    if (j >= SHOW_RESISTS) break;
+		    if (j >= NUM_RESISTS) break;
 		}
 	    }
 	    /* Erase old/unused resistances */
-	    while (j<SHOW_RESISTS) {
+	    while (j<NUM_RESISTS) {
 		gtk_label_set(GTK_LABEL(resists[j]), "              ");
 		gtk_widget_draw(resists[j], NULL);
 		j++;

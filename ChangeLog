@@ -2,6 +2,17 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Remove unscrollable single column resistances option from gcfclient. 
+Change the setting name in the config file and convert old values.
+Reduce MAX_BUTTONS to 33. Replace radio buttons with a single push button.
+Remove legacy lighting save code. Remove SHOW_RESISTS, use NUM_RESISTS
+instead (this reduces the blank space at the bottom of the resistances
+window). Call resize_resistance_table from get_message_display, remove
+duplicated code from the latter.
+Affected files:
+gtk/gx11.c, config.c
+common/init.c
+--
 Remove coloured inventory and text options, as well as all supporting code
 for them. Make text always print in colour. Remove special code for 
 initialising black and white monitors in cfclient, and change its background
