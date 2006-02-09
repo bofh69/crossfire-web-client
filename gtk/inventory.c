@@ -665,7 +665,8 @@ static void list_button_event(
     }
     if (event->button==3) {
         if (it->locked) {
-            draw_info ("This item is locked.",NDI_BLACK);
+            draw_info ("This item is locked. To drop it, first unlock by shift+leftclicking on it.",
+		NDI_BLACK);
         } else {
             cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(counttext));
             client_send_move (view->move_dest->tag, it->tag, cpl.count);

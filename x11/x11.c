@@ -2521,7 +2521,8 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
 	    break;
 	  case 3:
 	    if (tmp->locked) {
-		draw_info ("This item is locked.",NDI_BLACK);
+		draw_info ("This item is locked. To drop it, first unlock by shift+leftclicking on it.",
+		    NDI_BLACK);
 	    } else if (l == &inv_list)
 		client_send_move (look_list.env->tag, tmp->tag, cpl.count);
 	    else

@@ -166,7 +166,8 @@ static void list_item_action(GdkEventButton *event, item *tmp)
     }
     else if (event->button == 3) {
 	if (tmp->locked) {
-	    draw_info ("This item is locked.",NDI_BLACK);
+	    draw_info ("This item is locked. To drop it, first unlock by shift+leftclicking on it.",
+		NDI_BLACK);
 	} else {
 	    uint32	dest;
 
