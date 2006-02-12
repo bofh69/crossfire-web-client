@@ -2,6 +2,13 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Apply patch #1429975 (patch to support port numbers in metaserver host names)
+by Marc Lehmann.
+---
+common/metaserver.c: In metaserver_select() allow a port number in the server
+   string.
+Andreas Kirschbaum 2006-02-12
+
 common/metaserver.c, common/metaserver.h: Make cached_servers_loaded static
    since it is not used elsewhere.
 Andreas Kirschbaum 2006-02-12

@@ -395,8 +395,9 @@ void metaserver_show(int show_selection) {
  */
 int metaserver_select(char *sel) {
     int num = atoi(sel);
-    char buf[MAX_BUF], *server_name = NULL, *server_ip;
-
+    int port;
+    char buf[MAX_BUF], buf2[MAX_BUF];
+    char *server_name = NULL, *server_ip;
 
     /* User hit return */
     if (sel[0] == 0) {
@@ -444,12 +445,22 @@ int metaserver_select(char *sel) {
         return 1;
     }
 
-    sprintf(buf, "Trying to connect to %s", server_name);
+    /* check for :port suffix, and use it */
+    if ((sel = strrchr(server_name, ':')) != NULL && (port = atoi(sel+1)) > 0) {
+        snprintf(buf2, sizeof(buf2), "%s", server_name);
+        buf2[sel-server_name] = '\0';
+        server_name = buf2;
+    }
+    else {
+        port = use_config[CONFIG_PORT];
+    }
+
+    sprintf(buf, "Trying to connect to %s:%d", server_name, port);
     draw_info(buf, NDI_BLACK);
 #ifdef MULTKEYS
-    csocket.fd = init_connection(server_name, use_config[CONFIG_PORT]);
+    csocket.fd = init_connection(server_name, port);
 #else
-    csocket.fd = init_connection(server_ip, use_config[CONFIG_PORT]);
+    csocket.fd = init_connection(server_ip, port);
 #endif
     if (csocket.fd == -1) {
         draw_info("Unable to connect to server.", NDI_BLACK);
