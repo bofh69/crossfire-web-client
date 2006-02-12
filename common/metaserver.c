@@ -51,7 +51,7 @@ int cached_servers_num = 0;
 
 char *cached_servers_name[CACHED_SERVERS_MAX];
 char *cached_servers_ip[CACHED_SERVERS_MAX];
-int cached_servers_loaded = 0;
+static int cached_servers_loaded = 0;
 
 const char *cached_server_file = NULL;
 

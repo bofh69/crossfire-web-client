@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/metaserver.c, common/metaserver.h: Make cached_servers_loaded static
+   since it is not used elsewhere.
+Andreas Kirschbaum 2006-02-12
+
 gtk/inventory.c, gtk-v2/src/inventory.c, x11/x11.c: 
 Make the message displayed for locked items more descriptive.
 Brendan Lally 2005-02-09
