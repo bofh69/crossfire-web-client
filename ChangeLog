@@ -2,6 +2,19 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Apply patch #1430279 (code-cleanup: const, static, etc) by Stefan Huehner.
+---
+Affected files: common/{client.c,client.h,commands.c,def-keys.h,external.h,
+init.c,item-types.h,item.c,metaserver.c,misc.c,p_cmd.c,player.c,proto.h},
+gtk/{config.c,gtkproto.h,gx11.c,help.c,inventory.c,keys.c,png.c,sdl.c,sound.c,
+text.c,win32/soundsdef.h},
+gtk-v2/src/{inventory.c,keys.c,magicmap.c,main.c,sdl.c,sound.c,stats.c},
+pixmaps/{all.xpm,close.xpm,coin.xpm,crossfiretitle.xpm,hand.xpm,hand2.xpm,
+lock.xpm,mag.xpm,nonmag.xpm,question.xpm,sign_east.xpm,sign_flat.xpm,
+sign_west.xpm,skull.xpm,unlock.xpm}, sound-src/{alsa9.c,cfsndserv.c,common.c},
+utils/mdk.sh, x11/{sound.c,x11.c,xutil.c}
+Andreas Kirschbaum 2006-02-16
+
 Apply patch #1429975 (patch to support port numbers in metaserver host names)
 by Marc Lehmann.
 ---

@@ -49,7 +49,7 @@ static GdkGC *magic_map_gc=NULL;
 /* This function draws the magic map - basically, it is just a simple encoding
  * of space X is color C.
  */
-void draw_magic_map()
+void draw_magic_map(void)
 {
     int x=0, y=0;
 
@@ -113,7 +113,7 @@ void draw_magic_map()
 
 
 /* Basically, this just flashes the player position on the magic map */
-void magic_map_flash_pos()
+void magic_map_flash_pos(void)
 {
 
     /* Don't want to keep doing this if the user switches back

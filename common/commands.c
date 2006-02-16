@@ -466,7 +466,7 @@ void setTextManager(int type, ExtTextManager callback){
     current->next = firstTextManager;
     firstTextManager=current;
 }
-ExtTextManager getTextManager(int type){
+static ExtTextManager getTextManager(int type) {
     TextManager* current = firstTextManager;
     while (current!=NULL){
         if (current->type == type){            

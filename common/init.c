@@ -37,7 +37,7 @@ char *rcsid_common_init_c =
  * something like a fprintf(outifle, "%s: %d", config_names[i],
  *			    want_config[i]);
  */
-char *config_names[CONFIG_NUMS] = {
+const char *const config_names[CONFIG_NUMS] = {
 NULL, "download_all_images", "echo_bindings",
 "fasttcpsend", "command_window", "cacheimages", "fog_of_war", "iconscale",
 "mapscale", "popups", "sdl", "showicon", "tooltips", "sound", "splitinfo",

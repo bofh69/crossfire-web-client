@@ -292,7 +292,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
 }
 
 /* This code is common to both x11 and gdk client */
-static void init_default_keybindings()
+static void init_default_keybindings(void)
 {
     char buf[MAX_BUF];
     int i;
@@ -770,7 +770,7 @@ static void save_individual_key(FILE *fp, Key_Entry *key, KeyCode kc)
     save_individual_key(fp, key->next, kc);
 }
 
-static void save_keys()
+static void save_keys(void)
 {
     char buf[MAX_BUF], buf2[MAX_BUF];
     int i;
@@ -892,7 +892,7 @@ static void configure_keys(uint32 keysym)
     return;
 }
 
-static void unbind_usage()
+static void unbind_usage(void)
 {
     draw_info("Usage: unbind <entry_number> or",NDI_BLACK);
     draw_info("Usage: unbind [-a] [-g] to show existing bindings", NDI_BLACK);

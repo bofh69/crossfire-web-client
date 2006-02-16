@@ -1,5 +1,5 @@
 /* XPM */
-char * close_xpm[] = {
+static const char *const close_xpm[] = {
 "24 13 2 1",
 " 	s None  c None",
 "#	c black",

@@ -1,5 +1,5 @@
 /* XPM */
-static char *crossfiretitle[] = {
+static const char *const crossfiretitle[] = {
 /* width height num_colors chars_per_pixel */
 "   346    87       20            1",
 /* colors */

@@ -763,7 +763,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
  * to go one outside the bounds (hence, the +1 in the coordinate
  * values)
  */
-static void update_redrawbitmap()
+static void update_redrawbitmap(void)
 {
     int mx,my, x,y;
 

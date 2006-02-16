@@ -1,5 +1,5 @@
 /* XPM */
-static char * sign_east_xpm[] = {
+static const char *const sign_east_xpm[] = {
 "750 400 376 2",
 "  	c #FFFFFF",
 ". 	c #F7F7F7",

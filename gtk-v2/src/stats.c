@@ -91,7 +91,7 @@ static StatWindow statwindow;
  * normally show up in.
  */
 typedef struct {
-    char    *name;
+    const char *name;
     int	    value;
 } NameMapping;
 
@@ -256,7 +256,7 @@ static int mapping_sort(NameMapping *a, NameMapping *b)
     else return strcasecmp(a->name, b->name);
 }
 
-static void update_stat_mapping()
+static void update_stat_mapping(void)
 {
     int i;
 
@@ -492,7 +492,7 @@ void draw_stats(int redraw) {
 
 
 
-void clear_stat_mapping()
+void clear_stat_mapping(void)
 {
     need_mapping_update=1;
 }

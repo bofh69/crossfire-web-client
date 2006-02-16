@@ -54,7 +54,7 @@ ChildProcess* sound_process;
  * function will likely disable sound support/requests from the server.
  */
 
-int init_sounds()
+int init_sounds(void)
 {
     /* Easy trick - global nosound is set in the arg processing - if set,
      * just return -1 - this way, the calling function only needs to check

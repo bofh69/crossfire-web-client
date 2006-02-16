@@ -114,7 +114,7 @@ typedef struct {
     int		type;
     int		config;
     int		flags;
-    char	*label;
+    const char	*label;
 } CButtons;
 
 static GtkWidget *gtkwin_config = NULL,	    /* main window */

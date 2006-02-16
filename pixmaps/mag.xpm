@@ -1,5 +1,5 @@
 /* XPM */
-static char * mag_xpm[] = {
+static const char *const mag_xpm[] = {
 "20 16 6 1",
 " 	s None	c None",
 ".	s Light blue	c DodgerBlue",

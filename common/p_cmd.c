@@ -68,7 +68,7 @@ name name name ...
 
 
 /* TODO Help topics other than commands? Refer to other documents? */
-static void do_clienthelp_list() {
+static void do_clienthelp_list(void) {
     ConsoleCommand ** commands_array;
     ConsoleCommand * commands_copy;
     int i;
@@ -949,7 +949,7 @@ void extended_command(const char *ocommand) {
  
 /* TODO Dynamically generate. */
  
-static char *commands[] = {
+static const char *const commands[] = {
 "save", "sound", "party", "gsay", "apply", "brace",
 "cast", "disarm", "disconnect", "drop", "dropall", "examine",
 "get", "help", "hiscore", "inventory", "invoke",

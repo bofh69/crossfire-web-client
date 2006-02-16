@@ -355,7 +355,7 @@ int audio_play(int buffer,int off){
 
 #elif defined(OSS_SOUND)
 
-int init_audio(){
+int init_audio(void){
 
   const char *audiodev;
   int value,format,tmp;
@@ -608,7 +608,7 @@ int audio_play(int buffer,int off){
  * function will likely disable sound support/requests from the server.
  */
 
-int init_sounds()
+int init_sounds(void)
 {
     int i;
     FILE *fp;
@@ -874,7 +874,7 @@ int SoundCmd(unsigned char *data,  int len)
     return 0;
 }
 
-int write_settings(){
+int write_settings(void) {
 FILE *f;
 char *home;
 char *path;
@@ -900,7 +900,7 @@ char *path;
   return 0;
 }
 
-int read_settings(){
+int read_settings(void) {
     FILE *f;
     char *home;
     char *path;

@@ -319,7 +319,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
  *                             Tchize 22 May 2004
  */
  
-void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,                /*colors*/
+static void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,         /*colors*/
 			     int width, int height,                         /*color square size*/
 			     int startx, int starty, int endx, int endy,    /*interpolation region*/
 			     int destx, int desty){                         /*where in lightmap to save result*/

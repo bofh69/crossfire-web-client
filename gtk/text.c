@@ -44,8 +44,8 @@ GdkBitmap* btnClose_bm = NULL;
 GdkPixmap* btnClose_pm = NULL;
 
 typedef struct picture_message_struct {
-    char* title;
-    char** xpm;
+    const char *title;
+    const char *const *xpm;
     int x;
     int y;
     int width;
@@ -61,13 +61,13 @@ picture_message sign_message[] = {
     {"left sign",sign_west_xpm,95,85,615,190,750,400,NULL},
     {"right sign",sign_east_xpm,45,85,615,190,750,400,NULL},
     {"direction sign",sign_flat_xpm,70,45,390,305,500,500,NULL} };
-void init_pictures (GtkWidget* refWindow){ 
+static void init_pictures(GtkWidget *refWindow) {
     if (btnClose_pm==NULL)          
         btnClose_pm = gdk_pixmap_create_from_xpm_d(refWindow->window,&btnClose_bm,
                 &gtk_widget_get_style(refWindow)->bg[GTK_STATE_NORMAL],
                 (gchar**)close_xpm);
 }
-void prepare_book_window(){
+static void prepare_book_window(void) {
     if (!book_root){    
         book_root= gtk_window_new (GTK_WINDOW_TOPLEVEL);
         gtk_window_set_title(GTK_WINDOW(book_root),"books");
@@ -82,7 +82,7 @@ void prepare_book_window(){
         gtk_window_set_position(GTK_WINDOW(book_root),GTK_WIN_POS_CENTER);
     }
 }
-GtkWidget* create_text_picture_window(picture_message* layout, char* message){
+static GtkWidget *create_text_picture_window(picture_message *layout, char *message) {
     GtkWidget *window, *content, *fixed, *scroll, *close;    
     window = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_set_title(GTK_WINDOW(window),layout->title);
@@ -132,7 +132,7 @@ GtkWidget* create_text_picture_window(picture_message* layout, char* message){
     gtk_widget_grab_focus (GTK_WIDGET(close));
     return window;
 }
-void show_media_message(const char* title, const char* message){
+static void show_media_message(const char *title, const char *message) {
     GtkWidget *window, *scroll, *content;
     window = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_set_title(GTK_WINDOW(window),message);
@@ -163,7 +163,7 @@ void show_media_message(const char* title, const char* message){
  * Parse message, extract multimedia information, and push
  * as appropriate in the GtkText
  */
-char *arcane_medium_fontname[]={
+static const char *const arcane_medium_fontname[] = {
     "-*-cuneifontlight-*-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-linotext-*-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-blackforest-*-r-*-*-*-120-*-*-*-*-iso8859-*",
@@ -172,7 +172,7 @@ char *arcane_medium_fontname[]={
     "-*-caligula-*-*-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     };
-char *hand_medium_fontname[]={
+static const char *const hand_medium_fontname[] = {
     "-*-dobkinscript-*-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-coronetscript-*-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-muriel-*-r-*-*-*-120-*-*-*-*-iso8859-*",
@@ -181,61 +181,61 @@ char *hand_medium_fontname[]={
     "-*-rechtmanscript-*-r-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
 };
-char *strange_medium_fontname[]={
+static const char *const strange_medium_fontname[] = {
     "-*-annstone-*-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-shalomstick-*-r-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     
 };
-char *print_medium_fontname[]={
+static const char *const print_medium_fontname[] = {
     "-*-arial-medium-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-bookman-light-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-agate-normal-r-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     };
-char *print_bold_fontname[]={
+static const char *const print_bold_fontname[] = {
     "-*-arial-bold-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-bookman-demi-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-agate-bold-r-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     };
-char *print_italic_fontname[]={
+static const char *const print_italic_fontname[] = {
     "-*-arial-medium-i-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-bookman-light-i-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-agate-normal-i-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     };
-char *print_italicbold_fontname[]={
+static const char *const print_italicbold_fontname[] = {
     "-*-arial-bold-i-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-bookman-demi-i-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-agate-bold-i-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     };
-char *fixed_medium_fontname[]={
+static const char *const fixed_medium_fontname[] = {
     "-*-fixed-medium-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-courrier-medium-*-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-andale mono-medium-*-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     };
-char *fixed_bold_fontname[]={
+static const char *const fixed_bold_fontname[] = {
     "-*-fixed-bold-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-courrier-bold-*-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-andale mono-medium-*-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     };
-char *fixed_italic_fontname[]={
+static const char *const fixed_italic_fontname[] = {
     "-*-fixed-medium-o-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-courrier-medium-o-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-andale mono-medium-*-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     };
-char *fixed_italicbold_fontname[]={
+static const char *const fixed_italicbold_fontname[] = {
     "-*-fixed-bold-i-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-courrier-bold-o-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-andale mono-*-*-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
     };
-GdkFont* load_a_font(char **font_list){
+static GdkFont *load_a_font(const char *const font_list[]) {
     GdkFont* result;
     int i;
     for (i=0; font_list[i]!=NULL;i++){
@@ -256,7 +256,7 @@ GdkFont* style_print[4];
 #define STYLE_ITALIC 2
 int style_inited = 0;
 
-void init_fonts(){
+static void init_fonts(void) {
     if (!style_inited){
         style_fixed[0]=load_a_font(fixed_medium_fontname);
         style_fixed[1]=load_a_font(fixed_bold_fontname);
@@ -336,7 +336,7 @@ media_state write_media_with_state(GtkText* textarea, const char* message, media
     free(original);
     return current_state;
 }
-void add_book(char* title, char* message){
+static void add_book(char *title, char *message) {
     GtkWidget *content,*label,*hbox, *scroll, *panel, *close, *closepic;
     prepare_book_window();
     
@@ -388,7 +388,7 @@ void add_book(char* title, char* message){
  */
 extern GtkWidget* gtkwin_info_text;
 extern GtkWidget* gtkwin_info_text2;
-void book_callback(int flag, int type, int subtype, char* message){
+static void book_callback(int flag, int type, int subtype, char *message) {
     LOG(LOG_DEBUG,"gtk::book_callback","got callback %d subtype %d\n",type,subtype);
     if (message!=NULL){
         char* title = message;
@@ -413,7 +413,7 @@ void book_callback(int flag, int type, int subtype, char* message){
     }    
 }
 char* last_motd=NULL;
-void motd_callback(int flag, int type, int subtype, char* message){
+static void motd_callback(int flag, int type, int subtype, char *message) {
     
     if(last_motd)
         free(last_motd);
@@ -427,12 +427,12 @@ void motd_callback(int flag, int type, int subtype, char* message){
         write_media(GTK_TEXT(gtkwin_info_text), message);
     }
 }
-void void_callback(int flag, int type, int subtype, char* message){
+static void void_callback(int flag, int type, int subtype, char *message) {
     
     LOG(LOG_INFO,"gtk::void_callback","got message --\n%s\n",message);
     
 }
-void sign_callback(int flag, int type, int subtype, char* message){
+static void sign_callback(int flag, int type, int subtype, char *message) {
     GtkWidget *window;
     int flags;
     if ( (subtype>4) || (subtype <1))    
@@ -456,18 +456,18 @@ void sign_callback(int flag, int type, int subtype, char* message){
     }
     
 }
-char* getMOTD(){    
+const char *getMOTD(void) {
     return last_motd==NULL?"Please read motd written\nin [i]green[/i] inside main\nmessage window":last_motd;
 }
 char *rules = NULL;
 news_entry* first_news = NULL;
-char* get_rules(){
+char *get_rules(void) {
     return rules;    
 }
-news_entry* get_news(){
+news_entry *get_news(void) {
     return first_news;    
 }
-void admin_callback(int flag, int type, int subtype, char* message){
+static void admin_callback(int flag, int type, int subtype, char *message) {
     char* str1;
     news_entry* new;
     switch (subtype){
@@ -512,14 +512,14 @@ void admin_callback(int flag, int type, int subtype, char* message){
     }
     show_media_message("Unknown admin message",message);
 }
-void init_text_callbacks(){
+void init_text_callbacks(void) {
     setTextManager(MSG_TYPE_BOOK,book_callback);
     setTextManager(MSG_TYPE_MOTD,motd_callback);
     setTextManager(MSG_TYPE_MONUMENT,void_callback);
     setTextManager(MSG_TYPE_SIGN,sign_callback);
     setTextManager(MSG_TYPE_ADMIN,admin_callback);
 }
-void cleanup_textmanagers(){
+void cleanup_textmanagers(void) {
     news_entry* last_entry;
     if (last_motd)
         free(last_motd);

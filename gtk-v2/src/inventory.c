@@ -81,8 +81,8 @@ enum {
 static int num_inv_notebook_pages=0;
 
 typedef struct {
-    char    *name;		/* Name of this page, for use with the show command */
-    char    **xpm;		/* Icon to draw for the notebook selector */
+    const char *name;		/* Name of this page, for use with the show command */
+    const char *const *xpm;	/* Icon to draw for the notebook selector */
     int(*show_func) (item *it);	/* Function that takes an item and */
 				/* returns INV_SHOW_* above on whether to show this */
 				/* item and if it should be shown in color */

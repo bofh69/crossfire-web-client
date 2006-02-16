@@ -1,5 +1,5 @@
 /* XPM */
-static char * all_xpm[] = {
+static const char *const all_xpm[] = {
 "20 16 4 1",
 " 	s None	c None",
 ".	s Dark brown	c Sienna",

@@ -95,7 +95,7 @@ char *rcsid_gtk_gx11_c =
 extern SDL_Surface* mapsurface;
 #endif
 
-static char *colorname[] = {
+static const char *const colorname[] = {
 "Black",                /* 0  */
 "White",                /* 1  */
 "Navy",                 /* 2  */
@@ -341,10 +341,10 @@ int do_scriptout()
 }
 #endif /* WIN32 */
 
-void event_loop()
+void event_loop(void)
 {
     gint fleep;
-    extern int do_timeout(); /* forward */
+    extern int do_timeout(void); /* forward */
     int tag;
 
     if (MAX_TIME==0) {
@@ -381,7 +381,7 @@ void event_loop()
 
 
 
-void end_windows()
+void end_windows(void)
 {
   free(last_str);
 }
@@ -464,7 +464,7 @@ void button_map_event(GtkWidget *widget, GdkEventButton *event) {
  *****************************************************************************/
 
 /* Initializes the data for image caching */
-static void init_cache_data()
+static void init_cache_data(void)
 {
     int i;
     GtkStyle *style;
@@ -547,7 +547,7 @@ void gtk_command_history(int direction)
     cpl.input_state = Command_Mode;
 }
 
-void gtk_complete_command()
+void gtk_complete_command(void)
 {
     const gchar *entry_text, *newcommand;
 
@@ -986,7 +986,7 @@ GtkWidget *loginButtonCancel = NULL;
 GtkWidget *loginMessage = NULL;
 
 char password[64]="";
-void setUserPass(GtkButton* button, gpointer func_data){
+static void setUserPass(GtkButton *button, gpointer func_data) {
     gchar* user;
     gchar* pass;
     user=gtk_editable_get_chars (GTK_EDITABLE(userText),0,-1);
@@ -1006,7 +1006,7 @@ void setUserPass(GtkButton* button, gpointer func_data){
     g_free(pass);
     gtk_widget_hide(loginWindow);
 }
-void confirmUserPass(GtkButton* button, gpointer func_data){
+static void confirmUserPass(GtkButton *button, gpointer func_data) {
     gchar* pass;
     pass=gtk_editable_get_chars (GTK_EDITABLE(passwordText2),0,-1);
     send_reply(pass);
@@ -1014,13 +1014,13 @@ void confirmUserPass(GtkButton* button, gpointer func_data){
     g_free(pass);
     gtk_widget_hide(loginWindow);
 }
-void cancelConnection(GtkButton* button, gpointer func_data){
+static void cancelConnection(GtkButton *button, gpointer func_data) {
     gtk_widget_hide(loginWindow);
     cpl.input_state = Metaserver_Select;
     disconnect(GTK_WIDGET(button));
 }
 
-void disable_ok_if_empty(gpointer button,GtkEditable* entry){
+static void disable_ok_if_empty(gpointer button, GtkEditable *entry) {
     gchar *passcontent,*txtcontent;
     txtcontent = gtk_editable_get_chars(GTK_EDITABLE(userText),0,-1);
     passcontent= gtk_editable_get_chars(GTK_EDITABLE(passwordText)  ,0,-1);
@@ -1037,19 +1037,19 @@ void disable_ok_if_empty(gpointer button,GtkEditable* entry){
     g_free(txtcontent);
     g_free(passcontent);
 }
-void change_focus(GtkWidget* focusTo, GtkEditable *entry){
+static void change_focus(GtkWidget *focusTo, GtkEditable *entry) {
 
     char *txtcontent = gtk_editable_get_chars(entry,0,-1);
 /*    printf("switch focus\n"); */
     if (txtcontent && (strlen(txtcontent)>0))
             gtk_widget_grab_focus(focusTo);
 }
-void activate_ok_if_not_empty(GtkWidget* button, GtkEditable *entry){
+static void activate_ok_if_not_empty(GtkWidget *button, GtkEditable *entry) {
     char *txtcontent = gtk_editable_get_chars(entry,0,-1);
     if (txtcontent && (strlen(txtcontent)>0))
         gtk_widget_activate(button);
 }
-void fill_news(GtkWidget* o, news_entry* news){
+static void fill_news(GtkWidget *o, news_entry *news) {
     media_state state;
     while(news){
         state = write_media(GTK_TEXT(o),"[b]");
@@ -1065,7 +1065,7 @@ static gint dialog_delete_event_callback(GtkWidget *widget, GdkEvent *event, gpo
     loginWindow = NULL;
     return FALSE;
     }
-void buildLoginDialog(){
+static void buildLoginDialog(void) {
     if (loginWindow==NULL){
         /* build window */
         GtkWidget *vbox, *table, *label, *hbox, *vscroll;
@@ -1218,7 +1218,7 @@ void buildLoginDialog(){
     gtk_widget_show(loginWindow);
 }
 guint signalLoginDialogClicked = -1;
-void logUserIn(){
+static void logUserIn(void) {
     buildLoginDialog();
     gtk_label_set_text(GTK_LABEL(loginMessage),"Type in user name and password");
     gtk_entry_set_editable(GTK_ENTRY(userText),TRUE);
@@ -1239,11 +1239,11 @@ void logUserIn(){
     gtk_entry_set_text(GTK_ENTRY(passwordText2),"");
     gtk_widget_grab_focus(userText);
 }
-void sendPassword(){
+static void sendPassword(void) {
     send_reply(password);
 	cpl.input_state = Playing;
 }
-void confirmPassword(){
+static void confirmPassword(void) {
     buildLoginDialog();
     gtk_label_set_text(GTK_LABEL(loginMessage),"Creating new user, please confirm password");
     gtk_entry_set_editable(GTK_ENTRY(userText),FALSE);
@@ -2225,7 +2225,7 @@ void create_stat_bar (GtkWidget *mtable, gint row, gchar *label, gint bar, GtkWi
 /* This is used when going from gradiated color stat bars back
  * to the normal - we need to reset the colors.
  */
-void reset_stat_bars() {
+void reset_stat_bars(void) {
     int i;
 
     for (i=0; i<4; i++) {
@@ -2603,7 +2603,7 @@ void aboutdialog(GtkWidget *widget) {
   }
 }
 
-void createBugTracker(){
+void createBugTracker(void) {
     if (bugtrack ==NULL){
         LogEntry* le;
         bugtrack = gtk_text_new (NULL, NULL);
@@ -2825,72 +2825,72 @@ void new_menu_pickup(GtkWidget *button, int val)
 }
 
 
-void menu_pickup0 () {
+void menu_pickup0(void) {
   pickup_mode = 0;
   send_command("pickup 0", -1, 0);
 }
 
-void menu_pickup1 () {
+void menu_pickup1(void) {
   pickup_mode = 1;
   send_command("pickup 1", -1, 0);
 }
 
-void menu_pickup2 () {
+void menu_pickup2(void) {
   pickup_mode = 2;
   send_command("pickup 2", -1, 0);
 }
 
-void menu_pickup3 () {
+void menu_pickup3(void) {
   pickup_mode = 3;
   send_command("pickup 3", -1, 0);
 }
 
-void menu_pickup4 () {
+void menu_pickup4(void) {
   pickup_mode = 4;
   send_command("pickup 4", -1, 0);
 }
 
-void menu_pickup5 () {
+void menu_pickup5(void) {
   pickup_mode = 5;
   send_command("pickup 5", -1, 0);
 
 }
 
-void menu_pickup6 () {
+void menu_pickup6(void) {
   pickup_mode = 6;
   send_command("pickup 6", -1, 0);
 }
 
-void menu_pickup7 () {
+void menu_pickup7(void) {
   pickup_mode = 7;
   send_command("pickup 7", -1, 0);
 }
 
-void menu_pickup10 () {
+void menu_pickup10(void) {
   pickup_mode = 10;
   send_command("pickup 10", -1, 0);
 }
 
 
 
-void menu_who () {
+void menu_who(void) {
   extended_command("who");
 }
 
-void menu_apply () {
+void menu_apply(void) {
   extended_command("apply");
 }
 
-void menu_cast () {
+void menu_cast(void) {
     gtk_entry_set_text(GTK_ENTRY(entrytext),"cast ");
     gtk_widget_grab_focus (GTK_WIDGET(entrytext));
 }
 
-void menu_search () {
+void menu_search(void) {
   extended_command("search");
 }
 
-void menu_disarm () {
+void menu_disarm(void) {
   extended_command("disarm");
 }
 
@@ -2984,7 +2984,7 @@ static void update_spell_list(int force) {
     cpl.spells_updated =0;
 }
 
-void menu_spells () {
+void menu_spells(void) {
     GtkWidget * scroll_window;
     GtkStyle * liststyle;
     GtkWidget *cancelbutton;
@@ -3073,7 +3073,7 @@ void menu_spells () {
     update_spell_list(1);
 }
 
-void menu_clear () {
+void menu_clear(void) {
   guint size;
 
   size = gtk_text_get_length(GTK_TEXT (gtkwin_info_text));
@@ -3096,12 +3096,12 @@ void menu_clear () {
 #endif
 }
 
-void sexit()
+void sexit(void)
 {
     extended_command("quit");
 }
 
-void client_exit(){
+void client_exit(void) {
     LOG(LOG_INFO,"gtk::client_exit","Exiting with return value 0.");
 #ifdef WIN32
    	script_killall();
@@ -3783,7 +3783,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
 /* Create the splash window at startup */
 
-void create_splash() {
+void create_splash(void) {
     GtkWidget *vbox;
     GtkWidget *aboutgtkpixmap;
     GdkPixmap *aboutgdkpixmap;
@@ -3824,7 +3824,7 @@ void create_splash() {
 }
 
 
-void destroy_splash() {
+void destroy_splash(void) {
   gtk_widget_destroy(gtkwin_splash);
 }
 
@@ -3835,7 +3835,7 @@ void destroy_splash() {
  */
 
 
-void create_windows() {
+void create_windows(void) {
   GtkWidget *rootvbox;
   GtkWidget *frame;
   int i;
@@ -4256,7 +4256,7 @@ void set_autorepeat(const char *s) /* ...and what does this one *do*, anyway? */
 }
 
 
-int get_info_width()
+int get_info_width(void)
 {
     /*
      * TODO Have crossfire-server send paragraphs rather than lines, so to
@@ -4288,14 +4288,14 @@ int get_info_width()
  * going to draw stuff too much.
  */
 
-void do_clearlock () {
+void do_clearlock(void) {
 }
 
-void x_set_echo() {
+void x_set_echo(void) {
   gtk_entry_set_visibility(GTK_ENTRY(entrytext), !cpl.no_echo);
 }
 
-void draw_info_windows()
+void draw_info_windows(void)
     {
     if (draw_info_freeze1) {
         gtk_text_thaw (GTK_TEXT (gtkwin_info_text));
@@ -4312,7 +4312,7 @@ void draw_info_windows()
     }
 
 
-int do_timeout() {
+int do_timeout(void) {
 
   updatelock=0;
 
@@ -4327,7 +4327,7 @@ int do_timeout() {
   return TRUE;
 }
 
-int gtk_checkchilds(){
+int gtk_checkchilds(void) {
     monitorChilds();
     return FALSE;
 }
@@ -4345,7 +4345,7 @@ int gtk_checkchilds(){
  * A lot of this code was taken from server/xio.c  But being all
  * the map data has been figured, it tends to be much simpler.
  */
-void draw_magic_map()
+void draw_magic_map(void)
 {
 
   int x=0;
@@ -4578,7 +4578,7 @@ void get_window_coord(GtkWidget *win,
 }
 
 
-void save_winpos()
+void save_winpos(void)
 {
     char savename[MAX_BUF],buf[MAX_BUF];
     FILE    *fp;
@@ -4639,7 +4639,7 @@ void save_winpos()
 /* Reads in the winpos file created by the above function and sets the
  * the window positions appropriately.
  */
-void set_window_pos()
+void set_window_pos(void)
 {
     gint wx=0;
     gint wy=0;
@@ -4716,7 +4716,7 @@ void set_window_pos()
  * the old code supported it.
  */
 
-static void usage(char *progname)
+static void usage(const char *progname)
 {
     puts("Usage of gcfclient:\n\n");
     puts("-cache           - Cache images for future use.");
@@ -5081,7 +5081,7 @@ void display_map_doneupdate(int redraw, int notice)
     }
 }
 
-void display_map_newmap()
+void display_map_newmap(void)
 {
     reset_map();
 }
@@ -5190,11 +5190,11 @@ void resize_map_window(int x, int y)
 }
 
 
-void display_map_startupdate()
+void display_map_startupdate(void)
 {
 }
 
-char *get_metaserver()
+char *get_metaserver(void)
 {
     cpl.input_state = Metaserver_Select;
 

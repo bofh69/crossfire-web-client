@@ -51,8 +51,8 @@ extern void draw_prompt(const char *str);
 extern void x_set_echo(void);
 extern void set_scroll(const char *s);
 extern void set_autorepeat(const char *s);
-extern void menu_clear();
-extern int get_info_width();
+extern void menu_clear(void);
+extern int get_info_width(void);
 
 /* Stats related commands */
 extern void draw_stats(int redraw);

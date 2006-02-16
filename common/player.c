@@ -45,7 +45,7 @@ char *rcsid_common_player_c =
  * makes handling on the server side easier.
  */
 
-char *directions[9] = {"stay", "north", "northeast", "east", "southeast",
+const char *const directions[9] = {"stay", "north", "northeast", "east", "southeast",
 		"south","southwest", "west", "northwest"};
 
 

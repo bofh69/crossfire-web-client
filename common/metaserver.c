@@ -122,7 +122,7 @@ char *get_line_from_sock(char *s, size_t n, int fd) {
 
 #endif /* Win32 */
 
-void metaserver_load_cache(void) {
+static void metaserver_load_cache(void) {
     FILE *cache;
     char buf[ MS_LARGE_BUF ];
     int name;
@@ -156,7 +156,7 @@ void metaserver_load_cache(void) {
     }
 }
 
-void metaserver_save_cache(void) {
+static void metaserver_save_cache(void) {
     FILE *cache;
     int server;
 

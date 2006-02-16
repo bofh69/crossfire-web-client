@@ -3,7 +3,7 @@
 if [ -f def-keys.h ] ; then
   rm def-keys.h
 fi
-echo "char *def_keys[] = {" >def-keys.h
+echo "const char *const def_keys[] = {" >def-keys.h
 cat def_keys | sed 's/^/"/' | sed 's/$/\\n",/' >>def-keys.h
 echo "};" >>def-keys.h
 

@@ -44,7 +44,7 @@ char *rcsid_gtk_sound_c =
 /* Got a pipe signal.  As of now, only thing we are piped to is the
  * sound client.
  */
-void signal_pipe(int i) {
+static void signal_pipe(int i) {
     /* do nothing, but perhaps do something more in the future */
 }
 
@@ -56,7 +56,7 @@ ChildProcess* sound_process;
  */
 
 #ifndef WIN32
-int init_sounds()
+int init_sounds(void)
 {
     char sound_path[MAX_BUF];
 

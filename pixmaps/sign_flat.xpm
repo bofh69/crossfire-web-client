@@ -1,5 +1,5 @@
 /* XPM */
-static char * sign_flat_xpm[] = {
+static const char *const sign_flat_xpm[] = {
 "500 500 3261 2",
 "  	c #B4A9C1",
 ". 	c #FDFDFD",

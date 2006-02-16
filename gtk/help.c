@@ -39,7 +39,7 @@ static void replace_text(const char * new_text) {
 #define COLOSSAL_BUF 8192
 
 /* HACK Mostly duplicated from common/p_cmd.c. */
-static void set_default_text() {
+static void set_default_text(void) {
     char out_buf[COLOSSAL_BUF];
     char tmp_buf[COLOSSAL_BUF];
     ConsoleCommand ** array_cc;

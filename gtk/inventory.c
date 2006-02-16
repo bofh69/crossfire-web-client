@@ -289,7 +289,7 @@ static void animate_one_item(gpointer item_x, gpointer ignored) {
     g_list_foreach(views, animate_item, it);
 }
 
-static void animate_items() {
+static void animate_items(void) {
     g_list_foreach(animated_items, animate_one_item, NULL);    
 }
 
@@ -459,7 +459,7 @@ static void item_tick_per_view(gpointer data, gpointer user_data_ignored) {
     } 
 }
 
-static void itemview_tick() {
+static void itemview_tick(void) {
     animate_items(); 
     
     g_list_foreach(views, item_tick_per_view, NULL);
@@ -718,8 +718,8 @@ static bool show_locked(item * it) { return it->locked; }
 static bool show_unlocked(item * it) { return !(it->locked); }
 
 typedef struct {
-  char * name;
-  char ** xpm;
+  const char *name;
+  const char *const *xpm;
   itemfilter filter;
   bool highlight;
 } fixed_tab_init;
@@ -976,7 +976,7 @@ static GtkWidget * get_inv_widget(void) {
 
     
 
-static GtkWidget * get_look_widget() {
+static GtkWidget *get_look_widget(void) {
     if (look_widget != NULL) {
         return look_widget;
     }
@@ -1209,7 +1209,7 @@ void update_list_labels (itemlist *l)
  *  
  *  (Maybe somewhat more often; look_list doesn't always have a weight shown, possibly.)
  */
-static void update_lists_labels ()
+static void update_lists_labels(void)
 {
   if (inv_list.env->inv_updated) {
     update_list_labels (&inv_list);

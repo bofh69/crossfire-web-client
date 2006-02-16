@@ -55,7 +55,7 @@ ChildProcess* sound_process;
  */
 
 #ifndef WIN32
-int init_sounds()
+int init_sounds(void)
 {
     char sound_path[MAX_BUF];
 

@@ -456,7 +456,7 @@ int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
 }
 
 
-int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
+static int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
 		   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
 {
     static uint8 *pixels=NULL;

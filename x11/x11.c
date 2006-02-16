@@ -429,7 +429,7 @@ void end_windows()
  *
  ***********************************************************************/
 
-static int get_game_display() {
+static int get_game_display(void) {
     XSizeHints gamehint;
     int i;
    
@@ -500,7 +500,7 @@ static int get_game_display() {
  *
  *****************************************************************************/
 
-static int get_info_display() {
+static int get_info_display(void) {
     XSizeHints infohint;
     int i;
 
@@ -550,7 +550,7 @@ static int get_info_display() {
     return 0;
 }
 
-static void delete_ch() {
+static void delete_ch(void) {
     if(strlen(cpl.input_text)==0)
 	return;
     cpl.input_text[strlen(cpl.input_text)-1] = '\0';
@@ -929,7 +929,7 @@ void draw_color_info(int colr, const char *buf){
  */
 
 
-static void draw_all_info() {
+static void draw_all_info(void) {
   int i;
 
   XClearWindow(display,infodata.win_info);
@@ -1107,7 +1107,7 @@ static void resize_win_info(int width, int height) {
  *
  ***********************************************************************/
 
-static int get_stats_display() {
+static int get_stats_display(void) {
     XSizeHints stathint;
 
     stathint.x=INV_WIDTH + WINDOW_SPACING;
@@ -1320,7 +1320,7 @@ void draw_stats(int redraw) {
 *
 ***********************************************************************/
 
-static int get_message_display() {
+static int get_message_display(void) {
 
     messagehint.x=INV_WIDTH + WINDOW_SPACING;
     /* Game window is square so we can use the width */
@@ -1506,7 +1506,7 @@ void draw_message_window(int redraw) {
 }
     
 
-static void draw_all_message() {
+static void draw_all_message(void) {
 
   XClearWindow(display,win_message);
   xwritedown("HP",06);
@@ -1561,7 +1561,7 @@ static int show_object(item *ip, inventory_show flags)
  * modes (use bitmap data if we are using bitmaps for the game.
  */
 
-static void create_status_icons ()
+static void create_status_icons(void)
 {
 #include "pixmaps/clear.xbm"
 #include "pixmaps/locked.xbm"
@@ -1939,7 +1939,7 @@ static void get_list_display(itemlist *l, int x, int y, int w, int h,
     resize_list_info(l, w, h);
 }
 
-static int get_inv_display()
+static int get_inv_display(void)
 {
     inv_list.env = cpl.ob;
     strcpy (inv_list.title, ""/*ET: too long: "Inventory:"*/);
@@ -1953,7 +1953,7 @@ static int get_inv_display()
     return 0;
 }
 
-static int get_look_display() 
+static int get_look_display(void)
 {
     look_list.env = cpl.below;
     strcpy (look_list.title, "You see:");
@@ -1972,7 +1972,7 @@ static int get_look_display()
 /*
  *  draw_lists() redraws inventory and look windows when necessary
  */
-void draw_lists ()
+void draw_lists(void)
 {
     if (inv_list.env->inv_updated) {
 	draw_list (&inv_list);

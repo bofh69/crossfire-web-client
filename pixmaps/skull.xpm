@@ -1,5 +1,5 @@
 /* XPM */
-static char * skull_xpm[] = {
+static const char *const skull_xpm[] = {
 "20 16 6 1",
 " 	s None	c None",
 ".	c White",

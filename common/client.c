@@ -60,7 +60,7 @@ FILE *fpin,*fpout;
 Client_Player cpl;
 ClientSocket csocket;
 
-char *resists_name[NUM_RESISTS] = {
+const char *const resists_name[NUM_RESISTS] = {
 "armor", "magic", "fire", "elec",
 "cold", "conf", "acid", "drain",
 "ghit", "pois", "slow", "para",
@@ -70,7 +70,7 @@ char *resists_name[NUM_RESISTS] = {
 typedef void (*CmdProc)(unsigned char *, int len);
 
 struct CmdMapping {
-  char *cmdname;
+  const char *cmdname;
   void (*cmdproc)(unsigned char *, int );
   enum CmdFormat cmdformat;
 };

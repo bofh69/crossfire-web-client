@@ -1,5 +1,5 @@
 /* XPM */
-static char * coin_xpm[] = {
+static const char *const coin_xpm[] = {
 "20 16 5 1",
 " 	s None	c None",
 ".	c Black",

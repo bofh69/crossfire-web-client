@@ -137,10 +137,10 @@ void do_network() {
 }
 
 
-void event_loop()
+void event_loop(void)
 {
     gint fleep;
-    extern int do_timeout();
+    extern int do_timeout(void);
     int tag;
 
     if (MAX_TIME==0) {

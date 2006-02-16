@@ -1,4 +1,4 @@
-char *def_keys[] = {
+const char *const def_keys[] = {
 "#\n",
 "# Default keys\n",
 "#\n",

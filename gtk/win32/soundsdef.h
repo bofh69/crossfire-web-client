@@ -1,4 +1,4 @@
-char *def_sounds[] = {
+const char *const def_sounds[] = {
 "#\n",
 "# This is a reasonably heavily modified version of the sounds file from\n",
 "# the server.\n",

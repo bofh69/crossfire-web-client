@@ -105,7 +105,7 @@ struct sound_settings{
 snd_pcm_hw_params_t *params;
 int err = 0;
 
-void alsa_audio_close() { snd_pcm_close(handle); }
+void alsa_audio_close(void) { snd_pcm_close(handle); }
 
 void alsa_recover(int e) {
 	/* Recover from various errors */
@@ -129,7 +129,7 @@ void alsa_recover(int e) {
 }
 	
 
-int init_audio() {
+int init_audio(void) {
   snd_pcm_sw_params_t *sw_params;
 
   printf("cfsndserv compiled for ALSA9 sound system\n");

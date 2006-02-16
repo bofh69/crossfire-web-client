@@ -3,7 +3,7 @@
  * unix variants.
  */
 
-extern int init_audio();
+extern int init_audio(void);
 
 #define MAX_SOUNDS 1024
 char *buffers=NULL;
@@ -153,7 +153,7 @@ static void parse_sound_line(char *line, int lineno) {
  * function will likely disable sound support/requests from the server.
  */
 
-int init_sounds()
+int init_sounds(void)
 {
     int i;
     FILE *fp;
@@ -240,7 +240,7 @@ int SoundCmd(unsigned char *data,  int len)
     return 0;
 }
 
-int write_settings(){
+int write_settings(void) {
 FILE *f;
 char *home;
 char *path;
@@ -266,7 +266,7 @@ char *path;
   return 0;
 }
 
-int read_settings(){
+int read_settings(void) {
     FILE *f;
     char *home;
     char *path;

@@ -41,7 +41,7 @@ static item *player, *map;	/* these lists contains rest of items */
 
 #include <item-types.h>
 /* This should be modified to read the definition from a file */
-void init_item_types()
+void init_item_types(void)
 {
 }
 
@@ -214,7 +214,7 @@ static char numbers[21][20] = {
  *  new_item() returns pointer to new item which
  *  is allocated and initialized correctly
  */
-static item *new_item () 
+static item *new_item(void)
 {
     item *op = malloc (sizeof(item));
 
@@ -441,7 +441,7 @@ int num_free_items()
 /*
  *  Hardcoded now, server could send these at initiation phase.
  */
-static char *apply_string[] = {
+static const char *const apply_string[] = {
     "", " (readied)", " (wielded)", " (worn)", " (active)", " (applied)"
 };
 

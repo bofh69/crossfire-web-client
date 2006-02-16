@@ -137,26 +137,28 @@ int setLogListener(LogListener li){
     loglist=li;
     return 1;
 }
-void clearLogListener(){
+void clearLogListener(void) {
     loglist=NULL;
 }
-static char* LogLevelTexts[]={" DEBUG  ",
-                              "  INFO  ",
-                              "WARNING ",
-                              " ERROR  ",
-                              "CRITICAL",
-                              "UNKNOWN "};
-static char * getLogLevelText(LogLevel level){
+static const char *const LogLevelTexts[] = {
+    " DEBUG  ",
+    "  INFO  ",
+    "WARNING ",
+    " ERROR  ",
+    "CRITICAL",
+    "UNKNOWN ",
+};
+static const char *getLogLevelText(LogLevel level) {
     return LogLevelTexts[level>LOG_CRITICAL?LOG_CRITICAL+1:level];
 }
-char* getLogTextRaw(LogLevel level, char* origin, char*message){
+char *getLogTextRaw(LogLevel level, const char *origin, const char *message) {
     static char mybuf[20480];
     mybuf[0]='\0';
     sprintf(mybuf,"[%s] (%s) %s\n",getLogLevelText(level),origin,message);
     return mybuf;
 }
 
-char* getLogText(LogEntry* le){
+char *getLogText(const LogEntry *le) {
     return getLogTextRaw(le->level,le->origin,le->message);
 }
 /*
@@ -171,7 +173,7 @@ char* getLogText(LogEntry* le){
 #else
 #define MINLOG 1
 #endif
-void LOG (LogLevel level, char* origin, char *format, ...)
+void LOG(LogLevel level, char *origin, const char *format, ...)
 {
 
   va_list ap;
@@ -232,7 +234,7 @@ void purgePipe(ChildProcess* cp, int pipe){
     }
 }
 
-void monitorChilds(){
+void monitorChilds(void) {
 #ifndef WIN32
     ChildProcess* cp=FirstChild;
     ChildProcess* last=NULL;

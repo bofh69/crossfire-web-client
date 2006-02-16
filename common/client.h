@@ -193,7 +193,7 @@ extern sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
 /* see common/init.c - basically, this is a string to number
  * mapping that is used when loading/saving the values.
  */
-extern char *config_names[CONFIG_NUMS];
+extern const char *const config_names[CONFIG_NUMS];
 
 
 typedef struct Stat_struct {
@@ -375,7 +375,7 @@ typedef struct ChildProcess{
  * in matching order.
  */
 #define NUM_RESISTS 18
-extern char *resists_name[NUM_RESISTS];
+extern const char *const resists_name[NUM_RESISTS];
 extern char *meta_server;
 extern int meta_port,want_skill_exp;
 extern int map1cmd,metaserver_on;
