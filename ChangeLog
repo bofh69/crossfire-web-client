@@ -2,6 +2,14 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Apply modified patch #1432404 (Solve bug in watch stats script function) by
+Benjamin Lerman: make watch stats command work if more than one stat changes
+simultaneously.
+---
+common/script.c: In script_watch() do not overwrite but append multiple watch
+   stats commands.
+Andreas Kirschbaum 2006-02-17
+
 Apply patch #1430279 (code-cleanup: const, static, etc) by Stefan Huehner.
 ---
 Affected files: common/{client.c,client.h,commands.c,def-keys.h,external.h,

@@ -680,135 +680,137 @@ void script_watch(char *cmd,char *data, int len, enum CmdFormat format)
                   }
                   break;
                case STATS:
-                  /*
-                   * We cheat here and log each stat as a separate command, even
-                   * if the server sent a bunch of updates as a single message;
-                   * most scripts will be easier to write if they only parse a fixed
-                   * format.
-                   */
-                  while (len) {
-                     int be;
-                     int c; /* which stat */
+		  {
+                     /*
+                      * We cheat here and log each stat as a separate command, even
+                      * if the server sent a bunch of updates as a single message;
+                      * most scripts will be easier to write if they only parse a fixed
+                      * format.
+                      */
+                     int be = 0;
+                     while (len) {
+                        int c; /* which stat */
 
-                     be=sprintf(buf,"watch %s",cmd);
-                     c=*data;
-                     ++data; --len;
-                     if (c>=CS_STAT_RESIST_START && c<=CS_STAT_RESIST_END) {
-                        sprintf(buf+be," resists %d %d\n",c,GetShort_String(data));
-                        data+=2; len-=2;
-                     } else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
-                        sprintf(buf+be," skill %d %d %lld\n",c,*data,GetInt64_String(data+1));
-                        data+=9; len-=9;
-                     } else switch (c) {
-                        case CS_STAT_HP:
-                           sprintf(buf+be," hp %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_MAXHP:
-                           sprintf(buf+be," maxhp %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_SP:
-                           sprintf(buf+be," sp %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_MAXSP:
-                           sprintf(buf+be," maxspp %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_GRACE:
-                           sprintf(buf+be," grace %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_MAXGRACE:
-                           sprintf(buf+be," maxgrace %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_STR:
-                           sprintf(buf+be," str %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_INT:
-                           sprintf(buf+be," int %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_POW:
-                           sprintf(buf+be," pow %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_WIS:
-                           sprintf(buf+be," wis %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_DEX:
-                           sprintf(buf+be," dex %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_CON:
-                           sprintf(buf+be," con %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_CHA:
-                           sprintf(buf+be," cha %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_EXP:
-                           sprintf(buf+be," exp %d\n",GetInt_String(data));
-                           data+=4; len-=4; break;
-                        case CS_STAT_EXP64:
-                           sprintf(buf+be," exp %lld\n",GetInt64_String(data));
-                           data+=8; len-=8; break;
-                        case CS_STAT_LEVEL:
-                           sprintf(buf+be," level %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_WC:
-                           sprintf(buf+be," wc %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_AC:
-                           sprintf(buf+be," ac %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_DAM:
-                           sprintf(buf+be," dam %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_ARMOUR:
-                           sprintf(buf+be," armour %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_SPEED:
-                           sprintf(buf+be," speed %d\n",GetInt_String(data));
-                           data+=4; len-=4; break;
-                        case CS_STAT_FOOD:
-                           sprintf(buf+be," food %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_WEAP_SP:
-                           sprintf(buf+be," weap_sp %d\n",GetInt_String(data));
-                           data+=4; len-=4; break;
-                        case CS_STAT_FLAGS:
-                           sprintf(buf+be," flags %d\n",GetShort_String(data));
-                           data+=2; len-=2; break;
-                        case CS_STAT_WEIGHT_LIM:
-                           sprintf(buf+be," weight_lim %d\n",GetInt_String(data));
-                           data+=4; len-=4; break;
-                        case CS_STAT_SKILLEXP_AGILITY:
-                        case CS_STAT_SKILLEXP_PERSONAL:
-                        case CS_STAT_SKILLEXP_MENTAL:
-                        case CS_STAT_SKILLEXP_PHYSIQUE:
-                        case CS_STAT_SKILLEXP_MAGIC:
-                        case CS_STAT_SKILLEXP_WISDOM:
-                           sprintf(buf+be," skillexp %d %d\n",c,GetInt_String(data));
-                           data+=4; len-=4; break;
-                        case CS_STAT_SKILLEXP_AGLEVEL:
-                        case CS_STAT_SKILLEXP_PELEVEL:
-                        case CS_STAT_SKILLEXP_MELEVEL:
-                        case CS_STAT_SKILLEXP_PHLEVEL:
-                        case CS_STAT_SKILLEXP_MALEVEL:
-                        case CS_STAT_SKILLEXP_WILEVEL:
-                           sprintf(buf+be," skilllevel %d %d\n",c,GetShort_String(data));
-                           data+=2; len-=2; break;
+                        be+=sprintf(buf+be,"watch %s",cmd);
+                        c=*data;
+                        ++data; --len;
+                        if (c>=CS_STAT_RESIST_START && c<=CS_STAT_RESIST_END) {
+                           be+=sprintf(buf+be," resists %d %d\n",c,GetShort_String(data));
+                           data+=2; len-=2;
+                        } else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
+                           be+=sprintf(buf+be," skill %d %d %lld\n",c,*data,GetInt64_String(data+1));
+                           data+=9; len-=9;
+                        } else switch (c) {
+                           case CS_STAT_HP:
+                              be+=sprintf(buf+be," hp %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_MAXHP:
+                              be+=sprintf(buf+be," maxhp %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_SP:
+                              be+=sprintf(buf+be," sp %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_MAXSP:
+                              be+=sprintf(buf+be," maxspp %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_GRACE:
+                              be+=sprintf(buf+be," grace %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_MAXGRACE:
+                              be+=sprintf(buf+be," maxgrace %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_STR:
+                              be+=sprintf(buf+be," str %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_INT:
+                              be+=sprintf(buf+be," int %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_POW:
+                              be+=sprintf(buf+be," pow %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_WIS:
+                              be+=sprintf(buf+be," wis %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_DEX:
+                              be+=sprintf(buf+be," dex %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_CON:
+                              be+=sprintf(buf+be," con %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_CHA:
+                              be+=sprintf(buf+be," cha %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_EXP:
+                              be+=sprintf(buf+be," exp %d\n",GetInt_String(data));
+                              data+=4; len-=4; break;
+                           case CS_STAT_EXP64:
+                              be+=sprintf(buf+be," exp %lld\n",GetInt64_String(data));
+                              data+=8; len-=8; break;
+                           case CS_STAT_LEVEL:
+                              be+=sprintf(buf+be," level %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_WC:
+                              be+=sprintf(buf+be," wc %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_AC:
+                              be+=sprintf(buf+be," ac %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_DAM:
+                              be+=sprintf(buf+be," dam %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_ARMOUR:
+                              be+=sprintf(buf+be," armour %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_SPEED:
+                              be+=sprintf(buf+be," speed %d\n",GetInt_String(data));
+                              data+=4; len-=4; break;
+                           case CS_STAT_FOOD:
+                              be+=sprintf(buf+be," food %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_WEAP_SP:
+                              be+=sprintf(buf+be," weap_sp %d\n",GetInt_String(data));
+                              data+=4; len-=4; break;
+                           case CS_STAT_FLAGS:
+                              be+=sprintf(buf+be," flags %d\n",GetShort_String(data));
+                              data+=2; len-=2; break;
+                           case CS_STAT_WEIGHT_LIM:
+                              be+=sprintf(buf+be," weight_lim %d\n",GetInt_String(data));
+                              data+=4; len-=4; break;
+                           case CS_STAT_SKILLEXP_AGILITY:
+                           case CS_STAT_SKILLEXP_PERSONAL:
+                           case CS_STAT_SKILLEXP_MENTAL:
+                           case CS_STAT_SKILLEXP_PHYSIQUE:
+                           case CS_STAT_SKILLEXP_MAGIC:
+                           case CS_STAT_SKILLEXP_WISDOM:
+                              be+=sprintf(buf+be," skillexp %d %d\n",c,GetInt_String(data));
+                              data+=4; len-=4; break;
+                           case CS_STAT_SKILLEXP_AGLEVEL:
+                           case CS_STAT_SKILLEXP_PELEVEL:
+                           case CS_STAT_SKILLEXP_MELEVEL:
+                           case CS_STAT_SKILLEXP_PHLEVEL:
+                           case CS_STAT_SKILLEXP_MALEVEL:
+                           case CS_STAT_SKILLEXP_WILEVEL:
+                              be+=sprintf(buf+be," skilllevel %d %d\n",c,GetShort_String(data));
+                              data+=2; len-=2; break;
 
-                        case CS_STAT_RANGE: {
-                           int rlen=*data;
-                           ++data; --len;
-                           sprintf(buf+be," range %*.*s\n",rlen,rlen,data);
-                           data+=rlen; len-=rlen; break;
+                           case CS_STAT_RANGE: {
+                              int rlen=*data;
+                              ++data; --len;
+                              be+=sprintf(buf+be," range %*.*s\n",rlen,rlen,data);
+                              data+=rlen; len-=rlen; break;
+                           }
+                           case CS_STAT_TITLE: {
+                              int rlen=*data;
+                              ++data; --len;
+                              be+=sprintf(buf+be," title %*.*s\n",rlen,rlen,data);
+                              data+=rlen; len-=rlen; break;
+                           }
+                           default:
+                              be+=sprintf(buf+be," unknown %d %d bytes left\n",c,len);
+                              len=0;
                         }
-                        case CS_STAT_TITLE: {
-                           int rlen=*data;
-                           ++data; --len;
-                           sprintf(buf+be," title %*.*s\n",rlen,rlen,data);
-                           data+=rlen; len-=rlen; break;
-                        }
-                        default:
-                           sprintf(buf+be," unknown %d %d bytes left\n",c,len);
-                           len=0;
                      }
-                  }
+		  }
                   break;
                case MIXED:
                   /* magicmap */
