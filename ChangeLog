@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: when no skill is sent in a addspell packet, display the skill as
+   'generic' in the Spell window
+Brendan Lally 2006-02-20
+
 Improvements to the gtkv2 client - Add free form text box to metaserver
 selection window so server name can be manually entered, add keybinding 
 interface window to client similar to one in gtkv1 client, and disconnect

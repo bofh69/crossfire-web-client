@@ -2912,7 +2912,8 @@ static void select_spell_event(GtkWidget *gtklist, gint row, gint column,
     gtk_text_freeze(GTK_TEXT(description));
     gtk_text_set_point(GTK_TEXT(description), 0);
     gtk_text_forward_delete(GTK_TEXT(description), gtk_text_get_length(GTK_TEXT(description)));
-    sprintf(message, "%s - level %d %s spell\n\n%s", spell->name, spell->level, spell->skill, spell->message);
+    sprintf(message, "%s - level %d %s spell\n\n%s", spell->name, spell->level, 
+	spell->skill?spell->skill:"generic", spell->message);
     gtk_text_insert(GTK_TEXT(description), NULL, NULL, NULL, message, -1);
     gtk_text_thaw(GTK_TEXT(description));
     if (event->button==2) { /* on middle click, also invoke the spell */
