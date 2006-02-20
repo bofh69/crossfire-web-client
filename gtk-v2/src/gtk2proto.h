@@ -54,8 +54,17 @@ extern void draw_prompt(const char *str);
 extern void gtk_command_history(int direction);
 extern void gtk_complete_command(void);
 extern void on_entry_commands_activate(GtkEntry *entry, gpointer user_data);
+extern void update_keybinding_list(void);
+extern void on_keybindings_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern gboolean on_keybinding_entry_key_key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+extern void on_keybinding_button_remove_clicked(GtkButton *button, gpointer user_data);
+extern void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data);
+extern void on_keybinding_button_close_clicked(GtkButton *button, gpointer user_data);
+extern void on_keybinding_button_update_clicked(GtkButton *button, gpointer user_data);
+extern gboolean keybinding_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
+extern void reset_keybinding_status(void);
+extern void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_data);
 /* main.c */
-extern char *get_metaserver(void);
 extern int do_timeout(void);
 extern void do_network(void);
 extern void event_loop(void);
@@ -65,7 +74,6 @@ extern void save_winpos(void);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
 /* map.c */
 extern void map_init(GtkWidget *window_root);
-struct Map;
 extern void reset_map(void);
 extern int display_mapscroll(int dx, int dy);
 extern void drawsmooth(int mx, int my, int layer, int picx, int picy);
@@ -83,9 +91,17 @@ extern void draw_magic_map(void);
 extern void magic_map_flash_pos(void);
 extern gboolean on_drawingarea_magic_map_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
 /* menubar.c */
+extern void on_disconnect_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_about(GtkMenuItem *menuitem, gpointer user_data);
+/* metaserver.c */
+extern gboolean metaserver_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
+extern char *get_metaserver(void);
+extern void on_metaserver_select_clicked(GtkButton *button, gpointer user_data);
+extern void on_treeview_metaserver_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
+extern void on_metaserver_text_entry_activate(GtkEntry *entry, gpointer user_data);
+extern void on_button_metaserver_quit_pressed(GtkButton *button, gpointer user_data);
 /* opengl.c */
 extern void init_opengl(GtkWidget *drawingarea);
 extern void opengl_gen_map(int redraw);

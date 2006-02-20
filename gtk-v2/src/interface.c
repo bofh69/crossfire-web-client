@@ -37,6 +37,10 @@ create_window_root (void)
   GtkWidget *menuitem1_menu;
   GtkWidget *quit_character1;
   GtkWidget *quit2;
+  GtkWidget *client1;
+  GtkWidget *client1_menu;
+  GtkWidget *disconnect;
+  GtkWidget *keybindings;
   GtkWidget *pickup1;
   GtkWidget *pickup1_menu;
   GtkWidget *don_t_pickup1;
@@ -211,6 +215,21 @@ create_window_root (void)
   gtk_widget_show (quit2);
   gtk_container_add (GTK_CONTAINER (menuitem1_menu), quit2);
 
+  client1 = gtk_menu_item_new_with_mnemonic (_("_Client"));
+  gtk_widget_show (client1);
+  gtk_container_add (GTK_CONTAINER (menubar1), client1);
+
+  client1_menu = gtk_menu_new ();
+  gtk_menu_item_set_submenu (GTK_MENU_ITEM (client1), client1_menu);
+
+  disconnect = gtk_menu_item_new_with_mnemonic (_("Disconnect"));
+  gtk_widget_show (disconnect);
+  gtk_container_add (GTK_CONTAINER (client1_menu), disconnect);
+
+  keybindings = gtk_menu_item_new_with_mnemonic (_("Keybindings"));
+  gtk_widget_show (keybindings);
+  gtk_container_add (GTK_CONTAINER (client1_menu), keybindings);
+
   pickup1 = gtk_menu_item_new_with_mnemonic (_("Pickup"));
   gtk_widget_show (pickup1);
   gtk_container_add (GTK_CONTAINER (menubar1), pickup1);
@@ -350,46 +369,55 @@ create_window_root (void)
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_10));
   gtk_widget_show (ratio_10);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_10);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_10), TRUE);
 
   ratio_15 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 15"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_15));
   gtk_widget_show (ratio_15);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_15);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_15), TRUE);
 
   ratio_20 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 20"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_20));
   gtk_widget_show (ratio_20);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_20);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_20), TRUE);
 
   ratio_25 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 25"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_25));
   gtk_widget_show (ratio_25);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_25);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_25), TRUE);
 
   ratio_30 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 30"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_30));
   gtk_widget_show (ratio_30);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_30);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_30), TRUE);
 
   ratio_35 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 35"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_35));
   gtk_widget_show (ratio_35);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_35);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_35), TRUE);
 
   ratio_40 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 40"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_40));
   gtk_widget_show (ratio_40);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_40);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_40), TRUE);
 
   ratio_45 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 45"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_45));
   gtk_widget_show (ratio_45);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_45);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_45), TRUE);
 
   ratio_50 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 50"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_50));
   gtk_widget_show (ratio_50);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_50);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_50), TRUE);
 
   not_cursed1 = gtk_check_menu_item_new_with_mnemonic (_("Ignore cursed"));
   gtk_widget_show (not_cursed1);
@@ -842,6 +870,12 @@ create_window_root (void)
   g_signal_connect ((gpointer) quit2, "activate",
                     G_CALLBACK (menu_quit_program),
                     NULL);
+  g_signal_connect ((gpointer) disconnect, "activate",
+                    G_CALLBACK (on_disconnect_activate),
+                    NULL);
+  g_signal_connect ((gpointer) keybindings, "activate",
+                    G_CALLBACK (on_keybindings_activate),
+                    NULL);
   g_signal_connect ((gpointer) don_t_pickup1, "activate",
                     G_CALLBACK (on_menu_dont_pickup_activate),
                     NULL);
@@ -978,6 +1012,10 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, menuitem1_menu, "menuitem1_menu");
   GLADE_HOOKUP_OBJECT (window_root, quit_character1, "quit_character1");
   GLADE_HOOKUP_OBJECT (window_root, quit2, "quit2");
+  GLADE_HOOKUP_OBJECT (window_root, client1, "client1");
+  GLADE_HOOKUP_OBJECT (window_root, client1_menu, "client1_menu");
+  GLADE_HOOKUP_OBJECT (window_root, disconnect, "disconnect");
+  GLADE_HOOKUP_OBJECT (window_root, keybindings, "keybindings");
   GLADE_HOOKUP_OBJECT (window_root, pickup1, "pickup1");
   GLADE_HOOKUP_OBJECT (window_root, pickup1_menu, "pickup1_menu");
   GLADE_HOOKUP_OBJECT (window_root, don_t_pickup1, "don_t_pickup1");
@@ -1130,6 +1168,9 @@ create_metaserver_window (void)
   GtkWidget *label83;
   GtkWidget *scrolledwindow7;
   GtkWidget *treeview_metaserver;
+  GtkWidget *hbox12;
+  GtkWidget *label84;
+  GtkWidget *metaserver_text_entry;
   GtkWidget *hbox10;
   GtkWidget *label81;
   GtkWidget *metaserver_status;
@@ -1159,6 +1200,18 @@ create_metaserver_window (void)
   gtk_widget_show (treeview_metaserver);
   gtk_container_add (GTK_CONTAINER (scrolledwindow7), treeview_metaserver);
 
+  hbox12 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox12);
+  gtk_box_pack_start (GTK_BOX (vbox7), hbox12, FALSE, FALSE, 0);
+
+  label84 = gtk_label_new (_("Or enter server name:"));
+  gtk_widget_show (label84);
+  gtk_box_pack_start (GTK_BOX (hbox12), label84, FALSE, FALSE, 0);
+
+  metaserver_text_entry = gtk_entry_new ();
+  gtk_widget_show (metaserver_text_entry);
+  gtk_box_pack_start (GTK_BOX (hbox12), metaserver_text_entry, TRUE, TRUE, 0);
+
   hbox10 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox10);
   gtk_box_pack_start (GTK_BOX (vbox7), hbox10, FALSE, FALSE, 0);
@@ -1173,7 +1226,7 @@ create_metaserver_window (void)
 
   hbox11 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox11);
-  gtk_box_pack_start (GTK_BOX (vbox7), hbox11, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox7), hbox11, FALSE, TRUE, 0);
 
   metaserver_select = gtk_button_new_with_mnemonic (_("Connect"));
   gtk_widget_show (metaserver_select);
@@ -1188,6 +1241,9 @@ create_metaserver_window (void)
   g_signal_connect ((gpointer) treeview_metaserver, "row_activated",
                     G_CALLBACK (on_treeview_metaserver_row_activated),
                     NULL);
+  g_signal_connect ((gpointer) metaserver_text_entry, "activate",
+                    G_CALLBACK (on_metaserver_text_entry_activate),
+                    NULL);
   g_signal_connect ((gpointer) metaserver_select, "clicked",
                     G_CALLBACK (on_metaserver_select_clicked),
                     NULL);
@@ -1201,6 +1257,9 @@ create_metaserver_window (void)
   GLADE_HOOKUP_OBJECT (metaserver_window, label83, "label83");
   GLADE_HOOKUP_OBJECT (metaserver_window, scrolledwindow7, "scrolledwindow7");
   GLADE_HOOKUP_OBJECT (metaserver_window, treeview_metaserver, "treeview_metaserver");
+  GLADE_HOOKUP_OBJECT (metaserver_window, hbox12, "hbox12");
+  GLADE_HOOKUP_OBJECT (metaserver_window, label84, "label84");
+  GLADE_HOOKUP_OBJECT (metaserver_window, metaserver_text_entry, "metaserver_text_entry");
   GLADE_HOOKUP_OBJECT (metaserver_window, hbox10, "hbox10");
   GLADE_HOOKUP_OBJECT (metaserver_window, label81, "label81");
   GLADE_HOOKUP_OBJECT (metaserver_window, metaserver_status, "metaserver_status");
@@ -1209,5 +1268,173 @@ create_metaserver_window (void)
   GLADE_HOOKUP_OBJECT (metaserver_window, button_metaserver_quit, "button_metaserver_quit");
 
   return metaserver_window;
+}
+
+GtkWidget*
+create_keybinding_window (void)
+{
+  GtkWidget *keybinding_window;
+  GtkWidget *vbox8;
+  GtkWidget *scrolledwindow8;
+  GtkWidget *keybinding_treeview;
+  GtkWidget *label85;
+  GtkWidget *hbox13;
+  GtkWidget *keybinding_checkbutton_control;
+  GtkWidget *keybinding_checkbutton_shift;
+  GtkWidget *keybinding_checkbutton_alt;
+  GtkWidget *keybinding_checkbutton_meta;
+  GtkWidget *keybinding_checkbutton_stayinedit;
+  AtkObject *atko;
+  GtkWidget *hbox14;
+  GtkWidget *label86;
+  GtkWidget *keybinding_entry_key;
+  GtkWidget *label87;
+  GtkWidget *keybinding_entry_command;
+  GtkWidget *hbox15;
+  GtkWidget *keybinding_button_remove;
+  GtkWidget *keybinding_button_update;
+  GtkWidget *keybinding_button_bind;
+  GtkWidget *keybinding_button_clear;
+  GtkWidget *keybinding_button_close;
+
+  keybinding_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_widget_set_size_request (keybinding_window, -1, 600);
+  gtk_window_set_title (GTK_WINDOW (keybinding_window), _("Keybindings"));
+  gtk_window_set_position (GTK_WINDOW (keybinding_window), GTK_WIN_POS_CENTER_ON_PARENT);
+
+  vbox8 = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (vbox8);
+  gtk_container_add (GTK_CONTAINER (keybinding_window), vbox8);
+
+  scrolledwindow8 = gtk_scrolled_window_new (NULL, NULL);
+  gtk_widget_show (scrolledwindow8);
+  gtk_box_pack_start (GTK_BOX (vbox8), scrolledwindow8, TRUE, TRUE, 0);
+  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolledwindow8), GTK_SHADOW_IN);
+
+  keybinding_treeview = gtk_tree_view_new ();
+  gtk_widget_show (keybinding_treeview);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow8), keybinding_treeview);
+  GTK_WIDGET_UNSET_FLAGS (keybinding_treeview, GTK_CAN_FOCUS);
+
+  label85 = gtk_label_new (_("Keybinding Modfiers:"));
+  gtk_widget_show (label85);
+  gtk_box_pack_start (GTK_BOX (vbox8), label85, FALSE, FALSE, 0);
+
+  hbox13 = gtk_hbox_new (TRUE, 0);
+  gtk_widget_show (hbox13);
+  gtk_box_pack_start (GTK_BOX (vbox8), hbox13, FALSE, TRUE, 0);
+
+  keybinding_checkbutton_control = gtk_check_button_new_with_mnemonic (_("Run"));
+  gtk_widget_show (keybinding_checkbutton_control);
+  gtk_box_pack_start (GTK_BOX (hbox13), keybinding_checkbutton_control, FALSE, FALSE, 0);
+
+  keybinding_checkbutton_shift = gtk_check_button_new_with_mnemonic (_("Fire"));
+  gtk_widget_show (keybinding_checkbutton_shift);
+  gtk_box_pack_start (GTK_BOX (hbox13), keybinding_checkbutton_shift, FALSE, FALSE, 0);
+
+  keybinding_checkbutton_alt = gtk_check_button_new_with_mnemonic (_("Alt"));
+  gtk_widget_show (keybinding_checkbutton_alt);
+  gtk_box_pack_start (GTK_BOX (hbox13), keybinding_checkbutton_alt, FALSE, FALSE, 0);
+
+  keybinding_checkbutton_meta = gtk_check_button_new_with_mnemonic (_("Meta"));
+  gtk_widget_show (keybinding_checkbutton_meta);
+  gtk_box_pack_start (GTK_BOX (hbox13), keybinding_checkbutton_meta, FALSE, FALSE, 0);
+
+  keybinding_checkbutton_stayinedit = gtk_check_button_new_with_mnemonic (_("Stay in Edit Mode"));
+  gtk_widget_show (keybinding_checkbutton_stayinedit);
+  gtk_box_pack_start (GTK_BOX (hbox13), keybinding_checkbutton_stayinedit, FALSE, FALSE, 0);
+
+  hbox14 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox14);
+  gtk_box_pack_start (GTK_BOX (vbox8), hbox14, FALSE, TRUE, 0);
+
+  label86 = gtk_label_new (_("Key:"));
+  gtk_widget_show (label86);
+  gtk_box_pack_start (GTK_BOX (hbox14), label86, FALSE, FALSE, 0);
+
+  keybinding_entry_key = gtk_entry_new ();
+  gtk_widget_show (keybinding_entry_key);
+  gtk_box_pack_start (GTK_BOX (hbox14), keybinding_entry_key, TRUE, TRUE, 11);
+
+  label87 = gtk_label_new (_("Command"));
+  gtk_widget_show (label87);
+  gtk_box_pack_start (GTK_BOX (hbox14), label87, FALSE, FALSE, 0);
+
+  keybinding_entry_command = gtk_entry_new ();
+  gtk_widget_show (keybinding_entry_command);
+  gtk_box_pack_start (GTK_BOX (hbox14), keybinding_entry_command, TRUE, TRUE, 5);
+
+  hbox15 = gtk_hbox_new (TRUE, 0);
+  gtk_widget_show (hbox15);
+  gtk_box_pack_start (GTK_BOX (vbox8), hbox15, FALSE, TRUE, 0);
+
+  keybinding_button_remove = gtk_button_new_with_mnemonic (_("Remove Keybinding"));
+  gtk_widget_show (keybinding_button_remove);
+  gtk_box_pack_start (GTK_BOX (hbox15), keybinding_button_remove, FALSE, FALSE, 0);
+
+  keybinding_button_update = gtk_button_new_with_mnemonic (_("Update Binding"));
+  gtk_widget_show (keybinding_button_update);
+  gtk_box_pack_start (GTK_BOX (hbox15), keybinding_button_update, FALSE, FALSE, 0);
+
+  keybinding_button_bind = gtk_button_new_with_mnemonic (_("Add"));
+  gtk_widget_show (keybinding_button_bind);
+  gtk_box_pack_start (GTK_BOX (hbox15), keybinding_button_bind, FALSE, FALSE, 0);
+
+  keybinding_button_clear = gtk_button_new_with_mnemonic (_("Clear Fields"));
+  gtk_widget_show (keybinding_button_clear);
+  gtk_box_pack_start (GTK_BOX (hbox15), keybinding_button_clear, FALSE, FALSE, 0);
+
+  keybinding_button_close = gtk_button_new_with_mnemonic (_("Close Window"));
+  gtk_widget_show (keybinding_button_close);
+  gtk_box_pack_start (GTK_BOX (hbox15), keybinding_button_close, FALSE, FALSE, 0);
+
+  g_signal_connect ((gpointer) keybinding_entry_key, "key_press_event",
+                    G_CALLBACK (on_keybinding_entry_key_key_press_event),
+                    NULL);
+  g_signal_connect ((gpointer) keybinding_button_remove, "clicked",
+                    G_CALLBACK (on_keybinding_button_remove_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) keybinding_button_update, "clicked",
+                    G_CALLBACK (on_keybinding_button_update_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) keybinding_button_bind, "clicked",
+                    G_CALLBACK (on_keybinding_button_bind_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) keybinding_button_clear, "clicked",
+                    G_CALLBACK (on_keybinding_button_clear_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) keybinding_button_close, "clicked",
+                    G_CALLBACK (on_keybinding_button_close_clicked),
+                    NULL);
+
+  atko = gtk_widget_get_accessible (keybinding_checkbutton_stayinedit);
+  atk_object_set_description (atko, _("Keybinding will not be executed immediately - instead, will stay in edit mode so additional text can be entered before command is executed."));
+
+
+  /* Store pointers to all widgets, for use by lookup_widget(). */
+  GLADE_HOOKUP_OBJECT_NO_REF (keybinding_window, keybinding_window, "keybinding_window");
+  GLADE_HOOKUP_OBJECT (keybinding_window, vbox8, "vbox8");
+  GLADE_HOOKUP_OBJECT (keybinding_window, scrolledwindow8, "scrolledwindow8");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_treeview, "keybinding_treeview");
+  GLADE_HOOKUP_OBJECT (keybinding_window, label85, "label85");
+  GLADE_HOOKUP_OBJECT (keybinding_window, hbox13, "hbox13");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_checkbutton_control, "keybinding_checkbutton_control");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_checkbutton_shift, "keybinding_checkbutton_shift");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_checkbutton_alt, "keybinding_checkbutton_alt");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_checkbutton_meta, "keybinding_checkbutton_meta");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_checkbutton_stayinedit, "keybinding_checkbutton_stayinedit");
+  GLADE_HOOKUP_OBJECT (keybinding_window, hbox14, "hbox14");
+  GLADE_HOOKUP_OBJECT (keybinding_window, label86, "label86");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_entry_key, "keybinding_entry_key");
+  GLADE_HOOKUP_OBJECT (keybinding_window, label87, "label87");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_entry_command, "keybinding_entry_command");
+  GLADE_HOOKUP_OBJECT (keybinding_window, hbox15, "hbox15");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_button_remove, "keybinding_button_remove");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_button_update, "keybinding_button_update");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_button_bind, "keybinding_button_bind");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_button_clear, "keybinding_button_clear");
+  GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_button_close, "keybinding_button_close");
+
+  return keybinding_window;
 }
 

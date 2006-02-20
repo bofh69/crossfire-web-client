@@ -259,6 +259,8 @@ typedef struct Player_Struct {
     uint32	spells_updated; /* tracks whether the spells updated*/ 
     uint32	fire_on:1;	/* True if fire key is pressed */
     uint32	run_on:1;	/* True if run key is on */
+    uint32	meta_on:1;	/* True if fire key is pressed */
+    uint32	alt_on:1;	/* True if fire key is pressed */
     uint32	no_echo:1;	/* If TRUE, don't echo keystrokes */
     uint32	count;		/* Repeat count on command */
     uint16	mmapx, mmapy;	/* size of magic map */

@@ -495,7 +495,6 @@ int
 main (int argc, char *argv[])
 {
     int i, got_one=0;
-    extern GtkWidget *entry_commands;
     static char file_cache[ MAX_BUF ];
 
 #ifdef ENABLE_NLS

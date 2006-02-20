@@ -204,3 +204,49 @@ on_metaserver_select_clicked           (GtkButton       *button,
 void
 on_button_metaserver_quit_pressed      (GtkButton       *button,
                                         gpointer         user_data);
+
+void
+on_metaserver_text_entry_activate      (GtkEntry        *entry,
+                                        gpointer         user_data);
+
+void
+on_disconnect_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_disconnect_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_keybindings_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+gboolean
+on_keybinding_entry_key_key_press_event
+                                        (GtkWidget       *widget,
+                                        GdkEventKey     *event,
+                                        gpointer         user_data);
+
+void
+on_keybinding_button_remove_clicked    (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_keybinding_button_bind_clicked      (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_keybinding_button_clear_clicked     (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_keybinding_button_close_clicked     (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_keybinding_button_update_clicked    (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_keybinding_button_bind_clicked      (GtkButton       *button,
+                                        gpointer         user_data);

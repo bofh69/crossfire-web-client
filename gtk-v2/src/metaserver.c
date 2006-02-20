@@ -209,6 +209,26 @@ on_metaserver_select_clicked           (GtkButton       *button,
 }
 
 
+static void metaserver_connect_to(const char *name, const char *ip)
+{
+    char  buf[256];
+
+    snprintf(buf, 255, "Trying to connect to %s", name);
+
+    gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+
+    csocket.fd=init_connection(ip?ip:name, use_config[CONFIG_PORT]);
+    if (csocket.fd==-1) {
+	snprintf(buf, 255, "Unable to connect to %s!", name);
+	gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+    } else {
+	snprintf(buf, 255, "Connected to %s!", name);
+	gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+	gtk_main_quit();
+	cpl.input_state = Playing;
+    }
+}
+
 void
 on_treeview_metaserver_row_activated   (GtkTreeView     *treeview,
                                         GtkTreePath     *path,
@@ -217,27 +237,28 @@ on_treeview_metaserver_row_activated   (GtkTreeView     *treeview,
 {
     GtkTreeIter iter;
     GtkTreeModel    *model;
-    char    *name, *ip, buf[256];
+    char    *name, *ip;
 
     model = gtk_tree_view_get_model(treeview);
     if (gtk_tree_model_get_iter(model, &iter, path)) {
 	gtk_tree_model_get(model, &iter, LIST_HOSTNAME, &name, LIST_IPADDR, &ip, -1);
 
-	snprintf(buf, 255, "Trying to connect to %s", name);
-
-	gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-
-	csocket.fd=init_connection(ip?ip:name, use_config[CONFIG_PORT]);
-	if (csocket.fd==-1) {
-	    snprintf(buf, 255, "Unable to connect to %s!", name);
-	    gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-	} else {
-	    snprintf(buf, 255, "Connected to %s!", name);
-	    gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-	    gtk_main_quit();
-	    cpl.input_state = Playing;
-	}
+	metaserver_connect_to(name, ip);
     }
+}
+
+/* This callback handles the user entering text into the
+ * metaserver freeform entry box
+ */
+void
+on_metaserver_text_entry_activate      (GtkEntry        *entry,
+                                        gpointer         user_data)
+{
+    const gchar *entry_text;
+
+    entry_text = gtk_entry_get_text(GTK_ENTRY(entry));
+
+    metaserver_connect_to(entry_text, NULL);
 }
 
 void

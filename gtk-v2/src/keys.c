@@ -58,8 +58,20 @@ typedef int KeyCode; /* Undefined type */
 #include "image.h"
 #include "gtk2proto.h"
 #include "p_cmd.h"
+#include "interface.h"
 
-static GtkWidget *fire_label, *run_label;
+static GtkWidget *fire_label, *run_label, *keybinding_window, *keybinding_checkbutton_control,
+    *keybinding_checkbutton_shift, *keybinding_checkbutton_alt, *keybinding_checkbutton_meta,
+    *keybinding_checkbutton_edit, *keybinding_entry_key, *keybinding_entry_command,
+    *keybinding_treeview, *keybinding_button_remove, *keybinding_button_update, 
+    *keybinding_button_bind;
+static GtkListStore    *keybinding_store;
+static GtkTreeSelection  *keybinding_selection;
+
+enum {
+    LIST_ENTRY, LIST_KEY, LIST_MODS, LIST_EDIT, LIST_COMMAND, LIST_KEY_ENTRY
+};
+
 GtkWidget *spinbutton_count;
 GtkWidget *entry_commands;
 
@@ -94,18 +106,21 @@ typedef struct Keys {
  ***********************************************************************/
 
 
-static uint32 firekeysym[2], runkeysym[2], commandkeysym,*bind_keysym,
-    prevkeysym, nextkeysym, completekeysym;
+static uint32 firekeysym[2], runkeysym[2], commandkeysym, *bind_keysym,
+    prevkeysym, nextkeysym, completekeysym, altkeysym[2], metakeysym[2];
 static int bind_flags=0;
 static char bind_buf[MAX_BUF];
 
 #define KEYF_NORMAL	0x01	/* Used in normal mode */
 #define KEYF_FIRE	0x02	/* Used in fire mode */
 #define KEYF_RUN	0x04	/* Used in run mode */
-#define KEYF_MODIFIERS	0x07	/* Mask for actual keyboard modifiers, */
-				/* not action modifiers */
 #define KEYF_EDIT	0x08	/* Line editor */
 #define KEYF_STANDARD	0x10	/* For standard (built in) key definitions */
+#define KEYF_ALT	0x20	/* For ALT key modifier */
+#define KEYF_META	0x40	/* For Meta key modifier */
+
+#define KEYF_MODIFIERS	0x67	/* Mask for actual keyboard modifiers, */
+				/* not action modifiers */
 
 extern char *directions[9];
 
@@ -123,7 +138,7 @@ static Key_Entry *keys[KEYHASH];
  * that the keyboard is in.
  * This function is common to both gdk and x11 client
  */
-static void insert_key(uint32 keysym, int flags, char *command)
+static void insert_key(uint32 keysym, int flags, const char *command)
 {
 
     Key_Entry *newkey;
@@ -202,12 +217,28 @@ static void parse_keybind_line(char *buf, int line, int standard)
 	    commandkeysym = keysym;
 	    return;
 	}
+	if (!strcmp(cpnext,"altkey0")) {
+	    altkeysym[0] = keysym;
+	    return;
+	}
+	if (!strcmp(cpnext,"altkey1")) {
+	    altkeysym[1] = keysym;
+	    return;
+	}
 	if (!strcmp(cpnext,"firekey0")) {
 	    firekeysym[0] = keysym;
 	    return;
 	}
 	if (!strcmp(cpnext,"firekey1")) {
 	    firekeysym[1] = keysym;
+	    return;
+	}
+	if (!strcmp(cpnext,"metakey0")) {
+	    metakeysym[0] = keysym;
+	    return;
+	}
+	if (!strcmp(cpnext,"metakey1")) {
+	    metakeysym[1] = keysym;
 	    return;
 	}
 	if (!strcmp(cpnext,"runkey0")) {
@@ -259,17 +290,23 @@ static void parse_keybind_line(char *buf, int line, int standard)
 		case 'A':
 		    flags |= KEYF_NORMAL | KEYF_FIRE | KEYF_RUN;
 		    break;
-		case 'N':
-		    flags |= KEYF_NORMAL;
+		case 'E':
+		    flags |= KEYF_EDIT;
 		    break;
 		case 'F':
 		    flags |= KEYF_FIRE;
 		    break;
+		case 'L':   /* A is used, so using L for alt */
+		    flags |= KEYF_ALT;
+		    break;
+		case 'M':
+		    flags |= KEYF_META;
+		    break;
+		case 'N':
+		    flags |= KEYF_NORMAL;
+		    break;
 		case 'R':
 		    flags |= KEYF_RUN;
-		    break;
-		case 'E':
-		    flags |= KEYF_EDIT;
 		    break;
 		case 'S':
 		    flags |= KEYF_STANDARD;
@@ -314,6 +351,9 @@ void keys_init(GtkWidget *window_root)
     int i, line=0;
     FILE *fp;
     char buf[BIG_BUF];
+    GtkTreeViewColumn *column;
+    GtkCellRenderer *renderer;
+
 
     for (i = 0; i<MAX_HISTORY; i++)
 	history[i][0]=0;
@@ -323,6 +363,10 @@ void keys_init(GtkWidget *window_root)
     firekeysym[1] =GDK_Shift_R;
     runkeysym[0]  =GDK_Control_L;
     runkeysym[1]  =GDK_Control_R;
+    metakeysym[0] =GDK_Meta_L;
+    metakeysym[1] =GDK_Meta_R;
+    altkeysym[0] =GDK_Alt_L;
+    altkeysym[1] =GDK_Alt_R;
 
     completekeysym = GDK_Tab;
 
@@ -368,6 +412,57 @@ void keys_init(GtkWidget *window_root)
     run_label = lookup_widget(window_root,"run_label");
     entry_commands = lookup_widget(window_root,"entry_commands");
     spinbutton_count = lookup_widget(window_root,"spinbutton_count");
+    keybinding_window = create_keybinding_window();
+    keybinding_checkbutton_control = lookup_widget(keybinding_window, "keybinding_checkbutton_control");
+    keybinding_checkbutton_shift = lookup_widget(keybinding_window, "keybinding_checkbutton_shift");
+    keybinding_checkbutton_alt = lookup_widget(keybinding_window, "keybinding_checkbutton_alt");
+    keybinding_checkbutton_meta = lookup_widget(keybinding_window, "keybinding_checkbutton_meta");
+    keybinding_checkbutton_edit = lookup_widget(keybinding_window, "keybinding_checkbutton_stayinedit");
+    keybinding_entry_key = lookup_widget(keybinding_window, "keybinding_entry_key");
+    keybinding_entry_command = lookup_widget(keybinding_window, "keybinding_entry_command");
+    keybinding_treeview = lookup_widget(keybinding_window, "keybinding_treeview");
+    keybinding_button_remove = lookup_widget(keybinding_window, "keybinding_button_remove");
+    keybinding_button_update = lookup_widget(keybinding_window, "keybinding_button_update");
+    keybinding_button_bind = lookup_widget(keybinding_window, "keybinding_button_bind");
+
+    gtk_widget_set_sensitive(keybinding_button_remove, FALSE);
+    gtk_widget_set_sensitive(keybinding_button_update, FALSE);
+    keybinding_store = gtk_list_store_new(6,
+					  G_TYPE_INT,
+					  G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+					  G_TYPE_POINTER
+					  );
+    gtk_tree_view_set_model(GTK_TREE_VIEW(keybinding_treeview), GTK_TREE_MODEL(keybinding_store));
+
+    renderer = gtk_cell_renderer_text_new ();
+    column = gtk_tree_view_column_new_with_attributes ("Key", renderer,
+                                                      "text", LIST_KEY,
+                                                      NULL);
+    gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
+
+    renderer = gtk_cell_renderer_text_new ();
+    column = gtk_tree_view_column_new_with_attributes ("Modifiers", renderer,
+                                                      "text", LIST_MODS,
+                                                      NULL);
+    gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
+
+    renderer = gtk_cell_renderer_text_new ();
+    column = gtk_tree_view_column_new_with_attributes ("Edit Mode", renderer,
+                                                      "text", LIST_EDIT,
+                                                      NULL);
+    gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
+
+    renderer = gtk_cell_renderer_text_new ();
+    column = gtk_tree_view_column_new_with_attributes ("Command", renderer,
+                                                      "text", LIST_COMMAND,
+                                                      NULL);
+    gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
+
+
+    keybinding_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(keybinding_treeview));
+    gtk_tree_selection_set_mode (keybinding_selection, GTK_SELECTION_BROWSE);
+    gtk_tree_selection_set_select_function(keybinding_selection, keybinding_selection_func, NULL, NULL);
+
 
     if ((fp=fopen(buf,"r"))==NULL) {
 	LOG(LOG_INFO,"gtk::init_keys","Could not open ~/.crossfire/keys, trying to load global bindings");
@@ -420,6 +515,13 @@ static void parse_key_release(uint32 ks) {
 	clear_run();
 	gtk_label_set (GTK_LABEL(run_label),"   ");
     }
+    else if (ks==altkeysym[0] || ks==altkeysym[1]) {
+	cpl.alt_on=0;
+    }
+    else if (ks==metakeysym[0] || ks==metakeysym[1]) {
+	cpl.meta_on=0;
+    }
+
 
     /* Firing is handled on server side.  However, to keep more like the
      * old version, if you release the direction key, you want the firing
@@ -445,6 +547,14 @@ static void parse_key(char key, uint32 keysym)
 	cpl.no_echo=FALSE;
 	return;
     }
+    if (keysym==altkeysym[0] ||keysym==altkeysym[1]) {
+	cpl.alt_on=1;
+	return;
+    }
+    if (keysym==metakeysym[0] ||keysym==metakeysym[1]) {
+	cpl.meta_on=1;
+	return;
+    }
     if (keysym==firekeysym[0] ||keysym==firekeysym[1]) {
 	cpl.fire_on=1;
 	gtk_label_set (GTK_LABEL(fire_label),"Fire");
@@ -458,6 +568,8 @@ static void parse_key(char key, uint32 keysym)
 
     if (cpl.run_on) present_flags |= KEYF_RUN;
     if (cpl.fire_on) present_flags |= KEYF_FIRE;
+    if (cpl.alt_on) present_flags |= KEYF_ALT;
+    if (cpl.meta_on) present_flags |= KEYF_META;
     if (present_flags ==0) present_flags = KEYF_NORMAL;
 
     keyentry = keys[keysym % KEYHASH];
@@ -551,6 +663,10 @@ static char * get_key_info(Key_Entry *key, int save_mode)
 	  buff[bi++] ='F';
 	if (key->flags & KEYF_RUN)
 	  buff[bi++] ='R';
+	if (key->flags & KEYF_ALT)
+	  buff[bi++] ='L';
+	if (key->flags & KEYF_META)
+	  buff[bi++] ='M';
     }
     if (key->flags & KEYF_EDIT)
 	buff[bi++] ='E';
@@ -602,6 +718,16 @@ static void show_keys(int allbindings)
 	  firekeysym[1]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[1]));
   draw_info(buf,NDI_BLACK);
 
+  sprintf(buf, "Altkeys 1: %s, 2: %s",
+	  altkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[0]),
+	  altkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[1]));
+  draw_info(buf,NDI_BLACK);
+
+  sprintf(buf, "Metakeys 1: %s, 2: %s",
+	  metakeysym[0]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[0]),
+	  metakeysym[1]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[1]));
+  draw_info(buf,NDI_BLACK);
+
   sprintf(buf, "Runkeys 1: %s, 2: %s",
 	  runkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[0]),
 	  runkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[1]));
@@ -641,7 +767,7 @@ void bind_key(char *params)
     char buf[MAX_BUF + 16];
 
     if (!params) {
-	draw_info("Usage: bind [-nfre] {<commandline>/commandkey/firekey{1/2}/runkey{1/2}/",NDI_BLACK);
+	draw_info("Usage: bind [-aefmnr] {<commandline>/commandkey/firekey{1/2}/runkey{1/2}/altkey{1/2}/metakey{1/2}",NDI_BLACK);
 	draw_info("           completekey/nextkey/prevkey}",NDI_BLACK);
 	return;
     }
@@ -658,13 +784,37 @@ void bind_key(char *params)
 
     if (!strcmp(params, "firekey1")) {
 	bind_keysym = & firekeysym[0];
-    draw_info("Push key to bind new firekey 1.",NDI_BLACK);
+	draw_info("Push key to bind new firekey 1.",NDI_BLACK);
 	cpl.input_state = Configure_Keys;
 	return;
     }
     if (!strcmp(params, "firekey2")) {
 	bind_keysym = & firekeysym[1];
 	draw_info("Push key to bind new firekey 2.",NDI_BLACK);
+	cpl.input_state = Configure_Keys;
+	return;
+    }
+    if (!strcmp(params, "metakey1")) {
+	bind_keysym = & metakeysym[0];
+	draw_info("Push key to bind new metakey 1.",NDI_BLACK);
+	cpl.input_state = Configure_Keys;
+	return;
+    }
+    if (!strcmp(params, "metakey2")) {
+	bind_keysym = & metakeysym[1];
+	draw_info("Push key to bind new metakey 2.",NDI_BLACK);
+	cpl.input_state = Configure_Keys;
+	return;
+    }
+    if (!strcmp(params, "altkey1")) {
+	bind_keysym = & altkeysym[0];
+	draw_info("Push key to bind new altkey 1.",NDI_BLACK);
+	cpl.input_state = Configure_Keys;
+	return;
+    }
+    if (!strcmp(params, "altkey2")) {
+	bind_keysym = & altkeysym[1];
+	draw_info("Push key to bind new altkey 2.",NDI_BLACK);
 	cpl.input_state = Configure_Keys;
 	return;
     }
@@ -703,7 +853,6 @@ void bind_key(char *params)
 	return;
     }
 
-
     if (params[0] != '-')
 	bind_flags =KEYF_MODIFIERS;
     else {
@@ -711,17 +860,23 @@ void bind_key(char *params)
 	bind_keysym=NULL;
 	for (params++; *params != ' '; params++)
 	switch (*params) {
-	    case 'n':
-		bind_flags |= KEYF_NORMAL;
+	    case 'a':
+		bind_flags |= KEYF_ALT;
+		break;
+	    case 'e':
+		bind_flags |= KEYF_EDIT;
 		break;
 	    case 'f':
 		bind_flags |= KEYF_FIRE;
 		break;
+	    case 'm':
+		bind_flags |= KEYF_META;
+		break;
+	    case 'n':
+		bind_flags |= KEYF_NORMAL;
+		break;
 	    case 'r':
 		bind_flags |= KEYF_RUN;
-		break;
-	    case 'e':
-		bind_flags |= KEYF_EDIT;
 		break;
 	    case '\0':
 		draw_info("Try unbind to remove bindings..",NDI_BLACK);
@@ -807,6 +962,22 @@ static void save_keys(void)
 	fprintf(fp, "! firekey1 %s %d\n",
 		gdk_keyval_name(firekeysym[1]), 0);
     }
+    if (metakeysym[0] != GDK_Shift_L && metakeysym[0] != NoSymbol) {
+	fprintf(fp, "! metakey0 %s %d\n",
+		gdk_keyval_name(metakeysym[0]), 0);
+    }
+    if (metakeysym[1] != GDK_Shift_R && metakeysym[1] != NoSymbol) {
+	fprintf(fp, "! metakey1 %s %d\n",
+		gdk_keyval_name(metakeysym[1]), 0);
+    }
+    if (altkeysym[0] != GDK_Shift_L && altkeysym[0] != NoSymbol) {
+	fprintf(fp, "! altkey0 %s %d\n",
+		gdk_keyval_name(altkeysym[0]), 0);
+    }
+    if (altkeysym[1] != GDK_Shift_R && altkeysym[1] != NoSymbol) {
+	fprintf(fp, "! altkey1 %s %d\n",
+		gdk_keyval_name(altkeysym[1]), 0);
+    }
     if (runkeysym[0] != GDK_Control_L && runkeysym[0] != NoSymbol) {
 	fprintf(fp, "! runkey0 %s %d\n",
 		gdk_keyval_name(runkeysym[0]), 0);
@@ -846,6 +1017,14 @@ static void configure_keys(uint32 keysym)
      * we just want to handle these keypresses as normal events.
      */
     if (bind_keysym==NULL) {
+	if(keysym == altkeysym[0] || keysym == altkeysym[1]) {
+	    cpl.alt_on =1;
+	    return;
+	}
+	if(keysym == metakeysym[0] || keysym == metakeysym[1]) {
+	    cpl.meta_on =1;
+	    return;
+	}
 	if(keysym == firekeysym[0] || keysym == firekeysym[1]) {
 	    cpl.fire_on =1;
 	    draw_message_window(0);
@@ -863,10 +1042,13 @@ static void configure_keys(uint32 keysym)
      * -f and -r flags to bind for many simple binds.
      */
 	
-    if ((cpl.fire_on || cpl.run_on) && (bind_flags & KEYF_MODIFIERS)==KEYF_MODIFIERS) {
+    if ((cpl.fire_on || cpl.run_on || cpl.meta_on || cpl.alt_on) && 
+      (bind_flags & KEYF_MODIFIERS)==KEYF_MODIFIERS) {
 	bind_flags &= ~KEYF_MODIFIERS;
 	if (cpl.fire_on) bind_flags |= KEYF_FIRE;
 	if (cpl.run_on) bind_flags |= KEYF_RUN;
+	if (cpl.meta_on) bind_flags |= KEYF_META;
+	if (cpl.alt_on) bind_flags |= KEYF_ALT;
     }
 
     if (bind_keysym!=NULL) {
@@ -1114,6 +1296,10 @@ void draw_keybindings (GtkWidget *keylist) {
 		    buff[bi++] ='F';
 		if (key->flags & KEYF_RUN)
 		    buff[bi++] ='R';
+		if (key->flags & KEYF_ALT)
+		    buff[bi++] ='L';
+		if (key->flags & KEYF_META)
+		    buff[bi++] ='M';
 	    }
 	    if (key->flags & KEYF_EDIT)
 		buff[bi++] ='E';
@@ -1139,84 +1325,6 @@ void draw_keybindings (GtkWidget *keylist) {
 	}
     }
 }
-
-#if 0    
-/* This code is form the keybinding dialogue in the config window -
- * that code is still TODO.
- */
-void bind_callback (GtkWidget *gtklist, GdkEventButton *event) {
-    KeySym keysym;
-    gchar *entry_text;
-    gchar *cpnext;
-    gchar *mod="";
-    char buf[MAX_BUF];
-      
-    bind_flags = KEYF_MODIFIERS;
-  
-    if ((bind_flags & KEYF_MODIFIERS)==KEYF_MODIFIERS) {
-	bind_flags &= ~KEYF_MODIFIERS;
-	mod=gtk_entry_get_text (GTK_ENTRY(cmodentry_commands));
-	if (!strcmp(mod, "F")) {
-	    bind_flags |= KEYF_FIRE;
-	}
-	else if (!strcmp(mod, "R")) {
-	    bind_flags |= KEYF_RUN;
-	}
-	else if (!strcmp(mod, "A")) {
-	    bind_flags |= KEYF_MODIFIERS;
-	}
-    }
-    cpnext = gtk_entry_get_text (GTK_ENTRY(ckentry_commands));
-    entry_text = gtk_entry_get_text (GTK_ENTRY(ckeyentry_commands));
-
-    keysym = gdk_keyval_from_name(entry_text);
-    insert_key(keysym, bind_flags, cpnext);
-    save_keys();
-    draw_keybindings (cclist);
-    sprintf(buf, "Binded to key '%s' (%i)", gdk_keyval_name(keysym), 0);
-    draw_info(buf,NDI_BLACK);
-}
-
-void ckeyunbind (GtkWidget *gtklist, GdkEventButton *event) {
-  gchar *buf;
-  GList *node;
-  node =  GTK_CLIST(cclist)->selection;
-  if (node) {
-    gtk_clist_get_text (GTK_CLIST(cclist), (gint)node->data, 0, &buf); 
-
-    unbind_key(buf);
-    draw_keybindings (cclist);
-
-  }
-}
-
-void ckeyentry_callback (GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
-  gtk_entry_set_text (GTK_ENTRY(ckeyentry_commands),  gdk_keyval_name(event->keyval));
-
-  switch (event->state) {
-  case GDK_CONTROL_MASK:
-    gtk_entry_set_text (GTK_ENTRY(cmodentry_commands),  "R");
-    break;
-  case GDK_SHIFT_MASK:
-    gtk_entry_set_text (GTK_ENTRY(cmodentry_commands),  "F");
-    break;
-  default:
-    gtk_entry_set_text (GTK_ENTRY(cmodentry_commands),  "A");
-  }
-  /*  gdk_keyval_name(event->keyval);*/
-  gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event"); 
-}
-
-
-void ckeyclear () {
-  gtk_label_set (GTK_LABEL(cnumentry_commands), "0"); 
-  gtk_entry_set_text (GTK_ENTRY(ckeyentry_commands), "Press key to bind here"); 
-  /*  gtk_entry_set_text (GTK_ENTRY(cknumentry_commands), ""); */
-  gtk_entry_set_text (GTK_ENTRY(cmodentry_commands), ""); 
-  gtk_entry_set_text (GTK_ENTRY(ckentry_commands), ""); 
-}
-
-#endif
 
 void x_set_echo() {
     gtk_entry_set_visibility(GTK_ENTRY(entry_commands), !cpl.no_echo);
@@ -1336,5 +1444,352 @@ on_entry_commands_activate             (GtkEntry        *entry,
     }
 }
 
+/****************************************************************************
+ * Code below here handles the keybinding window.
+ ****************************************************************************/
 
+void update_keybinding_list()
+{
+    int i, allbindings=0;
+    Key_Entry *key;
+    char    modifier_buf[256];
+    GtkTreeIter iter;
+
+
+    gtk_list_store_clear(keybinding_store);
+
+    for (i=0; i<KEYHASH; i++) {
+        for (key=keys[i]; key!=NULL; key =key->next) {
+            if (key->flags & KEYF_STANDARD && !allbindings) continue;
+
+	    modifier_buf[0] = 0;
+
+	    if ((key->flags & KEYF_MODIFIERS) != KEYF_MODIFIERS) {
+		if (key->flags & KEYF_ALT)  strcat(modifier_buf,"Alt ");
+		if (key->flags & KEYF_FIRE)  strcat(modifier_buf,"Fire ");
+		if (key->flags & KEYF_RUN)  strcat(modifier_buf,"Run ");
+		if (key->flags & KEYF_META)  strcat(modifier_buf,"Meta ");
+	    }
+	    if (key->flags & KEYF_STANDARD)  strcat(modifier_buf,"(Standard) ");
+	    gtk_list_store_append(keybinding_store, &iter);
+	    gtk_list_store_set(keybinding_store, &iter,
+			       LIST_ENTRY, i,
+			       LIST_KEY,  gdk_keyval_name(key->keysym),
+			       LIST_MODS, modifier_buf,
+			       LIST_EDIT, (key->flags & KEYF_EDIT) ? "Yes":"No",
+			       LIST_COMMAND, key->command,
+			       LIST_KEY_ENTRY, key,
+			       -1);
+	}
+    }
+    reset_keybinding_status();
+}
+
+
+/* Menubar item to activate keybindings window */
+void
+on_keybindings_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+
+    gtk_widget_show(keybinding_window);
+    update_keybinding_list();
+
+}
+
+
+gboolean
+on_keybinding_entry_key_key_press_event
+                                        (GtkWidget       *widget,
+                                        GdkEventKey     *event,
+                                        gpointer         user_data)
+{
+
+    gtk_entry_set_text (GTK_ENTRY(keybinding_entry_key),  gdk_keyval_name(event->keyval));
+
+    /* This code is basically taken from the GTKv1 client.  However, at some
+     * level it is broken, since the control/shift/etc masks are hardcoded,
+     * yet we do let the users redefine them.
+     */
+
+    /* The clearing of the modifiers is disabled.  In my basic testing, I checked
+     * the modifiers and then pressed the key - have those modifiers go away I think
+     * is less intuitive.
+     */
+    if (event->state & GDK_CONTROL_MASK)
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), TRUE);
+#if 0
+    else
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), FALSE);
+#endif
+
+    if (event->state & GDK_SHIFT_MASK)
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), TRUE);
+#if 0
+    else
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), FALSE);
+
+    /* The GDK_MOD_MASK* will likely correspond to alt and meta, yet there is
+     * no way to be sure what goes to what, so easiest to just not allow them.
+     */
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_alt), FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_meta), FALSE);
+#endif
+
+    /* Returning TRUE prevents widget from getting this event */
+    return TRUE;
+}
+
+
+void
+on_keybinding_button_remove_clicked    (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    GtkTreeModel    *model;
+    GtkTreeIter iter;
+    Key_Entry	*entry, *key, *tmp;
+    int onkey;
+
+    if (!gtk_tree_selection_get_selected (keybinding_selection, &model, &iter)) {
+	LOG(LOG_ERROR,"keys.c:on_keybinding_button_remove_clicked", "Function called with nothing selected\n");
+	return;
+    }
+    gtk_tree_model_get(model, &iter, LIST_KEY_ENTRY, &entry, -1);
+    for (onkey=0; onkey<KEYHASH; onkey++) {
+        for (key=keys[onkey]; key; key =key->next) {
+	    if (key == entry) {
+
+		/* This code is directly from unbind_key() above */
+
+		/* If it is the first entry, it is easy */
+                if (key == keys[onkey]) {
+                    keys[onkey] = key->next;
+                    goto unbinded;
+		}
+                /* Otherwise, we need to figure out where in the link list
+                 * the entry is.
+                 */
+                for (tmp=keys[onkey]; tmp->next!=NULL; tmp=tmp->next) {
+                    if (tmp->next == key) {
+                        tmp->next =key->next;
+                        goto unbinded;
+		    }
+		}
+	    }
+	}
+    }
+    LOG(LOG_ERROR,"keys.c:on_keybinding_button_remove_clicked", "Unable to find matching key entry\n");
+
+unbinded:
+    if (key->command) free(key->command);
+    free(key);
+    save_keys();
+    update_keybinding_list();
+
+}
+
+/* This function gets the state information from what checkboxes and
+ * other data in the window and puts it in the variables passed
+ * passed.  This is used by both the update and add functions.
+ */
+static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **command)
+{
+    static char bind_buf[MAX_BUF];
+    const char *ed;
+    *flags = 0;
+
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control)))
+	*flags |= KEYF_RUN;
+
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift)))
+	*flags |= KEYF_FIRE;
+
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_alt)))
+	*flags |= KEYF_ALT;
+
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_meta)))
+	*flags |= KEYF_META;
+
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_edit)))
+	*flags |= KEYF_EDIT;
+
+    /* If no modifiers set, the presume all should be used */
+    if (!(*flags & KEYF_MODIFIERS))
+	*flags |= KEYF_MODIFIERS;
+
+    ed = gtk_entry_get_text(GTK_ENTRY(keybinding_entry_command));
+    if (strlen(ed)) {
+	sprintf(bind_buf,"Keybinding command to long - truncating!");
+	draw_info(bind_buf,NDI_BLACK);
+	strncpy(bind_buf, ed, MAX_BUF-1);
+	bind_buf[MAX_BUF-1] = 0;
+	*command = bind_buf;
+    } else {
+	*command = ed;
+    }
+
+    /* This isn't ideal - when the key is pressed, we convert it to a string,
+     * and now we are converting it back.  It'd be nice to tuck the keysym
+     * itself away someplace.
+     */
+    *keysym = gdk_keyval_from_name(gtk_entry_get_text(GTK_ENTRY(keybinding_entry_key)));
+    if (*keysym == GDK_VoidSymbol) {
+	LOG(LOG_ERROR,"keys.ckeybinding_get_data", "Can not get valid keysym from selection");
+    }
+}
+	
+
+void
+on_keybinding_button_bind_clicked      (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    uint32  keysym;
+    uint8   flags;
+    const char *command;
+
+    keybinding_get_data(&keysym, &flags, &command);
+
+    /* insert_key will do a strdup of command for us */
+    insert_key(keysym, flags, command);
+
+    /* I think it is more appropriate to clear the fields once the user adds
+     * it.  I suppose the ideal case would be to select the newly inserted
+     * keybinding.
+     */
+    reset_keybinding_status();
+    update_keybinding_list();
+    save_keys();
+}
+
+
+
+void
+on_keybinding_button_update_clicked    (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    GtkTreeIter iter;
+    Key_Entry	*entry;
+    GtkTreeModel    *model;
+    const char *buf;
+
+    if (gtk_tree_selection_get_selected (keybinding_selection, &model, &iter)) {
+        gtk_tree_model_get(model, &iter, LIST_KEY_ENTRY, &entry, -1);
+
+        if (!entry) {
+            LOG(LOG_ERROR,"keys.c:on_keybinding_button_update_clicked", "Unable to get key_entry structure\n");
+            return;
+	}
+	if (entry->command) free(entry->command);
+	keybinding_get_data(&entry->keysym, &entry->flags, &buf);
+	entry->command = strdup_local(buf);
+	update_keybinding_list();
+	save_keys();
+    } else {
+	LOG(LOG_ERROR,"keys.c:on_keybinding_button_update_clicked", "Nothing selected to update\n");
+    }
+}
+
+
+void
+on_keybinding_button_close_clicked     (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    gtk_widget_hide(keybinding_window);
+}
+
+
+
+/* This function is called when the user clicks on one of the
+ * entries in the list of keybindings.  When that happens, we
+ * want to update the fields below the window (actual binding
+ * information) as well as enable the remove and update windows.
+ */
+gboolean keybinding_selection_func (
+                      GtkTreeSelection *selection,
+                      GtkTreeModel     *model,
+                      GtkTreePath      *path,
+                      gboolean          path_currently_selected,
+                      gpointer          userdata)
+{
+    GtkTreeIter iter;
+    Key_Entry	*entry;
+
+    gtk_widget_set_sensitive(keybinding_button_remove, TRUE);
+    gtk_widget_set_sensitive(keybinding_button_update, TRUE);
+
+    if (gtk_tree_model_get_iter(model, &iter, path)) {
+
+        gtk_tree_model_get(model, &iter, LIST_KEY_ENTRY, &entry, -1);
+
+        if (!entry) {
+            LOG(LOG_ERROR,"keys.c:keybinding_selection_func", "Unable to get key_entry structure\n");
+            return FALSE;
+	}
+	if (entry->flags & KEYF_RUN)
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), TRUE);
+	else
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), FALSE);
+
+	if (entry->flags & KEYF_FIRE)
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), TRUE);
+	else
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), FALSE);
+
+	if (entry->flags & KEYF_ALT)
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_alt), TRUE);
+	else
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_alt), FALSE);
+
+	if (entry->flags & KEYF_META)
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_meta), TRUE);
+	else
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_meta), FALSE);
+
+	if (entry->flags & KEYF_EDIT)
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_edit), TRUE);
+	else
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_edit), FALSE);
+
+	gtk_entry_set_text (GTK_ENTRY(keybinding_entry_key), gdk_keyval_name(entry->keysym));
+	gtk_entry_set_text (GTK_ENTRY(keybinding_entry_command), entry->command	);
+
+    }
+    return TRUE;
+}
+
+void reset_keybinding_status()
+{
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_alt), FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_meta), FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_edit), FALSE);
+    gtk_entry_set_text (GTK_ENTRY(keybinding_entry_key), "");
+    gtk_entry_set_text (GTK_ENTRY(keybinding_entry_command), "");
+    gtk_widget_set_sensitive(keybinding_button_remove, FALSE);
+    gtk_widget_set_sensitive(keybinding_button_update, FALSE);
+
+}
+
+/* If the user clicks the clear button, want to clear the
+ * selection as well as clear all the fields associated
+ * with the selection.
+ */
+void
+on_keybinding_button_clear_clicked     (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    GtkTreeModel    *model;
+    GtkTreeIter iter;
+
+    /* Need to unselect this first - otherwise, it seems we get another selection
+     * event triggering the stuff active again.
+     */
+    if (gtk_tree_selection_get_selected (keybinding_selection, &model, &iter)) {
+	gtk_tree_selection_unselect_iter (keybinding_selection, &iter);
+    }
+    reset_keybinding_status();
+
+
+}
 

@@ -45,6 +45,27 @@ char *rcsid_gtk2_menubar_c =
  */
 
 void
+on_disconnect_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    extern gint csocket_fd;
+
+#ifdef WIN32
+    closesocket(csocket.fd);
+#else
+    close(csocket.fd);
+#endif
+    csocket.fd = -1;
+    if (csocket_fd) {
+        gdk_input_remove(csocket_fd);
+        csocket_fd=0;
+        gtk_main_quit();
+    }
+}
+
+
+
+void
 menu_quit_program                       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
