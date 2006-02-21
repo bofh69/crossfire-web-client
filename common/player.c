@@ -54,11 +54,22 @@ const char *const directions[9] = {"stay", "north", "northeast", "east", "southe
  */
 void new_player (long tag, char *name, long weight, long face)
 {
+    Spell *spell, *spnext;
+
     cpl.ob->tag    = tag;
     cpl.ob->nrof   = 1;
     copy_name (cpl.ob->d_name, name);
     cpl.ob->weight = (float) weight / 1000;
     cpl.ob->face   = face;
+
+    if (cpl.spelldata) {
+	for (spell = cpl.spelldata; spell; spell = spnext) {
+	    spnext = spell->next;
+	    free(spell);
+	}
+	cpl.spelldata = NULL;
+    }
+	
 }
 
 void look_at(int x, int y)
