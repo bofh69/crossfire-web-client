@@ -41,6 +41,9 @@ create_window_root (void)
   GtkWidget *client1_menu;
   GtkWidget *disconnect;
   GtkWidget *keybindings;
+  GtkWidget *meny_player;
+  GtkWidget *meny_player_menu;
+  GtkWidget *spells;
   GtkWidget *pickup1;
   GtkWidget *pickup1_menu;
   GtkWidget *don_t_pickup1;
@@ -230,6 +233,17 @@ create_window_root (void)
   gtk_widget_show (keybindings);
   gtk_container_add (GTK_CONTAINER (client1_menu), keybindings);
 
+  meny_player = gtk_menu_item_new_with_mnemonic (_("Player"));
+  gtk_widget_show (meny_player);
+  gtk_container_add (GTK_CONTAINER (menubar1), meny_player);
+
+  meny_player_menu = gtk_menu_new ();
+  gtk_menu_item_set_submenu (GTK_MENU_ITEM (meny_player), meny_player_menu);
+
+  spells = gtk_menu_item_new_with_mnemonic (_("Spells"));
+  gtk_widget_show (spells);
+  gtk_container_add (GTK_CONTAINER (meny_player_menu), spells);
+
   pickup1 = gtk_menu_item_new_with_mnemonic (_("Pickup"));
   gtk_widget_show (pickup1);
   gtk_container_add (GTK_CONTAINER (menubar1), pickup1);
@@ -357,61 +371,51 @@ create_window_root (void)
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_pickup_off1));
   gtk_widget_show (ratio_pickup_off1);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_pickup_off1);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_pickup_off1), TRUE);
 
   ratio_5 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 5"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_5));
   gtk_widget_show (ratio_5);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_5);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_5), TRUE);
 
   ratio_10 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 10"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_10));
   gtk_widget_show (ratio_10);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_10);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_10), TRUE);
 
   ratio_15 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 15"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_15));
   gtk_widget_show (ratio_15);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_15);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_15), TRUE);
 
   ratio_20 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 20"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_20));
   gtk_widget_show (ratio_20);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_20);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_20), TRUE);
 
   ratio_25 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 25"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_25));
   gtk_widget_show (ratio_25);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_25);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_25), TRUE);
 
   ratio_30 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 30"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_30));
   gtk_widget_show (ratio_30);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_30);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_30), TRUE);
 
   ratio_35 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 35"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_35));
   gtk_widget_show (ratio_35);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_35);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_35), TRUE);
 
   ratio_40 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 40"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_40));
   gtk_widget_show (ratio_40);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_40);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_40), TRUE);
 
   ratio_45 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 45"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_45));
   gtk_widget_show (ratio_45);
   gtk_container_add (GTK_CONTAINER (weight_value_1_menu), ratio_45);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (ratio_45), TRUE);
 
   ratio_50 = gtk_radio_menu_item_new_with_mnemonic (ratio_pickup_off1_group, _("Ratio >= 50"));
   ratio_pickup_off1_group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (ratio_50));
@@ -876,6 +880,9 @@ create_window_root (void)
   g_signal_connect ((gpointer) keybindings, "activate",
                     G_CALLBACK (on_keybindings_activate),
                     NULL);
+  g_signal_connect ((gpointer) spells, "activate",
+                    G_CALLBACK (on_spells_activate),
+                    NULL);
   g_signal_connect ((gpointer) don_t_pickup1, "activate",
                     G_CALLBACK (on_menu_dont_pickup_activate),
                     NULL);
@@ -1016,6 +1023,9 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, client1_menu, "client1_menu");
   GLADE_HOOKUP_OBJECT (window_root, disconnect, "disconnect");
   GLADE_HOOKUP_OBJECT (window_root, keybindings, "keybindings");
+  GLADE_HOOKUP_OBJECT (window_root, meny_player, "meny_player");
+  GLADE_HOOKUP_OBJECT (window_root, meny_player_menu, "meny_player_menu");
+  GLADE_HOOKUP_OBJECT (window_root, spells, "spells");
   GLADE_HOOKUP_OBJECT (window_root, pickup1, "pickup1");
   GLADE_HOOKUP_OBJECT (window_root, pickup1_menu, "pickup1_menu");
   GLADE_HOOKUP_OBJECT (window_root, don_t_pickup1, "don_t_pickup1");
@@ -1436,5 +1446,135 @@ create_keybinding_window (void)
   GLADE_HOOKUP_OBJECT (keybinding_window, keybinding_button_close, "keybinding_button_close");
 
   return keybinding_window;
+}
+
+GtkWidget*
+create_spell_window (void)
+{
+  GtkWidget *spell_window;
+  GtkWidget *vbox9;
+  GtkWidget *scrolledwindow9;
+  GtkWidget *spell_treeview;
+  GtkWidget *hbox17;
+  GtkWidget *spell_drawingarea_attuned;
+  GtkWidget *spell_label_green;
+  GtkWidget *spell_drawingarea_repelled;
+  GtkWidget *spell_label_orange;
+  GtkWidget *spell_drawingarea_denied;
+  GtkWidget *spell_label_red;
+  GtkWidget *label91;
+  GtkWidget *spell_options;
+  GtkWidget *hbox16;
+  GtkWidget *spell_cast;
+  GtkWidget *spell_invoke;
+  GtkWidget *spell_close;
+
+  spell_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title (GTK_WINDOW (spell_window), _("Spell Information"));
+  gtk_window_set_position (GTK_WINDOW (spell_window), GTK_WIN_POS_CENTER_ON_PARENT);
+  gtk_window_set_default_size (GTK_WINDOW (spell_window), 800, 600);
+
+  vbox9 = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (vbox9);
+  gtk_container_add (GTK_CONTAINER (spell_window), vbox9);
+
+  scrolledwindow9 = gtk_scrolled_window_new (NULL, NULL);
+  gtk_widget_show (scrolledwindow9);
+  gtk_box_pack_start (GTK_BOX (vbox9), scrolledwindow9, TRUE, TRUE, 0);
+  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolledwindow9), GTK_SHADOW_IN);
+
+  spell_treeview = gtk_tree_view_new ();
+  gtk_widget_show (spell_treeview);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow9), spell_treeview);
+  GTK_WIDGET_UNSET_FLAGS (spell_treeview, GTK_CAN_FOCUS);
+
+  hbox17 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox17);
+  gtk_box_pack_start (GTK_BOX (vbox9), hbox17, FALSE, TRUE, 0);
+
+  spell_drawingarea_attuned = gtk_drawing_area_new ();
+  gtk_widget_show (spell_drawingarea_attuned);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_drawingarea_attuned, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (spell_drawingarea_attuned, 30, -1);
+
+  spell_label_green = gtk_label_new (_("Attuned"));
+  gtk_widget_show (spell_label_green);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_label_green, FALSE, FALSE, 5);
+
+  spell_drawingarea_repelled = gtk_drawing_area_new ();
+  gtk_widget_show (spell_drawingarea_repelled);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_drawingarea_repelled, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (spell_drawingarea_repelled, 30, -1);
+
+  spell_label_orange = gtk_label_new (_("Repelled"));
+  gtk_widget_show (spell_label_orange);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_label_orange, FALSE, FALSE, 5);
+
+  spell_drawingarea_denied = gtk_drawing_area_new ();
+  gtk_widget_show (spell_drawingarea_denied);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_drawingarea_denied, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (spell_drawingarea_denied, 30, -1);
+
+  spell_label_red = gtk_label_new (_("Denied"));
+  gtk_widget_show (spell_label_red);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_label_red, FALSE, FALSE, 5);
+
+  label91 = gtk_label_new (_("     Spell Options"));
+  gtk_widget_show (label91);
+  gtk_box_pack_start (GTK_BOX (hbox17), label91, FALSE, FALSE, 5);
+
+  spell_options = gtk_entry_new ();
+  gtk_widget_show (spell_options);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_options, TRUE, TRUE, 0);
+
+  hbox16 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox16);
+  gtk_box_pack_start (GTK_BOX (vbox9), hbox16, FALSE, TRUE, 0);
+
+  spell_cast = gtk_button_new_with_mnemonic (_("Cast"));
+  gtk_widget_show (spell_cast);
+  gtk_box_pack_start (GTK_BOX (hbox16), spell_cast, TRUE, FALSE, 0);
+
+  spell_invoke = gtk_button_new_with_mnemonic (_("Invoke"));
+  gtk_widget_show (spell_invoke);
+  gtk_box_pack_start (GTK_BOX (hbox16), spell_invoke, TRUE, FALSE, 0);
+
+  spell_close = gtk_button_new_with_mnemonic (_("Close Window"));
+  gtk_widget_show (spell_close);
+  gtk_box_pack_start (GTK_BOX (hbox16), spell_close, TRUE, FALSE, 0);
+
+  g_signal_connect ((gpointer) spell_treeview, "row_activated",
+                    G_CALLBACK (on_spell_treeview_row_activated),
+                    NULL);
+  g_signal_connect ((gpointer) spell_cast, "clicked",
+                    G_CALLBACK (on_spell_cast_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) spell_invoke, "clicked",
+                    G_CALLBACK (on_spell_invoke_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) spell_close, "clicked",
+                    G_CALLBACK (on_spell_close_clicked),
+                    NULL);
+
+  /* Store pointers to all widgets, for use by lookup_widget(). */
+  GLADE_HOOKUP_OBJECT_NO_REF (spell_window, spell_window, "spell_window");
+  GLADE_HOOKUP_OBJECT (spell_window, vbox9, "vbox9");
+  GLADE_HOOKUP_OBJECT (spell_window, scrolledwindow9, "scrolledwindow9");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_treeview, "spell_treeview");
+  GLADE_HOOKUP_OBJECT (spell_window, hbox17, "hbox17");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_drawingarea_attuned, "spell_drawingarea_attuned");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_label_green, "spell_label_green");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_drawingarea_repelled, "spell_drawingarea_repelled");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_label_orange, "spell_label_orange");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_drawingarea_denied, "spell_drawingarea_denied");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_label_red, "spell_label_red");
+  GLADE_HOOKUP_OBJECT (spell_window, label91, "label91");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_options, "spell_options");
+  GLADE_HOOKUP_OBJECT (spell_window, hbox16, "hbox16");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_cast, "spell_cast");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_invoke, "spell_invoke");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_close, "spell_close");
+
+  return spell_window;
 }
 

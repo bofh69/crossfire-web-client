@@ -60,7 +60,6 @@ char *get_metaserver()
 {
     static int has_init=0;
     GtkTreeIter iter;
-    char idle[256], nplayers[256];
     int i;
 
     if (!has_init) {
@@ -78,8 +77,8 @@ char *get_metaserver()
 	store_metaserver = gtk_list_store_new (6,
                                 G_TYPE_STRING,
                                 G_TYPE_STRING,
-                                G_TYPE_STRING,
-                                G_TYPE_STRING,
+                                G_TYPE_INT,
+                                G_TYPE_INT,
                                 G_TYPE_STRING,
                                 G_TYPE_STRING);
 
@@ -89,30 +88,35 @@ char *get_metaserver()
 	column = gtk_tree_view_column_new_with_attributes ("Hostname", renderer,
                                                       "text", LIST_HOSTNAME,
                                                       NULL);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_HOSTNAME);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
 
 	renderer = gtk_cell_renderer_text_new ();
 	column = gtk_tree_view_column_new_with_attributes ("IP Addr", renderer,
                                                       "text", LIST_IPADDR,
                                                       NULL);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_IPADDR);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
 
 	renderer = gtk_cell_renderer_text_new ();
 	column = gtk_tree_view_column_new_with_attributes ("Last Update (Sec)", renderer,
                                                       "text", LIST_IDLETIME,
                                                       NULL);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_IDLETIME);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
 
 	renderer = gtk_cell_renderer_text_new ();
 	column = gtk_tree_view_column_new_with_attributes ("# Players", renderer,
                                                       "text", LIST_PLAYERS,
                                                       NULL);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_PLAYERS);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
 
 	renderer = gtk_cell_renderer_text_new ();
 	column = gtk_tree_view_column_new_with_attributes ("Version", renderer,
                                                       "text", LIST_VERSION,
                                                       NULL);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_VERSION);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
 
 	renderer = gtk_cell_renderer_text_new ();
@@ -147,15 +151,12 @@ char *get_metaserver()
     }
 
     for (i=0; i<meta_numservers; i++) {
-	sprintf(idle,"%d", meta_servers[i].idle_time);
-	sprintf(nplayers, "%d", meta_servers[i].players);
-
 	gtk_list_store_append(store_metaserver, &iter);
 	gtk_list_store_set(store_metaserver, &iter, 
 			       LIST_HOSTNAME, meta_servers[i].hostname,
 			       LIST_IPADDR, meta_servers[i].hostname,
-			       LIST_IDLETIME, idle,
-			       LIST_PLAYERS, nplayers,
+			       LIST_IDLETIME,  meta_servers[i].idle_time,
+			       LIST_PLAYERS, meta_servers[i].players,
 			       LIST_VERSION, meta_servers[i].version,
 			       LIST_COMMENT, meta_servers[i].comment,
 			       -1);
@@ -217,7 +218,7 @@ static void metaserver_connect_to(const char *name, const char *ip)
 
     gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
 
-    csocket.fd=init_connection(ip?ip:name, use_config[CONFIG_PORT]);
+    csocket.fd=init_connection((char*)(ip?ip:name), use_config[CONFIG_PORT]);
     if (csocket.fd==-1) {
 	snprintf(buf, 255, "Unable to connect to %s!", name);
 	gtk_label_set_text(GTK_LABEL(metaserver_status), buf);

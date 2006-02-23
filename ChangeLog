@@ -2,6 +2,34 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+More improvements to the gtk-v2 client:
+- Add spell selection window similar to that in the gtk-v1 client.
+- Make it so that clicking on the headers in the metaserver and keybinding
+  selection windows will result in table be sorted by that header.
+--
+*/Makefile.in: Rebuilt by automake.
+aclocal.m4: Updated by aclocal.
+gtk-v2/TODO: Remove things that have been done, add other things mentioned
+  on mailing list that should be done.
+gtk-v2/gtk-v2.glade: Updated with new spell selection window.
+gtk-v2/src/Makefile.am: Add spells.c file
+gtk-v2/src/spells.c: File that handles spell selection window.
+gtk-v2/src/callbacks.h: Updated by glade
+gtk-v2/src/gtk2proto.h: rebuilt
+gtk-v2/src/interface.c: Updated by glade.
+gtk-v2/src/interface.h: Updated by glade.
+gtk-v2/src/keys.c: Add necessary calls to enable sorting of table by
+  clicking on headers.
+gtk-v2/src/main.c: Add call to update_spell_information() if spell information
+  has changed.
+gtk-v2/src/metaserver.c: Add necessary calls to enable sorting of table by
+  clicking on headers.  Convert the idletime and number of players columns
+  to be ints - this makes the sort work as expected, and actually simplifies
+  the code a little.
+gtk-v2/src/support.h: Rebuilt by glade.
+MSW 2006-02-22
+ 
+
 common/player.c: Fix bug in that spell data wasn't being cleared when
   logging on.  Thus, if you logged on as one character, then another,
   etc, it would just keep adding to the spell list, not being a 

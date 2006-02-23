@@ -86,6 +86,7 @@ int do_scriptout()
 int do_timeout() 
 {
     if (cpl.showmagic) magic_map_flash_pos();
+    if (cpl.spells_updated) update_spell_information();
     inventory_tick();
     return TRUE;
 }

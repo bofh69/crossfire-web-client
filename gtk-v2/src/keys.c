@@ -438,30 +438,38 @@ void keys_init(GtkWidget *window_root)
     column = gtk_tree_view_column_new_with_attributes ("Key", renderer,
                                                       "text", LIST_KEY,
                                                       NULL);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_KEY);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes ("Modifiers", renderer,
                                                       "text", LIST_MODS,
                                                       NULL);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_MODS);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes ("Edit Mode", renderer,
                                                       "text", LIST_EDIT,
                                                       NULL);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_EDIT);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes ("Command", renderer,
                                                       "text", LIST_COMMAND,
                                                       NULL);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_COMMAND);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
 
     keybinding_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(keybinding_treeview));
     gtk_tree_selection_set_mode (keybinding_selection, GTK_SELECTION_BROWSE);
     gtk_tree_selection_set_select_function(keybinding_selection, keybinding_selection_func, NULL, NULL);
+
+    gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(keybinding_store),
+                                             LIST_KEY,
+                                             GTK_SORT_ASCENDING);
 
 
     if ((fp=fopen(buf,"r"))==NULL) {

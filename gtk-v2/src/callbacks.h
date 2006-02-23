@@ -250,3 +250,33 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
 void
 on_keybinding_button_bind_clicked      (GtkButton       *button,
                                         gpointer         user_data);
+
+void
+on_spells_activate                     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_spell_cast_clicked                  (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_spell_invok_clicked                 (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_spell_close_clicked                 (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_spell_invoke_clicked                (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_spell_options_activate              (GtkEntry        *entry,
+                                        gpointer         user_data);
+
+void
+on_spell_treeview_row_activated        (GtkTreeView     *treeview,
+                                        GtkTreePath     *path,
+                                        GtkTreeViewColumn *column,
+                                        gpointer         user_data);

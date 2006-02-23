@@ -77,7 +77,8 @@ am__objects_1 = config.$(OBJEXT) image.$(OBJEXT) info.$(OBJEXT) \
 	inventory.$(OBJEXT) keys.$(OBJEXT) main.$(OBJEXT) \
 	map.$(OBJEXT) magicmap.$(OBJEXT) menubar.$(OBJEXT) \
 	metaserver.$(OBJEXT) opengl.$(OBJEXT) pickup.$(OBJEXT) \
-	png.$(OBJEXT) sdl.$(OBJEXT) sound.$(OBJEXT) stats.$(OBJEXT)
+	png.$(OBJEXT) sdl.$(OBJEXT) sound.$(OBJEXT) spells.$(OBJEXT) \
+	stats.$(OBJEXT)
 am_gcfclient2_OBJECTS = $(am__objects_1) support.$(OBJEXT) \
 	interface.$(OBJEXT)
 gcfclient2_OBJECTS = $(am_gcfclient2_OBJECTS)
@@ -181,6 +182,7 @@ X_PRE_LIBS = @X_PRE_LIBS@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
+ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__include = @am__include@
@@ -243,6 +245,7 @@ PROTO_SOURCES = \
 	png.c \
 	sdl.c \
 	sound.c \
+	spells.c \
 	stats.c
 
 gcfclient2_SOURCES = \
@@ -335,6 +338,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/png.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sound.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spells.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/support.Po@am__quote@
 

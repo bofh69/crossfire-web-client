@@ -59,8 +59,8 @@ extern void on_keybindings_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern gboolean on_keybinding_entry_key_key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 extern void on_keybinding_button_remove_clicked(GtkButton *button, gpointer user_data);
 extern void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data);
-extern void on_keybinding_button_close_clicked(GtkButton *button, gpointer user_data);
 extern void on_keybinding_button_update_clicked(GtkButton *button, gpointer user_data);
+extern void on_keybinding_button_close_clicked(GtkButton *button, gpointer user_data);
 extern gboolean keybinding_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern void reset_keybinding_status(void);
 extern void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_data);
@@ -158,6 +158,13 @@ extern int sdl_mapscroll(int dx, int dy);
 extern void signal_pipe(int i);
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
+/* spells.c */
+extern void update_spell_information(void);
+extern void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void on_spell_treeview_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
+extern void on_spell_cast_clicked(GtkButton *button, gpointer user_data);
+extern void on_spell_invoke_clicked(GtkButton *button, gpointer user_data);
+extern void on_spell_close_clicked(GtkButton *button, gpointer user_data);
 /* stats.c */
 extern void stats_init(GtkWidget *window_root);
 extern void update_stat(int stat_no, int max_stat, int current_stat, const char *name);

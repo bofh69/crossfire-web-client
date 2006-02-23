@@ -44,6 +44,7 @@ PROTO_SOURCES = \
 	png.c \
 	sdl.c \
 	sound.c \
+	spells.c \
 	stats.c
 
 gcfclient2_SOURCES = \
