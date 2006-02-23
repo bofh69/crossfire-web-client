@@ -32,7 +32,7 @@ char *rcsid_gtk_text_c =
 #include "client.h"
 #include "gx11.h"
 #include "gtkproto.h"
-char* NO_TITLE="[no title]";
+static char NO_TITLE[] = "[no title]";
 
 #include "pixmaps/sign_flat.xpm"
 #include "pixmaps/sign_west.xpm"
@@ -56,7 +56,7 @@ typedef struct picture_message_struct {
     
 } picture_message;
 
-picture_message sign_message[] = {
+static picture_message sign_message[] = {
     {"sign",sign_flat_xpm,70,45,390,305,500,500,NULL},
     {"left sign",sign_west_xpm,95,85,615,190,750,400,NULL},
     {"right sign",sign_east_xpm,45,85,615,190,750,400,NULL},
@@ -247,14 +247,14 @@ static GdkFont *load_a_font(const char *const font_list[]) {
     }
     return NULL;
 }
-GdkFont* style_fixed[4];
-GdkFont* style_arcane[4];
-GdkFont* style_hand[4];
-GdkFont* style_strange[4];
-GdkFont* style_print[4];
+static GdkFont *style_fixed[4];
+static GdkFont *style_arcane[4];
+static GdkFont *style_hand[4];
+static GdkFont *style_strange[4];
+static GdkFont *style_print[4];
 #define STYLE_BOLD 1
 #define STYLE_ITALIC 2
-int style_inited = 0;
+static int style_inited = 0;
 
 static void init_fonts(void) {
     if (!style_inited){
@@ -412,7 +412,7 @@ static void book_callback(int flag, int type, int subtype, char *message) {
 	
     }    
 }
-char* last_motd=NULL;
+static char *last_motd = NULL;
 static void motd_callback(int flag, int type, int subtype, char *message) {
     
     if(last_motd)
@@ -427,7 +427,7 @@ static void motd_callback(int flag, int type, int subtype, char *message) {
         write_media(GTK_TEXT(gtkwin_info_text), message);
     }
 }
-static void void_callback(int flag, int type, int subtype, char *message) {
+static void void_callback(int flag, int type, int subtype, const char *message) {
     
     LOG(LOG_INFO,"gtk::void_callback","got message --\n%s\n",message);
     
@@ -459,9 +459,9 @@ static void sign_callback(int flag, int type, int subtype, char *message) {
 const char *getMOTD(void) {
     return last_motd==NULL?"Please read motd written\nin [i]green[/i] inside main\nmessage window":last_motd;
 }
-char *rules = NULL;
+static char *rules = NULL;
 news_entry* first_news = NULL;
-char *get_rules(void) {
+const char *get_rules(void) {
     return rules;    
 }
 news_entry *get_news(void) {

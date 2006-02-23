@@ -64,7 +64,7 @@ extern int time_map_redraw;
 #include <SDL_image.h>
 
 
-static void do_SDL_error( char* SDL_function, char* file, int line)
+static void do_SDL_error(const char *SDL_function, const char *file, int line)
 {
   LOG(LOG_CRITICAL,SDL_function,"SDL error in file %s line %d\n%s",
 	   file, line, SDL_GetError());

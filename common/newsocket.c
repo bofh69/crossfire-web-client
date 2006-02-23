@@ -1,4 +1,4 @@
-char *rcsid_common_newsocket_c =
+const char *rcsid_common_newsocket_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -60,10 +60,10 @@ char *rcsid_common_newsocket_c =
 /*
  * This writes data to the socket.
  */
-static int write_socket(int fd, unsigned char *buf, int len)
+static int write_socket(int fd, const unsigned char *buf, int len)
 {
     int amt=0;
-    unsigned char *pos=buf;
+    const unsigned char *pos=buf;
 
     /* If we manage to write more than we wanted, take it as a bonus */
     while (len>0) {
@@ -136,20 +136,20 @@ int SockList_Send(SockList *sl, int fd)
 }
 
 
-char GetChar_String(unsigned char *data)
+char GetChar_String(const unsigned char *data)
 {
     return (data[0]);
 }
 /* Basically does the reverse of SockList_AddInt, but on
  * strings instead.  Same for the GetShort, but for 16 bits.
  */
-int GetInt_String(unsigned char *data)
+int GetInt_String(const unsigned char *data)
 {
     return ((data[0]<<24) + (data[1]<<16) + (data[2]<<8) + data[3]);
 }
 
 /* 64 bit version of the above */
-sint64 GetInt64_String(unsigned char *data)
+sint64 GetInt64_String(const unsigned char *data)
 {
 #ifdef WIN32
     return (((sint64)data[0]<<56) + ((sint64)data[1]<<48) + 
@@ -162,7 +162,7 @@ sint64 GetInt64_String(unsigned char *data)
 #endif
 }
 
-short GetShort_String(unsigned char *data) {
+short GetShort_String(const unsigned char *data) {
     return ((data[0]<<8)+data[1]);
 }
 

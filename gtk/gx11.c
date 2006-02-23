@@ -1,4 +1,4 @@
-char *rcsid_gtk_gx11_c =
+const char *rcsid_gtk_gx11_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -149,14 +149,12 @@ static char **gargv;
 
 #define MAX_HISTORY 50
 #define MAX_COMMAND_LEN 256
-char history[MAX_HISTORY][MAX_COMMAND_LEN];
+static char history[MAX_HISTORY][MAX_COMMAND_LEN];
 static int cur_history_position=0, scroll_history_position=0;
-
-GList *anim_inv_list=NULL, *anim_look_list=NULL;
 
 extern int maxfd;
 struct timeval timeout;
-gint	csocket_fd=0;
+static gint csocket_fd = 0;
 
 static int gargc;
 
@@ -190,9 +188,9 @@ typedef struct {
 
 static Vitals vitals[4];
 GtkWidget *run_label, *fire_label;
-GtkWidget *restable;	/* resistance table */
-GtkWidget *res_scrolled_window;	/* window the resistances are in */
-GtkWidget *skill_scrolled_window; /* window the skills are in */
+static GtkWidget *restable;	/* resistance table */
+static GtkWidget *res_scrolled_window;	/* window the resistances are in */
+static GtkWidget *skill_scrolled_window; /* window the skills are in */
 
 
 static GtkWidget *resists[NUM_RESISTS];
@@ -203,7 +201,6 @@ GdkColor gdk_red =    { 0, 0xcfff, 0, 0 };
 GdkColor gdk_grey = { 0, 0xea60, 0xea60, 0xea60 };
 GdkColor gdk_black = { 0, 0, 0, 0 };
 
-GdkColor gdkdiscolor;
 static GdkColor map_color[16];
 /* Not static so it can be used in inventory.c for highlighting. */
 GdkColor root_color[16];
@@ -239,7 +236,7 @@ enum {
 GtkWidget *entrytext; /* "Command-line" frame, built in get_info_display(). */
 static GtkObject *text_hadj,*text_vadj;
 static GtkObject *text_hadj2,*text_vadj2;
-GtkWidget *gameframe, *stat_frame, *message_frame;
+static GtkWidget *gameframe, *stat_frame, *message_frame;
 
 static StatWindow statwindow;
 /* gtk */
@@ -287,15 +284,12 @@ struct FaceCache {
     uint16  num;
 } facecache[MAXPIXMAPNUM];
 
-uint16 cachelastused=0, cacheloaded=0;
-
-FILE *fcache;
-
 int misses=0,total=0;
 
+static void disconnect(GtkWidget *widget);
 
 /* main loop iteration related stuff */
-void do_network() {
+static void do_network(void) {
     fd_set tmp_read;
     int pollret;
     extern int updatelock;
@@ -341,7 +335,7 @@ int do_scriptout()
 }
 #endif /* WIN32 */
 
-void event_loop(void)
+static void event_loop(void)
 {
     gint fleep;
     extern int do_timeout(void); /* forward */
@@ -381,7 +375,7 @@ void event_loop(void)
 
 
 
-void end_windows(void)
+static void end_windows(void)
 {
   free(last_str);
 }
@@ -396,7 +390,7 @@ void end_windows(void)
 /* Handle mouse presses in the game window */
 
 
-void button_map_event(GtkWidget *widget, GdkEventButton *event) {
+static void button_map_event(GtkWidget *widget, GdkEventButton *event) {
     int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
 
     x=(int)event->x;
@@ -973,17 +967,17 @@ static void dialog_callback(GtkWidget *dialog)
   gtk_widget_destroy (dialog_window);
   cpl.input_state = Playing;
 }
-GtkWidget *userText = NULL;
-GtkWidget *passwordText = NULL;
-GtkWidget *passwordText2 = NULL;
-GtkWidget *loginWindow = NULL;
-GtkWidget *motdText = NULL;
-GtkWidget *rulesText = NULL;
-GtkWidget *newsText = NULL;
-GtkWidget *loginTabs = NULL;
-GtkWidget *loginButtonOk = NULL;
-GtkWidget *loginButtonCancel = NULL;
-GtkWidget *loginMessage = NULL;
+static GtkWidget *userText = NULL;
+static GtkWidget *passwordText = NULL;
+static GtkWidget *passwordText2 = NULL;
+static GtkWidget *loginWindow = NULL;
+static GtkWidget *motdText = NULL;
+static GtkWidget *rulesText = NULL;
+static GtkWidget *newsText = NULL;
+static GtkWidget *loginTabs = NULL;
+static GtkWidget *loginButtonOk = NULL;
+static GtkWidget *loginButtonCancel = NULL;
+static GtkWidget *loginMessage = NULL;
 
 char password[64]="";
 static void setUserPass(GtkButton *button, gpointer func_data) {
@@ -2196,7 +2190,7 @@ void draw_stats(int redraw) {
 ***********************************************************************/
 
 
-void create_stat_bar (GtkWidget *mtable, gint row, gchar *label, gint bar, GtkWidget **plabel) {
+static void create_stat_bar(GtkWidget *mtable, gint row, const gchar *label, gint bar, GtkWidget **plabel) {
   /*  GtkWidget *plabel;*/
 
   *plabel = gtk_label_new (label);
@@ -2529,7 +2523,7 @@ void draw_message_window(int redraw) {
  *
  ****************************************************************************/
 
-void aboutdialog(GtkWidget *widget) {
+static void aboutdialog(GtkWidget *widget) {
 #include "help/about.h"
   GtkWidget *vbox;
   GtkWidget *hbox;
@@ -2603,7 +2597,7 @@ void aboutdialog(GtkWidget *widget) {
   }
 }
 
-void createBugTracker(void) {
+static void createBugTracker(void) {
     if (bugtrack ==NULL){
         LogEntry* le;
         bugtrack = gtk_text_new (NULL, NULL);
@@ -2616,7 +2610,7 @@ void createBugTracker(void) {
     }
 }
 
-void bugdialog(GtkWidget *widget) {
+static void bugdialog(GtkWidget *widget) {
 #include "help/bugreport.h"
   GtkWidget *vbox;
   GtkWidget *hbox;
@@ -2728,7 +2722,7 @@ void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButt
 }
 
 
-void disconnect(GtkWidget *widget) {
+static void disconnect(GtkWidget *widget) {
 #ifdef WIN32
     closesocket(csocket.fd);
 #else
@@ -2745,7 +2739,7 @@ void disconnect(GtkWidget *widget) {
 
 /* Ok, simplistic help system. Just put the text file up in a scrollable window */
 
-void shelpdialog(GtkWidget *widget) {
+static void shelpdialog(GtkWidget *widget) {
 #include "help/shelp.h"
   GtkWidget *vbox;
   GtkWidget *hbox;
@@ -2803,7 +2797,7 @@ void shelpdialog(GtkWidget *widget) {
 
 
 /* Various routines for setting modes by menu choices. */
-void new_menu_pickup(GtkWidget *button, int val)
+static void new_menu_pickup(GtkWidget *button, int val)
 {
   static unsigned int pmode=0;
   char modestr[128];
@@ -2825,72 +2819,72 @@ void new_menu_pickup(GtkWidget *button, int val)
 }
 
 
-void menu_pickup0(void) {
+static void menu_pickup0(void) {
   pickup_mode = 0;
   send_command("pickup 0", -1, 0);
 }
 
-void menu_pickup1(void) {
+static void menu_pickup1(void) {
   pickup_mode = 1;
   send_command("pickup 1", -1, 0);
 }
 
-void menu_pickup2(void) {
+static void menu_pickup2(void) {
   pickup_mode = 2;
   send_command("pickup 2", -1, 0);
 }
 
-void menu_pickup3(void) {
+static void menu_pickup3(void) {
   pickup_mode = 3;
   send_command("pickup 3", -1, 0);
 }
 
-void menu_pickup4(void) {
+static void menu_pickup4(void) {
   pickup_mode = 4;
   send_command("pickup 4", -1, 0);
 }
 
-void menu_pickup5(void) {
+static void menu_pickup5(void) {
   pickup_mode = 5;
   send_command("pickup 5", -1, 0);
 
 }
 
-void menu_pickup6(void) {
+static void menu_pickup6(void) {
   pickup_mode = 6;
   send_command("pickup 6", -1, 0);
 }
 
-void menu_pickup7(void) {
+static void menu_pickup7(void) {
   pickup_mode = 7;
   send_command("pickup 7", -1, 0);
 }
 
-void menu_pickup10(void) {
+static void menu_pickup10(void) {
   pickup_mode = 10;
   send_command("pickup 10", -1, 0);
 }
 
 
 
-void menu_who(void) {
+static void menu_who(void) {
   extended_command("who");
 }
 
-void menu_apply(void) {
+static void menu_apply(void) {
   extended_command("apply");
 }
 
-void menu_cast(void) {
+static void menu_cast(void) {
     gtk_entry_set_text(GTK_ENTRY(entrytext),"cast ");
     gtk_widget_grab_focus (GTK_WIDGET(entrytext));
 }
 
-void menu_search(void) {
+static void menu_search(void) {
   extended_command("search");
 }
 
-void menu_disarm(void) {
+static void menu_disarm(void) {
   extended_command("disarm");
 }
 
@@ -2985,14 +2979,14 @@ static void update_spell_list(int force) {
     cpl.spells_updated =0;
 }
 
-void menu_spells(void) {
+static void menu_spells(void) {
     GtkWidget * scroll_window;
     GtkStyle * liststyle;
     GtkWidget *cancelbutton;
     GtkWidget * vbox;
     GtkWidget * optionsbox;
     GtkWidget * spelloptionslabel;
-    gchar *titles[] = {" ", "Name", "Cost"};
+    const gchar *titles[] = {" ", "Name", "Cost"};
 
     if (gtkwin_spell && GTK_IS_CLIST(list)) {
 	  /* the window is already created, re-present it */
@@ -3097,7 +3091,7 @@ void menu_clear(void) {
 #endif
 }
 
-void sexit(void)
+static void sexit(void)
 {
     extended_command("quit");
 }
@@ -3784,7 +3778,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
 /* Create the splash window at startup */
 
-void create_splash(void) {
+static void create_splash(void) {
     GtkWidget *vbox;
     GtkWidget *aboutgtkpixmap;
     GdkPixmap *aboutgdkpixmap;
@@ -3825,7 +3819,7 @@ void create_splash(void) {
 }
 
 
-void destroy_splash(void) {
+static void destroy_splash(void) {
   gtk_widget_destroy(gtkwin_splash);
 }
 

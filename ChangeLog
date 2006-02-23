@@ -2,6 +2,16 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Apply patch #1433271 (code-cleanup) by Stefan Huehner: Add const and static,
+remove unused variables
+---
+Affected files: common/{client.c,commands.c,image.c,init.c,item.c,metaserver.c},
+common/{misc.c,newsocket.c,player.c,proto.h,rcs-id.h,script.c,script.h},
+gtk/{config.c,gtkproto.h,gx11.c,image.c,inventory.c,keys.c,map.c,png.c},
+gtk/{rcs-id.h,sdl.c,sound.c,text.c,win32/soundsdef.h},
+gtk-v2/src/{main.c,sdl.c}, x11/{png.c,rcs-id.h,sound.c,x11.c,xutil.c}
+Andreas Kirschbaum 2006-02-23
+
 More improvements to the gtk-v2 client:
 - Add spell selection window similar to that in the gtk-v1 client.
 - Make it so that clicking on the headers in the metaserver and keybinding

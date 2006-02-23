@@ -1,4 +1,4 @@
-char *rcsid_x11_xutil_c =
+const char *rcsid_x11_xutil_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -45,7 +45,7 @@ char *rcsid_x11_xutil_c =
 #include "x11.h"
 
 
-static char *colorname[] = {
+static const char *colorname[] = {
 "Black",                /* 0  */
 "White",                /* 1  */
 "Navy",                 /* 2  */

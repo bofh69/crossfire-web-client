@@ -58,7 +58,7 @@ static inventory_viewer * new_inventory_viewer(item * container, itemfilter filt
     GtkWidget * list;
     GtkWidget * scroll_window;
     GtkStyle * liststyle;
-    gchar *titles[] = {"?", "Name", "Weight"};
+    const gchar *titles[] = {"?", "Name", "Weight"};
         
     scroll_window = gtk_scrolled_window_new (0,0);
 

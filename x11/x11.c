@@ -1,4 +1,4 @@
-char *rcsid_x11_x11_c =
+const char *rcsid_x11_x11_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -1351,7 +1351,7 @@ static int get_message_display(void) {
    return 0;
 }
 
-static void xwritedown(char *txt,int x) {
+static void xwritedown(const char *txt, int x) {
   int y=13;
   for(;*txt!='\0';txt++,y+=13)
     XDrawImageString(display,win_message,
@@ -1898,7 +1898,7 @@ static void resize_list_info(itemlist *l, int w, int h)
 }
 
 static void get_list_display(itemlist *l, int x, int y, int w, int h,
-		   char *t, char *s) 
+		   const char *t, const char *s)
 {
     XSizeHints hint;
 

@@ -48,7 +48,7 @@ char *rcsid_gtk2_main_c =
 GtkWidget *window_root, *magic_map;
 
 /* Sets up the basic colors. */
-char *colorname[NUM_COLORS] = {
+const char *colorname[NUM_COLORS] = {
 "Black",                /* 0  */
 "White",                /* 1  */
 "Navy",                 /* 2  */

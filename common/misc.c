@@ -1,4 +1,4 @@
-char *rcsid_common_misc_c =
+const char *rcsid_common_misc_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -173,7 +173,7 @@ char *getLogText(const LogEntry *le) {
 #else
 #define MINLOG 1
 #endif
-void LOG(LogLevel level, char *origin, const char *format, ...)
+void LOG(LogLevel level, const char *origin, const char *format, ...)
 {
 
   va_list ap;

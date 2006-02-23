@@ -1,4 +1,4 @@
-char *rcsid_gtk_png_c =
+const char *rcsid_gtk_png_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -399,7 +399,7 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 }
 
 
-guchar rgb[512*512*3];	/* Make this especially big to support larger images in the future */
+static guchar rgb[512*512*3];	/* Make this especially big to support larger images in the future */
 
 /* This takes data that has already been converted into RGBA format (via
  * png_to_data above perhaps) and creates a GdkPixmap and GdkBitmap out

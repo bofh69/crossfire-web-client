@@ -1,4 +1,4 @@
-char *rcsid_common_script_c =
+const char *rcsid_common_script_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -169,7 +169,7 @@ static int script_by_name(const char *name);
 static void script_dead(int i);
 static void script_process_cmd(int i);
 static void send_map(int i,int x,int y);
-static void script_send_item(int i,char *head,item *it);
+static void script_send_item(int i, const char *head, const item *it);
 
 
 /*
@@ -630,7 +630,7 @@ void script_process(fd_set *set)
    }
 }
 
-void script_watch(char *cmd,char *data, int len, enum CmdFormat format)
+void script_watch(const char *cmd, char *data, int len, enum CmdFormat format)
 {
    int i;
    int w;
@@ -1419,7 +1419,7 @@ static void script_process_cmd(int i)
  *   magic, cursed, damned, unpaid, locked, applied, open, was_open, inv_updated
  *    256     128     64      32       16      8       4      2         1
  */
-static void script_send_item(int i,char *head,item *it)
+static void script_send_item(int i, const char *head, const item *it)
 {
    char buf[4096];
    int flags;

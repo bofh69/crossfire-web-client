@@ -48,8 +48,8 @@ static void signal_pipe(int i) {
     /* do nothing, but perhaps do something more in the future */
 }
 
-FILE *sound_pipe=NULL;
-ChildProcess* sound_process;
+static FILE *sound_pipe = NULL;
+static ChildProcess *sound_process;
 /* init_sounds open the audio device, and reads any configuration files
  * that need to be.  It returns 0 on success.  On failure, the calling
  * function will likely disable sound support/requests from the server.

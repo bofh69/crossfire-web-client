@@ -1,4 +1,4 @@
-char *rcsid_common_item_c =
+const char *rcsid_common_item_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.

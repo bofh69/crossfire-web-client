@@ -1,4 +1,4 @@
-char *rcsid_gtk_config_c =
+const char *rcsid_gtk_config_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -125,7 +125,7 @@ static GtkWidget *gtkwin_config = NULL,	    /* main window */
  * config gui elements.
  */
 
-CButtons cbuttons[MAX_BUTTONS] = {
+static CButtons cbuttons[MAX_BUTTONS] = {
 {NULL, 	    CBUTTON,	    CONFIG_FOODBEEP,	FLAG_UPDATE,
     "Beep When Food is Low"},
 {NULL, 	    CBUTTON,	    CONFIG_TIMESTAMP,	FLAG_UPDATE,
@@ -256,7 +256,7 @@ static void toggle_splitwin(int newval)
 
 #define IS_DIFFERENT(TYPE) (want_config[TYPE] != use_config[TYPE])
 
-void applyconfig () {
+static void applyconfig(void) {
 
     int onbutton;
     int lighting = 0;
@@ -363,7 +363,7 @@ void applyconfig () {
  * if it's actually possible to do dynamic reconfiguration of everything this way.
  */
 
-void saveconfig () {
+static void saveconfig(void) {
 
     /* No idea why applyconfig was basically replicated - just call the
      * function instead!
@@ -398,7 +398,7 @@ void configdialog(GtkWidget *widget) {
     GList	*flist;
     int i, num_extras=0;
 
-    gchar *titles[] ={"#","Key","(#)","Mods","Command"};	   
+    const gchar *titles[] ={"#","Key","(#)","Mods","Command"};	   
 
     /* If the window isnt already up (in which case it's just raised) */
     if(!gtkwin_config) {
@@ -709,7 +709,7 @@ void configdialog(GtkWidget *widget) {
 }
 
 
-void load_defaults()
+void load_defaults(void)
 {
     char path[MAX_BUF],inbuf[MAX_BUF],*cp;
     FILE *fp;
@@ -843,7 +843,7 @@ void load_defaults()
 
 }
 
-void save_defaults()
+void save_defaults(void)
 {
     char path[MAX_BUF],buf[MAX_BUF];
     FILE *fp;
