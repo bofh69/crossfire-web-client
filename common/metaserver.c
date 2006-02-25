@@ -468,13 +468,14 @@ int metaserver_select(char *sel) {
     }
 
     /* Add server to cache */
-    if (num == 0 || (num > 0 && num <= cached_servers_num)) {
+    if ((num <= meta_numservers) && (num != meta_numservers + cached_servers_num + 1)) {
         int index;
         for (index = 0; index < cached_servers_num; index++) {
             if (strcmp(server_name, cached_servers_name[index]) == 0)
                 break;
         }
-        if (index || !cached_servers_num) {
+        /* If server is first in cache, no need to re-add id */
+        if (index != 0 || !cached_servers_num) {
             char *name;
             char *ip;
             int copy;
