@@ -3,6 +3,13 @@ Top of CVS tree:
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
+
+Apply patch #1424583 (IPv6 patch for client) courtesy  Christoph Hohmann -
+(reboot)
+ common/client.c
+ common/config.h.in
+Ryo 2006-02-26
+
 Changes for 1.9.0:
 
 Fix server cache which was broken for some reason.

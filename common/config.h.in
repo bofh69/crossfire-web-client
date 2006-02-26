@@ -42,6 +42,9 @@
 /* Define if you have the sysconf function.  */
 #undef HAVE_SYSCONF
 
+/* Define if you have the getaddrinfo function.  */
+#undef HAVE_GETADDRINFO
+
 /* Define if you have the <X11/SM/SMlib.h> header file.  */
 #undef HAVE_X11_SM_SMLIB_H
 

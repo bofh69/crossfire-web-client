@@ -182,9 +182,10 @@ void DoClient(ClientSocket *csocket)
 
 int init_connection(char *host, int port)
 {
-    struct protoent *protox;
-    int fd, oldbufsize, newbufsize=65535, buflen=sizeof(int);
+    int fd = -1, oldbufsize, newbufsize=65535, buflen=sizeof(int);
+#if !HAVE_GETADDRINFO || WIN32
     struct sockaddr_in insock;
+    struct protoent *protox;
 
     protox = getprotobyname("tcp");
     if (protox == (struct protoent  *) NULL)
@@ -210,10 +211,6 @@ int init_connection(char *host, int port)
 	    return -1;
 	}
 	memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
-    if (csocket.servername != NULL)
-        free(csocket.servername);
-    csocket.servername = malloc(sizeof(char)*(strlen(host)+1));
-    strcpy(csocket.servername, host);
     }
     if (connect(fd,(struct sockaddr *)&insock,sizeof(insock)) == (-1))
     {
@@ -221,6 +218,45 @@ int init_connection(char *host, int port)
 	    perror("Can't connect to server");
 	    return -1;
     }
+#else
+    struct addrinfo hints;
+    struct addrinfo *res = NULL, *ai;
+    char port_str[6];
+
+    snprintf(port_str, sizeof(port_str), "%d", port);
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    
+    if (getaddrinfo(host, port_str, &hints, &res) != 0)
+	return -1;
+
+    for (ai = res; ai != NULL; ai = ai->ai_next) {
+	fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+	if (fd == -1)
+	    continue;
+
+	if (connect(fd, ai->ai_addr, ai->ai_addrlen) != 0) {
+	    close(fd);
+	    fd = -1;
+	    continue;
+	}
+
+	break;
+    }
+
+    freeaddrinfo(res);
+    if (fd == -1)
+	return -1;
+#endif
+
+    if (csocket.servername != NULL)
+        free(csocket.servername);
+    csocket.servername = malloc(sizeof(char)*(strlen(host)+1));
+    strcpy(csocket.servername, host);
+
 #ifndef WIN32
     if (fcntl(fd, F_SETFL, O_NDELAY)==-1) {
 	LOG (LOG_ERROR,"common::init_connection","Error on fcntl.");
