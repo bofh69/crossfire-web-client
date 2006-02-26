@@ -5,14 +5,14 @@
 !include "MUI.nsh"
 
 ;Title Of Your Application
-Name "Crossfire GTK Client 1.8.0 snapshot"
+Name "Crossfire GTK Client 1.9.0"
 
 VIAddVersionKey "ProductName" "Crossfire GTK client installer"
 VIAddVersionKey "Comments" "Website: http://crossfire.real-time.com"
 VIAddVersionKey "FileDescription" "Crossfire GTK client installer"
-VIAddVersionKey "FileVersion" "1.8.0"
+VIAddVersionKey "FileVersion" "1.9.0"
 VIAddVersionKey "LegalCopyright" "Crossfire is released under the GPL."
-VIProductVersion "1.8.0.0"
+VIProductVersion "1.9.0.0"
 
 ;Do A CRC Check
 CRCCheck On

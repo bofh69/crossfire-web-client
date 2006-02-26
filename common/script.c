@@ -186,6 +186,7 @@ static int emulate_read(HANDLE fd, char *buf, int len)
    DWORD dwBytesRead;
    BOOL	rc;
 
+   FlushFileBuffers(fd);
    rc = ReadFile(fd, buf, len, &dwBytesRead, NULL);
    if (rc == FALSE)
       return(-1);
@@ -200,6 +201,7 @@ static int emulate_write(HANDLE fd, const char *buf, int len)
    BOOL	rc;
 
    rc = WriteFile(fd, buf, len, &dwBytesWritten, NULL);
+   FlushFileBuffers(fd);
    if (rc == FALSE)
       return(-1);
 
@@ -900,7 +902,7 @@ void script_tell(const char *params)
    /* Send the message */
    write(scripts[i].out_fd,"scripttell ",11);
    write(scripts[i].out_fd,params,strlen(params));
-   write(scripts[i].out_fd,"\r\n",2);
+   write(scripts[i].out_fd,"\n",1);
 }
 
 static int script_by_name(const char *name)

@@ -1,4 +1,4 @@
-Changes for Win32 GTK client 1.8.0 (snapshot) January, 2nd, 2006
+Changes for Win32 GTK client 1.9.0 February, 26th, 2006
 ----------------------------------------------------------------
 
 This document details changes between Win32 GTK client releases.
@@ -12,6 +12,8 @@ From version 1.8.0
 * speed improvements.
 * fixed split mode crashing.
 * timestamp option for messages.
+* new spell list window.
+* misc bug fixes.
 
 From version 1.7.1 to version 1.8.0
 -----------------------------------
