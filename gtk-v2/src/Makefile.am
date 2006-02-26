@@ -22,7 +22,7 @@
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-	-I../../common \
+	-I$(top_srcdir)/common \
 	@PACKAGE_CFLAGS@ \
 	@SDL_CFLAGS@
 

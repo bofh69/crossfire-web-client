@@ -25,6 +25,8 @@ EXTRA_PROGRAMS = cfsndserv_alsa9
 
 EXTRA_DIST = common.c sounds.dist soundsdef.h
 
+AM_CPPFLAGS = -I$(top_srcdir)/common
+
 noinst_HEADERS = \
 	soundsdef.h
 
@@ -36,10 +38,10 @@ cfsndserv_alsa9_LDADD =  $(ALSA9_LIBS) $(DMALLOC_LIB)
 
 
 sounds: sounds.dist Makefile
-	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUND_DIR)# sounds.dist > sounds
+	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUND_DIR)# $(srcdir)/sounds.dist > sounds
 
 soundsdef.h: sounds
-	$(PERL) ../utils/deftoheader.pl sounds soundsdef.h def_sounds
+	$(PERL) $(top_srcdir)/utils/deftoheader.pl sounds soundsdef.h def_sounds
 
 cfsndserv.o: soundsdef.h
 

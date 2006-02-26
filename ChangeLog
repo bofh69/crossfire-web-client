@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------
+Changes for 1.9.0:
+
 Fix server cache which was broken for some reason.
  common/metaserver.c
 Ryo 2006-02-25
