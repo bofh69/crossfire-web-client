@@ -9,20 +9,21 @@
 #
 %define Name crossfire
 %define extra client
-%define version 1.7.1
-%define sndversion 1.7.1
+%define version 1.9.0
+%define sndversion 1.9.0
 %define release 1
 %define prefix /usr/X11R6
-%define _sourcedir /export/home/crossfire/Client
-%define _srcrpmdir /export/home/crossfire/RPMS
+%define _sourcedir /export/home/crossfire/Crossfire
+%define _srcrpmdir /export/home/crossfire/RPM-SRC
 %define _rpmdir /export/home/crossfire/RPMS
+%define _topdir /export/home/crossfire/RPM-TOP
 
 Name: %{Name}-%{extra}
 Version: %{version}
 Release: 1
 Summary: Client for connecting to crossfire servers.
 Group: Amusements/Games/Crossfire
-Copyright: GPL
+License: GPL
 URL: http://crossfire.real-time.com
 Source0: %{name}-%{version}.tar.gz
 Source1: %{name}-sounds-%{version}.tar.gz
@@ -47,13 +48,22 @@ This package allows you to connect to crossfire servers around the world.
 You do not need install the crossfire program in order to use this
 package.
 
+%package gtk2
+Summary: GTKv2 client for %{Name}
+Group: X11/Games
+Provides: crossfire-client
+
+%description gtk2
+GTKv2 version of the crossfire client - this is a completely new client
+compared to the gtkv1 client.
+
 %package sounds
 Summary: Sound effects for the crossfire game
 Group: X11/Games
 Requires: crossfire-client
-
+  
 %description sounds
-Sound effects for people who want sounds with their game.
+Sound effects for people who want sounds with their game
 
 %package gtk
 Summary: GTK client for %{Name}
@@ -62,6 +72,14 @@ Provides: crossfire-client
 
 %description gtk
 GTK version of the crossfire client
+
+%package common
+Summary: Common files for %{Name}
+Group: X11/Games
+Provides: crossfire-client
+
+%description common
+File includes sounds and images.
 
 %prep
 %setup -q -a 1 -a 2 -n %{Name}-client-%{version}
@@ -104,7 +122,7 @@ install -d %{buildroot}%{_datadir}/icons/locolor/48x48/apps
 #    bindir=%{buildroot}%{_bindir} \
 #    mandir=%{buildroot}%{_mandir}/man6
 
-%makeinstall mandir=%{buildroot}%{_mandir}/man6
+%makeinstall mandir=%{buildroot}%{_mandir}
 
 #
 # KDE
@@ -132,25 +150,32 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 %clean
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
-# Cannot figure out how to get just the sounds to build as noarch, so this
-# is a hack to make it work
-mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm \
-	%{_rpmdir}/noarch/%{Name}-client-sounds-%{version}-%{release}.noarch.rpm
-
 %files
 %defattr(644,root,root,755)
-%doc CHANGES COPYING License NOTES README TODO
+%doc ChangeLog COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/cfclient
 %{_mandir}/man6/cfclient.6*
 
 %files gtk
 %defattr(644,root,root,755)
-%doc CHANGES COPYING License NOTES README TODO
+%doc ChangeLog COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/gcfclient
 %{_mandir}/man6/gcfclient.6*
-%dir %{_datadir}/games/crossfire/%{name}
-%attr(0444,root,root) %{_datadir}/games/crossfire/%{name}/*
 
+%files gtk2
+%defattr(644,root,root,755)
+%doc ChangeLog COPYING License NOTES README TODO
+%attr(755,root,root) %{_bindir}/gcfclient2
+
+
+%files common
+%defattr(644,root,root,755)
+
+# Image data
+%{_datadir}/games/crossfire/crossfire-client/README
+%{_datadir}/games/crossfire/crossfire-client/bmaps.client
+%{_datadir}/games/crossfire/crossfire-client/crossfire.base
+%{_datadir}/games/crossfire/crossfire-client/crossfire.clsc
 #
 # KDE
 #
@@ -162,11 +187,10 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %{_datadir}/icons/locolor/32x32/apps/%{name}.png
 %{_datadir}/icons/locolor/48x48/apps/%{name}.png
 
-
 # Not supported yet
 #%files gnome
 #%defattr(644,root,root,755)
-#%doc CHANGES COPYING License NOTES README TODO
+#%doc ChangeLog COPYING License NOTES README TODO
 #%attr(755,root,root) /usr/X11R6/bin/gnome-cfclient
 #/usr/X11R6/man/man6/gnome-cfclient.6*
 #/usr/share/gnome/apps/Games/Tclug/crossfire.desktop
@@ -177,9 +201,15 @@ mv %{_rpmdir}/%{_arch}/%{Name}-client-sounds-%{version}-%{release}.%{_arch}.rpm 
 %dir %{_datadir}/sounds/crossfire
 %attr(444,root,root) %{_datadir}/sounds/crossfire/*
 %attr(755,root,root) %{_bindir}/cfsndserv
-%attr(755,root,root) %{_bindir}/cfsndserv-alsa9
+%attr(755,root,root) %{_bindir}/cfsndserv_alsa9
+
+
 
 %changelog
+* Sun Feb 26 2006 Mark Wedel <mwedel@sonic.net>
++ crossfire-client-1.9.0-1
+- new release 1.9.0
+
 * Mon Feb 28 2005 Mark Wedel <mwedel@sonic.net>
 + crossfire-client-1.7.1-1
 - new release 1.7.1
