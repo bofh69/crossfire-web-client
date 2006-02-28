@@ -39,6 +39,7 @@ create_window_root (void)
   GtkWidget *quit2;
   GtkWidget *client1;
   GtkWidget *client1_menu;
+  GtkWidget *configure1;
   GtkWidget *disconnect;
   GtkWidget *keybindings;
   GtkWidget *meny_player;
@@ -224,6 +225,10 @@ create_window_root (void)
 
   client1_menu = gtk_menu_new ();
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (client1), client1_menu);
+
+  configure1 = gtk_menu_item_new_with_mnemonic (_("Configure"));
+  gtk_widget_show (configure1);
+  gtk_container_add (GTK_CONTAINER (client1_menu), configure1);
 
   disconnect = gtk_menu_item_new_with_mnemonic (_("Disconnect"));
   gtk_widget_show (disconnect);
@@ -874,6 +879,9 @@ create_window_root (void)
   g_signal_connect ((gpointer) quit2, "activate",
                     G_CALLBACK (menu_quit_program),
                     NULL);
+  g_signal_connect ((gpointer) configure1, "activate",
+                    G_CALLBACK (on_configure_activate),
+                    NULL);
   g_signal_connect ((gpointer) disconnect, "activate",
                     G_CALLBACK (on_disconnect_activate),
                     NULL);
@@ -1021,6 +1029,7 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, quit2, "quit2");
   GLADE_HOOKUP_OBJECT (window_root, client1, "client1");
   GLADE_HOOKUP_OBJECT (window_root, client1_menu, "client1_menu");
+  GLADE_HOOKUP_OBJECT (window_root, configure1, "configure1");
   GLADE_HOOKUP_OBJECT (window_root, disconnect, "disconnect");
   GLADE_HOOKUP_OBJECT (window_root, keybindings, "keybindings");
   GLADE_HOOKUP_OBJECT (window_root, meny_player, "meny_player");
@@ -1576,5 +1585,340 @@ create_spell_window (void)
   GLADE_HOOKUP_OBJECT (spell_window, spell_close, "spell_close");
 
   return spell_window;
+}
+
+GtkWidget*
+create_config_window (void)
+{
+  GtkWidget *config_window;
+  GtkWidget *vbox10;
+  GtkWidget *hbox19;
+  GtkWidget *label95;
+  GtkWidget *hseparator1;
+  GtkWidget *config_button_foodbeep;
+  GtkWidget *hbox18;
+  GtkObject *config_spinbutton_cwindow_adj;
+  GtkWidget *config_spinbutton_cwindow;
+  GtkWidget *label94;
+  GtkWidget *config_button_echo;
+  GtkWidget *config_button_fasttcp;
+  GtkWidget *config_button_grad_color;
+  GtkWidget *config_button_sound;
+  GtkWidget *hbox20;
+  GtkWidget *label96;
+  GtkWidget *hseparator2;
+  GtkWidget *config_button_cache;
+  GtkWidget *config_button_download;
+  GtkWidget *config_button_fog;
+  GtkWidget *hbox21;
+  GtkObject *config_spinbutton_iconscale_adj;
+  GtkWidget *config_spinbutton_iconscale;
+  GtkWidget *label97;
+  GtkWidget *hbox22;
+  GtkObject *config_spinbutton_mapscale_adj;
+  GtkWidget *config_spinbutton_mapscale;
+  GtkWidget *label98;
+  GtkWidget *config_button_smoothing;
+  GtkWidget *hbox23;
+  GtkWidget *config_combobox_displaymode;
+  GtkWidget *label99;
+  GtkWidget *hbox24;
+  GtkWidget *config_combobox_lighting;
+  GtkWidget *label100;
+  GtkWidget *hbox28;
+  GtkWidget *vbox11;
+  GtkWidget *hbox25;
+  GtkObject *config_spinbutton_mapwidth_adj;
+  GtkWidget *config_spinbutton_mapwidth;
+  GtkWidget *label101;
+  GtkWidget *hbox27;
+  GtkObject *config_spinbutton_mapheight_adj;
+  GtkWidget *config_spinbutton_mapheight;
+  GtkWidget *label103;
+  GtkWidget *label104;
+  GtkWidget *hbox26;
+  GtkWidget *config_combobox_faceset;
+  GtkWidget *label102;
+  GtkWidget *hseparator3;
+  GtkWidget *hbuttonbox1;
+  GtkWidget *config_button_save;
+  GtkWidget *config_button_apply;
+  GtkWidget *config_button_close;
+
+  config_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title (GTK_WINDOW (config_window), _("Configuration Window"));
+  gtk_window_set_position (GTK_WINDOW (config_window), GTK_WIN_POS_CENTER_ON_PARENT);
+
+  vbox10 = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (vbox10);
+  gtk_container_add (GTK_CONTAINER (config_window), vbox10);
+
+  hbox19 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox19);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox19, FALSE, FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox19), 5);
+
+  label95 = gtk_label_new (_("General Options"));
+  gtk_widget_show (label95);
+  gtk_box_pack_start (GTK_BOX (hbox19), label95, FALSE, FALSE, 0);
+
+  hseparator1 = gtk_hseparator_new ();
+  gtk_widget_show (hseparator1);
+  gtk_box_pack_start (GTK_BOX (hbox19), hseparator1, TRUE, TRUE, 0);
+
+  config_button_foodbeep = gtk_check_button_new_with_mnemonic (_("Beep When Food is Low"));
+  gtk_widget_show (config_button_foodbeep);
+  gtk_box_pack_start (GTK_BOX (vbox10), config_button_foodbeep, FALSE, FALSE, 0);
+
+  hbox18 = gtk_hbox_new (FALSE, 6);
+  gtk_widget_show (hbox18);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox18, FALSE, TRUE, 0);
+
+  config_spinbutton_cwindow_adj = gtk_adjustment_new (1, 1, 100, 1, 10, 10);
+  config_spinbutton_cwindow = gtk_spin_button_new (GTK_ADJUSTMENT (config_spinbutton_cwindow_adj), 1, 0);
+  gtk_widget_show (config_spinbutton_cwindow);
+  gtk_box_pack_start (GTK_BOX (hbox18), config_spinbutton_cwindow, FALSE, TRUE, 0);
+
+  label94 = gtk_label_new (_("Command Window"));
+  gtk_widget_show (label94);
+  gtk_box_pack_start (GTK_BOX (hbox18), label94, FALSE, FALSE, 0);
+
+  config_button_echo = gtk_check_button_new_with_mnemonic (_("Echo Bound Commands"));
+  gtk_widget_show (config_button_echo);
+  gtk_box_pack_start (GTK_BOX (vbox10), config_button_echo, FALSE, FALSE, 0);
+
+  config_button_fasttcp = gtk_check_button_new_with_mnemonic (_("Fast TCP Send (May decrease latency at expense of using more outgoing bandwidth)"));
+  gtk_widget_show (config_button_fasttcp);
+  gtk_box_pack_start (GTK_BOX (vbox10), config_button_fasttcp, FALSE, FALSE, 0);
+
+  config_button_grad_color = gtk_check_button_new_with_mnemonic (_("Gradually change stat bar color based on value of the stat.  Uses slightly more CPU time."));
+  gtk_widget_show (config_button_grad_color);
+  gtk_box_pack_start (GTK_BOX (vbox10), config_button_grad_color, FALSE, FALSE, 0);
+
+  config_button_sound = gtk_check_button_new_with_mnemonic (_("Enable Sound Support"));
+  gtk_widget_show (config_button_sound);
+  gtk_box_pack_start (GTK_BOX (vbox10), config_button_sound, FALSE, FALSE, 0);
+
+  hbox20 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox20);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox20, FALSE, FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox20), 5);
+
+  label96 = gtk_label_new (_("Map & Image Options"));
+  gtk_widget_show (label96);
+  gtk_box_pack_start (GTK_BOX (hbox20), label96, FALSE, FALSE, 0);
+
+  hseparator2 = gtk_hseparator_new ();
+  gtk_widget_show (hseparator2);
+  gtk_box_pack_start (GTK_BOX (hbox20), hseparator2, TRUE, TRUE, 0);
+
+  config_button_cache = gtk_check_button_new_with_mnemonic (_("Cache Images (Decreases bandwidth needed, but requires more local diskspace and some spaces may\n appear with ? until image is downloaded)"));
+  gtk_widget_show (config_button_cache);
+  gtk_box_pack_start (GTK_BOX (vbox10), config_button_cache, FALSE, FALSE, 0);
+
+  config_button_download = gtk_check_button_new_with_mnemonic (_("Download all images from server at connection time.  This is used in conjunction with Cache Images and\nwill prevent the ? on the map.  This does increase startup/connectin time however"));
+  gtk_widget_show (config_button_download);
+  gtk_box_pack_start (GTK_BOX (vbox10), config_button_download, FALSE, FALSE, 0);
+
+  config_button_fog = gtk_check_button_new_with_mnemonic (_("Enables fog of war - spaces no longer in view will appear greyed out instead\nof being drawn as black spaces."));
+  gtk_widget_show (config_button_fog);
+  gtk_box_pack_start (GTK_BOX (vbox10), config_button_fog, FALSE, FALSE, 0);
+
+  hbox21 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox21);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox21, FALSE, TRUE, 0);
+
+  config_spinbutton_iconscale_adj = gtk_adjustment_new (1, 1, 100, 1, 10, 10);
+  config_spinbutton_iconscale = gtk_spin_button_new (GTK_ADJUSTMENT (config_spinbutton_iconscale_adj), 1, 0);
+  gtk_widget_show (config_spinbutton_iconscale);
+  gtk_box_pack_start (GTK_BOX (hbox21), config_spinbutton_iconscale, FALSE, TRUE, 0);
+
+  label97 = gtk_label_new (_("Icon Scale (Takes effect next run)"));
+  gtk_widget_show (label97);
+  gtk_box_pack_start (GTK_BOX (hbox21), label97, FALSE, FALSE, 5);
+
+  hbox22 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox22);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox22, FALSE, TRUE, 0);
+
+  config_spinbutton_mapscale_adj = gtk_adjustment_new (1, 1, 100, 1, 10, 10);
+  config_spinbutton_mapscale = gtk_spin_button_new (GTK_ADJUSTMENT (config_spinbutton_mapscale_adj), 1, 0);
+  gtk_widget_show (config_spinbutton_mapscale);
+  gtk_box_pack_start (GTK_BOX (hbox22), config_spinbutton_mapscale, FALSE, TRUE, 0);
+
+  label98 = gtk_label_new (_("Map Scale (Takes effect next run)"));
+  gtk_widget_show (label98);
+  gtk_box_pack_start (GTK_BOX (hbox22), label98, FALSE, FALSE, 5);
+
+  config_button_smoothing = gtk_check_button_new_with_mnemonic (_("Enable smoothing - map looks nicer, but requires more CPU time and bandwidth"));
+  gtk_widget_show (config_button_smoothing);
+  gtk_box_pack_start (GTK_BOX (vbox10), config_button_smoothing, FALSE, FALSE, 0);
+
+  hbox23 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox23);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox23, FALSE, TRUE, 0);
+
+  config_combobox_displaymode = gtk_combo_box_new_text ();
+  gtk_widget_show (config_combobox_displaymode);
+  gtk_box_pack_start (GTK_BOX (hbox23), config_combobox_displaymode, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (config_combobox_displaymode, 170, -1);
+
+  label99 = gtk_label_new (_("Display mode.  OpenGL provides best quality with least amount of CPU\nresources.  SDL is next best, followed by Pixmap.  Depending on your\nwindow system and available libraries, all of these may not be available."));
+  gtk_widget_show (label99);
+  gtk_box_pack_start (GTK_BOX (hbox23), label99, FALSE, FALSE, 6);
+
+  hbox24 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox24);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox24, FALSE, TRUE, 0);
+
+  config_combobox_lighting = gtk_combo_box_new_text ();
+  gtk_widget_show (config_combobox_lighting);
+  gtk_box_pack_start (GTK_BOX (hbox24), config_combobox_lighting, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (config_combobox_lighting, 170, -1);
+  gtk_combo_box_append_text (GTK_COMBO_BOX (config_combobox_lighting), _("None"));
+  gtk_combo_box_append_text (GTK_COMBO_BOX (config_combobox_lighting), _("Best Per Pixel"));
+  gtk_combo_box_append_text (GTK_COMBO_BOX (config_combobox_lighting), _("Fast Per Pixel"));
+  gtk_combo_box_append_text (GTK_COMBO_BOX (config_combobox_lighting), _("Per Tile"));
+
+  label100 = gtk_label_new (_("Lighting options.  These are only used with SDL display mode.  OpenGL\nuses its own best lighting method, and Pixmap mode will always use per\ntile lighting.  Best per pixel gives best result but is slowest.  Tile is fastest,\nbut has worst quality.  Selecting none only affects how the objects are drawn\non the client.  The server will still calculate what is visible based on light levels"));
+  gtk_widget_show (label100);
+  gtk_box_pack_start (GTK_BOX (hbox24), label100, FALSE, FALSE, 5);
+
+  hbox28 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox28);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox28, FALSE, TRUE, 0);
+
+  vbox11 = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (vbox11);
+  gtk_box_pack_start (GTK_BOX (hbox28), vbox11, TRUE, TRUE, 0);
+
+  hbox25 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox25);
+  gtk_box_pack_start (GTK_BOX (vbox11), hbox25, TRUE, TRUE, 0);
+
+  config_spinbutton_mapwidth_adj = gtk_adjustment_new (25, 11, 25, 1, 10, 10);
+  config_spinbutton_mapwidth = gtk_spin_button_new (GTK_ADJUSTMENT (config_spinbutton_mapwidth_adj), 1, 0);
+  gtk_widget_show (config_spinbutton_mapwidth);
+  gtk_box_pack_start (GTK_BOX (hbox25), config_spinbutton_mapwidth, FALSE, TRUE, 0);
+
+  label101 = gtk_label_new (_("Map Width"));
+  gtk_widget_show (label101);
+  gtk_box_pack_start (GTK_BOX (hbox25), label101, FALSE, FALSE, 5);
+
+  hbox27 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox27);
+  gtk_box_pack_start (GTK_BOX (vbox11), hbox27, TRUE, TRUE, 0);
+
+  config_spinbutton_mapheight_adj = gtk_adjustment_new (25, 11, 25, 1, 10, 10);
+  config_spinbutton_mapheight = gtk_spin_button_new (GTK_ADJUSTMENT (config_spinbutton_mapheight_adj), 1, 0);
+  gtk_widget_show (config_spinbutton_mapheight);
+  gtk_box_pack_start (GTK_BOX (hbox27), config_spinbutton_mapheight, FALSE, TRUE, 0);
+
+  label103 = gtk_label_new (_("Map Height"));
+  gtk_widget_show (label103);
+  gtk_box_pack_start (GTK_BOX (hbox27), label103, FALSE, FALSE, 5);
+
+  label104 = gtk_label_new (_("Map Size - Larger map gives more information, but uses more CPU and bandwidth\nChanging either width or height will not take effect until next server connection."));
+  gtk_widget_show (label104);
+  gtk_box_pack_start (GTK_BOX (hbox28), label104, TRUE, FALSE, 0);
+
+  hbox26 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox26);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox26, TRUE, FALSE, 0);
+
+  config_combobox_faceset = gtk_combo_box_new_text ();
+  gtk_widget_show (config_combobox_faceset);
+  gtk_box_pack_start (GTK_BOX (hbox26), config_combobox_faceset, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (config_combobox_faceset, 170, -1);
+
+  label102 = gtk_label_new (_("Face set to use.  Will take effect on next server connection.  Different facesets\nhave different styles."));
+  gtk_widget_show (label102);
+  gtk_box_pack_start (GTK_BOX (hbox26), label102, FALSE, FALSE, 5);
+
+  hseparator3 = gtk_hseparator_new ();
+  gtk_widget_show (hseparator3);
+  gtk_box_pack_start (GTK_BOX (vbox10), hseparator3, TRUE, TRUE, 0);
+
+  hbuttonbox1 = gtk_hbutton_box_new ();
+  gtk_widget_show (hbuttonbox1);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbuttonbox1, FALSE, TRUE, 0);
+
+  config_button_save = gtk_button_new_with_mnemonic (_("Save"));
+  gtk_widget_show (config_button_save);
+  gtk_container_add (GTK_CONTAINER (hbuttonbox1), config_button_save);
+  GTK_WIDGET_SET_FLAGS (config_button_save, GTK_CAN_DEFAULT);
+
+  config_button_apply = gtk_button_new_with_mnemonic (_("Apply"));
+  gtk_widget_show (config_button_apply);
+  gtk_container_add (GTK_CONTAINER (hbuttonbox1), config_button_apply);
+  GTK_WIDGET_SET_FLAGS (config_button_apply, GTK_CAN_DEFAULT);
+
+  config_button_close = gtk_button_new_with_mnemonic (_("Close Window"));
+  gtk_widget_show (config_button_close);
+  gtk_container_add (GTK_CONTAINER (hbuttonbox1), config_button_close);
+  GTK_WIDGET_SET_FLAGS (config_button_close, GTK_CAN_DEFAULT);
+
+  g_signal_connect ((gpointer) config_button_save, "clicked",
+                    G_CALLBACK (on_config_button_save_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) config_button_apply, "clicked",
+                    G_CALLBACK (on_config_button_apply_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) config_button_close, "clicked",
+                    G_CALLBACK (on_config_button_close_clicked),
+                    NULL);
+
+  /* Store pointers to all widgets, for use by lookup_widget(). */
+  GLADE_HOOKUP_OBJECT_NO_REF (config_window, config_window, "config_window");
+  GLADE_HOOKUP_OBJECT (config_window, vbox10, "vbox10");
+  GLADE_HOOKUP_OBJECT (config_window, hbox19, "hbox19");
+  GLADE_HOOKUP_OBJECT (config_window, label95, "label95");
+  GLADE_HOOKUP_OBJECT (config_window, hseparator1, "hseparator1");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_foodbeep, "config_button_foodbeep");
+  GLADE_HOOKUP_OBJECT (config_window, hbox18, "hbox18");
+  GLADE_HOOKUP_OBJECT (config_window, config_spinbutton_cwindow, "config_spinbutton_cwindow");
+  GLADE_HOOKUP_OBJECT (config_window, label94, "label94");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_echo, "config_button_echo");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_fasttcp, "config_button_fasttcp");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_grad_color, "config_button_grad_color");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_sound, "config_button_sound");
+  GLADE_HOOKUP_OBJECT (config_window, hbox20, "hbox20");
+  GLADE_HOOKUP_OBJECT (config_window, label96, "label96");
+  GLADE_HOOKUP_OBJECT (config_window, hseparator2, "hseparator2");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_cache, "config_button_cache");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_download, "config_button_download");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_fog, "config_button_fog");
+  GLADE_HOOKUP_OBJECT (config_window, hbox21, "hbox21");
+  GLADE_HOOKUP_OBJECT (config_window, config_spinbutton_iconscale, "config_spinbutton_iconscale");
+  GLADE_HOOKUP_OBJECT (config_window, label97, "label97");
+  GLADE_HOOKUP_OBJECT (config_window, hbox22, "hbox22");
+  GLADE_HOOKUP_OBJECT (config_window, config_spinbutton_mapscale, "config_spinbutton_mapscale");
+  GLADE_HOOKUP_OBJECT (config_window, label98, "label98");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_smoothing, "config_button_smoothing");
+  GLADE_HOOKUP_OBJECT (config_window, hbox23, "hbox23");
+  GLADE_HOOKUP_OBJECT (config_window, config_combobox_displaymode, "config_combobox_displaymode");
+  GLADE_HOOKUP_OBJECT (config_window, label99, "label99");
+  GLADE_HOOKUP_OBJECT (config_window, hbox24, "hbox24");
+  GLADE_HOOKUP_OBJECT (config_window, config_combobox_lighting, "config_combobox_lighting");
+  GLADE_HOOKUP_OBJECT (config_window, label100, "label100");
+  GLADE_HOOKUP_OBJECT (config_window, hbox28, "hbox28");
+  GLADE_HOOKUP_OBJECT (config_window, vbox11, "vbox11");
+  GLADE_HOOKUP_OBJECT (config_window, hbox25, "hbox25");
+  GLADE_HOOKUP_OBJECT (config_window, config_spinbutton_mapwidth, "config_spinbutton_mapwidth");
+  GLADE_HOOKUP_OBJECT (config_window, label101, "label101");
+  GLADE_HOOKUP_OBJECT (config_window, hbox27, "hbox27");
+  GLADE_HOOKUP_OBJECT (config_window, config_spinbutton_mapheight, "config_spinbutton_mapheight");
+  GLADE_HOOKUP_OBJECT (config_window, label103, "label103");
+  GLADE_HOOKUP_OBJECT (config_window, label104, "label104");
+  GLADE_HOOKUP_OBJECT (config_window, hbox26, "hbox26");
+  GLADE_HOOKUP_OBJECT (config_window, config_combobox_faceset, "config_combobox_faceset");
+  GLADE_HOOKUP_OBJECT (config_window, label102, "label102");
+  GLADE_HOOKUP_OBJECT (config_window, hseparator3, "hseparator3");
+  GLADE_HOOKUP_OBJECT (config_window, hbuttonbox1, "hbuttonbox1");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_save, "config_button_save");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_apply, "config_button_apply");
+  GLADE_HOOKUP_OBJECT (config_window, config_button_close, "config_button_close");
+
+  return config_window;
 }
 

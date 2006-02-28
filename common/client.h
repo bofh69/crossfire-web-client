@@ -176,6 +176,7 @@ typedef enum rangetype {
 #define CONFIG_NUMS	    32		/* This should always be the last value in the list */
 
 /* CONFIG_LIGHTING can have several possible values - set them accordingly */
+#define CFG_LT_NONE	    0
 #define CFG_LT_TILE	    1
 #define CFG_LT_PIXEL	    2
 #define CFG_LT_PIXEL_BEST   3

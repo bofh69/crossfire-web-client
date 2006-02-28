@@ -1,6 +1,24 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+More updates for the gtkv2 client.  Add a config window to change the
+config options.  Note this isn't quite as cluttered as the gtkv1 config
+window because only the options that affect the gtkv2 client are presented.
+---
+common/client.h: Add CFG_LT_NONE to use instead of 0.
+common/init.c: Change 'sdl' config name to 'displaymode'.  the CONFIG_
+  parameter was changed a while back, but still used this old name in the
+  save file.
+gtk/config.c: Add some logic to handle 'sdl' legacy config mode.
+gtk-v2/gtk-v2.glade: Updated with new config window.
+gtk-v2/src/callbacks.h: rebuilt by glade-2
+gtk-v2/src/config.c: Lots of new code to handle setting/getting of config
+  values in config window.
+gtk-v2/src/gtk2proto.h: Rebuilt.
+gtk-v2/src/interface.c: Rebuilt by glade-2
+gtk-v2/src/interface.h: Rebuilt by glade-2
+gtk-v2/src/main.c: Add call to config_init() to initialize config window.
+MSW 2006-02-27
 
 ------------------------------------------------------------------------------
 

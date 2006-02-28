@@ -1,6 +1,11 @@
 /* config.c */
 extern void load_defaults(void);
 extern void save_defaults(void);
+extern void config_init(GtkWidget *window_root);
+extern void on_config_button_save_clicked(GtkButton *button, gpointer user_data);
+extern void on_config_button_apply_clicked(GtkButton *button, gpointer user_data);
+extern void on_config_button_close_clicked(GtkButton *button, gpointer user_data);
+extern void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data);
 /* image.c */
 extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
 extern void addsmooth(uint16 face, uint16 smooth_face);

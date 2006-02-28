@@ -41,6 +41,18 @@ char *rcsid_gtk2_config_c =
 #include "image.h"
 #include "gtk2proto.h"
 
+GtkWidget *config_window, *config_spinbutton_cwindow, *config_button_echo,
+    *config_button_fasttcp, *config_button_grad_color, *config_button_foodbeep,
+    *config_button_sound, *config_button_cache, *config_button_download,
+    *config_button_fog, *config_spinbutton_iconscale, *config_spinbutton_mapscale,
+    *config_spinbutton_mapwidth, *config_spinbutton_mapheight,
+    *config_button_smoothing, *config_combobox_displaymode,
+    *config_combobox_faceset, *config_combobox_lighting;
+
+/* This is the string names that correspond to the numberic id's in client.h */
+
+static char *display_modes[] = {"Pixmap", "SDL", "OpenGL"};
+
 void load_defaults()
 {
     char path[MAX_BUF],inbuf[MAX_BUF],*cp;
@@ -120,6 +132,9 @@ void load_defaults()
 	}
 	else if (!strcmp(inbuf, "resists")) {
 	    if (val) want_config[CONFIG_RESISTS] = val;
+	}
+	else if (!strcmp(inbuf, "sdl")) {
+	    if (val) want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
 	}
 	else LOG(LOG_WARNING,"gtk::load_defaults","Unknown line in gdefaults2: %s %s", inbuf, cp);
     }
@@ -212,3 +227,324 @@ void save_defaults()
     sprintf(buf,"Defaults saved to %s",path);
     draw_info(buf,NDI_BLUE);
 }
+
+void config_init(GtkWidget *window_root)
+{
+    static int has_init=0;
+    int count, i;
+
+    has_init=1;
+
+    config_window = create_config_window();
+
+    config_spinbutton_cwindow = lookup_widget(config_window, "config_spinbutton_cwindow");
+    config_button_echo = lookup_widget(config_window, "config_button_echo");
+    config_button_fasttcp = lookup_widget(config_window, "config_button_fasttcp");
+    config_button_grad_color  = lookup_widget(config_window, "config_button_grad_color");
+    config_button_foodbeep = lookup_widget(config_window, "config_button_foodbeep");
+    config_button_sound = lookup_widget(config_window, "config_button_sound");
+    config_button_cache = lookup_widget(config_window, "config_button_cache");
+    config_button_download = lookup_widget(config_window, "config_button_download");
+    config_button_fog = lookup_widget(config_window, "config_button_fog");
+    config_button_smoothing = lookup_widget(config_window, "config_button_smoothing");
+    config_spinbutton_iconscale = lookup_widget(config_window, "config_spinbutton_iconscale");
+    config_spinbutton_mapscale = lookup_widget(config_window, "config_spinbutton_mapscale");
+    config_spinbutton_mapwidth = lookup_widget(config_window, "config_spinbutton_mapwidth");
+    config_spinbutton_mapheight = lookup_widget(config_window, "config_spinbutton_mapheight");
+    config_combobox_displaymode = lookup_widget(config_window, "config_combobox_displaymode");
+    config_combobox_faceset = lookup_widget(config_window, "config_combobox_faceset");
+    config_combobox_lighting = lookup_widget(config_window, "config_combobox_lighting");
+
+    /* 
+     * Display mode combo box setup.
+     * First, remove all entries, then populate with what options are
+     * available based on what was compiled in.
+     */
+    count =  gtk_tree_model_iter_n_children(
+		    gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_displaymode)), NULL);
+    for (i=0; i < count; i++)
+	gtk_combo_box_remove_text(GTK_COMBO_BOX(config_combobox_displaymode), 0);
+
+#ifdef HAVE_OPENGL
+	gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),  "OpenGL");
+#endif
+
+#ifdef HAVE_SDL
+	gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),  "SDL");
+#endif
+	gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),  "Pixmap");
+
+
+}
+
+/*
+ * setup_config_window sets the buttons, combos, etc, to the
+ * state that matches the want_config[] values.
+ */
+static void setup_config_window()
+{
+    int count, i;
+    GtkTreeModel    *model;
+    gchar   *buf;
+    GtkTreeIter iter;
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_echo),
+				 want_config[CONFIG_ECHO]);
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_fasttcp),
+				 want_config[CONFIG_FASTTCP]);
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_grad_color),
+				 want_config[CONFIG_GRAD_COLOR]);
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_foodbeep),
+				 want_config[CONFIG_FOODBEEP]);
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_sound),
+				 want_config[CONFIG_SOUND]);
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_cache),
+				 want_config[CONFIG_CACHE]);
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_download),
+				 want_config[CONFIG_DOWNLOAD]);
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_fog),
+				 want_config[CONFIG_FOGWAR]);
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_smoothing),
+				 want_config[CONFIG_SMOOTH]);
+
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_cwindow),
+			      (float)want_config[CONFIG_CWINDOW]);
+
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_iconscale),
+			      (float)want_config[CONFIG_ICONSCALE]);
+
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_mapscale),
+			      (float)want_config[CONFIG_MAPSCALE]);
+
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_mapwidth),
+			      (float)want_config[CONFIG_MAPWIDTH]);
+
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_mapheight),
+			      (float)want_config[CONFIG_MAPHEIGHT]);
+
+    /* 
+     * Face set combo box setup.
+     * Remove all the entries currently in the combo box 
+     */
+    model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_faceset));
+    count =  gtk_tree_model_iter_n_children(model, NULL);
+
+    for (i=0; i < count; i++)
+	gtk_combo_box_remove_text(GTK_COMBO_BOX(config_combobox_faceset), 0);
+
+    /* If we have real faceset info from the server, use it */
+    if (face_info.have_faceset_info) {
+	for (i=0; i<MAX_FACE_SETS; i++)
+	    if (face_info.facesets[i].fullname)
+		gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset), 
+			  face_info.facesets[i].fullname);
+    } else {
+	gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset),  "Standard");
+	gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset),  "Classic");
+    }
+    count =  gtk_tree_model_iter_n_children(model, NULL);
+
+    for (i=0; i < count; i++) {
+	if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
+	    LOG(LOG_ERROR,"config.c:setup_config_window", "Unable to get faceset iter\n");
+	    break;
+	}
+	gtk_tree_model_get(model, &iter, 0, &buf, -1);
+
+	if (!strcasecmp(face_info.want_faceset, buf)) {
+	    gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_faceset), i);
+	    g_free(buf);
+	    break;
+	}
+	g_free(buf);
+    }
+
+    if (sizeof(display_modes) < want_config[CONFIG_DISPLAYMODE]) {
+	LOG(LOG_ERROR, "config.c:setup_config_window", "Player display mode not in display_modes range\n");
+    } else {
+	/* We want to set up the boxes to match current settings for things
+	 * like displaymode.
+	 */
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_displaymode));
+	count =  gtk_tree_model_iter_n_children(model, NULL);
+	for (i=0; i < count; i++) {
+	    if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
+		LOG(LOG_ERROR,"config.c:setup_config_window", "Unable to get faceset iter\n");
+		break;
+	    }
+	    gtk_tree_model_get(model, &iter, 0, &buf, -1);
+	    if (!strcasecmp(display_modes[want_config[CONFIG_DISPLAYMODE]], buf)) {
+		gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_displaymode), i);
+		g_free(buf);
+		break;
+	    }
+	    g_free(buf);
+	}
+    }
+
+    /* We want to set up the boxes to match current settings for things
+     * like lighting.  A bit of a hack to hardcode the strings below.
+     */
+    model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_lighting));
+    count =  gtk_tree_model_iter_n_children(model, NULL);
+    for (i=0; i < count; i++) {
+	if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
+	    LOG(LOG_ERROR,"config.c:setup_config_window", "Unable to get lighting iter\n");
+	    break;
+	}
+	gtk_tree_model_get(model, &iter, 0, &buf, -1);
+	if ((want_config[CONFIG_LIGHTING] == CFG_LT_TILE && !strcasecmp(buf, "Per Tile")) ||
+	    (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL && !strcasecmp(buf, "Fast Per Pixel")) ||
+	    (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST && !strcasecmp(buf, "Best Per Pixel")) ||
+	    (want_config[CONFIG_LIGHTING] == CFG_LT_NONE && !strcasecmp(buf, "None"))) {
+		gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_lighting), i);
+		g_free(buf);
+		break;
+	}
+	g_free(buf);
+    }
+}
+
+/*
+ * This is basically the opposite of setup_config_window() above -
+ * instead of setting the display state appropriately, we read the
+ * display state and update the want_config values.
+ */
+#define IS_DIFFERENT(TYPE) (want_config[TYPE] != use_config[TYPE])
+
+static void read_config_window()
+{
+    gchar   *buf;
+
+    want_config[CONFIG_ECHO] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_echo));
+    want_config[CONFIG_FASTTCP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_fasttcp));
+    want_config[CONFIG_GRAD_COLOR] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_grad_color));
+    want_config[CONFIG_FOODBEEP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_foodbeep));
+    want_config[CONFIG_SOUND] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_sound));
+    want_config[CONFIG_CACHE] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_cache));
+    want_config[CONFIG_DOWNLOAD] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_download));
+    want_config[CONFIG_FOGWAR] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_fog));
+    want_config[CONFIG_SMOOTH] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_smoothing));
+    want_config[CONFIG_CWINDOW] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_cwindow));
+    want_config[CONFIG_ICONSCALE] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_iconscale));
+    want_config[CONFIG_MAPSCALE] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_mapscale));
+    want_config[CONFIG_MAPWIDTH] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_mapwidth));
+    want_config[CONFIG_MAPHEIGHT] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_mapheight));
+
+    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_faceset));
+
+    /* We may be able to eliminate the extra strdup/free, but I'm not
+     * 100% sure that we are guaranteed that glib won't implement
+     * them through its own/different malloc library.
+     */
+    if (buf) {
+	if (face_info.want_faceset) free(face_info.want_faceset);
+	face_info.want_faceset = strdup_local(buf);
+	g_free(buf);
+    }
+
+    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_displaymode));
+    if (buf) {
+	if (!strcasecmp(buf,"OpenGL")) want_config[CONFIG_DISPLAYMODE] = CFG_DM_OPENGL;
+	else if (!strcasecmp(buf,"SDL")) want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
+	else if (!strcasecmp(buf,"Pixmap")) want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
+	g_free(buf);
+    }
+
+    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_lighting));
+    if (buf) {
+	if (!strcasecmp(buf, "Per Tile")) want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
+	else if (!strcasecmp(buf, "Fast Per Pixel")) want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL;
+	else if (!strcasecmp(buf, "Best Per Pixel")) want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL_BEST;
+	else if (!strcasecmp(buf, "None")) want_config[CONFIG_LIGHTING] = CFG_LT_NONE;
+	g_free(buf);
+    }
+
+    /* Some values can take effect right now, others not.  Code below
+     * handles these cases - largely grabbed from gtk/config.c
+     */
+    if (IS_DIFFERENT(CONFIG_SOUND)) {
+	int tmp;
+	if (want_config[CONFIG_SOUND]) {
+	    tmp = init_sounds();
+	    if (csocket.fd)
+		cs_print_string(csocket.fd, "setup sound %d", tmp >= 0);
+	} else {
+	    if (csocket.fd)
+		cs_print_string(csocket.fd, "setup sound 0");
+	}
+	use_config[CONFIG_SOUND] = want_config[CONFIG_SOUND];
+    }
+    if (IS_DIFFERENT(CONFIG_FASTTCP)) {
+#ifdef TCP_NODELAY
+#ifndef WIN32
+	int q = want_config[CONFIG_FASTTCP];
+
+	if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1)
+	    perror("TCP_NODELAY");
+#else
+	int q = want_config[CONFIG_FASTTCP];
+
+	if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, ( const char* )&q, sizeof(q)) == -1)
+	    perror("TCP_NODELAY");
+#endif
+#endif
+	use_config[CONFIG_FASTTCP] = want_config[CONFIG_FASTTCP];
+    }
+
+    if (IS_DIFFERENT(CONFIG_LIGHTING)) {
+#ifdef HAVE_SDL
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
+	    /* This is done to make the 'lightmap' in the proper format */
+	    init_SDL( NULL, 1);
+#endif
+	if (csocket.fd)
+	    cs_print_string(csocket.fd, "mapredraw");
+    }
+}
+
+void
+on_config_button_save_clicked          (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    read_config_window();
+    save_defaults();
+
+}
+
+
+void
+on_config_button_apply_clicked         (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    read_config_window();
+
+}
+
+
+void
+on_config_button_close_clicked         (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    gtk_widget_hide(config_window);
+
+}
+
+
+void
+on_configure_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    gtk_widget_show(config_window);
+    setup_config_window();
+
+}
+

@@ -280,3 +280,23 @@ on_spell_treeview_row_activated        (GtkTreeView     *treeview,
                                         GtkTreePath     *path,
                                         GtkTreeViewColumn *column,
                                         gpointer         user_data);
+
+void
+on_config_button_save_clicked          (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_config_button_apply_clicked         (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_config_button_close_clicked         (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_configure1_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_configure_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);

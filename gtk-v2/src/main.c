@@ -562,7 +562,7 @@ main (int argc, char *argv[])
     info_init(window_root);
     keys_init(window_root);
     stats_init(window_root);
-
+    config_init(window_root);
 
     /* We want this as late as possible in the process. This way,
      * adjustments that the widgets make on initialization are not

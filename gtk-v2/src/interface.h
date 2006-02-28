@@ -6,3 +6,4 @@ GtkWidget* create_window_root (void);
 GtkWidget* create_metaserver_window (void);
 GtkWidget* create_keybinding_window (void);
 GtkWidget* create_spell_window (void);
+GtkWidget* create_config_window (void);

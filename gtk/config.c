@@ -787,6 +787,10 @@ void load_defaults(void)
 	else if (!strcmp(inbuf, "resists")) {
 	    if (val) want_config[CONFIG_RESISTS] = val-1;
 	}
+        else if (!strcmp(inbuf, "sdl")) {
+            if (val) want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
+	}
+
 	
 	else LOG(LOG_WARNING,"gtk::load_defaults","Unknown line in gdefaults: %s %s", inbuf, cp);
     }

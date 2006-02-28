@@ -40,7 +40,7 @@ const char *rcsid_common_init_c =
 const char *const config_names[CONFIG_NUMS] = {
 NULL, "download_all_images", "echo_bindings",
 "fasttcpsend", "command_window", "cacheimages", "fog_of_war", "iconscale",
-"mapscale", "popups", "sdl", "showicon", "tooltips", "sound", "splitinfo",
+"mapscale", "popups", "displaymode", "showicon", "tooltips", "sound", "splitinfo",
 "split", "show_grid", "lighting", "trim_info_window",
 "map_width", "map_height", "foodbeep", "darkness", "port",
 "grad_color_bars", "resistances", "smoothing", "nosplash",
