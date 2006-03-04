@@ -965,26 +965,17 @@ static const char *const commands[] = {
 
 /* Player has entered 'command' and hit tab to complete it.  
  * See if we can find a completion.  Returns matching
- * command.
+ * command. Returns NULL if no command matches.
  */
 
 const char * complete_command(const char *command)
 {
     int i, match=-1, len;
-    const char *cp;
 
+    len = strlen(command);
 
-    /* HACK Deal with x11 client prompt?! */
-    if (command[0] == '>') {
-        LOG(LOG_INFO, "p_cmd::complete_command", "x11 prompt hack used");
-        cp = command+1;
-    } else {
-        cp = command;
-    }
-
-    len = strlen(cp);
-
-    if (len == 0) return cp;
+    if (len == 0)
+	return NULL;
 
     /* TODO Partial match, e.g.:
          If the completion list was:
@@ -998,10 +989,10 @@ const char * complete_command(const char *command)
 
 
     for (i=0; i<NUM_COMMANDS; i++) {
-	if (!strncmp(cp, commands[i], len)) {
+	if (!strncmp(command, commands[i], len)) {
             if (match != -1) {
                 /* The current prefix is ambiguous; leave it as is. */
-                return cp;
+                return NULL;
             }
 	    else match = i;
 	}
@@ -1009,7 +1000,7 @@ const char * complete_command(const char *command)
 
     if (match == -1) {
         /* No match. */
-        return cp;
+        return NULL;
     }
 
     return commands[match];

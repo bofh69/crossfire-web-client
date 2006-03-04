@@ -1388,7 +1388,7 @@ void gtk_complete_command()
     entry_text = gtk_entry_get_text(GTK_ENTRY(entry_commands));
     newcommand = complete_command(entry_text);
     /* value differ, so update window */
-    if (strcmp(entry_text, newcommand)) {
+    if (newcommand != NULL) {
 	gtk_entry_set_text(GTK_ENTRY(entry_commands), newcommand);
 	gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
 	gtk_editable_select_region(GTK_EDITABLE(entry_commands), 0, 0);

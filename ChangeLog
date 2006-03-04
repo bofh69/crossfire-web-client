@@ -22,6 +22,15 @@ MSW 2006-02-27
 
 ------------------------------------------------------------------------------
 
+Fix bug #1442523 (Crash when pressing TAB during login). Also fix undefined
+behavior due to overlapping strings passed to strncpy().
+common/p_cmd.c: In complete_command() remove hack for x11 client and return
+   NULL if no match was found.
+gtk/gx11.c, gtk-v2/src/keys.c, x11/x11.c: Adapt to changes in
+   complete_command().
+x11/x11.c: Replace strncpy() with memmove() to cope with overlapping strings.
+Andreas Kirschbaum 2006-03-04
+
 Apply patch #1424583 (IPv6 patch for client) courtesy  Christoph Hohmann -
 (reboot)
  common/client.c

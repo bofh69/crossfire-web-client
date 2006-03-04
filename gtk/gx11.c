@@ -548,7 +548,7 @@ void gtk_complete_command(void)
     entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
     newcommand = complete_command(entry_text);
     /* value differ, so update window */
-    if (strcmp(entry_text, newcommand)) {
+    if (newcommand != NULL) {
 	gtk_entry_set_text(GTK_ENTRY(entrytext), newcommand);
 	gtk_entry_set_position(GTK_ENTRY(entrytext), strlen(newcommand));
 	/* regrab focus, since we've just updated this */

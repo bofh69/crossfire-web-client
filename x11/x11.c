@@ -608,14 +608,17 @@ void write_ch(char key)
     }
 
     if (key == 9) { /* Tab */
-	const char *str = complete_command(infodata.data[infodata.infopos].info);
+	/* check for command mode */
+	if (infodata.data[infodata.infopos].info[0] == '>') {
+	    const char *str = complete_command(infodata.data[infodata.infopos].info+1);
 
-	/* +1 so that we keep our > at start of line.  Don't
-	 * recopy the data on top of ourself.
-	 */
-	if (str != (infodata.data[infodata.infopos].info+1)) {
-	    strcpy(infodata.data[infodata.infopos].info+1, str);
-	    strcpy(cpl.input_text,str);
+	    if (str != NULL) {
+		/* +1 so that we keep our > at start of line.  Don't
+		 * recopy the data on top of ourself.
+		 */
+		strcpy(infodata.data[infodata.infopos].info+1, str);
+		strcpy(cpl.input_text, str);
+	    }
 	}
     } else {
 
@@ -748,6 +751,7 @@ static void draw_info_scrollbar(int redraw)
 void draw_info(const char *str, int color) {
   char *cp;
   uint16 new_infopos = (infodata.infopos+1)% infodata.maxlines ;
+  size_t len;
 
   if(str == (char *) NULL) {
     draw_info("[NULL]",color);
@@ -813,8 +817,9 @@ void draw_info(const char *str, int color) {
   }
   infodata.data[new_infopos].info[infodata.info_chars] = '\0';
   
-  strncpy(infodata.data[infodata.infopos].info,str,infodata.info_chars);
-  infodata.data[infodata.infopos].info[infodata.info_chars] = '\0';
+  len = MIN(strlen(str), infodata.info_chars);
+  memmove(infodata.data[infodata.infopos].info, str, len);
+  infodata.data[infodata.infopos].info[len] = '\0';
   infodata.data[infodata.infopos].color=color;
 
   /* This area is for scrollbar handling.  The first check is to see if
