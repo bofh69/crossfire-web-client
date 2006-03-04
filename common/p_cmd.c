@@ -950,17 +950,26 @@ void extended_command(const char *ocommand) {
 /* TODO Dynamically generate. */
  
 static const char *const commands[] = {
-"save", "sound", "party", "gsay", "apply", "brace",
-"cast", "disarm", "disconnect", "drop", "dropall", "examine",
-"get", "help", "hiscore", "inventory", "invoke",
-"listen", "maps", "mapinfo", "mark", "motd",
-"output-sync", "output-count", "peaceful",
-"pickup", "players", "prepare", "quit",
-"rotateshoottype", "rotatespells", "say",
-"shout", "skills", "use_skill", "ready_skill",
-"search", "search-items", "statistics", "take",
-"tell", "throw", "usekeys", "version","wimpy",
-"who", "stay"};
+"accuse", "afk", "apply", "applymode", "archs", "beg", "bleed", "blush",
+"body", "bounce", "bow", "bowmode", "brace", "build", "burp", "cackle", "cast",
+"chat", "chuckle", "clap", "cointoss", "cough", "cringe", "cry", "dance",
+"disarm", "dm", "dmhide", "drop", "dropall", "east", "examine", "explore",
+"fire", "fire_stop", "fix_me", "flip", "frown", "gasp", "get", "giggle",
+"glare", "grin", "groan", "growl", "gsay", "help", "hiccup", "hiscore", "hug",
+"inventory", "invoke", "killpets", "kiss", "laugh", "lick", "listen", "logs",
+"mapinfo", "maps", "mark", "me", "motd", "nod", "north", "northeast",
+"northwest", "orcknuckle", "output-count", "output-sync", "party", "peaceful",
+"petmode", "pickup", "players", "poke", "pout", "prepare", "printlos", "puke",
+"quests", "quit", "ready_skill", "rename", "reply", "resistances",
+"rotateshoottype", "run", "run_stop", "save", "say", "scream", "search",
+"search-items", "shake", "shiver", "shout", "showpets", "shrug", "shutdown",
+"sigh", "skills", "slap", "smile", "smirk", "snap", "sneeze", "snicker",
+"sniff", "snore", "sound", "south", "southeast", "southwest", "spit",
+"statistics", "stay", "strings", "strut", "sulk", "take", "tell", "thank",
+"think", "throw", "time", "title", "twiddle", "use_skill", "usekeys",
+"version", "wave", "weather", "west", "whereabouts", "whereami", "whistle",
+"who", "wimpy", "wink", "yawn",
+};
 #define NUM_COMMANDS ((int)(sizeof(commands) / sizeof(char*)))
 
 /* Player has entered 'command' and hit tab to complete it.  
@@ -970,7 +979,9 @@ static const char *const commands[] = {
 
 const char * complete_command(const char *command)
 {
-    int i, match=-1, len;
+    int i, len;
+    const char *match;
+    static char result[64];
 
     len = strlen(command);
 
@@ -987,23 +998,44 @@ const char * complete_command(const char *command)
        Basically part of bash (readline?)'s behaviour.
     */
 
+    match = NULL;
 
+    /* check server side commands */
     for (i=0; i<NUM_COMMANDS; i++) {
 	if (!strncmp(command, commands[i], len)) {
-            if (match != -1) {
+            if (match != NULL) {
                 /* The current prefix is ambiguous; leave it as is. */
                 return NULL;
             }
-	    else match = i;
+
+	    match = commands[i];
 	}
     }
 
-    if (match == -1) {
+    /* check client side commands */
+    for (i=0; i<CommonCommandsSize; i++) {
+	if (!strncmp(command, CommonCommands[i].name, len)) {
+            if (match != NULL) {
+                /* The current prefix is ambiguous; leave it as is. */
+                return NULL;
+            }
+
+	    match = CommonCommands[i].name;
+	}
+    }
+
+    if (match == NULL) {
         /* No match. */
         return NULL;
     }
 
-    return commands[match];
+    /*
+     * Append a space to allow typing arguments. For commands without arguments
+     * the excess space should be stripped off automatically.
+     */ 
+    snprintf(result, sizeof(result), "%s ", match);
+
+    return result;
 }
 
 #endif /* CPROTO */
