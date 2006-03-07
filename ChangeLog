@@ -22,6 +22,10 @@ MSW 2006-02-27
 
 ------------------------------------------------------------------------------
 
+sound-src/Makefile.in: replaced SOUNDDIR with SOUND_DIR, so that
+   --with-sound-dir will work now
+Klaus Elsbernd 2006-03-07
+
 common/p_cmd.c: Update command table for auto-completion to all (non-DM)
    server side commands. Also check for client side commands. Add a space
    after a completed command so the player can enter arguments.
