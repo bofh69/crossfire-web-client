@@ -1,6 +1,29 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+Yet more changes for gtkv2 clients, mostly aimed at making it usable on lower
+resolution displays.  Window can now be resized to 800x600, added save window
+positions so it will remember where you moved the panes to (as well as root
+window size).  Unrelated change to this is that now the inventory list is
+sortable like the metaserver and spell lists are - you can sort by name,
+weight, or by item type (click on the icon for item type).
+--
+gtk-v2/gtk-v2.glade:  Add new menu item for save window positions.  Change
+  statbar area so there is a pane between stat bar and stat notebooks.
+  Change statbars so they resize smaller/larger.
+gtk-v2/src/callbacks.h: callback for on_save_window_position_activate() added.
+gtk-v2/src/config.c: Add on_save_window_position_activate() and 
+  load_window_positions()
+gtk-v2/src/interface.c: rebuilt.
+gtk-v2/src/inventory.c: Add LIST_TYPE column for sorting.  Change
+  table definitions so columns are sortable.
+gtk-v2/src/main.c: Add code to allow resizing down to 800x600.  Add
+  call to load_window_positions()
+gtk-v2/src/map.c: Try to set map size based on window size - save
+  some memory.
+---
+MSW 2006-03-10
+
 More updates for the gtkv2 client.  Add a config window to change the
 config options.  Note this isn't quite as cluttered as the gtkv1 config
 window because only the options that affect the gtkv2 client are presented.

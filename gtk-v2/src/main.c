@@ -497,6 +497,7 @@ main (int argc, char *argv[])
 {
     int i, got_one=0;
     static char file_cache[ MAX_BUF ];
+    GdkGeometry geometry;
 
 #ifdef ENABLE_NLS
     bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
@@ -546,6 +547,14 @@ main (int argc, char *argv[])
      */
     window_root = create_window_root ();
 
+    /* Purely arbitrary min window size */
+    geometry.min_width=800;
+    geometry.min_height=600;
+
+    gtk_window_set_geometry_hints(GTK_WINDOW(window_root), window_root,
+				  &geometry, GDK_HINT_MIN_SIZE);
+
+
     /* Set up colors before doing the other initialization functions */
     for (i=0; i<NUM_COLORS; i++) {
 	if ( !gdk_color_parse(colorname[i], &root_color[i])) {
@@ -563,6 +572,9 @@ main (int argc, char *argv[])
     keys_init(window_root);
     stats_init(window_root);
     config_init(window_root);
+
+
+    load_window_positions(window_root);
 
     /* We want this as late as possible in the process. This way,
      * adjustments that the widgets make on initialization are not

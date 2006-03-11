@@ -118,7 +118,7 @@ Notebook_Info	inv_notebooks[NUM_INV_LISTS] = {
 
 
 enum {
-LIST_NONE, LIST_ICON, LIST_NAME, LIST_WEIGHT, LIST_OBJECT, LIST_BACKGROUND, LIST_NUM_COLUMNS
+LIST_NONE, LIST_ICON, LIST_NAME, LIST_WEIGHT, LIST_OBJECT, LIST_BACKGROUND, LIST_TYPE, LIST_NUM_COLUMNS
 };
 
 
@@ -300,6 +300,7 @@ static void setup_list_columns(GtkWidget *treeview)
 
     gtk_tree_view_column_set_min_width(column, image_size);
     gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_TYPE);
     gtk_tree_view_append_column (GTK_TREE_VIEW (treeview), column);
 
     renderer = gtk_cell_renderer_text_new ();
@@ -307,6 +308,7 @@ static void setup_list_columns(GtkWidget *treeview)
                                                       "text", LIST_NAME,
                                                       NULL);
     gtk_tree_view_column_set_expand(column, TRUE);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_NAME);
     gtk_tree_view_append_column (GTK_TREE_VIEW (treeview), column);
     gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
     gtk_tree_view_set_expander_column(GTK_TREE_VIEW (treeview), column);
@@ -324,6 +326,7 @@ static void setup_list_columns(GtkWidget *treeview)
     gtk_tree_view_column_set_min_width(column, 50);
     gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);
 
+    gtk_tree_view_column_set_sort_column_id(column, LIST_WEIGHT);
     gtk_tree_view_append_column (GTK_TREE_VIEW (treeview), column);
     gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
 
@@ -359,7 +362,8 @@ void inventory_init(GtkWidget *window_root)
 				G_TYPE_STRING,
 				G_TYPE_STRING,
 				G_TYPE_POINTER,
-				GDK_TYPE_COLOR);
+				GDK_TYPE_COLOR,
+				G_TYPE_INT);
 
     gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_look), GTK_TREE_MODEL(store_look));
     setup_list_columns(treeview_look);
@@ -393,7 +397,8 @@ void inventory_init(GtkWidget *window_root)
 				G_TYPE_STRING,
 				G_TYPE_STRING,
 				G_TYPE_POINTER,
-				GDK_TYPE_COLOR);
+				GDK_TYPE_COLOR,
+				G_TYPE_INT);
 	    inv_notebooks[i].treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(
 						    inv_notebooks[i].treestore));
 
@@ -559,6 +564,7 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
 		LIST_WEIGHT, buf,
 		LIST_BACKGROUND, &root_color[bg],
 		LIST_OBJECT, it,
+		LIST_TYPE, it->type,
                 -1);
 }
 

@@ -80,6 +80,11 @@ int time_map_redraw=0;
 void map_init(GtkWidget *window_root)
 {
     map_drawing_area = lookup_widget(window_root,"drawingarea_map");
+
+    gtk_widget_set_size_request (map_drawing_area,
+		use_config[CONFIG_MAPWIDTH] * map_image_size,
+		use_config[CONFIG_MAPHEIGHT] * map_image_size);
+
     map_notebook = lookup_widget(window_root,"map_notebook");
     mapgc = gdk_gc_new(map_drawing_area->window);
     gtk_widget_show(map_drawing_area);

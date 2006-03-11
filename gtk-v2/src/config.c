@@ -548,3 +548,85 @@ on_configure_activate                 (GtkMenuItem     *menuitem,
 
 }
 
+
+
+void
+on_save_window_position_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+
+    char savename[MAX_BUF],buf[MAX_BUF];
+    FILE    *save;
+    int     x,y,w,h,wx,wy;
+    extern GtkWidget *window_root;
+
+    sprintf(savename,"%s/.crossfire/gwinpos2", getenv("HOME"));
+    if (!(save=fopen(savename,"w"))) {
+        sprintf(buf,"Unable to open %s - window positions not saved!",savename);
+        draw_info(buf,NDI_RED);
+        return;
+    }
+    get_window_coord(window_root, &x,&y, &wx,&wy,&w,&h);
+    fprintf(save,"window_root: +%d+%dx%dx%d\n", wx, wy, w, h);
+
+    fprintf(save,"vpaned_map_stats: %d\n", 
+	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"vpaned_map_stats"))));
+
+    fprintf(save,"vpaned_info_inventory: %d\n", 
+	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"vpaned_info_inventory"))));
+
+    fprintf(save,"vpaned_inv_look: %d\n", 
+	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"vpaned_inv_look"))));
+
+    fprintf(save,"hpaned_map_other: %d\n", 
+	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"hpaned_map_other"))));
+
+    fprintf(save,"hpaned_statbar_stats: %d\n", 
+	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"hpaned_statbar_stats"))));
+
+    fclose(save);
+    sprintf(buf,"Window positions saved to %s",savename);
+    draw_info(buf,NDI_BLUE);
+
+}
+
+void load_window_positions(GtkWidget *window_root)
+{
+    char loadname[MAX_BUF],buf[MAX_BUF], *cp;
+    FILE    *load;
+
+    sprintf(loadname,"%s/.crossfire/gwinpos2", getenv("HOME"));
+    if (!(load=fopen(loadname,"r"))) {
+        return;
+    }
+    while(fgets(buf, MAX_BUF-1, load)!=NULL) {
+	if ((cp=strchr(buf,':'))!=NULL) {
+	    *cp=0;
+	    cp++;
+	    while(isspace(*cp)) cp++;
+
+	    if (!strcmp(buf,"window_root")) {
+		int x,y,w,h;
+
+		if (sscanf(cp,"+%d+%dx%dx%d", &x, &y, &w, &h) == 4) {
+		    gtk_window_set_default_size (GTK_WINDOW(window_root), w, h);
+		    gtk_window_move(GTK_WINDOW(window_root), x, y);
+		    
+		} else {
+		    LOG(LOG_ERROR,"gtk-v2:load_window_positions", "Window size %s corrupt\n",
+			cp);
+		}
+	    } else if (strstr(buf,"pane")) {
+		/* The save names match the widget names, so this works fine to load
+		 * up the values.
+		 */
+		gtk_paned_set_position(GTK_PANED(lookup_widget(window_root,buf)), atoi(cp));
+	    } else {
+		LOG(LOG_ERROR,"gtk-v2:load_window_positions", "Found unknown line %s in %s\n",
+		    buf, loadname);
+	    }
+	}
+    }
+    fclose(load);
+    
+}
