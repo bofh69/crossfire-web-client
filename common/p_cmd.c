@@ -835,7 +835,11 @@ const ConsoleCommand * find_command(const char * cmd) {
      sizeof(ConsoleCommand *), 
      sort_by_name);
 
-  if (asp_p == NULL) return NULL;
+  if (asp_p == NULL)
+  {
+      free(cmd_cpy);
+      return NULL;
+  }
 
   asp = *asp_p;
 

@@ -302,6 +302,7 @@ void init_keys(void)
     int i, line=0;
     FILE *fp;
     char buf[BIG_BUF];
+    static int was_init = 0;
 
     commandkeysym = GDK_apostrophe;
     firekeysym[0] =GDK_Shift_L;
@@ -320,8 +321,21 @@ void init_keys(void)
     prevkeysym = NoSymbol;
 
     for (i=0; i<KEYHASH; i++) {
+        if ( was_init && keys[i] )
+        {
+            Key_Entry* next;
+            Key_Entry* cur = keys[i];
+            while ( cur )
+            {
+                next = cur->next;
+                free(cur->command);
+                free(cur);
+                cur = next;
+            }
+        }
 	keys[i] = NULL;
     }
+    was_init = 1;
 
     /* We now try to load the keybindings.  First place to look is the
      * users home directory, "~/.crossfire/keys".  Using a directory
@@ -473,7 +487,7 @@ static void parse_key(char key, uint32 keysym)
 	    cpl.input_state = Command_Mode;
    	    gtk_entry_set_text(GTK_ENTRY(entrytext),cpl.input_text);
 	    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-#ifdef WIN32
+#ifdef CFGTK2
         gtk_editable_select_region(GTK_EDITABLE(entrytext),strlen(cpl.input_text),-1);
 #endif
 	    return;
@@ -1012,7 +1026,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	if (event->keyval == completekeysym) gtk_complete_command();
 	if (event->keyval == prevkeysym || event->keyval == nextkeysym)
 	    gtk_command_history(event->keyval==nextkeysym?0:1);
-#ifdef WIN32
+#ifdef CFGTK2
     else
         gtk_widget_event(GTK_WIDGET(entrytext), (GdkEvent*)event);
 #endif

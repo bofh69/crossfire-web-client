@@ -1,6 +1,13 @@
 "$Id$"
 Top of CVS tree:
 ------------------------------------------------------------------------------
+
+common/item.c: fix unitialized variable.
+common/p_cmd.c: fix memory leak.
+gtk/keys.c: fix memory leak.
+Ryo 2006-03-14
+
+
 Yet more changes for gtkv2 clients, mostly aimed at making it usable on lower
 resolution displays.  Window can now be resized to 800x600, added save window
 positions so it will remember where you moved the panes to (as well as root

@@ -239,6 +239,7 @@ static item *new_item(void)
     op->nrof=0;
     op->open=0;
     op->type=NO_ITEM_TYPE;
+    op->inv_updated = 0;
     return op;
 }
 
