@@ -161,8 +161,8 @@ static int load_image(char *filename, uint8 *data, int *len, int *csum)
  *******************************************************************************
  */
 
-/* This should be a prime */
-#define IMAGE_HASH  5399
+/* This should be a power of 2 */
+#define IMAGE_HASH  8192
 
 Face_Information face_info;
 
@@ -180,7 +180,7 @@ struct Image_Cache {
 } image_cache[IMAGE_HASH];
 
 
-/* This function is basically hasarch from the server, common/arch.c
+/* This function is basically hasharch from the server, common/arch.c
  * a few changes - first, we stop processing when we reach the first
  * . - this is because I'm not sure if hashing .111 at the end of
  * all the image names will be very useful.
@@ -188,16 +188,18 @@ struct Image_Cache {
 
 static uint32 image_hash_name(char *str, int tablesize) {
     uint32 hash = 0;
-    int rot = 0;
     char *p;
 
+    /* use the same one-at-a-time hash function the server now uses */
     for (p = str; *p!='\0' && *p != '.'; p++) {
-        hash ^= (uint32) *p << rot;
-        rot += 2;
-        if (rot >= (int)(sizeof(uint32) - sizeof(char)) * 8)
-            rot = 0;
+        hash += *p;
+        hash += hash << 10;
+        hash ^= hash >>  6;
     }
-    return (hash % tablesize);
+    hash += hash <<  3;
+    hash ^= hash >> 11;
+    hash += hash << 15;
+    return hash % tablesize;
 }
 
 /* This function returns an index into the image_cache for

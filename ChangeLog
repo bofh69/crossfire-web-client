@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/image.c: use the same image hashing algorithm that the server uses
+for archetypes, increase the table size to 8192 to reduce collisions
+Brendan Lally 2006-04-12
+
 common/item.c: fix unitialized variable.
 common/p_cmd.c: fix memory leak.
 gtk/keys.c: fix memory leak.
