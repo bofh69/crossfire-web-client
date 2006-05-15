@@ -38,7 +38,7 @@ cfsndserv_alsa9_LDADD =  $(ALSA9_LIBS) $(DMALLOC_LIB)
 
 
 sounds: sounds.dist Makefile
-	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUND_DIR)# $(srcdir)/sounds.dist > sounds
+	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUNDDIR)# $(srcdir)/sounds.dist > sounds
 
 soundsdef.h: sounds
 	$(PERL) $(top_srcdir)/utils/deftoheader.pl sounds soundsdef.h def_sounds

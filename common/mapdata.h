@@ -27,15 +27,31 @@
 #include "client-types.h"
 
 
-/** The protocol only supports 3 layers, so set MAXLAYERS accordingly.
+/** The protocol supports 10 layers, so set MAXLAYERS accordingly.
  */
-#define MAXLAYERS 3
+#define MAXLAYERS 10
 
+/* Map1 only used 3 layers.  Trying to use 10 seems to cause
+ * problems for that code.
+ */
+#define MAP1_LAYERS 3
 
 struct MapCellLayer {
     sint16 face;
     sint8 size_x;
     sint8 size_y;
+
+    /* Link into animation information.
+     * animation is provided to us from the server in the map2 command.
+     * animation_speed is also provided.
+     * animation_left is how many ticks until animation changes - generated
+     *  by client.
+     * animation_phase is current phase.
+     */
+    sint16  animation;
+    uint8   animation_speed;
+    uint8   animation_left;
+    uint8   animation_phase;
 };
 
 /** The heads[] in the mapcell is used for single part objects

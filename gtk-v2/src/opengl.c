@@ -476,7 +476,7 @@ static void draw_smoothing(int layer)
 void opengl_gen_map(int redraw) {
     long elapsed1, elapsed2;
     struct timeval tv1, tv2,tv3;
-    int mx,my, layer,x,y, d1, d2, d3, num_dark, got_smooth;
+    int mx,my, layer,x,y, d1, d2, d3, num_dark, got_smooth, face, t1, t2;
 
     if (time_map_redraw)
 	gettimeofday(&tv1, NULL);
@@ -650,6 +650,44 @@ void opengl_gen_map(int redraw) {
 			    the_map.cells[mx][my].heads[layer].face !=0) {
 
 			    got_smooth=1;
+			}
+		    }
+		    if ((face=mapdata_bigface_head(x, y, layer, &t1, &t2))!=0) {
+			if (pixmaps[face]->map_texture) {
+			    int nx, ny;
+
+			    /* nx, ny are the location of the top/left side of the image to draw. */
+
+			    nx = (x+1) * map_image_size - pixmaps[face]->map_width;
+			    ny = (y+1) * map_image_size - pixmaps[face]->map_height;
+
+			    /* if both nx and ny are outside visible area, don't need to do anything more */
+			    if (nx > width && ny > height) continue;
+
+			    /* There are some issues with this - it is really the head of the
+			     * object that is determining fog of war logic.  I don't have good solution
+			     * to that, other than to live with it.
+			     */
+			    if (the_map.cells[mx][my].cleared)
+				glBindTexture(GL_TEXTURE_2D, pixmaps[face]->fog_texture);
+			    else
+				glBindTexture(GL_TEXTURE_2D, pixmaps[face]->map_texture);
+
+			    glBegin(GL_QUADS);
+
+			    glTexCoord2f(0.0f, 0.0f);
+			    glVertex3i(nx, ny, 0);
+
+			    glTexCoord2f(1.0f, 0.0f); 
+			    glVertex3i( (x+1) * map_image_size, ny, 0);
+
+			    glTexCoord2f(1.0f, 1.0f);
+			    glVertex3i( (x+1) * map_image_size, (y+1) * map_image_size, 0);
+
+			    glTexCoord2f(0.0f, 1.0f);
+			    glVertex3i(nx, (y+1) * map_image_size, 0);
+
+			    glEnd();
 			}
 		    } /* If this space has a valid face */
 		} /* If last layer/else not last layer */

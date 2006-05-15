@@ -1192,3 +1192,8 @@ void reset_map()
 void addsmooth(uint16 face, uint16 smooth_face)
 {
 }
+
+/* X11 client doesn't care about this */
+void client_tick(uint32 tick)
+{
+}

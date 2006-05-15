@@ -56,6 +56,8 @@ char *skill_names[MAX_SKILL];
 int meta_port=META_PORT, want_skill_exp=0,
     replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
     maxfd,map1cmd=0,metaserver_on=METASERVER;
+uint32	tick=0;
+
 FILE *fpin,*fpout;
 Client_Player cpl;
 ClientSocket csocket;
@@ -80,6 +82,7 @@ struct CmdMapping commands[] = {
     /* Order of this table doesn't make a difference.  I tried to sort
      * of cluster the related stuff together.
      */
+    { "map2", Map2Cmd, SHORT_ARRAY },
     { "map1", Map1Cmd, SHORT_ARRAY },
     { "map1a", Map1aCmd, SHORT_ARRAY },
     { "map_scroll", (CmdProc)map_scrollCmd, ASCII },
@@ -106,6 +109,7 @@ struct CmdMapping commands[] = {
     { "face", FaceCmd, MIXED /* int16, string */},
     { "face1", Face1Cmd, MIXED /* int16, int32, string */},
     { "face2", Face2Cmd, MIXED /* int16, int8, int32, string */},
+    { "tick", TickCmd, INT_ARRAY /* uint32 */},
 
 
     { "sound", SoundCmd, MIXED /* int8, int8, int16, int8 */},
@@ -345,7 +349,7 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-	    "setup map1acmd 1 sound %d sexp %d darkness %d newmapcmd 1 spellmon 1 faceset %d facecache %d exp64 1 itemcmd 2",
+	    "setup map2cmd 1 tick 1 sound %d sexp %d darkness %d newmapcmd 1 spellmon 1 faceset %d facecache %d exp64 1 itemcmd 2",
 	    sound>=0, want_skill_exp,
 		    want_config[CONFIG_LIGHTING]?1:0, face_info.faceset,
 		    want_config[CONFIG_CACHE]);

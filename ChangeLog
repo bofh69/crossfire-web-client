@@ -2,6 +2,47 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+This commit adds client side support for the map2 & tick protocol commands.
+In additional the the necessary decode logic, more layers are also added
+to the map.
+--
+common/Makefile.am/.in: Fix proto directive
+common/client.c: Add global tick variable.  Add links to handle map2
+    and tick protocol commands.  Update setup request sent to server
+    to request to use the tick and map2 commands.
+common/client.h: Add additional fields to Animations structure.	 Increase
+    MAX_MAP_OFFSET to match the value on the server.
+common/commands.c: Add parsing of return of map2 failures on setup command
+    so that client can fall back.  Add additional initializations for
+    new fields in AnimCmd().  Change definition of NUM_LAYERS to match
+    what the map1 command wants/expects.  Add Map2Cmd() to decode
+    map2 protocol command.  Do some whitepsace clean of ExtSmooth().
+    Add TickCmd()
+common/init.c:  Add seeing of random number generator.
+common/mapdata.c: Rewrite CLEAR_CELLS macro to handle additional layers.
+   Clear animation data in expand_clear_face().  Change MAXLAYERS to 
+   MAP1_LAYERS since map2 increase MAXLAYERS.  Add support functions for
+   setting data in the map2 command.
+common/mapdata.h: Increase MAXLAYERS, add MAP1_LAYERS define to old number
+   of layers.  Add animation data to MapCellLayer.
+common/newclient.h: Add various defines related to the map2 data.
+common/proto.h: Rebuilt
+gtk/gx11.c: Add cleint_tick() to handle map animations.  Update
+   do_timeout() to not do animations if we are getting tick data.
+gtk-v2/src/config.c: Fix bug in config code where it wasn't enabling
+   darkness when player switched back from no darkness mode to some
+   mode.
+gtk-v2/src/main.c: Add client_tick() to handle animations.  Update 
+   do_timeout() to not do animations if tick is set.
+gtk-v2/src/opengl.c: Fix drawing logic where objects which were visible
+   but in which the bottom right corner was off the map was not being
+   drawn - only a problem in opengl since it only draws the object
+   when it finds the head, does not draw each piece.
+sound-src/Makefile.am/.in: Fix creation of sounds file - was using
+   wrong variable name.
+x11/xutil.c: Add basic client_tick() that is a callback from the common code.
+MSW 2006-05-14
+
 common/image.c: use the same image hashing algorithm that the server uses
 for archetypes, increase the table size to 8192 to reduce collisions
 Brendan Lally 2006-04-12

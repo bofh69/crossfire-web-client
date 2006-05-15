@@ -59,7 +59,8 @@ EXTRA_DIST = \
 	items.pl
 
 proto:
-	cproto -e -o proto.h -DCPROTO -DCFCLIENT $(CPPFLAGS) $(AM_CPPFLAGS) \
+	cproto -DCPROTO -DCFCLIENT $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) \
+		$(libcfclient_a_SOURCES) > proto.h
 	chmod 644 proto.h
 
 item-types.h: item-types

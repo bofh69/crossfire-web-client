@@ -215,6 +215,9 @@ void init_client_vars()
         }
 #endif
     init_commands(); /* pcmd.c */
+
+    /* Any reasonable seed really works */
+    srandom(time(NULL));
 }
 
 /* This is basically called each time a new player logs

@@ -253,6 +253,11 @@ void SetupCmd(char *buf, int len)
 		draw_info("Server does not support other image sets, will use default", NDI_RED);
 		face_info.faceset=0;
 	    }
+	} else if (!strcmp(cmd,"map2cmd")) {
+	    if (!strcmp(param,"FALSE")) {
+		draw_info("Server does not support map2cmd, will try map1acmd", NDI_RED);
+		cs_print_string(csocket.fd,"setup map1acmd 1");
+	    }
 	} else if (!strcmp(cmd,"map1acmd")) {
 	    if (!strcmp(param,"FALSE")) {
 		draw_info("Server does not support map1acmd, will try map1cmd", NDI_RED);
@@ -303,32 +308,33 @@ void SetupCmd(char *buf, int len)
 		cs_print_string(csocket.fd,"requestinfo skill_info");
 	    }
 	}
-    else if (!strcmp(cmd,"extendedMapInfos")) {
-        if (!strcmp(param,"FALSE")) {
-            use_config[CONFIG_SMOOTH]=0;
-        }else{
-            /* Request all extended infos we want
-             * Should regroup everything for easyness
-             */
-            if (use_config[CONFIG_SMOOTH]){
-                cs_print_string(csocket.fd,"toggleextendedinfos smooth");
-            }    
-        }
-    }
-    else if (!strcmp(cmd,"extendedTextInfos")){
-        if (strcmp(param,"FALSE")){ /* server didn't send FALSE*/
-            /* Server seems to accept extended text infos. Let's tell
-             * it what extended text info we want
-             */
-            char exttext[MAX_BUF];
-            TextManager* manager = firstTextManager;
-            while (manager){
-                snprintf(exttext,sizeof(exttext),"toggleextendedtext %d",manager->type);
-                cs_print_string(csocket.fd,exttext);
-                manager=manager->next;
-            }
-        }
-    }
+	else if (!strcmp(cmd,"extendedMapInfos")) {
+	    if (!strcmp(param,"FALSE")) {
+		use_config[CONFIG_SMOOTH]=0;
+	    } else {
+		/* Request all extended infos we want
+		 * Should regroup everything for easyness
+		 */
+		if (use_config[CONFIG_SMOOTH]){
+		    cs_print_string(csocket.fd,"toggleextendedinfos smooth");
+		}
+	    }
+	}
+	else if (!strcmp(cmd,"extendedTextInfos")){
+	    if (strcmp(param,"FALSE")){ /* server didn't send FALSE*/
+		/* Server seems to accept extended text infos. Let's tell
+		 * it what extended text info we want
+		 */
+		char exttext[MAX_BUF];
+		TextManager* manager = firstTextManager;
+
+		while (manager){
+		    snprintf(exttext,sizeof(exttext),"toggleextendedtext %d",manager->type);
+		    cs_print_string(csocket.fd,exttext);
+		    manager=manager->next;
+		}
+	    }
+	}
 	else {
 		LOG (LOG_INFO,"common::SetupCmd","Got setup for a command we don't understand: %s %s",
 		    cmd, param);
@@ -406,6 +412,10 @@ void AnimCmd(unsigned char *data, int len)
 	LOG(LOG_WARNING,"common::AnimCmd",
         "Calculated animations does not equal stored animations? (%d!=%d)",
 		j, animations[anum].num_animations);
+
+    animations[anum].speed=0;
+    animations[anum].speed_left=0;
+    animations[anum].phase=0;
 
     LOG(LOG_DEBUG,"common::AnimCmd","Received animation %d, %d faces", anum, animations[anum].num_animations);
 }
@@ -1015,7 +1025,12 @@ void NewmapCmd(unsigned char *data, int len)
  * 1 for map1a.  It conceivable that there could be future
  * revisions.
  */
-#define NUM_LAYERS (MAXLAYERS-1)
+
+/* NUM_LAYERS should only be used for the map1{a} which only
+ * has a few layers.  Map2 has 10 layers.  However, some of the
+ * map1 logic requires this to be set right.
+ */
+#define NUM_LAYERS (MAP1_LAYERS-1)
 static void map1_common(unsigned char *data, int len, int rev)
 {
     int mask, x, y, pos = 0, layer;
@@ -1084,6 +1099,82 @@ void Map1aCmd(unsigned char *data, int len)
     map1_common(data, len, 1);
 }
 
+void Map2Cmd(unsigned char *data, int len)
+{
+    int mask, x, y, pos = 0, space_len, value;
+    uint8 type;
+
+    display_map_startupdate();
+    /* Not really using map1 protocol, but some draw logic differs from
+     * the original draw logic, and map2 is closest.
+     */
+    map1cmd = 1;
+    while (pos <len) {
+	mask = GetShort_String(data+pos); pos+=2;
+	x = ((mask >>10) & 0x3f) - MAP2_COORD_OFFSET;
+	y = ((mask >>4) & 0x3f) - MAP2_COORD_OFFSET;
+
+	/* This is a scroll then.  Go back and fetch another coordinate */
+	if (mask & 0x1) {
+	    mapdata_scroll(x, y);
+	    continue;
+	}
+
+	/* Inner loop is for the data on the space itself */
+	while (pos < len) {
+
+	    type = data[pos++];
+	    /* type == 255 means nothing more for this space */
+	    if (type == 255) {
+		mapdata_set_check_space(x, y);
+		break;
+	    }
+	    space_len = type >> 5;
+	    type &= 0x1f;
+	    /* Clear the space */
+	    if (type == 0) {
+		mapdata_clear_space(x, y);
+		continue;
+	    }
+	    else if (type == 1) {
+		value = data[pos++];
+		mapdata_set_darkness(x, y, value);
+		continue;
+	    } else if (type >= 0x10 && type <= 0x1a) {
+		int layer, opt;
+
+		/* This is face information for a layer. */
+		layer = type & 0xf;
+
+		/* This is the face */
+		value = GetShort_String(data+pos); pos+=2;
+		if (!(value & FACE_IS_ANIM))
+		    mapdata_set_face_layer(x, y, value, layer);
+
+		if (space_len > 2) {
+		    opt = data[pos++];
+		    if (value & FACE_IS_ANIM) {
+			/* Animation speed */
+			mapdata_set_anim_layer(x, y, value, opt, layer);
+		    } else {
+			/* Smooth info */
+			mapdata_set_smooth(x, y, opt, layer);
+		    }
+		}
+		/* Currently, if 4 bytes, must be a smooth byte */
+		if (space_len > 3) {
+		    opt = data[pos++];
+		    mapdata_set_smooth(x, y, opt, layer);
+		}
+		continue;
+	    } /* if image layer */
+	} /* while pos<len inner loop for space */
+
+    } /* While pos<len outer loop */
+    mapupdatesent=0;
+    display_map_doneupdate(FALSE, FALSE);
+}
+
 
 void map_scrollCmd(char *data, int len)
 {
@@ -1113,22 +1204,27 @@ int ExtSmooth(unsigned char* data,int len,int x,int y,int layer){
     static int dy[8]={-1,-1,0,1,1,1,0,-1};
     int i,rx,ry;
     int newsm;
+
     if (len<1)
         return 0;
+
     x+= pl_pos.x;
-	y+= pl_pos.y;
+    y+= pl_pos.y;
     newsm=GetChar_String(data);
-    if (the_map.cells[x][y].smooth[layer]!=newsm)
-    for (i=0;i<8;i++){
-        rx=x+dx[i];
-        ry=y+dy[i];
-        if ( (rx<0) || (ry<0) || (the_map.x<=rx) || (the_map.y<=ry))
-            continue;
-        the_map.cells[x][y].need_resmooth=1;            
+
+    if (the_map.cells[x][y].smooth[layer]!=newsm) {
+	for (i=0;i<8;i++){
+	    rx=x+dx[i];
+	    ry=y+dy[i];
+	    if ( (rx<0) || (ry<0) || (the_map.x<=rx) || (the_map.y<=ry))
+		continue;
+	    the_map.cells[x][y].need_resmooth=1;
+	}
     }
     the_map.cells[x][y].smooth[layer]=newsm;
     return 1;/*Cause smooth infos only use 1 byte*/
 }
+
 /* Handle MapExtended command
  * Warning! if you add commands to extended, take
  * care that the 'layer' argument of main loop is
@@ -1231,4 +1327,17 @@ void MagicMapCmd(unsigned char *data, int len)
 }
 
 void SinkCmd(unsigned char *data, int len){
+}
+
+/* got a tick from the server.  We currently
+ * don't care what tick number it is, but
+ * just have the code in case at some time we do.
+ */
+void TickCmd(char *data, int len)
+{
+
+    tick = GetInt_String(data);
+
+    /* Up to the specific client to decide what to do */
+    client_tick(tick);
 }

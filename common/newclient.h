@@ -54,6 +54,11 @@
  */
 #define MAXSOCKBUF 10240
 
+/* How much the x,y coordinates in the map2 are off from
+ * actual upper left corner.  Necessary for light sources
+ * that may be off the edge of the visible map.
+ */
+#define MAP2_COORD_OFFSET   15
 
 #define CS_QUERY_YESNO	0x1	/* Yes/no question */
 #define CS_QUERY_SINGLECHAR 0x2	/* Single character response expected */
@@ -235,6 +240,16 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 
 #define SOUND_NORMAL	0
 #define SOUND_SPELL	1
+
+/* Animation types */
+#define FACE_IS_ANIM	1<<15
+#define ANIM_RANDOM     1<<13
+#define ANIM_SYNC       2<<13
+
+#define ANIM_FLAGS_MASK	0x6000
+
+/* AND'ing this with data from server gets us just the animation id */
+#define ANIM_MASK	0x1fff
 
 /* Contains the base information we use to make up a packet we want to send. */
 typedef struct SockList {

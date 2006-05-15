@@ -465,6 +465,11 @@ static void read_config_window()
 	else if (!strcasecmp(buf, "Fast Per Pixel")) want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL;
 	else if (!strcasecmp(buf, "Best Per Pixel")) want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL_BEST;
 	else if (!strcasecmp(buf, "None")) want_config[CONFIG_LIGHTING] = CFG_LT_NONE;
+	if  (want_config[CONFIG_LIGHTING] != CFG_LT_NONE) {
+	    want_config[CONFIG_DARKNESS] = 1;
+	    use_config[CONFIG_DARKNESS] = 1;
+	}
+
 	g_free(buf);
     }
 

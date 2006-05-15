@@ -4307,19 +4307,29 @@ void draw_info_windows(void)
     }
 
 
+/* X11 client doesn't care about this */
+void client_tick(uint32 tick)
+{
+    inventory_tick();
+    mapdata_animation();
+}
+
 int do_timeout(void) {
 
-  updatelock=0;
+    updatelock=0;
 
-  inventory_tick();
-  update_spell_list(0);
-  draw_info_windows();
-  if (redraw_needed) {
-    display_map_doneupdate(TRUE, FALSE);
-    redraw_needed=FALSE;
-  }
-  if (cpl.showmagic) magic_map_flash_pos();
-  return TRUE;
+    if (!tick) {
+	inventory_tick();
+	mapdata_animation();
+    }
+    update_spell_list(0);
+    draw_info_windows();
+    if (redraw_needed) {
+	display_map_doneupdate(TRUE, FALSE);
+	redraw_needed=FALSE;
+    }
+    if (cpl.showmagic) magic_map_flash_pos();
+    return TRUE;
 }
 
 int gtk_checkchilds(void) {

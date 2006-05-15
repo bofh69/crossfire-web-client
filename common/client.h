@@ -71,6 +71,9 @@ typedef struct Animations {
 			     * only faces[0],[1] have meaningfull values.
 			     */
     uint16  *faces;
+    uint8   speed;
+    uint8   speed_left;
+    uint8   phase;
 } Animations;
 
 extern Animations animations[MAXANIM];
@@ -382,6 +385,7 @@ extern const char *const resists_name[NUM_RESISTS];
 extern char *meta_server;
 extern int meta_port,want_skill_exp;
 extern int map1cmd,metaserver_on;
+extern uint32	tick;
 
 /* Map size the client will request the map to be.  Bigger it is,
  * more memory it will use
@@ -402,7 +406,7 @@ extern int map1cmd,metaserver_on;
  * the map edge.  This is the most it may be off.  This is needed
  * To cover case of need_recenter_map routines.
  */
-#define MAX_MAP_OFFSET	6
+#define MAX_MAP_OFFSET	8
 
 /* Start of map handling code.
  * For the most part, this actually is not window system specific,

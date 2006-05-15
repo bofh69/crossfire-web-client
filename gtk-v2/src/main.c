@@ -87,8 +87,18 @@ int do_timeout()
 {
     if (cpl.showmagic) magic_map_flash_pos();
     if (cpl.spells_updated) update_spell_information();
-    inventory_tick();
+    if (!tick) {
+	inventory_tick();
+	mapdata_animation();
+    }
     return TRUE;
+}
+
+/* X11 client doesn't care about this */
+void client_tick(uint32 tick)
+{
+    inventory_tick();
+    mapdata_animation();
 }
 
 /* main loop iteration related stuff */

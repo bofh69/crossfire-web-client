@@ -31,19 +31,18 @@
 /**
  * Clear cells the_map.cells[x][y..y+len_y-1].
  */
-#define CLEAR_CELLS(x, y, len_y) do { \
-    int clear_cells_i; \
+#define CLEAR_CELLS(x, y, len_y) \
+do { \
+    int clear_cells_i, j; \
     memset(&the_map.cells[(x)][(y)], 0, sizeof(the_map.cells[(x)][(y)])*(len_y)); \
     for (clear_cells_i = 0; clear_cells_i < (len_y); clear_cells_i++) \
     { \
-        the_map.cells[(x)][(y)+clear_cells_i].heads[0].size_x = 1; \
-        the_map.cells[(x)][(y)+clear_cells_i].heads[0].size_y = 1; \
-        the_map.cells[(x)][(y)+clear_cells_i].heads[1].size_x = 1; \
-        the_map.cells[(x)][(y)+clear_cells_i].heads[1].size_y = 1; \
-        the_map.cells[(x)][(y)+clear_cells_i].heads[2].size_x = 1; \
-        the_map.cells[(x)][(y)+clear_cells_i].heads[2].size_y = 1; \
+	for (j=0; j < MAXLAYERS; j++) { \
+	    the_map.cells[(x)][(y)+clear_cells_i].heads[j].size_x = 1; \
+	    the_map.cells[(x)][(y)+clear_cells_i].heads[j].size_y = 1; \
+	} \
     } \
-    } while(0)
+} while(0)
 
 
 /**
@@ -67,6 +66,12 @@
  */
 #define MAX_VIEW 64
 
+/* Max it can currently be.  Important right now because
+ * animation has to look at everything that may be viewable,
+ * and reducing this size basically reduces processing it needs
+ * to do by 75% (64^2 vs 33^2)
+ */
+#define CURRENT_MAX_VIEW    33
 
 /**
  * The struct BigCell describes a tile *outside* the view area. head contains
@@ -197,6 +202,10 @@ static void expand_clear_face(int x, int y, int w, int h, int layer)
     }
 
     cell->heads[layer].face = 0;
+    cell->heads[layer].animation = 0;
+    cell->heads[layer].animation_speed = 0;
+    cell->heads[layer].animation_left = 0;
+    cell->heads[layer].animation_phase = 0;
     cell->heads[layer].size_x = 1;
     cell->heads[layer].size_y = 1;
     cell->need_update = 1;
@@ -218,7 +227,8 @@ static void expand_clear_face_from_layer(int x, int y, int layer)
     assert(0 <= layer && layer < MAXLAYERS);
 
     cell = &the_map.cells[x][y].heads[layer];
-    expand_clear_face(x, y, cell->size_x, cell->size_y, layer);
+    if (cell->size_x && cell->size_y) 
+	expand_clear_face(x, y, cell->size_x, cell->size_y, layer);
 }
 
 /**
@@ -228,8 +238,13 @@ static void expand_clear_face_from_layer(int x, int y, int layer)
  * pl_pos.
  *
  * face is the new face to set.
+ * if clear is set, clear this face.  If not set, don't clear.  the reason
+ * clear may not be set is because this is an animation update - animations
+ * must all be the same size, so when we set the data for the space,
+ * we will just overwrite the old data.  Problem with clearing is that 
+ * clobbers the animation data.
  */
-static void expand_set_face(int x, int y, int layer, sint16 face)
+static void expand_set_face(int x, int y, int layer, sint16 face, int clear)
 {
     struct MapCell *cell;
     int dx, dy;
@@ -241,7 +256,8 @@ static void expand_set_face(int x, int y, int layer, sint16 face)
 
     cell = &the_map.cells[x][y];
 
-    expand_clear_face_from_layer(x, y, layer);
+    if (clear)
+	expand_clear_face_from_layer(x, y, layer);
 
     mapdata_get_image_size(face, &w, &h);
     assert(1 <= w && w <= MAX_FACE_SIZE);
@@ -249,6 +265,7 @@ static void expand_set_face(int x, int y, int layer, sint16 face)
     cell->heads[layer].face = face;
     cell->heads[layer].size_x = w;
     cell->heads[layer].size_y = h;
+    cell->need_update=1;
 
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
@@ -373,7 +390,7 @@ static void expand_clear_bigface_from_layer(int x, int y, int layer, int set_nee
  *
  * face is the new face to set.
  */
-static void expand_set_bigface(int x, int y, int layer, sint16 face)
+static void expand_set_bigface(int x, int y, int layer, sint16 face, int clear)
 {
     struct BigCell *headcell;
     struct MapCellLayer *head;
@@ -386,7 +403,8 @@ static void expand_set_bigface(int x, int y, int layer, sint16 face)
 
     headcell = &bigfaces[x][y][layer];
     head = &headcell->head;
-    expand_clear_bigface_from_layer(x, y, layer, 1);
+    if (clear)
+	expand_clear_bigface_from_layer(x, y, layer, 1);
 
     /* add to bigfaces_head list */
     if (face != 0) {
@@ -567,7 +585,7 @@ void mapdata_set_face(int x, int y, int darkness, sint16 face0, sint16 face1, si
     int is_blank;
     int i;
 
-    assert(MAXLAYERS == 3);
+    assert(MAP1_LAYERS == 3);
     face[0] = face0;
     face[1] = face1;
     face[2] = face2;
@@ -601,30 +619,141 @@ void mapdata_set_face(int x, int y, int darkness, sint16 face0, sint16 face1, si
 
             the_map.cells[px][py].need_update = 1;
             if (the_map.cells[px][py].cleared) {
-                assert(MAXLAYERS == 3);
-                expand_clear_face_from_layer(px, py, 0);
-                expand_clear_face_from_layer(px, py, 1);
-                expand_clear_face_from_layer(px, py, 2);
+		assert(MAP1_LAYERS == 3);
+		expand_clear_face_from_layer(px, py, 0);
+		expand_clear_face_from_layer(px, py, 1);
+		expand_clear_face_from_layer(px, py, 2);
                 the_map.cells[px][py].darkness = 0;
                 the_map.cells[px][py].have_darkness = 0;
             }
-            for (i = 0; i < MAXLAYERS; i++) {
+            for (i = 0; i < MAP1_LAYERS; i++) {
                 if (face[i] != -1) {
-                    expand_set_face(px, py, i, face[i]);
+                    expand_set_face(px, py, i, face[i], TRUE);
                 }
             }
             the_map.cells[px][py].cleared = 0;
+	    if (darkness != -1)
+		set_darkness(px, py, 255-darkness);
         }
     }
     else {
         /* tile is invisible (outside view area, i.e. big face update) */
 
-        for (i = 0; i < MAXLAYERS; i++) {
+        for (i = 0; i < MAP1_LAYERS; i++) {
             if (is_blank || face[i] != -1) {
-                expand_set_bigface(x, y, i, is_blank ? 0 : face[i]);
+                expand_set_bigface(x, y, i, is_blank ? 0 : face[i], TRUE);
             }
         }
     }
+}
+
+/* mapdate_clear_space() is used by Map2Cmd()
+ * Basically, server has told us there is nothing on
+ * this space.  So clear it.
+ */
+void mapdata_clear_space(int x, int y)
+{
+    int px, py;
+    int i;
+
+    assert(0 <= x && x < MAX_VIEW);
+    assert(0 <= y && y < MAX_VIEW);
+
+    px = pl_pos.x+x;
+    py = pl_pos.y+y;
+    assert(0 <= px && px < FOG_MAP_SIZE);
+    assert(0 <= py && py < FOG_MAP_SIZE);
+
+    if (x < width && y < height) {
+        /* tile is visible */
+
+	/* visible tile is now blank ==> do not clear but mark as cleared */
+	if (!the_map.cells[px][py].cleared) {
+	    the_map.cells[px][py].cleared = 1;
+	    the_map.cells[px][py].need_update = 1;
+
+	    for (i=0; i < MAXLAYERS; i++)
+		if (the_map.cells[px][py].heads[i].face)
+		    expand_need_update_from_layer(px, py, i);
+	}
+    }
+    else {
+        /* tile is invisible (outside view area, i.e. big face update) */
+
+        for (i = 0; i < MAXLAYERS; i++) {
+	    expand_set_bigface(x, y, i, 0, TRUE);
+	}
+    }
+}
+
+
+/* With map2, we basically process a piece of data at a time.  Thus,
+ * for each piece, we don't know what the final state of the space
+ * will be.  So once Map2Cmd() has processed all the information for
+ * a space, it calls mapdata_set_check_space() which can see if
+ * the space is cleared or other inconsistencies.
+ */
+void mapdata_set_check_space(int x, int y)
+{
+    int px, py;
+    int is_blank;
+    int i;
+    struct MapCell *cell;
+
+    assert(0 <= x && x < MAX_VIEW);
+    assert(0 <= y && y < MAX_VIEW);
+
+    px = pl_pos.x+x;
+    py = pl_pos.y+y;
+
+    assert(0 <= px && px < FOG_MAP_SIZE);
+    assert(0 <= py && py < FOG_MAP_SIZE);
+
+
+    is_blank=1;
+    cell = &the_map.cells[px][py];
+    for (i=0; i < MAXLAYERS; i++) {
+	if (cell->heads[i].face>0 || cell->tails[i].face>0) {
+	    is_blank=0;
+	    break;
+	}
+    }
+
+    if (cell->have_darkness) is_blank=0;
+
+    /* We only care if this space needs to be blanked out */
+    if (!is_blank) return;
+
+    if (x < width && y < height) {
+        /* tile is visible */
+
+	/* visible tile is now blank ==> do not clear but mark as cleared */
+	if (!the_map.cells[px][py].cleared) {
+	    the_map.cells[px][py].cleared = 1;
+	    the_map.cells[px][py].need_update = 1;
+
+	    for (i=0; i < MAXLAYERS; i++)
+                expand_need_update_from_layer(px, py, i);
+	}
+    }
+}
+
+
+
+/* This just sets the darkness for a space.
+ * Used by Map2Cmd()
+ */
+void mapdata_set_darkness(int x, int y, int darkness)
+{
+    int px, py;
+
+    assert(0 <= x && x < MAX_VIEW);
+    assert(0 <= y && y < MAX_VIEW);
+
+    px = pl_pos.x+x;
+    py = pl_pos.y+y;
+    assert(0 <= px && px < FOG_MAP_SIZE);
+    assert(0 <= py && py < FOG_MAP_SIZE);
 
     /* Ignore darkness information for tile outside the viewable area: if
      * such a tile becomes visible again, it is either "fog of war" (and
@@ -635,6 +764,134 @@ void mapdata_set_face(int x, int y, int darkness, sint16 face0, sint16 face1, si
         set_darkness(px, py, 255-darkness);
     }
 }
+
+/* Sets smooth information for layer */
+void mapdata_set_smooth(int x, int y, int smooth, int layer)
+{
+    static int dx[8]={0,1,1,1,0,-1,-1,-1};
+    static int dy[8]={-1,-1,0,1,1,1,0,-1};
+    int rx, ry, px, py, i;
+
+    assert(0 <= x && x < MAX_VIEW);
+    assert(0 <= y && y < MAX_VIEW);
+
+    px = pl_pos.x+x;
+    py = pl_pos.y+y;
+    assert(0 <= px && px < FOG_MAP_SIZE);
+    assert(0 <= py && py < FOG_MAP_SIZE);
+
+    if (the_map.cells[px][py].smooth[layer] != smooth) {
+	for (i=0;i<8;i++){
+            rx=px+dx[i];
+            ry=py+dy[i];
+            if ( (rx<0) || (ry<0) || (the_map.x<=rx) || (the_map.y<=ry))
+                continue;
+            the_map.cells[rx][ry].need_resmooth=1;
+	}
+        the_map.cells[px][py].need_resmooth=1;
+	the_map.cells[px][py].smooth[layer] = smooth;
+    }
+}
+
+/* This is vaguely related to the mapdata_set_face() above, but rather
+ * than take all the faces, takes 1 face and the layer this face is
+ * on.  This is used by the Map2Cmd()
+ */
+void mapdata_set_face_layer(int x, int y, sint16 face, int layer)
+{
+    int px, py;
+    int i;
+
+    assert(0 <= x && x < MAX_VIEW);
+    assert(0 <= y && y < MAX_VIEW);
+
+    px = pl_pos.x+x;
+    py = pl_pos.y+y;
+    assert(0 <= px && px < FOG_MAP_SIZE);
+    assert(0 <= py && py < FOG_MAP_SIZE);
+
+    if (x < width && y < height) {
+	the_map.cells[px][py].need_update = 1;
+	if (the_map.cells[px][py].cleared) {
+	    for (i=0; i < MAXLAYERS; i++)
+		expand_clear_face_from_layer(px, py, i);
+
+	    the_map.cells[px][py].darkness = 0;
+	    the_map.cells[px][py].have_darkness = 0;
+	}
+	if (face >0)
+	    expand_set_face(px, py, layer, face, TRUE);
+	else {
+	    expand_clear_face_from_layer(px, py, layer);
+	}
+
+	the_map.cells[px][py].cleared = 0;
+    }
+    else {
+	expand_set_bigface(x, y, layer, face, TRUE);
+    }
+}
+
+
+/* This is vaguely related to the mapdata_set_face() above, but rather
+ * than take all the faces, takes 1 face and the layer this face is
+ * on.  This is used by the Map2Cmd()
+ */
+void mapdata_set_anim_layer(int x, int y, uint16 anim, uint8 anim_speed, int layer)
+{
+    int px, py;
+    int i, face, animation, phase, speed_left;
+
+    assert(0 <= x && x < MAX_VIEW);
+    assert(0 <= y && y < MAX_VIEW);
+
+    px = pl_pos.x+x;
+    py = pl_pos.y+y;
+    assert(0 <= px && px < FOG_MAP_SIZE);
+    assert(0 <= py && py < FOG_MAP_SIZE);
+
+    animation = anim & ANIM_MASK;
+
+    /* Random animation is pretty easy */
+    if ((anim & ANIM_FLAGS_MASK) == ANIM_RANDOM) {
+	phase = random() % animations[animation].num_animations;
+	face = animations[animation].faces[phase];
+	speed_left = anim_speed % random();
+    } else if ((anim & ANIM_FLAGS_MASK) == ANIM_SYNC) {
+	animations[animation].speed = anim_speed;
+	phase = animations[animation].phase;
+	speed_left = animations[animation].speed_left;
+	face = animations[animation].faces[phase];
+    }
+
+    if (x < width && y < height) {
+	the_map.cells[px][py].need_update = 1;
+	if (the_map.cells[px][py].cleared) {
+	    for (i=0; i < MAXLAYERS; i++)
+		expand_clear_face_from_layer(px, py, i);
+
+	    the_map.cells[px][py].darkness = 0;
+	    the_map.cells[px][py].have_darkness = 0;
+	}
+	if (face >0) {
+	    expand_set_face(px, py, layer, face, TRUE);
+	    the_map.cells[px][py].heads[layer].animation = animation;
+	    the_map.cells[px][py].heads[layer].animation_phase = phase;
+	    the_map.cells[px][py].heads[layer].animation_speed = anim_speed;
+	    the_map.cells[px][py].heads[layer].animation_left = speed_left;
+	}
+	else {
+	    expand_clear_face_from_layer(px, py, layer);
+	}
+
+	the_map.cells[px][py].cleared = 0;
+
+    }
+    else {
+	expand_set_bigface(x, y, layer, face, TRUE);
+    }
+}
+
 
 void mapdata_scroll(int dx, int dy)
 {
@@ -813,6 +1070,38 @@ sint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh)
         assert(0 <= dy && dy < h);
         *ww = w-1-dx;
         *hh = h-1-dy;
+        return(result);
+    }
+
+    *ww = 1;
+    *hh = 1;
+    return(0);
+}
+
+/* This is used by the opengl logic.
+ * Basically the opengl code draws the the entire image,
+ * and doesn't care if if portions are off the edge
+ * (opengl takes care of that).  So basically, this
+ * function returns only if the head for a space is set,
+ * otherwise, returns 0 - we don't care about the tails
+ * or other details really.
+ */
+sint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh)
+{
+    sint16 result;
+
+    if (width <= 0) return(0);
+
+    assert(0 <= x && x < MAX_VIEW);
+    assert(0 <= y && y < MAX_VIEW);
+    assert(0 <= layer && layer < MAXLAYERS);
+
+    result = bigfaces[x][y][layer].head.face;
+    if (result != 0) {
+        int w = bigfaces[x][y][layer].head.size_x;
+        int h = bigfaces[x][y][layer].head.size_y;
+        *ww = w;
+        *hh = h;
         return(result);
     }
 
@@ -1004,4 +1293,86 @@ static void mapdata_get_image_size(int face, uint8 *w, uint8 *h)
     if (*h < 1) *h = 1;
     if (*w > MAX_FACE_SIZE) *w = MAX_FACE_SIZE;
     if (*h > MAX_FACE_SIZE) *h = MAX_FACE_SIZE;
+}
+
+/* This basically goes through all the map spaces and does the necessary
+ * animation.
+ */
+void mapdata_animation()
+{
+    int x, y, layer, face, smooth;
+    struct MapCellLayer *cell;
+
+
+    /* For synchronized animations, what we do is set the initial values
+     * in the mapdata to the fields in the animations[] array.  In this way,
+     * the code below the iterates the spaces doesn't need to do anything
+     * special.  But we have to update the animations[] array here to
+     * keep in sync.
+     */
+    for (x=0; x < MAXANIM; x++) {
+	if (animations[x].speed) {
+	    animations[x].speed_left++;
+	    if (animations[x].speed_left >= animations[x].speed) {
+		animations[x].speed_left=0;
+		animations[x].phase++;
+		if (animations[x].phase >= animations[x].num_animations)
+		    animations[x].phase=0;
+	    }
+	}
+    }
+
+    for (x=0; x < CURRENT_MAX_VIEW; x++) {
+	for (y=0; y < CURRENT_MAX_VIEW; y++) {
+
+	    /* Short cut some processing here.  It makes sense to me
+	     * not to animate stuff out of view
+	     */
+	    if (the_map.cells[pl_pos.x + x][pl_pos.y + y].cleared) continue;
+
+	    for (layer=0; layer<MAXLAYERS; layer++) {
+		smooth = the_map.cells[pl_pos.x + x][pl_pos.y + y].smooth[layer];
+
+		/* Using the cell structure just makes life easier here */
+		cell = &the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer];
+
+		if (cell->animation) {
+		    cell->animation_left++;
+		    if (cell->animation_left >= cell->animation_speed) {
+			cell->animation_left=0;
+			cell->animation_phase++;
+			if (cell->animation_phase >= animations[cell->animation].num_animations)
+			    cell->animation_phase=0;
+			face = animations[cell->animation].faces[cell->animation_phase];
+
+			/* I don't think we send any to the client, but it is possible
+			 * for animations to have blank faces.
+			 */
+			if (face >0) {
+			    expand_set_face(pl_pos.x + x, pl_pos.y + y, layer, face, FALSE);
+/*			    mapdata_set_smooth(x, y, smooth, layer);*/
+			} else {
+			    expand_clear_face_from_layer(pl_pos.x + x, pl_pos.y + y , layer);
+			}
+		    }
+		}
+		cell = &bigfaces[x][y][layer].head;
+		if (cell->animation) {
+		    cell->animation_left++;
+		    if (cell->animation_left >= cell->animation_speed) {
+			cell->animation_left=0;
+			cell->animation_phase++;
+			if (cell->animation_phase >= animations[cell->animation].num_animations)
+			    cell->animation_phase=0;
+			face = animations[cell->animation].faces[cell->animation_phase];
+
+			/* I don't think we send any to the client, but it is possible
+			 * for animations to have blank faces.
+			 */
+			expand_set_bigface(x, y, layer, face, FALSE);
+		    }
+		}
+	    }
+	}
+    }
 }
