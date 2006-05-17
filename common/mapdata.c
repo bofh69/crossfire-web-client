@@ -851,6 +851,7 @@ void mapdata_set_anim_layer(int x, int y, uint16 anim, uint8 anim_speed, int lay
     assert(0 <= py && py < FOG_MAP_SIZE);
 
     animation = anim & ANIM_MASK;
+    face = 0;
 
     /* Random animation is pretty easy */
     if ((anim & ANIM_FLAGS_MASK) == ANIM_RANDOM) {

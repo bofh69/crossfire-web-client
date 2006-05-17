@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/mapdata.c: fix unitialized variable.
+Ryo 2006-05-17
+
 This commit adds client side support for the map2 & tick protocol commands.
 In additional the the necessary decode logic, more layers are also added
 to the map.
