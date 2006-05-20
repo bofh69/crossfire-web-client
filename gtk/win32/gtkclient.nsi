@@ -5,7 +5,7 @@
 !include "MUI.nsh"
 
 ;Title Of Your Application
-Name "Crossfire GTK Client 1.9.0"
+Name "Crossfire GTK Client 1.9.0 snapshot 20060520"
 
 VIAddVersionKey "ProductName" "Crossfire GTK client installer"
 VIAddVersionKey "Comments" "Website: http://crossfire.real-time.com"

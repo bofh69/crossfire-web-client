@@ -1,8 +1,14 @@
-Changes for Win32 GTK client 1.9.0 February, 26th, 2006
-----------------------------------------------------------------
+Changes for Win32 GTK client 1.9.0 snapshot, May, 20th, 2006
+------------------------------------------------------------
 
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
+
+From version 1.9.0
+------------------
+* new map2 command, which will be used on newer servers
+* more images slots
+* misc bug fixes (memory leaks, ...)
 
 From version 1.8.0
 ------------------
