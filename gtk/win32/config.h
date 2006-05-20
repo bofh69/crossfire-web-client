@@ -89,7 +89,7 @@
 #define PACKAGE "gcfclient"
 
 /* Version number of package */
-#define VERSION "1.9.0"
+#define VERSION "1.9.0 snapshot 20060520"
 
 /***********************/
 #ifdef WIN32
@@ -125,6 +125,8 @@ int strncasecmp(const char *s1, const char *s2, int n);
 #define usleep(x) Sleep((x)/1000)
 #define sleep(x) Sleep((x)*1000)
 #define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
+#define srandom srand
+#define random rand
 
 /* For GTK 2.2 Compatibility */
 #define GTK_WINDOW_DIALOG GTK_WINDOW_TOPLEVEL
