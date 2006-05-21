@@ -49,10 +49,12 @@
 #define NEWCLIENT_H
 
 /* Maximum size of any packet we expect.  Using this makes it so we don't need to
- * allocated and deallocated teh same buffer over and over again and the price
- * of using a bit of extra memory.  IT also makes the code simpler.
+ * allocate and deallocate the same buffer over and over again and the price
+ * of using a bit of extra memory.  It also makes the code simpler.
+ * The size is big enough to receive any valid packet: 2 bytes for length,
+ * 65535 for max. packet size, 1 for appended trailing '\0'.
  */
-#define MAXSOCKBUF 10240
+#define MAXSOCKBUF (2+65535+1)
 
 /* How much the x,y coordinates in the map2 are off from
  * actual upper left corner.  Necessary for light sources

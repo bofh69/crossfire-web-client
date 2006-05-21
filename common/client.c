@@ -142,13 +142,16 @@ void DoClient(ClientSocket *csocket)
 	i=SockList_ReadPacket(csocket->fd, &csocket->inbuf, MAXSOCKBUF-1);
 	if (i==-1) {
 	    /* Need to add some better logic here */
-	    /*ET: not an error.  It's EOF!  At least errno isn't valid.
-	    fprintf(stderr,"Got error on read (error %d)\n", errno);
-	    */
+#ifdef WIN32
+	    closesocket(csocket->fd);
+#else
+	    close(csocket->fd);
+#endif
 	    csocket->fd=-1;
 	    return;
 	}
 	if (i==0) return;   /* Don't have a full packet */
+	/* Terminate the buffer */
 	csocket->inbuf.buf[csocket->inbuf.len]='\0';
         data = (unsigned char *)strchr((char*)csocket->inbuf.buf +2, ' ');
 	if (data) {
@@ -156,7 +159,6 @@ void DoClient(ClientSocket *csocket)
 	    data++;
 	}
         len = csocket->inbuf.len - (data - csocket->inbuf.buf);
-	/* Terminate the buffer */
 	LOG(0,"Common::DoClient","Command:%s (%d)",csocket->inbuf.buf+2, len);
 	for(i=0;i < NCOMMANDS;i++) {
 	    if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {

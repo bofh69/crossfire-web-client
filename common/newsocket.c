@@ -50,11 +50,8 @@ const char *rcsid_common_newsocket_c =
 }*/
 
 
-/* We don't care what these values are in the client, since
- * we toss them
- */
-#define llevDebug 0
-#define llevError 0
+#define llevDebug LOG_DEBUG
+#define llevError LOG_ERROR
 
 
 /*
@@ -166,11 +163,11 @@ short GetShort_String(const unsigned char *data) {
     return ((data[0]<<8)+data[1]);
 }
 
-/* this readsfrom fd and puts the data in sl.  We return true if we think
- * we have a full packet, 0 if we have a partial packet.  The only processing
- * we do is remove the intial size value.  len (As passed) is the size of the
- * buffer allocated in the socklist.  We make the assumption the buffer is
- * at least 2 bytes long.
+/* This reads from fd and puts the data in sl. We return true if we think we
+ * have a full packet, 0 if we have a partial packet, or -1 if an error
+ * occurred. The only processing we do is remove the initial size value. len
+ * (As passed) is the size of the buffer allocated in the socklist. We make
+ * the assumption the buffer is at least 2 bytes long.
  */
  
 int SockList_ReadPacket(int fd, SockList *sl, int len)

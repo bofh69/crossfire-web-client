@@ -2,6 +2,17 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Make socket handling more robust.
+---
+common/client.c: In DoClient() properly close the socket if an invalid packet
+   was received.
+common/newclient.h: Increase the receive buffer size to 65535 bytes. This
+   allows the client to receive any valid packet (even if no currently
+   existing server is supposed to send such big packets).
+common/newsocket.c: Fix definitions of llevDebug and llevError to make error
+   messages visible.
+Andreas Kirschbaum 2006-05-21
+
 common/mapdata.c: fix unitialized variable.
 Ryo 2006-05-17
 
