@@ -133,6 +133,19 @@ void do_network() {
 	    script_process(&tmp_read);
 	}
     }
+    /* DoClient now closes the socket, so we need to check for
+     * this here - with the socket being closed, this function 
+     * will otherwise never be called again.
+     */
+    if (csocket.fd==-1) {
+	if (csocket_fd) {
+	    gdk_input_remove(csocket_fd);
+	    csocket_fd=0;
+	    gtk_main_quit();
+	}
+	return;
+    }
+
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(FALSE);
     else

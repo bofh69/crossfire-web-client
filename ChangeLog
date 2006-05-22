@@ -2,6 +2,13 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c, gtk-v2/src/main.c: Add checks for csocket.fd==-1 after return
+   of DoClient.  With change in DoClient to close the socket, the network
+   routines are not called again (like they used to be), and thus the
+   GUI was't really aware the socket was closed, and wouldn't prompt for
+   metaserver selection.
+MSW 2006-05-21
+
 Make socket handling more robust.
 ---
 common/client.c: In DoClient() properly close the socket if an invalid packet

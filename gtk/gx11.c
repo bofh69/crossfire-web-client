@@ -325,6 +325,15 @@ static void do_network(void) {
     } else {
 	LOG(LOG_INFO,"gtk::do_network","locked for network recieves.\n");
     }
+    if (csocket.fd==-1) {
+	if (csocket_fd) {
+	    gdk_input_remove(csocket_fd);
+	    csocket_fd=0;
+	    gtk_main_quit();
+	}
+	return;
+    }
+
 }
 
 #ifdef WIN32 /* Win32 scripting support */
