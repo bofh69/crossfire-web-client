@@ -2,6 +2,17 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+sound-src/alsa9.c: Fix up sound for alsa9+.  Not positive exact change that
+  fixed the problem, but following changes made: Add SOUND_DEBUG_WRITES to
+  separate the debug from writes vs all the other debug messags.  If using
+  16 bit data, always use unsigned no matter wit the sign config option
+  says.  In alsa_recover(), if error is EAGAIN, just do nothing and return.
+  In audio_play(), don't write more bytes than chunk size (basically
+  largest block that alsa wants at one time).  In play_sound(), don't
+  decrease volume based on maximum number of sounds that may be played
+  at once - this makes things too quiet.
+MSW 2006-06-25
+
 gtk/gx11.c, gtk-v2/src/main.c: Add checks for csocket.fd==-1 after return
    of DoClient.  With change in DoClient to close the socket, the network
    routines are not called again (like they used to be), and thus the

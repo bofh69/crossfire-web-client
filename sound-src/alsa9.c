@@ -28,7 +28,13 @@ static char *rcsid_cfsndserv_c =
  * make much sense.
  */
 
-/*#define SOUND_DEBUG*/
+#define SOUND_DEBUG
+
+/* Debugs the actual writing of data - this generally isn't that interesting,
+ * and generates a lot of messages which tends to obscure the more interesting
+ * ones.
+ */
+/*#define SOUND_DEBUG_WRITES */
 
 #include "config.h"
 
@@ -97,74 +103,53 @@ int stereo=0,sample_size=0,frequency=0,sign=0,zerolevel=0;
 struct sound_settings{
     int stereo, bit8, sign, frequency, buffers, buflen,simultaneously;
     const char *audiodev;
-} settings={0,1,0,8000,200,2048,4,AUDIODEV};
+} settings={0,1, 0, 8000,200,2048,4,AUDIODEV};
 
 #include "common.c"
 
 
 snd_pcm_hw_params_t *params;
+static snd_pcm_uframes_t chunk_size = 0;
 int err = 0;
 
 void alsa_audio_close(void) { snd_pcm_close(handle); }
 
-void alsa_recover(int e) {
-	/* Recover from various errors */
-	if (e == -EPIPE) {
-		err = snd_pcm_prepare(handle);
-		if (err < 0) {
-			ALSA9_ERROR("alsa_recover(): Unable to recover from underrun. ",err);
-			return;
-		}
-	} else if (e == -ESTRPIPE) {
-		while ((err = snd_pcm_resume(handle)) == -EAGAIN) sleep(1);
-		if (err < 0) {
-			err = snd_pcm_prepare(handle);
-			if (err < 0) {
-				ALSA9_ERROR("alsa_recover(): Unable to recover from suspend. ",err);
-				return;
-			}
-		}
-	} else ALSA9_ERROR("alsa_recover(): ",e);
-	
-}
-	
-
 int init_audio(void) {
-  snd_pcm_sw_params_t *sw_params;
+    snd_pcm_sw_params_t *sw_params;
+    unsigned int format;
 
-  printf("cfsndserv compiled for ALSA9 sound system\n");
-  fflush(stdout);
+    printf("cfsndserv compiled for ALSA9 sound system\n");
+    fflush(stdout);
 
-  /* open the PCM device */
-  if ((err = snd_pcm_open(&handle,AUDIODEV,SND_PCM_STREAM_PLAYBACK,0)) <0) {
+    /* open the PCM device */
+    if ((err = snd_pcm_open(&handle,AUDIODEV,SND_PCM_STREAM_PLAYBACK,0)) <0) {
 	ALSA9_ERROR("init_audio(): ",err);
 	exit(1);
-  }
+    }
 
-  atexit(alsa_audio_close);
+    atexit(alsa_audio_close);
 
-  /* allocate and zero out params */
-  snd_pcm_hw_params_alloca(&params);
+    /* allocate and zero out params */
+    snd_pcm_hw_params_alloca(&params);
 
-  if ((err = snd_pcm_hw_params_any(handle,params)) <0) {
+    if ((err = snd_pcm_hw_params_any(handle,params)) <0) {
 	ALSA9_ERROR("init_audio(): ",err);
 	exit(1);
-  }
+    }
 
-  /* set the access mode (interleaved) */
-  if ((err = snd_pcm_hw_params_set_access(handle,params,SND_PCM_ACCESS_RW_INTERLEAVED)) <0) {
+    /* set the access mode (interleaved) */
+    if ((err = snd_pcm_hw_params_set_access(handle,params,SND_PCM_ACCESS_RW_INTERLEAVED)) <0) {
 	ALSA9_ERROR("init_audio(): ",err);
 	exit(1);
-  }
+    }
 
-  /* set the format */
-  
-  unsigned int format;
+    /* set the format */
 
-  if (settings.bit8)
-	format = settings.sign?SND_PCM_FORMAT_S8:SND_PCM_FORMAT_U8;
-  else 
-	format = settings.sign?SND_PCM_FORMAT_S16:SND_PCM_FORMAT_U16;
+   if (settings.bit8)
+       format = settings.sign?SND_PCM_FORMAT_S8:SND_PCM_FORMAT_U8;
+   else 
+       format = SND_PCM_FORMAT_U16;
+
 
   if ((err = snd_pcm_hw_params_set_format(handle,params,format))<0) {
 	ALSA9_ERROR("init_audio(): ",err);
@@ -234,10 +219,36 @@ int init_audio(void) {
     /* Zerolevel=0x80 seems to work best for both 8 and 16 bit audio */
     if (sign) zerolevel=0;
     else zerolevel=0x80;
-    
+
+    snd_pcm_hw_params_get_period_size(params, &chunk_size, 0);
 
     return 0;
 }
+
+void alsa_recover(int e) {
+	/* Recover from various errors */
+	if (e == -EAGAIN) {
+	    return;
+	} else if (e == -EPIPE) {
+		err = snd_pcm_prepare(handle);
+		if (err < 0) {
+			ALSA9_ERROR("alsa_recover(): Unable to recover from underrun. ",err);
+			return;
+		}
+	} else if (e == -ESTRPIPE) {
+		while ((err = snd_pcm_resume(handle)) == -EAGAIN) sleep(1);
+		if (err < 0) {
+			err = snd_pcm_prepare(handle);
+			if (err < 0) {
+				ALSA9_ERROR("alsa_recover(): Unable to recover from suspend. ",err);
+				return;
+			}
+		}
+	} else ALSA9_ERROR("alsa_recover(): ",e);
+	
+}
+	
+
 
 /* Does the actual task of writing the data to the socket.
  * The ALSA write logic is a bit odd, in that the count you pass in
@@ -247,24 +258,23 @@ int init_audio(void) {
  * you'd divide the number by 4.
  */
 int audio_play(int buffer, int off) {
-    int count = settings.buflen-off;
+    int count = (settings.buflen - off) / sample_size;
 
-    if ((count % sample_size) != 0) {
-	fprintf(stderr,"Warning: data to be written not factor of sample size %d\n",
-		sample_size);
-    }
-#ifdef SOUND_DEBUG
-    printf("audio play - writing starting at %d, %d bytes\n",
-          settings.buflen*buffer+off,settings.buflen-off);
+    if (count > chunk_size) count=chunk_size;
+
+#ifdef SOUND_DEBUG_WRITES
+    printf("audio play - writing starting at %d, %d bytes, off=%d\n",
+          settings.buflen*buffer+off,count, off);
     fflush(stdout);
 #endif
 
-    err = snd_pcm_writei(handle,buffers+settings.buflen*buffer+off,(settings.buflen-off)/sample_size);
+    err = snd_pcm_writei(handle,buffers+settings.buflen*buffer+off, count);
+
     if (err < 0) {
-	    alsa_recover(err);
-	    return 0;
+	alsa_recover(err);
+	return 0;
     } else {
-	return err*sample_size;
+	return err * sample_size;
     }
 }
 
@@ -355,24 +365,25 @@ void play_sound(int soundnum, int soundtype, int x, int y)
        fclose(f);
     }
 
-#ifdef SOUND_DEBUG    
-    fprintf(stderr,"Playing sound %i (%s), volume %i, x,y=%d,%d\n",soundnum,si->symbolic,si->volume,x,y);
-#endif
     /* calculate volume multiplers */
     dist=sqrt(x*x+y*y);
-    right_ratio=left_ratio=((1<<16)*si->volume)/(100*settings.simultaneously*(1+SOUND_DECREASE*dist));
-    if (stereo){
-      double diff;
-      if (dist)
-        diff=(1.0-fabs((double)x/dist));
-      else 
-        diff=1;
 #ifdef SOUND_DEBUG    
-      printf("diff: %f\n",diff);
-      fflush(stdout);
+    fprintf(stderr,"Playing sound %i (%s), volume %i, x,y=%d,%d, dist=%f\n",soundnum,si->symbolic,si->volume,x,y, dist);
 #endif
-      if (x<0) right_ratio*=diff;
-      else left_ratio*=diff;
+    right_ratio=left_ratio=((1<<16)*si->volume)/(100*(1+SOUND_DECREASE*dist));
+
+    if (stereo){
+	double diff;
+	if (dist)
+	    diff=(1.0-fabs((double)x/dist));
+	else 
+	    diff=1;
+#ifdef SOUND_DEBUG    
+	printf("diff: %f\n",diff);
+	fflush(stdout);
+#endif
+	if (x<0) right_ratio*=diff;
+	else left_ratio*=diff;
     }
 
 #ifdef SOUND_DEBUG    
@@ -384,8 +395,7 @@ void play_sound(int soundnum, int soundtype, int x, int y)
     off=0;
     for(i=0;i<si->size;i++){
         int dat=si->data[i]-0x80;
-        
-        if (settings.bit8){
+	if (settings.bit8) {
 	  if (!stereo){
 	     buffers[buf*settings.buflen+off]+=(dat*left_ratio)>>16;
 	  }  
@@ -491,11 +501,13 @@ int main(int argc, char *argv[])
 
 		if (frames == -EPIPE)	snd_pcm_prepare(handle);
 		wrote = audio_play(current_buffer, sndbuf_pos);
-#ifdef SOUND_DEBUG
+#ifdef SOUND_DEBUG_WRITES
 		printf("play_sound(): wrote %d\n",wrote);
 		fflush(stdout);
 #endif
-		if (wrote < settings.buflen-sndbuf_pos) sndbuf_pos+=wrote;
+		if (wrote < settings.buflen-sndbuf_pos) {
+		    sndbuf_pos+=wrote;
+		}
 		else{ 
 		    /* clean the buffer */
 		    memset(buffers+settings.buflen*current_buffer,zerolevel,settings.buflen);
