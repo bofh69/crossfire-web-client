@@ -9,8 +9,8 @@
 #
 %define Name crossfire
 %define extra client
-%define version 1.9.0
-%define sndversion 1.9.0
+%define version 1.9.1
+%define sndversion 1.9.1
 %define release 1
 %define prefix /usr/X11R6
 %define _sourcedir /export/home/crossfire/Crossfire
@@ -206,6 +206,10 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 
 %changelog
+* Wed Jun 28 2006 Mark Wedel <mwedel@sonic.net>
++ crossfire-client-1.9.1-1
+- new release 1.9.1
+
 * Sun Feb 26 2006 Mark Wedel <mwedel@sonic.net>
 + crossfire-client-1.9.0-1
 - new release 1.9.0

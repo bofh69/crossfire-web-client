@@ -2,6 +2,8 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Changes for 1.9.1:
+------------------------------------------------------------------------------
 sound-src/alsa9.c: Fix up sound for alsa9+.  Not positive exact change that
   fixed the problem, but following changes made: Add SOUND_DEBUG_WRITES to
   separate the debug from writes vs all the other debug messags.  If using
