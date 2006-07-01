@@ -359,7 +359,7 @@ static void setup_config_window()
 	}
 	gtk_tree_model_get(model, &iter, 0, &buf, -1);
 
-	if (!strcasecmp(face_info.want_faceset, buf)) {
+	if (face_info.want_faceset && !strcasecmp(face_info.want_faceset, buf)) {
 	    gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_faceset), i);
 	    g_free(buf);
 	    break;

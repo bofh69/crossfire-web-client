@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/config.c: Fix bug resulting in a crash when opening the
+   configuration dialogue if you have an empty gdefaults2 file.
+MSW 2006-06-30
+
 Changes for 1.9.1:
 ------------------------------------------------------------------------------
 sound-src/alsa9.c: Fix up sound for alsa9+.  Not positive exact change that
