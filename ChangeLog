@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/misc.c: Make default log level 2 when not in debug mode.  Normal users
+  probably don't want all the INFO log messages, and it never makes a good
+  impression about stability/quality if a program spews out lots of errors
+  or other messages.
+MSW 2006-07-01
+
 Make some changes to the defaults so that the game is a bit more user friendly
 to completely new users (eg, those that don't have a settings file):
 --

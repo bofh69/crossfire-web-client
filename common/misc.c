@@ -171,7 +171,7 @@ char *getLogText(const LogEntry *le) {
 #ifdef DEBUG
 #define MINLOG 0
 #else
-#define MINLOG 1
+#define MINLOG 2
 #endif
 void LOG(LogLevel level, const char *origin, const char *format, ...)
 {
