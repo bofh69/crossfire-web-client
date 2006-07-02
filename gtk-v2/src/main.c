@@ -535,6 +535,9 @@ main (int argc, char *argv[])
 
     /* parse_args() has to com after init_client_vars() */
     init_client_vars();
+    use_config[CONFIG_MAPWIDTH] = want_config[CONFIG_MAPWIDTH] = 25;
+    use_config[CONFIG_MAPHEIGHT] = want_config[CONFIG_MAPHEIGHT] = 25;
+
     parse_args(argc, argv);
     csocket.inbuf.buf=malloc(MAXSOCKBUF);
 

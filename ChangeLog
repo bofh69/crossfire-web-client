@@ -2,6 +2,18 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Make some changes to the defaults so that the game is a bit more user friendly
+to completely new users (eg, those that don't have a settings file):
+--
+common/init.c: Turn off popups (gtkv1 client) by default - general seems
+  that it isn't popular, and placement of the popups needs to be fixed.
+gtk-v2/src/main.c: Change default map size to ask from server to be
+   25x25 - the gtkv2 client has default window size for that, so lets use
+   it.
+x11/x11.c: Turn on scroll of text by default - non scroll is really ugly
+   and doesn't make any sense give the power of even very slow cpus now.
+MSW 2006-07-01
+
 gtk-v2/src/config.c: Fix bug resulting in a crash when opening the
    configuration dialogue if you have an empty gdefaults2 file.
 MSW 2006-06-30

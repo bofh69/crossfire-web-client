@@ -225,7 +225,7 @@ typedef struct {
     sint16	width,height; /* Width and height of window */
 } InfoData;
 
-InfoData infodata = {0, 0, 0, 0, 0, 0, INFOLINES, INFOLINES, NDI_BLACK,
+InfoData infodata = {0, 0, 0, 0, 1, 0, INFOLINES, INFOLINES, NDI_BLACK,
 	NULL, 0, 0,0,0,0,0,0,0,0};
 
 uint8	image_size=24;
