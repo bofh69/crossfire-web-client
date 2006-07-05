@@ -2,6 +2,24 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Changes related to logging of version information.
+aclocal, Makefiles.*: Rebuilt for new file in gtk-v2/src.
+common/misc.c: Change MINLOG to be a variable so it can be changed via
+   command line options.
+gtk/gx11.c: Have bug window display rcsid versions.  Add -loglevel command
+   line option.  Move printing of some log messages until after we process
+   command line options since that can change the log level.
+gtk-v2/gtk-v2.glade: Add an about window for the gtkv2 client.
+gtk-v2/src/Makefile.am: Add about.c file.
+gtk-v2/src/about.c: file for about window.
+gtk-v2/src/callbacks.h: on_about_close_clicked() added by glade.
+gtk-v2/src/interface.c, interface.c: New logic for about window.  New
+   function - create_about_window()
+gtk-v2/src/main.c: Add -loglevel command line option.  Move printing of some
+   log messages after we process command line options.
+gtk-v2/src/menubar.c: remove menu_about() - now in about.c
+MSW 2006-07-04
+
 common/misc.c: Make default log level 2 when not in debug mode.  Normal users
   probably don't want all the INFO log messages, and it never makes a good
   impression about stability/quality if a program spews out lots of errors

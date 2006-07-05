@@ -191,7 +191,7 @@ create_window_root (void)
 
   window_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (window_root), _("Crossfire Client - GTK v2"));
-  gtk_window_set_default_size (GTK_WINDOW (window_root), 1200, 1010);
+  gtk_window_set_default_size (GTK_WINDOW (window_root), 1201, 1010);
 
   vbox2 = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (vbox2);
@@ -1940,5 +1940,58 @@ create_config_window (void)
   GLADE_HOOKUP_OBJECT (config_window, config_button_close, "config_button_close");
 
   return config_window;
+}
+
+GtkWidget*
+create_about_window (void)
+{
+  GtkWidget *about_window;
+  GtkWidget *about_vbox;
+  GtkWidget *about_hbox_image;
+  GtkWidget *scrolledwindow10;
+  GtkWidget *about_textview;
+  GtkWidget *about_close;
+
+  about_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_widget_set_size_request (about_window, 500, 500);
+  gtk_window_set_title (GTK_WINDOW (about_window), _("About Crossfire"));
+  gtk_window_set_position (GTK_WINDOW (about_window), GTK_WIN_POS_CENTER_ON_PARENT);
+
+  about_vbox = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (about_vbox);
+  gtk_container_add (GTK_CONTAINER (about_window), about_vbox);
+
+  about_hbox_image = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (about_hbox_image);
+  gtk_box_pack_start (GTK_BOX (about_vbox), about_hbox_image, FALSE, TRUE, 0);
+
+  scrolledwindow10 = gtk_scrolled_window_new (NULL, NULL);
+  gtk_widget_show (scrolledwindow10);
+  gtk_box_pack_start (GTK_BOX (about_vbox), scrolledwindow10, TRUE, TRUE, 0);
+  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolledwindow10), GTK_SHADOW_IN);
+
+  about_textview = gtk_text_view_new ();
+  gtk_widget_show (about_textview);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow10), about_textview);
+  gtk_text_view_set_editable (GTK_TEXT_VIEW (about_textview), FALSE);
+
+  about_close = gtk_button_new_with_mnemonic (_("Close"));
+  gtk_widget_show (about_close);
+  gtk_box_pack_start (GTK_BOX (about_vbox), about_close, FALSE, FALSE, 0);
+  GTK_WIDGET_UNSET_FLAGS (about_close, GTK_CAN_FOCUS);
+
+  g_signal_connect ((gpointer) about_close, "clicked",
+                    G_CALLBACK (on_about_close_clicked),
+                    NULL);
+
+  /* Store pointers to all widgets, for use by lookup_widget(). */
+  GLADE_HOOKUP_OBJECT_NO_REF (about_window, about_window, "about_window");
+  GLADE_HOOKUP_OBJECT (about_window, about_vbox, "about_vbox");
+  GLADE_HOOKUP_OBJECT (about_window, about_hbox_image, "about_hbox_image");
+  GLADE_HOOKUP_OBJECT (about_window, scrolledwindow10, "scrolledwindow10");
+  GLADE_HOOKUP_OBJECT (about_window, about_textview, "about_textview");
+  GLADE_HOOKUP_OBJECT (about_window, about_close, "about_close");
+
+  return about_window;
 }
 

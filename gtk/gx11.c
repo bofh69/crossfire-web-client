@@ -288,6 +288,12 @@ int misses=0,total=0;
 
 static void disconnect(GtkWidget *widget);
 
+/* Loads from ../ because headers have same name and are in include path
+ * This prevents loading 2 times the same header.
+ */
+#include "../common/rcs-id.h"
+#include "rcs-id.h"
+
 /* main loop iteration related stuff */
 static void do_network(void) {
     fd_set tmp_read;
@@ -2634,6 +2640,14 @@ static void bugdialog(GtkWidget *widget) {
 #ifndef WIN32
   GdkFont* font;
 #endif
+#ifdef HAS_COMMON_RCSID
+    INIT_COMMON_RCSID;
+#endif
+#ifdef HAS_GTK_RCSID
+    INIT_GTK_RCSID;
+#endif
+    int i;
+
   if(!gtkwin_bug) {
 
     gtkwin_bug = gtk_window_new (GTK_WINDOW_DIALOG);
@@ -2709,6 +2723,37 @@ static void bugdialog(GtkWidget *widget) {
 		     NULL, VERSION_INFO , -1);
     gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
 		     NULL, text , -1);
+
+    gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
+		     NULL, "\n\nVersion Information\n" , -1);
+
+/*
+ * output some version informations on LOG
+ * Those will be useful for debugging.
+ */
+#ifdef HAS_COMMON_RCSID
+    for (i=0;common_rcsid[i];i++) {
+	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
+		     NULL, "Version::common", -1);
+	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
+		     NULL, common_rcsid[i], -1);
+	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
+		     NULL, "\n", -1);
+
+    }
+#endif
+#ifdef HAS_GTK_RCSID
+    for (i=0;common_rcsid[i];i++) {
+	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
+		     NULL, "Version::gtk", -1);
+	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
+		     NULL, gtk_rcsid[i], -1);
+	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
+		     NULL, "\n", -1);
+    }
+#endif
+
+
     gtk_adjustment_set_value(GTK_TEXT(buglabel)->vadj, 0.0);
   }
   else {
@@ -4746,6 +4791,7 @@ static void usage(const char *progname)
     puts("-nofasttcpsend   - Disables fasttcpsend");
     puts("-fog             - Enable fog of war code");
     puts("-help            - Display this message.");
+    puts("-loglevel <val>  - Set default logging level (0 is most verbose)");
     puts("-iconscale %%    - Set icon scale percentage");
     puts("-mapscale %%     - Set map scale percentage");
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces. (default 11x11)");
@@ -4795,7 +4841,6 @@ int init_windows(int argc, char **argv)
 #else
     strcpy(VERSION_INFO,"GTK Win32 Client " VERSION);
 #endif
-    LOG(LOG_INFO,"Client Version",VERSION_INFO);
     /* Set this global so we get skill experience - gtk client can display
      * it, so lets get the info.
      */
@@ -5001,6 +5046,16 @@ int init_windows(int argc, char **argv)
 	    want_config[CONFIG_RESISTS]=atoi(argv[on_arg]);
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-loglevel")) {
+	    extern int MINLOG;
+
+	    if (++on_arg == argc) {
+		LOG(LOG_WARNING,"gtk::init_windows","-loglevel requires a value");
+		return 1;
+	    }
+	    MINLOG = atoi(argv[on_arg]);
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-splitinfo")) {
 	    want_config[CONFIG_SPLITINFO]=TRUE;
 	    continue;
@@ -5035,6 +5090,8 @@ int init_windows(int argc, char **argv)
 	    return 1;
 	}
     }
+
+    LOG(LOG_INFO,"Client Version",VERSION_INFO);
 
     /* Now copy over the values just loaded */
     for (on_arg=0; on_arg<CONFIG_NUMS; on_arg++) {
@@ -5305,12 +5362,6 @@ void gLogHandler (const gchar *log_domain, GLogLevelFlags log_level, const gchar
 }
 
 
-/* Loads from ../ because headers have same name and are in include path
- * This prevents loading 2 times the same header.
- */
-#include "../common/rcs-id.h"
-#include "rcs-id.h"
-
 extern char* cached_server_file;
 
 int main(int argc, char *argv[])
@@ -5324,18 +5375,7 @@ int main(int argc, char *argv[])
 #ifdef HAS_GTK_RCSID
     INIT_GTK_RCSID;
 #endif
-/*
- * output some version informations on LOG
- * Those will be useful for debugging.
- */
-#ifdef HAS_COMMON_RCSID
-    for (i=0;common_rcsid[i];i++)
-        LOG(LOG_INFO,"Version::common","%s",common_rcsid[i]);
-#endif
-#ifdef HAS_GTK_RCSID
-    for (i=0;gtk_rcsid[i];i++)
-        LOG(LOG_INFO,"Version::gtk   ","%s",gtk_rcsid[i]);
-#endif
+
     g_log_set_handler (NULL,G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL|G_LOG_LEVEL_ERROR|
             G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_WARNING |G_LOG_LEVEL_MESSAGE|G_LOG_LEVEL_INFO|
             G_LOG_LEVEL_DEBUG,(GLogFunc)gLogHandler,NULL);
@@ -5366,6 +5406,19 @@ int main(int argc, char *argv[])
 	LOG(LOG_CRITICAL,"gtk::main","Failure to init windows.");
 	exit(1);
     }
+/*
+ * output some version informations on LOG
+ * Those will be useful for debugging.
+ */
+#ifdef HAS_COMMON_RCSID
+    for (i=0;common_rcsid[i];i++)
+        LOG(LOG_INFO,"Version::common","%s",common_rcsid[i]);
+#endif
+#ifdef HAS_GTK_RCSID
+    for (i=0;gtk_rcsid[i];i++)
+        LOG(LOG_INFO,"Version::gtk   ","%s",gtk_rcsid[i]);
+#endif
+
     csocket.inbuf.buf=malloc(MAXSOCKBUF);
 
 #ifdef WIN32 /* def WIN32 */

@@ -22,13 +22,14 @@
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-	-I$(top_srcdir)/common \
+	-I$(top_srcdir)/common -I$(top_srcdir)/help \
 	@PACKAGE_CFLAGS@ \
 	@SDL_CFLAGS@
 
 bin_PROGRAMS = gcfclient2
 
 PROTO_SOURCES = \
+        about.c \
 	config.c \
 	image.c \
 	info.c \

@@ -304,3 +304,7 @@ on_configure_activate                  (GtkMenuItem     *menuitem,
 void
 on_save_window_position_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
+
+void
+on_about_close_clicked                 (GtkButton       *button,
+                                        gpointer         user_data);

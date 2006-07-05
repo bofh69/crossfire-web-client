@@ -87,10 +87,3 @@ menu_quit_character                       (GtkMenuItem     *menuitem,
 }
 
 
-void
-menu_about                       (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-
-}
-

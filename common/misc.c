@@ -169,10 +169,13 @@ char *getLogText(const LogEntry *le) {
  * See client.h for possible logLevels.
  */
 #ifdef DEBUG
-#define MINLOG 0
+int MINLOG=0;
 #else
-#define MINLOG 2
+int MINLOG=2;
 #endif
+
+
+
 void LOG(LogLevel level, const char *origin, const char *format, ...)
 {
 

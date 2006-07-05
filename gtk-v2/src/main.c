@@ -220,6 +220,7 @@ static void usage(char *progname)
     puts("-nofasttcpsend   - Disables fasttcpsend");
     puts("-fog             - Enable fog of war code");
     puts("-help            - Display this message.");
+    puts("-loglevel <val>  - Set default logging level (0 is most verbose)");
     puts("-iconscale %%    - Set icon scale percentage");
     puts("-mapscale %%     - Set map scale percentage");
     puts("-mapsize xXy     - Set the mapsize to be X by Y spaces. (default 11x11)");
@@ -264,7 +265,6 @@ int parse_args(int argc, char **argv)
 #else
     strcpy(VERSION_INFO,"GTK2 Win32 Client " VERSION);
 #endif
-    LOG(LOG_INFO,"Client Version",VERSION_INFO);
     /* Set this global so we get skill experience - gtk client can display
      * it, so lets get the info.
      */
@@ -463,6 +463,16 @@ int parse_args(int argc, char **argv)
 	    want_config[CONFIG_RESISTS]=atoi(argv[on_arg]);
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-loglevel")) {
+	    extern int MINLOG;
+
+	    if (++on_arg == argc) {
+		LOG(LOG_WARNING,"gtk::init_windows","-loglevel requires a value");
+		return 1;
+	    }
+	    MINLOG = atoi(argv[on_arg]);
+	    continue;
+	}
 	else if (!strcmp(argv[on_arg],"-splitinfo")) {
 	    want_config[CONFIG_SPLITINFO]=TRUE;
 	    continue;
@@ -497,6 +507,11 @@ int parse_args(int argc, char **argv)
 	    return 1;
 	}
     }
+
+    /* Move this after the parsing of command line options, 
+     * since that can change the default log level.
+     */
+    LOG(LOG_INFO,"Client Version",VERSION_INFO);
 
     /* Now copy over the values just loaded */
     for (on_arg=0; on_arg<CONFIG_NUMS; on_arg++) {
