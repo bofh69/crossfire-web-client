@@ -1193,16 +1193,22 @@ void bind_callback (GtkWidget *gtklist, GdkEventButton *event) {
 }
 
 void ckeyunbind (GtkWidget *gtklist, GdkEventButton *event) {
-  gchar *buf;
-  GList *node;
-  node =  GTK_CLIST(cclist)->selection;
-  if (node) {
-    gtk_clist_get_text (GTK_CLIST(cclist), (gint)node->data, 0, &buf);
+    gchar *buf;
+    GList *node;
+    node =  GTK_CLIST(cclist)->selection;
 
-    unbind_key(buf);
-    draw_keybindings (cclist);
-
-  }
+    if (node) {
+	/* this line generates an warning about mismatched pointer sizes.  Not sure
+	 * if there is any good fix for it.
+	 * In addition, this appears to be using unsupported logic -
+	 * proper programming logic should not be accessing the clist->selection
+	 * data directly.  Better approach would probably be to catch the selection
+	 * in the clist, then store away what as selected.
+	 */
+	gtk_clist_get_text (GTK_CLIST(cclist), (gint)node->data, 0, &buf);
+	unbind_key(buf);
+	draw_keybindings (cclist);
+    }
 }
 
 void ckeyentry_callback (GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {

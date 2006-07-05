@@ -57,6 +57,7 @@ extern int get_info_width(void);
 /* Stats related commands */
 extern void draw_stats(int redraw);
 extern void draw_message_window(int redraw);
+
 /* this should really just set a field in the stats, and let the
  * client figure the new weight limit out
  */
@@ -85,3 +86,4 @@ extern void unbind_key(const char *params);
 extern void save_winpos(void);
 extern void save_defaults(void);
 extern void command_show(const char *params);
+extern void client_tick(uint32 tick);

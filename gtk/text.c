@@ -427,7 +427,7 @@ static void motd_callback(int flag, int type, int subtype, char *message) {
         write_media(GTK_TEXT(gtkwin_info_text), message);
     }
 }
-static void void_callback(int flag, int type, int subtype, const char *message) {
+static void void_callback(int flag, int type, int subtype, char *message) {
     
     LOG(LOG_INFO,"gtk::void_callback","got message --\n%s\n",message);
     

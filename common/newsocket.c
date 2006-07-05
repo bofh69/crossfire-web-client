@@ -88,7 +88,7 @@ static int write_socket(int fd, const unsigned char *buf, int len)
 
 
 
-void SockList_Init(SockList *sl, char *buf)
+void SockList_Init(SockList *sl, uint8 *buf)
 {
     sl->len=0;
     sl->buf=buf + 2;	/* reserve two bytes for total length */
@@ -260,14 +260,14 @@ int cs_print_string(int fd, const char *str, ...)
 {
     va_list args;
     SockList sl;
-    char buf[MAX_BUF];
+    uint8 buf[MAX_BUF];
 
     SockList_Init(&sl, buf);
     va_start(args, str);
-    sl.len += vsprintf(sl.buf + sl.len, str, args);
+    sl.len += vsprintf((char*)sl.buf + sl.len, str, args);
     va_end(args);
 
-    script_monitor_str(sl.buf);
+    script_monitor_str((char*)sl.buf);
 
     return SockList_Send(&sl, fd);
 }

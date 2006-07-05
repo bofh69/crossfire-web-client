@@ -127,7 +127,7 @@ struct CmdMapping commands[] = {
     { "ExtendedInfoSet", (CmdProc)ExtendedInfoSetCmd, NODATA},
 
     { "query", (CmdProc)handle_query, ASCII},
-    { "replyinfo", (CmdProc)ReplyInfoCmd, ASCII},
+    { "replyinfo", ReplyInfoCmd, ASCII},
     { "ExtendedTextSet", (CmdProc)SinkCmd, NODATA},
 };
 
@@ -188,7 +188,8 @@ void DoClient(ClientSocket *csocket)
 
 int init_connection(char *host, int port)
 {
-    int fd = -1, oldbufsize, newbufsize=65535, buflen=sizeof(int);
+    int fd = -1, oldbufsize, newbufsize=65535;
+    socklen_t buflen=sizeof(int);
 #if !HAVE_GETADDRINFO || WIN32
     struct sockaddr_in insock;
     struct protoent *protox;

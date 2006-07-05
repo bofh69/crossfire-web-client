@@ -552,13 +552,13 @@ void set_item_values (item *op, char *name, sint32 weight, uint16 face,
 void toggle_locked (item *op)
 {
     SockList sl;
-    char buf[MAX_BUF];
+    uint8 buf[MAX_BUF];
 
     if (op->env->tag == 0)
 	return;	/* if item is on the ground, don't lock it */
 
-    sprintf(buf,"lock %c %d",!op->locked,op->tag);
-    script_monitor_str(buf);
+    sprintf((char*)buf,"lock %c %d",!op->locked,op->tag);
+    script_monitor_str((char*)buf);
     SockList_Init(&sl, buf);
     SockList_AddString(&sl, "lock "); 
     SockList_AddChar(&sl, !op->locked);
@@ -568,13 +568,13 @@ void toggle_locked (item *op)
 
 void send_mark_obj (item *op) {
     SockList sl;
-    char buf[MAX_BUF];
+    uint8 buf[MAX_BUF];
 
     if (op->env->tag == 0)
 	return;	/* if item is on the ground, don't mark it */
 
-    sprintf(buf,"mark %d",op->tag);
-    script_monitor_str(buf);
+    sprintf((char*)buf,"mark %d",op->tag);
+    script_monitor_str((char*)buf);
     SockList_Init(&sl, buf);
     SockList_AddString(&sl, "mark ");
     SockList_AddInt(&sl, op->tag);

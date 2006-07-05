@@ -398,7 +398,7 @@ void configdialog(GtkWidget *widget) {
     GList	*flist;
     int i, num_extras=0;
 
-    const gchar *titles[] ={"#","Key","(#)","Mods","Command"};	   
+    gchar *titles[] ={"#","Key","(#)","Mods","Command"};	   
 
     /* If the window isnt already up (in which case it's just raised) */
     if(!gtkwin_config) {

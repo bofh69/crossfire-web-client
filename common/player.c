@@ -222,7 +222,7 @@ int send_command(const char *command, int repeat, int must_send) {
 	}
 	else {
 	    SockList sl;
-	    char buf[MAX_BUF];
+	    uint8 buf[MAX_BUF];
 
 	    /* Don't want to copy in administrative commands */
 	    if (!must_send) strcpy(last_command, command);

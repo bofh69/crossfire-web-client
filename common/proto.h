@@ -3,7 +3,7 @@ void DoClient(ClientSocket *csocket);
 int init_connection(char *host, int port);
 void negotiate_connection(int sound);
 /* commands.c */
-void ReplyInfoCmd(char *buf, int len);
+void ReplyInfoCmd(uint8 *buf, int len);
 void SetupCmd(char *buf, int len);
 void ExtendedInfoSetCmd(char *data, int len);
 void AddMeFail(char *data, int len);
@@ -36,7 +36,7 @@ int ExtSmooth(unsigned char *data, int len, int x, int y, int layer);
 void MapExtendedCmd(unsigned char *data, int len);
 void MagicMapCmd(unsigned char *data, int len);
 void SinkCmd(unsigned char *data, int len);
-void TickCmd(char *buf, int len);
+void TickCmd(uint8 *data, int len);
 /* image.c */
 void init_common_cache_data(void);
 void requestsmooth(int pnum);
@@ -48,9 +48,9 @@ void Face1Cmd(unsigned char *data, int len);
 void Face2Cmd(uint8 *data, int len);
 void ImageCmd(uint8 *data, int len);
 void Image2Cmd(uint8 *data, int len);
-void display_newpng(long face, uint8 *buf, long buflen, int setnum);
-void get_image_info(char *data, int len);
-void get_image_sums(uint8 *data, int len);
+void display_newpng(int face, uint8 *buf, int buflen, int setnum);
+void get_image_info(uint8 *data, int len);
+void get_image_sums(char *data, int len);
 /* init.c */
 void VersionCmd(char *data, int len);
 void SendVersion(ClientSocket csock);
@@ -117,7 +117,7 @@ void logChildPipe(ChildProcess *child, LogLevel level, int flag);
 void unLogChildPipe(ChildProcess *child, int flag);
 ChildProcess *raiseChild(char *name, int flag);
 /* newsocket.c */
-void SockList_Init(SockList *sl, char *buf);
+void SockList_Init(SockList *sl, uint8 *buf);
 void SockList_AddChar(SockList *sl, char c);
 void SockList_AddShort(SockList *sl, uint16 data);
 void SockList_AddInt(SockList *sl, uint32 data);

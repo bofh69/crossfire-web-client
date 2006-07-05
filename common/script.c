@@ -632,7 +632,7 @@ void script_process(fd_set *set)
    }
 }
 
-void script_watch(const char *cmd, char *data, int len, enum CmdFormat format)
+void script_watch(const char *cmd, uint8 *data, int len, enum CmdFormat format)
 {
    int i;
    int w;
@@ -700,7 +700,7 @@ void script_watch(const char *cmd, char *data, int len, enum CmdFormat format)
                            be+=sprintf(buf+be," resists %d %d\n",c,GetShort_String(data));
                            data+=2; len-=2;
                         } else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
-                           be+=sprintf(buf+be," skill %d %d %lld\n",c,*data,GetInt64_String(data+1));
+                           be+=sprintf(buf+be," skill %d %d %" FMT64 "\n",c,*data,GetInt64_String(data+1));
                            data+=9; len-=9;
                         } else switch (c) {
                            case CS_STAT_HP:
@@ -746,7 +746,7 @@ void script_watch(const char *cmd, char *data, int len, enum CmdFormat format)
                               be+=sprintf(buf+be," exp %d\n",GetInt_String(data));
                               data+=4; len-=4; break;
                            case CS_STAT_EXP64:
-                              be+=sprintf(buf+be," exp %lld\n",GetInt64_String(data));
+                              be+=sprintf(buf+be," exp %" FMT64 "\n",GetInt64_String(data));
                               data+=8; len-=8; break;
                            case CS_STAT_LEVEL:
                               be+=sprintf(buf+be," level %d\n",GetShort_String(data));
@@ -1148,10 +1148,10 @@ static void script_process_cmd(int i)
             char buf[1024];
             int s;
 
-            sprintf(buf,"request stat xp %d %lld",cpl.stats.level,cpl.stats.exp);
+            sprintf(buf,"request stat xp %d %" FMT64 ,cpl.stats.level,cpl.stats.exp);
             write(scripts[i].out_fd,buf,strlen(buf));
             for(s=0;s<MAX_SKILL;++s) {
-               sprintf(buf," %d %lld",cpl.stats.skill_level[s],cpl.stats.skill_exp[s]);
+               sprintf(buf," %d %" FMT64 ,cpl.stats.skill_level[s],cpl.stats.skill_exp[s]);
                write(scripts[i].out_fd,buf,strlen(buf));
             }
             write(scripts[i].out_fd,"\n",1);
@@ -1327,7 +1327,7 @@ static void script_process_cmd(int i)
          if ( strncmp(c,"mark",4)==0 ) {
             int tag;
             SockList sl;
-            char buf[MAX_BUF];
+	    uint8 buf[MAX_BUF];
 
             c+=4;
 
@@ -1343,7 +1343,7 @@ static void script_process_cmd(int i)
          else if ( strncmp(c,"lock",4)==0 ) {
             int tag,locked;
             SockList sl;
-            char buf[MAX_BUF];
+	    uint8 buf[MAX_BUF];
 
             c+=4;
 
@@ -1374,9 +1374,10 @@ static void script_process_cmd(int i)
       while ( (*param!='\0') && (*param!=' ')) param++;
       if (*param==' '){
          *param='\0';
-         *param++;
+         param++;
       } else
          param=NULL;
+
       if (!handle_local_command(c, param)){
          char buf[1024];
          sprintf(buf,"Script %s malfunction; localcmd not understood",scripts[i].name);

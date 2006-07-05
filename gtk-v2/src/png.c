@@ -68,7 +68,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 
     png_structp	png_ptr;
     png_infop	info_ptr;
-    int bit_depth, color_type, interlace_type, compression_type, filter_type, y;
+    int bit_depth, color_type, interlace_type, compression_type, y;
 
     data_len=len;
     data_cp = data;

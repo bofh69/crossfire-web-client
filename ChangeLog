@@ -2,6 +2,53 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Clean up some compile warnings.  They generally fall into either wrong form
+for variable (%lld vs %ld), or cast for data (char* vs uint8*)
+---
+common/client-types.h: Add FMT64 defines like done in the server.  Removes
+   need for #ifdef WIN32 in many places.
+common/client.c: Remove unneeded cast for ReplyInfoCmd().  Change type
+   of length parameter passed to getsockopt() to be a socklen_t.
+common/commands.c: Change ReplyInfoCmd() to take a uint8*.  Add several 
+  char*/uint8* casts.  Change TickCmd() to also take uint8*
+common/external.h: Add extern void client_tick(uint32 tick).
+common/image.c: load_image() so that its fourth param (checksum) is a uint32.
+    In finish_face_cmd() change filename to be a char*.  Add some casts in
+   ImageCmd() & Image2Cmd().  Change display_newpng() so its first param
+   (face) is just a int, not a long.  Change get_image_info() to take in
+   a uint8* for data, add some casts.  Change get_image_sums() to take in
+   a char*
+common/item.c: Change several buffers used by the socklist structure to
+   be uint8, add casts as needed.
+common/newsocket.c: Change SockList_Init() so that the passed in buffer
+   is a uint8*, so that is what the target buffer type is.  Add some
+   casts and update some types within the program.
+common/player.c: Change a buffer from char to uint8.
+common/proto.h: Rebuilt.
+common/script.c: Change it to take in a uint8 for data.  Change %lld
+   to use FMT64
+common/script.h: Update declaration of script_watch()
+gtk/config.c: Remove const from titles.  While they may be used as a const,
+   the gtk function they are passed to isn't declared that way.
+gtk/gx11.c: Remove unused function end_windows().  Replace %lld with
+   FMT64.  Removed const from title declaration.
+gtk/inventory.c: Remove const from titles declaration.  re-enable cast
+   for image creation for tabs.
+gtk/keys.c: Add note about compiler warning and bad code technique for
+   for getting the selection.
+gtk/png.c: Removed unused variables/function - png_to_gdkpixmap()
+gtk/text.c:  Change void_callback() to match format of other callbacks
+   to prevent warning.
+gtk-v2/src/gtk2proto.h: Rebuilt.
+gtk-v2/src/png.c: Remove unused variable.
+gtk-v2/src/stats.c: Replace %lld with FMT64.
+pixmaps/question.111, pixmaps/stipple.111, pixmaps/stipple.112: Change
+    types to be char and not unsigned char, since that is what
+   the function tha uses this data expects.
+x11/x11.c: Replace %lld with FMT64
+---
+MSW 2006-07-04
+
 Changes related to logging of version information.
 aclocal, Makefiles.*: Rebuilt for new file in gtk-v2/src.
 common/misc.c: Change MINLOG to be a variable so it can be changed via

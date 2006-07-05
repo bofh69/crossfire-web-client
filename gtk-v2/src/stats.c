@@ -319,11 +319,7 @@ void draw_stats(int redraw) {
     
     if(redraw || cpl.stats.exp!=last_stats.exp) {
 	last_stats.exp = cpl.stats.exp;
-#ifndef WIN32
-	sprintf(buff,"Experience: %5lld",cpl.stats.exp);
-#else
-	sprintf(buff,"Experience: %I64d",cpl.stats.exp);
-#endif
+	sprintf(buff,"Experience: %5" FMT64 ,cpl.stats.exp);
 	gtk_label_set (GTK_LABEL(statwindow.exp), buff);
     }
     
@@ -430,11 +426,7 @@ void draw_stats(int redraw) {
 	if ((redraw || cpl.stats.skill_exp[sk] != last_stats.skill_exp[sk]) &&
 	    skill_mapping[i].name && cpl.stats.skill_exp[sk]){
 	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), skill_mapping[i].name);
-#ifdef WIN32
-	    sprintf(buff,"%I64d (%d)", cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
-#else
-	    sprintf(buff,"%lld (%d)", cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
-#endif
+	    sprintf(buff,"%" FMT64 " (%d)", cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
 	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
 	    last_stats.skill_level[sk] = cpl.stats.skill_level[sk];
 	    last_stats.skill_exp[sk] = cpl.stats.skill_exp[sk];

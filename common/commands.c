@@ -105,9 +105,9 @@ static void get_skill_info(char *data, int len)
  * do much itself other than dispatch to other functions.
  */
 
-void ReplyInfoCmd(char *buf, int len)
+void ReplyInfoCmd(uint8 *buf, int len)
 {
-    char *cp;
+    uint8 *cp;
     int i;
 
     for (i=0; i<len; i++) {
@@ -122,14 +122,14 @@ void ReplyInfoCmd(char *buf, int len)
     /* Null out the space and put cp beyond it */
     cp = buf + i;
     *cp++ = '\0';
-    if (!strcmp(buf,"image_info")) {
+    if (!strcmp((char*)buf,"image_info")) {
 	get_image_info(cp, len - i - 1);   /* located in common/image.c */
     }
-    else if (!strcmp(buf,"image_sums")) {
-	get_image_sums(cp, len - i - 1);   /* located in common/image.c */
+    else if (!strcmp((char*)buf,"image_sums")) {
+	get_image_sums((char*)cp, len - i - 1);   /* located in common/image.c */
     }
-    else if (!strcmp(buf,"skill_info")) {
-	get_skill_info(cp, len - i - 1);   /* located in common/commands.c */
+    else if (!strcmp((char*)buf,"skill_info")) {
+	get_skill_info((char*)cp, len - i - 1);   /* located in common/commands.c */
     }
 }
     
@@ -1333,7 +1333,7 @@ void SinkCmd(unsigned char *data, int len){
  * don't care what tick number it is, but
  * just have the code in case at some time we do.
  */
-void TickCmd(char *data, int len)
+void TickCmd(uint8 *data, int len)
 {
 
     tick = GetInt_String(data);

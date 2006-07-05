@@ -1,3 +1,6 @@
+/* about.c */
+extern void menu_about(GtkMenuItem *menuitem, gpointer user_data);
+extern void on_about_close_clicked(GtkButton *button, gpointer user_data);
 /* config.c */
 extern void load_defaults(void);
 extern void save_defaults(void);
@@ -6,6 +9,8 @@ extern void on_config_button_save_clicked(GtkButton *button, gpointer user_data)
 extern void on_config_button_apply_clicked(GtkButton *button, gpointer user_data);
 extern void on_config_button_close_clicked(GtkButton *button, gpointer user_data);
 extern void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void on_save_window_position_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void load_window_positions(GtkWidget *window_root);
 /* image.c */
 extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
 extern void addsmooth(uint16 face, uint16 smooth_face);
@@ -71,6 +76,7 @@ extern void reset_keybinding_status(void);
 extern void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_data);
 /* main.c */
 extern int do_timeout(void);
+extern void client_tick(uint32 tick);
 extern void do_network(void);
 extern void event_loop(void);
 extern int parse_args(int argc, char **argv);
@@ -99,7 +105,6 @@ extern gboolean on_drawingarea_magic_map_expose_event(GtkWidget *widget, GdkEven
 extern void on_disconnect_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data);
-extern void menu_about(GtkMenuItem *menuitem, gpointer user_data);
 /* metaserver.c */
 extern gboolean metaserver_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern char *get_metaserver(void);

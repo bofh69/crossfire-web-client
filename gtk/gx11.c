@@ -390,20 +390,7 @@ static void event_loop(void)
 
 
 
-static void end_windows(void)
-{
-  free(last_str);
-}
-
-
-
-
-
-
-
-
 /* Handle mouse presses in the game window */
-
 
 static void button_map_event(GtkWidget *widget, GdkEventButton *event) {
     int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
@@ -2003,11 +1990,8 @@ void draw_stats(int redraw) {
 
     if(redraw || cpl.stats.exp!=last_stats.exp) {
       last_stats.exp = cpl.stats.exp;
-#ifndef WIN32
-      sprintf(buff,"Score: %5lld",cpl.stats.exp);
-#else
-      sprintf(buff,"Score: %I64d",cpl.stats.exp);
-#endif
+      sprintf(buff,"Score: %5" FMT64 ,cpl.stats.exp);
+
       gtk_label_set (GTK_LABEL(statwindow.score), buff);
       gtk_widget_draw (statwindow.score, NULL);
     }
@@ -2168,11 +2152,7 @@ void draw_stats(int redraw) {
 	if ((redraw || cpl.stats.skill_exp[i] != last_stats.skill_exp[i]) &&
 	    skill_names[i] && cpl.stats.skill_level[i]) {
 	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), skill_names[i]);
-#ifdef WIN32
-	    sprintf(buff,"%I64d (%d)", cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
-#else
-	    sprintf(buff,"%lld (%d)", cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
-#endif
+	    sprintf(buff,"%" FMT64 " (%d)", cpl.stats.skill_exp[i], cpl.stats.skill_level[i]);
 	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
 	    last_stats.skill_level[i] = cpl.stats.skill_level[i];
 	    last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
@@ -3040,7 +3020,7 @@ static void menu_spells(void) {
     GtkWidget * vbox;
     GtkWidget * optionsbox;
     GtkWidget * spelloptionslabel;
-    const gchar *titles[] = {" ", "Name", "Cost"};
+    gchar *titles[] = {" ", "Name", "Cost"};
 
     if (gtkwin_spell && GTK_IS_CLIST(list)) {
 	  /* the window is already created, re-present it */

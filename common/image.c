@@ -62,7 +62,7 @@ struct FD_Cache {
  * data should be a buffer already allocated.
  */
 
-static int load_image(char *filename, uint8 *data, int *len, int *csum)
+static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
 {
     int fd, i;
     char *cp;
@@ -407,7 +407,8 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 {
     int len;
     uint32 nx,ny;
-    uint8 data[65536], *png_tmp, filename[1024];
+    uint8 data[65536], *png_tmp;
+    char filename[1024];
     uint32 newsum=0;
     Cache_Entry *ce=NULL;
 
@@ -571,7 +572,7 @@ void ImageCmd(uint8 *data,  int len)
 		(len-8),plen);
 	return;
     }
-    display_newpng(pnum,(char*)data+8,plen,0);
+    display_newpng(pnum,data+8,plen,0);
 }
 
 
@@ -588,7 +589,7 @@ void Image2Cmd(uint8 *data,  int len)
 		(len-9),plen);
 	return;
     }
-    display_newpng(pnum,(char*)data+9,plen, setnum);
+    display_newpng(pnum,data+9,plen, setnum);
 }
 
 /* 
@@ -596,7 +597,7 @@ void Image2Cmd(uint8 *data,  int len)
  * png data for an image.  If caching, we need to write this
  * data to disk.
  */
-void display_newpng(long face,uint8 *buf,long buflen, int setnum)
+void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 {
     char    filename[MAX_BUF], basename[MAX_BUF];
     uint8   *pngtmp;
@@ -717,14 +718,14 @@ void display_newpng(long face,uint8 *buf,long buflen, int setnum)
  * the data is good, and update the face_info accordingly.
  * if we don't find a newline, we return.
  */
-void get_image_info(char *data, int len)
+void get_image_info(uint8 *data, int len)
 {
     char *cp, *lp, *cps[7], buf[MAX_BUF];
     int onset=0, badline=0,i;
 
     replyinfo_status |= RI_IMAGE_INFO;
 
-    lp = data;
+    lp = (char*)data;
     cp = strchr(lp, '\n');
     if (!cp || (cp - lp) > len) return;
     face_info.num_images = atoi(lp);
@@ -801,15 +802,15 @@ void get_image_info(char *data, int len)
  * don't have any logic in the function below to deal with failures.
  */
 
-void get_image_sums(uint8 *data, int len)
+void get_image_sums(char *data, int len)
 {
     int start, stop, imagenum, slen, faceset;
     uint32  checksum;
-    uint8 *cp, *lp;
+    char *cp, *lp;
 
-    cp = strchr(data, ' ');
+    cp = strchr((char*)data, ' ');
     if (!cp || (cp - data) > len) return;
-    start = atoi(data);
+    start = atoi((char*)data);
 
     while (isspace(*cp)) cp++;
     lp = cp;
@@ -827,8 +828,8 @@ void get_image_sums(uint8 *data, int len)
      */
     while (*cp==' ') cp++;
     while ((cp - data) < len) {
-	imagenum = GetShort_String(cp); cp += 2;
-	checksum = GetInt_String(cp); cp += 4;
+	imagenum = GetShort_String((uint8*)cp); cp += 2;
+	checksum = GetInt_String((uint8*)cp); cp += 4;
 	faceset = *cp; cp++;
 	slen = *cp; cp++;
 	/* Note that as is, this can break horribly if the client is missing a large number
@@ -839,7 +840,7 @@ void get_image_sums(uint8 *data, int len)
 	 * images, requesting the entire batch won't overflow the sockets buffer - this
 	 * probably amounts to about 100 images at a time
 	 */
-	finish_face_cmd(imagenum, checksum, 1, cp, faceset);
+	finish_face_cmd(imagenum, checksum, 1, (char*)cp, faceset);
 	if (imagenum > stop) 
 	    LOG(LOG_WARNING,"common::get_image_sums","Received an image beyond our range? %d > %d", imagenum, stop);
 	cp += slen;

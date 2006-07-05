@@ -58,7 +58,7 @@ static inventory_viewer * new_inventory_viewer(item * container, itemfilter filt
     GtkWidget * list;
     GtkWidget * scroll_window;
     GtkStyle * liststyle;
-    const gchar *titles[] = {"?", "Name", "Weight"};
+    gchar *titles[] = {"?", "Name", "Weight"};
         
     scroll_window = gtk_scrolled_window_new (0,0);
 
@@ -924,7 +924,7 @@ static GtkWidget * get_inv_widget(void) {
             gtkwin_root->window,
             &labelgdkmask,
             &tabstyle->bg[GTK_STATE_NORMAL],
-            /* (gchar **) */ i->xpm );
+            (gchar **)  i->xpm );
 
         tablabel = gtk_pixmap_new (labelgdkpixmap, labelgdkmask);
         gtk_widget_show (tablabel);
