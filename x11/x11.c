@@ -3,7 +3,7 @@ const char *rcsid_x11_x11_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001-2003 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001-2003,2006 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -3547,6 +3547,10 @@ void command_show (const char *params)
 
     inv_list.env->inv_updated =1;
 }
+
+/* This doesn't need to do anything for x11 client */
+void cleanup_connection() { }
+
 
 /* Loads from ../ because headers have same name and are in include path
  * This prevents loading 2 times the same header.

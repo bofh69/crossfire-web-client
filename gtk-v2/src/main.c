@@ -3,7 +3,7 @@ char *rcsid_gtk2_main_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005,2006 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,6 +101,18 @@ void client_tick(uint32 tick)
     mapdata_animation();
 }
 
+/* Called from disconnect command - that closes the socket -
+ * we just need to do the gtk cleanup.
+ */
+void cleanup_connection()
+{
+    if (csocket_fd) {
+        gdk_input_remove(csocket_fd);
+        csocket_fd=0;
+        gtk_main_quit();
+    }
+}
+
 /* main loop iteration related stuff */
 void do_network() {
     fd_set tmp_read;
@@ -186,6 +198,14 @@ void event_loop(void)
     gtk_timeout_add (25, (GtkFunction) do_scriptout, NULL);
 #endif
     
+    if (csocket.fd==-1) {
+	if (csocket_fd) {
+	    gdk_input_remove(csocket_fd);
+	    csocket_fd=0;
+	    gtk_main_quit();
+	}
+	return;
+    }
     csocket_fd = gdk_input_add ((gint) csocket.fd,
                               GDK_INPUT_READ,
                               (GdkInputFunction) do_network, &csocket);

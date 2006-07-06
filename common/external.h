@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001,2006 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,3 +87,4 @@ extern void save_winpos(void);
 extern void save_defaults(void);
 extern void command_show(const char *params);
 extern void client_tick(uint32 tick);
+extern void cleanup_connection();

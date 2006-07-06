@@ -2,6 +2,18 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix problem in gtk1 & gtk2 client when player issues disconnect command -
+client would hang and consume all CPU time.
+---
+common/external.h: Add declaration to cleanup_connection()
+common/p_cmd.c:  In disconnect command, add call to cleanup_connection()
+gtk/gx11.c, gtk-v2/src/main.c: Add cleanup_connection() - removes socket
+   from one of the gdk input device, call gtk_main_quit so it returns
+   to metaserver selection.
+x11/x11.c: Add empty cleanup_connection() - x11 client doesn't need to 
+  do anything special.
+MSW 2006-07-06
+
 More changes related to default logging.  Able to specify default log level
 with configure.  Note:  you will need to re-run configure after this change,
 as otherwise MINLOGLEVEL will not be defined in config.h.

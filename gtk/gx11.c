@@ -3,7 +3,7 @@ const char *rcsid_gtk_gx11_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001-2003 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001-2003,2006 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -293,6 +293,18 @@ static void disconnect(GtkWidget *widget);
  */
 #include "../common/rcs-id.h"
 #include "rcs-id.h"
+
+/* Called from disconnect command - that closes the socket -
+ * we just need to do the gtk cleanup.
+ */
+void cleanup_connection() {
+    if (csocket_fd) {
+	gdk_input_remove(csocket_fd);
+	csocket_fd=0;
+	gtk_main_quit();
+    }
+    cleanup_textmanagers();
+}
 
 /* main loop iteration related stuff */
 static void do_network(void) {
