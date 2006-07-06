@@ -87,7 +87,7 @@ File includes sounds and images.
 %build
 chmod 755 configure
 %configure --datadir=/usr/share/games/crossfire \
-	--with-sound-dir=/usr/share/sounds/crossfire --disable-dmalloc
+	--with-sound-dir=/usr/share/sounds/crossfire --disable-dmalloc --with-loglevel=3
 
 make %{?_smp_mflags}
 

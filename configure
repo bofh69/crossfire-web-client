@@ -891,6 +891,7 @@ Optional Packages:
   --with-sound-dir=dir    Directory where the sounds are located (default=/usr/local/lib/sounds)
   --with-ldflags=dir      provide addition linker directives to find libraries
   --with-includes=dir     provide different compiler options to find headers with
+  --with-logevel=level    sets default loglevel
   --with-gtk-prefix=PFX   Prefix where GTK is installed (optional)
   --with-gtk-exec-prefix=PFX Exec prefix where GTK is installed (optional)
   --with-sdl-prefix=PFX   Prefix where SDL is installed (optional)
@@ -5238,6 +5239,16 @@ if test "${with_includes+set}" = set; then
 fi;
 
 
+
+# Check whether --with-loglevel or --without-loglevel was given.
+if test "${with_loglevel+set}" = set; then
+  withval="$with_loglevel"
+  MINLOGLEVEL="$withval"
+else
+  MINLOGLEVEL=0
+fi;
+
+
 # Check whether --enable-gtk or --disable-gtk was given.
 if test "${enable_gtk+set}" = set; then
   enableval="$enable_gtk"
@@ -7130,6 +7141,7 @@ fi
 X_LIBS="$X_LIBS -lX11"
 
 
+
 echo Xlibs: $X_LIBS
 echo Extras: $X_EXTRA_LIBS
 echo Xpre: $X_PRE_LIBS
@@ -8275,7 +8287,6 @@ fi
 rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
        CFLAGS="$ac_save_CFLAGS"
-       CXXFLAGS="$ac_save_CXXFLAGS"
        LIBS="$ac_save_LIBS"
      fi
   fi
@@ -8370,6 +8381,7 @@ rm -f conftest.err conftest.$ac_objext \
        fi
      fi
      SDL_CFLAGS=""
+     SDL_CXXFLAGS=""
      SDL_LIBS=""
      :
   fi
@@ -10830,6 +10842,10 @@ _ACEOF
 
 cat >>confdefs.h <<_ACEOF
 #define BINDIR "${nbindir}"
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define MINLOGLEVEL ${MINLOGLEVEL}
 _ACEOF
 
 

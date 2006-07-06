@@ -3,7 +3,7 @@ const char *rcsid_common_misc_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2006,2001 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -168,11 +168,7 @@ char *getLogText(const LogEntry *le) {
  *
  * See client.h for possible logLevels.
  */
-#ifdef DEBUG
-int MINLOG=0;
-#else
-int MINLOG=2;
-#endif
+int MINLOG=MINLOGLEVEL;
 
 
 

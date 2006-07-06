@@ -2,6 +2,17 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+More changes related to default logging.  Able to specify default log level
+with configure.  Note:  you will need to re-run configure after this change,
+as otherwise MINLOGLEVEL will not be defined in config.h.
+---
+configure.in, configure:  Add --with-loglevel=<val> to specify default 
+    loglevel.
+crossfire-client.spec: Update to include --with-loglevel for building RPMs
+common/config.h.in: Add MINLOGLEVEL #define.
+common/misc.c: Modify to use the MINLOGLEVEL #define
+MSW 2006-07-05
+
 Clean up some compile warnings.  They generally fall into either wrong form
 for variable (%lld vs %ld), or cast for data (char* vs uint8*)
 ---

@@ -99,5 +99,9 @@
 /* The size of a `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
 
-/* The size of a `long long', as computed by sizeof. */
+/* If we have opengl. */
 #undef HAVE_OPENGL
+
+/* Default logging level. */
+#undef MINLOGLEVEL
+
