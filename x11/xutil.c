@@ -636,11 +636,11 @@ void parse_key(char key, KeyCode keycode, KeySym keysym, int repeated)
 	    strcpy(cpl.input_text, first_match->command);
 	    cpl.input_state = Command_Mode;
 #ifdef GDK_XUTIL
-	    sprintf(buf,"%s", cpl.input_text);
+	    snprintf(buf, sizeof(buf), "%s", cpl.input_text);
    	    gtk_entry_set_text(GTK_ENTRY(entrytext),buf);
 	    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
 #else
-	    sprintf(buf,">%s", cpl.input_text);
+	    snprintf(buf, sizeof(buf), ">%s", cpl.input_text);
 	    draw_prompt(buf);
 #endif
 	    return;
@@ -648,19 +648,19 @@ void parse_key(char key, KeyCode keycode, KeySym keysym, int repeated)
 
 	if (first_match->direction>=0) {
 	    if (cpl.fire_on) {
-		sprintf(buf,"fire %s", first_match->command);
+		snprintf(buf, sizeof(buf), "fire %s", first_match->command);
 		fire_dir(first_match->direction);
 	    }
 	    else if (cpl.run_on) {
 		run_dir(first_match->direction);
-		sprintf(buf,"run %s", first_match->command);
+		snprintf(buf, sizeof(buf), "run %s", first_match->command);
 	    }
 	    else if (!repeated) {
 		strcpy(buf,first_match->command);
 		extended_command(first_match->command);
 	    }
 	    else
-		sprintf(buf,"move %s (ignored)", first_match->command);
+		snprintf(buf, sizeof(buf), "move %s (ignored)", first_match->command);
 	    if (use_config[CONFIG_ECHO]) draw_info(buf,NDI_BLACK);
 	}
         else {
@@ -677,7 +677,7 @@ void parse_key(char key, KeyCode keycode, KeySym keysym, int repeated)
 #endif
 	return;
     }
-    sprintf(buf, "Key unused (%s%s%s)",
+    snprintf(buf, sizeof(buf), "Key unused (%s%s%s)",
           (cpl.fire_on? "Fire&": ""),
           (cpl.run_on ? "Run&" : ""),
           keysym==NoSymbol? "unknown": XKeysymToString(keysym));
@@ -718,22 +718,22 @@ static char * get_key_info(Key_Entry *key, KeyCode kc, int save_mode)
     buff[bi]='\0';
     if (save_mode) {
 	if(key->keysym == NoSymbol) {
-	  sprintf(buf, "(null) %i %s %s",
+	  snprintf(buf, sizeof(buf), "(null) %i %s %s",
 		kc,buff, key->command);
 	}
 	else {
-	  sprintf(buf, "%s %i %s %s",
+	  snprintf(buf, sizeof(buf), "%s %i %s %s",
 		    XKeysymToString(key->keysym), kc,
 		    buff, key->command);
 	}
     }
     else {
 	if(key->keysym == NoSymbol) {
-	  sprintf(buf, "key (null) (%i) %s %s",
+	  snprintf(buf, sizeof(buf), "key (null) (%i) %s %s",
 		kc,buff, key->command);
 	}
 	else {
-	  sprintf(buf, "key %s (%i) %s %s",
+	  snprintf(buf, sizeof(buf), "key %s (%i) %s %s",
 		    XKeysymToString(key->keysym), kc,
 		    buff, key->command);
 	}
@@ -751,30 +751,30 @@ static void show_keys(int allbindings)
   Key_Entry *key;
   char buf[MAX_BUF];
 
-  sprintf(buf, "Commandkey %s (%d)", 
+  snprintf(buf, sizeof(buf), "Commandkey %s (%d)", 
 	  commandkeysym==NoSymbol?"unknown":XKeysymToString(commandkeysym),
 	  commandkey);
   draw_info(buf,NDI_BLACK);
-  sprintf(buf, "Firekeys 1: %s (%d), 2: %s (%d)",
+  snprintf(buf, sizeof(buf), "Firekeys 1: %s (%d), 2: %s (%d)",
 	  firekeysym[0]==NoSymbol?"unknown":XKeysymToString(firekeysym[0]), firekey[0],
 	  firekeysym[1]==NoSymbol?"unknown":XKeysymToString(firekeysym[1]), firekey[1]);
   draw_info(buf,NDI_BLACK);
-  sprintf(buf, "Runkeys 1: %s (%d), 2: %s (%d)",
+  snprintf(buf, sizeof(buf), "Runkeys 1: %s (%d), 2: %s (%d)",
 	  runkeysym[0]==NoSymbol?"unknown":XKeysymToString(runkeysym[0]), runkey[0],
 	  runkeysym[1]==NoSymbol?"unknown":XKeysymToString(runkeysym[1]), runkey[1]);
   draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Command Completion Key %s (%d)", 
+  snprintf(buf, sizeof(buf), "Command Completion Key %s (%d)", 
 	  completekeysym==NoSymbol?"unknown":XKeysymToString(completekeysym),
 	  completekey);
   draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Next Command in History Key %s (%d)", 
+  snprintf(buf, sizeof(buf), "Next Command in History Key %s (%d)", 
 	  nextkeysym==NoSymbol?"unknown":XKeysymToString(nextkeysym),
 	  nextkey);
   draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Previous Command in History Key %s (%d)", 
+  snprintf(buf, sizeof(buf), "Previous Command in History Key %s (%d)", 
 	  prevkeysym==NoSymbol?"unknown":XKeysymToString(prevkeysym),
 	  prevkey);
   draw_info(buf,NDI_BLACK);
@@ -787,7 +787,7 @@ static void show_keys(int allbindings)
     for (key=keys[i]; key!=NULL; key =key->next) {
 	if (key->flags & KEYF_STANDARD && !allbindings) continue;
 
-	sprintf(buf,"%3d %s",count,  get_key_info(key,i,0));
+	snprintf(buf, sizeof(buf), "%3d %s", count, get_key_info(key, i, 0));
 	draw_info(buf,NDI_BLACK);
 	count++;
     }
@@ -895,7 +895,7 @@ void bind_key(const char *params)
 	draw_info("Try unbind to remove bindings..",NDI_BLACK);
 	return;
       default:
-	sprintf(buf, "Unknown flag to bind: '%c'", *params);
+	snprintf(buf, sizeof(buf), "Unknown flag to bind: '%c'", *params);
 	draw_info(buf,NDI_BLACK);
 	return;
       }
@@ -917,7 +917,7 @@ void bind_key(const char *params)
     draw_info(bind_buf,NDI_RED);
   }
 
-  sprintf(buf, "Push key to bind '%s'.", bind_buf);
+  snprintf(buf, sizeof(buf), "Push key to bind '%s'.", bind_buf);
   draw_info(buf,NDI_BLACK);
   bind_keycode=NULL;
   cpl.input_state = Configure_Keys;
@@ -951,7 +951,7 @@ static void save_keys(void)
 	return;
     }
     if ((fp=fopen(buf,"w"))==NULL) {
-	sprintf(buf2,"Could not open %s, key bindings not saved\n", buf);
+	snprintf(buf2, sizeof(buf2), "Could not open %s, key bindings not saved\n", buf);
 	draw_info(buf2,NDI_BLACK);
 	return;
     }
@@ -1033,7 +1033,7 @@ void configure_keys(KeyCode k, KeySym keysym)
 	insert_key(keysym, k, bind_flags, bind_buf);
   }
 
-  sprintf(buf, "Binded to key '%s' (%i)", 
+  snprintf(buf, sizeof(buf), "Binded to key '%s' (%i)", 
 	  keysym==NoSymbol?"unknown":XKeysymToString(keysym), (int)k);
   draw_info(buf,NDI_BLACK);
   cpl.fire_on=0;
@@ -1121,7 +1121,7 @@ void unbind_key(const char *params)
 
 unbinded:
 
-    sprintf(buf,"Removed binding: %3d %s", count, get_key_info(key,onkey,0));
+    snprintf(buf, sizeof(buf), "Removed binding: %3d %s", count, get_key_info(key, onkey, 0));
 
 
     draw_info(buf,NDI_BLACK);
@@ -1150,7 +1150,7 @@ void image_update_download_status(int start, int end, int total)
 {
     char buf[MAX_BUF];
 
-    sprintf(buf,"Downloaded %d of %d images", start, total);
+    snprintf(buf, sizeof(buf), "Downloaded %d of %d images", start, total);
 
     draw_info(buf,NDI_BLUE);
 }
