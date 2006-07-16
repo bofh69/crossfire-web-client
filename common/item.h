@@ -75,18 +75,6 @@ typedef struct item_struct {
     uint16   type;		/* Item type for ordering */
 } item;
 
-/*
- *  A few macros to make clear interface 
- *  These will change (especially update_item and add_new_item)
- */
-#define delete_item(tag) remove_item(locate_item(tag))
-#define delete_item_inventory(tag) remove_item_inventory(locate_item(tag))
-
-
-#define add_new_item(tag,loc,name,weight,face,flags) \
-    set_item_values(create_new_item (locate_item(loc),tag), \
-		    name,weight,face,flags)
-
 /* Toolkits implement these. */
 extern void item_event_item_deleting(item * it);
 extern void item_event_container_clearing(item * container);
