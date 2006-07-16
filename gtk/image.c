@@ -158,7 +158,7 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
              */
             g=(77*(*l)+151*(*(l+1))+28*(*(l+2)))>>8;
 	    p = (uint32*) fog->pixels + i;
-	    *(uint32*) p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
+	    *p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
 	}
 
 	SDL_UnlockSurface(fog);
@@ -193,18 +193,20 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
              */
             g=(77*(*l)+151*(*(l+1))+28*(*(l+2)))>>8;
 	    p = (uint32*) fog->pixels + i;
-	    *(uint32*) p = (g << 8) | (g << 16) | (g << 24) | *(l + 3);
+	    *p = (g << 8) | (g << 16) | (g << 24) | *(l + 3);
 	}
 
 	for (i=0; i < pi->map_width * pi->map_height; i+= 4) {
+	    uint32 *tmp;
+
 	    /* The pointer arithemtic below looks suspicious, but it is a patch that
 	     * is submitted, so just putting it in as submitted.
 	     * MSW 2004-05-11
 	     */
 	    p = (uint32*) (fog->pixels + i);
 	    g = ( ((*p >> 24) & 0xff)  + ((*p >> 16) & 0xff) + ((*p >> 8) & 0xff)) / 3;
-            l = (uint32*) fog->pixels + i;
- 	    *(uint32*) l = (g << 24) | (g << 16) | (g << 8) | (*p & 0xff);
+            tmp = (uint32*) fog->pixels + i;
+ 	    *tmp = (g << 24) | (g << 16) | (g << 8) | (*p & 0xff);
 
 	}
 

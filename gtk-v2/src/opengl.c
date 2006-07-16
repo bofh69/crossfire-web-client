@@ -826,7 +826,7 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
 	g = MAX(*l, *(l+1));
 	g = MAX(g, *(l+2));
 	p = (uint32*) newdata + i;
-        *(uint32*) p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
+        *p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
     }
 
     glGenTextures(1, &pi->fog_texture);
