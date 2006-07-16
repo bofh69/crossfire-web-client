@@ -889,8 +889,15 @@ void DeleteItem(unsigned char *data, int len)
     int pos=0,tag;
 
     while (pos<len) {
+	item *op;
+
 	tag=GetInt_String(data+pos); pos+=4;
-	delete_item(tag);
+	op = locate_item(tag);
+	if (op != NULL) {
+	    remove_item(op);
+	} else {
+	    LOG(LOG_WARNING, "common::DeleteItem", "Cannot find tag %d", tag);
+	}
     }
     if (pos>len) 
 	LOG(LOG_WARNING,"common::ItemCmd","Overread buffer: %d > %d", pos, len);
