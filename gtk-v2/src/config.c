@@ -446,7 +446,7 @@ static void read_config_window()
      * them through its own/different malloc library.
      */
     if (buf) {
-	if (face_info.want_faceset) free(face_info.want_faceset);
+	free(face_info.want_faceset);
 	face_info.want_faceset = strdup_local(buf);
 	g_free(buf);
     }

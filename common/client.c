@@ -259,8 +259,7 @@ int init_connection(char *host, int port)
 	return -1;
 #endif
 
-    if (csocket.servername != NULL)
-        free(csocket.servername);
+    free(csocket.servername);
     csocket.servername = malloc(sizeof(char)*(strlen(host)+1));
     strcpy(csocket.servername, host);
 

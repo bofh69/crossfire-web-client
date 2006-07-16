@@ -360,8 +360,7 @@ static void recenter_virtual_map_view( struct Map *map)
      */
     if( tmpmap.x != map->x || tmpmap.y != map->y)
     {
-	if( tmpmap.cells)
-	    free( tmpmap.cells);
+	free(tmpmap.cells);
 
 	allocate_map( &tmpmap, map->x, map->y);
     }
@@ -482,8 +481,7 @@ void display_mapscroll(int dx,int dy)
     /* Check to see if map_size changed since we allocated newmap */
     if( newmap.x != map_size) 
     {
-	if( newmap.cells)
-	    free( newmap.cells);
+	free(newmap.cells);
 	
 	allocate_map( &newmap, map_size, map_size);
     }

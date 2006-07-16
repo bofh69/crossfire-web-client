@@ -1158,7 +1158,7 @@ unbinded:
     sprintf(buf,"Removed binding: %3d %s", count, get_key_info(key,0));
 
     draw_info(buf,NDI_BLACK);
-    if (key->command) free(key->command);
+    free(key->command);
     free(key);
     save_keys();
 }
@@ -1589,7 +1589,7 @@ on_keybinding_button_remove_clicked    (GtkButton       *button,
     LOG(LOG_ERROR,"keys.c:on_keybinding_button_remove_clicked", "Unable to find matching key entry\n");
 
 unbinded:
-    if (key->command) free(key->command);
+    free(key->command);
     free(key);
     save_keys();
     update_keybinding_list();
@@ -1687,7 +1687,7 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
             LOG(LOG_ERROR,"keys.c:on_keybinding_button_update_clicked", "Unable to get key_entry structure\n");
             return;
 	}
-	if (entry->command) free(entry->command);
+	free(entry->command);
 	keybinding_get_data(&entry->keysym, &entry->flags, &buf);
 	entry->command = strdup_local(buf);
 	update_keybinding_list();

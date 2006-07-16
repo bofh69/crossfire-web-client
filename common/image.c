@@ -466,8 +466,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 	LOG(LOG_WARNING,"common::finish_face_cmd","Got error on create_and_rescale_image_from_data, file=%s",filename);
 	requestface(pnum, face);
     }
-    if (png_tmp != NULL)
-        free(png_tmp);
+    free(png_tmp);
 }
 
 
@@ -483,10 +482,8 @@ void reset_image_cache_data()
     int i;
 
     if (want_config[CONFIG_CACHE]) for (i=1; i<MAXPIXMAPNUM; i++) {
-	if (facetoname[i]!=NULL) {
-	    free(facetoname[i]);
-	    facetoname[i]=NULL;
-	}
+	free(facetoname[i]);
+	facetoname[i]=NULL;
     }
 }
 
@@ -698,13 +695,10 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
     }
 
     if (use_config[CONFIG_CACHE]) {
-	if (facetoname[face]) {
-	    free(facetoname[face]);
-	    facetoname[face]=NULL;
-	}
+	free(facetoname[face]);
+	facetoname[face]=NULL;
     }
-    if (pngtmp != NULL)
-        free(pngtmp);
+    free(pngtmp);
 }
 
 

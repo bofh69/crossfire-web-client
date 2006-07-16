@@ -1111,8 +1111,7 @@ unbind_key(char *params)
   unbinded:
 	sprintf(buf, "Removed binding: %3d %s", count, get_key_info(key, onkey, 0));
 	draw_info(buf, NDI_BLACK);
-	if (key->command)
-		free(key->command);
+	free(key->command);
 	free(key);
 	save_keys();
 }
@@ -4210,10 +4209,8 @@ display_newpix(long face, char *buf, long buflen)
 	if (!pixmaps[face].gdkpixbuf) {
 		fprintf(stderr, "Got error on image load\n");
 	}
-	if (facetoname[face]) {
-		free(facetoname[face]);
-		facetoname[face] = NULL;
-	}
+	free(facetoname[face]);
+	facetoname[face] = NULL;
 }
 
 void
@@ -4254,10 +4251,8 @@ reset_image_data()
 			gdk_pixbuf_unref(pixmaps[i].gdkpixbuf);
 			pixmaps[i].gdkpixbuf = NULL;
 		}
-		if (facetoname[i] != NULL) {
-			free(facetoname[i]);
-			facetoname[i] = NULL;
-		}
+		free(facetoname[i]);
+		facetoname[i] = NULL;
 	}
 	memset(&the_map, 0, sizeof(struct Map));
 	look_list.env = cpl.below;

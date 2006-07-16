@@ -49,7 +49,7 @@ NULL, "download_all_images", "echo_bindings",
 
 sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
 
-#define TEST_FREE_AND_CLEAR(xyz) {if (xyz) { free(xyz); xyz=NULL; } }
+#define FREE_AND_CLEAR(xyz) { free(xyz); xyz=NULL; }
 
 void VersionCmd(char *data, int len)
 {
@@ -277,12 +277,12 @@ void reset_client_vars()
     face_info.cache_misses=0;
     face_info.have_faceset_info=0;
     for (i=0; i<MAX_FACE_SETS; i++) {
-	TEST_FREE_AND_CLEAR(face_info.facesets[i].prefix);
-	TEST_FREE_AND_CLEAR(face_info.facesets[i].fullname);
+	FREE_AND_CLEAR(face_info.facesets[i].prefix);
+	FREE_AND_CLEAR(face_info.facesets[i].fullname);
 	face_info.facesets[i].fallback = 0;
-	TEST_FREE_AND_CLEAR(face_info.facesets[i].size);
-	TEST_FREE_AND_CLEAR(face_info.facesets[i].extension);
-	TEST_FREE_AND_CLEAR(face_info.facesets[i].comment);
+	FREE_AND_CLEAR(face_info.facesets[i].size);
+	FREE_AND_CLEAR(face_info.facesets[i].extension);
+	FREE_AND_CLEAR(face_info.facesets[i].comment);
     }
     reset_player_data();
     for (i=0; i<MAX_SKILL; i++)

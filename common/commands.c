@@ -94,7 +94,7 @@ static void get_skill_info(char *data, int len)
 	    LOG (LOG_WARNING,"common::get_skill_info","invalid skill number %d", val);
 	    return;
 	}
-	if (skill_names[val]) free(skill_names[val]);
+	free(skill_names[val]);
 	skill_names[val] = strdup_local(sn);
 	cp = nl;
     } while (cp < (data + len));
@@ -292,10 +292,8 @@ void SetupCmd(char *buf, int len)
 	    if (!strcmp(param,"FALSE")) {
 		int i;
 		for (i=0; i<MAX_SKILL; i++) {
-		    if (skill_names[i]) {
-			free(skill_names[i]);
-			skill_names[i] = NULL;
-		    }
+		    free(skill_names[i]);
+		    skill_names[i] = NULL;
 		}
 		skill_names[0] = strdup_local("agility");
 		skill_names[1] = strdup_local("personality");
@@ -1322,7 +1320,7 @@ void MagicMapCmd(unsigned char *data, int len)
 		i, cpl.mmapx * cpl.mmapy);
 	return;
     }
-    if (cpl.magicmap) free(cpl.magicmap);
+    free(cpl.magicmap);
     cpl.magicmap = malloc(cpl.mmapx * cpl.mmapy);
     /* Order the server puts it in should be just fine.  Note that
      * the only requirement that this works is that magicmap by 8 bits,

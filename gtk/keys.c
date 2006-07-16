@@ -983,7 +983,7 @@ unbinded:
     sprintf(buf,"Removed binding: %3d %s", count, get_key_info(key,0));
 
     draw_info(buf,NDI_BLACK);
-    if (key->command) free(key->command);
+    free(key->command);
     free(key);
     save_keys();
 }

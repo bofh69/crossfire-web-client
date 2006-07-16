@@ -1844,16 +1844,11 @@ static void resize_list_info(itemlist *l, int w, int h)
 {
     int i;
 
-    if (l->faces) 
-	free(l->faces);
-    if (l->icon1) 
-	free(l->icon1);
-    if (l->icon2) 
-	free(l->icon2);
-    if (l->icon3) 
-	free(l->icon3);
-    if (l->icon4) 
-	free(l->icon4);
+    free(l->faces);
+    free(l->icon1);
+    free(l->icon2);
+    free(l->icon3);
+    free(l->icon4);
     if (l->names) {
 	for (i=0; i < l->size; i++)
 	    if (l->names[i])

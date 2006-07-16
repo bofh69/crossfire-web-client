@@ -415,8 +415,7 @@ static void book_callback(int flag, int type, int subtype, char *message) {
 static char *last_motd = NULL;
 static void motd_callback(int flag, int type, int subtype, char *message) {
     
-    if(last_motd)
-        free(last_motd);
+    free(last_motd);
     last_motd = malloc(strlen(message)+1);
     if (last_motd==NULL)
         LOG(LOG_ERROR,"gtk::motd_callback","Outa memory, no save of motd");
@@ -481,10 +480,8 @@ static void admin_callback(int flag, int type, int subtype, char *message) {
                     new->title= malloc(strlen(message)+1);
                     new->content=malloc(strlen(str1)+1);
                     if ( (!new->title) || (!new->content)){
-                        if (new->title)
-                            free(new->title);
-                        if (new->content)
-                            free(new->content);
+                        free(new->title);
+                        free(new->content);
                         LOG(LOG_ERROR,"gtk::admin_callback","Outa memory, no save of news");
                         free(new);
                         return;
@@ -500,8 +497,7 @@ static void admin_callback(int flag, int type, int subtype, char *message) {
             }
             break;
         case MSG_TYPE_ADMIN_RULES:
-            if (rules)
-                free(rules);
+            free(rules);
             rules = malloc(strlen(message)+1);
             if (rules){
                 strcpy(rules,message);
@@ -521,19 +517,15 @@ void init_text_callbacks(void) {
 }
 void cleanup_textmanagers(void) {
     news_entry* last_entry;
-    if (last_motd)
-        free(last_motd);
+    free(last_motd);
     last_motd=NULL;
-    if (rules)
-        free(rules);
+    free(rules);
     rules = NULL;
     last_entry= first_news;
     while (last_entry){
         first_news=last_entry->next;
-        if (last_entry->content)
-            free(last_entry->content);
-        if (last_entry->title)
-            free(last_entry->title);
+        free(last_entry->content);
+        free(last_entry->title);
         free(last_entry);
         last_entry=first_news;
     }

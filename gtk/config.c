@@ -261,7 +261,7 @@ static void applyconfig(void) {
     int onbutton;
     int lighting = 0;
 
-    if (face_info.want_faceset) free(face_info.want_faceset);
+    free(face_info.want_faceset);
     face_info.want_faceset = strdup_local(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(faceset_combo)->entry)));
     for (onbutton =0; onbutton < MAX_BUTTONS; onbutton++) {
 	if (cbuttons[onbutton].type == CBUTTON) {

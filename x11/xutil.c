@@ -1125,7 +1125,7 @@ unbinded:
 
 
     draw_info(buf,NDI_BLACK);
-    if (key->command) free(key->command);
+    free(key->command);
     free(key);
     save_keys();
 }

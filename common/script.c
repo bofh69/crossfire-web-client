@@ -947,9 +947,9 @@ static void script_dead(int i)
    CloseHandle(scripts[i].process);
 #endif
    free(scripts[i].name);
-   if ( scripts[i].params ) free(scripts[i].params);
+   free(scripts[i].params);
    for(w=0;w<scripts[i].num_watch;++w) free(scripts[i].watch[w]);
-   if ( scripts[i].watch ) free(scripts[i].watch);
+   free(scripts[i].watch);
 
 #ifndef WIN32
    waitpid(-1,NULL,WNOHANG);
