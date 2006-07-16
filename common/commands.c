@@ -151,7 +151,7 @@ void SetupCmd(char *buf, int len)
      * The client then must sort this out
      */
 
-    LOG(0,"commands.c","Get SetupCmd:: %s\n", buf);
+    LOG(LOG_DEBUG, "common::SetupCmd", "%s", buf);
     for(s=0;;) {
 	if(s>=len)	/* ugly, but for secure...*/
 	    break;
@@ -359,7 +359,7 @@ void ExtendedInfoSetCmd (char *data, int len){
 void AddMeFail(char *data, int len)
 {
     (void)data;(void)len; /* __UNUSED__ */
-    LOG(1,"commands.c","addme_failed received.\n");
+    LOG(LOG_INFO, "common::AddMeFail", "addme_failed received.");
     return;
 }
 
@@ -369,7 +369,7 @@ void AddMeFail(char *data, int len)
 void AddMeSuccess(char *data, int len)
 {
     (void)data;(void)len; /* __UNUSED__ */
-    LOG(1,"commands.c","addme_success received.\n");
+    LOG(LOG_INFO, "common::AddMeSuccess", "addme_success received.");
     return;
 }
 
@@ -681,7 +681,7 @@ void handle_query (char *data, int len)
     if (cp) draw_prompt(cp);
     }
 
-      LOG(0,"commands.c","Received query.  Input state now %d\n", cpl.input_state);
+      LOG(LOG_DEBUG, "common::handle_query", "Received query.  Input state now %d", cpl.input_state);
 }
 
 /* Sends a reply to the server.  text contains the null terminated
@@ -758,11 +758,11 @@ static void common_item_command(uint8 *data, int len, int revision)
     pos+=4;
 
     if (pos == len) {
-        LOG(LOG_WARNING,"common::ItemCmd","Got location with no other data");
+        LOG(LOG_WARNING, "common::common_item_command", "Got location with no other data");
         return;
     }
     else if (loc < 0) { /* delete following items */
-        LOG(LOG_WARNING,"common::ItemCmd","Got location with negative value (%d)", loc);
+        LOG(LOG_WARNING, "common::common_item_command", "Got location with negative value (%d)", loc);
         return;
     } else {
 	while (pos < len) {
@@ -786,7 +786,7 @@ static void common_item_command(uint8 *data, int len, int revision)
 	    item_actions (locate_item(tag));
 	}
 	if (pos>len) 
-	    LOG(LOG_WARNING,"common::ItemCmd","Overread buffer: %d > %d", pos, len);
+	    LOG(LOG_WARNING, "common::common_item_cmd", "Overread buffer: %d > %d", pos, len);
     }
 }
 
@@ -900,7 +900,7 @@ void DeleteItem(unsigned char *data, int len)
 	}
     }
     if (pos>len) 
-	LOG(LOG_WARNING,"common::ItemCmd","Overread buffer: %d > %d", pos, len);
+	LOG(LOG_WARNING, "common::DeleteItem", "Overread buffer: %d > %d", pos, len);
 }
 
 void DeleteInventory(unsigned char *data, int len)
