@@ -211,10 +211,6 @@ GdkPixmap   *mapwindow;
 GdkBitmap *dark1, *dark2, *dark3;
 GdkPixmap *dark;
 
-#define INFOLINELEN 500
-#define XPMGCS 100
-
-
 GtkTooltips *tooltips;
 
 static GtkWidget *dialogtext;

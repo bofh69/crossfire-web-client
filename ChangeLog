@@ -2,7 +2,7 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
-common/item.h: Remove unused macros.
+common/item.h, gnome/gnome.c, gtk/gx11.c, x11/x11.c: Remove unused macros.
 common/commands.c: Unify/fix calls to LOG().
 common/commands.c: In DeleteItem() and DeleteInventory() do not crash if an
    invalid object tag was received.

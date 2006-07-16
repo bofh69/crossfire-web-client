@@ -73,8 +73,6 @@
 #define MAXFACES 5
 #define MAXPIXMAPNUM 10000
 #define SHOW_RESISTS 7
-#define INFOLINELEN 500
-#define XPMGCS 100
 #define INFOCHARS 50
 #define FONTWIDTH 8
 #define KEYF_NORMAL	0x01

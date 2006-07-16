@@ -239,7 +239,6 @@ struct PixmapInfo *pixmaps[MAXPIXMAPNUM];
  */
 static float info_ratio=0;
 
-#define INFOLINELEN 500
 #define XPMGCS 100
 
 enum {
