@@ -906,15 +906,16 @@ void DeleteItem(unsigned char *data, int len)
 void DeleteInventory(unsigned char *data, int len)
 {
     int tag;
+    item *op;
     (void)len; /* __UNUSED__ */
 
     tag=atoi((const char*)data);
-
-    if (tag<0) {
-	LOG(LOG_WARNING,"common::DeleteInventory","Invalid tag: %d", tag);
-	return;
+    op = locate_item(tag);
+    if (op != NULL) {
+	remove_item_inventory(op);
+    } else {
+	LOG(LOG_WARNING, "common::DeleteInventory", "Invalid tag: %d", tag);
     }
-    remove_item_inventory(locate_item(tag));
 }
 
 /******************************************************************************
