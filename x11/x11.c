@@ -3622,7 +3622,7 @@ int main(int argc, char *argv[])
 	 */
 
 	display_map_doneupdate(FALSE, FALSE);
-	if (!strcmp(server, SERVER) || got_one) {
+	if (!server || got_one) {
 	    char *ms;
 	    metaserver_get_info(meta_server, meta_port);
 	    metaserver_show(TRUE);
@@ -3633,7 +3633,7 @@ int main(int argc, char *argv[])
 	} else {
 	    csocket.fd=init_connection(server, use_config[CONFIG_PORT]);
 	    if (csocket.fd == -1) { /* specified server no longer valid */
-		server = SERVER;
+		server = NULL;
 		continue;
 	    }
 	    negotiate_connection(sound);

@@ -378,8 +378,10 @@ void metaserver_show(int show_selection) {
     }
     if (show_selection) {
         /* Show default/current server */
-        sprintf(buf, "%2d)  %s (default)", meta_numservers+1+cached_servers_num, server);
-        draw_info(buf, NDI_BLACK);
+	if (server) {
+	    sprintf(buf, "%2d)  %s (default)", meta_numservers+1+cached_servers_num, server);
+	    draw_info(buf, NDI_BLACK);
+	}
 
         draw_info("Choose one of the entries above", NDI_BLACK);
         draw_info("or type in a hostname/ip address", NDI_BLACK);

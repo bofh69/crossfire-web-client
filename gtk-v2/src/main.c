@@ -672,7 +672,7 @@ main (int argc, char *argv[])
 	 * an entry for the last server there also.
 	 */
 
-	if (!strcmp(server, SERVER) || got_one) {
+	if (!server || got_one) {
 	    char *ms;
 
 	    draw_splash();
@@ -682,7 +682,7 @@ main (int argc, char *argv[])
 	} else {
 	    csocket.fd=init_connection(server, use_config[CONFIG_PORT]);
 	    if (csocket.fd == -1) { /* specified server no longer valid */
-		server = SERVER;
+		server = NULL;
 		continue;
 	    }
 	    negotiate_connection(use_config[CONFIG_SOUND]);

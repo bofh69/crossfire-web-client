@@ -50,9 +50,14 @@
  * and want people to just be able to run it without options and connect
  * to some server.  localhost is the default.  Remember to use double
  * quotes around your server name.
+ * Comment this out - by default, things connect to metaserver so
+ * this is normally ignored in any case.  If this is not commented out,
+ * the the client will automatically try to connect to this - useful
+ * if inside a firewall and have a local server.  Using -server ""
+ * can then bypass this setting
  */
 
-#define SERVER "localhost"
+/* #define SERVER "localhost" */
 
 /* Server to contact to get information about crossfire servers.
  * This is not the server you play on, but rather a central repository

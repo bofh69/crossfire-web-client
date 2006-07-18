@@ -2,6 +2,25 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Make common/cconfig.h act as the default server if set, if not set, connect
+to metaserver.  Prior to this, it always went to the metaserver unless
+-server option was given.
+--
+common/cconfig.h: Comment out SERVER so by default it connects to metaserver
+common/client.c: Add handling to initialize server from SERVER if defined,
+   null otherwise.
+common/metaserver.c: Don't present default server in metaserver selection 
+   default is null.
+gtk/gx11.c, gtk-v2/src/main.c, x11/x11.c: Change command line handling -
+   if server is set, use that as default to connect to.
+--
+MSW 2006-07-17
+
+gtk-v2/src/inventory.c: Add another invisible column to inventory/look
+   lists for sorting based on name without nrof clogging results.  Comment
+   out code that makes image fixed width.
+MSW 2006-07-17
+
 x11/xutil.c: Use snprintf() to avoid possible buffer overflows.
 gtk/image.c gtk-v2/src/image.c gtk-v2/src/opengl.c: Remove superfluous casts.
 common/item.h, gnome/gnome.c, gtk/gx11.c, x11/x11.c: Remove unused macros.
