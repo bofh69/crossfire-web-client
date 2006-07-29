@@ -2,6 +2,14 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure: add --enable-cfgtk2 flag, to build gtk1 client with gtk2.
+configure.in: add --enable-cfgtk2 flag. Add getaddrinfo check.
+common/commands.c: check buffer length.
+common/init.c: free allocated memory.
+gtk/gx11.c: replace some WIN32 with CFGTK2.
+gtk/win32/config.c: add #define CFGTK2.
+Ryo 2006-07-29
+
 Make common/cconfig.h act as the default server if set, if not set, connect
 to metaserver.  Prior to this, it always went to the metaserver unless
 -server option was given.

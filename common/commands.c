@@ -170,7 +170,7 @@ void SetupCmd(char *buf, int len)
 
 	for(;buf[s] && buf[s] != ' ';s++) ;
 	buf[s++]=0;
-	while (buf[s] == ' ') s++;
+	while (s < len && buf[s] == ' ') s++;
 		
 	/* what we do with the returned data depends on what the server
 	 * returns to us.  In some cases, we may fall back to other

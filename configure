@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MKDIR TAR DEPEND CP RM PERL AR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS PKG_CONFIG ac_pt_PKG_CONFIG PACKAGE_CFLAGS PACKAGE_LIBS MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT INTLLIBS OPENGL_LIBS LN_S RANLIB ac_ct_RANLIB GTK_CONFIG GTK_CFLAGS GTK_LIBS CFGTK EGREP GUI_OBJS GUI_SRCS SND_LIBS TARGET CF_SUBDIRS ALSA9_TARGET ALSA9_LIBS SDL_CONFIG SDL_CFLAGS SDL_LIBS DMALLOC_LIB XPM SOUNDDIR LIBXPM_LIB DATADIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MKDIR TAR DEPEND CP RM PERL AR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS PKG_CONFIG ac_pt_PKG_CONFIG PACKAGE_CFLAGS PACKAGE_LIBS MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT INTLLIBS OPENGL_LIBS LN_S RANLIB ac_ct_RANLIB GTK_CFLAGS GTK_LIBS GTK_CONFIG CFGTK EGREP GUI_OBJS GUI_SRCS SND_LIBS TARGET CF_SUBDIRS ALSA9_TARGET ALSA9_LIBS SDL_CONFIG SDL_CFLAGS SDL_LIBS DMALLOC_LIB XPM SOUNDDIR LIBXPM_LIB DATADIR LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -783,6 +783,14 @@ ac_env_PACKAGE_LIBS_set=${PACKAGE_LIBS+set}
 ac_env_PACKAGE_LIBS_value=$PACKAGE_LIBS
 ac_cv_env_PACKAGE_LIBS_set=${PACKAGE_LIBS+set}
 ac_cv_env_PACKAGE_LIBS_value=$PACKAGE_LIBS
+ac_env_GTK_CFLAGS_set=${GTK_CFLAGS+set}
+ac_env_GTK_CFLAGS_value=$GTK_CFLAGS
+ac_cv_env_GTK_CFLAGS_set=${GTK_CFLAGS+set}
+ac_cv_env_GTK_CFLAGS_value=$GTK_CFLAGS
+ac_env_GTK_LIBS_set=${GTK_LIBS+set}
+ac_env_GTK_LIBS_value=$GTK_LIBS
+ac_cv_env_GTK_LIBS_set=${GTK_LIBS+set}
+ac_cv_env_GTK_LIBS_value=$GTK_LIBS
 
 #
 # Report the --help message.
@@ -879,6 +887,7 @@ Optional Features:
   --disable-alsa9         disable ALSA9 sound support default=use alsa9 sound support if alsa9 libraries exist
   --disable-alsa          disable ALSA sound support default=use alsa sound support if alsa libraries exist
   --disable-gtk           make x11 client default=make gtk client if available
+  --enable-cfgtk2         build the gtkv1 client with gtk2
   --disable-sdl              Disable linking with the SDL library, default is to use it if available
   --enable-dmalloc          Enable checking for dmalloc library, default is to use it if available
   --disable-gtktest       Do not try to compile and run a test GTK program
@@ -910,6 +919,8 @@ Some influential environment variables:
               C compiler flags for PACKAGE, overriding pkg-config
   PACKAGE_LIBS
               linker flags for PACKAGE, overriding pkg-config
+  GTK_CFLAGS  C compiler flags for GTK, overriding pkg-config
+  GTK_LIBS    linker flags for GTK, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -5257,6 +5268,14 @@ else
   gtk=yes
 fi;
 
+# Check whether --enable-cfgtk2 or --disable-cfgtk2 was given.
+if test "${enable_cfgtk2+set}" = set; then
+  enableval="$enable_cfgtk2"
+  cfgtk2=$enableval
+else
+  cfgtk2=no
+fi;
+
 # Check whether --enable-sdl or --disable-sdl was given.
 if test "${enable_sdl+set}" = set; then
   enableval="$enable_sdl"
@@ -6805,7 +6824,98 @@ fi
 
 
 
-if eval "test x$gtk = xyes"; then
+if eval "test x$cfgtk2 = xyes" ; then
+
+pkg_failed=no
+echo "$as_me:$LINENO: checking for GTK" >&5
+echo $ECHO_N "checking for GTK... $ECHO_C" >&6
+
+if test -n "$PKG_CONFIG"; then
+        if test -n "$PKG_CONFIG" && \
+    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0 >= 2.0.0\"") >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-2.0 >= 2.0.0") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; then
+  pkg_cv_GTK_CFLAGS=`$PKG_CONFIG --cflags "gtk+-2.0 >= 2.0.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+else
+	pkg_failed=untried
+fi
+if test -n "$PKG_CONFIG"; then
+        if test -n "$PKG_CONFIG" && \
+    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0 >= 2.0.0\"") >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-2.0 >= 2.0.0") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; then
+  pkg_cv_GTK_LIBS=`$PKG_CONFIG --libs "gtk+-2.0 >= 2.0.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+else
+	pkg_failed=untried
+fi
+
+if test $pkg_failed = yes; then
+	GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gtk+-2.0 >= 2.0.0"`
+	# Put the nasty error message in config.log where it belongs
+	echo "$GTK_PKG_ERRORS" 1>&5
+
+	{ { echo "$as_me:$LINENO: error: Package requirements (gtk+-2.0 >= 2.0.0) were not met.
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively you may set the GTK_CFLAGS and GTK_LIBS environment variables
+to avoid the need to call pkg-config.  See the pkg-config man page for
+more details." >&5
+echo "$as_me: error: Package requirements (gtk+-2.0 >= 2.0.0) were not met.
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively you may set the GTK_CFLAGS and GTK_LIBS environment variables
+to avoid the need to call pkg-config.  See the pkg-config man page for
+more details." >&2;}
+   { (exit 1); exit 1; }; }
+elif test $pkg_failed = untried; then
+	{ { echo "$as_me:$LINENO: error: The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively you may set the GTK_CFLAGS and GTK_LIBS environment variables
+to avoid the need to call pkg-config.  See the pkg-config man page for
+more details.
+
+To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
+See \`config.log' for more details." >&5
+echo "$as_me: error: The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively you may set the GTK_CFLAGS and GTK_LIBS environment variables
+to avoid the need to call pkg-config.  See the pkg-config man page for
+more details.
+
+To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
+See \`config.log' for more details." >&2;}
+   { (exit 1); exit 1; }; }
+else
+	GTK_CFLAGS=$pkg_cv_GTK_CFLAGS
+	GTK_LIBS=$pkg_cv_GTK_LIBS
+        echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+	:
+fi
+	GTK_CFLAGS="`$PKG_CONFIG --cflags gtk+-2.0` -DCFGTK2 -DGTK_ENABLE_BROKEN -DGTK_WINDOW_DIALOG=GTK_WINDOW_TOPLEVEL"
+	GTK_LIBS=`$PKG_CONFIG --libs gtk+-2.0`
+	CF_SUBDIRS="$CF_SUBDIRS gtk"
+	CFGTK="no"
+	echo "$as_me:$LINENO: result: Building original gtk client with gtk 2.0.0" >&5
+echo "${ECHO_T}Building original gtk client with gtk 2.0.0" >&6
+else
+	if eval "test x$gtk = xyes"; then
 
 # Check whether --with-gtk-prefix or --without-gtk-prefix was given.
 if test "${with_gtk_prefix+set}" = set; then
@@ -7120,8 +7230,8 @@ rm -f conftest.err conftest.$ac_objext \
 
   rm -f conf.gtktest
 
+	fi
 fi
-
 
 
 
@@ -11588,9 +11698,9 @@ s,@OPENGL_LIBS@,$OPENGL_LIBS,;t t
 s,@LN_S@,$LN_S,;t t
 s,@RANLIB@,$RANLIB,;t t
 s,@ac_ct_RANLIB@,$ac_ct_RANLIB,;t t
-s,@GTK_CONFIG@,$GTK_CONFIG,;t t
 s,@GTK_CFLAGS@,$GTK_CFLAGS,;t t
 s,@GTK_LIBS@,$GTK_LIBS,;t t
+s,@GTK_CONFIG@,$GTK_CONFIG,;t t
 s,@CFGTK@,$CFGTK,;t t
 s,@EGREP@,$EGREP,;t t
 s,@GUI_OBJS@,$GUI_OBJS,;t t

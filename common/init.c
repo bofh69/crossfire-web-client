@@ -286,6 +286,6 @@ void reset_client_vars()
     }
     reset_player_data();
     for (i=0; i<MAX_SKILL; i++)
-	skill_names[i] = NULL;
+        FREE_AND_CLEAR(skill_names[i]);
 
 }

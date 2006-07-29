@@ -2625,7 +2625,7 @@ static void bugdialog(GtkWidget *widget) {
   GdkBitmap *buggdkmask;
 
   GtkStyle *style;
-#ifndef WIN32
+#ifndef CFGTK2
   GdkFont* font;
 #endif
 #ifdef HAS_COMMON_RCSID
@@ -2677,7 +2677,7 @@ static void bugdialog(GtkWidget *widget) {
     gtk_widget_show (hbox);
     hbox = gtk_hbox_new(FALSE, 2);
     createBugTracker();
-#ifndef WIN32
+#ifndef CFGTK2
     /* Win32 uses GTK2, this apparently doesn't work... */
     font = gdk_font_load ("-*-fixed-*-*-*-*-12-*-*-*-*-*-*-*");
     if (font){
@@ -3889,7 +3889,7 @@ void create_windows(void) {
     gtkwin_root = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     style = gtk_rc_get_style(gtkwin_root);
     if (style) {
-#ifdef WIN32 /* GTK 2.2 stuff */
+#ifdef CFGTK2 /* GTK 2.2 stuff */
 	gcw = gdk_char_width(gdk_font_from_description(style->font_desc), '0') + 4;
 	gch = gdk_char_height(gdk_font_from_description(style->font_desc), '0') + 2;
 #else

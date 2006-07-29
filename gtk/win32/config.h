@@ -128,6 +128,7 @@ int strncasecmp(const char *s1, const char *s2, int n);
 #define srandom srand
 #define random rand
 
+#define CFGTK2
 /* For GTK 2.2 Compatibility */
 #define GTK_WINDOW_DIALOG GTK_WINDOW_TOPLEVEL
 #define GC GdkGC
