@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/gx11.c: if cpl.no_echo is set, hide input.
+Ryo 2006-08-08
+
 configure: add --enable-cfgtk2 flag, to build gtk1 client with gtk2.
 configure.in: add --enable-cfgtk2 flag. Add getaddrinfo check.
 common/commands.c: check buffer length.

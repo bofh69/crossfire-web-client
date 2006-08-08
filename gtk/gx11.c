@@ -1687,6 +1687,8 @@ draw_prompt (const char *str)
 
 		      hbox = gtk_hbox_new (FALSE, 6);
 		      dialogtext = gtk_entry_new ();
+		      if (cpl.no_echo == 1)
+		          gtk_entry_set_visibility(GTK_ENTRY (dialogtext), FALSE);
 
 		      gtk_signal_connect (GTK_OBJECT (dialogtext), "activate",
 					  GTK_SIGNAL_FUNC (dialog_callback),
