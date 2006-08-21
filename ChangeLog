@@ -2,6 +2,13 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk-v2: Fix bug 1530024 - errors when manually closing a window.
+gtk-v2/gtk-v2.glade: Add callback for destroy event on main window.
+gtk-v2/src/callbacks.h, gtk-v2/src/interface.c: Updated by glade with new
+    callback
+gtk-v2/src/main.c: Code to handle callback
+MSW 2006-08-20
+
 gtk/gx11.c: if cpl.no_echo is set, hide input.
 Ryo 2006-08-08
 

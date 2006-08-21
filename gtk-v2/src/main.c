@@ -113,6 +113,19 @@ void cleanup_connection()
     }
 }
 
+void
+on_window_destroy_event                (GtkObject       *object,
+                                        gpointer         user_data)
+{
+#ifdef WIN32
+    script_killall();
+#endif
+
+    LOG(LOG_INFO,"gtk::client_exit","Exiting with return value 0.");
+    exit(0);
+}
+
+
 /* main loop iteration related stuff */
 void do_network() {
     fd_set tmp_read;

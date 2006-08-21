@@ -22,6 +22,7 @@
   <property name="urgency_hint">False</property>
   <signal name="key_press_event" handler="keyfunc" object="window_root" last_modification_time="Wed, 16 Feb 2005 08:21:55 GMT"/>
   <signal name="key_release_event" handler="keyrelfunc" object="window_root" last_modification_time="Wed, 16 Feb 2005 08:25:13 GMT"/>
+  <signal name="destroy" handler="on_window_destroy_event" last_modification_time="Mon, 21 Aug 2006 07:42:55 GMT"/>
 
   <child>
     <widget class="GtkVBox" id="vbox2">

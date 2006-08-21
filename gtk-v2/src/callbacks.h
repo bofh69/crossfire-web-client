@@ -308,3 +308,7 @@ on_save_window_position_activate       (GtkMenuItem     *menuitem,
 void
 on_about_close_clicked                 (GtkButton       *button,
                                         gpointer         user_data);
+
+void
+on_window_destroy_event                (GtkObject       *object,
+                                        gpointer         user_data);

@@ -889,6 +889,9 @@ create_window_root (void)
   g_signal_connect_swapped ((gpointer) window_root, "key_release_event",
                             G_CALLBACK (keyrelfunc),
                             GTK_OBJECT (window_root));
+  g_signal_connect ((gpointer) window_root, "destroy",
+                    G_CALLBACK (on_window_destroy_event),
+                    NULL);
   g_signal_connect ((gpointer) quit_character1, "activate",
                     G_CALLBACK (menu_quit_character),
                     NULL);
