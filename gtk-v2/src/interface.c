@@ -1280,6 +1280,9 @@ create_metaserver_window (void)
   gtk_widget_show (button_metaserver_quit);
   gtk_box_pack_start (GTK_BOX (hbox11), button_metaserver_quit, TRUE, FALSE, 0);
 
+  g_signal_connect ((gpointer) metaserver_window, "destroy",
+                    G_CALLBACK (on_window_destroy_event),
+                    NULL);
   g_signal_connect ((gpointer) treeview_metaserver, "row_activated",
                     G_CALLBACK (on_treeview_metaserver_row_activated),
                     NULL);
