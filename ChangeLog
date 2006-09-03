@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/client.c: fix Win32 compilation.
+Ryo 2006-09-03
+
 gtk-v2: Fix bug 1528540 - if metaserver window is closed, client is unusable.
 Take suggested fix - if metaserver window is closed, exit client.  Just
 another hook to last commit.

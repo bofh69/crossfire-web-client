@@ -180,7 +180,9 @@ void DoClient(ClientSocket *csocket)
     }
 }
 
-#ifndef WIN32
+#ifdef WIN32
+#define socklen_t int
+#else
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
