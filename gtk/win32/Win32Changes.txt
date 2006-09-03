@@ -1,5 +1,5 @@
-Changes for Win32 GTK client 1.9.0 snapshot, May, 20th, 2006
-------------------------------------------------------------
+Changes for Win32 GTK client 1.9.1, June, 30th, 2006
+----------------------------------------------------
 
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).

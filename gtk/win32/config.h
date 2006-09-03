@@ -89,7 +89,7 @@
 #define PACKAGE "gcfclient"
 
 /* Version number of package */
-#define VERSION "1.9.0 snapshot 20060520"
+#define VERSION "1.9.1 (snapshot)"
 
 /***********************/
 #ifdef WIN32
@@ -134,6 +134,8 @@ int strncasecmp(const char *s1, const char *s2, int n);
 #define GC GdkGC
 
 #define snprintf _snprintf
+
+#define MINLOGLEVEL 0
 
 #endif /* WIN32 */
 
