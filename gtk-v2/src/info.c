@@ -125,6 +125,7 @@ static void add_to_textbuf(int pane, char *message, int weight, int style, int f
     int scroll_to_end=0;
     gdouble scale=1.0;
     GtkTextTag	    *tag;
+    char    tagname[MAX_BUF];
 
     gtk_text_view_get_visible_rect(GTK_TEXT_VIEW(info_pane[pane].textview), &rect);
     if ((info_pane[pane].adjustment->value + rect.height) >= info_pane[pane].adjustment->upper ) scroll_to_end=1;
@@ -135,13 +136,23 @@ static void add_to_textbuf(int pane, char *message, int weight, int style, int f
      */
     if (font == FONT_FIXED)  scale=0.9;
 
-    tag = gtk_text_buffer_create_tag(info_pane[pane].textbuffer, NULL,
+    /* In order not to create thousands of tags (memory leak) or have to do logic to
+     * periodically clean up old text tags, given each text tag a name that describes
+     * all the attributes.  If that tag exists, re-use it.  If it doesn't, create
+     * a new tag of that name.
+     */
+    sprintf(tagname, "weight%d-style%d-family%s-foreground%s-scale%f",
+	    weight, style, font_families[font], color, scale);
+
+    if ((tag=gtk_text_tag_table_lookup(gtk_text_buffer_get_tag_table(info_pane[pane].textbuffer),tagname))==NULL) {
+	tag = gtk_text_buffer_create_tag(info_pane[pane].textbuffer, tagname,
 		"weight", weight,
 		"style", style,
 		"family", font_families[font],
 		"foreground", color,
 		"scale", scale,
 		 NULL);
+    }
 
     gtk_text_buffer_get_end_iter(info_pane[pane].textbuffer, &end);
 
