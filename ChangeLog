@@ -2,6 +2,26 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+This change mainly adds support for the extended info messages for the gtkv2
+client.  Note that unlike the gtkv1 client, the gtkv2 client doesn't in any
+way try to do pop up windows or fancy graphics - rather, the support is there
+just so it can do font changes, color changes, etc, within the normal text
+window.
+--
+common/newclient.h: Sync it back up with server version.  Several new
+  MSG_ types added.
+gtk-v2/src/info.c: Redo info pane handling - move all the relevant variables
+   into a structure - this should make it easier to add more panes in the
+   future, but right now, it means an integer can be passed in to functions
+   to control what pane to draw in.  Add support for extended draw info -
+   notably, this means listing alternative fonts, and adding support
+   for different tags.  Add callsbacks for the different message types.  Add
+   code to process extended text message tags.
+gtk-v2/src/keys.c: Change the grab focus after user enters command to use
+   the treeview_look widget instead fo the textview - given that the textview
+   is now stored away in a structure, harder to get to that variable.
+MSW 2006-09-03
+
 common/client.c: fix Win32 compilation.
 Ryo 2006-09-03
 

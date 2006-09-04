@@ -1401,7 +1401,7 @@ on_entry_commands_activate             (GtkEntry        *entry,
                                         gpointer         user_data)
 {
     const gchar *entry_text;
-    extern GtkWidget *textview_info1;
+    extern GtkWidget *treeview_look;
 
     /* Next reply will reset this as necessary */
     if (!use_config[CONFIG_POPUPS])
@@ -1439,7 +1439,7 @@ on_entry_commands_activate             (GtkEntry        *entry,
      * it doesn't make much difference what widget this is set
      * to, as long as it is something that can get focus.
      */
-    gtk_widget_grab_focus (GTK_WIDGET(textview_info1));
+    gtk_widget_grab_focus (GTK_WIDGET(treeview_look));
 
     if( cpl.input_state == Metaserver_Select)
     {

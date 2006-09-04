@@ -6,7 +6,7 @@
 /*
     CrossFire, A Multiplayer game for X-windows
 
-    Copyright (C) 2002 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2002,2006 Mark Wedel & Crossfire Development Team
     Copyright (C) 1992 Frank Tore Johansen
 
     This program is free software; you can redistribute it and/or modify
@@ -38,15 +38,37 @@
  * (flag) is the flag name
  */
 
-/* It is trivial to keep a link of copy of this file in the client
- * or server area.  But keeping one common file should make things
- * more reliable, as both the client and server will definately be
- * talking about the same values.
+/* Ideally, this file should be the same between the server and
+ * the client.  However, this often drifts apart because of a value
+ * that is only useful on the client and server.  Generally, it isn't
+ * a problem to have a few extra #defines if this lets them stay
+ * in sync.
+ *
+ * Given this file contains the constants that dictate what is sent
+ * between the server and client, keeping them in sync makes doing changes
+ * easier - modify this file in one place, copy it over.
+ *
  */
 
 
 #ifndef NEWCLIENT_H
 #define NEWCLIENT_H
+
+/* MAXSOCKRECVBUF and MAXSOCKSENDBUF are used on the server
+ * MAXSOCKBUF is used by the client.
+ */
+
+/* Maximum size of any packet we expect. This number includes both the length
+ * bytes (2 bytes) at the start of each packet and the trailing '\0' (1 byte)
+ * at the end of each packet.
+ */
+#define MAXSOCKRECVBUF (2+65535+1)
+
+/* Maximum size of any packet we send. This number does not include the length
+ * bytes at the start of each packet. The value is chosen to not overflow the
+ * input buffer of old clients (2006-05-21).
+ */
+#define MAXSOCKSENDBUF 10239
 
 /* Maximum size of any packet we expect.  Using this makes it so we don't need to
  * allocate and deallocate the same buffer over and over again and the price
@@ -56,11 +78,13 @@
  */
 #define MAXSOCKBUF (2+65535+1)
 
+
 /* How much the x,y coordinates in the map2 are off from
  * actual upper left corner.  Necessary for light sources
  * that may be off the edge of the visible map.
  */
 #define MAP2_COORD_OFFSET   15
+
 
 #define CS_QUERY_YESNO	0x1	/* Yes/no question */
 #define CS_QUERY_SINGLECHAR 0x2	/* Single character response expected */
@@ -243,33 +267,18 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 #define SOUND_NORMAL	0
 #define SOUND_SPELL	1
 
-/* Animation types */
-#define FACE_IS_ANIM	1<<15
-#define ANIM_RANDOM     1<<13
-#define ANIM_SYNC       2<<13
+#define FACE_IS_ANIM    1<<15
+#define ANIM_RANDOM	1<<13
+#define ANIM_SYNC	2<<13
 
+/* ANIM_FLAGS_MASK and ANIM_MASK are only used by the client */
 #define ANIM_FLAGS_MASK	0x6000
 
 /* AND'ing this with data from server gets us just the animation id */
 #define ANIM_MASK	0x1fff
 
-/* Contains the base information we use to make up a packet we want to send. */
-typedef struct SockList {
-    int len;
-    unsigned char *buf;
-} SockList;
-
-typedef struct CS_Stats {
-    int	    ibytes;	/* ibytes, obytes are bytes in, out */
-    int	    obytes;
-    short   max_conn;	/* Maximum connections received */
-    time_t  time_start;	/* When we started logging this */
-} CS_Stats;
-
-
-extern CS_Stats cst_tot, cst_lst;
-
-/*Constants in the form EMI_ is for extended map infos.
+ 
+/* Constants in the form EMI_ is for extended map infos.
  * Even if the client select the additionnal infos it wants
  * on the map, there may exist cases where this whole info
  * is not given in one buch but in separate bunches. This 
@@ -286,26 +295,36 @@ extern CS_Stats cst_tot, cst_lst;
  */ 
 #define EMI_NOREDRAW        0x01  
 #define EMI_SMOOTH          0x02
-/*this last one says the bitfield continue un next byte
+
+/* this last one says the bitfield continue un next byte
  * There may be several on contiguous bytes. So there is 7
  * actual bits used per byte, and the number of bytes
  * is not fixed in protocol
  */
 #define EMI_HASMOREBITS     0x80
 
-
-/* used by ext text */
+ 
+/*
+ * Note!
+ * If you add message types here, don't forget
+ * to keep the client up to date too!
+ */
+ 
+  
 /* message types */
-#define MSG_TYPE_BOOK            1
-#define MSG_TYPE_CARD            2
-#define MSG_TYPE_PAPER           3
-#define MSG_TYPE_SIGN            4
-#define MSG_TYPE_MONUMENT        5
-#define MSG_TYPE_SCRIPTED_DIALOG 6
-#define MSG_TYPE_MOTD            7
-#define MSG_TYPE_ADMIN           8
+#define MSG_TYPE_BOOK		    1
+#define MSG_TYPE_CARD		    2
+#define MSG_TYPE_PAPER		    3
+#define MSG_TYPE_SIGN		    4
+#define MSG_TYPE_MONUMENT	    5
+#define MSG_TYPE_SCRIPTED_DIALOG    6
+#define MSG_TYPE_MOTD		    7
+#define MSG_TYPE_ADMIN		    8
+#define MSG_TYPE_SHOP		    9
+#define MSG_TYPE_COMMAND	    10	/* Responses to commands, eg, who */
+#define MSG_TYPE_LAST		    11
 
-
+#define MSG_SUBTYPE_NONE         0
 
 /* book messages subtypes */
 #define MSG_TYPE_BOOK_CLASP_1    1
@@ -314,11 +333,11 @@ extern CS_Stats cst_tot, cst_lst;
 #define MSG_TYPE_BOOK_ELEGANT_2  4
 #define MSG_TYPE_BOOK_QUARTO_1   5
 #define MSG_TYPE_BOOK_QUARTO_2   6
-#define MSG_TYPE_BOOK_SPELL_EVOKER    8
-#define MSG_TYPE_BOOK_SPELL_PRAYER    9
-#define MSG_TYPE_BOOK_SPELL_PYRO      10
-#define MSG_TYPE_BOOK_SPELL_SORCERER  11
-#define MSG_TYPE_BOOK_SPELL_SUMMONER  12
+#define MSG_TYPE_BOOK_SPELL_EVOKER    7
+#define MSG_TYPE_BOOK_SPELL_PRAYER    8
+#define MSG_TYPE_BOOK_SPELL_PYRO      9
+#define MSG_TYPE_BOOK_SPELL_SORCERER  10
+#define MSG_TYPE_BOOK_SPELL_SUMMONER  11
 
 /* card messages subtypes*/
 #define MSG_TYPE_CARD_SIMPLE_1    1
@@ -375,7 +394,49 @@ extern CS_Stats cst_tot, cst_lst;
 #define MSG_TYPE_DIALOG_ANSWER         2 /*One of possible answers*/
 #define MSG_TYPE_DIALOG_ANSWER_COUNT   3 /*Number of possible answers*/
 
+/* MOTD doesn't have any subtypes */
+
 /* admin messages */
 #define MSG_TYPE_ADMIN_RULES           1
 #define MSG_TYPE_ADMIN_NEWS            2
+
+/* I'm not actually expecting anything to make much use of the MSG_TYPE_SHOP values
+ * However, to use the media tags, need to use draw_ext_info, and need to have
+ * a type/subtype, so figured might as well put in real values here.
+ */
+#define MSG_TYPE_SHOP_LISTING		1   /* Shop listings - inventory, what it deals in */
+#define MSG_TYPE_SHOP_PAYMENT		2   /* Messages about payment, lack of funds */
+#define MSG_TYPE_SHOP_SELL		3   /* Messages about selling items */
+#define MSG_TYPE_SHOP_MISC		4   /* Random messages */
+
+/* Basically, 1 subtype/command.  Like shops, not expecting much
+ * to be done, but by having different subtypes, it makes it easier for
+ * client to store way information (eg, who output)
+ */
+#define MSG_TYPE_COMMAND_WHO	    1
+#define MSG_TYPE_COMMAND_MAPS	    2
+#define MSG_TYPE_COMMAND_BODY	    3
+#define MSG_TYPE_COMMAND_MALLOC	    4
+#define MSG_TYPE_COMMAND_WEATHER    5
+#define MSG_TYPE_COMMAND_STATISTICS 6
+#define MSG_TYPE_COMMAND_CONFIG	    7	/* bowmode, petmode, applymode */
+#define MSG_TYPE_COMMAND_INFO	    8	/* Generic info - reistances, etc */
+#define MSG_TYPE_COMMAND_QUESTS	    9	/* Quest info */
+
+/* Contains the base information we use to make up a packet we want to send. */
+typedef struct SockList {
+    int len;
+    unsigned char *buf;
+} SockList;
+
+typedef struct CS_Stats {
+    int	    ibytes;	/* ibytes, obytes are bytes in, out */
+    int	    obytes;
+    short   max_conn;	/* Maximum connections received */
+    time_t  time_start;	/* When we started logging this */
+} CS_Stats;
+
+
+extern CS_Stats cst_tot, cst_lst;
+
 #endif
