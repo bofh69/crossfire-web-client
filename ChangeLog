@@ -2,6 +2,33 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Add suggestion from bug 1528536 - some menu items should be disabled during
+metaserver selection.
+--
+gtk-v2/gtk-v2.glade: Fix some incorrect name (meny vs menu)
+gtk-v2/src/interface.c: Rebuilt
+gtk-v2/src/menubar.c: Add enable_menu_items(), which enables/disables some
+   menu items.
+gtk-v2/src/metaserver.c: Add calls to enable_menu_items() to disable
+  some menu items before metaserver selection, and to enable them after.
+MSW 2006-09-04
+
+gtk-v2/gtk-v2.glade: Add callback for pressed event on metaserver quit button -
+   allows alt-Q to work - fix for bug 1551373
+gtk-v2/src/interface.c: Rebuilt
+--
+gtk-v2/server/metaserver.c: Make some changes related to bug 1548290 - cached
+   entries show 0 value in players.  Add code to check list of servers from
+   metaserver - if we have a match in the cached server list, don't display 
+   the cached entry - use the one from the metaserver instead. Also, add 
+   logic to not display empty server if the default server is null.
+--
+gtk-v2/src/config.c: Make save_winpos() do actual saving, have 
+    on_save_window_position_activate() call save_winpos() - fixes
+    bug 1551395 where savewinpos command does not work.
+gtk-v2/src/main.c: Remove empty function save_winpos()
+MSW 2006-09-04
+
 gtk-v2/src/stats.c: Remove extra Player: in the player name.  Fixes bug
 1528011.  MSW 2006-09-03
 
