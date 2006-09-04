@@ -60,7 +60,7 @@ char *get_metaserver()
 {
     static int has_init=0;
     GtkTreeIter iter;
-    int i;
+    int i, j;
 
     if (!has_init) {
 	GtkTreeViewColumn *column;
@@ -141,12 +141,18 @@ char *get_metaserver()
 
     if (cached_servers_num) {
         for ( i = 0; i < cached_servers_num; i++ ) {
-	    gtk_list_store_append(store_metaserver, &iter);
-	    gtk_list_store_set(store_metaserver, &iter, 
+	    for (j=0; j < meta_numservers; j++) {
+		if (!strcmp(cached_servers_name[i], meta_servers[j].hostname))
+		    break;
+	    }
+	    if (j == meta_numservers) {
+		gtk_list_store_append(store_metaserver, &iter);
+		gtk_list_store_set(store_metaserver, &iter, 
 			       LIST_HOSTNAME, cached_servers_name[i],
 			       LIST_IPADDR, cached_servers_ip[i],
 			       LIST_COMMENT, "Cached server entry",
 			       -1);
+	    }
 	}
     }
 
@@ -161,11 +167,13 @@ char *get_metaserver()
 			       LIST_COMMENT, meta_servers[i].comment,
 			       -1);
     }
-    gtk_list_store_append(store_metaserver, &iter);
-    gtk_list_store_set(store_metaserver, &iter, 
+    if (server) {
+	gtk_list_store_append(store_metaserver, &iter);
+	gtk_list_store_set(store_metaserver, &iter, 
 			       LIST_HOSTNAME, server,
 			       LIST_COMMENT, "default server",
 			       -1);
+    }
 
     cpl.input_state = Metaserver_Select;
 
