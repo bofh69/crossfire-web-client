@@ -1295,6 +1295,9 @@ create_metaserver_window (void)
   g_signal_connect ((gpointer) button_metaserver_quit, "pressed",
                     G_CALLBACK (on_button_metaserver_quit_pressed),
                     NULL);
+  g_signal_connect ((gpointer) button_metaserver_quit, "activate",
+                    G_CALLBACK (on_button_metaserver_quit_pressed),
+                    NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (metaserver_window, metaserver_window, "metaserver_window");
