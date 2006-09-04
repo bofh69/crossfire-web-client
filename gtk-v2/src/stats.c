@@ -313,8 +313,7 @@ void draw_stats(int redraw) {
 
     if (strcmp(cpl.title, last_name) || redraw) {
 	strcpy(last_name,cpl.title);
-	sprintf(buff,"Player: %s", cpl.title);
-	gtk_label_set (GTK_LABEL(statwindow.playername), buff);
+	gtk_label_set (GTK_LABEL(statwindow.playername), cpl.title);
     }
     
     if(redraw || cpl.stats.exp!=last_stats.exp) {

@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/stats.c: Remove extra Player: in the player name.  Fixes bug
+1528011.  MSW 2006-09-03
+
 This change mainly adds support for the extended info messages for the gtkv2
 client.  Note that unlike the gtkv1 client, the gtkv2 client doesn't in any
 way try to do pop up windows or fancy graphics - rather, the support is there
