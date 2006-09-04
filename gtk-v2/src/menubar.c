@@ -37,6 +37,7 @@ char *rcsid_gtk2_menubar_c =
 #include "interface.h"
 #include "support.h"
 #include "p_cmd.h"
+#include "main.h"
 
 /* Few quick notes on the menubar:
  * 1) Using the stock Quit menu item for some reason causes it to
@@ -86,4 +87,19 @@ menu_quit_character                       (GtkMenuItem     *menuitem,
 
 }
 
+/* This function enables/disables some of the menubar options.  Some do
+ * not make sense if not connected to the server, so should be
+ * disabled until connected.
+ * enable is a true/false value. If true, enable the items, if false,
+ * disable them.
+ */
 
+void enable_menu_items(int enable)
+{
+
+    gtk_widget_set_sensitive(lookup_widget(window_root,"quit_character1"), enable);
+    gtk_widget_set_sensitive(lookup_widget(window_root,"disconnect"), enable);
+    gtk_widget_set_sensitive(lookup_widget(window_root,"spells"), enable);
+    gtk_widget_set_sensitive(lookup_widget(window_root,"pickup1"), enable);
+
+}

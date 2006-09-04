@@ -43,8 +43,8 @@ create_window_root (void)
   GtkWidget *disconnect;
   GtkWidget *keybindings;
   GtkWidget *save_window_position;
-  GtkWidget *meny_player;
-  GtkWidget *meny_player_menu;
+  GtkWidget *menu_player;
+  GtkWidget *menu_player_menu;
   GtkWidget *spells;
   GtkWidget *pickup1;
   GtkWidget *pickup1_menu;
@@ -243,16 +243,16 @@ create_window_root (void)
   gtk_widget_show (save_window_position);
   gtk_container_add (GTK_CONTAINER (client1_menu), save_window_position);
 
-  meny_player = gtk_menu_item_new_with_mnemonic (_("Player"));
-  gtk_widget_show (meny_player);
-  gtk_container_add (GTK_CONTAINER (menubar1), meny_player);
+  menu_player = gtk_menu_item_new_with_mnemonic (_("Player"));
+  gtk_widget_show (menu_player);
+  gtk_container_add (GTK_CONTAINER (menubar1), menu_player);
 
-  meny_player_menu = gtk_menu_new ();
-  gtk_menu_item_set_submenu (GTK_MENU_ITEM (meny_player), meny_player_menu);
+  menu_player_menu = gtk_menu_new ();
+  gtk_menu_item_set_submenu (GTK_MENU_ITEM (menu_player), menu_player_menu);
 
   spells = gtk_menu_item_new_with_mnemonic (_("Spells"));
   gtk_widget_show (spells);
-  gtk_container_add (GTK_CONTAINER (meny_player_menu), spells);
+  gtk_container_add (GTK_CONTAINER (menu_player_menu), spells);
 
   pickup1 = gtk_menu_item_new_with_mnemonic (_("Pickup"));
   gtk_widget_show (pickup1);
@@ -1055,8 +1055,8 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, disconnect, "disconnect");
   GLADE_HOOKUP_OBJECT (window_root, keybindings, "keybindings");
   GLADE_HOOKUP_OBJECT (window_root, save_window_position, "save_window_position");
-  GLADE_HOOKUP_OBJECT (window_root, meny_player, "meny_player");
-  GLADE_HOOKUP_OBJECT (window_root, meny_player_menu, "meny_player_menu");
+  GLADE_HOOKUP_OBJECT (window_root, menu_player, "menu_player");
+  GLADE_HOOKUP_OBJECT (window_root, menu_player_menu, "menu_player_menu");
   GLADE_HOOKUP_OBJECT (window_root, spells, "spells");
   GLADE_HOOKUP_OBJECT (window_root, pickup1, "pickup1");
   GLADE_HOOKUP_OBJECT (window_root, pickup1_menu, "pickup1_menu");

@@ -177,9 +177,12 @@ char *get_metaserver()
 
     cpl.input_state = Metaserver_Select;
 
+    enable_menu_items(FALSE);
+
     gtk_main();
 
     gtk_widget_hide(metaserver_window);
+    enable_menu_items(TRUE);
     return cpl.input_text;
 }
 

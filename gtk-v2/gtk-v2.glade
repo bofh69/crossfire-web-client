@@ -123,13 +123,13 @@
 	      </child>
 
 	      <child>
-		<widget class="GtkMenuItem" id="meny_player">
+		<widget class="GtkMenuItem" id="menu_player">
 		  <property name="visible">True</property>
 		  <property name="label" translatable="yes">Player</property>
 		  <property name="use_underline">True</property>
 
 		  <child>
-		    <widget class="GtkMenu" id="meny_player_menu">
+		    <widget class="GtkMenu" id="menu_player_menu">
 
 		      <child>
 			<widget class="GtkMenuItem" id="spells">
