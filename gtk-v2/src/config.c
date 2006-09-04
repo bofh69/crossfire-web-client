@@ -555,11 +555,8 @@ on_configure_activate                 (GtkMenuItem     *menuitem,
 
 
 
-void
-on_save_window_position_activate       (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+void save_winpos()
 {
-
     char savename[MAX_BUF],buf[MAX_BUF];
     FILE    *save;
     int     x,y,w,h,wx,wy;
@@ -594,6 +591,15 @@ on_save_window_position_activate       (GtkMenuItem     *menuitem,
     draw_info(buf,NDI_BLUE);
 
 }
+
+
+void
+on_save_window_position_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    save_winpos();
+}
+
 
 void load_window_positions(GtkWidget *window_root)
 {

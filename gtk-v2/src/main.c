@@ -729,10 +729,6 @@ main (int argc, char *argv[])
 }
 
 
-void save_winpos()
-{
-}
-
 /* Gets a specified windows coordinates.
  */
 
