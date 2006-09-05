@@ -320,10 +320,11 @@ static void parse_keybind_line(char *buf, int line, int standard)
 
 	/* Rest of the line is the actual command.  Lets kill the newline */
 	cpnext[strlen(cpnext)-1]='\0';
-    if (strlen(cpnext)>(sizeof(bind_buf)-1)){
-        cpnext[sizeof(bind_buf)-1]='\0';
-        LOG(LOG_WARNING,"gtk::parse_keybind_line","Had to truncate a too long command");
-    }
+	if (strlen(cpnext)>(sizeof(bind_buf)-1)){
+	    cpnext[sizeof(bind_buf)-1]='\0';
+	    LOG(LOG_WARNING,"gtk::parse_keybind_line","Had to truncate a too long command");
+	}
+
 	insert_key(keysym, flags | standard, cpnext);
     } /* else if not special binding line */
 }
@@ -546,7 +547,7 @@ static void parse_key(char key, uint32 keysym)
 {
     Key_Entry *keyentry, *first_match=NULL;
     int present_flags=0;
-    char buf[MAX_BUF];
+    char buf[MAX_BUF], tmpbuf[MAX_BUF];
 
     if (keysym==commandkeysym) {
 	gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
@@ -635,10 +636,14 @@ static void parse_key(char key, uint32 keysym)
         gtk_spin_button_set_value (GTK_SPIN_BUTTON(spinbutton_count), (float) cpl.count );
 	return;
     }
-    sprintf(buf, "Key unused (%s%s%s)",
-          (cpl.fire_on? "Fire&": ""),
-          (cpl.run_on ? "Run&" : ""),
-          keysym==NoSymbol? "unknown": gdk_keyval_name(keysym));
+    tmpbuf[0]=0;
+    if (cpl.fire_on) strcat(tmpbuf,"fire+");
+    if (cpl.run_on) strcat(tmpbuf,"run+");
+    if (cpl.alt_on) strcat(tmpbuf,"alt+");
+    if (cpl.meta_on) strcat(tmpbuf,"meta+");
+
+    sprintf(buf, "Key %s%s is not bound to any command.  Use bind to associate this keypress with a command",
+	    tmpbuf, keysym==NoSymbol? "unknown": gdk_keyval_name(keysym));
 #ifdef WIN32
        if ( ( 65513 != keysym ) && ( 65511 != keysym ) )
 #endif
@@ -907,8 +912,8 @@ void bind_key(char *params)
 
     if (strlen(params) >= sizeof(bind_buf)) {
 	params[sizeof(bind_buf) - 1] = '\0';
-    draw_info("Keybinding too long! Truncated:",NDI_RED);
-    draw_info(params,NDI_RED);
+	draw_info("Keybinding too long! Truncated:",NDI_RED);
+	draw_info(params,NDI_RED);
     }
     sprintf(buf, "Push key to bind '%s'.", params);
     draw_info(buf,NDI_BLACK);
@@ -1019,6 +1024,7 @@ static void save_keys(void)
 static void configure_keys(uint32 keysym)
 {
     char buf[MAX_BUF];
+    Key_Entry *keyentry, *first_match=NULL;
 
     /* I think that basically if we are not rebinding the special
      * control keys (in which case bind_kesym would be set to something)
@@ -1064,6 +1070,27 @@ static void configure_keys(uint32 keysym)
         bind_keysym=NULL;
     }
     else {
+	keyentry = keys[keysym % KEYHASH];
+	while (keyentry!=NULL) {
+	    if ((keyentry->keysym!=0 && keyentry->keysym!=keysym) ||
+		(!(keyentry->flags & bind_flags))) {
+		    keyentry=keyentry->next;
+		    continue;
+	    }
+	    first_match = keyentry;
+
+	    /* Try to find a prefect match */
+	    if ((keyentry->flags & KEYF_MODIFIERS)!= bind_flags) {
+		keyentry=keyentry->next;
+		continue;
+	    }
+	    else break;
+	}
+	if (first_match) {
+	    sprintf(buf, "Warning: Keybind %s may conflict with new binding.", first_match->command);
+	    draw_info(buf,NDI_RED);
+	}
+
 	insert_key(keysym, bind_flags, bind_buf);
     }
 
