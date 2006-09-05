@@ -856,8 +856,6 @@ void draw_inv(int tab)
 {
     char buf[256];
 
-    if (cpl.ob->inv == NULL) return;
-
     sprintf(buf,"%6.1f/%6.1f", cpl.ob->weight, weight_limit);
     gtk_label_set(GTK_LABEL(weight_label), buf);
 
@@ -882,7 +880,7 @@ void draw_lists ()
 	cpl.container->env->inv_updated = 1;
 	cpl.container->inv_updated=0;
     }
-    if (cpl.ob->inv && cpl.ob->inv_updated) {
+    if (cpl.ob->inv_updated) {
 	draw_inv(gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook)));
 	cpl.ob->inv_updated=0;
     }
