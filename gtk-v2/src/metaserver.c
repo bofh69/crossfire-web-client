@@ -178,7 +178,8 @@ char *get_metaserver()
     cpl.input_state = Metaserver_Select;
 
     enable_menu_items(FALSE);
-
+    /* draw_map() is to just redraw the splash */
+    draw_map(FALSE);
     gtk_main();
 
     gtk_widget_hide(metaserver_window);

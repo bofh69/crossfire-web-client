@@ -447,10 +447,15 @@ void draw_splash()
                                                (gchar **)crossfiretitle);
 	    have_init=1;
 	}
+	gdk_window_clear(map_drawing_area->window);
 	gdk_drawable_get_size(splash, &w, &h);
 	x = (map_drawing_area->allocation.width- w)/2;
 	y = (map_drawing_area->allocation.height - h)/2;
 
+	/* Clear the clip mask - it can be left in an inconsisten
+	 * state from last map redraw.
+	 */
+	gdk_gc_set_clip_mask(mapgc, NULL);
 	gdk_draw_pixmap(map_drawing_area->window, mapgc, splash, 0, 0,
 			x, y, w, h);
     }
