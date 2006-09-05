@@ -2,6 +2,21 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/map.c: Clear clipmask and clear window in draw_splash() so that
+   splash is correctly redrawn.
+gtk-v2/src/metaserver.c: Add call to draw_map() in metaserver selection just
+  to make sure splash is drawn correctly.
+MSW 2006-09-04
+
+gtk-v2/src/inventory.c: Fix bug 1528014 - when dropping all objects, display
+  isn't updated correctly.  Remove checks for cpl.ob->inv - relying on
+  cpl.ob->inv_updated appears to work fine.
+gtk-v2/src/keys.c: Fix bug 1527988 - message about unused keys isn't very
+   useful.  Include meta and alt information about unused keys.  Add
+   warning message to bind when trying to bind a key that may conflict
+   with an existing binding.
+MSW 2006-09-04
+
 Add suggestion from bug 1528536 - some menu items should be disabled during
 metaserver selection.
 --
