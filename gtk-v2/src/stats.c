@@ -468,7 +468,7 @@ void draw_stats(int redraw) {
 	/* Erase old/unused resistances */
 	if (j < max_drawn_resists) {
 	    for (i=j; i <= max_drawn_resists; i++)  {
-		gtk_label_set(GTK_LABEL(statwindow.resists[sk]), "");
+		gtk_label_set(GTK_LABEL(statwindow.resists[i]), "");
 	    }
 	}
 	max_drawn_resists = j;
