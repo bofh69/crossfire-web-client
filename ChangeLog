@@ -2,6 +2,25 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix bug 1531060 - metaserver selection button is improperly activated.
+Fix this by clearing the text box if an entry in the tree widget is selected -
+if text is entered in the text box, unselect any selection - keeps it
+very consistent what the connect button does.  Have it greyed out until
+there is either text in the text box or something selected in the treeview.
+--
+gtk-v2/gtk-v2.glade: add callback for key press events for text entry
+  box.
+gtk-v2/src/callbacks.h,gtk-v2/src/interface.c: Rebuilt
+gtk-v2/src/metaserver.c: Add code to activate/disable button based on
+  status.  Add code to clear text box when treeview selected.  Add code
+  to deselect treeview if data is entered in textbox.
+MSW 2006-09-05
+
+gtk-v2/src/stats.c: Fix bug 1527966 - protections window not properly
+   updated.  Wrong variable was being used in loop.
+MSW 2006-09-05
+
+
 gtk-v2/src/map.c: Clear clipmask and clear window in draw_splash() so that
    splash is correctly redrawn.
 gtk-v2/src/metaserver.c: Add call to draw_map() in metaserver selection just

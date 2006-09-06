@@ -312,3 +312,9 @@ on_about_close_clicked                 (GtkButton       *button,
 void
 on_window_destroy_event                (GtkObject       *object,
                                         gpointer         user_data);
+
+gboolean
+on_metaserver_text_entry_key_press_event
+                                        (GtkWidget       *widget,
+                                        GdkEventKey     *event,
+                                        gpointer         user_data);

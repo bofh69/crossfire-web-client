@@ -1289,6 +1289,9 @@ create_metaserver_window (void)
   g_signal_connect ((gpointer) metaserver_text_entry, "activate",
                     G_CALLBACK (on_metaserver_text_entry_activate),
                     NULL);
+  g_signal_connect ((gpointer) metaserver_text_entry, "key_press_event",
+                    G_CALLBACK (on_metaserver_text_entry_key_press_event),
+                    NULL);
   g_signal_connect ((gpointer) metaserver_select, "clicked",
                     G_CALLBACK (on_metaserver_select_clicked),
                     NULL);

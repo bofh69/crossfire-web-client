@@ -37,7 +37,8 @@ char *rcsid_gtk2_metaserver_c =
 #include "metaserver.h"
 #include "main.h"
 
-static GtkWidget *metaserver_window, *treeview_metaserver, *metaserver_button, *metaserver_status;
+static GtkWidget *metaserver_window, *treeview_metaserver, *metaserver_button,
+    *metaserver_status, *metaserver_entry;
 static GtkListStore    *store_metaserver;
 static GtkTreeSelection  *metaserver_selection;
 
@@ -53,6 +54,8 @@ gboolean metaserver_selection_func (
                       gpointer          userdata)
 {
     gtk_widget_set_sensitive(metaserver_button, TRUE);
+    gtk_entry_set_text(GTK_ENTRY(metaserver_entry), "");
+
     return TRUE;
 }
 
@@ -61,6 +64,7 @@ char *get_metaserver()
     static int has_init=0;
     GtkTreeIter iter;
     int i, j;
+    const gchar *metaserver_txt;
 
     if (!has_init) {
 	GtkTreeViewColumn *column;
@@ -73,6 +77,7 @@ char *get_metaserver()
 	treeview_metaserver = lookup_widget(metaserver_window, "treeview_metaserver");
 	metaserver_button = lookup_widget(metaserver_window, "metaserver_select");
 	metaserver_status = lookup_widget(metaserver_window, "metaserver_status");
+	metaserver_entry = lookup_widget(metaserver_window, "metaserver_text_entry");
 
 	store_metaserver = gtk_list_store_new (6,
                                 G_TYPE_STRING,
@@ -135,7 +140,13 @@ char *get_metaserver()
     gtk_widget_show(metaserver_window);
 
     gtk_label_set_text(GTK_LABEL(metaserver_status), "Waiting for user selection");
-    gtk_widget_set_sensitive(metaserver_button, FALSE);
+
+    metaserver_txt = gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
+    if (*metaserver_txt == '\0') {
+	gtk_widget_set_sensitive(metaserver_button, FALSE);
+    } else {
+	gtk_widget_set_sensitive(metaserver_button, TRUE);
+    }
 
     gtk_list_store_clear(store_metaserver);
 
@@ -194,30 +205,41 @@ on_metaserver_select_clicked           (GtkButton       *button,
 {
     GtkTreeModel    *model;
     GtkTreeIter iter;
-    char    *name, *ip, buf[256];
+    char    *name=NULL, *ip=NULL, buf[256], *metaserver_txt;
 
+    metaserver_txt = (char*)gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
     if (gtk_tree_selection_get_selected (metaserver_selection, &model, &iter)) {
 	gtk_tree_model_get(model, &iter, LIST_HOSTNAME, &name, LIST_IPADDR, &ip, -1);
 
-	snprintf(buf, 255, "Trying to connect to %s", name);
+    } else if (*metaserver_txt == '\0') {
 
-	gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-
-	csocket.fd=init_connection(ip?ip:name, use_config[CONFIG_PORT]);
-	if (csocket.fd==-1) {
-	    snprintf(buf, 255, "Unable to connect to %s!", name);
-	    gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-	} else {
-	    snprintf(buf, 255, "Connected to %s!", name);
-	    gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-	    gtk_main_quit();
-	    cpl.input_state = Playing;
-	}
+        /* This can happen if user blanks out server name text field then hits
+         * the connect button.
+         */
+        gtk_label_set_text(GTK_LABEL(metaserver_status), "Error - nothing selected!\n");
+	gtk_widget_set_sensitive(metaserver_button, FALSE);
+        return;
     } else {
 	/* This shouldn't happen because the button shouldn't be pressable
 	 * until the user selects something
 	 */
 	gtk_label_set_text(GTK_LABEL(metaserver_status), "Error - nothing selected!\n");
+    }
+    if (!name) name = metaserver_txt;
+
+    snprintf(buf, 255, "Trying to connect to %s", name);
+
+    gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+
+    csocket.fd=init_connection(ip?ip:name, use_config[CONFIG_PORT]);
+    if (csocket.fd==-1) {
+	snprintf(buf, 255, "Unable to connect to %s!", name);
+	gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+    } else {
+	snprintf(buf, 255, "Connected to %s!", name);
+	gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+	gtk_main_quit();
+	cpl.input_state = Playing;
     }
 }
 
@@ -283,5 +305,17 @@ on_button_metaserver_quit_pressed      (GtkButton       *button,
 #endif
         exit(0);
 
+}
+
+gboolean
+on_metaserver_text_entry_key_press_event
+                                        (GtkWidget       *widget,
+                                        GdkEventKey     *event,
+                                        gpointer         user_data)
+{
+
+    gtk_widget_set_sensitive(metaserver_button, TRUE);
+    gtk_tree_selection_unselect_all(metaserver_selection);
+    return FALSE;
 }
 
