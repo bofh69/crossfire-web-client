@@ -42,11 +42,11 @@ AM_MAINTAINER_MODE
 AC_SUBST(PACKAGE_LIBS)
 AC_SUBST(INTLLIBS)
 
-AC_CHECK_LIB(glut, main, OPENGL_LIBS="-lglut")
+AC_CHECK_LIB(GL, main)
+AC_CHECK_LIB(GLU, main)
+AC_CHECK_LIB(glut, main, OPENGL_LIBS="-lGL -lGLU -lglut"; AC_DEFINE(HAVE_OPENGL))
 AC_SUBST(OPENGL_LIBS)
-if eval "test x$OPENGL_LIBS != x"; then
-    AC_DEFINE(HAVE_OPENGL)
-fi
+
 dnl end of gtk-v2 stuff
 
 

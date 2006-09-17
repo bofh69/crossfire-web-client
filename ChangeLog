@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure.in: Fix opengl checks.
+Alex Schultz 2006-09-17
+
 Fix bug 1531060 - metaserver selection button is improperly activated.
 Fix this by clearing the text box if an entry in the tree widget is selected -
 if text is entered in the text box, unselect any selection - keeps it
