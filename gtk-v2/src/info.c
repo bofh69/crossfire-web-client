@@ -66,13 +66,24 @@ static void message_callback(int flag, int type, int subtype, char *message);
 #define FONT_HAND	4
 #define NUM_FONTS	5
 
+/* A fair number of these fonts can be found at:
+ * http://www.dafont.com
+ * This is in no way an endorsement of that site - just a place to go
+ * to find them.
+ * Fonts I found there:  blackforest, annstone (note, it doesn't have numbers!),
+ *  dobkin
+ * For a reason I'm not sure of, it doesn't seem to use the other fonts - I notice
+ * with xfontsel, the options for weight and size are not enabled, so may be related
+ * to that.
+ * MSW 2006-09-17
+ */
 static char *font_families[NUM_FONTS] = {
     "arial,bookman,agate", 
     "cuneifontlight,linotext,blackforest,becker,arnoldboecklin,caligula,helvetica",
     "annstone,shalomstick",
     /* fixed doesn't scale, so put it at the end */
     "courier,andale mono,urw bookman l,fixed",
-    "dobkinscript,coronetscript,muriel,genoa,parkavenue,rechtmanscript,luxi serif"
+    "dobkin,coronetscript,muriel,genoa,parkavenue,rechtmanscript,luxi serif"
 };
 
 extern  char *colorname[NUM_COLORS];
@@ -118,7 +129,7 @@ void info_init(GtkWidget *window_root)
 }
 
 
-static void add_to_textbuf(int pane, char *message, int weight, int style, int font, char *color)
+static void add_to_textbuf(int pane, char *message, int weight, int style, int font, char *color, int underline)
 {
     GtkTextIter end;
     GdkRectangle rect;
@@ -137,12 +148,12 @@ static void add_to_textbuf(int pane, char *message, int weight, int style, int f
     if (font == FONT_FIXED)  scale=0.9;
 
     /* In order not to create thousands of tags (memory leak) or have to do logic to
-     * periodically clean up old text tags, given each text tag a name that describes
+     * periodically clean up old text tags, give each text tag a name that describes
      * all the attributes.  If that tag exists, re-use it.  If it doesn't, create
      * a new tag of that name.
      */
-    sprintf(tagname, "weight%d-style%d-family%s-foreground%s-scale%f",
-	    weight, style, font_families[font], color, scale);
+    sprintf(tagname, "weight%d-style%d-family%s-foreground%s-scale%f-underline%d",
+	    weight, style, font_families[font], color, scale, underline);
 
     if ((tag=gtk_text_tag_table_lookup(gtk_text_buffer_get_tag_table(info_pane[pane].textbuffer),tagname))==NULL) {
 	tag = gtk_text_buffer_create_tag(info_pane[pane].textbuffer, tagname,
@@ -151,6 +162,7 @@ static void add_to_textbuf(int pane, char *message, int weight, int style, int f
 		"family", font_families[font],
 		"foreground", color,
 		"scale", scale,
+		"underline", underline,
 		 NULL);
     }
 
@@ -175,7 +187,7 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     char *marker, *current, *original;
     int	weight=PANGO_WEIGHT_NORMAL;
     int style=PANGO_STYLE_NORMAL;
-    int	font=FONT_NORMAL;
+    int	font=FONT_NORMAL, underline=PANGO_UNDERLINE_NONE;
     char *color=colorname[orig_color];
 
     current = strdup(message);
@@ -183,7 +195,7 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
 
     while ((marker = strchr(current,'['))!= NULL) {
 	*marker = 0;
-	add_to_textbuf(0,current, weight, style, font, color);
+	add_to_textbuf(0,current, weight, style, font, color, underline);
 	current=marker+1;
 	if ((marker = strchr(current,']')) == NULL) {
 	    free(original);
@@ -194,6 +206,8 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
 	else if (!strcmp(current,"/b"))	weight = PANGO_WEIGHT_NORMAL;
 	else if (!strcmp(current,"i"))	style = PANGO_STYLE_ITALIC;
 	else if (!strcmp(current,"/i"))	style = PANGO_STYLE_NORMAL;
+	else if (!strcmp(current,"ul"))		underline=PANGO_UNDERLINE_SINGLE;
+	else if (!strcmp(current,"/ul"))	underline=PANGO_UNDERLINE_NONE;
 	else if (!strcmp(current,"fixed"))	font = FONT_FIXED;
 	else if (!strcmp(current,"arcane"))	font = FONT_ARCANE;
 	else if (!strcmp(current,"hand"))	font = FONT_HAND;
@@ -205,8 +219,8 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
 	current = marker+1;
 
     }
-    add_to_textbuf(0,current, weight, style, font, color);
-    add_to_textbuf(0, "\n", weight, style, font, color);
+    add_to_textbuf(0,current, weight, style, font, color, underline);
+    add_to_textbuf(0, "\n", weight, style, font, color, underline);
     free(original);
 }
 

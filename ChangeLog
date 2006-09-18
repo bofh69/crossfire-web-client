@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c: Add some notes about downloading font.  Add support
+  for underline in extended text modes.
+MSW 2006-09-17
+
 configure.in: Fix opengl checks.
 Alex Schultz 2006-09-17
 
