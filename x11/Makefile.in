@@ -59,7 +59,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-bin_PROGRAMS = cfclient$(EXEEXT)
+bin_PROGRAMS = crossfire-client-x11$(EXEEXT)
 subdir = x11
 DIST_COMMON = $(dist_man6_MANS) $(noinst_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -73,12 +73,12 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man6dir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_cfclient_OBJECTS = png.$(OBJEXT) sound.$(OBJEXT) x11.$(OBJEXT) \
-	xutil.$(OBJEXT)
-cfclient_OBJECTS = $(am_cfclient_OBJECTS)
+am_crossfire_client_x11_OBJECTS = png.$(OBJEXT) sound.$(OBJEXT) \
+	x11.$(OBJEXT) xutil.$(OBJEXT)
+crossfire_client_x11_OBJECTS = $(am_crossfire_client_x11_OBJECTS)
 am__DEPENDENCIES_1 =
-cfclient_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	../common/libcfclient.a
+crossfire_client_x11_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) ../common/libcfclient.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/utils/depcomp
 am__depfiles_maybe = depfiles
@@ -86,8 +86,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(cfclient_SOURCES)
-DIST_SOURCES = $(cfclient_SOURCES)
+SOURCES = $(crossfire_client_x11_SOURCES)
+DIST_SOURCES = $(crossfire_client_x11_SOURCES)
 man6dir = $(mandir)/man6
 NROFF = nroff
 MANS = $(dist_man6_MANS)
@@ -220,7 +220,7 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-cfclient_SOURCES = \
+crossfire_client_x11_SOURCES = \
 	png.c  \
 	sound.c  \
 	x11.c  \
@@ -233,10 +233,10 @@ noinst_HEADERS = \
 	x11proto.h
 
 dist_man6_MANS = \
-	cfclient.man
+	crossfire-client-x11.man
 
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/common -I$(top_srcdir)/pixmaps
-cfclient_LDADD = $(DMALLOC_LIB) $(X_LIBS) ../common/libcfclient.a
+crossfire_client_x11_LDADD = $(DMALLOC_LIB) $(X_LIBS) ../common/libcfclient.a
 all: all-am
 
 .SUFFIXES:
@@ -293,9 +293,9 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-cfclient$(EXEEXT): $(cfclient_OBJECTS) $(cfclient_DEPENDENCIES) 
-	@rm -f cfclient$(EXEEXT)
-	$(LINK) $(cfclient_LDFLAGS) $(cfclient_OBJECTS) $(cfclient_LDADD) $(LIBS)
+crossfire-client-x11$(EXEEXT): $(crossfire_client_x11_OBJECTS) $(crossfire_client_x11_DEPENDENCIES) 
+	@rm -f crossfire-client-x11$(EXEEXT)
+	$(LINK) $(crossfire_client_x11_LDFLAGS) $(crossfire_client_x11_OBJECTS) $(crossfire_client_x11_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -543,10 +543,10 @@ uninstall-man: uninstall-man6
 
 # Check if everything is installed as it should
 installcheck-local:
-	$(bindir)/cfclient -help
+	$(bindir)/crossfire-client-x11 -help
 
 proto:
-	cproto -e -o x11proto.h $(AM_CPPFLAGS) $(cfclient_SOURCES)
+	cproto -e -o x11proto.h $(AM_CPPFLAGS) $(crossfire_client_x11_SOURCES)
 	chmod 644 x11proto.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

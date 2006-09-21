@@ -26,7 +26,7 @@ INCLUDES = \
 	@PACKAGE_CFLAGS@ \
 	@SDL_CFLAGS@
 
-bin_PROGRAMS = gcfclient2
+bin_PROGRAMS = crossfire-client-gtk2
 
 PROTO_SOURCES = \
         about.c \
@@ -48,14 +48,14 @@ PROTO_SOURCES = \
 	spells.c \
 	stats.c
 
-gcfclient2_SOURCES = \
+crossfire_client_gtk2_SOURCES = \
 	$(PROTO_SOURCES) \
 	support.c support.h \
 	interface.c interface.h \
 	image.h main.h gtk2proto.h \
 	callbacks.h 
 
-gcfclient2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(X_LIBS) $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@ @OPENGL_LIBS@
+crossfire_client_gtk2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(X_LIBS) $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@ @OPENGL_LIBS@
 
 proto:
 	cproto -e -o gtk2proto.h  $(SDL_CFLAGS) $(PACKAGE_CFLAGS) $(DEFAULT_INCLUDES) $(PROTO_SOURCES)

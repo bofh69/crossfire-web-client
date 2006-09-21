@@ -20,9 +20,9 @@
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
 
-bin_PROGRAMS = gcfclient
+bin_PROGRAMS = crossfire-client-gtk
 
-gcfclient_SOURCES = \
+crossfire_client_gtk_SOURCES = \
 	config.c \
 	gx11.c \
 	help.c \
@@ -44,10 +44,10 @@ EXTRA_DIST = \
 	crossfire-client.desktop
 
 dist_man6_MANS = \
-	gcfclient.man
+	crossfire-client-gtk.man
 
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/common -I$(top_srcdir)/pixmaps $(GTK_CFLAGS) $(SDL_CFLAGS) 
-gcfclient_LDADD = $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
+crossfire_client_gtk_LDADD = $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
 
 ../common/libcfclient.a:
 	( cd ../common ; make libcfclient.a )
@@ -55,9 +55,9 @@ gcfclient_LDADD = $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
 
 # Check if everything is installed as it should
 installcheck-local:
-	$(bindir)/gcfclient -help
+	$(bindir)/crossfire-client-gtk -help
 
 proto:
-	cproto -e -o gtkproto.h $(AM_CPPFLAGS) $(gcfclient_SOURCES) 
+	cproto -e -o gtkproto.h $(AM_CPPFLAGS) $(crossfire_client_gtk_SOURCES) 
 	chmod 644 gtkproto.h
 

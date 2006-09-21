@@ -20,9 +20,9 @@
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
 
-bin_PROGRAMS = cfclient
+bin_PROGRAMS = crossfire-client-x11
 
-cfclient_SOURCES = \
+crossfire_client_x11_SOURCES = \
 	png.c  \
 	sound.c  \
 	x11.c  \
@@ -36,10 +36,10 @@ noinst_HEADERS = \
 	x11proto.h
 
 dist_man6_MANS = \
-	cfclient.man
+	crossfire-client-x11.man
 
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/common -I$(top_srcdir)/pixmaps
-cfclient_LDADD = $(DMALLOC_LIB) $(X_LIBS) ../common/libcfclient.a
+crossfire_client_x11_LDADD = $(DMALLOC_LIB) $(X_LIBS) ../common/libcfclient.a
 
 ../common/libcfclient.a:
 	( cd ../common ; make libcfclient.a )
@@ -47,9 +47,9 @@ cfclient_LDADD = $(DMALLOC_LIB) $(X_LIBS) ../common/libcfclient.a
 
 # Check if everything is installed as it should
 installcheck-local:
-	$(bindir)/cfclient -help
+	$(bindir)/crossfire-client-x11 -help
 
 proto:
-	cproto -e -o x11proto.h $(AM_CPPFLAGS) $(cfclient_SOURCES)
+	cproto -e -o x11proto.h $(AM_CPPFLAGS) $(crossfire_client_x11_SOURCES)
 	chmod 644 x11proto.h
 

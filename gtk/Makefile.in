@@ -59,7 +59,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-bin_PROGRAMS = gcfclient$(EXEEXT)
+bin_PROGRAMS = crossfire-client-gtk$(EXEEXT)
 subdir = gtk
 DIST_COMMON = $(dist_man6_MANS) $(noinst_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -73,14 +73,15 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man6dir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_gcfclient_OBJECTS = config.$(OBJEXT) gx11.$(OBJEXT) help.$(OBJEXT) \
-	image.$(OBJEXT) inventory.$(OBJEXT) keys.$(OBJEXT) \
-	map.$(OBJEXT) png.$(OBJEXT) sdl.$(OBJEXT) sound.$(OBJEXT) \
-	text.$(OBJEXT)
-gcfclient_OBJECTS = $(am_gcfclient_OBJECTS)
+am_crossfire_client_gtk_OBJECTS = config.$(OBJEXT) gx11.$(OBJEXT) \
+	help.$(OBJEXT) image.$(OBJEXT) inventory.$(OBJEXT) \
+	keys.$(OBJEXT) map.$(OBJEXT) png.$(OBJEXT) sdl.$(OBJEXT) \
+	sound.$(OBJEXT) text.$(OBJEXT)
+crossfire_client_gtk_OBJECTS = $(am_crossfire_client_gtk_OBJECTS)
 am__DEPENDENCIES_1 =
-gcfclient_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) ../common/libcfclient.a
+crossfire_client_gtk_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	../common/libcfclient.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/utils/depcomp
 am__depfiles_maybe = depfiles
@@ -88,8 +89,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(gcfclient_SOURCES)
-DIST_SOURCES = $(gcfclient_SOURCES)
+SOURCES = $(crossfire_client_gtk_SOURCES)
+DIST_SOURCES = $(crossfire_client_gtk_SOURCES)
 man6dir = $(mandir)/man6
 NROFF = nroff
 MANS = $(dist_man6_MANS)
@@ -222,7 +223,7 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-gcfclient_SOURCES = \
+crossfire_client_gtk_SOURCES = \
 	config.c \
 	gx11.c \
 	help.c \
@@ -244,10 +245,10 @@ EXTRA_DIST = \
 	crossfire-client.desktop
 
 dist_man6_MANS = \
-	gcfclient.man
+	crossfire-client-gtk.man
 
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/common -I$(top_srcdir)/pixmaps $(GTK_CFLAGS) $(SDL_CFLAGS) 
-gcfclient_LDADD = $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
+crossfire_client_gtk_LDADD = $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
 all: all-am
 
 .SUFFIXES:
@@ -304,9 +305,9 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-gcfclient$(EXEEXT): $(gcfclient_OBJECTS) $(gcfclient_DEPENDENCIES) 
-	@rm -f gcfclient$(EXEEXT)
-	$(LINK) $(gcfclient_LDFLAGS) $(gcfclient_OBJECTS) $(gcfclient_LDADD) $(LIBS)
+crossfire-client-gtk$(EXEEXT): $(crossfire_client_gtk_OBJECTS) $(crossfire_client_gtk_DEPENDENCIES) 
+	@rm -f crossfire-client-gtk$(EXEEXT)
+	$(LINK) $(crossfire_client_gtk_LDFLAGS) $(crossfire_client_gtk_OBJECTS) $(crossfire_client_gtk_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -561,10 +562,10 @@ uninstall-man: uninstall-man6
 
 # Check if everything is installed as it should
 installcheck-local:
-	$(bindir)/gcfclient -help
+	$(bindir)/crossfire-client-gtk -help
 
 proto:
-	cproto -e -o gtkproto.h $(AM_CPPFLAGS) $(gcfclient_SOURCES) 
+	cproto -e -o gtkproto.h $(AM_CPPFLAGS) $(crossfire_client_gtk_SOURCES) 
 	chmod 644 gtkproto.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -58,8 +58,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = gtk-v2
-DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	AUTHORS ChangeLog NEWS TODO
+DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
