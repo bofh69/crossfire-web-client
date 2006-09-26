@@ -3140,17 +3140,16 @@ int display_mapscroll(int dx, int dy)
     int dstx, dsty;
     int w, h;
 
-    srcx = dx > 0 ? image_size : 0;
-    srcy = dy > 0 ? image_size : 0;
-    dstx = dx < 0 ? image_size : 0;
-    dsty = dy < 0 ? image_size : 0;
+    srcx = dx > 0 ? image_size*dx : 0;
+    srcy = dy > 0 ? image_size*dy : 0;
+    dstx = dx < 0 ? image_size*-dx : 0;
+    dsty = dy < 0 ? image_size*-dy : 0;
 
     w = use_config[CONFIG_MAPWIDTH];
-    if(dx != 0)
-        w--;
+    w -= abs(dx);
     h = use_config[CONFIG_MAPHEIGHT];
-    if(dy != 0)
-        h--;
+    h -= abs(dy);
+    
     XCopyArea(display, win_game, win_game, gc_copy,
         srcx, srcy,
         w*image_size, h*image_size,

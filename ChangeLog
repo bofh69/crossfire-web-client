@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+x11/x11.c: Fix display_mapscroll() to handle scrolling by greater than 1 tile
+   at a time. Fixes bug #1564584.
+Alex Schultz
+
 gtk-v2/src/info.c: Add some notes about downloading font.  Add support
   for underline in extended text modes.
 MSW 2006-09-17
