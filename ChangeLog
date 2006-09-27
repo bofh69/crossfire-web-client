@@ -2,9 +2,13 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/mapdata.c, common/proto.h: Move clearing of old map data from
+   mapdata_set_face_layer() to a new mapdata_clear_old() function.
+common/commands.c: Call mapdata_clear_old() in Map2Cmd() instead of relying on
+   mapdata_set_face_layer() to clear it. Fixes bug #1559683.
 x11/x11.c: Fix display_mapscroll() to handle scrolling by greater than 1 tile
    at a time. Fixes bug #1564584.
-Alex Schultz
+Alex Schultz 2006-09-26
 
 gtk-v2/src/info.c: Add some notes about downloading font.  Add support
   for underline in extended text modes.

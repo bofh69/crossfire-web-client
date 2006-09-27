@@ -1125,6 +1125,12 @@ void Map2Cmd(unsigned char *data, int len)
 	    mapdata_scroll(x, y);
 	    continue;
 	}
+        
+        /* Clear the old cell data if needed. Used to be done in
+         * mapdata_set_face_layer() however that caused darkness to only
+         * work if sent after the layers.
+         */
+        mapdata_clear_old(x, y);
 
 	/* Inner loop is for the data on the space itself */
 	while (pos < len) {

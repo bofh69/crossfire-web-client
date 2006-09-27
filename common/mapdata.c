@@ -793,6 +793,34 @@ void mapdata_set_smooth(int x, int y, int smooth, int layer)
     }
 }
 
+/* If old cell data is set and is to be cleared, clear it.
+ * This used to be in mapdata_set_face_layer(), however it needs to be
+ * called here, earlier in the Map2Cmd() because otherwise darkness
+ * doesn't work went sent before the layer data when that square was
+ * going to be cleared. This is used by the Map2Cmd()
+ */
+void mapdata_clear_old(int x, int y) {
+    int px, py;
+    int i;
+    
+    assert(0 <= x && x < MAX_VIEW);
+    assert(0 <= y && y < MAX_VIEW);
+
+    px = pl_pos.x+x;
+    py = pl_pos.y+y;
+    assert(0 <= px && px < FOG_MAP_SIZE);
+    assert(0 <= py && py < FOG_MAP_SIZE);
+
+    if (x < width && y < height)
+        if (the_map.cells[px][py].cleared) {
+            for (i=0; i < MAXLAYERS; i++)
+                expand_clear_face_from_layer(px, py, i);
+
+            the_map.cells[px][py].darkness = 0;
+            the_map.cells[px][py].have_darkness = 0;
+        }
+}
+
 /* This is vaguely related to the mapdata_set_face() above, but rather
  * than take all the faces, takes 1 face and the layer this face is
  * on.  This is used by the Map2Cmd()
@@ -800,7 +828,6 @@ void mapdata_set_smooth(int x, int y, int smooth, int layer)
 void mapdata_set_face_layer(int x, int y, sint16 face, int layer)
 {
     int px, py;
-    int i;
 
     assert(0 <= x && x < MAX_VIEW);
     assert(0 <= y && y < MAX_VIEW);
@@ -812,13 +839,6 @@ void mapdata_set_face_layer(int x, int y, sint16 face, int layer)
 
     if (x < width && y < height) {
 	the_map.cells[px][py].need_update = 1;
-	if (the_map.cells[px][py].cleared) {
-	    for (i=0; i < MAXLAYERS; i++)
-		expand_clear_face_from_layer(px, py, i);
-
-	    the_map.cells[px][py].darkness = 0;
-	    the_map.cells[px][py].have_darkness = 0;
-	}
 	if (face >0)
 	    expand_set_face(px, py, layer, face, TRUE);
 	else {
