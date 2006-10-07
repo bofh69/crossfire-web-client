@@ -81,8 +81,8 @@ am_crossfire_client_gtk2_OBJECTS = $(am__objects_1) support.$(OBJEXT) \
 	interface.$(OBJEXT)
 crossfire_client_gtk2_OBJECTS = $(am_crossfire_client_gtk2_OBJECTS)
 am__DEPENDENCIES_1 =
-crossfire_client_gtk2_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) ../../common/libcfclient.a
+crossfire_client_gtk2_DEPENDENCIES = ../../common/libcfclient.a \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/utils/depcomp
 am__depfiles_maybe = depfiles
@@ -224,7 +224,7 @@ INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-I$(top_srcdir)/common -I$(top_srcdir)/help \
-	@PACKAGE_CFLAGS@ \
+	@GTK2_CFLAGS@ \
 	@SDL_CFLAGS@
 
 PROTO_SOURCES = \
@@ -254,7 +254,7 @@ crossfire_client_gtk2_SOURCES = \
 	image.h main.h gtk2proto.h \
 	callbacks.h 
 
-crossfire_client_gtk2_LDADD = @PACKAGE_LIBS@ @DMALLOC_LIB@ $(X_LIBS) $(INTLLIBS) ../../common/libcfclient.a @SDL_LIBS@ @OPENGL_LIBS@
+crossfire_client_gtk2_LDADD = ../../common/libcfclient.a @GTK2_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ 
 all: all-am
 
 .SUFFIXES:
@@ -525,7 +525,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 
 
 proto:
-	cproto -e -o gtk2proto.h  $(SDL_CFLAGS) $(PACKAGE_CFLAGS) $(DEFAULT_INCLUDES) $(PROTO_SOURCES)
+	cproto -e -o gtk2proto.h  $(SDL_CFLAGS) $(GTK2_CFLAGS) $(DEFAULT_INCLUDES) $(PROTO_SOURCES)
 	chmod 644 gtk2proto.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

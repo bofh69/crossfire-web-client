@@ -19,7 +19,7 @@ AM_CONFIG_HEADER(common/config.h)
 dnl AM_ACLOCAL_INCLUDE(macros)
 
 dnl these are subdirectories that have make files in them
-CF_SUBDIRS="common x11 pixmaps utils help"
+CF_SUBDIRS="common pixmaps utils help"
 
 dnl Check for some neeed programs
 AC_PATH_PROG(MKDIR, mkdir)
@@ -29,27 +29,10 @@ AC_PATH_PROG(CP, cp)
 AC_PATH_PROG(RM, rm)
 AC_PATH_PROG(PERL, perl)
 AC_PATH_PROG(AR, ar)
+AC_PATH_PROG(PKG_CONFIG, pkg-config)
 
 dnl Put this early on, since gtk may rely on it.
 AC_PATH_XTRA
-
-dnl for gtk-v2 client
-pkg_modules="gtk+-2.0 >= 2.0.0"
-PKG_CHECK_MODULES(PACKAGE, [$pkg_modules], CF_SUBDIRS="$CF_SUBDIRS gtk-v2", 
-    AC_MSG_WARN(GTK v2 libraries not found - will not build gtkv2 client) )
-
-AM_MAINTAINER_MODE
-AC_SUBST(PACKAGE_LIBS)
-AC_SUBST(INTLLIBS)
-
-AC_CHECK_LIB(GL, main)
-AC_CHECK_LIB(GLU, main)
-AC_CHECK_LIB(glut, main, OPENGL_LIBS="-lGL -lGLU -lglut"; AC_DEFINE(HAVE_OPENGL))
-AC_SUBST(OPENGL_LIBS)
-
-dnl end of gtk-v2 stuff
-
-
 
 SOUNDDIR="${datadir}/crossfire-client/sounds"
 
@@ -74,7 +57,7 @@ AC_ARG_ENABLE(alsa9, [  --disable-alsa9         disable ALSA9 sound support [def
 AC_ARG_ENABLE(alsa, [  --disable-alsa          disable ALSA sound support [default=use alsa sound support if alsa libraries exist]],
 		alsa=$enableval, alsa=yes )
 
-AC_ARG_WITH(sound-dir, [  --with-sound-dir=dir    Directory where the sounds are located (default=/usr/local/lib/sounds)        ],
+AC_ARG_WITH(sound-dir, [  --with-sound-dir=dir    directory where the sounds are located (default=/usr/local/lib/sounds)        ],
 		SOUNDDIR="$withval")
 
 
@@ -93,16 +76,19 @@ AC_ARG_WITH(loglevel, [  --with-logevel=level    sets default loglevel ],
 		MINLOGLEVEL="$withval", MINLOGLEVEL=0)
 
 
-AC_ARG_ENABLE(gtk, [  --disable-gtk           make x11 client [default=make gtk client if available]],
-		gtk=$enableval, gtk=yes )
+AC_ARG_ENABLE(gtkv1, [  --disable-gtkv1         do not make original gtk client [default=make it if available]],
+		gtkv1=$enableval, gtkv1=yes )
 
-AC_ARG_ENABLE(cfgtk2, [  --enable-cfgtk2         build the gtkv1 client with gtk2],
+AC_ARG_ENABLE(gtkv2, [  --disable-gtkv2         do not make gtk-v2 client [default=make it if available]],
+		gtkv2=$enableval, gtkv2=yes )
+
+AC_ARG_ENABLE(cfgtk2, [  --enable-cfgtk2         enable building the original gtkv1 client with GTK+ 2],
 		cfgtk2=$enableval, cfgtk2=no)
 
-AC_ARG_ENABLE(sdl, [  --disable-sdl              Disable linking with the SDL library, default is to use it if available ],
+AC_ARG_ENABLE(sdl, [  --disable-sdl           disable linking with the SDL library, default is to use it if available ],
                 use_sdl=$enableval, use_sdl=yes)
 
-AC_ARG_ENABLE(dmalloc, [  --enable-dmalloc          Enable checking for dmalloc library, default is to use it if available ],
+AC_ARG_ENABLE(dmalloc, [  --enable-dmalloc        enable checking for dmalloc library, default is to use it if available ],
                 use_dmalloc=$enableval, use_dmalloc=no)
 
 
@@ -132,10 +118,122 @@ case "$target" in
   *-*-solaris2*)
 	need_r_flag="yes"
 	;;
+  *-*-mingw32*)
+    win32="yes"
+    # -mms-bitfields is needed for GTK+ in windows.  It is set automatically
+    # by pkg-config, but it's also needed in common, so we explicitely set it
+    CFLAGS="$CFLAGS -mms-bitfields"
+    WIN32_LIBS="-lwsock32 -lwinmm"
+    AC_SUBST(WIN32_LIBS)
+    ;;
   *)
     ;;
 esac
 
+dnl Check for what clients we are going to build in order of x, gtk-v1, gtk-v2
+
+dnl Check to see if X client will be built - no_x is set by AC_CHECK_XTRA if
+dnl X11 isn't found on the machine
+if eval "test x$no_x = xyes" ; then
+    AC_MSG_WARN(X11 not found - will not build X client)
+    X_LIBS=""
+else
+    AC_MSG_NOTICE(X11 found - will build X client)
+    X_LIBS="$X_LIBS -lX11"
+    CF_SUBDIRS="$CF_SUBDIRS x11"
+    echo Xlibs: $X_LIBS
+    echo Extras: $X_EXTRA_LIBS
+    echo Xpre: $X_PRE_LIBS
+fi    
+dnl End of X client check
+
+dnl Check to see if gtk-v1 client will be built
+if eval "test x$gtkv1 = xyes" ; then
+if eval "test x$cfgtk2 = xyes" ; then
+        PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, [HAVE_GTK2=yes], [HAVE_GTK2=no]) 
+        if eval "test x$HAVE_GTK2 = xyes" ; then
+	GTK_CFLAGS="`$PKG_CONFIG --cflags gtk+-2.0` -DCFGTK2 -DGTK_ENABLE_BROKEN -DGTK_WINDOW_DIALOG=GTK_WINDOW_TOPLEVEL"
+	GTK_LIBS=`$PKG_CONFIG --libs gtk+-2.0`
+	CF_SUBDIRS="$CF_SUBDIRS gtk"
+	CFGTK="no"
+            AC_MSG_NOTICE(GTK+ 2 found - building original gtk-v1 client with GTK+ 2.0.0)
+else
+            AC_MSG_WARN(GTK2 not found and --enable-cfgtk2 is set - cannot original gtk-v1 client)
+fi
+    else
+        AM_PATH_GTK(1.0.0,CFGTK="yes",CFGTK="no")
+if eval "test x$CFGTK = xyes"; then
+            AC_MSG_NOTICE(GTK 1 found - building gtk client)
+	GTK_LIBS=$GTK_LIBS
+	GTK_CFLAGS="$GTK_CFLAGS"
+	AC_SUBST(GTK_LIBS)
+	AC_SUBST(GTK_CFLAGS)
+	CF_SUBDIRS="$CF_SUBDIRS gtk"
+	dnl AC_DEFINE(GTK_CLIENT)
+else
+            AC_MSG_WARN(GTK 1 not found - not building building gtk-v1 client)
+        fi
+    fi
+else
+    AC_MSG_NOTICE(gtkv1 client build disabled)
+fi
+AC_SUBST(CFGTK)
+dnl End of gtk-v1 client check
+
+dnl Check to see if gtk-v2 client will be built
+if eval "test x$gtkv2 = xyes" ; then
+    PKG_CHECK_MODULES(GTK2, [gtk+-2.0 >= 2.0.0], [CF_SUBDIRS="$CF_SUBDIRS gtk-v2"], [gtkv2="no"])
+    dnl Check if gtkv2 is still "yes" as is cleaner than putting all the messages in the PKG_CHECK
+    if eval "test x$gtkv2 = xyes" ; then
+      AC_MSG_NOTICE(GTK+ 2 found - will build gtk-v2 client)
+    else
+      AC_MSG_WARN(GTK+ 2 libraries not found - will not build gtk-v2 client)
+fi
+else
+    AC_MSG_NOTICE(gtkv2 client disabled)
+fi
+dnl End of gtk-v2 client check
+
+dnl Future check for Gnome client
+dnl AC_PATH_PROG(GNOMECONFIG, gnome-config)
+dnl 
+dnl if test -z "$GNOMECONFIG" ; then
+dnl 	gnome=no
+dnl 	echo "Can't find gnome-config, not building Gnome client."
+dnl fi
+dnl 
+dnl if eval "test x$gnome = xyes"; then
+dnl 	GNOME_INIT
+dnl 	GNOME_COMPILE_WARNINGS
+dnl 	GNOME_X_CHECKS
+dnl 	AM_PATH_GDK_PIXBUF(0.11.0, , echo "gdk-pixbuf 0.11.0 or higher is needed for the Gnome client so I'm not building it." ; gnome=no)
+dnl 	if eval "test x$gnome = xyes"; then
+dnl 		CF_SUBDIRS="$CF_SUBDIRS gnome"
+dnl 	fi
+dnl fi
+dnl End of future check for Gnome client
+
+dnl End of client checks
+
+AM_MAINTAINER_MODE
+AC_SUBST(PACKAGE_LIBS)
+AC_SUBST(INTLLIBS)
+
+dnl Check for OpenGL
+AC_CHECK_LIB(GL, main)
+AC_CHECK_LIB(GLU, main)
+AC_CHECK_LIB(opengl32, main)
+AC_CHECK_LIB(glu32, main)
+AC_CHECK_LIB(glut, main, opengl="yes"; AC_DEFINE(HAVE_OPENGL))
+if eval "test x$opengl = xyes" ; then
+    if eval "test x$win32 = xyes" ; then
+        OPENGL_LIBS="-lopengl32 -lglu32 -lglut"
+    else
+        OPENGL_LIBS="-lGL -lGLU -lglut"
+    fi
+    AC_SUBST(OPENGL_LIBS)
+fi
+dnl End of OpenGL checks
 
 dnl Checks for programs.
 AC_PROG_INSTALL
@@ -144,47 +242,8 @@ AC_PROG_MAKE_SET
 AC_PROG_CPP
 AC_PROG_RANLIB
 
-dnl Check for GTK >= 1.0.0.
-dnl The XLib client (without GTK) should use AC_PATH_X instead of this.
-
-dnl Simple hack - if we want standard x11 client, don't check for the gtk
-dnl libraries.  Then we fall through below
-
-if eval "test x$cfgtk2 = xyes" ; then
-	PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.0.0) 
-	GTK_CFLAGS="`$PKG_CONFIG --cflags gtk+-2.0` -DCFGTK2 -DGTK_ENABLE_BROKEN -DGTK_WINDOW_DIALOG=GTK_WINDOW_TOPLEVEL"
-	GTK_LIBS=`$PKG_CONFIG --libs gtk+-2.0`
-	CF_SUBDIRS="$CF_SUBDIRS gtk"
-	CFGTK="no"
-	AC_MSG_RESULT(Building original gtk client with gtk 2.0.0)
-else
-	if eval "test x$gtk = xyes"; then
-		AM_PATH_GTK(1.0.0,CFGTK="yes",CFGTK="no")
-	fi
-fi
-
-AC_SUBST(CFGTK)
-
-if eval "test x$CFGTK = xyes"; then
-	AC_MSG_RESULT(GTK found - building both gtk and x11 client)
-	GTK_LIBS=$GTK_LIBS
-	GTK_CFLAGS="$GTK_CFLAGS"
-	AC_SUBST(GTK_LIBS)
-	AC_SUBST(GTK_CFLAGS)
-	CF_SUBDIRS="$CF_SUBDIRS gtk"
-	dnl AC_DEFINE(GTK_CLIENT)
-else
-	AC_MSG_RESULT(GTK not found - building xlib client)
-fi
-dnl common to everything 
-
-X_LIBS="$X_LIBS -lX11"
 AC_SUBST(X_LIBS)
 AC_SUBST(X_CFLAGS)
-
-echo Xlibs: $X_LIBS
-echo Extras: $X_EXTRA_LIBS
-echo Xpre: $X_PRE_LIBS
 
 CPPFLAGS="$CPPFLAGS $EXTRA_INC"
 LDFLAGS="$LDFLAGS $EXTRA_LIB"
@@ -260,23 +319,6 @@ if eval "test x$SOUND_SRC != x"; then
     CF_SUBDIRS="$CF_SUBDIRS $SOUND_SRC";
 fi
 
-dnl AC_PATH_PROG(GNOMECONFIG, gnome-config)
-dnl 
-dnl if test -z "$GNOMECONFIG" ; then
-dnl 	gnome=no
-dnl 	echo "Can't find gnome-config, not building Gnome client."
-dnl fi
-dnl 
-dnl if eval "test x$gnome = xyes"; then
-dnl 	GNOME_INIT
-dnl 	GNOME_COMPILE_WARNINGS
-dnl 	GNOME_X_CHECKS
-dnl 	AM_PATH_GDK_PIXBUF(0.11.0, , echo "gdk-pixbuf 0.11.0 or higher is needed for the Gnome client so I'm not building it." ; gnome=no)
-dnl 	if eval "test x$gnome = xyes"; then
-dnl 		CF_SUBDIRS="$CF_SUBDIRS gnome"
-dnl 	fi
-dnl fi
-
 AC_SUBST(GUI_OBJS)
 AC_SUBST(GUI_SRCS)
 AC_SUBST(SND_LIBS)
@@ -294,7 +336,7 @@ if eval "test x$use_sdl = xyes"; then
 
 if eval "test x$no_sdl = x"; then
      AC_CHECK_LIB( SDL_image, IMG_LoadPNG_RW, 
-                   have_sdlimage="yes", have_sdlimage="no", $SDL_CFLAGS) 
+                   have_sdlimage="yes", have_sdlimage="no", $SDL_CFLAGS $SDL_LIBS) 
      if eval "test x$have_sdlimage = xyes"; then
          SDL_LIBS="$SDL_LIBS -lSDL_image"
      fi
@@ -416,7 +458,13 @@ dnl need to do this twice to cover variables within variables
 nbindir=`eval echo ${bindir}`
 nbindir=`eval echo ${nbindir}`
 
+dnl Datadir should be working directory in Windows, as there is no set
+dnl installation directory (choosable at installation time)
+if eval "test x$win32 = xyes" ; then
+    AC_DEFINE_UNQUOTED(DATADIR, ".")
+else
 AC_DEFINE_UNQUOTED(DATADIR, "${ndatadir}/crossfire-client")
+fi
 AC_DEFINE_UNQUOTED(BINDIR, "${nbindir}")
 AC_DEFINE_UNQUOTED(MINLOGLEVEL, ${MINLOGLEVEL})
 

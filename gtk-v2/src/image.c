@@ -105,6 +105,7 @@ static int icon_rescale_factor[MAX_ICON_SPACES] = {
 
 char facecachedir[MAX_BUF];
 
+/* Does not appear to be used anywhere
 typedef struct Keys {
     uint8	flags;
     sint8	direction;
@@ -112,7 +113,7 @@ typedef struct Keys {
     char	*command;
     struct Keys	*next;
 } Key_Entry;
-
+*/
 
 /* Rotate right from bsd sum. */
 #define ROTATE_RIGHT(c) if ((c) & 01) (c) = ((c) >>1) + 0x80000000; else (c) >>= 1;

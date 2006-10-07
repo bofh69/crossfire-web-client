@@ -21,7 +21,11 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+#ifdef WIN32
+#define random() rand()
+#endif
 #include <assert.h>
+#include <stdlib.h>
 
 #include "client.h"
 #include "external.h"

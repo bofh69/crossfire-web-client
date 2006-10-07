@@ -27,6 +27,9 @@
 #ifndef CPROTO
 /* use declartions from p_cmd.h instead of doing make proto on this file */
  
+#ifdef WIN32
+#include <windows.h>
+#endif
 #include <client.h>
 #include <external.h>
 #include <script.h>

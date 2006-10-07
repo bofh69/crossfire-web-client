@@ -63,6 +63,9 @@ const char *rcsid_common_commands_c =
  *   The unpacking routines basically perform the opposite operations.
  */
 int mapupdatesent=0;
+#ifdef WIN32
+#include <windows.h>
+#endif
 #include <client.h>
 #include <external.h>
 

@@ -42,7 +42,12 @@ char *rcsid_gtk_opengl_c =
 #include <client-types.h>
 
 #include <gtk/gtk.h>
+#ifndef WIN32
 #include <gdk/gdkx.h>
+#else
+#include <windows.h>
+#include <gdk/gdkwin32.h>
+#endif
 #include <gdk/gdkkeysyms.h>
 
 #include "main.h"
@@ -53,15 +58,20 @@ char *rcsid_gtk_opengl_c =
 #include "gtk2proto.h"
 
 /* Start of Open GL includes */
-#include <GL/glx.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
-
+#ifndef WIN32
+#include <GL/glx.h>
+#endif
 
 extern int time_map_redraw;
 
-static Display	*display;
+#ifndef WIN32
+static Display  *display;	/* X display & window for glx buffer swapping */
 static Window	window;
+#else
+static HDC devicecontext;	/* Windows device context for windows buffer swapping */
+#endif
 static int	width=1, height=1;
 
 /* This function does the generic initialization for opengl.
@@ -82,7 +92,14 @@ static void init_opengl_common()
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth(1.0f);
 
+    #ifndef WIN32
     glViewport(0, 0, (float)width, (float)height);
+    #else
+    /* There is a bug somewhere that causes the viewport to be shifted up by
+     * 25-MAPHEIGHT tiles when run in Windows.  Don't know yet what causes this,
+     * but this is a bad hack to fix it. */
+    glViewport(0, (use_config[CONFIG_MAPHEIGHT]-25)*32, (float)width, (float)height);
+    #endif
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -99,16 +116,13 @@ static void init_opengl_common()
 
 }
 
-/*
- * Takes two args, the first is the GtkWindow to draw on, this should always
- * be 'drawingarea'.
- * thi version is tied pretty closely to the X window system - if another
- * window system is used, probably easier to just have a completely different
- * copy of init_opengl()  instead of sprinkling this if #ifdefs
- */
-void init_opengl(GtkWidget* drawingarea)
-{
 
+#ifndef WIN32
+/*
+ * GLX (X-Windows) specific OpenGL iniit
+ */
+void init_glx_opengl(GtkWidget* drawingarea)
+{
     GLXContext	ctx;
     XVisualInfo *vi;
     int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER, 
@@ -149,22 +163,85 @@ void init_opengl(GtkWidget* drawingarea)
     XMapWindow(display,window);
 
     if (!vi) {
-	LOG(LOG_WARNING,"gtk::init_opengl", "Could not get double buffered screen!\n");
+        LOG(LOG_WARNING,"gtk::init_glx_opengl", "Could not get double buffered screen!\n");
     }
     
     ctx = glXCreateContext(display, vi, 0, GL_TRUE);
 
     if (!glXMakeCurrent(display, window, ctx)) {
-	LOG(LOG_ERROR,"gtk::init_opengl", "Could not set opengl context!\n");
+        LOG(LOG_ERROR,"gtk::init_glx_opengl", "Could not set opengl context!\n");
 	exit(1);
     }
     if (glXIsDirect(display, ctx))
-	LOG(LOG_INFO,"gtk::init_opengl", "Direct rendering is available!\n");
+        LOG(LOG_INFO,"gtk::init_glx_opengl", "Direct rendering is available!\n");
     else
-	LOG(LOG_INFO,"gtk::init_opengl", "Direct rendering is not available!\n");
+        LOG(LOG_INFO,"gtk::init_glx_opengl", "Direct rendering is not available!\n");
 
+}
+#endif /* #ifndef WIN32 */
+
+
+#ifdef WIN32
+/*
+ * WGL (MS Windows) specific OpenGL init
+ */
+void init_wgl_opengl(GtkWidget* drawingarea)
+{
+    HGLRC glctx;
+    HDC dctx;
+    int pixelformat;
+    PIXELFORMATDESCRIPTOR pfd = {
+        sizeof(PIXELFORMATDESCRIPTOR),          //size of structure
+        1,                                      //default version
+        PFD_DRAW_TO_WINDOW |                    //window drawing support
+        PFD_SUPPORT_OPENGL |                    //opengl support
+        PFD_DOUBLEBUFFER,                       //double buffering support
+        PFD_TYPE_RGBA,                          //RGBA color mode
+        16,                                     //16 bit color mode
+        0, 0, 0, 0, 0, 0,                       //ignore color bits
+        4,                                      //4 bits alpha buffer
+        0,                                      //ignore shift bit
+        0,                                      //no accumulation buffer
+        0, 0, 0, 0,                             //ignore accumulation bits
+        16,                                     //16 bit z-buffer size
+        0,                                      //no stencil buffer
+        0,                                      //no aux buffer
+        PFD_MAIN_PLANE,                         //main drawing plane
+        0,                                      //reserved
+        0, 0, 0                                 //layer masks ignored
+    };
+
+    width = drawingarea->allocation.width;
+    height = drawingarea->allocation.height;
+
+    dctx = GetDC(GDK_WINDOW_HWND(drawingarea->window));
+    devicecontext = dctx;
+
+    /* Get the closest matching pixel format to what we specified and set it */
+    pixelformat = ChoosePixelFormat(dctx, &pfd);
+    SetPixelFormat(dctx, pixelformat, &pfd);
+
+    glctx = wglCreateContext(dctx);
+    wglMakeCurrent(dctx, glctx);
+}
+#endif /* #ifdef WIN32 */
+
+
+/*
+ * Takes te GtkWindow to draw on - this should always be 'drawingarea'
+ * Calls the correct platform-specific initialization code, then the generic.
+ */
+void init_opengl(GtkWidget* drawingarea)
+{
+
+    #ifndef WIN32
+    init_glx_opengl(drawingarea);
+    #else
+    init_wgl_opengl(drawingarea);
+    #endif
     init_opengl_common();
 }
+
 
 /* We set up a table of darkness - when opengl draws the
  * first layer, it fills this in - in this way, we have a table
@@ -709,7 +786,11 @@ void opengl_gen_map(int redraw) {
     if (time_map_redraw)
 	gettimeofday(&tv2, NULL);
 
+    #ifndef WIN32
     glXSwapBuffers(display, window);
+    #else
+    SwapBuffers(devicecontext);
+    #endif
 
     if (time_map_redraw) {
 	gettimeofday(&tv3, NULL);

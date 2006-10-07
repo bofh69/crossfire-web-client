@@ -40,10 +40,15 @@ const char *rcsid_common_client_c =
  */
 
 
+#ifdef WIN32
+#include <windows.h>
+#define usleep(x) Sleep((x)/1000)
+#endif
 #include <client.h>
 #include <external.h>
 #include <errno.h>
 #include <script.h>
+#include <ctype.h>
 
 #include "mapdata.h"
 

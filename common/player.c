@@ -23,6 +23,9 @@ const char *rcsid_common_player_c =
 */
 
  
+#ifdef WIN32
+#include <windows.h>
+#endif
 #include <client.h>
 #include <external.h>
 #include <script.h>

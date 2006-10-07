@@ -76,6 +76,17 @@ static GdkPixmap *dark;
  */
 int time_map_redraw=0;
 
+#if WIN32
+int gettimeofday(struct timeval* tp, void* tzp) {
+    DWORD t;
+    t = timeGetTime();
+    tp->tv_sec = t / 1000;
+    tp->tv_usec = t % 1000;
+    /* 0 indicates that the call succeeded. */
+    return 0;
+}
+#endif
+
 /* This initializes the stuff we need for the map. */
 void map_init(GtkWidget *window_root)
 {

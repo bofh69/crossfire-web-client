@@ -68,8 +68,9 @@ static GtkWidget *fire_label, *run_label, *keybinding_window, *keybinding_checkb
 static GtkListStore    *keybinding_store;
 static GtkTreeSelection  *keybinding_selection;
 
+/* Changed to KLIST_* to avoid conflicts in Win2000 and up */
 enum {
-    LIST_ENTRY, LIST_KEY, LIST_MODS, LIST_EDIT, LIST_COMMAND, LIST_KEY_ENTRY
+    KLIST_ENTRY, KLIST_KEY, KLIST_MODS, KLIST_EDIT, KLIST_COMMAND, KLIST_KEY_ENTRY
 };
 
 GtkWidget *spinbutton_count;
@@ -437,30 +438,30 @@ void keys_init(GtkWidget *window_root)
 
     renderer = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes ("Key", renderer,
-                                                      "text", LIST_KEY,
+                                                      "text", KLIST_KEY,
                                                       NULL);
-    gtk_tree_view_column_set_sort_column_id(column, LIST_KEY);
+    gtk_tree_view_column_set_sort_column_id(column, KLIST_KEY);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes ("Modifiers", renderer,
-                                                      "text", LIST_MODS,
+                                                      "text", KLIST_MODS,
                                                       NULL);
-    gtk_tree_view_column_set_sort_column_id(column, LIST_MODS);
+    gtk_tree_view_column_set_sort_column_id(column, KLIST_MODS);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes ("Edit Mode", renderer,
-                                                      "text", LIST_EDIT,
+                                                      "text", KLIST_EDIT,
                                                       NULL);
-    gtk_tree_view_column_set_sort_column_id(column, LIST_EDIT);
+    gtk_tree_view_column_set_sort_column_id(column, KLIST_EDIT);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes ("Command", renderer,
-                                                      "text", LIST_COMMAND,
+                                                      "text", KLIST_COMMAND,
                                                       NULL);
-    gtk_tree_view_column_set_sort_column_id(column, LIST_COMMAND);
+    gtk_tree_view_column_set_sort_column_id(column, KLIST_COMMAND);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
 
@@ -469,7 +470,7 @@ void keys_init(GtkWidget *window_root)
     gtk_tree_selection_set_select_function(keybinding_selection, keybinding_selection_func, NULL, NULL);
 
     gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(keybinding_store),
-                                             LIST_KEY,
+                                             KLIST_KEY,
                                              GTK_SORT_ASCENDING);
 
 
@@ -1508,12 +1509,12 @@ void update_keybinding_list()
 	    if (key->flags & KEYF_STANDARD)  strcat(modifier_buf,"(Standard) ");
 	    gtk_list_store_append(keybinding_store, &iter);
 	    gtk_list_store_set(keybinding_store, &iter,
-			       LIST_ENTRY, i,
-			       LIST_KEY,  gdk_keyval_name(key->keysym),
-			       LIST_MODS, modifier_buf,
-			       LIST_EDIT, (key->flags & KEYF_EDIT) ? "Yes":"No",
-			       LIST_COMMAND, key->command,
-			       LIST_KEY_ENTRY, key,
+                               KLIST_ENTRY, i,
+                               KLIST_KEY,  gdk_keyval_name(key->keysym),
+                               KLIST_MODS, modifier_buf,
+                               KLIST_EDIT, (key->flags & KEYF_EDIT) ? "Yes":"No",
+                               KLIST_COMMAND, key->command,
+                               KLIST_KEY_ENTRY, key,
 			       -1);
 	}
     }
@@ -1589,7 +1590,7 @@ on_keybinding_button_remove_clicked    (GtkButton       *button,
 	LOG(LOG_ERROR,"keys.c:on_keybinding_button_remove_clicked", "Function called with nothing selected\n");
 	return;
     }
-    gtk_tree_model_get(model, &iter, LIST_KEY_ENTRY, &entry, -1);
+    gtk_tree_model_get(model, &iter, KLIST_KEY_ENTRY, &entry, -1);
     for (onkey=0; onkey<KEYHASH; onkey++) {
         for (key=keys[onkey]; key; key =key->next) {
 	    if (key == entry) {
@@ -1708,7 +1709,7 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
     const char *buf;
 
     if (gtk_tree_selection_get_selected (keybinding_selection, &model, &iter)) {
-        gtk_tree_model_get(model, &iter, LIST_KEY_ENTRY, &entry, -1);
+        gtk_tree_model_get(model, &iter, KLIST_KEY_ENTRY, &entry, -1);
 
         if (!entry) {
             LOG(LOG_ERROR,"keys.c:on_keybinding_button_update_clicked", "Unable to get key_entry structure\n");
@@ -1754,7 +1755,7 @@ gboolean keybinding_selection_func (
 
     if (gtk_tree_model_get_iter(model, &iter, path)) {
 
-        gtk_tree_model_get(model, &iter, LIST_KEY_ENTRY, &entry, -1);
+        gtk_tree_model_get(model, &iter, KLIST_KEY_ENTRY, &entry, -1);
 
         if (!entry) {
             LOG(LOG_ERROR,"keys.c:keybinding_selection_func", "Unable to get key_entry structure\n");

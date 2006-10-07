@@ -28,6 +28,9 @@ const char *rcsid_common_newsocket_c =
  */
 
 
+#ifdef WIN32
+#include <windows.h>
+#endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <errno.h>

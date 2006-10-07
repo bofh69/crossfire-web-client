@@ -31,6 +31,9 @@ char *rcsid_gtk2_main_c =
 #  include <config.h>
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#endif
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <errno.h>

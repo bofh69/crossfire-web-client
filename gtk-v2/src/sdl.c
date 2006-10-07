@@ -33,7 +33,11 @@ char *rcsid_gtk_sdl_c =
 
 /* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
+#ifndef WIN32
 #include <gdk/gdkx.h>
+#else
+#include <gdk/gdkwin32.h>
+#endif
 #include <gdk/gdkkeysyms.h>
 
 #include "main.h"
@@ -239,8 +243,14 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 	/* 
 	 * SDL hack to tell SDL which xwindow to paint onto 
 	 */
+
+#ifndef WIN32
 	sprintf( SDL_windowhack, "SDL_WINDOWID=%ld",
 	       GDK_WINDOW_XWINDOW(sdl_window->window) );
+#else
+        sprintf( SDL_windowhack, "SDL_WINDOWID=%ld",
+                GDK_WINDOW_HWND(sdl_window->window) );
+#endif
 	putenv( SDL_windowhack);
       
 	if( SDL_Init( SDL_INIT_VIDEO) < 0)

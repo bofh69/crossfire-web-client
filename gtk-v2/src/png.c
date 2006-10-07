@@ -661,8 +661,8 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
 	has_alpha=1;
     }
     else {
-	*mask = None;
-	gc_alpha = None;    /* Prevent compile warnings */
+        *mask = NULL;
+        gc_alpha = NULL;    /* Prevent compile warnings */
     }
     i=0;
     for (y=0; y<height; y++) {

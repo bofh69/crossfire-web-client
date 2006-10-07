@@ -115,13 +115,15 @@ Someday this will be fixed :)
 */
 
 #ifndef WIN32
-#include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <signal.h>
+#else
+#include <windows.h>
 #endif
+#include <ctype.h>
 
 #include <client.h>
 #include <external.h>

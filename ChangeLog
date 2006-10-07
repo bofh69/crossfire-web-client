@@ -2,6 +2,20 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Apply patches #1562945, #1562947, #1563796, and #1566467 to allow the gtk2 
+   client to be built in mingw. Courtesy of Kurt Fitzner.
+---
+configure.in, gtk-v2/src/Makefile.in: Clean up build system a little and add
+   mingw supports.
+common/item.c, common/commands.c, common/init.c, common/script.c,
+   common/mapdata.c, common/client.c, common/p_cmd.c, common/player.c,
+   common/newsocket.c, common/metaserver.c: Add mingw/win32 support.
+gtk-v2/src/keys.c, gtk-v2/src/map.c, gtk-v2/src/image.c,
+   gtk-v2/src/sdl.c, gtk-v2/src/main.c, gtk-v2/src/opengl.c, gtk-v2/src/png.c, 
+   gtk-v2/src/Makefile.am, gtk-v2/src/sound.c, gtk-v2/src/menubar.c: Add win32
+   support to gtk2 client code, including for sdl and opengl.
+Alex Schultz 2006-10-07
+
 common/mapdata.c, common/proto.h: Move clearing of old map data from
    mapdata_set_face_layer() to a new mapdata_clear_old() function.
 common/commands.c: Call mapdata_clear_old() in Map2Cmd() instead of relying on

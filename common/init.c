@@ -26,6 +26,9 @@ const char *rcsid_common_init_c =
  * the I_IMAGE and I_ARCH commands.
  */
 
+#ifdef WIN32
+#define srandom(x) srand(x)
+#endif
 #include <client.h>
 #include "p_cmd.h" /* init_commands() */
 

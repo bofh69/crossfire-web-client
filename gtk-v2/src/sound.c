@@ -54,9 +54,9 @@ ChildProcess* sound_process;
  * function will likely disable sound support/requests from the server.
  */
 
-#ifndef WIN32
 int init_sounds(void)
 {
+#ifndef WIN32
     char sound_path[MAX_BUF];
 
     /* Easy trick - global nosound is set in the arg processing - if set,
@@ -94,8 +94,10 @@ int init_sounds(void)
     sound_pipe=fdopen(sound_process->tube[0],"w");
     signal(SIGPIPE, signal_pipe);/*perhaps throwing this out :\*/
     return 0;
-}
+#else
+    return -1;
 #endif
+}
 
 
 /* Plays sound 'soundnum'.  soundtype is 0 for normal sounds, 1 for
@@ -124,9 +126,9 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 }
 
 
-#ifndef WIN32
 void SoundCmd(unsigned char *data,  int len)
 {
+#ifndef WIN32
     int x, y, num, type;
 
     if (len!=5) {
@@ -143,5 +145,5 @@ void SoundCmd(unsigned char *data,  int len)
 	    num, type, x ,y);
 #endif
     play_sound(num, type, x, y);
-}
 #endif
+}
