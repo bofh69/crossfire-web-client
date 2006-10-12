@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/client.c, gtk-v2/src/main.c: Remove excess log messages that flood
+   console.
+Alex Schultz 2006-10-12
+
 Apply patches #1562945, #1562947, #1563796, and #1566467 to allow the gtk2 
    client to be built in mingw. Courtesy of Kurt Fitzner.
 ---

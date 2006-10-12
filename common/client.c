@@ -170,7 +170,6 @@ void DoClient(ClientSocket *csocket)
 	    data++;
 	}
         len = csocket->inbuf.len - (data - csocket->inbuf.buf);
-	LOG(0,"Common::DoClient","Command:%s (%d)",csocket->inbuf.buf+2, len);
 	for(i=0;i < NCOMMANDS;i++) {
 	    if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {
 		    script_watch((char*)csocket->inbuf.buf+2,data,len,commands[i].cmdformat);

@@ -183,7 +183,6 @@ void do_network() {
     else
 #endif
     draw_map(FALSE);
-    LOG(0,"gtk::do_network","Map redrawn\n");
 
     draw_lists();
 }
