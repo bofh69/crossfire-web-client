@@ -76,7 +76,7 @@ svnversion.h:
 	echo '/* Auto-generated at build time. */' > svnversion.h
 	if (test -n "$(SVNVERSION)" || test -f .svn); then \
                 echo -n '#define SVN_REV "' >> svnversion.h; \
-        	svnversion -n >> svnversion.h; \
+        	$(SVNVERSION) -n >> svnversion.h; \
                 echo '"' >> svnversion.h;\
 	fi
         
