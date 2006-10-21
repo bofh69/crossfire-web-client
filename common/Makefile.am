@@ -49,7 +49,6 @@ noinst_HEADERS = \
 	newclient.h \
 	p_cmd.h \
 	proto.h \
-	rcs-id.h \
 	script.h \
         version.h \
         svnversion.h

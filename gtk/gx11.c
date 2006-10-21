@@ -284,12 +284,6 @@ int misses=0,total=0;
 
 static void disconnect(GtkWidget *widget);
 
-/* Loads from ../ because headers have same name and are in include path
- * This prevents loading 2 times the same header.
- */
-#include "../common/rcs-id.h"
-#include "rcs-id.h"
-
 /* Called from disconnect command - that closes the socket -
  * we just need to do the gtk cleanup.
  */
@@ -2630,12 +2624,6 @@ static void bugdialog(GtkWidget *widget) {
 #ifndef CFGTK2
   GdkFont* font;
 #endif
-#ifdef HAS_COMMON_RCSID
-    INIT_COMMON_RCSID;
-#endif
-#ifdef HAS_GTK_RCSID
-    INIT_GTK_RCSID;
-#endif
     int i;
 
   if(!gtkwin_bug) {
@@ -2716,32 +2704,6 @@ static void bugdialog(GtkWidget *widget) {
 
     gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
 		     NULL, "\n\nVersion Information\n" , -1);
-
-/*
- * output some version informations on LOG
- * Those will be useful for debugging.
- */
-#ifdef HAS_COMMON_RCSID
-    for (i=0;common_rcsid[i];i++) {
-	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
-		     NULL, "Version::common", -1);
-	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
-		     NULL, common_rcsid[i], -1);
-	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
-		     NULL, "\n", -1);
-
-    }
-#endif
-#ifdef HAS_GTK_RCSID
-    for (i=0;common_rcsid[i];i++) {
-	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
-		     NULL, "Version::gtk", -1);
-	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
-		     NULL, gtk_rcsid[i], -1);
-	gtk_text_insert (GTK_TEXT (buglabel), NULL, &buglabel->style->black,
-		     NULL, "\n", -1);
-    }
-#endif
 
 
     gtk_adjustment_set_value(GTK_TEXT(buglabel)->vadj, 0.0);
@@ -5359,12 +5321,6 @@ int main(int argc, char *argv[])
     int got_one=0;
     int i;
     static char file_cache[ MAX_BUF ];
-#ifdef HAS_COMMON_RCSID
-    INIT_COMMON_RCSID;
-#endif
-#ifdef HAS_GTK_RCSID
-    INIT_GTK_RCSID;
-#endif
 
     g_log_set_handler (NULL,G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL|G_LOG_LEVEL_ERROR|
             G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_WARNING |G_LOG_LEVEL_MESSAGE|G_LOG_LEVEL_INFO|
@@ -5396,18 +5352,6 @@ int main(int argc, char *argv[])
 	LOG(LOG_CRITICAL,"gtk::main","Failure to init windows.");
 	exit(1);
     }
-/*
- * output some version informations on LOG
- * Those will be useful for debugging.
- */
-#ifdef HAS_COMMON_RCSID
-    for (i=0;common_rcsid[i];i++)
-        LOG(LOG_INFO,"Version::common","%s",common_rcsid[i]);
-#endif
-#ifdef HAS_GTK_RCSID
-    for (i=0;gtk_rcsid[i];i++)
-        LOG(LOG_INFO,"Version::gtk   ","%s",gtk_rcsid[i]);
-#endif
 
     csocket.inbuf.buf=malloc(MAXSOCKBUF);
 

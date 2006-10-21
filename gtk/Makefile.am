@@ -38,7 +38,6 @@ crossfire_client_gtk_SOURCES = \
 noinst_HEADERS = \
 	gtkproto.h \
 	gx11.h \
-	rcs-id.h
 
 EXTRA_DIST = \
 	crossfire-client.desktop

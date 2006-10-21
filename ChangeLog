@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/rcs-id.h, common/rcs-id.h, x11/rcs-id.h, gtk/gx11.c, x11/x11.c: Remove 
+   rcs-id code.
+gtk/Makefile.am, common/Makefile.am, x11/Makefile.am: Remove references to
+   rcs-id.h files.
+--
 configure.in, common/Makefile.am: Generate svnversion.h to define SVN_REV from
    running the svnversion command if avaliable.
 common/version.h: Add FULL_VERSION macro, to include SVN_REV if avaliable.
