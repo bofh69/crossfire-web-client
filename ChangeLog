@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure.in, common/Makefile.am: Generate svnversion.h to define SVN_REV from
+   running the svnversion command if avaliable.
+common/version.h: Add FULL_VERSION macro, to include SVN_REV if avaliable.
+gtk/gx11.c, x11/x11.c, gtk-v2/src/main.c: Use FULL_VERSION instead of VERSION.
+Alex Schultz 2006-10-20
+
 common/client.c, gtk-v2/src/main.c: Remove excess log messages that flood
    console.
 Alex Schultz 2006-10-12

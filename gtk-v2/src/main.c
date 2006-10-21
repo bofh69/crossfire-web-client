@@ -296,9 +296,9 @@ int parse_args(int argc, char **argv)
     load_defaults(); 
 
 #ifndef WIN32
-    strcpy(VERSION_INFO,"GTK2 Unix Client " VERSION);
+    strcpy(VERSION_INFO,"GTK2 Unix Client " FULL_VERSION);
 #else
-    strcpy(VERSION_INFO,"GTK2 Win32 Client " VERSION);
+    strcpy(VERSION_INFO,"GTK2 Win32 Client " FULL_VERSION);
 #endif
     /* Set this global so we get skill experience - gtk client can display
      * it, so lets get the info.

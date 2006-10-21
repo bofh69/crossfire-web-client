@@ -30,6 +30,7 @@
  */
 
 #include <config.h>
+#include <version.h>
 #include <client-types.h>
 #include <newclient.h>
 #include <item.h>

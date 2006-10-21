@@ -122,6 +122,8 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+GTK2_CFLAGS = @GTK2_CFLAGS@
+GTK2_LIBS = @GTK2_LIBS@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_CONFIG = @GTK_CONFIG@
 GTK_LIBS = @GTK_LIBS@
@@ -147,7 +149,6 @@ OBJEXT = @OBJEXT@
 OPENGL_LIBS = @OPENGL_LIBS@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
-PACKAGE_CFLAGS = @PACKAGE_CFLAGS@
 PACKAGE_LIBS = @PACKAGE_LIBS@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
@@ -166,9 +167,11 @@ SHELL = @SHELL@
 SND_LIBS = @SND_LIBS@
 SOUNDDIR = @SOUNDDIR@
 STRIP = @STRIP@
+SVNVERSION = @SVNVERSION@
 TAR = @TAR@
 TARGET = @TARGET@
 VERSION = @VERSION@
+WIN32_LIBS = @WIN32_LIBS@
 XPM = @XPM@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
@@ -247,14 +250,18 @@ noinst_HEADERS = \
 	p_cmd.h \
 	proto.h \
 	rcs-id.h \
-	script.h
+	script.h \
+        version.h \
+        svnversion.h
 
+BUILT_SOURCES = svnversion.h
+CLEANFILES = svnversion.h
 EXTRA_DIST = \
 	def-keys \
 	item-types \
 	items.pl
 
-all: config.h
+all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
@@ -423,10 +430,12 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: check-am
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(LIBRARIES) $(HEADERS) config.h
 installdirs:
-install: install-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -443,6 +452,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -450,6 +460,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
@@ -521,6 +532,14 @@ item-types.h: item-types
 
 def-keys.h: def-keys
 	../utils/mdk.sh
+
+svnversion.h:
+	echo '/* Auto-generated at build time. */' > svnversion.h
+	if (test -n "$(SVNVERSION)" || test -f .svn); then \
+                echo -n '#define SVN_REV "' >> svnversion.h; \
+        	svnversion -n >> svnversion.h; \
+                echo '"' >> svnversion.h;\
+	fi
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

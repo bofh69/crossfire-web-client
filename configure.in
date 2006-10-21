@@ -31,6 +31,9 @@ AC_PATH_PROG(PERL, perl)
 AC_PATH_PROG(AR, ar)
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
 
+dnl Check if svnversion is avaliable to get the rev number
+AC_PATH_PROG(SVNVERSION, svnversion)
+
 dnl Put this early on, since gtk may rely on it.
 AC_PATH_XTRA
 

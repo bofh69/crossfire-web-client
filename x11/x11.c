@@ -2791,7 +2791,7 @@ int init_windows(int argc, char **argv)
     int on_arg=1;
     char *display_name="";
 
-    strcpy(VERSION_INFO,"X11 Unix Client " VERSION);
+    strcpy(VERSION_INFO,"X11 Unix Client " FULL_VERSION);
 
     load_defaults();	/* Load these first, so they can get overwritten by
 			 * command line options.
