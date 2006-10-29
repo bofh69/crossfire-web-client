@@ -397,8 +397,14 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 /* MOTD doesn't have any subtypes */
 
 /* admin messages */
-#define MSG_TYPE_ADMIN_RULES           1
-#define MSG_TYPE_ADMIN_NEWS            2
+#define MSG_TYPE_ADMIN_RULES    1
+#define MSG_TYPE_ADMIN_NEWS     2
+#define MSG_TYPE_ADMIN_PLAYER	3	    /* Player coming/going/death */
+#define MSG_TYPE_ADMIN_DM	    4	    /* DM related admin actions */
+#define MSG_TYPE_ADMIN_HISCORE	5	    /* Hiscore list */
+#define MSG_TYPE_ADMIN_LOADSAVE	6	    /* load/save operations */
+#define MSG_TYPE_ADMIN_LOGIN	7	    /* login messages/errors */
+#define MSG_TYPE_ADMIN_VERSION	8	    /* version info */
 
 /* I'm not actually expecting anything to make much use of the MSG_TYPE_SHOP values
  * However, to use the media tags, need to use draw_ext_info, and need to have

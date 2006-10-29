@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix annoying bug where popups appear all the time.
+ common/newclient.h: add some missing message types.
+ gtk/text.c: by default, admin commands are just sent to draw_info. This
+  prevents annoying popups.
+Ryo 2006-10-29
+
 common/Makefile.am: Make sure svnversion.h rebuilds every time.
 Alex Schultz 2006-10-29
 

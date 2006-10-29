@@ -496,6 +496,7 @@ static void admin_callback(int flag, int type, int subtype, char *message) {
                 return;
             }
             break;
+
         case MSG_TYPE_ADMIN_RULES:
             free(rules);
             rules = malloc(strlen(message)+1);
@@ -505,8 +506,9 @@ static void admin_callback(int flag, int type, int subtype, char *message) {
             else
                 LOG(LOG_ERROR,"gtk::admin_callback","Outa memory, no save of rules");
             return;
+
     }
-    show_media_message("Unknown admin message",message);
+    draw_info(message, flag);
 }
 void init_text_callbacks(void) {
     setTextManager(MSG_TYPE_BOOK,book_callback);
