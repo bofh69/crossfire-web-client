@@ -72,11 +72,12 @@ item-types.h: item-types
 def-keys.h: def-keys
 	../utils/mdk.sh
 
-svnversion.h:
+svnversion.h: FORCE
 	echo '/* Auto-generated at build time. */' > svnversion.h
 	if (test -n "$(SVNVERSION)" || test -f .svn); then \
                 echo -n '#define SVN_REV "' >> svnversion.h; \
         	$(SVNVERSION) -n >> svnversion.h; \
                 echo '"' >> svnversion.h;\
 	fi
-        
+
+FORCE:        

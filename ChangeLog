@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/Makefile.am: Make sure svnversion.h rebuilds every time.
+Alex Schultz 2006-10-29
+
 gtk/rcs-id.h, common/rcs-id.h, x11/rcs-id.h, gtk/gx11.c, x11/x11.c: Remove 
    rcs-id code.
 gtk/Makefile.am, common/Makefile.am, x11/Makefile.am: Remove references to
