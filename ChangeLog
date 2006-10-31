@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/newclient.h: Merge/copy over file from server to get it synced up.
+gtk-v2/src/info.c: Modify so that it sets the text manager for all the
+  types so it can use extended markup language.
+MSW 2006-10-30
+
 Fix annoying bug where popups appear all the time.
  common/newclient.h: add some missing message types.
  gtk/text.c: by default, admin commands are just sent to draw_info. This

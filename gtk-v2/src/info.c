@@ -115,17 +115,9 @@ void info_init(GtkWidget *window_root)
 	info_pane[1].text_tags[i] = gtk_text_buffer_create_tag(info_pane[1].textbuffer, NULL, "foreground", colorname[i],NULL);
     }
 
-    setTextManager(MSG_TYPE_BOOK,message_callback);
-    setTextManager(MSG_TYPE_CARD,message_callback);
-    setTextManager(MSG_TYPE_PAPER,message_callback);
-    setTextManager(MSG_TYPE_SIGN,message_callback);
-    setTextManager(MSG_TYPE_MONUMENT,message_callback);
-    setTextManager(MSG_TYPE_SCRIPTED_DIALOG,message_callback);
-    setTextManager(MSG_TYPE_MOTD,message_callback);
-    setTextManager(MSG_TYPE_ADMIN,message_callback);
-    setTextManager(MSG_TYPE_SHOP,message_callback);
-    setTextManager(MSG_TYPE_COMMAND,message_callback);
-
+    /* Register callbacks for all message types */
+    for (i=0; i<MSG_TYPE_LAST; i++)
+	setTextManager(i,message_callback);
 }
 
 
