@@ -185,7 +185,8 @@ static void list_item_action(GdkEventButton *event, item *tmp)
 	    if (env & (ITEM_GROUND | ITEM_IN_CONTAINER)) 
 		dest = cpl.ob->tag;
 	    else if (env == ITEM_INVENTORY && cpl.container &&
-		     get_item_env(cpl.container) == ITEM_INVENTORY) {
+		     (get_item_env(cpl.container) == ITEM_INVENTORY ||
+		      get_item_env(cpl.container) == ITEM_GROUND)) {
 		dest = cpl.container->tag;
 	    } else
 		dest = 0;

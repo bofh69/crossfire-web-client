@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix bug 1559804 - unable to drop items from inventory into open container
+on the ground.
+gtk-v2/src/inventory.c: Add check to see if container is on the ground in
+  addition to being in the player inventory as a valid drop target.
+MSW 2006-11-03
+
 Add ability for client to get exp table from server.  Add exp progressbar
 to GTK2 client.
 --
