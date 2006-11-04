@@ -72,6 +72,28 @@ int mapupdatesent=0;
 #include "mapdata.h"
 
 
+static void get_exp_info(const unsigned char *data, int len)
+{
+    int pos, level;
+
+    if (len < 2) {
+	LOG (LOG_ERROR,"common::get_exp_info",
+	     "no max level info from server provided");
+	return;
+    }
+    exp_table_max = GetShort_String(data);
+    pos=2;
+    exp_table = calloc(exp_table_max, sizeof(uint64));
+    for (level=1; level <= exp_table_max && pos < len; level++) {
+	exp_table[level] = GetInt64_String(data + pos);
+	pos += 8;
+    }
+    if (level != exp_table_max) {
+	LOG (LOG_ERROR,"common::get_exp_info",
+	     "Incomplete table sent - got %d entries, wanted %d", level, exp_table_max);
+    }
+}
+
 static void get_skill_info(char *data, int len)
 {
     char *cp, *nl, *sn;
@@ -103,7 +125,6 @@ static void get_skill_info(char *data, int len)
     } while (cp < (data + len));
 }
 
-
 /* handles the response from a 'requestinfo' command.  This function doesn't
  * do much itself other than dispatch to other functions.
  */
@@ -113,13 +134,19 @@ void ReplyInfoCmd(uint8 *buf, int len)
     uint8 *cp;
     int i;
 
+    /* Covers a bug in the server in that it could send a replyinfo with no parameters */
+    if (!buf) return;
+
     for (i=0; i<len; i++) {
 	/* Either a space or newline represents a break */
 	if (*(buf+i) == ' ' || *(buf+i) == '\n' ) break;
     }
     if (i>=len) {
 	/* Don't print buf, as it may contain binary data */
-	LOG (LOG_WARNING,"common::ReplyInfoCmd","Never found a space in the replyinfo");
+	/* Downgrade this to DEBUG - if the client issued an unsupported requestinfo
+	 * info to the server, we'll end up here - this could be normal behaviour
+	 */
+	LOG (LOG_DEBUG,"common::ReplyInfoCmd","Never found a space in the replyinfo");
 	return;
     }
     /* Null out the space and put cp beyond it */
@@ -133,6 +160,9 @@ void ReplyInfoCmd(uint8 *buf, int len)
     }
     else if (!strcmp((char*)buf,"skill_info")) {
 	get_skill_info((char*)cp, len - i - 1);   /* located in common/commands.c */
+    }
+    else if (!strcmp((char*)buf,"exp_table")) {
+	get_exp_info(cp, len - i - 1);   /* located in common/commands.c */
     }
 }
     

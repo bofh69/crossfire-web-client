@@ -114,12 +114,14 @@ create_window_root (void)
   GtkWidget *label_stats_sp;
   GtkWidget *label_stats_grace;
   GtkWidget *label_stats_food;
-  GtkWidget *fire_label;
-  GtkWidget *run_label;
   GtkWidget *progressbar_hp;
   GtkWidget *progressbar_sp;
   GtkWidget *progressbar_grace;
   GtkWidget *progressbar_food;
+  GtkWidget *fire_label;
+  GtkWidget *run_label;
+  GtkWidget *label_stats_exp;
+  GtkWidget *progressbar_exp;
   GtkWidget *notebook3;
   GtkWidget *vbox6;
   GtkWidget *label_playername;
@@ -531,7 +533,7 @@ create_window_root (void)
   gtk_paned_pack2 (GTK_PANED (vpaned_map_stats), hpaned_statbar_stats, TRUE, TRUE);
   gtk_paned_set_position (GTK_PANED (hpaned_statbar_stats), 306);
 
-  table4 = gtk_table_new (5, 2, FALSE);
+  table4 = gtk_table_new (6, 2, FALSE);
   gtk_widget_show (table4);
   gtk_paned_pack1 (GTK_PANED (hpaned_statbar_stats), table4, TRUE, TRUE);
   gtk_table_set_row_spacings (GTK_TABLE (table4), 4);
@@ -560,20 +562,6 @@ create_window_root (void)
                     (GtkAttachOptions) (GTK_EXPAND | GTK_SHRINK),
                     (GtkAttachOptions) (0), 0, 0);
 
-  fire_label = gtk_label_new ("");
-  gtk_widget_show (fire_label);
-  gtk_table_attach (GTK_TABLE (table4), fire_label, 0, 1, 4, 5,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_SHRINK),
-                    (GtkAttachOptions) (0), 0, 0);
-  gtk_misc_set_alignment (GTK_MISC (fire_label), 0, 0.5);
-
-  run_label = gtk_label_new ("");
-  gtk_widget_show (run_label);
-  gtk_table_attach (GTK_TABLE (table4), run_label, 1, 2, 4, 5,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_SHRINK),
-                    (GtkAttachOptions) (0), 0, 0);
-  gtk_misc_set_alignment (GTK_MISC (run_label), 0, 0.5);
-
   progressbar_hp = gtk_progress_bar_new ();
   gtk_widget_show (progressbar_hp);
   gtk_table_attach (GTK_TABLE (table4), progressbar_hp, 1, 2, 0, 1,
@@ -595,6 +583,33 @@ create_window_root (void)
   progressbar_food = gtk_progress_bar_new ();
   gtk_widget_show (progressbar_food);
   gtk_table_attach (GTK_TABLE (table4), progressbar_food, 1, 2, 3, 4,
+                    (GtkAttachOptions) (GTK_EXPAND | GTK_SHRINK | GTK_FILL),
+                    (GtkAttachOptions) (0), 0, 0);
+
+  fire_label = gtk_label_new ("");
+  gtk_widget_show (fire_label);
+  gtk_table_attach (GTK_TABLE (table4), fire_label, 0, 1, 5, 6,
+                    (GtkAttachOptions) (GTK_FILL),
+                    (GtkAttachOptions) (0), 0, 0);
+  gtk_misc_set_alignment (GTK_MISC (fire_label), 0, 0.5);
+
+  run_label = gtk_label_new ("");
+  gtk_widget_show (run_label);
+  gtk_table_attach (GTK_TABLE (table4), run_label, 1, 2, 5, 6,
+                    (GtkAttachOptions) (GTK_FILL),
+                    (GtkAttachOptions) (0), 0, 0);
+  gtk_misc_set_alignment (GTK_MISC (run_label), 0, 0.5);
+
+  label_stats_exp = gtk_label_new (_("Exp: 0/0"));
+  gtk_widget_show (label_stats_exp);
+  gtk_table_attach (GTK_TABLE (table4), label_stats_exp, 0, 1, 4, 5,
+                    (GtkAttachOptions) (GTK_EXPAND | GTK_SHRINK),
+                    (GtkAttachOptions) (0), 0, 0);
+  gtk_misc_set_alignment (GTK_MISC (label_stats_exp), 0, 0.5);
+
+  progressbar_exp = gtk_progress_bar_new ();
+  gtk_widget_show (progressbar_exp);
+  gtk_table_attach (GTK_TABLE (table4), progressbar_exp, 1, 2, 4, 5,
                     (GtkAttachOptions) (GTK_EXPAND | GTK_SHRINK | GTK_FILL),
                     (GtkAttachOptions) (0), 0, 0);
 
@@ -1125,12 +1140,14 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, label_stats_sp, "label_stats_sp");
   GLADE_HOOKUP_OBJECT (window_root, label_stats_grace, "label_stats_grace");
   GLADE_HOOKUP_OBJECT (window_root, label_stats_food, "label_stats_food");
-  GLADE_HOOKUP_OBJECT (window_root, fire_label, "fire_label");
-  GLADE_HOOKUP_OBJECT (window_root, run_label, "run_label");
   GLADE_HOOKUP_OBJECT (window_root, progressbar_hp, "progressbar_hp");
   GLADE_HOOKUP_OBJECT (window_root, progressbar_sp, "progressbar_sp");
   GLADE_HOOKUP_OBJECT (window_root, progressbar_grace, "progressbar_grace");
   GLADE_HOOKUP_OBJECT (window_root, progressbar_food, "progressbar_food");
+  GLADE_HOOKUP_OBJECT (window_root, fire_label, "fire_label");
+  GLADE_HOOKUP_OBJECT (window_root, run_label, "run_label");
+  GLADE_HOOKUP_OBJECT (window_root, label_stats_exp, "label_stats_exp");
+  GLADE_HOOKUP_OBJECT (window_root, progressbar_exp, "progressbar_exp");
   GLADE_HOOKUP_OBJECT (window_root, notebook3, "notebook3");
   GLADE_HOOKUP_OBJECT (window_root, vbox6, "vbox6");
   GLADE_HOOKUP_OBJECT (window_root, label_playername, "label_playername");

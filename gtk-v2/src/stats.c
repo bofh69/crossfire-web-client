@@ -38,7 +38,8 @@ char *rcsid_gtk2_stats_c =
 #include "main.h"
 
 
-GtkWidget *stat_label[4], *stat_bar[4];
+#define MAX_STAT_BARS	5
+GtkWidget *stat_label[MAX_STAT_BARS], *stat_bar[MAX_STAT_BARS];
 
 GdkColor gdk_green =    { 0, 0, 0xcfff, 0 };
 GdkColor gdk_red =    { 0, 0xcfff, 0, 0 };
@@ -112,6 +113,8 @@ void stats_init(GtkWidget *window_root)
     stat_bar[2] = lookup_widget(window_root,"progressbar_grace");
     stat_label[3]  = lookup_widget(window_root,"label_stats_food");
     stat_bar[3] = lookup_widget(window_root,"progressbar_food");
+    stat_label[4]  = lookup_widget(window_root,"label_stats_exp");
+    stat_bar[4] = lookup_widget(window_root,"progressbar_exp");
 
     statwindow.playername = lookup_widget(window_root,"label_playername");
     statwindow.Str = lookup_widget(window_root,"label_str");
@@ -166,10 +169,11 @@ void stats_init(GtkWidget *window_root)
 }
 
 
-static int lastval[4] = {-1, -1, -1, -1}, lastmax[4] = {-1, -1, -1, -1},
-    last_alert[4]= {0, 0, 0, 0};
+static int lastval[MAX_STAT_BARS] = {-1, -1, -1, -1, -1},
+    lastmax[MAX_STAT_BARS] = {-1, -1, -1, -1, -1},
+    last_alert[MAX_STAT_BARS]= {0, 0, 0, 0, 0};
 
-void update_stat(int stat_no, int max_stat, int current_stat, const char *name)
+void update_stat(int stat_no, int max_stat, int current_stat, const char *name, int can_alert)
 {
     float bar;
     int is_alert;
@@ -183,7 +187,7 @@ void update_stat(int stat_no, int max_stat, int current_stat, const char *name)
     else bar = 0.0;
 
     /* Simple check to see if current stat is less than 25% */
-    if (current_stat * 4 < max_stat) is_alert=1;
+    if (can_alert && current_stat * 4 < max_stat) is_alert=1;
     else is_alert = 0;
 
     if (use_config[CONFIG_GRAD_COLOR]) {
@@ -233,10 +237,17 @@ void update_stat(int stat_no, int max_stat, int current_stat, const char *name)
 void draw_message_window(int redraw) {
     static int lastbeep=0;
 
-    update_stat(0, cpl.stats.maxhp, cpl.stats.hp, "HP:");
-    update_stat(1, cpl.stats.maxsp, cpl.stats.sp, "Spell Points:");
-    update_stat(2, cpl.stats.maxgrace, cpl.stats.grace, "Grace:");
-    update_stat(3, 999, cpl.stats.food, "Food:");
+    update_stat(0, cpl.stats.maxhp, cpl.stats.hp, "HP:", TRUE);
+    update_stat(1, cpl.stats.maxsp, cpl.stats.sp, "Spell Points:", TRUE);
+    update_stat(2, cpl.stats.maxgrace, cpl.stats.grace, "Grace:", TRUE);
+    update_stat(3, 999, cpl.stats.food, "Food:", TRUE);
+
+    /* We may or may not have an exp table from the server.  If we don't, just
+     * use current exp value so it will always appear maxed out.
+     */
+    update_stat(4, 
+	(cpl.stats.level+1) < exp_table_max ? exp_table[cpl.stats.level+1]:cpl.stats.exp,
+	cpl.stats.exp, "Exp:", FALSE);
     if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3) && (cpl.stats.food < 200)) {
 	gdk_beep( );
     } else if (use_config[CONFIG_FOODBEEP] && cpl.stats.food == 0 && ++lastbeep == 5) {

@@ -355,6 +355,7 @@ typedef struct{
     LogLevel level;
     int log; /*yes or no to log*/
 }PipeLog;
+
 #define CHILD_STDIN 1
 #define CHILD_STDOUT 2
 #define CHILD_STDERR 4
@@ -368,6 +369,7 @@ typedef struct ChildProcess{
     PipeLog logger[3];
     struct ChildProcess* next;
 }ChildProcess;
+
 #define CHILD_PIPEIN(__child) (__child->tube[0])
 #define CHILD_PIPEOUT(__child) (__child->tube[1])
 #define CHILD_PIPEERR(__child) (__child->tube[2])
@@ -387,6 +389,9 @@ extern char *meta_server;
 extern int meta_port,want_skill_exp;
 extern int map1cmd,metaserver_on;
 extern uint32	tick;
+
+extern uint64	*exp_table;
+extern uint16	exp_table_max;
 
 /* Map size the client will request the map to be.  Bigger it is,
  * more memory it will use

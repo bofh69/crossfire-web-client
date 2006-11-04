@@ -9,6 +9,7 @@ extern void on_config_button_save_clicked(GtkButton *button, gpointer user_data)
 extern void on_config_button_apply_clicked(GtkButton *button, gpointer user_data);
 extern void on_config_button_close_clicked(GtkButton *button, gpointer user_data);
 extern void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void save_winpos(void);
 extern void on_save_window_position_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void load_window_positions(GtkWidget *window_root);
 /* image.c */
@@ -77,11 +78,12 @@ extern void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_
 /* main.c */
 extern int do_timeout(void);
 extern void client_tick(uint32 tick);
+extern void cleanup_connection(void);
+extern void on_window_destroy_event(GtkObject *object, gpointer user_data);
 extern void do_network(void);
 extern void event_loop(void);
 extern int parse_args(int argc, char **argv);
 extern int main(int argc, char *argv[]);
-extern void save_winpos(void);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
 /* map.c */
 extern void map_init(GtkWidget *window_root);
@@ -105,6 +107,7 @@ extern gboolean on_drawingarea_magic_map_expose_event(GtkWidget *widget, GdkEven
 extern void on_disconnect_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data);
+extern void enable_menu_items(int enable);
 /* metaserver.c */
 extern gboolean metaserver_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern char *get_metaserver(void);
@@ -112,7 +115,9 @@ extern void on_metaserver_select_clicked(GtkButton *button, gpointer user_data);
 extern void on_treeview_metaserver_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
 extern void on_metaserver_text_entry_activate(GtkEntry *entry, gpointer user_data);
 extern void on_button_metaserver_quit_pressed(GtkButton *button, gpointer user_data);
+extern gboolean on_metaserver_text_entry_key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 /* opengl.c */
+extern void init_glx_opengl(GtkWidget *drawingarea);
 extern void init_opengl(GtkWidget *drawingarea);
 extern void opengl_gen_map(int redraw);
 extern void create_opengl_map_image(uint8 *data, PixmapInfo *pi);
@@ -177,7 +182,7 @@ extern void on_spell_invoke_clicked(GtkButton *button, gpointer user_data);
 extern void on_spell_close_clicked(GtkButton *button, gpointer user_data);
 /* stats.c */
 extern void stats_init(GtkWidget *window_root);
-extern void update_stat(int stat_no, int max_stat, int current_stat, const char *name);
+extern void update_stat(int stat_no, int max_stat, int current_stat, const char *name, int can_alert);
 extern void draw_message_window(int redraw);
 extern void draw_stats(int redraw);
 extern void clear_stat_mapping(void);

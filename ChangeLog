@@ -2,6 +2,24 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Add ability for client to get exp table from server.  Add exp progressbar
+to GTK2 client.
+--
+common/client.c: Add declarations for exp_table, exp_table_max, and call to
+  send 'requestinfo exp_table' to server.
+common/client.h: Add extern declarations for exp_table, exp_table_max
+common/commands.c: Add get_exp_info() function to get exp table from 
+  server in replyinfo command.  Fix crash bug in ReplyInfoCmd() if replyinfo
+  with no parameters is sent to client.
+common/init.c: Add code to clear/initialize exp_table, exp_table_max
+gtk-v2/gtk-v2.glade: Add exp progessbar widget.
+gtk-v2/src/gtk2proto.h: rebuilt
+gtk-v2/src/interface.c: Rebuilt
+gtk-v2/src/stats.c: Add code to draw/update the exp progressbar.  Replace
+   some static numeric constants with #define values instead.  Add
+   can_alert option to update_stat()
+MSW 2006-11-03
+
 common/newclient.h: Merge/copy over file from server to get it synced up.
 gtk-v2/src/info.c: Modify so that it sets the text manager for all the
   types so it can use extended markup language.

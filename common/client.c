@@ -69,6 +69,9 @@ int meta_port=META_PORT, want_skill_exp=0,
     maxfd,map1cmd=0,metaserver_on=METASERVER;
 uint32	tick=0;
 
+uint16	exp_table_max=0;
+uint64	*exp_table=NULL;
+
 FILE *fpin,*fpout;
 Client_Player cpl;
 ClientSocket csocket;
@@ -367,6 +370,9 @@ void negotiate_connection(int sound)
 	    sound>=0, want_skill_exp,
 		    want_config[CONFIG_LIGHTING]?1:0, face_info.faceset,
 		    want_config[CONFIG_CACHE]);
+
+    /* We can do this right now also - isn't any reason to wait */
+    cs_print_string(csocket.fd,"requestinfo exp_table");
 
     use_config[CONFIG_MAPHEIGHT]=want_config[CONFIG_MAPHEIGHT];
     use_config[CONFIG_MAPWIDTH]=want_config[CONFIG_MAPWIDTH];

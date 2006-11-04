@@ -110,6 +110,12 @@ void init_client_vars()
 	client_libdir=CLIENT_LIBDIR;
 #endif
 
+    if (exp_table) {
+	free(exp_table);
+	exp_table=NULL;
+    }
+    exp_table_max=0;
+
     cpl.count_left = 0;
     cpl.container = NULL;
     memset(&cpl.stats,0, sizeof(Stats));
