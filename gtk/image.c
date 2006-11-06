@@ -309,8 +309,12 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
      *  maybe, but it uses graphical resources, and takes time (don't laugh, some people use
      *   slow old comps! :p)
      *  Ryo 2005-09-05
+     *
+     * Maybe, but only if were using PIXMAP mode - otherwise, SDL doesn't know how to
+     * draw GDK pixmaps.
+     * MSW 2006-11-05							
      */
-    if (iscale == use_config[CONFIG_MAPSCALE]) {
+    if (iscale == use_config[CONFIG_MAPSCALE] && use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
         pi->map_height = pi->icon_height;
         pi->map_width = pi->icon_width;
         pi->map_mask = pi->icon_mask;

@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk/image.c: Fix bug that results in SDL mode not working if map_scale and
+  icon_scale are the same - can't use GDK pixmaps for SDL drawing.
+MSW 2006-11-05
+
 Fix bug 1559804 - unable to drop items from inventory into open container
 on the ground.
 gtk-v2/src/inventory.c: Add check to see if container is on the ground in
