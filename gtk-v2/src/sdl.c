@@ -877,12 +877,40 @@ static void display_mapcell(int ax, int ay, int mx, int my)
             /* draw big faces last (should overlap other objects) */
             face = mapdata_bigface(ax, ay, layer, &sx, &sy);
             if (face > 0 && pixmaps[face]->map_image != NULL) {
-                src.x = sx*map_image_size;
-                src.y = sy*map_image_size;
-                src.w = map_image_size;
-                src.h = map_image_size;
-                dst.x = ax*map_image_size;
-                dst.y = ay*map_image_size;
+		/* We have to handle images that are not an equal
+		 * multiplier of map_image_size.  See
+		 * display_mapcell() in gtk-v2/src/map.c for
+		 * more details on this logic, since it is basically
+		 * the same.
+		 */
+		int dx, dy, sourcex, sourcey, offx, offy;
+
+                dx = pixmaps[face]->map_width % map_image_size;
+                offx = dx?(map_image_size -dx):0;
+
+                if (sx) {
+                    sourcex = sx * map_image_size - offx ;
+                    offx=0;
+		} else {
+                    sourcex=0;
+		}
+
+                dy = pixmaps[face]->map_height % map_image_size;
+                offy = dy?(map_image_size -dy):0;
+
+                if (sy) {
+                    sourcey = sy * map_image_size - offy;
+                    offy=0;
+		} else {
+                    sourcey=0;
+		}
+
+                src.x = sourcex;
+                src.y = sourcey;
+                src.w = map_image_size - offx;
+                src.h = map_image_size - offy;
+                dst.x = ax*map_image_size + offx;
+                dst.y = ay*map_image_size + offy;
                 if (the_map.cells[mx][my].cleared) {
                     if (SDL_BlitSurface(pixmaps[face]->fog_image, &src, mapsurface, &dst))
                         do_SDL_error( "BlitSurface", __FILE__, __LINE__);

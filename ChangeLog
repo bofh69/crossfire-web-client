@@ -2,6 +2,21 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix problem in display logic when the size of the image was not a multiple
+of the map_image_size.  This shows up when using tall character images.
+It also shows up when using different -mapscale options due to rounding
+errors - in both cases now, things are drawn correctly.
+--
+gtk/map.c: Add size parameters to draw_pixmap().  Add logic to figure out 
+  proper offsets for drawing odd sized images.
+gtk/sdl.c: Add logic to figure out proper offsets for drawing these odd
+  sized images.
+gtk-v2/src//map.c: Add size parameters to draw_pixmap().  Add logic to figure
+  out proper offsets for drawing odd sized images.
+gtk-v2/src/sdl.c: Add logic to figure out proper offsets for drawing these
+  odd sized images.
+MSW 2006-11-05
+
 gtk/image.c: Fix bug that results in SDL mode not working if map_scale and
   icon_scale are the same - can't use GDK pixmaps for SDL drawing.
 MSW 2006-11-05

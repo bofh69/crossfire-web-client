@@ -171,12 +171,13 @@ void reset_map()
     cs_print_string(csocket.fd, "mapredraw");
     }
 
-static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int clipy, void *mask, void *image)
-	{
+static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int clipy, 
+			void *mask, void *image, int sizex, int sizey)
+{
     gdk_gc_set_clip_mask(mapgc, mask);
     gdk_gc_set_clip_origin(mapgc, clipx, clipy);
-    gdk_draw_pixmap(map_drawing_area->window, mapgc, image, srcx, srcy, dstx, dsty, map_image_size, map_image_size);
-    }
+    gdk_draw_pixmap(map_drawing_area->window, mapgc, image, srcx, srcy, dstx, dsty, sizex, sizey);
+}
 
 int display_mapscroll(int dx, int dy)
 {
@@ -293,14 +294,14 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
 		weight*map_image_size, 0,
 		picx, picy,
 		picx-weight*map_image_size, picy,
-		pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image);
+		pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image, map_image_size, map_image_size);
         }
         if (weightC>0){
 	    draw_pixmap(
 		weightC*map_image_size, map_image_size,
 		picx, picy,
 		picx-weightC*map_image_size, picy-map_image_size,
-		pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image);
+		pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image, map_image_size, map_image_size);
         }
     }/*while there's some smooth to do*/
 }
@@ -328,8 +329,7 @@ static void display_mapcell(int ax, int ay, int mx, int my)
 		    w-map_image_size, h-map_image_size,
 		    ax*map_image_size, ay*map_image_size,
 		    ax*map_image_size+map_image_size-w, ay*map_image_size+map_image_size-h,
-		    pixmaps[face]->map_mask, pixmaps[face]->map_image);
-
+		    pixmaps[face]->map_mask, pixmaps[face]->map_image, map_image_size, map_image_size);
 		if ( use_config[CONFIG_SMOOTH])
 		    drawsmooth(mx, my, layer, ax*map_image_size, ay*map_image_size);
 	    }
@@ -343,12 +343,55 @@ static void display_mapcell(int ax, int ay, int mx, int my)
 
 	    /* draw big faces last (should overlap other objects) */
 	    face = mapdata_bigface(ax, ay, layer, &sx, &sy);
+
 	    if (face > 0 && pixmaps[face]->map_image != NULL) {
+		/* This is pretty messy, because images are not required to be
+		 * an integral multiplier of the image size.  There
+		 * are really 4 main variables:
+		 * source[xy]: From where within the pixmap to start grabbing pixels.
+		 * off[xy]: Offset from space edge on the visible map to start drawing pixels.
+		 *   off[xy] also determines how many pixels to draw (map_image_size - off[xy])
+		 * clip[xy]: Position of the clipmask.  The position of the clipmask is always
+		 *   at the upper left of the image as we drawn it on the map, so for any
+		 *   given big image, it will have the same values for all the pieces.  However
+		 *   we need to re-construct that location based on current location.
+		 *
+		 * For a 32x72 image, it would be drawn like follows:
+		 *		    sourcey	    offy
+		 * top space:	    0		    24
+		 * middle space:    8		    0
+		 * bottom space:    40		    0
+		 */
+		int dx, dy, sourcex, sourcey, offx, offy, clipx, clipy;
+
+		dx = pixmaps[face]->map_width % map_image_size;
+		offx = dx?(map_image_size -dx):0;
+		clipx = (ax - sx)*map_image_size + offx;
+
+		if (sx) {
+		    sourcex = sx * map_image_size - offx ;
+		    offx=0;
+		} else {
+		    sourcex=0;
+		}
+
+		dy = pixmaps[face]->map_height % map_image_size;
+		offy = dy?(map_image_size -dy):0;
+		clipy = (ay - sy)*map_image_size + offy;
+
+		if (sy) {
+		    sourcey = sy * map_image_size - offy;
+		    offy=0;
+		} else {
+		    sourcey=0;
+		}
+
 		draw_pixmap(
-		    sx*map_image_size, sy*map_image_size,
-		    ax*map_image_size, ay*map_image_size,
-		    (ax-sx)*map_image_size, (ay-sy)*map_image_size,
-		    pixmaps[face]->map_mask, pixmaps[face]->map_image);
+		    sourcex,  sourcey,
+		    ax*map_image_size+offx, ay*map_image_size + offy,
+		    clipx, clipy,
+		    pixmaps[face]->map_mask, pixmaps[face]->map_image,
+		    map_image_size - offx, map_image_size - offy);
 	    }
 	} /* else for processing the layers */
     }
@@ -358,18 +401,18 @@ static void display_mapcell(int ax, int ay, int mx, int my)
      * fog cell.
      */
     if (use_config[CONFIG_FOGWAR] && the_map.cells[mx][my].cleared) {
-	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark1, dark);
+	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark1, dark, map_image_size, map_image_size);
     }
     else if (the_map.cells[mx][my].darkness > 192) { /* Full dark */
 	gdk_draw_rectangle (map_drawing_area->window, map_drawing_area->style->black_gc,
 	    TRUE,map_image_size*ax, map_image_size*ay,
 	    map_image_size, map_image_size);
     } else if (the_map.cells[mx][my].darkness> 128) {
-	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark1, dark);
+	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark1, dark, map_image_size, map_image_size);
     } else if (the_map.cells[mx][my].darkness> 64) {
-	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark2, dark);
+	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark2, dark, map_image_size, map_image_size);
     } else if (the_map.cells[mx][my].darkness> 1) {
-	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark3, dark);
+	draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark3, dark, map_image_size, map_image_size);
     }
 }
 
