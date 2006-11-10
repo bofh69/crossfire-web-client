@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+common/Makefile.am: Change svnversion.h generation to not update the file
+   unless it needs updating.
+Alex Schultz 2006-11-09
+
 Fix problem in display logic when the size of the image was not a multiple
 of the map_image_size.  This shows up when using tall character images.
 It also shows up when using different -mapscale options due to rounding
@@ -11,7 +15,7 @@ gtk/map.c: Add size parameters to draw_pixmap().  Add logic to figure out
   proper offsets for drawing odd sized images.
 gtk/sdl.c: Add logic to figure out proper offsets for drawing these odd
   sized images.
-gtk-v2/src//map.c: Add size parameters to draw_pixmap().  Add logic to figure
+gtk-v2/src/map.c: Add size parameters to draw_pixmap().  Add logic to figure
   out proper offsets for drawing odd sized images.
 gtk-v2/src/sdl.c: Add logic to figure out proper offsets for drawing these
   odd sized images.

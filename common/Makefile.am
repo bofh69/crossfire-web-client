@@ -73,11 +73,12 @@ def-keys.h: def-keys
 	../utils/mdk.sh
 
 svnversion.h: FORCE
-	echo '/* Auto-generated at build time. */' > svnversion.h
-	if (test -n "$(SVNVERSION)" || test -f .svn); then \
-                echo -n '#define SVN_REV "' >> svnversion.h; \
-        	$(SVNVERSION) -n >> svnversion.h; \
-                echo '"' >> svnversion.h;\
-	fi
-
+	OUTPUT_DATA='/* Auto-generated at build time. */'; \
+	if (test -n "$(SVNVERSION)" && test -d .svn); then \
+		OUTPUT_DATA=`echo "$$OUTPUT_DATA"; echo -n '#define SVN_REV "'; $(SVNVERSION) -n`'"'; \
+	fi; \
+	if (test "$$OUTPUT_DATA" != "`cat svnversion.h`"); then \
+		echo "$$OUTPUT_DATA" > svnversion.h; \
+	fi; \
+        
 FORCE:        
