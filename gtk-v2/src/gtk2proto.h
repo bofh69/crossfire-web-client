@@ -142,6 +142,8 @@ extern void on_menu_magical_items_activate(GtkMenuItem *menuitem, gpointer user_
 extern void on_menu_potions_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_valuables_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_wands_rods_horns_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void on_menu_jewels_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void on_menu_flesh_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_not_cursed_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_all_weapons_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_missile_weapons_activate(GtkMenuItem *menuitem, gpointer user_data);

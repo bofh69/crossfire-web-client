@@ -310,6 +310,16 @@
 		      </child>
 
 		      <child>
+			<widget class="GtkCheckMenuItem" id="flesh1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Flesh</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_flesh_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
 			<widget class="GtkCheckMenuItem" id="keys1">
 			  <property name="visible">True</property>
 			  <property name="label" translatable="yes">Keys</property>
@@ -356,6 +366,16 @@
 			  <property name="use_underline">True</property>
 			  <property name="active">False</property>
 			  <signal name="activate" handler="on_menu_wands_rods_horns_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckMenuItem" id="jewels1">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Jewels</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">False</property>
+			  <signal name="activate" handler="on_menu_jewels_activate" last_modification_time="Sun, 17 Apr 2005 05:34:34 GMT"/>
 			</widget>
 		      </child>
 

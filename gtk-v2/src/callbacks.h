@@ -92,6 +92,13 @@ on_menu_wands_rods_horns_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_menu_jewels_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+void
+on_menu_flesh_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
 on_menu_all_weapons_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 

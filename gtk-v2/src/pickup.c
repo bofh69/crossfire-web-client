@@ -81,6 +81,8 @@ char *rcsid_gtk_pickup_c =
 #define PU_MAGIC_DEVICE		0x00800000
 
 #define PU_NOT_CURSED		0x01000000
+#define PU_JEWELS		0x02000000
+#define PU_FLESH		0x04000000
 
 static unsigned int pmode=0;
 
@@ -264,6 +266,22 @@ on_menu_not_cursed_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_NOT_CURSED);
+
+}
+
+void
+on_menu_jewels_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_JEWELS);
+
+}
+
+void
+on_menu_flesh_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_FLESH);
 
 }
 

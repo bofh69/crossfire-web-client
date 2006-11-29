@@ -65,11 +65,13 @@ create_window_root (void)
   GtkWidget *spellbooks1;
   GtkWidget *drinks1;
   GtkWidget *food1;
+  GtkWidget *flesh1;
   GtkWidget *keys1;
   GtkWidget *magical_items;
   GtkWidget *potions;
   GtkWidget *valuables;
   GtkWidget *wands_rods_horns;
+  GtkWidget *jewels1;
   GtkWidget *weapons1;
   GtkWidget *weapons1_menu;
   GtkWidget *all_weapons;
@@ -329,6 +331,10 @@ create_window_root (void)
   gtk_widget_show (food1);
   gtk_container_add (GTK_CONTAINER (pickup1_menu), food1);
 
+  flesh1 = gtk_check_menu_item_new_with_mnemonic (_("Flesh"));
+  gtk_widget_show (flesh1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), flesh1);
+
   keys1 = gtk_check_menu_item_new_with_mnemonic (_("Keys"));
   gtk_widget_show (keys1);
   gtk_container_add (GTK_CONTAINER (pickup1_menu), keys1);
@@ -348,6 +354,10 @@ create_window_root (void)
   wands_rods_horns = gtk_check_menu_item_new_with_mnemonic (_("Wands/Rods/Horns"));
   gtk_widget_show (wands_rods_horns);
   gtk_container_add (GTK_CONTAINER (pickup1_menu), wands_rods_horns);
+
+  jewels1 = gtk_check_menu_item_new_with_mnemonic (_("Jewels"));
+  gtk_widget_show (jewels1);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), jewels1);
 
   weapons1 = gtk_menu_item_new_with_mnemonic (_("Weapons"));
   gtk_widget_show (weapons1);
@@ -967,6 +977,9 @@ create_window_root (void)
   g_signal_connect ((gpointer) food1, "activate",
                     G_CALLBACK (on_menu_food_activate),
                     NULL);
+  g_signal_connect ((gpointer) flesh1, "activate",
+                    G_CALLBACK (on_menu_flesh_activate),
+                    NULL);
   g_signal_connect ((gpointer) keys1, "activate",
                     G_CALLBACK (on_menu_keys_activate),
                     NULL);
@@ -981,6 +994,9 @@ create_window_root (void)
                     NULL);
   g_signal_connect ((gpointer) wands_rods_horns, "activate",
                     G_CALLBACK (on_menu_wands_rods_horns_activate),
+                    NULL);
+  g_signal_connect ((gpointer) jewels1, "activate",
+                    G_CALLBACK (on_menu_jewels_activate),
                     NULL);
   g_signal_connect ((gpointer) all_weapons, "activate",
                     G_CALLBACK (on_menu_all_weapons_activate),
@@ -1092,11 +1108,13 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, spellbooks1, "spellbooks1");
   GLADE_HOOKUP_OBJECT (window_root, drinks1, "drinks1");
   GLADE_HOOKUP_OBJECT (window_root, food1, "food1");
+  GLADE_HOOKUP_OBJECT (window_root, flesh1, "flesh1");
   GLADE_HOOKUP_OBJECT (window_root, keys1, "keys1");
   GLADE_HOOKUP_OBJECT (window_root, magical_items, "magical_items");
   GLADE_HOOKUP_OBJECT (window_root, potions, "potions");
   GLADE_HOOKUP_OBJECT (window_root, valuables, "valuables");
   GLADE_HOOKUP_OBJECT (window_root, wands_rods_horns, "wands_rods_horns");
+  GLADE_HOOKUP_OBJECT (window_root, jewels1, "jewels1");
   GLADE_HOOKUP_OBJECT (window_root, weapons1, "weapons1");
   GLADE_HOOKUP_OBJECT (window_root, weapons1_menu, "weapons1_menu");
   GLADE_HOOKUP_OBJECT (window_root, all_weapons, "all_weapons");

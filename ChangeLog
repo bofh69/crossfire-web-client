@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Merge patch #1558073: newpickup flesh courtesy bencha
+ gtk/gx11.c
+ gtk-v2/gtk-v2.glade
+ gtk-v2/src/callbacks.h gtk2proto.h interface.c pickup.c
+Ryo 2006-11-29
+
 common/Makefile.am: Change svnversion.h generation to not update the file
    unless it needs updating.
 Alex Schultz 2006-11-09
