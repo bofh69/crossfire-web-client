@@ -79,6 +79,6 @@ svnversion.h: FORCE
 	fi; \
 	if (test "$$OUTPUT_DATA" != "`cat svnversion.h`"); then \
 		echo "$$OUTPUT_DATA" > svnversion.h; \
-	fi; \
-        
+	fi
+
 FORCE:        
