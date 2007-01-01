@@ -553,11 +553,13 @@ void gtk_complete_command(void)
     newcommand = complete_command(entry_text);
     /* value differ, so update window */
     if (newcommand != NULL) {
-	gtk_entry_set_text(GTK_ENTRY(entrytext), newcommand);
-	gtk_entry_set_position(GTK_ENTRY(entrytext), strlen(newcommand));
-	/* regrab focus, since we've just updated this */
-	gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+        /* Set position to last character */
+        gtk_entry_set_text(GTK_ENTRY(entrytext), newcommand);
     }
+    else
+    /* grab focus anyway, key can be used somewhere, prevent other handlers */
+        gtk_widget_grab_focus (GTK_WIDGET(entrytext));
+    gtk_entry_set_position(GTK_ENTRY(entrytext), -1);
 }
 
 

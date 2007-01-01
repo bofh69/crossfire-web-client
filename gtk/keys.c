@@ -1023,7 +1023,10 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     if (event->keyval<=0) return;
 
     if (GTK_WIDGET_HAS_FOCUS (entrytext) /*|| GTK_WIDGET_HAS_FOCUS(counttext)*/) {
-	if (event->keyval == completekeysym) gtk_complete_command();
+	if (event->keyval == completekeysym) {
+        gtk_complete_command();
+        return;
+    }
 	if (event->keyval == prevkeysym || event->keyval == nextkeysym)
 	    gtk_command_history(event->keyval==nextkeysym?0:1);
 #ifdef CFGTK2

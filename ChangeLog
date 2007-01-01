@@ -2,6 +2,12 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Improve command completion: display matching commands.
+ common/p_cmd.c
+Fix bug with autocompletion: don't change focus, don't select text.
+ gtk/gx11.c keys.c
+Ryo 2007-01-01
+
 Merge patch #1558073: newpickup flesh courtesy bencha
  gtk/gx11.c
  gtk-v2/gtk-v2.glade
