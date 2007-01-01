@@ -992,14 +992,18 @@ static const char *const commands[] = {
 
 const char * complete_command(const char *command)
 {
-    int i, len;
+    int i, len, display;
     const char *match;
     static char result[64];
+    char list[500];
 
     len = strlen(command);
 
     if (len == 0)
-	return NULL;
+        return NULL;
+
+    display = 0;
+    strcpy(list, "Matching commands:");
 
     /* TODO Partial match, e.g.:
          If the completion list was:
@@ -1007,7 +1011,7 @@ const char * complete_command(const char *command)
            wet #?
 
          If we type 'w' then hit tab, put in the e.
-    
+
        Basically part of bash (readline?)'s behaviour.
     */
 
@@ -1015,29 +1019,39 @@ const char * complete_command(const char *command)
 
     /* check server side commands */
     for (i=0; i<NUM_COMMANDS; i++) {
-	if (!strncmp(command, commands[i], len)) {
-            if (match != NULL) {
-                /* The current prefix is ambiguous; leave it as is. */
-                return NULL;
-            }
-
-	    match = commands[i];
-	}
+        if (!strncmp(command, commands[i], len)) {
+            if (display) {
+                snprintf(list + strlen(list), 499 - strlen(list), " %s", commands[i]);
+            } else if (match != NULL) {
+                display = 1;
+                snprintf(list + strlen(list), 499 - strlen(list), " %s %s", match, commands[i]);
+                match = NULL;
+            } else
+                match = commands[i];
+        }
     }
 
     /* check client side commands */
     for (i=0; i<CommonCommandsSize; i++) {
-	if (!strncmp(command, CommonCommands[i].name, len)) {
-            if (match != NULL) {
-                /* The current prefix is ambiguous; leave it as is. */
-                return NULL;
-            }
-
-	    match = CommonCommands[i].name;
-	}
+        if (!strncmp(command, CommonCommands[i].name, len)) {
+            if (display) {
+                snprintf(list + strlen(list), 499 - strlen(list), " %s", CommonCommands[i].name);
+            } else if (match != NULL) {
+                display = 1;
+                snprintf(list + strlen(list), 499 - strlen(list), " %s %s", match, CommonCommands[i].name);
+                match = NULL;
+            } else
+                match = CommonCommands[i].name;
+        }
     }
 
     if (match == NULL) {
+        if (display) {
+            strncat(list, "\n", 499 - strlen(list));
+            draw_info(list, NDI_BLACK);
+        }
+        else
+            draw_info("No matching command.\n", NDI_BLACK);
         /* No match. */
         return NULL;
     }
