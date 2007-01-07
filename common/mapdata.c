@@ -65,11 +65,6 @@ do { \
  */
 #define MAX_FACE_SIZE 16
 
-/**
- * Maximum size of view area a server could support.
- */
-#define MAX_VIEW 64
-
 /* Max it can currently be.  Important right now because
  * animation has to look at everything that may be viewable,
  * and reducing this size basically reduces processing it needs

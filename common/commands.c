@@ -70,6 +70,7 @@ int mapupdatesent = 0;
 #endif
 #include <client.h>
 #include <external.h>
+#include <assert.h>
 
 #include "mapdata.h"
 
@@ -1183,6 +1184,24 @@ void Map2Cmd(unsigned char *data, int len) {
             continue;
         }
 
+        if (x<0) {
+            LOG(LOG_WARNING, "commands.c::Map2Cmd", "got negative x!");
+            x = 0;
+        } else if (x >= MAX_VIEW) {
+            LOG(LOG_WARNING, "commands.c::Map2Cmd", "got x >= MAX_VIEW!");
+            x = MAX_VIEW - 1;
+        }
+
+        if (y<0) {
+            LOG(LOG_WARNING, "commands.c::Map2Cmd", "got negative y!");
+            y = 0;
+        } else if (y >= MAX_VIEW) {
+            LOG(LOG_WARNING, "commands.c::Map2Cmd", "got y >= MAX_VIEW!");
+            y = MAX_VIEW - 1;
+        }
+
+        assert(0 <= x && x < MAX_VIEW);
+        assert(0 <= y && y < MAX_VIEW);
         /* Clear the old cell data if needed. Used to be done in
          * mapdata_set_face_layer() however that caused darkness to only
          * work if sent after the layers.
@@ -1212,6 +1231,15 @@ void Map2Cmd(unsigned char *data, int len) {
 
                 /* This is face information for a layer. */
                 layer = type&0xf;
+
+                if (layer < 0) {
+                    LOG(LOG_WARNING, "commands.c::Map2Cmd", "got negative layer!");
+                    layer = 0;
+                } else if (layer >= MAXLAYERS) {
+                    LOG(LOG_WARNING, "commands.c::Map2Cmd", "got layer >= MAXLAYERS!");
+                    layer = MAXLAYERS - 1;
+                }
+                assert(0 <= layer && layer < MAXLAYERS);
 
                 /* This is the face */
                 value = GetShort_String(data+pos); pos += 2;

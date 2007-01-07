@@ -2,6 +2,13 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix for bug #1538948: Assertion failure for map2 command.
+Add checks for x,y and layer validity in the Map2Cmd.
+Note that invalid values are not discarded, but clipped to valid ones.
+ common/commands.c: add checks.
+ common/mapdata.[ch]: move #define to header for access outside .c.
+Ryo 2007-01-07
+
 Improve command completion: display matching commands.
  common/p_cmd.c
 Fix bug with autocompletion: don't change focus, don't select text.

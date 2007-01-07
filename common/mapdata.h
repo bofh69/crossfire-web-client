@@ -31,6 +31,11 @@
  */
 #define MAXLAYERS 10
 
+/**
+ * Maximum size of view area a server could support.
+ */
+#define MAX_VIEW 64
+
 /* Map1 only used 3 layers.  Trying to use 10 seems to cause
  * problems for that code.
  */
