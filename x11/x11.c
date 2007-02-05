@@ -91,7 +91,7 @@ const char *rcsid_x11_x11_c =
 #include <errno.h>
 
 #if defined(__pyrsoft)
-#define _Xconst 
+#define _Xconst
 #endif
 
 /* All the following are static because these variables should
@@ -243,7 +243,7 @@ static float info_ratio=0;
 
 enum {
     no_icon = 0, locked_icon, applied_icon, unpaid_icon,
-    damned_icon, cursed_icon, magic_icon, close_icon, 
+    damned_icon, cursed_icon, magic_icon, close_icon,
     stipple1_icon, stipple2_icon, max_icons
 };
 static Pixmap icons[max_icons];
@@ -251,7 +251,7 @@ static Pixmap icons[max_icons];
 static Pixmap icon,xpm_pixmap,xpm_masks[XPMGCS], dark1, dark2, dark3;
 static GC gc_root,gc_stats,gc_message,
 	gc_floor,gc_xpm_object,gc_clear_xpm,gc_xpm[XPMGCS],
-	gc_blank; 
+	gc_blank;
 GC gc_game;
 static GC gc_copy;		/* used for copying when scrolling map view */
 
@@ -431,7 +431,7 @@ void end_windows()
 static int get_game_display(void) {
     XSizeHints gamehint;
     int i;
-   
+
     gamehint.x=INV_WIDTH + WINDOW_SPACING;
     gamehint.y=STAT_HEIGHT + WINDOW_SPACING;
 
@@ -561,7 +561,7 @@ static void delete_ch(void) {
       strlen(infodata.data[infodata.infopos].info)<3) {
         int line=infodata.infopos-1;
         if (line<0) line=infodata.numlines;
-        strcpy(infodata.data[infodata.infopos].info, 
+        strcpy(infodata.data[infodata.infopos].info,
 	       infodata.data[line].info);
         infodata.data[infodata.infopos].info[
 	    strlen(infodata.data[infodata.infopos].info)-1]=0;
@@ -592,7 +592,7 @@ void write_ch(char key)
     if (key==13) {
         /* We turn off command mode for the draw_info call, because
          * it has special handling for normal output during command
-         * mode; but we do this manually now. 
+         * mode; but we do this manually now.
 	 */
         Input_State old_state = cpl.input_state;
         cpl.input_state = Playing;
@@ -644,18 +644,18 @@ void write_ch(char key)
 
 	strcat(cpl.input_text,c2);
     }
-    
+
     if(strlen(infodata.data[infodata.infopos].info)>=(infodata.info_chars-2)) {
         /* Draw the currently line and scroll down one */
 
         /* We turn off command mode for the draw_info call, because
          * it has special handling for normal output during command
-         * mode; but we do this manually now. 
+         * mode; but we do this manually now.
 	 */
         cpl.input_state = Playing;
 	draw_info(infodata.data[infodata.infopos].info,NDI_BLACK);
         cpl.input_state = Command_Mode;
-	infodata.data[infodata.infopos].info[0]=(((strlen(cpl.input_text)/ 
+	infodata.data[infodata.infopos].info[0]=(((strlen(cpl.input_text)/
 	    infodata.info_chars))%10)+49;
         infodata.data[infodata.infopos].info[1]='>';
 	infodata.data[infodata.infopos].info[2]=0;
@@ -731,13 +731,13 @@ static void draw_info_scrollbar(int redraw)
       XSetForeground(display,infodata.gc_info,discolor[NDI_BLACK].pixel);
       infodata.lastcolor=NDI_BLACK;
     }
-	
+
     XDrawRectangle(display, infodata.win_info,
 	infodata.gc_info, infodata.width-SCROLLBAR_WIDTH-6,
 		   3, 20,
 		   infodata.height -6);
-    XClearArea(display, infodata.win_info, 
-		   infodata.width-SCROLLBAR_WIDTH-4, 4, 16, 
+    XClearArea(display, infodata.win_info,
+		   infodata.width-SCROLLBAR_WIDTH-4, 4, 16,
 		   infodata.bar_length, False);
 
     XFillRectangle(display, infodata.win_info, infodata.gc_info,
@@ -802,7 +802,7 @@ void draw_info(const char *str, int color) {
 	    return;
 	}
   }
-  
+
   /* This is the real code here - stuff above is just formating and making
    * it look nice.  This stuff here is actually drawing the code
    */
@@ -815,7 +815,7 @@ void draw_info(const char *str, int color) {
       strcpy(infodata.data[new_infopos].info, infodata.data[infodata.infopos].info);
   }
   infodata.data[new_infopos].info[infodata.info_chars] = '\0';
-  
+
   len = MIN(strlen(str), infodata.info_chars);
   memmove(infodata.data[infodata.infopos].info, str, len);
   infodata.data[infodata.infopos].info[len] = '\0';
@@ -859,7 +859,7 @@ void draw_info(const char *str, int color) {
       XSetForeground(display,infodata.gc_info,discolor[color].pixel);
       infodata.lastcolor=color;
     }
-  
+
     XDrawImageString(display,infodata.win_info,
       infodata.gc_info,FONTWIDTH,(infodata.infoline+1)*FONTHEIGHT,
       infodata.data[infodata.infopos].info,
@@ -905,13 +905,13 @@ void draw_info(const char *str, int color) {
   /* If in a reply state, grab the input buffer and store it.
    */
   if (cpl.input_state==Reply_Many) {
-    strncpy(infodata.data[infodata.infopos].info, cpl.input_text, 
+    strncpy(infodata.data[infodata.infopos].info, cpl.input_text,
 	    infodata.info_chars);
     infodata.data[infodata.infopos].info[infodata.info_chars] = '\0';
-     
+
     XDrawImageString(display,infodata.win_info,infodata.gc_info,
 	FONTWIDTH,(infodata.infoline+1)*FONTHEIGHT,
-	infodata.data[infodata.infopos].info, 
+	infodata.data[infodata.infopos].info,
 	strlen(infodata.data[infodata.infopos].info));
   }
   /* We should have some intelligent checks so it is not drawn unnecessarily */
@@ -950,7 +950,7 @@ static void draw_all_info(void) {
 	if (infodata.bar_pos>=infodata.numlines) {
 		displine=(infodata.infoline+1) % infodata.maxdisp;
 		/* So that when we now that we have scrolled back */
-		
+
 	}
 	else infodata.infoline=infodata.maxdisp-1;
      }
@@ -1024,7 +1024,7 @@ static void resize_win_info(int width, int height) {
     if (chars == infodata.info_chars && lines == infodata.maxdisp) {
 	draw_all_info();
 	return;
-    }	
+    }
 
     /* Either we have a scrollbar (as above), or the window has not
      * changed in height, so we just need to change the size of the
@@ -1172,10 +1172,10 @@ void draw_stats(int redraw) {
 	last_stats.level = cpl.stats.level;
       }
 
-    if(redraw || 
+    if(redraw ||
        cpl.stats.hp!=last_stats.hp || cpl.stats.maxhp!=last_stats.maxhp ||
        cpl.stats.sp!=last_stats.sp || cpl.stats.maxsp!=last_stats.maxsp ||
-       cpl.stats.grace!=last_stats.grace || 
+       cpl.stats.grace!=last_stats.grace ||
        cpl.stats.maxgrace!=last_stats.maxgrace) {
 
 	sprintf(buff,"Hp %d/%d  Sp %d/%d Gr %d/%d",
@@ -1312,7 +1312,7 @@ void draw_stats(int redraw) {
 	    }
 	    on_skill++;
 	}
-	if (*buff) 
+	if (*buff)
 	    XDrawImageString(display,win_stats,gc_stats,10,
 			108 + (14 * (on_skill / 2)), buff,strlen(buff));
     }
@@ -1424,7 +1424,7 @@ void draw_message_window(int redraw) {
 	bar = MAX_BARS_MESSAGE;
     else
 	bar=(cpl.stats.sp*MAX_BARS_MESSAGE)/cpl.stats.maxsp;
-    if(bar<0) 
+    if(bar<0)
 	bar=0;
 
     is_alert=(cpl.stats.sp <= cpl.stats.maxsp/4);
@@ -1440,7 +1440,7 @@ void draw_message_window(int redraw) {
 	bar = MAX_BARS_MESSAGE;
     else
 	bar=(cpl.stats.grace*MAX_BARS_MESSAGE)/cpl.stats.maxgrace;
-    if(bar<0) 
+    if(bar<0)
 	bar=0;
 
     is_alert=(cpl.stats.grace <= cpl.stats.maxgrace/4);
@@ -1450,10 +1450,10 @@ void draw_message_window(int redraw) {
 
     scrollsize_grace=bar;
     scrollgrace_alert=is_alert;
-  
+
     /* draw food bar */
     bar=(cpl.stats.food*MAX_BARS_MESSAGE)/999;
-    if(bar<0) 
+    if(bar<0)
 	bar=0;
     is_alert=(cpl.stats.food <= 999/4);
 
@@ -1508,7 +1508,7 @@ void draw_message_window(int redraw) {
 	} /* For loop of resistances */
     } /* If we need to draw the resistances */
 }
-    
+
 
 static void draw_all_message(void) {
 
@@ -1671,10 +1671,10 @@ static void draw_list (itemlist *l)
 		l->weight_limit/1000);
 
     if (strcmp (buf, l->old_title)) {
-	XCopyPlane(display, icons[l->env->open ? close_icon : no_icon], 
+	XCopyPlane(display, icons[l->env->open ? close_icon : no_icon],
 			    l->win, l->gc_status, 0,0, image_size,13, 2,2, 1);
 	strcpy (l->old_title, buf);
-	XDrawImageString(display, l->win, l->gc_text, 
+	XDrawImageString(display, l->win, l->gc_text,
 			 (l->show_icon ? image_size+24+4 : image_size+4),
 			 13, buf, strlen(buf));
     }
@@ -1699,7 +1699,7 @@ static void draw_list (itemlist *l)
 	/* draw face */
 	if(l->faces[i] != tmp->face) {
 	    l->faces[i] = tmp->face;
-	    XClearArea(display, l->win, 4, 16 + image_size * i, 
+	    XClearArea(display, l->win, 4, 16 + image_size * i,
 		       image_size, image_size, False);
 	    gen_draw_face (l->win, tmp->face,4, 16 + image_size * i, 0, 0);
 	}
@@ -1722,7 +1722,7 @@ static void draw_list (itemlist *l)
 		l->icon3[i] = tmp_icon;
 		draw_status_icon (l, image_size+4, 28 + image_size * i, tmp_icon);
 	    }
-	    tmp_icon = tmp->damned ? damned_icon : 
+	    tmp_icon = tmp->damned ? damned_icon :
 		       tmp->cursed ? cursed_icon : no_icon;
 	    if (l->icon4[i] != tmp_icon) {
 		l->icon4[i] = tmp_icon;
@@ -1736,12 +1736,12 @@ static void draw_list (itemlist *l)
 
 	if(tmp->weight < 0 || l->show_weight == 0)
 	    sprintf(buf, l->format_n, buf2);
-	else 
+	else
 	    sprintf(buf, l->format_nw, buf2, tmp->nrof * tmp->weight);
 
 	if(!l->names[i] || strcmp(buf, l->names[i])) {
 	    copy_name (l->names[i], buf);
-	    XDrawImageString(display, l->win, l->gc_text, 
+	    XDrawImageString(display, l->win, l->gc_text,
 			     (l->show_icon?image_size+24+4:image_size+4),
 			     34 + image_size * i, buf, strlen(buf));
 	}
@@ -1772,7 +1772,7 @@ static void draw_list (itemlist *l)
 
     if(l->bar_size != size || pos != l->bar_pos) {
 
-	XClearArea(display, l->win, l->width-20, 17 + l->bar_pos, 16, 
+	XClearArea(display, l->win, l->width-20, 17 + l->bar_pos, 16,
 		   l->bar_size, False);
 	l->bar_size = size;
 	l->bar_pos  = pos;
@@ -1783,7 +1783,7 @@ static void draw_list (itemlist *l)
 }
 
 /*
- * draw_all_list clears a window and after that draws all objects 
+ * draw_all_list clears a window and after that draws all objects
  * and a scrollbar
  */
 static void draw_all_list(itemlist *l)
@@ -1825,14 +1825,14 @@ static void update_icons_list(itemlist *l)
 }
 
 
-void open_container (item *op) 
+void open_container (item *op)
 {
     look_list.env = op;
     sprintf (look_list.title, "%s:", op->d_name);
     draw_list (&look_list);
 }
 
-void close_container (item *op) 
+void close_container (item *op)
 {
     look_list.env = cpl.below;
     strcpy (look_list.title, "You see:");
@@ -1913,9 +1913,9 @@ static void get_list_display(itemlist *l, int x, int y, int w, int h,
     l->win = XCreateSimpleWindow(display, win_root, hint.x, hint.y, hint.width,
 			       hint.height, 2, foreground, background);
     XSetWindowColormap(display, l->win, colormap);
-    icon = XCreateBitmapFromData(display, l->win, 
+    icon = XCreateBitmapFromData(display, l->win,
 			       (_Xconst char *) crossfire_bits,
-			       (unsigned int) crossfire_width, 
+			       (unsigned int) crossfire_width,
 			       (unsigned int)crossfire_height);
     XSetStandardProperties(display, l->win, t, s, icon, gargv, gargc, &(hint));
     l->gc_text = XCreateGC (display, l->win, 0, 0);
@@ -1945,7 +1945,7 @@ static int get_inv_display(void)
     inv_list.show_weight = 1;
     inv_list.show_what = show_all;
     inv_list.weight_limit=0;
-    get_list_display ( &inv_list, 0, 0, INV_WIDTH, 
+    get_list_display ( &inv_list, 0, 0, INV_WIDTH,
 		      2*(roothint.height - WINDOW_SPACING) / 3,
 		      "Crossfire - inventory",
 		      "crossinventory");
@@ -1959,9 +1959,9 @@ static int get_look_display(void)
     look_list.show_weight = 1;
     look_list.show_what = show_all;
     inv_list.weight_limit = 0;
-    get_list_display ( &look_list, 0, 
+    get_list_display ( &look_list, 0,
 	      (2*(roothint.height - WINDOW_SPACING) / 3) + WINDOW_SPACING,
-		      INV_WIDTH, 
+		      INV_WIDTH,
 		      (roothint.height - WINDOW_SPACING) / 3,
 		      "Crossfire - look",
 		    "crosslook");
@@ -2102,7 +2102,7 @@ static int get_root_display(char *display_name) {
      * be set unless the data can actually be saved, for example.)  If
      * this is not followed for then the client might very well crash.
      */
-    if (!want_config[CONFIG_SPLITWIN] && 
+    if (!want_config[CONFIG_SPLITWIN] &&
       (cp=XGetDefault(display,X_PROG_NAME,"splitwindow")) != NULL) {
 	if (!strcmp("on",cp) || !strcmp("yes",cp))
 	    want_config[CONFIG_SPLITWIN] = TRUE;
@@ -2196,7 +2196,7 @@ static void resize_win_root(XEvent *event) {
      * so lets make it taller if we can - there is no reason not to, as otherwise
      * that space is lost anyways.
      */
-    XMoveResizeWindow(display, win_message, inv_width + WINDOW_SPACING, 
+    XMoveResizeWindow(display, win_message, inv_width + WINDOW_SPACING,
 		GAME_WIDTH + STAT_HEIGHT + WINDOW_SPACING*2, GAME_WIDTH,
 		event->xconfigure.height - GAME_WIDTH + STAT_HEIGHT + WINDOW_SPACING*2);
     messagehint.width=GAME_WIDTH;
@@ -2212,19 +2212,19 @@ static void resize_win_root(XEvent *event) {
     XMoveWindow(display, win_stats, inv_width + WINDOW_SPACING, 0);
 
     /* Resize the info window */
-    XMoveResizeWindow(display, infodata.win_info,  
+    XMoveResizeWindow(display, infodata.win_info,
 	inv_width + GAME_WIDTH + WINDOW_SPACING * 2, 0,
 	info_width, event->xconfigure.height);
 
 
     /* Resize the inventory, message window */
-    XResizeWindow(display, inv_list.win, inv_width, 
+    XResizeWindow(display, inv_list.win, inv_width,
 		  2 * (event->xconfigure.height - WINDOW_SPACING) / 3);
 
 
-    XMoveResizeWindow(display, look_list.win, 0, 
+    XMoveResizeWindow(display, look_list.win, 0,
 	      (2*(event->xconfigure.height - WINDOW_SPACING) / 3) + WINDOW_SPACING,
-		      inv_width, 
+		      inv_width,
 		      (event->xconfigure.height - WINDOW_SPACING) / 3);
 
     /* The Resize requests will generate events.  As such, we don't call
@@ -2406,7 +2406,7 @@ static void buttonpress_in_info(XButtonEvent *xbutton)
 	return;
 
     dy = y / FONTHEIGHT > 0 ? y / FONTHEIGHT : 1;
-      
+
     switch(button) {
 	  case 1:
 	    pos = infodata.bar_pos - dy;
@@ -2446,7 +2446,7 @@ static void buttonpress_in_info(XButtonEvent *xbutton)
 /*
  *  buttonpress_in_list handles mouse button event in list window.
  *  It updates scrollbar or calls right function for item
- *  (apply/examine/move). It's probably better move calling the 
+ *  (apply/examine/move). It's probably better move calling the
  *  functions to the upper level.
  */
 
@@ -2458,7 +2458,7 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
 
     if (y < 0 && l->env->open) /* close the sack */
 	client_send_apply (l->env->tag);
- 
+
     if (y < 0 || y > image_size * l->size)
 	return 1;
 
@@ -2475,7 +2475,7 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
     if (x > l->width-23) {    /* scrollbar */
 
 	dy = y / image_size > 0 ? y / image_size : 1;
-      
+
 	switch(button) {
 	  case 1:
 	    pos = l->item_pos - dy;
@@ -2601,7 +2601,7 @@ void check_x_events() {
 	    draw_lists();		/* testing if this can work this way */
 	}
     }
-  
+
 
     while (XPending(display)!=0) {
 	prev_event = event;
@@ -2712,7 +2712,7 @@ void check_x_events() {
 	 * keyboard flushing.  All commands get sent to the server.  There really
 	 * does need to be some decent way to flush the commands we have sent,
 	 * but there is no real way to do that.  This is at least somewhat
-	 * true because the client and server will never be completely 
+	 * true because the client and server will never be completely
 	 * synchronized.
 	 */
 
@@ -3073,7 +3073,7 @@ void resize_map_window(int x, int y)
 	XWindowAttributes attrib;
 	int width=0, height=0;
 
-	/* width and height are how much larger we need to make 
+	/* width and height are how much larger we need to make
 	 * the window to keep it displayable.  This isn't perfect,
 	 * but does a reasonable job.  Don't do shrinks
 	 */
@@ -3085,7 +3085,7 @@ void resize_map_window(int x, int y)
 	/* if somethign to do */
 	if (width>0 || height > 0) {
 	    XGetWindowAttributes(display, win_root, &attrib);
-	    width += attrib.width;  
+	    width += attrib.width;
 	    height += attrib.height;
 	    XResizeWindow(display, win_game, x*image_size, y*image_size);
 	    XResizeWindow(display, win_root, width, height);
@@ -3122,7 +3122,7 @@ void display_map_doneupdate(int redraw, int notice)
 
     XSetClipMask(display,gc_floor,None);
     for(ax=0;ax<use_config[CONFIG_MAPWIDTH];ax++) {
-	for(ay=0;ay<use_config[CONFIG_MAPHEIGHT];ay++) { 
+	for(ay=0;ay<use_config[CONFIG_MAPHEIGHT];ay++) {
 	    mx = pl_pos.x+ax;
 	    my = pl_pos.y+ay;
 	    if (redraw || the_map.cells[mx][my].need_update)  {
@@ -3149,7 +3149,7 @@ int display_mapscroll(int dx, int dy)
     w -= abs(dx);
     h = use_config[CONFIG_MAPHEIGHT];
     h -= abs(dy);
-    
+
     XCopyArea(display, win_game, win_game, gc_copy,
         srcx, srcy,
         w*image_size, h*image_size,
@@ -3266,7 +3266,7 @@ void magic_map_flash_pos()
  * a new server and get a name, we should try to re-arrange our cache
  * or the like.
  */
- 
+
 void reset_image_data()
 {
     int i;
@@ -3290,7 +3290,7 @@ void reset_image_data()
 /* Gets a specified windows coordinates.  This function is pretty much
  * an exact copy out of the server.
  */
- 
+
 static void get_window_coord(Window win,
                  int *x,int *y,
                  int *wx,int *wy,
@@ -3364,17 +3364,17 @@ void set_window_pos()
 	*cp++='\0';
 	if (sscanf(cp,"%d %d %d %d",&xwc.x,&xwc.y,&xwc.width,&xwc.height)!=4)
 	    continue;
-	if (!strcmp(buf,"win_game:")) 
+	if (!strcmp(buf,"win_game:"))
 	    XConfigureWindow(display,win_game,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_stats:")) 
+	if (!strcmp(buf,"win_stats:"))
 	    XConfigureWindow(display,win_stats,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_info:")) 
+	if (!strcmp(buf,"win_info:"))
 	    XConfigureWindow(display,infodata.win_info,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_inv:")) 
+	if (!strcmp(buf,"win_inv:"))
 	    XConfigureWindow(display,inv_list.win,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_look:")) 
+	if (!strcmp(buf,"win_look:"))
 	    XConfigureWindow(display,look_list.win,xwc_mask, &xwc);
-	if (!strcmp(buf,"win_message:")) 
+	if (!strcmp(buf,"win_message:"))
 	    XConfigureWindow(display,win_message,xwc_mask, &xwc);
 
     }
@@ -3556,7 +3556,7 @@ int main(int argc, char *argv[])
      */
 
     init_client_vars();
-    
+
     /* Call this very early.  It should parse all command
      * line arguments and set the pertinent ones up in
      * globals.  Also call it early so that if it can't set up
