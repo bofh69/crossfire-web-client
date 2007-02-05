@@ -3548,7 +3548,6 @@ void cleanup_connection() { }
 int main(int argc, char *argv[])
 {
     int sound,got_one=0;
-    int i;
 
     /* This needs to be done first.  In addition to being quite quick,
      * it also sets up some paths (client_libdir) that are needed by
