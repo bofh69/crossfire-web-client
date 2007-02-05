@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Crossfire Client
+Comment=A cooperative multiplayer graphical RPG and adventure game
+Exec=gcfclient2
+Icon=crossfire-client
+Terminal=false
+Type=Application
+Categories=Game;GTK;AdventureGame;RolePlaying
