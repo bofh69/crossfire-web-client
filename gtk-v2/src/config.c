@@ -3,7 +3,7 @@ char *rcsid_gtk2_config_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005,2007 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,17 +41,114 @@ char *rcsid_gtk2_config_c =
 #include "image.h"
 #include "gtk2proto.h"
 
+#include <dirent.h>
+
 GtkWidget *config_window, *config_spinbutton_cwindow, *config_button_echo,
     *config_button_fasttcp, *config_button_grad_color, *config_button_foodbeep,
     *config_button_sound, *config_button_cache, *config_button_download,
     *config_button_fog, *config_spinbutton_iconscale, *config_spinbutton_mapscale,
     *config_spinbutton_mapwidth, *config_spinbutton_mapheight,
     *config_button_smoothing, *config_combobox_displaymode,
-    *config_combobox_faceset, *config_combobox_lighting;
+    *config_combobox_faceset, *config_combobox_lighting, *config_combobox_theme;
 
 /* This is the string names that correspond to the numberic id's in client.h */
 
 static char *display_modes[] = {"Pixmap", "SDL", "OpenGL"};
+static char *theme = "Standard";
+
+/**
+ * This loads the theme stored away in the theme value above.
+ * the theme string is loaded/saved into the config file, and can also
+ * be changed by the user in the config menu.
+ *
+ * @reload
+ * If true, user has changed theme after initial startup.  In this
+ * mode, we need to call the routines that store away private theme
+ * data.  When program is starting up, this is false, because all
+ * the widgets haven't been realized yet, and the initialize routines
+ * will get the theme data at that time.
+ */
+void load_theme(int reload)
+{
+    char path[MAX_BUF];
+    int i;
+    static char **default_files=NULL;
+
+    /* We should only be called with reload once at startup.
+     * at that time, store away the default rc files so
+     * we can restore them later.
+     */
+    if (!reload) {
+	char **tmp;
+
+	/* GTK man page says copy of this data should be
+	 * made, so lets go and do that.
+	 */
+	tmp = gtk_rc_get_default_files();
+	i=0;
+	while (tmp[i]) {
+	    i++;
+	}
+	default_files = malloc(sizeof(char*) * i);
+	i=0;
+	while (tmp[i]) {
+	    default_files[i] = strdup(tmp[i]);
+	    i++;
+	}
+	default_files[i] = NULL;
+    }
+
+    if (!strcmp(theme,"None")) {
+	/* If this is default and initial run, nothing to do.
+	 * If it not initial run, we need to reset the search path.
+	 */
+	if (reload) {
+	    gtk_rc_set_default_files(default_files);
+	}
+    } else {
+	snprintf(path, MAX_BUF, "%s/themes/%s", DATADIR, theme);
+
+	/* Check for existence of file.  Unfortunately, at initial run time,
+	 * the window may not be realized, so we can't print this error to the user
+	 * directly.
+	 */
+	if (access(path, R_OK) == -1) {
+	    LOG(LOG_ERROR,"config.c::load_theme", "Unable to find theme file %s", path);
+	    return;
+	}
+	/* We need to reset the search path, otherwise the effects
+	 * are additive.  In practice, we could manipulate
+	 * pointer so it is just one call to gtk_rc_set_default_files(),
+	 * but that is probably more complicated than just doing these two
+	 * calls here.
+	 */
+	gtk_rc_set_default_files(default_files);
+	gtk_rc_add_default_file(path);
+    }
+
+    if (reload) {
+	/* Reload data - so we need to force GTK to reparse and rebind all
+	 * the widget data.
+	 * Then, we need to call our own functions to reparse the custom
+	 * widget handling we do.
+	 */
+	gtk_rc_reparse_all_for_settings(gtk_settings_get_for_screen(gdk_screen_get_default()), TRUE);
+	gtk_rc_reset_styles(gtk_settings_get_for_screen(gdk_screen_get_default()));
+	info_get_styles();
+	inventory_get_styles();
+	stats_get_styles();
+
+	/* set the inv_updated to force a redraw - otherwise it will not
+	 * necessarily bind the lists with the new widgets.
+	 */
+	cpl.ob->inv_updated = 1;
+	cpl.below->inv_updated = 1;
+	draw_lists();
+
+	draw_stats(TRUE);
+	draw_message_window(TRUE);
+    }
+}
 
 void load_defaults()
 {
@@ -104,6 +201,10 @@ void load_defaults()
 	}
 	else if (!strcmp(inbuf, "server")) {
 	    server = strdup_local(cp);	/* memory leak ! */
+	    continue;
+	}
+	else if (!strcmp(inbuf, "theme")) {
+	    theme = strdup_local(cp);	/* memory leak ! */
 	    continue;
 	}
 	else if (!strcmp(inbuf, "nopopups")) {
@@ -213,6 +314,7 @@ void save_defaults()
     fprintf(fp,"# 'True' and 'False' are the proper cases for those two values\n");
     fprintf(fp,"# 'True' and 'False' have been replaced with 1 and 0 respectively\n");
     fprintf(fp,"server: %s\n", server);
+    fprintf(fp,"theme: %s\n", theme);
     fprintf(fp,"faceset: %s\n", face_info.want_faceset);
 
     /* This isn't quite as good as before, as instead of saving things as 'True'
@@ -254,6 +356,7 @@ void config_init(GtkWidget *window_root)
     config_combobox_displaymode = lookup_widget(config_window, "config_combobox_displaymode");
     config_combobox_faceset = lookup_widget(config_window, "config_combobox_faceset");
     config_combobox_lighting = lookup_widget(config_window, "config_combobox_lighting");
+    config_combobox_theme = lookup_widget(config_window, "config_combobox_theme");
 
     /* 
      * Display mode combo box setup.
@@ -275,6 +378,22 @@ void config_init(GtkWidget *window_root)
 	gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),  "Pixmap");
 
 
+}
+
+/**
+ * This function is used by scandir below to get only the
+ * entries we want.  Basically, we just
+ * skip any dot files.
+ *
+ * @d
+ * the dirent entry from scandir.
+ *
+ * function returns 1 if we want the entry, 0 if we don't.
+ */
+static int scandir_filter(const struct dirent *d)
+{
+    if (d->d_name[0] == '.') return 0;
+    return 1;
 }
 
 /*
@@ -411,6 +530,60 @@ static void setup_config_window()
 	}
 	g_free(buf);
     }
+
+
+    /* This sees what themes are in the theme directory and puts them in the
+     * pulldown menu for the them selection box.
+     * the presumption is made that these files won't change during
+     * actual runtime, so we only need to do this once.
+     */
+    model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_theme));
+    count =  gtk_tree_model_iter_n_children(model, NULL);
+
+    /* If count is 0, this hasn't been initialized yet, so do it now */
+    if (count == 0) {
+	char path[MAX_BUF];
+	struct dirent **files;
+	int done_none=0;
+
+	snprintf(path, MAX_BUF, "%s/themes", DATADIR);
+
+	count = scandir(path, &files, scandir_filter, alphasort);
+
+	for (i=0; i<count; i++) {
+	    /* We want a 'None' entry, so if we get an entry
+	     * that would fall after None and we haven't done None
+	     * yet, insert it now.
+	     */
+	    if (!done_none && strcmp(files[i]->d_name, "None") > 0) {
+		gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_theme),
+					  "None");
+		done_none=1;
+	    }
+
+	    gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_theme),
+		files[i]->d_name);
+	}
+	/* Just to set this for below */
+	count =  gtk_tree_model_iter_n_children(model, NULL);
+    }
+    /* Block belows causes the matching theme to be selected.
+     * we want toset it regardless of this is the first time
+     * we are running through this or not.
+     */
+    for (i=0; i < count; i++) {
+	if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
+	    LOG(LOG_ERROR,"config.c:setup_config_window", "Unable to get theme iter\n");
+	    break;
+	}
+	gtk_tree_model_get(model, &iter, 0, &buf, -1);
+	if (!strcasecmp(theme, buf)) {
+	    gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_theme), i);
+	    g_free(buf);
+	    break;
+	}
+	g_free(buf);
+    }
 }
 
 /*
@@ -473,6 +646,23 @@ static void read_config_window()
 	g_free(buf);
     }
 
+    /* Load up the theme.  A problem is we don't really know
+     * if theme has been allocated or is just pointing as a
+     * a static string.  So we loose a few bytes and just don't free
+     * the data.
+     */
+    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_theme));
+    if (buf) {
+	if (strcmp(buf, theme)) {
+	    theme = buf;
+	    load_theme(TRUE);
+	} else {
+	    g_free(buf);
+	}
+    } else {
+	theme = "None";
+    }
+
     /* Some values can take effect right now, others not.  Code below
      * handles these cases - largely grabbed from gtk/config.c
      */
@@ -513,6 +703,14 @@ static void read_config_window()
 #endif
 	if (csocket.fd)
 	    cs_print_string(csocket.fd, "mapredraw");
+    }
+
+    /* Nothing to do, but we can switch immediately without problems.
+     * do force a redraw
+     */
+    if (IS_DIFFERENT(CONFIG_GRAD_COLOR)) {
+	use_config[CONFIG_GRAD_COLOR] = want_config[CONFIG_GRAD_COLOR];
+	draw_stats(TRUE);
     }
 }
 

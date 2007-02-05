@@ -1706,6 +1706,9 @@ create_config_window (void)
   GtkWidget *hbox26;
   GtkWidget *config_combobox_faceset;
   GtkWidget *label102;
+  GtkWidget *hbox29;
+  GtkWidget *config_combobox_theme;
+  GtkWidget *label105;
   GtkWidget *hseparator3;
   GtkWidget *hbuttonbox1;
   GtkWidget *config_button_save;
@@ -1902,6 +1905,19 @@ create_config_window (void)
   gtk_widget_show (label102);
   gtk_box_pack_start (GTK_BOX (hbox26), label102, FALSE, FALSE, 5);
 
+  hbox29 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox29);
+  gtk_box_pack_start (GTK_BOX (vbox10), hbox29, TRUE, TRUE, 0);
+
+  config_combobox_theme = gtk_combo_box_new_text ();
+  gtk_widget_show (config_combobox_theme);
+  gtk_box_pack_start (GTK_BOX (hbox29), config_combobox_theme, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (config_combobox_theme, 170, -1);
+
+  label105 = gtk_label_new (_("Theme to use for display.  None will use system theme."));
+  gtk_widget_show (label105);
+  gtk_box_pack_start (GTK_BOX (hbox29), label105, FALSE, FALSE, 5);
+
   hseparator3 = gtk_hseparator_new ();
   gtk_widget_show (hseparator3);
   gtk_box_pack_start (GTK_BOX (vbox10), hseparator3, TRUE, TRUE, 0);
@@ -1980,6 +1996,9 @@ create_config_window (void)
   GLADE_HOOKUP_OBJECT (config_window, hbox26, "hbox26");
   GLADE_HOOKUP_OBJECT (config_window, config_combobox_faceset, "config_combobox_faceset");
   GLADE_HOOKUP_OBJECT (config_window, label102, "label102");
+  GLADE_HOOKUP_OBJECT (config_window, hbox29, "hbox29");
+  GLADE_HOOKUP_OBJECT (config_window, config_combobox_theme, "config_combobox_theme");
+  GLADE_HOOKUP_OBJECT (config_window, label105, "label105");
   GLADE_HOOKUP_OBJECT (config_window, hseparator3, "hseparator3");
   GLADE_HOOKUP_OBJECT (config_window, hbuttonbox1, "hbuttonbox1");
   GLADE_HOOKUP_OBJECT (config_window, config_button_save, "config_button_save");

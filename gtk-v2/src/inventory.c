@@ -3,7 +3,7 @@ char *rcsid_gtk2_inventory_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2007 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,6 +63,18 @@ static GtkTooltips  *inv_table_tooltips;
 #define MAX_INV_ROWS    100
 GtkWidget   *inv_table_children[MAX_INV_ROWS][MAX_INV_COLUMNS];
 
+/* Different styles we recognize */
+enum Styles {
+    Style_Magical=0, Style_Cursed, Style_Unpaid, Style_Locked, Style_Applied, Style_Last
+};
+
+/* The name of these styles in the rc file */
+const char *Style_Names[Style_Last] = {
+    "inv_magical", "inv_cursed", "inv_unpaid", "inv_locked", "inv_applied"
+};
+
+/* Actual styles as loaded.  May be null if no style found. */
+static GtkStyle    *inv_styles[Style_Last];
 
 /* The basic idea of the NoteBook_Info structure is to hold
  * everything we need to know about the different inventory notebooks
@@ -118,7 +130,8 @@ Notebook_Info	inv_notebooks[NUM_INV_LISTS] = {
 
 
 enum {
-LIST_NONE, LIST_ICON, LIST_NAME, LIST_WEIGHT, LIST_OBJECT, LIST_BACKGROUND, LIST_TYPE, LIST_BASENAME, LIST_NUM_COLUMNS
+LIST_NONE, LIST_ICON, LIST_NAME, LIST_WEIGHT, LIST_OBJECT, LIST_BACKGROUND, LIST_TYPE, 
+LIST_BASENAME, LIST_FOREGROUND, LIST_FONT, LIST_NUM_COLUMNS
 };
 
 
@@ -313,6 +326,8 @@ static void setup_list_columns(GtkWidget *treeview)
 
     gtk_tree_view_append_column (GTK_TREE_VIEW (treeview), column);
     gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
+    gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+    gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
     gtk_tree_view_set_expander_column(GTK_TREE_VIEW (treeview), column);
     gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);
 
@@ -331,6 +346,8 @@ static void setup_list_columns(GtkWidget *treeview)
     gtk_tree_view_column_set_sort_column_id(column, LIST_WEIGHT);
     gtk_tree_view_append_column (GTK_TREE_VIEW (treeview), column);
     gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
+    gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+    gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
 
 
     /* Really, we never really do selections - clicking on an object
@@ -344,17 +361,44 @@ static void setup_list_columns(GtkWidget *treeview)
 }
 
 
+/* This gets the style information for the inventory windows.  This is a separate
+ * function because if the user changes styles, it can be nice to re-load the configuration.
+ * The style for the inventory/look is a bit special.  That is because with gtk, styles
+ * are widget wide - all rows in the widget would use the same style.  We want to adjust
+ * the styles based on other attributes.
+ */
+void inventory_get_styles()
+{
+    int i;
+    GtkStyle	*tmp_style;
+    static int has_init=0;
+
+    for (i=0; i < Style_Last; i++) {
+	if (has_init && inv_styles[i]) g_object_unref(inv_styles[i]);
+	tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, Style_Names[i], G_TYPE_NONE);
+	if (tmp_style) {
+	    inv_styles[i] = g_object_ref(tmp_style);
+	}
+	else {
+	    LOG(LOG_INFO, "inventory.c::inventory_get_styles", "Unable to find style for %s",
+		Style_Names[i]);
+	    inv_styles[i] = NULL;
+	}
+    }
+    has_init=1;
+}
+
 void inventory_init(GtkWidget *window_root)
 {
     int i;
 
+    inventory_get_styles();
     inv_notebook = lookup_widget(window_root,"notebook_inv");
     treeview_look = lookup_widget(window_root, "treeview_look");
     weight_label = lookup_widget(window_root,"label_inv_weight");
     inv_table = lookup_widget(window_root,"inv_table");
     inv_table_tooltips = gtk_tooltips_new();
     gtk_tooltips_enable(inv_table_tooltips);
-
 
     memset(inv_table_children, 0, sizeof(GtkWidget *) * MAX_INV_ROWS * MAX_INV_COLUMNS);
 
@@ -366,7 +410,9 @@ void inventory_init(GtkWidget *window_root)
 				G_TYPE_POINTER,
 				GDK_TYPE_COLOR,
 				G_TYPE_INT,
-				G_TYPE_STRING);
+				G_TYPE_STRING,
+				GDK_TYPE_COLOR,
+				PANGO_TYPE_FONT_DESCRIPTION);
 
     gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_look), GTK_TREE_MODEL(store_look));
     setup_list_columns(treeview_look);
@@ -402,7 +448,10 @@ void inventory_init(GtkWidget *window_root)
 				G_TYPE_POINTER,
 				GDK_TYPE_COLOR,
 				G_TYPE_INT,
-				G_TYPE_STRING);
+				G_TYPE_STRING,
+				GDK_TYPE_COLOR,
+				PANGO_TYPE_FONT_DESCRIPTION);
+
 	    inv_notebooks[i].treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(
 						    inv_notebooks[i].treestore));
 
@@ -489,23 +538,24 @@ void set_weight_limit (uint32 wlim)
     weight_limit = wlim/ 1000.0;
 }
 
-/* returns the color to use for this object, based on
- * it being cursed and whatnot.  Right now, we only use
- * the background bolor, but decided to make this extensible
- * to also cover the foreground (perhaps in the future).
- * perhaps also font information should be listed, so the
- * font could be made bold, italic, etc.
- */
-void get_row_color(item *it, int *fg, int *bg)
+/* Returns a style based on values in it */
+static GtkStyle *get_row_style(item *it)
 {
-    *fg = NDI_BLACK;
-    if (it->cursed || it->damned) {
-	if (it->magical) *bg = NDI_NAVY;
-	else *bg = NDI_RED;
-    } else if (it->magical) {
-	*bg = NDI_BLUE;
-    }
-    else *bg = NDI_WHITE;
+    int	style;
+
+    /* Note that this ordering is documented in the sample rc file.
+     * it would be nice if this precedence could be more easily
+     * setable by the end user.
+     */
+    if (it->unpaid) style=Style_Unpaid;
+    else if (it->cursed || it->damned) style=Style_Cursed;
+    else if (it->magical) style = Style_Magical;
+    else if (it->applied) style = Style_Applied;
+    else if (it->locked) style = Style_Locked;
+    else return NULL;	/* No matching style */
+
+    return inv_styles[style];
+
 }
 
 /***************************************************************************
@@ -541,12 +591,17 @@ void item_event_item_changed(item * it) {}
  * parent is the parent iter (can be null).  If non null,
  *    then this creates a real tree, for things like containers.
  * color - if true, do foreground/background colors, otherwise, just black & white
+ *  Normally it is set.  However, when showing the cursed inv tab, it doesn't
+ *  make a lot of sense to show them all in the special color, since they all
+ *  meet that special criteria
  */
 static void add_object_to_store(item *it, GtkTreeStore *store, 
 				GtkTreeIter *new, GtkTreeIter *parent, int color)
 {
     char    buf[256], buf1[256];
-    int fg, bg;
+    GdkColor	*foreground=NULL, *background=NULL;
+    PangoFontDescription    *font=NULL;
+    GtkStyle	*row_style;
 
     if(it->weight < 0) {
 	strcpy (buf," ");
@@ -554,11 +609,16 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
 	sprintf (buf,"%6.1f" ,it->nrof * it->weight);
     }
     snprintf(buf1, 255, "%s %s", it->d_name, it->flags);
-    if (color)
-	get_row_color(it, &fg, &bg);
-    else {
-	fg = NDI_BLACK;
-	bg = NDI_WHITE;
+    if (color) {
+	row_style = get_row_style(it);
+	if (row_style) {
+	    /* Even if the user doesn't define these, we should still get
+	     * get defaults from the system.
+	     */
+	    foreground = &row_style->text[GTK_STATE_NORMAL];
+	    background = &row_style->base[GTK_STATE_NORMAL];
+	    font = row_style->font_desc;
+	}
     }
 
     gtk_tree_store_append (store, new, parent);  /* Acquire an iterator */
@@ -566,7 +626,9 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
 		LIST_ICON, (GdkPixbuf*)pixmaps[it->face]->icon_image,
 		LIST_NAME, buf1,
 		LIST_WEIGHT, buf,
-		LIST_BACKGROUND, &root_color[bg],
+		LIST_BACKGROUND, background,
+		LIST_FOREGROUND, foreground,
+		LIST_FONT, font,
 		LIST_OBJECT, it,
 		LIST_TYPE, it->type,
 		LIST_BASENAME, it->s_name,

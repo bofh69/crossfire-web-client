@@ -1,0 +1,509 @@
+# This makes everything black background and white foreground by
+# default.
+#
+style "black_bg"
+{
+    # base and text are used for the treeview and entry widgets
+    # Note that the inv_.. values below can adjust these for special
+    # objects
+    base[NORMAL] = "black"
+    text[NORMAL] = "white"
+
+    # The ACTIVE tabs are used for the unselected tabs in the notebooks.
+    bg[ACTIVE] = "black"
+    fg[ACTIVE] = "white"
+
+    # foreground/background of pretty much all the other widgets
+    bg[NORMAL] = "black"
+    fg[NORMAL] = "white"
+
+}
+
+widget_class "*" style "black_bg"
+
+############################################################################
+# Start of Stat Bar styles
+############################################################################
+
+# The stat bars are the bars at the bottom left of the window - hp,
+# spell points, grace, food & exp.
+# The low values are used when the stat is less than 25% of its max.
+# The super value is used when the stat is above is max.
+# the normal value is used in the 25%->100% range.
+#
+# There is no requirement that these be different colors - if you
+# want the food value to be brown no matter what, just create
+# a style for food_bar, and bind that to the normal/low/super values.
+# this is what is done for exp, since being below 25% exp isn't really
+# bad.
+#
+# If you have configured the client to use gradual shading of the
+# stat bar colors, the gradual values are used instead.  The low
+# as the 0 point, the normal is 100%, and super is 200%.  The client
+# will then mix the color based on the actual value of the stat.  I thought
+# it better to have different values, as what may look good normally may
+# not blend well (in particular, the standard values are not 100%
+# saturated since those would seem too bright.
+#
+# the reason base[SELECTED] is used for values is that is what
+# is used if these were being bound directly to the widget.
+#
+# if one of the styles is missing a color, the client will use
+# standard system wide theme defaults to draw in that state.
+# For the gradual color, if it is missing a color, it just will
+# not color it - probably not what you want.
+#
+# Note: If you are not seeing colorful stat bars as you expect,
+# the problem may be with the system wide theme you have chosen.
+# some themes modify the draw logic for the progressbar and instead
+# draw pixmaps (if you see striped bars, you are using such a theme).
+# These themes do no pay any attention to the colors we try to set -
+# IMO, this is a bug in the theme engine, as there isn't way
+# to turn that behaviour off.  The only way around this would be
+# for the client to have its own widget to draw the bars, but then
+# this causes problems for those people that like that theme.
+#
+style "low_bar" {
+	#red 
+	base[SELECTED] = "#cf0000"
+}
+
+style "normal_bar" {
+	# green
+	base[SELECTED] = "#00cf00"
+}
+
+style "super_bar" {
+	base[SELECTED] = "#00cf00"
+}
+
+style "gradual_low_bar" {
+	base[SELECTED] = "red"
+}
+
+style "gradual_full_bar" {
+	base[SELECTED] = "green"
+}
+
+style "gradual_super_bar" {
+	base[SELECTED] = "blue"
+}
+
+widget_class "hp_bar_normal" style "normal_bar"
+widget_class "hp_bar_low" style "low_bar"
+widget_class "hp_bar_super" style "super_bar"
+
+widget_class "hp_gradual_bar_normal" style "gradual_full_bar"
+widget_class "hp_gradual_bar_low" style "gradual_low_bar"
+widget_class "hp_gradual_bar_super" style "gradual_super_bar"
+
+widget_class "sp_bar_normal" style "normal_bar"
+widget_class "sp_bar_low" style "low_bar"
+widget_class "sp_bar_super" style "super_bar"
+
+widget_class "sp_gradual_bar_normal" style "gradual_full_bar"
+widget_class "sp_gradual_bar_low" style "gradual_low_bar"
+widget_class "sp_gradual_bar_super" style "gradual_super_bar"
+
+widget_class "grace_bar_normal" style "normal_bar"
+widget_class "grace_bar_low" style "low_bar"
+widget_class "grace_bar_super" style "super_bar"
+
+widget_class "grace_gradual_bar_normal" style "gradual_full_bar"
+widget_class "grace_gradual_bar_low" style "gradual_low_bar"
+widget_class "grace_gradual_bar_super" style "gradual_super_bar"
+
+widget_class "food_bar_normal" style "normal_bar"
+widget_class "food_bar_low" style "low_bar"
+widget_class "food_bar_super" style "super_bar"
+
+widget_class "food_gradual_bar_normal" style "gradual_full_bar"
+widget_class "food_gradual_bar_low" style "gradual_low_bar"
+widget_class "food_gradual_bar_super" style "gradual_super_bar"
+
+# It doesn't make sense to have an alert for low exp,
+# so set all the conditions to the same color.  For graduated
+# color, it can IMO still be nice to change colors as you get closer.
+widget_class "exp_bar_normal" style "normal_bar"
+widget_class "exp_bar_low" style "normal_bar"
+widget_class "exp_bar_super" style "normal_bar"
+
+widget_class "exp_gradual_bar_normal" style "gradual_full_bar"
+widget_class "exp_gradual_bar_low" style "gradual_low_bar"
+widget_class "exp_gradual_bar_super" style "gradual_super_bar"
+
+############################################################################
+# Start of inventory/look window styles
+############################################################################
+#
+# The inv_ do not get tied to real widgets.  This is because we are
+# controlling individual rows of the widget based on values that the
+# widget can not know about (magic, cursed, etc).  So the client looks
+# up these special names and then uses the value to control how to
+# draw the actual rows.  Note that there is no requirement that there
+# be 1 style/widget_class.  If you want different object criteria
+# to use the same style, you can do that, eg,
+#
+# widget "inv_cursed" style "inv_mine"
+# widget "inv_magical" style "inv_mine"
+#
+# Is perfectly legal, but probably doesn't make a lot of sense.
+#
+# Note that there is no 'default' here - the default values come from
+# the normal widget binding.
+#
+# Note that there is no combining of values - only one of these is
+# used for any object.  The precedence is:
+# unpaid > cursed > magical > applied > locked
+#
+
+style "inv_cursed"
+{
+    text[NORMAL] = "red"
+}
+widget_class "inv_cursed" style "inv_cursed"
+
+style "inv_magical"
+{
+    text[NORMAL] = "blue"
+}
+widget_class "inv_magical" style "inv_magical"
+
+# You owe gold for these
+style "inv_unpaid"
+{
+    text[NORMAL] = "gold"
+}
+widget_class "inv_unpaid" style "inv_unpaid"
+
+style "inv_locked"
+{
+    font_name = "Sans Italic"
+}
+widget_class "inv_locked" style "inv_locked"
+
+style "inv_applied"
+{
+    font_name = "Sans Bold"
+}
+widget_class "inv_applied" style "inv_applied"
+
+
+
+############################################################################
+# Start of text info style.  The text info are where it actually
+# displays the messages.
+############################################################################
+
+# info_default is a bit special.
+# What info_default is used for is a supported way for the
+# code to find out what attributes set in the other info_...
+# values differ - it will basically compare the values and only set
+# the ones that are different.  This is really just a place holder,
+# and you probably shouldn't put any actual values within the
+# style {} area.  However, it must be defined for other styles
+# to work (if it doesn't have anything to get a difference against,
+# it can not set up the other styles.
+style "info_default"
+{
+}
+widget_class "info_default" style "info_default"
+
+
+
+# The extended info has the idea of different fonts:
+#
+# Normal: Standard font to use for drawing
+# Arcane: Perhaps better called 'old style' fonts - still clearly readable,
+#   but should have an 'old' look.
+# Strange: A runic font that doesn't necessarily need to be readable - could
+#   just be symbols.
+# Fixed: Fixed width font used for listings of preformatted text.
+# Hand: A font that should look like handwritten text.
+#
+# Note that except for the fixed font, the font you use is not likely
+# to have a critical effect - if you used the same font for everything,
+# it is unlikely to affect the play of the game.
+# Also, while these are defined as font names, you can also define
+# colors.  However, other
+# styles may take precedence - eg, if you specify a color in the
+# style definition, and the message itself has color tags, those
+# may be used instead.
+#
+# You can use the gtk character map utility to view the fonts and get
+# font names.
+#
+# Note that the fonts specified here may not be ideal candidates, but
+# my goal here is to choose fonts that a normal installation would have
+# installed.  You can get better fonts off the web, but since they
+# are not available by default, it doesn't make sense to make them
+# the default.
+#
+
+# For normal font, just use the system/theme default.
+#style "info_font_normal"
+#{
+#    font_name = "Sans"
+#}
+#widget_class "info_font_normal" style "info_font_normal"
+
+style "info_font_arcane"
+{
+    font_name = "URW Chancery L"
+}
+widget_class "info_font_arcane" style "info_font_arcane"
+
+# With the different scripts included in unicode (and part
+# of gtk2), all we really need to do here is change it so that
+# we use the Runic script instead of Latin.  However, there is
+# no way to do that directly with styles.  What needs to be
+# done is some extra code added to process this as a script and
+# not a font perhaps.
+
+style "info_font_strange"
+{
+    font_name = "Sans Italic"
+}
+widget_class "info_font_strange" style "info_font_strange"
+
+style "info_font_fixed"
+{
+    font_name = "Luxi Mono"
+}
+widget_class "info_font_fixed" style "info_font_fixed"
+
+# URW Chancery L would also look good for this, but
+# we're using that for arcane.
+style "info_font_hand"
+{
+    font_name = "Century Schoolbook L Italic"
+}
+widget_class "info_font_hand" style "info_font_hand"
+
+#
+# The first set of info_<color> are how to display messages that come
+# as a certain color from the server.  Eg, the server says 'draw this in
+# black', and this determines how we actually draw it.  For example,
+# when using a black background, you really don't want the text color
+# to be black.
+
+# Note that anything not set here (fg, bg, font) will use default
+# values as bound to the global widget (*), so you don't need to
+# specify all the values in each classification. If you don't want
+# different colored text, just disable all of these.
+# The values here match the traditional values used.
+
+style "black_text" {	    fg[NORMAL] = "white" 	}
+widget_class "info_black" style "black_text"
+
+style "white_text"
+{
+    fg[NORMAL] = "white"
+    font_name = "bold"
+}
+widget_class "info_white" style "white_text"
+
+style "darkblue_text" {    fg[NORMAL] = "navy" }
+widget_class "info_darkblue" style "darkblue_text"
+
+style "red_text" {    fg[NORMAL] = "red" }
+widget_class "info_red" style "red_text"
+
+style "orange_text" {    fg[NORMAL] = "orange" }
+widget_class "info_orange" style "orange_text"
+
+style "lightblue_text" {    fg[NORMAL] = "dodgerblue" }
+widget_class "info_lightblue" style "lightblue_text"
+
+style "darkorange_text" {    fg[NORMAL] = "darkorange2" }
+widget_class "info_darkorange" style "darkorange_text"
+
+style "green_text" {    fg[NORMAL] = "seagreen" }
+widget_class "info_green" style "green_text"
+
+style "darkgreen_text" {    fg[NORMAL] = "darkseagreen" }
+widget_class "info_darkgreen" style "darkgreen_text"
+
+style "grey_text" {    fg[NORMAL] = "grey50" }
+widget_class "info_grey" style "grey_text"
+
+style "brown_text" {    fg[NORMAL] = "sienna" }
+widget_class "info_brown" style "brown_text"
+
+style "yellow_text" {    fg[NORMAL] = "gold" }
+widget_class "info_yellow" style "yellow_text"
+
+style "tan_text" {    fg[NORMAL] = "khaki" }
+widget_class "info_tan" style "tan_text"
+
+# these msg_.. values determine how to draw output of the
+# different message types - see the newclient.h and msgtypes.h file for all
+# the types/subytpes.  With this, you can set different output styles
+# for all of the different message types.
+#
+# A few notes:
+#
+# 1) it is the widget_class line that binds the the style to the name that
+# the client uses to look it up.
+# Thus, you can do something like:
+#
+# style "red_text" ....
+# widget_class "msg_victim_was_pushed" style "red_text"
+# widget_class "msg_communication_say" style "red_text"
+# 
+# In this way, you don't need to have a style for every msg type - a more
+# likely scenario is a modest number of styles, but then binding these
+# to the different widget names as how you want that widget to be
+# drawn.  The <color>_text entries used above can be re-used
+# for the msg types here.
+#
+# 2) Beyond normal style inheritence rules, the client itself is coded
+# to do some - just in that way, you don't need to list every msg
+# type here.  For example:
+#
+# widget_class "msg_book" style "green_text"
+#
+# will result in every message of the BOOK class to be drawn in green
+# text.  If you then add the line:
+#
+# widget_class "msg_book_clasp_1" style "red_text"
+#
+# messages of type BOOK, subtype CLASP_1 will be drawn in red, with all
+# the other BOOK message types being drawn in green.
+#
+# Note that this works on a type/subtype level, not a # string level.  Thus,
+# you can not do:
+#
+# widget_class "msg_book_clasp" style "red_text"
+#
+# and have it work, as the "msg_book_clasp" by itself isn't a valid name.
+# Basically, you can bind it to the overall type (which covers all the
+# subtypes), or to specific type/subtypes. Tthe common/msgtypes.h file
+# contains  all the valid names (without the msg_ prefix) that are valid.
+#
+# 3) Even with the new message types, the server still sends what color
+# it thinks they should be drawn (this is basically for older clients
+# predating extended text support).  If you do not specify _ANY_ styles for the
+# message types here, the client will use that color tag for what color
+# to draw the text with, as set with the info_<color> section above.
+# However, if even a single msg_ style is set, then the client will not
+# use those values - the presumption being that if a msg_ style
+# is set, the user knows what they are doing, and any that are not
+# set they want in default color/style.
+#
+# This is because there really isn't any way
+# for the client to know if it is intentional on the part of the user
+# that they want to use the default styles for the widgets or if it 
+# should be using that color information - this is especially true
+# given the inheritence described in point #2 above.
+#
+
+
+# The entries below try to match what color the server says
+# to use for these - basically, to keep compatibility without
+# having to use the passed in color value - in that way,
+# additions can be made and the expected appearance of messages
+# will remain.
+# Given this is compatible type messages, we re-use
+# the color_text styles above.  Note that in some cases,
+# the same type of message used different colors depending
+# on where in the code it was called.  I've tried to use here
+# whatever was used the most for a particular message, but
+# I also took into account the message and other related messages
+# so the color for good vs bad effects are different, etc.  To
+# some extent, the idea that red messages are bad is put in place
+# here, with blue being good.
+#
+# Note - these should really be re-done, as the current color
+# scheme often makes no sense (same style for both a level
+# gain and loss?) But this base file is more as a sample
+# and also act like things have in the past.
+#
+# Some colors, like lightgreen, gold & tan are not used by
+# any message types right now.  And some others are used
+# in only a few places, like greytext, browntext
+#
+# these are in type/subtype order, to match msgtypes.h
+
+# BOOK messages
+widget_class "msg_book" style "darkblue_text"
+
+# CARD messages
+
+# PAPER messages
+
+# SIGN messages
+widget_class "msg_sign" style "darkblue_text"
+
+# MONUMENT messages
+
+# DIALOG messages
+widget_class "msg_dialog_npc" style "darkblue_text"
+widget_class "msg_dialog_magic_mouth" style "darkblue_text"
+
+# MOTD messages
+widget_class "msg_motd" style "green_text"
+
+# ADMIN messages
+widget_class "msg_admin_rules" style "green_text"
+widget_class "msg_admin_news" style "green_text"
+widget_class "msg_admin_player" style "darkorange_text"
+widget_class "msg_admin_dm" style "red_text"
+
+# SHOP messages
+
+# COMMAND messages
+widget_class "msg_command_quests" style "white_text"
+widget_class "msg_command_dm" style "red_text"
+widget_class "msg_command_newplayer" style "lightblue_text"
+
+# ATTRIBUTE messages
+widget_class "msg_attribute_protection_gain" style "lightblue_text"
+widget_class "msg_attribute_protection_loss" style "red_text"
+widget_class "msg_attribute_bad_effect_start" style "red_text"
+widget_class "msg_attribute_level_gain" style "lightblue_text"
+widget_class "msg_attribute_level_loss" style "red_text"
+widget_class "msg_attribute_race" style "lightblue_text"
+widget_class "msg_attribute_god" style "darkblue_text"
+
+# SKILL messages
+widget_class "msg_skill_pray" style "white_text"
+widget_class "msg_skill_error" style "red_text"
+
+# APPLY messages
+widget_class "msg_apply_success" style "darkblue_text"
+widget_class "msg_apply_cursed" style "darkblue_text"
+widget_class "msg_apply_trap" style "darkblue_text"
+
+# ATTACK messages
+widget_class "msg_attack_did_hit" style "red_text"
+widget_class "msg_attack_nokey" style "darkblue_text"
+
+# COMMUNICATION messages
+widget_class "msg_communication_random" style "white_text"
+widget_class "msg_communication_say" style "white_text"
+widget_class "msg_communication_me" style "lightblue_text"
+widget_class "msg_communication_tell" style "orange_text"
+widget_class "msg_communication_emote" style "white_text"
+widget_class "msg_communication_party" style "white_text"
+widget_class "msg_communication_shout" style "red_text"
+widget_class "msg_communication_chat" style "lightblue_text"
+
+# SPELL messages
+widget_class "msg_spell_failure" style "grey_text"
+widget_class "msg_spell_success" style "darkblue_text"
+widget_class "msg_spell_error" style "darkblue_text"
+widget_class "msg_spell_target" style "orange_text"
+
+# ITEM messages
+widget_class "msg_item_remove" style "brown_text"
+widget_class "msg_item_add" style "lightblue_text"
+widget_class "msg_item_info" style "brown_text"
+
+# MISC messages
+widget_class "msg_misc" style "darkblue_text"
+
+# VICTIM messages
+widget_class "msg_victim_swamp" style "red_text"
+widget_class "msg_victim_was_hit" style "red_text"
+widget_class "msg_victim_died" style "darkblue_text"

@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001,2007 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -459,6 +459,13 @@ typedef struct
 } PlayerPosition;
 
 extern PlayerPosition pl_pos;
+
+
+typedef struct {
+    int	    type;	    /* type of message */
+    int	    subtype;	    /* subtype of message */
+    char    *style_name;    /* name of this message in the configfile */
+} Msg_Type_Names;
 
 extern TextManager* firstTextManager;
 

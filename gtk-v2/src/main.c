@@ -3,7 +3,7 @@ char *rcsid_gtk2_main_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005,2006 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2007 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,6 +65,26 @@ const char *colorname[NUM_COLORS] = {
 "Sienna",               /* 10 */
 "Gold",                 /* 11 */
 "Khaki"                 /* 12 */
+};
+
+/* These are the names as set by the user within the rc file.
+ * We use lower case to be consistent, but also change the names
+ * to be more generic instead of specific X11 color names.
+ */
+const char *usercolorname[NUM_COLORS] = {
+"black",                /* 0  */
+"white",                /* 1  */
+"darkblue",             /* 2  */
+"red",                  /* 3  */
+"orange",               /* 4  */
+"lightblue",            /* 5  */
+"darkorange",           /* 6  */
+"green",                /* 7  */
+"darkgreen",            /* 8  */        /* Used for window background color */
+"grey"  ,               /* 9  */
+"brown",                /* 10 */
+"yellow",               /* 11 */
+"tan"                 /* 12 */
 };
 
 GdkColor root_color[NUM_COLORS];
@@ -581,14 +601,18 @@ main (int argc, char *argv[])
     gtk_set_locale ();
     gtk_init (&argc, &argv);
 
+
     add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
 
-    /* parse_args() has to com after init_client_vars() */
+    /* parse_args() has to come after init_client_vars() */
     init_client_vars();
     use_config[CONFIG_MAPWIDTH] = want_config[CONFIG_MAPWIDTH] = 25;
     use_config[CONFIG_MAPHEIGHT] = want_config[CONFIG_MAPHEIGHT] = 25;
 
+
     parse_args(argc, argv);
+    load_theme(FALSE);
+
     csocket.inbuf.buf=malloc(MAXSOCKBUF);
 
 #ifdef WIN32 /* def WIN32 */

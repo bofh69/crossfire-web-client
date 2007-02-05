@@ -1,7 +1,7 @@
 #
 # Makefile for crossfire client
 #
-#   Copyright (C) 2005,2007 Mark Wedel & Crossfire Development Team
+#   Copyright (C) 2007 Mark Wedel & Crossfire Development Team
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -19,12 +19,6 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-SUBDIRS = src themes
-
-EXTRA_DIST = \
-	gtk-v2.glade \
-	gtk-v2.gladep \
-	README \
-	README-dev \
-	TODO
+themedir=$(pkgdatadir)/themes
+dist_theme_DATA = Black Standard
 

@@ -1,7 +1,7 @@
 #
 # Makefile for crossfire-client
 #
-#   Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+#   Copyright (C) 2005,2007 Mark Wedel & Crossfire Development Team
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -71,6 +71,9 @@ item-types.h: item-types
 
 def-keys.h: def-keys
 	../utils/mdk.sh
+
+msgtypes.h: newclient.h
+	$(PERL) msgtypes.pl
 
 svnversion.h: FORCE
 	OUTPUT_DATA='/* Auto-generated at build time. */'; \

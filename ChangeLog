@@ -2,6 +2,47 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Add support for different themes in the gtk2 client.  A lot of compiled
+in defaults have also moved to the the theme file.
+---
+INSTALL: Added file - wanted by automake.
+README: Move install directions to INSTALL file.
+configure.in, configure: Add gtk-v2/themes/Makefile to list of Makefiles.
+common/Makefile.in, common/Makefile.am:  Add rule to make msgtypes.h file.
+common/client.h: Add Msg_Type_Names file, used by msgtypes.h file.
+common/msgtypes.h: File that holds names for the message type/subtype
+   values.
+common/msgtypes.pl: Script to make msgtypes.h file - basically parses
+   newclient.h, pulling out the MSG_ structures.
+common/newclient.h: Update to match server version.
+gtk-v2/Makefile.am, gtk-v2/Makefile.in: Add themes to list of subdirectories.
+gtk-v2/gtk-v2.glade: Add theme selection to config window.
+gtk-v2/src/config.c: Add support for loading/saving theme to gdefaults2 file.
+   Add support for getting theme from config window, and changing appearance
+   without need for restart.
+gtk-v2/src/gtk2proto.h: rebuilt for theme related functions.
+gtk-v2/src/info.c: Remove hard coded font values.  Add code to load
+   color, font, and msg type/subtype from theme file.  Remove
+   a lot of the hardcoding for having 2 textviews - removes a lot
+   of redundant code.  Change processing for adding messages to
+   to text buffers - don't create a new text tag - use the various
+   textags we have that match.
+gtk-v2/src/interface.c: Rebuilt with theme selection for config window.
+gtk-v2/src/inventory.c: Remove hard coded values for color on
+   inventory status.  Add ability to specify more than just background
+   color for different status - can now also change font & foreground
+   color.  Add code to load up style information.  Change processing
+   for getting row style.  Update code that adds entries to the rows.
+gtk-v2/src/main.c: Ad usercolorname global array that provides a name
+   to color number mapping to be used in theme files.  Add code to
+   load up user theme.
+gtk-v2/src/stats.c: Add support for parsing theme data.  Remove hard coded
+   color values for the stat bars.  Removed hard coded value on number
+   of stat bars in lots of places.
+gtk-v2/themes:  New directory to hold the theme files.
+---
+MSW 2007-02-04
+
 Fix for bug #1538948: Assertion failure for map2 command.
 Add checks for x,y and layer validity in the Map2Cmd.
 Note that invalid values are not discarded, but clipped to valid ones.

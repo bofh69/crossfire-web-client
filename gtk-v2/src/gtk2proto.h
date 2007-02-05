@@ -2,6 +2,7 @@
 extern void menu_about(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_about_close_clicked(GtkButton *button, gpointer user_data);
 /* config.c */
+extern void load_theme(int reload);
 extern void load_defaults(void);
 extern void save_defaults(void);
 extern void config_init(GtkWidget *window_root);
@@ -21,6 +22,8 @@ extern void image_update_download_status(int start, int end, int total);
 extern void get_map_image_size(int face, uint8 *w, uint8 *h);
 extern void init_cache_data(void);
 /* info.c */
+extern void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_style);
+extern void info_get_styles(void);
 extern void info_init(GtkWidget *window_root);
 extern void draw_info(const char *str, int color);
 extern void draw_color_info(int colr, const char *buf);
@@ -31,6 +34,7 @@ extern int get_info_width(void);
 /* inventory.c */
 extern gboolean list_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern void list_row_collapse(GtkTreeView *treeview, GtkTreeIter *iter, GtkTreePath *path, gpointer user_data);
+extern void inventory_get_styles(void);
 extern void inventory_init(GtkWidget *window_root);
 extern void set_show_icon(char *s);
 extern void set_show_weight(char *s);
@@ -38,7 +42,6 @@ extern void close_container(item *op);
 extern void open_container(item *op);
 extern void command_show(char *params);
 extern void set_weight_limit(uint32 wlim);
-extern void get_row_color(item *it, int *fg, int *bg);
 extern void item_event_item_deleting(item *it);
 extern void item_event_container_clearing(item *container);
 extern void item_event_item_changed(item *it);
@@ -142,9 +145,9 @@ extern void on_menu_magical_items_activate(GtkMenuItem *menuitem, gpointer user_
 extern void on_menu_potions_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_valuables_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_wands_rods_horns_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void on_menu_not_cursed_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_jewels_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_flesh_activate(GtkMenuItem *menuitem, gpointer user_data);
-extern void on_menu_not_cursed_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_all_weapons_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_missile_weapons_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_bows_activate(GtkMenuItem *menuitem, gpointer user_data);
@@ -183,6 +186,7 @@ extern void on_spell_cast_clicked(GtkButton *button, gpointer user_data);
 extern void on_spell_invoke_clicked(GtkButton *button, gpointer user_data);
 extern void on_spell_close_clicked(GtkButton *button, gpointer user_data);
 /* stats.c */
+extern void stats_get_styles(void);
 extern void stats_init(GtkWidget *window_root);
 extern void update_stat(int stat_no, int max_stat, int current_stat, const char *name, int can_alert);
 extern void draw_message_window(int redraw);
