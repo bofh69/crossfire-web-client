@@ -3,7 +3,7 @@
 
 <glade-interface>
 
-<widget class="GtkWindow" id="window-root">
+<widget class="GtkWindow" id="window_root">
   <property name="visible">True</property>
   <property name="title" translatable="yes">Crossfire Client - GTK v2</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
@@ -609,7 +609,7 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkLabel" id="fire-on">
+	    <widget class="GtkLabel" id="fire_on">
 	      <property name="visible">True</property>
 	      <property name="label" translatable="yes"></property>
 	      <property name="use_underline">False</property>
@@ -634,7 +634,7 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkLabel" id="run-on">
+	    <widget class="GtkLabel" id="run_on">
 	      <property name="visible">True</property>
 	      <property name="label" translatable="yes"></property>
 	      <property name="use_underline">False</property>
@@ -691,13 +691,13 @@
       </child>
 
       <child>
-	<widget class="GtkHPaned" id="hpaned-map-other">
+	<widget class="GtkHPaned" id="hpaned_map_other">
 	  <property name="visible">True</property>
 	  <property name="can_focus">True</property>
 	  <property name="position">820</property>
 
 	  <child>
-	    <widget class="GtkVPaned" id="vpaned-map-stats">
+	    <widget class="GtkVPaned" id="vpaned_map_stats">
 	      <property name="visible">True</property>
 	      <property name="can_focus">True</property>
 	      <property name="position">847</property>
@@ -713,7 +713,7 @@
 		  <property name="enable_popup">False</property>
 
 		  <child>
-		    <widget class="GtkTable" id="table-map">
+		    <widget class="GtkTable" id="table_map">
 		      <property name="visible">True</property>
 		      <property name="n_rows">2</property>
 		      <property name="n_columns">2</property>
@@ -722,7 +722,7 @@
 		      <property name="column_spacing">0</property>
 
 		      <child>
-			<widget class="GtkDrawingArea" id="drawingarea-map">
+			<widget class="GtkDrawingArea" id="drawingarea_map">
 			  <property name="width_request">800</property>
 			  <property name="height_request">800</property>
 			  <property name="visible">True</property>
@@ -738,7 +738,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkButton" id="button-map-recenter">
+			<widget class="GtkButton" id="button_map_recenter">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
 			  <property name="label" translatable="yes"></property>
@@ -757,7 +757,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkVScrollbar" id="vscrollbar-map">
+			<widget class="GtkVScrollbar" id="vscrollbar_map">
 			  <property name="visible">True</property>
 			  <property name="update_policy">GTK_UPDATE_CONTINUOUS</property>
 			  <property name="inverted">False</property>
@@ -774,7 +774,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkHScrollbar" id="hscrollbar-map">
+			<widget class="GtkHScrollbar" id="hscrollbar_map">
 			  <property name="visible">True</property>
 			  <property name="update_policy">GTK_UPDATE_CONTINUOUS</property>
 			  <property name="inverted">False</property>
@@ -820,7 +820,7 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkDrawingArea" id="drawingarea-magic-map">
+		    <widget class="GtkDrawingArea" id="drawingarea_magic_map">
 		      <property name="visible">True</property>
 		      <signal name="expose_event" handler="on_drawingarea_magic_map_expose_event" last_modification_time="Wed, 06 Apr 2005 06:35:33 GMT"/>
 		    </widget>
@@ -875,7 +875,7 @@
 		      <property name="column_spacing">0</property>
 
 		      <child>
-			<widget class="GtkLabel" id="label-stats-hp">
+			<widget class="GtkLabel" id="label_stats_hp">
 			  <property name="visible">True</property>
 			  <property name="label" translatable="yes">HP: 0/0</property>
 			  <property name="use_underline">False</property>
@@ -903,7 +903,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkLabel" id="label-stats-sp">
+			<widget class="GtkLabel" id="label_stats_sp">
 			  <property name="visible">True</property>
 			  <property name="label" translatable="yes">Spell Points: 0/0</property>
 			  <property name="use_underline">False</property>
@@ -931,7 +931,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkLabel" id="label-stats-grace">
+			<widget class="GtkLabel" id="label_stats_grace">
 			  <property name="visible">True</property>
 			  <property name="label" translatable="yes">Grace: 0/0</property>
 			  <property name="use_underline">False</property>
@@ -959,7 +959,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkLabel" id="label-stats-food">
+			<widget class="GtkLabel" id="label_stats_food">
 			  <property name="visible">True</property>
 			  <property name="label" translatable="yes">Food: 0/0</property>
 			  <property name="use_underline">False</property>
@@ -987,7 +987,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkProgressBar" id="progressbar-hp">
+			<widget class="GtkProgressBar" id="progressbar_hp">
 			  <property name="visible">True</property>
 			  <property name="orientation">GTK_PROGRESS_LEFT_TO_RIGHT</property>
 			  <property name="fraction">0</property>
@@ -1006,7 +1006,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkProgressBar" id="progressbar-sp">
+			<widget class="GtkProgressBar" id="progressbar_sp">
 			  <property name="visible">True</property>
 			  <property name="orientation">GTK_PROGRESS_LEFT_TO_RIGHT</property>
 			  <property name="fraction">0</property>
@@ -1024,7 +1024,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkProgressBar" id="progressbar-grace">
+			<widget class="GtkProgressBar" id="progressbar_grace">
 			  <property name="visible">True</property>
 			  <property name="orientation">GTK_PROGRESS_LEFT_TO_RIGHT</property>
 			  <property name="fraction">0</property>
@@ -1042,7 +1042,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkProgressBar" id="progressbar-food">
+			<widget class="GtkProgressBar" id="progressbar_food">
 			  <property name="visible">True</property>
 			  <property name="orientation">GTK_PROGRESS_LEFT_TO_RIGHT</property>
 			  <property name="fraction">0</property>
@@ -1116,7 +1116,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkLabel" id="label-stats-exp">
+			<widget class="GtkLabel" id="label_stats_exp">
 			  <property name="visible">True</property>
 			  <property name="label" translatable="yes">Exp: 0/0</property>
 			  <property name="use_underline">False</property>
@@ -1144,7 +1144,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkProgressBar" id="progressbar-exp">
+			<widget class="GtkProgressBar" id="progressbar_exp">
 			  <property name="visible">True</property>
 			  <property name="orientation">GTK_PROGRESS_LEFT_TO_RIGHT</property>
 			  <property name="fraction">0</property>
@@ -1184,7 +1184,7 @@
 			  <property name="spacing">0</property>
 
 			  <child>
-			    <widget class="GtkLabel" id="label-playername">
+			    <widget class="GtkLabel" id="label_playername">
 			      <property name="visible">True</property>
 			      <property name="label" translatable="yes">Player:</property>
 			      <property name="use_underline">False</property>
@@ -1603,7 +1603,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label-wc">
+				<widget class="GtkLabel" id="label_wc">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes"></property>
 				  <property name="use_underline">False</property>
@@ -1653,7 +1653,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label-dam">
+				<widget class="GtkLabel" id="label_dam">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes"></property>
 				  <property name="use_underline">False</property>
@@ -1703,7 +1703,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label-ac">
+				<widget class="GtkLabel" id="label_ac">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes"></property>
 				  <property name="use_underline">False</property>
@@ -1753,7 +1753,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label-armor">
+				<widget class="GtkLabel" id="label_armor">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes"></property>
 				  <property name="use_underline">False</property>
@@ -1816,7 +1816,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label-speed">
+				<widget class="GtkLabel" id="label_speed">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes"></property>
 				  <property name="use_underline">False</property>
@@ -1866,7 +1866,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label-weapon-speed">
+				<widget class="GtkLabel" id="label_weapon_speed">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes"></property>
 				  <property name="use_underline">False</property>
@@ -1898,7 +1898,7 @@
 			  </child>
 
 			  <child>
-			    <widget class="GtkLabel" id="label-range">
+			    <widget class="GtkLabel" id="label_range">
 			      <property name="visible">True</property>
 			      <property name="label" translatable="yes">Range:</property>
 			      <property name="use_underline">False</property>
@@ -1929,7 +1929,7 @@
 			      <property name="spacing">0</property>
 
 			      <child>
-				<widget class="GtkLabel" id="label-exp">
+				<widget class="GtkLabel" id="label_exp">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes">Experience:</property>
 				  <property name="use_underline">False</property>
@@ -1954,7 +1954,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label-level">
+				<widget class="GtkLabel" id="label_level">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes">Level:</property>
 				  <property name="use_underline">False</property>
@@ -2015,7 +2015,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkTable" id="table-skills-exp">
+			<widget class="GtkTable" id="table_skills_exp">
 			  <property name="visible">True</property>
 			  <property name="n_rows">6</property>
 			  <property name="n_columns">6</property>
@@ -2053,7 +2053,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkTable" id="table-protections">
+			<widget class="GtkTable" id="table_protections">
 			  <property name="visible">True</property>
 			  <property name="n_rows">6</property>
 			  <property name="n_columns">6</property>
@@ -2115,13 +2115,13 @@
 	      <property name="position">300</property>
 
 	      <child>
-		<widget class="GtkVBox" id="vbox-info-entry">
+		<widget class="GtkVBox" id="vbox_info_entry">
 		  <property name="visible">True</property>
 		  <property name="homogeneous">False</property>
 		  <property name="spacing">0</property>
 
 		  <child>
-		    <widget class="GtkNotebook" id="notebook-info">
+		    <widget class="GtkNotebook" id="notebook_info">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="show_tabs">True</property>
@@ -2131,7 +2131,7 @@
 		      <property name="enable_popup">False</property>
 
 		      <child>
-			<widget class="GtkScrolledWindow" id="scrolledwindow-textview1">
+			<widget class="GtkScrolledWindow" id="scrolledwindow_textview1">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
 			  <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
@@ -2140,7 +2140,7 @@
 			  <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
 
 			  <child>
-			    <widget class="GtkTextView" id="textview-info1">
+			    <widget class="GtkTextView" id="textview_info1">
 			      <property name="visible">True</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">False</property>
@@ -2189,7 +2189,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkScrolledWindow" id="scrolledwindow-textview2">
+			<widget class="GtkScrolledWindow" id="scrolledwindow_textview2">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
 			  <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
@@ -2198,7 +2198,7 @@
 			  <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
 
 			  <child>
-			    <widget class="GtkTextView" id="textview-info2">
+			    <widget class="GtkTextView" id="textview_info2">
 			      <property name="visible">True</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">False</property>
@@ -2254,7 +2254,7 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkEntry" id="entry-commands">
+		    <widget class="GtkEntry" id="entry_commands">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="editable">True</property>
@@ -2323,7 +2323,7 @@
 			  </child>
 
 			  <child>
-			    <widget class="GtkLabel" id="label-inv-weight">
+			    <widget class="GtkLabel" id="label_inv_weight">
 			      <property name="visible">True</property>
 			      <property name="label" translatable="yes">0/0</property>
 			      <property name="use_underline">False</property>
@@ -2373,7 +2373,7 @@
 			  </child>
 
 			  <child>
-			    <widget class="GtkSpinButton" id="spinbutton-count">
+			    <widget class="GtkSpinButton" id="spinbutton_count">
 			      <property name="visible">True</property>
 			      <property name="can_focus">True</property>
 			      <property name="climb_rate">1</property>
@@ -2399,7 +2399,7 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkNotebook" id="notebook-inv">
+			<widget class="GtkNotebook" id="notebook_inv">
 			  <property name="visible">True</property>
 			  <property name="show_tabs">True</property>
 			  <property name="show_border">True</property>
@@ -2424,7 +2424,7 @@
 				  <property name="shadow_type">GTK_SHADOW_IN</property>
 
 				  <child>
-				    <widget class="GtkTable" id="inv-table">
+				    <widget class="GtkTable" id="inv_table">
 				      <property name="visible">True</property>
 				      <property name="can_focus">True</property>
 				      <property name="n_rows">11</property>

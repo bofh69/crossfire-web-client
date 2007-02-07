@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/gtk-v2.glade: Apply patch 1636013 - standardize on underscored
+   widget names.  Patch by Veli-Matti Valtonen - maligor.
+MSW 2007-02-06
+
 Add support for different themes in the gtk2 client.  A lot of compiled
 in defaults have also moved to the the theme file.
 ---
