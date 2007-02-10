@@ -2,6 +2,20 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Apply patch #1560052: LUA client-side support. New commands: lua_list,
+lua_load, lua_kill.
+ pixmaps/Makefile.in
+ configure
+ gtk/Makefile.am Makefile.in
+ common/commands.c Makefile.am Makefile.in proto.h p_cmd.c Makefile.am
+ help/Makefile.in
+ utils/Makefile.in
+ x11/Makefile.am Makefile.in
+ gtk-v2/Makefile.in
+ gtk-v2/src/Makefile.am Makefile.in
+ sound-src/Makefile.in
+Ryo 2007-02-10
+
 gtk-v2/gtk-v2.glade: Apply patch 1636013 - standardize on underscored
    widget names.  Patch by Veli-Matti Valtonen - maligor.
 MSW 2007-02-06

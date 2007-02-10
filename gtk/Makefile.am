@@ -46,7 +46,7 @@ dist_man6_MANS = \
 	crossfire-client-gtk.man
 
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/common -I$(top_srcdir)/pixmaps $(GTK_CFLAGS) $(SDL_CFLAGS) 
-crossfire_client_gtk_LDADD = $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a
+crossfire_client_gtk_LDADD = $(GTK_LIBS) $(SDL_LIBS) $(DMALLOC_LIB) ../common/libcfclient.a -llua -llualib
 
 ../common/libcfclient.a:
 	( cd ../common ; make libcfclient.a )

@@ -687,6 +687,7 @@ void StatsCmd(unsigned char *data, int len) {
     }
     draw_stats(redraw);
     draw_message_window(0);
+    script_lua_stats();
 }
 
 void handle_query(char *data, int len) {

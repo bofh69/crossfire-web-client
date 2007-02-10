@@ -149,3 +149,9 @@ int send_command(const char *command, int repeat, int must_send);
 void CompleteCmd(unsigned char *data, int len);
 void command_take(const char *command, const char *cpnext);
 /* script.c */
+/* script_lua.c */
+void script_lua_load(const char* param);
+void script_lua_list(const char* param);
+void script_lua_kill(const char* param);
+void script_lua_stats();
+int script_lua_command(const char* command, const char* param);

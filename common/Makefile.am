@@ -33,7 +33,8 @@ libcfclient_a_SOURCES = \
 	newsocket.c \
 	p_cmd.c \
 	player.c \
-	script.c
+	script.c \
+	script_lua.c
 
 noinst_HEADERS = \
 	cconfig.h \
