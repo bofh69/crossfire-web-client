@@ -124,6 +124,13 @@ void client_tick(uint32 tick)
     mapdata_animation();
 }
 
+/**
+ * We get pickup information from server, update our status.
+ */
+void client_pickup(uint32 pickup)
+{
+}
+
 /* Called from disconnect command - that closes the socket -
  * we just need to do the gtk cleanup.
  */

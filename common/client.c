@@ -143,6 +143,8 @@ struct CmdMapping commands[] = {
     { "query", (CmdProc)handle_query, ASCII},
     { "replyinfo", ReplyInfoCmd, ASCII},
     { "ExtendedTextSet", (CmdProc)SinkCmd, NODATA},
+
+    { "pickup", PickupCmd, INT_ARRAY /* uint32 */},
 };
 
 #define NCOMMANDS ((int)(sizeof(commands)/sizeof(struct CmdMapping)))
@@ -386,6 +388,7 @@ void negotiate_connection(int sound)
         /*will handle all special infos requested when setup answer this command*/
     }
     cs_print_string(csocket.fd,"setup extendedTextInfos 1");
+    cs_print_string(csocket.fd,"setup want_pickup 1");
 
     /* If the server will answer the requestinfo for image_info and image_data,
      * send it and wait for the response.

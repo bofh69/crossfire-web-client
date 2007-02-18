@@ -1197,3 +1197,10 @@ void addsmooth(uint16 face, uint16 smooth_face)
 void client_tick(uint32 tick)
 {
 }
+
+/**
+ * We get pickup information from server, update our status.
+ */
+void client_pickup(uint32 pickup)
+{
+}

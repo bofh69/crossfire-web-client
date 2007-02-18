@@ -2,6 +2,15 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Implement feature request 1025952: GTK Client - Save Pickup options.
+New external command, 'client_pickup(uint32 pickup)', which is called
+when player logged in.
+ common/client.c commands.c external.h proto.h
+ gtk/gx11.c
+ gtk-v2/src/gtk2proto.h main.c
+ x11/xutil.c
+Ryo 2007-02-18
+
 Apply patch #1560052: LUA client-side support. New commands: lua_list,
 lua_load, lua_kill.
  pixmaps/Makefile.in

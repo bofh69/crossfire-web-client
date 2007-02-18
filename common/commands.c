@@ -368,6 +368,8 @@ void SetupCmd(char *buf, int len) {
                     manager = manager->next;
                 }
             }
+        } else if (!strcmp(cmd, "want_pickup")) {
+            /* Nothing to do specially, it's info pushed from server, not having it isn't that bad. */
         } else {
             LOG(LOG_INFO, "common::SetupCmd", "Got setup for a command we don't understand: %s %s",
                 cmd, param);
@@ -1440,4 +1442,17 @@ void TickCmd(uint8 *data, int len) {
 
     /* Up to the specific client to decide what to do */
     client_tick(tick);
+}
+
+/**
+ * Server gives us current player's pickup.
+ *
+ * @param data
+ * buffer sent by server.
+ * @param len
+ * length of data.
+ */
+void PickupCmd(uint8 *data, int len) {
+    uint32 pickup = GetInt_String(data);
+    client_pickup(pickup);
 }

@@ -81,6 +81,7 @@ extern void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_
 /* main.c */
 extern int do_timeout(void);
 extern void client_tick(uint32 tick);
+extern void client_pickup(uint32 pickup);
 extern void cleanup_connection(void);
 extern void on_window_destroy_event(GtkObject *object, gpointer user_data);
 extern void do_network(void);

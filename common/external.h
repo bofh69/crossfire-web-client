@@ -88,3 +88,4 @@ extern void save_defaults(void);
 extern void command_show(const char *params);
 extern void client_tick(uint32 tick);
 extern void cleanup_connection();
+extern void client_pickup(uint32 pickup);

@@ -37,6 +37,7 @@ void MapExtendedCmd(unsigned char *data, int len);
 void MagicMapCmd(unsigned char *data, int len);
 void SinkCmd(unsigned char *data, int len);
 void TickCmd(uint8 *data, int len);
+void PickupCmd(uint8 *data, int len);
 /* image.c */
 void init_common_cache_data(void);
 void requestsmooth(int pnum);

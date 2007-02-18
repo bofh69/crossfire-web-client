@@ -118,6 +118,44 @@ int map_image_size=DEFAULT_IMAGE_SIZE, map_image_half_size=DEFAULT_IMAGE_SIZE/2;
 PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
 
+  /* copy from server: include/define.h */
+#define PU_NOTHING              0x00000000
+
+#define PU_DEBUG                0x10000000
+#define PU_INHIBIT              0x20000000
+#define PU_STOP                 0x40000000
+#define PU_NEWMODE              0x80000000
+
+#define PU_RATIO                0x0000000F
+
+#define PU_FOOD                 0x00000010
+#define PU_DRINK                0x00000020
+#define PU_VALUABLES            0x00000040
+#define PU_BOW                  0x00000080
+
+#define PU_ARROW                0x00000100
+#define PU_HELMET               0x00000200
+#define PU_SHIELD               0x00000400
+#define PU_ARMOUR               0x00000800
+
+#define PU_BOOTS                0x00001000
+#define PU_GLOVES               0x00002000
+#define PU_CLOAK                0x00004000
+#define PU_KEY                  0x00008000
+
+#define PU_MISSILEWEAPON        0x00010000
+#define PU_ALLWEAPON            0x00020000
+#define PU_MAGICAL              0x00040000
+#define PU_POTION               0x00080000
+
+#define PU_SPELLBOOK		0x00100000
+#define PU_SKILLSCROLL		0x00200000
+#define PU_READABLES		0x00400000
+#define PU_MAGIC_DEVICE		0x00800000
+
+#define PU_NOT_CURSED		0x01000000
+#define PU_JEWELS		0x02000000
+#define PU_FLESH		0x04000000
 
 
 
@@ -266,7 +304,8 @@ static GtkWidget
 
 static char *last_str;
 
-static int pickup_mode = 0;
+/** Pickup mode. */
+static unsigned int pickup_mode = 0;
 
 int updatelock = 0;
 
@@ -2803,26 +2842,32 @@ static void shelpdialog(GtkWidget *widget) {
   }
 }
 
-
 /* Various routines for setting modes by menu choices. */
 static void new_menu_pickup(GtkWidget *button, int val)
 {
-  static unsigned int pmode=0;
   char modestr[128];
+  unsigned int old_pickup = pickup_mode;
 
   /* widget is GtkCheckMenuItem */
-  if(GTK_CHECK_MENU_ITEM (button)->active) pmode=pmode|val;
-  else pmode=pmode&~val;
+  if(GTK_CHECK_MENU_ITEM (button)->active) {
+      pickup_mode=pickup_mode|val;
+      if (val != PU_NEWMODE)
+          pickup_mode = pickup_mode | PU_NEWMODE;
+  } else pickup_mode=pickup_mode&~val;
+
+
+  if (old_pickup == pickup_mode)
+      return;
 
 #if 0
   fprintf(stderr,"val=0x%8x\n",val);
   fprintf(stderr,"mode=0x%8x\n",pmode);
 #endif
 
-  sprintf(modestr,"bind pickup %u",pmode);
+  sprintf(modestr,"bind pickup %u",pickup_mode);
   draw_info("To set this pickup mode to a key, use:",NDI_BLACK);
   draw_info(modestr,NDI_BLACK);
-  sprintf(modestr,"pickup %u",pmode);
+  sprintf(modestr,"pickup %u",pickup_mode);
   send_command(modestr, -1, 0);
 }
 
@@ -3111,6 +3156,12 @@ void client_exit(void) {
 #endif
     exit(0);
 }
+
+/* To keep trace of pickup menus, and be able to check/uncheck them. */
+static GtkWidget* pickup_menus[32];
+static int pickup_value[32];
+static int pickup_count = 0;
+
 /* get_menu_display
  * This sets up menus
  */
@@ -3400,46 +3451,6 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 /* --------------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-
-  /* copy from server: include/define.h */
-#define PU_NOTHING              0x00000000
-
-#define PU_DEBUG                0x10000000
-#define PU_INHIBIT              0x20000000
-#define PU_STOP                 0x40000000
-#define PU_NEWMODE              0x80000000
-
-#define PU_RATIO                0x0000000F
-
-#define PU_FOOD                 0x00000010
-#define PU_DRINK                0x00000020
-#define PU_VALUABLES            0x00000040
-#define PU_BOW                  0x00000080
-
-#define PU_ARROW                0x00000100
-#define PU_HELMET               0x00000200
-#define PU_SHIELD               0x00000400
-#define PU_ARMOUR               0x00000800
-
-#define PU_BOOTS                0x00001000
-#define PU_GLOVES               0x00002000
-#define PU_CLOAK                0x00004000
-#define PU_KEY                  0x00008000
-
-#define PU_MISSILEWEAPON        0x00010000
-#define PU_ALLWEAPON            0x00020000
-#define PU_MAGICAL              0x00040000
-#define PU_POTION               0x00080000
-
-#define PU_SPELLBOOK		0x00100000
-#define PU_SKILLSCROLL		0x00200000
-#define PU_READABLES		0x00400000
-#define PU_MAGIC_DEVICE		0x00800000
-
-#define PU_NOT_CURSED		0x01000000
-#define PU_JEWELS		0x02000000
-#define PU_FLESH		0x04000000
-
   /* root of the NEWPickup menu */
   newpickupmenu = gtk_menu_new();
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(newpickup_menu_item), newpickupmenu);
@@ -3454,6 +3465,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_NEWMODE));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_NEWMODE;
 
   menu_items = gtk_check_menu_item_new_with_label("Inhibit autopickup");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3461,6 +3474,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_INHIBIT));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_INHIBIT;
 
   menu_items = gtk_check_menu_item_new_with_label("Stop before pickup");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3468,6 +3483,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_STOP));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_STOP;
 
   menu_items = gtk_check_menu_item_new_with_label("Debug autopickup");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3475,6 +3492,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DEBUG));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_DEBUG;
 
 
   /* the ratio pickup submenu */
@@ -3501,6 +3520,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
     gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(i));
     gtk_widget_show(menu_items);
+    pickup_menus[pickup_count] = menu_items;
+    pickup_value[pickup_count++] = i;
   }
 
 
@@ -3521,6 +3542,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ALLWEAPON));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_ALLWEAPON;
 
   menu_items = gtk_check_menu_item_new_with_label("Missile Weapons");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3528,6 +3551,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MISSILEWEAPON));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_MISSILEWEAPON;
 
   menu_items = gtk_check_menu_item_new_with_label("Bows");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3535,6 +3560,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOW));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_BOW;
 
   menu_items = gtk_check_menu_item_new_with_label("Arrows");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3542,6 +3569,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARROW));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_ARROW;
 
 
   /* armour pickup menu */
@@ -3561,6 +3590,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_HELMET));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_HELMET;
 
   menu_items = gtk_check_menu_item_new_with_label("Shields");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3568,6 +3599,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SHIELD));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_SHIELD;
 
   menu_items = gtk_check_menu_item_new_with_label("Body Armour");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3575,6 +3608,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_ARMOUR));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_ARMOUR;
 
   menu_items = gtk_check_menu_item_new_with_label("Boots");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3582,6 +3617,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_BOOTS));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_BOOTS;
 
   menu_items = gtk_check_menu_item_new_with_label("Gloves");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3589,6 +3626,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_GLOVES));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_GLOVES;
 
   menu_items = gtk_check_menu_item_new_with_label("Cloaks");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3596,6 +3635,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_CLOAK));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_CLOAK;
 
 
   /* books pickup menu */
@@ -3615,6 +3656,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SPELLBOOK));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_SPELLBOOK;
 
   menu_items = gtk_check_menu_item_new_with_label("Skillscrolls");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3622,6 +3665,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_SKILLSCROLL));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_SKILLSCROLL;
 
   menu_items = gtk_check_menu_item_new_with_label("Normal Books/Scrolls");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3629,6 +3674,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_READABLES));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_READABLES;
 
 
   /* continue with the rest of the stuff... */
@@ -3639,6 +3686,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_FOOD));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_FOOD;
 
   menu_items = gtk_check_menu_item_new_with_label("Drinks");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3646,6 +3695,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_DRINK));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_DRINK;
 
   menu_items = gtk_check_menu_item_new_with_label("Flesh");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3653,6 +3704,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_FLESH));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_FLESH;
 
   menu_items = gtk_check_menu_item_new_with_label("Valuables (Money, Gems)");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3660,6 +3713,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_VALUABLES));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_VALUABLES;
 
   menu_items = gtk_check_menu_item_new_with_label("Keys");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3667,6 +3722,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_KEY));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_KEY;
 
   menu_items = gtk_check_menu_item_new_with_label("Magical Items");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3674,6 +3731,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MAGICAL));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_MAGICAL;
 
   menu_items = gtk_check_menu_item_new_with_label("Potions");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3681,6 +3740,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_POTION));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_POTION;
 
   menu_items = gtk_check_menu_item_new_with_label("Magic Devices");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3688,6 +3749,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
   GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_MAGIC_DEVICE));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_MAGIC_DEVICE;
 
   menu_items = gtk_check_menu_item_new_with_label("Ignore cursed");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3695,6 +3758,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items), "activate",
 	GTK_SIGNAL_FUNC(new_menu_pickup), GINT_TO_POINTER(PU_NOT_CURSED));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_NOT_CURSED;
 
   menu_items = gtk_check_menu_item_new_with_label("Jewelry");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3702,6 +3767,8 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_signal_connect(GTK_OBJECT(menu_items),"activate",
     GTK_SIGNAL_FUNC(new_menu_pickup),GINT_TO_POINTER(PU_JEWELS));
   gtk_widget_show(menu_items);
+  pickup_menus[pickup_count] = menu_items;
+  pickup_value[pickup_count++] = PU_JEWELS;
 /* --------------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
@@ -4327,6 +4394,20 @@ void client_tick(uint32 tick)
 {
     inventory_tick();
     mapdata_animation();
+}
+
+/**
+ * We get pickup information from server, update our status.
+ */
+void client_pickup(uint32 pickup)
+{
+    int menu;
+
+    /* Update value, so handling function won't resend info. */
+    pickup_mode = pickup;
+
+    for (menu = 0; menu < pickup_count; menu++)
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(pickup_menus[menu]), (pickup & pickup_value[menu]) ? 1 : 0);
 }
 
 int do_timeout(void) {
