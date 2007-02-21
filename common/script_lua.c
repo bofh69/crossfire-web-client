@@ -3,7 +3,7 @@ const char *rcsid_common_script_lua_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2006 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2006-2007 Mark Wedel & Crossfire Development Team
     This source file also Copyright (C) 2006 Nicolas Weeger
 
     This program is free software; you can redistribute it and/or modify
@@ -33,6 +33,12 @@ const char *rcsid_common_script_lua_c =
 #endif
 
 #include <client.h>
+
+#ifdef HAVE_LIBLUA
+/* It seems easier to just comment everything out if we don't have
+ * lua vs trying to play around with it in the makefiles.
+ */
+
 #include <external.h>
 #include <script_lua.h>
 #include <lua.h>
@@ -398,3 +404,5 @@ int script_lua_command(const char* command, const char* param)
     }
     return ret;
 }
+
+#endif /* HAVE_LIB_LUA */

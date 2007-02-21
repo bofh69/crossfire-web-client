@@ -222,6 +222,15 @@ AM_MAINTAINER_MODE
 AC_SUBST(PACKAGE_LIBS)
 AC_SUBST(INTLLIBS)
 
+
+dnl sound.c needs sqrt.  So does png (on some systems)
+dnl lua also needs it, so put it near the top
+AC_CHECK_LIB(m, sqrt)
+
+AC_CHECK_LIB(lua, main)
+AC_SUBST(LUA_LIBS)
+AM_CONDITIONAL(HAVE_LIBLUA, test x"$cf_have_liblua" = "xyes")
+
 dnl Check for OpenGL
 AC_CHECK_LIB(GL, main)
 AC_CHECK_LIB(GLU, main)
@@ -411,8 +420,6 @@ LIBS="$gcfc_save_LIBS"
 
 AC_SUBST(LIBS)
 
-dnl sound.c needs sqrt.  So does png (on some systems)
-AC_CHECK_LIB(m, sqrt)
 
 dnl png on some systems need the zlib, so check for it
 AC_CHECK_LIB(z, main)

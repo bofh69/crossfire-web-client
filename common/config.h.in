@@ -29,6 +29,7 @@
 #undef HAVE_STPCPY
 #undef HAVE_LIBSM
 #undef HAVE_LIBXPM
+#undef HAVE_LIBLUA
 
 /* Define if you have the mkdir function.  */
 #undef HAVE_MKDIR

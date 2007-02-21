@@ -2,6 +2,16 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Remove hard dependancy of LUA - instead, have configure check for it and
+just don't compile in the LUA bits if we don't have lua installed.
+--
+configure,configure.in: Add lua checks.
+*/Makefile.am, */Makefile.in: Remove hard coded links of -llua
+common/config.h.in: Add HAVE_LIBLUA define
+common/commands.c, common/p_cmd.c, common/script_lua.c: Add #ifdef
+     HAVE_LIBLUA checks
+MSW 2007-02-20
+
 Implement feature request 1025952: GTK Client - Save Pickup options.
 New external command, 'client_pickup(uint32 pickup)', which is called
 when player logged in.

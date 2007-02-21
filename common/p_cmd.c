@@ -581,7 +581,7 @@ static ConsoleCommand CommonCommands[] = {
         script_init, help_script,
         NULL
     },
-
+#ifdef HAVE_LIBLUA
     {   "lua_load", COMM_CAT_SCRIPT,
     script_lua_load, NULL, NULL
     },
@@ -593,7 +593,7 @@ static ConsoleCommand CommonCommands[] = {
     {   "lua_kill", COMM_CAT_SCRIPT,
     script_lua_kill, NULL, NULL
     },
-
+#endif
     {
         "scripts", COMM_CAT_SCRIPT,
         do_script_list, NULL,
@@ -945,9 +945,10 @@ void extended_command(const char *ocommand) {
      * and cpnext contains everything after that first space.  cpnext
      * could be NULL.
      */
-
+#ifdef HAVE_LIBLUA
     if ( script_lua_command(cp, cpnext) )
         return;
+#endif
 
     /* If this isn't a client-side command, send it to the server. */
     if (!handle_local_command(cp, cpnext)) {
