@@ -227,7 +227,7 @@ dnl sound.c needs sqrt.  So does png (on some systems)
 dnl lua also needs it, so put it near the top
 AC_CHECK_LIB(m, sqrt)
 
-AC_CHECK_LIB(lua, main)
+AC_CHECK_LIB(lua, main, LIBS="$LIBS -llua -llualib")
 AC_SUBST(LUA_LIBS)
 AM_CONDITIONAL(HAVE_LIBLUA, test x"$cf_have_liblua" = "xyes")
 

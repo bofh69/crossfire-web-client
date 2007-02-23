@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix missing liblua when linking.
+configure,configure.in: rebuilt
+*/Makefile.am, */Makefile.in: rebuilt
+Ryo 2007-02-23
+
 Remove hard dependancy of LUA - instead, have configure check for it and
 just don't compile in the LUA bits if we don't have lua installed.
 --
