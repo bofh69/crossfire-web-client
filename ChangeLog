@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure, configure.in:  Fix broken check for liblua - not all systems have
+liblualib, so assuming they do if liblua exists breaks compilation.  And
+separate check for lualib.
+MSW 2007-02-25
+
 Fix missing liblua when linking.
 configure,configure.in: rebuilt
 */Makefile.am, */Makefile.in: rebuilt
