@@ -2,6 +2,20 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Add theme support to the gtk2 client spell window.
+gtk-v2/gtk-v2.glade: Remove the drawingarea boxes, add eventboxes and put
+  the labels in the eventbox - the labels now act as key, as it is easier
+  to do all of foreground, background, and font style there.
+gtk-v2/src/config.c: Add calls to set spell styles and redraw spell window
+gtk-v2/src/interface.c: Rebuilt
+gtk-v2/src/inventory.c: Declare Style_Names static, since it is a generic
+   name and spells.c uses same name.  Linewrap a long line.
+gtk-v2/src/spells.c: Add theme handling - load up theme data, set entries
+  in the treeview widget, update code to draw keys.
+gtk-v2/themes/Black, gtk-v2/themes/Standard: Add style information for the
+  spells.
+MSW 2007-02-25
+
 configure, configure.in:  Fix broken check for liblua - not all systems have
 liblualib, so assuming they do if liblua exists breaks compilation.  And
 separate check for lualib.

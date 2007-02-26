@@ -69,7 +69,7 @@ enum Styles {
 };
 
 /* The name of these styles in the rc file */
-const char *Style_Names[Style_Last] = {
+static const char *Style_Names[Style_Last] = {
     "inv_magical", "inv_cursed", "inv_unpaid", "inv_locked", "inv_applied"
 };
 
@@ -375,7 +375,8 @@ void inventory_get_styles()
 
     for (i=0; i < Style_Last; i++) {
 	if (has_init && inv_styles[i]) g_object_unref(inv_styles[i]);
-	tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, Style_Names[i], G_TYPE_NONE);
+	tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, Style_Names[i],
+					      G_TYPE_NONE);
 	if (tmp_style) {
 	    inv_styles[i] = g_object_ref(tmp_style);
 	}

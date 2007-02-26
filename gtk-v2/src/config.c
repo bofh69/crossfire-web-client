@@ -137,6 +137,8 @@ void load_theme(int reload)
 	info_get_styles();
 	inventory_get_styles();
 	stats_get_styles();
+	spell_get_styles();
+	update_spell_information();
 
 	/* set the inv_updated to force a redraw - otherwise it will not
 	 * necessarily bind the lists with the new widgets.

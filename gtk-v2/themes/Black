@@ -189,6 +189,30 @@ style "inv_applied"
 widget_class "inv_applied" style "inv_applied"
 
 
+############################################################################
+# Start of spell list styles
+############################################################################
+# like the inventory styles, these do not bind to a specific widget,
+# but rather the code uses them based on values of the spell.
+#
+style "spell_denied"
+{
+    text[NORMAL] = "red"
+}
+widget_class "spell_denied" style "spell_denied"
+
+style "spell_repelled"
+{
+    text[NORMAL] = "orange"
+}
+widget_class "spell_repelled" style "spell_repelled"
+
+style "spell_attuned"
+{
+    text[NORMAL] = "green"
+}
+widget_class "spell_attuned" style "spell_attuned"
+
 
 ############################################################################
 # Start of text info style.  The text info are where it actually

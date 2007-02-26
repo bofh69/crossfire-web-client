@@ -1532,12 +1532,14 @@ create_spell_window (void)
   GtkWidget *scrolledwindow9;
   GtkWidget *spell_treeview;
   GtkWidget *hbox17;
-  GtkWidget *spell_drawingarea_attuned;
-  GtkWidget *spell_label_green;
-  GtkWidget *spell_drawingarea_repelled;
-  GtkWidget *spell_label_orange;
-  GtkWidget *spell_drawingarea_denied;
-  GtkWidget *spell_label_red;
+  GtkWidget *spell_eventbox_attuned;
+  GtkWidget *spell_label_attuned;
+  GtkWidget *spell_eventbox_repelled;
+  GtkWidget *spell_label_repelled;
+  GtkWidget *spell_eventbox_denied;
+  GtkWidget *spell_label_denied;
+  GtkWidget *spell_eventbox_normal;
+  GtkWidget *spell_label_normal;
   GtkWidget *label91;
   GtkWidget *spell_options;
   GtkWidget *hbox16;
@@ -1564,44 +1566,53 @@ create_spell_window (void)
   gtk_container_add (GTK_CONTAINER (scrolledwindow9), spell_treeview);
   GTK_WIDGET_UNSET_FLAGS (spell_treeview, GTK_CAN_FOCUS);
 
-  hbox17 = gtk_hbox_new (FALSE, 0);
+  hbox17 = gtk_hbox_new (FALSE, 5);
   gtk_widget_show (hbox17);
   gtk_box_pack_start (GTK_BOX (vbox9), hbox17, FALSE, TRUE, 0);
 
-  spell_drawingarea_attuned = gtk_drawing_area_new ();
-  gtk_widget_show (spell_drawingarea_attuned);
-  gtk_box_pack_start (GTK_BOX (hbox17), spell_drawingarea_attuned, FALSE, TRUE, 0);
-  gtk_widget_set_size_request (spell_drawingarea_attuned, 30, -1);
+  spell_eventbox_attuned = gtk_event_box_new ();
+  gtk_widget_show (spell_eventbox_attuned);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_eventbox_attuned, FALSE, TRUE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (spell_eventbox_attuned), 5);
 
-  spell_label_green = gtk_label_new (_("Attuned"));
-  gtk_widget_show (spell_label_green);
-  gtk_box_pack_start (GTK_BOX (hbox17), spell_label_green, FALSE, FALSE, 5);
+  spell_label_attuned = gtk_label_new (_("Attuned"));
+  gtk_widget_show (spell_label_attuned);
+  gtk_container_add (GTK_CONTAINER (spell_eventbox_attuned), spell_label_attuned);
 
-  spell_drawingarea_repelled = gtk_drawing_area_new ();
-  gtk_widget_show (spell_drawingarea_repelled);
-  gtk_box_pack_start (GTK_BOX (hbox17), spell_drawingarea_repelled, FALSE, TRUE, 0);
-  gtk_widget_set_size_request (spell_drawingarea_repelled, 30, -1);
+  spell_eventbox_repelled = gtk_event_box_new ();
+  gtk_widget_show (spell_eventbox_repelled);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_eventbox_repelled, FALSE, FALSE, 5);
+  gtk_container_set_border_width (GTK_CONTAINER (spell_eventbox_repelled), 5);
 
-  spell_label_orange = gtk_label_new (_("Repelled"));
-  gtk_widget_show (spell_label_orange);
-  gtk_box_pack_start (GTK_BOX (hbox17), spell_label_orange, FALSE, FALSE, 5);
+  spell_label_repelled = gtk_label_new (_("Repelled"));
+  gtk_widget_show (spell_label_repelled);
+  gtk_container_add (GTK_CONTAINER (spell_eventbox_repelled), spell_label_repelled);
 
-  spell_drawingarea_denied = gtk_drawing_area_new ();
-  gtk_widget_show (spell_drawingarea_denied);
-  gtk_box_pack_start (GTK_BOX (hbox17), spell_drawingarea_denied, FALSE, TRUE, 0);
-  gtk_widget_set_size_request (spell_drawingarea_denied, 30, -1);
+  spell_eventbox_denied = gtk_event_box_new ();
+  gtk_widget_show (spell_eventbox_denied);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_eventbox_denied, FALSE, TRUE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (spell_eventbox_denied), 5);
 
-  spell_label_red = gtk_label_new (_("Denied"));
-  gtk_widget_show (spell_label_red);
-  gtk_box_pack_start (GTK_BOX (hbox17), spell_label_red, FALSE, FALSE, 5);
+  spell_label_denied = gtk_label_new (_("Denied"));
+  gtk_widget_show (spell_label_denied);
+  gtk_container_add (GTK_CONTAINER (spell_eventbox_denied), spell_label_denied);
+
+  spell_eventbox_normal = gtk_event_box_new ();
+  gtk_widget_show (spell_eventbox_normal);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_eventbox_normal, FALSE, FALSE, 5);
+  gtk_container_set_border_width (GTK_CONTAINER (spell_eventbox_normal), 5);
+
+  spell_label_normal = gtk_label_new (_("Normal"));
+  gtk_widget_show (spell_label_normal);
+  gtk_container_add (GTK_CONTAINER (spell_eventbox_normal), spell_label_normal);
 
   label91 = gtk_label_new (_("     Spell Options"));
   gtk_widget_show (label91);
-  gtk_box_pack_start (GTK_BOX (hbox17), label91, FALSE, FALSE, 5);
+  gtk_box_pack_start (GTK_BOX (hbox17), label91, FALSE, FALSE, 0);
 
   spell_options = gtk_entry_new ();
   gtk_widget_show (spell_options);
-  gtk_box_pack_start (GTK_BOX (hbox17), spell_options, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (hbox17), spell_options, TRUE, TRUE, 5);
 
   hbox16 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox16);
@@ -1638,12 +1649,14 @@ create_spell_window (void)
   GLADE_HOOKUP_OBJECT (spell_window, scrolledwindow9, "scrolledwindow9");
   GLADE_HOOKUP_OBJECT (spell_window, spell_treeview, "spell_treeview");
   GLADE_HOOKUP_OBJECT (spell_window, hbox17, "hbox17");
-  GLADE_HOOKUP_OBJECT (spell_window, spell_drawingarea_attuned, "spell_drawingarea_attuned");
-  GLADE_HOOKUP_OBJECT (spell_window, spell_label_green, "spell_label_green");
-  GLADE_HOOKUP_OBJECT (spell_window, spell_drawingarea_repelled, "spell_drawingarea_repelled");
-  GLADE_HOOKUP_OBJECT (spell_window, spell_label_orange, "spell_label_orange");
-  GLADE_HOOKUP_OBJECT (spell_window, spell_drawingarea_denied, "spell_drawingarea_denied");
-  GLADE_HOOKUP_OBJECT (spell_window, spell_label_red, "spell_label_red");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_eventbox_attuned, "spell_eventbox_attuned");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_label_attuned, "spell_label_attuned");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_eventbox_repelled, "spell_eventbox_repelled");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_label_repelled, "spell_label_repelled");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_eventbox_denied, "spell_eventbox_denied");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_label_denied, "spell_label_denied");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_eventbox_normal, "spell_eventbox_normal");
+  GLADE_HOOKUP_OBJECT (spell_window, spell_label_normal, "spell_label_normal");
   GLADE_HOOKUP_OBJECT (spell_window, label91, "label91");
   GLADE_HOOKUP_OBJECT (spell_window, spell_options, "spell_options");
   GLADE_HOOKUP_OBJECT (spell_window, hbox16, "hbox16");
