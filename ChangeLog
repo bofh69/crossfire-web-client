@@ -2,6 +2,7 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+autogen.sh: Add script to rebuild autoconf files.
 configure, aclocal.m4, */Makefile.in: Rebuilt.
 common/Makefile.am: Rewrite commands to build svnversion.h to not generate an
    error message the first time they are run.
