@@ -472,7 +472,7 @@ dnl installation directory (choosable at installation time)
 if eval "test x$win32 = xyes" ; then
     AC_DEFINE_UNQUOTED(CF_DATADIR, ".")
 else
-AC_DEFINE_UNQUOTED(CF_DATADIR, "${ndatadir}/crossfire-client")
+    AC_DEFINE_UNQUOTED(CF_DATADIR, "${ndatadir}/crossfire-client")
 fi
 AC_DEFINE_UNQUOTED(BINDIR, "${nbindir}")
 AC_DEFINE_UNQUOTED(MINLOGLEVEL, ${MINLOGLEVEL})
