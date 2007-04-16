@@ -8,8 +8,6 @@ AC_CONFIG_SRCDIR(crossfire-client.spec)
 
 AC_CONFIG_AUX_DIR(utils/)
 
-AC_CONFIG_SRCDIR(crossfire-client.spec)
-
 AC_CANONICAL_SYSTEM
 
 AM_INIT_AUTOMAKE

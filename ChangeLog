@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure.in: Remove duplicate use of AC_CONFIG_SRCDIR.
+---
+Andreas Kirschbaum 2007-04-16
+
 Use #include <config.h> instead #include "config.h" to support multiple
 configurations outside the source directory.
 ---
