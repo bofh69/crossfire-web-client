@@ -27,7 +27,7 @@ const char *rcsid_x11_sound_c =
  * cfsndserv program and sends the writes to it.
  */
 
-#include "config.h"
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>

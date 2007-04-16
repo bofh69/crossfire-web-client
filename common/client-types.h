@@ -32,7 +32,7 @@
 /* If using autoconf, use it to pick up the necessary files.  Otherwise,
  * we will draw on includes.h
  */
-#include "config.h"
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>

@@ -23,7 +23,7 @@ char *rcsid_gtk_sdl_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-#include "config.h"
+#include <config.h>
 
 #ifdef HAVE_SDL
 

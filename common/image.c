@@ -28,7 +28,7 @@ const char *rcsid_common_image_c =
  * from the server, etc.
  */
 
-#include "config.h"
+#include <config.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #ifndef WIN32

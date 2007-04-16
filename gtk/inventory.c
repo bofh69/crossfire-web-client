@@ -5,7 +5,7 @@
  */
 
 #ifdef WIN32
-#include "config.h"
+#include <config.h>
 #endif
 #include "gx11.h"
 #include "client.h" /* LOG */

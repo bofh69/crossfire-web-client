@@ -30,7 +30,7 @@ char *rcsid_gtk2_sound_c =
  * is responsible for playing sounds.
  */
 
-#include "config.h"
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>

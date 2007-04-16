@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Use #include <config.h> instead #include "config.h" to support multiple
+configurations outside the source directory.
+---
+Andreas Kirschbaum 2007-04-16
+
 Rename DATADIR to CF_DATADIR to avoid name clashes when cross-compiling to
 Win32.
 ---

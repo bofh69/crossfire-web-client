@@ -35,7 +35,7 @@ char *rcsid_gtk_opengl_c =
  * which dmalloc catches.
  */
 
-#include "config.h"
+#include <config.h>
 
 #ifdef HAVE_OPENGL
 

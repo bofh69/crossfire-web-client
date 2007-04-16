@@ -12,7 +12,7 @@
  * The author can be reached via e-mail to reeve@ductape.net
  */
 
-#include "config.h"
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>

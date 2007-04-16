@@ -26,7 +26,7 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-#include "config.h"
+#include <config.h>
 #include <time.h>
 
 #ifdef WIN32

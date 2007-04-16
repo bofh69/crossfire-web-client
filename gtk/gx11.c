@@ -58,7 +58,7 @@ const char *rcsid_gtk_gx11_c =
  */
 
 
-#include "config.h"
+#include <config.h>
 
 #include <errno.h>
 

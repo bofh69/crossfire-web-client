@@ -21,7 +21,7 @@ char *rcsid_gtk_text_c =
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
-#include "config.h"
+#include <config.h>
 #include <stdio.h>
 #include <gtk/gtk.h>
 #ifndef WIN32

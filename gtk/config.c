@@ -27,7 +27,7 @@ const char *rcsid_gtk_config_c =
  * options
  */
 
-#include "config.h"
+#include <config.h>
 
 #ifdef __CYGWIN__
 #include <errno.h>

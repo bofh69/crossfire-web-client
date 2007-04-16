@@ -36,7 +36,7 @@ static char *rcsid_cfsndserv_c =
  */
 /*#define SOUND_DEBUG_WRITES */
 
-#include "config.h"
+#include <config.h>
 
 #include <stdio.h>
 #include <sys/types.h>

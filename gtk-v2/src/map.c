@@ -27,7 +27,7 @@ char *rcsid_gtk2_map_c =
  * sdl rendering is in the sdl file
  */
 
-#include "config.h"
+#include <config.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #ifndef WIN32

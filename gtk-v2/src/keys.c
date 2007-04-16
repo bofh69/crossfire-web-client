@@ -27,7 +27,7 @@ char *rcsid_gtk2_keys_c =
  * keys.
  */
 
-#include "config.h"
+#include <config.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #ifndef WIN32

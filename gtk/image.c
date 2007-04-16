@@ -29,7 +29,7 @@ const char *rcsid_gtk_image_c =
  * gtk pixmaps.
  */
 
-#include "config.h"
+#include <config.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #ifndef WIN32

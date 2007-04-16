@@ -24,7 +24,7 @@ char *rcsid_gtk_sdl_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-#include "config.h"
+#include <config.h>
 #ifdef HAVE_SDL
 #include <client-types.h>
 #include <SDL.h>
