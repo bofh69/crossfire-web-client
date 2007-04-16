@@ -78,10 +78,12 @@ msgtypes.h: newclient.h
 
 svnversion.h: FORCE
 	OUTPUT_DATA='/* Auto-generated at build time. */'; \
-	if (test -n "$(SVNVERSION)" && test -d .svn); then \
+	if test -n "$(SVNVERSION)" -a -d .svn; then \
 		OUTPUT_DATA=`echo "$$OUTPUT_DATA"; echo -n '#define SVN_REV "'; $(SVNVERSION) -n`'"'; \
 	fi; \
-	if (test "$$OUTPUT_DATA" != "`cat svnversion.h`"); then \
+	if test ! -e svnversion.h; then \
+		echo "$$OUTPUT_DATA" > svnversion.h; \
+	elif test "$$OUTPUT_DATA" != "`cat svnversion.h`"; then \
 		echo "$$OUTPUT_DATA" > svnversion.h; \
 	fi
 
