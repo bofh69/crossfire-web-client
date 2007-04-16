@@ -167,7 +167,7 @@ if eval "test x$CFGTK = xyes"; then
 	AC_SUBST(GTK_LIBS)
 	AC_SUBST(GTK_CFLAGS)
 	CF_SUBDIRS="$CF_SUBDIRS gtk"
-	dnl AC_DEFINE(GTK_CLIENT, 1, [[Define if the GTK client is built.]])
+	dnl AC_DEFINE(GTK_CLIENT, 1, [Define if the GTK client is built.])
 else
             AC_MSG_WARN(GTK 1 not found - not building building gtk-v1 client)
         fi
@@ -232,7 +232,7 @@ AC_CHECK_LIB(GL, main)
 AC_CHECK_LIB(GLU, main)
 AC_CHECK_LIB(opengl32, main)
 AC_CHECK_LIB(glu32, main)
-AC_CHECK_LIB(glut, main, [opengl="yes"; AC_DEFINE(HAVE_OPENGL, 1, [[Define if you have OpenGL.]])])
+AC_CHECK_LIB(glut, main, [opengl="yes"; AC_DEFINE(HAVE_OPENGL, 1, [Define if you have OpenGL.])])
 if eval "test x$opengl = xyes" ; then
     if eval "test x$win32 = xyes" ; then
         OPENGL_LIBS="-lopengl32 -lglu32 -lglut"
@@ -351,7 +351,7 @@ if eval "test x$no_sdl = x"; then
  fi
 
   if eval "test x$no_sdl = x"; then
-          AC_DEFINE(HAVE_SDL, 1, [[Define if you have SDL]])
+          AC_DEFINE(HAVE_SDL, 1, [Define if you have SDL])
   fi
 fi
 
@@ -467,12 +467,12 @@ nbindir=`eval echo ${nbindir}`
 dnl Datadir should be working directory in Windows, as there is no set
 dnl installation directory (choosable at installation time)
 if eval "test x$win32 = xyes" ; then
-    AC_DEFINE_UNQUOTED(CF_DATADIR, ".", [[Location of read-only machine independent data.]])
+    AC_DEFINE_UNQUOTED(CF_DATADIR, ".", [Location of read-only machine independent data.])
 else
-    AC_DEFINE_UNQUOTED(CF_DATADIR, "${ndatadir}/crossfire-client", [[Location of read-only machine independent data.]])
+    AC_DEFINE_UNQUOTED(CF_DATADIR, "${ndatadir}/crossfire-client", [Location of read-only machine independent data.])
 fi
-AC_DEFINE_UNQUOTED(BINDIR, "${nbindir}", [[Location of other binaries.]])
-AC_DEFINE_UNQUOTED(MINLOGLEVEL, ${MINLOGLEVEL}, [[Default logging level.]])
+AC_DEFINE_UNQUOTED(BINDIR, "${nbindir}", [Location of other binaries.])
+AC_DEFINE_UNQUOTED(MINLOGLEVEL, ${MINLOGLEVEL}, [Default logging level.])
 
 AC_SUBST(CF_DATADIR)
 
