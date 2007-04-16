@@ -106,7 +106,7 @@ void load_theme(int reload)
 	    gtk_rc_set_default_files(default_files);
 	}
     } else {
-	snprintf(path, MAX_BUF, "%s/themes/%s", DATADIR, theme);
+	snprintf(path, MAX_BUF, "%s/themes/%s", CF_DATADIR, theme);
 
 	/* Check for existence of file.  Unfortunately, at initial run time,
 	 * the window may not be realized, so we can't print this error to the user
@@ -548,7 +548,7 @@ static void setup_config_window()
 	struct dirent **files;
 	int done_none=0;
 
-	snprintf(path, MAX_BUF, "%s/themes", DATADIR);
+	snprintf(path, MAX_BUF, "%s/themes", CF_DATADIR);
 
 	count = scandir(path, &files, scandir_filter, alphasort);
 

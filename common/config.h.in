@@ -92,7 +92,7 @@
 #define BINDIR ""
 
 /* Location of read-only machine independent data */
-#define DATADIR ""
+#define CF_DATADIR ""
 
 /* The size of a `long', as computed by sizeof. */
 #undef SIZEOF_LONG

@@ -2,6 +2,14 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Rename DATADIR to CF_DATADIR to avoid name clashes when cross-compiling to
+Win32.
+---
+gtk/win32/config.h, configure.in, common/image.c, common/config.h.in,
+gnome/gnome.c, gnome/gnome-sound.c, gtk-v2/src/config.c: Replace DATADIR by
+   CF_DATADIR.
+Andreas Kirschbaum 2007-04-16
+
 Add theme support to the gtk2 client spell window.
 gtk-v2/gtk-v2.glade: Remove the drawingarea boxes, add eventboxes and put
   the labels in the eventbox - the labels now act as key, as it is easier

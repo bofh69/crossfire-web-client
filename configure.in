@@ -472,14 +472,14 @@ nbindir=`eval echo ${nbindir}`
 dnl Datadir should be working directory in Windows, as there is no set
 dnl installation directory (choosable at installation time)
 if eval "test x$win32 = xyes" ; then
-    AC_DEFINE_UNQUOTED(DATADIR, ".")
+    AC_DEFINE_UNQUOTED(CF_DATADIR, ".")
 else
-AC_DEFINE_UNQUOTED(DATADIR, "${ndatadir}/crossfire-client")
+AC_DEFINE_UNQUOTED(CF_DATADIR, "${ndatadir}/crossfire-client")
 fi
 AC_DEFINE_UNQUOTED(BINDIR, "${nbindir}")
 AC_DEFINE_UNQUOTED(MINLOGLEVEL, ${MINLOGLEVEL})
 
-AC_SUBST(DATADIR)
+AC_SUBST(CF_DATADIR)
 
 
 dnl Make all makefiles, even if CF_SUBDIRS are not set for that directory.

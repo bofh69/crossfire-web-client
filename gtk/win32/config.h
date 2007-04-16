@@ -103,7 +103,7 @@
 #include <winbase.h>
 
 #define BINDIR "."
-#define DATADIR "."
+#define CF_DATADIR "."
 
 #define KeySym guint
 

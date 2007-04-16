@@ -3107,7 +3107,7 @@ aboutdialog(GtkWidget * widget)
 {
 	const gchar *authors[2] = { "Scott Barnes <reeve@ductape.net>", NULL };
 	if (!gtkwin_about) {
-		gtkwin_about = gnome_about_new(PACKAGE, VERSION, "(C) 2001 Scott Barnes", authors, "A GNOME client for Crossfire, a multiplayer Hack-like game.", DATADIR "/pixmaps/crossfiretitle.xpm");
+		gtkwin_about = gnome_about_new(PACKAGE, VERSION, "(C) 2001 Scott Barnes", authors, "A GNOME client for Crossfire, a multiplayer Hack-like game.", CF_DATADIR "/pixmaps/crossfiretitle.xpm");
 		gtk_widget_show(gtkwin_about);
 	} else {
 		gdk_window_raise(gtkwin_about->window);

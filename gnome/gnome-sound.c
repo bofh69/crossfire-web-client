@@ -40,7 +40,7 @@ play_sound(int soundnum, int soundtype, int x, int y)
 	strcat(confname, "/file");
 	if (gnome_config_get_string(confname) != NULL && strcmp(gnome_config_get_string(confname), "")) {
 		if (*(gnome_config_get_string(confname)) != '/') {
-			strcpy(filename, DATADIR "/sounds/");
+			strcpy(filename, CF_DATADIR "/sounds/");
 			strcat(filename, gnome_config_get_string(confname));
 		} else
 			strcpy(filename, gnome_config_get_string(confname));
@@ -60,7 +60,7 @@ play_sound(int soundnum, int soundtype, int x, int y)
 		strcat(confname, "/file");
 		if (gnome_config_get_string(confname) != NULL && strcmp(gnome_config_get_string(confname), "")) {
 			if (*(gnome_config_get_string(confname)) != '/') {
-				strcpy(filename, DATADIR "/sounds/");
+				strcpy(filename, CF_DATADIR "/sounds/");
 				strcat(filename, gnome_config_get_string(confname));
 			} else
 				strcpy(filename, gnome_config_get_string(confname));
