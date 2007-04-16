@@ -63,7 +63,7 @@ typedef int KeyCode; /* Undefined type */
 static GtkWidget *fire_label, *run_label, *keybinding_window, *keybinding_checkbutton_control,
     *keybinding_checkbutton_shift, *keybinding_checkbutton_alt, *keybinding_checkbutton_meta,
     *keybinding_checkbutton_edit, *keybinding_entry_key, *keybinding_entry_command,
-    *keybinding_treeview, *keybinding_button_remove, *keybinding_button_update, 
+    *keybinding_treeview, *keybinding_button_remove, *keybinding_button_update,
     *keybinding_button_bind;
 static GtkListStore    *keybinding_store;
 static GtkTreeSelection  *keybinding_selection;
@@ -537,7 +537,7 @@ static void parse_key_release(uint32 ks) {
      * old version, if you release the direction key, you want the firing
      * to stop.  This should do that.
      */
-    else if (cpl.fire_on) 
+    else if (cpl.fire_on)
 	clear_fire();
 }
 
@@ -723,7 +723,7 @@ static void show_keys(int allbindings)
     Key_Entry *key;
     char buf[MAX_BUF];
 
-  sprintf(buf, "Commandkey %s", 
+  sprintf(buf, "Commandkey %s",
 	  commandkeysym==NoSymbol?"unknown":gdk_keyval_name(commandkeysym));
   draw_info(buf,NDI_BLACK);
 
@@ -747,15 +747,15 @@ static void show_keys(int allbindings)
 	  runkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[1]));
   draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Command Completion Key %s", 
+  sprintf(buf, "Command Completion Key %s",
 	  completekeysym==NoSymbol?"unknown":gdk_keyval_name(completekeysym));
   draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Next Command in History Key %s", 
+  sprintf(buf, "Next Command in History Key %s",
 	  nextkeysym==NoSymbol?"unknown":gdk_keyval_name(nextkeysym));
   draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Previous Command in History Key %s", 
+  sprintf(buf, "Previous Command in History Key %s",
 	  prevkeysym==NoSymbol?"unknown":gdk_keyval_name(prevkeysym));
   draw_info(buf,NDI_BLACK);
 
@@ -1056,8 +1056,8 @@ static void configure_keys(uint32 keysym)
      * held down when binding keys - in this way, player does not have to use
      * -f and -r flags to bind for many simple binds.
      */
-	
-    if ((cpl.fire_on || cpl.run_on || cpl.meta_on || cpl.alt_on) && 
+
+    if ((cpl.fire_on || cpl.run_on || cpl.meta_on || cpl.alt_on) &&
       (bind_flags & KEYF_MODIFIERS)==KEYF_MODIFIERS) {
 	bind_flags &= ~KEYF_MODIFIERS;
 	if (cpl.fire_on) bind_flags |= KEYF_FIRE;
@@ -1193,7 +1193,7 @@ unbinded:
 
 void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
 {
-  
+
     if (event->keyval>0 && !GTK_WIDGET_HAS_FOCUS (entry_commands)) {
 	    parse_key_release(event->keyval);
 	    gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_release_event") ;
@@ -1225,7 +1225,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 
     if (GTK_WIDGET_HAS_FOCUS (entry_commands)) {
 	if (event->keyval == completekeysym) gtk_complete_command();
-	if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
+	if (event->keyval == prevkeysym || event->keyval == nextkeysym)
 	    gtk_command_history(event->keyval==nextkeysym?0:1);
     else
         gtk_widget_event(GTK_WIDGET(entry_commands), (GdkEvent*)event);
@@ -1258,12 +1258,12 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 		    }
 		}
 
-		if( (event->state & GDK_CONTROL_MASK) && (event->state & GDK_SHIFT_MASK) && 
+		if( (event->state & GDK_CONTROL_MASK) && (event->state & GDK_SHIFT_MASK) &&
 		   (event->keyval == GDK_i || event->keyval == GDK_I) ) {
 		    reset_map();
 		}
-	
-	
+
+
 		parse_key(event->string[0], event->keyval);
 		gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
 		break;
@@ -1275,11 +1275,11 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 
 	    case Command_Mode:
 		if (event->keyval == completekeysym) gtk_complete_command();
-		if (event->keyval == prevkeysym || event->keyval == nextkeysym) 
+		if (event->keyval == prevkeysym || event->keyval == nextkeysym)
 		gtk_command_history(event->keyval==nextkeysym?0:1);
 		else {
 		    gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
-		    /* When running in split windows mode, entry_commands can't get focus because 
+		    /* When running in split windows mode, entry_commands can't get focus because
 		     * it is in a different window.  So we have to pass the event to it
 		     * explicitly
 		     */
@@ -1300,7 +1300,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	    default:
 		LOG(LOG_ERROR,"gtk::keyfunc","Unknown input state: %d", cpl.input_state);
 	}
-      
+
     }
 }
 
@@ -1314,7 +1314,7 @@ void draw_keybindings (GtkWidget *keylist) {
     int bi=0;
     char buffer[5][MAX_BUF];
     char *buffers[5];
-    gint tmprow; 
+    gint tmprow;
 
     gtk_clist_clear (GTK_CLIST(keylist));
     for (i=0; i<KEYHASH; i++) {
@@ -1322,7 +1322,7 @@ void draw_keybindings (GtkWidget *keylist) {
 	    if (key->flags & KEYF_STANDARD && !allbindings) continue;
 
 	    bi=0;
-	
+
 	    if ((key->flags & KEYF_MODIFIERS) == KEYF_MODIFIERS)
 		buff[bi++] ='A';
 	    else {
@@ -1341,9 +1341,9 @@ void draw_keybindings (GtkWidget *keylist) {
 		buff[bi++] ='E';
 	    if (key->flags & KEYF_STANDARD)
 		buff[bi++] ='S';
-	
+
 	    buff[bi]='\0';
-	
+
 	    if(key->keysym != NoSymbol) {
 		sprintf(buffer[0], "%i",count);
 		sprintf(buffer[1], "%s", gdk_keyval_name(key->keysym));
@@ -1412,7 +1412,7 @@ void gtk_command_history(int direction)
 void gtk_complete_command()
 {
     const gchar *entry_text, *newcommand;
-	
+
     entry_text = gtk_entry_get_text(GTK_ENTRY(entry_commands));
     newcommand = complete_command(entry_text);
     /* value differ, so update window */
@@ -1673,7 +1673,7 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
 	LOG(LOG_ERROR,"keys.ckeybinding_get_data", "Can not get valid keysym from selection");
     }
 }
-	
+
 
 void
 on_keybinding_button_bind_clicked      (GtkButton       *button,
@@ -1828,4 +1828,3 @@ on_keybinding_button_clear_clicked     (GtkButton       *button,
 
 
 }
-
