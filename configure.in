@@ -1,8 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
 
-dnl deprecated form
-dnl AC_INIT(crossfire-client.spec)
-
 AC_INIT(crossfire-client, 1.9.1)
 AC_CONFIG_SRCDIR(crossfire-client.spec)
 
