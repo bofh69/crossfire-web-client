@@ -27,6 +27,7 @@
 */
 
 #include <config.h>
+#include <ctype.h>
 #include <time.h>
 
 #ifdef WIN32
