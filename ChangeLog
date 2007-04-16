@@ -2,6 +2,7 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+configure, aclocal.m4, */Makefile.in: Rebuilt.
 common/Makefile.am: Rewrite commands to build svnversion.h to not generate an
    error message the first time they are run.
 configure.in: Remove duplicate use of AC_CONFIG_SRCDIR.

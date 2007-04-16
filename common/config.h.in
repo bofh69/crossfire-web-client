@@ -1,108 +1,149 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
+/* common/config.h.in.  Generated from configure.in by autoheader.  */
 
-/* Define to empty if the keyword does not work.  */
-#undef const
+/* Location of other binaries. */
+#undef BINDIR
 
-/* Define if you don't have vprintf but do have _doprnt.  */
-#undef HAVE_DOPRNT
+/* Location of read-only machine independent data. */
+#undef CF_DATADIR
 
-/* Define if you have the vprintf function.  */
-#undef HAVE_VPRINTF
-
-/* Define if you have the ANSI C header files.  */
-#undef STDC_HEADERS
-
-/* Define if you can safely include both <sys/time.h> and <time.h>.  */
-#undef TIME_WITH_SYS_TIME
-
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-#undef WORDS_BIGENDIAN
-
-/* Define if the X Window System is missing or not being used.  */
-#undef X_DISPLAY_MISSING
-
-#undef ENABLE_NLS
-#undef HAVE_CATGETS
-#undef HAVE_GETTEXT
-#undef HAVE_LC_MESSAGES
-#undef HAVE_STPCPY
-#undef HAVE_LIBSM
-#undef HAVE_LIBXPM
-#undef HAVE_LIBLUA
-
-/* Define if you have the mkdir function.  */
-#undef HAVE_MKDIR
-
-/* Define if you have the socket function.  */
-#undef HAVE_SOCKET
-
-/* Define if you have the strcspn function.  */
-#undef HAVE_STRCSPN
-
-/* Define if you have the sysconf function.  */
-#undef HAVE_SYSCONF
-
-/* Define if you have the getaddrinfo function.  */
-#undef HAVE_GETADDRINFO
-
-/* Define if you have the <X11/SM/SMlib.h> header file.  */
-#undef HAVE_X11_SM_SMLIB_H
-
-/* Define if you have the <dmalloc.h> header file.  */
+/* Define to 1 if you have the <dmalloc.h> header file. */
 #undef HAVE_DMALLOC_H
 
-/* Define if you have the <fcntl.h> header file.  */
+/* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
+#undef HAVE_DOPRNT
+
+/* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define if you have the <string.h> header file.  */
-#undef HAVE_STRING_H
+/* Define to 1 if you have the `getaddrinfo' function. */
+#undef HAVE_GETADDRINFO
 
-/* Define if you have the <sys/ioctl.h> header file.  */
-#undef HAVE_SYS_IOCTL_H
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
 
-/* Define if you have the <sys/select.h> header file.  */
-#undef HAVE_SYS_SELECT_H
+/* Define to 1 if you have the `GL' library (-lGL). */
+#undef HAVE_LIBGL
 
-/* Define if you have the <sys/time.h> header file.  */
-#undef HAVE_SYS_TIME_H
+/* Define to 1 if you have the `GLU' library (-lGLU). */
+#undef HAVE_LIBGLU
 
-/* Define if you have the <unistd.h> header file.  */
-#undef HAVE_UNISTD_H
+/* Define to 1 if you have the `glu32' library (-lglu32). */
+#undef HAVE_LIBGLU32
 
-/* Define if you have the m library (-lm).  */
+/* Define to 1 if you have the `lua' library (-llua). */
+#undef HAVE_LIBLUA
+
+/* Define to 1 if you have the `lualib' library (-llualib). */
+#undef HAVE_LIBLUALIB
+
+/* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
-/* Define if you have the png library (-lpng).  */
+/* Define to 1 if you have the `opengl32' library (-lopengl32). */
+#undef HAVE_LIBOPENGL32
+
+/* Define to 1 if you have the `png' library (-lpng). */
 #undef HAVE_LIBPNG
 
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mkdir' function. */
+#undef HAVE_MKDIR
+
+/* Define if you have OpenGL. */
+#undef HAVE_OPENGL
+
+/* Define if you have SDL */
 #undef HAVE_SDL
 
-/* Name of package */
-#undef PACKAGE
+/* Define to 1 if you have the `socket' function. */
+#undef HAVE_SOCKET
 
-/* Version number of package */
-#undef VERSION
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
 
-/* Location of various directories, as determined by the user using
- * the appropriate -prefix when running configure
- */
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
 
-/* Location of other binaries */
-#define BINDIR ""
+/* Define to 1 if you have the `strcspn' function. */
+#undef HAVE_STRCSPN
 
-/* Location of read-only machine independent data */
-#define CF_DATADIR ""
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
 
-/* The size of a `long', as computed by sizeof. */
-#undef SIZEOF_LONG
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
 
-/* The size of a `long long', as computed by sizeof. */
-#undef SIZEOF_LONG_LONG
+/* Define to 1 if you have the `sysconf' function. */
+#undef HAVE_SYSCONF
 
-/* If we have opengl. */
-#undef HAVE_OPENGL
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#undef HAVE_SYS_IOCTL_H
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#undef HAVE_SYS_SELECT_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `vprintf' function. */
+#undef HAVE_VPRINTF
 
 /* Default logging level. */
 #undef MINLOGLEVEL
 
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* The size of `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* The size of `long long', as computed by sizeof. */
+#undef SIZEOF_LONG_LONG
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* Define to 1 if the X Window System is missing or not being used. */
+#undef X_DISPLAY_MISSING
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
