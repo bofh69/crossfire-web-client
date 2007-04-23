@@ -3158,8 +3158,8 @@ void client_exit(void) {
 }
 
 /* To keep trace of pickup menus, and be able to check/uncheck them. */
-static GtkWidget* pickup_menus[32];
-static int pickup_value[32];
+static GtkWidget* pickup_menus[43];
+static int pickup_value[43];
 static int pickup_count = 0;
 
 /* get_menu_display
