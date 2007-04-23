@@ -80,5 +80,6 @@ extern void item_event_item_deleting(item * it);
 extern void item_event_container_clearing(item * container);
 /* TODO More fine-grained event - but how to handle it? */
 extern void item_event_item_changed(item * it);
+extern int can_write_spell_on(item* it);
 
 #endif /* ITEM_H */

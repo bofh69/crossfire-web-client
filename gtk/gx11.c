@@ -2941,11 +2941,63 @@ static void menu_disarm(void) {
   extended_command("disarm");
 }
 
+static void spellinventory_redraw(GtkWidget* list, GdkEventVisibility* event, gpointer view_x) {
+    item* ob;
+    char buffer[2][MAX_BUF];
+    char* columns[2];
+    gint row, selected = -1;
+
+    if (GTK_CLIST(list)->selection != NULL)
+        selected = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
+
+    gtk_clist_freeze(GTK_CLIST(list));
+    gtk_clist_clear(GTK_CLIST(list));
+
+    columns[0] = buffer[0];
+    columns[1] = buffer[1];
+
+    for (ob = cpl.ob->inv; ob != NULL; ob = ob->next) {
+        if (!can_write_spell_on(ob))
+            continue;
+        snprintf(buffer[0], sizeof(buffer[0]), " ");
+        snprintf(buffer[1], sizeof(buffer[1]), ob->d_name);
+        row = gtk_clist_append(GTK_CLIST(list), columns);
+        gtk_clist_set_pixmap (GTK_CLIST (list), row, 0,
+            (GdkPixmap*)pixmaps[ob->face]->icon_image,
+            (GdkBitmap*)pixmaps[ob->face]->icon_mask);
+        gtk_clist_set_row_data (GTK_CLIST(list), row, ob);
+    }
+
+    gtk_clist_thaw(GTK_CLIST(list));
+
+    if (selected != -1) {
+        gtk_clist_select_row(GTK_CLIST(list), selected, 1);
+        gtk_clist_moveto(GTK_CLIST(list), selected, 0, 0, 0);
+    }
+}
 
 static GtkWidget *gtkwin_spell = NULL; /* spell window */
 static GtkWidget *description  = NULL; /* the text box containing spell description */
 static GtkWidget *list         = NULL;
 static GtkWidget *spelloptions = NULL; /* text box with extra options to pass to the spell */
+GtkWidget *spellinventory = NULL; /* List containing inventory for spell inscription. Not static because
+                                     will be changed by inventory.c*/
+
+static void click_inscribe_spell() {
+    int selection;
+    item *scroll;
+    Spell* spell;
+
+    if (GTK_CLIST(spellinventory)->selection != NULL && GTK_CLIST(list)->selection != NULL) {
+        selection = GPOINTER_TO_INT(GTK_CLIST(spellinventory)->selection->data);
+        scroll = (item*)gtk_clist_get_row_data(GTK_CLIST(spellinventory), selection);
+
+        selection = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
+        spell = (Spell*)gtk_clist_get_row_data(GTK_CLIST(list), selection);
+
+        inscribe_magical_scroll(scroll, spell);
+    }
+}
 
 static void select_spell_event(GtkWidget *gtklist, gint row, gint column, 
     GdkEventButton *event) {
@@ -3039,7 +3091,13 @@ static void menu_spells(void) {
     GtkWidget * vbox;
     GtkWidget * optionsbox;
     GtkWidget * spelloptionslabel;
+    GtkWidget * notebook;
+    GtkWidget * label;
+    GtkWidget * frame;
+    GtkWidget * inscribebutton;
+    GtkWidget * inscribewindow;
     gchar *titles[] = {" ", "Name", "Cost"};
+    gchar *titles_inv[] = {" ", "Name"};
 
     if (gtkwin_spell && GTK_IS_CLIST(list)) {
 	  /* the window is already created, re-present it */
@@ -3105,14 +3163,72 @@ static void menu_spells(void) {
     gtk_signal_connect_object (GTK_OBJECT (cancelbutton), "clicked",
 	GTK_SIGNAL_FUNC(gtk_widget_hide_all), GTK_OBJECT (gtkwin_spell));
 
+    notebook = gtk_notebook_new ();
+    gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook), GTK_POS_TOP );
+
+    label = gtk_label_new ("Information");
+    gtk_widget_show (label);
+
+    frame = gtk_frame_new("Spell information");  
+    gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
+    gtk_notebook_append_page(GTK_NOTEBOOK(notebook), frame, label);
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), optionsbox, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), description, TRUE, TRUE, 0);
+    gtk_container_add (GTK_CONTAINER(frame), vbox);
+
+    /* Start of inventory list for inscription */
+    if (command_inscribe) {
+        label = gtk_label_new ("Inscribe");
+        gtk_widget_show (label);
+
+        frame = gtk_frame_new("Inscribe a spell");
+        gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
+        gtk_notebook_append_page(GTK_NOTEBOOK(notebook), frame, label);
+        vbox = gtk_vbox_new(FALSE, 0);
+        label = gtk_label_new ("Choose the item to write on:");
+        gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
+
+        inscribewindow = gtk_scrolled_window_new (0,0);
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(inscribewindow),
+            GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+
+        spellinventory = gtk_clist_new_with_titles(2, titles_inv);
+        gtk_clist_set_column_width(GTK_CLIST(spellinventory), 0, image_size);
+        gtk_clist_set_selection_mode(GTK_CLIST(spellinventory) , GTK_SELECTION_BROWSE);
+        gtk_clist_set_row_height (GTK_CLIST(spellinventory), image_size); 
+        liststyle = gtk_rc_get_style(spellinventory);
+        if (liststyle) {
+            liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
+            liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
+            gtk_widget_set_style (spellinventory, liststyle);
+        }
+        gtk_signal_connect(GTK_OBJECT(spellinventory),
+            "visibility-notify-event",
+            (GtkSignalFunc)spellinventory_redraw, NULL);
+        gtk_widget_add_events(spellinventory, GDK_VISIBILITY_NOTIFY_MASK);
+
+        gtk_container_add(GTK_CONTAINER(inscribewindow), spellinventory);
+        gtk_box_pack_start(GTK_BOX(vbox), inscribewindow, TRUE, TRUE, 0);
+
+        inscribebutton = gtk_button_new_with_label("Inscribe");
+        gtk_signal_connect_object (GTK_OBJECT (inscribebutton), "clicked",
+            GTK_SIGNAL_FUNC(click_inscribe_spell), NULL);
+        gtk_box_pack_start(GTK_BOX(vbox), inscribebutton, FALSE, FALSE, 0);
+
+        gtk_container_add (GTK_CONTAINER(frame), vbox);
+    }
+    /* End of inscription logic */
+
     /* vbox holds all the widgets we just created, in order */
     vbox = gtk_vbox_new(FALSE, 2);
 
     /* ok, time to pack it all up */
     gtk_container_add(GTK_CONTAINER(gtkwin_spell), vbox);
-    gtk_box_pack_start(GTK_BOX(vbox), optionsbox, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), scroll_window, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), description, FALSE, FALSE, 0);
+
+    gtk_box_pack_start (GTK_BOX(vbox),notebook, TRUE, TRUE, 0);
+
     gtk_box_pack_start(GTK_BOX(vbox), cancelbutton, FALSE, FALSE, 0);
 
     gtk_widget_show_all(gtkwin_spell);

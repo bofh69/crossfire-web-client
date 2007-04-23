@@ -72,6 +72,8 @@ uint32	tick=0;
 uint16	exp_table_max=0;
 uint64	*exp_table=NULL;
 
+int command_inscribe = 0;
+
 FILE *fpin,*fpout;
 Client_Player cpl;
 ClientSocket csocket;
@@ -389,6 +391,7 @@ void negotiate_connection(int sound)
     }
     cs_print_string(csocket.fd,"setup extendedTextInfos 1");
     cs_print_string(csocket.fd,"setup want_pickup 1");
+    cs_print_string(csocket.fd,"setup inscribe 1");
 
     /* If the server will answer the requestinfo for image_info and image_data,
      * send it and wait for the response.

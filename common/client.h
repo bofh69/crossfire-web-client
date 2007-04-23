@@ -393,6 +393,8 @@ extern uint32	tick;
 extern uint64	*exp_table;
 extern uint16	exp_table_max;
 
+extern int command_inscribe;
+
 /* Map size the client will request the map to be.  Bigger it is,
  * more memory it will use
  */

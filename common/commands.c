@@ -370,6 +370,11 @@ void SetupCmd(char *buf, int len) {
             }
         } else if (!strcmp(cmd, "want_pickup")) {
             /* Nothing to do specially, it's info pushed from server, not having it isn't that bad. */
+        } else if (!strcmp(cmd, "inscribe")) {
+            if (strcmp(param, "FALSE"))
+                command_inscribe = atoi(param);
+            else
+                command_inscribe = 0;
         } else {
             LOG(LOG_INFO, "common::SetupCmd", "Got setup for a command we don't understand: %s %s",
                 cmd, param);

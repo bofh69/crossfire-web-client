@@ -14,6 +14,7 @@
 
 extern GdkColor gdk_grey;
 extern GdkColor gdk_black;
+extern GtkWidget *spellinventory; /* Defined in gx11.c */
 
 /* *grumble* Neither of two C textbooks I checked gave an example of this. :S */
 typedef bool (*itemfilter)(item * it);
@@ -490,6 +491,14 @@ void item_event_item_changed(item * op) {
 
     /*LOG(LOG_INFO, "inventory::item_event_item_changed", "Changed: %d %s %d", op->tag, op->d_name, op->face); */
     g_list_foreach(views, item_changed_one, (gpointer)op);
+
+    /* Update inventory list for spell writing. */
+    if (can_write_spell_on(op) && spellinventory != NULL && GTK_WIDGET_VISIBLE(spellinventory)) {
+        gint row = gtk_clist_find_row_from_data(GTK_CLIST(spellinventory), op);
+        if (row != -1)
+            gtk_clist_set_text(GTK_CLIST(spellinventory), row, 1, op->d_name);
+    }
+
 }
 
 
@@ -589,6 +598,12 @@ void item_event_item_deleting(item * op) {
     g_list_foreach(views, item_deleting_one, (gpointer)op);
     /* Among other things, prevent animating the now-Missing item. */
     item_to_widget_remove_item(op);
+
+    if (can_write_spell_on(op) && spellinventory != NULL && GTK_WIDGET_VISIBLE(spellinventory)) {
+        gint row = gtk_clist_find_row_from_data(GTK_CLIST(spellinventory), op);
+        if (row != -1)
+            gtk_clist_remove(GTK_CLIST(spellinventory), row);
+    }
 }
 
 

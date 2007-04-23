@@ -79,6 +79,7 @@ item *map_item(void);
 void update_item(int tag, int loc, char *name, int weight, int face, int flags, int anim, int animspeed, uint32 nrof, int type);
 void print_inventory(item *op);
 void animate_objects(void);
+void inscribe_magical_scroll(item *scroll, Spell *spell);
 /* mapdata.c */
 void mapdata_init(void);
 void mapdata_reset(void);

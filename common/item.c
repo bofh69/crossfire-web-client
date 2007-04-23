@@ -752,3 +752,25 @@ void animate_objects() {
         }
     }
 }
+
+int can_write_spell_on(item* it) {
+    return (it->type == 661);
+}
+
+void inscribe_magical_scroll(item *scroll, Spell *spell) {
+    SockList sl;
+    uint8 buf[MAX_BUF];
+
+    if (command_inscribe == 0) {
+        LOG(LOG_WARNING, "common::inscribe_magical_scroll", "Called when server doesn't handle inscribe command.");
+        return;
+    }
+    sprintf((char*)buf, "inscribe 0 %d %d", scroll->tag, spell->tag);
+    script_monitor_str((char*)buf);
+    SockList_Init(&sl, buf);
+    SockList_AddString(&sl, "inscribe ");
+    SockList_AddChar(&sl, 0);
+    SockList_AddInt(&sl, scroll->tag);
+    SockList_AddInt(&sl, spell->tag);
+    SockList_Send(&sl, csocket.fd);
+}

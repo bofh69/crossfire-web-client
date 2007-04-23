@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Implement feature request #1560389: improve inscription logic.
+ gtk/gx11.c inventory.c
+ common/client.c client.h commands.c item.c item.h proto.h
+Nicolas Weeger 2007-04-23
+
 Fix memory overrun errors.
 ---
 gtk/gx11.c: Allocate enough space in pickup_menus/value to store all
