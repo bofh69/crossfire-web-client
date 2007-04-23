@@ -7,6 +7,8 @@ Fix memory overrun errors.
 gtk/gx11.c: Allocate enough space in pickup_menus/value to store all
    allocated entries.
 gtk-v2/src/stats.c: Allocate enough skill boxes to store MAX_SKILL skills.
+gtk-v2/src/info.c: Allocate enough memory in info_pane[] to not cause memory
+   overruns.
 Andreas Kirschbaum 2007-04-23
 
 autogen.sh: Add script to rebuild autoconf files.

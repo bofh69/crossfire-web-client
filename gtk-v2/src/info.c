@@ -173,7 +173,7 @@ void info_get_styles()
 	}
 	for (j=0; j<NUM_TEXT_VIEWS; j++) {
 	    for (i=0; i < MSG_TYPE_LAST; i++)
-		info_pane[j].msg_type_tags[i] = calloc(max_subtype, sizeof(GtkTextTag*));
+		info_pane[j].msg_type_tags[i] = calloc(max_subtype+1, sizeof(GtkTextTag*));
 
 	    for (i=0; i<NUM_FONTS; i++)
 		info_pane[j].font_tags[i] = NULL;
