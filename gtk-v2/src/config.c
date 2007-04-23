@@ -89,7 +89,7 @@ void load_theme(int reload)
 	while (tmp[i]) {
 	    i++;
 	}
-	default_files = malloc(sizeof(char*) * i);
+	default_files = malloc(sizeof(char*) * (i+1));
 	i=0;
 	while (tmp[i]) {
 	    default_files[i] = strdup(tmp[i]);

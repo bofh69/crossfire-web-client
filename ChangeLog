@@ -9,6 +9,8 @@ gtk/gx11.c: Allocate enough space in pickup_menus/value to store all
 gtk-v2/src/stats.c: Allocate enough skill boxes to store MAX_SKILL skills.
 gtk-v2/src/info.c: Allocate enough memory in info_pane[] to not cause memory
    overruns.
+gtk-v2/src/config.c: Allocate enough memory to not cause memory overrun when
+   loading gtk rc files.
 Andreas Kirschbaum 2007-04-23
 
 autogen.sh: Add script to rebuild autoconf files.
