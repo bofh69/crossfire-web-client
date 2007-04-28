@@ -9,8 +9,8 @@
 #
 %define Name crossfire
 %define extra client
-%define version 1.9.1
-%define sndversion 1.9.1
+%define version 2.0-dev
+%define sndversion 2.0-dev
 %define release 1
 %define prefix /usr/X11R6
 %define _sourcedir /export/home/crossfire/Crossfire

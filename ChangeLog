@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Change the version string from 1.9.1 to 2.0-dev for trunk.
+Alex Schultz 2007-04-28
+
 Implement feature request #1560389: improve inscription logic.
  gtk/gx11.c inventory.c
  common/client.c client.h commands.c item.c item.h proto.h
