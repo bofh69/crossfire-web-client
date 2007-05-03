@@ -431,19 +431,15 @@ static void void_callback(int flag, int type, int subtype, char *message) {
     LOG(LOG_INFO,"gtk::void_callback","got message --\n%s\n",message);
     
 }
-static void sign_callback(int flag, int type, int subtype, char *message) {
+static void sign_callback(int color, int type, int subtype, char *message) {
     GtkWidget *window;
-    int flags;
+
     if ( (subtype>4) || (subtype <1))    
         subtype=1;
-    sscanf(message,"%d",&flags);
-    /*strip leading flag and it's space*/
-    message=strchr(message,' ');
     if (message==NULL)
         return;
-    message++;
-    
-    if ((!want_config[CONFIG_POPUPS]) || (!want_config[CONFIG_SIGNPOPUP]) ||(flags&0x01)) /*autoapply*/{
+
+    if ((!want_config[CONFIG_POPUPS]) || (!want_config[CONFIG_SIGNPOPUP])) /*autoapply*/{
         if (use_config[CONFIG_SPLITINFO])
             write_media(GTK_TEXT(gtkwin_info_text2),message);
         else
