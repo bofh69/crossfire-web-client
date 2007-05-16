@@ -171,12 +171,14 @@ void DoClient(ClientSocket *csocket)
 	if (i==0) return;   /* Don't have a full packet */
 	/* Terminate the buffer */
 	csocket->inbuf.buf[csocket->inbuf.len]='\0';
-        data = (unsigned char *)strchr((char*)csocket->inbuf.buf +2, ' ');
-	if (data) {
+        data = csocket->inbuf.buf+2;
+        while ((*data != ' ') && (*data != '\0')) ++data;
+	if (*data == ' ') {
 	    *data='\0';
 	    data++;
+	    len = csocket->inbuf.len - (data - csocket->inbuf.buf);
 	}
-        len = csocket->inbuf.len - (data - csocket->inbuf.buf);
+	else len = 0;
 	for(i=0;i < NCOMMANDS;i++) {
 	    if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {
 		    script_watch((char*)csocket->inbuf.buf+2,data,len,commands[i].cmdformat);

@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Apply patch #1720388: data len in client.c is calculated wrong
+ courtesy Jürgen Kahnert.
+common/client.c
+Nicolas Weeger 2007-05-16
+
 gtk/text.c: fix callback that was eating a word.
 Nicolas Weeger 2007-05-03
 
