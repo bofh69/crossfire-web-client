@@ -397,11 +397,6 @@ static void do_magicmap(const char * ignored) {
         draw_magic_map();
 }
 
-static void do_mapredraw(const char * ignored) {
-        /* TODO Okay, maybe we can't let this fall through. It still seems strange. */
-        cs_print_string(csocket.fd, "mapredraw");
-}
-
 static void do_metaserver(const char * ignored) {
         if (!metaserver_get_info(meta_server, meta_port))
             metaserver_show(FALSE);
@@ -674,12 +669,6 @@ static ConsoleCommand CommonCommands[] = {
         "magicmap", COMM_CAT_MISC,
         do_magicmap, help_magicmap,
         HELP_MAGICMAP_SHORT
-    },
-
-    {
-        "mapredraw", COMM_CAT_INFO,
-        do_mapredraw, NULL,
-        NULL
     },
 
     {
