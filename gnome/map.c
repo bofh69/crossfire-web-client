@@ -127,8 +127,6 @@ void reset_map()
 	}
     }
     
-    cs_print_string(csocket.fd, "mapredraw");
-    
     return;
 }
 

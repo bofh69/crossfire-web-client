@@ -1179,13 +1179,13 @@ void image_update_download_status(int start, int end, int total)
 PlayerPosition pl_pos;
 
 
-/*
+/**
  * Request a map update from the server. This is to circumvent a bug in some
  * server versions.
+ * @todo remove
  */
 void reset_map()
 {
-    cs_print_string(csocket.fd, "mapredraw");
 }
 
 /* x11 client doesn't do smoothing, so don't need to do anything with this */

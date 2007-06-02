@@ -348,8 +348,6 @@ static void applyconfig(void) {
 	    /* This is done to make the 'lightmap' in the proper format */
 	    init_SDL( NULL, 1);
 #endif
-	if( csocket.fd)
-	    cs_print_string(csocket.fd, "mapredraw");
     }
     if (want_config[CONFIG_RESISTS] != use_config[CONFIG_RESISTS]) {
 	resize_resistance_table(want_config[CONFIG_RESISTS]);

@@ -162,13 +162,13 @@ void map_init(GtkWidget *window_root)
 #endif
 }
 
-/*
+/**
  * Request a map update from the server. This is to circumvent a bug in some
  * server versions.
+ * @todo remove
  */
 void reset_map()
 {
-    cs_print_string(csocket.fd, "mapredraw");
     }
 
 static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int clipy, 

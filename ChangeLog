@@ -2,6 +2,14 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Remove obsolete mapredraw command (empty on server-side).
+ common/p_cmd.c
+ gnome/map.c
+ gtk/config.c map.c
+ gtk-v2/src/config.c map.c
+ x11/xutil.c
+Nicolas Weeger 2007-06-02
+
 Apply patch #1720388: data len in client.c is calculated wrong
  courtesy Jürgen Kahnert.
 common/client.c
