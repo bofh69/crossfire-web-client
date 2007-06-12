@@ -94,6 +94,7 @@ static int num_inv_notebook_pages=0;
 
 typedef struct {
     const char *name;		/* Name of this page, for use with the show command */
+    const char *tooltip;	/* Tooltip for menu */
     const char *const *xpm;	/* Icon to draw for the notebook selector */
     int(*show_func) (item *it);	/* Function that takes an item and */
 				/* returns INV_SHOW_* above on whether to show this */
@@ -116,16 +117,16 @@ static int show_locked(item *it)    { return (it->locked?(INV_SHOW_ITEM|INV_SHOW
 static int show_unlocked(item *it)  { return (it->locked?0:(INV_SHOW_ITEM|INV_SHOW_COLOR)); }
 
 Notebook_Info	inv_notebooks[NUM_INV_LISTS] = {
-{"all", all_xpm, show_all, INV_TREE},
-{"applied", hand_xpm, show_applied, INV_TREE},
-{"unapplied", hand2_xpm, show_unapplied, INV_TREE},
-{"unpaid", coin_xpm, show_unpaid, INV_TREE},
-{"cursed", skull_xpm, show_cursed, INV_TREE},
-{"magical", mag_xpm, show_magical, INV_TREE},
-{"nonmagical", nonmag_xpm, show_nonmagical, INV_TREE},
-{"locked", lock_xpm, show_locked, INV_TREE},
-{"unlocked", unlock_xpm, show_unlocked, INV_TREE},
-{"icons", NULL, show_all, INV_TABLE}
+{"all", "All Items", all_xpm, show_all, INV_TREE},
+{"applied", "Applied Items", hand_xpm, show_applied, INV_TREE},
+{"unapplied", "Unapplied Items", hand2_xpm, show_unapplied, INV_TREE},
+{"unpaid", "Unpaid items", coin_xpm, show_unpaid, INV_TREE},
+{"cursed", "Cursed items", skull_xpm, show_cursed, INV_TREE},
+{"magical", "Magical items", mag_xpm, show_magical, INV_TREE},
+{"nonmagical", "Nonmagical items", nonmag_xpm, show_nonmagical, INV_TREE},
+{"locked", "Inventory locked items", lock_xpm, show_locked, INV_TREE},
+{"unlocked", "Inventory unlocked items",unlock_xpm, show_unlocked, INV_TREE},
+{"icons", "Quick icon view", NULL, show_all, INV_TABLE}
 };
 
 
@@ -439,6 +440,21 @@ void inventory_init(GtkWidget *window_root)
 					   GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
 	    image = gtk_image_new_from_pixbuf(
 		      gdk_pixbuf_new_from_xpm_data((const char**)inv_notebooks[i].xpm));
+
+
+	    if (inv_notebooks[i].tooltip) {
+		GtkWidget *eb;
+
+		eb=gtk_event_box_new();
+		gtk_widget_show(eb);
+
+		gtk_container_add(GTK_CONTAINER(eb), image);
+		gtk_widget_show(image);
+
+		image=eb;
+		gtk_tooltips_set_tip(inv_table_tooltips, image, inv_notebooks[i].tooltip, NULL);
+	    }
+
 	    gtk_notebook_insert_page(GTK_NOTEBOOK(inv_notebook), swindow, image, i);
 
 	    inv_notebooks[i].treestore = gtk_tree_store_new (LIST_NUM_COLUMNS,
