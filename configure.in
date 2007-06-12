@@ -459,6 +459,7 @@ test "x$prefix" = xNONE && prefix=$ac_default_prefix
 test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
 
 ndatadir=`eval echo ${datadir}`
+ndatadir=`eval echo ${ndatadir}`
 
 dnl need to do this twice to cover variables within variables
 nbindir=`eval echo ${bindir}`
