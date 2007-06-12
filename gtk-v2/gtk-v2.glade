@@ -154,7 +154,7 @@
 		    <widget class="GtkMenu" id="pickup1_menu">
 
 		      <child>
-			<widget class="GtkCheckMenuItem" id="don't_pickup1">
+			<widget class="GtkCheckMenuItem" id="do_not_pickup">
 			  <property name="visible">True</property>
 			  <property name="label" translatable="yes">Don't Pickup</property>
 			  <property name="use_underline">True</property>

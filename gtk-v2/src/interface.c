@@ -48,7 +48,7 @@ create_window_root (void)
   GtkWidget *spells;
   GtkWidget *pickup1;
   GtkWidget *pickup1_menu;
-  GtkWidget *don_t_pickup1;
+  GtkWidget *do_not_pickup;
   GtkWidget *stop_before_pickup1;
   GtkWidget *armor1;
   GtkWidget *armor1_menu;
@@ -265,9 +265,9 @@ create_window_root (void)
   pickup1_menu = gtk_menu_new ();
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (pickup1), pickup1_menu);
 
-  don_t_pickup1 = gtk_check_menu_item_new_with_mnemonic (_("Don't Pickup"));
-  gtk_widget_show (don_t_pickup1);
-  gtk_container_add (GTK_CONTAINER (pickup1_menu), don_t_pickup1);
+  do_not_pickup = gtk_check_menu_item_new_with_mnemonic (_("Don't Pickup"));
+  gtk_widget_show (do_not_pickup);
+  gtk_container_add (GTK_CONTAINER (pickup1_menu), do_not_pickup);
 
   stop_before_pickup1 = gtk_check_menu_item_new_with_mnemonic (_("Stop Before Pickup"));
   gtk_widget_show (stop_before_pickup1);
@@ -938,7 +938,7 @@ create_window_root (void)
   g_signal_connect ((gpointer) spells, "activate",
                     G_CALLBACK (on_spells_activate),
                     NULL);
-  g_signal_connect ((gpointer) don_t_pickup1, "activate",
+  g_signal_connect ((gpointer) do_not_pickup, "activate",
                     G_CALLBACK (on_menu_dont_pickup_activate),
                     NULL);
   g_signal_connect ((gpointer) stop_before_pickup1, "activate",
@@ -1091,7 +1091,7 @@ create_window_root (void)
   GLADE_HOOKUP_OBJECT (window_root, spells, "spells");
   GLADE_HOOKUP_OBJECT (window_root, pickup1, "pickup1");
   GLADE_HOOKUP_OBJECT (window_root, pickup1_menu, "pickup1_menu");
-  GLADE_HOOKUP_OBJECT (window_root, don_t_pickup1, "don_t_pickup1");
+  GLADE_HOOKUP_OBJECT (window_root, do_not_pickup, "do_not_pickup");
   GLADE_HOOKUP_OBJECT (window_root, stop_before_pickup1, "stop_before_pickup1");
   GLADE_HOOKUP_OBJECT (window_root, armor1, "armor1");
   GLADE_HOOKUP_OBJECT (window_root, armor1_menu, "armor1_menu");

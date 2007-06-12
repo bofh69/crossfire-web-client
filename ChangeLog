@@ -2,6 +2,17 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Add pick up menu updating support for gtk2 client - when you log in, it
+will get your character pickup mode and update the check boxes accordingly.
+---
+gtk-v2/gtk-v2.glade: Change "don't_pickup1" widget name to "do_not_pickup"
+gtk-v2/src/interface.c: Rebuilt
+gtk-v2/src/main.c: Remove empty client_pickup() function, add pickup_init()
+gtk-v2/src/pickup.c: Bunch of new code to support pickup updating - mostly
+  a mapping from menu items to pickup modes, since glade doesn't let us
+  store those attributes in the menu item.
+MSW 2007-06-11
+
 Remove obsolete mapredraw command (empty on server-side).
  common/p_cmd.c
  gnome/map.c
