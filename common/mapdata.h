@@ -117,12 +117,6 @@ void mapdata_reset(void);
 void mapdata_set_size(int viewx, int viewy);
 
 /**
- * Updates a tile. Must be called for each entry of a map command received from
- * the server.
- */
-void mapdata_set_face(int x, int y, int darkness, sint16 face0, sint16 face1, sint16 face2);
-
-/**
  * Scrolls the map view. Must be called whenever a map_scroll command was
  * received from the server.
  */

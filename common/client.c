@@ -99,14 +99,11 @@ struct CmdMapping commands[] = {
      * of cluster the related stuff together.
      */
     { "map2", Map2Cmd, SHORT_ARRAY },
-    { "map1", Map1Cmd, SHORT_ARRAY },
-    { "map1a", Map1aCmd, SHORT_ARRAY },
     { "map_scroll", (CmdProc)map_scrollCmd, ASCII },
     { "magicmap", MagicMapCmd, MIXED /* ASCII, then binary */},
     { "newmap", NewmapCmd, NODATA },
     { "mapextended", MapExtendedCmd, MIXED /* chars, then SHORT_ARRAY */ },
 
-    { "item1", Item1Cmd, MIXED /* differing length ints */ },
     { "item2", Item2Cmd, MIXED },
     { "upditem", UpdateItemCmd, MIXED },
     { "delitem", DeleteItem, INT_ARRAY },
@@ -120,10 +117,7 @@ struct CmdMapping commands[] = {
     { "drawextinfo", (CmdProc)DrawExtInfoCmd, ASCII},
     { "stats", StatsCmd, STATS /* array of: int8, (int?s for that stat) */ },
 
-    { "image", ImageCmd, MIXED /* int, int, PNG */ },
     { "image2", Image2Cmd, MIXED /* int, int8, int, PNG */ },
-    { "face", FaceCmd, MIXED /* int16, string */},
-    { "face1", Face1Cmd, MIXED /* int16, int32, string */},
     { "face2", Face2Cmd, MIXED /* int16, int8, int32, string */},
     { "tick", TickCmd, INT_ARRAY /* uint32 */},
 

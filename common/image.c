@@ -494,47 +494,6 @@ void reset_image_cache_data()
  * if we have already received a face for a particular number.
  */
 
-void FaceCmd(unsigned char *data,  int len)
-{
-    int pnum;
-    char *face;
-
-    /* A quick sanity check, since if client isn't caching, all the data
-     * structures may not be initialized.
-     */
-    if (!use_config[CONFIG_CACHE]) {
-	LOG(LOG_WARNING,"common::FaceCmd","Received a 'face' command when we are not caching");
-	return;
-    }
-    pnum = GetShort_String(data);
-    face = (char*)data+2;
-    data[len] = '\0';
-
-    finish_face_cmd(pnum, 0, 0, face,0);
-
-}
-
-void Face1Cmd(unsigned char *data,  int len)
-{
-    int pnum;
-    uint32  checksum;
-    char *face;
-
-    /* A quick sanity check, since if client isn't caching, all the data
-     * structures may not be initialized.
-     */
-    if (!use_config[CONFIG_CACHE]) {
-	LOG(LOG_WARNING,"common::Face1Cmd","Received a 'face' command when we are not caching");
-	return;
-    }
-    pnum = GetShort_String(data);
-    checksum = GetInt_String(data+2);
-    face = (char*)data+6;
-    data[len] = '\0';
-
-    finish_face_cmd(pnum, checksum, 1, face,0);
-}
-
 void Face2Cmd(uint8 *data,  int len)
 {
     int pnum;
@@ -557,21 +516,6 @@ void Face2Cmd(uint8 *data,  int len)
 
     finish_face_cmd(pnum, checksum, 1, face,setnum);
 }
-
-void ImageCmd(uint8 *data,  int len)
-{  
-    int pnum,plen;
-
-    pnum = GetInt_String(data);
-    plen = GetInt_String(data+4);
-    if (len<8 || (len-8)!=plen) {
-	LOG(LOG_WARNING,"common::ImageCmd","Lengths don't compare (%d,%d)",
-		(len-8),plen);
-	return;
-    }
-    display_newpng(pnum,data+8,plen,0);
-}
-
 
 void Image2Cmd(uint8 *data,  int len)
 {  

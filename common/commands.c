@@ -294,18 +294,8 @@ void SetupCmd(char *buf, int len) {
             }
         } else if (!strcmp(cmd, "map2cmd")) {
             if (!strcmp(param, "FALSE")) {
-                draw_info("Server does not support map2cmd, will try map1acmd", NDI_RED);
-                cs_print_string(csocket.fd, "setup map1acmd 1");
-            }
-        } else if (!strcmp(cmd, "map1acmd")) {
-            if (!strcmp(param, "FALSE")) {
-                draw_info("Server does not support map1acmd, will try map1cmd", NDI_RED);
-                cs_print_string(csocket.fd, "setup map1cmd 1");
-            }
-        } else if (!strcmp(cmd, "map1cmd")) {
-            /* Not much we can do about someone playing on an ancient server. */
-            if (!strcmp(param, "FALSE")) {
-                draw_info("Server does not support map1cmd - This server is too old to support this client!", NDI_RED);
+                draw_info("Server does not support map2cmd!", NDI_RED);
+                draw_info("This server is too old to support this client!", NDI_RED);
 #ifdef WIN32
                 closesocket(csocket.fd);
 #else
@@ -329,17 +319,14 @@ void SetupCmd(char *buf, int len) {
              * information.
              */
             if (!strcmp(param, "FALSE")) {
-                int i;
-                for (i = 0; i < MAX_SKILL; i++) {
-                    free(skill_names[i]);
-                    skill_names[i] = NULL;
-                }
-                skill_names[0] = strdup_local("agility");
-                skill_names[1] = strdup_local("personality");
-                skill_names[2] = strdup_local("mental");
-                skill_names[3] = strdup_local("physique");
-                skill_names[4] = strdup_local("magic");
-                skill_names[5] = strdup_local("wisdom");
+                draw_info("Server does not support exp64!", NDI_RED);
+                draw_info("This server is too old to support this client!", NDI_RED);
+#ifdef WIN32
+                closesocket(csocket.fd);
+#else
+                close(csocket.fd);
+#endif
+                csocket.fd = -1;
             } else {
                 cs_print_string(csocket.fd, "requestinfo skill_info");
             }
@@ -801,7 +788,7 @@ void item_actions(item *op) {
  * revision is what item command the data came from - newer
  * ones have addition fields.
  */
-static void common_item_command(uint8 *data, int len, int revision) {
+static void common_item_command(uint8 *data, int len) {
 
     int weight, loc, tag, face, flags, pos = 0, nlen, anim, nrof, type;
     uint8 animspeed;
@@ -829,11 +816,7 @@ static void common_item_command(uint8 *data, int len, int revision) {
             anim = GetShort_String(data+pos); pos += 2;
             animspeed = data[pos++];
             nrof = GetInt_String(data+pos); pos += 4;
-            if (revision >= 2) {
-                type = GetShort_String(data+pos); pos += 2;
-            } else {
-                type = NO_ITEM_TYPE;
-            }
+            type = GetShort_String(data+pos); pos += 2;
             update_item(tag, loc, name, weight, face, flags, anim, animspeed, nrof, type);
             item_actions(locate_item(tag));
         }
@@ -843,15 +826,8 @@ static void common_item_command(uint8 *data, int len, int revision) {
     }
 }
 
-/* parsing the item data is 95% the same - we just need to pass the
- * revision so that the function knows what values to extact.
- */
-void Item1Cmd(unsigned char *data, int len) {
-    common_item_command(data, len, 1);
-}
-
 void Item2Cmd(unsigned char *data, int len) {
-    common_item_command(data, len, 2);
+    common_item_command(data, len);
 }
 
 /* UpdateItemCmd updates some attributes of an item */
@@ -1108,71 +1084,6 @@ void NewmapCmd(unsigned char *data, int len) {
  * map1 logic requires this to be set right.
  */
 #define NUM_LAYERS (MAP1_LAYERS-1)
-
-static void map1_common(unsigned char *data, int len, int rev) {
-    int mask, x, y, pos = 0, layer;
-    int darkness;
-    int faces[MAXLAYERS];
-
-    map1cmd = 1;
-    if (!mapupdatesent) { /* see MapExtendedCmd */
-        display_map_startupdate();
-    }
-
-    while (pos <len) {
-        mask = GetShort_String(data+pos); pos += 2;
-        x = (mask>>10)&0x3f;
-        y = (mask>>4)&0x3f;
-
-        /* If there are no low bits (face/darkness), this space is
-         * not visible.
-         */
-        if ((mask&0xf) == 0) {
-            mapdata_set_face(x, y, -1, -1, -1, -1);
-            continue;   /* if empty mask, none of the checks will be true. */
-        }
-
-        /* If this space was previously stored for fog of war, need to clear
-         * it now.  Needs to be done before anything else happens that we
-         * might want to store in it.
-         */
-
-        if (mask&0x8) { /* darkness bit */
-            darkness = data[pos++];
-        } else {
-            darkness = -1;
-        }
-
-        /* Reduce redundant by putting the get image
-         * and flags in a common block.  The layers
-         * are the inverse of the bit order unfortunately.
-         */
-        for (layer = NUM_LAYERS; layer >= 0; layer--) {
-            if (mask&(1<<layer)) {
-                faces[NUM_LAYERS-layer] = GetShort_String(data+pos); pos += 2;
-            } else {
-                faces[NUM_LAYERS-layer] = -1;
-            }
-        }
-
-        mapdata_set_face(x, y, darkness, faces[0], faces[1], faces[2]);
-    }
-    mapupdatesent = 0;
-    display_map_doneupdate(FALSE, FALSE);
-}
-
-/* These wrapper functions actually are not needed since
- * the logic above doesn't care what the revision actually
- * is.
- */
-
-void Map1Cmd(unsigned char *data, int len) {
-    map1_common(data, len, 0);
-}
-
-void Map1aCmd(unsigned char *data, int len) {
-    map1_common(data, len, 1);
-}
 
 void Map2Cmd(unsigned char *data, int len) {
     int mask, x, y, pos = 0, space_len, value;

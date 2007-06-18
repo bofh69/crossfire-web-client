@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Remove map1cmd, face, face1, item1 and some obsolete stuff.
+ common/client.c commands.c image.c mapdata.c mapdata.h proto.h
+Nicolas Weeger 2007-06-18
+
 common/p_cmd.c: remove 'resist' command, duplicates server-side 'resistances' giving more info.
 Nicolas Weeger 2007-06-18
 
