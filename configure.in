@@ -192,25 +192,6 @@ else
 fi
 dnl End of gtk-v2 client check
 
-dnl Future check for Gnome client
-dnl AC_PATH_PROG(GNOMECONFIG, gnome-config)
-dnl 
-dnl if test -z "$GNOMECONFIG" ; then
-dnl 	gnome=no
-dnl 	echo "Can't find gnome-config, not building Gnome client."
-dnl fi
-dnl 
-dnl if eval "test x$gnome = xyes"; then
-dnl 	GNOME_INIT
-dnl 	GNOME_COMPILE_WARNINGS
-dnl 	GNOME_X_CHECKS
-dnl 	AM_PATH_GDK_PIXBUF(0.11.0, , echo "gdk-pixbuf 0.11.0 or higher is needed for the Gnome client so I'm not building it." ; gnome=no)
-dnl 	if eval "test x$gnome = xyes"; then
-dnl 		CF_SUBDIRS="$CF_SUBDIRS gnome"
-dnl 	fi
-dnl fi
-dnl End of future check for Gnome client
-
 dnl End of client checks
 
 AM_MAINTAINER_MODE

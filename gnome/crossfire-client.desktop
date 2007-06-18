@@ -1,8 +1,0 @@
-[Desktop Entry]
-Encoding=UTF-8
-Name=Crossfire Client
-Comment=Gnome client for Crossfire, a multi-player Hack-like game
-Exec=gnome-cfclient  -fog -cache -keepcache
-Icon=crossfire-client
-Terminal=false
-Type=Application
