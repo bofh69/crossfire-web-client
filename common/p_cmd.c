@@ -404,17 +404,6 @@ static void do_metaserver(const char * ignored) {
             draw_info("Unable to get metaserver information.", NDI_BLACK);
 }
 
-static void do_resist(const char * ignored) {
-        /* For debugging only */
-        int i;
-        char buf[256];
-        for (i=0; i<NUM_RESISTS; i++) {
-            sprintf(buf,"%-20s %+4d",
-                    resists_name[i], cpl.stats.resists[i]);
-            draw_info(buf, NDI_BLACK);
-        }
-}
-
 static void do_savedefaults(const char * ignored) { save_defaults(); }
 
 static void do_savewinpos(const char * ignored) { save_winpos(); }
@@ -675,12 +664,6 @@ static ConsoleCommand CommonCommands[] = {
         "metaserver", COMM_CAT_INFO,
         do_metaserver, help_metaserver,
         "Print 'metaserver information'. Warning - your client will pause."
-    },
-
-    {
-        "resist", COMM_CAT_DEBUG,
-        do_resist, NULL,
-	"Print resistances"
     },
 
     {
