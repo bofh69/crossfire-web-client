@@ -2,6 +2,13 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Remove Gnome client, which is not built anyway.
+Deleted:
+ gnome
+Modified:
+ aclocal.m4 configure configure.in
+Nicolas Weeger 2007-06-18
+
 Trash obsolete junk.
  common/client.c image.c item.c misc.c p_cmd.c proto.h
 Nicolas Weeger 2007-06-18
