@@ -43,10 +43,6 @@ static item *player, *map;      /* these lists contains rest of items */
 #include <item-types.h>
 
 
-/* This should be modified to read the definition from a file */
-void init_item_types(void) {
-}
-
 /* This uses the item_types table above.  We try to figure out if
  * name has a match above.  Matching is done pretty loosely - however
  * we try to match the start of the name because that is more reliable.

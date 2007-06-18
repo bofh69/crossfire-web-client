@@ -284,26 +284,11 @@ void logPipe(ChildProcess *child, LogLevel level, int pipe){
 #endif
 }
 
-void unLogPipe(ChildProcess* child, int pipe){
-    if ( (pipe<1) || (pipe>2))/*can't log stdin as it's write only*/
-        return;
-    free(child->logger[pipe].name);
-    child->logger[pipe].name=NULL;
-    child->logger[pipe].log=0;
-}
-
 void logChildPipe(ChildProcess* child, LogLevel level, int flag){
     if (child->flag & flag & CHILD_STDOUT)
         logPipe(child,level,1);
     if (child->flag & flag & CHILD_STDERR)
         logPipe(child,level,2);
-}
-
-void unLogChildPipe(ChildProcess* child, int flag){
-    if (flag&CHILD_STDOUT)
-        unLogPipe(child,1);
-    if (flag&CHILD_STDERR)
-        unLogPipe(child,2);
 }
 
 ChildProcess* raiseChild(char* name, int flag){

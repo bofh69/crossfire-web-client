@@ -37,7 +37,6 @@ void TickCmd(uint8 *data, int len);
 void PickupCmd(uint8 *data, int len);
 /* image.c */
 void init_common_cache_data(void);
-void requestsmooth(int pnum);
 void requestface(int pnum, char *facename);
 void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int faceset);
 void reset_image_cache_data(void);
@@ -55,7 +54,6 @@ void init_client_vars(void);
 void reset_player_data(void);
 void reset_client_vars(void);
 /* item.c */
-void init_item_types(void);
 uint8 get_type_from_name(const char *name);
 void update_item_sort(item *it);
 char *get_number(uint32 i);
@@ -109,9 +107,7 @@ void LOG(LogLevel level, const char *origin, const char *format, ...);
 void purgePipe(ChildProcess *cp, int pipe);
 void monitorChilds(void);
 void logPipe(ChildProcess *child, LogLevel level, int pipe);
-void unLogPipe(ChildProcess *child, int pipe);
 void logChildPipe(ChildProcess *child, LogLevel level, int flag);
-void unLogChildPipe(ChildProcess *child, int flag);
 ChildProcess *raiseChild(char *name, int flag);
 /* newsocket.c */
 void SockList_Init(SockList *sl, uint8 *buf);

@@ -416,12 +416,6 @@ static void do_num_free_items(const char * ignored) {
 
 static void do_clienthelp(const char * arg); /* Forward. */
 
-extern void do_filteritem(const char * params); /* filteritem.c - testing only. */
-
-extern void do_filter(const char * params); /* filteritem.c */
-
-extern void do_filters(const char * ignored); /* filteritem.c */
-
 /* Help "typecasters". */
 #include "../help/chelp.h"
 

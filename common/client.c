@@ -61,7 +61,7 @@ char *server=NULL;
 #endif
 
 char *client_libdir=NULL,*meta_server=META_SERVER;
-char *image_file="", *sound_server="cfsndserv";
+char *sound_server="cfsndserv";
 char *skill_names[MAX_SKILL];
 
 int meta_port=META_PORT, want_skill_exp=0,
@@ -74,7 +74,6 @@ uint64	*exp_table=NULL;
 
 int command_inscribe = 0;
 
-FILE *fpin,*fpout;
 Client_Player cpl;
 ClientSocket csocket;
 

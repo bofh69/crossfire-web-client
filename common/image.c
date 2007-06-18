@@ -166,8 +166,6 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
 
 Face_Information face_info;
 
-char	home_dir[MAX_BUF];
-
 /* This holds the name we recieve with the 'face' command so we know what
  * to save it as when we actually get the face.
  */
@@ -371,10 +369,6 @@ void init_common_cache_data()
     }
 }
 
-
-void requestsmooth (int pnum){
-    cs_print_string (csocket.fd, "asksmooth %d",pnum);
-}
 
 /******************************************************************************
  *
