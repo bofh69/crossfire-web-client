@@ -1093,7 +1093,6 @@ void Map2Cmd(unsigned char *data, int len) {
     /* Not really using map1 protocol, but some draw logic differs from
      * the original draw logic, and map2 is closest.
      */
-    map1cmd = 1;
     while (pos < len) {
         mask = GetShort_String(data+pos); pos += 2;
         x = ((mask>>10)&0x3f)-MAP2_COORD_OFFSET;
@@ -1255,7 +1254,6 @@ void MapExtendedCmd(unsigned char *data, int len) {
     int entrysize;
     int startpackentry;
 
-    map1cmd = 1;
     if (!mapupdatesent) {
         display_map_startupdate();
     }

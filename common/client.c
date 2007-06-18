@@ -66,7 +66,7 @@ char *skill_names[MAX_SKILL];
 
 int meta_port=META_PORT, want_skill_exp=0,
     replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
-    maxfd,map1cmd=0,metaserver_on=METASERVER;
+    maxfd,metaserver_on=METASERVER;
 uint32	tick=0;
 
 uint16	exp_table_max=0;

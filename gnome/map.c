@@ -497,9 +497,6 @@ void display_mapscroll(int dx,int dy)
 	     * old info.
 	     *
 	     */
-	    if ( !map1cmd)
-	      newmap.cells[x][y].need_update=1;
-	  } else {
 	    memcpy((char*)&(newmap.cells[x][y]), (char*)&(the_map.cells[x+dx][y+dy]),
 		   sizeof(struct MapCell));
 	    /* if using pngximage, we will instead set the map_did_scroll
@@ -508,7 +505,6 @@ void display_mapscroll(int dx,int dy)
 	    if( !sdlimage) {
 		newmap.cells[x][y].need_update=1;
 	    }
-	  }
 	}
       }
       memcpy((char*)the_map.cells[0],(char*)newmap.cells[0],
@@ -590,8 +586,7 @@ void gtk_draw_map()
 		TRUE, 0,0, map_image_size*mapx, map_image_size * mapy);
 
     for (onlayer=MAXFACES-1; onlayer>=0; onlayer--) {
-	if (map1cmd) layer = (MAXFACES -1)  - onlayer;
-        else layer = onlayer;
+        layer = (MAXFACES -1)  - onlayer;
 
 	/* Fog not currently supported, so don't need to worry about that complexity */
 	for( x= mapx-1; x>= 0; x--) {

@@ -2,6 +2,11 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Remove 'map1cmd' variable which is always 1.
+ common/client.c client.h commands.c
+ gnome/map.c
+Nicolas Weeger 2007-06-18
+
 Remove map1cmd, face, face1, item1 and some obsolete stuff.
  common/client.c commands.c image.c mapdata.c mapdata.h proto.h
 Nicolas Weeger 2007-06-18
