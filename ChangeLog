@@ -2,6 +2,9 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+utils/mdk.sh: Make script work again.
+Andreas Kirschbaum 2007-06-27
+
 Remove Gnome client, which is not built anyway.
 Deleted:
  gnome
