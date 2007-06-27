@@ -53,7 +53,7 @@ typedef struct picture_message_struct {
     int window_width;
     int window_height;
     GdkPixmap *picture;
-    
+
 } picture_message;
 
 static picture_message sign_message[] = {
@@ -62,19 +62,19 @@ static picture_message sign_message[] = {
     {"right sign",sign_east_xpm,45,85,615,190,750,400,NULL},
     {"direction sign",sign_flat_xpm,70,45,390,305,500,500,NULL} };
 static void init_pictures(GtkWidget *refWindow) {
-    if (btnClose_pm==NULL)          
+    if (btnClose_pm==NULL)
         btnClose_pm = gdk_pixmap_create_from_xpm_d(refWindow->window,&btnClose_bm,
                 &gtk_widget_get_style(refWindow)->bg[GTK_STATE_NORMAL],
                 (gchar**)close_xpm);
 }
 static void prepare_book_window(void) {
-    if (!book_root){    
+    if (!book_root){
         book_root= gtk_window_new (GTK_WINDOW_TOPLEVEL);
         gtk_window_set_title(GTK_WINDOW(book_root),"books");
         book_notes = gtk_notebook_new();
         gtk_notebook_set_tab_pos(GTK_NOTEBOOK(book_notes),GTK_POS_LEFT);
         gtk_container_add(GTK_CONTAINER(book_root),book_notes);
-        gtk_widget_show(GTK_WIDGET(book_notes));  
+        gtk_widget_show(GTK_WIDGET(book_notes));
         gtk_widget_show(GTK_WIDGET(book_root));
         init_pictures (book_root);
         gtk_signal_connect (GTK_OBJECT (book_root), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &book_root);
@@ -83,7 +83,7 @@ static void prepare_book_window(void) {
     }
 }
 static GtkWidget *create_text_picture_window(picture_message *layout, char *message) {
-    GtkWidget *window, *content, *fixed, *scroll, *close;    
+    GtkWidget *window, *content, *fixed, *scroll, *close;
     window = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_set_title(GTK_WINDOW(window),layout->title);
     gtk_widget_set_app_paintable(window,TRUE);
@@ -92,7 +92,7 @@ static GtkWidget *create_text_picture_window(picture_message *layout, char *mess
     if (layout->picture == NULL){
         layout->picture = gdk_pixmap_create_from_xpm_d(window->window,NULL,
                 &gtk_widget_get_style(window)->bg[GTK_STATE_NORMAL],
-                (gchar**)layout->xpm);        
+                (gchar**)layout->xpm);
     }
     gdk_window_set_back_pixmap(window->window,layout->picture,FALSE);
     content = gtk_text_new(NULL,NULL);
@@ -107,28 +107,28 @@ static GtkWidget *create_text_picture_window(picture_message *layout, char *mess
     gtk_container_add(GTK_CONTAINER(window),fixed);
     gtk_widget_realize(fixed);
     gdk_window_set_back_pixmap(fixed->window,layout->picture,TRUE);
-    
+
     scroll = gtk_scrolled_window_new (NULL, NULL);
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
                                     GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
     gtk_widget_show (scroll);
     gtk_widget_set_usize(scroll,layout->width,layout->height);
     gtk_fixed_put(GTK_FIXED(fixed),scroll,layout->x,layout->y);
-    close=gtk_button_new();    
+    close=gtk_button_new();
     gtk_widget_set_usize(close,0,0);
     gtk_fixed_put(GTK_FIXED(fixed),close,0,0);
     gtk_widget_show(fixed);
     gtk_widget_show(content);
-    
+
     gtk_container_add(GTK_CONTAINER(scroll),content);
     gtk_text_set_adjustments(GTK_TEXT(content),
             NULL,
             gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll))
         );
-	
+
     gtk_signal_connect_object (GTK_OBJECT (close), "clicked",
                    GTK_SIGNAL_FUNC(gtk_widget_destroy),
-                   GTK_OBJECT (window));    
+                   GTK_OBJECT (window));
     gtk_widget_grab_focus (GTK_WIDGET(close));
     return window;
 }
@@ -156,7 +156,7 @@ static void show_media_message(const char *title, const char *message) {
         );
 
     gtk_widget_show(content);
-    gtk_widget_show (scroll);    
+    gtk_widget_show (scroll);
     gtk_widget_show (window);
 }
 /**
@@ -185,7 +185,7 @@ static const char *const strange_medium_fontname[] = {
     "-*-annstone-*-r-*-*-*-120-*-*-*-*-iso8859-*",
     "-*-shalomstick-*-r-*-*-*-120-*-*-*-*-iso8859-*",
     NULL
-    
+
 };
 static const char *const print_medium_fontname[] = {
     "-*-arial-medium-r-*-*-*-120-*-*-*-*-iso8859-*",
@@ -262,16 +262,16 @@ static void init_fonts(void) {
         style_fixed[1]=load_a_font(fixed_bold_fontname);
         style_fixed[2]=load_a_font(fixed_italic_fontname);
         style_fixed[3]=load_a_font(fixed_italicbold_fontname);
-        
+
         style_arcane[0]=load_a_font(arcane_medium_fontname);
         style_arcane[1]=style_arcane[2]=style_arcane[3]=style_arcane[0];
-        
+
         style_hand[0]= load_a_font(hand_medium_fontname);
         style_hand[1]=style_hand[2]=style_hand[3]=style_hand[0];
-        
+
         style_strange[0] = load_a_font(strange_medium_fontname);
         style_strange[1]=style_strange[2]=style_strange[3]=style_strange[0];
-        
+
         style_print[0]=load_a_font(print_medium_fontname);
         style_print[1]=load_a_font(print_bold_fontname);
         style_print[2]=load_a_font(print_italic_fontname);
@@ -286,8 +286,8 @@ media_state write_media(GtkText* textarea, const char* message){
     simple_state.flavor=0;
     return write_media_with_state(textarea,message, simple_state);
 }
-media_state write_media_with_state(GtkText* textarea, const char* message, media_state current_state){   
-     
+media_state write_media_with_state(GtkText* textarea, const char* message, media_state current_state){
+
     char *current, *marker, *original;
     if (message==NULL)
         return current_state;
@@ -304,7 +304,7 @@ media_state write_media_with_state(GtkText* textarea, const char* message, media
         gtk_text_insert(textarea,current_state.style[current_state.flavor],current_state.has_color?&current_state.fore:NULL,NULL,current,marker-current);
         current = marker+1;
         if ( (marker = strchr(current,']')) ==NULL)
-            return current_state;  
+            return current_state;
         *marker='\0';
         if (!strcmp(current,"b"))
             current_state.flavor |=STYLE_BOLD;
@@ -339,50 +339,50 @@ media_state write_media_with_state(GtkText* textarea, const char* message, media
 static void add_book(char *title, char *message) {
     GtkWidget *content,*label,*hbox, *scroll, *panel, *close, *closepic;
     prepare_book_window();
-    
+
     content = gtk_text_new(NULL,NULL);
     gtk_text_set_editable(GTK_TEXT(content),FALSE);
     gtk_text_set_word_wrap(GTK_TEXT(content),FALSE);
     gtk_text_set_line_wrap(GTK_TEXT(content),TRUE);
     write_media(GTK_TEXT(content),message);
-    
+
     panel = gtk_vbox_new(FALSE,0);
-    close = gtk_button_new();    
+    close = gtk_button_new();
     closepic = gtk_pixmap_new (btnClose_pm, btnClose_bm);
-    gtk_container_add(GTK_CONTAINER(close),closepic);    
+    gtk_container_add(GTK_CONTAINER(close),closepic);
     gtk_box_pack_start (GTK_BOX (panel), close, FALSE, FALSE, 0);
-    
+
     hbox=gtk_hbox_new(FALSE,0);
-    
-    gtk_box_pack_start (GTK_BOX (hbox), content, TRUE, TRUE, 0);    
+
+    gtk_box_pack_start (GTK_BOX (hbox), content, TRUE, TRUE, 0);
     scroll = gtk_vscrollbar_new(GTK_TEXT (content)->vadj);
     gtk_box_pack_start (GTK_BOX (hbox),scroll, FALSE, FALSE, 0);
     gtk_box_pack_start (GTK_BOX (panel), hbox, TRUE, TRUE, 0);
-    
+
     label = gtk_label_new(title);
 /*    tab = gtk_hbox_new();*/
 /*    button_pic = gtk_pixmap_new(btnClose_pm, btnClose_bm);*/
 /*    button = gtk_button_new();*/
-    
+
     gtk_notebook_append_page(GTK_NOTEBOOK(book_notes),panel,label);
-    gtk_widget_show(content);    
-    gtk_widget_show(label);      
-    gtk_widget_show(close);      
-    gtk_widget_show(closepic);      
+    gtk_widget_show(content);
+    gtk_widget_show(label);
+    gtk_widget_show(close);
+    gtk_widget_show(closepic);
     gtk_widget_show(panel);
     gtk_widget_show(book_root);
     gtk_widget_show(hbox);
     gtk_widget_show(scroll);
-    
+
     gtk_notebook_set_page(GTK_NOTEBOOK(book_notes),gtk_notebook_page_num(GTK_NOTEBOOK(book_notes),panel));
     gdk_window_raise (book_root->window);
     gtk_widget_grab_focus (GTK_WIDGET(close));
     gtk_signal_connect_object (GTK_OBJECT (close), "clicked",
                    GTK_SIGNAL_FUNC(gtk_widget_destroy),
-                   GTK_OBJECT (panel));    
-       
+                   GTK_OBJECT (panel));
+
 }
-/* we need access to those when a sign is auto applied. 
+/* we need access to those when a sign is auto applied.
  * We don't want to show player a new window while his character
  * keeps running in background
  */
@@ -409,32 +409,32 @@ static void book_callback(int flag, int type, int subtype, char *message) {
                 write_media(GTK_TEXT(gtkwin_info_text),message);
 	} else
             add_book(title,message);
-	
-    }    
+
+    }
 }
 static char *last_motd = NULL;
 static void motd_callback(int flag, int type, int subtype, char *message) {
-    
+
     free(last_motd);
     last_motd = malloc(strlen(message)+1);
     if (last_motd==NULL)
         LOG(LOG_ERROR,"gtk::motd_callback","Outa memory, no save of motd");
     else
-        strcpy(last_motd,message);    
+        strcpy(last_motd,message);
 
     if (!want_config[CONFIG_POPUPS] || last_motd == NULL) {
         write_media(GTK_TEXT(gtkwin_info_text), message);
     }
 }
 static void void_callback(int flag, int type, int subtype, char *message) {
-    
+
     LOG(LOG_INFO,"gtk::void_callback","got message --\n%s\n",message);
-    
+
 }
 static void sign_callback(int color, int type, int subtype, char *message) {
     GtkWidget *window;
 
-    if ( (subtype>4) || (subtype <1))    
+    if ( (subtype>4) || (subtype <1))
         subtype=1;
     if (message==NULL)
         return;
@@ -449,7 +449,7 @@ static void sign_callback(int color, int type, int subtype, char *message) {
         gtk_window_set_transient_for(GTK_WINDOW(window),GTK_WINDOW(gtkwin_root));
         gtk_widget_show(window);
     }
-    
+
 }
 const char *getMOTD(void) {
     return last_motd==NULL?"Please read motd written\nin [i]green[/i] inside main\nmessage window":last_motd;
@@ -457,10 +457,10 @@ const char *getMOTD(void) {
 static char *rules = NULL;
 news_entry* first_news = NULL;
 const char *get_rules(void) {
-    return rules;    
+    return rules;
 }
 news_entry *get_news(void) {
-    return first_news;    
+    return first_news;
 }
 static void admin_callback(int flag, int type, int subtype, char *message) {
     char* str1;
@@ -527,5 +527,5 @@ void cleanup_textmanagers(void) {
         free(last_entry);
         last_entry=first_news;
     }
-    
+
 }

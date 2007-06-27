@@ -14,11 +14,11 @@ dnl
 dnl GNOME_LIBGTOP_HOOK (minversion, script-if-libgtop-enabled, failflag)
 dnl
 dnl if failflag is "fail" then GNOME_LIBGTOP_HOOK will abort if LibGTop
-dnl is not found. 
+dnl is not found.
 dnl
 
 AC_DEFUN([GNOME_LIBGTOP_HOOK],
-[	
+[
 	AC_REQUIRE([GNOME_LIBGTOP_TYPES])
 
 	AC_SUBST(LIBGTOP_LIBDIR)
@@ -179,4 +179,3 @@ AC_DEFUN([GNOME_LIBGTOP_DOCU],
 
 	AM_CONDITIONAL(HAVE_LIBGTOP_DOCU, test x$have_libgtop_docu = xyes)
 ])
-

@@ -21,7 +21,4 @@
 
 dist_noinst_SCRIPTS = \
 	deftoheader.pl	\
-	mdk.sh	
-
-
-
+	mdk.sh

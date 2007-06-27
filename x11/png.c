@@ -190,7 +190,7 @@ uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
 	return NULL;
     }
 
-    for (y=0; y<*height; y++) 
+    for (y=0; y<*height; y++)
 	rows[y] = pixels + y * *width * 4;
 
     png_read_image(png_ptr, rows);
@@ -227,7 +227,7 @@ uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
  *    100 will result in a shrinkage.
  */
 
-/* RATIO is used to know what units scale is - in this case, a percentage, so 
+/* RATIO is used to know what units scale is - in this case, a percentage, so
  * it is set to 100
  */
 #define RATIO	100
@@ -262,7 +262,7 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 
     ndata = (uint8*)malloc(new_width * new_height * BPP);
 
-    for (y=0; y<new_height; y++) 
+    for (y=0; y<new_height; y++)
 	nrows[y] = (png_bytep) (ndata + y * new_width * BPP);
 
     ytoleft = scale;
@@ -406,7 +406,7 @@ struct Pngx_Color_Values {
 #define COLOR_FACTOR       3
 #define BRIGHTNESS_FACTOR  1
 
-/* This function is used to find the pixel and return it 
+/* This function is used to find the pixel and return it
  * to the caller.  We store what pixels we have already allocated
  * and try to find a match against that.  The reason for this is that
  * XAllocColor is a very slow routine. Before my optimizations,
@@ -420,7 +420,7 @@ long pngx_find_color(Display *display, Colormap *cmap, int red, int green, int b
     XColor  scolor;
 
     for (i=0; i<colors_alloced; i++) {
-	if ((color_values[i].red == red) && (color_values[i].green == green) && 
+	if ((color_values[i].red == red) && (color_values[i].green == green) &&
 	    (color_values[i].blue == blue)) return color_values[i].pixel_value;
 
 	tmpclose = COLOR_FACTOR * (abs(red - color_values[i].red) +
@@ -440,7 +440,7 @@ long pngx_find_color(Display *display, Colormap *cmap, int red, int green, int b
     }
 
     /* If the colormap is full, no reason to do anything more */
-    if (colors_alloced == colormap_size) 
+    if (colors_alloced == colormap_size)
 	return color_values[close_entry].pixel_value;
 
 
@@ -537,8 +537,8 @@ int init_pngx_loader(Display *display)
 	    bshift = -bshift;
 	}
     }
-    
-	
+
+
     if (xvret->class==PseudoColor) {
 	need_color_alloc=1;
 	if (xvret->colormap_size>256) {
@@ -555,7 +555,7 @@ int init_pngx_loader(Display *display)
 
     ximage = XCreateImage(display, visual,
 		      depth,
-		      ZPixmap, 0, 0, 
+		      ZPixmap, 0, 0,
 		      MAX_IMAGE_SIZE, MAX_IMAGE_SIZE,  pad, 0);
     if (!ximage) {
 	fprintf(stderr,"Failed to create Ximage\n");
@@ -577,7 +577,7 @@ int png_to_xpixmap(Display *display, Drawable draw, unsigned char *data, int len
     static uint8 *pixels=NULL;
     static int pixels_byte=0, rows_byte=0;
     static png_bytepp	rows=NULL;
-    
+
     png_structp	png_ptr=NULL;
     png_infop	info_ptr=NULL;
     int bit_depth, color_type, interlace_type, compression_type,
@@ -720,7 +720,7 @@ int png_to_xpixmap(Display *display, Drawable draw, unsigned char *data, int len
 	return PNGX_OUTOFMEM;
     }
 
-    for (y=0; y<*height; y++) 
+    for (y=0; y<*height; y++)
 	rows[y] = pixels + y * (*width) * bpp;
 
     png_read_image(png_ptr, rows);
@@ -729,7 +729,7 @@ int png_to_xpixmap(Display *display, Drawable draw, unsigned char *data, int len
 	    *width, *height, bpp, color_type);
 #endif
 
-    *pix = XCreatePixmap(display, draw, *width, *height, 
+    *pix = XCreatePixmap(display, draw, *width, *height,
 			DefaultDepth(display,  DefaultScreen(display)));
 
     gc=XCreateGC(display, *pix, 0, NULL);
@@ -816,7 +816,7 @@ int rgba_to_xpixmap(Display *display, Drawable draw, uint8 *pixels,
 	cmask=-1, lastcmask, lastcolor=-1;
     GC	gc, gc_alpha;
 
-    *pix = XCreatePixmap(display, draw, width, height, 
+    *pix = XCreatePixmap(display, draw, width, height,
 			DefaultDepth(display,  DefaultScreen(display)));
 
     gc=XCreateGC(display, *pix, 0, NULL);
@@ -1000,4 +1000,3 @@ int main(int argc, char *argv[])
     exit(0);
 }
 #endif
-

@@ -295,7 +295,7 @@ int init_sounds()
 			}
 			fprintf(stderr,"SDL_MIXER: Using SDL Mixer for audio [ %d kHz | %d channels | Audio Format %s ].\n",
 				audio_rate, audio_channels, format_str );
-			/* 
+			/*
 			 * start playing the background music
 			 * Possibly have different background music for each map?
 			 */
@@ -381,7 +381,7 @@ static void play_sound(int soundnum, int soundtype, sint8 x, sint8 y )
 		if ( !si->data ) {
 			fprintf(stderr, "SDL_MIXER: Couldn't load %s: %s\n", si->filename, SDL_GetError());
 		}
-	} 
+	}
 	if (si->data) {
 		int playchannel;
         int angle;
@@ -405,7 +405,7 @@ static void play_sound(int soundnum, int soundtype, sint8 x, sint8 y )
             if ( y < 0 )
                 angle = - angle;
             }
-		
+
 		if ( Mix_Playing(playchannel) ) {
 			Mix_HaltChannel(playchannel);
 		}
@@ -414,7 +414,7 @@ static void play_sound(int soundnum, int soundtype, sint8 x, sint8 y )
         Mix_SetPosition( playchannel, angle, dist );
 
 		Mix_PlayChannel(playchannel,si->data,0);
-		
+
 		return;
 	}
 
@@ -458,7 +458,7 @@ static void play_sound(int soundnum, int soundtype, sint8 x, sint8 y )
 
 	return;
     */
-}	
+}
 
 void SoundCmd(unsigned char *data, int len)
 {
@@ -486,7 +486,7 @@ void SoundCmd(unsigned char *data, int len)
 /* No SDL, let's use dumb PlaySound (better than nothing).
  */
 
-int init_sounds() 
+int init_sounds()
 {
     LOG(LOG_INFO,"init_sounds","using regular Windows PlaySound");
 	PlaySound(NULL,NULL,SND_ASYNC);
@@ -494,7 +494,7 @@ int init_sounds()
 	return 0;
 }
 
-void SoundCmd(unsigned char *data, int len) 
+void SoundCmd(unsigned char *data, int len)
 {
 	int num, type;
     Sound_Info* si;
@@ -547,8 +547,8 @@ void SoundCmd(unsigned char *data, int len)
 #endif /* HAVE_SDL */
 
 
-/* The only gettimeofday calls appears to be ones added for purposes of 
- * timing the map redraws, so for practical purposes, it should just 
+/* The only gettimeofday calls appears to be ones added for purposes of
+ * timing the map redraws, so for practical purposes, it should just
  * always return 0 with no real harm.
  */
 void gettimeofday(struct timeval *tv, void* unused)

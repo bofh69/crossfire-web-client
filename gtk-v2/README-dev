@@ -82,7 +82,7 @@ label-str, label-dex, label-con,label-int, label-wis, label-pow, label-cha,
 label-wc, label-dam, label-ac, label-armor, label-range, label-exp:
 Actual stat value for those values.
 
-table-stats-exp: Table hold the skills and exp values.  Note that 
+table-stats-exp: Table hold the skills and exp values.  Note that
 initializing this is not done in glade - it is easier to do on the
 client side, so that it can make an array of labels for this.
 
@@ -106,7 +106,7 @@ plan to work on so that multiple people don't work on the same thing.
 them in by hand - this will make it easier for future modifications.
 
 5) glade will create various files not included in CVS - these are not
-used in the current client.  The most notable is callbacks.c.  While 
+used in the current client.  The most notable is callbacks.c.  While
 glade will write this file out, I prefer the callbacks to be with the
 rest of the routines related to a feature, and not have a bunch of
 unrelated callbacks.c in that one file.  Thus, inventory callbacks are

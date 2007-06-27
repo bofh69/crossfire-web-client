@@ -42,7 +42,7 @@ AC_DEFUN([GNOME_CHECK_GUILE],
 
 	    if test "x$cross_compiling" = "xyes" ; then
 		name_build_guile="$target_alias-build-guile"
-	    else	
+	    else
 		name_build_guile="build-guile"
 	    fi
 

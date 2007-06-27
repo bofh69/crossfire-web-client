@@ -215,7 +215,7 @@ static void set_config_value(int cval, int value)
 }
 
 static int splitwin_toggling = FALSE;
- 
+
 void main_window_destroyed() {
     if (!splitwin_toggling) {
         client_exit();
@@ -228,10 +228,10 @@ static void toggle_splitwin(int newval)
 
     inventory_splitwin_toggling();
 	gtk_widget_destroy(gtkwin_root);
-        
+
     if (newval) {
         ; /* Currently don't have it, but want splitwindows */
-    } else { 
+    } else {
         /* opposite - do have it, but don't want it */
 	gtk_widget_destroy(gtkwin_info);
 	gtk_widget_destroy(gtkwin_stats);
@@ -330,7 +330,7 @@ static void applyconfig(void) {
 	/* TODO What about the look list? And should showicon propogate back here? */
 	use_config[CONFIG_SHOWICON] = want_config[CONFIG_SHOWICON];
     }
-    if (IS_DIFFERENT(CONFIG_RESISTS)) {    
+    if (IS_DIFFERENT(CONFIG_RESISTS)) {
 	use_config[CONFIG_RESISTS] = want_config[CONFIG_RESISTS];
 	resize_resistance_table(use_config[CONFIG_RESISTS]);
     }
@@ -371,7 +371,7 @@ static void saveconfig(void) {
 }
 
 /*
- *  GUI Config dialog. 
+ *  GUI Config dialog.
  *
  *
  */
@@ -396,7 +396,7 @@ void configdialog(GtkWidget *widget) {
     GList	*flist;
     int i, num_extras=0;
 
-    gchar *titles[] ={"#","Key","(#)","Mods","Command"};	   
+    gchar *titles[] ={"#","Key","(#)","Mods","Command"};
 
     /* If the window isnt already up (in which case it's just raised) */
     if(!gtkwin_config) {
@@ -418,7 +418,7 @@ void configdialog(GtkWidget *widget) {
 	gtk_window_set_policy (GTK_WINDOW (gtkwin_config), TRUE, TRUE, FALSE);
 
 	gtk_signal_connect (GTK_OBJECT (gtkwin_config), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_config);
-    
+
 	gtk_container_border_width (GTK_CONTAINER (gtkwin_config), 0);
 
 	/* vbox splits the window - top portion is the notebook, bottom
@@ -434,7 +434,7 @@ void configdialog(GtkWidget *widget) {
 	tablabel = gtk_label_new ("General");
 	gtk_widget_show (tablabel);
 
-	frame1 = gtk_frame_new("General options");  
+	frame1 = gtk_frame_new("General options");
 	gtk_frame_set_shadow_type (GTK_FRAME(frame1), GTK_SHADOW_ETCHED_IN);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), frame1, tablabel);
 
@@ -444,7 +444,7 @@ void configdialog(GtkWidget *widget) {
 	tablabel = gtk_label_new ("Map & Image");
 	gtk_widget_show (tablabel);
 
-	frame_map = gtk_frame_new("Map and Image options");  
+	frame_map = gtk_frame_new("Map and Image options");
 	gtk_frame_set_shadow_type (GTK_FRAME(frame_map), GTK_SHADOW_ETCHED_IN);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), frame_map, tablabel);
 
@@ -474,7 +474,7 @@ void configdialog(GtkWidget *widget) {
 	    else if (cbuttons[i].type & SPIN) {
 		GtkAdjustment *adj=NULL;
 
-		if (cbuttons[i].type == SPIN_SCALE) 
+		if (cbuttons[i].type == SPIN_SCALE)
 		    adj = (GtkAdjustment *) gtk_adjustment_new(want_config[cbuttons[i].config], 25, 200, 1, 5, 5);
 		else if (cbuttons[i].type == SPIN_MAP)
 		    adj = (GtkAdjustment *) gtk_adjustment_new(want_config[cbuttons[i].config], 9, MAP_MAX_SIZE, 1, 5, 5);
@@ -543,7 +543,7 @@ void configdialog(GtkWidget *widget) {
 	gtk_widget_show (frame1);
 	gtk_widget_show(vbox_map);
 	gtk_widget_show(frame_map);
- 
+
 
 	/*
 	 * This block deals with drawing the keybindings
@@ -553,8 +553,8 @@ void configdialog(GtkWidget *widget) {
 	tablabel = gtk_label_new ("Keybindings");
 	gtk_widget_show (tablabel);
 	vbox2 = gtk_vbox_new(FALSE, 0);
-	gtk_notebook_append_page (GTK_NOTEBOOK (notebook), vbox2, tablabel);    
-	frame1 = gtk_frame_new("Keybindings");  
+	gtk_notebook_append_page (GTK_NOTEBOOK (notebook), vbox2, tablabel);
+	frame1 = gtk_frame_new("Keybindings");
 	gtk_frame_set_shadow_type (GTK_FRAME(frame1), GTK_SHADOW_ETCHED_IN);
 	gtk_box_pack_start (GTK_BOX (vbox2), frame1, TRUE, TRUE, 0);
 	vbox1 = gtk_vbox_new(FALSE, 0);
@@ -574,7 +574,7 @@ void configdialog(GtkWidget *widget) {
 	gtk_container_add (GTK_CONTAINER (cclists), cclist);
 	gtk_box_pack_start (GTK_BOX(vbox1),cclists, TRUE, TRUE, 0);
 	draw_keybindings (cclist);
-    
+
 	gtk_signal_connect_after (GTK_OBJECT(cclist),
                               "select_row",
                               GTK_SIGNAL_FUNC(cclist_button_event),
@@ -582,7 +582,7 @@ void configdialog(GtkWidget *widget) {
 
 	gtk_widget_show(cclist);
 	gtk_widget_show(cclists);
-    
+
 	ehbox=gtk_hbox_new(FALSE, 0);
 
 
@@ -632,7 +632,7 @@ void configdialog(GtkWidget *widget) {
 	gtk_widget_show (ckentrytext);
 
 	gtk_box_pack_start (GTK_BOX (vbox1),ehbox, FALSE, TRUE, 2);
-    
+
 	gtk_widget_show (ehbox);
 
 	ehbox=gtk_hbox_new(TRUE, 0);
@@ -645,7 +645,7 @@ void configdialog(GtkWidget *widget) {
 			       GTK_SIGNAL_FUNC(ckeyunbind),
 			       NULL);
 	gtk_widget_show (cb1);
-    
+
 	cb2 = gtk_button_new_with_label ("Bind");
 	gtk_box_pack_start (GTK_BOX (ehbox),cb2, FALSE, TRUE, 4);
 	gtk_signal_connect_object (GTK_OBJECT (cb2), "clicked",
@@ -691,7 +691,7 @@ void configdialog(GtkWidget *widget) {
 	gtk_signal_connect_object (GTK_OBJECT (cancelbutton), "clicked",
 			       GTK_SIGNAL_FUNC(gtk_widget_destroy),
 			       GTK_OBJECT (gtkwin_config));
- 
+
 	gtk_box_pack_start(GTK_BOX(hbox1), cancelbutton, FALSE, TRUE, 4);
 	gtk_widget_show(savebutton);
 	gtk_widget_show(applybutton);
@@ -701,7 +701,7 @@ void configdialog(GtkWidget *widget) {
 	gtk_widget_show (vbox);
 	gtk_widget_show (gtkwin_config);
     }
-    else { 
+    else {
 	gdk_window_raise (gtkwin_config->window);
     }
 }
@@ -789,7 +789,7 @@ void load_defaults(void)
             if (val) want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
 	}
 
-	
+
 	else LOG(LOG_WARNING,"gtk::load_defaults","Unknown line in gdefaults: %s %s", inbuf, cp);
     }
     fclose(fp);
@@ -813,7 +813,7 @@ void load_defaults(void)
 	LOG(LOG_WARNING,"gtk::load_defaults","No lighting mechanism selected - will not use darkness code");
 	want_config[CONFIG_DARKNESS] = FALSE;
     }
-    
+
     /* Make sure the map size os OK */
     if (want_config[CONFIG_MAPWIDTH] < 9 || want_config[CONFIG_MAPWIDTH] > MAP_MAX_SIZE) {
 	LOG(LOG_WARNING,"gtk::load_defaults",
@@ -837,11 +837,11 @@ void load_defaults(void)
     for (i=0; i<CONFIG_NUMS; i++) {
 	use_config[i] = want_config[i];
     }
-    
+
     image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
     map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
     map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
-    itemlist_set_show_icon(&inv_list, use_config[CONFIG_SHOWICON]); 
+    itemlist_set_show_icon(&inv_list, use_config[CONFIG_SHOWICON]);
 
 }
 
@@ -871,7 +871,7 @@ void save_defaults(void)
 
     /* This isn't quite as good as before, as instead of saving things as 'True'
      * or 'False', it is just 1 or 0.  However, for the most part, the user isn't
-     * going to be editing the file directly. 
+     * going to be editing the file directly.
      */
     for (i=1; i < CONFIG_NUMS; i++) {
 	fprintf(fp,"%s: %d\n", config_names[i], want_config[i]);

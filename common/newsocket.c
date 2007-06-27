@@ -152,7 +152,7 @@ int GetInt_String(const unsigned char *data)
 sint64 GetInt64_String(const unsigned char *data)
 {
 #ifdef WIN32
-    return (((sint64)data[0]<<56) + ((sint64)data[1]<<48) + 
+    return (((sint64)data[0]<<56) + ((sint64)data[1]<<48) +
 	    ((sint64)data[2]<<40) + ((sint64)data[3]<<32) +
 	    ((sint64)data[4]<<24) + ((sint64)data[5]<<16) + ((sint64)data[6]<<8) + (sint64)data[7]);
 #else
@@ -172,7 +172,7 @@ short GetShort_String(const unsigned char *data) {
  * (As passed) is the size of the buffer allocated in the socklist. We make
  * the assumption the buffer is at least 2 bytes long.
  */
- 
+
 int SockList_ReadPacket(int fd, SockList *sl, int len)
 {
     int stat,toread,readsome=0;

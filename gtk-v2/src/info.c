@@ -66,7 +66,7 @@ static char *font_style_names[NUM_FONTS] = {
 
 extern  const char *usercolorname[NUM_COLORS];
 
-struct Info_Pane 
+struct Info_Pane
 {
     GtkWidget	    *textview;
     GtkWidget	    *scrolled_window;
@@ -216,7 +216,7 @@ void info_get_styles()
 
     /* If we don't have a base style tag, we can't process these
      * other tags, as we need to be able to do a difference, and
-     * doing a difference from nothing (meaning, taking everything in 
+     * doing a difference from nothing (meaning, taking everything in
      * style) still doesn't work really well.
      */
     if (base_style[0]) {
@@ -241,10 +241,10 @@ void info_get_styles()
 		 */
 		if (tmp_style) {
 		    if (!info_pane[j].msg_type_tags[type][subtype]) {
-			info_pane[j].msg_type_tags[type][subtype] = 
+			info_pane[j].msg_type_tags[type][subtype] =
 			    gtk_text_buffer_create_tag(info_pane[j].textbuffer, NULL, NULL);
 		    }
-		    set_text_tag_from_style(info_pane[j].msg_type_tags[type][subtype], 
+		    set_text_tag_from_style(info_pane[j].msg_type_tags[type][subtype],
 					    tmp_style, base_style[j]);
 		    has_style=1;
 		} else {
@@ -252,7 +252,7 @@ void info_get_styles()
 		     * one.
 		     */
 		    if (info_pane[j].msg_type_tags[type][subtype]) {
-			gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer), 
+			gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
 					      info_pane[j].msg_type_tags[type][subtype]);
 			info_pane[j].msg_type_tags[type][subtype] = NULL;
 		    }
@@ -286,7 +286,7 @@ void info_get_styles()
 
 	/* Font type support */
 	for (i=0; i<NUM_FONTS; i++) {
-	    tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, 
+	    tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
 				  font_style_names[i], G_TYPE_NONE);
 
 	    for (j=0; j<NUM_TEXT_VIEWS; j++) {
@@ -320,7 +320,7 @@ void info_get_styles()
 
 	    for (j=0; j<NUM_TEXT_VIEWS; j++) {
 		if (info_pane[j].msg_type_tags[type][subtype]) {
-		    gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer), 
+		    gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
 				      info_pane[j].msg_type_tags[type][subtype]);
 		    info_pane[j].msg_type_tags[type][subtype] = NULL;
 		}
@@ -407,7 +407,7 @@ void info_init(GtkWidget *window_root)
  * If true, should underline the text.
  */
 
-static void add_to_textbuf(int pane, char *message, 
+static void add_to_textbuf(int pane, char *message,
 			   int type, int subtype,
 			   int bold, int italic, int font, char *color, int underline)
 {
@@ -442,7 +442,7 @@ static void add_to_textbuf(int pane, char *message,
      */
     type_tag = info_pane[pane].default_tag;
     if (type >= MSG_TYPE_LAST || subtype >= max_subtype || type < 0 || subtype < 0 ) {
-	LOG(LOG_ERROR, "info.c::add_to_textbuf", "type (%d) >= MSG_TYPE_LAST (%d) or subtype (%d) >= max_subtype (%d)\n", 
+	LOG(LOG_ERROR, "info.c::add_to_textbuf", "type (%d) >= MSG_TYPE_LAST (%d) or subtype (%d) >= max_subtype (%d)\n",
 	    type, MSG_TYPE_LAST, subtype, max_subtype);
     } else {
 	if (info_pane[pane].msg_type_tags[type][subtype]) type_tag = info_pane[pane].msg_type_tags[type][subtype];
@@ -501,7 +501,7 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     while ((marker = strchr(current,'['))!= NULL) {
 	*marker = 0;
 
-	if (strlen(current) > 0) 
+	if (strlen(current) > 0)
 	    add_to_textbuf( 0,current, type, subtype, bold, italic, font, color, underline);
 
 	current=marker+1;
@@ -544,7 +544,7 @@ void draw_info(const char *str, int color) {
     GtkTextIter end;
     GdkRectangle rect;
     int scroll_to_end=0;
-  
+
     if (ncolor==NDI_WHITE) {
 	ncolor=NDI_BLACK;
     }
@@ -596,7 +596,7 @@ void draw_color_info(int colr, const char *buf){
 
 
 /**
- * Clears all the message.  Not sure why someone would use it, 
+ * Clears all the message.  Not sure why someone would use it,
  * but it is called from the common area, so might as well
  * support it.
  */
@@ -626,7 +626,7 @@ void set_autorepeat(char *s)
 /**
  * FIXME: should be better than hardcoded value.  This is used by the common
  * help system to determine when to wrap.  Should be able to get width of
- * window, and divide by character width - however, still not perfect if 
+ * window, and divide by character width - however, still not perfect if
  * we are using a variable width font.
  * Actually, gtk can do word wrapping for us, so maybe the real fix is to have it
  * to the word wrapping and just run a sufficiently large value.
@@ -638,4 +638,3 @@ int get_info_width()
 {
     return 40;
 }
-

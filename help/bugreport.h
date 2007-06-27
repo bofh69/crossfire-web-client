@@ -8,4 +8,3 @@ http://sourceforge.net/tracker/?func=add&group_id=13833&atid=113833\n\n\
 and don't forget to add the content of 'MESSAGES TRACK' below.\n\
 If you ran client in console, the output in console may be of interrest too.\n\
 Also don't forget to add any informations you may find useful.";
-

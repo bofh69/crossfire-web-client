@@ -26,7 +26,7 @@
 
 #ifndef CPROTO
 /* use declartions from p_cmd.h instead of doing make proto on this file */
- 
+
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -78,17 +78,17 @@ static void do_clienthelp_list(void) {
     CommCat current_cat = COMM_CAT_MISC;
 #ifndef CLIENTHELP_LONG_LIST
     char line_buf[MAX_BUF];
-    size_t line_len = 0; 
-  
-    line_buf[0] = '\0'; 
+    size_t line_len = 0;
+
+    line_buf[0] = '\0';
 #endif
-    
+
     commands_array = get_cat_sorted_commands();
 
     /* Now we have a nice sorted list. */
 
     H1(" === Client Side Commands === ");
-    
+
     for (i = 0; i < get_num_commands(); i++) {
         commands_copy = commands_array[i];
 
@@ -113,7 +113,7 @@ static void do_clienthelp_list(void) {
 #endif
 
             H2(buf);
-            current_cat = commands_copy->cat; 
+            current_cat = commands_copy->cat;
         }
 
 #ifdef CLIENTHELP_LONG_LIST
@@ -188,14 +188,14 @@ static void show_help(const ConsoleCommand * cc) {
             LINE("This command's documentation is bugged!");
         }
     } else {
-        LINE("This command has no extended documentation. :("); 
+        LINE("This command has no extended documentation. :(");
     }
 }
 
 static void do_clienthelp(const char * arg) {
     const ConsoleCommand * cc;
 
-    if (!arg || !strlen(arg)) { 
+    if (!arg || !strlen(arg)) {
         do_clienthelp_list();
         return;
     }
@@ -208,7 +208,7 @@ static void do_clienthelp(const char * arg) {
         draw_info(buf, NDI_BLACK);
         return;
     }
-    
+
     show_help(cc);
 
 }
@@ -259,13 +259,13 @@ static const char * help_serverhelp(void) {
 
 static void command_help(const char *cpnext) {
     if (cpnext) {
-        const ConsoleCommand * cc;    
+        const ConsoleCommand * cc;
         char buf[MAX_BUF];
-        
+
         cc = find_command(cpnext);
         if (cc != NULL) {
             show_help(cc);
-        } else  {        
+        } else  {
 	    sprintf(buf,"help %s", cpnext);
 	    /* maybe not a must send, but we probably don't want to drop it */
 	    send_command(buf, -1, 1);
@@ -273,8 +273,8 @@ static void command_help(const char *cpnext) {
     } else {
 	do_clienthelp_list();
         /* Now fetch (in theory) command list from the server.
-	TODO Protocol command - feed it to the tab completer. 
-	
+	TODO Protocol command - feed it to the tab completer.
+
 	Nope! It effectivey fetches '/help commands for commands'.
 	*/
 	send_command("help", -1, 1); /* TODO make install in server branch doesn't install def_help. */
@@ -293,10 +293,10 @@ static const char * help_help(void) {
         "the server.\n"
         "\n"
         "With arguments, first checks if there's a client command "
-        "named <topic>. If there is, display it's help. If there " 
+        "named <topic>. If there is, display it's help. If there "
         "isn't, send the topic to the server.\n"
         "\n"
-        "See also: clienthelp, serverhelp.";        
+        "See also: clienthelp, serverhelp.";
 }
 
 
@@ -346,7 +346,7 @@ const char * get_category_name(CommCat cat) {
         case COMM_CAT_SETUP: cat_name = "Configuration"; break;
         case COMM_CAT_SCRIPT: cat_name = "Scripting"; break;
         case COMM_CAT_DEBUG: cat_name = "Debugging"; break;
-        default: cat_name = "PROGRAMMER ERROR"; break; 
+        default: cat_name = "PROGRAMMER ERROR"; break;
     }
 
     return cat_name;
@@ -427,8 +427,8 @@ static const char * help_magicmap(void) { return HELP_MAGICMAP_LONG; }
 
 static const char * help_inv(void) { return HELP_INV_LONG; }
 
-static const char * help_cwindow(void) { 
-    return 
+static const char * help_cwindow(void) {
+    return
         "Syntax:\n"
         "\n"
         "    cwindow <val>\n"
@@ -445,9 +445,9 @@ static const char * help_script(void) {
         "Syntax:\n"
         "\n"
         "    script <pathname>\n"
-        "\n"        
+        "\n"
 	"Run the program at path <name>"
-	"as a Crossfire client script." 
+	"as a Crossfire client script."
 	"See Documentation/Script.html";
 }
 
@@ -456,13 +456,13 @@ static const char * help_scripttell(void) {
         "Syntax:\n"
         "\n"
         "    scripttell <yourname> <data>\n"
-        "\n"        
+        "\n"
         "?";
 }
 
 /* Toolkit-dependent. */
 static const char * help_savewinpos(void) {
-    return 
+    return
         "Syntax:\n"
         "\n"
         "    savewinpos\n"
@@ -482,7 +482,7 @@ static const char * help_metaserver(void) {
 	"Get updated list of servers "
 	"from the metaserver and show it."
 	"This is the same information that the client "
-	"uses to show a list of servers when it starts.\n"	
+	"uses to show a list of servers when it starts.\n"
 	"\n"
 	"Warning: This command may freeze the client until it gets the list.";
 }
@@ -511,7 +511,7 @@ static const char * help_showweight(void) {
         "no argument given) or your"
         "look-window.";
 }
-	
+
 /*
 *	draw_info("Information Commands", NDI_NAVY);*
 	draw_info(" inv         - *recursively* print your", NDI_BLACK);
@@ -536,12 +536,12 @@ static void do_clienthelp(const char * currently_ignored);
 
 /* TODO Wrap these? Um. */
 static ConsoleCommand CommonCommands[] = {
-    /* From player.h: 
-        name, cat, 
+    /* From player.h:
+        name, cat,
         func, helpfunc,
         long_desc
     */
-    
+
     {
         "autorepeat", COMM_CAT_MISC,
         set_autorepeat, NULL,
@@ -563,7 +563,7 @@ static ConsoleCommand CommonCommands[] = {
     {   "lua_load", COMM_CAT_SCRIPT,
     script_lua_load, NULL, NULL
     },
-    
+
     {   "lua_list", COMM_CAT_SCRIPT,
     script_lua_list, NULL, NULL
     },
@@ -765,10 +765,10 @@ void init_commands(void) {
     num_commands = CommonCommandsSize + ToolkitCommandsSize;
 #else
     num_commands = CommonCommandsSize;
-#endif    
+#endif
 
     /* Make a list of (pointers to statically allocated!) all the commands.
-       We have a list; the toolkit has a 
+       We have a list; the toolkit has a
        ToolkitCommands and ToolkitCommandsSize, initialized before calling this.
     */
 
@@ -779,11 +779,11 @@ void init_commands(void) {
         name_sorted_commands[i] = &CommonCommands[i];
     }
 
-#ifdef TOOLKIT_COMMANDS    
+#ifdef TOOLKIT_COMMANDS
     for(i = 0; i < ToolkitCommandsSize; i++) {
         name_sorted_commands[CommonCommandsSize + i] = &ToolkitCommands[i];
     }
-#endif    
+#endif
 
     /* Sort them. */
     qsort(name_sorted_commands, num_commands, sizeof(ConsoleCommand *), sort_by_name);
@@ -816,10 +816,10 @@ const ConsoleCommand * find_command(const char * cmd) {
   dummy.name = cmd_cpy;
   dummy_p = &dummy;
   asp_p = bsearch(
-     (void *)&dummy_p, 
-     (void *)name_sorted_commands, 
+     (void *)&dummy_p,
+     (void *)name_sorted_commands,
      num_commands,
-     sizeof(ConsoleCommand *), 
+     sizeof(ConsoleCommand *),
      sort_by_name);
 
   if (asp_p == NULL)
@@ -860,24 +860,24 @@ ConsoleCommand ** get_cat_sorted_commands(void) {
 
 int handle_local_command(const char* cp, const char * cpnext) {
     const ConsoleCommand * cc = NULL;
-    
+
     cc = find_command(cp);
 
     if (cc == NULL) {
         return FALSE;
     }
-    
+
     if (cc->dofunc == NULL) {
         char buf[MAX_BUF];
 
-        snprintf(buf, MAX_BUF - 1, "Client command %s has no implementation!", cc->name); 
-	draw_info(buf, NDI_RED);    
-	
+        snprintf(buf, MAX_BUF - 1, "Client command %s has no implementation!", cc->name);
+	draw_info(buf, NDI_RED);
+
 	return FALSE;
     }
-    
+
     cc->dofunc(cpnext);
-    
+
     return TRUE;
 }
 
@@ -941,9 +941,9 @@ void extended_command(const char *ocommand) {
  * ideally it should stay somewhat up to date with regards to
  * the commands the server supports.
  */
- 
+
 /* TODO Dynamically generate. */
- 
+
 static const char *const commands[] = {
 "accuse", "afk", "apply", "applymode", "archs", "beg", "bleed", "blush",
 "body", "bounce", "bow", "bowmode", "brace", "build", "burp", "cackle", "cast",
@@ -967,7 +967,7 @@ static const char *const commands[] = {
 };
 #define NUM_COMMANDS ((int)(sizeof(commands) / sizeof(char*)))
 
-/* Player has entered 'command' and hit tab to complete it.  
+/* Player has entered 'command' and hit tab to complete it.
  * See if we can find a completion.  Returns matching
  * command. Returns NULL if no command matches.
  */
@@ -1041,7 +1041,7 @@ const char * complete_command(const char *command)
     /*
      * Append a space to allow typing arguments. For commands without arguments
      * the excess space should be stripped off automatically.
-     */ 
+     */
     snprintf(result, sizeof(result), "%s ", match);
 
     return result;

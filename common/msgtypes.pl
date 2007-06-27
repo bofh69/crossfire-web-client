@@ -54,7 +54,7 @@ while(<IN>) {
 		if ($i == $max_types) {
 		    print STDERR "Unable to find right type for $type\n";
 		}
-	    } 
+	    }
 	    print OUT "{MSG_TYPE_$types[$last_type], MSG_TYPE_$type, \"$lc\"},\n";
 	}
     }

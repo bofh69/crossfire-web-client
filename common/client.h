@@ -241,7 +241,7 @@ typedef struct Spell_struct {
     uint8 skill_number; /* the index in the skill arrays, plus CS_STAT_SKILLINFO */
     char *skill; /* pointer to the skill name, derived from the skill number */
     uint32 path; /* the bitmask of paths this spell belongs to */
-    sint32 face; 
+    sint32 face;
 } Spell;
 
 typedef struct Player_Struct {
@@ -261,7 +261,7 @@ typedef struct Player_Struct {
     Spell	*spelldata;	/* linked list of spells known to the player */
     char	title[MAX_BUF];	/* Title of character */
     char	range[MAX_BUF];	/* Range attack chosen */
-    uint32	spells_updated; /* tracks whether the spells updated*/ 
+    uint32	spells_updated; /* tracks whether the spells updated*/
     uint32	fire_on:1;	/* True if fire key is pressed */
     uint32	run_on:1;	/* True if run key is on */
     uint32	meta_on:1;	/* True if fire key is pressed */

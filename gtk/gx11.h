@@ -45,9 +45,9 @@ extern int updatelock;
 
 /* Pixmap data.  This is abstracted in the sense that the
  * code here does not care what the data points to (hence the
- * void).  The module using this data should know whether it 
+ * void).  The module using this data should know whether it
  * is these point to png data or image data of whatever form.
- * The module is not required to use all these fileds - 
+ * The module is not required to use all these fileds -
  * as png data includes transperancy, it will generally not
  * use the mask fields and instead just put its data into the
  * appropiate image fields.
@@ -88,14 +88,14 @@ typedef struct {
   char last_title[MAX_BUF];
   char last_weight[MAX_BUF];
   char last_maxweight[MAX_BUF];
-  
+
   GtkWidget *label; /* e.g. "Inventory:", "keyring:" */
   GtkWidget *weightlabel;
   GtkWidget *maxweightlabel;
 
   uint8 show_icon:1;	  /* show status icons */
   uint8 show_weight:1;  /* show item's weight */
-  
+
   uint32 weight_limit;   /* Weight limit for this list - used for title */
 } itemlist;
 
@@ -114,4 +114,3 @@ typedef struct media_state{
     int flavor;
 } media_state;
 #endif
-

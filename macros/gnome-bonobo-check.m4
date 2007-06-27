@@ -11,7 +11,7 @@ dnl Test for Bonobo, and define BONOBO_CFLAGS and BONOBO_LIBS
 dnl
 AC_DEFUN([AM_PATH_BONOBO],
 [
-dnl 
+dnl
 dnl Get the cflags and libraries from the gnome-config script
 dnl
 AC_ARG_WITH(bonobo-prefix,[  --with-bonobo-prefix=PFX   Prefix where Bonobo is installed (optional)],
@@ -70,7 +70,7 @@ static char*
 my_strdup (char *str)
 {
   char *new_str;
-  
+
   if (str)
     {
       new_str = malloc ((strlen (str) + 1) * sizeof(char));
@@ -78,7 +78,7 @@ my_strdup (char *str)
     }
   else
     new_str = NULL;
-  
+
   return new_str;
 }
 
@@ -99,7 +99,7 @@ int main ()
   fi
   if test "x$no_bonobo" = x ; then
      AC_MSG_RESULT(yes)
-     ifelse([$2], , :, [$2])     
+     ifelse([$2], , :, [$2])
   else
      AC_MSG_RESULT(no)
      if test "$GNOME_CONFIG" = "no" ; then
@@ -147,4 +147,3 @@ int main ()
 AC_DEFUN([BONOBO_CHECK], [
 	AM_PATH_BONOBO(0.1.0,,[AC_MSG_ERROR(BONOBO not found)])
 ])
-

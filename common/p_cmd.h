@@ -20,7 +20,7 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
- 
+
 /*
  * Includes and prototypes for p_cmd.c.
  *
@@ -40,7 +40,7 @@
 typedef void (*CommFunc)(const char *params);
 
 /* Cargo-cult from the above. Every entry in the table
- * complains about a type mismatch, too. :( 
+ * complains about a type mismatch, too. :(
  */
 typedef const char * (*CommHelpFunc)(void);
 
@@ -64,7 +64,7 @@ typedef struct {        /* global list's structure */
   CommFunc dofunc;      /* If name is matched, this is called. */
   /* TODO Too specific? *sigh* Resolving *that* issue gives me a headache. */
   CommHelpFunc helpfunc;/* Returns a string documenting the command. - the *really* long desc. */
-  const char * desc;    /* One-liner describing command. (Man page subtitle, anyone?) */    
+  const char * desc;    /* One-liner describing command. (Man page subtitle, anyone?) */
 } ConsoleCommand;
 
 extern const ConsoleCommand * find_command(const char * cmd);
@@ -82,7 +82,7 @@ extern void init_toolkit_commands(void);
 #endif
 
 /**
- * Fills some internal arrays. Run this on startup, but not before filling in 
+ * Fills some internal arrays. Run this on startup, but not before filling in
  * ToolkitCommands and ToolkitCommandsSize.
  */
 extern void init_commands(void);
@@ -100,7 +100,7 @@ ConsoleCommand ** get_cat_sorted_commands(void);
 extern const ConsoleCommand * find_command(const char * cmd);
 
 /* This searches ClientCommands; if there's nothing in there, it goes to the server.
- * With some exceptions. :( 
+ * With some exceptions. :(
  */
 extern void extended_command(const char *ocommand);
 
@@ -110,5 +110,3 @@ extern int handle_local_command(const char* cp, const char * cpnext);
 
 
 #endif
-
-

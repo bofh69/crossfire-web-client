@@ -2365,7 +2365,7 @@ void resize_resistance_table(int resists_show) {
 	gtk_table_resize(GTK_TABLE(restable), 4,12);
 	gtk_table_attach (GTK_TABLE(restable), fire_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	gtk_table_attach (GTK_TABLE(restable), run_label, 3, 4, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
-    } 
+    }
     else { /* single column mode */
 	gtk_table_resize(GTK_TABLE(restable), 2,24);
 	gtk_table_attach (GTK_TABLE(restable), fire_label, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
@@ -2999,7 +2999,7 @@ static void click_inscribe_spell() {
     }
 }
 
-static void select_spell_event(GtkWidget *gtklist, gint row, gint column, 
+static void select_spell_event(GtkWidget *gtklist, gint row, gint column,
     GdkEventButton *event) {
 
     char command[MAX_BUF], message[MAX_BUF];
@@ -3011,7 +3011,7 @@ static void select_spell_event(GtkWidget *gtklist, gint row, gint column,
     gtk_text_freeze(GTK_TEXT(description));
     gtk_text_set_point(GTK_TEXT(description), 0);
     gtk_text_forward_delete(GTK_TEXT(description), gtk_text_get_length(GTK_TEXT(description)));
-    sprintf(message, "%s - level %d %s spell\n\n%s", spell->name, spell->level, 
+    sprintf(message, "%s - level %d %s spell\n\n%s", spell->name, spell->level,
 	spell->skill?spell->skill:"generic", spell->message);
     gtk_text_insert(GTK_TEXT(description), NULL, NULL, NULL, message, -1);
     gtk_text_thaw(GTK_TEXT(description));
@@ -3030,7 +3030,7 @@ static void select_spell_event(GtkWidget *gtklist, gint row, gint column,
 }
 
 static void update_spell_list(int force) {
-    gint row; 
+    gint row;
     char buffer[3][MAX_BUF];
     char *columns[3];
     Spell *spell;
@@ -3038,7 +3038,7 @@ static void update_spell_list(int force) {
 
     /* only update if we have to */
     if (!force && !cpl.spells_updated) return;
-    if (!gtkwin_spell || !GTK_IS_CLIST(list) || !GTK_WIDGET_VISIBLE(gtkwin_spell)) return; 
+    if (!gtkwin_spell || !GTK_IS_CLIST(list) || !GTK_WIDGET_VISIBLE(gtkwin_spell)) return;
 
     gtk_clist_freeze(GTK_CLIST(list));
 
@@ -3058,12 +3058,12 @@ static void update_spell_list(int force) {
 	if (spell->grace) sprintf(buffer[2]+strlen(buffer[2]), "%d grace ", spell->grace);
 	if (spell->dam) sprintf(buffer[2]+strlen(buffer[2]), "%d damage ", spell->dam);
 
-	/* the columns array doesn't yet contain the data we need, but we can't set the 
+	/* the columns array doesn't yet contain the data we need, but we can't set the
 	 * row colour until we create the row, so we create the row with gtk_clist_append()
-	 *  set the colour, then reset the text in the second column 
+	 *  set the colour, then reset the text in the second column
 	 */
 	row = gtk_clist_append(GTK_CLIST(list), columns);
-	gtk_clist_set_row_data(GTK_CLIST(list), row, spell); 
+	gtk_clist_set_row_data(GTK_CLIST(list), row, spell);
 	if (spell->path & cpl.stats.denied) {
 	    gtk_clist_set_background (GTK_CLIST(list), row, &root_color[NDI_RED]);
 	    strcat(buffer[2], "(DENIED) ");
@@ -3101,12 +3101,12 @@ static void menu_spells(void) {
 
     if (gtkwin_spell && GTK_IS_CLIST(list)) {
 	  /* the window is already created, re-present it */
-	if (GTK_WIDGET_VISIBLE(gtkwin_spell)) { 
+	if (GTK_WIDGET_VISIBLE(gtkwin_spell)) {
 	    gdk_window_raise(gtkwin_spell->window);
-	    return; 
+	    return;
 	}
 
-	/* the window is hidden at the moment, we don't need to recreate it, 
+	/* the window is hidden at the moment, we don't need to recreate it,
          * we can merely reshow it, but the spell list won't have updated whilst
          * it was hidden so we have to force an update */
 	gtk_widget_show_all(gtkwin_spell);
@@ -3114,7 +3114,7 @@ static void menu_spells(void) {
 	return;
     }
 
-    /* we can't use an existing version, so we must create a new one, first we 
+    /* we can't use an existing version, so we must create a new one, first we
      * will deal with the window itself */
     gtkwin_spell = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_set_default_size(GTK_WINDOW(gtkwin_spell), 400+image_size, 400+image_size);
@@ -3138,7 +3138,7 @@ static void menu_spells(void) {
     gtk_clist_set_column_width(GTK_CLIST(list), 1, 200);
     gtk_clist_set_column_width(GTK_CLIST(list), 2, 200);
     gtk_clist_set_selection_mode(GTK_CLIST(list) , GTK_SELECTION_BROWSE);
-    gtk_clist_set_row_height (GTK_CLIST(list), image_size); 
+    gtk_clist_set_row_height (GTK_CLIST(list), image_size);
     liststyle = gtk_rc_get_style(list);
     if (liststyle) {
 	liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;
@@ -3169,7 +3169,7 @@ static void menu_spells(void) {
     label = gtk_label_new ("Information");
     gtk_widget_show (label);
 
-    frame = gtk_frame_new("Spell information");  
+    frame = gtk_frame_new("Spell information");
     gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
     gtk_notebook_append_page(GTK_NOTEBOOK(notebook), frame, label);
     vbox = gtk_vbox_new(FALSE, 0);
@@ -3196,7 +3196,7 @@ static void menu_spells(void) {
         spellinventory = gtk_clist_new_with_titles(2, titles_inv);
         gtk_clist_set_column_width(GTK_CLIST(spellinventory), 0, image_size);
         gtk_clist_set_selection_mode(GTK_CLIST(spellinventory) , GTK_SELECTION_BROWSE);
-        gtk_clist_set_row_height (GTK_CLIST(spellinventory), image_size); 
+        gtk_clist_set_row_height (GTK_CLIST(spellinventory), image_size);
         liststyle = gtk_rc_get_style(spellinventory);
         if (liststyle) {
             liststyle->bg[GTK_STATE_SELECTED] = gdk_grey;

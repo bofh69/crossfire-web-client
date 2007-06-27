@@ -40,7 +40,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
 %description
 Crossfire is a highly graphical role-playing adventure game with
-characteristics reminiscent of rogue, nethack, omega, and gauntlet. 
+characteristics reminiscent of rogue, nethack, omega, and gauntlet.
 It has multiplayer capability and presently runs under X11.
 
 Client for playing the new client/server based version of Crossfire.
@@ -61,7 +61,7 @@ compared to the gtkv1 client.
 Summary: Sound effects for the crossfire game
 Group: X11/Games
 Requires: crossfire-client
-  
+
 %description sounds
 Sound effects for people who want sounds with their game
 
@@ -256,7 +256,7 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 * Wed Jul 02 2002 Bob Tanner <tanner@real-time.com>
   + crossfire-client-1.3.1-realtime.1
   - released 1.3.1 client
-  - BUG Fix 
+  - BUG Fix
     http://mailman.real-time.com/pipermail/crossfire-devel/2002-July/003273.html     - Enhancement
     http://www.geocrawler.com/lists/3/SourceForge/7318/0/9103079/
     http://www.geocrawler.com/lists/3/SourceForge/7318/0/9093313/
@@ -264,7 +264,7 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 * Wed Jul 02 2002 Bob Tanner <tanner@real-time.com>
   + crossfire-client-1.3.0-realtime.1
   - released 1.3.0 client
-  - CHANGELOG 
+  - CHANGELOG
     http://mailman.real-time.com/pipermail/crossfire-list/2002-July/000943.html
 
 * Mon May 06 2002 Bob Tanner <tanner@real-time.com>
@@ -278,7 +278,7 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 * Wed Apr 24 2002 Bob Tanner <tanner@real-time.com>
   + crossfire-client-20020424-realtime.2
   - change hard coded commands to rpms macros
-  - change several file locations to comply with LSB 
+  - change several file locations to comply with LSB
   - add crossfire-client to tclug-gampak; An apt4redhat virtual package
   - tclug-gamepak via apt rpm ftp://ftp.real-time.com/linux/apt realtime/7.2/i386 tclug
 
@@ -327,12 +327,12 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 - Make sounds dependent on crossfire-client.
 
 * Sun Dec 30 2001 Mark Wedel <mwedel@sonic.net>
-- README: Update notes on needing png (and not xpm) library.  Update mailing 
+- README: Update notes on needing png (and not xpm) library.  Update mailing
   alias.
 - configure.in, configure: As the seperate sound program (cfsndserv) is the
   only supported sound configuration, remove new_sound_system defines
   and ability to use the old (now non existant) sound system.
-  Have configure exit with error message if png library is not found, 
+  Have configure exit with error message if png library is not found,
   as it is critical to the build process.  Change it so that
   gnome/Makefile is always built so that making of releases works.
 - gnome/gnome-cfclient.man, help/about.h, x11/cfclient.man: Update mail address.
@@ -365,22 +365,22 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 - Change matching for sword - hopefully this should fix problems with dancing
   sword spellbooks.
 - Move animations of the look window to the client.  All the necessary was
-  already being sent to the client - it was just needed for the client to use 
-  this information.  Also remove some 
+  already being sent to the client - it was just needed for the client to use
+  this information.  Also remove some
 - Only resort items based on name if the name has changed.  This fixes a problem
-  with items moving around in the inventory if you lock/apply/unapply/unlock 
-  them. 
+  with items moving around in the inventory if you lock/apply/unapply/unlock
+  them.
 
 * Wed Mar 21 2001 Bob Tanner <tanner@real-time.com>
 - Rolled new client 0.97.0 with Mark's changes listed next
 
 * Tue Mar 20 2001 Mark Wedel <mwedel@scruz.net>
 - Change so that containers on the ground still keep proper contents even if the
-  map space itself changes (spells or other objects going onto the space). 
+  map space itself changes (spells or other objects going onto the space).
 - commands.c: update the cpl.container tags when opening/closing containers.
 - item.c: Have locate_object see if the container matches the tag.  Don't have
   remove_item remove the object contents of other attributes if it is the
-  container, but still remove it from the list it is on.  
+  container, but still remove it from the list it is on.
 - item.h: remove function prototypes - these are in proto.h
 - png.c: New png -> X11 (or gdk) creation routines that are much faster.  This
   should make a noticable difference in performance.  Note that the X11
@@ -388,7 +388,7 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
   lets the gdk library do most of the work.
 - gx11.c: remove some dead code, add call to gdk_rgb_init() if using
   png images - needed by new png loader.
-- x11.c: Add call to init_pngx_loader if running in png mode.  Also pass 
+- x11.c: Add call to init_pngx_loader if running in png mode.  Also pass
   colormap by pointer so png_to_xpixmap can modify it.
 - xutil.c: pass colormap by pointer to init_pngx_loader (same reason as above)
 - Makefile.in: Add DMALLOC_LIB definition instead of it going in with the
@@ -422,7 +422,7 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 * Mon Feb 12 2001 Mark Wedel <mwedel@scruz.net>
 - If compiled with dmalloc, add 'dmalloc command that verifies the heap.  Makes
-  checking for memory corruption easier. 
+  checking for memory corruption easier.
 - CHANGES, configure configure.in crossfire-client.spec: Update for 0.96.0
   release item_types item_types.h: Add some additional items.
 
@@ -430,16 +430,16 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 - Created new Group for this package Amusements/Games/Crossfire
 
 * Fri Feb 02 2001 Bob Tanner <tanner@real-time.com>
-- Rolled new client with Mark's changes listed next 
+- Rolled new client with Mark's changes listed next
 
 * Tue Jan 30 2001 Mark Wedel <mwedel@scruze.net>
 - Complete rewrite of the exit handling code.  Hopefully as an effect,
   this will fix the player appearing in the middle of the oceans.  I
   think the code should also work better in many other areas.  Main
   enhancements is a 3x3 area for pets to follow player to new map, as
-  well as golems now following players to the new  maps. 
+  well as golems now following players to the new  maps.
 - include/sproto.h, random_maps/rproto.h - rebuilt.
-- random_maps/random_map.c: Change generate_random_map to take a structure 
+- random_maps/random_map.c: Change generate_random_map to take a structure
   with the random map paremeters.
 - random_maps/reader.l, reader.c: Add set_random_map_variable function that
   reads the map parameters from a char buffer.  Also, remove some leftover
@@ -482,7 +482,7 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 * Wed Jan 03 2001 Bob Tanner <tanner@real-time.com> [0.95.8-1]
 - Upgraded client to 0.95.8
-- Moved sounds into /usr/share/sounds/crossfire 
+- Moved sounds into /usr/share/sounds/crossfire
 - Moved the prefix to /usr/X11R6
 - Upgrade source file locations
 - Made the gtk client GNOME aware and put the crossfire picture into

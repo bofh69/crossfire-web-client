@@ -28,9 +28,9 @@
 
 /* Pixmap data.  This is abstracted in the sense that the
  * code here does not care what the data points to (hence the
- * void).  The module using this data should know whether it 
+ * void).  The module using this data should know whether it
  * is these point to png data or image data of whatever form.
- * The module is not required to use all these fileds - 
+ * The module is not required to use all these fileds -
  * as png data includes transperancy, it will generally not
  * use the mask fields and instead just put its data into the
  * appropiate image fields.
@@ -61,4 +61,3 @@ typedef struct {
 } PixmapInfo;
 
 extern PixmapInfo *pixmaps[MAXPIXMAPNUM];
-

@@ -87,7 +87,7 @@ static void init_opengl_common()
 
     /* Need to enable alpha blending */
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth(1.0f);
@@ -125,11 +125,11 @@ void init_glx_opengl(GtkWidget* drawingarea)
 {
     GLXContext	ctx;
     XVisualInfo *vi;
-    int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER, 
+    int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER,
 	GLX_RED_SIZE, 4,
 	GLX_GREEN_SIZE, 4,
 	GLX_BLUE_SIZE, 4,
-	GLX_ALPHA_SIZE, 4, 
+	GLX_ALPHA_SIZE, 4,
 	GLX_DEPTH_SIZE, 16,
 	None };
     XSetWindowAttributes attr;
@@ -154,9 +154,9 @@ void init_glx_opengl(GtkWidget* drawingarea)
 				   vi->visual, AllocNone);
 
     window = XCreateWindow(display, GDK_WINDOW_XID(drawingarea->window),
-		0, 0, width, height, 0, 
+		0, 0, width, height, 0,
 			   vi->depth,
-			InputOutput, 
+			InputOutput,
 			   vi->visual,
 			   CWColormap, &attr);
 
@@ -165,7 +165,7 @@ void init_glx_opengl(GtkWidget* drawingarea)
     if (!vi) {
         LOG(LOG_WARNING,"gtk::init_glx_opengl", "Could not get double buffered screen!\n");
     }
-    
+
     ctx = glXCreateContext(display, vi, 0, GL_TRUE);
 
     if (!glXMakeCurrent(display, window, ctx)) {
@@ -418,7 +418,7 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
 	    the_map.cells[emx][emy].heads[layer].face == 0){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        } else{      
+        } else{
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
             dosmooth++;
@@ -463,8 +463,8 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
         }
 
         /* now, it's quite easy. We must draw using a 32x32 part of
-         * the picture smoothface. 
-         * This part is located using the 2 weights calculated: 
+         * the picture smoothface.
+         * This part is located using the 2 weights calculated:
          * (32*weight,0) and (32*weightC,32)
          */
 
@@ -562,7 +562,7 @@ void opengl_gen_map(int redraw) {
 
     /* Need to set this, as the darkness logic could have reset this.
      * since darkness is done after all other drawing, we can do it just
-     * once here.   
+     * once here.
      */
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -605,7 +605,7 @@ void opengl_gen_map(int redraw) {
 
 		    /* One could make the case it doesn't make sense to light fog of war
 		     * spaces, but I find visually it looks a lot nicer if you do -
-		     * otherwise, they are too bright relative to the spaces around.	
+		     * otherwise, they are too bright relative to the spaces around.
 		     * them.
 		     */
 		    if (use_config[CONFIG_DARKNESS]) {
@@ -617,7 +617,7 @@ void opengl_gen_map(int redraw) {
 		     * the CFG_LT_.. values are ordered from worst to best, to
 		     * are >= check works just fine, right now.
 		     */
-		    if (layer == 0 && use_config[CONFIG_DARKNESS] >= CFG_LT_PIXEL && 
+		    if (layer == 0 && use_config[CONFIG_DARKNESS] >= CFG_LT_PIXEL &&
 ~			x <= use_config[CONFIG_MAPWIDTH] && y <= use_config[CONFIG_MAPHEIGHT]) {
 
 			/* The darkness code is similar to the per pixel SDL code.
@@ -632,7 +632,7 @@ void opengl_gen_map(int redraw) {
 			 * let opengl do the blending.  But the results we use here, while
 			 * perhaps not as nice, certainly look better than per tile lighting.
 			 */
-			if (the_map.cells[mx][my].have_darkness) 
+			if (the_map.cells[mx][my].have_darkness)
 			    map_darkness[x*2 + 1][y*2 + 1] = the_map.cells[mx][my].darkness;
 			else
 			    map_darkness[x*2 + 1][y*2 + 1] = DEFAULT_DARKNESS;
@@ -712,7 +712,7 @@ void opengl_gen_map(int redraw) {
 			    glTexCoord2f(0.0f, 0.0f);
 			    glVertex3i(nx, ny, 0);
 
-			    glTexCoord2f(1.0f, 0.0f); 
+			    glTexCoord2f(1.0f, 0.0f);
 			    glVertex3i( (x+1) * map_image_size, ny, 0);
 
 			    glTexCoord2f(1.0f, 1.0f);
@@ -755,7 +755,7 @@ void opengl_gen_map(int redraw) {
 			    glTexCoord2f(0.0f, 0.0f);
 			    glVertex3i(nx, ny, 0);
 
-			    glTexCoord2f(1.0f, 0.0f); 
+			    glTexCoord2f(1.0f, 0.0f);
 			    glVertex3i( (x+1) * map_image_size, ny, 0);
 
 			    glTexCoord2f(1.0f, 1.0f);
@@ -877,14 +877,14 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
 	pi->map_height = nheight;
     }
 
-    
+
 
     glGenTextures(1, &pi->map_texture);
     glBindTexture(GL_TEXTURE_2D, pi->map_texture);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, 4, pi->map_width, pi->map_height, 
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, pi->map_width, pi->map_height,
                0, GL_RGBA, GL_UNSIGNED_BYTE, data_to_use);
 
     /* Generate a fog image.  This isn't 100% efficient, because
@@ -915,7 +915,7 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, 4, pi->map_width, pi->map_height, 
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, pi->map_width, pi->map_height,
                0, GL_RGBA, GL_UNSIGNED_BYTE, newdata);
 
 }
@@ -960,13 +960,13 @@ void create_opengl_question_mark()
 	    offset++;
 	}
     }
-	    
+
     glGenTextures(1, &pixmaps[0]->map_texture);
     glBindTexture(GL_TEXTURE_2D, pixmaps[0]->map_texture);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, 4, question_width, question_height, 
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, question_width, question_height,
                0, GL_RGBA, GL_UNSIGNED_BYTE, &question[0][0][0]);
 
     glGenTextures(1, &pixmaps[0]->fog_texture);

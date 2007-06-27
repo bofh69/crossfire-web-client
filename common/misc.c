@@ -110,7 +110,7 @@ int make_path_to_file (char *filename)
 		perror ("Couldn't make path to file");
 		return -1;
 	    }
-	} 
+	}
 	*cp = '/';
     }
     return 0;

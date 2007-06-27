@@ -209,7 +209,7 @@ static int emulate_write(HANDLE fd, const char *buf, int len)
 
    return(dwBytesWritten);
 }
- 
+
 
 #endif /* WIN32 */
 
@@ -234,7 +234,7 @@ void script_init(const char *cparams)
      */
     strncpy(params, cparams, MAX_BUF-1);
     params[MAX_BUF-1]=0;
-    
+
 
    /* Get name and args */
    name=params;
@@ -323,7 +323,7 @@ void script_init(const char *cparams)
        * In my case, it's often that I don't know what script name to
        * give to /script, so exec() can't find the script.
        *
-       * Forward the error back to the client, using the script pipes. 
+       * Forward the error back to the client, using the script pipes.
        */
 
       if (r != -1) {
@@ -392,7 +392,7 @@ void script_init(const char *cparams)
       args=NULL;
    }
 
-   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
+   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
    saAttr.bInheritHandle = TRUE;
    saAttr.lpSecurityDescriptor = NULL;
 
@@ -409,7 +409,7 @@ void script_init(const char *cparams)
 	   return;
    }
 
-   if (!DuplicateHandle(GetCurrentProcess(), hChildStdoutRd, GetCurrentProcess(), 
+   if (!DuplicateHandle(GetCurrentProcess(), hChildStdoutRd, GetCurrentProcess(),
 	   &hChildStdoutRdDup, 0, FALSE, DUPLICATE_SAME_ACCESS))
    {
 	   draw_info("Script support: failed to duplicate stdout using DuplicateHandle()", NDI_RED);
@@ -670,7 +670,7 @@ void script_watch(const char *cmd, uint8 *data, int len, enum CmdFormat format)
                      }
                      be+=sprintf(buf+be,"\n");
                   }
-                  break;                  
+                  break;
                case INT_ARRAY:
                   {
                      int be;
@@ -835,7 +835,7 @@ void script_watch(const char *cmd, uint8 *data, int len, enum CmdFormat format)
                default: {
                      int be;
                      int p;
-                     
+
                      /*we may receive an null data, in which case len has no meaning*/
                      if (!data)
                         len=0;
@@ -1338,7 +1338,7 @@ static void script_process_cmd(int i)
             tag=atoi(c);
 
             SockList_Init(&sl, buf);
-            SockList_AddString(&sl, "mark "); 
+            SockList_AddString(&sl, "mark ");
             SockList_AddInt(&sl, tag);
             SockList_Send(&sl, csocket.fd);
          }
@@ -1358,7 +1358,7 @@ static void script_process_cmd(int i)
             tag=atoi(c);
 
             SockList_Init(&sl, buf);
-            SockList_AddString(&sl, "lock "); 
+            SockList_AddString(&sl, "lock ");
             SockList_AddChar(&sl, locked);
             SockList_AddInt(&sl, tag);
             SockList_Send(&sl, csocket.fd);

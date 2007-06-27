@@ -65,11 +65,11 @@ void draw_magic_map(void)
     gtk_notebook_set_current_page(GTK_NOTEBOOK(map_notebook), MAGIC_MAP_PAGE);
 
     gtk_widget_show(magic_map);
- 
+
     if (!magic_map_gc) magic_map_gc = gdk_gc_new (magic_map->window);
 
     gdk_gc_set_foreground (magic_map_gc, &root_color[0]);
-    gdk_draw_rectangle (magic_map->window, magic_map_gc,	       
+    gdk_draw_rectangle (magic_map->window, magic_map_gc,
 		       TRUE,
 		       0,
 		       0,
@@ -91,7 +91,7 @@ void draw_magic_map(void)
     if (cpl.mapxres>cpl.mapyres) cpl.mapxres=cpl.mapyres;
     else cpl.mapyres=cpl.mapxres;
 
-    
+
     /* this is keeping the same unpacking scheme that the server uses
      * to pack it up.
      */
@@ -148,4 +148,3 @@ on_drawingarea_magic_map_expose_event  (GtkWidget       *widget,
     draw_magic_map();
     return FALSE;
 }
-

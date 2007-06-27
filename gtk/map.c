@@ -23,7 +23,7 @@ const char *rcsid_gtk_map_c =
 */
 
 /* This file handles the map related code - both in terms of allocation,
- * insertion of new objects, and actual rendering (although the 
+ * insertion of new objects, and actual rendering (although the
  * sdl rendering is in the sdl file
  */
 
@@ -62,7 +62,7 @@ struct Map the_map;
 /*
  * Added for fog of war. Current size of the map structure in memory.
  * We assume a rectangular map so this is the length of one side.
- * command.c needs to know about this so not static 
+ * command.c needs to know about this so not static
  * FIX ME: Don't assume rectangle
  */
 
@@ -76,7 +76,7 @@ PlayerPosition pl_pos;
 void reset_map()
 {
 }
-    
+
 static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int clipy,
 			void *mask, void *image, int sizex, int sizey)
 {
@@ -137,10 +137,10 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
         else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        }else{      
+        }else{
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
-        }                    
+        }
     }
     /* ok, now we have a list of smoothlevel higher than current square.
      * there are at most 8 different levels. so... let's check 8 times
@@ -153,7 +153,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             if ( (slevels[i]>0) && (!partdone[i]) &&
                 ((lowest<0) || (slevels[i]<slevels[lowest]))
                )
-                    lowest=i;    
+                    lowest=i;
         }
         if (lowest<0)
             break;   /*no more smooth to do on this square*/
@@ -161,7 +161,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
         /*here we know 'what' to smooth*/
         /* we need to calculate the weight
          * for border and weight for corners.
-         * then we 'markdone' 
+         * then we 'markdone'
          * the corresponding squares
          */
         /*first, the border, which may exclude some corners*/
@@ -179,7 +179,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
                 /*must rmove the weight of a corner if not in smoothing*/
                 weightC&=~cweights[i];
             }
-            
+
         }
         /*We can't do this before since we need the partdone to be adjusted*/
         if (sfaces[lowest]<=0)
@@ -189,8 +189,8 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             continue;  /*picture for smoothing not yet available*/
         }
         /* now, it's quite easy. We must draw using a 32x32 part of
-         * the picture smoothface. 
-         * This part is located using the 2 weights calculated: 
+         * the picture smoothface.
+         * This part is located using the 2 weights calculated:
          * (32*weight,0) and (32*weightC,32)
          */
         if ( (!pixmaps[smoothface]->map_image) ||
@@ -257,7 +257,7 @@ static void display_mapcell(int ax, int ay, int mx, int my)
 	     */
 	    else if (use_config[CONFIG_SMOOTH] && the_map.cells[mx][my].need_resmooth)
 		drawsmooth (mx, my, layer, ax*map_image_size, ay*map_image_size);
-		    
+
 	    /* draw big faces last (should overlap other objects) */
 	    face = mapdata_bigface(ax, ay, layer, &sx, &sy);
 	    if (face > 0 && pixmaps[face]->map_image != NULL) {
@@ -313,7 +313,7 @@ static void display_mapcell(int ax, int ay, int mx, int my)
     }
 
     /* If this is a fog cell, do darknening of the space.
-     * otherwise, process light/darkness - only do those if not a 
+     * otherwise, process light/darkness - only do those if not a
      * fog cell.
      */
     if (use_config[CONFIG_FOGWAR] && the_map.cells[mx][my].cleared) {

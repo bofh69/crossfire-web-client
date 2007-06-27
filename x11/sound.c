@@ -75,7 +75,7 @@ int init_sounds(void)
 
 /* Plays sound 'soundnum'.  soundtype is 0 for normal sounds, 1 for
  * spell_sounds.  This might get extended in the future.  x,y are offset
- * (assumed from player) to play sound.  This information is used to 
+ * (assumed from player) to play sound.  This information is used to
  * determine value and left vs right speaker balance.
  *
  * This procedure seems to be very slow - much slower than I would
@@ -100,7 +100,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 
 
 void SoundCmd(unsigned char *data,  int len)
-{  
+{
     int x, y, num, type;
 
     if (len!=5) {
@@ -118,4 +118,3 @@ void SoundCmd(unsigned char *data,  int len)
 #endif
     play_sound(num, type, x, y);
 }
-

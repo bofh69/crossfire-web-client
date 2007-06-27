@@ -1239,4 +1239,3 @@ void ckeyclear () {
   gtk_entry_set_text (GTK_ENTRY(cmodentrytext), "");
   gtk_entry_set_text (GTK_ENTRY(ckentrytext), "");
 }
-

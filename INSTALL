@@ -6,12 +6,12 @@ Install Steps:
     libraries.
     If you want png support, you will need to install the png
     library.
-    If you want sdl support ( recommended) you will need both gtk and png 
-    as well as the main SDL library and the SDL_image library, both of 
-    which can be found at http://www.libsdl.org if not already installed 
+    If you want sdl support ( recommended) you will need both gtk and png
+    as well as the main SDL library and the SDL_image library, both of
+    which can be found at http://www.libsdl.org if not already installed
     on your system.
 
-1)  type './configure' to configure for your OS/system.  Most options 
+1)  type './configure' to configure for your OS/system.  Most options
     normally understood by configure should be available.
     The configure script will try to make all the right decisions.  It will
     search for the needed libraries and headers.   You may need to give
@@ -19,7 +19,7 @@ Install Steps:
 
     If configure finds gtk libraries, it will build the gcfclient in addition
     to the cfclient.  If you don't want this (only cfclient), use the
-    --disable-gtk (there is no way to disable the cfclient at this time - 
+    --disable-gtk (there is no way to disable the cfclient at this time -
     if you are able to compile the gtk client, you also have all the tools for
     for the cfclient).
 
@@ -31,9 +31,9 @@ Install Steps:
     sound daemon).  If you want to use the builtin sound system, use
     the --enable-old-sound.  See sound notes further down.
 
-    To specify additional places to find header files, use the 
+    To specify additional places to find header files, use the
     --with-includes=value - this includes any -I or other options to provide
-    the compiler.  Example:  
+    the compiler.  Example:
     ./configure --with-includes="-I/usr/local/include -I/opt/xpm/include"
 
     Similarly, there is a --with-ldflags option.  Example:
@@ -57,4 +57,4 @@ Install Steps:
 3)  Type 'make install' to install the binaries.
 
 4)  The client can be run by typing 'cfclient' for the X11 version, gcfclient
-     for the gtk client, gcfclient -sdl for the SDL version. 
+     for the gtk client, gcfclient -sdl for the SDL version.

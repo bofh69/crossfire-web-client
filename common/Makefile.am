@@ -53,7 +53,7 @@ noinst_HEADERS = \
 	script.h \
         version.h \
         svnversion.h
-        
+
 BUILT_SOURCES = svnversion.h
 CLEANFILES = svnversion.h
 
@@ -87,4 +87,4 @@ svnversion.h: FORCE
 		echo "$$OUTPUT_DATA" > svnversion.h; \
 	fi
 
-FORCE:        
+FORCE:

@@ -440,7 +440,7 @@ void pickup_init(GtkWidget *window_root)
 
     static int has_init=0;
 
-    /* There isn't really any harm doing this multiple times, but isn't 
+    /* There isn't really any harm doing this multiple times, but isn't
      * any point either.
      */
     if (has_init) return;
@@ -636,7 +636,7 @@ void client_pickup(uint32 pickup)
     pmode=pickup;
 
     for (i=0; i < num_pickups; i++) {
-	if ((pickup & ~PU_RATIO) & pickup_mapping[i].pickup_mode || 
+	if ((pickup & ~PU_RATIO) & pickup_mapping[i].pickup_mode ||
 	    (pickup & PU_RATIO) == pickup_mapping[i].pickup_mode) {
 	    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(pickup_mapping[i].menuitem), 1);
 	} else {
@@ -645,4 +645,3 @@ void client_pickup(uint32 pickup)
     }
     no_recurse=0;
 }
-

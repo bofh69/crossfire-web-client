@@ -234,7 +234,7 @@ of the map_image_size.  This shows up when using tall character images.
 It also shows up when using different -mapscale options due to rounding
 errors - in both cases now, things are drawn correctly.
 --
-gtk/map.c: Add size parameters to draw_pixmap().  Add logic to figure out 
+gtk/map.c: Add size parameters to draw_pixmap().  Add logic to figure out
   proper offsets for drawing odd sized images.
 gtk/sdl.c: Add logic to figure out proper offsets for drawing these odd
   sized images.
@@ -260,7 +260,7 @@ to GTK2 client.
 common/client.c: Add declarations for exp_table, exp_table_max, and call to
   send 'requestinfo exp_table' to server.
 common/client.h: Add extern declarations for exp_table, exp_table_max
-common/commands.c: Add get_exp_info() function to get exp table from 
+common/commands.c: Add get_exp_info() function to get exp table from
   server in replyinfo command.  Fix crash bug in ReplyInfoCmd() if replyinfo
   with no parameters is sent to client.
 common/init.c: Add code to clear/initialize exp_table, exp_table_max
@@ -286,7 +286,7 @@ Ryo 2006-10-29
 common/Makefile.am: Make sure svnversion.h rebuilds every time.
 Alex Schultz 2006-10-29
 
-gtk/rcs-id.h, common/rcs-id.h, x11/rcs-id.h, gtk/gx11.c, x11/x11.c: Remove 
+gtk/rcs-id.h, common/rcs-id.h, x11/rcs-id.h, gtk/gx11.c, x11/x11.c: Remove
    rcs-id code.
 gtk/Makefile.am, common/Makefile.am, x11/Makefile.am: Remove references to
    rcs-id.h files.
@@ -301,7 +301,7 @@ common/client.c, gtk-v2/src/main.c: Remove excess log messages that flood
    console.
 Alex Schultz 2006-10-12
 
-Apply patches #1562945, #1562947, #1563796, and #1566467 to allow the gtk2 
+Apply patches #1562945, #1562947, #1563796, and #1566467 to allow the gtk2
    client to be built in mingw. Courtesy of Kurt Fitzner.
 ---
 configure.in, gtk-v2/src/Makefile.in: Clean up build system a little and add
@@ -310,7 +310,7 @@ common/item.c, common/commands.c, common/init.c, common/script.c,
    common/mapdata.c, common/client.c, common/p_cmd.c, common/player.c,
    common/newsocket.c, common/metaserver.c: Add mingw/win32 support.
 gtk-v2/src/keys.c, gtk-v2/src/map.c, gtk-v2/src/image.c,
-   gtk-v2/src/sdl.c, gtk-v2/src/main.c, gtk-v2/src/opengl.c, gtk-v2/src/png.c, 
+   gtk-v2/src/sdl.c, gtk-v2/src/main.c, gtk-v2/src/opengl.c, gtk-v2/src/png.c,
    gtk-v2/src/Makefile.am, gtk-v2/src/sound.c, gtk-v2/src/menubar.c: Add win32
    support to gtk2 client code, including for sdl and opengl.
 Alex Schultz 2006-10-07
@@ -381,11 +381,11 @@ gtk-v2/src/interface.c: Rebuilt
 --
 gtk-v2/server/metaserver.c: Make some changes related to bug 1548290 - cached
    entries show 0 value in players.  Add code to check list of servers from
-   metaserver - if we have a match in the cached server list, don't display 
-   the cached entry - use the one from the metaserver instead. Also, add 
+   metaserver - if we have a match in the cached server list, don't display
+   the cached entry - use the one from the metaserver instead. Also, add
    logic to not display empty server if the default server is null.
 --
-gtk-v2/src/config.c: Make save_winpos() do actual saving, have 
+gtk-v2/src/config.c: Make save_winpos() do actual saving, have
     on_save_window_position_activate() call save_winpos() - fixes
     bug 1551395 where savewinpos command does not work.
 gtk-v2/src/main.c: Remove empty function save_winpos()
@@ -449,7 +449,7 @@ to metaserver.  Prior to this, it always went to the metaserver unless
 common/cconfig.h: Comment out SERVER so by default it connects to metaserver
 common/client.c: Add handling to initialize server from SERVER if defined,
    null otherwise.
-common/metaserver.c: Don't present default server in metaserver selection 
+common/metaserver.c: Don't present default server in metaserver selection
    default is null.
 gtk/gx11.c, gtk-v2/src/main.c, x11/x11.c: Change command line handling -
    if server is set, use that as default to connect to.
@@ -477,7 +477,7 @@ common/p_cmd.c:  In disconnect command, add call to cleanup_connection()
 gtk/gx11.c, gtk-v2/src/main.c: Add cleanup_connection() - removes socket
    from one of the gdk input device, call gtk_main_quit so it returns
    to metaserver selection.
-x11/x11.c: Add empty cleanup_connection() - x11 client doesn't need to 
+x11/x11.c: Add empty cleanup_connection() - x11 client doesn't need to
   do anything special.
 MSW 2006-07-06
 
@@ -485,7 +485,7 @@ More changes related to default logging.  Able to specify default log level
 with configure.  Note:  you will need to re-run configure after this change,
 as otherwise MINLOGLEVEL will not be defined in config.h.
 ---
-configure.in, configure:  Add --with-loglevel=<val> to specify default 
+configure.in, configure:  Add --with-loglevel=<val> to specify default
     loglevel.
 crossfire-client.spec: Update to include --with-loglevel for building RPMs
 common/config.h.in: Add MINLOGLEVEL #define.
@@ -499,7 +499,7 @@ common/client-types.h: Add FMT64 defines like done in the server.  Removes
    need for #ifdef WIN32 in many places.
 common/client.c: Remove unneeded cast for ReplyInfoCmd().  Change type
    of length parameter passed to getsockopt() to be a socklen_t.
-common/commands.c: Change ReplyInfoCmd() to take a uint8*.  Add several 
+common/commands.c: Change ReplyInfoCmd() to take a uint8*.  Add several
   char*/uint8* casts.  Change TickCmd() to also take uint8*
 common/external.h: Add extern void client_tick(uint32 tick).
 common/image.c: load_image() so that its fourth param (checksum) is a uint32.
@@ -631,7 +631,7 @@ common/commands.c: Add parsing of return of map2 failures on setup command
     Add TickCmd()
 common/init.c:  Add seeing of random number generator.
 common/mapdata.c: Rewrite CLEAR_CELLS macro to handle additional layers.
-   Clear animation data in expand_clear_face().  Change MAXLAYERS to 
+   Clear animation data in expand_clear_face().  Change MAXLAYERS to
    MAP1_LAYERS since map2 increase MAXLAYERS.  Add support functions for
    setting data in the map2 command.
 common/mapdata.h: Increase MAXLAYERS, add MAP1_LAYERS define to old number
@@ -643,7 +643,7 @@ gtk/gx11.c: Add cleint_tick() to handle map animations.  Update
 gtk-v2/src/config.c: Fix bug in config code where it wasn't enabling
    darkness when player switched back from no darkness mode to some
    mode.
-gtk-v2/src/main.c: Add client_tick() to handle animations.  Update 
+gtk-v2/src/main.c: Add client_tick() to handle animations.  Update
    do_timeout() to not do animations if tick is set.
 gtk-v2/src/opengl.c: Fix drawing logic where objects which were visible
    but in which the bottom right corner was off the map was not being
@@ -675,7 +675,7 @@ gtk-v2/gtk-v2.glade:  Add new menu item for save window positions.  Change
   statbar area so there is a pane between stat bar and stat notebooks.
   Change statbars so they resize smaller/larger.
 gtk-v2/src/callbacks.h: callback for on_save_window_position_activate() added.
-gtk-v2/src/config.c: Add on_save_window_position_activate() and 
+gtk-v2/src/config.c: Add on_save_window_position_activate() and
   load_window_positions()
 gtk-v2/src/interface.c: rebuilt.
 gtk-v2/src/inventory.c: Add LIST_TYPE column for sorting.  Change
@@ -774,11 +774,11 @@ gtk-v2/src/metaserver.c: Add necessary calls to enable sorting of table by
   the code a little.
 gtk-v2/src/support.h: Rebuilt by glade.
 MSW 2006-02-22
- 
+
 
 common/player.c: Fix bug in that spell data wasn't being cleared when
   logging on.  Thus, if you logged on as one character, then another,
-  etc, it would just keep adding to the spell list, not being a 
+  etc, it would just keep adding to the spell list, not being a
   representative list of spells character knows.
 MSW 2006-02-20
 
@@ -788,7 +788,7 @@ Brendan Lally 2006-02-20
 
 
 Improvements to the gtkv2 client - Add free form text box to metaserver
-selection window so server name can be manually entered, add keybinding 
+selection window so server name can be manually entered, add keybinding
 interface window to client similar to one in gtkv1 client, and disconnect
 menu item to client.  Note that this keybinding interfaces allows for
 ALT and META modifiers in addition to SHIFT and CONTROL, hence minor changes
@@ -843,11 +843,11 @@ common/metaserver.c, common/metaserver.h: Make cached_servers_loaded static
    since it is not used elsewhere.
 Andreas Kirschbaum 2006-02-12
 
-gtk/inventory.c, gtk-v2/src/inventory.c, x11/x11.c: 
+gtk/inventory.c, gtk-v2/src/inventory.c, x11/x11.c:
 Make the message displayed for locked items more descriptive.
 Brendan Lally 2005-02-09
 
-Remove unscrollable single column resistances option from gcfclient. 
+Remove unscrollable single column resistances option from gcfclient.
 Change the setting name in the config file and convert old values.
 Reduce MAX_BUTTONS to 33. Replace radio buttons with a single push button.
 Remove legacy lighting save code. Remove SHOW_RESISTS, use NUM_RESISTS
@@ -859,7 +859,7 @@ gtk/gx11.c, config.c
 common/init.c
 --
 Remove coloured inventory and text options, as well as all supporting code
-for them. Make text always print in colour. Remove special code for 
+for them. Make text always print in colour. Remove special code for
 initialising black and white monitors in cfclient, and change its background
 colour to colour number 9 (to not be the same as so many draw_info's from the
 server). Change colour number 9 to a pale grey to make text show up better.
@@ -980,7 +980,7 @@ Andreas Kirschbaum 2005-10-28
 common/script.c: fix Win32 that didn't detect end of script correctly.
 Ryo 2005-10-16
 
-Avoid using c++ reserved words, in case one wants to link a c++ program to 
+Avoid using c++ reserved words, in case one wants to link a c++ program to
 client.h
 Alex Schultz 2005-09-22
 
@@ -1068,8 +1068,8 @@ sound-src/Makefile.am: add EXTRA_PROGRAMS line for cfsndserv_alsa9 so
    don't get errors from automake, add @ALSA9_TARGET@ to bin_PROGRAMS.
 MSW 2005-08-28
 
-gtk/config.c, gtkproto.h, gx11.c, inventory.c: 
-Commit patch #1265199 from Kevin Rudat to fix client crash when using split 
+gtk/config.c, gtkproto.h, gx11.c, inventory.c:
+Commit patch #1265199 from Kevin Rudat to fix client crash when using split
 window mode
 Brendan Lally 2005-08-21
 
@@ -1086,7 +1086,7 @@ gtk-v2 directory used automake, rest was Makefile.in - now everything is
 automake - makes maintenance and distributions easier.
 --
 common/Makefile.am gtk/Makefile.am help/Makefile.am pixmaps/Makefile.am
- sound-src/Makefile.am utils/Makefile.am x11/Makefile.am pixmaps/Makefile.in 
+ sound-src/Makefile.am utils/Makefile.am x11/Makefile.am pixmaps/Makefile.in
  utils/Makefile.in help/Makefile.in: New Makefiles
 Makefile.am, Makefile.in: Removed unneeded rules, move pixmap, help, util
    handling to makefiles in their own directories.
@@ -1153,7 +1153,7 @@ gtk-v2/src/Makefile.am: Add metaserver.c as a standalone file that gets
 gtk-v2/src/Makefile.in: Rebuilt
 gtk-v2/src/callbacks.h, gtk-v2/src/interface.c, gtk-v2/src/interface.h: Updated
     by glade2
-gtk-v2/src/main.c: Remove metaserver.c inclusion.  Initialize 
+gtk-v2/src/main.c: Remove metaserver.c inclusion.  Initialize
     cached_server_file.  Change metaserver selection/display code.
 gtk-v2/src/metaserver.c: Lots of new code - have it display window,
    handle selections, connect to server, etc.
@@ -1191,7 +1191,7 @@ crossfire-client.spec, gnome/Makefile.in, x11/Makefile.in: Patch from Kari
    Pahula to fix manpage paths.
 gtk/gx11.h: Patch from Kari Pahula to remove incorrect variable declaration.
 Andreas Kirschbaum 2005-06-01
-	
+
 Committed patch #1197437 courtesy Kevin Rudat (krudat).
 This patch moves inventory-related functions in GTK client to
  one specific file. Also makes inventory refresh less often.
@@ -1284,7 +1284,7 @@ x11/x11.c: Ignore invalid face numbers.
 x11/x11.h Remove duplicate definition of MAXPIXMAPNUM and facetoname[].
 x11/xutil.c: Initialize size of pixmaps[0].
 Andreas Kirschbaum 2005-03-27
-		  
+
 gtk-v2/src/map.c: Fix typo to make it compile without opengl.
 Andreas Kirschbaum 2005-03-26
 
@@ -1466,7 +1466,7 @@ gtk/help.c: use 'const gchar' instead of 'gchar' as widget text.
 gtk/win32/config.h: snprintf => _snprintf
 Ryo 2005-02-12
 
-Makefile.in, common/Makefile.in, gnome/Makefile.in, gtk/Makefile.in, 
+Makefile.in, common/Makefile.in, gnome/Makefile.in, gtk/Makefile.in,
     sound-src/Makefile.in, x11/Makefile.in: Add ${DESTDIR} prefix for
     installation into other directories.  Patch from sourcefore #1061895
     MSW 2005-02-09
@@ -1500,7 +1500,7 @@ Ryo 2005-02-05
 Makefile.in: Fix up distclean directive to go into all directories.
 configure.in, configure: Fix configure so the --enable-feature and
    --disable-feature flags follow proper standard (from patch on
-   sourceforge).  Add check for -lossaudio.  Modify check for 
+   sourceforge).  Add check for -lossaudio.  Modify check for
    -lSDL_image library - don't require it for SDL support (if we
    have it, we'll use it, but for newer versions of SDL, it doesn't
    seem to exist anymore)
@@ -1591,7 +1591,7 @@ gtk/keys.c: Windows now uses default 'keys' file if player file not found for
    key loading.
 Ryo 2004-03-04
 
-configure.in: Remove checks for gnome libraries, since we no longer use 
+configure.in: Remove checks for gnome libraries, since we no longer use
 gnome/build a gnome client.
 aclocal.m4: downgrade requirement for needed autoconf version.
 MSW 2004-02-05
@@ -1610,13 +1610,13 @@ all Makefile.in:
 all rcs-id.h:
    Basic logging is now complete. All console messages sent by
    client are now sent to LOG(). All source files versions have
-   are sent to LOG() at startup too (except for the still non 
+   are sent to LOG() at startup too (except for the still non
    compilable gnome client!). Gtk client can show the Logs in
    'Help -> Report a Bug' along with a small doc on how to bug report
 Tchize 2004-01-30
 
 Documentation/
-   Have added a Documentation directory. It contains a first 
+   Have added a Documentation directory. It contains a first
    basic how-to related to client side scripting with two examples.
 Tchize 2004-01-29
 
@@ -1701,7 +1701,7 @@ Changes for 1.6.0:
 common/commands.c: Clean up some formatting.
 common/item.c: Add num_free_items() to try and help see some memory
    laakage.
-common/player.c: Add num_free_items command which calls above routine. 
+common/player.c: Add num_free_items command which calls above routine.
 gtk/gx11.c: Fix movement/firing by using mouse pointer.  Map size was
    hard coded in, so didn't work correct if non standard map size was used.
 MSW 2003-10-09
@@ -1739,7 +1739,7 @@ x11/x11.c: Add an error handler to make it easier to catch bugs
    call to allocate map to pass in new larger values.
 x11/x11.h: Add width, height values to Pixmap data structure.
 x11/xutil.c: Change the routine to recenter virtual map some - we need
-   to take into account that there can be big images, so include that 
+   to take into account that there can be big images, so include that
    value in when seeing if we are too close to the map edge.
 MSW 2003-10-05
 
@@ -1805,7 +1805,7 @@ gtk/gx11.c: always include errno.h.  Modify layout of skill exp table
 x11/x11.c: update draw logic to handle 64 bit exp values, only draw
    skill exp when player has exp in the category.
 MSW 2003-05-17
-   
+
 
 common/client.c: Add some usleeps()  in negotiate_connection() - this reduces
    cpu load when negotiating the connection (given 10 ms for data to actually
@@ -1832,7 +1832,7 @@ have the old behaviour (dimmed spaces for fog of war), and no significant
 amount of extra memory will be used.
 --
 gtk/gx11.h: Add fog_image pointer to PixmapInfo structure.
-gtk/image.c: Add code to render greyscale image.  Also add code to free 
+gtk/image.c: Add code to render greyscale image.  Also add code to free
    greyscale image.
 gtk/sdl.c: Modify map draw code to use grey fog image if space is fog of
    war space.  Disable dimming of fog spaces - no longer necessary as
@@ -1934,7 +1934,7 @@ to your maximum.  To use this, you need to go to the config pane and hit
 the 'gradually change stat bar color' button.
 common/client.h:  Add CONFIG_ value for this, increase CONFIG_NUMS.
 common/init.c: Add "grad_color_bars" to config_names array.
-gtk/config.c: Add button to select this behaviour.  Move all the 
+gtk/config.c: Add button to select this behaviour.  Move all the
    special config checks to beyond the for loop that checks the values
    in apply_config().   There is no need to check all the values on each
    loop.
@@ -1953,7 +1953,7 @@ gtk/gx11.c: Add two styles to the Vitals (stat bar) structure so we can
    with a blue tinting (more blue the more over it is).  draw_stat_bar() knows
    how to properly deal with these higher values.
 MSW 2002-07-04
-   
+
 
 gtk/config.c: Fix setting of radio button set state - it was always setting
    the same (last) radio button as the active button, which did not match
@@ -2047,7 +2047,7 @@ gtk/image.c: Add table that is used to determine the scaling used for big
 gtk/map.c: remove display_map_clearcell and set_map_face functions - now in
   common code.  Modify the dump map/darkness routines to use the new format of
   the MapCell structure.  Modify set_darkness to only set adjoining spaces for
-  needing an update if lighting type is set that needs this.  Remove 
+  needing an update if lighting type is set that needs this.  Remove
   display_map_addbelow - only used for 'map' command.  Modify logic of
   fog of war code to have it done all at display time - not when setting/clearing
   a cells contents.  Modify gtk_draw_map - this basically follows the same
@@ -2055,7 +2055,7 @@ gtk/map.c: remove display_map_clearcell and set_map_face functions - now in
   that have changed, and not the entire map - this should improve performance
   considerably.
 gtk/sdl.c: Remove #if 0 around putpixel - used for best lighting.  Change
-  indention of init_SDL - modify it so that if just_lightmap is true, 
+  indention of init_SDL - modify it so that if just_lightmap is true,
   that really is the only thing that is changed.  Modify per_pixel_light
   code to use both methods of per pixel lighting depending on player prefernce.
   Modify sdl_gen_map to properly handle draw portion of big images.
@@ -2093,7 +2093,7 @@ There are probably some bugs in this, but it seems to basically work -
 no horrendous bugs that I noticed that prevent it from working at all.
 -
 common/client.c: replaced config values with new system.  Always
-   send setup mapredraw 1 to server to make toggling for fog of war easier, 
+   send setup mapredraw 1 to server to make toggling for fog of war easier,
    and it doesn't use any significant bandwidth.
 common/client.h: Add new value configuration system/defines.  remove
    the old values.
@@ -2131,7 +2131,7 @@ configure.in, configure:  Fix the --disable-sound configure option (when used,
 it won't look for sound support, and will not build the sound-src directory).
 Likewise, if that option is not used but configure does not find any supported
 sound systems, it also will not build the sound-src directory.  MSW 2002-03-31
-	
+
 
 Various fixes/enhancements:
 1) For the files stored in the players cache, include the image set suffix
@@ -2296,7 +2296,7 @@ README: Update notes on needing png (and not xpm) library.  Update mailing
 configure.in, configure: As the seperate sound program (cfsndserv) is the
     only supported sound configuration, remove new_sound_system defines
     and ability to use the old (now non existant) sound system.
-    Have configure exit with error message if png library is not found, 
+    Have configure exit with error message if png library is not found,
     as it is critical to the build process.  Change it so that
     gnome/Makefile is always built so that making of releases works.
 gnome/gnome-cfclient.man, help/about.h, x11/cfclient.man: Update mail address.
@@ -2360,7 +2360,7 @@ gx11.c: Modified to know about new pickup mode (frontend - most all the
 work is still done on the server).  Patch by Nils Lohner.
 MSW 2001-08-28
 
-Add reset_map_function into xutil.c that gets called after we lose a 
+Add reset_map_function into xutil.c that gets called after we lose a
 connection to the server.  This fixes a problem of some leftover images
 from the previous session appearing in the map windows.  MSW 2001-08-12
 client.c: add call to reset_map_data
@@ -2371,7 +2371,7 @@ xutil.c: Add reset_map_function (mostly a copy of reset_map), make some
 
 Fog of war code checkin. This is a fairly complex check in so
 hopefully not too much breaks. This adds the feature where
-tiles that have been seen but have since moved out of LOS 
+tiles that have been seen but have since moved out of LOS
 are still shown on screen but with a 50% transparent black
 tile over it show it is no longer in LOS.  Whatever was in that
 tile is still shown until a new update comes in from the server at
@@ -2403,8 +2403,8 @@ gx11.c: Modified all commands that take x,y coordinates to convert
 proto.h: Added new prototypes by hand.
 x11.c: Added code to dynamically allocate map structure.
        Added stub function for display_map_newmap();
-xutil.c: Modified functions to convert to virtual coordinate system 
-         when fog_of_war is active. 
+xutil.c: Modified functions to convert to virtual coordinate system
+         when fog_of_war is active.
          Modified display_map_clearcell to not clear cell when fog_of_war
            is active, now just marks the tile as cleared.
          New function "allocate_map" to dynamically allocate a new
@@ -2452,7 +2452,7 @@ need_update= 0.
 SMACFIGGEN 2001-06-19
 
 This checkin puts Scott MacFiggen's SDL support into the gtk client.
-I've made some enhancements to the code - it can now co-exist with 
+I've made some enhancements to the code - it can now co-exist with
 the other image formats (so if all the libraries are available, you can
 choose from -xpm, vanilla -png, -png -pngximage or -sdl (which also
 forces -png).
@@ -2494,7 +2494,7 @@ gx11.c: Add BPP define for internal testing to see if using 4 bytes/pixel
    drawing to also use BPP define value instead of 3 is various
    areas.  Optimizations for darkness rendering.  Use map1cmd global
    variable to know the packing form instead of looking at map size.
-   Improved darkness handling to know if adjoining spaces have valid 
+   Improved darkness handling to know if adjoining spaces have valid
    darkness information instead of looking at number of tiles.
 metaserver.c: if metaserver_on isn't set, don't try to get metaserver
    information.
@@ -2529,7 +2529,7 @@ commands.c: Make it more forgiving about extra spaces in setu command.
    and support for mapsize option of setup command.  Add option
    to map_doneupdate which controls if we want a full redraw or not.
    Add Map1Cmd command which handles map1 protocol command.
-gx11.c: Add support for big maps as well as gdkrgb backing images. 
+gx11.c: Add support for big maps as well as gdkrgb backing images.
    Add support for -mapsize and -pngximage command line options.  Lots
    of new image drawing code for pngximage.  Add resize_map_window
    function which is called when new map size is negotiated with server -
@@ -2549,7 +2549,7 @@ The three main things this checkin does:
     Ability to save relative sizes of gtk subwindows, and have those restored
       when re-running the client.
     Use of the setup protocol command to set configuration values.
-    Receipt of skill experience information, and display of that in the 
+    Receipt of skill experience information, and display of that in the
       gtk client.
 ++
 Makefile.in: Remove Protocol entry
@@ -2624,7 +2624,7 @@ MSW 2001-04-27
 
 Note: by default, the command history forward/back keys are not bound
    to anything.  At least on Sparc/Solaris systems, the up key in
-   the cluster of 4 arrow keys is the same keysym as the the 
+   the cluster of 4 arrow keys is the same keysym as the the
    key on the keypad, so by automatically binding these, you basically
    make it so the player can not move north/south, so I figure its better
    to let players bind them safely.
@@ -2707,7 +2707,7 @@ for the client to use this information.  Also remove some
 #if 0 code from gx11.c.  MSW 2001/03/28
 
 item.c: set_item_values - only resort items based on name if the name
-   has changed.  This fixes a problem with items moving around in the 
+   has changed.  This fixes a problem with items moving around in the
    inventory if you lock/apply/unapply/unlock them.  MSW 2001/03/23
 
 ------------------------------------------------------------------------------
@@ -2876,7 +2876,7 @@ End MSW 2000/12/19 checkin.
 
 MSW 2000/12/10:
 png.c, gx11.c, x11.c, xutil.c: modified to use in memory loading of
-png's.  This means that if not caching images, we don't need to write it out 
+png's.  This means that if not caching images, we don't need to write it out
 to a temp file.  This should result in a minor performance gain, but
 also remove the need of using tmpnam.  Also, modified gx11.c so that
 it uses same logic as the x11 client for extended command key (').
@@ -2902,7 +2902,7 @@ Checkin on 11/3 by MSW:
 Remove remaining font support for x11 client.
 Allow setting default display mode and server to connect to in the
 cconfig.h file.
-Files affected: CHANGES, cconfig.h, client.c, client.h, gx11.c, x11.c, 
+Files affected: CHANGES, cconfig.h, client.c, client.h, gx11.c, x11.c,
     xutil.c
 
 
@@ -2920,7 +2920,7 @@ client.man: Updated for information about png images and
 cwindow command.
 README:  Updated with changes mentioned above with the --with-png options.
 gx11.c: Remove all support for pixmap images.  They didn't work anyways,
-but you could specify -pix on the command line and get no images - 
+but you could specify -pix on the command line and get no images -
 now it will at least result in an error message.  Also, savedefaults
 will now save png status properly.
 xutil.c: Modified so that it will save png status when savedefaults
@@ -2983,11 +2983,11 @@ Protocol: Update for png information - addition of image command.
 client.c: Add support for image command.  Change initializing so we get
 	the protocol from the server early on - we need to know it before
 	we tell it what facemode we want, as it may not support png
-	images.  do protocol version check and if the server does not 
+	images.  do protocol version check and if the server does not
 	support it and the user request png, fail out.
 client.h: Increase versions of protocol.  Add Png_Display to possible display
 	modes.
-command.c: Add ImageCmd function which processes the image command 
+command.c: Add ImageCmd function which processes the image command
 	(used for receipt of png images).  the use of the image command
 	can be abstracted in the future for other image formats quite easily.
 config.h.in (& config.h): Add HAVE_IMLIB_H define which lets us know if
@@ -2998,7 +2998,7 @@ configure.in (& configure): Add detection for imlib and set the appropriate
 gx11.c: Update for png support - add display_newpng command, change
 	XPM_SIZE to image_size and make it a variable and not a define.
 	Pull in appropriate imlib support, as well as rendering of
-	png data.  Some dead code removed.  display_usepng, 
+	png data.  Some dead code removed.  display_usepng,
 	display_usxpm, and display_newpng functions added.
 newclient.h: Add CF_FACE_PNG constant for CS communication.
 proto.h: Updated for new png functions.
@@ -3020,7 +3020,7 @@ x11.c: Fix bug introduced in 4/20 update which would cause xpm display
 mode to fail with no such face warnings - code check was in the
 wrong place - MSW 5/7/2000
 
-xutil.c:  Improve logic for built in keybindings - if the 
+xutil.c:  Improve logic for built in keybindings - if the
 def_keys specifies a unique keycode, we don't update the keycode - this
 is necessary for some keyboards to have working keybindings (for example,
 sun Type 5 keyboards use the Up keysym for both the arrows and the keypad,
@@ -3113,7 +3113,7 @@ fix unbind and bind in xutil.c so they properly skip over leading spaces
 
 fix Makefile.in so make depend will pick up x11.c dependencies - msw.
 
-Fix 'help command so that the draw info commands are formatted to fit 
+Fix 'help command so that the draw info commands are formatted to fit
 on the default window width (player.c - msw).
 
 Fix so that cwindow without options results in a message that an option
@@ -3238,14 +3238,14 @@ Strip leading spaces when sending complex commands.  Parsing of complex
 commands made a bit cleaner (patch from Maciej Kalisiak)
 
 GTK changes by David Sundqvist:
- 
+
 Compiles for both gtk+-1.0 and development gtk+-1.1.12 and onwards.
 
 Close button for open things in the look window added.
 
 Included various patches by Maciej Kalisiak for locking and marking in
 inventory, as well as coloring damned items too. Some cosmetic code
-cleanups by Charles Duffy. 
+cleanups by Charles Duffy.
 
 Tearoff menus for development version of GTK.
 
@@ -3257,7 +3257,7 @@ practical.
 
 Menu choice to clear info window.
 
-Speedup for image creation in non-cached mode. 
+Speedup for image creation in non-cached mode.
 
 Main loop moved into gx11.c to allow both clients to be built at once.
 
@@ -3294,7 +3294,7 @@ GTK changes by David Sundqvist:
 
 981127
   Further GUI configuration (keybindings too, needs more work tho)
-  
+
   XPM caching now implemented
 
   Color text in info window (warning: this may trigger a bug in pre 1.0.5
@@ -3349,7 +3349,7 @@ updated for 1022 for this.  'goodbye' will be in the 0.95.0 server.
 ------------------------------------------------------------------------------
 Changes for 0.94.3:
 
-Only print debugging output on runs if compiled with -DDEBUG option.  
+Only print debugging output on runs if compiled with -DDEBUG option.
 Most fprintf(stderr,...) changed to use the LOG call instead.
 
 Updated protocol version to 1021.  This is for the ncom and commc
@@ -3368,7 +3368,7 @@ files for use with client.
 ------------------------------------------------------------------------------
 Changes for 0.94.2:
 
-Change Version command to include 2 versions strings - version of 
+Change Version command to include 2 versions strings - version of
 of C->S commands and version of S->C commands.  Allows for better handling
 when versions are mismatched.  Current versions for both set to 1020.
 Also, version command can now take an optional string describing

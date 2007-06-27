@@ -2,7 +2,7 @@ dnl
 dnl GNOME_XML_HOOK (script-if-xml-found, failflag)
 dnl
 dnl If failflag is "failure", script aborts due to lack of XML
-dnl 
+dnl
 dnl Check for availability of the libxml library
 dnl the XML parser uses libz if available too
 dnl
@@ -19,7 +19,7 @@ AC_DEFUN([GNOME_XML_HOOK],[
 		AC_SUBST(GNOME_XML_LIB)
 		GNOME_XML_LIB=`gnome-config --libs xml`
 	], [
-		if test x$2 = xfailure; then 
+		if test x$2 = xfailure; then
 			AC_MSG_ERROR(Could not link sample xml program)
 		fi
 	], `gnome-config --libs xml`)

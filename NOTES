@@ -1,8 +1,8 @@
 These are the official RedHate 6.2 crossfire client RPMS.  The crossfire-client
-rpm is the old client. 
+rpm is the old client.
 
 The crossfire-client-gtk is the newer GTK client and is GNOME aware and will
 install itself under GNOME Foot->Programs->Games, I highly recommend this
-client. 
+client.
 
 The crossfire-client-sounds is if you want to have sounds during game play.

@@ -1,7 +1,7 @@
 dnl GNOME_SUPPORT_CHECKS
 dnl    Check for various support functions needed by the standard
 dnl    Gnome libraries.  Sets LIBOBJS, might define some macros.
-dnl    This should only be used when building the Gnome libs; 
+dnl    This should only be used when building the Gnome libs;
 dnl    Gnome clients should not need this macro.
 AC_DEFUN([GNOME_SUPPORT_CHECKS],[
   # we need an `awk' to build `gnomesupport.h'

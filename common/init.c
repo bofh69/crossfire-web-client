@@ -102,7 +102,7 @@ void init_client_vars()
     int i;
 
     /* I think environemental variables should be more important than
-     * compiled in defaults, so these probably should be reversed. 
+     * compiled in defaults, so these probably should be reversed.
      */
     client_libdir=getenv("CFCLIENT_LIBDIR");
 #ifdef CLIENT_LIBDIR
@@ -142,7 +142,7 @@ void init_client_vars()
     cpl.below = map_item();
     cpl.magicmap=NULL;
     cpl.showmagic=0;
-    
+
 
     csocket.command_sent=0;
     csocket.command_received=0;
@@ -165,7 +165,7 @@ void init_client_vars()
 	face_info.facesets[i].comment = NULL;
     }
     /* Makes just as much sense to initialize the arrays
-     * where they are declared, but I did this so I could 
+     * where they are declared, but I did this so I could
      * keep track of everything as I was updating
      * the code.  Plus, the performance difference is virtually
      * nothing.
@@ -202,7 +202,7 @@ void init_client_vars()
     want_config[CONFIG_MAPSCROLL] = TRUE;
     want_config[CONFIG_SIGNPOPUP] = TRUE;
     want_config[CONFIG_TIMESTAMP] = FALSE;
-    for (i=0; i<CONFIG_NUMS; i++) 
+    for (i=0; i<CONFIG_NUMS; i++)
 	use_config[i] = want_config[i];
 
 #ifdef WIN32

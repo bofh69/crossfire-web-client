@@ -13,14 +13,14 @@ while(<ITEMS>) {
 	if (/^(\d*):/) {
 		$lastval=$1;
 	}
-	# skip empty lines 
+	# skip empty lines
 	else {
 	    chomp;
 	    die("Got item name before item number: $_\n") if ($lastval == -1);
 	    push @{ $names[$lastval]} , $_;
 	}
 }
-close(ITEMS);		
+close(ITEMS);
 
 open(ITEMS, ">item-types.h") || die("Can not open item-types.h\n");
 

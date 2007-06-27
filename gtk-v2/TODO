@@ -26,8 +26,7 @@ server side, the server will need to update all active containers when their
 contents change.
 
 - Add support for lower screen resolution (1024x768).  This may require a
-seperate glade config file 
+seperate glade config file
 
 - Add split window support (probably requires second glade config file)
  setup)
-

@@ -22,7 +22,7 @@ const char *rcsid_common_player_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
- 
+
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -40,7 +40,7 @@ const char *rcsid_common_player_c =
  *  does most of the work for sending messages to the server
  *   Again, most of these appear self explanatory.  Most send a bunch of
  *   commands like apply, examine, fire, run, etc.  This looks like it
- *   was done by Mark to remove the old keypress stupidity I used. 
+ *   was done by Mark to remove the old keypress stupidity I used.
  */
 
 /* This translates the numeric direction id's into the actual direction
@@ -72,7 +72,7 @@ void new_player (long tag, char *name, long weight, long face)
 	}
 	cpl.spelldata = NULL;
     }
-	
+
 }
 
 void look_at(int x, int y)
@@ -273,10 +273,10 @@ void command_take (const char *command, const char *cpnext)
     if (cpnext || cpl.container == NULL)
 	send_command(command, cpl.count, 0);
     else {
-	if (cpl.container->inv == NULL) 
+	if (cpl.container->inv == NULL)
 	    draw_info("There is nothing in the container to move", NDI_BLACK);
 	else
-	    cs_print_string(csocket.fd,"move %d %d %d", cpl.ob->tag, 
+	    cs_print_string(csocket.fd,"move %d %d %d", cpl.ob->tag,
 		cpl.container->inv->tag, cpl.count);
     }
 }

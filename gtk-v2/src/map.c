@@ -23,7 +23,7 @@ char *rcsid_gtk2_map_c =
 */
 
 /* This file handles the map related code - both in terms of allocation,
- * insertion of new objects, and actual rendering (although the 
+ * insertion of new objects, and actual rendering (although the
  * sdl rendering is in the sdl file
  */
 
@@ -58,7 +58,7 @@ static uint8 map_updated = 0;
 /*
  * Added for fog of war. Current size of the map structure in memory.
  * We assume a rectangular map so this is the length of one side.
- * command.c needs to know about this so not static 
+ * command.c needs to know about this so not static
  * FIX ME: Don't assume rectangle
  */
 
@@ -171,7 +171,7 @@ void reset_map()
 {
     }
 
-static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int clipy, 
+static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int clipy,
 			void *mask, void *image, int sizex, int sizey)
 {
     gdk_gc_set_clip_mask(mapgc, mask);
@@ -230,10 +230,10 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
         else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        }else{      
+        }else{
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
-        }                    
+        }
     }
     /* ok, now we have a list of smoothlevel higher than current square.
      * there are at most 8 different levels. so... let's check 8 times
@@ -246,7 +246,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             if ( (slevels[i]>0) && (!partdone[i]) &&
                 ((lowest<0) || (slevels[i]<slevels[lowest]))
                )
-                    lowest=i;    
+                    lowest=i;
         }
         if (lowest<0)
             break;   /*no more smooth to do on this square*/
@@ -254,7 +254,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
         /*here we know 'what' to smooth*/
         /* we need to calculate the weight
          * for border and weight for corners.
-         * then we 'markdone' 
+         * then we 'markdone'
          * the corresponding squares
          */
         /*first, the border, which may exclude some corners*/
@@ -272,7 +272,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
                 /*must rmove the weight of a corner if not in smoothing*/
                 weightC&=~cweights[i];
             }
-            
+
         }
         /*We can't do this before since we need the partdone to be adjusted*/
         if (sfaces[lowest]<=0)
@@ -282,8 +282,8 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             continue;  /*picture for smoothing not yet available*/
         }
         /* now, it's quite easy. We must draw using a 32x32 part of
-         * the picture smoothface. 
-         * This part is located using the 2 weights calculated: 
+         * the picture smoothface.
+         * This part is located using the 2 weights calculated:
          * (32*weight,0) and (32*weightC,32)
          */
         if ( (!pixmaps[smoothface]->map_image) ||
@@ -397,7 +397,7 @@ static void display_mapcell(int ax, int ay, int mx, int my)
     }
 
     /* If this is a fog cell, do darknening of the space.
-     * otherwise, process light/darkness - only do those if not a 
+     * otherwise, process light/darkness - only do those if not a
      * fog cell.
      */
     if (use_config[CONFIG_FOGWAR] && the_map.cells[mx][my].cleared) {
@@ -462,7 +462,7 @@ void gtk_draw_map(int redraw) {
     }
 }
 
-/* Basically, the player has changed maps, so any info we have 
+/* Basically, the player has changed maps, so any info we have
  * (for fog of war) is bogus, so clear out all that old info
  */
 void display_map_newmap()
@@ -515,7 +515,7 @@ void draw_splash()
     }
 }
 
-	
+
 
 void draw_map(int redraw)
 {
@@ -532,7 +532,7 @@ void draw_map(int redraw)
 	else gtk_draw_map(redraw);
     }
 }
-	
+
 
 gboolean
 on_drawingarea_map_expose_event        (GtkWidget       *widget,
@@ -549,7 +549,7 @@ on_drawingarea_map_button_press_event  (GtkWidget       *widget,
                                         gpointer         user_data)
 {
     int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
-  
+
     x=(int)event->x;
     y=(int)event->y;
     dx=(x-2)/map_image_size-(use_config[CONFIG_MAPWIDTH]/2);
@@ -571,12 +571,12 @@ on_drawingarea_map_button_press_event  (GtkWidget       *widget,
 	    else if (x>xmidh)
 		i = 6;
 	    else i =3;
-    
+
 	    if (y>ymidh)
 		i += 2;
 	    else if (y>ymidl)
 		i++;
-    
+
 	    if (event->button==2) {
 		switch (i) {
 		    case 0: fire_dir (8);break;

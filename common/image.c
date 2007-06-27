@@ -257,7 +257,7 @@ static void image_remove_hash(char *imagename, Cache_Entry *ce)
  * do a checksum comparison.
  */
 
-static Cache_Entry *image_find_cache_entry(char *imagename, uint32 checksum, int has_sum) 
+static Cache_Entry *image_find_cache_entry(char *imagename, uint32 checksum, int has_sum)
 {
     int	hash_entry;
     Cache_Entry	*entry;
@@ -281,7 +281,7 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 check
     uint32  hash = image_hash_name(imagename, IMAGE_HASH), newhash;
 
     newhash = hash;
-    while (image_cache[newhash].image_name != NULL && 
+    while (image_cache[newhash].image_name != NULL &&
       strcmp(image_cache[newhash].image_name, imagename)) {
 	newhash ++;
 	if (newhash == IMAGE_HASH) newhash=0;
@@ -512,7 +512,7 @@ void Face2Cmd(uint8 *data,  int len)
 }
 
 void Image2Cmd(uint8 *data,  int len)
-{  
+{
     int pnum,plen;
     uint8 setnum;
 
@@ -527,7 +527,7 @@ void Image2Cmd(uint8 *data,  int len)
     display_newpng(pnum,data+9,plen, setnum);
 }
 
-/* 
+/*
  * This function is called when the server has sent us the actual
  * png data for an image.  If caching, we need to write this
  * data to disk.
@@ -546,7 +546,7 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 	}
 	/* Make necessary leading directories */
 	sprintf(filename, "%s/.crossfire/crossfire-images",getenv("HOME"));
-	if (access(filename, R_OK | W_OK | X_OK)== -1) 
+	if (access(filename, R_OK | W_OK | X_OK)== -1)
 #ifdef WIN32
 	    mkdir(filename);
 #else
@@ -555,7 +555,7 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 
 	sprintf(filename, "%s/.crossfire/crossfire-images/%c%c", getenv("HOME"),
 		 facetoname[face][0], facetoname[face][1]);
-	if (access(filename, R_OK | W_OK | X_OK)== -1) 
+	if (access(filename, R_OK | W_OK | X_OK)== -1)
 #ifdef WIN32
 	    mkdir(filename);
 #else
@@ -563,14 +563,14 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 #endif
 
 	/* If setnum is valid, and we have faceset information for it,
-	 * put that prefix in.  This will make it easier later on to 
+	 * put that prefix in.  This will make it easier later on to
 	 * allow the client to switch image sets on the fly, as it can
 	 * determine what set the image belongs to.
 	 * We also append the number to it - there could be several versions
 	 * of 'face.base.111.x' if different servers have different image
 	 * values.
 	 */
-	if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix) 
+	if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix)
 	    sprintf(basename,"%s.%s", facetoname[face], face_info.facesets[setnum].prefix);
 	else
 	    strcpy(basename, facetoname[face]);
@@ -667,7 +667,7 @@ void get_image_info(uint8 *data, int len)
     if (!cp || (cp - lp) > len) return;
     face_info.bmaps_checksum = strtoul(lp, NULL, 10);	/* need unsigned, so no atoi */
 
-    lp = cp+1; 
+    lp = cp+1;
     cp = strchr(lp, '\n');
     while (cp && (cp - lp) <= len) {
 	*cp++ = '\0';
@@ -704,9 +704,9 @@ void get_image_info(uint8 *data, int len)
      */
     if (face_info.want_faceset && atoi(face_info.want_faceset)==0) {
 	for (onset=0; onset<MAX_FACE_SETS; onset++) {
-	    if (face_info.facesets[onset].prefix && 
+	    if (face_info.facesets[onset].prefix &&
 		!strcasecmp(face_info.facesets[onset].prefix, face_info.want_faceset)) break;
-	    if (face_info.facesets[onset].fullname && 
+	    if (face_info.facesets[onset].fullname &&
 		!strcasecmp(face_info.facesets[onset].fullname, face_info.want_faceset)) break;
 	}
 	if (onset < MAX_FACE_SETS) { /* We found a match */
@@ -720,8 +720,8 @@ void get_image_info(uint8 *data, int len)
 
 }
 
-/* This gets a block of checksums from the server.  This lets it 
- * prebuild the images or what not.  It would probably be 
+/* This gets a block of checksums from the server.  This lets it
+ * prebuild the images or what not.  It would probably be
  * nice to add a gui callback someplace that gives a little status
  * display (18% done or whatever) - that probably needs to be done
  * further up.
@@ -752,7 +752,7 @@ void get_image_sums(char *data, int len)
 
     replyinfo_last_face = stop;
 
-    /* Can't use isspace here, because it matches with tab, ascii code 
+    /* Can't use isspace here, because it matches with tab, ascii code
      * 9 - this results in advancing too many spaces because
      * starting at image 2304, the MSB of the image number will be
      * 9.  Using a check against space will work until we get up to
@@ -773,9 +773,8 @@ void get_image_sums(char *data, int len)
 	 * probably amounts to about 100 images at a time
 	 */
 	finish_face_cmd(imagenum, checksum, 1, (char*)cp, faceset);
-	if (imagenum > stop) 
+	if (imagenum > stop)
 	    LOG(LOG_WARNING,"common::get_image_sums","Received an image beyond our range? %d > %d", imagenum, stop);
 	cp += slen;
     }
 }
-

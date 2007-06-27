@@ -4,7 +4,7 @@ gnome client: Make it work.  IT compiles, but there is something in the
   map code (or someplace else) causing stack overflows.  What really needs
   to get done is for it to share much more of the code with the gtk client.
 
-x11: 
+x11:
 Modify to support variable sized images.  This probably isn't too much work -
    just some modifications in the gen_draw_face/display_mapcell_pixmap functions
    to only copy to relevant portion.
@@ -34,4 +34,3 @@ one, so it is easier to move things here and there (perhaps support drag and
 drop operations for this)
 
 Add a 'paper doll' display which shows what is equipped and where.
-

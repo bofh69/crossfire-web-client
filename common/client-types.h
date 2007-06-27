@@ -113,7 +113,7 @@ typedef signed char       sint8;
 #define MAX_BUF 256
 #define BIG_BUF 1024
 
-/* used to register gui callbacks to extended texts 
+/* used to register gui callbacks to extended texts
  * (which are supposed to be handled more friendly than raw text)*/
 typedef void (*ExtTextManager)(int flag, int type, int subtype, char* message);
 

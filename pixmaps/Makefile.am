@@ -58,5 +58,4 @@ noinst_HEADERS = \
 	test.xpm	\
 	unlock.xpm	\
 	unpaid.xbm	\
-	unpaid.xpm	
-
+	unpaid.xpm

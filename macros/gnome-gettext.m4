@@ -1,7 +1,7 @@
 # Macro to add for using GNU gettext.
 # Ulrich Drepper <drepper@cygnus.com>, 1995.
 #
-# Modified to never use included libintl. 
+# Modified to never use included libintl.
 # Owen Taylor <otaylor@redhat.com>, 12/15/1998
 #
 #
@@ -333,4 +333,3 @@ strdup __argz_count __argz_stringify __argz_next])
    sed -e "/^#/d" -e "/^\$/d" -e "s,.*,	$posrcprefix& \\\\," -e "\$s/\(.*\) \\\\/\1/" \
 	< $srcdir/po/POTFILES.in > po/POTFILES
   ])
-

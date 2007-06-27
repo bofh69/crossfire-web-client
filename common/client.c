@@ -250,7 +250,7 @@ int init_connection(char *host, int port)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
-    
+
     if (getaddrinfo(host, port_str, &hints, &res) != 0)
 	return -1;
 
@@ -470,5 +470,3 @@ void negotiate_connection(int sound)
      */
     SendAddMe(csocket);
 }
-
-

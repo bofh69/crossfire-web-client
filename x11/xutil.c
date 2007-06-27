@@ -24,7 +24,7 @@ const char *rcsid_x11_xutil_c =
 
 /* This contains various 'support' functions.  These functions will probably
  * go mostly unaltered between different toolkits, as long as X11 is still
- * used. 
+ * used.
  */
 
 #include <client.h>
@@ -54,7 +54,7 @@ static const char *colorname[] = {
 "DodgerBlue",           /* 5  */
 "DarkOrange2",          /* 6  */
 "SeaGreen",             /* 7  */
-"DarkSeaGreen",         /* 8  */ 
+"DarkSeaGreen",         /* 8  */
 "Grey80",               /* 9  */	/* Used for window background color */
 "Sienna",               /* 10 */
 "Gold",                 /* 11 */
@@ -133,7 +133,7 @@ void init_cache_data()
     int i;
     Pixmap  ptmp;
 #include "pixmaps/question.111"
-    
+
 
     /* Currently, we can cache in all face modes currently supported,
      * so I removed the code that did checks on that.
@@ -147,14 +147,14 @@ void init_cache_data()
     /* In xpm mode, XCopyArea is used from this data, so we need to copy
      * the image into an pixmap of appropriate depth.
      */
-    pixmaps[0]->pixmap=XCreatePixmap(display, win_root, image_size, image_size, 
+    pixmaps[0]->pixmap=XCreatePixmap(display, win_root, image_size, image_size,
 	DefaultDepth(display,DefaultScreen(display)));
     pixmaps[0]->width = 1;
     pixmaps[0]->height = 1;
     XCopyPlane(display, ptmp, pixmaps[0]->pixmap, gc_game,
 	       0,0,image_size,image_size,0,0,1);
     XFreePixmap(display, ptmp);
-		
+
     /* Initialize all the images to be of the same value. */
     for (i=1; i<MAXPIXMAPNUM; i++)  {
 	pixmaps[i]=pixmaps[0];
@@ -543,13 +543,13 @@ void parse_key_release(KeyCode kc, KeySym ks) {
      * enters a non play mode with fire or run mode already set, however.
      */
 
-    if (kc==firekey[0] || ks==firekeysym[0] || 
+    if (kc==firekey[0] || ks==firekeysym[0] ||
 	kc==firekey[1] || ks==firekeysym[1]) {
 		cpl.fire_on=0;
 #ifdef GDK_XUTIL
 		clear_fire();
 		gtk_label_set (GTK_LABEL(fire_label),"    ");
-#else	
+#else
 		stop_fire();
 		draw_message_window(0);
 #endif
@@ -570,7 +570,7 @@ void parse_key_release(KeyCode kc, KeySym ks) {
      * old version, if you release the direction key, you want the firing
      * to stop.  This should do that.
      */
-    else if (cpl.fire_on) 
+    else if (cpl.fire_on)
 	stop_fire();
 }
 
@@ -751,7 +751,7 @@ static void show_keys(int allbindings)
   Key_Entry *key;
   char buf[MAX_BUF];
 
-  snprintf(buf, sizeof(buf), "Commandkey %s (%d)", 
+  snprintf(buf, sizeof(buf), "Commandkey %s (%d)",
 	  commandkeysym==NoSymbol?"unknown":XKeysymToString(commandkeysym),
 	  commandkey);
   draw_info(buf,NDI_BLACK);
@@ -764,17 +764,17 @@ static void show_keys(int allbindings)
 	  runkeysym[1]==NoSymbol?"unknown":XKeysymToString(runkeysym[1]), runkey[1]);
   draw_info(buf,NDI_BLACK);
 
-  snprintf(buf, sizeof(buf), "Command Completion Key %s (%d)", 
+  snprintf(buf, sizeof(buf), "Command Completion Key %s (%d)",
 	  completekeysym==NoSymbol?"unknown":XKeysymToString(completekeysym),
 	  completekey);
   draw_info(buf,NDI_BLACK);
 
-  snprintf(buf, sizeof(buf), "Next Command in History Key %s (%d)", 
+  snprintf(buf, sizeof(buf), "Next Command in History Key %s (%d)",
 	  nextkeysym==NoSymbol?"unknown":XKeysymToString(nextkeysym),
 	  nextkey);
   draw_info(buf,NDI_BLACK);
 
-  snprintf(buf, sizeof(buf), "Previous Command in History Key %s (%d)", 
+  snprintf(buf, sizeof(buf), "Previous Command in History Key %s (%d)",
 	  prevkeysym==NoSymbol?"unknown":XKeysymToString(prevkeysym),
 	  prevkey);
   draw_info(buf,NDI_BLACK);
@@ -1018,7 +1018,7 @@ void configure_keys(KeyCode k, KeySym keysym)
    * held down when binding keys - in this way, player does not have to use
    * -f and -r flags to bind for many simple binds.
    */
-	
+
   if ((cpl.fire_on || cpl.run_on) && (bind_flags & KEYF_MODIFIERS)==KEYF_MODIFIERS) {
 	bind_flags &= ~KEYF_MODIFIERS;
 	if (cpl.fire_on) bind_flags |= KEYF_FIRE;
@@ -1033,7 +1033,7 @@ void configure_keys(KeyCode k, KeySym keysym)
 	insert_key(keysym, k, bind_flags, bind_buf);
   }
 
-  snprintf(buf, sizeof(buf), "Binded to key '%s' (%i)", 
+  snprintf(buf, sizeof(buf), "Binded to key '%s' (%i)",
 	  keysym==NoSymbol?"unknown":XKeysymToString(keysym), (int)k);
   draw_info(buf,NDI_BLACK);
   cpl.fire_on=0;
@@ -1158,7 +1158,7 @@ void image_update_download_status(int start, int end, int total)
 /* Start of map handling code.
  * For the most part, this actually is not window system specific,
  * but certainly how the client wants to store this may vary.
- * 
+ *
  * At least in the gtk and x11 clients, 95+% of this code
  * is the same - the only think I think is different is
  * that the gtk will call sdl_scroll.  This should
@@ -1172,7 +1172,7 @@ void image_update_download_status(int start, int end, int total)
 /*
  * Added for fog of war. Current size of the map structure in memory.
  * We assume a rectangular map so this is the length of one side.
- * command.c needs to know about this so not static 
+ * command.c needs to know about this so not static
  * FIX ME: Don't assume rectangle
  */
 

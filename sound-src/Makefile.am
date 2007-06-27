@@ -48,4 +48,3 @@ cfsndserv.o: soundsdef.h
 alsa9.o: soundsdef.h
 proto:
 	echo "Nothing to do for proto"
-

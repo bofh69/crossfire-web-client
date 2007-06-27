@@ -24,4 +24,3 @@ noinst_HEADERS= \
 	chelp.h            \
 	shelp.h            \
 	bugreport.h
-

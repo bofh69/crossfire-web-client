@@ -3,7 +3,7 @@
 .SH NAME
 gcfclient - gtk client program for crossfire servers.
 .SH SYNOPSIS
-.B gcfclient 
+.B gcfclient
 [-server server] [-port number] [-display display] [-split|-nosplit] [-download_all_faces]
 [-echo] [faceset name] [-showicon] [-scrollines number] [-sync] [-help]
 [-cache|-nocache] [-darkness|-nodarkness] [-nosound] [-nosplash]
@@ -89,7 +89,7 @@ Prints out a brief description of the options to standard output.
 
 .TP
 .B -iconscale
-Causes the images for the inventory icons 
+Causes the images for the inventory icons
 to be scaled some percentage value.
 Minimum value is 25%.  Setting this to 50% is
 very useful - doubles amount of data visible in the inventory
@@ -108,7 +108,7 @@ the images over and over again as you switch between servers.
 
 .TP
 .B -mapscale
-Causes the images for the 
+Causes the images for the
 map surface (-mapscale) to be scaled some percentage value.
 Minimum value is 25%.  This value does not need to be the same as
 the iconscale value.  Scaling down the size of the map images can
@@ -159,7 +159,7 @@ is not used, GdkPixmaps will be used instead.
 .TP
 .B -server <server>
 Sets the server to play on.  If no option is given, it will default to
-localhost.  
+localhost.
 
 .TP
 .B -showicon
@@ -226,7 +226,7 @@ Causes the information window to get 'trimmed', eg, remove text
 so that the total contents of the information window remains
 roughly the same size (20,000 bytes or so).  As of 2001-11-03,
 using this option resulted in client periodically crashing.
-The problem appears to be within gtk, so using this is not 
+The problem appears to be within gtk, so using this is not
 encouraged.  However, the problems in gtk may get fixed, or this
 may be more reliable on other platforms so is included.
 
@@ -258,7 +258,7 @@ the options listed above.  Note that the saved defaults are
 read first, so using the command line switches can be used to override
 settings in the gdefaults file.
 
-The settings are saved into 
+The settings are saved into
 ~/.crossfire/gdefaults.
 
 If you are using split windows mode, you can enter savewinpos
@@ -314,7 +314,7 @@ These commands were described in the SAVED DEFAULTS options above.
 
 .TP
 .B scroll
-This toggles whether or the information windows scrolls when it gets to 
+This toggles whether or the information windows scrolls when it gets to
 the bottom of the window or wraps to the top.  Wrapping is slighly less
 cpu intensive, but is generally harder to read.
 

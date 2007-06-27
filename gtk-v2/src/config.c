@@ -268,7 +268,7 @@ void load_defaults()
             want_config[CONFIG_RESISTS]);
 	want_config[CONFIG_RESISTS] = 0;
     }
-    
+
     /* Make sure the map size os OK */
     if (want_config[CONFIG_MAPWIDTH] < 9 || want_config[CONFIG_MAPWIDTH] > MAP_MAX_SIZE) {
 	LOG(LOG_WARNING,"gtk::load_defaults",
@@ -287,7 +287,7 @@ void load_defaults()
     for (i=0; i<CONFIG_NUMS; i++) {
 	use_config[i] = want_config[i];
     }
-    
+
     image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
     map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
     map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
@@ -321,7 +321,7 @@ void save_defaults()
 
     /* This isn't quite as good as before, as instead of saving things as 'True'
      * or 'False', it is just 1 or 0.  However, for the most part, the user isn't
-     * going to be editing the file directly. 
+     * going to be editing the file directly.
      */
     for (i=1; i < CONFIG_NUMS; i++) {
 	fprintf(fp,"%s: %d\n", config_names[i], want_config[i]);
@@ -360,7 +360,7 @@ void config_init(GtkWidget *window_root)
     config_combobox_lighting = lookup_widget(config_window, "config_combobox_lighting");
     config_combobox_theme = lookup_widget(config_window, "config_combobox_theme");
 
-    /* 
+    /*
      * Display mode combo box setup.
      * First, remove all entries, then populate with what options are
      * available based on what was compiled in.
@@ -451,9 +451,9 @@ static void setup_config_window()
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_mapheight),
 			      (float)want_config[CONFIG_MAPHEIGHT]);
 
-    /* 
+    /*
      * Face set combo box setup.
-     * Remove all the entries currently in the combo box 
+     * Remove all the entries currently in the combo box
      */
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_faceset));
     count =  gtk_tree_model_iter_n_children(model, NULL);
@@ -465,7 +465,7 @@ static void setup_config_window()
     if (face_info.have_faceset_info) {
 	for (i=0; i<MAX_FACE_SETS; i++)
 	    if (face_info.facesets[i].fullname)
-		gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset), 
+		gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset),
 			  face_info.facesets[i].fullname);
     } else {
 	gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset),  "Standard");
@@ -769,19 +769,19 @@ void save_winpos()
     get_window_coord(window_root, &x,&y, &wx,&wy,&w,&h);
     fprintf(save,"window_root: +%d+%dx%dx%d\n", wx, wy, w, h);
 
-    fprintf(save,"vpaned_map_stats: %d\n", 
+    fprintf(save,"vpaned_map_stats: %d\n",
 	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"vpaned_map_stats"))));
 
-    fprintf(save,"vpaned_info_inventory: %d\n", 
+    fprintf(save,"vpaned_info_inventory: %d\n",
 	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"vpaned_info_inventory"))));
 
-    fprintf(save,"vpaned_inv_look: %d\n", 
+    fprintf(save,"vpaned_inv_look: %d\n",
 	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"vpaned_inv_look"))));
 
-    fprintf(save,"hpaned_map_other: %d\n", 
+    fprintf(save,"hpaned_map_other: %d\n",
 	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"hpaned_map_other"))));
 
-    fprintf(save,"hpaned_statbar_stats: %d\n", 
+    fprintf(save,"hpaned_statbar_stats: %d\n",
 	    gtk_paned_get_position(GTK_PANED(lookup_widget(window_root,"hpaned_statbar_stats"))));
 
     fclose(save);
@@ -820,7 +820,7 @@ void load_window_positions(GtkWidget *window_root)
 		if (sscanf(cp,"+%d+%dx%dx%d", &x, &y, &w, &h) == 4) {
 		    gtk_window_set_default_size (GTK_WINDOW(window_root), w, h);
 		    gtk_window_move(GTK_WINDOW(window_root), x, y);
-		    
+
 		} else {
 		    LOG(LOG_ERROR,"gtk-v2:load_window_positions", "Window size %s corrupt\n",
 			cp);
@@ -837,5 +837,5 @@ void load_window_positions(GtkWidget *window_root)
 	}
     }
     fclose(load);
-    
+
 }

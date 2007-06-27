@@ -59,7 +59,7 @@ menu_about                       (GtkMenuItem     *menuitem,
 	GdkPixmap *aboutgdkpixmap;
 	GdkBitmap *aboutgdkmask;
 
-	
+
 	about_window=create_about_window();
 
 	textview = lookup_widget(about_window, "about_textview");
@@ -102,4 +102,3 @@ on_about_close_clicked                 (GtkButton       *button,
 {
     gtk_widget_hide(about_window);
 }
-

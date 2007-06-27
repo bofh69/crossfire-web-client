@@ -9,7 +9,7 @@ dnl AM_PATH_GNOME_PRINT([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUN
 dnl Test for GNOME-PRINT, and define GNOME_PRINT_CFLAGS and GNOME_PRINT_LIBS
 dnl
 AC_DEFUN(AM_PATH_GNOME_PRINT,
-[dnl 
+[dnl
 dnl Get the cflags and libraries from the gnome-config script
 dnl
 AC_ARG_WITH(gnome-print-prefix,[  --with-gnome-print-prefix=PFX   Prefix where GNOME-PRINT is installed (optional)],
@@ -68,7 +68,7 @@ static char*
 my_strdup (char *str)
 {
   char *new_str;
-  
+
   if (str)
     {
       new_str = malloc ((strlen (str) + 1) * sizeof(char));
@@ -76,7 +76,7 @@ my_strdup (char *str)
     }
   else
     new_str = NULL;
-  
+
   return new_str;
 }
 
@@ -121,7 +121,7 @@ int main ()
   fi
   if test "x$no_gnome_print" = x ; then
      AC_MSG_RESULT(yes)
-     ifelse([$2], , :, [$2])     
+     ifelse([$2], , :, [$2])
   else
      AC_MSG_RESULT(no)
      if test "$GNOME_CONFIG" = "no" ; then

@@ -1,6 +1,6 @@
 
 /*
- * Showing and manipulating your inventory and what's in a 
+ * Showing and manipulating your inventory and what's in a
  * container/at your feet. (But not autopickup.)
  */
 
@@ -29,13 +29,13 @@ typedef struct {
     bool show_weight:1;
     bool highlight:1;
     bool show_flags:1;
-    
-    /* 
-     * Image-column (and row height...) resizes to hold biggest face; 
+
+    /*
+     * Image-column (and row height...) resizes to hold biggest face;
      * good when standing on buildings (or monsters!).
      */
-    bool face_column_resizes:1; 
-    
+    bool face_column_resizes:1;
+
     sint16 image_width;
     sint16 image_height;
 } inventory_viewer;
@@ -48,9 +48,9 @@ static GList * views;
 
 /* forward */
 static void list_button_event(
-    GtkWidget *gtklist, 
-    gint row, gint column, 
-    GdkEventButton *event, 
+    GtkWidget *gtklist,
+    gint row, gint column,
+    GdkEventButton *event,
     inventory_viewer * view);
 
 
@@ -60,7 +60,7 @@ static inventory_viewer * new_inventory_viewer(item * container, itemfilter filt
     GtkWidget * scroll_window;
     GtkStyle * liststyle;
     gchar *titles[] = {"?", "Name", "Weight"};
-        
+
     scroll_window = gtk_scrolled_window_new (0,0);
 
     list = gtk_clist_new_with_titles(3, titles);
@@ -69,10 +69,10 @@ static inventory_viewer * new_inventory_viewer(item * container, itemfilter filt
     gtk_clist_set_column_width (GTK_CLIST(list), 0, image_size);
     gtk_clist_set_column_width (GTK_CLIST(list), 1, 150);
     gtk_clist_set_column_width (GTK_CLIST(list), 2, 50);
-    
+
     gtk_clist_set_selection_mode (GTK_CLIST(list) , GTK_SELECTION_SINGLE);
-    gtk_clist_set_row_height (GTK_CLIST(list), image_size); 
-        
+    gtk_clist_set_row_height (GTK_CLIST(list), image_size);
+
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scroll_window),
                                     GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
@@ -82,9 +82,9 @@ static inventory_viewer * new_inventory_viewer(item * container, itemfilter filt
       liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
       gtk_widget_set_style (list, liststyle);
     }
-      
+
     gtk_widget_show(list);
-    
+
     gtk_container_add(GTK_CONTAINER(scroll_window), list);
     gtk_widget_show(scroll_window);
 
@@ -102,14 +102,14 @@ static inventory_viewer * new_inventory_viewer(item * container, itemfilter filt
     ret->image_height = ret->image_width = image_size;
     views = g_list_first(g_list_append(views, ret));
 
-    gtk_clist_set_button_actions(GTK_CLIST(list), 
+    gtk_clist_set_button_actions(GTK_CLIST(list),
         1, GTK_BUTTON_SELECTS);
-    gtk_clist_set_button_actions(GTK_CLIST(list), 
+    gtk_clist_set_button_actions(GTK_CLIST(list),
         2, GTK_BUTTON_SELECTS);
     gtk_signal_connect(GTK_OBJECT(list), "select_row",
         GTK_SIGNAL_FUNC(list_button_event),
         ret);
-    
+
     return ret;
 }
 
@@ -126,7 +126,7 @@ static inventory_viewer * new_inventory_viewer(item * container, itemfilter filt
  * out if this is a bottleneck, and if it is which of n different ways of storing this information
  * is quickest.
  */
- 
+
 typedef struct {
     item * it;
     GList * viewers;
@@ -145,23 +145,23 @@ known items; common doesn't really support that right now. */
 static item_delete * item_to_widget_retrieve(item * op) {
     GList * p;
     item_delete * ret = NULL;
-    
+
     for (p = g_list_first(item_to_widgets); p != NULL; p = g_list_next(p) ) {
         item_delete * record;
-        
+
         record = (item_delete *)(p->data);
-        
+
         if (record->it == op) {
             return record;
         }
-    }    
-    
+    }
+
     /* It's not on the list; we'll have to add one. */
     ret = malloc(sizeof(item_delete));
-    
+
     ret->it = op;
     ret->viewers = NULL;
-    
+
     item_to_widgets = g_list_first(g_list_prepend(item_to_widgets, ret));
     g_assert(item_to_widgets != NULL);
 
@@ -174,7 +174,7 @@ static GList * item_to_widget_retrieve_viewers(item * op) {
 
 static void item_to_widget_store(item * op, inventory_viewer * view) {
     item_delete * x;
-    
+
     x = item_to_widget_retrieve(op);
 
     if (g_list_find(x->viewers, view) == NULL) {
@@ -183,23 +183,23 @@ static void item_to_widget_store(item * op, inventory_viewer * view) {
     g_assert(x->viewers != NULL);
 
 
-    /* If it's animated, also stick it on the shortlist of animated items. */    
+    /* If it's animated, also stick it on the shortlist of animated items. */
     if (op->animation_id > 0 && op->anim_speed) {
         /* Only stick it on if it's not already present. :S */
-        if (g_list_find(animated_items, op) == NULL) {    
+        if (g_list_find(animated_items, op) == NULL) {
             animated_items = g_list_first(g_list_prepend(animated_items, op));
             g_assert(animated_items != NULL);
         }
-    }    
+    }
 }
 
 /*
  * Remove
  */
 
-static void remove_widget_one(gpointer item_and_widget_x, gpointer view_x) {      
+static void remove_widget_one(gpointer item_and_widget_x, gpointer view_x) {
     item_delete * item_and_widgets = (item_delete *)item_and_widget_x;
-    
+
     item_and_widgets->viewers = g_list_remove(item_and_widgets->viewers, view_x);
 }
 
@@ -213,11 +213,11 @@ static void item_to_widget_remove_item(item * const op) {
 
     if (item_to_widgets != NULL) {
         GList * victim_link = NULL;
-        GList * i = NULL;        
+        GList * i = NULL;
         item_delete * victim = NULL;
-        
+
         /* Look for the item_delete for this item. */
-        for (i = item_to_widgets; i != NULL; i = g_list_next(i)) 
+        for (i = item_to_widgets; i != NULL; i = g_list_next(i))
         {
             item_delete * x = (item_delete *)(i->data);
             if (x->it == op) {
@@ -226,20 +226,20 @@ static void item_to_widget_remove_item(item * const op) {
                 break;
             }
         }
-        
+
         if (victim != NULL) {
             g_assert(victim_link != NULL);
 
             /* Remove the item_delete; free the widget-list first. */
-            g_list_free(victim->viewers); 
+            g_list_free(victim->viewers);
             item_to_widgets = g_list_remove_link(item_to_widgets, victim_link);
-        }        
+        }
     }
-    
+
     /* Also nuke it from the animation list. (Hope g_list doesn't choke if it's not there.) */
-    /*LOG(LOG_INFO, "inventory::item_to_widget_remove_item", 
+    /*LOG(LOG_INFO, "inventory::item_to_widget_remove_item",
         "removing %d (%s) %p", op->tag, op->d_name, op);*/
-    animated_items = g_list_remove(animated_items, op_mangled);    
+    animated_items = g_list_remove(animated_items, op_mangled);
     search_return = g_list_find(animated_items, op);
     g_assert(search_return == NULL);
 }
@@ -252,13 +252,13 @@ static void animate_item(gpointer view_x, gpointer item_x) {
     item * it = (item *)item_x;
     PixmapInfo * new_face = pixmaps[it->face];
     inventory_viewer * view = (inventory_viewer *) view_x;
-    
+
     /* LOG(LOG_INFO, "inventory::animate_item", "Called"); */
-    
+
     /* Don't update views that are going to be completely reconstructed anyway. */
     if (view->complete_rebuild) return;
-    
-    gtk_clist_set_pixmap(GTK_CLIST(view->list), 
+
+    gtk_clist_set_pixmap(GTK_CLIST(view->list),
         gtk_clist_find_row_from_data(GTK_CLIST(view->list), item_x), 0,
         (GdkPixmap*)new_face->icon_image,
         (GdkBitmap*)new_face->icon_mask);
@@ -267,17 +267,17 @@ static void animate_item(gpointer view_x, gpointer item_x) {
 static void animate_one_item(gpointer item_x, gpointer ignored) {
     item * it = (item *)item_x;
     GList * views = item_to_widget_retrieve_viewers(it);
-    
+
     /* Is it animated? */
     g_assert(it->animation_id > 0 && it->anim_speed);
-    
+
     it->last_anim++;
-    
+
     /* Is it time to change the face yet? */
     if (it->last_anim < it->anim_speed) return;
-    
+
     it->anim_state++;
-    
+
     if (it->anim_state >= animations[it->animation_id].num_animations) {
       it->anim_state=0;
     }
@@ -291,13 +291,13 @@ static void animate_one_item(gpointer item_x, gpointer ignored) {
 }
 
 static void animate_items(void) {
-    g_list_foreach(animated_items, animate_one_item, NULL);    
+    g_list_foreach(animated_items, animate_one_item, NULL);
 }
 
 
 static void item_changed_anim_hook(item * op) {
     /* HACK Make sure its presence or absence in the animated-items list is correct. */
-    
+
     if (op->animation_id > 0 && op->anim_speed) {
         if (g_list_find(animated_items, op) == NULL) {
             animated_items = g_list_prepend(animated_items, op);
@@ -345,61 +345,61 @@ static void rebuild_our_widget(inventory_viewer * view) {
 
     g_assert(view != NULL);
     g_assert(view->complete_rebuild);
-    
+
     scroll_window = view->scroll_window;
     list = view->list;
 
     /* GtkAdjustment doesn't give any indirect way of extracting that value. :( */
-    scrollbar_pos = 
+    scrollbar_pos =
       gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll_window))->value;
     gtk_clist_freeze(GTK_CLIST(list));
     gtk_clist_clear(GTK_CLIST(list));
-    
+
     columns[0] = buffer[0];
     columns[1] = buffer[1];
-    
+
     for (it = view->cont->inv; it != NULL; it = it->next) {
 	PixmapInfo * pixmap = pixmaps[it->face];
-        gint row; 
-        
+        gint row;
+
         if (!view->shows(it)) continue;
-        
+
         if (view->face_column_resizes) {
             if (pixmap->icon_width > mw) mw = pixmap->icon_width;
             if (pixmap->icon_height > mh) mh = pixmap->icon_height;
         }
-    
-        /* TODO safe_strcat! Perhaps use glib's string functions? */    
-	strcpy (buffer[0]," "); 
+
+        /* TODO safe_strcat! Perhaps use glib's string functions? */
+	strcpy (buffer[0]," ");
 	strcpy (buffer[1], it->d_name);
-	
+
 	if (view->show_flags) {
             strcat (buffer[1], it->flags);
         }
-        	
+
         if (view->show_weight && !(it->weight < 0)) {
             FMT_WEIGHT(buffer[2], MAX_BUF, it);
             columns[2] = buffer[2];
         } else {
             columns[2] = " ";
         }
-        
+
         row = gtk_clist_append(GTK_CLIST(list), columns);
-          
+
         /* Set original pixmap */
         gtk_clist_set_pixmap (GTK_CLIST (list), row, 0,
                         (GdkPixmap*)pixmap->icon_image,
-                        (GdkBitmap*)pixmap->icon_mask); 
-        
-        gtk_clist_set_row_data (GTK_CLIST(list), row, it); 
+                        (GdkBitmap*)pixmap->icon_mask);
+
+        gtk_clist_set_row_data (GTK_CLIST(list), row, it);
 
 	item_to_widget_store(it, view);
-	
+
 	if (view->highlight) {
 	    highlight_item(list, it, row);
 	}
     }
-    
+
     if (view->face_column_resizes) {
         if (view->image_width != mw) {
             gtk_clist_set_column_width(GTK_CLIST(list), 0, mw);
@@ -410,7 +410,7 @@ static void rebuild_our_widget(inventory_viewer * view) {
             view->image_height = mh;
         }
     }
-    
+
     /* Ok, stuff is drawn, now replace the scrollbar positioning as far as possible */
     gtk_adjustment_set_value(
         GTK_ADJUSTMENT(
@@ -418,51 +418,51 @@ static void rebuild_our_widget(inventory_viewer * view) {
         ),
         scrollbar_pos);
     gtk_clist_thaw(GTK_CLIST(list));
-    
+
     view->complete_rebuild = FALSE;
 }
 
-/* 
+/*
  * Updates and animation
  */
- 
+
 /* forward */
 static bool view_visible(inventory_viewer * view);
 
 static void item_tick_per_view(gpointer data, gpointer user_data_ignored) {
     inventory_viewer * view;
     view = (inventory_viewer *)data;
-    
+
     if (redraw_needed) {
         /*LOG(LOG_INFO, "inventory::item_tick_per_view", "%p redraw_needed", view); */
-    
+
         /* Faces have changed (gtk/image.c). Sadly, cache.c isn't more granular than this, so we
         can only update *all* the faces. */
-        
-        /* TODO If the inventory isn't otherwise dirty, only cycle through the faces. 
+
+        /* TODO If the inventory isn't otherwise dirty, only cycle through the faces.
         For the moment, rebuild the entire list. */
         view->complete_rebuild = TRUE;
-        
-        /* Do not clear the flag; that's done in gx11.c::do_timeout(). 
+
+        /* Do not clear the flag; that's done in gx11.c::do_timeout().
         In any case, we'd smash it for the other views. :S */
     }
-    
-    /* 
+
+    /*
      * HACK
      * If visible() ever returns false, remember to manually update the widget when
-     * it becomes visible! 
+     * it becomes visible!
      */
     if (!view_visible(view)) return;
-    
+
     if (view->complete_rebuild) {
         /*LOG(LOG_INFO, "inventory::item_tick_per_view", "rebuild %p on timeout", view);*/
         rebuild_our_widget(view);
-    } 
+    }
 }
 
 static void itemview_tick(void) {
-    animate_items(); 
-    
+    animate_items();
+
     g_list_foreach(views, item_tick_per_view, NULL);
 }
 
@@ -475,19 +475,19 @@ static void item_changed_one(gpointer view_x, gpointer op_x) {
 
     /* TODO Finer-grained checking, so only the affected panels
     complete_rebuild, and for *big* fenceposting, only add a row. */
-            
+
     if (view->cont == it->env) {
         /* TODO My brother says he can do better. */
         view->complete_rebuild = TRUE;
         /*LOG(LOG_INFO, "inventory::item_changed_one", "%p dirtied", view); */
     } else {
         /*LOG(LOG_INFO, "inventory::item_changed_one", "%p not container", view); */
-    } 
+    }
 
 }
 
-void item_event_item_changed(item * op) { 
-    item_changed_anim_hook(op); 
+void item_event_item_changed(item * op) {
+    item_changed_anim_hook(op);
 
     /*LOG(LOG_INFO, "inventory::item_event_item_changed", "Changed: %d %s %d", op->tag, op->d_name, op->face); */
     g_list_foreach(views, item_changed_one, (gpointer)op);
@@ -506,20 +506,20 @@ void item_event_item_changed(item * op) {
 static void container_clearing_one(gpointer view_x, gpointer op_x) {
     inventory_viewer * view = (inventory_viewer *)view_x;
     item * it = (item *)op_x;
-    
+
     /* TODO We'd have to tweak for recursive-search in a tree widget, maybe. */
     if (view->cont == it) {
         if (!view->complete_rebuild) {
             view->complete_rebuild = TRUE;
             /* Wonder if at any later stage pass view? */
-            item_to_widget_remove_widget(view); 
+            item_to_widget_remove_widget(view);
             /*LOG(LOG_INFO, "inventory::container_clearing_one", "%p dirtied", view);*/
         } else {
             /*LOG(LOG_INFO, "inventory::container_clearing_one", "%p already dirty", view);*/
         }
     } else {
         /*LOG(LOG_INFO, "inventory::container_clearing_one", "%p not container", view);*/
-    } 
+    }
 }
 
 void item_event_container_clearing(item * op) {
@@ -529,53 +529,53 @@ void item_event_container_clearing(item * op) {
 
 static void item_deleting_one(gpointer view_x, gpointer op_x) {
     inventory_viewer * view = (inventory_viewer *)view_x;
-    item * it = (item *)op_x; 
-    
-    if (it->env != view->cont) {    
+    item * it = (item *)op_x;
+
+    if (it->env != view->cont) {
         /*LOG(LOG_INFO, "inventory::item_deleting_one", "%p not container", view);*/
         return;
-    } 
-    
+    }
+
     if (view->complete_rebuild) {
         /*LOG(LOG_INFO, "inventory::item_deleting_one", "%p already dirty", view);*/
         return;
-    } 
-    
+    }
+
     /*LOG(LOG_INFO, "inventory::item_deleting_one", "%p removing row", view);*/
 
     if (view->face_column_resizes) {
         PixmapInfo * it_face = pixmaps[it->face];
-        
+
         /* Special handling to shrink the image column if the 'responsible' face vanishes. */
-        
+
         if (it_face->icon_width == image_size && it_face->icon_height == image_size) {
             ; /* The column will never get smaller than image_size. */
-        } else if (it_face->icon_width < view->image_width 
+        } else if (it_face->icon_width < view->image_width
             && it_face->icon_height < view->image_height) {
-            ; /* This face isn't a cause of either of the maximums. */    
-        } else {            
+            ; /* This face isn't a cause of either of the maximums. */
+        } else {
             PixmapInfo * tmp_face;
             item * tmp_item;
             uint16 mw = image_size, mh = image_size;
-            
+
             /* TODO Refactor with rebuild_our_widget. */
-            
+
             /* it_face requires one of the dimensions to be that large.
             See if removing it changes the requirements. */
-            
+
             for (tmp_item = view->cont->inv; tmp_item != NULL; tmp_item = tmp_item->next) {
                 if (tmp_item == it) continue;
-                
+
                 if (!view->shows(it)) continue;
-                
+
                 tmp_face = pixmaps[tmp_item->face];
-                
+
                 if (tmp_face->icon_width > mw) mw = tmp_face->icon_width;
                 if (tmp_face->icon_height > mh) mh = tmp_face->icon_height;
             }
-            
+
             /* mw, mh hold the size requirement for every shown item bar op. */
-            
+
             if (view->image_width != mw) {
                 gtk_clist_set_column_width(GTK_CLIST(view->list), 0, mw);
                 view->image_width = mw;
@@ -584,10 +584,10 @@ static void item_deleting_one(gpointer view_x, gpointer op_x) {
                 gtk_clist_set_row_height(GTK_CLIST(view->list), mh);
                 view->image_height = mh;
             }
-        }                                
+        }
     }
 
-    /* Remove the row containing the item. */                
+    /* Remove the row containing the item. */
     gtk_clist_remove(GTK_CLIST(view->list),
         gtk_clist_find_row_from_data(GTK_CLIST(view->list), op_x)
     );
@@ -607,7 +607,7 @@ void item_event_item_deleting(item * op) {
 }
 
 
-/* 
+/*
  * Configuration
  */
 
@@ -618,7 +618,7 @@ static void inventory_viewer_set_show_weight(inventory_viewer * view, bool show_
     if (view->show_weight == show_weight) {
         return;
     }
-    
+
     view->complete_rebuild = TRUE;
     view->show_weight = show_weight;
 }
@@ -627,7 +627,7 @@ static void inventory_viewer_set_highlight(inventory_viewer * view, bool highlig
     if (view->highlight == highlight) {
         return;
     }
-    
+
     view->complete_rebuild = TRUE;
     view->highlight = highlight;
 }
@@ -636,40 +636,40 @@ static void inventory_viewer_set_show_flags(inventory_viewer * view, bool show_f
     if (view->show_flags == show_flags) {
         return;
     }
-    
+
     view->complete_rebuild = TRUE;
     view->show_flags = show_flags;
 }
 
 static void inventory_viewer_set_container(inventory_viewer * view, item * new_cont) {
     if (view->cont == new_cont) return;
-    
+
     /*LOG(LOG_INFO, "inventory::inventory_viewer_set_container", "%p dirtied", view);*/
     view->cont = new_cont;
     view->complete_rebuild = TRUE;
 }
 
 
-/* 
- * Handle mouse presses in the lists 
+/*
+ * Handle mouse presses in the lists
  */
- 
+
 #include "gtkproto.h" /* draw_info */
 static void list_button_event(
-    GtkWidget *gtklist, 
-    gint row, gint column, 
-    GdkEventButton *event, 
+    GtkWidget *gtklist,
+    gint row, gint column,
+    GdkEventButton *event,
     inventory_viewer * view)
 {
     item *it;
     it = gtk_clist_get_row_data (GTK_CLIST(gtklist), row);
     gtk_clist_unselect_row (GTK_CLIST(gtklist), row, 0);
-        
+
     if (event->button==1) {
         if (event->state & GDK_SHIFT_MASK)
           toggle_locked(it);
         else
-          client_send_examine (it->tag);     
+          client_send_examine (it->tag);
 
     }
     if (event->button==2) {
@@ -689,8 +689,8 @@ static void list_button_event(
                 gtk_spin_button_set_value(GTK_SPIN_BUTTON(counttext),0.0);
                 cpl.count=0;
             }
-        }          
-    }  
+        }
+    }
 }
 
 
@@ -703,7 +703,7 @@ static void list_button_event(
  * If you want to change, or especially *add*, inventory viewers, you should
  * only need to modify things below this comment.
  *
- * (Viewing multiple *containers* possibly requires changes in 
+ * (Viewing multiple *containers* possibly requires changes in
  * common and the *server*...)
  *
  ****************************************************************************/
@@ -767,11 +767,11 @@ static GtkWidget * inv_notebook = NULL;
 
 
 
-/* 
+/*
  * Destroy the current views when the client is toggled between splitwindow and onewindow
- * mode (or vice versa). 
+ * mode (or vice versa).
  */
- 
+
 static void add_removal_victim(gpointer view_x, gpointer victim_views_p_x) {
     inventory_viewer * view = (inventory_viewer *)view_x;
     GList ** victim_views_p = (GList **) victim_views_p_x;
@@ -791,7 +791,7 @@ void inventory_splitwin_toggling(void) {
     GList * victim_views = NULL;
 
     /* Eeek! Need to throw away all sorts of things. */
-    
+
     /* We need to get of everything in inv_viewers, everything
     in highlit_inv_viewers, and the look_viewer; however, we also
     need to free them exactly once. add_removal_victim effectively
@@ -799,18 +799,18 @@ void inventory_splitwin_toggling(void) {
     g_list_foreach(inv_viewers, add_removal_victim, &victim_views);
     g_list_foreach(highlit_inv_viewers, add_removal_victim, &victim_views);
     add_removal_victim(look_viewer, &victim_views);
-    
+
     /* Free the views. */
     g_list_foreach(victim_views, nuke_view, NULL);
     g_list_free(victim_views);
 
     /* Zero the values; it's like the client just started. */
-    /* We presume widgets'll be taken care of by GTK widget-destroy functions. */    
-    look_viewer = NULL;    
+    /* We presume widgets'll be taken care of by GTK widget-destroy functions. */
+    look_viewer = NULL;
     look_widget = NULL;
     inv_viewers = NULL;
-    inv_notebook = NULL; 
-    highlit_inv_viewers = NULL;    
+    inv_notebook = NULL;
+    highlit_inv_viewers = NULL;
 }
 
 /*
@@ -820,24 +820,24 @@ void inventory_splitwin_toggling(void) {
 static void resize_left_widget_one(gpointer view_x, gpointer total_width_x) {
     inventory_viewer  * view = (inventory_viewer *)view_x;
     gint total_width = GPOINTER_TO_INT(total_width_x);
-    
+
     if (view == NULL) {
         /* Weird. This is never set as a signal handler, but somehow gtk1.2
            decides to call this with a NULL view when going to split windows.
         */
         return;
     }
-    
+
     gtk_clist_set_column_width(GTK_CLIST(view->list),
         1, total_width - view->image_width);
-    
+
     /*LOG(LOG_INFO, "inventory::resize_left_widget_one", "view %p image_width %d", view, view->image_width);*/
 }
 
 /* I mean, the minimum width that won't cause infinite recursion is dependent on the
 width of the scrollbar and possibly the font used in the title widgets; all that could
 change if you switch GTK-engine-thingy, so hard-coding this value is silly. On the other
-hand, I don't know any alternative, aside from using clist's automatic sizing features. 
+hand, I don't know any alternative, aside from using clist's automatic sizing features.
 
 ... and why in ding dong would making it smaller (70) *add* the horizontal scrollbar?
 */
@@ -845,19 +845,19 @@ hand, I don't know any alternative, aside from using clist's automatic sizing fe
 
 static void resize_left_widgets(GtkWidget *widget, GtkAllocation *event) {
     static gint old_total_width = 0;
-    inventory_viewer * hack; 
-    gint total_width; 
-    
+    inventory_viewer * hack;
+    gint total_width;
+
     /* If GTK can unexpectedly call resize_left_widget_one() as a signal
        handler when the inventory widgets temporarily don't exist, then we
        might as well watch our tail here, too. */
     if (inv_viewers == NULL) return;
     if (look_viewer == NULL) return;
-    
+
     /* HACK Extract the first inventory-viewer. */
     hack = (inventory_viewer *)(inv_viewers->data);
-    total_width = GTK_CLIST(hack->list)->clist_window_width - MAGIC_SAFE_WIDTH; 
-    
+    total_width = GTK_CLIST(hack->list)->clist_window_width - MAGIC_SAFE_WIDTH;
+
     if (old_total_width == total_width) return;
     old_total_width = total_width;
 
@@ -877,7 +877,7 @@ static bool view_visible(inventory_viewer * view) {
 
     /* Bottom widget. */
     if (view == look_viewer) return TRUE;
-    
+
     /* If it's an inv_viewer, if its the visible notebook page. */
     for(i = inv_viewers; i != NULL; i = g_list_next(i)) {
         if (i->data == view) {
@@ -886,18 +886,18 @@ static bool view_visible(inventory_viewer * view) {
                 gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook)));
         }
     }
-    
+
     /* assume */
     return TRUE;
 }
 
-/* As the wossname of the above, when the visible tab is changed, rebuild it if needed. 
+/* As the wossname of the above, when the visible tab is changed, rebuild it if needed.
 Tied to widgets by mod_one_widget(). */
 static void redraw_on_show(GtkWidget * a, GdkEventVisibility * event, gpointer view_x) {
     inventory_viewer * view = (inventory_viewer *)view_x;
-    
+
     if (!view->complete_rebuild) return;
-    
+
     /*{
         char * x = "unexpected";
 
@@ -908,10 +908,10 @@ static void redraw_on_show(GtkWidget * a, GdkEventVisibility * event, gpointer v
         } else if (event->state == GDK_VISIBILITY_FULLY_OBSCURED) {
             x = "obscured";
         }
-        
+
         LOG(LOG_INFO, "inventory::redraw_on_show", "rebuilding %p (visibility changed to %s)", view, x);
     }*/
-    
+
     rebuild_our_widget(view);
 }
 
@@ -924,14 +924,14 @@ static GtkWidget * get_inv_widget(void) {
     GdkBitmap *labelgdkmask;
     GtkWidget *tablabel;
     inventory_viewer * view;
-    
+
     if (inv_notebook != NULL) {
        return inv_notebook;
     }
-            
+
     inv_notebook = gtk_notebook_new();
     gtk_notebook_set_tab_pos (GTK_NOTEBOOK (inv_notebook), GTK_POS_TOP );
-    
+
     for (i = fixed_tabs; i - fixed_tabs < TYPE_LISTS; i++) {
         tabstyle = gtk_widget_get_style(gtkwin_root);
 
@@ -943,24 +943,24 @@ static GtkWidget * get_inv_widget(void) {
 
         tablabel = gtk_pixmap_new (labelgdkpixmap, labelgdkmask);
         gtk_widget_show (tablabel);
-        
+
         view = new_inventory_viewer(cpl.ob, i->filter, cpl.below); /* player to ground */
         view->face_column_resizes = FALSE;
-                
+
         inventory_viewer_set_highlight(view, i->highlight);
         highlit_inv_viewers = g_list_append(highlit_inv_viewers, view);
-        
+
         inv_viewers = g_list_append(inv_viewers, view);
 
-        gtk_notebook_append_page (GTK_NOTEBOOK (inv_notebook), 
-	    view->scroll_window, 
-            tablabel);        
-        
-        /* 
+        gtk_notebook_append_page (GTK_NOTEBOOK (inv_notebook),
+	    view->scroll_window,
+            tablabel);
+
+        /*
          * Attach events to make some extra behaviours...
          */
-        
-        gtk_signal_connect(GTK_OBJECT(view->list), 
+
+        gtk_signal_connect(GTK_OBJECT(view->list),
             "size-allocate",
             (GtkSignalFunc)resize_left_widgets,
             NULL);
@@ -980,16 +980,16 @@ static GtkWidget * get_inv_widget(void) {
             "visibility-notify-event",
             (GtkSignalFunc)redraw_on_show,
             view);
-        
-         gtk_widget_add_events(view->list, GDK_VISIBILITY_NOTIFY_MASK);        
+
+         gtk_widget_add_events(view->list, GDK_VISIBILITY_NOTIFY_MASK);
     }
 
-    gtk_widget_show(inv_notebook);    
-    
-    return inv_notebook;
-}    
+    gtk_widget_show(inv_notebook);
 
-    
+    return inv_notebook;
+}
+
+
 
 static GtkWidget *get_look_widget(void) {
     if (look_widget != NULL) {
@@ -1000,14 +1000,14 @@ static GtkWidget *get_look_widget(void) {
     look_viewer->highlight = TRUE;
     look_viewer->face_column_resizes = TRUE;
     highlit_inv_viewers = g_list_append(highlit_inv_viewers, look_viewer);
-    
+
     look_widget = look_viewer->scroll_window;
-    
+
     return look_widget;
 }
 
-/* 
- * Now slap the labels on around the invwidgets. 
+/*
+ * Now slap the labels on around the invwidgets.
  */
 
 itemlist look_list, inv_list;
@@ -1018,11 +1018,11 @@ GtkWidget *closebutton;
 static void close_container_callback(item *op);
 
 
-void get_look_display(GtkWidget *frame) 
+void get_look_display(GtkWidget *frame)
 {
   GtkWidget *vbox1;
   GtkWidget *hbox1;
-  
+
   look_list.env = cpl.below;
   strcpy (look_list.title, "You see:");
   strcpy (look_list.last_title, look_list.title);
@@ -1030,7 +1030,7 @@ void get_look_display(GtkWidget *frame)
   strcpy (look_list.last_maxweight, "0");
   look_list.show_weight = TRUE;
   look_list.weight_limit = 0;
-    
+
 
   vbox1 = gtk_vbox_new(FALSE, 0);/*separation here*/
   gtk_container_add (GTK_CONTAINER(frame), vbox1);
@@ -1046,8 +1046,8 @@ void get_look_display(GtkWidget *frame)
   gtk_widget_set_sensitive(closebutton, FALSE);
   gtk_box_pack_start (GTK_BOX(hbox1),closebutton, FALSE, FALSE, 2);
   gtk_widget_show (closebutton);
-  gtk_tooltips_set_tip (tooltips, closebutton, 
-      "This will close an item if you have one open.", 
+  gtk_tooltips_set_tip (tooltips, closebutton,
+      "This will close an item if you have one open.",
       NULL);
 
   look_list.label = gtk_label_new ("You see:");
@@ -1095,10 +1095,10 @@ void get_inv_display(GtkWidget *frame)
   inv_list.env = cpl.ob;
   inv_list.show_weight = TRUE;
   inv_list.weight_limit = 0;
-  
+
   vbox2 = gtk_vbox_new(FALSE, 0); /* separation here */
-  
-  gtk_container_add (GTK_CONTAINER(frame), vbox2); 
+
+  gtk_container_add (GTK_CONTAINER(frame), vbox2);
 
   hbox1 = gtk_hbox_new(FALSE, 2);
   gtk_box_pack_start (GTK_BOX(vbox2),hbox1, FALSE, FALSE, 0);
@@ -1138,8 +1138,8 @@ void get_inv_display(GtkWidget *frame)
   gtk_box_pack_start (GTK_BOX (hbox1),counttext, FALSE, FALSE, 0);
 
   gtk_widget_show (counttext);
-  gtk_tooltips_set_tip (tooltips, counttext, 
-      "This sets the number of items you wish to pickup or drop. You can also use the keys 0-9 to set it.", 
+  gtk_tooltips_set_tip (tooltips, counttext,
+      "This sets the number of items you wish to pickup or drop. You can also use the keys 0-9 to set it.",
       NULL);
 
   gtk_box_pack_start (GTK_BOX(vbox2), get_inv_widget(), TRUE, TRUE, 0);
@@ -1163,8 +1163,8 @@ void command_show (const char *params) {
 	    gtk_notebook_next_page(GTK_NOTEBOOK(inv_notebook));
         }
         return;
-    } 
-    
+    }
+
     for (i = 0; i < TYPE_LISTS; i++) {
         /* Prefix match */
         if (!strncmp(params, fixed_tabs[i].name, strlen(params))) {
@@ -1183,7 +1183,7 @@ void update_list_labels (itemlist *l)
 {
     char weight[MAX_BUF];
     char max_weight[MAX_BUF];
-  
+
     /* draw title and put stuff in widgets */
 
     if ( strcmp( l->title, l->last_title ) ) {
@@ -1215,25 +1215,25 @@ void update_list_labels (itemlist *l)
 	    gtk_label_set (GTK_LABEL(l->maxweightlabel), max_weight);
         gtk_widget_draw (l->maxweightlabel, NULL);
     }
-    
+
     l->env->inv_updated = FALSE;
 }
 
 /*
  *  update_list_labels() redraws inventory and look window labels when necessary
- *  
+ *
  *  (Maybe somewhat more often; look_list doesn't always have a weight shown, possibly.)
  */
 static void update_lists_labels(void)
 {
   if (inv_list.env->inv_updated) {
     update_list_labels (&inv_list);
-  } 
+  }
 
   if (look_list.env->inv_updated) {
     update_list_labels (&look_list);
   }
-  
+
 }
 
 
@@ -1241,7 +1241,7 @@ static void update_lists_labels(void)
 /*
  * Events
  */
- 
+
 void set_weight_limit (uint32 wlim)
 {
     inv_list.weight_limit = wlim;
@@ -1287,7 +1287,7 @@ static void set_look_flags(bool show_flags) {
 
 void itemlist_set_show_icon(itemlist * l, int new_setting) {
    if (l->show_icon == new_setting) return;
-   
+
    /* HACK */
    if (l == &inv_list) {
        set_inv_flags(!new_setting);
@@ -1296,7 +1296,7 @@ void itemlist_set_show_icon(itemlist * l, int new_setting) {
    } else {
       g_assert(l == &inv_list || l == &look_list);
    }
-   
+
    l->show_icon = new_setting;
 }
 
@@ -1315,7 +1315,7 @@ void set_show_icon (const char *s)
 static void set_look_list_env_one(gpointer view_x, gpointer new_look_x) {
     inventory_viewer * view = (inventory_viewer *)view_x;
     item * new_look = (item *)new_look_x;
-    
+
     view->move_dest = new_look;
 }
 
@@ -1326,13 +1326,13 @@ void set_look_list_env(item * op) {
     look_list.env = op;
 
     inventory_viewer_set_container(look_viewer, op);
-    
+
     g_list_foreach(inv_viewers, set_look_list_env_one, op);
 }
 
 
 void open_container (item *op) {
-  set_look_list_env(op); 
+  set_look_list_env(op);
   sprintf (look_list.title, "%s:", op->d_name);
   gtk_widget_set_sensitive(closebutton, TRUE);
 
@@ -1375,11 +1375,3 @@ void inventory_tick() {
     update_lists_labels();
     itemview_tick();
 }
-
-
-
-
-
-
-
-

@@ -61,7 +61,7 @@ AC_DEFUN([GNOME_WITH_VFS],[
 	  [--with-termnet             If you want a termified net support],[
 	  if test x$withval = xyes; then
 		  AC_DEFINE(USE_TERMNET)
-		  termnet=true		
+		  termnet=true
 	  fi
   ])
 
@@ -99,5 +99,3 @@ AC_DEFUN([GNOME_VFS_CHECKS],[
 			dnl Should we issue a warning?
 	esac
 ])
-
-

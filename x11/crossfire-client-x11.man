@@ -25,7 +25,7 @@ build the X11 version.
 .TP
 .B -server <server>
 Sets the server to play on.  If no option is given, it will default to
-localhost.  
+localhost.
 .TP
 .B -port <number>
 The port number of the server to connect to.  By default, it will use
@@ -219,7 +219,7 @@ help command).  Enter command to execute the command.
 These commands were described in the SAVED DEFAULTS options above.
 .TP
 .B scroll
-This toggles whether or the information windows scrolls when it gets to 
+This toggles whether or the information windows scrolls when it gets to
 the bottom of the window or wraps to the top.  Wrapping is slighly less
 cpu intensive, but is generally harder to read.
 .TP

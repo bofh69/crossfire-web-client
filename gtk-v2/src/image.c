@@ -92,7 +92,7 @@ int last_face_num=0;
 
 #define MAX_ICON_SPACES	    10
 static int icon_rescale_factor[MAX_ICON_SPACES] = {
-100, 100,	    80 /* 2 = 160 */,	60 /* 3 = 180 */, 
+100, 100,	    80 /* 2 = 160 */,	60 /* 3 = 180 */,
 50 /* 4 = 200 */,   45 /* 5 = 225 */,	40 /* 6 = 240 */,
 35 /* 7 = 259 */,   35 /* 8 = 280 */,	33 /* 9 = 300 */
 };
@@ -147,7 +147,7 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 	        pi->map_height, 32, pi->map_width * 4,  0xff,
 			0xff00, 0xff0000, 0xff000000);
 
-	fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE, 
+	fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE,
 		pi->map_width,  pi->map_height, 32, 0xff,
 			0xff00, 0xff0000, 0xff000000);
 	SDL_LockSurface(fog);
@@ -172,7 +172,7 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 	        pi->map_height, 32, pi->map_width * 4,  0xff000000,
 			0xff0000, 0xff00, 0xff);
 
-	fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE, 
+	fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE,
 		pi->map_width,  pi->map_height, 32, 0xff000000,
 			0xff0000, 0xff00, 0xff);
 	SDL_LockSurface(fog);
@@ -335,13 +335,13 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 	 * created the image, so we can free it.  SDL uses the
 	 * raw rgba data, so it can't be freed.
 	 */
-	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP || 
+	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP ||
 	    use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) free(png_tmp);
     } else {
 	pi->map_width = width;
 	pi->map_height = height;
 	/* if using SDL mode, a copy of the rgba data needs to be
-	 * stored away. 
+	 * stored away.
 	 */
 	if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	    png_tmp = malloc(width * height * BPP);
@@ -468,7 +468,7 @@ void image_update_download_status(int start, int end, int total)
 void get_map_image_size(int face, uint8 *w, uint8 *h)
 {
     /* We want to calculate the number of spaces this image
-     * uses it.  By adding the image size but substracting one,	
+     * uses it.  By adding the image size but substracting one,
      * we cover the cases where the image size is not an even
      * increment.  EG, if the map_image_size is 32, and an image
      * is 33 wide, we want that to register as two spaces.  By
@@ -498,7 +498,7 @@ void init_cache_data()
 
 
     LOG(LOG_INFO,"gtk::init_cache_data","Init Cache");
-    
+
     style = gtk_widget_get_style(window_root);
     pixmaps[0] = malloc(sizeof(PixmapInfo));
     pixmaps[0]->icon_image = gdk_pixmap_create_from_xpm_d(window_root->window,
@@ -546,4 +546,3 @@ void init_cache_data()
 
     init_common_cache_data();
 }
-

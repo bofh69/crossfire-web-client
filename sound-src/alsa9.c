@@ -147,7 +147,7 @@ int init_audio(void) {
 
    if (settings.bit8)
        format = settings.sign?SND_PCM_FORMAT_S8:SND_PCM_FORMAT_U8;
-   else 
+   else
        format = SND_PCM_FORMAT_U16;
 
 
@@ -189,7 +189,7 @@ int init_audio(void) {
 	ALSA9_ERROR("nonblock setting error: %s", err);
 	exit(1);
     }
-    
+
     if ((err = snd_pcm_sw_params_malloc (&sw_params)) < 0) {
 	    fprintf (stderr, "cannot allocate software parameters structure (%s)\n",
 				 snd_strerror (err));
@@ -245,9 +245,9 @@ void alsa_recover(int e) {
 			}
 		}
 	} else ALSA9_ERROR("alsa_recover(): ",e);
-	
+
 }
-	
+
 
 
 /* Does the actual task of writing the data to the socket.
@@ -279,14 +279,14 @@ int audio_play(int buffer, int off) {
 }
 
 
-	
+
 
 
 
 
 /* Plays sound 'soundnum'.  soundtype is 0 for normal sounds, 1 for
  * spell_sounds.  This might get extended in the future.  x,y are offset
- * (assumed from player) to play sound.  This information is used to 
+ * (assumed from player) to play sound.  This information is used to
  * determine value and left vs right speaker balance.
  * This doesn't really play a sound, rather it just addes it to
  * the buffer to be played later on.
@@ -306,11 +306,11 @@ void play_sound(int soundnum, int soundtype, int x, int y)
     if (buf == 0) buf++;
 
     /* check if the buffer isn't full */
-#ifdef SOUND_DEBUG    
+#ifdef SOUND_DEBUG
     fprintf(stderr,"Sounds in buffer %i: %i\n",buf,sounds_in_buffer[buf]);
 #endif
     if (sounds_in_buffer[buf]>settings.simultaneously) return;
-    
+
     if (soundnum>=MAX_SOUNDS || soundnum<0) {
 	fprintf(stderr,"Invalid sound number: %d\n", soundnum);
 	return;
@@ -336,12 +336,12 @@ void play_sound(int soundnum, int soundtype, int x, int y)
 
     /*
      *   Load the sound if it is not loaded yet.
-     *  
+     *
      */
     if (!si->data){
        FILE *f;
        struct stat sbuf;
-#ifdef SOUND_DEBUG    
+#ifdef SOUND_DEBUG
        fprintf(stderr,"Loading file: %s\n",si->filename);
 #endif
        if (stat(si->filename,&sbuf)){
@@ -355,19 +355,19 @@ void play_sound(int soundnum, int soundtype, int x, int y)
                     settings.buflen*(settings.buffers-1)/sample_size);
           return;
        }
-       si->data=(unsigned char *)malloc(si->size);	
-       f=fopen(si->filename,"r"); 
+       si->data=(unsigned char *)malloc(si->size);
+       f=fopen(si->filename,"r");
        if (!f){
            perror(si->filename);
            return;
        }
-       fread(si->data,1,si->size,f);         
+       fread(si->data,1,si->size,f);
        fclose(f);
     }
 
     /* calculate volume multiplers */
     dist=sqrt(x*x+y*y);
-#ifdef SOUND_DEBUG    
+#ifdef SOUND_DEBUG
     fprintf(stderr,"Playing sound %i (%s), volume %i, x,y=%d,%d, dist=%f\n",soundnum,si->symbolic,si->volume,x,y, dist);
 #endif
     right_ratio=left_ratio=((1<<16)*si->volume)/(100*(1+SOUND_DECREASE*dist));
@@ -376,9 +376,9 @@ void play_sound(int soundnum, int soundtype, int x, int y)
 	double diff;
 	if (dist)
 	    diff=(1.0-fabs((double)x/dist));
-	else 
+	else
 	    diff=1;
-#ifdef SOUND_DEBUG    
+#ifdef SOUND_DEBUG
 	printf("diff: %f\n",diff);
 	fflush(stdout);
 #endif
@@ -386,7 +386,7 @@ void play_sound(int soundnum, int soundtype, int x, int y)
 	else left_ratio*=diff;
     }
 
-#ifdef SOUND_DEBUG    
+#ifdef SOUND_DEBUG
     fprintf(stderr,"Ratio: %i, %i\n",left_ratio,right_ratio);
 #endif
 
@@ -398,7 +398,7 @@ void play_sound(int soundnum, int soundtype, int x, int y)
 	if (settings.bit8) {
 	  if (!stereo){
 	     buffers[buf*settings.buflen+off]+=(dat*left_ratio)>>16;
-	  }  
+	  }
           else{
 	    buffers[buf*settings.buflen+off]+=(dat*left_ratio)>>16;
 	    buffers[buf*settings.buflen+off+1]+=(dat*right_ratio)>>16;
@@ -409,7 +409,7 @@ void play_sound(int soundnum, int soundtype, int x, int y)
 #ifdef WORDS_BIGENDIAN
 	     buffers[buf*settings.buflen+off+1]+=((dat*left_ratio)>>8)&0xff;
 	     buffers[buf*settings.buflen+off]+=(dat*left_ratio)>>16;
-	  }  
+	  }
           else{
 	    buffers[buf*settings.buflen+off+1]+=((dat*left_ratio)>>8)&0xff;
 	    buffers[buf*settings.buflen+off]+=(dat*left_ratio)>>16;
@@ -419,7 +419,7 @@ void play_sound(int soundnum, int soundtype, int x, int y)
 #else
 	     buffers[buf*settings.buflen+off]+=((dat*left_ratio)>>8)&0xff;
 	     buffers[buf*settings.buflen+off+1]+=(dat*left_ratio)>>16;
-	  }  
+	  }
           else{
 	    buffers[buf*settings.buflen+off]+=((dat*left_ratio)>>8)&0xff;
 	    buffers[buf*settings.buflen+off+1]+=(dat*left_ratio)>>16;
@@ -428,9 +428,9 @@ void play_sound(int soundnum, int soundtype, int x, int y)
 	  }
 #endif
         }
-	
+
         off+=sample_size;
-        
+
         if (off>=settings.buflen){
           off=0;
           buf++;
@@ -496,7 +496,7 @@ int main(int argc, char *argv[])
 /*	fprintf(stderr,"frames=%d\n", frames);*/
 	while (((settings.buflen+frames)> maxframes) || (frames == -EPIPE)) {
 
-	    if (current_buffer != first_free_buffer) {  
+	    if (current_buffer != first_free_buffer) {
 		int wrote;
 
 		if (frames == -EPIPE)	snd_pcm_prepare(handle);
@@ -508,7 +508,7 @@ int main(int argc, char *argv[])
 		if (wrote < settings.buflen-sndbuf_pos) {
 		    sndbuf_pos+=wrote;
 		}
-		else{ 
+		else{
 		    /* clean the buffer */
 		    memset(buffers+settings.buflen*current_buffer,zerolevel,settings.buflen);
 		    sounds_in_buffer[current_buffer]=0;
@@ -516,7 +516,7 @@ int main(int argc, char *argv[])
 		    current_buffer++;
 		    if (current_buffer>=settings.buffers) current_buffer=0;
 		}
-	    } else 
+	    } else
 		break;
 	    frames = snd_pcm_avail_update (handle);
 	}

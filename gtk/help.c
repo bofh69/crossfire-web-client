@@ -30,7 +30,7 @@ static GtkWidget *chelptext = NULL; /* HACK */
 static void replace_text(const char * new_text) {
     gtk_text_set_point(GTK_TEXT(chelptext), 0);
     gtk_text_forward_delete(GTK_TEXT(chelptext), gtk_text_get_length(GTK_TEXT(chelptext)) );
-    gtk_text_insert(GTK_TEXT(chelptext), NULL, &chelptext->style->black, NULL, new_text, -1);    
+    gtk_text_insert(GTK_TEXT(chelptext), NULL, &chelptext->style->black, NULL, new_text, -1);
 }
 
 #define CLIENTHELP_LONG_LIST
@@ -57,22 +57,22 @@ static void set_default_text(void) {
 
 /* HACK */
 #define LINE(x) strncpy(tmp_buf, out_buf, COLOSSAL_BUF - 1); snprintf(out_buf, COLOSSAL_BUF - 1, "%s%s\n", tmp_buf, x);
-        
-    strcpy(out_buf, 
+
+    strcpy(out_buf,
         "To get help on one of the commands listed below, enter the name in the text entry "
         "box below, and press Enter. To get back to this list, clear the text box and press "
         "Enter.\n"
         "\n"
         " === Client Side Command List === \n"
     );
-    
+
     array_cc = get_cat_sorted_commands();
-    
+
     for (i = 0; i < get_num_commands(); i++) {
         cc = array_cc[i];
         if (cc->cat != current_cat) {
             char buf[MAX_BUF];
-            
+
 #ifndef CLIENTHELP_LONG_LIST
             if (line_len > 0) {
                 LINE(line_buf);
@@ -83,9 +83,9 @@ static void set_default_text(void) {
 
             snprintf(buf, MAX_BUF - 1, "%s Commands:", get_category_name(cc->cat));
             LINE(buf);
-            current_cat = cc->cat; 
+            current_cat = cc->cat;
         }
-        
+
 #ifdef CLIENTHELP_LONG_LIST
         if (cc->desc != NULL) {
             char buf[MAX_BUF];
@@ -96,7 +96,7 @@ static void set_default_text(void) {
         }
 #else
         name_len = strlen(cc->name);
-        
+
         if (strlen(cc->name) > MAX_BUF) {
             LINE(cc->name);
         } else if (name_len > assumed_wrap) {
@@ -117,7 +117,7 @@ static void set_default_text(void) {
         }
 #endif
     }
-    
+
 #ifndef CLIENTHELP_LONG_LIST
     /* Dump dangling commands. Been there, got the fencepost.
     Or is it a gap? */
@@ -125,7 +125,7 @@ static void set_default_text(void) {
         LINE(line_buf);
     }
 #endif
-    
+
     replace_text(out_buf);
 }
 
@@ -137,12 +137,12 @@ static void chelp_entry_callback(GtkWidget * cargo_cult_ignored, GtkWidget * top
 
     topic = gtk_entry_get_text(GTK_ENTRY(topic_entry));
     /* TODO Select it, in case typing replaces selection. */
-    
+
     if (topic == NULL || strlen(topic) <= 0) {
          set_default_text();
          return;
     }
-        
+
     cc = find_command(topic);
 
     if (cc == NULL) {
@@ -162,14 +162,14 @@ static void chelp_entry_callback(GtkWidget * cargo_cult_ignored, GtkWidget * top
 
         if (cc->helpfunc == NULL) {
             extended = "This command is undocumented.";
-        } else { 
+        } else {
             extended = cc->helpfunc();
             if (extended == NULL) {
                 extended = "This command is not yet documented.";
             }
         }
 
-        snprintf(out_buf, COLOSSAL_BUF - 1, "%s Command:\n%s\n\n%s", 
+        snprintf(out_buf, COLOSSAL_BUF - 1, "%s Command:\n%s\n\n%s",
             get_category_name(cc->cat),
             buf,
             extended);
@@ -190,7 +190,7 @@ void chelpdialog(GtkWidget *widget) {
 
 
   if(gtkwin_chelp == NULL) {
-    
+
     gtkwin_chelp = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_position (GTK_WINDOW (gtkwin_chelp), GTK_WIN_POS_CENTER);
     gtk_widget_set_usize (gtkwin_chelp,400,300);
@@ -198,7 +198,7 @@ void chelpdialog(GtkWidget *widget) {
     gtk_window_set_policy (GTK_WINDOW (gtkwin_chelp), TRUE, TRUE, FALSE);
 
     gtk_signal_connect (GTK_OBJECT (gtkwin_chelp), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &gtkwin_chelp);
-    
+
     gtk_container_border_width (GTK_CONTAINER (gtkwin_chelp), 1);
     vbox = gtk_vbox_new(FALSE, 2);
     gtk_container_add (GTK_CONTAINER(gtkwin_chelp),vbox);
@@ -212,7 +212,7 @@ void chelpdialog(GtkWidget *widget) {
 
     vscrollbar = gtk_vscrollbar_new (GTK_TEXT (chelptext)->vadj);
     gtk_box_pack_start (GTK_BOX (hbox),vscrollbar, FALSE, FALSE, 0);
- 
+
     gtk_widget_show (vscrollbar);
     gtk_widget_show (hbox);
 
@@ -226,7 +226,7 @@ void chelpdialog(GtkWidget *widget) {
 		     GTK_SIGNAL_FUNC(chelp_entry_callback),
 		     topic_entry);
     /* TODO Make it a combo box? No? */
-    
+
     helpbutton = gtk_button_new_with_label ("Close");
     gtk_signal_connect_object (GTK_OBJECT (helpbutton), "clicked",
 			       GTK_SIGNAL_FUNC(gtk_widget_destroy),
@@ -242,8 +242,7 @@ void chelpdialog(GtkWidget *widget) {
     gtk_widget_show (gtkwin_chelp);
     set_default_text();
   }
-  else { 
+  else {
     gdk_window_raise (gtkwin_chelp->window);
   }
 }
-

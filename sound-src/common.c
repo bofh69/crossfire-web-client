@@ -31,7 +31,7 @@ default_normal, default_spell;
  * we store some static values in the function so we know what we are doing -
  * however, it is somewhat necessary so that we can use this same function
  * to parse both files and the compiled in data.
- * 
+ *
  * Note that this function will modify the data in line.  lineno is just
  * for error tracking purposes.
  */
@@ -44,12 +44,12 @@ static void parse_sound_line(char *line, int lineno) {
     if (line[0]=='#' || line[0]=='\n') return;
 
     if (!strcmp(line,"Standard Sounds:\n")) {
-	lastnum=0; 
+	lastnum=0;
 	readtype=1;
 	return;
     }
     if (!strcmp(line,"Spell Sounds:\n")) {
-	lastnum=0; 
+	lastnum=0;
 	readtype=2;
 	return;
     }
@@ -71,7 +71,7 @@ static void parse_sound_line(char *line, int lineno) {
     /* Skip all whitespace for the next field */
     while (*cp!='\0' && (*cp==' ' || *cp=='\t'))
 	cp++;
-    
+
     volume=cp;
 
     /* No symbolic name or number - that is ok */
@@ -81,7 +81,7 @@ static void parse_sound_line(char *line, int lineno) {
 	symbolic=NULL;
     } else {	/* We think we have a symbolic name */
 	/* Don't need to nulterm the volume, since we atoi it anyways */
-	while (*cp!='\0' && (*cp==' ' || *cp=='\t')) 
+	while (*cp!='\0' && (*cp==' ' || *cp=='\t'))
 	    cp++;
 
 	symbolic=cp;
@@ -100,7 +100,7 @@ static void parse_sound_line(char *line, int lineno) {
 	    newnum=lastnum+1;
 	else {
 	    *cp++='\0';
-	    while (*cp!='\0' && (*cp==' ' || *cp=='\t')) 
+	    while (*cp!='\0' && (*cp==' ' || *cp=='\t'))
 		cp++;
 	    if (isdigit(*cp))
 		newnum=atoi(cp);
@@ -119,7 +119,7 @@ static void parse_sound_line(char *line, int lineno) {
      */
     strcpy(filename, line);
     cp = filename + strlen(filename)-3;
-    if (!strcmp(cp, ".au")) 
+    if (!strcmp(cp, ".au"))
 	strcpy(cp, ".raw");
 
     if (symbolic && !strcmp(symbolic,"DEFAULT")) {
@@ -158,8 +158,8 @@ int init_sounds(void)
     int i;
     FILE *fp;
     char path[256], buf[512];
- 
-#ifdef SOUND_DEBUG    
+
+#ifdef SOUND_DEBUG
     fprintf( stderr,"Settings: bits: %i, ",settings.bit8?8:16);
     fprintf( stderr,"%s, ",settings.sign?"signed":"unsigned");
     fprintf( stderr,"%s, ",settings.stereo?"stereo":"mono");
@@ -175,8 +175,8 @@ int init_sounds(void)
     if (init_audio()) return -1;
 
     memset(buffers,zerolevel,settings.buflen*settings.buffers);
-    
-#ifdef SOUND_DEBUG    
+
+#ifdef SOUND_DEBUG
     fprintf( stderr,"bits: %i, ",settings.bit8?8:16);
     fprintf( stderr,"%s, ",sign?"signed":"unsigned");
     fprintf( stderr,"%s, ",stereo?"stereo":"mono");
@@ -184,7 +184,7 @@ int init_sounds(void)
     fprintf( stderr,"smpl_size: %i, ",sample_size);
     fprintf( stderr,"0level: %i\n",zerolevel);
 #endif
-     
+
     for (i=0; i<MAX_SOUNDS; i++) {
 	normal_sounds[i].filename=NULL;
 	spell_sounds[i].filename=NULL;
@@ -223,19 +223,19 @@ int init_sounds(void)
 }
 
 int SoundCmd(unsigned char *data,  int len)
-{  
+{
     int x, y, num, type;
     int i;
-    
+
     i=sscanf((char *)data,"%x %x %x %x",&num,&type,&x,&y);
     if (i!=4){
         fprintf(stderr,"Wrong input!\n");
 	return -1;
     }
-#ifdef SOUND_DEBUG    
+#ifdef SOUND_DEBUG
     fprintf(stderr,"Playing sound %d (type %d), offset %d, %d\n",
 	    num, type, x ,y);
-#endif	    
+#endif
     play_sound(num, type, x, y);
     return 0;
 }
@@ -281,7 +281,7 @@ int read_settings(void) {
 
     f=fopen(path,"r");
     if (!f) return -1;
-  
+
     while(fgets(linebuf,1023,f)!=NULL) {
 	linebuf[1023]=0;
 	/* Strip off the newline */

@@ -2,7 +2,7 @@ dnl GNOME_COMPILE_WARNINGS
 dnl Turn on many useful compiler warnings
 dnl For now, only works on GCC
 AC_DEFUN([GNOME_COMPILE_WARNINGS],[
-  AC_ARG_ENABLE(compile-warnings, 
+  AC_ARG_ENABLE(compile-warnings,
     [  --enable-compile-warnings=[no/minimum/yes]	Turn on compiler warnings.],,enable_compile_warnings=minimum)
 
   AC_MSG_CHECKING(what warning flags to pass to the C compiler)
@@ -57,7 +57,7 @@ AC_DEFUN([GNOME_COMPILE_WARNINGS],[
 dnl For C++, do basically the same thing.
 
 AC_DEFUN([GNOME_CXX_WARNINGS],[
-  AC_ARG_ENABLE(cxx-warnings, 
+  AC_ARG_ENABLE(cxx-warnings,
     [  --enable-cxx-warnings=[no/minimum/yes]	Turn on compiler warnings.],,enable_cxx_warnings=minimum)
 
   AC_MSG_CHECKING(what warning flags to pass to the C++ compiler)

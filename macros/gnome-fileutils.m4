@@ -5,7 +5,7 @@ dnl checks that are needed for the diskusage applet.
 dnl
 
 AC_DEFUN([GNOME_FILEUTILS_CHECKS],
-[	
+[
 AC_CHECK_HEADERS(fcntl.h sys/param.h sys/statfs.h sys/fstyp.h \
 mnttab.h mntent.h sys/statvfs.h sys/vfs.h sys/mount.h \
 sys/filsys.h sys/fs_types.h sys/fs/s5param.h)

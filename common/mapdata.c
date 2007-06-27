@@ -226,7 +226,7 @@ static void expand_clear_face_from_layer(int x, int y, int layer)
     assert(0 <= layer && layer < MAXLAYERS);
 
     cell = &the_map.cells[x][y].heads[layer];
-    if (cell->size_x && cell->size_y) 
+    if (cell->size_x && cell->size_y)
 	expand_clear_face(x, y, cell->size_x, cell->size_y, layer);
 }
 
@@ -240,7 +240,7 @@ static void expand_clear_face_from_layer(int x, int y, int layer)
  * if clear is set, clear this face.  If not set, don't clear.  the reason
  * clear may not be set is because this is an animation update - animations
  * must all be the same size, so when we set the data for the space,
- * we will just overwrite the old data.  Problem with clearing is that 
+ * we will just overwrite the old data.  Problem with clearing is that
  * clobbers the animation data.
  */
 static void expand_set_face(int x, int y, int layer, sint16 face, int clear)
@@ -732,7 +732,7 @@ void mapdata_set_smooth(int x, int y, int smooth, int layer)
 void mapdata_clear_old(int x, int y) {
     int px, py;
     int i;
-    
+
     assert(0 <= x && x < MAX_VIEW);
     assert(0 <= y && y < MAX_VIEW);
 

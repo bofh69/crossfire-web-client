@@ -88,7 +88,7 @@ int init_sounds(void)
 
     if (fcntl(sound_process->tube[0], F_SETFL, O_NONBLOCK)<0) {
 	/* setting non blocking isn't 100% critical, but a good thing if
-	 * we can do it	
+	 * we can do it
 	 */
 	perror("init_sounds: Warning - unable to set non blocking on sound pipe\n");
     }

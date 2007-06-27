@@ -27,4 +27,3 @@ EXTRA_DIST = \
 	README \
 	README-dev \
 	TODO
-

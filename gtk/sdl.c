@@ -122,7 +122,7 @@ static void overlay_grid( int re_init, int ax, int ay)
   /* Need to convert back to screen coordinates */
   ax-= pl_pos.x;
   ay-= pl_pos.y;
-  
+
   if( re_init == TRUE)
     {
       if( grid_overlay)
@@ -134,7 +134,7 @@ static void overlay_grid( int re_init, int ax, int ay)
 
   if( grid_overlay == NULL)
     {
-      grid_overlay= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, 
+      grid_overlay= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA,
 					  use_config[CONFIG_MAPWIDTH]*map_image_size,
 					  use_config[CONFIG_MAPHEIGHT]*map_image_size,
 					  mapsurface->format->BitsPerPixel,
@@ -150,8 +150,8 @@ static void overlay_grid( int re_init, int ax, int ay)
       first_pass= 0;
     }
 
-  /* 
-   * If this is our first time drawing the grid, we need to build up the 
+  /*
+   * If this is our first time drawing the grid, we need to build up the
    * grid overlay
    */
   if( first_pass== 0)
@@ -160,7 +160,7 @@ static void overlay_grid( int re_init, int ax, int ay)
       /* Red pixels around the edge and along image borders
        * fully transparent pixels everywhere else
        */
-      
+
       fmt= grid_overlay->format;
       for( x= 0; x < map_image_size*use_config[CONFIG_MAPWIDTH]; x++)
 	{
@@ -169,13 +169,13 @@ static void overlay_grid( int re_init, int ax, int ay)
 	      /* FIXME: Only works for 32 bit displays right now */
 	      pixel= (Uint32*)grid_overlay->pixels+y*grid_overlay->pitch/4+x;
 
-	      if( x == 0 || y == 0 || 
+	      if( x == 0 || y == 0 ||
 		  ((x % map_image_size) == 0) || ((y % map_image_size) == 0 ) ||
 		  y == use_config[CONFIG_MAPHEIGHT]*map_image_size-1 || x == use_config[CONFIG_MAPWIDTH]*map_image_size -1 )
 		{
 		  *pixel= SDL_MapRGBA( fmt, 255, 0, 0, SDL_ALPHA_OPAQUE);
 		}
-	      else 
+	      else
 		{
 		  *pixel= SDL_MapRGBA( fmt, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
 		}
@@ -183,7 +183,7 @@ static void overlay_grid( int re_init, int ax, int ay)
 	}
       first_pass= 1;
 
-      /* 
+      /*
        * If this is our first pass then we need to overlay the entire grid
        * now. Otherwise we just update the tile we are on
        */
@@ -192,8 +192,8 @@ static void overlay_grid( int re_init, int ax, int ay)
       dst.w= map_image_size*use_config[CONFIG_MAPWIDTH];
       dst.h= map_image_size*use_config[CONFIG_MAPHEIGHT];
       SDL_BlitSurface( grid_overlay, NULL, mapsurface, &dst);
-    } 
-  else 
+    }
+  else
     {
       dst.x= ax* map_image_size;
       dst.y= ay* map_image_size;
@@ -213,7 +213,7 @@ static void overlay_grid( int re_init, int ax, int ay)
  * be 'drawingarea'. The second is a boolean, if 0 then the whole
  * SDL system in initialized or reinited if already run once before,
  * if non zero then only the lightmap is rebuilt, if we switch between
- * per-pixel or per-tile lighting 
+ * per-pixel or per-tile lighting
  */
 void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 {
@@ -230,22 +230,22 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 	    SDL_Quit();
 	}
 
-	/* 
-	 * SDL hack to tell SDL which xwindow to paint onto 
+	/*
+	 * SDL hack to tell SDL which xwindow to paint onto
 	 */
 	sprintf( SDL_windowhack, "SDL_WINDOWID=%ld",
 	       GDK_WINDOW_XWINDOW(sdl_window->window) );
 	putenv( SDL_windowhack);
-      
+
 	if( SDL_Init( SDL_INIT_VIDEO) < 0)
 	{
 	    LOG(LOG_CRITICAL,"gtk::init_SDL", "Could not initialize SDL: %s", SDL_GetError());
 	    gtk_main_quit();
 	}
 
-	mapsurface= SDL_SetVideoMode( map_image_size*use_config[CONFIG_MAPWIDTH], map_image_size*use_config[CONFIG_MAPHEIGHT], 0, 
+	mapsurface= SDL_SetVideoMode( map_image_size*use_config[CONFIG_MAPWIDTH], map_image_size*use_config[CONFIG_MAPHEIGHT], 0,
 				    SDL_HWSURFACE|SDL_DOUBLEBUF);
-      
+
 	if( mapsurface == NULL)
 	{
 	    do_SDL_error( "SetVideoMode", __FILE__, __LINE__);
@@ -267,7 +267,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 	    do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
 	}
 
-	/* 
+	/*
 	 * This is a persurface alpha value, not an alpha channel value.
 	 * So this surface doesn't actually need a full alpha channel
 	 */
@@ -279,7 +279,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 
     if( just_lightmap != 0 && lightmap)
 	SDL_FreeSurface( lightmap);
-  
+
     lightmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, map_image_size,
 				  map_image_size,
 				  mapsurface->format->BitsPerPixel,
@@ -291,7 +291,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
     {
 	do_SDL_error( "SDL_CreateRGBSurface", __FILE__, __LINE__);
     }
-  
+
     if(use_config[CONFIG_LIGHTING] != CFG_LT_TILE)
     {
 	/* Convert surface to have a full alpha channel if we are doing
@@ -310,7 +310,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 }
 
 
-/* Draw a alpha square on lightmap. Topleft corner is at startx,starty. 
+/* Draw a alpha square on lightmap. Topleft corner is at startx,starty.
  * values for topleft, topright, bottomleft,bottomright corners are knowns
  * This use bilinear interpolation for other points. Width and heights are given
  * for surrouding known values square. Interpolation is done in a small square whose
@@ -318,7 +318,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
  * dest{x|y} is top-left corner in destination map.
  *                             Tchize 22 May 2004
  */
- 
+
 static void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,         /*colors*/
 			     int width, int height,                         /*color square size*/
 			     int startx, int starty, int endx, int endy,    /*interpolation region*/
@@ -350,7 +350,7 @@ static void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,         /*co
  * top of the exiting map space.
  *
  * TODO: I think it is possible to greatly speed this up by using
- * pre-generated darkness masks.  Doing all the possibilities 
+ * pre-generated darkness masks.  Doing all the possibilities
  * would be 3125 images (5 positions, each with 5 values, 5^5),
  * Doing it based on quadrants would only reduce that to 1024.
  * But I _think_ it may be possible to do this with just 64 images
@@ -452,7 +452,7 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 	    dst.y = i;
 	    dst.w = map_image_size;
 	    dst.h = 1;
-	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, 
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0,
 			ALPHA_FUDGE((map_image_half_size - i) * dark1 + i * dark0)/map_image_half_size));
 
 	}
@@ -473,14 +473,14 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 	    dst.y = i;
 	    dst.w = map_image_size;
 	    dst.h = 1;
-	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, 
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0,
 			ALPHA_FUDGE(dark0*(map_image_size-i) + dark3*(i-map_image_half_size)) / map_image_half_size));
 	}
 	/* Blit this to the screen now.  Otherwise, we need to look at the alpha values
 	 * and re-average.
 	 */
 
-	dst.x= x * map_image_size; 
+	dst.x= x * map_image_size;
 	dst.y= y * map_image_size;
 	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
 
@@ -514,10 +514,10 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 	    dst.y = 0;
 	    dst.w = 1;
 	    dst.h = map_image_size;
-	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, 
+	    SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0,
 			ALPHA_FUDGE(dark0*(map_image_size-i) + dark2*(i-map_image_half_size)) / map_image_half_size));
 	}
-	dst.x= x * map_image_size; 
+	dst.x= x * map_image_size;
 	dst.y= y * map_image_size;
 	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
     } else if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST ) {
@@ -535,7 +535,7 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 	    darky = realloc(darky, map_image_size * sizeof(int));
 	    darkx_allocated = map_image_size;
 	}
-			
+
 	for( dx= 0; dx < map_image_half_size; dx++)
 	    darkx[dx]= (dark4*(map_image_half_size-dx) + dark0*dx) / map_image_half_size;
 	for( dx= map_image_half_size; dx < map_image_size; dx++)
@@ -549,7 +549,7 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 	SDL_LockSurface( lightmap);
 
 	for (dx=0; dx<map_image_size; dx++)
-	    for (dy=0; dy<map_image_size; dy++) 
+	    for (dy=0; dy<map_image_size; dy++)
 		putpixel(lightmap, dx, dy, SDL_MapRGBA(lightmap->format, 0, 0, 0,(darkx[dx] + darky[dy])/2));
 #else
 	/*we need additionnal surrounding infos*/
@@ -558,7 +558,7 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 		|| !the_map.cells[mx+1][my-1].have_darkness) dark5 = (dark1+dark2)>>1; /*(fast div 2)*/
 	else dark5 = the_map.cells[mx+1][my-1].darkness;
 
-	if ( (x+1 >= use_config[CONFIG_MAPWIDTH]) 
+	if ( (x+1 >= use_config[CONFIG_MAPWIDTH])
 		|| (y+1 >= use_config[CONFIG_MAPHEIGHT])
 		|| !the_map.cells[mx+1][my+1].have_darkness) dark6 = (dark2+dark3)>>1;
 	else dark6 = the_map.cells[mx+1][my+1].darkness;
@@ -566,7 +566,7 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 	if ( (y+1 >= use_config[CONFIG_MAPHEIGHT]) || (x-1 < 0)
 		|| !the_map.cells[mx-1][my+1].have_darkness) dark7 = (dark3+dark4)>>1;
 	else dark7 = the_map.cells[mx-1][my+1].darkness;
-	
+
 	if ( (x-1 < 0) || (y-1 < 0)
 		|| !the_map.cells[mx-1][my-1].have_darkness) dark8 = (dark4+dark1)>>1;
 	else dark8 = the_map.cells[mx-1][my-1].darkness;
@@ -593,10 +593,10 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 #endif
 	dst.w= map_image_size;
 	dst.h= map_image_size;
-	dst.x= x * map_image_size; 
+	dst.x= x * map_image_size;
 	dst.y= y * map_image_size;
 	SDL_UnlockSurface(lightmap);
-	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);	
+	SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
     }
 }
 /* Draw anything in adjacent squares that could smooth on given square
@@ -646,10 +646,10 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
         else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        }else{      
+        }else{
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
-        }                    
+        }
     }
     /* ok, now we have a list of smoothlevel higher than current square.
      * there are at most 8 different levels. so... let's check 8 times
@@ -662,7 +662,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
             if ( (slevels[i]>0) && (!partdone[i]) &&
                 ((lowest<0) || (slevels[i]<slevels[lowest]))
                )
-                    lowest=i;    
+                    lowest=i;
         }
         if (lowest<0)
             break;   /*no more smooth to do on this square*/
@@ -670,7 +670,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
         /*here we know 'what' to smooth*/
         /* we need to calculate the weight
          * for border and weight for corners.
-         * then we 'markdone' 
+         * then we 'markdone'
          * the corresponding squares
          */
         /*first, the border, which may exclude some corners*/
@@ -688,7 +688,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
                 /*must rmove the weight of a corner if not in smoothing*/
                 weightC&=~cweights[i];
             }
-            
+
         }
         /*We can't do this before since we need the partdone to be adjusted*/
         if (sfaces[lowest]<=0)
@@ -698,8 +698,8 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
             continue;  /*picture for smoothing not yet available*/
         }
         /* now, it's quite easy. We must draw using a 32x32 part of
-         * the picture smoothface. 
-         * This part is located using the 2 weights calculated: 
+         * the picture smoothface.
+         * This part is located using the 2 weights calculated:
          * (32*weight,0) and (32*weightC,32)
          */
         if ( (!pixmaps[smoothface]->map_image) ||
@@ -735,8 +735,8 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
 }
 
 /* This function tells if a specifi square need to be redrawn
- * Reason for redrawing can be content change, smoothing change or 
- * surrounding lightning change. Conditions depend on type of 
+ * Reason for redrawing can be content change, smoothing change or
+ * surrounding lightning change. Conditions depend on type of
  * lightning code used.
  *                              Tchize 22 May 2004
  */
@@ -744,7 +744,7 @@ static int sdl_square_need_redraw(int mx, int my){
 #define SDL_LIGHT_CHANGED(_x_,_y_) (!mapdata_is_inside((_x_), (_y_)) ? 0 : the_map.cells[_x_][_y_].need_update)
     if ( (the_map.cells[mx][my].need_update) || (the_map.cells[mx][my].need_resmooth))
         return 1;
-        
+
     if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL){
         /*The fast per pixel uses 4 additionnal datas which may have changed:*/
         /*we suppose need_redraw -> lightr may have change. in future maybe we could add a need_relight toggle*/
@@ -889,8 +889,8 @@ static void display_mapcell(int ax, int ay, int mx, int my)
 }
 
 /* This generates a map in SDL mode.
- * 
- * I had to totally change the logic on how we do this in SDL mode - 
+ *
+ * I had to totally change the logic on how we do this in SDL mode -
  * to support variable sized images, the old method of generating each
  * space does not work, as one space may spill over to the other.
  * Instead, we first blit the bottom layer, then the layer above
@@ -915,28 +915,28 @@ void sdl_gen_map(int redraw) {
     int mx, my, x, y;
     struct timeval tv1, tv2,tv3;
     long elapsed1, elapsed2;
-    
+
     static int last_mapwidth=0;
     static int last_mapheight=0;
     static uint8 *redrawbitmap=NULL;
-    
+
     if (time_map_redraw)
 	gettimeofday(&tv1, NULL);
-        
+
     /* In per pixel lightning code, some square may have to be
      * redrawn just because a surrounding square did change
      * However, informations on changed square do get toggle
-     * during the redraw process. To keep track of which 
+     * during the redraw process. To keep track of which
      * squares really need redraw (instead of redrawing eveything in
      * per pixel lightning case), we need to save this info in a array
      *                             Tchize, 22 May 2004
      */
     if ( (use_config[CONFIG_MAPWIDTH] != last_mapwidth) ||
          (use_config[CONFIG_MAPHEIGHT] != last_mapheight) ){
-        /* reallocate array */     
+        /* reallocate array */
         last_mapwidth=use_config[CONFIG_MAPWIDTH];
-        last_mapheight=use_config[CONFIG_MAPHEIGHT];    
-        redrawbitmap=(uint8*)malloc(sizeof(uint8)*last_mapwidth*last_mapheight);        
+        last_mapheight=use_config[CONFIG_MAPHEIGHT];
+        redrawbitmap=(uint8*)malloc(sizeof(uint8)*last_mapwidth*last_mapheight);
     }
     if (redrawbitmap==NULL){
         LOG(LOG_ERROR,"sdl::sdl_gen_map",
@@ -944,7 +944,7 @@ void sdl_gen_map(int redraw) {
                 last_mapwidth,last_mapheight);
         return; /*without this bitmap, no drawing possible*/
     }
-    
+
     for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
         for(y = 0; y<use_config[CONFIG_MAPHEIGHT]; y++) {
             redrawbitmap[x+y*last_mapwidth]=(uint8)sdl_square_need_redraw(x+pl_pos.x,y+pl_pos.y);
@@ -986,13 +986,13 @@ void sdl_gen_map(int redraw) {
 int sdl_mapscroll(int dx, int dy)
 {
     /* a copy of what pngximage does except sdl specfic
-     * mapsurface->pitch is the length of a scanline in bytes 
+     * mapsurface->pitch is the length of a scanline in bytes
      * including alignment padding
      */
     SDL_LockSurface( mapsurface);
     if( dy < 0) {
 	int offset= mapsurface->pitch * (-dy*map_image_size);
-	memmove( mapsurface->pixels + offset, mapsurface->pixels, 
+	memmove( mapsurface->pixels + offset, mapsurface->pixels,
 		     mapsurface->pitch * (mapsurface->h + dy*map_image_size) );
     }
     else if( dy > 0) {
@@ -1011,7 +1011,7 @@ int sdl_mapscroll(int dx, int dy)
 			     mapsurface->pitch - offset);
 	    }
 	    else {
-		char* start_of_row= mapsurface->pixels + mapsurface->pitch * y; 
+		char* start_of_row= mapsurface->pixels + mapsurface->pitch * y;
 		int offset= ( mapsurface->format->BytesPerPixel * map_image_size * dx);
 		memmove( start_of_row, start_of_row + offset,
 			     mapsurface->pitch - offset);
@@ -1019,7 +1019,7 @@ int sdl_mapscroll(int dx, int dy)
 	}
     }
     SDL_UnlockSurface( mapsurface);
-	    
+
     return 1;
 }
 

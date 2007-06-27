@@ -158,7 +158,7 @@ char *get_metaserver()
 	    }
 	    if (j == meta_numservers) {
 		gtk_list_store_append(store_metaserver, &iter);
-		gtk_list_store_set(store_metaserver, &iter, 
+		gtk_list_store_set(store_metaserver, &iter,
 			       LIST_HOSTNAME, cached_servers_name[i],
 			       LIST_IPADDR, cached_servers_ip[i],
 			       LIST_COMMENT, "Cached server entry",
@@ -169,7 +169,7 @@ char *get_metaserver()
 
     for (i=0; i<meta_numservers; i++) {
 	gtk_list_store_append(store_metaserver, &iter);
-	gtk_list_store_set(store_metaserver, &iter, 
+	gtk_list_store_set(store_metaserver, &iter,
 			       LIST_HOSTNAME, meta_servers[i].hostname,
 			       LIST_IPADDR, meta_servers[i].hostname,
 			       LIST_IDLETIME,  meta_servers[i].idle_time,
@@ -180,7 +180,7 @@ char *get_metaserver()
     }
     if (server) {
 	gtk_list_store_append(store_metaserver, &iter);
-	gtk_list_store_set(store_metaserver, &iter, 
+	gtk_list_store_set(store_metaserver, &iter,
 			       LIST_HOSTNAME, server,
 			       LIST_COMMENT, "default server",
 			       -1);
@@ -318,4 +318,3 @@ on_metaserver_text_entry_key_press_event
     gtk_tree_selection_unselect_all(metaserver_selection);
     return FALSE;
 }
-

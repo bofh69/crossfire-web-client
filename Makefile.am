@@ -42,4 +42,3 @@ proto:
 	    echo "making proto in $$dir..."; \
 	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' proto; ) \
 	done;
-

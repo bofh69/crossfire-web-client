@@ -87,7 +87,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 	return NULL;
     }
 
-	
+
     if (setjmp (png_jmpbuf(png_ptr))) {
 	png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 	return NULL;
@@ -101,10 +101,10 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 	 * This seems to bug on at least one system (other than mine)
 	 * http://www.metalforge.net/cfmb/viewtopic.php?t=1085
 	 *
-	 * I think its actually a bug in libpng. This function dies with an 
+	 * I think its actually a bug in libpng. This function dies with an
 	 * error based on image width. However I've produced a work around
 	 * using the indivial functions. Repeated below.
-	 * 
+	 *
     png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_unit_32*)height, &bit_depth,
 		 &color_type, &interlace_type, &compression_type, &filter_type);
 	 */
@@ -114,7 +114,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 	color_type = png_get_color_type(png_ptr, info_ptr);
 	interlace_type = png_get_interlace_type(png_ptr, info_ptr);
 	compression_type = png_get_compression_type(png_ptr, info_ptr);
-	
+
     if (color_type == PNG_COLOR_TYPE_PALETTE &&
             bit_depth <= 8) {
 
@@ -179,7 +179,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 	interlace_type = png_get_interlace_type(png_ptr, info_ptr);
 	compression_type = png_get_compression_type(png_ptr, info_ptr);
 
-	
+
     pixels = (uint8*)malloc(*width * *height * 4);
 
     if (!pixels) {
@@ -201,7 +201,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 	return NULL;
     }
 
-    for (y=0; y<*height; y++) 
+    for (y=0; y<*height; y++)
 	rows[y] = pixels + y * *width * 4;
 
     png_read_image(png_ptr, rows);
@@ -238,7 +238,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
  *    100 will result in a shrinkage.
  */
 
-/* RATIO is used to know what units scale is - in this case, a percentage, so 
+/* RATIO is used to know what units scale is - in this case, a percentage, so
  * it is set to 100
  */
 #define RATIO	100
@@ -273,7 +273,7 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 
     ndata = (uint8*)malloc(new_width * new_height * BPP);
 
-    for (y=0; y<new_height; y++) 
+    for (y=0; y<new_height; y++)
 	nrows[y] = (png_bytep) (ndata + y * new_width * BPP);
 
     ytoleft = scale;
@@ -410,7 +410,7 @@ guchar rgb[512*512*3];	/* Make this especially big to support larger images in t
 /* This takes data that has already been converted into RGBA format (via
  * png_to_data above perhaps) and creates a GdkPixmap and GdkBitmap out
  * of it.
- * Return non zero on error (currently, no checks for error conditions is done 
+ * Return non zero on error (currently, no checks for error conditions is done
  */
 int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
 		   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
@@ -427,7 +427,7 @@ int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
 
     *mask=gdk_pixmap_new(window, width, height,1);
     gc_alpha=gdk_gc_new(*mask);
-    
+
     scolor.pixel=1;
     gdk_gc_set_foreground(gc_alpha, &scolor);
     gdk_draw_rectangle(*mask, gc_alpha, 1, 0, 0, width, height);
@@ -464,7 +464,7 @@ int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
 /* This takes data that has already been converted into RGBA format (via
  * png_to_data above perhaps) and creates a GdkPixbuf
  * of it.
- * Return non zero on error (currently, no checks for error conditions is done 
+ * Return non zero on error (currently, no checks for error conditions is done
  */
 int rgba_to_gdkpixbuf(uint8 *data,int width, int height,GdkPixbuf **pix)
 {
@@ -632,7 +632,7 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
 	return PNGX_OUTOFMEM;
     }
 
-    for (y=0; y<height; y++) 
+    for (y=0; y<height; y++)
 	rows[y] = pixels + y * width * bpp;
 
     png_read_image(png_ptr, rows);
@@ -686,4 +686,3 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     gdk_gc_destroy(gc);
     return 0;
 }
-

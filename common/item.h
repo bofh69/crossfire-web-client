@@ -39,7 +39,7 @@
 
 #define NO_ITEM_TYPE		30000
 /*
- *  item structure keeps all information what player 
+ *  item structure keeps all information what player
  *  (= client) knows about items in its inventory
  */
 typedef struct item_struct {
@@ -68,7 +68,7 @@ typedef struct item_struct {
     uint16 open:1;		/* container is open */
     uint16 was_open:1;		/* container was open */
     uint16 inv_updated:1;	/* item's inventory is updated, this is set
-				   when item's inventory is modified, draw 
+				   when item's inventory is modified, draw
 				   routines can use this to redraw things */
     uint8 apply_type;		/* how item is applied (worn/wield/etc) */
     uint32 flagsval;		/* unmodified flags value as sent from the server*/
