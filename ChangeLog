@@ -2,6 +2,10 @@
 Top of CVS tree:
 ------------------------------------------------------------------------------
 
+Fix various GAIM/GTK links.
+ gtk/win32/gtkclient.nsi Running.txt
+Nicolas Weeger 2007-07-05
+
 utils/mdk.sh: Make script work again.
 Andreas Kirschbaum 2007-06-27
 

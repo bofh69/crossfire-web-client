@@ -15,12 +15,12 @@ This is release 1.8.0 of the client.
 Requirements
 ------------
 The client requires GTK libraries to run. It has been tested with libraries from http://www.dropline.net/gtk/
-and the ones provided by GAIM.
+and the ones provided by Pidgin.
 
 You only need to get the 'GTK runtime environment' if don't plan on compiling the client.
 Client has been compiled with version 2.4.6. Use older versions at your own risk. Newer versions should be ok.
 
-Some other software, like GAIM (http://gaim.sf.net) will install GTK for you.
+Some other software, like Pidgin (http://pidgin.sf.net) will install GTK for you.
 
 
 GTK Warning
