@@ -950,6 +950,7 @@ void draw_inv(int tab)
  */
 void draw_lists ()
 {
+    cpl.below->inv_updated=1;
 
     /* there are some extra complications with container handling
      * and timing.  For example, we draw the window before we get
@@ -1014,16 +1015,22 @@ void animate_inventory()
     item *tmp;
     int page;
     GtkTreeStore    *store;
-    static int tick=0;
+    static int inv_tick=0;
 
-    /* The gtk client timeout is 12 times faster than that of the server
-     * so we slow it down here.  If we were really clever, we'd find
-     * what the timeout on the server actually is, and do gettimeofday
-     * calls here to remain very closely in sync.
+    /* If global tick is set, then we are getting tick events from
+     * server to keep in sync, so we don't need the logic
+     * below.
      */
-    tick++;
-    if (tick < 12) return;
-    tick=0;
+    if (!tick) {
+	/* The gtk client timeout is 12 times faster than that of the server
+	* so we slow it down here.  If we were really clever, we'd find
+	* what the timeout on the server actually is, and do gettimeofday
+	* calls here to remain very closely in sync.
+	*/
+	inv_tick++;
+	if (inv_tick < 12) return;
+	inv_tick=0;
+    }
 
     page = gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook));
 
@@ -1064,9 +1071,64 @@ void animate_inventory()
 	}
 	valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(store), &iter);
     }
+
+
+
 }
 
+void animate_look()
+{
+    gboolean valid;
+    GtkTreeIter iter;
+    item *tmp;
+    static int inv_tick=0;
 
+    /* If global tick is set, then we are getting tick events from
+     * server to keep in sync, so we don't need the logic
+     * below.
+     */
+    if (!tick) {
+	/* The gtk client timeout is 12 times faster than that of the server
+	* so we slow it down here.  If we were really clever, we'd find
+	* what the timeout on the server actually is, and do gettimeofday
+	* calls here to remain very closely in sync.
+	*/
+	inv_tick++;
+	if (inv_tick < 12) return;
+	inv_tick=0;
+    }
+
+
+    /* Get the first iter in the list */
+    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(store_look), &iter);
+
+    while (valid) {
+	gtk_tree_model_get (GTK_TREE_MODEL(store_look), &iter, 
+                          LIST_OBJECT, &tmp, 
+                          -1);
+
+	/* This is an object with animations */
+	if (tmp->animation_id >0 && tmp->anim_speed) {
+	    tmp->last_anim++;
+
+	    /* Time to change the face for this one */
+	    if (tmp->last_anim >= tmp->anim_speed) {
+		tmp->anim_state++;
+		if (tmp->anim_state >= animations[tmp->animation_id].num_animations)
+		    tmp->anim_state=0;
+		tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
+		tmp->last_anim=0;
+
+		/* Update image in the tree store */
+		gtk_tree_store_set(store_look, &iter,
+				   LIST_ICON, (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
+				   -1);
+
+	    }
+	}
+	valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(store_look), &iter);
+    }
+}
 
 /* This is called periodically from main.c - basically a timeout,
  * used to animate the inventory.
@@ -1074,4 +1136,5 @@ void animate_inventory()
 void inventory_tick()
 {
     animate_inventory();
+    animate_look();
 }
