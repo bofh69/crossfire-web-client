@@ -1087,6 +1087,8 @@ static void activate_ok_if_not_empty(GtkWidget *button, GtkEditable *entry) {
     char *txtcontent = gtk_editable_get_chars(entry,0,-1);
     if (txtcontent && (strlen(txtcontent)>0))
         gtk_widget_activate(button);
+    if (txtcontent)
+        g_free(txtcontent);
 }
 static void fill_news(GtkWidget *o, news_entry *news) {
     media_state state;
