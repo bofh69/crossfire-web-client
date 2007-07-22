@@ -336,12 +336,14 @@ static void setup_list_columns(GtkWidget *treeview)
     column = gtk_tree_view_column_new_with_attributes ("Weight", renderer,
                                                       "text", LIST_WEIGHT,
                                                       NULL);
-    /* 50 is just a guess.  However, testing showed that with auto resize,
-     * the name column for some objects is very long, which causes weight
-     * column to be pushed off the right edge and not fully visible.  Given
-     * the choice, I'd rather have the name truncated.
+    /* At 50, the title was always truncated on some systems.  64 is the
+     * minimum on those systems for it to be possible to avoid truncation
+     * at all.  Truncating the title looks cheesy, especially since heavy
+     * items (100+) need the width of the field anyway.  If weight pushed
+     * off the edge is a problem, it would be just better to let the user
+     * resize or find a way to allow rendering with a smaller font.
      */
-    gtk_tree_view_column_set_min_width(column, 50);
+    gtk_tree_view_column_set_min_width(column, 64);
     gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);
 
     gtk_tree_view_column_set_sort_column_id(column, LIST_WEIGHT);

@@ -1,6 +1,10 @@
 "$Id$"
-Top of CVS tree:
+Top of SVN tree:
 ------------------------------------------------------------------------------
+
+gtk-v2/src/inventory.c: Adjust GTK2 client setup_list_columns() so "Weight"
+column titles are no longer truncated (on some systems).
+Kevin R. Bulgrien 2007-07-22
 
 gtk/gx11.c: fix memory leak.
 Nicolas Weeger 2007-07-11
