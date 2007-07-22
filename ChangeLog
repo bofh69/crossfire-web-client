@@ -1,6 +1,20 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/gtk-v2.glade
+gtk-v2/src/interface.c
+  - Minor rework of prompt texts.
+  - Add Escape key accelerator for the Quit button.
+  - Add tooltip to the Quit button to tell a user about the accelerator.
+  - Cosmetic improvement to the metaserver dialog done by adding padding or
+    border width to some widgets so there is spacing between them.
+gtk-v2/src/metaserver.c
+  - Make more room for "Server Comments" by removing the redundant "IP Addr"
+    field, renaming "Last Update (Sec)" to "Updated (Sec)", and renaming
+    "# Players" to "Players".
+gtk-v2/src/callbacks.h
+  - Glade generated changes.
+Kevin R. Bulgrien 2007-07-22
 
 gtk-v2/src/inventory.c: Adjust GTK2 client setup_list_columns() so "Weight"
 column titles are no longer truncated (on some systems).

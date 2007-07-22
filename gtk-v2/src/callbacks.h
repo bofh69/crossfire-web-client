@@ -12,11 +12,35 @@ keyrelfunc                             (GtkWidget       *widget,
                                         gpointer         user_data);
 
 void
+on_window_destroy_event                (GtkObject       *object,
+                                        gpointer         user_data);
+
+void
 menu_quit_character                    (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
 menu_quit_program                      (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_configure_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_disconnect_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_keybindings_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_save_window_position_activate       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_spells_activate                     (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
@@ -72,6 +96,10 @@ on_menu_food_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
+on_menu_flesh_activate                 (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
 on_menu_keys_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
@@ -92,10 +120,7 @@ on_menu_wands_rods_horns_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
-on_menu_jewels_activate                  (GtkMenuItem     *menuitem,
-                                        gpointer         user_data);
-void
-on_menu_flesh_activate                  (GtkMenuItem     *menuitem,
+on_menu_jewels_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 void
@@ -205,27 +230,21 @@ on_treeview_metaserver_row_activated   (GtkTreeView     *treeview,
                                         gpointer         user_data);
 
 void
+on_metaserver_text_entry_activate      (GtkEntry        *entry,
+                                        gpointer         user_data);
+
+gboolean
+on_metaserver_text_entry_key_press_event
+                                        (GtkWidget       *widget,
+                                        GdkEventKey     *event,
+                                        gpointer         user_data);
+
+void
 on_metaserver_select_clicked           (GtkButton       *button,
                                         gpointer         user_data);
 
 void
 on_button_metaserver_quit_pressed      (GtkButton       *button,
-                                        gpointer         user_data);
-
-void
-on_metaserver_text_entry_activate      (GtkEntry        *entry,
-                                        gpointer         user_data);
-
-void
-on_disconnect_activate                 (GtkMenuItem     *menuitem,
-                                        gpointer         user_data);
-
-void
-on_disconnect_activate                 (GtkMenuItem     *menuitem,
-                                        gpointer         user_data);
-
-void
-on_keybindings_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data);
 
 gboolean
@@ -236,6 +255,10 @@ on_keybinding_entry_key_key_press_event
 
 void
 on_keybinding_button_remove_clicked    (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_keybinding_button_update_clicked    (GtkButton       *button,
                                         gpointer         user_data);
 
 void
@@ -251,15 +274,9 @@ on_keybinding_button_close_clicked     (GtkButton       *button,
                                         gpointer         user_data);
 
 void
-on_keybinding_button_update_clicked    (GtkButton       *button,
-                                        gpointer         user_data);
-
-void
-on_keybinding_button_bind_clicked      (GtkButton       *button,
-                                        gpointer         user_data);
-
-void
-on_spells_activate                     (GtkMenuItem     *menuitem,
+on_spell_treeview_row_activated        (GtkTreeView     *treeview,
+                                        GtkTreePath     *path,
+                                        GtkTreeViewColumn *column,
                                         gpointer         user_data);
 
 void
@@ -267,25 +284,11 @@ on_spell_cast_clicked                  (GtkButton       *button,
                                         gpointer         user_data);
 
 void
-on_spell_invok_clicked                 (GtkButton       *button,
-                                        gpointer         user_data);
-
-void
-on_spell_close_clicked                 (GtkButton       *button,
-                                        gpointer         user_data);
-
-void
 on_spell_invoke_clicked                (GtkButton       *button,
                                         gpointer         user_data);
 
 void
-on_spell_options_activate              (GtkEntry        *entry,
-                                        gpointer         user_data);
-
-void
-on_spell_treeview_row_activated        (GtkTreeView     *treeview,
-                                        GtkTreePath     *path,
-                                        GtkTreeViewColumn *column,
+on_spell_close_clicked                 (GtkButton       *button,
                                         gpointer         user_data);
 
 void
@@ -301,27 +304,5 @@ on_config_button_close_clicked         (GtkButton       *button,
                                         gpointer         user_data);
 
 void
-on_configure1_activate                 (GtkMenuItem     *menuitem,
-                                        gpointer         user_data);
-
-void
-on_configure_activate                  (GtkMenuItem     *menuitem,
-                                        gpointer         user_data);
-
-void
-on_save_window_position_activate       (GtkMenuItem     *menuitem,
-                                        gpointer         user_data);
-
-void
 on_about_close_clicked                 (GtkButton       *button,
-                                        gpointer         user_data);
-
-void
-on_window_destroy_event                (GtkObject       *object,
-                                        gpointer         user_data);
-
-gboolean
-on_metaserver_text_entry_key_press_event
-                                        (GtkWidget       *widget,
-                                        GdkEventKey     *event,
                                         gpointer         user_data);

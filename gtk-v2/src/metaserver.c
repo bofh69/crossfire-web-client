@@ -96,22 +96,24 @@ char *get_metaserver()
         gtk_tree_view_column_set_sort_column_id(column, LIST_HOSTNAME);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
 
+	/*
 	renderer = gtk_cell_renderer_text_new ();
 	column = gtk_tree_view_column_new_with_attributes ("IP Addr", renderer,
                                                       "text", LIST_IPADDR,
                                                       NULL);
         gtk_tree_view_column_set_sort_column_id(column, LIST_IPADDR);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
+	*/
 
 	renderer = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes ("Last Update (Sec)", renderer,
+	column = gtk_tree_view_column_new_with_attributes ("Updated (Sec)", renderer,
                                                       "text", LIST_IDLETIME,
                                                       NULL);
         gtk_tree_view_column_set_sort_column_id(column, LIST_IDLETIME);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
 
 	renderer = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes ("# Players", renderer,
+	column = gtk_tree_view_column_new_with_attributes ("Players", renderer,
                                                       "text", LIST_PLAYERS,
                                                       NULL);
         gtk_tree_view_column_set_sort_column_id(column, LIST_PLAYERS);

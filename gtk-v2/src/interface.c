@@ -1254,20 +1254,27 @@ create_metaserver_window (void)
   GtkWidget *hbox11;
   GtkWidget *metaserver_select;
   GtkWidget *button_metaserver_quit;
+  GtkAccelGroup *accel_group;
+  GtkTooltips *tooltips;
+
+  tooltips = gtk_tooltips_new ();
+
+  accel_group = gtk_accel_group_new ();
 
   metaserver_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   GTK_WIDGET_SET_FLAGS (metaserver_window, GTK_CAN_FOCUS);
   gtk_window_set_title (GTK_WINDOW (metaserver_window), _("Metaserver Selection"));
   gtk_window_set_position (GTK_WINDOW (metaserver_window), GTK_WIN_POS_CENTER_ON_PARENT);
-  gtk_window_set_default_size (GTK_WINDOW (metaserver_window), 805, 400);
+  gtk_window_set_default_size (GTK_WINDOW (metaserver_window), 805, 407);
 
   vbox7 = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (vbox7);
   gtk_container_add (GTK_CONTAINER (metaserver_window), vbox7);
 
-  label83 = gtk_label_new (_("Please Select a Server to Play On"));
+  label83 = gtk_label_new (_("Select a Server to Play On"));
   gtk_widget_show (label83);
   gtk_box_pack_start (GTK_BOX (vbox7), label83, FALSE, FALSE, 0);
+  gtk_misc_set_padding (GTK_MISC (label83), 5, 3);
 
   scrolledwindow7 = gtk_scrolled_window_new (NULL, NULL);
   gtk_widget_show (scrolledwindow7);
@@ -1280,14 +1287,15 @@ create_metaserver_window (void)
   hbox12 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox12);
   gtk_box_pack_start (GTK_BOX (vbox7), hbox12, FALSE, FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox12), 3);
 
-  label84 = gtk_label_new (_("Or enter server name:"));
+  label84 = gtk_label_new (_("Or enter a server name:"));
   gtk_widget_show (label84);
   gtk_box_pack_start (GTK_BOX (hbox12), label84, FALSE, FALSE, 0);
 
   metaserver_text_entry = gtk_entry_new ();
   gtk_widget_show (metaserver_text_entry);
-  gtk_box_pack_start (GTK_BOX (hbox12), metaserver_text_entry, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (hbox12), metaserver_text_entry, TRUE, TRUE, 15);
 
   hbox10 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox10);
@@ -1295,7 +1303,7 @@ create_metaserver_window (void)
 
   label81 = gtk_label_new (_("Status:"));
   gtk_widget_show (label81);
-  gtk_box_pack_start (GTK_BOX (hbox10), label81, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (hbox10), label81, FALSE, FALSE, 3);
 
   metaserver_status = gtk_label_new ("");
   gtk_widget_show (metaserver_status);
@@ -1304,6 +1312,7 @@ create_metaserver_window (void)
   hbox11 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox11);
   gtk_box_pack_start (GTK_BOX (vbox7), hbox11, FALSE, TRUE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox11), 5);
 
   metaserver_select = gtk_button_new_with_mnemonic (_("Connect"));
   gtk_widget_show (metaserver_select);
@@ -1314,6 +1323,10 @@ create_metaserver_window (void)
   button_metaserver_quit = gtk_button_new_from_stock ("gtk-quit");
   gtk_widget_show (button_metaserver_quit);
   gtk_box_pack_start (GTK_BOX (hbox11), button_metaserver_quit, TRUE, FALSE, 0);
+  gtk_tooltips_set_tip (tooltips, button_metaserver_quit, _("Escape also quits."), NULL);
+  gtk_widget_add_accelerator (button_metaserver_quit, "activate", accel_group,
+                              GDK_Escape, (GdkModifierType) 0,
+                              GTK_ACCEL_VISIBLE);
 
   g_signal_connect ((gpointer) metaserver_window, "destroy",
                     G_CALLBACK (on_window_destroy_event),
@@ -1352,6 +1365,9 @@ create_metaserver_window (void)
   GLADE_HOOKUP_OBJECT (metaserver_window, hbox11, "hbox11");
   GLADE_HOOKUP_OBJECT (metaserver_window, metaserver_select, "metaserver_select");
   GLADE_HOOKUP_OBJECT (metaserver_window, button_metaserver_quit, "button_metaserver_quit");
+  GLADE_HOOKUP_OBJECT_NO_REF (metaserver_window, tooltips, "tooltips");
+
+  gtk_window_add_accel_group (GTK_WINDOW (metaserver_window), accel_group);
 
   return metaserver_window;
 }
