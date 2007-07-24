@@ -1,6 +1,11 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/src/stats.c
+- Applied patch by "Olivier Huet" <huet.o@free.fr> to fix experience label and
+  progress bar for high levels (int -> sint64, %d -> %"FMT64").
+  Kevin R. Bulgrien 2007-07-24
+
 gtk-v2/gtk-v2.glade
 gtk-v2/src/interface.c
   - Minor rework of prompt texts.

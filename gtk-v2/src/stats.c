@@ -258,7 +258,7 @@ void stats_init(GtkWidget *window_root)
  * dictate that.
  */
 
-void update_stat(int stat_no, int max_stat, int current_stat, const char *name, int can_alert)
+void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, const char *name, int can_alert)
 {
     float bar;
     int is_alert;
@@ -389,7 +389,7 @@ void update_stat(int stat_no, int max_stat, int current_stat, const char *name, 
     gtk_widget_modify_base(stat_bar[stat_no], GTK_STATE_SELECTED, set_color);
 
     gtk_progress_set_percentage(GTK_PROGRESS(stat_bar[stat_no]), bar);
-    sprintf(buf, "%s %d/%d", name, current_stat, max_stat);
+    sprintf(buf, "%s %"FMT64"/%"FMT64, name, current_stat, max_stat);
     gtk_label_set(GTK_LABEL(stat_label[stat_no]), buf);
 
 }
