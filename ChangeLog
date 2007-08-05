@@ -1,6 +1,11 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+Fix bug #1735271: Version numbers of client and server do not match.
+ common/client.h: make S->C version 1028 for coherence with server.
+Nicolas Weeger 2007-08-05
+
 gtk-v2/src/stats.c
 - Applied patch by "Olivier Huet" <huet.o@free.fr> to fix experience label and
   progress bar for high levels (int -> sint64, %d -> %"FMT64").

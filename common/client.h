@@ -42,7 +42,7 @@
 #define MULTKEYS
 
 #define VERSION_CS 1023
-#define VERSION_SC 1027
+#define VERSION_SC 1028
 
 char VERSION_INFO[256];
 
