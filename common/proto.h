@@ -71,13 +71,13 @@ item *map_item(void);
 void update_item(int tag, int loc, char *name, int weight, int face, int flags, int anim, int animspeed, uint32 nrof, int type);
 void print_inventory(item *op);
 void animate_objects(void);
+int can_write_spell_on(item *it);
 void inscribe_magical_scroll(item *scroll, Spell *spell);
 /* mapdata.c */
 void mapdata_init(void);
 void mapdata_reset(void);
 void mapdata_set_size(int viewx, int viewy);
 int mapdata_is_inside(int x, int y);
-void mapdata_set_face(int x, int y, int darkness, sint16 face0, sint16 face1, sint16 face2);
 void mapdata_clear_space(int x, int y);
 void mapdata_set_check_space(int x, int y);
 void mapdata_set_darkness(int x, int y, int darkness);
@@ -92,6 +92,11 @@ sint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh);
 sint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh);
 void mapdata_animation(void);
 /* metaserver.c */
+size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *data);
+void *metaserver2_thread(void *junk);
+int metaserver2_get_info(void);
+int metaserver2_check_status(void);
+void init_metaserver(void);
 int metaserver_get_info(char *metaserver, int meta_port);
 void metaserver_show(int show_selection);
 int metaserver_select(char *sel);
@@ -142,8 +147,8 @@ void CompleteCmd(unsigned char *data, int len);
 void command_take(const char *command, const char *cpnext);
 /* script.c */
 /* script_lua.c */
-void script_lua_load(const char* param);
-void script_lua_list(const char* param);
-void script_lua_kill(const char* param);
-void script_lua_stats();
-int script_lua_command(const char* command, const char* param);
+void script_lua_load(const char *name);
+void script_lua_list(const char *param);
+void script_lua_kill(const char *param);
+void script_lua_stats(void);
+int script_lua_command(const char *command, const char *param);

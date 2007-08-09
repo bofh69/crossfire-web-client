@@ -89,6 +89,8 @@ AC_ARG_ENABLE(sdl, [  --disable-sdl           disable linking with the SDL libra
 AC_ARG_ENABLE(dmalloc, [  --enable-dmalloc        enable checking for dmalloc library, default is to use it if available ],
                 use_dmalloc=$enableval, use_dmalloc=no)
 
+AC_ARG_ENABLE(metaserver2, [  --disable-metaserver2       Do not build in metaserver2 support ],
+                metaserver2=$enableval, metaserver2=yes )
 
 AC_PROG_CC
 
@@ -202,6 +204,8 @@ AC_SUBST(INTLLIBS)
 dnl sound.c needs sqrt.  So does png (on some systems)
 dnl lua also needs it, so put it near the top
 AC_CHECK_LIB(m, sqrt)
+
+AC_CHECK_LIB(pthread, pthread_create)
 
 AC_CHECK_LIB(lua, main)
 AC_CHECK_LIB(lualib, main)
@@ -395,6 +399,10 @@ dnl Restore previous CPPFLAGS and LIBS.
 CPPFLAGS="$gcfc_save_CPPFLAGS"
 LIBS="$gcfc_save_LIBS"
 
+LIBCURL_CHECK_CONFIG()
+LIBS="$LIBS $LIBCURL"
+CPPFLAGS="$CPPFLAGS $LIBCURL_CPPFLAGS"
+
 AC_SUBST(LIBS)
 
 
@@ -407,7 +415,25 @@ dnl not strictly needed, but since the X11 client uses it, lets use it here
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h string.h sys/select.h)
+AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h string.h sys/select.h pthread.h curl/curl.h)
+
+dnl Metaserver support is pretty critical to the client, so fail unless the
+dnl user explicity tells us to compile it without metaserver2 support.
+if eval "test x$ac_cv_header_curl_curl_h = xno" ; then
+   if eval "test x$metaserver2 = xyes"; then
+	AC_MSG_ERROR([curl/curl.h header not found, but metaserver2 support is enable.  Install header file or use --disable-metaserver2]);
+   fi
+fi
+
+dnl this is used to control default behavior when client starts up - even
+dnl if user has necessary files, if they use --disable-metaserver2, they
+dnl won't try to get data from those servers
+if eval "test x$metaserver2 = xyes"; then
+   AC_DEFINE_UNQUOTED(METASERVER2, 1, [If metaserver2 support is enabled.])
+else
+   AC_DEFINE_UNQUOTED(METASERVER2, 0, [If metaserver2 support is enabled.])
+fi
+        
 
 if eval "test x$use_dmalloc = xyes"; then
 	AC_CHECK_LIB(dmalloc, main, DMALLOC_LIB="-ldmalloc")
@@ -427,6 +453,7 @@ dnl Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(mkdir socket strcspn sysconf getaddrinfo)
+
 
 AC_SUBST(XPM)
 AC_SUBST(SOUNDDIR)

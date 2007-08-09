@@ -224,7 +224,7 @@ void init_client_vars()
         }
 #endif
     init_commands(); /* pcmd.c */
-
+    init_metaserver();	/* metaserver.c */
     /* Any reasonable seed really works */
     srandom(time(NULL));
 }

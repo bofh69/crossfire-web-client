@@ -36,6 +36,7 @@ char *rcsid_gtk2_metaserver_c =
 #include "support.h"
 #include "metaserver.h"
 #include "main.h"
+#include <pthread.h>
 
 static GtkWidget *metaserver_window, *treeview_metaserver, *metaserver_button,
     *metaserver_status, *metaserver_entry;
@@ -141,7 +142,7 @@ char *get_metaserver()
     }
     gtk_widget_show(metaserver_window);
 
-    gtk_label_set_text(GTK_LABEL(metaserver_status), "Waiting for user selection");
+    gtk_label_set_text(GTK_LABEL(metaserver_status), "Waiting for data from metaserver");
 
     metaserver_txt = gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
     if (*metaserver_txt == '\0') {
@@ -168,16 +169,22 @@ char *get_metaserver()
 	    }
 	}
     }
+    while (metaserver2_check_status()) {
+	usleep(100);
+	gtk_main_iteration_do(FALSE);
+    }
 
+	
+    pthread_mutex_lock(&ms2_info_mutex);
     for (i=0; i<meta_numservers; i++) {
 	gtk_list_store_append(store_metaserver, &iter);
 	gtk_list_store_set(store_metaserver, &iter,
 			       LIST_HOSTNAME, meta_servers[i].hostname,
 			       LIST_IPADDR, meta_servers[i].hostname,
 			       LIST_IDLETIME,  meta_servers[i].idle_time,
-			       LIST_PLAYERS, meta_servers[i].players,
+			       LIST_PLAYERS, meta_servers[i].num_players,
 			       LIST_VERSION, meta_servers[i].version,
-			       LIST_COMMENT, meta_servers[i].comment,
+			       LIST_COMMENT, meta_servers[i].text_comment,
 			       -1);
     }
     if (server) {
@@ -189,6 +196,7 @@ char *get_metaserver()
     }
 
     cpl.input_state = Metaserver_Select;
+    gtk_label_set_text(GTK_LABEL(metaserver_status), "Waiting for user selection");
 
     enable_menu_items(FALSE);
     /* draw_map() is to just redraw the splash */
