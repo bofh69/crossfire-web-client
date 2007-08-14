@@ -350,7 +350,7 @@ void *metaserver2_thread(void *junk)
     do {
 	metaserver_choice = random() % (sizeof(metaservers) / sizeof(char*));
 
-	fprintf(stderr,"chosing server %d\n", metaserver_choice);
+        fprintf(stderr,"Choosing server %d\n", metaserver_choice);
     } while (!get_metaserver2_data(metaservers[metaserver_choice]));
 
     pthread_mutex_lock(&ms2_info_mutex);
