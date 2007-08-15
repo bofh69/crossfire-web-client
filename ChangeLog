@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Partial fix for bug #1772759: Too much alchemy causes client crash.
+ common/item.c: find item in container too.
+Nicolas Weeger 2007-08-15
+
 Make metaserver1 gather it's data in its own thread.
 common/metaserver.c: Add ms1_is_running flag, re-work some of the metaserver1
   logic so the function structure makes it easy to spawn the thread,

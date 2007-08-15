@@ -311,6 +311,9 @@ item *locate_item(sint32 tag) {
         return cpl.container;
     }
 
+    if (cpl.container && (op = locate_item_from_item(cpl.container->inv, tag)) != NULL)
+        return op;
+
     return NULL;
 }
 
