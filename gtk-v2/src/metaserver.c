@@ -187,6 +187,7 @@ char *get_metaserver()
 			       LIST_COMMENT, meta_servers[i].text_comment,
 			       -1);
     }
+    pthread_mutex_unlock(&ms2_info_mutex);
     if (server) {
 	gtk_list_store_append(store_metaserver, &iter);
 	gtk_list_store_set(store_metaserver, &iter,

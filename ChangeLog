@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/metaserver.c: Add missing pthread_mutex_unlock() - resulted in
+  client hanging after disconnecting from server.
+MSW 2007-08-14
+
 Add support for metaserver2 in client.  For the X11/C clients, they use basic
 interface (drawn in text window, select a number), so no changes to the GUI
 portions of those clients was done - gtk2 uses window, so some extra work
