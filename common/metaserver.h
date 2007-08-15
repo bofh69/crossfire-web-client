@@ -72,7 +72,8 @@ extern Meta_Info *meta_servers;
  */
 extern pthread_mutex_t ms2_info_mutex;
 
-
+/* Needs to be here because gtk2 client needs to resort for example */
+static int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
 
 extern int meta_numservers;
 

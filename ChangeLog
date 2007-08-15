@@ -2,6 +2,14 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Make metaserver1 gather it's data in its own thread.
+common/metaserver.c: Add ms1_is_running flag, re-work some of the metaserver1
+  logic so the function structure makes it easy to spawn the thread,
+  rename metaserver2_check_status() to just metaserver_check_status()
+gtk-v2/src/metaserver.c: Change call to metaserver_check_status(), resort
+  data after getting all info from sever.
+SMW 2007-08-14
+
 gtk-v2/src/metaserver.c: Add missing pthread_mutex_unlock() - resulted in
   client hanging after disconnecting from server.
 MSW 2007-08-14

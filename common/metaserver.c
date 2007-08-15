@@ -58,8 +58,6 @@ Meta_Info *meta_servers = NULL;
 
 int meta_numservers = 0;
 
-static int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
-
 /*****************************************************************************
  * Start of cache related functions.
  *****************************************************************************/
@@ -400,20 +398,7 @@ int metaserver2_get_info() {
     return 0;
 }    
 
-/**
- * Sees if we are gathering data or not.
- * @return
- * Returns 1 if if we are getting data, 0 if nothing is going on right now.
- */
-int metaserver2_check_status() {
-    int status;
 
-    pthread_mutex_lock(&ms2_info_mutex);
-    status = ms2_is_running;
-    pthread_mutex_unlock(&ms2_info_mutex);
-
-    return status;
-}
 
 /**
  * Does single use initalization of metaserver2 variables.
@@ -430,7 +415,15 @@ void init_metaserver()
  * End of Metasever2 functions.
  ******************************************************************************/
 
- 
+/******************************************************************************
+ * Start of metaserver1 logic
+ *
+ * Note that this shares the same mutex as metaserver2, since it is updating
+ * most of the same structures.
+ *******************************************************************************/
+
+static int ms1_is_running=0;
+
 
 #ifdef WIN32
 /* Need script.h for script_killall */
@@ -497,14 +490,8 @@ char *get_line_from_sock(char *s, size_t n, int fd) {
 
 #endif /* Win32 */
 
-/* This contacts the metaserver and gets the list of servers.  returns 0
- * on success, 1 on failure.  Errors will get dumped to stderr,
- * so most errors should be reasonably clear.
- * metaserver and meta_port are the server name and port number
- * to connect to.
- */
-
-int metaserver_get_info(char *metaserver, int meta_port) {
+void *metaserver1_thread(void *junk)
+{
     struct protoent *protox;
     int fd;
     struct sockaddr_in insock;
@@ -514,42 +501,45 @@ int metaserver_get_info(char *metaserver, int meta_port) {
     char inbuf[MS_LARGE_BUF*4];
     Meta_Info *current;
 
-    meta_numservers = 0;
-    metaserver2_get_info();
-
-    if (!metaserver_on) {
-        return 0;
-    }
-
-    metaserver_load_cache();
-
     protox = getprotobyname("tcp");
     if (protox == NULL) {
         LOG(LOG_WARNING, "common::metaserver_get_info", "Error getting protobyname (tcp)");
-        return 1;
+	pthread_mutex_lock(&ms2_info_mutex);
+	ms1_is_running=0;
+	pthread_mutex_unlock(&ms2_info_mutex);
+	pthread_exit(NULL);
     }
 
     fd = socket(PF_INET, SOCK_STREAM, protox->p_proto);
     if (fd == -1) {
         perror("get_metaserver_info:  Error on socket command.\n");
-        return 1;
+	pthread_mutex_lock(&ms2_info_mutex);
+	ms1_is_running=0;
+	pthread_mutex_unlock(&ms2_info_mutex);
+	pthread_exit(NULL);
     }
     insock.sin_family = AF_INET;
     insock.sin_port = htons((unsigned short)meta_port);
-    if (isdigit(*metaserver))
-        insock.sin_addr.s_addr = inet_addr(metaserver);
+    if (isdigit(*meta_server))
+        insock.sin_addr.s_addr = inet_addr(meta_server);
     else {
-        struct hostent *hostbn = gethostbyname(metaserver);
+        struct hostent *hostbn = gethostbyname(meta_server);
         if (hostbn == NULL) {
-            LOG(LOG_WARNING, "common::metaserver_get_info", "Unknown metaserver hostname: %s", metaserver);
-            return 1;
+            LOG(LOG_WARNING, "common::metaserver_get_info", "Unknown metaserver hostname: %s", meta_server);
+	    pthread_mutex_lock(&ms2_info_mutex);
+	    ms1_is_running=0;
+	    pthread_mutex_unlock(&ms2_info_mutex);
+	    pthread_exit(NULL);
         }
         memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
     }
     if (connect(fd, (struct sockaddr *)&insock, sizeof(insock)) == -1) {
         perror("Can't connect to metaserver");
         draw_info("\nCan't connect to metaserver.", NDI_BLACK);
-	return 1;
+	pthread_mutex_lock(&ms2_info_mutex);
+	ms1_is_running=0;
+	pthread_mutex_unlock(&ms2_info_mutex);
+	pthread_exit(NULL);
     }
 
 #ifndef WIN32 /* Windows doesn't support this */
@@ -559,7 +549,10 @@ int metaserver_get_info(char *metaserver, int meta_port) {
      */
     if ((fp = fdopen(fd, "r")) == NULL) {
         perror("fdopen failed.");
-        return 1;
+	pthread_mutex_lock(&ms2_info_mutex);
+	ms1_is_running=0;
+	pthread_mutex_unlock(&ms2_info_mutex);
+	pthread_exit(NULL);
     }
 #endif
 
@@ -670,7 +663,83 @@ int metaserver_get_info(char *metaserver, int meta_port) {
     fclose(fp);
 #endif
     qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
+    ms1_is_running=0;
     pthread_mutex_unlock(&ms2_info_mutex);
+    pthread_exit(NULL);
+}
+
+
+int metaserver1_get_info() {
+    pthread_t   thread_id;
+    int	    ret;
+
+    if (!metaserver_on) {
+        return 0;
+    }
+    metaserver_load_cache();
+
+    pthread_mutex_lock(&ms2_info_mutex);
+    if (!meta_servers)
+        meta_servers = malloc(sizeof(Meta_Info)*MAX_METASERVER);
+
+    ms1_is_running=1;
+    pthread_mutex_unlock(&ms2_info_mutex);
+
+    ret=pthread_create(&thread_id, NULL, metaserver1_thread, NULL);
+    if (ret) {
+        LOG(LOG_ERROR, "common::metaserver1_get_info", "Thread creation failed.");
+	pthread_mutex_lock(&ms2_info_mutex);
+	ms1_is_running=0;
+	pthread_mutex_unlock(&ms2_info_mutex);
+    }
+
+    return 0;
+}    
+/******************************************************************************
+ * End of metaserver1 logic
+ ******************************************************************************/
+
+/******************************************************************************
+ * This is start of common logic - the above sections are actually getting
+ * the data.  The code below here is just displaying the data we got
+ */
+
+/**
+ * Sees if we are gathering data or not.  Note that we don't have to check
+ * to see what update methods are being used - the is_running flag
+ * is initialized to zero no matter if we are using that method to get
+ * the data, and unless we are using ms1 or ms2, the is_running flag
+ * will never get changed to be non-zero.
+ *
+ * @return
+ * Returns 1 if if we are getting data, 0 if nothing is going on right now.
+ */
+int metaserver_check_status() {
+    int status;
+
+    pthread_mutex_lock(&ms2_info_mutex);
+    status = ms2_is_running | ms1_is_running;
+    pthread_mutex_unlock(&ms2_info_mutex);
+
+    return status;
+}
+
+/* This contacts the metaserver and gets the list of servers.  returns 0
+ * on success, 1 on failure.  Errors will get dumped to stderr,
+ * so most errors should be reasonably clear.
+ * metaserver and meta_port are the server name and port number
+ * to connect to.
+ */
+
+int metaserver_get_info(char *metaserver, int meta_port) {
+
+    meta_numservers = 0;
+
+    metaserver2_get_info();
+
+    if (metaserver_on) {
+	metaserver1_get_info();
+    }
 
     return 0;
 }
@@ -691,14 +760,18 @@ void metaserver_show(int show_selection) {
         draw_info(" ", NDI_BLACK);
     }
 
-    if (metaserver2_on) {
-	while(metaserver2_check_status());
+    while(metaserver_check_status()) {
 	usleep(100);
     }
 
     draw_info(" #)     Server        #     version   idle", NDI_BLACK);
     draw_info("         Name      players           seconds", NDI_BLACK);
     pthread_mutex_lock(&ms2_info_mutex);
+
+    /* Re-sort the data - may get different data from ms1 and ms2, so 
+     * order of this is somewhat random.
+     */
+    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
     for (i = 0; i < meta_numservers; i++) {
         sprintf(buf, "%2d)  %-15.15s %2d   %-12.12s %2d",
             i+1+cached_servers_num, meta_servers[i].hostname,

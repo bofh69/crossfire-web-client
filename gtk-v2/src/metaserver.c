@@ -169,13 +169,16 @@ char *get_metaserver()
 	    }
 	}
     }
-    while (metaserver2_check_status()) {
+    while (metaserver_check_status()) {
 	usleep(100);
 	gtk_main_iteration_do(FALSE);
     }
 
 	
     pthread_mutex_lock(&ms2_info_mutex);
+
+    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
+
     for (i=0; i<meta_numservers; i++) {
 	gtk_list_store_append(store_metaserver, &iter);
 	gtk_list_store_set(store_metaserver, &iter,
