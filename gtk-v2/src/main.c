@@ -122,6 +122,7 @@ void client_tick(uint32 tick)
 {
     inventory_tick();
     mapdata_animation();
+    gtk_draw_map(0);
 }
 
 /* Called from disconnect command - that closes the socket -

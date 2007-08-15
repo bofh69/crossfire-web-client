@@ -1,6 +1,10 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+Fix map not updated at tick causing items to appear non animated.
+ gtk/gx11.c
+ gtk-v2/src/main.c
+Nicolas Weeger 2007-08-15
 
 Partial fix for bug #1772759: Too much alchemy causes client crash.
  common/item.c: find item in container too.
