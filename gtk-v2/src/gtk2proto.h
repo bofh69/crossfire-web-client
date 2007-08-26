@@ -55,6 +55,7 @@ extern void draw_lists(void);
 extern void on_notebook_switch_page(GtkNotebook *notebook, GtkNotebookPage *page, guint page_num, gpointer user_data);
 extern gboolean on_inv_table_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
 extern void animate_inventory(void);
+extern void animate_look(void);
 extern void inventory_tick(void);
 /* keys.c */
 extern void keys_init(GtkWidget *window_root);
@@ -81,7 +82,6 @@ extern void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_
 /* main.c */
 extern int do_timeout(void);
 extern void client_tick(uint32 tick);
-extern void client_pickup(uint32 pickup);
 extern void cleanup_connection(void);
 extern void on_window_destroy_event(GtkObject *object, gpointer user_data);
 extern void do_network(void);
@@ -164,6 +164,8 @@ extern void on_menu_ratio_35_activate(GtkMenuItem *menuitem, gpointer user_data)
 extern void on_menu_ratio_40_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_ratio_45_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_ratio_50_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void pickup_init(GtkWidget *window_root);
+extern void client_pickup(uint32 pickup);
 /* png.c */
 extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
 extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
@@ -180,6 +182,7 @@ extern void signal_pipe(int i);
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
 /* spells.c */
+extern void spell_get_styles(void);
 extern void update_spell_information(void);
 extern void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_spell_treeview_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
@@ -189,7 +192,7 @@ extern void on_spell_close_clicked(GtkButton *button, gpointer user_data);
 /* stats.c */
 extern void stats_get_styles(void);
 extern void stats_init(GtkWidget *window_root);
-extern void update_stat(int stat_no, int max_stat, int current_stat, const char *name, int can_alert);
+extern void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, const char *name, int can_alert);
 extern void draw_message_window(int redraw);
 extern void draw_stats(int redraw);
 extern void clear_stat_mapping(void);
