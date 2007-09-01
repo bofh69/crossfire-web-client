@@ -64,7 +64,7 @@ host_triplet = @host@
 target_triplet = @target@
 subdir = gtk-v2/glade
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	AUTHORS ChangeLog NEWS
+	AUTHORS
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.in

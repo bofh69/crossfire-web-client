@@ -58,8 +58,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = gtk-v2
-DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	AUTHORS ChangeLog NEWS TODO
+DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.in
@@ -127,6 +126,8 @@ INTLLIBS = @INTLLIBS@
 LDFLAGS = @LDFLAGS@
 LIBCURL = @LIBCURL@
 LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
+LIBGLADE_CFLAGS = @LIBGLADE_CFLAGS@
+LIBGLADE_LIBS = @LIBGLADE_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBXPM_LIB = @LIBXPM_LIB@
@@ -214,10 +215,8 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-SUBDIRS = src themes
+SUBDIRS = glade src themes
 EXTRA_DIST = \
-	gtk-v2.glade \
-	gtk-v2.gladep \
 	README \
 	README-dev \
 	TODO

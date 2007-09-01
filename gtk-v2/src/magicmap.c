@@ -29,12 +29,9 @@ char *rcsid_gtk2_magicmap_c =
 #endif
 
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 
 #include "client.h"
-
-#include "callbacks.h"
-#include "interface.h"
-#include "support.h"
 
 #include "main.h"
 

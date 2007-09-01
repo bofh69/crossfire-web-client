@@ -38,6 +38,7 @@ char *rcsid_gtk2_keys_c =
 
 /* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #else
@@ -46,8 +47,6 @@ char *rcsid_gtk2_keys_c =
 typedef int KeyCode; /* Undefined type */
 #endif
 #include <gdk/gdkkeysyms.h>
-
-#include "support.h"
 
 #include "client-types.h"
 #include "main.h"
@@ -58,7 +57,6 @@ typedef int KeyCode; /* Undefined type */
 #include "image.h"
 #include "gtk2proto.h"
 #include "p_cmd.h"
-#include "interface.h"
 
 static GtkWidget *fire_label, *run_label, *keybinding_window, *keybinding_checkbutton_control,
     *keybinding_checkbutton_shift, *keybinding_checkbutton_alt, *keybinding_checkbutton_meta,
@@ -355,7 +353,8 @@ void keys_init(GtkWidget *window_root)
     char buf[BIG_BUF];
     GtkTreeViewColumn *column;
     GtkCellRenderer *renderer;
-
+    GladeXML *xml_tree;
+    GtkWidget *widget;
 
     for (i = 0; i<MAX_HISTORY; i++)
 	history[i][0]=0;
@@ -410,22 +409,58 @@ void keys_init(GtkWidget *window_root)
     sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
 #endif
 
-    fire_label = lookup_widget(window_root,"fire_label");
-    run_label = lookup_widget(window_root,"run_label");
-    entry_commands = lookup_widget(window_root,"entry_commands");
-    spinbutton_count = lookup_widget(window_root,"spinbutton_count");
-    keybinding_window = create_keybinding_window();
-    keybinding_checkbutton_control = lookup_widget(keybinding_window, "keybinding_checkbutton_control");
-    keybinding_checkbutton_shift = lookup_widget(keybinding_window, "keybinding_checkbutton_shift");
-    keybinding_checkbutton_alt = lookup_widget(keybinding_window, "keybinding_checkbutton_alt");
-    keybinding_checkbutton_meta = lookup_widget(keybinding_window, "keybinding_checkbutton_meta");
-    keybinding_checkbutton_edit = lookup_widget(keybinding_window, "keybinding_checkbutton_stayinedit");
-    keybinding_entry_key = lookup_widget(keybinding_window, "keybinding_entry_key");
-    keybinding_entry_command = lookup_widget(keybinding_window, "keybinding_entry_command");
-    keybinding_treeview = lookup_widget(keybinding_window, "keybinding_treeview");
-    keybinding_button_remove = lookup_widget(keybinding_window, "keybinding_button_remove");
-    keybinding_button_update = lookup_widget(keybinding_window, "keybinding_button_update");
-    keybinding_button_bind = lookup_widget(keybinding_window, "keybinding_button_bind");
+    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
+
+    fire_label = glade_xml_get_widget(xml_tree, "fire_label");
+    run_label = glade_xml_get_widget(xml_tree, "run_label");
+    entry_commands = glade_xml_get_widget(xml_tree, "entry_commands");
+    spinbutton_count = glade_xml_get_widget(xml_tree, "spinbutton_count");
+
+    g_signal_connect ((gpointer) entry_commands, "activate",
+        G_CALLBACK (on_entry_commands_activate), NULL);
+
+    keybinding_window = glade_xml_get_widget(dialog_xml, "keybinding_window");
+    xml_tree = glade_get_widget_tree(GTK_WIDGET(keybinding_window));
+
+    keybinding_checkbutton_control =
+        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_control");
+    keybinding_checkbutton_shift =
+        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_shift");
+    keybinding_checkbutton_alt =
+        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_alt");
+    keybinding_checkbutton_meta =
+        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_meta");
+    keybinding_checkbutton_edit =
+        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_stayinedit");
+    keybinding_entry_key =
+        glade_xml_get_widget(xml_tree, "keybinding_entry_key");
+    keybinding_entry_command =
+        glade_xml_get_widget(xml_tree, "keybinding_entry_command");
+    keybinding_treeview =
+        glade_xml_get_widget(xml_tree, "keybinding_treeview");
+    keybinding_button_remove =
+        glade_xml_get_widget(xml_tree, "keybinding_button_remove");
+    keybinding_button_update =
+        glade_xml_get_widget(xml_tree, "keybinding_button_update");
+    keybinding_button_bind =
+        glade_xml_get_widget(xml_tree, "keybinding_button_bind");
+
+    g_signal_connect ((gpointer) keybinding_entry_key, "key_press_event",
+        G_CALLBACK (on_keybinding_entry_key_key_press_event), NULL);
+    g_signal_connect ((gpointer) keybinding_button_remove, "clicked",
+        G_CALLBACK (on_keybinding_button_remove_clicked), NULL);
+    g_signal_connect ((gpointer) keybinding_button_update, "clicked",
+        G_CALLBACK (on_keybinding_button_update_clicked), NULL);
+    g_signal_connect ((gpointer) keybinding_button_bind, "clicked",
+        G_CALLBACK (on_keybinding_button_bind_clicked), NULL);
+
+    widget = glade_xml_get_widget(xml_tree, "keybinding_button_clear");
+    g_signal_connect ((gpointer) widget, "clicked",
+        G_CALLBACK (on_keybinding_button_clear_clicked), NULL);
+
+    widget = glade_xml_get_widget(xml_tree, "keybinding_button_close");
+    g_signal_connect ((gpointer) widget, "clicked",
+        G_CALLBACK (on_keybinding_button_close_clicked), NULL);
 
     gtk_widget_set_sensitive(keybinding_button_remove, FALSE);
     gtk_widget_set_sensitive(keybinding_button_update, FALSE);

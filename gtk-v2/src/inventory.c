@@ -29,11 +29,9 @@ char *rcsid_gtk2_inventory_c =
 #endif
 
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 
 #include "client.h"
-
-#include "interface.h"
-#include "support.h"
 
 #include "main.h"
 #include "image.h"
@@ -395,12 +393,24 @@ void inventory_get_styles()
 void inventory_init(GtkWidget *window_root)
 {
     int i;
+    GladeXML *xml_tree;
 
     inventory_get_styles();
-    inv_notebook = lookup_widget(window_root,"notebook_inv");
-    treeview_look = lookup_widget(window_root, "treeview_look");
-    weight_label = lookup_widget(window_root,"label_inv_weight");
-    inv_table = lookup_widget(window_root,"inv_table");
+
+    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
+
+    inv_notebook = glade_xml_get_widget(xml_tree,"notebook_inv");
+    treeview_look = glade_xml_get_widget(xml_tree, "treeview_look");
+    weight_label = glade_xml_get_widget(xml_tree,"label_inv_weight");
+    inv_table = glade_xml_get_widget(xml_tree,"inv_table");
+
+    g_signal_connect((gpointer) inv_notebook, "switch_page",
+        (GCallback) on_notebook_switch_page, NULL);
+    g_signal_connect((gpointer) inv_table, "expose_event",
+        (GCallback) on_inv_table_expose_event, NULL);
+    g_signal_connect((gpointer) treeview_look, "row_collapsed",
+        (GCallback) list_row_collapse, NULL);
+
     inv_table_tooltips = gtk_tooltips_new();
     gtk_tooltips_enable(inv_table_tooltips);
 

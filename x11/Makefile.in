@@ -62,8 +62,7 @@ target_triplet = @target@
 bin_PROGRAMS = crossfire-client-x11$(EXEEXT)
 subdir = x11
 DIST_COMMON = $(dist_man6_MANS) $(noinst_HEADERS) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in AUTHORS COPYING \
-	ChangeLog INSTALL
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.in
@@ -144,6 +143,8 @@ INTLLIBS = @INTLLIBS@
 LDFLAGS = @LDFLAGS@
 LIBCURL = @LIBCURL@
 LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
+LIBGLADE_CFLAGS = @LIBGLADE_CFLAGS@
+LIBGLADE_LIBS = @LIBGLADE_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBXPM_LIB = @LIBXPM_LIB@

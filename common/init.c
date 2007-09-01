@@ -213,7 +213,7 @@ void init_client_vars()
             {
             char env[ MAX_BUF ];
             _snprintf( env, MAX_BUF, "HOME=%s", getenv( "APPDATA" ) );
-            LOG( LOG_INFO, "common::inic.c", "init_client_vars: HOME set to %APPDATA%.\n" );
+            LOG( LOG_INFO, "common::init.c", "init_client_vars: HOME set to %APPDATA%.\n" );
             putenv( env );
             }
         else

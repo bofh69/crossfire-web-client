@@ -149,28 +149,29 @@ dnl End of X client check
 
 dnl Check to see if gtk-v1 client will be built
 if eval "test x$gtkv1 = xyes" ; then
-if eval "test x$cfgtk2 = xyes" ; then
+    if eval "test x$cfgtk2 = xyes" ; then
         PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, [HAVE_GTK2=yes], [HAVE_GTK2=no]) 
         if eval "test x$HAVE_GTK2 = xyes" ; then
-	GTK_CFLAGS="`$PKG_CONFIG --cflags gtk+-2.0` -DCFGTK2 -DGTK_ENABLE_BROKEN -DGTK_WINDOW_DIALOG=GTK_WINDOW_TOPLEVEL"
-	GTK_LIBS=`$PKG_CONFIG --libs gtk+-2.0`
-	CF_SUBDIRS="$CF_SUBDIRS gtk"
-	CFGTK="no"
+            GTK_CFLAGS="`$PKG_CONFIG --cflags gtk+-2.0` -DCFGTK2 -DGTK_ENABLE_BROKEN -DGTK_WINDOW_DIALOG=GTK_WINDOW_TOPLEVEL"
+            GTK_LIBS=`$PKG_CONFIG --libs gtk+-2.0`
+            CF_SUBDIRS="$CF_SUBDIRS gtk"
+            CFGTK="no"
             AC_MSG_NOTICE(GTK+ 2 found - building original gtk-v1 client with GTK+ 2.0.0)
-else
-            AC_MSG_WARN(GTK2 not found and --enable-cfgtk2 is set - cannot original gtk-v1 client)
-fi
+        else
+            AC_MSG_WARN(GTK+ 2 not found and --enable-cfgtk2 is set - cannot
+build original gtk-v1 client)
+        fi
     else
         AM_PATH_GTK(1.0.0,CFGTK="yes",CFGTK="no")
-if eval "test x$CFGTK = xyes"; then
-            AC_MSG_NOTICE(GTK 1 found - building gtk client)
-	GTK_LIBS=$GTK_LIBS
-	GTK_CFLAGS="$GTK_CFLAGS"
-	AC_SUBST(GTK_LIBS)
-	AC_SUBST(GTK_CFLAGS)
-	CF_SUBDIRS="$CF_SUBDIRS gtk"
-	dnl AC_DEFINE(GTK_CLIENT, 1, [Define if the GTK client is built.])
-else
+        if eval "test x$CFGTK = xyes"; then
+             AC_MSG_NOTICE(GTK 1 found - building gtk client)
+             GTK_LIBS=$GTK_LIBS
+             GTK_CFLAGS="$GTK_CFLAGS"
+             AC_SUBST(GTK_LIBS)
+             AC_SUBST(GTK_CFLAGS)
+             CF_SUBDIRS="$CF_SUBDIRS gtk"
+             dnl AC_DEFINE(GTK_CLIENT, 1, [Define if the GTK client is built.])
+          else
             AC_MSG_WARN(GTK 1 not found - not building building gtk-v1 client)
         fi
     fi
@@ -182,13 +183,25 @@ dnl End of gtk-v1 client check
 
 dnl Check to see if gtk-v2 client will be built
 if eval "test x$gtkv2 = xyes" ; then
-    PKG_CHECK_MODULES(GTK2, [gtk+-2.0 >= 2.0.0], [CF_SUBDIRS="$CF_SUBDIRS gtk-v2"], [gtkv2="no"])
-    dnl Check if gtkv2 is still "yes" as is cleaner than putting all the messages in the PKG_CHECK
-    if eval "test x$gtkv2 = xyes" ; then
-      AC_MSG_NOTICE(GTK+ 2 found - will build gtk-v2 client)
+    if eval "test x$HAVE_GTK2 != xyes" ; then
+        dnl Check for GTK+ 2
+        PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, [HAVE_GTK2=yes], [HAVE_GTK2=no]) 
+    fi
+    if eval "test x$HAVE_GTK2 = xyes" ; then
+        dnl Check for Libglade-2.0
+        PKG_CHECK_MODULES(LIBGLADE, libglade-2.0 >= 2.0.0, [HAVE_LIBGLADE=yes], [HAVE_LIBGLADE=no]) 
+        if eval "test x$HAVE_LIBGLADE = xyes" ; then
+            CF_SUBDIRS="$CF_SUBDIRS gtk-v2"
+            AC_SUBST(LIBGLADE_CFLAGS)
+            AC_SUBST(LIBGLADE_LIBS)
+            AC_MSG_NOTICE(GTK+-2.0 & Libglade-2.0 found; will build gtk-v2 client)
+        else
+            AC_MSG_WARN(Libglade-2.0 libraries not found; will not build gtk-v2 client)
+            gtkv2="no"
+        fi
     else
-      AC_MSG_WARN(GTK+ 2 libraries not found - will not build gtk-v2 client)
-fi
+        AC_MSG_WARN(GTK+ 2 libraries not found; will not build gtk-v2 client)
+    fi
 else
     AC_MSG_NOTICE(gtkv2 client disabled)
 fi
@@ -454,7 +467,6 @@ AC_PROG_GCC_TRADITIONAL
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(mkdir socket strcspn sysconf getaddrinfo)
 
-
 AC_SUBST(XPM)
 AC_SUBST(SOUNDDIR)
 AC_SUBST(LIBXPM_LIB)
@@ -493,4 +505,5 @@ dnl descend into these subdirs.
 AC_OUTPUT([
 	Makefile gtk/Makefile x11/Makefile common/Makefile 
 	sound-src/Makefile gtk-v2/Makefile pixmaps/Makefile
-	gtk-v2/src/Makefile  gtk-v2/themes/Makefile help/Makefile utils/Makefile ] )
+	gtk-v2/glade/Makefile gtk-v2/src/Makefile gtk-v2/themes/Makefile
+	help/Makefile utils/Makefile ] )

@@ -27,10 +27,15 @@
 #define NUM_COLORS 13
 extern GdkColor root_color[NUM_COLORS];
 GtkWidget *window_root, *spinbutton_count;
+GladeXML *dialog_xml, *window_xml;
 
 #define DEFAULT_IMAGE_SIZE      32
 extern int map_image_size, map_image_half_size, image_size;
 
+#define XML_PATH_DEFAULT PACKAGE_DATA_DIR "/" PACKAGE "/glade-gtk2/"
+#define WINDOW_XML_FILENAME "gtk-v2.glade"
+#define DIALOG_XML_FILENAME "dialogs.glade"
+extern char window_xml_file[];
 
 /* Notebook page of the magic map */
 #define MAGIC_MAP_PAGE	1

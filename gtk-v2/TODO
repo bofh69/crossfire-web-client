@@ -1,32 +1,39 @@
-This file is meant to be a short list of things that need
-to be done, in no particular order (thus, unnumbered)
+This file is meant to be a short list of things that need to be done, in no
+particular order (thus, unnumbered)
+
+Bugs to fix:
+
+- Fix or implement the scroll bar handles on the map display.
+
+Other work:
 
 - Make an image for the 'icons' inventory tab (perhaps an eye?)
 
 - Implement the arrow buttons to scroll map around so that the player does not
-have to be in the middle (eg, after you thing you have completed a level, you
-should be able to scroll around and look at the fog of war spaces and see if
-you've missed anything).
+  have to be in the middle (eg, after you thing you have completed a level, you
+  should be able to scroll around and look at the fog of war spaces and see if
+  you've missed anything).
 
 - Add a window for configuration selection
 
-- Perhaps a better splash graphic to show while not connected, since there is
-a lot more space that is not being used.
+- Perhaps a better splash graphic to show while not connected, since there is a
+  lot more space that is not being used.
 
-- perhaps tie in some display options with scripting?  Eg, and inventory tab
-in which an external script can be used to determine whether to show objects
-or not, perhaps same for information messages?
+- Perhaps tie in some display options with scripting?  Eg, and inventory tab in
+  which an external script can be used to determine whether to show objects or
+  not, perhaps same for information messages?
 
 - Implement drag and drop for the inventory/look windows (would allow moving
-objects from a container directly to the ground for example.
+  objects from a container directly to the ground for example.
 
 - Change container handling - the client can properly handle multiple
-containers now.  On the client side, not much needs to be changed.  On the
-server side, the server will need to update all active containers when their
-contents change.
+  containers now.  On the client side, not much needs to be changed.  On the
+  server side, the server will need to update all active containers when their
+  contents change.
 
-- Add support for lower screen resolution (1024x768).  This may require a
-seperate glade config file
+- Add support for lower screen resolution (1024x768).  With libglade support,
+  this may already be taken care of, or it may also involve things like letting
+  a user pick a smaller font in various places..
 
-- Add split window support (probably requires second glade config file)
- setup)
+- Add split window support (probably requires second glade config file) setup)
+

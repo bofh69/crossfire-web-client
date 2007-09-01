@@ -29,12 +29,9 @@ char *rcsid_gtk2_stats_c =
 
 #include <assert.h>
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 
 #include "client.h"
-
-#include "callbacks.h"
-#include "interface.h"
-#include "support.h"
 
 #include "main.h"
 
@@ -172,35 +169,54 @@ void stats_init(GtkWidget *window_root)
 {
     int i, x, y;
     char buf[MAX_BUF];
+    GladeXML *xml_tree;
 
+    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     for (i=0; i<MAX_STAT_BARS; i++) {
 	sprintf(buf, "label_stats_%s", stat_bar_names[i]);
-	stat_label[i] = lookup_widget(window_root, buf);
+	stat_label[i] = glade_xml_get_widget(xml_tree, buf);
 
 	sprintf(buf, "progressbar_%s", stat_bar_names[i]);
-	stat_bar[i] = lookup_widget(window_root, buf);
+	stat_bar[i] = glade_xml_get_widget(xml_tree, buf);
 
 	lastval[i] = -1;
 	lastmax[i] = -1;
     }
 
-    statwindow.playername = lookup_widget(window_root,"label_playername");
-    statwindow.Str = lookup_widget(window_root,"label_str");
-    statwindow.Dex = lookup_widget(window_root,"label_dex");
-    statwindow.Con = lookup_widget(window_root,"label_con");
-    statwindow.Int = lookup_widget(window_root,"label_int");
-    statwindow.Wis = lookup_widget(window_root,"label_wis");
-    statwindow.Pow = lookup_widget(window_root,"label_pow");
-    statwindow.Cha = lookup_widget(window_root,"label_cha");
-    statwindow.wc = lookup_widget(window_root,"label_wc");
-    statwindow.dam = lookup_widget(window_root,"label_dam");
-    statwindow.ac = lookup_widget(window_root,"label_ac");
-    statwindow.armor = lookup_widget(window_root,"label_armor");
-    statwindow.speed = lookup_widget(window_root,"label_speed");
-    statwindow.weapon_speed = lookup_widget(window_root,"label_weapon_speed");
-    statwindow.range = lookup_widget(window_root,"label_range");
-    statwindow.exp = lookup_widget(window_root,"label_exp");
-    statwindow.level = lookup_widget(window_root,"label_level");
+    statwindow.playername =
+        glade_xml_get_widget(xml_tree, "label_playername");
+    statwindow.Str =
+        glade_xml_get_widget(xml_tree, "label_str");
+    statwindow.Dex =
+        glade_xml_get_widget(xml_tree, "label_dex");
+    statwindow.Con =
+        glade_xml_get_widget(xml_tree, "label_con");
+    statwindow.Int =
+        glade_xml_get_widget(xml_tree, "label_int");
+    statwindow.Wis =
+        glade_xml_get_widget(xml_tree, "label_wis");
+    statwindow.Pow =
+        glade_xml_get_widget(xml_tree, "label_pow");
+    statwindow.Cha =
+        glade_xml_get_widget(xml_tree, "label_cha");
+    statwindow.wc =
+        glade_xml_get_widget(xml_tree, "label_wc");
+    statwindow.dam =
+        glade_xml_get_widget(xml_tree, "label_dam");
+    statwindow.ac =
+        glade_xml_get_widget(xml_tree, "label_ac");
+    statwindow.armor =
+        glade_xml_get_widget(xml_tree, "label_armor");
+    statwindow.speed =
+        glade_xml_get_widget(xml_tree, "label_speed");
+    statwindow.weapon_speed =
+        glade_xml_get_widget(xml_tree, "label_weapon_speed");
+    statwindow.range =
+        glade_xml_get_widget(xml_tree, "label_range");
+    statwindow.exp =
+        glade_xml_get_widget(xml_tree, "label_exp");
+    statwindow.level =
+        glade_xml_get_widget(xml_tree, "label_level");
 
     /* Note that the order the labels are attached to the tables determines
      * the order of display.  The order as right now is left to right,
@@ -208,7 +224,9 @@ void stats_init(GtkWidget *window_root)
      * skills & protections.
      */
 
-    statwindow.table_skills_exp = lookup_widget(window_root,"table_skills_exp");
+    statwindow.table_skills_exp =
+        glade_xml_get_widget(xml_tree,"table_skills_exp");
+
     for (i=0, x=0, y=0; i < SKILL_BOXES_X * SKILL_BOXES_Y; i++) {
 	statwindow.skill_exp[i] = gtk_label_new("");
 	gtk_table_attach(GTK_TABLE(statwindow.table_skills_exp), statwindow.skill_exp[i],
@@ -221,7 +239,9 @@ void stats_init(GtkWidget *window_root)
 	}
     }
 
-    statwindow.table_protections = lookup_widget(window_root,"table_protections");
+    statwindow.table_protections =
+        glade_xml_get_widget(xml_tree,"table_protections");
+
     for (i=0, x=0, y=0; i < PROTECTION_BOXES_X * PROTECTION_BOXES_Y; i++) {
 	statwindow.resists[i] = gtk_label_new("");
 	gtk_table_attach(GTK_TABLE(statwindow.table_protections), statwindow.resists[i],

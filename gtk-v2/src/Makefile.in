@@ -78,8 +78,7 @@ am__objects_1 = about.$(OBJEXT) config.$(OBJEXT) image.$(OBJEXT) \
 	menubar.$(OBJEXT) metaserver.$(OBJEXT) opengl.$(OBJEXT) \
 	pickup.$(OBJEXT) png.$(OBJEXT) sdl.$(OBJEXT) sound.$(OBJEXT) \
 	spells.$(OBJEXT) stats.$(OBJEXT)
-am_crossfire_client_gtk2_OBJECTS = $(am__objects_1) support.$(OBJEXT) \
-	interface.$(OBJEXT)
+am_crossfire_client_gtk2_OBJECTS = $(am__objects_1)
 crossfire_client_gtk2_OBJECTS = $(am_crossfire_client_gtk2_OBJECTS)
 am__DEPENDENCIES_1 =
 crossfire_client_gtk2_DEPENDENCIES = ../../common/libcfclient.a \
@@ -143,6 +142,8 @@ INTLLIBS = @INTLLIBS@
 LDFLAGS = @LDFLAGS@
 LIBCURL = @LIBCURL@
 LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
+LIBGLADE_CFLAGS = @LIBGLADE_CFLAGS@
+LIBGLADE_LIBS = @LIBGLADE_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBXPM_LIB = @LIBXPM_LIB@
@@ -234,7 +235,7 @@ INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-I$(top_srcdir)/common -I$(top_srcdir)/help \
-	@GTK2_CFLAGS@ \
+	@LIBGLADE_CFLAGS@ \
 	@SDL_CFLAGS@
 
 PROTO_SOURCES = \
@@ -259,12 +260,9 @@ PROTO_SOURCES = \
 
 crossfire_client_gtk2_SOURCES = \
 	$(PROTO_SOURCES) \
-	support.c support.h \
-	interface.c interface.h \
-	image.h main.h gtk2proto.h \
-	callbacks.h
+	image.h main.h gtk2proto.h
 
-crossfire_client_gtk2_LDADD = ../../common/libcfclient.a @GTK2_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@
+crossfire_client_gtk2_LDADD = ../../common/libcfclient.a @LIBGLADE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@
 all: all-am
 
 .SUFFIXES:
@@ -335,7 +333,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/image.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/info.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/inventory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/keys.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/magicmap.Po@am__quote@
@@ -350,7 +347,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sound.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spells.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stats.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/support.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -535,7 +531,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 
 
 proto:
-	cproto -e -o gtk2proto.h  $(SDL_CFLAGS) $(GTK2_CFLAGS) $(DEFAULT_INCLUDES) $(PROTO_SOURCES)
+	cproto -e -o gtk2proto.h  $(SDL_CFLAGS) $(LIBGLADE_CFLAGS) $(DEFAULT_INCLUDES) $(PROTO_SOURCES)
 	chmod 644 gtk2proto.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

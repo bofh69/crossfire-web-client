@@ -30,12 +30,10 @@ char *rcsid_gtk2_about_c =
 #endif
 
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 #include <ctype.h>
 
 #include "client.h"
-
-#include "interface.h"
-#include "support.h"
 
 #include "main.h"
 #include "image.h"
@@ -47,9 +45,12 @@ char *rcsid_gtk2_about_c =
 static GtkWidget   *about_window=NULL;
 
 void
-menu_about                       (GtkMenuItem     *menuitem,
+menu_about                             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+    GladeXML *xml_tree;
+    GtkWidget *widget;
+
     if (!about_window) {
 	GtkWidget   *textview;
 	GtkTextBuffer	*textbuf;
@@ -59,10 +60,15 @@ menu_about                       (GtkMenuItem     *menuitem,
 	GdkPixmap *aboutgdkpixmap;
 	GdkBitmap *aboutgdkmask;
 
+        about_window = glade_xml_get_widget(dialog_xml, "about_window");
+        xml_tree = glade_get_widget_tree(GTK_WIDGET(about_window));
 
-	about_window=create_about_window();
+        textview = glade_xml_get_widget(xml_tree, "about_textview");
 
-	textview = lookup_widget(about_window, "about_textview");
+        widget = glade_xml_get_widget(xml_tree, "about_close");
+        g_signal_connect ((gpointer) widget, "clicked",
+            G_CALLBACK (on_about_close_clicked), NULL);
+
 	textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
 
         gtk_text_buffer_get_end_iter(textbuf, &end);
@@ -84,7 +90,8 @@ menu_about                       (GtkMenuItem     *menuitem,
 	 * filled in.  So instead, we create a hbox in that first entry just
 	 * to hold this image.
 	 */
-	hbox = lookup_widget(about_window, "about_hbox_image");
+        hbox = glade_xml_get_widget(xml_tree, "about_hbox_image");
+
 	gtk_box_pack_start (GTK_BOX (hbox),aboutgtkpixmap, TRUE, TRUE, 0);
 
 	gtk_widget_show(aboutgtkpixmap);

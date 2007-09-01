@@ -32,13 +32,12 @@ char *rcsid_gtk2_info_c =
 #endif
 
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 
 #include "client.h"
 
 #include "image.h"
 #include "gtk2proto.h"
-#include "interface.h"
-#include "support.h"
 
 #include "main.h"
 
@@ -360,13 +359,16 @@ void info_init(GtkWidget *window_root)
     int i;
     GtkTextIter end;
     char    widget_name[MAX_BUF];
+    GladeXML *xml_tree;
 
+    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     for (i=0; i < NUM_TEXT_VIEWS; i++) {
 	snprintf(widget_name, MAX_BUF, "textview_info%d", i+1);
-	info_pane[i].textview = lookup_widget(window_root,widget_name);
+	info_pane[i].textview = glade_xml_get_widget(xml_tree, widget_name);
 
 	snprintf(widget_name, MAX_BUF, "scrolledwindow_textview%d", i+1);
-	info_pane[i].scrolled_window = lookup_widget(window_root, widget_name);
+	info_pane[i].scrolled_window =
+            glade_xml_get_widget(xml_tree, widget_name);
 	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(info_pane[i].textview), GTK_WRAP_WORD);
 	info_pane[i].textbuffer=gtk_text_view_get_buffer(GTK_TEXT_VIEW(info_pane[i].textview));
 	info_pane[i].adjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(info_pane[i].scrolled_window));

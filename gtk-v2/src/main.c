@@ -35,11 +35,10 @@ char *rcsid_gtk2_main_c =
 #include <windows.h>
 #endif
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 #include <stdio.h>
 #include <errno.h>
 
-#include "interface.h"
-#include "support.h"
 #include "main.h"
 #include "client.h"
 #include "image.h"
@@ -84,9 +83,13 @@ const char *usercolorname[NUM_COLORS] = {
 "grey"  ,               /* 9  */
 "brown",                /* 10 */
 "yellow",               /* 11 */
-"tan"                 /* 12 */
+"tan"                   /* 12 */
 };
 
+char dialog_xml_file[MAX_BUF] = DIALOG_XML_FILENAME;
+char dialog_xml_path[MAX_BUF] = "";
+char window_xml_file[MAX_BUF] = WINDOW_XML_FILENAME;
+char window_xml_path[MAX_BUF] = "";
 GdkColor root_color[NUM_COLORS];
 struct timeval timeout;
 extern int maxfd;
@@ -300,6 +303,8 @@ static void usage(char *progname)
     puts("-triminfowindow  - Trims size of information window(s)");
     puts("-notriminfowindow  - Do not trims size of information window(s) (default)");
     puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
+    puts("-window_xml <file> - Glade Designer client UI layout XML file.");
+    puts("-dialog_xml <file> - Glade Designer popup dialog XML file.");
 
     exit(0);
 }
@@ -557,6 +562,24 @@ int parse_args(int argc, char **argv)
 	    want_config[CONFIG_SPLASH] = FALSE;
 	    continue;
 	}
+	else if (!strcmp(argv[on_arg],"-window_xml")) {
+	    if (++on_arg == argc) {
+		LOG(LOG_WARNING,"gtk::init_windows",
+                    "-window_xml requires a glade xml file name");
+		return 1;
+	    }
+	    strncpy (window_xml_path, argv[on_arg], MAX_BUF-1);
+	    continue;
+	}
+	else if (!strcmp(argv[on_arg],"-dialog_xml")) {
+	    if (++on_arg == argc) {
+		LOG(LOG_WARNING,"gtk::init_windows",
+                    "-dialog_xml requires a glade xml file name");
+		return 1;
+	    }
+	    strncpy (dialog_xml_path, argv[on_arg], MAX_BUF-1);
+	    continue;
+	}
 	else {
 	    LOG(LOG_WARNING,"gtk::init_windows","Do not understand option %s", argv[on_arg]);
 	    usage(argv[0]);
@@ -592,6 +615,7 @@ main (int argc, char *argv[])
     int i, got_one=0;
     static char file_cache[ MAX_BUF ];
     GdkGeometry geometry;
+    GladeXML *xml_tree;
 
 #ifdef ENABLE_NLS
     bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
@@ -601,9 +625,6 @@ main (int argc, char *argv[])
 
     gtk_set_locale ();
     gtk_init (&argc, &argv);
-
-
-    add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
 
     /* parse_args() has to come after init_client_vars() */
     init_client_vars();
@@ -640,13 +661,55 @@ main (int argc, char *argv[])
 	use_config[CONFIG_SOUND] = FALSE;
     else use_config[CONFIG_SOUND] = TRUE;
 
+    /*
+     * Load Glade XML layout files for the main client window and for the other
+     * popup dialogs.  The popup dialogs must all have the "visible" attribute
+     * set to "no" so they are not shown initially.
+     *
+     * NOTE:  glade_init() is implicitly called on glade_xml_new().
+     *
+     * First, load up the common dialogs.  If the XML file path is already set,
+     * it is because a command-line parameter was used to specify it.  If not
+     * set, construct the path to the file from the default path and name
+     * settings.
+     */
+    if (! dialog_xml_path[0]) {
+        strncat(dialog_xml_path, XML_PATH_DEFAULT, MAX_BUF-1);
+        strncat(dialog_xml_path, dialog_xml_file,
+            MAX_BUF-strlen(dialog_xml_path)-1);
+    }
+    dialog_xml = glade_xml_new(dialog_xml_path, NULL, NULL);
+    if (! dialog_xml) {
+        fprintf (stderr, "Failed to load xml file: %s\n", dialog_xml_path);
+        exit(-1);
+    }
 
     /*
-     * The following code was added by Glade to create one of each component
-     * (except popup menus), just so that you see something after building
-     * the project. Delete any components that you don't want shown initially.
+     * Next, load up the root window.  If the XML file path is already set, it
+     * is because a command-line parameter was used to specify it.  If not set,
+     * construct the path to the file from the default settings, and any values
+     * loaded from the gdefaults2 file.
      */
-    window_root = create_window_root ();
+    if (! window_xml_path[0]) {
+        strncat(window_xml_path, XML_PATH_DEFAULT, MAX_BUF-1);
+        strncat(window_xml_path, window_xml_file,
+            MAX_BUF-strlen(window_xml_path)-1);
+    }
+    window_xml = glade_xml_new(window_xml_path, NULL, NULL);
+    if (! window_xml) {
+        fprintf (stderr, "Failed to load xml file: %s\n", window_xml_path);
+        exit(-1);
+    }
+
+    /* Begin connecting signals for the root window loaded by libglade. */
+    window_root = glade_xml_get_widget(window_xml, "window_root");
+
+    g_signal_connect_swapped ((gpointer) window_root, "key_press_event",
+        G_CALLBACK (keyfunc), GTK_OBJECT (window_root));
+    g_signal_connect_swapped ((gpointer) window_root, "key_release_event",
+        G_CALLBACK (keyrelfunc), GTK_OBJECT (window_root));
+    g_signal_connect ((gpointer) window_root, "destroy",
+        G_CALLBACK (on_window_destroy_event), NULL);
 
     /* Purely arbitrary min window size */
     geometry.min_width=800;
@@ -688,7 +751,9 @@ main (int argc, char *argv[])
     gtk_widget_show (window_root);
 
     map_init(window_root);
-    magic_map = lookup_widget(window_root,"drawingarea_magic_map");
+
+    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
+    magic_map = glade_xml_get_widget(xml_tree, "drawingarea_magic_map");
 
     snprintf( file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv( "HOME" ) );
     cached_server_file = file_cache;

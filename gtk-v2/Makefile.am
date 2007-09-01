@@ -19,11 +19,10 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-SUBDIRS = src themes
+SUBDIRS = glade src themes
 
 EXTRA_DIST = \
-	gtk-v2.glade \
-	gtk-v2.gladep \
 	README \
 	README-dev \
 	TODO
+

@@ -42,6 +42,7 @@ char *rcsid_gtk_opengl_c =
 #include <client-types.h>
 
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #else

@@ -33,6 +33,7 @@ char *rcsid_gtk_sdl_c =
 
 /* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #else
