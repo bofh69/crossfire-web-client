@@ -1,6 +1,191 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+This is a merge of client/branches/gtk-v2-libglade to trunk.  It converts the
+GTK-V2 client to a libglade-2.0 client that supports changing the UI layout
+with glade-2 generated .glade XML files.  Various alternate client layouts
+are included.
+AUTHORS
+  - Reformatted for aesthetics.
+  - Added libglade-2.0 conversion author.
+ChangeLog
+  - Summarize gtk-v2-libglade branch merge to trunk.
+common/init.c
+  - Typo corrected in LOG message (inic.c --> init.c).
+configure
+  - LIBGLADE_CFLAGS/LIBS addition.
+  - gtkv2 checks converted to HAVE_GTK2.
+  - gtk-v2/glade directory addition now supported.
+  - V2 client now depends on libglade2.0 instead of GTK+ 2.0.
+  - Some reformatting resulting from autoconf/automake changes flowing down.
+configure.in
+  - gtk-v2/glade directory addition now supported.
+  - Update indenting; tab->space conversion for readability.
+  - Minor message updates for consistency like GTK2 -> GTK+ 2.0.
+  - V2 client dependency checks changed to require libglade-2.0 vs. gtk+-2.0.
+gtk-v2/glade
+gtk-v2/glade/Makefile
+gtk-v2/glade/Makefile.am
+gtk-v2/glade/Makefile.in
+  - A fully autoconf/automake supported directory to be used for the control
+    of glade-2 layouts compatible with this client.
+gtk-v2/glade/AUTHORS
+  - A file to attribute the authors of the glade-2 XML layout projects in this
+    directory.
+gtk-v2/glade/README
+  - A help file for prospective glade-2 XML layout creation that describes how
+    to create a new layout and workarounds for various issues that may arise.
+gtk-v2/glade/caelestis.glade
+gtk-v2/glade/caelestis.gladep
+gtk-v2/glade/chthonic.glade
+gtk-v2/glade/chthonic.gladep
+gtk-v2/glade/gtk-v1.glade
+gtk-v2/glade/gtk-v1.gladep
+gtk-v2/glade/meflin.glade
+gtk-v2/glade/meflin.gladep
+  - New layout files for the V2 client.  make install places the .glade files
+    in the crossfire-client data directory, where they are detected by the
+    client in order to allow a user to select a new layout from the
+    configuration popup dialog.
+gtk-v2/glade/dialogs.glade
+gtk-v2/glade/dialogs.gladep
+  - This glade-2 XML layout project contains pop-up dialogs formerly contained
+    in the ../gtk-v2.glade files.  It was created to reduce the overhead in
+    setting up a new main window layout.  The client allows a user to specify
+    a new file at the command-line, but does not attempt to support in-client
+    selection of an alternate file.
+  - Various modification to the original pop-up dialogs have been made to
+    support the libglade-2.0 conversion.  The generated code allowed the XML
+    file to have variations in it that cause problems for libglade.
+  - Minor alterations have been mode to appearance and/or text on various
+    dialogs.
+gtk-v2/glade/gtk-v2.glade
+gtk-v2/glade/gtk-v2.gladep
+gtk-v2/gtk-v2.glade
+gtk-v2/gtk-v2.gladep
+  - Moved to gtk-v2/glade sub-directory.
+  - This is the original gtk-v2 client layout by mwedel.
+  - All popup dialogs have moved into gtk-v2/glade/dialogs.glade.
+gtk-v2/Makefile.am
+gtk-v2/Makefile.in
+  - LIBGLADE_CFLAGS/LIBS addition
+  - gtk-v2/glade directory addition now supported.
+  - DIST_COMMON modifications by autoconf/automake to remove files not under
+    SVN control.
+  - Remove gtk-v2/gtk-v2.glade and gtk-v2/gtk-v2.gladep from EXTRA_DIST as they
+    are now located in the gtk-v2/glade subdirectory.
+gtk-v2/README-dev
+  - Reformat for aesthetics and readability.
+  - Various updates to content based upon IRC or mailing list discussions.
+  - Rework content to third-party point-of-view to make it easier for other
+    developers to modify the document.
+gtk-v2/src
+  - Inexplicable property changes to svn:ignore simply reposition .deps entry. 
+gtk-v2/src/about.c
+gtk-v2/src/inventory.c
+gtk-v2/src/keys.c
+gtk-v2/src/map.c
+gtk-v2/src/metaserver.c
+gtk-v2/src/spells.c
+  - Include glade.h
+  - Remove includes of glade-2 generated source files.
+  - Conversion to libglade-2.0 requires use of glade_get_widget_tree() and
+    change from lookup_widget() to glade_xml_get_widget() and insertion of
+    g_signal_connect() to replace functionality previously found in glade-2
+    generated source files.
+gtk-v2/src/config.c
+  - Include glade.h
+  - Various code comment improvements.
+  - Remove includes of glade-2 generated source files.
+  - All functions without a comment header now have one.
+  - Significant code comment reformatting to use of a 79 character line width
+    and to reduce line lengths over 80 characters.
+  - Add static char pointers themedir and gladedir to better support loading
+    combo box widgets from the crossfire-client data directory, and to reduce
+    the number of redundant hard-coded strings.
+  - The configuration popup dialog now supports in-client selection of an XML
+    layout file to redefine the root window appearance.  Modified functions
+    include load_defaults(), save_defaults(), setup_config_window(), and
+    read_config_window().  New functions are scandir_glade_filter,
+    fill_combobox_from_datadir() which is derived from code factored out of
+    setup_config_window() so it can be used multiple times.  Modifications to
+    save_winpos() and load_window_positions() alters screen position saving to
+    remove hard-coded copy/pasted code and more flexibly support multiple XML
+    UI layout files.
+  - Conversion to libglade-2.0 requires use of glade_get_widget_tree() and
+    change from lookup_widget() to glade_xml_get_widget() and insertion of
+    g_signal_connect() to replace functionality previously found in glade-2
+    generated source files.
+  - scandir_filter() renamed to scandir_theme_filter() for more consistent
+    naming for multiple scandir filter functions now required since the window
+    layout combo box also requires on.
+gtk-v2/src/image.c
+gtk-v2/src/opengl.c
+gtk-v2/src/sdl.c
+  - Include glade.h
+gtk-v2/src/info.c
+gtk-v2/src/pickup.c
+gtk-v2/src/stats.c
+  - Include glade.h
+  - Remove includes of glade-2 generated source files.
+  - Conversion to libglade-2.0 requires use of glade_get_widget_tree() and
+    change from lookup_widget() to glade_xml_get_widget().
+gtk-v2/src/interface.c
+gtk-v2/src/interface.h
+gtk-v2/src/callbacks.h
+gtk-v2/src/support.c
+gtk-v2/src/support.h
+  - Remove glade-2 generated source files.
+gtk-v2/src/magicmap.c
+  - Include glade.h
+  - Remove includes of glade-2 generated source files.
+gtk-v2/src/main.c
+gtk-v2/src/main.h
+  - Include glade.h
+  - General changes to support the conversion to libglade-2.0 require runtime
+    processing of the glade-2 XML layout file names and locations.
+  - Add support for command-line specification of glade-2 generated XML files
+    that describe the UI windows and pop-up dialogs.
+  - Conversion to libglade-2.0 requires use of glade_get_widget_tree() and
+    change from lookup_widget() to glade_xml_get_widget() and insertion of
+    g_signal_connect() to replace functionality previously found in glade-2
+    generated source files.
+gtk-v2/src/Makefile.am
+gtk-v2/src/Makefile.in
+  - LIBGLADE_CFLAGS/LIBS addition.
+  - Replace GTK2_CFLAGS/LIBS with LIBGLADE_CFLAGS/LIBS.
+  - Changes resulting from removal of glade-2 generated source files.
+gtk-v2/src/menubar.c
+  - Include glade.h
+  - Remove includes of glade-2 generated source files.
+  - Include image.h and gtk2proto.h as support the libglade-2.0 conversion.
+  - Conversion to libglade-2.0 requires use of glade_get_widget_tree() and
+    change from lookup_widget() to glade_xml_get_widget() and insertion of
+    g_signal_connect() to replace functionality previously found in glade-2
+    generated source files.
+gtk-v2/TODO
+  - Reformat for aesthetics and readability.
+  - Add todo for non-functional scroll bar handles on the map display.
+  - Adjust todo for lower screen resolution support since the libglade-2.0 port
+    at least partially addresses usability on smaller desktops.
+help/about.h
+  - EOL whitespace removed.
+  - Minor reformat for aesthetics.
+  - Added libglade-2.0 conversion author.
+Makefile.in
+common/Makefile.in
+gtk/Makefile.in
+gtk/themes/Makefile.in
+help/Makefile.in
+pixmaps/Makefile.in
+sound-src/Makefile.in
+  - LIBGLADE_CFLAGS/LIBS addition
+x11/Makefile.in
+  - LIBGLADE_CFLAGS/LIBS addition
+  - DIST_COMMON modifications by autoconf/automake to remove files not under
+    SVN control.
+Kevin Bulgrien 2007-10-01
+
 common/metaserver.c: Update to use official and not test metaserver2 location.
 MSW 2007-08-31
 
