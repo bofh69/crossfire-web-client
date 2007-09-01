@@ -1,0 +1,33 @@
+Glade Designer Layout Authors
+-------------------------------------------------------------------------------
+
+If you author a .glade layout file, please feel free to add an attribution for
+your work here.
+
+-------------------------------------------------------------------------------
+Mark Wedel
+-------------------------------------------------------------------------------
+
+The original gtk-v2.glade file by Mark Wedel was the basis for the following
+layout files.  In fact, all layouts for the GTK-v2 client must contain the
+basic widget set found in that work.
+
+- gtk-v2.glade
+- dialogs.glade
+
+-------------------------------------------------------------------------------
+Kevin Bulgrien
+-------------------------------------------------------------------------------
+
+The conversion of the client to support libglade came shortly after Kevin
+Bulgrien began developing experimental alternative layouts by copying and
+modifying the original gtk-v2.glade layout.  Some of those initial layouts
+are are found in the following files:
+
+- chthonic.glade
+- gtk-v1.glade
+- meflin.glade
+
+    A player-suggested modification of an experimental layout developed prior
+    to commencement of the libglade client conversion work.
+

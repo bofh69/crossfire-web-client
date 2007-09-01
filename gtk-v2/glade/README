@@ -1,0 +1,135 @@
+-------------------------------------------------------------------------------
+Notes on using .glade layout files for the libglade version of the GTK2 client
+-------------------------------------------------------------------------------
+
+1) The GTK-v2 client uses two different Glade Designer XML files.  The first
+   describes the client's main game window, and the second describes all of
+   the other dialogs that the client uses.  The default XML layouts are
+   defined in the main.h header file, but one or both may be specified with
+   command-line arguments.
+
+   At the time of this writing, the default window is defined by gtk-v2.glade
+   and the common dialogs are defined in dialogs.glade.
+
+2) To launch the GTK-v2 client and use of a different layout template, start
+   the client with a command similar to the following example.
+
+     crossfire-client-gtk2 -window_xml /path/to/layout.glade
+
+   If something does not work as expected, be sure to start the client from a
+   console window.  The client will report informational and error messages.
+
+   To specify a different common dialog XML file, append an additional
+   argument on the command-line:
+
+     -dialog_xml /path/to/dialogs.glade
+
+3) If the -window_xml parameter is not accepted, the client is an old client
+   that does not support libglade.  This could happen if a recent client is
+   compiled but the system does not have the libglade-2.0 libraries on it.
+   Check the output of ./configure.  It may report that the gtk-v2 client will
+   not be built.  If this happens, the client on the system will be an old one
+   with a date and time that do not correspond to the current build.
+
+4) The first time a layout is used, ~/.crossfire/gwinpos2 will not contain the
+   correct screen sizes for the layout.  This may cause the client to look bad,
+   and it can be tricky to find the size bars if panes overlap.  With patience,
+   they may be found and used to size the client panes better.  Use the Client
+   Save Window Position command to save the adjustments.  They will be used to
+   restore the saved settings the next time the client is started.
+
+   Presently the screen sizes are lost every time a different layout is tried.
+   It may be that this limitation will be removed from a future version of the
+   client.  In the mean time, save copies of the ~/.crossfire/gwinpos2 file
+   for each layout you care to keep, then restore the copy when you want to
+   use the layout it corresponds with.
+
+5) Some layouts appear to not allow resizing of the overall window.  It is not
+   yet known why this is the case.  The window size code was not altered for
+   the libglade conversion.
+
+-------------------------------------------------------------------------------
+Notes about designing .glade files for the libglade version of the GTK2 client
+-------------------------------------------------------------------------------
+
+1) All windows that should not be initially displayed when the application
+   starts must have the "visible" property set to "no".  This property is on
+   the "Common" tab.
+
+   The following windows should not be initially visible:
+
+     metaserver_window
+     keybinding_window
+     config_window
+     spell_window
+     about_window
+
+   Reference:
+
+     http://developer.gnome.org/doc/API/2.0/libglade/libglade-embedding.html
+
+2) All hpane and vpane resizeable widgets that need to be saved when the user
+   selects Client | Save Window Position should have a name that begins with
+   either "hpaned_" or "vpaned_".  The client will only save window positions
+   for the widgets named in this way (this is the default naming convention
+   used by the Glade Designer application).
+
+3) Set all hpaned and vpaned size bars to result in a default layout that has
+   a decent appearance.  It is not sufficient to have the layout look good in
+   the layout designer.  You must verify that the Position propery on the
+   Widget tab is set and that it's checkbox is checked.
+
+4) When creating tabbed notebooks be sure the first tab is the tab that should
+   be visible when the client starts up.
+
+5) Most layouts may be altered by creatively cut/pasting elements.  Do not use
+   copy/paste, as that will cause the widgets to be renamed.
+
+6) The inventory icon pane is an excellent "temporary" holding area that may
+   be used to hold widgets while other areas of the layout are being worked
+   on.
+
+7) More complex changes may be made by temporarily expanding the outer vbox
+   container and using the bottom rows to paste things into.  Be careful when
+   reducing it back to the original size.  Glade Designer deletes the bottom
+   layers first, even if there are empty ones in the middle.  Any widgets in
+   the removed layer are lost.
+
+8) Save periodically, and keep working copies.  It is very easy to ruin a
+   layout so that it is hard to return to a proper state, and widget errors
+   may cause the client to crash at run-time when it is most inconventient.
+
+9) When adding a combo box that is to be dynamically filled at run-time, be
+   absolutely sure to press the ellipsis "..." button next to the empty Items:
+   box, then press the OK button on the Edit Text Property dialog.  This
+   causes the XML file combo box definition to contain an essential property:
+
+     <property name="items" translatable="yes"></property>
+
+   Without this property, at run-time the following code snippet will set
+   model to NULL.
+
+     model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_theme));
+     count =  gtk_tree_model_iter_n_children(model, NULL);
+
+   This construct is used several times in config.c's setup_config_window().
+   When model is NULL, the subsequent code that attempts to use the model
+   generates console errors like:
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **:
+     gtk_tree_model_iter_n_children: assertion `GTK_IS_TREE_MODEL (tree_model)'
+     failed
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **: gtk_combo_box_append_text:
+     assertion `GTK_IS_LIST_STORE (combo_box->priv->model)' failed
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **: gtk_combo_box_append_text:
+     assertion `GTK_IS_LIST_STORE (combo_box->priv->model)' failed
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **: gtk_combo_box_append_text:
+     assertion `GTK_IS_LIST_STORE (combo_box->priv->model)' failed
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **:
+     gtk_tree_model_iter_n_children: assertion `GTK_IS_TREE_MODEL (tree_model)'
+     failed
+
