@@ -146,7 +146,7 @@ static int ms2_is_running=0;
  * it seems unlikely that these will change very often, and certainly not
  * at a level where we would expect users to go about changing the values.
  */
-static char *metaservers[] = {"http://tavern.santa-clara.ca.us/metaserver/meta_client.php"};
+static char *metaservers[] = {"http://crossfire.real-time.com/metaserver2/meta_client.php"};
 
 /**
  * Curle doesn't really have any built in way to get data

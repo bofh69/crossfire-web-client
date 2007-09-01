@@ -1,6 +1,9 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+common/metaserver.c: Update to use official and not test metaserver2 location.
+MSW 2007-08-31
+
 Fix map not updated at tick causing items to appear non animated.
  gtk/gx11.c
  gtk-v2/src/main.c
