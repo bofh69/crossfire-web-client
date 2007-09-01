@@ -24,6 +24,7 @@ Bulgrien began developing experimental alternative layouts by copying and
 modifying the original gtk-v2.glade layout.  Some of those initial layouts
 are are found in the following files:
 
+- caelestis.glade
 - chthonic.glade
 - gtk-v1.glade
 - meflin.glade
