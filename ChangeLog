@@ -1,6 +1,20 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/src/main.c
+  - Add error_dialog() to notify the user via a graphical dialog that a Glade
+    layout file failed to open.  The dialog displayed the client version
+    information, a brief error description, and the file that failed to load.
+Kevin Bulgrien 2007-09-02
+
+gtk-v2/glade/AUTHORS
+  - Add attribution for caelestis.glade project files.
+Kevin Bulgrien 2007-09-01
+
+ChangeLog
+  - Summarize gtk-v2-libglade branch merge to trunk.
+Kevin Bulgrien 2007-09-01
+
 This is a merge of client/branches/gtk-v2-libglade to trunk.  It converts the
 GTK-V2 client to a libglade-2.0 client that supports changing the UI layout
 with glade-2 generated .glade XML files.  Various alternate client layouts
@@ -8,8 +22,6 @@ are included.
 AUTHORS
   - Reformatted for aesthetics.
   - Added libglade-2.0 conversion author.
-ChangeLog
-  - Summarize gtk-v2-libglade branch merge to trunk.
 common/init.c
   - Typo corrected in LOG message (inic.c --> init.c).
 configure
@@ -184,7 +196,7 @@ x11/Makefile.in
   - LIBGLADE_CFLAGS/LIBS addition
   - DIST_COMMON modifications by autoconf/automake to remove files not under
     SVN control.
-Kevin Bulgrien 2007-10-01
+Kevin Bulgrien 2007-09-01
 
 common/metaserver.c: Update to use official and not test metaserver2 location.
 MSW 2007-08-31

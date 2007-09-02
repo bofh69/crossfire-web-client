@@ -607,7 +607,34 @@ int parse_args(int argc, char **argv)
     return 0;
 }
 
+/**
+ * Display a message dialog that displays a multi-line, bolded heading that
+ * includes the client version information, an error description, and 
+ * information relevant to the error condition.
+ *
+ * @title
+ * A C-string, displayed in bold text, that describes the type of the error
+ * condition.
+ *
+ * @description
+ * A C-string, displayed in normal text, that provides additional information
+ * about the error condition.
+ */
+static void error_dialog(char *description, char *information)
+{
+  GtkWidget *dialog;
 
+  gtk_init(NULL, NULL);
+  dialog = gtk_message_dialog_new(NULL,
+      GTK_DIALOG_DESTROY_WITH_PARENT,
+      GTK_MESSAGE_ERROR,
+      GTK_BUTTONS_CLOSE,
+      "Crossfire %s\n%s", VERSION_INFO, description);
+  gtk_message_dialog_format_secondary_markup(GTK_MESSAGE_DIALOG(dialog),
+      "%s", information);
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+}
 
 int
 main (int argc, char *argv[])
@@ -680,7 +707,8 @@ main (int argc, char *argv[])
     }
     dialog_xml = glade_xml_new(dialog_xml_path, NULL, NULL);
     if (! dialog_xml) {
-        fprintf (stderr, "Failed to load xml file: %s\n", dialog_xml_path);
+        sprintf(dialog_xml_file, "Dialog layout file load failed");
+        error_dialog(dialog_xml_file, dialog_xml_path);
         exit(-1);
     }
 
@@ -697,7 +725,8 @@ main (int argc, char *argv[])
     }
     window_xml = glade_xml_new(window_xml_path, NULL, NULL);
     if (! window_xml) {
-        fprintf (stderr, "Failed to load xml file: %s\n", window_xml_path);
+        sprintf(window_xml_file, "Main window layout file load failed");
+        error_dialog(window_xml_file, window_xml_path);
         exit(-1);
     }
 
