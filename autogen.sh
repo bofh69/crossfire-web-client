@@ -1,6 +1,6 @@
 #!/bin/sh
 
-aclocal
+aclocal -I macros
 autoheader
 automake -a -c
 autoconf

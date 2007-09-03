@@ -6393,9 +6393,7 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$GTK2_PKG_ERRORS" >&5
 
-	echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-                HAVE_GTK2=no
+	HAVE_GTK2=no
 elif test $pkg_failed = untried; then
 	HAVE_GTK2=no
 else
@@ -6813,9 +6811,7 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$GTK2_PKG_ERRORS" >&5
 
-	echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-                HAVE_GTK2=no
+	HAVE_GTK2=no
 elif test $pkg_failed = untried; then
 	HAVE_GTK2=no
 else
@@ -6886,9 +6882,7 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$LIBGLADE_PKG_ERRORS" >&5
 
-	echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-                HAVE_LIBGLADE=no
+	HAVE_LIBGLADE=no
 elif test $pkg_failed = untried; then
 	HAVE_LIBGLADE=no
 else

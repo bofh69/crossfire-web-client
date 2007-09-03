@@ -1,6 +1,43 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+aclocal.m4
+configure
+Makefile.in
+common/Makefile.in
+gtk/Makefile.in
+gtk-v2/Makefile.in
+gtk-v2/themes/Makefile.in
+gtk-v2/src/Makefile.in
+gtk-v2/glade/Makefile.in
+help/Makefile.in
+pixmaps/Makefile.in
+sound-src/Makefile.in
+utils/Makefile.in
+x11/Makefile.in
+  - Result of new and fixed m4 files.
+autogen.sh
+  - Point aclocal at macros so that undefined macros do not crash ./configure
+macros/gtk.m4
+macros/sdl.m4
+  - ./configure should never crash, so add to remove errors as follows:
+    aclocal:configure.in:?: warning: macro `AM_PATH_GTK' not found in library
+    ./configure: line ?: syntax error near unexpected token `1.0.0'
+    ./configure: line ?: `             AM_PATH_GTK(1.0.0)'
+    aclocal:configure.in:?: warning: macro `AM_PATH_SDL' not found in library
+    ./configure: line ?: syntax error near unexpected token `1.1.3'
+    ./configure: line ?: `  AM_PATH_SDL(1.1.3)'
+macros/curses.m4
+macros/gnome-print-check.m4
+macros/gnome-gettext.m4
+macros/linger.m4
+macros/need-declaration.m4
+  - Update .m4 files from a newer glade package to remove many warnings like
+    the following:
+    macros/linger.m4:4: warning: underquoted definition of AC_STRUCT_LINGER
+Kevin Bulgrien 2007-09-02
+
 gtk-v2/src/main.c
   - Add error_dialog() to notify the user via a graphical dialog that a Glade
     layout file failed to open.  The dialog displayed the client version
