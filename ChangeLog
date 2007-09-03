@@ -2,9 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Doxyfile
+  - Copied from server; modified and added for client.
+prop svn:ignore
+  - Add autom4te
 gtk-v2/src/main.c
   - Tabs --> spaces, commenting, and doxygenation. No functional code changes.
-Kevin Bulgrien 2007-09-02
+Kevin Bulgrien 2007-09-03
 
 configure
 configure.in
