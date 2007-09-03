@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+configure
+configure.in
+  - Tabs --> spaces, indenting uniformity, and typo corrections only.
+Kevin Bulgrien 2007-09-02
+
 aclocal.m4
 configure
 Makefile.in
