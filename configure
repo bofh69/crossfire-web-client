@@ -881,12 +881,12 @@ Optional Features:
   --enable-debug          Turn on debugging default=no
   --enable-ansi           Turn on strict ansi default=no
   --disable-sound         Disable sound support default=implement sound support                           if supported libraries exist
-  --disable-alsa9         Disable ALSA9 sound support default=use alsa9 sound                             support if alsa9 libraries exist
-  --disable-alsa          Disable ALSA sound support default=use alsa sound                               support if alsa libraries exist
-  --disable-gtkv1         Do not make original gtk client default=make it if                              available
+  --disable-alsa9         Disable ALSA9 sound support default=use alsa9 sound support if alsa9 libraries exist
+  --disable-alsa          Disable ALSA sound support default=use alsa sound support if alsa libraries exist
+  --disable-gtkv1         Do not make original gtk client default=make it if available
   --disable-gtkv2         Do not make gtk-v2 client default=make it if available
   --enable-cfgtk2         Enable building the original gtkv1 client with GTK+ 2
-  --disable-sdl           Disable linking with the SDL library, default is to                              use it if available
+  --disable-sdl           Disable linking with the SDL library, default is to use it if available
   --enable-dmalloc        Enable checking for dmalloc library, default is to use it if available
   --disable-metaserver2   Do not build in metaserver2 support
   --disable-gtktest       Do not try to compile and run a test GTK program
@@ -898,9 +898,9 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-x                use the X Window System
-  --with-sound-dir=dir    Directory where the sounds are located                                          (default=/usr/local/lib/sounds)
+  --with-sound-dir=dir    Directory where the sounds are located (default=/usr/local/lib/sounds)
   --with-ldflags=dir      Provide additional linker directives to find libraries
-  --with-includes=dir     Provide different compiler options to find headers                               with
+  --with-includes=dir     Provide different compiler options to find headers with
   --with-logevel=level    Sets default loglevel
   --with-gtk-prefix=PFX   Prefix where GTK is installed (optional)
   --with-gtk-exec-prefix=PFX Exec prefix where GTK is installed (optional)

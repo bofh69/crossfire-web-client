@@ -48,13 +48,13 @@ AC_ARG_ENABLE(sound, [  --disable-sound         Disable sound support [default=i
 
 dnl These are because some of us use OSS sound, even with ALSA or ALSA9 libs installed
 
-AC_ARG_ENABLE(alsa9, [  --disable-alsa9         Disable ALSA9 sound support [default=use alsa9 sound                             support if alsa9 libraries exist]],
+AC_ARG_ENABLE(alsa9, [  --disable-alsa9         Disable ALSA9 sound support [default=use alsa9 sound support if alsa9 libraries exist]],
                 alsa9=$enableval, alsa9=yes )
 
-AC_ARG_ENABLE(alsa, [  --disable-alsa          Disable ALSA sound support [default=use alsa sound                               support if alsa libraries exist]],
+AC_ARG_ENABLE(alsa, [  --disable-alsa          Disable ALSA sound support [default=use alsa sound support if alsa libraries exist]],
                 alsa=$enableval, alsa=yes )
 
-AC_ARG_WITH(sound-dir, [  --with-sound-dir=dir    Directory where the sounds are located                                          (default=/usr/local/lib/sounds)        ],
+AC_ARG_WITH(sound-dir, [  --with-sound-dir=dir    Directory where the sounds are located (default=/usr/local/lib/sounds)        ],
                 SOUNDDIR="$withval")
 
 dnl The follow two are really just a way to specify where the xpm information
@@ -64,13 +64,13 @@ dnl /usr/X11
 AC_ARG_WITH(ldflags, [  --with-ldflags=dir      Provide additional linker directives to find libraries ],
                 EXTRA_LIB="$withval")
 
-AC_ARG_WITH(includes, [  --with-includes=dir     Provide different compiler options to find headers                               with ],
+AC_ARG_WITH(includes, [  --with-includes=dir     Provide different compiler options to find headers with ],
                 EXTRA_INC="$withval")
 
 AC_ARG_WITH(loglevel, [  --with-logevel=level    Sets default loglevel ],
                 MINLOGLEVEL="$withval", MINLOGLEVEL=0)
 
-AC_ARG_ENABLE(gtkv1, [  --disable-gtkv1         Do not make original gtk client [default=make it if                              available]],
+AC_ARG_ENABLE(gtkv1, [  --disable-gtkv1         Do not make original gtk client [default=make it if available]],
                 gtkv1=$enableval, gtkv1=yes )
 
 AC_ARG_ENABLE(gtkv2, [  --disable-gtkv2         Do not make gtk-v2 client [default=make it if available]],
@@ -79,7 +79,7 @@ AC_ARG_ENABLE(gtkv2, [  --disable-gtkv2         Do not make gtk-v2 client [defau
 AC_ARG_ENABLE(cfgtk2, [  --enable-cfgtk2         Enable building the original gtkv1 client with GTK+ 2],
                 cfgtk2=$enableval, cfgtk2=no)
 
-AC_ARG_ENABLE(sdl, [  --disable-sdl           Disable linking with the SDL library, default is to                              use it if available ],
+AC_ARG_ENABLE(sdl, [  --disable-sdl           Disable linking with the SDL library, default is to use it if available ],
                 use_sdl=$enableval, use_sdl=yes)
 
 AC_ARG_ENABLE(dmalloc, [  --enable-dmalloc        Enable checking for dmalloc library, default is to use it if available ],
