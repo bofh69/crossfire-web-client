@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/main.c
+  - Tabs --> spaces, commenting, and doxygenation. No functional code changes.
+Kevin Bulgrien 2007-09-02
+
 configure
 configure.in
   - Tabs --> spaces, indenting uniformity, and typo corrections only.
