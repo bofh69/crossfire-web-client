@@ -1,12 +1,26 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+gtk-v2/src/about.c
+gtk-v2/src/image.h
+gtk-v2/src/sound.c
+gtk-v2/src/main.h
+  - Doxygenification of comments and files.
+Kevin Bulgrien 2007-09-02
+
+gtk-v2/glade/AUTHORS
+  - Adjust some glade file descriptions.
+gtk-v2/glade/oroboros.glade
+  - Reorder character data tabs.
+Kevin Bulgrien 2007-09-02
+
 gtk-v2/glade/AUTHORS
   - Add oroboros.glade and add short paragraph descriptions of each of the new
     layout files.
 gtk-v2/glade/Makefile.am
 gtk-v2/glade/Makefile.in
-gtk-v2/glade/oroboros.gladep
+gtk-v2/glade/oroboros.glade
 gtk-v2/glade/oroboros.gladep
   - A layout designed expressly for clients running with 1024x768 resolution.
 Doxyfile

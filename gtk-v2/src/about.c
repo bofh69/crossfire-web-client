@@ -22,8 +22,9 @@ char *rcsid_gtk2_about_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-
-/* This file is here to cover configuration issues.
+/**
+ * @file about.c
+ * Supports the client's about box dialog.
  */
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -41,9 +42,14 @@ char *rcsid_gtk2_about_c =
 #include "about.h"
 #include "../../pixmaps/crossfiretitle.xpm"
 
-
 static GtkWidget   *about_window=NULL;
 
+/**
+ * Instantiates and displays the client's about box dialog.
+ *
+ * @param menuitem  The menu item that launches the about box
+ * @param user_data
+ */
 void
 menu_about                             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
@@ -52,13 +58,13 @@ menu_about                             (GtkMenuItem     *menuitem,
     GtkWidget *widget;
 
     if (!about_window) {
-	GtkWidget   *textview;
-	GtkTextBuffer	*textbuf;
-	GtkTextIter end;
-	GtkWidget *hbox;
-	GtkWidget *aboutgtkpixmap;
-	GdkPixmap *aboutgdkpixmap;
-	GdkBitmap *aboutgdkmask;
+        GtkWidget   *textview;
+        GtkTextBuffer   *textbuf;
+        GtkTextIter end;
+        GtkWidget *hbox;
+        GtkWidget *aboutgtkpixmap;
+        GdkPixmap *aboutgdkpixmap;
+        GdkBitmap *aboutgdkmask;
 
         about_window = glade_xml_get_widget(dialog_xml, "about_window");
         xml_tree = glade_get_widget_tree(GTK_WIDGET(about_window));
@@ -69,40 +75,48 @@ menu_about                             (GtkMenuItem     *menuitem,
         g_signal_connect ((gpointer) widget, "clicked",
             G_CALLBACK (on_about_close_clicked), NULL);
 
-	textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+        textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
 
         gtk_text_buffer_get_end_iter(textbuf, &end);
-	gtk_text_buffer_insert(textbuf, &end, VERSION_INFO, strlen(VERSION_INFO));
-	gtk_text_buffer_insert(textbuf, &end, "\n", 1);
-	gtk_text_buffer_insert(textbuf, &end, text, strlen(text));
+        gtk_text_buffer_insert(textbuf, &end, VERSION_INFO,
+             strlen(VERSION_INFO));
+        gtk_text_buffer_insert(textbuf, &end, "\n", 1);
+        gtk_text_buffer_insert(textbuf, &end, text, strlen(text));
 
-	/* The window must be realized before we can create the pixmap below */
-	gtk_widget_show(about_window);
+        /* The window must be realized before we can create the pixmap below */
+        gtk_widget_show(about_window);
 
-	aboutgdkpixmap = gdk_pixmap_create_from_xpm_d(about_window->window,
-                                                  &aboutgdkmask,
-                                                  NULL,
-                                                  (gchar **)crossfiretitle);
-	aboutgtkpixmap= gtk_image_new_from_pixmap (aboutgdkpixmap, aboutgdkmask);
+        aboutgdkpixmap = gdk_pixmap_create_from_xpm_d(about_window->window,
+            &aboutgdkmask,
+            NULL,
+            (gchar **)crossfiretitle);
 
-	/* Use of hbox is a bit of a hack - isn't any easy way to add
-	 * this image as the first entry of the box once other fields have been
-	 * filled in.  So instead, we create a hbox in that first entry just
-	 * to hold this image.
-	 */
+        aboutgtkpixmap= gtk_image_new_from_pixmap (aboutgdkpixmap,
+             aboutgdkmask);
+        /*
+         * Use of hbox is a bit of a hack - isn't any easy way to add this
+         * image as the first entry of the box once other fields have been
+         * filled in.  So instead, we create a hbox in that first entry just to
+         * hold this image.
+         */
         hbox = glade_xml_get_widget(xml_tree, "about_hbox_image");
 
-	gtk_box_pack_start (GTK_BOX (hbox),aboutgtkpixmap, TRUE, TRUE, 0);
+        gtk_box_pack_start (GTK_BOX (hbox),aboutgtkpixmap, TRUE, TRUE, 0);
 
-	gtk_widget_show(aboutgtkpixmap);
+        gtk_widget_show(aboutgtkpixmap);
 
     } else {
-	gtk_widget_show(about_window);
+        gtk_widget_show(about_window);
     }
 
 }
 
-
+/**
+ * Closes and hides the client's about box dialog.
+ *
+ * @param button    The about dialog's close button.
+ * @param user_data
+ */
 void
 on_about_close_clicked                 (GtkButton       *button,
                                         gpointer         user_data)

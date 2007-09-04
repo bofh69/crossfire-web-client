@@ -25,20 +25,19 @@
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-
-/* Pixmap data.  This is abstracted in the sense that the
- * code here does not care what the data points to (hence the
- * void).  The module using this data should know whether it
- * is these point to png data or image data of whatever form.
- * The module is not required to use all these fileds -
- * as png data includes transperancy, it will generally not
- * use the mask fields and instead just put its data into the
- * appropiate image fields.
+/**
+ * @file image.h
+ * Pixmap data.  This is abstracted in the sense that the code here does not
+ * care what the data points to (hence the void).  The module using this data
+ * should know whether it is these point to png data or image data of whatever
+ * form.  The module is not required to use all these fields - as png data
+ * includes transparancy, it will generally not use the mask fields and instead
+ * just put its data into the appropriate image fields.
  *
- * As images can now be of variable size (and potentially re-sized),
- * the size information is stored here.
+ * As images can now be of variable size (and potentially re-sized), the size
+ * information is stored here.
  */
-#define DEFAULT_IMAGE_SIZE	32
+#define DEFAULT_IMAGE_SIZE      32
 #define MAXPIXMAPNUM 10000
 
 #ifdef HAVE_OPENGL
@@ -46,17 +45,14 @@
 #endif
 
 typedef struct {
-    void	*icon_mask, *icon_image;
-    uint16	icon_width, icon_height;
-    void	*map_mask, *map_image;
-    uint16	map_width, map_height;
-    void	*fog_image;
-    /* smooth_face is a pointer that points to the face we use
-     * for smoothing this particular face.
-     */
-    uint16	smooth_face;
+    void        *icon_mask, *icon_image;
+    uint16      icon_width, icon_height;
+    void        *map_mask, *map_image;
+    uint16      map_width, map_height;
+    void        *fog_image;
+    uint16      smooth_face;  /**< A face used for smoothing with this face. */
 #ifdef HAVE_OPENGL
-    GLuint	map_texture, fog_texture;
+    GLuint      map_texture, fog_texture;
 #endif
 } PixmapInfo;
 

@@ -23,11 +23,11 @@ char *rcsid_gtk2_sound_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-
-/*
- * This file contains the sound support for the client.  It does not
- * actually play sounds, but rather tries to run cfsndserver, which
- * is responsible for playing sounds.
+/**
+ * @file sound.c
+ * This file contains the sound support for the client.  It does not actually
+ * play sounds, but rather tries to run cfsndserver, which is responsible for
+ * playing sounds.
  */
 
 #include <config.h>
@@ -39,9 +39,11 @@ char *rcsid_gtk2_sound_c =
 #include <client-types.h>
 #include "client.h"
 
-
-/* Got a pipe signal.  As of now, only thing we are piped to is the
- * sound client.
+/**
+ * Got a pipe signal.  As of now, only thing piped to is the sound client.
+ * Presently nothing is done, but perhaps do something more in the future.
+ *
+ * @param i
  */
 void signal_pipe(int i) {
     /* do nothing, but perhaps do something more in the future */
@@ -49,19 +51,23 @@ void signal_pipe(int i) {
 
 FILE *sound_pipe=NULL;
 ChildProcess* sound_process;
-/* init_sounds open the audio device, and reads any configuration files
- * that need to be.  It returns 0 on success.  On failure, the calling
- * function will likely disable sound support/requests from the server.
- */
 
+/**
+ * Opens the audio device, and reads relevant configuration files.
+ *
+ * @return
+ * Returns 0 on success.  On failure, the calling function will likely disable
+ * sound support/requests from the server.
+ */
 int init_sounds(void)
 {
 #ifndef WIN32
     char sound_path[MAX_BUF];
 
-    /* Easy trick - global nosound is set in the arg processing - if set,
-     * just return -1 - this way, the calling function only needs to check
-     * the value of init_sounds, and not worry about checking nosound.
+    /*
+     * Easy trick - global nosound is set in the arg processing - if set, just
+     * return -1 - this way, the calling function only needs to check the value
+     * of init_sounds, and not worry about checking nosound.
      */
     if (!want_config[CONFIG_SOUND]) return -1;
 
@@ -69,8 +75,9 @@ int init_sounds(void)
         LOG(LOG_ERROR,"init_sounds:", "sound-server variable not set to anything");
 	return -1;
     }
-    /* if an absolute path is given, we use it unadorned.  Otherwise, we
-     * use the path in the BINDIR.
+    /*
+     * If an absolute path is given, we use it unadorned.  Otherwise, we use
+     * the path in the BINDIR.
      */
     if (sound_server[0] == '/')
 	strcpy(sound_path, sound_server);
@@ -86,29 +93,36 @@ int init_sounds(void)
     logChildPipe(sound_process, LOG_INFO, CHILD_STDOUT|CHILD_STDERR);
 
     if (fcntl(sound_process->tube[0], F_SETFL, O_NONBLOCK)<0) {
-	/* setting non blocking isn't 100% critical, but a good thing if
-	 * we can do it
+	/*
+         * Setting non-blocking isn't 100% critical, but a good thing if
+         * possible.
 	 */
 	perror("init_sounds: Warning - unable to set non blocking on sound pipe\n");
     }
     sound_pipe=fdopen(sound_process->tube[0],"w");
-    signal(SIGPIPE, signal_pipe);/*perhaps throwing this out :\*/
+    signal(SIGPIPE, signal_pipe); /* Perhaps throwing this out :\ */
     return 0;
 #else
     return -1;
 #endif
 }
 
-
-/* Plays sound 'soundnum'.  soundtype is 0 for normal sounds, 1 for
- * spell_sounds.  This might get extended in the future.  x,y are offset
- * (assumed from player) to play sound.  This information is used to
- * determine value and left vs right speaker balance.
+/**
+ * Plays sound 'soundnum'.  This procedure seems to be very slow - much slower
+ * than expected. It might need to run in a thread or fork off.
  *
- * This procedure seems to be very slow - much slower than I would
- * expect. Might need to run this is a thread or fork off.
+ * @param soundnum
+ * The sound to play.
+ * @param soundtype
+ * 0 for normal sounds, 1 for spell_sounds.  This might get extended in the
+ * future.
+ * @param x
+ * Offset (assumed from player) to play sound used to determine value and left
+ * vs right speaker balance.
+ * @param y
+ * Offset (assumed from player) to play sound used to determine value and left
+ * vs right speaker balance.
  */
-
 static void play_sound(int soundnum, int soundtype, int x, int y)
 {
 #ifndef WIN32
@@ -125,7 +139,12 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 #endif
 }
 
-
+/**
+ * ?
+ *
+ * @param data
+ * @param len
+ */
 void SoundCmd(unsigned char *data,  int len)
 {
 #ifndef WIN32
