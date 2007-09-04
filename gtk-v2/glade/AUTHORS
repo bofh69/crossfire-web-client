@@ -41,16 +41,19 @@ are are found in the following files:
 
 - gtk-v1.glade          An approximation of the original GTK client layout.
 
-- meflin.glade          A player-suggested modification of an experimental and
-                        as such, probably subject to change.  Presently a map
-                        view notebook is at the top right with messages and
-                        inventory/ground views sharing a tabbed notebook to
-                        the left.  At the bottom rest the stat bars and a
-                        three tab notebook for character information.
+- meflin.glade          A player-suggested modification of an experimental
+                        layout, and as such, is probably subject to change.
+                        Presently a map view notebook is at top right with
+                        messages and inventory/ground views sharing a tabbed
+                        notebook to the left.  At the bottom rest the stat
+                        bars and a three tab notebook for character data.
 
 - oroboros.glade        A layout designed for 1024x768 desktops.  On the left
                         are a tabbed message window, inventory, and floor view.
                         To the right, at the top is a four tab notebook that
                         contains all of the character statistics, and below it
                         is the map view.  At 1024x768, the map view is 20x13.
+                        Since oroboros makes heavy use of tabbed notebooks, it
+                        is also appropriate for those that prefer to see lessi
+                        information simultaneously on screen.
 
