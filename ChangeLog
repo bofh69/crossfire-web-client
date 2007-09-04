@@ -1,7 +1,14 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
-
+gtk-v2/glade/AUTHORS
+  - Add oroboros.glade and add short paragraph descriptions of each of the new
+    layout files.
+gtk-v2/glade/Makefile.am
+gtk-v2/glade/Makefile.in
+gtk-v2/glade/oroboros.gladep
+gtk-v2/glade/oroboros.gladep
+  - A layout designed expressly for clients running with 1024x768 resolution.
 Doxyfile
   - Copied from server; modified and added for client.
 prop svn:ignore

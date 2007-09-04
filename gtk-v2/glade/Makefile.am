@@ -29,7 +29,8 @@ XML_FILES = \
 	dialogs.glade \
 	gtk-v1.glade \
 	gtk-v2.glade \
- 	meflin.glade
+ 	meflin.glade \
+	oroboros.glade
 
 PRJ_FILES = $(foreach XML,$(XML_FILES),$(XML)p)
 

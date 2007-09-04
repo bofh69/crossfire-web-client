@@ -21,14 +21,36 @@ Kevin Bulgrien
 
 The conversion of the client to support libglade came shortly after Kevin
 Bulgrien began developing experimental alternative layouts by copying and
-modifying the original gtk-v2.glade layout.  Some of those initial layouts
+modifying the original gtk-v2.glade layout. Some of those initial layouts
 are are found in the following files:
 
-- caelestis.glade
-- chthonic.glade
-- gtk-v1.glade
-- meflin.glade
+- caelestis.glade       A tri-column layout with a tall inventory/floor panels
+                        to the right. At the top middle, a two tab notebook
+                        for character and skill/experience data sits above map
+                        views beneath. To the top left is a three tab notebook
+                        for core stats, critical messages, and protections. At
+                        the lower left is the messages pane with entry box.
 
-    A player-suggested modification of an experimental layout developed prior
-    to commencement of the libglade client conversion work.
+- chthonic.glade        A tri-column layout with a tall inventory/floor panels
+                        to the right. At the top middle, a two tab notebook
+                        holds the map views above a notebook for character and
+                        skill/experience data.  To the top left is the critical
+                        message box with the standard message box and command
+                        input below.  The bottom left corner two tab notebook
+                        houses protections and core statistics.
+
+- gtk-v1.glade          An approximation of the original GTK client layout.
+
+- meflin.glade          A player-suggested modification of an experimental and
+                        as such, probably subject to change.  Presently a map
+                        view notebook is at the top right with messages and
+                        inventory/ground views sharing a tabbed notebook to
+                        the left.  At the bottom rest the stat bars and a
+                        three tab notebook for character information.
+
+- oroboros.glade        A layout designed for 1024x768 desktops.  On the left
+                        are a tabbed message window, inventory, and floor view.
+                        To the right, at the top is a four tab notebook that
+                        contains all of the character statistics, and below it
+                        is the map view.  At 1024x768, the map view is 20x13.
 
