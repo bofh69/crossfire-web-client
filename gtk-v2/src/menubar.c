@@ -22,9 +22,16 @@ char *rcsid_gtk2_menubar_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-/* This file is here to cover the core selections from the top
- * menubar.
+/**
+ * @file menubar.c
+ * Implements the core selections from the top menubar.
+ *
+ * Quick notes on the menubar:
+ * 1) Using the stock Quit menu item for some reason causes it to take several
+ *    seconds of 100% cpu utilization to show the menu.  So I don't use the
+ *    stock item.
  */
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -42,14 +49,15 @@ char *rcsid_gtk2_menubar_c =
 #include "image.h"
 #include "gtk2proto.h"
 
-/* Few quick notes on the menubar:
- * 1) Using the stock Quit menu item for some reason causes it to
- *    take several seconds of 100% cpu utilization to show the menu.
- *    So I don't use the stock item.
+/**
+ * Client | Disconnect
+ * Triggers the client to disconnect from the server.
+ *
+ * @param menuitem
+ * @param user_data
  */
-
 void
-on_disconnect_activate                 (GtkMenuItem     *menuitem,
+on_disconnect_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     extern gint csocket_fd;
@@ -67,8 +75,13 @@ on_disconnect_activate                 (GtkMenuItem     *menuitem,
     }
 }
 
-
-
+/**
+ * File | Quit
+ * Shuts down the client application.
+ *
+ * @param menuitem
+ * @param user_data
+ */
 void
 menu_quit_program                       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
@@ -82,21 +95,29 @@ menu_quit_program                       (GtkMenuItem     *menuitem,
 
 }
 
+/**
+ * File | Quit Character
+ * Causes the client to ask the server to delete the current character.
+ *
+ * @param menuitem
+ * @param user_data
+ */
 void
-menu_quit_character                       (GtkMenuItem     *menuitem,
+menu_quit_character                     (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     extended_command("quit");
-
 }
 
-/* This function enables/disables some of the menubar options.  Some do
- * not make sense if not connected to the server, so should be
- * disabled until connected.
- * enable is a true/false value. If true, enable the items, if false,
- * disable them.
+/**
+ * Enables/disables menubar options and connects signals to them.  Some do not
+ * make sense if not connected to the server, so should be disabled until
+ * connected.
+ *
+ * @param enable
+ * If true, enable the items, if false, disable them.  Presently it looks as
+ * though enable is not actually used at all.  Is this a bug?
  */
-
 void enable_menu_items(int enable)
 {
     GladeXML *xml_tree;

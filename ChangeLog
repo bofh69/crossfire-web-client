@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/menubar.c
+  - Doxygenification of source/comments.
+Kevin Bulgrien 2007-09-02
+
 gtk-v2/src/about.c
 gtk-v2/src/image.h
 gtk-v2/src/sound.c
