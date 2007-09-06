@@ -24,9 +24,11 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This file includes the various dependencies header files needed
- * by most everything.  It also declares structures and other variables
- * that the gui portion needs
+/**
+ * @file client.h
+ * This file includes the various dependencies header files needed by most
+ * everything.  It also declares structures and other variables that the GUI
+ * portion needs
  */
 
 #include <config.h>

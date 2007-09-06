@@ -2,22 +2,33 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/client.h
+- Add doxygen file header.
+gtk-v2/src/gtk2proto.h
+gtk-v2/src/main.c
+gtk-v2/src/metaserver.c
+- Remove unused return value for get_metaserver().
+gtk-v2/src/metaserver.c
+- Doxygen commenting, and add comment headers for all functions.
+- Remove commented-out IP Address column formerly shown in metaserver dialog.
+Kevin Bulgrien 2007-09-05
+
 gtk-v2/src/menubar.c
   - Doxygenification of source/comments.
-Kevin Bulgrien 2007-09-02
+Kevin Bulgrien 2007-09-04
 
 gtk-v2/src/about.c
 gtk-v2/src/image.h
 gtk-v2/src/sound.c
 gtk-v2/src/main.h
   - Doxygenification of comments and files.
-Kevin Bulgrien 2007-09-02
+Kevin Bulgrien 2007-09-03
 
 gtk-v2/glade/AUTHORS
   - Adjust some glade file descriptions.
 gtk-v2/glade/oroboros.glade
   - Reorder character data tabs.
-Kevin Bulgrien 2007-09-02
+Kevin Bulgrien 2007-09-03
 
 gtk-v2/glade/AUTHORS
   - Add oroboros.glade and add short paragraph descriptions of each of the new

@@ -114,7 +114,7 @@ extern void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data);
 extern void enable_menu_items(int enable);
 /* metaserver.c */
 extern gboolean metaserver_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
-extern char *get_metaserver(void);
+extern void get_metaserver(void);
 extern void on_metaserver_select_clicked(GtkButton *button, gpointer user_data);
 extern void on_treeview_metaserver_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
 extern void on_metaserver_text_entry_activate(GtkEntry *entry, gpointer user_data);

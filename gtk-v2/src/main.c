@@ -815,22 +815,20 @@ main (int argc, char *argv[])
         csocket.inbuf.len=0;
         csocket.cs_version=0;
 
-        /* Perhaps not the best assumption, but we are taking it that
-         * if the player has not specified a server (ie, server
-         * matches compiled in default), we use the meta server.
-         * otherwise, use the server provided, bypassing metaserver.
-         * Also, if the player has already played on a server once (defined
-         * by got_one), go to the metaserver.  That gives them the oppurtunity
-         * to quit the client or select another server.  We should really add
-         * an entry for the last server there also.
+        /*
+         * Perhaps not the best assumption, but we are taking it that if the
+         * player has not specified a server (ie, server matches compiled in
+         * default), we use the metaserver.  Otherwise, use the server
+         * provided, bypassing metaserver.  Also, if the player has already
+         * played on a server once (defined by got_one), go to the metaserver.
+         * That gives them the opportunity to quit the client or select another
+         * server.  We should really add an entry for the last server there
+         * also.
          */
-
         if (!server || got_one) {
-            char *ms;
-
             draw_splash();
             metaserver_get_info(meta_server, meta_port);
-            ms=get_metaserver();
+            get_metaserver();
             negotiate_connection(use_config[CONFIG_SOUND]);
         } else {
             csocket.fd=init_connection(server, use_config[CONFIG_PORT]);

@@ -22,6 +22,12 @@ char *rcsid_gtk2_metaserver_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
+/**
+ * @file metaserver.c
+ * Supports the client's metaserver dialog used to connect to available
+ * servers.
+ */
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -46,6 +52,17 @@ enum {
     LIST_HOSTNAME, LIST_IPADDR, LIST_IDLETIME, LIST_PLAYERS, LIST_VERSION, LIST_COMMENT
 };
 
+/**
+ * Enables the connect button and clears the server entry box when a server is
+ * navigated to or otherwise selected.
+ *
+ * @param selection
+ * @param model
+ * @param path
+ * @param path_currently_selected
+ * @ user_data
+ * @return TRUE
+ */
 gboolean metaserver_selection_func (
                       GtkTreeSelection *selection,
                       GtkTreeModel     *model,
@@ -59,7 +76,10 @@ gboolean metaserver_selection_func (
     return TRUE;
 }
 
-char *get_metaserver()
+/**
+ * Constructs the metaserver dialog and handles metaserver selection.
+ */
+void get_metaserver()
 {
     static int has_init=0;
     GtkTreeIter iter;
@@ -120,15 +140,6 @@ char *get_metaserver()
                                                       NULL);
         gtk_tree_view_column_set_sort_column_id(column, LIST_HOSTNAME);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
-
-	/*
-	renderer = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes ("IP Addr", renderer,
-                                                      "text", LIST_IPADDR,
-                                                      NULL);
-        gtk_tree_view_column_set_sort_column_id(column, LIST_IPADDR);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
-	*/
 
 	renderer = gtk_cell_renderer_text_new ();
 	column = gtk_tree_view_column_new_with_attributes ("Updated (Sec)", renderer,
@@ -197,7 +208,6 @@ char *get_metaserver()
 	usleep(100);
 	gtk_main_iteration_do(FALSE);
     }
-
 	
     pthread_mutex_lock(&ms2_info_mutex);
 
@@ -233,10 +243,14 @@ char *get_metaserver()
 
     gtk_widget_hide(metaserver_window);
     enable_menu_items(TRUE);
-    return cpl.input_text;
 }
 
-
+/**
+ * Establish a connection with the server when pressing the connect button.
+ *
+ * @param button
+ * @param user_data
+ */
 void
 on_metaserver_select_clicked           (GtkButton       *button,
                                         gpointer         user_data)
@@ -258,7 +272,7 @@ on_metaserver_select_clicked           (GtkButton       *button,
 	gtk_widget_set_sensitive(metaserver_button, FALSE);
         return;
     } else {
-	/* This shouldn't happen because the button shouldn't be pressable
+	/* This shouldn't happen because the button should not be pressable
 	 * until the user selects something
 	 */
 	gtk_label_set_text(GTK_LABEL(metaserver_status), "Error - nothing selected!\n");
@@ -281,7 +295,14 @@ on_metaserver_select_clicked           (GtkButton       *button,
     }
 }
 
-
+/**
+ * Establish a connection to a server when the server name was entered.  Either
+ * a DNS name or IP address may be specified, but if both are supplied, use the
+ * IP address.
+ *
+ * @param name The DNS name of a server to connect to.
+ * @param ip An IP address of a server to connect to.
+ */
 static void metaserver_connect_to(const char *name, const char *ip)
 {
     char  buf[256];
@@ -302,6 +323,15 @@ static void metaserver_connect_to(const char *name, const char *ip)
     }
 }
 
+/**
+ * Selects and attempts a connection to a server if the player activates one of
+ * the server entries.
+ *
+ * @param treeview
+ * @param path
+ * @param column
+ * @param user_data
+ */
 void
 on_treeview_metaserver_row_activated   (GtkTreeView     *treeview,
                                         GtkTreePath     *path,
@@ -320,8 +350,12 @@ on_treeview_metaserver_row_activated   (GtkTreeView     *treeview,
     }
 }
 
-/* This callback handles the user entering text into the
- * metaserver freeform entry box
+/**
+ * This callback handles the user entering text into the metaserver freeform
+ * entry box.
+ *
+ * @param entry
+ * @param user_data
  */
 void
 on_metaserver_text_entry_activate      (GtkEntry        *entry,
@@ -334,6 +368,13 @@ on_metaserver_text_entry_activate      (GtkEntry        *entry,
     metaserver_connect_to(entry_text, NULL);
 }
 
+/**
+ * Quits the client application if the quit button is pressed.  This is also
+ * used to quit the client if the button's accelerator is pressed.
+ *
+ * @param button
+ * @param user_data
+ */
 void
 on_button_metaserver_quit_pressed      (GtkButton       *button,
                                         gpointer         user_data)
@@ -345,6 +386,15 @@ on_button_metaserver_quit_pressed      (GtkButton       *button,
 
 }
 
+/**
+ * Activate the connect button and unselect servers if keys are pressed to
+ * enter a server name.
+ *
+ * @param widget
+ * @param event
+ * @param user_data
+ * @return FALSE
+ */
 gboolean
 on_metaserver_text_entry_key_press_event
                                         (GtkWidget       *widget,
@@ -356,3 +406,4 @@ on_metaserver_text_entry_key_press_event
     gtk_tree_selection_unselect_all(metaserver_selection);
     return FALSE;
 }
+
