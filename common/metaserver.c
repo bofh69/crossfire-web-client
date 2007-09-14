@@ -58,6 +58,38 @@ Meta_Info *meta_servers = NULL;
 
 int meta_numservers = 0;
 
+/* This checks the servers sc_version and cs_version to see
+ * if they are compatible.
+ * @parm entry
+ * entry number in the metaservers array to check.
+ * @return
+ * 1 if this entry is compatible, 0 if it is not.  Note that this can
+ * only meaningfully check metaserver2 data - metaserver1 doesn't
+ * include protocol version number, so treats all of those as
+ * OK.
+ */
+int check_server_version(int entry)
+{
+
+    /* No version information - nothing to do. */
+    if (!meta_servers[entry].sc_version || !meta_servers[entry].cs_version)
+	return 1;
+
+    if (meta_servers[entry].sc_version != VERSION_SC) {
+	/* 1027->1028 removed a bunch of old commands, so a 1028
+	 * version client can still play on a 1027 server, so
+	 * special hard code that.
+	 */
+	 /* This could perhaps get extended in the future, if other protocol
+	 * revision that maintain compatibility.
+	 */
+	if (VERSION_SC != 1028 && meta_servers[entry].sc_version != 1027) return 0;
+    }
+    if (meta_servers[entry].cs_version != VERSION_CS) return 0;
+
+    return 1;
+}
+
 /*****************************************************************************
  * Start of cache related functions.
  *****************************************************************************/
@@ -227,7 +259,21 @@ size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *data)
 	    memset(&meta_servers[meta_numservers], 0, sizeof(Meta_Info));
 	}
 	else if (!strcmp(cp, "END_SERVER_DATA")) {
-	    meta_numservers++;
+	    int i;
+
+	    /* we can get data from both metaserver1 & 2 - no reason to keep
+	     * both.  So check for duplicates, and consider metaserver2
+	     * data 'better'.
+	     */
+	    for (i=0; i<meta_numservers; i++) {
+		if (!strcasecmp(meta_servers[i].hostname, meta_servers[meta_numservers].hostname)) {
+		    memcpy(&meta_servers[i], &meta_servers[meta_numservers], sizeof(Meta_Info));
+		    break;
+		}
+	    }
+	    if (i>=meta_numservers) {
+		meta_numservers++;
+	    }
 	} else {
 	    /* If we get here, these should be variable=value pairs.
 	     * if we don't have a value, can't do anything, and
@@ -773,11 +819,13 @@ void metaserver_show(int show_selection) {
      */
     qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
     for (i = 0; i < meta_numservers; i++) {
-        sprintf(buf, "%2d)  %-15.15s %2d   %-12.12s %2d",
-            i+1+cached_servers_num, meta_servers[i].hostname,
-            meta_servers[i].num_players, meta_servers[i].version,
-            meta_servers[i].idle_time);
-        draw_info(buf, NDI_BLACK);
+	if (check_server_version(i)) {
+	    sprintf(buf, "%2d)  %-15.15s %2d   %-12.12s %2d",
+		    i+1+cached_servers_num, meta_servers[i].hostname,
+		    meta_servers[i].num_players, meta_servers[i].version,
+		    meta_servers[i].idle_time);
+	    draw_info(buf, NDI_BLACK);
+	}
     }
     if (show_selection) {
         /* Show default/current server */

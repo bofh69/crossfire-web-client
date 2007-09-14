@@ -188,6 +188,13 @@ void get_metaserver()
 
     gtk_list_store_clear(store_metaserver);
 
+    while (metaserver_check_status()) {
+	usleep(100);
+	gtk_main_iteration_do(FALSE);
+    }
+	
+    pthread_mutex_lock(&ms2_info_mutex);
+
     if (cached_servers_num) {
         for ( i = 0; i < cached_servers_num; i++ ) {
 	    for (j=0; j < meta_numservers; j++) {
@@ -204,18 +211,13 @@ void get_metaserver()
 	    }
 	}
     }
-    while (metaserver_check_status()) {
-	usleep(100);
-	gtk_main_iteration_do(FALSE);
-    }
-	
-    pthread_mutex_lock(&ms2_info_mutex);
 
     qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
 
     for (i=0; i<meta_numservers; i++) {
-	gtk_list_store_append(store_metaserver, &iter);
-	gtk_list_store_set(store_metaserver, &iter,
+	if (check_server_version(i)){
+	    gtk_list_store_append(store_metaserver, &iter);
+	    gtk_list_store_set(store_metaserver, &iter,
 			       LIST_HOSTNAME, meta_servers[i].hostname,
 			       LIST_IPADDR, meta_servers[i].hostname,
 			       LIST_IDLETIME,  meta_servers[i].idle_time,
@@ -223,6 +225,7 @@ void get_metaserver()
 			       LIST_VERSION, meta_servers[i].version,
 			       LIST_COMMENT, meta_servers[i].text_comment,
 			       -1);
+	}
     }
     pthread_mutex_unlock(&ms2_info_mutex);
     if (server) {

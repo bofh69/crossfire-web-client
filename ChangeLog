@@ -2,6 +2,19 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Improve metaserver handling some - in particular, if server is listed
+on both metaserver 1 & 2, listed it only once.  Also, for gtk2 client,
+fix handling of not showing cached entries if they are listed on the
+metaserver.  Add filtering of protocol versions, so we only show player
+compatible servers.
+--
+common/metaserver.c: Add check_server_version() to do version checking.
+  Add checks to find duplicate server entries.
+gtk-v2/src/metaserver.c: Move retrieval of data from metaserver before
+  adding cached entries to table - otherwise, can not detect duplicates.
+  Add check to proper version information.
+MSW 2007-09-13
+
 common/client.h
 - Add doxygen file header.
 gtk-v2/src/gtk2proto.h
