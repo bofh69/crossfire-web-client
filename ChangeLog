@@ -2,6 +2,17 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/map.c
+gtk-v2/src/main.c
+  - Fix for SourceForge Bugs Tracker #1794455 Libglade client Magic Map:
+    cannot return to Map.  During the libglade conversion, and incorrect
+    g_signal_connect() call was placed in map.c.  The corrected connection
+    is now made in main.c where the magic_map pointer is initialized.
+gtk-v2/glade/README
+  - Add a note for glade file developers concerning the MAGIC_MAP_PAGE
+    define that constrains the tab on which magic maps must appear.
+Kevin Bulgrien 2007-09-14
+
 Improve metaserver handling some - in particular, if server is listed
 on both metaserver 1 & 2, listed it only once.  Also, for gtk2 client,
 fix handling of not showing cached entries if they are listed on the

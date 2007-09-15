@@ -133,3 +133,7 @@ Notes about designing .glade files for the libglade version of the GTK2 client
      gtk_tree_model_iter_n_children: assertion `GTK_IS_TREE_MODEL (tree_model)'
      failed
 
+10)  The Magic Map page in map_notebook must be the second tab to maintain
+     compatibility with the client's standard main.h define "MAGIC_MAP_PAGE 1".
+     The page/tab number is zero-based, so "1" corresponds to the second tab.
+

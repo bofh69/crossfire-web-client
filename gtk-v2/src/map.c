@@ -101,8 +101,6 @@ void map_init(GtkWidget *window_root)
         G_CALLBACK (on_drawingarea_map_expose_event), NULL);
     g_signal_connect ((gpointer) map_drawing_area, "button_press_event",
         G_CALLBACK (on_drawingarea_map_button_press_event), NULL);
-    g_signal_connect ((gpointer) map_notebook, "expose_event",
-        G_CALLBACK (on_drawingarea_magic_map_expose_event), NULL);
 
     gtk_widget_set_size_request (map_drawing_area,
 		use_config[CONFIG_MAPWIDTH] * map_image_size,

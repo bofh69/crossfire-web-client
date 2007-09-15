@@ -803,6 +803,9 @@ main (int argc, char *argv[])
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     magic_map = glade_xml_get_widget(xml_tree, "drawingarea_magic_map");
 
+    g_signal_connect ((gpointer) magic_map, "expose_event",
+        G_CALLBACK (on_drawingarea_magic_map_expose_event), NULL);
+
     snprintf( file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv( "HOME" ) );
     cached_server_file = file_cache;
 
