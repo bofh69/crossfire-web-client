@@ -1114,10 +1114,10 @@ void animate_look()
     /* Get the first iter in the list */
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(store_look), &iter);
 
-    while (valid)
+    while (valid) {
         gtk_tree_model_get (GTK_TREE_MODEL(store_look), &iter,
                           LIST_OBJECT, &tmp,
-                          -1)
+                          -1);
 
         /* This is an object with animations */
         if (tmp->animation_id >0 && tmp->anim_speed) {
