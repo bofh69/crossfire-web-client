@@ -308,13 +308,21 @@ on_metaserver_select_clicked           (GtkButton       *button,
  */
 static void metaserver_connect_to(const char *name, const char *ip)
 {
-    char  buf[256];
+    char  buf[256], *cp, newname[256];
+    int port=use_config[CONFIG_PORT];
 
     snprintf(buf, 255, "Trying to connect to %s", name);
 
     gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+    strncpy(newname, name, 255);
+    newname[255]=0;
 
-    csocket.fd=init_connection((char*)(ip?ip:name), use_config[CONFIG_PORT]);
+    if ((cp=strchr(newname,':'))!=NULL) {
+	port = atoi(cp+1);
+	*cp=0;
+    }
+
+    csocket.fd=init_connection((char*)(ip?ip:newname), port);
     if (csocket.fd==-1) {
         snprintf(buf, 255, "Unable to connect to %s!", name);
         gtk_label_set_text(GTK_LABEL(metaserver_status), buf);

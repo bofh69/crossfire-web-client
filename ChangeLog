@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/metaserver.c: Modify metaserver_connect_to so it can connect to
+  servers running on different ports (eg, localhost:13328).  Gtk1 client
+  already handles this fine, so this is only a change for the gtk2 client.
+MSW 2007-09-16
+
 gtk-v2/src/stats.c
 gtk-v2/src/spells.c
 gtk-v2/src/keys.c
