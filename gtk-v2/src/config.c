@@ -471,7 +471,7 @@ static int scandir_glade_filter(const struct dirent *d)
 {
     char *token = NULL;
     char *extok = NULL;
-    char delim[] = "."; 
+    char delim[] = ".";
     char exten[] = "glade";
     char parse[MAX_BUF] = "";
 
