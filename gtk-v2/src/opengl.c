@@ -68,12 +68,12 @@ char *rcsid_gtk_opengl_c =
 extern int time_map_redraw;
 
 #ifndef WIN32
-static Display  *display;	/* X display & window for glx buffer swapping */
-static Window	window;
+static Display  *display;       /* X display & window for glx buffer swapping */
+static Window   window;
 #else
-static HDC devicecontext;	/* Windows device context for windows buffer swapping */
+static HDC devicecontext;       /* Windows device context for windows buffer swapping */
 #endif
-static int	width=1, height=1;
+static int      width=1, height=1;
 
 /* This function does the generic initialization for opengl.
  * this function does not use any machine specicific calls.
@@ -124,22 +124,22 @@ static void init_opengl_common()
  */
 void init_glx_opengl(GtkWidget* drawingarea)
 {
-    GLXContext	ctx;
+    GLXContext  ctx;
     XVisualInfo *vi;
     int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER,
-	GLX_RED_SIZE, 4,
-	GLX_GREEN_SIZE, 4,
-	GLX_BLUE_SIZE, 4,
-	GLX_ALPHA_SIZE, 4,
-	GLX_DEPTH_SIZE, 16,
-	None };
+        GLX_RED_SIZE, 4,
+        GLX_GREEN_SIZE, 4,
+        GLX_BLUE_SIZE, 4,
+        GLX_ALPHA_SIZE, 4,
+        GLX_DEPTH_SIZE, 16,
+        None };
     XSetWindowAttributes attr;
     Visual *v;
 
     /* Need to tuck these away, because they are needed for glXSwappBuffers() */
     display = GDK_WINDOW_XDISPLAY(drawingarea->window);
     vi = glXChooseVisual(display,
-			 gdk_x11_get_default_screen (), attrListDbl);
+                         gdk_x11_get_default_screen (), attrListDbl);
 
     width = drawingarea->allocation.width;
     height = drawingarea->allocation.height;
@@ -152,14 +152,14 @@ void init_glx_opengl(GtkWidget* drawingarea)
      */
     v = DefaultVisual(display, gdk_x11_get_default_screen ());
     attr.colormap= XCreateColormap(display, GDK_WINDOW_XID(drawingarea->window),
-				   vi->visual, AllocNone);
+                                   vi->visual, AllocNone);
 
     window = XCreateWindow(display, GDK_WINDOW_XID(drawingarea->window),
-		0, 0, width, height, 0,
-			   vi->depth,
-			InputOutput,
-			   vi->visual,
-			   CWColormap, &attr);
+                0, 0, width, height, 0,
+                           vi->depth,
+                        InputOutput,
+                           vi->visual,
+                           CWColormap, &attr);
 
     XMapWindow(display,window);
 
@@ -171,7 +171,7 @@ void init_glx_opengl(GtkWidget* drawingarea)
 
     if (!glXMakeCurrent(display, window, ctx)) {
         LOG(LOG_ERROR,"gtk::init_glx_opengl", "Could not set opengl context!\n");
-	exit(1);
+        exit(1);
     }
     if (glXIsDirect(display, ctx))
         LOG(LOG_INFO,"gtk::init_glx_opengl", "Direct rendering is available!\n");
@@ -287,16 +287,16 @@ static uint16 map_darkness[(MAP_MAX_SIZE+2)*2][(MAP_MAX_SIZE+2)*2];
 static void opengl_light_space(int x, int y, int mx, int my)
 {
     if (use_config[CONFIG_DARKNESS] == CFG_LT_TILE) {
-	/* If we don't have darkness, or it isn't dark, don't do anything */
-	if (!the_map.cells[mx][my].have_darkness || the_map.cells[mx][my].darkness==0) return;
+        /* If we don't have darkness, or it isn't dark, don't do anything */
+        if (!the_map.cells[mx][my].have_darkness || the_map.cells[mx][my].darkness==0) return;
 
-	glColor4ub(0, 0, 0,  the_map.cells[mx][my].darkness);
-	glBegin(GL_QUADS);
-	glVertex3i(x * map_image_size, y * map_image_size, 0);
-	glVertex3i((x+1) * map_image_size, y * map_image_size, 0);
-	glVertex3i((x+1) * map_image_size, (y+1) * map_image_size, 0);
-	glVertex3i(x * map_image_size, (y+1) * map_image_size, 0);
-	glEnd();
+        glColor4ub(0, 0, 0,  the_map.cells[mx][my].darkness);
+        glBegin(GL_QUADS);
+        glVertex3i(x * map_image_size, y * map_image_size, 0);
+        glVertex3i((x+1) * map_image_size, y * map_image_size, 0);
+        glVertex3i((x+1) * map_image_size, (y+1) * map_image_size, 0);
+        glVertex3i(x * map_image_size, (y+1) * map_image_size, 0);
+        glEnd();
     }
 
     /* do the upper left area */
@@ -394,7 +394,7 @@ static int bc_exclude[8]={
 /* vertices are floats.  this sets the value appropriately for
  * us to multiply the x coordinate by.
  */
-#define	    TEXTURE_OFFSET  1.0/16.0
+#define     TEXTURE_OFFSET  1.0/16.0
 
 /* Draw anything in adjacent squares that could smooth on given square
  * mx,my square to smooth on. you should not call this function to
@@ -404,7 +404,7 @@ static int bc_exclude[8]={
  */
 static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
     int partdone[8]={0,0,0,0,0,0,0,0}, slevels[8], sfaces[8], i,
-	weight,weightC, emx,emy, smoothface, dosmooth, lowest, havesmooth;
+        weight,weightC, emx,emy, smoothface, dosmooth, lowest, havesmooth;
 
     dosmooth=0;
     for (i=0;i<8;i++){
@@ -416,14 +416,14 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
             sfaces[i]=0; /*black picture*/
         }
         else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer] ||
-	    the_map.cells[emx][emy].heads[layer].face == 0){
+            the_map.cells[emx][emy].heads[layer].face == 0){
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         } else{
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
             dosmooth++;
-	}
+        }
     }
 
     /* slevels[] & sfaces[] contain the smooth level.  dosmooth is the number if
@@ -434,15 +434,15 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
     havesmooth=0;
 
     while (havesmooth < dosmooth) {
-	lowest=-1;
-	for (i=0;i<8;i++){
-	    if ( (slevels[i]>0) && (!partdone[i]) && ((lowest<0) || (slevels[i]<slevels[lowest])))
-		lowest=i;
-	}
+        lowest=-1;
+        for (i=0;i<8;i++){
+            if ( (slevels[i]>0) && (!partdone[i]) && ((lowest<0) || (slevels[i]<slevels[lowest])))
+                lowest=i;
+        }
         if (lowest<0)
             break;   /*no more smooth to do on this square*/
 
-	/* the weight values is a bitmask that determines what image we draw */
+        /* the weight values is a bitmask that determines what image we draw */
         weight=0;
         weightC=15; /*works in backward. remove where there is nothing*/
 
@@ -451,12 +451,12 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
                 partdone[i]=1;
                 weight=weight+bweights[i];
                 weightC&=~bc_exclude[i];
-		havesmooth++;
+                havesmooth++;
             } else{
                 /*must rmove the weight of a corner if not in smoothing*/
                 weightC&=~cweights[i];
             }
-	}
+        }
 
         smoothface=sfaces[lowest];
         if (smoothface<=0){
@@ -472,49 +472,49 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
         if ( (!pixmaps[smoothface]->map_texture) || (pixmaps[smoothface] == pixmaps[0]))
             continue;   /*don't have the picture associated*/
 
-	if (the_map.cells[mx][my].cleared)
-	    glBindTexture(GL_TEXTURE_2D, pixmaps[smoothface]->fog_texture);
-	else
-	    glBindTexture(GL_TEXTURE_2D, pixmaps[smoothface]->map_texture);
+        if (the_map.cells[mx][my].cleared)
+            glBindTexture(GL_TEXTURE_2D, pixmaps[smoothface]->fog_texture);
+        else
+            glBindTexture(GL_TEXTURE_2D, pixmaps[smoothface]->map_texture);
 
-	/* The values of 0.0f and 0.5f are hardcoded, but as of now, it is
-	 * a known fact that there are 2 rows of data in the smoothing images,
-	 * so that should be OK.
-	 */
-	if (weight) {
-	    glBegin(GL_QUADS);
+        /* The values of 0.0f and 0.5f are hardcoded, but as of now, it is
+         * a known fact that there are 2 rows of data in the smoothing images,
+         * so that should be OK.
+         */
+        if (weight) {
+            glBegin(GL_QUADS);
 
-	    glTexCoord2f(TEXTURE_OFFSET * weight, 0.0f);
-	    glVertex3i(x * map_image_size, y * map_image_size, 0);
+            glTexCoord2f(TEXTURE_OFFSET * weight, 0.0f);
+            glVertex3i(x * map_image_size, y * map_image_size, 0);
 
-	    glTexCoord2f(TEXTURE_OFFSET * (weight+1), 0.0f);
-	    glVertex3i((x+1) * map_image_size, y * map_image_size, 0);
+            glTexCoord2f(TEXTURE_OFFSET * (weight+1), 0.0f);
+            glVertex3i((x+1) * map_image_size, y * map_image_size, 0);
 
-	    glTexCoord2f(TEXTURE_OFFSET * (weight+1), 0.5f);
-	    glVertex3i((x+1) * map_image_size, (y+1) * map_image_size, 0);
+            glTexCoord2f(TEXTURE_OFFSET * (weight+1), 0.5f);
+            glVertex3i((x+1) * map_image_size, (y+1) * map_image_size, 0);
 
-	    glTexCoord2f(TEXTURE_OFFSET * weight, 0.5f);
-	    glVertex3i(x * map_image_size, (y+1) * map_image_size, 0);
+            glTexCoord2f(TEXTURE_OFFSET * weight, 0.5f);
+            glVertex3i(x * map_image_size, (y+1) * map_image_size, 0);
 
-	    glEnd();
-	}
-	if (weightC) {
-	    glBegin(GL_QUADS);
+            glEnd();
+        }
+        if (weightC) {
+            glBegin(GL_QUADS);
 
-	    glTexCoord2f(TEXTURE_OFFSET * weight, 0.5f);
-	    glVertex3i(x * map_image_size, y * map_image_size, 0);
+            glTexCoord2f(TEXTURE_OFFSET * weight, 0.5f);
+            glVertex3i(x * map_image_size, y * map_image_size, 0);
 
-	    glTexCoord2f(TEXTURE_OFFSET * (weight+1), 0.5f);
-	    glVertex3i((x+1) * map_image_size, y * map_image_size, 0);
+            glTexCoord2f(TEXTURE_OFFSET * (weight+1), 0.5f);
+            glVertex3i((x+1) * map_image_size, y * map_image_size, 0);
 
-	    glTexCoord2f(TEXTURE_OFFSET * (weight+1), 1.0f);
-	    glVertex3i((x+1) * map_image_size, (y+1) * map_image_size, 0);
+            glTexCoord2f(TEXTURE_OFFSET * (weight+1), 1.0f);
+            glVertex3i((x+1) * map_image_size, (y+1) * map_image_size, 0);
 
-	    glTexCoord2f(TEXTURE_OFFSET * weight, 1.0f);
-	    glVertex3i(x * map_image_size, (y+1) * map_image_size, 0);
+            glTexCoord2f(TEXTURE_OFFSET * weight, 1.0f);
+            glVertex3i(x * map_image_size, (y+1) * map_image_size, 0);
 
-	    glEnd();
-	}
+            glEnd();
+        }
     } /*while there's some smooth to do*/
 }
 
@@ -523,15 +523,15 @@ static void draw_smoothing(int layer)
     int x, y, mx, my;
 
     for(y = use_config[CONFIG_MAPHEIGHT]+MAX_MAP_OFFSET; y>=0; y--) {
-	for(x = use_config[CONFIG_MAPWIDTH]+MAX_MAP_OFFSET; x>=0; x--) {
+        for(x = use_config[CONFIG_MAPWIDTH]+MAX_MAP_OFFSET; x>=0; x--) {
 
-	    mx = x + pl_pos.x;
-	    my = y + pl_pos.y;
+            mx = x + pl_pos.x;
+            my = y + pl_pos.y;
 
-	    if ( the_map.cells[mx][my].heads[layer].face!=0 &&
-		CAN_SMOOTH(the_map.cells[mx][my],layer))
-		drawsmooth_opengl(x, y, mx, my, layer);
-	}
+            if ( the_map.cells[mx][my].heads[layer].face!=0 &&
+                CAN_SMOOTH(the_map.cells[mx][my],layer))
+                drawsmooth_opengl(x, y, mx, my, layer);
+        }
     }
 }
 
@@ -557,7 +557,7 @@ void opengl_gen_map(int redraw) {
     int mx,my, layer,x,y, d1, d2, d3, num_dark, got_smooth, face, t1, t2;
 
     if (time_map_redraw)
-	gettimeofday(&tv1, NULL);
+        gettimeofday(&tv1, NULL);
 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -579,213 +579,213 @@ void opengl_gen_map(int redraw) {
      */
     for (layer=0; layer<=MAXLAYERS; layer++) {
 
-	got_smooth=0;
+        got_smooth=0;
 
-	if (layer == MAXLAYERS) {
-	    /* the top layer is the darkness processing - turn off
-	     * the texture pattern so darkness works as expected.
-	     */
-	    glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	for(y = use_config[CONFIG_MAPHEIGHT]+MAX_MAP_OFFSET; y>=0; y--) {
-	    for(x = use_config[CONFIG_MAPWIDTH]+MAX_MAP_OFFSET; x>=0; x--) {
-		/* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
-		 * x and y (from the for loop) represent the visable screen.
-		 */
-		mx = x + pl_pos.x;
-		my = y + pl_pos.y;
+        if (layer == MAXLAYERS) {
+            /* the top layer is the darkness processing - turn off
+             * the texture pattern so darkness works as expected.
+             */
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+        for(y = use_config[CONFIG_MAPHEIGHT]+MAX_MAP_OFFSET; y>=0; y--) {
+            for(x = use_config[CONFIG_MAPWIDTH]+MAX_MAP_OFFSET; x>=0; x--) {
+                /* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
+                 * x and y (from the for loop) represent the visable screen.
+                 */
+                mx = x + pl_pos.x;
+                my = y + pl_pos.y;
 
-		/* if we get here, this denotes a special/top layer.  This is the
-		 * time to do lighting, smoothing, etc.
-		 */
-		if (layer == MAXLAYERS) {
-		    /* If off the map, don't need to do anything, because the code here
-		     * doesn't do anything that would extend onto the map.
-		     */
-		    if (x >= use_config[CONFIG_MAPWIDTH] || y >= use_config[CONFIG_MAPHEIGHT]) continue;
+                /* if we get here, this denotes a special/top layer.  This is the
+                 * time to do lighting, smoothing, etc.
+                 */
+                if (layer == MAXLAYERS) {
+                    /* If off the map, don't need to do anything, because the code here
+                     * doesn't do anything that would extend onto the map.
+                     */
+                    if (x >= use_config[CONFIG_MAPWIDTH] || y >= use_config[CONFIG_MAPHEIGHT]) continue;
 
-		    /* One could make the case it doesn't make sense to light fog of war
-		     * spaces, but I find visually it looks a lot nicer if you do -
-		     * otherwise, they are too bright relative to the spaces around.
-		     * them.
-		     */
-		    if (use_config[CONFIG_DARKNESS]) {
-			opengl_light_space(x, y, mx, my);
-		    }
+                    /* One could make the case it doesn't make sense to light fog of war
+                     * spaces, but I find visually it looks a lot nicer if you do -
+                     * otherwise, they are too bright relative to the spaces around.
+                     * them.
+                     */
+                    if (use_config[CONFIG_DARKNESS]) {
+                        opengl_light_space(x, y, mx, my);
+                    }
 
-		} else {
-		    /* only do this in the better lighting modes.  Fortunately,
-		     * the CFG_LT_.. values are ordered from worst to best, to
-		     * are >= check works just fine, right now.
-		     */
-		    if (layer == 0 && use_config[CONFIG_DARKNESS] >= CFG_LT_PIXEL &&
-~			x <= use_config[CONFIG_MAPWIDTH] && y <= use_config[CONFIG_MAPHEIGHT]) {
+                } else {
+                    /* only do this in the better lighting modes.  Fortunately,
+                     * the CFG_LT_.. values are ordered from worst to best, to
+                     * are >= check works just fine, right now.
+                     */
+                    if (layer == 0 && use_config[CONFIG_DARKNESS] >= CFG_LT_PIXEL &&
+~                       x <= use_config[CONFIG_MAPWIDTH] && y <= use_config[CONFIG_MAPHEIGHT]) {
 
-			/* The darkness code is similar to the per pixel SDL code.
-			 * as such, each square we process needs to know the values for the
-			 * intersection points - there is a lot of redundant calculation
-			 * in this if done a square at a time, so instead, we can calculate
-			 * the darkness point of all the vertices here.  We calculate the
-			 * upper/left 4 vertices.
-			 *
-			 * SDL actually gets better results I think - perhaps because
-			 * the per pixel lighting uses a different algorithym - we basically
-			 * let opengl do the blending.  But the results we use here, while
-			 * perhaps not as nice, certainly look better than per tile lighting.
-			 */
-			if (the_map.cells[mx][my].have_darkness)
-			    map_darkness[x*2 + 1][y*2 + 1] = the_map.cells[mx][my].darkness;
-			else
-			    map_darkness[x*2 + 1][y*2 + 1] = DEFAULT_DARKNESS;
+                        /* The darkness code is similar to the per pixel SDL code.
+                         * as such, each square we process needs to know the values for the
+                         * intersection points - there is a lot of redundant calculation
+                         * in this if done a square at a time, so instead, we can calculate
+                         * the darkness point of all the vertices here.  We calculate the
+                         * upper/left 4 vertices.
+                         *
+                         * SDL actually gets better results I think - perhaps because
+                         * the per pixel lighting uses a different algorithym - we basically
+                         * let opengl do the blending.  But the results we use here, while
+                         * perhaps not as nice, certainly look better than per tile lighting.
+                         */
+                        if (the_map.cells[mx][my].have_darkness)
+                            map_darkness[x*2 + 1][y*2 + 1] = the_map.cells[mx][my].darkness;
+                        else
+                            map_darkness[x*2 + 1][y*2 + 1] = DEFAULT_DARKNESS;
 
-			d1 = DEFAULT_DARKNESS;	/* square to left */
-			d2 = DEFAULT_DARKNESS;	/* square to upper left */
-			d3 = DEFAULT_DARKNESS;	/* square above */
-			num_dark=1; /* Number of adjoining spaces with darkness */
+                        d1 = DEFAULT_DARKNESS;  /* square to left */
+                        d2 = DEFAULT_DARKNESS;  /* square to upper left */
+                        d3 = DEFAULT_DARKNESS;  /* square above */
+                        num_dark=1; /* Number of adjoining spaces with darkness */
 
-			if (x>0 && the_map.cells[mx-1][my].have_darkness) {
-			    d1 = the_map.cells[mx-1][my].darkness;
-			    num_dark++;
-			}
+                        if (x>0 && the_map.cells[mx-1][my].have_darkness) {
+                            d1 = the_map.cells[mx-1][my].darkness;
+                            num_dark++;
+                        }
 
-			if (x>0 && y>0 && the_map.cells[mx-1][my-1].have_darkness) {
-			    d2 = the_map.cells[mx-1][my-1].darkness;
-			    num_dark++;
-			}
+                        if (x>0 && y>0 && the_map.cells[mx-1][my-1].have_darkness) {
+                            d2 = the_map.cells[mx-1][my-1].darkness;
+                            num_dark++;
+                        }
 
-			if (y>0 && the_map.cells[mx][my-1].have_darkness) {
-			    d3 = the_map.cells[mx][my-1].darkness;
-			    num_dark++;
-			}
+                        if (y>0 && the_map.cells[mx][my-1].have_darkness) {
+                            d3 = the_map.cells[mx][my-1].darkness;
+                            num_dark++;
+                        }
 #if 0
-			/* If we don't have darkness, we want to use our value and not
-			 * average.  That is because the value we average against is 0 -
-			 * this results in lighter bands next to areas we won't have darkness
-			 * info for.
-			 */
-			map_darkness[x*2][y*2] = (d1 + d2 +d3 + map_darkness[x*2 + 1][y*2 + 1]) / num_dark;
+                        /* If we don't have darkness, we want to use our value and not
+                         * average.  That is because the value we average against is 0 -
+                         * this results in lighter bands next to areas we won't have darkness
+                         * info for.
+                         */
+                        map_darkness[x*2][y*2] = (d1 + d2 +d3 + map_darkness[x*2 + 1][y*2 + 1]) / num_dark;
 
-			if (d1) {
-			    map_darkness[x*2][y*2 + 1] = (d1 + map_darkness[x*2 + 1][y*2 + 1]) / 2;
-			} else {
-			    map_darkness[x*2][y*2 + 1] = map_darkness[x*2 + 1][y*2 + 1];
-			}
+                        if (d1) {
+                            map_darkness[x*2][y*2 + 1] = (d1 + map_darkness[x*2 + 1][y*2 + 1]) / 2;
+                        } else {
+                            map_darkness[x*2][y*2 + 1] = map_darkness[x*2 + 1][y*2 + 1];
+                        }
 
-			if (d3) {
-			    map_darkness[x*2 +1 ][y*2] = (d3 + map_darkness[x*2 + 1][y*2 + 1]) / 2;
-			} else {
-			    map_darkness[x*2 + 1][y*2] = map_darkness[x*2 + 1][y*2 + 1];
-			}
+                        if (d3) {
+                            map_darkness[x*2 +1 ][y*2] = (d3 + map_darkness[x*2 + 1][y*2 + 1]) / 2;
+                        } else {
+                            map_darkness[x*2 + 1][y*2] = map_darkness[x*2 + 1][y*2 + 1];
+                        }
 #else
-			/* This block does a 'max' darkness - I think it gives the best results,
-			 * which is why by default it is the one used.
-			 */
-			map_darkness[x*2][y*2] = MAX( MAX(d1, d2), MAX(d3, map_darkness[x*2 + 1][y*2 + 1]));
-			map_darkness[x*2][y*2 + 1] = MAX(d1, map_darkness[x*2 + 1][y*2 + 1]);
-			map_darkness[x*2 + 1][y*2] = MAX(d3, map_darkness[x*2 + 1][y*2 + 1]);
+                        /* This block does a 'max' darkness - I think it gives the best results,
+                         * which is why by default it is the one used.
+                         */
+                        map_darkness[x*2][y*2] = MAX( MAX(d1, d2), MAX(d3, map_darkness[x*2 + 1][y*2 + 1]));
+                        map_darkness[x*2][y*2 + 1] = MAX(d1, map_darkness[x*2 + 1][y*2 + 1]);
+                        map_darkness[x*2 + 1][y*2] = MAX(d3, map_darkness[x*2 + 1][y*2 + 1]);
 #endif
 
-		    }
+                    }
 
-		    if (the_map.cells[mx][my].heads[layer].face) {
-			if (pixmaps[the_map.cells[mx][my].heads[layer].face]->map_texture) {
-			    int nx, ny;
+                    if (the_map.cells[mx][my].heads[layer].face) {
+                        if (pixmaps[the_map.cells[mx][my].heads[layer].face]->map_texture) {
+                            int nx, ny;
 
-			    /* nx, ny are the location of the top/left side of the image to draw. */
+                            /* nx, ny are the location of the top/left side of the image to draw. */
 
-			    nx = (x+1) * map_image_size - pixmaps[the_map.cells[mx][my].heads[layer].face]->map_width;
-			    ny = (y+1) * map_image_size - pixmaps[the_map.cells[mx][my].heads[layer].face]->map_height;
+                            nx = (x+1) * map_image_size - pixmaps[the_map.cells[mx][my].heads[layer].face]->map_width;
+                            ny = (y+1) * map_image_size - pixmaps[the_map.cells[mx][my].heads[layer].face]->map_height;
 
-			    /* if both nx and ny are outside visible area, don't need to do anything more */
-			    if (nx > width && ny > height) continue;
+                            /* if both nx and ny are outside visible area, don't need to do anything more */
+                            if (nx > width && ny > height) continue;
 
-			    /* There are some issues with this - it is really the head of the
-			     * object that is determining fog of war logic.  I don't have good solution
-			     * to that, other than to live with it.
-			     */
-			    if (the_map.cells[mx][my].cleared)
-				glBindTexture(GL_TEXTURE_2D, pixmaps[the_map.cells[mx][my].heads[layer].face]->fog_texture);
-			    else
-				glBindTexture(GL_TEXTURE_2D, pixmaps[the_map.cells[mx][my].heads[layer].face]->map_texture);
+                            /* There are some issues with this - it is really the head of the
+                             * object that is determining fog of war logic.  I don't have good solution
+                             * to that, other than to live with it.
+                             */
+                            if (the_map.cells[mx][my].cleared)
+                                glBindTexture(GL_TEXTURE_2D, pixmaps[the_map.cells[mx][my].heads[layer].face]->fog_texture);
+                            else
+                                glBindTexture(GL_TEXTURE_2D, pixmaps[the_map.cells[mx][my].heads[layer].face]->map_texture);
 
-			    glBegin(GL_QUADS);
+                            glBegin(GL_QUADS);
 
-			    glTexCoord2f(0.0f, 0.0f);
-			    glVertex3i(nx, ny, 0);
+                            glTexCoord2f(0.0f, 0.0f);
+                            glVertex3i(nx, ny, 0);
 
-			    glTexCoord2f(1.0f, 0.0f);
-			    glVertex3i( (x+1) * map_image_size, ny, 0);
+                            glTexCoord2f(1.0f, 0.0f);
+                            glVertex3i( (x+1) * map_image_size, ny, 0);
 
-			    glTexCoord2f(1.0f, 1.0f);
-			    glVertex3i( (x+1) * map_image_size, (y+1) * map_image_size, 0);
+                            glTexCoord2f(1.0f, 1.0f);
+                            glVertex3i( (x+1) * map_image_size, (y+1) * map_image_size, 0);
 
-			    glTexCoord2f(0.0f, 1.0f);
-			    glVertex3i(nx, (y+1) * map_image_size, 0);
+                            glTexCoord2f(0.0f, 1.0f);
+                            glVertex3i(nx, (y+1) * map_image_size, 0);
 
-			    glEnd();
-			}
-			if (use_config[CONFIG_SMOOTH] && CAN_SMOOTH(the_map.cells[mx][my],layer) &&
-			    the_map.cells[mx][my].heads[layer].face !=0) {
+                            glEnd();
+                        }
+                        if (use_config[CONFIG_SMOOTH] && CAN_SMOOTH(the_map.cells[mx][my],layer) &&
+                            the_map.cells[mx][my].heads[layer].face !=0) {
 
-			    got_smooth=1;
-			}
-		    }
-		    if ((face=mapdata_bigface_head(x, y, layer, &t1, &t2))!=0) {
-			if (pixmaps[face]->map_texture) {
-			    int nx, ny;
+                            got_smooth=1;
+                        }
+                    }
+                    if ((face=mapdata_bigface_head(x, y, layer, &t1, &t2))!=0) {
+                        if (pixmaps[face]->map_texture) {
+                            int nx, ny;
 
-			    /* nx, ny are the location of the top/left side of the image to draw. */
+                            /* nx, ny are the location of the top/left side of the image to draw. */
 
-			    nx = (x+1) * map_image_size - pixmaps[face]->map_width;
-			    ny = (y+1) * map_image_size - pixmaps[face]->map_height;
+                            nx = (x+1) * map_image_size - pixmaps[face]->map_width;
+                            ny = (y+1) * map_image_size - pixmaps[face]->map_height;
 
-			    /* if both nx and ny are outside visible area, don't need to do anything more */
-			    if (nx > width && ny > height) continue;
+                            /* if both nx and ny are outside visible area, don't need to do anything more */
+                            if (nx > width && ny > height) continue;
 
-			    /* There are some issues with this - it is really the head of the
-			     * object that is determining fog of war logic.  I don't have good solution
-			     * to that, other than to live with it.
-			     */
-			    if (the_map.cells[mx][my].cleared)
-				glBindTexture(GL_TEXTURE_2D, pixmaps[face]->fog_texture);
-			    else
-				glBindTexture(GL_TEXTURE_2D, pixmaps[face]->map_texture);
+                            /* There are some issues with this - it is really the head of the
+                             * object that is determining fog of war logic.  I don't have good solution
+                             * to that, other than to live with it.
+                             */
+                            if (the_map.cells[mx][my].cleared)
+                                glBindTexture(GL_TEXTURE_2D, pixmaps[face]->fog_texture);
+                            else
+                                glBindTexture(GL_TEXTURE_2D, pixmaps[face]->map_texture);
 
-			    glBegin(GL_QUADS);
+                            glBegin(GL_QUADS);
 
-			    glTexCoord2f(0.0f, 0.0f);
-			    glVertex3i(nx, ny, 0);
+                            glTexCoord2f(0.0f, 0.0f);
+                            glVertex3i(nx, ny, 0);
 
-			    glTexCoord2f(1.0f, 0.0f);
-			    glVertex3i( (x+1) * map_image_size, ny, 0);
+                            glTexCoord2f(1.0f, 0.0f);
+                            glVertex3i( (x+1) * map_image_size, ny, 0);
 
-			    glTexCoord2f(1.0f, 1.0f);
-			    glVertex3i( (x+1) * map_image_size, (y+1) * map_image_size, 0);
+                            glTexCoord2f(1.0f, 1.0f);
+                            glVertex3i( (x+1) * map_image_size, (y+1) * map_image_size, 0);
 
-			    glTexCoord2f(0.0f, 1.0f);
-			    glVertex3i(nx, (y+1) * map_image_size, 0);
+                            glTexCoord2f(0.0f, 1.0f);
+                            glVertex3i(nx, (y+1) * map_image_size, 0);
 
-			    glEnd();
-			}
-		    } /* If this space has a valid face */
-		} /* If last layer/else not last layer */
-	    } /* for x loop */
-	} /* for y loop */
+                            glEnd();
+                        }
+                    } /* If this space has a valid face */
+                } /* If last layer/else not last layer */
+            } /* for x loop */
+        } /* for y loop */
 
-	/* Because of our handling with big images, we can't easily draw this
+        /* Because of our handling with big images, we can't easily draw this
          * when drawing the space - we may want to smooth onto another space
-	 * in which the ground hasn't been drawn yet, so we have to do smoothing
-	 * at the end of each layer.
-	 * We use the got_smooth variable to know if there is in fact any smoothing
-	 * to do - for many layers, this is not likely to be set, so we can save
-	 * work by not doing this.
-	 */
-	if (got_smooth)
-	    draw_smoothing(layer);
+         * in which the ground hasn't been drawn yet, so we have to do smoothing
+         * at the end of each layer.
+         * We use the got_smooth variable to know if there is in fact any smoothing
+         * to do - for many layers, this is not likely to be set, so we can save
+         * work by not doing this.
+         */
+        if (got_smooth)
+            draw_smoothing(layer);
     }
 
     if (time_map_redraw)
-	gettimeofday(&tv2, NULL);
+        gettimeofday(&tv2, NULL);
 
     #ifndef WIN32
     glXSwapBuffers(display, window);
@@ -794,15 +794,15 @@ void opengl_gen_map(int redraw) {
     #endif
 
     if (time_map_redraw) {
-	gettimeofday(&tv3, NULL);
-	elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
-	elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
+        gettimeofday(&tv3, NULL);
+        elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
+        elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
 
-	/* I care about performance for 'long' updates, so put the check in to make
-	 * these a little more noticable */
-	if ((elapsed1 + elapsed2)>10000)
-	    LOG(LOG_INFO,"gtk::opengl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
-		    elapsed1, elapsed2, elapsed1 + elapsed2);
+        /* I care about performance for 'long' updates, so put the check in to make
+         * these a little more noticable */
+        if ((elapsed1 + elapsed2)>10000)
+            LOG(LOG_INFO,"gtk::opengl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
+                    elapsed1, elapsed2, elapsed1 + elapsed2);
     }
 } /* opengl_gen_map function */
 
@@ -847,35 +847,35 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
      * transparent alpha bits.  this way, we have no loss of quality.
      */
     if (pi->map_width != nwidth || pi->map_height != nheight) {
-	int y;
-	uint8	*datastart;
+        int y;
+        uint8   *datastart;
 
-	/* Use a static buffer to hold image data, so we don't have to
-	 * keep allocating/deallocating, but need to make sure it is
-	 * big enough.
-	 */
-	if (nwidth * nheight * 4 > size) {
-	    size = nwidth * nheight * 4;
-	    newdata = realloc(newdata, size);
-	}
-	/* Fill the top portion of the image with empty/transparent data.  Also,
-	 * set up datastart to point to where we should start filling in the
-	 * rest of the data
-	 */
-	if (nheight > pi->map_height) {
-	    memset(newdata, 0, (nheight - pi->map_height) * nwidth * 4);
-	    datastart = newdata + (nheight - pi->map_height) * nwidth * 4;
-	} else
-	    datastart = newdata;
+        /* Use a static buffer to hold image data, so we don't have to
+         * keep allocating/deallocating, but need to make sure it is
+         * big enough.
+         */
+        if (nwidth * nheight * 4 > size) {
+            size = nwidth * nheight * 4;
+            newdata = realloc(newdata, size);
+        }
+        /* Fill the top portion of the image with empty/transparent data.  Also,
+         * set up datastart to point to where we should start filling in the
+         * rest of the data
+         */
+        if (nheight > pi->map_height) {
+            memset(newdata, 0, (nheight - pi->map_height) * nwidth * 4);
+            datastart = newdata + (nheight - pi->map_height) * nwidth * 4;
+        } else
+            datastart = newdata;
 
-	for (y =0; y < pi->map_height; y++) {
-	    memset(datastart + y * nwidth * 4, 0, (nwidth - pi->map_width) * 4);
-	    memcpy(datastart + y * nwidth * 4 + (nwidth - pi->map_width) * 4,
-		data + y * pi->map_width * 4, pi->map_width * 4);
-	}
-	data_to_use = newdata;
-	pi->map_width = nwidth;
-	pi->map_height = nheight;
+        for (y =0; y < pi->map_height; y++) {
+            memset(datastart + y * nwidth * 4, 0, (nwidth - pi->map_width) * 4);
+            memcpy(datastart + y * nwidth * 4 + (nwidth - pi->map_width) * 4,
+                data + y * pi->map_width * 4, pi->map_width * 4);
+        }
+        data_to_use = newdata;
+        pi->map_width = nwidth;
+        pi->map_height = nheight;
     }
 
 
@@ -894,20 +894,20 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
      */
 
     if (pi->map_width * pi->map_height * 4 > size) {
-	size = pi->map_width * pi->map_height * 4;
-	newdata = realloc(newdata, size);
+        size = pi->map_width * pi->map_height * 4;
+        newdata = realloc(newdata, size);
     }
 
     /* In this case, newdata does not contain a copy of the data - make one */
     if (data_to_use != newdata) {
-	    memcpy(newdata, data, pi->map_height *  pi->map_width * 4);
+            memcpy(newdata, data, pi->map_height *  pi->map_width * 4);
     }
 
     for (i=0; i < pi->map_width * pi->map_height; i++) {
-	l = (uint8 *) (newdata + i*4);
-	g = MAX(*l, *(l+1));
-	g = MAX(g, *(l+2));
-	p = (uint32*) newdata + i;
+        l = (uint8 *) (newdata + i*4);
+        g = MAX(*l, *(l+1));
+        g = MAX(g, *(l+2));
+        p = (uint32*) newdata + i;
         *p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
     }
 
@@ -924,12 +924,12 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
 void opengl_free_pixmap(PixmapInfo *pi)
 {
     if (pi->map_texture) {
-	glDeleteTextures(1, &pi->map_texture);
-	pi->map_texture=0;
+        glDeleteTextures(1, &pi->map_texture);
+        pi->map_texture=0;
     }
     if (pi->fog_texture) {
-	glDeleteTextures(1, &pi->fog_texture);
-	pi->fog_texture=0;
+        glDeleteTextures(1, &pi->fog_texture);
+        pi->fog_texture=0;
     }
 }
 
@@ -944,22 +944,22 @@ void create_opengl_question_mark()
      * to an rgba format.  We only need to do this once
      */
     for (y=0; y<question_height; y++) {
-	for (xb=0; xb<question_width/8; xb++) {
-	    for (x=0; x<8; x++) {
-		if (question_bits[offset] & (1 << x)) {
-		    question[y][xb * 8 + x][0] = 255;
-		    question[y][xb * 8 + x][1] = 255;
-		    question[y][xb * 8 + x][2] = 255;
-		    question[y][xb * 8 + x][3] = 255;
-		} else {
-		    question[y][xb * 8 + x][0] = 0;
-		    question[y][xb * 8 + x][1] = 0;
-		    question[y][xb * 8 + x][2] = 0;
-		    question[y][xb * 8 + x][3] = 0;
-		}
-	    }
-	    offset++;
-	}
+        for (xb=0; xb<question_width/8; xb++) {
+            for (x=0; x<8; x++) {
+                if (question_bits[offset] & (1 << x)) {
+                    question[y][xb * 8 + x][0] = 255;
+                    question[y][xb * 8 + x][1] = 255;
+                    question[y][xb * 8 + x][2] = 255;
+                    question[y][xb * 8 + x][3] = 255;
+                } else {
+                    question[y][xb * 8 + x][0] = 0;
+                    question[y][xb * 8 + x][1] = 0;
+                    question[y][xb * 8 + x][2] = 0;
+                    question[y][xb * 8 + x][3] = 0;
+                }
+            }
+            offset++;
+        }
     }
 
     glGenTextures(1, &pixmaps[0]->map_texture);

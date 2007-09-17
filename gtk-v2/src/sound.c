@@ -73,31 +73,31 @@ int init_sounds(void)
 
     if (sound_server[0] == '\0') {
         LOG(LOG_ERROR,"init_sounds:", "sound-server variable not set to anything");
-	return -1;
+        return -1;
     }
     /*
      * If an absolute path is given, we use it unadorned.  Otherwise, we use
      * the path in the BINDIR.
      */
     if (sound_server[0] == '/')
-	strcpy(sound_path, sound_server);
+        strcpy(sound_path, sound_server);
     else
-	sprintf(sound_path, "%s/%s", BINDIR, sound_server);
+        sprintf(sound_path, "%s/%s", BINDIR, sound_server);
 
     if (access(sound_path, X_OK)<0) {
-	fprintf(stderr,"Unable to access %s sound server process\n", sound_path);
-	return -1;
+        fprintf(stderr,"Unable to access %s sound server process\n", sound_path);
+        return -1;
     }
 
     sound_process=raiseChild(sound_path,CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR);
     logChildPipe(sound_process, LOG_INFO, CHILD_STDOUT|CHILD_STDERR);
 
     if (fcntl(sound_process->tube[0], F_SETFL, O_NONBLOCK)<0) {
-	/*
+        /*
          * Setting non-blocking isn't 100% critical, but a good thing if
          * possible.
-	 */
-	perror("init_sounds: Warning - unable to set non blocking on sound pipe\n");
+         */
+        perror("init_sounds: Warning - unable to set non blocking on sound pipe\n");
     }
     sound_pipe=fdopen(sound_process->tube[0],"w");
     signal(SIGPIPE, signal_pipe); /* Perhaps throwing this out :\ */
@@ -151,8 +151,8 @@ void SoundCmd(unsigned char *data,  int len)
     int x, y, num, type;
 
     if (len!=5) {
-	LOG(LOG_WARNING,"gtk::SoundCmd","Got invalid length on sound command: %d", len);
-	return;
+        LOG(LOG_WARNING,"gtk::SoundCmd","Got invalid length on sound command: %d", len);
+        return;
     }
     x = data[0];
     y = data[1];
@@ -161,7 +161,7 @@ void SoundCmd(unsigned char *data,  int len)
 
 #if 0
     fprintf(stderr,"Playing sound %d (type %d), offset %d, %x\n",
-	    num, type, x ,y);
+            num, type, x ,y);
 #endif
     play_sound(num, type, x, y);
 #endif

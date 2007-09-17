@@ -2,6 +2,27 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/stats.c
+gtk-v2/src/spells.c
+gtk-v2/src/keys.c
+gtk-v2/src/map.c
+gtk-v2/src/metaserver.c
+gtk-v2/src/magicmap.c
+gtk-v2/src/image.c
+gtk-v2/src/sdl.c
+gtk-v2/src/opengl.c
+gtk-v2/src/png.c
+gtk-v2/src/sound.c
+gtk-v2/src/main.h
+gtk-v2/src/info.c
+gtk-v2/src/pickup.c
+  - Tabs --> spaces.
+gtk-v2/src/config.c
+gtk-v2/src/inventory.c
+  - Tabs --> spaces.
+  - End-of-line whitespace removed.
+Kevin Bulgrien 2007-09-16
+
 gtk-v2/src/map.c
 gtk-v2/src/main.c
   - Fix for SourceForge Bugs Tracker #1794455 Libglade client Magic Map:

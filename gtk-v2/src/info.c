@@ -45,12 +45,12 @@ char *rcsid_gtk2_info_c =
  * The actual font these are bound to is set up the style
  * file.
  */
-#define FONT_NORMAL	0
-#define FONT_ARCANE	1
-#define	FONT_STRANGE	2
-#define	FONT_FIXED	3
-#define FONT_HAND	4
-#define NUM_FONTS	5
+#define FONT_NORMAL     0
+#define FONT_ARCANE     1
+#define FONT_STRANGE    2
+#define FONT_FIXED      3
+#define FONT_HAND       4
+#define NUM_FONTS       5
 
 /*
  * This is a mapping from the font numbers to the style to use
@@ -61,21 +61,21 @@ static char *font_style_names[NUM_FONTS] = {
     "info_font_fixed", "info_font_hand"};
 
 
-#define NUM_TEXT_VIEWS	2
+#define NUM_TEXT_VIEWS  2
 
 extern  const char *usercolorname[NUM_COLORS];
 
 struct Info_Pane
 {
-    GtkWidget	    *textview;
-    GtkWidget	    *scrolled_window;
+    GtkWidget       *textview;
+    GtkWidget       *scrolled_window;
     GtkTextBuffer   *textbuffer;
-    GtkTextMark	    *textmark;
+    GtkTextMark     *textmark;
     GtkAdjustment   *adjustment;
-    GtkTextTag	    *color_tags[NUM_COLORS];
-    GtkTextTag	    *font_tags[NUM_FONTS];
-    GtkTextTag	    *bold_tag, *italic_tag, *underline_tag, *default_tag;
-    GtkTextTag	    **msg_type_tags[MSG_TYPE_LAST];
+    GtkTextTag      *color_tags[NUM_COLORS];
+    GtkTextTag      *font_tags[NUM_FONTS];
+    GtkTextTag      *bold_tag, *italic_tag, *underline_tag, *default_tag;
+    GtkTextTag      **msg_type_tags[MSG_TYPE_LAST];
 } info_pane[NUM_TEXT_VIEWS];
 
 
@@ -128,13 +128,13 @@ void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_st
     g_object_set(tag, "font-desc", NULL, NULL);
 
     if (memcmp(&style->fg[GTK_STATE_NORMAL], &base_style->fg[GTK_STATE_NORMAL], sizeof(GdkColor)))
-	g_object_set(tag, "foreground-gdk", &style->fg[GTK_STATE_NORMAL], NULL);
+        g_object_set(tag, "foreground-gdk", &style->fg[GTK_STATE_NORMAL], NULL);
 
     if (memcmp(&style->bg[GTK_STATE_NORMAL], &base_style->bg[GTK_STATE_NORMAL], sizeof(GdkColor)))
-	g_object_set(tag, "background-gdk", &style->bg[GTK_STATE_NORMAL], NULL);
+        g_object_set(tag, "background-gdk", &style->bg[GTK_STATE_NORMAL], NULL);
 
     if (style->font_desc != base_style->font_desc)
-	g_object_set(tag, "font-desc", style->font_desc, NULL);
+        g_object_set(tag, "font-desc", style->font_desc, NULL);
 
 }
 
@@ -155,60 +155,60 @@ void info_get_styles()
     char    style_name[MAX_BUF];
 
     if (!has_init) {
-	/* We want to set up a 2 dimensional array of msg_type_tags
-	 * to correspond to all the types/subtypes, so looking up any
-	 * value is really easy.  We know the size of the types,
-	 * but don't know the number of subtypes - no single declared
-	 * value.  So we just parse the msg_type_names to find that,
-	 * then know how big to make the other dimension.
-	 * We could allocate different number of entries for each type,
-	 * but that makes processing a bit harder (no single value on the
-	 * number of subtypes), and this extra memory usage shouldn't really
-	 * be at all significant.
-	 */
-	for (i=0; i<sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
-	    if (msg_type_names[i].subtype > max_subtype)
-		max_subtype = msg_type_names[i].subtype;
-	}
-	for (j=0; j<NUM_TEXT_VIEWS; j++) {
-	    for (i=0; i < MSG_TYPE_LAST; i++)
-		info_pane[j].msg_type_tags[i] = calloc(max_subtype+1, sizeof(GtkTextTag*));
+        /* We want to set up a 2 dimensional array of msg_type_tags
+         * to correspond to all the types/subtypes, so looking up any
+         * value is really easy.  We know the size of the types,
+         * but don't know the number of subtypes - no single declared
+         * value.  So we just parse the msg_type_names to find that,
+         * then know how big to make the other dimension.
+         * We could allocate different number of entries for each type,
+         * but that makes processing a bit harder (no single value on the
+         * number of subtypes), and this extra memory usage shouldn't really
+         * be at all significant.
+         */
+        for (i=0; i<sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
+            if (msg_type_names[i].subtype > max_subtype)
+                max_subtype = msg_type_names[i].subtype;
+        }
+        for (j=0; j<NUM_TEXT_VIEWS; j++) {
+            for (i=0; i < MSG_TYPE_LAST; i++)
+                info_pane[j].msg_type_tags[i] = calloc(max_subtype+1, sizeof(GtkTextTag*));
 
-	    for (i=0; i<NUM_FONTS; i++)
-		info_pane[j].font_tags[i] = NULL;
-	    for (i=0; i<NUM_COLORS; i++)
-		info_pane[j].color_tags[i] = NULL;
+            for (i=0; i<NUM_FONTS; i++)
+                info_pane[j].font_tags[i] = NULL;
+            for (i=0; i<NUM_COLORS; i++)
+                info_pane[j].color_tags[i] = NULL;
 
-	    /* These tag definitions never change - we don't get them from the settings
-	     * file (maybe we should), so we only need to allocate them once.
-	     */
-	    info_pane[j].bold_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "bold",
-		"weight", PANGO_WEIGHT_BOLD, NULL);
+            /* These tag definitions never change - we don't get them from the settings
+             * file (maybe we should), so we only need to allocate them once.
+             */
+            info_pane[j].bold_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "bold",
+                "weight", PANGO_WEIGHT_BOLD, NULL);
 
-	    info_pane[j].italic_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "italic",
-		"style", PANGO_STYLE_ITALIC, NULL);
+            info_pane[j].italic_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "italic",
+                "style", PANGO_STYLE_ITALIC, NULL);
 
-	    info_pane[j].underline_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "underline",
-		"underline", PANGO_UNDERLINE_SINGLE, NULL);
+            info_pane[j].underline_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "underline",
+                "underline", PANGO_UNDERLINE_SINGLE, NULL);
 
-	    /* This is really a convenience - we can pass multiple tags in when drawing
-	     * text, but once we pass in a NULL tag, that signifies no more tags.  Rather
-	     * than having to set up an array we pass in, instead, we have this empty tag
-	     * that we can pass is so that we always have the same calling semantics, just
-	     * differ what tags we pass in.
-	     */
-	    if (!info_pane[j].default_tag)
-		info_pane[j].default_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "default",
-								      NULL);
-	}
-	has_init=1;
+            /* This is really a convenience - we can pass multiple tags in when drawing
+             * text, but once we pass in a NULL tag, that signifies no more tags.  Rather
+             * than having to set up an array we pass in, instead, we have this empty tag
+             * that we can pass is so that we always have the same calling semantics, just
+             * differ what tags we pass in.
+             */
+            if (!info_pane[j].default_tag)
+                info_pane[j].default_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "default",
+                                                                      NULL);
+        }
+        has_init=1;
     }
     for (i=0; i<NUM_TEXT_VIEWS; i++) {
-	base_style[i] = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
-				      "info_default", G_TYPE_NONE);
+        base_style[i] = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
+                                      "info_default", G_TYPE_NONE);
     }
     if (!base_style[0]) {
-	LOG(LOG_INFO, "info.c::info_get_styles", "Unable to find base style info_default - will not process most info tag styles!");
+        LOG(LOG_INFO, "info.c::info_get_styles", "Unable to find base style info_default - will not process most info tag styles!");
     }
 
     has_style=0;
@@ -219,131 +219,131 @@ void info_get_styles()
      * style) still doesn't work really well.
      */
     if (base_style[0]) {
-	/* This processes the type/subtype styles.  We look
-	 * up the names in the array to find what name goes to
-	 * what number.
-	 */
-	for (i=0; i<sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
-	    int type, subtype;
+        /* This processes the type/subtype styles.  We look
+         * up the names in the array to find what name goes to
+         * what number.
+         */
+        for (i=0; i<sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
+            int type, subtype;
 
-	    sprintf(style_name,"msg_%s", msg_type_names[i].style_name);
-	    type =  msg_type_names[i].type;
-	    subtype = msg_type_names[i].subtype;
+            sprintf(style_name,"msg_%s", msg_type_names[i].style_name);
+            type =  msg_type_names[i].type;
+            subtype = msg_type_names[i].subtype;
 
-	    tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
-				      style_name, G_TYPE_NONE);
+            tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
+                                      style_name, G_TYPE_NONE);
 
-	    for (j=0; j<NUM_TEXT_VIEWS; j++) {
-		/* If we have a style for this, update the tag that
-		 * goes along with this.  If we don't have a tag for this
-		 * style, create it.
-		 */
-		if (tmp_style) {
-		    if (!info_pane[j].msg_type_tags[type][subtype]) {
-			info_pane[j].msg_type_tags[type][subtype] =
-			    gtk_text_buffer_create_tag(info_pane[j].textbuffer, NULL, NULL);
-		    }
-		    set_text_tag_from_style(info_pane[j].msg_type_tags[type][subtype],
-					    tmp_style, base_style[j]);
-		    has_style=1;
-		} else {
-		    /* No setting for this type/subtype, so remove tag if there is
-		     * one.
-		     */
-		    if (info_pane[j].msg_type_tags[type][subtype]) {
-			gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
-					      info_pane[j].msg_type_tags[type][subtype]);
-			info_pane[j].msg_type_tags[type][subtype] = NULL;
-		    }
-		}
-	    }
-	}
+            for (j=0; j<NUM_TEXT_VIEWS; j++) {
+                /* If we have a style for this, update the tag that
+                 * goes along with this.  If we don't have a tag for this
+                 * style, create it.
+                 */
+                if (tmp_style) {
+                    if (!info_pane[j].msg_type_tags[type][subtype]) {
+                        info_pane[j].msg_type_tags[type][subtype] =
+                            gtk_text_buffer_create_tag(info_pane[j].textbuffer, NULL, NULL);
+                    }
+                    set_text_tag_from_style(info_pane[j].msg_type_tags[type][subtype],
+                                            tmp_style, base_style[j]);
+                    has_style=1;
+                } else {
+                    /* No setting for this type/subtype, so remove tag if there is
+                     * one.
+                     */
+                    if (info_pane[j].msg_type_tags[type][subtype]) {
+                        gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
+                                              info_pane[j].msg_type_tags[type][subtype]);
+                        info_pane[j].msg_type_tags[type][subtype] = NULL;
+                    }
+                }
+            }
+        }
 
-	/*
-	 * Old message/color support.
-	 */
-	for (i=0; i<NUM_COLORS; i++) {
-	    snprintf(style_name, MAX_BUF, "info_%s", usercolorname[i]);
-	    tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, style_name, G_TYPE_NONE);
+        /*
+         * Old message/color support.
+         */
+        for (i=0; i<NUM_COLORS; i++) {
+            snprintf(style_name, MAX_BUF, "info_%s", usercolorname[i]);
+            tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, style_name, G_TYPE_NONE);
 
-	    for (j=0; j<NUM_TEXT_VIEWS; j++) {
-		if (tmp_style) {
-		    if (!info_pane[j].color_tags[i]) {
-			info_pane[j].color_tags[i] = gtk_text_buffer_create_tag(info_pane[j].textbuffer,
-								NULL, NULL);
-		    }
-		    set_text_tag_from_style(info_pane[j].color_tags[i], tmp_style, base_style[j]);
-		} else {
-		    if (info_pane[j].color_tags[i]) {
-			gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
-						  info_pane[j].color_tags[i]);
-			info_pane[j].color_tags[i] = NULL;
-		    }
-		}
-	    }
-	}
+            for (j=0; j<NUM_TEXT_VIEWS; j++) {
+                if (tmp_style) {
+                    if (!info_pane[j].color_tags[i]) {
+                        info_pane[j].color_tags[i] = gtk_text_buffer_create_tag(info_pane[j].textbuffer,
+                                                                NULL, NULL);
+                    }
+                    set_text_tag_from_style(info_pane[j].color_tags[i], tmp_style, base_style[j]);
+                } else {
+                    if (info_pane[j].color_tags[i]) {
+                        gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
+                                                  info_pane[j].color_tags[i]);
+                        info_pane[j].color_tags[i] = NULL;
+                    }
+                }
+            }
+        }
 
-	/* Font type support */
-	for (i=0; i<NUM_FONTS; i++) {
-	    tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
-				  font_style_names[i], G_TYPE_NONE);
+        /* Font type support */
+        for (i=0; i<NUM_FONTS; i++) {
+            tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
+                                  font_style_names[i], G_TYPE_NONE);
 
-	    for (j=0; j<NUM_TEXT_VIEWS; j++) {
-		if (tmp_style) {
-		    if (!info_pane[j].font_tags[i]) {
-			info_pane[j].font_tags[i] = gtk_text_buffer_create_tag(info_pane[j].textbuffer,
-								NULL, NULL);
-		    }
-		    set_text_tag_from_style(info_pane[j].font_tags[i], tmp_style, base_style[j]);
-		} else {
-		    if (info_pane[j].font_tags[i]) {
-			gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
-						  info_pane[j].font_tags[i]);
-			info_pane[j].font_tags[i] = NULL;
-		    }
-		}
-	    }
-	}
+            for (j=0; j<NUM_TEXT_VIEWS; j++) {
+                if (tmp_style) {
+                    if (!info_pane[j].font_tags[i]) {
+                        info_pane[j].font_tags[i] = gtk_text_buffer_create_tag(info_pane[j].textbuffer,
+                                                                NULL, NULL);
+                    }
+                    set_text_tag_from_style(info_pane[j].font_tags[i], tmp_style, base_style[j]);
+                } else {
+                    if (info_pane[j].font_tags[i]) {
+                        gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
+                                                  info_pane[j].font_tags[i]);
+                        info_pane[j].font_tags[i] = NULL;
+                    }
+                }
+            }
+        }
     } else {
-	/* there isn't any base style - this shouldn't normally
-	 * be the case with any real setting files, but certainly can be the
-	 * case if the user selected the 'None' setting.
-	 * So in this case, we just free all the text tags.
-	 */
-	has_style=0;
-	for (i=0; i<sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
-	    int type, subtype;
+        /* there isn't any base style - this shouldn't normally
+         * be the case with any real setting files, but certainly can be the
+         * case if the user selected the 'None' setting.
+         * So in this case, we just free all the text tags.
+         */
+        has_style=0;
+        for (i=0; i<sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
+            int type, subtype;
 
-	    type =  msg_type_names[i].type;
-	    subtype = msg_type_names[i].subtype;
+            type =  msg_type_names[i].type;
+            subtype = msg_type_names[i].subtype;
 
-	    for (j=0; j<NUM_TEXT_VIEWS; j++) {
-		if (info_pane[j].msg_type_tags[type][subtype]) {
-		    gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
-				      info_pane[j].msg_type_tags[type][subtype]);
-		    info_pane[j].msg_type_tags[type][subtype] = NULL;
-		}
-	    }
-	}
-	for (i=0; i<NUM_COLORS; i++) {
-	    for (j=0; j<NUM_TEXT_VIEWS; j++) {
-		if (info_pane[j].color_tags[i]) {
-		    gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
-						  info_pane[j].color_tags[i]);
-		    info_pane[j].color_tags[i] = NULL;
-		}
-	    }
-	}
-	/* Font type support */
-	for (i=0; i<NUM_FONTS; i++) {
-	    for (j=0; j<NUM_TEXT_VIEWS; j++) {
-		if (info_pane[j].font_tags[i]) {
-		    gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
-						  info_pane[j].font_tags[i]);
-		    info_pane[j].font_tags[i] = NULL;
-		}
-	    }
-	}
+            for (j=0; j<NUM_TEXT_VIEWS; j++) {
+                if (info_pane[j].msg_type_tags[type][subtype]) {
+                    gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
+                                      info_pane[j].msg_type_tags[type][subtype]);
+                    info_pane[j].msg_type_tags[type][subtype] = NULL;
+                }
+            }
+        }
+        for (i=0; i<NUM_COLORS; i++) {
+            for (j=0; j<NUM_TEXT_VIEWS; j++) {
+                if (info_pane[j].color_tags[i]) {
+                    gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
+                                                  info_pane[j].color_tags[i]);
+                    info_pane[j].color_tags[i] = NULL;
+                }
+            }
+        }
+        /* Font type support */
+        for (i=0; i<NUM_FONTS; i++) {
+            for (j=0; j<NUM_TEXT_VIEWS; j++) {
+                if (info_pane[j].font_tags[i]) {
+                    gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
+                                                  info_pane[j].font_tags[i]);
+                    info_pane[j].font_tags[i] = NULL;
+                }
+            }
+        }
     }
 }
 
@@ -363,26 +363,26 @@ void info_init(GtkWidget *window_root)
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     for (i=0; i < NUM_TEXT_VIEWS; i++) {
-	snprintf(widget_name, MAX_BUF, "textview_info%d", i+1);
-	info_pane[i].textview = glade_xml_get_widget(xml_tree, widget_name);
+        snprintf(widget_name, MAX_BUF, "textview_info%d", i+1);
+        info_pane[i].textview = glade_xml_get_widget(xml_tree, widget_name);
 
-	snprintf(widget_name, MAX_BUF, "scrolledwindow_textview%d", i+1);
-	info_pane[i].scrolled_window =
+        snprintf(widget_name, MAX_BUF, "scrolledwindow_textview%d", i+1);
+        info_pane[i].scrolled_window =
             glade_xml_get_widget(xml_tree, widget_name);
-	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(info_pane[i].textview), GTK_WRAP_WORD);
-	info_pane[i].textbuffer=gtk_text_view_get_buffer(GTK_TEXT_VIEW(info_pane[i].textview));
-	info_pane[i].adjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(info_pane[i].scrolled_window));
+        gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(info_pane[i].textview), GTK_WRAP_WORD);
+        info_pane[i].textbuffer=gtk_text_view_get_buffer(GTK_TEXT_VIEW(info_pane[i].textview));
+        info_pane[i].adjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(info_pane[i].scrolled_window));
 
-	gtk_text_buffer_get_end_iter(info_pane[i].textbuffer, &end);
-	info_pane[i].textmark =  gtk_text_buffer_create_mark(info_pane[i].textbuffer, NULL, &end, FALSE);
-	gtk_widget_realize(info_pane[i].textview);
+        gtk_text_buffer_get_end_iter(info_pane[i].textbuffer, &end);
+        info_pane[i].textmark =  gtk_text_buffer_create_mark(info_pane[i].textbuffer, NULL, &end, FALSE);
+        gtk_widget_realize(info_pane[i].textview);
     }
 
     info_get_styles();
 
     /* Register callbacks for all message types */
     for (i=0; i<MSG_TYPE_LAST; i++)
-	setTextManager(i,message_callback);
+        setTextManager(i,message_callback);
 }
 
 
@@ -410,13 +410,13 @@ void info_init(GtkWidget *window_root)
  */
 
 static void add_to_textbuf(int pane, char *message,
-			   int type, int subtype,
-			   int bold, int italic, int font, char *color, int underline)
+                           int type, int subtype,
+                           int bold, int italic, int font, char *color, int underline)
 {
     GtkTextIter end;
     GdkRectangle rect;
     int scroll_to_end=0, color_num;
-    GtkTextTag	    *color_tag=NULL, *type_tag=NULL;
+    GtkTextTag      *color_tag=NULL, *type_tag=NULL;
 
     /* Lets see if the defined color matches any of our defined
      * colors.  If we get a match, set color_tag.  If
@@ -430,10 +430,10 @@ static void add_to_textbuf(int pane, char *message,
      * really be what determines what color to use.
      */
     if (color) {
-	for (color_num=0; color_num < NUM_COLORS; color_num++)
-	    if (!strcasecmp(usercolorname[color_num], color)) break;
+        for (color_num=0; color_num < NUM_COLORS; color_num++)
+            if (!strcasecmp(usercolorname[color_num], color)) break;
 
-	if (color_num < NUM_COLORS) color_tag = info_pane[pane].color_tags[color_num];
+        if (color_num < NUM_COLORS) color_tag = info_pane[pane].color_tags[color_num];
     }
     if (!color_tag) color_tag = info_pane[pane].default_tag;
 
@@ -444,11 +444,11 @@ static void add_to_textbuf(int pane, char *message,
      */
     type_tag = info_pane[pane].default_tag;
     if (type >= MSG_TYPE_LAST || subtype >= max_subtype || type < 0 || subtype < 0 ) {
-	LOG(LOG_ERROR, "info.c::add_to_textbuf", "type (%d) >= MSG_TYPE_LAST (%d) or subtype (%d) >= max_subtype (%d)\n",
-	    type, MSG_TYPE_LAST, subtype, max_subtype);
+        LOG(LOG_ERROR, "info.c::add_to_textbuf", "type (%d) >= MSG_TYPE_LAST (%d) or subtype (%d) >= max_subtype (%d)\n",
+            type, MSG_TYPE_LAST, subtype, max_subtype);
     } else {
-	if (info_pane[pane].msg_type_tags[type][subtype]) type_tag = info_pane[pane].msg_type_tags[type][subtype];
-	else if (info_pane[pane].msg_type_tags[type][0]) type_tag = info_pane[pane].msg_type_tags[type][0];
+        if (info_pane[pane].msg_type_tags[type][subtype]) type_tag = info_pane[pane].msg_type_tags[type][subtype];
+        else if (info_pane[pane].msg_type_tags[type][0]) type_tag = info_pane[pane].msg_type_tags[type][0];
     }
 
 
@@ -458,15 +458,15 @@ static void add_to_textbuf(int pane, char *message,
     gtk_text_buffer_get_end_iter(info_pane[pane].textbuffer, &end);
 
     gtk_text_buffer_insert_with_tags(info_pane[pane].textbuffer, &end, message , strlen(message),
-	     bold?info_pane[pane].bold_tag : info_pane[pane].default_tag,
-	     italic?info_pane[pane].italic_tag : info_pane[pane].default_tag,
-	     underline?info_pane[pane].underline_tag : info_pane[pane].default_tag,
-	     info_pane[pane].font_tags[font]?info_pane[pane].font_tags[font] : info_pane[pane].default_tag,
-	     color_tag, type_tag,
-	     NULL);
+             bold?info_pane[pane].bold_tag : info_pane[pane].default_tag,
+             italic?info_pane[pane].italic_tag : info_pane[pane].default_tag,
+             underline?info_pane[pane].underline_tag : info_pane[pane].default_tag,
+             info_pane[pane].font_tags[font]?info_pane[pane].font_tags[font] : info_pane[pane].default_tag,
+             color_tag, type_tag,
+             NULL);
 
     if (scroll_to_end)
-	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(info_pane[pane].textview), info_pane[pane].textmark);
+        gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(info_pane[pane].textview), info_pane[pane].textmark);
 
 }
 
@@ -480,53 +480,53 @@ static void add_to_textbuf(int pane, char *message,
 static void message_callback(int orig_color, int type, int subtype, char *message) {
     char *marker, *current, *original;
     int bold=0, italic=0, font=0, underline=0;
-    char *color=NULL;		/* only if we get a [color] tag should we care - otherwise, */
-				/* the type/subtype should dictate color (unless no style set!) */
+    char *color=NULL;           /* only if we get a [color] tag should we care - otherwise, */
+                                /* the type/subtype should dictate color (unless no style set!) */
 
     current = strdup(message);
-    original = current;		/* Just so we know what to free */
+    original = current;         /* Just so we know what to free */
 
     if (!has_style) {
-	if (orig_color <0 || orig_color>NUM_COLORS) {
-	    LOG(LOG_ERROR,"info.c::message_callback", "Passed invalid color from server: %d, max allowed is %d\n",
-		orig_color, NUM_COLORS);
-	    orig_color=0;
-	} else {
-	    /* Not really efficient - we have a number, but convert it
-	     * to a string, at which point the add_to_textbuf will convert
-	     * it back to a number :(
-	     */
-	    color=(char*)usercolorname[orig_color];
-	}
+        if (orig_color <0 || orig_color>NUM_COLORS) {
+            LOG(LOG_ERROR,"info.c::message_callback", "Passed invalid color from server: %d, max allowed is %d\n",
+                orig_color, NUM_COLORS);
+            orig_color=0;
+        } else {
+            /* Not really efficient - we have a number, but convert it
+             * to a string, at which point the add_to_textbuf will convert
+             * it back to a number :(
+             */
+            color=(char*)usercolorname[orig_color];
+        }
     }
 
     while ((marker = strchr(current,'['))!= NULL) {
-	*marker = 0;
+        *marker = 0;
 
-	if (strlen(current) > 0)
-	    add_to_textbuf( 0,current, type, subtype, bold, italic, font, color, underline);
+        if (strlen(current) > 0)
+            add_to_textbuf( 0,current, type, subtype, bold, italic, font, color, underline);
 
-	current=marker+1;
-	if ((marker = strchr(current,']')) == NULL) {
-	    free(original);
-	    return;
-	}
-	*marker = 0;
-	if (!strcmp(current,"b"))		bold = TRUE;
-	else if (!strcmp(current,"/b"))		bold = FALSE;
-	else if (!strcmp(current,"i"))		italic = TRUE;
-	else if (!strcmp(current,"/i"))		italic = FALSE;
-	else if (!strcmp(current,"ul"))		underline = TRUE;
-	else if (!strcmp(current,"/ul"))	underline = FALSE;
-	else if (!strcmp(current,"fixed"))	font = FONT_FIXED;
-	else if (!strcmp(current,"arcane"))	font = FONT_ARCANE;
-	else if (!strcmp(current,"hand"))	font = FONT_HAND;
-	else if (!strcmp(current,"strange"))	font = FONT_STRANGE;
-	else if (!strcmp(current,"print"))	font = FONT_NORMAL;
-	else if (!strcmp(current,"/color"))	color = NULL;
-	else if (!strncmp(current,"color=",6))	color = current + 6;
-	else LOG(LOG_INFO, "info.c::message_callback", "unidentified message: %s\n", current);
-	current = marker+1;
+        current=marker+1;
+        if ((marker = strchr(current,']')) == NULL) {
+            free(original);
+            return;
+        }
+        *marker = 0;
+        if (!strcmp(current,"b"))               bold = TRUE;
+        else if (!strcmp(current,"/b"))         bold = FALSE;
+        else if (!strcmp(current,"i"))          italic = TRUE;
+        else if (!strcmp(current,"/i"))         italic = FALSE;
+        else if (!strcmp(current,"ul"))         underline = TRUE;
+        else if (!strcmp(current,"/ul"))        underline = FALSE;
+        else if (!strcmp(current,"fixed"))      font = FONT_FIXED;
+        else if (!strcmp(current,"arcane"))     font = FONT_ARCANE;
+        else if (!strcmp(current,"hand"))       font = FONT_HAND;
+        else if (!strcmp(current,"strange"))    font = FONT_STRANGE;
+        else if (!strcmp(current,"print"))      font = FONT_NORMAL;
+        else if (!strcmp(current,"/color"))     color = NULL;
+        else if (!strncmp(current,"color=",6))  color = current + 6;
+        else LOG(LOG_INFO, "info.c::message_callback", "unidentified message: %s\n", current);
+        current = marker+1;
 
     }
     add_to_textbuf( 0,current, type, subtype, bold, italic, font, color, underline);
@@ -548,7 +548,7 @@ void draw_info(const char *str, int color) {
     int scroll_to_end=0;
 
     if (ncolor==NDI_WHITE) {
-	ncolor=NDI_BLACK;
+        ncolor=NDI_BLACK;
     }
 
     /* This seems more complicated than it should be, but we need to see if
@@ -565,30 +565,30 @@ void draw_info(const char *str, int color) {
     if ((info_pane[0].adjustment->value + rect.height) >= info_pane[0].adjustment->upper ) scroll_to_end=1;
 
     if (color == NDI_BLACK) {
-	gtk_text_buffer_get_end_iter(info_pane[0].textbuffer, &end);
-	gtk_text_buffer_insert_with_tags(info_pane[0].textbuffer, &end, str , strlen(str), info_pane[0].color_tags[ncolor], NULL);
-	gtk_text_buffer_insert(info_pane[0].textbuffer, &end, "\n" , 1);
+        gtk_text_buffer_get_end_iter(info_pane[0].textbuffer, &end);
+        gtk_text_buffer_insert_with_tags(info_pane[0].textbuffer, &end, str , strlen(str), info_pane[0].color_tags[ncolor], NULL);
+        gtk_text_buffer_insert(info_pane[0].textbuffer, &end, "\n" , 1);
 
-	if (scroll_to_end)
-	    gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(info_pane[0].textview), info_pane[0].textmark);
+        if (scroll_to_end)
+            gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(info_pane[0].textview), info_pane[0].textmark);
     } else {
-	gtk_text_buffer_get_end_iter(info_pane[0].textbuffer, &end);
-	gtk_text_buffer_insert_with_tags(info_pane[0].textbuffer, &end, str , strlen(str), info_pane[0].color_tags[ncolor], NULL);
-	gtk_text_buffer_insert(info_pane[0].textbuffer, &end, "\n" , 1);
+        gtk_text_buffer_get_end_iter(info_pane[0].textbuffer, &end);
+        gtk_text_buffer_insert_with_tags(info_pane[0].textbuffer, &end, str , strlen(str), info_pane[0].color_tags[ncolor], NULL);
+        gtk_text_buffer_insert(info_pane[0].textbuffer, &end, "\n" , 1);
 
-	if (scroll_to_end)
-	    gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(info_pane[0].textview), info_pane[0].textmark);
+        if (scroll_to_end)
+            gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(info_pane[0].textview), info_pane[0].textmark);
 
-	gtk_text_view_get_visible_rect(GTK_TEXT_VIEW(info_pane[1].textview), &rect);
-	if ((info_pane[1].adjustment->value + rect.height) >= info_pane[1].adjustment->upper ) scroll_to_end=1;
-	else scroll_to_end=0;
+        gtk_text_view_get_visible_rect(GTK_TEXT_VIEW(info_pane[1].textview), &rect);
+        if ((info_pane[1].adjustment->value + rect.height) >= info_pane[1].adjustment->upper ) scroll_to_end=1;
+        else scroll_to_end=0;
 
-	gtk_text_buffer_get_end_iter(info_pane[1].textbuffer, &end);
-	gtk_text_buffer_insert_with_tags(info_pane[1].textbuffer, &end, str , strlen(str), info_pane[1].color_tags[ncolor], NULL);
-	gtk_text_buffer_insert(info_pane[1].textbuffer, &end, "\n" , 1);
+        gtk_text_buffer_get_end_iter(info_pane[1].textbuffer, &end);
+        gtk_text_buffer_insert_with_tags(info_pane[1].textbuffer, &end, str , strlen(str), info_pane[1].color_tags[ncolor], NULL);
+        gtk_text_buffer_insert(info_pane[1].textbuffer, &end, "\n" , 1);
 
-	if (scroll_to_end)
-	    gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(info_pane[1].textview), info_pane[1].textmark);
+        if (scroll_to_end)
+            gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(info_pane[1].textview), info_pane[1].textmark);
     }
 }
 
@@ -606,7 +606,7 @@ void menu_clear() {
     int i;
 
     for (i=0; i < NUM_TEXT_VIEWS; i++) {
-	gtk_text_buffer_set_text(info_pane[i].textbuffer, "", 0);
+        gtk_text_buffer_set_text(info_pane[i].textbuffer, "", 0);
     }
 }
 

@@ -79,9 +79,9 @@ static GtkStyle    *inv_styles[Style_Last];
  * in a module fashion - instead of hardcoding values, they can
  * be held in the array.
  */
-#define NUM_INV_LISTS	10
-#define INV_SHOW_ITEM	0x1
-#define INV_SHOW_COLOR	0x2
+#define NUM_INV_LISTS   10
+#define INV_SHOW_ITEM   0x1
+#define INV_SHOW_COLOR  0x2
 
 enum {
     INV_TREE,
@@ -91,20 +91,20 @@ enum {
 static int num_inv_notebook_pages=0;
 
 typedef struct {
-    const char *name;		/* Name of this page, for use with the show command */
-    const char *tooltip;	/* Tooltip for menu */
-    const char *const *xpm;	/* Icon to draw for the notebook selector */
-    int(*show_func) (item *it);	/* Function that takes an item and */
-				/* returns INV_SHOW_* above on whether to show this */
-				/* item and if it should be shown in color */
-    int	    type;		/* Type of widget - currently not used, but I'm */
-				/* thinking it might be nice to have a pane just of icon */
-				/* view or something, and need some way to show that */
-    GtkWidget	*treeview;	/* treeview widget for this tab */
-    GtkTreeStore    *treestore;	/* store of data for treeview */
+    const char *name;           /* Name of this page, for use with the show command */
+    const char *tooltip;        /* Tooltip for menu */
+    const char *const *xpm;     /* Icon to draw for the notebook selector */
+    int(*show_func) (item *it); /* Function that takes an item and */
+                                /* returns INV_SHOW_* above on whether to show this */
+                                /* item and if it should be shown in color */
+    int     type;               /* Type of widget - currently not used, but I'm */
+                                /* thinking it might be nice to have a pane just of icon */
+                                /* view or something, and need some way to show that */
+    GtkWidget   *treeview;      /* treeview widget for this tab */
+    GtkTreeStore    *treestore; /* store of data for treeview */
 } Notebook_Info;
 
-static int show_all(item *it)	    { return INV_SHOW_ITEM | INV_SHOW_COLOR; }
+static int show_all(item *it)       { return INV_SHOW_ITEM | INV_SHOW_COLOR; }
 static int show_applied(item *it)   { return (it->applied?INV_SHOW_ITEM:0); }
 static int show_unapplied(item *it) { return (it->applied?0:INV_SHOW_ITEM); }
 static int show_unpaid(item *it)    { return (it->unpaid?INV_SHOW_ITEM:0); }
@@ -114,7 +114,7 @@ static int show_nonmagical(item *it){ return (it->magical?0:INV_SHOW_ITEM); }
 static int show_locked(item *it)    { return (it->locked?(INV_SHOW_ITEM|INV_SHOW_COLOR):0); }
 static int show_unlocked(item *it)  { return (it->locked?0:(INV_SHOW_ITEM|INV_SHOW_COLOR)); }
 
-Notebook_Info	inv_notebooks[NUM_INV_LISTS] = {
+Notebook_Info   inv_notebooks[NUM_INV_LISTS] = {
 {"all", "All Items", all_xpm, show_all, INV_TREE},
 {"applied", "Applied Items", hand_xpm, show_applied, INV_TREE},
 {"unapplied", "Unapplied Items", hand2_xpm, show_unapplied, INV_TREE},
@@ -141,8 +141,8 @@ LIST_BASENAME, LIST_FOREGROUND, LIST_FONT, LIST_NUM_COLUMNS
  * actual values and not presuming that lack of value means it
  * is in the other location.
  */
-#define ITEM_INVENTORY	    0x1
-#define	ITEM_GROUND	    0x2
+#define ITEM_INVENTORY      0x1
+#define ITEM_GROUND         0x2
 #define ITEM_IN_CONTAINER   0x4
 
 static int get_item_env(item *it)
@@ -165,48 +165,48 @@ static void list_item_action(GdkEventButton *event, item *tmp)
      * shift presses.
      */
     if (event->button == 1) {
-	if (event->state & GDK_SHIFT_MASK)
-	    toggle_locked(tmp);
-	else
-	    client_send_examine (tmp->tag);
+        if (event->state & GDK_SHIFT_MASK)
+            toggle_locked(tmp);
+        else
+            client_send_examine (tmp->tag);
     }
     else if (event->button == 2) {
-	if (event->state & GDK_SHIFT_MASK)
-	    send_mark_obj(tmp);
-	else
-	    client_send_apply (tmp->tag);
+        if (event->state & GDK_SHIFT_MASK)
+            send_mark_obj(tmp);
+        else
+            client_send_apply (tmp->tag);
     }
     else if (event->button == 3) {
-	if (tmp->locked) {
-	    draw_info ("This item is locked. To drop it, first unlock by shift+leftclicking on it.",
-		NDI_BLACK);
-	} else {
-	    uint32	dest;
+        if (tmp->locked) {
+            draw_info ("This item is locked. To drop it, first unlock by shift+leftclicking on it.",
+                NDI_BLACK);
+        } else {
+            uint32      dest;
 
-	    cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(spinbutton_count));
+            cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(spinbutton_count));
 
-	    /* Figure out where to move the item to.  If it is on the ground,
-	     * it is moving to the players inventory.  If it is in a container,
-	     * it is also moving to players inventory.  If it is in the players
-	     * inventory (not a container) and the player has an open container
-	     * in his inventory, move the object to the container (not ground).
-	     * Otherwise, it is moving
-	     * to the ground (dest=0).  Have to look at the item environment,
-	     * because what list is no longer accurate.
-	     */
-	    if (env & (ITEM_GROUND | ITEM_IN_CONTAINER))
-		dest = cpl.ob->tag;
-	    else if (env == ITEM_INVENTORY && cpl.container &&
-		     (get_item_env(cpl.container) == ITEM_INVENTORY ||
-		      get_item_env(cpl.container) == ITEM_GROUND)) {
-		dest = cpl.container->tag;
-	    } else
-		dest = 0;
+            /* Figure out where to move the item to.  If it is on the ground,
+             * it is moving to the players inventory.  If it is in a container,
+             * it is also moving to players inventory.  If it is in the players
+             * inventory (not a container) and the player has an open container
+             * in his inventory, move the object to the container (not ground).
+             * Otherwise, it is moving
+             * to the ground (dest=0).  Have to look at the item environment,
+             * because what list is no longer accurate.
+             */
+            if (env & (ITEM_GROUND | ITEM_IN_CONTAINER))
+                dest = cpl.ob->tag;
+            else if (env == ITEM_INVENTORY && cpl.container &&
+                     (get_item_env(cpl.container) == ITEM_INVENTORY ||
+                      get_item_env(cpl.container) == ITEM_GROUND)) {
+                dest = cpl.container->tag;
+            } else
+                dest = 0;
 
-	    client_send_move (dest, tmp->tag, cpl.count);
-	    gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton_count),0.0);
-	    cpl.count=0;
-	}
+            client_send_move (dest, tmp->tag, cpl.count);
+            gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton_count),0.0);
+            cpl.count=0;
+        }
     }
 }
 
@@ -219,11 +219,11 @@ static void list_item_action(GdkEventButton *event, item *tmp)
  * the behaviour is always consistent.
  */
 gboolean list_selection_func (
-		      GtkTreeSelection *selection,
-		      GtkTreeModel     *model,
-		      GtkTreePath      *path,
-		      gboolean          path_currently_selected,
-		      gpointer          userdata)
+                      GtkTreeSelection *selection,
+                      GtkTreeModel     *model,
+                      GtkTreePath      *path,
+                      gboolean          path_currently_selected,
+                      gpointer          userdata)
 {
     GtkTreeIter iter;
     GdkEventButton *event;
@@ -231,20 +231,20 @@ gboolean list_selection_func (
     /* Get the current event so we can know if shift is pressed */
     event = (GdkEventButton*)gtk_get_current_event();
     if (!event) {
-	LOG(LOG_ERROR,"inventory.c:list_selection_func", "Unable to get event structure\n");
-	return FALSE;
+        LOG(LOG_ERROR,"inventory.c:list_selection_func", "Unable to get event structure\n");
+        return FALSE;
     }
 
     if (gtk_tree_model_get_iter(model, &iter, path)) {
-	item *tmp;
+        item *tmp;
 
-	gtk_tree_model_get(model, &iter, LIST_OBJECT, &tmp, -1);
+        gtk_tree_model_get(model, &iter, LIST_OBJECT, &tmp, -1);
 
-	if (!tmp) {
-	    LOG(LOG_ERROR,"inventory.c:list_selection_func", "Unable to get item structure\n");
-	    return FALSE;
-	}
-	list_item_action(event, tmp);
+        if (!tmp) {
+            LOG(LOG_ERROR,"inventory.c:list_selection_func", "Unable to get item structure\n");
+            return FALSE;
+        }
+        list_item_action(event, tmp);
     }
 
     /* Don't want the row toggled - our code above handles what
@@ -371,21 +371,21 @@ static void setup_list_columns(GtkWidget *treeview)
 void inventory_get_styles()
 {
     int i;
-    GtkStyle	*tmp_style;
+    GtkStyle    *tmp_style;
     static int has_init=0;
 
     for (i=0; i < Style_Last; i++) {
-	if (has_init && inv_styles[i]) g_object_unref(inv_styles[i]);
-	tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, Style_Names[i],
-					      G_TYPE_NONE);
-	if (tmp_style) {
-	    inv_styles[i] = g_object_ref(tmp_style);
-	}
-	else {
-	    LOG(LOG_INFO, "inventory.c::inventory_get_styles", "Unable to find style for %s",
-		Style_Names[i]);
-	    inv_styles[i] = NULL;
-	}
+        if (has_init && inv_styles[i]) g_object_unref(inv_styles[i]);
+        tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, Style_Names[i],
+                                              G_TYPE_NONE);
+        if (tmp_style) {
+            inv_styles[i] = g_object_ref(tmp_style);
+        }
+        else {
+            LOG(LOG_INFO, "inventory.c::inventory_get_styles", "Unable to find style for %s",
+                Style_Names[i]);
+            inv_styles[i] = NULL;
+        }
     }
     has_init=1;
 }
@@ -417,16 +417,16 @@ void inventory_init(GtkWidget *window_root)
     memset(inv_table_children, 0, sizeof(GtkWidget *) * MAX_INV_ROWS * MAX_INV_COLUMNS);
 
     store_look = gtk_tree_store_new (LIST_NUM_COLUMNS,
-				G_TYPE_STRING,
-				G_TYPE_OBJECT,
-				G_TYPE_STRING,
-				G_TYPE_STRING,
-				G_TYPE_POINTER,
-				GDK_TYPE_COLOR,
-				G_TYPE_INT,
-				G_TYPE_STRING,
-				GDK_TYPE_COLOR,
-				PANGO_TYPE_FONT_DESCRIPTION);
+                                G_TYPE_STRING,
+                                G_TYPE_OBJECT,
+                                G_TYPE_STRING,
+                                G_TYPE_STRING,
+                                G_TYPE_POINTER,
+                                GDK_TYPE_COLOR,
+                                G_TYPE_INT,
+                                G_TYPE_STRING,
+                                GDK_TYPE_COLOR,
+                                PANGO_TYPE_FONT_DESCRIPTION);
 
     gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_look), GTK_TREE_MODEL(store_look));
     setup_list_columns(treeview_look);
@@ -443,55 +443,55 @@ void inventory_init(GtkWidget *window_root)
      * the array of noteboks correspond to actual data in the tabs.
      */
     for (i=0; i < NUM_INV_LISTS; i++) {
-	GtkWidget   *swindow, *image;
+        GtkWidget   *swindow, *image;
 
-	if (inv_notebooks[i].type == INV_TREE) {
-	    swindow = gtk_scrolled_window_new(NULL, NULL);
-	    gtk_widget_show(swindow);
-	    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(swindow),
-					   GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
-	    image = gtk_image_new_from_pixbuf(
-		      gdk_pixbuf_new_from_xpm_data((const char**)inv_notebooks[i].xpm));
+        if (inv_notebooks[i].type == INV_TREE) {
+            swindow = gtk_scrolled_window_new(NULL, NULL);
+            gtk_widget_show(swindow);
+            gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(swindow),
+                                           GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+            image = gtk_image_new_from_pixbuf(
+                      gdk_pixbuf_new_from_xpm_data((const char**)inv_notebooks[i].xpm));
 
 
-	    if (inv_notebooks[i].tooltip) {
-		GtkWidget *eb;
+            if (inv_notebooks[i].tooltip) {
+                GtkWidget *eb;
 
-		eb=gtk_event_box_new();
-		gtk_widget_show(eb);
+                eb=gtk_event_box_new();
+                gtk_widget_show(eb);
 
-		gtk_container_add(GTK_CONTAINER(eb), image);
-		gtk_widget_show(image);
+                gtk_container_add(GTK_CONTAINER(eb), image);
+                gtk_widget_show(image);
 
-		image=eb;
-		gtk_tooltips_set_tip(inv_table_tooltips, image, inv_notebooks[i].tooltip, NULL);
-	    }
+                image=eb;
+                gtk_tooltips_set_tip(inv_table_tooltips, image, inv_notebooks[i].tooltip, NULL);
+            }
 
-	    gtk_notebook_insert_page(GTK_NOTEBOOK(inv_notebook), swindow, image, i);
+            gtk_notebook_insert_page(GTK_NOTEBOOK(inv_notebook), swindow, image, i);
 
-	    inv_notebooks[i].treestore = gtk_tree_store_new (LIST_NUM_COLUMNS,
-				G_TYPE_STRING,
-				G_TYPE_OBJECT,
-				G_TYPE_STRING,
-				G_TYPE_STRING,
-				G_TYPE_POINTER,
-				GDK_TYPE_COLOR,
-				G_TYPE_INT,
-				G_TYPE_STRING,
-				GDK_TYPE_COLOR,
-				PANGO_TYPE_FONT_DESCRIPTION);
+            inv_notebooks[i].treestore = gtk_tree_store_new (LIST_NUM_COLUMNS,
+                                G_TYPE_STRING,
+                                G_TYPE_OBJECT,
+                                G_TYPE_STRING,
+                                G_TYPE_STRING,
+                                G_TYPE_POINTER,
+                                GDK_TYPE_COLOR,
+                                G_TYPE_INT,
+                                G_TYPE_STRING,
+                                GDK_TYPE_COLOR,
+                                PANGO_TYPE_FONT_DESCRIPTION);
 
-	    inv_notebooks[i].treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(
-						    inv_notebooks[i].treestore));
+            inv_notebooks[i].treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(
+                                                    inv_notebooks[i].treestore));
 
-	    g_signal_connect ((gpointer)  inv_notebooks[i].treeview, "row_collapsed",
-			      G_CALLBACK (list_row_collapse), NULL);
+            g_signal_connect ((gpointer)  inv_notebooks[i].treeview, "row_collapsed",
+                              G_CALLBACK (list_row_collapse), NULL);
 
-	    setup_list_columns(inv_notebooks[i].treeview);
-	    gtk_widget_show(inv_notebooks[i].treeview);
-	    gtk_container_add(GTK_CONTAINER(swindow), inv_notebooks[i].treeview);
+            setup_list_columns(inv_notebooks[i].treeview);
+            gtk_widget_show(inv_notebooks[i].treeview);
+            gtk_container_add(GTK_CONTAINER(swindow), inv_notebooks[i].treeview);
 
-	}
+        }
     }
     num_inv_notebook_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(inv_notebook));
 
@@ -500,9 +500,9 @@ void inventory_init(GtkWidget *window_root)
 
     /* If all the data is set up properly, these should match */
     if (num_inv_notebook_pages != NUM_INV_LISTS) {
-	LOG(LOG_ERROR,"inventory.c:inventory_init",
-	    "num_inv_notebook_pages (%d) does not match NUM_INV_LISTS(%d)\n",
-	    num_inv_notebook_pages, NUM_INV_LISTS);
+        LOG(LOG_ERROR,"inventory.c:inventory_init",
+            "num_inv_notebook_pages (%d) does not match NUM_INV_LISTS(%d)\n",
+            num_inv_notebook_pages, NUM_INV_LISTS);
     }
 
 }
@@ -536,26 +536,26 @@ void open_container (item *op)
 void command_show (char *params)
 {
     if(!params)  {
-	/* Shouldn't need to get current page, but next_page call is not wrapping
-	 * like the docs claim it should.
-	 */
-	if (gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook))==num_inv_notebook_pages)
-	    gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 0);
-	else
-	    gtk_notebook_next_page(GTK_NOTEBOOK(inv_notebook));
+        /* Shouldn't need to get current page, but next_page call is not wrapping
+         * like the docs claim it should.
+         */
+        if (gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook))==num_inv_notebook_pages)
+            gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 0);
+        else
+            gtk_notebook_next_page(GTK_NOTEBOOK(inv_notebook));
 
     } else {
-	int i;
-	char buf[MAX_BUF];
+        int i;
+        char buf[MAX_BUF];
 
-	for (i=0; i < NUM_INV_LISTS; i++) {
-	    if (!strncmp(params, inv_notebooks[i].name, strlen(params))) {
-		gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), i);
-		return;
-	    }
-	}
-	sprintf(buf,"Unknown notebook page %s\n", params);
-	draw_info(buf, NDI_RED);
+        for (i=0; i < NUM_INV_LISTS; i++) {
+            if (!strncmp(params, inv_notebooks[i].name, strlen(params))) {
+                gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), i);
+                return;
+            }
+        }
+        sprintf(buf,"Unknown notebook page %s\n", params);
+        draw_info(buf, NDI_RED);
     }
 }
 
@@ -570,7 +570,7 @@ void set_weight_limit (uint32 wlim)
 /* Returns a style based on values in it */
 static GtkStyle *get_row_style(item *it)
 {
-    int	style;
+    int style;
 
     /* Note that this ordering is documented in the sample rc file.
      * it would be nice if this precedence could be more easily
@@ -581,7 +581,7 @@ static GtkStyle *get_row_style(item *it)
     else if (it->magical) style = Style_Magical;
     else if (it->applied) style = Style_Applied;
     else if (it->locked) style = Style_Locked;
-    else return NULL;	/* No matching style */
+    else return NULL;   /* No matching style */
 
     return inv_styles[style];
 
@@ -625,42 +625,42 @@ void item_event_item_changed(item * it) {}
  *  meet that special criteria
  */
 static void add_object_to_store(item *it, GtkTreeStore *store,
-				GtkTreeIter *new, GtkTreeIter *parent, int color)
+                                GtkTreeIter *new, GtkTreeIter *parent, int color)
 {
     char    buf[256], buf1[256];
-    GdkColor	*foreground=NULL, *background=NULL;
+    GdkColor    *foreground=NULL, *background=NULL;
     PangoFontDescription    *font=NULL;
-    GtkStyle	*row_style;
+    GtkStyle    *row_style;
 
     if(it->weight < 0) {
-	strcpy (buf," ");
+        strcpy (buf," ");
     } else {
-	sprintf (buf,"%6.1f" ,it->nrof * it->weight);
+        sprintf (buf,"%6.1f" ,it->nrof * it->weight);
     }
     snprintf(buf1, 255, "%s %s", it->d_name, it->flags);
     if (color) {
-	row_style = get_row_style(it);
-	if (row_style) {
-	    /* Even if the user doesn't define these, we should still get
-	     * get defaults from the system.
-	     */
-	    foreground = &row_style->text[GTK_STATE_NORMAL];
-	    background = &row_style->base[GTK_STATE_NORMAL];
-	    font = row_style->font_desc;
-	}
+        row_style = get_row_style(it);
+        if (row_style) {
+            /* Even if the user doesn't define these, we should still get
+             * get defaults from the system.
+             */
+            foreground = &row_style->text[GTK_STATE_NORMAL];
+            background = &row_style->base[GTK_STATE_NORMAL];
+            font = row_style->font_desc;
+        }
     }
 
     gtk_tree_store_append (store, new, parent);  /* Acquire an iterator */
     gtk_tree_store_set (store, new,
-		LIST_ICON, (GdkPixbuf*)pixmaps[it->face]->icon_image,
-		LIST_NAME, buf1,
-		LIST_WEIGHT, buf,
-		LIST_BACKGROUND, background,
-		LIST_FOREGROUND, foreground,
-		LIST_FONT, font,
-		LIST_OBJECT, it,
-		LIST_TYPE, it->type,
-		LIST_BASENAME, it->s_name,
+                LIST_ICON, (GdkPixbuf*)pixmaps[it->face]->icon_image,
+                LIST_NAME, buf1,
+                LIST_WEIGHT, buf,
+                LIST_BACKGROUND, background,
+                LIST_FOREGROUND, foreground,
+                LIST_FONT, font,
+                LIST_OBJECT, it,
+                LIST_TYPE, it->type,
+                LIST_BASENAME, it->s_name,
                 -1);
 }
 
@@ -680,20 +680,20 @@ void draw_look_list()
     gtk_tree_store_clear(store_look);
 
     for (tmp=cpl.below->inv; tmp; tmp=tmp->next) {
-	add_object_to_store(tmp, store_look, &iter, NULL, 1);
+        add_object_to_store(tmp, store_look, &iter, NULL, 1);
 
-	if ((cpl.container == tmp) && tmp->open) {
-	    item  *tmp2;
-	    GtkTreeIter iter1;
-	    GtkTreePath	*path;
+        if ((cpl.container == tmp) && tmp->open) {
+            item  *tmp2;
+            GtkTreeIter iter1;
+            GtkTreePath *path;
 
-	    for (tmp2 = tmp->inv; tmp2; tmp2=tmp2->next) {
-		add_object_to_store(tmp2, store_look, &iter1, &iter, 1);
-	    }
-	    path = gtk_tree_model_get_path(GTK_TREE_MODEL(store_look), &iter);
-	    gtk_tree_view_expand_row(GTK_TREE_VIEW(treeview_look), path, FALSE);
-	    gtk_tree_path_free (path);
-	}
+            for (tmp2 = tmp->inv; tmp2; tmp2=tmp2->next) {
+                add_object_to_store(tmp2, store_look, &iter1, &iter, 1);
+            }
+            path = gtk_tree_model_get_path(GTK_TREE_MODEL(store_look), &iter);
+            gtk_tree_view_expand_row(GTK_TREE_VIEW(treeview_look), path, FALSE);
+            gtk_tree_path_free (path);
+        }
     }
 }
 
@@ -716,37 +716,37 @@ void draw_inv_list(int tab)
     gtk_tree_store_clear(inv_notebooks[tab].treestore);
 
     for (tmp=cpl.ob->inv; tmp; tmp=tmp->next) {
-	rowflag = inv_notebooks[tab].show_func(tmp);
-	if (!(rowflag & INV_SHOW_ITEM)) continue;
+        rowflag = inv_notebooks[tab].show_func(tmp);
+        if (!(rowflag & INV_SHOW_ITEM)) continue;
 
-	add_object_to_store(tmp, inv_notebooks[tab].treestore, &iter, NULL, rowflag & INV_SHOW_COLOR);
+        add_object_to_store(tmp, inv_notebooks[tab].treestore, &iter, NULL, rowflag & INV_SHOW_COLOR);
 
-	if ((cpl.container == tmp) && tmp->open) {
-	    item  *tmp2;
-	    GtkTreeIter iter1;
-	    GtkTreePath	*path;
+        if ((cpl.container == tmp) && tmp->open) {
+            item  *tmp2;
+            GtkTreeIter iter1;
+            GtkTreePath *path;
 
-	    for (tmp2 = tmp->inv; tmp2; tmp2=tmp2->next) {
+            for (tmp2 = tmp->inv; tmp2; tmp2=tmp2->next) {
 
-		/* Wonder if we really want this logic for objects in containers?
-		 * my thought is yes - being able to see all cursed objects in
-		 * the container could be quite useful.
-		 * Unfortunately, that doesn't quite work as intended, because
-		 * we will only get here if the container object is being displayed.
-		 * Since container objects can't be cursed, can't use that as
-		 * a filter.
-		 */
-		/*
-		rowflag = inv_notebooks[tab].show_func(tmp2);
-		*/
-		if (!(rowflag & INV_SHOW_ITEM)) continue;
-		add_object_to_store(tmp2, inv_notebooks[tab].treestore, &iter1, &iter,
-				    rowflag & INV_SHOW_COLOR);
-	    }
-	    path = gtk_tree_model_get_path(GTK_TREE_MODEL(inv_notebooks[tab].treestore), &iter);
-	    gtk_tree_view_expand_row(GTK_TREE_VIEW(inv_notebooks[tab].treeview), path, FALSE);
-	    gtk_tree_path_free (path);
-	}
+                /* Wonder if we really want this logic for objects in containers?
+                 * my thought is yes - being able to see all cursed objects in
+                 * the container could be quite useful.
+                 * Unfortunately, that doesn't quite work as intended, because
+                 * we will only get here if the container object is being displayed.
+                 * Since container objects can't be cursed, can't use that as
+                 * a filter.
+                 */
+                /*
+                rowflag = inv_notebooks[tab].show_func(tmp2);
+                */
+                if (!(rowflag & INV_SHOW_ITEM)) continue;
+                add_object_to_store(tmp2, inv_notebooks[tab].treestore, &iter1, &iter,
+                                    rowflag & INV_SHOW_COLOR);
+            }
+            path = gtk_tree_model_get_path(GTK_TREE_MODEL(inv_notebooks[tab].treestore), &iter);
+            gtk_tree_view_expand_row(GTK_TREE_VIEW(inv_notebooks[tab].treeview), path, FALSE);
+            gtk_tree_path_free (path);
+        }
     }
 }
 
@@ -775,9 +775,9 @@ drawingarea_inventory_table_expose_event        (GtkWidget       *widget,
      * have faces for.
      */
     if (tmp->face)
-	gdk_draw_pixbuf(widget->window, NULL,
-			(GdkPixbuf*)pixmaps[tmp->face]->icon_image,
-			0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
+        gdk_draw_pixbuf(widget->window, NULL,
+                        (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
+                        0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
     return TRUE;
 
 }
@@ -801,15 +801,15 @@ void draw_inv_table(int animate)
 
     num_items=0;
     for (tmp=cpl.ob->inv; tmp; tmp=tmp->next)
-	num_items++;
+        num_items++;
 
     columns = inv_table->allocation.width / image_size;
     if (columns > MAX_INV_COLUMNS) columns = MAX_INV_COLUMNS;
     rows = inv_table->allocation.height / image_size;
 
     if (num_items > columns * rows) {
-	rows = num_items / columns;
-	if (num_items % columns) rows++;
+        rows = num_items / columns;
+        if (num_items % columns) rows++;
     }
     if (rows > MAX_INV_ROWS) rows=MAX_INV_ROWS;
 
@@ -818,88 +818,88 @@ void draw_inv_table(int animate)
     x=0;
     y=0;
     for (tmp=cpl.ob->inv; tmp; tmp=tmp->next) {
-	if (inv_table_children[x][y] == NULL) {
-	    inv_table_children[x][y] = gtk_drawing_area_new();
-	    gtk_drawing_area_size (GTK_DRAWING_AREA(inv_table_children[x][y]),
-				   image_size, image_size);
+        if (inv_table_children[x][y] == NULL) {
+            inv_table_children[x][y] = gtk_drawing_area_new();
+            gtk_drawing_area_size (GTK_DRAWING_AREA(inv_table_children[x][y]),
+                                   image_size, image_size);
 
-	    gtk_table_attach(GTK_TABLE(inv_table), inv_table_children[x][y],
-			     x, x+1, y, y+1, GTK_FILL, GTK_FILL, 0, 0);
+            gtk_table_attach(GTK_TABLE(inv_table), inv_table_children[x][y],
+                             x, x+1, y, y+1, GTK_FILL, GTK_FILL, 0, 0);
 
-	}
-	if (animate) {
-	    /* This is an object with animations */
-	    if (tmp->animation_id >0 && tmp->anim_speed) {
-		tmp->last_anim++;
+        }
+        if (animate) {
+            /* This is an object with animations */
+            if (tmp->animation_id >0 && tmp->anim_speed) {
+                tmp->last_anim++;
 
-		/* Time to change the face for this one */
-		if (tmp->last_anim >= tmp->anim_speed) {
-		    tmp->anim_state++;
-		    if (tmp->anim_state >= animations[tmp->animation_id].num_animations)
-			tmp->anim_state=0;
-		    tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
-		    tmp->last_anim=0;
+                /* Time to change the face for this one */
+                if (tmp->last_anim >= tmp->anim_speed) {
+                    tmp->anim_state++;
+                    if (tmp->anim_state >= animations[tmp->animation_id].num_animations)
+                        tmp->anim_state=0;
+                    tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
+                    tmp->last_anim=0;
 
-		    gdk_window_clear(inv_table_children[x][y]->window);
-		    gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL,
-			(GdkPixbuf*)pixmaps[tmp->face]->icon_image,
-			0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
-		}
-	    }
-	    /* On animation run, so don't do any of the remaining logic */
-	} else {
-	    /* Need to clear out the old signals, since the signals are effectively
-	     * stacked - you can have 6 signal handlers tied to the same function.
-	     */
-	    handler = g_signal_handler_find((gpointer)inv_table_children[x][y],
-			G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
-			G_CALLBACK (drawingarea_inventory_table_button_press_event),
-			NULL);
+                    gdk_window_clear(inv_table_children[x][y]->window);
+                    gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL,
+                        (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
+                        0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
+                }
+            }
+            /* On animation run, so don't do any of the remaining logic */
+        } else {
+            /* Need to clear out the old signals, since the signals are effectively
+             * stacked - you can have 6 signal handlers tied to the same function.
+             */
+            handler = g_signal_handler_find((gpointer)inv_table_children[x][y],
+                        G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+                        G_CALLBACK (drawingarea_inventory_table_button_press_event),
+                        NULL);
 
-	    if (handler)
-		g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+            if (handler)
+                g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
 
-	    handler = g_signal_handler_find((gpointer)inv_table_children[x][y],
-			G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
-			G_CALLBACK (drawingarea_inventory_table_expose_event),
-			NULL);
-	    if (handler)
-		g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+            handler = g_signal_handler_find((gpointer)inv_table_children[x][y],
+                        G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+                        G_CALLBACK (drawingarea_inventory_table_expose_event),
+                        NULL);
+            if (handler)
+                g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
 
-	    /* Not positive precisely what events are need, but some events
-	     * beyond just the button press are necessary for the tooltips to
-	     * work.
-	     */
-	    gtk_widget_add_events (inv_table_children[x][y], GDK_ALL_EVENTS_MASK);
+            /* Not positive precisely what events are need, but some events
+             * beyond just the button press are necessary for the tooltips to
+             * work.
+             */
+            gtk_widget_add_events (inv_table_children[x][y], GDK_ALL_EVENTS_MASK);
 
-	    g_signal_connect ((gpointer) inv_table_children[x][y], "button_press_event",
-		G_CALLBACK (drawingarea_inventory_table_button_press_event),
-		tmp);
+            g_signal_connect ((gpointer) inv_table_children[x][y], "button_press_event",
+                G_CALLBACK (drawingarea_inventory_table_button_press_event),
+                tmp);
 
-	    g_signal_connect ((gpointer) inv_table_children[x][y], "expose_event",
-		G_CALLBACK (drawingarea_inventory_table_expose_event),
-		tmp);
+            g_signal_connect ((gpointer) inv_table_children[x][y], "expose_event",
+                G_CALLBACK (drawingarea_inventory_table_expose_event),
+                tmp);
 
-	    gdk_window_clear(inv_table_children[x][y]->window);
-	    gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL,
-			(GdkPixbuf*)pixmaps[tmp->face]->icon_image,
-			0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
+            gdk_window_clear(inv_table_children[x][y]->window);
+            gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL,
+                        (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
+                        0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
 
-	    gtk_widget_show(inv_table_children[x][y]);
+            gtk_widget_show(inv_table_children[x][y]);
 
-	    /* We use tooltips to provide additional detail about the icons.
-	     * Looking at the code, the tooltip widget will take care of removing
-	     * the old tooltip, freeing strings, etc.
-	     */
-	    snprintf(buf, 255, "%s %s", tmp->d_name, tmp->flags);
-	    gtk_tooltips_set_tip(inv_table_tooltips, inv_table_children[x][y],
-			     buf, INVHELPTEXT);
-	}
-	x++;
-	if (x == columns) {
-	    x=0;
-	    y++;
-	}
+            /* We use tooltips to provide additional detail about the icons.
+             * Looking at the code, the tooltip widget will take care of removing
+             * the old tooltip, freeing strings, etc.
+             */
+            snprintf(buf, 255, "%s %s", tmp->d_name, tmp->flags);
+            gtk_tooltips_set_tip(inv_table_tooltips, inv_table_children[x][y],
+                             buf, INVHELPTEXT);
+        }
+        x++;
+        if (x == columns) {
+            x=0;
+            y++;
+        }
 
     }
     /* Don't need to do the logic below if only doing animation run */
@@ -909,32 +909,32 @@ void draw_inv_table(int animate)
      * otherwise, we get errors on objects that are drawn.
      */
     for (i=num_items; i<=max_drawn; i++) {
-	if (inv_table_children[x][y]) {
-	    gdk_window_clear(inv_table_children[x][y]->window);
+        if (inv_table_children[x][y]) {
+            gdk_window_clear(inv_table_children[x][y]->window);
 
-	    handler = g_signal_handler_find((gpointer)inv_table_children[x][y],
-			G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
-			G_CALLBACK (drawingarea_inventory_table_button_press_event),
-			NULL);
+            handler = g_signal_handler_find((gpointer)inv_table_children[x][y],
+                        G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+                        G_CALLBACK (drawingarea_inventory_table_button_press_event),
+                        NULL);
 
-	    if (handler)
-		g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+            if (handler)
+                g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
 
-	    handler = g_signal_handler_find((gpointer)inv_table_children[x][y],
-			G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
-			G_CALLBACK (drawingarea_inventory_table_expose_event),
-			NULL);
-	    if (handler)
-		g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+            handler = g_signal_handler_find((gpointer)inv_table_children[x][y],
+                        G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+                        G_CALLBACK (drawingarea_inventory_table_expose_event),
+                        NULL);
+            if (handler)
+                g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
 
-	    /* Hide the widget so that the tooltips doesn't show up */
-	    gtk_widget_hide(inv_table_children[x][y]);
-	}
-	x++;
-	if (x == columns) {
-	    x=0;
-	    y++;
-	}
+            /* Hide the widget so that the tooltips doesn't show up */
+            gtk_widget_hide(inv_table_children[x][y]);
+        }
+        x++;
+        if (x == columns) {
+            x=0;
+            y++;
+        }
     }
     max_drawn = num_items;
 
@@ -952,9 +952,9 @@ void draw_inv(int tab)
     gtk_label_set(GTK_LABEL(weight_label), buf);
 
     if (inv_notebooks[tab].type == INV_TREE)
-	draw_inv_list(tab);
+        draw_inv_list(tab);
     else if (inv_notebooks[tab].type == INV_TABLE)
-	draw_inv_table(0);
+        draw_inv_table(0);
 }
 
 /*
@@ -970,16 +970,16 @@ void draw_lists ()
      * not drawn - this can be handled by looking at container->inv_updated.
      */
     if (cpl.container && cpl.container->inv_updated) {
-	cpl.container->env->inv_updated = 1;
-	cpl.container->inv_updated=0;
+        cpl.container->env->inv_updated = 1;
+        cpl.container->inv_updated=0;
     }
     if (cpl.ob->inv_updated) {
-	draw_inv(gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook)));
-	cpl.ob->inv_updated=0;
+        draw_inv(gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook)));
+        cpl.ob->inv_updated=0;
     }
     if (cpl.below->inv_updated) {
-	draw_look_list();
-	cpl.below->inv_updated=0;
+        draw_look_list();
+        cpl.below->inv_updated=0;
     }
 }
 
@@ -1004,7 +1004,7 @@ on_notebook_switch_page                (GtkNotebook     *notebook,
 
     oldpage = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
     if (oldpage != page_num && inv_notebooks[oldpage].type == INV_TREE)
-	gtk_tree_store_clear(inv_notebooks[oldpage].treestore);
+        gtk_tree_store_clear(inv_notebooks[oldpage].treestore);
     cpl.ob->inv_updated=1;
 }
 
@@ -1034,22 +1034,22 @@ void animate_inventory()
      * below.
      */
     if (!tick) {
-	/* The gtk client timeout is 12 times faster than that of the server
-	* so we slow it down here.  If we were really clever, we'd find
-	* what the timeout on the server actually is, and do gettimeofday
-	* calls here to remain very closely in sync.
-	*/
-	inv_tick++;
-	if (inv_tick < 12) return;
-	inv_tick=0;
+        /* The gtk client timeout is 12 times faster than that of the server
+        * so we slow it down here.  If we were really clever, we'd find
+        * what the timeout on the server actually is, and do gettimeofday
+        * calls here to remain very closely in sync.
+        */
+        inv_tick++;
+        if (inv_tick < 12) return;
+        inv_tick=0;
     }
 
     page = gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook));
 
     /* Still need to do logic for the table view. */
     if (inv_notebooks[page].type == INV_TABLE) {
-	draw_inv_table(1);
-	return;
+        draw_inv_table(1);
+        return;
     }
 
     store = inv_notebooks[page].treestore;
@@ -1058,30 +1058,30 @@ void animate_inventory()
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(store), &iter);
 
     while (valid) {
-	gtk_tree_model_get (GTK_TREE_MODEL(store), &iter,
+        gtk_tree_model_get (GTK_TREE_MODEL(store), &iter,
                           LIST_OBJECT, &tmp,
                           -1);
 
-	/* This is an object with animations */
-	if (tmp->animation_id >0 && tmp->anim_speed) {
-	    tmp->last_anim++;
+        /* This is an object with animations */
+        if (tmp->animation_id >0 && tmp->anim_speed) {
+            tmp->last_anim++;
 
-	    /* Time to change the face for this one */
-	    if (tmp->last_anim >= tmp->anim_speed) {
-		tmp->anim_state++;
-		if (tmp->anim_state >= animations[tmp->animation_id].num_animations)
-		    tmp->anim_state=0;
-		tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
-		tmp->last_anim=0;
+            /* Time to change the face for this one */
+            if (tmp->last_anim >= tmp->anim_speed) {
+                tmp->anim_state++;
+                if (tmp->anim_state >= animations[tmp->animation_id].num_animations)
+                    tmp->anim_state=0;
+                tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
+                tmp->last_anim=0;
 
-		/* Update image in the tree store */
-		gtk_tree_store_set(store, &iter,
-				   LIST_ICON, (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
-				   -1);
+                /* Update image in the tree store */
+                gtk_tree_store_set(store, &iter,
+                                   LIST_ICON, (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
+                                   -1);
 
-	    }
-	}
-	valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(store), &iter);
+            }
+        }
+        valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(store), &iter);
     }
 
 
@@ -1100,14 +1100,14 @@ void animate_look()
      * below.
      */
     if (!tick) {
-	/* The gtk client timeout is 12 times faster than that of the server
-	* so we slow it down here.  If we were really clever, we'd find
-	* what the timeout on the server actually is, and do gettimeofday
-	* calls here to remain very closely in sync.
-	*/
-	inv_tick++;
-	if (inv_tick < 12) return;
-	inv_tick=0;
+        /* The gtk client timeout is 12 times faster than that of the server
+        * so we slow it down here.  If we were really clever, we'd find
+        * what the timeout on the server actually is, and do gettimeofday
+        * calls here to remain very closely in sync.
+        */
+        inv_tick++;
+        if (inv_tick < 12) return;
+        inv_tick=0;
     }
 
 
@@ -1115,30 +1115,30 @@ void animate_look()
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(store_look), &iter);
 
     while (valid)
-	gtk_tree_model_get (GTK_TREE_MODEL(store_look), &iter,
+        gtk_tree_model_get (GTK_TREE_MODEL(store_look), &iter,
                           LIST_OBJECT, &tmp,
                           -1)
 
-	/* This is an object with animations */
-	if (tmp->animation_id >0 && tmp->anim_speed) {
-	    tmp->last_anim++;
+        /* This is an object with animations */
+        if (tmp->animation_id >0 && tmp->anim_speed) {
+            tmp->last_anim++;
 
-	    /* Time to change the face for this one */
-	    if (tmp->last_anim >= tmp->anim_speed) {
-		tmp->anim_state++;
-		if (tmp->anim_state >= animations[tmp->animation_id].num_animations)
-		    tmp->anim_state=0;
-		tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
-		tmp->last_anim=0;
+            /* Time to change the face for this one */
+            if (tmp->last_anim >= tmp->anim_speed) {
+                tmp->anim_state++;
+                if (tmp->anim_state >= animations[tmp->animation_id].num_animations)
+                    tmp->anim_state=0;
+                tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
+                tmp->last_anim=0;
 
-		/* Update image in the tree store */
-		gtk_tree_store_set(store_look, &iter,
-				   LIST_ICON, (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
-				   -1);
+                /* Update image in the tree store */
+                gtk_tree_store_set(store_look, &iter,
+                                   LIST_ICON, (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
+                                   -1);
 
-	    }
-	}
-	valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(store_look), &iter);
+            }
+        }
+        valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(store_look), &iter);
     }
 }
 

@@ -67,18 +67,18 @@ void draw_magic_map(void)
 
     gdk_gc_set_foreground (magic_map_gc, &root_color[0]);
     gdk_draw_rectangle (magic_map->window, magic_map_gc,
-		       TRUE,
-		       0,
-		       0,
-		       magic_map->allocation.width,
-		       magic_map->allocation.height);
+                       TRUE,
+                       0,
+                       0,
+                       magic_map->allocation.width,
+                       magic_map->allocation.height);
     cpl.mapxres = magic_map->allocation.width/cpl.mmapx;
     cpl.mapyres = magic_map->allocation.height/cpl.mmapy;
 
     if (cpl.mapxres < 1 || cpl.mapyres<1) {
-	LOG(LOG_WARNING,"gtk::draw_magic_map","magic map resolution less than 1, map is %dx%d",
-	      cpl.mmapx, cpl.mmapy);
-	return;
+        LOG(LOG_WARNING,"gtk::draw_magic_map","magic map resolution less than 1, map is %dx%d",
+              cpl.mmapx, cpl.mmapy);
+        return;
     }
 
     /* In theory, cpl.mapxres and cpl.mapyres do not have to be the same.  However,
@@ -94,16 +94,16 @@ void draw_magic_map(void)
      */
     for (y = 0; y < cpl.mmapy; y++) {
       for (x = 0; x < cpl.mmapx; x++) {
-	uint8 val = cpl.magicmap[y*cpl.mmapx + x];
+        uint8 val = cpl.magicmap[y*cpl.mmapx + x];
 
-	gdk_gc_set_foreground (magic_map_gc, &root_color[val&FACE_COLOR_MASK]);
+        gdk_gc_set_foreground (magic_map_gc, &root_color[val&FACE_COLOR_MASK]);
 
-	gdk_draw_rectangle (magic_map->window, magic_map_gc,
-			    TRUE,
-			    cpl.mapxres*x,
-			    cpl.mapyres*y,
-			    cpl.mapxres,
-			    cpl.mapyres);
+        gdk_draw_rectangle (magic_map->window, magic_map_gc,
+                            TRUE,
+                            cpl.mapxres*x,
+                            cpl.mapyres*y,
+                            cpl.mapxres,
+                            cpl.mapyres);
       }
     }
 }
@@ -117,23 +117,23 @@ void magic_map_flash_pos(void)
      * to the map window.
      */
     if (gtk_notebook_get_current_page(GTK_NOTEBOOK(map_notebook))!=MAGIC_MAP_PAGE) {
-	cpl.showmagic=0;
+        cpl.showmagic=0;
     }
 
     if (!cpl.showmagic) return;
 
     cpl.showmagic ^=2;
     if (cpl.showmagic & 2) {
-	gdk_gc_set_foreground (magic_map_gc, &root_color[0]);
+        gdk_gc_set_foreground (magic_map_gc, &root_color[0]);
     } else {
-	gdk_gc_set_foreground (magic_map_gc, &root_color[1]);
+        gdk_gc_set_foreground (magic_map_gc, &root_color[1]);
     }
     gdk_draw_rectangle (magic_map->window, magic_map_gc,
-		      TRUE,
-		      cpl.mapxres*cpl.pmapx,
-		      cpl.mapyres*cpl.pmapy,
-		      cpl.mapxres,
-		      cpl.mapyres);
+                      TRUE,
+                      cpl.mapxres*cpl.pmapx,
+                      cpl.mapyres*cpl.pmapy,
+                      cpl.mapxres,
+                      cpl.mapyres);
 }
 
 

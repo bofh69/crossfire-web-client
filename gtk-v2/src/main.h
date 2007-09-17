@@ -42,4 +42,4 @@ extern int map_image_size, map_image_half_size, image_size;
 #define DIALOG_XML_FILENAME "dialogs.glade"
 extern char window_xml_file[];
 
-#define MAGIC_MAP_PAGE	1 /**< Notebook page of the magic map */
+#define MAGIC_MAP_PAGE  1 /**< Notebook page of the magic map */

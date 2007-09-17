@@ -41,8 +41,8 @@ char *rcsid_gtk_pickup_c =
 #include "gtk2proto.h"
 
 typedef struct {
-    GtkWidget	*menuitem;
-    uint32	pickup_mode;
+    GtkWidget   *menuitem;
+    uint32      pickup_mode;
 } PickupMapping;
 
 #define MAX_PICKUPS 50
@@ -56,43 +56,43 @@ static int num_pickups=0;
  */
 
 /* high bit as flag for new pickup options */
-#define PU_NOTHING		0x00000000
+#define PU_NOTHING              0x00000000
 
-#define PU_DEBUG		0x10000000
-#define PU_INHIBIT		0x20000000
-#define PU_STOP			0x40000000
-#define PU_NEWMODE		0x80000000
+#define PU_DEBUG                0x10000000
+#define PU_INHIBIT              0x20000000
+#define PU_STOP                 0x40000000
+#define PU_NEWMODE              0x80000000
 
-#define PU_RATIO		0x0000000F
+#define PU_RATIO                0x0000000F
 
-#define PU_FOOD			0x00000010
-#define PU_DRINK		0x00000020
-#define PU_VALUABLES		0x00000040
-#define PU_BOW			0x00000080
+#define PU_FOOD                 0x00000010
+#define PU_DRINK                0x00000020
+#define PU_VALUABLES            0x00000040
+#define PU_BOW                  0x00000080
 
-#define PU_ARROW		0x00000100
-#define PU_HELMET		0x00000200
-#define PU_SHIELD		0x00000400
-#define PU_ARMOUR		0x00000800
+#define PU_ARROW                0x00000100
+#define PU_HELMET               0x00000200
+#define PU_SHIELD               0x00000400
+#define PU_ARMOUR               0x00000800
 
-#define PU_BOOTS		0x00001000
-#define PU_GLOVES		0x00002000
-#define PU_CLOAK		0x00004000
-#define PU_KEY			0x00008000
+#define PU_BOOTS                0x00001000
+#define PU_GLOVES               0x00002000
+#define PU_CLOAK                0x00004000
+#define PU_KEY                  0x00008000
 
-#define PU_MISSILEWEAPON	0x00010000
-#define PU_ALLWEAPON		0x00020000
-#define PU_MAGICAL		0x00040000
-#define PU_POTION		0x00080000
+#define PU_MISSILEWEAPON        0x00010000
+#define PU_ALLWEAPON            0x00020000
+#define PU_MAGICAL              0x00040000
+#define PU_POTION               0x00080000
 
-#define PU_SPELLBOOK		0x00100000
-#define PU_SKILLSCROLL		0x00200000
-#define PU_READABLES		0x00400000
-#define PU_MAGIC_DEVICE		0x00800000
+#define PU_SPELLBOOK            0x00100000
+#define PU_SKILLSCROLL          0x00200000
+#define PU_READABLES            0x00400000
+#define PU_MAGIC_DEVICE         0x00800000
 
-#define PU_NOT_CURSED		0x01000000
-#define PU_JEWELS		0x02000000
-#define PU_FLESH		0x04000000
+#define PU_NOT_CURSED           0x01000000
+#define PU_JEWELS               0x02000000
+#define PU_FLESH                0x04000000
 
 static unsigned int pmode=0, no_recurse=0;
 
@@ -110,9 +110,9 @@ static void new_menu_pickup(int on, int val)
     if (no_recurse) return;
 
     if (on)
-	pmode |= val | PU_NEWMODE;
+        pmode |= val | PU_NEWMODE;
     else
-	pmode &= ~val;
+        pmode &= ~val;
 
     draw_info("To set this pickup mode to a key, use:",NDI_BLACK);
 
@@ -645,9 +645,9 @@ void pickup_init(GtkWidget *window_root)
      * memory and will likely crash or otherwise have odd behaviour.
      */
     if (num_pickups>=MAX_PICKUPS) {
-	LOG(LOG_ERROR, "pickup.c::pickup_init", "num_pickups (%d) >= MAX_PICKUPS (%d)\n",
-	    num_pickups, MAX_PICKUPS);
-	exit(1);
+        LOG(LOG_ERROR, "pickup.c::pickup_init", "num_pickups (%d) >= MAX_PICKUPS (%d)\n",
+            num_pickups, MAX_PICKUPS);
+        exit(1);
     }
 
 }
@@ -672,12 +672,12 @@ void client_pickup(uint32 pickup)
     pmode=pickup;
 
     for (i=0; i < num_pickups; i++) {
-	if ((pickup & ~PU_RATIO) & pickup_mapping[i].pickup_mode ||
-	    (pickup & PU_RATIO) == pickup_mapping[i].pickup_mode) {
-	    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(pickup_mapping[i].menuitem), 1);
-	} else {
-	    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(pickup_mapping[i].menuitem), 0);
-	}
+        if ((pickup & ~PU_RATIO) & pickup_mapping[i].pickup_mode ||
+            (pickup & PU_RATIO) == pickup_mapping[i].pickup_mode) {
+            gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(pickup_mapping[i].menuitem), 1);
+        } else {
+            gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(pickup_mapping[i].menuitem), 0);
+        }
     }
     no_recurse=0;
 }

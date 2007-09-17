@@ -35,23 +35,23 @@ char *rcsid_gtk2_stats_c =
 
 #include "main.h"
 
-#define STAT_BAR_HP	0
-#define STAT_BAR_SP	1
-#define STAT_BAR_GRACE	2
-#define STAT_BAR_FOOD	3
-#define STAT_BAR_EXP	4
-#define MAX_STAT_BARS	5
+#define STAT_BAR_HP     0
+#define STAT_BAR_SP     1
+#define STAT_BAR_GRACE  2
+#define STAT_BAR_FOOD   3
+#define STAT_BAR_EXP    4
+#define MAX_STAT_BARS   5
 static char *stat_bar_names[MAX_STAT_BARS] = {
     "hp", "sp", "grace", "food", "exp"
 };
 
 GtkWidget *stat_label[MAX_STAT_BARS], *stat_bar[MAX_STAT_BARS];
 
-#define	STYLE_NORMAL	0
-#define STYLE_LOW	1
-#define STYLE_SUPER	2
+#define STYLE_NORMAL    0
+#define STYLE_LOW       1
+#define STYLE_SUPER     2
 #define STYLE_GRAD_NORMAL   3
-#define STYLE_GRAD_LOW	    4
+#define STYLE_GRAD_LOW      4
 #define STYLE_GRAD_SUPER    5
 #define NUM_STYLES  6
 
@@ -76,11 +76,11 @@ GdkColor    *bar_colors[MAX_STAT_BARS][NUM_STYLES];
  * Hmmm - perhaps these should instead be dynamically
  * generated?
  */
-#define SKILL_BOXES_X	6
-#define SKILL_BOXES_Y	17
+#define SKILL_BOXES_X   6
+#define SKILL_BOXES_Y   17
 
-#define PROTECTION_BOXES_X	6
-#define PROTECTION_BOXES_Y	6
+#define PROTECTION_BOXES_X      6
+#define PROTECTION_BOXES_Y      6
 
 typedef struct {
     GtkWidget *playername;
@@ -119,7 +119,7 @@ static StatWindow statwindow;
  */
 typedef struct {
     const char *name;
-    int	    value;
+    int     value;
 } NameMapping;
 
 NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
@@ -140,28 +140,28 @@ void stats_get_styles()
     GtkStyle *tmp_style;
 
     if (!has_init) {
-	memset(bar_colors, 0, sizeof(GdkColor*) * MAX_STAT_BARS * NUM_STYLES);
+        memset(bar_colors, 0, sizeof(GdkColor*) * MAX_STAT_BARS * NUM_STYLES);
     }
 
     for (stat_bar=0; stat_bar < MAX_STAT_BARS; stat_bar++) {
-	for (sub_style=0; sub_style < NUM_STYLES; sub_style++) {
-	    sprintf(buf,"%s_%s", stat_bar_names[stat_bar], stat_style_names[sub_style]);
+        for (sub_style=0; sub_style < NUM_STYLES; sub_style++) {
+            sprintf(buf,"%s_%s", stat_bar_names[stat_bar], stat_style_names[sub_style]);
 
-	    tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, buf, G_TYPE_NONE);
+            tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, buf, G_TYPE_NONE);
 
-	    if (!tmp_style) {
-		if (bar_colors[stat_bar][sub_style]) {
-		    free(bar_colors[stat_bar][sub_style]);
-		    bar_colors[stat_bar][sub_style] = NULL;
-		}
-		LOG(LOG_INFO, "stats.c::stats_get_styles()", "Unable to find style '%s'", buf);
-	    } else {
-		if (!bar_colors[stat_bar][sub_style])
-		    bar_colors[stat_bar][sub_style] = calloc(1, sizeof(GdkColor));
-		memcpy(bar_colors[stat_bar][sub_style],
-		       &tmp_style->base[GTK_STATE_SELECTED], sizeof(GdkColor));
-	    }
-	}
+            if (!tmp_style) {
+                if (bar_colors[stat_bar][sub_style]) {
+                    free(bar_colors[stat_bar][sub_style]);
+                    bar_colors[stat_bar][sub_style] = NULL;
+                }
+                LOG(LOG_INFO, "stats.c::stats_get_styles()", "Unable to find style '%s'", buf);
+            } else {
+                if (!bar_colors[stat_bar][sub_style])
+                    bar_colors[stat_bar][sub_style] = calloc(1, sizeof(GdkColor));
+                memcpy(bar_colors[stat_bar][sub_style],
+                       &tmp_style->base[GTK_STATE_SELECTED], sizeof(GdkColor));
+            }
+        }
     }
 }
 
@@ -173,14 +173,14 @@ void stats_init(GtkWidget *window_root)
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     for (i=0; i<MAX_STAT_BARS; i++) {
-	sprintf(buf, "label_stats_%s", stat_bar_names[i]);
-	stat_label[i] = glade_xml_get_widget(xml_tree, buf);
+        sprintf(buf, "label_stats_%s", stat_bar_names[i]);
+        stat_label[i] = glade_xml_get_widget(xml_tree, buf);
 
-	sprintf(buf, "progressbar_%s", stat_bar_names[i]);
-	stat_bar[i] = glade_xml_get_widget(xml_tree, buf);
+        sprintf(buf, "progressbar_%s", stat_bar_names[i]);
+        stat_bar[i] = glade_xml_get_widget(xml_tree, buf);
 
-	lastval[i] = -1;
-	lastmax[i] = -1;
+        lastval[i] = -1;
+        lastmax[i] = -1;
     }
 
     statwindow.playername =
@@ -228,30 +228,30 @@ void stats_init(GtkWidget *window_root)
         glade_xml_get_widget(xml_tree,"table_skills_exp");
 
     for (i=0, x=0, y=0; i < SKILL_BOXES_X * SKILL_BOXES_Y; i++) {
-	statwindow.skill_exp[i] = gtk_label_new("");
-	gtk_table_attach(GTK_TABLE(statwindow.table_skills_exp), statwindow.skill_exp[i],
-		  x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
-	gtk_widget_show(statwindow.skill_exp[i]);
-	x++;
-	if (x == SKILL_BOXES_X) {
-	    x=0;
-	    y++;
-	}
+        statwindow.skill_exp[i] = gtk_label_new("");
+        gtk_table_attach(GTK_TABLE(statwindow.table_skills_exp), statwindow.skill_exp[i],
+                  x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
+        gtk_widget_show(statwindow.skill_exp[i]);
+        x++;
+        if (x == SKILL_BOXES_X) {
+            x=0;
+            y++;
+        }
     }
 
     statwindow.table_protections =
         glade_xml_get_widget(xml_tree,"table_protections");
 
     for (i=0, x=0, y=0; i < PROTECTION_BOXES_X * PROTECTION_BOXES_Y; i++) {
-	statwindow.resists[i] = gtk_label_new("");
-	gtk_table_attach(GTK_TABLE(statwindow.table_protections), statwindow.resists[i],
-		  x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
-	gtk_widget_show(statwindow.resists[i]);
-	x++;
-	if (x == PROTECTION_BOXES_X) {
-	    x=0;
-	    y++;
-	}
+        statwindow.resists[i] = gtk_label_new("");
+        gtk_table_attach(GTK_TABLE(statwindow.table_protections), statwindow.resists[i],
+                  x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
+        gtk_widget_show(statwindow.resists[i]);
+        x++;
+        if (x == PROTECTION_BOXES_X) {
+            x=0;
+            y++;
+        }
     }
     stats_get_styles();
 }
@@ -287,7 +287,7 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, const char *
 
     /* If nothing changed, don't need to do anything */
     if (lastval[stat_no] == current_stat && lastmax[stat_no] == max_stat)
-	return;
+        return;
 
     if (max_stat > 0) bar = (float) current_stat / (float) max_stat;
     else bar = 0.0;
@@ -297,105 +297,105 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, const char *
     else is_alert = 0;
 
     if (use_config[CONFIG_GRAD_COLOR]) {
-	/* In this mode, the color of the stat bar were go between red and green
+        /* In this mode, the color of the stat bar were go between red and green
          * in a gradual style. Color is blended from low to high
          */
 
-	GdkColor	*hcolor, *lcolor;
-	float	    diff;
+        GdkColor        *hcolor, *lcolor;
+        float       diff;
 
-	/* First thing we do is figure out current values, and thus
-	 * what color bases we use (based on super charged or
-	 * normal value).  We also set up diff as where we are between
-	 * those two points.  In this way, the blending logic
-	 * below is the same regardless of actual value.
-	 */
+        /* First thing we do is figure out current values, and thus
+         * what color bases we use (based on super charged or
+         * normal value).  We also set up diff as where we are between
+         * those two points.  In this way, the blending logic
+         * below is the same regardless of actual value.
+         */
         if (bar > 1.0) {
             if (bar>2.0) bar=2.0;   /* Doesn't affect display, just our calculations */
-	    hcolor = bar_colors[stat_no][STYLE_GRAD_SUPER];
-	    lcolor = bar_colors[stat_no][STYLE_GRAD_NORMAL];
-	    diff = bar - 1.0;
-	} else {
+            hcolor = bar_colors[stat_no][STYLE_GRAD_SUPER];
+            lcolor = bar_colors[stat_no][STYLE_GRAD_NORMAL];
+            diff = bar - 1.0;
+        } else {
             if (bar < 0.0) bar=0.0;  /* Like above, doesn't affect display */
-	    hcolor = bar_colors[stat_no][STYLE_GRAD_NORMAL];
-	    lcolor = bar_colors[stat_no][STYLE_GRAD_LOW];
-	    diff = bar;
-	}
-	/* Now time to blend.  First, make sure colors are set.
-	 * then, we use the lcolor as the base, making adjustments
-	 * based on hcolor.  Values in hcolor may be lower than
-	 * lcolor, but that just means we substract from lcolor, not
-	 * add.
-	 */
+            hcolor = bar_colors[stat_no][STYLE_GRAD_NORMAL];
+            lcolor = bar_colors[stat_no][STYLE_GRAD_LOW];
+            diff = bar;
+        }
+        /* Now time to blend.  First, make sure colors are set.
+         * then, we use the lcolor as the base, making adjustments
+         * based on hcolor.  Values in hcolor may be lower than
+         * lcolor, but that just means we substract from lcolor, not
+         * add.
+         */
 
-	if (lcolor && hcolor) {
+        if (lcolor && hcolor) {
 #if 1
-	    memcpy(&ncolor, lcolor, sizeof(GdkColor));
+            memcpy(&ncolor, lcolor, sizeof(GdkColor));
 
-	    ncolor.red += (hcolor->red - lcolor->red) * diff;
-	    ncolor.green += (hcolor->green - lcolor->green) * diff;
-	    ncolor.blue += (hcolor->blue - lcolor->blue) * diff;
+            ncolor.red += (hcolor->red - lcolor->red) * diff;
+            ncolor.green += (hcolor->green - lcolor->green) * diff;
+            ncolor.blue += (hcolor->blue - lcolor->blue) * diff;
 #else
-	    /* This is an alternate coloring method that works
-	     * when using saturated colors for the base points.
-	     * This mimics the old code, and works good
-	     * when using such saturated colors (eg, one
-	     * of the RGB triplets being 255, others 0, like
-	     * red, green, or blue).  However, this doesn't produce
-	     * very good results when not using those colors - if
-	     * say magenta and yellow are chosen as the two colors,
-	     * this code results in the colors basically getting near
-	     * white in the middle values.  For saturated colors, the
-	     * code below would produce nice bright yellow for the middle
-	     * values, where as the code above produces more a dark yellow,
-	     * since it only takes half the red and half the green.
-	     * However, the code above still produces useful results
-	     * even with that limitation, and it works for all colors,
-	     * so it is the code enabled.  It perhaps be
-	     * interesting to have some detection logic on how the colors
-	     * are actually set - if only a single r/g/b value is set for
-	     * the two colors, then use this logic here, otherwise
-	     * the above logic or something.
-	     * MSW 2007-01-24
-	     */
-	    if (diff > 0.5) {
-		memcpy(&ncolor, hcolor, sizeof(GdkColor));
+            /* This is an alternate coloring method that works
+             * when using saturated colors for the base points.
+             * This mimics the old code, and works good
+             * when using such saturated colors (eg, one
+             * of the RGB triplets being 255, others 0, like
+             * red, green, or blue).  However, this doesn't produce
+             * very good results when not using those colors - if
+             * say magenta and yellow are chosen as the two colors,
+             * this code results in the colors basically getting near
+             * white in the middle values.  For saturated colors, the
+             * code below would produce nice bright yellow for the middle
+             * values, where as the code above produces more a dark yellow,
+             * since it only takes half the red and half the green.
+             * However, the code above still produces useful results
+             * even with that limitation, and it works for all colors,
+             * so it is the code enabled.  It perhaps be
+             * interesting to have some detection logic on how the colors
+             * are actually set - if only a single r/g/b value is set for
+             * the two colors, then use this logic here, otherwise
+             * the above logic or something.
+             * MSW 2007-01-24
+             */
+            if (diff > 0.5) {
+                memcpy(&ncolor, hcolor, sizeof(GdkColor));
 
-		if (lcolor->red > hcolor->red)
-		    ncolor.red = 2 * lcolor->red * (1.0 - diff);
+                if (lcolor->red > hcolor->red)
+                    ncolor.red = 2 * lcolor->red * (1.0 - diff);
 
-		if (lcolor->green > hcolor->green)
-		    ncolor.green = 2 * lcolor->green * (1.0 - diff);
+                if (lcolor->green > hcolor->green)
+                    ncolor.green = 2 * lcolor->green * (1.0 - diff);
 
-		if (lcolor->blue > hcolor->blue)
-		    ncolor.blue = 2 * lcolor->blue * (1.0 - diff);
+                if (lcolor->blue > hcolor->blue)
+                    ncolor.blue = 2 * lcolor->blue * (1.0 - diff);
 
-	    } else {
-		memcpy(&ncolor, lcolor, sizeof(GdkColor));
+            } else {
+                memcpy(&ncolor, lcolor, sizeof(GdkColor));
 
-		if (hcolor->red > lcolor->red)
-		    ncolor.red = 2 * hcolor->red * diff;
+                if (hcolor->red > lcolor->red)
+                    ncolor.red = 2 * hcolor->red * diff;
 
-		if (hcolor->green > lcolor->green)
-		    ncolor.green = 2 * hcolor->green * diff;
+                if (hcolor->green > lcolor->green)
+                    ncolor.green = 2 * hcolor->green * diff;
 
-		if (hcolor->blue > lcolor->blue)
-		    ncolor.blue = 2 * hcolor->blue * diff;
-	    }
+                if (hcolor->blue > lcolor->blue)
+                    ncolor.blue = 2 * hcolor->blue * diff;
+            }
 #endif
 #if 0
-	    fprintf(stderr,"stat %d, val %d, r/g/b=%d/%d/%d\n",
-		    stat_no, current_stat, ncolor.red, ncolor.green, ncolor.blue);
+            fprintf(stderr,"stat %d, val %d, r/g/b=%d/%d/%d\n",
+                    stat_no, current_stat, ncolor.red, ncolor.green, ncolor.blue);
 #endif
-	    set_color = &ncolor;
-	}
+            set_color = &ncolor;
+        }
     } else {
-	if (current_stat * 4 < max_stat)
-	    set_color = bar_colors[stat_no][STYLE_LOW];
-	else if (current_stat > max_stat)
-	    set_color = bar_colors[stat_no][STYLE_SUPER];
-	else
-	    set_color = bar_colors[stat_no][STYLE_NORMAL];
+        if (current_stat * 4 < max_stat)
+            set_color = bar_colors[stat_no][STYLE_LOW];
+        else if (current_stat > max_stat)
+            set_color = bar_colors[stat_no][STYLE_SUPER];
+        else
+            set_color = bar_colors[stat_no][STYLE_NORMAL];
     }
     if (bar > 1.0) bar = 1.0;
     if (bar < 0.0) bar = 0.0;
@@ -427,13 +427,13 @@ void draw_message_window(int redraw) {
      * use current exp value so it will always appear maxed out.
      */
     update_stat(4,
-	(cpl.stats.level+1) < exp_table_max ? exp_table[cpl.stats.level+1]:cpl.stats.exp,
-	cpl.stats.exp, "Exp:", FALSE);
+        (cpl.stats.level+1) < exp_table_max ? exp_table[cpl.stats.level+1]:cpl.stats.exp,
+        cpl.stats.exp, "Exp:", FALSE);
     if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3) && (cpl.stats.food < 200)) {
-	gdk_beep( );
+        gdk_beep( );
     } else if (use_config[CONFIG_FOODBEEP] && cpl.stats.food == 0 && ++lastbeep == 5) {
         lastbeep = 0;
-	gdk_beep( );
+        gdk_beep( );
     }
 }
 
@@ -453,24 +453,24 @@ static void update_stat_mapping(void)
     int i;
 
     for (i=0; i < MAX_SKILL; i++) {
-	skill_mapping[i].value=i;
-	if (skill_names[i])
-	    skill_mapping[i].name = skill_names[i];
-	else
-	    skill_mapping[i].name = NULL;
+        skill_mapping[i].value=i;
+        if (skill_names[i])
+            skill_mapping[i].name = skill_names[i];
+        else
+            skill_mapping[i].name = NULL;
     }
     qsort(skill_mapping, MAX_SKILL, sizeof(NameMapping),
-	  (int (*)(const void*, const void*))mapping_sort);
+          (int (*)(const void*, const void*))mapping_sort);
 
     for (i=0; i < NUM_RESISTS; i++) {
-	resist_mapping[i].value=i;
-	if (resists_name[i])
-	    resist_mapping[i].name = resists_name[i];
-	else
-	    resist_mapping[i].name = NULL;
+        resist_mapping[i].value=i;
+        if (resists_name[i])
+            resist_mapping[i].name = resists_name[i];
+        else
+            resist_mapping[i].name = NULL;
     }
     qsort(resist_mapping, NUM_RESISTS, sizeof(NameMapping),
-	  (int (*)(const void*, const void*))mapping_sort);
+          (int (*)(const void*, const void*))mapping_sort);
 
     need_mapping_update=0;
 }
@@ -490,8 +490,8 @@ void draw_stats(int redraw) {
     int i, on_skill, sk;
 
     if (!init_before) {
-	init_before=1;
-	memset(&last_stats, 0, sizeof(Stats));
+        init_before=1;
+        memset(&last_stats, 0, sizeof(Stats));
     }
 
     /* skill_names gets set as part of the initialization with the
@@ -500,134 +500,134 @@ void draw_stats(int redraw) {
      * and see if it changes.
      */
     if (need_mapping_update && skill_names[1] != NULL) {
-	update_stat_mapping();
+        update_stat_mapping();
     }
 
     if (strcmp(cpl.title, last_name) || redraw) {
-	strcpy(last_name,cpl.title);
-	gtk_label_set (GTK_LABEL(statwindow.playername), cpl.title);
+        strcpy(last_name,cpl.title);
+        gtk_label_set (GTK_LABEL(statwindow.playername), cpl.title);
     }
 
     if(redraw || cpl.stats.exp!=last_stats.exp) {
-	last_stats.exp = cpl.stats.exp;
-	sprintf(buff,"Experience: %5" FMT64 ,cpl.stats.exp);
-	gtk_label_set (GTK_LABEL(statwindow.exp), buff);
+        last_stats.exp = cpl.stats.exp;
+        sprintf(buff,"Experience: %5" FMT64 ,cpl.stats.exp);
+        gtk_label_set (GTK_LABEL(statwindow.exp), buff);
     }
 
     if(redraw || cpl.stats.level!=last_stats.level) {
-	last_stats.level = cpl.stats.level;
-	sprintf(buff,"Level: %d",cpl.stats.level);
-	gtk_label_set (GTK_LABEL(statwindow.level), buff);
+        last_stats.level = cpl.stats.level;
+        sprintf(buff,"Level: %d",cpl.stats.level);
+        gtk_label_set (GTK_LABEL(statwindow.level), buff);
     }
 
     if(redraw || cpl.stats.Str!=last_stats.Str) {
-	last_stats.Str=cpl.stats.Str;
-	sprintf(buff,"%2d",cpl.stats.Str);
-	gtk_label_set (GTK_LABEL(statwindow.Str), buff);
+        last_stats.Str=cpl.stats.Str;
+        sprintf(buff,"%2d",cpl.stats.Str);
+        gtk_label_set (GTK_LABEL(statwindow.Str), buff);
     }
 
     if(redraw || cpl.stats.Dex!=last_stats.Dex) {
-	last_stats.Dex=cpl.stats.Dex;
-	sprintf(buff,"%2d",cpl.stats.Dex);
-	gtk_label_set (GTK_LABEL(statwindow.Dex), buff);
+        last_stats.Dex=cpl.stats.Dex;
+        sprintf(buff,"%2d",cpl.stats.Dex);
+        gtk_label_set (GTK_LABEL(statwindow.Dex), buff);
     }
 
     if(redraw || cpl.stats.Con!=last_stats.Con) {
-	last_stats.Con=cpl.stats.Con;
-	sprintf(buff,"%2d",cpl.stats.Con);
-	gtk_label_set (GTK_LABEL(statwindow.Con), buff);
+        last_stats.Con=cpl.stats.Con;
+        sprintf(buff,"%2d",cpl.stats.Con);
+        gtk_label_set (GTK_LABEL(statwindow.Con), buff);
     }
 
     if(redraw || cpl.stats.Int!=last_stats.Int) {
-	last_stats.Int=cpl.stats.Int;
-	sprintf(buff,"%2d",cpl.stats.Int);
-	gtk_label_set (GTK_LABEL(statwindow.Int), buff);
+        last_stats.Int=cpl.stats.Int;
+        sprintf(buff,"%2d",cpl.stats.Int);
+        gtk_label_set (GTK_LABEL(statwindow.Int), buff);
     }
 
     if(redraw || cpl.stats.Wis!=last_stats.Wis) {
-	last_stats.Wis=cpl.stats.Wis;
-	sprintf(buff,"%2d",cpl.stats.Wis);
-	gtk_label_set (GTK_LABEL(statwindow.Wis), buff);
+        last_stats.Wis=cpl.stats.Wis;
+        sprintf(buff,"%2d",cpl.stats.Wis);
+        gtk_label_set (GTK_LABEL(statwindow.Wis), buff);
     }
 
     if(redraw || cpl.stats.Pow!=last_stats.Pow) {
-	last_stats.Pow=cpl.stats.Pow;
-	sprintf(buff,"%2d",cpl.stats.Pow);
-	gtk_label_set (GTK_LABEL(statwindow.Pow), buff);
+        last_stats.Pow=cpl.stats.Pow;
+        sprintf(buff,"%2d",cpl.stats.Pow);
+        gtk_label_set (GTK_LABEL(statwindow.Pow), buff);
     }
 
     if(redraw || cpl.stats.Cha!=last_stats.Cha) {
-	last_stats.Cha=cpl.stats.Cha;
-	sprintf(buff,"%2d",cpl.stats.Cha);
-	gtk_label_set (GTK_LABEL(statwindow.Cha), buff);
+        last_stats.Cha=cpl.stats.Cha;
+        sprintf(buff,"%2d",cpl.stats.Cha);
+        gtk_label_set (GTK_LABEL(statwindow.Cha), buff);
     }
 
     if(redraw || cpl.stats.wc!=last_stats.wc) {
-	last_stats.wc=cpl.stats.wc;
-	sprintf(buff,"%3d",cpl.stats.wc);
-	gtk_label_set (GTK_LABEL(statwindow.wc), buff);
+        last_stats.wc=cpl.stats.wc;
+        sprintf(buff,"%3d",cpl.stats.wc);
+        gtk_label_set (GTK_LABEL(statwindow.wc), buff);
     }
 
     if(redraw || cpl.stats.dam!=last_stats.dam) {
-	last_stats.dam=cpl.stats.dam;
-	sprintf(buff,"%d",cpl.stats.dam);
-	gtk_label_set (GTK_LABEL(statwindow.dam), buff);
+        last_stats.dam=cpl.stats.dam;
+        sprintf(buff,"%d",cpl.stats.dam);
+        gtk_label_set (GTK_LABEL(statwindow.dam), buff);
     }
 
     if(redraw || cpl.stats.ac!=last_stats.ac) {
-	last_stats.ac=cpl.stats.ac;
-	sprintf(buff,"%d",cpl.stats.ac);
-	gtk_label_set (GTK_LABEL(statwindow.ac), buff);
+        last_stats.ac=cpl.stats.ac;
+        sprintf(buff,"%d",cpl.stats.ac);
+        gtk_label_set (GTK_LABEL(statwindow.ac), buff);
     }
 
     if(redraw || cpl.stats.resists[0]!=last_stats.resists[0]) {
-	last_stats.resists[0]=cpl.stats.resists[0];
-	sprintf(buff,"%d",cpl.stats.resists[0]);
-	gtk_label_set (GTK_LABEL(statwindow.armor), buff);
+        last_stats.resists[0]=cpl.stats.resists[0];
+        sprintf(buff,"%d",cpl.stats.resists[0]);
+        gtk_label_set (GTK_LABEL(statwindow.armor), buff);
     }
 
     if (redraw || cpl.stats.speed!=last_stats.speed) {
-	last_stats.speed=cpl.stats.speed;
-	sprintf(buff,"%3.2f",(float)cpl.stats.speed/FLOAT_MULTF);
-	gtk_label_set (GTK_LABEL(statwindow.speed), buff);
+        last_stats.speed=cpl.stats.speed;
+        sprintf(buff,"%3.2f",(float)cpl.stats.speed/FLOAT_MULTF);
+        gtk_label_set (GTK_LABEL(statwindow.speed), buff);
     }
 
     weap_sp = (float) cpl.stats.speed/((float)cpl.stats.weapon_sp);
     if (redraw || weap_sp !=last_stats.weapon_sp) {
-	last_stats.weapon_sp=weap_sp;
-	sprintf(buff,"%3.2f",weap_sp);
-	gtk_label_set (GTK_LABEL(statwindow.weapon_speed), buff);
+        last_stats.weapon_sp=weap_sp;
+        sprintf(buff,"%3.2f",weap_sp);
+        gtk_label_set (GTK_LABEL(statwindow.weapon_speed), buff);
     }
 
     if(redraw || strcmp(cpl.range, last_range)) {
-	strcpy(last_range, cpl.range);
-	sprintf(buff,"Range: %s",cpl.range);
-	gtk_label_set (GTK_LABEL(statwindow.range), cpl.range);
+        strcpy(last_range, cpl.range);
+        sprintf(buff,"Range: %s",cpl.range);
+        gtk_label_set (GTK_LABEL(statwindow.range), cpl.range);
     }
 
     on_skill=0;
     assert(sizeof(statwindow.skill_exp)/sizeof(*statwindow.skill_exp) >= 2*MAX_SKILL);
     for (i=0; i<MAX_SKILL; i++) {
-	/* Drawing a particular skill entry is tricky - only draw if
-	 * different, and only draw if we have a name for the skill
-	 * and the player has some exp in the skill - don't draw
-	 * all 30 skills for no reason.
-	 */
-	sk = skill_mapping[i].value;
+        /* Drawing a particular skill entry is tricky - only draw if
+         * different, and only draw if we have a name for the skill
+         * and the player has some exp in the skill - don't draw
+         * all 30 skills for no reason.
+         */
+        sk = skill_mapping[i].value;
 
-	if ((redraw || cpl.stats.skill_exp[sk] != last_stats.skill_exp[sk]) &&
-	    skill_mapping[i].name && cpl.stats.skill_exp[sk]){
-	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), skill_mapping[i].name);
-	    sprintf(buff,"%" FMT64 " (%d)", cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
-	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
-	    last_stats.skill_level[sk] = cpl.stats.skill_level[sk];
-	    last_stats.skill_exp[sk] = cpl.stats.skill_exp[sk];
-	} else if (cpl.stats.skill_exp[sk]) {
-	    /* don't need to draw the skill, but need to update the position
-	     * of where to draw the next one.
-	     */
-	    on_skill+=2;
-	}
+        if ((redraw || cpl.stats.skill_exp[sk] != last_stats.skill_exp[sk]) &&
+            skill_mapping[i].name && cpl.stats.skill_exp[sk]){
+            gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), skill_mapping[i].name);
+            sprintf(buff,"%" FMT64 " (%d)", cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
+            gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
+            last_stats.skill_level[sk] = cpl.stats.skill_level[sk];
+            last_stats.skill_exp[sk] = cpl.stats.skill_exp[sk];
+        } else if (cpl.stats.skill_exp[sk]) {
+            /* don't need to draw the skill, but need to update the position
+             * of where to draw the next one.
+             */
+            on_skill+=2;
+        }
     }
 
     /* Since the number of skills we draw come and go, basically we want
@@ -635,36 +635,36 @@ void draw_stats(int redraw) {
      * #1 knows 10 skills, #2 knows 5 - need to erase those 5 extra.
      */
     if (on_skill < max_drawn_skill) {
-	int k;
+        int k;
 
-	for (k = on_skill; k <= max_drawn_skill; k++)
-	    gtk_label_set(GTK_LABEL(statwindow.skill_exp[k]), "");
+        for (k = on_skill; k <= max_drawn_skill; k++)
+            gtk_label_set(GTK_LABEL(statwindow.skill_exp[k]), "");
     }
     max_drawn_skill = on_skill;
 
     /* Now do the resistance table */
     if (redraw || cpl.stats.resist_change) {
-	int i,j=0;
+        int i,j=0;
 
-	cpl.stats.resist_change=0;
-	for (i=0; i<NUM_RESISTS; i++) {
-	    sk = resist_mapping[i].value;
-	    if (cpl.stats.resists[sk]) {
-		gtk_label_set(GTK_LABEL(statwindow.resists[j]), resist_mapping[i].name);
-		j++;
-		sprintf(buff,"%+4d", cpl.stats.resists[sk]);
-		gtk_label_set(GTK_LABEL(statwindow.resists[j]), buff);
-		j++;
-		if (j >= PROTECTION_BOXES_X * PROTECTION_BOXES_Y) break;
-	    }
-	}
-	/* Erase old/unused resistances */
-	if (j < max_drawn_resists) {
-	    for (i=j; i <= max_drawn_resists; i++)  {
-		gtk_label_set(GTK_LABEL(statwindow.resists[i]), "");
-	    }
-	}
-	max_drawn_resists = j;
+        cpl.stats.resist_change=0;
+        for (i=0; i<NUM_RESISTS; i++) {
+            sk = resist_mapping[i].value;
+            if (cpl.stats.resists[sk]) {
+                gtk_label_set(GTK_LABEL(statwindow.resists[j]), resist_mapping[i].name);
+                j++;
+                sprintf(buff,"%+4d", cpl.stats.resists[sk]);
+                gtk_label_set(GTK_LABEL(statwindow.resists[j]), buff);
+                j++;
+                if (j >= PROTECTION_BOXES_X * PROTECTION_BOXES_Y) break;
+            }
+        }
+        /* Erase old/unused resistances */
+        if (j < max_drawn_resists) {
+            for (i=j; i <= max_drawn_resists; i++)  {
+                gtk_label_set(GTK_LABEL(statwindow.resists[i]), "");
+            }
+        }
+        max_drawn_resists = j;
     } /* if we draw the resists */
 
 

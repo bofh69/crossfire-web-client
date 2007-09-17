@@ -75,15 +75,15 @@ void spell_get_styles()
     for (i=0; i < Style_Last; i++) {
         if (style_has_init && spell_styles[i]) g_object_unref(spell_styles[i]);
         tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
-					      Style_Names[i], G_TYPE_NONE);
+                                              Style_Names[i], G_TYPE_NONE);
         if (tmp_style) {
             spell_styles[i] = g_object_ref(tmp_style);
-	}
+        }
         else {
             LOG(LOG_INFO, "spells.c::spell_get_styles", "Unable to find style for %s",
                 Style_Names[i]);
             spell_styles[i] = NULL;
-	}
+        }
     }
     style_has_init=1;
 }
@@ -125,55 +125,55 @@ void update_spell_information()
      * is pretty trivial.
      */
     for (i=0; i < Style_Last; i++) {
-	if (spell_styles[i]) {
-	    gtk_widget_modify_fg(spell_label[i],GTK_STATE_NORMAL,
-				 &spell_styles[i]->text[GTK_STATE_NORMAL]);
-	    gtk_widget_modify_font(spell_label[i], spell_styles[i]->font_desc);
-	    gtk_widget_modify_bg(spell_eventbox[i],GTK_STATE_NORMAL,
-				 &spell_styles[i]->base[GTK_STATE_NORMAL]);
-	} else {
-	    gtk_widget_modify_fg(spell_label[i],GTK_STATE_NORMAL, NULL);
-	    gtk_widget_modify_font(spell_label[i], NULL);
-	    gtk_widget_modify_bg(spell_eventbox[i],GTK_STATE_NORMAL, NULL);
-	}
+        if (spell_styles[i]) {
+            gtk_widget_modify_fg(spell_label[i],GTK_STATE_NORMAL,
+                                 &spell_styles[i]->text[GTK_STATE_NORMAL]);
+            gtk_widget_modify_font(spell_label[i], spell_styles[i]->font_desc);
+            gtk_widget_modify_bg(spell_eventbox[i],GTK_STATE_NORMAL,
+                                 &spell_styles[i]->base[GTK_STATE_NORMAL]);
+        } else {
+            gtk_widget_modify_fg(spell_label[i],GTK_STATE_NORMAL, NULL);
+            gtk_widget_modify_font(spell_label[i], NULL);
+            gtk_widget_modify_bg(spell_eventbox[i],GTK_STATE_NORMAL, NULL);
+        }
     }
 
     gtk_list_store_clear(spell_store);
     for (spell = cpl.spelldata; spell; spell=spell->next) {
-	gtk_list_store_append(spell_store, &iter);
+        gtk_list_store_append(spell_store, &iter);
 
-	buf[0] = 0;
-	if (spell->sp) sprintf(buf,"%d Mana ", spell->sp);
-	if (spell->grace) sprintf(buf + strlen(buf), "%d Grace", spell->grace);
+        buf[0] = 0;
+        if (spell->sp) sprintf(buf,"%d Mana ", spell->sp);
+        if (spell->grace) sprintf(buf + strlen(buf), "%d Grace", spell->grace);
 
-	if (spell->path & cpl.stats.denied) { row_style = spell_styles[Style_Denied]; }
-	else if (spell->path & cpl.stats.repelled) { row_style = spell_styles[Style_Repelled]; }
-	else if (spell->path & cpl.stats.attuned) { row_style = spell_styles[Style_Attuned]; }
-	else row_style = spell_styles[Style_Normal];
+        if (spell->path & cpl.stats.denied) { row_style = spell_styles[Style_Denied]; }
+        else if (spell->path & cpl.stats.repelled) { row_style = spell_styles[Style_Repelled]; }
+        else if (spell->path & cpl.stats.attuned) { row_style = spell_styles[Style_Attuned]; }
+        else row_style = spell_styles[Style_Normal];
 
-	if (row_style) {
-	    foreground = &row_style->text[GTK_STATE_NORMAL];
-	    background = &row_style->base[GTK_STATE_NORMAL];
-	    font = row_style->font_desc;
-	} else {
-	    foreground=NULL;
-	    background=NULL;
-	    font=NULL;
-	}
+        if (row_style) {
+            foreground = &row_style->text[GTK_STATE_NORMAL];
+            background = &row_style->base[GTK_STATE_NORMAL];
+            font = row_style->font_desc;
+        } else {
+            foreground=NULL;
+            background=NULL;
+            font=NULL;
+        }
 
-	gtk_list_store_set(spell_store, &iter,
-			   LIST_NAME, spell->name,
-			   LIST_LEVEL, spell->level,
-			   LIST_COST, buf,
-			   LIST_DAMAGE, spell->dam,
-			   LIST_SKILL, spell->skill,
-			   LIST_DESCRIPTION, spell->message,
-			   LIST_BACKGROUND, background,
-			   LIST_FOREGROUND, foreground,
-			   LIST_FONT, font,
-			   LIST_MAX_SP, (spell->sp > spell->grace)?spell->sp:spell->grace,
-			   LIST_TAG, spell->tag,
-			   -1);
+        gtk_list_store_set(spell_store, &iter,
+                           LIST_NAME, spell->name,
+                           LIST_LEVEL, spell->level,
+                           LIST_COST, buf,
+                           LIST_DAMAGE, spell->dam,
+                           LIST_SKILL, spell->skill,
+                           LIST_DESCRIPTION, spell->message,
+                           LIST_BACKGROUND, background,
+                           LIST_FOREGROUND, foreground,
+                           LIST_FONT, font,
+                           LIST_MAX_SP, (spell->sp > spell->grace)?spell->sp:spell->grace,
+                           LIST_TAG, spell->tag,
+                           -1);
     }
 }
 
@@ -185,8 +185,8 @@ on_spells_activate                     (GtkMenuItem     *menuitem,
     GtkWidget *widget;
 
     if (!has_init) {
-	GtkCellRenderer *renderer;
-	GtkTreeViewColumn *column;
+        GtkCellRenderer *renderer;
+        GtkTreeViewColumn *column;
 
         spell_window = glade_xml_get_widget(dialog_xml, "spell_window");
         xml_tree = glade_get_widget_tree(GTK_WIDGET(spell_window));
@@ -207,104 +207,104 @@ on_spells_activate                     (GtkMenuItem     *menuitem,
         g_signal_connect ((gpointer) widget, "clicked",
             G_CALLBACK (on_spell_close_clicked), NULL);
 
-	spell_store = gtk_list_store_new(14,
-				G_TYPE_OBJECT,	/* Image - not used */
-				G_TYPE_STRING,	/* Name */
-				G_TYPE_INT,	/* Level */
-				G_TYPE_INT,	/* Time */
-				G_TYPE_STRING,	/* SP/Grace */
-				G_TYPE_INT,	/* Damage */
-				G_TYPE_STRING,	/* Skill name */
-				G_TYPE_INT,	/* Spell path */
-				G_TYPE_STRING,	/* Description */
-				GDK_TYPE_COLOR,	/* Change the background color of the entry */
-				G_TYPE_INT,
-				G_TYPE_INT,
-				GDK_TYPE_COLOR,
-				PANGO_TYPE_FONT_DESCRIPTION
-			      );
+        spell_store = gtk_list_store_new(14,
+                                G_TYPE_OBJECT,  /* Image - not used */
+                                G_TYPE_STRING,  /* Name */
+                                G_TYPE_INT,     /* Level */
+                                G_TYPE_INT,     /* Time */
+                                G_TYPE_STRING,  /* SP/Grace */
+                                G_TYPE_INT,     /* Damage */
+                                G_TYPE_STRING,  /* Skill name */
+                                G_TYPE_INT,     /* Spell path */
+                                G_TYPE_STRING,  /* Description */
+                                GDK_TYPE_COLOR, /* Change the background color of the entry */
+                                G_TYPE_INT,
+                                G_TYPE_INT,
+                                GDK_TYPE_COLOR,
+                                PANGO_TYPE_FONT_DESCRIPTION
+                              );
 
         gtk_tree_view_set_model(GTK_TREE_VIEW(spell_treeview), GTK_TREE_MODEL(spell_store));
-	gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(spell_treeview), TRUE);
+        gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(spell_treeview), TRUE);
 
-	/* Note it is intentional we don't show (render) some fields:
-	 * image - we don't have images right now it seems.
-	 * time - not sure if it worth the space.
-	 * spell path - done by color
-	 */
-	renderer = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes ("Spell", renderer,
-						"text", LIST_NAME,
-						NULL);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
-	gtk_tree_view_column_set_sort_column_id(column, LIST_NAME);
-	gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
+        /* Note it is intentional we don't show (render) some fields:
+         * image - we don't have images right now it seems.
+         * time - not sure if it worth the space.
+         * spell path - done by color
+         */
+        renderer = gtk_cell_renderer_text_new ();
+        column = gtk_tree_view_column_new_with_attributes ("Spell", renderer,
+                                                "text", LIST_NAME,
+                                                NULL);
+        gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_NAME);
+        gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
 
-	renderer = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes ("Level", renderer,
-						"text", LIST_LEVEL,
-						NULL);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
-	gtk_tree_view_column_set_sort_column_id(column, LIST_LEVEL);
-	gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
+        renderer = gtk_cell_renderer_text_new ();
+        column = gtk_tree_view_column_new_with_attributes ("Level", renderer,
+                                                "text", LIST_LEVEL,
+                                                NULL);
+        gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_LEVEL);
+        gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
 
-	renderer = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes ("SP/Mana Cost", renderer,
-						"text", LIST_COST,
-						NULL);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
+        renderer = gtk_cell_renderer_text_new ();
+        column = gtk_tree_view_column_new_with_attributes ("SP/Mana Cost", renderer,
+                                                "text", LIST_COST,
+                                                NULL);
+        gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
 
-	/* since this is a string column, it would do a string sort.  Instead,
-	 * we set up a int column and tie this column to sort on that.
-	 */
-	gtk_tree_view_column_set_sort_column_id(column, LIST_MAX_SP);
-	gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
+        /* since this is a string column, it would do a string sort.  Instead,
+         * we set up a int column and tie this column to sort on that.
+         */
+        gtk_tree_view_column_set_sort_column_id(column, LIST_MAX_SP);
+        gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
 
-	renderer = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes ("Damage", renderer,
-						"text", LIST_DAMAGE,
-						NULL);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
-	gtk_tree_view_column_set_sort_column_id(column, LIST_DAMAGE);
-	gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
+        renderer = gtk_cell_renderer_text_new ();
+        column = gtk_tree_view_column_new_with_attributes ("Damage", renderer,
+                                                "text", LIST_DAMAGE,
+                                                NULL);
+        gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_DAMAGE);
+        gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
 
-	column = gtk_tree_view_column_new_with_attributes ("Skill", renderer,
-						"text", LIST_SKILL,
-						NULL);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
-	gtk_tree_view_column_set_sort_column_id(column, LIST_SKILL);
-	gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
+        column = gtk_tree_view_column_new_with_attributes ("Skill", renderer,
+                                                "text", LIST_SKILL,
+                                                NULL);
+        gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_SKILL);
+        gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
 
-	renderer = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes ("Description", renderer,
-						"text", LIST_DESCRIPTION,
-						NULL);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
-	gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
-	gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
+        renderer = gtk_cell_renderer_text_new ();
+        column = gtk_tree_view_column_new_with_attributes ("Description", renderer,
+                                                "text", LIST_DESCRIPTION,
+                                                NULL);
+        gtk_tree_view_append_column (GTK_TREE_VIEW (spell_treeview), column);
+        gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+        gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
 
-	spell_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(spell_treeview));
-	gtk_tree_selection_set_mode (spell_selection, GTK_SELECTION_BROWSE);
-	gtk_tree_selection_set_select_function(spell_selection, spell_selection_func,
-					       NULL, NULL);
+        spell_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(spell_treeview));
+        gtk_tree_selection_set_mode (spell_selection, GTK_SELECTION_BROWSE);
+        gtk_tree_selection_set_select_function(spell_selection, spell_selection_func,
+                                               NULL, NULL);
 
 
-	gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(spell_store),
-					     LIST_NAME,
-					     GTK_SORT_ASCENDING);
+        gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(spell_store),
+                                             LIST_NAME,
+                                             GTK_SORT_ASCENDING);
 
-	/* the style code will set the colors for these */
+        /* the style code will set the colors for these */
         spell_label[Style_Attuned] =
             glade_xml_get_widget(xml_tree, "spell_label_attuned");
         spell_label[Style_Repelled] =
@@ -314,11 +314,11 @@ on_spells_activate                     (GtkMenuItem     *menuitem,
         spell_label[Style_Normal] =
             glade_xml_get_widget(xml_tree, "spell_label_normal");
 
-	/* We use eventboxes because the label widget is a transparent widget -
-	 * we can't set the background in it and have it work.
-	 * But we can set the background in the event box, and put the label
-	 * widget in the eventbox.
-	 */
+        /* We use eventboxes because the label widget is a transparent widget -
+         * we can't set the background in it and have it work.
+         * But we can set the background in the event box, and put the label
+         * widget in the eventbox.
+         */
         spell_eventbox[Style_Attuned] =
             glade_xml_get_widget(xml_tree, "spell_eventbox_attuned");
         spell_eventbox[Style_Repelled] =
@@ -348,7 +348,7 @@ on_spell_treeview_row_activated        (GtkTreeView     *treeview,
 {
     GtkTreeIter iter;
     GtkTreeModel    *model;
-    int	tag;
+    int tag;
     char    command[MAX_BUF];
     const char *options = NULL;
 
@@ -359,9 +359,9 @@ on_spell_treeview_row_activated        (GtkTreeView     *treeview,
         if (!tag) {
             LOG(LOG_ERROR,"spells.c:on_spell_cast_clicked", "Unable to get spell tag\n");
             return;
-	}
-	snprintf(command, MAX_BUF-1, "cast %d %s", tag, options);
-	send_command(command, -1, 1);
+        }
+        snprintf(command, MAX_BUF-1, "cast %d %s", tag, options);
+        send_command(command, -1, 1);
     }
 }
 
@@ -374,7 +374,7 @@ on_spell_cast_clicked                  (GtkButton       *button,
     char    command[MAX_BUF];
     GtkTreeIter iter;
     GtkTreeModel    *model;
-    int	tag;
+    int tag;
 
     options = gtk_entry_get_text(GTK_ENTRY(spell_options));
 
@@ -384,9 +384,9 @@ on_spell_cast_clicked                  (GtkButton       *button,
         if (!tag) {
             LOG(LOG_ERROR,"spells.c:on_spell_cast_clicked", "Unable to get spell tag\n");
             return;
-	}
-	snprintf(command, MAX_BUF-1, "cast %d %s", tag, options);
-	send_command(command, -1, 1);
+        }
+        snprintf(command, MAX_BUF-1, "cast %d %s", tag, options);
+        send_command(command, -1, 1);
     }
 
 }
@@ -400,7 +400,7 @@ on_spell_invoke_clicked                 (GtkButton       *button,
     char    command[MAX_BUF];
     GtkTreeIter iter;
     GtkTreeModel    *model;
-    int	tag;
+    int tag;
 
     options = gtk_entry_get_text(GTK_ENTRY(spell_options));
 
@@ -410,9 +410,9 @@ on_spell_invoke_clicked                 (GtkButton       *button,
         if (!tag) {
             LOG(LOG_ERROR,"spells.c:on_spell_invoke_clicked", "Unable to get spell tag\n");
             return;
-	}
-	snprintf(command, MAX_BUF-1, "invoke %d %s", tag, options);
-	send_command(command, -1, 1);
+        }
+        snprintf(command, MAX_BUF-1, "invoke %d %s", tag, options);
+        send_command(command, -1, 1);
     }
 }
 
