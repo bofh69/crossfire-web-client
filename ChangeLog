@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk/text.c: Remove call to void_callback() for MSG_TYPE_MONUMENT - if there
+  is no code to handle it, no reason to set the callback.  Fixes bug 1759860 -
+  gravestone messages go to stdout and not client window.
+MSW 2007-09-23
+
 gtk-v2/src/map.c
   - Doxygen commenting work.
   - Spelling fix visable --> visible.

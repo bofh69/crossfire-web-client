@@ -509,7 +509,7 @@ static void admin_callback(int flag, int type, int subtype, char *message) {
 void init_text_callbacks(void) {
     setTextManager(MSG_TYPE_BOOK,book_callback);
     setTextManager(MSG_TYPE_MOTD,motd_callback);
-    setTextManager(MSG_TYPE_MONUMENT,void_callback);
+/*    setTextManager(MSG_TYPE_MONUMENT,void_callback);*/
     setTextManager(MSG_TYPE_SIGN,sign_callback);
     setTextManager(MSG_TYPE_ADMIN,admin_callback);
 }
