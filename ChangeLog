@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/map.c
+  - Doxygen commenting work.
+  - Spelling fix visable --> visible.
+  - Reformat block comments to use 79 columns.
+Kevin Bulgrien 2007-09-23
+
 gtk-v2/src/metaserver.c: Modify metaserver_connect_to so it can connect to
   servers running on different ports (eg, localhost:13328).  Gtk1 client
   already handles this fine, so this is only a change for the gtk2 client.

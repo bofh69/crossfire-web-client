@@ -22,9 +22,10 @@ char *rcsid_gtk2_map_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-/* This file handles the map related code - both in terms of allocation,
- * insertion of new objects, and actual rendering (although the
- * sdl rendering is in the sdl file
+/**
+ * @file gtk-v2/src/map.c
+ * Handles map related code in terms of allocation, insertion of new objects,
+ * and actual rendering (although the sdl rendering is in the sdl file
  */
 
 #include <config.h>
@@ -71,12 +72,19 @@ int map_image_half_size=DEFAULT_IMAGE_SIZE/2;
 static GdkBitmap *dark1, *dark2, *dark3;
 static GdkPixmap *dark;
 
-/* this should really be one of the CONFIG values, or perhaps a checkbox
+/*
+ * This should really be one of the CONFIG values, or perhaps a checkbox
  * someplace that displays frame rate.
  */
 int time_map_redraw=0;
 
 #if WIN32
+/**
+ *
+ * @param tp
+ * @param tzp
+ * @return 0 indicates success.
+ */
 int gettimeofday(struct timeval* tp, void* tzp) {
     DWORD t;
     t = timeGetTime();
@@ -87,7 +95,11 @@ int gettimeofday(struct timeval* tp, void* tzp) {
 }
 #endif
 
-/* This initializes the stuff we need for the map. */
+/**
+ * This initializes the stuff we need for the map.
+ *
+ * @param window_root The client's main playing window.
+ */
 void map_init(GtkWidget *window_root)
 {
     GladeXML* xml_tree;
@@ -103,18 +115,18 @@ void map_init(GtkWidget *window_root)
         G_CALLBACK (on_drawingarea_map_button_press_event), NULL);
 
     gtk_widget_set_size_request (map_drawing_area,
-                use_config[CONFIG_MAPWIDTH] * map_image_size,
-                use_config[CONFIG_MAPHEIGHT] * map_image_size);
+        use_config[CONFIG_MAPWIDTH] * map_image_size,
+        use_config[CONFIG_MAPHEIGHT] * map_image_size);
 
     mapgc = gdk_gc_new(map_drawing_area->window);
     gtk_widget_show(map_drawing_area);
     gtk_widget_add_events (map_drawing_area, GDK_BUTTON_PRESS_MASK);
 
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
+    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
         int x,y,count;
         GdkGC   *darkgc;
-
-        /* this is used when drawing with GdkPixmaps.  Create another surface,
+        /*
+         * This is used when drawing with GdkPixmaps.  Create another surface,
          * as well as some light/dark images
          */
         dark = gdk_pixmap_new(map_drawing_area->window, map_image_size, map_image_size, -1);
@@ -122,8 +134,10 @@ void map_init(GtkWidget *window_root)
         dark1 = gdk_pixmap_new(map_drawing_area->window, map_image_size, map_image_size, 1);
         dark2 = gdk_pixmap_new(map_drawing_area->window, map_image_size, map_image_size, 1);
         dark3 = gdk_pixmap_new(map_drawing_area->window, map_image_size, map_image_size, 1);
-
-        /* We need our own GC here because we are working with single bit depth images */
+        /*
+         * We need our own GC here because we are working with single bit depth
+         * images
+         */
         darkgc = gdk_gc_new(dark1);
         gdk_gc_set_foreground(darkgc, &root_color[NDI_WHITE]);
         /* Clear any garbage values we get when we create the bitmaps */
@@ -134,12 +148,13 @@ void map_init(GtkWidget *window_root)
         count=0;
         for (x=0; x<map_image_size; x++) {
             for (y=0; y<map_image_size; y++) {
-
-                /* we just fill in points every X pixels - dark1 is the darkest, dark3 is the lightest.
-                 * dark1 has 50% of the pixels filled in, dark2 has 33%, dark3 has 25%
-                 * The formula's here are not perfect - dark2 will not match perfectly with an
-                 * adjacent dark2 image.  dark3 results in diagonal stripes.  OTOH, these will
-                 * change depending on the image size.
+                /*
+                 * We just fill in points every X pixels - dark1 is the
+                 * darkest, dark3 is the lightest.  dark1 has 50% of the pixels
+                 * filled in, dark2 has 33%, dark3 has 25% The formula's here
+                 * are not perfect - dark2 will not match perfectly with an
+                 * adjacent dark2 image.  dark3 results in diagonal stripes.
+                 * OTOH, these will change depending on the image size.
                  */
                 if ((x+y) % 2) {
                     gdk_draw_point(dark1, darkgc, x, y);
@@ -150,11 +165,15 @@ void map_init(GtkWidget *window_root)
                 if ((x+y) % 4) {
                     gdk_draw_point(dark3, darkgc, x, y);
                 }
-                /* dark1 gets filled on 0x01, 0x11, 0x10, only leaving 0x00 empty */
+                /*
+                 * dark1 gets filled on 0x01, 0x11, 0x10, only leaving 0x00
+                 * empty
+                 */
             }
-            /* if the row size is even, we put an extra value in count - in this
-             * way, the pixels will be even on one line, odd on the next, etc
-             * instead of vertical lines - at least for dark1 and dark3
+            /*
+             * if the row size is even, we put an extra value in count - in
+             * this way, the pixels will be even on one line, odd on the next,
+             * etc instead of vertical lines - at least for dark1 and dark3
              */
         }
         gdk_gc_unref(darkgc);
@@ -178,8 +197,21 @@ void map_init(GtkWidget *window_root)
  */
 void reset_map()
 {
-    }
+}
 
+/**
+ *
+ * @param srcx
+ * @param srcy
+ * @param dstx
+ * @param dsty
+ * @param clipx
+ * @param clipy
+ * @param mask
+ * @param image
+ * @param sizex
+ * @param sizey
+ */
 static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int clipy,
                         void *mask, void *image, int sizex, int sizey)
 {
@@ -188,6 +220,11 @@ static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int c
     gdk_draw_pixmap(map_drawing_area->window, mapgc, image, srcx, srcy, dstx, dsty, sizex, sizey);
 }
 
+/**
+ *
+ * @param dx
+ * @param dy
+ */
 int display_mapscroll(int dx, int dy)
 {
 #ifdef HAVE_SDL
@@ -198,11 +235,15 @@ int display_mapscroll(int dx, int dy)
     return 0;
 }
 
-/* Draw anything in adjacent squares that could smooth on given square
- * mx,my square to smooth on. you should not call this function to
- * smooth on a 'completly black' square.
- * layer layer to examine (we smooth only one layer at a time)
- * picx,picy place on the map_drawing_area->window to draw
+/**
+ * Draw anything in adjacent squares that could smooth on given square
+ *
+ * @param mx
+ * @param my Square to smooth on.
+ * You should not call this function to smooth on a 'completely black' square.
+ * @param layer Layer to examine (we smooth only one layer at a time)
+ * @param picx
+ * @param picy Place on the map_drawing_area->window to draw
  */
 void drawsmooth (int mx,int my,int layer,int picx,int picy){
     static int dx[8]={0,1,1,1,0,-1,-1,-1};
@@ -244,9 +285,10 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
         }
     }
-    /* ok, now we have a list of smoothlevel higher than current square.
-     * there are at most 8 different levels. so... let's check 8 times
-     * for the lowest one (we draw from botto to top!).
+    /*
+     * Now we have a list of smoothlevel higher than current square.  There are
+     * at most 8 different levels. so... check 8 times for the lowest one (we
+     * draw from bottom to top!).
      */
     lowest=-1;
     while (1){
@@ -260,13 +302,13 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
         if (lowest<0)
             break;   /*no more smooth to do on this square*/
         /*printf ("hey, must smooth something...%d\n",sfaces[lowest]);*/
-        /*here we know 'what' to smooth*/
-        /* we need to calculate the weight
-         * for border and weight for corners.
-         * then we 'markdone'
-         * the corresponding squares
+        /* Here we know 'what' to smooth
+         *
+         * Calculate the weight for border and weight for corners.  Then
+         * 'markdone' the corresponding squares
+         *
+         * First, the border, which may exclude some corners
          */
-        /*first, the border, which may exclude some corners*/
         weight=0;
         weightC=15; /*works in backward. remove where there is nothing*/
         /*for (i=0;i<8;i++)
@@ -281,7 +323,6 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
                 /*must rmove the weight of a corner if not in smoothing*/
                 weightC&=~cweights[i];
             }
-
         }
         /*We can't do this before since we need the partdone to be adjusted*/
         if (sfaces[lowest]<=0)
@@ -290,9 +331,9 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
         if (smoothface<=0){
             continue;  /*picture for smoothing not yet available*/
         }
-        /* now, it's quite easy. We must draw using a 32x32 part of
-         * the picture smoothface.
-         * This part is located using the 2 weights calculated:
+        /*
+         * now, it's quite easy. We must draw using a 32x32 part of the picture
+         * smoothface.  This part is located using the 2 weights calculated:
          * (32*weight,0) and (32*weightC,32)
          */
         if ( (!pixmaps[smoothface]->map_image) ||
@@ -312,17 +353,24 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
                 picx-weightC*map_image_size, picy-map_image_size,
                 pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image, map_image_size, map_image_size);
         }
-    }/*while there's some smooth to do*/
+    } /* while there's some smooth to do */
 }
 
+/**
+ *
+ * @param ax
+ * @param ay
+ * @param mx
+ * @param my
+ */
 static void display_mapcell(int ax, int ay, int mx, int my)
 {
     int layer;
 
     /* First, we need to black out this space. */
     gdk_draw_rectangle(map_drawing_area->window, map_drawing_area->style->black_gc, TRUE, ax*map_image_size, ay*map_image_size, map_image_size, map_image_size);
-
-    /* now draw the different layers.  Only draw if using fog of war or the
+    /*
+     * Now draw the different layers.  Only draw if using fog of war or the
      * space isn't clear.
      */
     if (use_config[CONFIG_FOGWAR] || !the_map.cells[mx][my].cleared) {
@@ -342,10 +390,12 @@ static void display_mapcell(int ax, int ay, int mx, int my)
                 if ( use_config[CONFIG_SMOOTH])
                     drawsmooth(mx, my, layer, ax*map_image_size, ay*map_image_size);
             }
-            /* Sometimes, it may happens we need to draw the smooth while there
-             * is nothing to draw at that layer (but there was something at lower
-             * layers). This is handled here. The else part is to take into account
-             * cases where the smooth as already been handled 2 code lines before
+            /*
+             * Sometimes, it may happens we need to draw the smooth while there
+             * is nothing to draw at that layer (but there was something at
+             * lower layers). This is handled here. The else part is to take
+             * into account cases where the smooth as already been handled 2
+             * code lines before
              */
             else if ( use_config[CONFIG_SMOOTH] && the_map.cells[mx][my].need_resmooth )
                 drawsmooth (mx, my, layer, ax*map_image_size, ay*map_image_size);
@@ -354,16 +404,21 @@ static void display_mapcell(int ax, int ay, int mx, int my)
             face = mapdata_bigface(ax, ay, layer, &sx, &sy);
 
             if (face > 0 && pixmaps[face]->map_image != NULL) {
-                /* This is pretty messy, because images are not required to be
-                 * an integral multiplier of the image size.  There
-                 * are really 4 main variables:
-                 * source[xy]: From where within the pixmap to start grabbing pixels.
-                 * off[xy]: Offset from space edge on the visible map to start drawing pixels.
-                 *   off[xy] also determines how many pixels to draw (map_image_size - off[xy])
-                 * clip[xy]: Position of the clipmask.  The position of the clipmask is always
-                 *   at the upper left of the image as we drawn it on the map, so for any
-                 *   given big image, it will have the same values for all the pieces.  However
-                 *   we need to re-construct that location based on current location.
+                /*
+                 * This is pretty messy, because images are not required to be
+                 * an integral multiplier of the image size.  There are really
+                 * 4 main variables:
+                 * source[xy]: Where within the pixmap to start grabbing pixels.
+                 * off[xy]: Offset from space edge on the visible map to start
+                 *     drawing pixels.
+                 * off[xy] also determines how many pixels to draw
+                 *     (map_image_size - off[xy])
+                 * clip[xy]: Position of the clipmask.  The position of the
+                 *     clipmask is always at the upper left of the image as we
+                 *     drawn it on the map, so for any given big image, it will
+                 *     have the same values for all the pieces.  However we
+                 *     need to re-construct that location based on current
+                 *     location.
                  *
                  * For a 32x72 image, it would be drawn like follows:
                  *                  sourcey         offy
@@ -404,10 +459,9 @@ static void display_mapcell(int ax, int ay, int mx, int my)
             }
         } /* else for processing the layers */
     }
-
-    /* If this is a fog cell, do darknening of the space.
-     * otherwise, process light/darkness - only do those if not a
-     * fog cell.
+    /*
+     * If this is a fog cell, do darknening of the space.  otherwise, process
+     * light/darkness - only do those if not a fog cell.
      */
     if (use_config[CONFIG_FOGWAR] && the_map.cells[mx][my].cleared) {
         draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark1, dark, map_image_size, map_image_size);
@@ -425,6 +479,10 @@ static void display_mapcell(int ax, int ay, int mx, int my)
     }
 }
 
+/**
+ *
+ * @param redraw
+ */
 void gtk_draw_map(int redraw) {
     int mx, my;
     int x, y;
@@ -439,8 +497,10 @@ void gtk_draw_map(int redraw) {
 
     for(x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
         for(y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
-            /* mx,my represent the spaces on the 'virtual' map (ie, the_map structure).
-             * x and y (from the for loop) represent the visable screen.
+            /*
+             * mx,my represent the spaces on the 'virtual' map (ie, the_map
+             * structure).  x and y (from the for loop) represent the visible
+             * screen.
              */
             mx = pl_pos.x+x;
             my = pl_pos.y+y;
@@ -462,37 +522,36 @@ void gtk_draw_map(int redraw) {
         gettimeofday(&tv3, NULL);
         elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
         elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
-
-        /* I care about performance for 'long' updates, so put the check in to make
-         * these a little more noticable */
+        /*
+         * I care about performance for 'long' updates, so put the check in to
+         * make these a little more noticable
+         */
         if ((elapsed1 + elapsed2)>10000)
             LOG(LOG_INFO,"gtk::sdl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
                     elapsed1, elapsed2, elapsed1 + elapsed2);
     }
 }
 
-/* Basically, the player has changed maps, so any info we have
- * (for fog of war) is bogus, so clear out all that old info
+/**
+ * The player has changed maps, so any info we have (for fog of war) is bogus,
+ * so clear out all that old info.
  */
 void display_map_newmap()
 {
     reset_map();
 }
 
-
-
-/* resize_map_window is a NOOP for the time being - not sure
- * if it will in fact need to do something, since there are scrollbars
- * for the map window now.
+/**
+ * Resize_map_window is a NOOP for the time being - not sure if it will in fact
+ * need to do something, since there are scrollbars for the map window now.
  */
 void resize_map_window(int x, int y)
 {
 }
 
-
-
-/* Simple routine to put the splash icon in the map window.
- * Only supported with non SDL right now.
+/**
+ * Simple routine to put the splash icon in the map window.  Only supported
+ * with non-SDL right now.
  */
 void draw_splash()
 {
@@ -514,9 +573,9 @@ void draw_splash()
         gdk_drawable_get_size(splash, &w, &h);
         x = (map_drawing_area->allocation.width- w)/2;
         y = (map_drawing_area->allocation.height - h)/2;
-
-        /* Clear the clip mask - it can be left in an inconsisten
-         * state from last map redraw.
+        /*
+         * Clear the clip mask - it can be left in an inconsistent state from
+         * last map redraw.
          */
         gdk_gc_set_clip_mask(mapgc, NULL);
         gdk_draw_pixmap(map_drawing_area->window, mapgc, splash, 0, 0,
@@ -524,8 +583,10 @@ void draw_splash()
     }
 }
 
-
-
+/**
+ *
+ * @param redraw
+ */
 void draw_map(int redraw)
 {
 #ifdef HAVE_SDL
@@ -542,7 +603,13 @@ void draw_map(int redraw)
     }
 }
 
-
+/**
+ *
+ * @param widget
+ * @param event
+ * @param user_data
+ * @return FALSE
+ */
 gboolean
 on_drawingarea_map_expose_event        (GtkWidget       *widget,
                                         GdkEventExpose  *event,
@@ -552,6 +619,13 @@ on_drawingarea_map_expose_event        (GtkWidget       *widget,
     return FALSE;
 }
 
+/**
+ *
+ * @param widget
+ * @param event
+ * @param user_data
+ * @return FALSE
+ */
 gboolean
 on_drawingarea_map_button_press_event  (GtkWidget       *widget,
                                         GdkEventButton  *event,
@@ -611,29 +685,28 @@ on_drawingarea_map_button_press_event  (GtkWidget       *widget,
                 case 8: move_player (4);break;
             }
     }
-
     return FALSE;
 }
 
-/* This isn't used - it is basically a prequel - we know we got a
- * map command from the server, but have digested it all yet.
- * this can be useful if there is info we know we need to store away
- * or the like before it is destroyed, but there isn't anything like
- * that for the gtk client.
+/**
+ * This isn't used - it is basically a prequel - we know we got a map command
+ * from the server, but have digested it all yet.  This can be useful if there
+ * is info we know we need to store away or the like before it is destroyed,
+ * but there isn't anything like that for the gtk client.
  */
 void display_map_startupdate()
 {
 }
 
-/* This is called after the map has been all digested.
- * this should perhaps be removed, and left to
- * being done from from the main event loop.
+/**
+ * This is called after the map has been all digested.  this should perhaps be
+ * removed, and left to being done from from the main event loop.
  *
- * If redraw is set, force redraw of all tiles.
- *
- * If notice is set, another call will follow soon.
+ * @param redraw If set, force redraw of all tiles.
+ * @param notice If set, another call will follow soon.
  */
 void display_map_doneupdate(int redraw, int notice)
 {
     map_updated |= redraw || !notice;
 }
+
