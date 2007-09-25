@@ -2,6 +2,16 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/about.c
+  - Doxygen commenting work.
+gtk-v2/src/config.c
+gtk-v2/src/image.c
+  - Spelling/grammar fixes.
+  - Doxygen commenting work.
+  - Some indentation adjustments.
+  - Reformat block comments to use 79 columns.
+Kevin Bulgrien 2007-09-24
+
 gtk/text.c: Remove call to void_callback() for MSG_TYPE_MONUMENT - if there
   is no code to handle it, no reason to set the callback.  Fixes bug 1759860 -
   gravestone messages go to stdout and not client window.

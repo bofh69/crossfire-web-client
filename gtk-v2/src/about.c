@@ -23,7 +23,7 @@ char *rcsid_gtk2_about_c =
 */
 
 /**
- * @file about.c
+ * @file gtk-v2/src/about.c
  * Supports the client's about box dialog.
  */
 #ifdef HAVE_CONFIG_H

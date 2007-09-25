@@ -22,9 +22,11 @@ char *rcsid_gtk2_config_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-
-/* This file is here to cover configuration issues.
+/**
+ * @file gtk-v2/src/config.c
+ * Covers configuration issues.
  */
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -59,11 +61,11 @@ static char *gladedir = "glade-gtk2";
 static char *display_modes[] = {"Pixmap", "SDL", "OpenGL"};
 
 /**
- * This loads the theme stored away in the theme value above.  the theme string
- * is loaded/saved into the config file, and can also be changed by the user in
+ * Loads the theme stored away in the theme value above.  the theme string is
+ * loaded/saved into the config file, and can also be changed by the user in
  * the config menu.
  *
- * @reload
+ * @param reload
  * If true, user has changed theme after initial startup.  In this mode, we
  * need to call the routines that store away private theme data.  When program
  * is starting up, this is false, because all the widgets haven't been realized
@@ -110,7 +112,6 @@ void load_theme(int reload)
         }
     } else {
         snprintf(path, MAX_BUF, "%s/%s/%s", CF_DATADIR, themedir, theme);
-
         /*
          * Check for existence of file.  Unfortunately, at initial run time,
          * the window may not be realized, so we can't print this error to the
@@ -120,7 +121,6 @@ void load_theme(int reload)
             LOG(LOG_ERROR,"config.c::load_theme", "Unable to find theme file %s", path);
             return;
         }
-
         /*
          * We need to reset the search path, otherwise the effects are
          * additive.  In practice, we could manipulate pointer so it is just
@@ -144,7 +144,6 @@ void load_theme(int reload)
         stats_get_styles();
         spell_get_styles();
         update_spell_information();
-
         /*
          * Set the inv_updated to force a redraw - otherwise it will not
          * necessarily bind the lists with the new widgets.
@@ -200,7 +199,7 @@ void load_defaults()
                 break;  /* Found a match - won't find another */
             }
         }
-        /* We found a match in the loop above, so no need to do anything more */
+        /* We found a match in the loop above, so do not do anything more */
         if (i < CONFIG_NUMS) continue;
 
         /*
@@ -262,14 +261,14 @@ void load_defaults()
      * the defaults file directly, they could put bogus values in
      */
     if (want_config[CONFIG_ICONSCALE]< 25 || want_config[CONFIG_ICONSCALE]>200) {
-        LOG(LOG_WARNING,"gtk::load_defaults","Ignoring iconscale value read for gdefaults2 file.\n"
+        LOG(LOG_WARNING,"gtk::load_defaults","Ignoring iconscale value read from gdefaults2 file.\n"
             "Invalid iconscale range (%d), valid range for -iconscale is 25 through 200",
             want_config[CONFIG_ICONSCALE]);
         want_config[CONFIG_ICONSCALE] = use_config[CONFIG_ICONSCALE];
     }
     if (want_config[CONFIG_MAPSCALE]< 25 || want_config[CONFIG_MAPSCALE]>200) {
         LOG(LOG_WARNING,"gtk::load_defaults","ignoring mapscale value read for gdefaults2 file.\n"
-                "Invalid mapscale range (%d), valid range for -iconscale is 25 through 200",
+            "Invalid mapscale range (%d), valid range for -iconscale is 25 through 200",
             want_config[CONFIG_MAPSCALE]);
         want_config[CONFIG_MAPSCALE] = use_config[CONFIG_MAPSCALE];
     }
@@ -307,7 +306,6 @@ void load_defaults()
     map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
     map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
     /*inv_list.show_icon = use_config[CONFIG_SHOWICON];*/
-
 }
 
 /**
@@ -338,8 +336,8 @@ void save_defaults()
     fprintf(fp,"theme: %s\n", theme);
     fprintf(fp,"faceset: %s\n", face_info.want_faceset);
     fprintf(fp,"window_layout: %s\n", window_xml_file);
-
-    /* This isn't quite as good as before, as instead of saving things as
+    /*
+     * This isn't quite as good as before, as instead of saving things as
      * 'True' or 'False', it is just 1 or 0.  However, for the most part, the
      * user isn't going to be editing the file directly.
      */
@@ -437,14 +435,13 @@ void config_init(GtkWidget *window_root)
 #endif
         gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),  "Pixmap");
 
-
 }
 
 /**
  * This function is used by scandir below to get only the directory entries
  * needed.  In the case of themes, simply skip dot files.
  *
- * @d
+ * @param d
  * the dirent entry from scandir.
  *
  * function returns 1 if the file is a valid theme file name, 0 for files
@@ -461,7 +458,7 @@ static int scandir_theme_filter(const struct dirent *d)
  * needed.  In the case of glade files, skip all files that do not end with
  * ".glade" and the default glade XML file that defines auxilliary dialogs.
  *
- * @d
+ * @param d
  * the dirent entry from scandir.
  *
  * function returns 1 if the file is a valid glade XML file name, 0 for files
@@ -497,19 +494,19 @@ static int scandir_glade_filter(const struct dirent *d)
  * pulldown menu for the selection box.  The presumption is made that these
  * files won't change during run time, so we only need to do this once.
  *
- * @combobox
+ * @param combobox
  * a glade combobox widget to be filled with filenames.
  *
- * @active
+ * @param active
  * a pointer to a string that is the active combobox item.
  *
- * @want_none
+ * @param want_none
  * 1 if a "None" entry is added to the filename list; 0 if not.
  *
- * @subdir
+ * @param subdir
  * the subdirectory that contains filenames to add to the combobox list.
  *
- * @scandir_filter
+ * @param scandir_filter
  * a pointer to a function that is called by scandir() to filter filenames to
  * add to the combobox.  The function returns 1 if the filename is valid for
  * addition to the combobox list.
@@ -525,8 +522,8 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
 
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(combobox));
     count =  gtk_tree_model_iter_n_children(model, NULL);
-
-    /* If count is 0, the combo box control has not been initialized yet, so
+    /*
+     * If count is 0, the combo box control has not been initialized yet, so
      * fill it with the appropriate selections now.
      */
     if (count == 0) {
@@ -627,7 +624,6 @@ static void setup_config_window()
 
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_mapheight),
                               (float)want_config[CONFIG_MAPHEIGHT]);
-
     /*
      * Face set combo box setup.
      * Remove all the entries currently in the combo box
@@ -729,13 +725,13 @@ static void setup_config_window()
         gladedir, &scandir_glade_filter);
 }
 
-/*
+#define IS_DIFFERENT(TYPE) (want_config[TYPE] != use_config[TYPE])
+
+/**
  * This is basically the opposite of setup_config_window() above - instead of
  * setting the display state appropriately, we read the display state and
  * update the want_config values.
  */
-#define IS_DIFFERENT(TYPE) (want_config[TYPE] != use_config[TYPE])
-
 static void read_config_window()
 {
     gchar   *buf;
@@ -789,7 +785,6 @@ static void read_config_window()
 
         g_free(buf);
     }
-
     /*
      * Load up the theme.  A problem is we don't really know if theme has been
      * allocated or is just pointing as a static string.  So we lose a few
@@ -806,7 +801,6 @@ static void read_config_window()
     } else {
         theme = "None";
     }
-
     /*
      * Load up the layout and set the combobox control to point to the loaded
      * default value.
@@ -815,7 +809,6 @@ static void read_config_window()
     if (buf && strcmp(buf, window_xml_file)) {
         strncpy(window_xml_file, buf, MAX_BUF);
     }
-
     /*
      * Some values can take effect right now, others not.  Code below handles
      * these cases - largely grabbed from gtk/config.c
@@ -856,7 +849,6 @@ static void read_config_window()
             init_SDL( NULL, 1);
 #endif
     }
-
     /*
      * Nothing to do, but we can switch immediately without problems.  do force
      * a redraw
@@ -870,6 +862,9 @@ static void read_config_window()
 /**
  * Defines the behavior invoked when the configuration dialog save button is
  * pressed.
+ *
+ * @param button
+ * @param user_data
  */
 void
 on_config_button_save_clicked          (GtkButton       *button,
@@ -882,6 +877,9 @@ on_config_button_save_clicked          (GtkButton       *button,
 /**
  * Defines the behavior invoked when the configuration dialog apply button is
  * pressed.
+ *
+ * @param button
+ * @param user_data
  */
 void
 on_config_button_apply_clicked         (GtkButton       *button,
@@ -893,6 +891,9 @@ on_config_button_apply_clicked         (GtkButton       *button,
 /**
  * Defines the behavior invoked when the configuration dialog close button is
  * pressed.
+ *
+ * @param button
+ * @param user_data
  */
 void
 on_config_button_close_clicked         (GtkButton       *button,
@@ -903,6 +904,9 @@ on_config_button_close_clicked         (GtkButton       *button,
 
 /**
  * Defines the behavior invoked when the configuration dialog is activated.
+ *
+ * @param menuitem
+ * @param user_data
  */
 void
 on_configure_activate                 (GtkMenuItem     *menuitem,
@@ -938,14 +942,12 @@ void save_winpos()
     fprintf(save,"window_root: +%d+%dx%dx%d\n", wx, wy, w, h);
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
-
     /*
      * Iterate through all widgets whose names begin with hpaned_* and vpaned_*
      * to save the widget name and the position of the pane divider.  Widgets
      * are dynamically found and processed so long as the .glade file designer
      * adheres to the naming conventions that Glade Designer uses.
      */
-
     pane_list = glade_xml_get_widget_prefix(xml_tree, "hpaned_");
     for (list_loop = pane_list; list_loop; list_loop = g_list_next(list_loop)) {
         widget = list_loop->data;
@@ -970,6 +972,9 @@ void save_winpos()
 /**
  * Handles saving of the window positions when the Client | Save Window
  * Position menu item is activated.
+ *
+ * @param menuitem
+ * @param user_data
  */
 void
 on_save_window_position_activate       (GtkMenuItem     *menuitem,
@@ -981,6 +986,8 @@ on_save_window_position_activate       (GtkMenuItem     *menuitem,
 /**
  * Retrieves saved window positions saved with the Client | Save Window
  * Position menu item.
+ *
+ * @param window_root The client's main window.
  */
 void load_window_positions(GtkWidget *window_root)
 {

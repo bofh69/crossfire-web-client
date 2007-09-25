@@ -22,11 +22,11 @@ char *rcsid_gtk2_image_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-/*
- * This file contains image related functions - this is a higher level up -
- * it mostly deals with the caching of the images, processing the image commands
- * from the server, etc.  This file is gtk specific - at least it returns
- * gtk pixmaps.
+/**
+ * @file gtk-v2/src/image.c
+ * Contains highlevel image related functions and mostly deals with the image
+ * caching, processing the image commands from the server, etc.  It is
+ * gtk-specific as it returns gtk pixmaps.
  */
 
 #include <config.h>
@@ -59,8 +59,7 @@ char *rcsid_gtk2_image_c =
 #include "mapdata.h"
 #include "gtk2proto.h"
 
-/* In main.c */
-extern GtkWidget *window_root;
+extern GtkWidget *window_root; /**< In main.c */
 int image_size=DEFAULT_IMAGE_SIZE;
 
 struct {
@@ -76,19 +75,18 @@ PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
 int last_face_num=0;
 
-/* this is used to rescale big images that will be drawn in the inventory/look
- * lists.  What the code further below basically does is figure out how big
- * the object is (in squares), and this looks at the icon_rescale_factor
- * to figure what scale factor it gives.  Not that the icon_rescale_factor
- * values are passed directly to the rescale routines.  These represent
- * percentages - so even taking into account that the values diminish
- * as the table grows, they will still appear larger if the location
- * in the table times the factor is greater than 100.  We find
- * the largest dimension that the image has.  The values in the comment
- * is the effective scaling compared to the base image size that this
- * big image will appear as.
- * Using a table makes it easier to adjust the values so things
- * look right.
+/*
+ * this is used to rescale big images that will be drawn in the inventory/look
+ * lists.  What the code further below basically does is figure out how big the
+ * object is (in squares), and this looks at the icon_rescale_factor to figure
+ * what scale factor it gives.  Not that the icon_rescale_factor values are
+ * passed directly to the rescale routines.  These represent percentages - so
+ * even taking into account that the values diminish as the table grows, they
+ * will still appear larger if the location in the table times the factor is
+ * greater than 100.  We find the largest dimension that the image has.  The
+ * values in the comment is the effective scaling compared to the base image
+ * size that this big image will appear as.  Using a table makes it easier to
+ * adjust the values so things look right.
  */
 
 #define MAX_ICON_SPACES     10
@@ -121,7 +119,13 @@ typedef struct Keys {
 
 /*#define CHECKSUM_DEBUG*/
 
-/* These little helper functions just make the code below much more readable */
+/**
+ * Helper function to make the code more readable
+ *
+ * @param data
+ * @param pi
+ * @param pixmap_num
+ */
 static void create_icon_image(uint8 *data, PixmapInfo *pi, int pixmap_num)
 {
     pi->icon_mask = NULL;
@@ -130,7 +134,12 @@ static void create_icon_image(uint8 *data, PixmapInfo *pi, int pixmap_num)
                     LOG (LOG_ERROR,"gtk::create_icon_image","Unable to create scaled image, dest num = %d\n", pixmap_num);
 }
 
-/* These little helper functions just make the code below much more readable */
+/**
+ * Helper function to make the code more readable
+ *
+ * @param data
+ * @param pi
+ */
 static void create_map_image(uint8 *data, PixmapInfo *pi)
 {
     pi->map_image = NULL;
@@ -178,10 +187,10 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
                         0xff0000, 0xff00, 0xff);
         SDL_LockSurface(fog);
 
-        /* I think this works out, but haven't tried it on a big
-         * endian machine - my recollection is that the png data
-         * would be in the same order, just the bytes for it to go
-         * on teh screen are reversed.
+        /*
+         * I think this works out, but haven't tried it on a big endian machine
+         * as my recollection is that the png data would be in the same order,
+         * just the bytes for it to go on the screen are reversed.
          */
         for (i=0; i < pi->map_width * pi->map_height; i++) {
             l = (uint8 *) (data + i*4);
@@ -198,9 +207,10 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
         for (i=0; i < pi->map_width * pi->map_height; i+= 4) {
             uint32 *tmp;
 
-            /* The pointer arithemtic below looks suspicious, but it is a patch that
-             * is submitted, so just putting it in as submitted.
-             * MSW 2004-05-11
+            /*
+             * The pointer arithemtic below looks suspicious, but it is a patch
+             * that is submitted, so just putting it in as submitted.  MSW
+             * 2004-05-11
              */
             p = (uint32*) (fog->pixels + i);
             g = ( ((*p >> 24) & 0xff)  + ((*p >> 16) & 0xff) + ((*p >> 8) & 0xff)) / 3;
@@ -227,6 +237,11 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
     }
 }
 
+/**
+ * Memory management.
+ *
+ * @param pi
+ */
 static void free_pixmap(PixmapInfo *pi)
 {
     if (pi->icon_image) g_object_unref(pi->icon_image);
@@ -234,24 +249,26 @@ static void free_pixmap(PixmapInfo *pi)
     if (pi->map_mask) gdk_pixmap_unref(pi->map_mask);
         if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 #ifdef HAVE_SDL
-        if (pi->map_image) {
-            SDL_FreeSurface(pi->map_image);
-            free(((SDL_Surface*)pi->map_image)->pixels);
-            SDL_FreeSurface(pi->fog_image);
-            /* Minor memory leak here - SDL_FreeSurface() frees the pixel
-             * data _unless_ SDL_CreateRGBSurfaceFrom() was used to create
-             * the surface.  SDL_CreateRGBSurfaceFrom() is used to create the
-             * map data, which is why we need the free there.  The reason this
-             * is a minor memory look is because SDL_CreateRGBSurfaceFrom() is
-             * used to create the question mark image, and without this
-             * free, that data is not freed.  However, with this, client
-             * crashes after disconnecting from server with double free.
-             */
-/*          free(((SDL_Surface*)pi->fog_image)->pixels);*/
-        }
+            if (pi->map_image) {
+                SDL_FreeSurface(pi->map_image);
+                free(((SDL_Surface*)pi->map_image)->pixels);
+                SDL_FreeSurface(pi->fog_image);
+                /*
+                 * Minor memory leak here - SDL_FreeSurface() frees the pixel
+                 * data _unless_ SDL_CreateRGBSurfaceFrom() was used to create
+                 * the surface.  SDL_CreateRGBSurfaceFrom() is used to create
+                 * the map data, which is why we need the free there.  The
+                 * reason this is a minor memory leak is because
+                 * SDL_CreateRGBSurfaceFrom() is used to create the question
+                 * mark image, and without this free, that data is not freed.
+                 * However, with this, client crashes after disconnecting from
+                 * server with double free.
+                 */
+    /*          free(((SDL_Surface*)pi->fog_image)->pixels);*/
+            }
 #endif
         }
-    else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
+        else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
 #ifdef HAVE_OPENGL
             opengl_free_pixmap(pi);
 #endif
@@ -263,13 +280,19 @@ static void free_pixmap(PixmapInfo *pi)
     }
 }
 
-/* Takes the pixmap to put the data into, as well as the rgba
- * data (ie, already loaded with png_to_data).  Scales and
- * stores the relevant data into the pixmap structure.
- * returns 1 on failure.
- * ce can be NULL
+/**
+ * Takes the pixmap to put the data into, as well as the rgba data (ie, already
+ * loaded with png_to_data).  Scales and stores the relevant data into the
+ * pixmap structure.
+ *
+ * @param ce can be NULL
+ * @param pixmap_num
+ * @param rgba_data
+ * @param width
+ * @param height
+ *
+ * @return 1 on failure.
  */
-
 int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height)
 {
     int nx, ny, iscale, factor;
@@ -289,7 +312,10 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 
     iscale = use_config[CONFIG_ICONSCALE];
 
-    /* If the image is big, figure out what we should scale it to so it fits better display */
+    /*
+     * If the image is big, figure out what we should scale it to so it fits
+     * better display
+     */
     if (width > DEFAULT_IMAGE_SIZE || height>DEFAULT_IMAGE_SIZE) {
         int ts = 100;
 
@@ -303,7 +329,6 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
 
         iscale = ts * use_config[CONFIG_ICONSCALE] / 100;
     }
-
 
     /* In all cases, the icon images are in native form. */
     if (iscale != 100) {
@@ -321,9 +346,10 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
         create_icon_image(rgba_data, pi, pixmap_num);
     }
 
-    /* We could try to be more intelligent if icon_scale matched use_config[CONFIG_MAPSCALE],
-     * but this shouldn't be called too often, and this keeps the code
-     * simpler.
+    /*
+     * If icon_scale matched use_config[CONFIG_MAPSCALE], we could try to be
+     * more intelligent, but this should not be called too often, and this
+     * keeps the code simpler.
      */
     if (use_config[CONFIG_MAPSCALE] != 100) {
         nx=width;
@@ -332,17 +358,18 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
         pi->map_width = nx;
         pi->map_height = ny;
         create_map_image(png_tmp, pi);
-        /* pixmap mode and opengl don't need the rgba data after they have
-         * created the image, so we can free it.  SDL uses the
-         * raw rgba data, so it can't be freed.
+        /*
+         * pixmap mode and opengl don't need the rgba data after they have
+         * created the image, so we can free it.  SDL uses the raw rgba data,
+         * so it can't be freed.
          */
         if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP ||
             use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) free(png_tmp);
     } else {
         pi->map_width = width;
         pi->map_height = height;
-        /* if using SDL mode, a copy of the rgba data needs to be
-         * stored away.
+        /*
+         * If using SDL mode, a copy of the rgba data needs to be stored away.
          */
         if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
             png_tmp = malloc(width * height * BPP);
@@ -351,9 +378,10 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
             png_tmp = rgba_data;
         create_map_image(png_tmp, pi);
     }
-    /* Not ideal, but basically, if it is missing the map or icon image, presume
-     * something failed.  However, opengl doesn't set the map_image, so if using
-     * that display mode, don't make this check.
+    /*
+     * Not ideal, but if it is missing the map or icon image, presume something
+     * failed.  However, opengl doesn't set the map_image, so if using that
+     * display mode, don't make this check.
      */
     if (!pi->icon_image || (!pi->map_image && use_config[CONFIG_DISPLAYMODE]!=CFG_DM_OPENGL)) {
         free_pixmap(pi);
@@ -367,65 +395,74 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     return 0;
 }
 
+/**
+ * Referenced from common/commands.c
+ *
+ * @param face
+ * @param smooth_face
+ */
 void addsmooth(uint16 face, uint16 smooth_face)
 {
     pixmaps[face]->smooth_face = smooth_face;
 }
 
-/* This functions associates the image_data in the cache entry
- * with the specific pixmap number.  Returns 0 on success, -1
- * on failure.  Currently, there is no failure condition, but
- * there is the potential that in the future, we want to more
- * closely look at the data and if it isn't valid, return
- * the failure code.
+/**
+ * This functions associates image_data in the cache entry with the specific
+ * pixmap number.  Currently, there is no failure condition, but there is the
+ * potential that in the future, we want to more closely look at the data and
+ * if it isn't valid, return the failure code.
+ *
+ * @return 0 on success, -1 on failure.
  */
 int associate_cache_entry(Cache_Entry *ce, int pixnum)
 {
-
     pixmaps[pixnum] = ce->image_data;
     return 0;
 }
 
-/* We can now connect to different servers, so we need to clear out
- * any old images.  We try to free the data also to prevent memory
- * leaks.
- * This could be more clever, ie, if we're caching images and go to
- * a new server and get a name, we should try to re-arrange our cache
- * or the like.
+/**
+ * Connecting to different servers, try to clear out any old images.  Try to
+ * free the data to prevent memory leaks.  This could be more clever, ie, if
+ * we're caching images and go to a new server and get a name, we should try to
+ * re-arrange our cache or the like.
  */
-
 void reset_image_data()
 {
     int i;
-    reset_image_cache_data();
 
-    /* The entries in the pixmaps array are also tracked in the image cache in
-     * the common area.  We will try to recyle those images that we can - thus, if
-     * we connect to a new server, we can just re-use the images we have already
-     * rendered.
+    reset_image_cache_data();
+    /*
+     * The entries in the pixmaps array are also tracked in the image cache in
+     * the common area.  We will try to recycle those images that we can.
+     * Thus, if we connect to a new server, we can just re-use the images we
+     * have already rendered.
      */
     for (i=1; i<MAXPIXMAPNUM; i++) {
         if (!want_config[CONFIG_CACHE] && pixmaps[i] != pixmaps[0]) {
             free_pixmap(pixmaps[i]);
             free(pixmaps[i]);
-        pixmaps[i] = pixmaps[0];
-    }
+            pixmaps[i] = pixmaps[0];
+        }
     }
 }
 
-
-/* This function draws a little status bar showing where we our
- * in terms of downloading all the image data.
- * start is the start value just sent to the server, end is the end
- * value.  total is the total number of images.
- * A few hacks:
- * If start is 1, this is the first batch, so it means we need to
- * create the appropriate status window.
- * if start = end = total, it means were finished, so destroy
- * the gui element.
- */
-static GtkWidget        *pbar=NULL, *pbar_window=NULL;
+static GtkWidget     *pbar=NULL, *pbar_window=NULL;
 static GtkAdjustment *padj=NULL;
+
+/**
+ * Draws a status bar showing where we our in terms of downloading all the
+ * image data. A few hacks:
+ * If start is 1, this is the first batch, so it means we need to create the
+ * appropriate status window.
+ * If start = end = total, it means were finished, so destroy the gui element.
+ *
+ * @param pbar
+ * @param pbar_window
+ * @param padj
+ * @param start The start value just sent to the server.
+ * @param end
+ * @param total The total number of images.
+ */
 void image_update_download_status(int start, int end, int total)
 {
     int x, y, wx, wy, w, h;
@@ -442,8 +479,10 @@ void image_update_download_status(int start, int end, int total)
         pbar_window = gtk_window_new(GTK_WINDOW_POPUP);
         gtk_window_set_policy(GTK_WINDOW(pbar_window), TRUE, TRUE, FALSE);
         gtk_window_set_transient_for(GTK_WINDOW(pbar_window), GTK_WINDOW (window_root));
-        /* we more or less want this window centered on the main crossfire window,
-         * and not necessarily centered on the screen or in the upper left corner.
+        /*
+         * We more or less want this window centered on the main crossfire
+         * window, and not necessarily centered on the screen or in the upper
+         * left corner.
          */
         gtk_widget_set_uposition(pbar_window, (wx + w)/2, (wy + h) / 2);
 
@@ -463,9 +502,14 @@ void image_update_download_status(int start, int end, int total)
     while ( gtk_events_pending() ) {
         gtk_main_iteration();
     }
-
 }
 
+/**
+ *
+ * @param face
+ * @param w
+ * @param h
+ */
 void get_map_image_size(int face, uint8 *w, uint8 *h)
 {
     /* We want to calculate the number of spaces this image
@@ -490,7 +534,9 @@ void get_map_image_size(int face, uint8 *w, uint8 *h)
  *
  *****************************************************************************/
 
-/* Initializes the data for image caching */
+/**
+ * Initializes the data for image caching
+ */
 void init_cache_data()
 {
     int i;
@@ -508,8 +554,9 @@ void init_cache_data()
                                                         (gchar **)question);
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
-        /* make a semi transparent question mark symbol to
-         * use for the cached images.
+        /*
+         * Make a semi-transparent question mark symbol to use for the cached
+         * images.
          */
 #include "../../pixmaps/question.sdl"
         pixmaps[0]->map_image = SDL_CreateRGBSurfaceFrom(question_sdl,
@@ -547,3 +594,4 @@ void init_cache_data()
 
     init_common_cache_data();
 }
+
