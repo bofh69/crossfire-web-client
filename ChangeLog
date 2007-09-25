@@ -6,10 +6,12 @@ gtk-v2/src/info.c
 gtk-v2/src/inventory.c
 gtk-v2/src/keys.c
 gtk-v2/src/magicmap.c
+gtk-v2/src/main.c
   - Spelling/grammar fixes.
   - Doxygen commenting work.
   - Some indentation adjustments.
   - Reformat block comments to use 79 columns.
+  - else block structures changed to comply with project coding standards.
 Kevin Bulgrien 2007-09-25
 
 gtk-v2/src/about.c
