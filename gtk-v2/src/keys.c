@@ -22,9 +22,10 @@ char *rcsid_gtk2_keys_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-/* This file handles most of the keyboard related functions - binding
- * and unbinding keys, and handling keypresses and looking up the
- * keys.
+/**
+ * @file gtk-v2/src/keys.c
+ * Handles most of the keyboard related functions - binding and unbinding keys,
+ * and handling keypresses and looking up the keys.
  */
 
 #include <config.h>
@@ -33,8 +34,6 @@ char *rcsid_gtk2_keys_c =
 #ifndef WIN32
 #include <unistd.h>
 #endif
-
-
 
 /* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
@@ -104,7 +103,6 @@ typedef struct Keys {
  *
  ***********************************************************************/
 
-
 static uint32 firekeysym[2], runkeysym[2], commandkeysym, *bind_keysym,
     prevkeysym, nextkeysym, completekeysym, altkeysym[2], metakeysym[2];
 static int bind_flags=0;
@@ -123,23 +121,24 @@ static char bind_buf[MAX_BUF];
 
 extern char *directions[9];
 
-/* Platform independence defines that we can't use keycodes.
- * instead, make it a hash, and set KEYHASH to a prime number for
- * this purpose.
+/*
+ * Platform independence defines that we can't use keycodes.  instead, make it
+ * a hash, and set KEYHASH to a prime number for this purpose.
  */
 #define KEYHASH 257
 static Key_Entry *keys[KEYHASH];
 
-
-
-/* Updates the keys array with the keybinding that is passed.  All the
- * arguments are pretty self explanatory.  flags is the various state
- * that the keyboard is in.
- * This function is common to both gdk and x11 client
+/**
+ * Updates the keys array with the keybinding that is passed.  All the
+ * arguments are pretty self explanatory. This function is common to both gdk
+ * and x11 client.
+ *
+ * @param keysym
+ * @param flags The various state that the keyboard is in.
+ * @param command
  */
 static void insert_key(uint32 keysym, int flags, const char *command)
 {
-
     Key_Entry *newkey;
     int i, direction=-1, slot;
 
@@ -158,9 +157,9 @@ static void insert_key(uint32 keysym, int flags, const char *command)
         newkey = newkey->next;
     }
 
-    /* Try to find out if the command is a direction command.  If so, we
-     * then want to keep track of this fact, so in fire or run mode,
-     * things work correctly.
+    /*
+     * Try to find out if the command is a direction command.  If so, keep
+     * track of this fact, so in fire or run mode, things work correctly.
      */
     for (i=0; i<9; i++)
         if (!strcmp(command, directions[i])) {
@@ -174,16 +173,24 @@ static void insert_key(uint32 keysym, int flags, const char *command)
     newkey->direction = direction;
 }
 
-
-/* This function is common to both gdk and x11 client */
-
+/**
+ * This function is common to both gdk and x11 client
+ *
+ * @param buf
+ * @param line
+ * @param standard
+ */
 static void parse_keybind_line(char *buf, int line, int standard)
 {
     char *cp, *cpnext;
     uint32 keysym;
     int flags;
 
-    cp = NULL; /* There may be a rare error case when cp is used uninitialized. So let's be safe */
+    /*
+     * There may be a rare error case when cp is used uninitialized. So let's
+     * be safe
+     */
+    cp = NULL;
 
     if (buf[0]=='#' || buf[0]=='\n') return;
     if ((cpnext = strchr(buf,' '))==NULL) {
@@ -328,7 +335,9 @@ static void parse_keybind_line(char *buf, int line, int standard)
     } /* else if not special binding line */
 }
 
-/* This code is common to both x11 and gdk client */
+/**
+ * This code is common to both x11 and gdk client
+ */
 static void init_default_keybindings(void)
 {
     char buf[MAX_BUF];
@@ -340,12 +349,12 @@ static void init_default_keybindings(void)
     }
 }
 
-
-/* This reads in the keybindings, and initializes any special values.
- * called by init_windows.
+/**
+ * This reads in the keybindings, and initializes any special values.  Called
+ * by init_windows. This function is common to both x11 and gdk client
+ *
+ * @param window_root The client's main window.
  */
-/* This function is common to both x11 and gdk client */
-
 void keys_init(GtkWidget *window_root)
 {
     int i, line=0;
@@ -371,10 +380,11 @@ void keys_init(GtkWidget *window_root)
 
     completekeysym = GDK_Tab;
 
-    /* Don't set these to anything by default.  At least on sun
-     * keyboards, the keysym for up on both the keypad and arrow
-     * keys is the same, so player needs to rebind this so we get proper
-     * keycode.  Very unfriendly to log in and not be able to move north/south.
+    /*
+     * Don't set these to anything by default.  At least on sun keyboards, the
+     * keysym for up on both the keypad and arrow keys is the same, so player
+     * needs to rebind this so we get proper keycode.  Very unfriendly to log
+     * in and not be able to move north/south.
      */
     nextkeysym = NoSymbol;
     prevkeysym = NoSymbol;
@@ -383,20 +393,20 @@ void keys_init(GtkWidget *window_root)
         keys[i] = NULL;
     }
 
-    /* We now try to load the keybindings.  First place to look is the
-     * users home directory, "~/.crossfire/keys".  Using a directory
-     * seems like a good idea, in the future, additional stuff may be
-     * stored.
+    /*
+     * We now try to load the keybindings.  First place to look is the users
+     * home directory, "~/.crossfire/keys".  Using a directory seems like a
+     * good idea, in the future, additional stuff may be stored.
      *
-     * The format is described in the def_keys file.  Note that this file
-     * is the same as what it was in the server distribution.  To convert
-     * bindings in character files to this format, all that needs to be done
-     * is remove the 'key ' at the start of each line.
+     * The format is described in the def_keys file.  Note that this file is
+     * the same as what it was in the server distribution.  To convert bindings
+     * in character files to this format, all that needs to be done is remove
+     * the 'key ' at the start of each line.
      *
-     * We need at least one of these keybinding files to exist - this is
-     * where the various commands are defined.  In theory, we actually
-     * don't need to have any of these defined -- the player could just
-     * bind everything.  Probably not a good idea, however.
+     * We need at least one of these keybinding files to exist - this is where
+     * the various commands are defined.  In theory, we actually don't need to
+     * have any of these defined -- the player could just bind everything.
+     * Probably not a good idea, however.
      */
 
 #ifdef WIN32
@@ -508,7 +518,6 @@ void keys_init(GtkWidget *window_root)
                                              KLIST_KEY,
                                              GTK_SORT_ASCENDING);
 
-
     if ((fp=fopen(buf,"r"))==NULL) {
         LOG(LOG_INFO,"gtk::init_keys","Could not open ~/.crossfire/keys, trying to load global bindings");
         if (client_libdir==NULL) {
@@ -527,28 +536,27 @@ void keys_init(GtkWidget *window_root)
         parse_keybind_line(buf,line,0);
     }
     fclose(fp);
-
 }
 
-/* The only things we actually care about is the run and fire keys.
- * Other key releases are not important.
- * If it is the release of a run or fire key, we tell the client
- * to stop firing or running.  In some cases, it is possible that we
- * actually are not running or firing, and in such cases, the server
+/**
+ * The only things we actually care about is the run and fire keys.  Other key
+ * releases are not important.  If it is the release of a run or fire key, we
+ * tell the client to stop firing or running.  In some cases, it is possible
+ * that we actually are not running or firing, and in such cases, the server
  * will just ignore the command.
- */
-
-/* This code is used by gdk and x11 client, but has
- *  a fair number of #ifdefs to get the right
- * behavioiur
+ *
+ * This code is used by gdk and x11 client, but has a fair number of ifdefs to
+ * get the right behavior.
+ *
+ * @param ks
  */
 static void parse_key_release(uint32 ks) {
 
-    /* Only send stop firing/running commands if we are in actual
-     * play mode.  Something smart does need to be done when the character
-     * enters a non play mode with fire or run mode already set, however.
+    /*
+     * Only send stop firing/running commands if we are in actual play mode.
+     * Something smart does need to be done when the character enters a non
+     * play mode with fire or run mode already set, however.
      */
-
     if (ks==firekeysym[0] || ks==firekeysym[1]) {
         cpl.fire_on=0;
         clear_fire();
@@ -566,18 +574,20 @@ static void parse_key_release(uint32 ks) {
     else if (ks==metakeysym[0] || ks==metakeysym[1]) {
         cpl.meta_on=0;
     }
-
-
-    /* Firing is handled on server side.  However, to keep more like the
-     * old version, if you release the direction key, you want the firing
-     * to stop.  This should do that.
+    /*
+     * Firing is handled on server side.  However, to keep more like the old
+     * version, if you release the direction key, you want the firing to stop.
+     * This should do that.
      */
     else if (cpl.fire_on)
         clear_fire();
 }
 
-/* This parses a keypress.  It should only be called when in Playing
- * mode.
+/**
+ * Parses a keypress.  It should only be called when in Playing mode.
+ *
+ * @param key
+ * @param keysym
  */
 static void parse_key(char key, uint32 keysym)
 {
@@ -687,11 +697,13 @@ static void parse_key(char key, uint32 keysym)
     cpl.count=0;
 }
 
-
-/* This returns a character string desribing the key. */
-/* If save_mode is true, it means that the format used for saving
- * the information is used, instead of the usual format for displaying
- * the information in a friendly manner.
+/**
+ *
+ * @param key
+ * @param save_mode If true, it means that the format used for saving the
+ * information is used, instead of the usual format for displaying the
+ * information in a friendly manner.
+ * @return A character string describing the key.
  */
 static char * get_key_info(Key_Entry *key, int save_mode)
 {
@@ -748,57 +760,57 @@ static char * get_key_info(Key_Entry *key, int save_mode)
     return buf;
 }
 
-/* Shows all the keybindings.  allbindings me we also show the standard
- * (default) keybindings.
+/**
+ * Shows all the keybindings.
+ *
+ * @param allbindings Also shows the standard (default) keybindings.
  */
-
 static void show_keys(int allbindings)
 {
     int i, count=1;
     Key_Entry *key;
     char buf[MAX_BUF];
 
-  sprintf(buf, "Commandkey %s",
-          commandkeysym==NoSymbol?"unknown":gdk_keyval_name(commandkeysym));
-  draw_info(buf,NDI_BLACK);
+    sprintf(buf, "Commandkey %s",
+            commandkeysym==NoSymbol?"unknown":gdk_keyval_name(commandkeysym));
+    draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Firekeys 1: %s, 2: %s",
-          firekeysym[0]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[0]),
-          firekeysym[1]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[1]));
-  draw_info(buf,NDI_BLACK);
+    sprintf(buf, "Firekeys 1: %s, 2: %s",
+            firekeysym[0]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[0]),
+            firekeysym[1]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[1]));
+    draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Altkeys 1: %s, 2: %s",
-          altkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[0]),
-          altkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[1]));
-  draw_info(buf,NDI_BLACK);
+    sprintf(buf, "Altkeys 1: %s, 2: %s",
+            altkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[0]),
+            altkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[1]));
+    draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Metakeys 1: %s, 2: %s",
-          metakeysym[0]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[0]),
-          metakeysym[1]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[1]));
-  draw_info(buf,NDI_BLACK);
+    sprintf(buf, "Metakeys 1: %s, 2: %s",
+            metakeysym[0]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[0]),
+            metakeysym[1]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[1]));
+    draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Runkeys 1: %s, 2: %s",
-          runkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[0]),
-          runkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[1]));
-  draw_info(buf,NDI_BLACK);
+    sprintf(buf, "Runkeys 1: %s, 2: %s",
+            runkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[0]),
+            runkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[1]));
+    draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Command Completion Key %s",
-          completekeysym==NoSymbol?"unknown":gdk_keyval_name(completekeysym));
-  draw_info(buf,NDI_BLACK);
+    sprintf(buf, "Command Completion Key %s",
+            completekeysym==NoSymbol?"unknown":gdk_keyval_name(completekeysym));
+    draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Next Command in History Key %s",
-          nextkeysym==NoSymbol?"unknown":gdk_keyval_name(nextkeysym));
-  draw_info(buf,NDI_BLACK);
+    sprintf(buf, "Next Command in History Key %s",
+            nextkeysym==NoSymbol?"unknown":gdk_keyval_name(nextkeysym));
+    draw_info(buf,NDI_BLACK);
 
-  sprintf(buf, "Previous Command in History Key %s",
-          prevkeysym==NoSymbol?"unknown":gdk_keyval_name(prevkeysym));
-  draw_info(buf,NDI_BLACK);
+    sprintf(buf, "Previous Command in History Key %s",
+            prevkeysym==NoSymbol?"unknown":gdk_keyval_name(prevkeysym));
+    draw_info(buf,NDI_BLACK);
 
-
-  /* Perhaps we should start at 8, so that we only show 'active'
-   * keybindings?
-   */
-  for (i=0; i<KEYHASH; i++) {
+    /*
+     * Perhaps we should start at 8, so that we only show 'active' keybindings?
+     */
+    for (i=0; i<KEYHASH; i++) {
         for (key=keys[i]; key!=NULL; key =key->next) {
             if (key->flags & KEYF_STANDARD && !allbindings) continue;
 
@@ -806,11 +818,13 @@ static void show_keys(int allbindings)
             draw_info(buf,NDI_BLACK);
             count++;
         }
-  }
+    }
 }
 
-
-
+/**
+ *
+ * @param params
+ */
 void bind_key(char *params)
 {
     char buf[MAX_BUF + 16];
@@ -959,14 +973,16 @@ void bind_key(char *params)
     return;
 }
 
-
-/* This is a recursive function that saves all the entries for a particular
- * entry.  We save the first element first, and then go through
- * and save the rest of the elements.  In this way, the ordering of the key
- * entries in the
- * file remains the same.
+/**
+ * A recursive function that saves all the entries for a particular entry.  We
+ * save the first element first, and then go through and save the rest of the
+ * elements.  In this way, the ordering of the key entries in the file remains
+ * the same.
+ *
+ * @param fp
+ * @param key
+ * @param kc
  */
-
 static void save_individual_key(FILE *fp, Key_Entry *key, KeyCode kc)
 {
     if (key==NULL) return;
@@ -974,6 +990,9 @@ static void save_individual_key(FILE *fp, Key_Entry *key, KeyCode kc)
     save_individual_key(fp, key->next, kc);
 }
 
+/**
+ *
+ */
 static void save_keys(void)
 {
     char buf[MAX_BUF], buf2[MAX_BUF];
@@ -1057,14 +1076,19 @@ static void save_keys(void)
     draw_info("key bindings successfully saved.",NDI_BLACK);
 }
 
+/**
+ *
+ * @param keysym
+ */
 static void configure_keys(uint32 keysym)
 {
     char buf[MAX_BUF];
     Key_Entry *keyentry, *first_match=NULL;
 
-    /* I think that basically if we are not rebinding the special
-     * control keys (in which case bind_kesym would be set to something)
-     * we just want to handle these keypresses as normal events.
+    /*
+     * I think that basically if we are not rebinding the special control keys
+     * (in which case bind_kesym would be set to something) we just want to
+     * handle these keypresses as normal events.
      */
     if (bind_keysym==NULL) {
         if(keysym == altkeysym[0] || keysym == altkeysym[1]) {
@@ -1087,11 +1111,11 @@ static void configure_keys(uint32 keysym)
         }
     }
     cpl.input_state = Playing;
-    /* Try to be clever - take into account shift/control keys being
-     * held down when binding keys - in this way, player does not have to use
-     * -f and -r flags to bind for many simple binds.
+    /*
+     * Try to be clever - take into account shift/control keys being held down
+     * when binding keys - in this way, player does not have to use -f and -r
+     * flags to bind for many simple binds.
      */
-
     if ((cpl.fire_on || cpl.run_on || cpl.meta_on || cpl.alt_on) &&
       (bind_flags & KEYF_MODIFIERS)==KEYF_MODIFIERS) {
         bind_flags &= ~KEYF_MODIFIERS;
@@ -1137,14 +1161,18 @@ static void configure_keys(uint32 keysym)
     cpl.run_on=0;
     draw_message_window(0);
 
-    /* Do this each time a new key is bound.  This way, we are never actually
-     * storing any information that needs to be saved when the connection
-     * dies or the player quits.
+    /*
+     * Do this each time a new key is bound.  This way, we are never actually
+     * storing any information that needs to be saved when the connection dies
+     * or the player quits.
      */
     save_keys();
     return;
 }
 
+/**
+ *
+ */
 static void unbind_usage(void)
 {
     draw_info("Usage: unbind <entry_number> or",NDI_BLACK);
@@ -1153,6 +1181,10 @@ static void unbind_usage(void)
     draw_info("    -g unbinds a global binding", NDI_BLACK);
 }
 
+/**
+ *
+ * @param params
+ */
 void unbind_key(char *params)
 {
     int count=0, keyentry, onkey,global=0;
@@ -1194,8 +1226,9 @@ void unbind_key(char *params)
                     keys[onkey] = key->next;
                     goto unbinded;
                 }
-                /* Otherwise, we need to figure out where in the link list
-                 * the entry is.
+                /*
+                 * Otherwise, we need to figure out where in the link list the
+                 * entry is.
                  */
                 for (tmp=keys[onkey]; tmp->next!=NULL; tmp=tmp->next) {
                     if (tmp->next == key) {
@@ -1211,13 +1244,10 @@ void unbind_key(char *params)
     draw_info("",NDI_BLACK);
     draw_info("No such entry. Try 'unbind' with no options to find entry.",NDI_BLACK);
     return;
-
     /*
      * Found. Now remove it.
      */
-
 unbinded:
-
     sprintf(buf,"Removed binding: %3d %s", count, get_key_info(key,0));
 
     draw_info(buf,NDI_BLACK);
@@ -1226,6 +1256,12 @@ unbinded:
     save_keys();
 }
 
+/**
+ *
+ * @param widget
+ * @param event
+ * @param window
+ */
 void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
 {
 
@@ -1235,7 +1271,12 @@ void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
     }
 }
 
-
+/**
+ *
+ * @param widget
+ * @param event
+ * @param window
+ */
 void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     char *text;
 
@@ -1267,9 +1308,10 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     } else {
         switch(cpl.input_state) {
             case Playing:
-                /* Specials - do command history - many times, the player
-                 * will want to go the previous command when nothing is entered
-                 * in the command window.
+                /*
+                 * Specials - do command history - many times, the player will
+                 * want to go the previous command when nothing is entered in
+                 * the command window.
                  */
                 if (event->keyval == prevkeysym || event->keyval == nextkeysym) {
                     gtk_command_history(event->keyval==nextkeysym?0:1);
@@ -1298,7 +1340,6 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                     reset_map();
                 }
 
-
                 parse_key(event->string[0], event->keyval);
                 gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
                 break;
@@ -1314,16 +1355,17 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                 gtk_command_history(event->keyval==nextkeysym?0:1);
                 else {
                     gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
-                    /* When running in split windows mode, entry_commands can't get focus because
-                     * it is in a different window.  So we have to pass the event to it
-                     * explicitly
+                    /*
+                     * When running in split windows mode, entry_commands can't
+                     * get focus because it is in a different window.  So we
+                     * have to pass the event to it explicitly
                      */
                     if (GTK_WIDGET_HAS_FOCUS(entry_commands)==0)
                         gtk_widget_event(GTK_WIDGET(entry_commands), (GdkEvent*)event);
                 }
                 /*
-                 * Don't pass signal along to default handlers - otherwise, we get
-                 * get crashes in the clist area (gtk fault I believe)
+                 * Don't pass signal along to default handlers - otherwise, we
+                 * get get crashes in the clist area (gtk fault I believe)
                  */
                 gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_press_event") ;
                 break;
@@ -1335,12 +1377,13 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
             default:
                 LOG(LOG_ERROR,"gtk::keyfunc","Unknown input state: %d", cpl.input_state);
         }
-
     }
 }
 
-
-
+/**
+ *
+ * @param keylist
+ */
 void draw_keybindings (GtkWidget *keylist) {
     int i, count=1;
     Key_Entry *key;
@@ -1397,22 +1440,30 @@ void draw_keybindings (GtkWidget *keylist) {
     }
 }
 
-void x_set_echo() {
+/**
+ *
+ */
+void x_set_echo()
+{
     gtk_entry_set_visibility(GTK_ENTRY(entry_commands), !cpl.no_echo);
 }
 
-/* Draws a prompt.  Don't deal with popups for the time being. */
+/**
+ * Draws a prompt.  Don't deal with popups for the time being.
+ *
+ * @param str
+ */
 void draw_prompt(const char *str)
 {
     draw_info(str, NDI_WHITE);
     gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
 }
 
-
-/* Deals with command history.  if direction is 0, we are going backwards,
- * if 1, we are moving forward.
+/**
+ * Deals with command history.
+ *
+ * @param direction If 0, we are going backwards, if 1, we are moving forward.
  */
-
 void gtk_command_history(int direction)
 {
     int i=scroll_history_position;
@@ -1424,7 +1475,10 @@ void gtk_command_history(int direction)
         i++;
         if (i>=MAX_HISTORY) i = 0;
         if (i == cur_history_position) {
-            /* User has forwarded to what should be current entry - reset it now. */
+            /*
+             * User has forwarded to what should be current entry - reset it
+             * now.
+             */
             gtk_entry_set_text(GTK_ENTRY(entry_commands), "");
             gtk_entry_set_position(GTK_ENTRY(entry_commands), 0);
             scroll_history_position=cur_history_position;
@@ -1435,7 +1489,7 @@ void gtk_command_history(int direction)
     if (history[i][0] == 0) return;
 
     scroll_history_position=i;
-/*    fprintf(stderr,"resetting postion to %d, data = %s\n", i, history[i]);*/
+/*  fprintf(stderr,"resetting postion to %d, data = %s\n", i, history[i]);*/
     gtk_entry_set_text(GTK_ENTRY(entry_commands), history[i]);
     gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
     gtk_editable_select_region(GTK_EDITABLE(entry_commands), 0, 0);
@@ -1444,6 +1498,9 @@ void gtk_command_history(int direction)
     cpl.input_state = Command_Mode;
 }
 
+/**
+ *
+ */
 void gtk_complete_command()
 {
     const gchar *entry_text, *newcommand;
@@ -1459,6 +1516,11 @@ void gtk_complete_command()
     }
 }
 
+/**
+ *
+ * @param entry
+ * @param user_data
+ */
 void
 on_entry_commands_activate             (GtkEntry        *entry,
                                         gpointer         user_data)
@@ -1496,20 +1558,20 @@ on_entry_commands_activate             (GtkEntry        *entry,
     }
     gtk_entry_set_text(GTK_ENTRY(entry),"");
 
-    /* This grab fous is really just so the entry box doesn't have
-     * focus - this way, keypresses are used to play the game, and
-     * not as stuff that goes into the entry box.
-     * it doesn't make much difference what widget this is set
-     * to, as long as it is something that can get focus.
+    /*
+     * This grab focus is really just so the entry box doesn't have focus -
+     * this way, keypresses are used to play the game, and not as stuff that
+     * goes into the entry box.  It doesn't make much difference what widget
+     * this is set to, as long as it is something that can get focus.
      */
     gtk_widget_grab_focus (GTK_WIDGET(treeview_look));
 
     if( cpl.input_state == Metaserver_Select)
     {
         cpl.input_state= Playing;
-        /* This is the gtk_main that is started up by get_metaserver
-         * The client will start another one once it is connected
-         * to a crossfire server
+        /*
+         * This is the gtk_main that is started up by get_metaserver The client
+         * will start another one once it is connected to a crossfire server
          */
         gtk_main_quit();
     }
@@ -1519,13 +1581,15 @@ on_entry_commands_activate             (GtkEntry        *entry,
  * Code below here handles the keybinding window.
  ****************************************************************************/
 
+/**
+ *
+ */
 void update_keybinding_list()
 {
     int i, allbindings=0;
     Key_Entry *key;
     char    modifier_buf[256];
     GtkTreeIter iter;
-
 
     gtk_list_store_clear(keybinding_store);
 
@@ -1556,8 +1620,12 @@ void update_keybinding_list()
     reset_keybinding_status();
 }
 
-
-/* Menubar item to activate keybindings window */
+/**
+ * Menubar item to activate keybindings window
+ *
+ * @param menuitem
+ * @param user_data
+ */
 void
 on_keybindings_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
@@ -1568,27 +1636,33 @@ on_keybindings_activate                (GtkMenuItem     *menuitem,
 
 }
 
-
+/**
+ *
+ * @param widget
+ * @param event
+ * @param user_data
+ * @return TRUE (Returning TRUE prevents widget from getting this event.)
+ */
 gboolean
 on_keybinding_entry_key_key_press_event
                                         (GtkWidget       *widget,
                                         GdkEventKey     *event,
                                         gpointer         user_data)
 {
-
     gtk_entry_set_text (GTK_ENTRY(keybinding_entry_key),  gdk_keyval_name(event->keyval));
 
-    /* This code is basically taken from the GTKv1 client.  However, at some
-     * level it is broken, since the control/shift/etc masks are hardcoded,
-     * yet we do let the users redefine them.
-     */
-
-    /* The clearing of the modifiers is disabled.  In my basic testing, I checked
-     * the modifiers and then pressed the key - have those modifiers go away I think
-     * is less intuitive.
+    /*
+     * This code is basically taken from the GTKv1 client.  However, at some
+     * level it is broken, since the control/shift/etc masks are hardcoded, yet
+     * we do let the users redefine them.
+     *
+     * The clearing of the modifiers is disabled.  In my basic testing, I
+     * checked the modifiers and then pressed the key - have those modifiers go
+     * away I think is less intuitive.
      */
     if (event->state & GDK_CONTROL_MASK)
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), TRUE);
+
 #if 0
     else
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), FALSE);
@@ -1596,6 +1670,7 @@ on_keybinding_entry_key_key_press_event
 
     if (event->state & GDK_SHIFT_MASK)
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), TRUE);
+
 #if 0
     else
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), FALSE);
@@ -1611,7 +1686,11 @@ on_keybinding_entry_key_key_press_event
     return TRUE;
 }
 
-
+/**
+ *
+ * @param button
+ * @param user_data
+ */
 void
 on_keybinding_button_remove_clicked    (GtkButton       *button,
                                         gpointer         user_data)
@@ -1629,16 +1708,17 @@ on_keybinding_button_remove_clicked    (GtkButton       *button,
     for (onkey=0; onkey<KEYHASH; onkey++) {
         for (key=keys[onkey]; key; key =key->next) {
             if (key == entry) {
-
-                /* This code is directly from unbind_key() above */
-
-                /* If it is the first entry, it is easy */
+                /*
+                 * This code is directly from unbind_key() above If it is the
+                 * first entry, it is easy
+                 */
                 if (key == keys[onkey]) {
                     keys[onkey] = key->next;
                     goto unbinded;
                 }
-                /* Otherwise, we need to figure out where in the link list
-                 * the entry is.
+                /*
+                 * Otherwise, we need to figure out where in the link list the
+                 * entry is.
                  */
                 for (tmp=keys[onkey]; tmp->next!=NULL; tmp=tmp->next) {
                     if (tmp->next == key) {
@@ -1656,12 +1736,16 @@ unbinded:
     free(key);
     save_keys();
     update_keybinding_list();
-
 }
 
-/* This function gets the state information from what checkboxes and
- * other data in the window and puts it in the variables passed
- * passed.  This is used by both the update and add functions.
+/**
+ * Gets the state information from what checkboxes and other data in the window
+ * and puts it in the variables passed passed.  This is used by both the update
+ * and add functions.
+ *
+ * @param keysym
+ * @param flags
+ * @param command
  */
 static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **command)
 {
@@ -1699,7 +1783,8 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
         *command = ed;
     }
 
-    /* This isn't ideal - when the key is pressed, we convert it to a string,
+    /*
+     * This isn't ideal - when the key is pressed, we convert it to a string,
      * and now we are converting it back.  It'd be nice to tuck the keysym
      * itself away someplace.
      */
@@ -1709,7 +1794,11 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
     }
 }
 
-
+/**
+ *
+ * @param button
+ * @param user_data
+ */
 void
 on_keybinding_button_bind_clicked      (GtkButton       *button,
                                         gpointer         user_data)
@@ -1723,7 +1812,8 @@ on_keybinding_button_bind_clicked      (GtkButton       *button,
     /* insert_key will do a strdup of command for us */
     insert_key(keysym, flags, command);
 
-    /* I think it is more appropriate to clear the fields once the user adds
+    /*
+     * I think it is more appropriate to clear the fields once the user adds
      * it.  I suppose the ideal case would be to select the newly inserted
      * keybinding.
      */
@@ -1732,8 +1822,11 @@ on_keybinding_button_bind_clicked      (GtkButton       *button,
     save_keys();
 }
 
-
-
+/**
+ *
+ * @param button
+ * @param user_data
+ */
 void
 on_keybinding_button_update_clicked    (GtkButton       *button,
                                         gpointer         user_data)
@@ -1760,7 +1853,11 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
     }
 }
 
-
+/**
+ *
+ * @param button
+ * @param user_data
+ */
 void
 on_keybinding_button_close_clicked     (GtkButton       *button,
                                         gpointer         user_data)
@@ -1768,12 +1865,18 @@ on_keybinding_button_close_clicked     (GtkButton       *button,
     gtk_widget_hide(keybinding_window);
 }
 
-
-
-/* This function is called when the user clicks on one of the
- * entries in the list of keybindings.  When that happens, we
- * want to update the fields below the window (actual binding
- * information) as well as enable the remove and update windows.
+/**
+ * Called when the user clicks on one of the entries in the list of
+ * keybindings.  When that happens, we want to update the fields below the
+ * window (actual binding information) as well as enable the remove and update
+ * windows.
+ *
+ * @param selection
+ * @param model
+ * @param path
+ * @param path_currently_selected
+ * @param userdata
+ * @return TRUE
  */
 gboolean keybinding_selection_func (
                       GtkTreeSelection *selection,
@@ -1828,6 +1931,9 @@ gboolean keybinding_selection_func (
     return TRUE;
 }
 
+/**
+ *
+ */
 void reset_keybinding_status()
 {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), FALSE);
@@ -1839,12 +1945,14 @@ void reset_keybinding_status()
     gtk_entry_set_text (GTK_ENTRY(keybinding_entry_command), "");
     gtk_widget_set_sensitive(keybinding_button_remove, FALSE);
     gtk_widget_set_sensitive(keybinding_button_update, FALSE);
-
 }
 
-/* If the user clicks the clear button, want to clear the
- * selection as well as clear all the fields associated
- * with the selection.
+/**
+ * If the user clicks the clear button, want to clear the selection as well as
+ * clear all the fields associated with the selection.
+ *
+ * @param button
+ * @param user_data
  */
 void
 on_keybinding_button_clear_clicked     (GtkButton       *button,
@@ -1853,13 +1961,13 @@ on_keybinding_button_clear_clicked     (GtkButton       *button,
     GtkTreeModel    *model;
     GtkTreeIter iter;
 
-    /* Need to unselect this first - otherwise, it seems we get another selection
-     * event triggering the stuff active again.
+    /*
+     * Need to unselect this first - otherwise, it seems we get another
+     * selection event triggering the stuff active again.
      */
     if (gtk_tree_selection_get_selected (keybinding_selection, &model, &iter)) {
         gtk_tree_selection_unselect_iter (keybinding_selection, &iter);
     }
     reset_keybinding_status();
-
-
 }
+

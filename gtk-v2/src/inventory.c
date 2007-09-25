@@ -22,8 +22,11 @@ char *rcsid_gtk2_inventory_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-/* This file is here to cover drawing of the inventory and look windows.
+/**
+ * @file gtk-v2/src/inventory.c
+ * Covers drawing of the inventory and look windows.
  */
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -52,10 +55,10 @@ GtkTreeStore    *store_look;
 static double  weight_limit;
 static GtkTooltips  *inv_table_tooltips;
 
-/* hopefully, large enough.  Trying to do this with
- * malloc gets more complicated because position of elements
- * within the array are important, so a simple realloc won't
- * work.
+/*
+ * Hopefully, large enough.  Trying to do this with malloc gets more
+ * complicated because position of elements within the array are important, so
+ * a simple realloc won't work.
  */
 #define MAX_INV_COLUMNS 20
 #define MAX_INV_ROWS    100
@@ -74,10 +77,10 @@ static const char *Style_Names[Style_Last] = {
 /* Actual styles as loaded.  May be null if no style found. */
 static GtkStyle    *inv_styles[Style_Last];
 
-/* The basic idea of the NoteBook_Info structure is to hold
- * everything we need to know about the different inventory notebooks
- * in a module fashion - instead of hardcoding values, they can
- * be held in the array.
+/*
+ * The basic idea of the NoteBook_Info structure is to hold everything we need
+ * to know about the different inventory notebooks in a module fashion -
+ * instead of hardcoding values, they can be held in the array.
  */
 #define NUM_INV_LISTS   10
 #define INV_SHOW_ITEM   0x1
@@ -91,17 +94,20 @@ enum {
 static int num_inv_notebook_pages=0;
 
 typedef struct {
-    const char *name;           /* Name of this page, for use with the show command */
-    const char *tooltip;        /* Tooltip for menu */
-    const char *const *xpm;     /* Icon to draw for the notebook selector */
-    int(*show_func) (item *it); /* Function that takes an item and */
-                                /* returns INV_SHOW_* above on whether to show this */
-                                /* item and if it should be shown in color */
-    int     type;               /* Type of widget - currently not used, but I'm */
-                                /* thinking it might be nice to have a pane just of icon */
-                                /* view or something, and need some way to show that */
-    GtkWidget   *treeview;      /* treeview widget for this tab */
-    GtkTreeStore    *treestore; /* store of data for treeview */
+    const char *name;           /**< Name of this page, for the show command */
+    const char *tooltip;        /**< Tooltip for menu */
+    const char *const *xpm;     /**< Icon to draw for the notebook selector */
+    int(*show_func) (item *it); /**< Function that takes an item and returns
+                                 * INV_SHOW_* above on whether to show this
+                                 * item and if it should be shown in color
+                                 */
+    int     type;               /**< Type of widget - currently unused, but I'm
+                                 * thinking it might be nice to have a pane
+                                 * just of icon view or something, and need
+                                 * some way to show that
+                                 */
+    GtkWidget   *treeview;      /**< treeview widget for this tab */
+    GtkTreeStore    *treestore; /**< store of data for treeview */
 } Notebook_Info;
 
 static int show_all(item *it)       { return INV_SHOW_ITEM | INV_SHOW_COLOR; }
@@ -127,24 +133,25 @@ Notebook_Info   inv_notebooks[NUM_INV_LISTS] = {
 {"icons", "Quick icon view", NULL, show_all, INV_TABLE}
 };
 
-
 enum {
 LIST_NONE, LIST_ICON, LIST_NAME, LIST_WEIGHT, LIST_OBJECT, LIST_BACKGROUND, LIST_TYPE,
 LIST_BASENAME, LIST_FOREGROUND, LIST_FONT, LIST_NUM_COLUMNS
 };
 
-
-/* Returns information on the environment of the item,
- * using the return values below.  Note that there should
- * never be a case where both ITEM_GROUND and ITEM_INVENTORY
- * are returned, but I prefer a more active approach in returning
- * actual values and not presuming that lack of value means it
- * is in the other location.
- */
 #define ITEM_INVENTORY      0x1
 #define ITEM_GROUND         0x2
 #define ITEM_IN_CONTAINER   0x4
 
+/**
+ * Returns information on the environment of the item, using the return values
+ * below.  Note that there should never be a case where both ITEM_GROUND and
+ * ITEM_INVENTORY are returned, but I prefer a more active approach in
+ * returning actual values and not presuming that lack of value means it is in
+ * the other location.
+ *
+ * @param it
+ * @return
+ */
 static int get_item_env(item *it)
 {
     if (it->env == cpl.ob) return ITEM_INVENTORY;
@@ -153,7 +160,11 @@ static int get_item_env(item *it)
     return (ITEM_IN_CONTAINER | get_item_env(it->env));
 }
 
-
+/**
+ *
+ * @param event
+ * @param tmp
+ */
 static void list_item_action(GdkEventButton *event, item *tmp)
 {
     int env;
@@ -184,15 +195,14 @@ static void list_item_action(GdkEventButton *event, item *tmp)
             uint32      dest;
 
             cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(spinbutton_count));
-
-            /* Figure out where to move the item to.  If it is on the ground,
+            /*
+             * Figure out where to move the item to.  If it is on the ground,
              * it is moving to the players inventory.  If it is in a container,
              * it is also moving to players inventory.  If it is in the players
              * inventory (not a container) and the player has an open container
              * in his inventory, move the object to the container (not ground).
-             * Otherwise, it is moving
-             * to the ground (dest=0).  Have to look at the item environment,
-             * because what list is no longer accurate.
+             * Otherwise, it is moving to the ground (dest=0).  Have to look at
+             * the item environment, because what list is no longer accurate.
              */
             if (env & (ITEM_GROUND | ITEM_IN_CONTAINER))
                 dest = cpl.ob->tag;
@@ -210,13 +220,19 @@ static void list_item_action(GdkEventButton *event, item *tmp)
     }
 }
 
-/* list_selection_func is used when a button is pressed on the
- * inventory or look list.
- * The parameters are those determined by the callback.
- * Note that this function isn't 100% ideal - some of the events/handling
- * is only relevant for objects in the inventory and not the look
- * window (eg, locking items).  OTOH, maybe it is just as well that
- * the behaviour is always consistent.
+/**
+ * Used when a button is pressed on the inventory or look list.  The parameters
+ * are those determined by the callback.  Note that this function isn't 100%
+ * ideal - some of the events/handling is only relevant for objects in the
+ * inventory and not the look window (eg, locking items).  OTOH, maybe it is
+ * just as well that the behaviour is always consistent.
+ *
+ * @param selection
+ * @param model
+ * @param path
+ * @param path_currently_selected
+ * @param userdata
+ * @return FALSE
  */
 gboolean list_selection_func (
                       GtkTreeSelection *selection,
@@ -246,17 +262,21 @@ gboolean list_selection_func (
         }
         list_item_action(event, tmp);
     }
-
-    /* Don't want the row toggled - our code above handles what
-     * we need to do, so return false.
+    /*
+     * Don't want the row toggled - our code above handles what we need to do,
+     * so return false.
      */
     return FALSE;
 }
 
-
-/* Basically, if the player collapses the row with the
- * little icon, we have to unapply the object for things
- * to work 'sanely' (eg, items not go into the container
+/**
+ * If the player collapses the row with the little icon, we have to unapply the
+ * object for things to work 'sanely' (eg, items not go into the container
+ *
+ * @param treeview
+ * @param iter
+ * @param path
+ * @param user_data
  */
 void
 list_row_collapse         (GtkTreeView     *treeview,
@@ -273,7 +293,10 @@ list_row_collapse         (GtkTreeView     *treeview,
     client_send_apply (tmp->tag);
 }
 
-
+/**
+ *
+ * @param treeview
+ */
 static void setup_list_columns(GtkWidget *treeview)
 {
     GtkCellRenderer *renderer;
@@ -281,12 +304,12 @@ static void setup_list_columns(GtkWidget *treeview)
     GtkTreeSelection  *selection;
 
 #if 0
-    /* This is a hack to hide the expander column.  We do this
-     * because access via containers need to be handled by the
-     * apply/unapply mechanism - otherwise, I think it will be
-     * confusing - people 'closing' the container with the expander
-     * arrow and still having things go into/out of the container.
-     * Unfortunat
+    /*
+     * This is a hack to hide the expander column.  We do this because access
+     * via containers need to be handled by the apply/unapply mechanism -
+     * otherwise, I think it will be confusing - people 'closing' the container
+     * with the expander arrow and still having things go into/out of the
+     * container.  Unfortunat
      */
     renderer = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes ("", renderer,
@@ -298,12 +321,12 @@ static void setup_list_columns(GtkWidget *treeview)
 #endif
 
     renderer = gtk_cell_renderer_pixbuf_new ();
-
-    /* Setting the xalign to 0.0 IMO makes the display better.
-     * Gtk automatically resizes the column to make space based on image size,
-     * however, it isn't really agressive on shrinking it.  IMO, it looks better
-     * for the image to always be at the far left - without this alignment,
-     * the image is centered which IMO doesn't always look good.
+    /*
+     * Setting the xalign to 0.0 IMO makes the display better.  Gtk
+     * automatically resizes the column to make space based on image size,
+     * however, it isn't really aggressive on shrinking it.  IMO, it looks
+     * better for the image to always be at the far left - without this
+     * alignment, the image is centered which IMO doesn't always look good.
      */
     g_object_set (G_OBJECT (renderer), "xalign", 0.0,
                  NULL);
@@ -311,7 +334,7 @@ static void setup_list_columns(GtkWidget *treeview)
                                                       "pixbuf", LIST_ICON,
                                                       NULL);
 
-/*    gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);*/
+/*  gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);*/
     gtk_tree_view_column_set_min_width(column, image_size);
     gtk_tree_view_column_set_sort_column_id(column, LIST_TYPE);
     gtk_tree_view_append_column (GTK_TREE_VIEW (treeview), column);
@@ -334,12 +357,13 @@ static void setup_list_columns(GtkWidget *treeview)
     column = gtk_tree_view_column_new_with_attributes ("Weight", renderer,
                                                       "text", LIST_WEIGHT,
                                                       NULL);
-    /* At 50, the title was always truncated on some systems.  64 is the
-     * minimum on those systems for it to be possible to avoid truncation
-     * at all.  Truncating the title looks cheesy, especially since heavy
-     * items (100+) need the width of the field anyway.  If weight pushed
-     * off the edge is a problem, it would be just better to let the user
-     * resize or find a way to allow rendering with a smaller font.
+    /*
+     * At 50, the title was always truncated on some systems.  64 is the
+     * minimum on those systems for it to be possible to avoid truncation at
+     * all.  Truncating the title looks cheesy, especially since heavy items
+     * (100+) need the width of the field anyway.  If weight pushed off the
+     * edge is a problem, it would be just better to let the user resize or
+     * find a way to allow rendering with a smaller font.
      */
     gtk_tree_view_column_set_min_width(column, 64);
     gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);
@@ -349,24 +373,23 @@ static void setup_list_columns(GtkWidget *treeview)
     gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
     gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
     gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
-
-
-    /* Really, we never really do selections - clicking on an object
-     * causes a reaction right then.  So grab press before the selection
-     * and just negate the selection - that's more efficient than unselection
-     * the item after it was selected.
+    /*
+     * Really, we never really do selections - clicking on an object causes a
+     * reaction right then.  So grab press before the selection and just negate
+     * the selection - that's more efficient than unselection the item after it
+     * was selected.
      */
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
 
     gtk_tree_selection_set_select_function(selection, list_selection_func, NULL, NULL);
 }
 
-
-/* This gets the style information for the inventory windows.  This is a separate
- * function because if the user changes styles, it can be nice to re-load the configuration.
- * The style for the inventory/look is a bit special.  That is because with gtk, styles
- * are widget wide - all rows in the widget would use the same style.  We want to adjust
- * the styles based on other attributes.
+/**
+ * Gets the style information for the inventory windows.  This is a separate
+ * function because if the user changes styles, it can be nice to re-load the
+ * configuration.  The style for the inventory/look is a bit special.  That is
+ * because with gtk, styles are widget wide - all rows in the widget would use
+ * the same style.  We want to adjust the styles based on other attributes.
  */
 void inventory_get_styles()
 {
@@ -390,6 +413,11 @@ void inventory_get_styles()
     has_init=1;
 }
 
+/**
+ * Set up the inventory viewer.
+ *
+ * @param window_root The client main window.
+ */
 void inventory_init(GtkWidget *window_root)
 {
     int i;
@@ -430,17 +458,16 @@ void inventory_init(GtkWidget *window_root)
 
     gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_look), GTK_TREE_MODEL(store_look));
     setup_list_columns(treeview_look);
-
-    /* Glade doesn't let us fully realize a treeview widget - we still need to
-     * to do a bunch of customization just like we do for the look window above.
-     * If we have to do all that work, might as well just put it in the for loop
-     * below vs setting up half realized widgets within glade that we then need to
-     * finish setting up.
-     * However, that said, we want to be able to set up other notebooks within
-     * glade for perhaps a true list of just icons.  So we presume that any tabs
-     * that exist must already be all set up.
-     * We prepend our tabs to the existing tab - this makes the position of
-     * the array of noteboks correspond to actual data in the tabs.
+    /*
+     * Glade doesn't let us fully realize a treeview widget - we still need to
+     * to do a bunch of customization just like we do for the look window
+     * above.  If we have to do all that work, might as well just put it in the
+     * for loop below vs setting up half realized widgets within glade that we
+     * then need to finish setting up.  However, that said, we want to be able
+     * to set up other notebooks within glade for perhaps a true list of just
+     * icons.  So we presume that any tabs that exist must already be all set
+     * up.  We prepend our tabs to the existing tab - this makes the position
+     * of the array of noteboks correspond to actual data in the tabs.
      */
     for (i=0; i < NUM_INV_LISTS; i++) {
         GtkWidget   *swindow, *image;
@@ -452,7 +479,6 @@ void inventory_init(GtkWidget *window_root)
                                            GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
             image = gtk_image_new_from_pixbuf(
                       gdk_pixbuf_new_from_xpm_data((const char**)inv_notebooks[i].xpm));
-
 
             if (inv_notebooks[i].tooltip) {
                 GtkWidget *eb;
@@ -490,7 +516,6 @@ void inventory_init(GtkWidget *window_root)
             setup_list_columns(inv_notebooks[i].treeview);
             gtk_widget_show(inv_notebooks[i].treeview);
             gtk_container_add(GTK_CONTAINER(swindow), inv_notebooks[i].treeview);
-
         }
     }
     num_inv_notebook_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(inv_notebook));
@@ -507,43 +532,59 @@ void inventory_init(GtkWidget *window_root)
 
 }
 
-
-
+/**
+ *
+ * @param s
+ */
 void set_show_icon (char *s)
 {
 }
 
+/**
+ *
+ * @param s
+ */
 void set_show_weight (char *s)
 {
 }
 
-/* open and close_container are now no-ops - since these are now drawn
- * inline as treestores, we don't need to update what we are drawing
- * were.  and since the activation of a container will cause the list
- * to be redrawn, don't need to worry about making an explicit call here.
+/**
+ * Open and close_container are now no-ops - since these are now drawn inline
+ * as treestores, we don't need to update what we are drawing were.  and since
+ * the activation of a container will cause the list to be redrawn, don't need
+ * to worry about making an explicit call here.
+ *
+ * @param op
  */
 void close_container(item *op)
 {
     draw_lists();
 }
 
+/**
+ *
+ * @param op
+ */
 void open_container (item *op)
 {
     draw_lists();
 }
 
-
+/**
+ *
+ * @param params
+ */
 void command_show (char *params)
 {
     if(!params)  {
-        /* Shouldn't need to get current page, but next_page call is not wrapping
-         * like the docs claim it should.
+        /*
+         * Shouldn't need to get current page, but next_page call is not
+         * wrapping like the docs claim it should.
          */
         if (gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook))==num_inv_notebook_pages)
             gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 0);
         else
             gtk_notebook_next_page(GTK_NOTEBOOK(inv_notebook));
-
     } else {
         int i;
         char buf[MAX_BUF];
@@ -559,15 +600,22 @@ void command_show (char *params)
     }
 }
 
-/* No reason to divide by 1000 everytime we do the display,
- * so do it once and store it here.
+/**
+ * No reason to divide by 1000 everytime we do the display, so do it once and
+ * store it here.
+ *
+ * @param wlim
  */
 void set_weight_limit (uint32 wlim)
 {
     weight_limit = wlim/ 1000.0;
 }
 
-/* Returns a style based on values in it */
+/**
+ *
+ * @param it
+ * @return a style based on values in it
+ */
 static GtkStyle *get_row_style(item *it)
 {
     int style;
@@ -584,12 +632,10 @@ static GtkStyle *get_row_style(item *it)
     else return NULL;   /* No matching style */
 
     return inv_styles[style];
-
 }
 
 /***************************************************************************
- * Below are the actual guts for drawing the inventory and look
- * windows.
+ * Below are the actual guts for drawing the inventory and look windows.
  * Some quick notes:
  * 1) The gtk2 widgets (treeview/treemodel) seem noticably slower than the
  *    older clist widgets in gtk1.  This is beyond the code below - just
@@ -612,17 +658,18 @@ void item_event_item_deleting(item * it) {}
 void item_event_container_clearing(item * container) {}
 void item_event_item_changed(item * it) {}
 
-
-/* Adds a row to the treestore.
- * it is the object to add
- * store is the TreeStore object.
- * new returns the iter used/updated for the store
- * parent is the parent iter (can be null).  If non null,
- *    then this creates a real tree, for things like containers.
- * color - if true, do foreground/background colors, otherwise, just black & white
- *  Normally it is set.  However, when showing the cursed inv tab, it doesn't
- *  make a lot of sense to show them all in the special color, since they all
- *  meet that special criteria
+/**
+ * Adds a row to the treestore.
+ *
+ * @param it the object to add
+ * @param store The TreeStore object.
+ * @param new Returns the iter used/updated for the store
+ * @param parent The parent iter (can be null).  If non null, then this creates
+ * a real tree, for things like containers.
+ * @param color If true, do foreground/background colors, otherwise, just black
+ * & white Normally it is set.  However, when showing the cursed inv tab, it
+ * doesn't make a lot of sense to show them all in the special color, since
+ * they all meet that special criteria
  */
 static void add_object_to_store(item *it, GtkTreeStore *store,
                                 GtkTreeIter *new, GtkTreeIter *parent, int color)
@@ -641,8 +688,9 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
     if (color) {
         row_style = get_row_style(it);
         if (row_style) {
-            /* Even if the user doesn't define these, we should still get
-             * get defaults from the system.
+            /*
+             * Even if the user doesn't define these, we should still get get
+             * defaults from the system.
              */
             foreground = &row_style->text[GTK_STATE_NORMAL];
             background = &row_style->base[GTK_STATE_NORMAL];
@@ -664,19 +712,19 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
                 -1);
 }
 
-/* draw_look_list() - draws the objects beneath the player.
+/**
+ * Draws the objects beneath the player.
  */
 void draw_look_list()
 {
     item *tmp;
     GtkTreeIter iter;
-
-    /* List drawing is actually fairly inefficient - we only know
-     * globally if the objects has changed, but have no idea what
-     * specific object has changed.  As such, we are forced to
-     * basicly redraw the entire list each time this is called.
+    /*
+     * List drawing is actually fairly inefficient - we only know globally if
+     * the objects has changed, but have no idea what specific object has
+     * changed.  As such, we are forced to basicly redraw the entire list each
+     * time this is called.
      */
-
     gtk_tree_store_clear(store_look);
 
     for (tmp=cpl.below->inv; tmp; tmp=tmp->next) {
@@ -697,9 +745,11 @@ void draw_look_list()
     }
 }
 
-/* Draws the inventory window.  tab is the notebook tab
- * we are drawing.  Has to be passed in because the
- * callback sets this before the notebook is updated.
+/**
+ * Draws the inventory window.  tab is the notebook tab we are drawing.  Has to
+ * be passed in because the callback sets this before the notebook is updated.
+ *
+ * @param tab
  */
 void draw_inv_list(int tab)
 {
@@ -707,12 +757,12 @@ void draw_inv_list(int tab)
     GtkTreeIter iter;
     int rowflag;
 
-    /* List drawing is actually fairly inefficient - we only know
-     * globally if the objects has changed, but have no idea what
-     * specific object has changed.  As such, we are forced to
-     * basicly redraw the entire list each time this is called.
+    /*
+     * List drawing is actually fairly inefficient - we only know globally if
+     * the objects has changed, but have no idea what specific object has
+     * changed.  As such, we are forced to basicly redraw the entire list each
+     * time this is called.
      */
-
     gtk_tree_store_clear(inv_notebooks[tab].treestore);
 
     for (tmp=cpl.ob->inv; tmp; tmp=tmp->next) {
@@ -727,14 +777,14 @@ void draw_inv_list(int tab)
             GtkTreePath *path;
 
             for (tmp2 = tmp->inv; tmp2; tmp2=tmp2->next) {
-
-                /* Wonder if we really want this logic for objects in containers?
-                 * my thought is yes - being able to see all cursed objects in
-                 * the container could be quite useful.
+                /*
+                 * Wonder if we really want this logic for objects in
+                 * containers?  my thought is yes - being able to see all
+                 * cursed objects in the container could be quite useful.
                  * Unfortunately, that doesn't quite work as intended, because
-                 * we will only get here if the container object is being displayed.
-                 * Since container objects can't be cursed, can't use that as
-                 * a filter.
+                 * we will only get here if the container object is being
+                 * displayed.  Since container objects can't be cursed, can't
+                 * use that as a filter.
                  */
                 /*
                 rowflag = inv_notebooks[tab].show_func(tmp2);
@@ -750,6 +800,13 @@ void draw_inv_list(int tab)
     }
 }
 
+/**
+ *
+ * @param widget
+ * @param event
+ * @param user_data
+ * @return TRUE
+ */
 gboolean
 drawingarea_inventory_table_button_press_event  (GtkWidget       *widget,
                                         GdkEventButton  *event,
@@ -759,6 +816,13 @@ drawingarea_inventory_table_button_press_event  (GtkWidget       *widget,
     return TRUE;
 }
 
+/**
+ *
+ * @param widget
+ * @param event
+ * @param user_data
+ * @return TRUE
+ */
 gboolean
 drawingarea_inventory_table_expose_event        (GtkWidget       *widget,
                                         GdkEventExpose  *event,
@@ -769,27 +833,26 @@ drawingarea_inventory_table_expose_event        (GtkWidget       *widget,
     tmp = (item*)user_data;
 
     gdk_window_clear(widget->window);
-
-    /* Can get cases when switching tabs that we get an expose event
-     * before the list is updated - if so, don't draw stuff we don't
-     * have faces for.
+    /*
+     * Can get cases when switching tabs that we get an expose event before the
+     * list is updated - if so, don't draw stuff we don't have faces for.
      */
     if (tmp->face)
         gdk_draw_pixbuf(widget->window, NULL,
                         (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
                         0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
     return TRUE;
-
 }
 
-#define INVHELPTEXT "Left click examines the object.  Middle click applies the object. \
-Right click drops the object.  Shift left click locks/unlocks the object.  Shift \
-middle click marks the object"
+#define INVHELPTEXT "Left click examines the object.  Middle click applies \
+the object. Right click drops the object.  Shift left click locks/unlocks the \
+object.  Shift middle click marks the object"
 
-/* draws the table of image icons.
- * if 'animate' is non zero, then this is an animation run -
- * flip the animation state of the objects, and only draw
- * those that need to be drawn.
+/**
+ * Draws the table of image icons.
+ *
+ * @param animate If non-zero, then this is an animation run - flip the
+ * animation state of the objects, and only draw those that need to be drawn.
  */
 void draw_inv_table(int animate)
 {
@@ -825,7 +888,6 @@ void draw_inv_table(int animate)
 
             gtk_table_attach(GTK_TABLE(inv_table), inv_table_children[x][y],
                              x, x+1, y, y+1, GTK_FILL, GTK_FILL, 0, 0);
-
         }
         if (animate) {
             /* This is an object with animations */
@@ -848,8 +910,10 @@ void draw_inv_table(int animate)
             }
             /* On animation run, so don't do any of the remaining logic */
         } else {
-            /* Need to clear out the old signals, since the signals are effectively
-             * stacked - you can have 6 signal handlers tied to the same function.
+            /*
+             * Need to clear out the old signals, since the signals are
+             * effectively stacked - you can have 6 signal handlers tied to the
+             * same function.
              */
             handler = g_signal_handler_find((gpointer)inv_table_children[x][y],
                         G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
@@ -865,8 +929,8 @@ void draw_inv_table(int animate)
                         NULL);
             if (handler)
                 g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
-
-            /* Not positive precisely what events are need, but some events
+            /*
+             * Not positive precisely what events are needed, but some events
              * beyond just the button press are necessary for the tooltips to
              * work.
              */
@@ -886,10 +950,10 @@ void draw_inv_table(int animate)
                         0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
 
             gtk_widget_show(inv_table_children[x][y]);
-
-            /* We use tooltips to provide additional detail about the icons.
-             * Looking at the code, the tooltip widget will take care of removing
-             * the old tooltip, freeing strings, etc.
+            /*
+             * Use tooltips to provide additional detail about the icons.
+             * Looking at the code, the tooltip widget will take care of
+             * removing the old tooltip, freeing strings, etc.
              */
             snprintf(buf, 255, "%s %s", tmp->d_name, tmp->flags);
             gtk_tooltips_set_tip(inv_table_tooltips, inv_table_children[x][y],
@@ -904,8 +968,8 @@ void draw_inv_table(int animate)
     }
     /* Don't need to do the logic below if only doing animation run */
     if (animate) return;
-
-    /* need to disconnect the callback functions cells we did not draw.
+    /*
+     * Need to disconnect the callback functions cells we did not draw.
      * otherwise, we get errors on objects that are drawn.
      */
     for (i=num_items; i<=max_drawn; i++) {
@@ -941,8 +1005,10 @@ void draw_inv_table(int animate)
     gtk_widget_show(inv_table);
 }
 
-/* Draws the inventory.  Have to determine how to draw
- * it.
+/**
+ * Draws the inventory.  Have to determine how to draw it.
+ *
+ * @param tab
  */
 void draw_inv(int tab)
 {
@@ -957,17 +1023,17 @@ void draw_inv(int tab)
         draw_inv_table(0);
 }
 
-/*
- *  draw_lists() redraws inventory and look windows when necessary
+/**
+ * Redraws inventory and look windows when necessary
  */
 void draw_lists ()
 {
     cpl.below->inv_updated=1;
-
-    /* there are some extra complications with container handling
-     * and timing.  For example, we draw the window before we get
-     * a list of the container, and then the container contents are
-     * not drawn - this can be handled by looking at container->inv_updated.
+    /*
+     * There are some extra complications with container handling and timing.
+     * For example, we draw the window before we get a list of the container,
+     * and then the container contents are not drawn - this can be handled by
+     * looking at container->inv_updated.
      */
     if (cpl.container && cpl.container->inv_updated) {
         cpl.container->env->inv_updated = 1;
@@ -983,16 +1049,17 @@ void draw_lists ()
     }
 }
 
-
-
-/* My thought here is that people are likely go to the different
- * tabs much less often than their inventory changes.  So
- * rather than update all the tabs whenever the players inventory
- * changes, lets only update the tab the player is viewing,
- * and if they change tabs, draw the new tab and get rid of the
- * old info.
- * Ideally, I'd like to call draw_inv() from this function,
- * but there is some oddity
+/**
+ * People are likely go to the different tabs much less often than their
+ * inventory changes.  So rather than update all the tabs whenever the players
+ * inventory changes, only update the tab the player is viewing, and if they
+ * change tabs, draw the new tab and get rid of the old info.  Ideally, I'd
+ * like to call draw_inv() from this function, but there is some oddity
+ *
+ * @param notebook
+ * @param page
+ * @param page_num
+ * @param user_data
  */
 void
 on_notebook_switch_page                (GtkNotebook     *notebook,
@@ -1008,7 +1075,13 @@ on_notebook_switch_page                (GtkNotebook     *notebook,
     cpl.ob->inv_updated=1;
 }
 
-
+/**
+ *
+ * @param widget
+ * @param event
+ * @param user_data
+ * @return TRUE
+ */
 gboolean
 on_inv_table_expose_event              (GtkWidget       *widget,
                                         GdkEventExpose  *event,
@@ -1018,8 +1091,9 @@ on_inv_table_expose_event              (GtkWidget       *widget,
     return TRUE;
 }
 
-
-
+/**
+ *
+ */
 void animate_inventory()
 {
     gboolean valid;
@@ -1029,16 +1103,17 @@ void animate_inventory()
     GtkTreeStore    *store;
     static int inv_tick=0;
 
-    /* If global tick is set, then we are getting tick events from
-     * server to keep in sync, so we don't need the logic
-     * below.
+    /*
+     * If global tick is set, then we are getting tick events from server to
+     * keep in sync, so we don't need the logic below.
      */
     if (!tick) {
-        /* The gtk client timeout is 12 times faster than that of the server
-        * so we slow it down here.  If we were really clever, we'd find
-        * what the timeout on the server actually is, and do gettimeofday
-        * calls here to remain very closely in sync.
-        */
+        /*
+         * The gtk client timeout is 12 times faster than that of the server so
+         * we slow it down here.  If we were really clever, we'd find what the
+         * timeout on the server actually is, and do gettimeofday calls here to
+         * remain very closely in sync.
+         */
         inv_tick++;
         if (inv_tick < 12) return;
         inv_tick=0;
@@ -1078,16 +1153,15 @@ void animate_inventory()
                 gtk_tree_store_set(store, &iter,
                                    LIST_ICON, (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
                                    -1);
-
             }
         }
         valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(store), &iter);
     }
-
-
-
 }
 
+/**
+ *
+ */
 void animate_look()
 {
     gboolean valid;
@@ -1095,21 +1169,21 @@ void animate_look()
     item *tmp;
     static int inv_tick=0;
 
-    /* If global tick is set, then we are getting tick events from
-     * server to keep in sync, so we don't need the logic
-     * below.
+    /*
+     * If global tick is set, then we are getting tick events from server to
+     * keep in sync, so we don't need the logic below.
      */
     if (!tick) {
-        /* The gtk client timeout is 12 times faster than that of the server
-        * so we slow it down here.  If we were really clever, we'd find
-        * what the timeout on the server actually is, and do gettimeofday
-        * calls here to remain very closely in sync.
-        */
+        /*
+         * The gtk client timeout is 12 times faster than that of the server so
+         * we slow it down here.  If we were really clever, we'd find what the
+         * timeout on the server actually is, and do gettimeofday calls here to
+         * remain very closely in sync.
+         */
         inv_tick++;
         if (inv_tick < 12) return;
         inv_tick=0;
     }
-
 
     /* Get the first iter in the list */
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(store_look), &iter);
@@ -1135,18 +1209,19 @@ void animate_look()
                 gtk_tree_store_set(store_look, &iter,
                                    LIST_ICON, (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
                                    -1);
-
             }
         }
         valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(store_look), &iter);
     }
 }
 
-/* This is called periodically from main.c - basically a timeout,
- * used to animate the inventory.
+/**
+ * This is called periodically from main.c - basically a timeout, used to
+ * animate the inventory.
  */
 void inventory_tick()
 {
     animate_inventory();
     animate_look();
 }
+

@@ -23,7 +23,7 @@ char *rcsid_gtk2_info_c =
 */
 
 /**
- * @file info.c
+ * @file gtk-v2/src/info.c
  * This covers drawing text to the info window.
  */
 
@@ -41,9 +41,9 @@ char *rcsid_gtk2_info_c =
 
 #include "main.h"
 
-/** Index into the different fonts
- * The actual font these are bound to is set up the style
- * file.
+/**
+ * Index into the different fonts The actual font these are bound to is set up
+ * the style file.
  */
 #define FONT_NORMAL     0
 #define FONT_ARCANE     1
@@ -53,13 +53,11 @@ char *rcsid_gtk2_info_c =
 #define NUM_FONTS       5
 
 /*
- * This is a mapping from the font numbers to the style to use
- * from the rcfile.
+ * This is a mapping from the font numbers to the style to use from the rcfile.
  */
 static char *font_style_names[NUM_FONTS] = {
     "info_font_normal", "info_font_arcane", "info_font_strange",
     "info_font_fixed", "info_font_hand"};
-
 
 #define NUM_TEXT_VIEWS  2
 
@@ -78,51 +76,45 @@ struct Info_Pane
     GtkTextTag      **msg_type_tags[MSG_TYPE_LAST];
 } info_pane[NUM_TEXT_VIEWS];
 
-
-
 static void message_callback(int flag, int type, int subtype, char *message);
-
 
 extern  char *colorname[NUM_COLORS];
 
-/* The idea behind the msg_type_names is to provide meaningful names
- * that the client can use to load/save these values, in particular,
- * the gtk2 client uses these to find styles on how to draw the different
- * msg types.  We could set this up as a two dimension array instead - that
- * probalby isn't as efficient as the number of subtypes varies wildly.
- * The 0 subtypes are used for general cases (describe the entire
- * class of those message types).  Note also that the names here are
- * verbose - the actual code that uses these will expand it further.
- * In practice, there should never be entries with both the same type/subtype
- * (each subtype should be unique) - if so, the results are probably
- * unpredictable on which one the code would use.
+/*
+ * The idea behind the msg_type_names is to provide meaningful names that the
+ * client can use to load/save these values, in particular, the gtk2 client
+ * uses these to find styles on how to draw the different msg types.  We could
+ * set this up as a two dimension array instead - that probably isn't as
+ * efficient as the number of subtypes varies wildly.  The 0 subtypes are used
+ * for general cases (describe the entire class of those message types).  Note
+ * also that the names here are verbose - the actual code that uses these will
+ * expand it further.  In practice, there should never be entries with both the
+ * same type/subtype (each subtype should be unique) - if so, the results are
+ * probably unpredictable on which one the code would use.
  */
 #include "msgtypes.h"
 
 static int max_subtype=0, has_style=0;
 
 /**
- * This sets attributes in the text tag from a style.  Best I can
- * gather, there is no way to take all of the attributes from
- * a style and apply them directly to a text tag, hence this
- * function to do the work.  GtkTextTags also know what attributes are
- * set and which are not set - thus, you can apply multiple tags to the
- * same text, and get all of the effects.  For styles, that isn't the
- * case - a style contains all of the information.  So this function
- * also compares the loaded style from the base style, and only sets
- * the attributes that are different.
+ * Sets attributes in the text tag from a style.  Best I can gather, there is
+ * no way to take all of the attributes from a style and apply them directly to
+ * a text tag, hence this function to do the work.  GtkTextTags also know what
+ * attributes are set and which are not set - thus, you can apply multiple tags
+ * to the same text, and get all of the effects.  For styles, that isn't the
+ * case - a style contains all of the information.  So this function also
+ * compares the loaded style from the base style, and only sets the attributes
+ * that are different.
  *
- * @tag
+ * @param tag
  * text tag to set values on
- * @style
+ * @param style
  * style to get values from
- * @base_style
+ * @param base_style
  * base style for the widget to compare against
  */
-
 void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_style)
 {
-
     g_object_set(tag, "foreground-set", FALSE, NULL);
     g_object_set(tag, "background-set", FALSE, NULL);
     g_object_set(tag, "font-desc", NULL, NULL);
@@ -135,17 +127,15 @@ void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_st
 
     if (style->font_desc != base_style->font_desc)
         g_object_set(tag, "font-desc", style->font_desc, NULL);
-
 }
 
 /**
- * This loads up values from the style file.  Note that the actual name
- * of the style file is set elsewhere.
+ * Loads up values from the style file.  Note that the actual name of the style
+ * file is set elsewhere.
  *
- * This function is designed so that it should be possible to call it
- * multiple times - it will release old style data and load up new values.
- * In this way, a user should be able to change styles on the fly and
- * have things work.
+ * This function is designed so that it should be possible to call it multiple
+ * times - it will release old style data and load up new values.  In this way,
+ * a user should be able to change styles on the fly and have things work.
  */
 void info_get_styles()
 {
@@ -155,16 +145,16 @@ void info_get_styles()
     char    style_name[MAX_BUF];
 
     if (!has_init) {
-        /* We want to set up a 2 dimensional array of msg_type_tags
-         * to correspond to all the types/subtypes, so looking up any
-         * value is really easy.  We know the size of the types,
-         * but don't know the number of subtypes - no single declared
-         * value.  So we just parse the msg_type_names to find that,
-         * then know how big to make the other dimension.
-         * We could allocate different number of entries for each type,
-         * but that makes processing a bit harder (no single value on the
-         * number of subtypes), and this extra memory usage shouldn't really
-         * be at all significant.
+        /*
+         * We want to set up a 2 dimensional array of msg_type_tags to
+         * correspond to all the types/subtypes, so looking up any value is
+         * really easy.  We know the size of the types, but don't know the
+         * number of subtypes - no single declared value.  So we just parse the
+         * msg_type_names to find that, then know how big to make the other
+         * dimension.  We could allocate different number of entries for each
+         * type, but that makes processing a bit harder (no single value on the
+         * number of subtypes), and this extra memory usage shouldn't really be
+         * at all significant.
          */
         for (i=0; i<sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
             if (msg_type_names[i].subtype > max_subtype)
@@ -178,9 +168,10 @@ void info_get_styles()
                 info_pane[j].font_tags[i] = NULL;
             for (i=0; i<NUM_COLORS; i++)
                 info_pane[j].color_tags[i] = NULL;
-
-            /* These tag definitions never change - we don't get them from the settings
-             * file (maybe we should), so we only need to allocate them once.
+            /*
+             * These tag definitions never change - we don't get them from the
+             * settings file (maybe we should), so we only need to allocate
+             * them once.
              */
             info_pane[j].bold_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "bold",
                 "weight", PANGO_WEIGHT_BOLD, NULL);
@@ -191,11 +182,13 @@ void info_get_styles()
             info_pane[j].underline_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "underline",
                 "underline", PANGO_UNDERLINE_SINGLE, NULL);
 
-            /* This is really a convenience - we can pass multiple tags in when drawing
-             * text, but once we pass in a NULL tag, that signifies no more tags.  Rather
-             * than having to set up an array we pass in, instead, we have this empty tag
-             * that we can pass is so that we always have the same calling semantics, just
-             * differ what tags we pass in.
+            /*
+             * This is really a convenience - we can pass multiple tags in when
+             * drawing text, but once we pass in a NULL tag, that signifies no
+             * more tags.  Rather than having to set up an array we pass in,
+             * instead, we have this empty tag that we can pass is so that we
+             * always have the same calling semantics, just differ what tags we
+             * pass in.
              */
             if (!info_pane[j].default_tag)
                 info_pane[j].default_tag = gtk_text_buffer_create_tag(info_pane[j].textbuffer, "default",
@@ -213,15 +206,16 @@ void info_get_styles()
 
     has_style=0;
 
-    /* If we don't have a base style tag, we can't process these
-     * other tags, as we need to be able to do a difference, and
-     * doing a difference from nothing (meaning, taking everything in
-     * style) still doesn't work really well.
+    /*
+     * If we don't have a base style tag, we can't process these other tags, as
+     * we need to be able to do a difference, and doing a difference from
+     * nothing (meaning, taking everything in style) still doesn't work really
+     * well.
      */
     if (base_style[0]) {
-        /* This processes the type/subtype styles.  We look
-         * up the names in the array to find what name goes to
-         * what number.
+        /*
+         * This processes the type/subtype styles.  We look up the names in the
+         * array to find what name goes to what number.
          */
         for (i=0; i<sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
             int type, subtype;
@@ -234,9 +228,10 @@ void info_get_styles()
                                       style_name, G_TYPE_NONE);
 
             for (j=0; j<NUM_TEXT_VIEWS; j++) {
-                /* If we have a style for this, update the tag that
-                 * goes along with this.  If we don't have a tag for this
-                 * style, create it.
+                /*
+                 * If we have a style for this, update the tag that goes along
+                 * with this.  If we don't have a tag for this style, create
+                 * it.
                  */
                 if (tmp_style) {
                     if (!info_pane[j].msg_type_tags[type][subtype]) {
@@ -247,8 +242,9 @@ void info_get_styles()
                                             tmp_style, base_style[j]);
                     has_style=1;
                 } else {
-                    /* No setting for this type/subtype, so remove tag if there is
-                     * one.
+                    /*
+                     * No setting for this type/subtype, so remove tag if there
+                     * is one.
                      */
                     if (info_pane[j].msg_type_tags[type][subtype]) {
                         gtk_text_tag_table_remove(gtk_text_buffer_get_tag_table(info_pane[j].textbuffer),
@@ -305,10 +301,11 @@ void info_get_styles()
             }
         }
     } else {
-        /* there isn't any base style - this shouldn't normally
-         * be the case with any real setting files, but certainly can be the
-         * case if the user selected the 'None' setting.
-         * So in this case, we just free all the text tags.
+        /*
+         * There isn't any base style - this shouldn't normally be the case
+         * with any real setting files, but certainly can be the case if the
+         * user selected the 'None' setting.  So in this case, we just free all
+         * the text tags.
          */
         has_style=0;
         for (i=0; i<sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
@@ -351,7 +348,7 @@ void info_get_styles()
  * initializes the info displays.  The info displays are the area where
  * text is drawn.
  *
- * @window_root
+ * @param window_root
  * Parent (root) window of the application.
  */
 void info_init(GtkWidget *window_root)
@@ -385,30 +382,29 @@ void info_init(GtkWidget *window_root)
         setTextManager(i,message_callback);
 }
 
-
-
 /**
- * This adds some data to the text buffer, using the appropriate tags
- * to provide the desired formatting.  Note that the style within
- * the users theme determines how a particular type/subtype is drawn.
+ * Adds some data to the text buffer, using the appropriate tags to provide the
+ * desired formatting.  Note that the style within the users theme determines
+ * how a particular type/subtype is drawn.
  *
- * @type
+ * @param pane
+ * @param message
+ * @param type
  * The message type - see the MSG_TYPE values in newclient.h
- * @subtype
+ * @param subtype
  * Message subtype - see MSG_TYPE_..._... values in newclient.h
- * @bold
+ * @param bold
  * If true, should be in bold text.
- * @italic
+ * @param italic
  * If true, should be in italic text
- * @font
+ * @param font
  * Which font number to use - this is resolved to actual font style
  * based on the users theme file.
- * @color
+ * @param color
  * string version of the color
- * @underline
+ * @param underline
  * If true, should underline the text.
  */
-
 static void add_to_textbuf(int pane, char *message,
                            int type, int subtype,
                            int bold, int italic, int font, char *color, int underline)
@@ -418,16 +414,15 @@ static void add_to_textbuf(int pane, char *message,
     int scroll_to_end=0, color_num;
     GtkTextTag      *color_tag=NULL, *type_tag=NULL;
 
-    /* Lets see if the defined color matches any of our defined
-     * colors.  If we get a match, set color_tag.  If
-     * color_tag is null, we either don't have a match, we don't
-     * have a defined tag for the color, or we don't have a color,
-     * use the default tag.  It would be nice to know if
-     * color is a sub value set with [color] tag, or is
-     * part of the message itself - if we're just being passed
-     * NDI_RED in the draw_ext_info from the server, we really
-     * don't care about that - the type/subtype styles should
-     * really be what determines what color to use.
+    /*
+     * Lets see if the defined color matches any of our defined colors.  If we
+     * get a match, set color_tag.  If color_tag is null, we either don't have
+     * a match, we don't have a defined tag for the color, or we don't have a
+     * color, use the default tag.  It would be nice to know if color is a sub
+     * value set with [color] tag, or is part of the message itself - if we're
+     * just being passed NDI_RED in the draw_ext_info from the server, we
+     * really don't care about that - the type/subtype styles should really be
+     * what determines what color to use.
      */
     if (color) {
         for (color_num=0; color_num < NUM_COLORS; color_num++)
@@ -437,10 +432,11 @@ static void add_to_textbuf(int pane, char *message,
     }
     if (!color_tag) color_tag = info_pane[pane].default_tag;
 
-    /* Following block of code deals with the type/subtype.
-     * First, we check and make sure the passed in values are legal.  If
-     * so, first see if there is a particular style for the type/subtype
-     * combo, if not, fall back to one just for the type.
+    /*
+     * Following block of code deals with the type/subtype.  First, we check
+     * and make sure the passed in values are legal.  If so, first see if there
+     * is a particular style for the type/subtype combo, if not, fall back to
+     * one just for the type.
      */
     type_tag = info_pane[pane].default_tag;
     if (type >= MSG_TYPE_LAST || subtype >= max_subtype || type < 0 || subtype < 0 ) {
@@ -450,7 +446,6 @@ static void add_to_textbuf(int pane, char *message,
         if (info_pane[pane].msg_type_tags[type][subtype]) type_tag = info_pane[pane].msg_type_tags[type][subtype];
         else if (info_pane[pane].msg_type_tags[type][0]) type_tag = info_pane[pane].msg_type_tags[type][0];
     }
-
 
     gtk_text_view_get_visible_rect(GTK_TEXT_VIEW(info_pane[pane].textview), &rect);
     if ((info_pane[pane].adjustment->value + rect.height) >= info_pane[pane].adjustment->upper ) scroll_to_end=1;
@@ -467,21 +462,27 @@ static void add_to_textbuf(int pane, char *message,
 
     if (scroll_to_end)
         gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(info_pane[pane].textview), info_pane[pane].textmark);
-
 }
 
-/* Unlike the gtk client, we don't do anything tricky like popups
- * with different message types.
- * However, we will choose different fonts, etc, based on this information -
- * for this reason, we just use one callback, and change those minor
- * things based on the callback.
- * We also need to parse the data.
+/**
+ * Unlike the gtk client, we don't do anything tricky like popups with
+ * different message types.  However, we will choose different fonts, etc,
+ * based on this information - for this reason, we just use one callback, and
+ * change those minor things based on the callback.  We also need to parse the
+ * data.
+ *
+ * @param orig_color
+ * @param type
+ * @param subtype
+ * @param message
  */
 static void message_callback(int orig_color, int type, int subtype, char *message) {
     char *marker, *current, *original;
     int bold=0, italic=0, font=0, underline=0;
-    char *color=NULL;           /* only if we get a [color] tag should we care - otherwise, */
-                                /* the type/subtype should dictate color (unless no style set!) */
+    char *color=NULL; /**< Only if we get a [color] tag should we care,
+                       * otherwise, the type/subtype should dictate color
+                       * (unless no style set!)
+                       */
 
     current = strdup(message);
     original = current;         /* Just so we know what to free */
@@ -492,9 +493,10 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
                 orig_color, NUM_COLORS);
             orig_color=0;
         } else {
-            /* Not really efficient - we have a number, but convert it
-             * to a string, at which point the add_to_textbuf will convert
-             * it back to a number :(
+            /*
+             * Not really efficient - we have a number, but convert it to a
+             * string, at which point the add_to_textbuf will convert it back
+             * to a number :(
              */
             color=(char*)usercolorname[orig_color];
         }
@@ -534,11 +536,14 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     free(original);
 }
 
-/* draw_info adds a line to the info window.
- * note that with the textbufs, it seems you need to manually set
- * it to the bottom of the screen - otherwise, the scrollbar just
- * stays at the top.  However, I could see this not being ideal
+/**
+ * Adds a line to the info window.  note that with the textbufs, it seems you
+ * need to manually set it to the bottom of the screen - otherwise, the
+ * scrollbar just stays at the top.  However, I could see this not being ideal
  * if you are trying to scroll back while new stuff comes in.
+ *
+ * @param str
+ * @param color
  */
 
 void draw_info(const char *str, int color) {
@@ -551,15 +556,15 @@ void draw_info(const char *str, int color) {
         ncolor=NDI_BLACK;
     }
 
-    /* This seems more complicated than it should be, but we need to see if
-     * the window is scrolled at the end.  If it is, we want to keep scrolling
-     * it down with new info.  If not, we don't want to change position - otherwise,
-     * it makes it very difficult to look back at the old info (like old messages
-     * missed during combat, looking at the shop listing while people are chatting,
-     * etc)
-     * We need to find out the position before putting in new text -
-     * otherwise, that operation will mess up our position, and
-     * not give us right info.
+    /*
+     * This seems more complicated than it should be, but we need to see if the
+     * window is scrolled at the end.  If it is, we want to keep scrolling it
+     * down with new info.  If not, we don't want to change position -
+     * otherwise, it makes it very difficult to look back at the old info (like
+     * old messages missed during combat, looking at the shop listing while
+     * people are chatting, etc) We need to find out the position before
+     * putting in new text - otherwise, that operation will mess up our
+     * position, and not give us right info.
      */
     gtk_text_view_get_visible_rect(GTK_TEXT_VIEW(info_pane[0].textview), &rect);
     if ((info_pane[0].adjustment->value + rect.height) >= info_pane[0].adjustment->upper ) scroll_to_end=1;
@@ -592,10 +597,14 @@ void draw_info(const char *str, int color) {
     }
 }
 
+/**
+ *
+ * @param colr
+ * @param buf
+ */
 void draw_color_info(int colr, const char *buf){
         draw_info(buf,colr);
 }
-
 
 /**
  * Clears all the message.  Not sure why someone would use it,
@@ -610,28 +619,34 @@ void menu_clear() {
     }
 }
 
-/* All the following are 'dummy' functions.  Basically, there are callbacks
- * to these from the common area, but they are not implemented in gtk,
- * either because it makes no sense (set_scroll for example), or because
- * it may not be technically possible to do so if we limit ourselves
- * to proper GTK2 code (Eg, don't mess with the internals of X or
- * platform specific issues)
+/**
+ * All the following are 'dummy' functions.  Basically, there are callbacks to
+ * these from the common area, but they are not implemented in gtk, either
+ * because it makes no sense (set_scroll for example), or because it may not be
+ * technically possible to do so if we limit ourselves to proper GTK2 code (Eg,
+ * don't mess with the internals of X or platform specific issues)
+ *
+ * @param s
  */
 void set_scroll(char *s)
 {
 }
 
+/**
+ *
+ @param s
+ */
 void set_autorepeat(char *s)
 {
 }
 
 /**
- * FIXME: should be better than hardcoded value.  This is used by the common
- * help system to determine when to wrap.  Should be able to get width of
- * window, and divide by character width - however, still not perfect if
- * we are using a variable width font.
- * Actually, gtk can do word wrapping for us, so maybe the real fix is to have it
- * to the word wrapping and just run a sufficiently large value.
+ * This is used by the common help system to determine when to wrap.  Should be
+ * able to get width of window, and divide by character width - however, still
+ * not perfect if we are using a variable width font.  Actually, gtk can do
+ * word wrapping for us, so maybe the real fix is to have it to the word
+ * wrapping and just run a sufficiently large value.
+ * FIXME: should be better than hardcoded value.
  *
  * @return
  * The width of the info window in characters.
@@ -640,3 +655,4 @@ int get_info_width()
 {
     return 40;
 }
+

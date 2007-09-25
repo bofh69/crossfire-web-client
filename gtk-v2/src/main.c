@@ -1,5 +1,5 @@
-char *rcsid_gtk2_main_c =
-    "$Id$";
+char *rcsid_gtk2_main_c = "$Id$";
+
 /*
     Crossfire client, a client program for the crossfire program.
 
@@ -62,7 +62,7 @@ const char *colorname[NUM_COLORS] = {
 "DodgerBlue",           /* 5  */
 "DarkOrange2",          /* 6  */
 "SeaGreen",             /* 7  */
-"DarkSeaGreen",         /* 8  */        /* Used for window background color */
+"DarkSeaGreen",         /* 8  *//* Used for window background color */
 "Grey50",               /* 9  */
 "Sienna",               /* 10 */
 "Gold",                 /* 11 */
@@ -82,8 +82,8 @@ const char *usercolorname[NUM_COLORS] = {
 "lightblue",            /* 5  */
 "darkorange",           /* 6  */
 "green",                /* 7  */
-"darkgreen",            /* 8  */        /* Used for window background color */
-"grey"  ,               /* 9  */
+"darkgreen",            /* 8  *//* Used for window background color */
+"grey",                 /* 9  */
 "brown",                /* 10 */
 "yellow",               /* 11 */
 "tan"                   /* 12 */
@@ -151,8 +151,7 @@ void cleanup_connection()
 /**
  * Handles client shutdown.
  */
-void
-on_window_destroy_event                (GtkObject       *object,
+void on_window_destroy_event           (GtkObject        *object,
                                         gpointer         user_data)
 {
 #ifdef WIN32
@@ -166,7 +165,8 @@ on_window_destroy_event                (GtkObject       *object,
 /**
  * main loop iteration related stuff
  */
-void do_network() {
+void do_network()
+{
     fd_set tmp_read;
     int pollret;
 
@@ -185,22 +185,19 @@ void do_network() {
     pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
     if (pollret==-1) {
         LOG(LOG_WARNING,"gtk::do_network", "Got errno %d on select call.", errno);
-    }
-    else if ( pollret>0 ) {
+    } else if ( pollret>0 ) {
         if (FD_ISSET(csocket.fd, &tmp_read)) {
             DoClient(&csocket);
 #ifndef WIN32
             if ( pollret > 1 ) script_process(&tmp_read);
 #endif
-        }
-        else {
+        } else {
             script_process(&tmp_read);
         }
     }
-    /* DoClient now closes the socket, so we need to check for
-     * this here - with the socket being closed, this function
-     * will otherwise never be called again.
-     */
+    /* DoClient now closes the socket, so we need to check for this here -
+     * with the socket being closed, this function will otherwise never be
+     * called again. */
     if (csocket.fd==-1) {
         if (csocket_fd) {
             gdk_input_remove(csocket_fd);
@@ -209,7 +206,6 @@ void do_network() {
         }
         return;
     }
-
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(FALSE);
     else
@@ -218,7 +214,7 @@ void do_network() {
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) opengl_gen_map(FALSE);
     else
 #endif
-    draw_map(FALSE);
+        draw_map(FALSE);
 
     draw_lists();
 }
@@ -331,6 +327,7 @@ int parse_args(int argc, char **argv)
 {
     int on_arg=1;
     char *display_name="";
+
     load_defaults();
 
 #ifndef WIN32
@@ -344,63 +341,51 @@ int parse_args(int argc, char **argv)
      */
     want_skill_exp=1;
     for (on_arg=1; on_arg<argc; on_arg++) {
-        if (!strcmp(argv[on_arg],"-cache")) {
+        if (!strcmp(argv[on_arg], "-cache")) {
             want_config[CONFIG_CACHE]= TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-nocache")) {
+        } else if (!strcmp(argv[on_arg], "-nocache")) {
             want_config[CONFIG_CACHE]= FALSE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-darkness")) {
+        } else if (!strcmp(argv[on_arg], "-darkness")) {
             want_config[CONFIG_DARKNESS]= TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-nodarkness")) {
+        } else if (!strcmp(argv[on_arg], "-nodarkness")) {
             want_config[CONFIG_DARKNESS]= FALSE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-display")) {
+        } else if (!strcmp(argv[on_arg], "-display")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows","-display requires a display name");
                 return 1;
             }
             display_name = argv[on_arg];
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-download_all_faces")) {
+        } else if (!strcmp(argv[on_arg], "-download_all_faces")) {
             want_config[CONFIG_DOWNLOAD]= TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-echo")) {
+        } else if (!strcmp(argv[on_arg], "-echo")) {
             want_config[CONFIG_ECHO]= TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-noecho")) {
+        } else if (!strcmp(argv[on_arg], "-noecho")) {
             want_config[CONFIG_ECHO]= FALSE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-faceset")) {
+        } else if (!strcmp(argv[on_arg], "-faceset")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows","-faceset requires a faceset name/number");
                 return 1;
             }
             face_info.want_faceset = argv[on_arg];
             continue;
-        }
-        else if( !strcmp( argv[on_arg],"-fog")) {
+        } else if (!strcmp(argv[on_arg], "-fog")) {
             want_config[CONFIG_FOGWAR]= TRUE;
             continue;
-        }
-        else if( !strcmp( argv[on_arg],"-nofog")) {
+        } else if (!strcmp(argv[on_arg], "-nofog")) {
             want_config[CONFIG_FOGWAR]= FALSE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-help")) {
+        } else if (!strcmp(argv[on_arg], "-help")) {
             usage(argv[0]);
             continue;
-        }
-        else if( !strcmp( argv[on_arg],"-iconscale")) {
+        } else if (!strcmp(argv[on_arg], "-iconscale")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows","-iconscale requires a percentage value");
                 return 1;
@@ -412,8 +397,7 @@ int parse_args(int argc, char **argv)
                 return 1;
             }
             continue;
-        }
-        else if( !strcmp( argv[on_arg],"-mapscale")) {
+        } else if (!strcmp(argv[on_arg], "-mapscale")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows","-mapscale requires a percentage value");
                 return 1;
@@ -425,9 +409,9 @@ int parse_args(int argc, char **argv)
                 return 1;
             }
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-mapsize")) {
+        } else if (!strcmp(argv[on_arg], "-mapsize")) {
             char *cp, x, y=0;
+
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows","-mapsize requires a XxY value");
                 return 1;
@@ -436,13 +420,13 @@ int parse_args(int argc, char **argv)
             for (cp = argv[on_arg]; *cp!='\0'; cp++)
                 if (*cp == 'x' || *cp == 'X') break;
 
-            if (*cp==0) {
+            if (*cp == 0) {
                 LOG(LOG_WARNING,"gtk::init_windows","-mapsize requires both and X and Y value (ie, XxY - note the\nx in between.");
             } else {
                 y = atoi(cp+1);
             }
             if (x<9 || y<9) {
-                LOG(LOG_WARNING,"gtk::init_windows","map size must be positive values of at least 9");
+                LOG(LOG_WARNING,"gtk::init_windows","Map size must be positive values of at least 9");
             } else if (x>MAP_MAX_SIZE || y>MAP_MAX_SIZE) {
                 LOG(LOG_WARNING,"gtk::init_windows","Map size can not be larger than %d x %d", MAP_MAX_SIZE, MAP_MAX_SIZE);
 
@@ -451,93 +435,76 @@ int parse_args(int argc, char **argv)
                 want_config[CONFIG_MAPHEIGHT]=y;
             }
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-fasttcpsend")) {
+        } else if (!strcmp(argv[on_arg], "-fasttcpsend")) {
             want_config[CONFIG_FASTTCP] = TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-nofasttcpsend")) {
+        } else if (!strcmp(argv[on_arg], "-nofasttcpsend")) {
             want_config[CONFIG_FASTTCP] = FALSE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-opengl")) {
+        } else if (!strcmp(argv[on_arg], "-opengl")) {
 #ifndef HAVE_OPENGL
             LOG(LOG_WARNING,"gtk::init_windows","client not compiled with opengl support.  Ignoring -opengl");
 #else
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_OPENGL;
 #endif
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-pixmap")) {
+        } else if (!strcmp(argv[on_arg], "-pixmap")) {
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
-        }
-        else if (!strcmp(argv[on_arg],"-port")) {
+        } else if (!strcmp(argv[on_arg], "-port")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows","-port requires a port number");
                 return 1;
             }
             want_config[CONFIG_PORT] = atoi(argv[on_arg]);
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-sdl")) {
+        } else if (!strcmp(argv[on_arg], "-sdl")) {
 #ifndef HAVE_SDL
             LOG(LOG_WARNING,"gtk::init_windows","client not compiled with sdl support.  Ignoring -sdl");
 #else
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
 #endif
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-server")) {
+        } else if (!strcmp(argv[on_arg], "-server")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows","-server requires a host name");
                 return 1;
             }
             server = argv[on_arg];
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-showicon")) {
+        } else if (!strcmp(argv[on_arg], "-showicon")) {
             want_config[CONFIG_SHOWICON] = TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-smooth")) {
+        } else if (!strcmp(argv[on_arg], "-smooth")) {
             want_config[CONFIG_SMOOTH] = TRUE;
-        }
-        else if (!strcmp(argv[on_arg],"-nosmooth")) {
+        } else if (!strcmp(argv[on_arg], "-nosmooth")) {
             want_config[CONFIG_SMOOTH] = FALSE;
-        }
-        else if (!strcmp(argv[on_arg],"-sound")) {
+        } else if (!strcmp(argv[on_arg], "-sound")) {
             want_config[CONFIG_SOUND] = TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-nosound")) {
+        } else if (!strcmp(argv[on_arg], "-nosound")) {
             want_config[CONFIG_SOUND] = FALSE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-sound_server")) {
+        } else if (!strcmp(argv[on_arg], "-sound_server")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows","-sound_server requires an executable pathname");
                 return 1;
             }
             sound_server = argv[on_arg];
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-split")) {
+        } else if (!strcmp(argv[on_arg], "-split")) {
             want_config[CONFIG_SPLITWIN]=TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-nosplit")) {
+        } else if (!strcmp(argv[on_arg], "-nosplit")) {
             want_config[CONFIG_SPLITWIN]=FALSE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-resists")) {
+        } else if (!strcmp(argv[on_arg], "-resists")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows","-resists requires a value");
                 return 1;
             }
             want_config[CONFIG_RESISTS]=atoi(argv[on_arg]);
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-loglevel")) {
+        } else if (!strcmp(argv[on_arg], "-loglevel")) {
             extern int MINLOG;
 
             if (++on_arg == argc) {
@@ -546,36 +513,28 @@ int parse_args(int argc, char **argv)
             }
             MINLOG = atoi(argv[on_arg]);
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-splitinfo")) {
+        } else if (!strcmp(argv[on_arg], "-splitinfo")) {
             want_config[CONFIG_SPLITINFO]=TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-timemapredraw")) {
+        } else if (!strcmp(argv[on_arg], "-timemapredraw")) {
             time_map_redraw=TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-triminfowindow")) {
+        } else if (!strcmp(argv[on_arg], "-triminfowindow")) {
             want_config[CONFIG_TRIMINFO] = TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-notriminfowindow")) {
+        } else if (!strcmp(argv[on_arg], "-notriminfowindow")) {
             want_config[CONFIG_TRIMINFO] = FALSE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-updatekeycodes")) {
+        } else if (!strcmp(argv[on_arg], "-updatekeycodes")) {
             updatekeycodes=TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-splash")) {
+        } else if (!strcmp(argv[on_arg], "-splash")) {
             want_config[CONFIG_SPLASH] = TRUE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-nosplash")) {
+        } else if (!strcmp(argv[on_arg], "-nosplash")) {
             want_config[CONFIG_SPLASH] = FALSE;
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-window_xml")) {
+        } else if (!strcmp(argv[on_arg], "-window_xml")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows",
                     "-window_xml requires a glade xml file name");
@@ -583,8 +542,7 @@ int parse_args(int argc, char **argv)
             }
             strncpy (window_xml_path, argv[on_arg], MAX_BUF-1);
             continue;
-        }
-        else if (!strcmp(argv[on_arg],"-dialog_xml")) {
+        } else if (!strcmp(argv[on_arg], "-dialog_xml")) {
             if (++on_arg == argc) {
                 LOG(LOG_WARNING,"gtk::init_windows",
                     "-dialog_xml requires a glade xml file name");
@@ -592,8 +550,7 @@ int parse_args(int argc, char **argv)
             }
             strncpy (dialog_xml_path, argv[on_arg], MAX_BUF-1);
             continue;
-        }
-        else {
+        } else {
             LOG(LOG_WARNING,"gtk::init_windows","Do not understand option %s", argv[on_arg]);
             usage(argv[0]);
             return 1;
@@ -636,18 +593,17 @@ int parse_args(int argc, char **argv)
  */
 static void error_dialog(char *description, char *information)
 {
-  GtkWidget *dialog;
+    GtkWidget *dialog;
 
-  gtk_init(NULL, NULL);
-  dialog = gtk_message_dialog_new(NULL,
-      GTK_DIALOG_DESTROY_WITH_PARENT,
-      GTK_MESSAGE_ERROR,
-      GTK_BUTTONS_CLOSE,
-      "Crossfire %s\n%s", VERSION_INFO, description);
-  gtk_message_dialog_format_secondary_markup(GTK_MESSAGE_DIALOG(dialog),
-      "%s", information);
-  gtk_dialog_run(GTK_DIALOG(dialog));
-  gtk_widget_destroy(dialog);
+    gtk_init(NULL, NULL);
+    dialog =
+        gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
+        GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Crossfire %s\n%s",
+        VERSION_INFO, description);
+    gtk_message_dialog_format_secondary_markup(GTK_MESSAGE_DIALOG(dialog),
+        "%s", information);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
 }
 
 /**
@@ -788,14 +744,12 @@ main (int argc, char *argv[])
 
     load_window_positions(window_root);
 
-    /* We want this as late as possible in the process. This way,
-     * adjustments that the widgets make on initialization are not
-     * visible - this is most important with the inventory widget
-     * which has to create the panes and fill in the data - if
-     * the window_root is shown before that, there is a brief glimpse
-     * of the glade layout, which, IMO, doesn't look great.  Also,
-     * it should be faster to realize this as later as possible.
-     */
+    /* We want this as late as possible in the process. This way, adjustments
+     * that the widgets make on initialization are not visible - this is most
+     * important with the inventory widget which has to create the panes and
+     * fill in the data - if the window_root is shown before that, there is a
+     * brief glimpse of the glade layout, which, IMO, doesn't look great.
+     * Also, it should be faster to realize this as later as possible. */
     gtk_widget_show (window_root);
 
     map_init(window_root);

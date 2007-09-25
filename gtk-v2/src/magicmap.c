@@ -22,8 +22,11 @@ char *rcsid_gtk2_magicmap_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-/* This file is here to cover drawing the magic map.
+/**
+ * @file gtk-v2/src/magicmap.c
+ * Covers drawing the magic map.
  */
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -35,29 +38,29 @@ char *rcsid_gtk2_magicmap_c =
 
 #include "main.h"
 
-/* in main.c - this is the drawing area for the magic map */
-extern GtkWidget *magic_map, *map_notebook;
+extern GtkWidget *magic_map;    /**< main.c - drawing area for the magic map */
+extern GtkWidget *map_notebook; /**< main.c - drawing areas for the maps */
 extern GdkColor root_color[NUM_COLORS];
-
 
 static GdkGC *magic_map_gc=NULL;
 
-
-/* This function draws the magic map - basically, it is just a simple encoding
- * of space X is color C.
+/**
+ * Draws the magic map - basically, it is just a simple encoding of space X is
+ * color C.
  */
 void draw_magic_map(void)
 {
     int x=0, y=0;
 
-    /* This can happen if a person selects the magic map pane before
-     * actually getting any magic map data
+    /*
+     * This can happen if a person selects the magic map pane before actually
+     * getting any magic map data
      */
     if (!cpl.magicmap) return;
 
-    /* Have to set this so that the gtk_widget_show below actually
-     * creates teh widget.  also nice to switch to this page when
-     * person actually casts magic map spell.
+    /*
+     * Have to set this so that the gtk_widget_show below actually creates the
+     * widget.  Switch to this page when person actually casts magic map spell.
      */
     gtk_notebook_set_current_page(GTK_NOTEBOOK(map_notebook), MAGIC_MAP_PAGE);
 
@@ -72,6 +75,7 @@ void draw_magic_map(void)
                        0,
                        magic_map->allocation.width,
                        magic_map->allocation.height);
+
     cpl.mapxres = magic_map->allocation.width/cpl.mmapx;
     cpl.mapyres = magic_map->allocation.height/cpl.mmapy;
 
@@ -81,40 +85,43 @@ void draw_magic_map(void)
         return;
     }
 
-    /* In theory, cpl.mapxres and cpl.mapyres do not have to be the same.  However,
-     * it probably makes sense to keep them the same value.
-     * Need to take the smaller value.
+    /*
+     * In theory, cpl.mapxres and cpl.mapyres do not have to be the same.
+     * However, it probably makes sense to keep them the same value.  Need to
+     * take the smaller value.
      */
     if (cpl.mapxres>cpl.mapyres) cpl.mapxres=cpl.mapyres;
     else cpl.mapyres=cpl.mapxres;
 
-
-    /* this is keeping the same unpacking scheme that the server uses
-     * to pack it up.
+    /*
+     * This is keeping the same unpacking scheme that the server uses to pack
+     * it up.
      */
     for (y = 0; y < cpl.mmapy; y++) {
-      for (x = 0; x < cpl.mmapx; x++) {
-        uint8 val = cpl.magicmap[y*cpl.mmapx + x];
+        for (x = 0; x < cpl.mmapx; x++) {
+            uint8 val = cpl.magicmap[y*cpl.mmapx + x];
 
-        gdk_gc_set_foreground (magic_map_gc, &root_color[val&FACE_COLOR_MASK]);
+            gdk_gc_set_foreground(
+                magic_map_gc, &root_color[val&FACE_COLOR_MASK]);
 
-        gdk_draw_rectangle (magic_map->window, magic_map_gc,
-                            TRUE,
-                            cpl.mapxres*x,
-                            cpl.mapyres*y,
-                            cpl.mapxres,
-                            cpl.mapyres);
-      }
+            gdk_draw_rectangle(magic_map->window, magic_map_gc,
+                               TRUE,
+                               cpl.mapxres*x,
+                               cpl.mapyres*y,
+                               cpl.mapxres,
+                               cpl.mapyres);
+        }
     }
 }
 
-
-/* Basically, this just flashes the player position on the magic map */
+/**
+ * Flash the player position on the magic map
+ */
 void magic_map_flash_pos(void)
 {
-
-    /* Don't want to keep doing this if the user switches back
-     * to the map window.
+    /*
+     * Don't want to keep doing this if the user switches back to the map
+     * window.
      */
     if (gtk_notebook_get_current_page(GTK_NOTEBOOK(map_notebook))!=MAGIC_MAP_PAGE) {
         cpl.showmagic=0;
@@ -136,7 +143,13 @@ void magic_map_flash_pos(void)
                       cpl.mapyres);
 }
 
-
+/**
+ *
+ * @param widget
+ * @param event
+ * @param user_data
+ * @return FALSE
+ */
 gboolean
 on_drawingarea_magic_map_expose_event  (GtkWidget       *widget,
                                         GdkEventExpose  *event,
@@ -145,3 +158,4 @@ on_drawingarea_magic_map_expose_event  (GtkWidget       *widget,
     draw_magic_map();
     return FALSE;
 }
+
