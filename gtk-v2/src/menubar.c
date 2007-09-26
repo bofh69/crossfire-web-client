@@ -23,7 +23,7 @@ char *rcsid_gtk2_menubar_c =
 */
 
 /**
- * @file menubar.c
+ * @file gtk-v2/src/menubar.c
  * Implements the core selections from the top menubar.
  *
  * Quick notes on the menubar:
@@ -301,3 +301,4 @@ void enable_menu_items(int enable)
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (menu_about), NULL);
 }
+

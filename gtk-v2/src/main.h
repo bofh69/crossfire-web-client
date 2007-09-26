@@ -25,7 +25,7 @@
 */
 
 /**
- * @file main.h
+ * @file gtk-v2/src/main.h
  * Contains various global definitions and XML file name and path defaults.
  */
 
@@ -43,3 +43,4 @@ extern int map_image_size, map_image_half_size, image_size;
 extern char window_xml_file[];
 
 #define MAGIC_MAP_PAGE  1 /**< Notebook page of the magic map */
+

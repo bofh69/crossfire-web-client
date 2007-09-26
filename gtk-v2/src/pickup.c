@@ -1,4 +1,4 @@
-char *rcsid_gtk_pickup_c =
+char *rcsid_gtk2_pickup_c =
     "$Id$";
 
 /*
@@ -23,9 +23,11 @@ char *rcsid_gtk_pickup_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
-/* This file covers the pickup menu items.  We only implement the new pickup code -
- * it seems to me that it should be able to cover everything the old pickup mode
- * does.
+/**
+ * @file gtk-v2/src/pickup.c
+ * This file covers the pickup menu items.  We only implement the new pickup
+ * code - it seems to me that it should be able to cover everything the old
+ * pickup mode does.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -50,12 +52,12 @@ typedef struct {
 PickupMapping pickup_mapping[MAX_PICKUPS];
 static int num_pickups=0;
 
-/* definitions for detailed pickup descriptions.
- * The objective is to define intelligent groups of items that the
- * user can pick up or leave as he likes.
+/*
+ * Definitions for detailed pickup descriptions.  The objective is to define
+ * intelligent groups of items that the user can pick up or leave as he likes.
  */
 
-/* high bit as flag for new pickup options */
+/* High bit as flag for new pickup options */
 #define PU_NOTHING              0x00000000
 
 #define PU_DEBUG                0x10000000
@@ -96,12 +98,12 @@ static int num_pickups=0;
 
 static unsigned int pmode=0, no_recurse=0;
 
-
-
-/* This covers the pickup operations.  Unfortunately, it isn't easy (possible?)
+/**
+ * Handles the pickup operations.  Unfortunately, it isn't easy (possible?)
  * in glade to attach values to the menu items.
- * on is TRUE if the button is activated, 0 if it is off.
- * val is the PU_ bitmasks to set/clear.
+ *
+ * @param on is TRUE if the button is activated, 0 if it is off.
+ * @param val is the PU_ bitmasks to set/clear.
  */
 static void new_menu_pickup(int on, int val)
 {
@@ -120,7 +122,6 @@ static void new_menu_pickup(int on, int val)
     draw_info(modestr,NDI_BLACK);
     sprintf(modestr,"pickup %u",pmode);
     send_command(modestr, -1, 0);
-
 }
 
 void
@@ -130,14 +131,12 @@ on_menu_dont_pickup_activate           (GtkMenuItem     *menuitem,
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_INHIBIT);
 }
 
-
 void
 on_menu_stop_before_pickup_activate    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_STOP);
 }
-
 
 /***************************************************************************
  * armor pickup options
@@ -148,16 +147,13 @@ on_menu_body_armor_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_ARMOUR);
-
 }
-
 
 void
 on_menu_boots_activate                 (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_BOOTS);
-
 }
 
 void
@@ -165,7 +161,6 @@ on_menu_cloaks_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_CLOAK);
-
 }
 
 void
@@ -173,9 +168,7 @@ on_menu_gloves_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_GLOVES);
-
 }
-
 
 void
 on_menu_helmets_activate               (GtkMenuItem     *menuitem,
@@ -225,7 +218,6 @@ on_menu_drinks_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_DRINK);
-
 }
 
 void
@@ -233,7 +225,6 @@ on_menu_food_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_FOOD);
-
 }
 
 void
@@ -248,7 +239,6 @@ on_menu_magical_items_activate         (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_MAGICAL);
-
 }
 
 void
@@ -256,7 +246,6 @@ on_menu_potions_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_POTION);
-
 }
 
 void
@@ -264,7 +253,6 @@ on_menu_valuables_activate             (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_VALUABLES);
-
 }
 
 void
@@ -272,7 +260,6 @@ on_menu_wands_rods_horns_activate      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_MAGIC_DEVICE);
-
 }
 
 void
@@ -280,7 +267,6 @@ on_menu_not_cursed_activate            (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_NOT_CURSED);
-
 }
 
 void
@@ -288,7 +274,6 @@ on_menu_jewels_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_JEWELS);
-
 }
 
 void
@@ -296,45 +281,38 @@ on_menu_flesh_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_FLESH);
-
 }
 
 /***************************************************************************
  * Weapons submenu
  ***************************************************************************/
+
 void
 on_menu_all_weapons_activate           (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_ALLWEAPON);
-
 }
-
 
 void
 on_menu_missile_weapons_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_MISSILEWEAPON);
-
 }
-
 
 void
 on_menu_bows_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_BOW);
-
 }
-
 
 void
 on_menu_arrows_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_ARROW);
-
 }
 
 /***************************************************************************
@@ -346,16 +324,13 @@ on_menu_ratio_pickup_off_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 0);
-
 }
-
 
 void
 on_menu_ratio_5_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 1);
-
 }
 
 void
@@ -363,7 +338,6 @@ on_menu_ratio_10_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 2);
-
 }
 
 void
@@ -371,7 +345,6 @@ on_menu_ratio_15_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 3);
-
 }
 
 void
@@ -379,7 +352,6 @@ on_menu_ratio_20_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 4);
-
 }
 
 void
@@ -387,7 +359,6 @@ on_menu_ratio_25_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 5);
-
 }
 
 void
@@ -395,7 +366,6 @@ on_menu_ratio_30_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 6);
-
 }
 
 void
@@ -403,7 +373,6 @@ on_menu_ratio_35_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 7);
-
 }
 
 void
@@ -411,7 +380,6 @@ on_menu_ratio_40_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 8);
-
 }
 
 void
@@ -419,7 +387,6 @@ on_menu_ratio_45_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 9);
-
 }
 
 void
@@ -427,35 +394,38 @@ on_menu_ratio_50_activate               (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 10);
-
 }
 
 /**
- * This maps the menuitem lists into pickup values.  In this way, client_pickup
+ * Maps the menuitem lists into pickup values.  In this way, client_pickup
  * knows what values to change.
+ *
+ * @param window_root
  */
 void pickup_init(GtkWidget *window_root)
 {
     static int has_init=0;
     GladeXML *xml_tree;
 
-    /* There isn't really any harm doing this multiple times, but isn't
-     * any point either.
+    /*
+     * There isn't really any harm doing this multiple times, but isn't any
+     * point either.
      */
     if (has_init) return;
     has_init=1;
 
-    /* Order here really doesn't make much difference.  I suppose order
-     * could either be in pickup modes (PU_...) or the list of items in
-     * the menu tree.  I chose the later, as easier to make sure
-     * all the items are accounted for.
+    /*
+     * The order here really doesn't make much difference.  I suppose order
+     * could either be in pickup modes (PU_...) or the list of items in the
+     * menu tree.  I chose the later, as easier to make sure all the items are
+     * accounted for.
      *
-     * In practice, with these values now set up, we could use a single function
-     * to hande all the events from the menubar instead of the values above -
-     * that function basically takes the structure that was clicked, and
-     * finds the value in this array that corresponds to it.  But that
-     * code currently works fine and isn't really outdated, so isn't a big
-     * reason to change it.
+     * In practice, with these values now set up, we could use a single
+     * function to hande all the events from the menubar instead of the values
+     * above - that function basically takes the structure that was clicked,
+     * and finds the value in this array that corresponds to it.  But that code
+     * currently works fine and isn't really outdated, so isn't a big reason to
+     * change it.
      */
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
@@ -639,10 +609,11 @@ void pickup_init(GtkWidget *window_root)
     pickup_mapping[num_pickups].pickup_mode = PU_NOT_CURSED;
     num_pickups++;
 
-    /* Do some bounds checking.  We could actually set this exactly right, since
-     * additional menu entries are not likely to be added often.
-     * We exit because if we overrun that structure, we've screwed up
-     * memory and will likely crash or otherwise have odd behaviour.
+    /*
+     * Do some bounds checking.  We could actually set this exactly right,
+     * since additional menu entries are not likely to be added often.  We exit
+     * because if we overrun that structure, we've screwed up memory and will
+     * likely crash or otherwise have odd behaviour.
      */
     if (num_pickups>=MAX_PICKUPS) {
         LOG(LOG_ERROR, "pickup.c::pickup_init", "num_pickups (%d) >= MAX_PICKUPS (%d)\n",
@@ -660,14 +631,12 @@ void client_pickup(uint32 pickup)
     int i;
 
     /*
-     * no_recurse is used to limit callbacks - otherwise
-     * what happens is when we call set_active below,
-     * it emits the appropriate signal, which results
-     * in new_menu_pickup() getting called, which then
-     * sends a new pickup command to the server, which then
-     * results in server sending data to client, etc.
+     * no_recurse is used to limit callbacks - otherwise what happens is when
+     * we call set_active below, it emits the appropriate signal, which results
+     * in new_menu_pickup() getting called, which then sends a new pickup
+     * command to the server, which then results in server sending data to
+     * client, etc.
      */
-
     no_recurse=1;
     pmode=pickup;
 
@@ -681,3 +650,4 @@ void client_pickup(uint32 pickup)
     }
     no_recurse=0;
 }
+

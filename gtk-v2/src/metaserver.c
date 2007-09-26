@@ -23,7 +23,7 @@ char *rcsid_gtk2_metaserver_c =
 */
 
 /**
- * @file metaserver.c
+ * @file gtk-v2/src/metaserver.c
  * Supports the client's metaserver dialog used to connect to available
  * servers.
  */
@@ -60,7 +60,7 @@ enum {
  * @param model
  * @param path
  * @param path_currently_selected
- * @ user_data
+ * @param userdata
  * @return TRUE
  */
 gboolean metaserver_selection_func (
@@ -192,7 +192,7 @@ void get_metaserver()
         usleep(100);
         gtk_main_iteration_do(FALSE);
     }
-        
+
     pthread_mutex_lock(&ms2_info_mutex);
 
     if (cached_servers_num) {
@@ -356,7 +356,6 @@ on_treeview_metaserver_row_activated   (GtkTreeView     *treeview,
     model = gtk_tree_view_get_model(treeview);
     if (gtk_tree_model_get_iter(model, &iter, path)) {
         gtk_tree_model_get(model, &iter, LIST_HOSTNAME, &name, LIST_IPADDR, &ip, -1);
-
         metaserver_connect_to(name, ip);
     }
 }
@@ -394,7 +393,6 @@ on_button_metaserver_quit_pressed      (GtkButton       *button,
         script_killall();
 #endif
         exit(0);
-
 }
 
 /**

@@ -7,6 +7,10 @@ gtk-v2/src/inventory.c
 gtk-v2/src/keys.c
 gtk-v2/src/magicmap.c
 gtk-v2/src/main.c
+gtk-v2/src/menubar.c
+gtk-v2/src/metaserver.c
+gtk-v2/src/opengl.c
+gtk-v2/src/pickup.c
   - Spelling/grammar fixes.
   - Doxygen commenting work.
   - Some indentation adjustments.
