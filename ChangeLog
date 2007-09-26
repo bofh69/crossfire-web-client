@@ -2,6 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix for bug 1800702  - gdk_draw_drawable: assertion `src != NULL' failed.
+gtk/gx11.c:  Call sdl_gen_map() or gtk_draw_map() based on displaymode in use.
+gtk-v2/src/main.c: Call draw_map() instead of gtk_draw_map().  draw_map()
+  will figure out what function (sdl, opengl, gtk) to call do actually
+  draw the map.
+MSW 2007-09-25
+
 gtk-v2/src/info.c
 gtk-v2/src/inventory.c
 gtk-v2/src/keys.c

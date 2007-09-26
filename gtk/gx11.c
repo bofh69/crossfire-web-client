@@ -3,7 +3,7 @@ const char *rcsid_gtk_gx11_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001-2003,2006 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001-2003,2006-2007 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -2667,7 +2667,6 @@ static void bugdialog(GtkWidget *widget) {
 #ifndef CFGTK2
   GdkFont* font;
 #endif
-    int i;
 
   if(!gtkwin_bug) {
 
@@ -4512,6 +4511,10 @@ void client_tick(uint32 tick)
 {
     inventory_tick();
     mapdata_animation();
+#ifdef HAVE_SDL
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(0);
+    else
+#endif
     gtk_draw_map(0);
 }
 
@@ -5528,7 +5531,6 @@ extern char* cached_server_file;
 int main(int argc, char *argv[])
 {
     int got_one=0;
-    int i;
     static char file_cache[ MAX_BUF ];
 
     g_log_set_handler (NULL,G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL|G_LOG_LEVEL_ERROR|
