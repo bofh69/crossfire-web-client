@@ -527,7 +527,8 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
         else if (!strcmp(current,"print"))      font = FONT_NORMAL;
         else if (!strcmp(current,"/color"))     color = NULL;
         else if (!strncmp(current,"color=",6))  color = current + 6;
-        else LOG(LOG_INFO, "info.c::message_callback", "unidentified message: %s\n", current);
+        else LOG(LOG_INFO, "info.c::message_callback",
+                 "unrecognized tag: [%s]\n", current);
         current = marker+1;
 
     }

@@ -2,6 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c
+  - Change error message when the client gets a message with a [] text format
+    tag that is not valid to make it more obvious what is wrong.  This can
+    help determine the error faster if the server inadvertently sends the
+    client a message with displayed text that has square brackets around it.
+Kevin Bulgrien 2007-09-30
+
 Fix for bug 1800702  - gdk_draw_drawable: assertion `src != NULL' failed.
 gtk/gx11.c:  Call sdl_gen_map() or gtk_draw_map() based on displaymode in use.
 gtk-v2/src/main.c: Call draw_map() instead of gtk_draw_map().  draw_map()
