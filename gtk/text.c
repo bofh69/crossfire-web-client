@@ -486,6 +486,9 @@ static void admin_callback(int flag, int type, int subtype, char *message) {
                     strcpy(new->content,str1);
                     new->next=first_news;
                     first_news=new;
+		    if (use_config[CONFIG_SPLITINFO])
+			write_media(GTK_TEXT(gtkwin_info_text2),str1);
+		    write_media(GTK_TEXT(gtkwin_info_text),str1);
                 } else {
                     LOG(LOG_ERROR,"gtk::admin_callback","Outa memory, no save of news");
                 }
@@ -498,6 +501,9 @@ static void admin_callback(int flag, int type, int subtype, char *message) {
             rules = malloc(strlen(message)+1);
             if (rules){
                 strcpy(rules,message);
+		if (use_config[CONFIG_SPLITINFO])
+		    write_media(GTK_TEXT(gtkwin_info_text2),message);
+		write_media(GTK_TEXT(gtkwin_info_text),message);
             }
             else
                 LOG(LOG_ERROR,"gtk::admin_callback","Outa memory, no save of rules");

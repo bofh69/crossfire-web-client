@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk/text.c: Add missing write_media() calls in handling of admin messages.
+   Results in news and rules not being displayed.  Fixes bug 1657000
+MSW 2007-10-03
+
 gtk-v2/src/info.c
   - Change error message when the client gets a message with a [] text format
     tag that is not valid to make it more obvious what is wrong.  This can
