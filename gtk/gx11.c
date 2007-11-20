@@ -5445,9 +5445,24 @@ char *get_metaserver(void)
     }
     return cpl.input_text;
 }
+/*default log window to 200 lines of about 50 characters*/
+#define MAX_LOG_CHARACTERS 10000
 void gtkLogListener (LogEntry *le){
-    if (bugtrack)
+    if (bugtrack){
+        gtk_text_freeze (GTK_TEXT (bugtrack));
         gtk_text_insert (GTK_TEXT (bugtrack), NULL, &bugtrack->style->black,NULL, getLogText(le), -1);
+        printf ("current gtk len: %d\n",gtk_text_get_length(GTK_TEXT (bugtrack)));
+        if (gtk_text_get_length(GTK_TEXT (bugtrack)) > MAX_LOG_CHARACTERS){
+            /*gtk_text_set_editable (GTK_TEXT (gtkwin_info_text), TRUE);*/
+            guint toomuch =gtk_text_get_length(GTK_TEXT (bugtrack))-MAX_LOG_CHARACTERS;
+            printf("Deleteing..%d\n",toomuch);
+            gtk_text_set_point(GTK_TEXT (bugtrack),toomuch);
+            gtk_text_backward_delete(GTK_TEXT (bugtrack),toomuch);
+            gtk_text_set_point(GTK_TEXT (bugtrack),gtk_text_get_length(GTK_TEXT (bugtrack)));
+           /* gtk_text_set_editable (GTK_TEXT (gtkwin_info_text), FALSE);*/
+        }  
+        gtk_text_thaw (GTK_TEXT (bugtrack));      
+    }
 }
 #define MAX_RECURSE 50
 /* a handler for the glib error logging. Used so we care ourself of the gtk/gdk warnings

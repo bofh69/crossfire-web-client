@@ -346,8 +346,22 @@ typedef struct LogEntry{
 } LogEntry;
 extern LogEntry* LogFirst;
 extern LogEntry* LogLast;
+extern int logcount;
 typedef void (*LogListener)(LogEntry*);
-#define LOG_APPEND(_Entry) if (LogLast) {LogLast->next=_Entry;} else {LogFirst=_Entry;};LogLast=_Entry;_Entry->next=NULL
+#define MAX_LOGS 200
+#define LOG_APPEND(_Entry) if (LogLast) {\
+    LogLast->next=_Entry;\
+  } else {\
+    LogFirst=_Entry;\
+  };\
+  LogLast=_Entry;_Entry->next=NULL;\
+  if (++logcount > MAX_LOGS)\
+  {\
+      LogEntry* old = LogFirst;\
+      LogFirst = LogFirst -> next;\
+      if (old->message) free (old->message);\
+      if (old->origin) free (old->origin);\
+  }
 #define LOG_NEW_ENTRY (LogEntry*)calloc(1,sizeof(LogEntry))
 #define LOG_SETMESSAGE(_Entry,_msg) free(_Entry->message);_Entry->message=strdup(_msg)
 #define LOG_SETORIGIN(_Entry,_orig) free(_Entry->origin);_Entry->origin=strdup(_orig)

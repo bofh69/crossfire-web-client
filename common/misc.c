@@ -130,6 +130,7 @@ char *strdup_local(const char *str) {
 /* logging stuff */
 LogEntry* LogFirst=NULL;
 LogEntry* LogLast=NULL;
+int logcount=0;
 LogListener loglist=NULL;
 int setLogListener(LogListener li){
     if (loglist)
