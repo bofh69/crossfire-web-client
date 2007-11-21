@@ -104,7 +104,7 @@ typedef struct Keys {
  ***********************************************************************/
 
 static uint32 firekeysym[2], runkeysym[2], commandkeysym, *bind_keysym,
-    prevkeysym, nextkeysym, completekeysym, altkeysym[2], metakeysym[2];
+    prevkeysym, nextkeysym, completekeysym, altkeysym[2], metakeysym[2], cancelkeysym;
 static int bind_flags=0;
 static char bind_buf[MAX_BUF];
 
@@ -379,6 +379,7 @@ void keys_init(GtkWidget *window_root)
     altkeysym[1] =GDK_Alt_R;
 
     completekeysym = GDK_Tab;
+    cancelkeysym = GDK_Escape;
 
     /*
      * Don't set these to anything by default.  At least on sun keyboards, the
@@ -1281,6 +1282,24 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     char *text;
 
     if (!use_config[CONFIG_POPUPS]) {
+        if ( ((cpl.input_state == Reply_One) || (cpl.input_state == Reply_Many))
+            && (event->keyval==cancelkeysym) ) {
+            /*Player hit cancel button during input. Disconnect it (code from menubar)*/
+                extern gint csocket_fd;
+
+#ifdef WIN32
+                closesocket(csocket.fd);
+#else
+                close(csocket.fd);
+#endif
+                csocket.fd = -1;
+                if (csocket_fd) {
+                    gdk_input_remove(csocket_fd);
+                    csocket_fd=0;
+                    gtk_main_quit();
+                }
+            return;
+        }
         if  (cpl.input_state == Reply_One) {
             text=gdk_keyval_name(event->keyval);
             send_reply(text);
