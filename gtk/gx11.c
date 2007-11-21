@@ -321,7 +321,7 @@ struct FaceCache {
 
 int misses=0,total=0;
 
-static void disconnect(GtkWidget *widget);
+void disconnect(GtkWidget *widget);
 
 /* Called from disconnect command - that closes the socket -
  * we just need to do the gtk cleanup.
@@ -2770,7 +2770,7 @@ void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButt
 }
 
 
-static void disconnect(GtkWidget *widget) {
+void disconnect(GtkWidget *widget) {
 #ifdef WIN32
     closesocket(csocket.fd);
 #else

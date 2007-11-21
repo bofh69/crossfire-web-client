@@ -83,7 +83,7 @@ typedef struct Keys {
 
 
 static uint32 firekeysym[2], runkeysym[2], commandkeysym,*bind_keysym,
-    prevkeysym, nextkeysym, completekeysym;
+    prevkeysym, nextkeysym, completekeysym, cancelkeysym;
 static int bind_flags=0;
 static char bind_buf[MAX_BUF];
 
@@ -311,6 +311,7 @@ void init_keys(void)
     runkeysym[1]  =GDK_Control_R;
 
     completekeysym = GDK_Tab;
+    cancelkeysym = GDK_Escape;
 
     /* Don't set these to anything by default.  At least on sun
      * keyboards, the keysym for up on both the keypad and arrow
@@ -1001,12 +1002,18 @@ void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
     }
 }
 
-
+extern void disconnect(GtkWidget*);
 void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     char *text;
     updatelock=0;
 
     if (!use_config[CONFIG_POPUPS]) {
+        if ( ((cpl.input_state == Reply_One) || (cpl.input_state == Reply_Many))
+            && (event->keyval==cancelkeysym) ) {
+            /*Player hit cancel button during input. Disconnect it (code from menubar)*/
+                disconnect(widget);
+            return;
+        }
 	if  (cpl.input_state == Reply_One) {
 	    text=gdk_keyval_name(event->keyval);
 	    send_reply(text);
