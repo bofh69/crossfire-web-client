@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix for bug #1825653: Odd number problem with nrof.
+ common/item.c: nrof is unsigned int32.
+Nicolas Weeger 2007-12-01
+
 gtk/text.c: Add missing write_media() calls in handling of admin messages.
    Results in news and rules not being displayed.  Fixes bug 1657000
 MSW 2007-10-03

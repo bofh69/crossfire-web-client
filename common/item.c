@@ -200,7 +200,7 @@ char *get_number(uint32 i) {
     if (i <= 20) {
         return numbers[i];
     } else {
-        sprintf(buf, "%d", i);
+        sprintf(buf, "%u", i);
         return buf;
     }
 }
