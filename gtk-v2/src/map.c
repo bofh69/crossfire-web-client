@@ -266,10 +266,13 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
     int i,lowest,weight,weightC;
     int emx,emy;
     int smoothface;
-    if (the_map.cells[mx][my].heads[layer].face == 0
-         || !CAN_SMOOTH(the_map.cells[mx][my],layer) )
+    int hasFace;
+    for (i=0;i<=layer;i++)
+        hasFace |= the_map.cells[mx][my].heads[i].face;
+    if (!hasFace
+    || !CAN_SMOOTH(the_map.cells[mx][my], layer)) {
         return;
-
+    }
     for (i=0;i<8;i++){
         emx=mx+dx[i];
         emy=my+dy[i];
@@ -387,8 +390,6 @@ static void display_mapcell(int ax, int ay, int mx, int my)
                     ax*map_image_size, ay*map_image_size,
                     ax*map_image_size+map_image_size-w, ay*map_image_size+map_image_size-h,
                     pixmaps[face]->map_mask, pixmaps[face]->map_image, map_image_size, map_image_size);
-                if ( use_config[CONFIG_SMOOTH])
-                    drawsmooth(mx, my, layer, ax*map_image_size, ay*map_image_size);
             }
             /*
              * Sometimes, it may happens we need to draw the smooth while there
@@ -397,7 +398,7 @@ static void display_mapcell(int ax, int ay, int mx, int my)
              * into account cases where the smooth as already been handled 2
              * code lines before
              */
-            else if ( use_config[CONFIG_SMOOTH] && the_map.cells[mx][my].need_resmooth )
+            if ( use_config[CONFIG_SMOOTH])
                 drawsmooth (mx, my, layer, ax*map_image_size, ay*map_image_size);
 
             /* draw big faces last (should overlap other objects) */

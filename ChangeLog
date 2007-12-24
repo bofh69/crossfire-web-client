@@ -2,6 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix smoothing code so it take into account smoothing on layers >0 if there is something drawn at lower layers.
+gtk-v2/src/map.c
+gtk-v2/src/sdl.c
+gtk-v2/src/opengl.c
+Tchize 2007-12-24
+
+
 Fix for bug #1825653: Odd number problem with nrof.
  common/item.c: nrof is unsigned int32.
 Nicolas Weeger 2007-12-01

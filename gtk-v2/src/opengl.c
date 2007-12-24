@@ -543,8 +543,7 @@ static void draw_smoothing(int layer)
             mx = x + pl_pos.x;
             my = y + pl_pos.y;
 
-            if ( the_map.cells[mx][my].heads[layer].face!=0 &&
-                CAN_SMOOTH(the_map.cells[mx][my],layer))
+            if (CAN_SMOOTH(the_map.cells[mx][my],layer))
                 drawsmooth_opengl(x, y, mx, my, layer);
         }
     }
@@ -588,9 +587,11 @@ void opengl_gen_map(int redraw) {
      * is the order of the loops we add MAX_MAP_OFFSET so that big objects off
      * the edge of the map are drawn.
      */
+     
+    got_smooth=0; /*smooth marker. Once we have a face and "can_smooth" on a layer, this layer and all above draw smooth */
+                
     for (layer=0; layer<=MAXLAYERS; layer++) {
 
-        got_smooth=0;
 
         if (layer == MAXLAYERS) {
             /*

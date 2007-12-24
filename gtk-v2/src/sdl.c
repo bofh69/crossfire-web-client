@@ -655,9 +655,11 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
     int i,lowest,weight,weightC;
     int emx,emy;
     int smoothface;
+    int hasFace = 0;
     SDL_Rect src;
-
-    if (the_map.cells[mx][my].heads[layer].face == 0
+    for (i=0;i<=layer;i++)
+        hasFace |= the_map.cells[mx][my].heads[i].face;
+    if (!hasFace
     || !CAN_SMOOTH(the_map.cells[mx][my], layer)) {
         return;
     }
@@ -864,15 +866,13 @@ static void display_mapcell(int ax, int ay, int mx, int my)
                         do_SDL_error( "BlitSurface", __FILE__, __LINE__);
                 }
 
-                if ( use_config[CONFIG_SMOOTH])
-                    drawsmooth_sdl (mx,my,layer,dst);
             }
             /* Sometimes, it may happens we need to draw the smooth while there
              * is nothing to draw at that layer (but there was something at lower
              * layers). This is handled here. The else part is to take into account
              * cases where the smooth as already been handled 2 code lines before
              */
-            else if (use_config[CONFIG_SMOOTH] && the_map.cells[mx][my].need_resmooth)
+            if (use_config[CONFIG_SMOOTH])
                 drawsmooth_sdl (mx,my,layer,dst);
 
             /* draw big faces last (should overlap other objects) */
