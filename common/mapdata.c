@@ -156,6 +156,17 @@ static void set_darkness(int x, int y, int darkness)
     }
 }
 
+static void mark_resmooth(int x, int y, int layer){
+    int sdx,sdy;
+    if (the_map.cells[x][y].smooth[layer]>1){
+        for (sdx=-1;sdx<2;sdx++)
+            for (sdy=-1;sdy<2;sdy++)
+                if ( (sdx || sdy) /* ignore (0,0) */
+                    &&  ( (x+sdx >0) && (x+sdx < FOG_MAP_SIZE) &&  /* only inside map */
+                          (y+sdy >0) && (y+sdy < FOG_MAP_SIZE) ) )
+                    the_map.cells[x+sdx][y+sdy].need_resmooth=1;
+    }
+}
 /**
  * Clear a face from the_map.cells[].
  *
@@ -197,6 +208,7 @@ static void expand_clear_face(int x, int y, int w, int h, int layer)
                 tail->size_y = 0;
                 the_map.cells[x-dx][y-dy].need_update = 1;
             }
+            mark_resmooth(x-dx,y-dy,layer);
         }
     }
 
@@ -209,6 +221,7 @@ static void expand_clear_face(int x, int y, int w, int h, int layer)
     cell->heads[layer].size_y = 1;
     cell->need_update = 1;
     cell->need_resmooth = 1;
+    mark_resmooth(x,y,layer);
 }
 
 /**
@@ -265,7 +278,8 @@ static void expand_set_face(int x, int y, int layer, sint16 face, int clear)
     cell->heads[layer].size_x = w;
     cell->heads[layer].size_y = h;
     cell->need_update=1;
-
+    mark_resmooth(x,y,layer);
+            
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
             struct MapCellLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
@@ -276,7 +290,8 @@ static void expand_set_face(int x, int y, int layer, sint16 face, int clear)
             tail->face = face;
             tail->size_x = dx;
             tail->size_y = dy;
-            the_map.cells[x-dx][y-dy].need_update = 1;
+            the_map.cells[x-dx][y-dy].need_update = 1;            
+            mark_resmooth(x-dx,y-dy,layer);
         }
     }
 }
