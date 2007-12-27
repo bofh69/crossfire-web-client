@@ -694,14 +694,14 @@
 	<widget class="GtkVPaned" id="vpaned_main_stats">
 	  <property name="visible">True</property>
 	  <property name="can_focus">True</property>
-	  <property name="position">775</property>
+	  <property name="position">847</property>
 
 	  <child>
 	    <widget class="GtkHPaned" id="hpaned_map_other">
 	      <property name="width_request">1601</property>
 	      <property name="visible">True</property>
 	      <property name="can_focus">True</property>
-	      <property name="position">775</property>
+	      <property name="position">830</property>
 
 	      <child>
 		<widget class="GtkNotebook" id="map_notebook">
