@@ -4,8 +4,8 @@
 <glade-interface>
 
 <widget class="GtkWindow" id="window_root">
-  <property name="width_request">1275</property>
-  <property name="height_request">945</property>
+  <property name="width_request">1233</property>
+  <property name="height_request">1001</property>
   <property name="visible">True</property>
   <property name="title" translatable="yes">Crossfire Client - GTK v2</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
@@ -1075,71 +1075,151 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkNotebook" id="notebook_inv">
+			<widget class="GtkVPaned" id="vpaned_inv_floor">
 			  <property name="visible">True</property>
-			  <property name="show_tabs">True</property>
-			  <property name="show_border">True</property>
-			  <property name="tab_pos">GTK_POS_TOP</property>
-			  <property name="scrollable">False</property>
-			  <property name="enable_popup">False</property>
-			  <signal name="switch_page" handler="on_notebook_switch_page" last_modification_time="Sat, 26 Feb 2005 08:20:46 GMT"/>
+			  <property name="can_focus">True</property>
+			  <property name="position">500</property>
 
 			  <child>
-			    <widget class="GtkScrolledWindow" id="scrolledwindow6">
+			    <widget class="GtkNotebook" id="notebook_inv">
 			      <property name="visible">True</property>
-			      <property name="can_focus">True</property>
-			      <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
-			      <property name="vscrollbar_policy">GTK_POLICY_ALWAYS</property>
-			      <property name="shadow_type">GTK_SHADOW_NONE</property>
-			      <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
+			      <property name="show_tabs">True</property>
+			      <property name="show_border">True</property>
+			      <property name="tab_pos">GTK_POS_TOP</property>
+			      <property name="scrollable">False</property>
+			      <property name="enable_popup">False</property>
+			      <signal name="switch_page" handler="on_notebook_switch_page" last_modification_time="Sat, 26 Feb 2005 08:20:46 GMT"/>
 
 			      <child>
-				<widget class="GtkViewport" id="viewport1">
+				<widget class="GtkScrolledWindow" id="scrolledwindow6">
 				  <property name="visible">True</property>
 				  <property name="can_focus">True</property>
-				  <property name="shadow_type">GTK_SHADOW_IN</property>
+				  <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
+				  <property name="vscrollbar_policy">GTK_POLICY_ALWAYS</property>
+				  <property name="shadow_type">GTK_SHADOW_NONE</property>
+				  <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
 
 				  <child>
-				    <widget class="GtkTable" id="inv_table">
+				    <widget class="GtkViewport" id="viewport1">
 				      <property name="visible">True</property>
 				      <property name="can_focus">True</property>
-				      <property name="n_rows">11</property>
-				      <property name="n_columns">10</property>
-				      <property name="homogeneous">False</property>
-				      <property name="row_spacing">0</property>
-				      <property name="column_spacing">0</property>
-				      <signal name="expose_event" handler="on_inv_table_expose_event" last_modification_time="Mon, 28 Feb 2005 00:38:27 GMT"/>
+				      <property name="shadow_type">GTK_SHADOW_IN</property>
+
+				      <child>
+					<widget class="GtkTable" id="inv_table">
+					  <property name="visible">True</property>
+					  <property name="can_focus">True</property>
+					  <property name="n_rows">11</property>
+					  <property name="n_columns">10</property>
+					  <property name="homogeneous">False</property>
+					  <property name="row_spacing">0</property>
+					  <property name="column_spacing">0</property>
+					  <signal name="expose_event" handler="on_inv_table_expose_event" last_modification_time="Mon, 28 Feb 2005 00:38:27 GMT"/>
+					</widget>
+				      </child>
 				    </widget>
 				  </child>
 				</widget>
+				<packing>
+				  <property name="tab_expand">False</property>
+				  <property name="tab_fill">True</property>
+				</packing>
+			      </child>
+
+			      <child>
+				<widget class="GtkLabel" id="label80">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">Icons</property>
+				  <property name="use_underline">False</property>
+				  <property name="use_markup">False</property>
+				  <property name="justify">GTK_JUSTIFY_LEFT</property>
+				  <property name="wrap">False</property>
+				  <property name="selectable">False</property>
+				  <property name="xalign">0.5</property>
+				  <property name="yalign">0.5</property>
+				  <property name="xpad">0</property>
+				  <property name="ypad">0</property>
+				  <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
+				  <property name="width_chars">-1</property>
+				  <property name="single_line_mode">False</property>
+				  <property name="angle">0</property>
+				</widget>
+				<packing>
+				  <property name="type">tab</property>
+				</packing>
 			      </child>
 			    </widget>
 			    <packing>
-			      <property name="tab_expand">False</property>
-			      <property name="tab_fill">True</property>
+			      <property name="shrink">True</property>
+			      <property name="resize">False</property>
 			    </packing>
 			  </child>
 
 			  <child>
-			    <widget class="GtkLabel" id="label80">
+			    <widget class="GtkVBox" id="vbox18">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Icons</property>
-			      <property name="use_underline">False</property>
-			      <property name="use_markup">False</property>
-			      <property name="justify">GTK_JUSTIFY_LEFT</property>
-			      <property name="wrap">False</property>
-			      <property name="selectable">False</property>
-			      <property name="xalign">0.5</property>
-			      <property name="yalign">0.5</property>
-			      <property name="xpad">0</property>
-			      <property name="ypad">0</property>
-			      <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
-			      <property name="width_chars">-1</property>
-			      <property name="single_line_mode">False</property>
-			      <property name="angle">0</property>
+			      <property name="homogeneous">False</property>
+			      <property name="spacing">0</property>
+
+			      <child>
+				<widget class="GtkLabel" id="label_yousee">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes">You see:</property>
+				  <property name="use_underline">False</property>
+				  <property name="use_markup">False</property>
+				  <property name="justify">GTK_JUSTIFY_LEFT</property>
+				  <property name="wrap">False</property>
+				  <property name="selectable">False</property>
+				  <property name="xalign">0.5</property>
+				  <property name="yalign">0.5</property>
+				  <property name="xpad">0</property>
+				  <property name="ypad">0</property>
+				  <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
+				  <property name="width_chars">-1</property>
+				  <property name="single_line_mode">False</property>
+				  <property name="angle">0</property>
+				</widget>
+				<packing>
+				  <property name="padding">2</property>
+				  <property name="expand">False</property>
+				  <property name="fill">False</property>
+				</packing>
+			      </child>
+
+			      <child>
+				<widget class="GtkScrolledWindow" id="scrolledwindow_floor">
+				  <property name="visible">True</property>
+				  <property name="can_focus">True</property>
+				  <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
+				  <property name="vscrollbar_policy">GTK_POLICY_ALWAYS</property>
+				  <property name="shadow_type">GTK_SHADOW_NONE</property>
+				  <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
+
+				  <child>
+				    <widget class="GtkTreeView" id="treeview_look">
+				      <property name="visible">True</property>
+				      <property name="can_focus">True</property>
+				      <property name="headers_visible">True</property>
+				      <property name="rules_hint">False</property>
+				      <property name="reorderable">False</property>
+				      <property name="enable_search">True</property>
+				      <property name="fixed_height_mode">False</property>
+				      <property name="hover_selection">False</property>
+				      <property name="hover_expand">False</property>
+				      <signal name="row_collapsed" handler="list_row_collapse" last_modification_time="Thu, 27 Dec 2007 20:16:41 GMT"/>
+				    </widget>
+				  </child>
+				</widget>
+				<packing>
+				  <property name="padding">0</property>
+				  <property name="expand">True</property>
+				  <property name="fill">True</property>
+				</packing>
+			      </child>
 			    </widget>
 			    <packing>
-			      <property name="type">tab</property>
+			      <property name="shrink">True</property>
+			      <property name="resize">True</property>
 			    </packing>
 			  </child>
 			</widget>
