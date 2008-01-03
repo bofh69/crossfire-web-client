@@ -65,9 +65,6 @@ const char *rcsid_common_commands_c =
 
 int mapupdatesent = 0;
 
-#ifdef WIN32
-#include <windows.h>
-#endif
 #include <client.h>
 #include <external.h>
 #include <assert.h>

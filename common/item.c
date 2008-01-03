@@ -23,9 +23,6 @@ const char *rcsid_common_item_c =
 */
 
 
-#ifdef WIN32
-#include <windows.h>
-#endif
 #include <ctype.h>      /* needed for isdigit */
 #include <client.h>
 #include <item.h>

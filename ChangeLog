@@ -1,6 +1,11 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+Win32 compilation fixes. Remove superflous includes messing everything.
+(merge from 1.x)
+ common/client.c commands.c item.c metaserver.c newsocket.c p_cmd.c player.c script.c
+ gtk/win32/config.h porting.c
+Nicolas Weeger 2008-01-03
 
 Fix smoothing code so it take into account smoothing on layers >0 if there is something drawn at lower layers.
 gtk-v2/src/map.c

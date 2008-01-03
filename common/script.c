@@ -120,8 +120,6 @@ Someday this will be fixed :)
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <signal.h>
-#else
-#include <windows.h>
 #endif
 #include <ctype.h>
 

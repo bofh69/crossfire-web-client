@@ -146,4 +146,8 @@ int strncasecmp(const char *s1, const char *s2, int n);
 #pragma warning(disable: 4761) /* integral size mismatch in argument; conversion supplied */
 #endif
 
+/* New metaserver support */
+#define METASERVER2	1
+#define HAVE_CURL_CURL_H
+
 #endif /* __CROSSFIRE_CLIENT_CONFIG */

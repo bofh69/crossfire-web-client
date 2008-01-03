@@ -551,6 +551,7 @@ void SoundCmd(unsigned char *data, int len)
  * timing the map redraws, so for practical purposes, it should just
  * always return 0 with no real harm.
  */
+#include <winsock.h>
 void gettimeofday(struct timeval *tv, void* unused)
 {
 	memset(tv, 0, sizeof(struct timeval));
