@@ -1,6 +1,13 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+common/image.c, README: Rename client '.crossfire/crossfire-images/' to
+  '.crossfire/image-cache/' to make backups avoid backing it up with a
+  generic exclude like "*/*cache*/*" that works for many other packages
+  that employ caching.
+Kevin Bulgrien 2008-01-04
+
 Win32 compilation fixes. Remove superflous includes messing everything.
 (merge from 1.x)
  common/client.c commands.c item.c metaserver.c newsocket.c p_cmd.c player.c script.c
@@ -12,7 +19,6 @@ gtk-v2/src/map.c
 gtk-v2/src/sdl.c
 gtk-v2/src/opengl.c
 Tchize 2007-12-24
-
 
 Fix for bug #1825653: Odd number problem with nrof.
  common/item.c: nrof is unsigned int32.

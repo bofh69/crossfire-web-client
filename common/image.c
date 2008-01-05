@@ -73,7 +73,7 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
      * In fact, we keep track of which ones we have opened to improve
      * performance.  Note that while not currently done, this combined
      * image scheme could be done when storing images in the players
-     * ~/.crossfire-images directory.
+     * ~/.crossfire/image-cache directory.
      */
     if ((cp=strchr(filename,'@'))!=NULL) {
 	char *lp;
@@ -356,7 +356,7 @@ void init_common_cache_data()
 	draw_info(inbuf, NDI_RED);
     }
 
-    sprintf(bmaps,"%s/.crossfire/crossfire-images/bmaps.client", getenv("HOME"));
+    sprintf(bmaps,"%s/.crossfire/image-cache/bmaps.client", getenv("HOME"));
     if ((fp=fopen(bmaps,"r"))!=NULL) {
 	while (fgets(inbuf, MAX_BUF-1, fp)!=NULL) {
 	    image_process_line(inbuf, 0);
@@ -431,7 +431,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 	    sprintf(filename,"%s/%s",
 		    CF_DATADIR, ce->filename);
 	else
-	    sprintf(filename,"%s/.crossfire/crossfire-images/%s",
+	    sprintf(filename,"%s/.crossfire/image-cache/%s",
 		    getenv("HOME"), ce->filename);
 	if (load_image(filename, data, &len, &newsum)==-1) {
 	    LOG(LOG_WARNING,"common::finish_face_cmd","file %s listed in cache file, but unable to load", filename);
@@ -545,7 +545,7 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 	    LOG(LOG_WARNING,"common::display_newpng","Caching images, but name for %ld not set", face);
 	}
 	/* Make necessary leading directories */
-	sprintf(filename, "%s/.crossfire/crossfire-images",getenv("HOME"));
+	sprintf(filename, "%s/.crossfire/image-cache",getenv("HOME"));
 	if (access(filename, R_OK | W_OK | X_OK)== -1)
 #ifdef WIN32
 	    mkdir(filename);
@@ -553,7 +553,7 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 	    mkdir(filename, 0755);
 #endif
 
-	sprintf(filename, "%s/.crossfire/crossfire-images/%c%c", getenv("HOME"),
+	sprintf(filename, "%s/.crossfire/image-cache/%c%c", getenv("HOME"),
 		 facetoname[face][0], facetoname[face][1]);
 	if (access(filename, R_OK | W_OK | X_OK)== -1)
 #ifdef WIN32
@@ -581,7 +581,7 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 	setnum--;
 	do {
 	    setnum++;
-	    sprintf(filename, "%s/.crossfire/crossfire-images/%c%c/%s.%d",
+	    sprintf(filename, "%s/.crossfire/image-cache/%c%c/%s.%d",
 		    getenv("HOME"), facetoname[face][0],
 		    facetoname[face][1], basename, setnum);
 	} while (access(filename, F_OK)==-0);
@@ -614,7 +614,7 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 	     * built image archives, so only a few faces actually need to get
 	     * downloaded.
 	     */
-	    sprintf(filename,"%s/.crossfire/crossfire-images/bmaps.client", getenv("HOME"));
+	    sprintf(filename,"%s/.crossfire/image-cache/bmaps.client", getenv("HOME"));
 	    if ((tmpfile=fopen(filename, "a"))==NULL) {
 		LOG(LOG_WARNING,"common::display_newpng","Can not open %s for appending", filename);
 	    }

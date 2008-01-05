@@ -115,10 +115,10 @@ way images are placed into the gfx directory is by the user actually
 copying them to that directory.  The gfx directory allows a user to override
 images with versions he prefers.
 
-2) Look in ~/.crossfire/crossfire-images then <prefix>/share/cfclient/crossfire-images.
+2) Look in ~/.crossfire/image-cache then <prefix>/share/cfclient/crossfire-images.
 If the checksum matches the image from the
 respective directory is used.  Note that if the checksums match, it really doesn't
 matter what image location we use, as it is the same image.
 
 4) Get the image from the server.  If -cache is set, a copy of it is put into
-~/.crossfire/crossfire-images.
+~/.crossfire/image-cache.
