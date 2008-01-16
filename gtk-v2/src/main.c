@@ -786,8 +786,13 @@ main (int argc, char *argv[])
             draw_splash();
             metaserver_get_info(meta_server, meta_port);
             get_metaserver();
+	    /* Call this after get_metaserver so one can't do anything
+	     * with the menus at that point.
+	     */
+	    enable_menu_items(TRUE);
             negotiate_connection(use_config[CONFIG_SOUND]);
         } else {
+	    enable_menu_items(TRUE);
             csocket.fd=init_connection(server, use_config[CONFIG_PORT]);
             if (csocket.fd == -1) { /* specified server no longer valid */
                 server = NULL;

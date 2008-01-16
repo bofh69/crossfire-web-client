@@ -245,7 +245,6 @@ void get_metaserver()
     gtk_main();
 
     gtk_widget_hide(metaserver_window);
-    enable_menu_items(TRUE);
 }
 
 /**

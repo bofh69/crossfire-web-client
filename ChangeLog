@@ -2,6 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix for bug [ 1810609 ] menu items don't work if metaserver is bypassed -
+move call to enable_menu_items() into main.c, and call it even if we
+are doing direct connection (-server option).
+gtk-v2/src/metaserver.c: Remove call to enable_menu_items()
+gtk-v2/src/main.c: Add calls to enable_menu_items()
+MSW 2008-01-15
+
 Various bugfixes mostly:
 common/client.c: If servername is (null), don't both trying to connect - this
   happens when the NULL value is saved out on some systems.
