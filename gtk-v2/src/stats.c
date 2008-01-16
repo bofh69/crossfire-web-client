@@ -268,17 +268,22 @@ void stats_init(GtkWidget *window_root)
  * the actual value can go above this via supercharging stats.
  * @current_stat
  * current value of the stat.
+ * @statbar_stat
+ * this is the stat value to use for drawing the statbar.  For most
+ * stats, this is same as current stat, but for the exp bar,
+ * we basically want it to be a graph relative to amount for next level.
  * @name
  * Printable name of the stat.
  * @can_alert
  * Whether this stat can go on alert when it gets low.  It doesn't make
  * sense for this to happen on exp (not really an alert if you gain a
  * level). Note: This is no longer used with the new style code - if
- * a stat shouldn't ever change color when it is low, the style should
+ * a stat shouldn't ever change color when it is low, the style should	
  * dictate that.
  */
 
-void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, const char *name, int can_alert)
+void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
+	 sint64 statbar_max, sint64 statbar_stat, const char *name, int can_alert)
 {
     float bar;
     int is_alert;
@@ -289,7 +294,10 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, const char *
     if (lastval[stat_no] == current_stat && lastmax[stat_no] == max_stat)
         return;
 
-    if (max_stat > 0) bar = (float) current_stat / (float) max_stat;
+    lastval[stat_no] = current_stat;
+    lastmax[stat_no] = max_stat;
+
+    if (statbar_max > 0) bar = (float) statbar_stat / (float) statbar_max;
     else bar = 0.0;
 
     /* Simple check to see if current stat is less than 25% */
@@ -390,9 +398,9 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, const char *
             set_color = &ncolor;
         }
     } else {
-        if (current_stat * 4 < max_stat)
+        if (statbar_stat * 4 < statbar_max)
             set_color = bar_colors[stat_no][STYLE_LOW];
-        else if (current_stat > max_stat)
+        else if (statbar_stat > statbar_max)
             set_color = bar_colors[stat_no][STYLE_SUPER];
         else
             set_color = bar_colors[stat_no][STYLE_NORMAL];
@@ -417,18 +425,35 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, const char *
 /* Updates the stats pain - hp, sp, etc labels */
 void draw_message_window(int redraw) {
     static int lastbeep=0;
+    static sint64 level_diff;
 
-    update_stat(0, cpl.stats.maxhp, cpl.stats.hp, "HP:", TRUE);
-    update_stat(1, cpl.stats.maxsp, cpl.stats.sp, "Spell Points:", TRUE);
-    update_stat(2, cpl.stats.maxgrace, cpl.stats.grace, "Grace:", TRUE);
-    update_stat(3, 999, cpl.stats.food, "Food:", TRUE);
+    update_stat(0, cpl.stats.maxhp, cpl.stats.hp,
+		cpl.stats.maxhp, cpl.stats.hp, "HP:", TRUE);
+    update_stat(1, cpl.stats.maxsp, cpl.stats.sp,
+		cpl.stats.maxsp, cpl.stats.sp, "Spell Points:", TRUE);
+    update_stat(2, cpl.stats.maxgrace, cpl.stats.grace,
+		cpl.stats.maxgrace, cpl.stats.grace, "Grace:", TRUE);
+    update_stat(3, 999, cpl.stats.food, 999, cpl.stats.food, "Food:", TRUE);
 
     /* We may or may not have an exp table from the server.  If we don't, just
      * use current exp value so it will always appear maxed out.
      */
+    /* We calculate level_diff here just so it makes the update_stat()
+     * call below less messy.
+     */
+    if ((cpl.stats.level+1) < exp_table_max)
+	level_diff = exp_table[cpl.stats.level+1] - exp_table[cpl.stats.level];
+    else 
+	level_diff=cpl.stats.exp;
+
     update_stat(4,
         (cpl.stats.level+1) < exp_table_max ? exp_table[cpl.stats.level+1]:cpl.stats.exp,
-        cpl.stats.exp, "Exp:", FALSE);
+	cpl.stats.exp,
+	level_diff,
+        (cpl.stats.level+1) < exp_table_max ? 
+		(cpl.stats.exp - exp_table[cpl.stats.level]):cpl.stats.exp,
+	"Exp:", FALSE);
+
     if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3) && (cpl.stats.food < 200)) {
         gdk_beep( );
     } else if (use_config[CONFIG_FOODBEEP] && cpl.stats.food == 0 && ++lastbeep == 5) {
@@ -477,7 +502,7 @@ static void update_stat_mapping(void)
 
 /* This draws the stats window.  If redraw is true, it means
  * we need to redraw the entire thing, and not just do an
- * updated.
+ * updated
  */
 
 void draw_stats(int redraw) {
@@ -591,8 +616,14 @@ void draw_stats(int redraw) {
         sprintf(buff,"%3.2f",(float)cpl.stats.speed/FLOAT_MULTF);
         gtk_label_set (GTK_LABEL(statwindow.speed), buff);
     }
+    /* sc_version >= 1029 reports real value of weapon speed -
+     * not as a factor of player speed.  Handle accordingly.
+     */
+    if (csocket.sc_version >= 1029)
+	weap_sp = (float) cpl.stats.weapon_sp / FLOAT_MULTF;
+    else
+	weap_sp = (float) cpl.stats.speed/((float)cpl.stats.weapon_sp);
 
-    weap_sp = (float) cpl.stats.speed/((float)cpl.stats.weapon_sp);
     if (redraw || weap_sp !=last_stats.weapon_sp) {
         last_stats.weapon_sp=weap_sp;
         sprintf(buff,"%3.2f",weap_sp);
@@ -680,3 +711,4 @@ void clear_stat_mapping(void)
 {
     need_mapping_update=1;
 }
+

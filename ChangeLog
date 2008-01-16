@@ -2,6 +2,19 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Various bugfixes mostly:
+common/client.c: If servername is (null), don't both trying to connect - this
+  happens when the NULL value is saved out on some systems.
+common/client.h: Update VERSION_SC to 1029
+common/metaserver.c: Add more code since this client (at version_sc 1029) can
+  still play on 1027 and 1028 servers.
+gtk-v2/src/stats.c: Fix stat bar handling for exp - it now shows a progression
+  relative to currently level (so the instance you gain a new level, stat
+  bar goes back to zero) - this is more how things are expected to work.
+  Also, handle weapon_speed properly based on sc_version.
+gtk-v2/src/gtk2proto.h: Rebuilt
+MSW 2008-01-15
+
 common/image.c, README: Rename client '.crossfire/crossfire-images/' to
   '.crossfire/image-cache/' to make backups avoid backing it up with a
   generic exclude like "*/*cache*/*" that works for many other packages

@@ -77,11 +77,20 @@ int check_server_version(int entry)
 	/* 1027->1028 removed a bunch of old commands, so a 1028
 	 * version client can still play on a 1027 server, so
 	 * special hard code that.
+	 *
+	 * Likewise, 1028->1029 just changed how weapon_speed
+	 * should be interperted on the client - the client
+	 * does the right thing, so not problem with a 1029
+	 * client playing on 1028 or 1027 server.
+	 *
+	 * A 1028 client could in practice play on a 1029
+	 * server, since at the protocol level, data is the same -
+	 * the client would just have screwed up weapon_sp values.
 	 */
-	 /* This could perhaps get extended in the future, if other protocol
-	 * revision that maintain compatibility.
-	 */
-	if (VERSION_SC != 1028 && meta_servers[entry].sc_version != 1027) return 0;
+	if ((VERSION_SC == 1028 || VERSION_SC==1029) && 
+	    (meta_servers[entry].sc_version==1027 ||
+	     meta_servers[entry].sc_version==1028))
+	    return 1;
     }
     if (meta_servers[entry].cs_version != VERSION_CS) return 0;
 

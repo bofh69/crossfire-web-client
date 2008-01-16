@@ -204,6 +204,15 @@ int init_connection(char *host, int port)
     struct sockaddr_in insock;
     struct protoent *protox;
 
+    /* In my cases, an empty host will be saved as (null) in
+     * the defaults file.  However, upon loading, that doesn't
+     * show up as a NULL, but rather this string.  For whatever
+     * reasons, at least on my system, the lookup of this takes
+     * a long time, and it isn't a valid host name in any case,
+     * so just abort quickly
+     */
+    if (!strcmp(host,"(null)")) return -1;
+
     protox = getprotobyname("tcp");
     if (protox == (struct protoent  *) NULL)
     {
@@ -239,6 +248,9 @@ int init_connection(char *host, int port)
     struct addrinfo hints;
     struct addrinfo *res = NULL, *ai;
     char port_str[6];
+
+    /* See note in section above about null hosts names */
+    if (!strcmp(host,"(null)")) return -1;
 
     snprintf(port_str, sizeof(port_str), "%d", port);
 

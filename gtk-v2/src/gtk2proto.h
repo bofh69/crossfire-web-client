@@ -108,7 +108,6 @@ extern void draw_magic_map(void);
 extern void magic_map_flash_pos(void);
 extern gboolean on_drawingarea_magic_map_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
 /* menubar.c */
-extern void on_disconnect_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data);
 extern void enable_menu_items(int enable);
@@ -192,7 +191,6 @@ extern void on_spell_close_clicked(GtkButton *button, gpointer user_data);
 /* stats.c */
 extern void stats_get_styles(void);
 extern void stats_init(GtkWidget *window_root);
-extern void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, const char *name, int can_alert);
 extern void draw_message_window(int redraw);
 extern void draw_stats(int redraw);
 extern void clear_stat_mapping(void);
