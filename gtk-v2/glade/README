@@ -68,6 +68,11 @@ Notes about designing .glade files for the libglade version of the GTK2 client
 
      http://developer.gnome.org/doc/API/2.0/libglade/libglade-embedding.html
 
+   IMPORTANT:
+
+   The root window "visible" property must be set to "no" in order for saved
+   screen size settings to be restorable when the application starts up.
+
 2) All hpane and vpane resizeable widgets that need to be saved when the user
    selects Client | Save Window Position should have a name that begins with
    either "hpaned_" or "vpaned_".  The client will only save window positions

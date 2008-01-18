@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix: [ 1806282 ] Libglade client screen position saving faulty
+The root window "visible" property must be set to "no" in order for saved
+screen size settings to be restored when the application starts up.
+Kevin Bulgrien 2008-01-18
+
 Fix for bug [ 1810609 ] menu items don't work if metaserver is bypassed -
 move call to enable_menu_items() into main.c, and call it even if we
 are doing direct connection (-server option).

@@ -4,7 +4,6 @@
 <glade-interface>
 
 <widget class="GtkWindow" id="window_root">
-  <property name="visible">True</property>
   <property name="title" translatable="yes">Crossfire Client - GTK v2</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
