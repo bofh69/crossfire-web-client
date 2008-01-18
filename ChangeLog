@@ -2,9 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Undo unintentional change from prior commit.
+gtk-v2/glade/caelestis.glade
+Kevin Bulgrien
+
 Fix: [ 1806282 ] Libglade client screen position saving faulty
 The root window "visible" property must be set to "no" in order for saved
 screen size settings to be restored when the application starts up.
+gtk-v2/glade/*.glade
+gtk-v2/glade/README
 Kevin Bulgrien 2008-01-18
 
 Fix for bug [ 1810609 ] menu items don't work if metaserver is bypassed -
