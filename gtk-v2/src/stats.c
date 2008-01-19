@@ -22,6 +22,10 @@ char *rcsid_gtk2_stats_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
+/**
+ * @file gtk-v2/src/stats.c
+ * Support for character statistics.
+ */
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -128,10 +132,10 @@ int need_mapping_update=1;
 
 static int lastval[MAX_STAT_BARS], lastmax[MAX_STAT_BARS];
 
-/* This gets the style information for the stat bars (only portion
- * of the window right now that has custom style support.
+/**
+ * Gets the style information for the stat bars (only portion of the window
+ * right now that has custom style support.
  */
-
 void stats_get_styles()
 {
     static int has_init=0;
@@ -165,6 +169,10 @@ void stats_get_styles()
     }
 }
 
+/**
+ *
+ * @param *window_root
+ */
 void stats_init(GtkWidget *window_root)
 {
     int i, x, y;
@@ -258,30 +266,29 @@ void stats_init(GtkWidget *window_root)
 
 
 /**
- * This updates the stat bar and text display as it pertains to a specific
- * stat.
+ * Updates the stat bar and text display as it pertains to a specific stat.
  *
- * @stat_no
+ * @param stat_no
  * The stat number to update.
- * @max_stat
+ * @param max_stat
  * The normal maximum value this stat can have.  Note that within game terms,
  * the actual value can go above this via supercharging stats.
- * @current_stat
+ * @param current_stat
  * current value of the stat.
- * @statbar_stat
+ * @param statbar_max
+ * @param statbar_stat
  * this is the stat value to use for drawing the statbar.  For most
  * stats, this is same as current stat, but for the exp bar,
  * we basically want it to be a graph relative to amount for next level.
- * @name
+ * @param name
  * Printable name of the stat.
- * @can_alert
+ * @param can_alert
  * Whether this stat can go on alert when it gets low.  It doesn't make
  * sense for this to happen on exp (not really an alert if you gain a
  * level). Note: This is no longer used with the new style code - if
  * a stat shouldn't ever change color when it is low, the style should	
  * dictate that.
  */
-
 void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
 	 sint64 statbar_max, sint64 statbar_stat, const char *name, int can_alert)
 {
@@ -422,7 +429,11 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
 
 }
 
-/* Updates the stats pain - hp, sp, etc labels */
+/**
+ * Updates the stats pain - hp, sp, etc labels
+ *
+ * @param redraw
+ */
 void draw_message_window(int redraw) {
     static int lastbeep=0;
     static sint64 level_diff;
@@ -462,8 +473,9 @@ void draw_message_window(int redraw) {
     }
 }
 
-/* The mapping tables may not be completely full, so handle null
- * values.  Always treat null values as later in the sort order.
+/**
+ * The mapping tables may not be completely full, so handle null values.
+ * Always treat null values as later in the sort order.
  */
 static int mapping_sort(NameMapping *a, NameMapping *b)
 {
@@ -473,6 +485,9 @@ static int mapping_sort(NameMapping *a, NameMapping *b)
     else return strcasecmp(a->name, b->name);
 }
 
+/**
+ *
+ */
 static void update_stat_mapping(void)
 {
     int i;
@@ -500,11 +515,10 @@ static void update_stat_mapping(void)
     need_mapping_update=0;
 }
 
-/* This draws the stats window.  If redraw is true, it means
- * we need to redraw the entire thing, and not just do an
- * updated
+/**
+ * Draws the stats window.  If redraw is true, it means we need to redraw the
+ * entire thing, and not just do an updated
  */
-
 void draw_stats(int redraw) {
     static Stats last_stats;
     static char last_name[MAX_BUF]="", last_range[MAX_BUF]="";
@@ -705,8 +719,9 @@ void draw_stats(int redraw) {
 
 }
 
-
-
+/**
+ *
+ */
 void clear_stat_mapping(void)
 {
     need_mapping_update=1;

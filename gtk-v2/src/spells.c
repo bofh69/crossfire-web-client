@@ -22,6 +22,11 @@ char *rcsid_gtk2_spells_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
+/**
+ * @file gtk-v2/src/spells.c
+ * Handles spell related functionality.
+ */
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -49,22 +54,20 @@ enum {LIST_IMAGE, LIST_NAME, LIST_LEVEL, LIST_TIME, LIST_COST,
     LIST_DAMAGE, LIST_SKILL, LIST_PATH, LIST_DESCRIPTION, LIST_BACKGROUND, LIST_MAX_SP, LIST_TAG,
     LIST_FOREGROUND, LIST_FONT};
 
-
-/* The name of these styles in the rc file */
 static const char *Style_Names[Style_Last] = {
     "spell_attuned", "spell_repelled", "spell_denied", "spell_normal"
-};
+}; /**< The name of these styles in the rc * file */
 
-/* Actual styles as loaded.  May be null if no style found. */
-static GtkStyle    *spell_styles[Style_Last];
-
+static GtkStyle *spell_styles[Style_Last]; /**< Actual styles as loaded.  May
+                                            * be null if no style found. */
 static int has_init=0;
 
-/* This gets the style information for the inventory windows.  This is a separate
- * function because if the user changes styles, it can be nice to re-load the configuration.
- * The style for the inventory/look is a bit special.  That is because with gtk, styles
- * are widget wide - all rows in the widget would use the same style.  We want to adjust
- * the styles based on other attributes.
+/**
+ * Gets the style information for the inventory windows.  This is a separate
+ * function because if the user changes styles, it can be nice to re-load the
+ * configuration.  The style for the inventory/look is a bit special.  That is
+ * because with gtk, styles are widget wide - all rows in the widget would use
+ * the same style.  We want to adjust the styles based on other attributes.
  */
 void spell_get_styles()
 {
@@ -88,9 +91,15 @@ void spell_get_styles()
     style_has_init=1;
 }
 
-/* This is used if a user just single clicks on an
- * entry - at which point, we enable the cast &
- * invoke buttons.
+/**
+ * Used if a user just single clicks on an entry - at which point, we enable
+ * the cast & invoke buttons.
+ *
+ * @param selection
+ * @param model
+ * @param path
+ * @param path_currently_selected
+ * @param userdata
  */
 static gboolean spell_selection_func (
                       GtkTreeSelection *selection,
@@ -104,6 +113,9 @@ static gboolean spell_selection_func (
     return TRUE;
 }
 
+/**
+ *
+ */
 void update_spell_information()
 {
     Spell *spell;
@@ -177,6 +189,11 @@ void update_spell_information()
     }
 }
 
+/**
+ *
+ * @param menuitem
+ * @param user_data
+ */
 void
 on_spells_activate                     (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
@@ -339,7 +356,13 @@ on_spells_activate                     (GtkMenuItem     *menuitem,
 
 }
 
-
+/**
+ *
+ * @param treeview
+ * @param path
+ * @param column
+ * @param user_data
+ */
 void
 on_spell_treeview_row_activated        (GtkTreeView     *treeview,
                                         GtkTreePath     *path,
@@ -365,7 +388,11 @@ on_spell_treeview_row_activated        (GtkTreeView     *treeview,
     }
 }
 
-
+/**
+ *
+ * @param button
+ * @param user_data
+ */
 void
 on_spell_cast_clicked                  (GtkButton       *button,
                                         gpointer         user_data)
@@ -391,7 +418,11 @@ on_spell_cast_clicked                  (GtkButton       *button,
 
 }
 
-
+/**
+ *
+ * @param button
+ * @param user_data
+ */
 void
 on_spell_invoke_clicked                 (GtkButton       *button,
                                         gpointer         user_data)
@@ -416,7 +447,11 @@ on_spell_invoke_clicked                 (GtkButton       *button,
     }
 }
 
-
+/**
+ *
+ * @param button
+ * @param user_data
+ */
 void
 on_spell_close_clicked                 (GtkButton       *button,
                                         gpointer         user_data)
@@ -424,3 +459,4 @@ on_spell_close_clicked                 (GtkButton       *button,
     gtk_widget_hide(spell_window);
 
 }
+

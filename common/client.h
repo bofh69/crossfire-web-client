@@ -194,119 +194,140 @@ typedef enum rangetype {
 #define CFG_DM_SDL	    1
 #define CFG_DM_OPENGL	    2
 
-
-
 extern sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
-/* see common/init.c - basically, this is a string to number
- * mapping that is used when loading/saving the values.
- */
-extern const char *const config_names[CONFIG_NUMS];
 
-
+extern const char *const config_names[CONFIG_NUMS]; /**< See common/init.c -
+                                         * basically, this is a string to
+                                         * number mapping that is used when
+                                         * loading/saving the values.
+                                         */
 typedef struct Stat_struct {
-    sint8 Str,Dex,Con,Wis,Cha,Int,Pow;
-    sint8 wc,ac;	    /* Weapon Class and Armour Class */
-    sint8 level;
-    sint16 hp;		    /* Hit Points. */
-    sint16 maxhp;
-    sint16 sp;		    /* Spell points.  Used to cast spells. */
-    sint16 maxsp;	    /* Max spell points. */
-    sint16 grace;	    /* Spell points.  Used to cast spells. */
-    sint16 maxgrace;	    /* Max spell points. */
-    sint64 exp;		    /* Experience.  Killers gain 1/10. */
-    sint16 food;	    /* How much food in stomach.  0 = starved. */
-    sint16 dam;		    /* How much damage this object does when hitting */
-    sint32 speed;	    /* Gets converted to a float for display*/
-    sint32 weapon_sp;	    /* Gets converted to a float for display */
-    uint32 attuned;         /* The spell paths to which the player is attuned */
-    uint32 repelled;        /* The spell paths to which the player is repelled */
-    uint32 denied;          /* The spell paths denied to the player*/
-    uint16 flags;	    /* contains fire on/run on flags */
-    sint16 resists[30];	    /* Resistant values */
-    uint32 resist_change:1; /* Resistant value has changed */
-    sint16 skill_level[MAX_SKILL];  /* Level and experience totals for */
-    sint64 skill_exp[MAX_SKILL];    /* skills */
-    uint32 weight_limit;    /* weight limit */
+    sint8 Str;                          /**< Strength */
+    sint8 Dex;                          /**< Dexterity */
+    sint8 Con;                          /**< Constitution */
+    sint8 Wis;                          /**< Wisdom */
+    sint8 Cha;                          /**< Charisma */
+    sint8 Int;                          /**< Intelligence */
+    sint8 Pow;                          /**< Power */
+    sint8 wc;                           /**< Weapon Class */
+    sint8 ac;                           /**< Armour Class */
+    sint8 level;                        /**< Experience level */
+    sint16 hp;                          /**< Hit Points */
+    sint16 maxhp;                       /**< Maximum hit points */
+    sint16 sp;                          /**< Spell points for casting spells */
+    sint16 maxsp;                       /**< Maximum spell points. */
+    sint16 grace;                       /**< Spell points for using prayers. */
+    sint16 maxgrace;                    /**< Maximum spell points. */
+    sint64 exp;                         /**< Experience.  Killers gain 1/10. */
+    sint16 food;                        /**< Quantity food in stomach.
+                                         *   0 = starved.
+                                         */
+    sint16 dam;                         /**< How much damage this object does
+                                         *   for each hit
+                                         */
+    sint32 speed;                       /**< Speed (is displayed as a float) */
+    sint32 weapon_sp;                   /**< Weapon speed (displayed in client
+                                         *   as a float)
+                                         */
+    uint32 attuned;                     /**< Spell paths to which the player is
+                                         *   attuned
+                                         */
+    uint32 repelled;                    /**< Spell paths to which the player is
+                                         *   repelled
+                                         */
+    uint32 denied;                      /**< Spell paths denied to the player*/
+    uint16 flags;                       /**< Contains fire on/run on flags */
+    sint16 resists[30];                 /**< Resistant values */
+    uint32 resist_change:1;             /**< Resistant value change flag */
+    sint16 skill_level[MAX_SKILL];      /**< Level of known skills */
+    sint64 skill_exp[MAX_SKILL];        /**< Experience points for skills */
+    uint32 weight_limit;                /**< Carrying weight limit */
 } Stats;
-
 
 typedef struct Spell_struct {
     struct Spell_struct *next;
-    char name[256]; /* the protocol allows one length bit, so 256 is the maximum name length */
-    char message[10000]; /* this is plenty, the packets can't be much bigger than this anyway */
-    uint32 tag; /* used to identify the spell by updspell */
-    uint16 level;
-    uint16 time; /* number of ticks to cast */
-    uint16 sp;
-    uint16 grace;
-    uint16 dam;
-    uint8 skill_number; /* the index in the skill arrays, plus CS_STAT_SKILLINFO */
-    char *skill; /* pointer to the skill name, derived from the skill number */
-    uint32 path; /* the bitmask of paths this spell belongs to */
-    sint32 face;
+    char name[256];                     /**< The protocol allows one length
+                                         *   bit, so 256 is the maximum name
+                                         *   length */
+    char message[10000];                /**< This is plenty, the packets can't
+                                         *   be much bigger than this anyway */
+    uint32 tag;                         /**< Used to identify the spell by
+                                         *   updspell */
+    uint16 level;                       /**<  */
+    uint16 time;                        /**< number of ticks to cast */
+    uint16 sp;                          /**<  */
+    uint16 grace;                       /**<  */
+    uint16 dam;                         /**<  */
+    uint8 skill_number;                 /**< The index in the skill arrays,
+                                         *   plus CS_STAT_SKILLINFO */
+    char *skill;                        /**< Pointer to the skill name, derived
+                                         *   from the skill number */
+    uint32 path;                        /**< The bitmask of paths this spell
+                                         * belongs to */
+    sint32 face;                        /**<  */
 } Spell;
 
 typedef struct Player_Struct {
-    item	*ob;		/* Player object */
-    item	*below;		/* Items below the player (pl.below->inv) */
-    item	*container;	/* open container */
-    uint16	count_left;	/* count for commands */
-    Input_State input_state;	/* What the input state is */
-    char	last_command[MAX_BUF];	/* Last command entered */
-    char	input_text[MAX_BUF];	/* keys typed (for long commands) */
-    item	*ranges[range_size];	/* Object that is used for that */
-				/* range type */
-    uint8	ready_spell;	/* Index to spell that is readied */
-    char	spells[255][40];	/* List of all the spells the */
-				/* player knows */
-    Stats	stats;		/* Player stats */
-    Spell	*spelldata;	/* linked list of spells known to the player */
-    char	title[MAX_BUF];	/* Title of character */
-    char	range[MAX_BUF];	/* Range attack chosen */
-    uint32	spells_updated; /* tracks whether the spells updated*/
-    uint32	fire_on:1;	/* True if fire key is pressed */
-    uint32	run_on:1;	/* True if run key is on */
-    uint32	meta_on:1;	/* True if fire key is pressed */
-    uint32	alt_on:1;	/* True if fire key is pressed */
-    uint32	no_echo:1;	/* If TRUE, don't echo keystrokes */
-    uint32	count;		/* Repeat count on command */
-    uint16	mmapx, mmapy;	/* size of magic map */
-    uint16	pmapx, pmapy;	/* Where the player is on the magic map */
-    uint8	*magicmap;	/* Magic map data */
-    uint8	showmagic;	/* If 0, show normal map, otherwise, show
-				 * magic map.
-				 */
-    uint16	mapxres,mapyres;/* Resolution to draw on the magic map
-                                 * Only used in client-specific code, so it should move there. */
-
+    item        *ob;                    /**< Player object */
+    item        *below;                 /**< Items below the player
+                                         *   (pl.below->inv) */
+    item        *container;             /**< open container */
+    uint16      count_left;             /**< count for commands */
+    Input_State input_state;            /**< What the input state is */
+    char        last_command[MAX_BUF];  /**< Last command entered */
+    char        input_text[MAX_BUF];    /**< keys typed (for long commands) */
+    item        *ranges[range_size];    /**< Object that is used for that */
+                                        /**< range type */
+    uint8       ready_spell;            /**< Index to spell that is readied */
+    char        spells[255][40];        /**< List of all the spells the */
+                                        /**< player knows */
+    Stats       stats;                  /**< Player stats */
+    Spell       *spelldata;             /**< List of spells known */
+    char        title[MAX_BUF];         /**< Title of character */
+    char        range[MAX_BUF];         /**< Range attack chosen */
+    uint32      spells_updated;         /**< Whether or not spells updated */
+    uint32      fire_on:1;              /**< True if fire key is pressed */
+    uint32      run_on:1;               /**< True if run key is on */
+    uint32      meta_on:1;              /**< True if fire key is pressed */
+    uint32      alt_on:1;               /**< True if fire key is pressed */
+    uint32      no_echo:1;              /**< If TRUE, don't echo keystrokes */
+    uint32      count;                  /**< Repeat count on command */
+    uint16      mmapx, mmapy;           /**< size of magic map */
+    uint16      pmapx, pmapy;           /**< Where the player is on the magic
+                                         *   map */
+    uint8       *magicmap;              /**< Magic map data */
+    uint8       showmagic;              /**< If 0, show the normal map,
+                                         *   otherwise show the magic map. */
+    uint16      mapxres,mapyres;        /**< Resolution to draw on the magic
+                                         *   map. Only used in client-specific
+                                         *   code, so it should move there. */
 #ifdef MULTKEYS
-    char    name[ 40 ]; /* Player's name, for player-specific key files */
+    char    name[ 40 ];                 /**< Player's name, for player-specific
+                                         *   key files */
 #endif
 } Client_Player;
-
 
 /* This faceset information is pretty much grabbed right from
  * server/socket/image.c
  */
 
 #define MAX_FACE_SETS   20
-
-/* Max size of image in each direction.  This
- * is needed for the x11 client, which wants to
- * initalize some data once.  Increasing this would
- * likely only need a bigger footrpint
- */
-#define MAX_IMAGE_SIZE 320
+#define MAX_IMAGE_SIZE 320              /**< Maximum size of image in each
+                                         *   direction.  This is needed for the
+                                         *   x11 client, which wants to
+                                         *   initalize some data once.
+                                         *   Increasing this would  likely only
+                                         *    need a bigger footprint
+                                         */
 typedef struct {
-    uint8   setnum;
-    char    *prefix;
-    char    *fullname;
-    uint8   fallback;
-    char    *size;
-    char    *extension;
-    char    *comment;
+    uint8   setnum;                     /**<  */
+    char    *prefix;                    /**<  */
+    char    *fullname;                  /**<  */
+    uint8   fallback;                   /**<  */
+    char    *size;                      /**<  */
+    char    *extension;                 /**<  */
+    char    *comment;                   /**<  */
 } FaceSets;
-
 
 /* Make one struct that holds most of the image related data.
  * reduces danger of namespace collision.

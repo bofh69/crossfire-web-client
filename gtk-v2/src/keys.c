@@ -42,8 +42,8 @@ char *rcsid_gtk2_keys_c =
 #include <gdk/gdkx.h>
 #else
 #include <gdk/gdkwin32.h>
-#define NoSymbol 0L /* Special KeySym */
-typedef int KeyCode; /* Undefined type */
+#define NoSymbol 0L                     /**< Special KeySym */
+typedef int KeyCode;                    /**< Undefined type */
 #endif
 #include <gdk/gdkkeysyms.h>
 
@@ -62,8 +62,8 @@ static GtkWidget *fire_label, *run_label, *keybinding_window, *keybinding_checkb
     *keybinding_checkbutton_edit, *keybinding_entry_key, *keybinding_entry_command,
     *keybinding_treeview, *keybinding_button_remove, *keybinding_button_update,
     *keybinding_button_bind;
-static GtkListStore    *keybinding_store;
-static GtkTreeSelection  *keybinding_selection;
+static GtkListStore *keybinding_store;  /**<Bound key list for bind dialog.*/
+static GtkTreeSelection *keybinding_selection;
 
 /* Changed to KLIST_* to avoid conflicts in Win2000 and up */
 enum {
@@ -121,12 +121,17 @@ static char bind_buf[MAX_BUF];
 
 extern char *directions[9];
 
-/*
- * Platform independence defines that we can't use keycodes.  instead, make it
- * a hash, and set KEYHASH to a prime number for this purpose.
- */
 #define KEYHASH 257
-static Key_Entry *keys[KEYHASH];
+static Key_Entry *keys[KEYHASH];        /**< Platform independence defines that
+                                         *   we can't use keycodes.  instead,
+                                         *   make it a hash, and set KEYHASH to
+                                         * a prime number for this purpose.
+                                         */
+
+/** @defgroup GtkV2KeyBinding GTK-V2 client keybinding functions.
+ *
+ *  @{
+ */
 
 /**
  * Updates the keys array with the keybinding that is passed.  All the
@@ -178,7 +183,7 @@ static void insert_key(uint32 keysym, int flags, const char *command)
  *
  * @param buf
  * @param line
- * @param standard
+ * @param standard Set (1) or clear (0) the KEYF_STANDARD flag for the binding.
  */
 static void parse_keybind_line(char *buf, int line, int standard)
 {
@@ -336,6 +341,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
 }
 
 /**
+ * Initialize the standard keybindings as specified in the def-keys.h file.
  * This code is common to both x11 and gdk client
  */
 static void init_default_keybindings(void)
@@ -354,6 +360,8 @@ static void init_default_keybindings(void)
  * by init_windows. This function is common to both x11 and gdk client
  *
  * @param window_root The client's main window.
+ *
+ * @todo Fix the per-character keys file support that is under #if 0.
  */
 void keys_init(GtkWidget *window_root)
 {
@@ -410,8 +418,13 @@ void keys_init(GtkWidget *window_root)
      * Probably not a good idea, however.
      */
 
-#ifdef WIN32
+#if 0
     /* For Windows, use player name if defined for key file */
+    /* FIXME:  keys_init() is called long before the player logs in, so until
+     * that is fixed, it is pointless to have this code check for cpl.name
+     * being set.  Also, it is completely inappropriate for this to be a
+     * Windows only feature.
+     */
     if ( strlen( cpl.name ) )
         sprintf( buf, "%s/.crossfire/%s.keys", getenv( "HOME" ), cpl.name );
     else
@@ -992,7 +1005,9 @@ static void save_individual_key(FILE *fp, Key_Entry *key, KeyCode kc)
 }
 
 /**
+ * Saves the keybindings into the user's .crossfire/keys file.
  *
+ * @todo Fix the per-character keys file support that is under #if 0.
  */
 static void save_keys(void)
 {
@@ -1000,8 +1015,16 @@ static void save_keys(void)
     int i;
     FILE *fp;
 
-#ifdef WIN32
+#if 0
     /* Use player's name if available */
+    /* FIXME:  keys_init() is called long before the player logs in, so until
+     * that is fixed, it is pointless to have this code check for cpl.name
+     * being set so that a file is written that cannot be opened by under
+     * the existing code structure.  That just means the keybindings saved
+     * while logged in would be inaccessible until the file was copied to
+     * the regular keys file.  Also, this was originally under #ifdef WIN32,
+     * but is completely inappropriate for this to be a Windows only feature.
+     */
     if ( strlen( cpl.name ) )
         sprintf( buf,"%s/.crossfire/%s.keys", getenv("HOME"), cpl.name );
     else
@@ -1596,9 +1619,12 @@ on_entry_commands_activate             (GtkEntry        *entry,
     }
 }
 
-/****************************************************************************
- * Code below here handles the keybinding window.
- ****************************************************************************/
+/** @} */ /* End of GtkV2KeyBinding */
+
+/** @defgroup GtkV2KeyBindingWindow GTK-V2 client keybinding window functions.
+ *
+ *  @{
+ */
 
 /**
  *
@@ -1989,4 +2015,6 @@ on_keybinding_button_clear_clicked     (GtkButton       *button,
     }
     reset_keybinding_status();
 }
+
+/** @} */ /* End of GtkV2KeyBindingWindow */
 

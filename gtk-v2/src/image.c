@@ -446,7 +446,8 @@ void reset_image_data()
     }
 }
 
-static GtkWidget     *pbar=NULL, *pbar_window=NULL;
+static GtkWidget     *pbar=NULL;
+static GtkWidget     *pbar_window=NULL;
 static GtkAdjustment *padj=NULL;
 
 /**
@@ -456,9 +457,6 @@ static GtkAdjustment *padj=NULL;
  * appropriate status window.
  * If start = end = total, it means were finished, so destroy the gui element.
  *
- * @param pbar
- * @param pbar_window
- * @param padj
  * @param start The start value just sent to the server.
  * @param end
  * @param total The total number of images.

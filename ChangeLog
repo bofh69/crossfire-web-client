@@ -2,9 +2,46 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Per-character keybind support.
+gtk-v2/src/keys.c: In save_keys() and keys_init(), a pointless #ifdef WIN32
+  was used to attempt to implement per-character keybind files but keys_init()
+  is called long before a player can log in, so this had the effect of writing
+  keybinds to a file that cannot be loaded.  Oddly, this was under a #ifdef
+  WIN32 which is quite inappropriate as if supported, it should be for all
+  platforms.  The support is commented out with #if 0 until it can be fixed
+  and then re-enabled for all clients. Meanwhile, it surely fixes a WIN32 bug.
+General doxygen update:
+gtk/sound.c: Convert function description comments to doxygen form.
+common/client.h: Convert comments to doxygen form.
+x11/sound.c: Add doxygen file header.
+Makefile.am: Add target dox to generate doxygen files and output errors to
+  doxygen.err
+gtk-v2/src/stats.c: Add doxygen file header.  Convert function description
+  comments to doxygen form.  Fix missing doxygen @param for update_stat().
+  Add stubs for missing function descriptions.
+gtk-v2/src/spells.c: Add doxygen file header.  Convert comments to doxygen
+  form.  Convert function description comments to doxygen form.
+gtk-v2/src/about.c: Whitespace only.
+gtk-v2/src/keys.c: Convert comments to doxygen form.  Convert function
+  description comments to doxygen form.  Define groups for the functions in
+  this file.  In parse_keybind_line, add a parameter description.  In
+  init_default_keybindings, add to the function description.
+gtk-v2/src/image.c: Minor reformatting.  In image_update_download_status()
+  description, remove erroneous @param items.
+gtk-v2/src/sdl.c: Add doxygen file header.  Convert comments to doxygen form.
+  Convert function description comments to doxygen form.  Add stubs for missing
+  function descriptions.  Move some defines from between a function description
+  and the function code to above the description to help out doxygen.
+gtk-v2/src/png.c: Add doxygen file header.  Convert comments to doxygen form.
+  Add stubs for missing function descriptions.  Move some defines from between
+  a function description and the function code to above the description to help
+  out doxygen.
+gtk-v2/src/sound.c: Rework the doxygen file header.
+Kevin Bulgrien: 2008-01-19
+
 Undo unintentional change from prior commit.
 gtk-v2/glade/caelestis.glade
-Kevin Bulgrien
+Kevin Bulgrien 2008-01-18
 
 Fix: [ 1806282 ] Libglade client screen position saving faulty
 The root window "visible" property must be set to "no" in order for saved

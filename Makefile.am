@@ -34,11 +34,13 @@ EXTRA_DIST = \
 	configure.in		\
 	crossfire-client.spec
 
-
-
 proto:
 	@for dir in $(SUBDIRS); \
 	    do \
 	    echo "making proto in $$dir..."; \
 	    (cd $$dir;  $(MAKE) $(MFLAGS) 'MFLAGS=$(MFLAGS)' proto; ) \
 	done;
+
+dox:
+	@ doxygen 2>doxygen.err
+

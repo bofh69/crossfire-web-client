@@ -24,10 +24,10 @@ char *rcsid_gtk2_sound_c =
 */
 
 /**
- * @file sound.c
- * This file contains the sound support for the client.  It does not actually
- * play sounds, but rather tries to run cfsndserver, which is responsible for
- * playing sounds.
+ * @file gtk-v2/src/sound.c
+ * This file contains the sound support for the GTK V2 client.  It does not
+ * actually play sounds, but rather tries to run cfsndserve, which is
+ * responsible for playing sounds.
  */
 
 #include <config.h>
@@ -166,3 +166,4 @@ void SoundCmd(unsigned char *data,  int len)
     play_sound(num, type, x, y);
 #endif
 }
+

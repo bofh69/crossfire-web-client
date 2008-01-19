@@ -23,6 +23,11 @@ char *rcsid_gtk_sdl_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
+/**
+ * @file gtk-v2/src/sdl.c
+ * Functions that implement SDL support in the GTK V2 client.
+ */
+
 #include <config.h>
 
 #ifdef HAVE_SDL
@@ -47,8 +52,7 @@ char *rcsid_gtk_sdl_c =
 #include "gtk2proto.h"
 #include "mapdata.h"
 
-/* Actual SDL surface the game view is painted on */
-SDL_Surface* mapsurface;
+SDL_Surface* mapsurface; /**< Actual SDL surface the game view is painted on */
 static SDL_Surface* lightmap;
 static SDL_Surface* fogmap;
 static char *redrawbitmap;
@@ -57,11 +61,11 @@ extern int time_map_redraw;
 
 
 /* Move some of the SDL code to this file here.  This makes it easier to share
- * between the gnome and gtk client.  It also reduces the length of both the gx11.c
- * and gnome.c file.  It also is more readable, as not as many #ifdef SDL.. #endif
- * constructs are needed.
- * Note that there may still be some SDL code in gx11.c - some areas are embedded
- * so much that it is not easy to remove.
+ * between the gnome and gtk client.  It also reduces the length of both the
+ * gx11.c and gnome.c file.  It also is more readable, as not as many #ifdef
+ * SDL.. #endif constructs are needed.  Note that there may still be some SDL
+ * code in gx11.c - some areas are embedded so much that it is not easy to
+ * remove.
  */
 
 /* these should generally be included by the file including this file. */
@@ -77,7 +81,7 @@ static void do_SDL_error(const char *SDL_function, const char *file, int line)
   exit( 1);
 }
 
-/*
+/**
  * Set the pixel at (x, y) to the given value
  * NOTE: The surface must be locked before calling this!
  * This function is directly grabbed from the SDL docs.
@@ -117,6 +121,12 @@ static void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
     }
 }
 
+/**
+ *
+ * @param re_init
+ * @param ax
+ * @param ay
+ */
 static void overlay_grid( int re_init, int ax, int ay)
 {
 
@@ -219,12 +229,15 @@ static void overlay_grid( int re_init, int ax, int ay)
   return;
 }
 
-/*
+/**
  * Takes two args, the first is the GtkWindow to draw on, this should always
  * be 'drawingarea'. The second is a boolean, if 0 then the whole
  * SDL system in initialized or reinited if already run once before,
  * if non zero then only the lightmap is rebuilt, if we switch between
  * per-pixel or per-tile lighting
+ *
+ * @param sdl_window
+ * @param just_lightmap
  */
 void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 {
@@ -334,18 +347,28 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 }
 
 
-/* Draw a alpha square on lightmap. Topleft corner is at startx,starty.
- * values for topleft, topright, bottomleft,bottomright corners are knowns
- * This use bilinear interpolation for other points. Width and heights are given
- * for surrouding known values square. Interpolation is done in a small square whose
- * coordinates are given by start{x|y} and end{x|y}
- * dest{x|y} is top-left corner in destination map.
+/**
+ * Draw a alpha square on lightmap. Values for topleft, topright,
+ * bottomleft,bottomright corners are knowns This use bilinear interpolation
+ * for other points. Width and heights are given for surrounding known values
+ * square. Interpolation is done in a small square whose coordinates are
+ * given by start{x|y} and end{x|y}
  *                             Tchize 22 May 2004
  *
  * Note - profile shows this is a very costly function - of a small run,
  * 77% of the time of the cpu time for the client was in this function.
+ *
+ * @param tl
+ * @param tr
+ * @param bl
+ * @param br
+ * @param width
+ * @param height
+ * @param startx Coordinate of the top left corner.
+ * @param starty Coordinate of the top left corner.
+ * @param destx Coordinate of top left corner in destination map.
+ * @param desty Coordinate of top left corner in destination map.
  */
-
 void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,                /*colors*/
                              int width, int height,                         /*color square size*/
                              int startx, int starty, int endx, int endy,    /*interpolation region*/
@@ -368,7 +391,14 @@ void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,                /*co
         }
 }
 
-/* Do the lighting on a per pixel basis.
+
+/* See note below about ALPHA_FUDGE - used to adjust lighting effects some */
+
+#define ALPHA_FUDGE(x)  (2*(x) / 3)
+#define GENDARK(x,y) ( (((x)&(y) & 1) == 1)?255:0 )
+
+/**
+ * Do the lighting on a per pixel basis.
  * x and y are coordinates on the drawable map surfaces (but in terms of
  * spaces, not pixels).  mx and my are indexes into the
  * the_map.cells[][] array.
@@ -393,12 +423,12 @@ void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,                /*co
  * this also doesn't work very well.
  *
  * For now, I've just kept the old logic. MSW 2001-10-09
+ *
+ * @param x
+ * @param y
+ * @param mx
+ * @param my
  */
-
-/* See note below about ALPHA_FUDGE - used to adjust lighting effects some */
-
-#define ALPHA_FUDGE(x)  (2*(x) / 3)
-#define GENDARK(x,y) ( (((x)&(y) & 1) == 1)?255:0 )
 static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 {
 
@@ -628,11 +658,18 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
         SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
     }
 }
-/* Draw anything in adjacent squares that could smooth on given square
+
+/**
+ * Draw anything in adjacent squares that could smooth on given square
  * mx,my square to smooth on. you should not call this function to
  * smooth on a 'completly black' square. (simply for visual result)
  * layer layer to examine (we smooth only one layer at a time)
  * dst place on the mapwindow to draw
+ *
+ * @param mx
+ * @param my
+ * @param layer
+ * @param dst
  */
 static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
     static int dx[8]={0,1,1,1,0,-1,-1,-1};
@@ -765,16 +802,15 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
     }/*while there's some smooth to do*/
 }
 
-/* update_redrawbitmap() - replacment of sdl_square_need_redraw logic.
- * use of sdl_square_need_redraw is relatively inefficient becuase
- * it is called for every space (hence function call overhead),
- * but also has 4 checks to make sure the neighbor space is within valid
- * range, and if non tile mode, performs that check at least 4 times
- * per space.
- * This is much more efficient, because our redrawbitmap array is
- * large enough we don't need those checks - we know we are always safe
- * to go one outside the bounds (hence, the +1 in the coordinate
- * values)
+/**
+ * Replacment of sdl_square_need_redraw logic.  use of sdl_square_need_redraw
+ * is relatively inefficient becuase it is called for every space (hence
+ * function call overhead), but also has 4 checks to make sure the neighbor
+ * space is within valid range, and if non tile mode, performs that check at
+ * least 4 times per space.
+ * This is much more efficient, because our redrawbitmap array is large enough
+ * we don't need those checks - we know we are always safe to go one outside
+ * the bounds (hence, the +1 in the coordinate values)
  */
 static void update_redrawbitmap(void)
 {
@@ -827,6 +863,13 @@ static void update_redrawbitmap(void)
     }
 }
 
+/**
+ *
+ * @param ax
+ * @param ay
+ * @param mx
+ * @param my
+ */
 static void display_mapcell(int ax, int ay, int mx, int my)
 {
     SDL_Rect dst, src;
@@ -944,29 +987,30 @@ static void display_mapcell(int ax, int ay, int mx, int my)
     }
 }
 
-/* This generates a map in SDL mode.
+/**
+ * Generates a map in SDL mode.
  *
- * I had to totally change the logic on how we do this in SDL mode -
- * to support variable sized images, the old method of generating each
- * space does not work, as one space may spill over to the other.
- * Instead, we first blit the bottom layer, then the layer above
- * that, and so on.  This results in the map being drawn a bit
- * more correctly.  In fact, that logic actually isn't needed, as
- * with the new map commands, we know the offset and size of the
+ * I had to totally change the logic on how we do this in SDL mode - to support
+ * variable sized images, the old method of generating each space does not
+ * work, as one space may spill over to the other.  Instead, we first blit the
+ * bottom layer, then the layer above that, and so on.  This results in the map
+ * being drawn a bit more correctly.  In fact, that logic actually isn't
+ * needed, as with the new map commands, we know the offset and size of the
  * images.
  *
  * The logic here only redraws spaces that change.  The logic in the
- * common/commands.c files the odd layers with links for 'big images'.
- * for objects on these layers, we look at the size_x and size_y values
- * to determine the offset from which we should be blitting.
+ * common/commands.c files the odd layers with links for 'big images'.  For
+ * objects on these layers, we look at the size_x and size_y values to
+ * determine the offset from which we should be blitting.
  *
  * Old notes, but left in:
  * The performance here is very good in most cases - about 30 ms (on my system)
- * is used just for my flip at the bottom of the function, drawing only what
- * is needed generally saves a lot of time (<15 ms in most cases) compared to the
+ * is used just for my flip at the bottom of the function, drawing only what is
+ * needed generally saves a lot of time (<15 ms in most cases) compared to the
  * 80-120 ms usually needed on a 15x15 map.
+ *
+ * @param redraw
  */
-
 void sdl_gen_map(int redraw) {
     int x, y, num_spaces=0, num_drawn=0;
     struct timeval tv1, tv2, tv3;
@@ -1011,6 +1055,11 @@ void sdl_gen_map(int redraw) {
     }
 } /* sdl_gen_map function */
 
+/**
+ *
+ * @param dx
+ * @param dy
+ */
 int sdl_mapscroll(int dx, int dy)
 {
     /* Don't sdl_gen_map should take care of the redraw */

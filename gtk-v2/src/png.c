@@ -22,6 +22,10 @@ char *rcsid_gtk2_png_c =
     The author can be reached via e-mail to crossfire@metalforge.org
 */
 
+/**
+ * @file gtk-v2/src/png.c
+ * Functions for manipulating graphics in the GTK-V2 client.
+ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -55,11 +59,24 @@ char *rcsid_gtk2_png_c =
 static uint8 *data_cp;
 static int data_len, data_start;
 
+/**
+ *
+ * @param png_ptr
+ * @param data
+ * @param length
+ */
 static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
     memcpy(data, data_cp + data_start, length);
     data_start += length;
 }
 
+/**
+ *
+ * @param *data
+ * @param len
+ * @param *width
+ * @param *height
+ */
 uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 {
     uint8 *pixels=NULL;
@@ -210,34 +227,6 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
     return pixels;
 }
 
-
-/* rescale_png_image takes png data and scales it accordingly.
- * This function is based on pnmscale, but has been modified to support alpha
- * channel - instead of blending the alpha channel, it takes the most opaque
- * value - blending it is not likely to give sane results IMO - for any image
- * that has transparent information, if we blended the alpha, the result would
- * be the edges of that region being partially transparent.
- * This function has also been re-written to use more static data - in the
- * case of the client, it will be called thousands of times, so it doesn't make
- * sense to free the data and then re-allocate it.
- *
- * For pixels that are fully transparent, the end result after scaling is they
- * will be tranparent black.  This is a needed effect for blending to work properly.
- *
- * This function returns a new pointer to the scaled image data.  This is
- * malloc'd data, so should be freed at some point to prevent leaks.
- * This function does not modify the data passed to it - the caller is responsible
- * for freeing it if it is no longer needed.
- *
- * function arguments:
- * data: PNG data - really, this is any 4 byte per pixel data, in RGBA format.
- * *width, *height: The source width and height.  These values are modified
- *   to contain the new image size.
- * scale: percentage size that new image should be.  100 is a same size
- *    image - values larger than 100 will result in zoom, values less than
- *    100 will result in a shrinkage.
- */
-
 /* RATIO is used to know what units scale is - in this case, a percentage, so
  * it is set to 100
  */
@@ -247,6 +236,34 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 #define MAX_IMAGE_HEIGHT        1024
 #define BPP 4
 
+/**
+ * Takes png data and scales it accordingly.  This function is based on
+ * pnmscale, but has been modified to support alpha channel - instead of
+ * blending the alpha channel, it takes the most opaque value - blending it is
+ * not likely to give sane results IMO - for any image that has transparent
+ * information, if we blended the alpha, the result would be the edges of that
+ * region being partially transparent.
+ * This function has also been re-written to use more static data - in the case
+ * of the client, it will be called thousands of times, so it doesn't make
+ * sense to free the data and then re-allocate it.
+ *
+ * For pixels that are fully transparent, the end result after scaling is they
+ * will be tranparent black.  This is a needed effect for blending to work
+ * properly.
+ *
+ * This function returns a new pointer to the scaled image data.  This is
+ * malloc'd data, so should be freed at some point to prevent leaks.  This
+ * function does not modify the data passed to it - the caller is responsible
+ * for freeing it if it is no longer needed.
+ *
+ * function arguments:
+ * @param *data PNG data - this is any 4 byte per pixel data, in RGBA format.
+ * @param *width Source width modified to contain the new image size.
+ * @param *height Source height modified to contain the new image size.
+ * @param scale Percentage size that new image should be.  100 is a same size
+ *              image - values larger than 100 will result in zoom, values less
+ *              than 100 will result in a shrinkage.
+ */
 uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 {
     static int xrow[BPP * MAX_IMAGE_WIDTH], yrow[BPP*MAX_IMAGE_HEIGHT];
@@ -405,12 +422,21 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
 }
 
 
-guchar rgb[512*512*3];  /* Make this especially big to support larger images in the future */
+guchar rgb[512*512*3];  /**< Make this especially big to support larger images
+                         *   in the future */
 
-/* This takes data that has already been converted into RGBA format (via
- * png_to_data above perhaps) and creates a GdkPixmap and GdkBitmap out
- * of it.
- * Return non zero on error (currently, no checks for error conditions is done
+/**
+ * Takes data that has already been converted into RGBA format (via png_to_data
+ * above perhaps) and creates a GdkPixmap and GdkBitmap out of it.
+ *
+ * @param *window
+ * @param *data
+ * @param width
+ * @param height
+ * @param **pix
+ * @param **mask
+ * @param *colormap
+ * @return Non-zero on error (currently, no checks for error conditions is done
  */
 int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
                    GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
@@ -461,10 +487,15 @@ int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
     return 0;
 }
 
-/* This takes data that has already been converted into RGBA format (via
- * png_to_data above perhaps) and creates a GdkPixbuf
- * of it.
- * Return non zero on error (currently, no checks for error conditions is done
+/**
+ * Takes data that has already been converted into RGBA format (via png_to_data
+ * above perhaps) and creates a GdkPixbuf of it.
+ *
+ * @param *data
+ * @param width
+ * @param height
+ * @param **pix
+ * @return Non-zero on error (currently, no checks for error conditions is done
  */
 int rgba_to_gdkpixbuf(uint8 *data,int width, int height,GdkPixbuf **pix)
 {
@@ -501,7 +532,15 @@ int rgba_to_gdkpixbuf(uint8 *data,int width, int height,GdkPixbuf **pix)
 #endif
 }
 
-
+/**
+ *
+ * @param *window
+ * @param *data
+ * @param len
+ * @param **pix
+ * @param **mask
+ * @param *colormap
+ */
 int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
                    GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
 {
@@ -686,3 +725,4 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     gdk_gc_destroy(gc);
     return 0;
 }
+

@@ -22,9 +22,10 @@ const char *rcsid_x11_sound_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-
-/* This is a very lightweight file.  Basically, it just runs the
- * cfsndserv program and sends the writes to it.
+/**
+ * @file x11/sound.c
+ * Supports sound for the x11 client. This is a very lightweight file.
+ * Basically, it just runs the cfsndserv program and sends the writes to it.
  */
 
 #include <config.h>

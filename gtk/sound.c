@@ -25,10 +25,11 @@ char *rcsid_gtk_sound_c =
 */
 
 
-/*
- * This file contains the sound support for the client.  It does not
- * actually play sounds, but rather tries to run cfsndserver, which
- * is responsible for playing sounds.
+/**
+ * @file gtk/sound.c
+ * This file contains the sound support for the GTK V1 client.  It does not
+ * actually play sounds, but rather tries to run cfsndserver, which is
+ * responsible for playing sounds.
  */
 
 #include <config.h>
