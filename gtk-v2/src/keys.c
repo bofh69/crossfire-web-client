@@ -333,7 +333,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
         cpnext[strlen(cpnext)-1]='\0';
         if (strlen(cpnext)>(sizeof(bind_buf)-1)){
             cpnext[sizeof(bind_buf)-1]='\0';
-            LOG(LOG_WARNING,"gtk::parse_keybind_line","Had to truncate a too long command");
+            LOG(LOG_WARNING,"gtk::parse_keybind_line","Command too long! Truncated.");
         }
 
         insert_key(keysym, flags | standard, cpnext);
@@ -1097,7 +1097,7 @@ static void save_keys(void)
     }
     fclose(fp);
     /* Should probably check return value on all writes to be sure, but... */
-    draw_info("key bindings successfully saved.",NDI_BLACK);
+    draw_info("Key bindings saved.",NDI_BLACK);
 }
 
 /**
@@ -1818,9 +1818,8 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
         *flags |= KEYF_MODIFIERS;
 
     ed = gtk_entry_get_text(GTK_ENTRY(keybinding_entry_command));
-    if (strlen(ed)) {
-        sprintf(bind_buf,"Keybinding command to long - truncating!");
-        draw_info(bind_buf,NDI_BLACK);
+    if (strlen(ed) >= sizeof(bind_buf)) {
+        draw_info("Keybinding too long! Truncated.",NDI_RED);
         strncpy(bind_buf, ed, MAX_BUF-1);
         bind_buf[MAX_BUF-1] = 0;
         *command = bind_buf;
@@ -1835,7 +1834,7 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
      */
     *keysym = gdk_keyval_from_name(gtk_entry_get_text(GTK_ENTRY(keybinding_entry_key)));
     if (*keysym == GDK_VoidSymbol) {
-        LOG(LOG_ERROR,"keys.ckeybinding_get_data", "Can not get valid keysym from selection");
+        LOG(LOG_ERROR,"keys.c::keybinding_get_data", "Cannot get valid keysym from selection");
     }
 }
 
