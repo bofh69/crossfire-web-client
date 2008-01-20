@@ -2,6 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/keys.c: Saved work-in-progress. Long lines shortened. Added doxygen
+  modules definition.  More comments converted to doxygen form. Improved the
+  style of some previously converted commenting. Reordered some declarations
+  to move them with other similar ones.  Started to use column 41 for end-of-
+  line comments where reasonable for cleaner read.  Rewrote some function
+  comment descriptions.  Added new function and parameter descriptions. Some
+  indentation corrections.
+Kevin Bulgrien 2008-01-20
+
 gtk-v2/src/keys.c: Fix for [ 1875657 ] Bogus keybinding too long errors. Made
   more truncation messages consistent, and fixed an inconsistently formatted
   LOG message. Fixed case and shortened message when keybinds are saved.
