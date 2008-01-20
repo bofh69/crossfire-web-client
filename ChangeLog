@@ -2,9 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
-gtk-vs/glade/dialogs.xml: Dress up the dialog for the libglade client by
-adding some padding in various places.  Fixed some spelling and reworked
-various texts on the dialogs.
+gtk-v2/glade/dialogs.xml: Change Update Keybindings button to Update Bindings
+  for consistency with the Remove Bindings button.
+Kevin Bulgrien 2008-01-19
+
+gtk-v2/glade/dialogs.xml: Dress up the dialog for the libglade client by
+  adding some padding in various places.  Fixed some spelling and reworked
+  various texts on the dialogs.
 Kevin Bulgrien 2008-01-19
 
 Per-character keybind support.
