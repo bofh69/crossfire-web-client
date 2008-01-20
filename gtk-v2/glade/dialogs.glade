@@ -306,7 +306,7 @@
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">True</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -315,7 +315,7 @@
       <child>
 	<widget class="GtkLabel" id="label85">
 	  <property name="visible">True</property>
-	  <property name="label" translatable="yes">Keybinding Modfiers:</property>
+	  <property name="label" translatable="yes">Keybinding Modifiers:</property>
 	  <property name="use_underline">False</property>
 	  <property name="use_markup">False</property>
 	  <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -331,7 +331,7 @@
 	  <property name="angle">0</property>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">False</property>
 	</packing>
@@ -502,7 +502,7 @@
 	  <child>
 	    <widget class="GtkLabel" id="label87">
 	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">Command</property>
+	      <property name="label" translatable="yes">Command:</property>
 	      <property name="use_underline">False</property>
 	      <property name="use_markup">False</property>
 	      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -544,7 +544,7 @@
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -642,7 +642,7 @@
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -698,7 +698,7 @@
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">True</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -891,7 +891,7 @@
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -955,7 +955,7 @@
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -1022,14 +1022,14 @@
 	      <property name="visible">True</property>
 	    </widget>
 	    <packing>
-	      <property name="padding">0</property>
+	      <property name="padding">5</property>
 	      <property name="expand">True</property>
 	      <property name="fill">True</property>
 	    </packing>
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">False</property>
 	</packing>
@@ -1224,7 +1224,7 @@
 	      <property name="visible">True</property>
 	    </widget>
 	    <packing>
-	      <property name="padding">0</property>
+	      <property name="padding">5</property>
 	      <property name="expand">True</property>
 	      <property name="fill">True</property>
 	    </packing>
@@ -1241,8 +1241,8 @@
 	<widget class="GtkCheckButton" id="config_button_cache">
 	  <property name="visible">True</property>
 	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">Cache Images (Decreases bandwidth needed, but requires more local diskspace and some spaces may
- appear with ? until image is downloaded)</property>
+	  <property name="label" translatable="yes">Cache Images (Decreases bandwidth needed, but requires more local diskspace and some spaces
+may appear with ? until image is downloaded)</property>
 	  <property name="use_underline">True</property>
 	  <property name="relief">GTK_RELIEF_NORMAL</property>
 	  <property name="focus_on_click">True</property>
@@ -1261,8 +1261,8 @@
 	<widget class="GtkCheckButton" id="config_button_download">
 	  <property name="visible">True</property>
 	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">Download all images from server at connection time.  This is used in conjunction with Cache Images and
-will prevent the ? on the map.  This does increase startup/connectin time however</property>
+	  <property name="label" translatable="yes">Download all images from server at connection time.  This is used in conjunction with Cache Images
+and prevents the ? on the map.  This does increase startup/connection time significantly.</property>
 	  <property name="use_underline">True</property>
 	  <property name="relief">GTK_RELIEF_NORMAL</property>
 	  <property name="focus_on_click">True</property>
@@ -1348,7 +1348,7 @@ of being drawn as black spaces.</property>
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -1405,7 +1405,7 @@ of being drawn as black spaces.</property>
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -1472,14 +1472,14 @@ window system and available libraries, all of these may not be available.</prope
 	      <property name="angle">0</property>
 	    </widget>
 	    <packing>
-	      <property name="padding">6</property>
+	      <property name="padding">5</property>
 	      <property name="expand">False</property>
 	      <property name="fill">False</property>
 	    </packing>
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -1512,11 +1512,11 @@ Per Tile</property>
 	  <child>
 	    <widget class="GtkLabel" id="label100">
 	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">Lighting options.  These are only used with SDL display mode.  OpenGL
-uses its own best lighting method, and Pixmap mode will always use per
-tile lighting.  Best per pixel gives best result but is slowest.  Tile is fastest,
-but has worst quality.  Selecting none only affects how the objects are drawn
-on the client.  The server will still calculate what is visible based on light levels</property>
+	      <property name="label" translatable="yes">Lighting options.  These are only used with the SDL display mode.  OpenGL
+uses its own lighting method, and Pixmap mode always uses per tile lighting.
+Best per pixel gives the best result but is slowest.  Tile is fastest, but is the
+worst quality.  Selecting none only affects how the objects are drawn on the 
+client.  The server still calculates what is visible based on light levels.</property>
 	      <property name="use_underline">False</property>
 	      <property name="use_markup">False</property>
 	      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1539,7 +1539,7 @@ on the client.  The server will still calculate what is visible based on light l
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -1608,7 +1608,7 @@ on the client.  The server will still calculate what is visible based on light l
 		  </child>
 		</widget>
 		<packing>
-		  <property name="padding">0</property>
+		  <property name="padding">1</property>
 		  <property name="expand">True</property>
 		  <property name="fill">True</property>
 		</packing>
@@ -1665,7 +1665,7 @@ on the client.  The server will still calculate what is visible based on light l
 		  </child>
 		</widget>
 		<packing>
-		  <property name="padding">0</property>
+		  <property name="padding">1</property>
 		  <property name="expand">True</property>
 		  <property name="fill">True</property>
 		</packing>
@@ -1681,8 +1681,8 @@ on the client.  The server will still calculate what is visible based on light l
 	  <child>
 	    <widget class="GtkLabel" id="label104">
 	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">Map Size - Larger map gives more information, but uses more CPU and bandwidth
-Changing either width or height will not take effect until next server connection.</property>
+	      <property name="label" translatable="yes">Map Size. A larger map has more information, but uses more CPU and bandwidth
+Changes to either width or height take effect on the next server connection.</property>
 	      <property name="use_underline">False</property>
 	      <property name="use_markup">False</property>
 	      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1735,8 +1735,8 @@ Changing either width or height will not take effect until next server connectio
 	  <child>
 	    <widget class="GtkLabel" id="label102">
 	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">Face set to use.  Will take effect on next server connection.  Different facesets
-have different styles.</property>
+	      <property name="label" translatable="yes">Face set to use.  Changes take effect on the next server connection.  Each
+faceset has a different graphical style.</property>
 	      <property name="use_underline">False</property>
 	      <property name="use_markup">False</property>
 	      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1759,7 +1759,7 @@ have different styles.</property>
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">True</property>
 	  <property name="fill">False</property>
 	</packing>
@@ -1789,7 +1789,7 @@ have different styles.</property>
 	  <child>
 	    <widget class="GtkLabel" id="label105">
 	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">Theme to use for display.  &quot;None&quot; selects the system theme.</property>
+	      <property name="label" translatable="yes">Theme to use for the display.  &quot;None&quot; selects the system theme.</property>
 	      <property name="use_underline">False</property>
 	      <property name="use_markup">False</property>
 	      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1812,7 +1812,7 @@ have different styles.</property>
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">True</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -1842,7 +1842,7 @@ have different styles.</property>
 	  <child>
 	    <widget class="GtkLabel" id="label_glade">
 	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">Glade XML file to use for the main client window (Takes effect next run).</property>
+	      <property name="label" translatable="yes">Layout style for the main window. Takes effect after a restart of the client.</property>
 	      <property name="use_underline">False</property>
 	      <property name="use_markup">False</property>
 	      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1865,7 +1865,7 @@ have different styles.</property>
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">True</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -1928,7 +1928,7 @@ have different styles.</property>
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">True</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -2007,7 +2007,7 @@ have different styles.</property>
 	  </child>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">True</property>
 	  <property name="fill">True</property>
 	</packing>
@@ -2023,7 +2023,7 @@ have different styles.</property>
 	  <signal name="clicked" handler="on_about_close_clicked" last_modification_time="Mon, 03 Jul 2006 05:23:56 GMT"/>
 	</widget>
 	<packing>
-	  <property name="padding">0</property>
+	  <property name="padding">1</property>
 	  <property name="expand">False</property>
 	  <property name="fill">False</property>
 	</packing>

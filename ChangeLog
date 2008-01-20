@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-vs/glade/dialogs.xml: Dress up the dialog for the libglade client by
+adding some padding in various places.  Fixed some spelling and reworked
+various texts on the dialogs.
+Kevin Bulgrien 2008-01-19
+
 Per-character keybind support.
 gtk-v2/src/keys.c: In save_keys() and keys_init(), a pointless #ifdef WIN32
   was used to attempt to implement per-character keybind files but keys_init()
@@ -37,7 +42,7 @@ gtk-v2/src/png.c: Add doxygen file header.  Convert comments to doxygen form.
   a function description and the function code to above the description to help
   out doxygen.
 gtk-v2/src/sound.c: Rework the doxygen file header.
-Kevin Bulgrien: 2008-01-19
+Kevin Bulgrien 2008-01-19
 
 Undo unintentional change from prior commit.
 gtk-v2/glade/caelestis.glade
