@@ -5,14 +5,19 @@
 
 #define HELP_BIND_SHORT "bind a command to a key"
 #define HELP_BIND_LONG "Syntax:\n\
- bind [-nfreg] <command>\n\
+ bind [[-nframeg] <command>]\n\
 \n\
-Flags (default -nrf):\n\
+Flags (default -nrfam):\n\
  n - used in normal-mode\n\
  f - used in fire-mode\n\
  r - used in run-mode\n\
+ a - used with alt key\n\
+ m - used with meta key\n\
  e - leave command in line edit\n\
  g - global key (not recommended)\n\
+Each client may not support every flag.\n\
+\n\
+bind without flags/command gets client help.\n\
 \n\
 Special 'commands':\n\
  bind commandkey - sets commandkey\n\

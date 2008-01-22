@@ -2,6 +2,26 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+This should fix remaining issues in [ 1527973 ] bind command does not work, &
+  also is a general doxygen update for keys.c files.
+help/chelp: Add the additional flags supported by the GTK V2 client and a note
+  that says each client may not support all flags, and to use bind w/o any
+  parameters for client specific help, otherwise there is no verbose help
+  for the GTK V2 enhancements, and no explanation for why -g doesn't work.
+gtk/keys.c: doxygen @file added.
+gtk-v2/keys.c: In parse_keybind_line(), A is for all flags, so add KEYF_META
+  and KEYF_ALT when it is the flag in a keybinding entry.  Add function
+  descriptions for various previously undocumented one, or improve/add detail
+  to others.  Various minor reformatting including spacing and line length
+  changes.  In bind_key(), remove spurious line break and whitespace from
+  bind help text.  Indentation fixes.  In keybinding_get_data() change up
+  the logic for use of the checkboxes in the keybinding dialog so that flags
+  are set consistently.  The new logic is very intuitive.  KEYF_NORMAL is
+  set if none or all of the Run/Fire/Alt/Meta checkboxes are checked.  In
+  update_keybinding_list(), "All " is now used to indicate when all of these
+  flags are set to differentiate from only the normal flag being set.
+Kevin Bulgrien 2008-01-21
+
 gtk-v2/src/keys.c: Saved work-in-progress. Long lines shortened. Added doxygen
   modules definition.  More comments converted to doxygen form. Improved the
   style of some previously converted commenting. Reordered some declarations

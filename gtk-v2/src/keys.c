@@ -328,7 +328,8 @@ static void parse_keybind_line(char *buf, int line, int standard)
         while (*cp!='\0') {
             switch (*cp) {
                 case 'A':
-                    flags |= KEYF_NORMAL | KEYF_FIRE | KEYF_RUN;
+                    flags |= KEYF_NORMAL | KEYF_FIRE | KEYF_RUN
+                                         | KEYF_META | KEYF_ALT;
                     break;
                 case 'E':
                     flags |= KEYF_EDIT;
@@ -669,7 +670,7 @@ static void parse_key(char key, uint32 keysym)
     if (cpl.fire_on) present_flags |= KEYF_FIRE;
     if (cpl.alt_on) present_flags |= KEYF_ALT;
     if (cpl.meta_on) present_flags |= KEYF_META;
-    if (present_flags ==0) present_flags = KEYF_NORMAL;
+    if (present_flags == 0) present_flags = KEYF_NORMAL;
 
     keyentry = keys[keysym % KEYHASH];
     while (keyentry!=NULL) {
@@ -866,7 +867,10 @@ static void show_keys(int allbindings)
 }
 
 /**
- * Prompt the user for a key to bind, or show help for the bind command.
+ * Implements the "bind" command when entered as a text command.  It parses the
+ * command options, records the command to bind, then prompts the user to press
+ * a key to bind.  It also shows help for the bind command if the player types
+ * bind with no parameters.
  *
  * @param params If null, show bind command help in the message pane.
  */
@@ -875,8 +879,9 @@ void bind_key(char *params)
     char buf[MAX_BUF + 16];
 
     if (!params) {
-        draw_info("Usage: bind [-aefmnr] {<commandline>/commandkey/firekey{1/2}/runkey{1/2}/altkey{1/2}/metakey{1/2}",NDI_BLACK);
-        draw_info("           completekey/nextkey/prevkey}",NDI_BLACK);
+        draw_info("Usage: bind [-aefmnr] {<commandline>/commandkey/firekey{1/2}"
+                  "/runkey{1/2}/altkey{1/2}/metakey{1/2}"
+                  "completekey/nextkey/prevkey}",NDI_BLACK);
         return;
     }
 
@@ -962,7 +967,7 @@ void bind_key(char *params)
     }
 
     if (params[0] != '-')
-        bind_flags =KEYF_MODIFIERS;
+        bind_flags = KEYF_MODIFIERS;
     else {
         bind_flags =0;
         bind_keysym=NULL;
@@ -987,21 +992,21 @@ void bind_key(char *params)
                 bind_flags |= KEYF_RUN;
                 break;
             case '\0':
-                draw_info("Try unbind to remove bindings..",NDI_BLACK);
+                draw_info("Use unbind to remove bindings.",NDI_BLACK);
                 return;
             default:
-                sprintf(buf, "Unknown flag to bind: '%c'", *params);
+                sprintf(buf, "Unsupported or invalid bind flag: '%c'", *params);
                 draw_info(buf,NDI_BLACK);
                 return;
         }
         params++;
     }
 
-    if (!(bind_flags & KEYF_MODIFIERS))
+    if (! (bind_flags & KEYF_MODIFIERS))
         bind_flags |= KEYF_MODIFIERS;
 
     if (!params[0]) {
-        draw_info("Try unbind to remove bindings..",NDI_BLACK);
+        draw_info("Use unbind to remove bindings.",NDI_BLACK);
         return;
     }
 
@@ -1326,9 +1331,9 @@ unbinded:
 void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
 {
 
-    if (event->keyval>0 && !GTK_WIDGET_HAS_FOCUS (entry_commands)) {
-            parse_key_release(event->keyval);
-            gtk_signal_emit_stop_by_name (GTK_OBJECT(window), "key_release_event") ;
+    if (event->keyval > 0 && ! GTK_WIDGET_HAS_FOCUS(entry_commands)) {
+        parse_key_release(event->keyval);
+        gtk_signal_emit_stop_by_name(GTK_OBJECT(window), "key_release_event");
     }
 }
 
@@ -1695,6 +1700,8 @@ void update_keybinding_list()
                 if (key->flags & KEYF_FIRE)  strcat(modifier_buf,"Fire ");
                 if (key->flags & KEYF_RUN)  strcat(modifier_buf,"Run ");
                 if (key->flags & KEYF_META)  strcat(modifier_buf,"Meta ");
+            } else {
+              strcat(modifier_buf, "All ");
             }
             if (key->flags & KEYF_STANDARD)  strcat(modifier_buf,"(Standard) ");
             gtk_list_store_append(keybinding_store, &iter);
@@ -1721,13 +1728,16 @@ void
 on_keybindings_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-
     gtk_widget_show(keybinding_window);
     update_keybinding_list();
-
 }
 
 /**
+ * Respond to a key press in the "Key" input box.  If the keyboard has modifier
+ * keys pressed, set the appropriate "Keybinding Modifiers" checkboxes if the
+ * shift or control keys happens to be pressed at the time.  Oddly, the Alt and
+ * Meta keys are not similarly handled.  Checkboxes are never cleared here in
+ * case the user had just set the checkboxes ahead of time.i
  *
  * @param widget
  * @param event
@@ -1735,13 +1745,12 @@ on_keybindings_activate                (GtkMenuItem     *menuitem,
  * @return TRUE (Returning TRUE prevents widget from getting this event.)
  */
 gboolean
-on_keybinding_entry_key_key_press_event
-                                        (GtkWidget       *widget,
+on_keybinding_entry_key_key_press_event(GtkWidget       *widget,
                                         GdkEventKey     *event,
                                         gpointer         user_data)
 {
-    gtk_entry_set_text (GTK_ENTRY(keybinding_entry_key),  gdk_keyval_name(event->keyval));
-
+    gtk_entry_set_text(
+        GTK_ENTRY(keybinding_entry_key), gdk_keyval_name(event->keyval));
     /*
      * This code is basically taken from the GTKv1 client.  However, at some
      * level it is broken, since the control/shift/etc masks are hardcoded, yet
@@ -1752,15 +1761,18 @@ on_keybinding_entry_key_key_press_event
      * away I think is less intuitive.
      */
     if (event->state & GDK_CONTROL_MASK)
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), TRUE);
+        gtk_toggle_button_set_active(
+            GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), TRUE);
 
 #if 0
     else
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), FALSE);
+        gtk_toggle_button_set_active(
+            GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), FALSE);
 #endif
 
     if (event->state & GDK_SHIFT_MASK)
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), TRUE);
+        gtk_toggle_button_set_active(
+            GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), TRUE);
 
 #if 0
     else
@@ -1769,8 +1781,10 @@ on_keybinding_entry_key_key_press_event
     /* The GDK_MOD_MASK* will likely correspond to alt and meta, yet there is
      * no way to be sure what goes to what, so easiest to just not allow them.
      */
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_alt), FALSE);
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_meta), FALSE);
+    gtk_toggle_button_set_active(
+        GTK_TOGGLE_BUTTON(keybinding_checkbutton_alt), FALSE);
+    gtk_toggle_button_set_active(
+        GTK_TOGGLE_BUTTON(keybinding_checkbutton_meta), FALSE);
 #endif
 
     /* Returning TRUE prevents widget from getting this event */
@@ -1778,6 +1792,8 @@ on_keybinding_entry_key_key_press_event
 }
 
 /**
+ * Implements the "Remove Binding" button function that unbinds the currently
+ * selected keybinding.
  *
  * @param button
  * @param user_data
@@ -1791,13 +1807,14 @@ on_keybinding_button_remove_clicked    (GtkButton       *button,
     Key_Entry   *entry, *key, *tmp;
     int onkey;
 
-    if (!gtk_tree_selection_get_selected (keybinding_selection, &model, &iter)) {
-        LOG(LOG_ERROR,"keys.c:on_keybinding_button_remove_clicked", "Function called with nothing selected\n");
+    if (!gtk_tree_selection_get_selected(keybinding_selection, &model, &iter)) {
+        LOG(LOG_ERROR, "keys.c:on_keybinding_button_remove_clicked",
+            "Function called with nothing selected\n");
         return;
     }
     gtk_tree_model_get(model, &iter, KLIST_KEY_ENTRY, &entry, -1);
-    for (onkey=0; onkey<KEYHASH; onkey++) {
-        for (key=keys[onkey]; key; key =key->next) {
+    for (onkey = 0; onkey < KEYHASH; onkey++) {
+        for (key = keys[onkey]; key; key = key->next) {
             if (key == entry) {
                 /*
                  * This code is directly from unbind_key() above If it is the
@@ -1811,16 +1828,17 @@ on_keybinding_button_remove_clicked    (GtkButton       *button,
                  * Otherwise, we need to figure out where in the link list the
                  * entry is.
                  */
-                for (tmp=keys[onkey]; tmp->next!=NULL; tmp=tmp->next) {
+                for (tmp = keys[onkey]; tmp->next != NULL; tmp = tmp->next) {
                     if (tmp->next == key) {
-                        tmp->next =key->next;
+                        tmp->next = key->next;
                         goto unbinded;
                     }
                 }
             }
         }
     }
-    LOG(LOG_ERROR,"keys.c:on_keybinding_button_remove_clicked", "Unable to find matching key entry\n");
+    LOG(LOG_ERROR, "keys.c:on_keybinding_button_remove_clicked",
+        "Unable to find matching key entry\n");
 
 unbinded:
     free(key->command);
@@ -1860,13 +1878,16 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
         GTK_TOGGLE_BUTTON(keybinding_checkbutton_meta)))
             *flags |= KEYF_META;
 
+    /* Set the KEYF_NORMAL flag when either none or all of the Run, Fire, Alt,
+     * Meta checkboxes are checked. This closely matches the combined existing
+     * logic in the parse_key() and get_key_info() functions.
+     */
+    if (! *flags || (*flags | KEYF_NORMAL) == KEYF_MODIFIERS)
+      *flags |= KEYF_NORMAL;
+
     if (gtk_toggle_button_get_active(
         GTK_TOGGLE_BUTTON(keybinding_checkbutton_edit)))
             *flags |= KEYF_EDIT;
-
-    /* If no modifiers set, the presume all should be used */
-    if (!(*flags & KEYF_MODIFIERS))
-        *flags |= KEYF_MODIFIERS;
 
     ed = gtk_entry_get_text(GTK_ENTRY(keybinding_entry_command));
     if (strlen(ed) >= sizeof(bind_buf)) {
@@ -1883,13 +1904,16 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
      * and now we are converting it back.  It'd be nice to tuck the keysym
      * itself away someplace.
      */
-    *keysym = gdk_keyval_from_name(gtk_entry_get_text(GTK_ENTRY(keybinding_entry_key)));
+    *keysym = gdk_keyval_from_name(
+        gtk_entry_get_text(GTK_ENTRY(keybinding_entry_key)));
     if (*keysym == GDK_VoidSymbol) {
-        LOG(LOG_ERROR,"keys.c::keybinding_get_data", "Cannot get valid keysym from selection");
+        LOG(LOG_ERROR, "keys.c::keybinding_get_data",
+            "Cannot get valid keysym from selection");
     }
 }
 
 /**
+ * Sets up a new binding when the "Add" button is clicked.
  *
  * @param button
  * @param user_data
@@ -1918,9 +1942,9 @@ on_keybinding_button_bind_clicked      (GtkButton       *button,
 }
 
 /**
- * Updates a selected keybinding entry with any changes made to the modifiers,
- * key, or command input fields.  It is called when the user presses the
- * Update Binding button.
+ * Implements the "Update Binding" button to update the currently selected
+ * keybinding to match the currently shown identifiers, key, or command input
+ * fields.
  *
  * @param button
  * @param user_data
@@ -1954,7 +1978,7 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
 }
 
 /**
- * Deactivates the keybinding dialog when the Close button is clicked.
+ * Deactivates the keybinding dialog when the "Close Window" button is clicked.
  *
  * @param button
  * @param user_data
@@ -2066,9 +2090,9 @@ void reset_keybinding_status()
 }
 
 /**
- * Implements the Clear Fields button function on the keybinding dialog.  If a
- * keybinding is highlighted (selected), de-select it first, then clear all of
- * the input boxes and reset any buttons to an appropriate state.
+ * Implements the "Clear Fields" button function on the keybinding dialog.  If
+ * a keybinding is highlighted (selected), de-select it first, then clear all
+ * of * the input boxes and reset any buttons to an appropriate state.
  *
  * @param button
  * @param user_data

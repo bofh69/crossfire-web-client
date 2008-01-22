@@ -22,8 +22,10 @@ const char *rcsid_gtk_keys_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This file handles most of the keyboard related functions - binding
- * and unbinding keys, and handling keypresses and looking up the
+/**
+ * @file gtk/keys.c
+ * Handles most of the GTK V1 client keyboard related functions.  This
+ * includes binding and unbinding keys, handling keypresses, and looking up the
  * keys.
  */
 
