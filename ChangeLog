@@ -2,6 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+[ 1839894 ] Keybind editor flaw (gtk2, gtkv2) appears fixed by prior commit.
+This is basically a doxygen documentation commit.
+gtk-v2/keys.c: Remove erroneous comment.  Document Key_Entry struct typedef.
+  Fix @defgroup syntax.  Fix @todo items with #if 0 in description by quoting
+  the hash mark. Line length adjustments and notation consistency fixes for
+  LOG() calls.  Other miscellaneous line length adjustments.  Add descriptions
+  for more functions.  Enhance one function descriptions.
+Kevin Bulgrien
+
 This should fix remaining issues in [ 1527973 ] bind command does not work, &
   also is a general doxygen update for keys.c files.
 help/chelp: Add the additional flags supported by the GTK V2 client and a note

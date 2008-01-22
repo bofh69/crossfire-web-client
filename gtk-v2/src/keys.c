@@ -89,7 +89,7 @@ enum {
     KLIST_KEY_ENTRY
 };
 /**
- * @} EndOf KList Enumi
+ * @} EndOf KList Enum
  */
 
 /**
@@ -105,19 +105,21 @@ static int cur_history_position=0, scroll_history_position=0;
  * @} EndOf Bind Log
  */
 
-/******************************************************************************
- *
- * Code related to face caching.
- *
- *****************************************************************************/
-
+/**
+ * @{
+ * @name Key Entry Struct
+ * A keybinding hash record structure.
+ */
 typedef struct Keys {
-    uint8       flags;
-    sint8       direction;
-    uint32      keysym;
-    char        *command;
+    uint8       flags;                  /**< KEYF_* flags set for the record.*/
+    sint8       direction;              /**< -1 non-direction key, else >= 0.*/
+    uint32      keysym;                 /**< Key this binding record is for. */
+    char        *command;               /**< Command string bound to a key. */
     struct Keys *next;
 } Key_Entry;
+/**
+ * @} EndOf Key Entry Struct
+ */
 
 /***********************************************************************
  *
@@ -157,8 +159,7 @@ static Key_Entry *keys[KEYHASH];        /**< Platform independence defines that
                                          */
 
 /**
- * @defgroup GtkV2KeyBinding
- * GTK-V2 client keybinding functions.
+ * @defgroup GtkV2KeyBinding GTK-V2 client keybinding functions.
  * @{
  */
 
@@ -392,7 +393,7 @@ static void init_default_keybindings(void)
  *
  * @param window_root The client's main window.
  *
- * @todo Fix the per-character keys file support that is under #if 0.
+ * @todo Fix the per-character keys file support that is under \#if 0.
  */
 void keys_init(GtkWidget *window_root)
 {
@@ -1049,7 +1050,7 @@ static void save_individual_key(FILE *fp, Key_Entry *key, KeyCode kc)
  * dumped to the file, and the output file is closed.  Success or failure is
  * reported to the message pane.
  *
- * @todo Fix the per-character keys file support that is under #if 0.
+ * @todo Fix the per-character keys file support that is under \#if 0.
  */
 static void save_keys(void)
 {
@@ -1302,13 +1303,15 @@ void unbind_key(char *params)
                         goto unbinded;
                     }
                 }
-                LOG(LOG_ERROR,"gtk::unbind_key","found number entry, but could not find actual key");
+                LOG(LOG_ERROR, "gtk:unbind_key",
+                    "found number entry, but could not find actual key");
             }
         }
     }
     /* Makes things look better to draw the blank line */
     draw_info("",NDI_BLACK);
-    draw_info("No such entry. Try 'unbind' with no options to find entry.",NDI_BLACK);
+    draw_info("Not found. Try 'unbind' with no options to find entry.",
+        NDI_BLACK);
     return;
     /*
      * Found. Now remove it.
@@ -1465,12 +1468,14 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                 break;
 
             default:
-                LOG(LOG_ERROR,"gtk::keyfunc","Unknown input state: %d", cpl.input_state);
+                LOG(LOG_ERROR, "gtk:keyfunc",
+                    "Unknown input state: %d", cpl.input_state);
         }
     }
 }
 
 /**
+ * Output the current list of keybindings to the message pane.
  *
  * @param keylist
  */
@@ -1589,7 +1594,10 @@ void gtk_command_history(int direction)
 }
 
 /**
- *
+ * Executes when the TAB key is pressed while the command input box has focus
+ * to give hints on what commands begin with the text already entered to this
+ * point. It is almost like tab completion, except for the completion.  The TAB
+ * key is also known by GDK_Tab, completekey, or completekeysym.
  */
 void gtk_complete_command()
 {
@@ -1607,6 +1615,8 @@ void gtk_complete_command()
 }
 
 /**
+ * Used to process keyboard input whenever the player types commands into the
+ * command entry box.
  *
  * @param entry
  * @param user_data
@@ -1672,13 +1682,12 @@ on_entry_commands_activate             (GtkEntry        *entry,
  */
 
 /**
- * @defgroup GtkV2KeyBindingWindow
- * GTK-V2 client keybinding window functions.
+ * @defgroup GtkV2KeyBindingWindow GTK-V2 client keybinding window functions.
  * @{
  */
 
 /**
- *
+ * Update the keybinding dialog to reflect the current state of the keys file.
  */
 void update_keybinding_list()
 {
@@ -1907,7 +1916,7 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
     *keysym = gdk_keyval_from_name(
         gtk_entry_get_text(GTK_ENTRY(keybinding_entry_key)));
     if (*keysym == GDK_VoidSymbol) {
-        LOG(LOG_ERROR, "keys.c::keybinding_get_data",
+        LOG(LOG_ERROR, "keys.c:keybinding_get_data",
             "Cannot get valid keysym from selection");
     }
 }
@@ -1944,7 +1953,8 @@ on_keybinding_button_bind_clicked      (GtkButton       *button,
 /**
  * Implements the "Update Binding" button to update the currently selected
  * keybinding to match the currently shown identifiers, key, or command input
- * fields.
+ * fields.  If a keybinding is highlighted, so something.  If not, log an error
+ * since the "Update Binding" button should have been disabled.
  *
  * @param button
  * @param user_data
@@ -1962,7 +1972,7 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
         gtk_tree_model_get(model, &iter, KLIST_KEY_ENTRY, &entry, -1);
 
         if (!entry) {
-            LOG(LOG_ERROR,"keys.c:on_keybinding_button_update_clicked",
+            LOG(LOG_ERROR, "keys.c:on_keybinding_button_update_clicked",
                 "Unable to get key_entry structure\n");
             return;
         }
@@ -1972,7 +1982,7 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
         update_keybinding_list();
         save_keys();
     } else {
-        LOG(LOG_ERROR,"keys.c:on_keybinding_button_update_clicked",
+        LOG(LOG_ERROR, "keys.c:on_keybinding_button_update_clicked",
             "Nothing selected to update\n");
     }
 }
@@ -2020,7 +2030,8 @@ gboolean keybinding_selection_func (
         gtk_tree_model_get(model, &iter, KLIST_KEY_ENTRY, &entry, -1);
 
         if (!entry) {
-            LOG(LOG_ERROR,"keys.c:keybinding_selection_func", "Unable to get key_entry structure\n");
+            LOG(LOG_ERROR, "keys.c:keybinding_selection_func",
+                "Unable to get key_entry structure\n");
             return FALSE;
         }
         if (entry->flags & KEYF_RUN)
