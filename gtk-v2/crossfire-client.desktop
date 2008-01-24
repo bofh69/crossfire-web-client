@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Name=Crossfire Client
 Comment=A cooperative multiplayer graphical RPG and adventure game
-Exec=gcfclient2
+Exec=crossfire-client-gtk2
 Icon=crossfire-client
 Terminal=false
 Type=Application

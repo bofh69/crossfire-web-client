@@ -1,25 +1,23 @@
 .\"$Id$
 .TH cfclient
 .SH NAME
-cfclient - X11 client program for crossfire servers.
-.br
-gcfclient - gtk client program for crossfire servers.
+crossfire-client-x11 - X11 client program for crossfire servers.
 .SH SYNOPSIS
 .B client [-server server] [-port number] [-display display] [-split|-nosplit]
 [-echo] [-pix|-xpm|-png] [-showicon] [-scrollines number] [-sync] [-help]
 [-cache|-nocache]
 .SH DESCRIPTION
 .PP
-.I Cfclient/gcflient
+.I crossfire-client-x11
 is an X11 program for connecting to crossfire servers.  Crossfire is a
 multiplayer graphical adventure game that mixes aspects of Gauntlet (TM),
 nethack, moria, and Ultima (TM).
 
 This man page describes options for the X11 client of crossfire
-(cfclient).  Many of these options should also be valid for the gtk
-version (gcfclient).  The configure/make process will build the
-gtk version if it finds the necessary libraries, otherwise it will
-build the X11 version.
+(crossfire-client-x11).  Many of these options should also be valid for the gtk
+versions of the client (crossfire-client-gtk and crossfire-client-gtk2).  The
+configure/make process will build the gtk version if it finds the necessary
+libraries, otherwise it will build the X11 version.
 
 .SH OPTIONS
 .TP
@@ -38,7 +36,7 @@ will use the DISPLAY environmental variable to determine the display.
 .TP
 .B -split|-nosplit
 -split starts the windows up in split windows mode.  In split windows
-mode, 6 seperate windows are created - these individual windows can then
+mode, 6 separate windows are created - these individual windows can then
 be moved around and resized as desired.  -nosplit starts the game up with
 a single window - this is the default.  The option is useful if your
 saved defaults are set for -split (see Saved Defaults further down).
@@ -61,13 +59,13 @@ printed in the information window as they are sent to the server.
 .B -mapsize XxY
 Sets the desired viewable map window.  X and Y are number of tiles.
 Note that larger map sizes are likely to consume more bandwidth,
-cpu time, as well as just screen real estate.
+CPU time, as well as just screen real estate.
 
 The maximum map size may vary server to server.  The client will
 try to negotiate the largest viewable map in each dimension.  Note
 that there is no requirement that the viewable map be square.
 
-Due to performance issues, it is strongly suggested that expirementation
+Due to performance issues, it is strongly suggested that experimentation
 is done with this value to find a size that gets acceptable performance
 (simple test - go to the start town, run in some direction, stop
 running and see how long it takes before the client stops moving
@@ -88,19 +86,19 @@ than the xpm images.  Using the png images require that the client
 has been compiled with png support.
 .TP
 .B -pngximage
-gcfclient only.  This option is only meaningful if png graphics are
+GTK clients only.  This option is only meaningful if png graphics are
 being used.  It uses a GdkRgb structure - this allows much
 better effects (especially darkness).  Performance may be worse
 when using this option - this depends on many factors.  Like
 the mapsize option above, it is suggested the experimentation is
 done to make performance is still acceptable.  This option does
-not affect bandwidth - it only affects cpu performancs.
+not affect bandwidth - it only affects CPU performancs.
 .TP
 .B -sdl
-gcfclient only.  Will only be available if the SDL library was
-available when the client was compiles.  This is similar to
+GTK clients only.  Will only be available if the SDL library was
+available when the client was compiled.  This is similar to
 -pngximage above - it still uses png images, but uses the SDL
-library to actualy draw them to the screen.  This is slightly faster
+library to actually draw them to the screen.  This is slightly faster
 than -pngximage - if you have SDL, you should use this instead of
 -pngximage.
 .TP
@@ -110,7 +108,7 @@ a brief description of some of the item properties (magic, cursed,
 equipped, etc.)  This can make spotting some items easier, but some
 players may not like the extra space these icons take up or the
 .TP
-.B -scollines <lines>
+.B -scrollines <lines>
 This is the number of lines to use in the information window.  By default,
 the size of the window is used (no scrollback ability).  With this
 option, a scrollbar will be created and it is then possible to scroll back
@@ -128,11 +126,11 @@ Prints out a brief description of the options to standard output.
 .TP
 .B -cache|-nocache
 Determines if the client will cache images for future runs.  With -nocache,
-when the server is about to referance an image that the client has
+when the server is about to reference an image that the client has
 yet to receive, it sends that image along to the client.  These downloaded
 images are discarded once the client exists.  With -cache, the server
-sends information about the image it is about to referance.  The client
-can then check its local cache (stored in ~/.crossfire/images) - if it
+sends information about the image it is about to reference.  The client
+can then check its local cache (stored in ~/.crossfire/image-cache) - if it
 has the image, it creates it off the disk.  If it does not have it,
 it requests it from the server and then stores it in its cache.  In the
 brief time between the request of the image and it actually receives it,
@@ -140,8 +138,8 @@ that image will be represented by a ? in the map.
 
 -cache option is strongly recommended anytime when your link to the server
 is slower than home directory access - this is likely to be the case
-except in case of nfs mounted home directories on the server on the local
-lan.
+except in case of NFS mounted home directories on the server on the local
+LAN.
 .TP
 .B -darkness|-nodarkness
 Controls whether the server sends darkness information to the client
@@ -170,14 +168,13 @@ image type, split windows mode, scrolllines, showicon, and cache options into
 If you are using split windows mode, you can enter savewinpos
 as an extended command.  This will save the current window positions
 and sizes into ~/.crossfire/winpos.  Next time you run the server
-in split mode, it will load these values and resize and move the windows
+in split mode, it loads these values and resize and move the windows
 as specified.
 
 .SH PLAYING WITH THE CLIENT
 
-This is by far a complete tutorial of gameplay.  This section is to
-provide a basic introduction to logging in and doing a few very
-basic actions.
+This far from a complete tutorial of gameplay, but provides a basic
+introduction to logging in and doing a few very basic actions.
 
 The first thing that will happen after the client successfully connects
 to the server is you will be prompted for a name.  There are some
@@ -220,8 +217,8 @@ These commands were described in the SAVED DEFAULTS options above.
 .TP
 .B scroll
 This toggles whether or the information windows scrolls when it gets to
-the bottom of the window or wraps to the top.  Wrapping is slighly less
-cpu intensive, but is generally harder to read.
+the bottom of the window or wraps to the top.  Wrapping is slightly less
+CPU intensive, but is generally harder to read.
 .TP
 .B bind unbind
 bind is used to add new keybindings.  Do you want to be able to press
@@ -231,8 +228,8 @@ is bound, it is stored in ~/.crossfire/keys and will be used in future
 plays.
 .TP
 .B scroll
-Cfclient only. Toggles between scroll and wrap mode.
-In wrap mode, when text gets to the bottom of the
+crossfire-client-x11 only. Toggles between scroll and wrap
+mode.  In wrap mode, when text gets to the bottom of the
 message window, it starts new messages at the top.
 Scroll is only really useful on very slow systems where
 the performance hit of scrolling the window is too costly.
@@ -250,7 +247,7 @@ can result in extended lengths of time that after you stop
 entering commands the character is still performing actions.
 Having this value too low on slow links can result in the
 character sitting idle even though they have an action
-comming to them.
+coming to them.
 .TP
 .B autorepeat
 Toggle the autorepeat handling for directional keys.  When
@@ -264,10 +261,10 @@ This is a directory that is created that is used to store various
 files.
 .TP
 .B ~/.crossfire/defaults
-This contains default setttings.  This file can in theory be edited
+This contains default settings.  This file can in theory be edited
 by hand - just be careful to keep the same case and whitespace.
 .TP
-.B ~/.crossfire/images
+.B ~/.crossfire/image-cache
 This directory is used for the image cache if -cache is being used.
 .TP
 .B ~/.crossfire/keys

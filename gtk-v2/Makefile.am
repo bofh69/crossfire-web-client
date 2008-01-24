@@ -26,3 +26,5 @@ EXTRA_DIST = \
 	README-dev \
 	TODO
 
+dist_man6_MANS = \
+	crossfire-client-gtk2.man

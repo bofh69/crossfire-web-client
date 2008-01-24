@@ -1,8 +1,7 @@
 #
-# Grab the crossfire-images archive of the sourceforge files list.  If
-# you have a copy of the arch directory, you can run the
-# adm/collect_images -archive from the lib directory of the server and
-# it will make the archive.
+# Grab the crossfire-images archive off the sourceforge files list.  If you
+# have a copy of the arch directory, you can run the adm/collect_images
+# -archive from the lib directory of the server and it will make the archive.
 #
 # Now maintaining this - easy enough to do if it proves useful.
 # MSW 2005-02-28
@@ -30,12 +29,17 @@ Source1: %{name}-sounds-%{version}.tar.gz
 Source2: %{name}-images-%{version}.tar.gz
 Provides: crossfire-client
 Requires: SDL
+Requires: libcurl
 Requires: SDL_image
 Requires: alsa-lib
+Requires: libglade2.0
 BuildRequires: SDL-devel
+BuildRequires: glibc-devel
+BuildRequires: libcurl-devel
 BuildRequires: SDL_image-devel
 BuildRequires: alsa-lib-devel
-Epoch: 4
+BuildRequires: libglade2.0-devel
+Epoch: 5
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
 %description
@@ -44,8 +48,8 @@ characteristics reminiscent of rogue, nethack, omega, and gauntlet.
 It has multiplayer capability and presently runs under X11.
 
 Client for playing the new client/server based version of Crossfire.
-This package allows you to connect to crossfire servers around the world.
-You do not need install the crossfire program in order to use this
+This package allows you to connect to Crossfire servers around the world.
+You do not need install the Crossfire server in order to use this
 package.
 
 %package gtk2
@@ -54,8 +58,9 @@ Group: X11/Games
 Provides: crossfire-client
 
 %description gtk2
-GTKv2 version of the crossfire client - this is a completely new client
-compared to the gtkv1 client.
+GTKv2 version of the Crossfire client - This client game window has
+themes.  It supports the use of customized window layouts, and is
+packaged with several pre-defined ones.
 
 %package sounds
 Summary: Sound effects for the crossfire game
@@ -107,6 +112,23 @@ install crossfire.base %{buildroot}%{_datadir}/games/crossfire/%{name}
 install bmaps.client %{buildroot}%{_datadir}/games/crossfire/%{name}
 install README %{buildroot}%{_datadir}/games/crossfire/%{name}
 #
+# crossfire-client-gtk2 themes
+#
+install -d %{buildroot}%{_datadir}/games/crossfire/crossfire-client/themes
+install Black %{buildroot}%{_datadir}/games/crossfire/crossfire-client/themes
+install Standard %{buildroot}%{_datadir}/games/crossfire/crossfire-client/themes
+#
+# crossfire-client-gtk2 window layouts
+#
+install -d %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+install caelestis.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+install chthonic.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+install dialogs.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+install gtk-v1.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+install gtk-v2.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+install meflin.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+install oroboros.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+#
 # KDE
 #
 install -d %{buildroot}%{_datadir}/applnk/Games/Adventure
@@ -153,20 +175,32 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 %files
 %defattr(644,root,root,755)
 %doc ChangeLog COPYING License NOTES README TODO
-%attr(755,root,root) %{_bindir}/cfclient
-%{_mandir}/man6/cfclient.6*
+%attr(755,root,root) %{_bindir}/crossfire-client-x11
+%{_mandir}/man6/crossfire-client-x11.6*
 
 %files gtk
 %defattr(644,root,root,755)
 %doc ChangeLog COPYING License NOTES README TODO
-%attr(755,root,root) %{_bindir}/gcfclient
-%{_mandir}/man6/gcfclient.6*
+%attr(755,root,root) %{_bindir}/crossfire-client-gtk
+%{_mandir}/man6/crossfire-client-gtk.6*
 
 %files gtk2
 %defattr(644,root,root,755)
 %doc ChangeLog COPYING License NOTES README TODO
-%attr(755,root,root) %{_bindir}/gcfclient2
-
+%attr(755,root,root) %{_bindir}/crossfire-client-gtk2
+# Themes
+%dir %{_datadir}/games/crossfire/crossfire-client/themes
+%{_datadir}/games/crossfire/crossfire-client/themes/Black
+%{_datadir}/games/crossfire/crossfire-client/themes/Standard
+# Window layouts
+%dir %{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/caelestis.glade
+%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/chthonic.glade
+%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/dialogs.glade
+%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/gtk-v1.glade
+%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/gtk-v2.glade
+%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/meflin.glade
+%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/oroboros.glade
 
 %files common
 %defattr(644,root,root,755)
@@ -206,6 +240,18 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 
 %changelog
+* Wed Jan 23 2008 Kevin Bulgrien <kbulgrien@att.net>
++ crossfire-client-1.11.0
+- Epoch 5
+- Add player selectable UI themes.
+- Rename cfclient->crossfire-client-x11
+- Rename gcfclient->crossfire-client-gtk
+- Rename gcfclient2->crossfire-client-gtk2
+- Add user selectable libglade XML window and dialog definitions.
+- Add BuildRequires: glibc-devel (gtkv2 pthreads)
+- Add Requires: libglade2.0, BuildRequires: libglade2.0-devel (gtkv2 UI)
+- Add Requires: libcurl BuildRequires: libcurl-devel (gtkv2 metaserver2)
+
 * Wed Jun 28 2006 Mark Wedel <mwedel@sonic.net>
 + crossfire-client-1.9.1-1
 - new release 1.9.1
