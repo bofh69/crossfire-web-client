@@ -2,6 +2,23 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Packaging update work.
+crossfire-client-spec: An initial attempt to bring the .spec file up to date
+  with the libglade/libcurl/pthread requirements and for packaging the theme
+  and window layout files.  It has not been tested yet and probably needs
+  more work.
+gtk-v2/crossfire-client-gtk2.man: For now, this is really only a slightly
+  modified copy of gtk/crossfire-client-gtk.  It needs an update, but then
+  so do all the other client man pages.
+gtk-v2/crossfire-client.desktop: An executable file name change.  Really, I
+  think this file needs a rename to be correct.
+gtk-v2/Makefile.am: Support for the new crossfire-client-gtk2.man file.
+gtk/crossfire-client-gtk.man: Client name changes for trunk, and a number of
+  spelling errors fixed and .crossfire file names fixed like winpos->gwinpos.
+x11/crossfire-client-x11.man: Client name changes for trunk, and a number of
+  spelling errors fixed.
+Kevin Bulgrien
+
 [ 1839894 ] Keybind editor flaw (gtk2, gtkv2) appears fixed by prior commit.
 This is basically a doxygen documentation commit.
 gtk-v2/keys.c: Remove erroneous comment.  Document Key_Entry struct typedef.
