@@ -3,3 +3,6 @@ config.status
 config.log
 Makefile
 autom4te.cache
+doxygen.err
+html
+Crossfire.tag

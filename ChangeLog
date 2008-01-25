@@ -2,7 +2,8 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
-General cleanup with propset svn:ignore
+General cleanup with propset svn:ignore && fixup oops due to not quite getting
+how svn:ignore works.
 Kevin Bulgrien
 
 Packaging update work.
