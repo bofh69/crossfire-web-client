@@ -2,6 +2,9 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+General cleanup with propset svn:ignore
+Kevin Bulgrien
+
 Packaging update work.
 crossfire-client-spec: An initial attempt to bring the .spec file up to date
   with the libglade/libcurl/pthread requirements and for packaging the theme
