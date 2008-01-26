@@ -30,6 +30,8 @@ are are found in the following files:
                         views beneath. To the top left is a three tab notebook
                         for core stats, critical messages, and protections. At
                         the lower left is the messages pane with entry box.
+                        The default window setting supports an 18x22 map pane
+                        with an overall size of 1275x945.
 
 - chthonic.glade        A tri-column layout with a tall inventory/floor panels
                         to the right. At the top middle, a two tab notebook
@@ -37,16 +39,21 @@ are are found in the following files:
                         skill/experience data.  To the top left is the critical
                         message box with the standard message box and command
                         input below.  The bottom left corner two tab notebook
-                        houses protections and core statistics.
+                        houses protections and core statistics.  The default
+                        window setting supports an 18x22 map pane with an
+                        overall size of 1275x945.
 
 - eureka.glade          A U-shaped layout with inventory and ground views at
                         the top and middle left, a critical and regular
                         message area at the top and middle right, with status
                         bars on the bottom left alongside a three tab notebook
                         for core stats, skills & experience, and protections.
-                        The map pane is in the middle of the window.
+                        The map pane is in the middle of the window and may be
+                        set for 17x22 tiles at the default 1180x925 settings.
 
 - gtk-v1.glade          An approximation of the original GTK client layout.
+                        A 17x16 map pane fits well on the default 1180x925
+                        window size.
 
 - meflin.glade          A player-suggested modification of an experimental
                         layout, and as such, is probably subject to change.
@@ -54,6 +61,8 @@ are are found in the following files:
                         messages and inventory/ground views sharing a tabbed
                         notebook to the left.  At the bottom rest the stat
                         bars and a three tab notebook for character data.
+                        This one is custom sized at 1233x1001, and at these
+                        settings, fits a healthy-sized 25x25 map view.
 
 - oroboros.glade        A layout designed for 1024x768 desktops.  On the left
                         are a tabbed message window, inventory, and floor view.
@@ -70,4 +79,6 @@ are are found in the following files:
                         helps reduce the vertical space constraints.  The
                         default window positions fit 1280x1024 or 1400x1050
                         screens with room to spare for side or bottom panels.
+                        A 19x17 map pane fits well on the default 1180x925
+                        window size.
 

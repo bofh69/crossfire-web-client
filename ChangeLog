@@ -1,6 +1,11 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/gtk-v1.glade, gtk-v2/glade/AUTHORS, gtk-v2/glade/eureka.glade:
+  Standardize these layouts at 1180x925 so they easily fit 1280x1024 screens
+  and allow for a either a vertical or horizontal menu bar.  Document the
+  map pane sizes and overall window sizes for the different layout files.
+Kevin Bulgrien
 
 gtk-v2/glade/v1-redux.glade, gtk-v2/glade/v1-redux.gladep: Add a new layout
   that revisits the legacy GTK V1 client look, but saves on vertical space by
