@@ -33,6 +33,7 @@ XML_FILES = \
         lobotomy.glade \
  	meflin.glade \
 	oroboros.glade \
+	un-deux.glade \
 	v1-redux.glade
 
 PRJ_FILES = $(foreach XML,$(XML_FILES),$(XML)p)

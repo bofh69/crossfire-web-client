@@ -1,6 +1,21 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+gtk-v2/glade/README: Updated this file with new hints and information.
+gtk-v2/glade/un-deux.glade, gtk-v2/glade/un-deux.gladep: This layout is a
+  heavily modified v1-redux that places the critical messages, stat bars,
+  protections, and ground view all in horizontally adjustable boxes.  It
+  still vaguely reminiscent of the original GTK V1 client, but only slightly
+  so.  The message boxes are to the left of the map, and the inventory view is
+  to the right.  The command input box is between the tall message pane and
+  the short critical message pane, at the bottom left corner of the map.  This
+  puts chat messages right next to the command input box.  The window size
+  defaults to 1180x925 and comfortably handles a 19x17 map pane.
+gtk-v2/glade/Makefile.am: Add support for un-deux.glade
+gtk-v2/glade/AUTHORS: Describe the un-deux window.
+Kevin Bulgrien
+
 gtk-v2/glade/lobotomy.glade, gtk-v2/glade/lobotomy.gladep: A slightly variant
   layout that challenges the tradition of those that came before.
 gtk-v2/glade/AUTHORS: Describe the lobotomy layout.

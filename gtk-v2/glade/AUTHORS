@@ -81,6 +81,19 @@ are are found in the following files:
                         is also appropriate for those that prefer to see lessi
                         information simultaneously on screen.
 
+- un-deux.glade         This layout is a heavily modified v1-redux that places
+                        the critical messages, stat bars, protections, and
+                        ground view all in horizontally adjustable boxes  It
+                        is still vaguely reminiscent of the original GTK V1
+                        client, but only slightly so.  The message boxes are to
+                        the left of the map, and the inventory view is to the
+                        right.  The command input box is between the tall
+                        message pane and the short critical message pane, at
+                        the bottom left corner of the map.  This puts chat
+                        messages right next to the command input box.  The
+                        window size defaults to 1180x925 and comfortably
+                        handles a 19x17 map pane.
+
 - v1-redux.glade        A slight improvement on the original GTK client layout
                         with a tab notebook above the map view that switches
                         between the character and skills information.  This
