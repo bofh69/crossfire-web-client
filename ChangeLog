@@ -2,10 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/v1-redux.glade, gtk-v2/glade/v1-redux.gladep: Add a new layout
+  that revisits the legacy GTK V1 client look, but saves on vertical space by
+  using a tab notebook for the character and skill information.
 gtk-v2/glade/eureka.glade, gtk-v2/glade/eureka.gladep: Add a new layout to SVN
   that has just been sitting on my system for ages.
-gtk-v2/glade/AUTHORS: Add and describe the new eureka.glade layout.
-gtk-v2/glade/Makefile.am: Add support for the new eureka.glade layout.
+gtk-v2/glade/AUTHORS: Add and describe the eureka and v1-redux layouts.
+gtk-v2/glade/Makefile.am: Add support for the eureka and v1-redux layouts.
 gtk-v2/glade/README: Remove no longer relevant comment about inability to
   restore screen positions.
 Kevin Bulgrien

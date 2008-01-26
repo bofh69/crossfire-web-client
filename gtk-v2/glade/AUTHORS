@@ -44,6 +44,7 @@ are are found in the following files:
                         message area at the top and middle right, with status
                         bars on the bottom left alongside a three tab notebook
                         for core stats, skills & experience, and protections.
+                        The map pane is in the middle of the window.
 
 - gtk-v1.glade          An approximation of the original GTK client layout.
 
@@ -62,4 +63,11 @@ are are found in the following files:
                         Since oroboros makes heavy use of tabbed notebooks, it
                         is also appropriate for those that prefer to see lessi
                         information simultaneously on screen.
+
+- v1-redux.glade        A slight improvement on the original GTK client layout
+                        with a tab notebook above the map view that switches
+                        between the character and skills information.  This
+                        helps reduce the vertical space constraints.  The
+                        default window positions fit 1280x1024 or 1400x1050
+                        screens with room to spare for side or bottom panels.
 
