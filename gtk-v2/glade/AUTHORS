@@ -55,6 +55,14 @@ are are found in the following files:
                         A 17x16 map pane fits well on the default 1180x925
                         window size.
 
+- lobotomy.glade        A layout of a slightly different persuasion.  This one
+                        sports a map layout on the left.  To the right sit the
+                        inventory/ground view and message panes.  Underscoring
+                        this unconventional view sit the stat bars and tabbed
+                        notebook common to many of these layouts.  The window
+                        defaults are set at 1280x925, and sport a map pane of
+                        19x22.
+
 - meflin.glade          A player-suggested modification of an experimental
                         layout, and as such, is probably subject to change.
                         Presently a map view notebook is at top right with

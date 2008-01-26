@@ -30,6 +30,7 @@ XML_FILES = \
 	eureka.glade \
 	gtk-v1.glade \
 	gtk-v2.glade \
+        lobotomy.glade \
  	meflin.glade \
 	oroboros.glade \
 	v1-redux.glade
