@@ -39,6 +39,12 @@ are are found in the following files:
                         input below.  The bottom left corner two tab notebook
                         houses protections and core statistics.
 
+- eureka.glade          A U-shaped layout with inventory and ground views at
+                        the top and middle left, a critical and regular
+                        message area at the top and middle right, with status
+                        bars on the bottom left alongside a three tab notebook
+                        for core stats, skills & experience, and protections.
+
 - gtk-v1.glade          An approximation of the original GTK client layout.
 
 - meflin.glade          A player-suggested modification of an experimental

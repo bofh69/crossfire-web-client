@@ -2,6 +2,14 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/eureka.glade, gtk-v2/glade/eureka.gladep: Add a new layout to SVN
+  that has just been sitting on my system for ages.
+gtk-v2/glade/AUTHORS: Add and describe the new eureka.glade layout.
+gtk-v2/glade/Makefile.am: Add support for the new eureka.glade layout.
+gtk-v2/glade/README: Remove no longer relevant comment about inability to
+  restore screen positions.
+Kevin Bulgrien
+
 General cleanup with propset svn:ignore && fixup oops due to not quite getting
 how svn:ignore works.
 Kevin Bulgrien

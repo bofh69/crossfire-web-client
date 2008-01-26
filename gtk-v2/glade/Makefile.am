@@ -27,6 +27,7 @@ XML_FILES = \
 	caelestis.glade \
 	chthonic.glade \
 	dialogs.glade \
+	eureka.glade \
 	gtk-v1.glade \
 	gtk-v2.glade \
  	meflin.glade \

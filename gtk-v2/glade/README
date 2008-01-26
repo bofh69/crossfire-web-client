@@ -44,10 +44,6 @@ Notes on using .glade layout files for the libglade version of the GTK2 client
    for each layout you care to keep, then restore the copy when you want to
    use the layout it corresponds with.
 
-5) Some layouts appear to not allow resizing of the overall window.  It is not
-   yet known why this is the case.  The window size code was not altered for
-   the libglade conversion.
-
 -------------------------------------------------------------------------------
 Notes about designing .glade files for the libglade version of the GTK2 client
 -------------------------------------------------------------------------------
