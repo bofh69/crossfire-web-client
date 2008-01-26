@@ -24,6 +24,8 @@ Notes on using .glade layout files for the libglade version of the GTK2 client
 
      -dialog_xml /path/to/dialogs.glade
 
+   Presently there are no alternative dialog files supplied with the project.
+
 3) If the -window_xml parameter is not accepted, the client is an old client
    that does not support libglade.  This could happen if a recent client is
    compiled but the system does not have the libglade-2.0 libraries on it.
@@ -37,6 +39,9 @@ Notes on using .glade layout files for the libglade version of the GTK2 client
    they may be found and used to size the client panes better.  Use the Client
    Save Window Position command to save the adjustments.  They will be used to
    restore the saved settings the next time the client is started.
+
+   Sometimes it might even just be easier to delete ~/.crossfire/gwinpos2 so
+   that the client will lay the window out as it was designed.
 
    Presently the screen sizes are lost every time a different layout is tried.
    It may be that this limitation will be removed from a future version of the
@@ -66,8 +71,9 @@ Notes about designing .glade files for the libglade version of the GTK2 client
 
    IMPORTANT:
 
-   The root window "visible" property must be set to "no" in order for saved
-   screen size settings to be restorable when the application starts up.
+   The root window "visible" property must also be set to "no" in order for
+   saved screen size settings to be restorable when the application starts up.
+   This really means that all dialogs and windows should be set as not visible.
 
 2) All hpane and vpane resizeable widgets that need to be saved when the user
    selects Client | Save Window Position should have a name that begins with
@@ -77,11 +83,11 @@ Notes about designing .glade files for the libglade version of the GTK2 client
 
 3) Set all hpaned and vpaned size bars to result in a default layout that has
    a decent appearance.  It is not sufficient to have the layout look good in
-   the layout designer.  You must verify that the Position propery on the
+   the layout designer.  You must verify that the Position property on the
    Widget tab is set and that it's checkbox is checked.
 
 4) When creating tabbed notebooks be sure the first tab is the tab that should
-   be visible when the client starts up.
+   be visible when the client starts up or when the dialog is first displayed.
 
 5) Most layouts may be altered by creatively cut/pasting elements.  Do not use
    copy/paste, as that will cause the widgets to be renamed.
@@ -99,6 +105,13 @@ Notes about designing .glade files for the libglade version of the GTK2 client
 8) Save periodically, and keep working copies.  It is very easy to ruin a
    layout so that it is hard to return to a proper state, and widget errors
    may cause the client to crash at run-time when it is most inconventient.
+
+   Oddly, there is not a Save As menu item in the Glade Designer tool.  Even
+   so, it is possible to save your design as a different file to prevent
+   overwriting the last good save.  Use Project | Options... | Project File:
+   to pick a new name.  After change the name there, File | Save will save
+   to the new file name without overwriting the file that was originally
+   opened.
 
 9) When adding a combo box that is to be dynamically filled at run-time, be
    absolutely sure to press the ellipsis "..." button next to the empty Items:
@@ -137,4 +150,23 @@ Notes about designing .glade files for the libglade version of the GTK2 client
 10)  The Magic Map page in map_notebook must be the second tab to maintain
      compatibility with the client's standard main.h define "MAGIC_MAP_PAGE 1".
      The page/tab number is zero-based, so "1" corresponds to the second tab.
+
+-------------------------------------------------------------------------------
+Other Helpful Hints
+-------------------------------------------------------------------------------
+
+1) Sometimes when making significant layout changes or when glade misbehaves
+   and does not let you visually see an select an empty cell (vboxes have been
+   noted as problematic if an empty cell is bounded by two cells with content).
+   When this happens, it is quite possible to use a text editor to move items
+   into the empty cell.  Naturally you have to be able to look at the XML
+   structure to know how to keep it intact.  Make backups before making
+   manual edits.
+
+2) When editing .glade files by hand, use of a text editor that is capable of
+   collapsing XML structures is recommended.  Even without such and editor, it
+   can be handle to use a browser alongside the editor.  To do so, make a copy
+   of the .glade file, but save it with a .xml extension, and then open it in
+   FireFox or another XML-aware browser.  Use the expand/collapse features to
+   learn or reveal the structure of the XML.
 
