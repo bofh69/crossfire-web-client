@@ -1,6 +1,8 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/un-deux.glade: Fix missing label_cha for Charisma value to be
+  shown.
 
 gtk-v2/glade/un-deux.glade: The original design did not allow the ground view
   to be expanded optimally, the layout was changed to remove this limitation.
