@@ -81,8 +81,7 @@ are are found in the following files:
                         is also appropriate for those that prefer to see lessi
                         information simultaneously on screen.
 
-- un-deux.glade         This layout is a heavily modified v1-redux that places
-                        It is still vaguely reminiscent of the original GTK V1
+- un-deux.glade         It is still vaguely reminiscent of the original GTK V1
                         client.  The inventory and ground view are to the right
                         and use the full window height.  The message pane,
                         command entry box and the critical message pane are on
