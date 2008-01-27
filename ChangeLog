@@ -2,7 +2,8 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
-gtk-v2/glade/README: Updated this file with new hints and information.
+gtk-v2/glade/README: Updated this file with new hints and information.  Some
+  spelling fixed.
 gtk-v2/glade/un-deux.glade, gtk-v2/glade/un-deux.gladep: This layout is a
   heavily modified v1-redux that places the critical messages, stat bars,
   protections, and ground view all in horizontally adjustable boxes.  It

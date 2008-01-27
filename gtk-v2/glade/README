@@ -104,7 +104,7 @@ Notes about designing .glade files for the libglade version of the GTK2 client
 
 8) Save periodically, and keep working copies.  It is very easy to ruin a
    layout so that it is hard to return to a proper state, and widget errors
-   may cause the client to crash at run-time when it is most inconventient.
+   may cause the client to crash at run-time when it is most inconvenient.
 
    Oddly, there is not a Save As menu item in the Glade Designer tool.  Even
    so, it is possible to save your design as a different file to prevent
