@@ -32,7 +32,7 @@
       <property name="spacing">0</property>
 
       <child>
-	<widget class="GtkHBox" id="hbox_menubar_client">
+	<widget class="GtkHBox" id="hbox_menubar">
 	  <property name="visible">True</property>
 	  <property name="homogeneous">False</property>
 	  <property name="spacing">0</property>
@@ -692,19 +692,19 @@
       </child>
 
       <child>
-	<widget class="GtkHPaned" id="hpaned_left_right">
+	<widget class="GtkHPaned" id="hpaned_client">
 	  <property name="visible">True</property>
 	  <property name="can_focus">True</property>
 	  <property name="position">875</property>
 
 	  <child>
-	    <widget class="GtkVPaned" id="vpaned_topleft_bottomleft">
+	    <widget class="GtkVPaned" id="vpaned_messages_middle">
 	      <property name="visible">True</property>
 	      <property name="can_focus">True</property>
 	      <property name="position">725</property>
 
 	      <child>
-		<widget class="GtkHPaned" id="hpaned_msgs_statskillsmaps">
+		<widget class="GtkHPaned" id="hpaned_messagescommands_corestatskillsmaps">
 		  <property name="visible">True</property>
 		  <property name="can_focus">True</property>
 		  <property name="position">240</property>
@@ -824,7 +824,7 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkVPaned" id="vpaned_coreskill_mapsbarsprot">
+		    <widget class="GtkVPaned" id="vpaned_topmiddle">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="position">100</property>
@@ -940,7 +940,7 @@
 				  <property name="spacing">5</property>
 
 				  <child>
-				    <widget class="GtkLabel" id="label64">
+				    <widget class="GtkLabel" id="label_statspeed">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Speed</property>
 				      <property name="use_underline">False</property>
@@ -990,7 +990,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label66">
+				    <widget class="GtkLabel" id="label_statwspeed">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Weapon Speed</property>
 				      <property name="use_underline">False</property>
@@ -1091,7 +1091,7 @@
 				  <property name="spacing">5</property>
 
 				  <child>
-				    <widget class="GtkLabel" id="label32">
+				    <widget class="GtkLabel" id="label_statwc">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">WC</property>
 				      <property name="use_underline">False</property>
@@ -1141,7 +1141,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label34">
+				    <widget class="GtkLabel" id="label_statdam">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Dam</property>
 				      <property name="use_underline">False</property>
@@ -1191,7 +1191,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label36">
+				    <widget class="GtkLabel" id="label_statac">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">AC</property>
 				      <property name="use_underline">False</property>
@@ -1241,7 +1241,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label38">
+				    <widget class="GtkLabel" id="label_statarmor">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Armor</property>
 				      <property name="use_underline">False</property>
@@ -1304,7 +1304,7 @@
 				  <property name="spacing">5</property>
 
 				  <child>
-				    <widget class="GtkLabel" id="label49">
+				    <widget class="GtkLabel" id="label_statstr">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Str</property>
 				      <property name="use_underline">False</property>
@@ -1354,7 +1354,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label51">
+				    <widget class="GtkLabel" id="label_statdex">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Dex</property>
 				      <property name="use_underline">False</property>
@@ -1404,7 +1404,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label53">
+				    <widget class="GtkLabel" id="label_statcon">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Con</property>
 				      <property name="use_underline">False</property>
@@ -1454,7 +1454,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label55">
+				    <widget class="GtkLabel" id="label_statint">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Int</property>
 				      <property name="use_underline">False</property>
@@ -1504,7 +1504,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label57">
+				    <widget class="GtkLabel" id="label_statwis">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Wis</property>
 				      <property name="use_underline">False</property>
@@ -1554,7 +1554,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label59">
+				    <widget class="GtkLabel" id="label_statpow">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Pow</property>
 				      <property name="use_underline">False</property>
@@ -1604,7 +1604,7 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkLabel" id="label61">
+				    <widget class="GtkLabel" id="label_statcha">
 				      <property name="visible">True</property>
 				      <property name="label" translatable="yes">Cha</property>
 				      <property name="use_underline">False</property>
@@ -1904,7 +1904,7 @@
 	      </child>
 
 	      <child>
-		<widget class="GtkHPaned" id="hpaned_crit_barsprot">
+		<widget class="GtkHPaned" id="hpaned_bottom_middle">
 		  <property name="visible">True</property>
 		  <property name="can_focus">True</property>
 		  <property name="position">240</property>
@@ -1917,7 +1917,7 @@
 		      <property name="shadow_type">GTK_SHADOW_NONE</property>
 
 		      <child>
-			<widget class="GtkAlignment" id="alignment2">
+			<widget class="GtkAlignment" id="alignment_critical_messages">
 			  <property name="visible">True</property>
 			  <property name="xalign">0.5</property>
 			  <property name="yalign">0.5</property>
@@ -1991,13 +1991,13 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkHPaned" id="hpaned_bars_prot">
+		    <widget class="GtkHPaned" id="hpaned_bars_protections">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="position">280</property>
 
 		      <child>
-			<widget class="GtkTable" id="table4">
+			<widget class="GtkTable" id="table_bars">
 			  <property name="visible">True</property>
 			  <property name="n_rows">6</property>
 			  <property name="n_columns">2</property>
@@ -2340,20 +2340,20 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkVPaned" id="vpaned_inventory_ground">
+	    <widget class="GtkVPaned" id="vpaned_inv_ground">
 	      <property name="visible">True</property>
 	      <property name="can_focus">True</property>
 	      <property name="position">725</property>
 
 	      <child>
-		<widget class="GtkFrame" id="frame_inventory">
+		<widget class="GtkFrame" id="frame_inv">
 		  <property name="visible">True</property>
 		  <property name="label_xalign">0</property>
 		  <property name="label_yalign">0.5</property>
 		  <property name="shadow_type">GTK_SHADOW_NONE</property>
 
 		  <child>
-		    <widget class="GtkAlignment" id="alignment_frame_inventory">
+		    <widget class="GtkAlignment" id="alignment_frame_inv">
 		      <property name="visible">True</property>
 		      <property name="xalign">0.5</property>
 		      <property name="yalign">0.5</property>
@@ -2365,13 +2365,14 @@
 		      <property name="right_padding">0</property>
 
 		      <child>
-			<widget class="GtkVBox" id="vbox3">
+			<widget class="GtkVBox" id="vbox_inv">
+			  <property name="border_width">1</property>
 			  <property name="visible">True</property>
 			  <property name="homogeneous">False</property>
 			  <property name="spacing">0</property>
 
 			  <child>
-			    <widget class="GtkHBox" id="hbox1">
+			    <widget class="GtkHBox" id="hbox_encumbrance_count">
 			      <property name="visible">True</property>
 			      <property name="homogeneous">True</property>
 			      <property name="spacing">0</property>
@@ -2402,7 +2403,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label5">
+				<widget class="GtkLabel" id="label_count">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes">Count</property>
 				  <property name="use_underline">False</property>
@@ -2463,7 +2464,7 @@
 			      <signal name="switch_page" handler="on_notebook_switch_page" last_modification_time="Sat, 26 Feb 2005 08:20:46 GMT"/>
 
 			      <child>
-				<widget class="GtkScrolledWindow" id="scrolledwindow6">
+				<widget class="GtkScrolledWindow" id="scrolledwindow_inv">
 				  <property name="visible">True</property>
 				  <property name="can_focus">True</property>
 				  <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
@@ -2472,7 +2473,7 @@
 				  <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
 
 				  <child>
-				    <widget class="GtkViewport" id="viewport1">
+				    <widget class="GtkViewport" id="viewport_inv">
 				      <property name="visible">True</property>
 				      <property name="can_focus">True</property>
 				      <property name="shadow_type">GTK_SHADOW_IN</property>
@@ -2499,7 +2500,7 @@
 			      </child>
 
 			      <child>
-				<widget class="GtkLabel" id="label80">
+				<widget class="GtkLabel" id="label_icons">
 				  <property name="visible">True</property>
 				  <property name="label" translatable="yes">Icons</property>
 				  <property name="use_underline">False</property>

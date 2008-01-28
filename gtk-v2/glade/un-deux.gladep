@@ -3,7 +3,7 @@
 
 <glade-project>
   <name>Un Deux</name>
-  <program_name>gtk-v2</program_name>
+  <program_name>GTK V2 (Un Deux)</program_name>
   <source_directory>un-deux</source_directory>
   <gnome_support>FALSE</gnome_support>
 </glade-project>

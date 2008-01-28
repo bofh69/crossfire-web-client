@@ -3,7 +3,7 @@
 
 <glade-project>
   <name>Gtk-V1 With Tabs</name>
-  <program_name>gtk-v2</program_name>
+  <program_name>GTK V2 (V1 Redux)</program_name>
   <source_directory>v1-redux</source_directory>
   <gnome_support>FALSE</gnome_support>
 </glade-project>
