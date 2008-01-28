@@ -36,7 +36,7 @@ XML_FILES = \
 	un-deux.glade \
 	v1-redux.glade
 
-PRJ_FILES = $(foreach XML,$(XML_FILES),$(XML)p)
+PRJ_FILES = $(XML_FILES:.glade=.gladep)
 
 gladedir=$(pkgdatadir)/glade-gtk2
 

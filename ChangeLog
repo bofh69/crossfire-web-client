@@ -1,6 +1,10 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/Makefile.am: Fix non portable usage of foreach, use makes
+  built in variable substitution instead.
+MSW 2008-01-27
+
 gtk-v2/glade/un-deux.glade: Fix missing label_cha for Charisma value to be
   shown.
 
