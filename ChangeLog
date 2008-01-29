@@ -1,6 +1,11 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+common/Makefile.am:  Use hint at http://www.in-ulm.de/~mascheck/various/echo/
+  to try to remove a portability issue regarding use of echo -n.
+Kevin Bulgrien 2008-01-29
+
 gtk-v2/glade: gtk-v1.glade, un-deux.glade: Rename widgets to use a proper name
   instead of the numbered names.
 gtk-v2/glade/v1-redux.glade: Add missing label_cha for Charisma stat.  Rename
