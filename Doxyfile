@@ -129,7 +129,6 @@ FILE_PATTERNS          = *.c \
                          *.diff \
                          *.patch \
                          *.moc \
-                         *.xpm \
                          *.dox
 RECURSIVE              = YES
 EXCLUDE                = random_maps/standalone.c
