@@ -667,30 +667,19 @@ void draw_info(const char *str, int color) {
         >= info_pane[0].adjustment->upper)
             scroll_to_end = 1;
 
-    if (color == NDI_BLACK) {
-        gtk_text_buffer_get_end_iter(info_pane[0].textbuffer, &end);
+    gtk_text_buffer_get_end_iter(info_pane[0].textbuffer, &end);
 
-        gtk_text_buffer_insert_with_tags( 
-            info_pane[0].textbuffer, &end, str, strlen(str),
-            info_pane[0].color_tags[ncolor], NULL);
+    gtk_text_buffer_insert_with_tags( 
+        info_pane[0].textbuffer, &end, str, strlen(str),
+        info_pane[0].color_tags[ncolor], NULL);
 
-        gtk_text_buffer_insert(info_pane[0].textbuffer, &end, "\n" , 1);
+    gtk_text_buffer_insert(info_pane[0].textbuffer, &end, "\n" , 1);
 
-        if (scroll_to_end)
-            gtk_text_view_scroll_mark_onscreen(
-                GTK_TEXT_VIEW(info_pane[0].textview), info_pane[0].textmark);
-    } else {
-        gtk_text_buffer_get_end_iter(info_pane[0].textbuffer, &end);
+    if (scroll_to_end)
+        gtk_text_view_scroll_mark_onscreen(
+            GTK_TEXT_VIEW(info_pane[0].textview), info_pane[0].textmark);
 
-        gtk_text_buffer_insert_with_tags(
-            info_pane[0].textbuffer, &end, str, strlen(str),
-            info_pane[0].color_tags[ncolor], NULL);
-
-        gtk_text_buffer_insert(info_pane[0].textbuffer, &end, "\n" , 1);
-
-        if (scroll_to_end)
-            gtk_text_view_scroll_mark_onscreen(
-                GTK_TEXT_VIEW(info_pane[0].textview), info_pane[0].textmark);
+    if (color != NDI_BLACK) {
 
         gtk_text_view_get_visible_rect(
             GTK_TEXT_VIEW(info_pane[1].textview), &rect);

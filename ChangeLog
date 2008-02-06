@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c: Factor out redundancy in draw_info() in both cases of an
+  if/else statement.
+Kevin Bulgrien 2008-02-05
+
 gtk-v2/src/info.c: Prepare to work on this file.  Break long lines; indention
   fixes; commenting changes; addition of new doxygen content. No code changed
   in this commit.
