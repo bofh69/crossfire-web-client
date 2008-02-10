@@ -90,9 +90,13 @@ const char *usercolorname[NUM_COLORS] = {
 };
 
 char dialog_xml_file[MAX_BUF] = DIALOG_XML_FILENAME;
-char dialog_xml_path[MAX_BUF] = ""; /**< Dialog layout file with path. */
+char dialog_xml_path[MAX_BUF] = "";     /**< Dialog layout file with path. */
 char window_xml_file[MAX_BUF] = WINDOW_XML_FILENAME;
-char window_xml_path[MAX_BUF] = ""; /**< Window layout file with path. */
+                                        /**< The file name of the window layout
+                                         * in use by the client. The base name,
+                                         * without dot extention, is re-used
+                                         * when saving the window positions. */
+char window_xml_path[MAX_BUF] = "";     /**< Window layout file with path. */
 GdkColor root_color[NUM_COLORS];
 struct timeval timeout;
 extern int maxfd;
@@ -158,7 +162,7 @@ void on_window_destroy_event           (GtkObject        *object,
     script_killall();
 #endif
 
-    LOG(LOG_INFO,"gtk::client_exit","Exiting with return value 0.");
+    LOG(LOG_INFO, "main.c::client_exit", "Exiting with return value 0.");
     exit(0);
 }
 
@@ -184,7 +188,8 @@ void do_network()
     script_fdset(&maxfd,&tmp_read);
     pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
     if (pollret==-1) {
-        LOG(LOG_WARNING,"gtk::do_network", "Got errno %d on select call.", errno);
+        LOG(LOG_WARNING, "main.c::do_network",
+            "Got errno %d on select call.", errno);
     } else if ( pollret>0 ) {
         if (FD_ISSET(csocket.fd, &tmp_read)) {
             DoClient(&csocket);
@@ -261,7 +266,8 @@ void event_loop(void)
     gtk_main();
     gtk_timeout_remove(tag);
 
-    LOG(LOG_INFO,"gtk::event_loop","gtk_main exited, returning from event_loop");
+    LOG(LOG_INFO, "main.c::event_loop",
+        "gtk_main exited, returning from event_loop");
 }
 
 /**
@@ -331,9 +337,9 @@ int parse_args(int argc, char **argv)
     load_defaults();
 
 #ifndef WIN32
-    strcpy(VERSION_INFO,"GTK2 Unix Client " FULL_VERSION);
+    strcpy(VERSION_INFO,"GTK V2 Unix Client " FULL_VERSION);
 #else
-    strcpy(VERSION_INFO,"GTK2 Win32 Client " FULL_VERSION);
+    strcpy(VERSION_INFO,"GTK V2 Win32 Client " FULL_VERSION);
 #endif
     /*
      * Set this global so we get skill experience - gtk client can display
@@ -355,7 +361,8 @@ int parse_args(int argc, char **argv)
             continue;
         } else if (!strcmp(argv[on_arg], "-display")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-display requires a display name");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-display requires a display name");
                 return 1;
             }
             display_name = argv[on_arg];
@@ -371,7 +378,8 @@ int parse_args(int argc, char **argv)
             continue;
         } else if (!strcmp(argv[on_arg], "-faceset")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-faceset requires a faceset name/number");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-faceset requires a faceset name/number");
                 return 1;
             }
             face_info.want_faceset = argv[on_arg];
@@ -387,24 +395,28 @@ int parse_args(int argc, char **argv)
             continue;
         } else if (!strcmp(argv[on_arg], "-iconscale")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-iconscale requires a percentage value");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-iconscale requires a percentage value");
                 return 1;
             }
             want_config[CONFIG_ICONSCALE] = atoi(argv[on_arg]);
             if (want_config[CONFIG_ICONSCALE] < 25 || want_config[CONFIG_ICONSCALE]>200) {
-                LOG(LOG_WARNING,"gtk::init_windows","Valid range for -iconscale is 25 through 200");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "Valid range for -iconscale is 25 through 200");
                 want_config[CONFIG_ICONSCALE]=100;
                 return 1;
             }
             continue;
         } else if (!strcmp(argv[on_arg], "-mapscale")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-mapscale requires a percentage value");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-mapscale requires a percentage value");
                 return 1;
             }
             want_config[CONFIG_MAPSCALE] = atoi(argv[on_arg]);
             if (want_config[CONFIG_MAPSCALE] < 25 || want_config[CONFIG_MAPSCALE]>200) {
-                LOG(LOG_WARNING,"gtk::init_windows","Valid range for -mapscale is 25 through 200");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "Valid range for -mapscale is 25 through 200");
                 want_config[CONFIG_MAPSCALE]=100;
                 return 1;
             }
@@ -413,7 +425,8 @@ int parse_args(int argc, char **argv)
             char *cp, x, y=0;
 
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-mapsize requires a XxY value");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-mapsize requires a XxY value");
                 return 1;
             }
             x = atoi(argv[on_arg]);
@@ -421,14 +434,17 @@ int parse_args(int argc, char **argv)
                 if (*cp == 'x' || *cp == 'X') break;
 
             if (*cp == 0) {
-                LOG(LOG_WARNING,"gtk::init_windows","-mapsize requires both and X and Y value (ie, XxY - note the\nx in between.");
+                LOG(LOG_WARNING, "main.c::init_windows", "-mapsize requires "
+                    "both X and Y values (ie, XxY - note the\nx in between.");
             } else {
                 y = atoi(cp+1);
             }
             if (x<9 || y<9) {
-                LOG(LOG_WARNING,"gtk::init_windows","Map size must be positive values of at least 9");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "Map size must be positive values of at least 9");
             } else if (x>MAP_MAX_SIZE || y>MAP_MAX_SIZE) {
-                LOG(LOG_WARNING,"gtk::init_windows","Map size can not be larger than %d x %d", MAP_MAX_SIZE, MAP_MAX_SIZE);
+                LOG(LOG_WARNING, "main.c::init_windows", "Map size cannot be "
+                    "larger than %d x %d", MAP_MAX_SIZE, MAP_MAX_SIZE);
 
             } else {
                 want_config[CONFIG_MAPWIDTH]=x;
@@ -443,7 +459,8 @@ int parse_args(int argc, char **argv)
             continue;
         } else if (!strcmp(argv[on_arg], "-opengl")) {
 #ifndef HAVE_OPENGL
-            LOG(LOG_WARNING,"gtk::init_windows","client not compiled with opengl support.  Ignoring -opengl");
+            LOG(LOG_WARNING, "main.c::init_windows", "client not compiled "
+                "with opengl support.  Ignoring -opengl");
 #else
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_OPENGL;
 #endif
@@ -452,21 +469,24 @@ int parse_args(int argc, char **argv)
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
         } else if (!strcmp(argv[on_arg], "-port")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-port requires a port number");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-port requires a port number");
                 return 1;
             }
             want_config[CONFIG_PORT] = atoi(argv[on_arg]);
             continue;
         } else if (!strcmp(argv[on_arg], "-sdl")) {
 #ifndef HAVE_SDL
-            LOG(LOG_WARNING,"gtk::init_windows","client not compiled with sdl support.  Ignoring -sdl");
+            LOG(LOG_WARNING, "main.c::init_windows",
+                "client not compiled with sdl support.  Ignoring -sdl");
 #else
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
 #endif
             continue;
         } else if (!strcmp(argv[on_arg], "-server")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-server requires a host name");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-server requires a host name");
                 return 1;
             }
             server = argv[on_arg];
@@ -486,7 +506,8 @@ int parse_args(int argc, char **argv)
             continue;
         } else if (!strcmp(argv[on_arg], "-sound_server")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-sound_server requires an executable pathname");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-sound_server requires an executable pathname");
                 return 1;
             }
             sound_server = argv[on_arg];
@@ -499,7 +520,8 @@ int parse_args(int argc, char **argv)
             continue;
         } else if (!strcmp(argv[on_arg], "-resists")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-resists requires a value");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-resists requires a value");
                 return 1;
             }
             want_config[CONFIG_RESISTS]=atoi(argv[on_arg]);
@@ -508,7 +530,8 @@ int parse_args(int argc, char **argv)
             extern int MINLOG;
 
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows","-loglevel requires a value");
+                LOG(LOG_WARNING, "main.c::init_windows",
+                    "-loglevel requires a value");
                 return 1;
             }
             MINLOG = atoi(argv[on_arg]);
@@ -536,7 +559,7 @@ int parse_args(int argc, char **argv)
             continue;
         } else if (!strcmp(argv[on_arg], "-window_xml")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows",
+                LOG(LOG_WARNING, "main.c::init_windows",
                     "-window_xml requires a glade xml file name");
                 return 1;
             }
@@ -544,14 +567,15 @@ int parse_args(int argc, char **argv)
             continue;
         } else if (!strcmp(argv[on_arg], "-dialog_xml")) {
             if (++on_arg == argc) {
-                LOG(LOG_WARNING,"gtk::init_windows",
+                LOG(LOG_WARNING, "main.c::init_windows",
                     "-dialog_xml requires a glade xml file name");
                 return 1;
             }
             strncpy (dialog_xml_path, argv[on_arg], MAX_BUF-1);
             continue;
         } else {
-            LOG(LOG_WARNING,"gtk::init_windows","Do not understand option %s", argv[on_arg]);
+            LOG(LOG_WARNING, "main.c::init_windows",
+                "Do not understand option %s", argv[on_arg]);
             usage(argv[0]);
             return 1;
         }
@@ -561,7 +585,7 @@ int parse_args(int argc, char **argv)
      * Move this after the parsing of command line options, since that can
      * change the default log level.
      */
-    LOG(LOG_INFO,"Client Version",VERSION_INFO);
+    LOG(LOG_INFO, "Client Version", VERSION_INFO);
 
     /* Now copy over the values just loaded */
     for (on_arg=0; on_arg<CONFIG_NUMS; on_arg++) {
@@ -649,7 +673,7 @@ main (int argc, char *argv[])
         WSADATA wsaData;
 
         if (WSAStartup( Version, &wsaData ) != 0) {
-            LOG(LOG_CRITICAL,"gtk::main", "Couldn't load winsock!");
+            LOG(LOG_CRITICAL, "main.c::main", "Could not load winsock!");
             exit(1);
         }
     }
