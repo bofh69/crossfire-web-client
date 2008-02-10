@@ -1,23 +1,27 @@
 .\"$Id: crossfire-client-gtk2.man 6716 2007-06-27 18:57:31Z akirschbaum $
-.TH gcfclient
+.TH crossfire-client-gtk2
 .SH NAME
-crossfire-client-gtk2 - gtk client program for crossfire servers.
+crossfire-client-gtk2 - second generation GTK client for Crossfire servers.
 .SH SYNOPSIS
-.B gcfclient
-[-server server] [-port number] [-display display] [-split|-nosplit] [-download_all_faces]
-[-echo] [faceset name] [-showicon] [-scrollines number] [-sync] [-help]
-[-cache|-nocache] [-darkness|-nodarkness] [-nosound] [-nosplash]
-[-updatekeycodes] [-nopopups] [-splitinfo] [-mapsize xXy] [-sdl]
-[-mapscale percentage] [-iconscale percentage] [-triminfo] [-timemapredraw]
+.B crossfire-client-gtk2
+[-cache|-nocache] [-darkness|-nodarkness] [-display display]
+[-download-all-faces] [-echo|-noecho] [-faceset name]
+[-fasttcpsend|-nofasttcpsend] [-fog] [-help] [-iconscale percentage]
+[-loglevel level] [-mapscale percentage] [-mapsize xXy]
+[-opengl|-pixmap|-sdl] [-port number] [-server name] [-showicon]
+[-smooth|-nosmooth] [-sound|-nosound] [-sound_server executable]
+[-splash|-nosplash] [-resists value] [-split] [-splitinfo]
+[-timemapredraw] [-triminfowindow|-notriminfowindow] [-updatekeycodes]
+[-window_xml path] [-dialog_xml path]
 .SH DESCRIPTION
 .PP
 .I crossfire-client-gtk2
-is an gtk program for connecting to crossfire servers.  Crossfire is a
+is a GTK program for connecting to Crossfire servers.  Crossfire is a
 multiplayer graphical adventure game that mixes aspects of Gauntlet (TM),
-nethack, moria, and Ultima (TM).
+Nethack, Moria, and Ultima (TM).
 
 This man page describes options for the second generation gtk client
-(crossfire-client-gtk2) for the crossfire game server.  There are many
+(crossfire-client-gtk2) for the Crossfire game server.  There are many
 other clients, and each is unique.  This documentation is not intended
 to cover them.
 
@@ -76,6 +80,11 @@ one that matches best.  The default is the standard set.  At current
 time (March 2002), the only one typically available is the classic set.
 
 .TP
+.B -fasttcpsend|-nofasttcpsend
+Send or do not send data immediately to the server.  This setting may
+decrease latency if set at the expense of greater outgoing bandwidth use.
+
+.TP
 .B -fog
 Enables fog of war code.  In this mode, spaces which have been seen
 before but are no longer visible will still be shown on the game
@@ -88,7 +97,7 @@ but may consume more CPU time.
 Prints out a brief description of the options to standard output.
 
 .TP
-.B -iconscale
+.B -iconscale percentage
 Causes the images for the inventory icons
 to be scaled some percentage value.
 Minimum value is 25%.  Setting this to 50% is
@@ -96,24 +105,17 @@ very useful - doubles amount of data visible in the inventory
 window.
 
 .TP
-.B -keepcache
-Causes the client not to download updated images from the server
-if it already has an image of the same name previously cached.
-By default, if the server has a newer image, the client will download
-it and replace the cached version with it.  Using this option can be
-useful if your cache has been populated with a set of images you
-prefer over the one on the server, or if you play on multiple servers
-and they have different image sets and you don't want to keep downloading
-the images over and over again as you switch between servers.
+.B -loglevel level
+Set default logging level with 0 being most verbose.
 
 .TP
-.B -mapscale
-Causes the images for the
-map surface (-mapscale) to be scaled some percentage value.
-Minimum value is 25%.  This value does not need to be the same as
-the iconscale value.  Scaling down the size of the map images can
-be useful when playing on low resolution screens.  Smaller images
-will also consume less CPU as it will be less information to draw.
+.B -mapscale percentage
+Causes the images for the map surface (-mapscale) to be scaled some
+percentage value.  Minimum value is 25%.  This value does not need
+to be the same as the iconscale value.  Scaling down the size of
+the map images can be useful when playing on low resolution screens.
+Smaller images will also consume less CPU as there will be less
+information to draw.
 
 .TP
 .B -mapsize XxY
@@ -131,33 +133,33 @@ n(simple test - go to the start town, run in some direction, stop
 running and see how long it takes before the client stops moving
 you).
 
+.TP
+.B -opengl | -pixmap | -sdl
+The graphics drawing mode to use.  The -opengl and -sdl options may
+only be used of the client was compiled with support for those mode.
+Generally, -opengl provides the best quality, followed by -sdl, and
+then -pixmap.
+
+.B -sdl
+Using this option allows for more complex graphics - true alpha
+channel, improved darkness handling.  Performance may be worse
+when using this option - this depends on many factors.  Like
+the mapsize option above, it is suggested the experimentation is
+done to make performance is still acceptable.  This option does
+not affect bandwidth - it only affects CPU performance.
 
 .TP
-.B -popops|-nopopups
-This enables/disables pop up windows that otherwise appear for certain input.
-When disabled,  the input will be taken from text entries in the basic text
-pane.  The default is that popups are enabled.
-
-.TP
-.B -port <number>
+.B -port number
 The port number of the server to connect to.  By default, it will use
 port 13327 (standard port).  However, certain servers may use other
 ports.
 
 .TP
-.B -sdl
-This option will only be available if the SDL library was
-available when the client was compiles. Using this option allows
-for more complex graphics - true alpha channel, improved darkness
-handling.  Performance may be worse
-when using this option - this depends on many factors.  Like
-the mapsize option above, it is suggested the experimentation is
-done to make performance is still acceptable.  This option does
-not affect bandwidth - it only affects CPU performance.  If this option
-is not used, GdkPixmaps will be used instead.
+.B -resists value
+Control look of resistances.
 
 .TP
-.B -server <server>
+.B -server name
 Sets the server to play on.  If no option is given, it will default to
 localhost.
 
@@ -169,10 +171,17 @@ equipped, etc.)  This can make spotting some items easier, but some
 players may not like the extra space these icons take up or the
 
 .TP
+.B -smooth | -nosmooth
+This option causes map tile edges to be blended together so that the
+map has a less artificially tiled appearance.  Use of this option
+incurs greater CPU and bandwidth usage.
+
+.TP
 .B -sound|-nosound
-Enable/Disables sound effects.  Disabling sound has a minor savings on bandwidth.  It is
-most useful if you do not want sound, due to lack of hardware or lack
-of desire for sound.  Default is sound is enabled.
+Enable/Disables sound effects.  Disabling sound has a minor savings
+on bandwidth.  It is most useful if you do not want sound, due to
+lack of hardware or lack of desire for sound.  Default is sound
+enabled.
 
 .TP
 .B -sound_server <executable>
@@ -188,8 +197,8 @@ generic sound playing programs and expect it to work.
 
 .TP
 .B -splash|-nosplash
-Enable/Disables splash screen.  When enabled, a window with a Crossfire logo is displayed
-while the client is starting up.
+Enable/Disables splash screen.  When enabled, a window with a Crossfire
+logo is displayed while the client is starting up.
 Default is the splash screen is enabled.
 
 .TP
@@ -206,12 +215,6 @@ This splits the information pane window into two sub windows.  One contains
 all the attack messages and otherwise fairly mundane information, and the
 other contains important messages, like changes in protection values,
 levels, etc.
-
-.TP
-.B -sync
-Runs the server in synchronous display mode.  This option tends only to
-be useful in debugging purposes - using this will slow down the display
-and not gain anything for the typical player.
 
 .TP
 .B -timemapredraw
@@ -241,31 +244,40 @@ some bindings unavailable.  Using this option will force custom keybindings
 to get updated for the current keyboard when the client is run.
 
 .TP
-.B -pix|-xpm|-png
+.B -window_xml window_layout
+This client is uses libglade to allow the main client window to be
+customized.  This option is used to specify how the main game window
+looks.  Various layout options are usually supplied with the client.
+The default window layout is gtk-v2.glade.
 
-These options are obsolete.  Currently, the client only supports
-png graphics, and the other options are no longer valid.
-
-
+.TP
+.B -dialog_xml window_layout
+This client is uses libglade to allow the various client dialogs to
+be customized.  This option is used to specify the appearance of the
+various dialog used by the client.  Presently there are no alternate
+dialog layouts supplied with the client.  The default dialog layout
+setting is dialogs.glade.
 
 
 .SH SAVED DEFAULTS
 
- Once you have logged into the server, you can enter extended commands
-by typing ' (apostrophe) followed by the extended commands.  One of these
-extended commands is savedefaults.  This will save many of
-the options listed above.  Note that the saved defaults are
-read first, so using the command line switches can be used to override
+Once you have logged onto a server, you may enter extended commands
+by typing ' (apostrophe) followed by the extended commands.  One of
+these extended commands is savedefaults.  This command saves many of
+the options listed above.  Note that the saved defaults are read
+first, so using the command line switches can be used to override
 settings in the gdefaults2 file.
 
 The settings are saved into
 ~/.crossfire/gdefaults2.
 
-If you are using split windows mode, you can enter savewinpos
-as an extended command.  This will save the current window positions
-and sizes into ~/.crossfire/gwinpos2.  Next time you run the server
-in split mode, it will load these values and resize and move the windows
-as specified.
+You can enter savewinpos as an extended command.  By default, this saves
+the current window positions and sizes to the file ~/.crossfire/gtk-v2.pos.
+The actual file name is based on the name of the window layout file (see
+the -window_xml option).  So, for example, if -window_xml caelestis.glade
+is used, window positions are actually saved to ~/.crossfire/caelestis.pos.
+Next time you run the client, with this window layout selected, it will
+restore the window layout as specified.
 
 .SH PLAYING WITH THE CLIENT
 
@@ -273,12 +285,11 @@ This is by far a complete tutorial of gameplay.  This section is to
 provide a basic introduction to logging in and doing a few very
 basic actions.
 
-The first thing that will happen after the client successfully connects
-to the server is you will be prompted for a name.  There are some
-restrictions to the name you can choose, but alphanumeric characters
-are all safe.
+The first thing to do after the client successfully connects to a
+server is to enter a character name.  There are some restrictions to
+the name you can choose, but alphanumeric characters are all safe.
 
-After entering the name, you will then be prompted for a password.  When
+After entering the name, you will then be prompted for a password.  If
 creating a new character, enter whatever you want your password to be.
 If you get a 'login incorrect' someone else already has that character
 name with a different password - try another name.  If no one has used
@@ -289,18 +300,27 @@ of the document to fully describe the pros and cons of different
 stats and classes.  The creation process has different options for
 swapping stats and choosing a class.
 
-Once you have chosen your class, you will be in the middle of a town.
-The arrow keys will move you in the various directions.  There will be
-a red building almost directly above you - this is the inn where you
-save your character.  There are some signs to your right.  To read
-them, move on top of them and press the 'a' key.  This applies the
-object below you - in the case of signs, it reads it.  In the case of
-buildings, it will cause you to enter the building.
+Once you have chosen your class, you will find yourself in a nexus
+that allows you to select a map on which to start playing.  The best
+place to start is directly above you as it contains a miniature map
+that is designed to be a tutorial on the basics of playing Crossfire.
+More experienced players may elect to skip this training map and may
+start playing in either Scorn or Navar.  Navar is only recommended
+for experienced players.
 
-To the left of the signs is a small building - this is the beginner
-dungeon.  Enter it, and follow the directions on the signs.  It provides
-a pretty good tutorial on some of the basic actions and features of
-the game.
+The arrow keys will move you in the various directions.
+
+If starting in Scorn, there will be a red building almost directly
+above you - this is the inn where you save your character.  There
+are some signs to your right.  To read them, move on top of them and
+press the 'a' key.  This applies the object below you - in the case
+of signs, it reads it.  In the case of buildings, it will cause you
+to enter the building.
+
+To the left of the signs are two small buildings - these are more
+beginner dungeons.  Enter them, and follow the directions on the
+signs.   They provide another pretty good tutorial on some of the
+basic actions and features of the game.
 
 To enter extended commands, type the ' (apostrophe) followed by the
 command.  An example would be 'help (apostrophe followed by the
@@ -367,12 +387,13 @@ This contains keybindings you have edited.  This file can also be
 theoretically edited - changing existing entries is much safer than
 trying to figure out the syntax for new entries.
 .TP
-.B ~/.crossfire/gwinpos2
-Window positions and sizes to use in split window mode.  This file
-can also be edited by hand.
+.B ~/.crossfire/*.pos
+Window layout positions and sizes to use.  The actual file name is
+based upon the name of the window layout file in use (-window_xml).
+The file may be edited by hand.
 
 .PP
-Please let me know about any bugs you find in the client.
+Please let the maintainers know about any bugs found in the client.
 .SH AUTHOR
 Copyright (C) 2008 Mark Wedel & Crossfire Development Team
 GTK port by David Sundqvist (azzie@netpolicy.com)
