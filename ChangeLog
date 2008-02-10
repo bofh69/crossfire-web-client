@@ -2,6 +2,34 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/crossfire-client-gtk2.man: Change more instances of gcfclient to
+  crossfire-client-gtk2, and change the title to specify that this client is
+  a second-generation GTK client.  Update the client option list, and add or
+  remove descriptions to match the client's capabilities.  Some additional
+  work may be needed to be sure the information is up to date and accurate,
+  but this is a first pass at an update.  Change some capitalization, and
+  document the new window position save file conventions.
+gtk-v2/src/main.c: Add some doxygen comments to variable definitions. LOG()
+  calls are reformatted to break long lines and convert instances of "gtk::"
+  to "main.c::" for consistency with other LOG() messages.  Change the title
+  bar of the client from "GTK2 ... Client" to "GTK V2 ... Client" to make it
+  a little less likely that people will assume that the 2 means GTK version
+  2 (especially since this client may eventually be built with a different
+  version of GTK).
+gtk-v2/src/config.c: Reformat LOG() calls to break long lines, and convert all
+  instances of "gtk::" to "config.c::" for better consistency with other LOG()
+  messages.  Also change all "config.c:" to "config.c::".  Player visible
+  change in load_winpos() and save_winpos() changes the window position save
+  file from gwinpos2 to a name based on the window layout file name.  For
+  example, if the default window layout (gtk-v2.glade) is used, the window
+  positions are now saved to gtk-v2.pos.  This allows retention of saved
+  window sizes for all window layouts, and has a side benefit of making sure
+  that the default window positions are all used the first time a window
+  layout is selected.  Providing that the player's screen size is large
+  enough, this will tend to reduce difficulty in setting up window positions
+  for the first time.
+Kevin Bulgrien 2008-02-10
+
 Doxyfile: Remove the .xpm files from the list of files to parse as it is
   painfully slow to do so.
 Kevin Bulgrien 2008-02-06
