@@ -118,7 +118,8 @@ void load_theme(int reload)
          * user directly.
          */
         if (access(path, R_OK) == -1) {
-            LOG(LOG_ERROR,"config.c::load_theme", "Unable to find theme file %s", path);
+            LOG(LOG_ERROR, "config.c::load_theme",
+                "Unable to find theme file %s", path);
             return;
         }
         /*
@@ -192,7 +193,8 @@ void load_defaults()
         for (i=1; i<CONFIG_NUMS; i++) {
             if (!strcmp(config_names[i], inbuf)) {
                 if (val == -1) {
-                    LOG(LOG_WARNING,"gtk::load_defaults","Invalid value/line: %s: %s", inbuf, cp);
+                    LOG(LOG_WARNING, "config.c::load_defaults",
+                        "Invalid value/line: %s: %s", inbuf, cp);
                 } else {
                     want_config[i] = val;
                 }
@@ -208,7 +210,8 @@ void load_defaults()
          */
         if (!strcmp(inbuf,"mapsize")) {
             if (sscanf(cp,"%hdx%hd", &want_config[CONFIG_MAPWIDTH], &want_config[CONFIG_MAPHEIGHT])!=2) {
-                LOG(LOG_WARNING,"gtk::load_defaults","Malformed mapsize option in gdefaults2.  Ignoring");
+                LOG(LOG_WARNING, "config.c::load_defaults",
+                    "Malformed mapsize option in gdefaults2.  Ignoring");
             }
         }
         else if (!strcmp(inbuf, "server")) {
@@ -253,7 +256,8 @@ void load_defaults()
         else if (!strcmp(inbuf, "sdl")) {
             if (val) want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
         }
-        else LOG(LOG_WARNING,"gtk::load_defaults","Unknown line in gdefaults2: %s %s", inbuf, cp);
+        else LOG(LOG_WARNING, "config.c::load_defaults",
+                 "Unknown line in gdefaults2: %s %s", inbuf, cp);
     }
     fclose(fp);
     /*
@@ -261,38 +265,42 @@ void load_defaults()
      * the defaults file directly, they could put bogus values in
      */
     if (want_config[CONFIG_ICONSCALE]< 25 || want_config[CONFIG_ICONSCALE]>200) {
-        LOG(LOG_WARNING,"gtk::load_defaults","Ignoring iconscale value read from gdefaults2 file.\n"
-            "Invalid iconscale range (%d), valid range for -iconscale is 25 through 200",
-            want_config[CONFIG_ICONSCALE]);
+        LOG(LOG_WARNING, "config.c::load_defaults",
+            "Ignoring iconscale value read from gdefaults2 file.\n"
+            "Invalid iconscale range (%d), valid range for -iconscale "
+            "is 25 through 200", want_config[CONFIG_ICONSCALE]);
         want_config[CONFIG_ICONSCALE] = use_config[CONFIG_ICONSCALE];
     }
     if (want_config[CONFIG_MAPSCALE]< 25 || want_config[CONFIG_MAPSCALE]>200) {
-        LOG(LOG_WARNING,"gtk::load_defaults","ignoring mapscale value read for gdefaults2 file.\n"
-            "Invalid mapscale range (%d), valid range for -iconscale is 25 through 200",
-            want_config[CONFIG_MAPSCALE]);
+        LOG(LOG_WARNING, "config.c::load_defaults",
+            "ignoring mapscale value read for gdefaults2 file.\n"
+            "Invalid mapscale range (%d), valid range for -iconscale "
+            "is 25 through 200", want_config[CONFIG_MAPSCALE]);
         want_config[CONFIG_MAPSCALE] = use_config[CONFIG_MAPSCALE];
     }
     if (!want_config[CONFIG_LIGHTING]) {
-        LOG(LOG_WARNING,"gtk::load_defaults","No lighting mechanism selected - will not use darkness code");
+        LOG(LOG_WARNING, "config.c::load_defaults",
+            "No lighting mechanism selected - will not use darkness code");
         want_config[CONFIG_DARKNESS] = FALSE;
     }
     if (want_config[CONFIG_RESISTS] > 2) {
-        LOG(LOG_WARNING,"gtk::load_defaults","ignoring resists display value read for gdafaults file.\n"
-            "Invalid value (%d), must be one value of 0,1 or 2.",
+        LOG(LOG_WARNING, "config.c::load_defaults",
+            "ignoring resists display value read for gdafaults file.\n"
+            "Invalid value (%d), must be one value of 0, 1 or 2.",
             want_config[CONFIG_RESISTS]);
         want_config[CONFIG_RESISTS] = 0;
     }
 
     /* Make sure the map size os OK */
     if (want_config[CONFIG_MAPWIDTH] < 9 || want_config[CONFIG_MAPWIDTH] > MAP_MAX_SIZE) {
-        LOG(LOG_WARNING,"gtk::load_defaults",
-            "Invalid map width (%d) option in gdefaults2. Valid range is 9 to %d",
+        LOG(LOG_WARNING, "config.c::load_defaults", "Invalid map width (%d) "
+            "option in gdefaults2. Valid range is 9 to %d",
             want_config[CONFIG_MAPWIDTH], MAP_MAX_SIZE);
         want_config[CONFIG_MAPWIDTH] = use_config[CONFIG_MAPWIDTH];
     }
     if (want_config[CONFIG_MAPHEIGHT] < 9 || want_config[CONFIG_MAPHEIGHT] > MAP_MAX_SIZE) {
-        LOG(LOG_WARNING,"gtk::load_defaults",
-            "Invalid map height (%d) option in gdefaults2. Valid range is 9 to %d",
+        LOG(LOG_WARNING, "config.c::load_defaults", "Invalid map height (%d) "
+            "option in gdefaults2. Valid range is 9 to %d",
             want_config[CONFIG_MAPHEIGHT], MAP_MAX_SIZE);
         want_config[CONFIG_MAPHEIGHT] = use_config[CONFIG_MAPHEIGHT];
     }
@@ -320,11 +328,11 @@ void save_defaults()
 
     sprintf(path,"%s/.crossfire/gdefaults2", getenv("HOME"));
     if (make_path_to_file(path)==-1) {
-        LOG(LOG_ERROR,"gtk::save_defaults","Could not create %s", path);
+        LOG(LOG_ERROR, "config.c::save_defaults","Could not create %s", path);
         return;
     }
     if ((fp=fopen(path,"w"))==NULL) {
-        LOG(LOG_ERROR,"gtk::save_defaults","Could not open %s", path);
+        LOG(LOG_ERROR, "config.c::save_defaults", "Could not open %s", path);
         return;
     }
     fprintf(fp,"# This file is generated automatically by gcfclient.\n");
@@ -558,7 +566,7 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
      */
     for (i=0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-            LOG(LOG_ERROR,"config.c:fill_combobox_from_datadir",
+            LOG(LOG_ERROR, "config.c::fill_combobox_from_datadir",
                 "Unable to get combo box iter\n");
             break;
         }
@@ -648,7 +656,8 @@ static void setup_config_window()
 
     for (i=0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-            LOG(LOG_ERROR,"config.c:setup_config_window", "Unable to get faceset iter\n");
+            LOG(LOG_ERROR, "config.c::setup_config_window",
+                "Unable to get faceset iter\n");
             break;
         }
         gtk_tree_model_get(model, &iter, 0, &buf, -1);
@@ -662,7 +671,8 @@ static void setup_config_window()
     }
 
     if (sizeof(display_modes) < want_config[CONFIG_DISPLAYMODE]) {
-        LOG(LOG_ERROR, "config.c:setup_config_window", "Player display mode not in display_modes range\n");
+        LOG(LOG_ERROR, "config.c::setup_config_window",
+            "Player display mode not in display_modes range\n");
     } else {
         /*
          * We want to set up the boxes to match current settings for things
@@ -672,7 +682,8 @@ static void setup_config_window()
         count =  gtk_tree_model_iter_n_children(model, NULL);
         for (i=0; i < count; i++) {
             if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-                LOG(LOG_ERROR,"config.c:setup_config_window", "Unable to get faceset iter\n");
+                LOG(LOG_ERROR, "config.c::setup_config_window",
+                    "Unable to get faceset iter\n");
                 break;
             }
             gtk_tree_model_get(model, &iter, 0, &buf, -1);
@@ -693,7 +704,8 @@ static void setup_config_window()
     count =  gtk_tree_model_iter_n_children(model, NULL);
     for (i=0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-            LOG(LOG_ERROR,"config.c:setup_config_window", "Unable to get lighting iter\n");
+            LOG(LOG_ERROR, "config.c::setup_config_window",
+                "Unable to get lighting iter\n");
             break;
         }
         gtk_tree_model_get(model, &iter, 0, &buf, -1);
@@ -924,18 +936,30 @@ on_configure_activate                 (GtkMenuItem     *menuitem,
  */
 void save_winpos()
 {
-    char savename[MAX_BUF],buf[MAX_BUF];
-    FILE    *save;
-    int     x,y,w,h,wx,wy;
-    extern GtkWidget *window_root;
+    char savename[MAX_BUF];
+    char buf[MAX_BUF];
+    char *cp;
+    FILE *save;
+    int  x,y,w,h,wx,wy;
+    extern  GtkWidget *window_root;
     GList *pane_list, *list_loop;
     GladeXML *xml_tree;
     GtkWidget *widget;
 
-    sprintf(savename,"%s/.crossfire/gwinpos2", getenv("HOME"));
-    if (!(save=fopen(savename,"w"))) {
-        sprintf(buf,"Unable to open %s - window positions not saved!",savename);
-        draw_info(buf,NDI_RED);
+    /*
+     * Truncate window_xml_file to remove a .extension if one exists, so that
+     * the window positions file can be created with a different .extension.
+     * this helps keep the length of the file name more reasonable.
+     */
+    strncpy(buf, window_xml_file, MAX_BUF);
+    cp = strrchr(buf, '.');
+    if (cp)
+      cp[0] = 0;
+
+    sprintf(savename,"%s/.crossfire/%s.pos", getenv("HOME"), buf);
+    if (!(save = fopen(savename, "w"))) {
+        sprintf(buf, "Cannot open %s - window positions not saved!", savename);
+        draw_info(buf, NDI_RED);
         return;
     }
     get_window_coord(window_root, &x,&y, &wx,&wy,&w,&h);
@@ -965,8 +989,8 @@ void save_winpos()
     g_list_free(pane_list);
 
     fclose(save);
-    sprintf(buf,"Window positions saved to %s",savename);
-    draw_info(buf,NDI_BLUE);
+    sprintf(buf, "Window positions saved to %s", savename);
+    draw_info(buf, NDI_BLUE);
 }
 
 /**
@@ -991,14 +1015,33 @@ on_save_window_position_activate       (GtkMenuItem     *menuitem,
  */
 void load_window_positions(GtkWidget *window_root)
 {
-    char loadname[MAX_BUF],buf[MAX_BUF], *cp;
+    char loadname[MAX_BUF];
+    char buf[MAX_BUF];
+    char *cp;
     GladeXML *xml_tree;
     GtkWidget *widget;
     FILE    *load;
 
-    sprintf(loadname,"%s/.crossfire/gwinpos2", getenv("HOME"));
-    if (!(load=fopen(loadname,"r"))) {
+    /*
+     * Truncate window_xml_file to remove a .extension if one exists, so that
+     * the window positions file can be created with a different .extension.
+     * this helps keep the length of the file name more reasonable.
+     */
+    strncpy(buf, window_xml_file, MAX_BUF);
+    cp = strrchr(buf, '.');
+    if (cp)
+      cp[0] = 0;
+
+    sprintf(loadname, "%s/.crossfire/%s.pos", getenv("HOME"), buf);
+    if (!(load = fopen(loadname, "r"))) {
+        sprintf(
+            buf, "Cannot open %s: Using default window positions.", loadname);
+        draw_info(buf, NDI_RED);
         return;
+    }
+    else {
+        sprintf(buf, "Loading window positions from %s", loadname);
+        draw_info(buf, NDI_RED);
     }
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET (window_root));
@@ -1017,8 +1060,8 @@ void load_window_positions(GtkWidget *window_root)
                     gtk_window_move(GTK_WINDOW(window_root), x, y);
 
                 } else {
-                    LOG(LOG_ERROR,"gtk-v2:load_window_positions", "Window size %s corrupt\n",
-                        cp);
+                    LOG(LOG_ERROR, "config.c::load_window_positions",
+                        "Window size %s corrupt\n", cp);
                 }
             } else if (strstr(buf,"paned_")) {
                 /*
@@ -1031,13 +1074,12 @@ void load_window_positions(GtkWidget *window_root)
                 if (widget) {
                     gtk_paned_set_position(GTK_PANED(widget), atoi(cp));
                 } else {
-                    LOG(LOG_INFO,"gtk-v2:load_window_positions",
-                        "%s in %s not found in this UI layout.\n",
-                        buf, loadname);
+                    LOG(LOG_INFO, "config.c::load_window_positions", "%s in "
+                        "%s not found in this UI layout.\n", buf, loadname);
                 }
             } else {
-                LOG(LOG_ERROR,"gtk-v2:load_window_positions", "Found unknown line %s in %s\n",
-                    buf, loadname);
+                LOG(LOG_ERROR, "config.c::load_window_positions",
+                    "Found unknown line %s in %s\n", buf, loadname);
             }
         }
     }
