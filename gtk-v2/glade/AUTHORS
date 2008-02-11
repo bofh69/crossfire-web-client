@@ -14,7 +14,7 @@ basic widget set found in that work.
 
 - gtk-v2.glade          This layout defaults to use of a 25x25 map.  The
                         default layout size is configured to 1201x1010.  The
-                        map itself takes up most of a 1280x1024 screen, and is
+                        map itself takes up most of a 1280x1024 screen, and it
                         seems somewhat difficult to use at this resolution and
                         lower.  Stat bars reside in the lower left; stat tables
                         share a tabbed notebook in the lower middle.  Message
@@ -75,13 +75,19 @@ are are found in the following files:
                         19x22.
 
 - meflin.glade          A player-suggested modification of an experimental
-                        layout, and as such, is probably subject to change.
-                        Presently a map view notebook is at top right with
-                        messages and inventory/ground views sharing a tabbed
-                        notebook to the left.  At the bottom rest the stat
-                        bars and a three tab notebook for character data.
-                        This one is custom sized at 1233x1001, and at these
-                        settings, fits a healthy-sized 25x25 map view.
+                        layout.  Send in a suggestion, and you might have a
+                        layout tuned to your tastes.  Presently a map view
+                        notebook is at top right with message, inventory, and
+                        ground views sharing a tabbed notebook to the left.
+                        At the bottom rest the stat bars and a three tab
+                        notebook for character data.  This one is custom-sized
+                        at 1233x1001, and at these settings, fits a healthy
+                        sized 25x25 map view.
+
+                        Send in a suggestion for a layout, and if you're nice
+                        about it, the author will likely be able to whip one up
+                        to suit your individual tastes.  For that matter, SVN
+                        contains tips on how to roll your own...
 
 - oroboros.glade        A layout designed for 1024x768 desktops.  On the left
                         are a tabbed message window, inventory, and floor view.
@@ -89,7 +95,7 @@ are are found in the following files:
                         contains all of the character statistics, and below it
                         is the map view.  At 1024x768, the map view is 20x13.
                         Since oroboros makes heavy use of tabbed notebooks, it
-                        is also appropriate for those that prefer to see lessi
+                        is also appropriate for those that prefer to see less
                         information simultaneously on screen.
 
 - un-deux.glade         It is still vaguely reminiscent of the original GTK V1
