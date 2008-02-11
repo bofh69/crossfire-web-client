@@ -12,8 +12,19 @@ The original gtk-v2.glade file by Mark Wedel was the basis for the following
 layout files.  In fact, all layouts for the GTK-v2 client must contain the
 basic widget set found in that work.
 
-- gtk-v2.glade
-- dialogs.glade
+- gtk-v2.glade          This layout defaults to use of a 25x25 map.  The
+                        default layout size is configured to 1201x1010.  The
+                        map itself takes up most of a 1280x1024 screen, and is
+                        seems somewhat difficult to use at this resolution and
+                        lower.  Stat bars reside in the lower left; stat tables
+                        share a tabbed notebook in the lower middle.  Message
+                        panes share a tab notebook in the upper right, with
+                        inventory and ground views making up the reset of the
+                        left hand side of the window.
+
+- dialogs.glade         This file contains all of the ancilliary dialogs used
+                        by the GTK V2 client.  Alternative layouts are not
+                        provided.
 
 -------------------------------------------------------------------------------
 Kevin Bulgrien
@@ -30,7 +41,7 @@ are are found in the following files:
                         views beneath. To the top left is a three tab notebook
                         for core stats, critical messages, and protections. At
                         the lower left is the messages pane with entry box.
-                        The default window setting supports an 18x22 map pane
+                        The default window setting supports an 19x22 map pane
                         with an overall size of 1275x945.
 
 - chthonic.glade        A tri-column layout with a tall inventory/floor panels
@@ -40,7 +51,7 @@ are are found in the following files:
                         message box with the standard message box and command
                         input below.  The bottom left corner two tab notebook
                         houses protections and core statistics.  The default
-                        window setting supports an 18x22 map pane with an
+                        window setting supports an 19x22 map pane with an
                         overall size of 1275x945.
 
 - eureka.glade          A U-shaped layout with inventory and ground views at
