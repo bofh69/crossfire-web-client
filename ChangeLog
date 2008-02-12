@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/meflin.glade, gtk-v2/glade/meflin.gladep: Miscellaneous fixes to
+  add previously invisible or missing widgets: Run/Fire labels, Count input,
+  and encumbrance.
+Kevin Bulgrien 2008-02-12
+
 gtk-v2/crossfire-client-gtk2.man
 gtk/crossfire-client-gtk.man
 x11/crossfire-client-x11.man: Escape the apostrophe when it starts a line to
