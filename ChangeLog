@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/crossfire-client-gtk2.man
+gtk/crossfire-client-gtk.man
+x11/crossfire-client-x11.man: Escape the apostrophe when it starts a line to
+  avoid confusing man or nroff ('help -> \'help). Reported by Kari Pahula.
+Raphael Quinet 2008-02-11
+
 gtk-v2/crossfire-client-gtk2.man: Change more instances of gcfclient to
   crossfire-client-gtk2, and change the title to specify that this client is
   a second-generation GTK client.  Update the client option list, and add or
