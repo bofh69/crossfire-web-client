@@ -2,6 +2,14 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/un-deux.glade: This is an aethsetic overhaul, adding viewports
+  with insets to set different screen elements off.  Key widgets are moved to
+  a common centerline below the map notebook to keep critical information at
+  a consistent eye-level to improve visibility during play.  The encumbrance
+  and count box is now between the inventory and ground view, and the fire/run
+  indicators are just below the command entry box.
+Kevin Bulgrien 2008-02-12
+
 gtk-v2/glade/v1-redux.glade: Roll in the changes from gtk-v1.glade that make
   the layout more true to the original GTK V1 layout while keeping the tab
   notebook improvement.  The encumbrance display and count box has had a
