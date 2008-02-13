@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/gtk-v1.glade, gtk-v2/glade/gtk-v2.gladep: A major facelift brings
+  this client layout much closer to the appearance of the GTK V1 client layout
+  with a few exceptions like the XP bar and the Magic Map in the tab notebook.
+Kevin Bulgrien 2008-02-12
+
 gtk-v2/glade/meflin.glade, gtk-v2/glade/meflin.gladep: Miscellaneous fixes to
   add previously invisible or missing widgets: Run/Fire labels, Count input,
   and encumbrance.

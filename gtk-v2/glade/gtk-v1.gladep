@@ -2,7 +2,7 @@
 <!DOCTYPE glade-project SYSTEM "http://glade.gnome.org/glade-project-2.0.dtd">
 
 <glade-project>
-  <name>Gtk-V1</name>
+  <name>GTK V1</name>
   <program_name>GTK V2 (V1)</program_name>
   <source_directory>gtk-v1</source_directory>
   <gnome_support>FALSE</gnome_support>
