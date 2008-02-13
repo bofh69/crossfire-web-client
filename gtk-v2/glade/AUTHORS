@@ -62,9 +62,14 @@ are are found in the following files:
                         The map pane is in the middle of the window and may be
                         set for 17x22 tiles at the default 1180x925 settings.
 
-- gtk-v1.glade          An approximation of the original GTK client layout.
-                        A 17x16 map pane fits well on the default 1180x925
-                        window size.
+- gtk-v1.glade          This is a close reproduction of the original GTK V1
+                        client with the main exception being the magic map in
+                        a tabbed notebook with the map view, and an experience
+                        bar that was not present in the legacy client.  At the
+                        default settings of 1180x925, the map pane displays a
+                        17x17 view of the world around you.  The main drawback
+                        of this client layout is probably the quantity of deadi
+                        space in the middle column.
 
 - lobotomy.glade        A layout of a slightly different persuasion.  This one
                         sports a map layout on the left.  To the right sit the
@@ -98,16 +103,24 @@ are are found in the following files:
                         is also appropriate for those that prefer to see less
                         information simultaneously on screen.
 
-- un-deux.glade         It is still vaguely reminiscent of the original GTK V1
-                        client.  The inventory and ground view are to the right
-                        and use the full window height.  The message pane,
-                        command entry box and the critical message pane are on
-                        the left, also occupying the full window height.  The
-                        middle of the screen consists of a tab notebook for
-                        core stats and skills, then another notebook for the
-                        map and magic map display, followed by the status bars
-                        and protections list.  The window size defaults to
-                        1180x925 and comfortably handles a 19x18 map pane.
+- un-deux.glade         This layout is still vaguely reminiscent of the
+                        original GTK V1 client with the V1-Redux improvements,
+                        but it is unique in that the message panes are to the
+                        left of the map while the inventory and ground views
+                        are on the right. To help keep the most important
+                        information at ready eye-level, the encumbrance display
+                        and count input box are between the inventory and
+                        ground views. The critical and normal message panes are
+                        vertically exchanged, with the entry box between,
+                        again, to keep the important controls at a consistent
+                        eye-level. The fire/run indicators are moved beneath
+                        the command input box as they seem all but invisible
+                        below the stat bars. The middle of the screen consists
+                        of a tab notebook for core stats and skills; yet
+                        another notebook for the map and magic map display,
+                        followed by the status bars and protections table. The
+                        window size defaults to 1180x925 and comfortably
+                        accepts a 19x19 map display. 
 
 - v1-redux.glade        A slight improvement on the original GTK client layout
                         with a tab notebook above the map view that switches
@@ -115,6 +128,6 @@ are are found in the following files:
                         helps reduce the vertical space constraints.  The
                         default window positions fit 1280x1024 or 1400x1050
                         screens with room to spare for side or bottom panels.
-                        A 19x17 map pane fits well on the default 1180x925
+                        A 17x20 map pane fits well on the default 1180x925
                         window size.
 

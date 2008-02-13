@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/AUTHORS: Update the descriptions of recently modified client
+  layout files.
+Kevin Bulgrien 2008-02-12
+
 gtk-v2/glade/un-deux.glade: This is an aethsetic overhaul, adding viewports
   with insets to set different screen elements off.  Key widgets are moved to
   a common centerline below the map notebook to keep critical information at
