@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/v1-redux.glade: Roll in the changes from gtk-v1.glade that make
+  the layout more true to the original GTK V1 layout while keeping the tab
+  notebook improvement.  The encumbrance display and count box has had a
+  slight aesthetic improvement also.
+Kevin Bulgrien 2008-02-12
+
 gtk-v2/glade/gtk-v1.glade, gtk-v2/glade/gtk-v2.gladep: A major facelift brings
   this client layout much closer to the appearance of the GTK V1 client layout
   with a few exceptions like the XP bar and the Magic Map in the tab notebook.
