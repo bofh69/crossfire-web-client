@@ -2,7 +2,7 @@
 Notes on using .glade layout files for the libglade version of the GTK2 client
 -------------------------------------------------------------------------------
 
-1) The GTK-v2 client uses two different Glade Designer XML files.  The first
+1) The GTK V2 client uses two different Glade Designer XML files.  The first
    describes the client's main game window, and the second describes all of
    the other dialogs that the client uses.  The default XML layouts are
    defined in the main.h header file, but one or both may be specified with
@@ -11,7 +11,7 @@ Notes on using .glade layout files for the libglade version of the GTK2 client
    At the time of this writing, the default window is defined by gtk-v2.glade
    and the common dialogs are defined in dialogs.glade.
 
-2) To launch the GTK-v2 client and use of a different layout template, start
+2) To launch the GTK V2 client and use of a different layout template, start
    the client with a command similar to the following example.
 
      crossfire-client-gtk2 -window_xml /path/to/layout.glade
@@ -33,21 +33,30 @@ Notes on using .glade layout files for the libglade version of the GTK2 client
    not be built.  If this happens, the client on the system will be an old one
    with a date and time that do not correspond to the current build.
 
-4) The first time a layout is used, ~/.crossfire/gwinpos2 will not contain the
-   correct screen sizes for the layout.  This may cause the client to look bad,
-   and it can be tricky to find the size bars if panes overlap.  With patience,
-   they may be found and used to size the client panes better.  Use the Client
-   Save Window Position command to save the adjustments.  They will be used to
-   restore the saved settings the next time the client is started.
+4) As of SVN revision 8406, crossfire-client-gtk2 saves window position data in
+   a file named per the layout instead of the legacy file ~/crossfire/gwinpos2.
+   For example, if a player saves window positions while using gtk-v2.glade,
+   they will be stored in ~/.crossfire/gtk-v2.pos, but if playing with a layout
+   called caelestis.glade, they will be saved in caelestis.pos.  This means the
+   client is able to remember saved sizes for each layout individually.
 
-   Sometimes it might even just be easier to delete ~/.crossfire/gwinpos2 so
-   that the client will lay the window out as it was designed.
+5) The first time a layout is used, the ~/.crossfire/<layoutname>.pos file will
+   not exist so the client will use default sizes that were defined inside the
+   <layoutname>.glade file at design time.  This means that as long as the
+   defaults are smaller than the desktop, the client window should be laid out
+   nicely.
 
-   Presently the screen sizes are lost every time a different layout is tried.
-   It may be that this limitation will be removed from a future version of the
-   client.  In the mean time, save copies of the ~/.crossfire/gwinpos2 file
-   for each layout you care to keep, then restore the copy when you want to
-   use the layout it corresponds with.
+   If, however, the desktop size is smaller than the default sizes, the client
+   may look bad, and it may be tricky to find the size bars if panes overlap.
+   With patience, they may be found and used to size the client panes better.
+   Use the Client Save Window Position command to save the adjustments.  They
+   will be used to restore the saved settings the next time the client is
+   started.
+
+   If the desktop is smaller than it was last time the .pos file was created,
+   it is possible that the saved positions are no good.  In this case, it may
+   be wise to delete the .pos file and try out the default settings.
+
 
 -------------------------------------------------------------------------------
 Notes about designing .glade files for the libglade version of the GTK2 client
@@ -84,7 +93,8 @@ Notes about designing .glade files for the libglade version of the GTK2 client
 3) Set all hpaned and vpaned size bars to result in a default layout that has
    a decent appearance.  It is not sufficient to have the layout look good in
    the layout designer.  You must verify that the Position property on the
-   Widget tab is set and that it's checkbox is checked.
+   Widget tab is set and that it's checkbox is checked.  Also see note 11 for
+   another important tip regarding setting the size of widgets.
 
 4) When creating tabbed notebooks be sure the first tab is the tab that should
    be visible when the client starts up or when the dialog is first displayed.
@@ -147,9 +157,26 @@ Notes about designing .glade files for the libglade version of the GTK2 client
      gtk_tree_model_iter_n_children: assertion `GTK_IS_TREE_MODEL (tree_model)'
      failed
 
-10)  The Magic Map page in map_notebook must be the second tab to maintain
-     compatibility with the client's standard main.h define "MAGIC_MAP_PAGE 1".
-     The page/tab number is zero-based, so "1" corresponds to the second tab.
+10) The Magic Map page in map_notebook must be the second tab to maintain
+    compatibility with the client's standard main.h define "MAGIC_MAP_PAGE 1".
+    The page/tab number is zero-based, so "1" corresponds to the second tab.
+
+11) In general, do not set widget Width and Height properties on the Common
+    tab in the Glade Designer.  This is in effect placing a size request for
+    the widget, and can prevent the player from sizing the widget smaller than
+    the size set at design time.  This is especially important with respect to
+    the map and magic map drawing areas, tables, treeviews, and other large UI
+    elements (hboxes, vboxes, notebooks, etc).  A player should generally have
+    the freedom to make a widget smaller than it was originally designed in
+    the layout.
+
+    Note, though, that this is not a hard and fast rule.  Sometimes setting a
+    size is very helpful.  For example, in the GTK V1 layout (and a few others)
+    progressbars are set to use a smaller height dimension size than their
+    default.  Since a player never expects to be able to set the thickness of
+    the bar, setting that dimension is useful to attain a particular look (I.E.
+    make the progressbar more compact).
+
 
 -------------------------------------------------------------------------------
 Other Helpful Hints
