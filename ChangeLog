@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/main.c: Change the minimum window size to 640x480 since a window
+  layout has been made that shows it is possible.  There seem to be people
+  out there that like small...
+Kevin Bulgrien 2008-02-17
+
 gtk-v2/glade/gtk-v2.glade: Primarily a rename of widgets that had generic
   names (Eg. vbox2 --> vbox_all).  The corestats tab changed to cuddle the
   stat value with the stat name for readability.  Numeric values beside the

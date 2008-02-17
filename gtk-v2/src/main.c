@@ -742,8 +742,8 @@ main (int argc, char *argv[])
         G_CALLBACK (on_window_destroy_event), NULL);
 
     /* Purely arbitrary min window size */
-    geometry.min_width=800;
-    geometry.min_height=600;
+    geometry.min_width=640;
+    geometry.min_height=480;
 
     gtk_window_set_geometry_hints(GTK_WINDOW(window_root), window_root,
                                   &geometry, GDK_HINT_MIN_SIZE);
