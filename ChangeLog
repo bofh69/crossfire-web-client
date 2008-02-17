@@ -2,6 +2,14 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/gtk-v2.glade: Primarily a rename of widgets that had generic
+  names (Eg. vbox2 --> vbox_all).  The corestats tab changed to cuddle the
+  stat value with the stat name for readability.  Numeric values beside the
+  stat bars is now left justified.  Fire/Run indicator positions slightly
+  altered.  Presently the window will not shrink smaller than 800x600. This is
+  due to the size set in main.c (geometry.min_width and geometry.min_height).
+Kevin Bulgrien 2008-02-17
+
 gtk-v2/glade/AUTHORS: Update the descriptions of recently modified client
   layout files.
 Kevin Bulgrien 2008-02-12
