@@ -417,7 +417,7 @@ int init_audio(void){
   ioctl(soundfd, SNDCTL_DSP_STEREO, &stereo);
 
   frequency = settings.frequency;
-  if ( ioctl(soundfd, SOUND_PCM_WRITE_RATE, &frequency) < 0 ) {
+  if ( ioctl(soundfd, SNDCTL_DSP_SPEED, &frequency) < 0 ) {
           fprintf(stderr,"Couldn't set audio frequency\n");
           return(-1);
   }

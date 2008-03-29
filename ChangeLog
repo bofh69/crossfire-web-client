@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Apply patch #1878451: Let crossfire client compile with OSS4's soundcard.h
+Courtesy anonymous.
+ sound-src/cfsndserv.c
+Nicolas Weeger 2008-03-29
+
 gtk-v2/src/main.c: Change the minimum window size to 640x480 since a window
   layout has been made that shows it is possible.  There seem to be people
   out there that like small...
