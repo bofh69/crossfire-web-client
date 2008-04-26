@@ -2,6 +2,14 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+configure.in: detect lua 5.0 and 5.x as the build broke on some systems if the
+  liblua stuff was loaded.  For 5.0, libm and libdl are added to LUA_LIBS for
+  liblualib to be usable.  The summary report for ./configure now reports if
+  lua scripting support is included in the build.
+gtk/Makefile.am, gtk-v2/src/Makefile.am, x11/Makefile.am: Add @LUA_LIBS@ into
+  the link library list to fix build problems when lua is detected.
+Kevin Bulgrien 2008-04-26
+
 gtk-v2/src/main.c
 gtk-v2/src/sound.c: Move the signal handler for SIGPIPE in main so that it
 can be used both for sounds and for scripts.
