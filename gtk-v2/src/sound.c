@@ -34,20 +34,9 @@ char *rcsid_gtk2_sound_c =
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <signal.h>
 #include <errno.h>
 #include <client-types.h>
 #include "client.h"
-
-/**
- * Got a pipe signal.  As of now, only thing piped to is the sound client.
- * Presently nothing is done, but perhaps do something more in the future.
- *
- * @param i
- */
-void signal_pipe(int i) {
-    /* do nothing, but perhaps do something more in the future */
-}
 
 FILE *sound_pipe=NULL;
 ChildProcess* sound_process;
@@ -100,7 +89,6 @@ int init_sounds(void)
         perror("init_sounds: Warning - unable to set non blocking on sound pipe\n");
     }
     sound_pipe=fdopen(sound_process->tube[0],"w");
-    signal(SIGPIPE, signal_pipe); /* Perhaps throwing this out :\ */
     return 0;
 #else
     return -1;

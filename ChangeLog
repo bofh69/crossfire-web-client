@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/main.c
+gtk-v2/src/sound.c: Move the signal handler for SIGPIPE in main so that it
+can be used both for sounds and for scripts.
+Raphael Quinet 2008-04-26
+
 Apply patch #1878451: Let crossfire client compile with OSS4's soundcard.h
 Courtesy anonymous.
  sound-src/cfsndserv.c

@@ -41,6 +41,9 @@ char *rcsid_gtk2_main_c = "$Id$";
 #include <glade/glade.h>
 #include <stdio.h>
 #include <errno.h>
+#ifndef WIN32
+#include <signal.h>
+#endif
 
 #include "main.h"
 #include "client.h"
@@ -269,6 +272,20 @@ void event_loop(void)
     LOG(LOG_INFO, "main.c::event_loop",
         "gtk_main exited, returning from event_loop");
 }
+
+#ifndef WIN32
+/**
+ * Handler for SIGPIPE.  We may receive this signal while piping data to
+ * a sound server or to a script.  In both cases, we ignore the signal
+ * because the failure will be reported by the system call that tried to
+ * send the data.
+ *
+ * @param sig The signal number.
+ */
+static void sigpipe_handler(int sig) {
+  /* ignore that signal for now */
+}
+#endif
 
 /**
  * Usage routine.  All clients should support server, port and
@@ -678,6 +695,7 @@ main (int argc, char *argv[])
         }
     }
 #else /* def WIN32 */
+    signal(SIGPIPE, sigpipe_handler);
 #ifdef HAVE_SYSCONF
     maxfd = sysconf(_SC_OPEN_MAX);
 #else
