@@ -60,6 +60,8 @@ char *client_libdir=NULL,*meta_server=META_SERVER;
 char *sound_server="cfsndserv";
 char *skill_names[MAX_SKILL];
 
+int last_used_skills[MAX_SKILL+1];
+
 int meta_port=META_PORT, want_skill_exp=0,
     replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
     maxfd,metaserver_on=METASERVER, metaserver2_on=METASERVER2;

@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Apply patch by Jochen Suckfüll to move recently updated skills to top of list for
+X11 client (could possibly be used for other clients).
+ common/client.c client.h commands.c init.c
+ x11/x11.c
+Nicolas Weeger 2008-05-07
+
 configure.in: detect lua 5.0 and 5.x as the build broke on some systems if the
   liblua stuff was loaded.  For 5.0, libm and libdl are added to LUA_LIBS for
   liblualib to be usable.  The summary report for ./configure now reports if

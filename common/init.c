@@ -136,7 +136,9 @@ void init_client_vars()
 	cpl.stats.skill_exp[i]=0;
 	cpl.stats.skill_level[i] = 0;
 	skill_names[i] = NULL;
+	last_used_skills[i] = -1;
     }
+	last_used_skills[MAX_SKILL] = -1;
 
     cpl.ob = player_item();
     cpl.below = map_item();

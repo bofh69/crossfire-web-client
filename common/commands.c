@@ -567,6 +567,31 @@ void DrawExtInfoCmd(char *data, int len) {
     fnct(color, type, subtype, buf);
 }
 
+/* Maintain the last_used_skills LRU list for displaying the recently used
+ * skills first. */
+void use_skill(int skill_id)
+{
+   /*
+   char buf[100];
+   sprintf(buf, "use_skill(%d '%s')\n", skill_id, skill_names(skill_id));
+   draw_info(, NDI_BLUE);
+   */
+
+   if(last_used_skills[0] == skill_id) return;
+
+   int i = 0;
+   int next;
+   int prev = last_used_skills[0];
+   do
+   {
+	  next = last_used_skills[i+1];
+	  last_used_skills[i+1] = prev;
+	  prev = next;
+	  ++i;
+   } while(next != skill_id && next >= 0);
+   last_used_skills[0] = skill_id;
+}
+
 void StatsCmd(unsigned char *data, int len) {
     int i = 0, c, redraw = 0;
     sint64 last_exp;
@@ -589,6 +614,7 @@ void StatsCmd(unsigned char *data, int len) {
             cpl.stats.skill_level[c-CS_STAT_SKILLINFO] = data[i++];
             last_exp = cpl.stats.skill_exp[c-CS_STAT_SKILLINFO];
             cpl.stats.skill_exp[c-CS_STAT_SKILLINFO] = GetInt64_String(data+i);
+			use_skill(c-CS_STAT_SKILLINFO);
             if (last_exp == 0 && cpl.stats.skill_exp[c-CS_STAT_SKILLINFO]) {
                 redraw = 1;
             }
@@ -635,8 +661,12 @@ void StatsCmd(unsigned char *data, int len) {
             case CS_STAT_SKILLEXP_PHYSIQUE:
             case CS_STAT_SKILLEXP_MAGIC:
             case CS_STAT_SKILLEXP_WISDOM:
-                cpl.stats.skill_exp[(c-CS_STAT_SKILLEXP_START)/2] = GetInt_String(data+i);
+				  {
+					 int skill_id = (c-CS_STAT_SKILLEXP_START)/2;
+				   cpl.stats.skill_exp[skill_id] = GetInt_String(data+i);
+				   use_skill(skill_id);
                 i += 4;
+				  }
                 break;
 
             case CS_STAT_SKILLEXP_AGLEVEL:

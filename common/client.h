@@ -354,6 +354,8 @@ extern Face_Information face_info;
 extern Client_Player cpl;		/* Player object. */
 extern char *skill_names[MAX_SKILL];
 
+extern int last_used_skills[MAX_SKILL+1]; // maps position to skill id with trailing zero as stop mark
+
 
 typedef enum LogLevel {
   LOG_DEBUG = 0, LOG_INFO = 1, LOG_WARNING = 2, LOG_ERROR = 3, LOG_CRITICAL = 4
