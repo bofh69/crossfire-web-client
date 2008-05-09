@@ -53,7 +53,7 @@ void script_killall(void);
 #endif
 void script_fdset(int *maxfd,fd_set *set);
 void script_process(fd_set *set);
-void script_watch(const char *cmd, uint8 *data, int len, enum CmdFormat format);
+void script_watch(const char *cmd, const uint8 *data, const int len, const enum CmdFormat format);
 void script_monitor(const char *command, int repeat, int must_send);
 void script_monitor_str(const char *command);
 void script_tell(const char *params);

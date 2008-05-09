@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix bug #1871476:] client script 'watch stats' error.
+ common/script.c: don't work on initial length, as it'll affect other scripts.
+  Make parameters const to avoid issues.
+ common/script.h: change function definition.
+Nicolas Weeger 2008-05-09
+
 Apply patch by Jochen Suckfüll to move recently updated skills to top of list for
 X11 client (could possibly be used for other clients).
  common/client.c client.h commands.c init.c
