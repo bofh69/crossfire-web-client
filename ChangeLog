@@ -2,6 +2,26 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Remove some auto generated autotools files from the tree. Just run autogen.sh
+to create them. This prevents the mess of different developers using different
+versions of autotools, making commits a mess.
+ utils/Makefile.in
+ utils/config.guess
+ utils/config.sub
+ x11/Makefile.in
+ gtk-v2/Makefile.in
+ gtk-v2/themes/Makefile.in
+ gtk-v2/src/Makefile.in
+ gtk-v2/glade/Makefile.in
+ sound-src/Makefile.in
+ pixmaps/Makefile.in
+ configure
+ Makefile.in
+ gtk/Makefile.in
+ common/Makefile.in
+ help/Makefile.in
+Arvid Norlander 2008-06-01
+
 Fix bug #1871476:] client script 'watch stats' error.
  common/script.c: don't work on initial length, as it'll affect other scripts.
   Make parameters const to avoid issues.
