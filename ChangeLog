@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix Makefile.am so aclocal.m4 generation works correctly.
+ Makefile.am
+ aclocal.m4
+Arvid Norlander 2008-06-01
+
 Seems like the autotools define for LUA changed, update source to properly
 use LUA.
  common/commands.c

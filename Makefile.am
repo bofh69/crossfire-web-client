@@ -20,6 +20,7 @@
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
 SUBDIRS=@CF_SUBDIRS@
+ACLOCAL_AMFLAGS = -I macros
 
 EXTRA_DIST = \
 	ChangeLog		\
