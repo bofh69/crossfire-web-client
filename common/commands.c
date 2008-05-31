@@ -708,7 +708,7 @@ void StatsCmd(unsigned char *data, int len) {
     }
     draw_stats(redraw);
     draw_message_window(0);
-#ifdef HAVE_LIBLUA
+#ifdef HAVE_LUA
     script_lua_stats();
 #endif
 }

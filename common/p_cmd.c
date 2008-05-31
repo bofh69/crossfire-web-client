@@ -556,7 +556,7 @@ static ConsoleCommand CommonCommands[] = {
         script_init, help_script,
         NULL
     },
-#ifdef HAVE_LIBLUA
+#ifdef HAVE_LUA
     {   "lua_load", COMM_CAT_SCRIPT,
     script_lua_load, NULL, NULL
     },
@@ -908,7 +908,7 @@ void extended_command(const char *ocommand) {
      * and cpnext contains everything after that first space.  cpnext
      * could be NULL.
      */
-#ifdef HAVE_LIBLUA
+#ifdef HAVE_LUA
     if ( script_lua_command(cp, cpnext) )
         return;
 #endif

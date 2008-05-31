@@ -2,6 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Seems like the autotools define for LUA changed, update source to properly
+use LUA.
+ common/commands.c
+ common/p_cmd.c
+ common/script_lua.c
+ common/config.h.in
+ aclocal.m4
+Arvid Norlander 2008-06-01
+
 More cleanup of autotools mess. Also update svn:ignore where needed.
 svn:ignore updated:
  .

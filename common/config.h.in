@@ -36,12 +36,6 @@
 /* Define to 1 if you have the `glu32' library (-lglu32). */
 #undef HAVE_LIBGLU32
 
-/* Define to 1 if you have the `lua' library (-llua). */
-#undef HAVE_LIBLUA
-
-/* Define to 1 if you have the `lualib' library (-llualib). */
-#undef HAVE_LIBLUALIB
-
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
@@ -56,6 +50,12 @@
 
 /* Define to 1 if you have the `z' library (-lz). */
 #undef HAVE_LIBZ
+
+/* Define to use Lua 5.x */
+#undef HAVE_LUA
+
+/* Define to use Lua 5.1 */
+#undef HAVE_LUA_5_1
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H

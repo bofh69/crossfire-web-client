@@ -34,7 +34,7 @@ const char *rcsid_common_script_lua_c =
 
 #include <client.h>
 
-#ifdef HAVE_LIBLUA
+#ifdef HAVE_LUA
 /* It seems easier to just comment everything out if we don't have
  * lua vs trying to play around with it in the makefiles.
  */
