@@ -2,6 +2,27 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+More cleanup of autotools mess. Also update svn:ignore where needed.
+svn:ignore updated:
+ .
+ pixmaps
+ gtk
+ help
+ common
+ utils
+ x11
+ gtk-v2
+ gtk-v2/themes
+ gtk-v2/src
+ gtk-v2/glade
+ sound-src
+Removed:
+ utils/mkinstalldirs
+ utils/depcomp
+ utils/missing
+ utils/install-sh
+Arvid Norlander 2008-06-01
+
 Remove some auto generated autotools files from the tree. Just run autogen.sh
 to create them. This prevents the mess of different developers using different
 versions of autotools, making commits a mess.
