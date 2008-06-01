@@ -71,7 +71,7 @@ int init_sounds(void)
     if (sound_server[0] == '/')
         strcpy(sound_path, sound_server);
     else
-        sprintf(sound_path, "%s/%s", BINDIR, sound_server);
+        snprintf(sound_path, sizeof(sound_path),"%s/%s", BINDIR, sound_server);
 
     if (access(sound_path, X_OK)<0) {
         fprintf(stderr,"Unable to access %s sound server process\n", sound_path);

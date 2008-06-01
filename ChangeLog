@@ -2,6 +2,19 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Some changes to use snprintf instead of sprintf.
+ gtk-v2/src/stats.c
+ gtk-v2/src/spells.c
+ gtk-v2/src/config.c
+ gtk-v2/src/keys.c
+ gtk-v2/src/sdl.c
+ gtk-v2/src/sound.c
+ gtk-v2/src/info.c
+ gtk-v2/src/pickup.c
+ gtk-v2/src/inventory.c
+Arvid Norlander 2008-06-01
+
+
 Set svn:eol-style to native on *.c and *.h files that were missing it.
  common/msgtypes.h
  common/script_lua.c

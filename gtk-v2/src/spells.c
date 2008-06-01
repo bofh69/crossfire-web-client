@@ -155,8 +155,8 @@ void update_spell_information()
         gtk_list_store_append(spell_store, &iter);
 
         buf[0] = 0;
-        if (spell->sp) sprintf(buf,"%d Mana ", spell->sp);
-        if (spell->grace) sprintf(buf + strlen(buf), "%d Grace", spell->grace);
+        if (spell->sp) snprintf(buf, sizeof(buf), "%d Mana ", spell->sp);
+        if (spell->grace) snprintf(buf + strlen(buf), sizeof(buf)-strlen(buf), "%d Grace", spell->grace);
 
         if (spell->path & cpl.stats.denied) { row_style = spell_styles[Style_Denied]; }
         else if (spell->path & cpl.stats.repelled) { row_style = spell_styles[Style_Repelled]; }

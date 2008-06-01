@@ -118,9 +118,9 @@ static void new_menu_pickup(int on, int val)
 
     draw_info("To set this pickup mode to a key, use:",NDI_BLACK);
 
-    sprintf(modestr,"bind pickup %u",pmode);
+    snprintf(modestr, sizeof(modestr), "bind pickup %u",pmode);
     draw_info(modestr,NDI_BLACK);
-    sprintf(modestr,"pickup %u",pmode);
+    snprintf(modestr, sizeof(modestr), "pickup %u",pmode);
     send_command(modestr, -1, 0);
 }
 

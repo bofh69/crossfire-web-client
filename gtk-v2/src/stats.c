@@ -149,7 +149,7 @@ void stats_get_styles()
 
     for (stat_bar=0; stat_bar < MAX_STAT_BARS; stat_bar++) {
         for (sub_style=0; sub_style < NUM_STYLES; sub_style++) {
-            sprintf(buf,"%s_%s", stat_bar_names[stat_bar], stat_style_names[sub_style]);
+            snprintf(buf, sizeof(buf), "%s_%s", stat_bar_names[stat_bar], stat_style_names[sub_style]);
 
             tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, buf, G_TYPE_NONE);
 
@@ -181,10 +181,10 @@ void stats_init(GtkWidget *window_root)
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     for (i=0; i<MAX_STAT_BARS; i++) {
-        sprintf(buf, "label_stats_%s", stat_bar_names[i]);
+        snprintf(buf, sizeof(buf), "label_stats_%s", stat_bar_names[i]);
         stat_label[i] = glade_xml_get_widget(xml_tree, buf);
 
-        sprintf(buf, "progressbar_%s", stat_bar_names[i]);
+        snprintf(buf, sizeof(buf), "progressbar_%s", stat_bar_names[i]);
         stat_bar[i] = glade_xml_get_widget(xml_tree, buf);
 
         lastval[i] = -1;
@@ -424,7 +424,7 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
     gtk_widget_modify_base(stat_bar[stat_no], GTK_STATE_SELECTED, set_color);
 
     gtk_progress_set_percentage(GTK_PROGRESS(stat_bar[stat_no]), bar);
-    sprintf(buf, "%s %"FMT64"/%"FMT64, name, current_stat, max_stat);
+    snprintf(buf, sizeof(buf), "%s %"FMT64"/%"FMT64, name, current_stat, max_stat);
     gtk_label_set(GTK_LABEL(stat_label[stat_no]), buf);
 
 }
@@ -549,85 +549,85 @@ void draw_stats(int redraw) {
 
     if(redraw || cpl.stats.exp!=last_stats.exp) {
         last_stats.exp = cpl.stats.exp;
-        sprintf(buff,"Experience: %5" FMT64 ,cpl.stats.exp);
+        snprintf(buff, sizeof(buff), "Experience: %5" FMT64 ,cpl.stats.exp);
         gtk_label_set (GTK_LABEL(statwindow.exp), buff);
     }
 
     if(redraw || cpl.stats.level!=last_stats.level) {
         last_stats.level = cpl.stats.level;
-        sprintf(buff,"Level: %d",cpl.stats.level);
+        snprintf(buff, sizeof(buff), "Level: %d",cpl.stats.level);
         gtk_label_set (GTK_LABEL(statwindow.level), buff);
     }
 
     if(redraw || cpl.stats.Str!=last_stats.Str) {
         last_stats.Str=cpl.stats.Str;
-        sprintf(buff,"%2d",cpl.stats.Str);
+        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Str);
         gtk_label_set (GTK_LABEL(statwindow.Str), buff);
     }
 
     if(redraw || cpl.stats.Dex!=last_stats.Dex) {
         last_stats.Dex=cpl.stats.Dex;
-        sprintf(buff,"%2d",cpl.stats.Dex);
+        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Dex);
         gtk_label_set (GTK_LABEL(statwindow.Dex), buff);
     }
 
     if(redraw || cpl.stats.Con!=last_stats.Con) {
         last_stats.Con=cpl.stats.Con;
-        sprintf(buff,"%2d",cpl.stats.Con);
+        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Con);
         gtk_label_set (GTK_LABEL(statwindow.Con), buff);
     }
 
     if(redraw || cpl.stats.Int!=last_stats.Int) {
         last_stats.Int=cpl.stats.Int;
-        sprintf(buff,"%2d",cpl.stats.Int);
+        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Int);
         gtk_label_set (GTK_LABEL(statwindow.Int), buff);
     }
 
     if(redraw || cpl.stats.Wis!=last_stats.Wis) {
         last_stats.Wis=cpl.stats.Wis;
-        sprintf(buff,"%2d",cpl.stats.Wis);
+        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Wis);
         gtk_label_set (GTK_LABEL(statwindow.Wis), buff);
     }
 
     if(redraw || cpl.stats.Pow!=last_stats.Pow) {
         last_stats.Pow=cpl.stats.Pow;
-        sprintf(buff,"%2d",cpl.stats.Pow);
+        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Pow);
         gtk_label_set (GTK_LABEL(statwindow.Pow), buff);
     }
 
     if(redraw || cpl.stats.Cha!=last_stats.Cha) {
         last_stats.Cha=cpl.stats.Cha;
-        sprintf(buff,"%2d",cpl.stats.Cha);
+        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Cha);
         gtk_label_set (GTK_LABEL(statwindow.Cha), buff);
     }
 
     if(redraw || cpl.stats.wc!=last_stats.wc) {
         last_stats.wc=cpl.stats.wc;
-        sprintf(buff,"%3d",cpl.stats.wc);
+        snprintf(buff, sizeof(buff), "%3d",cpl.stats.wc);
         gtk_label_set (GTK_LABEL(statwindow.wc), buff);
     }
 
     if(redraw || cpl.stats.dam!=last_stats.dam) {
         last_stats.dam=cpl.stats.dam;
-        sprintf(buff,"%d",cpl.stats.dam);
+        snprintf(buff, sizeof(buff), "%d",cpl.stats.dam);
         gtk_label_set (GTK_LABEL(statwindow.dam), buff);
     }
 
     if(redraw || cpl.stats.ac!=last_stats.ac) {
         last_stats.ac=cpl.stats.ac;
-        sprintf(buff,"%d",cpl.stats.ac);
+        snprintf(buff, sizeof(buff), "%d",cpl.stats.ac);
         gtk_label_set (GTK_LABEL(statwindow.ac), buff);
     }
 
     if(redraw || cpl.stats.resists[0]!=last_stats.resists[0]) {
         last_stats.resists[0]=cpl.stats.resists[0];
-        sprintf(buff,"%d",cpl.stats.resists[0]);
+        snprintf(buff, sizeof(buff), "%d",cpl.stats.resists[0]);
         gtk_label_set (GTK_LABEL(statwindow.armor), buff);
     }
 
     if (redraw || cpl.stats.speed!=last_stats.speed) {
         last_stats.speed=cpl.stats.speed;
-        sprintf(buff,"%3.2f",(float)cpl.stats.speed/FLOAT_MULTF);
+        snprintf(buff, sizeof(buff), "%3.2f",(float)cpl.stats.speed/FLOAT_MULTF);
         gtk_label_set (GTK_LABEL(statwindow.speed), buff);
     }
     /* sc_version >= 1029 reports real value of weapon speed -
@@ -640,13 +640,13 @@ void draw_stats(int redraw) {
 
     if (redraw || weap_sp !=last_stats.weapon_sp) {
         last_stats.weapon_sp=weap_sp;
-        sprintf(buff,"%3.2f",weap_sp);
+        snprintf(buff, sizeof(buff), "%3.2f",weap_sp);
         gtk_label_set (GTK_LABEL(statwindow.weapon_speed), buff);
     }
 
     if(redraw || strcmp(cpl.range, last_range)) {
         strcpy(last_range, cpl.range);
-        sprintf(buff,"Range: %s",cpl.range);
+        snprintf(buff, sizeof(buff), "Range: %s",cpl.range);
         gtk_label_set (GTK_LABEL(statwindow.range), cpl.range);
     }
 
@@ -663,7 +663,7 @@ void draw_stats(int redraw) {
         if ((redraw || cpl.stats.skill_exp[sk] != last_stats.skill_exp[sk]) &&
             skill_mapping[i].name && cpl.stats.skill_exp[sk]){
             gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), skill_mapping[i].name);
-            sprintf(buff,"%" FMT64 " (%d)", cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
+            snprintf(buff, sizeof(buff), "%" FMT64 " (%d)", cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
             gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
             last_stats.skill_level[sk] = cpl.stats.skill_level[sk];
             last_stats.skill_exp[sk] = cpl.stats.skill_exp[sk];
@@ -697,7 +697,7 @@ void draw_stats(int redraw) {
             if (cpl.stats.resists[sk]) {
                 gtk_label_set(GTK_LABEL(statwindow.resists[j]), resist_mapping[i].name);
                 j++;
-                sprintf(buff,"%+4d", cpl.stats.resists[sk]);
+                snprintf(buff, sizeof(buff), "%+4d", cpl.stats.resists[sk]);
                 gtk_label_set(GTK_LABEL(statwindow.resists[j]), buff);
                 j++;
                 if (j >= PROTECTION_BOXES_X * PROTECTION_BOXES_Y) break;

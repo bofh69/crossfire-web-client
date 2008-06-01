@@ -250,7 +250,7 @@ void info_get_styles()
         for (i = 0; i < sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
             int type, subtype;
 
-            sprintf(style_name, "msg_%s", msg_type_names[i].style_name);
+            snprintf(style_name, sizeof(style_name), "msg_%s", msg_type_names[i].style_name);
             type =  msg_type_names[i].type;
             subtype = msg_type_names[i].subtype;
 

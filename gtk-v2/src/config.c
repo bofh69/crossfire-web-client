@@ -173,7 +173,7 @@ void load_defaults()
         use_config[i] = want_config[i];
     }
 
-    sprintf(path,"%s/.crossfire/gdefaults2", getenv("HOME"));
+    snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
     if ((fp=fopen(path,"r"))==NULL) return;
     while (fgets(inbuf, MAX_BUF-1, fp)) {
         inbuf[MAX_BUF-1]='\0';
@@ -326,7 +326,7 @@ void save_defaults()
     FILE *fp;
     int i;
 
-    sprintf(path,"%s/.crossfire/gdefaults2", getenv("HOME"));
+    snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
     if (make_path_to_file(path)==-1) {
         LOG(LOG_ERROR, "config.c::save_defaults","Could not create %s", path);
         return;
@@ -354,7 +354,7 @@ void save_defaults()
     }
 
     fclose(fp);
-    sprintf(buf,"Defaults saved to %s",path);
+    snprintf(buf, sizeof(buf), "Defaults saved to %s",path);
     draw_info(buf,NDI_BLUE);
 }
 
@@ -956,9 +956,9 @@ void save_winpos()
     if (cp)
       cp[0] = 0;
 
-    sprintf(savename,"%s/.crossfire/%s.pos", getenv("HOME"), buf);
+    snprintf(savename, sizeof(savename), "%s/.crossfire/%s.pos", getenv("HOME"), buf);
     if (!(save = fopen(savename, "w"))) {
-        sprintf(buf, "Cannot open %s - window positions not saved!", savename);
+        snprintf(buf, sizeof(buf), "Cannot open %s - window positions not saved!", savename);
         draw_info(buf, NDI_RED);
         return;
     }
@@ -989,7 +989,7 @@ void save_winpos()
     g_list_free(pane_list);
 
     fclose(save);
-    sprintf(buf, "Window positions saved to %s", savename);
+    snprintf(buf, sizeof(buf), "Window positions saved to %s", savename);
     draw_info(buf, NDI_BLUE);
 }
 
@@ -1032,15 +1032,15 @@ void load_window_positions(GtkWidget *window_root)
     if (cp)
       cp[0] = 0;
 
-    sprintf(loadname, "%s/.crossfire/%s.pos", getenv("HOME"), buf);
+    snprintf(loadname, sizeof(loadname), "%s/.crossfire/%s.pos", getenv("HOME"), buf);
     if (!(load = fopen(loadname, "r"))) {
-        sprintf(
-            buf, "Cannot open %s: Using default window positions.", loadname);
+        snprintf(buf, sizeof(buf),
+            "Cannot open %s: Using default window positions.", loadname);
         draw_info(buf, NDI_RED);
         return;
     }
     else {
-        sprintf(buf, "Loading window positions from %s", loadname);
+        snprintf(buf, sizeof(buf), "Loading window positions from %s", loadname);
         draw_info(buf, NDI_RED);
     }
 

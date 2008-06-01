@@ -595,7 +595,7 @@ void command_show (const char *params)
                 return;
             }
         }
-        sprintf(buf,"Unknown notebook page %s\n", params);
+        snprintf(buf, sizeof(buf), "Unknown notebook page %s\n", params);
         draw_info(buf, NDI_RED);
     }
 }
@@ -682,7 +682,7 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
     if(it->weight < 0) {
         strcpy (buf," ");
     } else {
-        sprintf (buf,"%6.1f" ,it->nrof * it->weight);
+        snprintf(buf, sizeof(buf), "%6.1f" ,it->nrof * it->weight);
     }
     snprintf(buf1, 255, "%s %s", it->d_name, it->flags);
     if (color) {
@@ -1014,7 +1014,7 @@ void draw_inv(int tab)
 {
     char buf[256];
 
-    sprintf(buf,"%6.1f/%6.1f", cpl.ob->weight, weight_limit);
+    snprintf(buf, sizeof(buf), "%6.1f/%6.1f", cpl.ob->weight, weight_limit);
     gtk_label_set(GTK_LABEL(weight_label), buf);
 
     if (inv_notebooks[tab].type == INV_TREE)

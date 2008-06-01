@@ -462,7 +462,7 @@ void keys_init(GtkWidget *window_root)
     else
         sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
 #else
-    sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
+    snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
 #endif
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
@@ -570,7 +570,7 @@ void keys_init(GtkWidget *window_root)
             init_default_keybindings();
             return;
         }
-        sprintf(buf,"%s/def_keys", client_libdir);
+        snprintf(buf, sizeof(buf), "%s/def_keys", client_libdir);
         if ((fp=fopen(buf,"r"))==NULL) {
             init_default_keybindings();
             return;
@@ -702,14 +702,14 @@ static void parse_key(char key, uint32 keysym)
 
         if (first_match->direction>=0) {
             if (cpl.fire_on) {
-                sprintf(buf,"fire %s", first_match->command);
+                snprintf(buf, sizeof(buf), "fire %s", first_match->command);
                 /* Some spells (dimension door) need a valid count value */
                 cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(spinbutton_count));
                 fire_dir(first_match->direction);
             }
             else if (cpl.run_on) {
                 run_dir(first_match->direction);
-                sprintf(buf,"run %s", first_match->command);
+                snprintf(buf, sizeof(buf), "run %s", first_match->command);
             }
             else {
                 extended_command(first_match->command);
@@ -734,7 +734,7 @@ static void parse_key(char key, uint32 keysym)
     if (cpl.alt_on) strcat(tmpbuf,"alt+");
     if (cpl.meta_on) strcat(tmpbuf,"meta+");
 
-    sprintf(buf, "Key %s%s is not bound to any command.  Use bind to associate this keypress with a command",
+    snprintf(buf, sizeof(buf), "Key %s%s is not bound to any command.  Use bind to associate this keypress with a command",
             tmpbuf, keysym==NoSymbol? "unknown": gdk_keyval_name(keysym));
 #ifdef WIN32
        if ( ( 65513 != keysym ) && ( 65511 != keysym ) )
@@ -783,22 +783,22 @@ static char * get_key_info(Key_Entry *key, int save_mode)
     buff[bi]='\0';
     if (save_mode) {
         if(key->keysym == NoSymbol) {
-          sprintf(buf, "(null) %i %s %s",
+          snprintf(buf, sizeof(buf), "(null) %i %s %s",
                 0,buff, key->command);
         }
         else {
-          sprintf(buf, "%s %i %s %s",
+          snprintf(buf, sizeof(buf), "%s %i %s %s",
                     gdk_keyval_name(key->keysym), 0,
                     buff, key->command);
         }
     }
     else {
         if(key->keysym == NoSymbol) {
-          sprintf(buf, "key (null) %s %s",
+          snprintf(buf, sizeof(buf), "key (null) %s %s",
                 buff, key->command);
         }
         else {
-          sprintf(buf, "key %s %s %s",
+          snprintf(buf, sizeof(buf), "key %s %s %s",
                     gdk_keyval_name(key->keysym),
                     buff, key->command);
         }
@@ -817,39 +817,39 @@ static void show_keys(int allbindings)
     Key_Entry *key;
     char buf[MAX_BUF];
 
-    sprintf(buf, "Commandkey %s",
+    snprintf(buf, sizeof(buf), "Commandkey %s",
             commandkeysym==NoSymbol?"unknown":gdk_keyval_name(commandkeysym));
     draw_info(buf,NDI_BLACK);
 
-    sprintf(buf, "Firekeys 1: %s, 2: %s",
+    snprintf(buf, sizeof(buf), "Firekeys 1: %s, 2: %s",
             firekeysym[0]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[0]),
             firekeysym[1]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[1]));
     draw_info(buf,NDI_BLACK);
 
-    sprintf(buf, "Altkeys 1: %s, 2: %s",
+    snprintf(buf, sizeof(buf), "Altkeys 1: %s, 2: %s",
             altkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[0]),
             altkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[1]));
     draw_info(buf,NDI_BLACK);
 
-    sprintf(buf, "Metakeys 1: %s, 2: %s",
+    snprintf(buf, sizeof(buf), "Metakeys 1: %s, 2: %s",
             metakeysym[0]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[0]),
             metakeysym[1]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[1]));
     draw_info(buf,NDI_BLACK);
 
-    sprintf(buf, "Runkeys 1: %s, 2: %s",
+    snprintf(buf, sizeof(buf), "Runkeys 1: %s, 2: %s",
             runkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[0]),
             runkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[1]));
     draw_info(buf,NDI_BLACK);
 
-    sprintf(buf, "Command Completion Key %s",
+    snprintf(buf, sizeof(buf), "Command Completion Key %s",
             completekeysym==NoSymbol?"unknown":gdk_keyval_name(completekeysym));
     draw_info(buf,NDI_BLACK);
 
-    sprintf(buf, "Next Command in History Key %s",
+    snprintf(buf, sizeof(buf), "Next Command in History Key %s",
             nextkeysym==NoSymbol?"unknown":gdk_keyval_name(nextkeysym));
     draw_info(buf,NDI_BLACK);
 
-    sprintf(buf, "Previous Command in History Key %s",
+    snprintf(buf, sizeof(buf), "Previous Command in History Key %s",
             prevkeysym==NoSymbol?"unknown":gdk_keyval_name(prevkeysym));
     draw_info(buf,NDI_BLACK);
 
@@ -860,7 +860,7 @@ static void show_keys(int allbindings)
         for (key=keys[i]; key!=NULL; key =key->next) {
             if (key->flags & KEYF_STANDARD && !allbindings) continue;
 
-            sprintf(buf,"%3d %s",count,  get_key_info(key,0));
+            snprintf(buf, sizeof(buf), "%3d %s",count,  get_key_info(key,0));
             draw_info(buf,NDI_BLACK);
             count++;
         }
@@ -1073,7 +1073,7 @@ static void save_keys(void)
     else
         sprintf( buf,"%s/.crossfire/keys", getenv("HOME") );
 #else
-    sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
+    snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
 #endif
 
     if (make_path_to_file(buf)==-1) {
@@ -1081,7 +1081,7 @@ static void save_keys(void)
         return;
     }
     if ((fp=fopen(buf,"w"))==NULL) {
-        sprintf(buf2,"Could not open %s, key bindings not saved\n", buf);
+        snprintf(buf2, sizeof(buf2), "Could not open %s, key bindings not saved\n", buf);
         draw_info(buf2,NDI_BLACK);
         return;
     }
@@ -1214,14 +1214,14 @@ static void configure_keys(uint32 keysym)
             else break;
         }
         if (first_match) {
-            sprintf(buf, "Warning: Keybind %s may conflict with new binding.", first_match->command);
+            snprintf(buf, sizeof(buf), "Warning: Keybind %s may conflict with new binding.", first_match->command);
             draw_info(buf,NDI_RED);
         }
 
         insert_key(keysym, bind_flags, bind_buf);
     }
 
-    sprintf(buf, "Binded to key '%s' (%i)",
+    snprintf(buf, sizeof(buf), "Binded to key '%s' (%i)",
           keysym==NoSymbol?"unknown":gdk_keyval_name(keysym), keysym);
     draw_info(buf,NDI_BLACK);
     cpl.fire_on=0;
@@ -1317,7 +1317,7 @@ void unbind_key(const char *params)
      * Found. Now remove it.
      */
 unbinded:
-    sprintf(buf,"Removed binding: %3d %s", count, get_key_info(key,0));
+    snprintf(buf, sizeof(buf), "Removed binding: %3d %s", count, get_key_info(key,0));
 
     draw_info(buf,NDI_BLACK);
     free(key->command);
@@ -1518,11 +1518,11 @@ void draw_keybindings (GtkWidget *keylist) {
             buff[bi]='\0';
 
             if(key->keysym != NoSymbol) {
-                sprintf(buffer[0], "%i",count);
-                sprintf(buffer[1], "%s", gdk_keyval_name(key->keysym));
-                sprintf(buffer[2], "%i",i);
-                sprintf(buffer[3], "%s",buff);
-                sprintf(buffer[4], "%s", key->command);
+                snprintf(buffer[0], sizeof(buffer[0]), "%i",count);
+                snprintf(buffer[1], sizeof(buffer[1]), "%s", gdk_keyval_name(key->keysym));
+                snprintf(buffer[2], sizeof(buffer[2]), "%i",i);
+                snprintf(buffer[3], sizeof(buffer[3]), "%s",buff);
+                snprintf(buffer[4], sizeof(buffer[4]), "%s", key->command);
                 buffers[0] = buffer[0];
                 buffers[1] = buffer[1];
                 buffers[2] = buffer[2];
