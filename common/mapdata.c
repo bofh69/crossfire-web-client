@@ -1264,7 +1264,7 @@ static void mapdata_get_image_size(int face, uint8 *w, uint8 *h)
 /* This basically goes through all the map spaces and does the necessary
  * animation.
  */
-void mapdata_animation()
+void mapdata_animation(void)
 {
     int x, y, layer, face, smooth;
     struct MapCellLayer *cell;

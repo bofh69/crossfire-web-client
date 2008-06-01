@@ -73,7 +73,7 @@ PlayerPosition pl_pos;
  * server versions.
  * @todo remove
  */
-void reset_map()
+void reset_map(void)
 {
 }
 

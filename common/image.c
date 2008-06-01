@@ -329,7 +329,7 @@ static void image_process_line(char *line, uint32 ispublic)
     }
 }
 
-void init_common_cache_data()
+void init_common_cache_data(void)
 {
     FILE *fp;
     char    bmaps[MAX_BUF], inbuf[MAX_BUF];
@@ -471,7 +471,7 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
  * connect to a new server, we still have all that information.
  */
 
-void reset_image_cache_data()
+void reset_image_cache_data(void)
 {
     int i;
 

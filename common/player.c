@@ -113,13 +113,13 @@ static int drun=-1, dfire=-1;
  * case - the fire is centered on the player.
  */
 
-void stop_fire()
+void stop_fire(void)
 {
     if (cpl.input_state != Playing) return;
     dfire |= 0x100;
 }
 
-void clear_fire_run()
+void clear_fire_run(void)
 {
     if ((dfire!=-1) && (dfire & 0x100)) {
 	send_command("fire_stop", -1, SC_FIRERUN);
@@ -131,7 +131,7 @@ void clear_fire_run()
     }
 }
 
-void clear_fire()
+void clear_fire(void)
 {
     if (dfire!=-1) {
 	send_command("fire_stop", -1, SC_FIRERUN);
@@ -139,7 +139,7 @@ void clear_fire()
     }
 }
 
-void clear_run()
+void clear_run(void)
 {
     if (drun!=-1) {
 	send_command("run_stop", -1, SC_FIRERUN);
@@ -163,7 +163,7 @@ void fire_dir(int dir) {
     }
 }
 
-void stop_run()
+void stop_run(void)
 {
     send_command("run_stop", -1, SC_FIRERUN);
     drun |= 0x100;

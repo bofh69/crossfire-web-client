@@ -158,7 +158,7 @@ void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_st
  * times - it will release old style data and load up new values.  In this way,
  * a user should be able to change styles on the fly and have things work.
  */
-void info_get_styles()
+void info_get_styles(void)
 {
     int i, j;
     static int has_init=0;
@@ -718,7 +718,7 @@ void draw_color_info(int colr, const char *buf) {
  * but it is called from the common area, so might as well
  * support it.
  */
-void menu_clear() {
+void menu_clear(void) {
     int i;
 
     for (i=0; i < NUM_TEXT_VIEWS; i++) {
@@ -758,7 +758,7 @@ void set_autorepeat(const char *s)
  * @return
  * The width of the info window in characters.
  */
-int get_info_width()
+int get_info_width(void)
 {
     return 40;
 }

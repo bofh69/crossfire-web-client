@@ -1371,7 +1371,7 @@ static void close_container_callback(item *op)
 /* --- */
 
 /* Called by gx11::do_timeout(). */
-void inventory_tick() {
+void inventory_tick(void) {
     update_lists_labels();
     itemview_tick();
 }

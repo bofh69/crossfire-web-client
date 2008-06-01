@@ -80,7 +80,7 @@ static int      width=1, height=1;
  * This function does the generic initialization for opengl and does not use
  * any machine specific calls.
  */
-static void init_opengl_common()
+static void init_opengl_common(void)
 {
     GLint texSize;
 
@@ -977,7 +977,7 @@ void opengl_free_pixmap(PixmapInfo *pi)
 /**
  *
  */
-void create_opengl_question_mark()
+void create_opengl_question_mark(void)
 {
 
     GLubyte question[question_height][question_width][4];

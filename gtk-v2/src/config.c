@@ -162,7 +162,7 @@ void load_theme(int reload)
  * This function processes the user saved settings file and establishes the
  * configuration of the client.
  */
-void load_defaults()
+void load_defaults(void)
 {
     char path[MAX_BUF],inbuf[MAX_BUF],*cp;
     FILE *fp;
@@ -320,7 +320,7 @@ void load_defaults()
  * This function saves user settings chosen using the configuration popup
  * dialog.
  */
-void save_defaults()
+void save_defaults(void)
 {
     char path[MAX_BUF],buf[MAX_BUF];
     FILE *fp;
@@ -584,7 +584,7 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
  * Setup_config_window sets the buttons, combos, etc, to the state that matches
  * the want_config[] values.
  */
-static void setup_config_window()
+static void setup_config_window(void)
 {
     int count, i;
     GtkTreeModel    *model;
@@ -744,7 +744,7 @@ static void setup_config_window()
  * setting the display state appropriately, we read the display state and
  * update the want_config values.
  */
-static void read_config_window()
+static void read_config_window(void)
 {
     gchar   *buf;
 
@@ -934,7 +934,7 @@ on_configure_activate                 (GtkMenuItem     *menuitem,
  * the information required, and the code automatically works for Glade XML
  * layouts that follow the glade-2's default widget naming convention.
  */
-void save_winpos()
+void save_winpos(void)
 {
     char savename[MAX_BUF];
     char buf[MAX_BUF];

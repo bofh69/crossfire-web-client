@@ -136,7 +136,7 @@ static int lastval[MAX_STAT_BARS], lastmax[MAX_STAT_BARS];
  * Gets the style information for the stat bars (only portion of the window
  * right now that has custom style support.
  */
-void stats_get_styles()
+void stats_get_styles(void)
 {
     static int has_init=0;
     int stat_bar, sub_style;

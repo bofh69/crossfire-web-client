@@ -391,7 +391,7 @@ static void setup_list_columns(GtkWidget *treeview)
  * because with gtk, styles are widget wide - all rows in the widget would use
  * the same style.  We want to adjust the styles based on other attributes.
  */
-void inventory_get_styles()
+void inventory_get_styles(void)
 {
     int i;
     GtkStyle    *tmp_style;
@@ -715,7 +715,7 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
 /**
  * Draws the objects beneath the player.
  */
-void draw_look_list()
+void draw_look_list(void)
 {
     item *tmp;
     GtkTreeIter iter;
@@ -1026,7 +1026,7 @@ void draw_inv(int tab)
 /**
  * Redraws inventory and look windows when necessary
  */
-void draw_lists ()
+void draw_lists (void)
 {
     cpl.below->inv_updated=1;
     /*
@@ -1094,7 +1094,7 @@ on_inv_table_expose_event              (GtkWidget       *widget,
 /**
  *
  */
-void animate_inventory()
+void animate_inventory(void)
 {
     gboolean valid;
     GtkTreeIter iter;
@@ -1162,7 +1162,7 @@ void animate_inventory()
 /**
  *
  */
-void animate_look()
+void animate_look(void)
 {
     gboolean valid;
     GtkTreeIter iter;
@@ -1219,7 +1219,7 @@ void animate_look()
  * This is called periodically from main.c - basically a timeout, used to
  * animate the inventory.
  */
-void inventory_tick()
+void inventory_tick(void)
 {
     animate_inventory();
     animate_look();

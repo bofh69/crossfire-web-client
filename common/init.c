@@ -97,7 +97,7 @@ void SendSetFaceMode(ClientSocket csock,int mode)
 }
 
 
-void init_client_vars()
+void init_client_vars(void)
 {
     int i;
 
@@ -234,7 +234,7 @@ void init_client_vars()
 /* This is basically called each time a new player logs
  * on - reset all the player data
  */
-void reset_player_data()
+void reset_player_data(void)
 {
     int i;
 
@@ -249,7 +249,7 @@ void reset_player_data()
  * been called because it does not re-allocated some values.
  */
 
-void reset_client_vars()
+void reset_client_vars(void)
 {
     int i;
 

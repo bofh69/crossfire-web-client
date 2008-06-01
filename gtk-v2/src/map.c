@@ -195,7 +195,7 @@ void map_init(GtkWidget *window_root)
  * server versions.
  * @todo remove
  */
-void reset_map()
+void reset_map(void)
 {
 }
 
@@ -537,7 +537,7 @@ void gtk_draw_map(int redraw) {
  * The player has changed maps, so any info we have (for fog of war) is bogus,
  * so clear out all that old info.
  */
-void display_map_newmap()
+void display_map_newmap(void)
 {
     reset_map();
 }
@@ -554,7 +554,7 @@ void resize_map_window(int x, int y)
  * Simple routine to put the splash icon in the map window.  Only supported
  * with non-SDL right now.
  */
-void draw_splash()
+void draw_splash(void)
 {
     static GdkPixmap *splash;
     static int have_init=0;
@@ -695,7 +695,7 @@ on_drawingarea_map_button_press_event  (GtkWidget       *widget,
  * is info we know we need to store away or the like before it is destroyed,
  * but there isn't anything like that for the gtk client.
  */
-void display_map_startupdate()
+void display_map_startupdate(void)
 {
 }
 

@@ -326,7 +326,7 @@ void disconnect(GtkWidget *widget);
 /* Called from disconnect command - that closes the socket -
  * we just need to do the gtk cleanup.
  */
-void cleanup_connection() {
+void cleanup_connection(void) {
     if (csocket_fd) {
 	gdk_input_remove(csocket_fd);
 	csocket_fd=0;
@@ -384,7 +384,7 @@ static void do_network(void) {
 }
 
 #ifdef WIN32 /* Win32 scripting support */
-int do_scriptout()
+int do_scriptout(void)
 {
   script_process(NULL);
   return(TRUE);
@@ -2984,7 +2984,7 @@ static GtkWidget *spelloptions = NULL; /* text box with extra options to pass to
 GtkWidget *spellinventory = NULL; /* List containing inventory for spell inscription. Not static because
                                      will be changed by inventory.c*/
 
-static void click_inscribe_spell() {
+static void click_inscribe_spell(void) {
     int selection;
     item *scroll;
     Spell* spell;
@@ -4763,7 +4763,7 @@ void draw_magic_map(void)
 
 /* Basically, this just flashes the player position on the magic map */
 
-void magic_map_flash_pos()
+void magic_map_flash_pos(void)
 {
   if (!cpl.showmagic) return;
   if (!gtkwin_magicmap) return;

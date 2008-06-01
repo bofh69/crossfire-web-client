@@ -126,7 +126,7 @@ uint8 updatekeycodes=FALSE;
 
 #ifndef GDK_XUTIL
 /* Initializes the data for image caching */
-void init_cache_data()
+void init_cache_data(void)
 {
     int i;
     Pixmap  ptmp;
@@ -1182,7 +1182,7 @@ PlayerPosition pl_pos;
  * server versions.
  * @todo remove
  */
-void reset_map()
+void reset_map(void)
 {
 }
 

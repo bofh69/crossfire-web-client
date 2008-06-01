@@ -1241,7 +1241,7 @@ void ckeyentry_callback (GtkWidget *widget, GdkEventKey *event, GtkWidget *windo
 }
 
 
-void ckeyclear () {
+void ckeyclear (void) {
   gtk_label_set (GTK_LABEL(cnumentrytext), "0");
   gtk_entry_set_text (GTK_ENTRY(ckeyentrytext), "Press key to bind here");
   /*  gtk_entry_set_text (GTK_ENTRY(cknumentrytext), ""); */

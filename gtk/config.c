@@ -216,7 +216,7 @@ static void set_config_value(int cval, int value)
 
 static int splitwin_toggling = FALSE;
 
-void main_window_destroyed() {
+void main_window_destroyed(void) {
     if (!splitwin_toggling) {
         client_exit();
     }

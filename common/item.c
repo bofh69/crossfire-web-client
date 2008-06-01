@@ -441,7 +441,7 @@ item *create_new_item(item *env, sint32 tag) {
     return op;
 }
 
-int num_free_items() {
+int num_free_items(void) {
     item *tmp;
     int count = 0;
 
@@ -603,12 +603,12 @@ void send_mark_obj(item *op) {
     SockList_Send(&sl, csocket.fd);
 }
 
-item *player_item () {
+item *player_item (void) {
     player = new_item();
     return player;
 }
 
-item *map_item () {
+item *map_item (void) {
     map = new_item();
     map->weight = -1;
     return map;
@@ -684,7 +684,7 @@ void print_inventory(item *op) {
 }
 
 /* Check the objects, animate the ones as necessary */
-void animate_objects() {
+void animate_objects(void) {
     item *ip;
     int got_one = 0;
 

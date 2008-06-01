@@ -424,7 +424,7 @@ int associate_cache_entry(Cache_Entry *ce, int pixnum)
  * we're caching images and go to a new server and get a name, we should try to
  * re-arrange our cache or the like.
  */
-void reset_image_data()
+void reset_image_data(void)
 {
     int i;
 
@@ -533,7 +533,7 @@ void get_map_image_size(int face, uint8 *w, uint8 *h)
 /**
  * Initializes the data for image caching
  */
-void init_cache_data()
+void init_cache_data(void)
 {
     int i;
     GtkStyle *style;

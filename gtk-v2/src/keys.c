@@ -1538,7 +1538,7 @@ void draw_keybindings (GtkWidget *keylist) {
 /**
  *
  */
-void x_set_echo()
+void x_set_echo(void)
 {
     gtk_entry_set_visibility(GTK_ENTRY(entry_commands), !cpl.no_echo);
 }
@@ -1599,7 +1599,7 @@ void gtk_command_history(int direction)
  * point. It is almost like tab completion, except for the completion.  The TAB
  * key is also known by GDK_Tab, completekey, or completekeysym.
  */
-void gtk_complete_command()
+void gtk_complete_command(void)
 {
     const gchar *entry_text, *newcommand;
 
@@ -1689,7 +1689,7 @@ on_entry_commands_activate             (GtkEntry        *entry,
 /**
  * Update the keybinding dialog to reflect the current state of the keys file.
  */
-void update_keybinding_list()
+void update_keybinding_list(void)
 {
     int i, allbindings=0;
     Key_Entry *key;
@@ -2082,7 +2082,7 @@ gboolean keybinding_selection_func (
  * clear the key input box, clear the command input box, and disable the two
  * update and remove keybinding buttons.
  */
-void reset_keybinding_status()
+void reset_keybinding_status(void)
 {
     gtk_toggle_button_set_active(
         GTK_TOGGLE_BUTTON(keybinding_checkbutton_control), FALSE);

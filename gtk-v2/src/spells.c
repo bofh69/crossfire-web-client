@@ -69,7 +69,7 @@ static int has_init=0;
  * because with gtk, styles are widget wide - all rows in the widget would use
  * the same style.  We want to adjust the styles based on other attributes.
  */
-void spell_get_styles()
+void spell_get_styles(void)
 {
     int i;
     GtkStyle    *tmp_style;
@@ -116,7 +116,7 @@ static gboolean spell_selection_func (
 /**
  *
  */
-void update_spell_information()
+void update_spell_information(void)
 {
     Spell *spell;
     GtkTreeIter iter;

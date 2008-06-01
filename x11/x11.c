@@ -297,7 +297,7 @@ int error_handler(Display *dp, XErrorEvent *xe)
     return 0;	/* just to prevent warnings */
 }
 
-void event_loop()
+void event_loop(void)
 {
     fd_set tmp_read;
     int pollret;
@@ -399,7 +399,7 @@ static void gen_draw_face(Drawable where,int face,int x,int y, int sx, int sy)
     }
 }
 
-void end_windows()
+void end_windows(void)
 {
     XFreeGC(display, gc_root);
     XFreeGC(display, gc_game);
@@ -2025,7 +2025,7 @@ void set_autorepeat(const char *s)
 	      NDI_BLACK);
 }
 
-int get_info_width()
+int get_info_width(void)
 {
     return infodata.info_chars;
 }
@@ -2530,7 +2530,7 @@ static int buttonpress_in_list (itemlist *l, XButtonEvent *xbutton)
  * and keeps looping until the user finishes selecting the metaserver
  * (detected by change of state.
  */
-char *get_metaserver()
+char *get_metaserver(void)
 {
     static char ret_buf[MAX_BUF];
 
@@ -2564,7 +2564,7 @@ char *get_metaserver()
  * going to draw stuff too much.
  */
 
-void check_x_events() {
+void check_x_events(void) {
     KeySym gkey=0;
     static int lastupdate=0;
     static XEvent prev_event;	/* to detect autorepeated keys */
@@ -2983,7 +2983,7 @@ int init_windows(int argc, char **argv)
 }
 
 
-void display_map_newmap()
+void display_map_newmap(void)
 {
     reset_map();
 }
@@ -3090,7 +3090,7 @@ void resize_map_window(int x, int y)
 }
 
 /* we don't need to do anything, as we figure this out as needed */
-void x_set_echo() { }
+void x_set_echo(void) { }
 
 
 /**
@@ -3162,7 +3162,7 @@ int associate_cache_entry(Cache_Entry *ce, int pixnum)
     return 0;
 }
 
-void redisplay_stats()
+void redisplay_stats(void)
 {
   int i;
   for(i=0;i<7;i++) {
@@ -3172,7 +3172,7 @@ void redisplay_stats()
   XFlush(display);
 }
 
-void display_map_startupdate()
+void display_map_startupdate(void)
 {
 }
 
@@ -3183,7 +3183,7 @@ void display_map_startupdate()
  * A lot of this code was taken from server/xio.c  But being all
  * the map data has been figured, it tends to be much simpler.
  */
-void draw_magic_map()
+void draw_magic_map(void)
 {
     XWindowAttributes win_info;
     int x, y;
@@ -3235,7 +3235,7 @@ void draw_magic_map()
 }
 
 /* Basically, this just flashes the player position on the magic map */
-void magic_map_flash_pos()
+void magic_map_flash_pos(void)
 {
     if (!cpl.showmagic) return;
     cpl.showmagic ^=2;
@@ -3258,7 +3258,7 @@ void magic_map_flash_pos()
  * or the like.
  */
 
-void reset_image_data()
+void reset_image_data(void)
 {
     int i;
 
@@ -3296,7 +3296,7 @@ static void get_window_coord(Window win,
 
 
 
-void save_winpos()
+void save_winpos(void)
 {
     char savename[MAX_BUF],buf[MAX_BUF];
     FILE    *fp;
@@ -3337,7 +3337,7 @@ void save_winpos()
 /* Reads in the winpos file created by the above function and sets the
  * the window positions appropriately.
  */
-void set_window_pos()
+void set_window_pos(void)
 {
     unsigned int xwc_mask = CWX|CWY|CWWidth|CWHeight;
     XWindowChanges xwc;
@@ -3373,7 +3373,7 @@ void set_window_pos()
 }
 
 
-void load_defaults()
+void load_defaults(void)
 {
     char path[MAX_BUF],inbuf[MAX_BUF],*cp;
     FILE *fp;
@@ -3452,7 +3452,7 @@ void load_defaults()
     fclose(fp);
 }
 
-void save_defaults()
+void save_defaults(void)
 {
     char path[MAX_BUF],buf[MAX_BUF];
     FILE *fp;
@@ -3533,7 +3533,7 @@ void command_show (const char *params)
 }
 
 /* This doesn't need to do anything for x11 client */
-void cleanup_connection() { }
+void cleanup_connection(void) { }
 
 
 int main(int argc, char *argv[])

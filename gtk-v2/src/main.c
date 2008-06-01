@@ -111,7 +111,7 @@ extern int time_map_redraw;
 #ifdef WIN32 /* Win32 scripting support */
 #define PACKAGE_DATA_DIR "."
 
-int do_scriptout()
+int do_scriptout(void)
 {
     script_process(NULL);
     return(TRUE);
@@ -122,7 +122,7 @@ int do_scriptout()
  * Map, spell, and inventory maintenance.
  * @return TRUE
  */
-int do_timeout()
+int do_timeout(void)
 {
     if (cpl.showmagic) magic_map_flash_pos();
     if (cpl.spells_updated) update_spell_information();
@@ -147,7 +147,7 @@ void client_tick(uint32 tick)
  * Called from disconnect command - that closes the socket -
  * we just need to do the gtk cleanup.
  */
-void cleanup_connection()
+void cleanup_connection(void)
 {
     if (csocket_fd) {
         gdk_input_remove(csocket_fd);
@@ -173,7 +173,7 @@ void on_window_destroy_event           (GtkObject        *object,
 /**
  * main loop iteration related stuff
  */
-void do_network()
+void do_network(void)
 {
     fd_set tmp_read;
     int pollret;

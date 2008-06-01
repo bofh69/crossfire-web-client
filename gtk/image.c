@@ -384,7 +384,7 @@ int associate_cache_entry(Cache_Entry *ce, int pixnum)
  * or the like.
  */
 
-void reset_image_data()
+void reset_image_data(void)
 {
     int i;
     reset_image_cache_data();

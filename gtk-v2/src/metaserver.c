@@ -79,7 +79,7 @@ gboolean metaserver_selection_func (
 /**
  * Constructs the metaserver dialog and handles metaserver selection.
  */
-void get_metaserver()
+void get_metaserver(void)
 {
     static int has_init=0;
     GtkTreeIter iter;

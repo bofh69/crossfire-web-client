@@ -418,7 +418,7 @@ void *metaserver2_thread(void *junk)
  * @return
  * best I can tell, always returns 0
  */
-int metaserver2_get_info() {
+int metaserver2_get_info(void) {
     pthread_t   thread_id;
     int	    ret;
 
@@ -454,7 +454,7 @@ int metaserver2_get_info() {
 /**
  * Does single use initalization of metaserver2 variables.
  */
-void init_metaserver()
+void init_metaserver(void)
 {
     pthread_mutex_init(&ms2_info_mutex, NULL);
 #ifdef HAVE_CURL_CURL_H
@@ -720,7 +720,7 @@ void *metaserver1_thread(void *junk)
 }
 
 
-int metaserver1_get_info() {
+int metaserver1_get_info(void) {
     pthread_t   thread_id;
     int	    ret;
 
@@ -765,7 +765,7 @@ int metaserver1_get_info() {
  * @return
  * Returns 1 if if we are getting data, 0 if nothing is going on right now.
  */
-int metaserver_check_status() {
+int metaserver_check_status(void) {
     int status;
 
     pthread_mutex_lock(&ms2_info_mutex);
