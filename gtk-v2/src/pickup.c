@@ -1,4 +1,4 @@
-char *rcsid_gtk2_pickup_c =
+const char * const rcsid_gtk2_pickup_c =
     "$Id$";
 
 /*

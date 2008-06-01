@@ -1,4 +1,4 @@
-char *rcsid_gtk2_sound_c =
+const char * const rcsid_gtk2_sound_c =
     "$Id$";
 
 /*

@@ -503,9 +503,9 @@ extern PlayerPosition pl_pos;
 
 
 typedef struct {
-    int	    type;	    /* type of message */
-    int	    subtype;	    /* subtype of message */
-    char    *style_name;    /* name of this message in the configfile */
+    int        type;           /* type of message */
+    int        subtype;        /* subtype of message */
+    const char *style_name;    /* name of this message in the configfile */
 } Msg_Type_Names;
 
 extern TextManager* firstTextManager;

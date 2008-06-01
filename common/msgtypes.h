@@ -2,7 +2,7 @@
 /* discouraged.  Look at the newclient.h file and the msgtypes.pl conversion */
 /* script. */
 
-Msg_Type_Names msg_type_names[] = {
+const Msg_Type_Names msg_type_names[] = {
 {0, 0, "generic"},
 {MSG_TYPE_BOOK, 0, "book"},
 {MSG_TYPE_CARD, 0, "card"},

@@ -1,4 +1,4 @@
-char *rcsid_gtk2_opengl_c =
+const char * const rcsid_gtk2_opengl_c =
     "$Id$";
 
 /*

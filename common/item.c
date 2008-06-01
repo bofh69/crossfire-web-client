@@ -1,4 +1,4 @@
-const char *rcsid_common_item_c =
+const char * const rcsid_common_item_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -179,8 +179,8 @@ void update_item_sort(item *it) {
  * call to get_number().
  * It is currently only used by the query_name() function.
  */
-char *get_number(uint32 i) {
-    static char numbers[21][20] = {
+const char *get_number(uint32 i) {
+    static const char numbers[21][20] = {
         "no", "a", "two", "three", "four",
         "five", "six", "seven", "eight", "nine",
         "ten", "eleven", "twelve", "thirteen", "fourteen",

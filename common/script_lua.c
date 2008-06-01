@@ -1,4 +1,4 @@
-const char *rcsid_common_script_lua_c =
+const char * const rcsid_common_script_lua_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.

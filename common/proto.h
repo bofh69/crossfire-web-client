@@ -56,7 +56,7 @@ void reset_client_vars(void);
 /* item.c */
 uint8 get_type_from_name(const char *name);
 void update_item_sort(item *it);
-char *get_number(uint32 i);
+const char *get_number(uint32 i);
 void free_all_items(item *op);
 item *locate_item(sint32 tag);
 void remove_item(item *op);

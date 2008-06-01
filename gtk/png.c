@@ -1,4 +1,4 @@
-const char *rcsid_gtk_png_c =
+const char * const rcsid_gtk_png_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
