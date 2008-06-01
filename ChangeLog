@@ -2,6 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Remove acinclude.m4 and add macros/libcurl.m4 (as acinclude.m4 just contained
+a copy of what should have been in macros/libcurl.m4).
+ aclocal.m4
+Added:
+ macros/libcurl.m4
+Removed:
+ acinclude.m4
+Arvid Norlander 2008-06-01
+
 Normalize the *.xpm and *.xbm files by opening them in gimp and resaving them.
 Then readd "const" as needed in a text editor. Also had to update some source
 files because the name of the array for the xpm changed in some cases.
