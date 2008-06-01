@@ -57,7 +57,7 @@ const char * const rcsid_gtk_map_c =
  * but certainly how the client wants to store this may vary.
  */
 
-struct Map the_map;
+extern struct Map the_map;
 
 /*
  * Added for fog of war. Current size of the map structure in memory.

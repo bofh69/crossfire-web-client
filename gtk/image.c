@@ -96,8 +96,6 @@ static int icon_rescale_factor[MAX_ICON_SPACES] = {
  *
  *****************************************************************************/
 
-char facecachedir[MAX_BUF];
-
 typedef struct Keys {
     uint8	flags;
     sint8	direction;

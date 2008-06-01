@@ -2,6 +2,18 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Add some missing "extern" keywords that caused warnings. Remove some extern
+variable definitions in source file that were already found in headers.
+ gtk/map.c
+ gtk/image.c
+ common/client.c
+ common/client.h
+ x11/xutil.c
+ gtk-v2/src/image.c
+ gtk-v2/src/main.c
+ gtk-v2/src/main.h
+Arvid Norlander 2008-06-01
+
 Run make proto in subdirs. Make sure make doesn't error out on some subdirs
 when running make proto in top directory.
  pixmaps/Makefile.am

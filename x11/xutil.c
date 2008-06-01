@@ -76,8 +76,6 @@ int use_private_cache=0, last_face_num=0;
  *
  *****************************************************************************/
 
-char facecachedir[MAX_BUF];
-
 typedef struct Keys {
     uint8	flags;
     sint8	direction;

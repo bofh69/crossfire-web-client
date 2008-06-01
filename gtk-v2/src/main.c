@@ -54,6 +54,7 @@ const char * const rcsid_gtk2_main_c = "$Id$";
 #include "mapdata.h"
 
 GtkWidget *window_root, *magic_map;
+GladeXML *dialog_xml, *window_xml;
 
 /* Sets up the basic colors. */
 const char * const colorname[NUM_COLORS] = {

@@ -46,7 +46,7 @@
 #define VERSION_CS 1023
 #define VERSION_SC 1029
 
-char VERSION_INFO[256];
+extern char VERSION_INFO[256];
 
 /* Don't send more than this many outstanding commands to the server
  * this is only a default value.
