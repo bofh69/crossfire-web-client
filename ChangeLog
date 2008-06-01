@@ -2,6 +2,14 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Yet more fixes of Makefile.am/aclocal stuff: Make aclocal install needed macros
+into the macros directory.
+ Makefile.am
+ aclocal.m4
+Added:
+ macros/pkg.m4
+Arvid Norlander 2008-06-01
+
 Fix Makefile.am so aclocal.m4 generation works correctly.
  Makefile.am
  aclocal.m4
