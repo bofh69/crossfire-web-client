@@ -2,6 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Set svn:eol-style to native on *.c and *.h files that were missing it.
+ common/msgtypes.h
+ common/script_lua.c
+ common/script_lua.h
+ common/version.h
+Arvid Norlander 2008-06-01
+
 Add some missing "extern" keywords that caused warnings. Remove some extern
 variable definitions in source file that were already found in headers.
  gtk/map.c
