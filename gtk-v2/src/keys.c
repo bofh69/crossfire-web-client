@@ -1034,7 +1034,7 @@ void bind_key(char *params)
  * @param key Pointer of a key hash record to save to the key bind file.
  *            During recursion, key takes the value key->next, and then
  *            returns when it becomes a NULL pointer.
- * @param kc 
+ * @param kc
  */
 static void save_individual_key(FILE *fp, Key_Entry *key, KeyCode kc)
 {
@@ -2128,4 +2128,3 @@ on_keybinding_button_clear_clicked     (GtkButton       *button,
 /**
  * @} EndOf GtkV2KeyBindingWindow
  */
-

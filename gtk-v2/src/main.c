@@ -894,4 +894,3 @@ void get_window_coord(GtkWidget *win,
     *wx -= *x;
     *wy -= *y;
 }
-

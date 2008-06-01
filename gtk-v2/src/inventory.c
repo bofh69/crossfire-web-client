@@ -1224,4 +1224,3 @@ void inventory_tick()
     animate_inventory();
     animate_look();
 }
-

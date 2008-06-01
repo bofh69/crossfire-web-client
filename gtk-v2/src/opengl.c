@@ -403,7 +403,7 @@ static int bc_exclude[8]={
  * should not call this function to smooth on a 'completely black' square.
  * (simply for visual result).
  *
- * @param x 
+ * @param x
  * @param y
  * @param mx Coordinate of square to smooth on.
  * @param my Coordinate of square to smooth on.
@@ -587,9 +587,9 @@ void opengl_gen_map(int redraw) {
      * is the order of the loops we add MAX_MAP_OFFSET so that big objects off
      * the edge of the map are drawn.
      */
-     
+
     got_smooth=0; /*smooth marker. Once we have a face and "can_smooth" on a layer, this layer and all above draw smooth */
-                
+
     for (layer=0; layer<=MAXLAYERS; layer++) {
 
 
@@ -1024,4 +1024,3 @@ void create_opengl_question_mark()
 }
 
 #endif
-

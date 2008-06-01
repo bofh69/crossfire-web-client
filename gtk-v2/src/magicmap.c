@@ -158,4 +158,3 @@ on_drawingarea_magic_map_expose_event  (GtkWidget       *widget,
     draw_magic_map();
     return FALSE;
 }
-

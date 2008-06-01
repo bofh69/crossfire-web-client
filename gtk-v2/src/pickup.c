@@ -650,4 +650,3 @@ void client_pickup(uint32 pickup)
     }
     no_recurse=0;
 }
-

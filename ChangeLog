@@ -2,6 +2,36 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Run a script to clean up trailing whitespaces. In this list below "ChangeLog"
+is listed due to script cleaning up some whitespaces.
+ gtk/gx11.c
+ ChangeLog
+ help/about.h
+ help/shelp.h
+ common/item-types.h
+ common/mapdata.c
+ common/metaserver.c
+ gtk-v2/src/stats.c
+ gtk-v2/src/spells.c
+ gtk-v2/src/config.c
+ gtk-v2/src/about.c
+ gtk-v2/src/keys.c
+ gtk-v2/src/map.c
+ gtk-v2/src/metaserver.c
+ gtk-v2/src/magicmap.c
+ gtk-v2/src/image.c
+ gtk-v2/src/png.c
+ gtk-v2/src/opengl.c
+ gtk-v2/src/main.c
+ gtk-v2/src/sound.c
+ gtk-v2/src/main.h
+ gtk-v2/src/menubar.c
+ gtk-v2/src/info.c
+ gtk-v2/src/pickup.c
+ gtk-v2/src/inventory.c
+ gtk-v2/glade/README
+Arvid Norlander 2008-06-01
+
 Reorder some structs to waste less memory, also cosmetic changes to struct
 definitions.
  common/client.h
@@ -757,7 +787,7 @@ gtk-v2/README-dev
   - Rework content to third-party point-of-view to make it easier for other
     developers to modify the document.
 gtk-v2/src
-  - Inexplicable property changes to svn:ignore simply reposition .deps entry. 
+  - Inexplicable property changes to svn:ignore simply reposition .deps entry.
 gtk-v2/src/about.c
 gtk-v2/src/inventory.c
 gtk-v2/src/keys.c
@@ -908,7 +938,7 @@ common/metaserver.h: New fields in Meta_Info, some renamed to keep
   it consistent accross all of metaserver2.
 common/proto.h: rebuilt
 gtk-v2/src/metaserver.c: Add support for threaded metaserver2 retrievals -
-  need to make sure data is accessed in thread safe way, also need to 
+  need to make sure data is accessed in thread safe way, also need to
   add check for status of retrieval thread.
 MSW 2007-08-08
 

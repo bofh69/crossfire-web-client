@@ -725,4 +725,3 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     gdk_gc_destroy(gc);
     return 0;
 }
-

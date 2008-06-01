@@ -710,4 +710,3 @@ void display_map_doneupdate(int redraw, int notice)
 {
     map_updated |= redraw || !notice;
 }
-

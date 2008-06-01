@@ -426,7 +426,7 @@ void info_init(GtkWidget *window_root)
         gtk_text_view_set_wrap_mode(
             GTK_TEXT_VIEW(info_pane[i].textview), GTK_WRAP_WORD);
 
-        info_pane[i].textbuffer = 
+        info_pane[i].textbuffer =
             gtk_text_view_get_buffer(GTK_TEXT_VIEW(info_pane[i].textview));
 
         info_pane[i].adjustment =
@@ -435,7 +435,7 @@ void info_init(GtkWidget *window_root)
 
         gtk_text_buffer_get_end_iter(info_pane[i].textbuffer, &end);
 
-        info_pane[i].textmark = 
+        info_pane[i].textmark =
             gtk_text_buffer_create_mark(
                 info_pane[i].textbuffer, NULL, &end, FALSE);
 
@@ -669,7 +669,7 @@ void draw_info(const char *str, int color) {
 
     gtk_text_buffer_get_end_iter(info_pane[0].textbuffer, &end);
 
-    gtk_text_buffer_insert_with_tags( 
+    gtk_text_buffer_insert_with_tags(
         info_pane[0].textbuffer, &end, str, strlen(str),
         info_pane[0].color_tags[ncolor], NULL);
 
@@ -762,4 +762,3 @@ int get_info_width()
 {
     return 40;
 }
-

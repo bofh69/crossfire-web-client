@@ -87,7 +87,7 @@ int check_server_version(int entry)
 	 * server, since at the protocol level, data is the same -
 	 * the client would just have screwed up weapon_sp values.
 	 */
-	if ((VERSION_SC == 1028 || VERSION_SC==1029) && 
+	if ((VERSION_SC == 1028 || VERSION_SC==1029) &&
 	    (meta_servers[entry].sc_version==1027 ||
 	     meta_servers[entry].sc_version==1028))
 	    return 1;
@@ -218,7 +218,7 @@ size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *data)
     char    *cp, *newline, *eq, inbuf[CURL_MAX_WRITE_SIZE*2+1], *leftover;
 
     leftover = (char*) data;
-    
+
     if (realsize > CURL_MAX_WRITE_SIZE) {
         LOG(LOG_CRITICAL, "common::metaserver2_writer", "Function called with more data than allowed!");
     }
@@ -447,7 +447,7 @@ int metaserver2_get_info() {
     }
 
     return 0;
-}    
+}
 
 
 
@@ -745,7 +745,7 @@ int metaserver1_get_info() {
     }
 
     return 0;
-}    
+}
 /******************************************************************************
  * End of metaserver1 logic
  ******************************************************************************/
@@ -819,7 +819,7 @@ void metaserver_show(int show_selection) {
     draw_info("         Name      players           seconds", NDI_BLACK);
     pthread_mutex_lock(&ms2_info_mutex);
 
-    /* Re-sort the data - may get different data from ms1 and ms2, so 
+    /* Re-sort the data - may get different data from ms1 and ms2, so
      * order of this is somewhat random.
      */
     qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
@@ -1008,7 +1008,7 @@ int main(int argc, char *argv[])
  * in just causes more dependencies, etc.
  */
 void draw_info(const char *str, int color) { }
-int init_connection(char *host, int port) {} 
+int init_connection(char *host, int port) {}
 
 int metaserver_on=1, meta_port=0;
 char *server=NULL, *meta_server;

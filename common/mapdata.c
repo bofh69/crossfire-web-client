@@ -279,7 +279,7 @@ static void expand_set_face(int x, int y, int layer, sint16 face, int clear)
     cell->heads[layer].size_y = h;
     cell->need_update=1;
     mark_resmooth(x,y,layer);
-            
+
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
             struct MapCellLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
@@ -290,7 +290,7 @@ static void expand_set_face(int x, int y, int layer, sint16 face, int clear)
             tail->face = face;
             tail->size_x = dx;
             tail->size_y = dy;
-            the_map.cells[x-dx][y-dy].need_update = 1;            
+            the_map.cells[x-dx][y-dy].need_update = 1;
             mark_resmooth(x-dx,y-dy,layer);
         }
     }

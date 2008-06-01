@@ -124,4 +124,3 @@ on_about_close_clicked                 (GtkButton       *button,
 {
     gtk_widget_hide(about_window);
 }
-

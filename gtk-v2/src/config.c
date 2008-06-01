@@ -1085,4 +1085,3 @@ void load_window_positions(GtkWidget *window_root)
     }
     fclose(load);
 }
-

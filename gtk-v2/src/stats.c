@@ -286,7 +286,7 @@ void stats_init(GtkWidget *window_root)
  * Whether this stat can go on alert when it gets low.  It doesn't make
  * sense for this to happen on exp (not really an alert if you gain a
  * level). Note: This is no longer used with the new style code - if
- * a stat shouldn't ever change color when it is low, the style should	
+ * a stat shouldn't ever change color when it is low, the style should
  * dictate that.
  */
 void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
@@ -454,14 +454,14 @@ void draw_message_window(int redraw) {
      */
     if ((cpl.stats.level+1) < exp_table_max)
 	level_diff = exp_table[cpl.stats.level+1] - exp_table[cpl.stats.level];
-    else 
+    else
 	level_diff=cpl.stats.exp;
 
     update_stat(4,
         (cpl.stats.level+1) < exp_table_max ? exp_table[cpl.stats.level+1]:cpl.stats.exp,
 	cpl.stats.exp,
 	level_diff,
-        (cpl.stats.level+1) < exp_table_max ? 
+        (cpl.stats.level+1) < exp_table_max ?
 		(cpl.stats.exp - exp_table[cpl.stats.level]):cpl.stats.exp,
 	"Exp:", FALSE);
 
@@ -726,4 +726,3 @@ void clear_stat_mapping(void)
 {
     need_mapping_update=1;
 }
-

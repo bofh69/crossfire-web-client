@@ -5460,8 +5460,8 @@ void gtkLogListener (LogEntry *le){
             gtk_text_backward_delete(GTK_TEXT (bugtrack),toomuch);
             gtk_text_set_point(GTK_TEXT (bugtrack),gtk_text_get_length(GTK_TEXT (bugtrack)));
            /* gtk_text_set_editable (GTK_TEXT (gtkwin_info_text), FALSE);*/
-        }  
-        gtk_text_thaw (GTK_TEXT (bugtrack));      
+        }
+        gtk_text_thaw (GTK_TEXT (bugtrack));
     }
 }
 #define MAX_RECURSE 50

@@ -414,4 +414,3 @@ on_metaserver_text_entry_key_press_event
     gtk_tree_selection_unselect_all(metaserver_selection);
     return FALSE;
 }
-

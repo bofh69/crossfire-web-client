@@ -592,4 +592,3 @@ void init_cache_data()
 
     init_common_cache_data();
 }
-
