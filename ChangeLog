@@ -2,6 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Move configure.in to configure.ac (the new name since a few years). Update
+configure.ac syntax with autoupdate. Make help strings use AS_HELP_STRING.
+ common/config.h.in
+ aclocal.m4
+ configure.ac
+Moved:
+ configure.in to configure.ac
+Arvid Norlander 2008-06-01
+
 Yet more fixes of Makefile.am/aclocal stuff: Make aclocal install needed macros
 into the macros directory.
  Makefile.am

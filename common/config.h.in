@@ -1,4 +1,4 @@
-/* common/config.h.in.  Generated from configure.in by autoheader.  */
+/* common/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Location of other binaries. */
 #undef BINDIR
