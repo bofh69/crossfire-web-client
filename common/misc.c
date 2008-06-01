@@ -155,7 +155,7 @@ static const char *getLogLevelText(LogLevel level) {
 char *getLogTextRaw(LogLevel level, const char *origin, const char *message) {
     static char mybuf[20480];
     mybuf[0]='\0';
-    sprintf(mybuf,"[%s] (%s) %s\n",getLogLevelText(level),origin,message);
+    snprintf(mybuf, sizeof(mybuf), "[%s] (%s) %s\n",getLogLevelText(level),origin,message);
     return mybuf;
 }
 
@@ -187,7 +187,7 @@ void LOG(LogLevel level, const char *origin, const char *format, ...)
   va_start(ap, format);
 
   buf[0] = '\0';
-  vsprintf(buf, format, ap);
+  vsnprintf(buf, sizeof(buf), format, ap);
   /*fprintf(stderr,getLogTextRaw(level,origin,buf));*/
   if (strlen(buf)>0){
     LogEntry *le = LOG_NEW_ENTRY;
@@ -272,7 +272,7 @@ void logPipe(ChildProcess *child, LogLevel level, int pipe){
     if ( (pipe<1) || (pipe>2))/*can't log stdin as it's write only*/
         return;
     if (!child->logger[pipe].name){
-        sprintf(buf,"Child%d::%s::%d",child->pid,child->name?child->name:"NONAME",pipe);
+        snprintf(buf, sizeof(buf), "Child%d::%s::%d",child->pid,child->name?child->name:"NONAME",pipe);
         child->logger[pipe].name=strdup(buf);
     }
     if (fcntl(child->tube[pipe], F_SETFL, O_NDELAY)==-1) {

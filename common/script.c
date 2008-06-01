@@ -494,7 +494,7 @@ void script_sync(int commdiff)
       if ( commdiff <= scripts[i].sync_watch && scripts[i].sync_watch >= 0 ) {
          char buf[1024];
 
-         sprintf(buf,"sync %d\n",commdiff);
+         snprintf(buf, sizeof(buf), "sync %d\n",commdiff);
          write(scripts[i].out_fd,buf,strlen(buf));
          scripts[i].sync_watch = -1;
       }
@@ -512,14 +512,14 @@ void script_list(void)
       int i;
       char buf[1024];
 
-      sprintf(buf,"%d scripts currently running:",num_scripts);
+      snprintf(buf, sizeof(buf), "%d scripts currently running:",num_scripts);
       draw_info(buf,NDI_BLACK);
       for ( i=0;i<num_scripts;++i)
       {
          if ( scripts[i].params )
-            sprintf(buf,"%d %s  %s",i+1,scripts[i].name,scripts[i].params);
+            snprintf(buf, sizeof(buf), "%d %s  %s",i+1,scripts[i].name,scripts[i].params);
          else
-            sprintf(buf,"%d %s",i+1,scripts[i].name);
+            snprintf(buf, sizeof(buf), "%d %s",i+1,scripts[i].name);
          draw_info(buf,NDI_BLACK);
       }
    }
@@ -649,24 +649,24 @@ void script_watch(const char *cmd, const uint8 *data, const int data_len, const 
          if ( !l || strncmp(cmd,scripts[i].watch[w],l)==0 )
          {
             char buf[10240];
-            if ( !len ) sprintf(buf,"watch %s\n",cmd);
+            if ( !len ) snprintf(buf, sizeof(buf), "watch %s\n",cmd);
             else switch (format) {
                case ASCII:
-                  sprintf(buf,"watch %s %s\n",cmd,data);
+                  snprintf(buf, sizeof(buf), "watch %s %s\n",cmd,data);
                   break;
                case SHORT_INT:
-                  sprintf(buf,"watch %s %d %d\n",cmd,GetShort_String(data),GetInt_String(data+2));
+                  snprintf(buf, sizeof(buf), "watch %s %d %d\n",cmd,GetShort_String(data),GetInt_String(data+2));
                   break;
                case SHORT_ARRAY:
                   {
                      int be;
                      int p;
 
-                     be=sprintf(buf,"watch %s",cmd);
+                     be=snprintf(buf, sizeof(buf), "watch %s",cmd);
                      for(p=0;p*2<len && p<100;++p) {
-                        be+=sprintf(buf+be," %d",GetShort_String(data+p*2));
+                        be+=snprintf(buf+be, sizeof(buf)-be, " %d",GetShort_String(data+p*2));
                      }
-                     be+=sprintf(buf+be,"\n");
+                     be+=snprintf(buf+be, sizeof(buf)-be, "\n");
                   }
                   break;
                case INT_ARRAY:
@@ -674,11 +674,11 @@ void script_watch(const char *cmd, const uint8 *data, const int data_len, const 
                      int be;
                      int p;
 
-                     be=sprintf(buf,"watch %s",cmd);
+                     be=snprintf(buf, sizeof(buf), "watch %s",cmd);
                      for(p=0;p*4<len;++p) {
-                        be+=sprintf(buf+be," %d",GetInt_String(data+p*4));
+                        be+=snprintf(buf+be, sizeof(buf)-be, " %d",GetInt_String(data+p*4));
                      }
-                     be+=sprintf(buf+be,"\n");
+                     be+=snprintf(buf+be, sizeof(buf)-be, "\n");
                   }
                   break;
                case STATS:
@@ -693,90 +693,90 @@ void script_watch(const char *cmd, const uint8 *data, const int data_len, const 
                      while (len) {
                         int c; /* which stat */
 
-                        be+=sprintf(buf+be,"watch %s",cmd);
+                        be+=snprintf(buf+be, sizeof(buf)-be, "watch %s",cmd);
                         c=*data;
                         ++data; --len;
                         if (c>=CS_STAT_RESIST_START && c<=CS_STAT_RESIST_END) {
-                           be+=sprintf(buf+be," resists %d %d\n",c,GetShort_String(data));
+                           be+=snprintf(buf+be, sizeof(buf)-be, " resists %d %d\n",c,GetShort_String(data));
                            data+=2; len-=2;
                         } else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
-                           be+=sprintf(buf+be," skill %d %d %" FMT64 "\n",c,*data,GetInt64_String(data+1));
+                           be+=snprintf(buf+be, sizeof(buf)-be, " skill %d %d %" FMT64 "\n",c,*data,GetInt64_String(data+1));
                            data+=9; len-=9;
                         } else switch (c) {
                            case CS_STAT_HP:
-                              be+=sprintf(buf+be," hp %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " hp %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_MAXHP:
-                              be+=sprintf(buf+be," maxhp %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " maxhp %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_SP:
-                              be+=sprintf(buf+be," sp %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " sp %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_MAXSP:
-                              be+=sprintf(buf+be," maxspp %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " maxspp %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_GRACE:
-                              be+=sprintf(buf+be," grace %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " grace %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_MAXGRACE:
-                              be+=sprintf(buf+be," maxgrace %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " maxgrace %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_STR:
-                              be+=sprintf(buf+be," str %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " str %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_INT:
-                              be+=sprintf(buf+be," int %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " int %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_POW:
-                              be+=sprintf(buf+be," pow %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " pow %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_WIS:
-                              be+=sprintf(buf+be," wis %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " wis %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_DEX:
-                              be+=sprintf(buf+be," dex %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " dex %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_CON:
-                              be+=sprintf(buf+be," con %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " con %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_CHA:
-                              be+=sprintf(buf+be," cha %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " cha %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_EXP:
-                              be+=sprintf(buf+be," exp %d\n",GetInt_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " exp %d\n",GetInt_String(data));
                               data+=4; len-=4; break;
                            case CS_STAT_EXP64:
-                              be+=sprintf(buf+be," exp %" FMT64 "\n",GetInt64_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " exp %" FMT64 "\n",GetInt64_String(data));
                               data+=8; len-=8; break;
                            case CS_STAT_LEVEL:
-                              be+=sprintf(buf+be," level %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " level %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_WC:
-                              be+=sprintf(buf+be," wc %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " wc %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_AC:
-                              be+=sprintf(buf+be," ac %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " ac %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_DAM:
-                              be+=sprintf(buf+be," dam %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " dam %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_ARMOUR:
-                              be+=sprintf(buf+be," armour %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " armour %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_SPEED:
-                              be+=sprintf(buf+be," speed %d\n",GetInt_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " speed %d\n",GetInt_String(data));
                               data+=4; len-=4; break;
                            case CS_STAT_FOOD:
-                              be+=sprintf(buf+be," food %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " food %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_WEAP_SP:
-                              be+=sprintf(buf+be," weap_sp %d\n",GetInt_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " weap_sp %d\n",GetInt_String(data));
                               data+=4; len-=4; break;
                            case CS_STAT_FLAGS:
-                              be+=sprintf(buf+be," flags %d\n",GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " flags %d\n",GetShort_String(data));
                               data+=2; len-=2; break;
                            case CS_STAT_WEIGHT_LIM:
-                              be+=sprintf(buf+be," weight_lim %d\n",GetInt_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " weight_lim %d\n",GetInt_String(data));
                               data+=4; len-=4; break;
                            case CS_STAT_SKILLEXP_AGILITY:
                            case CS_STAT_SKILLEXP_PERSONAL:
@@ -784,7 +784,7 @@ void script_watch(const char *cmd, const uint8 *data, const int data_len, const 
                            case CS_STAT_SKILLEXP_PHYSIQUE:
                            case CS_STAT_SKILLEXP_MAGIC:
                            case CS_STAT_SKILLEXP_WISDOM:
-                              be+=sprintf(buf+be," skillexp %d %d\n",c,GetInt_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " skillexp %d %d\n",c,GetInt_String(data));
                               data+=4; len-=4; break;
                            case CS_STAT_SKILLEXP_AGLEVEL:
                            case CS_STAT_SKILLEXP_PELEVEL:
@@ -792,23 +792,23 @@ void script_watch(const char *cmd, const uint8 *data, const int data_len, const 
                            case CS_STAT_SKILLEXP_PHLEVEL:
                            case CS_STAT_SKILLEXP_MALEVEL:
                            case CS_STAT_SKILLEXP_WILEVEL:
-                              be+=sprintf(buf+be," skilllevel %d %d\n",c,GetShort_String(data));
+                              be+=snprintf(buf+be, sizeof(buf)-be, " skilllevel %d %d\n",c,GetShort_String(data));
                               data+=2; len-=2; break;
 
                            case CS_STAT_RANGE: {
                               int rlen=*data;
                               ++data; --len;
-                              be+=sprintf(buf+be," range %*.*s\n",rlen,rlen,data);
+                              be+=snprintf(buf+be, sizeof(buf)-be, " range %*.*s\n",rlen,rlen,data);
                               data+=rlen; len-=rlen; break;
                            }
                            case CS_STAT_TITLE: {
                               int rlen=*data;
                               ++data; --len;
-                              be+=sprintf(buf+be," title %*.*s\n",rlen,rlen,data);
+                              be+=snprintf(buf+be, sizeof(buf)-be, " title %*.*s\n",rlen,rlen,data);
                               data+=rlen; len-=rlen; break;
                            }
                            default:
-                              be+=sprintf(buf+be," unknown %d %d bytes left\n",c,len);
+                              be+=snprintf(buf+be, sizeof(buf)-be, " unknown %d %d bytes left\n",c,len);
                               len=0;
                         }
                      }
@@ -837,11 +837,11 @@ void script_watch(const char *cmd, const uint8 *data, const int data_len, const 
                      /*we may receive an null data, in which case len has no meaning*/
                      if (!data)
                         len=0;
-                     be=sprintf(buf,"watch %s %d bytes unparsed:",cmd,len);
+                     be=snprintf(buf, sizeof(buf), "watch %s %d bytes unparsed:",cmd,len);
                      for(p=0;p<len && p<100;++p) {
-                        be+=sprintf(buf+be," %02x",data[p]);
+                        be+=snprintf(buf+be, sizeof(buf)-be, " %02x",data[p]);
                      }
-                     be+=sprintf(buf+be,"\n");
+                     be+=snprintf(buf+be, sizeof(buf)-be, "\n");
                   }
                   break;
             }
@@ -863,7 +863,7 @@ void script_monitor(const char *command, int repeat, int must_send)
       {
          char buf[1024];
 
-         sprintf(buf,"monitor %d %d %s\n",repeat,must_send,command);
+         snprintf(buf, sizeof(buf), "monitor %d %d %s\n",repeat,must_send,command);
          write(scripts[i].out_fd,buf,strlen(buf));
       }
    }
@@ -881,7 +881,7 @@ void script_monitor_str(const char *command)
       {
          char buf[1024];
 
-         sprintf(buf,"monitor %s\n",command);
+         snprintf(buf, sizeof(buf), "monitor %s\n",command);
          write(scripts[i].out_fd,buf,strlen(buf));
       }
    }
@@ -971,11 +971,11 @@ static void send_map(int i,int x,int y)
 
    if (x<0 || y<0 || the_map.x<=x || the_map.y<=y)
    {
-      sprintf(buf,"request map %d %d unknown\n",x,y);
+      snprintf(buf, sizeof(buf), "request map %d %d unknown\n",x,y);
       write(scripts[i].out_fd,buf,strlen(buf));
    }
    /*** FIXME *** send more relevant data ***/
-   sprintf(buf,"request map %d %d  %d %c %c %c %c"
+   snprintf(buf, sizeof(buf), "request map %d %d  %d %c %c %c %c"
            " smooth %d %d %d heads %d %d %d tails %d %d %d\n",
            x,y,the_map.cells[x][y].darkness,
            'n'+('y'-'n')*the_map.cells[x][y].need_update,
@@ -1105,13 +1105,13 @@ static void script_process_cmd(int i)
       if ( strncmp(c,"range",5)==0 ) {
          char buf[1024];
 
-         sprintf(buf,"request range %s\n",cpl.range);
+         snprintf(buf, sizeof(buf), "request range %s\n",cpl.range);
          write(scripts[i].out_fd,buf,strlen(buf));
       }
       else if ( strncmp(c,"weight",5)==0 ) {
          char buf[1024];
 
-         sprintf(buf,"request weight %d %d\n",cpl.stats.weight_limit,(int)(cpl.ob->weight*1000));
+         snprintf(buf, sizeof(buf), "request weight %d %d\n",cpl.stats.weight_limit,(int)(cpl.ob->weight*1000));
          write(scripts[i].out_fd,buf,strlen(buf));
       }
       else if ( strncmp(c,"stat ",5)==0 ) {
@@ -1129,29 +1129,29 @@ static void script_process_cmd(int i)
          if ( strncmp(c,"stats",5)==0 ) {
             char buf[1024];
 
-            sprintf(buf,"request stat stats %d %d %d %d %d %d %d\n",cpl.stats.Str,cpl.stats.Con,cpl.stats.Dex,cpl.stats.Int,cpl.stats.Wis,cpl.stats.Pow,cpl.stats.Cha);
+            snprintf(buf, sizeof(buf), "request stat stats %d %d %d %d %d %d %d\n",cpl.stats.Str,cpl.stats.Con,cpl.stats.Dex,cpl.stats.Int,cpl.stats.Wis,cpl.stats.Pow,cpl.stats.Cha);
             write(scripts[i].out_fd,buf,strlen(buf));
          }
          if ( strncmp(c,"cmbt",4)==0 ) {
             char buf[1024];
 
-            sprintf(buf,"request stat cmbt %d %d %d %d %d\n",cpl.stats.wc,cpl.stats.ac,cpl.stats.dam,cpl.stats.speed,cpl.stats.weapon_sp);
+            snprintf(buf, sizeof(buf), "request stat cmbt %d %d %d %d %d\n",cpl.stats.wc,cpl.stats.ac,cpl.stats.dam,cpl.stats.speed,cpl.stats.weapon_sp);
             write(scripts[i].out_fd,buf,strlen(buf));
          }
          if ( strncmp(c,"hp",2)==0 ) {
             char buf[1024];
 
-            sprintf(buf,"request stat hp %d %d %d %d %d %d %d\n",cpl.stats.hp,cpl.stats.maxhp,cpl.stats.sp,cpl.stats.maxsp,cpl.stats.grace,cpl.stats.maxgrace,cpl.stats.food);
+            snprintf(buf, sizeof(buf), "request stat hp %d %d %d %d %d %d %d\n",cpl.stats.hp,cpl.stats.maxhp,cpl.stats.sp,cpl.stats.maxsp,cpl.stats.grace,cpl.stats.maxgrace,cpl.stats.food);
             write(scripts[i].out_fd,buf,strlen(buf));
          }
          if ( strncmp(c,"xp",2)==0 ) {
             char buf[1024];
             int s;
 
-            sprintf(buf,"request stat xp %d %" FMT64 ,cpl.stats.level,cpl.stats.exp);
+            snprintf(buf, sizeof(buf), "request stat xp %d %" FMT64 ,cpl.stats.level,cpl.stats.exp);
             write(scripts[i].out_fd,buf,strlen(buf));
             for(s=0;s<MAX_SKILL;++s) {
-               sprintf(buf," %d %" FMT64 ,cpl.stats.skill_level[s],cpl.stats.skill_exp[s]);
+               snprintf(buf, sizeof(buf), " %d %" FMT64 ,cpl.stats.skill_level[s],cpl.stats.skill_exp[s]);
                write(scripts[i].out_fd,buf,strlen(buf));
             }
             write(scripts[i].out_fd,"\n",1);
@@ -1160,10 +1160,10 @@ static void script_process_cmd(int i)
             char buf[1024];
             int s;
 
-            sprintf(buf,"request stat resists");
+            snprintf(buf, sizeof(buf), "request stat resists");
             write(scripts[i].out_fd,buf,strlen(buf));
             for(s=0;s<30;++s) {
-               sprintf(buf," %d",cpl.stats.resists[s]);
+               snprintf(buf, sizeof(buf), " %d",cpl.stats.resists[s]);
                write(scripts[i].out_fd,buf,strlen(buf));
             }
             write(scripts[i].out_fd,"\n",1);
@@ -1172,7 +1172,7 @@ static void script_process_cmd(int i)
       else if ( strncmp(c,"flags",5)==0 ) {
          char buf[1024];
 
-         sprintf(buf,"request flags %d %d %d %d\n",cpl.stats.flags,cpl.fire_on,cpl.run_on,cpl.no_echo);
+         snprintf(buf, sizeof(buf), "request flags %d %d %d %d\n",cpl.stats.flags,cpl.fire_on,cpl.run_on,cpl.no_echo);
          write(scripts[i].out_fd,buf,strlen(buf));
       }
       else if ( strncmp(c,"items ",6)==0 ) {
@@ -1247,7 +1247,7 @@ static void script_process_cmd(int i)
          if ( strncmp(c,"pos",3)==0 ) {
             char buf[1024];
 
-            sprintf(buf,"request map pos %d %d\n",pl_pos.x,pl_pos.y);
+            snprintf(buf, sizeof(buf), "request map pos %d %d\n",pl_pos.x,pl_pos.y);
             write(scripts[i].out_fd,buf,strlen(buf));
          }
          else if ( strncmp(c,"near",4)==0 ) {
@@ -1264,7 +1264,7 @@ static void script_process_cmd(int i)
             for(y=0;y<the_map.y;++y)
                for(x=0;x<the_map.x;++x)
                   send_map(i,x,y);
-            sprintf(buf,"request map end\n");
+            snprintf(buf, sizeof(buf), "request map end\n");
             write(scripts[i].out_fd,buf,strlen(buf));
          }
          else {
@@ -1281,7 +1281,7 @@ static void script_process_cmd(int i)
       else {
          char buf[1024];
 
-         sprintf(buf,"Script %d %s malfunction; unimplemented request:",i+1,scripts[i].name);
+         snprintf(buf, sizeof(buf), "Script %d %s malfunction; unimplemented request:",i+1,scripts[i].name);
          draw_info(buf,NDI_RED);
          draw_info(cmd,NDI_RED);
       }
@@ -1309,7 +1309,7 @@ static void script_process_cmd(int i)
             if ( r!=1 ) {
                char buf[1024];
 
-               sprintf(buf,"Script %d %s malfunction; command not sent",i+1,scripts[i].name);
+               snprintf(buf, sizeof(buf), "Script %d %s malfunction; command not sent",i+1,scripts[i].name);
                draw_info(buf,NDI_RED);
                draw_info(cmd,NDI_RED);
             }
@@ -1380,9 +1380,9 @@ static void script_process_cmd(int i)
 
       if (!handle_local_command(c, param)){
          char buf[1024];
-         sprintf(buf,"Script %s malfunction; localcmd not understood",scripts[i].name);
+         snprintf(buf, sizeof(buf), "Script %s malfunction; localcmd not understood",scripts[i].name);
          draw_info(buf,NDI_RED);
-         sprintf(buf,"Script <<localcmd %s %s>>",c,(param==NULL)?"":param);
+         snprintf(buf, sizeof(buf), "Script <<localcmd %s %s>>",c,(param==NULL)?"":param);
          draw_info(buf,NDI_RED);
       }
    }
@@ -1403,7 +1403,7 @@ static void script_process_cmd(int i)
    else {
       char buf[1024];
 
-      sprintf(buf,"Script %d %s malfunction; invalid command:",i+1,scripts[i].name);
+      snprintf(buf, sizeof(buf), "Script %d %s malfunction; invalid command:",i+1,scripts[i].name);
       draw_info(buf,NDI_RED);
       draw_info(cmd,NDI_RED);
    }
@@ -1436,7 +1436,7 @@ static void script_send_item(int i, const char *head, const item *it)
    flags= (flags<<1)|it->open;
    flags= (flags<<1)|it->was_open;
    flags= (flags<<1)|it->inv_updated;
-   sprintf(buf,"%s%d %d %f %d %d %s\n",head,it->tag,it->nrof,it->weight,flags,it->type,it->d_name);
+   snprintf(buf, sizeof(buf), "%s%d %d %f %d %d %s\n",head,it->tag,it->nrof,it->weight,flags,it->type,it->d_name);
    write(scripts[i].out_fd,buf,strlen(buf));
 }
 

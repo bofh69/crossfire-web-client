@@ -190,14 +190,14 @@ const char *get_number(uint32 i) {
     static char buf[MAX_BUF];
 
     if (i < 0) {
-        sprintf(buf, "negative");
+        snprintf(buf, sizeof(buf), "negative");
         return buf;
     }
 
     if (i <= 20) {
         return numbers[i];
     } else {
-        sprintf(buf, "%u", i);
+        snprintf(buf, sizeof(buf), "%u", i);
         return buf;
     }
 }
@@ -578,7 +578,7 @@ void toggle_locked(item *op) {
         return; /* if item is on the ground, don't lock it */
     }
 
-    sprintf((char*)buf, "lock %c %d", !op->locked, op->tag);
+    snprintf((char*)buf, sizeof(buf), "lock %c %d", !op->locked, op->tag);
     script_monitor_str((char*)buf);
     SockList_Init(&sl, buf);
     SockList_AddString(&sl, "lock ");
@@ -595,7 +595,7 @@ void send_mark_obj(item *op) {
         return; /* if item is on the ground, don't mark it */
     }
 
-    sprintf((char*)buf, "mark %d", op->tag);
+    snprintf((char*)buf, sizeof(buf), "mark %d", op->tag);
     script_monitor_str((char*)buf);
     SockList_Init(&sl, buf);
     SockList_AddString(&sl, "mark ");
@@ -666,15 +666,15 @@ void print_inventory(item *op) {
 #endif
 
     if (l == 0) {
-        sprintf(buf, "%s's inventory (%d):", op->d_name, op->tag);
-        sprintf(buf2, "%-*s%6.1f kg", info_width-10, buf, op->weight);
+        snprintf(buf, sizeof(buf), "%s's inventory (%d):", op->d_name, op->tag);
+        snprintf(buf2, sizeof(buf2), "%-*s%6.1f kg", info_width-10, buf, op->weight);
         draw_info(buf2,NDI_BLACK);
     }
 
     l += 2;
     for (tmp = op->inv; tmp; tmp = tmp->next) {
-        sprintf(buf, "%*s- %d %s%s (%d)", l-2, "", tmp->nrof, tmp->d_name, tmp->flags, tmp->tag);
-        sprintf(buf2, "%-*s%6.1f kg", info_width-8-l, buf, tmp->nrof*tmp->weight);
+        snprintf(buf, sizeof(buf), "%*s- %d %s%s (%d)", l-2, "", tmp->nrof, tmp->d_name, tmp->flags, tmp->tag);
+        snprintf(buf2, sizeof(buf2), "%-*s%6.1f kg", info_width-8-l, buf, tmp->nrof*tmp->weight);
         draw_info(buf2,NDI_BLACK);
         if (tmp->inv) {
             print_inventory(tmp);
@@ -761,7 +761,7 @@ void inscribe_magical_scroll(item *scroll, Spell *spell) {
         LOG(LOG_WARNING, "common::inscribe_magical_scroll", "Called when server doesn't handle inscribe command.");
         return;
     }
-    sprintf((char*)buf, "inscribe 0 %d %d", scroll->tag, spell->tag);
+    snprintf((char*)buf, sizeof(buf), "inscribe 0 %d %d", scroll->tag, spell->tag);
     script_monitor_str((char*)buf);
     SockList_Init(&sl, buf);
     SockList_AddString(&sl, "inscribe ");

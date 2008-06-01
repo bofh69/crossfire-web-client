@@ -315,11 +315,11 @@ void script_lua_list(const char* param)
         int i;
         char buf[1024];
 
-        sprintf(buf,"%d LUA scripts currently running:",script_count);
+        snprintf(buf, sizeof(buf), "%d LUA scripts currently running:",script_count);
         draw_info(buf,NDI_BLACK);
         for ( i=0;i<script_count;++i)
         {
-            sprintf(buf,"%d %s",i+1,scripts[i].filename);
+            snprintf(buf, sizeof(buf), "%d %s",i+1,scripts[i].filename);
             draw_info(buf,NDI_BLACK);
         }
     }

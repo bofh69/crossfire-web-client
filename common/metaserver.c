@@ -805,7 +805,7 @@ void metaserver_show(int show_selection) {
     if (cached_servers_num) {
         draw_info("\nLast servers you connected to:\n", NDI_BLACK);
         for (i = 0; i < cached_servers_num; i++) {
-            sprintf(buf, "%2d) %-20.20s %-20.20s", i+1, cached_servers_name[i], cached_servers_ip[i]);
+            snprintf(buf, sizeof(buf), "%2d) %-20.20s %-20.20s", i+1, cached_servers_name[i], cached_servers_ip[i]);
             draw_info(buf, NDI_BLACK);
         }
         draw_info(" ", NDI_BLACK);
@@ -825,7 +825,7 @@ void metaserver_show(int show_selection) {
     qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
     for (i = 0; i < meta_numservers; i++) {
 	if (check_server_version(i)) {
-	    sprintf(buf, "%2d)  %-15.15s %2d   %-12.12s %2d",
+	    snprintf(buf, sizeof(buf), "%2d)  %-15.15s %2d   %-12.12s %2d",
 		    i+1+cached_servers_num, meta_servers[i].hostname,
 		    meta_servers[i].num_players, meta_servers[i].version,
 		    meta_servers[i].idle_time);
@@ -835,7 +835,7 @@ void metaserver_show(int show_selection) {
     if (show_selection) {
         /* Show default/current server */
 	if (server) {
-	    sprintf(buf, "%2d)  %s (default)", meta_numservers+1+cached_servers_num, server);
+	    snprintf(buf, sizeof(buf), "%2d)  %s (default)", meta_numservers+1+cached_servers_num, server);
 	    draw_info(buf, NDI_BLACK);
 	}
 
@@ -920,7 +920,7 @@ int metaserver_select(char *sel) {
 	}
     }
 
-    sprintf(buf, "Trying to connect to %s:%d", server_name, port);
+    snprintf(buf, sizeof(buf), "Trying to connect to %s:%d", server_name, port);
     draw_info(buf, NDI_BLACK);
 #ifdef MULTKEYS
     csocket.fd = init_connection(server_name, port);

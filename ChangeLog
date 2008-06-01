@@ -2,6 +2,19 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Some changes to use snprintf instead of sprintf.
+ common/item.c
+ common/commands.c
+ common/script.c
+ common/client.c
+ common/image.c
+ common/p_cmd.c
+ common/player.c
+ common/script_lua.c
+ common/metaserver.c
+ common/misc.c
+Arvid Norlander 2008-06-01
+
 Run a script to clean up trailing whitespaces. In this list below "ChangeLog"
 is listed due to script cleaning up some whitespaces.
  gtk/gx11.c

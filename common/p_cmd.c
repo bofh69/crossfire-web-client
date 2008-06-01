@@ -230,7 +230,7 @@ static void do_serverhelp(const char * arg) {
 
     if (arg) {
         char buf[MAX_BUF];
-	sprintf(buf,"help %s", arg);
+	snprintf(buf, sizeof(buf), "help %s", arg);
 	/* maybe not a must send, but we probably don't want to drop it */
 	send_command(buf, -1, 1);
     } else {
@@ -263,7 +263,7 @@ static void command_help(const char *cpnext) {
         if (cc != NULL) {
             show_help(cc);
         } else  {
-	    sprintf(buf,"help %s", cpnext);
+	    snprintf(buf, sizeof(buf), "help %s", cpnext);
 	    /* maybe not a must send, but we probably don't want to drop it */
 	    send_command(buf, -1, 1);
 	}

@@ -467,7 +467,7 @@ void negotiate_connection(int sound)
     if (use_config[CONFIG_DOWNLOAD]) {
 	char buf[MAX_BUF];
 
-	sprintf(buf,"Download of images complete.  Found %d locally, downloaded %d from server\n",
+	snprintf(buf, sizeof(buf), "Download of images complete.  Found %d locally, downloaded %d from server\n",
 		face_info.cache_hits, face_info.cache_misses);
 	draw_info(buf, NDI_GOLD);
     }

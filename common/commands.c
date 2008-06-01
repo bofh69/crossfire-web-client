@@ -247,7 +247,7 @@ void SetupCmd(char *buf, int len) {
                 mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 cs_print_string(csocket.fd,
                                 "setup mapsize %dx%d", use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
-                sprintf(tmpbuf, "Server supports a max mapsize of %d x %d - requesting a %d x %d mapsize",
+                snprintf(tmpbuf, sizeof(tmpbuf), "Server supports a max mapsize of %d x %d - requesting a %d x %d mapsize",
                     x, y, use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 draw_info(tmpbuf, NDI_RED);
             } else if (use_config[CONFIG_MAPWIDTH] == x && use_config[CONFIG_MAPHEIGHT] == y) {
@@ -258,7 +258,7 @@ void SetupCmd(char *buf, int len) {
                  * not the same size, so whats the problem?  Tell the user that
                  * something is wrong.
                  */
-                sprintf(tmpbuf, "Unable to set mapsize on server - we wanted %d x %d, server returned %d x %d",
+                snprintf(tmpbuf, sizeof(tmpbuf), "Unable to set mapsize on server - we wanted %d x %d, server returned %d x %d",
                     use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT], x, y);
                 draw_info(tmpbuf, NDI_RED);
             }

@@ -153,7 +153,7 @@ void fire_dir(int dir) {
 
     if (cpl.input_state != Playing) return;
     if (dir!= dfire) {
-	sprintf(buf,"fire %d", dir);
+	snprintf(buf, sizeof(buf), "fire %d", dir);
 	if (send_command(buf, cpl.count, SC_NORMAL)) {
 	    dfire=dir;
 	    cpl.count=0;
@@ -173,7 +173,7 @@ void run_dir(int dir) {
     char buf[MAX_BUF];
 
     if (dir!=drun) {
-	sprintf(buf,"run %d", dir);
+	snprintf(buf, sizeof(buf), "run %d", dir);
 	if (send_command(buf, -1, SC_NORMAL))
 	    drun=dir;
     } else {
