@@ -45,7 +45,7 @@ const char * const rcsid_gtk2_stats_c =
 #define STAT_BAR_FOOD   3
 #define STAT_BAR_EXP    4
 #define MAX_STAT_BARS   5
-static char *stat_bar_names[MAX_STAT_BARS] = {
+static const char * const stat_bar_names[MAX_STAT_BARS] = {
     "hp", "sp", "grace", "food", "exp"
 };
 
@@ -63,7 +63,7 @@ GtkWidget *stat_label[MAX_STAT_BARS], *stat_bar[MAX_STAT_BARS];
  * the styles of (these will be prefixed with hp_, sp_, etc).
  * This should always match NUM_STYLES.
  */
-static char *stat_style_names[NUM_STYLES] = {
+static const char * const stat_style_names[NUM_STYLES] = {
     "bar_normal", "bar_low", "bar_super",
     "gradual_bar_normal", "gradual_bar_low", "gradual_bar_super"
 };

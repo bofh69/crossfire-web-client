@@ -31,7 +31,7 @@ print ITEMS "/* script. */\n";
 print ITEMS "\n#define NUM_ITEM_TYPES $MAXVAL\n";
 print ITEMS "#define MAX_NAMES_PER_TYPE $SUBS\n\n";
 
-print ITEMS "static char *item_types[$MAXVAL][$SUBS] = {\n";
+print ITEMS "static const char * const item_types[$MAXVAL][$SUBS] = {\n";
 
 for ($i=0; $i<$MAXVAL; $i++) {
     print ITEMS "{ ";

@@ -56,7 +56,7 @@ const char * const rcsid_gtk2_main_c = "$Id$";
 GtkWidget *window_root, *magic_map;
 
 /* Sets up the basic colors. */
-const char *colorname[NUM_COLORS] = {
+const char * const colorname[NUM_COLORS] = {
 "Black",                /* 0  */
 "White",                /* 1  */
 "Navy",                 /* 2  */
@@ -76,7 +76,7 @@ const char *colorname[NUM_COLORS] = {
  * We use lower case to be consistent, but also change the names
  * to be more generic instead of specific X11 color names.
  */
-const char *usercolorname[NUM_COLORS] = {
+const char * const usercolorname[NUM_COLORS] = {
 "black",                /* 0  */
 "white",                /* 1  */
 "darkblue",             /* 2  */

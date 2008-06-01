@@ -90,7 +90,7 @@ int last_face_num=0;
  */
 
 #define MAX_ICON_SPACES     10
-static int icon_rescale_factor[MAX_ICON_SPACES] = {
+static const int icon_rescale_factor[MAX_ICON_SPACES] = {
 100, 100,           80 /* 2 = 160 */,   60 /* 3 = 180 */,
 50 /* 4 = 200 */,   45 /* 5 = 225 */,   40 /* 6 = 240 */,
 35 /* 7 = 259 */,   35 /* 8 = 280 */,   33 /* 9 = 300 */

@@ -5,7 +5,7 @@
 #define NUM_ITEM_TYPES 256
 #define MAX_NAMES_PER_TYPE 64
 
-static char *item_types[256][64] = {
+static const char * const item_types[256][64] = {
 { NULL }, 
 { "sack", "Luggage", "pouch", "quiver", "bag", "chest", "key ring", NULL }, 
 { "axe", "club", "dagger", "falchion", "hammer", "katana", "mace", "magnifying glass", "morningstar", "nunchacu", "quarterstaff", "sabre", "scimitar", "shovel", "^spear", "stake", "^sword", "Belzebub's sword", "Firebrand", "Harakiri sword", "broadsword", "light sword", "Serpentman sword", "shortsword", "long sword", "taifu", "trident", "BoneCrusher", "Darkblade", "Demonslayer", "Dragonslayer", "Excalibur", "firebrand", "Firestar", "Flame Tongue", "FlameTongue", "Frost Hammer", "Katana of Masamune", "Lightning sticks", "Mjoellnir", "Mournblade", "Sting", "Stormbringer", "Trident", NULL }, 

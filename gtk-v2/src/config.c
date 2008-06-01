@@ -58,7 +58,7 @@ static char *theme = "Standard";
 static char *themedir = "themes";
 static char *gladedir = "glade-gtk2";
 
-static char *display_modes[] = {"Pixmap", "SDL", "OpenGL"};
+static const char * const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
 
 /**
  * Loads the theme stored away in the theme value above.  the theme string is

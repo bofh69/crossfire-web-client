@@ -2,6 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+More changes of char* to const char*.
+ common/item-types.h
+ common/items.pl
+ gtk-v2/src/stats.c
+ gtk-v2/src/config.c
+ gtk-v2/src/image.c
+ gtk-v2/src/main.c
+Arvid Norlander 2008-06-01
+
 Change some char* to const char*. This reduces memory usage when serveral copies
 are running as const data can be shared between the copies.
  gtk/config.c
