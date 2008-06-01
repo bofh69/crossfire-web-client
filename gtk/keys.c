@@ -97,7 +97,7 @@ static char bind_buf[MAX_BUF];
 #define KEYF_EDIT	0x08	/* Line editor */
 #define KEYF_STANDARD	0x10	/* For standard (built in) key definitions */
 
-extern char *directions[9];
+extern const char * const directions[9];
 
 /* Platform independence defines that we can't use keycodes.
  * instead, make it a hash, and set KEYHASH to a prime number for

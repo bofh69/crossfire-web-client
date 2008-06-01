@@ -536,7 +536,7 @@ void inventory_init(GtkWidget *window_root)
  *
  * @param s
  */
-void set_show_icon (char *s)
+void set_show_icon (const char *s)
 {
 }
 
@@ -544,7 +544,7 @@ void set_show_icon (char *s)
  *
  * @param s
  */
-void set_show_weight (char *s)
+void set_show_weight (const char *s)
 {
 }
 
@@ -574,7 +574,7 @@ void open_container (item *op)
  *
  * @param params
  */
-void command_show (char *params)
+void command_show (const char *params)
 {
     if(!params)  {
         /*

@@ -5541,7 +5541,7 @@ void gLogHandler (const gchar *log_domain, GLogLevelFlags log_level, const gchar
 }
 
 
-extern char* cached_server_file;
+extern const char* cached_server_file;
 
 int main(int argc, char *argv[])
 {

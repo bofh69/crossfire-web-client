@@ -74,7 +74,7 @@ static char *font_style_names[NUM_FONTS] = {
  */
 #define NUM_TEXT_VIEWS  2
 
-extern  const char *usercolorname[NUM_COLORS];
+extern  const char * const usercolorname[NUM_COLORS];
 
 struct Info_Pane
 {
@@ -91,7 +91,7 @@ struct Info_Pane
 
 static void message_callback(int flag, int type, int subtype, char *message);
 
-extern  char *colorname[NUM_COLORS];
+extern  const char * const colorname[NUM_COLORS];
 
 /*
  * The idea behind the msg_type_names is to provide meaningful names that the
@@ -735,7 +735,7 @@ void menu_clear() {
  *
  * @param s
  */
-void set_scroll(char *s)
+void set_scroll(const char *s)
 {
 }
 
@@ -743,7 +743,7 @@ void set_scroll(char *s)
  *
  @param s
  */
-void set_autorepeat(char *s)
+void set_autorepeat(const char *s)
 {
 }
 

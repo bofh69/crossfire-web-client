@@ -62,7 +62,7 @@ static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t lengt
 }
 
 
-uint8 *png_to_data(unsigned char *data, int len, int *width, int *height)
+uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 {
     uint8 *pixels=NULL;
     static png_bytepp	rows=NULL;

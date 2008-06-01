@@ -45,7 +45,7 @@ const char *rcsid_x11_xutil_c =
 #include "x11.h"
 
 
-static const char *colorname[] = {
+static const char * const colorname[] = {
 "Black",                /* 0  */
 "White",                /* 1  */
 "Navy",                 /* 2  */
@@ -113,7 +113,7 @@ static char bind_buf[MAX_BUF];
 #define KEYF_EDIT	0x08	/* Line editor */
 #define KEYF_STANDARD	0x10	/* For standard (built in) key definitions */
 
-extern char *directions[9];
+extern const char * const directions[9];
 
 /* Key codes can only be from 8-255 (at least according to
  * the X11 manual.  This is easier than using a hash

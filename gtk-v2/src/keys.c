@@ -149,7 +149,7 @@ static char bind_buf[MAX_BUF];
 #define KEYF_MODIFIERS  0x67            /**< Mask for actual keyboard
                                          *   modifiers, not action modifiers */
 
-extern char *directions[9];
+extern const char *const directions[9];
 
 #define KEYHASH 257
 static Key_Entry *keys[KEYHASH];        /**< Platform independence defines that
@@ -996,7 +996,7 @@ void bind_key(char *params)
                 draw_info("Use unbind to remove bindings.",NDI_BLACK);
                 return;
             default:
-                sprintf(buf, "Unsupported or invalid bind flag: '%c'", *params);
+                snprintf(buf, sizeof(buf), "Unsupported or invalid bind flag: '%c'", *params);
                 draw_info(buf,NDI_BLACK);
                 return;
         }
@@ -1016,7 +1016,7 @@ void bind_key(char *params)
         draw_info("Keybinding too long! Truncated:",NDI_RED);
         draw_info(params,NDI_RED);
     }
-    sprintf(buf, "Push key to bind '%s'.", params);
+    snprintf(buf, sizeof(buf), "Push key to bind '%s'.", params);
     draw_info(buf,NDI_BLACK);
 
     strcpy(bind_buf, params);
@@ -1252,7 +1252,7 @@ static void unbind_usage(void)
  *
  * @param params
  */
-void unbind_key(char *params)
+void unbind_key(const char *params)
 {
     int count=0, keyentry, onkey,global=0;
     Key_Entry *key, *tmp;

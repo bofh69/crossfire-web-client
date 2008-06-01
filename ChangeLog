@@ -2,6 +2,22 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Use the -combine option of gcc to find code (mostly extern inside source instead
+of headers), where the definitions didn't agree with each other. Fix most of them.
+One (hard to fix) is left, I will look at it later. Also use cproto in common/.
+Two sprintf changed to snprintf as well.
+ gtk/keys.c
+ gtk/gx11.c
+ common/proto.h
+ x11/x11proto.h
+ x11/png.c
+ x11/xutil.c
+ gtk-v2/src/gtk2proto.h
+ gtk-v2/src/keys.c
+ gtk-v2/src/info.c
+ gtk-v2/src/inventory.c
+Arvid Norlander 2008-06-01
+
 Some changes to use snprintf instead of sprintf.
  common/item.c
  common/commands.c

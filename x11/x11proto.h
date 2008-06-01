@@ -1,5 +1,5 @@
 /* png.c */
-extern uint8 *png_to_data(unsigned char *data, int len, int *width, int *height);
+extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
 extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
 extern long pngx_find_color(Display *display, Colormap *cmap, int red, int green, int blue);
 extern int init_pngx_loader(Display *display);
