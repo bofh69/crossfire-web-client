@@ -177,7 +177,6 @@ extern void drawquarterlightmap_sdl(int tl, int tr, int bl, int br, int width, i
 extern void sdl_gen_map(int redraw);
 extern int sdl_mapscroll(int dx, int dy);
 /* sound.c */
-extern void signal_pipe(int i);
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
 /* spells.c */
@@ -191,6 +190,7 @@ extern void on_spell_close_clicked(GtkButton *button, gpointer user_data);
 /* stats.c */
 extern void stats_get_styles(void);
 extern void stats_init(GtkWidget *window_root);
+extern void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, sint64 statbar_max, sint64 statbar_stat, const char *name, int can_alert);
 extern void draw_message_window(int redraw);
 extern void draw_stats(int redraw);
 extern void clear_stat_mapping(void);

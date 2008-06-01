@@ -24,3 +24,6 @@ noinst_HEADERS= \
 	chelp.h            \
 	shelp.h            \
 	bugreport.h
+
+proto:
+	echo "Nothing to do for proto"

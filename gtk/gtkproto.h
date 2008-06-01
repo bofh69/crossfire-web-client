@@ -4,6 +4,7 @@ extern void configdialog(GtkWidget *widget);
 extern void load_defaults(void);
 extern void save_defaults(void);
 /* gx11.c */
+extern void cleanup_connection(void);
 extern void gtk_command_history(int direction);
 extern void gtk_complete_command(void);
 extern void draw_prompt(const char *str);
@@ -14,6 +15,7 @@ extern void reset_stat_bars(void);
 extern void resize_resistance_table(int resists_show);
 extern void draw_message_window(int redraw);
 extern void cclist_button_event(GtkWidget *gtklist, gint row, gint column, GdkEventButton *event);
+extern void disconnect(GtkWidget *widget);
 extern void menu_clear(void);
 extern void client_exit(void);
 extern void create_windows(void);
@@ -23,6 +25,8 @@ extern int get_info_width(void);
 extern void do_clearlock(void);
 extern void x_set_echo(void);
 extern void draw_info_windows(void);
+extern void client_tick(uint32 tick);
+extern void client_pickup(uint32 pickup);
 extern int do_timeout(void);
 extern int gtk_checkchilds(void);
 extern void draw_magic_map(void);
@@ -39,6 +43,15 @@ extern char *get_metaserver(void);
 extern void gtkLogListener(LogEntry *le);
 extern void gLogHandler(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data);
 extern int main(int argc, char *argv[]);
+/* help.c */
+extern void chelpdialog(GtkWidget *widget);
+/* image.c */
+extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
+extern void addsmooth(uint16 face, uint16 smooth_face);
+extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
+extern void reset_image_data(void);
+extern void image_update_download_status(int start, int end, int total);
+extern void get_map_image_size(int face, uint8 *w, uint8 *h);
 /* inventory.c */
 extern void item_event_item_changed(item *op);
 extern void item_event_container_clearing(item *op);
@@ -56,15 +69,6 @@ extern void set_look_list_env(item *op);
 extern void open_container(item *op);
 extern void close_container(item *op);
 extern void inventory_tick(void);
-/* help.c */
-extern void chelpdialog(GtkWidget *widget);
-/* image.c */
-extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
-extern void addsmooth(uint16 face, uint16 smooth_face);
-extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
-extern void reset_image_data(void);
-extern void image_update_download_status(int start, int end, int total);
-extern void get_map_image_size(int face, uint8 *w, uint8 *h);
 /* keys.c */
 extern void init_keys(void);
 extern void bind_key(const char *params);
@@ -85,21 +89,18 @@ extern void gtk_draw_map(int redraw);
 extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
 extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
 extern int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
-extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 /* sdl.c */
 extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
-extern void drawquarterlightmap_sdl(int tl, int tr, int bl, int br, int width, int height, int startx, int starty, int endx, int endy, int destx, int desty);
 extern void sdl_gen_map(int redraw);
 extern int sdl_mapscroll(int dx, int dy);
 /* sound.c */
-extern void signal_pipe(int i);
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
 /* text.c */
+extern media_state write_media(GtkText *textarea, const char *message);
+extern media_state write_media_with_state(GtkText *textarea, const char *message, media_state current_state);
+extern const char *getMOTD(void);
+extern const char *get_rules(void);
+extern news_entry *get_news(void);
 extern void init_text_callbacks(void);
-extern media_state write_media(GtkText* textarea, const char* message);
-extern media_state write_media_with_state(GtkText* textarea, const char* message,media_state current_state);
-extern const char* getMOTD(void);
-extern const char* get_rules(void);
-extern news_entry* get_news(void);
 extern void cleanup_textmanagers(void);

@@ -2,6 +2,16 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Run make proto in subdirs. Make sure make doesn't error out on some subdirs
+when running make proto in top directory.
+ pixmaps/Makefile.am
+ gtk/gtkproto.h
+ help/Makefile.am
+ utils/Makefile.am
+ x11/x11proto.h
+ gtk-v2/src/gtk2proto.h
+Arvid Norlander 2008-06-01
+
 Use the -combine option of gcc to find code (mostly extern inside source instead
 of headers), where the definitions didn't agree with each other. Fix most of them.
 One (hard to fix) is left, I will look at it later. Also use cproto in common/.

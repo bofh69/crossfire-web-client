@@ -59,3 +59,6 @@ noinst_HEADERS = \
 	unlock.xpm	\
 	unpaid.xbm	\
 	unpaid.xpm
+
+proto:
+	echo "Nothing to do for proto"

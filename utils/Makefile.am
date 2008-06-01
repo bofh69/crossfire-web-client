@@ -22,3 +22,6 @@
 dist_noinst_SCRIPTS = \
 	deftoheader.pl	\
 	mdk.sh
+
+proto:
+	echo "Nothing to do for proto"
