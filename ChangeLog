@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Unbreak LUA check in configure. Also update autogen.sh to mention that
+autoreconf should be used instead and make the call aclocal in the script correct.
+ autogen.sh
+ configure.ac
+Arvid Norlander 2008-06-01
+
 Remove acinclude.m4 and add macros/libcurl.m4 (as acinclude.m4 just contained
 a copy of what should have been in macros/libcurl.m4).
  aclocal.m4

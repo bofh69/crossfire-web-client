@@ -224,24 +224,25 @@ AC_CHECK_LIB(lua, lua_call,
     AC_CHECK_LIB(lualib, luaopen_loadlib,
     [   # 5.0 needed lualib.
         lua_scripting="yes"
-	LUA_LIBS="-llua -llualib -ldl -lm"
+        LUA_LIBS="-llua -llualib -ldl -lm"
     ],
     [   # We do not have lualib, so it might be 5.1
-	AC_CHECK_LIB(lua, luaL_register,
+        AC_CHECK_LIB(lua, luaL_register,
         [   # Lua 5.1 found
             lua_scripting="yes"
-	    AC_DEFINE(HAVE_LUA_5_1, 1, [Define to use Lua 5.1])
+            AC_DEFINE(HAVE_LUA_5_1, 1, [Define to use Lua 5.1])
+            LUA_LIBS="-llua -ldl -lm"
         ],
         [   # No, it is not 5.1.  Now what?
-	    AC_MSG_WARN(Linking with liblualib failed.)
+            AC_MSG_WARN(Linking with liblualib failed.)
         ])
     ],
     [
-        -llua -ldl -lm
     ])
 ])
-if eval "test x$lua_scripting != xyes" ; then
+if eval "test x$lua_scripting = xyes" ; then
     AC_DEFINE(HAVE_LUA, 1, [Define to use Lua 5.x])
+else
     lua_scripting="no"
     LUA_LIBS=""
 fi
