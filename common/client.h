@@ -71,12 +71,13 @@ char VERSION_INFO[256];
 typedef struct Animations {
     uint16  flags;
     uint8   num_animations; /* number of animations.  Value of 2 means
-			     * only faces[0],[1] have meaningfull values.
-			     */
-    uint16  *faces;
+                             * only faces[0],[1] have meaningfull values.
+                             */
     uint8   speed;
     uint8   speed_left;
     uint8   phase;
+    uint16  *faces;
+
 } Animations;
 
 extern Animations animations[MAXANIM];
@@ -319,11 +320,11 @@ typedef struct Player_Struct {
                                          *   Increasing this would  likely only
                                          *    need a bigger footprint
                                          */
-typedef struct {
+typedef struct FaceSets_struct {
     uint8   setnum;                     /**<  */
+    uint8   fallback;                   /**<  */
     char    *prefix;                    /**<  */
     char    *fullname;                  /**<  */
-    uint8   fallback;                   /**<  */
     char    *size;                      /**<  */
     char    *extension;                 /**<  */
     char    *comment;                   /**<  */
@@ -332,7 +333,7 @@ typedef struct {
 /* Make one struct that holds most of the image related data.
  * reduces danger of namespace collision.
  */
-typedef struct {
+typedef struct Face_Information_struct {
     uint8   faceset;
     char    *want_faceset;
     sint16  num_images;
@@ -361,7 +362,7 @@ typedef enum LogLevel {
   LOG_DEBUG = 0, LOG_INFO = 1, LOG_WARNING = 2, LOG_ERROR = 3, LOG_CRITICAL = 4
 } LogLevel;
 
-typedef struct LogEntry{
+typedef struct LogEntry {
     char* message;
     char* origin;
     LogLevel level;
@@ -389,7 +390,7 @@ typedef void (*LogListener)(LogEntry*);
 #define LOG_SETMESSAGE(_Entry,_msg) free(_Entry->message);_Entry->message=strdup(_msg)
 #define LOG_SETORIGIN(_Entry,_orig) free(_Entry->origin);_Entry->origin=strdup(_orig)
 
-typedef struct{
+typedef struct PipeLog {
     char* name;
     LogLevel level;
     int log; /*yes or no to log*/
@@ -493,8 +494,7 @@ typedef struct Cache_Entry {
 #define RI_IMAGE_SUMS	    0x2
 extern int  replyinfo_status, requestinfo_sent, replyinfo_last_face;
 
-typedef struct
-{
+typedef struct PlayerPosition {
   int x;
   int y;
 } PlayerPosition;
@@ -502,7 +502,7 @@ typedef struct
 extern PlayerPosition pl_pos;
 
 
-typedef struct {
+typedef struct Msg_Type_Names {
     int        type;           /* type of message */
     int        subtype;        /* subtype of message */
     const char *style_name;    /* name of this message in the configfile */

@@ -44,7 +44,7 @@
 #include <GL/gl.h>
 #endif
 
-typedef struct {
+typedef struct PixmapInfo {
     void        *icon_mask, *icon_image;
     uint16      icon_width, icon_height;
     void        *map_mask, *map_image;

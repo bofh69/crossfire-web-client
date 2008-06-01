@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Reorder some structs to waste less memory, also cosmetic changes to struct
+definitions.
+ common/client.h
+ gtk-v2/src/image.h
+Arvid Norlander 2008-06-01
+
 More changes of char* to const char*.
  common/item-types.h
  common/items.pl
