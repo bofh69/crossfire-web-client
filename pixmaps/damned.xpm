@@ -1,8 +1,8 @@
 /* XPM */
-char * damned_xpm[] = {
+static const char *const damned_xpm[] = {
 "24 6 2 1",
-" 	s None  c None",
-".	c black",
+" 	c None",
+".	c #000000",
 "....   .  .. .. .  .    ",
 " .  . . . .. .. .. .    ",
 " .  . ... . . . .. .    ",

@@ -515,7 +515,7 @@ static void init_cache_data(void)
     pixmaps[0]->icon_image = gdk_pixmap_create_from_xpm_d(gtkwin_root->window,
 							(GdkBitmap**)&pixmaps[0]->icon_mask,
 							&style->bg[GTK_STATE_NORMAL],
-							(gchar **)question);
+							(gchar **)question_xpm);
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	/* make a semi transparent question mark symbol to
@@ -2595,7 +2595,7 @@ static void aboutdialog(GtkWidget *widget) {
     aboutgdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_about->window,
 						  &aboutgdkmask,
 						  &style->bg[GTK_STATE_NORMAL],
-						  (gchar **)crossfiretitle);
+						  (gchar **)crossfiretitle_xpm);
     aboutgtkpixmap= gtk_pixmap_new (aboutgdkpixmap, aboutgdkmask);
     gtk_box_pack_start (GTK_BOX (vbox),aboutgtkpixmap, FALSE, TRUE, 0);
     gtk_widget_show (aboutgtkpixmap);
@@ -2686,7 +2686,7 @@ static void bugdialog(GtkWidget *widget) {
     buggdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_bug->window,
 						  &buggdkmask,
 						  &style->bg[GTK_STATE_NORMAL],
-						  (gchar **)crossfiretitle);
+						  (gchar **)crossfiretitle_xpm);
     buggtkpixmap= gtk_pixmap_new (buggdkpixmap, buggdkmask);
     gtk_box_pack_start (GTK_BOX (vbox),buggtkpixmap, FALSE, TRUE, 0);
     gtk_widget_show (buggtkpixmap);
@@ -3998,7 +3998,7 @@ static void create_splash(void) {
     aboutgdkpixmap = gdk_pixmap_create_from_xpm_d(gtkwin_splash->window,
 					       &aboutgdkmask,
 						  &style->bg[GTK_STATE_NORMAL],
-					       (gchar **)crossfiretitle);
+					       (gchar **)crossfiretitle_xpm);
     aboutgtkpixmap= gtk_pixmap_new (aboutgdkpixmap, aboutgdkmask);
     gtk_box_pack_start (GTK_BOX (vbox),aboutgtkpixmap, FALSE, TRUE, 0);
     gtk_widget_show (aboutgtkpixmap);

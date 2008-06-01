@@ -90,7 +90,7 @@ menu_about                             (GtkMenuItem     *menuitem,
         aboutgdkpixmap = gdk_pixmap_create_from_xpm_d(about_window->window,
             &aboutgdkmask,
             NULL,
-            (gchar **)crossfiretitle);
+            (gchar **)crossfiretitle_xpm);
 
         aboutgtkpixmap= gtk_image_new_from_pixmap (aboutgdkpixmap,
              aboutgdkmask);

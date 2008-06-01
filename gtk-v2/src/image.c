@@ -547,7 +547,7 @@ void init_cache_data(void)
     pixmaps[0]->icon_image = gdk_pixmap_create_from_xpm_d(window_root->window,
                                                         (GdkBitmap**)&pixmaps[0]->icon_mask,
                                                         &style->bg[GTK_STATE_NORMAL],
-                                                        (gchar **)question);
+                                                        (gchar **)question_xpm);
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
         /*

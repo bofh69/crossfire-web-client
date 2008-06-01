@@ -1,8 +1,8 @@
 /* XPM */
-static char * dot_xpm[] = {
+static const char *const dot_xpm[] = {
 "20 16 2 1",
-" 	s None	c None",
-".	c Black",
+" 	c None",
+".	c #000000",
 "                    ",
 "      ........      ",
 "    ............    ",

@@ -567,7 +567,7 @@ void draw_splash(void)
         if (!have_init) {
             splash = gdk_pixmap_create_from_xpm_d(map_drawing_area->window,
                                                &aboutgdkmask, NULL,
-                                               (gchar **)crossfiretitle);
+                                               (gchar **)crossfiretitle_xpm);
             have_init=1;
         }
         gdk_window_clear(map_drawing_area->window);

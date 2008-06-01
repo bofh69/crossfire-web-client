@@ -2,6 +2,51 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Normalize the *.xpm and *.xbm files by opening them in gimp and resaving them.
+Then readd "const" as needed in a text editor. Also had to update some source
+files because the name of the array for the xpm changed in some cases.
+ pixmaps/applied.xpm
+ pixmaps/magic.xpm
+ pixmaps/unpaid.xpm
+ pixmaps/cursed.xpm
+ pixmaps/lock.xpm
+ pixmaps/bg.xpm
+ pixmaps/skull.xpm
+ pixmaps/unlock.xpm
+ pixmaps/mag.xpm
+ pixmaps/question.xpm
+ pixmaps/clear.xbm
+ pixmaps/hand.xpm
+ pixmaps/damned.xbm
+ pixmaps/sign_east.xpm
+ pixmaps/stipple.111
+ pixmaps/nonmag.xpm
+ pixmaps/stipple.112
+ pixmaps/test.xpm
+ pixmaps/locked.xbm
+ pixmaps/dot.xpm
+ pixmaps/close.xbm
+ pixmaps/damned.xpm
+ pixmaps/coin.xpm
+ pixmaps/hand2.xpm
+ pixmaps/applied.xbm
+ pixmaps/locked.xpm
+ pixmaps/crossfiretitle.xpm
+ pixmaps/magic.xbm
+ pixmaps/sign_west.xpm
+ pixmaps/unpaid.xbm
+ pixmaps/question.111
+ pixmaps/close.xpm
+ pixmaps/sign_flat.xpm
+ pixmaps/cursed.xbm
+ pixmaps/all.xpm
+ gtk/gx11.c
+ x11/clientbmap.h
+ gtk-v2/src/about.c
+ gtk-v2/src/map.c
+ gtk-v2/src/image.c
+Arvid Norlander 2008-06-01
+
 Run protoize on code to add missing void in prototypes. Run the png_compress
 script from arch on some *.png files in the tree to reduce their size.
  pixmaps/48x48.png
