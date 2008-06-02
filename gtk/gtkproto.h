@@ -96,6 +96,8 @@ extern int sdl_mapscroll(int dx, int dy);
 /* sound.c */
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
+extern void Sound2Cmd(unsigned char *data, int len);
+extern void MusicCmd(const char *data, int len);
 /* text.c */
 extern media_state write_media(GtkText *textarea, const char *message);
 extern media_state write_media_with_state(GtkText *textarea, const char *message, media_state current_state);

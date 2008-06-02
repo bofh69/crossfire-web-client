@@ -119,3 +119,64 @@ void SoundCmd(unsigned char *data,  int len)
 #endif
     play_sound(num, type, x, y);
 }
+
+void Sound2Cmd(unsigned char *data, int len)
+{
+    uint8 x, y, dir, volume, type, len_action;
+    char* action = NULL;
+    uint8 len_name;
+    char* name = NULL;
+    /* sound2 <x><y><dir><volume><type><len of action>action<len of name>name */
+    /*         b  b  b    b       b     b             str    b           str*/
+    if (len<8) {
+        fprintf(stderr, "Got too short length on sound2 command: %d\n", len);
+        return;
+    }
+    x = data[0];
+    y = data[1];
+    dir = data[2];
+    volume = data[3];
+    type = data[4];
+    len_action = data[5];
+    /* Prevent invald index. */
+    if (len_action >= (len-8)) {
+        fprintf(stderr, "Bad length of \"len of action\" in sound2 command: %d\n", len);
+        return;
+    }
+    if (len_action != 0) {
+        action = (char*)data+6;
+        data[6+len_action]='\0';
+    }
+    /* Lets make it readable, compiler will optimize the addition order anyway*/
+    len_name = data[6+len_action+1];
+    if (len_name >= (len-8-len_action)) {
+        fprintf(stderr, "Bad length of \"len of name\" in sound2 command: %d\n", len);
+        return;
+    }
+    if (len_name != 0) {
+        name = (char*)data+6+len_action+1;
+        data[6+len_action+1+len_name]='\0';
+    }
+
+    fprintf(stderr, "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd\n",
+            x, y, dir, volume, type);
+    fprintf(stderr, "               len_action=%hhd action=%s\n", len_action, action);
+    fprintf(stderr, "               len_name=%hhd name=%s\n", len_name, name);
+    fprintf(stderr, "Please impement sound2!");
+    /* TODO: Play sound here. Can't implement/test as server never actually
+     * sends this yet it seems. As this code is mostly duplicated between the
+     * different clients, make sure to update the other ones too.
+     */
+}
+
+
+void MusicCmd(const char *data, int len) {
+    if (!strncmp(data, "NONE", len)) {
+        /* TODO stop music */
+    } else {
+        fprintf(stderr, "gtk::MusicCmd", "music command: %s (Implement me!)\n", data);
+        /* TODO: Play music. Can't impmement/test as server doesn't send this
+         * version of the command yet it seems.
+         */
+    }
+}

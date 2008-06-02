@@ -122,6 +122,8 @@ struct CmdMapping commands[] = {
 
 
     { "sound", SoundCmd, MIXED /* int8, int8, int16, int8 */},
+    { "sound2", Sound2Cmd, MIXED /* int8, int8, int8, int8, int8, int8, chars, int8, chars */},
+    { "music", (CmdProc)MusicCmd, ASCII },
     { "anim", AnimCmd, SHORT_ARRAY},
     { "smooth", SmoothCmd, SHORT_ARRAY},
 
@@ -377,8 +379,8 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-	    "setup map2cmd 1 tick 1 sound %d sexp %d darkness %d newmapcmd 1 spellmon 1 faceset %d facecache %d exp64 1 itemcmd 2",
-	    sound>=0, want_skill_exp,
+	    "setup map2cmd 1 tick 1 sound %d%s sexp %d darkness %d newmapcmd 1 spellmon 1 faceset %d facecache %d exp64 1 itemcmd 2",
+	    sound>=0, (sound>=0) ? " sound2 3" : "", want_skill_exp,
 		    want_config[CONFIG_LIGHTING]?1:0, face_info.faceset,
 		    want_config[CONFIG_CACHE]);
 

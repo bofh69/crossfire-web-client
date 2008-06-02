@@ -33,7 +33,9 @@
  */
 
 /* Sound functions */
-extern void SoundCmd(unsigned char *data,  int len);
+extern void SoundCmd(unsigned char *data, int len);
+extern void Sound2Cmd(unsigned char *data, int len);
+extern void MusicCmd(const char *data, int len);
 
 /* Map window related functions */
 extern void resize_map_window(int x, int y);

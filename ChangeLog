@@ -2,6 +2,23 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Add stub support for sound2/music commands, I was unable to make server send
+the actual commands except "music NONE" (and jxclient that do have sounds don't
+get these commands either, but decides locally to play some sounds it seems) so
+was not able to debug it beyond making sure it compiled and ran. When the server
+actually sends these commands someone need to fill in the implementations and
+check the parsing code is correct for sound2.
+ gtk/gtkproto.h
+ gtk/sound.c
+ common/commands.c
+ common/client.c
+ common/external.h
+ x11/x11proto.h
+ x11/sound.c
+ gtk-v2/src/gtk2proto.h
+ gtk-v2/src/sound.c
+Arvid Norlander 2008-06-01
+
 Unbreak LUA check in configure. Also update autogen.sh to mention that
 autoreconf should be used instead and make the call aclocal in the script correct.
  autogen.sh

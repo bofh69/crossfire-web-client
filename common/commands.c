@@ -213,8 +213,13 @@ void SetupCmd(char *buf, int len) {
          * returns to us.  In some cases, we may fall back to other
          * methods, just report on error, or try another setup command.
          */
-        if (!strcmp(cmd, "sound")) {
-            if (!strcmp(param, "FALSE")) {
+        if (!strcmp(cmd, "sound2")) {
+            /* No parsing needed, but we don't want a warning about unknown
+             * setup option below.
+             */
+        } else if (!strcmp(cmd, "sound")) {
+            /* No, this should not be !strcmp()... */
+            if (strcmp(param, "FALSE")) {
                 cs_print_string(csocket.fd, "setsound %d", want_config[CONFIG_SOUND]);
             }
         } else if (!strcmp(cmd, "mapsize")) {
@@ -308,12 +313,8 @@ void SetupCmd(char *buf, int len) {
              */
         } else if (!strcmp(cmd, "exp64")) {
             /* If this server does not support the new skill code,
-             * fall back to the old which uses experience categories.
-             * for that, initialize the skill names appropriately.
-             * by doing so, the actual display code can be the same
-             * for both old and new.  If the server does support
-             * new exp system, send a request to get the mapping
-             * information.
+             * error out. If the server does support new exp system,
+             * send a request to get the mapping information.
              */
             if (!strcmp(param, "FALSE")) {
                 draw_info("Server does not support exp64!", NDI_RED);

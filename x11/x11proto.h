@@ -11,6 +11,8 @@ extern void get_map_image_size(int face, uint8 *w, uint8 *h);
 extern void signal_pipe(int i);
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
+extern void Sound2Cmd(unsigned char *data, int len);
+extern void MusicCmd(const char *data, int len);
 /* x11.c */
 extern int error_handler(Display *dp, XErrorEvent *xe);
 extern void event_loop(void);

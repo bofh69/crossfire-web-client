@@ -179,6 +179,8 @@ extern int sdl_mapscroll(int dx, int dy);
 /* sound.c */
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);
+extern void Sound2Cmd(unsigned char *data, int len);
+extern void MusicCmd(const char *data, int len);
 /* spells.c */
 extern void spell_get_styles(void);
 extern void update_spell_information(void);
