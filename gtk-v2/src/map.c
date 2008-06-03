@@ -266,7 +266,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
     int i,lowest,weight,weightC;
     int emx,emy;
     int smoothface;
-    int hasFace;
+    int hasFace = 0;
     for (i=0;i<=layer;i++)
         hasFace |= the_map.cells[mx][my].heads[i].face;
     if (!hasFace

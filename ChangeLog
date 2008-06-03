@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix a valgrind error (uninitialised value) in smoothing code.
+ gtk-v2/src/config.c
+ gtk-v2/src/map.c
+Arvid Norlander 2008-06-03
+
 Fix a valgrind error in the common metaserver code. For some reason sc_version
 and cs_version fields were not always properly initialized when check_server_version()
 was called.
