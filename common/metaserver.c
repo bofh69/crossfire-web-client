@@ -433,7 +433,7 @@ int metaserver2_get_info(void) {
 
     pthread_mutex_lock(&ms2_info_mutex);
     if (!meta_servers)
-        meta_servers = malloc(sizeof(Meta_Info)*MAX_METASERVER);
+        meta_servers = calloc(MAX_METASERVER, sizeof(Meta_Info));
 
     ms2_is_running=1;
     pthread_mutex_unlock(&ms2_info_mutex);
@@ -609,7 +609,7 @@ void *metaserver1_thread(void *junk)
 
     pthread_mutex_lock(&ms2_info_mutex);
     if (!meta_servers)
-        meta_servers = malloc(sizeof(Meta_Info)*MAX_METASERVER);
+        meta_servers = calloc(MAX_METASERVER, sizeof(Meta_Info));
 
 
     /* The loop goes through and unpacks the data from the metaserver
@@ -731,7 +731,7 @@ int metaserver1_get_info(void) {
 
     pthread_mutex_lock(&ms2_info_mutex);
     if (!meta_servers)
-        meta_servers = malloc(sizeof(Meta_Info)*MAX_METASERVER);
+        meta_servers = calloc(MAX_METASERVER, sizeof(Meta_Info));
 
     ms1_is_running=1;
     pthread_mutex_unlock(&ms2_info_mutex);

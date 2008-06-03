@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix a valgrind error in the common metaserver code. For some reason sc_version
+and cs_version fields were not always properly initialized when check_server_version()
+was called.
+ common/metaserver.c
+Arvid Norlander 2008-06-03
+
 Add stub support for sound2/music commands, I was unable to make server send
 the actual commands except "music NONE" (and jxclient that do have sounds don't
 get these commands either, but decides locally to play some sounds it seems) so
@@ -17,7 +23,7 @@ check the parsing code is correct for sound2.
  x11/sound.c
  gtk-v2/src/gtk2proto.h
  gtk-v2/src/sound.c
-Arvid Norlander 2008-06-01
+Arvid Norlander 2008-06-02
 
 Unbreak LUA check in configure. Also update autogen.sh to mention that
 autoreconf should be used instead and make the call aclocal in the script correct.
