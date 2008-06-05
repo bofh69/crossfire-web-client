@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Clean up configure.ac and add a missing test for size_t.
+ configure.ac
+ common/config.h.in
+Arvid Norlander 2008-06-05
+
 Fix a valgrind error (uninitialised value) in smoothing code.
  gtk-v2/src/config.c
  gtk-v2/src/map.c

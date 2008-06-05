@@ -96,7 +96,7 @@ networklibs="yes"
 
 case "$target" in
     alpha-dec-osf*)
-        # If we are not using gcc, we want the ansi version of cc. 
+        # If we are not using gcc, we want the ansi version of cc.
         if test -z "$GCC"; then
         #   CFLAGS="$CFLAGS -std1 -warnprotos" # Not yet ready for warnprotos...
             CFLAGS="$CFLAGS -std1"
@@ -137,16 +137,16 @@ else
     AC_MSG_NOTICE(X11 found - will build X client)
     X_LIBS="$X_LIBS -lX11"
     CF_SUBDIRS="$CF_SUBDIRS x11"
-    echo Xlibs: $X_LIBS
-    echo Extras: $X_EXTRA_LIBS
-    echo Xpre: $X_PRE_LIBS
-fi    
+    AC_MSG_NOTICE([Xlibs: $X_LIBS])
+    AC_MSG_NOTICE([Extras: $X_EXTRA_LIBS])
+    AC_MSG_NOTICE([Xpre: $X_PRE_LIBS])
+fi
 # End of X client check
 
 # Check to see if gtk-v1 client will be built
 if eval "test x$gtkv1 = xyes" ; then
     if eval "test x$cfgtk2 = xyes" ; then
-        PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, [HAVE_GTK2=yes], [HAVE_GTK2=no]) 
+        PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, [HAVE_GTK2=yes], [HAVE_GTK2=no])
         if eval "test x$HAVE_GTK2 = xyes" ; then
             GTK_CFLAGS="`$PKG_CONFIG --cflags gtk+-2.0` -DCFGTK2 -DGTK_ENABLE_BROKEN -DGTK_WINDOW_DIALOG=GTK_WINDOW_TOPLEVEL"
             GTK_LIBS=`$PKG_CONFIG --libs gtk+-2.0`
@@ -154,8 +154,7 @@ if eval "test x$gtkv1 = xyes" ; then
             CFGTK="no"
             AC_MSG_NOTICE(GTK+ 2 found - building original gtk-v1 client with GTK+ 2.0.0)
         else
-            AC_MSG_WARN(GTK+ 2 not found and --enable-cfgtk2 is set - cannot
-build original gtk-v1 client)
+            AC_MSG_WARN(GTK+ 2 not found and --enable-cfgtk2 is set - cannot build original gtk-v1 client)
             gtkv1="no"
         fi
     else
@@ -183,11 +182,11 @@ AC_SUBST(CFGTK)
 if eval "test x$gtkv2 = xyes" ; then
     if eval "test x$HAVE_GTK2 != xyes" ; then
         # Check for GTK+ 2
-        PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, [HAVE_GTK2=yes], [HAVE_GTK2=no]) 
+        PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, [HAVE_GTK2=yes], [HAVE_GTK2=no])
     fi
     if eval "test x$HAVE_GTK2 = xyes" ; then
         # Check for Libglade-2.0
-        PKG_CHECK_MODULES(LIBGLADE, libglade-2.0 >= 2.0.0, [HAVE_LIBGLADE=yes], [HAVE_LIBGLADE=no]) 
+        PKG_CHECK_MODULES(LIBGLADE, libglade-2.0 >= 2.0.0, [HAVE_LIBGLADE=yes], [HAVE_LIBGLADE=no])
         if eval "test x$HAVE_LIBGLADE = xyes" ; then
             CF_SUBDIRS="$CF_SUBDIRS gtk-v2"
             AC_SUBST(LIBGLADE_CFLAGS)
@@ -239,7 +238,8 @@ AC_CHECK_LIB(lua, lua_call,
     ],
     [
     ])
-])
+] )
+
 if eval "test x$lua_scripting = xyes" ; then
     AC_DEFINE(HAVE_LUA, 1, [Define to use Lua 5.x])
 else
@@ -296,7 +296,7 @@ if eval "test x$sound = xyes"; then
     # we find it.
 
     if eval "test x$alsa9_sound = xyes"; then
-        echo "Using ALSA sound system (0.9.x)"
+        AC_MSG_NOTICE([Using ALSA sound system (0.9.x)])
         CFLAGS="$CFLAGS -DALSA9_SOUND"
         ALSA9_TARGET='cfsndserv_alsa9$(EXEEXT)'
         ALSA9_LIBS="-lasound -lm"
@@ -310,31 +310,31 @@ if eval "test x$sound = xyes"; then
     fi
 
     if eval "test x$alsa_sound = xyes"; then
-        echo "Using ALSA sound system"
+        AC_MSG_NOTICE([Using ALSA sound system])
         CFLAGS="$CFLAGS -DALSA_SOUND"
         SND_LIBS="-lasound -lm"
         SOUND_SRC="sound-src";
-    else 
+    else
         if eval "test x$sgi_sound = xyes"; then
-            echo "Using SGI sound system"
+            AC_MSG_NOTICE([Using SGI sound system])
             CFLAGS="$CFLAGS -DSGI_SOUND"
             SND_LIBS="-laudio"
             SOUND_SRC="sound-src";
         else
             if eval "test x$oss_sound = xyes"; then
-                echo "Using OSS sound system"
+                AC_MSG_NOTICE([Using OSS sound system])
                 CFLAGS="$CFLAGS -DOSS_SOUND"
                 SND_LIBS="-lm"
                 AC_CHECK_LIB(ossaudio, main, SND_LIBS="$LIBS -lossaudio")
                 SOUND_SRC="sound-src";
             else
                 if eval "test x$sun_sound = xyes"; then
-                    echo "Using solaris sound system"
+                    AC_MSG_NOTICE([Using solaris sound system])
                     CFLAGS="$CFLAGS -DSUN_SOUND"
                     SND_LIBS="-lm"
                     SOUND_SRC="sound-src";
                 else
-                    echo "No suitable sound system found."
+                    AC_MSG_WARN([No suitable sound system found.])
                     sound="no"
                 fi
             fi
@@ -366,9 +366,9 @@ if eval "test x$use_sdl = xyes"; then
 
     if eval "test x$no_sdl = x"; then
         AC_CHECK_LIB( SDL_image, IMG_LoadPNG_RW,
-            have_sdlimage="yes", have_sdlimage="no", $SDL_CFLAGS $SDL_LIBS) 
+            have_sdlimage="yes", have_sdlimage="no", $SDL_CFLAGS $SDL_LIBS)
         if eval "test x$have_sdlimage = xyes"; then
-            echo "sdl image detected!"
+            AC_MSG_NOTICE([sdl image detected!])
             SDL_LIBS="$SDL_LIBS -lSDL_image"
         else
             no_sdl="yes"
@@ -455,7 +455,7 @@ AC_CHECK_LIB(png, main, , [AC_MSG_ERROR([You must have the png library installed
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h string.h sys/select.h pthread.h curl/curl.h)
+AC_CHECK_HEADERS([curl/curl.h fcntl.h pthread.h string.h sys/ioctl.h sys/select.h sys/time.h unistd.h])
 
 # Metaserver support is pretty critical to the client, so fail unless the
 # user explicity tells us to compile it without metaserver2 support.
@@ -482,6 +482,7 @@ fi
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
+AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
 AC_CHECK_SIZEOF(long)
@@ -490,7 +491,7 @@ AC_CHECK_SIZEOF(long long)
 # Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(mkdir socket strcspn sysconf getaddrinfo)
+AC_CHECK_FUNCS([getaddrinfo mkdir socket strcspn sysconf])
 
 AC_SUBST(XPM)
 AC_SUBST(SOUNDDIR)
@@ -527,7 +528,7 @@ AC_SUBST(CF_DATADIR)
 # descend into these subdirs.
 
 AC_CONFIG_FILES([
-    Makefile gtk/Makefile x11/Makefile common/Makefile 
+    Makefile gtk/Makefile x11/Makefile common/Makefile
     sound-src/Makefile gtk-v2/Makefile pixmaps/Makefile
     gtk-v2/glade/Makefile gtk-v2/src/Makefile gtk-v2/themes/Makefile
     help/Makefile utils/Makefile ])
