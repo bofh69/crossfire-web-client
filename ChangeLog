@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Allow scripts to retrieve information that was previously unavailable: tag of
+the player object (used in move commands), title, list of known spells, names
+of the known skills, and attuned/repelled/denied spell paths.
+ common/script.c
+Raphael Quinet 2008-06-22
+
 Clean up configure.ac and add a missing test for size_t.
  configure.ac
  common/config.h.in

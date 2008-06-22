@@ -1084,6 +1084,7 @@ static void script_process_cmd(int i)
        *
        * Valid requests:
        *
+       *   player       Return the player's tag and title
        *   range        Return the type and name of the currently selected range attack
        *   stat <type>  Return the specified stats
        *   stat stats   Return Str,Con,Dex,Int,Wis,Pow,Cha
@@ -1091,6 +1092,7 @@ static void script_process_cmd(int i)
        *   stat hp      Return hp,maxhp,sp,maxsp,grace,maxgrace,food
        *   stat xp      Return level,xp,skill-1 level,skill-1 xp,...
        *   stat resists Return resistances
+       *   stat paths   Return spell paths: attuned, repelled, denied.
        *   weight       Return maxweight, weight
        *   flags        Return flags (fire, run)
        *   items inv    Return a list of items in the inventory, one per line
@@ -1101,8 +1103,16 @@ static void script_process_cmd(int i)
        *   map near     Return the 3x3 grid of the map centered on the player
        *   map all      Return all the known map information
        *   map <x> <y>  Return the information about square x,y in the current map
+       *   skills       Return a list of all skill names, one per line (see also stat xp)
+       *   spells       Return a list of known spells, one per line
        */
-      if ( strncmp(c,"range",5)==0 ) {
+      if (strncmp(c, "player", 6) == 0) {
+         char buf[1024];
+
+         snprintf(buf, sizeof(buf), "request player %d %s\n", cpl.ob->tag, cpl.title);
+         write(scripts[i].out_fd, buf, strlen(buf));
+      }
+      else if ( strncmp(c,"range",5)==0 ) {
          char buf[1024];
 
          snprintf(buf, sizeof(buf), "request range %s\n",cpl.range);
@@ -1132,19 +1142,19 @@ static void script_process_cmd(int i)
             snprintf(buf, sizeof(buf), "request stat stats %d %d %d %d %d %d %d\n",cpl.stats.Str,cpl.stats.Con,cpl.stats.Dex,cpl.stats.Int,cpl.stats.Wis,cpl.stats.Pow,cpl.stats.Cha);
             write(scripts[i].out_fd,buf,strlen(buf));
          }
-         if ( strncmp(c,"cmbt",4)==0 ) {
+         else if ( strncmp(c,"cmbt",4)==0 ) {
             char buf[1024];
 
             snprintf(buf, sizeof(buf), "request stat cmbt %d %d %d %d %d\n",cpl.stats.wc,cpl.stats.ac,cpl.stats.dam,cpl.stats.speed,cpl.stats.weapon_sp);
             write(scripts[i].out_fd,buf,strlen(buf));
          }
-         if ( strncmp(c,"hp",2)==0 ) {
+         else if ( strncmp(c,"hp",2)==0 ) {
             char buf[1024];
 
             snprintf(buf, sizeof(buf), "request stat hp %d %d %d %d %d %d %d\n",cpl.stats.hp,cpl.stats.maxhp,cpl.stats.sp,cpl.stats.maxsp,cpl.stats.grace,cpl.stats.maxgrace,cpl.stats.food);
             write(scripts[i].out_fd,buf,strlen(buf));
          }
-         if ( strncmp(c,"xp",2)==0 ) {
+         else if ( strncmp(c,"xp",2)==0 ) {
             char buf[1024];
             int s;
 
@@ -1156,7 +1166,7 @@ static void script_process_cmd(int i)
             }
             write(scripts[i].out_fd,"\n",1);
          }
-         if ( strncmp(c,"resists",7)==0 ) {
+         else if ( strncmp(c,"resists",7)==0 ) {
             char buf[1024];
             int s;
 
@@ -1167,6 +1177,12 @@ static void script_process_cmd(int i)
                write(scripts[i].out_fd,buf,strlen(buf));
             }
             write(scripts[i].out_fd,"\n",1);
+         }
+         else if (strncmp(c, "paths", 2) == 0) {
+            char buf[1024];
+
+            snprintf(buf, sizeof(buf), "request stat paths %d %d %d\n", cpl.stats.attuned, cpl.stats.repelled, cpl.stats.denied);
+            write(scripts[i].out_fd, buf, strlen(buf));
          }
       }
       else if ( strncmp(c,"flags",5)==0 ) {
@@ -1277,6 +1293,33 @@ static void script_process_cmd(int i)
             y=atoi(c);
             send_map(i,x,y);
          }
+      }
+      else if (strncmp(c, "skills", 6) == 0) {
+          char buf[1024];
+          int s;
+
+          for (s = 0; s < CS_NUM_SKILLS; s++) {
+              if (skill_names[s]) {
+                sprintf(buf, "request skills %d %s\n", CS_STAT_SKILLINFO + s, skill_names[s]);
+                write(scripts[i].out_fd, buf, strlen(buf));
+              }
+          }
+          sprintf(buf, "request skills end\n");
+          write(scripts[i].out_fd, buf, strlen(buf));
+      }
+      else if (strncmp(c, "spells", 6) == 0) {
+          char buf[1024];
+          Spell *spell;
+
+          for (spell = cpl.spelldata; spell; spell = spell->next) {
+              sprintf(buf, "request spells %d %d %d %d %d %d %d %d %s\n",
+                      spell->tag, spell->level, spell->sp, spell->grace,
+                      spell->skill_number, spell->path, spell->time,
+                      spell->dam, spell->name);
+              write(scripts[i].out_fd, buf, strlen(buf));
+          }
+          sprintf(buf, "request spells end\n");
+          write(scripts[i].out_fd, buf, strlen(buf));
       }
       else {
          char buf[1024];
