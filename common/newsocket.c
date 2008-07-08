@@ -67,14 +67,14 @@ static int write_socket(int fd, const unsigned char *buf, int len)
 	do {
 #ifndef WIN32
 	    amt=write(fd, pos, len);
-	} while ((amt<0) && (errno==EINTR));
+	} while ((amt<0) && ((errno==EINTR) || (errno=EAGAIN)));
 #else
 	    amt=send(fd, pos, len, 0);
 	} while ((amt<0) && (WSAGetLastError()==EINTR));
 #endif
 
 	if (amt < 0) { /* We got an error */
-	    LOG(llevError,"write_socket","New socket (fd=%d) write failed.\n", fd);
+	    LOG(llevError,"write_socket","New socket (fd=%d) write failed: %s.\n", fd, strerror(errno));
 	    return -1;
 	}
 	if (amt==0) {

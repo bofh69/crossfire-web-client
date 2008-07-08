@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/newsocket.c: Improve error message (print out actual error) on failed
+write.  Also, try to write again on errno==EAGAIN - fixes problem for systems
+that return EAGAIN instead of 0 when a write fails on a non blocking device.
+MSW 2008-07-07
+
 Allow scripts to retrieve information that was previously unavailable: tag of
 the player object (used in move commands), title, list of known spells, names
 of the known skills, and attuned/repelled/denied spell paths.
