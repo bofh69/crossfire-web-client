@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix Makefile.am per use of configure.ac vs. configure.in.
+  Makefile.am
+Kevin Bulgrien 2008-07-19
+
 common/newsocket.c: Improve error message (print out actual error) on failed
 write.  Also, try to write again on errno==EAGAIN - fixes problem for systems
 that return EAGAIN instead of 0 when a write fails on a non blocking device.

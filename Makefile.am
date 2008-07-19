@@ -32,7 +32,7 @@ EXTRA_DIST = \
 	TODO			\
 	aclocal.m4		\
 	configure		\
-	configure.in		\
+	configure.ac		\
 	crossfire-client.spec
 
 proto:
