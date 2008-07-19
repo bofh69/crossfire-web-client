@@ -5,6 +5,7 @@ Top of SVN tree:
 Fix Makefile.am per use of configure.ac vs. configure.in.
   Makefile.am
 Fix release procedure support (make dist) for script_lua.h.
+Fix release procedure support (make dist) for msgtypes.h.
   common/Makefile.am
 Kevin Bulgrien 2008-07-19
 

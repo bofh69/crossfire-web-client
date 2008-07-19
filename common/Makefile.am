@@ -47,6 +47,7 @@ noinst_HEADERS = \
 	item.h \
 	mapdata.h \
 	metaserver.h \
+	msgtypes.h \
 	newclient.h \
 	p_cmd.h \
 	proto.h \
