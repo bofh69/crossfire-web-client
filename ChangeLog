@@ -13,6 +13,9 @@ GTK-v1 client name changes from gcfclient to crossfire-client-gtk.
   gtk/gx11.c
   gtk/win32/config.h
   gtk/crossfire-client-gtk.man
+Add -popups to the default startup options as a partial workaround for
+Bug #2022488 2.x GTKv1 client built --enable-cfgtk2 cannot login.
+  gtk/crossfire-client.desktop
 Kevin Bulgrien 2008-07-19
 
 common/newsocket.c: Improve error message (print out actual error) on failed
