@@ -51,6 +51,7 @@ noinst_HEADERS = \
 	p_cmd.h \
 	proto.h \
 	script.h \
+	script_lua.h \
         version.h \
         svnversion.h
 

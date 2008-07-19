@@ -4,6 +4,8 @@ Top of SVN tree:
 
 Fix Makefile.am per use of configure.ac vs. configure.in.
   Makefile.am
+Fix release procedure support (make dist) for script_lua.h.
+  common/Makefile.am
 Kevin Bulgrien 2008-07-19
 
 common/newsocket.c: Improve error message (print out actual error) on failed
