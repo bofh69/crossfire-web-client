@@ -1,9 +1,9 @@
 .\"$Id$
-.TH gcfclient
+.TH crossfire-client-gtk
 .SH NAME
 crossfire-client-gtk - gtk client program for crossfire servers.
 .SH SYNOPSIS
-.B gcfclient
+.B crossfire-client-gtk
 [-server server] [-port number] [-display display] [-split|-nosplit] [-download_all_faces]
 [-echo] [faceset name] [-showicon] [-scrollines number] [-sync] [-help]
 [-cache|-nocache] [-darkness|-nodarkness] [-nosound] [-nosplash]

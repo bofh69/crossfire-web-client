@@ -86,10 +86,10 @@
 #undef SIZEOF_LONG_LONG
 
 /* Name of package */
-#define PACKAGE "gcfclient"
+#define PACKAGE "crossfire-client-gtk"
 
 /* Version number of package */
-#define VERSION "1.9.1 (snapshot)"
+#define VERSION "2.x (snapshot)"
 
 /***********************/
 #ifdef WIN32

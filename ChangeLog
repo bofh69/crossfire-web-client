@@ -7,6 +7,12 @@ Fix Makefile.am per use of configure.ac vs. configure.in.
 Fix release procedure support (make dist) for script_lua.h.
 Fix release procedure support (make dist) for msgtypes.h.
   common/Makefile.am
+GTK-v1 client name changes from gcfclient to crossfire-client-gtk.
+  gtk/crossfire-client.desktop
+  gtk/config.c
+  gtk/gx11.c
+  gtk/win32/config.h
+  gtk/crossfire-client-gtk.man
 Kevin Bulgrien 2008-07-19
 
 common/newsocket.c: Improve error message (print out actual error) on failed
