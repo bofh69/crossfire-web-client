@@ -76,7 +76,7 @@ const char * const rcsid_gtk_gx11_c =
 #include <SDL_image.h>
 #endif
 
-/* always include our local headers after the system headers are included */
+/* Always include our local headers after the system headers are included */
 #include "client.h"
 /*#include "clientbmap.h"*/
 #include "item.h"
@@ -118,7 +118,7 @@ int map_image_size=DEFAULT_IMAGE_SIZE, map_image_half_size=DEFAULT_IMAGE_SIZE/2;
 PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
 
-  /* copy from server: include/define.h */
+  /* Copy from server: include/define.h */
 #define PU_NOTHING              0x00000000
 
 #define PU_DEBUG                0x10000000
@@ -289,18 +289,18 @@ static GtkWidget *gtkwin_magicmap = NULL;
 
 static GtkWidget *bugtrack = NULL;
 
-/* these are the panes used in splitting up the window in non root
+/* These are the panes used in splitting up the window in non root
  * windows mode.  Need to be globals so we can get/set the
  * information when loading/saving the positions.
  */
 
 static GtkWidget
     *inv_hpane,		/* Split between inv,message window and stats/game/.. window */
-    *stat_info_hpane,	/* game/stats on left, info windows on right */
-    *stat_game_vpane,	/* status window/game window split */
-    *game_bar_vpane,	/* game/scroll split */
-    *inv_look_vpane,	/* inventory/look split */
-    *info_vpane;	/* split for 2 info windows */
+    *stat_info_hpane,	/* Game/stats on left, info windows on right */
+    *stat_game_vpane,	/* Status window/game window split */
+    *game_bar_vpane,	/* Game/scroll split */
+    *inv_look_vpane,	/* Inventory/look split */
+    *info_vpane;	/* Split for 2 info windows */
 
 static char *last_str;
 
@@ -309,7 +309,7 @@ static unsigned int pickup_mode = 0;
 
 int updatelock = 0;
 
-/* this is used for caching the images across runs.  When we get a face
+/* This is used for caching the images across runs.  When we get a face
  * command from the server, we check the facecache for that name.  If
  * so, we can then use the num to find out what face number it is on the
  * local side.
@@ -335,7 +335,7 @@ void cleanup_connection(void) {
     cleanup_textmanagers();
 }
 
-/* main loop iteration related stuff */
+/* Main loop iteration related stuff */
 static void do_network(void) {
     fd_set tmp_read;
     int pollret;
@@ -518,7 +518,7 @@ static void init_cache_data(void)
 							(gchar **)question_xpm);
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
-	/* make a semi transparent question mark symbol to
+	/* Make a semi transparent question mark symbol to
 	 * use for the cached images.
 	 */
 #include "pixmaps/question.sdl"
@@ -551,7 +551,7 @@ static void init_cache_data(void)
     init_common_cache_data();
 }
 
-/* Deals with command history.  if direction is 0, we are going backwards,
+/* Deals with command history.  If direction is 0, we are going backwards,
  * if 1, we are moving forward.
  */
 
@@ -590,13 +590,13 @@ void gtk_complete_command(void)
 
     entry_text = gtk_entry_get_text(GTK_ENTRY(entrytext));
     newcommand = complete_command(entry_text);
-    /* value differ, so update window */
+    /* Value differ, so update window */
     if (newcommand != NULL) {
         /* Set position to last character */
         gtk_entry_set_text(GTK_ENTRY(entrytext), newcommand);
     }
     else
-    /* grab focus anyway, key can be used somewhere, prevent other handlers */
+    /* Grab focus anyway, key can be used somewhere, prevent other handlers */
         gtk_widget_grab_focus (GTK_WIDGET(entrytext));
     gtk_entry_set_position(GTK_ENTRY(entrytext), -1);
 }
@@ -614,9 +614,9 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
     static sint16  ox=-1, oy=-1;
 
     /* Handle the surplus number of events that this causes to be generated.
-     * basically, if the size of the window hasn't changed, we really don't
+     * Basically, if the size of the window hasn't changed, we really don't
      * care - position of the window isn't important.
-     * note that we could be more clever and free up the other data even on
+     * Note that we could be more clever and free up the other data even on
      * requests that do change the size,
      * but this will fix the most horrendous memory leak
      */
@@ -636,7 +636,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 #ifdef HAVE_SDL
     if(use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 	/* When program first runs, mapsurface can be null.
-	 * either way, we want to catch it here.
+	 * Either way, we want to catch it here.
 	 */
 	if (mapsurface)
 	    SDL_UpdateRect( mapsurface, 0, 0, 0, 0);
@@ -650,7 +650,7 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 	int x,y,count;
 	GdkGC	*darkgc;
 
-	/* this is used when drawing with GdkPixmaps.  Create another surface,
+	/* This is used when drawing with GdkPixmaps.  Create another surface,
          * as well as some light/dark images
          */
 	dark = gdk_pixmap_new(drawingarea->window, map_image_size, map_image_size, -1);
@@ -671,9 +671,9 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 	for (x=0; x<map_image_size; x++) {
 	    for (y=0; y<map_image_size; y++) {
 
-		/* we just fill in points every X pixels - dark1 is the darkest, dark3 is the lightest.
+		/* We just fill in points every X pixels - dark1 is the darkest, dark3 is the lightest.
 		 * dark1 has 50% of the pixels filled in, dark2 has 33%, dark3 has 25%
-		 * The formula's here are not perfect - dark2 will not match perfectly with an
+		 * The formulae here are not perfect - dark2 will not match perfectly with an
 		 * adjacent dark2 image.  dark3 results in diagonal stripes.  OTOH, these will
 		 * change depending on the image size.
 		 */
@@ -688,9 +688,9 @@ configure_event (GtkWidget *widget, GdkEventConfigure *event)
 		}
 		/* dark1 gets filled on 0x01, 0x11, 0x10, only leaving 0x00 empty */
 	    }
-	    /* if the row size is even, we put an extra value in count - in this
+	    /* If the row size is even, we put an extra value in count - in this
 	     * way, the pixels will be even on one line, odd on the next, etc
-	     * instead of vertical lines - at least for datk1 and dark3
+	     * instead of vertical lines - at least for dark1 and dark3
 	     */
 	}
 	mapwindow = gdk_pixmap_new(gtkwin_root->window, use_config[CONFIG_MAPWIDTH] * map_image_size, use_config[CONFIG_MAPHEIGHT] * map_image_size, -1);
@@ -998,7 +998,7 @@ static void sendstr(char *sendstr)
 
 
 /* This is similar to draw_info below, but doesn't advance to a new
- * line.  Generally, queries use this function to draw the prompt for
+ * line.  Generally queries use this function to draw the prompt for
  * the name, password, etc.
  */
 
@@ -1108,7 +1108,7 @@ static gint dialog_delete_event_callback(GtkWidget *widget, GdkEvent *event, gpo
     }
 static void buildLoginDialog(void) {
     if (loginWindow==NULL){
-        /* build window */
+        /* Build window */
         GtkWidget *vbox, *table, *label, *hbox, *vscroll;
         loginWindow= gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_policy (GTK_WINDOW (loginWindow), TRUE, TRUE,
@@ -1120,7 +1120,7 @@ static void buildLoginDialog(void) {
                     GTK_WINDOW (gtkwin_root));
         vbox=gtk_vbox_new(FALSE,4);
 
-        /* build it's notebook */
+        /* Build it's notebook */
         loginTabs = gtk_notebook_new();
         /* notebook -> news */
         hbox=gtk_hbox_new(FALSE,2);
@@ -1149,7 +1149,7 @@ static void buildLoginDialog(void) {
         gtk_widget_show(rulesText);
         gtk_widget_show(hbox);
 
-        /*notebook -> login*/
+        /* notebook -> login */
         hbox=gtk_hbox_new(FALSE,2);
         motdText = gtk_text_new(NULL,NULL);
         vscroll = gtk_vscrollbar_new (GTK_TEXT (motdText)->vadj);
@@ -1161,14 +1161,14 @@ static void buildLoginDialog(void) {
         gtk_box_pack_start(GTK_BOX(vbox),hbox,TRUE,TRUE,0);
 
 
-        /* message information */
+        /* Message information */
         loginMessage = gtk_label_new(NULL);
         gtk_box_pack_start(GTK_BOX(vbox),loginMessage,FALSE,FALSE,0);
         gtk_widget_show(loginMessage);
 
         /* user-pass table*/
         table=gtk_table_new(3,2,FALSE);
-           /* TODO for strange reason justify do not work.
+           /* TODO for strange reason justify does not work.
             * May someone fix this?*/
         label=gtk_label_new("User:");
         gtk_table_attach(GTK_TABLE(table),label,0,1,0,1,GTK_EXPAND|GTK_FILL,0,2,2);
@@ -1206,7 +1206,7 @@ static void buildLoginDialog(void) {
         gtk_widget_show(loginButtonOk);
         gtk_widget_show(loginButtonCancel);
 
-        /*manage events on login widgets*/
+        /* Manage events on login widgets */
         gtk_signal_connect_object (GTK_OBJECT (loginWindow),
                 "delete_event",
                 GTK_SIGNAL_FUNC (dialog_delete_event_callback),
@@ -1756,9 +1756,9 @@ draw_prompt (const char *str)
  * automatically freeze the info window when adding text to it, set the
  * draw_info_freeze variable true and the actual drawing will take place
  * during the next do_timeout at which point it is unfrozen again. That way
- * we handle massive amounts of text addition with a single gui event, which
+ * we handle massive amounts of text addition with a single GUI event, which
  * results in a serious speed improvement for slow client machines (and
- * above all it avoids a gui lockup when the client becomes congested with
+ * above all it avoids a GUI lockup when the client becomes congested with
  * updates (which is often when you're in the middle of fighting something
  * serious and not a good time to get slow reaction time)).
  *
@@ -1767,7 +1767,7 @@ draw_prompt (const char *str)
  * doesn't, the client crashes.  The error itself is in the gtk library,
  * to hopefully they will fix it someday.  The reason to do this is
  * to keep these buffers a reasonable size so that performance stays
- * good - otherewise, performance slowly degrades.
+ * good - otherwise, performance slowly degrades.
  */
 
 void draw_info(const char *str, int color) {
@@ -1809,7 +1809,7 @@ void draw_info(const char *str, int color) {
 	gtk_text_insert (GTK_TEXT (gtkwin_info_text2), NULL, &root_color[ncolor], NULL, "\n" , -1);
 
     } else {
-	/* all nootes in the above section apply here also */
+	/* All notes in the above section apply here also */
 	if (!draw_info_freeze1){
 	    gtk_text_freeze (GTK_TEXT (gtkwin_info_text));
 	    draw_info_freeze1=TRUE;
@@ -1984,7 +1984,7 @@ static int get_stats_display(GtkWidget *frame) {
     table = gtk_table_new (4, 4, FALSE);
     x=0;
     y=0;
-    /* this is all the same - we just pack it in different places */
+    /* This is all the same - we just pack it in different places */
     for (i=0; i<MAX_SKILL*2; i++) {
 	statwindow.skill_exp[i] = gtk_label_new("");
 	gtk_table_attach(GTK_TABLE(table), statwindow.skill_exp[i], x, x+1, y, y+1, GTK_FILL  | GTK_EXPAND, 0, 10, 0);
@@ -2204,7 +2204,7 @@ void draw_stats(int redraw) {
 	    last_stats.skill_level[i] = cpl.stats.skill_level[i];
 	    last_stats.skill_exp[i] = cpl.stats.skill_exp[i];
 	} else if (cpl.stats.skill_level[i]) {
-	    /* don't need to draw the skill, but need to update the position
+	    /* Don't need to draw the skill, but need to update the position
 	     * of where to draw the next one.
 	     */
 	    on_skill+=2;
@@ -2267,7 +2267,7 @@ void reset_stat_bars(void) {
     for (i=0; i<4; i++) {
 	vitals[i].style[0]->bg[GTK_STATE_PRELIGHT] = gdk_green;
 	vitals[i].style[1]->bg[GTK_STATE_PRELIGHT] = gdk_red;
-	/* need to do this double switch so that the color gets updated. Otherwise,
+	/* Need to do this double switch so that the color gets updated. Otherwise,
 	 * if we are currently using style[0] to draw, the update above won't
 	 * have any effect.
 	 */
@@ -2285,41 +2285,41 @@ static int get_message_display(GtkWidget *frame) {
     GtkWidget *res_mainbox;
     GtkWidget *reswindow;
 
-    /* initialize the main hbox */
+    /* Initialize the main hbox */
     res_mainbox = gtk_hbox_new (TRUE,0);
     gtk_container_add (GTK_CONTAINER(frame), res_mainbox);
 
     /* stat bar part - start */
 
-    /* initialize the vbox for the stat bars (Hp,Mana,Grace,Food)
+    /* Initialize the vbox for the stat bars (Hp,Mana,Grace,Food)
      * and pack it into the main hbox
      */
     vbox = gtk_vbox_new (FALSE, 0);
     gtk_box_pack_start (GTK_BOX(res_mainbox), vbox, FALSE, TRUE, 0);
 
-    /* initialize the table and pack this into the vbox */
+    /* Initialize the table and pack this into the vbox */
     mtable = gtk_table_new (2,4,FALSE);
     gtk_box_pack_start (GTK_BOX(vbox),mtable,FALSE,FALSE,0);
 
-    /* create the stat bars and place them in the table */
+    /* Create the stat bars and place them in the table */
     create_stat_bar (mtable, 1,"Hp: 0",0, &statwindow.hp);
     create_stat_bar (mtable, 3,"Mana: 0",1, &statwindow.sp);
     create_stat_bar (mtable, 5,"Grace: 0",2, &statwindow.gr);
     create_stat_bar (mtable, 7,"Food: 0",3, &statwindow.food);
 
-    /* stat bar part - end */
+    /* Stat bar part - end */
 
 
-    /* resistances table part - start */
+    /* Resistances table part - start */
 
-    /* initialize the hbox for the resistances table */
+    /* Initialize the hbox for the resistances table */
     reswindow = gtk_hbox_new (TRUE, 0);
     gtk_box_pack_start(GTK_BOX(res_mainbox), reswindow, FALSE, TRUE, 0);
 
-    /* create the resistance table*/
+    /* Create the resistance table*/
     restable = gtk_table_new (4,12,FALSE);
 
-    /* packing the restable in a scrollable window*/
+    /* Packing the restable in a scrollable window*/
     res_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
     gtk_container_set_border_width (GTK_CONTAINER (res_scrolled_window), 0);
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (res_scrolled_window),
@@ -2328,12 +2328,12 @@ static int get_message_display(GtkWidget *frame) {
     gtk_widget_show (res_scrolled_window);
     gtk_scrolled_window_add_with_viewport ( GTK_SCROLLED_WINDOW (res_scrolled_window), restable);
 
-    /* finally, draw the resistances table */
+    /* Finally, draw the resistances table */
     resize_resistance_table(use_config[CONFIG_RESISTS]);
 
-    /* resistances table part - end */
+    /* Resistances table part - end */
 
-    /* now showing all not already showed widgets */
+    /* Now showing all not already showed widgets */
     gtk_widget_show (res_mainbox);
     gtk_widget_show (reswindow);
     gtk_widget_show (restable);
@@ -2358,30 +2358,30 @@ void resize_resistance_table(int resists_show) {
 			     child->widget);
     }
 
-    /* initialize labels for all modes of CONFIG_RESISTS */
+    /* Initialize labels for all modes of CONFIG_RESISTS */
     fire_label = gtk_label_new ("    ");
     run_label = gtk_label_new ("   ");
 
-    /* place labels for dual-column mode of CONFIG_RESISTS */
+    /* Place labels for dual-column mode of CONFIG_RESISTS */
     if (resists_show) {
 	gtk_table_resize(GTK_TABLE(restable), 4,12);
 	gtk_table_attach (GTK_TABLE(restable), fire_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	gtk_table_attach (GTK_TABLE(restable), run_label, 3, 4, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
     }
-    else { /* single column mode */
+    else { /* Single column mode */
 	gtk_table_resize(GTK_TABLE(restable), 2,24);
 	gtk_table_attach (GTK_TABLE(restable), fire_label, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	gtk_table_attach (GTK_TABLE(restable), run_label, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, 0, 0, 0);
     }
-    /* show labels for all modes of CONFIG_RESISTS */
+    /* Show labels for all modes of CONFIG_RESISTS */
     gtk_widget_show (fire_label);
     gtk_widget_show (run_label);
-    /* make and place labels for showing the resistances - start */
+    /* Make and place labels for showing the resistances - start */
 
     for (i=0; i< NUM_RESISTS; i++) {
 	resists[i] = gtk_label_new("          ");
 
-	/* place the labels for dual columns in the table restable */
+	/* Place the labels for dual columns in the table restable */
 	if (resists_show) {
 	    if ((i/2)*2 != i) {
 		left++;
@@ -2392,7 +2392,7 @@ void resize_resistance_table(int resists_show) {
 	    }
 	    gtk_widget_show (resists[i]);
 	}
-	else { /* single column style */
+	else { /* Single column style */
 	    gtk_table_attach (GTK_TABLE(restable), resists[i], 0, 2, 3+i, 4+i, GTK_FILL | GTK_EXPAND, 0, 0, 0);
 	    gtk_widget_show (resists[i]);
 	}
@@ -2465,7 +2465,7 @@ void draw_message_window(int redraw) {
 
     if (updatelock < 25) {
 	updatelock++;
-	/* draw hp bar */
+	/* Draw hp bar */
 	if(cpl.stats.maxhp>0)
 	{
 	    bar=(float)cpl.stats.hp/cpl.stats.maxhp;
@@ -2485,7 +2485,7 @@ void draw_message_window(int redraw) {
 	scrollsize_hp=bar;
 	scrollhp_alert=is_alert;
 
-	/* draw sp bar.  Let draw_stats_bar handle high values */
+	/* Draw sp bar.  Let draw_stats_bar handle high values */
 	bar=(float)cpl.stats.sp/cpl.stats.maxsp;
 	if(bar<=0)
 	    bar=(float)0.01;
@@ -2498,7 +2498,7 @@ void draw_message_window(int redraw) {
 	scrollsize_sp=bar;
 	scrollsp_alert=is_alert;
 
-	/* draw grace bar. grace can go above max or below min */
+	/* Draw grace bar. Grace can go above max or below min */
 	bar=(float)cpl.stats.grace/cpl.stats.maxgrace;
 	if(bar<=0)
 	    bar=(float)0.01;
@@ -2511,7 +2511,7 @@ void draw_message_window(int redraw) {
 	scrollsize_grace=bar;
 	scrollgrace_alert=is_alert;
 
-	/* draw food bar */
+	/* Draw food bar */
 	bar=(float)cpl.stats.food/999;
 	if(bar<=0)
 	    bar=(float)0.01;
@@ -2977,10 +2977,10 @@ static void spellinventory_redraw(GtkWidget* list, GdkEventVisibility* event, gp
     }
 }
 
-static GtkWidget *gtkwin_spell = NULL; /* spell window */
-static GtkWidget *description  = NULL; /* the text box containing spell description */
+static GtkWidget *gtkwin_spell = NULL; /* Spell window */
+static GtkWidget *description  = NULL; /* The text box containing spell description */
 static GtkWidget *list         = NULL;
-static GtkWidget *spelloptions = NULL; /* text box with extra options to pass to the spell */
+static GtkWidget *spelloptions = NULL; /* Text box with extra options to pass to the spell */
 GtkWidget *spellinventory = NULL; /* List containing inventory for spell inscription. Not static because
                                      will be changed by inventory.c*/
 
@@ -3007,8 +3007,8 @@ static void select_spell_event(GtkWidget *gtklist, gint row, gint column,
     Spell *spell = gtk_clist_get_row_data (GTK_CLIST(gtklist), row);
     char *options = NULL;
 
-    if (!event) return; /* we have nothing to do */
-    /* any click will select the spell, and show it's description */
+    if (!event) return; /* We have nothing to do */
+    /* Any click will select the spell, and show it's description */
     gtk_text_freeze(GTK_TEXT(description));
     gtk_text_set_point(GTK_TEXT(description), 0);
     gtk_text_forward_delete(GTK_TEXT(description), gtk_text_get_length(GTK_TEXT(description)));
@@ -3016,13 +3016,13 @@ static void select_spell_event(GtkWidget *gtklist, gint row, gint column,
 	spell->skill?spell->skill:"generic", spell->message);
     gtk_text_insert(GTK_TEXT(description), NULL, NULL, NULL, message, -1);
     gtk_text_thaw(GTK_TEXT(description));
-    if (event->button==2) { /* on middle click, also invoke the spell */
+    if (event->button==2) { /* On middle click, also invoke the spell */
 	options = gtk_editable_get_chars(GTK_EDITABLE(spelloptions), 0, -1);
 	sprintf(command, "invoke %d %s", spell->tag, options);
 	send_command(command, -1, 1);
 	g_free(options);
     }
-    else if (event->button==3) { /* on right click, also cast the spell */
+    else if (event->button==3) { /* On right click, also cast the spell */
 	options = gtk_editable_get_chars(GTK_EDITABLE(spelloptions), 0, -1);
 	sprintf(command, "cast %d %s", spell->tag, options);
 	send_command(command, -1, 1);
@@ -3037,13 +3037,13 @@ static void update_spell_list(int force) {
     Spell *spell;
     PixmapInfo * pixmap;
 
-    /* only update if we have to */
+    /* Only update if we have to */
     if (!force && !cpl.spells_updated) return;
     if (!gtkwin_spell || !GTK_IS_CLIST(list) || !GTK_WIDGET_VISIBLE(gtkwin_spell)) return;
 
     gtk_clist_freeze(GTK_CLIST(list));
 
-    /* we are about to recreate the entire spell list, so remove the existing one first */
+    /* We are about to recreate the entire spell list, so remove the existing one first */
     gtk_clist_clear(GTK_CLIST(list));
 
     for (spell = cpl.spelldata; spell; spell=spell->next) {
@@ -3059,9 +3059,9 @@ static void update_spell_list(int force) {
 	if (spell->grace) sprintf(buffer[2]+strlen(buffer[2]), "%d grace ", spell->grace);
 	if (spell->dam) sprintf(buffer[2]+strlen(buffer[2]), "%d damage ", spell->dam);
 
-	/* the columns array doesn't yet contain the data we need, but we can't set the
+	/* The columns array doesn't yet contain the data we need, but we can't set the
 	 * row colour until we create the row, so we create the row with gtk_clist_append()
-	 *  set the colour, then reset the text in the second column
+	 * set the colour, then reset the text in the second column
 	 */
 	row = gtk_clist_append(GTK_CLIST(list), columns);
 	gtk_clist_set_row_data(GTK_CLIST(list), row, spell);
@@ -3101,21 +3101,21 @@ static void menu_spells(void) {
     gchar *titles_inv[] = {" ", "Name"};
 
     if (gtkwin_spell && GTK_IS_CLIST(list)) {
-	  /* the window is already created, re-present it */
+	  /* The window is already created, re-present it */
 	if (GTK_WIDGET_VISIBLE(gtkwin_spell)) {
 	    gdk_window_raise(gtkwin_spell->window);
 	    return;
 	}
 
-	/* the window is hidden at the moment, we don't need to recreate it,
-         * we can merely reshow it, but the spell list won't have updated whilst
+	/* The window is hidden at the moment, so we don't need to recreate it.
+         * We can merely reshow it, but the spell list won't have updated while
          * it was hidden so we have to force an update */
 	gtk_widget_show_all(gtkwin_spell);
 	update_spell_list(1);
 	return;
     }
 
-    /* we can't use an existing version, so we must create a new one, first we
+    /* We can't use an existing version, so we must create a new one. First we
      * will deal with the window itself */
     gtkwin_spell = gtk_window_new (GTK_WINDOW_DIALOG);
     gtk_window_set_default_size(GTK_WINDOW(gtkwin_spell), 400+image_size, 400+image_size);
@@ -3128,12 +3128,12 @@ static void menu_spells(void) {
     gtk_box_pack_start(GTK_BOX(optionsbox), spelloptionslabel, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(optionsbox), spelloptions, TRUE, TRUE, 0);
 
-    /* now the list scroll window */
+    /* rNw the list scroll window */
     scroll_window = gtk_scrolled_window_new (0,0);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll_window),
 	GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
-    /* and the spell list itself */
+    /* And the spell list itself */
     list = gtk_clist_new_with_titles(3, titles);
     gtk_clist_set_column_width(GTK_CLIST(list), 1, image_size);
     gtk_clist_set_column_width(GTK_CLIST(list), 1, 200);
@@ -3146,20 +3146,20 @@ static void menu_spells(void) {
 	liststyle->fg[GTK_STATE_SELECTED] = gdk_black;
 	gtk_widget_set_style (list, liststyle);
     }
-    /* set the actions for the mouse buttons to trigger the callback function */
+    /* Set the actions for the mouse buttons to trigger the callback function */
     gtk_clist_set_button_actions(GTK_CLIST(list), 1, GTK_BUTTON_SELECTS);
     gtk_clist_set_button_actions(GTK_CLIST(list), 2, GTK_BUTTON_SELECTS);
     gtk_signal_connect(GTK_OBJECT(list), "select_row",
 	GTK_SIGNAL_FUNC(select_spell_event), NULL);
 
-    /* with all that done, we can now add it to the scroll window */
+    /* With all that done, we can now add it to the scroll window */
     gtk_container_add(GTK_CONTAINER(scroll_window), list);
 
-    /* now we'll create the description box */
+    /* Now we'll create the description box */
     description = gtk_text_new(NULL, NULL);
     gtk_text_set_editable(GTK_TEXT (description), FALSE);
 
-    /* finally add a close button to the window */
+    /* Finally add a close button to the window */
     cancelbutton = gtk_button_new_with_label("Close");
     gtk_signal_connect_object (GTK_OBJECT (cancelbutton), "clicked",
 	GTK_SIGNAL_FUNC(gtk_widget_hide_all), GTK_OBJECT (gtkwin_spell));
@@ -3224,7 +3224,7 @@ static void menu_spells(void) {
     /* vbox holds all the widgets we just created, in order */
     vbox = gtk_vbox_new(FALSE, 2);
 
-    /* ok, time to pack it all up */
+    /* Ok, time to pack it all up */
     gtk_container_add(GTK_CONTAINER(gtkwin_spell), vbox);
     gtk_box_pack_start(GTK_BOX(vbox), scroll_window, TRUE, TRUE, 0);
 
@@ -3234,7 +3234,7 @@ static void menu_spells(void) {
 
     gtk_widget_show_all(gtkwin_spell);
 
-    /* let's add the spells to the list now */
+    /* Let's add the spells to the list now */
     update_spell_list(1);
 }
 
@@ -3274,7 +3274,7 @@ void client_exit(void) {
     exit(0);
 }
 
-/* To keep trace of pickup menus, and be able to check/uncheck them. */
+/* To keep track of pickup menus, and be able to check/uncheck them. */
 static GtkWidget* pickup_menus[43];
 static int pickup_value[43];
 static int pickup_count = 0;
@@ -3568,7 +3568,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 /* --------------------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-  /* root of the NEWPickup menu */
+  /* Root of the NEWPickup menu */
   newpickupmenu = gtk_menu_new();
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(newpickup_menu_item), newpickupmenu);
 
@@ -3613,7 +3613,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   pickup_value[pickup_count++] = PU_DEBUG;
 
 
-  /* the ratio pickup submenu */
+  /* The ratio pickup submenu */
   ratiopickupmenu = gtk_menu_new();
   ratiopickup_menu_item = gtk_menu_item_new_with_label("Weight/Value Ratio");
   gtk_menu_append(GTK_MENU(newpickupmenu), ratiopickup_menu_item);
@@ -3642,7 +3642,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   }
 
 
-  /* weapon pickup menu */
+  /* Weapon pickup menu */
   weaponpickupmenu = gtk_menu_new();
   weaponpickup_menu_item = gtk_menu_item_new_with_label("Weapons");
   gtk_menu_append(GTK_MENU(newpickupmenu), weaponpickup_menu_item);
@@ -3690,7 +3690,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   pickup_value[pickup_count++] = PU_ARROW;
 
 
-  /* armour pickup menu */
+  /* Armour pickup menu */
   armourpickupmenu = gtk_menu_new();
   armourpickup_menu_item = gtk_menu_item_new_with_label("Armour");
   gtk_menu_append(GTK_MENU(newpickupmenu), armourpickup_menu_item);
@@ -3756,7 +3756,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   pickup_value[pickup_count++] = PU_CLOAK;
 
 
-  /* books pickup menu */
+  /* Books pickup menu */
   bookspickupmenu = gtk_menu_new();
   bookspickup_menu_item = gtk_menu_item_new_with_label("Books");
   gtk_menu_append(GTK_MENU(newpickupmenu), bookspickup_menu_item);
@@ -3795,7 +3795,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   pickup_value[pickup_count++] = PU_READABLES;
 
 
-  /* continue with the rest of the stuff... */
+  /* Continue with the rest of the stuff... */
 
   menu_items = gtk_check_menu_item_new_with_label("Food");
   gtk_check_menu_item_set_show_toggle(GTK_CHECK_MENU_ITEM(menu_items), TRUE);
@@ -3956,7 +3956,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
   gtk_menu_item_right_justify (GTK_MENU_ITEM(root_helpmenu));
   gtk_menu_bar_append(GTK_MENU_BAR (menu_bar), root_helpmenu);
 
-  /* always display the window as the last step so it all splashes on
+  /* Always display the window as the last step so it all splashes on
    * the screen at once. */
 
   return 0;
@@ -3965,7 +3965,7 @@ item'', ``pick up 1 item and stop'', ``stop before picking up'', ``pick up all i
 
 
 /* get_root_display:
- * this sets up the root window (or none, if in split
+ * This sets up the root window (or none, if in split
  * windows mode, and also scans for any Xdefaults.  Right now, only
  * splitwindow and image are used.  image is the display
  * mechanism to use.  I thought having one type that is set
@@ -4427,7 +4427,7 @@ static int get_root_display(char *display_name,int gargc, char **gargv) {
 
     if (want_config[CONFIG_SPLASH]) create_splash();
     /* we need to call gdk_rgb_init very early on, as some of the
-     * create window functions may do call backs in which case we try
+     * create window functions may do callbacks in which case we try
      * to draw the game window.
      */
     gdk_rgb_init();
@@ -4686,7 +4686,7 @@ void draw_magic_map(void)
       cpl.mapxres=24;
       cpl.mapyres=24;
     }
-    /* this is keeping the same unpacking scheme that the server uses
+    /* This is keeping the same unpacking scheme that the server uses
      * to pack it up.
      */
     for (y = 0; y < cpl.mmapy; y++) {
@@ -4833,7 +4833,7 @@ void save_winpos(void)
 	fprintf(fp,"win_message: %d %d %d %d\n", wx,wy, w, h);
     } else {
 	/* in non split mode, we really want the position of the
-	    * various panes.  Current versions do not have a proper
+	 * various panes.  Current versions do not have a proper
 	 * way (ie, function call/macro) to do this - future
 	 * versions of gtk will have a gtk_paned_get_position.
 	 * That code basically does the same thing as what we
@@ -4985,9 +4985,9 @@ static void usage(const char *progname)
     exit(0);
 }
 
-/* init_windows:  This initiliazes all the windows - it is an
+/* init_windows:  This initializes all the windows - it is an
  * interface routine.  The command line arguments are passed to
- * this function to interpert.  Note that it is not in fact
+ * this function to interpret.  Note that it is not in fact
  * required to parse anything, but doing at least -server and
  * -port would be a good idea.
  *
@@ -5613,10 +5613,10 @@ int main(int argc, char *argv[])
 
 	/* Perhaps not the best assumption, but we are taking it that
 	 * if the player has not specified a server (ie, server
-	 * matches compiled in default), we use the meta server.
+	 * matches compiled in default), we use the metaserver.
 	 * otherwise, use the server provided, bypassing metaserver.
 	 * Also, if the player has already played on a server once (defined
-	 * by got_one), go to the metaserver.  That gives them the oppurtunity
+	 * by got_one), go to the metaserver.  That gives them the opportunity
 	 * to quit the client or select another server.  We should really add
 	 * an entry for the last server there also.
 	 */
