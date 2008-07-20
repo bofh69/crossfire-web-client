@@ -1,6 +1,10 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([crossfire-client],[2.0-dev])
+# IMPORTANT:  Do not specify a version number with a "-" in it.  The number
+# is used to create RPMs, and some RPM build tools do not allow use of dash
+# in the version number.
+AC_INIT([crossfire-client],[2.0.dev])
+
 AC_CONFIG_SRCDIR(crossfire-client.spec)
 
 AC_CONFIG_AUX_DIR(utils)
@@ -505,19 +509,19 @@ test "x$prefix" = xNONE && prefix=$ac_default_prefix
 test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
 
 ndatadir=`eval echo ${datadir}`
-ndatadir=`eval echo ${ndatadir}`
+ndatadir=`eval echo ${ndatadir}/crossfire-client`
+
+# Datadir should be working directory in Windows, as there is no set
+# installation directory (choosable at installation time)
+if eval "test x$win32 = xyes" ; then
+    ndatadir="."
+fi
 
 # need to do this twice to cover variables within variables
 nbindir=`eval echo ${bindir}`
 nbindir=`eval echo ${nbindir}`
 
-# Datadir should be working directory in Windows, as there is no set
-# installation directory (choosable at installation time)
-if eval "test x$win32 = xyes" ; then
-    AC_DEFINE_UNQUOTED(CF_DATADIR, ".", [Location of read-only machine independent data.])
-else
-    AC_DEFINE_UNQUOTED(CF_DATADIR, "${ndatadir}/crossfire-client", [Location of read-only machine independent data.])
-fi
+AC_DEFINE_UNQUOTED(CF_DATADIR, "${ndatadir}", [Location of read-only machine independent data.])
 AC_DEFINE_UNQUOTED(BINDIR, "${nbindir}", [Location of other binaries.])
 AC_DEFINE_UNQUOTED(MINLOGLEVEL, ${MINLOGLEVEL}, [Default logging level.])
 
@@ -540,8 +544,9 @@ AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Paths])
 AC_MSG_NOTICE([    prefix default value                 ${prefix}])
 AC_MSG_NOTICE([    exec_prefix default value            ${exec_prefix}])
-AC_MSG_NOTICE([    Will put executables in              $bindir])
+AC_MSG_NOTICE([    Will put executables in              $nbindir])
 AC_MSG_NOTICE([    Will put config in                   $sysconfdir])
+AC_MSG_NOTICE([    Will put data in                     $ndatadir])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Build options])
 if eval "test x$cfgtk2 = xyes" ; then

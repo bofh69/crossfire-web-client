@@ -24,7 +24,8 @@ SUBDIRS = glade src themes
 EXTRA_DIST = \
 	README \
 	README-dev \
-	TODO
+	TODO \
+        crossfire-client.desktop
 
 dist_man6_MANS = \
 	crossfire-client-gtk2.man

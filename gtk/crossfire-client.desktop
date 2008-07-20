@@ -1,8 +1,10 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=Crossfire Client
-Comment=GTK client for Crossfire, a multi-player Hack-like game
+Name=Crossfire GTK Client V1
+Comment=Client for Crossfire, a multi-player Hack-like game
 Exec=crossfire-client-gtk -fog -cache -popups
 Icon=crossfire-client
 Terminal=false
 Type=Application
+Categories=Game;GTK;AdventureGame;RolePlaying
+

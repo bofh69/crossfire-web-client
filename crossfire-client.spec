@@ -8,18 +8,24 @@
 #
 %define Name crossfire
 %define extra client
-%define version 2.0-dev
-%define sndversion 2.0-dev
+%define version 2.0.dev
+%define sndversion 2.0.dev
 %define release 1
 %define prefix /usr/X11R6
 %define _sourcedir /export/home/crossfire/Crossfire
 %define _srcrpmdir /export/home/crossfire/RPM-SRC
 %define _rpmdir /export/home/crossfire/RPMS
 %define _topdir /export/home/crossfire/RPM-TOP
+# _datadir is the client data directory to use and it represents where the
+# crossfire-client directory should reside.
+%define _datadir /usr/share/games/crossfire
+# _desktopdir is the directory where application .desktop files are placed
+# on the target system.
+%define _desktopdir /usr/share/applications
 
 Name: %{Name}-%{extra}
 Version: %{version}
-Release: 1
+Release: %{release}
 Summary: Client for connecting to crossfire servers.
 Group: Amusements/Games/Crossfire
 License: GPL
@@ -78,6 +84,14 @@ Provides: crossfire-client
 %description gtk
 GTK version of the crossfire client
 
+%package x11
+Summary: X11 client for %{Name}
+Group: X11/Games
+Provides: crossfire-client
+
+%description x11
+X11 version of the crossfire client
+
 %package common
 Summary: Common files for %{Name}
 Group: X11/Games
@@ -91,8 +105,12 @@ File includes sounds and images.
 
 %build
 chmod 755 configure
-%configure --datadir=/usr/share/games/crossfire \
-	--with-sound-dir=/usr/share/sounds/crossfire --disable-dmalloc --with-loglevel=3
+%configure \
+  --enable-cfgtk2 \
+  --datadir=%{_datadir} \
+  --with-sound-dir=/usr/share/sounds/crossfire \
+  --disable-dmalloc \
+  --with-loglevel=3
 
 make %{?_smp_mflags}
 
@@ -106,32 +124,29 @@ install sounds/*.raw %{buildroot}%{_datadir}/sounds/crossfire
 #
 # Client images cd lib; adm/collect_images -archive
 #
-install -d %{buildroot}%{_datadir}/games/crossfire/%{name}
-install crossfire.clsc %{buildroot}%{_datadir}/games/crossfire/%{name}
-install crossfire.base %{buildroot}%{_datadir}/games/crossfire/%{name}
-install bmaps.client %{buildroot}%{_datadir}/games/crossfire/%{name}
-install README %{buildroot}%{_datadir}/games/crossfire/%{name}
+install -d %{buildroot}%{_datadir}/%{name}
+install crossfire.clsc %{buildroot}%{_datadir}/%{name}
+install crossfire.base %{buildroot}%{_datadir}/%{name}
+install bmaps.client %{buildroot}%{_datadir}/%{name}
+install README %{buildroot}%{_datadir}/%{name}
 #
 # crossfire-client-gtk2 themes
 #
-install -d %{buildroot}%{_datadir}/games/crossfire/crossfire-client/themes
-install Black %{buildroot}%{_datadir}/games/crossfire/crossfire-client/themes
-install Standard %{buildroot}%{_datadir}/games/crossfire/crossfire-client/themes
+install -d %{buildroot}%{_datadir}/%{name}/themes
+install gtk-v2/themes/Black %{buildroot}%{_datadir}/%{name}/themes
+install gtk-v2/themes/Standard %{buildroot}%{_datadir}/%{name}/themes
 #
 # crossfire-client-gtk2 window layouts
 #
-install -d %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
-install caelestis.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
-install chthonic.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
-install dialogs.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
-install gtk-v1.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
-install gtk-v2.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
-install meflin.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
-install oroboros.glade %{buildroot}%{_datadir}/games/crossfire/crossfire-client/glade-gtk2
+install -d %{buildroot}%{_datadir}/%{name}/glade-gtk2
+find gtk-v2/glade -name "*.glade" | while read _glade_
+do
+  install ${_glade_} %{buildroot}%{_datadir}/%{name}/glade-gtk2
+done
 #
 # KDE
 #
-install -d %{buildroot}%{_datadir}/applnk/Games/Adventure
+install -d %{buildroot}%{_desktopdir}
 install -d %{buildroot}%{_datadir}/icons/hicolor/16x16/apps
 install -d %{buildroot}%{_datadir}/icons/hicolor/32x32/apps
 install -d %{buildroot}%{_datadir}/icons/hicolor/48x48/apps
@@ -149,8 +164,12 @@ install -d %{buildroot}%{_datadir}/icons/locolor/48x48/apps
 #
 # KDE
 #
+install -m 644 -c x11/crossfire-client.desktop \
+	%{buildroot}%{_desktopdir}/crossfire-client-x11.desktop
 install -m 644 -c gtk/crossfire-client.desktop \
-	%{buildroot}%{_datadir}/applnk/Games/Adventure/crossfire.desktop
+	%{buildroot}%{_desktopdir}/crossfire-client-gtk.desktop
+install -m 644 -c gtk-v2/crossfire-client.desktop \
+	%{buildroot}%{_desktopdir}/crossfire-client-gtk2.desktop
 install -m 644 pixmaps/16x16.png \
 	%{buildroot}%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
 install -m 644 pixmaps/32x32.png \
@@ -164,7 +183,6 @@ install -m 644 pixmaps/32x32.png \
 install -m 644 pixmaps/48x48.png \
 	%{buildroot}%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
 
-
 %post
 rm -f %{_datadir}/gnome/apps/Games/crossfire.desktop
 rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
@@ -172,54 +190,64 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 %clean
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
-%files
+%files x11
 %defattr(644,root,root,755)
 %doc ChangeLog COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/crossfire-client-x11
 %{_mandir}/man6/crossfire-client-x11.6*
+# Desktop file
+%{_desktopdir}/crossfire-client-x11.desktop
 
 %files gtk
 %defattr(644,root,root,755)
 %doc ChangeLog COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/crossfire-client-gtk
 %{_mandir}/man6/crossfire-client-gtk.6*
+# Desktop file
+%{_desktopdir}/crossfire-client-gtk.desktop
 
 %files gtk2
 %defattr(644,root,root,755)
 %doc ChangeLog COPYING License NOTES README TODO
 %attr(755,root,root) %{_bindir}/crossfire-client-gtk2
+%{_mandir}/man6/crossfire-client-gtk2.6*
 # Themes
-%dir %{_datadir}/games/crossfire/crossfire-client/themes
-%{_datadir}/games/crossfire/crossfire-client/themes/Black
-%{_datadir}/games/crossfire/crossfire-client/themes/Standard
+%dir %{_datadir}/%{name}/themes
+%{_datadir}/%{name}/themes/Black
+%{_datadir}/%{name}/themes/Standard
 # Window layouts
-%dir %{_datadir}/games/crossfire/crossfire-client/glade-gtk2
-%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/caelestis.glade
-%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/chthonic.glade
-%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/dialogs.glade
-%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/gtk-v1.glade
-%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/gtk-v2.glade
-%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/meflin.glade
-%{_datadir}/games/crossfire/crossfire-client/glade-gtk2/oroboros.glade
+%dir %{_datadir}/%{name}/glade-gtk2
+%{_datadir}/%{name}/glade-gtk2/caelestis.glade
+%{_datadir}/%{name}/glade-gtk2/chthonic.glade
+%{_datadir}/%{name}/glade-gtk2/dialogs.glade
+%{_datadir}/%{name}/glade-gtk2/eureka.glade
+%{_datadir}/%{name}/glade-gtk2/gtk-v1.glade
+%{_datadir}/%{name}/glade-gtk2/gtk-v2.glade
+%{_datadir}/%{name}/glade-gtk2/lobotomy.glade
+%{_datadir}/%{name}/glade-gtk2/meflin.glade
+%{_datadir}/%{name}/glade-gtk2/oroboros.glade
+%{_datadir}/%{name}/glade-gtk2/un-deux.glade
+%{_datadir}/%{name}/glade-gtk2/v1-redux.glade
+# Desktop file
+%{_desktopdir}/crossfire-client-gtk2.desktop
 
 %files common
 %defattr(644,root,root,755)
 
 # Image data
-%{_datadir}/games/crossfire/crossfire-client/README
-%{_datadir}/games/crossfire/crossfire-client/bmaps.client
-%{_datadir}/games/crossfire/crossfire-client/crossfire.base
-%{_datadir}/games/crossfire/crossfire-client/crossfire.clsc
+%{_datadir}/crossfire-client/README
+%{_datadir}/crossfire-client/bmaps.client
+%{_datadir}/crossfire-client/crossfire.base
+%{_datadir}/crossfire-client/crossfire.clsc
 #
 # KDE
 #
-%{_datadir}/applnk/Games/Adventure/*.desktop
-%{_datadir}/icons/hicolor/16x16/apps/%{name}.png
-%{_datadir}/icons/hicolor/32x32/apps/%{name}.png
-%{_datadir}/icons/hicolor/48x48/apps/%{name}.png
-%{_datadir}/icons/locolor/16x16/apps/%{name}.png
-%{_datadir}/icons/locolor/32x32/apps/%{name}.png
-%{_datadir}/icons/locolor/48x48/apps/%{name}.png
+%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
+%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
+%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
+%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
+%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
+%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
 
 # Not supported yet
 #%files gnome

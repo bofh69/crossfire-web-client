@@ -2,6 +2,30 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Update crossfire-client.desktop files by using consistent names; making sure
+all have categories; and adding a new file for the X11 client.
+  x11/crossfire-client.desktop
+  x11/Makefile.am
+  gtk/crossfire-client.desktop
+  gtk-v2/Makefile.am
+  gtk/crossfire-client.desktop
+Change the default version for the client to 2.0.dev instead of 2.0-dev as the
+dash is incompatible with modern RPM tools.  Dash is reserved for separating
+things in the RPM file name, and must not be embedded in the version string.
+Also rework datadir computation, and report where client data files will be
+placed.  Improve reporting of the bindir to be used.
+  configure.ac
+Fix RPM creation for the client release procedure.  Add new .desktop files and
+package them with the clients rather than in the common package.  Change the
+location for the .desktop files to /usr/share/applications.  Update the list
+of .glade files for the GTK client V2.  Correct the RPM build process by
+adding a _datadir definition, and modify all file specifications accordingly.
+Fix the build specs so a crossfire-client-x11 package is made.  Swap the gtk
+client build to use GTK V2 by default.  Change versions to 2.0.dev instead of
+2.0-dev, which is invalid for current versions of rpmbuild.
+  crossfire-client.spec
+Kevin Bulgrien 2008/07/19
+
 Fix Makefile.am per use of configure.ac vs. configure.in.
   Makefile.am
 Fix release procedure support (make dist) for script_lua.h.

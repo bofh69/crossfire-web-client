@@ -1,8 +1,8 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=Crossfire GTK Client V2
-Comment=A cooperative multiplayer graphical RPG and adventure game
-Exec=crossfire-client-gtk2
+Name=Crossfire X11 Client
+Comment=X11 Client for Crossfire, a multi-player Hack-like game
+Exec=crossfire-client-x11
 Icon=crossfire-client
 Terminal=false
 Type=Application
