@@ -101,7 +101,7 @@ void init_client_vars(void)
 {
     int i;
 
-    /* I think environemental variables should be more important than
+    /* I think environment variables should be more important than
      * compiled in defaults, so these probably should be reversed.
      */
     client_libdir=getenv("CFCLIENT_LIBDIR");

@@ -19,6 +19,7 @@ Bug #2022488 2.x GTKv1 client built --enable-cfgtk2 cannot login.
 Spelling, capitalization, and some whitespace modifications.  No functional
 code changes.
   gtk/gx11.c
+  common/init.c
 Kevin Bulgrien 2008-07-19
 
 common/newsocket.c: Improve error message (print out actual error) on failed
