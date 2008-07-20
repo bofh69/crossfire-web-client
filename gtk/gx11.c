@@ -5563,6 +5563,15 @@ int main(int argc, char *argv[])
      * the other functions.
      */
     init_client_vars();
+
+    /* Override ../common/init.c default for POPUPS for this client only
+     * because when compiled with --enable-cfgtk2, a player is not able to
+     * login to the server if POPUPS are disabled.  See bug # 2022488 at
+     * http://sourceforge.net/tracker/index.php?func=detail&aid=2022488&group_id=13833&atid=113833
+     */
+    want_config[CONFIG_POPUPS] = TRUE;
+
+
     snprintf( file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv( "HOME" ) );
     cached_server_file = file_cache;
     init_text_callbacks();

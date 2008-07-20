@@ -20,6 +20,13 @@ Spelling, capitalization, and some whitespace modifications.  No functional
 code changes.
   gtk/gx11.c
   common/init.c
+Override common/init.c default for popups for GTKv1 client only as a
+partial workaround for Bug #2022488 2.x GTKv1 client built --enable-cfgtk2
+cannot login.  This actually changes the behavior to agree with the
+man page that states popups on is the default.  Naturally this will not
+work if a player has a ~/.crossfire/gdefaults file with popups off, but
+this ensures a new player with have a working client with popups on.
+  gtk/gx11.c
 Kevin Bulgrien 2008-07-19
 
 common/newsocket.c: Improve error message (print out actual error) on failed
