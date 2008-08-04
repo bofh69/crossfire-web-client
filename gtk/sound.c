@@ -146,6 +146,7 @@ void SoundCmd(unsigned char *data,  int len)
 #endif
     play_sound(num, type, x, y);
 }
+#endif
 
 void Sound2Cmd(unsigned char *data, int len)
 {
@@ -205,4 +206,3 @@ void MusicCmd(const char *data, int len) {
          */
     }
 }
-#endif

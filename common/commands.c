@@ -572,6 +572,9 @@ void DrawExtInfoCmd(char *data, int len) {
  * skills first. */
 void use_skill(int skill_id)
 {
+   int i = 0;
+   int next;
+   int prev = last_used_skills[0];
    /*
    char buf[100];
    sprintf(buf, "use_skill(%d '%s')\n", skill_id, skill_names(skill_id));
@@ -580,9 +583,6 @@ void use_skill(int skill_id)
 
    if(last_used_skills[0] == skill_id) return;
 
-   int i = 0;
-   int next;
-   int prev = last_used_skills[0];
    do
    {
 	  next = last_used_skills[i+1];

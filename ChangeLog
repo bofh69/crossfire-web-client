@@ -2,6 +2,17 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Win32 updates.
+ common/commands.c: variables declaration at top
+ gtk/sound.c: empty stubs
+ gtk/win32/config.h: vsnprintf exists under another name
+ gtk/win32/GTKClient.dsp: update
+ gtk/win32/GTKClient.dsw: update
+ gtk/win32/gtkclient.nsi: update
+ gtk/win32/Win32Changes.txt: update
+Nicolas Weeger 2008-08-04
+
+
 Update crossfire-client.desktop files by using consistent names; making sure
 all have categories; and adding a new file for the X11 client.
   x11/crossfire-client.desktop

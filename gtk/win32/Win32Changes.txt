@@ -1,8 +1,23 @@
-Changes for Win32 GTK client 1.9.1, June, 30th, 2006
-----------------------------------------------------
+Changes for Win32 GTK client 1.9.1, august 2008, 04
+---------------------------------------------------
 
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
+
+Note: SVN now has 2 distinct code bases, "trunk" and "1.x". First is
+what will become the future 2.0 version, and includes changes that could
+make it incompatible with 1.x versions. Second is the legacy branch, which
+should only contain bugfixes and small improvements.
+This snapshot is based on the trunk.
+
+From version 1.9.1
+------------------
+* new pickup: flesh.
+* fix drawing issue.
+* fix for passwords being echoed when they shouldn't
+* fix client hanging on disconnect and eating all the CPU
+* more variables for scripts
+* misc bug fixes.
 
 From version 1.9.0
 ------------------

@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib glib-2.0.lib gtk-win32-2.0.lib libpng.lib gdk-win32-2.0.lib pango-1.0.lib gobject-2.0.lib pangowin32-1.0.lib gmodule-2.0.lib winmm.lib /nologo /subsystem:console /machine:I386 /nodefaultlib:"libc.lib" /libpath:"C:\Program Files\Fichiers communs\GTK\2.6\lib"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib glib-2.0.lib gtk-win32-2.0.lib libpng.lib gdk-win32-2.0.lib pango-1.0.lib gobject-2.0.lib pangowin32-1.0.lib gmodule-2.0.lib winmm.lib libcurl.lib pthreadVC2.lib /nologo /subsystem:console /machine:I386 /nodefaultlib:"libc.lib" /libpath:"C:\Program Files\Fichiers communs\GTK\2.6\lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "GTKClient - Win32 Debug"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winmm.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib glib-2.0.lib gtk-win32-2.0.lib gdk-win32-2.0.lib pango-1.0.lib gobject-2.0.lib pangowin32-1.0.lib gmodule-2.0.lib libpng.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"C:\Program Files\Fichiers communs\GTK\2.6\lib"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winmm.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib glib-2.0.lib gtk-win32-2.0.lib gdk-win32-2.0.lib pango-1.0.lib gobject-2.0.lib pangowin32-1.0.lib gmodule-2.0.lib libpng.lib libcurl.lib pthreadVC2.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"C:\Program Files\Fichiers communs\GTK\2.6\lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -498,6 +498,10 @@ SOURCE=..\..\common\newsocket.c
 # Begin Source File
 
 SOURCE=..\..\common\p_cmd.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\p_cmd.h
 # End Source File
 # Begin Source File
 

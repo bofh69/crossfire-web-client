@@ -5,7 +5,7 @@
 !include "MUI.nsh"
 
 ;Title Of Your Application
-Name "Crossfire GTK Client 1.9.1"
+Name "Crossfire GTK Client trunk 2008-08-04"
 
 VIAddVersionKey "ProductName" "Crossfire GTK client installer"
 VIAddVersionKey "Comments" "Website: http://crossfire.real-time.com"
@@ -161,9 +161,9 @@ Function .onInit
          ReadRegStr $GTKPath HKLM Software\GTK\2.0 DllPath
          StrCmp $GTKPath "" 0 GTKOk
                 ; GTK not found, abort (unless user is really sure)
-                MessageBox MB_YESNOCANCEL|MB_ICONEXCLAMATION "The installer cannot find GTK!$\rCrossfire client requires GTK 2, which is available from http://sourceforge.net/project/showfiles.php?group_id=235&package_id=119698.$\r$\rDo you want to go to the site now?$\r$\rPress 'Yes' to open Pidgin's web site.$\rPress 'No' to exit the installer.$\rPress 'Cancel' to continue the installation (use at your own risk!)" IDNO abort IDCANCEL ignoregtk
+                MessageBox MB_YESNOCANCEL|MB_ICONEXCLAMATION "The installer cannot find GTK!$\rCrossfire client requires GTK 2, which is available from http://gladewin32.sourceforge.net/ .$\r$\rDo you want to go to the site now?$\r$\rPress 'Yes' to open Gaim's web site.$\rPress 'No' to exit the installer.$\rPress 'Cancel' to continue the installation (use at your own risk!)" IDNO abort IDCANCEL ignoregtk
 
-                ExecShell open http://sourceforge.net/project/showfiles.php?group_id=235&package_id=119698
+                ExecShell open http://gladewin32.sourceforge.net/
 
                 abort:
                 Banner::Destroy
@@ -187,6 +187,9 @@ Section "Install"
   File "crossfire.base"
   File "crossfire.clsc"
   File "Release\GTKClient.exe"
+  File "..\..\libcurl.dll"
+  File "..\..\pthreadVC2.dll"
+  File "..\..\zlib1.dll"
   File "Win32Changes.txt"
   File /oname=ChangeLog.rtf "..\..\ChangeLog"
   File /oname=Copying.rtf "..\..\Copying"
@@ -243,6 +246,9 @@ Section Uninstall
   Delete "$INSTDIR\Copying.rtf"
   Delete "$INSTDIR\Running.txt"
   Delete "$INSTDIR\Building.txt"
+  Delete "$INSTDIR\libcurl.dll"
+  Delete "$INSTDIR\pthreadVC2.dll"
+  Delete "$INSTDIR\zlib1.dll"
   ;Delete directories, but only if empty
   RmDir "$INSTDIR\.crossfire"
   RmDir "$INSTDIR"

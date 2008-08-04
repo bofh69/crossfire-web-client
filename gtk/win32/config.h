@@ -134,6 +134,7 @@ int strncasecmp(const char *s1, const char *s2, int n);
 #define GC GdkGC
 
 #define snprintf _snprintf
+#define vsnprintf _vsnprintf
 
 #define MINLOGLEVEL 0
 
