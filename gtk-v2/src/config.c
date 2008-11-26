@@ -335,11 +335,11 @@ void save_defaults(void)
         LOG(LOG_ERROR, "config.c::save_defaults", "Could not open %s", path);
         return;
     }
-    fprintf(fp,"# This file is generated automatically by gcfclient.\n");
-    fprintf(fp,"# Manually editing is allowed, however gcfclient may be a bit finicky about\n");
-    fprintf(fp,"# some of the matching it does.  all comparisons are case sensitive.\n");
-    fprintf(fp,"# 'True' and 'False' are the proper cases for those two values\n");
-    fprintf(fp,"# 'True' and 'False' have been replaced with 1 and 0 respectively\n");
+    fprintf(fp,"# crossfire-client-gtk2 automatically generates this file.\n");
+    fprintf(fp,"# Manual editing is allowed, but the client may be a bit\n");
+    fprintf(fp,"# finicky about the keys and values.  Comparisons are case\n");
+    fprintf(fp,"# sensitive.  'True' and 'False' are the proper case, but\n");
+    fprintf(fp,"# have been replaced with 1 and 0 respectively.\n#\n");
     fprintf(fp,"server: %s\n", server);
     fprintf(fp,"theme: %s\n", theme);
     fprintf(fp,"faceset: %s\n", face_info.want_faceset);

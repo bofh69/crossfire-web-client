@@ -297,7 +297,7 @@ static void sigpipe_handler(int sig) {
  */
 static void usage(char *progname)
 {
-    puts("Usage of gcfclient:\n\n");
+    puts("Usage of crossfire-client-gtk2:\n");
     puts("-cache           - Cache images for future use.");
     puts("-nocache         - Do not cache images (default action).");
     puts("-darkness        - Enables darkness code (default)");

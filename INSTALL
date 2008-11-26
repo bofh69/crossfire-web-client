@@ -17,14 +17,14 @@ Install Steps:
     search for the needed libraries and headers.   You may need to give
     hints on the locations of some files (png library, gtk library).
 
-    If configure finds gtk libraries, it will build the gcfclient in addition
-    to the cfclient.  If you don't want this (only cfclient), use the
-    --disable-gtk (there is no way to disable the cfclient at this time -
-    if you are able to compile the gtk client, you also have all the tools for
-    for the cfclient).
+    If configure finds GTK libraries, it will build either or both the gtk
+    and gtkv2 clients in addition to the x11 client.  You can avoid building
+    either gtk client with --disable-gtkv1 and --disable-gtkv2, but there is
+    no way to disable building the x11 client at this time - if you are able
+    to compile the gtk client, you also have all the tools for the x11 client.
 
     If SDL libraries are found on your system, SDL support is automatically
-    compiled it (Note: only the gcfclient supports sdl). Use --disable-sdl
+    compiled it (Note: only the gtk clients support sdl). Use --disable-sdl
     if you don't want this.
 
     The system will use the new sound system if available (this is a seperate
@@ -56,5 +56,7 @@ Install Steps:
 
 3)  Type 'make install' to install the binaries.
 
-4)  The client can be run by typing 'cfclient' for the X11 version, gcfclient
-     for the gtk client, gcfclient -sdl for the SDL version.
+4)  The client can be run by typing 'crossfire-client-x11' for the X11
+    version, crossfire-client-gtk for the older GTK client, and
+    crossfire-client-gtk2 for the newer GTK client.  For the gtk clients add
+    an -sdl argument to use the SDL version.
