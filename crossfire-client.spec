@@ -165,23 +165,23 @@ install -d %{buildroot}%{_datadir}/icons/locolor/48x48/apps
 # KDE
 #
 install -m 644 -c x11/crossfire-client.desktop \
-	%{buildroot}%{_desktopdir}/crossfire-client-x11.desktop
+  %{buildroot}%{_desktopdir}/crossfire-client-x11.desktop
 install -m 644 -c gtk/crossfire-client.desktop \
-	%{buildroot}%{_desktopdir}/crossfire-client-gtk.desktop
+  %{buildroot}%{_desktopdir}/crossfire-client-gtk.desktop
 install -m 644 -c gtk-v2/crossfire-client.desktop \
-	%{buildroot}%{_desktopdir}/crossfire-client-gtk2.desktop
+  %{buildroot}%{_desktopdir}/crossfire-client-gtk2.desktop
 install -m 644 pixmaps/16x16.png \
-	%{buildroot}%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
+  %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/crossfire-client.png
 install -m 644 pixmaps/32x32.png \
-	%{buildroot}%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
+  %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/crossfire-client.png
 install -m 644 pixmaps/48x48.png \
-	%{buildroot}%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
+  %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/crossfire-client.png
 install -m 644 pixmaps/16x16.png \
-	%{buildroot}%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
+  %{buildroot}%{_datadir}/icons/locolor/16x16/apps/crossfire-client.png
 install -m 644 pixmaps/32x32.png \
-	%{buildroot}%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
+  %{buildroot}%{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
 install -m 644 pixmaps/48x48.png \
-	%{buildroot}%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
+  %{buildroot}%{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
 
 %post
 rm -f %{_datadir}/gnome/apps/Games/crossfire.desktop
