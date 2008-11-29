@@ -60,7 +60,7 @@ package.
 
 %package gtk2
 Summary: GTKv2 client for %{Name}
-Group: X11/Games
+Group: Games/Adventure
 Provides: crossfire-client
 
 %description gtk2
@@ -70,7 +70,7 @@ packaged with several pre-defined ones.
 
 %package sounds
 Summary: Sound effects for the crossfire game
-Group: X11/Games
+Group: Games/Adventure
 Requires: crossfire-client
 
 %description sounds
@@ -78,7 +78,7 @@ Sound effects for people who want sounds with their game
 
 %package gtk
 Summary: GTK client for %{Name}
-Group: X11/Games
+Group: Games/Adventure
 Provides: crossfire-client
 
 %description gtk
@@ -86,7 +86,7 @@ GTK version of the crossfire client
 
 %package x11
 Summary: X11 client for %{Name}
-Group: X11/Games
+Group: Games/Adventure
 Provides: crossfire-client
 
 %description x11
@@ -94,7 +94,7 @@ X11 version of the crossfire client
 
 %package common
 Summary: Common files for %{Name}
-Group: X11/Games
+Group: Games/Adventure
 Provides: crossfire-client
 
 %description common
@@ -268,6 +268,10 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 
 %changelog
+* Fri Nov 28 2008 Kevin Bulgrien <kbulgrien@att.net>
+- Group change from X11/Games to Games/Adventure for all packages.
+- Tabs removed to eliminate rpmlint complaint.
+
 * Wed Jan 23 2008 Kevin Bulgrien <kbulgrien@att.net>
 + crossfire-client-1.11.0
 - Epoch 5

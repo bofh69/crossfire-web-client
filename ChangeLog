@@ -2,6 +2,14 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+To satisfy rpmlint and remove the error "E: non-standard-group X11/Games", all
+package groups are changed from "X11/Games" to "Games/Adventure".  Choices
+offered by rpmlint were "Games/Adventure", "Games/Arcade", "Games/Boards",
+"Games/Cards", "Games/Other", "Games/Puzzles", "Games/Sports", and
+"Games/Strategy"
+  crossfire-client.spec
+Kevin Bulgrien 2008-11-28
+
 Update all client .desktop files so they do not trigger rpmlint messages like
 ".desktop file is not valid, check with desktop-file-validate":  Terminate
 the Categories key/value with a semicolon; remove the deprecated Encoding key.
