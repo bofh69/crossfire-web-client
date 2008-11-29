@@ -2,6 +2,19 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Update all client .desktop files so they do not trigger rpmlint messages like
+".desktop file is not valid, check with desktop-file-validate":  Terminate
+the Categories key/value with a semicolon; remove the deprecated Encoding key.
+Unify the Comment for all three clients.  Add an appropriate GenericName key.
+Add [en] localestrings for the Name, GenericName, and Comment keys to help
+make it more obvious that translations may be placed in this file.  Put the
+keys in order as listed in http://standards.freedesktop.org/desktop-entry-spec
+These changes are tested with desktop-file-validate.
+ x11/crossfire-client.desktop
+ gtk/crossfire-client.desktop
+ gtk-v2/crossfire-client.desktop
+Kevin Bulgrien 2008-11-28
+
 Eliminate rpmlint message W: mixed-use-of-spaces-and-tabs (spaces: line 159,
 tab: line 169) by converting tabs to spaces.  No functional change.
   crossfire-client.spec

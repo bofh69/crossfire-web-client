@@ -1,10 +1,12 @@
 [Desktop Entry]
-Encoding=UTF-8
-Name=Crossfire GTK Client V1
-Comment=Client for Crossfire, a multi-player Hack-like game
-Exec=crossfire-client-gtk -fog -cache -popups
-Icon=crossfire-client
-Terminal=false
 Type=Application
-Categories=Game;GTK;AdventureGame;RolePlaying
-
+Name=Crossfire GTK Client V1
+Name[en]=Crossfire GTK Client V1
+GenericName=Crossfire Client
+GenericName[en]=Crossfire Client
+Comment=Client for Crossfire, a multiplayer graphical RPG and adventure game
+Comment[en]=Client for Crossfire, a multiplayer graphical RPG and adventure game
+Icon=crossfire-client
+Exec=crossfire-client-gtk -fog -cache -popups
+Terminal=false
+Categories=Game;AdventureGame;RolePlaying;GTK;
