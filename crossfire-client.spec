@@ -11,6 +11,7 @@
 %define version 2.0.dev
 %define sndversion 2.0.dev
 %define release 1
+%define packager Crossfire Developer <crossfire@metalforge.org>
 %define prefix /usr/X11R6
 %define _sourcedir /export/home/crossfire/Crossfire
 %define _srcrpmdir /export/home/crossfire/RPM-SRC
@@ -26,6 +27,7 @@
 Name: %{Name}-%{extra}
 Version: %{version}
 Release: %{release}
+Packager: %{packager}
 Summary: Client for connecting to crossfire servers.
 Group: Amusements/Games/Crossfire
 License: GPL
