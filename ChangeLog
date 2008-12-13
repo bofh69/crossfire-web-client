@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix for [ 1862055 ] GTKv1 client built with --enable-cfgtk2 cannot login so it
+is no longer necessary to run the client with Popup Windows.
+  gtk/keys.c
+Kevin Bulgrien 2008-12-13
+
 Pending fix for [ 1876788 ] Doubled characters in GTK clients (unusable).
 mwedel noted gtk_signal_emit_stop_by_name() was not used consistently
 everywhere keypresses were consumed by the client.  Patches were written

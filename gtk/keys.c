@@ -1023,8 +1023,15 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	    return;
 	}
 	else if (cpl.input_state == Reply_Many) {
-	    gtk_widget_grab_focus (GTK_WIDGET(entrytext));
-	    return;
+            if (GTK_WIDGET_HAS_FOCUS(entrytext))
+                gtk_widget_event(
+                    GTK_WIDGET(entrytext), (GdkEvent*)event);
+            else {
+                gtk_widget_grab_focus(GTK_WIDGET(entrytext));
+                g_signal_stop_emission_by_name(
+                    GTK_OBJECT (window), "key_press_event");
+            }
+            return;
 	}
     }
 
