@@ -2,8 +2,9 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
-Fix for [ 1862055 ] GTKv1 client built with --enable-cfgtk2 cannot login so it
-is no longer necessary to run the client with Popup Windows.
+Fix for [ 2022488 ] 2.x GTKv1 client built with --enable-cfgtk2 cannot login
+and for [ 1862055 ] GTKv1 client built with --enable-cfgtk2 cannot login so
+it is no longer necessary to run the client with Popup Windows.
   gtk/keys.c
 Kevin Bulgrien 2008-12-13
 
