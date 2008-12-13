@@ -1028,8 +1028,8 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                     GTK_WIDGET(entrytext), (GdkEvent*)event);
             else {
                 gtk_widget_grab_focus(GTK_WIDGET(entrytext));
-                g_signal_stop_emission_by_name(
-                    GTK_OBJECT (window), "key_press_event");
+                gtk_signal_emit_stop_by_name(
+                    GTK_OBJECT(window), "key_press_event");
             }
             return;
 	}
