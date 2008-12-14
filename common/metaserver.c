@@ -407,6 +407,8 @@ void *metaserver2_thread(void *junk)
     ms2_is_running=0;
     pthread_mutex_unlock(&ms2_info_mutex);
     pthread_exit(NULL);
+    // never reached, just to make the compiler happy.
+    return NULL;
 }
 
 
@@ -717,6 +719,8 @@ void *metaserver1_thread(void *junk)
     ms1_is_running=0;
     pthread_mutex_unlock(&ms2_info_mutex);
     pthread_exit(NULL);
+    // never reached, just to make the compiler happy.
+    return NULL;
 }
 
 
