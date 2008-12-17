@@ -1020,6 +1020,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 	    text=gdk_keyval_name(event->keyval);
 	    send_reply(text);
 	    cpl.input_state = Playing;
+            gtk_signal_emit_stop_by_name(GTK_OBJECT(window), "key_press_event");
 	    return;
 	}
 	else if (cpl.input_state == Reply_Many) {
@@ -1046,6 +1047,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 #ifdef CFGTK2
     else
         gtk_widget_event(GTK_WIDGET(entrytext), (GdkEvent*)event);
+        gtk_signal_emit_stop_by_name(GTK_OBJECT(window), "key_press_event");
 #endif
     } else {
 	switch(cpl.input_state) {
