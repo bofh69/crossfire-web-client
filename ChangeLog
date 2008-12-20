@@ -2,6 +2,22 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Remove "(crossfire-client-gtk2:2088): Gtk-WARNING **: GtkSpinButton: setting
+an adjustment with non-zero page size is deprecated run-time warnings for the
+GTK-V2 client.
+  gtk-v2/glade/lobotomy.glade
+  gtk-v2/glade/oroboros.glade
+  gtk-v2/glade/gtk-v1.glade
+  gtk-v2/glade/gtk-v2.glade
+  gtk-v2/glade/meflin.glade
+  gtk-v2/glade/v1-redux.glade
+  gtk-v2/glade/eureka.glade
+  gtk-v2/glade/caelestis.glade
+  gtk-v2/glade/dialogs.glade
+  gtk-v2/glade/un-deux.glade
+  gtk-v2/glade/chthonic.glade
+Kevin Bulgrien 2008-12-20
+
 Complete fixing GTK-V1 issue [ 1876788 ] Doubled characters in GTK clients
 (unusable).  Tested with --enable-cfgtk2 compiled as RPM.
   gtk/keys.c

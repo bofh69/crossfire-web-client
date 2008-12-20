@@ -1070,7 +1070,7 @@
 	      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
 	      <property name="snap_to_ticks">False</property>
 	      <property name="wrap">False</property>
-	      <property name="adjustment">1 1 100 1 10 10</property>
+	      <property name="adjustment">1 1 100 1 0 0</property>
 	    </widget>
 	    <packing>
 	      <property name="padding">0</property>
@@ -1313,7 +1313,7 @@ of being drawn as black spaces.</property>
 	      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
 	      <property name="snap_to_ticks">False</property>
 	      <property name="wrap">False</property>
-	      <property name="adjustment">1 1 100 1 10 10</property>
+	      <property name="adjustment">1 1 100 1 0 0</property>
 	    </widget>
 	    <packing>
 	      <property name="padding">0</property>
@@ -1370,7 +1370,7 @@ of being drawn as black spaces.</property>
 	      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
 	      <property name="snap_to_ticks">False</property>
 	      <property name="wrap">False</property>
-	      <property name="adjustment">1 1 100 1 10 10</property>
+	      <property name="adjustment">1 1 100 1 0 0</property>
 	    </widget>
 	    <packing>
 	      <property name="padding">0</property>
@@ -1573,7 +1573,7 @@ client.  The server still calculates what is visible based on light levels.</pro
 		      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
 		      <property name="snap_to_ticks">False</property>
 		      <property name="wrap">False</property>
-		      <property name="adjustment">25 11 25 1 10 10</property>
+		      <property name="adjustment">25 11 25 1 0 0</property>
 		    </widget>
 		    <packing>
 		      <property name="padding">0</property>
@@ -1630,7 +1630,7 @@ client.  The server still calculates what is visible based on light levels.</pro
 		      <property name="update_policy">GTK_UPDATE_ALWAYS</property>
 		      <property name="snap_to_ticks">False</property>
 		      <property name="wrap">False</property>
-		      <property name="adjustment">25 11 25 1 10 10</property>
+		      <property name="adjustment">25 11 25 1 0 0</property>
 		    </widget>
 		    <packing>
 		      <property name="padding">0</property>
