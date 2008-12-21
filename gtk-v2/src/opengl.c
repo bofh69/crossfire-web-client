@@ -975,11 +975,14 @@ void opengl_free_pixmap(PixmapInfo *pi)
 #include "../../pixmaps/question.111"
 
 /**
- *
+ * Create question mark to display in OpenGL mode when an image is not cached.
+ * When image caching is enabled, if a needed image is not yet in the cache, a
+ * question mark image is displayed instead.  The image displayed is unique to
+ * the display mode.  This function creates the image to use when OpenGL mode
+ * is in effect.
  */
 void create_opengl_question_mark(void)
 {
-
     GLubyte question[question_height][question_width][4];
     int xb, x, y, offset=0;
 

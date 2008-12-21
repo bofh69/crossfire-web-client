@@ -532,6 +532,12 @@ void get_map_image_size(int face, uint8 *w, uint8 *h)
 
 /**
  * Initializes the data for image caching
+ * Create question mark to display in each supported rendering mode when an
+ * image is not cached.  When image caching is enabled, if a needed image is
+ * not yet in the cache, a question mark image is displayed instead.  The
+ * image displayed is unique to the display mode.  This function creates
+ * the image to use when OpenGL mode is in effect.
+ *
  */
 void init_cache_data(void)
 {
