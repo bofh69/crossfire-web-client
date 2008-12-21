@@ -1005,6 +1005,10 @@ on_save_window_position_activate       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     save_winpos();
+    /*
+     * The following prevents multiple saves per menu activation.
+     */
+    g_signal_stop_emission_by_name(GTK_OBJECT(menuitem), "activate");
 }
 
 /**

@@ -2,6 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+The GTK-V2 client for some reason saved the window positions file multiple
+times per use of menubar Client | Save Window Position.  Adding a call to
+g_signal_stop_emission_by_name() in on_save_window_position_activate()
+puts this silliness to an end.  The file is now only saved one time.
+  gtk-v2/src/config.c
+Kevin Bulgrien 2008-12-21
+
 Remove "(crossfire-client-gtk2:2088): Gtk-WARNING **: GtkSpinButton: setting
 an adjustment with non-zero page size is deprecated run-time warnings for the
 GTK-V2 client.
