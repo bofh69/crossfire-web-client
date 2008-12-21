@@ -55,5 +55,5 @@ crossfire_client_gtk2_SOURCES = \
 crossfire_client_gtk2_LDADD = ../../common/libcfclient.a @LIBGLADE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@
 
 proto:
-	cproto -e -o gtk2proto.h  $(SDL_CFLAGS) $(LIBGLADE_CFLAGS) $(DEFAULT_INCLUDES) $(PROTO_SOURCES)
+	cproto -e -o gtk2proto.h  $(SDL_CFLAGS) $(LIBGLADE_CFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) $(PROTO_SOURCES)
 	chmod 644 gtk2proto.h

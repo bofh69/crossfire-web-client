@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+make proto in the GTK-V2 source directory yielded an error about a missing
+about.h file.  Additional includes are passed to cproto to remove this
+error.
+  gtk-v2/src/Makefile.am
+Kevin Bulgrien 2008-12-21
+
 The GTK-V2 client for some reason saved the window positions file multiple
 times per use of menubar Client | Save Window Position.  Adding a call to
 g_signal_stop_emission_by_name() in on_save_window_position_activate()
