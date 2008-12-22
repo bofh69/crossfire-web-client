@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_info_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005-2007 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2008 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,7 +70,11 @@ static char *font_style_names[NUM_FONTS] = {
  */
 
 /**
- * The number of supported message panes (normal + critical).
+ * The number of supported message panes (normal + critical).  This define is
+ * meant to support anything that iterates over all the information panels.
+ * It does nothing to help remove or document hardcoded panel numbers
+ * throughout the code.  FIXME:  Create defines for each panel and
+ * replace panel numbers with the defines describing the panel.
  */
 #define NUM_TEXT_VIEWS  2
 
@@ -400,8 +404,8 @@ void info_get_styles(void)
 }
 
 /**
- * initializes the info displays.  The info displays are the area where
- * text is drawn.
+ * Initialize the information panels in the client.  These panels are the
+ * client areas where text is drawn.
  *
  * @param window_root
  * Parent (root) window of the application.
@@ -450,12 +454,14 @@ void info_init(GtkWidget *window_root)
 }
 
 /**
- * Adds some data to the text buffer, using the appropriate tags to provide the
- * desired formatting.  Note that the style within the users theme determines
- * how a particular type/subtype is drawn.
+ * Adds some data to the text buffer of the specified information panel using
+ * the appropriate tags to provide the desired formatting.  Note that the style
+ * within the users theme determines how a particular type/subtype is drawn.
  *
  * @param pane
+ * The client message panel to write a message to.
  * @param message
+ * A pointer to some text to display in a client message window.
  * @param type
  * The message type - see the MSG_TYPE values in newclient.h
  * @param subtype
@@ -548,23 +554,30 @@ static void add_to_textbuf(int pane, char *message,
 }
 
 /**
+ * A callback to accept messages along with meta information color and type.
  * Unlike the GTK V1 client, we don't do anything tricky like popups with
  * different message types.  However, we will choose different fonts, etc,
  * based on this information - for this reason, we just use one callback, and
- * change those minor things based on the callback.  We also need to parse the
- * data.
+ * change those minor things based on the callback.  The message is parsed to
+ * handle embedded style codes.
  *
  * @param orig_color
+ * A suggested text color that may change based on message type/subtype.
  * @param type
+ * The message type. See the MSG_TYPE definitions in newclient.h
  * @param subtype
+ * Message subtype.  See MSG_TYPE_..._... values in newclient.h
  * @param message
+ * The message text.
  */
 static void message_callback(int orig_color, int type, int subtype, char *message) {
     char *marker, *current, *original;
     int bold=0, italic=0, font=0, underline=0;
+    int pane;         /**< Which pane the incoming message should go to.
+                       */
     char *color=NULL; /**< Only if we get a [color] tag should we care,
-                       * otherwise, the type/subtype should dictate color
-                       * (unless no style set!)
+                       *   otherwise, the type/subtype should dictate color
+                       *   (unless no style set!)
                        */
 
     current = strdup(message);
@@ -578,9 +591,8 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
             orig_color = 0;
         } else {
             /*
-             * Not really efficient - we have a number, but convert it to a
-             * string, at which point the add_to_textbuf will convert it back
-             * to a number :(
+             * Not efficient - we have a number, but convert it to a string, at
+             * which point add_to_textbuf() converts it back to a number :(
              */
             color = (char*)usercolorname[orig_color];
         }
@@ -590,8 +602,8 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
         *marker = 0;
 
         if (strlen(current) > 0)
-            add_to_textbuf(
-              0, current, type, subtype, bold, italic, font, color, underline);
+            add_to_textbuf(pane,
+                current, type, subtype, bold, italic, font, color, underline);
 
         current = marker + 1;
 
@@ -622,22 +634,29 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     }
 
     add_to_textbuf(
-        0, current, type, subtype, bold, italic, font, color, underline);
+        pane, current, type, subtype, bold, italic, font, color, underline);
 
     add_to_textbuf(
-        0, "\n", type, subtype, bold, italic, font, color, underline);
+        pane, "\n", type, subtype, bold, italic, font, color, underline);
 
     free(original);
 }
 
 /**
- * Adds a line to the info window.  note that with the textbufs, it seems you
- * need to manually set it to the bottom of the screen - otherwise, the
- * scrollbar just stays at the top.  However, I could see this not being ideal
- * if you are trying to scroll back while new stuff comes in.
+ * Add text to the informational message windows.  Colored text implies some
+ * level of importance, and results in the messge being auto-routed to the
+ * critical message panel.  Note that with the textbufs, it seems you need to
+ * manually set it to the bottom of the screen - otherwise, the scrollbar just
+ * stays at the top.  However, this does not seem ideal if you are trying to
+ * scroll back while new stuff comes in.  Question:  Is there a good reason
+ * for draw_info() and draw_color_info() to write directly to the message
+ * panel when add_to_textbuf() does this?  Does it really make sense to use
+ * color to determine if a message is critical?.
  *
  * @param str
+ * Pointer to displayable text.
  * @param color
+ * Color of the text.
  */
 
 void draw_info(const char *str, int color) {
@@ -679,6 +698,10 @@ void draw_info(const char *str, int color) {
         gtk_text_view_scroll_mark_onscreen(
             GTK_TEXT_VIEW(info_pane[0].textview), info_pane[0].textmark);
 
+    /*
+     * Non-black text is also copied to the critical message panel.  Why
+     * does/should color alone determine the message is critical?
+     */
     if (color != NDI_BLACK) {
 
         gtk_text_view_get_visible_rect(
@@ -705,18 +728,24 @@ void draw_info(const char *str, int color) {
 }
 
 /**
- *
+ * Display information in color.  This function simply calls draw_info() with
+ * the parameter order swapped, and it provides no unique features.  Since it
+ * is called from common, it is likely a legacy function that should probably
+ * be considered deprecated.  Important:  This function calls draw_info(), so
+ * if a color other than black is specified, the text is routed to both the
+ * primary and secondary (critical) message panes.
  * @param colr
+ * The color to use when displaying text.
  * @param buf
+ * The text to display.
  */
 void draw_color_info(int colr, const char *buf) {
     draw_info(buf,colr);
 }
 
 /**
- * Clears all the message.  Not sure why someone would use it,
- * but it is called from the common area, so might as well
- * support it.
+ * Clears all the message panels.  It is not clear why someone would use it,
+ * but is called from the common area, and so is supported here.
  */
 void menu_clear(void) {
     int i;
@@ -727,11 +756,11 @@ void menu_clear(void) {
 }
 
 /**
- * All the following are 'dummy' functions.  Basically, there are callbacks to
- * these from the common area, but they are not implemented in GTK, either
- * because it makes no sense (set_scroll for example), or because it may not be
- * technically possible to do so if we limit ourselves to proper GTK2 code (Eg,
- * don't mess with the internals of X or platform specific issues)
+ * A stub function that does nothing.  These are callbacks used by the common
+ * code, but they are not implemented in GTK, either because it makes no sense
+ * (set_scroll for example), or because it may not be technically possible to
+ * do so if we limit ourselves to proper GTK2 code (Eg, don't mess with the
+ * internals of X or platform specific issues)
  *
  * @param s
  */
@@ -740,6 +769,11 @@ void set_scroll(const char *s)
 }
 
 /**
+ * A stub function that does nothing.  These are callbacks used by the common
+ * code, but they are not implemented in GTK, either because it makes no sense
+ * (set_scroll for example), or because it may not be technically possible to
+ * do so if we limit ourselves to proper GTK2 code (Eg, don't mess with the
+ * internals of X or platform specific issues)
  *
  @param s
  */
