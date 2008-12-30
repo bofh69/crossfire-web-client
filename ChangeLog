@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c: Add missing initializer to pane variable.  Without it,
+    we are passing in garbage value to functions, which results in crashes.
+MSW 2008-12-29
+
 make proto in the GTK-V2 source directory yielded an error about a missing
 about.h file.  Additional includes are passed to cproto to remove this
 error.

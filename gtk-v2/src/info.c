@@ -573,7 +573,7 @@ static void add_to_textbuf(int pane, char *message,
 static void message_callback(int orig_color, int type, int subtype, char *message) {
     char *marker, *current, *original;
     int bold=0, italic=0, font=0, underline=0;
-    int pane;         /**< Which pane the incoming message should go to.
+    int pane=0;       /**< Which pane the incoming message should go to.
                        */
     char *color=NULL; /**< Only if we get a [color] tag should we care,
                        *   otherwise, the type/subtype should dictate color
