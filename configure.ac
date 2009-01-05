@@ -244,6 +244,12 @@ AC_CHECK_LIB(lua, lua_call,
     ])
 ] )
 
+CPPFLAGS="$CPPFLAGS $EXTRA_INC"
+LDFLAGS="$LDFLAGS $EXTRA_LIB"
+if eval "test x$need_r_flag = xyes"; then
+    LDFLAGS="$LDFLAGS"
+fi
+
 if eval "test x$lua_scripting = xyes" ; then
     AC_DEFINE(HAVE_LUA, 1, [Define to use Lua 5.x])
 else
@@ -278,11 +284,6 @@ AC_PROG_RANLIB
 AC_SUBST(X_LIBS)
 AC_SUBST(X_CFLAGS)
 
-CPPFLAGS="$CPPFLAGS $EXTRA_INC"
-LDFLAGS="$LDFLAGS $EXTRA_LIB"
-if eval "test x$need_r_flag = xyes"; then
-    LDFLAGS="$LDFLAGS"
-fi
 
 if eval "test x$sound = xyes"; then
     if eval "test x$alsa = xyes"; then

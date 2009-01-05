@@ -113,11 +113,14 @@ void map_init(GtkWidget *window_root)
         G_CALLBACK (on_drawingarea_map_expose_event), NULL);
     g_signal_connect ((gpointer) map_drawing_area, "button_press_event",
         G_CALLBACK (on_drawingarea_map_button_press_event), NULL);
+    g_signal_connect ((gpointer) map_drawing_area, "configure_event",
+        G_CALLBACK (on_drawingarea_map_configure_event), NULL);
 
+#if 0
     gtk_widget_set_size_request (map_drawing_area,
         use_config[CONFIG_MAPWIDTH] * map_image_size,
         use_config[CONFIG_MAPHEIGHT] * map_image_size);
-
+#endif
     mapgc = gdk_gc_new(map_drawing_area->window);
     gtk_widget_show(map_drawing_area);
     gtk_widget_add_events (map_drawing_area, GDK_BUTTON_PRESS_MASK);
@@ -383,13 +386,34 @@ static void display_mapcell(int ax, int ay, int mx, int my)
             /* draw single-tile faces first */
             int face = mapdata_face(ax, ay, layer);
             if (face > 0 && pixmaps[face]->map_image != NULL) {
-                int w = pixmaps[face]->map_width;
-                int h = pixmaps[face]->map_height;
+                int src_x = pixmaps[face]->map_width - map_image_size;;
+                int src_y = pixmaps[face]->map_height - map_image_size;
+                int off_x=0, off_y=0;
+
+                /* Normalize the source coordinates - clearly it can't be
+                 * be less than zero.  If it is less than zero, this denotes
+                 * a 'small' image.  By definition, the bottom right is the
+                 * origin of the image (an image 16 pixels high is drawn on the
+                 * bottom half of the space, not top), which is why
+                 * the offsets are negative of the base values.
+                 */
+                if (src_x<0) {
+                    off_x=-src_x;
+                    src_x=0;
+                }
+                if (src_y<0) {
+                    off_y = -src_y;
+                    src_y=0;
+                }
                 draw_pixmap(
-                    w-map_image_size, h-map_image_size,
-                    ax*map_image_size, ay*map_image_size,
-                    ax*map_image_size+map_image_size-w, ay*map_image_size+map_image_size-h,
-                    pixmaps[face]->map_mask, pixmaps[face]->map_image, map_image_size, map_image_size);
+                    src_x, src_y,
+                    ax*map_image_size + off_x, ay*map_image_size + off_y,
+                    ax*map_image_size+map_image_size-pixmaps[face]->map_width,
+                    ay*map_image_size+map_image_size-pixmaps[face]->map_height,
+                    pixmaps[face]->map_mask, pixmaps[face]->map_image,
+                    pixmaps[face]->map_width>map_image_size?map_image_size:pixmaps[face]->map_width,
+                    pixmaps[face]->map_height>map_image_size?map_image_size:pixmaps[face]->map_height);
+
             }
             /*
              * Sometimes, it may happens we need to draw the smooth while there
@@ -545,10 +569,49 @@ void display_map_newmap(void)
 /**
  * Resize_map_window is a NOOP for the time being - not sure if it will in fact
  * need to do something, since there are scrollbars for the map window now.
+ * Note - this is note a window resize request, but rather process the size
+ * (in spaces) of the map - is received from server.
  */
 void resize_map_window(int x, int y)
 {
+    /* We do an implicit clear, since after a resize, there may be some
+     * left over pixels at the edge which will not get drawn on by map spaces.
+     */
+    gdk_window_clear(map_drawing_area->window);
+    draw_map(TRUE);
 }
+
+
+gboolean                                                                                          
+on_drawingarea_map_configure_event     (GtkWidget       *widget,
+                                        GdkEventConfigure *event,
+                                        gpointer         user_data)
+{
+    sint16 w = event->width / map_image_size, h=event->height / map_image_size;
+
+    if (w > MAP_MAX_SIZE) w = MAP_MAX_SIZE;
+    if (h > MAP_MAX_SIZE) h = MAP_MAX_SIZE;
+
+    /* Only need to do something if the size actually changes in terms
+     * of displayable mapspaces.
+     */
+    if (w!= use_config[CONFIG_MAPWIDTH] || h!=use_config[CONFIG_MAPHEIGHT]) {
+        /* We need to set the use_config values, even though we are not really using them,
+         * because the setup processing basically expects the values returned from the
+         * server to use these values.
+         * Likewise, we need to call mapdata_set_size because we may try
+         * to do map draws before we get the setup command from the server, and if it
+         * is using the old values, that doesn't work quite right.
+         */
+        use_config[CONFIG_MAPWIDTH] = w;
+        use_config[CONFIG_MAPHEIGHT] = h;
+        mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
+        cs_print_string(csocket.fd,
+                        "setup mapsize %dx%d", use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
+    }
+    return FALSE;
+}
+
 
 /**
  * Simple routine to put the splash icon in the map window.  Only supported

@@ -2,6 +2,25 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Various fixes and improvements, mostly related to map handling in gtk2 client.
+Main change is that the map area can now be resized during play and it will
+draw things as expected.  Note server change is needed for map to not appear
+jumbled after initial resize.  Fix bug 2476715: Image display problem when not
+sized to a multiple of 32
+--
+configure.ac: Move evaluation of extra includes and extra linker flags (
+   --with-..) options before lua/opengl checks - if those libraries are not
+   in usual location, still want to be able to use them.
+gtk-v2/src/gtk2proto.h: callback for configure event added.
+gtk-v2/src/map.c:  map_init(): Remove explicit call to set map area size.
+    display_mapcell(): Fix drawing of images not a multiple of 32.
+    resize_map_window(): Additional processing after resize event.
+    on_drawingarea_map_configure_event(): New function - gets resize event
+        and makes necessary updates.
+gtk-v2/glade/gtk-v2.glade: Remove explicit size value from layout.  This
+    gives more resize flexibility.
+MSW 2009-01-04
+
 gtk-v2/src/info.c: Add missing initializer to pane variable.  Without it,
     we are passing in garbage value to functions, which results in crashes.
 MSW 2008-12-29
