@@ -2,6 +2,7 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Do not crash for "request items cont" if there is no opened container.
 Report weight in grams in "request items" commands. Previously a localized
   floating point number in kg was passed.
 Add checks for incorrect parameters to scripttell command. Do not pass the

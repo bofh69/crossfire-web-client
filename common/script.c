@@ -1306,8 +1306,10 @@ static void script_process_cmd(int i) {
                 char *buf;
                 item *it;
 
-                for (it = cpl.container->inv; it; it = it->next) {
-                    script_send_item(i, "request items cont ", it);
+                if (cpl.container) {
+                    for (it = cpl.container->inv; it; it = it->next) {
+                        script_send_item(i, "request items cont ", it);
+                    }
                 }
                 buf = "request items cont end\n";
                 write(scripts[i].out_fd, buf, strlen(buf));
