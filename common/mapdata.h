@@ -77,7 +77,7 @@ struct MapCell
     struct MapCellLayer heads[MAXLAYERS];
     struct MapCellLayer tails[MAXLAYERS];
     uint16 smooth[MAXLAYERS];
-    uint8 darkness;         /* darkness: 0=fully illuminated, 255=pitch blank */
+    uint8 darkness;         /* darkness: 0=fully illuminated, 255=pitch black */
     uint8 need_update:1;    /* set if tile should be redrawn */
     uint8 have_darkness:1;  /* set if darkness information was set */
     uint8 need_resmooth:1;  /* same has need update but for smoothing only */
