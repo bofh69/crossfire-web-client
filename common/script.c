@@ -995,10 +995,10 @@ static void send_map(int i,int x,int y)
    snprintf(buf, sizeof(buf), "request map %d %d  %d %c %c %c %c"
            " smooth %d %d %d heads %d %d %d tails %d %d %d\n",
            x,y,the_map.cells[x][y].darkness,
-           'n'+('y'-'n')*the_map.cells[x][y].need_update,
-           'n'+('y'-'n')*the_map.cells[x][y].have_darkness,
-           'n'+('y'-'n')*the_map.cells[x][y].need_resmooth,
-           'n'+('y'-'n')*the_map.cells[x][y].cleared,
+           the_map.cells[x][y].need_update ? 'y' : 'n',
+           the_map.cells[x][y].have_darkness ? 'y' : 'n',
+           the_map.cells[x][y].need_resmooth ? 'y' : 'n',
+           the_map.cells[x][y].cleared ? 'y' : 'n',
            the_map.cells[x][y].smooth[0],the_map.cells[x][y].smooth[1],the_map.cells[x][y].smooth[2],
            the_map.cells[x][y].heads[0].face,the_map.cells[x][y].heads[1].face,the_map.cells[x][y].heads[2].face,
            the_map.cells[x][y].tails[0].face,the_map.cells[x][y].tails[1].face,the_map.cells[x][y].tails[2].face
