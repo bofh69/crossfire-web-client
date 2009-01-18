@@ -2,6 +2,7 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Send correct coordinates for "request map pos" script command.
 Do not crash for "request items cont" if there is no opened container.
 Report weight in grams in "request items" commands. Previously a localized
   floating point number in kg was passed.

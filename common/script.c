@@ -1333,7 +1333,7 @@ static void script_process_cmd(int i) {
             if (strncmp(c, "pos", 3) == 0) {
                 char buf[1024];
 
-                snprintf(buf, sizeof(buf), "request map pos %d %d\n", pl_pos.x, pl_pos.y);
+                snprintf(buf, sizeof(buf), "request map pos %d %d\n", pl_pos.x+use_config[CONFIG_MAPWIDTH]/2, pl_pos.y+use_config[CONFIG_MAPHEIGHT]/2);
                 write(scripts[i].out_fd, buf, strlen(buf));
             } else if (strncmp(c, "near", 4) == 0) {
                 for (y = 0; y < 3; ++y)
