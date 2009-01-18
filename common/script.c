@@ -1496,7 +1496,7 @@ static void script_send_item(int i, const char *head, const item *it)
    flags= (flags<<1)|it->open;
    flags= (flags<<1)|it->was_open;
    flags= (flags<<1)|it->inv_updated;
-   snprintf(buf, sizeof(buf), "%s%d %d %f %d %d %s\n",head,it->tag,it->nrof,it->weight,flags,it->type,it->d_name);
+   snprintf(buf, sizeof(buf), "%s%d %d %d %d %d %s\n",head,it->tag,it->nrof,(int)(it->weight*1000+0.5),flags,it->type,it->d_name);
    write(scripts[i].out_fd,buf,strlen(buf));
 }
 
