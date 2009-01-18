@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Add checks for incorrect parameters to scripttell command. Do not pass the
+script ID to the script.
+  common/script.c
+Andreas Kirschbaum 2009-01-18
+
 Various fixes and improvements, mostly related to map handling in gtk2 client.
 Main change is that the map area can now be resized during play and it will
 draw things as expected.  Note server change is needed for map to not appear

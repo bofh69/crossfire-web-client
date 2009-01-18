@@ -890,6 +890,23 @@ void script_monitor_str(const char *command)
 void script_tell(const char *params)
 {
    int i;
+   char *p;
+
+   if (params == NULL)
+   {
+       draw_info("Which script do you want to talk to?", NDI_RED);
+       return;
+   }
+   p = strchr(params, ' ');
+   if (p == NULL)
+   {
+       draw_info("What do you want to tell the script?", NDI_RED);
+       return;
+   }
+   while (*p == ' ')
+   {
+       *p++ = '\0';
+   }
 
    /* Find the script */
    i=script_by_name(params);
@@ -901,7 +918,7 @@ void script_tell(const char *params)
 
    /* Send the message */
    write(scripts[i].out_fd,"scripttell ",11);
-   write(scripts[i].out_fd,params,strlen(params));
+   write(scripts[i].out_fd,p,strlen(p));
    write(scripts[i].out_fd,"\n",1);
 }
 
