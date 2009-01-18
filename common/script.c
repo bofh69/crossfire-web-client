@@ -149,7 +149,7 @@ struct script {
 #ifndef WIN32
    int pid;
 #else
-   DWORD pid;	/* Handle to Win32 process ID */
+   DWORD pid;   /* Handle to Win32 process ID */
    HANDLE process; /* Handle of Win32 process */
 #endif
    int sync_watch;
@@ -159,15 +159,20 @@ struct script {
  * Global variables
  */
 static struct script *scripts = NULL;
+
 static int num_scripts = 0;
 
 /*
  * Prototypes
  */
 static int script_by_name(const char *name);
+
 static void script_dead(int i);
+
 static void script_process_cmd(int i);
-static void send_map(int i,int x,int y);
+
+static void send_map(int i, int x, int y);
+
 static void script_send_item(int i, const char *head, const item *it);
 
 
@@ -177,1296 +182,1363 @@ static void script_send_item(int i, const char *head, const item *it);
 
 #ifdef WIN32
 
-#define write(x,y,z) emulate_write(x,y,z)
-#define read(x,y,z) emulate_read(x,y,z)
+#define write(x, y, z) emulate_write(x, y, z)
+#define read(x, y, z) emulate_read(x, y, z)
 
-static int emulate_read(HANDLE fd, char *buf, int len)
-{
-   DWORD dwBytesRead;
-   BOOL	rc;
+static int emulate_read(HANDLE fd, char *buf, int len) {
+    DWORD dwBytesRead;
+    BOOL rc;
 
-   FlushFileBuffers(fd);
-   rc = ReadFile(fd, buf, len, &dwBytesRead, NULL);
-   if (rc == FALSE)
-      return(-1);
-   buf[dwBytesRead] = '\0';
+    FlushFileBuffers(fd);
+    rc = ReadFile(fd, buf, len, &dwBytesRead, NULL);
+    if (rc == FALSE)
+        return(-1);
+    buf[dwBytesRead] = '\0';
 
-   return(dwBytesRead);
+    return(dwBytesRead);
 }
 
-static int emulate_write(HANDLE fd, const char *buf, int len)
-{
-   DWORD dwBytesWritten;
-   BOOL	rc;
+static int emulate_write(HANDLE fd, const char *buf, int len) {
+    DWORD dwBytesWritten;
+    BOOL rc;
 
-   rc = WriteFile(fd, buf, len, &dwBytesWritten, NULL);
-   FlushFileBuffers(fd);
-   if (rc == FALSE)
-      return(-1);
+    rc = WriteFile(fd, buf, len, &dwBytesWritten, NULL);
+    FlushFileBuffers(fd);
+    if (rc == FALSE)
+        return(-1);
 
-   return(dwBytesWritten);
+    return(dwBytesWritten);
 }
-
 
 #endif /* WIN32 */
 
-void script_init(const char *cparams)
-{
+void script_init(const char *cparams) {
 #ifndef WIN32
-   int pipe1[2];
+    int pipe1[2];
 #ifdef USE_PIPE
-   int pipe2[2];
+    int pipe2[2];
 #endif
-   int pid;
-   char *name, *args, params[MAX_BUF];
+    int pid;
+    char *name, *args, params[MAX_BUF];
 
-   if ( !cparams )
-       {
-       draw_info( "Please specifiy a script to launch!", NDI_RED );
-       return;
-       }
+    if (!cparams) {
+        draw_info("Please specifiy a script to launch!", NDI_RED);
+        return;
+    }
 
     /* cparams as passed in is a const value, so need to copy it
      * to data we can write over.
      */
     strncpy(params, cparams, MAX_BUF-1);
-    params[MAX_BUF-1]=0;
+    params[MAX_BUF-1] = 0;
 
 
-   /* Get name and args */
-   name=params;
-   args=name;
-   while ( *args && *args!=' ' ) ++args;
-   while ( *args && *args==' ' ) *args++ = '\0';
-   if ( *args==0 )
-   {
-      args=NULL;
-   }
-
-#ifdef USE_PIPE
-   /* Create two pipes */
-   if ( pipe(pipe1) )
-   {
-      draw_info("Unable to start script--pipe failed",NDI_RED);
-      return;
-   }
-   if ( pipe(pipe2) )
-   {
-      close(pipe1[0]);
-      close(pipe1[1]);
-      draw_info("Unable to start script--pipe failed",NDI_RED);
-      return;
-   }
-#else
-   /* Create a pair of sockets */
-   if ( socketpair(PF_LOCAL,SOCK_STREAM,AF_LOCAL,pipe1) )
-   {
-      draw_info("Unable to start script--socketpair failed",NDI_RED);
-      return;
-   }
-#endif
-
-   /* Fork */
-   pid=fork();
-   if (pid==-1)
-   {
-      close(pipe1[0]);
-      close(pipe1[1]);
-#ifdef USE_PIPE
-      close(pipe2[0]);
-      close(pipe2[1]);
-#endif
-      draw_info("Unable to start script--fork failed",NDI_RED);
-      return;
-   }
-
-   /* Child--set stdin/stdout to the pipes, then exec */
-   if ( pid==0 )
-   {
-      int i;
-      int r;
-      char *argv[256];
-
-      /* Fill in argv[] */
-      argv[0]=name;
-      i=1;
-      while (args && *args && i < sizeof(argv)/sizeof(*argv)-1)
-      {
-         argv[i++]=args;
-         while ( *args && *args!=' ' ) ++args;
-         while ( *args && *args==' ' ) *args++ = '\0';
-      }
-      argv[i]=NULL;
-
-      /* Clean up file descriptor space */
-      r=dup2(pipe1[0],0);
-      if ( r != 0 ) {
-         fprintf(stderr,"Script Child: Failed to set pipe1 as stdin\n");
-      }
-#ifdef USE_PIPE
-      r=dup2(pipe2[1],1);
-#else
-      r=dup2(pipe1[0],1);
-#endif
-      if ( r != 1 ) {
-         fprintf(stderr,"Script Child: Failed to set pipe2 as stdout\n");
-      }
-      for (i=3;i<100;++i) close(i);
-
-      /* EXEC */
-      r = execvp(argv[0],argv);
-
-      /* If we get here, then there's been an failure of some sort.
-       * In my case, it's often that I don't know what script name to
-       * give to /script, so exec() can't find the script.
-       *
-       * Forward the error back to the client, using the script pipes.
-       */
-
-      if (r != -1) {
-          printf("draw %d Script child: no error, but no execvp().\n", NDI_RED);
-      } else {
-          printf("draw %d Script child failed to start: %s\n", NDI_RED, strerror(errno));
-      }
-
-      exit(1);
-   }
-
-   /* Close the child's pipe ends */
-   close(pipe1[0]);
-#ifdef USE_PIPE
-   close(pipe2[1]);
-#endif
-
-    if (fcntl(pipe1[1], F_SETFL, O_NDELAY)==-1) {
-	    LOG(LOG_WARNING,"common::script_init","Error on fcntl.");
+    /* Get name and args */
+    name = params;
+    args = name;
+    while (*args && *args != ' ')
+        ++args;
+    while (*args && *args == ' ')
+        *args++ = '\0';
+    if (*args == 0) {
+        args = NULL;
     }
 
-   /* realloc script array to add new entry; fill in the data */
-   scripts=realloc(scripts,sizeof(scripts[0])*(num_scripts+1));
-   scripts[num_scripts].name=strdup(name);
-   scripts[num_scripts].params=args?strdup(args):NULL;
-   scripts[num_scripts].out_fd=pipe1[1];
 #ifdef USE_PIPE
-   scripts[num_scripts].in_fd=pipe2[0];
-#else
-   scripts[num_scripts].in_fd=pipe1[1];
-#endif
-   scripts[num_scripts].monitor=0;
-   scripts[num_scripts].num_watch=0;
-   scripts[num_scripts].watch=NULL;
-   scripts[num_scripts].cmd_count=0;
-   scripts[num_scripts].pid=pid;
-   scripts[num_scripts].sync_watch = -1;
-   ++num_scripts;
-
-#else /* WIN32 */
-
-   char *name,*args;
-   char params[ MAX_BUF ];
-   SECURITY_ATTRIBUTES saAttr;
-   PROCESS_INFORMATION piProcInfo;
-   STARTUPINFO siStartupInfo;
-   HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, hChildStdoutRd;
-   HANDLE hChildStdoutWr, hChildStdoutRdDup, hSaveStdin, hSaveStdout;
-
-   if ( !cparams )
-        {
-        draw_info( "Please specifiy a script to launch!", NDI_RED );
+    /* Create two pipes */
+    if (pipe(pipe1)) {
+        draw_info("Unable to start script--pipe failed", NDI_RED);
         return;
+    }
+    if (pipe(pipe2)) {
+        close(pipe1[0]);
+        close(pipe1[1]);
+        draw_info("Unable to start script--pipe failed", NDI_RED);
+        return;
+    }
+#else
+    /* Create a pair of sockets */
+    if (socketpair(PF_LOCAL, SOCK_STREAM, AF_LOCAL, pipe1)) {
+        draw_info("Unable to start script--socketpair failed", NDI_RED);
+        return;
+    }
+#endif
+
+    /* Fork */
+    pid = fork();
+    if (pid == -1) {
+        close(pipe1[0]);
+        close(pipe1[1]);
+#ifdef USE_PIPE
+        close(pipe2[0]);
+        close(pipe2[1]);
+#endif
+        draw_info("Unable to start script--fork failed", NDI_RED);
+        return;
+    }
+
+    /* Child--set stdin/stdout to the pipes, then exec */
+    if (pid == 0) {
+        int i;
+        int r;
+        char *argv[256];
+
+        /* Fill in argv[] */
+        argv[0] = name;
+        i = 1;
+        while (args && *args && i < sizeof(argv)/sizeof(*argv)-1) {
+            argv[i++] = args;
+            while (*args && *args != ' ')
+                ++args;
+            while (*args && *args == ' ')
+                *args++ = '\0';
+        }
+        argv[i] = NULL;
+
+        /* Clean up file descriptor space */
+        r = dup2(pipe1[0], 0);
+        if (r != 0) {
+            fprintf(stderr, "Script Child: Failed to set pipe1 as stdin\n");
+        }
+#ifdef USE_PIPE
+        r = dup2(pipe2[1], 1);
+#else
+        r = dup2(pipe1[0], 1);
+#endif
+        if (r != 1) {
+            fprintf(stderr, "Script Child: Failed to set pipe2 as stdout\n");
+        }
+        for (i = 3; i < 100; ++i)
+            close(i);
+
+        /* EXEC */
+        r = execvp(argv[0], argv);
+
+        /* If we get here, then there's been an failure of some sort.
+         * In my case, it's often that I don't know what script name to
+         * give to /script, so exec() can't find the script.
+         *
+         * Forward the error back to the client, using the script pipes.
+         */
+
+        if (r != -1) {
+            printf("draw %d Script child: no error, but no execvp().\n", NDI_RED);
+        } else {
+            printf("draw %d Script child failed to start: %s\n", NDI_RED, strerror(errno));
         }
 
-   strncpy(params, cparams, MAX_BUF-1);
-   params[MAX_BUF-1] = '\0';
+        exit(1);
+    }
 
-   /* Get name and args */
-   name=params;
-   args=name;
-   while ( *args && *args!=' ' ) ++args;
-   while ( *args && *args==' ' ) *args++ = '\0';
-   if ( *args==0 )
-   {
-      args=NULL;
-   }
+    /* Close the child's pipe ends */
+    close(pipe1[0]);
+#ifdef USE_PIPE
+    close(pipe2[1]);
+#endif
 
-   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-   saAttr.bInheritHandle = TRUE;
-   saAttr.lpSecurityDescriptor = NULL;
+    if (fcntl(pipe1[1], F_SETFL, O_NDELAY) == -1) {
+        LOG(LOG_WARNING, "common::script_init", "Error on fcntl.");
+    }
 
-   hSaveStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-   if (!CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0))
-   {
-	   draw_info("Script support: stdout CreatePipe() failed", NDI_RED);
-	   return;
-   }
+    /* realloc script array to add new entry; fill in the data */
+    scripts = realloc(scripts, sizeof(scripts[0])*(num_scripts+1));
+    scripts[num_scripts].name = strdup(name);
+    scripts[num_scripts].params = args ? strdup(args) : NULL;
+    scripts[num_scripts].out_fd = pipe1[1];
+#ifdef USE_PIPE
+    scripts[num_scripts].in_fd = pipe2[0];
+#else
+    scripts[num_scripts].in_fd = pipe1[1];
+#endif
+    scripts[num_scripts].monitor = 0;
+    scripts[num_scripts].num_watch = 0;
+    scripts[num_scripts].watch = NULL;
+    scripts[num_scripts].cmd_count = 0;
+    scripts[num_scripts].pid = pid;
+    scripts[num_scripts].sync_watch = -1;
+    ++num_scripts;
+#else /* WIN32 */
 
-   if (!SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr))
-   {
-	   draw_info("Script support: failed to redirect stdout using SetStdHandle()", NDI_RED);
-	   return;
-   }
+    char *name, *args;
+    char params[ MAX_BUF ];
+    SECURITY_ATTRIBUTES saAttr;
+    PROCESS_INFORMATION piProcInfo;
+    STARTUPINFO siStartupInfo;
+    HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, hChildStdoutRd;
+    HANDLE hChildStdoutWr, hChildStdoutRdDup, hSaveStdin, hSaveStdout;
 
-   if (!DuplicateHandle(GetCurrentProcess(), hChildStdoutRd, GetCurrentProcess(),
-	   &hChildStdoutRdDup, 0, FALSE, DUPLICATE_SAME_ACCESS))
-   {
-	   draw_info("Script support: failed to duplicate stdout using DuplicateHandle()", NDI_RED);
-	   return;
-   }
+    if (!cparams) {
+        draw_info("Please specifiy a script to launch!", NDI_RED);
+        return;
+    }
 
-   CloseHandle(hChildStdoutRd);
+    strncpy(params, cparams, MAX_BUF-1);
+    params[MAX_BUF-1] = '\0';
 
-   hSaveStdin = GetStdHandle(STD_INPUT_HANDLE);
-   if (!CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0))
-   {
-	   draw_info("Script support: stdin CreatePipe() failed", NDI_RED);
-	   return;
-   }
+    /* Get name and args */
+    name = params;
+    args = name;
+    while (*args && *args != ' ')
+        ++args;
+    while (*args && *args == ' ')
+        *args++ = '\0';
+    if (*args == 0) {
+        args = NULL;
+    }
 
-   if (!SetStdHandle(STD_INPUT_HANDLE, hChildStdinRd))
-   {
-	   draw_info("Script support: failed to redirect stdin using SetStdHandle()", NDI_RED);
-	   return;
-   }
+    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+    saAttr.bInheritHandle = TRUE;
+    saAttr.lpSecurityDescriptor = NULL;
 
-   if (!DuplicateHandle(GetCurrentProcess(), hChildStdinWr, GetCurrentProcess(),
-	   &hChildStdinWrDup, 0, FALSE, DUPLICATE_SAME_ACCESS))
-   {
-	   draw_info("Script support: failed to duplicate stdin using DuplicateHandle()", NDI_RED);
-	   return;
-   }
+    hSaveStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (!CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0)) {
+        draw_info("Script support: stdout CreatePipe() failed", NDI_RED);
+        return;
+    }
 
-   CloseHandle(hChildStdinWr);
+    if (!SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr)) {
+        draw_info("Script support: failed to redirect stdout using SetStdHandle()", NDI_RED);
+        return;
+    }
 
-   ZeroMemory(&piProcInfo, sizeof(PROCESS_INFORMATION));
-   ZeroMemory(&siStartupInfo, sizeof(STARTUPINFO));
-   siStartupInfo.cb = sizeof(STARTUPINFO);
+    if (!DuplicateHandle(GetCurrentProcess(), hChildStdoutRd, GetCurrentProcess(), &hChildStdoutRdDup, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
+        draw_info("Script support: failed to duplicate stdout using DuplicateHandle()", NDI_RED);
+        return;
+    }
 
-   if (args)
-	   args[-1] = ' ';
+    CloseHandle(hChildStdoutRd);
 
-   if (!CreateProcess(NULL, name, NULL, NULL, TRUE, CREATE_NEW_PROCESS_GROUP, NULL, NULL, &siStartupInfo, &piProcInfo))
-   {
-	   draw_info("Script support: CreateProcess() failed", NDI_RED);
-	   return;
-   }
+    hSaveStdin = GetStdHandle(STD_INPUT_HANDLE);
+    if (!CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0)) {
+        draw_info("Script support: stdin CreatePipe() failed", NDI_RED);
+        return;
+    }
 
-   CloseHandle(piProcInfo.hThread);
+    if (!SetStdHandle(STD_INPUT_HANDLE, hChildStdinRd)) {
+        draw_info("Script support: failed to redirect stdin using SetStdHandle()", NDI_RED);
+        return;
+    }
 
-   if (args)
-	   args[-1] = '\0';
+    if (!DuplicateHandle(GetCurrentProcess(), hChildStdinWr, GetCurrentProcess(), &hChildStdinWrDup, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
+        draw_info("Script support: failed to duplicate stdin using DuplicateHandle()", NDI_RED);
+        return;
+    }
 
-	if (!SetStdHandle(STD_INPUT_HANDLE, hSaveStdin))
-	{
-		draw_info("Script support: restoring original stdin failed", NDI_RED);
-		return;
-	}
+    CloseHandle(hChildStdinWr);
 
-	if (!SetStdHandle(STD_OUTPUT_HANDLE, hSaveStdout))
-	{
-		draw_info("Script support: restoring original stdout failed", NDI_RED);
-		return;
-	}
+    ZeroMemory(&piProcInfo, sizeof(PROCESS_INFORMATION));
+    ZeroMemory(&siStartupInfo, sizeof(STARTUPINFO));
+    siStartupInfo.cb = sizeof(STARTUPINFO);
 
-   /* realloc script array to add new entry; fill in the data */
-   scripts=realloc(scripts,sizeof(scripts[0])*(num_scripts+1));
-   scripts[num_scripts].name=strdup(name);
-   scripts[num_scripts].params=args?strdup(args):NULL;
-   scripts[num_scripts].out_fd=hChildStdinWrDup;
-   scripts[num_scripts].in_fd=hChildStdoutRdDup;
-   scripts[num_scripts].monitor=0;
-   scripts[num_scripts].num_watch=0;
-   scripts[num_scripts].watch=NULL;
-   scripts[num_scripts].cmd_count=0;
-   scripts[num_scripts].pid=piProcInfo.dwProcessId;
-   scripts[num_scripts].process = piProcInfo.hProcess;
-   scripts[num_scripts].sync_watch = -1;
-   ++num_scripts;
+    if (args)
+        args[-1] = ' ';
 
+    if (!CreateProcess(NULL, name, NULL, NULL, TRUE, CREATE_NEW_PROCESS_GROUP, NULL, NULL, &siStartupInfo, &piProcInfo)) {
+        draw_info("Script support: CreateProcess() failed", NDI_RED);
+        return;
+    }
+
+    CloseHandle(piProcInfo.hThread);
+
+    if (args)
+        args[-1] = '\0';
+
+    if (!SetStdHandle(STD_INPUT_HANDLE, hSaveStdin)) {
+        draw_info("Script support: restoring original stdin failed", NDI_RED);
+        return;
+    }
+
+    if (!SetStdHandle(STD_OUTPUT_HANDLE, hSaveStdout)) {
+        draw_info("Script support: restoring original stdout failed", NDI_RED);
+        return;
+    }
+
+    /* realloc script array to add new entry; fill in the data */
+    scripts = realloc(scripts, sizeof(scripts[0])*(num_scripts+1));
+    scripts[num_scripts].name = strdup(name);
+    scripts[num_scripts].params = args ? strdup(args) : NULL;
+    scripts[num_scripts].out_fd = hChildStdinWrDup;
+    scripts[num_scripts].in_fd = hChildStdoutRdDup;
+    scripts[num_scripts].monitor = 0;
+    scripts[num_scripts].num_watch = 0;
+    scripts[num_scripts].watch = NULL;
+    scripts[num_scripts].cmd_count = 0;
+    scripts[num_scripts].pid = piProcInfo.dwProcessId;
+    scripts[num_scripts].process = piProcInfo.hProcess;
+    scripts[num_scripts].sync_watch = -1;
+    ++num_scripts;
 #endif /* WIN32 */
 }
 
-void script_sync(int commdiff)
-{
-   int i;
+void script_sync(int commdiff) {
+    int i;
 
-   if (commdiff<0) commdiff +=256;
-   for (i=0;i<num_scripts; ++i) {
-      if ( commdiff <= scripts[i].sync_watch && scripts[i].sync_watch >= 0 ) {
-         char buf[1024];
+    if (commdiff < 0)
+        commdiff +=256;
+    for (i = 0; i < num_scripts; ++i) {
+        if (commdiff <= scripts[i].sync_watch && scripts[i].sync_watch >= 0) {
+            char buf[1024];
 
-         snprintf(buf, sizeof(buf), "sync %d\n",commdiff);
-         write(scripts[i].out_fd,buf,strlen(buf));
-         scripts[i].sync_watch = -1;
-      }
-   }
+            snprintf(buf, sizeof(buf), "sync %d\n", commdiff);
+            write(scripts[i].out_fd, buf, strlen(buf));
+            scripts[i].sync_watch = -1;
+        }
+    }
 }
 
-void script_list(void)
-{
-   if ( num_scripts == 0 )
-   {
-      draw_info("No scripts are currently running",NDI_BLACK);
-   }
-   else
-   {
-      int i;
-      char buf[1024];
+void script_list(void) {
+    if (num_scripts == 0) {
+        draw_info("No scripts are currently running", NDI_BLACK);
+    } else {
+        int i;
+        char buf[1024];
 
-      snprintf(buf, sizeof(buf), "%d scripts currently running:",num_scripts);
-      draw_info(buf,NDI_BLACK);
-      for ( i=0;i<num_scripts;++i)
-      {
-         if ( scripts[i].params )
-            snprintf(buf, sizeof(buf), "%d %s  %s",i+1,scripts[i].name,scripts[i].params);
-         else
-            snprintf(buf, sizeof(buf), "%d %s",i+1,scripts[i].name);
-         draw_info(buf,NDI_BLACK);
-      }
-   }
+        snprintf(buf, sizeof(buf), "%d scripts currently running:", num_scripts);
+        draw_info(buf, NDI_BLACK);
+        for (i = 0; i < num_scripts; ++i) {
+            if (scripts[i].params)
+                snprintf(buf, sizeof(buf), "%d %s  %s", i+1, scripts[i].name, scripts[i].params);
+            else
+                snprintf(buf, sizeof(buf), "%d %s", i+1, scripts[i].name);
+            draw_info(buf, NDI_BLACK);
+        }
+    }
 }
 
-void script_kill(const char *params)
-{
-   int i;
+void script_kill(const char *params) {
+    int i;
 
-   /* Verify that the number is a valid array entry */
-   i=script_by_name(params);
-   if (i<0 || i>=num_scripts)
-   {
-      draw_info("No such running script",NDI_BLACK);
-      return;
-   }
+    /* Verify that the number is a valid array entry */
+    i = script_by_name(params);
+    if (i < 0 || i >= num_scripts) {
+        draw_info("No such running script", NDI_BLACK);
+        return;
+    }
 #ifndef WIN32
-   kill(scripts[i].pid,SIGHUP);
+    kill(scripts[i].pid, SIGHUP);
 #else
     GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[i].pid);
 #endif /* WIN32 */
-   draw_info( "Killed script.", NDI_RED );
-   script_dead(i);
+    draw_info("Killed script.", NDI_RED);
+    script_dead(i);
 }
 
 #ifdef WIN32
-void script_killall(void)
-{
-   while (num_scripts > 0)
-   {
-      GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[0].pid);
-      script_dead(0);
-   }
+void script_killall(void) {
+    while (num_scripts > 0) {
+        GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[0].pid);
+        script_dead(0);
+    }
 }
 #endif /* WIN32 */
 
-void script_fdset(int *maxfd,fd_set *set)
-{
+void script_fdset(int *maxfd, fd_set *set) {
 #ifndef WIN32
-   int i;
+    int i;
 
-   for ( i=0;i<num_scripts;++i)
-   {
-      FD_SET(scripts[i].in_fd,set);
-      if ( scripts[i].in_fd >= *maxfd ) *maxfd = scripts[i].in_fd+1;
-   }
+    for (i = 0; i < num_scripts; ++i) {
+        FD_SET(scripts[i].in_fd, set);
+        if (scripts[i].in_fd >= *maxfd)
+            *maxfd = scripts[i].in_fd+1;
+    }
 #endif /* WIN32 */
 }
 
-void script_process(fd_set *set)
-{
-   int i;
-   int r;
+void script_process(fd_set *set) {
+    int i;
+    int r;
 #ifdef WIN32
-   DWORD nAvailBytes = 0;
-   char cTmp;
-   BOOL bRC;
-   DWORD dwStatus;
-   BOOL bStatus;
+    DWORD nAvailBytes = 0;
+    char cTmp;
+    BOOL bRC;
+    DWORD dwStatus;
+    BOOL bStatus;
 #endif
 
-
-   /* Determine which script's fd is set */
-   for(i=0;i<num_scripts;++i)
-   {
+    /* Determine which script's fd is set */
+    for (i = 0; i < num_scripts; ++i) {
 #ifndef WIN32
-      if ( FD_ISSET(scripts[i].in_fd,set) )
+        if (FD_ISSET(scripts[i].in_fd, set))
 #else
-
-      bStatus = GetExitCodeProcess(scripts[i].process,&dwStatus);
-      bRC = PeekNamedPipe(scripts[i].in_fd, &cTmp, 1, NULL, &nAvailBytes, NULL);
-	  if (nAvailBytes)
+        bStatus = GetExitCodeProcess(scripts[i].process, &dwStatus);
+        bRC = PeekNamedPipe(scripts[i].in_fd, &cTmp, 1, NULL, &nAvailBytes, NULL);
+        if (nAvailBytes)
 #endif /* WIN32 */
-      {
-         /* Read in script[i].cmd */
-         r=read(scripts[i].in_fd,scripts[i].cmd+scripts[i].cmd_count,sizeof(scripts[i].cmd)-scripts[i].cmd_count-1);
-         if ( r>0 )
-         {
-            scripts[i].cmd_count+=r;
-         }
+        {
+            /* Read in script[i].cmd */
+            r = read(scripts[i].in_fd, scripts[i].cmd+scripts[i].cmd_count, sizeof(scripts[i].cmd)-scripts[i].cmd_count-1);
+            if (r > 0) {
+                scripts[i].cmd_count += r;
+            }
 #ifndef WIN32
-         else if ( r==0 || errno==EBADF )
+            else if (r == 0 || errno == EBADF)
 #else
-         else if ( r==0 || GetLastError() == ERROR_BROKEN_PIPE )
+            else if (r == 0 || GetLastError() == ERROR_BROKEN_PIPE)
 #endif
-         {
-            /* Script has exited; delete it */
-            script_dead(i);
-            return;
-         }
-         /* If a newline or full buffer has been reached, process it */
-         scripts[i].cmd[scripts[i].cmd_count]=0; /* terminate string */
-         while ( scripts[i].cmd_count == sizeof(scripts[i].cmd)-1
+            {
+                /* Script has exited; delete it */
+                script_dead(i);
+                return;
+            }
+            /* If a newline or full buffer has been reached, process it */
+            scripts[i].cmd[scripts[i].cmd_count] = 0; /* terminate string */
+            while (scripts[i].cmd_count == sizeof(scripts[i].cmd)-1
 #ifndef WIN32
-              || strchr(scripts[i].cmd,'\n') )
+            || strchr(scripts[i].cmd, '\n'))
 #else
-              || strchr(scripts[i].cmd,'\r\n') )
+            || strchr(scripts[i].cmd, '\r\n'))
 #endif /* WIN32 */
-         {
+        {
             script_process_cmd(i);
-            scripts[i].cmd[scripts[i].cmd_count]=0; /* terminate string */
-         }
-         return; /* Only process one script at a time */
-      }
+            scripts[i].cmd[scripts[i].cmd_count] = 0; /* terminate string */
+        }
+        return; /* Only process one script at a time */
+    }
 #ifdef WIN32
-	  else if (!bRC || ( bStatus && ( dwStatus != STILL_ACTIVE ) ) ) /* Error: assume dead */
-		 script_dead(i);
+    else if (!bRC || (bStatus && (dwStatus != STILL_ACTIVE))) /* Error: assume dead */
+        script_dead(i);
 #endif /* WIN32 */
-   }
+    }
 }
 
-void script_watch(const char *cmd, const uint8 *data, const int data_len, const enum CmdFormat format)
-{
-   int i;
-   int w;
-   int l, len;
+void script_watch(const char *cmd, const uint8 *data, const int data_len, const enum CmdFormat format) {
+    int i;
+    int w;
+    int l, len;
 
-   /* For each script... */
-   for (i=0;i<num_scripts;++i)
-   {
-      /* For each watch... */
-      for (w=0;w<scripts[i].num_watch;++w)
-      {
-          len = data_len;
-         /* Does this command match our watch? */
-         l=strlen(scripts[i].watch[w]);
-         if ( !l || strncmp(cmd,scripts[i].watch[w],l)==0 )
-         {
-            char buf[10240];
-            if ( !len ) snprintf(buf, sizeof(buf), "watch %s\n",cmd);
-            else switch (format) {
-               case ASCII:
-                  snprintf(buf, sizeof(buf), "watch %s %s\n",cmd,data);
-                  break;
-               case SHORT_INT:
-                  snprintf(buf, sizeof(buf), "watch %s %d %d\n",cmd,GetShort_String(data),GetInt_String(data+2));
-                  break;
-               case SHORT_ARRAY:
-                  {
-                     int be;
-                     int p;
+    /* For each script... */
+    for (i = 0; i < num_scripts; ++i) {
+        /* For each watch... */
+        for (w = 0; w < scripts[i].num_watch; ++w)
+        {
+            len = data_len;
+            /* Does this command match our watch? */
+            l = strlen(scripts[i].watch[w]);
+            if (!l || strncmp(cmd, scripts[i].watch[w], l) == 0)
+            {
+                char buf[10240];
 
-                     be=snprintf(buf, sizeof(buf), "watch %s",cmd);
-                     for(p=0;p*2<len && p<100;++p) {
-                        be+=snprintf(buf+be, sizeof(buf)-be, " %d",GetShort_String(data+p*2));
-                     }
-                     be+=snprintf(buf+be, sizeof(buf)-be, "\n");
-                  }
-                  break;
-               case INT_ARRAY:
-                  {
-                     int be;
-                     int p;
+                if (!len)
+                    snprintf(buf, sizeof(buf), "watch %s\n", cmd);
+                else
+                    switch (format) {
+                    case ASCII:
+                        snprintf(buf, sizeof(buf), "watch %s %s\n", cmd, data);
+                        break;
 
-                     be=snprintf(buf, sizeof(buf), "watch %s",cmd);
-                     for(p=0;p*4<len;++p) {
-                        be+=snprintf(buf+be, sizeof(buf)-be, " %d",GetInt_String(data+p*4));
-                     }
-                     be+=snprintf(buf+be, sizeof(buf)-be, "\n");
-                  }
-                  break;
-               case STATS:
-		  {
-                     /*
-                      * We cheat here and log each stat as a separate command, even
-                      * if the server sent a bunch of updates as a single message;
-                      * most scripts will be easier to write if they only parse a fixed
-                      * format.
-                      */
-                     int be = 0;
-                     while (len) {
-                        int c; /* which stat */
+                    case SHORT_INT:
+                        snprintf(buf, sizeof(buf), "watch %s %d %d\n", cmd, GetShort_String(data), GetInt_String(data+2));
+                        break;
 
-                        be+=snprintf(buf+be, sizeof(buf)-be, "watch %s",cmd);
-                        c=*data;
-                        ++data; --len;
-                        if (c>=CS_STAT_RESIST_START && c<=CS_STAT_RESIST_END) {
-                           be+=snprintf(buf+be, sizeof(buf)-be, " resists %d %d\n",c,GetShort_String(data));
-                           data+=2; len-=2;
-                        } else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
-                           be+=snprintf(buf+be, sizeof(buf)-be, " skill %d %d %" FMT64 "\n",c,*data,GetInt64_String(data+1));
-                           data+=9; len-=9;
-                        } else switch (c) {
-                           case CS_STAT_HP:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " hp %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_MAXHP:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " maxhp %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_SP:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " sp %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_MAXSP:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " maxspp %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_GRACE:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " grace %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_MAXGRACE:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " maxgrace %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_STR:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " str %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_INT:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " int %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_POW:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " pow %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_WIS:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " wis %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_DEX:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " dex %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_CON:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " con %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_CHA:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " cha %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_EXP:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " exp %d\n",GetInt_String(data));
-                              data+=4; len-=4; break;
-                           case CS_STAT_EXP64:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " exp %" FMT64 "\n",GetInt64_String(data));
-                              data+=8; len-=8; break;
-                           case CS_STAT_LEVEL:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " level %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_WC:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " wc %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_AC:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " ac %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_DAM:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " dam %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_ARMOUR:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " armour %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_SPEED:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " speed %d\n",GetInt_String(data));
-                              data+=4; len-=4; break;
-                           case CS_STAT_FOOD:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " food %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_WEAP_SP:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " weap_sp %d\n",GetInt_String(data));
-                              data+=4; len-=4; break;
-                           case CS_STAT_FLAGS:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " flags %d\n",GetShort_String(data));
-                              data+=2; len-=2; break;
-                           case CS_STAT_WEIGHT_LIM:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " weight_lim %d\n",GetInt_String(data));
-                              data+=4; len-=4; break;
-                           case CS_STAT_SKILLEXP_AGILITY:
-                           case CS_STAT_SKILLEXP_PERSONAL:
-                           case CS_STAT_SKILLEXP_MENTAL:
-                           case CS_STAT_SKILLEXP_PHYSIQUE:
-                           case CS_STAT_SKILLEXP_MAGIC:
-                           case CS_STAT_SKILLEXP_WISDOM:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " skillexp %d %d\n",c,GetInt_String(data));
-                              data+=4; len-=4; break;
-                           case CS_STAT_SKILLEXP_AGLEVEL:
-                           case CS_STAT_SKILLEXP_PELEVEL:
-                           case CS_STAT_SKILLEXP_MELEVEL:
-                           case CS_STAT_SKILLEXP_PHLEVEL:
-                           case CS_STAT_SKILLEXP_MALEVEL:
-                           case CS_STAT_SKILLEXP_WILEVEL:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " skilllevel %d %d\n",c,GetShort_String(data));
-                              data+=2; len-=2; break;
+                    case SHORT_ARRAY:
+                        {
+                            int be;
+                            int p;
 
-                           case CS_STAT_RANGE: {
-                              int rlen=*data;
-                              ++data; --len;
-                              be+=snprintf(buf+be, sizeof(buf)-be, " range %*.*s\n",rlen,rlen,data);
-                              data+=rlen; len-=rlen; break;
-                           }
-                           case CS_STAT_TITLE: {
-                              int rlen=*data;
-                              ++data; --len;
-                              be+=snprintf(buf+be, sizeof(buf)-be, " title %*.*s\n",rlen,rlen,data);
-                              data+=rlen; len-=rlen; break;
-                           }
-                           default:
-                              be+=snprintf(buf+be, sizeof(buf)-be, " unknown %d %d bytes left\n",c,len);
-                              len=0;
+                            be = snprintf(buf, sizeof(buf), "watch %s", cmd);
+                            for (p = 0; p*2 < len && p < 100; ++p) {
+                                be += snprintf(buf+be, sizeof(buf)-be, " %d", GetShort_String(data+p*2));
+                            }
+                            be += snprintf(buf+be, sizeof(buf)-be, "\n");
                         }
-                     }
-		  }
-                  break;
-               case MIXED:
-                  /* magicmap */
-                  /* mapextended */
-                  /* item1 item2 */
-                  /* upditem */
-                  /* image image2 */
-                  /* face face1 face2 */
-                  /* sound */
-                  /* player */
-                  /*
-                   * If we find that scripts need data from any of the above, we can
-                   * write special-case code as with stats.  In the meantime, fall
-                   * through and just give a hex dump.  Script writers should not
-                   * depend on that data format.
-                   */
-               case NODATA:
-               default: {
-                     int be;
-                     int p;
+                        break;
 
-                     /*we may receive an null data, in which case len has no meaning*/
-                     if (!data)
-                        len=0;
-                     be=snprintf(buf, sizeof(buf), "watch %s %d bytes unparsed:",cmd,len);
-                     for(p=0;p<len && p<100;++p) {
-                        be+=snprintf(buf+be, sizeof(buf)-be, " %02x",data[p]);
-                     }
-                     be+=snprintf(buf+be, sizeof(buf)-be, "\n");
-                  }
-                  break;
-            }
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-      }
-   }
-}
+                    case INT_ARRAY:
+                        {
+                            int be;
+                            int p;
 
-void script_monitor(const char *command, int repeat, int must_send)
-{
-   int i;
+                            be = snprintf(buf, sizeof(buf), "watch %s", cmd);
+                            for (p = 0; p*4 < len; ++p) {
+                                be += snprintf(buf+be, sizeof(buf)-be, " %d", GetInt_String(data+p*4));
+                            }
+                            be += snprintf(buf+be, sizeof(buf)-be, "\n");
+                        }
+                        break;
 
-   /* For each script... */
-   for (i=0;i<num_scripts;++i)
-   {
-      /* Do we send the command? */
-      if ( scripts[i].monitor )
-      {
-         char buf[1024];
+                    case STATS:
+                        {
+                            /*
+                             * We cheat here and log each stat as a separate command, even
+                             * if the server sent a bunch of updates as a single message;
+                             * most scripts will be easier to write if they only parse a fixed
+                             * format.
+                             */
+                            int be = 0;
+                            while (len) {
+                                int c; /* which stat */
 
-         snprintf(buf, sizeof(buf), "monitor %d %d %s\n",repeat,must_send,command);
-         write(scripts[i].out_fd,buf,strlen(buf));
-      }
-   }
-}
+                                be += snprintf(buf+be, sizeof(buf)-be, "watch %s", cmd);
+                                c = *data;
+                                ++data;
+                                --len;
+                                if (c >= CS_STAT_RESIST_START && c <= CS_STAT_RESIST_END) {
+                                    be += snprintf(buf+be, sizeof(buf)-be, " resists %d %d\n", c, GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                } else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
+                                    be += snprintf(buf+be, sizeof(buf)-be, " skill %d %d %" FMT64 "\n", c, *data, GetInt64_String(data+1));
+                                    data += 9;
+                                    len -= 9;
+                                } else
+                                    switch (c) {
+                                    case CS_STAT_HP:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " hp %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-void script_monitor_str(const char *command)
-{
-   int i;
+                                    case CS_STAT_MAXHP:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " maxhp %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   /* For each script... */
-   for (i=0;i<num_scripts;++i)
-   {
-      /* Do we send the command? */
-      if ( scripts[i].monitor )
-      {
-         char buf[1024];
+                                    case CS_STAT_SP:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " sp %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-         snprintf(buf, sizeof(buf), "monitor %s\n",command);
-         write(scripts[i].out_fd,buf,strlen(buf));
-      }
-   }
-}
+                                    case CS_STAT_MAXSP:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " maxspp %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-void script_tell(const char *params)
-{
-   int i;
-   char *p;
+                                    case CS_STAT_GRACE:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " grace %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   if (params == NULL)
-   {
-       draw_info("Which script do you want to talk to?", NDI_RED);
-       return;
-   }
-   p = strchr(params, ' ');
-   if (p == NULL)
-   {
-       draw_info("What do you want to tell the script?", NDI_RED);
-       return;
-   }
-   while (*p == ' ')
-   {
-       *p++ = '\0';
-   }
+                                    case CS_STAT_MAXGRACE:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " maxgrace %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   /* Find the script */
-   i=script_by_name(params);
-   if ( i<0 )
-   {
-      draw_info("No such running script",NDI_BLACK);
-      return;
-   }
+                                    case CS_STAT_STR:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " str %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   /* Send the message */
-   write(scripts[i].out_fd,"scripttell ",11);
-   write(scripts[i].out_fd,p,strlen(p));
-   write(scripts[i].out_fd,"\n",1);
-}
+                                    case CS_STAT_INT:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " int %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-static int script_by_name(const char *name)
-{
-   int i;
-   int l;
+                                    case CS_STAT_POW:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " pow %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   if ( name==NULL )
-   {
-      return(num_scripts==1?0:-1);
-   }
+                                    case CS_STAT_WIS:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " wis %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   /* Parse script number */
-   if ( isdigit(*name) )
-   {
-      i=atoi(name);
-      --i;
-      if (i>=0 && i<num_scripts) return(i);
-   }
+                                    case CS_STAT_DEX:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " dex %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   /* Parse script name */
-   l=0;
-   while ( name[l] && name[l]!=' ' ) ++l;
-   for (i=0;i<num_scripts;++i)
-   {
-      if ( strncmp(name,scripts[i].name,l)==0 ) return(i);
-   }
-   return(-1);
-}
+                                    case CS_STAT_CON:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " con %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-static void script_dead(int i)
-{
-   int w;
+                                    case CS_STAT_CHA:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " cha %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   /* Release resources */
-#ifndef WIN32
-   close(scripts[i].in_fd);
-   close(scripts[i].out_fd);
-#else
-   CloseHandle(scripts[i].in_fd);
-   CloseHandle(scripts[i].out_fd);
-   CloseHandle(scripts[i].process);
-#endif
-   free(scripts[i].name);
-   free(scripts[i].params);
-   for(w=0;w<scripts[i].num_watch;++w) free(scripts[i].watch[w]);
-   free(scripts[i].watch);
+                                    case CS_STAT_EXP:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " exp %d\n", GetInt_String(data));
+                                        data += 4;
+                                        len -= 4;
+                                        break;
 
-#ifndef WIN32
-   waitpid(-1,NULL,WNOHANG);
-#endif
+                                    case CS_STAT_EXP64:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " exp %" FMT64 "\n", GetInt64_String(data));
+                                        data += 8;
+                                        len -= 8;
+                                        break;
 
-   /* Move scripts with higher index numbers down one slot */
-   if ( i < (num_scripts-1) )
-   {
-      memmove(&scripts[i],&scripts[i+1],sizeof(scripts[i])*(num_scripts-i-1));
-   }
+                                    case CS_STAT_LEVEL:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " level %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   /* Update our count */
-   --num_scripts;
-}
+                                    case CS_STAT_WC:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " wc %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-static void send_map(int i,int x,int y)
-{
-   char buf[1024];
+                                    case CS_STAT_AC:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " ac %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   if (x<0 || y<0 || the_map.x<=x || the_map.y<=y)
-   {
-      snprintf(buf, sizeof(buf), "request map %d %d unknown\n",x,y);
-      write(scripts[i].out_fd,buf,strlen(buf));
-   }
-   /*** FIXME *** send more relevant data ***/
-   snprintf(buf, sizeof(buf), "request map %d %d  %d %c %c %c %c"
-           " smooth %d %d %d heads %d %d %d tails %d %d %d\n",
-           x,y,the_map.cells[x][y].darkness,
-           the_map.cells[x][y].need_update ? 'y' : 'n',
-           the_map.cells[x][y].have_darkness ? 'y' : 'n',
-           the_map.cells[x][y].need_resmooth ? 'y' : 'n',
-           the_map.cells[x][y].cleared ? 'y' : 'n',
-           the_map.cells[x][y].smooth[0],the_map.cells[x][y].smooth[1],the_map.cells[x][y].smooth[2],
-           the_map.cells[x][y].heads[0].face,the_map.cells[x][y].heads[1].face,the_map.cells[x][y].heads[2].face,
-           the_map.cells[x][y].tails[0].face,the_map.cells[x][y].tails[1].face,the_map.cells[x][y].tails[2].face
-      );
-      write(scripts[i].out_fd,buf,strlen(buf));
-}
+                                    case CS_STAT_DAM:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " dam %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-static void script_process_cmd(int i)
-{
-   char cmd[1024];
-   char *c;
-   int l;
+                                    case CS_STAT_ARMOUR:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " armour %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-   /*
-    * Strip out just this one command
-    */
-   for (l=0;l<scripts[i].cmd_count;++l)
-   {
-      if ( scripts[i].cmd[l]=='\n' ) break;
-   }
-   ++l;
-   memcpy(cmd,scripts[i].cmd,l);
-#ifndef WIN32
-   cmd[l-1]=0;
-#else
-   cmd[l-2]=0;
-#endif
-   if ( l<scripts[i].cmd_count )
-   {
-      memmove(scripts[i].cmd,scripts[i].cmd+l,scripts[i].cmd_count-l);
-      scripts[i].cmd_count-=l;
-   }
-   else
-   {
-      scripts[i].cmd_count=0;
-   }
+                                    case CS_STAT_SPEED:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " speed %d\n", GetInt_String(data));
+                                        data += 4;
+                                        len -= 4;
+                                        break;
 
-   /*
-    * Now the data in scripts[i] is ready for the next read.
-    * We have a complete command in cmd[].
-    * Process it.
-    */
-   /*
-    * Script commands
-    *
-    * watch <command type>
-    * unwatch <command type>
-    * request <data type>
-    * issue <repeat> <must_send> <command>
-    * localcmd <command> [<params>]
-    * draw <color> <text>
-    * monitor
-    * unmonitor
-    */
-   if ( strncmp(cmd,"sync",4)==0 ) {
-      c=cmd+4;
-      while ( *c && *c!=' ' ) ++c;
-      while ( *c==' ' ) ++c;
-      scripts[i].sync_watch = -1;
-      if ( isdigit(*c) ) {
-         scripts[i].sync_watch = atoi(c);
-      }
-      script_sync(csocket.command_sent - csocket.command_received); /* in case we are already there */
-   }
-   else if ( strncmp(cmd,"watch",5)==0 ) {
-      c=cmd+5;
-      while ( *c && *c!=' ' ) ++c;
-      while ( *c==' ' ) ++c;
-      c=strdup(c);
-      scripts[i].watch=realloc(scripts[i].watch,(scripts[i].num_watch+1)*sizeof(scripts[i].watch[1]));
-      scripts[i].watch[scripts[i].num_watch]=c;
-      ++scripts[i].num_watch;
-   }
-   else if ( strncmp(cmd,"unwatch",7)==0 ) {
-      int w;
+                                    case CS_STAT_FOOD:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " food %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-      c=cmd+7;
-      while ( *c && *c!=' ' ) ++c;
-      while ( *c==' ' ) ++c;
-      for (w=0;w<scripts[i].num_watch;++w) {
-         if ( strcmp(c,scripts[i].watch[w])==0 ) {
-            free(scripts[i].watch[w]);
-            while ( w+1<scripts[i].num_watch ) {
-               scripts[i].watch[w]=scripts[i].watch[w+1];
-               ++w;
-            }
-            --scripts[i].num_watch;
-            break;
-         }
-      }
-   }
-   else if ( strncmp(cmd,"request",7)==0 ) {
-      c=cmd+7;
-      while ( *c && *c!=' ' ) ++c;
-      while ( *c==' ' ) ++c;
-      if ( !*c ) return; /* bad request */
-      /*
-       * Request information from the client's view of the world
-       * (mostly defined in client.h)
-       *
-       * Valid requests:
-       *
-       *   player       Return the player's tag and title
-       *   range        Return the type and name of the currently selected range attack
-       *   stat <type>  Return the specified stats
-       *   stat stats   Return Str,Con,Dex,Int,Wis,Pow,Cha
-       *   stat cmbt    Return wc,ac,dam,speed,weapon_sp
-       *   stat hp      Return hp,maxhp,sp,maxsp,grace,maxgrace,food
-       *   stat xp      Return level,xp,skill-1 level,skill-1 xp,...
-       *   stat resists Return resistances
-       *   stat paths   Return spell paths: attuned, repelled, denied.
-       *   weight       Return maxweight, weight
-       *   flags        Return flags (fire, run)
-       *   items inv    Return a list of items in the inventory, one per line
-       *   items actv   Return a list of inventory items that are active, one per line
-       *   items on     Return a list of items under the player, one per line
-       *   items cont   Return a list of items in the open container, one per line
-       *   map pos      Return the players x,y within the current map
-       *   map near     Return the 3x3 grid of the map centered on the player
-       *   map all      Return all the known map information
-       *   map <x> <y>  Return the information about square x,y in the current map
-       *   skills       Return a list of all skill names, one per line (see also stat xp)
-       *   spells       Return a list of known spells, one per line
-       */
-      if (strncmp(c, "player", 6) == 0) {
-         char buf[1024];
+                                    case CS_STAT_WEAP_SP:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " weap_sp %d\n", GetInt_String(data));
+                                        data += 4;
+                                        len -= 4;
+                                        break;
 
-         snprintf(buf, sizeof(buf), "request player %d %s\n", cpl.ob->tag, cpl.title);
-         write(scripts[i].out_fd, buf, strlen(buf));
-      }
-      else if ( strncmp(c,"range",5)==0 ) {
-         char buf[1024];
+                                    case CS_STAT_FLAGS:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " flags %d\n", GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-         snprintf(buf, sizeof(buf), "request range %s\n",cpl.range);
-         write(scripts[i].out_fd,buf,strlen(buf));
-      }
-      else if ( strncmp(c,"weight",5)==0 ) {
-         char buf[1024];
+                                    case CS_STAT_WEIGHT_LIM:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " weight_lim %d\n", GetInt_String(data));
+                                        data += 4;
+                                        len -= 4;
+                                        break;
 
-         snprintf(buf, sizeof(buf), "request weight %d %d\n",cpl.stats.weight_limit,(int)(cpl.ob->weight*1000));
-         write(scripts[i].out_fd,buf,strlen(buf));
-      }
-      else if ( strncmp(c,"stat ",5)==0 ) {
-         c+=4;
-         while ( *c && *c!=' ' ) ++c;
-         while ( *c==' ' ) ++c;
-         if ( !*c ) return; /* bad request */
-         /*
-          *   stat stats   Return Str,Con,Dex,Int,Wis,Pow,Cha
-          *   stat cmbt    Return wc,ac,dam,speed,weapon_sp
-          *   stat hp      Return hp,maxhp,sp,maxsp,grace,maxgrace,food
-          *   stat xp      Return level,xp,skill-1 level,skill-1 xp,...
-          *   stat resists Return resistances
-          */
-         if ( strncmp(c,"stats",5)==0 ) {
-            char buf[1024];
+                                    case CS_STAT_SKILLEXP_AGILITY:
+                                    case CS_STAT_SKILLEXP_PERSONAL:
+                                    case CS_STAT_SKILLEXP_MENTAL:
+                                    case CS_STAT_SKILLEXP_PHYSIQUE:
+                                    case CS_STAT_SKILLEXP_MAGIC:
+                                    case CS_STAT_SKILLEXP_WISDOM:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " skillexp %d %d\n", c, GetInt_String(data));
+                                        data += 4;
+                                        len -= 4;
+                                        break;
 
-            snprintf(buf, sizeof(buf), "request stat stats %d %d %d %d %d %d %d\n",cpl.stats.Str,cpl.stats.Con,cpl.stats.Dex,cpl.stats.Int,cpl.stats.Wis,cpl.stats.Pow,cpl.stats.Cha);
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-         else if ( strncmp(c,"cmbt",4)==0 ) {
-            char buf[1024];
+                                    case CS_STAT_SKILLEXP_AGLEVEL:
+                                    case CS_STAT_SKILLEXP_PELEVEL:
+                                    case CS_STAT_SKILLEXP_MELEVEL:
+                                    case CS_STAT_SKILLEXP_PHLEVEL:
+                                    case CS_STAT_SKILLEXP_MALEVEL:
+                                    case CS_STAT_SKILLEXP_WILEVEL:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " skilllevel %d %d\n", c, GetShort_String(data));
+                                        data += 2;
+                                        len -= 2;
+                                        break;
 
-            snprintf(buf, sizeof(buf), "request stat cmbt %d %d %d %d %d\n",cpl.stats.wc,cpl.stats.ac,cpl.stats.dam,cpl.stats.speed,cpl.stats.weapon_sp);
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-         else if ( strncmp(c,"hp",2)==0 ) {
-            char buf[1024];
+                                    case CS_STAT_RANGE:
+                                        {
+                                            int rlen = *data;
+                                            ++data; --len;
+                                            be += snprintf(buf+be, sizeof(buf)-be, " range %*.*s\n", rlen, rlen, data);
+                                            data += rlen;
+                                            len -= rlen;
+                                            break;
+                                        }
 
-            snprintf(buf, sizeof(buf), "request stat hp %d %d %d %d %d %d %d\n",cpl.stats.hp,cpl.stats.maxhp,cpl.stats.sp,cpl.stats.maxsp,cpl.stats.grace,cpl.stats.maxgrace,cpl.stats.food);
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-         else if ( strncmp(c,"xp",2)==0 ) {
-            char buf[1024];
-            int s;
+                                    case CS_STAT_TITLE:
+                                        {
+                                            int rlen = *data;
+                                            ++data;
+                                            --len;
+                                            be += snprintf(buf+be, sizeof(buf)-be, " title %*.*s\n", rlen, rlen, data);
+                                            data += rlen;
+                                            len -= rlen;
+                                            break;
+                                        }
 
-            snprintf(buf, sizeof(buf), "request stat xp %d %" FMT64 ,cpl.stats.level,cpl.stats.exp);
-            write(scripts[i].out_fd,buf,strlen(buf));
-            for(s=0;s<MAX_SKILL;++s) {
-               snprintf(buf, sizeof(buf), " %d %" FMT64 ,cpl.stats.skill_level[s],cpl.stats.skill_exp[s]);
-               write(scripts[i].out_fd,buf,strlen(buf));
-            }
-            write(scripts[i].out_fd,"\n",1);
-         }
-         else if ( strncmp(c,"resists",7)==0 ) {
-            char buf[1024];
-            int s;
+                                    default:
+                                        be += snprintf(buf+be, sizeof(buf)-be, " unknown %d %d bytes left\n", c, len);
+                                        len = 0;
+                                    }
+                            }
+                        }
+                        break;
 
-            snprintf(buf, sizeof(buf), "request stat resists");
-            write(scripts[i].out_fd,buf,strlen(buf));
-            for(s=0;s<30;++s) {
-               snprintf(buf, sizeof(buf), " %d",cpl.stats.resists[s]);
-               write(scripts[i].out_fd,buf,strlen(buf));
-            }
-            write(scripts[i].out_fd,"\n",1);
-         }
-         else if (strncmp(c, "paths", 2) == 0) {
-            char buf[1024];
+                    case MIXED:
+                        /* magicmap */
+                        /* mapextended */
+                        /* item1 item2 */
+                        /* upditem */
+                        /* image image2 */
+                        /* face face1 face2 */
+                        /* sound */
+                        /* player */
+                        /*
+                         * If we find that scripts need data from any of the above, we can
+                         * write special-case code as with stats.  In the meantime, fall
+                         * through and just give a hex dump.  Script writers should not
+                         * depend on that data format.
+                         */
+                    case NODATA:
+                    default: {
+                        int be;
+                        int p;
 
-            snprintf(buf, sizeof(buf), "request stat paths %d %d %d\n", cpl.stats.attuned, cpl.stats.repelled, cpl.stats.denied);
-            write(scripts[i].out_fd, buf, strlen(buf));
-         }
-      }
-      else if ( strncmp(c,"flags",5)==0 ) {
-         char buf[1024];
-
-         snprintf(buf, sizeof(buf), "request flags %d %d %d %d\n",cpl.stats.flags,cpl.fire_on,cpl.run_on,cpl.no_echo);
-         write(scripts[i].out_fd,buf,strlen(buf));
-      }
-      else if ( strncmp(c,"items ",6)==0 ) {
-         c+=5;
-         while ( *c && *c!=' ' ) ++c;
-         while ( *c==' ' ) ++c;
-         if ( !*c ) return; /* bad request */
-         /*
-          *   items inv    Return a list of items in the inventory, one per line
-          *   items actv   Return a list of inventory items that are active, one per line
-          *   items on     Return a list of items under the player, one per line
-          *   items cont   Return a list of items in the open container, one per line
-          */
-         if ( strncmp(c,"inv",3)==0 ) {
-            char *buf;
-
-            item *it=cpl.ob->inv;
-            while (it) {
-               script_send_item(i,"request items inv ",it);
-               it=it->next;
-            }
-            buf="request items inv end\n";
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-         if ( strncmp(c,"actv",4)==0 ) {
-            char *buf;
-
-            item *it=cpl.ob->inv;
-            while (it) {
-               if (it->applied) script_send_item(i,"request items actv ",it);
-               it=it->next;
-            }
-            buf="request items actv end\n";
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-         if ( strncmp(c,"on",2)==0 ) {
-            char *buf;
-
-            item *it=cpl.below->inv;
-            while (it) {
-               script_send_item(i,"request items on ",it);
-               it=it->next;
-            }
-            buf="request items on end\n";
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-         if ( strncmp(c,"cont",4)==0 ) {
-            char *buf;
-
-            item *it=cpl.container->inv;
-            while (it) {
-               script_send_item(i,"request items cont ",it);
-               it=it->next;
-            }
-            buf="request items cont end\n";
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-      }
-      else if ( strncmp(c,"map ",4)==0 ) {
-         int x,y;
-
-         c+=3;
-         while ( *c && *c!=' ' ) ++c;
-         while ( *c==' ' ) ++c;
-         if ( !*c ) return; /* bad request */
-         /*
-          *   map pos      Return the players x,y within the current map
-          *   map near     Return the 3x3 grid of the map centered on the player
-          *   map all      Return all the known map information
-          *   map <x> <y>  Return the information about square x,y in the current map
-          */
-         if ( strncmp(c,"pos",3)==0 ) {
-            char buf[1024];
-
-            snprintf(buf, sizeof(buf), "request map pos %d %d\n",pl_pos.x,pl_pos.y);
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-         else if ( strncmp(c,"near",4)==0 ) {
-            for(y=0;y<3;++y)
-               for(x=0;x<3;++x)
-                  send_map(i,
-                           x+pl_pos.x+use_config[CONFIG_MAPWIDTH]/2-1,
-                           y+pl_pos.y+use_config[CONFIG_MAPHEIGHT]/2-1
-                     );
-         }
-         else if ( strncmp(c,"all",3)==0 ) {
-            char buf[1024];
-
-            for(y=0;y<the_map.y;++y)
-               for(x=0;x<the_map.x;++x)
-                  send_map(i,x,y);
-            snprintf(buf, sizeof(buf), "request map end\n");
-            write(scripts[i].out_fd,buf,strlen(buf));
-         }
-         else {
-            while ( *c && !isdigit(*c) ) ++c;
-            if ( !*c ) return; /* No x specified */
-            x=atoi(c);
-            while ( *c && *c!=' ' ) ++c;
-            while ( *c && !isdigit(*c) ) ++c;
-            if ( !*c ) return; /* No y specified */
-            y=atoi(c);
-            send_map(i,x,y);
-         }
-      }
-      else if (strncmp(c, "skills", 6) == 0) {
-          char buf[1024];
-          int s;
-
-          for (s = 0; s < CS_NUM_SKILLS; s++) {
-              if (skill_names[s]) {
-                sprintf(buf, "request skills %d %s\n", CS_STAT_SKILLINFO + s, skill_names[s]);
+                        /*we may receive an null data, in which case len has no meaning*/
+                        if (!data)
+                            len = 0;
+                        be = snprintf(buf, sizeof(buf), "watch %s %d bytes unparsed:", cmd, len);
+                        for (p = 0; p < len && p < 100; ++p) {
+                            be += snprintf(buf+be, sizeof(buf)-be, " %02x", data[p]);
+                        }
+                        be += snprintf(buf+be, sizeof(buf)-be, "\n");
+                    }
+                        break;
+                    }
                 write(scripts[i].out_fd, buf, strlen(buf));
-              }
-          }
-          sprintf(buf, "request skills end\n");
-          write(scripts[i].out_fd, buf, strlen(buf));
-      }
-      else if (strncmp(c, "spells", 6) == 0) {
-          char buf[1024];
-          Spell *spell;
-
-          for (spell = cpl.spelldata; spell; spell = spell->next) {
-              sprintf(buf, "request spells %d %d %d %d %d %d %d %d %s\n",
-                      spell->tag, spell->level, spell->sp, spell->grace,
-                      spell->skill_number, spell->path, spell->time,
-                      spell->dam, spell->name);
-              write(scripts[i].out_fd, buf, strlen(buf));
-          }
-          sprintf(buf, "request spells end\n");
-          write(scripts[i].out_fd, buf, strlen(buf));
-      }
-      else {
-         char buf[1024];
-
-         snprintf(buf, sizeof(buf), "Script %d %s malfunction; unimplemented request:",i+1,scripts[i].name);
-         draw_info(buf,NDI_RED);
-         draw_info(cmd,NDI_RED);
-      }
-   }
-   else if ( strncmp(cmd,"issue",5)==0 ) {
-      int repeat;
-      int must_send;
-
-      c=cmd+5;
-      while ( *c && *c==' ' ) ++c;
-      if ( *c && (isdigit(*c) || *c=='-') ) { /* repeat specified; use send_command() */
-         repeat=atoi(c);
-         while ( *c && *c!=' ' ) ++c;
-         while ( *c && !isdigit(*c) && *c!='-' ) ++c;
-         if ( !*c ) return; /* No must_send specified */
-         must_send=atoi(c);
-         while ( *c && *c!=' ' ) ++c;
-         if ( !*c ) return; /* No command specified */
-         while ( *c==' ' ) ++c;
-         if ( repeat != -1 )
-         {
-            int r;
-
-            r=send_command(c,repeat,must_send);
-            if ( r!=1 ) {
-               char buf[1024];
-
-               snprintf(buf, sizeof(buf), "Script %d %s malfunction; command not sent",i+1,scripts[i].name);
-               draw_info(buf,NDI_RED);
-               draw_info(cmd,NDI_RED);
             }
-         }
-      }
-      else
-      {
-         c=cmd+5;
-         while ( *c && *c!=' ' ) ++c;
-         while ( *c==' ' ) ++c;
+        }
+    }
+}
 
-         /*
-          * Check special cases: "mark <tag>" or "lock <new state> <tag>"
-          */
-         if ( strncmp(c,"mark",4)==0 ) {
-            int tag;
-            SockList sl;
-	    uint8 buf[MAX_BUF];
+void script_monitor(const char *command, int repeat, int must_send) {
+    int i;
 
-            c+=4;
+    /* For each script... */
+    for (i = 0; i < num_scripts; ++i) {
+        /* Do we send the command? */
+        if (scripts[i].monitor) {
+            char buf[1024];
 
-            while ( *c && !isdigit(*c) ) ++c;
-            if ( !*c ) return; /* No tag specified */
-            tag=atoi(c);
+            snprintf(buf, sizeof(buf), "monitor %d %d %s\n", repeat, must_send, command);
+            write(scripts[i].out_fd, buf, strlen(buf));
+        }
+    }
+}
 
-            SockList_Init(&sl, buf);
-            SockList_AddString(&sl, "mark ");
-            SockList_AddInt(&sl, tag);
-            SockList_Send(&sl, csocket.fd);
-         }
-         else if ( strncmp(c,"lock",4)==0 ) {
-            int tag,locked;
-            SockList sl;
-	    uint8 buf[MAX_BUF];
+void script_monitor_str(const char *command) {
+    int i;
 
-            c+=4;
+    /* For each script... */
+    for (i = 0; i < num_scripts; ++i) {
+        /* Do we send the command? */
+        if (scripts[i].monitor) {
+            char buf[1024];
 
-            while ( *c && !isdigit(*c) ) ++c;
-            if ( !*c ) return; /* No state specified */
-            locked=atoi(c);
-            while ( *c && *c!=' ' ) ++c;
-            while ( *c && !isdigit(*c) ) ++c;
-            if ( !*c ) return; /* No tag specified */
-            tag=atoi(c);
+            snprintf(buf, sizeof(buf), "monitor %s\n", command);
+            write(scripts[i].out_fd, buf, strlen(buf));
+        }
+    }
+}
 
-            SockList_Init(&sl, buf);
-            SockList_AddString(&sl, "lock ");
-            SockList_AddChar(&sl, locked);
-            SockList_AddInt(&sl, tag);
-            SockList_Send(&sl, csocket.fd);
-         }
-         else {
-            cs_print_string(csocket.fd, "%s", c);
-         }
-      }
-   }
-   else if ( strncmp(cmd,"localcmd",8)==0){
-      char* param;
-      c=cmd+8;
-      while (*c==' ') c++;
-      param=c;
-      while ( (*param!='\0') && (*param!=' ')) param++;
-      if (*param==' '){
-         *param='\0';
-         param++;
-      } else
-         param=NULL;
+void script_tell(const char *params) {
+    int i;
+    char *p;
 
-      if (!handle_local_command(c, param)){
-         char buf[1024];
-         snprintf(buf, sizeof(buf), "Script %s malfunction; localcmd not understood",scripts[i].name);
-         draw_info(buf,NDI_RED);
-         snprintf(buf, sizeof(buf), "Script <<localcmd %s %s>>",c,(param==NULL)?"":param);
-         draw_info(buf,NDI_RED);
-      }
-   }
-   else if ( strncmp(cmd,"draw",4)==0 ) {
-      int color;
+    if (params == NULL) {
+        draw_info("Which script do you want to talk to?", NDI_RED);
+        return;
+    }
+    p = strchr(params, ' ');
+    if (p == NULL) {
+        draw_info("What do you want to tell the script?", NDI_RED);
+        return;
+    }
+    while (*p == ' ') {
+        *p++ = '\0';
+    }
 
-      c=cmd+4;
-      while ( *c && !isdigit(*c) ) ++c;
-      if ( !*c ) return; /* No color specified */
-      color=atoi(c);
-      while ( *c && *c!=' ' ) ++c;
-      if ( !*c ) return; /* No message specified */
-      while ( *c==' ' ) ++c;
-      draw_info(c,color);
-   }
-   else if ( strncmp(cmd,"monitor",7)==0 ) scripts[i].monitor=1;
-   else if ( strncmp(cmd,"unmonitor",9)==0 ) scripts[i].monitor=0;
-   else {
-      char buf[1024];
+    /* Find the script */
+    i = script_by_name(params);
+    if (i < 0) {
+        draw_info("No such running script", NDI_BLACK);
+        return;
+    }
 
-      snprintf(buf, sizeof(buf), "Script %d %s malfunction; invalid command:",i+1,scripts[i].name);
-      draw_info(buf,NDI_RED);
-      draw_info(cmd,NDI_RED);
-   }
+    /* Send the message */
+    write(scripts[i].out_fd, "scripttell ", 11);
+    write(scripts[i].out_fd, p, strlen(p));
+    write(scripts[i].out_fd, "\n", 1);
+}
+
+static int script_by_name(const char *name) {
+    int i;
+    int l;
+
+    if (name == NULL) {
+        return(num_scripts == 1 ? 0 : -1);
+    }
+
+    /* Parse script number */
+    if (isdigit(*name)) {
+        i = atoi(name);
+        --i;
+        if (i >= 0 && i < num_scripts)
+            return(i);
+    }
+
+    /* Parse script name */
+    l = 0;
+    while (name[l] && name[l] != ' ')
+        ++l;
+    for (i = 0; i < num_scripts; ++i) {
+        if (strncmp(name, scripts[i].name, l) == 0)
+            return(i);
+    }
+    return(-1);
+}
+
+static void script_dead(int i) {
+    int w;
+
+    /* Release resources */
+#ifndef WIN32
+    close(scripts[i].in_fd);
+    close(scripts[i].out_fd);
+#else
+    CloseHandle(scripts[i].in_fd);
+    CloseHandle(scripts[i].out_fd);
+    CloseHandle(scripts[i].process);
+#endif
+    free(scripts[i].name);
+    free(scripts[i].params);
+    for (w = 0; w < scripts[i].num_watch; ++w)
+        free(scripts[i].watch[w]);
+    free(scripts[i].watch);
+
+#ifndef WIN32
+    waitpid(-1, NULL, WNOHANG);
+#endif
+
+    /* Move scripts with higher index numbers down one slot */
+    if (i < (num_scripts-1)) {
+        memmove(&scripts[i], &scripts[i+1], sizeof(scripts[i])*(num_scripts-i-1));
+    }
+
+    /* Update our count */
+    --num_scripts;
+}
+
+static void send_map(int i, int x, int y) {
+    char buf[1024];
+
+    if (x < 0 || y < 0 || the_map.x <= x || the_map.y <= y) {
+        snprintf(buf, sizeof(buf), "request map %d %d unknown\n", x, y);
+        write(scripts[i].out_fd, buf, strlen(buf));
+    }
+    /*** FIXME *** send more relevant data ***/
+    snprintf(buf, sizeof(buf), "request map %d %d  %d %c %c %c %c"
+        " smooth %d %d %d heads %d %d %d tails %d %d %d\n",
+        x, y, the_map.cells[x][y].darkness,
+        the_map.cells[x][y].need_update ? 'y' : 'n',
+        the_map.cells[x][y].have_darkness ? 'y' : 'n',
+        the_map.cells[x][y].need_resmooth ? 'y' : 'n',
+        the_map.cells[x][y].cleared ? 'y' : 'n',
+        the_map.cells[x][y].smooth[0], the_map.cells[x][y].smooth[1], the_map.cells[x][y].smooth[2],
+        the_map.cells[x][y].heads[0].face, the_map.cells[x][y].heads[1].face, the_map.cells[x][y].heads[2].face,
+        the_map.cells[x][y].tails[0].face, the_map.cells[x][y].tails[1].face, the_map.cells[x][y].tails[2].face
+    );
+    write(scripts[i].out_fd, buf, strlen(buf));
+}
+
+static void script_process_cmd(int i) {
+    char cmd[1024];
+    char *c;
+    int l;
+
+    /*
+     * Strip out just this one command
+     */
+    for (l = 0; l < scripts[i].cmd_count; ++l) {
+        if (scripts[i].cmd[l] == '\n')
+            break;
+    }
+    ++l;
+    memcpy(cmd, scripts[i].cmd, l);
+#ifndef WIN32
+    cmd[l-1] = 0;
+#else
+    cmd[l-2] = 0;
+#endif
+    if (l < scripts[i].cmd_count) {
+        memmove(scripts[i].cmd, scripts[i].cmd+l, scripts[i].cmd_count-l);
+        scripts[i].cmd_count -= l;
+    } else {
+        scripts[i].cmd_count = 0;
+    }
+
+    /*
+     * Now the data in scripts[i] is ready for the next read.
+     * We have a complete command in cmd[].
+     * Process it.
+     */
+    /*
+     * Script commands
+     *
+     * watch <command type>
+     * unwatch <command type>
+     * request <data type>
+     * issue <repeat> <must_send> <command>
+     * localcmd <command> [<params>]
+     * draw <color> <text>
+     * monitor
+     * unmonitor
+     */
+    if (strncmp(cmd, "sync", 4) == 0) {
+        c = cmd+4;
+        while (*c && *c != ' ')
+            ++c;
+        while (*c == ' ')
+            ++c;
+        scripts[i].sync_watch = -1;
+        if (isdigit(*c)) {
+            scripts[i].sync_watch = atoi(c);
+        }
+        script_sync(csocket.command_sent - csocket.command_received); /* in case we are already there */
+    } else if (strncmp(cmd, "watch", 5) == 0) {
+        c = cmd+5;
+        while (*c && *c != ' ')
+            ++c;
+        while (*c == ' ')
+            ++c;
+        c = strdup(c);
+        scripts[i].watch = realloc(scripts[i].watch, (scripts[i].num_watch+1)*sizeof(scripts[i].watch[1]));
+        scripts[i].watch[scripts[i].num_watch] = c;
+        ++scripts[i].num_watch;
+    } else if (strncmp(cmd, "unwatch", 7) == 0) {
+        int w;
+
+        c = cmd+7;
+        while (*c && *c != ' ')
+            ++c;
+        while (*c == ' ')
+            ++c;
+        for (w = 0; w < scripts[i].num_watch; ++w) {
+            if (strcmp(c, scripts[i].watch[w]) == 0) {
+                free(scripts[i].watch[w]);
+                while (w+1 < scripts[i].num_watch) {
+                    scripts[i].watch[w] = scripts[i].watch[w+1];
+                    ++w;
+                }
+                --scripts[i].num_watch;
+                break;
+            }
+        }
+    } else if (strncmp(cmd, "request", 7) == 0) {
+        c = cmd+7;
+        while (*c && *c != ' ')
+            ++c;
+        while (*c == ' ')
+            ++c;
+        if (!*c)
+            return; /* bad request */
+        /*
+         * Request information from the client's view of the world
+         * (mostly defined in client.h)
+         *
+         * Valid requests:
+         *
+         *   player       Return the player's tag and title
+         *   range        Return the type and name of the currently selected range attack
+         *   stat <type>  Return the specified stats
+         *   stat stats   Return Str,Con,Dex,Int,Wis,Pow,Cha
+         *   stat cmbt    Return wc,ac,dam,speed,weapon_sp
+         *   stat hp      Return hp,maxhp,sp,maxsp,grace,maxgrace,food
+         *   stat xp      Return level,xp,skill-1 level,skill-1 xp,...
+         *   stat resists Return resistances
+         *   stat paths   Return spell paths: attuned, repelled, denied.
+         *   weight       Return maxweight, weight
+         *   flags        Return flags (fire, run)
+         *   items inv    Return a list of items in the inventory, one per line
+         *   items actv   Return a list of inventory items that are active, one per line
+         *   items on     Return a list of items under the player, one per line
+         *   items cont   Return a list of items in the open container, one per line
+         *   map pos      Return the players x,y within the current map
+         *   map near     Return the 3x3 grid of the map centered on the player
+         *   map all      Return all the known map information
+         *   map <x> <y>  Return the information about square x,y in the current map
+         *   skills       Return a list of all skill names, one per line (see also stat xp)
+         *   spells       Return a list of known spells, one per line
+         */
+        if (strncmp(c, "player", 6) == 0) {
+            char buf[1024];
+
+            snprintf(buf, sizeof(buf), "request player %d %s\n", cpl.ob->tag, cpl.title);
+            write(scripts[i].out_fd, buf, strlen(buf));
+        } else if (strncmp(c, "range", 5) == 0) {
+            char buf[1024];
+
+            snprintf(buf, sizeof(buf), "request range %s\n", cpl.range);
+            write(scripts[i].out_fd, buf, strlen(buf));
+        } else if (strncmp(c, "weight", 5) == 0) {
+            char buf[1024];
+
+            snprintf(buf, sizeof(buf), "request weight %d %d\n", cpl.stats.weight_limit, (int)(cpl.ob->weight*1000));
+            write(scripts[i].out_fd, buf, strlen(buf));
+        } else if (strncmp(c, "stat ", 5) == 0) {
+            c += 4;
+            while (*c && *c != ' ')
+                ++c;
+            while (*c == ' ')
+                ++c;
+            if (!*c)
+                return; /* bad request */
+            /*
+             *   stat stats   Return Str,Con,Dex,Int,Wis,Pow,Cha
+             *   stat cmbt    Return wc,ac,dam,speed,weapon_sp
+             *   stat hp      Return hp,maxhp,sp,maxsp,grace,maxgrace,food
+             *   stat xp      Return level,xp,skill-1 level,skill-1 xp,...
+             *   stat resists Return resistances
+             */
+            if (strncmp(c, "stats", 5) == 0) {
+                char buf[1024];
+
+                snprintf(buf, sizeof(buf), "request stat stats %d %d %d %d %d %d %d\n", cpl.stats.Str, cpl.stats.Con, cpl.stats.Dex, cpl.stats.Int, cpl.stats.Wis, cpl.stats.Pow, cpl.stats.Cha);
+                write(scripts[i].out_fd, buf, strlen(buf));
+            } else if (strncmp(c, "cmbt", 4) == 0) {
+                char buf[1024];
+
+                snprintf(buf, sizeof(buf), "request stat cmbt %d %d %d %d %d\n", cpl.stats.wc, cpl.stats.ac, cpl.stats.dam, cpl.stats.speed, cpl.stats.weapon_sp);
+                write(scripts[i].out_fd, buf, strlen(buf));
+            } else if (strncmp(c, "hp", 2) == 0) {
+                char buf[1024];
+
+                snprintf(buf, sizeof(buf), "request stat hp %d %d %d %d %d %d %d\n", cpl.stats.hp, cpl.stats.maxhp, cpl.stats.sp, cpl.stats.maxsp, cpl.stats.grace, cpl.stats.maxgrace, cpl.stats.food);
+                write(scripts[i].out_fd, buf, strlen(buf));
+            } else if (strncmp(c, "xp", 2) == 0) {
+                char buf[1024];
+                int s;
+
+                snprintf(buf, sizeof(buf), "request stat xp %d %" FMT64, cpl.stats.level, cpl.stats.exp);
+                write(scripts[i].out_fd, buf, strlen(buf));
+                for (s = 0; s < MAX_SKILL; ++s) {
+                    snprintf(buf, sizeof(buf), " %d %" FMT64, cpl.stats.skill_level[s], cpl.stats.skill_exp[s]);
+                    write(scripts[i].out_fd, buf, strlen(buf));
+                }
+                write(scripts[i].out_fd, "\n", 1);
+            } else if (strncmp(c, "resists", 7) == 0) {
+                char buf[1024];
+                int s;
+
+                snprintf(buf, sizeof(buf), "request stat resists");
+                write(scripts[i].out_fd, buf, strlen(buf));
+                for (s = 0; s < 30; ++s) {
+                    snprintf(buf, sizeof(buf), " %d", cpl.stats.resists[s]);
+                    write(scripts[i].out_fd, buf, strlen(buf));
+                }
+                write(scripts[i].out_fd, "\n", 1);
+            } else if (strncmp(c, "paths", 2) == 0) {
+                char buf[1024];
+
+                snprintf(buf, sizeof(buf), "request stat paths %d %d %d\n", cpl.stats.attuned, cpl.stats.repelled, cpl.stats.denied);
+                write(scripts[i].out_fd, buf, strlen(buf));
+            }
+        } else if (strncmp(c, "flags", 5) == 0) {
+            char buf[1024];
+
+            snprintf(buf, sizeof(buf), "request flags %d %d %d %d\n", cpl.stats.flags, cpl.fire_on, cpl.run_on, cpl.no_echo);
+            write(scripts[i].out_fd, buf, strlen(buf));
+        } else if (strncmp(c, "items ", 6) == 0) {
+            c += 5;
+            while (*c && *c != ' ')
+                ++c;
+            while (*c == ' ')
+                ++c;
+            if (!*c)
+                return; /* bad request */
+            /*
+             *   items inv    Return a list of items in the inventory, one per line
+             *   items actv   Return a list of inventory items that are active, one per line
+             *   items on     Return a list of items under the player, one per line
+             *   items cont   Return a list of items in the open container, one per line
+             */
+            if (strncmp(c, "inv", 3) == 0) {
+                char *buf;
+
+                item *it = cpl.ob->inv;
+                while (it) {
+                    script_send_item(i, "request items inv ", it);
+                    it = it->next;
+                }
+                buf = "request items inv end\n";
+                write(scripts[i].out_fd, buf, strlen(buf));
+            }
+            if (strncmp(c, "actv", 4) == 0) {
+                char *buf;
+
+                item *it = cpl.ob->inv;
+                while (it) {
+                    if (it->applied)
+                        script_send_item(i, "request items actv ", it);
+                    it = it->next;
+                }
+                buf = "request items actv end\n";
+                write(scripts[i].out_fd, buf, strlen(buf));
+            }
+            if (strncmp(c, "on", 2) == 0) {
+                char *buf;
+
+                item *it = cpl.below->inv;
+                while (it) {
+                    script_send_item(i, "request items on ", it);
+                    it = it->next;
+                }
+                buf = "request items on end\n";
+                write(scripts[i].out_fd, buf, strlen(buf));
+            }
+            if (strncmp(c, "cont", 4) == 0) {
+                char *buf;
+
+                item *it = cpl.container->inv;
+                while (it) {
+                    script_send_item(i, "request items cont ", it);
+                    it = it->next;
+                }
+                buf = "request items cont end\n";
+                write(scripts[i].out_fd, buf, strlen(buf));
+            }
+        } else if (strncmp(c, "map ", 4) == 0) {
+            int x, y;
+
+            c += 3;
+            while (*c && *c != ' ')
+                ++c;
+            while (*c == ' ')
+                ++c;
+            if (!*c)
+                return; /* bad request */
+            /*
+             *   map pos      Return the players x,y within the current map
+             *   map near     Return the 3x3 grid of the map centered on the player
+             *   map all      Return all the known map information
+             *   map <x> <y>  Return the information about square x,y in the current map
+             */
+            if (strncmp(c, "pos", 3) == 0) {
+                char buf[1024];
+
+                snprintf(buf, sizeof(buf), "request map pos %d %d\n", pl_pos.x, pl_pos.y);
+                write(scripts[i].out_fd, buf, strlen(buf));
+            } else if (strncmp(c, "near", 4) == 0) {
+                for (y = 0; y < 3; ++y)
+                    for (x = 0; x < 3; ++x)
+                        send_map(i,
+                            x+pl_pos.x+use_config[CONFIG_MAPWIDTH]/2-1,
+                            y+pl_pos.y+use_config[CONFIG_MAPHEIGHT]/2-1
+                        );
+            } else if (strncmp(c, "all", 3) == 0) {
+                char buf[1024];
+
+                for (y = 0; y < the_map.y; ++y)
+                    for (x = 0; x < the_map.x; ++x)
+                        send_map(i, x, y);
+                snprintf(buf, sizeof(buf), "request map end\n");
+                write(scripts[i].out_fd, buf, strlen(buf));
+            } else {
+                while (*c && !isdigit(*c))
+                    ++c;
+                if (!*c)
+                    return; /* No x specified */
+                x = atoi(c);
+                while (*c && *c != ' ')
+                    ++c;
+                while (*c && !isdigit(*c))
+                    ++c;
+                if (!*c)
+                    return; /* No y specified */
+                y = atoi(c);
+                send_map(i, x, y);
+            }
+        } else if (strncmp(c, "skills", 6) == 0) {
+            char buf[1024];
+            int s;
+
+            for (s = 0; s < CS_NUM_SKILLS; s++) {
+                if (skill_names[s]) {
+                    sprintf(buf, "request skills %d %s\n", CS_STAT_SKILLINFO + s, skill_names[s]);
+                    write(scripts[i].out_fd, buf, strlen(buf));
+                }
+            }
+            sprintf(buf, "request skills end\n");
+            write(scripts[i].out_fd, buf, strlen(buf));
+        } else if (strncmp(c, "spells", 6) == 0) {
+            char buf[1024];
+            Spell *spell;
+
+            for (spell = cpl.spelldata; spell; spell = spell->next) {
+                sprintf(buf, "request spells %d %d %d %d %d %d %d %d %s\n",
+                    spell->tag, spell->level, spell->sp, spell->grace,
+                    spell->skill_number, spell->path, spell->time,
+                    spell->dam, spell->name);
+                write(scripts[i].out_fd, buf, strlen(buf));
+            }
+            sprintf(buf, "request spells end\n");
+            write(scripts[i].out_fd, buf, strlen(buf));
+        } else {
+            char buf[1024];
+
+            snprintf(buf, sizeof(buf), "Script %d %s malfunction; unimplemented request:", i+1, scripts[i].name);
+            draw_info(buf, NDI_RED);
+            draw_info(cmd, NDI_RED);
+        }
+    } else if (strncmp(cmd, "issue", 5) == 0) {
+        int repeat;
+        int must_send;
+
+        c = cmd+5;
+        while (*c && *c == ' ')
+            ++c;
+        if (*c && (isdigit(*c) || *c == '-')) { /* repeat specified; use send_command() */
+            repeat = atoi(c);
+            while (*c && *c != ' ')
+                ++c;
+            while (*c && !isdigit(*c) && *c != '-')
+                ++c;
+            if (!*c)
+                return; /* No must_send specified */
+            must_send = atoi(c);
+            while (*c && *c != ' ')
+                ++c;
+            if (!*c)
+                return; /* No command specified */
+            while (*c == ' ')
+                ++c;
+            if (repeat != -1) {
+                int r;
+
+                r = send_command(c, repeat, must_send);
+                if (r != 1) {
+                    char buf[1024];
+
+                    snprintf(buf, sizeof(buf), "Script %d %s malfunction; command not sent", i+1, scripts[i].name);
+                    draw_info(buf, NDI_RED);
+                    draw_info(cmd, NDI_RED);
+                }
+            }
+        } else {
+            c = cmd+5;
+            while (*c && *c != ' ')
+                ++c;
+            while (*c == ' ')
+                ++c;
+
+            /*
+             * Check special cases: "mark <tag>" or "lock <new state> <tag>"
+             */
+            if (strncmp(c, "mark", 4) == 0) {
+                int tag;
+                SockList sl;
+                uint8 buf[MAX_BUF];
+
+                c += 4;
+
+                while (*c && !isdigit(*c))
+                    ++c;
+                if (!*c)
+                    return; /* No tag specified */
+                tag = atoi(c);
+
+                SockList_Init(&sl, buf);
+                SockList_AddString(&sl, "mark ");
+                SockList_AddInt(&sl, tag);
+                SockList_Send(&sl, csocket.fd);
+            } else if (strncmp(c, "lock", 4) == 0) {
+                int tag, locked;
+                SockList sl;
+                uint8 buf[MAX_BUF];
+
+                c += 4;
+
+                while (*c && !isdigit(*c))
+                    ++c;
+                if (!*c)
+                    return; /* No state specified */
+                locked = atoi(c);
+                while (*c && *c != ' ')
+                    ++c;
+                while (*c && !isdigit(*c))
+                    ++c;
+                if (!*c)
+                    return; /* No tag specified */
+                tag = atoi(c);
+
+                SockList_Init(&sl, buf);
+                SockList_AddString(&sl, "lock ");
+                SockList_AddChar(&sl, locked);
+                SockList_AddInt(&sl, tag);
+                SockList_Send(&sl, csocket.fd);
+            } else {
+                cs_print_string(csocket.fd, "%s", c);
+            }
+        }
+    } else if (strncmp(cmd, "localcmd", 8) == 0){
+        char *param;
+
+        c = cmd+8;
+        while (*c == ' ')
+            c++;
+        param = c;
+        while ((*param != '\0') && (*param != ' '))
+            param++;
+        if (*param == ' '){
+            *param = '\0';
+            param++;
+        } else
+            param = NULL;
+
+        if (!handle_local_command(c, param)){
+            char buf[1024];
+
+            snprintf(buf, sizeof(buf), "Script %s malfunction; localcmd not understood", scripts[i].name);
+            draw_info(buf, NDI_RED);
+            snprintf(buf, sizeof(buf), "Script <<localcmd %s %s>>", c, (param == NULL) ? "" : param);
+            draw_info(buf, NDI_RED);
+        }
+    } else if (strncmp(cmd, "draw", 4) == 0) {
+        int color;
+
+        c = cmd+4;
+        while (*c && !isdigit(*c))
+            ++c;
+        if (!*c)
+            return; /* No color specified */
+        color = atoi(c);
+        while (*c && *c != ' ')
+            ++c;
+        if (!*c)
+            return; /* No message specified */
+        while (*c == ' ')
+            ++c;
+        draw_info(c, color);
+    } else if (strncmp(cmd, "monitor", 7) == 0)
+        scripts[i].monitor = 1;
+    else if (strncmp(cmd, "unmonitor", 9) == 0)
+        scripts[i].monitor = 0;
+    else {
+        char buf[1024];
+
+        snprintf(buf, sizeof(buf), "Script %d %s malfunction; invalid command:", i+1, scripts[i].name);
+        draw_info(buf, NDI_RED);
+        draw_info(cmd, NDI_RED);
+    }
 }
 
 /*
@@ -1482,22 +1554,21 @@ static void script_process_cmd(int i)
  *   magic, cursed, damned, unpaid, locked, applied, open, was_open, inv_updated
  *    256     128     64      32       16      8       4      2         1
  */
-static void script_send_item(int i, const char *head, const item *it)
-{
-   char buf[4096];
-   int flags;
+static void script_send_item(int i, const char *head, const item *it) {
+    char buf[4096];
+    int flags;
 
-   flags=it->magical;
-   flags= (flags<<1)|it->cursed;
-   flags= (flags<<1)|it->damned;
-   flags= (flags<<1)|it->unpaid;
-   flags= (flags<<1)|it->locked;
-   flags= (flags<<1)|it->applied;
-   flags= (flags<<1)|it->open;
-   flags= (flags<<1)|it->was_open;
-   flags= (flags<<1)|it->inv_updated;
-   snprintf(buf, sizeof(buf), "%s%d %d %d %d %d %s\n",head,it->tag,it->nrof,(int)(it->weight*1000+0.5),flags,it->type,it->d_name);
-   write(scripts[i].out_fd,buf,strlen(buf));
+    flags = it->magical;
+    flags = (flags<<1)|it->cursed;
+    flags = (flags<<1)|it->damned;
+    flags = (flags<<1)|it->unpaid;
+    flags = (flags<<1)|it->locked;
+    flags = (flags<<1)|it->applied;
+    flags = (flags<<1)|it->open;
+    flags = (flags<<1)|it->was_open;
+    flags = (flags<<1)|it->inv_updated;
+    snprintf(buf, sizeof(buf), "%s%d %d %d %d %d %s\n", head, it->tag, it->nrof, (int)(it->weight*1000+0.5), flags, it->type, it->d_name);
+    write(scripts[i].out_fd, buf, strlen(buf));
 }
 
 #endif /* CPROTO */
