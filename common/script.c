@@ -1273,45 +1273,41 @@ static void script_process_cmd(int i) {
              */
             if (strncmp(c, "inv", 3) == 0) {
                 char *buf;
+                item *it;
 
-                item *it = cpl.ob->inv;
-                while (it) {
+                for (it = cpl.ob->inv; it; it = it->next) {
                     script_send_item(i, "request items inv ", it);
-                    it = it->next;
                 }
                 buf = "request items inv end\n";
                 write(scripts[i].out_fd, buf, strlen(buf));
             }
             if (strncmp(c, "actv", 4) == 0) {
                 char *buf;
+                item *it;
 
-                item *it = cpl.ob->inv;
-                while (it) {
+                for (it = cpl.ob->inv; it; it = it->next) {
                     if (it->applied)
                         script_send_item(i, "request items actv ", it);
-                    it = it->next;
                 }
                 buf = "request items actv end\n";
                 write(scripts[i].out_fd, buf, strlen(buf));
             }
             if (strncmp(c, "on", 2) == 0) {
                 char *buf;
+                item *it;
 
-                item *it = cpl.below->inv;
-                while (it) {
+                for (it = cpl.below->inv; it; it = it->next) {
                     script_send_item(i, "request items on ", it);
-                    it = it->next;
                 }
                 buf = "request items on end\n";
                 write(scripts[i].out_fd, buf, strlen(buf));
             }
             if (strncmp(c, "cont", 4) == 0) {
                 char *buf;
+                item *it;
 
-                item *it = cpl.container->inv;
-                while (it) {
+                for (it = cpl.container->inv; it; it = it->next) {
                     script_send_item(i, "request items cont ", it);
-                    it = it->next;
                 }
                 buf = "request items cont end\n";
                 write(scripts[i].out_fd, buf, strlen(buf));
