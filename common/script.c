@@ -701,7 +701,7 @@ void script_watch(const char *cmd, const uint8 *data, const int data_len, const 
                                         break;
 
                                     case CS_STAT_MAXSP:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " maxspp %d\n", GetShort_String(data));
+                                        be += snprintf(buf+be, sizeof(buf)-be, " maxsp %d\n", GetShort_String(data));
                                         data += 2;
                                         len -= 2;
                                         break;

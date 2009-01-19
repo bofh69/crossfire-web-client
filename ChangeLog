@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix typo in scripting protocol: send "watch stats maxsp" rather than
+  "watch stats maxspp".
+Andreas Kirschbaum 2009-01-19
+
 Send correct coordinates for "request map pos" script command.
 Do not crash for "request items cont" if there is no opened container.
 Report weight in grams in "request items" commands. Previously a localized
