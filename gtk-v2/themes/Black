@@ -1,3 +1,21 @@
+############################################################################
+# http://www.gnu.org/software/emacs/manual/html_node/emacs/GTK-styles.html
+# has good information that relates to the content of this theme file.
+#
+# Where font_name appears, ie. font_name = "Sans Bold Italic 9", the format is
+# a Pango string, so refer to that documentation for details.  One resource is
+# http://www.gtk.org/api/2.6/pango/PangoMarkupFormat.html, but briefly, there
+# are various options that can be specified: family, style, weight, size.
+#
+# Spaces inside the font name is normal.  The font name and options are
+# generally delimited with space characters.  Font-family is a comma separated
+# list.  Style includes things like Italic, Normal, Oblique.  Size is in
+# points with no units.  The default size appears to be 10.  Weight is also
+# supported and includes choices like: ultralight, light, normal, bold,
+# ultrabold, heavy.  The font descriptors do not seem to be case sensitive.
+# It may take experimentation to see what works.  It appears, for example,
+# that all weight identifiers may not be supported for all fonts.
+
 # This makes everything black background and white foreground by
 # default.
 #
