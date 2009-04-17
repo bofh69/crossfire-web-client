@@ -2,6 +2,17 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c: Per mailing list discussion on or about 2008/12/22, route
+  MSG_TYPE_ATTRIBUTE (Changes to attributes: stats, resistances, etc),
+  MSG_TYPE_COMMUNICATION (Communication between players), and MSG_TYPE_VICTIM
+  (Something bad is happening to the player) to the critical messages pane.
+  As stated on the ML, there are other potentially superior solutions to chats
+  tells not getting drowned out by other messages, but this is a very simple
+  one.  The critical messages pane gets very little activity, unlike the
+  regular messages pane.  Addition of a chat-specific panel, or client-side
+  routing configuration is not considered precluded by this quick fix.
+Kevin Bulgrien 2009/04/16
+
 Fix typo in scripting protocol: send "watch stats maxsp" rather than
   "watch stats maxspp".
 Andreas Kirschbaum 2009-01-19
