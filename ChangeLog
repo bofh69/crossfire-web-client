@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c: After some play-testing, its kind of wierd for say to go to
+  one window and NPC/Magic Mouth stuff to go to the other, so MSG_TYPE_DIALOG
+  is now also routed to the critical messages pane.
+common/newclient.h: Add a comment summarizing MSG_TYPE_DIALOG usage.
+Kevin Bulgrien 2009/04/16
+
 gtk-v2/src/info.c: Per mailing list discussion on or about 2008/12/22, route
   MSG_TYPE_ATTRIBUTE (Changes to attributes: stats, resistances, etc),
   MSG_TYPE_COMMUNICATION (Communication between players), and MSG_TYPE_VICTIM

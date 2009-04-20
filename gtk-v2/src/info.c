@@ -603,10 +603,12 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
      * message text.  By default, messages go to the main information panel.
      * Certain message types are considered critical, and they are rerouted to
      * the secondary message panel.  See MSG_TYPE definitions in newclient.h
-     * for a complete listing of the available types.
+     * for a complete listing of the available types.  msgtypes.h also helps
+     * clarify what different message types are used for.
      */
     if (type == MSG_TYPE_ATTRIBUTE
     ||  type == MSG_TYPE_COMMUNICATION
+    ||  type == MSG_TYPE_DIALOG
     ||  type == MSG_TYPE_VICTIM)
     {
         /* Critical messages */

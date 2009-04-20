@@ -317,7 +317,7 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 #define MSG_TYPE_PAPER		    3
 #define MSG_TYPE_SIGN		    4
 #define MSG_TYPE_MONUMENT	    5
-#define MSG_TYPE_DIALOG		    6
+#define MSG_TYPE_DIALOG		    6   /* NPCs, magic mouths, and altars */
 #define MSG_TYPE_MOTD		    7
 #define MSG_TYPE_ADMIN		    8
 #define MSG_TYPE_SHOP		    9
