@@ -353,7 +353,7 @@ void init_common_cache_data(void)
 	fclose(fp);
     } else {
 	snprintf(inbuf, sizeof(inbuf), "Unable to open %s.  You may wish to download and install the image file to improve performance.\n", bmaps);
-	draw_info(inbuf, NDI_RED);
+	draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, inbuf);
     }
 
     snprintf(bmaps, sizeof(bmaps), "%s/.crossfire/image-cache/bmaps.client", getenv("HOME"));
@@ -714,7 +714,7 @@ void get_image_info(uint8 *data, int len)
 	    cs_print_string(csocket.fd, "setup faceset %d", onset);
 	} else {
 	    snprintf(buf, sizeof(buf), "Unable to find match for faceset %s on the server", face_info.want_faceset);
-	    draw_info(buf, NDI_RED);
+	    draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
 	}
     }
 

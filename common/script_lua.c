@@ -190,7 +190,7 @@ static int lua_draw(lua_State *L) {
     }
 
     what = lua_tostring(L,1);
-    draw_info(what, NDI_RED);
+    draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, what);
 
     return 0;
 }
@@ -240,14 +240,16 @@ void script_lua_load(const char* name)
     file = fopen(name,"r");
     if ( !file )
     {
-        draw_info("Invalid file",NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Invalid file");
         return;
     }
 
     lua = lua_open();
     if ( !lua )
     {
-        draw_info("Memory allocation error.",NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Memory allocation error.");
         fclose(file);
         return;
     }
@@ -258,9 +260,11 @@ void script_lua_load(const char* name)
 
     if (( load = lua_load(lua, l_readerfile, (void*)file, name)))
     {
-        draw_info("Load error!",NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Load error!");
         if ( load == LUA_ERRSYNTAX )
-            draw_info("Syntax error!",NDI_RED);
+            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+                "Syntax error!");
         fclose(file);
         lua_close(lua);
         return;
@@ -280,7 +284,8 @@ void script_lua_load(const char* name)
     /* Load functions, init script */
     if (lua_pcall(lua, 0, 0, 0))
     {
-        draw_info("Init error!", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Init error!");
         fclose(file);
         lua_close(lua);
         return;
@@ -308,7 +313,8 @@ void script_lua_list(const char* param)
 {
     if ( script_count == 0 )
     {
-        draw_info("No LUA scripts are currently running",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "No LUA scripts are currently running");
     }
     else
     {
@@ -316,11 +322,11 @@ void script_lua_list(const char* param)
         char buf[1024];
 
         snprintf(buf, sizeof(buf), "%d LUA scripts currently running:",script_count);
-        draw_info(buf,NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
         for ( i=0;i<script_count;++i)
         {
             snprintf(buf, sizeof(buf), "%d %s",i+1,scripts[i].filename);
-            draw_info(buf,NDI_BLACK);
+            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
         }
     }
 }
@@ -331,7 +337,8 @@ void script_lua_kill(const char* param)
     i = atoi(param) - 1;
     if ( i < 0 || i >= script_count )
     {
-        draw_info("Invalid script index!", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Invalid script index!");
         return;
     }
     lua_close(scripts[i].state);
@@ -362,7 +369,8 @@ void script_lua_stats()
             if ( ( luaerror = lua_pcall(lua, 0, 0, 0) ) )
             {
                 const char* what = lua_tostring(lua, lua_gettop(lua));
-                draw_info(what,NDI_RED);
+                draw_ext_info(
+                    NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, what);
                 lua_pop(lua,1);
             }
         }
@@ -391,7 +399,8 @@ int script_lua_command(const char* command, const char* param)
             lua_pushstring(lua, param ? param : "");
             if ( ( luaerror = lua_pcall(lua, 2, 1, 0) ) ) {
                 const char* what = lua_tostring(lua, lua_gettop(lua));
-                draw_info(what,NDI_RED);
+                draw_ext_info(
+                    NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, what);
                 lua_pop(lua,1);
             }
             else {

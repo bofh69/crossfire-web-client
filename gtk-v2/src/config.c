@@ -355,7 +355,7 @@ void save_defaults(void)
 
     fclose(fp);
     snprintf(buf, sizeof(buf), "Defaults saved to %s",path);
-    draw_info(buf,NDI_BLUE);
+    draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
 }
 
 /**
@@ -959,7 +959,7 @@ void save_winpos(void)
     snprintf(savename, sizeof(savename), "%s/.crossfire/%s.pos", getenv("HOME"), buf);
     if (!(save = fopen(savename, "w"))) {
         snprintf(buf, sizeof(buf), "Cannot open %s - window positions not saved!", savename);
-        draw_info(buf, NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
         return;
     }
     get_window_coord(window_root, &x,&y, &wx,&wy,&w,&h);
@@ -990,7 +990,7 @@ void save_winpos(void)
 
     fclose(save);
     snprintf(buf, sizeof(buf), "Window positions saved to %s", savename);
-    draw_info(buf, NDI_BLUE);
+    draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
 }
 
 /**
@@ -1040,12 +1040,12 @@ void load_window_positions(GtkWidget *window_root)
     if (!(load = fopen(loadname, "r"))) {
         snprintf(buf, sizeof(buf),
             "Cannot open %s: Using default window positions.", loadname);
-        draw_info(buf, NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
         return;
     }
     else {
         snprintf(buf, sizeof(buf), "Loading window positions from %s", loadname);
-        draw_info(buf, NDI_RED);
+        draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
     }
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET (window_root));

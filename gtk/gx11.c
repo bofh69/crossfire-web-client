@@ -29,7 +29,6 @@ const char * const rcsid_gtk_gx11_c =
 /* Most functions in this file are private.  Here is a list of
  * the global functions:
  *
- * draw_color_info(int color, char*buf) - draws text in specified color
  * draw_info - draw info in the info window
  * end_windows - used when exiting
  * init_windows - called when starting up
@@ -1847,9 +1846,22 @@ void draw_info(const char *str, int color) {
     }
 }
 
-
-void draw_color_info(int colr, const char *buf){
-	draw_info(buf,colr);
+/**
+ * This client is not set up to especially handle messages with type and
+ * subtype, so instead, map these messages back to draw_info() if/when the
+ * common code writes messages like this.
+ *
+ * @param orig_color
+ * A suggested text color that may change based on message type/subtype.
+ * @param type
+ * The message type. See the MSG_TYPE definitions in newclient.h (Ignored)
+ * @param subtype
+ * Message subtype.  See MSG_TYPE_..._... values in newclient.h (Ignored)
+ * @param message
+ * The message text.
+ */
+void draw_ext_info(int orig_color, int type, int subtype, char *message) {
+  draw_info(message, orig_color);
 }
 
 /***********************************************************************

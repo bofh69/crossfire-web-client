@@ -271,7 +271,8 @@ void command_take (const char *command, const char *cpnext)
 	send_command(command, cpl.count, 0);
     else {
 	if (cpl.container->inv == NULL)
-	    draw_info("There is nothing in the container to move", NDI_BLACK);
+	    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                "There is nothing in the container to move");
 	else
 	    cs_print_string(csocket.fd,"move %d %d %d", cpl.ob->tag,
 		cpl.container->inv->tag, cpl.count);

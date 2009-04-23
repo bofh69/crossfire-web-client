@@ -331,8 +331,9 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 #define MSG_TYPE_SPELL		    16	/* Spell related info */
 #define MSG_TYPE_ITEM		    17	/* Item related information */
 #define MSG_TYPE_MISC		    18	/* Messages that don't go anyplace else */
-#define MSG_TYPE_VICTIM		    19	/* Something bad is happening to the player */
-#define MSG_TYPE_LAST		    20
+#define MSG_TYPE_VICTIM		    19	/* Something bad is happening to player */
+#define MSG_TYPE_CLIENT		    20	/* Messages originated by the client */
+#define MSG_TYPE_LAST		    21
 
 #define MSG_SUBTYPE_NONE         0
 
@@ -554,7 +555,7 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 #define MSG_TYPE_ITEM_REMOVE		1   /* Item removed from inv */
 #define MSG_TYPE_ITEM_ADD		2   /* Item added to inv */
 #define MSG_TYPE_ITEM_CHANGE		3   /* Item has changed in some way */
-#define MSG_TYPE_ITEM_INFO		3   /* Information related to an item */
+#define MSG_TYPE_ITEM_INFO		4   /* Information related to an item */
 
 /* MSG_TYPE_MISC, by its very nature, doesn't really have subtypes.  It is
  * used for messages that really don't belong anyplace else
@@ -566,6 +567,16 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 #define MSG_TYPE_VICTIM_SPELL		4   /* Someone cast a bad spell on the player */
 #define MSG_TYPE_VICTIM_DIED		5   /* Player died! */
 #define MSG_TYPE_VICTIM_WAS_PUSHED	6   /* Player was pushed or attempted pushed */
+
+#define MSG_TYPE_CLIENT_CONFIG          1   /* Local configuration issues */
+#define MSG_TYPE_CLIENT_SERVER          2   /* Server configuration issues */
+#define MSG_TYPE_CLIENT_COMMAND         3   /* DrawInfoCmd() */
+#define MSG_TYPE_CLIENT_QUERY           4   /* handle_query() and prompts */
+#define MSG_TYPE_CLIENT_DEBUG           5   /* General debug messages */
+#define MSG_TYPE_CLIENT_NOTICE          6   /* Non-critical note to player */
+#define MSG_TYPE_CLIENT_METASERVER      7   /* Metaserver messages */
+#define MSG_TYPE_CLIENT_SCRIPT          8   /* Script related messages */
+#define MSG_TYPE_CLIENT_ERROR           9   /* Bad things happening */
 
 /* Contains the base information we use to make up a packet we want to send. */
 typedef struct SockList {

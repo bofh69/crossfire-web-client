@@ -610,7 +610,9 @@ static void parse_key_release(uint32 ks) {
     }
     else if (ks==runkeysym[0] || ks==runkeysym[1]) {
         cpl.run_on=0;
-        if (use_config[CONFIG_ECHO]) draw_info("stop run",NDI_BLACK);
+        if (use_config[CONFIG_ECHO])
+            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                "stop run");
         clear_run();
         gtk_label_set (GTK_LABEL(run_label),"   ");
     }
@@ -714,10 +716,16 @@ static void parse_key(char key, uint32 keysym)
             else {
                 extended_command(first_match->command);
             }
-            if (use_config[CONFIG_ECHO]) draw_info(first_match->command,NDI_BLACK);
+            if (use_config[CONFIG_ECHO])
+                draw_ext_info(
+                    NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                        first_match->command);
         }
         else {
-            if (use_config[CONFIG_ECHO]) draw_info(first_match->command,NDI_BLACK);
+            if (use_config[CONFIG_ECHO])
+                draw_ext_info(
+                    NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                        first_match->command);
             extended_command(first_match->command);
         }
         return;
@@ -739,7 +747,7 @@ static void parse_key(char key, uint32 keysym)
 #ifdef WIN32
        if ( ( 65513 != keysym ) && ( 65511 != keysym ) )
 #endif
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
     cpl.count=0;
 }
 
@@ -819,39 +827,39 @@ static void show_keys(int allbindings)
 
     snprintf(buf, sizeof(buf), "Commandkey %s",
             commandkeysym==NoSymbol?"unknown":gdk_keyval_name(commandkeysym));
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Firekeys 1: %s, 2: %s",
             firekeysym[0]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[0]),
             firekeysym[1]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[1]));
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Altkeys 1: %s, 2: %s",
             altkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[0]),
             altkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[1]));
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Metakeys 1: %s, 2: %s",
             metakeysym[0]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[0]),
             metakeysym[1]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[1]));
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Runkeys 1: %s, 2: %s",
             runkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[0]),
             runkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[1]));
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Command Completion Key %s",
             completekeysym==NoSymbol?"unknown":gdk_keyval_name(completekeysym));
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Next Command in History Key %s",
             nextkeysym==NoSymbol?"unknown":gdk_keyval_name(nextkeysym));
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Previous Command in History Key %s",
             prevkeysym==NoSymbol?"unknown":gdk_keyval_name(prevkeysym));
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     /*
      * Perhaps we should start at 8, so that we only show 'active' keybindings?
@@ -861,7 +869,8 @@ static void show_keys(int allbindings)
             if (key->flags & KEYF_STANDARD && !allbindings) continue;
 
             snprintf(buf, sizeof(buf), "%3d %s",count,  get_key_info(key,0));
-            draw_info(buf,NDI_BLACK);
+            draw_ext_info(
+                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
             count++;
         }
     }
@@ -880,9 +889,10 @@ void bind_key(char *params)
     char buf[MAX_BUF + 16];
 
     if (!params) {
-        draw_info("Usage: bind [-aefmnr] {<commandline>/commandkey/firekey{1/2}"
-                  "/runkey{1/2}/altkey{1/2}/metakey{1/2}"
-                  "completekey/nextkey/prevkey}",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "Usage: bind [-aefmnr] {<commandline>/commandkey/firekey{1/2}"
+            "/runkey{1/2}/altkey{1/2}/metakey{1/2}"
+            "completekey/nextkey/prevkey}");
         return;
     }
 
@@ -891,78 +901,90 @@ void bind_key(char *params)
 
     if (!strcmp(params, "commandkey")) {
         bind_keysym = &commandkeysym;
-        draw_info("Push key to bind new commandkey.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new commandkey.");
         cpl.input_state = Configure_Keys;
         return;
     }
 
     if (!strcmp(params, "firekey1")) {
         bind_keysym = & firekeysym[0];
-        draw_info("Push key to bind new firekey 1.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new firekey 1.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "firekey2")) {
         bind_keysym = & firekeysym[1];
-        draw_info("Push key to bind new firekey 2.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new firekey 2.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "metakey1")) {
         bind_keysym = & metakeysym[0];
-        draw_info("Push key to bind new metakey 1.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new metakey 1.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "metakey2")) {
         bind_keysym = & metakeysym[1];
-        draw_info("Push key to bind new metakey 2.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new metakey 2.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "altkey1")) {
         bind_keysym = & altkeysym[0];
-        draw_info("Push key to bind new altkey 1.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new altkey 1.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "altkey2")) {
         bind_keysym = & altkeysym[1];
-        draw_info("Push key to bind new altkey 2.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new altkey 2.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "runkey1")) {
         bind_keysym = &runkeysym[0];
-        draw_info("Push key to bind new runkey 1.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new runkey 1.");
         cpl.input_state = Configure_Keys;
         return;
     }
 
     if (!strcmp(params, "runkey2")) {
         bind_keysym = &runkeysym[1];
-        draw_info("Push key to bind new runkey 2.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new runkey 2.");
         cpl.input_state = Configure_Keys;
         return;
     }
 
     if (!strcmp(params, "completekey")) {
         bind_keysym = &completekeysym;
-        draw_info("Push key to bind new command completeion key",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new command completion key");
         cpl.input_state = Configure_Keys;
         return;
     }
 
     if (!strcmp(params, "prevkey")) {
         bind_keysym = &prevkeysym;
-        draw_info("Push key to bind new previous command in history key.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new previous command in history key.");
         cpl.input_state = Configure_Keys;
         return;
     }
 
     if (!strcmp(params, "nextkey")) {
         bind_keysym = &nextkeysym;
-        draw_info("Push key to bind new next command in history key.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
+            "Push key to bind new next command in history key.");
         cpl.input_state = Configure_Keys;
         return;
     }
@@ -993,11 +1015,14 @@ void bind_key(char *params)
                 bind_flags |= KEYF_RUN;
                 break;
             case '\0':
-                draw_info("Use unbind to remove bindings.",NDI_BLACK);
+                draw_ext_info(
+                    NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                        "Use unbind to remove bindings.");
                 return;
             default:
                 snprintf(buf, sizeof(buf), "Unsupported or invalid bind flag: '%c'", *params);
-                draw_info(buf,NDI_BLACK);
+                draw_ext_info(
+                    NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
                 return;
         }
         params++;
@@ -1007,17 +1032,19 @@ void bind_key(char *params)
         bind_flags |= KEYF_MODIFIERS;
 
     if (!params[0]) {
-        draw_info("Use unbind to remove bindings.",NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "Use unbind to remove bindings.");
         return;
     }
 
     if (strlen(params) >= sizeof(bind_buf)) {
         params[sizeof(bind_buf) - 1] = '\0';
-        draw_info("Keybinding too long! Truncated:",NDI_RED);
-        draw_info(params,NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR,
+            "Keybinding too long! Truncated:");
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, params);
     }
     snprintf(buf, sizeof(buf), "Push key to bind '%s'.", params);
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY, buf);
 
     strcpy(bind_buf, params);
     cpl.input_state = Configure_Keys;
@@ -1082,7 +1109,7 @@ static void save_keys(void)
     }
     if ((fp=fopen(buf,"w"))==NULL) {
         snprintf(buf2, sizeof(buf2), "Could not open %s, key bindings not saved\n", buf);
-        draw_info(buf2,NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf2);
         return;
     }
     if (commandkeysym != GDK_apostrophe && commandkeysym != NoSymbol) {
@@ -1140,7 +1167,8 @@ static void save_keys(void)
     }
     fclose(fp);
     /* Should probably check return value on all writes to be sure, but... */
-    draw_info("Key bindings saved.",NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
+        "Key bindings saved.");
 }
 
 /**
@@ -1215,7 +1243,8 @@ static void configure_keys(uint32 keysym)
         }
         if (first_match) {
             snprintf(buf, sizeof(buf), "Warning: Keybind %s may conflict with new binding.", first_match->command);
-            draw_info(buf,NDI_RED);
+            draw_ext_info(
+                NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
         }
 
         insert_key(keysym, bind_flags, bind_buf);
@@ -1223,7 +1252,7 @@ static void configure_keys(uint32 keysym)
 
     snprintf(buf, sizeof(buf), "Binded to key '%s' (%i)",
           keysym==NoSymbol?"unknown":gdk_keyval_name(keysym), keysym);
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
     cpl.fire_on=0;
     cpl.run_on=0;
     draw_message_window(0);
@@ -1242,10 +1271,14 @@ static void configure_keys(uint32 keysym)
  */
 static void unbind_usage(void)
 {
-    draw_info("Usage: unbind <entry_number> or",NDI_BLACK);
-    draw_info("Usage: unbind [-a] [-g] to show existing bindings", NDI_BLACK);
-    draw_info("    -a shows all (global) bindings", NDI_BLACK);
-    draw_info("    -g unbinds a global binding", NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+        "Usage: unbind <entry_number> or");
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+        "Usage: unbind [-a] [-g] to show existing bindings");
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+        "    -a shows all (global) bindings");
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+        "    -g unbinds a global binding");
 }
 
 /**
@@ -1309,9 +1342,9 @@ void unbind_key(const char *params)
         }
     }
     /* Makes things look better to draw the blank line */
-    draw_info("",NDI_BLACK);
-    draw_info("Not found. Try 'unbind' with no options to find entry.",
-        NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, "");
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+        "Not found. Try 'unbind' with no options to find entry.");
     return;
     /*
      * Found. Now remove it.
@@ -1319,7 +1352,7 @@ void unbind_key(const char *params)
 unbinded:
     snprintf(buf, sizeof(buf), "Removed binding: %3d %s", count, get_key_info(key,0));
 
-    draw_info(buf,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
     free(key->command);
     free(key);
     save_keys();
@@ -1564,7 +1597,7 @@ void x_set_echo(void)
  */
 void draw_prompt(const char *str)
 {
-    draw_info(str, NDI_WHITE);
+    draw_ext_info(NDI_WHITE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY, str);
     gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
 }
 
@@ -1914,7 +1947,8 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
 
     ed = gtk_entry_get_text(GTK_ENTRY(keybinding_entry_command));
     if (strlen(ed) >= sizeof(bind_buf)) {
-        draw_info("Keybinding too long! Truncated.",NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR,
+            "Keybinding too long! Truncated.");
         strncpy(bind_buf, ed, MAX_BUF-1);
         bind_buf[MAX_BUF-1] = 0;
         *command = bind_buf;

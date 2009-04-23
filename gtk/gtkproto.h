@@ -9,7 +9,7 @@ extern void gtk_command_history(int direction);
 extern void gtk_complete_command(void);
 extern void draw_prompt(const char *str);
 extern void draw_info(const char *str, int color);
-extern void draw_color_info(int colr, const char *buf);
+extern void draw_ext_info(int orig_color, int type, int subtype, char *message);
 extern void draw_stats(int redraw);
 extern void reset_stat_bars(void);
 extern void resize_resistance_table(int resists_show);

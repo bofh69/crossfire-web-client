@@ -93,7 +93,8 @@ struct Info_Pane
     GtkTextTag      **msg_type_tags[MSG_TYPE_LAST];
 } info_pane[NUM_TEXT_VIEWS];
 
-static void message_callback(int flag, int type, int subtype, char *message);
+static void message_callback(int orig_color, int type, int subtype, char *message);
+void draw_ext_info(int orig_color, int type, int subtype, char *message);
 
 extern  const char * const colorname[NUM_COLORS];
 
@@ -583,21 +584,6 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     current = strdup(message);
     original = current;         /* Just so we know what to free */
 
-    if (!has_style) {
-        if (orig_color <0 || orig_color>NUM_COLORS) {
-            LOG(LOG_ERROR, "info.c::message_callback",
-                "Passed invalid color from server: %d, max allowed is %d\n",
-                orig_color, NUM_COLORS);
-            orig_color = 0;
-        } else {
-            /*
-             * Not efficient - we have a number, but convert it to a string, at
-             * which point add_to_textbuf() converts it back to a number :(
-             */
-            color = (char*)usercolorname[orig_color];
-        }
-    }
-
     /*
      * Route messages to different information panels based on the type of the
      * message text.  By default, messages go to the main information panel.
@@ -616,6 +602,29 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     } else {
         /* All other messages */
         pane = 0;
+    }
+
+    /*
+     * If there is no style information, or if a specific style has not been
+     * set for the type/subtype of this message, allow orig_color to set the
+     * color of the text.  The orig_color handling here adds compatibility
+     * with former draw_info() calls that gave a color hint.  The color hint
+     * still works now in the event that the theme has not set a style for
+     * the message type.
+     */
+    if (! has_style || info_pane[pane].msg_type_tags[type][subtype] == 0) {
+        if (orig_color <0 || orig_color>NUM_COLORS) {
+            LOG(LOG_ERROR, "info.c::message_callback",
+                "Passed invalid color from server: %d, max allowed is %d\n",
+                orig_color, NUM_COLORS);
+            orig_color = 0;
+        } else {
+            /*
+             * Not efficient - we have a number, but convert it to a string, at
+             * which point add_to_textbuf() converts it back to a number :(
+             */
+            color = (char*)usercolorname[orig_color];
+        }
     }
 
     while ((marker = strchr(current, '[')) != NULL) {
@@ -663,104 +672,22 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
 }
 
 /**
- * Add text to the informational message windows.  Colored text implies some
- * level of importance, and results in the messge being auto-routed to the
- * critical message panel.  Note that with the textbufs, it seems you need to
- * manually set it to the bottom of the screen - otherwise, the scrollbar just
- * stays at the top.  However, this does not seem ideal if you are trying to
- * scroll back while new stuff comes in.  Question:  Is there a good reason
- * for draw_info() and draw_color_info() to write directly to the message
- * panel when add_to_textbuf() does this?  Does it really make sense to use
- * color to determine if a message is critical?.
+ * A renamed "message_callback()" to make it less wierd for the client code
+ * to categorize client-sourced messages using the same type/subtype style
+ * that the server uses.  Not that it should be a big deal for the client
+ * to call the callback directly.  See also: message_callback().
  *
- * @param str
- * Pointer to displayable text.
- * @param color
- * Color of the text.
+ * @param orig_color
+ * A suggested text color that may change based on message type/subtype.
+ * @param type
+ * The message type. See the MSG_TYPE definitions in newclient.h
+ * @param subtype
+ * Message subtype.  See MSG_TYPE_..._... values in newclient.h
+ * @param message
+ * The message text.
  */
-
-void draw_info(const char *str, int color) {
-    int ncolor = color;
-    GtkTextIter end;
-    GdkRectangle rect;
-    int scroll_to_end=0;
-
-    if (ncolor == NDI_WHITE) {
-        ncolor = NDI_BLACK;
-    }
-
-    /*
-     * This seems more complicated than it should be, but we need to see if the
-     * window is scrolled at the end.  If it is, we want to keep scrolling it
-     * down with new info.  If not, we don't want to change position -
-     * otherwise, it makes it very difficult to look back at the old info (like
-     * old messages missed during combat, looking at the shop listing while
-     * people are chatting, etc) We need to find out the position before
-     * putting in new text - otherwise, that operation will mess up our
-     * position, and not give us right info.
-     */
-    gtk_text_view_get_visible_rect(
-        GTK_TEXT_VIEW(info_pane[0].textview), &rect);
-
-    if ((info_pane[0].adjustment->value + rect.height)
-        >= info_pane[0].adjustment->upper)
-            scroll_to_end = 1;
-
-    gtk_text_buffer_get_end_iter(info_pane[0].textbuffer, &end);
-
-    gtk_text_buffer_insert_with_tags(
-        info_pane[0].textbuffer, &end, str, strlen(str),
-        info_pane[0].color_tags[ncolor], NULL);
-
-    gtk_text_buffer_insert(info_pane[0].textbuffer, &end, "\n" , 1);
-
-    if (scroll_to_end)
-        gtk_text_view_scroll_mark_onscreen(
-            GTK_TEXT_VIEW(info_pane[0].textview), info_pane[0].textmark);
-
-    /*
-     * Non-black text is also copied to the critical message panel.  Why
-     * does/should color alone determine the message is critical?
-     */
-    if (color != NDI_BLACK) {
-
-        gtk_text_view_get_visible_rect(
-            GTK_TEXT_VIEW(info_pane[1].textview), &rect);
-
-        if ((info_pane[1].adjustment->value + rect.height)
-            >= info_pane[1].adjustment->upper)
-                scroll_to_end = 1;
-        else
-            scroll_to_end = 0;
-
-        gtk_text_buffer_get_end_iter(info_pane[1].textbuffer, &end);
-
-        gtk_text_buffer_insert_with_tags(
-            info_pane[1].textbuffer, &end, str, strlen(str),
-            info_pane[1].color_tags[ncolor], NULL);
-
-        gtk_text_buffer_insert(info_pane[1].textbuffer, &end, "\n" , 1);
-
-        if (scroll_to_end)
-            gtk_text_view_scroll_mark_onscreen(
-                GTK_TEXT_VIEW(info_pane[1].textview), info_pane[1].textmark);
-    }
-}
-
-/**
- * Display information in color.  This function simply calls draw_info() with
- * the parameter order swapped, and it provides no unique features.  Since it
- * is called from common, it is likely a legacy function that should probably
- * be considered deprecated.  Important:  This function calls draw_info(), so
- * if a color other than black is specified, the text is routed to both the
- * primary and secondary (critical) message panes.
- * @param colr
- * The color to use when displaying text.
- * @param buf
- * The text to display.
- */
-void draw_color_info(int colr, const char *buf) {
-    draw_info(buf,colr);
+void draw_ext_info(int orig_color, int type, int subtype, char *message) {
+  message_callback(orig_color, type, subtype, message);
 }
 
 /**

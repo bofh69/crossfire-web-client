@@ -222,7 +222,8 @@ void script_init(const char *cparams) {
     char *name, *args, params[MAX_BUF];
 
     if (!cparams) {
-        draw_info("Please specifiy a script to launch!", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Please specify a script to launch!");
         return;
     }
 
@@ -247,19 +248,22 @@ void script_init(const char *cparams) {
 #ifdef USE_PIPE
     /* Create two pipes */
     if (pipe(pipe1)) {
-        draw_info("Unable to start script--pipe failed", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Unable to start script--pipe failed");
         return;
     }
     if (pipe(pipe2)) {
         close(pipe1[0]);
         close(pipe1[1]);
-        draw_info("Unable to start script--pipe failed", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Unable to start script--pipe failed");
         return;
     }
 #else
     /* Create a pair of sockets */
     if (socketpair(PF_LOCAL, SOCK_STREAM, AF_LOCAL, pipe1)) {
-        draw_info("Unable to start script--socketpair failed", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Unable to start script--socketpair failed");
         return;
     }
 #endif
@@ -273,7 +277,8 @@ void script_init(const char *cparams) {
         close(pipe2[0]);
         close(pipe2[1]);
 #endif
-        draw_info("Unable to start script--fork failed", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Unable to start script--fork failed");
         return;
     }
 
@@ -368,7 +373,8 @@ void script_init(const char *cparams) {
     HANDLE hChildStdoutWr, hChildStdoutRdDup, hSaveStdin, hSaveStdout;
 
     if (!cparams) {
-        draw_info("Please specifiy a script to launch!", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Please specifiy a script to launch!");
         return;
     }
 
@@ -392,17 +398,20 @@ void script_init(const char *cparams) {
 
     hSaveStdout = GetStdHandle(STD_OUTPUT_HANDLE);
     if (!CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0)) {
-        draw_info("Script support: stdout CreatePipe() failed", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Script support: stdout CreatePipe() failed");
         return;
     }
 
     if (!SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr)) {
-        draw_info("Script support: failed to redirect stdout using SetStdHandle()", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Script support: failed to redirect stdout using SetStdHandle()");
         return;
     }
 
     if (!DuplicateHandle(GetCurrentProcess(), hChildStdoutRd, GetCurrentProcess(), &hChildStdoutRdDup, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
-        draw_info("Script support: failed to duplicate stdout using DuplicateHandle()", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Script support: failed to duplicate stdout using DuplicateHandle()");
         return;
     }
 
@@ -410,17 +419,20 @@ void script_init(const char *cparams) {
 
     hSaveStdin = GetStdHandle(STD_INPUT_HANDLE);
     if (!CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0)) {
-        draw_info("Script support: stdin CreatePipe() failed", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Script support: stdin CreatePipe() failed");
         return;
     }
 
     if (!SetStdHandle(STD_INPUT_HANDLE, hChildStdinRd)) {
-        draw_info("Script support: failed to redirect stdin using SetStdHandle()", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Script support: failed to redirect stdin using SetStdHandle()");
         return;
     }
 
     if (!DuplicateHandle(GetCurrentProcess(), hChildStdinWr, GetCurrentProcess(), &hChildStdinWrDup, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
-        draw_info("Script support: failed to duplicate stdin using DuplicateHandle()", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Script support: failed to duplicate stdin using DuplicateHandle()");
         return;
     }
 
@@ -434,7 +446,8 @@ void script_init(const char *cparams) {
         args[-1] = ' ';
 
     if (!CreateProcess(NULL, name, NULL, NULL, TRUE, CREATE_NEW_PROCESS_GROUP, NULL, NULL, &siStartupInfo, &piProcInfo)) {
-        draw_info("Script support: CreateProcess() failed", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Script support: CreateProcess() failed");
         return;
     }
 
@@ -444,12 +457,14 @@ void script_init(const char *cparams) {
         args[-1] = '\0';
 
     if (!SetStdHandle(STD_INPUT_HANDLE, hSaveStdin)) {
-        draw_info("Script support: restoring original stdin failed", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Script support: restoring original stdin failed");
         return;
     }
 
     if (!SetStdHandle(STD_OUTPUT_HANDLE, hSaveStdout)) {
-        draw_info("Script support: restoring original stdout failed", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Script support: restoring original stdout failed");
         return;
     }
 
@@ -488,19 +503,20 @@ void script_sync(int commdiff) {
 
 void script_list(void) {
     if (num_scripts == 0) {
-        draw_info("No scripts are currently running", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "No scripts are currently running");
     } else {
         int i;
         char buf[1024];
 
         snprintf(buf, sizeof(buf), "%d scripts currently running:", num_scripts);
-        draw_info(buf, NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
         for (i = 0; i < num_scripts; ++i) {
             if (scripts[i].params)
                 snprintf(buf, sizeof(buf), "%d %s  %s", i+1, scripts[i].name, scripts[i].params);
             else
                 snprintf(buf, sizeof(buf), "%d %s", i+1, scripts[i].name);
-            draw_info(buf, NDI_BLACK);
+            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
         }
     }
 }
@@ -511,7 +527,8 @@ void script_kill(const char *params) {
     /* Verify that the number is a valid array entry */
     i = script_by_name(params);
     if (i < 0 || i >= num_scripts) {
-        draw_info("No such running script", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "No such running script");
         return;
     }
 #ifndef WIN32
@@ -519,7 +536,8 @@ void script_kill(const char *params) {
 #else
     GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[i].pid);
 #endif /* WIN32 */
-    draw_info("Killed script.", NDI_RED);
+    draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+        "Killed script.");
     script_dead(i);
 }
 
@@ -955,12 +973,14 @@ void script_tell(const char *params) {
     char *p;
 
     if (params == NULL) {
-        draw_info("Which script do you want to talk to?", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "Which script do you want to talk to?");
         return;
     }
     p = strchr(params, ' ');
     if (p == NULL) {
-        draw_info("What do you want to tell the script?", NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "What do you want to tell the script?");
         return;
     }
     while (*p == ' ') {
@@ -970,7 +990,8 @@ void script_tell(const char *params) {
     /* Find the script */
     i = script_by_name(params);
     if (i < 0) {
-        draw_info("No such running script", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
+            "No such running script");
         return;
     }
 
@@ -1394,8 +1415,8 @@ static void script_process_cmd(int i) {
             char buf[1024];
 
             snprintf(buf, sizeof(buf), "Script %d %s malfunction; unimplemented request:", i+1, scripts[i].name);
-            draw_info(buf, NDI_RED);
-            draw_info(cmd, NDI_RED);
+            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
+            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, cmd);
         }
     } else if (strncmp(cmd, "issue", 5) == 0) {
         int repeat;
@@ -1427,8 +1448,10 @@ static void script_process_cmd(int i) {
                     char buf[1024];
 
                     snprintf(buf, sizeof(buf), "Script %d %s malfunction; command not sent", i+1, scripts[i].name);
-                    draw_info(buf, NDI_RED);
-                    draw_info(cmd, NDI_RED);
+                    draw_ext_info(
+                        NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
+                    draw_ext_info(
+                        NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, cmd);
                 }
             }
         } else {
@@ -1506,9 +1529,9 @@ static void script_process_cmd(int i) {
             char buf[1024];
 
             snprintf(buf, sizeof(buf), "Script %s malfunction; localcmd not understood", scripts[i].name);
-            draw_info(buf, NDI_RED);
+            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
             snprintf(buf, sizeof(buf), "Script <<localcmd %s %s>>", c, (param == NULL) ? "" : param);
-            draw_info(buf, NDI_RED);
+            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
         }
     } else if (strncmp(cmd, "draw", 4) == 0) {
         int color;
@@ -1525,7 +1548,7 @@ static void script_process_cmd(int i) {
             return; /* No message specified */
         while (*c == ' ')
             ++c;
-        draw_info(c, color);
+        draw_ext_info(color, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, c);
     } else if (strncmp(cmd, "monitor", 7) == 0)
         scripts[i].monitor = 1;
     else if (strncmp(cmd, "unmonitor", 9) == 0)
@@ -1534,8 +1557,8 @@ static void script_process_cmd(int i) {
         char buf[1024];
 
         snprintf(buf, sizeof(buf), "Script %d %s malfunction; invalid command:", i+1, scripts[i].name);
-        draw_info(buf, NDI_RED);
-        draw_info(cmd, NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, cmd);
     }
 }
 

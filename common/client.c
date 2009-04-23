@@ -473,7 +473,7 @@ void negotiate_connection(int sound)
 
 	snprintf(buf, sizeof(buf), "Download of images complete.  Found %d locally, downloaded %d from server\n",
 		face_info.cache_hits, face_info.cache_misses);
-	draw_info(buf, NDI_GOLD);
+        draw_ext_info(NDI_GOLD, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
     }
 
     /* This needs to get changed around - we really don't want to send

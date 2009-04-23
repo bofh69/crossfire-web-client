@@ -2,10 +2,71 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+The following commit converts all common code and GTK-V2 draw_info() calls to
+draw_ext_info() calls so that support for untyped draw_info() messages can be
+completely removed from GTK-V2.  While converting the draw_info() calls, also
+get rid of the deprecated draw_color_info() use in common so that the clients
+can have this deprecated function removed.  This conversion also requires all
+clients provide a draw_ext_info() for common code to use.  In the X11 and the
+GTK-V1 client, draw_ext_info() discards the message type information and just
+uses its existing draw_info() function.  To support this change, new message
+types and subtypes have been added to support client-sourced messages.  More
+than likely the client-side message subtypes could be fine tuned, but GTK-V2
+also has changed to allow the draw_info() colors to be used until style data
+is set up for the client message types.  draw_info() is removed from GTK-V2.
+
+common/item.c:          draw_info() --> draw_ext_info().
+common/commands.c:      draw_info() --> draw_ext_info(); Remove
+                        draw_color_info().
+                        Remove commented code used to develop skills report.
+common/script.c:        draw_info() --> draw_ext_info().
+common/client.c:        draw_info() --> draw_ext_info().
+common/msgtypes.h:      Regenerated with `make msgtypes.h`.
+common/p_cmd.c:         draw_info() --> draw_ext_info().
+common/image.c:         draw_info() --> draw_ext_info().
+common/player.c:        draw_info() --> draw_ext_info().
+common/script_lua.c:    draw_info() --> draw_ext_info().
+common/metaserver.c:    draw_info() --> draw_ext_info(); comment updates.
+common/external.h:      Remove draw_info(); remove draw_color_info(); add
+                        draw_ext_info().
+common/newclient.h:     Add/tweak comments for pre-existing message types.
+                        Add a new message type for client-sourced messages
+                        along with some subtypes that seemed reasonable when
+                        reviewing the kinds of messages the client spawns.
+x11/x11proto.h:         Regenerated with `make proto`.
+x11/x11.c:              Remove draw_color_info().  Add draw_ext_info().
+gtk/gtkproto.h:         Rebuilt file with `make proto`.
+gtk/gx11.c:             Remove draw_color_info().  Add draw_ext_info().
+gtk-v2/src/gtk2proto.h: Regenerated with `make proto`.
+gtk-v2/src/config.c:    draw_info() --> draw_ext_info().
+gtk-v2/src/keys.c:      draw_info() --> draw_ext_info().  Fix a misspelling
+                        in a message.
+gtk-v2/src/info.c:      Fix the message_callback() prototype to match the
+                        function declaration and add a draw_ext_info()
+                        prototype.  Modify message_callback() to honor the
+                        orig_color parameter in cases where a style has not
+                        been set for a particular message type/subtype so
+                        that draw_info() texts converted to draw_ext_info()
+                        will not lose their color just because the themes
+                        are not updated.  To make this work, the message
+                        routing code was moved to run earlier.  draw_info()
+                        is removed from the GTK-V2 client to strongly show
+                        that any new client messages need to be typed. This
+                        enhances the value and coverage of the theme support
+                        in the client.  In fact, draw_info() comments hinted
+                        that draw_info() has been considered questionable in
+                        various ways before this conversion was conceived.
+                        Add a draw_ext_info() call that simply uses the
+                        message_callback().  Really the message_callback()
+                        should probably be renamed draw_ext_info() instead
+                        of putting this extra call in.
+gtk-v2/src/pickup.c:    draw_info() --> draw_ext_info().
+gtk-v2/src/inventory.c: draw_info() --> draw_ext_info().
+Kevin Bulgrien 2009/04/22
+
 gtk-v2/src/info.c: After some play-testing, its kind of wierd for say to go to
   one window and NPC/Magic Mouth stuff to go to the other, so MSG_TYPE_DIALOG
   is now also routed to the critical messages pane.
-common/newclient.h: Add a comment summarizing MSG_TYPE_DIALOG usage.
 Kevin Bulgrien 2009/04/16
 
 gtk-v2/src/info.c: Per mailing list discussion on or about 2008/12/22, route

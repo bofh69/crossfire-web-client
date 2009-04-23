@@ -116,10 +116,11 @@ static void new_menu_pickup(int on, int val)
     else
         pmode &= ~val;
 
-    draw_info("To set this pickup mode to a key, use:",NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+        "To set this pickup mode to a key, use:");
 
     snprintf(modestr, sizeof(modestr), "bind pickup %u",pmode);
-    draw_info(modestr,NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, modestr);
     snprintf(modestr, sizeof(modestr), "pickup %u",pmode);
     send_command(modestr, -1, 0);
 }

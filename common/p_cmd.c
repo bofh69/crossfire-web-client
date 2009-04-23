@@ -59,9 +59,9 @@ name name name ...
 #ifdef HELP_USE_COLOR
 #error Oops, need to put them back.
 #else
-#define H1(a) draw_info(a, NDI_BLACK)
-#define H2(a) draw_info(a, NDI_BLACK)
-#define LINE(a) draw_info(a, NDI_BLACK)
+#define H1(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
+#define H2(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
+#define LINE(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 #endif
 
 #define assumed_wrap get_info_width()
@@ -178,7 +178,8 @@ static void show_help(const ConsoleCommand * cc) {
         long_help = cc->helpfunc();
 
         if (long_help != NULL) {
-            /* For a test, let's watch draw_info() choke on newlines. */
+            /* For a test, let's watch draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT,
+             * MSG_TYPE_CLIENT_NOTICE, ) choke on newlines. */
             /* TODO C line wrapping (get_info_width()), argh. Or move it to UI? */
             LINE(long_help);
         } else {
@@ -202,7 +203,7 @@ static void do_clienthelp(const char * arg) {
     if (cc == NULL) {
         char buf[MAX_BUF];
         snprintf(buf, MAX_BUF - 1, "clienthelp: Unknown command %s.", arg);
-        draw_info(buf, NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
         return;
     }
 
@@ -306,7 +307,8 @@ static const char * help_help(void) {
 static void set_command_window(const char *cpnext)
 {
     if (!cpnext) {
-	draw_info("cwindow command requires a number parameter", NDI_BLACK);
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "cwindow command requires a number parameter");
     } else {
 	want_config[CONFIG_CWINDOW] = atoi(cpnext);
 	if (want_config[CONFIG_CWINDOW]<1 || want_config[CONFIG_CWINDOW]>127)
@@ -321,10 +323,12 @@ static void command_foodbep(const char *cpnext)
    (void)cpnext; /* __UNUSED__ */
     if (want_config[CONFIG_FOODBEEP]) {
 	want_config[CONFIG_FOODBEEP]=0;
-	draw_info("Warning bell when low on food disabled", NDI_BLACK);
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "Warning bell when low on food disabled");
     } else {
 	want_config[CONFIG_FOODBEEP]=1;
-	draw_info("Warning bell when low on food enabled", NDI_BLACK);
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "Warning bell when low on food enabled");
     }
     use_config[CONFIG_FOODBEEP] = want_config[CONFIG_FOODBEEP];
 }
@@ -381,9 +385,11 @@ static void do_disconnect(const char * ignored) {
 #endif
 static void do_dmalloc(const char * ignored) {
         if (dmalloc_verify(NULL)==DMALLOC_VERIFY_NOERROR)
-            draw_info("Heap checks out OK", NDI_BLACK);
+            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                "Heap checks out OK");
         else
-            draw_info("Heap corruption detected", NDI_RED);
+            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR,
+                "Heap corruption detected");
 }
 #endif
 
@@ -398,7 +404,9 @@ static void do_metaserver(const char * ignored) {
         if (!metaserver_get_info(meta_server, meta_port))
             metaserver_show(FALSE);
         else
-            draw_info("Unable to get metaserver information.", NDI_BLACK);
+            draw_ext_info(
+                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+                    "Unable to get metaserver information.");
 }
 
 static void do_savedefaults(const char * ignored) { save_defaults(); }
@@ -510,21 +518,35 @@ static const char * help_showweight(void) {
 }
 
 /*
-*	draw_info("Information Commands", NDI_NAVY);*
-	draw_info(" inv         - *recursively* print your", NDI_BLACK);
-	draw_info("               inventory - includes containers.", NDI_BLACK);
-	draw_info(" mapredraw, showinfo, take", NDI_BLACK);
-	draw_info(" help        - show this message", NDI_BLACK);
-	draw_info(" help <command> - get more information on a", NDI_BLACK);
-	draw_info("                command (Server command only?)", NDI_BLACK);
-	draw_info(" showicon    - draw status icons in", NDI_BLACK);
-	draw_info("               inventory window", NDI_BLACK);
-	draw_info(" showweight  - show weight in inventory", NDI_BLACK);
-	draw_info("               look windows", NDI_BLACK);
-	draw_info("Scripting Commands", NDI_NAVY);
-	draw_info("Client Side Debugging Commands", NDI_NAVY);
+*	draw_ext_info(NDI_NAVY, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "Information Commands");*
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            " inv         - *recursively* print your");
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "               inventory - includes containers.");
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            " mapredraw, showinfo, take");
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            " help        - show this message");
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            " help <command> - get more information on a");
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "                command (Server command only?)");
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            " showicon    - draw status icons in");
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "               inventory window");
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            " showweight  - show weight in inventory");
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "               look windows");
+	draw_ext_info(NDI_NAVY, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "Scripting Commands");
+	draw_ext_info(NDI_NAVY, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            "Client Side Debugging Commands");
 #ifdef HAVE_DMALLOC_H
-	draw_info(" dmalloc     - Check heap?", NDI_BLACK);
+	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+            " dmalloc     - Check heap?");
 #endif
 */
 
@@ -868,7 +890,7 @@ int handle_local_command(const char* cp, const char * cpnext) {
         char buf[MAX_BUF];
 
         snprintf(buf, MAX_BUF - 1, "Client command %s has no implementation!", cc->name);
-	draw_info(buf, NDI_RED);
+	draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
 	return FALSE;
     }
@@ -1027,10 +1049,12 @@ const char * complete_command(const char *command)
     if (match == NULL) {
         if (display) {
             strncat(list, "\n", 499 - strlen(list));
-            draw_info(list, NDI_BLACK);
+            draw_ext_info(
+                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, list);
         }
         else
-            draw_info("No matching command.\n", NDI_BLACK);
+            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                "No matching command.\n");
         /* No match. */
         return NULL;
     }

@@ -499,7 +499,8 @@ char *get_line_from_sock(char *s, size_t n, int fd) {
     }
 
     if (charsleft > MS_LARGE_BUF*4-3 && strchr(inbuf, '\n') == NULL) {
-        draw_info("Metaserver returned an overly long line.", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "Metaserver returned an overly long line.");
         return NULL;
     }
 
@@ -509,7 +510,8 @@ char *get_line_from_sock(char *s, size_t n, int fd) {
         TIMEVAL tv = {3, 0}; /* 3 second timeout on reads */
         int nlen;
         if (select(0, &fdset, NULL, NULL, &tv) == 0) {
-            draw_info("Metaserver timed out.", NDI_BLACK);
+            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+                "Metaserver timed out.");
             return NULL;
         }
 
@@ -588,7 +590,8 @@ void *metaserver1_thread(void *junk)
     }
     if (connect(fd, (struct sockaddr *)&insock, sizeof(insock)) == -1) {
         perror("Can't connect to metaserver");
-        draw_info("\nCan't connect to metaserver.", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "\nCan't connect to metaserver.");
 	pthread_mutex_lock(&ms2_info_mutex);
 	ms1_is_running=0;
 	pthread_mutex_unlock(&ms2_info_mutex);
@@ -799,7 +802,7 @@ int metaserver_get_info(char *metaserver, int meta_port) {
     return 0;
 }
 
-/* show the metaservers to the player.  we use the draw_info to do
+/* Show the metaservers to the player.  We use draw_ext_info() to do
  * that, and also let the player know they can enter their own host name.
  */
 void metaserver_show(int show_selection) {
@@ -807,20 +810,24 @@ void metaserver_show(int show_selection) {
     char buf[256];
 
     if (cached_servers_num) {
-        draw_info("\nLast servers you connected to:\n", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "\nLast servers you connected to:\n");
         for (i = 0; i < cached_servers_num; i++) {
             snprintf(buf, sizeof(buf), "%2d) %-20.20s %-20.20s", i+1, cached_servers_name[i], cached_servers_ip[i]);
-            draw_info(buf, NDI_BLACK);
+            draw_ext_info(
+                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, buf);
         }
-        draw_info(" ", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, " ");
     }
 
     while(metaserver_check_status()) {
 	usleep(100);
     }
 
-    draw_info(" #)     Server        #     version   idle", NDI_BLACK);
-    draw_info("         Name      players           seconds", NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+        " #)     Server        #     version   idle");
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+        "         Name      players           seconds");
     pthread_mutex_lock(&ms2_info_mutex);
 
     /* Re-sort the data - may get different data from ms1 and ms2, so
@@ -833,20 +840,26 @@ void metaserver_show(int show_selection) {
 		    i+1+cached_servers_num, meta_servers[i].hostname,
 		    meta_servers[i].num_players, meta_servers[i].version,
 		    meta_servers[i].idle_time);
-	    draw_info(buf, NDI_BLACK);
+            draw_ext_info(
+                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, buf);
 	}
     }
     if (show_selection) {
         /* Show default/current server */
 	if (server) {
 	    snprintf(buf, sizeof(buf), "%2d)  %s (default)", meta_numservers+1+cached_servers_num, server);
-	    draw_info(buf, NDI_BLACK);
+            draw_ext_info(
+                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, buf);
 	}
 
-        draw_info("Choose one of the entries above", NDI_BLACK);
-        draw_info("or type in a hostname/ip address", NDI_BLACK);
-        draw_info("Hit enter to re-update this list", NDI_BLACK);
-        draw_info("Enter 0 to exit the program.", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "Choose one of the entries above");
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "or type in a hostname/ip address");
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "Hit enter to re-update this list");
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "Enter 0 to exit the program.");
     }
     pthread_mutex_unlock(&ms2_info_mutex);
 }
@@ -890,7 +903,9 @@ int metaserver_select(char *sel) {
         server_ip = sel;
     } else {
         if (num <= 0 || num > meta_numservers+cached_servers_num+1) {
-            draw_info("Invalid selection. Try again", NDI_BLACK);
+            draw_ext_info(
+                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+                    "Invalid selection. Try again");
             return 1;
         }
 
@@ -908,7 +923,8 @@ int metaserver_select(char *sel) {
     }
     pthread_mutex_unlock(&ms2_info_mutex);
     if (!server_name) {
-        draw_info("Bad selection. Try again", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "Bad selection. Try again");
         return 1;
     }
 
@@ -925,14 +941,15 @@ int metaserver_select(char *sel) {
     }
 
     snprintf(buf, sizeof(buf), "Trying to connect to %s:%d", server_name, port);
-    draw_info(buf, NDI_BLACK);
+    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, buf);
 #ifdef MULTKEYS
     csocket.fd = init_connection(server_name, port);
 #else
     csocket.fd = init_connection(server_ip, port);
 #endif
     if (csocket.fd == -1) {
-        draw_info("Unable to connect to server.", NDI_BLACK);
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "Unable to connect to server.");
         return 1;
     }
 
@@ -1011,7 +1028,7 @@ int main(int argc, char *argv[])
  * defined - trying to bring in the files the are defined
  * in just causes more dependencies, etc.
  */
-void draw_info(const char *str, int color) { }
+void draw_ext_info(int orig_color, int type, int subtype, char *message) {}
 int init_connection(char *host, int port) {}
 
 int metaserver_on=1, meta_port=0;

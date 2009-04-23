@@ -20,7 +20,7 @@ extern void end_windows(void);
 extern void write_ch(char key);
 extern void draw_prompt(const char *str);
 extern void draw_info(const char *str, int color);
-extern void draw_color_info(int colr, const char *buf);
+extern void draw_ext_info(int orig_color, int type, int subtype, char *message);
 extern void draw_stats(int redraw);
 extern void draw_message_window(int redraw);
 extern void open_container(item *op);

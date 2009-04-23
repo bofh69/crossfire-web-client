@@ -47,9 +47,8 @@ extern int display_mapscroll(int dx, int dy);
 extern void draw_magic_map(void);
 
 /* Info related functions */
-extern void draw_info(const char *str, int color);
-extern void draw_color_info(int colr, const char *buf);
 extern void draw_prompt(const char *str);
+extern void draw_ext_info(int orig_color, int type, int subtype, char *message);
 extern void x_set_echo(void);
 extern void set_scroll(const char *s);
 extern void set_autorepeat(const char *s);

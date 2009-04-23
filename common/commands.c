@@ -227,7 +227,8 @@ void SetupCmd(char *buf, int len) {
             char *cp, tmpbuf[MAX_BUF];
 
             if (!strcasecmp(param, "false")) {
-                draw_info("Server only supports standard sized maps (11x11)", NDI_RED);
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+                  "Server only supports standard sized maps (11x11)");
                 /* Do this because we may have been playing on a big server before */
                 use_config[CONFIG_MAPWIDTH] = 11;
                 use_config[CONFIG_MAPHEIGHT] = 11;
@@ -254,7 +255,8 @@ void SetupCmd(char *buf, int len) {
                                 "setup mapsize %dx%d", use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 snprintf(tmpbuf, sizeof(tmpbuf), "Server supports a max mapsize of %d x %d - requesting a %d x %d mapsize",
                     x, y, use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
-                draw_info(tmpbuf, NDI_RED);
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+                    tmpbuf);
             } else if (use_config[CONFIG_MAPWIDTH] == x && use_config[CONFIG_MAPHEIGHT] == y) {
                 mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 resize_map_window(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
@@ -265,7 +267,8 @@ void SetupCmd(char *buf, int len) {
                  */
                 snprintf(tmpbuf, sizeof(tmpbuf), "Unable to set mapsize on server - we wanted %d x %d, server returned %d x %d",
                     use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT], x, y);
-                draw_info(tmpbuf, NDI_RED);
+                draw_ext_info(
+                    NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER, tmpbuf);
             }
         } else if (!strcmp(cmd, "sexp") || !strcmp(cmd, "darkness") ||
             !strcmp(cmd, "newmapcmd") || !strcmp(cmd, "spellmon")) {
@@ -291,13 +294,16 @@ void SetupCmd(char *buf, int len) {
             }
         } else if (!strcmp(cmd, "faceset")) {
             if (!strcmp(param, "FALSE")) {
-                draw_info("Server does not support other image sets, will use default", NDI_RED);
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+                    "Server does not support other image sets, will use default");
                 face_info.faceset = 0;
             }
         } else if (!strcmp(cmd, "map2cmd")) {
             if (!strcmp(param, "FALSE")) {
-                draw_info("Server does not support map2cmd!", NDI_RED);
-                draw_info("This server is too old to support this client!", NDI_RED);
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+                    "Server does not support map2cmd!");
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+                    "This server is too old to support this client!");
 #ifdef WIN32
                 closesocket(csocket.fd);
 #else
@@ -317,8 +323,10 @@ void SetupCmd(char *buf, int len) {
              * send a request to get the mapping information.
              */
             if (!strcmp(param, "FALSE")) {
-                draw_info("Server does not support exp64!", NDI_RED);
-                draw_info("This server is too old to support this client!", NDI_RED);
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+                    "Server does not support exp64!");
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+                    "This server is too old to support this client!");
 #ifdef WIN32
                 closesocket(csocket.fd);
 #else
@@ -374,9 +382,10 @@ void ExtendedInfoSetCmd(char *data, int len) {
     /* Do nothing for now, perhaps later add some
      * support to check what server knows.
      */
-    /* commented, no waranty string data is null terminated
-       draw_info("ExtendedInfoSet returned from server: ", NDI_BLACK);
-       draw_info(data, NDI_BLACK);
+    /* commented, no guarantee that the string data is null terminated
+       draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+           "ExtendedInfoSet returned from server: ");
+       draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER, data);
     */
 }
 
@@ -485,11 +494,7 @@ void DrawInfoCmd(char *data, int len) {
     } else {
         buf++;
     }
-    if (color != NDI_BLACK) {
-        draw_color_info(color, buf);
-    } else {
-        draw_info(buf, NDI_BLACK);
-    }
+    draw_ext_info(color, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_COMMAND, buf);
 }
 
 TextManager *firstTextManager = NULL;
@@ -575,11 +580,6 @@ void use_skill(int skill_id)
    int i = 0;
    int next;
    int prev = last_used_skills[0];
-   /*
-   char buf[100];
-   sprintf(buf, "use_skill(%d '%s')\n", skill_id, skill_names(skill_id));
-   draw_info(, NDI_BLUE);
-   */
 
    if(last_used_skills[0] == skill_id) return;
 
@@ -740,7 +740,8 @@ void handle_query(char *data, int len) {
         cp = buf;
         while ((buf = strchr(buf, '\n')) != NULL) {
             *buf++ = '\0';
-            draw_info(cp, NDI_BLACK);
+            draw_ext_info(
+                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY, cp);
             cp = buf;
         }
         /* Yes/no - don't do anything with it now */

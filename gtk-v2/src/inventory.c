@@ -189,8 +189,8 @@ static void list_item_action(GdkEventButton *event, item *tmp)
     }
     else if (event->button == 3) {
         if (tmp->locked) {
-            draw_info ("This item is locked. To drop it, first unlock by shift+leftclicking on it.",
-                NDI_BLACK);
+            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                "This item is locked. To drop it, first unlock by shift+leftclicking on it.");
         } else {
             uint32      dest;
 
@@ -596,7 +596,7 @@ void command_show (const char *params)
             }
         }
         snprintf(buf, sizeof(buf), "Unknown notebook page %s\n", params);
-        draw_info(buf, NDI_RED);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
     }
 }
 
