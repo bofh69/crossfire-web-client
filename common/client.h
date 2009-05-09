@@ -34,7 +34,7 @@
 #include <config.h>
 #include <version.h>
 #include <client-types.h>
-#include <newclient.h>
+#include <shared/newclient.h>
 #include <item.h>
 
 #ifdef HAVE_DMALLOC_H

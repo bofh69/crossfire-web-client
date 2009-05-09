@@ -26,7 +26,7 @@ const char * const rcsid_common_item_c =
 #include <ctype.h>      /* needed for isdigit */
 #include <client.h>
 #include <item.h>
-#include <newclient.h>
+#include <shared/newclient.h>
 #include <external.h>
 #include <script.h>
 

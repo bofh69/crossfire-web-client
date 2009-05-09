@@ -69,7 +69,7 @@ static char *rcsid_cfsndserv_c =
 #include <ctype.h>
 #include <errno.h>
 
-#include "newclient.h"
+#include "shared/newclient.h"
 #include "soundsdef.h"
 
 

@@ -33,7 +33,7 @@ const char * const rcsid_common_newsocket_c =
 #include <errno.h>
 
 #include <client.h>
-#include <newclient.h>
+#include <shared/newclient.h>
 #include <script.h>
 
 /* The LOG function is normally part of the libcross.  If client compile,

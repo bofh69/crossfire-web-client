@@ -48,13 +48,13 @@ noinst_HEADERS = \
 	mapdata.h \
 	metaserver.h \
 	msgtypes.h \
-	newclient.h \
 	p_cmd.h \
 	proto.h \
 	script.h \
 	script_lua.h \
         version.h \
-        svnversion.h
+        svnversion.h \
+	shared/newclient.h
 
 BUILT_SOURCES = svnversion.h
 CLEANFILES = svnversion.h
@@ -75,7 +75,7 @@ item-types.h: item-types
 def-keys.h: def-keys
 	../utils/mdk.sh
 
-msgtypes.h: newclient.h
+msgtypes.h: shared/newclient.h
 	$(PERL) msgtypes.pl
 
 svnversion.h: FORCE

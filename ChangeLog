@@ -2,6 +2,22 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/newclient.h: Moved to the new common/shared subdirectory because svn
+  externals work on a directories only.  It is planned to share this file
+  between the server and client to assure synchronization.
+common/shared/newclient.h: Moved from common.
+common/item.c
+common/msgtypes.pl
+common/client.h
+common/newsocket.h
+common/Makefile.am
+sound-src/alsa9.c
+sound-src/cfsndserv.c: changed all #includes to reference newclient.h in its
+  new location (common/shared/newclient.h).
+common/msgtypes.h: Changes resulting from merge of server newclient.h with the
+  client newclient.h.
+Kevin Bulgrien 2009/05/08
+
 common/newclient.h:  Merge differences from server/trunk/include/newclient.h
   in preparation for correcting the fact that the two files are separately
   maintained - allowing divergence in implementation.  One apparent required
