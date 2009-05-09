@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/shared/newclient.h:  Removed comment that talked about the file being
+  separately controlled in client and server.  Add a comment to the #ifdef
+  that switches the content of one typedef depending on where it is compiled.
+Kevin Bulgrien 2009/05/09
+
 common/newclient.h: Moved to the new common/shared subdirectory because svn
   externals work on a directories only.  It is planned to share this file
   between the server and client to assure synchronization.

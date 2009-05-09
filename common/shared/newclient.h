@@ -28,11 +28,10 @@
 
 /**
  * @file
- * Defines various flags that both the new client and
- * newserver uses.  These should never be changed, only expanded.
- * Changing them will likely cause all old clients to not work properly.
- * While called newclient, it is really used by both the client and
- * server to keep some values the same.
+ * Defines various flags that both the new client and new server use.  These
+ * should never be changed, only expanded.  Changing them will likely cause all
+ * old clients to not work properly.  While called newclient, it is used by
+ * both the client and server to keep some values the same.
  *
  * Name format is CS_(command)_(flag)
  * CS = Client/Server.
@@ -40,17 +39,6 @@
  * (flag) is the flag name
  */
 
-/* Ideally, this file should be the same between the server and
- * the client.  However, this often drifts apart because of a value
- * that is only useful on the client and server.  Generally, it isn't
- * a problem to have a few extra \#defines if this lets them stay
- * in sync.
- *
- * Given this file contains the constants that dictate what is sent
- * between the server and client, keeping them in sync makes doing changes
- * easier - modify this file in one place, copy it over.
- *
- */
 #ifndef NEWCLIENT_H
 #define NEWCLIENT_H
 
@@ -603,10 +591,10 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 
 /** Contains the base information we use to make up a packet we want to send. */
 typedef struct SockList {
-#ifdef CLIENT_TYPES_H
+#ifdef CLIENT_TYPES_H                       /* Used by the client */
     int len;
     unsigned char *buf;
-#else
+#else                                       /* Used by the server */
     size_t len;
     unsigned char buf[2+65536UL+1]; /* 2=length, 65536=content, 1=trailing NUL */
 #endif
