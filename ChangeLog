@@ -2,6 +2,17 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/shared/newclient.h:  After coming to the realization that this file is
+  better sourced in the server so that different client codebases could
+  conceptually use different versions of the file depending on their
+  development state, this file is now moved to server/include/shared.
+common/shared: Removed to allow the server/include/shared directory to be made
+  and external reference here.
+common:  Added an svn:externals property to use server/include/shared revision
+  11676 to create and populate client/common/shared so that newclient.h is a
+  direct copy of the file maintained in the server area.
+Kevin Bulgrien 2009/05/09
+
 common/shared/newclient.h:  Removed comment that talked about the file being
   separately controlled in client and server.  Add a comment to the #ifdef
   that switches the content of one typedef depending on where it is compiled.
