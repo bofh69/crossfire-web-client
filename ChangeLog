@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/newclient.h:  Merge differences from server/trunk/include/newclient.h
+  in preparation for correcting the fact that the two files are separately
+  maintained - allowing divergence in implementation.  One apparent required
+  conflict is handled by detecting a define present only in the client.
+Kevin Bulgrien 2009/05/08
+
 The following commit converts all common code and GTK-V2 draw_info() calls to
 draw_ext_info() calls so that support for untyped draw_info() messages can be
 completely removed from GTK-V2.  While converting the draw_info() calls, also
