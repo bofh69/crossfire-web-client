@@ -42,11 +42,11 @@ Requires: SDL_image
 Requires: alsa-lib
 Requires: libglade2.0
 BuildRequires: SDL-devel
+BuildRequires: curl-devel
 BuildRequires: glibc-devel
-BuildRequires: libcurl-devel
-BuildRequires: SDL_image-devel
 BuildRequires: alsa-lib-devel
-BuildRequires: libglade2.0-devel
+BuildRequires: SDL_image-devel
+BuildRequires: libglade2-devel
 Epoch: 5
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
