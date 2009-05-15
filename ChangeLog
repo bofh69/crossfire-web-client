@@ -2,6 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/dialogs.glade: Set the deletable property False on all dialogs to
+  fix Tracker ID: 2784779 GTK-V2 loses dialogs if closed with X control.  It
+  looks like glade3 is going to be annoying.  The diff is huge, but if you
+  sort the old file and new file, the real difference is only one line of
+  text for each dialog.
+Kevin Bulgrien 2009/05/14
+
 gtk-v2/glade/dialogs.glade: Open/save using glade3 so that later modifications
   may be better identified in a diff.  Glade3 appears to save widgets in alpha
   order.  Glade3 also seemed to remove quite a bit of content, but so far what
