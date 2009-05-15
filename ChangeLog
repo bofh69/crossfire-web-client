@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/dialogs.glade: Open/save using glade3 so that later modifications
+  may be better identified in a diff.  Glade3 appears to save widgets in alpha
+  order.  Glade3 also seemed to remove quite a bit of content, but so far what
+  I have seen indicates that glade2 to glade3 migration is pretty safe.
+Kevin Bulgrien 2009/05/14
+
 crossfire-client.spec: Change some of the RPM .spec file BuildRequires to be
   more flexible after after testing on Mandriva 2009.0 (local machine) and
   Centos (Invidious).  Centos build failed with requires libcurl-devel and
