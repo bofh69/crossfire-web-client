@@ -103,6 +103,32 @@ are are found in the following files:
                         is also appropriate for those that prefer to see less
                         information simultaneously on screen.
 
+- sixforty.glade        This is a layout that defaults to a 640x480 size and
+                        was made in response to a request for a small layout.
+                        Player name, experience, and level are reported beside
+                        the menu bar.  The rest of the layout is cut into four
+                        zones with a resize bar allowing the left/right sizes
+                        to be adjusted.  In the top-left quadrant lies the map
+                        panel, with a tabbed pane for Stats, Protections,
+                        and Skills/Experience in the quadrant below it.  The
+                        icon view resides in the top right quadrant with the
+                        tabbed messages pane and command input occupying the
+                        lower right quadrant. At 640x480, a 12x8 map size is
+                        workable with inventory views being the big challenge.
+
+                        The most noticable difference in this layout is a more
+                        densely packed stats panel that eliminates the Core
+                        Statistics panel found in all the previously created
+                        layouts.  This panel sports 3-columns with the first
+                        containing numeric values for encumbrance, HP, Mana,
+                        Grace, Food and XP.  The top of the middle column
+                        indicates the readied skill with bar graphs for the
+                        stats in the first column below.  The third column
+                        lists Speed, WS, WC, Damage, AC, and Armor data.
+                        Below these three statistical columns is a row
+                        displaying Str, Dex, Con, Int, Wis, Pow, Cha data.
+
+
 - un-deux.glade         This layout is still vaguely reminiscent of the
                         original GTK V1 client with the V1-Redux improvements,
                         but it is unique in that the message panes are to the

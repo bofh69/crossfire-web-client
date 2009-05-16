@@ -1,6 +1,19 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/sixforty.glade
+gtk-v2/glade/sixforty.gladep: Add a four-quadrant layout that seems workable
+  at a 640x480 screen resolution.  It has some innovations for tightening up
+  stats display, and will likely be nice for larger resolutions also.  This
+  layout actually appears to be different enough to inspire some ideas on
+  how to make a few code changes to improve the ability to tighten up the
+  displays even more.  This layout was developed with glade2, but resaved
+  using glade3 prior to commit.  The XML targets GTK+ 2.12 and fully passes
+  glade3s deprecation and version mismatch checks.
+gtk-v2/glade/Makefile.am: Incorporate the new sixforty.glade into the build.
+gtk-v2/glade/AUTHORS: Add a descriptive summary of the new sixforty layout.
+Kevin Bulgrien 2009/05/16
+
 gtk-v2/glade/dialogs.glade: Set the About dialog window_position property to
   center for more logical and natural positioning of an infrequently viewed
   dialog.  The other dialogs seem to try to position themselves in corners

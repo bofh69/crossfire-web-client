@@ -33,6 +33,7 @@ XML_FILES = \
         lobotomy.glade \
  	meflin.glade \
 	oroboros.glade \
+	sixforty.glade \
 	un-deux.glade \
 	v1-redux.glade
 
