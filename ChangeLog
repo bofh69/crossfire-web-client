@@ -12,6 +12,8 @@ gtk-v2/glade/sixforty.gladep: Add a four-quadrant layout that seems workable
   glade3s deprecation and version mismatch checks.
 gtk-v2/glade/Makefile.am: Incorporate the new sixforty.glade into the build.
 gtk-v2/glade/AUTHORS: Add a descriptive summary of the new sixforty layout.
+crossfire-client.spec: Add sixforty.glade to the package, and update the
+  internal changelog.
 Kevin Bulgrien 2009/05/16
 
 gtk-v2/glade/dialogs.glade: Set the About dialog window_position property to

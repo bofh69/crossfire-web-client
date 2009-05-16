@@ -228,6 +228,7 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 %{_datadir}/%{name}/glade-gtk2/lobotomy.glade
 %{_datadir}/%{name}/glade-gtk2/meflin.glade
 %{_datadir}/%{name}/glade-gtk2/oroboros.glade
+%{_datadir}/%{name}/glade-gtk2/sixforty.glade
 %{_datadir}/%{name}/glade-gtk2/un-deux.glade
 %{_datadir}/%{name}/glade-gtk2/v1-redux.glade
 # Desktop file
@@ -270,6 +271,15 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 
 %changelog
+* Sat May 16 2009 Kevin Bulgrien <kbulgrien@att.net
+- Package new sixforty.glade GTK-V2 client layout that is particularly suited
+  for low screen resolutions.
+
+* Sun May 10 2009 Kevin Bulgrien <kbulgrien@att.net>
+- Change some of the BuildRequires to be more flexible after testing.  New
+  requires curl-devel and libglade2-devel are accepted on more platforms
+  that the prior libcurl-devel and libglade2.0-devel.
+
 * Fri Nov 28 2008 Kevin Bulgrien <kbulgrien@att.net>
 - Group change from X11/Games to Games/Adventure for all packages.
 - Tabs removed to eliminate rpmlint complaint.
