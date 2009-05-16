@@ -1211,7 +1211,7 @@ faceset has a different graphical style.</property>
     <property name="width_request">500</property>
     <property name="height_request">500</property>
     <property name="title" translatable="yes">About Crossfire</property>
-    <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
+    <property name="window_position">GTK_WIN_POS_CENTER</property>
     <property name="deletable">False</property>
     <child>
       <widget class="GtkVBox" id="about_vbox">

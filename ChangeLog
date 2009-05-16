@@ -1,8 +1,14 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/dialogs.glade: Set the About dialog window_position property to
+  center for more logical and natural positioning of an infrequently viewed
+  dialog.  The other dialogs seem to try to position themselves in corners
+  of the screen, which makes sense so they do not overlay each other, but it
+  doesn't make a lot of sense for the About dialog, and looks better this way.
+Kevin Bulgrien 2009/05/15
 
-gtk-v2/glade/dialogs.glade: Set the deletable property False on all dialogs to
+gto-v2/glade/dialogs.glade: Set the deletable property False on all dialogs to
   fix Tracker ID: 2784779 GTK-V2 loses dialogs if closed with X control.  It
   looks like glade3 is going to be annoying.  The diff is huge, but if you
   sort the old file and new file, the real difference is only one line of
