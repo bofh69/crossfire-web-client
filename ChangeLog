@@ -1,6 +1,16 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/meflin.glade: Reworked this layout which was not used (probably
+  because messages were not visible when clicking or examining items with the
+  mouse).  The changes from sixforty involve making sure critical messages and
+  regular messages are both visible at the same time.  The critical messages
+  are put on the stats pane below the maps.  The other big change is to try
+  putting ground view and inventory on their own tabbed notebook with the
+  ground view the default.  This layout makes more use of viewports to make
+  the UI look nicer.  There are still areas for improvement like the menubar.
+  The command input box seems small too, but its worth getting other feedback
+  before messing around too much more with it.
 gtk-v2/glade/sixforty.glade
 gtk-v2/glade/sixforty.gladep: Add a four-quadrant layout that seems workable
   at a 640x480 screen resolution.  It has some innovations for tightening up
