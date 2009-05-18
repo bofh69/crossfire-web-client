@@ -1,6 +1,21 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/meflin.glade: Swapped position of Messages and Look/Inventory at
+  Meflin's request.  The Range: slot in the stats table caused some expanding
+  and contracting of the stats panel when rotating through ranged skills, so
+  it is now assigned a row of its own.  After adding this row, the table now
+  has seven rows, so the Str/Dex/Con/Int/Wis/Pow/Cha can now be laid out in a
+  vertical fashion.  The addition of a row also leaves a cell above WSp blank,
+  so Run/Fire is moved from the menubar to this cell.  The cell where Range:
+  used to be is now blank.  Added separators between the menu and the player
+  information items in the menu bar.  Now that the look/inventory panel is at
+  the bottom, it makes more sense to put the notebook tabs next to the command
+  input, so the tabs are change to the bottom of the notebook, and to maintain
+  a consistent appearance, the stats/prot/skills notebook also has the tabs
+  moved to the bottom.
+Kevin Bulgrien 2009/05/17
+
 gtk-v2/glade/meflin.glade: Reworked this layout which was not used (probably
   because messages were not visible when clicking or examining items with the
   mouse).  The changes from sixforty involve making sure critical messages and
