@@ -290,7 +290,7 @@ void stats_init(GtkWidget *window_root)
  * dictate that.
  */
 void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
-	 sint64 statbar_max, sint64 statbar_stat, const char *name, int can_alert)
+         sint64 statbar_max, sint64 statbar_stat, const char *name, int can_alert)
 {
     float bar;
     int is_alert;
@@ -439,11 +439,11 @@ void draw_message_window(int redraw) {
     static sint64 level_diff;
 
     update_stat(0, cpl.stats.maxhp, cpl.stats.hp,
-		cpl.stats.maxhp, cpl.stats.hp, "HP:", TRUE);
+                cpl.stats.maxhp, cpl.stats.hp, "HP:", TRUE);
     update_stat(1, cpl.stats.maxsp, cpl.stats.sp,
-		cpl.stats.maxsp, cpl.stats.sp, "Spell Points:", TRUE);
+                cpl.stats.maxsp, cpl.stats.sp, "Spell Points:", TRUE);
     update_stat(2, cpl.stats.maxgrace, cpl.stats.grace,
-		cpl.stats.maxgrace, cpl.stats.grace, "Grace:", TRUE);
+                cpl.stats.maxgrace, cpl.stats.grace, "Grace:", TRUE);
     update_stat(3, 999, cpl.stats.food, 999, cpl.stats.food, "Food:", TRUE);
 
     /* We may or may not have an exp table from the server.  If we don't, just
@@ -453,17 +453,17 @@ void draw_message_window(int redraw) {
      * call below less messy.
      */
     if ((cpl.stats.level+1) < exp_table_max)
-	level_diff = exp_table[cpl.stats.level+1] - exp_table[cpl.stats.level];
+        level_diff = exp_table[cpl.stats.level+1] - exp_table[cpl.stats.level];
     else
-	level_diff=cpl.stats.exp;
+        level_diff=cpl.stats.exp;
 
     update_stat(4,
         (cpl.stats.level+1) < exp_table_max ? exp_table[cpl.stats.level+1]:cpl.stats.exp,
-	cpl.stats.exp,
-	level_diff,
+        cpl.stats.exp,
+        level_diff,
         (cpl.stats.level+1) < exp_table_max ?
-		(cpl.stats.exp - exp_table[cpl.stats.level]):cpl.stats.exp,
-	"Exp:", FALSE);
+                (cpl.stats.exp - exp_table[cpl.stats.level]):cpl.stats.exp,
+        "Exp:", FALSE);
 
     if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3) && (cpl.stats.food < 200)) {
         gdk_beep( );
@@ -634,9 +634,9 @@ void draw_stats(int redraw) {
      * not as a factor of player speed.  Handle accordingly.
      */
     if (csocket.sc_version >= 1029)
-	weap_sp = (float) cpl.stats.weapon_sp / FLOAT_MULTF;
+        weap_sp = (float) cpl.stats.weapon_sp / FLOAT_MULTF;
     else
-	weap_sp = (float) cpl.stats.speed/((float)cpl.stats.weapon_sp);
+        weap_sp = (float) cpl.stats.speed/((float)cpl.stats.weapon_sp);
 
     if (redraw || weap_sp !=last_stats.weapon_sp) {
         last_stats.weapon_sp=weap_sp;
