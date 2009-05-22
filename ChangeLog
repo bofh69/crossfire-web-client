@@ -1,6 +1,58 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+The following commit introduces a code incompatibility with existing .glade
+layouts.  All layouts must be updated to match this code to retain encumbrance
+display and the numerical data next to the stat progressbar widgets.  This
+change is made because it allows much greater flexibility in the UI layout.
+The motive was to reduce bad UI behavior when a character had very large
+amounts of XP, but a side-effect is that layout density can be improved for
+those wanting a small UI footprint.  The existing .glade layouts may still
+be used, but some numeric data will not be available until the layout is
+updated.  meflin.glade rework sparked the idea for this change, and was used
+to test the code, so is hereby committed.  The other layouts will be changed
+in relatively short order.
+
+gtk-v2/src/stats.c: The stat_label pointer was split into two pointers called
+  stat_current and stat_max.  The widget that stat_label pointed to used to be
+  set with a programmatically defined stat name, current value/max value all
+  as a single string.  With the Exp: data in particular, this resulted in a
+  very wide string that tended be be quite problematic.  Not only that, but it
+  forced client layouts to use a hardcoded name for stats instead of allowing
+  the layout to define (or omit) the name.  In the .glade file, the change
+  corresponds with the splitting of the label_stats_* widgets each into four
+  separate widget sets wth the names: label_stat_name_*, label_stat_current_*,
+  label_stat_ratio_*, and label_stat_max_*.  label_stat_name_* is no longer
+  programmatically set by the client code.  The current/max data formerly in
+  the split widget is now divided between the other newly created widgets.
+  The *_ratio_* widgets are generally defined in the .glade file as a "/", and
+  the client code does not modify it.  Various block comments were reformatted
+  to wider margins to reduce vertical height of the comments. One spelling
+  error was fixed in a code comment.
+gtk-v2/src/inventory.c: The changes closely match the changes described for
+  stats.c except that they change the behavior of the weight or encumbrance
+  data shown in the client.  The pointer weight_label is split into two
+  pointers:  encumbrance_current and encumbrance_max.  This makes it possible
+  to split the two numbers formerly displayed as current/max in a single
+  string.  The widget name label_inv_weight was replaced by widgets with the
+  the names label_stat_encumbrance_current, label_stat_ratio_encumbrance, and
+  label_stat_encumbrance_max.  The stat name label was not programmatically
+  set for encumbrance, but was renamed to label_stat_encumbrance_name to match
+  the stats.c changes.  Block comments were reformatted to wider margins to
+  decrease their vertical height.
+gtk-v2/glade/meflin.glade:  The stats panel has been reorganized to make use
+  of and test the above changes.  The stat labels for the progressbars are
+  still to the left of the progress bar, but the associated numeric ratio is
+  now to the right of the progress bar.  This allows the player adjust the
+  hpane to cover extremely long experience/next_level strings to increase the
+  area available for critical messages.  The stat columns are moved from the
+  right side of the progress bars to the left side.  Fire/Run and the active
+  ranged skill are now shown below the progress bars and separated from them
+  by a blank line (to improve readability).  The overall appearance of this
+  layout was also improved by introducing into the design more viewports with
+  borders.
+Kevin Bulgrien 2009/05/21
+
 gtk-v2/glade/meflin.glade: Swapped position of Messages and Look/Inventory at
   Meflin's request.  The Range: slot in the stats table caused some expanding
   and contracting of the stats panel when rotating through ranged skills, so

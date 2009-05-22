@@ -50,10 +50,14 @@ const char * const rcsid_gtk2_inventory_c =
 #include "../../pixmaps/skull.xpm"
 #include "../../pixmaps/unlock.xpm"
 
-GtkWidget   *inv_notebook, *treeview_look, *weight_label, *inv_table;
-GtkTreeStore    *store_look;
-static double  weight_limit;
-static GtkTooltips  *inv_table_tooltips;
+GtkWidget *inv_notebook;
+GtkWidget *treeview_look;
+GtkWidget *encumbrance_current;
+GtkWidget *encumbrance_max;
+GtkWidget *inv_table;
+GtkTreeStore *store_look;
+static double weight_limit;
+static GtkTooltips *inv_table_tooltips;
 
 /*
  * Hopefully, large enough.  Trying to do this with malloc gets more
@@ -429,7 +433,8 @@ void inventory_init(GtkWidget *window_root)
 
     inv_notebook = glade_xml_get_widget(xml_tree,"notebook_inv");
     treeview_look = glade_xml_get_widget(xml_tree, "treeview_look");
-    weight_label = glade_xml_get_widget(xml_tree,"label_inv_weight");
+    encumbrance_current = glade_xml_get_widget(xml_tree,"label_stat_encumbrance_current");
+    encumbrance_max = glade_xml_get_widget(xml_tree,"label_stat_encumbrance_max");
     inv_table = glade_xml_get_widget(xml_tree,"inv_table");
 
     g_signal_connect((gpointer) inv_notebook, "switch_page",
@@ -1006,7 +1011,8 @@ void draw_inv_table(int animate)
 }
 
 /**
- * Draws the inventory.  Have to determine how to draw it.
+ * Draws the inventory and updates the encumbrance statistics display in the
+ * client.  Have to determine how to draw it.
  *
  * @param tab
  */
@@ -1014,8 +1020,10 @@ void draw_inv(int tab)
 {
     char buf[256];
 
-    snprintf(buf, sizeof(buf), "%6.1f/%6.1f", cpl.ob->weight, weight_limit);
-    gtk_label_set(GTK_LABEL(weight_label), buf);
+    snprintf(buf, sizeof(buf), "%6.1f", cpl.ob->weight);
+    gtk_label_set(GTK_LABEL(encumbrance_current), buf);
+    snprintf(buf, sizeof(buf), "%6.1f", weight_limit);
+    gtk_label_set(GTK_LABEL(encumbrance_max), buf);
 
     if (inv_notebooks[tab].type == INV_TREE)
         draw_inv_list(tab);

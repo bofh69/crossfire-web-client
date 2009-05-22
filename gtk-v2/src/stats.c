@@ -45,40 +45,41 @@ const char * const rcsid_gtk2_stats_c =
 #define STAT_BAR_FOOD   3
 #define STAT_BAR_EXP    4
 #define MAX_STAT_BARS   5
+
 static const char * const stat_bar_names[MAX_STAT_BARS] = {
     "hp", "sp", "grace", "food", "exp"
 };
 
-GtkWidget *stat_label[MAX_STAT_BARS], *stat_bar[MAX_STAT_BARS];
+GtkWidget *stat_current[MAX_STAT_BARS];
+GtkWidget *stat_max[MAX_STAT_BARS];
+GtkWidget *stat_bar[MAX_STAT_BARS];
 
-#define STYLE_NORMAL    0
-#define STYLE_LOW       1
-#define STYLE_SUPER     2
+#define STYLE_NORMAL        0
+#define STYLE_LOW           1
+#define STYLE_SUPER         2
 #define STYLE_GRAD_NORMAL   3
 #define STYLE_GRAD_LOW      4
 #define STYLE_GRAD_SUPER    5
-#define NUM_STYLES  6
+#define NUM_STYLES          6
 
-/* The name of the symbolic widget names we try to look up
- * the styles of (these will be prefixed with hp_, sp_, etc).
- * This should always match NUM_STYLES.
+/* The name of the symbolic widget names we try to look up the styles of
+ * (these will be prefixed with hp_, sp_, etc).  This should always match
+ * NUM_STYLES.
  */
 static const char * const stat_style_names[NUM_STYLES] = {
     "bar_normal", "bar_low", "bar_super",
     "gradual_bar_normal", "gradual_bar_low", "gradual_bar_super"
 };
 
-/* We really only care about the colors, as there isn't
- * anything else we can change about the progressbar widget
- * itself.
+/* We really only care about the colors, as there isn't anything else we can
+ * change about the progressbar widget itself.
  */
 GdkColor    *bar_colors[MAX_STAT_BARS][NUM_STYLES];
 
 
-/* The table for showing skill exp is an x & y grid.  Note
- * for proper formatting, SKILL_BOXES_X must be even.
- * Hmmm - perhaps these should instead be dynamically
- * generated?
+/* The table for showing skill exp is an x & y grid.  Note for proper
+ * formatting, SKILL_BOXES_X must be even.  Hmmm - perhaps these should
+ * instead be dynamically generated?
  */
 #define SKILL_BOXES_X   6
 #define SKILL_BOXES_Y   17
@@ -113,13 +114,11 @@ typedef struct {
 
 static StatWindow statwindow;
 
-/* The basic idea of this structure is there are some lists of
- * names we get from the server (like say skill names) -
- * internally, these are all referred to number, and the numbers
- * are not in any order.  The idea here is we can store away the
- * names, and then can display the items in the window in
- * nice alphabetical order instead of the random order they
- * normally show up in.
+/* The basic idea of this structure is there are some lists of names we get
+ * from the server (like say skill names) - internally, these are all referred
+ * to number, and the numbers are not in any order.  The idea here is we can
+ * store away the names, and then can display the items in the window in nice
+ * alphabetical order instead of the random order they normally show up in.
  */
 typedef struct {
     const char *name;
@@ -170,7 +169,7 @@ void stats_get_styles(void)
 }
 
 /**
- *
+ * Associate the XML-defined widgets with pointers by name reference.
  * @param *window_root
  */
 void stats_init(GtkWidget *window_root)
@@ -181,8 +180,10 @@ void stats_init(GtkWidget *window_root)
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     for (i=0; i<MAX_STAT_BARS; i++) {
-        snprintf(buf, sizeof(buf), "label_stats_%s", stat_bar_names[i]);
-        stat_label[i] = glade_xml_get_widget(xml_tree, buf);
+        snprintf(buf, sizeof(buf), "label_stat_current_%s", stat_bar_names[i]);
+        stat_current[i] = glade_xml_get_widget(xml_tree, buf);
+        snprintf(buf, sizeof(buf), "label_stat_max_%s", stat_bar_names[i]);
+        stat_max[i] = glade_xml_get_widget(xml_tree, buf);
 
         snprintf(buf, sizeof(buf), "progressbar_%s", stat_bar_names[i]);
         stat_bar[i] = glade_xml_get_widget(xml_tree, buf);
@@ -280,8 +281,6 @@ void stats_init(GtkWidget *window_root)
  * this is the stat value to use for drawing the statbar.  For most
  * stats, this is same as current stat, but for the exp bar,
  * we basically want it to be a graph relative to amount for next level.
- * @param name
- * Printable name of the stat.
  * @param can_alert
  * Whether this stat can go on alert when it gets low.  It doesn't make
  * sense for this to happen on exp (not really an alert if you gain a
@@ -290,7 +289,7 @@ void stats_init(GtkWidget *window_root)
  * dictate that.
  */
 void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
-         sint64 statbar_max, sint64 statbar_stat, const char *name, int can_alert)
+         sint64 statbar_max, sint64 statbar_stat, int can_alert)
 {
     float bar;
     int is_alert;
@@ -319,28 +318,26 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
         GdkColor        *hcolor, *lcolor;
         float       diff;
 
-        /* First thing we do is figure out current values, and thus
-         * what color bases we use (based on super charged or
-         * normal value).  We also set up diff as where we are between
-         * those two points.  In this way, the blending logic
-         * below is the same regardless of actual value.
+        /* First thing we do is figure out current values, and thus what color
+         * bases we use (based on super charged or normal value).  We also set
+         * up diff as where we are between those two points.  In this way, the
+         * blending logic below is the same regardless of actual value.
          */
         if (bar > 1.0) {
-            if (bar>2.0) bar=2.0;   /* Doesn't affect display, just our calculations */
+            if (bar>2.0) bar=2.0;  /* Display unaffected; just calculations */
             hcolor = bar_colors[stat_no][STYLE_GRAD_SUPER];
             lcolor = bar_colors[stat_no][STYLE_GRAD_NORMAL];
             diff = bar - 1.0;
         } else {
-            if (bar < 0.0) bar=0.0;  /* Like above, doesn't affect display */
+            if (bar < 0.0) bar=0.0;  /* Like above, does not affect display */
             hcolor = bar_colors[stat_no][STYLE_GRAD_NORMAL];
             lcolor = bar_colors[stat_no][STYLE_GRAD_LOW];
             diff = bar;
         }
-        /* Now time to blend.  First, make sure colors are set.
-         * then, we use the lcolor as the base, making adjustments
-         * based on hcolor.  Values in hcolor may be lower than
-         * lcolor, but that just means we substract from lcolor, not
-         * add.
+        /* Now time to blend.  First, make sure colors are set.  then, we use
+         * the lcolor as the base, making adjustments based on hcolor.  Values
+         * in hcolor may be lower than lcolor, but that just means we
+         * substract from lcolor, not add.
          */
 
         if (lcolor && hcolor) {
@@ -351,26 +348,23 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
             ncolor.green += (hcolor->green - lcolor->green) * diff;
             ncolor.blue += (hcolor->blue - lcolor->blue) * diff;
 #else
-            /* This is an alternate coloring method that works
-             * when using saturated colors for the base points.
-             * This mimics the old code, and works good
-             * when using such saturated colors (eg, one
-             * of the RGB triplets being 255, others 0, like
-             * red, green, or blue).  However, this doesn't produce
-             * very good results when not using those colors - if
-             * say magenta and yellow are chosen as the two colors,
-             * this code results in the colors basically getting near
-             * white in the middle values.  For saturated colors, the
-             * code below would produce nice bright yellow for the middle
+            /* This is an alternate coloring method that works when using
+             * saturated colors for the base points.  This mimics the old
+             * code, and works good when using such saturated colors (eg, one
+             * of the RGB triplets being 255, others 0, like red, green, or
+             * blue).  However, this doesn't produce very good results when
+             * not using those colors - if say magenta and yellow are chosen
+             * as the two colors, this code results in the colors basically
+             * getting near white in the middle values.  For saturated colors,
+             * the code below would produce nice bright yellow for the middle
              * values, where as the code above produces more a dark yellow,
-             * since it only takes half the red and half the green.
-             * However, the code above still produces useful results
-             * even with that limitation, and it works for all colors,
-             * so it is the code enabled.  It perhaps be
-             * interesting to have some detection logic on how the colors
-             * are actually set - if only a single r/g/b value is set for
-             * the two colors, then use this logic here, otherwise
-             * the above logic or something.
+             * since it only takes half the red and half the green.  However,
+             * the code above still produces useful results even with that
+             * limitation, and it works for all colors, so it is the code
+             * enabled.  It perhaps be interesting to have some detection
+             * logic on how the colors are actually set - if only a single
+             * r/g/b value is set for the two colors, then use this logic
+             * here, otherwise the above logic or something.
              * MSW 2007-01-24
              */
             if (diff > 0.5) {
@@ -415,22 +409,21 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
     if (bar > 1.0) bar = 1.0;
     if (bar < 0.0) bar = 0.0;
 
-    /* It may be a waste, but we set the color everytime here - it
-     * isn't very costly, and keeps us from tracing the last
-     * color we set.
-     * Note that set_color could be null, which means it reverts
-     * back to normal color.
+    /* It may be a waste, but we set the color everytime here - it isn't very
+     * costly, and keeps us from tracing the last color we set.  Note that
+     * set_color could be null, which means it reverts back to normal color.
      */
     gtk_widget_modify_base(stat_bar[stat_no], GTK_STATE_SELECTED, set_color);
-
     gtk_progress_set_percentage(GTK_PROGRESS(stat_bar[stat_no]), bar);
-    snprintf(buf, sizeof(buf), "%s %"FMT64"/%"FMT64, name, current_stat, max_stat);
-    gtk_label_set(GTK_LABEL(stat_label[stat_no]), buf);
 
+    snprintf(buf, sizeof(buf), "%"FMT64, current_stat);
+    gtk_label_set(GTK_LABEL(stat_current[stat_no]), buf);
+    snprintf(buf, sizeof(buf), "%"FMT64, max_stat);
+    gtk_label_set(GTK_LABEL(stat_max[stat_no]), buf);
 }
 
 /**
- * Updates the stats pain - hp, sp, etc labels
+ * Updates the stats pane - hp, sp, etc labels
  *
  * @param redraw
  */
@@ -439,12 +432,12 @@ void draw_message_window(int redraw) {
     static sint64 level_diff;
 
     update_stat(0, cpl.stats.maxhp, cpl.stats.hp,
-                cpl.stats.maxhp, cpl.stats.hp, "HP:", TRUE);
+                cpl.stats.maxhp, cpl.stats.hp, TRUE);
     update_stat(1, cpl.stats.maxsp, cpl.stats.sp,
-                cpl.stats.maxsp, cpl.stats.sp, "Spell Points:", TRUE);
+                cpl.stats.maxsp, cpl.stats.sp, TRUE);
     update_stat(2, cpl.stats.maxgrace, cpl.stats.grace,
-                cpl.stats.maxgrace, cpl.stats.grace, "Grace:", TRUE);
-    update_stat(3, 999, cpl.stats.food, 999, cpl.stats.food, "Food:", TRUE);
+                cpl.stats.maxgrace, cpl.stats.grace, TRUE);
+    update_stat(3, 999, cpl.stats.food, 999, cpl.stats.food, TRUE);
 
     /* We may or may not have an exp table from the server.  If we don't, just
      * use current exp value so it will always appear maxed out.
@@ -462,8 +455,7 @@ void draw_message_window(int redraw) {
         cpl.stats.exp,
         level_diff,
         (cpl.stats.level+1) < exp_table_max ?
-                (cpl.stats.exp - exp_table[cpl.stats.level]):cpl.stats.exp,
-        "Exp:", FALSE);
+                (cpl.stats.exp - exp_table[cpl.stats.level]):cpl.stats.exp, FALSE);
 
     if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3) && (cpl.stats.food < 200)) {
         gdk_beep( );
