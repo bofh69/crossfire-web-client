@@ -1,6 +1,23 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+gtk-v2/glade/caelestis.glade
+gtk-v2/glade/chthonic.glade
+gtk-v2/glade/gtk-v2.glade: This is the beginning of the rework of all .glade
+  layouts to support SVN revision 11699 changes to GTK-V2 client code.  All
+  of the files are changed using Glade3 Designer, so are about half their
+  former size.  The files target Glade 2.12 and do not contain deprecations
+  or version conflicts.  The HP/SP/Grace/Food/Exp label is split up into four
+  labels each, and the encumbrance data is also split.  Though gtk-v2.glade
+  has been changed subtly, the data is still in the same relative location as
+  the original layout.  The caelestis and chthonic relocate stat numeric data
+  to the right side of the progress bars to achieve the same improvements
+  originally developed for meflin.glade.  All layouts have had some viewports
+  added in various places to give the UI an overall better, more polished
+  appearance.
+Kevin Bulgrien 2009/05/21
+
 The following commit introduces a code incompatibility with existing .glade
 layouts.  All layouts must be updated to match this code to retain encumbrance
 display and the numerical data next to the stat progressbar widgets.  This
