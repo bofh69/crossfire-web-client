@@ -1,6 +1,12 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/eureka.glade:  This update supports recent client code changes.
+  The stat bar display is moderately reorganized to allow very long experience
+  data to be covered by the neighboring hpane panel as needed.  The critical
+  and normal message panels have swapped positions due to recent use of the
+  critical panel for chat, tell, and say messages (placed nearer the command
+  entry control).
 gtk-v2/glade/lobotomy.glade:  This update includes both stylistic changes and
   updates to support recent client code changes.  Though the lobotomy layout
   was unique in certain respects, the notorious skills and stats carry-overs
