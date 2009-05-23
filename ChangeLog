@@ -1,6 +1,24 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/lobotomy.glade:  This update includes both stylistic changes and
+  updates to support recent client code changes.  Though the lobotomy layout
+  was unique in certain respects, the notorious skills and stats carry-overs
+  from the original gtk-v2 layout were ugly.  This commit introduces statistic
+  panels that are completely unique.  The skills and protections areas still
+  take up the bulk of the bottom row, but they are designed to better avoid
+  the overlap that so easily occurs in gtk-v2.  A stats cluster in the bottom
+  right corner explores a new method of organizing all character stats and any
+  related stat bars in a small area, while tending to avoid the width problems
+  that can so easily crop up with the stat bar numeric data.  Another notable
+  change is that all notebooks except the map/magic map notebook are gone.
+gtk-v2/glade/AUTHORS: The lobotomy.glade section has been updated to match the
+  changes made to the layout.
+gtk-v2/glade/caelestis.glade
+gtk-v2/glade/chthonic.glade: Glade3 Designer apparently does not work well
+  with single column tables, so a vbox was substituted to avoid misbehavior in
+  the designer.  The presentation to the player is basically unchanged.
+Kevin Bulgrien 2009/05/22
 
 gtk-v2/glade/caelestis.glade
 gtk-v2/glade/chthonic.glade

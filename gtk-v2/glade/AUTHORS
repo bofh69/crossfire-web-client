@@ -74,10 +74,16 @@ are are found in the following files:
 - lobotomy.glade        A layout of a slightly different persuasion.  This one
                         sports a map layout on the left.  To the right sit the
                         inventory/ground view and message panes.  Underscoring
-                        this unconventional view sit the stat bars and tabbed
-                        notebook common to many of these layouts.  The window
-                        defaults are set at 1280x925, and sport a map pane of
-                        19x22.
+                        this unconventional view is a unique cluster of stats
+                        and stat bars not seen in other client layouts.  Too
+                        round out the uniqueness of this layout, the skill and
+                        protections data is laid out below the map in a manner
+                        that tends to allow the oversized skills data table to
+                        expand naturally while the narrower protections panel
+                        shrinks to the data it contains.  Unlike many of the
+                        other layouts, tabbed notebooks are avoided except in
+                        the map panel.  Window defaults are set at 1280x925,
+                        and sport a map pane of 19x22.
 
 - meflin.glade          A player-suggested modification of an experimental
                         layout.  Send in a suggestion, and you might have a
