@@ -601,7 +601,7 @@
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkLabel" id="label5">
+                          <widget class="GtkLabel" id="label_count">
                             <property name="visible">True</property>
                             <property name="label" translatable="yes">Count</property>
                           </widget>
@@ -1076,122 +1076,10 @@
                                 <property name="border_width">2</property>
                                 <property name="resize_mode">GTK_RESIZE_QUEUE</property>
                                 <child>
-                                  <widget class="GtkTable" id="table_character">
+                                  <widget class="GtkVBox" id="vbox_character">
                                     <property name="visible">True</property>
-                                    <property name="border_width">5</property>
-                                    <property name="n_rows">6</property>
-                                    <property name="row_spacing">5</property>
                                     <child>
-                                      <widget class="GtkHBox" id="hbox30">
-                                        <property name="visible">True</property>
-                                        <child>
-                                          <widget class="GtkLabel" id="label_exp">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">Experience:</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="padding">5</property>
-                                          </packing>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="top_attach">4</property>
-                                        <property name="bottom_attach">5</property>
-                                        <property name="x_options">GTK_FILL</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <widget class="GtkHBox" id="hbox32">
-                                        <property name="visible">True</property>
-                                        <child>
-                                          <widget class="GtkLabel" id="label66">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">Weapon Speed</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="padding">5</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkLabel" id="label_weapon_speed">
-                                            <property name="visible">True</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="top_attach">3</property>
-                                        <property name="bottom_attach">4</property>
-                                        <property name="x_options">GTK_FILL</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <widget class="GtkHBox" id="hbox31">
-                                        <property name="visible">True</property>
-                                        <child>
-                                          <widget class="GtkLabel" id="label64">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">Speed</property>
-                                            <property name="width_chars">6</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="padding">5</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkLabel" id="label_speed">
-                                            <property name="visible">True</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="top_attach">2</property>
-                                        <property name="bottom_attach">3</property>
-                                        <property name="x_options">GTK_FILL</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <widget class="GtkHBox" id="hbox33">
-                                        <property name="visible">True</property>
-                                        <child>
-                                          <widget class="GtkLabel" id="label_range">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">Skill</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="padding">5</property>
-                                          </packing>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="top_attach">1</property>
-                                        <property name="bottom_attach">2</property>
-                                        <property name="x_options">GTK_FILL</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <widget class="GtkHBox" id="hbox34">
+                                      <widget class="GtkHBox" id="hbox_player_level">
                                         <property name="visible">True</property>
                                         <child>
                                           <widget class="GtkLabel" id="label_playername">
@@ -1202,7 +1090,7 @@
                                           <packing>
                                             <property name="expand">False</property>
                                             <property name="fill">False</property>
-                                            <property name="padding">5</property>
+                                            <property name="padding">3</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1221,7 +1109,122 @@
                                         </child>
                                       </widget>
                                       <packing>
-                                        <property name="x_options">GTK_FILL</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="padding">3</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkHBox" id="hbox_skill">
+                                        <property name="visible">True</property>
+                                        <child>
+                                          <widget class="GtkLabel" id="label_range">
+                                            <property name="visible">True</property>
+                                            <property name="xalign">0</property>
+                                            <property name="label" translatable="yes">Skill</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="fill">False</property>
+                                            <property name="padding">3</property>
+                                          </packing>
+                                        </child>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="padding">4</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkHBox" id="hbox_speed">
+                                        <property name="visible">True</property>
+                                        <child>
+                                          <widget class="GtkLabel" id="label64">
+                                            <property name="visible">True</property>
+                                            <property name="xalign">0</property>
+                                            <property name="label" translatable="yes">Speed</property>
+                                            <property name="width_chars">6</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="fill">False</property>
+                                            <property name="padding">3</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkLabel" id="label_speed">
+                                            <property name="visible">True</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="fill">False</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="padding">3</property>
+                                        <property name="position">2</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkHBox" id="hbox_weaponspeed">
+                                        <property name="visible">True</property>
+                                        <child>
+                                          <widget class="GtkLabel" id="label66">
+                                            <property name="visible">True</property>
+                                            <property name="xalign">0</property>
+                                            <property name="label" translatable="yes">Weapon Speed</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="fill">False</property>
+                                            <property name="padding">3</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkLabel" id="label_weapon_speed">
+                                            <property name="visible">True</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="fill">False</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="padding">4</property>
+                                        <property name="position">3</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkHBox" id="hbox_experience">
+                                        <property name="visible">True</property>
+                                        <child>
+                                          <widget class="GtkLabel" id="label_exp">
+                                            <property name="visible">True</property>
+                                            <property name="xalign">0</property>
+                                            <property name="label" translatable="yes">Experience:</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="fill">False</property>
+                                            <property name="padding">3</property>
+                                          </packing>
+                                        </child>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="padding">3</property>
+                                        <property name="position">4</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1254,9 +1257,10 @@
                                         </child>
                                       </widget>
                                       <packing>
-                                        <property name="top_attach">5</property>
-                                        <property name="bottom_attach">6</property>
-                                        <property name="x_options">GTK_FILL</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="padding">4</property>
+                                        <property name="position">5</property>
                                       </packing>
                                     </child>
                                   </widget>
