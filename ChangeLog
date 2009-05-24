@@ -1,6 +1,12 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/oroboros.glade:  This update supports recent client code changes.
+  The layout is basically the same as before the the update but viewports are
+  added in a number of places to improve the aesthetics of the UI.  The stat
+  bar numeric data has been moved to the left of the bars.
+Kevin Bulgrien 2009/05/23
+
 gtk-v2/glade/eureka.glade:  This update supports recent client code changes.
   The stat bar display is moderately reorganized to allow very long experience
   data to be covered by the neighboring hpane panel as needed.  The critical
