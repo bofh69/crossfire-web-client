@@ -125,15 +125,15 @@ void enable_menu_items(int enable)
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
 
-    widget = glade_xml_get_widget(xml_tree, "quit_character1");
+    widget = glade_xml_get_widget(xml_tree, "quit_character");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (menu_quit_character), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "quit2");
+    widget = glade_xml_get_widget(xml_tree, "quit");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (menu_quit_program), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "configure1");
+    widget = glade_xml_get_widget(xml_tree, "configure");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_configure_activate), NULL);
 
@@ -157,59 +157,59 @@ void enable_menu_items(int enable)
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_dont_pickup_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "stop_before_pickup1");
+    widget = glade_xml_get_widget(xml_tree, "stop_before_pickup");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_stop_before_pickup_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "body_armor1");
+    widget = glade_xml_get_widget(xml_tree, "body_armor");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_body_armor_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "boots1");
+    widget = glade_xml_get_widget(xml_tree, "boots");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_boots_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "cloaks1");
+    widget = glade_xml_get_widget(xml_tree, "cloaks");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_cloaks_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "gloves1");
+    widget = glade_xml_get_widget(xml_tree, "gloves");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_gloves_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "helmets1");
+    widget = glade_xml_get_widget(xml_tree, "helmets");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_helmets_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "shields1");
+    widget = glade_xml_get_widget(xml_tree, "shields");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_shields_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "skillscrolls1");
+    widget = glade_xml_get_widget(xml_tree, "skillscrolls");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_skillscrolls_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "normal_book_scrolls1");
+    widget = glade_xml_get_widget(xml_tree, "normal_book_scrolls");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_normal_book_scrolls_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "spellbooks1");
+    widget = glade_xml_get_widget(xml_tree, "spellbooks");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_spellbooks_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "drinks1");
+    widget = glade_xml_get_widget(xml_tree, "drinks");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_drinks_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "food1");
+    widget = glade_xml_get_widget(xml_tree, "food");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_food_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "flesh1");
+    widget = glade_xml_get_widget(xml_tree, "flesh");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_flesh_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "keys1");
+    widget = glade_xml_get_widget(xml_tree, "keys");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_keys_activate), NULL);
 
@@ -229,7 +229,7 @@ void enable_menu_items(int enable)
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_wands_rods_horns_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "jewels1");
+    widget = glade_xml_get_widget(xml_tree, "jewels");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_jewels_activate), NULL);
 
@@ -237,19 +237,19 @@ void enable_menu_items(int enable)
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_all_weapons_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "missile_weapons1");
+    widget = glade_xml_get_widget(xml_tree, "missile_weapons");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_missile_weapons_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "bows1");
+    widget = glade_xml_get_widget(xml_tree, "bows");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_bows_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "arrows1");
+    widget = glade_xml_get_widget(xml_tree, "arrows");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_arrows_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_pickup_off1");
+    widget = glade_xml_get_widget(xml_tree, "ratio_pickup_off");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_ratio_pickup_off_activate), NULL);
 
@@ -293,11 +293,11 @@ void enable_menu_items(int enable)
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_ratio_50_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "not_cursed1");
+    widget = glade_xml_get_widget(xml_tree, "not_cursed");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_not_cursed_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "about1");
+    widget = glade_xml_get_widget(xml_tree, "about");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (menu_about), NULL);
 }
