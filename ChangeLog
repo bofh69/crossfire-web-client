@@ -1,6 +1,17 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/sixforty.glade:  This started out as a rework for the new stat.c
+  and pickup.c code, but became a general improvement effort.  The layout has
+  some issues in that saving windows position seems unreliable - possibly due
+  to a need for constraining containers (viewport?) in the vpaned widgets. To
+  debug, experimentation with scrolled windows can show when widgets might be
+  have a size that subverts sizing.  The default layout with no sixforty.pos
+  is sane.  The stats panel is changed the most with scroll bars added so the
+  wide stats can be viewed in a small client.  Both message panels are not in
+  a notebook anymore to support recent chat/tell/say changes.
+Kevin Bulgrien 2009/05/25
+
 gtk-v2/glade/lobotomy.glade
 gtk-v2/glade/oroboros.glade
 gtk-v2/glade/gtk-v1.glade
@@ -13,7 +24,7 @@ gtk-v2/glade/un-deux.glade
 gtk-v2/glade/sixforty.glade
 gtk-v2/glade/chthonic.glade:  Fix an omitted change in the menubar edits made
   prior to support changes in pickup.c.
-Kevin Bulgrien 2009/05/23
+Kevin Bulgrien 2009/05/24
 
 gtk-v2/glade/lobotomy.glade:  A significant dress-up of the layout and general
   reduction of various container widgets that are not necessary for one reason
