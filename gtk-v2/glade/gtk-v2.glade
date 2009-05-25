@@ -328,7 +328,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 5</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                                 <child>

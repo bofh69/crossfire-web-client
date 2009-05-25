@@ -1,6 +1,20 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/lobotomy.glade
+gtk-v2/glade/oroboros.glade
+gtk-v2/glade/gtk-v1.glade
+gtk-v2/glade/gtk-v2.glade
+gtk-v2/glade/meflin.glade
+gtk-v2/glade/v1-redux.glade
+gtk-v2/glade/eureka.glade
+gtk-v2/glade/caelestis.glade
+gtk-v2/glade/un-deux.glade
+gtk-v2/glade/sixforty.glade
+gtk-v2/glade/chthonic.glade:  Fix an omitted change in the menubar edits made
+  prior to support changes in pickup.c.
+Kevin Bulgrien 2009/05/23
+
 gtk-v2/glade/lobotomy.glade:  A significant dress-up of the layout and general
   reduction of various container widgets that are not necessary for one reason
   or another.  An issue with chat panels was discovered and fixed.  Under some
