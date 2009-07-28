@@ -1,6 +1,11 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+common/metaserver.c: Fix bug 2806906- gcfclient hangs on exit when offline.
+    Limit number of attempts to get metaserver2 data - was trying
+    perpetually before.
+MSW 2009-07-27
+	
 gtk-v2/src/keys.c: Always extract spinbutton count and send it to server
   when doing commands - fixes 'invoke dimension door' spacing issue.
 MSW 2009-07-13

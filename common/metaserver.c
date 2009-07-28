@@ -396,10 +396,12 @@ static int get_metaserver2_data(char *metaserver2) {
  */
 void *metaserver2_thread(void *junk)
 {
-    int metaserver_choice;
+    int metaserver_choice, tries=0;
 
     do {
 	metaserver_choice = random() % (sizeof(metaservers) / sizeof(char*));
+        tries++;
+        if (tries>5) break;
     } while (!get_metaserver2_data(metaservers[metaserver_choice]));
 
     pthread_mutex_lock(&ms2_info_mutex);
