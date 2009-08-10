@@ -1,6 +1,11 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+gtk-v2/glade/*.glade:  Finish an incomplete rename of ratio_pickup_off1 to
+  ratio_pickup_off in the pickup menu.
+Kevin Bulgrien 2009/08/09
+
 common/metaserver.c: Fix bug 2806906- gcfclient hangs on exit when offline.
     Limit number of attempts to get metaserver2 data - was trying
     perpetually before.

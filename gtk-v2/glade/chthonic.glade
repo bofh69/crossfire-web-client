@@ -337,7 +337,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 10</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -346,7 +346,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 15</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -355,7 +355,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 20</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -364,7 +364,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 25</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -373,7 +373,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 30</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -382,7 +382,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 35</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -391,7 +391,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 40</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -400,7 +400,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 45</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -409,7 +409,7 @@
                                     <property name="label" translatable="yes">Ratio &gt;= 50</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off1</property>
+                                    <property name="group">ratio_pickup_off</property>
                                   </widget>
                                 </child>
                               </widget>
