@@ -26,6 +26,9 @@ extern void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *
 extern void info_get_styles(void);
 extern void info_init(GtkWidget *window_root);
 extern void draw_ext_info(int orig_color, int type, int subtype, char *message);
+extern void info_buffer_init(void);
+extern void info_buffer_flush(const int id);
+extern void info_buffer_tick(void);
 extern void menu_clear(void);
 extern void set_scroll(const char *s);
 extern void set_autorepeat(const char *s);
@@ -192,7 +195,7 @@ extern void on_spell_close_clicked(GtkButton *button, gpointer user_data);
 /* stats.c */
 extern void stats_get_styles(void);
 extern void stats_init(GtkWidget *window_root);
-extern void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, sint64 statbar_max, sint64 statbar_stat, const char *name, int can_alert);
+extern void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, sint64 statbar_max, sint64 statbar_stat, int can_alert);
 extern void draw_message_window(int redraw);
 extern void draw_stats(int redraw);
 extern void clear_stat_mapping(void);

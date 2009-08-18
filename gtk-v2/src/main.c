@@ -138,6 +138,7 @@ int do_timeout(void)
  */
 void client_tick(uint32 tick)
 {
+    info_buffer_tick();                 /* Maintain the info output buffers */
     inventory_tick();
     mapdata_animation();
     draw_map(0);

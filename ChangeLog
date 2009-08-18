@@ -2,6 +2,37 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Implement a client-side replacement for the recently removed output-count and
+output-sync commands.  The client implementation matches the basic operation
+of the server feature.  Output-count determines the highest number of messages
+that can to coalesce into one.  The output-sync determines the maximum amount
+of time a message stays in a buffer until it is displayed.  The present code
+has output-count hardcoded to 16 (info.c: MESSAGE_COUNT_MAX) and output-sync
+to 16 client ticks, or about 2 seconds (info.c: MESSAGE_AGE_MAX).  Messages
+ARE NOT considered for duplicate suppression if:  define MESSAGE_COUNT_MAX <=
+1; the message is sourced from client code; the hinted color of the message is
+NDI_UNIQUE; the message length is greater than 56 characters.  Messages are
+displayed if either output-count or output-sync limits are reached.  Either or
+both client command configuration and GUI configuration is planned.  Probably
+GUI configuration will be implemented with an ability to configure message
+routing as well.
+gtk-v2/src/gtk2proto.h:  Re-ran `make proto` to update prototypes.
+gtk-v2/src/main.c:       Addied a call to the output-count/sync maintenance
+  function info_buffer_tick() from client_tick().
+gtk-v2/src/info.c:       All output count/sync functionality is implemented
+  in this file.  Presently the feature is configured by adjusting defines in
+  this file.  The new defines, variables, and code are fully commented in the
+  doxygen style.  The system is initialized by calling info_buffer_init() from
+  info_init().  To further support the system, info_buffer_flush() ejects
+  messages from the buffers to the client display, and info_buffer_tick() both
+  ages the buffers and evaluates them to determine if they need to be flushed.
+  The old message_callback() is renamed draw_ext_info() and all messages still
+  pass through it for routing and styling.  The pre-existing draw_ext_info()
+  function is removed.  A replacement message_callback() is the front-end for
+  the buffering system, and all messages except client-sourced messages pass
+  through it.
+Kevin Bulgrien 2009/08/17
+
 gtk-v2/glade/*.glade:  Finish an incomplete rename of ratio_pickup_off1 to
   ratio_pickup_off in the pickup menu.
 Kevin Bulgrien 2009/08/09
