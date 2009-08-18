@@ -173,7 +173,7 @@ struct info_buffer_t
                                          *   the buffered message.          */
   char message[MESSAGE_BUFFER_SIZE      /**< Message data:  Message text.   */
                + COUNT_BUFFER_SIZE];     
-} info_buffer[MESSAGE_BUFFER_COUNT];    /**< Several uffers that support
+} info_buffer[MESSAGE_BUFFER_COUNT];    /**< Several buffers that support
                                          *   suppression of duplicates even
                                          *   even when the duplicates are
                                          *   alternate with other messages. */
@@ -851,11 +851,11 @@ void info_buffer_tick() {
  * The message text.
  */
 static void message_callback(int orig_color, int type, int subtype, char *message) {
-    int search;                         /**< Loop for searching buffer */
-    int found;                          /**< Results of buffer search */
-    int empty;                          /**< Empty buffer found */
-    int oldest;                         /**< Oldest message found */
-    int oldage;                         /**< Age of oldest message */
+    int search;                         /* Loop for searching the buffers.  */
+    int found;                          /* Which buffer a message is in.    */
+    int empty;                          /* The ID of an empty buffer.       */
+    int oldest;                         /* Oldest buffered message found.   */
+    int oldage;                         /* Age of oldest buffered message.  */
 
     /*
      * Message buffering is a feature that may be enabled or disabled by the
@@ -884,10 +884,10 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
          */
         draw_ext_info(orig_color, type, subtype, message);
     } else {
-        empty  = -1; /* Default:  Buffers are full until proven empty */
-        found  = -1; /* Default:  Incoming message is not in a buffer */
-        oldest = -1; /* Default:  Oldest buffered message is unknown  */
-        oldage = -1; /* Default:  Oldest message age is not known     */
+        empty  = -1;       /* Default:  Buffers are empty until proven full */
+        found  = -1;       /* Default:  Incoming message is not in a buffer */
+        oldest = -1;       /* Default:  Oldest buffered message is unknown  */
+        oldage = -1;       /* Default:  Oldest message age is not known     */
 
         for (search = 0; search < MESSAGE_BUFFER_COUNT; search += 1) {
             /*
