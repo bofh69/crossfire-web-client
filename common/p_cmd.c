@@ -20,22 +20,22 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/*
+/**
+ * @file common/p_cmd.c
  * Contains a lot about the commands typed into the client.
  */
 
 #ifndef CPROTO
-/* use declartions from p_cmd.h instead of doing make proto on this file */
+/* use declarations from p_cmd.h instead of doing make proto on this file */
 
 #include <client.h>
 #include <external.h>
 #include <script.h>
 #include <p_cmd.h>
 
-/*
- *
- * Help commands.
- *
+/**
+ * @defgroup PCmdHelpCommands Common client player commands.
+ * @{
  */
 
 /* TODO This should really be under /help commands or something... */
@@ -66,8 +66,11 @@ name name name ...
 
 #define assumed_wrap get_info_width()
 
-
 /* TODO Help topics other than commands? Refer to other documents? */
+
+/**
+ *
+ */
 static void do_clienthelp_list(void) {
     ConsoleCommand ** commands_array;
     ConsoleCommand * commands_copy;
@@ -156,7 +159,10 @@ static void do_clienthelp_list(void) {
 #endif
 }
 
-
+/**
+ *
+ * @param cc
+ */
 static void show_help(const ConsoleCommand * cc) {
     {
         char buf[MAX_BUF];
@@ -190,6 +196,10 @@ static void show_help(const ConsoleCommand * cc) {
     }
 }
 
+/**
+ *
+ * @param arg
+ */
 static void do_clienthelp(const char * arg) {
     const ConsoleCommand * cc;
 
@@ -211,6 +221,9 @@ static void do_clienthelp(const char * arg) {
 
 }
 
+/**
+ *
+ */
 static const char * help_clienthelp(void) {
     return
         "Syntax:\n"
@@ -227,6 +240,10 @@ static const char * help_clienthelp(void) {
         "See also: serverhelp, help.";
 }
 
+/**
+ *
+ * @param arg
+ */
 static void do_serverhelp(const char * arg) {
 
     if (arg) {
@@ -239,6 +256,9 @@ static void do_serverhelp(const char * arg) {
     }
 }
 
+/**
+ *
+ */
 static const char * help_serverhelp(void) {
     return
         "Syntax:\n"
@@ -254,7 +274,10 @@ static const char * help_serverhelp(void) {
         "See also: clienthelp, help.";
 }
 
-
+/**
+ *
+ * @param cpnext
+ */
 static void command_help(const char *cpnext) {
     if (cpnext) {
         const ConsoleCommand * cc;
@@ -279,6 +302,9 @@ static void command_help(const char *cpnext) {
     }
 }
 
+/**
+ *
+ */
 static const char * help_help(void) {
     return
         "Syntax:\n"
@@ -297,13 +323,18 @@ static const char * help_help(void) {
         "See also: clienthelp, serverhelp.";
 }
 
-
-/*
- *
- * Other commands.
- *
+/**
+ * @} */ /* EndOf PCmdHelpCommands
  */
 
+/*
+ * Other commands.
+ */
+
+/**
+ *
+ * @param cpnext
+ */
 static void set_command_window(const char *cpnext)
 {
     if (!cpnext) {
@@ -318,7 +349,11 @@ static void set_command_window(const char *cpnext)
     }
 }
 
-static void command_foodbep(const char *cpnext)
+/**
+ *
+ * @param cpnext
+ */
+static void command_foodbeep(const char *cpnext)
 {
    (void)cpnext; /* __UNUSED__ */
     if (want_config[CONFIG_FOODBEEP]) {
@@ -333,9 +368,10 @@ static void command_foodbep(const char *cpnext)
     use_config[CONFIG_FOODBEEP] = want_config[CONFIG_FOODBEEP];
 }
 
-
-
-
+/**
+ *
+ * @param cat
+ */
 const char * get_category_name(CommCat cat) {
     const char * cat_name;
 
@@ -353,7 +389,6 @@ const char * get_category_name(CommCat cat) {
     return cat_name;
 }
 
-
 /*
  * Command table.
  *
@@ -361,9 +396,23 @@ const char * get_category_name(CommCat cat) {
  */
 
 /* "Typecasters" (and some forwards) */
+
+/**
+ *
+ * @param ignored
+ */
 static void do_script_list(const char * ignored) { script_list(); }
+
+/**
+ *
+ * @param ignored
+ */
 static void do_clearinfo(const char * ignored) { menu_clear(); }
 
+/**
+ *
+ * @param ignored
+ */
 static void do_disconnect(const char * ignored) {
 #ifdef WIN32
         closesocket(csocket.fd);
@@ -383,6 +432,10 @@ static void do_disconnect(const char * ignored) {
 #ifndef DMALLOC_VERIFY_NOERROR
   #define DMALLOC_VERIFY_NOERROR  1
 #endif
+/**
+ *
+ * @param ignored
+ */
 static void do_dmalloc(const char * ignored) {
         if (dmalloc_verify(NULL)==DMALLOC_VERIFY_NOERROR)
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
@@ -393,6 +446,10 @@ static void do_dmalloc(const char * ignored) {
 }
 #endif
 
+/**
+ *
+ * @param ignored
+ */
 static void do_inv(const char * ignored) { print_inventory (cpl.ob); }
 
 static void do_magicmap(const char * ignored) {
@@ -400,6 +457,10 @@ static void do_magicmap(const char * ignored) {
         draw_magic_map();
 }
 
+/**
+ *
+ * @param ignored
+ */
 static void do_metaserver(const char * ignored) {
         if (!metaserver_get_info(meta_server, meta_port))
             metaserver_show(FALSE);
@@ -409,29 +470,64 @@ static void do_metaserver(const char * ignored) {
                     "Unable to get metaserver information.");
 }
 
+/**
+ *
+ * @param ignored
+ */
 static void do_savedefaults(const char * ignored) { save_defaults(); }
 
+/**
+ *
+ * @param ignored
+ */
 static void do_savewinpos(const char * ignored) { save_winpos(); }
 
+/**
+ *
+ * @param used
+ */
 static void do_take(const char * used) { command_take("take", used); /* I dunno why they want it. */ }
 
+/**
+ *
+ * @param ignored
+ */
 static void do_num_free_items(const char * ignored) {
     LOG(LOG_INFO,"common::extended_command","num_free_items=%d", num_free_items());
 }
 
+/**
+ *
+ * @param arg
+ */
 static void do_clienthelp(const char * arg); /* Forward. */
 
 /* Help "typecasters". */
 #include "../help/chelp.h"
 
+/**
+ *
+ */
 static const char * help_bind(void) { return HELP_BIND_LONG; }
 
+/**
+ *
+ */
 static const char * help_unbind(void) { return HELP_UNBIND_LONG; }
 
+/**
+ *
+ */
 static const char * help_magicmap(void) { return HELP_MAGICMAP_LONG; }
 
+/**
+ *
+ */
 static const char * help_inv(void) { return HELP_INV_LONG; }
 
+/**
+ *
+ */
 static const char * help_cwindow(void) {
     return
         "Syntax:\n"
@@ -445,6 +541,9 @@ static const char * help_cwindow(void) {
 	"(What does this mean, 'put a lid on it'?) TODO";
 }
 
+/**
+ *
+ */
 static const char * help_script(void) {
     return
         "Syntax:\n"
@@ -456,6 +555,9 @@ static const char * help_script(void) {
 	"See Documentation/Script.html";
 }
 
+/**
+ *
+ */
 static const char * help_scripttell(void) {
     return
         "Syntax:\n"
@@ -466,6 +568,10 @@ static const char * help_scripttell(void) {
 }
 
 /* Toolkit-dependent. */
+
+/**
+ *
+ */
 static const char * help_savewinpos(void) {
     return
         "Syntax:\n"
@@ -475,6 +581,9 @@ static const char * help_savewinpos(void) {
         "save window positions - split windows mode only.";
 }
 
+/**
+ *
+ */
 static const char * help_metaserver(void) {
     /* TODO Add command_escape() where appropriate. On the other
     hand, that can lead to a meaningless syntax-display API.*/
@@ -492,6 +601,9 @@ static const char * help_metaserver(void) {
 	"Warning: This command may freeze the client until it gets the list.";
 }
 
+/**
+ *
+ */
 static const char * help_scriptkill(void) {
     return
         "Syntax:\n"
@@ -502,6 +614,9 @@ static const char * help_scriptkill(void) {
 	"(Not guaranteed to work?)";
 }
 
+/**
+ *
+ */
 static const char * help_showweight(void) {
     return
         "Syntax:\n"
@@ -551,6 +666,11 @@ static const char * help_showweight(void) {
 */
 
 /* Forward. */
+
+/**
+ *
+ * @param currently_ignored
+ */
 static void do_clienthelp(const char * currently_ignored);
 
 /* TODO Wrap these? Um. */
@@ -638,7 +758,7 @@ static ConsoleCommand CommonCommands[] = {
 
     {
         "foodbeep", COMM_CAT_SETUP,
-        command_foodbep, NULL,
+        command_foodbeep, NULL,
         "toggle audible low on food warning"
 
     },
@@ -746,10 +866,18 @@ extern const int ToolkitCommandsSize;
 
 int num_commands;
 
+/**
+ *
+ */
 int get_num_commands(void) { return num_commands; }
 
 static ConsoleCommand ** name_sorted_commands;
 
+/**
+ *
+ * @param a_
+ * @param b_
+ */
 static int sort_by_name(const void * a_, const void * b_)
 {
     ConsoleCommand * a = *((ConsoleCommand **)a_);
@@ -761,6 +889,12 @@ static int sort_by_name(const void * a_, const void * b_)
 static ConsoleCommand ** cat_sorted_commands;
 
 /* Sort by category, then by name. */
+
+/**
+ *
+ * @param a_
+ * @param b_
+ */
 static int sort_by_category(const void *a_, const void *b_)
 {
     /* Typecasts, so it goes. */
@@ -774,6 +908,9 @@ static int sort_by_category(const void *a_, const void *b_)
     return a->cat - b->cat;
 }
 
+/**
+ *
+ */
 void init_commands(void) {
     int i;
 
@@ -821,6 +958,10 @@ void init_commands(void) {
 #define tolower(C)      (((C) >= 'A' && (C) <= 'Z')? (C) - 'A' + 'a': (C))
 #endif
 
+/**
+ *
+ * @param cmd
+ */
 const ConsoleCommand * find_command(const char * cmd) {
   ConsoleCommand ** asp_p = NULL, dummy;
   ConsoleCommand * dummy_p;
@@ -858,25 +999,23 @@ const ConsoleCommand * find_command(const char * cmd) {
   return asp;
 }
 
-
 /**
- * Returns a pointer to the head of an array of ConsoleCommands
- * sorted by category, then by name.
- *
- * It's num_commands long.
+ * Returns a pointer to the head of an array of ConsoleCommands sorted by
+ * category, then by name.  It's num_commands long.
  */
 ConsoleCommand ** get_cat_sorted_commands(void) {
     return cat_sorted_commands;
 }
 
-
-/* Tries to handle command cp (with optional params in cpnext, which may be null)
- * as a local command. If this was a local command, returns true to indicate
- * command was handled.
- * This code was moved from extended_command so scripts ca issue local commands
- * to handle keybindings or anything else.
+/**
+ * Tries to handle command cp (with optional params in cpnext, which may be
+ * null) as a local command. If this was a local command, returns true to
+ * indicate command was handled.  This code was moved from extended_command so
+ * scripts ca issue local commands to handle keybindings or anything else.
+ *
+ * @param cp
+ * @param cpnext
  */
-
 int handle_local_command(const char* cp, const char * cpnext) {
     const ConsoleCommand * cc = NULL;
 
@@ -900,15 +1039,17 @@ int handle_local_command(const char* cp, const char * cpnext) {
     return TRUE;
 }
 
-/* This is an extended command (ie, 'who, 'whatever, etc).  In general,
- * we just send the command to the server, but there are a few that
- * we care about (bind, unbind)
+/**
+ * This is an extended command (ie, 'who, 'whatever, etc).  In general, we
+ * just send the command to the server, but there are a few that we care about
+ * (bind, unbind)
  *
- * The command passed to us can not be modified - if it is a keybinding,
- * we get passed the string that is that binding - modifying it effectively
+ * The command passed to us can not be modified - if it is a keybinding, we
+ * get passed the string that is that binding - modifying it effectively
  * changes the binding.
+ *
+ * @param ocommand
  */
-
 void extended_command(const char *ocommand) {
     const char *cp = ocommand;
     char *cpnext, command[MAX_BUF];
@@ -952,7 +1093,6 @@ void extended_command(const char *ocommand) {
     }
 }
 
-
 /* ------------------------------------------------------------------ */
 
 /* This list is used for the 'tab' completion, and nothing else.
@@ -986,11 +1126,13 @@ static const char *const commands[] = {
 };
 #define NUM_COMMANDS ((int)(sizeof(commands) / sizeof(char*)))
 
-/* Player has entered 'command' and hit tab to complete it.
- * See if we can find a completion.  Returns matching
- * command. Returns NULL if no command matches.
+/**
+ * Player has entered 'command' and hit tab to complete it.  See if we can
+ * find a completion.  Returns matching command. Returns NULL if no command
+ * matches.
+ *
+ * @param command
  */
-
 const char * complete_command(const char *command)
 {
     int i, len, display;
