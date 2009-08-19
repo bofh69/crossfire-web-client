@@ -746,8 +746,8 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
 }
 
 /**
+ * @defgroup GTKv2OutputCountSync GTK V2 client output count/sync functions.
  * @{
- * @name GTK V2 Client Output Count and Sync Functions.
  */
 
 /**
@@ -767,7 +767,7 @@ void info_buffer_init() {
 
 /**
  * Displays output count/sync system buffered message text with times found.
- * Whenever a message must be ejected from the output count/sync sysmte
+ * Whenever a message must be ejected from the output count/sync system
  * buffers, this function is called.  If the message was seen multiple times
  * while buffered, an occurance tag is appended to the message text.  After
  * submitting the message for display, the buffer is marked empty.
@@ -990,7 +990,7 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
 }
 
 /**
- * @} EndOf GTK V2 Client Output Count/Sync Functions.
+ * @} */ /* EndOf GTKv2OutputCountSync
  */
 
 /**
