@@ -24,7 +24,7 @@ const char * const rcsid_common_commands_c =
 
 /**
  * @file common/commands.c
- * Handles server->client commandsr; See player.c for client->server commands.
+ * Handles server->client commands; See player.c for client->server commands.
  *
  * Not necessarily all commands are handled - some might be in other files
  * (like init.c)
@@ -1089,7 +1089,7 @@ void DeleteInventory(unsigned char *data, int len) {
 /****************************************************************************/
 
 /**
- * @defgroup SpellCommands Spell Commands
+ * @defgroup SCSpellCommands Server->Client spell command functions.
  * @{
  */
 
@@ -1221,11 +1221,11 @@ void DeleteSpell(unsigned char *data, int len) {
 /****************************************************************************/
 
 /**
- * @} */ /* EndOf SpellCommands
+ * @} */ /* EndOf SCSpellCommands
  */
 
 /**
- * @defgroup MapCommands Map Commands
+ * @defgroup SCMapCommands Server->Client map command functions.
  * @{
  */
 
@@ -1544,7 +1544,7 @@ void MagicMapCmd(unsigned char *data, int len) {
 }
 
 /**
- * @} */ /* EndOf MapCommands
+ * @} */ /* EndOf SCMapCommands
  */
 
 /**
