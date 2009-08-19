@@ -22,44 +22,44 @@ const char * const rcsid_common_commands_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-
-/* Handles commands received by the server.  This does not necessarily
- * handle all commands - some might be in other files (like init.c)
+/**
+ * @file common/commands.c
+ * Handles server->client commandsr; See player.c for client->server commands.
  *
- * This file handles commans from the server->client.  See player.c
- * for client->server commands.
+ * Not necessarily all commands are handled - some might be in other files
+ * (like init.c)
  *
- * this file contains most of the commands for the dispatch loop most of
- * the functions are self-explanatory, the pixmap/bitmap commands recieve
- * the picture, and display it.  The drawinfo command draws a string
- * in the info window, the stats command updates the local copy of the stats
- * and displays it. handle_query prompts the user for input.
- * send_reply sends off the reply for the input.
- * player command gets the player information.
- * MapScroll scrolls the map on the client by some amount
- * MapCmd displays the map either with layer packing or stack packing.
+ * This file contains most of the commands for the dispatch loop. Most of
+ * the functions are self-explanatory.
+ *
+ * pixmap/bitmap : receive the picture, and display it.
+ * drawinfo      : draws a string in the info window.
+ * stats         : updates the local copy of the stats and displays it.
+ * handle_query  : prompts the user for input.
+ * send_reply    : sends off the reply for the input.
+ * player        : gets the player information.
+ * MapScroll     : scrolls the map on the client by some amount.
+ * MapCmd        : displays the map with layer packing or stack packing.
  *   packing/unpacking is best understood by looking at the server code
  *   (server/ericserver.c)
- *   stack packing is easy, for every map entry that changed, we pack
- *   1 byte for the x/y location, 1 byte for the count, and 2 bytes per
- *   face in the stack.
- *   layer packing is harder, but I seem to remember more efficient:
- *   first we pack in a list of all map cells that changed and are now
- *   empty.  The end of this list is a 255, which is bigger that 121, the
- *   maximum packed map location.
- *   For each changed location we also pack in a list of all the faces and
- *   X/Y coordinates by layer, where the layer is the depth in the map.
- *   This essentially takes slices through the map rather than stacks.
+ *   stack packing: for every map entry that changed, we pack 1 byte for the
+ *   x/y location, 1 byte for the count, and 2 bytes per face in the stack.
+ *   layer packing is harder, but I seem to remember more efficient: first we
+ *   pack in a list of all map cells that changed and are now empty.  The end
+ *   of this list is a 255, which is bigger that 121, the maximum packed map
+ *   location.
+ *   For each changed location we also pack in a list of all the faces and X/Y
+ *   coordinates by layer, where the layer is the depth in the map.  This
+ *   essentially takes slices through the map rather than stacks.
  *   Then for each layer, (max is MAXMAPCELLFACES, a bad name) we start
- *   packing the layer into the message.  First we pack in a face, then
- *   for each place on the layer with the same face, we pack in the x/y
- *   location.  We mark the last x/y location with the high bit on
- *   (11*11 = 121 < 128).  We then continue on with the next face, which
- *   is why the code marks the faces as -1 if they are finished.  Finally
- *   we mark the last face in the layer again with the high bit, clearly
- *   limiting the total number of faces to 32767, the code comments it's
- *   16384, I'm not clear why, but the second bit may be used somewhere
- *   else as well.
+ *   packing the layer into the message.  First we pack in a face, then for
+ *   each place on the layer with the same face, we pack in the x/y location.
+ *   We mark the last x/y location with the high bit on (11*11 = 121 < 128).
+ *   We then continue on with the next face, which is why the code marks the
+ *   faces as -1 if they are finished.  Finally we mark the last face in the
+ *   layer again with the high bit, clearly limiting the total number of faces
+ *   to 32767, the code comments it's 16384, I'm not clear why, but the second
+ *   bit may be used somewhere else as well.
  *   The unpacking routines basically perform the opposite operations.
  */
 
@@ -71,7 +71,11 @@ int mapupdatesent = 0;
 
 #include "mapdata.h"
 
-
+/**
+ *
+ * @param data
+ * @param len
+ */
 static void get_exp_info(const unsigned char *data, int len) {
     int pos, level;
 
@@ -93,6 +97,11 @@ static void get_exp_info(const unsigned char *data, int len) {
     }
 }
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 static void get_skill_info(char *data, int len) {
     char *cp, *nl, *sn;
     int val;
@@ -125,8 +134,12 @@ static void get_skill_info(char *data, int len) {
     } while (cp < data+len);
 }
 
-/* handles the response from a 'requestinfo' command.  This function doesn't
+/**
+ * Handles the response from a 'requestinfo' command.  This function doesn't
  * do much itself other than dispatch to other functions.
+ *
+ * @param buf
+ * @param len
  */
 void ReplyInfoCmd(uint8 *buf, int len) {
     uint8 *cp;
@@ -166,9 +179,13 @@ void ReplyInfoCmd(uint8 *buf, int len) {
     }
 }
 
-/* Received a response to a setup from the server.
- * This function is basically the same as the server side function - we
- * just do some different processing on the data.
+/**
+ * Received a response to a setup from the server.
+ * This function is basically the same as the server side function - we just
+ * do some different processing on the data.
+ *
+ * @param buf
+ * @param len
  */
 void SetupCmd(char *buf, int len) {
     int s;
@@ -375,6 +392,11 @@ void SetupCmd(char *buf, int len) {
     }
 }
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void ExtendedInfoSetCmd(char *data, int len) {
     (void)data; /* __UNUSED__ */
     (void)len; /* __UNUSED__ */
@@ -389,9 +411,13 @@ void ExtendedInfoSetCmd(char *data, int len) {
     */
 }
 
-/* Handles when the server says we can't be added.  In reality, we need to
- * close the connection and quit out, because the client is going to close
- * us down anyways.
+/**
+ * Handles when the server says we can't be added.  In reality, we need to
+ * close the connection and quit out, because the client is going to close us
+ * down anyways.
+ *
+ * @param data
+ * @param len
  */
 void AddMeFail(char *data, int len) {
     (void)data; /* __UNUSED__ */
@@ -401,8 +427,12 @@ void AddMeFail(char *data, int len) {
     return;
 }
 
-/* This is really a throwaway command - there really isn't any reason to
- * send addme_success commands.
+/**
+ * This is really a throwaway command - there really isn't any reason to send
+ * addme_success commands.
+ *
+ * @param data
+ * @param len
  */
 void AddMeSuccess(char *data, int len) {
     (void)data; /* __UNUSED__ */
@@ -412,6 +442,11 @@ void AddMeSuccess(char *data, int len) {
     return;
 }
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void GoodbyeCmd(char *data, int len) {
     (void)data; /* __UNUSED__ */
     (void)len; /* __UNUSED__ */
@@ -427,6 +462,11 @@ void GoodbyeCmd(char *data, int len) {
 
 Animations animations[MAXANIM];
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void AnimCmd(unsigned char *data, int len) {
     short anum;
     int i, j;
@@ -462,10 +502,14 @@ void AnimCmd(unsigned char *data, int len) {
     LOG(LOG_DEBUG, "common::AnimCmd", "Received animation %d, %d faces", anum, animations[anum].num_animations);
 }
 
-/* This receives the smooth mapping from the server.  Because this
- * information is reference a lot, the smoothing face is stored
- * in the pixmap data - this makes access much faster than searching
- * an array of data for the face to use.
+/**
+ * Receives the smooth mapping from the server.  Because this information is
+ * reference a lot, the smoothing face is stored in the pixmap data - this
+ * makes access much faster than searching an array of data for the face to
+ * use.
+ *
+ * @param data
+ * @param len
  */
 void SmoothCmd(unsigned char *data, int len) {
     uint16 faceid;
@@ -481,6 +525,12 @@ void SmoothCmd(unsigned char *data, int len) {
     addsmooth(faceid, smoothing);
 }
 
+/**
+ * Draws a string in the info window.
+ *
+ * @param data
+ * @param len
+ */
 void DrawInfoCmd(char *data, int len) {
     int color = atoi(data);
     char *buf;
@@ -499,6 +549,11 @@ void DrawInfoCmd(char *data, int len) {
 
 TextManager *firstTextManager = NULL;
 
+/**
+ *
+ * @param type
+ * @param callback
+ */
 void setTextManager(int type, ExtTextManager callback) {
     TextManager *current = firstTextManager;
 
@@ -516,6 +571,10 @@ void setTextManager(int type, ExtTextManager callback) {
     firstTextManager = current;
 }
 
+/**
+ *
+ * @param type
+ */
 static ExtTextManager getTextManager(int type) {
     TextManager *current = firstTextManager;
     while (current != NULL) {
@@ -527,7 +586,12 @@ static ExtTextManager getTextManager(int type) {
     return NULL;
 }
 
-/* We must extract color, type, subtype and dispatch to callback*/
+/**
+ * We must extract color, type, subtype and dispatch to callback
+ *
+ * @param data
+ * @param len
+ */
 void DrawExtInfoCmd(char *data, int len) {
     int color;
     int type, subtype;
@@ -573,8 +637,12 @@ void DrawExtInfoCmd(char *data, int len) {
     fnct(color, type, subtype, buf);
 }
 
-/* Maintain the last_used_skills LRU list for displaying the recently used
- * skills first. */
+/**
+ * Maintain the last_used_skills LRU list for displaying the recently used
+ * skills first.
+ *
+ * @param skill_id
+ */
 void use_skill(int skill_id)
 {
    int i = 0;
@@ -593,6 +661,12 @@ void use_skill(int skill_id)
    last_used_skills[0] = skill_id;
 }
 
+/**
+ * Updates the local copy of the stats and displays it.
+ *
+ * @param data
+ * @param len
+ */
 void StatsCmd(unsigned char *data, int len) {
     int i = 0, c, redraw = 0;
     sint64 last_exp;
@@ -714,6 +788,12 @@ void StatsCmd(unsigned char *data, int len) {
 #endif
 }
 
+/**
+ * Prompts the user for input.
+ *
+ * @param data
+ * @param len
+ */
 void handle_query(char *data, int len) {
     char *buf, *cp;
     uint8 flags = atoi(data);
@@ -763,9 +843,11 @@ void handle_query(char *data, int len) {
     LOG(LOG_DEBUG, "common::handle_query", "Received query.  Input state now %d", cpl.input_state);
 }
 
-/* Sends a reply to the server.  text contains the null terminated
- * string of text to send.  This function basically just packs
- * the stuff up.
+/**
+ * Sends a reply to the server.
+ * This function basically just packs the stuff up.
+ *
+ * @param text contains the null terminated string of text to send.
  */
 void send_reply(const char *text) {
     cs_print_string(csocket.fd, "reply %s", text);
@@ -775,10 +857,13 @@ void send_reply(const char *text) {
     x_set_echo();
 }
 
-/* This function copies relevant data from the archetype to the
- * object.  Only copies data that was not set in the object
- * structure.
+/**
+ * Gets the player information.
+ * This function copies relevant data from the archetype to the object.  Only
+ * copies data that was not set in the object structure.
  *
+ * @param data
+ * @param len
  */
 void PlayerCmd(unsigned char *data, int len) {
     char name[MAX_BUF];
@@ -799,6 +884,10 @@ void PlayerCmd(unsigned char *data, int len) {
     new_player(tag, name, weight, face);
 }
 
+/**
+ *
+ * @param op
+ */
 void item_actions(item *op) {
     if (!op) {
         return;
@@ -813,9 +902,13 @@ void item_actions(item *op) {
     }
 }
 
-/* common_item_cmd parses the data send to us from the server.
- * revision is what item command the data came from - newer
- * ones have addition fields.
+/**
+ * Parses the data sent to us from the server.
+ * revision is what item command the data came from - newer ones have addition
+ * fields.
+ *
+ * @param data
+ * @param len
  */
 static void common_item_command(uint8 *data, int len) {
 
@@ -855,11 +948,21 @@ static void common_item_command(uint8 *data, int len) {
     }
 }
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void Item2Cmd(unsigned char *data, int len) {
     common_item_command(data, len);
 }
 
-/* UpdateItemCmd updates some attributes of an item */
+/**
+ * Updates some attributes of an item
+ *
+ * @param data
+ * @param len
+ */
 void UpdateItemCmd(unsigned char *data, int len) {
     int weight, loc, tag, face, sendflags, flags, pos = 0, nlen, anim;
     uint32 nrof;
@@ -939,6 +1042,11 @@ void UpdateItemCmd(unsigned char *data, int len) {
     item_actions(locate_item(tag));
 }
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void DeleteItem(unsigned char *data, int len) {
     int pos = 0, tag;
 
@@ -958,6 +1066,11 @@ void DeleteItem(unsigned char *data, int len) {
     }
 }
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void DeleteInventory(unsigned char *data, int len) {
     int tag;
     item *op;
@@ -973,10 +1086,18 @@ void DeleteInventory(unsigned char *data, int len) {
     }
 }
 
-/******************************************************************************
- * Start of spell commands
- *****************************************************************************/
+/****************************************************************************/
 
+/**
+ * @defgroup SpellCommands Spell Commands
+ * @{
+ */
+
+/**
+ *
+ * @param data
+ * @param len
+ */
 void AddspellCmd(unsigned char *data, int len) {
     uint8 nlen;
     uint16 mlen, pos = 0;
@@ -1017,6 +1138,11 @@ void AddspellCmd(unsigned char *data, int len) {
     cpl.spells_updated = 1;
 }
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void UpdspellCmd(unsigned char *data, int len) {
     int flags, tag, pos = 0;
     Spell *tmp;
@@ -1049,6 +1175,11 @@ void UpdspellCmd(unsigned char *data, int len) {
     cpl.spells_updated = 1;
 }
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void DeleteSpell(unsigned char *data, int len) {
     int tag;
     Spell *tmp, *target;
@@ -1087,10 +1218,22 @@ void DeleteSpell(unsigned char *data, int len) {
     cpl.spells_updated = 1;
 }
 
-/******************************************************************************
- * Start of map commands
- *****************************************************************************/
+/****************************************************************************/
 
+/**
+ * @} */ /* EndOf SpellCommands
+ */
+
+/**
+ * @defgroup MapCommands Map Commands
+ * @{
+ */
+
+/**
+ *
+ * @param data
+ * @param len
+ */
 void NewmapCmd(unsigned char *data, int len) {
     (void)data; /* __UNUSED__ */
     (void)len; /* __UNUSED__ */
@@ -1114,6 +1257,11 @@ void NewmapCmd(unsigned char *data, int len) {
  */
 #define NUM_LAYERS (MAP1_LAYERS-1)
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void Map2Cmd(unsigned char *data, int len) {
     int mask, x, y, pos = 0, space_len, value;
     uint8 type;
@@ -1219,6 +1367,12 @@ void Map2Cmd(unsigned char *data, int len) {
     display_map_doneupdate(FALSE, FALSE);
 }
 
+/**
+ * Scrolls the map on the client by some amount.
+ *
+ * @param data
+ * @param len
+ */
 void map_scrollCmd(char *data, int len) {
     int dx, dy;
     char *buf;
@@ -1239,8 +1393,15 @@ void map_scrollCmd(char *data, int len) {
     display_map_doneupdate(FALSE, TRUE);
 }
 
-/* Extract smoothing infos from an extendedmapinfo packet part
- * data is located at the beginning of the smooth datas
+/**
+ * Extract smoothing infos from an extendedmapinfo packet part data is located
+ * at the beginning of the smooth datas
+ *
+ * @param data
+ * @param len
+ * @param x
+ * @param y
+ * @param layer
  */
 int ExtSmooth(unsigned char *data, int len, int x, int y, int layer) {
     static int dx[8] = { 0, 1, 1, 1, 0, -1, -1, -1, };
@@ -1270,11 +1431,14 @@ int ExtSmooth(unsigned char *data, int len, int x, int y, int layer) {
     return 1;/*Cause smooth infos only use 1 byte*/
 }
 
-/* Handle MapExtended command
- * Warning! if you add commands to extended, take
- * care that the 'layer' argument of main loop is
- * the opposite of the layer of the map.
- * so if you reference a layer, use NUM_LAYERS-layer
+/**
+ * Handle MapExtended command
+ * Warning! if you add commands to extended, take care that the 'layer'
+ * argument of main loop is the opposite of the layer of the map so if you
+ * reference a layer, use NUM_LAYERS-layer.
+ *
+ * @param data
+ * @param len
  */
 void MapExtendedCmd(unsigned char *data, int len) {
     int mask, x, y, pos = 0, layer;
@@ -1334,6 +1498,11 @@ void MapExtendedCmd(unsigned char *data, int len) {
     }
 }
 
+/**
+ *
+ * @param data
+ * @param len
+ */
 void MagicMapCmd(unsigned char *data, int len) {
     unsigned char *cp;
     int i;
@@ -1374,12 +1543,24 @@ void MagicMapCmd(unsigned char *data, int len) {
     draw_magic_map();
 }
 
+/**
+ * @} */ /* EndOf MapCommands
+ */
+
+/**
+ *
+ * @param data
+ * @param len
+ */
 void SinkCmd(unsigned char *data, int len) {
 }
 
-/* got a tick from the server.  We currently
- * don't care what tick number it is, but
- * just have the code in case at some time we do.
+/**
+ * Got a tick from the server.  We currently don't care what tick number it
+ * is, but just have the code in case at some time we do.
+ *
+ * @param data
+ * @param len
  */
 void TickCmd(uint8 *data, int len) {
 
@@ -1401,3 +1582,4 @@ void PickupCmd(uint8 *data, int len) {
     uint32 pickup = GetInt_String(data);
     client_pickup(pickup);
 }
+
