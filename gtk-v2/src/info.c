@@ -876,6 +876,7 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
      */
     if ((MESSAGE_COUNT_MAX <= 1)        /* The player buffer on/off switch. */
     ||  (type == MSG_TYPE_CLIENT)
+    ||  (type == MSG_TYPE_COMMUNICATION)
     ||  (orig_color == NDI_UNIQUE)
     ||  (strlen(message) >= MESSAGE_BUFFER_SIZE)) {
         /*
