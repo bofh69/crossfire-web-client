@@ -467,7 +467,7 @@ int main(int argc, char *argv[])
     fd_set inset;
     struct timeval timeout;
 
-    printf ("%s\n",rcsid_cfsndserv_c);
+    printf ("%s\n",rcsid_sound_src_alsa9_c);
 
     fflush(stdout);
 

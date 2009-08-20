@@ -949,7 +949,7 @@ int main(int argc, char *argv[])
     int inbuf_pos=0,sndbuf_pos=0;
     fd_set inset,outset;
 
-    printf ("%s\n",rcsid_cfsndserv_c);
+    printf ("%s\n", rcsid_sound_src_cfsndserv_c);
     fflush(stdout);
     if (read_settings()) write_settings();
     if (init_sounds()) return 1;
