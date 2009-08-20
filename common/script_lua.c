@@ -23,6 +23,11 @@ const char * const rcsid_common_script_lua_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file common/script_lua.c
+ *
+ */
+
 #ifndef WIN32
 #include <ctype.h>
 #include <errno.h>

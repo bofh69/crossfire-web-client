@@ -22,10 +22,10 @@ const char * const rcsid_common_image_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/*
- * This file contains image related functions - this is a higher level up -
- * it mostly deals with the caching of the images, processing the image commands
- * from the server, etc.
+/**
+ * @file common/image.c
+ * Contains image related functions at a high level.  It mostly deals with the
+ * caching of the images, processing the image commands from the server, etc.
  */
 
 #include <config.h>

@@ -20,15 +20,11 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-
-/*
- * Includes and prototypes for p_cmd.c.
- *
- * p_cmd.c has player-commands like '/magicmap'.
+/**
+ * @file common/p_cmd.h
+ * Includes and prototypes for p_cmd.c for player-commands like '/magicmap'.
+ * Basically stolen piecemeal from the server branch.
  */
-
-
-/* Basically stolen piecemeal from the server branch. */
 
 #ifndef PCMD_H
 #define PCMD_H

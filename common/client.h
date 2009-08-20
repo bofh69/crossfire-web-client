@@ -1,5 +1,5 @@
 /*
- * static char *rcsid_client_h =
+ * static char *rcsid_common_client_h =
  *   "$Id$";
  */
 /*
@@ -26,9 +26,8 @@
 
 /**
  * @file client.h
- * This file includes the various dependencies header files needed by most
- * everything.  It also declares structures and other variables that the GUI
- * portion needs
+ * Includes various dependencies header files needed by most everything.  It
+ * also declares structures and other variables that the GUI portion needs.
  */
 
 #include <config.h>

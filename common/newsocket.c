@@ -22,11 +22,12 @@ const char * const rcsid_common_newsocket_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* Made this either client or server specific for 0.95.2 release - getting
- * too complicated to keep them the same, and the common code is pretty much
+/**
+ * @file common/newsocket.c
+ * Made this either client or server specific for 0.95.2 release - getting too
+ * complicated to keep them the same, and the common code is pretty much
  * frozen now.
  */
-
 
 #include <stdio.h>
 #include <stdarg.h>

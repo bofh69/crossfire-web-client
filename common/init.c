@@ -22,8 +22,10 @@ const char * const rcsid_common_init_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This handles the initialization of the client.  This includes making
- * the I_IMAGE and I_ARCH commands.
+/**
+ * @file common/init.c
+ * Handles the initialization of the client.  This includes making the I_IMAGE
+ * and I_ARCH commands.
  */
 
 #include <client.h>

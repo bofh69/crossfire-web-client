@@ -23,24 +23,25 @@ const char * const rcsid_common_script_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This file has its own script.h for prototypes, so don't want to include
- * this when doing a 'make proto'
+/*
+ * This file has its own script.h for prototypes, so don't want to include
+ * this when doing a 'make proto'.
  */
 #ifndef CPROTO
 
-
-/*
- * This file handles the client-side scripting interface.
+/**
+ * @file common/script.c
+ * Handles the client-side scripting interface.
  *
  * Each script is an external process that keeps two pipes open between the
- * client and the script (one in each direction).  When the script starts,
- * it defaults to receiving no data from the client.  Normally, the first
- * command it sends to the client will be a request to have certain types
- * of data sent to the script as the client receives them from the server
- * (such as drawinfo commands).  The script can also request current
- * information from the client, such as the contents of the inventory or
- * the map data (either live or last viewed "fog-of-war" data).  The script
- * can also send commands for the client to pass to the server.
+ * client and the script (one in each direction).  When the script starts, it
+ * defaults to receiving no data from the client.  Normally, the first command
+ * it sends to the client will be a request to have certain types of data sent
+ * to the script as the client receives them from the server (such as drawinfo
+ * commands).  The script can also request current information from the
+ * client, such as the contents of the inventory or the map data (either live
+ * or last viewed "fog-of-war" data).  The script can also send commands for
+ * the client to pass to the server.
  *
  * Script Commands:
  *
@@ -75,8 +76,8 @@ const char * const rcsid_common_script_c =
  *   turn off monitoring.
  *
  * sync <#>
- *   wait until the server has acknowledged all but <#> commands have been received
- *
+ *   wait until the server has acknowledged all but <#> commands have been
+ *   received
  *
  * To implement this:
  *
@@ -110,9 +111,8 @@ const char * const rcsid_common_script_c =
  */
 
 /*
-This does not work under Windows for now.
-Someday this will be fixed :)
-*/
+ * This does not work under Windows for now.  Someday this will be fixed :)
+ */
 
 #ifndef WIN32
 #include <errno.h>

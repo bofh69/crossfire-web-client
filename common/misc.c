@@ -22,14 +22,10 @@ const char * const rcsid_common_misc_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/*
- * static char *rcsid_misc_c =
- *   "$Id$";
- */
-
-
-/* Contains misc useful functions that may be useful to various parts
- * of code, but are not especially tied to it.
+/**
+ * @file common/misc.c
+ * Contains misc useful functions that may be useful to various parts of code,
+ * but are not especially tied to it.
  */
 
 #include "client.h"

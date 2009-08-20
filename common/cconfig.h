@@ -1,5 +1,5 @@
 /*
- * static char *rcsid_commands_c =
+ * static char *rcsid_common_cconfig_h =
  *   "$Id$";
  */
 /*
@@ -24,9 +24,11 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This contains various configuration options.  Most all of thse
- * can be overridden via command line options, but setting them
- * here can provide nice defaults.
+/**
+ * @file common/cconfig.h
+ * Contains various client configuration options.  Most all of these can be
+ * overridden via command line options, but setting them here provides nice
+ * defaults.
  */
 
 /* This is how often the client checks for X events, as well as how often
@@ -35,9 +37,7 @@
  * has to be figured out.  This value is in microseconds (100,000 microseconds=
  * 0.1 seconds
  */
-
 #define MAX_TIME 100000
-
 
 /* This is the default port to connect to the server with. */
 #define EPORT 13327

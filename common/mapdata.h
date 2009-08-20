@@ -21,11 +21,15 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file common/mapdata.h
+ *
+ */
+
 #ifndef MAP_H
 #define MAP_H
 
 #include "client-types.h"
-
 
 /** The protocol supports 10 layers, so set MAXLAYERS accordingly.
  */

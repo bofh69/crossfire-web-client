@@ -1,5 +1,5 @@
 /*
- * static char *rcsid_script_h =
+ * static char *rcsid_common_script_h =
  *   "$Id$";
  */
 /*
@@ -24,6 +24,12 @@
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
+
+/**
+ * @file common/script.h
+ *
+ */
+
 #ifndef SCRIPT_H
 #define SCRIPT_H
 

@@ -1,5 +1,5 @@
 /*
- * static char *rcsid_client_types_h =
+ * static char *rcsid_common_client_types_h =
  *   "$Id$";
  */
 /*
@@ -23,6 +23,11 @@
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
+
+/**
+ * @file common/client-types.h
+ *
+ */
 
 #ifndef CLIENT_TYPES_H
 #define CLIENT_TYPES_H

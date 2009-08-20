@@ -20,3 +20,9 @@
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
+
+/**
+ * @file common/script_lua.h
+ *
+ */
+

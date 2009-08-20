@@ -22,9 +22,11 @@ const char * const rcsid_common_metaserver_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This file deals with contact the metaserver, getting a list of hosts,
- * displaying/returning them to calling function, and then connecting
- * to the server when requested.
+/**
+ * @file common/metaserver.c
+ * Deals with contacting the metaserver, getting a list of hosts, displaying
+ * and returning them to calling function, and then connecting to the server
+ * when requested.
  */
 
 #ifndef WIN32

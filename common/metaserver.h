@@ -24,6 +24,10 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file common/metaserver.h
+ *
+ */
 
 /* Arbitrary size.  At some point, we would need to cut this off simply
  * for display/selection reasons.

@@ -1,5 +1,5 @@
 /*
- * static char *rcsid_external_h =
+ * static char *rcsid_common_external_h =
  *   "$Id$";
  */
 /*
@@ -24,12 +24,12 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This file contains external calls that the common area makes
- * callbacks to.
- * This was really a quick hack done to allow some seperation.
- * Really, these should be set via callbacks that the client
- * can make to the library.  Many of these probably should
- * never really be callbacks in any case, or be more general
+/**
+ * @file common/external.h
+ * Contains external calls that the common area makes callbacks to.  This was
+ * really a quick hack done to allow some separation.  Really, these should be
+ * set via callbacks that the client can make to the library.  Many of these
+ * probably should never really be callbacks in any case, or be more general.
  */
 
 /* Sound functions */

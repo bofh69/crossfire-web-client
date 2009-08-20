@@ -21,13 +21,17 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file common/mapdata.c
+ * Map processing functions.
+ */
+
 #include <assert.h>
 #include <stdlib.h>
 
 #include "client.h"
 #include "external.h"
 #include "mapdata.h"
-
 
 /**
  * Clear cells the_map.cells[x][y..y+len_y-1].

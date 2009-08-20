@@ -22,23 +22,23 @@ const char * const rcsid_common_client_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
- /* Client interface main routine.
-  * this file sets up a few global variables, connects to the server,
-  * tells it what kind of pictures it wants, adds the client and enters
-  * the main dispatch loop
-  *
-  * the main event loop (event_loop()) checks the tcp socket for input and
-  * then polls for x events.  This should be fixed since you can just block
-  * on both filedescriptors.
-  *
-  * The DoClient function recieves a message (an ArgList), unpacks it, and
-  * in a slow for loop dispatches the command to the right function through
-  * the commands table.   ArgLists are essentially like RPC things, only
-  * they don't require going through RPCgen, and it's easy to get variable
-  * length lists.  They are just lists of longs, strings, characters, and
-  * byte arrays that can be converted to a machine independent format
+/**
+ * @file common/client.c
+ * Client interface main routine.  Sets up a few global variables, connects to
+ * the server, tells it what kind of pictures it wants, adds the client and
+ * enters the main dispatch loop.
+ *
+ * The main event loop (event_loop()) checks the TCP socket for input and then
+ * polls for x events.  This should be fixed since you can just block on both
+ * filedescriptors.
+ *
+ * The DoClient function receives a message (an ArgList), unpacks it, and in a
+ * slow for loop dispatches the command to the right function through the
+ * commands table.   ArgLists are essentially like RPC things, only they don't
+ * require going through RPCgen, and it's easy to get variable length lists.
+ * They are just lists of longs, strings, characters, and byte arrays that can
+ * be converted to a machine independent format
  */
-
 
 #include <client.h>
 #include <external.h>

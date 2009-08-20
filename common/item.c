@@ -22,6 +22,10 @@ const char * const rcsid_common_item_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file common/item.c
+ * Provides functions that process items in various ways.
+ */
 
 #include <ctype.h>      /* needed for isdigit */
 #include <client.h>

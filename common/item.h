@@ -1,5 +1,5 @@
 /*
- * static char *rcsid_item_h =
+ * static char *rcsid_common_item_h =
  *   "$Id$";
  */
 /*
@@ -23,6 +23,11 @@
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
+
+/**
+ * @file common/item.h
+ *
+ */
 
 #ifndef ITEM_H
 #define ITEM_H

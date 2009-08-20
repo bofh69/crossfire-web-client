@@ -22,23 +22,24 @@ const char * const rcsid_common_player_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file common/player.c
+ * Handles various player related functions.  This includes both things that
+ * operate on the player item, cpl structure, or various commands that the
+ * player issues.
+ *
+ * Most of the handling of commands from the client to server (see commands.c
+ * for server->client) is handled here.
+ *
+ * Most of the work for sending messages to the server is done here.  Again,
+ * most of these appear self explanatory.  Most send a bunch of commands like
+ * apply, examine, fire, run, etc.  This looks like it was done by Mark to
+ * remove the old keypress stupidity I used.
+ */
 
 #include <client.h>
 #include <external.h>
 #include <script.h>
-
-/* This file handles various player related functions.  This includes
- * both things that operate on the player item, cpl structure, or
- * various commands that the player issues.
- *
- *  This file does most of the handling of commands from the client to
- *  server (see commands.c for server->client)
- *
- *  does most of the work for sending messages to the server
- *   Again, most of these appear self explanatory.  Most send a bunch of
- *   commands like apply, examine, fire, run, etc.  This looks like it
- *   was done by Mark to remove the old keypress stupidity I used.
- */
 
 /* This translates the numeric direction id's into the actual direction
  * commands.  This lets us send the actual command (ie, 'north'), which
