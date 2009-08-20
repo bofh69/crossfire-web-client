@@ -1,4 +1,4 @@
-static char *rcsid_cfsndserv_c =
+static char *rcsid_sound_src_alsa9_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -22,10 +22,11 @@ static char *rcsid_cfsndserv_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-
-/* This file is only used for alsa 0.9 and later sound.  Alsa sound code is
- * sufficiently different from the rest that trying to keep it common didn't
- * make much sense.
+/**
+ * @file sound-src/alsa9.c
+ * Used only for alsa 0.9 and later sound.  Alsa sound code is sufficiently
+ * different from the rest that trying to keep it common didn't make much
+ * sense.
  */
 
 #define SOUND_DEBUG

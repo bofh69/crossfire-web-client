@@ -1,4 +1,4 @@
-static char *rcsid_cfsndserv_c =
+static char *rcsid_sound_src_cfsndserv_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -23,21 +23,19 @@ static char *rcsid_cfsndserv_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* Comment from the original author is below.  In addition to OSS
- * and ALSA, sun sound is also supported.
- */
-
-/*
+/**
+ * @file sound-src/cfsndserv.c
+ * The server for sound support for the client.  In addition to OSS and ALSA,
+ * sun sound is also supported.  Comment from the original author is below.
+ *
  * (c) 1998 Jacek Konieczny <jajcus@zeus.polsl.gliwice.pl>
  *
- * This file contains the server for sound support for the client.
- * It supports both ALSA_SOUND and OSS_SOUND. Any other sound system support
- * can be easily added - only new init_audio and audio_play
- * need be written.
+ * This file contains the server for sound support for the client.  It
+ * supports both ALSA_SOUND and OSS_SOUND. Any other sound system support can
+ * be easily added - only new init_audio and audio_play need be written.
  *
  * If you have any problems please e-mail me.
  */
-
 
 /*#define ALSA_SOUND*/
 /*#define OSS_SOUND*/
