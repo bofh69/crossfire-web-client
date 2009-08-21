@@ -22,6 +22,10 @@ const char * const rcsid_gtk_png_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file gtk/png.c
+ *
+ */
 
 #include <config.h>
 #include <stdlib.h>

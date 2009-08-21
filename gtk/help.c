@@ -20,6 +20,10 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file gtk/help.c
+ *
+ */
 
 #include <gtk/gtk.h>
 #include "client-types.h"

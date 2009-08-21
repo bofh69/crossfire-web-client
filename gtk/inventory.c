@@ -1,7 +1,8 @@
 
-/*
- * Showing and manipulating your inventory and what's in a
- * container/at your feet. (But not autopickup.)
+/**
+ * @file gtk/inventory.c
+ * Showing and manipulating your inventory and what's in a container/at your
+ * feet. (But not autopickup.)
  */
 
 #ifdef WIN32

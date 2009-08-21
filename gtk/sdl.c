@@ -24,6 +24,16 @@ const char * const rcsid_gtk_sdl_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file gtk/sdl.c
+ * Most SDL support is separated into this file for readability.  Move some of
+ * the SDL code to this file here.  This makes it easier to share between the
+ * gnome and gtk client.  It also reduces the length of both the gx11.c and
+ * gnome.c file.  It also is more readable, as not as many #ifdef SDL.. #endif
+ * constructs are needed.  Note that there may still be some SDL code in
+ * gx11.c - some areas are embedded so much that it is not easy to remove.
+ */
+
 #include <config.h>
 #ifdef HAVE_SDL
 #include <client-types.h>
@@ -43,15 +53,6 @@ const char * const rcsid_gtk_sdl_c =
 SDL_Surface* mapsurface;
 static SDL_Surface* lightmap;
 static SDL_Surface* fogmap;
-
-
-/* Move some of the SDL code to this file here.  This makes it easier to share
- * between the gnome and gtk client.  It also reduces the length of both the gx11.c
- * and gnome.c file.  It also is more readable, as not as many #ifdef SDL.. #endif
- * constructs are needed.
- * Note that there may still be some SDL code in gx11.c - some areas are embedded
- * so much that it is not easy to remove.
- */
 
 /* these should generally be included by the file including this file. */
 #include <SDL.h>

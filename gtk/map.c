@@ -22,9 +22,10 @@ const char * const rcsid_gtk_map_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This file handles the map related code - both in terms of allocation,
- * insertion of new objects, and actual rendering (although the
- * sdl rendering is in the sdl file
+/**
+ * @file gtk/map.c
+ * Handles the map related code - both in terms of allocation, insertion of
+ * new objects, and actual rendering.  SDL rendering is in the sdl file.
  */
 
 #include <config.h>

@@ -21,6 +21,12 @@ const char * const rcsid_gtk_text_c =
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
+
+/**
+ * @file gtk/text.c
+ * Supports for readables like signs and books.
+ */
+
 #include <config.h>
 #include <stdio.h>
 #include <gtk/gtk.h>

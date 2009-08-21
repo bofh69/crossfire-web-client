@@ -22,11 +22,10 @@ const char * const rcsid_gtk_gx11_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/*
- * This file contains the core window code.
- */
-
-/* Most functions in this file are private.  Here is a list of
+/**
+ * @file gtk/gx11.c
+ * Contains the core window code.
+ * Most functions in this file are private.  Here is a list of
  * the global functions:
  *
  * draw_info - draw info in the info window
@@ -55,7 +54,6 @@ const char * const rcsid_gtk_gx11_c =
  * in other files should always pass 0, because they will never have
  * the information of whether a redraw is needed.
  */
-
 
 #include <config.h>
 

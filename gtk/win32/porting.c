@@ -1,5 +1,5 @@
 /*
- * static char *rcsid_sdl_c =
+ * static char *rcsid_gtk_win32_porting_c =
  *   "$Id$";
  */
 
@@ -25,6 +25,11 @@
 
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
+
+/**
+ * @file gtk/win32/porting.c
+ * Sound support for Win32.
+ */
 
 #include <config.h>
 #include <ctype.h>

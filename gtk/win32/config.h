@@ -1,4 +1,8 @@
-/* win32/config.h hand tweaked defines and modified in other ways to work with Visual Studio */
+/**
+ * @file gtk/win32/config.h
+ * win32/config.h hand tweaked defines and modified in other ways to work with
+ * Visual Studio.
+ */
 #ifndef __CROSSFIRE_CLIENT_CONFIG
 #define __CROSSFIRE_CLIENT_CONFIG
 

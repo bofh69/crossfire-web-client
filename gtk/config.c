@@ -22,9 +22,10 @@ const char * const rcsid_gtk_config_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/* This file handles the loading and saving of the configuration options,
- * as well as presenting a nice gui to select the
- * options
+/**
+ * @file gtk/config.c
+ * Handles the loading and saving of the configuration options, as well as
+ * presenting a nice GUI to select the options.
  */
 
 #include <config.h>

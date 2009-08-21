@@ -24,6 +24,11 @@
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
+/**
+ * @file gtk/gx11.h
+ *
+ */
+
 #ifndef GX11_H
 #define GX11_H
 

@@ -22,11 +22,11 @@ const char * const rcsid_gtk_image_c =
     The author can be reached via e-mail to crossfire-devel@real-time.com
 */
 
-/*
- * This file contains image related functions - this is a higher level up -
- * it mostly deals with the caching of the images, processing the image commands
- * from the server, etc.  This file is gtk specific - at least it returns
- * gtk pixmaps.
+/**
+ * @file gtk/image.c
+ * Contains high-level image related functions.  It mostly deals with the
+ * caching of the images, processing the image commands from the server, etc.
+ * This file is gtk specific - at least it returns gtk pixmaps.
  */
 
 #include <config.h>
