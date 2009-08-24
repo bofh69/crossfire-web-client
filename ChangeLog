@@ -2,6 +2,24 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Adjust the client-side output-count implementation to always output a message
+the first time it occurs when it first enters the buffering system.  After the
+initial display, the output-count and sync settings determine display time.
+With the new scheme, inactive buffers are also aged and discarded by age so
+that the content can be re-used if the message recurs before it is pushed out
+of the buffer.  The "initial" display of a message is not done if the message
+buffer is re-activated after having been inactivated by output-count or sync.
+Meflin also pointed out the trailing " (Nx)" differed from the original server
+implementation, so now the count is prefixed on the message as "N times ".
+This changed the size of the count buffer, and affected the output buffering
+method - making it more logical to avoid allocating the count buffer in each
+message buffer, but rather only one time in the info_buffer_flush() function.
+This implementation is a bit heavier since buffers are now processed more
+when they are inactive, but it does get unique messages to the player more
+quickly even if they happen to pass through the duplicate suppression system.
+gtk-v2/src/info.c
+Kevin Bulgrien 2009/08/23
+
 Implement a client-side replacement for the recently removed output-count and
 output-sync commands.  The client implementation matches the basic operation
 of the server feature.  Output-count determines the highest number of messages

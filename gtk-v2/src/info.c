@@ -132,10 +132,10 @@ static int max_subtype=0, has_style=0;
 #define MESSAGE_BUFFER_SIZE  56         /**< The maximum allowable size of
                                          *   messages that are checked for
                                          *   duplicate reduction.           */
-#define COUNT_BUFFER_SIZE     8         /**< The maximum size of the tag
+#define COUNT_BUFFER_SIZE    16         /**< The maximum size of the tag
                                          *   that indicates the number of
                                          *   times a message occured while
-                                         *   buffered.  Example:  " (4x)"   */
+                                         *   buffered. Example: "4 times " */
 #define MESSAGE_COUNT_MAX    16         /**< The maximum number of times a
                                          *   buffered message may repeat
                                          *   before it is sent to a client
@@ -157,22 +157,18 @@ struct info_buffer_t
 {
   int  age;                             /**< The length of time a message
                                          *   spends in the buffer, measured
-                                         *   in client ticks.  An age of -1
-                                         *   indicates the buffer is empty
-                                         *   and all other data is invalid.
-                                         *   It is set 0 when a message
-                                         *   is placed into the buffer.     */
+                                         *   in client ticks.               */
   int  count;                           /**< The number of times a buffered
                                          *   message is detected while it
-                                         *   is buffered.                   */
+                                         *   is buffered.  A count of -1
+                                         *   indicates the buffer is empty. */
   int  orig_color;                      /**< Message data:  The suggested
                                          *   color to display the text in.  */
   int  type;                            /**< Message data:  Classification
                                          *   of the buffered message.       */
   int  subtype;                         /**< Message data:  Sub-class of
                                          *   the buffered message.          */
-  char message[MESSAGE_BUFFER_SIZE      /**< Message data:  Message text.   */
-               + COUNT_BUFFER_SIZE];     
+  char message[MESSAGE_BUFFER_SIZE];    /**< Message data:  Message text.   */
 } info_buffer[MESSAGE_BUFFER_COUNT];    /**< Several buffers that support
                                          *   suppression of duplicates even
                                          *   even when the duplicates are
@@ -753,63 +749,89 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
 /**
  * Output count/sync message buffer initialization to set all buffers empty.
  * Called only once at client start from info_init(), the function initializes
- * all message buffers to the empty state (age == -1). When buffers are marked
- * empty, all other data in the buffer is considered invalid and is ignored,
- * so there is no need to clear and set up the other fields in the buffer
- * structure.
+ * all message buffers to the empty state (count == -1).  At a minimum, age,
+ * count, and message should be initialized.  Type, subtype, and orig_color
+ * are also set just for an extra measure of safety.
  */
 void info_buffer_init() {
     int loop;                           
 
-    for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1)
-        info_buffer[loop].age = -1;
+    for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
+        info_buffer[loop].count = -1;
+        info_buffer[loop].age = 0;
+        info_buffer[loop].type = 0;
+        info_buffer[loop].subtype = 0;
+        info_buffer[loop].orig_color = 0;
+        info_buffer[loop].message[0] = NULL;
+    };
 };
 
 /**
- * Displays output count/sync system buffered message text with times found.
- * Whenever a message must be ejected from the output count/sync system
- * buffers, this function is called.  If the message was seen multiple times
- * while buffered, an occurance tag is appended to the message text.  After
- * submitting the message for display, the buffer is marked empty.
+ * Handles message buffer flushes, and, as needed, displays the text.  Flushed
+ * buffers have their count set to -1.  On flush, the message text is output
+ * only when the message count is greater than zero.  If the message text is
+ * displayed, and if the count is greater than one, it is prepended to the
+ * message in the form "N * times ".  This function is called whenever a
+ * message must be ejected from the output count/sync system buffers.  Note
+ * that the message details are preserved when the buffer is flushed.  This
+ * allows the buffer contents to be re-used if another message with the same
+ * text comes in before the buffer is re-used for a different message.
  * @param id
  * The output count/sync message buffer to flush (0 - MESSAGE_BUFFER_COUNT).
  */
 void info_buffer_flush(const int id) {
-    char times[COUNT_BUFFER_SIZE];      /* Duplicate message count string.  */
-
+    char output_buffer[MESSAGE_BUFFER_SIZE  /* Buffer for output big enough */
+                       +COUNT_BUFFER_SIZE]; /* to hold both count and text. */
     /*
-     * Only report the number of times the message was seen if it was more
-     * than once.
+     * Messages are output with no output-count at the time they are first
+     * placed in a buffer, so do not bother displaying it again if another
+     * instance of the message was not seen after the initial buffering.
      */
-    if (info_buffer[id].count > 1) {
-        snprintf(times, COUNT_BUFFER_SIZE, " (%ux)", info_buffer[id].count);
-        strcat(info_buffer[id].message, times);
-    }
+    if (info_buffer[id].count > 0) {
+        /*
+         * Report the number of times the message was seen only if it was seen
+         * after having been initially buffered.
+         */
+        if (info_buffer[id].count > 1) {
+            snprintf(output_buffer, sizeof(output_buffer), "%u times %s",
+                info_buffer[id].count, info_buffer[id].message);
+            /*
+             * Output the message count and message text.
+             */
+            draw_ext_info(
+                info_buffer[id].orig_color,
+                info_buffer[id].type,
+                info_buffer[id].subtype,
+                output_buffer);
+        } else
+            /*
+             * Output only the message text.
+             */
+            draw_ext_info(
+                info_buffer[id].orig_color,
+                info_buffer[id].type,
+                info_buffer[id].subtype,
+                info_buffer[id].message);
+    };
     /*
-     * Output the message.
+     * Mark the buffer newly emptied.
      */
-    draw_ext_info(
-        info_buffer[id].orig_color,
-        info_buffer[id].type,
-        info_buffer[id].subtype,
-        info_buffer[id].message);
-    /*
-     * Mark the buffer empty.
-     */
-    info_buffer[id].age = -1;
+    info_buffer[id].count = -1;
 };
 
 /**
  * Output count/sync buffer maintainer adds buffer time and output messages.
- * For every tick that data sits in a message buffer, age the message so it
- * eventually gets displayed.  If the data in a buffer reaches the maximum
- * permissible age or message occurance count, it is ejected and displayed.
+ * For every tick, age active messages so it eventually gets displayed.  If
+ * the data in an buffer reaches the maximum permissible age or message
+ * occurance count, it is ejected and displayed.  Inactive buffers are also
+ * aged so that the oldest empty buffer is used first when a new message
+ * comes in.
  */
 void info_buffer_tick() {
     int loop;
 
     for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
-        if (info_buffer[loop].age > -1) {
+        if (info_buffer[loop].count > -1) {
             if ((info_buffer[loop].age < MESSAGE_AGE_MAX)
             &&  (info_buffer[loop].count < MESSAGE_COUNT_MAX))
                 /*
@@ -819,11 +841,19 @@ void info_buffer_tick() {
                 info_buffer[loop].age += 1;
             else
                 /*
-                 * The data has been in the buffer too long, so display it in
-                 * the client (and report how many times it was seen while in
-                 * the buffer.
+                 * The data has been in the buffer too long, so either display
+                 * it (and report how many times it was seen while in the
+                 * buffer) or simply expire the buffer content if duplicates
+                 * did not occur.
                  */
                 info_buffer_flush(loop);
+        } else {
+            /*
+             * Overflow-protected aging of empty or inactive buffers.  Aging
+             * of inactive buffers is the reason overflow must be handled.
+             */
+            if (info_buffer[loop].age < info_buffer[loop].age + 1)
+                info_buffer[loop].age += 1;
         }
     }
 }
@@ -831,15 +861,20 @@ void info_buffer_tick() {
 /**
  * A callback to accept messages along with meta information color and type.
  * Unlike the GTK V1 client, we don't do anything tricky like popups with
- * different message types.  However, we will choose different fonts, etc,
- * based on this information - for this reason, we just use one callback, and
- * change those minor things based on the callback.  The message is parsed to
- * handle embedded style codes.
+ * different message types, but the output-count/sync features do consider
+ * message type, etc.  To allow user-defined buffering rules all messages
+ * need to pass through a common processor.  This callback is the interface
+ * for the output buffering.  Even if output buffering could be bypassed, it
+ * is still necessary to pass messages through a common interface to handle
+ * style, theme, and display panel configuration.  This callback routes all
+ * messages to the appropriate handler for pre-display processing
+ * (draw_ext_info()).
  *
- * Client-sourced messages should be passed directly to draw_ext_info() and
- * not through the callback.  MSG_TYPE_CLIENT messages are deliberately not
- * buffered here because they are generally unique, adminstrative messages
- * that should not be delayed.
+ * It is recommended that client-sourced messages be passed directly to
+ * draw_ext_info() instead of through the callback to avoid unnecessary
+ * processing.  MSG_TYPE_CLIENT messages are deliberately not buffered here
+ * because they are generally unique, adminstrative messages that should not
+ * be delayed.
  *
  * @param orig_color
  * A suggested text color that may change based on message type/subtype.
@@ -854,8 +889,9 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     int search;                         /* Loop for searching the buffers.  */
     int found;                          /* Which buffer a message is in.    */
     int empty;                          /* The ID of an empty buffer.       */
-    int oldest;                         /* Oldest buffered message found.   */
-    int oldage;                         /* Age of oldest buffered message.  */
+    int oldest;                         /* Oldest non-empty buffer found.   */
+    int empty_age;                      /* Age of oldest empty buffer.      */
+    int oldest_age;                     /* Age of oldest non-empty buffer.  */
 
     /*
      * Message buffering is a feature that may be enabled or disabled by the
@@ -888,81 +924,112 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     } else {
         empty  = -1;       /* Default:  Buffers are empty until proven full */
         found  = -1;       /* Default:  Incoming message is not in a buffer */
-        oldest = -1;       /* Default:  Oldest buffered message is unknown  */
-        oldage = -1;       /* Default:  Oldest message age is not known     */
+        oldest = -1;       /* Default:  Oldest active buffer ID is unknown  */
+        empty_age= -1;     /* Default:  Oldest empty buffer age is unknown  */
+        oldest_age= -1;    /* Default:  Oldest active buffer age is unknown */
 
         for (search = 0; search < MESSAGE_BUFFER_COUNT; search += 1) {
             /*
-             * Find an empty buffer if one exists.  If the message is not
-             * currently buffered, we need to find a place to put it.
-             * All fields (except age) of an empty buffer are invalid.
+             * 1) Find the oldest empty or inactive buffer, if one exists.
+             * 2) Find the oldest non-empty/active buffer in case we need to
+             *    eject a message to make room for a new message.
+             * 3) Find a buffer that matches the incoming message, whether the
+             *    buffer is active or not.
              */
-            if (info_buffer[search].age == -1) {
+            if (info_buffer[search].count < 0) {
                 /*
-                 * We only care about finding the first empty buffer.
+                 * We want to find the oldest empty buffer.  If a new message
+                 * that is not already buffered comes in, this is the ideal
+                 * place to put it.
                  */
-                if (empty < 0) {
+                if ((info_buffer[search].age > empty_age)) {
+                    empty_age = info_buffer[search].age;
                     empty = search;
                 }
             } else {
                 /*
                  * The buffer is not empty, so process it to find the oldest
-                 * buffered message so if we get a new message but no buffers
-                 * are free, we can dump the oldest message to make room.
+                 * buffered message.  If a new message comes in that is not
+                 * already buffered, and if there are no empty buffers
+                 * available, the oldest message will be pushed out to make
+                 * room for the new one.
                  */
-                if (info_buffer[search].age > oldage) {
+                if (info_buffer[search].age > oldest_age) {
+                    oldest_age = (info_buffer[search].age);
                     oldest = search;
-                    oldage = info_buffer[search].age;
                 }
-                /*
-                 * Also check to see if the incoming message matches the
-                 * buffer, but only if the buffer is full.
-                 */
-                if ((info_buffer[search].age > -1)
-                &&  ! strcmp(message, info_buffer[search].message)) {
-                    found  = search;
+            }
+            /*
+             * Check all buffers, inactive and active, to see if the incoming
+             * message matches an existing buffer.  Because empty buffers are
+             * re-used if they match, it should not be possible for more than
+             * one buffer to match, so do not bother searching after the first
+             * match is found.
+             */
+            if (found < 0) {
+                if (! strcmp(message, info_buffer[search].message)) {
+                    found = search;
                 }
             }
         }
 
         if FALSE {
             LOG(LOG_DEBUG, "info.c::message_callback", "\n           "
-                "type: %d-%d empty: %d found: %d oldest: %d oldage: %d",
-                    type, subtype, empty, found, oldest, oldage);
+                "type: %d-%d empty: %d found: %d oldest: %d oldest_age: %d",
+                    type, subtype, empty, found, oldest, oldest_age);
         }
 
         /*
-         * If the current message is already buffered, then increment the
+         * If the incoming message is already buffered, then increment the
          * message count and exit, otherwise add the message to the buffer.
          */
         if (found > -1) {
+            /*
+             * If the found buffer was inactive, this automatically activates
+             * it, and sets the count to one to ensure printing of the message
+             * occurance as messages are pre-printed only when they are
+             * inserted into a buffer after not being found.
+             */
+            if (info_buffer[found].count == -1) {
+                info_buffer[found].count += 1;
+                info_buffer[found].age = 0;
+            }
             info_buffer[found].count += 1;
         } else {
             /*
-             * The message was not found in the buffer, so check if there is
-             * an available buffer.  If not, dump the oldest buffer to make
-             * room, then mark it empty.
+             * The message was not found in a buffer, so check if there is an
+             * available buffer.  If not, dump the oldest buffer to make room,
+             * then mark it empty.
              */
             if (empty == -1) {
                 if (oldest > -1) {
                     /*
-                     * The oldest buffer is getting kicked out of the buffer
-                     * to make room for a new message coming in.  Move it into
-                     * a buffer that will be output to the player, and then
-                     * mark the buffer empty so the new message can go in.
+                     * The oldest message is getting kicked out of the buffer
+                     * to make room for a new message coming in.  Display it
+                     * and mark the buffer empty so the new message can go in.
                      */
                     draw_ext_info(
                         info_buffer[oldest].orig_color,
                         info_buffer[oldest].type,
                         info_buffer[oldest].subtype,
                         info_buffer[oldest].message);
-                    info_buffer[oldest].age = -1;
+                    info_buffer[oldest].count = -1;
                     empty = oldest;
                 } else {
                     LOG(LOG_ERROR, "info.c::message_callback",
                         "Buffer full; oldest unknown", strlen(message));
                 }
             }
+            /*
+             * To avoid delaying player notification in cases where multiple
+             * messages might not occur, or especially if a message is really
+             * important to get right away, go ahead an output the message
+             * without a count at the time it is first put into a buffer.  As
+             * this message has already been output, the buffer count is set
+             * zero, so that info_buffer_flush() will not re-display it if a
+             * duplicate does not occur while this message is in the buffer.
+             */
+            draw_ext_info(orig_color, type, subtype, message);
             /*
              * There should always be an empty buffer at this point, but just
              * in case, recheck before putting the new message in the buffer.
@@ -975,17 +1042,11 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
                 * Copy the incoming message to the empty buffer.
                 */
                 info_buffer[empty].age = 0;
-                info_buffer[empty].count = 1;
+                info_buffer[empty].count = 0;
                 info_buffer[empty].orig_color = orig_color;
                 info_buffer[empty].type = type;
                 info_buffer[empty].subtype = subtype;
                 strcpy(info_buffer[empty].message, message);
-            } else {
-                /*
-                 * Something went wrong.  The message could not be buffered,
-                 * so print it out directly.
-                 */
-                draw_ext_info(orig_color, type, subtype, message);
             }
         }
     }
