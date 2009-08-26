@@ -128,51 +128,128 @@ static int max_subtype=0, has_style=0;
  */
 #define MESSAGE_BUFFER_COUNT 10         /**< The maximum number of messages
                                          *   to concurrently monitor for
-                                         *   duplicate occurances.          */
+                                         *   duplicate occurances.
+                                         */
 #define MESSAGE_BUFFER_SIZE  56         /**< The maximum allowable size of
                                          *   messages that are checked for
-                                         *   duplicate reduction.           */
+                                         *   duplicate reduction.
+                                         */
 #define COUNT_BUFFER_SIZE    16         /**< The maximum size of the tag
                                          *   that indicates the number of
                                          *   times a message occured while
-                                         *   buffered. Example: "4 times " */
+                                         *   buffered.  Example: "4 times "i
+                                         */
 #define MESSAGE_COUNT_MAX    16         /**< The maximum number of times a
                                          *   buffered message may repeat
                                          *   before it is sent to a client
-                                         *   panel for for display.         */
+                                         *   panel for for display.
+                                         */
 #define MESSAGE_AGE_MAX      16         /**< The maximum time in client
-                                         *   ticks, that a message resides
-                                         *   in a buffer before it is sent
-                                         *   to a client panel for display.
-                                         *   8 ticks is roughly 1 second.   */
+                                         *   ticks, that a message resides in
+                                         *   a buffer before it is sent to a
+                                         *   client panel for display.  8
+                                         *   ticks is roughly 1 second.
+                                         */
 /** @struct info_buffer_t
   * @brief A buffer record that supports suppression of duplicate messages.
-  * This buffer holds data for messages that are monitored for suppression
-  * of duplicates.  The buffer holds all data passed to message_callback(),
+  * This buffer holds data for messages that are monitored for suppression of
+  * duplicates.  The buffer holds all data passed to message_callback(),
   * including type, subtype, suggested color, and the text.  Age and count
-  * fields are provided to track the time a message is in the buffer, and
-  * how many times it occured during the time it is buffered.
+  * fields are provided to track the time a message is in the buffer, and how
+  * many times it occured during the time it is buffered.
   */
 struct info_buffer_t
 {
   int  age;                             /**< The length of time a message
-                                         *   spends in the buffer, measured
-                                         *   in client ticks.               */
+                                         *   spends in the buffer, measured in
+                                         *   client ticks.
+                                         */
   int  count;                           /**< The number of times a buffered
-                                         *   message is detected while it
-                                         *   is buffered.  A count of -1
-                                         *   indicates the buffer is empty. */
+                                         *   message is detected while it is
+                                         *   buffered.  A count of -1
+                                         *   indicates the buffer is empty.
+                                         */
   int  orig_color;                      /**< Message data:  The suggested
-                                         *   color to display the text in.  */
+                                         *   color to display the text in.
+                                         */
   int  type;                            /**< Message data:  Classification
-                                         *   of the buffered message.       */
+                                         *   of the buffered message.
+                                         */
   int  subtype;                         /**< Message data:  Sub-class of
-                                         *   the buffered message.          */
-  char message[MESSAGE_BUFFER_SIZE];    /**< Message data:  Message text.   */
+                                         *   the buffered message.
+                                         */
+  char message[MESSAGE_BUFFER_SIZE];    /**< Message data:  Message text.
+                                         */
 } info_buffer[MESSAGE_BUFFER_COUNT];    /**< Several buffers that support
                                          *   suppression of duplicates even
                                          *   even when the duplicates are
-                                         *   alternate with other messages. */
+                                         *   alternate with other messages.
+                                         */
+/** @struct info_control_t
+ *  @brief Descriptive message type names with pane routing and buffer enable.
+ *  A single struct defines a hard-coded, player-friendly, descriptive name to
+ *  use for a single message type.  All other fields in the structure define
+ *  routing of messages to either or both client message panels, and whether
+ *  or not messages of this type are passed through the duplicate suppression
+ *  buffer system.  This struct is intended to be used as the base type of an
+ *  array that contains one struct per message type defined in newclient.h.
+ *  The hard-coding of the descriptive name for the message type here is not
+ *  ideal as it would be nicer to have it alongside the MSG_TYPE_*  defines.
+ */
+struct info_control_t
+{
+  const char * type;                    /**< A descriptive name to give to
+                                         *   a message type when displaying it
+                                         *   for a player.  These values
+                                         *   should be kept in sync with the
+                                         *   MSG_TYPE_* declarations in
+                                         *   ../../common/shared/newclient.h
+                                         */
+  int pane[NUM_TEXT_VIEWS];             /**< The routing instructions for a
+                                         *   single message type.  For each
+                                         *   pane, 0/1 == disable/enable
+                                         *   display of the message type in
+                                         *   the associated client message
+                                         *   pane.
+                                         */
+  int buffer;                           /**< Whether or not to consider the
+                                         *   message type for output-count
+                                         *   buffering.  0/1 == disable/enable
+                                         *   duplicate suppression
+                                         *   (output-count).
+                                         */
+} info_control[MSG_TYPE_LAST-1] =       /**< A data structure to track how
+                                         *   to handle each message type in
+                                         *   with respect to panel routing and
+                                         *   output count.
+                                         */
+
+  {
+    /*
+     * { "type",                            { pane[0], pane[1] }, buffer },
+     */
+       { "Books",                           {       1,       0 },      0 },  
+       { "Cards",                           {       1,       0 },      0 },
+       { "Paper",                           {       1,       0 },      0 },
+       { "Signs",                           {       1,       0 },      0 },
+       { "Monuments",                       {       1,       0 },      0 },
+       { "Dialogs (Altar/NPC/Magic Mouth)", {       1,       0 },      0 },
+       { "Message of the day",              {       1,       0 },      0 },
+       { "Administrative",                  {       1,       0 },      0 },
+       { "Shops",                           {       1,       0 },      1 },
+       { "Command responses",               {       1,       0 },      1 },
+       { "Changes to attributes",           {       1,       0 },      1 },
+       { "Skill-related messages",          {       1,       0 },      1 },
+       { "Apply results",                   {       1,       0 },      1 },
+       { "Attack results",                  {       1,       0 },      1 },
+       { "Player communication",            {       1,       1 },      0 },
+       { "Spell results",                   {       1,       0 },      1 },
+       { "Item information",                {       1,       0 },      1 },
+       { "Miscellaneous",                   {       1,       0 },      1 },
+       { "Victim notification",             {       1,       1 },      0 },
+       { "Client-generated messages",       {       1,       0 },      0 }
+                                                                            };
+      
 /**
  * @} EndOf GTK V2 Client Output Count/Sync Definitions.
  */
@@ -644,7 +721,12 @@ static void add_to_textbuf(int pane, char *message,
 void draw_ext_info(int orig_color, int type, int subtype, char *message) {
     char *marker, *current, *original;
     int bold=0, italic=0, font=0, underline=0;
-    int pane=0;       /**< Which pane the incoming message should go to.
+    int type_err=0;   /**< When 0, the type is valid and may be used to pick
+                       *   the panel routing, otherwise the message can only
+                       *   go to the main message pane.
+                       */
+    int pane=0;       /**< An iterator that selects message panes to send
+                       *   messages to.
                        */
     char *color=NULL; /**< Only if we get a [color] tag should we care,
                        *   otherwise, the type/subtype should dictate color
@@ -655,88 +737,105 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
     original = current;         /* Just so we know what to free */
 
     /*
-     * Route messages to different information panels based on the type of the
-     * message text.  By default, messages go to the main information panel.
-     * Certain message types are considered critical, and they are rerouted to
-     * the secondary message panel.  See MSG_TYPE definitions in newclient.h
-     * for a complete listing of the available types.  msgtypes.h also helps
-     * clarify what different message types are used for.
+     * A valid message type is required to index into the info_control array.
+     * If an invalid type is identified, log an error as any message without
+     * a valid type should be hunted down and assigned an appropriate type.
      */
-    if (type == MSG_TYPE_ATTRIBUTE
-    ||  type == MSG_TYPE_COMMUNICATION
-    ||  type == MSG_TYPE_DIALOG
-    ||  type == MSG_TYPE_VICTIM)
-    {
-        /* Critical messages */
-        pane = 1;
-    } else {
-        /* All other messages */
-        pane = 0;
+    if ((type < 1) || (type >= MSG_TYPE_LAST)) {
+        LOG(LOG_ERROR, "info.c::draw_ext_info",
+            "Invalid message type: %d", type);
+        type_err = 1;
     }
 
     /*
-     * If there is no style information, or if a specific style has not been
-     * set for the type/subtype of this message, allow orig_color to set the
-     * color of the text.  The orig_color handling here adds compatibility
-     * with former draw_info() calls that gave a color hint.  The color hint
-     * still works now in the event that the theme has not set a style for
-     * the message type.
+     * Route messages to any one of the client information panels based on the
+     * type of the message text.  If a message with an invalid type comes in,
+     * it goes to the main message panel (0).  Messages can actually be sent
+     * to more than one panel if the player so desires.
      */
-    if (! has_style || info_pane[pane].msg_type_tags[type][subtype] == 0) {
-        if (orig_color <0 || orig_color>NUM_COLORS) {
-            LOG(LOG_ERROR, "info.c::message_callback",
-                "Passed invalid color from server: %d, max allowed is %d\n",
-                orig_color, NUM_COLORS);
-            orig_color = 0;
+    for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+        /*
+         * If the message type is invalid, then the message must go to pane 0,
+         * otherwise the info_control[].pane[pane] setting determines whether
+         * to send the message to a particular pane or not.  The type is one-
+         * based, so must be decremented when referencing info_control[];
+         */
+        if (type_err != 0) {
+            if (pane != 0) {
+                break;
+            }
         } else {
-            /*
-             * Not efficient - we have a number, but convert it to a string, at
-             * which point add_to_textbuf() converts it back to a number :(
-             */
-            color = (char*)usercolorname[orig_color];
-        }
-    }
-
-    while ((marker = strchr(current, '[')) != NULL) {
-        *marker = 0;
-
-        if (strlen(current) > 0)
-            add_to_textbuf(pane,
-                current, type, subtype, bold, italic, font, color, underline);
-
-        current = marker + 1;
-
-        if ((marker = strchr(current, ']')) == NULL) {
-            free(original);
-            return;
+            if (info_control[type - 1].pane[pane] == 0)
+                continue;
         }
 
-        *marker = 0;
-        if (!strcmp(current, "b"))               bold = TRUE;
-        else if (!strcmp(current,  "/b"))        bold = FALSE;
-        else if (!strcmp(current,  "i"))         italic = TRUE;
-        else if (!strcmp(current,  "/i"))        italic = FALSE;
-        else if (!strcmp(current,  "ul"))        underline = TRUE;
-        else if (!strcmp(current,  "/ul"))       underline = FALSE;
-        else if (!strcmp(current,  "fixed"))     font = FONT_FIXED;
-        else if (!strcmp(current,  "arcane"))    font = FONT_ARCANE;
-        else if (!strcmp(current,  "hand"))      font = FONT_HAND;
-        else if (!strcmp(current,  "strange"))   font = FONT_STRANGE;
-        else if (!strcmp(current,  "print"))     font = FONT_NORMAL;
-        else if (!strcmp(current,  "/color"))    color = NULL;
-        else if (!strncmp(current, "color=", 6)) color = current + 6;
-        else
-            LOG(LOG_INFO, "info.c::message_callback",
-                "unrecognized tag: [%s]\n", current);
+        /*
+         * If there is no style information, or if a specific style has not
+         * been set for the type/subtype of this message, allow orig_color to
+         * set the color of the text.  The orig_color handling here adds
+         * compatibility with former draw_info() calls that gave a color hint.
+         * The color hint still works now in the event that the theme has not
+         * set a style for the message type.
+         */
+        if (! has_style || info_pane[pane].msg_type_tags[type][subtype] == 0) {
+            if (orig_color <0 || orig_color>NUM_COLORS) {
+                LOG(LOG_ERROR, "info.c::message_callback",
+                    "Passed invalid color from server: %d, max allowed is %d\n",
+                        orig_color, NUM_COLORS);
+                orig_color = 0;
+            } else {
+                /*
+                 * Not efficient - we have a number, but convert it to a
+                 * string, at which point add_to_textbuf() converts it back to
+                 * a number :(
+                 */
+                color = (char*)usercolorname[orig_color];
+            }
+        }
 
-        current = marker + 1;
+        while ((marker = strchr(current, '[')) != NULL) {
+            *marker = 0;
+
+            if (strlen(current) > 0)
+                add_to_textbuf(pane, current, type, subtype,
+                    bold, italic, font, color, underline);
+
+            current = marker + 1;
+
+            if ((marker = strchr(current, ']')) == NULL) {
+                free(original);
+                return;
+            }
+
+            *marker = 0;
+            if (!strcmp(current, "b"))               bold = TRUE;
+            else if (!strcmp(current,  "/b"))        bold = FALSE;
+            else if (!strcmp(current,  "i"))         italic = TRUE;
+            else if (!strcmp(current,  "/i"))        italic = FALSE;
+            else if (!strcmp(current,  "ul"))        underline = TRUE;
+            else if (!strcmp(current,  "/ul"))       underline = FALSE;
+            else if (!strcmp(current,  "fixed"))     font = FONT_FIXED;
+            else if (!strcmp(current,  "arcane"))    font = FONT_ARCANE;
+            else if (!strcmp(current,  "hand"))      font = FONT_HAND;
+            else if (!strcmp(current,  "strange"))   font = FONT_STRANGE;
+            else if (!strcmp(current,  "print"))     font = FONT_NORMAL;
+            else if (!strcmp(current,  "/color"))    color = NULL;
+            else if (!strncmp(current, "color=", 6)) color = current + 6;
+            else
+                LOG(LOG_INFO, "info.c::message_callback",
+                    "unrecognized tag: [%s]\n", current);
+
+            current = marker + 1;
+        }
+
+        add_to_textbuf(
+            pane, current, type, subtype, 
+                bold, italic, font, color, underline);
+
+        add_to_textbuf(
+            pane, "\n", type, subtype,
+                bold, italic, font, color, underline);
     }
-
-    add_to_textbuf(
-        pane, current, type, subtype, bold, italic, font, color, underline);
-
-    add_to_textbuf(
-        pane, "\n", type, subtype, bold, italic, font, color, underline);
 
     free(original);
 }
@@ -762,7 +861,7 @@ void info_buffer_init() {
         info_buffer[loop].type = 0;
         info_buffer[loop].subtype = 0;
         info_buffer[loop].orig_color = 0;
-        info_buffer[loop].message[0] = NULL;
+        info_buffer[loop].message[0] = '\0';
     };
 };
 
@@ -894,15 +993,15 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     int oldest_age;                     /* Age of oldest non-empty buffer.  */
 
     /*
-     * Message buffering is a feature that may be enabled or disabled by the
-     * player.  If the system is turned off, simply forward all messages to
-     * the output handler with no additional processing.
+     * Any message that has an invalid type cannot be buffered.  An error is
+     * not logged here as draw_ext_info() is where all messages pass through.
      *
      * A legacy switch to prevent message folding is to set the color of the
-     * message to NDI_UNIQUE.
+     * message to NDI_UNIQUE.  This over-rides the player preferences.
      *
-     * Messages sourced by the client are generally administrative in nature,
-     * and should not be buffered.
+     * Usually info_control[] is used to determine whether or not messages are
+     * buffered as it is where the player sets buffering preferences.  The
+     * type must be decremented when used to index into info_control[].
      *
      * The system also declines to buffer messages over a set length as most
      * messages that need coalescing are short.  Most messages that are long
@@ -910,11 +1009,10 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
      * at the end of the string in the buffer. IE. If the buffer size is 40,
      * only 39 chars can be put into it to ensure room for a null character.
      */
-    if ((MESSAGE_COUNT_MAX <= 1)        /* The player buffer on/off switch. */
-    ||  (type <  MSG_TYPE_SKILL)
-    ||  (type == MSG_TYPE_CLIENT)
-    ||  (type == MSG_TYPE_COMMUNICATION)
+    if ((type <  1)
+    ||  (type >= MSG_TYPE_LAST)
     ||  (orig_color == NDI_UNIQUE)
+    ||  (info_control[type - 1].buffer == 0)
     ||  (strlen(message) >= MESSAGE_BUFFER_SIZE)) {
         /*
          * If the message buffering feature is off, simply pass the message on

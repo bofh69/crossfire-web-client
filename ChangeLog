@@ -2,6 +2,20 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c: Set up an info_control[] array of structs, one element for
+  each message MSG_TYPE_* in common/shared/newclient.h.  This array contains
+  enable/disable flags that determine whether or not a message shows up in any
+  of the message panels (and it is possible to route message types to both
+  panels).  The array also determines which of the message types are processed
+  for duplicate message reduction.  There are still a few conditions that
+  override the info_control[] settings.  Presently the array is filled with
+  hard-coded defaults, but they will ultimately become defaults that can be
+  over-ridden by an in-client control panel and, eventually, by settings saved
+  to a configuration file.  message_callback() and draw_ext_info() are now
+  modified to use info_control[] instead of the hard-coded settings they used
+  previously.
+Kevin Bulgrien 2009/08/25
+
 Adjust the client-side output-count implementation to always output a message
 the first time it occurs when it first enters the buffering system.  After the
 initial display, the output-count and sync settings determine display time.
