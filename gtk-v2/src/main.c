@@ -780,6 +780,7 @@ main (int argc, char *argv[])
     }
 
     inventory_init(window_root);
+    msgctrl_init(window_root);
     info_init(window_root);
     keys_init(window_root);
     stats_init(window_root);

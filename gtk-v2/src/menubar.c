@@ -24,7 +24,7 @@ const char * const rcsid_gtk2_menubar_c =
 
 /**
  * @file gtk-v2/src/menubar.c
- * Implements the core selections from the top menubar.
+ * Sets up menu connections and implements core menu items in the top menubar.
  *
  * Quick notes on the menubar:
  * 1) Using the stock Quit menu item for some reason causes it to take several
@@ -144,6 +144,10 @@ void enable_menu_items(int enable)
     widget = glade_xml_get_widget(xml_tree, "keybindings");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_keybindings_activate), NULL);
+
+    widget = glade_xml_get_widget(xml_tree, "msgctrl");
+    g_signal_connect ((gpointer) widget, "activate",
+        G_CALLBACK (on_msgctrl_activate), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "save_window_position");
     g_signal_connect ((gpointer) widget, "activate",
@@ -301,3 +305,4 @@ void enable_menu_items(int enable)
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (menu_about), NULL);
 }
+

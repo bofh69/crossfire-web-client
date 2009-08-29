@@ -1,7 +1,31 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
-
+gtk-v2/src/info.c:  Begin referring to the in-client output-count and message
+  routing as the "Message Control System", and add support for in-client,
+  player configuration via a new dialog to replace previously hard-coded
+  settings.  Change some previously selected data types to GTK data types to
+  make interfacing with the UI require fewer casts.  Instead of continuing to
+  use the info_ prefix for this functionality, start using a msgctrl_ prefix.
+  Added new functions to support the Message Control dialog: msgctrl_init()
+  which does the dialog setup on client start; save_msgctrl_configuration(),
+  and load_msgctrl_configuration() that are presently stubs, but are intended
+  to be used to allow the message control configuration to be saved and
+  restored.  read_msgctrl_configuration() obtains the state of the Message
+  Control dialog checkboxes, and dynamically, at run-time, allows the player
+  to reconfigure which message types undergo duplicate suppression, and to
+  which message panels they are routed to.  on_msgctrl_button_save_clicked(),
+  on_msgctrl_button_apply_clicked(), and on_msgctrl_button_close_clicked()
+  support the dialog buttons (though presently the save button is disabled as
+  saving and loading is not yet supported).  on_msgctrl_activate() displays
+  the new dialog when the Client | Message Control menu option is selected.
+  All data structures and functions are heavily commented in the doxygen
+  style.
+gtk-v2/src/main.c:  Added a call to msgctrl_init() during client startup to
+  construct the checkbox table and preset all the checkboxes to match the
+  hardcoded defaults in info.c.
+gtk-v2/src/menubar.c:  Link the new Message Control dialog into the client
+  menu.
 gtk-v2/src/gtk2proto.h:  Update to include prototypes for the new Message
   Control system in-client configuration support.
 gtk-v2/glade/dialog.glade:  Dress up the about, metaserver, spell, and

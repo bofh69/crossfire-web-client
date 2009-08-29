@@ -93,9 +93,8 @@ struct Info_Pane
     GtkTextTag      **msg_type_tags[MSG_TYPE_LAST];
 } info_pane[NUM_TEXT_VIEWS];
 
-static void message_callback(int orig_color, int type, int subtype, char *message);
-void draw_ext_info(int orig_color, int type, int subtype, char *message);
 
+void draw_ext_info(int orig_color, int type, int subtype, char *message);
 extern  const char * const colorname[NUM_COLORS];
 
 /*
@@ -116,7 +115,7 @@ static int max_subtype=0, has_style=0;
 
 /**
  * @{
- * @name GTK V2 Client Output Count and Sync Definitions.
+ * @name GTK V2 Message Control System.
  * Supports a client-side implementation of what used to be provided by the
  * server output-count and output-sync commands.  These defines presently
  * control the way the system works.  The hardcoded values here are temporary
@@ -126,6 +125,18 @@ static int max_subtype=0, has_style=0;
  * them are set less than 1, and as long as the two buffer sizes are set to
  * reasonable values (buffer sizes include the terminating null character).
  */
+
+static void
+message_callback(int orig_color, int type, int subtype, char *message);
+
+GtkWidget *msgctrl_window;              /**< The message control dialog
+                                         *   where routing and buffer
+                                         *   configuration is set up.
+                                         */
+GtkWidget *msgctrl_table;               /**< The message control table
+                                         *   where routing and buffer
+                                         *   configuration is set up.
+                                         */
 #define MESSAGE_BUFFER_COUNT 10         /**< The maximum number of messages
                                          *   to concurrently monitor for
                                          *   duplicate occurances.
@@ -185,7 +196,21 @@ struct info_buffer_t
                                          *   even when the duplicates are
                                          *   alternate with other messages.
                                          */
-/** @struct info_control_t
+/** @struct msgctrl_widgets_t
+ *  @brief A container for the GTK widgets that control the messages.
+ */
+struct msgctrl_widgets_t
+{
+  GtkWidget *buffer;                    /**< Checkbox widget for a single
+                                          *  message type.
+                                          */
+  GtkWidget *pane[NUM_TEXT_VIEWS];      /**< Checkbox widgets for each client
+                                          *  supported message panels.
+                                          */
+} msgctrl_widgets[MSG_TYPE_LAST-1];     /**< All of the checkbox widgets that
+                                          *  configure message control.
+                                          */
+/** @struct msgctrl_data_t
  *  @brief Descriptive message type names with pane routing and buffer enable.
  *  A single struct defines a hard-coded, player-friendly, descriptive name to
  *  use for a single message type.  All other fields in the structure define
@@ -196,29 +221,29 @@ struct info_buffer_t
  *  The hard-coding of the descriptive name for the message type here is not
  *  ideal as it would be nicer to have it alongside the MSG_TYPE_*  defines.
  */
-struct info_control_t
+struct msgctrl_data_t
 {
-  const char * type;                    /**< A descriptive name to give to
+  const char * description;             /**< A descriptive name to give to
                                          *   a message type when displaying it
                                          *   for a player.  These values
                                          *   should be kept in sync with the
                                          *   MSG_TYPE_* declarations in
                                          *   ../../common/shared/newclient.h
                                          */
-  int pane[NUM_TEXT_VIEWS];             /**< The routing instructions for a
+  gboolean buffer;                      /**< Whether or not to consider the
+                                         *   message type for output-count
+                                         *   buffering.  0/1 == disable/enable
+                                         *   duplicate suppression
+                                         *   (output-count).
+                                         */
+  gboolean pane[NUM_TEXT_VIEWS];        /**< The routing instructions for a
                                          *   single message type.  For each
                                          *   pane, 0/1 == disable/enable
                                          *   display of the message type in
                                          *   the associated client message
                                          *   pane.
                                          */
-  int buffer;                           /**< Whether or not to consider the
-                                         *   message type for output-count
-                                         *   buffering.  0/1 == disable/enable
-                                         *   duplicate suppression
-                                         *   (output-count).
-                                         */
-} info_control[MSG_TYPE_LAST-1] =       /**< A data structure to track how
+} msgctrl_data[MSG_TYPE_LAST-1] =       /**< A data structure to track how
                                          *   to handle each message type in
                                          *   with respect to panel routing and
                                          *   output count.
@@ -226,32 +251,31 @@ struct info_control_t
 
   {
     /*
-     * { "type",                            { pane[0], pane[1] }, buffer },
-     */
-       { "Books",                           {       1,       0 },      0 },  
-       { "Cards",                           {       1,       0 },      0 },
-       { "Paper",                           {       1,       0 },      0 },
-       { "Signs",                           {       1,       0 },      0 },
-       { "Monuments",                       {       1,       0 },      0 },
-       { "Dialogs (Altar/NPC/Magic Mouth)", {       1,       0 },      0 },
-       { "Message of the day",              {       1,       0 },      0 },
-       { "Administrative",                  {       1,       0 },      0 },
-       { "Shops",                           {       1,       0 },      1 },
-       { "Command responses",               {       1,       0 },      1 },
-       { "Changes to attributes",           {       1,       0 },      1 },
-       { "Skill-related messages",          {       1,       0 },      1 },
-       { "Apply results",                   {       1,       0 },      1 },
-       { "Attack results",                  {       1,       0 },      1 },
-       { "Player communication",            {       1,       1 },      0 },
-       { "Spell results",                   {       1,       0 },      1 },
-       { "Item information",                {       1,       0 },      1 },
-       { "Miscellaneous",                   {       1,       0 },      1 },
-       { "Victim notification",             {       1,       1 },      0 },
-       { "Client-generated messages",       {       1,       0 },      0 }
+     * { "description",                    buffer, {  pane[0], pane[1] } },
+     */                                               
+       { "Books",                           FALSE, {     TRUE,   FALSE } },  
+       { "Cards",                           FALSE, {     TRUE,   FALSE } },
+       { "Paper",                           FALSE, {     TRUE,   FALSE } },
+       { "Signs",                           FALSE, {     TRUE,   FALSE } },
+       { "Monuments",                       FALSE, {     TRUE,   FALSE } },
+       { "Dialogs (Altar/NPC/Magic Mouth)", FALSE, {     TRUE,   FALSE } },
+       { "Message of the day",              FALSE, {     TRUE,   FALSE } },
+       { "Administrative",                  FALSE, {     TRUE,   FALSE } },
+       { "Shops",                            TRUE, {     TRUE,   FALSE } },
+       { "Command responses",                TRUE, {     TRUE,   FALSE } },
+       { "Changes to attributes",            TRUE, {     TRUE,   FALSE } },
+       { "Skill-related messages",           TRUE, {     TRUE,   FALSE } },
+       { "Apply results",                    TRUE, {     TRUE,   FALSE } },
+       { "Attack results",                   TRUE, {     TRUE,   FALSE } },
+       { "Player communication",            FALSE, {     TRUE,    TRUE } },
+       { "Spell results",                    TRUE, {     TRUE,   FALSE } },
+       { "Item information",                 TRUE, {     TRUE,   FALSE } },
+       { "Miscellaneous",                    TRUE, {     TRUE,   FALSE } },
+       { "Victim notification",             FALSE, {     TRUE,    TRUE } },
+       { "Client-generated messages",       FALSE, {     TRUE,   FALSE } }
                                                                             };
-      
 /**
- * @} EndOf GTK V2 Client Output Count/Sync Definitions.
+ * @} EndOf GTK V2 Message Control System.
  */
 
 /**
@@ -737,7 +761,7 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
     original = current;         /* Just so we know what to free */
 
     /*
-     * A valid message type is required to index into the info_control array.
+     * A valid message type is required to index into the msgctrl_data array.
      * If an invalid type is identified, log an error as any message without
      * a valid type should be hunted down and assigned an appropriate type.
      */
@@ -756,16 +780,16 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
     for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
         /*
          * If the message type is invalid, then the message must go to pane 0,
-         * otherwise the info_control[].pane[pane] setting determines whether
+         * otherwise the msgctrl_data[].pane[pane] setting determines whether
          * to send the message to a particular pane or not.  The type is one-
-         * based, so must be decremented when referencing info_control[];
+         * based, so must be decremented when referencing msgctrl_data[];
          */
         if (type_err != 0) {
             if (pane != 0) {
                 break;
             }
         } else {
-            if (info_control[type - 1].pane[pane] == 0)
+            if (msgctrl_data[type - 1].pane[pane] == FALSE)
                 continue;
         }
 
@@ -984,7 +1008,8 @@ void info_buffer_tick() {
  * @param message
  * The message text.
  */
-static void message_callback(int orig_color, int type, int subtype, char *message) {
+static void
+message_callback(int orig_color, int type, int subtype, char *message) {
     int search;                         /* Loop for searching the buffers.  */
     int found;                          /* Which buffer a message is in.    */
     int empty;                          /* The ID of an empty buffer.       */
@@ -999,9 +1024,9 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
      * A legacy switch to prevent message folding is to set the color of the
      * message to NDI_UNIQUE.  This over-rides the player preferences.
      *
-     * Usually info_control[] is used to determine whether or not messages are
+     * Usually msgctrl_data[] is used to determine whether or not messages are
      * buffered as it is where the player sets buffering preferences.  The
-     * type must be decremented when used to index into info_control[].
+     * type must be decremented when used to index into msgctrl_data[].
      *
      * The system also declines to buffer messages over a set length as most
      * messages that need coalescing are short.  Most messages that are long
@@ -1012,7 +1037,7 @@ static void message_callback(int orig_color, int type, int subtype, char *messag
     if ((type <  1)
     ||  (type >= MSG_TYPE_LAST)
     ||  (orig_color == NDI_UNIQUE)
-    ||  (info_control[type - 1].buffer == 0)
+    ||  (msgctrl_data[type - 1].buffer == FALSE)
     ||  (strlen(message) >= MESSAGE_BUFFER_SIZE)) {
         /*
          * If the message buffering feature is off, simply pass the message on
@@ -1207,3 +1232,241 @@ int get_info_width(void)
 {
     return 40;
 }
+
+/**
+ * Initialize the message control panel
+ *
+ * @param window_root The client main window
+ */
+void msgctrl_init(GtkWidget *window_root)
+{
+    GtkTableChild* child;               /* Used to get number of title rows */
+    GladeXML*      xml_tree;            /* Used to find the dialog widgets  */
+    GtkWidget*     widget;              /* Used to connect widgets          */
+    GtkTable*      table;               /* The table of checkbox controls   */
+    GList*         list;                /* Iterator: table children         */
+    guint          pane;                /* Iterator: client message panes   */
+    guint          type;                /* Iterator: message types          */
+    guint          row;                 /* Attachement for current widget   */
+    gint           title_rows = -1;     /* Title rows in msgctrl_table as
+                                         * defined in glade designer.  -1
+                                         * means there are no title rows.
+                                         */
+    /*
+     * Get the window pointer and a pointer to the tree of widgets it contains
+     */
+    msgctrl_window = glade_xml_get_widget(dialog_xml, "msgctrl_window");
+    xml_tree = glade_get_widget_tree(GTK_WIDGET(msgctrl_window));
+    /*
+     * Locate the table widget to fill with controls and its structure.
+     */
+    msgctrl_table = glade_xml_get_widget(xml_tree, "msgctrl_table");
+    table = GTK_TABLE(msgctrl_table);
+    /*
+     * How many title rows were set up in the table?  The title rows are the
+     * non-empty rows.  Row numbers are zero-based.  IMPORTANT: It is assumed
+     * any row with at least one widget has widgets in all columns.  WARNING:
+     * This assumption is unwise if client layouts begin to be implemented to
+     * have fewer message panes than the code supports!
+     */
+    for (list = table->children; list; list = list->next) {
+        child = list->data;
+        if ((child->widget != 0) && (child->top_attach > title_rows)) {
+            title_rows = child->top_attach;
+        }
+    }
+
+    /*
+     * The table is defined in the dialog created with the design tool, but
+     * the dimensions of the table are not known at design time, so it must be
+     * resized and built up at run-time.
+     *
+     * The table columns are:  message type description, message buffer
+     * enable, and one enable per message pane supported by the client code.
+     * The client layout might not support all of the panes, but all of them
+     * will be put into the table.
+     *
+     * The table rows are: the header rows + the number of message types that
+     * the client and server support.  We assume the XML file designer did
+     * properly set up the header rows.  Since MSG_TYPE_LAST is 1 more than
+     * the actual number of types, and since title_rows is one less than the
+     * actual number of header rows, they balance out when added together.
+     */
+    gtk_table_resize(table,
+        (guint)(MSG_TYPE_LAST + title_rows), (guint)(1 + 1 + NUM_TEXT_VIEWS));
+    /*
+     * Now we need to put labels and checkboxes in each of the empty rows.  It
+     * helps if we change title_rows to a one-based number.  Walk through each
+     * message type and set the corresponding row of the table it needs to go
+     * with.  type is one-based.  The msgctrl_data and _widget arrays are zero
+     * based.
+     */
+    title_rows += 1;
+    for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
+        row = type + title_rows;
+        /*
+         * The message type description.  Just put the the message type name
+         * in a label, left-justified with some padding to keep it away from
+         * the dialog frame and perhaps the neighboring checkbox.
+         */
+        widget = gtk_label_new(msgctrl_data[type].description);
+        gtk_misc_set_alignment(GTK_MISC(widget), 0.0f, 0.5f);
+        gtk_misc_set_padding(GTK_MISC(widget), 2, 0);
+        gtk_table_attach_defaults(table, widget, 0, 1, row, row + 1);
+        gtk_widget_show(widget);
+        /*
+         * The buffer enable/disable.  Display a check box that is preset to
+         * the built-in default setting.
+         */
+        msgctrl_widgets[type].buffer = gtk_check_button_new();
+        gtk_toggle_button_set_active(
+            (GtkToggleButton *) msgctrl_widgets[type].buffer,
+                msgctrl_data[type].buffer);
+        gtk_table_attach_defaults(
+            table, msgctrl_widgets[type].buffer, 1, 2, row, row + 1);
+        gtk_widget_show(msgctrl_widgets[type].buffer);
+        /*
+         * The message pane routings.  Display a check box that is preset to
+         * the built in defaults.  TODO:  Panes that are unsupported in the
+         * current layout should always have their routing disabled, and
+         * should disallow user interaction with the control but this logic is
+         * not yet implemented.
+         */
+        for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+            msgctrl_widgets[type].pane[pane] = gtk_check_button_new();
+            gtk_toggle_button_set_active(
+                (GtkToggleButton *) msgctrl_widgets[type].pane[pane],
+                    msgctrl_data[type].pane[pane]);
+            gtk_table_attach_defaults(
+                table, msgctrl_widgets[type].pane[pane],
+                    pane + 2, pane + 3, row, row + 1);
+            gtk_widget_show(msgctrl_widgets[type].pane[pane]);
+        }
+    }
+
+    /*
+     * Connect the control's buttons to the appropriate handlers.
+     */
+    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_save");
+    /*
+     * Save button functionality is not yet implemented, so the control is set
+     * inactive.
+     */
+    gtk_widget_set_sensitive(widget, FALSE);
+    g_signal_connect ((gpointer) widget, "clicked",
+        G_CALLBACK (on_msgctrl_button_save_clicked), NULL);
+
+    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_apply");
+    g_signal_connect ((gpointer) widget, "clicked",
+        G_CALLBACK (on_msgctrl_button_apply_clicked), NULL);
+
+    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_close");
+    g_signal_connect ((gpointer) widget, "clicked",
+        G_CALLBACK (on_msgctrl_button_close_clicked), NULL);
+}
+
+/**
+ * Saves the state of the message control dialog so the configuration persists
+ * across client sessions.
+ *
+ * This is presently a stub.  When it is implemented, remember to remove the
+ * sensitivity disable in msgctrl_init().
+ */
+void save_msgctrl_configuration(void)
+{
+}
+
+/**
+ * Setup the state of the message control dialog so the configuration matches
+ * a previously saved configuration.
+ *
+ * This is presently a stub.
+ */
+void load_msgctrl_configuration(void)
+{
+}
+
+/**
+ * Reads the state of the message control dialog so the configuration can be
+ * used in the client session.
+ */
+void read_msgctrl_configuration(void)
+{
+    guint pane;
+    guint type;
+
+    /*
+     * Iterate through each message type.  For each, record the value of the
+     * message duplicate suppression checkbox, and also obtain the routing
+     * settings for all client supported panels (even if the layout does not
+     * support them all.
+     */
+    for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
+        msgctrl_data[type].buffer =
+            gtk_toggle_button_get_active(
+                (GtkToggleButton *) msgctrl_widgets[type].buffer);
+        for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+            msgctrl_data[type].pane[pane] =
+                gtk_toggle_button_get_active(
+                    (GtkToggleButton *) msgctrl_widgets[type].pane[pane]);
+        }
+    }
+}
+
+/**
+ * Defines the behavior invoked when the message control dialog save button is
+ * pressed.  The state of the control is read, and applied for immediate use,
+ * then saved so that the settings persist across client sessions.
+ *
+ * @param button
+ * @param user_data
+ */
+void
+on_msgctrl_button_save_clicked          (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    read_msgctrl_configuration();
+    save_msgctrl_configuration();
+}
+
+/**
+ * Defines the behavior invoked when the message control dialog apply button
+ * is pressed.  The state of the control is read and applied immediately.
+ *
+ * @param button
+ * @param user_data
+ */
+void
+on_msgctrl_button_apply_clicked         (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    read_msgctrl_configuration();
+}
+
+/**
+ * Defines the behavior invoked when the message control dialog close button
+ * is pressed.
+ *
+ * @param button
+ * @param user_data
+ */
+void
+on_msgctrl_button_close_clicked         (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    gtk_widget_hide(msgctrl_window);
+}
+
+/**
+ * Shows the message control dialog when the menu item is activated.
+ *
+ * @param menuitem
+ * @param user_data
+ */
+void
+on_msgctrl_activate                    (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    gtk_widget_show(msgctrl_window);
+}
+
