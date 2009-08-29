@@ -632,14 +632,14 @@
     <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
     <property name="deletable">False</property>
     <child>
-      <widget class="GtkVBox" id="vbox10">
+      <widget class="GtkVBox" id="config_vbox">
         <property name="visible">True</property>
         <child>
-          <widget class="GtkHBox" id="hbox19">
+          <widget class="GtkHBox" id="config_hbox_general">
             <property name="visible">True</property>
             <property name="border_width">5</property>
             <child>
-              <widget class="GtkLabel" id="label95">
+              <widget class="GtkLabel" id="config_label_general">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">General Options</property>
               </widget>
@@ -649,7 +649,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkHSeparator" id="hseparator1">
+              <widget class="GtkHSeparator" id="config_hseparator_general">
                 <property name="visible">True</property>
               </widget>
               <packing>
@@ -680,7 +680,7 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox18">
+          <widget class="GtkHBox" id="config_hbox_cwindow">
             <property name="visible">True</property>
             <property name="spacing">6</property>
             <child>
@@ -695,7 +695,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label94">
+              <widget class="GtkLabel" id="config_label_cwindow">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Command Window</property>
               </widget>
@@ -772,11 +772,11 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox20">
+          <widget class="GtkHBox" id="config_hbox_image">
             <property name="visible">True</property>
             <property name="border_width">5</property>
             <child>
-              <widget class="GtkLabel" id="label96">
+              <widget class="GtkLabel" id="config_label_image">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Map &amp; Image Options</property>
               </widget>
@@ -786,7 +786,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkHSeparator" id="hseparator2">
+              <widget class="GtkHSeparator" id="config_hseparator_image">
                 <property name="visible">True</property>
               </widget>
               <packing>
@@ -850,7 +850,7 @@ of being drawn as black spaces.</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox21">
+          <widget class="GtkHBox" id="config_hbox_iconscale">
             <property name="visible">True</property>
             <child>
               <widget class="GtkSpinButton" id="config_spinbutton_iconscale">
@@ -864,7 +864,7 @@ of being drawn as black spaces.</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label97">
+              <widget class="GtkLabel" id="config_label_iconscale">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Icon Scale (Takes effect next run)</property>
               </widget>
@@ -883,7 +883,7 @@ of being drawn as black spaces.</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox22">
+          <widget class="GtkHBox" id="config_hbox_mapscale">
             <property name="visible">True</property>
             <child>
               <widget class="GtkSpinButton" id="config_spinbutton_mapscale">
@@ -897,7 +897,7 @@ of being drawn as black spaces.</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label98">
+              <widget class="GtkLabel" id="config_label_mapscale">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Map Scale (Takes effect next run)</property>
               </widget>
@@ -931,7 +931,7 @@ of being drawn as black spaces.</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox23">
+          <widget class="GtkHBox" id="config_hbox_displaymode">
             <property name="visible">True</property>
             <child>
               <widget class="GtkComboBox" id="config_combobox_displaymode">
@@ -944,7 +944,7 @@ of being drawn as black spaces.</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label99">
+              <widget class="GtkLabel" id="config_label_displaymode">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Display mode.  OpenGL provides best quality with least amount of CPU
 resources.  SDL is next best, followed by Pixmap.  Depending on your
@@ -965,7 +965,7 @@ window system and available libraries, all of these may not be available.</prope
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox24">
+          <widget class="GtkHBox" id="config_hbox_lighting">
             <property name="visible">True</property>
             <child>
               <widget class="GtkComboBox" id="config_combobox_lighting">
@@ -982,7 +982,7 @@ Per Tile</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label100">
+              <widget class="GtkLabel" id="config_label_lighting">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Lighting options.  These are only used with the SDL display mode.  OpenGL
 uses its own lighting method, and Pixmap mode always uses per tile lighting.
@@ -1005,13 +1005,13 @@ client.  The server still calculates what is visible based on light levels.</pro
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox28">
+          <widget class="GtkHBox" id="config_hbox_map">
             <property name="visible">True</property>
             <child>
-              <widget class="GtkVBox" id="vbox11">
+              <widget class="GtkVBox" id="config_vbox_map">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkHBox" id="hbox25">
+                  <widget class="GtkHBox" id="config_hbox_mapwidth">
                     <property name="visible">True</property>
                     <child>
                       <widget class="GtkSpinButton" id="config_spinbutton_mapwidth">
@@ -1025,7 +1025,7 @@ client.  The server still calculates what is visible based on light levels.</pro
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkLabel" id="label101">
+                      <widget class="GtkLabel" id="config_label_mapwidth">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">Map Width</property>
                       </widget>
@@ -1042,7 +1042,7 @@ client.  The server still calculates what is visible based on light levels.</pro
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkHBox" id="hbox27">
+                  <widget class="GtkHBox" id="config_hbox_mapheight">
                     <property name="visible">True</property>
                     <child>
                       <widget class="GtkSpinButton" id="config_spinbutton_mapheight">
@@ -1056,7 +1056,7 @@ client.  The server still calculates what is visible based on light levels.</pro
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkLabel" id="label103">
+                      <widget class="GtkLabel" id="config_label_mapheight">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">Map Height</property>
                       </widget>
@@ -1076,7 +1076,7 @@ client.  The server still calculates what is visible based on light levels.</pro
               </widget>
             </child>
             <child>
-              <widget class="GtkLabel" id="label104">
+              <widget class="GtkLabel" id="config_label_map">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Map Size. A larger map has more information, but uses more CPU and bandwidth
 Changes to either width or height take effect on the next server connection.</property>
@@ -1093,7 +1093,7 @@ Changes to either width or height take effect on the next server connection.</pr
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox26">
+          <widget class="GtkHBox" id="config_hbox_faceset">
             <property name="visible">True</property>
             <child>
               <widget class="GtkComboBox" id="config_combobox_faceset">
@@ -1106,7 +1106,7 @@ Changes to either width or height take effect on the next server connection.</pr
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label102">
+              <widget class="GtkLabel" id="config_label_faceset">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Face set to use.  Changes take effect on the next server connection.  Each
 faceset has a different graphical style.</property>
@@ -1126,7 +1126,7 @@ faceset has a different graphical style.</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox29">
+          <widget class="GtkHBox" id="config_hbox_theme">
             <property name="visible">True</property>
             <child>
               <widget class="GtkComboBox" id="config_combobox_theme">
@@ -1139,7 +1139,7 @@ faceset has a different graphical style.</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label105">
+              <widget class="GtkLabel" id="config_label_theme">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Theme to use for the display.  "None" selects the system theme.</property>
               </widget>
@@ -1188,16 +1188,17 @@ faceset has a different graphical style.</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHSeparator" id="hseparator3">
+          <widget class="GtkHSeparator" id="config_hseparator">
             <property name="visible">True</property>
           </widget>
           <packing>
             <property name="expand">False</property>
+            <property name="padding">2</property>
             <property name="position">20</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHButtonBox" id="hbuttonbox1">
+          <widget class="GtkHButtonBox" id="config_hbuttonbox">
             <property name="visible">True</property>
             <child>
               <widget class="GtkButton" id="config_button_save">
@@ -1240,7 +1241,7 @@ faceset has a different graphical style.</property>
             </child>
           </widget>
           <packing>
-            <property name="padding">1</property>
+            <property name="padding">2</property>
             <property name="position">21</property>
           </packing>
         </child>
