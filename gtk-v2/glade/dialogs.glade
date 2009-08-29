@@ -172,10 +172,10 @@
     <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
     <property name="deletable">False</property>
     <child>
-      <widget class="GtkVBox" id="vbox8">
+      <widget class="GtkVBox" id="keybinding_vbox">
         <property name="visible">True</property>
         <child>
-          <widget class="GtkScrolledWindow" id="scrolledwindow8">
+          <widget class="GtkScrolledWindow" id="keybinding_scrolledwindow">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="shadow_type">GTK_SHADOW_IN</property>
@@ -190,7 +190,7 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkLabel" id="label85">
+          <widget class="GtkLabel" id="keybinding_label_modifiers">
             <property name="visible">True</property>
             <property name="label" translatable="yes">Keybinding Modifiers:</property>
           </widget>
@@ -202,7 +202,7 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox13">
+          <widget class="GtkHBox" id="keybinding_hbox_modifiers">
             <property name="visible">True</property>
             <property name="homogeneous">True</property>
             <child>
@@ -289,10 +289,10 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox14">
+          <widget class="GtkHBox" id="keybinding_hbox_entry">
             <property name="visible">True</property>
             <child>
-              <widget class="GtkLabel" id="label86">
+              <widget class="GtkLabel" id="keybinding_label_key">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Key:</property>
               </widget>
@@ -313,7 +313,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label87">
+              <widget class="GtkLabel" id="keybinding_label_command">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Command:</property>
               </widget>
@@ -341,9 +341,19 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox15">
+          <widget class="GtkHSeparator" id="keybinding_hseparator_buttons">
             <property name="visible">True</property>
-            <property name="homogeneous">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">2</property>
+            <property name="position">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHButtonBox" id="keybinding_hbuttonbox">
+            <property name="visible">True</property>
+            <property name="layout_style">GTK_BUTTONBOX_SPREAD</property>
             <child>
               <widget class="GtkButton" id="keybinding_button_remove">
                 <property name="visible">True</property>
@@ -421,8 +431,8 @@
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="padding">1</property>
-            <property name="position">4</property>
+            <property name="padding">2</property>
+            <property name="position">5</property>
           </packing>
         </child>
       </widget>
