@@ -1,6 +1,18 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/oroboros.glade
+gtk-v2/glade/lobotomy.glade
+gtk-v2/glade/gtk-v1.glade
+gtk-v2/glade/meflin.glade
+gtk-v2/glade/gtk-v2.glade
+gtk-v2/glade/v1-redux.glade
+gtk-v2/glade/caelestis.glade
+gtk-v2/glade/eureka.glade
+gtk-v2/glade/un-deux.glade
+gtk-v2/glade/sixforty.glade
+gtk-v2/glade/chthonic.glade:  Link the new Message Control dialog to the
+  Client menu.
 gtk-v2/src/info.c:  Begin referring to the in-client output-count and message
   routing as the "Message Control System", and add support for in-client,
   player configuration via a new dialog to replace previously hard-coded

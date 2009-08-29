@@ -75,6 +75,14 @@
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="msgctrl">
+                        <property name="visible">True</property>
+                        <property name="tooltip" translatable="yes">Configure message routing and buffering.</property>
+                        <property name="label" translatable="yes">Message Control</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkMenuItem" id="save_window_position">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">Save Window Position</property>
