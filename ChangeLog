@@ -2,6 +2,8 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/gtk2proto.h:  Update to include prototypes for the new Message
+  Control system in-client configuration support.
 gtk-v2/glade/dialog.glade:  Dress up the about, metaserver, spell, and
   keybinding dialogs by adding a couple of horizontal separator bars and by
   replacing an HBoxes with HButtonBoxes.  Adjust padding here and there as

@@ -33,6 +33,14 @@ extern void menu_clear(void);
 extern void set_scroll(const char *s);
 extern void set_autorepeat(const char *s);
 extern int get_info_width(void);
+extern void msgctrl_init(GtkWidget *window_root);
+extern void save_msgctrl_configuration(void);
+extern void load_msgctrl_configuration(void);
+extern void read_msgctrl_configuration(void);
+extern void on_msgctrl_button_save_clicked(GtkButton *button, gpointer user_data);
+extern void on_msgctrl_button_apply_clicked(GtkButton *button, gpointer user_data);
+extern void on_msgctrl_button_close_clicked(GtkButton *button, gpointer user_data);
+extern void on_msgctrl_activate(GtkMenuItem *menuitem, gpointer user_data);
 /* inventory.c */
 extern gboolean list_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern void list_row_collapse(GtkTreeView *treeview, GtkTreeIter *iter, GtkTreePath *path, gpointer user_data);
