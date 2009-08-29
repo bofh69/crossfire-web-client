@@ -445,10 +445,10 @@
     <property name="default_height">600</property>
     <property name="deletable">False</property>
     <child>
-      <widget class="GtkVBox" id="vbox9">
+      <widget class="GtkVBox" id="spell_vbox">
         <property name="visible">True</property>
         <child>
-          <widget class="GtkScrolledWindow" id="scrolledwindow9">
+          <widget class="GtkScrolledWindow" id="spell_scrolledwindow">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="shadow_type">GTK_SHADOW_IN</property>
@@ -464,7 +464,7 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox17">
+          <widget class="GtkHBox" id="spell_hbox">
             <property name="visible">True</property>
             <property name="spacing">5</property>
             <child>
@@ -563,8 +563,19 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox16">
+          <widget class="GtkHSeparator" id="spell_hseparator_buttons">
             <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">2</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHButtonBox" id="spell_hbuttonbox">
+            <property name="visible">True</property>
+            <property name="layout_style">GTK_BUTTONBOX_SPREAD</property>
             <child>
               <widget class="GtkButton" id="spell_cast">
                 <property name="visible">True</property>
@@ -609,8 +620,8 @@
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="padding">1</property>
-            <property name="position">2</property>
+            <property name="padding">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </widget>
