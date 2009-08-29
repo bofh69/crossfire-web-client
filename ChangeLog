@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/dialog.glade:  Dress up the metaserver dialog by adding a couple
+  of horizontal separator bars and by replacing an HBox with a HButtonBox.
+  Rename widget names that were "typenumber" to "dialog_type_description".
+Kevin Bulgrien 2009/08/29
+
 gtk-v2/src/info.c: Set up an info_control[] array of structs, one element for
   each message MSG_TYPE_* in common/shared/newclient.h.  This array contains
   enable/disable flags that determine whether or not a message shows up in any

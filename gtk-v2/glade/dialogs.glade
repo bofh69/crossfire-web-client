@@ -10,10 +10,10 @@
     <property name="deletable">False</property>
     <signal name="destroy" handler="on_window_destroy_event"/>
     <child>
-      <widget class="GtkVBox" id="vbox7">
+      <widget class="GtkVBox" id="metaserver_vbox">
         <property name="visible">True</property>
         <child>
-          <widget class="GtkLabel" id="label83">
+          <widget class="GtkLabel" id="metaserver_label_title">
             <property name="visible">True</property>
             <property name="xpad">5</property>
             <property name="ypad">3</property>
@@ -25,9 +25,21 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkScrolledWindow" id="scrolledwindow7">
+          <widget class="GtkHSeparator" id="hseparator_title">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">2</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkScrolledWindow" id="metaserver_scrolledwindow">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+            <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
             <child>
               <widget class="GtkTreeView" id="treeview_metaserver">
                 <property name="visible">True</property>
@@ -37,15 +49,15 @@
             </child>
           </widget>
           <packing>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox12">
+          <widget class="GtkHBox" id="metaserver_hbox_entry">
             <property name="visible">True</property>
             <property name="border_width">3</property>
             <child>
-              <widget class="GtkLabel" id="label84">
+              <widget class="GtkLabel" id="metaserver_label_entry">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Or enter a server name:</property>
               </widget>
@@ -70,14 +82,14 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox10">
+          <widget class="GtkHBox" id="metaserver_hbox_status">
             <property name="visible">True</property>
             <child>
-              <widget class="GtkLabel" id="label81">
+              <widget class="GtkLabel" id="metaserver_label_status">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Status:</property>
               </widget>
@@ -101,13 +113,23 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="hbox11">
+          <widget class="GtkHSeparator" id="metaserver_hseparator">
             <property name="visible">True</property>
-            <property name="border_width">5</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">2</property>
+            <property name="position">5</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHButtonBox" id="metaserver_hbuttonbox">
+            <property name="visible">True</property>
+            <property name="layout_style">GTK_BUTTONBOX_SPREAD</property>
             <child>
               <widget class="GtkButton" id="metaserver_select">
                 <property name="visible">True</property>
@@ -117,9 +139,6 @@
                 <property name="response_id">0</property>
                 <signal name="clicked" handler="on_metaserver_select_clicked"/>
               </widget>
-              <packing>
-                <property name="fill">False</property>
-              </packing>
             </child>
             <child>
               <widget class="GtkButton" id="button_metaserver_quit">
@@ -134,14 +153,14 @@
                 <accelerator key="Escape" signal="activate"/>
               </widget>
               <packing>
-                <property name="fill">False</property>
                 <property name="position">1</property>
               </packing>
             </child>
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="position">4</property>
+            <property name="padding">2</property>
+            <property name="position">6</property>
           </packing>
         </child>
       </widget>
