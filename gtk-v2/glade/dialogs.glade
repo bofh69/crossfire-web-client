@@ -1269,7 +1269,7 @@ faceset has a different graphical style.</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkScrolledWindow" id="scrolledwindow10">
+          <widget class="GtkScrolledWindow" id="about_scrolledwindow">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="shadow_type">GTK_SHADOW_IN</property>
@@ -1287,18 +1287,37 @@ faceset has a different graphical style.</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkButton" id="about_close">
+          <widget class="GtkHSeparator" id="about_hseparator_buttons">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Close</property>
-            <property name="use_underline">True</property>
-            <property name="response_id">0</property>
-            <signal name="clicked" handler="on_about_close_clicked"/>
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="padding">1</property>
+            <property name="padding">2</property>
             <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHButtonBox" id="about_hbuttonbox">
+            <property name="visible">True</property>
+            <child>
+              <widget class="GtkButton" id="about_close">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Close</property>
+                <property name="use_underline">True</property>
+                <property name="response_id">0</property>
+                <signal name="clicked" handler="on_about_close_clicked"/>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">1</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </widget>
