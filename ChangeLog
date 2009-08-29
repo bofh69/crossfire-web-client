@@ -6,7 +6,9 @@ gtk-v2/glade/dialog.glade:  Dress up the about, metaserver, spell, and
   keybinding dialogs by adding a couple of horizontal separator bars and by
   replacing an HBoxes with HButtonBoxes.  Adjust padding here and there as
   well (also on the config dialog).  Rename widget names that were
-  "typenumber" to "dialog_type_description".
+  "typenumber" to "dialog_type_description".  Add a new Message Control
+  dialog that is for configuring the client-side output-count and message
+  routing.
 Kevin Bulgrien 2009/08/29
 
 gtk-v2/src/info.c: Set up an info_control[] array of structs, one element for

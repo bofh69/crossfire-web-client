@@ -1323,4 +1323,206 @@ faceset has a different graphical style.</property>
       </widget>
     </child>
   </widget>
+  <widget class="GtkWindow" id="msgctrl_window">
+    <property name="title" translatable="yes">Message Control</property>
+    <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
+    <property name="deletable">False</property>
+    <child>
+      <widget class="GtkVBox" id="msgctrl_vbox">
+        <property name="visible">True</property>
+        <child>
+          <widget class="GtkLabel" id="msgctrl_label_title">
+            <property name="visible">True</property>
+            <property name="ypad">6</property>
+            <property name="label" translatable="yes">&lt;b&gt;Message Suppression and Routing&lt;/b&gt;</property>
+            <property name="use_markup">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHSeparator" id="msgctrl_hseparator_title">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkTable" id="msgctrl_table">
+            <property name="visible">True</property>
+            <property name="n_rows">3</property>
+            <property name="n_columns">4</property>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_dupes">
+                <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Duplicates</property>
+              </widget>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="Suppmsgctrl_label_suppress">
+                <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Suppress</property>
+                <property name="use_markup">True</property>
+              </widget>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="y_padding">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkHSeparator" id="hseparator1">
+                <property name="visible">True</property>
+              </widget>
+              <packing>
+                <property name="right_attach">4</property>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+                <property name="y_padding">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_panes">
+                <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text">Choose one or more message panels that should display each message type.</property>
+                <property name="xalign">0</property>
+                <property name="xpad">5</property>
+                <property name="label" translatable="yes">Message Routing</property>
+              </widget>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="right_attach">4</property>
+                <property name="x_padding">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_description">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">2</property>
+                <property name="ypad">2</property>
+                <property name="label" translatable="yes">Type</property>
+              </widget>
+              <packing>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_filler">
+                <property name="visible">True</property>
+              </widget>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_main">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">5</property>
+                <property name="label" translatable="yes">Main</property>
+              </widget>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="right_attach">3</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_padding">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_aux">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">5</property>
+                <property name="label" translatable="yes">Chat</property>
+              </widget>
+              <packing>
+                <property name="left_attach">3</property>
+                <property name="right_attach">4</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_padding">2</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHSeparator" id="msgctrl_hseparator_buttons">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHButtonBox" id="msgctrl_hbuttonbox">
+            <property name="visible">True</property>
+            <property name="layout_style">GTK_BUTTONBOX_SPREAD</property>
+            <child>
+              <widget class="GtkButton" id="msgctrl_button_save">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="label" translatable="yes">Save</property>
+                <property name="response_id">0</property>
+                <signal name="clicked" handler="on_msgctrl_button_save_clicked"/>
+              </widget>
+            </child>
+            <child>
+              <widget class="GtkButton" id="msgctrl_button_apply">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="label" translatable="yes">Apply</property>
+                <property name="response_id">0</property>
+                <signal name="clicked" handler="on_msgctrl_button_apply_clicked"/>
+              </widget>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkButton" id="msgctrl_button_close">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="has_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="label" translatable="yes">Close</property>
+                <property name="response_id">0</property>
+                <signal name="clicked" handler="on_msgctrl_button_close_clicked"/>
+              </widget>
+              <packing>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">2</property>
+            <property name="position">4</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
 </glade-interface>
