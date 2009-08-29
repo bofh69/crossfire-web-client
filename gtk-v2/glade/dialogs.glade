@@ -1356,44 +1356,12 @@ faceset has a different graphical style.</property>
             <property name="n_rows">3</property>
             <property name="n_columns">4</property>
             <child>
-              <widget class="GtkLabel" id="msgctrl_label_dupes">
-                <property name="visible">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
-                <property name="xalign">0</property>
-                <property name="label" translatable="yes">Duplicates</property>
-              </widget>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="Suppmsgctrl_label_suppress">
-                <property name="visible">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
-                <property name="xalign">0</property>
-                <property name="label" translatable="yes">Suppress</property>
-                <property name="use_markup">True</property>
-              </widget>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="y_padding">2</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkHSeparator" id="hseparator1">
+              <widget class="GtkLabel" id="msgctrl_label_filler2">
                 <property name="visible">True</property>
               </widget>
               <packing>
-                <property name="right_attach">4</property>
-                <property name="top_attach">2</property>
-                <property name="bottom_attach">3</property>
-                <property name="y_padding">2</property>
+                <property name="left_attach">2</property>
+                <property name="right_attach">3</property>
               </packing>
             </child>
             <child>
@@ -1402,14 +1370,53 @@ faceset has a different graphical style.</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text">Choose one or more message panels that should display each message type.</property>
                 <property name="xalign">0</property>
-                <property name="xpad">5</property>
-                <property name="label" translatable="yes">Message Routing</property>
+                <property name="xpad">2</property>
+                <property name="label" translatable="yes">Critical</property>
               </widget>
               <packing>
-                <property name="left_attach">2</property>
+                <property name="left_attach">3</property>
                 <property name="right_attach">4</property>
                 <property name="x_padding">2</property>
               </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_messages2">
+                <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text">Choose one or more message panels that should display each message type.</property>
+                <property name="xalign">0</property>
+                <property name="xpad">2</property>
+                <property name="label" translatable="yes">Messages</property>
+              </widget>
+              <packing>
+                <property name="left_attach">3</property>
+                <property name="right_attach">4</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_padding">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_main">
+                <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text">Choose one or more message panels that should display each message type.</property>
+                <property name="xalign">0</property>
+                <property name="xpad">2</property>
+                <property name="label" translatable="yes">Messages</property>
+              </widget>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="right_attach">3</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_padding">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_filler1">
+                <property name="visible">True</property>
+              </widget>
             </child>
             <child>
               <widget class="GtkLabel" id="msgctrl_label_description">
@@ -1425,38 +1432,46 @@ faceset has a different graphical style.</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="msgctrl_label_filler">
+              <widget class="GtkHSeparator" id="msgctrl_hseparator_header">
                 <property name="visible">True</property>
-              </widget>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="msgctrl_label_main">
-                <property name="visible">True</property>
-                <property name="xalign">0</property>
-                <property name="xpad">5</property>
-                <property name="label" translatable="yes">Main</property>
               </widget>
               <packing>
-                <property name="left_attach">2</property>
-                <property name="right_attach">3</property>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-                <property name="x_padding">2</property>
+                <property name="right_attach">4</property>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+                <property name="y_padding">2</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="msgctrl_label_aux">
+              <widget class="GtkLabel" id="Suppmsgctrl_label_suppress">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
                 <property name="xalign">0</property>
-                <property name="xpad">5</property>
-                <property name="label" translatable="yes">Critical</property>
+                <property name="xpad">2</property>
+                <property name="label" translatable="yes">Suppress</property>
+                <property name="use_markup">True</property>
               </widget>
               <packing>
-                <property name="left_attach">3</property>
-                <property name="right_attach">4</property>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="y_padding">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="msgctrl_label_dupes">
+                <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
+                <property name="xalign">0</property>
+                <property name="xpad">2</property>
+                <property name="label" translatable="yes">Duplicates</property>
+              </widget>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
                 <property name="top_attach">1</property>
                 <property name="bottom_attach">2</property>
-                <property name="x_padding">2</property>
               </packing>
             </child>
           </widget>
