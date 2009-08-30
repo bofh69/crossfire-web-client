@@ -244,20 +244,20 @@ struct msgctrl_data_t
                                          *   MSG_TYPE_* declarations in
                                          *   ../../common/shared/newclient.h
                                          */
-  gboolean buffer;                      /**< Whether or not to consider the
+  const gboolean buffer;                /**< Whether or not to consider the
                                          *   message type for output-count
                                          *   buffering.  0/1 == disable/enable
                                          *   duplicate suppression
                                          *   (output-count).
                                          */
-  gboolean pane[NUM_TEXT_VIEWS];        /**< The routing instructions for a
+  const gboolean pane[NUM_TEXT_VIEWS];  /**< The routing instructions for a
                                          *   single message type.  For each
                                          *   pane, 0/1 == disable/enable
                                          *   display of the message type in
                                          *   the associated client message
                                          *   pane.
                                          */
-} msgctrl_data[MSG_TYPE_LAST-1] =       /**< A data structure to track how
+} msgctrl_defaults[MSG_TYPE_LAST-1] =   /**< A data structure to track how
                                          *   to handle each message type in
                                          *   with respect to panel routing and
                                          *   output count.
@@ -1310,8 +1310,8 @@ void msgctrl_init(GtkWidget *window_root)
      * initialize the state of the checkboxes to match the default settings.
      * It helps if we change title_rows to a one-based number.  Walk through
      * each message type and set the corresponding row of the table it needs
-     * to go with.  type is one-based.  The msgctrl_data and _widget arrays
-     * are zero based.
+     * to go with.  type is one-based.  The msgctrl_defaults and _widget
+     * arrays are zero based.
      */
     title_rows += 1;
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
@@ -1321,7 +1321,7 @@ void msgctrl_init(GtkWidget *window_root)
          * in a label, left-justified with some padding to keep it away from
          * the dialog frame and perhaps the neighboring checkbox.
          */
-        widget = gtk_label_new(msgctrl_data[type].description);
+        widget = gtk_label_new(msgctrl_defaults[type].description);
         gtk_misc_set_alignment(GTK_MISC(widget), 0.0f, 0.5f);
         gtk_misc_set_padding(GTK_MISC(widget), 2, 0);
         gtk_table_attach_defaults(table, widget, 0, 1, row, row + 1);
@@ -1331,9 +1331,6 @@ void msgctrl_init(GtkWidget *window_root)
          * the built-in default setting.
          */
         msgctrl_widgets[type].buffer.ptr = gtk_check_button_new();
-        gtk_toggle_button_set_active(
-            (GtkToggleButton *) msgctrl_widgets[type].buffer.ptr,
-                msgctrl_data[type].buffer);
         gtk_table_attach_defaults(
             table, msgctrl_widgets[type].buffer.ptr, 1, 2, row, row + 1);
         gtk_widget_show(msgctrl_widgets[type].buffer.ptr);
@@ -1346,9 +1343,6 @@ void msgctrl_init(GtkWidget *window_root)
          */
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
             msgctrl_widgets[type].pane[pane].ptr = gtk_check_button_new();
-            gtk_toggle_button_set_active(
-                (GtkToggleButton *) msgctrl_widgets[type].pane[pane].ptr,
-                    msgctrl_data[type].pane[pane]);
             gtk_table_attach_defaults(
                 table, msgctrl_widgets[type].pane[pane].ptr,
                     pane + 2, pane + 3, row, row + 1);
@@ -1356,10 +1350,11 @@ void msgctrl_init(GtkWidget *window_root)
         }
     }
     /*
-     * Now that the checkboxes have all the right values, initialize the state
-     * variables that control message buffering and routing.
+     * Initialize the state variables for the checkboxes, and then set all the
+     * widgets to match the client defautl settings.  TODO:  If the player has
+     * previously saved defaults, it would best to load them instead.
      */
-    read_msgctrl_configuration();
+    default_msgctrl_configuration();
 
     /*
      * Connect the control's buttons to the appropriate handlers.
@@ -1373,6 +1368,19 @@ void msgctrl_init(GtkWidget *window_root)
     g_signal_connect ((gpointer) widget, "clicked",
         G_CALLBACK (on_msgctrl_button_save_clicked), NULL);
 
+    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_load");
+    /*
+     * Load button functionality is not yet implemented, so the control is set
+     * inactive.
+     */
+    gtk_widget_set_sensitive(widget, FALSE);
+    g_signal_connect ((gpointer) widget, "clicked",
+        G_CALLBACK (on_msgctrl_button_load_clicked), NULL);
+
+    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_defaults");
+    g_signal_connect ((gpointer) widget, "clicked",
+        G_CALLBACK (on_msgctrl_button_defaults_clicked), NULL);
+
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_apply");
     g_signal_connect ((gpointer) widget, "clicked",
         G_CALLBACK (on_msgctrl_button_apply_clicked), NULL);
@@ -1380,6 +1388,29 @@ void msgctrl_init(GtkWidget *window_root)
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_close");
     g_signal_connect ((gpointer) widget, "clicked",
         G_CALLBACK (on_msgctrl_button_close_clicked), NULL);
+}
+
+/**
+ * Update the state of the message control dialog so the configuration matches
+ * the currently selected settings.  Do not call this before msgctrl_widgets[]
+ * is initialized.  It only makes sense 
+ *
+ */
+void update_msgctrl_configuration(void)
+{
+    guint pane;
+    guint type;
+
+    for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
+        gtk_toggle_button_set_active(
+            (GtkToggleButton *) msgctrl_widgets[type].buffer.ptr,
+                msgctrl_widgets[type].buffer.state);
+        for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+            gtk_toggle_button_set_active(
+                (GtkToggleButton *) msgctrl_widgets[type].pane[pane].ptr,
+                    msgctrl_widgets[type].pane[pane].state);
+        }
+    }
 }
 
 /**
@@ -1401,6 +1432,29 @@ void save_msgctrl_configuration(void)
  */
 void load_msgctrl_configuration(void)
 {
+}
+
+/**
+ * Setup the state of the message control dialog so the configuration matches
+ * the default settings built in to the client.
+ *
+ * Iterate through each message type.  For each, copy the built-in client
+ * default to the Message Control dialog state variables.  All supported
+ * defaults are copied, not just the ones supported by the layout.
+ */
+void default_msgctrl_configuration(void)
+{
+    guint pane;
+    guint type;
+
+    for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
+        msgctrl_widgets[type].buffer.state = msgctrl_defaults[type].buffer;
+        for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+            msgctrl_widgets[type].pane[pane].state =
+                msgctrl_defaults[type].pane[pane];
+        }
+    }
+    update_msgctrl_configuration();
 }
 
 /**
@@ -1444,6 +1498,38 @@ on_msgctrl_button_save_clicked          (GtkButton       *button,
 {
     read_msgctrl_configuration();
     save_msgctrl_configuration();
+}
+
+/**
+ * Defines the behavior invoked when the message control dialog load button is
+ * pressed.  The state of the control is reset to the last saved default
+ * settings.  This may be used to "undo" applied settings.
+ *
+ * This is presently a stub.  The load button is disabled in msgctrl_init()
+ * until this functionality is present.
+ *
+ * @param button
+ * @param user_data
+ */
+void
+on_msgctrl_button_load_clicked          (GtkButton       *button,
+                                        gpointer         user_data)
+{
+}
+
+/**
+ * Defines the behavior invoked when the message control dialog Defaults
+ * button is pressed.  The state of the control is reset to the built-in
+ * application defaults.
+ *
+ * @param button
+ * @param user_data
+ */
+void
+on_msgctrl_button_defaults_clicked      (GtkButton       *button,
+                                        gpointer         user_data)
+{
+    default_msgctrl_configuration();
 }
 
 /**

@@ -1,6 +1,23 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/dialogs.glade:  Add Defaults and Load buttons to the Message
+  Control dialog.
+gtk-v2/src/gtk2proto.h:  Update for addition of Defaults button support in the
+  Message Control dialog.
+gtk-v2/src/info.c:  Rename msgctrl_data[] to msgctrl_defaults[] to better
+  indicate current function and make all values const.  This data is never
+  modified at run-time.  In msgctrl_init(), connect the Load and Defaults
+  buttons, but in the case of the Load button, desensitize it until the
+  functionality is present.  Replace widget and state variable initialization
+  code with a call to a new default_msgctrl_configuration().  This is now the
+  method by which msgctrl_widgets[] state is initialized, and is the method
+  invoked when the Defaults button is pressed.  It invokes another new
+  function, update_msgctrl_configuration(), that loads all msgctrl_widgets[]
+  state variables with values stored in msgctrl_defaults[].  Added also are
+  on_msgctrl_button_load_clicked() and on_msgctrl_button_defaults_clicked().
+Kevin Bulgrien 2009/08/30
+
 gtk-v2/src/info.c:  Rework the data structures for the Message Control dialog
   to prepare for supporting return to default.  msgctrl_data[] is now only
   used to hold the defaults.  Also convert the buffer empty code to use the
