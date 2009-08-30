@@ -170,6 +170,7 @@
         <child>
           <widget class="GtkHButtonBox" id="msgctrl_hbuttonbox">
             <property name="visible">True</property>
+            <property name="spacing">2</property>
             <property name="layout_style">GTK_BUTTONBOX_SPREAD</property>
             <child>
               <widget class="GtkButton" id="msgctrl_button_save">

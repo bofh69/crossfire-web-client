@@ -2,7 +2,8 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 gtk-v2/glade/dialogs.glade:  Add Defaults and Load buttons to the Message
-  Control dialog.
+  Control dialog.  Add some space between the buttons so they are not crammed
+  completely together when the dialog is small.
 gtk-v2/src/gtk2proto.h:  Update for addition of Defaults button support in the
   Message Control dialog.
 gtk-v2/src/info.c:  Rename msgctrl_data[] to msgctrl_defaults[] to better
