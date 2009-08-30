@@ -1131,15 +1131,18 @@ message_callback(int orig_color, int type, int subtype, char *message) {
                     /*
                      * The oldest message is getting kicked out of the buffer
                      * to make room for a new message coming in.  Display it
-                     * and mark the buffer empty so the new message can go in.
+                     * and mark the buffer empty so the new message can go in,
+                     * but only if the count warrants output.
                      */
-                    draw_ext_info(
-                        info_buffer[oldest].orig_color,
-                        info_buffer[oldest].type,
-                        info_buffer[oldest].subtype,
-                        info_buffer[oldest].message);
-                    info_buffer[oldest].count = -1;
-                    empty = oldest;
+                    if (info_buffer[oldest].count > 0) {
+                        draw_ext_info(
+                            info_buffer[oldest].orig_color,
+                            info_buffer[oldest].type,
+                            info_buffer[oldest].subtype,
+                            info_buffer[oldest].message);
+                        info_buffer[oldest].count = -1;
+                        empty = oldest;
+                    }
                 } else {
                     LOG(LOG_ERROR, "info.c::message_callback",
                         "Buffer full; oldest unknown", strlen(message));
