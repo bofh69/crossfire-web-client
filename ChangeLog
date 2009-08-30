@@ -1,6 +1,12 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/src/info.c:  Rework the data structures for the Message Control dialog
+  to prepare for supporting return to default.  msgctrl_data[] is now only
+  used to hold the defaults.  Also convert the buffer empty code to use the
+  flush function to centralize that operation in one place.
+Kevin Bulgrien 2009/08/30
+
 gtk-v2/glade/oroboros.glade
 gtk-v2/glade/lobotomy.glade
 gtk-v2/glade/gtk-v1.glade

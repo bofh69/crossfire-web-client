@@ -196,20 +196,34 @@ struct info_buffer_t
                                          *   even when the duplicates are
                                          *   alternate with other messages.
                                          */
+/** @struct checkbox_t
+ *  @brief A container that holds the pointer and state of a checkbox control.
+ *  Each Message Control dialog checkbox is tracked in one of these structs.
+ */
+struct checkbox_t
+{
+  GtkWidget* ptr;                       /**< Checkbox widget for a checkbox.
+                                         */
+  gboolean state;                       /**< The state of the checkbox.
+                                         */
+};
+
 /** @struct msgctrl_widgets_t
- *  @brief A container for the GTK widgets that control the messages.
+ *  @brief A container for the checkboxes on the message control dialog.  The
+ *  pointer to the widgets and their state are stored.
  */
 struct msgctrl_widgets_t
 {
-  GtkWidget *buffer;                    /**< Checkbox widget for a single
-                                          *  message type.
-                                          */
-  GtkWidget *pane[NUM_TEXT_VIEWS];      /**< Checkbox widgets for each client
-                                          *  supported message panels.
-                                          */
+  struct checkbox_t buffer;             /**< Checkbox widget and state for a
+                                         *   single message type.
+                                         */
+  struct checkbox_t pane[NUM_TEXT_VIEWS];/**< Checkbox widgets and state for
+                                         *   each client-supported message
+                                         *   panel.
+                                         */
 } msgctrl_widgets[MSG_TYPE_LAST-1];     /**< All of the checkbox widgets that
-                                          *  configure message control.
-                                          */
+                                         *   configure message control.
+                                         */
 /** @struct msgctrl_data_t
  *  @brief Descriptive message type names with pane routing and buffer enable.
  *  A single struct defines a hard-coded, player-friendly, descriptive name to
@@ -761,9 +775,10 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
     original = current;         /* Just so we know what to free */
 
     /*
-     * A valid message type is required to index into the msgctrl_data array.
-     * If an invalid type is identified, log an error as any message without
-     * a valid type should be hunted down and assigned an appropriate type.
+     * A valid message type is required to index into the msgctrl_widgets
+     * array.  If an invalid type is identified, log an error as any message
+     * without a valid type should be hunted down and assigned an appropriate
+     * type.
      */
     if ((type < 1) || (type >= MSG_TYPE_LAST)) {
         LOG(LOG_ERROR, "info.c::draw_ext_info",
@@ -780,16 +795,17 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
     for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
         /*
          * If the message type is invalid, then the message must go to pane 0,
-         * otherwise the msgctrl_data[].pane[pane] setting determines whether
-         * to send the message to a particular pane or not.  The type is one-
-         * based, so must be decremented when referencing msgctrl_data[];
+         * otherwise the msgctrl_widgets[].pane[pane].state setting determines
+         * whether to send the message to a particular pane or not.  The type
+         * is one-based, so must be decremented when referencing
+         * msgctrl_widgets[];
          */
         if (type_err != 0) {
             if (pane != 0) {
                 break;
             }
         } else {
-            if (msgctrl_data[type - 1].pane[pane] == FALSE)
+            if (msgctrl_widgets[type - 1].pane[pane].state == FALSE)
                 continue;
         }
 
@@ -1026,9 +1042,9 @@ message_callback(int orig_color, int type, int subtype, char *message) {
      * A legacy switch to prevent message folding is to set the color of the
      * message to NDI_UNIQUE.  This over-rides the player preferences.
      *
-     * Usually msgctrl_data[] is used to determine whether or not messages are
-     * buffered as it is where the player sets buffering preferences.  The
-     * type must be decremented when used to index into msgctrl_data[].
+     * Usually msgctrl_widgets[] is used to determine whether or not messages
+     * are buffered as it is where the player sets buffering preferences.  The
+     * type must be decremented when used to index into msgctrl_widgets[].
      *
      * The system also declines to buffer messages over a set length as most
      * messages that need coalescing are short.  Most messages that are long
@@ -1039,7 +1055,7 @@ message_callback(int orig_color, int type, int subtype, char *message) {
     if ((type <  1)
     ||  (type >= MSG_TYPE_LAST)
     ||  (orig_color == NDI_UNIQUE)
-    ||  (msgctrl_data[type - 1].buffer == FALSE)
+    ||  (msgctrl_widgets[type - 1].buffer.state == FALSE)
     ||  (strlen(message) >= MESSAGE_BUFFER_SIZE)) {
         /*
          * If the message buffering feature is off, simply pass the message on
@@ -1130,19 +1146,9 @@ message_callback(int orig_color, int type, int subtype, char *message) {
                 if (oldest > -1) {
                     /*
                      * The oldest message is getting kicked out of the buffer
-                     * to make room for a new message coming in.  Display it
-                     * and mark the buffer empty so the new message can go in,
-                     * but only if the count warrants output.
+                     * to make room for a new message coming in.
                      */
-                    if (info_buffer[oldest].count > 0) {
-                        draw_ext_info(
-                            info_buffer[oldest].orig_color,
-                            info_buffer[oldest].type,
-                            info_buffer[oldest].subtype,
-                            info_buffer[oldest].message);
-                        info_buffer[oldest].count = -1;
-                        empty = oldest;
-                    }
+                    info_buffer_flush(oldest);
                 } else {
                     LOG(LOG_ERROR, "info.c::message_callback",
                         "Buffer full; oldest unknown", strlen(message));
@@ -1300,11 +1306,12 @@ void msgctrl_init(GtkWidget *window_root)
     gtk_table_resize(table,
         (guint)(MSG_TYPE_LAST + title_rows), (guint)(1 + 1 + NUM_TEXT_VIEWS));
     /*
-     * Now we need to put labels and checkboxes in each of the empty rows.  It
-     * helps if we change title_rows to a one-based number.  Walk through each
-     * message type and set the corresponding row of the table it needs to go
-     * with.  type is one-based.  The msgctrl_data and _widget arrays are zero
-     * based.
+     * Now we need to put labels and checkboxes in each of the empty rows and
+     * initialize the state of the checkboxes to match the default settings.
+     * It helps if we change title_rows to a one-based number.  Walk through
+     * each message type and set the corresponding row of the table it needs
+     * to go with.  type is one-based.  The msgctrl_data and _widget arrays
+     * are zero based.
      */
     title_rows += 1;
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
@@ -1323,13 +1330,13 @@ void msgctrl_init(GtkWidget *window_root)
          * The buffer enable/disable.  Display a check box that is preset to
          * the built-in default setting.
          */
-        msgctrl_widgets[type].buffer = gtk_check_button_new();
+        msgctrl_widgets[type].buffer.ptr = gtk_check_button_new();
         gtk_toggle_button_set_active(
-            (GtkToggleButton *) msgctrl_widgets[type].buffer,
+            (GtkToggleButton *) msgctrl_widgets[type].buffer.ptr,
                 msgctrl_data[type].buffer);
         gtk_table_attach_defaults(
-            table, msgctrl_widgets[type].buffer, 1, 2, row, row + 1);
-        gtk_widget_show(msgctrl_widgets[type].buffer);
+            table, msgctrl_widgets[type].buffer.ptr, 1, 2, row, row + 1);
+        gtk_widget_show(msgctrl_widgets[type].buffer.ptr);
         /*
          * The message pane routings.  Display a check box that is preset to
          * the built in defaults.  TODO:  Panes that are unsupported in the
@@ -1338,16 +1345,21 @@ void msgctrl_init(GtkWidget *window_root)
          * not yet implemented.
          */
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
-            msgctrl_widgets[type].pane[pane] = gtk_check_button_new();
+            msgctrl_widgets[type].pane[pane].ptr = gtk_check_button_new();
             gtk_toggle_button_set_active(
-                (GtkToggleButton *) msgctrl_widgets[type].pane[pane],
+                (GtkToggleButton *) msgctrl_widgets[type].pane[pane].ptr,
                     msgctrl_data[type].pane[pane]);
             gtk_table_attach_defaults(
-                table, msgctrl_widgets[type].pane[pane],
+                table, msgctrl_widgets[type].pane[pane].ptr,
                     pane + 2, pane + 3, row, row + 1);
-            gtk_widget_show(msgctrl_widgets[type].pane[pane]);
+            gtk_widget_show(msgctrl_widgets[type].pane[pane].ptr);
         }
     }
+    /*
+     * Now that the checkboxes have all the right values, initialize the state
+     * variables that control message buffering and routing.
+     */
+    read_msgctrl_configuration();
 
     /*
      * Connect the control's buttons to the appropriate handlers.
@@ -1407,13 +1419,13 @@ void read_msgctrl_configuration(void)
      * support them all.
      */
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
-        msgctrl_data[type].buffer =
+        msgctrl_widgets[type].buffer.state =
             gtk_toggle_button_get_active(
-                (GtkToggleButton *) msgctrl_widgets[type].buffer);
+                (GtkToggleButton *) msgctrl_widgets[type].buffer.ptr);
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
-            msgctrl_data[type].pane[pane] =
+            msgctrl_widgets[type].pane[pane].state =
                 gtk_toggle_button_get_active(
-                    (GtkToggleButton *) msgctrl_widgets[type].pane[pane]);
+                    (GtkToggleButton *) msgctrl_widgets[type].pane[pane].ptr);
         }
     }
 }
