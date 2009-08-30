@@ -803,7 +803,7 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
          */
         if (! has_style || info_pane[pane].msg_type_tags[type][subtype] == 0) {
             if (orig_color <0 || orig_color>NUM_COLORS) {
-                LOG(LOG_ERROR, "info.c::message_callback",
+                LOG(LOG_ERROR, "info.c::draw_ext_info",
                     "Passed invalid color from server: %d, max allowed is %d\n",
                         orig_color, NUM_COLORS);
                 orig_color = 0;
@@ -956,13 +956,13 @@ void info_buffer_tick() {
     for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
         if (info_buffer[loop].count > -1) {
             if ((info_buffer[loop].age < MESSAGE_AGE_MAX)
-            &&  (info_buffer[loop].count < MESSAGE_COUNT_MAX))
+            &&  (info_buffer[loop].count < MESSAGE_COUNT_MAX)) {
                 /*
                  * The buffer has data in it, and has not reached maximum age,
                  * so bump the age up a notch.
                  */
                 info_buffer[loop].age += 1;
-            else
+            } else {
                 /*
                  * The data has been in the buffer too long, so either display
                  * it (and report how many times it was seen while in the
@@ -970,13 +970,15 @@ void info_buffer_tick() {
                  * did not occur.
                  */
                 info_buffer_flush(loop);
+            }
         } else {
             /*
              * Overflow-protected aging of empty or inactive buffers.  Aging
              * of inactive buffers is the reason overflow must be handled.
              */
-            if (info_buffer[loop].age < info_buffer[loop].age + 1)
+            if (info_buffer[loop].age < info_buffer[loop].age + 1) {
                 info_buffer[loop].age += 1;
+            }
         }
     }
 }
