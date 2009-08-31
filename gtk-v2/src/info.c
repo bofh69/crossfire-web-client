@@ -277,7 +277,7 @@ struct msgctrl_data_t
        { "Administrative",                  FALSE, {     TRUE,   FALSE } },
        { "Shops",                            TRUE, {     TRUE,   FALSE } },
        { "Command responses",                TRUE, {     TRUE,   FALSE } },
-       { "Changes to attributes",            TRUE, {     TRUE,   FALSE } },
+       { "Changes to attributes",            TRUE, {     TRUE,    TRUE } },
        { "Skill-related messages",           TRUE, {     TRUE,   FALSE } },
        { "Apply results",                    TRUE, {     TRUE,   FALSE } },
        { "Attack results",                   TRUE, {     TRUE,   FALSE } },
