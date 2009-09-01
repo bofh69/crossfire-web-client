@@ -1,6 +1,21 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+gtk-v2/src/info.c:  The Save and Load buttons are now enabled. The Save button
+  is fully functional, but the Load button only opens the save file and scans
+  it without actually loading the data.  The Load data parsing is not yet
+  implemented.  For now, it counts the number of non-comment and non-blank
+  lines and outputs a message if it does not match the number of message types
+  the system supports.  msgctrl_init() no longer de-sensitizes the Save and
+  Load buttons.  save_msgctrl_configuration() now supports saving the message
+  control configuration to ./crossfire/msgs.  load_msgctrl_configuration()
+  does read the ./crossfire/msgs file, but does not update the client message
+  control configuration yet (though it does reset the control to match the
+  msgctrl_widgets[] state variables).  on_msgctrl_button_load_clicked() now
+  calls the load_msgctrl_configuration() function.
+Kevin Bulgrien 2009/08/31
+
 gtk-v2/glade/dialogs.glade:  Add Defaults and Load buttons to the Message
   Control dialog.  Add some space between the buttons so they are not crammed
   completely together when the dialog is small.

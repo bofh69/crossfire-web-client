@@ -1360,20 +1360,10 @@ void msgctrl_init(GtkWidget *window_root)
      * Connect the control's buttons to the appropriate handlers.
      */
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_save");
-    /*
-     * Save button functionality is not yet implemented, so the control is set
-     * inactive.
-     */
-    gtk_widget_set_sensitive(widget, FALSE);
     g_signal_connect ((gpointer) widget, "clicked",
         G_CALLBACK (on_msgctrl_button_save_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_load");
-    /*
-     * Load button functionality is not yet implemented, so the control is set
-     * inactive.
-     */
-    gtk_widget_set_sensitive(widget, FALSE);
     g_signal_connect ((gpointer) widget, "clicked",
         G_CALLBACK (on_msgctrl_button_load_clicked), NULL);
 
@@ -1416,22 +1406,107 @@ void update_msgctrl_configuration(void)
 /**
  * Saves the state of the message control dialog so the configuration persists
  * across client sessions.
- *
- * This is presently a stub.  When it is implemented, remember to remove the
- * sensitivity disable in msgctrl_init().
  */
 void save_msgctrl_configuration(void)
 {
+    char  pathbuf[MAX_BUF];             /* Buffer for a save file path name */
+    char  textbuf[MAX_BUF];             /* Buffer for output to save file   */
+    FILE* fptr;                         /* Message Control savefile pointer */
+    guint pane;                         /* Client-supported message pane    */
+    guint type;                         /* Message type                     */
+
+    snprintf(pathbuf, sizeof(pathbuf), "%s/.crossfire/msgs", getenv("HOME"));
+
+    if (make_path_to_file(pathbuf) == -1) {
+        LOG(LOG_WARNING,
+            "gtk-v2::save_msgctrl_configuration","Error creating %s",pathbuf);
+        snprintf(textbuf, sizeof(textbuf),
+            "Error creating %s, Message Control settings not saved.",pathbuf);
+        draw_ext_info(
+            NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
+        return;
+    }
+    if ((fptr = fopen(pathbuf, "w")) == NULL) {
+        snprintf(textbuf, sizeof(textbuf),
+            "Error opening %s, Message Control settings not saved.", pathbuf);
+        draw_ext_info(
+            NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
+        return;
+    }
+
+    /*
+     * It might be best to check the status of all writes, but it is not done.
+     */
+    fprintf(fptr, "# Message Control System Configuration\n");
+    fprintf(fptr, "# type, buffer, pane[0], pane[1]...\n");
+    fprintf(fptr, "# Do not edit the 'type' field.\n");
+    fprintf(fptr, "# 0 == disable; 1 == enable.\n");
+    fprintf(fptr, "#\n");
+    for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
+        fprintf(fptr, "%02d %d ", type+1, msgctrl_widgets[type].buffer.state);
+        for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+            fprintf(fptr, "%d ", msgctrl_widgets[type].pane[pane].state);
+        }
+        fprintf(fptr, "\n");
+    }
+    fprintf(fptr, "#\n# End of Message Control System Configuration\n");
+    fclose(fptr);
+
+    draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
+        "Message Control settings saved.");
 }
 
 /**
  * Setup the state of the message control dialog so the configuration matches
  * a previously saved configuration.
- *
- * This is presently a stub.
  */
 void load_msgctrl_configuration(void)
 {
+    char  pathbuf[MAX_BUF];             /* Buffer for a save file path name */
+    char  textbuf[MAX_BUF];             /* Buffer for input from save file  */
+    FILE* fptr;                         /* Message Control savefile pointer */
+    guint pane;                         /* Client-supported message pane    */
+    guint type;                         /* Message type                     */
+    guint error;                        /* Savefile parsing status          */
+    guint found;                        /* How many savefile entries found  */
+
+    snprintf(pathbuf, sizeof(pathbuf), "%s/.crossfire/msgs", getenv("HOME"));
+
+    if ((fptr = fopen(pathbuf, "r")) == NULL) {
+        snprintf(textbuf, sizeof(textbuf),
+            "Error opening %s, Message Control settings not loaded.",pathbuf);
+        draw_ext_info(
+            NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
+        return;
+    } else {
+        snprintf(textbuf, sizeof(textbuf),
+            "Loading Message Control settings from %s", pathbuf);
+        draw_ext_info(
+            NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, textbuf);
+    }
+
+    error = 0;
+    found = 0;
+    while(fgets(textbuf, MAX_BUF-1, fptr) != NULL) {
+        if (textbuf[0] == '#' || textbuf[0] == '\n') {
+            continue;
+        }
+        /*
+         * Parse of file data not yet implemented.
+         */
+        found += 1;
+    }
+    fclose(fptr);
+
+    if ((error > 0) || (found != MSG_TYPE_LAST - 1)) {
+        snprintf(textbuf, sizeof(textbuf),
+            "Message Control settings corrupt.");
+        draw_ext_info(
+            NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
+        LOG(LOG_ERROR, "gtk-v2::load_msgctrl_configuration",
+            "Error loading %s. %s\n", pathbuf, textbuf);
+     }
+    update_msgctrl_configuration();
 }
 
 /**
@@ -1515,6 +1590,7 @@ void
 on_msgctrl_button_load_clicked          (GtkButton       *button,
                                         gpointer         user_data)
 {
+    load_msgctrl_configuration();
 }
 
 /**
