@@ -1355,10 +1355,10 @@ void msgctrl_init(GtkWidget *window_root)
     }
     /*
      * Initialize the state variables for the checkboxes, and then set all the
-     * widgets to match the client defautl settings.  TODO:  If the player has
-     * previously saved defaults, it would best to load them instead.
+     * widgets to match the client defautl settings.
      */
     default_msgctrl_configuration();
+    load_msgctrl_configuration();
 
     /*
      * Connect the control's buttons to the appropriate handlers.
