@@ -200,29 +200,33 @@ struct info_buffer_t
  *  @brief A container that holds the pointer and state of a checkbox control.
  *  Each Message Control dialog checkbox is tracked in one of these structs.
  */
-struct checkbox_t
+typedef struct
 {
   GtkWidget* ptr;                       /**< Checkbox widget for a checkbox.
                                          */
   gboolean state;                       /**< The state of the checkbox.
                                          */
-};
+} checkbox_t;
 
-/** @struct msgctrl_widgets_t
- *  @brief A container for the checkboxes on the message control dialog.  The
- *  pointer to the widgets and their state are stored.
+/** @struct message_control_t
+ *  @brief A container for all of the checkboxes associated with a single
+ *  message type.
  */
-struct msgctrl_widgets_t
+typedef struct
 {
-  struct checkbox_t buffer;             /**< Checkbox widget and state for a
+  checkbox_t buffer;                    /**< Checkbox widget and state for a
                                          *   single message type.
                                          */
-  struct checkbox_t pane[NUM_TEXT_VIEWS];/**< Checkbox widgets and state for
+  checkbox_t pane[NUM_TEXT_VIEWS];      /**< Checkbox widgets and state for
                                          *   each client-supported message
                                          *   panel.
                                          */
-} msgctrl_widgets[MSG_TYPE_LAST-1];     /**< All of the checkbox widgets that
-                                         *   configure message control.
+} message_control_t;
+
+message_control_t
+    msgctrl_widgets[MSG_TYPE_LAST-1];   /**< All of the checkbox widgets for
+                                         *   the entire message control
+                                         *   dialog.
                                          */
 /** @struct msgctrl_data_t
  *  @brief Descriptive message type names with pane routing and buffer enable.
@@ -266,8 +270,8 @@ struct msgctrl_data_t
   {
     /*
      * { "description",                    buffer, {  pane[0], pane[1] } },
-     */                                               
-       { "Books",                           FALSE, {     TRUE,   FALSE } },  
+     */
+       { "Books",                           FALSE, {     TRUE,   FALSE } },
        { "Cards",                           FALSE, {     TRUE,   FALSE } },
        { "Paper",                           FALSE, {     TRUE,   FALSE } },
        { "Signs",                           FALSE, {     TRUE,   FALSE } },
@@ -869,7 +873,7 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
         }
 
         add_to_textbuf(
-            pane, current, type, subtype, 
+            pane, current, type, subtype,
                 bold, italic, font, color, underline);
 
         add_to_textbuf(
@@ -893,7 +897,7 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
  * are also set just for an extra measure of safety.
  */
 void info_buffer_init() {
-    int loop;                           
+    int loop;
 
     for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
         info_buffer[loop].count = -1;
@@ -1383,13 +1387,13 @@ void msgctrl_init(GtkWidget *window_root)
 /**
  * Update the state of the message control dialog so the configuration matches
  * the currently selected settings.  Do not call this before msgctrl_widgets[]
- * is initialized.  It only makes sense 
- *
+ * is initialized.  It also really only makes sense to call it if changes have
+ * been made to msgctrl_widgets[].
  */
 void update_msgctrl_configuration(void)
 {
-    guint pane;
-    guint type;
+    guint pane;                         /* Client-supported message pane    */
+    guint type;                         /* Message type                     */
 
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
         gtk_toggle_button_set_active(
@@ -1452,8 +1456,9 @@ void save_msgctrl_configuration(void)
     fprintf(fptr, "#\n# End of Message Control System Configuration\n");
     fclose(fptr);
 
-    draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
-        "Message Control settings saved.");
+    snprintf(textbuf, sizeof(textbuf),
+        "Message Control settings saved to %s.", pathbuf);
+    draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, textbuf);
 }
 
 /**
@@ -1464,11 +1469,13 @@ void load_msgctrl_configuration(void)
 {
     char  pathbuf[MAX_BUF];             /* Buffer for a save file path name */
     char  textbuf[MAX_BUF];             /* Buffer for input from save file  */
+    char* cptr;                         /* Pointer used when reading data   */
     FILE* fptr;                         /* Message Control savefile pointer */
     guint pane;                         /* Client-supported message pane    */
     guint type;                         /* Message type                     */
     guint error;                        /* Savefile parsing status          */
     guint found;                        /* How many savefile entries found  */
+    message_control_t statebuf;         /* Holding area for savefile values */
 
     snprintf(pathbuf, sizeof(pathbuf), "%s/.crossfire/msgs", getenv("HOME"));
 
@@ -1478,35 +1485,100 @@ void load_msgctrl_configuration(void)
         draw_ext_info(
             NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
         return;
-    } else {
-        snprintf(textbuf, sizeof(textbuf),
-            "Loading Message Control settings from %s", pathbuf);
-        draw_ext_info(
-            NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, textbuf);
     }
-
+    /*
+     * When we parse the file we buffer each entire record before any values
+     * are applied to the client message control configuration.  If any
+     * problems are found at all, the entire record is skipped and the file
+     * is reported as corrupt.  Even if individual records are corrupt, the
+     * rest of the file is processed.
+     *
+     * If more than one record for the same error type exists the last one is
+     * used, but if too many records are found the file is reported as corrupt
+     * even though it accepts all the data.
+     */
     error = 0;
     found = 0;
     while(fgets(textbuf, MAX_BUF-1, fptr) != NULL) {
         if (textbuf[0] == '#' || textbuf[0] == '\n') {
             continue;
         }
+        cptr = strtok(textbuf, "\t ");
+        if ((cptr == NULL)
+        ||  (sscanf(cptr, "%d", &type) != 1)
+        ||  (type < 1)
+        ||  (type >= MSG_TYPE_LAST)) {
+                 error += 1;
+                 continue;
+        }
+        cptr = strtok(NULL, "\t ");
+        if ((cptr == NULL)
+        ||  (sscanf(cptr, "%d", &statebuf.buffer.state) != 1)
+        ||  (statebuf.buffer.state < 0)
+        ||  (statebuf.buffer.state > 1)) {
+                 error += 1;
+                 continue;
+        }
+        for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+            cptr = strtok(NULL, "\t ");
+            if ((cptr == NULL)
+            ||  (sscanf(cptr, "%d", &statebuf.pane[pane].state) != 1)
+            ||  (statebuf.pane[pane].state < 0)
+            ||  (statebuf.pane[pane].state > 1)) {
+                 error += 1;
+                 continue;
+            }
+        }
         /*
-         * Parse of file data not yet implemented.
+         * Ignore the record if it has too many fields.  This might be a bit
+         * strict, but it does help enforce the file integrity in the event
+         * that the the number of supported panels increases in the future.
          */
+        cptr = strtok(NULL, "\n");
+        if (cptr != NULL) {
+            error += 1;
+            continue;
+        }
+        /*
+         * Remember, type is one-based, but the index into an array is zero-
+         * based, so adjust type.  Also, since the record parsed out fine,
+         * increment the number of valid records found.  Apply all the values
+         * read to the msgctrl_widgets[] array so the dialog can be updated
+         * when we are done.
+         */
+        type -= 1;
         found += 1;
+        msgctrl_widgets[type].buffer.state = statebuf.buffer.state;
+        for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+            msgctrl_widgets[type].pane[pane].state=statebuf.pane[pane].state;
+        }
     }
     fclose(fptr);
-
+    /*
+     * If there was any oddity with the data file, report it as corrupted even
+     * if some of the values were used.  A corrupted file can be uncorrupted
+     * by loading it and saving it again.
+     */
     if ((error > 0) || (found != MSG_TYPE_LAST - 1)) {
         snprintf(textbuf, sizeof(textbuf),
-            "Message Control settings corrupt.");
+            "Corrupted Message Control settings in %s.", pathbuf);
         draw_ext_info(
             NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
         LOG(LOG_ERROR, "gtk-v2::load_msgctrl_configuration",
             "Error loading %s. %s\n", pathbuf, textbuf);
-     }
-    update_msgctrl_configuration();
+    }
+    /*
+     * If any data was accepted from the save file, report that settings were
+     * loaded.  Apply the loaded values to the Message Control dialog checkbox
+     * widgets.  so they reflect the states that were previously saved.
+     */
+    if (found > 0) {
+        snprintf(textbuf, sizeof(textbuf),
+            "Message Control settings loaded from %s", pathbuf);
+        draw_ext_info(
+            NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, textbuf);
+        update_msgctrl_configuration();
+    }
 }
 
 /**
@@ -1519,8 +1591,8 @@ void load_msgctrl_configuration(void)
  */
 void default_msgctrl_configuration(void)
 {
-    guint pane;
-    guint type;
+    guint pane;                         /* Client-supported message pane    */
+    guint type;                         /* Message type                     */
 
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
         msgctrl_widgets[type].buffer.state = msgctrl_defaults[type].buffer;
@@ -1538,8 +1610,8 @@ void default_msgctrl_configuration(void)
  */
 void read_msgctrl_configuration(void)
 {
-    guint pane;
-    guint type;
+    guint pane;                         /* Client-supported message pane    */
+    guint type;                         /* Message type                     */
 
     /*
      * Iterate through each message type.  For each, record the value of the

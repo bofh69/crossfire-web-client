@@ -2,6 +2,19 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c:  The Message Control dialog Load button is now functional.
+  Changed some of the struct definitions to be compatible with use to allocate
+  a buffer in load_msgctrl_configuration() by making them typedefs and then by
+  declaring the msgctrl_widgets[] separately.  Remove various instances of
+  end-of-line whitespace.  Fix the update_msgctrl_configuration() truncated
+  header comment.  save_msgctrl_configuration() client message format changed
+  to report the save file path/filename.  Add load_msgctrl_configuration()
+  data parsing using strtok() and only report settings were loaded if at least
+  some valid data records were processed.  If any data records are not in the
+  expected format, the file is reported as corrupt.  Add comments to local
+  variables in several message control system functions.
+Kevin Bulgrien 2009/09/01
+
 gtk-v2/src/info.c:  The Save and Load buttons are now enabled. The Save button
   is fully functional, but the Load button only opens the save file and scans
   it without actually loading the data.  The Load data parsing is not yet
