@@ -196,17 +196,50 @@ struct info_buffer_t
                                          *   even when the duplicates are
                                          *   alternate with other messages.
                                          */
-/** @struct checkbox_t
+/** @struct buffer_parameter_t
+ *  @brief A container for a single buffer control parameter like output count
+ *  or time.  The structure holds a widget pointer, a state variable to track
+ *  the widget value, and a default value.
+ */
+typedef struct
+{
+  GtkWidget* ptr;                       /**< Spinbutton widget pointer.
+                                         */
+  guint state;                          /**< The state of the spinbutton.
+                                         */
+  const guint default_state;            /**< The state of the spinbutton.
+                                         */
+} buffer_parameter_t;
+
+/** @struct buffer_control_t
+ *  @brief A container for all of the buffer control parameters like output
+ *  count and time.  The structure holds widget pointers, a state variables to
+ *  track the parameter values, and the client built-in defaults.  Only the
+ *  final initializer for output_count and output_time is used as a default.
+ */
+struct buffer_control_t
+{
+  buffer_parameter_t count;             /**< Output count control & default */
+  buffer_parameter_t timer;             /**< Output time control & default  */
+} buffer_control =
+  {
+    /*
+     * { uninitialized_pointer, uninitialized_state, default_value     },
+     */
+       { NULL,                  0,                   MESSAGE_COUNT_MAX },
+       { NULL,                  0,                   MESSAGE_AGE_MAX   }
+                                                                          };
+/** @struct boolean_widget_t
  *  @brief A container that holds the pointer and state of a checkbox control.
  *  Each Message Control dialog checkbox is tracked in one of these structs.
  */
 typedef struct
 {
-  GtkWidget* ptr;                       /**< Checkbox widget for a checkbox.
+  GtkWidget* ptr;                       /**< Checkbox widget pointer.
                                          */
   gboolean state;                       /**< The state of the checkbox.
                                          */
-} checkbox_t;
+} boolean_widget_t;
 
 /** @struct message_control_t
  *  @brief A container for all of the checkboxes associated with a single
@@ -214,10 +247,10 @@ typedef struct
  */
 typedef struct
 {
-  checkbox_t buffer;                    /**< Checkbox widget and state for a
+  boolean_widget_t buffer;              /**< Checkbox widget and state for a
                                          *   single message type.
                                          */
-  checkbox_t pane[NUM_TEXT_VIEWS];      /**< Checkbox widgets and state for
+  boolean_widget_t pane[NUM_TEXT_VIEWS];/**< Checkbox widgets and state for
                                          *   each client-supported message
                                          *   panel.
                                          */
@@ -975,8 +1008,8 @@ void info_buffer_tick() {
 
     for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
         if (info_buffer[loop].count > -1) {
-            if ((info_buffer[loop].age < MESSAGE_AGE_MAX)
-            &&  (info_buffer[loop].count < MESSAGE_COUNT_MAX)) {
+            if ((info_buffer[loop].age < buffer_control.timer.state)
+            &&  (info_buffer[loop].count < buffer_control.count.state)) {
                 /*
                  * The buffer has data in it, and has not reached maximum age,
                  * so bump the age up a notch.
@@ -1249,7 +1282,12 @@ int get_info_width(void)
 }
 
 /**
- * Initialize the message control panel
+ * Initialize the message control panel by populating it with descriptions of
+ * each message type along with checkboxes that are used to configure the
+ * routing and duplicate suppression system.  If previously saved settings are
+ * found on disk, they are loaded and applied, otherwise the built in client
+ * defaults are loaded and applied.  This initialization must occur after the
+ * info_init() function runs.
  *
  * @param window_root The client main window
  */
@@ -1272,6 +1310,16 @@ void msgctrl_init(GtkWidget *window_root)
      */
     msgctrl_window = glade_xml_get_widget(dialog_xml, "msgctrl_window");
     xml_tree = glade_get_widget_tree(GTK_WIDGET(msgctrl_window));
+
+    /*
+     * Initialize the spinbutton pointers.
+     */
+    buffer_control.count.ptr =
+        glade_xml_get_widget(xml_tree, "msgctrl_spinbutton_count");
+
+    buffer_control.timer.ptr =
+        glade_xml_get_widget(xml_tree, "msgctrl_spinbutton_timer");
+
     /*
      * Locate the table widget to fill with controls and its structure.
      */
@@ -1354,8 +1402,9 @@ void msgctrl_init(GtkWidget *window_root)
         }
     }
     /*
-     * Initialize the state variables for the checkboxes, and then set all the
-     * widgets to match the client defautl settings.
+     * Initialize the state variables for the checkbox and spinbutton controls
+     * on the message control dialog and then set all the widgets to match the
+     * client defautl settings.
      */
     default_msgctrl_configuration();
     load_msgctrl_configuration();
@@ -1395,6 +1444,14 @@ void update_msgctrl_configuration(void)
     guint pane;                         /* Client-supported message pane    */
     guint type;                         /* Message type                     */
 
+    gtk_spin_button_set_value(
+        (GtkSpinButton*) buffer_control.count.ptr,
+            (gdouble) buffer_control.count.state);
+
+    gtk_spin_button_set_value(
+        (GtkSpinButton*) buffer_control.timer.ptr,
+            (gdouble) buffer_control.timer.state);
+
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
         gtk_toggle_button_set_active(
             (GtkToggleButton *) msgctrl_widgets[type].buffer.ptr,
@@ -1408,7 +1465,8 @@ void update_msgctrl_configuration(void)
 }
 
 /**
- * Saves the state of the message control dialog so the configuration persists
+ * Applies the current state of the checkboxes to the msgctrl_widgets state
+ * variables and saves the settings to disk so the configuration persists
  * across client sessions.
  */
 void save_msgctrl_configuration(void)
@@ -1418,6 +1476,8 @@ void save_msgctrl_configuration(void)
     FILE* fptr;                         /* Message Control savefile pointer */
     guint pane;                         /* Client-supported message pane    */
     guint type;                         /* Message type                     */
+
+    read_msgctrl_configuration();       /* Apply the displayed settings 1st */
 
     snprintf(pathbuf, sizeof(pathbuf), "%s/.crossfire/msgs", getenv("HOME"));
 
@@ -1442,12 +1502,22 @@ void save_msgctrl_configuration(void)
      * It might be best to check the status of all writes, but it is not done.
      */
     fprintf(fptr, "# Message Control System Configuration\n");
+    fprintf(fptr, "#\n");
+    fprintf(fptr, "# Count:  1-96\n");
+    fprintf(fptr, "#\n");
+    fprintf(fptr, "C %u\n", buffer_control.count.state);
+    fprintf(fptr, "#\n");
+    fprintf(fptr, "# Timer:  1-96 (8 ~= one second)\n");
+    fprintf(fptr, "#\n");
+    fprintf(fptr, "T %u\n", buffer_control.timer.state);
+    fprintf(fptr, "#\n");
     fprintf(fptr, "# type, buffer, pane[0], pane[1]...\n");
     fprintf(fptr, "# Do not edit the 'type' field.\n");
     fprintf(fptr, "# 0 == disable; 1 == enable.\n");
     fprintf(fptr, "#\n");
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
-        fprintf(fptr, "%02d %d ", type+1, msgctrl_widgets[type].buffer.state);
+        fprintf(
+            fptr, "M %02d %d ", type+1, msgctrl_widgets[type].buffer.state);
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
             fprintf(fptr, "%d ", msgctrl_widgets[type].pane[pane].state);
         }
@@ -1469,13 +1539,16 @@ void load_msgctrl_configuration(void)
 {
     char  pathbuf[MAX_BUF];             /* Buffer for a save file path name */
     char  textbuf[MAX_BUF];             /* Buffer for input from save file  */
+    char  recordtype;                   /* Savefile data entry type found   */
     char* cptr;                         /* Pointer used when reading data   */
     FILE* fptr;                         /* Message Control savefile pointer */
     guint pane;                         /* Client-supported message pane    */
     guint type;                         /* Message type                     */
     guint error;                        /* Savefile parsing status          */
-    guint found;                        /* How many savefile entries found  */
     message_control_t statebuf;         /* Holding area for savefile values */
+    buffer_parameter_t countbuf;        /* Holding area for savefile values */
+    buffer_parameter_t timerbuf;        /* Holding area for savefile values */
+    guint cvalid, tvalid, mvalid;       /* Counts the valid entries found   */
 
     snprintf(pathbuf, sizeof(pathbuf), "%s/.crossfire/msgs", getenv("HOME"));
 
@@ -1498,68 +1571,125 @@ void load_msgctrl_configuration(void)
      * even though it accepts all the data.
      */
     error = 0;
-    found = 0;
+    cvalid = 0;
+    tvalid = 0;
+    mvalid = 0;
+    recordtype = '\0';
     while(fgets(textbuf, MAX_BUF-1, fptr) != NULL) {
         if (textbuf[0] == '#' || textbuf[0] == '\n') {
             continue;
         }
+
+        /*
+         * Identify the savefile record type found.
+         */
         cptr = strtok(textbuf, "\t ");
         if ((cptr == NULL)
-        ||  (sscanf(cptr, "%d", &type) != 1)
-        ||  (type < 1)
-        ||  (type >= MSG_TYPE_LAST)) {
-                 error += 1;
-                 continue;
-        }
-        cptr = strtok(NULL, "\t ");
-        if ((cptr == NULL)
-        ||  (sscanf(cptr, "%d", &statebuf.buffer.state) != 1)
-        ||  (statebuf.buffer.state < 0)
-        ||  (statebuf.buffer.state > 1)) {
-                 error += 1;
-                 continue;
-        }
-        for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
-            cptr = strtok(NULL, "\t ");
-            if ((cptr == NULL)
-            ||  (sscanf(cptr, "%d", &statebuf.pane[pane].state) != 1)
-            ||  (statebuf.pane[pane].state < 0)
-            ||  (statebuf.pane[pane].state > 1)) {
-                 error += 1;
-                 continue;
-            }
-        }
-        /*
-         * Ignore the record if it has too many fields.  This might be a bit
-         * strict, but it does help enforce the file integrity in the event
-         * that the the number of supported panels increases in the future.
-         */
-        cptr = strtok(NULL, "\n");
-        if (cptr != NULL) {
+        || ((*cptr != 'C') && (*cptr != 'T') && (*cptr != 'M'))) {
             error += 1;
             continue;
         }
+        recordtype = *cptr;
+
+        /*
+         * Process the following fields by record type
+         */
+        if (recordtype == 'C') {
+            cptr = strtok(NULL, "\n");
+            if ((cptr == NULL)
+            ||  (sscanf(cptr, "%u", &countbuf.state) != 1)
+            ||  (countbuf.state < 1)
+            ||  (countbuf.state > 96)) {
+                     error += 1;
+                     continue;
+            }
+        }
+        if (recordtype == 'T') {
+            cptr = strtok(NULL, "\n");
+            if ((cptr == NULL)
+            ||  (sscanf(cptr, "%u", &timerbuf.state) != 1)
+            ||  (timerbuf.state < 1)
+            ||  (timerbuf.state > 96)) {
+                     error += 1;
+                     continue;
+            }
+        }
+        if (recordtype == 'M') {
+            cptr = strtok(NULL, "\t ");
+            if ((cptr == NULL)
+            ||  (sscanf(cptr, "%d", &type) != 1)
+            ||  (type < 1)
+            ||  (type >= MSG_TYPE_LAST)) {
+                     error += 1;
+                     continue;
+            }
+            cptr = strtok(NULL, "\t ");
+            if ((cptr == NULL)
+            ||  (sscanf(cptr, "%d", &statebuf.buffer.state) != 1)
+            ||  (statebuf.buffer.state < 0)
+            ||  (statebuf.buffer.state > 1)) {
+                     error += 1;
+                     continue;
+            }
+            for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+                cptr = strtok(NULL, "\t ");
+                if ((cptr == NULL)
+                ||  (sscanf(cptr, "%d", &statebuf.pane[pane].state) != 1)
+                ||  (statebuf.pane[pane].state < 0)
+                ||  (statebuf.pane[pane].state > 1)) {
+                     error += 1;
+                     continue;
+                }
+            }
+            /*
+             * Ignore the record if it has too many fields.  This might be a
+             * bit strict, but it does help enforce the file integrity in the
+             * event that the the number of supported panels increases in the
+             * future.
+             */
+            cptr = strtok(NULL, "\n");
+            if (cptr != NULL) {
+                error += 1;
+                continue;
+            }
+        }
+
         /*
          * Remember, type is one-based, but the index into an array is zero-
          * based, so adjust type.  Also, since the record parsed out fine,
          * increment the number of valid records found.  Apply all the values
-         * read to the msgctrl_widgets[] array so the dialog can be updated
-         * when we are done.
+         * read to the buffer_control structure and msgctrl_widgets[] array so
+         * the dialog can be updated when all data has been read.
          */
-        type -= 1;
-        found += 1;
-        msgctrl_widgets[type].buffer.state = statebuf.buffer.state;
-        for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
-            msgctrl_widgets[type].pane[pane].state=statebuf.pane[pane].state;
+        if (recordtype == 'C') {
+            buffer_control.count.state = countbuf.state;
+            cvalid += 1;
+        }
+        if (recordtype == 'T') {
+            buffer_control.timer.state = timerbuf.state;
+            tvalid += 1;
+        }
+        if (recordtype == 'M') {
+            type -= 1;
+            msgctrl_widgets[type].buffer.state = statebuf.buffer.state;
+            for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
+                msgctrl_widgets[type].pane[pane].state =
+                    statebuf.pane[pane].state;
+            }
+            mvalid += 1;
         }
     }
     fclose(fptr);
     /*
      * If there was any oddity with the data file, report it as corrupted even
      * if some of the values were used.  A corrupted file can be uncorrupted
-     * by loading it and saving it again.
+     * by loading it and saving it again.  A found value is needed for count,
+     * timer, and each message type.
      */
-    if ((error > 0) || (found != MSG_TYPE_LAST - 1)) {
+    if ((error > 0)
+    ||  (cvalid != 1)
+    ||  (tvalid != 1)
+    ||  (mvalid != MSG_TYPE_LAST - 1)) {
         snprintf(textbuf, sizeof(textbuf),
             "Corrupted Message Control settings in %s.", pathbuf);
         draw_ext_info(
@@ -1572,12 +1702,13 @@ void load_msgctrl_configuration(void)
      * loaded.  Apply the loaded values to the Message Control dialog checkbox
      * widgets.  so they reflect the states that were previously saved.
      */
-    if (found > 0) {
+    if ((cvalid + tvalid + mvalid) > 0) {
         snprintf(textbuf, sizeof(textbuf),
             "Message Control settings loaded from %s", pathbuf);
         draw_ext_info(
             NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, textbuf);
-        update_msgctrl_configuration();
+
+        update_msgctrl_configuration(); /* Update checkboxes w/ loaded data */
     }
 }
 
@@ -1594,6 +1725,8 @@ void default_msgctrl_configuration(void)
     guint pane;                         /* Client-supported message pane    */
     guint type;                         /* Message type                     */
 
+    buffer_control.count.state = (guint) buffer_control.count.default_state;
+    buffer_control.timer.state = (guint) buffer_control.timer.default_state;
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
         msgctrl_widgets[type].buffer.state = msgctrl_defaults[type].buffer;
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
@@ -1605,14 +1738,21 @@ void default_msgctrl_configuration(void)
 }
 
 /**
- * Reads the state of the message control dialog so the configuration can be
- * used in the client session.
+ * Reads the state of the message control dialog and applies the settings to
+ * the msgctrl_widgets[] state variables that control the message routing
+ * and duplicate suppression system.
  */
 void read_msgctrl_configuration(void)
 {
     guint pane;                         /* Client-supported message pane    */
     guint type;                         /* Message type                     */
 
+    buffer_control.count.state =
+        (guint) gtk_spin_button_get_value(
+            (GtkSpinButton*) buffer_control.count.ptr);
+    buffer_control.timer.state =
+        (guint) gtk_spin_button_get_value(
+            (GtkSpinButton*) buffer_control.timer.ptr);
     /*
      * Iterate through each message type.  For each, record the value of the
      * message duplicate suppression checkbox, and also obtain the routing
@@ -1632,9 +1772,10 @@ void read_msgctrl_configuration(void)
 }
 
 /**
- * Defines the behavior invoked when the message control dialog save button is
- * pressed.  The state of the control is read, and applied for immediate use,
- * then saved so that the settings persist across client sessions.
+ * When the message control dialog save button is pressed, the currently shown
+ * settings are applied for immediate use and they are saved to disk so the
+ * settings persist across client sessions.  Saved settings automatically
+ * load and apply when the client is started.
  *
  * @param button
  * @param user_data
@@ -1648,12 +1789,9 @@ on_msgctrl_button_save_clicked          (GtkButton       *button,
 }
 
 /**
- * Defines the behavior invoked when the message control dialog load button is
- * pressed.  The state of the control is reset to the last saved default
- * settings.  This may be used to "undo" applied settings.
- *
- * This is presently a stub.  The load button is disabled in msgctrl_init()
- * until this functionality is present.
+ * When the message control dialog load button is pressed, the settings last
+ * saved are restored and applied.  It may be used to "undo" both applied and
+ * unapplied setting changes.
  *
  * @param button
  * @param user_data
@@ -1666,9 +1804,8 @@ on_msgctrl_button_load_clicked          (GtkButton       *button,
 }
 
 /**
- * Defines the behavior invoked when the message control dialog Defaults
- * button is pressed.  The state of the control is reset to the built-in
- * application defaults.
+ * When the message control dialog defaults button is pressed, the default
+ * settings built into the client are restored and applied.
  *
  * @param button
  * @param user_data
@@ -1681,8 +1818,9 @@ on_msgctrl_button_defaults_clicked      (GtkButton       *button,
 }
 
 /**
- * Defines the behavior invoked when the message control dialog apply button
- * is pressed.  The state of the control is read and applied immediately.
+ * When the message control dialog apply button is pressed, the currently
+ * displayed settings are applied.  The dialog is not dismissed, but remains
+ * open for further adjustments to be made.
  *
  * @param button
  * @param user_data
@@ -1695,8 +1833,8 @@ on_msgctrl_button_apply_clicked         (GtkButton       *button,
 }
 
 /**
- * Defines the behavior invoked when the message control dialog close button
- * is pressed.
+ * When the message control dialog close button is pressed, the currently
+ * displayed settings are applied and the dialog is dismissed.
  *
  * @param button
  * @param user_data
@@ -1705,11 +1843,14 @@ void
 on_msgctrl_button_close_clicked         (GtkButton       *button,
                                         gpointer         user_data)
 {
+    read_msgctrl_configuration();
     gtk_widget_hide(msgctrl_window);
 }
 
 /**
- * Shows the message control dialog when the menu item is activated.
+ * Shows the message control dialog when the menu item is activated.  The
+ * settings shown on the dialog when it is activated are the settings
+ * currently in use.
  *
  * @param menuitem
  * @param user_data
