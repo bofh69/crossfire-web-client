@@ -2,6 +2,43 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/dialogs.glade:  The msgctrl_window now has more padding around
+  the title label to improve aesthetics.  The header of the dialog is modified
+  to make room for two new spinbutton controls: msgctrl_spinbutton_count and
+  msgctrl_spinbutton_timer.  The spinbuttons allow user access to the output
+  count and time controls previously hardcoded.  The controls have tooltips
+  that explain what they are for.  Both spinbuttons allow pasting new values,
+  clicking the value up/down, or using PgUp/PgDn to adjust the values in one
+  second increments (8 client ticks).  The tooltips for all of the column
+  labels are reworked.  Padding is added to numerous widgets to improve the
+  overall appearance of the dialog.  Tool tips have been added to all the
+  buttons to give some indication of what they do.
+gtk-v2/src/info.c:  Add output count and timer spinbutton control capability
+  to the new message control dialog by adding a buffer_parameter_t struct
+  typedef and buffer_control initialize structure that contains space for the
+  pointer, state variable, and a default value.  The message_control struct
+  is initialized with the #defines that controlled the system previously.
+  Renamed checkbox_t to boolean_widget_t since it doesn't really matter what
+  kind of control is used as we only care whether it supports some kind of
+  on/off capability.  msgctrl_init() initializes the state and ptr members of
+  the buffer_control structure.  Comments are also added to the function
+  header.  update_msgctrl_configuration() now updates the count and timer
+  spinbuttons.  save_msgctrl_configuration() has improved comments, and also
+  reads the dialog to assure saving of the currently displayed settings and
+  not just the last applied settings.  The save file format is modified to
+  add the spinbutton values.  The format of the file is slightly changed to
+  include a record type so that it is easier to validate the file format.
+  load_msgctrl_configuration() is heavily modified to improve the savefile
+  error detection, and to support the new file format.  The load process is
+  a bit more strict about the file being in the right format.  Saved values
+  are only read from records that are in the correct format.  Spinbutton
+  initialization is added to default_msgctrl_configuration().  The comment
+  header for read_msgctrl_configuration() is improved and spinbutton support
+  added.  Comment improvements are made for all the button handlers, and now
+  on_msgctrl_button_close_clicked() automatically applies the current values
+  displayed on the control.
+Kevin Bulgrien 2009/09/03
+
 gtk-v2/src/info.c:  Support autoload of Message Control dialog settings by
   reading the configuration file in msgctrl_init().
 gtk-v2/src/main.c:  Move msgctrl_init() later in client start up so that auto-
