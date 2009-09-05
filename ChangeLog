@@ -1,7 +1,9 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
-gtk-v2/glade/v1-redux: This is a resumption of the rework of all .glade
+
+gtk-v2/glade/gtk-v1.glade
+gtk-v2/glade/v1-redux.glade: This is a resumption of the rework of all .glade
   layouts to support SVN revision 11699 changes to GTK-V2 client code.
   HP/SP/Grace/Food/Exp label is split up into four labels each, and the
   encumbrance data is also split.  This change fixes all zeroes reported by
