@@ -1167,14 +1167,29 @@
                                 <property name="n_rows">2</property>
                                 <property name="n_columns">2</property>
                                 <child>
-                                  <widget class="GtkVScrollbar" id="vscrollbar_map">
+                                  <widget class="GtkButton" id="button_map_recenter">
                                     <property name="visible">True</property>
-                                    <property name="adjustment">50 0 100 0 0 0</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="response_id">0</property>
                                   </widget>
                                   <packing>
                                     <property name="left_attach">1</property>
                                     <property name="right_attach">2</property>
+                                    <property name="top_attach">1</property>
+                                    <property name="bottom_attach">2</property>
                                     <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options"></property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkDrawingArea" id="drawingarea_map">
+                                    <property name="visible">True</property>
+                                    <signal name="expose_event" handler="on_drawingarea_map_expose_event"/>
+                                    <signal name="button_press_event" handler="on_drawingarea_map_button_press_event"/>
+                                  </widget>
+                                  <packing>
+                                    <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
                                     <property name="y_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
                                   </packing>
                                 </child>
@@ -1191,30 +1206,15 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <widget class="GtkDrawingArea" id="drawingarea_map">
+                                  <widget class="GtkVScrollbar" id="vscrollbar_map">
                                     <property name="visible">True</property>
-                                    <signal name="expose_event" handler="on_drawingarea_map_expose_event"/>
-                                    <signal name="button_press_event" handler="on_drawingarea_map_button_press_event"/>
-                                  </widget>
-                                  <packing>
-                                    <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkButton" id="button_map_recenter">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="response_id">0</property>
+                                    <property name="adjustment">50 0 100 0 0 0</property>
                                   </widget>
                                   <packing>
                                     <property name="left_attach">1</property>
                                     <property name="right_attach">2</property>
-                                    <property name="top_attach">1</property>
-                                    <property name="bottom_attach">2</property>
                                     <property name="x_options">GTK_FILL</property>
-                                    <property name="y_options"></property>
+                                    <property name="y_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
                                   </packing>
                                 </child>
                               </widget>
@@ -1327,14 +1327,55 @@
                           <widget class="GtkVBox" id="vbox_stats_bars">
                             <property name="visible">True</property>
                             <child>
-                              <widget class="GtkLabel" id="label_stats_hp">
+                              <widget class="GtkHBox" id="hbox_stat_hp">
                                 <property name="visible">True</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">HP: 0/0</property>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_name_hp">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="xpad">2</property>
+                                    <property name="label" translatable="yes">HP:</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_current_hp">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_ratio_hp">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">/</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_max_hp">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
-                                <property name="fill">False</property>
                               </packing>
                             </child>
                             <child>
@@ -1350,14 +1391,55 @@
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkLabel" id="label_stats_sp">
+                              <widget class="GtkHBox" id="hbox_stat_sp">
                                 <property name="visible">True</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Spell Points: 0/0</property>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_name_sp">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="xpad">2</property>
+                                    <property name="label" translatable="yes">Spell Points:</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_current_sp">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_ratio_sp">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">/</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_max_sp">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
-                                <property name="fill">False</property>
                                 <property name="position">2</property>
                               </packing>
                             </child>
@@ -1374,14 +1456,55 @@
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkLabel" id="label_stats_grace">
+                              <widget class="GtkHBox" id="hbox_stat_grace">
                                 <property name="visible">True</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Grace: 0/0</property>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_name_grace">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="xpad">2</property>
+                                    <property name="label" translatable="yes">Grace:</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_current_grace">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_ratio_grace">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">/</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_max_grace">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
-                                <property name="fill">False</property>
                                 <property name="position">4</property>
                               </packing>
                             </child>
@@ -1398,14 +1521,55 @@
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkLabel" id="label_stats_food">
+                              <widget class="GtkHBox" id="hbox_stat_food">
                                 <property name="visible">True</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Food: 0/0</property>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_name_food">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="xpad">2</property>
+                                    <property name="label" translatable="yes">Food:</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_current_food">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_ratio_food">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">/</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_max_food">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
-                                <property name="fill">False</property>
                                 <property name="position">6</property>
                               </packing>
                             </child>
@@ -1422,14 +1586,55 @@
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkLabel" id="label_stats_exp">
+                              <widget class="GtkHBox" id="hbox_stat_exp">
                                 <property name="visible">True</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Exp: 0/0</property>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_name_exp">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="xpad">2</property>
+                                    <property name="label" translatable="yes">Exp:</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_current_exp">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_ratio_exp">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">/</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_stat_max_exp">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">0</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
-                                <property name="fill">False</property>
                                 <property name="position">8</property>
                               </packing>
                             </child>
@@ -2012,19 +2217,57 @@
                               </widget>
                             </child>
                             <child>
-                              <widget class="GtkHBox" id="hbox_encumbrance_count">
+                              <widget class="GtkHBox" id="hbox_inv_header">
                                 <property name="visible">True</property>
-                                <property name="border_width">2</property>
                                 <property name="homogeneous">True</property>
                                 <child>
-                                  <widget class="GtkLabel" id="label_inv_weight">
+                                  <widget class="GtkLabel" id="label_stat_encumbrance_name">
                                     <property name="visible">True</property>
-                                    <property name="label" translatable="yes">0/0</property>
+                                    <property name="xalign">0</property>
+                                    <property name="xpad">2</property>
+                                    <property name="label" translatable="yes">Inventory:</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkHBox" id="hbox_encumbrance">
+                                    <property name="visible">True</property>
+                                    <child>
+                                      <widget class="GtkLabel" id="label_stat_encumbrance_current">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">0</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="label_stat_ratio_encumbrance">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">/</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="label_stat_encumbrance_max">
+                                        <property name="visible">True</property>
+                                        <property name="label" translatable="yes">0</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">2</property>
+                                      </packing>
+                                    </child>
                                   </widget>
                                   <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">False</property>
-                                    <property name="padding">10</property>
+                                    <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -2035,8 +2278,8 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="padding">15</property>
-                                    <property name="position">1</property>
+                                    <property name="padding">5</property>
+                                    <property name="position">2</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -2048,10 +2291,7 @@
                                     <property name="numeric">True</property>
                                   </widget>
                                   <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">False</property>
-                                    <property name="padding">5</property>
-                                    <property name="position">2</property>
+                                    <property name="position">3</property>
                                   </packing>
                                 </child>
                               </widget>

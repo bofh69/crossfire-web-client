@@ -2,6 +2,7 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/un-deux.glade
 gtk-v2/glade/gtk-v1.glade
 gtk-v2/glade/v1-redux.glade: This is a resumption of the rework of all .glade
   layouts to support SVN revision 11699 changes to GTK-V2 client code.
