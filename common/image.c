@@ -47,21 +47,20 @@ const char * const rcsid_common_image_c =
 
 /*#define CHECKSUM_DEBUG*/
 
-
 struct FD_Cache {
     char    name[MAX_BUF];
     int	    fd;
 } fd_cache[MAX_FACE_SETS];
 
-
-/* given the filename, this tries to load the data.  It returns 0 success,
- * -1 on failure.  It returns the data and len, the passed
- * options.  csum is set to zero or unset - changes have made it such
- * that the caller knows whether or not the checksum matches, so there
- * is little point to re-do it.
- * data should be a buffer already allocated.
+/**
+ * Given a filename, this tries to load the data.  It returns 0 success, -1 on
+ * failure.  It returns the data and len, the passed options.
+ *
+ * @param csum set to zero or unset - changes have made it such that the
+ * caller knows whether or not the checksum matches, so there is little point
+ * to re-do it.
+ * @param data a pre-allocated buffer.
  */
-
 static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
 {
     int fd, i;
@@ -147,8 +146,8 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
 #endif
 
 }
-/*******************************************************************************
- *
+
+/****************************************************************************
  * This is our image caching logic.  We use a hash to make the name lookups
  * happen quickly - this is done for speed, but also because we don't really
  * have a good idea on how many images may used.  It also means that as the
@@ -157,8 +156,6 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
  *
  * If a bucket is filled with an entry that is not of the right name,
  * we store/look for the correct one in the next bucket.
- *
- *******************************************************************************
  */
 
 /* This should be a power of 2 */
@@ -166,7 +163,7 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
 
 Face_Information face_info;
 
-/* This holds the name we recieve with the 'face' command so we know what
+/** This holds the name we recieve with the 'face' command so we know what
  * to save it as when we actually get the face.
  */
 static char *facetoname[MAXPIXMAPNUM];
@@ -177,13 +174,12 @@ struct Image_Cache {
     struct Cache_Entry	*cache_entry;
 } image_cache[IMAGE_HASH];
 
-
-/* This function is basically hasharch from the server, common/arch.c
- * a few changes - first, we stop processing when we reach the first
- * . - this is because I'm not sure if hashing .111 at the end of
- * all the image names will be very useful.
+/**
+ * This function is basically hasharch from the server, common/arch.c a few
+ * changes - first, we stop processing when we reach the first . - this is
+ * because I'm not sure if hashing .111 at the end of all the image names will
+ * be very useful.
  */
-
 static uint32 image_hash_name(char *str, int tablesize) {
     uint32 hash = 0;
     char *p;
@@ -200,8 +196,9 @@ static uint32 image_hash_name(char *str, int tablesize) {
     return hash % tablesize;
 }
 
-/* This function returns an index into the image_cache for
- * a matching entry, -1 if no match is found.
+/**
+ * This function returns an index into the image_cache for a matching entry,
+ * -1 if no match is found.
  */
 static sint32 image_find_hash(char *str)
 {
@@ -223,6 +220,9 @@ static sint32 image_find_hash(char *str)
     return -1;
 }
 
+/**
+ *
+ */
 static void image_remove_hash(char *imagename, Cache_Entry *ce)
 {
     int	hash_entry;
@@ -250,13 +250,11 @@ static void image_remove_hash(char *imagename, Cache_Entry *ce)
     free(ce);
 }
 
-
-
-/* This finds and returns the Cache_Entry of the image that matches name
+/**
+ * This finds and returns the Cache_Entry of the image that matches name
  * and checksum if has_sum is set.  If has_sum is not set, we can't
  * do a checksum comparison.
  */
-
 static Cache_Entry *image_find_cache_entry(char *imagename, uint32 checksum, int has_sum)
 {
     int	hash_entry;
@@ -274,7 +272,9 @@ static Cache_Entry *image_find_cache_entry(char *imagename, uint32 checksum, int
     return entry;   /* This could be NULL */
 }
 
-/* Add a hash entry.  Returns the entry we added, NULL on failure.. */
+/**
+ * Add a hash entry.  Returns the entry we added, NULL on failure.
+ */
 static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 checksum, uint32 ispublic)
 {
     Cache_Entry *new_entry;
@@ -310,10 +310,11 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 check
     return new_entry;
 }
 
-/* Process a line from the bmaps.client file.  In theory, the
- * format should be quite strict, as it is computer generated,
- * but we try to be lenient/follow some conventions.
- * Note that this is destructive to the data passed in line.
+/**
+ * Process a line from the bmaps.client file.  In theory, the format should be
+ * quite strict, as it is computer generated, but we try to be lenient/follow
+ * some conventions.  Note that this is destructive to the data passed in
+ * line.
  */
 static void image_process_line(char *line, uint32 ispublic)
 {
@@ -329,6 +330,9 @@ static void image_process_line(char *line, uint32 ispublic)
     }
 }
 
+/**
+ *
+ */
 void init_common_cache_data(void)
 {
     FILE *fp;
@@ -343,7 +347,6 @@ void init_common_cache_data(void)
 
     /* First, make sure that image_cache is nulled out */
     memset(image_cache, 0, IMAGE_HASH * sizeof(struct Image_Cache));
-
 
     snprintf(bmaps, sizeof(bmaps), "%s/bmaps.client",CF_DATADIR);
     if ((fp=fopen(bmaps,"r"))!=NULL) {
@@ -369,7 +372,6 @@ void init_common_cache_data(void)
     }
 }
 
-
 /******************************************************************************
  *
  * Code related to face caching.
@@ -378,6 +380,9 @@ void init_common_cache_data(void)
 
 char facecachedir[MAX_BUF];
 
+/**
+ *
+ */
 void requestface(int pnum, char *facename)
 {
     face_info.cache_misses++;
@@ -385,9 +390,8 @@ void requestface(int pnum, char *facename)
     cs_print_string(csocket.fd, "askface %d", pnum);
 }
 
-
-
-/* This is common for all the face commands (face2, face1, face).
+/**
+ * This is common for all the face commands (face2, face1, face).
  * For face1 and face commands, faceset should always be zero.
  * for face commands, has_sum and checksum will be zero.
  * pnum is the face number, while face is the name.
@@ -464,13 +468,12 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 }
 
 
-/* We can now connect to different servers, so we need to clear out
- * any old images.  We try to free the data also to prevent memory
- * leaks.
- * Note that we don't touch our hashed entries - so that when we
- * connect to a new server, we still have all that information.
+/**
+ * We can now connect to different servers, so we need to clear out any old
+ * images.  We try to free the data also to prevent memory leaks.
+ * Note that we don't touch our hashed entries - so that when we connect to a
+ * new server, we still have all that information.
  */
-
 void reset_image_cache_data(void)
 {
     int i;
@@ -481,13 +484,12 @@ void reset_image_cache_data(void)
     }
 }
 
-
-/* We only get here if the server believes we are caching images. */
-/* We rely on the fact that the server will only send a face command for
- * a particular number once - at current time, we have no way of knowing
- * if we have already received a face for a particular number.
+/**
+ * We only get here if the server believes we are caching images.  We rely on
+ * the fact that the server will only send a face command for a particular
+ * number once - at current time, we have no way of knowing if we have already
+ * received a face for a particular number.
  */
-
 void Face2Cmd(uint8 *data,  int len)
 {
     int pnum;
@@ -511,6 +513,9 @@ void Face2Cmd(uint8 *data,  int len)
     finish_face_cmd(pnum, checksum, 1, face,setnum);
 }
 
+/**
+ *
+ */
 void Image2Cmd(uint8 *data,  int len)
 {
     int pnum,plen;
@@ -527,10 +532,9 @@ void Image2Cmd(uint8 *data,  int len)
     display_newpng(pnum,data+9,plen, setnum);
 }
 
-/*
- * This function is called when the server has sent us the actual
- * png data for an image.  If caching, we need to write this
- * data to disk.
+/**
+ * This function is called when the server has sent us the actual png data for
+ * an image.  If caching, we need to write this data to disk.
  */
 void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 {
@@ -639,16 +643,15 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
     free(pngtmp);
 }
 
-
-/* get_image_info takes the data from a replyinfo image_info
- * and breaks it down.  The info contained is the checkums,
- * number of images, and faceset information.  It stores this
- * data into the face_info structure.
- * Since we know data is null terminated, we can use the strchr
- * operations with safety.
- * In each block, we find the newline - if we find one, we presume
- * the data is good, and update the face_info accordingly.
- * if we don't find a newline, we return.
+/**
+ * Takes the data from a replyinfo image_info and breaks it down.  The info
+ * contained is the checkums, number of images, and faceset information.  It
+ * stores this data into the face_info structure.
+ * Since we know data is null terminated, we can use the strchr operations
+ * with safety.
+ * In each block, we find the newline - if we find one, we presume the data is
+ * good, and update the face_info accordingly.  if we don't find a newline, we
+ * return.
  */
 void get_image_info(uint8 *data, int len)
 {
@@ -720,20 +723,19 @@ void get_image_info(uint8 *data, int len)
 
 }
 
-/* This gets a block of checksums from the server.  This lets it
- * prebuild the images or what not.  It would probably be
- * nice to add a gui callback someplace that gives a little status
- * display (18% done or whatever) - that probably needs to be done
- * further up.
+/**
+ * This gets a block of checksums from the server.  This lets it prebuild the
+ * images or what not.  It would probably be nice to add a gui callback
+ * someplace that gives a little status display (18% done or whatever) - that
+ * probably needs to be done further up.
  *
- * The start and stop values are not meaningful - they are here
- * because the semantics of the requestinfo/replyinfo is that
- * replyinfo includes the same request data as the requestinfo
- * (thus, if the request failed for some reason, the client would
- * know which one failed and then try again).  Currently, we
- * don't have any logic in the function below to deal with failures.
+ * The start and stop values are not meaningful - they are here because the
+ * semantics of the requestinfo/replyinfo is that replyinfo includes the same
+ * request data as the requestinfo (thus, if the request failed for some
+ * reason, the client would know which one failed and then try again).
+ * Currently, we don't have any logic in the function below to deal with
+ * failures.
  */
-
 void get_image_sums(char *data, int len)
 {
     int start, stop, imagenum, slen, faceset;
@@ -778,3 +780,4 @@ void get_image_sums(char *data, int len)
 	cp += slen;
     }
 }
+
