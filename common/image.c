@@ -54,12 +54,16 @@ struct FD_Cache {
 
 /**
  * Given a filename, this tries to load the data.  It returns 0 success, -1 on
- * failure.  It returns the data and len, the passed options.
+ * failure.  It returns the data and len, the passed options.  This function
+ * is called only if the client caching feature is enabled.
  *
- * @param csum set to zero or unset - changes have made it such that the
- * caller knows whether or not the checksum matches, so there is little point
- * to re-do it.
- * @param data a pre-allocated buffer.
+ * @param filename File name of an image to try to load.
+ * @param data Caller-allocated pointer to a buffer to load image into.
+ * @param len Amount of buffer used by the loaded image.
+ * @param csum Returns 0/unset (caller already knows if checksum matches?).
+ *             Changes have made such that the caller knows whether or not
+ *             the checksum matches, so there is little point to re-do it.
+ * @return 0 on success, -1 on failure.
  */
 static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
 {
