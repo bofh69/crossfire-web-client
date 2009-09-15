@@ -2,6 +2,35 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+macros/ax_pthread.m4: Add a new m4 macro ax_pthread.m4 to (hopefully) better
+  suport detection of pthreads.  See:  SF tracker ID 2850517 for info:
+  crossfire-client-1.12.0 build failure under Slackware 12.2 - ID: 2850517.
+  Note that ax_thread.m4 is itself licensed under GPLv3.  Note a possibility
+  for license confusion, but also note that a review of various projects shows
+  a fairly common precedent of allowing mixed licenses in the m4 macro
+  directory - not all explicitly documenting the fact that different licenses
+  are used.  Other projects maintain a file identifying copyright and
+  licensing provisions for various parts of the project.  Whereas it is very
+  likely other sources will be modified, it is highly unlikely anyone will
+  expect to modify the .m4 macros in this project.
+aclocal.m4: Rebuilt file after incorporation of macros/ax_pthread.m4.
+  configure.ac: Replace AC_CHECK_LIB(pthread, pthread_create) method of
+  detecting pthreads with AX_PTHREAD().  Now halt the build if pthreads is not
+  found since presently all clients are required to use metaserver code that
+  uses pthreads.  Also modify the configure.ac file to create a configure
+  script that reports if the x11 client is built.  There is no reason to avoid
+  this since it reports other clients that are or are not built.  The notices
+  at the end of the configure script that say "Will build * renderer" are
+  changed to say "With * renderer" since it looks silly in the case where no
+  clients are built that use the renderers.
+common/Makefile.am
+x11/Makefile.am
+gtk/Makefile.am
+gtk-v2/src/Makefile.am:
+  - Modify files to use PTHREAD_CFLAGS and PTHREAD_LIBS variables as advised
+    by the new macros/ax_pthread.m4 file.  It is advised that both CFLAGS and
+    LIBS variables be used (even though on some systems both are not needed).
+
 gtk-v2/glade/un-deux.glade
 gtk-v2/glade/gtk-v1.glade
 gtk-v2/glade/v1-redux.glade: This is a resumption of the rework of all .glade

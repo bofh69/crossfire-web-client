@@ -130,6 +130,20 @@ case "$target" in
     ;;
 esac
 
+# dnl
+# dnl  Detect pthreads libraries
+# dnl
+#
+# pthreads is required by both metaservers.  Only metaserver2 is optional, so
+# we cannot build any client if pthreads is not present.
+#
+# AX_PTHREAD([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+#
+# Default is to define HAVE_PTHREAD.  PTHREAD_CC and PTHREAD_LIBS are set.
+# Both compile and link with these flags.
+#
+AX_PTHREAD(,AC_MSG_ERROR(POSIX threads not found.  Cannot build any client.))
+
 # Check for what clients we are going to build in order of x, gtk-v1, gtk-v2
 
 # Check to see if X client will be built - no_x is set by AC_CHECK_XTRA if
@@ -137,7 +151,9 @@ esac
 if eval "test x$no_x = xyes" ; then
     AC_MSG_WARN(X11 not found - will not build X client)
     X_LIBS=""
+    x11="no"
 else
+    x11="yes"
     AC_MSG_NOTICE(X11 found - will build X client)
     X_LIBS="$X_LIBS -lX11"
     CF_SUBDIRS="$CF_SUBDIRS x11"
@@ -219,8 +235,6 @@ AC_SUBST(INTLLIBS)
 # lua also needs it, so put it near the top
 AC_CHECK_LIB(m, sqrt)
 
-AC_CHECK_LIB(pthread, pthread_create)
-
 # Check for lua 5.0 or 5.1.  See also: http://lua-users.org/wiki/AutoConfig
 AC_CHECK_LIB(lua, lua_call,
 [   # lua found
@@ -283,7 +297,6 @@ AC_PROG_RANLIB
 
 AC_SUBST(X_LIBS)
 AC_SUBST(X_CFLAGS)
-
 
 if eval "test x$sound = xyes"; then
     if eval "test x$alsa = xyes"; then
@@ -555,10 +568,11 @@ if eval "test x$cfgtk2 = xyes" ; then
 else
   gtk1_2_ext=""
 fi
+AC_MSG_NOTICE([    Will build X11 client?               $x11])
 AC_MSG_NOTICE([    Will build GTK1 client?              $gtkv1 $gtk1_2_ext])
 AC_MSG_NOTICE([    Will build GTK2 client?              $gtkv2])
-AC_MSG_NOTICE([    Will build OpenGL renderer?          $opengl])
-AC_MSG_NOTICE([    Will build SDL renderer?             $use_sdl])
+AC_MSG_NOTICE([    With OpenGL renderer?                $opengl])
+AC_MSG_NOTICE([    With SDL renderer?                   $use_sdl])
 sound_system=""
 if eval "test x$sound = xyes"; then
   if eval "test x$alsa9_sound = xyes"; then

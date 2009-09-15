@@ -64,6 +64,8 @@ EXTRA_DIST = \
 	item-types \
 	items.pl
 
+AM_CPPFLAGS = $(PTHREAD_CFLAGS)
+
 proto:
 	cproto -DCPROTO -DCFCLIENT $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) \
 		$(libcfclient_a_SOURCES) > proto.h

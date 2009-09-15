@@ -40,9 +40,9 @@ dist_man6_MANS = \
 EXTRA_DIST = \
         crossfire-client.desktop
 
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/common -I$(top_srcdir)/pixmaps
+AM_CPPFLAGS = $(PTHREAD_CFLAGS) -I$(top_srcdir) -I$(top_srcdir)/common -I$(top_srcdir)/pixmaps
 
-crossfire_client_x11_LDADD = $(DMALLOC_LIB) $(X_LIBS) ../common/libcfclient.a @LUA_LIBS@
+crossfire_client_x11_LDADD = $(DMALLOC_LIB) $(X_LIBS) $(PTHREAD_LIBS) ../common/libcfclient.a @LUA_LIBS@
 
 ../common/libcfclient.a:
 	( cd ../common ; make libcfclient.a )
