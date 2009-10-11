@@ -77,8 +77,8 @@ item-types.h: item-types
 def-keys.h: def-keys
 	../utils/mdk.sh
 
-msgtypes.h: shared/newclient.h
-	$(PERL) msgtypes.pl
+$(srcdir)/msgtypes.h: $(srcdir)/shared/newclient.h
+	$(PERL) $(srcdir)/msgtypes.pl $(srcdir)
 
 svnversion.h: FORCE
 	OUTPUT_DATA='/* Auto-generated at build time. */'; \
