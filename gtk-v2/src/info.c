@@ -313,7 +313,7 @@ struct msgctrl_data_t
        { "Message of the day",              FALSE, {     TRUE,   FALSE } },
        { "Administrative",                  FALSE, {     TRUE,   FALSE } },
        { "Shops",                            TRUE, {     TRUE,   FALSE } },
-       { "Command responses",                TRUE, {     TRUE,   FALSE } },
+       { "Command responses",               FALSE, {     TRUE,   FALSE } },
        { "Changes to attributes",            TRUE, {     TRUE,    TRUE } },
        { "Skill-related messages",           TRUE, {     TRUE,   FALSE } },
        { "Apply results",                    TRUE, {     TRUE,   FALSE } },
