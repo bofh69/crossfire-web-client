@@ -4,7 +4,7 @@ const char * const rcsid_gtk_sound_c =
 /*
     CrossFire, A Multiplayer game for X-windows
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001,2010 Mark Wedel & Crossfire Development Team
     Copyright (C) 1992 Frank Tore Johansen
 
     This program is free software; you can redistribute it and/or modify
@@ -126,27 +126,6 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 }
 
 
-#ifndef WIN32
-void SoundCmd(unsigned char *data,  int len)
-{
-    int x, y, num, type;
-
-    if (len!=5) {
-	LOG(LOG_WARNING,"gtk::SoundCmd","Got invalid length on sound command: %d", len);
-	return;
-    }
-    x = data[0];
-    y = data[1];
-    num = GetShort_String(data+2);
-    type = data[4];
-
-#if 0
-    fprintf(stderr,"Playing sound %d (type %d), offset %d, %x\n",
-	    num, type, x ,y);
-#endif
-    play_sound(num, type, x, y);
-}
-#endif
 
 void Sound2Cmd(unsigned char *data, int len)
 {

@@ -50,7 +50,6 @@ void get_image_sums(char *data, int len);
 void VersionCmd(char *data, int len);
 void SendVersion(ClientSocket csock);
 void SendAddMe(ClientSocket csock);
-void SendSetFaceMode(ClientSocket csock, int mode);
 void init_client_vars(void);
 void reset_player_data(void);
 void reset_client_vars(void);

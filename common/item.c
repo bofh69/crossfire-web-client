@@ -3,7 +3,7 @@ const char * const rcsid_common_item_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -761,10 +761,6 @@ void inscribe_magical_scroll(item *scroll, Spell *spell) {
     SockList sl;
     uint8 buf[MAX_BUF];
 
-    if (command_inscribe == 0) {
-        LOG(LOG_WARNING, "common::inscribe_magical_scroll", "Called when server doesn't handle inscribe command.");
-        return;
-    }
     snprintf((char*)buf, sizeof(buf), "inscribe 0 %d %d", scroll->tag, spell->tag);
     script_monitor_str((char*)buf);
     SockList_Init(&sl, buf);

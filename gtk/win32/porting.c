@@ -465,28 +465,6 @@ static void play_sound(int soundnum, int soundtype, sint8 x, sint8 y )
     */
 }
 
-void SoundCmd(unsigned char *data, int len)
-{
-	int num, type;
-    sint8 x, y;
-
-    if (len!=5) {
-	fprintf(stderr,"Got invalid length on sound command: %d\n", len);
-	return;
-    }
-    x = data[0];
-    y = data[1];
-    num = GetShort_String(data+2);
-    type = data[4];
-
-#ifdef DEBUG
-    fprintf(stderr,"Playing sound %d (type %d), offset %d, %x\n",
-	    num, type, x ,y);
-#endif
-
-    play_sound(num, type, x, y);
-}
-
 #else  /* HAVE_SDL */
 /* No SDL, let's use dumb PlaySound (better than nothing).
  */
@@ -499,55 +477,6 @@ int init_sounds()
 	return 0;
 }
 
-void SoundCmd(unsigned char *data, int len)
-{
-	int num, type;
-    Sound_Info* si;
-
-    if (len!=5) {
-	LOG(LOG_WARNING,"SoundCmd(win)","Got invalid length on sound command: %d\n", len);
-	return;
-    }
-    num = GetShort_String(data+2);
-    type = data[4];
-
-	if (type == SOUND_NORMAL ) {
-		si = &normal_sounds[ num ];
-	} else if ( type == SOUND_SPELL ) {
-		si = &spell_sounds[ num ];
-    } else {
-        LOG(LOG_WARNING,"SoundCmd(win)","invalid sound type %d",type);
-        return;
-    }
-
-    if ( !si->filename )
-        /* Already tried to load sound, failed, let's stop here. */
-        return;
-
-    if ( !si->data )
-        {
-        /* Let's try to load the sound */
-        FILE* fsound;
-        struct stat sbuf;
-
-		if ( ( stat( si->filename, &sbuf ) == -1 ) || ( ( fsound = fopen( si->filename, "rb" ) ) == NULL ) )
-            {
-            // Failed to load it, clear name & such so we don't try again.
-            LOG( LOG_WARNING, "SoundCmd(win)", "Can't open sound %s", si->filename );
-			perror( si->filename );
-            free( si->filename );
-            si->filename = NULL;
-			return;
-		    }
-
-		si->size=sbuf.st_size;
-        si->data = malloc( si->size );
-        fread( si->data, si->size, 1, fsound );
-        fclose( fsound );
-        }
-
-    PlaySound( si->data, NULL, SND_ASYNC | SND_MEMORY | SND_NOWAIT);
-}
 
 #endif /* HAVE_SDL */
 

@@ -3,7 +3,7 @@ const char * const rcsid_common_init_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,12 +87,6 @@ void SendVersion(ClientSocket csock)
 void SendAddMe(ClientSocket csock)
 {
     cs_print_string(csock.fd, "addme");
-}
-
-
-void SendSetFaceMode(ClientSocket csock,int mode)
-{
-    cs_print_string(csock.fd, "setfacemode %d", mode);
 }
 
 

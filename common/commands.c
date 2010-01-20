@@ -3,7 +3,7 @@ const char * const rcsid_common_commands_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -236,9 +236,6 @@ void SetupCmd(char *buf, int len) {
              */
         } else if (!strcmp(cmd, "sound")) {
             /* No, this should not be !strcmp()... */
-            if (strcmp(param, "FALSE")) {
-                cs_print_string(csocket.fd, "setsound %d", want_config[CONFIG_SOUND]);
-            }
         } else if (!strcmp(cmd, "mapsize")) {
             int x, y = 0;
             char *cp, tmpbuf[MAX_BUF];
@@ -288,27 +285,15 @@ void SetupCmd(char *buf, int len) {
                     NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER, tmpbuf);
             }
         } else if (!strcmp(cmd, "sexp") || !strcmp(cmd, "darkness") ||
-            !strcmp(cmd, "newmapcmd") || !strcmp(cmd, "spellmon")) {
+            !strcmp(cmd, "spellmon")) {
             /* this really isn't an error or bug - in fact, it is expected if
              * the user is playing on an older server.
              */
             if (!strcmp(param, "FALSE")) {
                 LOG(LOG_WARNING, "common::SetupCmd", "Server returned FALSE on setup command %s", cmd);
-#if 0
-/* This should really be a callback to the gui if it needs to re-examine
- * the results here.
- */
-                if (!strcmp(cmd, "newmapcmd") && fog_of_war == TRUE) {
-                    fprintf(stderr, "**Warning: Fog of war is active but server does not support the newmap command\n");
-                }
-#endif
             }
         } else if (!strcmp(cmd, "facecache")) {
-            if (!strcmp(param, "FALSE") && want_config[CONFIG_CACHE]) {
-                SendSetFaceMode(csocket, CF_FACE_CACHE);
-            } else {
                 use_config[CONFIG_CACHE] = atoi(param);
-            }
         } else if (!strcmp(cmd, "faceset")) {
             if (!strcmp(param, "FALSE")) {
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
@@ -328,87 +313,13 @@ void SetupCmd(char *buf, int len) {
 #endif
                 csocket.fd = -1;
             }
-        } else if (!strcmp(cmd, "itemcmd")) {
-            /* don't really care - currently, the server will just
-             * fall back to the item1 transport mode.  If more item modes
-             * are used in the future, we should probably fall back one at
-             * a time or the like.
-             */
-        } else if (!strcmp(cmd, "exp64")) {
-            /* If this server does not support the new skill code,
-             * error out. If the server does support new exp system,
-             * send a request to get the mapping information.
-             */
-            if (!strcmp(param, "FALSE")) {
-                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
-                    "Server does not support exp64!");
-                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
-                    "This server is too old to support this client!");
-#ifdef WIN32
-                closesocket(csocket.fd);
-#else
-                close(csocket.fd);
-#endif
-                csocket.fd = -1;
-            } else {
-                cs_print_string(csocket.fd, "requestinfo skill_info");
-            }
-        } else if (!strcmp(cmd, "extendedMapInfos")) {
-            if (!strcmp(param, "FALSE")) {
-                use_config[CONFIG_SMOOTH] = 0;
-            } else {
-                /* Request all extended infos we want
-                 * Should regroup everything for easyness
-                 */
-                if (use_config[CONFIG_SMOOTH]) {
-                    cs_print_string(csocket.fd, "toggleextendedinfos smooth");
-                }
-            }
-        } else if (!strcmp(cmd, "extendedTextInfos")) {
-            if (strcmp(param, "FALSE")) { /* server didn't send FALSE*/
-                /* Server seems to accept extended text infos. Let's tell
-                 * it what extended text info we want
-                 */
-                char exttext[MAX_BUF];
-                TextManager *manager = firstTextManager;
-
-                while (manager) {
-                    snprintf(exttext, sizeof(exttext), "toggleextendedtext %d", manager->type);
-                    cs_print_string(csocket.fd, exttext);
-                    manager = manager->next;
-                }
-            }
         } else if (!strcmp(cmd, "want_pickup")) {
             /* Nothing to do specially, it's info pushed from server, not having it isn't that bad. */
-        } else if (!strcmp(cmd, "inscribe")) {
-            if (strcmp(param, "FALSE"))
-                command_inscribe = atoi(param);
-            else
-                command_inscribe = 0;
         } else {
             LOG(LOG_INFO, "common::SetupCmd", "Got setup for a command we don't understand: %s %s",
                 cmd, param);
         }
     }
-}
-
-/**
- *
- * @param data
- * @param len
- */
-void ExtendedInfoSetCmd(char *data, int len) {
-    (void)data; /* __UNUSED__ */
-    (void)len; /* __UNUSED__ */
-
-    /* Do nothing for now, perhaps later add some
-     * support to check what server knows.
-     */
-    /* commented, no guarantee that the string data is null terminated
-       draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
-           "ExtendedInfoSet returned from server: ");
-       draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER, data);
-    */
 }
 
 /**

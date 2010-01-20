@@ -3,7 +3,7 @@ const char * const rcsid_common_client_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,8 +72,6 @@ uint32	tick=0;
 uint16	exp_table_max=0;
 uint64	*exp_table=NULL;
 
-int command_inscribe = 0;
-
 Client_Player cpl;
 ClientSocket csocket;
 
@@ -121,7 +119,6 @@ struct CmdMapping commands[] = {
     { "tick", TickCmd, INT_ARRAY /* uint32 */},
 
 
-    { "sound", SoundCmd, MIXED /* int8, int8, int16, int8 */},
     { "sound2", Sound2Cmd, MIXED /* int8, int8, int8, int8, int8, int8, chars, int8, chars */},
     { "music", (CmdProc)MusicCmd, ASCII },
     { "anim", AnimCmd, SHORT_ARRAY},
@@ -135,11 +132,11 @@ struct CmdMapping commands[] = {
     { "version", (CmdProc)VersionCmd, ASCII },
     { "goodbye", (CmdProc)GoodbyeCmd, NODATA },
     { "setup", (CmdProc)SetupCmd, ASCII},
-    { "ExtendedInfoSet", (CmdProc)ExtendedInfoSetCmd, NODATA},
 
     { "query", (CmdProc)handle_query, ASCII},
     { "replyinfo", ReplyInfoCmd, ASCII},
     { "ExtendedTextSet", (CmdProc)SinkCmd, NODATA},
+    { "ExtendedInfoSet", (CmdProc)SinkCmd, NODATA},
 
     { "pickup", PickupCmd, INT_ARRAY /* uint32 */},
 };
@@ -379,28 +376,22 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-	    "setup map2cmd 1 tick 1 sound %d%s sexp %d darkness %d newmapcmd 1 spellmon 1 faceset %d facecache %d exp64 1 itemcmd 2",
-	    sound>=0, (sound>=0) ? " sound2 3" : "", want_skill_exp,
+	    "setup map2cmd 1 tick 1 sound2 %d sexp %d darkness %d spellmon 1 faceset %d facecache %d want_pickup 1",
+	    (sound>=0) ? 3 : 0, want_skill_exp,
 		    want_config[CONFIG_LIGHTING]?1:0, face_info.faceset,
 		    want_config[CONFIG_CACHE]);
 
     /* We can do this right now also - isn't any reason to wait */
+    cs_print_string(csocket.fd, "requestinfo skill_info");
     cs_print_string(csocket.fd,"requestinfo exp_table");
 
     use_config[CONFIG_MAPHEIGHT]=want_config[CONFIG_MAPHEIGHT];
     use_config[CONFIG_MAPWIDTH]=want_config[CONFIG_MAPWIDTH];
     mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
     if (use_config[CONFIG_MAPHEIGHT]!=11 || use_config[CONFIG_MAPWIDTH]!=11)
-	cs_print_string(csocket.fd,"setup mapsize %dx%d",use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
+        cs_print_string(csocket.fd,"setup mapsize %dx%d",use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
 
     use_config[CONFIG_SMOOTH]=want_config[CONFIG_SMOOTH];
-    if (use_config[CONFIG_SMOOTH]){ /*or other mapextended infos*/
-        cs_print_string(csocket.fd,"setup extendedMapInfos 1");
-        /*will handle all special infos requested when setup answer this command*/
-    }
-    cs_print_string(csocket.fd,"setup extendedTextInfos 1");
-    cs_print_string(csocket.fd,"setup want_pickup 1");
-    cs_print_string(csocket.fd,"setup inscribe 1");
 
     /* If the server will answer the requestinfo for image_info and image_data,
      * send it and wait for the response.

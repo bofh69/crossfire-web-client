@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001,2007 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001,2007,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -431,8 +431,6 @@ extern uint32	tick;
 
 extern uint64	*exp_table;
 extern uint16	exp_table_max;
-
-extern int command_inscribe;
 
 /* Map size the client will request the map to be.  Bigger it is,
  * more memory it will use

@@ -2,6 +2,25 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Protocol cleanup - remove code that supports protocol commands that are out
+of date.  Also change setup to only request current options.
+MSW 2010-01-18
+---
+common/client.c: Remove handling of obsolete protocol commands.  Clean up
+	setup logic - do it all in one setup command instead of several,
+	don't send options to server which are now standard.
+common/client.h: remove extern command_inscribe declaration.
+common/commands.c: Fix up a lot of setup logic - remove fallbacks to
+    protocol commands that predate the setup replacements.  Remove
+    handling of settings which are now standard.
+common/init.c: Remove SendSetFaceMode()
+common/item.c: Presume all servers support inscribe protocol command.
+gtk/gx11.c: Presume all servers support inscribe protocol command.
+gtk/sound.c: remove SoundCmd()
+gtk/win32/porting.c: Remove SoundCmd()
+gtk-v2/src/sound.c: Remove SoundCmd()
+---
+
 gtk-v2/src/info.c: off duplicate supression of command responses by default.
     Otherwise, things like statistics output ends up in what effectively
     looks like random order, which isn't good when you have a table.
