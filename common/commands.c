@@ -284,8 +284,7 @@ void SetupCmd(char *buf, int len) {
                 draw_ext_info(
                     NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER, tmpbuf);
             }
-        } else if (!strcmp(cmd, "sexp") || !strcmp(cmd, "darkness") ||
-            !strcmp(cmd, "spellmon")) {
+        } else if (!strcmp(cmd, "darkness") || !strcmp(cmd, "spellmon")) {
             /* this really isn't an error or bug - in fact, it is expected if
              * the user is playing on an older server.
              */

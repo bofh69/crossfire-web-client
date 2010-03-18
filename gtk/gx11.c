@@ -5013,10 +5013,6 @@ int init_windows(int argc, char **argv)
 #else
     strcpy(VERSION_INFO,"GTK Win32 Client " FULL_VERSION);
 #endif
-    /* Set this global so we get skill experience - gtk client can display
-     * it, so lets get the info.
-     */
-    want_skill_exp=1;
     for (on_arg=1; on_arg<argc; on_arg++) {
 	if (!strcmp(argv[on_arg],"-cache")) {
 	    want_config[CONFIG_CACHE]= TRUE;

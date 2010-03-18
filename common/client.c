@@ -376,10 +376,9 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
     cs_print_string(csocket.fd,
-	    "setup map2cmd 1 tick 1 sound2 %d sexp %d darkness %d spellmon 1 faceset %d facecache %d want_pickup 1",
-	    (sound>=0) ? 3 : 0, want_skill_exp,
-		    want_config[CONFIG_LIGHTING]?1:0, face_info.faceset,
-		    want_config[CONFIG_CACHE]);
+	    "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 faceset %d facecache %d want_pickup 1",
+	    (sound>=0) ? 3 : 0, want_config[CONFIG_LIGHTING]?1:0,
+	    	face_info.faceset, want_config[CONFIG_CACHE]);
 
     /* We can do this right now also - isn't any reason to wait */
     cs_print_string(csocket.fd, "requestinfo skill_info");

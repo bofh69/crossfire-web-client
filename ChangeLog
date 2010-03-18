@@ -2,6 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/client.c
+common/commands.c
+common/client.h
+gtk/gx11.c
+x11/x11.c
+gtk-v2/sound.c: Remove the use of the setup flag sexp - The server doesn't 
+respond to it any more and the clients don't use it.
+Brendan Lally 2010-03-18
+
 Protocol cleanup - remove code that supports protocol commands that are out
 of date.  Also change setup to only request current options.
 MSW 2010-01-18

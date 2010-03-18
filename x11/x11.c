@@ -2795,7 +2795,6 @@ int init_windows(int argc, char **argv)
     load_defaults();	/* Load these first, so they can get overwritten by
 			 * command line options.
 			 */
-    want_skill_exp=1;
     for (on_arg=1; on_arg<argc; on_arg++) {
 	if (!strcmp(argv[on_arg],"-display")) {
 	    if (++on_arg == argc) {
