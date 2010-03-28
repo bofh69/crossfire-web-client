@@ -2,6 +2,9 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/command.c - use the map2 type defines in the parsing code
+Brendan Lally 2010-03-28
+
 common/client.c
 common/commands.c
 common/client.h

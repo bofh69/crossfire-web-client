@@ -1226,14 +1226,14 @@ void Map2Cmd(unsigned char *data, int len) {
             space_len = type>>5;
             type &= 0x1f;
             /* Clear the space */
-            if (type == 0) {
+            if (type == MAP2_TYPE_CLEAR) {
                 mapdata_clear_space(x, y);
                 continue;
-            } else if (type == 1) {
+            } else if (type == MAP2_TYPE_DARKNESS) {
                 value = data[pos++];
                 mapdata_set_darkness(x, y, value);
                 continue;
-            } else if (type >= 0x10 && type <= 0x1a) {
+            } else if (type >= MAP2_LAYER_START && type < MAP2_LAYER_START+MAXLAYERS) {
                 int layer, opt;
 
                 /* This is face information for a layer. */
