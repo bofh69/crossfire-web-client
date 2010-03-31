@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c - Fix msgctrl_defaults[] to list magic ears as a subtype but
+  not magic mouths.  Magic mouths are signs, so add that to the sign message
+  descriptive text.  This results in a change to the message control dialog.
+Kevin Bulgrien 2010-03-30
+
 common/command.c - use the map2 type defines in the parsing code
 Brendan Lally 2010-03-28
 
