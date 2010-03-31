@@ -420,7 +420,7 @@ widget_class "info_tan" style "tan_text"
 #
 # and have it work, as the "msg_book_clasp" by itself isn't a valid name.
 # Basically, you can bind it to the overall type (which covers all the
-# subtypes), or to specific type/subtypes. Tthe common/msgtypes.h file
+# subtypes), or to specific type/subtypes. The common/msgtypes.h file
 # contains  all the valid names (without the msg_ prefix) that are valid.
 #
 # 3) Even with the new message types, the server still sends what color
@@ -481,7 +481,7 @@ widget_class "msg_sign" style "darkblue_text"
 
 # DIALOG messages
 widget_class "msg_dialog_npc" style "darkblue_text"
-widget_class "msg_dialog_magic_mouth" style "darkblue_text"
+widget_class "msg_dialog_magic_ear" style "darkblue_text"
 
 # MOTD messages
 widget_class "msg_motd" style "green_text"

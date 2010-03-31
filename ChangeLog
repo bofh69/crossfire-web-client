@@ -4,10 +4,15 @@ Top of SVN tree:
 
 common
 - Update the link to the server/trunk/include/shared folder to revision 12770
-  to pull in a new revision of newclient.h for the purpose of updating the
-  message type/subtype for magic ears and magic mouths.
-Kevin Bulgrien 2010-03-30
-
+  to pull in a new revision of shared/newclient.h for the purpose of updating
+  the message type/subtype for magic ears and magic mouths.
+common/msgtypes.h
+- Regenerate to capture the changes from the updated shared/newclient.h file.
+gtk-v2/themes/Standard
+gtk-v2/themes/Black
+- Rename msg_dialog_magic_mouth to msg_dialog_magic_ear to more accurately
+  identify what is being themed.  Magic mouths are signs, not dialogs.  It is
+  the magic ears that are dialogs.
 gtk-v2/src/info.c - Fix msgctrl_defaults[] to list magic ears as a subtype but
   not magic mouths.  Magic mouths are signs, so add that to the sign message
   descriptive text.  This results in a change to the message control dialog.
