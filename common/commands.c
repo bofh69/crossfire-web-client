@@ -191,11 +191,11 @@ void SetupCmd(char *buf, int len) {
     int s;
     char *cmd, *param;
 
-    /* run through the cmds of setup
-     * syntax is setup <cmdname1> <parameter> <cmdname2> <parameter> ...
+    /* Process the setup commands.
+     * Syntax is setup <cmdname1> <parameter> <cmdname2> <parameter> ...
      *
-     * we send the status of the cmd back, or a FALSE is the cmd is the server unknown
-     * The client then must sort this out
+     * The server sends the status of the cmd back, or a FALSE if the cmd is
+     * unknown.  The client then must sort this out.
      */
 
     LOG(LOG_DEBUG, "common::SetupCmd", "%s", buf);
@@ -226,9 +226,9 @@ void SetupCmd(char *buf, int len) {
             s++;
         }
 
-        /* what we do with the returned data depends on what the server
-         * returns to us.  In some cases, we may fall back to other
-         * methods, just report on error, or try another setup command.
+        /* What is done with the returned data depends on what the server
+         * returns.  In some cases the client may fall back to other methods,
+         * report an error, or try another setup command.
          */
         if (!strcmp(cmd, "sound2")) {
             /* No parsing needed, but we don't want a warning about unknown
@@ -243,7 +243,8 @@ void SetupCmd(char *buf, int len) {
             if (!strcasecmp(param, "false")) {
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
                   "Server only supports standard sized maps (11x11)");
-                /* Do this because we may have been playing on a big server before */
+                /* Do this because we may have been playing on a big server
+                 * before */
                 use_config[CONFIG_MAPWIDTH] = 11;
                 use_config[CONFIG_MAPHEIGHT] = 11;
                 mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
@@ -257,9 +258,10 @@ void SetupCmd(char *buf, int len) {
                     break;
                 }
             }
-            /* we wanted a size larger than the server supports.  Reduce our
-             * size to server maximum, and re-sent the setup command.
-             * Update our want sizes, and also tell the player what we are doing
+            /* A size larger than what the server supports was requested.
+             * Reduce the size to server maximum, and re-send the setup
+             * command.  Update our want sizes, and tell the player what is
+             * going on.
              */
             if (use_config[CONFIG_MAPWIDTH] > x || use_config[CONFIG_MAPHEIGHT] > y) {
                 if (use_config[CONFIG_MAPWIDTH] > x) use_config[CONFIG_MAPWIDTH] = x;
@@ -275,18 +277,43 @@ void SetupCmd(char *buf, int len) {
                 mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 resize_map_window(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
             } else {
-                /* Our request was not bigger than what server supports, and
-                 * not the same size, so whats the problem?  Tell the user that
-                 * something is wrong.
+                /* The request was not bigger than what server supports, and
+                 * not the same size, so what is the problem?  Tell the user
+                 * that something is wrong.
                  */
                 snprintf(tmpbuf, sizeof(tmpbuf), "Unable to set mapsize on server - we wanted %d x %d, server returned %d x %d",
                     use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT], x, y);
                 draw_ext_info(
                     NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER, tmpbuf);
             }
-        } else if (!strcmp(cmd, "darkness") || !strcmp(cmd, "spellmon")) {
-            /* this really isn't an error or bug - in fact, it is expected if
-             * the user is playing on an older server.
+        } else if (!strcmp(cmd, "darkness")) {
+            /* Older servers might not support this setup command.
+             */
+            if (!strcmp(param, "FALSE")) {
+                LOG(LOG_WARNING, "common::SetupCmd", "Server returned FALSE on setup command %s", cmd);
+            }
+        } else if (!strcmp(cmd, "spellmon")) {
+            /* Older servers might not support this setup command or all of
+             * the extensions.
+             *
+             * Spellmon 2 was added to the protocol in January 2010 to send an
+             * additional spell information string with casting requirements
+             * including required items, if the spell needs arguments passed
+             * (like text for rune of marking), etc.  
+             *
+             * To use the new feature, "setup spellmon 1 spellmon 2" is sent,
+             * and if "spellmon 1 spellmon FALSE" is returned then the server
+             * doesn't accept 2 - sending spellmon 2 to a server that does not
+             * support it is not problematic, so the spellmon 1 command will
+             * still be handled correctly by the server.  If the server sends
+             * "spellmon 1 spellmon 2" then the extended mode is in effect.
+             *
+             * It is particularly important for the player to know what level
+             * of command is accepted by the server.
+             *
+             * TODO: Is it necessary to track whether spellmon 1 or 2 is
+             *       accepted?  Is it reasonable to just look at the data
+             *       coming in to see if extended information is present?
              */
             if (!strcmp(param, "FALSE")) {
                 LOG(LOG_WARNING, "common::SetupCmd", "Server returned FALSE on setup command %s", cmd);
@@ -313,7 +340,9 @@ void SetupCmd(char *buf, int len) {
                 csocket.fd = -1;
             }
         } else if (!strcmp(cmd, "want_pickup")) {
-            /* Nothing to do specially, it's info pushed from server, not having it isn't that bad. */
+            /* Nothing special to do as this is info pushed from server and
+             * not having it isn't that bad.
+             */
         } else {
             LOG(LOG_INFO, "common::SetupCmd", "Got setup for a command we don't understand: %s %s",
                 cmd, param);
@@ -1015,6 +1044,9 @@ void AddspellCmd(unsigned char *data, int len) {
 
     while (pos < len) {
         newspell = calloc(1, sizeof(Spell));
+
+        /* Get standard spell information (spellmon 1)
+         */
         newspell->tag = GetInt_String(data+pos); pos += 4;
         newspell->level = GetShort_String(data+pos); pos += 2;
         newspell->time = GetShort_String(data+pos); pos += 2;
@@ -1030,9 +1062,28 @@ void AddspellCmd(unsigned char *data, int len) {
         mlen = GetShort_String(data+pos); pos += 2;
         strncpy(newspell->message, (char*)data+pos, mlen); pos += mlen;
         newspell->message[mlen] = '\0'; /* to ensure we are null terminated */
+
+        /* Get extended spell information (spellmon 2).
+         *
+         * FIXME.  This is a stub.
+         *
+         * It would be possible to track whether the server acknowledged
+         * spellmon 2, or, provided pos < len by we could look at pos for
+         * "addspell", though this is a bit of a hack that might result in
+         * data sensitivity issues.  If we found "addspell", spellmon 1 is in
+         * use, and if not, then spellmon 2 is in use.  Some server code is
+         * set up to be ready to support spellmon > 2, so perhaps the client
+         * should too.  The hack is probably not best in the long run.
+         */
+        newspell->usage = 0;
+        newspell->requirements[0] = '\0';
+
+        /* Compute the derived spell information.
+         */
         newspell->skill = skill_names[newspell->skill_number-CS_STAT_SKILLINFO];
 
-        /* ok, we're done with putting in data, now to add to the player struct */
+        /* Add the spell to the player struct.
+         */
         if (!cpl.spelldata) {
             cpl.spelldata = newspell;
         } else {
@@ -1040,7 +1091,8 @@ void AddspellCmd(unsigned char *data, int len) {
                 ;
             tmp->next = newspell;
         }
-        /* now we'll check to see if we have more spells */
+        /* Check to see if there are more spells to add.
+         */
     }
     if (pos > len) {
         LOG(LOG_WARNING, "common::AddspellCmd", "Overread buffer: %d > %d", pos, len);

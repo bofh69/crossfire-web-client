@@ -2,6 +2,30 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/client.h
+- Reformat of a lot of comments to ~ 80 cols to reduce vertical text spacing.
+- Fix some spelling/grammar issues in comments, and improve readability in
+  various places.
+- Fill out the doxygen comments to the Spell structure by adding information
+  found in the server documentation of the protocol.
+- Add usage and requirements members to the structure that will support the
+  spellmon 2 extended information.
+- Convert some variable comments to doxygen style.
+common/client.c
+- Reformat of a lot of comments to ~ 80 cols to reduce vertical text spacing.
+- Add a TODO at the spot where spellmon 2 will be requested when the code is
+  ready.
+common/commands.c
+- Update SetupCmd() to get ready to handle spellmon 2.  Non-functional changes
+  are comment reformatting/rewriting, and addition of spellmon 2 comments.
+  Code change to separate darkness and spellmon done, but presently no actual
+  functional change occurs except there is a minor duplication of an identical
+  LOG() call.
+- Update AddspellCmd() to get ready to handle spellmon 2.  Non-functional
+  changes are comment reformatting/rewriting/addition.  Stubs are added
+  to initialize the spellmon 2 data fields in the Spell structure.
+Kevin Bulgrien 2010-03-30
+
 common
 - Update the link to the server/trunk/include/shared folder to revision 12770
   to pull in a new revision of shared/newclient.h for the purpose of updating

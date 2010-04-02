@@ -47,15 +47,15 @@
 
 extern char VERSION_INFO[256];
 
-/* Don't send more than this many outstanding commands to the server
- * this is only a default value.
+/* Don't send more than this many outstanding commands to the server this is
+ * only a default value.
  */
 #define COMMAND_WINDOW 10
 
 #define STRINGCOMMAND 0
 
-/* How many skill types server supports/client will get sent to it.
- * If more skills are added to server, this needs to get increased.
+/* How many skill types server supports/client will get sent to it.  If more
+ * skills are added to server, this needs to get increased.
  */
 #define MAX_SKILL   CS_NUM_SKILLS
 
@@ -70,7 +70,7 @@ extern char VERSION_INFO[256];
 typedef struct Animations {
     uint16  flags;
     uint8   num_animations; /* number of animations.  Value of 2 means
-                             * only faces[0],[1] have meaningfull values.
+                             * only faces[0],[1] have meaningful values.
                              */
     uint8   speed;
     uint8   speed_left;
@@ -89,8 +89,8 @@ extern Animations animations[MAXANIM];
                                      )
 
 /* ClientSocket could probably hold more of the global values - it could
- * probably hold most all socket/communication related values instead
- * of globals.
+ * probably hold most all socket/communication related values instead of
+ * globals.
  */
 typedef struct ClientSocket {
     int	fd;
@@ -119,34 +119,36 @@ typedef enum rangetype {
   range_size = 8
 } rangetype;
 
-/* This is a structure that contains most all of the
- * configuration options.  Instead of having a
- * whole mess of variables of different names, instead use
- * a common 16 bit signed array, and index into these -
- * this makes processing in the gui aspect of the GTK
- * client much easier.  There are also 2 elements -
- * want options, and use_options.  The former is what the
- * player wants to use, the later is what is currently
- * in use.  There are many options that can not be
- * switched between during actual play, but we want to
- * record what the player has changed them to so that
- * when we save them out, we save what the player wants,
- * and not what is currently being used.  Note that all the gui
- * interfaces may not use all these values, but making them
- * available here makes it easy for the GUI to present a
- * nice interface.
- * 0 is intentially skipped so the index into this doesn't
- * get a default if a table has a blank value
+/* This is a structure that contains most all of the configuration options.
  *
- * CONFIG_NUMS is the number of configuration options; don't
- * forget to add to some of
+ * Instead of having a whole mess of variables of different names, instead use
+ * a common 16 bit signed array, and index into these - this makes processing
+ * in the gui aspect of the GTK client much easier.
+ *
+ * There are also 2 elements - want_options, and use_options.  The former is
+ * what the player wants to use, the latter is what is currently in use.
+ * There are many options that can not be switched between during actual play,
+ * but we want to record what the player has changed them to so that when we
+ * save them out, we save what the player wants, and not what is currently
+ * being used.
+ *
+ * Note that all the gui interfaces may not use all these values, but making
+ * them available here makes it easy for the GUI to present a nice interface.
+ *
+ * 0 is intentially skipped so the index into this doesn't get a default if a
+ * table has a blank value
+ *
+ * CONFIG_NUMS is the number of configuration options; don't forget to add to
+ * some of:
+ *
  *   common/init.c config_names,
  *                 init_client_vars,
  *   x11/x11.c load_defaults
  *             save_defaults
  *   gtk/config.c load_defaults
  *                save_defaults
- * probably among other places, if you add a new option.
+ *
+ * and probably other places, if you add a new option.
  */
 #define CONFIG_DOWNLOAD	    1
 #define CONFIG_ECHO	    2
@@ -187,8 +189,8 @@ typedef enum rangetype {
 #define CFG_LT_PIXEL	    2
 #define CFG_LT_PIXEL_BEST   3
 
-/* CONFIG_DISPLAYMODE can have several possible values.  Give
- * defines for the possibilities.
+/* CONFIG_DISPLAYMODE can have several possible values.  Give defines for the
+ * possibilities.
  */
 #define CFG_DM_PIXMAP	    0
 #define CFG_DM_SDL	    1
@@ -246,25 +248,43 @@ typedef struct Stat_struct {
 
 typedef struct Spell_struct {
     struct Spell_struct *next;
-    char name[256];                     /**< The protocol allows one length
-                                         *   bit, so 256 is the maximum name
-                                         *   length */
-    char message[10000];                /**< This is plenty, the packets can't
+    char name[256];                     /**< One length byte plus data       */
+    char message[10000];                /**< This is huge, the packets can't
                                          *   be much bigger than this anyway */
-    uint32 tag;                         /**< Used to identify the spell by
-                                         *   updspell */
-    uint16 level;                       /**<  */
-    uint16 time;                        /**< number of ticks to cast */
-    uint16 sp;                          /**<  */
-    uint16 grace;                       /**<  */
-    uint16 dam;                         /**<  */
+    uint32 tag;                         /**< Unique ID number for a spell so
+                                         *   updspell etc can operate on it. */
+    uint16 level;                       /**< The casting level of the spell. */
+    uint16 time;                        /**< Casting time in server ticks.   */
+    uint16 sp;                          /**< Mana per cast; may be zero.     */
+    uint16 grace;                       /**< Grace per cast; may be zero.    */
+    uint16 dam;                         /**< Damage done by spell though the
+                                         *   meaning is spell dependent and
+                                         *   actual damage may depend on how
+                                         *   the spell works.                */
     uint8 skill_number;                 /**< The index in the skill arrays,
-                                         *   plus CS_STAT_SKILLINFO */
-    char *skill;                        /**< Pointer to the skill name, derived
-                                         *   from the skill number */
+                                         *   plus CS_STAT_SKILLINFO. 0: no
+                                         *   skill used for cast.  See also:
+                                         *   request_info skill_info         */
+    char *skill;                        /**< Pointer to the skill name,
+                                         *   derived from the skill number.  */
     uint32 path;                        /**< The bitmask of paths this spell
-                                         * belongs to */
-    sint32 face;                        /**<  */
+                                         *   belongs to.  See request_info
+                                         *   spell_paths and stats about
+                                         *   attunement, repulsion, etc.     */
+    sint32 face;                        /**< A face ID that may be used to
+                                         *   show a graphic representation
+                                         *   of the spell.                   */
+    uint usage;                         /**< Spellmon 2 data.  Values are:
+                                         *   0: No argument required.
+                                         *   1: Requires other spell name.
+                                         *   2: Freeform string is optional.
+                                         *   3: Freeform string is required. */
+    char requirements[256];             /**< Spellmon 2 data. One length byte
+                                         *   plus data. If the spell requires
+                                         *   items to be cast, this is a list
+                                         *   of req'd items. Comma-separated,
+                                         *   number of items, singular names
+                                         *   (like ingredients for alchemy). */
 } Spell;
 
 typedef struct Player_Struct {
@@ -317,7 +337,7 @@ typedef struct Player_Struct {
                                          *   x11 client, which wants to
                                          *   initalize some data once.
                                          *   Increasing this would  likely only
-                                         *    need a bigger footprint
+                                         *   need a bigger footprint
                                          */
 typedef struct FaceSets_struct {
     uint8   setnum;                     /**<  */
@@ -329,33 +349,32 @@ typedef struct FaceSets_struct {
     char    *comment;                   /**<  */
 } FaceSets;
 
-/* Make one struct that holds most of the image related data.
- * reduces danger of namespace collision.
+/* Make one struct that holds most of the image related data.  Reduces danger
+ * of namespace collision.
  */
 typedef struct Face_Information_struct {
     uint8   faceset;
     char    *want_faceset;
     sint16  num_images;
     uint32  bmaps_checksum, old_bmaps_checksum;
-    /* Just for debugging/logging purposes.  This is cleared
-     * on each new server connection.  This may not be
-     * 100% precise (as we increment cache_hits when we
-     * find a suitable image to load - if the data is bad,
-     * that would count as both a hit and miss
+    /* Just for debugging/logging purposes.  This is cleared on each new
+     * server connection.  This may not be 100% precise (as we increment
+     * cache_hits when we find a suitable image to load - if the data is bad,
+     * that would count as both a hit and miss.
      */
     sint16  cache_hits, cache_misses;
-    uint8	have_faceset_info;	/* Simple value to know if there is data in facesets[] */
+    uint8	have_faceset_info;	/**< Simple value to know if there is
+                                          * data in facesets[] */
     FaceSets	facesets[MAX_FACE_SETS];
 } Face_Information;
 
 extern Face_Information face_info;
 
-
-extern Client_Player cpl;		/* Player object. */
+extern Client_Player cpl;		/**< Player object. */
 extern char *skill_names[MAX_SKILL];
 
-extern int last_used_skills[MAX_SKILL+1]; /* maps position to skill id with trailing zero as stop mark */
-
+extern int last_used_skills[MAX_SKILL+1]; /**< maps position to skill id with
+                                           *  trailing zero as stop mark */
 
 typedef enum LogLevel {
   LOG_DEBUG = 0, LOG_INFO = 1, LOG_WARNING = 2, LOG_ERROR = 3, LOG_CRITICAL = 4
@@ -419,8 +438,7 @@ typedef struct ChildProcess{
 #include <proto.h>
 #endif
 
-/* translation of the STAT_RES names into printable names,
- * in matching order.
+/* Translation of the STAT_RES names into printable names, in matching order.
  */
 #define NUM_RESISTS 18
 extern const char *const resists_name[NUM_RESISTS];
@@ -432,41 +450,38 @@ extern uint32	tick;
 extern uint64	*exp_table;
 extern uint16	exp_table_max;
 
-/* Map size the client will request the map to be.  Bigger it is,
- * more memory it will use
+/* Map size the client will request the map to be.  The bigger it is, more
+ * memory it will use.
  */
 #define MAP_MAX_SIZE	31
 
-/* This is basically the smallest the map structure
- * used for the client can be.  It needs to be bigger than
- * the min map size above simply because we have to deal with
- * off map big images, Also, we move the center point
- * around within this map, so that if the player moves one space,
- * we don't have to move around all the data.
+/* This is basically the smallest the map structure used for the client can
+ * be.  It needs to be bigger than the min map size above simply because we
+ * have to deal with off map big images, Also, we move the center point around
+ * within this map, so that if the player moves one space, we don't have to
+ * move around all the data.
  */
 #define MIN_ALLOCATED_MAP_SIZE	MAP_MAX_SIZE * 2
 
-/* This is how many spaces an object might extend off the map.
- * Eg, for bigimage stuff, the head of the image may be off the
- * the map edge.  This is the most it may be off.  This is needed
- * To cover case of need_recenter_map routines.
+/* This is how many spaces an object might extend off the map.  Eg, for
+ * bigimage stuff, the head of the image may be off the the map edge.  This is
+ * the most it may be off.  This is needed To cover case of need_recenter_map
+ * routines.
  */
 #define MAX_MAP_OFFSET	8
 
 /* Start of map handling code.
- * For the most part, this actually is not window system specific,
- * but certainly how the client wants to store this may vary.
+ * For the most part, this actually is not window system specific, but
+ * certainly how the client wants to store this may vary.
  */
 
 #define MAXPIXMAPNUM 10000
 
-/* This is used mostly in the cache.c file, however, it
- * can be returned to the graphic side of things so that they
- * can update the image_data field.  Since the common side
- * has no idea what data the graphic side will point to,
- * we use a void pointer for that - it is completely up to
- * the graphic side to allocate/deallocate and cast that
- * pointer as needed.
+/* This is used mostly in the cache.c file, however, it can be returned to the
+ * graphic side of things so that they can update the image_data field.  Since
+ * the common side has no idea what data the graphic side will point to, we
+ * use a void pointer for that - it is completely up to the graphic side to
+ * allocate/deallocate and cast that pointer as needed.
  */
 typedef struct Cache_Entry {
     char    *filename;
@@ -476,15 +491,13 @@ typedef struct Cache_Entry {
     struct Cache_Entry	*next;
 } Cache_Entry;
 
-/* These values are used for various aspects of the library to
- * hold state on what requestinfo's we have gotten replyinfo
- * for and what data was received.  In this way, common/client.c
- * can loop until it has gotten replies for all the requestinfos
- * it has sent.  This can be useful - we don't want the addme
- * command sent for example if we are going to use a different
- * image set.  The GUI stuff should really never chnage these
- * variables, but could I suppose look at them for debugging/
- * status information.
+/* These values are used for various aspects of the library to hold state on
+ * what requestinfo's we have gotten replyinfo for and what data was received.
+ * In this way, common/client.c can loop until it has gotten replies for all
+ * the requestinfos it has sent.  This can be useful - we don't want the addme
+ * command sent for example if we are going to use a different image set.  The
+ * GUI stuff should really never change these variables, but I suppose I could
+ * look at them for debugging/ status information.
  */
 
 #define RI_IMAGE_INFO	    0x1

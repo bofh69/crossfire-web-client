@@ -328,22 +328,19 @@ int init_connection(char *host, int port)
     return fd;
 }
 
-/* This function negotiates/establishes the connection with the
- * server.
+/* This function negotiates/establishes the connection with the server.
  */
-
 void negotiate_connection(int sound)
 {
     int tries;
 
     SendVersion(csocket);
 
-    /* We need to get the version command fairly early on because
-     * we need to know if the server will support a request to use
-     * png images.  This isn't done the best, because if the server
-     * never sends the version command, we can loop here forever.
-     * However, if it doesn't send the version command, we have no idea
-     * what we are dealing with.
+    /* We need to get the version command fairly early on because we need to
+     * know if the server will support a request to use png images.  This
+     * isn't done the best, because if the server never sends the version
+     * command, we can loop here forever.  However, if it doesn't send the
+     * version command, we have no idea what we are dealing with.
      */
     tries=0;
     while (csocket.cs_version==0) {
@@ -375,8 +372,12 @@ void negotiate_connection(int sound)
      * like base, then that resolves to 0, so no real harm in that.
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
+
+    /* TODO: Add spellmon 2 following spellmon 1 when the client code is ready
+     *       handle extended spell information.
+     */
     cs_print_string(csocket.fd,
-	    "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 faceset %d facecache %d want_pickup 1",
+        "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 faceset %d facecache %d want_pickup 1",
 	    (sound>=0) ? 3 : 0, want_config[CONFIG_LIGHTING]?1:0,
 	    	face_info.faceset, want_config[CONFIG_CACHE]);
 
@@ -396,10 +397,9 @@ void negotiate_connection(int sound)
      * send it and wait for the response.
      */
     if (csocket.sc_version >= 1027) {
-	/* last_start is -99.  This means the first face requested will
-	 * be 1 (not 0) - this is OK because 0 is defined as the blank
-	 * face.
-	 */
+        /* last_start is -99.  This means the first face requested will be 1
+         * (not 0) - this is OK because 0 is defined as the blank face.
+         */
 	int last_end=0, last_start=-99;
 
 	cs_print_string(csocket.fd,"requestinfo image_info");
@@ -410,25 +410,23 @@ void negotiate_connection(int sound)
 	do {
 	    DoClient(&csocket);
 
-	    /* it's rare, the connection can die while getting
-	     * this info.
-	     */
+            /* it's rare, the connection can die while getting this info.
+             */
 	    if (csocket.fd == -1) return;
 
 	    if (use_config[CONFIG_DOWNLOAD]) {
-		/* we need to know how many faces to
-		 * be able to make the request intelligently.
-		 * So only do the following block if we have that info.
-		 * By setting the sent flag, we will never exit
-		 * this loop until that happens.
-		 */
+                /* we need to know how many faces to be able to make the
+                 * request intelligently.  So only do the following block if
+                 * we have that info.  By setting the sent flag, we will never
+                 * exit this loop until that happens.
+                 */
 		requestinfo_sent |= RI_IMAGE_SUMS;
 		if (face_info.num_images != 0) {
-		    /* Sort of fake things out - if we have sent the
-		     * request for image sums but have not got them all answered
-		     * yet, we then clear the bit from the status
-		     * so we continue to loop.
-		     */
+                    /* Sort of fake things out - if we have sent the request
+                     * for image sums but have not got them all answered yet,
+                     * we then clear the bit from the status so we continue to
+                     * loop.
+                     */
 		    if (last_end == face_info.num_images) {
 			/* Mark that we're all done */
 			if (replyinfo_last_face == last_end) {
@@ -436,9 +434,8 @@ void negotiate_connection(int sound)
 			    image_update_download_status(face_info.num_images, face_info.num_images, face_info.num_images);
 			}
 		    } else {
-			/* If we are all caught up, request another
-			 * 100 sums.
-			 */
+                        /* If we are all caught up, request another 100 sums.
+                         */
 			if (last_end == replyinfo_last_face) {
 			    last_start += 100;
 			    last_end += 100;
@@ -451,10 +448,10 @@ void negotiate_connection(int sound)
 	    } /* endif download all faces */
 
 	    usleep(10*1000);    /* 10 milliseconds */
-	    /* Don't put in an upper time limit with tries like we did above - if the
-	     * player is downloading all the images, the time this takes could be
-	     * considerable.
-	     */
+            /* Don't put in an upper time limit with tries like we did above -
+             * if the player is downloading all the images, the time this
+             * takes could be considerable.
+             */
 
 	} while (replyinfo_status != requestinfo_sent);
     }
@@ -466,11 +463,11 @@ void negotiate_connection(int sound)
         draw_ext_info(NDI_GOLD, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
     }
 
-    /* This needs to get changed around - we really don't want to send
-     * the SendAddMe until we do all of our negotiation, which may include
-     * things like downloading all the images and whatnot - this is more an
-     * issue if the user is not using the default face set, as in that case,
-     * we might end up building images from the wrong set.
+    /* This needs to get changed around - we really don't want to send the
+     * SendAddMe until we do all of our negotiation, which may include things
+     * like downloading all the images and whatnot - this is more an issue if
+     * the user is not using the default face set, as in that case, we might
+     * end up building images from the wrong set.
      */
     SendAddMe(csocket);
 }
