@@ -209,7 +209,7 @@ widget_class "spell_attuned" style "spell_attuned"
 
 style "spell_normal"
 {
-    base[NORMAL] = "silver"
+    base[NORMAL] = "#F0F0F0"
 }
 widget_class "spell_normal" style "spell_normal"
 
