@@ -59,7 +59,7 @@
 # this causes problems for those people that like that theme.
 #
 style "low_bar" {
-	#red 
+	#red
 	base[SELECTED] = "#cf0000"
 }
 
@@ -206,6 +206,12 @@ style "spell_attuned"
     base[NORMAL] = "green"
 }
 widget_class "spell_attuned" style "spell_attuned"
+
+style "spell_normal"
+{
+    base[NORMAL] = "silver"
+}
+widget_class "spell_normal" style "spell_normal"
 
 
 ############################################################################
@@ -368,7 +374,7 @@ widget_class "info_tan" style "tan_text"
 # style "red_text" ....
 # widget_class "msg_victim_was_pushed" style "red_text"
 # widget_class "msg_communication_say" style "red_text"
-# 
+#
 # In this way, you don't need to have a style for every msg type - a more
 # likely scenario is a modest number of styles, but then binding these
 # to the different widget names as how you want that widget to be
@@ -411,7 +417,7 @@ widget_class "info_tan" style "tan_text"
 #
 # This is because there really isn't any way
 # for the client to know if it is intentional on the part of the user
-# that they want to use the default styles for the widgets or if it 
+# that they want to use the default styles for the widgets or if it
 # should be using that color information - this is especially true
 # given the inheritence described in point #2 above.
 #

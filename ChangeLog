@@ -2,6 +2,12 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/themes/Black
+gtk-v2/themes/Standard
+- Fix [  INFO  ] (spells.c::spell_get_styles) Unable to find style for
+  spell_normal
+Kevin Bulgrien 2010-04-02
+
 common/client.h
 - Reformat of a lot of comments to ~ 80 cols to reduce vertical text spacing.
 - Fix some spelling/grammar issues in comments, and improve readability in
