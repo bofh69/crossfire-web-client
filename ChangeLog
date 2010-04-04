@@ -2,6 +2,21 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/commands.c
+common/client.c
+- Add debugged trunk server code for spellmon 2 request to handle the extended
+  data in AddspellCmd().  The extended information is currently not exposed
+  to the user interface, but this commit makes it available.
+- The original idea to look at data on the fly instead of tracking spellmon
+  command response did not work out.  It turns out to be very easy to
+  track server response anyway, so there is not much point in trying to
+  figure things out dynamically.
+- These changes have been tested on old and new servers - including logging in
+  and out of each on the same client session.  The data in the Spell struct
+  has been confirmed to hold data (by testing with spells found in the 
+  test/spell_requirements map).
+Kevin Bulgrien 2010-04-03
+
 gtk-v2/themes/Black
 gtk-v2/themes/Standard
 - Fix [  INFO  ] (spells.c::spell_get_styles) Unable to find style for
@@ -56,7 +71,7 @@ common/commands.c
 common/client.h
 gtk/gx11.c
 x11/x11.c
-gtk-v2/sound.c: Remove the use of the setup flag sexp - The server doesn't 
+gtk-v2/sound.c: Remove the use of the setup flag sexp - The server doesn't
 respond to it any more and the clients don't use it.
 Brendan Lally 2010-03-18
 

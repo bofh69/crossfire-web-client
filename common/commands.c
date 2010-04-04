@@ -71,6 +71,10 @@ int mapupdatesent = 0;
 
 #include "mapdata.h"
 
+int spellmon_level = 0;                 /**< Keeps track of what spellmon
+                                         *   command is supported by the
+                                         *   server. */
+
 /**
  *
  * @param data
@@ -290,16 +294,17 @@ void SetupCmd(char *buf, int len) {
             /* Older servers might not support this setup command.
              */
             if (!strcmp(param, "FALSE")) {
-                LOG(LOG_WARNING, "common::SetupCmd", "Server returned FALSE on setup command %s", cmd);
+                LOG(LOG_WARNING, "common::SetupCmd", "Server returned FALSE for setup command %s", cmd);
             }
         } else if (!strcmp(cmd, "spellmon")) {
+
             /* Older servers might not support this setup command or all of
              * the extensions.
              *
              * Spellmon 2 was added to the protocol in January 2010 to send an
              * additional spell information string with casting requirements
              * including required items, if the spell needs arguments passed
-             * (like text for rune of marking), etc.  
+             * (like text for rune of marking), etc.
              *
              * To use the new feature, "setup spellmon 1 spellmon 2" is sent,
              * and if "spellmon 1 spellmon FALSE" is returned then the server
@@ -308,15 +313,14 @@ void SetupCmd(char *buf, int len) {
              * still be handled correctly by the server.  If the server sends
              * "spellmon 1 spellmon 2" then the extended mode is in effect.
              *
-             * It is particularly important for the player to know what level
-             * of command is accepted by the server.
-             *
-             * TODO: Is it necessary to track whether spellmon 1 or 2 is
-             *       accepted?  Is it reasonable to just look at the data
-             *       coming in to see if extended information is present?
+             * It is not particularly important for the player to know what
+             * level of command is accepted by the server.  The extra features
+             * will simply not be functionally available.
              */
             if (!strcmp(param, "FALSE")) {
-                LOG(LOG_WARNING, "common::SetupCmd", "Server returned FALSE on setup command %s", cmd);
+                LOG(LOG_WARNING, "common::SetupCmd", "Server returned FALSE for a %s setup command", cmd);
+            } else {
+                spellmon_level = atoi(param);
             }
         } else if (!strcmp(cmd, "facecache")) {
                 use_config[CONFIG_CACHE] = atoi(param);
@@ -1063,20 +1067,24 @@ void AddspellCmd(unsigned char *data, int len) {
         strncpy(newspell->message, (char*)data+pos, mlen); pos += mlen;
         newspell->message[mlen] = '\0'; /* to ensure we are null terminated */
 
-        /* Get extended spell information (spellmon 2).
-         *
-         * FIXME.  This is a stub.
-         *
-         * It would be possible to track whether the server acknowledged
-         * spellmon 2, or, provided pos < len by we could look at pos for
-         * "addspell", though this is a bit of a hack that might result in
-         * data sensitivity issues.  If we found "addspell", spellmon 1 is in
-         * use, and if not, then spellmon 2 is in use.  Some server code is
-         * set up to be ready to support spellmon > 2, so perhaps the client
-         * should too.  The hack is probably not best in the long run.
-         */
-        newspell->usage = 0;
-        newspell->requirements[0] = '\0';
+        if (spellmon_level < 2) {
+
+          /* The server is not sending spellmon 2 extended information, so
+           * initialize the spell data fields as unused/empty.
+           */
+          newspell->usage = 0;
+          newspell->requirements[0] = '\0';
+
+        } else if (pos < len) {
+
+          /* The server is sending extended spell information (spellmon 2) so
+           * process it.
+           */
+          newspell->usage = GetChar_String(data+pos); pos += 1;
+          nlen = GetChar_String(data+pos); pos += 1;
+          strncpy(newspell->requirements, (char*) data+pos, nlen); pos += nlen;
+          newspell->requirements[nlen] = '\0'; /* Ensure null-termination */
+        }
 
         /* Compute the derived spell information.
          */
