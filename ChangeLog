@@ -15,6 +15,12 @@ common/client.c
   and out of each on the same client session.  The data in the Spell struct
   has been confirmed to hold data (by testing with spells found in the 
   test/spell_requirements map).
+- LOG message for spellmon FALSE is changed from WARNING to INFO.  It's not
+  clear that a server's failure to support spellmon is really that bad.  It
+  mostly seems to mean that spell information dialog will not be populated.
+  Also with the addition of spellmon 2, it is normal for older servers to
+  not support it, so that does not seem to warrant the error being a warning
+  anymore.
 Kevin Bulgrien 2010-04-03
 
 gtk-v2/themes/Black

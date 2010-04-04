@@ -318,7 +318,7 @@ void SetupCmd(char *buf, int len) {
              * will simply not be functionally available.
              */
             if (!strcmp(param, "FALSE")) {
-                LOG(LOG_WARNING, "common::SetupCmd", "Server returned FALSE for a %s setup command", cmd);
+                LOG(LOG_INFO, "common::SetupCmd", "Server returned FALSE for a %s setup command", cmd);
             } else {
                 spellmon_level = atoi(param);
             }
