@@ -2,6 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/dialogs.glade
+- Convert tooltip_text fields to tooltip fields as mwedel reports that newer
+  versions of glade3 have issues with it (though the version I have does not).
+- Remove has_tooltip settings not needed by the tooltip fields.
+- Make sure all the tooltips have a Translatable property.
+Kevin Bulgrien 2010-04-04
+
 common/commands.c
 common/client.c
 - Add debugged trunk server code for spellmon 2 request to handle the extended

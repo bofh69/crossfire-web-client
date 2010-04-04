@@ -57,8 +57,7 @@
                   <widget class="GtkSpinButton" id="msgctrl_spinbutton_timer">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text">The maximum time that a message may reside in the buffer before it must be displayed.  8 ticks is approximately 1 second.</property>
+                    <property name="tooltip" translatable="yes">The maximum time that a message may reside in the buffer before it must be displayed.  8 ticks is approximately 1 second.</property>
                     <property name="max_length">2</property>
                     <property name="truncate_multiline">True</property>
                     <property name="overwrite_mode">True</property>
@@ -81,8 +80,7 @@
                   <widget class="GtkSpinButton" id="msgctrl_spinbutton_count">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text">The number times a message may occur before it must be displayed.  If a message is not already in the buffer, it is always output one time with no delay.</property>
+                    <property name="tooltip" translatable="yes">The number times a message may occur before it must be displayed.  If a message is not already in the buffer, it is always output one time with no delay.</property>
                     <property name="max_length">2</property>
                     <property name="truncate_multiline">True</property>
                     <property name="overwrite_mode">True</property>
@@ -149,8 +147,7 @@
             <child>
               <widget class="GtkLabel" id="msgctrl_label_cmessages">
                 <property name="visible">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">Choose one or more message panels that should display each message type.</property>
+                <property name="tooltip" translatable="yes">Choose one or more message panels that should display each message type.</property>
                 <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Messages</property>
@@ -169,8 +166,7 @@
             <child>
               <widget class="GtkLabel" id="msgctrl_label_messages">
                 <property name="visible">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">Choose one or more message panels that should display each message type.</property>
+                <property name="tooltip" translatable="yes">Choose one or more message panels that should display each message type.</property>
                 <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Messages</property>
@@ -218,8 +214,7 @@
             <child>
               <widget class="GtkLabel" id="msgctrl_label_duplicates">
                 <property name="visible">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
+                <property name="tooltip" translatable="yes">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
                 <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Duplicates</property>
@@ -260,8 +255,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">Apply and save the currently displayed settings to disk.</property>
+                <property name="tooltip" translatable="yes">Apply and save the currently displayed settings to disk.</property>
                 <property name="label" translatable="yes">Save</property>
                 <property name="response_id">0</property>
                 <signal name="clicked" handler="on_msgctrl_button_save_clicked"/>
@@ -272,8 +266,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">Restore the previously saved settings from disk.</property>
+                <property name="tooltip" translatable="yes">Restore the previously saved settings from disk.</property>
                 <property name="label" translatable="yes">Load</property>
                 <property name="response_id">0</property>
                 <signal name="clicked" handler="on_msgctrl_button_load_clicked"/>
@@ -287,9 +280,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">Load the default settings built into the client.</property>
-                <property name="tooltip" translatable="yes">Load the client default settings.</property>
+                <property name="tooltip" translatable="yes">Load the default settings built into the client.</property>
                 <property name="label" translatable="yes">Defaults</property>
                 <property name="response_id">0</property>
                 <signal name="clicked" handler="on_msgctrl_button_defaults_clicked"/>
@@ -303,8 +294,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">Apply the currently displayed settings.</property>
                 <property name="tooltip" translatable="yes">Apply the currently displayed settings.</property>
                 <property name="label" translatable="yes">Apply</property>
                 <property name="response_id">0</property>
@@ -320,8 +309,7 @@
                 <property name="can_focus">True</property>
                 <property name="has_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text">Apply the displayed settings and close the dialog.</property>
+                <property name="tooltip" translatable="yes">Apply the displayed settings and close the dialog.</property>
                 <property name="label" translatable="yes">Close</property>
                 <property name="response_id">0</property>
                 <signal name="clicked" handler="on_msgctrl_button_close_clicked"/>
