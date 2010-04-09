@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_map_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,8 +49,8 @@ const char * const rcsid_gtk2_map_c =
 
 #include "client-types.h"
 #include "image.h"
-#include "main.h"
 #include "client.h"
+#include "main.h"
 #include "mapdata.h"
 #include "gtk2proto.h"
 

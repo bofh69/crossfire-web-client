@@ -1,7 +1,7 @@
 #
 # Makefile for crossfire client
 #
-#   Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+#   Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -30,7 +30,8 @@ INCLUDES = \
 bin_PROGRAMS = crossfire-client-gtk2
 
 PROTO_SOURCES = \
-        about.c \
+    about.c \
+	account.c \
 	config.c \
 	image.c \
 	info.c \

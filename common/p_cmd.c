@@ -1,7 +1,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005,2006 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -414,12 +414,7 @@ static void do_clearinfo(const char * ignored) { menu_clear(); }
  * @param ignored
  */
 static void do_disconnect(const char * ignored) {
-#ifdef WIN32
-        closesocket(csocket.fd);
-#else
-        close(csocket.fd);
-#endif
-        csocket.fd=-1;
+    close_server_connection();
 
 	/* the gtk clients need to do some cleanup logic - otherwise,
 	 * they start hogging CPU.

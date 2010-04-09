@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,3 +43,8 @@ extern int map_image_size, map_image_half_size, image_size;
 extern char window_xml_file[];
 
 #define MAGIC_MAP_PAGE  1 /**< Notebook page of the magic map */
+
+extern gint csocket_fd;
+
+/* gtk2proto.h depends on this - so may as well just include it here */
+#include "info.h"

@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_main_c = "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005-2007 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,8 +45,8 @@ const char * const rcsid_gtk2_main_c = "$Id$";
 #include <signal.h>
 #endif
 
-#include "main.h"
 #include "client.h"
+#include "main.h"
 #include "image.h"
 #include "gtk2proto.h"
 #include "script.h"
@@ -645,6 +645,25 @@ static void error_dialog(char *description, char *information)
 }
 
 /**
+ * This goes with the g_log_set_handler below in main().
+ * I leave it here since it may be useful - basically,
+ * it can prove handy to try and track down error messages
+ * like:
+ * file gtklabel.c: line 1845: assertion `GTK_IS_LABEL (label)' failed
+ * In the debugger, you can set a breakpoint in this function,
+ * and then see the stacktrace on what is trying to access a
+ * widget that isn't set or otherwise having issues.
+ */
+
+void my_log_handler(const gchar *log_domain,
+ GLogLevelFlags log_level,
+ const gchar *message,
+               gpointer user_data) {
+    sleep(1);
+
+}
+
+/**
  * The client entry point.
  * @param argc
  * @param argv
@@ -666,12 +685,17 @@ main (int argc, char *argv[])
 
     gtk_set_locale ();
     gtk_init (&argc, &argv);
+#if 0
+    g_log_set_handler ("Gtk", G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL
+                       | G_LOG_FLAG_RECURSION, my_log_handler, NULL);
+#endif
 
     /* parse_args() has to come after init_client_vars() */
     init_client_vars();
     use_config[CONFIG_MAPWIDTH] = want_config[CONFIG_MAPWIDTH] = 25;
     use_config[CONFIG_MAPHEIGHT] = want_config[CONFIG_MAPHEIGHT] = 25;
 
+    wantloginmethod=1;
 
     parse_args(argc, argv);
     load_theme(FALSE);

@@ -3,7 +3,7 @@ const char * const rcsid_common_metaserver_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001-2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,6 +57,8 @@ const char * const rcsid_common_metaserver_c =
 Meta_Info *meta_servers = NULL;
 
 int meta_numservers = 0;
+
+int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
 
 /* This checks the servers sc_version and cs_version to see
  * if they are compatible.
@@ -726,7 +728,7 @@ void *metaserver1_thread(void *junk)
     ms1_is_running=0;
     pthread_mutex_unlock(&ms2_info_mutex);
     pthread_exit(NULL);
-    // never reached, just to make the compiler happy.
+    /* never reached, just to make the compiler happy. */
     return NULL;
 }
 

@@ -444,7 +444,7 @@ typedef struct ChildProcess{
 extern const char *const resists_name[NUM_RESISTS];
 extern char *meta_server;
 extern int meta_port;
-extern int metaserver_on, metaserver2_on;
+extern int metaserver_on, metaserver2_on, serverloginmethod, wantloginmethod;
 extern uint32	tick;
 
 extern uint64	*exp_table;
@@ -520,6 +520,16 @@ typedef struct Msg_Type_Names {
 
 extern TextManager* firstTextManager;
 
+/* declared/handled in commands.c */
+extern char *motd, *news, *rules;
+
 #ifndef MIN
 #define MIN(X__,Y__) ( (X__)<(Y__)?(X__):(Y__) )
 #endif
+
+/* These are just used for passing in to update_login_info()
+ * used instead of passing in strings
+ */
+#define INFO_NEWS   1
+#define INFO_MOTD   2
+#define INFO_RULES  3

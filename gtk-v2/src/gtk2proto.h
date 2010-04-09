@@ -1,6 +1,8 @@
 /* about.c */
 extern void menu_about(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_about_close_clicked(GtkButton *button, gpointer user_data);
+/* account.c */
+extern void hide_all_login_windows();
 /* config.c */
 extern void load_theme(int reload);
 extern void load_defaults(void);
@@ -45,6 +47,10 @@ extern void on_msgctrl_button_defaults_clicked(GtkButton *button, gpointer user_
 extern void on_msgctrl_button_apply_clicked(GtkButton *button, gpointer user_data);
 extern void on_msgctrl_button_close_clicked(GtkButton *button, gpointer user_data);
 extern void on_msgctrl_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style);
+extern void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf);
+extern void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int subtype, int orig_color);
+
 /* inventory.c */
 extern gboolean list_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern void list_row_collapse(GtkTreeView *treeview, GtkTreeIter *iter, GtkTreePath *path, gpointer user_data);

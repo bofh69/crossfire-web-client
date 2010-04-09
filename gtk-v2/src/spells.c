@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_spells_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2006-2007 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2006-2007,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,9 +37,9 @@ const char * const rcsid_gtk2_spells_c =
 #include "client.h"
 
 #include "image.h"
-#include "gtk2proto.h"
 #include "metaserver.h"
 #include "main.h"
+#include "gtk2proto.h"
 
 enum Styles {
    Style_Attuned, Style_Repelled, Style_Denied, Style_Normal, Style_Last

@@ -281,15 +281,20 @@ void reset_client_vars(void)
     face_info.cache_misses=0;
     face_info.have_faceset_info=0;
     for (i=0; i<MAX_FACE_SETS; i++) {
-	FREE_AND_CLEAR(face_info.facesets[i].prefix);
-	FREE_AND_CLEAR(face_info.facesets[i].fullname);
-	face_info.facesets[i].fallback = 0;
-	FREE_AND_CLEAR(face_info.facesets[i].size);
-	FREE_AND_CLEAR(face_info.facesets[i].extension);
-	FREE_AND_CLEAR(face_info.facesets[i].comment);
+        FREE_AND_CLEAR(face_info.facesets[i].prefix);
+        FREE_AND_CLEAR(face_info.facesets[i].fullname);
+        face_info.facesets[i].fallback = 0;
+        FREE_AND_CLEAR(face_info.facesets[i].size);
+        FREE_AND_CLEAR(face_info.facesets[i].extension);
+        FREE_AND_CLEAR(face_info.facesets[i].comment);
     }
     reset_player_data();
     for (i=0; i<MAX_SKILL; i++)
         FREE_AND_CLEAR(skill_names[i]);
+    if (motd) FREE_AND_CLEAR(motd);
+    if (news) FREE_AND_CLEAR(news);
+    if (rules) FREE_AND_CLEAR(rules);
+
+    serverloginmethod=0;
 
 }

@@ -3,6 +3,7 @@ void DoClient(ClientSocket *csocket);
 int init_connection(char *host, int port);
 void negotiate_connection(int sound);
 /* commands.c */
+void close_server_connection();
 void ReplyInfoCmd(uint8 *buf, int len);
 void SetupCmd(char *buf, int len);
 void ExtendedInfoSetCmd(char *data, int len);
@@ -36,6 +37,8 @@ void MagicMapCmd(unsigned char *data, int len);
 void SinkCmd(unsigned char *data, int len);
 void TickCmd(uint8 *data, int len);
 void PickupCmd(uint8 *data, int len);
+void FailureCmd(char *buf, int len);
+void AccountPlayersCmd(char *buf, int len);
 /* image.c */
 void init_common_cache_data(void);
 void requestface(int pnum, char *facename);

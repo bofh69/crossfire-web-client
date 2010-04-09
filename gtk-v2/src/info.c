@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_info_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005-2008 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,23 +37,10 @@ const char * const rcsid_gtk2_info_c =
 #include "client.h"
 
 #include "image.h"
+#include "main.h"
 #include "gtk2proto.h"
 
-#include "main.h"
 
-/**
- * @{
- * @name GTK V2 Font Style Definitions.
- * Font style support definitions for the info window.
- * Font style defines are indices into the font_style_names[] array.
- * The actual fonts that they are bound to are set up in the style file.
- */
-#define FONT_NORMAL     0
-#define FONT_ARCANE     1
-#define FONT_STRANGE    2
-#define FONT_FIXED      3
-#define FONT_HAND       4
-#define NUM_FONTS       5
 
 /**
  * A mapping of font numbers to style based on the rcfile content.
@@ -75,23 +62,14 @@ static char *font_style_names[NUM_FONTS] = {
  * It does nothing to help remove or document hardcoded panel numbers
  * throughout the code.  FIXME:  Create defines for each panel and
  * replace panel numbers with the defines describing the panel.
+ * this integer declaration is to that account.c knows how many
+ * are being used here, and can add appropriately.
  */
 #define NUM_TEXT_VIEWS  2
 
 extern  const char * const usercolorname[NUM_COLORS];
 
-struct Info_Pane
-{
-    GtkWidget       *textview;
-    GtkWidget       *scrolled_window;
-    GtkTextBuffer   *textbuffer;
-    GtkTextMark     *textmark;
-    GtkAdjustment   *adjustment;
-    GtkTextTag      *color_tags[NUM_COLORS];
-    GtkTextTag      *font_tags[NUM_FONTS];
-    GtkTextTag      *bold_tag, *italic_tag, *underline_tag, *default_tag;
-    GtkTextTag      **msg_type_tags[MSG_TYPE_LAST];
-} info_pane[NUM_TEXT_VIEWS];
+Info_Pane info_pane[NUM_TEXT_VIEWS];
 
 
 void draw_ext_info(int orig_color, int type, int subtype, char *message);
@@ -371,6 +349,158 @@ void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_st
 }
 
 /**
+ * This adds the various tags to the next buffer.
+ * if textbuf is non null, then it also sets the text buffer
+ * for that pane to textbuf.  This is called right now
+ * by info_get_styles below and the account code.
+ *
+ * @param pane
+ * pane number to add buffer to
+ * @param textbuf
+ * textbuf to apply tags to - can be null if info_pane[pane].textbuffer
+ * has already been set.
+ */
+void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf)
+{
+
+    int i;
+
+    if (textbuf) pane->textbuffer = textbuf;
+
+    for (i = 0; i < MSG_TYPE_LAST; i++)
+        pane->msg_type_tags[i] =
+            calloc(max_subtype + 1, sizeof(GtkTextTag*));
+
+    for (i = 0; i < NUM_FONTS; i++)
+        pane->font_tags[i] = NULL;
+
+    for (i = 0; i < NUM_COLORS; i++)
+        pane->color_tags[i] = NULL;
+    /*
+     * These tag definitions never change - we don't get them from the
+     * settings file (maybe we should), so we only need to allocate
+     * them once.
+     */
+    pane->bold_tag =
+        gtk_text_buffer_create_tag(pane->textbuffer,
+                                   "bold", "weight", PANGO_WEIGHT_BOLD, NULL);
+
+    pane->italic_tag =
+        gtk_text_buffer_create_tag(pane->textbuffer,
+                                   "italic", "style", PANGO_STYLE_ITALIC, NULL);
+
+    pane->underline_tag =
+        gtk_text_buffer_create_tag(pane->textbuffer,
+                                   "underline", "underline", PANGO_UNDERLINE_SINGLE, NULL);
+    /*
+     * This is really a convenience - we can pass multiple tags in when
+     * drawing text, but once we pass in a NULL tag, that signifies no
+     * more tags.  Rather than having to set up an array we pass in,
+     * instead, we have this empty tag that we can pass is so that we
+     * always have the same calling semantics, just differ what tags we
+     * pass in.
+     */
+    if (!pane->default_tag)
+        pane->default_tag =
+            gtk_text_buffer_create_tag(pane->textbuffer,
+                                       "default", NULL);
+}
+
+/**
+ * This is like add_tags_to_textbuffer above, but styles can be changed
+ * during the run of the client.  So this has to be seperate to
+ * note it it might be a reload.
+ *
+ * @param pane
+ * pane to update.
+ * @param base_style
+ * base style if retrieved - may be null
+ */
+void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style) 
+{
+    int i;
+    char    style_name[MAX_BUF];
+    GtkStyle    *tmp_style;
+
+    if (base_style) {
+        /*
+         * Old message/color support.
+         */
+        for (i = 0; i < NUM_COLORS; i++) {
+            snprintf(style_name, MAX_BUF, "info_%s", usercolorname[i]);
+
+            tmp_style =
+                gtk_rc_get_style_by_paths(
+                                          gtk_settings_get_default(), NULL, style_name, G_TYPE_NONE);
+
+            if (tmp_style) {
+                if (!pane->color_tags[i]) {
+                    pane->color_tags[i] =
+                        gtk_text_buffer_create_tag(
+                                                   pane->textbuffer, NULL, NULL);
+                }
+                set_text_tag_from_style(
+                                        pane->color_tags[i],
+                                        tmp_style, base_style);
+            } else {
+                if (pane->color_tags[i]) {
+                    gtk_text_tag_table_remove(
+                                              gtk_text_buffer_get_tag_table(pane->textbuffer),
+                                              pane->color_tags[i]);
+                    pane->color_tags[i] = NULL;
+                }
+            }
+        }
+
+        /* Font type support */
+        for (i = 0; i < NUM_FONTS; i++) {
+            tmp_style =
+                gtk_rc_get_style_by_paths(
+                                          gtk_settings_get_default(),
+                                          NULL, font_style_names[i], G_TYPE_NONE);
+
+            if (tmp_style) {
+                if (!pane->font_tags[i]) {
+                    pane->font_tags[i] =
+                        gtk_text_buffer_create_tag(
+                                                   pane->textbuffer, NULL, NULL);
+                }
+                set_text_tag_from_style(
+                                        pane->font_tags[i], tmp_style, base_style);
+            } else {
+                if (pane->font_tags[i]) {
+                    gtk_text_tag_table_remove(
+                                              gtk_text_buffer_get_tag_table(pane->textbuffer),
+                                              pane->font_tags[i]);
+                    pane->font_tags[i] = NULL;
+                }
+            }
+        }
+    } else {
+
+        for (i = 0; i < NUM_COLORS; i++) {
+            if (pane->color_tags[i]) {
+                gtk_text_tag_table_remove(
+                                          gtk_text_buffer_get_tag_table(
+                                                                        pane->textbuffer),
+                                          pane->color_tags[i]);
+                pane->color_tags[i] = NULL;
+            }
+        }
+        /* Font type support */
+        for (i = 0; i < NUM_FONTS; i++) {
+            if (pane->font_tags[i]) {
+                gtk_text_tag_table_remove(
+                                          gtk_text_buffer_get_tag_table(
+                                                                        pane->textbuffer),
+                                          pane->font_tags[i]);
+                pane->font_tags[i] = NULL;
+            }
+        }
+    }
+}
+
+/**
  * Loads up values from the style file.  Note that the actual name of the style
  * file is set elsewhere.
  *
@@ -382,7 +512,7 @@ void info_get_styles(void)
 {
     int i, j;
     static int has_init=0;
-    GtkStyle    *tmp_style, *base_style[2];
+    GtkStyle    *tmp_style, *base_style[NUM_TEXT_VIEWS];
     char    style_name[MAX_BUF];
 
     if (!has_init) {
@@ -402,43 +532,8 @@ void info_get_styles(void)
                 max_subtype = msg_type_names[i].subtype;
         }
         for (j = 0; j < NUM_TEXT_VIEWS; j++) {
-            for (i = 0; i < MSG_TYPE_LAST; i++)
-                info_pane[j].msg_type_tags[i] =
-                     calloc(max_subtype + 1, sizeof(GtkTextTag*));
+            add_tags_to_textbuffer(&info_pane[j], NULL);
 
-            for (i = 0; i < NUM_FONTS; i++)
-                info_pane[j].font_tags[i] = NULL;
-
-            for (i = 0; i < NUM_COLORS; i++)
-                info_pane[j].color_tags[i] = NULL;
-            /*
-             * These tag definitions never change - we don't get them from the
-             * settings file (maybe we should), so we only need to allocate
-             * them once.
-             */
-            info_pane[j].bold_tag =
-                gtk_text_buffer_create_tag(info_pane[j].textbuffer,
-                    "bold", "weight", PANGO_WEIGHT_BOLD, NULL);
-
-            info_pane[j].italic_tag =
-                 gtk_text_buffer_create_tag(info_pane[j].textbuffer,
-                     "italic", "style", PANGO_STYLE_ITALIC, NULL);
-
-            info_pane[j].underline_tag =
-                gtk_text_buffer_create_tag(info_pane[j].textbuffer,
-                    "underline", "underline", PANGO_UNDERLINE_SINGLE, NULL);
-            /*
-             * This is really a convenience - we can pass multiple tags in when
-             * drawing text, but once we pass in a NULL tag, that signifies no
-             * more tags.  Rather than having to set up an array we pass in,
-             * instead, we have this empty tag that we can pass is so that we
-             * always have the same calling semantics, just differ what tags we
-             * pass in.
-             */
-            if (!info_pane[j].default_tag)
-                info_pane[j].default_tag =
-                    gtk_text_buffer_create_tag(info_pane[j].textbuffer,
-                        "default", NULL);
         }
         has_init = 1;
     }
@@ -510,65 +605,7 @@ void info_get_styles(void)
             }
         }
 
-        /*
-         * Old message/color support.
-         */
-        for (i = 0; i < NUM_COLORS; i++) {
-            snprintf(style_name, MAX_BUF, "info_%s", usercolorname[i]);
-
-            tmp_style =
-                gtk_rc_get_style_by_paths(
-                    gtk_settings_get_default(), NULL, style_name, G_TYPE_NONE);
-
-            for (j = 0; j < NUM_TEXT_VIEWS; j++) {
-                if (tmp_style) {
-                    if (!info_pane[j].color_tags[i]) {
-                        info_pane[j].color_tags[i] =
-                            gtk_text_buffer_create_tag(
-                                info_pane[j].textbuffer, NULL, NULL);
-                    }
-                    set_text_tag_from_style(
-                        info_pane[j].color_tags[i],
-                        tmp_style, base_style[j]);
-                } else {
-                    if (info_pane[j].color_tags[i]) {
-                        gtk_text_tag_table_remove(
-                            gtk_text_buffer_get_tag_table(
-                                info_pane[j].textbuffer),
-                            info_pane[j].color_tags[i]);
-                        info_pane[j].color_tags[i] = NULL;
-                    }
-                }
-            }
-        }
-
-        /* Font type support */
-        for (i = 0; i < NUM_FONTS; i++) {
-            tmp_style =
-                gtk_rc_get_style_by_paths(
-                    gtk_settings_get_default(),
-                    NULL, font_style_names[i], G_TYPE_NONE);
-
-            for (j = 0; j < NUM_TEXT_VIEWS; j++) {
-                if (tmp_style) {
-                    if (!info_pane[j].font_tags[i]) {
-                        info_pane[j].font_tags[i] =
-                            gtk_text_buffer_create_tag(
-                                info_pane[j].textbuffer, NULL, NULL);
-                    }
-                    set_text_tag_from_style(
-                        info_pane[j].font_tags[i], tmp_style, base_style[j]);
-                } else {
-                    if (info_pane[j].font_tags[i]) {
-                        gtk_text_tag_table_remove(
-                            gtk_text_buffer_get_tag_table(
-                                info_pane[j].textbuffer),
-                            info_pane[j].font_tags[i]);
-                        info_pane[j].font_tags[i] = NULL;
-                    }
-                }
-            }
-        }
+        add_style_to_textbuffer(&info_pane[j], base_style[j]);
     } else {
         /*
          * There is no base style - this should not normally be the case
@@ -593,29 +630,7 @@ void info_get_styles(void)
                 }
             }
         }
-        for (i = 0; i < NUM_COLORS; i++) {
-            for (j = 0; j < NUM_TEXT_VIEWS; j++) {
-                if (info_pane[j].color_tags[i]) {
-                    gtk_text_tag_table_remove(
-                        gtk_text_buffer_get_tag_table(
-                            info_pane[j].textbuffer),
-                        info_pane[j].color_tags[i]);
-                    info_pane[j].color_tags[i] = NULL;
-                }
-            }
-        }
-        /* Font type support */
-        for (i = 0; i < NUM_FONTS; i++) {
-            for (j = 0; j < NUM_TEXT_VIEWS; j++) {
-                if (info_pane[j].font_tags[i]) {
-                    gtk_text_tag_table_remove(
-                        gtk_text_buffer_get_tag_table(
-                            info_pane[j].textbuffer),
-                        info_pane[j].font_tags[i]);
-                    info_pane[j].font_tags[i] = NULL;
-                }
-            }
-        }
+        add_style_to_textbuffer(&info_pane[j], NULL);
     }
 }
 
@@ -695,7 +710,7 @@ void info_init(GtkWidget *window_root)
  * @param underline
  * If true, should underline the text.
  */
-static void add_to_textbuf(int pane, char *message,
+static void add_to_textbuf(Info_Pane *pane, char *message,
                            int type, int subtype,
                            int bold, int italic,
                            int font, char *color, int underline)
@@ -720,10 +735,11 @@ static void add_to_textbuf(int pane, char *message,
             if (!strcasecmp(usercolorname[color_num], color))
                 break;
         if (color_num < NUM_COLORS)
-            color_tag = info_pane[pane].color_tags[color_num];
+            color_tag = pane->color_tags[color_num];
     }
+    fprintf(stderr,"did not fine color %s\n", color);
     if (!color_tag)
-        color_tag = info_pane[pane].default_tag;
+        color_tag = pane->default_tag;
 
     /*
      * Following block of code deals with the type/subtype.  First, we check
@@ -731,7 +747,7 @@ static void add_to_textbuf(int pane, char *message,
      * is a particular style for the type/subtype combo, if not, fall back to
      * one just for the type.
      */
-    type_tag = info_pane[pane].default_tag;
+    type_tag = pane->default_tag;
 
     if (type >= MSG_TYPE_LAST
     || subtype >= max_subtype
@@ -741,33 +757,138 @@ static void add_to_textbuf(int pane, char *message,
             "subtype (%d) >= max_subtype (%d)\n",
             type, MSG_TYPE_LAST, subtype, max_subtype);
     } else {
-        if (info_pane[pane].msg_type_tags[type][subtype])
-            type_tag = info_pane[pane].msg_type_tags[type][subtype];
-        else if (info_pane[pane].msg_type_tags[type][0])
-            type_tag = info_pane[pane].msg_type_tags[type][0];
+        if (pane->msg_type_tags[type][subtype])
+            type_tag = pane->msg_type_tags[type][subtype];
+        else if (pane->msg_type_tags[type][0])
+            type_tag = pane->msg_type_tags[type][0];
     }
 
     gtk_text_view_get_visible_rect(
-        GTK_TEXT_VIEW(info_pane[pane].textview), &rect);
+        GTK_TEXT_VIEW(pane->textview), &rect);
 
-    if ((info_pane[pane].adjustment->value + rect.height)
-        >= info_pane[pane].adjustment->upper)
+    /* simple panes (like those of the login windows) don't have adjustments
+     * set (and if they did, we wouldn't want to scroll to end in any case)
+     * so check here on what to do.
+     */
+    if (pane->adjustment &&
+        (pane->adjustment->value + rect.height) >= pane->adjustment->upper)
             scroll_to_end = 1;
 
-    gtk_text_buffer_get_end_iter(info_pane[pane].textbuffer, &end);
+    gtk_text_buffer_get_end_iter(pane->textbuffer, &end);
 
     gtk_text_buffer_insert_with_tags(
-        info_pane[pane].textbuffer, &end, message, strlen(message),
-        bold ? info_pane[pane].bold_tag : info_pane[pane].default_tag,
-        italic ? info_pane[pane].italic_tag : info_pane[pane].default_tag,
-        underline ? info_pane[pane].underline_tag : info_pane[pane].default_tag,
-        info_pane[pane].font_tags[font] ?
-            info_pane[pane].font_tags[font] : info_pane[pane].default_tag,
+        pane->textbuffer, &end, message, strlen(message),
+        bold ? pane->bold_tag : pane->default_tag,
+        italic ? pane->italic_tag : pane->default_tag,
+        underline ? pane->underline_tag : pane->default_tag,
+        pane->font_tags[font] ?
+            pane->font_tags[font] : pane->default_tag,
         color_tag, type_tag, NULL);
 
     if (scroll_to_end)
         gtk_text_view_scroll_mark_onscreen(
-            GTK_TEXT_VIEW(info_pane[pane].textview), info_pane[pane].textmark);
+            GTK_TEXT_VIEW(pane->textview), pane->textmark);
+}
+
+/**
+ * This just does the work of taking texted (which may have markup)
+ * and putting it into the targetd pane.  This is a lower level
+ * than the draw_ext_info() below, as it does not do message routing.
+ * This is called from draw_ext_info() below, as well as account.c
+ * to update news/motd/rules.
+ *
+ * @params pane
+ * pointer to the pane info to draw info.
+ * @params message
+ * message that is parsed and displayed.
+ * @params type
+ * the type of message - used for default coloring information.
+ * @params subtype
+ * subtype of message - used for default coloring information. Note
+ * both type and subtype are same values as passed to draw_ext_info()
+ */
+
+void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int subtype, int orig_color)
+{
+    char *marker, *current, *original;
+    int bold=0, italic=0, font=0, underline=0;
+    char *color=NULL; /**< Only if we get a [color] tag should we care,
+                       *   otherwise, the type/subtype should dictate color
+                       *   (unless no style set!)
+                       */
+
+    current = strdup(message);
+    original = current;         /* Just so we know what to free */
+
+    /*
+     * If there is no style information, or if a specific style has not
+     * been set for the type/subtype of this message, allow orig_color to
+     * set the color of the text.  The orig_color handling here adds
+     * compatibility with former draw_info() calls that gave a color hint.
+     * The color hint still works now in the event that the theme has not
+     * set a style for the message type.
+     */
+    if (! has_style || pane->msg_type_tags[type][subtype] == 0) {
+        if (orig_color <0 || orig_color>NUM_COLORS) {
+            LOG(LOG_ERROR, "info.c::draw_ext_info",
+                "Passed invalid color from server: %d, max allowed is %d\n",
+                orig_color, NUM_COLORS);
+            orig_color = 0;
+        } else {
+            /*
+             * Not efficient - we have a number, but convert it to a
+             * string, at which point add_to_textbuf() converts it back to
+             * a number :(
+             */
+            color = (char*)usercolorname[orig_color];
+        }
+    }
+
+    while ((marker = strchr(current, '[')) != NULL) {
+        *marker = 0;
+
+        if (strlen(current) > 0)
+            add_to_textbuf(pane, current, type, subtype,
+                           bold, italic, font, color, underline);
+
+        current = marker + 1;
+
+        if ((marker = strchr(current, ']')) == NULL) {
+            free(original);
+            return;
+        }
+
+        *marker = 0;
+        if (!strcmp(current, "b"))               bold = TRUE;
+        else if (!strcmp(current,  "/b"))        bold = FALSE;
+        else if (!strcmp(current,  "i"))         italic = TRUE;
+        else if (!strcmp(current,  "/i"))        italic = FALSE;
+        else if (!strcmp(current,  "ul"))        underline = TRUE;
+        else if (!strcmp(current,  "/ul"))       underline = FALSE;
+        else if (!strcmp(current,  "fixed"))     font = FONT_FIXED;
+        else if (!strcmp(current,  "arcane"))    font = FONT_ARCANE;
+        else if (!strcmp(current,  "hand"))      font = FONT_HAND;
+        else if (!strcmp(current,  "strange"))   font = FONT_STRANGE;
+        else if (!strcmp(current,  "print"))     font = FONT_NORMAL;
+        else if (!strcmp(current,  "/color"))    color = NULL;
+        else if (!strncmp(current, "color=", 6)) color = current + 6;
+        else
+            LOG(LOG_INFO, "info.c::message_callback",
+                "unrecognized tag: [%s]\n", current);
+
+        current = marker + 1;
+    }
+
+    add_to_textbuf(
+                   pane, current, type, subtype,
+                   bold, italic, font, color, underline);
+
+    add_to_textbuf(
+                   pane, "\n", type, subtype,
+                   bold, italic, font, color, underline);
+
+    free(original);
+
 }
 
 /**
@@ -794,22 +915,11 @@ static void add_to_textbuf(int pane, char *message,
  * The message text.
  */
 void draw_ext_info(int orig_color, int type, int subtype, char *message) {
-    char *marker, *current, *original;
-    int bold=0, italic=0, font=0, underline=0;
     int type_err=0;   /**< When 0, the type is valid and may be used to pick
                        *   the panel routing, otherwise the message can only
                        *   go to the main message pane.
                        */
-    int pane=0;       /**< An iterator that selects message panes to send
-                       *   messages to.
-                       */
-    char *color=NULL; /**< Only if we get a [color] tag should we care,
-                       *   otherwise, the type/subtype should dictate color
-                       *   (unless no style set!)
-                       */
-
-    current = strdup(message);
-    original = current;         /* Just so we know what to free */
+    int pane;
 
     /*
      * A valid message type is required to index into the msgctrl_widgets
@@ -846,75 +956,10 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
                 continue;
         }
 
-        /*
-         * If there is no style information, or if a specific style has not
-         * been set for the type/subtype of this message, allow orig_color to
-         * set the color of the text.  The orig_color handling here adds
-         * compatibility with former draw_info() calls that gave a color hint.
-         * The color hint still works now in the event that the theme has not
-         * set a style for the message type.
-         */
-        if (! has_style || info_pane[pane].msg_type_tags[type][subtype] == 0) {
-            if (orig_color <0 || orig_color>NUM_COLORS) {
-                LOG(LOG_ERROR, "info.c::draw_ext_info",
-                    "Passed invalid color from server: %d, max allowed is %d\n",
-                        orig_color, NUM_COLORS);
-                orig_color = 0;
-            } else {
-                /*
-                 * Not efficient - we have a number, but convert it to a
-                 * string, at which point add_to_textbuf() converts it back to
-                 * a number :(
-                 */
-                color = (char*)usercolorname[orig_color];
-            }
-        }
+        add_marked_text_to_pane(&info_pane[pane], message, type, subtype, orig_color);
 
-        while ((marker = strchr(current, '[')) != NULL) {
-            *marker = 0;
-
-            if (strlen(current) > 0)
-                add_to_textbuf(pane, current, type, subtype,
-                    bold, italic, font, color, underline);
-
-            current = marker + 1;
-
-            if ((marker = strchr(current, ']')) == NULL) {
-                free(original);
-                return;
-            }
-
-            *marker = 0;
-            if (!strcmp(current, "b"))               bold = TRUE;
-            else if (!strcmp(current,  "/b"))        bold = FALSE;
-            else if (!strcmp(current,  "i"))         italic = TRUE;
-            else if (!strcmp(current,  "/i"))        italic = FALSE;
-            else if (!strcmp(current,  "ul"))        underline = TRUE;
-            else if (!strcmp(current,  "/ul"))       underline = FALSE;
-            else if (!strcmp(current,  "fixed"))     font = FONT_FIXED;
-            else if (!strcmp(current,  "arcane"))    font = FONT_ARCANE;
-            else if (!strcmp(current,  "hand"))      font = FONT_HAND;
-            else if (!strcmp(current,  "strange"))   font = FONT_STRANGE;
-            else if (!strcmp(current,  "print"))     font = FONT_NORMAL;
-            else if (!strcmp(current,  "/color"))    color = NULL;
-            else if (!strncmp(current, "color=", 6)) color = current + 6;
-            else
-                LOG(LOG_INFO, "info.c::message_callback",
-                    "unrecognized tag: [%s]\n", current);
-
-            current = marker + 1;
-        }
-
-        add_to_textbuf(
-            pane, current, type, subtype,
-                bold, italic, font, color, underline);
-
-        add_to_textbuf(
-            pane, "\n", type, subtype,
-                bold, italic, font, color, underline);
     }
 
-    free(original);
 }
 
 /**

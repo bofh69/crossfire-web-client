@@ -66,7 +66,8 @@ int last_used_skills[MAX_SKILL+1];
 
 int meta_port=META_PORT, want_skill_exp=0,
     replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
-    maxfd,metaserver_on=METASERVER, metaserver2_on=METASERVER2;
+    maxfd,metaserver_on=METASERVER, metaserver2_on=METASERVER2,
+    wantloginmethod=0, serverloginmethod=0;
 uint32	tick=0;
 
 uint16	exp_table_max=0;
@@ -132,6 +133,8 @@ struct CmdMapping commands[] = {
     { "version", (CmdProc)VersionCmd, ASCII },
     { "goodbye", (CmdProc)GoodbyeCmd, NODATA },
     { "setup", (CmdProc)SetupCmd, ASCII},
+    { "failure", (CmdProc)FailureCmd, ASCII},
+    { "accountplayers", (CmdProc)AccountPlayersCmd, ASCII},
 
     { "query", (CmdProc)handle_query, ASCII},
     { "replyinfo", ReplyInfoCmd, ASCII},
@@ -143,6 +146,23 @@ struct CmdMapping commands[] = {
 
 #define NCOMMANDS ((int)(sizeof(commands)/sizeof(struct CmdMapping)))
 
+/**
+ * Basic little function that closes the connection to the server.
+ * it seems better to have it one palce here than the same
+ * logic sprinkled about in half a dozen locations in the code.
+ * also useful in that if this logic does change, just one place
+ * to update it.
+ */
+void close_server_connection()
+{
+#ifdef WIN32
+    closesocket(csocket.fd);
+#else
+    close(csocket.fd);
+#endif
+    csocket.fd=-1;
+}
+
 void DoClient(ClientSocket *csocket)
 {
     int i,len;
@@ -152,12 +172,7 @@ void DoClient(ClientSocket *csocket)
 	i=SockList_ReadPacket(csocket->fd, &csocket->inbuf, MAXSOCKBUF-1);
 	if (i==-1) {
 	    /* Need to add some better logic here */
-#ifdef WIN32
-	    closesocket(csocket->fd);
-#else
-	    close(csocket->fd);
-#endif
-	    csocket->fd=-1;
+        close_server_connection();
 	    return;
 	}
 	if (i==0) return;   /* Don't have a full packet */
@@ -351,12 +366,7 @@ void negotiate_connection(int sound)
 	tries++;
 	/* If we have't got a response in 10 seconds, bail out */
 	if (tries > 1000) {
-#ifdef WIN32
-	    closesocket(csocket.fd);
-#else
-	    close(csocket.fd);
-#endif
-	    csocket.fd=-1;
+        close_server_connection();
 	    return;
 	}
     }
@@ -377,14 +387,24 @@ void negotiate_connection(int sound)
      * client prefers is last.
      */
     cs_print_string(csocket.fd,
-        "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
-        "faceset %d facecache %d want_pickup 1",
+	    "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
+        "faceset %d facecache %d want_pickup 1 loginmethod %d",
 	    (sound>=0) ? 3 : 0, want_config[CONFIG_LIGHTING]?1:0,
-	    	face_info.faceset, want_config[CONFIG_CACHE]);
+                    face_info.faceset, want_config[CONFIG_CACHE], wantloginmethod);
 
     /* We can do this right now also - isn't any reason to wait */
     cs_print_string(csocket.fd, "requestinfo skill_info");
     cs_print_string(csocket.fd,"requestinfo exp_table");
+
+    /* While these are only used for new login method, that
+     * should hopefully become standard fairly soon, and
+     * all of these are pretty small in any case, so don't
+     * add much to the cost.  In this way, we are more likely
+     * to have the information ready when we bring up the window.
+     */
+    cs_print_string(csocket.fd,"requestinfo motd");
+    cs_print_string(csocket.fd,"requestinfo news");
+    cs_print_string(csocket.fd,"requestinfo rules");
 
     use_config[CONFIG_MAPHEIGHT]=want_config[CONFIG_MAPHEIGHT];
     use_config[CONFIG_MAPWIDTH]=want_config[CONFIG_MAPWIDTH];
@@ -469,6 +489,8 @@ void negotiate_connection(int sound)
      * like downloading all the images and whatnot - this is more an issue if
      * the user is not using the default face set, as in that case, we might
      * end up building images from the wrong set.
+     * Only run this if not using new login method
      */
-    SendAddMe(csocket);
+    if (!serverloginmethod)
+        SendAddMe(csocket);
 }

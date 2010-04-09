@@ -71,6 +71,8 @@ int mapupdatesent = 0;
 
 #include "mapdata.h"
 
+char *news=NULL, *motd=NULL, *rules=NULL;
+
 int spellmon_level = 0;                 /**< Keeps track of what spellmon
                                          *   command is supported by the
                                          *   server. */
@@ -180,6 +182,18 @@ void ReplyInfoCmd(uint8 *buf, int len) {
         get_skill_info((char*)cp, len-i-1);   /* located in common/commands.c */
     } else if (!strcmp((char*)buf, "exp_table")) {
         get_exp_info(cp, len-i-1);   /* located in common/commands.c */
+    } else if (!strcmp((char*)buf, "motd")) {
+        if (motd) free((char*)motd);
+        motd = strdup(cp);
+        update_login_info(INFO_MOTD);
+    } else if (!strcmp((char*)buf, "news")) {
+        if (news) free((char*)news);
+        news = strdup(cp);
+        update_login_info(INFO_NEWS);
+    } else if (!strcmp((char*)buf, "rules")) {
+        if (rules) free((char*)rules);
+        rules = strdup(cp);
+        update_login_info(INFO_RULES);
     }
 }
 
@@ -336,17 +350,22 @@ void SetupCmd(char *buf, int len) {
                     "Server does not support map2cmd!");
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
                     "This server is too old to support this client!");
-#ifdef WIN32
-                closesocket(csocket.fd);
-#else
-                close(csocket.fd);
-#endif
-                csocket.fd = -1;
+                close_server_connection();
             }
         } else if (!strcmp(cmd, "want_pickup")) {
             /* Nothing special to do as this is info pushed from server and
              * not having it isn't that bad.
              */
+        } else if (!strcmp(cmd, "loginmethod")) {
+            int method = atoi(param);
+
+            /* If the server supports new login, start the process.  Pass what
+             * version the server supports so client can do appropriate
+             * work
+             */
+            if (method) {
+                start_login(method);
+            }
         } else {
             LOG(LOG_INFO, "common::SetupCmd", "Got setup for a command we don't understand: %s %s",
                 cmd, param);
@@ -381,6 +400,7 @@ void AddMeSuccess(char *data, int len) {
     (void)data; /* __UNUSED__ */
     (void)len; /* __UNUSED__ */
 
+    hide_all_login_windows();
     LOG(LOG_INFO, "common::AddMeSuccess", "addme_success received.");
     return;
 }
@@ -1553,3 +1573,136 @@ void PickupCmd(uint8 *data, int len) {
     client_pickup(pickup);
 }
 
+/**
+ * Handles a failure return from the server.
+ *
+ * @param data
+ * buffer sent by server.
+ * @param len
+ * length of data.
+ */
+void FailureCmd(char *buf, int len) {
+    char *cp;
+
+    /* The format of the buffer is 'command error message'.  We need to
+     * extract the failed command, and then pass in the error message
+     * to the appropriate handler.  So find the space, set it to null.
+     * in that way, buf is now just the failure command, and cp is the
+     * message.
+     */
+    cp = strchr(buf,' ');
+    if (!cp) return;
+
+    *cp = 0;
+    cp++;
+
+    if (!strcmp(buf,"accountlogin")) {
+        account_login_failure(cp);
+    }
+    else if (!strcmp(buf,"accountnew")) {
+        account_creation_failure(cp);
+    }
+    else if (!strcmp(buf,"accountaddplayer")) {
+        account_add_character_failure(cp);
+    }
+    else if (!strcmp(buf,"createplayer")) {
+        create_new_character_failure(cp);
+    }
+    else
+        /* This really is an error - if this happens it menas the server failed
+         * to process a request that the client made - the client should be able
+         * to handle failures for all request types it makes.  But this is also a problem
+         * in that it means that the server is waiting for a correct response, and
+         * if we do not display anything, the player is unlikely to know this.
+         */
+        LOG(LOG_ERROR, "common::FailureCmd", "Got a failure response we can not handle: %s:%s",
+            buf, cp);
+}
+
+/**
+ * This handles the accountplayers command
+ */
+void AccountPlayersCmd(char *buf, int len) {
+
+    int num_characters, level, pos, flen;
+    char name[MAX_BUF], class[MAX_BUF], race[MAX_BUF], 
+        face[MAX_BUF], party[MAX_BUF], map[MAX_BUF];
+
+
+    /* This is called first so it can clear out the existing
+     * data store.
+     */
+    choose_character_init();
+
+    level=0;
+    name[0]=0;
+    class[0]=0;
+    race[0]=0;
+    face[0]=0;
+    party[0]=0;
+    map[0]=0;
+
+    /* We don't do anything with this right now */
+    num_characters=buf[0];
+    pos=1;
+    while (pos < len) {
+        flen = buf[pos];
+        /* flen == 0 is to note that we got end of character data */
+        if (flen == 0) {
+            update_character_choose(name, class, race, face, party, map, level);
+            /* blank all the values - it is no sure thing that the
+             * next character will fill all these in.
+             */
+            level=0;
+            name[0]=0;
+            class[0]=0;
+            race[0]=0;
+            face[0]=0;
+            party[0]=0;
+            map[0]=0;
+            pos++;
+            continue;
+        }
+        pos++;
+        if ((pos +flen) > len || flen>=MAX_BUF) {
+            LOG(LOG_ERROR,"commands.c:AccountPlayerCmd", "data overran buffer");
+            return;
+        }
+        switch (buf[pos]) {
+        case ACL_NAME:
+            strncpy(name, buf + pos +1, flen-1);
+            name[flen-1] = 0;
+            break;
+
+        case ACL_CLASS:
+            strncpy(class, buf + pos +1, flen-1);
+            class[flen-1] = 0;
+            break;
+
+        case ACL_RACE:
+            strncpy(race, buf + pos +1, flen-1);
+            race[flen-1] = 0;
+            break;
+        
+        case ACL_FACE:
+            strncpy(face, buf + pos +1, flen-1);
+            face[flen-1] = 0;
+            break;
+
+        case ACL_PARTY:
+            strncpy(party, buf + pos +1, flen-1);
+            party[flen-1] = 0;
+            break;
+
+        case ACL_MAP:
+            strncpy(map, buf + pos +1, flen-1);
+            map[flen-1] = 0;
+            break;
+
+        case ACL_LEVEL:
+            level = GetShort_String(buf+pos+1);
+            break;
+        }
+        pos += flen;
+    }
+}

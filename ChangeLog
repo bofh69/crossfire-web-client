@@ -2,6 +2,54 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Add account based support to gtk2 client & common code.  Remove support
+for gtk1 and X11 clients
+---
+configure.ac: Remove check for gtk1, cfgtk2 option, X11 libraries, and
+   checks related to those clients.
+common/client.c: Add tracking of loginmethod.  Update setup to send
+   loginmethod, update dispatch table for new commands.  Add
+   close_server_connection() so duplicate code does not need to be
+   repeated.  Don't send addme command when using new login method.
+common/client.h: Add globals for motd, news, rules, loginmethods,
+   INFO_... types.
+common/commands.c: Add processing of requestinfo for motd, rules, news.
+   Add handling of loginmethod setup. Add call to hde_all_login_windows()
+   when play starts.  Add FailureCmd(), AccountPlayersCmd() to handle
+   protocol commands.
+common/init.c:  Free motd/news/rules data when changing servers.
+common/metaserver.c: Move meta_sort() to this file, don't make it
+   static - removes compiler warnings.
+common/metaserver.h: Remove static declaration of meta_sort, and
+   function prototype for it.
+common/p_cmd.c: Update do_disconnect() to use close_server_connection()
+common/proto.h: Updated with new functions.
+gtk-v2/glade/dialogs.glade: Add new windows for account login code.
+gtk-v2/src/Makefile.am: Add account.c file.
+gtk-v2/src/gtk2proto.h: Update with new functions.
+gtk-v2/src/account.c: New file - does account logic.
+gtk-v2/src/info.c: Change order of includes.  Move some declarations
+   from this file to info.h.  Generalize some of the handling so
+   other functions can use textbuffer but take advantage of the markup
+   processing provided in this file
+gtk-v2/src/info.h: New file - declarations from info.c moved here.
+gtk-v2/src/keys.c: Change order if include of main.h.  Update to use
+   close_server_connection()
+gtk-v2/src/main.c: Change order of includes.  Add sample use of
+   custom glib log handler.  Update to try and use loginmethod 1
+gtk-v2/src/main.h: Add extern for csocket_fd so a bunch of
+   files don't have to declare it itself.
+gtk-v2/src/map.c: Change ordering of includes.
+gtk-v2/src/menubar.c: Update to sue close_server_connection()
+gtk-v2/src/metaserver.c: change order of includes.  Call
+   hide_all_login_windows() when bringing up metaserver window.
+gtk-v2/src/opengl.c: Change order of includes.
+gtk-v2/src/pickup.c: Change order of includes.
+gtk-v2/src/spells.c: Change order of include of gtk2proto.h
+----
+MSW 2010-04-08
+
+
 gtk-v2/glade/dialogs.glade
 - Convert tooltip_text fields to tooltip fields as mwedel reports that newer
   versions of glade3 have issues with it (though the version I have does not).

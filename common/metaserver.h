@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ extern Meta_Info *meta_servers;
 extern pthread_mutex_t ms2_info_mutex;
 
 /* Needs to be here because gtk2 client needs to resort for example */
-static int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
+extern int meta_sort(Meta_Info *m1, Meta_Info *m2);
 
 extern int meta_numservers;
 

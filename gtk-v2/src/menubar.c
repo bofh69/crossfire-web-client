@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_menubar_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,14 +60,8 @@ void
 on_disconnect_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-    extern gint csocket_fd;
+    close_server_connection();
 
-#ifdef WIN32
-    closesocket(csocket.fd);
-#else
-    close(csocket.fd);
-#endif
-    csocket.fd = -1;
     if (csocket_fd) {
         gdk_input_remove(csocket_fd);
         csocket_fd=0;

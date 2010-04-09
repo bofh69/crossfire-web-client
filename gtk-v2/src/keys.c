@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_keys_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,8 +48,8 @@ typedef int KeyCode;                    /**< Undefined type */
 #include <gdk/gdkkeysyms.h>
 
 #include "client-types.h"
-#include "main.h"
 #include "client.h"
+#include "main.h"
 #include "proto.h"
 #include "def-keys.h"
 
@@ -1393,14 +1393,8 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
              * menubar)
              */
 
-            extern gint csocket_fd;
+            close_server_connection();
 
-#ifdef WIN32
-            closesocket(csocket.fd);
-#else
-            close(csocket.fd);
-#endif
-            csocket.fd = -1;
             if (csocket_fd) {
                 gdk_input_remove(csocket_fd);
                 csocket_fd=0;
