@@ -35,6 +35,8 @@
  * needs to be declared in a place where both files can access it.
  */
 
+#include "shared/newclient.h"
+
 /**
  * @{
  * @name GTK V2 Font Style Definitions.

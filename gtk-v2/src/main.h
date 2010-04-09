@@ -47,5 +47,4 @@ extern char window_xml_file[];
 extern gint csocket_fd;
 
 /* gtk2proto.h depends on this - so may as well just include it here */
-#include "shared/newclient.h"
 #include "info.h"
