@@ -109,6 +109,7 @@ extern void event_loop(void);
 extern int parse_args(int argc, char **argv);
 extern int main(int argc, char *argv[]);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
+void error_dialog(char *description, char *information);
 /* map.c */
 extern void map_init(GtkWidget *window_root);
 extern void reset_map(void);

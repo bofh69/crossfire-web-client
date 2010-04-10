@@ -629,7 +629,7 @@ int parse_args(int argc, char **argv)
  * A C-string, displayed in normal text, that provides additional information
  * about the error condition.
  */
-static void error_dialog(char *description, char *information)
+void error_dialog(char *description, char *information)
 {
     GtkWidget *dialog;
 

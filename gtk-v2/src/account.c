@@ -970,6 +970,10 @@ static void init_login_window()
     GtkTextIter end;
 
     login_window = glade_xml_get_widget(dialog_xml, "login_window");
+    if (!login_window) {
+        error_dialog("Out of date dialog.glade", "Did you run 'make install'?");
+        exit(1);
+    }
     gtk_window_set_transient_for(GTK_WINDOW(login_window), GTK_WINDOW(window_root));
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(login_window));
@@ -1141,11 +1145,11 @@ void start_login(int method)
          * through what would otherwise be a long routine looking
          * for entries.
          */
+        init_login_window();
+
         init_add_character_window();
 
         init_choose_char_window();
-
-        init_login_window();
 
         init_create_account_window();
 

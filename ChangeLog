@@ -2,6 +2,14 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Add error message and quit client if user has out of date dialog.glade file
+installed.  Make error_dialog non static so account.c can use this,
+add check in account.c to see if we found required window, and change
+order if initialization of account windows to do login window first (as
+that is where the check is).
+Files changed: gtk-v2/src/account.c gtk-v2/src/main.c gtk-v2/src/gtk2proto.h
+MSW 2010-04-09
+
 Add account based support to gtk2 client & common code.  Remove support
 for gtk1 and X11 clients
 ---
