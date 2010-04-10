@@ -602,10 +602,10 @@ void info_get_styles(void)
                         info_pane[j].msg_type_tags[type][subtype] = NULL;
                     }
                 }
+                add_style_to_textbuffer(&info_pane[j], base_style[j]);
             }
         }
 
-        add_style_to_textbuffer(&info_pane[j], base_style[j]);
     } else {
         /*
          * There is no base style - this should not normally be the case
@@ -628,9 +628,9 @@ void info_get_styles(void)
                         info_pane[j].msg_type_tags[type][subtype]);
                     info_pane[j].msg_type_tags[type][subtype] = NULL;
                 }
+                add_style_to_textbuffer(&info_pane[j], NULL);
             }
         }
-        add_style_to_textbuffer(&info_pane[j], NULL);
     }
 }
 

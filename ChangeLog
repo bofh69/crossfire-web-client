@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/info.c: Fix problem with crashes on some systems -
+initialization was outside of for loop which set the variable.  Should
+fix bug 2984398.
+MSW 2010-04-09
+
 Add error message and quit client if user has out of date dialog.glade file
 installed.  Make error_dialog non static so account.c can use this,
 add check in account.c to see if we found required window, and change
