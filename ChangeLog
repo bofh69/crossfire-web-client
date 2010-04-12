@@ -1,6 +1,12 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+gtk-v2/src/account.c: Clear new account names/status when activating
+    window.  Otherwise, odd to have info filled in from account
+    created on previous server.
+MSW 2010-04-11
+
 common/client.c: Mostly whitespace changes.  Make minor improvment to
    -download_all_faces to request 1 set more than being worked on.
 common/image.c: Whitespace change - fix formatting.

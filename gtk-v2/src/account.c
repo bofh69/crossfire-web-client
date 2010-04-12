@@ -854,6 +854,10 @@ void
 on_button_create_account_clicked (GtkButton *button, gpointer user_data)
 {
     gtk_widget_hide(login_window);
+    gtk_label_set_text(GTK_LABEL(label_create_account_status), "");
+    gtk_entry_set_text(GTK_ENTRY(entry_new_account_name), "");
+    gtk_entry_set_text(GTK_ENTRY(entry_new_account_password), "");
+    gtk_entry_set_text(GTK_ENTRY(entry_new_confirm_password), "");
     gtk_widget_show(create_account_window);
 }
 
