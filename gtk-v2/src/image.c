@@ -301,8 +301,26 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
         return 1;
 
     if (pixmaps[pixmap_num] != pixmaps[0]) {
-        free_pixmap(pixmaps[pixmap_num]);
-        free(pixmaps[pixmap_num]);
+        /* As per bug 2938906, one can see image corruption when switching between
+         * servers.  The cause is that the cache table stores away
+         * a pointer to the pixmap[] entry - if we go and free it,
+         * the cache table can point to garbage, so don't free it.
+         * This causes some memory leak, but if/when there is good
+         * cache support for multiple servers, eventually the amount
+         * of memory consumed will reach a limit (it has every image of
+         * every server in memory
+         *
+         * The cause of image corruption requires a few different things:
+         * 1) images of the same name have different numbers on the 2 serves.
+         * 2) the image number is higher on the first than second server
+         * 3) the image using the high number does not exist/is different
+         *    on the second server, causing this routine to be called.
+         */
+
+         if (!use_config[CONFIG_CACHE]) {
+             free_pixmap(pixmaps[pixmap_num]);
+             free(pixmaps[pixmap_num]);
+         }
         pixmaps[pixmap_num] = pixmaps[0];
     }
 

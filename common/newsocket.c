@@ -177,79 +177,89 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 
     /* We already have a partial packet */
     if (sl->len<2) {
-	do {
 #ifndef WIN32
-	    stat=read(fd, sl->buf + sl->len, 2-sl->len);
-	} while ((stat==-1) && (errno==EINTR));
+        do {
+            stat=read(fd, sl->buf + sl->len, 2-sl->len);
+        } while ((stat==-1) && (errno==EINTR));
 #else
-	    stat=recv(fd, sl->buf + sl->len, 2-sl->len, 0);
-	} while ((stat==-1) && (WSAGetLastError()==EINTR));
+        do {
+            stat=recv(fd, sl->buf + sl->len, 2-sl->len, 0);
+        } while ((stat==-1) && (WSAGetLastError()==EINTR));
 #endif
-	if (stat<0) {
-	    /* In non blocking mode, EAGAIN is set when there is no
-	     * data available.
-	     */
+
+        if (stat<0) {
+            /* In non blocking mode, EAGAIN is set when there is no
+             * data available.
+             */
 #ifndef WIN32
-	    if (errno!=EAGAIN && errno!=EWOULDBLOCK) {
+            if (errno!=EAGAIN && errno!=EWOULDBLOCK)
 #else
-	    if (WSAGetLastError()!=EAGAIN && WSAGetLastError()!=WSAEWOULDBLOCK) {
+            if (WSAGetLastError()!=EAGAIN && WSAGetLastError()!=WSAEWOULDBLOCK)
 #endif
-		perror("ReadPacket got an error.");
-		LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning -1",errno);
-		return -1;
-	    }
-	    return 0;	/*Error */
-	}
-	if (stat==0) return -1;
-	sl->len += stat;
+            {
+                perror("ReadPacket got an error.");
+                    LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning -1",errno);
+                    return -1;
+            }
+            return 0;	/*Error */
+        }
+        if (stat==0) return -1;
+
+        sl->len += stat;
 #ifdef CS_LOGSTATS
-	cst_tot.ibytes += stat;
-	cst_lst.ibytes += stat;
+        cst_tot.ibytes += stat;
+        cst_lst.ibytes += stat;
 #endif
-	if (stat<2) return 0;	/* Still don't have a full packet */
-	readsome=1;
+        if (stat<2) return 0;	/* Still don't have a full packet */
+        readsome=1;
     }
+
     /* Figure out how much more data we need to read.  Add 2 from the
      * end of this - size header information is not included.
      */
     toread = 2+(sl->buf[0] << 8) + sl->buf[1] - sl->len;
     if ((toread + sl->len) > len) {
-	LOG(llevError,"SockList_ReadPacket","Want to read more bytes than will fit in buffer.\n");
-	/* return error so the socket is closed */
-	return -1;
+        LOG(llevError,"SockList_ReadPacket","Want to read more bytes than will fit in buffer.\n");
+        /* return error so the socket is closed */
+        return -1;
     }
     do {
-	do {
 #ifndef WIN32
-	    stat = read(fd, sl->buf+ sl->len, toread);
-	} while ((stat<0) && (errno==EINTR));
+        do {
+            stat = read(fd, sl->buf+ sl->len, toread);
+        } while ((stat<0) && (errno==EINTR));
 #else
-	    stat = recv(fd, sl->buf+ sl->len, toread, 0);
-	} while ((stat<0) && (WSAGetLastError()==EINTR));
+        do {
+            stat = recv(fd, sl->buf+ sl->len, toread, 0);
+        } while ((stat<0) && (WSAGetLastError()==EINTR));
 #endif
-	if (stat<0) {
+        if (stat<0) {
+
 #ifndef WIN32
-	    if (errno!=EAGAIN && errno!=EWOULDBLOCK) {
+            if (errno!=EAGAIN && errno!=EWOULDBLOCK)
 #else
-	    if (WSAGetLastError()!=EAGAIN && WSAGetLastError()!=WSAEWOULDBLOCK) {
+            if (WSAGetLastError()!=EAGAIN && WSAGetLastError()!=WSAEWOULDBLOCK)
 #endif
-		perror("ReadPacket got an error.");
-		LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning 0",errno);
-	    }
-	    return 0;	/*Error */
-	}
-	if (stat==0) return -1;
-	sl->len += stat;
+                {
+                    perror("ReadPacket got an error.");
+                    LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning 0",errno);
+                }
+                return 0;	/*Error */
+        }
+        if (stat==0) return -1;
+        sl->len += stat;
+
 #ifdef CS_LOGSTATS
-	cst_tot.ibytes += stat;
-	cst_lst.ibytes += stat;
+        cst_tot.ibytes += stat;
+        cst_lst.ibytes += stat;
 #endif
-	toread -= stat;
-	if (toread==0) return 1;
-	if (toread < 0) {
-	    LOG(llevError,"SockList_ReadPacket","SockList_ReadPacket: Read more bytes than desired.");
-	    return 1;
-	}
+        toread -= stat;
+        if (toread==0) return 1;
+
+        if (toread < 0) {
+            LOG(llevError,"SockList_ReadPacket","SockList_ReadPacket: Read more bytes than desired.");
+            return 1;
+        }
     } while (toread>0);
     return 0;
 }

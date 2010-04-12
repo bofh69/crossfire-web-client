@@ -169,34 +169,35 @@ void DoClient(ClientSocket *csocket)
     unsigned char *data;
 
     while (1) {
-	i=SockList_ReadPacket(csocket->fd, &csocket->inbuf, MAXSOCKBUF-1);
-	if (i==-1) {
-	    /* Need to add some better logic here */
-        close_server_connection();
-	    return;
-	}
-	if (i==0) return;   /* Don't have a full packet */
-	/* Terminate the buffer */
-	csocket->inbuf.buf[csocket->inbuf.len]='\0';
+        i=SockList_ReadPacket(csocket->fd, &csocket->inbuf, MAXSOCKBUF-1);
+        if (i==-1) {
+            /* Need to add some better logic here */
+            close_server_connection();
+            return;
+        }
+        if (i==0) return;   /* Don't have a full packet */
+
+        /* Terminate the buffer */
+        csocket->inbuf.buf[csocket->inbuf.len]='\0';
         data = csocket->inbuf.buf+2;
         while ((*data != ' ') && (*data != '\0')) ++data;
-	if (*data == ' ') {
-	    *data='\0';
-	    data++;
-	    len = csocket->inbuf.len - (data - csocket->inbuf.buf);
-	}
-	else len = 0;
-	for(i=0;i < NCOMMANDS;i++) {
-	    if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {
-		    script_watch((char*)csocket->inbuf.buf+2,data,len,commands[i].cmdformat);
-		    commands[i].cmdproc(data,len);
-		    break;
-	    }
-	}
-	csocket->inbuf.len=0;
-	if (i == NCOMMANDS) {
-	    printf("Bad command from server (%s)\n",csocket->inbuf.buf+2);
-	}
+        if (*data == ' ') {
+            *data='\0';
+            data++;
+            len = csocket->inbuf.len - (data - csocket->inbuf.buf);
+        }
+        else len = 0;
+        for(i=0;i < NCOMMANDS;i++) {
+            if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {
+                script_watch((char*)csocket->inbuf.buf+2,data,len,commands[i].cmdformat);
+                commands[i].cmdproc(data,len);
+                break;
+            }
+        }
+        csocket->inbuf.len=0;
+        if (i == NCOMMANDS) {
+            printf("Bad command from server (%s)\n",csocket->inbuf.buf+2);
+        }
     }
 }
 
@@ -359,23 +360,23 @@ void negotiate_connection(int sound)
      */
     tries=0;
     while (csocket.cs_version==0) {
-	DoClient(&csocket);
-	if (csocket.fd == -1) return;
+        DoClient(&csocket);
+        if (csocket.fd == -1) return;
 
-	usleep(10*1000);    /* 10 milliseconds */
-	tries++;
-	/* If we have't got a response in 10 seconds, bail out */
-	if (tries > 1000) {
-        close_server_connection();
-	    return;
-	}
+        usleep(10*1000);    /* 10 milliseconds */
+        tries++;
+        /* If we have't got a response in 10 seconds, bail out */
+        if (tries > 1000) {
+            close_server_connection();
+            return;
+        }
     }
 
     if (csocket.sc_version<1023) {
-	LOG (LOG_WARNING,"common::negotiate_connection","Server does not support PNG images, yet that is all this client");
-	LOG (LOG_WARNING,"common::negotiate_connection","supports.  Either the server needs to be upgraded, or you need to");
-	LOG (LOG_WARNING,"common::negotiate_connection","downgrade your client.");
-	exit(1);
+        LOG (LOG_WARNING,"common::negotiate_connection","Server does not support PNG images, yet that is all this client");
+        LOG (LOG_WARNING,"common::negotiate_connection","supports.  Either the server needs to be upgraded, or you need to");
+        LOG (LOG_WARNING,"common::negotiate_connection","downgrade your client.");
+        exit(1);
     }
 
     /* If the user has specified a numeric face id, use it. If it is a string
@@ -387,9 +388,9 @@ void negotiate_connection(int sound)
      * client prefers is last.
      */
     cs_print_string(csocket.fd,
-	    "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
-        "faceset %d facecache %d want_pickup 1 loginmethod %d",
-	    (sound>=0) ? 3 : 0, want_config[CONFIG_LIGHTING]?1:0,
+                    "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
+                    "faceset %d facecache %d want_pickup 1 loginmethod %d",
+                    (sound>=0) ? 3 : 0, want_config[CONFIG_LIGHTING]?1:0,
                     face_info.faceset, want_config[CONFIG_CACHE], wantloginmethod);
 
     /* We can do this right now also - isn't any reason to wait */
@@ -421,66 +422,66 @@ void negotiate_connection(int sound)
         /* last_start is -99.  This means the first face requested will be 1
          * (not 0) - this is OK because 0 is defined as the blank face.
          */
-	int last_end=0, last_start=-99;
+        int last_end=0, last_start=-99;
 
-	cs_print_string(csocket.fd,"requestinfo image_info");
-	requestinfo_sent = RI_IMAGE_INFO;
-	replyinfo_status = 0;
-	replyinfo_last_face = 0;
+        cs_print_string(csocket.fd,"requestinfo image_info");
+        requestinfo_sent = RI_IMAGE_INFO;
+        replyinfo_status = 0;
+        replyinfo_last_face = 0;
 
-	do {
-	    DoClient(&csocket);
+        do {
+            DoClient(&csocket);
 
             /* it's rare, the connection can die while getting this info.
              */
-	    if (csocket.fd == -1) return;
+            if (csocket.fd == -1) return;
 
-	    if (use_config[CONFIG_DOWNLOAD]) {
+            if (use_config[CONFIG_DOWNLOAD]) {
                 /* we need to know how many faces to be able to make the
                  * request intelligently.  So only do the following block if
                  * we have that info.  By setting the sent flag, we will never
                  * exit this loop until that happens.
                  */
-		requestinfo_sent |= RI_IMAGE_SUMS;
-		if (face_info.num_images != 0) {
+                requestinfo_sent |= RI_IMAGE_SUMS;
+                if (face_info.num_images != 0) {
                     /* Sort of fake things out - if we have sent the request
                      * for image sums but have not got them all answered yet,
                      * we then clear the bit from the status so we continue to
                      * loop.
                      */
-		    if (last_end == face_info.num_images) {
-			/* Mark that we're all done */
-			if (replyinfo_last_face == last_end) {
-			    replyinfo_status |= RI_IMAGE_SUMS;
-			    image_update_download_status(face_info.num_images, face_info.num_images, face_info.num_images);
-			}
-		    } else {
+                    if (last_end == face_info.num_images) {
+                        /* Mark that we're all done */
+                        if (replyinfo_last_face == last_end) {
+                            replyinfo_status |= RI_IMAGE_SUMS;
+                            image_update_download_status(face_info.num_images, face_info.num_images, face_info.num_images);
+                        }
+                    } else {
                         /* If we are all caught up, request another 100 sums.
                          */
-			if (last_end == replyinfo_last_face) {
-			    last_start += 100;
-			    last_end += 100;
-			    if (last_end > face_info.num_images) last_end = face_info.num_images;
-			    cs_print_string(csocket.fd,"requestinfo image_sums %d %d", last_start, last_end);
-			    image_update_download_status(last_start, last_end, face_info.num_images);
-			}
-		    }
-		} /* Still have image_sums request to send */
-	    } /* endif download all faces */
+                        if (last_end <= (replyinfo_last_face+100)) {
+                            last_start += 100;
+                            last_end += 100;
+                            if (last_end > face_info.num_images) last_end = face_info.num_images;
+                            cs_print_string(csocket.fd,"requestinfo image_sums %d %d", last_start, last_end);
+                            image_update_download_status(last_start, last_end, face_info.num_images);
+                        }
+                    }
+                } /* Still have image_sums request to send */
+            } /* endif download all faces */
 
-	    usleep(10*1000);    /* 10 milliseconds */
+            usleep(10*1000);    /* 10 milliseconds */
             /* Don't put in an upper time limit with tries like we did above -
              * if the player is downloading all the images, the time this
              * takes could be considerable.
              */
 
-	} while (replyinfo_status != requestinfo_sent);
+        } while (replyinfo_status != requestinfo_sent);
     }
     if (use_config[CONFIG_DOWNLOAD]) {
-	char buf[MAX_BUF];
+        char buf[MAX_BUF];
 
-	snprintf(buf, sizeof(buf), "Download of images complete.  Found %d locally, downloaded %d from server\n",
-		face_info.cache_hits, face_info.cache_misses);
+        snprintf(buf, sizeof(buf), "Download of images complete.  Found %d locally, downloaded %d from server\n",
+                 face_info.cache_hits, face_info.cache_misses);
         draw_ext_info(NDI_GOLD, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
     }
 

@@ -737,7 +737,7 @@ static void add_to_textbuf(Info_Pane *pane, char *message,
         if (color_num < NUM_COLORS)
             color_tag = pane->color_tags[color_num];
     }
-    fprintf(stderr,"did not fine color %s\n", color);
+
     if (!color_tag)
         color_tag = pane->default_tag;
 

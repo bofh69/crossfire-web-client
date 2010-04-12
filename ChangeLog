@@ -1,6 +1,14 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+common/client.c: Mostly whitespace changes.  Make minor improvment to
+   -download_all_faces to request 1 set more than being worked on.
+common/image.c: Whitespace change - fix formatting.
+common/newsocket.c: Whitespace change - fix formatting.
+gtk-v2/src/image.c: Fix for bug 2938906 - don't free pixmap data when
+   using cache mode.
+gtk-v2/src/info.c: Remove useless message about not fine (sic) color.
+MSW 2010-04-11
 
 gtk-v2/src/info.c: Fix problem with crashes on some systems -
 initialization was outside of for loop which set the variable.  Should

@@ -3,7 +3,7 @@ const char * const rcsid_common_image_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2002-2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -79,60 +79,61 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
      * ~/.crossfire/image-cache directory.
      */
     if ((cp=strchr(filename,'@'))!=NULL) {
-	char *lp;
-	int offset, length, last=-1;
+        char *lp;
+        int offset, length, last=-1;
 
-	offset = atoi(cp + 1);
-	lp = strchr(cp,':');
-	if (!lp) {
-	    LOG(LOG_ERROR,"common::load_image","Corrupt filename - has '@' but no ':' ?(%s)", filename);
-	    return -1;
-	}
-	length = atoi(lp + 1);
-	*cp = 0;
-	for (i=0; i<MAX_FACE_SETS; i++) {
-	    if (!strcmp(fd_cache[i].name, filename)) break;
-	    if (last==-1 && fd_cache[i].fd == -1) last = i;
-	}
-	/* Didn't find a matching entry yet, so make one */
-	if (i == MAX_FACE_SETS) {
-	    if (last == -1) {
-		LOG(LOG_WARNING,"common::load_image","fd_cache filled up?  unable to load matching cache entry");
-		*cp = '@';	/* put @ back in string */
-		return -1;
-	    }
+        offset = atoi(cp + 1);
+        lp = strchr(cp,':');
+        if (!lp) {
+            LOG(LOG_ERROR,"common::load_image","Corrupt filename - has '@' but no ':' ?(%s)", filename);
+            return -1;
+        }
+        length = atoi(lp + 1);
+        *cp = 0;
+        for (i=0; i<MAX_FACE_SETS; i++) {
+            if (!strcmp(fd_cache[i].name, filename)) break;
+            if (last==-1 && fd_cache[i].fd == -1) last = i;
+        }
+        /* Didn't find a matching entry yet, so make one */
+        if (i == MAX_FACE_SETS) {
+            if (last == -1) {
+                LOG(LOG_WARNING,"common::load_image","fd_cache filled up?  unable to load matching cache entry");
+                *cp = '@';	/* put @ back in string */
+                return -1;
+            }
 #ifdef WIN32
-	    if ((fd_cache[last].fd = open(filename, O_RDONLY | O_BINARY))==-1) {
+            if ((fd_cache[last].fd = open(filename, O_RDONLY | O_BINARY))==-1)
 #else
-	    if ((fd_cache[last].fd = open(filename, O_RDONLY))==-1) {
+            if ((fd_cache[last].fd = open(filename, O_RDONLY))==-1)
 #endif
-		LOG(LOG_WARNING,"common::load_image","unable to load listed cache file %s",filename);
-		*cp = '@';	/* put @ back in string */
-		return -1;
-	    }
-	    strcpy(fd_cache[last].name, filename);
-	    i=last;
-	}
-	lseek(fd_cache[i].fd, offset, SEEK_SET);
+                {
+                    LOG(LOG_WARNING,"common::load_image","unable to load listed cache file %s",filename);
+                    *cp = '@';	/* put @ back in string */
+                    return -1;
+                }
+                strcpy(fd_cache[last].name, filename);
+                i=last;
+        }
+        lseek(fd_cache[i].fd, offset, SEEK_SET);
 #ifdef WIN32
-	*len = read(fd_cache[i].fd, data, length);
+        *len = read(fd_cache[i].fd, data, length);
 #else
-	*len = read(fd_cache[i].fd, data, 65535);
+        *len = read(fd_cache[i].fd, data, 65535);
 #endif
-	*cp = '@';
+        *cp = '@';
     }
     else {
 #ifdef WIN32
-    int length = 0;
-	if ((fd=open(filename, O_RDONLY | O_BINARY))==-1) return -1;
-    length = lseek(fd, 0, SEEK_END);
-    lseek(fd, 0, SEEK_SET);
-    *len=read(fd, data, length);
+        int length = 0;
+        if ((fd=open(filename, O_RDONLY | O_BINARY))==-1) return -1;
+        length = lseek(fd, 0, SEEK_END);
+        lseek(fd, 0, SEEK_SET);
+        *len=read(fd, data, length);
 #else
-	if ((fd=open(filename, O_RDONLY))==-1) return -1;
-	*len=read(fd, data, 65535);
+        if ((fd=open(filename, O_RDONLY))==-1) return -1;
+        *len=read(fd, data, 65535);
 #endif
-	close(fd);
+        close(fd);
     }
 
     face_info.cache_hits++;
@@ -141,12 +142,12 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
 
 #if 0
     /* Shouldn't be needed anymore */
-	*csum=0;
-	for (i=0; i<*len; i++) {
-	    ROTATE_RIGHT(*csum);
-	    *csum += data[i];
-	    *csum &= 0xffffffff;
-	}
+    *csum=0;
+    for (i=0; i<*len; i++) {
+        ROTATE_RIGHT(*csum);
+        *csum += data[i];
+        *csum &= 0xffffffff;
+    }
 #endif
 
 }
@@ -210,11 +211,11 @@ static sint32 image_find_hash(char *str)
 
     newhash = hash;
     do {
-	/* No entry - return immediately */
-	if (image_cache[newhash].image_name == NULL) return -1;
-	if (!strcmp(image_cache[newhash].image_name, str)) return newhash;
-	newhash ++;
-	if (newhash == IMAGE_HASH) newhash=0;
+        /* No entry - return immediately */
+        if (image_cache[newhash].image_name == NULL) return -1;
+        if (!strcmp(image_cache[newhash].image_name, str)) return newhash;
+        newhash ++;
+        if (newhash == IMAGE_HASH) newhash=0;
     } while (newhash != hash);
 
     /* If the hash table is full, this is bad because we won't be able to
@@ -234,20 +235,20 @@ static void image_remove_hash(char *imagename, Cache_Entry *ce)
 
     hash_entry = image_find_hash(imagename);
     if (hash_entry == -1) {
-	LOG(LOG_ERROR,"common::image_remove_hash","Unable to find cache entry for %s, %s", imagename, ce->filename);
-	return;
+        LOG(LOG_ERROR,"common::image_remove_hash","Unable to find cache entry for %s, %s", imagename, ce->filename);
+        return;
     }
     if (image_cache[hash_entry].cache_entry == ce) {
-	image_cache[hash_entry].cache_entry = ce->next;
-	free(ce->filename);
-	free(ce);
-	return;
+        image_cache[hash_entry].cache_entry = ce->next;
+        free(ce->filename);
+        free(ce);
+        return;
     }
     last = image_cache[hash_entry].cache_entry;
     while (last->next && last->next != ce) last=last->next;
     if (!last->next) {
-	LOG(LOG_ERROR,"common::image_rmove_hash","Unable to find cache entry for %s, %s", imagename, ce->filename);
-	return;
+        LOG(LOG_ERROR,"common::image_rmove_hash","Unable to find cache entry for %s, %s", imagename, ce->filename);
+        return;
     }
     last->next = ce->next;
     free(ce->filename);
@@ -268,10 +269,10 @@ static Cache_Entry *image_find_cache_entry(char *imagename, uint32 checksum, int
     if (hash_entry == -1) return NULL;
     entry = image_cache[hash_entry].cache_entry;
     if (has_sum) {
-	while (entry) {
-	    if (entry->checksum == checksum) break;
-	    entry = entry->next;
-	}
+        while (entry) {
+            if (entry->checksum == checksum) break;
+            entry = entry->next;
+        }
     }
     return entry;   /* This could be NULL */
 }
@@ -286,17 +287,17 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 check
 
     newhash = hash;
     while (image_cache[newhash].image_name != NULL &&
-      strcmp(image_cache[newhash].image_name, imagename)) {
-	newhash ++;
-	if (newhash == IMAGE_HASH) newhash=0;
-	/* If the hash table is full, can't do anything */
-	if (newhash == hash) {
-	    LOG(LOG_WARNING,"common::image_find_hash","Hash table is full, increase IMAGE_CACHE size");
-	    return NULL;
-	}
+           strcmp(image_cache[newhash].image_name, imagename)) {
+        newhash ++;
+        if (newhash == IMAGE_HASH) newhash=0;
+        /* If the hash table is full, can't do anything */
+        if (newhash == hash) {
+            LOG(LOG_WARNING,"common::image_find_hash","Hash table is full, increase IMAGE_CACHE size");
+            return NULL;
+        }
     }
     if (!image_cache[newhash].image_name) {
-	image_cache[newhash].image_name = strdup(imagename);
+        image_cache[newhash].image_name = strdup(imagename);
     }
 
     /* We insert the new entry at the start of the list of the buckets
@@ -328,9 +329,9 @@ static void image_process_line(char *line, uint32 ispublic)
     if (line[0] == '#') return;		    /* Ignore comments */
 
     if (sscanf(line, "%s %u %s", imagename, &checksum, filename)==3) {
-	image_add_hash(imagename, filename, checksum, ispublic);
+        image_add_hash(imagename, filename, checksum, ispublic);
     } else {
-	LOG(LOG_WARNING,"common::image_process_line","Did not parse line %s properly?", line);
+        LOG(LOG_WARNING,"common::image_process_line","Did not parse line %s properly?", line);
     }
 }
 
@@ -344,35 +345,35 @@ void init_common_cache_data(void)
     int i;
 
     if (!want_config[CONFIG_CACHE])
-	return;
+        return;
 
     for (i = 0; i < MAXPIXMAPNUM; i++)
-	facetoname[i] = NULL;
+        facetoname[i] = NULL;
 
     /* First, make sure that image_cache is nulled out */
     memset(image_cache, 0, IMAGE_HASH * sizeof(struct Image_Cache));
 
     snprintf(bmaps, sizeof(bmaps), "%s/bmaps.client",CF_DATADIR);
     if ((fp=fopen(bmaps,"r"))!=NULL) {
-	while (fgets(inbuf, MAX_BUF-1, fp)!=NULL) {
-	    image_process_line(inbuf, 1);
-	}
-	fclose(fp);
+        while (fgets(inbuf, MAX_BUF-1, fp)!=NULL) {
+            image_process_line(inbuf, 1);
+        }
+        fclose(fp);
     } else {
-	snprintf(inbuf, sizeof(inbuf), "Unable to open %s.  You may wish to download and install the image file to improve performance.\n", bmaps);
-	draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, inbuf);
+        snprintf(inbuf, sizeof(inbuf), "Unable to open %s.  You may wish to download and install the image file to improve performance.\n", bmaps);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, inbuf);
     }
 
     snprintf(bmaps, sizeof(bmaps), "%s/.crossfire/image-cache/bmaps.client", getenv("HOME"));
     if ((fp=fopen(bmaps,"r"))!=NULL) {
-	while (fgets(inbuf, MAX_BUF-1, fp)!=NULL) {
-	    image_process_line(inbuf, 0);
-	}
-	fclose(fp);
+        while (fgets(inbuf, MAX_BUF-1, fp)!=NULL) {
+            image_process_line(inbuf, 0);
+        }
+        fclose(fp);
     } /* User may not have a cache, so no error if not found */
     for (i=0; i<MAX_FACE_SETS; i++) {
-	fd_cache[i].fd = -1;
-	fd_cache[i].name[0] = '\0';
+        fd_cache[i].fd = -1;
+        fd_cache[i].name[0] = '\0';
     }
 }
 
@@ -416,8 +417,9 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
 
 #if 0
     fprintf(stderr,"finish_face_cmd, pnum=%d, checksum=%d, face=%s\n",
-	    pnum, checksum, face);
+            pnum, checksum, face);
 #endif
+
     /* In the case of gfx, we don't care about checksum.  For public and
      * private areas, if we care about checksum, and the image doesn't match,
      * we go onto the next step.  If nothing found, we request it
@@ -425,48 +427,49 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
      */
     snprintf(filename, sizeof(filename), "%s/.crossfire/gfx/%s.png", getenv("HOME"), face);
     if (load_image(filename, data, &len, &newsum)==-1) {
-	ce=image_find_cache_entry(face, checksum, has_sum);
-	if (!ce) {
-	    /* Not in our cache, so request it from the server */
-		requestface(pnum, face);
-		return;
-	}
-	else if (ce->image_data) {
-	    /* If this has image_data, then it has already been rendered */
-	    if (!associate_cache_entry(ce, pnum)) return;
-	}
-	if (ce->ispublic)
-	    snprintf(filename, sizeof(filename), "%s/%s",
-		    CF_DATADIR, ce->filename);
-	else
-	    snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%s",
-		    getenv("HOME"), ce->filename);
-	if (load_image(filename, data, &len, &newsum)==-1) {
-	    LOG(LOG_WARNING,"common::finish_face_cmd","file %s listed in cache file, but unable to load", filename);
-	    requestface(pnum, face);
-	    return;
-	}
+
+        ce=image_find_cache_entry(face, checksum, has_sum);
+        if (!ce) {
+            /* Not in our cache, so request it from the server */
+            requestface(pnum, face);
+            return;
+        }
+        else if (ce->image_data) {
+            /* If this has image_data, then it has already been rendered */
+            if (!associate_cache_entry(ce, pnum)) return;
+        }
+        if (ce->ispublic)
+            snprintf(filename, sizeof(filename), "%s/%s",
+                     CF_DATADIR, ce->filename);
+        else
+            snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%s",
+                     getenv("HOME"), ce->filename);
+        if (load_image(filename, data, &len, &newsum)==-1) {
+            LOG(LOG_WARNING,"common::finish_face_cmd","file %s listed in cache file, but unable to load", filename);
+            requestface(pnum, face);
+            return;
+        }
     }
 
     /* If we got here, we found an image and the checksum is OK. */
 
     if (!(png_tmp = png_to_data(data, len, &nx, &ny))) {
-	/* If the data is bad, remove it if it is in the players private cache */
-	LOG(LOG_WARNING,"common::finish_face_cmd","Got error on png_to_data, image=%s",face);
-	if (ce) {
-	    if (!ce->ispublic) unlink(filename);
-	    image_remove_hash(face,ce);
-	}
+        /* If the data is bad, remove it if it is in the players private cache */
+        LOG(LOG_WARNING,"common::finish_face_cmd","Got error on png_to_data, image=%s",face);
+        if (ce) {
+            if (!ce->ispublic) unlink(filename);
+            image_remove_hash(face,ce);
+        }
 
-	requestface(pnum, face);
+        requestface(pnum, face);
     }
 
     /* create_and_rescale_image_from data is an external reference to a piece in
      * the gui section of the code.
      */
     if (create_and_rescale_image_from_data(ce, pnum, png_tmp,nx, ny)) {
-	LOG(LOG_WARNING,"common::finish_face_cmd","Got error on create_and_rescale_image_from_data, file=%s",filename);
-	requestface(pnum, face);
+        LOG(LOG_WARNING,"common::finish_face_cmd","Got error on create_and_rescale_image_from_data, file=%s",filename);
+        requestface(pnum, face);
     }
     free(png_tmp);
 }
@@ -483,8 +486,8 @@ void reset_image_cache_data(void)
     int i;
 
     if (want_config[CONFIG_CACHE]) for (i=1; i<MAXPIXMAPNUM; i++) {
-	free(facetoname[i]);
-	facetoname[i]=NULL;
+        free(facetoname[i]);
+        facetoname[i]=NULL;
     }
 }
 
@@ -505,8 +508,8 @@ void Face2Cmd(uint8 *data,  int len)
      * structures may not be initialized.
      */
     if (!use_config[CONFIG_CACHE]) {
-	LOG(LOG_WARNING,"common::Face2Cmd","Received a 'face' command when we are not caching");
-	return;
+        LOG(LOG_WARNING,"common::Face2Cmd","Received a 'face' command when we are not caching");
+        return;
     }
     pnum = GetShort_String(data);
     setnum = data[2];
@@ -529,9 +532,9 @@ void Image2Cmd(uint8 *data,  int len)
     setnum = data[4];
     plen = GetInt_String(data+5);
     if (len<9 || (len-9)!=plen) {
-	LOG(LOG_WARNING,"common::Image2Cmd","Lengths don't compare (%d,%d)",
-		(len-9),plen);
-	return;
+        LOG(LOG_WARNING,"common::Image2Cmd","Lengths don't compare (%d,%d)",
+            (len-9),plen);
+        return;
     }
     display_newpng(pnum,data+9,plen, setnum);
 }
@@ -549,100 +552,101 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
     Cache_Entry *ce=NULL;
 
     if (use_config[CONFIG_CACHE]) {
-	if (facetoname[face]==NULL) {
-	    LOG(LOG_WARNING,"common::display_newpng","Caching images, but name for %ld not set", face);
-	}
-	/* Make necessary leading directories */
-	snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache",getenv("HOME"));
-	if (access(filename, R_OK | W_OK | X_OK)== -1)
+        if (facetoname[face]==NULL) {
+            LOG(LOG_WARNING,"common::display_newpng","Caching images, but name for %ld not set", face);
+        }
+        /* Make necessary leading directories */
+        snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache",getenv("HOME"));
+        if (access(filename, R_OK | W_OK | X_OK)== -1)
 #ifdef WIN32
-	    mkdir(filename);
+            mkdir(filename);
 #else
-	    mkdir(filename, 0755);
+            mkdir(filename, 0755);
 #endif
 
-	snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%c%c", getenv("HOME"),
-		 facetoname[face][0], facetoname[face][1]);
-	if (access(filename, R_OK | W_OK | X_OK)== -1)
+        snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%c%c", getenv("HOME"),
+                 facetoname[face][0], facetoname[face][1]);
+        if (access(filename, R_OK | W_OK | X_OK)== -1)
 #ifdef WIN32
-	    mkdir(filename);
+            mkdir(filename);
 #else
-	    mkdir(filename,0755);
+            mkdir(filename,0755);
 #endif
 
-	/* If setnum is valid, and we have faceset information for it,
-	 * put that prefix in.  This will make it easier later on to
-	 * allow the client to switch image sets on the fly, as it can
-	 * determine what set the image belongs to.
-	 * We also append the number to it - there could be several versions
-	 * of 'face.base.111.x' if different servers have different image
-	 * values.
-	 */
-	if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix)
-	    snprintf(basename, sizeof(basename),"%s.%s", facetoname[face], face_info.facesets[setnum].prefix);
-	else
-	    strcpy(basename, facetoname[face]);
+        /* If setnum is valid, and we have faceset information for it,
+         * put that prefix in.  This will make it easier later on to
+         * allow the client to switch image sets on the fly, as it can
+         * determine what set the image belongs to.
+         * We also append the number to it - there could be several versions
+         * of 'face.base.111.x' if different servers have different image
+         * values.
+         */
+        if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix)
+            snprintf(basename, sizeof(basename),"%s.%s", facetoname[face], face_info.facesets[setnum].prefix);
+        else
+            strcpy(basename, facetoname[face]);
 
-	/* Decrease it by one since it will immediately get increased
-	 * in the loop below.
-	 */
-	setnum--;
-	do {
-	    setnum++;
-	    snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%c%c/%s.%d",
-		    getenv("HOME"), facetoname[face][0],
-		    facetoname[face][1], basename, setnum);
-	} while (access(filename, F_OK)==-0);
+        /* Decrease it by one since it will immediately get increased
+         * in the loop below.
+         */
+        setnum--;
+        do {
+            setnum++;
+            snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%c%c/%s.%d",
+                     getenv("HOME"), facetoname[face][0],
+                     facetoname[face][1], basename, setnum);
+        } while (access(filename, F_OK)==-0);
 
 #ifdef WIN32
-	if ((tmpfile = fopen(filename,"wb"))==NULL) {
+        if ((tmpfile = fopen(filename,"wb"))==NULL) 
 #else
-	if ((tmpfile = fopen(filename,"w"))==NULL) {
+        if ((tmpfile = fopen(filename,"w"))==NULL) 
 #endif
-	    LOG(LOG_WARNING,"common::display_newpng","Can not open %s for writing", filename);
-	}
-	else {
-	    /* found a file we can write to */
+            {
+                LOG(LOG_WARNING,"common::display_newpng","Can not open %s for writing", filename);
+            }
+        else {
+            /* found a file we can write to */
 
-	    fwrite(buf, buflen, 1, tmpfile);
-	    fclose(tmpfile);
-	    csum=0;
-	    for (i=0; (int)i<buflen; i++) {
-		ROTATE_RIGHT(csum);
-		csum += buf[i];
-		csum &= 0xffffffff;
-	    }
-	    snprintf(filename, sizeof(filename), "%c%c/%s.%d", facetoname[face][0], facetoname[face][1],
-		    basename, setnum);
-	    ce = image_add_hash(facetoname[face], filename,  csum, 0);
+            fwrite(buf, buflen, 1, tmpfile);
+            fclose(tmpfile);
+            csum=0;
+            for (i=0; (int)i<buflen; i++) {
+                ROTATE_RIGHT(csum);
+                csum += buf[i];
+                csum &= 0xffffffff;
+            }
+            snprintf(filename, sizeof(filename), "%c%c/%s.%d", facetoname[face][0], facetoname[face][1],
+                     basename, setnum);
+            ce = image_add_hash(facetoname[face], filename,  csum, 0);
 
-	    /* It may very well be more efficient to try to store these up
-	     * and then write them as a bunch instead of constantly opening the
-	     * file for appending.  OTOH, hopefully people will be using the
-	     * built image archives, so only a few faces actually need to get
-	     * downloaded.
-	     */
-	    snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/bmaps.client", getenv("HOME"));
-	    if ((tmpfile=fopen(filename, "a"))==NULL) {
-		LOG(LOG_WARNING,"common::display_newpng","Can not open %s for appending", filename);
-	    }
-	    else {
-		fprintf(tmpfile, "%s %u %c%c/%s.%d\n",
-			facetoname[face], csum, facetoname[face][0],
-			facetoname[face][1], basename, setnum);
-		fclose(tmpfile);
-	    }
-	}
+            /* It may very well be more efficient to try to store these up
+             * and then write them as a bunch instead of constantly opening the
+             * file for appending.  OTOH, hopefully people will be using the
+             * built image archives, so only a few faces actually need to get
+             * downloaded.
+             */
+            snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/bmaps.client", getenv("HOME"));
+            if ((tmpfile=fopen(filename, "a"))==NULL) {
+                LOG(LOG_WARNING,"common::display_newpng","Can not open %s for appending", filename);
+            }
+            else {
+                fprintf(tmpfile, "%s %u %c%c/%s.%d\n",
+                        facetoname[face], csum, facetoname[face][0],
+                        facetoname[face][1], basename, setnum);
+                fclose(tmpfile);
+            }
+        }
     }
 
     pngtmp = png_to_data(buf, buflen, &width, &height);
     if(create_and_rescale_image_from_data(ce, face, pngtmp, width, height)) {
-	LOG(LOG_WARNING, "common::display_newpng", "create_and_rescale_image_from_data failed for face %ld", face);
+        LOG(LOG_WARNING, "common::display_newpng", "create_and_rescale_image_from_data failed for face %ld", face);
     }
 
     if (use_config[CONFIG_CACHE]) {
-	free(facetoname[face]);
-	facetoname[face]=NULL;
+        free(facetoname[face]);
+        facetoname[face]=NULL;
     }
     free(pngtmp);
 }
@@ -677,32 +681,32 @@ void get_image_info(uint8 *data, int len)
     lp = cp+1;
     cp = strchr(lp, '\n');
     while (cp && (cp - lp) <= len) {
-	*cp++ = '\0';
+        *cp++ = '\0';
 
-	/* The code below is pretty much the same as the code from the server
-	 * which loads the original faceset file.
-	 */
+        /* The code below is pretty much the same as the code from the server
+         * which loads the original faceset file.
+         */
         if (!(cps[0] = strtok(lp, ":"))) badline=1;
         for (i=1; i<7; i++) {
             if (!(cps[i] = strtok(NULL, ":"))) badline=1;
-	}
+        }
         if (badline) {
             LOG(LOG_WARNING,"common::get_image_info","bad data, ignoring line:/%s/", lp);
-	} else {
+        } else {
             onset = atoi(cps[0]);
             if (onset >=MAX_FACE_SETS) {
-		LOG(LOG_WARNING,"common::get_image_info","setnum is too high: %d > %d",
+                LOG(LOG_WARNING,"common::get_image_info","setnum is too high: %d > %d",
                     onset, MAX_FACE_SETS);
-	    }
+            }
             face_info.facesets[onset].prefix = strdup_local(cps[1]);
             face_info.facesets[onset].fullname = strdup_local(cps[2]);
             face_info.facesets[onset].fallback = atoi(cps[3]);
             face_info.facesets[onset].size = strdup_local(cps[4]);
             face_info.facesets[onset].extension = strdup_local(cps[5]);
             face_info.facesets[onset].comment = strdup_local(cps[6]);
-	}
-	lp = cp;
-	cp = strchr(lp, '\n');
+        }
+        lp = cp;
+        cp = strchr(lp, '\n');
     }
     face_info.have_faceset_info = 1;
     /* if the user has requested a specific face set and that set
@@ -710,19 +714,19 @@ void get_image_info(uint8 *data, int len)
      * relevent setup command.
      */
     if (face_info.want_faceset && atoi(face_info.want_faceset)==0) {
-	for (onset=0; onset<MAX_FACE_SETS; onset++) {
-	    if (face_info.facesets[onset].prefix &&
-		!strcasecmp(face_info.facesets[onset].prefix, face_info.want_faceset)) break;
-	    if (face_info.facesets[onset].fullname &&
-		!strcasecmp(face_info.facesets[onset].fullname, face_info.want_faceset)) break;
-	}
-	if (onset < MAX_FACE_SETS) { /* We found a match */
-	    face_info.faceset = onset;
-	    cs_print_string(csocket.fd, "setup faceset %d", onset);
-	} else {
-	    snprintf(buf, sizeof(buf), "Unable to find match for faceset %s on the server", face_info.want_faceset);
-	    draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
-	}
+        for (onset=0; onset<MAX_FACE_SETS; onset++) {
+            if (face_info.facesets[onset].prefix &&
+                !strcasecmp(face_info.facesets[onset].prefix, face_info.want_faceset)) break;
+            if (face_info.facesets[onset].fullname &&
+                !strcasecmp(face_info.facesets[onset].fullname, face_info.want_faceset)) break;
+        }
+        if (onset < MAX_FACE_SETS) { /* We found a match */
+            face_info.faceset = onset;
+            cs_print_string(csocket.fd, "setup faceset %d", onset);
+        } else {
+            snprintf(buf, sizeof(buf), "Unable to find match for faceset %s on the server", face_info.want_faceset);
+            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
+        }
     }
 
 }
@@ -766,22 +770,22 @@ void get_image_sums(char *data, int len)
      */
     while (*cp==' ') cp++;
     while ((cp - data) < len) {
-	imagenum = GetShort_String((uint8*)cp); cp += 2;
-	checksum = GetInt_String((uint8*)cp); cp += 4;
-	faceset = *cp; cp++;
-	slen = *cp; cp++;
-	/* Note that as is, this can break horribly if the client is missing a large number
-	 * of images - that is because it will request a whole bunch which will overflow
-	 * the servers output buffer, causing it to close the connection.
-	 * What probably should be done is for the client to just request this checksum
-	 * information in small batches so that even if the client has no local
-	 * images, requesting the entire batch won't overflow the sockets buffer - this
-	 * probably amounts to about 100 images at a time
-	 */
-	finish_face_cmd(imagenum, checksum, 1, (char*)cp, faceset);
-	if (imagenum > stop)
-	    LOG(LOG_WARNING,"common::get_image_sums","Received an image beyond our range? %d > %d", imagenum, stop);
-	cp += slen;
+        imagenum = GetShort_String((uint8*)cp); cp += 2;
+        checksum = GetInt_String((uint8*)cp); cp += 4;
+        faceset = *cp; cp++;
+        slen = *cp; cp++;
+        /* Note that as is, this can break horribly if the client is missing a large number
+         * of images - that is because it will request a whole bunch which will overflow
+         * the servers output buffer, causing it to close the connection.
+         * What probably should be done is for the client to just request this checksum
+         * information in small batches so that even if the client has no local
+         * images, requesting the entire batch won't overflow the sockets buffer - this
+         * probably amounts to about 100 images at a time
+         */
+        finish_face_cmd(imagenum, checksum, 1, (char*)cp, faceset);
+        if (imagenum > stop)
+            LOG(LOG_WARNING,"common::get_image_sums","Received an image beyond our range? %d > %d", imagenum, stop);
+        cp += slen;
     }
 }
 
