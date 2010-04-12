@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_image_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2008,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,6 +74,9 @@ struct {
 PixmapInfo *pixmaps[MAXPIXMAPNUM];
 
 int last_face_num=0;
+
+/* Do we have new images to display? */
+int have_new_image=0;
 
 /*
  * this is used to rescale big images that will be drawn in the inventory/look
@@ -408,6 +411,9 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
         ce->image_data = pi;
     }
     pixmaps[pixmap_num] = pi;
+    if (use_config[CONFIG_CACHE])
+        have_new_image++;
+
     return 0;
 }
 

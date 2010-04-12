@@ -6,7 +6,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2008,2010 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,3 +57,4 @@ typedef struct PixmapInfo {
 } PixmapInfo;
 
 extern PixmapInfo *pixmaps[MAXPIXMAPNUM];
+extern int have_new_image;

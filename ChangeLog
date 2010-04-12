@@ -2,6 +2,13 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Fix for bug 1845694 - improper inventory/map redraws in cache mode.
+gtk-v2/src/image.c: Add a variable to track if we have gotten new images.
+gtk-v2/src/image.h: Add declaration for above variable.
+gtk-v2/src/main.c: If we have new images, force full map and inventory
+    redraws in main loop.
+MSW 2010-04-11
+
 gtk-v2/src/account.c: Clear new account names/status when activating
     window.  Otherwise, odd to have info filled in from account
     created on previous server.

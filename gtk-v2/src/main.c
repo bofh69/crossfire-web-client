@@ -141,7 +141,24 @@ void client_tick(uint32 tick)
     info_buffer_tick();                 /* Maintain the info output buffers */
     inventory_tick();
     mapdata_animation();
-    draw_map(0);
+
+    /* if we have new images to display, we need to 
+     * do a complete redraw periodically - to keep performance
+     * up, we don't want to do it every tick, but every 5 (about
+     * half a second) is still pretty fast but should also
+     * keep reasonable performance.
+     */
+    if (have_new_image && !(tick % 5)) {
+        if (cpl.container)
+            cpl.container->inv_updated=1;
+        cpl.ob->inv_updated=1;
+
+        have_new_image=0;
+        draw_map(1);
+        draw_lists();
+    } else {
+        draw_map(0);
+    }
 }
 
 /**
