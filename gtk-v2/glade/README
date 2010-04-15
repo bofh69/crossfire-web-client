@@ -72,6 +72,7 @@ Notes about designing .glade files for the libglade version of the GTK2 client
      keybinding_window
      config_window
      spell_window
+     skill_window
      about_window
 
    Reference:

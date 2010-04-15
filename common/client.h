@@ -447,6 +447,14 @@ extern int meta_port;
 extern int metaserver_on, metaserver2_on, serverloginmethod, wantloginmethod;
 extern uint32	tick;
 
+/* This is used to hold the names that correspond to skill and resistance numbers */
+typedef struct {
+    const char *name;
+    int     value;
+} NameMapping;
+
+extern NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
+
 extern uint64	*exp_table;
 extern uint16	exp_table_max;
 

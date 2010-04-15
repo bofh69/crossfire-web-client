@@ -151,6 +151,10 @@ void enable_menu_items(int enable)
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_spells_activate), NULL);
 
+    widget = glade_xml_get_widget(xml_tree, "skills");
+    g_signal_connect ((gpointer) widget, "activate",
+        G_CALLBACK (on_skills_activate), NULL);
+
     widget = glade_xml_get_widget(xml_tree, "do_not_pickup");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_dont_pickup_activate), NULL);

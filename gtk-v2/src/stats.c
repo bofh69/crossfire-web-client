@@ -36,7 +36,6 @@ const char * const rcsid_gtk2_stats_c =
 #include <glade/glade.h>
 
 #include "client.h"
-
 #include "main.h"
 
 #define STAT_BAR_HP     0
@@ -113,19 +112,6 @@ typedef struct {
 } StatWindow;
 
 static StatWindow statwindow;
-
-/* The basic idea of this structure is there are some lists of names we get
- * from the server (like say skill names) - internally, these are all referred
- * to number, and the numbers are not in any order.  The idea here is we can
- * store away the names, and then can display the items in the window in nice
- * alphabetical order instead of the random order they normally show up in.
- */
-typedef struct {
-    const char *name;
-    int     value;
-} NameMapping;
-
-NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
 
 int need_mapping_update=1;
 

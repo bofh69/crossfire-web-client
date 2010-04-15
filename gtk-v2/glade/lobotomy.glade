@@ -109,6 +109,14 @@
                         <signal name="activate" handler="on_spells_activate"/>
                       </widget>
                     </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="skills">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Skills</property>
+                        <property name="use_underline">True</property>
+			<signal name="activate" handler="on_skills_activate"/>
+                      </widget>
+                    </child>
                   </widget>
                 </child>
               </widget>

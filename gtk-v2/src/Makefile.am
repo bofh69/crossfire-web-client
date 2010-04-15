@@ -46,6 +46,7 @@ PROTO_SOURCES = \
 	pickup.c \
 	png.c \
 	sdl.c \
+	skills.c \
 	sound.c \
 	spells.c \
 	stats.c

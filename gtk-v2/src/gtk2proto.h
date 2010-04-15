@@ -198,6 +198,13 @@ extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
 extern void drawquarterlightmap_sdl(int tl, int tr, int bl, int br, int width, int height, int startx, int starty, int endx, int endy, int destx, int desty);
 extern void sdl_gen_map(int redraw);
 extern int sdl_mapscroll(int dx, int dy);
+/* skills.c */
+extern void update_skill_information(void);
+extern void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void on_skill_treeview_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
+extern void on_skill_ready_clicked(GtkButton *button, gpointer user_data);
+extern void on_skill_use_clicked(GtkButton *button, gpointer user_data);
+extern void on_skill_close_clicked(GtkButton *button, gpointer user_data);
 /* sound.c */
 extern int init_sounds(void);
 extern void SoundCmd(unsigned char *data, int len);

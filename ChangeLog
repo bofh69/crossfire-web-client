@@ -2,6 +2,16 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Add a skill window for the gtk-v2 client
+gtk-v2/src/skills.c: file added
+gtk-v2/src/stats.c, gtk-v2/src/gtk2proto.h
+gtk-v2/src/Makefile.am
+gtk-v2/src/menubar.c - add menu entry callback
+common/client.h
+gtk-v2/glade/dialogs.glade - new window
+gtk-v2/glade/*.glade - update layouts to include new menu entry
+Brendan Lally 2010-04-15
+
 Fix for bug 1845694 - improper inventory/map redraws in cache mode.
 gtk-v2/src/image.c: Add a variable to track if we have gotten new images.
 gtk-v2/src/image.h: Add declaration for above variable.
