@@ -2,6 +2,9 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/client.c: File that was missed in the previous commit
+Brendan Lally 2010-04-15
+
 Add a skill window for the gtk-v2 client
 gtk-v2/src/skills.c: file added
 gtk-v2/src/stats.c, gtk-v2/src/gtk2proto.h

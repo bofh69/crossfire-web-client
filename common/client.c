@@ -73,6 +73,8 @@ uint32	tick=0;
 uint16	exp_table_max=0;
 uint64	*exp_table=NULL;
 
+NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
+
 Client_Player cpl;
 ClientSocket csocket;
 
