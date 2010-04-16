@@ -2,6 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/glade/dialogs.glade
+  Dress up the dialogs related to the account code.  A few items are moved to
+  make better use of space, but this mostly adds containers, attributes,
+  padding, etc. that improves the dialog aesthetics.  Orientation properties
+  are removed to reduce libglade spew when running on older versions.  They
+  aren't needed anyway.  The other major change is that now all widgets have
+  logical names.
+Kevin Bulgrien 2010-04-15
+
 common/client.c: File that was missed in the previous commit
 Brendan Lally 2010-04-15
 

@@ -1716,51 +1716,250 @@ faceset has a different graphical style.</property>
     <property name="window_position">center-on-parent</property>
     <property name="type_hint">dialog</property>
     <child>
-      <widget class="GtkVBox" id="vbox1">
+      <widget class="GtkViewport" id="login_viewport">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
+        <property name="resize_mode">queue</property>
         <child>
-          <widget class="GtkLabel" id="label_account_login">
+          <widget class="GtkAlignment" id="login_alignment">
             <property name="visible">True</property>
-            <property name="xalign">0.56000000238418579</property>
-            <property name="label" translatable="yes">Welcome to Crossfire
+            <property name="xalign">0</property>
+            <property name="top_padding">5</property>
+            <property name="bottom_padding">5</property>
+            <property name="left_padding">5</property>
+            <property name="right_padding">5</property>
+            <child>
+              <widget class="GtkVBox" id="login_vbox">
+                <property name="visible">True</property>
+                <child>
+                  <widget class="GtkLabel" id="label_account_login">
+                    <property name="visible">True</property>
+                    <property name="xalign">0</property>
+                    <property name="xpad">5</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Welcome to Crossfire&lt;/b&gt;
 
-Please enter your account name and password.
-If you do not have an account, create one now.
-If you have characters on this server, you will be able to attach them to
-this a newly created account.
+Please enter your account name and password.  If you do not have an account, create one now.
+If you already have characters on this server, you may attach them to a the new account.
 </property>
-          </widget>
-          <packing>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox2">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkVBox" id="vbox3">
-                <property name="visible">True</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <widget class="GtkLabel" id="label_account_name">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">Account Name</property>
+                    <property name="use_markup">True</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
+                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkEntry" id="entry_account_name">
+                  <widget class="GtkHBox" id="login_hbox">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="max_length">40</property>
-                    <property name="invisible_char">&#x25CF;</property>
-                    <property name="truncate_multiline">True</property>
-                    <property name="shadow_type">none</property>
-                    <signal name="activate" handler="activate_entry_account_name"/>
+                    <property name="spacing">5</property>
+                    <child>
+                      <widget class="GtkVBox" id="login_account_news_vbox">
+                        <property name="visible">True</property>
+                        <child>
+                          <widget class="GtkFrame" id="login_account_frame">
+                            <property name="visible">True</property>
+                            <property name="label_xalign">0</property>
+                            <property name="shadow_type">in</property>
+                            <child>
+                              <widget class="GtkAlignment" id="login_account_alignment">
+                                <property name="visible">True</property>
+                                <property name="left_padding">5</property>
+                                <property name="right_padding">5</property>
+                                <child>
+                                  <widget class="GtkVBox" id="login_account_vbox">
+                                    <property name="visible">True</property>
+                                    <property name="spacing">5</property>
+                                    <child>
+                                      <widget class="GtkLabel" id="label_account_name">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Name</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkEntry" id="entry_account_name">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="max_length">40</property>
+                                        <property name="invisible_char">&#x25CF;</property>
+                                        <property name="truncate_multiline">True</property>
+                                        <signal name="activate" handler="activate_entry_account_name"/>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="label_account_password">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Password</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">2</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkEntry" id="entry_account_password">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="visibility">False</property>
+                                        <property name="invisible_char">&#x25CF;</property>
+                                        <property name="invisible_char_set">True</property>
+                                        <signal name="activate" handler="activate_account_password"/>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">3</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="label_account_login_status">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="ypad">5</property>
+                                        <property name="wrap">True</property>
+                                        <property name="wrap_mode">word-char</property>
+                                        <property name="width_chars">40</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">4</property>
+                                      </packing>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="login_account_frame_label">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">&lt;b&gt;Account&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </widget>
+                              <packing>
+                                <property name="type">label_item</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkFrame" id="login_news_frame">
+                            <property name="visible">True</property>
+                            <property name="label_xalign">0</property>
+                            <property name="shadow_type">in</property>
+                            <child>
+                              <widget class="GtkAlignment" id="login_news_alignment">
+                                <property name="visible">True</property>
+                                <property name="bottom_padding">5</property>
+                                <property name="left_padding">5</property>
+                                <property name="right_padding">5</property>
+                                <child>
+                                  <widget class="GtkScrolledWindow" id="login_new_scrolledwindow">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="hscrollbar_policy">never</property>
+                                    <property name="vscrollbar_policy">automatic</property>
+                                    <property name="shadow_type">in</property>
+                                    <child>
+                                      <widget class="GtkTextView" id="textview_news">
+                                        <property name="width_request">350</property>
+                                        <property name="height_request">100</property>
+                                        <property name="visible">True</property>
+                                        <property name="sensitive">False</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="editable">False</property>
+                                        <property name="wrap_mode">word</property>
+                                        <property name="left_margin">5</property>
+                                        <property name="right_margin">5</property>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="login_news_frame_label">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">&lt;b&gt;News&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </widget>
+                              <packing>
+                                <property name="type">label_item</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkFrame" id="login_motd_frame">
+                        <property name="visible">True</property>
+                        <property name="label_xalign">0</property>
+                        <property name="shadow_type">in</property>
+                        <child>
+                          <widget class="GtkAlignment" id="login_motd_alignment">
+                            <property name="visible">True</property>
+                            <property name="bottom_padding">5</property>
+                            <property name="left_padding">5</property>
+                            <property name="right_padding">5</property>
+                            <child>
+                              <widget class="GtkScrolledWindow" id="login_motd_scrolledwindow">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="hscrollbar_policy">never</property>
+                                <property name="vscrollbar_policy">automatic</property>
+                                <property name="shadow_type">in</property>
+                                <child>
+                                  <widget class="GtkTextView" id="textview_motd">
+                                    <property name="width_request">350</property>
+                                    <property name="height_request">99</property>
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="editable">False</property>
+                                    <property name="wrap_mode">word</property>
+                                    <property name="left_margin">5</property>
+                                    <property name="right_margin">5</property>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                        <child>
+                          <widget class="GtkLabel" id="login_motd_frame_label">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">&lt;b&gt;Message of the Day&lt;/b&gt;</property>
+                            <property name="use_markup">True</property>
+                          </widget>
+                          <packing>
+                            <property name="type">label_item</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -1768,185 +1967,89 @@ this a newly created account.
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkLabel" id="label_account_password">
+                  <widget class="GtkHSeparator" id="login_hseparator">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">Account Password</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
+                    <property name="padding">5</property>
                     <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkEntry" id="entry_account_password">
+                  <widget class="GtkHButtonBox" id="login_hbuttonbox">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="visibility">False</property>
-                    <property name="invisible_char">&#x25CF;</property>
-                    <property name="shadow_type">none</property>
-                    <property name="invisible_char_set">True</property>
-                    <signal name="activate" handler="activate_account_password"/>
+                    <property name="spacing">5</property>
+                    <property name="layout_style">spread</property>
+                    <child>
+                      <widget class="GtkButton" id="button_login">
+                        <property name="label" translatable="yes">Login</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_button_login"/>
+                        <signal name="activate" handler="activate_button_login"/>
+                      </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="button_create_account">
+                        <property name="label" translatable="yes">Create Account</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="yalign">0.56000000238418579</property>
+                        <signal name="pressed" handler="activate_button_create_login"/>
+                        <signal name="activate" handler="activate_button_create_login"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="button_go_metaserver">
+                        <property name="label" translatable="yes">Return to
+Metaserver Selection</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_button_go_metaserver"/>
+                        <signal name="activate" handler="activate_button_go_metaserver"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="button_exit_client">
+                        <property name="label" translatable="yes">Exit Client</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_button_exit_client"/>
+                        <signal name="activate" handler="activate_button_exit_client"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
                     <property name="position">3</property>
                   </packing>
                 </child>
-                <child>
-                  <widget class="GtkLabel" id="label_account_login_status">
-                    <property name="visible">True</property>
-                    <property name="wrap">True</property>
-                    <property name="wrap_mode">word-char</property>
-                    <property name="width_chars">40</property>
-                  </widget>
-                  <packing>
-                    <property name="position">4</property>
-                  </packing>
-                </child>
               </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="padding">13</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkVBox" id="vbox2">
-                <property name="visible">True</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <widget class="GtkLabel" id="label_motd">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">Message of the Day</property>
-                  </widget>
-                  <packing>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkScrolledWindow" id="scrolledwindow3">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">never</property>
-                    <property name="vscrollbar_policy">automatic</property>
-                    <child>
-                      <widget class="GtkTextView" id="textview_motd">
-                        <property name="width_request">350</property>
-                        <property name="height_request">99</property>
-                        <property name="visible">True</property>
-                        <property name="sensitive">False</property>
-                        <property name="editable">False</property>
-                        <property name="wrap_mode">word</property>
-                        <property name="right_margin">4</property>
-                        <property name="indent">-3</property>
-                      </widget>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkLabel" id="label_news">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">News</property>
-                  </widget>
-                  <packing>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkScrolledWindow" id="scrolledwindow4">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">never</property>
-                    <property name="vscrollbar_policy">automatic</property>
-                    <child>
-                      <widget class="GtkTextView" id="textview_news">
-                        <property name="width_request">350</property>
-                        <property name="height_request">100</property>
-                        <property name="visible">True</property>
-                        <property name="sensitive">False</property>
-                        <property name="editable">False</property>
-                        <property name="wrap_mode">word</property>
-                      </widget>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="position">3</property>
-                  </packing>
-                </child>
-              </widget>
-              <packing>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
             </child>
           </widget>
-          <packing>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox3">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkButton" id="button_login">
-                <property name="label" translatable="yes">Login</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_button_login"/>
-                <signal name="activate" handler="activate_button_login"/>
-              </widget>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button_create_account">
-                <property name="label" translatable="yes">Create Account</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="yalign">0.56000000238418579</property>
-                <signal name="pressed" handler="activate_button_create_login"/>
-                <signal name="activate" handler="activate_button_create_login"/>
-              </widget>
-              <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button_go_metaserver">
-                <property name="label" translatable="yes">Return to Metaserver Selection</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_button_go_metaserver"/>
-                <signal name="activate" handler="activate_button_go_metaserver"/>
-              </widget>
-              <packing>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button_exit_client">
-                <property name="label" translatable="yes">Exit Client</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_button_exit_client"/>
-                <signal name="activate" handler="activate_button_exit_client"/>
-              </widget>
-              <packing>
-                <property name="position">3</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="position">2</property>
-          </packing>
         </child>
       </widget>
     </child>
@@ -1955,145 +2058,26 @@ this a newly created account.
     <property name="title" translatable="yes">Create Account</property>
     <property name="window_position">center-on-parent</property>
     <child>
-      <widget class="GtkVBox" id="vbox4">
+      <widget class="GtkViewport" id="create_account_viewport">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
+        <property name="resize_mode">queue</property>
         <child>
-          <widget class="GtkLabel" id="label_create_account">
+          <widget class="GtkAlignment" id="create_account_alignment">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Create New Account</property>
-          </widget>
-          <packing>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox12">
-            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="top_padding">5</property>
+            <property name="bottom_padding">5</property>
+            <property name="left_padding">5</property>
+            <property name="right_padding">5</property>
             <child>
-              <widget class="GtkVBox" id="vbox10">
+              <widget class="GtkVBox" id="create_account_vbox">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
-                  <widget class="GtkTable" id="table1">
+                  <widget class="GtkLabel" id="label_create_account">
                     <property name="visible">True</property>
-                    <property name="n_rows">3</property>
-                    <property name="n_columns">2</property>
-                    <child>
-                      <widget class="GtkLabel" id="label_new_account_name">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">New Account Name</property>
-                      </widget>
-                      <packing>
-                        <property name="y_options">GTK_FILL</property>
-                        <property name="y_padding">5</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkLabel" id="label_new_account_password">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Enter Password</property>
-                      </widget>
-                      <packing>
-                        <property name="top_attach">1</property>
-                        <property name="bottom_attach">2</property>
-                        <property name="y_options">GTK_FILL</property>
-                        <property name="y_padding">5</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkLabel" id="label_new_confirm_password">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Confirm Password</property>
-                      </widget>
-                      <packing>
-                        <property name="top_attach">2</property>
-                        <property name="bottom_attach">3</property>
-                        <property name="y_options">GTK_FILL</property>
-                        <property name="y_padding">5</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkEntry" id="entry_new_account_name">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="invisible_char">&#x25CF;</property>
-                        <property name="truncate_multiline">True</property>
-                        <signal name="activate" handler="activate_new_account_name"/>
-                      </widget>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="right_attach">2</property>
-                        <property name="y_options"></property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkEntry" id="entry_new_account_password">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="visibility">False</property>
-                        <property name="invisible_char">&#x25CF;</property>
-                        <property name="invisible_char_set">True</property>
-                        <signal name="activate" handler="activate_new_account_password"/>
-                      </widget>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="right_attach">2</property>
-                        <property name="top_attach">1</property>
-                        <property name="bottom_attach">2</property>
-                        <property name="y_options"></property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkEntry" id="entry_new_confirm_password">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="visibility">False</property>
-                        <property name="invisible_char">&#x25CF;</property>
-                        <signal name="activate" handler="activate_new_confirm_password"/>
-                      </widget>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="right_attach">2</property>
-                        <property name="top_attach">2</property>
-                        <property name="bottom_attach">3</property>
-                        <property name="y_options"></property>
-                      </packing>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="padding">2</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkLabel" id="label_create_account_status">
-                    <property name="visible">True</property>
-                    <property name="yalign">0.47999998927116394</property>
-                    <property name="xpad">4</property>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </widget>
-              <packing>
-                <property name="padding">7</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkVBox" id="vbox9">
-                <property name="width_request">300</property>
-                <property name="height_request">200</property>
-                <property name="visible">True</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <widget class="GtkLabel" id="label_rules_account">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">Rules</property>
+                    <property name="ypad">5</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Create New Account&lt;/b&gt;</property>
+                    <property name="use_markup">True</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -2101,68 +2085,222 @@ this a newly created account.
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkScrolledWindow" id="scrolledwindow2">
+                  <widget class="GtkHBox" id="create_account_hbox">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">never</property>
-                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="spacing">5</property>
                     <child>
-                      <widget class="GtkTextView" id="textview_rules_account">
+                      <widget class="GtkFrame" id="Create_account_frame">
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
-                        <property name="editable">False</property>
-                        <property name="wrap_mode">word</property>
+                        <property name="label_xalign">0</property>
+                        <property name="shadow_type">in</property>
+                        <child>
+                          <widget class="GtkAlignment" id="create_account_table_alignment">
+                            <property name="visible">True</property>
+                            <property name="bottom_padding">5</property>
+                            <property name="left_padding">5</property>
+                            <property name="right_padding">5</property>
+                            <child>
+                              <widget class="GtkVBox" id="create_account_account_vbox">
+                                <property name="visible">True</property>
+                                <property name="spacing">5</property>
+                                <child>
+                                  <widget class="GtkLabel" id="label_new_account_name">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">Name:</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkEntry" id="entry_new_account_name">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="invisible_char">&#x25CF;</property>
+                                    <property name="truncate_multiline">True</property>
+                                    <signal name="activate" handler="activate_new_account_name"/>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_new_account_password">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">Enter Password:</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkEntry" id="entry_new_account_password">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="visibility">False</property>
+                                    <property name="invisible_char">&#x25CF;</property>
+                                    <property name="invisible_char_set">True</property>
+                                    <signal name="activate" handler="activate_new_account_password"/>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_new_confirm_password">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">Confirm Password:</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">4</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkEntry" id="entry_new_confirm_password">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="visibility">False</property>
+                                    <property name="invisible_char">&#x25CF;</property>
+                                    <signal name="activate" handler="activate_new_confirm_password"/>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">5</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_create_account_status">
+                                    <property name="visible">True</property>
+                                    <property name="ypad">5</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">6</property>
+                                  </packing>
+                                </child>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                        <child>
+                          <widget class="GtkLabel" id="create_account_frame_label">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">&lt;b&gt;New Account&lt;/b&gt;</property>
+                            <property name="use_markup">True</property>
+                          </widget>
+                          <packing>
+                            <property name="type">label_item</property>
+                          </packing>
+                        </child>
                       </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkFrame" id="create_account_rules_frame">
+                        <property name="visible">True</property>
+                        <property name="label_xalign">0</property>
+                        <property name="shadow_type">in</property>
+                        <child>
+                          <widget class="GtkAlignment" id="create_account_rules_alignment">
+                            <property name="visible">True</property>
+                            <property name="bottom_padding">5</property>
+                            <property name="left_padding">5</property>
+                            <property name="right_padding">5</property>
+                            <child>
+                              <widget class="GtkScrolledWindow" id="create_account_rules_scrolledwindow">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="hscrollbar_policy">never</property>
+                                <property name="vscrollbar_policy">automatic</property>
+                                <child>
+                                  <widget class="GtkTextView" id="textview_rules_account">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="editable">False</property>
+                                    <property name="wrap_mode">word</property>
+                                    <property name="left_margin">5</property>
+                                    <property name="right_margin">5</property>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                        <child>
+                          <widget class="GtkLabel" id="label_rules_account">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">&lt;b&gt;Rules&lt;/b&gt;</property>
+                            <property name="use_markup">True</property>
+                          </widget>
+                          <packing>
+                            <property name="type">label_item</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </widget>
                   <packing>
+                    <property name="expand">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
+                <child>
+                  <widget class="GtkHSeparator" id="create_account_hseparator">
+                    <property name="visible">True</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="padding">5</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkHButtonBox" id="create_account_hbuttonbox">
+                    <property name="visible">True</property>
+                    <property name="layout_style">spread</property>
+                    <child>
+                      <widget class="GtkButton" id="button_new_create_account">
+                        <property name="label" translatable="yes">Create Account</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_new_create_account"/>
+                        <signal name="activate" handler="activate_new_create_account"/>
+                      </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="button_new_cancel">
+                        <property name="label" translatable="yes">Cancel</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_new_cancel"/>
+                        <signal name="activate" handler="activate_new_cancel"/>
+                      </widget>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
               </widget>
-              <packing>
-                <property name="position">1</property>
-              </packing>
             </child>
           </widget>
-          <packing>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox7">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkButton" id="button_new_create_account">
-                <property name="label" translatable="yes">Create Account</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_new_create_account"/>
-                <signal name="activate" handler="activate_new_create_account"/>
-              </widget>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button_new_cancel">
-                <property name="label" translatable="yes">Cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_new_cancel"/>
-                <signal name="activate" handler="activate_new_cancel"/>
-              </widget>
-              <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">2</property>
-          </packing>
         </child>
       </widget>
     </child>
@@ -2171,61 +2309,24 @@ this a newly created account.
     <property name="title" translatable="yes">Character Selection</property>
     <property name="window_position">center-on-parent</property>
     <child>
-      <widget class="GtkVBox" id="vbox5">
+      <widget class="GtkViewport" id="choose_char_viewport">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
+        <property name="resize_mode">queue</property>
         <child>
-          <widget class="GtkLabel" id="label_choose_character">
+          <widget class="GtkAlignment" id="choose_char_alignment">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Choose Character to Play</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkLabel" id="label_choose_info">
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">Choose character to play or create a new character.  If you already have a character on 
-this server not associated with an account, hit the Add Character button.</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox9">
-            <property name="visible">True</property>
+            <property name="top_padding">5</property>
+            <property name="bottom_padding">5</property>
+            <property name="left_padding">5</property>
+            <property name="right_padding">5</property>
             <child>
-              <widget class="GtkScrolledWindow" id="scrolledwindow5">
+              <widget class="GtkVBox" id="choose_char_vbox">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hscrollbar_policy">automatic</property>
-                <property name="vscrollbar_policy">automatic</property>
                 <child>
-                  <widget class="GtkTreeView" id="treeview_choose_character">
-                    <property name="width_request">500</property>
+                  <widget class="GtkLabel" id="label_choose_character">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                  </widget>
-                </child>
-              </widget>
-              <packing>
-                <property name="padding">5</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkVBox" id="vbox8">
-                <property name="visible">True</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <widget class="GtkLabel" id="label_rules_char">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">Rules</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Choose a Character to Play&lt;/b&gt;</property>
+                    <property name="use_markup">True</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -2233,96 +2334,200 @@ this server not associated with an account, hit the Add Character button.</prope
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkScrolledWindow" id="scrolledwindow1">
+                  <widget class="GtkLabel" id="label_choose_info">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">never</property>
-                    <property name="vscrollbar_policy">automatic</property>
-                    <child>
-                      <widget class="GtkTextView" id="textview_rules_char">
-                        <property name="width_request">300</property>
-                        <property name="height_request">250</property>
-                        <property name="visible">True</property>
-                        <property name="sensitive">False</property>
-                        <property name="editable">False</property>
-                        <property name="wrap_mode">word</property>
-                      </widget>
-                    </child>
+                    <property name="ypad">5</property>
+                    <property name="label" translatable="yes">Choose a character to play or create a new character.  If you already have a character on 
+this server that is not associated with an account, click the Add Character button.</property>
                   </widget>
                   <packing>
+                    <property name="expand">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
+                <child>
+                  <widget class="GtkHBox" id="choose_char_hbox">
+                    <property name="visible">True</property>
+                    <property name="spacing">5</property>
+                    <child>
+                      <widget class="GtkFrame" id="choose_char_frame">
+                        <property name="visible">True</property>
+                        <property name="label_xalign">0</property>
+                        <property name="shadow_type">in</property>
+                        <child>
+                          <widget class="GtkAlignment" id="choose_char_char_alignment">
+                            <property name="visible">True</property>
+                            <property name="bottom_padding">5</property>
+                            <property name="left_padding">5</property>
+                            <property name="right_padding">5</property>
+                            <child>
+                              <widget class="GtkScrolledWindow" id="choose_char_scrolledwindow">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="hscrollbar_policy">automatic</property>
+                                <property name="vscrollbar_policy">automatic</property>
+                                <property name="shadow_type">in</property>
+                                <child>
+                                  <widget class="GtkTreeView" id="treeview_choose_character">
+                                    <property name="width_request">500</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                        <child>
+                          <widget class="GtkLabel" id="choose_char_frame_label">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">&lt;b&gt;Characters&lt;/b&gt;</property>
+                            <property name="use_markup">True</property>
+                          </widget>
+                          <packing>
+                            <property name="type">label_item</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkFrame" id="choose_char_rules_frame">
+                        <property name="visible">True</property>
+                        <property name="label_xalign">0</property>
+                        <property name="shadow_type">in</property>
+                        <child>
+                          <widget class="GtkAlignment" id="chose_char_rules_alignment">
+                            <property name="visible">True</property>
+                            <property name="bottom_padding">5</property>
+                            <property name="left_padding">5</property>
+                            <property name="right_padding">5</property>
+                            <child>
+                              <widget class="GtkScrolledWindow" id="choose_char_rules_scrolledwindow">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="hscrollbar_policy">never</property>
+                                <property name="vscrollbar_policy">automatic</property>
+                                <property name="shadow_type">in</property>
+                                <child>
+                                  <widget class="GtkTextView" id="textview_rules_char">
+                                    <property name="width_request">300</property>
+                                    <property name="height_request">250</property>
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="editable">False</property>
+                                    <property name="wrap_mode">word</property>
+                                    <property name="left_margin">5</property>
+                                    <property name="right_margin">5</property>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                        <child>
+                          <widget class="GtkLabel" id="choose_char_rules_label">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">&lt;b&gt;Rules&lt;/b&gt;</property>
+                            <property name="use_markup">True</property>
+                          </widget>
+                          <packing>
+                            <property name="type">label_item</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkHSeparator" id="choose_char_hseparator">
+                    <property name="visible">True</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="padding">5</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkHButtonBox" id="choose_char_hbuttonbox">
+                    <property name="visible">True</property>
+                    <property name="layout_style">spread</property>
+                    <child>
+                      <widget class="GtkButton" id="button_play_character">
+                        <property name="label" translatable="yes">Play Character</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_play_character"/>
+                        <signal name="activate" handler="activate_play_character"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="button_create_character">
+                        <property name="label" translatable="yes">Create Character</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_create_character"/>
+                        <signal name="activate" handler="activate_create_character"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="button_add_character">
+                        <property name="label" translatable="yes">Add Character</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_add_character"/>
+                        <signal name="activate" handler="activate_add_character"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="button_return_login">
+                        <property name="label" translatable="yes">Return to
+Account Login</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_return_login"/>
+                        <signal name="activate" handler="activate_return_login"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">4</property>
+                  </packing>
+                </child>
               </widget>
-              <packing>
-                <property name="position">1</property>
-              </packing>
             </child>
           </widget>
-          <packing>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox8">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkButton" id="button_play_character">
-                <property name="label" translatable="yes">Play Character</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_play_character"/>
-                <signal name="activate" handler="activate_play_character"/>
-              </widget>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button_create_character">
-                <property name="label" translatable="yes">Create Character</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_create_character"/>
-                <signal name="activate" handler="activate_create_character"/>
-              </widget>
-              <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button_add_character">
-                <property name="label" translatable="yes">Add Character</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_add_character"/>
-                <signal name="activate" handler="activate_add_character"/>
-              </widget>
-              <packing>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button_return_login">
-                <property name="label" translatable="yes">Return to Account Login</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_return_login"/>
-                <signal name="activate" handler="activate_return_login"/>
-              </widget>
-              <packing>
-                <property name="position">3</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">3</property>
-          </packing>
         </child>
       </widget>
     </child>
@@ -2331,139 +2536,216 @@ this server not associated with an account, hit the Add Character button.</prope
     <property name="title" translatable="yes">Add Character to Account</property>
     <property name="window_position">center-on-parent</property>
     <child>
-      <widget class="GtkVBox" id="vbox6">
+      <widget class="GtkViewport" id="add_char_viewport">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
+        <property name="resize_mode">queue</property>
         <child>
-          <widget class="GtkLabel" id="label_add_character">
+          <widget class="GtkAlignment" id="add_char_alignment">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Add Character to Account</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox10">
-            <property name="visible">True</property>
+            <property name="top_padding">5</property>
+            <property name="bottom_padding">5</property>
+            <property name="left_padding">5</property>
+            <property name="right_padding">5</property>
             <child>
-              <widget class="GtkVBox" id="vbox7">
+              <widget class="GtkVBox" id="add_char_vbox">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
-                  <widget class="GtkLabel" id="label_character_name">
+                  <widget class="GtkLabel" id="label_add_character">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">Character Name</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Add Character to Account&lt;/b&gt;</property>
+                    <property name="use_markup">True</property>
                   </widget>
                   <packing>
+                    <property name="expand">False</property>
+                    <property name="padding">5</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkEntry" id="entry_character_name">
+                  <widget class="GtkFrame" id="add_char_frame">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="invisible_char">&#x25CF;</property>
-                    <property name="truncate_multiline">True</property>
-                    <signal name="activate" handler="activate_character_name"/>
+                    <property name="label_xalign">0</property>
+                    <property name="shadow_type">in</property>
+                    <child>
+                      <widget class="GtkAlignment" id="add_char_char_alignment">
+                        <property name="visible">True</property>
+                        <property name="bottom_padding">5</property>
+                        <child>
+                          <widget class="GtkVBox" id="add_char_char_vbox">
+                            <property name="visible">True</property>
+                            <child>
+                              <widget class="GtkHBox" id="add_char_hbox">
+                                <property name="visible">True</property>
+                                <child>
+                                  <widget class="GtkVBox" id="add_char_login_vbox">
+                                    <property name="visible">True</property>
+                                    <property name="spacing">5</property>
+                                    <child>
+                                      <widget class="GtkLabel" id="label_character_name">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">1</property>
+                                        <property name="label" translatable="yes">Name:</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkEntry" id="entry_character_name">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="invisible_char">&#x25CF;</property>
+                                        <property name="truncate_multiline">True</property>
+                                        <signal name="activate" handler="activate_character_name"/>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="label_character_password">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">1</property>
+                                        <property name="label" translatable="yes">Password:</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">2</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkEntry" id="entry_character_password">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="visibility">False</property>
+                                        <property name="invisible_char">&#x25CF;</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">3</property>
+                                      </packing>
+                                    </child>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="padding">5</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label_character_add_help">
+                                    <property name="visible">True</property>
+                                    <property name="xpad">5</property>
+                                    <property name="ypad">5</property>
+                                    <property name="label" translatable="yes">This is where characters are
+added to an account if they
+were created before account
+logins existed.
+
+Enter a character name and
+password to add this account.
+The character must already
+exist on the server.</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="label_add_status">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">
+</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="add_char_frame_label">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">&lt;b&gt;Character&lt;/b&gt;</property>
+                        <property name="use_markup">True</property>
+                      </widget>
+                      <packing>
+                        <property name="type">label_item</property>
+                      </packing>
+                    </child>
                   </widget>
                   <packing>
+                    <property name="expand">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkLabel" id="label_character_password">
+                  <widget class="GtkHSeparator" id="add_char_hseparator">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">Character Password</property>
                   </widget>
                   <packing>
+                    <property name="expand">False</property>
+                    <property name="padding">5</property>
                     <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkEntry" id="entry_character_password">
+                  <widget class="GtkHButtonBox" id="add_char_hbuttonbox">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="visibility">False</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="layout_style">spread</property>
+                    <child>
+                      <widget class="GtkButton" id="button_do_add_character">
+                        <property name="label" translatable="yes">Add Character</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_add_character"/>
+                        <signal name="activate" handler="activate_add_character"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="button_return_character_select">
+                        <property name="label" translatable="yes">Return to
+Character Selection</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="pressed" handler="activate_return_character_select"/>
+                        <signal name="activate" handler="activate_return_character_select"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
                   </widget>
                   <packing>
+                    <property name="expand">False</property>
                     <property name="position">3</property>
                   </packing>
                 </child>
               </widget>
-              <packing>
-                <property name="padding">5</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="label_character_add_help">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Enter the character name and
-password to add this account.
-The character must already
-be on the server.
-This is used to add characters
-predating the account based
-login method.</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">1</property>
-              </packing>
             </child>
           </widget>
-          <packing>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkLabel" id="label_add_status">
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">
-</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox11">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkButton" id="button_do_add_character">
-                <property name="label" translatable="yes">Add Character</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_add_character"/>
-                <signal name="activate" handler="activate_add_character"/>
-              </widget>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button_return_character_select">
-                <property name="label" translatable="yes">Return to Character Selection</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="pressed" handler="activate_return_character_select"/>
-                <signal name="activate" handler="activate_return_character_select"/>
-              </widget>
-              <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">3</property>
-          </packing>
         </child>
       </widget>
     </child>
@@ -2473,85 +2755,145 @@ login method.</property>
     <property name="default_width">440</property>
     <property name="default_height">250</property>
     <child>
-      <widget class="GtkVBox" id="vbox1">
+      <widget class="GtkViewport" id="new_char_viewport">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
+        <property name="resize_mode">queue</property>
+        <property name="shadow_type">out</property>
         <child>
-          <widget class="GtkLabel" id="label1">
+          <widget class="GtkAlignment" id="new_char_alignment">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Create New Character</property>
-          </widget>
-          <packing>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox1">
-            <property name="visible">True</property>
+            <property name="top_padding">5</property>
+            <property name="bottom_padding">5</property>
+            <property name="left_padding">5</property>
+            <property name="right_padding">5</property>
             <child>
-              <widget class="GtkLabel" id="label2">
+              <widget class="GtkVBox" id="new_char_vbox">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Character Name</property>
+                <child>
+                  <widget class="GtkLabel" id="new_char_label">
+                    <property name="visible">True</property>
+                    <property name="ypad">5</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Create New Character&lt;/b&gt;</property>
+                    <property name="use_markup">True</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkFrame" id="new_char_frame">
+                    <property name="visible">True</property>
+                    <property name="label_xalign">0</property>
+                    <property name="shadow_type">in</property>
+                    <child>
+                      <widget class="GtkAlignment" id="new_char_frame_alignment">
+                        <property name="visible">True</property>
+                        <property name="bottom_padding">5</property>
+                        <property name="left_padding">5</property>
+                        <property name="right_padding">5</property>
+                        <child>
+                          <widget class="GtkVBox" id="new_char_frame_vbox">
+                            <property name="visible">True</property>
+                            <property name="spacing">5</property>
+                            <child>
+                              <widget class="GtkLabel" id="new_char_name_label">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="yalign">1</property>
+                                <property name="ypad">5</property>
+                                <property name="label" translatable="yes">Name:</property>
+                              </widget>
+                              <packing>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkEntry" id="entry_new_character_name">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="invisible_char">&#x25CF;</property>
+                              </widget>
+                              <packing>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="label_new_char_status">
+                                <property name="visible">True</property>
+                                <property name="ypad">5</property>
+                              </widget>
+                              <packing>
+                                <property name="position">2</property>
+                              </packing>
+                            </child>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="new_char_frame_label">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">&lt;b&gt;Character&lt;/b&gt;</property>
+                        <property name="use_markup">True</property>
+                      </widget>
+                      <packing>
+                        <property name="type">label_item</property>
+                      </packing>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkHSeparator" id="new_char_hseparator">
+                    <property name="visible">True</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="padding">5</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkHButtonBox" id="new_char_hbuttonbox">
+                    <property name="visible">True</property>
+                    <property name="layout_style">spread</property>
+                    <child>
+                      <widget class="GtkButton" id="button_create_new_char ">
+                        <property name="label" translatable="yes">Create Character</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                      </widget>
+                      <packing>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="button_new_char_cancel">
+                        <property name="label" translatable="yes">Cancel</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                      </widget>
+                      <packing>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
               </widget>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkEntry" id="entry_new_character_name">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">&#x25CF;</property>
-              </widget>
-              <packing>
-                <property name="position">1</property>
-              </packing>
             </child>
           </widget>
-          <packing>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkLabel" id="label_new_char_status">
-            <property name="visible">True</property>
-          </widget>
-          <packing>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox2">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkButton" id="button_create_new_char">
-                <property name="label" translatable="yes">Create Character</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-              </widget>
-              <packing>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button_new_char_cancel">
-                <property name="label" translatable="yes">Cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-              </widget>
-              <packing>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">3</property>
-          </packing>
         </child>
       </widget>
     </child>
@@ -2565,7 +2907,6 @@ login method.</property>
     <child>
       <widget class="GtkVBox" id="skill_vbox">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkScrolledWindow" id="skill_scrolledwindow">
             <property name="visible">True</property>
