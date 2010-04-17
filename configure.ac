@@ -545,8 +545,8 @@ AC_SUBST(CF_DATADIR)
 # since CF_SUBDIRS won't be set in the top level makefile, we don't
 # descend into these subdirs.
 
+#   gtk/Makefile x11/Makefile
 AC_CONFIG_FILES([
-#   Makefile gtk/Makefile x11/Makefile common/Makefile
     Makefile common/Makefile
     sound-src/Makefile gtk-v2/Makefile pixmaps/Makefile
     gtk-v2/glade/Makefile gtk-v2/src/Makefile gtk-v2/themes/Makefile
