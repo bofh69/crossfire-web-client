@@ -68,7 +68,9 @@ static gboolean skill_selection_func (GtkTreeSelection *selection, GtkTreeModel 
 }
 
 /**
- *
+ * Called whenever the skill window is opened or a stats packet is received.
+ * If the skills window has been created and is currently visible, it rebuilds the list store
+ * otherwise nothing happens, because it will be called again next time the window is opened anyway.
  */
 void update_skill_information(void) {
     GtkTreeIter iter;
@@ -76,8 +78,9 @@ void update_skill_information(void) {
     int i, sk, level;
     uint64 exp_to_next_level;
 
-    /* If the window/spellstore hasn't been created, return. */
-    if (!has_init) return;
+    /* If the window/spellstore hasn't been created, or isn't currently being shown, return. */
+    if (!has_init || !gtk_widget_get_visible (glade_xml_get_widget(dialog_xml, "skill_window")))
+    	return;
 
     gtk_list_store_clear(skill_store);
     for (i = 0; i<MAX_SKILL; i++) {

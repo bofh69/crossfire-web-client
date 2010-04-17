@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/stats.c, gtk-v2/src/skills.c
+ If the player has left the skill window open whilst playing, update the
+exp/level values.
+Brendan Lally 2010-04-17
+
 gtk-v2/glade/dialogs.glade
   Dress up the dialogs related to the account code.  A few items are moved to
   make better use of space, but this mostly adds containers, attributes,

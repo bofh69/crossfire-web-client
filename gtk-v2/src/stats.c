@@ -37,6 +37,8 @@ const char * const rcsid_gtk2_stats_c =
 
 #include "client.h"
 #include "main.h"
+#include "image.h"
+#include "gtk2proto.h"
 
 #define STAT_BAR_HP     0
 #define STAT_BAR_SP     1
@@ -628,6 +630,7 @@ void draw_stats(int redraw) {
         gtk_label_set (GTK_LABEL(statwindow.range), cpl.range);
     }
 
+    update_skill_information();
     on_skill=0;
     assert(sizeof(statwindow.skill_exp)/sizeof(*statwindow.skill_exp) >= 2*MAX_SKILL);
     for (i=0; i<MAX_SKILL; i++) {
