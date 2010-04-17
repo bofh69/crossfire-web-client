@@ -224,15 +224,20 @@ void stats_init(GtkWidget *window_root)
     statwindow.table_skills_exp =
         glade_xml_get_widget(xml_tree,"table_skills_exp");
 
-    for (i=0, x=0, y=0; i < SKILL_BOXES_X * SKILL_BOXES_Y; i++) {
-        statwindow.skill_exp[i] = gtk_label_new("");
-        gtk_table_attach(GTK_TABLE(statwindow.table_skills_exp), statwindow.skill_exp[i],
-                  x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
-        gtk_widget_show(statwindow.skill_exp[i]);
-        x++;
-        if (x == SKILL_BOXES_X) {
-            x=0;
-            y++;
+    if (statwindow.table_skills_exp) {
+        /* Do not attempt to set up the table_skills_exp widget if it was not
+         * defined in the .glade layout.
+         */
+        for (i=0, x=0, y=0; i < SKILL_BOXES_X * SKILL_BOXES_Y; i++) {
+            statwindow.skill_exp[i] = gtk_label_new("");
+            gtk_table_attach(GTK_TABLE(statwindow.table_skills_exp), statwindow.skill_exp[i],
+                      x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
+            gtk_widget_show(statwindow.skill_exp[i]);
+            x++;
+            if (x == SKILL_BOXES_X) {
+                x=0;
+                y++;
+            }
         }
     }
 
@@ -631,42 +636,52 @@ void draw_stats(int redraw) {
     }
 
     update_skill_information();
-    on_skill=0;
-    assert(sizeof(statwindow.skill_exp)/sizeof(*statwindow.skill_exp) >= 2*MAX_SKILL);
-    for (i=0; i<MAX_SKILL; i++) {
-        /* Drawing a particular skill entry is tricky - only draw if
-         * different, and only draw if we have a name for the skill
-         * and the player has some exp in the skill - don't draw
-         * all 30 skills for no reason.
+
+    if (statwindow.table_skills_exp) {
+        /* Do not attempt to set up the table_skills_exp widget if it was not
+         * defined in the .glade layout.
          */
-        sk = skill_mapping[i].value;
-
-        if ((redraw || cpl.stats.skill_exp[sk] != last_stats.skill_exp[sk]) &&
-            skill_mapping[i].name && cpl.stats.skill_exp[sk]){
-            gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), skill_mapping[i].name);
-            snprintf(buff, sizeof(buff), "%" FMT64 " (%d)", cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
-            gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
-            last_stats.skill_level[sk] = cpl.stats.skill_level[sk];
-            last_stats.skill_exp[sk] = cpl.stats.skill_exp[sk];
-        } else if (cpl.stats.skill_exp[sk]) {
-            /* don't need to draw the skill, but need to update the position
-             * of where to draw the next one.
+        on_skill=0;
+        assert(sizeof(statwindow.skill_exp)/sizeof(*statwindow.skill_exp) >= 2*MAX_SKILL);
+        for (i=0; i<MAX_SKILL; i++) {
+            /* Drawing a particular skill entry is tricky - only draw if
+             * different, and only draw if we have a name for the skill and
+             * the player has some exp in the skill - don't draw all 30 skills
+             * for no reason.
              */
-            on_skill+=2;
+            sk = skill_mapping[i].value;
+
+            if ((redraw || cpl.stats.skill_exp[sk] != last_stats.skill_exp[sk])
+            && skill_mapping[i].name && cpl.stats.skill_exp[sk]) {
+                gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]),
+                    skill_mapping[i].name);
+                snprintf(buff, sizeof(buff), "%" FMT64 " (%d)",
+                    cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
+                gtk_label_set(
+                    GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
+                last_stats.skill_level[sk] = cpl.stats.skill_level[sk];
+                last_stats.skill_exp[sk] = cpl.stats.skill_exp[sk];
+            } else if (cpl.stats.skill_exp[sk]) {
+                /* Don't need to draw the skill, but need to update the
+                 * position of where to draw the next one.
+                 */
+                on_skill+=2;
+            }
         }
-    }
 
-    /* Since the number of skills we draw come and go, basically we want
-     * to erase any extra.  This shows up when switching characters, eg, character
-     * #1 knows 10 skills, #2 knows 5 - need to erase those 5 extra.
-     */
-    if (on_skill < max_drawn_skill) {
-        int k;
+        /* Since the number of skills we draw come and go, basically we want
+         * to erase any extra.  This shows up when switching characters, eg,
+         * character #1 knows 10 skills, #2 knows 5 - need to erase those 5
+         * extra.
+         */
+        if (on_skill < max_drawn_skill) {
+            int k;
 
-        for (k = on_skill; k <= max_drawn_skill; k++)
-            gtk_label_set(GTK_LABEL(statwindow.skill_exp[k]), "");
+            for (k = on_skill; k <= max_drawn_skill; k++)
+                gtk_label_set(GTK_LABEL(statwindow.skill_exp[k]), "");
+        }
+        max_drawn_skill = on_skill;
     }
-    max_drawn_skill = on_skill;
 
     /* Now do the resistance table */
     if (redraw || cpl.stats.resist_change) {

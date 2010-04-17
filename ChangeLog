@@ -12,6 +12,8 @@ gtk-v2/src/stats.c
   noise or do extra work if it is absent from the window definition.
 Kevin Bulgrien 2010-04-17
 
+gtk-v2/src/Makefile.am
+  Yet another attempt to fix builds after disable of x11 and gtk-v1 clients.
 configure.ac
   Second attempt to fix builds after disable of x11 and gtk-v1 clients.
 crossfire-client.spec
