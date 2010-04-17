@@ -3,7 +3,7 @@
 # IMPORTANT:  Do not specify a version number with a "-" in it.  The number
 # is used to create RPMs, and some RPM build tools do not allow use of dash
 # in the version number.
-AC_INIT([crossfire-client],[2.0.dev])
+AC_INIT([crossfire-client],[2.0.r12911])
 
 AC_CONFIG_SRCDIR(crossfire-client.spec)
 
@@ -195,7 +195,7 @@ AX_PTHREAD(,AC_MSG_ERROR(POSIX threads not found.  Cannot build any client.))
 #else
 #    AC_MSG_NOTICE(gtkv1 client build disabled)
 #fi
-AC_SUBST(CFGTK)
+# AC_SUBST(CFGTK)
 # End of gtk-v1 client check
 
 # Check to see if gtk-v2 client will be built
@@ -546,7 +546,8 @@ AC_SUBST(CF_DATADIR)
 # descend into these subdirs.
 
 AC_CONFIG_FILES([
-    Makefile gtk/Makefile x11/Makefile common/Makefile
+#   Makefile gtk/Makefile x11/Makefile common/Makefile
+    Makefile common/Makefile
     sound-src/Makefile gtk-v2/Makefile pixmaps/Makefile
     gtk-v2/glade/Makefile gtk-v2/src/Makefile gtk-v2/themes/Makefile
     help/Makefile utils/Makefile ])

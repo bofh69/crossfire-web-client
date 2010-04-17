@@ -2,6 +2,8 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+configure.ac
+  Second attempt to fix builds after disable of x11 and gtk-v1 clients.
 crossfire-client.spec
   First attempt at disabling x11 and gtk-v1 clients.
 Kevin Bulgrien 2010-04-17
