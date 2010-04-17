@@ -1,6 +1,16 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/src/skills.c
+  Fix broken build (perhaps only on older gtk/libglade versions?).  Replaced
+  gtk_widget_get_visible() with GTK_WIDGET_VISIBLE().
+gtk-v2/src/stats.c
+  Allow the table_skills_exp to be missing from a main window .glade layout
+  without generating stderr spew like (crossfire-client-gtk2:*): Gtk-CRITICAL
+  **: gtk_label_set_text: assertion `GTK_IS_LABEL (label)' failed.  The new
+  skills window means this table is optional, so there is no point to make
+  noise or do extra work if it is absent from the window definition.
+Kevin Bulgrien 2010-04-17
 
 configure.ac
   Second attempt to fix builds after disable of x11 and gtk-v1 clients.
@@ -12,6 +22,14 @@ gtk-v2/src/stats.c, gtk-v2/src/skills.c
  If the player has left the skill window open whilst playing, update the
 exp/level values.
 Brendan Lally 2010-04-17
+
+gtk-v2/glade/dialogs.glade
+  A complete rework of the client configuration dialog to make it take up less
+  vertical space.  Netbook users with a screen height of 600 pixels could not
+  access all items in the dialog.  The dialog was also pretty ugly and the
+  controls were not organized as well as they could be.  The overall design of
+  the dialog now matches the design principles used for the account dialogs.
+Kevin Bulgrien 2010-04-16
 
 gtk-v2/glade/dialogs.glade
   Dress up the dialogs related to the account code.  A few items are moved to

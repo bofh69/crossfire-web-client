@@ -79,7 +79,7 @@ void update_skill_information(void) {
     uint64 exp_to_next_level;
 
     /* If the window/spellstore hasn't been created, or isn't currently being shown, return. */
-    if (!has_init || !gtk_widget_get_visible (glade_xml_get_widget(dialog_xml, "skill_window")))
+    if (!has_init || ! GTK_WIDGET_VISIBLE    (glade_xml_get_widget(dialog_xml, "skill_window")))
     	return;
 
     gtk_list_store_clear(skill_store);
