@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+crossfire-client.spec
+  First attempt at disabling x11 and gtk-v1 clients.
+Kevin Bulgrien 2010-04-17
+
 gtk-v2/src/stats.c, gtk-v2/src/skills.c
  If the player has left the skill window open whilst playing, update the
 exp/level values.
