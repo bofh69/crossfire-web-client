@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <glade-interface>
   <!-- interface-requires gtk+ 2.16 -->
-  <!-- interface-naming-policy toplevel-contextual -->
+  <!-- interface-naming-policy project-wide -->
   <widget class="GtkWindow" id="msgctrl_window">
     <property name="title" translatable="yes">Message Control</property>
     <property name="window_position">center-on-parent</property>
@@ -82,7 +82,6 @@
                   <widget class="GtkSpinButton" id="msgctrl_spinbutton_count">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="has_tooltip">True</property>
                     <property name="tooltip" translatable="yes">The number times a message may occur before it must be displayed.  If a message is not already in the buffer, it is always output one time with no delay.</property>
                     <property name="max_length">2</property>
                     <property name="truncate_multiline">True</property>
@@ -422,644 +421,928 @@
     <property name="window_position">center-on-parent</property>
     <property name="deletable">False</property>
     <child>
-      <widget class="GtkVBox" id="config_vbox">
+      <widget class="GtkAlignment" id="config_alignment">
         <property name="visible">True</property>
+        <property name="top_padding">5</property>
+        <property name="bottom_padding">5</property>
+        <property name="left_padding">5</property>
+        <property name="right_padding">5</property>
         <child>
-          <widget class="GtkHBox" id="config_hbox_general">
+          <widget class="GtkVBox" id="config_vbox">
             <property name="visible">True</property>
-            <property name="border_width">5</property>
             <child>
-              <widget class="GtkLabel" id="config_label_general">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">General Options</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkHSeparator" id="config_hseparator_general">
-                <property name="visible">True</property>
-              </widget>
-              <packing>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="padding">1</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="config_button_foodbeep">
-            <property name="label" translatable="yes">Beep When Food is Low</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_cwindow">
-            <property name="visible">True</property>
-            <property name="spacing">6</property>
-            <child>
-              <widget class="GtkSpinButton" id="config_spinbutton_cwindow">
+              <widget class="GtkNotebook" id="config_notebook">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="adjustment">1 1 100 1 0 0</property>
-                <property name="climb_rate">1</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="config_label_cwindow">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Command Window</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="config_button_echo">
-            <property name="label" translatable="yes">Echo Bound Commands</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="config_button_fasttcp">
-            <property name="label" translatable="yes">Fast TCP Send (May decrease latency at expense of using more outgoing bandwidth)</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">4</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="config_button_grad_color">
-            <property name="label" translatable="yes">Gradually change stat bar color based on value of the stat.  Uses slightly more CPU time.</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">5</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="config_button_sound">
-            <property name="label" translatable="yes">Enable Sound Support</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">6</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_image">
-            <property name="visible">True</property>
-            <property name="border_width">5</property>
-            <child>
-              <widget class="GtkLabel" id="config_label_image">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Map &amp; Image Options</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkHSeparator" id="config_hseparator_image">
-                <property name="visible">True</property>
-              </widget>
-              <packing>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">7</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="config_button_cache">
-            <property name="label" translatable="yes">Cache Images (Decreases bandwidth needed, but requires more local diskspace and some spaces
+                <property name="tab_hborder">1</property>
+                <child>
+                  <widget class="GtkAlignment" id="config_general_alignment">
+                    <property name="visible">True</property>
+                    <property name="top_padding">5</property>
+                    <property name="bottom_padding">5</property>
+                    <property name="left_padding">5</property>
+                    <property name="right_padding">5</property>
+                    <child>
+                      <widget class="GtkVBox" id="config_general_vbox">
+                        <property name="visible">True</property>
+                        <child>
+                          <widget class="GtkHBox" id="config_misc_hbox">
+                            <property name="visible">True</property>
+                            <property name="spacing">7</property>
+                            <property name="homogeneous">True</property>
+                            <child>
+                              <widget class="GtkFrame" id="config_sound_frame">
+                                <property name="visible">True</property>
+                                <property name="label_xalign">0</property>
+                                <property name="shadow_type">in</property>
+                                <child>
+                                  <widget class="GtkAlignment" id="config_sound_alignment">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="xscale">0.30000001192092896</property>
+                                    <property name="left_padding">12</property>
+                                    <child>
+                                      <widget class="GtkVBox" id="config_sound_vbox">
+                                        <property name="visible">True</property>
+                                        <child>
+                                          <widget class="GtkCheckButton" id="config_button_sound">
+                                            <property name="label" translatable="yes">Enable Sound Support</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">False</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="xalign">0</property>
+                                            <property name="draw_indicator">True</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="position">0</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkCheckButton" id="config_button_foodbeep">
+                                            <property name="label" translatable="yes">Beep When Food is Low</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">False</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="xalign">0</property>
+                                            <property name="draw_indicator">True</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id=" config_frame_sound_label">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">&lt;b&gt;Sound&lt;/b&gt;</property>
+                                    <property name="use_markup">True</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="type">label_item</property>
+                                  </packing>
+                                </child>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkFrame" id="config_misc_frame">
+                                <property name="visible">True</property>
+                                <property name="label_xalign">0</property>
+                                <property name="shadow_type">in</property>
+                                <child>
+                                  <widget class="GtkAlignment" id="config_misc_alignment">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="xscale">0.69999998807907104</property>
+                                    <property name="left_padding">12</property>
+                                    <child>
+                                      <widget class="GtkVBox" id="config_misc_vbox">
+                                        <property name="visible">True</property>
+                                        <child>
+                                          <widget class="GtkCheckButton" id="config_button_echo">
+                                            <property name="label" translatable="yes">Echo Bound Commands</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">False</property>
+                                            <property name="tooltip" translatable="yes">When a keybind is used, show the actual commands that are sent.</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="xalign">0</property>
+                                            <property name="draw_indicator">True</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="position">0</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkCheckButton" id="config_button_fasttcp">
+                                            <property name="label" translatable="yes">Fast TCP Send</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">False</property>
+                                            <property name="tooltip" translatable="yes">May decrease latency at the expense of using more out-going bandwidth.</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="xalign">0</property>
+                                            <property name="draw_indicator">True</property>
+                                          </widget>
+                                          <packing>
+                                            <property name="expand">False</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="config_frame_misc_label">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">&lt;b&gt;Miscellaneous&lt;/b&gt;</property>
+                                    <property name="use_markup">True</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="type">label_item</property>
+                                  </packing>
+                                </child>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkFrame" id="config_layout_frame">
+                            <property name="visible">True</property>
+                            <property name="label_xalign">0</property>
+                            <property name="shadow_type">in</property>
+                            <child>
+                              <widget class="GtkAlignment" id="config_layout_alignment">
+                                <property name="visible">True</property>
+                                <property name="top_padding">5</property>
+                                <property name="bottom_padding">5</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <widget class="GtkTable" id="config_layout_table">
+                                    <property name="visible">True</property>
+                                    <property name="n_rows">6</property>
+                                    <property name="n_columns">4</property>
+                                    <property name="column_spacing">5</property>
+                                    <property name="row_spacing">2</property>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_label_glade">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="xpad">5</property>
+                                        <property name="label" translatable="yes">Layout of the client window. Changes take effect upon restart of the client.</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">2</property>
+                                        <property name="right_attach">4</property>
+                                        <property name="top_attach">5</property>
+                                        <property name="bottom_attach">6</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkComboBox" id="config_combobox_glade">
+                                        <property name="width_request">170</property>
+                                        <property name="visible">True</property>
+                                        <property name="items" translatable="yes"></property>
+                                      </widget>
+                                      <packing>
+                                        <property name="right_attach">2</property>
+                                        <property name="top_attach">5</property>
+                                        <property name="bottom_attach">6</property>
+                                        <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_label_map">
+                                        <property name="visible">True</property>
+                                        <property name="extension_events">cursor</property>
+                                        <property name="xalign">0</property>
+                                        <property name="xpad">5</property>
+                                        <property name="label" translatable="yes">Map Size. A larger map has more information, but uses more CPU and
+bandwidth.  Changes to either width or height take effect on the next
+server connection.</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">3</property>
+                                        <property name="right_attach">4</property>
+                                        <property name="top_attach">3</property>
+                                        <property name="bottom_attach">5</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_label_mapheight">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Map Height</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="right_attach">2</property>
+                                        <property name="top_attach">4</property>
+                                        <property name="bottom_attach">5</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_label_mapwidth">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Map Width</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="right_attach">2</property>
+                                        <property name="top_attach">3</property>
+                                        <property name="bottom_attach">4</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_next_run_label">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Changes take effect upon restart of the client.</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">3</property>
+                                        <property name="right_attach">4</property>
+                                        <property name="bottom_attach">3</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_label_mapscale">
+                                        <property name="visible">True</property>
+                                        <property name="tooltip" translatable="yes">Affects the size of individual map tiles.</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Map Scale Percentage</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="right_attach">2</property>
+                                        <property name="top_attach">2</property>
+                                        <property name="bottom_attach">3</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_label_iconscale">
+                                        <property name="visible">True</property>
+                                        <property name="tooltip" translatable="yes">Affects the size of graphical icons in the inventory and floor views.</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Icon Scale Percentage</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="right_attach">2</property>
+                                        <property name="top_attach">1</property>
+                                        <property name="bottom_attach">2</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_label_cwindow">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Command Input Lines</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="right_attach">2</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkSpinButton" id="config_spinbutton_mapheight">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="adjustment">25 11 25 1 0 0</property>
+                                        <property name="climb_rate">1</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="top_attach">4</property>
+                                        <property name="bottom_attach">5</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkSpinButton" id="config_spinbutton_mapwidth">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="adjustment">25 11 25 1 0 0</property>
+                                        <property name="climb_rate">1</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="top_attach">3</property>
+                                        <property name="bottom_attach">4</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkSpinButton" id="config_spinbutton_mapscale">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="adjustment">100 1 100 1 0 0</property>
+                                        <property name="climb_rate">1</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="top_attach">2</property>
+                                        <property name="bottom_attach">3</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkSpinButton" id="config_spinbutton_iconscale">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="adjustment">100 1 100 1 0 0</property>
+                                        <property name="climb_rate">1</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="top_attach">1</property>
+                                        <property name="bottom_attach">2</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkSpinButton" id="config_spinbutton_cwindow">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="adjustment">1 1 100 1 0 0</property>
+                                        <property name="climb_rate">1</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkVSeparator" id="config_layout_restart_vseparator">
+                                        <property name="visible">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">2</property>
+                                        <property name="right_attach">3</property>
+                                        <property name="bottom_attach">3</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_padding">2</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkVSeparator" id="config_layout_mapsize_vseparator">
+                                        <property name="visible">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">2</property>
+                                        <property name="right_attach">3</property>
+                                        <property name="top_attach">3</property>
+                                        <property name="bottom_attach">5</property>
+                                        <property name="x_options">GTK_FILL</property>
+                                        <property name="y_padding">4</property>
+                                      </packing>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="config_layout_frame_label">
+                                <property name="visible">True</property>
+                                <property name="ypad">2</property>
+                                <property name="label" translatable="yes">&lt;b&gt;Layout&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </widget>
+                              <packing>
+                                <property name="type">label_item</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkFrame" id="config_theme_frame">
+                            <property name="visible">True</property>
+                            <property name="extension_events">cursor</property>
+                            <property name="label_xalign">0</property>
+                            <property name="shadow_type">in</property>
+                            <child>
+                              <widget class="GtkAlignment" id="config_theme_alignment">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <widget class="GtkTable" id="config_theme_table">
+                                    <property name="visible">True</property>
+                                    <property name="n_rows">3</property>
+                                    <property name="n_columns">5</property>
+                                    <property name="column_spacing">2</property>
+                                    <property name="row_spacing">2</property>
+                                    <child>
+                                      <widget class="GtkCheckButton" id="config_button_grad_color">
+                                        <property name="label" translatable="yes">Gradually change the stat bar color based on how full it is.  This slightly increases the client CPU usage.</property>
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="draw_indicator">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="right_attach">5</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkComboBox" id="config_combobox_theme">
+                                        <property name="width_request">170</property>
+                                        <property name="visible">True</property>
+                                        <property name="items" translatable="yes"></property>
+                                      </widget>
+                                      <packing>
+                                        <property name="right_attach">4</property>
+                                        <property name="top_attach">1</property>
+                                        <property name="bottom_attach">2</property>
+                                        <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_label_theme">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="xpad">5</property>
+                                        <property name="label" translatable="yes">User interface theme to use for the client.  "None" selects the default system theme.</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">4</property>
+                                        <property name="right_attach">5</property>
+                                        <property name="top_attach">1</property>
+                                        <property name="bottom_attach">2</property>
+                                        <property name="x_options">GTK_SHRINK</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkComboBox" id="config_combobox_faceset">
+                                        <property name="width_request">170</property>
+                                        <property name="visible">True</property>
+                                        <property name="items" translatable="yes"></property>
+                                      </widget>
+                                      <packing>
+                                        <property name="right_attach">4</property>
+                                        <property name="top_attach">2</property>
+                                        <property name="bottom_attach">3</property>
+                                        <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_label_faceset">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="xpad">5</property>
+                                        <property name="label" translatable="yes">The tile set to use.  Each tile, or face, set has a different predominant graphical style.
+Changes takes effect on the next server connection.</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">4</property>
+                                        <property name="right_attach">5</property>
+                                        <property name="top_attach">2</property>
+                                        <property name="bottom_attach">3</property>
+                                        <property name="x_options">GTK_SHRINK</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="config_theme_frame_label">
+                                <property name="visible">True</property>
+                                <property name="ypad">2</property>
+                                <property name="label" translatable="yes">&lt;b&gt;Theme&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </widget>
+                              <packing>
+                                <property name="type">label_item</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
+                <child>
+                  <widget class="GtkLabel" id="config_notebook_general_label">
+                    <property name="visible">True</property>
+                    <property name="tooltip" translatable="yes">Sound and general user interface settings.</property>
+                    <property name="label" translatable="yes">General Client Options</property>
+                    <property name="use_markup">True</property>
+                  </widget>
+                  <packing>
+                    <property name="tab_fill">False</property>
+                    <property name="type">tab</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkAlignment" id="config_display_alignment">
+                    <property name="visible">True</property>
+                    <property name="top_padding">5</property>
+                    <property name="bottom_padding">5</property>
+                    <property name="left_padding">5</property>
+                    <property name="right_padding">5</property>
+                    <child>
+                      <widget class="GtkVBox" id="config_display_vbox">
+                        <property name="visible">True</property>
+                        <child>
+                          <widget class="GtkFrame" id="config_caching_frame">
+                            <property name="visible">True</property>
+                            <property name="label_xalign">0</property>
+                            <property name="shadow_type">in</property>
+                            <child>
+                              <widget class="GtkAlignment" id="config_caching_alignment">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <widget class="GtkTable" id="config_caching_table">
+                                    <property name="visible">True</property>
+                                    <property name="n_rows">2</property>
+                                    <property name="n_columns">2</property>
+                                    <property name="row_spacing">5</property>
+                                    <child>
+                                      <widget class="GtkCheckButton" id="config_button_download">
+                                        <property name="label" translatable="yes">Download all images from server at connection time.  Used in conjunction with Cache Images, this
+option prevents ? tiles on the map.  Client startup/connection time is significantly increased.</property>
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">0</property>
+                                        <property name="draw_indicator">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="right_attach">2</property>
+                                        <property name="top_attach">1</property>
+                                        <property name="bottom_attach">2</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkCheckButton" id="config_button_cache">
+                                        <property name="label" translatable="yes">Cache Images (Decreases bandwidth needed, but requires more local diskspace and map tiles
 may appear with ? until image is downloaded)</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">8</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="config_button_download">
-            <property name="label" translatable="yes">Download all images from server at connection time.  This is used in conjunction with Cache Images
-and prevents the ? on the map.  This does increase startup/connection time significantly.</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">9</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="config_button_fog">
-            <property name="label" translatable="yes">Enables fog of war - spaces no longer in view will appear greyed out instead
-of being drawn as black spaces.</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">10</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_iconscale">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkSpinButton" id="config_spinbutton_iconscale">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="adjustment">1 1 100 1 0 0</property>
-                <property name="climb_rate">1</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="config_label_iconscale">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Icon Scale (Takes effect next run)</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="padding">1</property>
-            <property name="position">11</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_mapscale">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkSpinButton" id="config_spinbutton_mapscale">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="adjustment">1 1 100 1 0 0</property>
-                <property name="climb_rate">1</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="config_label_mapscale">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Map Scale (Takes effect next run)</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="padding">1</property>
-            <property name="position">12</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="config_button_smoothing">
-            <property name="label" translatable="yes">Enable smoothing - map looks nicer, but requires more CPU time and bandwidth</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">13</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_displaymode">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkComboBox" id="config_combobox_displaymode">
-                <property name="width_request">170</property>
-                <property name="visible">True</property>
-                <property name="items" translatable="yes"></property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="config_label_displaymode">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Display mode.  OpenGL provides best quality with least amount of CPU
-resources.  SDL is next best, followed by Pixmap.  Depending on your
-window system and available libraries, all of these may not be available.</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="padding">1</property>
-            <property name="position">14</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_lighting">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkComboBox" id="config_combobox_lighting">
-                <property name="width_request">170</property>
-                <property name="visible">True</property>
-                <property name="items" translatable="yes">None
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">0</property>
+                                        <property name="draw_indicator">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="right_attach">2</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="config_caching_frame_label">
+                                <property name="visible">True</property>
+                                <property name="ypad">5</property>
+                                <property name="label" translatable="yes">&lt;b&gt;Image Caching&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </widget>
+                              <packing>
+                                <property name="type">label_item</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkFrame" id="config_displaymode_frame">
+                            <property name="visible">True</property>
+                            <property name="label_xalign">0</property>
+                            <property name="shadow_type">in</property>
+                            <child>
+                              <widget class="GtkAlignment" id="config_displaymode_alignment">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <widget class="GtkTable" id="config_displaymode_table">
+                                    <property name="visible">True</property>
+                                    <property name="n_rows">7</property>
+                                    <property name="n_columns">4</property>
+                                    <property name="row_spacing">5</property>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_displaymode_label">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">0</property>
+                                        <property name="xpad">5</property>
+                                        <property name="label" translatable="yes">Display mode.  OpenGL provides the best quality and loads the CPU the least.
+SDL is the next best mode, followed by Pixmap.  Depending on your window
+system and available driver libraries, all of these options may not be available.</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="right_attach">4</property>
+                                        <property name="top_attach">2</property>
+                                        <property name="bottom_attach">4</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkCheckButton" id="config_button_smoothing">
+                                        <property name="label" translatable="yes">Enable smoothing - The map looks nicer, but CPU loading and bandwidth requirements increase.</property>
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="draw_indicator">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="right_attach">4</property>
+                                        <property name="top_attach">1</property>
+                                        <property name="bottom_attach">2</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkCheckButton" id="config_button_fog">
+                                        <property name="label" translatable="yes">Enable fog of war - Map tiles not in the character's line-of-sight grey out rather than black out.</property>
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="draw_indicator">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="right_attach">4</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_lighting_label">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">0</property>
+                                        <property name="xpad">5</property>
+                                        <property name="label" translatable="yes">SDL map lighting options.  These settings only apply to the SDL display mode.
+OpenGL uses its own lighting method, and Pixmap mode always uses per tile
+lighting.  Best per pixel gives the best result but is slowest.  Tile is fastest, but
+is the worst quality.  None only affects how the objects are drawn on the client.
+The server determines what map tiles are visible based on map lighting levels.</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="right_attach">4</property>
+                                        <property name="top_attach">4</property>
+                                        <property name="bottom_attach">6</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_displaymode_filler_label">
+                                        <property name="visible">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="top_attach">3</property>
+                                        <property name="bottom_attach">4</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_lighting_filler_label">
+                                        <property name="visible">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="top_attach">5</property>
+                                        <property name="bottom_attach">6</property>
+                                        <property name="x_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="config_display_filler_label">
+                                        <property name="visible">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="right_attach">4</property>
+                                        <property name="top_attach">6</property>
+                                        <property name="bottom_attach">7</property>
+                                        <property name="x_options">GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkAlignment" id="config_displaymode_alignment ">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">0</property>
+                                        <property name="top_padding">3</property>
+                                        <child>
+                                          <widget class="GtkComboBox" id="config_combobox_displaymode">
+                                            <property name="visible">True</property>
+                                            <property name="items" translatable="yes"></property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                      <packing>
+                                        <property name="top_attach">2</property>
+                                        <property name="bottom_attach">3</property>
+                                        <property name="x_options">GTK_FILL</property>
+                                        <property name="y_options">GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkAlignment" id="config_lighting_alignment">
+                                        <property name="visible">True</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">0</property>
+                                        <property name="top_padding">3</property>
+                                        <child>
+                                          <widget class="GtkComboBox" id="config_combobox_lighting">
+                                            <property name="visible">True</property>
+                                            <property name="extension_events">all</property>
+                                            <property name="items" translatable="yes">None
 Best Per Pixel
 Fast Per Pixel
 Per Tile</property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                      <packing>
+                                        <property name="top_attach">4</property>
+                                        <property name="bottom_attach">5</property>
+                                        <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
+                                        <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                      </packing>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="config_displaymode_frame_label">
+                                <property name="visible">True</property>
+                                <property name="ypad">5</property>
+                                <property name="label" translatable="yes">&lt;b&gt;Display Mode&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </widget>
+                              <packing>
+                                <property name="type">label_item</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkLabel" id="config_notebook_display_label">
+                    <property name="visible">True</property>
+                    <property name="tooltip" translatable="yes">Miscellaneous, Image Cache, Map, Display Mode, Lighting</property>
+                    <property name="label" translatable="yes">Display &amp;amp; Image Cache Options</property>
+                    <property name="use_markup">True</property>
+                  </widget>
+                  <packing>
+                    <property name="position">1</property>
+                    <property name="tab_fill">False</property>
+                    <property name="type">tab</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="config_label_lighting">
+              <widget class="GtkHSeparator" id="config_hseparator">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Lighting options.  These are only used with the SDL display mode.  OpenGL
-uses its own lighting method, and Pixmap mode always uses per tile lighting.
-Best per pixel gives the best result but is slowest.  Tile is fastest, but is the
-worst quality.  Selecting none only affects how the objects are drawn on the 
-client.  The server still calculates what is visible based on light levels.</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
                 <property name="padding">5</property>
                 <property name="position">1</property>
               </packing>
             </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="padding">1</property>
-            <property name="position">15</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_map">
-            <property name="visible">True</property>
             <child>
-              <widget class="GtkVBox" id="config_vbox_map">
+              <widget class="GtkHButtonBox" id="config_hbuttonbox">
                 <property name="visible">True</property>
+                <property name="layout_style">spread</property>
                 <child>
-                  <widget class="GtkHBox" id="config_hbox_mapwidth">
+                  <widget class="GtkButton" id="config_button_save">
+                    <property name="label" translatable="yes">Save</property>
                     <property name="visible">True</property>
-                    <child>
-                      <widget class="GtkSpinButton" id="config_spinbutton_mapwidth">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="adjustment">25 11 25 1 0 0</property>
-                        <property name="climb_rate">1</property>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkLabel" id="config_label_mapwidth">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Map Width</property>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="padding">5</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
+                    <property name="can_focus">True</property>
+                    <property name="can_default">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="on_config_button_save_clicked"/>
                   </widget>
                   <packing>
-                    <property name="padding">1</property>
+                    <property name="expand">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkHBox" id="config_hbox_mapheight">
+                  <widget class="GtkButton" id="config_button_apply">
+                    <property name="label" translatable="yes">Apply</property>
                     <property name="visible">True</property>
-                    <child>
-                      <widget class="GtkSpinButton" id="config_spinbutton_mapheight">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="adjustment">25 11 25 1 0 0</property>
-                        <property name="climb_rate">1</property>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkLabel" id="config_label_mapheight">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Map Height</property>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="padding">5</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
+                    <property name="can_focus">True</property>
+                    <property name="can_default">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="on_config_button_apply_clicked"/>
                   </widget>
                   <packing>
-                    <property name="padding">1</property>
+                    <property name="expand">False</property>
                     <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="config_button_close">
+                    <property name="label" translatable="yes">Close Window</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="can_default">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="on_config_button_close_clicked"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
               </widget>
               <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="config_label_map">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Map Size. A larger map has more information, but uses more CPU and bandwidth
-Changes to either width or height take effect on the next server connection.</property>
-              </widget>
-              <packing>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">16</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_faceset">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkComboBox" id="config_combobox_faceset">
-                <property name="width_request">170</property>
-                <property name="visible">True</property>
-                <property name="items" translatable="yes"></property>
-              </widget>
-              <packing>
                 <property name="expand">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="config_label_faceset">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Face set to use.  Changes take effect on the next server connection.  Each
-faceset has a different graphical style.</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="fill">False</property>
-            <property name="padding">1</property>
-            <property name="position">17</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_theme">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkComboBox" id="config_combobox_theme">
-                <property name="width_request">170</property>
-                <property name="visible">True</property>
-                <property name="items" translatable="yes"></property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="config_label_theme">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Theme to use for the display.  "None" selects the system theme.</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="padding">1</property>
-            <property name="position">18</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="config_hbox_glade">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkComboBox" id="config_combobox_glade">
-                <property name="width_request">170</property>
-                <property name="visible">True</property>
-                <property name="items" translatable="yes"></property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="label_glade">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Layout style for the main window. Takes effect after a restart of the client.</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="padding">1</property>
-            <property name="position">19</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHSeparator" id="config_hseparator">
-            <property name="visible">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="padding">2</property>
-            <property name="position">20</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHButtonBox" id="config_hbuttonbox">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkButton" id="config_button_save">
-                <property name="label" translatable="yes">Save</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_config_button_save_clicked"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="config_button_apply">
-                <property name="label" translatable="yes">Apply</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_config_button_apply_clicked"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="config_button_close">
-                <property name="label" translatable="yes">Close Window</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_config_button_close_clicked"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
                 <property name="position">2</property>
               </packing>
             </child>
           </widget>
-          <packing>
-            <property name="padding">2</property>
-            <property name="position">21</property>
-          </packing>
         </child>
       </widget>
     </child>
