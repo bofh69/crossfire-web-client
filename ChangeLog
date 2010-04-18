@@ -1,6 +1,19 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/sixforty.glade
+- Fix issue with spinbutton_count to avoid run-time message regarding non-zero
+  page size.
+- Remove the table_skills_exp and enclosing structures now that the skills
+  window is available.
+gtk-v2/glade/AUTHORS
+- Add note that sixforty.glade has save/restore window position issues at this
+  time.  This issue has been present prior to this, so until it is fixed, just
+  document it as a known issue so it doesn't get forgotten (again).   Also do
+  not mention a map dimension less than allowed (8 vs. minimum 11), and add
+  mention of use of map and icon scale to improve usability.
+Kevin Bulgrien 2010-04-18
+
 gtk-v2/glade/AUTHORS
   Update the description of oroboros.glade.
 gtk-v2/glade/oroboros.glade
