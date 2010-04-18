@@ -102,12 +102,15 @@ are are found in the following files:
 
 - oroboros.glade        A layout designed for 1024x768 desktops.  On the left
                         are a tabbed message window, inventory, and floor view.
-                        To the right, at the top is a four tab notebook that
+                        To the right, at the top is a two tab notebook that
                         contains all of the character statistics, and below it
                         is the map view.  At 1024x768, the map view is 20x13.
                         Since oroboros makes heavy use of tabbed notebooks, it
                         is also appropriate for those that prefer to see less
-                        information simultaneously on screen.
+                        information simultaneously on screen.  Recent removal
+                        of the skills panel, made possible by a new skills
+                        window, helped reduce the notebook pages and improve
+                        visibility of vital data.
 
 - sixforty.glade        This is a layout that defaults to a 640x480 size and
                         was made in response to a request for a small layout.
@@ -133,7 +136,6 @@ are are found in the following files:
                         lists Speed, WS, WC, Damage, AC, and Armor data.
                         Below these three statistical columns is a row
                         displaying Str, Dex, Con, Int, Wis, Pow, Cha data.
-
 
 - un-deux.glade         This layout is still vaguely reminiscent of the
                         original GTK V1 client with the V1-Redux improvements,

@@ -1,6 +1,15 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/AUTHORS
+  Update the description of oroboros.glade.
+gtk-v2/glade/oroboros.glade
+  Removed the skills and experience table per creation of the new skills
+  window.  This in turn allowed the four tab notebook in the top right to
+  change to a 2 tab notebook to improve accessibility of vital statistics.
+  This redesign also seems to improve the sizability of the client, possibly
+  making it easier to shrink below the default 1024x768 dimensions and opening
+  the door to improvements in other layouts.
 gtk-v2/glade/dialogs.glade
   A complete rework of the client configuration dialog to make it take up less
   vertical space.  Netbook users with a screen height of 600 pixels could not
