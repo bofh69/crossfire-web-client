@@ -46,13 +46,20 @@ are are found in the following files:
 
 - chthonic.glade        A tri-column layout with a tall inventory/floor panels
                         to the right. At the top middle, a two tab notebook
-                        holds the map views above a notebook for character and
-                        skill/experience data.  To the top left is the critical
-                        message box with the standard message box and command
-                        input below.  The bottom left corner two tab notebook
-                        houses protections and core statistics.  The default
-                        window setting supports an 19x22 map pane with an
-                        overall size of 1275x945.
+                        holds the map views above character data.  To the top
+                        left is the critical message box with the standard
+                        message box and command input below.  The bottom left
+                        corner two tab notebook houses protections and core
+                        statistics.  The default window setting supports an
+                        19x22 map pane with an overall size of 1275x945.
+
+                        NOTE:  There seems to be issues with the saving of
+                               screen position when resizeable panes are
+                               nested.  Though saving works fairly well for
+                               this layout, the protections/core statistics
+                               area does not restore properly, though the
+                               misbehavior is not terribly inconvenient.  The
+                               layout needs some work to improve save/restore.
 
 - eureka.glade          A U-shaped layout with inventory and ground views at
                         the top and middle left, a critical and regular
@@ -122,7 +129,7 @@ are are found in the following files:
                         and Skills/Experience in the quadrant below it.  The
                         icon view resides in the top right quadrant with the
                         tabbed messages pane and command input occupying the
-                        lower right quadrant. At 640x480, a 12x8 map size is
+                        lower right quadrant. At 640x480, a 12x11 map size is
                         workable with inventory views being the big challenge.
 
                         The most noticable difference in this layout is a more
@@ -136,6 +143,16 @@ are are found in the following files:
                         lists Speed, WS, WC, Damage, AC, and Armor data.
                         Below these three statistical columns is a row
                         displaying Str, Dex, Con, Int, Wis, Pow, Cha data.
+
+                        It is extraordinarily helpful to set a map and icon
+                        scales to 50%.  Other scale factors may also work, but
+                        many others also distort the map display unpleasantly.
+
+                        NOTE: sixforty.glade in its present form does not save
+                              and restore window positions properly.  It is
+                              best to accept the defaults for the present, and
+                              as needed, tweak it at run-time.  Plans are to
+                              fix this issue eventually.
 
 - un-deux.glade         This layout is still vaguely reminiscent of the
                         original GTK V1 client with the V1-Redux improvements,
@@ -154,7 +171,7 @@ are are found in the following files:
                         another notebook for the map and magic map display,
                         followed by the status bars and protections table. The
                         window size defaults to 1180x925 and comfortably
-                        accepts a 19x19 map display. 
+                        accepts a 19x19 map display.
 
 - v1-redux.glade        A slight improvement on the original GTK client layout
                         with a tab notebook above the map view that switches

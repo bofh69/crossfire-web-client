@@ -1,6 +1,17 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/chthonic.glade
+gtk-v2/glade/AUTHORS
+- Remove the skills/experience table from this layout as a result of the new
+  skills window.  At least one user desires this change also.
+- Give meaningful names to various widgets that had generic names.
+- Add a note to the AUTHORS file that notes a minor save/restore issue with
+  the protections/core statistics notebook area in the lower right corner.
+  It seems as though nesting hpaned or vpaned within each other may be part
+  of why some layouts have restore issues that need to be dealt with.
+Kevin Bulgrien 2010-04-18
+
 gtk-v2/glade/sixforty.glade
 - Fix issue with spinbutton_count to avoid run-time message regarding non-zero
   page size.
