@@ -167,18 +167,19 @@ are are found in the following files:
                         eye-level. The fire/run indicators are moved beneath
                         the command input box as they seem all but invisible
                         below the stat bars. The middle of the screen consists
-                        of a tab notebook for core stats and skills; yet
-                        another notebook for the map and magic map display,
-                        followed by the status bars and protections table. The
-                        window size defaults to 1180x925 and comfortably
-                        accepts a 19x19 map display.
+                        of a frame for core stats and a notebook for the map
+                        and magic map display, followed by the status bars and
+                        protections table.  Notably missing is the skills and
+                        experience panel - made possible by the addition of a
+                        separate skills window. The window size defaults to
+                        1180x925 and comfortably accepts a 19x19 map display.
 
 - v1-redux.glade        A slight improvement on the original GTK client layout
-                        with a tab notebook above the map view that switches
-                        between the character and skills information.  This
-                        helps reduce the vertical space constraints.  The
-                        default window positions fit 1280x1024 or 1400x1050
-                        screens with room to spare for side or bottom panels.
-                        A 17x20 map pane fits well on the default 1180x925
-                        window size.
+                        with a tab notebook above the map view that conserves
+                        space by dispensing with the experience and skills
+                        information.  This is made possible by the addition of
+                        a detached skills window.  Default window positions
+                        fit 1280x1024 or 1400x1050 screens with room to spare
+                        for side or bottom panels.  A 17x20 map pane fits well
+                        on the default 1180x925 window size.
 

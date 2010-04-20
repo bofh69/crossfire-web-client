@@ -1,6 +1,16 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/glade/vi-redux.glade
+gtk-v2/glade/un-deux.glade
+gtk-v2/glade/AUTHORS
+- Remove the skills/experience table from these layout as a result of the new
+  skills window.  A significant design point for both of these layouts was to
+  try to remove the vertical space constraints that the skills & experience
+  information placed on the layout when it was used on smaller displays.
+- Update the AUTHORS notes for both of these layouts.
+Kevin Bulgrien 2010-04-19
+
 gtk-v2/glade/chthonic.glade
 gtk-v2/glade/AUTHORS
 - Remove the skills/experience table from this layout as a result of the new
