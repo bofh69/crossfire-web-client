@@ -43,6 +43,8 @@ const char * const rcsid_gtk2_config_c =
 
 #include <dirent.h>
 
+extern char window_xml_file[MAX_BUF];  /* Name of the .glade layout in use. */
+
 GtkWidget *config_window, *config_spinbutton_cwindow, *config_button_echo,
     *config_button_fasttcp, *config_button_grad_color, *config_button_foodbeep,
     *config_button_sound, *config_button_cache, *config_button_download,
@@ -61,9 +63,20 @@ static char *gladedir = "glade-gtk2";
 static const char * const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
 
 /**
- * Loads the theme stored away in the theme value above.  the theme string is
- * loaded/saved into the config file, and can also be changed by the user in
- * the config menu.
+ * Sets up player-specific client and layout rc files and handles loading of a
+ * client theme if one is selected.  First, the player-specific rc files are
+ * added to the GTK rc default files list.  ${HOME}/.crossfire/gtkrc is added
+ * first.  All client sessions are affected by this rc file if it exists.
+ * Next, ${HOME}/.crossfire/<layout>.gtkrc is added, where <layout> is the
+ * name of the .glade file that is loaded.  IE. If gtk-v2.glade is loaded,
+ * <layout> is "gtk-v2".  This sets up the possibility for a player to make a
+ * layout-specific rc file.  Finally, if the client theme is not "None", the
+ * client theme file is added.  In most cases, the player-specific files are
+ * probably not going to exist, so the theme system will continue to work the
+ * way it always has.  The player will have to "do something" to get the extra
+ * functionality.  At some point, conceptually the client itself could be
+ * enhanced to allow it to save some basic settings to either or both of the
+ * player-specific rc files.
  *
  * @param reload
  * If true, user has changed theme after initial startup.  In this mode, we
@@ -73,86 +86,135 @@ static const char * const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
  */
 void load_theme(int reload)
 {
+    static char **default_files=NULL;
     char path[MAX_BUF];
     int i;
-    static char **default_files=NULL;
 
     /*
      * We should only be called with reload once at startup.  at that time,
      * store away the default rc files so we can restore them later.
      */
     if (!reload) {
+        char xml_basename[MAX_BUF];
         char **tmp;
+        char *cp;
 
         /*
-         * GTK man page says copy of this data should be made, so lets go and
-         * do that.
+         * The GTK man page says copy of this data should be made, so do that.
          */
         tmp = gtk_rc_get_default_files();
-        i=0;
+        i = 0;
         while (tmp[i]) {
             i++;
         }
+        /*
+         * Add two more GTK rc files that may be used by a player to customize
+         * the client appearance in general, or to customize the appearance
+         * of a specific .glade layout.  Allocate pointers to the local copy
+         * of the entire list.
+         */
+        i += 2;
         default_files = malloc(sizeof(char*) * (i+1));
+        /*
+         * Copy in GTK's default list which probably contains system paths
+         * like <SYSCONFDIR>/gtk-2.0/gtkrc and user-specific files like
+         * ${HOME}/.gtkrc, or even LANGuage-specific ones like
+         * ${HOME}/.gtkrc.en, etc.
+         */
         i=0;
         while (tmp[i]) {
             default_files[i] = strdup(tmp[i]);
             i++;
         }
+        /*
+         * Add a player-specific gtkrc to the list of default rc files.  This
+         * file is probably reserved for player use, though in all liklihood
+         * will not get used that much.  Still, it makes it easy for someone
+         * to make their own theme without having to have access to the
+         * system-wide theme folder.  This is the lowest priority client rc
+         * file as either a <layout>.gtkrc file or a client-configured theme
+         * settings can over-ride it.
+         */
+        snprintf(path, sizeof(path), "%s/.crossfire/gtkrc", getenv("HOME"));
+        default_files[i] = strdup(path);
+        i++;
+        /*
+         * Add a UI layout-specific rc file to the list of default list.  It
+         * seems reasonable to allow client code to have access to this file
+         * to make some basic changes to fonts, via a graphical interface.
+         * Truncate window_xml_file to remove a .extension if one exists, so
+         * that the window positions file can be created with a .gtkrc suffix.
+         * This is a mid-priority client rc file as its settings supersede the
+         * client gtkrc file, but are overridden by a client-configured theme.
+         */
+        strncpy(xml_basename, window_xml_file, MAX_BUF);
+        cp = strrchr(xml_basename, '.');
+        if (cp)
+          cp[0] = 0;
+        snprintf(path, sizeof(path),
+            "%s/.crossfire/%s.gtkrc", getenv("HOME"), xml_basename);
+        default_files[i] = strdup(path);
+        i++;
+        /*
+         * Mark the end of the list of default rc files.
+         */
         default_files[i] = NULL;
     }
+    /*
+     * Whether or not this is default and initial run, we want to register
+     * the modified rc search path list, so GTK needs to get the changes.
+     * It is necessary to reset the the list each time through here each
+     * theme change grows the list.  Only one theme should be in the list
+     * at a time.
+     */
+    gtk_rc_set_default_files(default_files);
 
-    if (!strcmp(theme,"None")) {
-        /*
-         * If this is default and initial run, nothing to do.  If it not
-         * initial run, we need to reset the search path.
-         */
-        if (reload) {
-            gtk_rc_set_default_files(default_files);
-        }
-    } else {
+    /*
+     * If a client-configured theme has been selected (something other than
+     * "None"), then add it to the list of GTK rc files to process.  Since
+     * this file is added last, it takes priority over both the gtkrc and
+     * <layout>.gtkrc files.  Remember, strcmp returns zero on a match, and
+     * a theme file should not be registered if "None" is selected.
+     */
+    if (strcmp(theme, "None")) {
         snprintf(path, MAX_BUF, "%s/%s/%s", CF_DATADIR, themedir, theme);
         /*
-         * Check for existence of file.  Unfortunately, at initial run time,
-         * the window may not be realized, so we can't print this error to the
-         * user directly.
+         * Check for existence of the client theme file.  Unfortunately, at
+         * initial run time, the window may not be realized yet, so the
+         * message cannot be sent to the user directly.  It doesn't hurt to
+         * add the path even if the file isn't there, but the player might
+         * still want to know something is wrong since they picked a theme.
          */
-        if (access(path, R_OK) == -1) {
+        if (access(path, R_OK) == -1)
             LOG(LOG_ERROR, "config.c::load_theme",
                 "Unable to find theme file %s", path);
-            return;
-        }
-        /*
-         * We need to reset the search path, otherwise the effects are
-         * additive.  In practice, we could manipulate pointer so it is just
-         * one call to gtk_rc_set_default_files(), but that is probably more
-         * complicated than just doing these two calls here.
-         */
-        gtk_rc_set_default_files(default_files);
+
         gtk_rc_add_default_file(path);
     }
 
     if (reload) {
         /*
-         * Reload data - so we need to force GTK to reparse and rebind all the
-         * widget data.  Then, we need to call our own functions to reparse the
-         * custom widget handling we do.
+         * Require GTK to reparse and rebind all the widget data.
          */
-        gtk_rc_reparse_all_for_settings(gtk_settings_get_for_screen(gdk_screen_get_default()), TRUE);
-        gtk_rc_reset_styles(gtk_settings_get_for_screen(gdk_screen_get_default()));
+        gtk_rc_reparse_all_for_settings(
+            gtk_settings_get_for_screen(gdk_screen_get_default()), TRUE);
+        gtk_rc_reset_styles(
+            gtk_settings_get_for_screen(gdk_screen_get_default()));
+        /*
+         * Call client functions to reparse the custom widgets it controls.
+         */
         info_get_styles();
         inventory_get_styles();
         stats_get_styles();
         spell_get_styles();
         update_spell_information();
         /*
-         * Set the inv_updated to force a redraw - otherwise it will not
+         * Set inv_updated to force a redraw - otherwise it will not
          * necessarily bind the lists with the new widgets.
-        */
-        cpl.ob->inv_updated = 1;
+         */
         cpl.below->inv_updated = 1;
+        cpl.ob->inv_updated = 1;
         draw_lists();
-
         draw_stats(TRUE);
         draw_message_window(TRUE);
     }

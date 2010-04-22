@@ -1,6 +1,27 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+gtk-v2/src/config.c
+  Extend the client theme handling by adding support for player-accessible
+  style file support.  load_theme() is modified to always look in the player
+  ${HOME}/.crossfire folder for a gtkrc file even when the client theme is
+  None.  This file can serve as a player's private theme file, or could be
+  used just to tweak certain aspects of the client in the same way any other
+  .gtkrc file would.  After looking for the gtkrc file, load_theme() also now
+  looks for a <layout>.gtkrc file.  I.e.  If sixforty.glade is in use, a
+  corresponding ${HOME}/sixforty.gtkrc is processed to make it possible to
+  create layout-specific adjustments.  Both files have the same capabilities
+  as a client theme file, and, in cases where a player might not have write
+  access to the client theme folder, this modification allows the player to
+  use themes by putting them in the .crossfire folder, albeit under fixed
+  names.  This also sets up a mechanism by which the client could one day
+  actually actively maintain (write/update) per-user GTK rc files, but the
+  current goal is primarily to make it easier to customize the client's
+  presentation without having to put a bunch of highly customized files in
+  the distribution.  An in-client-selected theme is loaded last, so as to
+  have a higher priority than either the gtkrc or layout-specific rc files.
+Kevin Bulgrien 2010-04-22
+
 gtk-v2/glade/vi-redux.glade
 gtk-v2/glade/un-deux.glade
 gtk-v2/glade/AUTHORS
