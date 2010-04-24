@@ -1,6 +1,12 @@
 "$Id$"
 Top of SVN tree:
 ------------------------------------------------------------------------------
+
+gtk-v2/src/chthonic.glade
+  Remove the disfunctional scrollbars from around the map.  The layout acts
+  better under different circumstances when they aren't there.
+Kevin Bulgrien 2010-04-23
+
 gtk-v2/src/config.c
   Extend the client theme handling by adding support for player-accessible
   style file support.  load_theme() is modified to always look in the player
