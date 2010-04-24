@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <glade-interface>
-  <requires-version lib="gtk+" version="2.12"/>
+  <!-- interface-requires gtk+ 2.12 -->
+  <!-- interface-naming-policy toplevel-contextual -->
   <widget class="GtkWindow" id="window_root">
     <property name="width_request">1180</property>
     <property name="height_request">925</property>
@@ -464,6 +465,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
@@ -498,6 +500,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -532,6 +535,7 @@
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
                                 <property name="padding">10</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
@@ -546,6 +550,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
+                                    <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -603,6 +608,7 @@
                           </widget>
                           <packing>
                             <property name="expand">False</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
@@ -613,7 +619,7 @@
                               <widget class="GtkScrolledWindow" id="scrolledwindow_inv">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
+                                <property name="hscrollbar_policy">never</property>
                                 <child>
                                   <widget class="GtkViewport" id="viewport_inv">
                                     <property name="visible">True</property>
@@ -995,13 +1001,14 @@
                             <property name="expand">False</property>
                             <property name="fill">False</property>
                             <property name="padding">2</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
                           <widget class="GtkScrolledWindow" id="scrolledwindow_look">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
+                            <property name="hscrollbar_policy">never</property>
                             <child>
                               <widget class="GtkTreeView" id="treeview_look">
                                 <property name="visible">True</property>
@@ -1038,59 +1045,12 @@
                         <property name="border_width">2</property>
                         <property name="show_border">False</property>
                         <child>
-                          <widget class="GtkTable" id="table_map">
+                          <widget class="GtkDrawingArea" id="drawingarea_map">
+                            <property name="width_request">550</property>
+                            <property name="height_request">600</property>
                             <property name="visible">True</property>
-                            <property name="n_rows">2</property>
-                            <property name="n_columns">2</property>
-                            <child>
-                              <widget class="GtkHScrollbar" id="hscrollbar_map">
-                                <property name="visible">True</property>
-                                <property name="adjustment">50 0 100 1 0 0</property>
-                              </widget>
-                              <packing>
-                                <property name="top_attach">1</property>
-                                <property name="bottom_attach">2</property>
-                                <property name="x_options">GTK_FILL</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <widget class="GtkVScrollbar" id="vscrollbar_map">
-                                <property name="visible">True</property>
-                                <property name="adjustment">50 0 100 0 0 0</property>
-                              </widget>
-                              <packing>
-                                <property name="left_attach">1</property>
-                                <property name="right_attach">2</property>
-                                <property name="x_options">GTK_FILL</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <widget class="GtkButton" id="button_map_recenter">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="use_underline">True</property>
-                                <property name="response_id">0</property>
-                              </widget>
-                              <packing>
-                                <property name="left_attach">1</property>
-                                <property name="right_attach">2</property>
-                                <property name="top_attach">1</property>
-                                <property name="bottom_attach">2</property>
-                                <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
-                              </packing>
-                            </child>
-                            <child>
-                              <widget class="GtkDrawingArea" id="drawingarea_map">
-                                <property name="width_request">550</property>
-                                <property name="height_request">600</property>
-                                <property name="visible">True</property>
-                                <signal name="expose_event" handler="on_drawingarea_map_expose_event"/>
-                                <signal name="button_press_event" handler="on_drawingarea_map_button_press_event"/>
-                              </widget>
-                            </child>
+                            <signal name="expose_event" handler="on_drawingarea_map_expose_event"/>
+                            <signal name="button_press_event" handler="on_drawingarea_map_button_press_event"/>
                           </widget>
                         </child>
                         <child>
@@ -1141,7 +1101,7 @@
                               <widget class="GtkFrame" id="frame_messages">
                                 <property name="visible">True</property>
                                 <property name="label_xalign">0</property>
-                                <property name="shadow_type">GTK_SHADOW_NONE</property>
+                                <property name="shadow_type">none</property>
                                 <child>
                                   <widget class="GtkAlignment" id="alignment_messages">
                                     <property name="visible">True</property>
@@ -1149,7 +1109,7 @@
                                       <widget class="GtkScrolledWindow" id="scrolledwindow_textview1">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
+                                        <property name="hscrollbar_policy">never</property>
                                         <child>
                                           <widget class="GtkTextView" id="textview_info1">
                                             <property name="visible">True</property>
@@ -1184,7 +1144,7 @@
                               <widget class="GtkFrame" id="frame_critical_messages">
                                 <property name="visible">True</property>
                                 <property name="label_xalign">0</property>
-                                <property name="shadow_type">GTK_SHADOW_NONE</property>
+                                <property name="shadow_type">none</property>
                                 <child>
                                   <widget class="GtkAlignment" id="alignment_critical_messages">
                                     <property name="visible">True</property>
@@ -1192,7 +1152,7 @@
                                       <widget class="GtkScrolledWindow" id="scrolledwindow_textview2">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
+                                        <property name="hscrollbar_policy">never</property>
                                         <child>
                                           <widget class="GtkTextView" id="textview_info2">
                                             <property name="visible">True</property>
@@ -1224,6 +1184,9 @@
                               </packing>
                             </child>
                           </widget>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
                         </child>
                         <child>
                           <widget class="GtkEntry" id="entry_commands">
@@ -1305,6 +1268,7 @@
                             <property name="expand">False</property>
                             <property name="fill">False</property>
                             <property name="padding">5</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
@@ -1341,6 +1305,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
@@ -1386,6 +1351,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
@@ -1431,6 +1397,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
@@ -1477,6 +1444,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
@@ -1522,6 +1490,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
@@ -1713,6 +1682,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
@@ -1727,6 +1697,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
@@ -1882,6 +1853,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
@@ -1974,6 +1946,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
@@ -2037,6 +2010,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
