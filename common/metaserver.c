@@ -1000,34 +1000,12 @@ int metaserver_select(char *sel) {
 
 #ifdef MS_STANDALONE
 /* This is here just to verify that the code seems to be working
- * properly
+ * properly, this tests both metaserver one and metaserver2
  * To use this code, compile as:
- *  gcc -o metaserver -I. -DMS_STANDALONE metaserver.c
- */
-
-int main(int argc, char *argv[])
-{
-    int i;
-
-    metaserver_get_info(META_SERVER, META_PORT);
-    for (i = 0; i < meta_numservers; i++) {
-        printf("%s:%d:%s:%d:%s:%s\n",
-            meta_servers[i].ip_addr,
-            meta_servers[i].idle_time,
-            meta_servers[i].hostname,
-            meta_servers[i].num_players,
-            meta_servers[i].version,
-            meta_servers[i].text_comment);
-    }
-}
-
-#endif
-
-#ifdef MS2_STANDALONE
-/* This is here just to verify that the code seems to be working
- * properly
- * To use this code, compile as:
- *  gcc -o metaserver -I. -DMS2_STANDALONE metaserver.c misc.o -lcurl -lpthread
+ *  gcc -o metaserver -I. -DMS_STANDALONE metaserver.c misc.o -lcurl -lpthread
+ *  if you only want to have support for one type of server then use either
+ *  -DMS_SA_NOTMS1 or -DMS_SA_NOTMS2 to disable the metaserver you don't want.
+ *  The list of servers goes to stdout, the headers for the tables, status messages etc, go to stderr.
  */
 
 /* Following lines are to cover external symbols not
@@ -1037,31 +1015,55 @@ int main(int argc, char *argv[])
 void draw_ext_info(int orig_color, int type, int subtype, char *message) {}
 int init_connection(char *host, int port) {}
 
-int metaserver_on=1, meta_port=0;
-char *server=NULL, *meta_server;
+int metaserver2_on=1, metaserver_on=1;
+char *server=NULL;
 sint16 use_config[CONFIG_NUMS];
 ClientSocket csocket;
+char *meta_server=META_SERVER;
+int meta_port=META_PORT;
 
-int main(int argc, char *argv[])
-{
+void handle_ms_data(int msservernum) {
     int i;
+	fprintf(stderr,"Collecting data from metaserver %d.", msservernum);
+	while (metaserver_check_status()) {
+		fprintf(stderr,".");
+	    sleep(1);
+	}
+	fprintf(stderr, "\nIp Address:Idle Time:Hostname:Players:Version:Comment\n");
+	for (i = 0; i < meta_numservers; i++) {
+	    printf("%s:%d:%s:%d:%s:%s\n",
+			meta_servers[i].ip_addr,
+			meta_servers[i].idle_time,
+			meta_servers[i].hostname,
+			meta_servers[i].num_players,
+			meta_servers[i].version,
+			meta_servers[i].text_comment);
+	}
+	fprintf(stderr, "%d servers found\n", meta_numservers);
+}
+
+int main(int argc, char *argv[]) {
+
+#ifdef MS_SA_NOTMS2
+	metaserver2_on=0;
+#endif
+#ifdef MS_SA_NOTMS1
+	metaserver_on=0;
+#endif
 
     init_metaserver();
-    metaserver2_get_info();
-    fprintf(stderr,"Collecting data.");
-    while (metaserver2_check_status()) {
-	fprintf(stderr,".");
-	sleep(1);
+    if(metaserver2_on) {
+    	metaserver2_get_info();
+    	handle_ms_data(2);
     }
-    fprintf(stderr,"\n");
-    for (i = 0; i < meta_numservers; i++) {
-        printf("%s:%d:%s:%d:%s:%s\n",
-            meta_servers[i].ip_addr,
-            meta_servers[i].idle_time,
-            meta_servers[i].hostname,
-            meta_servers[i].num_players,
-            meta_servers[i].version,
-            meta_servers[i].text_comment);
+    /* both metaservers use the same array to store the servers in, so we'll
+     * reset it here in order to get the results from the other metaserver. */
+    free(meta_servers);
+    meta_servers=NULL;
+    meta_numservers = 0;
+    if(metaserver_on) {
+    	metaserver1_get_info();
+    	handle_ms_data(1);
     }
 }
 

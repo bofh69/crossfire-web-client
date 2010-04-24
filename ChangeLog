@@ -2,6 +2,11 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+common/metaserver.c: Update the standalone metaserver code so that it works
+properly, merge the standalone versions of for both metaservers, and add a
+some more explanatory text to stdout.
+Brendan Lally 2010-04-24
+
 gtk-v2/src/main.c, common/client.h: Put the name of the glade layout file 
 that is being used in the version string that the client sends to the server.
 Brendan Lally 2010-04-24
