@@ -2,6 +2,14 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Remove the Skills/Experience tab from the core stats notebook in gtk-v2.glade
+as the skills window is better to use.  Tested at 1400x1050, 640x480.  At
+640x480, the inventory/message panel is all the way to the left, but the hpane
+grab bar is visible.  At default client size with no gdefaults2 or gtk-v2.pos,
+the map is to small to work properly, but, if the corestats are pushed down or
+hidden at the bottom of the screen it is playable.
+Kevin Bulgrien 2010-04-23
+
 common/metaserver.c: Update the standalone metaserver code so that it works
 properly, merge the standalone versions of for both metaservers, and add a
 some more explanatory text to stdout.

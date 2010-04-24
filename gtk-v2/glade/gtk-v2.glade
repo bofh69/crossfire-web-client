@@ -1404,136 +1404,6 @@
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkTable" id="table_skills_exp">
-                            <property name="visible">True</property>
-                            <property name="n_rows">6</property>
-                            <property name="n_columns">6</property>
-                            <property name="homogeneous">True</property>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                          </widget>
-                          <packing>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <widget class="GtkLabel" id="label_skills_exp">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Skills &amp; Experience</property>
-                          </widget>
-                          <packing>
-                            <property name="position">1</property>
-                            <property name="tab_fill">False</property>
-                            <property name="type">tab</property>
-                          </packing>
-                        </child>
-                        <child>
                           <widget class="GtkTable" id="table_protections">
                             <property name="visible">True</property>
                             <property name="n_rows">6</property>
@@ -1649,7 +1519,7 @@
                             </child>
                           </widget>
                           <packing>
-                            <property name="position">2</property>
+                            <property name="position">1</property>
                           </packing>
                         </child>
                         <child>
@@ -1658,7 +1528,7 @@
                             <property name="label" translatable="yes">Protections</property>
                           </widget>
                           <packing>
-                            <property name="position">2</property>
+                            <property name="position">1</property>
                             <property name="tab_fill">False</property>
                             <property name="type">tab</property>
                           </packing>
