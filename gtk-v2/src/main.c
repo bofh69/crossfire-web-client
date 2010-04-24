@@ -373,9 +373,9 @@ int parse_args(int argc, char **argv)
     load_defaults();
 
 #ifndef WIN32
-    strcpy(VERSION_INFO,"GTK V2 Unix Client " FULL_VERSION);
+    snprintf(VERSION_INFO, MAX_BUF, "GTK V2 Unix Client %s (using %s)", FULL_VERSION, window_xml_file);
 #else
-    strcpy(VERSION_INFO,"GTK V2 Win32 Client " FULL_VERSION);
+    snprintf(VERSION_INFO, MAX_BUF, "GTK V2 Win32 Client %s (using %s)", FULL_VERSION, window_xml_file);
 #endif
     for (on_arg=1; on_arg<argc; on_arg++) {
         if (!strcmp(argv[on_arg], "-cache")) {

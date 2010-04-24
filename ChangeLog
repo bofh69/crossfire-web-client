@@ -2,6 +2,10 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+gtk-v2/src/main.c, common/client.h: Put the name of the glade layout file 
+that is being used in the version string that the client sends to the server.
+Brendan Lally 2010-04-24
+
 - Remove the disfunctional scrollbars from around the map in most gtk-v2
   .glade files.  The layout acts better under different circumstances when
   they aren't there.  After all these years they've never been used, so no

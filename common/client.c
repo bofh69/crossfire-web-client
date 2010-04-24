@@ -56,7 +56,7 @@ char *server=SERVER;
 char *server=NULL;
 #endif
 
-char VERSION_INFO[256];
+char VERSION_INFO[MAX_BUF];
 
 char *client_libdir=NULL,*meta_server=META_SERVER;
 char *sound_server="cfsndserv";
