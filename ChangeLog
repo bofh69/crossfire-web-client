@@ -2,6 +2,15 @@
 Top of SVN tree:
 ------------------------------------------------------------------------------
 
+Add missing code for account login to display character icons (note server
+code won't be checked in until after 1.50 release).  Add missing function
+declarations to external.h to remove compiler warnings.  Update common/shared
+to latest version.
+common/commands.c: Add support for new attribute.
+common/external.h: Add missing declarations.
+gtk-v2/src/account.c: Update update_character_choose() to display icon.
+MSW 2010-04-24
+
 Remove the Skills/Experience tab from the core stats notebook in gtk-v2.glade
 as the skills window is better to use.  Tested at 1400x1050, 640x480.  At
 640x480, the inventory/message panel is all the way to the left, but the hpane

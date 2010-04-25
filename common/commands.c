@@ -1624,7 +1624,7 @@ void FailureCmd(char *buf, int len) {
  */
 void AccountPlayersCmd(char *buf, int len) {
 
-    int num_characters, level, pos, flen;
+    int num_characters, level, pos, flen, faceno;
     char name[MAX_BUF], class[MAX_BUF], race[MAX_BUF], 
         face[MAX_BUF], party[MAX_BUF], map[MAX_BUF];
 
@@ -1641,6 +1641,7 @@ void AccountPlayersCmd(char *buf, int len) {
     face[0]=0;
     party[0]=0;
     map[0]=0;
+    faceno=0;
 
     /* We don't do anything with this right now */
     num_characters=buf[0];
@@ -1649,7 +1650,7 @@ void AccountPlayersCmd(char *buf, int len) {
         flen = buf[pos];
         /* flen == 0 is to note that we got end of character data */
         if (flen == 0) {
-            update_character_choose(name, class, race, face, party, map, level);
+            update_character_choose(name, class, race, face, party, map, level, faceno);
             /* blank all the values - it is no sure thing that the
              * next character will fill all these in.
              */
@@ -1660,6 +1661,7 @@ void AccountPlayersCmd(char *buf, int len) {
             face[0]=0;
             party[0]=0;
             map[0]=0;
+            faceno=0;
             pos++;
             continue;
         }
@@ -1701,6 +1703,9 @@ void AccountPlayersCmd(char *buf, int len) {
 
         case ACL_LEVEL:
             level = GetShort_String(buf+pos+1);
+            break;
+        case ACL_FACE_NUM:
+            faceno = GetShort_String(buf+pos+1);
             break;
         }
         pos += flen;

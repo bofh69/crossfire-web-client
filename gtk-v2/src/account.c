@@ -514,13 +514,19 @@ on_button_return_login_clicked(GtkButton *button, gpointer user_data)
 void update_character_choose(const char *name, const char *class,
                              const char *race, const char *face, 
                              const char *party, const char *map,
-                             int level)
+                             int level, int faceno)
 {
     GtkTreeIter iter;
 
     gtk_list_store_append(character_store, &iter);
 
-    gtk_list_store_set(character_store, &iter,
+    /* If this pixmap matches pixmap[0], it means we are caching images
+     * and this image hasn't been set up.  It looks better in this case
+     * to just leave that area of the window blank vs drawing
+     * a question mark there.
+     */
+    if (pixmaps[faceno] == pixmaps[0]) {    
+        gtk_list_store_set(character_store, &iter,
                        CHAR_NAME, name,
                        CHAR_CLASS, class,
                        CHAR_RACE, race,
@@ -529,6 +535,18 @@ void update_character_choose(const char *name, const char *class,
                        CHAR_MAP, map,
                        CHAR_LEVEL, level,
                        -1);
+    } else {
+        gtk_list_store_set(character_store, &iter,
+                       CHAR_ICON, pixmaps[faceno]->icon_image,
+                       CHAR_NAME, name,
+                       CHAR_CLASS, class,
+                       CHAR_RACE, race,
+                       CHAR_IMAGE, face,
+                       CHAR_PARTY, party,
+                       CHAR_MAP, map,
+                       CHAR_LEVEL, level,
+                       -1);
+    }
 
 }
 
