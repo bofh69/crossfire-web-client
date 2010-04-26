@@ -1,6 +1,14 @@
 "$Id$"
 Top of SVN tree:
-------------------------------------------------------------------------------
+==============================================================================
+
+==============================================================================
+Changes for 1.50.0
+==============================================================================
+
+common/client.c: Send server deprecated 'newmpcmd 1' setup option - this lets
+the client work properly on old servers.
+MSW 2010-04-25
 
 Add missing code for account login to display character icons (note server
 code won't be checked in until after 1.50 release).  Add missing function
