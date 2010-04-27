@@ -2,7 +2,35 @@
 extern void menu_about(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_about_close_clicked(GtkButton *button, gpointer user_data);
 /* account.c */
-extern void hide_all_login_windows();
+extern void hide_all_login_windows(void);
+extern void create_new_character_failure(char *message);
+extern void on_button_create_new_char_clicked(GtkButton *button, gpointer user_data);
+extern void on_entry_new_character_name(GtkEntry *entry, gpointer user_data);
+extern void on_button_new_char_cancel_clicked(GtkButton *button, gpointer user_data);
+extern void account_add_character_failure(char *message);
+extern void on_button_do_add_character_clicked(GtkButton *button, gpointer user_data);
+extern void on_button_return_character_select_clicked(GtkButton *button, gpointer user_data);
+extern void on_entry_character(GtkEntry *entry, gpointer user_data);
+extern void choose_character_init(void);
+extern void on_button_play_character_clicked(GtkButton *button, gpointer user_data);
+extern void on_button_create_character_clicked(GtkButton *button, gpointer user_data);
+extern void on_button_add_character_clicked(GtkButton *button, gpointer user_data);
+extern void on_button_return_login_clicked(GtkButton *button, gpointer user_data);
+extern void update_character_choose(const char *name, const char *class, const char *race, const char *face, const char *party, const char *map, int level, int faceno);
+extern void on_treeview_choose_character_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
+extern void account_creation_failure(char *message);
+extern void on_button_new_create_account_clicked(GtkButton *button, gpointer user_data);
+extern void on_button_new_cancel_clicked(GtkButton *button, gpointer user_data);
+extern void on_entry_new_account(GtkEntry *entry, gpointer user_data);
+extern void account_login_failure(char *message);
+extern void on_button_create_account_clicked(GtkButton *button, gpointer user_data);
+extern void on_button_go_metaserver_clicked(GtkButton *button, gpointer user_data);
+extern void on_button_exit_client_clicked(GtkButton *button, gpointer user_data);
+extern void on_button_login_clicked(GtkButton *button, gpointer user_data);
+extern void on_entry_account_name_activate(GtkEntry *entry, gpointer user_data);
+extern void on_entry_account_password_activate(GtkEntry *entry, gpointer user_data);
+extern void update_login_info(int type);
+extern void start_login(int method);
 /* config.c */
 extern void load_theme(int reload);
 extern void load_defaults(void);
@@ -22,11 +50,14 @@ extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
 extern void reset_image_data(void);
 extern void image_update_download_status(int start, int end, int total);
 extern void get_map_image_size(int face, uint8 *w, uint8 *h);
-extern void init_cache_data(void);
+extern void init_image_cache_data(void);
 /* info.c */
 extern void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_style);
+extern void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf);
+extern void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style);
 extern void info_get_styles(void);
 extern void info_init(GtkWidget *window_root);
+extern void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int subtype, int orig_color);
 extern void draw_ext_info(int orig_color, int type, int subtype, char *message);
 extern void info_buffer_init(void);
 extern void info_buffer_flush(const int id);
@@ -47,10 +78,6 @@ extern void on_msgctrl_button_defaults_clicked(GtkButton *button, gpointer user_
 extern void on_msgctrl_button_apply_clicked(GtkButton *button, gpointer user_data);
 extern void on_msgctrl_button_close_clicked(GtkButton *button, gpointer user_data);
 extern void on_msgctrl_activate(GtkMenuItem *menuitem, gpointer user_data);
-extern void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style);
-extern void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf);
-extern void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int subtype, int orig_color);
-
 /* inventory.c */
 extern gboolean list_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern void list_row_collapse(GtkTreeView *treeview, GtkTreeIter *iter, GtkTreePath *path, gpointer user_data);
@@ -107,9 +134,10 @@ extern void on_window_destroy_event(GtkObject *object, gpointer user_data);
 extern void do_network(void);
 extern void event_loop(void);
 extern int parse_args(int argc, char **argv);
+extern void error_dialog(char *description, char *information);
+extern void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data);
 extern int main(int argc, char *argv[]);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
-void error_dialog(char *description, char *information);
 /* map.c */
 extern void map_init(GtkWidget *window_root);
 extern void reset_map(void);
@@ -201,13 +229,13 @@ extern int sdl_mapscroll(int dx, int dy);
 /* skills.c */
 extern void update_skill_information(void);
 extern void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void trigger_skill(GtkTreeIter iter, GtkTreeModel *model, int use_skill);
 extern void on_skill_treeview_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
 extern void on_skill_ready_clicked(GtkButton *button, gpointer user_data);
 extern void on_skill_use_clicked(GtkButton *button, gpointer user_data);
 extern void on_skill_close_clicked(GtkButton *button, gpointer user_data);
 /* sound.c */
 extern int init_sounds(void);
-extern void SoundCmd(unsigned char *data, int len);
 extern void Sound2Cmd(unsigned char *data, int len);
 extern void MusicCmd(const char *data, int len);
 /* spells.c */
