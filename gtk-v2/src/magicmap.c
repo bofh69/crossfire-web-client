@@ -80,7 +80,7 @@ void draw_magic_map(void)
     cpl.mapyres = magic_map->allocation.height/cpl.mmapy;
 
     if (cpl.mapxres < 1 || cpl.mapyres<1) {
-        LOG(LOG_WARNING,"gtk::draw_magic_map","magic map resolution less than 1, map is %dx%d",
+        LOG(LOG_WARNING,"gtk-v2::draw_magic_map","magic map resolution less than 1, map is %dx%d",
               cpl.mmapx, cpl.mmapy);
         return;
     }

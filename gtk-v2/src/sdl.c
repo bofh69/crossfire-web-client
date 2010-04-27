@@ -269,7 +269,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 
         if( SDL_Init( SDL_INIT_VIDEO) < 0)
         {
-            LOG(LOG_CRITICAL,"gtk::init_SDL", "Could not initialize SDL: %s", SDL_GetError());
+            LOG(LOG_CRITICAL,"gtk-v2::init_SDL", "Could not initialize SDL: %s", SDL_GetError());
             gtk_main_quit();
         }
 
@@ -1050,7 +1050,7 @@ void sdl_gen_map(int redraw) {
         /* I care about performance for 'long' updates, so put the check in to make
          * these a little more noticable */
         if ((elapsed1 + elapsed2)>10000)
-            LOG(LOG_INFO,"gtk::sdl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
+            LOG(LOG_INFO,"gtk-v2::sdl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
                     elapsed1, elapsed2, elapsed1 + elapsed2);
     }
 } /* sdl_gen_map function */

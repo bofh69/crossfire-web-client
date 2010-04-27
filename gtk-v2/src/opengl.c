@@ -117,7 +117,7 @@ static void init_opengl_common(void)
     glFlush();
 
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
-    LOG(LOG_INFO,"gtk::opengl_common", "Maximum texture size is %d\n", texSize);
+    LOG(LOG_INFO,"gtk-v2::opengl_common", "Maximum texture size is %d\n", texSize);
 }
 
 #ifndef WIN32
@@ -169,19 +169,19 @@ void init_glx_opengl(GtkWidget* drawingarea)
     XMapWindow(display,window);
 
     if (!vi) {
-        LOG(LOG_WARNING,"gtk::init_glx_opengl", "Could not get double buffered screen!\n");
+        LOG(LOG_WARNING,"gtk-v2::init_glx_opengl", "Could not get double buffered screen!\n");
     }
 
     ctx = glXCreateContext(display, vi, 0, GL_TRUE);
 
     if (!glXMakeCurrent(display, window, ctx)) {
-        LOG(LOG_ERROR,"gtk::init_glx_opengl", "Could not set opengl context!\n");
+        LOG(LOG_ERROR,"gtk-v2::init_glx_opengl", "Could not set opengl context!\n");
         exit(1);
     }
     if (glXIsDirect(display, ctx))
-        LOG(LOG_INFO,"gtk::init_glx_opengl", "Direct rendering is available!\n");
+        LOG(LOG_INFO,"gtk-v2::init_glx_opengl", "Direct rendering is available!\n");
     else
-        LOG(LOG_INFO,"gtk::init_glx_opengl", "Direct rendering is not available!\n");
+        LOG(LOG_INFO,"gtk-v2::init_glx_opengl", "Direct rendering is not available!\n");
 
 }
 #endif /* #ifndef WIN32 */
@@ -836,7 +836,7 @@ void opengl_gen_map(int redraw) {
          * make these a little more noticable
          */
         if ((elapsed1 + elapsed2)>10000)
-            LOG(LOG_INFO,"gtk::opengl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
+            LOG(LOG_INFO,"gtk-v2::opengl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
                     elapsed1, elapsed2, elapsed1 + elapsed2);
     }
 } /* opengl_gen_map function */

@@ -84,7 +84,7 @@ menu_quit_program                       (GtkMenuItem     *menuitem,
     script_killall();
 #endif
 
-    LOG(LOG_INFO,"gtk::client_exit","Exiting with return value 0.");
+    LOG(LOG_INFO,"gtk-v2::client_exit","Exiting with return value 0.");
     exit(0);
 
 }

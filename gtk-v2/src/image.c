@@ -132,7 +132,7 @@ static void create_icon_image(uint8 *data, PixmapInfo *pi, int pixmap_num)
     pi->icon_mask = NULL;
     if (rgba_to_gdkpixbuf(data, pi->icon_width, pi->icon_height,
                 (GdkPixbuf**)&pi->icon_image))
-                    LOG (LOG_ERROR,"gtk::create_icon_image","Unable to create scaled image, dest num = %d\n", pixmap_num);
+                    LOG (LOG_ERROR,"gtk-v2::create_icon_image","Unable to create scaled image, dest num = %d\n", pixmap_num);
 }
 
 /**
@@ -570,7 +570,7 @@ void init_image_cache_data(void)
 #include "../../pixmaps/question.xpm"
 
 
-    LOG(LOG_INFO,"gtk::init_image_cache_data","Init Image Cache");
+    LOG(LOG_INFO,"gtk-v2::init_image_cache_data","Init Image Cache");
 
     style = gtk_widget_get_style(window_root);
     pixmaps[0] = malloc(sizeof(PixmapInfo));

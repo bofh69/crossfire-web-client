@@ -118,7 +118,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
     if (!use_config[CONFIG_SOUND]) return;
     if ( (fprintf(sound_pipe,"%4x %4x %4x %4x\n",soundnum,soundtype,x,y)<=0) ||
          (fflush(sound_pipe)!=0) ){
-        LOG(LOG_ERROR,"gtk::play_sound","couldn't write to sound pipe: %d",errno);
+        LOG(LOG_ERROR,"gtk-v2::play_sound","couldn't write to sound pipe: %d",errno);
         use_config[CONFIG_SOUND]=0;
         fclose(sound_pipe);
         sound_process=NULL;
@@ -137,7 +137,7 @@ void Sound2Cmd(unsigned char *data, int len)
     /* sound2 <x><y><dir><volume><type><len of action>action<len of name>name */
     /*         b  b  b    b       b     b             str    b           str*/
     if (len<8) {
-        LOG(LOG_WARNING, "gtk::Sound2Cmd", "Got too short length on sound2 command: %d\n", len);
+        LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Got too short length on sound2 command: %d\n", len);
         return;
     }
     x = data[0];
@@ -148,7 +148,7 @@ void Sound2Cmd(unsigned char *data, int len)
     len_action = data[5];
     /* Prevent invald index. */
     if (len_action >= (len-8)) {
-        LOG(LOG_WARNING, "gtk::Sound2Cmd", "Bad length of \"len of action\" in sound2 command: %d\n", len);
+        LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Bad length of \"len of action\" in sound2 command: %d\n", len);
         return;
     }
     if (len_action != 0) {
@@ -158,18 +158,18 @@ void Sound2Cmd(unsigned char *data, int len)
     /* Lets make it readable, compiler will optimize the addition order anyway*/
     len_name = data[6+len_action+1];
     if (len_name >= (len-8-len_action)) {
-        LOG(LOG_WARNING, "gtk::Sound2Cmd", "Bad length of \"len of name\" in sound2 command: %d\n", len);
+        LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Bad length of \"len of name\" in sound2 command: %d\n", len);
         return;
     }
     if (len_name != 0) {
         name = (char*)data+6+len_action+1;
         data[6+len_action+1+len_name]='\0';
     }
-    LOG(LOG_WARNING, "gtk::Sound2Cmd", "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd\n",
+    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd\n",
         x, y, dir, volume, type);
-    LOG(LOG_WARNING, "gtk::Sound2Cmd", "               len_action=%hhd action=%s\n", len_action, action);
-    LOG(LOG_WARNING, "gtk::Sound2Cmd", "               len_name=%hhd name=%s\n", len_name, name);
-    LOG(LOG_WARNING, "gtk::Sound2Cmd", "Please impement sound2!");
+    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "               len_action=%hhd action=%s\n", len_action, action);
+    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "               len_name=%hhd name=%s\n", len_name, name);
+    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Please impement sound2!");
     /* TODO: Play sound here. Can't implement/test as server never actually
      * sends this yet it seems. As this code is mostly duplicated between the
      * different clients, make sure to update the other ones too.
@@ -182,7 +182,7 @@ void MusicCmd(const char *data, int len) {
     if (!strncmp(data, "NONE", len)) {
         /* TODO stop music */
     } else {
-        LOG(LOG_WARNING, "gtk::MusicCmd", "music command: %s (Implement me!)\n", data);
+        LOG(LOG_WARNING, "gtk-v2::MusicCmd", "music command: %s (Implement me!)\n", data);
         /* TODO: Play music. Can't impmement/test as server doesn't send this
          * version of the command yet it seems.
          */

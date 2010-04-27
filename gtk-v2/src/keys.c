@@ -229,7 +229,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
 
     if (buf[0]=='#' || buf[0]=='\n') return;
     if ((cpnext = strchr(buf,' '))==NULL) {
-        LOG(LOG_WARNING,"gtk::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
+        LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
         return;
     }
     /* Special keybinding line */
@@ -238,20 +238,20 @@ static void parse_keybind_line(char *buf, int line, int standard)
         while (*cpnext == ' ') ++cpnext;
         cp = strchr(cpnext, ' ');
         if (!cp) {
-            LOG(LOG_WARNING,"gtk::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
+            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
             return;
         }
         *cp++ = 0;  /* Null terminate it */
         cp1 = strchr(cp, ' ');
         if (!cp1) {
-            LOG(LOG_WARNING,"gtk::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
+            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
             return;
         }
         *cp1 ++ = 0;/* Null terminate it */
         keysym = gdk_keyval_from_name(cp);
         /* As of now, all these keys must have keysyms */
         if (keysym == 0) {
-            LOG(LOG_WARNING,"gtk::parse_keybind_line","Could not convert %s into keysym", cp);
+            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Could not convert %s into keysym", cp);
             return;
         }
         if (!strcmp(cpnext,"commandkey")) {
@@ -309,19 +309,19 @@ static void parse_keybind_line(char *buf, int line, int standard)
         *cpnext++ = '\0';
         keysym = gdk_keyval_from_name(buf);
         if (!keysym) {
-            LOG(LOG_WARNING,"gtk::parse_keybind_line","Unable to convert line %d (%s) into keysym", line, cp);
+            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Unable to convert line %d (%s) into keysym", line, cp);
             return;
         }
         cp = cpnext;
         if ((cpnext = strchr(cp,' '))==NULL) {
-            LOG(LOG_WARNING,"gtk::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line, cp);
+            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line, cp);
             return;
         }
         *cpnext++ = '\0';
 
         cp = cpnext;
         if ((cpnext = strchr(cp,' '))==NULL) {
-            LOG(LOG_WARNING,"gtk::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line, cp);
+            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line, cp);
             return;
         }
         *cpnext++ = '\0';
@@ -354,7 +354,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
                     flags |= KEYF_STANDARD;
                     break;
                 default:
-                    LOG(LOG_WARNING,"gtk::parse_keybind_line","Unknown flag (%c) line %d in key binding file",
+                    LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Unknown flag (%c) line %d in key binding file",
                             *cp, line);
             }
             cp++;
@@ -364,7 +364,7 @@ static void parse_keybind_line(char *buf, int line, int standard)
         cpnext[strlen(cpnext)-1]='\0';
         if (strlen(cpnext)>(sizeof(bind_buf)-1)){
             cpnext[sizeof(bind_buf)-1]='\0';
-            LOG(LOG_WARNING,"gtk::parse_keybind_line","Command too long! Truncated.");
+            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Command too long! Truncated.");
         }
 
         insert_key(keysym, flags | standard, cpnext);
@@ -565,7 +565,7 @@ void keys_init(GtkWidget *window_root)
                                              GTK_SORT_ASCENDING);
 
     if ((fp=fopen(buf,"r"))==NULL) {
-        LOG(LOG_INFO,"gtk::init_keys","Could not open ~/.crossfire/keys, trying to load global bindings");
+        LOG(LOG_INFO,"gtk-v2::init_keys","Could not open ~/.crossfire/keys, trying to load global bindings");
         if (client_libdir==NULL) {
             init_default_keybindings();
             return;
@@ -1105,7 +1105,7 @@ static void save_keys(void)
 #endif
 
     if (make_path_to_file(buf)==-1) {
-        LOG(LOG_WARNING,"gtk::save_keys","Could not create %s", buf);
+        LOG(LOG_WARNING,"gtk-v2::save_keys","Could not create %s", buf);
         return;
     }
     if ((fp=fopen(buf,"w"))==NULL) {
@@ -1337,7 +1337,7 @@ void unbind_key(const char *params)
                         goto unbinded;
                     }
                 }
-                LOG(LOG_ERROR, "gtk:unbind_key",
+                LOG(LOG_ERROR, "gtk-v2::unbind_key",
                     "found number entry, but could not find actual key");
             }
         }
@@ -1507,7 +1507,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                     break;
 
                 default:
-                    LOG(LOG_ERROR, "gtk:keyfunc",
+                    LOG(LOG_ERROR, "gtk-v2::keyfunc",
                         "Unknown input state: %d", cpl.input_state);
             }
         }

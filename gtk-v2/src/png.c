@@ -201,7 +201,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 
     if (!pixels) {
         png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-        LOG(LOG_CRITICAL,"gtk::png_to_data","Out of memory - exiting");
+        LOG(LOG_CRITICAL,"gtk-v2::png_to_data","Out of memory - exiting");
         exit(1);
     }
 
@@ -281,7 +281,7 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
     if (*width > MAX_IMAGE_WIDTH || new_width > MAX_IMAGE_WIDTH
     || *height > MAX_IMAGE_HEIGHT || new_height > MAX_IMAGE_HEIGHT)
     {
-        LOG(LOG_CRITICAL,"gtk::rescale_rgba_data","Image too big");
+        LOG(LOG_CRITICAL,"gtk-v2::rescale_rgba_data","Image too big");
         exit(0);
     }
 

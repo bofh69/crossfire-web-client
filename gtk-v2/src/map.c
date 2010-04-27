@@ -552,7 +552,7 @@ void gtk_draw_map(int redraw) {
          * make these a little more noticable
          */
         if ((elapsed1 + elapsed2)>10000)
-            LOG(LOG_INFO,"gtk::sdl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
+            LOG(LOG_INFO,"gtk-v2::sdl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
                     elapsed1, elapsed2, elapsed1 + elapsed2);
     }
 }
