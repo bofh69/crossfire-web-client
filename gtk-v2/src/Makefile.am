@@ -22,7 +22,9 @@
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-	-I$(top_srcdir)/common -I$(top_srcdir)/help \
+	-I$(top_srcdir)/common -I$(top_srcdir)/help
+
+AM_CFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	@LIBGLADE_CFLAGS@ \
 	@SDL_CFLAGS@
@@ -30,7 +32,7 @@ INCLUDES = \
 bin_PROGRAMS = crossfire-client-gtk2
 
 PROTO_SOURCES = \
-    about.c \
+	about.c \
 	account.c \
 	config.c \
 	image.c \
@@ -57,6 +59,12 @@ crossfire_client_gtk2_SOURCES = \
 
 crossfire_client_gtk2_LDADD = ../../common/libcfclient.a $(PTHREAD_LIBS) @LIBGLADE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@
 
+# $(PTHREAD_CFLAGS) is deliberately omitted.  It breaks this target when it
+# puts in -pthread as this string is then interpreted as a cproto command
+# line option list.
+#
 proto:
-	cproto -e -o gtk2proto.h  $(SDL_CFLAGS) $(LIBGLADE_CFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) $(PROTO_SOURCES)
+	cproto -e -o gtk2proto.h \
+	    $(SDL_CFLAGS) $(LIBGLADE_CFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	    $(PROTO_SOURCES); \
 	chmod 644 gtk2proto.h
