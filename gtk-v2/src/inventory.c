@@ -251,7 +251,7 @@ gboolean list_selection_func (
     /* Get the current event so we can know if shift is pressed */
     event = (GdkEventButton*)gtk_get_current_event();
     if (!event) {
-        LOG(LOG_ERROR,"inventory.c:list_selection_func", "Unable to get event structure\n");
+        LOG(LOG_ERROR,"inventory.c::list_selection_func", "Unable to get event structure\n");
         return FALSE;
     }
 
@@ -261,7 +261,7 @@ gboolean list_selection_func (
         gtk_tree_model_get(model, &iter, LIST_OBJECT, &tmp, -1);
 
         if (!tmp) {
-            LOG(LOG_ERROR,"inventory.c:list_selection_func", "Unable to get item structure\n");
+            LOG(LOG_ERROR,"inventory.c::list_selection_func", "Unable to get item structure\n");
             return FALSE;
         }
         list_item_action(event, tmp);
@@ -530,7 +530,7 @@ void inventory_init(GtkWidget *window_root)
 
     /* If all the data is set up properly, these should match */
     if (num_inv_notebook_pages != NUM_INV_LISTS) {
-        LOG(LOG_ERROR,"inventory.c:inventory_init",
+        LOG(LOG_ERROR,"inventory.c::inventory_init",
             "num_inv_notebook_pages (%d) does not match NUM_INV_LISTS(%d)\n",
             num_inv_notebook_pages, NUM_INV_LISTS);
     }

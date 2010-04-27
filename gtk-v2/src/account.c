@@ -578,7 +578,7 @@ void on_treeview_choose_character_activated(GtkTreeView *treeview,
         gtk_tree_model_get(model, &iter, CHAR_NAME, &name, -1);
 
         if (!name) {
-            LOG(LOG_ERROR,"account.c:on_treeview_choose_character_activated", "unable to get character name");
+            LOG(LOG_ERROR,"account.c::on_treeview_choose_character_activated", "unable to get character name");
             return;
         }
         play_character(name);

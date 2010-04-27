@@ -1862,7 +1862,7 @@ on_keybinding_button_remove_clicked    (GtkButton       *button,
     int onkey;
 
     if (!gtk_tree_selection_get_selected(keybinding_selection, &model, &iter)) {
-        LOG(LOG_ERROR, "keys.c:on_keybinding_button_remove_clicked",
+        LOG(LOG_ERROR, "keys.c::on_keybinding_button_remove_clicked",
             "Function called with nothing selected\n");
         return;
     }
@@ -1891,7 +1891,7 @@ on_keybinding_button_remove_clicked    (GtkButton       *button,
             }
         }
     }
-    LOG(LOG_ERROR, "keys.c:on_keybinding_button_remove_clicked",
+    LOG(LOG_ERROR, "keys.c::on_keybinding_button_remove_clicked",
         "Unable to find matching key entry\n");
 
 unbinded:
@@ -1962,7 +1962,7 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
     *keysym = gdk_keyval_from_name(
         gtk_entry_get_text(GTK_ENTRY(keybinding_entry_key)));
     if (*keysym == GDK_VoidSymbol) {
-        LOG(LOG_ERROR, "keys.c:keybinding_get_data",
+        LOG(LOG_ERROR, "keys.c::keybinding_get_data",
             "Cannot get valid keysym from selection");
     }
 }
@@ -2018,7 +2018,7 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
         gtk_tree_model_get(model, &iter, KLIST_KEY_ENTRY, &entry, -1);
 
         if (!entry) {
-            LOG(LOG_ERROR, "keys.c:on_keybinding_button_update_clicked",
+            LOG(LOG_ERROR, "keys.c::on_keybinding_button_update_clicked",
                 "Unable to get key_entry structure\n");
             return;
         }
@@ -2028,7 +2028,7 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
         update_keybinding_list();
         save_keys();
     } else {
-        LOG(LOG_ERROR, "keys.c:on_keybinding_button_update_clicked",
+        LOG(LOG_ERROR, "keys.c::on_keybinding_button_update_clicked",
             "Nothing selected to update\n");
     }
 }
@@ -2076,7 +2076,7 @@ gboolean keybinding_selection_func (
         gtk_tree_model_get(model, &iter, KLIST_KEY_ENTRY, &entry, -1);
 
         if (!entry) {
-            LOG(LOG_ERROR, "keys.c:keybinding_selection_func",
+            LOG(LOG_ERROR, "keys.c::keybinding_selection_func",
                 "Unable to get key_entry structure\n");
             return FALSE;
         }

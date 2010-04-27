@@ -201,7 +201,7 @@ void trigger_skill(GtkTreeIter iter, GtkTreeModel *model, int use_skill) {
 	char *commandname;
 	gtk_tree_model_get(model, &iter, LIST_NAME, &skname, -1);
 	if (!skname) {
-		LOG(LOG_ERROR,"skills.c:trigger_skill", "Unable to get skill name\n");
+		LOG(LOG_ERROR,"skills.c::trigger_skill", "Unable to get skill name\n");
 	    return;
 	}
 	commandname = use_skill?"use_skill":"ready_skill";

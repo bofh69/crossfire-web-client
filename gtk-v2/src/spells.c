@@ -380,7 +380,7 @@ on_spell_treeview_row_activated        (GtkTreeView     *treeview,
         gtk_tree_model_get(model, &iter, LIST_TAG, &tag, -1);
 
         if (!tag) {
-            LOG(LOG_ERROR,"spells.c:on_spell_cast_clicked", "Unable to get spell tag\n");
+            LOG(LOG_ERROR,"spells.c::on_spell_cast_clicked", "Unable to get spell tag\n");
             return;
         }
         snprintf(command, MAX_BUF-1, "cast %d %s", tag, options);
@@ -409,7 +409,7 @@ on_spell_cast_clicked                  (GtkButton       *button,
         gtk_tree_model_get(model, &iter, LIST_TAG, &tag, -1);
 
         if (!tag) {
-            LOG(LOG_ERROR,"spells.c:on_spell_cast_clicked", "Unable to get spell tag\n");
+            LOG(LOG_ERROR,"spells.c::on_spell_cast_clicked", "Unable to get spell tag\n");
             return;
         }
         snprintf(command, MAX_BUF-1, "cast %d %s", tag, options);
@@ -439,7 +439,7 @@ on_spell_invoke_clicked                 (GtkButton       *button,
         gtk_tree_model_get(model, &iter, LIST_TAG, &tag, -1);
 
         if (!tag) {
-            LOG(LOG_ERROR,"spells.c:on_spell_invoke_clicked", "Unable to get spell tag\n");
+            LOG(LOG_ERROR,"spells.c::on_spell_invoke_clicked", "Unable to get spell tag\n");
             return;
         }
         snprintf(command, MAX_BUF-1, "invoke %d %s", tag, options);
