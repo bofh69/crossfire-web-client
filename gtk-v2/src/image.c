@@ -563,14 +563,14 @@ void get_map_image_size(int face, uint8 *w, uint8 *h)
  * the image to use when OpenGL mode is in effect.
  *
  */
-void init_cache_data(void)
+void init_image_cache_data(void)
 {
     int i;
     GtkStyle *style;
 #include "../../pixmaps/question.xpm"
 
 
-    LOG(LOG_INFO,"gtk::init_cache_data","Init Cache");
+    LOG(LOG_INFO,"gtk::init_image_cache_data","Init Image Cache");
 
     style = gtk_widget_get_style(window_root);
     pixmaps[0] = malloc(sizeof(PixmapInfo));

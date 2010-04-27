@@ -844,7 +844,7 @@ main (int argc, char *argv[])
     snprintf( file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv( "HOME" ) );
     cached_server_file = file_cache;
 
-    init_cache_data();
+    init_image_cache_data();
 
     /* Loop to connect to server/metaserver and play the game */
     while (1) {
