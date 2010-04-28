@@ -303,17 +303,17 @@ int init_connection(char *host, int port)
          * Try to create a socket.
          */
 	fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-	if (fd < 0) {
+	if (fd == -1) {
             LOG (LOG_ERROR,
                 "common::init_connection","Error creating socket (%d %s)\n",
                     errno, strerror(errno));
-            fd = -1;
             continue;
         }
         /*
          * Set the socket to non-blocking mode.
          */
-        if ((fd_flags = fcntl(fd, F_GETFL, NULL)) < 0) {
+        fd_flags = fcntl(fd, F_GETFL, NULL);
+        if (fd_flags == -1) {
             LOG (LOG_ERROR,
                 "common::init_connection","Error fcntl(fd, F_GETFL) (%s)\n",
                      strerror(errno));
@@ -321,7 +321,7 @@ int init_connection(char *host, int port)
             break;
         }
         fd_flags |= O_NONBLOCK;
-        if (fcntl(fd, F_SETFL, fd_flags) < 0) {
+        if (fcntl(fd, F_SETFL, fd_flags) == -1) {
             LOG (LOG_ERROR,
                 "common::init_connection","Error fcntl(fd, F_SETFL) (%s)\n",
                      strerror(errno));
@@ -332,7 +332,7 @@ int init_connection(char *host, int port)
          * Try to connect in non-blocking mode to avoid an extended client
          * lockup in the event that the connection fails for some reason.
          */
-        if (connect(fd, ai->ai_addr, ai->ai_addrlen) < 0) {
+        if (connect(fd, ai->ai_addr, ai->ai_addrlen) == -1) {
             /*
              * Assume the connection will fail...
              */
@@ -350,7 +350,7 @@ int init_connection(char *host, int port)
                     FD_ZERO(&fdset);
                     FD_SET(fd, &fdset);
                     fd_select = select(fd+1, NULL, &fdset, NULL, &tv);
-                    if (fd_select < 0 && errno != EINTR) {
+                    if (fd_select == -1 && errno != EINTR) {
                         LOG (LOG_ERROR, "common::init_connection",
                             "Error connecting %d - %s\n",
                                 errno, strerror(errno));
@@ -392,16 +392,18 @@ int init_connection(char *host, int port)
             /*
              * Set the socket to blocking mode.
              */
-            if ((fd_flags = fcntl(fd, F_GETFL, NULL)) < 0) {
+            fd_flags = fcntl(fd, F_GETFL, NULL);
+            if (fd_flags == -1) {
                 LOG (LOG_ERROR, "common::init_connection",
                     "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
                 fd_status = -1;
-            }
-            fd_flags &= (~O_NONBLOCK);
-            if (fcntl(fd, F_SETFL, fd_flags) < 0) {
-                LOG (LOG_ERROR, "common::init_connection",
-                    "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
-                fd_status = -1;
+            } else {
+                fd_flags &= (~O_NONBLOCK);
+                if (fcntl(fd, F_SETFL, fd_flags) == -1) {
+                    LOG (LOG_ERROR, "common::init_connection",
+                        "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+                    fd_status = -1;
+                }
             }
         }
         break;
