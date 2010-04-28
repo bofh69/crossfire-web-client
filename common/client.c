@@ -215,8 +215,13 @@ void DoClient(ClientSocket *csocket)
 #include <arpa/inet.h>
 #endif
 
-/* returns the fd of the connected socket, -1 on failure. */
-
+/**
+ * Return the file descripter of a connected socket, -1 on failure.  In the
+ * case where HAVE_GETADDRINFO is true, a timeout connect() is implemented to
+ * avoid very long (3 minute) client freeze-up when a host is not reachable.
+ * It is easy for this to happen if a cached server entry is used instead of
+ * metaserver results.
+ */
 int init_connection(char *host, int port)
 {
     int fd = -1, oldbufsize, newbufsize=65535;
@@ -225,7 +230,7 @@ int init_connection(char *host, int port)
     struct sockaddr_in insock;
     struct protoent *protox;
 
-    /* In my cases, an empty host will be saved as (null) in
+    /* In my case, an empty host will be saved as (null) in
      * the defaults file.  However, upon loading, that doesn't
      * show up as a NULL, but rather this string.  For whatever
      * reasons, at least on my system, the lookup of this takes
@@ -246,6 +251,7 @@ int init_connection(char *host, int port)
 	    LOG (LOG_ERROR,"common::init_connection", "Error on socket command");
 	return -1;
     }
+
     insock.sin_family = AF_INET;
     insock.sin_port = htons((unsigned short)port);
     if (isdigit(*host))
@@ -259,16 +265,21 @@ int init_connection(char *host, int port)
 	}
 	memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
     }
+
     if (connect(fd,(struct sockaddr *)&insock,sizeof(insock)) == (-1))
     {
         LOG (LOG_ERROR,"common::init_connection","Can't connect to server");
 	    perror("Can't connect to server");
 	    return -1;
     }
+
 #else
     struct addrinfo hints;
     struct addrinfo *res = NULL, *ai;
     char port_str[6];
+    int fd_status, fd_flags, fd_select, fd_sockopt;
+    struct timeval tv;
+    fd_set fdset;
 
     /* See note in section above about null hosts names */
     if (!strcmp(host,"(null)")) return -1;
@@ -283,21 +294,126 @@ int init_connection(char *host, int port)
     if (getaddrinfo(host, port_str, &hints, &res) != 0)
 	return -1;
 
+    /*
+     * Assume that an error will not occur and that the socket is left open.
+     */
+    fd_status = 0;
     for (ai = res; ai != NULL; ai = ai->ai_next) {
+        /*
+         * Try to create a socket.
+         */
 	fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-	if (fd == -1)
-	    continue;
+	if (fd < 0) {
+            LOG (LOG_ERROR,
+                "common::init_connection","Error creating socket (%d %s)\n",
+                    errno, strerror(errno));
+            fd = -1;
+            continue;
+        }
+        /*
+         * Set the socket to non-blocking mode.
+         */
+        if ((fd_flags = fcntl(fd, F_GETFL, NULL)) < 0) {
+            LOG (LOG_ERROR,
+                "common::init_connection","Error fcntl(fd, F_GETFL) (%s)\n",
+                     strerror(errno));
+            fd_status = -1;
+            break;
+        }
+        fd_flags |= O_NONBLOCK;
+        if (fcntl(fd, F_SETFL, fd_flags) < 0) {
+            LOG (LOG_ERROR,
+                "common::init_connection","Error fcntl(fd, F_SETFL) (%s)\n",
+                     strerror(errno));
+            fd_status = -1;
+            break;
+        }
+        /*
+         * Try to connect in non-blocking mode to avoid an extended client
+         * lockup in the event that the connection fails for some reason.
+         */
+        if (connect(fd, ai->ai_addr, ai->ai_addrlen) < 0) {
+            /*
+             * Assume the connection will fail...
+             */
+            fd_status = -1;
+            if (errno == EINPROGRESS) {
+                do {
+                    /*
+                     * Do not block more than the amount of time specified
+                     * here.  Prior to implementation of this timeout, the
+                     * client was observed to freeze up for three minutes or
+                     * so when the connection failed.
+                     */
+                    tv.tv_sec = 30;
+                    tv.tv_usec = 0;
+                    FD_ZERO(&fdset);
+                    FD_SET(fd, &fdset);
+                    fd_select = select(fd+1, NULL, &fdset, NULL, &tv);
+                    if (fd_select < 0 && errno != EINTR) {
+                        LOG (LOG_ERROR, "common::init_connection",
+                            "Error connecting %d - %s\n",
+                                errno, strerror(errno));
+                        break;
+                    } else if (fd_select > 0) {
+                        /*
+                         * Socket selected for write.
+                         */
+                        if (getsockopt(fd, SOL_SOCKET, SO_ERROR,
+                                (void*)(&fd_sockopt), &buflen)) {
+                            LOG (LOG_ERROR, "common::init_connection",
+                                "Error in getsockopt %d - %s\n",
+                                    errno, strerror(errno));
+                            break;
+                        }
+                        if (fd_sockopt) {
+                            LOG (LOG_ERROR, "common::init_connection",
+                                "Error in delayed connection %d - %s\n",
+                                    fd_sockopt, strerror(fd_sockopt));
+                            break;
+                        }
+                        /*
+                         * The assumption was wrong: the connection succeeded.
+                         */
+                        fd_status = 0;
+                        break;
+                    } else {
+                        LOG (LOG_ERROR,"common::init_connection","Timeout\n");
+                        break;
+                    }
+                } while (1);
+            } else {
+                LOG (LOG_ERROR, "common::init_connection",
+                    "Error connecting %d - %s\n", errno, strerror(errno));
+                break;
+            }
+        }
+        if (! fd_status) {
+            /*
+             * Set the socket to blocking mode.
+             */
+            if ((fd_flags = fcntl(fd, F_GETFL, NULL)) < 0) {
+                LOG (LOG_ERROR, "common::init_connection",
+                    "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+                fd_status = -1;
+            }
+            fd_flags &= (~O_NONBLOCK);
+            if (fcntl(fd, F_SETFL, fd_flags) < 0) {
+                LOG (LOG_ERROR, "common::init_connection",
+                    "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+                fd_status = -1;
+            }
+        }
+        break;
+    }
 
-	if (connect(fd, ai->ai_addr, ai->ai_addrlen) != 0) {
-	    close(fd);
-	    fd = -1;
-	    continue;
-	}
-
-	break;
+    if (fd_status) {
+        close(fd);
+        fd = -1;
     }
 
     freeaddrinfo(res);
+
     if (fd == -1)
 	return -1;
 #endif
@@ -339,7 +455,7 @@ int init_connection(char *host, int port)
 
     if (oldbufsize<newbufsize) {
 	if(setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&newbufsize, sizeof(&newbufsize))) {
-            LOG(LOG_WARNING,"InitConnection: setsockopt"," unable to set output buf size to %d", newbufsize);
+            LOG(LOG_WARNING,"common::init_connection: setsockopt"," unable to set output buf size to %d", newbufsize);
 	    setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&oldbufsize, sizeof(&oldbufsize));
 	}
     }

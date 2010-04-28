@@ -6,6 +6,14 @@ Top of SVN tree:
 Changes for 1.50.0
 ==============================================================================
 
+In the case where HAVE_GETADDRINFO is available (not WIN32), a timeout is now
+implemented when establishing a connection with a server.  The timeout is
+presently hard-coded at 30 seconds.  Prior to this, if a connection attempt
+failed, the client was observed to lock up hard for three minutes.  Half a
+minute is still pretty harsh, but a DNS lookup failure can take 30 seconds, so
+it may be wiser to wait at least as long before bailing out on the attempt.
+Kevin Bulgrien 2010-04-28
+
 common/client.c: Send server deprecated 'newmpcmd 1' setup option - this lets
 the client work properly on old servers.
 MSW 2010-04-25
