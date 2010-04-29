@@ -179,6 +179,77 @@ static void metaserver_save_cache(void) {
     fclose(cache);
 }
 
+/**
+ * Add a server to the players server cache file.
+ * @parm name
+ * @parm ip
+ * @return
+ */
+void metaserver_update_cache(const char *server_name, const char *server_ip) {
+    int index;
+
+    /*
+     * Try to find the given server name in the existing server cache.  If the
+     * zero-based index ends up equal to the one-based number of cached
+     * servers, it was not found.
+     */
+    for (index = 0; index < cached_servers_num; index++) {
+        if (strcmp(server_name, cached_servers_name[index]) == 0) {
+            break;
+        }
+    }
+
+    /*
+     * If server is already first in the cache list, nothing else needs to be
+     * done, otherwise, the server needs to be cached.
+     */
+    if (index != 0 || !cached_servers_num) {
+        char *name;
+        char *ip;
+        int  copy;
+
+        if (index == cached_servers_num) {
+            /*
+             * If the server was not found in the cache, expand the cache size
+             * by one unless that creates too many entries.
+             */
+            name = strdup(server_name);
+            ip = strdup(server_ip);
+            cached_servers_num++;
+            if (cached_servers_num > CACHED_SERVERS_MAX) {
+                cached_servers_num--;
+                free(cached_servers_name[cached_servers_num-1]);
+                free(cached_servers_ip[cached_servers_num-1]);
+            }
+        } else {
+            /*
+             * If the server was already listed in the cache, grab a copy of
+             * the prior listing.
+             */
+            name = cached_servers_name[index];
+            ip = cached_servers_ip[index];
+        }
+
+        /*
+         * If the server as already listed, move all the cached items above
+         * the listing down a slot, otherwise, move the whole list down a
+         * notch.  This "empties" the top slot.
+         */
+        for (copy = MIN(index, CACHED_SERVERS_MAX-1); copy > 0; copy--) {
+            cached_servers_name[copy] = cached_servers_name[copy-1];
+            cached_servers_ip[copy] = cached_servers_ip[copy-1];
+        }
+
+        /*
+         * Put the added server information at the top of the cache list, and
+         * save the changes.
+         */
+        cached_servers_name[0] = name;
+        cached_servers_ip[0] = ip;
+        metaserver_save_cache();
+    }
+}
+
 /*****************************************************************************
  * End of cache related functions.
  *****************************************************************************/
@@ -891,7 +962,8 @@ void metaserver_show(int show_selection) {
     pthread_mutex_unlock(&ms2_info_mutex);
 }
 
-/* String contains the selection that the player made for the metaserver.
+/**
+ * String contains the selection that the player made for the metaserver.
  * this may not be a a selection, but could be a host name or ip address.
  * this returns 0 on sucessful selection, 1 if failure (invalid selection
  * or the like.
@@ -980,41 +1052,13 @@ int metaserver_select(char *sel) {
         return 1;
     }
 
-    /* Add server to cache */
-    if ((num <= meta_numservers) && (num != meta_numservers + cached_servers_num + 1)) {
-        int index;
-        for (index = 0; index < cached_servers_num; index++) {
-            if (strcmp(server_name, cached_servers_name[index]) == 0)
-                break;
-        }
-        /* If server is first in cache, no need to re-add id */
-        if (index != 0 || !cached_servers_num) {
-            char *name;
-            char *ip;
-            int copy;
-
-            if (index == cached_servers_num) {
-                name = strdup(server_name);
-                ip = strdup(server_ip);
-                cached_servers_num++;
-                if (cached_servers_num > CACHED_SERVERS_MAX) {
-                    cached_servers_num--;
-                    free(cached_servers_name[cached_servers_num-1]);
-                    free(cached_servers_ip[cached_servers_num-1]);
-                }
-            } else {
-                name = cached_servers_name[index];
-                ip = cached_servers_ip[index];
-            }
-            for (copy = MIN(index, CACHED_SERVERS_MAX-1); copy > 0; copy--) {
-                cached_servers_name[copy] = cached_servers_name[copy-1];
-                cached_servers_ip[copy] = cached_servers_ip[copy-1];
-            }
-            cached_servers_name[0] = name;
-            cached_servers_ip[0] = ip;
-            metaserver_save_cache();
-        }
-    }
+    /*
+     * Upon successful connection, add the server to the cache or move it to
+     * the top of the list.
+     */
+    if ((num <= meta_numservers)
+    &&  (num != meta_numservers + cached_servers_num + 1))
+        metaserver_update_cache(server_name, server_ip); 
 
     return 0;
 }
