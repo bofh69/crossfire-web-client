@@ -6,10 +6,12 @@ Top of SVN tree:
 Changes for 1.50.0
 ==============================================================================
 
-Fixed a bug in logic of the loader that reads player .crossfire/servers.cache
-files.  The loader wrongly ignored the last valid entry in a cache.  I.e. if
-the servers.cache file had only one valid two-line entry, the loader ignored
-it and no cached server entry would show up in the client.
+Fixed a logic bug in the loader that reads player .crossfire/servers.cache
+files.  The loader wrongly ignored the last valid entry in a cache when it
+contained an odd number of lines.  I.e. if the servers.cache file had only one
+valid two-line entry, and an extra blank line, the loader ignored the the
+valid entry and it would not show up in the client.  With this change, it does
+show up.
 Kevin Bulgrien 2010-04-28
 
 In the case where HAVE_GETADDRINFO is available (not WIN32), a timeout is now
