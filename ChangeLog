@@ -6,6 +6,12 @@ Top of SVN tree:
 Changes for 1.50.0
 ==============================================================================
 
+Fixed a bug in logic of the loader that reads player .crossfire/servers.cache
+files.  The loader wrongly ignored the last valid entry in a cache.  I.e. if
+the servers.cache file had only one valid two-line entry, the loader ignored
+it and no cached server entry would show up in the client.
+Kevin Bulgrien 2010-04-28
+
 In the case where HAVE_GETADDRINFO is available (not WIN32), a timeout is now
 implemented when establishing a connection with a server.  The timeout is
 presently hard-coded at 30 seconds.  Prior to this, if a connection attempt
