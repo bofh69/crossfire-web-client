@@ -53,14 +53,14 @@ const char * const rcsid_common_metaserver_c =
 #include <curl/easy.h>
 #endif
 
-
 Meta_Info *meta_servers = NULL;
 
 int meta_numservers = 0;
 
 int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2->hostname); }
 
-/* This checks the servers sc_version and cs_version to see
+/**
+ * This checks the servers sc_version and cs_version to see
  * if they are compatible.
  * @parm entry
  * entry number in the metaservers array to check.
@@ -110,7 +110,20 @@ char *cached_servers_ip[CACHED_SERVERS_MAX];
 static int cached_servers_loaded = 0;
 const char *cached_server_file = NULL;
 
-
+/**
+ * Load server names and addresses or DNS names from a cache file found in the
+ * player's client data folder.  The cache file has traditionally been named
+ * "servers.cache".  The server cache file is a plain text file that is
+ * line-feed delimited.  Cache entries consist of two lines each and if the
+ * file has an odd number of lines, the last entry is ignored.  The first
+ * line of a cache entry is the name of the server, and the second line is an
+ * IP address or DNS hostname.  Metaserver uses both entries.  Metaserver 2
+ * uses only the name since most servers set the name to a hostname anyway.
+ * The load function does no parsing, so the entries must be in the correct
+ * order.  There is no mechanism to support comments.  If a file has an odd
+ * number of lines, the loader assumes the last line is an incomplete entry
+ * and silently discards it.
+ */
 static void metaserver_load_cache(void) {
     FILE *cache;
     char buf[ MS_LARGE_BUF ];
@@ -145,6 +158,9 @@ static void metaserver_load_cache(void) {
     }
 }
 
+/**
+ *
+ */
 static void metaserver_save_cache(void) {
     FILE *cache;
     int server;
@@ -192,7 +208,7 @@ static int ms2_is_running=0;
 static char *metaservers[] = {"http://crossfire.real-time.com/metaserver2/meta_client.php"};
 
 /**
- * Curle doesn't really have any built in way to get data
+ * Curl doesn't really have any built in way to get data
  * from the URL into string data - instead, we get a blob
  * of data which we need to find the newlines, etc
  * from.  Curl also provides the data in multiple calls
@@ -457,8 +473,6 @@ int metaserver2_get_info(void) {
     return 0;
 }
 
-
-
 /**
  * Does single use initalization of metaserver2 variables.
  */
@@ -488,9 +502,10 @@ static int ms1_is_running=0;
 /* Need script.h for script_killall */
 #include <script.h>
 
-/* This gets input from a socket, and returns it one line at a time.
+/**
+ * This gets input from a socket, and returns it one line at a time.
+ * This is a Windows-specific function, since you can't use fgets under Win32
  */
-/* This is a Windows-specific function, since you can't use fgets under Win32 */
 char *get_line_from_sock(char *s, size_t n, int fd) {
     static long charsleft = 0;
     static char inbuf[MS_LARGE_BUF*4];
@@ -551,6 +566,9 @@ char *get_line_from_sock(char *s, size_t n, int fd) {
 
 #endif /* Win32 */
 
+/**
+ *
+ */
 void *metaserver1_thread(void *junk)
 {
     struct protoent *protox;
@@ -732,7 +750,9 @@ void *metaserver1_thread(void *junk)
     return NULL;
 }
 
-
+/**
+ *
+ */
 int metaserver1_get_info(void) {
     pthread_t   thread_id;
     int	    ret;
@@ -788,13 +808,13 @@ int metaserver_check_status(void) {
     return status;
 }
 
-/* This contacts the metaserver and gets the list of servers.  returns 0
+/**
+ * This contacts the metaserver and gets the list of servers.  returns 0
  * on success, 1 on failure.  Errors will get dumped to stderr,
  * so most errors should be reasonably clear.
  * metaserver and meta_port are the server name and port number
  * to connect to.
  */
-
 int metaserver_get_info(char *metaserver, int meta_port) {
 
     meta_numservers = 0;
@@ -808,7 +828,8 @@ int metaserver_get_info(char *metaserver, int meta_port) {
     return 0;
 }
 
-/* Show the metaservers to the player.  We use draw_ext_info() to do
+/**
+ * Show the metaservers to the player.  We use draw_ext_info() to do
  * that, and also let the player know they can enter their own host name.
  */
 void metaserver_show(int show_selection) {
@@ -1022,6 +1043,9 @@ ClientSocket csocket;
 char *meta_server=META_SERVER;
 int meta_port=META_PORT;
 
+/**
+ *
+ */
 void handle_ms_data(int msservernum) {
     int i;
 	fprintf(stderr,"Collecting data from metaserver %d.", msservernum);
@@ -1042,6 +1066,9 @@ void handle_ms_data(int msservernum) {
 	fprintf(stderr, "%d servers found\n", meta_numservers);
 }
 
+/**
+ *
+ */
 int main(int argc, char *argv[]) {
 
 #ifdef MS_SA_NOTMS2
