@@ -142,7 +142,7 @@ static void metaserver_load_cache(void) {
     while (cached_servers_num < CACHED_SERVERS_MAX
     &&     fgets(name, MS_LARGE_BUF, cache) != NULL
     &&     fgets(ip  , MS_LARGE_BUF, cache) != NULL) {
-        ip[strlen(name)-1] = 0;
+        ip[strlen(ip)-1] = 0;
         name[strlen(name)-1] = 0;
         cached_servers_ip[cached_servers_num] = strdup(ip);
         cached_servers_name[cached_servers_num++] = strdup(name);
