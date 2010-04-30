@@ -255,7 +255,8 @@ void get_metaserver(void)
  * Establish a connection to a server when a server DNS name or IP address is
  * specified.   Either a DNS name or IP address may be given, but if both are
  * supplied the IP address is used.  To connect on a non-standard port number,
- * a colon and the port number is appended to the DNS name.
+ * a colon and the port number is appended to the DNS name.  Update the server
+ * cache if the connection attempt succeeds.
  *
  * @param name The DNS name of a server to connect to.  If the server operates
  *             on a non-standard port, a colon and the port number is appended
@@ -285,6 +286,7 @@ static void metaserver_connect_to(const char *name, const char *ip)
         gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     } else {
         snprintf(buf, 255, "Connected to %s!", name);
+        metaserver_update_cache(name, ip ? ip : name);
         gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
         gtk_main_quit();
         cpl.input_state = Playing;
@@ -303,7 +305,7 @@ on_metaserver_select_clicked           (GtkButton       *button,
 {
     GtkTreeModel    *model;
     GtkTreeIter iter;
-    char    *name=NULL, *ip=NULL, buf[256], *metaserver_txt;
+    char    *name=NULL, *ip=NULL, *metaserver_txt;
 
     metaserver_txt = (char*)gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
     if (gtk_tree_selection_get_selected (metaserver_selection, &model, &iter)) {
