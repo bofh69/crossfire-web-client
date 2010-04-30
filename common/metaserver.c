@@ -148,7 +148,7 @@ static void metaserver_load_cache(void) {
             cached_servers_name[cached_servers_num++] = strdup(buf);
         } else {
             name = 0;
-            cached_servers_ip[cached_servers_num] = strdup(buf);
+            cached_servers_ip[cached_servers_num - 1] = strdup(buf);
         }
     }
     fclose(cache);
