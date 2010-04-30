@@ -125,9 +125,8 @@ const char *cached_server_file = NULL;
  * and silently discards it.
  */
 static void metaserver_load_cache(void) {
+    char name[MS_LARGE_BUF], ip[MS_LARGE_BUF];
     FILE *cache;
-    char buf[ MS_LARGE_BUF ];
-    int name;
 
     if (cached_servers_loaded || !cached_server_file)
         return;
@@ -140,22 +139,15 @@ static void metaserver_load_cache(void) {
     if (!cache)
         return;
 
-    name = 0;
-    while (fgets(buf, MS_LARGE_BUF, cache) != NULL && cached_servers_num < CACHED_SERVERS_MAX) {
-        buf[strlen(buf)-1] = 0;
-        if (!name) {
-            name = 1;
-            cached_servers_name[cached_servers_num++] = strdup(buf);
-        } else {
-            name = 0;
-            cached_servers_ip[cached_servers_num - 1] = strdup(buf);
-        }
+    while (cached_servers_num < CACHED_SERVERS_MAX
+    &&     fgets(name, MS_LARGE_BUF, cache) != NULL
+    &&     fgets(ip  , MS_LARGE_BUF, cache) != NULL) {
+        ip[strlen(name)-1] = 0;
+        name[strlen(name)-1] = 0;
+        cached_servers_ip[cached_servers_num] = strdup(ip);
+        cached_servers_name[cached_servers_num++] = strdup(name);
     }
     fclose(cache);
-    if (name) {
-        /* Missing IP? */
-        cached_servers_num--;
-    }
 }
 
 /**
