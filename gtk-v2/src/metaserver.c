@@ -77,7 +77,9 @@ gboolean metaserver_selection_func (
 }
 
 /**
- * Constructs the metaserver dialog and handles metaserver selection.
+ * Constructs the metaserver dialog and handles metaserver selection.  If the
+ * player has a servers.cache file in their .crossfire folder, the cached
+ * server list is added to the contents of the metaserver dialog.
  */
 void get_metaserver(void)
 {
@@ -250,6 +252,46 @@ void get_metaserver(void)
 }
 
 /**
+ * Establish a connection to a server when a server DNS name or IP address is
+ * specified.   Either a DNS name or IP address may be given, but if both are
+ * supplied the IP address is used.  To connect on a non-standard port number,
+ * a colon and the port number is appended to the DNS name.
+ *
+ * @param name The DNS name of a server to connect to.  If the server operates
+ *             on a non-standard port, a colon and the port number is appended
+ *             to the DNS name.  For example:  localhost:8000
+ * @param ip   An IP address of a server to connect to.  If specified, the IP
+ *             address is used instead of the DNS name.
+ */
+static void metaserver_connect_to(const char *name, const char *ip)
+{
+    char  buf[256], *cp, newname[256];
+    int port=use_config[CONFIG_PORT];
+
+    snprintf(buf, 255, "Trying to connect to %s", name);
+
+    gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+    strncpy(newname, name, 255);
+    newname[255]=0;
+
+    if ((cp=strchr(newname,':'))!=NULL) {
+	port = atoi(cp+1);
+	*cp=0;
+    }
+
+    csocket.fd=init_connection((char*)(ip?ip:newname), port);
+    if (csocket.fd==-1) {
+        snprintf(buf, 255, "Unable to connect to %s!", name);
+        gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+    } else {
+        snprintf(buf, 255, "Connected to %s!", name);
+        gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+        gtk_main_quit();
+        cpl.input_state = Playing;
+    }
+}
+
+/**
  * Establish a connection with the server when pressing the connect button.
  *
  * @param button
@@ -283,56 +325,7 @@ on_metaserver_select_clicked           (GtkButton       *button,
     }
     if (!name) name = metaserver_txt;
 
-    snprintf(buf, 255, "Trying to connect to %s", name);
-
-    gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-
-    csocket.fd=init_connection(ip?ip:name, use_config[CONFIG_PORT]);
-    if (csocket.fd==-1) {
-        snprintf(buf, 255, "Unable to connect to %s!", name);
-        gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-    } else {
-        snprintf(buf, 255, "Connected to %s!", name);
-        gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-        gtk_main_quit();
-        cpl.input_state = Playing;
-    }
-}
-
-/**
- * Establish a connection to a server when the server name was entered.  Either
- * a DNS name or IP address may be specified, but if both are supplied, use the
- * IP address.
- *
- * @param name The DNS name of a server to connect to.
- * @param ip An IP address of a server to connect to.
- */
-static void metaserver_connect_to(const char *name, const char *ip)
-{
-    char  buf[256], *cp, newname[256];
-    int port=use_config[CONFIG_PORT];
-
-    snprintf(buf, 255, "Trying to connect to %s", name);
-
-    gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-    strncpy(newname, name, 255);
-    newname[255]=0;
-
-    if ((cp=strchr(newname,':'))!=NULL) {
-	port = atoi(cp+1);
-	*cp=0;
-    }
-
-    csocket.fd=init_connection((char*)(ip?ip:newname), port);
-    if (csocket.fd==-1) {
-        snprintf(buf, 255, "Unable to connect to %s!", name);
-        gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-    } else {
-        snprintf(buf, 255, "Connected to %s!", name);
-        gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-        gtk_main_quit();
-        cpl.input_state = Playing;
-    }
+    metaserver_connect_to(name, ip);
 }
 
 /**
