@@ -11,6 +11,7 @@
 %define version 1.50.0.dev
 %define sndversion 1.50.0.dev
 %define release 1
+%define vendor sourceforge.net/projects/crossfire
 %define packager Crossfire Developer <crossfire@metalforge.org>
 %define prefix /usr/X11R6
 %define _sourcedir /export/home/crossfire/Crossfire
@@ -27,6 +28,7 @@
 Name: %{Name}-%{extra}
 Version: %{version}
 Release: %{release}
+Vendor: %{vendor}
 Packager: %{packager}
 Summary: Client for connecting to crossfire servers.
 Group: Amusements/Games/Crossfire
@@ -276,6 +278,9 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 
 %changelog
+* Sun May 02 2010 Kevin Bulgrien <kbulgrien@att.net
+- Add vendor tag (crossfire.sourceforge.net).
+
 * Sat Apr 17 2010 Kevin Bulgrien <kbulgrien@att.net
 - Drop support for building X11 and GTK-V1 clients.
 
