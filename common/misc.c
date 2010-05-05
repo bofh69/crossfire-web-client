@@ -41,11 +41,10 @@ const char * const rcsid_common_misc_c =
 #include <io.h>
 #endif
 
-/*
+/**
  * Verifies that the directory exists, creates it if necessary
  * Returns -1 on failure
  */
-
 int make_path_to_dir (char *directory)
 {
     char buf[MAX_BUF], *cp = buf;
@@ -82,11 +81,9 @@ int make_path_to_dir (char *directory)
     return 0;
 }
 
-
-/*
+/**
  * If any directories in the given path doesn't exist, they are created.
  */
-
 int make_path_to_file (char *filename)
 {
     char buf[MAX_BUF], *cp = buf;
@@ -111,32 +108,40 @@ int make_path_to_file (char *filename)
     }
     return 0;
 }
-/*
+
+/**
  * A replacement of strdup(), since it's not defined at some
  * unix variants.
  */
-
 char *strdup_local(const char *str) {
   char *c=(char *)malloc(sizeof(char)*strlen(str)+1);
   strcpy(c,str);
   return c;
 }
 
-
 /* logging stuff */
 LogEntry* LogFirst=NULL;
 LogEntry* LogLast=NULL;
 int logcount=0;
 LogListener loglist=NULL;
+
+/**
+ *
+ */
 int setLogListener(LogListener li){
     if (loglist)
         return 0;
     loglist=li;
     return 1;
 }
+
+/**
+ *
+ */
 void clearLogListener(void) {
     loglist=NULL;
 }
+
 static const char *const LogLevelTexts[] = {
     " DEBUG  ",
     "  INFO  ",
@@ -145,9 +150,17 @@ static const char *const LogLevelTexts[] = {
     "CRITICAL",
     "UNKNOWN ",
 };
+
+/**
+ *
+ */
 static const char *getLogLevelText(LogLevel level) {
     return LogLevelTexts[level>LOG_CRITICAL?LOG_CRITICAL+1:level];
 }
+
+/**
+ *
+ */
 char *getLogTextRaw(LogLevel level, const char *origin, const char *message) {
     static char mybuf[20480];
     mybuf[0]='\0';
@@ -155,20 +168,22 @@ char *getLogTextRaw(LogLevel level, const char *origin, const char *message) {
     return mybuf;
 }
 
+/**
+ *
+ */
 char *getLogText(const LogEntry *le) {
     return getLogTextRaw(le->level,le->origin,le->message);
 }
-/*
+
+int MINLOG=MINLOGLEVEL;
+
+/**
  * Logs a message to stderr and save it in memory.
  * Or discards the message if it is of no importanse, and none have
  * asked to hear messages of that logLevel.
  *
  * See client.h for possible logLevels.
  */
-int MINLOG=MINLOGLEVEL;
-
-
-
 void LOG(LogLevel level, const char *origin, const char *format, ...)
 {
 
@@ -201,6 +216,9 @@ void LOG(LogLevel level, const char *origin, const char *format, ...)
 ChildProcess* FirstChild=NULL;
 ChildProcess* LastChild=NULL;
 
+/**
+ *
+ */
 void purgePipe(ChildProcess* cp, int pipe){
     char buf[512];
     int len;
@@ -230,6 +248,9 @@ void purgePipe(ChildProcess* cp, int pipe){
     }
 }
 
+/**
+ *
+ */
 void monitorChilds(void) {
 #ifndef WIN32
     ChildProcess* cp=FirstChild;
@@ -262,6 +283,9 @@ void monitorChilds(void) {
 #endif
 }
 
+/**
+ *
+ */
 void logPipe(ChildProcess *child, LogLevel level, int pipe){
 #ifndef WIN32
     char buf[1024];
@@ -281,6 +305,9 @@ void logPipe(ChildProcess *child, LogLevel level, int pipe){
 #endif
 }
 
+/**
+ *
+ */
 void logChildPipe(ChildProcess* child, LogLevel level, int flag){
     if (child->flag & flag & CHILD_STDOUT)
         logPipe(child,level,1);
@@ -288,6 +315,9 @@ void logChildPipe(ChildProcess* child, LogLevel level, int flag){
         logPipe(child,level,2);
 }
 
+/**
+ *
+ */
 ChildProcess* raiseChild(char* name, int flag){
 #ifndef WIN32
     ChildProcess* cp;
@@ -454,3 +484,4 @@ ChildProcess* raiseChild(char* name, int flag){
     return NULL;
 #endif
 }
+
