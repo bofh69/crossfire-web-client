@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+GTK-V2 client now converts paths to WIN32 format as needed on such platforms.
+This should fix Bug ID: 2933761 and 2913885.
+Kevin Bulgrien 2010-05-06
+
 The GTK-V2 client now updates the player's ~/.crossfire/servers.cache file
 whenever a successful server connection is established.
 Kevin Bulgrien 2010-04-29

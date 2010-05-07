@@ -153,6 +153,7 @@ void load_theme(int reload)
           cp[0] = 0;
         snprintf(path, sizeof(path),
             "%s/.crossfire/%s.gtkrc", getenv("HOME"), xml_basename);
+        CONVERT_FILESPEC_TO_OS_FORMAT(path);
         default_files[i] = strdup(path);
         i++;
         /*
@@ -236,6 +237,7 @@ void load_defaults(void)
     }
 
     snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
+    CONVERT_FILESPEC_TO_OS_FORMAT(path);
     if ((fp=fopen(path,"r"))==NULL) return;
     while (fgets(inbuf, MAX_BUF-1, fp)) {
         inbuf[MAX_BUF-1]='\0';
@@ -389,6 +391,7 @@ void save_defaults(void)
     int i;
 
     snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
+    CONVERT_FILESPEC_TO_OS_FORMAT(path);
     if (make_path_to_file(path)==-1) {
         LOG(LOG_ERROR, "config.c::save_defaults","Could not create %s", path);
         return;
@@ -1019,6 +1022,7 @@ void save_winpos(void)
       cp[0] = 0;
 
     snprintf(savename, sizeof(savename), "%s/.crossfire/%s.pos", getenv("HOME"), buf);
+    CONVERT_FILESPEC_TO_OS_FORMAT(savename);
     if (!(save = fopen(savename, "w"))) {
         snprintf(buf, sizeof(buf), "Cannot open %s - window positions not saved!", savename);
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
@@ -1099,6 +1103,7 @@ void load_window_positions(GtkWidget *window_root)
       cp[0] = 0;
 
     snprintf(loadname, sizeof(loadname), "%s/.crossfire/%s.pos", getenv("HOME"), buf);
+    CONVERT_FILESPEC_TO_OS_FORMAT(loadname);
     if (!(load = fopen(loadname, "r"))) {
         snprintf(buf, sizeof(buf),
             "Cannot open %s: Using default window positions.", loadname);

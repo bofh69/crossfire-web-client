@@ -463,6 +463,7 @@ void keys_init(GtkWidget *window_root)
         sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
 #else
     snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
+    CONVERT_FILESPEC_TO_OS_FORMAT(buf);
 #endif
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
@@ -1102,6 +1103,7 @@ static void save_keys(void)
         sprintf( buf,"%s/.crossfire/keys", getenv("HOME") );
 #else
     snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
+    CONVERT_FILESPEC_TO_OS_FORMAT(buf);
 #endif
 
     if (make_path_to_file(buf)==-1) {

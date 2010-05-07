@@ -842,6 +842,7 @@ main (int argc, char *argv[])
         G_CALLBACK (on_drawingarea_magic_map_expose_event), NULL);
 
     snprintf( file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv( "HOME" ) );
+    CONVERT_FILESPEC_TO_OS_FORMAT(file_cache);
     cached_server_file = file_cache;
 
     init_image_cache_data();
