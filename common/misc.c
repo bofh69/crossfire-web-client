@@ -42,6 +42,58 @@ const char * const rcsid_common_misc_c =
 #endif
 
 /**
+ * Convert a buffer of a specified maximum size by replacing token characters
+ * with a provided string.  Given a buffered template string "/input/to/edit",
+ * the maximum size of the buffer, a token '/', and a replacement string ":",
+ * the input string is transformed to ":input:to:edit".  If the replacement
+ * string is empty, the token characters are simply removed.  The template is
+ * processed from left to right, replacing token characters as they are found.
+ * Replacement strings are always inserted whole.  If token replacement would
+ * overflow the size of the conversion buffer, the token is not replaced, and
+ * the remaining portion of the input string is appended after truncating it
+ * as required to avoid overfilling the buffer.
+ * @param buffer      A string to perform a find and replace operation on.
+ * @param buffer_size Allocated buffer size (used to avoid buffer overflow).
+ * @param find        A token character to find and replace in the buffer.
+ * @param replace     A string that is to replace each token in the buffer.
+ */
+void replace_chars_with_string(char*        buffer,
+                               const uint16 buffer_size,
+                               const char   find,
+                               const char*  replace      ) {
+
+    uint16 buffer_len, expand, i, replace_len, replace_limit, template_len;
+    char*  template;
+
+    replace_limit = buffer_size - 1;
+    replace_len = strlen(replace);
+    template_len = strlen(buffer);
+    template = strdup(buffer);
+    buffer[0] = '\0';
+
+    buffer_len = 0;
+    for (i = 0; i <= template_len; i++)
+    {
+        expand = buffer_len + replace_len < replace_limit ? replace_len : 1;
+        if (expand == 1 && buffer_len == replace_limit)
+        {
+            break;
+        }
+        if ((template[i] != find) || ((expand == 1) && (replace_len > 1)))
+        {
+            buffer[buffer_len++] = template[i];
+            buffer[buffer_len] = '\0';
+        }
+        else
+        {
+            strcat(buffer, replace);
+            buffer_len += replace_len;
+        }
+    }
+    free(template);
+}
+
+/**
  * Verifies that the directory exists, creates it if necessary
  * Returns -1 on failure
  */
