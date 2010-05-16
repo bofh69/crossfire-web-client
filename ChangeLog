@@ -1,6 +1,11 @@
 "$Id$"
 Top of SVN tree:
 ==============================================================================
+common/client.c: Fix connection logic which failed if system was using
+ipv6 + ipv4 (and trying ipv6 first) - code was not properly re-setting
+variables and trying the next protocol in the list.  Also clean up some
+formatting.
+MSW 2010-05-15
 
 GTK-V2 client now converts paths to WIN32 format as needed on such platforms.
 This should fix Bug ID: 2933761 and 2913885.

@@ -302,8 +302,8 @@ int init_connection(char *host, int port)
         /*
          * Try to create a socket.
          */
-	fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-	if (fd == -1) {
+        fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+        if (fd == -1) {
             LOG (LOG_ERROR,
                 "common::init_connection","Error creating socket (%d %s)\n",
                     errno, strerror(errno));
@@ -383,14 +383,22 @@ int init_connection(char *host, int port)
                     }
                 } while (1);
             } else {
+                /* This log message should probably be removed - any error
+                 * should really be reported to the player through the GUI.
+                 * In addition, if system has ipv6 + ipv4, the ipv6 connection
+                 * may fail (generating this message), but ipv4 to same server
+                 * succeeds - probably not really an error there.
+                 */
                 LOG (LOG_ERROR, "common::init_connection",
                     "Error connecting %d - %s\n", errno, strerror(errno));
-                break;
+                fd_status = 0;
+                continue;
             }
         }
         if (! fd_status) {
             /*
-             * Set the socket to blocking mode.
+             * If we get here, the connection has worked.  Now we
+             * reset the socket to blocking mode.
              */
             fd_flags = fcntl(fd, F_GETFL, NULL);
             if (fd_flags == -1) {
@@ -405,8 +413,8 @@ int init_connection(char *host, int port)
                     fd_status = -1;
                 }
             }
+            break;
         }
-        break;
     }
 
     if (fd_status) {
@@ -417,7 +425,7 @@ int init_connection(char *host, int port)
     freeaddrinfo(res);
 
     if (fd == -1)
-	return -1;
+        return -1;
 #endif
 
     free(csocket.servername);
@@ -426,13 +434,13 @@ int init_connection(char *host, int port)
 
 #ifndef WIN32
     if (fcntl(fd, F_SETFL, O_NDELAY)==-1) {
-	LOG (LOG_ERROR,"common::init_connection","Error on fcntl.");
+        LOG (LOG_ERROR,"common::init_connection","Error on fcntl.");
     }
 #else
     {
 		unsigned long tmp = 1;
 		if (ioctlsocket(fd, FIONBIO, &tmp)<0) {
-	    LOG (LOG_ERROR,"common::init_connection","Error on ioctlsocket.");
+            LOG (LOG_ERROR,"common::init_connection","Error on ioctlsocket.");
         }
 	}
 #endif
@@ -440,14 +448,14 @@ int init_connection(char *host, int port)
 #ifdef TCP_NODELAY
     /* turn off nagle algorithm */
     if (use_config[CONFIG_FASTTCP]) {
-	int i=1;
+        int i=1;
 
 #ifdef WIN32
-	if (setsockopt(fd, SOL_TCP, TCP_NODELAY, ( const char* )&i, sizeof(i)) == -1)
-	    perror("TCP_NODELAY");
+        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, ( const char* )&i, sizeof(i)) == -1)
+            perror("TCP_NODELAY");
 #else
-	if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1)
-	    perror("TCP_NODELAY");
+        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1)
+            perror("TCP_NODELAY");
 #endif
     }
 #endif
@@ -456,10 +464,10 @@ int init_connection(char *host, int port)
         oldbufsize=0;
 
     if (oldbufsize<newbufsize) {
-	if(setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&newbufsize, sizeof(&newbufsize))) {
+        if(setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&newbufsize, sizeof(&newbufsize))) {
             LOG(LOG_WARNING,"common::init_connection: setsockopt"," unable to set output buf size to %d", newbufsize);
-	    setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&oldbufsize, sizeof(&oldbufsize));
-	}
+            setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&oldbufsize, sizeof(&oldbufsize));
+        }
     }
     return fd;
 }
