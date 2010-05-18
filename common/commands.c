@@ -76,6 +76,216 @@ char *news=NULL, *motd=NULL, *rules=NULL;
 int spellmon_level = 0;                 /**< Keeps track of what spellmon
                                          *   command is supported by the
                                          *   server. */
+int num_races = 0;    /* Number of different races server has */
+int used_races = 0;   /* How many races we have filled in */
+
+int num_classes = 0;  /* Same as race data above, but for classes */
+int used_classes = 0;
+
+/*
+ * This structure is used to hold race/class adjustment info, as
+ * received by the requestinfo command.  We get the same info
+ * for both races and class, so it simplifies code to share a structure.
+ */
+typedef struct Race_Class_Info {
+    char    *arch_name;     /* Name of the archetype this correponds to */
+    char    *public_name;   /* Public (human readadable) name */
+    char    *description;   /* Description of the race/class */
+    sint8   Str, Dex, Con, Wis, Cha, Int, Pow;  /* Adjustment values */
+} Race_Class_Info;
+
+Race_Class_Info *races=NULL, *classes=NULL;
+
+
+/**
+ * This function clears the data from the Race_Class_Info array.
+ * Because the structure itself contains data that is allocated,
+ * some work needs to be done to clear that data.
+ *
+ * @param data
+ * array to clear
+ * @param num_entries
+ * size of the array.
+ */
+void free_all_race_class_info(Race_Class_Info *data, int num_entries)
+{
+    int i;
+
+    /* Because we are going free the array storage itself,
+     * there is no reason to clear the data[i].. values.
+     */
+    for (i=0; i<num_entries; i++) {
+        if (data[i].arch_name) free(data[i].arch_name);
+        if (data[i].public_name) free(data[i].public_name);
+        if (data[i].description) free(data[i].description);
+    }
+
+    free(data);
+    data=NULL;
+}
+
+/**
+ * This extracts the data from a replyinfo race_info/class_info request.
+ * We only get this data if the client has made a requestinfo of this
+ * data.
+ *
+ * @parms data
+ * data returned from server.  Format is documented in protocol file.
+ * @param len
+ * length of data
+ * @param rci
+ * Where to store the data.
+ */
+static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
+{
+
+    char *cp, *nl;
+
+    cp = data;
+
+    /* First thing is to process the remaining bit of the requestinfo
+     * line, which is the archetype name for this race/class
+     */
+    nl = strchr(cp, '\n');
+    if (nl) {
+        *nl=0;
+        rci->arch_name = strdup(cp);
+        cp = nl+1;
+    } else {
+        LOG(LOG_WARNING, "common::process_race_class_info", "Did not find archetype name");
+        return;
+    }
+
+    /* Now we process the rest of the data - we look for a word the
+     * describes the data to follow.  cp is a pointer to the data
+     * we are processing.  nl is used to store temporary values.
+     */
+    do {
+        nl = strchr(cp, ' ');
+        /* If we did not find a space, may just mean we have reached
+         * the end of the data - could be a stray character, etc
+         */
+        if (!nl) break;
+
+        if (nl) {
+            *nl = 0;
+            nl++;
+        }
+        if (!strcmp(cp, "name")) {
+            /* We get a name.  The string is not NULL terminated,
+             * but the length is transmitted.  So get the length,
+             * allocate a string large enough for that + NULL terminator,
+             * and copy string in, making sure to put terminator in place.
+             * also make sure we update cp beyond this block of data.
+             */
+            int namelen;
+
+            namelen = GetChar_String(nl);
+            nl++;
+            rci->public_name = malloc(namelen+1);
+            strncpy(rci->public_name, nl, namelen);
+            rci->public_name[namelen] = 0;
+            cp = nl + namelen;
+        } else if (!strcmp(cp, "stats")) {
+            cp = nl;
+            /* This loop goes through the stat values -
+             * *cp points to the stat value - if 0, no more stats,
+             * hence the check here.
+             */
+            while (cp < data + len && *cp != 0) {
+                switch (*cp) {
+
+                case CS_STAT_STR:   rci->Str = GetShort_String(cp+1);  cp +=3;  break;
+                case CS_STAT_INT:   rci->Int = GetShort_String(cp+1);  cp +=3;  break;
+                case CS_STAT_POW:   rci->Pow = GetShort_String(cp+1);  cp +=3;  break;
+                case CS_STAT_DEX:   rci->Dex = GetShort_String(cp+1);  cp +=3;  break;
+                case CS_STAT_CON:   rci->Con = GetShort_String(cp+1);  cp +=3;  break;
+                case CS_STAT_CHA:   rci->Cha = GetShort_String(cp+1);  cp +=3;  break;
+                case CS_STAT_WIS:   rci->Wis = GetShort_String(cp+1);  cp +=3;  break;
+
+                default:
+                    /* Just return with what we have */
+                    LOG(LOG_WARNING, "common::process_race_class_info", 
+                        "Unknown stat value: %d", cp);
+                    return;
+                }
+            }
+            cp++;   /* Skip over 0 terminator */
+        } else if (!strcmp(cp, "msg")) {
+            /* This is really exactly same as name processing above,
+             * except length is 2 bytes in this case.
+             */
+            int msglen;
+
+            msglen = GetShort_String(nl);
+            nl+=2;
+            rci->description = malloc(msglen+1);
+            strncpy(rci->description, nl, msglen);
+            rci->description[msglen] = 0;
+            cp = nl + msglen;
+        } else {
+            /* Got some keyword we did not understand.  Because we
+             * do not know about it, we do not know how to skip it over -
+             * the data could very well contain spaces or other markers we
+             * look for.
+             */
+            LOG(LOG_WARNING, "common::process_race_class_info", "Got unknown keyword: %s", cp);
+            break;
+        }
+    } while (cp < data+len);
+}
+
+
+/**
+ * This is a little wrapper function that does some bounds checking
+ * and then calls process_race_info() to do the bulk of the work.
+ *
+ * @param data
+ * data returned from server.  Format is documented in protocol file.
+ * @param len
+ * length of data.
+ */
+static void get_race_info(char *data, int len) {
+
+    /* This should not happen - the client is only requesting
+     * race info for races it has received - and it knows how many of
+     * those it has.
+     */
+    if (used_races >= num_races) {
+        LOG(LOG_ERROR, "common::get_race_info", 
+                "used races exceed num races, %d>=%d", used_races, num_races);
+        return;
+    }
+
+    process_race_class_info(data, len, &races[used_races]);
+    used_races++;
+}
+
+/**
+ * This is a little wrapper function that does some bounds checking
+ * and then calls process_race_info() to do the bulk of the work.
+ * Pretty much identical to get_race_info() except this is for classes.
+ *
+ * @param data
+ * data returned from server.  Format is documented in protocol file.
+ * @param len
+ * length of data.
+ */
+static void get_class_info(char *data, int len) {
+
+    /* This should not happen - the client is only requesting
+     * race info for classes it has received - and it knows how many of
+     * those it has.
+     */
+    if (used_classes >= num_classes) {
+        LOG(LOG_ERROR, "common::get_race_info", 
+                "used classes exceed num classes, %d>=%d", used_classes, num_classes);
+        return;
+    }
+
+    process_race_class_info(data, len, &classes[used_classes]);
+    used_classes++;
+}
 
 /**
  *
@@ -194,6 +404,53 @@ void ReplyInfoCmd(uint8 *buf, int len) {
         if (rules) free((char*)rules);
         rules = strdup(cp);
         update_login_info(INFO_RULES);
+    } else if (!strcmp((char*)buf, "race_list")) {
+        char *cp1;
+        for (cp1=cp; *cp !=0; cp++) {
+            if (*cp == '|') {
+                *cp++ = '\0';
+                /* The first seperator has no data, so only send request
+                 * to server if this is not null.
+                 */
+                if (*cp1!='\0') {
+                    cs_print_string(csocket.fd, "requestinfo race_info %s", cp1);
+                    num_races++;
+                }
+                cp1 = cp;
+            }
+        }
+        if (races) {
+            free_all_race_class_info(races, num_races);
+            num_races=0;
+            used_races=0;
+        }
+        races = calloc(num_races, sizeof(Race_Class_Info));
+
+    }  else if (!strcmp((char*)buf, "class_list")) {
+        char *cp1;
+        for (cp1=cp; *cp !=0; cp++) {
+            if (*cp == '|') {
+                *cp++ = '\0';
+                /* The first seperator has no data, so only send request
+                 * to server if this is not null.
+                 */
+                if (*cp1!='\0') {
+                    cs_print_string(csocket.fd, "requestinfo class_info %s", cp1);
+                    num_classes++;
+                }
+                cp1 = cp;
+            }
+        }
+        if (classes) {
+            free_all_race_class_info(classes, num_classes);
+            num_classes=0;
+            used_classes=0;
+        }
+        classes = calloc(num_classes, sizeof(Race_Class_Info));
+    }  else if (!strcmp((char*)buf, "race_info")) {
+        get_race_info(cp, len -i -1);
+    } else if (!strcmp((char*)buf, "class_info")) {
+        get_class_info(cp, len -i -1);
     }
 }
 

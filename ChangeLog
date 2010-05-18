@@ -1,6 +1,12 @@
 "$Id$"
 Top of SVN tree:
 ==============================================================================
+
+common/commands.c: Add code to process & store race_info and class_info
+   data.  Still TODO is actually write code that will use this information
+   (new character creator)
+MSW 2010-05-17
+
 common/client.c: Fix connection logic which failed if system was using
 ipv6 + ipv4 (and trying ipv6 first) - code was not properly re-setting
 variables and trying the next protocol in the list.  Also clean up some
