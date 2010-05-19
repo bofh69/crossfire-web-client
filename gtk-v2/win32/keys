@@ -1,0 +1,81 @@
+! metakey0 Meta_L 0
+! metakey1 Meta_R 0
+! altkey0 Alt_L 0
+! altkey1 Alt_R 0
+Tab 0 NS rotatespells 1
+Tab 0 FRS rotatespells -1
+quotedbl 0 AES say 
+plus 0 NFS rotateshoottype
+comma 0 AS take
+minus 0 NS rotateshoottype -1
+period 0 NS stay fire
+question 0 AS help
+at 0 AS pickup
+A 0 NS apply inventory
+A 0 FRS apply
+B 0 AS southwest
+E 0 NS examine inventory
+E 0 FRS examine
+H 0 AS west
+J 0 AS south
+K 0 AS north
+L 0 AS east
+N 0 AS southeast
+Left 0 AS west
+Left 0 AS west
+S 0 AS brace
+Up 0 AS north
+Up 0 AS north
+U 0 AS northeast
+Right 0 AS east
+Right 0 AS east
+Down 0 AS south
+Down 0 AS south
+Y 0 AS northwest
+Z 0 F bar
+a 0 NS apply
+a 0 FRS apply
+b 0 AS southwest
+d 0 NS disarm
+e 0 NS examine inventory
+e 0 FRS examine
+h 0 AS west
+j 0 AS south
+k 0 AS north
+l 0 AS east
+n 0 AS southeast
+p 0 N use_skill praying
+s 0 AS search
+t 0 AS ready_skill throw
+u 0 AS northeast
+x 0 NFS show
+y 0 AS northwest
+z 0 A foo
+KP_Home 0 AS northwest
+KP_Left 0 AS west
+KP_Up 0 AS north
+KP_Right 0 AS east
+KP_Down 0 AS south
+KP_Page_Up 0 AS northeast
+KP_Page_Down 0 AS southeast
+KP_End 0 AS southwest
+KP_Add 0 AS rotateshoottype
+KP_Subtract 0 AS rotateshoottype -
+KP_1 0 AS southwest
+KP_2 0 AS south
+KP_3 0 AS southeast
+KP_4 0 AS west
+KP_5 0 AS stay
+KP_6 0 AS east
+KP_7 0 AS northwest
+KP_8 0 AS north
+KP_9 0 AS northeast
+F27 0 AS northwest
+F28 0 AS north
+F29 0 AS northeast
+F30 0 AS west
+F31 0 AS stay
+F32 0 AS east
+F33 0 AS southwest
+F34 0 AS south
+F35 0 AS southeast

@@ -1,0 +1,36 @@
+# Message Control System Configuration
+#
+# Count:  1-96
+#
+C 16
+#
+# Timer:  1-96 (8 ~= one second)
+#
+T 16
+#
+# type, buffer, pane[0], pane[1]...
+# Do not edit the 'type' field.
+# 0 == disable; 1 == enable.
+#
+M 01 0 1 0 
+M 02 0 1 0 
+M 03 0 1 0 
+M 04 0 1 0 
+M 05 0 1 0 
+M 06 0 1 0 
+M 07 0 1 0 
+M 08 0 1 0 
+M 09 1 1 0 
+M 10 0 1 0 
+M 11 1 1 1 
+M 12 1 1 0 
+M 13 1 1 0 
+M 14 1 1 0 
+M 15 0 1 1 
+M 16 1 1 0 
+M 17 1 1 0 
+M 18 1 1 0 
+M 19 0 1 1 
+M 20 0 1 0 
+#
+# End of Message Control System Configuration

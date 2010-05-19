@@ -1,0 +1,67 @@
+Readme for building Crossfire's GTK client under Windows (October 26th, 2003)
+-----------------------------------------------------------------------------
+
+This file contains instructions for compiling Crossfire's GTK client under Win32.
+More information about Crossfire can be found at http://crossfire.real-time.com
+
+Instructions for running the client can be found in Running.txt, in the same directory as this file.
+
+
+
+The compilation have been tested with:
+* Microsoft Visual Studio 6, SP 5 ('MSVC in this document')
+* GTK 2.2.4.1
+
+
+Requirements:
+* you must have GTK installed, with development libraries.
+
+Installation instructions for GTK:
+* goto http://www.dropline.net/gtk/
+* in 'download' sections, get 'GTK Runtime Environment' and 'GTK Development Environment'
+    current version is 2.2.4.1, released October 12th, 2003
+* install both somewhere (I suggest installing development libraries in the same base directory as runtime)
+
+Notes:
+* some products like GAIM (gaim.sf.net) also install GTK for you, but only the runtime environment.
+* if you already have GTK installed, you can omit reinstalling the runtime environment.
+
+**** WARNING ****
+Use the same runtime environment and development environment, else you may have compatibilities issues.
+
+
+Build instructions
+------------------
+* launch MSVC
+* open 'GTKClient' workspace (located in the same directory as this file)
+* open project settings (alt-F7)
+* in 'Debug' tab, adjust 'executable for debug session' and 'working directory' for your system
+* in 'C++' tab, category 'preprocessor', change 'Additional include directories' to match your GTK development install path.
+   on my system, this gives:
+    .,c:\program files\fichiers communs\gtk\2.0\include,..\..\common,C:\Program Files\Fichiers communs\GTK\2.0\include\gtk-2.0,C:\Program Files\Fichiers communs\GTK\2.0\include\glib-2.0,C:\Program Files\Fichiers communs\GTK\2.0\lib\glib-2.0\include,C:\Program Files\Fichiers communs\GTK\2.0\include\pango-1.0,C:\Program Files\Fichiers communs\GTK\2.0\lib\gtk-2.0\include,C:\Program Files\Fichiers communs\GTK\2.0\include\atk-1.0,..\..
+   (note: . is requires as include directory)
+* in 'Link' tab, category 'input', change 'Additional library directories' to match GTK development path.
+   on my system this gives:
+    C:\Program Files\Fichiers communs\GTK\2.0\lib
+* click 'ok'
+* select either 'Win32 Debug' or 'Win32 Release' as target
+* hit F7 to compile
+
+If everything works fine, you'll have a working GTKClient executable.
+
+
+Running the client
+------------------
+See the Running.txt for additional information.
+
+
+Troubleshooting
+---------------
+If something goes wrong, first check all include and libraries paths are correct. Check GTK version for runtime and development.
+
+If everything is fine, report your troubles to:
+* Crossfire's messageboard: http://www.metalforge.net/cfmb/index.php
+* Crossfire's mailing list: see http://crossfire.real-time.com for instructions on how to join it
+* #crossfire on irc.freenode.org
+
+Also check Crossfire's bugs page at http://sourceforge.net/tracker/?group_id=13833&atid=113833

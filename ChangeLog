@@ -2,6 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/win32: Add some support files for building on win32
+Brendan Lally 2010-05-19
+
 common/commands.c: Add code to process & store race_info and class_info
    data.  Still TODO is actually write code that will use this information
    (new character creator)

@@ -1,0 +1,41 @@
+# crossfire-client-gtk2 automatically generates this file.
+# Manual editing is allowed, but the client may be a bit
+# finicky about the keys and values.  Comparisons are case
+# sensitive.  'True' and 'False' are the proper case, but
+# have been replaced with 1 and 0 respectively.
+#
+server: (null)
+theme: None
+faceset: (null)
+window_layout: gtk-v2.glade
+download_all_images: 0
+echo_bindings: 0
+fasttcpsend: 1
+command_window: 10
+cacheimages: 0
+fog_of_war: 1
+iconscale: 100
+mapscale: 100
+popups: 0
+displaymode: 0
+showicon: 0
+tooltips: 1
+sound: 1
+splitinfo: 0
+split: 0
+show_grid: 0
+lighting: 1
+trim_info_window: 0
+map_width: 19
+map_height: 19
+foodbeep: 0
+darkness: 1
+port: 13327
+grad_color_bars: 0
+resistances: 0
+smoothing: 0
+nosplash: 1
+auto_apply_container: 1
+mapscroll: 1
+sign_popups: 1
+message_timestamping: 0

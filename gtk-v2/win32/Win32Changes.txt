@@ -1,0 +1,16 @@
+Changes for Win32 GTK client 1.50.0, May 2010
+---------------------------------------------------
+
+This document details changes between Win32 GTK client releases.
+A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
+
+From versions 1.50.0
+------------------
+ * The windows client is now the gtk-v2 client, this has been in development over the last few releases, 
+   and is now the only one that is now supported (jxclient is also supported, but is a separate sub-project).
+
+Major features to note in gtk-v2
+ 
+* Account-based logins for new servers
+* Support for multiple layouts
+* More sophisticated message handling options 

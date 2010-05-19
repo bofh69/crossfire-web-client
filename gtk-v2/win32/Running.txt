@@ -1,0 +1,50 @@
+Readme for Crossfire's GTK client under Windows (May, 19th, 2010)
+---------------------------------------------------------------------
+
+This document contains notes and information about running Crossfire's GTK client under Win32.
+More information about Crossfire can be found at http://crossfire.real-time.com
+
+Building instructions can be found in Building.txt, located in the same directory.
+Changes from previous versions are listed in 'Changes' or 'Full change log' files from
+start menu.
+
+
+This is release 1.50.0 of the client.
+
+
+Requirements
+------------
+The client requires GTK libraries to run, these are included in the installer.
+
+GTK Warning
+-----------
+People have reported many issues with GTK. If you experience any trouble, before asking for
+help, check http://www.metalforge.net/cfmb/, the 'bugs' and/or 'Spoilers and help request'
+forums.
+
+Installation
+------------
+Note: if you installed via an installer, you can skip this section.
+
+The client can run from any directory.
+A .crossfire directory will be created to store settings and cached images.
+If the environment variable 'HOME' is set, .crossfire will be created as $HOME/.crossfire
+Else your application's directory will be used.
+
+
+Release notes & known issues
+----------------------------
+* there is no sound currently.
+* The config dialogs don't work properly, some settings can still be changed, others will 
+  require the gdefaults2 file to be edited directly.
+* All of the information in this file may be out of date.
+* The icon isn't correctly associated with the crossfire binary
+
+Troubleshooting
+---------------
+If something goes wrong, report your troubles to:
+* Crossfire's messageboard: http://www.metalforge.net/cfmb/index.php
+* Crossfire's mailing list: see http://crossfire.real-time.com for instructions on how to join it
+* #crossfire on irc.freenode.org
+
+Also check Crossfire's bugs page at http://sourceforge.net/tracker/?group_id=13833&atid=113833
