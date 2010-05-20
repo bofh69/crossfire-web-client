@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/win32/gtkclient.nsi: Merge some changes to the nsi file from the one 
+from the 1.12 branch
+Brendan Lally 2010-05-20
+
 Win32Readme.txt, gtk-v2/win32/Running.txt: Merge the contents of win32Readme 
 into the Running.txt file.
 Brendan Lally 2010-05-20

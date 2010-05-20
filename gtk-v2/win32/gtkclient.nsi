@@ -4,21 +4,26 @@
 
 !include "MUI.nsh"
 
+!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Crossfire Client Gtkv2"
+!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Crossfire GTK Client"
+!define PRODUCT_VERSION "1.50.0"
+!define PRODUCT_PUBLISHER "Crossfire Project"
+!define PRODUCT_WEB_SITE "http://crossfire.real-time.com/"
+
 ;Title Of Your Application
 Name "Crossfire GTK2 Client"
 
 VIAddVersionKey "ProductName" "Crossfire GTK2 client installer"
-VIAddVersionKey "Comments" "Website: http://crossfire.real-time.com"
 VIAddVersionKey "FileDescription" "Crossfire GTK client installer"
-VIAddVersionKey "FileVersion" "1.50"
 VIAddVersionKey "LegalCopyright" "Crossfire is released under the GPL."
-VIProductVersion "1.50.0.0"
+VIAddVersionKey "FileVersion" "${PRODUCT_VERSION}"   
+VIProductVersion "${PRODUCT_VERSION}.0"
 
 ;Do A CRC Check
 CRCCheck On
 
 ;Output File Name
-OutFile "crossfire-client-windows.exe"
+OutFile "crossfire-client-windows-${PRODUCT_VERSION}.exe"
 
 
 ;The Default Installation Directory
@@ -27,8 +32,8 @@ InstallDirRegKey HKCU "Software\Crossfire GTK Client" ""
 
 !define MUI_ABORTWARNING
 
-!define MUI_ICON "crossfire-client-gtk2.ico"
-!define MUI_UNICON "crossfire-client-gtk2.ico"
+!define MUI_ICON "..\..\pixmaps\client.ico"
+!define MUI_UNICON "..\..\pixmaps\client.ico"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\..\COPYING"
@@ -192,6 +197,8 @@ Section "Install"
   File /oname=Copying.rtf "..\..\Copying"
   File "Running.txt"
   File "Building.txt"
+  File "..\..\pixmaps\client.ico"
+
 
   SetOutPath $INSTDIR\.crossfire
   File "gtk-v2.pos"
@@ -199,7 +206,7 @@ Section "Install"
   File "keys"
   File "msgs"
 
-  SetOutPath $INSTDIR\crossfire-client\glade-gtk2
+  SetOutPath $INSTDIR\glade-gtk2
   File "..\glade\dialogs.glade"
   File "..\glade\chthonic.glade"
   File "..\glade\eureka.glade"
@@ -213,17 +220,23 @@ Section "Install"
   File "..\src\crossfire.base"
   File "..\src\crossfire.clsc"
 
+
   ; Copy files to user's appdata directory
   CreateDirectory "$APPDATA\.crossfire"
   CopyFiles "$INSTDIR\.crossfire\*" "$APPDATA\.crossfire"
   
   ; Write AppPath key
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\crossfire-client-gtk2.exe" "Path" $INSTDIR
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "Path" $INSTDIR
 
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Crossfire GTK Client" "DisplayName" "Crossfire GTK Client (remove only)"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Crossfire GTK Client" "UninstallString" "$INSTDIR\Uninst.exe"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayName" "Crossfire GTK Client (remove only)"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\Uninst.exe"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\pixmaps\client.ico"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
   WriteUninstaller "Uninst.exe"
+
 SectionEnd
 
 Section "Shortcuts"
@@ -231,13 +244,13 @@ Section "Shortcuts"
   ;SetOutPath called so that shortcuts point to correct directory
   SetOutPath $INSTDIR
   CreateDirectory "$SMPROGRAMS\Crossfire GTK Client"
-  CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Crossfire GTK Client.lnk" "$INSTDIR\\crossfire-client-gtk2.exe" "" "$INSTDIR\\crossfire-client-gtk2.exe" 0
+  CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Crossfire GTK Client.lnk" "$INSTDIR\\crossfire-client-gtk2.exe" "" "$INSTDIR\client.ico" 0
   CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\License.lnk" "$INSTDIR\\Copying.rtf"
   CreateShortcut "$SMPROGRAMS\Crossfire GTK Client\Changes.lnk" "$INSTDIR\\Win32Changes.txt"
   CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Full change log.lnk" "$INSTDIR\\ChangeLog.rtf"
   CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Running the client.lnk" "$INSTDIR\\Running.txt"
   CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Scripting Guide.lnk" "$INSTDIR\\Scripting.html"
-  CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Uninstall Crossfire GTK Client.lnk" "$INSTDIR\\Uninst.exe" 0
+  CreateShortCut "$SMPROGRAMS\Crossfire GTK Client\Uninstall Crossfire GTK Client.lnk" "$INSTDIR\\Uninst.exe" "" "$INSTDIR\client.ico" 0
 SectionEnd
 
 UninstallText "This will uninstall Crossfire GTK Client from your system"
@@ -253,19 +266,21 @@ Section Uninstall
   Delete "$INSTDIR\.CROSSFIRE\gdefaults2"
   Delete "$INSTDIR\.crossfire\keys"
   Delete "$INSTDIR\.crossfire\msgs"
-  Delete "$INSTDIR\crossfire-client\glade-gtk2\dialogs.glade"
-  Delete "$INSTDIR\crossfire-client\glade-gtk2\chthonic.glade"
-  Delete "$INSTDIR\crossfire-client\glade-gtk2\eureka.glade"
-  Delete "$INSTDIR\crossfire-client\glade-gtk2\gtk-v2.glade"
-  Delete "$INSTDIR\crossfire-client\glade-gtk2\sixforty.glade"
-  Delete "$INSTDIR\crossfire-client\glade-gtk2\v1-redux.glade"
-  Delete "$INSTDIR\crossfire-client\glade-gtk2\lobotomy.glade"
+  Delete "$INSTDIR\glade-gtk2\dialogs.glade"
+  Delete "$INSTDIR\glade-gtk2\chthonic.glade"
+  Delete "$INSTDIR\glade-gtk2\eureka.glade"
+  Delete "$INSTDIR\glade-gtk2\gtk-v2.glade"
+  Delete "$INSTDIR\glade-gtk2\sixforty.glade"
+  Delete "$INSTDIR\glade-gtk2\v1-redux.glade"
+  Delete "$INSTDIR\glade-gtk2\lobotomy.glade"
 
   Delete "$INSTDIR\Win32Changes.txt"
   Delete "$INSTDIR\ChangeLog.rtf"
   Delete "$INSTDIR\Copying.rtf"
   Delete "$INSTDIR\Running.txt"
   Delete "$INSTDIR\Building.txt"
+
+  Delete "$INSTDIR\client.ico"
 
   ; Delete the dlls that are needed
   Delete "$INSTDIR\libcurl.dll"
@@ -296,6 +311,8 @@ Section Uninstall
   Delete "$INSTDIR\libxml2.dll"
 
   ;Delete directories, but only if empty
+  RmDir "$INSTDIR\crossfire-client\glade-gtk2"
+  RmDir "$INSTDIR\crossfire-client"
   RmDir "$INSTDIR\.crossfire"
   RmDir "$INSTDIR"
 
@@ -306,8 +323,8 @@ Section Uninstall
   ;Delete Uninstaller And Unistall Registry Entries
   Delete "$INSTDIR\Uninst.exe"
   DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Crossfire GTK Client"
-  DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Crossfire GTK Client"
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\crossfire-client-gtk2.exe"
+  DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
+  DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
   RMDir "$INSTDIR"
 SectionEnd
 
