@@ -274,7 +274,7 @@ typedef struct Spell_struct {
     sint32 face;                        /**< A face ID that may be used to
                                          *   show a graphic representation
                                          *   of the spell.                   */
-    uint usage;                         /**< Spellmon 2 data.  Values are:
+    uint8 usage;                        /**< Spellmon 2 data.  Values are:
                                          *   0: No argument required.
                                          *   1: Requires other spell name.
                                          *   2: Freeform string is optional.

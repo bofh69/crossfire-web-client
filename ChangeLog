@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+common/client.h: Use a more explicit type in a struct definition (doesn't
+compile on windows otherwise)
+Brendan Lally 2010-05-20
+
 gtk-v2/win32: Remove .gladep files from the win32 nsi file, these are not 
 needed by an end-user.
 Brendan Lally 2010-05-20
