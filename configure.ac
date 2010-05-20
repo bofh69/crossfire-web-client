@@ -235,28 +235,17 @@ AC_SUBST(INTLLIBS)
 # lua also needs it, so put it near the top
 AC_CHECK_LIB(m, sqrt)
 
-# Check for lua 5.0 or 5.1.  See also: http://lua-users.org/wiki/AutoConfig
-AC_CHECK_LIB(lua, lua_call,
-[   # lua found
-    AC_CHECK_LIB(lualib, luaopen_loadlib,
-    [   # 5.0 needed lualib.
-        lua_scripting="yes"
-        LUA_LIBS="-llua -llualib -ldl -lm"
-    ],
-    [   # We do not have lualib, so it might be 5.1
-        AC_CHECK_LIB(lua, luaL_register,
-        [   # Lua 5.1 found
-            lua_scripting="yes"
-            AC_DEFINE(HAVE_LUA_5_1, 1, [Define to use Lua 5.1])
-            LUA_LIBS="-llua -ldl -lm"
-        ],
-        [   # No, it is not 5.1.  Now what?
-            AC_MSG_WARN(Linking with liblualib failed.)
-        ])
-    ],
-    [
-    ])
-] )
+AC_SEARCH_LIBS(pthread_create, [pthread, pthreadgc, pthreadgc1, pthreadgc2], [AC_DEFINE(HAVE_LIBPTHREAD, 1, [Define to 1 if you have the `pthread' library.])])
+
+PKG_CHECK_MODULES(LUA, lua >= 5.0.0, [lua_scripting=yes], [lua_scripting=no])
+if eval "test x$lua_scripting = xyes" ; then
+    LUA_LIBS=`$PKG_CONFIG --libs lua`
+fi
+
+PKG_CHECK_MODULES(LUA, lua >= 5.1.0, [HAVE_LUA_5_1=yes], [HAVE_LUA_5_1=no])
+if eval "test x$HAVE_LUA_5_1 = xyes" ; then
+    AC_DEFINE(HAVE_LUA_5_1, 1, [Define to use Lua 5.1])
+fi
 
 CPPFLAGS="$CPPFLAGS $EXTRA_INC"
 LDFLAGS="$LDFLAGS $EXTRA_LIB"

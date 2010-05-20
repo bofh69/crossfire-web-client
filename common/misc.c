@@ -149,10 +149,12 @@ int make_path_to_file (char *filename)
 	if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
 #ifdef WIN32
 	    if (mkdir (buf)) {
+                LOG(LOG_ERROR, "misc.c::make_path_to_file",
+                    "Couldn't make path to file: %s", strerror(errno));
 #else
 	    if (mkdir (buf, 0777)) {
-#endif
 		perror ("Couldn't make path to file");
+#endif
 		return -1;
 	    }
 	}

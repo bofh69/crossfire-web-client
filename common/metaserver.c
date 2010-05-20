@@ -39,12 +39,12 @@ const char * const rcsid_common_metaserver_c =
 
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <client.h>
 #include <cconfig.h>
 #include <external.h>
 
-#include <pthread.h>
 #include <metaserver.h>
 
 #ifdef HAVE_CURL_CURL_H
@@ -590,9 +590,11 @@ char *get_line_from_sock(char *s, size_t n, int fd) {
 
     /* If there is no line in the buffer */
     while (charsleft == 0 || (cp = strchr(inbuf, '\n')) == NULL) {
-        FD_SET fdset = {1, fd};
+        FD_SET fdset;
         TIMEVAL tv = {3, 0}; /* 3 second timeout on reads */
         int nlen;
+        FD_ZERO(&fdset);
+        FD_SET(fd, &fdset);
         if (select(0, &fdset, NULL, NULL, &tv) == 0) {
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
                 "Metaserver timed out.");

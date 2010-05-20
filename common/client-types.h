@@ -60,6 +60,14 @@
 #  include <fcntl.h>
 #endif
 
+#ifdef WIN32
+#  include <winsock2.h>
+#endif
+
+#ifdef HAVE_PTHREAD_H
+#  include <pthread.h>
+#endif
+
 /* Just some handy ones I like to use */
 #ifndef FALSE
 #define FALSE 0
@@ -107,8 +115,15 @@ typedef signed char       sint8;
 #define FMT64               "I64d"
 #define FMT64U              "I64u"
 
+/* mingw defines rand and srand only */
+#ifndef random
+#define random rand
+#endif
+#ifndef srandom
+#define srandom srand
 #endif
 
+#endif
 
 #ifndef SOL_TCP
 #define SOL_TCP IPPROTO_TCP
