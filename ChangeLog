@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/win32: Remove .gladep files from the win32 nsi file, these are not 
+needed by an end-user.
+Brendan Lally 2010-05-20
+
 gtk-v2/win32: Add some support files for building on win32
 Brendan Lally 2010-05-19
 
