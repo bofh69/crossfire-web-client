@@ -2,6 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/win32/gdefaults2: Use a better default value for map height on win32
+Brendan Lally 2010-05-20
+
 gtk-v2/win32: remove old-style icon and a compiled windows package I'd
 accidentally included.
 Brendan Lally 2010-05-20

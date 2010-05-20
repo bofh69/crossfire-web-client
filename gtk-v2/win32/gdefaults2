@@ -27,7 +27,7 @@ show_grid: 0
 lighting: 1
 trim_info_window: 0
 map_width: 19
-map_height: 19
+map_height: 17
 foodbeep: 0
 darkness: 1
 port: 13327
