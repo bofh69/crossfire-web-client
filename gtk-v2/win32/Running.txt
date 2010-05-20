@@ -9,8 +9,8 @@ Changes from previous versions are listed in 'Changes' or 'Full change log' file
 start menu.
 
 
-This is release 1.50.0 of the client.
-
+This is release 1.50.0 of the client, only the GTK-v2 client is supported or maintained in 
+any way.
 
 Requirements
 ------------
@@ -31,14 +31,29 @@ A .crossfire directory will be created to store settings and cached images.
 If the environment variable 'HOME' is set, .crossfire will be created as $HOME/.crossfire
 Else your application's directory will be used.
 
-
 Release notes & known issues
 ----------------------------
-* there is no sound currently.
+* There is no sound currently.
 * The config dialogs don't work properly, some settings can still be changed, others will 
   require the gdefaults2 file to be edited directly.
-* All of the information in this file may be out of date.
-* The icon isn't correctly associated with the crossfire binary
+* The client isn't built with OpenGL support enabled, it does have SDL support.
+
+Display Options
+---------------
+
+This version of the client supports SDL and OpenGL rendering, but it makes no attempt to 
+detect which one is best for your system.  It's strongly recommended that, before playing 
+for the first time, you open the configuration dialog (main menu, "Client", "Configure") 
+and change a few settings to your liking.  In particular, "Enable smoothing", and on 
+"Display mode", select OpenGL.  Save and restart (the client, not your system).  If your
+map display doesn't work or has artifacts, configure again and select SDL.
+
+If using SDL and if your computer is relatively recent, you should also set the 
+"Lighting options" to "Best Per Pixel".
+
+Finally, if you installed the extra layouts, you may want to try a few of them.  
+Changing layouts requires a client restart.
+
 
 Troubleshooting
 ---------------

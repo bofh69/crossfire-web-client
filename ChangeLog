@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+Win32Readme.txt, gtk-v2/win32/Running.txt: Merge the contents of win32Readme 
+into the Running.txt file.
+Brendan Lally 2010-05-20
+
 common/client-types.h: Define sleep in a way that can be compilied for windows.
 Brendan Lally 2010-05-20
 
