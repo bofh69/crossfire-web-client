@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/win32: remove old-style icon and a compiled windows package I'd
+accidentally included.
+Brendan Lally 2010-05-20
+
 gtk-v2/win32/gtkclient.nsi: Merge some changes to the nsi file from the one 
 from the 1.12 branch
 Brendan Lally 2010-05-20
