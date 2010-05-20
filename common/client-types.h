@@ -123,6 +123,10 @@ typedef signed char       sint8;
 #define srandom srand
 #endif
 
+#ifndef sleep
+#define sleep(x) Sleep((x)*1000)
+#endif
+
 #endif
 
 #ifndef SOL_TCP

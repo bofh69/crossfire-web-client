@@ -2,6 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
+common/client-types.h: Define sleep in a way that can be compilied for windows.
+Brendan Lally 2010-05-20
+
 common/client.h: Use a more explicit type in a struct definition (doesn't
 compile on windows otherwise)
 Brendan Lally 2010-05-20
