@@ -198,13 +198,20 @@ Section "Install"
   File "Running.txt"
   File "Building.txt"
   File "..\..\pixmaps\client.ico"
-
+  
+  File "..\src\bmaps.client"
+  File "..\src\crossfire.base"
+  File "..\src\crossfire.clsc"
 
   SetOutPath $INSTDIR\.crossfire
   File "gtk-v2.pos"
   File "gdefaults2"
   File "keys"
   File "msgs"
+
+  SetOutPath "$INSTDIR\themes"
+  File "..\themes\Black"
+  File "..\themes\Standard"
 
   SetOutPath $INSTDIR\glade-gtk2
   File "..\glade\dialogs.glade"
@@ -214,12 +221,6 @@ Section "Install"
   File "..\glade\sixforty.glade"
   File "..\glade\v1-redux.glade"
   File "..\glade\lobotomy.glade"
-
-  SetOutPath $INSTDIR\crossfire-client
-  File "..\src\bmaps.client"
-  File "..\src\crossfire.base"
-  File "..\src\crossfire.clsc"
-
 
   ; Copy files to user's appdata directory
   CreateDirectory "$APPDATA\.crossfire"
@@ -258,9 +259,9 @@ UninstallText "This will uninstall Crossfire GTK Client from your system"
 Section Uninstall
 
   ;Delete Files
-  Delete "$INSTDIR\crossfire-client\bmaps.client"
-  Delete "$INSTDIR\crossfire-client\crossfire.base"
-  Delete "$INSTDIR\crossfire-client\crossfire.clsc"
+  Delete "$INSTDIR\bmaps.client"
+  Delete "$INSTDIR\crossfire.base"
+  Delete "$INSTDIR\crossfire.clsc"
   Delete "$INSTDIR\crossfire-client-gtk2.exe"
   Delete "$INSTDIR\.CROSSFIRE\gtk-v2.pos"
   Delete "$INSTDIR\.CROSSFIRE\gdefaults2"
@@ -273,6 +274,9 @@ Section Uninstall
   Delete "$INSTDIR\glade-gtk2\sixforty.glade"
   Delete "$INSTDIR\glade-gtk2\v1-redux.glade"
   Delete "$INSTDIR\glade-gtk2\lobotomy.glade"
+
+  Delete "$INSTDIR\themes\Standard"
+  Delete "$INSTDIR\themes\Black"
 
   Delete "$INSTDIR\Win32Changes.txt"
   Delete "$INSTDIR\ChangeLog.rtf"
@@ -311,8 +315,9 @@ Section Uninstall
   Delete "$INSTDIR\libxml2.dll"
 
   ;Delete directories, but only if empty
-  RmDir "$INSTDIR\crossfire-client\glade-gtk2"
+  RmDir "$INSTDIR\glade-gtk2"
   RmDir "$INSTDIR\crossfire-client"
+  RMDir "$INSTDIR\themes"
   RmDir "$INSTDIR\.crossfire"
   RmDir "$INSTDIR"
 
