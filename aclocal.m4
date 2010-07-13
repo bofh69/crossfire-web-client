@@ -895,6 +895,7 @@ AC_SUBST([am__tar])
 AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
+m4_include([macros/ax_pthread.m4])
 m4_include([macros/gtk.m4])
 m4_include([macros/libcurl.m4])
 m4_include([macros/pkg.m4])
