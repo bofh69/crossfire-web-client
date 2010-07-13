@@ -2,6 +2,11 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/glade/dialogs.glade: Fix for bug 3020531 - The Create Character
+button does nothing.  Trailing space in widget name resulted in code
+not finding the widget and attaching callback to it.
+MSW 2010-07-12
+
 Remove disabled GTK and X11 clients.
 Nicolas Weeger 2010-06-19
 

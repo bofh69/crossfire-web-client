@@ -3145,7 +3145,7 @@ Character Selection</property>
                     <property name="visible">True</property>
                     <property name="layout_style">spread</property>
                     <child>
-                      <widget class="GtkButton" id="button_create_new_char ">
+                      <widget class="GtkButton" id="button_create_new_char">
                         <property name="label" translatable="yes">Create Character</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
