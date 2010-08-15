@@ -303,6 +303,19 @@ on_spells_activate                     (GtkMenuItem     *menuitem,
         gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new ();
+
+        /* This can be used to cause line wrap of the description, but as-is,
+         * seems to wrap at the width of "Description", so is left commented
+         * until it is known/tried how to set up a reasonable wrap width.  It
+         * may not be trivial to do it ideally - as that seems to imply
+         * dynamic wrap width, but considering the dialog has had a static
+         * width so long, it might not really be that bad to use a fixed
+         * width.
+         *
+         * g_object_set (G_OBJECT (renderer), "wrap-width", 40, "wrap-mode",
+         *      PANGO_WRAP_WORD, NULL);
+         */
+
         column = gtk_tree_view_column_new_with_attributes ("Description", renderer,
                                                 "text", LIST_DESCRIPTION,
                                                 NULL);
