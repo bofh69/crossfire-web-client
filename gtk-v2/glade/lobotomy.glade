@@ -13,6 +13,7 @@
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkMenuBar" id="menubar">
             <property name="visible">True</property>
@@ -1292,6 +1293,7 @@
             <child>
               <widget class="GtkVBox" id="vbox_right_column">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkViewport" id="viewport_player_level">
                     <property name="visible">True</property>
@@ -1576,6 +1578,7 @@
                         <child>
                           <widget class="GtkVBox" id="vbox_equipped">
                             <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkLabel" id="label_range">
                                 <property name="visible">True</property>
@@ -1734,6 +1737,7 @@
                             <property name="visible">True</property>
                             <child>
                               <widget class="GtkVBox" id="vbox_attack_defense_corestats">
+                                <property name="orientation">vertical</property>
                                 <property name="visible">True</property>
                                 <child>
                                   <widget class="GtkTable" id="table_attack">
@@ -2158,6 +2162,7 @@
                             <child>
                               <widget class="GtkVBox" id="vbox_statbars">
                                 <property name="visible">True</property>
+                                <property name="orientation">vertical</property>
                                 <child>
                                   <widget class="GtkHBox" id="hbox_hp">
                                     <property name="visible">True</property>

@@ -12,6 +12,7 @@
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hbox_menubar">
             <property name="visible">True</property>
@@ -529,6 +530,7 @@
                     <child>
                       <widget class="GtkVBox" id="vbox_info_entry">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkNotebook" id="notebook_prot_core">
                             <property name="visible">True</property>
@@ -641,6 +643,7 @@
                           <widget class="GtkVBox" id="vbox_inv">
                             <property name="visible">True</property>
                             <property name="border_width">2</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkHBox" id="hbox_inv_header">
                                 <property name="visible">True</property>
@@ -1124,6 +1127,7 @@
                       <widget class="GtkVBox" id="vbox_floor">
                         <property name="visible">True</property>
                         <property name="border_width">3</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkLabel" id="label_look">
                             <property name="visible">True</property>
@@ -1190,6 +1194,7 @@
                             <child>
                               <widget class="GtkVBox" id="vbox_character">
                                 <property name="visible">True</property>
+                                <property name="orientation">vertical</property>
                                 <child>
                                   <widget class="GtkHBox" id="hbox_player_level">
                                     <property name="visible">True</property>

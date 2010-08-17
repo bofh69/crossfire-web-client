@@ -14,6 +14,7 @@
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hbox_menubar">
             <property name="visible">True</property>
@@ -523,6 +524,7 @@
                     <child>
                       <widget class="GtkVBox" id="vbox_messages_inputs">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkFrame" id="frame_messages">
                             <property name="visible">True</property>
@@ -645,6 +647,7 @@
                               <widget class="GtkVBox" id="vbox_corestats">
                                 <property name="visible">True</property>
                                 <property name="homogeneous">True</property>
+                                <property name="orientation">vertical</property>
                                 <child>
                                   <widget class="GtkHBox" id="hbox_player">
                                     <property name="visible">True</property>
@@ -1168,6 +1171,7 @@
                         <child>
                           <widget class="GtkVBox" id="vbox_stats_bars">
                             <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkHBox" id="hbox_stat_hp">
                                 <property name="visible">True</property>
@@ -1696,6 +1700,7 @@
                         <child>
                           <widget class="GtkVBox" id="vbox2">
                             <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkNotebook" id="notebook_inv">
                                 <property name="visible">True</property>

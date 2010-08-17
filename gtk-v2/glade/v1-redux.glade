@@ -14,6 +14,7 @@
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hbox_menubar">
             <property name="visible">True</property>
@@ -519,6 +520,7 @@
                 <child>
                   <widget class="GtkVBox" id="vbox_inv">
                     <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <child>
                       <widget class="GtkHBox" id="hbox_inv_header">
                         <property name="visible">True</property>
@@ -989,6 +991,7 @@
                   <widget class="GtkVBox" id="vbox_ground">
                     <property name="visible">True</property>
                     <property name="border_width">3</property>
+                    <property name="orientation">vertical</property>
                     <child>
                       <widget class="GtkLabel" id="label_ground">
                         <property name="visible">True</property>
@@ -1053,6 +1056,7 @@
                             <property name="border_width">2</property>
                             <property name="spacing">2</property>
                             <property name="homogeneous">True</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkHBox" id="hbox_player">
                                 <property name="visible">True</property>
@@ -1663,6 +1667,7 @@
                             <child>
                               <widget class="GtkVBox" id="vbox_bars">
                                 <property name="visible">True</property>
+                                <property name="orientation">vertical</property>
                                 <child>
                                   <widget class="GtkHBox" id="hbox_stat_hp">
                                     <property name="visible">True</property>
@@ -2187,6 +2192,7 @@
                 <child>
                   <widget class="GtkVBox" id="vbox_messages_commands">
                     <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <child>
                       <widget class="GtkVPaned" id="vpaned_messages">
                         <property name="visible">True</property>

@@ -12,6 +12,7 @@
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hbox_menubar">
             <property name="visible">True</property>
@@ -522,6 +523,7 @@
                     <child>
                       <widget class="GtkVBox" id="vbox_inventory">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkHBox" id="hbox_encumbrance">
                             <property name="visible">True</property>
@@ -992,6 +994,7 @@
                       <widget class="GtkVBox" id="vbox_look">
                         <property name="visible">True</property>
                         <property name="border_width">3</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkLabel" id="label_look">
                             <property name="visible">True</property>
@@ -1092,6 +1095,7 @@
                     <child>
                       <widget class="GtkVBox" id="vbox_info_entry">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkVPaned" id="vpaned_msg_cmd">
                             <property name="visible">True</property>
@@ -1674,6 +1678,7 @@
                       <widget class="GtkVBox" id="vbox_core_stats">
                         <property name="visible">True</property>
                         <property name="homogeneous">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkLabel" id="label_playername">
                             <property name="visible">True</property>

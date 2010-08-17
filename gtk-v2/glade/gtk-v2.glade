@@ -12,6 +12,7 @@
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hbox_menubar">
             <property name="visible">True</property>
@@ -1007,6 +1008,7 @@
                           <widget class="GtkVBox" id="vbox_corestats">
                             <property name="visible">True</property>
                             <property name="homogeneous">True</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkLabel" id="label_playername">
                                 <property name="visible">True</property>
@@ -1559,6 +1561,7 @@
                 <child>
                   <widget class="GtkVBox" id="vbox_info_entry">
                     <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <child>
                       <widget class="GtkNotebook" id="notebook_info">
                         <property name="visible">True</property>
@@ -1664,6 +1667,7 @@
                     <child>
                       <widget class="GtkVBox" id="vbox_inventory">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkHBox" id="hbox_weight_count">
                             <property name="visible">True</property>
@@ -2134,6 +2138,7 @@
                     <child>
                       <widget class="GtkVBox" id="vbox_look">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkLabel" id="label_look">
                             <property name="visible">True</property>

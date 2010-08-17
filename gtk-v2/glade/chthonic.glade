@@ -12,6 +12,7 @@
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hbox_menubar">
             <property name="visible">True</property>
@@ -518,6 +519,7 @@
                 <child>
                   <widget class="GtkVBox" id="vbox_inv">
                     <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <child>
                       <widget class="GtkHBox" id="hbox_inv_header">
                         <property name="visible">True</property>
@@ -1088,6 +1090,7 @@
                     <child>
                       <widget class="GtkVBox" id="vbox_info_entry">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkVPaned" id="vpaned_msg_cmd">
                             <property name="visible">True</property>
@@ -1237,6 +1240,7 @@
                                 <child>
                                   <widget class="GtkVBox" id="vbox_character">
                                     <property name="visible">True</property>
+                                    <property name="orientation">vertical</property>
                                     <child>
                                       <widget class="GtkHBox" id="hbox_player_level">
                                         <property name="visible">True</property>

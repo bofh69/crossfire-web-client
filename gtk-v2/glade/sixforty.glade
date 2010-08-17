@@ -11,6 +11,7 @@
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hbox_menubar">
             <property name="visible">True</property>
@@ -1587,6 +1588,7 @@
             <child>
               <widget class="GtkVBox" id="vbox_client_right_column">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkVPaned" id="vpaned_inv">
                     <property name="visible">True</property>
