@@ -9,6 +9,7 @@
     <child>
       <widget class="GtkVBox" id="msgctrl_vbox">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkLabel" id="msgctrl_label_title">
             <property name="visible">True</property>
@@ -347,6 +348,7 @@
     <child>
       <widget class="GtkVBox" id="about_vbox">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="about_hbox_image">
             <property name="visible">True</property>
@@ -430,6 +432,7 @@
         <child>
           <widget class="GtkVBox" id="config_vbox">
             <property name="visible">True</property>
+            <property name="orientation">vertical</property>
             <child>
               <widget class="GtkNotebook" id="config_notebook">
                 <property name="visible">True</property>
@@ -445,6 +448,7 @@
                     <child>
                       <widget class="GtkVBox" id="config_general_vbox">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkHBox" id="config_misc_hbox">
                             <property name="visible">True</property>
@@ -464,6 +468,7 @@
                                     <child>
                                       <widget class="GtkVBox" id="config_sound_vbox">
                                         <property name="visible">True</property>
+                                        <property name="orientation">vertical</property>
                                         <child>
                                           <widget class="GtkCheckButton" id="config_button_sound">
                                             <property name="label" translatable="yes">Enable Sound Support</property>
@@ -528,6 +533,7 @@
                                     <child>
                                       <widget class="GtkVBox" id="config_misc_vbox">
                                         <property name="visible">True</property>
+                                        <property name="orientation">vertical</property>
                                         <child>
                                           <widget class="GtkCheckButton" id="config_button_echo">
                                             <property name="label" translatable="yes">Echo Bound Commands</property>
@@ -995,6 +1001,7 @@ Changes takes effect on the next server connection.</property>
                     <child>
                       <widget class="GtkVBox" id="config_display_vbox">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkFrame" id="config_caching_frame">
                             <property name="visible">True</property>
@@ -1356,6 +1363,7 @@ Per Tile</property>
     <child>
       <widget class="GtkVBox" id="spell_vbox">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkScrolledWindow" id="spell_scrolledwindow">
             <property name="visible">True</property>
@@ -1550,6 +1558,7 @@ Per Tile</property>
     <child>
       <widget class="GtkVBox" id="keybinding_vbox">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkScrolledWindow" id="keybinding_scrolledwindow">
             <property name="visible">True</property>
@@ -1829,6 +1838,7 @@ Per Tile</property>
     <child>
       <widget class="GtkVBox" id="metaserver_vbox">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkLabel" id="metaserver_label_title">
             <property name="visible">True</property>
@@ -2013,6 +2023,7 @@ Per Tile</property>
             <child>
               <widget class="GtkVBox" id="login_vbox">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label_account_login">
                     <property name="visible">True</property>
@@ -2038,6 +2049,7 @@ If you already have characters on this server, you may attach them to a the new 
                     <child>
                       <widget class="GtkVBox" id="login_account_news_vbox">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkFrame" id="login_account_frame">
                             <property name="visible">True</property>
@@ -2052,6 +2064,7 @@ If you already have characters on this server, you may attach them to a the new 
                                   <widget class="GtkVBox" id="login_account_vbox">
                                     <property name="visible">True</property>
                                     <property name="spacing">5</property>
+                                    <property name="orientation">vertical</property>
                                     <child>
                                       <widget class="GtkLabel" id="label_account_name">
                                         <property name="visible">True</property>
@@ -2355,6 +2368,7 @@ Metaserver Selection</property>
             <child>
               <widget class="GtkVBox" id="create_account_vbox">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label_create_account">
                     <property name="visible">True</property>
@@ -2386,6 +2400,7 @@ Metaserver Selection</property>
                               <widget class="GtkVBox" id="create_account_account_vbox">
                                 <property name="visible">True</property>
                                 <property name="spacing">5</property>
+                                <property name="orientation">vertical</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_new_account_name">
                                     <property name="visible">True</property>
@@ -2605,6 +2620,7 @@ Metaserver Selection</property>
             <child>
               <widget class="GtkVBox" id="choose_char_vbox">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label_choose_character">
                     <property name="visible">True</property>
@@ -2832,6 +2848,7 @@ Account Login</property>
             <child>
               <widget class="GtkVBox" id="add_char_vbox">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label_add_character">
                     <property name="visible">True</property>
@@ -2856,6 +2873,7 @@ Account Login</property>
                         <child>
                           <widget class="GtkVBox" id="add_char_char_vbox">
                             <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkHBox" id="add_char_hbox">
                                 <property name="visible">True</property>
@@ -2863,6 +2881,7 @@ Account Login</property>
                                   <widget class="GtkVBox" id="add_char_login_vbox">
                                     <property name="visible">True</property>
                                     <property name="spacing">5</property>
+                                    <property name="orientation">vertical</property>
                                     <child>
                                       <widget class="GtkLabel" id="label_character_name">
                                         <property name="visible">True</property>
@@ -3052,6 +3071,7 @@ Character Selection</property>
             <child>
               <widget class="GtkVBox" id="new_char_vbox">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="new_char_label">
                     <property name="visible">True</property>
@@ -3079,6 +3099,7 @@ Character Selection</property>
                           <widget class="GtkVBox" id="new_char_frame_vbox">
                             <property name="visible">True</property>
                             <property name="spacing">5</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkLabel" id="new_char_name_label">
                                 <property name="visible">True</property>
@@ -3190,6 +3211,7 @@ Character Selection</property>
     <child>
       <widget class="GtkVBox" id="skill_vbox">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkScrolledWindow" id="skill_scrolledwindow">
             <property name="visible">True</property>
