@@ -1196,7 +1196,7 @@ The server determines what map tiles are visible based on map lighting levels.</
                                       </packing>
                                     </child>
                                     <child>
-                                      <widget class="GtkAlignment" id="config_displaymode_alignment">
+                                      <widget class="GtkAlignment" id="config_mode_alignment">
                                         <property name="visible">True</property>
                                         <property name="xalign">0</property>
                                         <property name="yalign">0</property>
@@ -1310,6 +1310,7 @@ Per Tile</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
+                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -1325,6 +1326,7 @@ Per Tile</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
+                    <property name="fill">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
@@ -1340,6 +1342,7 @@ Per Tile</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
+                    <property name="fill">False</property>
                     <property name="position">2</property>
                   </packing>
                 </child>
@@ -2008,6 +2011,7 @@ Per Tile</property>
     <property name="title" translatable="yes">Account Login</property>
     <property name="window_position">center-on-parent</property>
     <property name="type_hint">dialog</property>
+    <property name="deletable">False</property>
     <child>
       <widget class="GtkViewport" id="login_viewport">
         <property name="visible">True</property>
@@ -2063,8 +2067,8 @@ If you already have characters on this server, you may attach them to a the new 
                                 <child>
                                   <widget class="GtkVBox" id="login_account_vbox">
                                     <property name="visible">True</property>
-                                    <property name="spacing">5</property>
                                     <property name="orientation">vertical</property>
+                                    <property name="spacing">5</property>
                                     <child>
                                       <widget class="GtkLabel" id="label_account_name">
                                         <property name="visible">True</property>
@@ -2287,6 +2291,8 @@ If you already have characters on this server, you may attach them to a the new 
                         <signal name="activate" handler="activate_button_login"/>
                       </widget>
                       <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -2399,8 +2405,8 @@ Metaserver Selection</property>
                             <child>
                               <widget class="GtkVBox" id="create_account_account_vbox">
                                 <property name="visible">True</property>
-                                <property name="spacing">5</property>
                                 <property name="orientation">vertical</property>
+                                <property name="spacing">5</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_new_account_name">
                                     <property name="visible">True</property>
@@ -2574,6 +2580,8 @@ Metaserver Selection</property>
                         <signal name="activate" handler="activate_new_create_account"/>
                       </widget>
                       <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -2587,6 +2595,8 @@ Metaserver Selection</property>
                         <signal name="activate" handler="activate_new_cancel"/>
                       </widget>
                       <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -2772,6 +2782,7 @@ this server that is not associated with an account, click the Add Character butt
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -2786,6 +2797,7 @@ this server that is not associated with an account, click the Add Character butt
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -2800,6 +2812,7 @@ this server that is not associated with an account, click the Add Character butt
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">2</property>
                       </packing>
                     </child>
@@ -2815,6 +2828,7 @@ Account Login</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">3</property>
                       </packing>
                     </child>
@@ -2880,8 +2894,8 @@ Account Login</property>
                                 <child>
                                   <widget class="GtkVBox" id="add_char_login_vbox">
                                     <property name="visible">True</property>
-                                    <property name="spacing">5</property>
                                     <property name="orientation">vertical</property>
+                                    <property name="spacing">5</property>
                                     <child>
                                       <widget class="GtkLabel" id="label_character_name">
                                         <property name="visible">True</property>
@@ -3021,6 +3035,7 @@ exist on the server.</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -3036,6 +3051,7 @@ Character Selection</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -3098,8 +3114,8 @@ Character Selection</property>
                         <child>
                           <widget class="GtkVBox" id="new_char_frame_vbox">
                             <property name="visible">True</property>
-                            <property name="spacing">5</property>
                             <property name="orientation">vertical</property>
+                            <property name="spacing">5</property>
                             <child>
                               <widget class="GtkLabel" id="new_char_name_label">
                                 <property name="visible">True</property>
@@ -3173,6 +3189,7 @@ Character Selection</property>
                         <property name="receives_default">True</property>
                       </widget>
                       <packing>
+                        <property name="expand">False</property>
                         <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
@@ -3185,6 +3202,7 @@ Character Selection</property>
                         <property name="receives_default">True</property>
                       </widget>
                       <packing>
+                        <property name="expand">False</property>
                         <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>

@@ -2,6 +2,15 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/glade/*.glade: Change design up to support GTK 2.16 and add orientation
+properties so the files load up and render properly in Glade-3 ver 3.6.7.  Fix
+some more widget names to remove trailing whitespace.  Set the login dialog
+deleteable property to false so window (some) window managers do not show the
+[X] close icon.  The client can't handle the dialog being closed.  This is a
+partial fix only.  Some window managers (or whatever) do not honor the GTK
+property.  Clean up a widget name in the config dialog.
+Kevin Bulgrien 2010-08-16/17
+
 gtk-v2/glade/dialogs.glade: Fix for bug 3020531 - The Create Character
 button does nothing.  Trailing space in widget name resulted in code
 not finding the widget and attaching callback to it.
