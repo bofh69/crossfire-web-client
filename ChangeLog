@@ -2,9 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
-gtk-v2/src: config.c, keys.c, skills.c, spells.c: Fix segfault and/or client
-malfunction when [X] closing dialogs on window managers that do not honor
-setting their GTK deletable property to No.
+gtk-v2/src: about.c, config.c, info.c, keys.c, skills.c, spells.c: Fix
+segfault and/or client malfunction when [X] closing dialogs on window managers
+that do not honor setting their GTK deletable property to No.
 Kevin Bulgrien 2010-08-18
 
 gtk-v2/glade/*.glade: Change design up to support GTK 2.16 and add orientation

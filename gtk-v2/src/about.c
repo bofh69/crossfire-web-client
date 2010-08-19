@@ -72,9 +72,12 @@ menu_about                             (GtkMenuItem     *menuitem,
 
         textview = glade_xml_get_widget(xml_tree, "about_textview");
 
+        g_signal_connect((gpointer) about_window, "delete_event",
+            G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+
         widget = glade_xml_get_widget(xml_tree, "about_close");
-        g_signal_connect ((gpointer) widget, "clicked",
-            G_CALLBACK (on_about_close_clicked), NULL);
+        g_signal_connect((gpointer) widget, "clicked",
+            G_CALLBACK(on_about_close_clicked), NULL);
 
         textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
 

@@ -1356,6 +1356,8 @@ void msgctrl_init(GtkWidget *window_root)
     msgctrl_window = glade_xml_get_widget(dialog_xml, "msgctrl_window");
     xml_tree = glade_get_widget_tree(GTK_WIDGET(msgctrl_window));
 
+    g_signal_connect((gpointer) msgctrl_window, "delete_event",
+        G_CALLBACK(gtk_widget_hide_on_delete), NULL);
     /*
      * Initialize the spinbutton pointers.
      */
@@ -1458,24 +1460,24 @@ void msgctrl_init(GtkWidget *window_root)
      * Connect the control's buttons to the appropriate handlers.
      */
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_save");
-    g_signal_connect ((gpointer) widget, "clicked",
-        G_CALLBACK (on_msgctrl_button_save_clicked), NULL);
+    g_signal_connect((gpointer) widget, "clicked",
+        G_CALLBACK(on_msgctrl_button_save_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_load");
-    g_signal_connect ((gpointer) widget, "clicked",
-        G_CALLBACK (on_msgctrl_button_load_clicked), NULL);
+    g_signal_connect((gpointer) widget, "clicked",
+        G_CALLBACK(on_msgctrl_button_load_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_defaults");
-    g_signal_connect ((gpointer) widget, "clicked",
-        G_CALLBACK (on_msgctrl_button_defaults_clicked), NULL);
+    g_signal_connect((gpointer) widget, "clicked",
+        G_CALLBACK(on_msgctrl_button_defaults_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_apply");
-    g_signal_connect ((gpointer) widget, "clicked",
-        G_CALLBACK (on_msgctrl_button_apply_clicked), NULL);
+    g_signal_connect((gpointer) widget, "clicked",
+        G_CALLBACK(on_msgctrl_button_apply_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_close");
-    g_signal_connect ((gpointer) widget, "clicked",
-        G_CALLBACK (on_msgctrl_button_close_clicked), NULL);
+    g_signal_connect((gpointer) widget, "clicked",
+        G_CALLBACK(on_msgctrl_button_close_clicked), NULL);
 }
 
 /**
