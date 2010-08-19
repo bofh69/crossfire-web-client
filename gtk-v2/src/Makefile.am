@@ -59,12 +59,19 @@ crossfire_client_gtk2_SOURCES = \
 
 crossfire_client_gtk2_LDADD = ../../common/libcfclient.a $(PTHREAD_LIBS) @LIBGLADE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@
 
-# $(PTHREAD_CFLAGS) is deliberately omitted.  It breaks this target when it
-# puts in -pthread as this string is then interpreted as a cproto command
-# line option list.
+# This target breaks when it sees -pthread in the cproto command, so it has to
+# be stripped out to work.  $(filter-out) is a GNU make extension, so it is
+# commented out here for portability reasons.  Is there a good way to do this?
+# Removing PTHREAD_CFLAGS from here used to work, but something put it back.
 #
+proto:  PROTO_DIRTY = $(SDL_CFLAGS) $(LIBGLADE_CFLAGS) $(DEFAULT_INCLUDES) \
+                      $(INCLUDES) $(PROTO_SOURCES)
+# proto:  PROTO_CLEAN = $(filter-out -pthread,$(PROTO_DIRTY))
+# proto:
+# 	cproto -e -o gtk2proto.h $(PROTO_CLEAN); \
+# 	chmod 644 gtk2proto.h
+
 proto:
-	cproto -e -o gtk2proto.h \
-	    $(SDL_CFLAGS) $(LIBGLADE_CFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	    $(PROTO_SOURCES); \
-	chmod 644 gtk2proto.h
+	cproto -e -o gtk2proto.h $(PROTO_DIRTY); \
+ 	chmod 644 gtk2proto.h
+
