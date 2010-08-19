@@ -2359,6 +2359,7 @@ Metaserver Selection</property>
   <widget class="GtkWindow" id="create_account_window">
     <property name="title" translatable="yes">Create Account</property>
     <property name="window_position">center-on-parent</property>
+    <property name="deletable">False</property>
     <child>
       <widget class="GtkViewport" id="create_account_viewport">
         <property name="visible">True</property>
@@ -2616,6 +2617,7 @@ Metaserver Selection</property>
   <widget class="GtkWindow" id="choose_character_window">
     <property name="title" translatable="yes">Character Selection</property>
     <property name="window_position">center-on-parent</property>
+    <property name="deletable">False</property>
     <child>
       <widget class="GtkViewport" id="choose_char_viewport">
         <property name="visible">True</property>
@@ -2848,6 +2850,7 @@ Account Login</property>
   <widget class="GtkWindow" id="add_character_window">
     <property name="title" translatable="yes">Add Character to Account</property>
     <property name="window_position">center-on-parent</property>
+    <property name="deletable">False</property>
     <child>
       <widget class="GtkViewport" id="add_char_viewport">
         <property name="visible">True</property>
@@ -3072,6 +3075,7 @@ Character Selection</property>
     <property name="window_position">center-on-parent</property>
     <property name="default_width">440</property>
     <property name="default_height">250</property>
+    <property name="deletable">False</property>
     <child>
       <widget class="GtkViewport" id="new_char_viewport">
         <property name="visible">True</property>
