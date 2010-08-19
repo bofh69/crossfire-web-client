@@ -520,17 +520,20 @@ void config_init(GtkWidget *window_root)
     config_combobox_glade =
         glade_xml_get_widget(xml_tree, "config_combobox_glade");
 
+    g_signal_connect((gpointer) config_window, "delete_event",
+        G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+
     widget = glade_xml_get_widget(xml_tree, "config_button_save");
-    g_signal_connect ((gpointer) widget, "clicked",
-        G_CALLBACK (on_config_button_save_clicked), NULL);
+    g_signal_connect((gpointer) widget, "clicked",
+        G_CALLBACK(on_config_button_save_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "config_button_apply");
-    g_signal_connect ((gpointer) widget, "clicked",
-        G_CALLBACK (on_config_button_apply_clicked), NULL);
+    g_signal_connect((gpointer) widget, "clicked",
+        G_CALLBACK(on_config_button_apply_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "config_button_close");
-    g_signal_connect ((gpointer) widget, "clicked",
-        G_CALLBACK (on_config_button_close_clicked), NULL);
+    g_signal_connect((gpointer) widget, "clicked",
+        G_CALLBACK(on_config_button_close_clicked), NULL);
 
     /*
      * Display mode combo box setup.  First, remove all entries, then populate
