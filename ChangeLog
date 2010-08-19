@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/src/skills.c: Fix segfault when [X] closing the skills dialog on window
+managers that do not honor setting a GTK non-deletable property on the dialog.
+Kevin Bulgrien 2010-08-18
+
 gtk-v2/glade/*.glade: Change design up to support GTK 2.16 and add orientation
 properties so the files load up and render properly in Glade-3 ver 3.6.7.  Fix
 some more widget names to remove trailing whitespace.  Set the login dialog
