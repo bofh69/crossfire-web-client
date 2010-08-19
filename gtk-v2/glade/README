@@ -70,6 +70,7 @@ Notes about designing .glade files for the libglade version of the GTK2 client
 
      metaserver_window
      keybinding_window
+     msgctrl_window
      config_window
      spell_window
      skill_window
@@ -177,6 +178,18 @@ Notes about designing .glade files for the libglade version of the GTK2 client
     default.  Since a player never expects to be able to set the thickness of
     the bar, setting that dimension is useful to attain a particular look (I.E.
     make the progressbar more compact).
+
+12) All dialogs defined in dialogs.glade should have their Deletable property
+    set to "No" in the XML (done while working in the Glade-3 designer).  This
+    tells window managers not to put an [X] close icon on the window frame.
+    Without this, the [X] close deletes the dialog so it cannot be resurrected
+    without restarting the client.  In some cases a segmentation fault occurs
+    and the client crashes.  To cover cases where certain window managers do
+    not honor the GTK Deletable property, connect the delete_event for each
+    dialog to gtk_widget_hide_on_delete() in the C code.  For example:
+
+        g_signal_connect((gpointer) about_window, "delete_event",
+            G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 
 
 -------------------------------------------------------------------------------
