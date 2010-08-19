@@ -107,7 +107,7 @@ static int has_init=0;
  * client/disconnect or network failure).  get_metaserver() calls this, as
  * well as AddMeSuccess
  */
-void hide_all_login_windows()
+void hide_all_login_windows(void)
 {
     extern GtkWidget *treeview_look;
 
@@ -145,7 +145,7 @@ void create_new_character_failure(char *message)
 /**
  *
  */
-static void create_new_character()
+static void create_new_character(void)
 {
     const char *name;
     uint8 buf[MAX_BUF];
@@ -209,7 +209,7 @@ on_button_new_char_cancel_clicked(GtkButton *button, gpointer user_data)
 /**
  * Initializes the new character window.
  */
-static void init_new_character_window()
+static void init_new_character_window(void)
 {
     GladeXML *xml_tree;
 
@@ -385,7 +385,7 @@ void on_entry_character(GtkEntry *entry, gpointer user_data) {
 /**
  *
  */
-static void init_add_character_window() {
+static void init_add_character_window(void) {
     GladeXML *xml_tree;
 
     add_character_window =
@@ -427,7 +427,7 @@ static void init_add_character_window() {
  * but also hide any other windows and make the choose_character_window
  * visible.
  */
-void choose_character_init()
+void choose_character_init(void)
 {
     gtk_widget_hide(login_window);
     gtk_widget_hide(add_character_window);
@@ -603,7 +603,7 @@ void on_treeview_choose_character_activated(GtkTreeView       *treeview,
 /**
  *
  */
-static void init_choose_char_window() {
+static void init_choose_char_window(void) {
 
     GladeXML *xml_tree;
     GtkTextIter end;
@@ -842,7 +842,7 @@ on_entry_new_account(GtkEntry *entry, gpointer user_data) {
  * This initializes the create account window and sets up the various
  * callbacks.
  */
-static void init_create_account_window()
+static void init_create_account_window(void)
 {
     GladeXML *xml_tree;
     GtkTextIter end;
@@ -1044,7 +1044,7 @@ on_entry_account_password_activate(GtkEntry *entry, gpointer user_data) {
  * Sets up all the widget pointers, as well as setting up the callbacks for
  * the login windows widgets.
  */
-static void init_login_window()
+static void init_login_window(void)
 {
     GladeXML *xml_tree;
     GtkTextIter end;
