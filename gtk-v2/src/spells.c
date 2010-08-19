@@ -213,15 +213,17 @@ on_spells_activate                     (GtkMenuItem     *menuitem,
         spell_options = glade_xml_get_widget(xml_tree,"spell_options");
         spell_treeview = glade_xml_get_widget(xml_tree, "spell_treeview");
 
-        g_signal_connect ((gpointer) spell_treeview, "row_activated",
-            G_CALLBACK (on_spell_treeview_row_activated), NULL);
+        g_signal_connect ((gpointer) spell_window, "delete_event",
+            G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+        g_signal_connect((gpointer) spell_treeview, "row_activated",
+            G_CALLBACK(on_spell_treeview_row_activated), NULL);
         g_signal_connect ((gpointer) spell_cast, "clicked",
-            G_CALLBACK (on_spell_cast_clicked), NULL);
-        g_signal_connect ((gpointer) spell_invoke, "clicked",
-            G_CALLBACK (on_spell_invoke_clicked), NULL);
+            G_CALLBACK(on_spell_cast_clicked), NULL);
+        g_signal_connect((gpointer) spell_invoke, "clicked",
+            G_CALLBACK(on_spell_invoke_clicked), NULL);
 
         widget = glade_xml_get_widget(xml_tree, "spell_close");
-        g_signal_connect ((gpointer) widget, "clicked",
+        g_signal_connect((gpointer) widget, "clicked",
             G_CALLBACK (on_spell_close_clicked), NULL);
 
         spell_store = gtk_list_store_new(14,
