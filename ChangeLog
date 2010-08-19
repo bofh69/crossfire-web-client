@@ -2,6 +2,14 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/src/account.c:  Fix client malfunction on [X] closing of account system
+dialogs.  Though the dialogs have the Deletable property set to No, some
+window managers do not honor this setting, and put the [X] close icon on the
+window frame.  Added new on_window_delete_event() callback and connected it
+to all of the account system dialogs so their delete_events are trapped and
+ignored.  The dialogs now only dismiss in the manner the designer intended.
+Kevin Bulgrien 2010-08-19
+
 gtk-v2/src: about.c, config.c, info.c, keys.c, skills.c, spells.c: Fix
 segfault and/or client malfunction when [X] closing dialogs on window managers
 that do not honor setting their GTK deletable property to No.

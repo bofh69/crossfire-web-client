@@ -129,6 +129,18 @@ void hide_all_login_windows(void)
     }
 }
 
+/**
+ * Prevent delete_event closure and/or hiding of account windows.  All account
+ * system windows ignore delete events and remain visible unless the user
+ * clicks an appropriate button.
+ *
+ * @param window    Pointer to an account window that received a delete_event.
+ * @param user_data Unused.
+ */
+gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data) {
+    return TRUE;
+}
+
 /*****************************************************************************
  * New character window functions
  *****************************************************************************/
@@ -213,8 +225,11 @@ static void init_new_character_window(void)
 {
     GladeXML *xml_tree;
 
-    new_character_window = glade_xml_get_widget(dialog_xml, "new_character_window");
-    gtk_window_set_transient_for(GTK_WINDOW(new_character_window), GTK_WINDOW(window_root));
+    new_character_window =
+         glade_xml_get_widget(dialog_xml, "new_character_window");
+
+    gtk_window_set_transient_for(
+        GTK_WINDOW(new_character_window), GTK_WINDOW(window_root));
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(new_character_window));
 
@@ -227,6 +242,8 @@ static void init_new_character_window(void)
     label_new_char_status =
         glade_xml_get_widget(dialog_xml,"label_new_char_status");
 
+    g_signal_connect((gpointer) new_character_window, "delete_event",
+                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) button_create_new_char, "clicked",
                      G_CALLBACK(on_button_create_new_char_clicked), NULL);
     g_signal_connect((gpointer) button_new_char_cancel, "clicked",
@@ -407,6 +424,8 @@ static void init_add_character_window(void) {
     label_add_status =
         glade_xml_get_widget(dialog_xml,"label_add_status");
 
+    g_signal_connect((gpointer) add_character_window, "delete_event",
+                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) button_do_add_character, "clicked",
                      G_CALLBACK(on_button_do_add_character_clicked), NULL);
     g_signal_connect((gpointer) button_return_character_select, "clicked",
@@ -645,6 +664,8 @@ static void init_choose_char_window(void) {
         gtk_text_buffer_create_mark(
             login_pane[TEXTVIEW_RULES_CHAR].textbuffer, NULL, &end, FALSE);
 
+    g_signal_connect((gpointer) choose_char_window, "delete_event",
+                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) button_play_character, "clicked",
                      G_CALLBACK(on_button_play_character_clicked), NULL);
     g_signal_connect((gpointer) button_create_character, "clicked",
@@ -884,6 +905,8 @@ static void init_create_account_window(void)
         gtk_text_buffer_create_mark(
             login_pane[TEXTVIEW_RULES_ACCOUNT].textbuffer, NULL, &end, FALSE);
 
+    g_signal_connect((gpointer) create_account_window, "delete_event",
+                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) button_new_create_account, "clicked",
                      G_CALLBACK(on_button_new_create_account_clicked), NULL);
     g_signal_connect((gpointer) button_new_cancel, "clicked",
@@ -1069,10 +1092,8 @@ static void init_login_window(void)
         glade_xml_get_widget(dialog_xml,"button_go_metaserver");
     button_exit_client =
         glade_xml_get_widget(dialog_xml,"button_exit_client");
-
     label_account_login_status =
         glade_xml_get_widget(dialog_xml,"label_account_login_status");
-
     login_pane[TEXTVIEW_MOTD].textview =
         glade_xml_get_widget(dialog_xml,"textview_motd");
 
@@ -1106,6 +1127,8 @@ static void init_login_window(void)
     entry_account_password =
         glade_xml_get_widget(dialog_xml,"entry_account_password");
 
+    g_signal_connect((gpointer) login_window, "delete_event",
+                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) entry_account_name, "activate",
                      G_CALLBACK(on_entry_account_name_activate), NULL);
     g_signal_connect((gpointer) entry_account_password, "activate",
