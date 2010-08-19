@@ -3,6 +3,7 @@ extern void menu_about(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_about_close_clicked(GtkButton *button, gpointer user_data);
 /* account.c */
 extern void hide_all_login_windows(void);
+extern gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data);
 extern void create_new_character_failure(char *message);
 extern void on_button_create_new_char_clicked(GtkButton *button, gpointer user_data);
 extern void on_entry_new_character_name(GtkEntry *entry, gpointer user_data);
