@@ -132,7 +132,6 @@ void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data) {
         skill_use = glade_xml_get_widget(xml_tree,"skill_use");
         skill_ready = glade_xml_get_widget(xml_tree,"skill_ready");
         skill_treeview = glade_xml_get_widget(xml_tree, "skill_treeview");
-        widget = glade_xml_get_widget(xml_tree, "skill_close");
 
         g_signal_connect((gpointer) skill_window, "delete_event",
             G_CALLBACK(gtk_widget_hide_on_delete), NULL);
@@ -142,6 +141,8 @@ void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data) {
             G_CALLBACK(on_skill_ready_clicked), NULL);
         g_signal_connect((gpointer) skill_use, "clicked",
             G_CALLBACK(on_skill_use_clicked), NULL);
+
+        widget = glade_xml_get_widget(xml_tree, "skill_close");
         g_signal_connect((gpointer) widget, "clicked",
             G_CALLBACK(on_skill_close_clicked), NULL);
 
