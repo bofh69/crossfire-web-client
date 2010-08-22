@@ -259,12 +259,16 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             GTK_TREE_VIEW(spell_treeview), GTK_TREE_MODEL(spell_store));
         gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(spell_treeview), TRUE);
 
-        /* Note it is intentional we don't show (render) some fields:
+        /* Note: it is intentional we don't show (render) some fields:
          * image - we don't have images right now it seems.
          * time - not sure if it worth the space.
          * spell path - done by color
+         *
+         * Note: Cell alignment is set to top right instead of the default,
+         * to improve readability when descriptions wrap to multiple lines.
          */
         renderer = gtk_cell_renderer_text_new();
+        gtk_cell_renderer_set_alignment(renderer, 0, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Spell", renderer, "text", LIST_NAME, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -277,6 +281,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
+        gtk_cell_renderer_set_alignment(renderer, 0, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Level", renderer, "text", LIST_LEVEL, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -289,6 +294,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
+        gtk_cell_renderer_set_alignment(renderer, 0, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "SP/Mana Cost", renderer, "text", LIST_COST, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -305,6 +311,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
+        gtk_cell_renderer_set_alignment(renderer, 0, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Damage", renderer, "text", LIST_DAMAGE, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -328,19 +335,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-
-        /* This can be used to cause line wrap of the description, but as-is,
-         * seems to wrap at the width of "Description", so is left commented
-         * until it is known/tried how to set up a reasonable wrap width.  It
-         * may not be trivial to do it ideally - as that seems to imply
-         * dynamic wrap width, but considering the dialog has had a static
-         * width so long, it might not really be that bad to use a fixed
-         * width.
-         *
-         * g_object_set(G_OBJECT(renderer), "wrap-width", 40, "wrap-mode",
-         *      PANGO_WRAP_WORD, NULL);
-         */
-
+        gtk_cell_renderer_set_alignment(renderer, 0, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Description", renderer, "text", LIST_DESCRIPTION, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -350,6 +345,12 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "foreground-gdk", LIST_FOREGROUND);
         gtk_tree_view_column_add_attribute(
             column, renderer, "font-desc", LIST_FONT);
+        /* A dynamic wrap-width for the description would be better, but for
+         * now, this is an improvement over having the text in a single, very
+         * wide, line.  Another possibility to explore:  set width by theme?
+         */
+        g_object_set(G_OBJECT(renderer),
+            "wrap-width", 300, "wrap-mode", PANGO_WRAP_WORD, NULL);
 
         spell_selection =
             gtk_tree_view_get_selection(GTK_TREE_VIEW(spell_treeview));

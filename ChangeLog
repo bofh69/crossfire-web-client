@@ -2,6 +2,15 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/src/spells.c: Adjust the spell dialog to align all data in the top
+right corner, and to aauto-wrap the description (at a fixed width).  Though
+a dynamic wrap width would be ideal, this at least returns the dialog to a
+manageable width after the spell descriptions were purged of line breaks.
+Even with a fixed wrap width, the dialog is improved by the alignment change.
+Previously the alignment was in the middle, which put the spell name and
+data below the first line of the description.
+Kevin Bulgrien 2010-08-22
+
 gtk-v2/src/account.c:  Fix client malfunction on [X] closing of account system
 dialogs.  Though the dialogs have the Deletable property set to No, some
 window managers do not honor this setting, and put the [X] close icon on the
