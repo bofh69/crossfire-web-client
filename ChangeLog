@@ -2,6 +2,20 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/src/spells.c: 1) The spells dialog now defaults to wrap the description
+at 300 pixels or so as before, but dynamically re-calculates the wrap width
+based on the dialog width and the width of the other columns.  Presently the
+code does not reclaim extra vertical height when the dialog is widened, so the
+dynamic wrap is a bit pointless except for shrinking the dialog down.  More
+work is needed to get the description field to shrink vertically. 2) Three of
+the columns now have their values centered under the column title to try to
+improve aesthetics.  3) The SP/Mana column title is renamed "Cast/Cost" as
+SP/Mana was redundant and Grace was unmentioned.  This new title also goes
+along with Spellmon 2 changes in the pipeline that support setting ingredients
+as additional casting costs.  Ingredient data is expected to merge with the
+mana/grace data in this dialog, and go in the same column as mana/grace cost.
+Kevin Bulgrien 2010-08-24
+
 gtk-v2/src/spells.c: Adjust the spell dialog to align all data in the top
 right corner, and to aauto-wrap the description (at a fixed width).  Though
 a dynamic wrap width would be ideal, this at least returns the dialog to a

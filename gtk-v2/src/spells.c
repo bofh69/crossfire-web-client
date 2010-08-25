@@ -65,6 +65,10 @@ static GtkStyle *spell_styles[Style_Last]; /**< Actual styles as loaded.  May
                                             * be null if no style found. */
 static int has_init=0;
 
+static guint wrap_width = 300;          /**< Default spell description wrap
+                                         *   width that is updated if the
+                                         *   dialog is ever resized.
+                                         */
 /**
  * Gets the style information for the inventory windows.  This is a separate
  * function because if the user changes styles, it can be nice to re-load the
@@ -117,7 +121,79 @@ static gboolean spell_selection_func(GtkTreeSelection *selection,
 }
 
 /**
+ * Adjust the line wrap width used by the spells dialog Description column
+ * text renderer.  The widths of all other columns are subtracted from the
+ * width of the spells window to determine the available width for the
+ * description column.  This remaining space is then configured as the wrap
+ * width.
  *
+ * @param widget
+ * @param user_data
+ */
+void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
+   guint i;
+   guint width;
+   guint column_count;
+   GList *column_list;
+   GtkTreeView *column;
+   GtkAllocation treeview_allocation;
+
+   /* If the spell window has not been set up yet, do nothing. */
+   if (!has_init) return;
+   /*
+    * How wide is the spell window?
+    */
+   gtk_widget_get_allocation(spell_treeview, &treeview_allocation);
+   width = ((GdkRectangle) treeview_allocation).width;
+   /*
+    * How many columns are in the spell window tree view?
+    */
+   column_list = gtk_tree_view_get_columns(GTK_TREE_VIEW(spell_treeview));
+   column_count = g_list_length(column_list);
+   /*
+    * Subtract the width of all but the last (Description) column from the
+    * total window width to figure out how much may be used for the final
+    * description column.
+    */
+   for (i = 0; i < column_count - 1; i += 1) {
+       column = g_list_nth_data(column_list, i);
+       width -= gtk_tree_view_column_get_width((GtkTreeViewColumn *) column);
+   }
+   /*
+    * Set the global wrap_width variable that is used by the description
+    * column cell data function.  The new width is applied the next time
+    * the spell list is cleared and repopulated.
+    */
+   wrap_width = width;
+   /*
+    * The column list allocated by gtk_tree_view_get_columns must be freed
+    * when it is no longer needed.
+    */
+   g_list_free(column_list);
+}
+
+/**
+ * Set the wrap-width and wrap-mode properties for cell renderers used to show
+ * spell window descriptions.  Custom renderers are used for each row spell
+ * description to help the cells take on new wrap-widths when the dialog is
+ * resized and when the spell list is cleared and re-populated.  The function
+ * is only meant to be a system callback - as set up in on_spells_activate().
+ */
+void spell_description_cell_data_func(GtkTreeViewColumn *col,
+                                      GtkCellRenderer   *renderer,
+                                      GtkTreeModel      *model,
+                                      GtkTreeIter       *iter,
+                                      gpointer           user_data)
+{
+    g_object_set(G_OBJECT(renderer),
+        "wrap-width", wrap_width, "wrap-mode", PANGO_WRAP_WORD, NULL);
+}
+
+/**
+ * When spell information updates, the treeview is cleared and re-populated.
+ * The clear/re-populate is easier than "editing" the contents.  It is also
+ * part of why the description field wrap width can vary by dialog size as
+ * cell-renderers are also dropped and re-added for each description cell.
  */
 void update_spell_information(void)
 {
@@ -223,7 +299,9 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
         spell_options = glade_xml_get_widget(xml_tree,"spell_options");
         spell_treeview = glade_xml_get_widget(xml_tree, "spell_treeview");
 
-        g_signal_connect((gpointer) spell_window, "delete_event",
+        g_signal_connect((gpointer) spell_window, "size-allocate",
+            G_CALLBACK(on_spell_window_size_allocate), NULL);
+        g_signal_connect((gpointer) spell_window, "delete-event",
             G_CALLBACK(gtk_widget_hide_on_delete), NULL);
         g_signal_connect((gpointer) spell_treeview, "row_activated",
             G_CALLBACK(on_spell_treeview_row_activated), NULL);
@@ -281,7 +359,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        gtk_cell_renderer_set_alignment(renderer, 0, 0);
+        gtk_cell_renderer_set_alignment(renderer, 0.4, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Level", renderer, "text", LIST_LEVEL, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -294,9 +372,9 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        gtk_cell_renderer_set_alignment(renderer, 0, 0);
+        gtk_cell_renderer_set_alignment(renderer, 0.4, 0);
         column = gtk_tree_view_column_new_with_attributes(
-                     "SP/Mana Cost", renderer, "text", LIST_COST, NULL);
+                     "Cost/Cast", renderer, "text", LIST_COST, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
 
         /* Since this is a string column, it would do a string sort.  Instead,
@@ -311,7 +389,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        gtk_cell_renderer_set_alignment(renderer, 0, 0);
+        gtk_cell_renderer_set_alignment(renderer, 0.4, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Damage", renderer, "text", LIST_DAMAGE, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -345,12 +423,13 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "foreground-gdk", LIST_FOREGROUND);
         gtk_tree_view_column_add_attribute(
             column, renderer, "font-desc", LIST_FONT);
-        /* A dynamic wrap-width for the description would be better, but for
-         * now, this is an improvement over having the text in a single, very
-         * wide, line.  Another possibility to explore:  set width by theme?
+        /*
+         * Connect a cell data function that sets wrap-width up for the
+         * description in each row whenever the treeview is cleared and
+         * repopulated.
          */
-        g_object_set(G_OBJECT(renderer),
-            "wrap-width", 300, "wrap-mode", PANGO_WRAP_WORD, NULL);
+        gtk_tree_view_column_set_cell_data_func(
+            column, renderer, spell_description_cell_data_func, NULL, NULL);
 
         spell_selection =
             gtk_tree_view_get_selection(GTK_TREE_VIEW(spell_treeview));
