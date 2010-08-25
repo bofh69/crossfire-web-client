@@ -135,7 +135,7 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
    guint width;
    guint column_count;
    GList *column_list;
-   GtkTreeView *column;
+   GtkTreeViewColumn *column;
    GtkAllocation treeview_allocation;
 
    /* If the spell window has not been set up yet, do nothing. */
@@ -157,7 +157,7 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
     */
    for (i = 0; i < column_count - 1; i += 1) {
        column = g_list_nth_data(column_list, i);
-       width -= gtk_tree_view_column_get_width((GtkTreeViewColumn *) column);
+       width -= gtk_tree_view_column_get_width(column);
    }
    /*
     * Set the global wrap_width variable that is used by the description
