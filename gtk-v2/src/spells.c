@@ -122,10 +122,13 @@ static gboolean spell_selection_func(GtkTreeSelection *selection,
 
 /**
  * Adjust the line wrap width used by the spells dialog Description column
- * text renderer.  The widths of all other columns are subtracted from the
- * width of the spells window to determine the available width for the
- * description column.  This remaining space is then configured as the wrap
- * width.
+ * text renderer and force redraw of the rows to cause row height adjustment.
+ * To compute the new wrap width, the widths of all other columns are
+ * subtracted from the width of the spells window to determine the available
+ * width for the description column.  The remaining space is then configured
+ * as the new wrap width.  Once the new wrap is computed, mark all the rows
+ * changed so that the renderers adjust the row height to expand or contract
+ * to fit the reformatted description.
  *
  * @param widget
  * @param user_data
@@ -133,6 +136,8 @@ static gboolean spell_selection_func(GtkTreeSelection *selection,
 void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
     guint i;
     guint width;
+    gboolean valid;
+    GtkTreeIter iter;
     guint column_count;
     GList *column_list;
     GtkTreeViewColumn *column;
@@ -170,6 +175,25 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
      * when it is no longer needed.
      */
     g_list_free(column_list);
+    /*
+     * Traverse the spell store, and mark each row as changed.  Get the first
+     * row, mark it, and then process the rest of the rows (if there are any).
+     * Without this, wrap-width changes, but row height does not, and there is
+     * not much point in changing line wrap if row height does not adapt to
+     * reformatted text as that results in wasted space or hidden information.
+     */
+    valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(spell_store), &iter);
+    while (valid) {
+        GtkTreePath *tree_path;
+
+        tree_path =
+            gtk_tree_model_get_path(GTK_TREE_MODEL(spell_store), &iter);
+        gtk_tree_model_row_changed(
+            GTK_TREE_MODEL(spell_store), tree_path, &iter);
+        gtk_tree_path_free(tree_path);
+        valid =
+            gtk_tree_model_iter_next(GTK_TREE_MODEL(spell_store), &iter);
+    }
 }
 
 /**

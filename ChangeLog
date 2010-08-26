@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/src/spells.c: The spells dialog description text now dynamically alters
+line wrap width and table row heights when the dialog is re-sized by the user.
+Kevin Bulgrien 2010-08-25
+
 gtk-v2/src/spells.c: 1) The spells dialog now defaults to wrap the description
 at 300 pixels or so as before, but dynamically re-calculates the wrap width
 based on the dialog width and the width of the other columns.  Presently the
