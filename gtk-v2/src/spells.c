@@ -131,45 +131,45 @@ static gboolean spell_selection_func(GtkTreeSelection *selection,
  * @param user_data
  */
 void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
-   guint i;
-   guint width;
-   guint column_count;
-   GList *column_list;
-   GtkTreeViewColumn *column;
-   GtkAllocation treeview_allocation;
-
-   /* If the spell window has not been set up yet, do nothing. */
-   if (!has_init) return;
-   /*
-    * How wide is the spell window?
-    */
-   gtk_widget_get_allocation(spell_treeview, &treeview_allocation);
-   width = ((GdkRectangle) treeview_allocation).width;
-   /*
-    * How many columns are in the spell window tree view?
-    */
-   column_list = gtk_tree_view_get_columns(GTK_TREE_VIEW(spell_treeview));
-   column_count = g_list_length(column_list);
-   /*
-    * Subtract the width of all but the last (Description) column from the
-    * total window width to figure out how much may be used for the final
-    * description column.
-    */
-   for (i = 0; i < column_count - 1; i += 1) {
-       column = g_list_nth_data(column_list, i);
-       width -= gtk_tree_view_column_get_width(column);
-   }
-   /*
-    * Set the global wrap_width variable that is used by the description
-    * column cell data function.  The new width is applied the next time
-    * the spell list is cleared and repopulated.
-    */
-   wrap_width = width;
-   /*
-    * The column list allocated by gtk_tree_view_get_columns must be freed
-    * when it is no longer needed.
-    */
-   g_list_free(column_list);
+    guint i;
+    guint width;
+    guint column_count;
+    GList *column_list;
+    GtkTreeViewColumn *column;
+    GtkAllocation treeview_allocation;
+ 
+    /* If the spell window has not been set up yet, do nothing. */
+    if (!has_init) return;
+    /*
+     * How wide is the spell window?
+     */
+    gtk_widget_get_allocation(spell_treeview, &treeview_allocation);
+    width = ((GdkRectangle) treeview_allocation).width;
+    /*
+     * How many columns are in the spell window tree view?
+     */
+    column_list = gtk_tree_view_get_columns(GTK_TREE_VIEW(spell_treeview));
+    column_count = g_list_length(column_list);
+    /*
+     * Subtract the width of all but the last (Description) column from the
+     * total window width to figure out how much may be used for the final
+     * description column.
+     */
+    for (i = 0; i < column_count - 1; i += 1) {
+        column = g_list_nth_data(column_list, i);
+        width -= gtk_tree_view_column_get_width(column);
+    }
+    /*
+     * Set the global wrap_width variable that is used by the description
+     * column cell data function.  The new width is applied the next time
+     * the spell list is cleared and repopulated.
+     */
+    wrap_width = width;
+    /*
+     * The column list allocated by gtk_tree_view_get_columns must be freed
+     * when it is no longer needed.
+     */
+    g_list_free(column_list);
 }
 
 /**
