@@ -241,6 +241,7 @@ extern void Sound2Cmd(unsigned char *data, int len);
 extern void MusicCmd(const char *data, int len);
 /* spells.c */
 extern void spell_get_styles(void);
+extern void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data);
 extern void update_spell_information(void);
 extern void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_spell_treeview_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
