@@ -59,16 +59,18 @@ enum {
 
 static const char *Style_Names[Style_Last] = {
     "spell_attuned", "spell_repelled", "spell_denied", "spell_normal"
-}; /**< The name of these styles in the rc * file */
+}; /**< The names of theme file styles that are used in the spell dialog. */
 
-static GtkStyle *spell_styles[Style_Last]; /**< Actual styles as loaded.  May
-                                            * be null if no style found. */
-static int has_init=0;
-
-static guint wrap_width = 300;          /**< Default spell description wrap
-                                         *   width that is updated if the
-                                         *   dialog is ever resized.
-                                         */
+static gpointer description_renderer = NULL; /**< The cell renderer for the
+                                              *   spell dialog descriptions.
+                                              */
+static GtkStyle *spell_styles[Style_Last];   /**< The actual styles loaded, or
+                                              *   NULL if no styles were found.
+                                              */
+static int has_init = 0;                     /**< Whether or not the spell
+                                              *   dialog initialized since
+                                              *   the client started up.
+                                              */
 /**
  * Gets the style information for the inventory windows.  This is a separate
  * function because if the user changes styles, it can be nice to re-load the
@@ -165,22 +167,20 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
         width -= gtk_tree_view_column_get_width(column);
     }
     /*
-     * Set the global wrap_width variable that is used by the description
-     * column cell data function.  The new width is applied the next time
-     * the spell list is cleared and repopulated.
-     */
-    wrap_width = width;
-    /*
      * The column list allocated by gtk_tree_view_get_columns must be freed
      * when it is no longer needed.
      */
     g_list_free(column_list);
     /*
+     * Update the global variable used to configure the wrap-width for the
+     * spell dialog description column, then apply it to the cell renderer.
+     */
+    g_object_set(G_OBJECT(description_renderer), "wrap-width", width, NULL);
+    /*
      * Traverse the spell store, and mark each row as changed.  Get the first
      * row, mark it, and then process the rest of the rows (if there are any).
-     * Without this, wrap-width changes, but row height does not, and there is
-     * not much point in changing line wrap if row height does not adapt to
-     * reformatted text as that results in wasted space or hidden information.
+     * This re-flows the spell descriptions to the new wrap-width, and adjusts
+     * the height of each row as needed to optimize the vertical space used.
      */
     valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(spell_store), &iter);
     while (valid) {
@@ -194,23 +194,6 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
         valid =
             gtk_tree_model_iter_next(GTK_TREE_MODEL(spell_store), &iter);
     }
-}
-
-/**
- * Set the wrap-width and wrap-mode properties for cell renderers used to show
- * spell window descriptions.  Custom renderers are used for each row spell
- * description to help the cells take on new wrap-widths when the dialog is
- * resized and when the spell list is cleared and re-populated.  The function
- * is only meant to be a system callback - as set up in on_spells_activate().
- */
-void spell_description_cell_data_func(GtkTreeViewColumn *col,
-                                      GtkCellRenderer   *renderer,
-                                      GtkTreeModel      *model,
-                                      GtkTreeIter       *iter,
-                                      gpointer           user_data)
-{
-    g_object_set(G_OBJECT(renderer),
-        "wrap-width", wrap_width, "wrap-mode", PANGO_WRAP_WORD, NULL);
 }
 
 /**
@@ -448,12 +431,20 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
         gtk_tree_view_column_add_attribute(
             column, renderer, "font-desc", LIST_FONT);
         /*
-         * Connect a cell data function that sets wrap-width up for the
-         * description in each row whenever the treeview is cleared and
-         * repopulated.
+         * Set up the description column so it wraps lengthy descriptions over
+         * multiple lines and at word boundaries.  A default wrap-width is
+         * applied to constrain the column width to a reasonable value.  The
+         * actual value used here is somewhat unimportant since a corrected
+         * width is computed and applied later, but, it does approximate the
+         * column size that is appropriate for the dialog's default width.
          */
-        gtk_tree_view_column_set_cell_data_func(
-            column, renderer, spell_description_cell_data_func, NULL, NULL);
+        g_object_set(G_OBJECT(renderer),
+            "wrap-width", 300, "wrap-mode", PANGO_WRAP_WORD, NULL);
+        /*
+         * Preserve the description text cell renderer pointer to facilitate
+         * setting the wrap-width relative to the dialog's size and content.
+         */
+        description_renderer = renderer;
 
         spell_selection =
             gtk_tree_view_get_selection(GTK_TREE_VIEW(spell_treeview));
