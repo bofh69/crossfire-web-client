@@ -142,11 +142,10 @@ void client_tick(uint32 tick)
     inventory_tick();
     mapdata_animation();
 
-    /* if we have new images to display, we need to 
-     * do a complete redraw periodically - to keep performance
-     * up, we don't want to do it every tick, but every 5 (about
-     * half a second) is still pretty fast but should also
-     * keep reasonable performance.
+    /* If we have new images to display, we need to do a complete redraw
+     * periodically - to keep performance up, we don't want to do it every
+     * tick, but every 5 (about half a second) is still pretty fast but should
+     * also keep reasonable performance.
      */
     if (have_new_image && !(tick % 5)) {
         if (cpl.container)
@@ -162,8 +161,8 @@ void client_tick(uint32 tick)
 }
 
 /**
- * Called from disconnect command - that closes the socket -
- * we just need to do the gtk cleanup.
+ * Called from disconnect command - that closes the socket - we just need to
+ * do the gtk cleanup.
  */
 void cleanup_connection(void)
 {
@@ -247,7 +246,7 @@ void do_network(void)
 }
 
 /**
- * event loop iteration stuff
+ * Event loop iteration stuff
  */
 void event_loop(void)
 {
@@ -294,10 +293,10 @@ void event_loop(void)
 
 #ifndef WIN32
 /**
- * Handler for SIGPIPE.  We may receive this signal while piping data to
- * a sound server or to a script.  In both cases, we ignore the signal
- * because the failure will be reported by the system call that tried to
- * send the data.
+ * Handler for SIGPIPE.  We may receive this signal while piping data to a
+ * sound server or to a script.  In both cases, we ignore the signal because
+ * the failure will be reported by the system call that tried to send the
+ * data.
  *
  * @param sig The signal number.
  */
@@ -307,10 +306,9 @@ static void sigpipe_handler(int sig) {
 #endif
 
 /**
- * Usage routine.  All clients should support server, port and
- * display options, with -pix and -xpm also suggested.  -split
- * does not need to be supported - it is in this copy because
- * the old code supported it.
+ * Usage routine.  All clients should support server, port and display
+ * options, with -pix and -xpm also suggested.  -split does not need to be
+ * supported - it is in this copy because the old code supported it.
  * @param *progname Not used, but should be.
  */
 static void usage(char *progname)
@@ -662,22 +660,20 @@ void error_dialog(char *description, char *information)
 }
 
 /**
- * This goes with the g_log_set_handler below in main().
- * I leave it here since it may be useful - basically,
- * it can prove handy to try and track down error messages
- * like:
+ * This goes with the g_log_set_handler below in main().  I leave it here
+ * since it may be useful - basically, it can prove handy to try and track
+ * down error messages like:
+ *
  * file gtklabel.c: line 1845: assertion `GTK_IS_LABEL (label)' failed
- * In the debugger, you can set a breakpoint in this function,
- * and then see the stacktrace on what is trying to access a
- * widget that isn't set or otherwise having issues.
+ *
+ * In the debugger, you can set a breakpoint in this function, and then see
+ * the stacktrace on what is trying to access a widget that isn't set or
+ * otherwise having issues.
  */
 
-void my_log_handler(const gchar *log_domain,
- GLogLevelFlags log_level,
- const gchar *message,
-               gpointer user_data) {
+void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level,
+                    const gchar *message, gpointer user_data) {
     sleep(1);
-
 }
 
 /**
