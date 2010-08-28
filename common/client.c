@@ -68,10 +68,11 @@ int meta_port=META_PORT, want_skill_exp=0,
     replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
     maxfd,metaserver_on=METASERVER, metaserver2_on=METASERVER2,
     wantloginmethod=0, serverloginmethod=0;
-uint32	tick=0;
 
-uint16	exp_table_max=0;
-uint64	*exp_table=NULL;
+uint32 tick=0;
+
+uint16 exp_table_max=0;
+uint64 *exp_table=NULL;
 
 NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
 
@@ -98,52 +99,56 @@ struct CmdMapping commands[] = {
     /* Order of this table doesn't make a difference.  I tried to sort
      * of cluster the related stuff together.
      */
-    { "map2", Map2Cmd, SHORT_ARRAY },
-    { "map_scroll", (CmdProc)map_scrollCmd, ASCII },
-    { "magicmap", MagicMapCmd, MIXED /* ASCII, then binary */},
-    { "newmap", NewmapCmd, NODATA },
-    { "mapextended", MapExtendedCmd, MIXED /* chars, then SHORT_ARRAY */ },
+    { "map2",            Map2Cmd, SHORT_ARRAY },
+    { "map_scroll",      (CmdProc)map_scrollCmd, ASCII },
+    { "magicmap",        MagicMapCmd, MIXED    /* ASCII, then binary */},
+    { "newmap",          NewmapCmd, NODATA },
+    { "mapextended",     MapExtendedCmd, MIXED /* chars, then SHORT_ARRAY */ },
 
-    { "item2", Item2Cmd, MIXED },
-    { "upditem", UpdateItemCmd, MIXED },
-    { "delitem", DeleteItem, INT_ARRAY },
-    { "delinv",	DeleteInventory, ASCII },
+    { "item2",           Item2Cmd, MIXED },
+    { "upditem",         UpdateItemCmd, MIXED },
+    { "delitem",         DeleteItem, INT_ARRAY },
+    { "delinv",          DeleteInventory, ASCII },
 
-    { "addspell", AddspellCmd, MIXED },
-    { "updspell", UpdspellCmd, MIXED },
-    { "delspell", DeleteSpell, INT_ARRAY },
+    { "addspell",        AddspellCmd, MIXED },
+    { "updspell",        UpdspellCmd, MIXED },
+    { "delspell",        DeleteSpell, INT_ARRAY },
 
-    { "drawinfo", (CmdProc)DrawInfoCmd, ASCII },
-    { "drawextinfo", (CmdProc)DrawExtInfoCmd, ASCII},
-    { "stats", StatsCmd, STATS /* array of: int8, (int?s for that stat) */ },
+    { "drawinfo",        (CmdProc)DrawInfoCmd, ASCII },
+    { "drawextinfo",     (CmdProc)DrawExtInfoCmd, ASCII},
+    { "stats",           StatsCmd, STATS       /* Array of: int8, (int?s for
+                                                * that stat)
+                                                */},
+    { "image2",          Image2Cmd, MIXED      /* int, int8, int, PNG */ },
+    { "face2",           Face2Cmd, MIXED       /* int16, int8, int32, stringi
+                                                */},
+    { "tick",            TickCmd, INT_ARRAY    /* uint32 */},
 
-    { "image2", Image2Cmd, MIXED /* int, int8, int, PNG */ },
-    { "face2", Face2Cmd, MIXED /* int16, int8, int32, string */},
-    { "tick", TickCmd, INT_ARRAY /* uint32 */},
+    { "sound2",          Sound2Cmd, MIXED      /* int8, int8, int8, int8,
+                                                * int8, int8, chars, int8,
+                                                * chars
+                                                */},
+    { "music",           (CmdProc)MusicCmd, ASCII },
+    { "anim",            AnimCmd, SHORT_ARRAY},
+    { "smooth",          SmoothCmd, SHORT_ARRAY},
 
+    { "player",          PlayerCmd, MIXED      /* 3 ints, int8, str */ },
+    { "comc",            CompleteCmd, SHORT_INT },
 
-    { "sound2", Sound2Cmd, MIXED /* int8, int8, int8, int8, int8, int8, chars, int8, chars */},
-    { "music", (CmdProc)MusicCmd, ASCII },
-    { "anim", AnimCmd, SHORT_ARRAY},
-    { "smooth", SmoothCmd, SHORT_ARRAY},
+    { "addme_failed",    (CmdProc)AddMeFail, NODATA },
+    { "addme_success",   (CmdProc)AddMeSuccess, NODATA },
+    { "version",         (CmdProc)VersionCmd, ASCII },
+    { "goodbye",         (CmdProc)GoodbyeCmd, NODATA },
+    { "setup",           (CmdProc)SetupCmd, ASCII},
+    { "failure",         (CmdProc)FailureCmd, ASCII},
+    { "accountplayers",  (CmdProc)AccountPlayersCmd, ASCII},
 
-    { "player", PlayerCmd, MIXED /* 3 ints, int8, str */ },
-    { "comc", CompleteCmd, SHORT_INT },
-
-    { "addme_failed", (CmdProc)AddMeFail, NODATA },
-    { "addme_success", (CmdProc)AddMeSuccess, NODATA },
-    { "version", (CmdProc)VersionCmd, ASCII },
-    { "goodbye", (CmdProc)GoodbyeCmd, NODATA },
-    { "setup", (CmdProc)SetupCmd, ASCII},
-    { "failure", (CmdProc)FailureCmd, ASCII},
-    { "accountplayers", (CmdProc)AccountPlayersCmd, ASCII},
-
-    { "query", (CmdProc)handle_query, ASCII},
-    { "replyinfo", ReplyInfoCmd, ASCII},
+    { "query",           (CmdProc)handle_query, ASCII},
+    { "replyinfo",       ReplyInfoCmd, ASCII},
     { "ExtendedTextSet", (CmdProc)SinkCmd, NODATA},
     { "ExtendedInfoSet", (CmdProc)SinkCmd, NODATA},
 
-    { "pickup", PickupCmd, INT_ARRAY /* uint32 */},
+    { "pickup",          PickupCmd, INT_ARRAY  /* uint32 */},
 };
 
 #define NCOMMANDS ((int)(sizeof(commands)/sizeof(struct CmdMapping)))
@@ -242,35 +247,35 @@ int init_connection(char *host, int port)
     protox = getprotobyname("tcp");
     if (protox == (struct protoent  *) NULL)
     {
-	LOG (LOG_ERROR,"common::init_connection", "Error getting protobyname (tcp)");
-	return -1;
+        LOG (LOG_ERROR,"common::init_connection", "Error getting protobyname (tcp)");
+        return -1;
     }
     fd = socket(PF_INET, SOCK_STREAM, protox->p_proto);
     if (fd==-1) {
-	    perror("init_connection:  Error on socket command.\n");
-	    LOG (LOG_ERROR,"common::init_connection", "Error on socket command");
-	return -1;
+        perror("init_connection:  Error on socket command.\n");
+        LOG (LOG_ERROR,"common::init_connection", "Error on socket command");
+        return -1;
     }
 
     insock.sin_family = AF_INET;
     insock.sin_port = htons((unsigned short)port);
     if (isdigit(*host))
-	insock.sin_addr.s_addr = inet_addr(host);
+        insock.sin_addr.s_addr = inet_addr(host);
     else {
-	struct hostent *hostbn = gethostbyname(host);
-	if (hostbn == (struct hostent *) NULL)
-	{
-	    LOG (LOG_ERROR,"common::init_connection","Unknown host: %s",host);
-	    return -1;
-	}
-	memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
+        struct hostent *hostbn = gethostbyname(host);
+        if (hostbn == (struct hostent *) NULL)
+        {
+            LOG (LOG_ERROR,"common::init_connection","Unknown host: %s",host);
+            return -1;
+        }
+        memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
     }
 
     if (connect(fd,(struct sockaddr *)&insock,sizeof(insock)) == (-1))
     {
         LOG (LOG_ERROR,"common::init_connection","Can't connect to server");
-	    perror("Can't connect to server");
-	    return -1;
+            perror("Can't connect to server");
+            return -1;
     }
 
 #else
@@ -292,7 +297,7 @@ int init_connection(char *host, int port)
     hints.ai_protocol = IPPROTO_TCP;
 
     if (getaddrinfo(host, port_str, &hints, &res) != 0)
-	return -1;
+        return -1;
 
     /*
      * Assume that an error will not occur and that the socket is left open.
@@ -438,11 +443,11 @@ int init_connection(char *host, int port)
     }
 #else
     {
-		unsigned long tmp = 1;
-		if (ioctlsocket(fd, FIONBIO, &tmp)<0) {
+        unsigned long tmp = 1;
+        if (ioctlsocket(fd, FIONBIO, &tmp)<0) {
             LOG (LOG_ERROR,"common::init_connection","Error on ioctlsocket.");
         }
-	}
+    }
 #endif
 
 #ifdef TCP_NODELAY
