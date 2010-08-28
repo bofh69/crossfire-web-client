@@ -987,7 +987,6 @@ void StatsCmd(unsigned char *data, int len) {
 
             default:
                 LOG(LOG_WARNING, "common::StatsCmd", "Unknown stat number %d", c);
-/*              abort();*/
                 break;
             }
         }
