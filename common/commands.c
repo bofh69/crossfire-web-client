@@ -138,7 +138,6 @@ void free_all_race_class_info(Race_Class_Info *data, int num_entries)
  */
 static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
 {
-
     char *cp, *nl;
 
     cp = data;
@@ -205,7 +204,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
 
                 default:
                     /* Just return with what we have */
-                    LOG(LOG_WARNING, "common::process_race_class_info", 
+                    LOG(LOG_WARNING, "common::process_race_class_info",
                         "Unknown stat value: %d", cp);
                     return;
                 }
@@ -235,7 +234,6 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
     } while (cp < data+len);
 }
 
-
 /**
  * This is a little wrapper function that does some bounds checking
  * and then calls process_race_info() to do the bulk of the work.
@@ -252,7 +250,7 @@ static void get_race_info(char *data, int len) {
      * those it has.
      */
     if (used_races >= num_races) {
-        LOG(LOG_ERROR, "common::get_race_info", 
+        LOG(LOG_ERROR, "common::get_race_info",
                 "used races exceed num races, %d>=%d", used_races, num_races);
         return;
     }
@@ -278,7 +276,7 @@ static void get_class_info(char *data, int len) {
      * those it has.
      */
     if (used_classes >= num_classes) {
-        LOG(LOG_ERROR, "common::get_race_info", 
+        LOG(LOG_ERROR, "common::get_race_info",
                 "used classes exceed num classes, %d>=%d", used_classes, num_classes);
         return;
     }
@@ -1882,7 +1880,7 @@ void FailureCmd(char *buf, int len) {
 void AccountPlayersCmd(char *buf, int len) {
 
     int num_characters, level, pos, flen, faceno;
-    char name[MAX_BUF], class[MAX_BUF], race[MAX_BUF], 
+    char name[MAX_BUF], class[MAX_BUF], race[MAX_BUF],
         face[MAX_BUF], party[MAX_BUF], map[MAX_BUF];
 
 
@@ -1942,7 +1940,7 @@ void AccountPlayersCmd(char *buf, int len) {
             strncpy(race, buf + pos +1, flen-1);
             race[flen-1] = 0;
             break;
-        
+       
         case ACL_FACE:
             strncpy(face, buf + pos +1, flen-1);
             face[flen-1] = 0;
@@ -1968,3 +1966,4 @@ void AccountPlayersCmd(char *buf, int len) {
         pos += flen;
     }
 }
+
