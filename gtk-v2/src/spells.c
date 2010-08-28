@@ -198,9 +198,7 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
 
 /**
  * When spell information updates, the treeview is cleared and re-populated.
- * The clear/re-populate is easier than "editing" the contents.  It is also
- * part of why the description field wrap width can vary by dialog size as
- * cell-renderers are also dropped and re-added for each description cell.
+ * The clear/re-populate is easier than "editing" the contents.
  */
 void update_spell_information(void)
 {
