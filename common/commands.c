@@ -29,8 +29,8 @@ const char * const rcsid_common_commands_c =
  * Not necessarily all commands are handled - some might be in other files
  * (like init.c)
  *
- * This file contains most of the commands for the dispatch loop. Most of
- * the functions are self-explanatory.
+ * This file contains most of the commands for the dispatch loop. Most of the
+ * functions are self-explanatory.
  *
  * pixmap/bitmap : receive the picture, and display it.
  * drawinfo      : draws a string in the info window.
@@ -83,9 +83,9 @@ int num_classes = 0;  /* Same as race data above, but for classes */
 int used_classes = 0;
 
 /*
- * This structure is used to hold race/class adjustment info, as
- * received by the requestinfo command.  We get the same info
- * for both races and class, so it simplifies code to share a structure.
+ * This structure is used to hold race/class adjustment info, as received by
+ * the requestinfo command.  We get the same info for both races and class, so
+ * it simplifies code to share a structure.
  */
 typedef struct Race_Class_Info {
     char    *arch_name;     /* Name of the archetype this correponds to */
@@ -98,9 +98,9 @@ Race_Class_Info *races=NULL, *classes=NULL;
 
 
 /**
- * This function clears the data from the Race_Class_Info array.
- * Because the structure itself contains data that is allocated,
- * some work needs to be done to clear that data.
+ * This function clears the data from the Race_Class_Info array.  Because the
+ * structure itself contains data that is allocated, some work needs to be
+ * done to clear that data.
  *
  * @param data
  * array to clear
@@ -111,8 +111,8 @@ void free_all_race_class_info(Race_Class_Info *data, int num_entries)
 {
     int i;
 
-    /* Because we are going free the array storage itself,
-     * there is no reason to clear the data[i].. values.
+    /* Because we are going free the array storage itself, there is no reason
+     * to clear the data[i].. values.
      */
     for (i=0; i<num_entries; i++) {
         if (data[i].arch_name) free(data[i].arch_name);
@@ -125,9 +125,8 @@ void free_all_race_class_info(Race_Class_Info *data, int num_entries)
 }
 
 /**
- * This extracts the data from a replyinfo race_info/class_info request.
- * We only get this data if the client has made a requestinfo of this
- * data.
+ * This extracts the data from a replyinfo race_info/class_info request.  We
+ * only get this data if the client has made a requestinfo of this data.
  *
  * @parms data
  * data returned from server.  Format is documented in protocol file.
@@ -142,8 +141,8 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
 
     cp = data;
 
-    /* First thing is to process the remaining bit of the requestinfo
-     * line, which is the archetype name for this race/class
+    /* First thing is to process the remaining bit of the requestinfo line,
+     * which is the archetype name for this race/class
      */
     nl = strchr(cp, '\n');
     if (nl) {
@@ -155,14 +154,14 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
         return;
     }
 
-    /* Now we process the rest of the data - we look for a word the
-     * describes the data to follow.  cp is a pointer to the data
-     * we are processing.  nl is used to store temporary values.
+    /* Now we process the rest of the data - we look for a word the describes
+     * the data to follow.  cp is a pointer to the data we are processing.  nl
+     * is used to store temporary values.
      */
     do {
         nl = strchr(cp, ' ');
-        /* If we did not find a space, may just mean we have reached
-         * the end of the data - could be a stray character, etc
+        /* If we did not find a space, may just mean we have reached the end
+         * of the data - could be a stray character, etc
          */
         if (!nl) break;
 
@@ -171,11 +170,11 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             nl++;
         }
         if (!strcmp(cp, "name")) {
-            /* We get a name.  The string is not NULL terminated,
-             * but the length is transmitted.  So get the length,
-             * allocate a string large enough for that + NULL terminator,
-             * and copy string in, making sure to put terminator in place.
-             * also make sure we update cp beyond this block of data.
+            /* We get a name.  The string is not NULL terminated, but the
+             * length is transmitted.  So get the length, allocate a string
+             * large enough for that + NULL terminator, and copy string in,
+             * making sure to put terminator in place.  also make sure we
+             * update cp beyond this block of data.
              */
             int namelen;
 
@@ -187,9 +186,8 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             cp = nl + namelen;
         } else if (!strcmp(cp, "stats")) {
             cp = nl;
-            /* This loop goes through the stat values -
-             * *cp points to the stat value - if 0, no more stats,
-             * hence the check here.
+            /* This loop goes through the stat values - *cp points to the stat
+             * value - if 0, no more stats, hence the check here.
              */
             while (cp < data + len && *cp != 0) {
                 switch (*cp) {
@@ -211,8 +209,8 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             }
             cp++;   /* Skip over 0 terminator */
         } else if (!strcmp(cp, "msg")) {
-            /* This is really exactly same as name processing above,
-             * except length is 2 bytes in this case.
+            /* This is really exactly same as name processing above, except
+             * length is 2 bytes in this case.
              */
             int msglen;
 
@@ -223,10 +221,9 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             rci->description[msglen] = 0;
             cp = nl + msglen;
         } else {
-            /* Got some keyword we did not understand.  Because we
-             * do not know about it, we do not know how to skip it over -
-             * the data could very well contain spaces or other markers we
-             * look for.
+            /* Got some keyword we did not understand.  Because we do not know
+             * about it, we do not know how to skip it over - the data could
+             * very well contain spaces or other markers we look for.
              */
             LOG(LOG_WARNING, "common::process_race_class_info", "Got unknown keyword: %s", cp);
             break;
@@ -235,8 +232,8 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
 }
 
 /**
- * This is a little wrapper function that does some bounds checking
- * and then calls process_race_info() to do the bulk of the work.
+ * This is a little wrapper function that does some bounds checking and then
+ * calls process_race_info() to do the bulk of the work.
  *
  * @param data
  * data returned from server.  Format is documented in protocol file.
@@ -245,9 +242,8 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
  */
 static void get_race_info(char *data, int len) {
 
-    /* This should not happen - the client is only requesting
-     * race info for races it has received - and it knows how many of
-     * those it has.
+    /* This should not happen - the client is only requesting race info for
+     * races it has received - and it knows how many of those it has.
      */
     if (used_races >= num_races) {
         LOG(LOG_ERROR, "common::get_race_info",
@@ -260,9 +256,9 @@ static void get_race_info(char *data, int len) {
 }
 
 /**
- * This is a little wrapper function that does some bounds checking
- * and then calls process_race_info() to do the bulk of the work.
- * Pretty much identical to get_race_info() except this is for classes.
+ * This is a little wrapper function that does some bounds checking and then
+ * calls process_race_info() to do the bulk of the work.  Pretty much
+ * identical to get_race_info() except this is for classes.
  *
  * @param data
  * data returned from server.  Format is documented in protocol file.
@@ -271,9 +267,8 @@ static void get_race_info(char *data, int len) {
  */
 static void get_class_info(char *data, int len) {
 
-    /* This should not happen - the client is only requesting
-     * race info for classes it has received - and it knows how many of
-     * those it has.
+    /* This should not happen - the client is only requesting race info for
+     * classes it has received - and it knows how many of those it has.
      */
     if (used_classes >= num_classes) {
         LOG(LOG_ERROR, "common::get_race_info",
@@ -359,7 +354,9 @@ void ReplyInfoCmd(uint8 *buf, int len) {
     uint8 *cp;
     int i;
 
-    /* Covers a bug in the server in that it could send a replyinfo with no parameters */
+    /* Covers a bug in the server in that it could send a replyinfo with no
+     * parameters
+     */
     if (!buf) {
         return;
     }
@@ -372,8 +369,9 @@ void ReplyInfoCmd(uint8 *buf, int len) {
     }
     if (i >= len) {
         /* Don't print buf, as it may contain binary data */
-        /* Downgrade this to DEBUG - if the client issued an unsupported requestinfo
-         * info to the server, we'll end up here - this could be normal behaviour
+        /* Downgrade this to DEBUG - if the client issued an unsupported
+         * requestinfo info to the server, we'll end up here - this could be
+         * normal behaviour
          */
         LOG(LOG_DEBUG, "common::ReplyInfoCmd", "Never found a space in the replyinfo");
         return;
@@ -383,13 +381,13 @@ void ReplyInfoCmd(uint8 *buf, int len) {
     cp = buf+i;
     *cp++ = '\0';
     if (!strcmp((char*)buf, "image_info")) {
-        get_image_info(cp, len-i-1);   /* located in common/image.c */
+        get_image_info(cp, len-i-1);        /* Located in common/image.c */
     } else if (!strcmp((char*)buf, "image_sums")) {
-        get_image_sums((char*)cp, len-i-1);   /* located in common/image.c */
+        get_image_sums((char*)cp, len-i-1); /* Located in common/image.c */
     } else if (!strcmp((char*)buf, "skill_info")) {
-        get_skill_info((char*)cp, len-i-1);   /* located in common/commands.c */
+        get_skill_info((char*)cp, len-i-1); /* Located in common/commands.c */
     } else if (!strcmp((char*)buf, "exp_table")) {
-        get_exp_info(cp, len-i-1);   /* located in common/commands.c */
+        get_exp_info(cp, len-i-1);          /* Located in common/commands.c */
     } else if (!strcmp((char*)buf, "motd")) {
         if (motd) free((char*)motd);
         motd = strdup(cp);
@@ -407,8 +405,8 @@ void ReplyInfoCmd(uint8 *buf, int len) {
         for (cp1=cp; *cp !=0; cp++) {
             if (*cp == '|') {
                 *cp++ = '\0';
-                /* The first seperator has no data, so only send request
-                 * to server if this is not null.
+                /* The first separator has no data, so only send request to
+                 * server if this is not null.
                  */
                 if (*cp1!='\0') {
                     cs_print_string(csocket.fd, "requestinfo race_info %s", cp1);
@@ -429,8 +427,8 @@ void ReplyInfoCmd(uint8 *buf, int len) {
         for (cp1=cp; *cp !=0; cp++) {
             if (*cp == '|') {
                 *cp++ = '\0';
-                /* The first seperator has no data, so only send request
-                 * to server if this is not null.
+                /* The first separator has no data, so only send request to
+                 * server if this is not null.
                  */
                 if (*cp1!='\0') {
                     cs_print_string(csocket.fd, "requestinfo class_info %s", cp1);
@@ -453,9 +451,9 @@ void ReplyInfoCmd(uint8 *buf, int len) {
 }
 
 /**
- * Received a response to a setup from the server.
- * This function is basically the same as the server side function - we just
- * do some different processing on the data.
+ * Received a response to a setup from the server.  This function is basically
+ * the same as the server side function - we just do some different processing
+ * on the data.
  *
  * @param buf
  * @param len
@@ -473,13 +471,13 @@ void SetupCmd(char *buf, int len) {
 
     LOG(LOG_DEBUG, "common::SetupCmd", "%s", buf);
     for (s = 0; ; ) {
-        if (s >= len) { /* ugly, but for secure...*/
+        if (s >= len) { /* Ugly, but for secure...*/
             break;
         }
 
         cmd = &buf[s];
 
-        /* find the next space, and put a null there */
+        /* Find the next space, and put a null there */
         for (; buf[s] && buf[s] != ' '; s++)
             ;
         buf[s++] = 0;
@@ -670,9 +668,8 @@ void GoodbyeCmd(char *data, int len) {
     (void)len; /* __UNUSED__ */
 
     /* This could probably be greatly improved - I am not sure if anything
-     * needs to be saved here, but certainly it should be possible to
-     * reconnect to the server or a different server without having to
-     * rerun the client.
+     * needs to be saved here, but it should be possible to reconnect to the
+     * server or a different server without having to rerun the client.
      */
     LOG(LOG_WARNING, "common::GoodbyeCmd", "Received goodbye command from server - exiting");
     exit(0);
@@ -733,9 +730,8 @@ void SmoothCmd(unsigned char *data, int len) {
     uint16 faceid;
     uint16 smoothing;
 
-    /* len is unused.
-     * We should check that we don't have an invalid short command.
-     * Hence, the compiler warning is valid.
+    /* len is unused.  We should check that we don't have an invalid short
+     * command.  Hence, the compiler warning is valid.
      */
 
     faceid = GetShort_String(data);
@@ -896,13 +892,13 @@ void StatsCmd(unsigned char *data, int len) {
             i += 2;
             cpl.stats.resist_change = 1;
         } else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
-            /* We track to see if the exp has gone from 0 to some total value -
-             * we do this because the draw logic currently only draws skills where
-             * the player has exp.  We need to communicate to the draw function
-             * that it should draw all the players skills.  Using redraw is
-             * a little overkill, because a lot of the data may not be changing.
-             * OTOH, such a transition should only happen rarely, not not be a very
-             * big deal.
+            /* We track to see if the exp has gone from 0 to some total value
+             * - we do this because the draw logic currently only draws skills
+             * where the player has exp.  We need to communicate to the draw
+             * function that it should draw all the players skills.  Using
+             * redraw is a little overkill, because a lot of the data may not
+             * be changing.  OTOH, such a transition should only happen
+             * rarely, not not be a very big deal.
              */
             cpl.stats.skill_level[c-CS_STAT_SKILLINFO] = data[i++];
             last_exp = cpl.stats.skill_exp[c-CS_STAT_SKILLINFO];
@@ -945,8 +941,9 @@ void StatsCmd(unsigned char *data, int len) {
             case CS_STAT_WEIGHT_LIM:set_weight_limit(cpl.stats.weight_limit = GetInt_String(data+i)); i += 4; break;
 
                 /* Skill experience handling */
-                /* We make the assumption based on current bindings in the protocol
-                 * that these skip 2 values and are otherwise in order.
+                /* We make the assumption based on current bindings in the
+                 * protocol that these skip 2 values and are otherwise in
+                 * order.
                  */
             case CS_STAT_SKILLEXP_AGILITY:
             case CS_STAT_SKILLEXP_PERSONAL:
@@ -1018,7 +1015,7 @@ void handle_query(char *data, int len) {
 
     (void)len; /* __UNUSED__ */
 
-    if (flags&CS_QUERY_HIDEINPUT) { /* no echo */
+    if (flags&CS_QUERY_HIDEINPUT) { /* No echo */
         cpl.no_echo = 1;
     } else {
         cpl.no_echo = 0;
@@ -1046,7 +1043,7 @@ void handle_query(char *data, int len) {
         if (flags&CS_QUERY_YESNO) {
         }
 
-        /* one character response expected */
+        /* One character response expected */
         if (flags&CS_QUERY_SINGLECHAR) {
             cpl.input_state = Reply_One;
         } else {
@@ -1062,8 +1059,8 @@ void handle_query(char *data, int len) {
 }
 
 /**
- * Sends a reply to the server.
- * This function basically just packs the stuff up.
+ * Sends a reply to the server.  This function basically just packs the stuff
+ * up.
  *
  * @param text contains the null terminated string of text to send.
  */
@@ -1076,9 +1073,9 @@ void send_reply(const char *text) {
 }
 
 /**
- * Gets the player information.
- * This function copies relevant data from the archetype to the object.  Only
- * copies data that was not set in the object structure.
+ * Gets the player information.  This function copies relevant data from the
+ * archetype to the object.  Only copies data that was not set in the object
+ * structure.
  *
  * @param data
  * @param len
@@ -1121,9 +1118,8 @@ void item_actions(item *op) {
 }
 
 /**
- * Parses the data sent to us from the server.
- * revision is what item command the data came from - newer ones have addition
- * fields.
+ * Parses the data sent to us from the server.  revision is what item command
+ * the data came from - newer ones have addition fields.
  *
  * @param data
  * @param len
@@ -1140,7 +1136,7 @@ static void common_item_command(uint8 *data, int len) {
     if (pos == len) {
         LOG(LOG_WARNING, "common::common_item_command", "Got location with no other data");
         return;
-    } else if (loc < 0) { /* delete following items */
+    } else if (loc < 0) { /* Delete following items */
         LOG(LOG_WARNING, "common::common_item_command", "Got location with negative value (%d)", loc);
         return;
     } else {
@@ -1200,8 +1196,8 @@ void UpdateItemCmd(unsigned char *data, int len) {
         return;
     }
 
-    /* Copy all of these so we can pass the values to update_item and
-     * don't need to figure out which ones were modified by this function.
+    /* Copy all of these so we can pass the values to update_item and don't
+     * need to figure out which ones were modified by this function.
      */
     *name = '\0';
     loc = ip->env ? ip->env->tag : 0;
@@ -1238,7 +1234,7 @@ void UpdateItemCmd(unsigned char *data, int len) {
     }
     if (pos > len) {
         LOG(LOG_WARNING, "common::UpdateItemCmd", "Overread buffer: %d > %d", pos, len);
-        return; /* we have bad data, probably don't want to store it then */
+        return; /* We have bad data, probably don't want to store it then */
     }
     if (sendflags&UPD_ANIM) {
         anim = GetShort_String(data+pos);
@@ -1251,10 +1247,10 @@ void UpdateItemCmd(unsigned char *data, int len) {
         nrof = (uint32)GetInt_String(data+pos);
         pos += 4;
     }
-    /* update_item calls set_item_values which will then set the list
-     * redraw flag, so we don't need to do an explicit redraw here.  Actually,
-     * calling update_item is a little bit of overkill, since we
-     * already determined some of the values in this function.
+    /* update_item calls set_item_values which will then set the list redraw
+     * flag, so we don't need to do an explicit redraw here.  Actually,
+     * calling update_item is a little bit of overkill, since we already
+     * determined some of the values in this function.
      */
     update_item(tag, loc, name, weight, face, flags, anim, animspeed, nrof, ip->type);
     item_actions(locate_item(tag));
@@ -1337,10 +1333,10 @@ void AddspellCmd(unsigned char *data, int len) {
         newspell->face = GetInt_String(data+pos); pos += 4;
         nlen = GetChar_String(data+pos); pos += 1;
         strncpy(newspell->name, (char*)data+pos, nlen); pos += nlen;
-        newspell->name[nlen] = '\0'; /* to ensure we are null terminated */
+        newspell->name[nlen] = '\0'; /* To ensure we are null terminated */
         mlen = GetShort_String(data+pos); pos += 2;
         strncpy(newspell->message, (char*)data+pos, mlen); pos += mlen;
-        newspell->message[mlen] = '\0'; /* to ensure we are null terminated */
+        newspell->message[mlen] = '\0'; /* To ensure we are null terminated */
 
         if (spellmon_level < 2) {
 
@@ -1435,7 +1431,7 @@ void DeleteSpell(unsigned char *data, int len) {
     }
 
     tag = GetInt_String(data);
-    /* special case, the first spell is the one removed */
+    /* Special case: the first spell is the one removed */
     if (cpl.spelldata->tag == tag) {
         target = cpl.spelldata;
         if (target->next) {
@@ -1486,19 +1482,16 @@ void NewmapCmd(unsigned char *data, int len) {
     mapdata_newmap();
 }
 
-/* This is the common processing block for the map1 and
- * map1a protocol commands.  The map1a mieks minor extensions
- * and are easy to deal with inline (in fact, this code
- * doesn't even care what rev is - just certain bits will
- * only bet set when using the map1a command.
- * rev is 0 for map1,
- * 1 for map1a.  It conceivable that there could be future
- * revisions.
+/* This is the common processing block for the map1 and map1a protocol
+ * commands.  The map1a mieks minor extensions and are easy to deal with
+ * inline (in fact, this code doesn't even care what rev is - just certain
+ * bits will only bet set when using the map1a command.  rev is 0 for map1, 1
+ * for map1a.  It conceivable that there could be future revisions.
  */
 
-/* NUM_LAYERS should only be used for the map1{a} which only
- * has a few layers.  Map2 has 10 layers.  However, some of the
- * map1 logic requires this to be set right.
+/* NUM_LAYERS should only be used for the map1{a} which only has a few layers.
+ * Map2 has 10 layers.  However, some of the map1 logic requires this to be
+ * set right.
  */
 #define NUM_LAYERS (MAP1_LAYERS-1)
 
@@ -1512,8 +1505,8 @@ void Map2Cmd(unsigned char *data, int len) {
     uint8 type;
 
     display_map_startupdate();
-    /* Not really using map1 protocol, but some draw logic differs from
-     * the original draw logic, and map2 is closest.
+    /* Not really using map1 protocol, but some draw logic differs from the
+     * original draw logic, and map2 is closest.
      */
     while (pos < len) {
         mask = GetShort_String(data+pos); pos += 2;
@@ -1544,9 +1537,9 @@ void Map2Cmd(unsigned char *data, int len) {
 
         assert(0 <= x && x < MAX_VIEW);
         assert(0 <= y && y < MAX_VIEW);
-        /* Clear the old cell data if needed. Used to be done in
-         * mapdata_set_face_layer() however that caused darkness to only
-         * work if sent after the layers.
+        /* Clearing old cell data as needed (was in mapdata_set_face_layer()
+         * before however that caused darkness to only work if sent after the
+         * layers).
          */
         mapdata_clear_old(x, y);
 
@@ -1722,17 +1715,16 @@ void MapExtendedCmd(unsigned char *data, int len) {
                     break;
                 }
                 startpackentry = pos;
-                /* If you had extended infos to the server, this
-                 * is where, in the client, you may add your code
+                /* If you had extended infos to the server, this is where, in
+                 * the client, you may add your code
                  */
                 if (hassmooth) {
                     pos = pos+ExtSmooth(data+pos, len-pos, x, y, NUM_LAYERS-layer);
                 }
-                /* continue with other if you add new extended
-                 * infos to server
+                /* Continue with other if you add new extended infos to server
+                 *
+                 * Now point to the next data
                  */
-
-                /* Now point to the next data */
                 pos = startpackentry+entrysize;
             }
         }
@@ -1758,8 +1750,8 @@ void MagicMapCmd(unsigned char *data, int len) {
         return;
     }
 
-    /* Now we need to find the start of the actual data.  There are 4
-     * space characters we need to skip over.
+    /* Now we need to find the start of the actual data.  There are 4 space
+     * characters we need to skip over.
      */
     for (cp = data, i = 0; i < 4 && cp < data+len; cp++) {
         if (*cp == ' ') {
@@ -1778,10 +1770,9 @@ void MagicMapCmd(unsigned char *data, int len) {
     }
     free(cpl.magicmap);
     cpl.magicmap = malloc(cpl.mmapx*cpl.mmapy);
-    /* Order the server puts it in should be just fine.  Note that
-     * the only requirement that this works is that magicmap by 8 bits,
-     * being that is the size specified in the protocol and what the
-     * server sends us.
+    /* Order the server puts it in should be just fine.  Note that the only
+     * requirement that this works is that magicmap by 8 bits, being that is
+     * the size specified in the protocol and what the server sends us.
      */
     memcpy(cpl.magicmap, cp, cpl.mmapx*cpl.mmapy);
     cpl.showmagic = 1;
@@ -1840,10 +1831,9 @@ void FailureCmd(char *buf, int len) {
     char *cp;
 
     /* The format of the buffer is 'command error message'.  We need to
-     * extract the failed command, and then pass in the error message
-     * to the appropriate handler.  So find the space, set it to null.
-     * in that way, buf is now just the failure command, and cp is the
-     * message.
+     * extract the failed command, and then pass in the error message to the
+     * appropriate handler.  So find the space, set it to null.  in that way,
+     * buf is now just the failure command, and cp is the message.
      */
     cp = strchr(buf,' ');
     if (!cp) return;
@@ -1864,11 +1854,12 @@ void FailureCmd(char *buf, int len) {
         create_new_character_failure(cp);
     }
     else
-        /* This really is an error - if this happens it menas the server failed
-         * to process a request that the client made - the client should be able
-         * to handle failures for all request types it makes.  But this is also a problem
-         * in that it means that the server is waiting for a correct response, and
-         * if we do not display anything, the player is unlikely to know this.
+        /* This really is an error - if this happens it menas the server
+         * failed to process a request that the client made - the client
+         * should be able to handle failures for all request types it makes.
+         * But this is also a problem in that it means that the server is
+         * waiting for a correct response, and if we do not display anything,
+         * the player is unlikely to know this.
          */
         LOG(LOG_ERROR, "common::FailureCmd", "Got a failure response we can not handle: %s:%s",
             buf, cp);
@@ -1883,9 +1874,7 @@ void AccountPlayersCmd(char *buf, int len) {
     char name[MAX_BUF], class[MAX_BUF], race[MAX_BUF],
         face[MAX_BUF], party[MAX_BUF], map[MAX_BUF];
 
-
-    /* This is called first so it can clear out the existing
-     * data store.
+    /* This is called first so it can clear out the existing data store.
      */
     choose_character_init();
 
@@ -1906,8 +1895,8 @@ void AccountPlayersCmd(char *buf, int len) {
         /* flen == 0 is to note that we got end of character data */
         if (flen == 0) {
             update_character_choose(name, class, race, face, party, map, level, faceno);
-            /* blank all the values - it is no sure thing that the
-             * next character will fill all these in.
+            /* Blank all the values - it is no sure thing that the next
+             * character will fill all these in.
              */
             level=0;
             name[0]=0;
