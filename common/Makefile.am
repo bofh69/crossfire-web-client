@@ -64,10 +64,10 @@ EXTRA_DIST = \
 	item-types \
 	items.pl
 
-AM_CPPFLAGS = $(PTHREAD_CFLAGS)
+AM_CFLAGS = $(PTHREAD_CFLAGS) -finstrument-functions
 
 proto:
-	cproto -DCPROTO -DCFCLIENT $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) \
+	cproto -DCPROTO -DCFCLIENT $(DEFAULT_INCLUDES) $(AM_CFLAGS) \
 		$(libcfclient_a_SOURCES) > proto.h
 	chmod 644 proto.h
 
