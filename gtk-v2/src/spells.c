@@ -129,7 +129,7 @@ static gboolean spell_selection_func(GtkTreeSelection *selection,
  * subtracted from the width of the spells window to determine the available
  * width for the description column.  The remaining space is then configured
  * as the new wrap width.  Once the new wrap is computed, mark all the rows
- * changed so that the renderers adjust the row height to expand or contract
+ * changed so that the renderer adjusts the row height to expand or contract
  * to fit the reformatted description.
  *
  * @param widget
