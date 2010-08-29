@@ -143,7 +143,10 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
     guint column_count;
     GList *column_list;
     GtkTreeViewColumn *column;
-    GtkAllocation treeview_allocation;
+    GdkRectangle treeview_allocation;   /* Note:  gtk_widget_get_alloction()
+                                         * returns GtkAllocation, but that is
+                                         * simply a typedef of GdkRectangle.
+                                         */
  
     /* If the spell window has not been set up yet, do nothing. */
     if (!has_init) return;
@@ -151,7 +154,7 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
      * How wide is the spell window?
      */
     gtk_widget_get_allocation(spell_treeview, &treeview_allocation);
-    width = ((GdkRectangle) treeview_allocation).width;
+    width = treeview_allocation.width;
     /*
      * How many columns are in the spell window tree view?
      */
