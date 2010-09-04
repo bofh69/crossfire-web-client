@@ -937,7 +937,7 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
  * count, and message should be initialized.  Type, subtype, and orig_color
  * are also set just for an extra measure of safety.
  */
-void info_buffer_init() {
+void info_buffer_init(void) {
     int loop;
 
     for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
@@ -1011,7 +1011,7 @@ void info_buffer_flush(const int id) {
  * aged so that the oldest empty buffer is used first when a new message
  * comes in.
  */
-void info_buffer_tick() {
+void info_buffer_tick(void) {
     int loop;
 
     for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
