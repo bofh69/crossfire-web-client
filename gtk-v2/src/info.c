@@ -1454,20 +1454,20 @@ void update_msgctrl_configuration(void)
     guint type;                         /* Message type                     */
 
     gtk_spin_button_set_value(
-        (GtkSpinButton*) buffer_control.count.ptr,
+        GTK_SPIN_BUTTON(buffer_control.count.ptr),
             (gdouble) buffer_control.count.state);
 
     gtk_spin_button_set_value(
-        (GtkSpinButton*) buffer_control.timer.ptr,
+        GTK_SPIN_BUTTON(buffer_control.timer.ptr),
             (gdouble) buffer_control.timer.state);
 
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
         gtk_toggle_button_set_active(
-            (GtkToggleButton *) msgctrl_widgets[type].buffer.ptr,
+            GTK_TOGGLE_BUTTON(msgctrl_widgets[type].buffer.ptr),
                 msgctrl_widgets[type].buffer.state);
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
             gtk_toggle_button_set_active(
-                (GtkToggleButton *) msgctrl_widgets[type].pane[pane].ptr,
+                GTK_TOGGLE_BUTTON(msgctrl_widgets[type].pane[pane].ptr),
                     msgctrl_widgets[type].pane[pane].state);
         }
     }
@@ -1759,11 +1759,11 @@ void read_msgctrl_configuration(void)
     guint type;                         /* Message type                     */
 
     buffer_control.count.state =
-        (guint) gtk_spin_button_get_value_as_int(
-            (GtkSpinButton*) buffer_control.count.ptr);
+        gtk_spin_button_get_value_as_int(
+            GTK_SPIN_BUTTON(buffer_control.count.ptr));
     buffer_control.timer.state =
-        (guint) gtk_spin_button_get_value_as_int(
-            (GtkSpinButton*) buffer_control.timer.ptr);
+        gtk_spin_button_get_value_as_int(
+            GTK_SPIN_BUTTON(buffer_control.timer.ptr));
     /*
      * Iterate through each message type.  For each, record the value of the
      * message duplicate suppression checkbox, and also obtain the routing
@@ -1773,11 +1773,11 @@ void read_msgctrl_configuration(void)
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
         msgctrl_widgets[type].buffer.state =
             gtk_toggle_button_get_active(
-                (GtkToggleButton *) msgctrl_widgets[type].buffer.ptr);
+                GTK_TOGGLE_BUTTON(msgctrl_widgets[type].buffer.ptr));
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
             msgctrl_widgets[type].pane[pane].state =
                 gtk_toggle_button_get_active(
-                    (GtkToggleButton *) msgctrl_widgets[type].pane[pane].ptr);
+                    GTK_TOGGLE_BUTTON(msgctrl_widgets[type].pane[pane].ptr));
         }
     }
 }
