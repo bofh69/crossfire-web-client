@@ -687,10 +687,10 @@ void info_init(GtkWidget *window_root)
  * @param color     String name of the color.
  * @param underline If true, draw underlined text.
  */
-static void add_to_textbuf(Info_Pane *pane, char *message,
+static void add_to_textbuf(Info_Pane *pane, const char *message,
                            int type, int subtype,
                            int bold, int italic,
-                           int font, char *color, int underline)
+                           int font, const char *color, int underline)
 {
     GtkTextIter end;
     GdkRectangle rect;
@@ -784,10 +784,10 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
 {
     char *marker, *current, *original;
     int bold=0, italic=0, font=0, underline=0;
-    char *color=NULL; /**< Only if we get a [color] tag should we care,
-                       *   otherwise, the type/subtype should dictate color
-                       *   (unless no style set!)
-                       */
+    const char *color=NULL; /**< Only if we get a [color] tag should we care,
+                             *   otherwise, the type/subtype should dictate
+                             *   color (unless no style set!)
+                             */
 
     current = strdup(message);
     original = current;         /* Just so we know what to free */
@@ -811,7 +811,7 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
              * Not efficient - we have a number, but convert it to a string,
              * at which point add_to_textbuf() converts it back to a number.
              */
-            color = (char*)usercolorname[orig_color];
+            color = usercolorname[orig_color];
         }
     }
 
