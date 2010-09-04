@@ -60,10 +60,11 @@ static char *font_style_names[NUM_FONTS] = {
  * The number of supported message panes (normal + critical).  This define is
  * meant to support anything that iterates over all the information panels.
  * It does nothing to help remove or document hardcoded panel numbers
- * throughout the code.  FIXME:  Create defines for each panel and
- * replace panel numbers with the defines describing the panel.
- * this integer declaration is to that account.c knows how many
- * are being used here, and can add appropriately.
+ * throughout the code.
+ *
+ * @todo Create defines for each panel and replace panel numbers with the
+ * defines describing the panel.  This integer declaration is to that
+ * account.c knows how many are being used here, and can add appropriately.
  */
 #define NUM_TEXT_VIEWS  2
 
@@ -71,21 +72,20 @@ extern  const char * const usercolorname[NUM_COLORS];
 
 Info_Pane info_pane[NUM_TEXT_VIEWS];
 
-
 void draw_ext_info(int orig_color, int type, int subtype, char *message);
 extern  const char * const colorname[NUM_COLORS];
 
 /*
  * The idea behind the msg_type_names is to provide meaningful names that the
- * client can use to load/save these values, in particular, the gtk2 client
+ * client can use to load/save these values, in particular, the GTK-V2 client
  * uses these to find styles on how to draw the different msg types.  We could
- * set this up as a two dimension array instead - that probably isn't as
- * efficient as the number of subtypes varies wildly.  The 0 subtypes are used
- * for general cases (describe the entire class of those message types).  Note
- * also that the names here are verbose - the actual code that uses these will
- * expand it further.  In practice, there should never be entries with both the
- * same type/subtype (each subtype should be unique) - if so, the results are
- * probably unpredictable on which one the code would use.
+ * set this up as a two dimension array instead, but that probably is not as
+ * efficient when the number of subtypes varies so wildly.  The 0 subtypes are
+ * used for general cases (describe the entire class of those message types).
+ * Note also that the names here are verbose - the actual code that uses these
+ * will expand it further.  In practice, there should never be entries with
+ * both the same type/subtype (each subtype should be unique) - if so, the
+ * results are probably unpredictable on which one the code would use.
  */
 #include "msgtypes.h"
 
@@ -126,7 +126,7 @@ GtkWidget *msgctrl_table;               /**< The message control table
 #define COUNT_BUFFER_SIZE    16         /**< The maximum size of the tag
                                          *   that indicates the number of
                                          *   times a message occured while
-                                         *   buffered.  Example: "4 times "i
+                                         *   buffered.  Example: "4 times "
                                          */
 #define MESSAGE_COUNT_MAX    16         /**< The maximum number of times a
                                          *   buffered message may repeat
@@ -317,12 +317,9 @@ struct msgctrl_data_t
  * compares the loaded style from the base style, and only sets the attributes
  * that are different.
  *
- * @param tag
- * text tag to set values on
- * @param style
- * style to get values from
- * @param base_style
- * base style for the widget to compare against
+ * @param tag        Text tag to set values on.
+ * @param style      Style name to get values from.
+ * @param base_style Base style for the widget to compare against.
  */
 void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_style)
 {
@@ -349,20 +346,16 @@ void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_st
 }
 
 /**
- * This adds the various tags to the next buffer.
- * if textbuf is non null, then it also sets the text buffer
- * for that pane to textbuf.  This is called right now
- * by info_get_styles below and the account code.
+ * Adds the various tags to the next buffer.  If textbuf is non-null, then it
+ * also sets the text buffer for that pane to textbuf.  This is called right
+ * now by info_get_styles() below and from within the account code.
  *
- * @param pane
- * pane number to add buffer to
- * @param textbuf
- * textbuf to apply tags to - can be null if info_pane[pane].textbuffer
- * has already been set.
+ * @param pane     Message panel number to add buffer to.
+ * @param textbuf  Text buffer to apply tags to.  It is allowed to be null if
+ *                 info_pane[pane].textbuffer has already been set.
  */
 void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf)
 {
-
     int i;
 
     if (textbuf) pane->textbuffer = textbuf;
@@ -378,8 +371,7 @@ void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf)
         pane->color_tags[i] = NULL;
     /*
      * These tag definitions never change - we don't get them from the
-     * settings file (maybe we should), so we only need to allocate
-     * them once.
+     * settings file (maybe we should), so we only need to allocate them once.
      */
     pane->bold_tag =
         gtk_text_buffer_create_tag(pane->textbuffer,
@@ -393,28 +385,24 @@ void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf)
         gtk_text_buffer_create_tag(pane->textbuffer,
                                    "underline", "underline", PANGO_UNDERLINE_SINGLE, NULL);
     /*
-     * This is really a convenience - we can pass multiple tags in when
-     * drawing text, but once we pass in a NULL tag, that signifies no
-     * more tags.  Rather than having to set up an array we pass in,
-     * instead, we have this empty tag that we can pass is so that we
-     * always have the same calling semantics, just differ what tags we
-     * pass in.
+     * This is really a convenience - so multiple tags may be passed when
+     * drawing text, but once a NULL tag is found, that signifies no more
+     * tags.  Rather than having to set up an array to pass in, instead, an
+     * empty tag is passed in so that calling semantics remain consistent,
+     * just differing in what tags are passed in.
      */
     if (!pane->default_tag)
         pane->default_tag =
-            gtk_text_buffer_create_tag(pane->textbuffer,
-                                       "default", NULL);
+            gtk_text_buffer_create_tag(pane->textbuffer, "default", NULL);
 }
 
 /**
- * This is like add_tags_to_textbuffer above, but styles can be changed
- * during the run of the client.  So this has to be seperate to
- * note it it might be a reload.
+ * This is like add_tags_to_textbuffer above, but styles can be changed during
+ * the run of the client.  So this has to be separate to note it it might be a
+ * reload.
  *
- * @param pane
- * pane to update.
- * @param base_style
- * base style if retrieved - may be null
+ * @param pane       Message panel number to update.
+ * @param base_style Base style if retrieved - may be null.
  */
 void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style) 
 {
@@ -431,22 +419,21 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
 
             tmp_style =
                 gtk_rc_get_style_by_paths(
-                                          gtk_settings_get_default(), NULL, style_name, G_TYPE_NONE);
+                    gtk_settings_get_default(), NULL, style_name, G_TYPE_NONE);
 
             if (tmp_style) {
                 if (!pane->color_tags[i]) {
                     pane->color_tags[i] =
                         gtk_text_buffer_create_tag(
-                                                   pane->textbuffer, NULL, NULL);
+                            pane->textbuffer, NULL, NULL);
                 }
                 set_text_tag_from_style(
-                                        pane->color_tags[i],
-                                        tmp_style, base_style);
+                    pane->color_tags[i], tmp_style, base_style);
             } else {
                 if (pane->color_tags[i]) {
                     gtk_text_tag_table_remove(
-                                              gtk_text_buffer_get_tag_table(pane->textbuffer),
-                                              pane->color_tags[i]);
+                        gtk_text_buffer_get_tag_table(
+                            pane->textbuffer), pane->color_tags[i]);
                     pane->color_tags[i] = NULL;
                 }
             }
@@ -456,22 +443,22 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
         for (i = 0; i < NUM_FONTS; i++) {
             tmp_style =
                 gtk_rc_get_style_by_paths(
-                                          gtk_settings_get_default(),
-                                          NULL, font_style_names[i], G_TYPE_NONE);
+                    gtk_settings_get_default(),
+                        NULL, font_style_names[i], G_TYPE_NONE);
 
             if (tmp_style) {
                 if (!pane->font_tags[i]) {
                     pane->font_tags[i] =
                         gtk_text_buffer_create_tag(
-                                                   pane->textbuffer, NULL, NULL);
+                            pane->textbuffer, NULL, NULL);
                 }
                 set_text_tag_from_style(
-                                        pane->font_tags[i], tmp_style, base_style);
+                    pane->font_tags[i], tmp_style, base_style);
             } else {
                 if (pane->font_tags[i]) {
                     gtk_text_tag_table_remove(
-                                              gtk_text_buffer_get_tag_table(pane->textbuffer),
-                                              pane->font_tags[i]);
+                        gtk_text_buffer_get_tag_table(pane->textbuffer),
+                            pane->font_tags[i]);
                     pane->font_tags[i] = NULL;
                 }
             }
@@ -481,9 +468,8 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
         for (i = 0; i < NUM_COLORS; i++) {
             if (pane->color_tags[i]) {
                 gtk_text_tag_table_remove(
-                                          gtk_text_buffer_get_tag_table(
-                                                                        pane->textbuffer),
-                                          pane->color_tags[i]);
+                    gtk_text_buffer_get_tag_table(
+                        pane->textbuffer), pane->color_tags[i]);
                 pane->color_tags[i] = NULL;
             }
         }
@@ -491,9 +477,8 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
         for (i = 0; i < NUM_FONTS; i++) {
             if (pane->font_tags[i]) {
                 gtk_text_tag_table_remove(
-                                          gtk_text_buffer_get_tag_table(
-                                                                        pane->textbuffer),
-                                          pane->font_tags[i]);
+                    gtk_text_buffer_get_tag_table(
+                        pane->textbuffer), pane->font_tags[i]);
                 pane->font_tags[i] = NULL;
             }
         }
@@ -501,12 +486,13 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
 }
 
 /**
- * Loads up values from the style file.  Note that the actual name of the style
- * file is set elsewhere.
+ * Loads up values from the style file.  Note that the actual name of the
+ * style file is set elsewhere.
  *
  * This function is designed so that it should be possible to call it multiple
- * times - it will release old style data and load up new values.  In this way,
- * a user should be able to change styles on the fly and have things work.
+ * times - it will release old style data and load up new values.  In this
+ * way, a user should be able to change styles on the fly and have things
+ * work.
  */
 void info_get_styles(void)
 {
@@ -520,12 +506,12 @@ void info_get_styles(void)
          * We want to set up a 2 dimensional array of msg_type_tags to
          * correspond to all the types/subtypes, so looking up any value is
          * really easy.  We know the size of the types, but don't know the
-         * number of subtypes - no single declared value.  So we just parse the
-         * msg_type_names to find that, then know how big to make the other
-         * dimension.  We could allocate different number of entries for each
-         * type, but that makes processing a bit harder (no single value on the
-         * number of subtypes), and this extra memory usage shouldn't really be
-         * at all significant.
+         * number of subtypes - no single declared value.  So we just parse
+         * the msg_type_names to find that, then know how big to make the
+         * other dimension.  We could allocate different number of entries for
+         * each type, but that makes processing a bit harder (no single value
+         * on the number of subtypes), and this extra memory usage shouldn't
+         * really be at all significant.
          */
         for (i = 0; i < sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
             if (msg_type_names[i].subtype > max_subtype)
@@ -552,20 +538,21 @@ void info_get_styles(void)
     has_style = 0;
 
     /*
-     * If we don't have a base style tag, we can't process these other tags, as
-     * we need to be able to do a difference, and doing a difference from
+     * If we don't have a base style tag, we can't process these other tags,
+     * as we need to be able to do a difference, and doing a difference from
      * nothing (meaning, taking everything in style) still doesn't work really
      * well.
      */
     if (base_style[0]) {
         /*
-         * This processes the type/subtype styles.  We look up the names in the
-         * array to find what name goes to what number.
+         * This processes the type/subtype styles.  We look up the names in
+         * the array to find what name goes to what number.
          */
         for (i = 0; i < sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
             int type, subtype;
 
-            snprintf(style_name, sizeof(style_name), "msg_%s", msg_type_names[i].style_name);
+            snprintf(style_name, sizeof(style_name),
+                "msg_%s", msg_type_names[i].style_name);
             type =  msg_type_names[i].type;
             subtype = msg_type_names[i].subtype;
 
@@ -591,8 +578,8 @@ void info_get_styles(void)
                     has_style = 1;
                 } else {
                     /*
-                     * No setting for this type/subtype, so remove tag if there
-                     * is one.
+                     * No setting for this type/subtype, so remove tag if
+                     * there is one.
                      */
                     if (info_pane[j].msg_type_tags[type][subtype]) {
                         gtk_text_tag_table_remove(
@@ -605,13 +592,12 @@ void info_get_styles(void)
                 add_style_to_textbuffer(&info_pane[j], base_style[j]);
             }
         }
-
     } else {
         /*
-         * There is no base style - this should not normally be the case
-         * with any real setting files, but certainly can be the case if the
-         * user selected the 'None' setting.  So in this case, we just free all
-         * the text tags.
+         * There is no base style - this should not normally be the case with
+         * any real setting files, but certainly can be the case if the user
+         * selected the 'None' setting.  So in this case, we just free all the
+         * text tags.
          */
         has_style = 0;
         for (i = 0; i < sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
@@ -638,8 +624,7 @@ void info_get_styles(void)
  * Initialize the information panels in the client.  These panels are the
  * client areas where text is drawn.
  *
- * @param window_root
- * Parent (root) window of the application.
+ * @param window_root Pointer to the parent (root) application window.
  */
 void info_init(GtkWidget *window_root)
 {
@@ -687,28 +672,20 @@ void info_init(GtkWidget *window_root)
 
 /**
  * Adds some data to the text buffer of the specified information panel using
- * the appropriate tags to provide the desired formatting.  Note that the style
- * within the users theme determines how a particular type/subtype is drawn.
+ * the appropriate tags to provide the desired formatting.  Note that the
+ * style within the users theme determines how a particular type/subtype is
+ * drawn.
  *
- * @param pane
- * The client message panel to write a message to.
- * @param message
- * A pointer to some text to display in a client message window.
- * @param type
- * The message type - see the MSG_TYPE values in newclient.h
- * @param subtype
- * Message subtype - see MSG_TYPE_..._... values in newclient.h
- * @param bold
- * If true, should be in bold text.
- * @param italic
- * If true, should be in italic text
- * @param font
- * Which font number to use - this is resolved to actual font style
- * based on the users theme file.
- * @param color
- * string version of the color
- * @param underline
- * If true, should underline the text.
+ * @param pane      The client message panel to write a message to.
+ * @param message   A pointer to some text to show in a client message window.
+ * @param type      The message type - see the MSG_TYPE values in newclient.h.
+ * @param subtype   Message subtype - see MSG_TYPE_*_* values in newclient.h.
+ * @param bold      If true, should be in bold text.
+ * @param italic    If true, should be in italic text
+ * @param font      Which font to use - resolved to an actual font style based
+ *                  on the user's theme file.
+ * @param color     String name of the color.
+ * @param underline If true, draw underlined text.
  */
 static void add_to_textbuf(Info_Pane *pane, char *message,
                            int type, int subtype,
@@ -743,9 +720,9 @@ static void add_to_textbuf(Info_Pane *pane, char *message,
 
     /*
      * Following block of code deals with the type/subtype.  First, we check
-     * and make sure the passed in values are legal.  If so, first see if there
-     * is a particular style for the type/subtype combo, if not, fall back to
-     * one just for the type.
+     * and make sure the passed in values are legal.  If so, first see if
+     * there is a particular style for the type/subtype combo, if not, fall
+     * back to one just for the type.
      */
     type_tag = pane->default_tag;
 
@@ -754,8 +731,8 @@ static void add_to_textbuf(Info_Pane *pane, char *message,
     || type < 0 || subtype < 0 ) {
         LOG(LOG_ERROR, "info.c::add_to_textbuf",
             "type (%d) >= MSG_TYPE_LAST (%d) or "
-            "subtype (%d) >= max_subtype (%d)\n",
-            type, MSG_TYPE_LAST, subtype, max_subtype);
+                "subtype (%d) >= max_subtype (%d)\n",
+                    type, MSG_TYPE_LAST, subtype, max_subtype);
     } else {
         if (pane->msg_type_tags[type][subtype])
             type_tag = pane->msg_type_tags[type][subtype];
@@ -766,8 +743,8 @@ static void add_to_textbuf(Info_Pane *pane, char *message,
     gtk_text_view_get_visible_rect(
         GTK_TEXT_VIEW(pane->textview), &rect);
 
-    /* simple panes (like those of the login windows) don't have adjustments
-     * set (and if they did, we wouldn't want to scroll to end in any case)
+    /* Simple panes (like those of the login windows) don't have adjustments
+     * set (and if they did, we wouldn't want to scroll to end in any case),
      * so check here on what to do.
      */
     if (pane->adjustment &&
@@ -791,21 +768,16 @@ static void add_to_textbuf(Info_Pane *pane, char *message,
 }
 
 /**
- * This just does the work of taking texted (which may have markup)
- * and putting it into the targetd pane.  This is a lower level
- * than the draw_ext_info() below, as it does not do message routing.
- * This is called from draw_ext_info() below, as well as account.c
- * to update news/motd/rules.
+ * This just does the work of taking text (which may have markup) and putting
+ * it into the targetd pane.  This is a lower level than the draw_ext_info()
+ * below, as it does not do message routing.  This is called from
+ * draw_ext_info() below, as well as account.c to update news/motd/rules.
  *
- * @params pane
- * pointer to the pane info to draw info.
- * @params message
- * message that is parsed and displayed.
- * @params type
- * the type of message - used for default coloring information.
- * @params subtype
- * subtype of message - used for default coloring information. Note
- * both type and subtype are same values as passed to draw_ext_info()
+ * @param pane    Pointer to the pane info to draw info.
+ * @param message Message that is parsed and displayed.
+ * @param type    Type of the message - for default coloring information.
+ * @param subtype Subtype of message - used for default coloring information.
+ * @note  Note both type and subtype are the values passed to draw_ext_info().
  */
 
 void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int subtype, int orig_color)
@@ -821,24 +793,23 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
     original = current;         /* Just so we know what to free */
 
     /*
-     * If there is no style information, or if a specific style has not
-     * been set for the type/subtype of this message, allow orig_color to
-     * set the color of the text.  The orig_color handling here adds
-     * compatibility with former draw_info() calls that gave a color hint.
-     * The color hint still works now in the event that the theme has not
-     * set a style for the message type.
+     * If there is no style information, or if a specific style has not been
+     * set for the type/subtype of this message, allow orig_color to set the
+     * color of the text.  The orig_color handling here adds compatibility
+     * with former draw_info() calls that gave a color hint.  The color hint
+     * still works now in the event that the theme has not set a style for the
+     * message type.
      */
     if (! has_style || pane->msg_type_tags[type][subtype] == 0) {
         if (orig_color <0 || orig_color>NUM_COLORS) {
             LOG(LOG_ERROR, "info.c::draw_ext_info",
                 "Passed invalid color from server: %d, max allowed is %d\n",
-                orig_color, NUM_COLORS);
+                    orig_color, NUM_COLORS);
             orig_color = 0;
         } else {
             /*
-             * Not efficient - we have a number, but convert it to a
-             * string, at which point add_to_textbuf() converts it back to
-             * a number :(
+             * Not efficient - we have a number, but convert it to a string,
+             * at which point add_to_textbuf() converts it back to a number.
              */
             color = (char*)usercolorname[orig_color];
         }
@@ -905,14 +876,10 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
  * implements a system that coalesces duplicate messages - a feature that is
  * not really applicable to most messages that do not come from the server.
  *
- * @param orig_color
- * A suggested text color that may change based on message type/subtype.
- * @param type
- * The message type. See the MSG_TYPE definitions in newclient.h
- * @param subtype
- * Message subtype.  See MSG_TYPE_..._... values in newclient.h
- * @param message
- * The message text.
+ * @param orig_color Suggested text color that type/subtype can over-ride.
+ * @param type       Message type. See MSG_TYPE definitions in newclient.h.
+ * @param subtype    Message subtype. See MSG_TYPE_*_* values in newclient.h.
+ * @param message    The message text to display.
  */
 void draw_ext_info(int orig_color, int type, int subtype, char *message) {
     int type_err=0;   /**< When 0, the type is valid and may be used to pick
@@ -932,7 +899,6 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
             "Invalid message type: %d", type);
         type_err = 1;
     }
-
     /*
      * Route messages to any one of the client information panels based on the
      * type of the message text.  If a message with an invalid type comes in,
@@ -955,11 +921,8 @@ void draw_ext_info(int orig_color, int type, int subtype, char *message) {
             if (msgctrl_widgets[type - 1].pane[pane].state == FALSE)
                 continue;
         }
-
         add_marked_text_to_pane(&info_pane[pane], message, type, subtype, orig_color);
-
     }
-
 }
 
 /**
@@ -997,8 +960,8 @@ void info_buffer_init() {
  * that the message details are preserved when the buffer is flushed.  This
  * allows the buffer contents to be re-used if another message with the same
  * text comes in before the buffer is re-used for a different message.
- * @param id
- * The output count/sync message buffer to flush (0 - MESSAGE_BUFFER_COUNT).
+ *
+ * @param id The message control buffer to flush (0 - MESSAGE_BUFFER_COUNT).
  */
 void info_buffer_flush(const int id) {
     char output_buffer[MESSAGE_BUFFER_SIZE  /* Buffer for output big enough */
@@ -1053,8 +1016,8 @@ void info_buffer_tick() {
 
     for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
         if (info_buffer[loop].count > -1) {
-            if ((info_buffer[loop].age < buffer_control.timer.state)
-            &&  (info_buffer[loop].count < buffer_control.count.state)) {
+            if ((info_buffer[loop].age < (int) buffer_control.timer.state)
+            &&  (info_buffer[loop].count < (int) buffer_control.count.state)) {
                 /*
                  * The buffer has data in it, and has not reached maximum age,
                  * so bump the age up a notch.
@@ -1099,14 +1062,10 @@ void info_buffer_tick() {
  * because they are generally unique, adminstrative messages that should not
  * be delayed.
  *
- * @param orig_color
- * A suggested text color that may change based on message type/subtype.
- * @param type
- * The message type. See the MSG_TYPE definitions in newclient.h
- * @param subtype
- * Message subtype.  See MSG_TYPE_..._... values in newclient.h
- * @param message
- * The message text.
+ * @param orig_color Suggested text color that type/subtype can over-ride.
+ * @param type       Message type. See MSG_TYPE definitions in newclient.h.
+ * @param subtype    Message subtype. See MSG_TYPE_*_* values in newclient.h.
+ * @param message    The message text to display.
  */
 static void
 message_callback(int orig_color, int type, int subtype, char *message) {
@@ -1304,7 +1263,7 @@ void set_scroll(const char *s)
  * do so if we limit ourselves to proper GTK2 code (Eg, don't mess with the
  * internals of X or platform specific issues)
  *
- @param s
+ * @param s
  */
 void set_autorepeat(const char *s)
 {
@@ -1313,16 +1272,17 @@ void set_autorepeat(const char *s)
 /**
  * This is used by the common help system to determine when to wrap.  Should be
  * able to get width of window, and divide by character width - however, still
- * not perfect if we are using a variable width font.  Actually, gtk can do
+ * not perfect if we are using a variable width font.  Actually, GTK can do
  * word wrapping for us, so maybe the real fix is to have it to the word
  * wrapping and just run a sufficiently large value.
- * FIXME: should be better than hardcoded value.
- *
- * @return
- * The width of the info window in characters.
+ * @return The width of the info window in characters.
  */
 int get_info_width(void)
 {
+    /**
+     * @todo Configure automatic line wrap in message panels and get rid of
+     * the hardcoded 40-character wrap.
+     */
     return 40;
 }
 
@@ -1435,10 +1395,12 @@ void msgctrl_init(GtkWidget *window_root)
         gtk_widget_show(msgctrl_widgets[type].buffer.ptr);
         /*
          * The message pane routings.  Display a check box that is preset to
-         * the built in defaults.  TODO:  Panes that are unsupported in the
-         * current layout should always have their routing disabled, and
-         * should disallow user interaction with the control but this logic is
-         * not yet implemented.
+         * the built in defaults.
+         */
+        /**
+         * @todo  Panes that are unsupported in the current layout should
+         * always have their routing disabled, and should disallow user
+         * interaction with the control but this logic is not yet implemented.
          */
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
             msgctrl_widgets[type].pane[pane].ptr = gtk_check_button_new();
