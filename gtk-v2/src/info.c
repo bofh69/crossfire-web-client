@@ -496,7 +496,7 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
  */
 void info_get_styles(void)
 {
-    int i, j;
+    unsigned int i, j;
     static int has_init=0;
     GtkStyle    *tmp_style, *base_style[NUM_TEXT_VIEWS];
     char    style_name[MAX_BUF];
