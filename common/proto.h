@@ -3,7 +3,7 @@ void DoClient(ClientSocket *csocket);
 int init_connection(char *host, int port);
 void negotiate_connection(int sound);
 /* commands.c */
-void close_server_connection();
+void close_server_connection(void);
 void ReplyInfoCmd(uint8 *buf, int len);
 void SetupCmd(char *buf, int len);
 void ExtendedInfoSetCmd(char *data, int len);
