@@ -49,6 +49,10 @@ const char * const rcsid_common_script_lua_c =
 #include <lua.h>
 #include <lualib.h>
 
+#if LUA_VERSION_NUM >= 501
+#include <lauxlib.h>
+#endif
+
 struct script_state
 {
     lua_State* state;
