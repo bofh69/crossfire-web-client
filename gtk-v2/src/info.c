@@ -45,7 +45,7 @@ const char * const rcsid_gtk2_info_c =
 /**
  * A mapping of font numbers to style based on the rcfile content.
  */
-static char *font_style_names[NUM_FONTS] = {
+static const char *font_style_names[NUM_FONTS] = {
     "info_font_normal",
     "info_font_arcane",
     "info_font_strange",
