@@ -93,12 +93,12 @@ extern void client_pickup(uint32 pickup);
 
 /* Account Login Functions */
 extern void start_login(int method);
-extern void hide_all_login_windows();
+extern void hide_all_login_windows(void);
 extern void account_login_failure(char *message);
 extern void account_creation_failure(char *message);
 extern void account_add_character_failure(char *message);
 extern void create_new_character_failure(char *message);
-extern void choose_character_init();
+extern void choose_character_init(void);
 extern void update_character_choose(const char *name, const char *class,
                              const char *race, const char *face,
                              const char *party, const char *map,
