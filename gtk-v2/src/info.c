@@ -1155,11 +1155,11 @@ message_callback(int orig_color, int type, int subtype, char *message) {
             }
         }
 
-        if FALSE {
+        #if 0
             LOG(LOG_DEBUG, "info.c::message_callback", "\n           "
                 "type: %d-%d empty: %d found: %d oldest: %d oldest_age: %d",
                     type, subtype, empty, found, oldest, oldest_age);
-        }
+        #endif
 
         /*
          * If the incoming message is already buffered, then increment the
