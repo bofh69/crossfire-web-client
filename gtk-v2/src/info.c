@@ -1759,10 +1759,10 @@ void read_msgctrl_configuration(void)
     guint type;                         /* Message type                     */
 
     buffer_control.count.state =
-        (guint) gtk_spin_button_get_value(
+        (guint) gtk_spin_button_get_value_as_int(
             (GtkSpinButton*) buffer_control.count.ptr);
     buffer_control.timer.state =
-        (guint) gtk_spin_button_get_value(
+        (guint) gtk_spin_button_get_value_as_int(
             (GtkSpinButton*) buffer_control.timer.ptr);
     /*
      * Iterate through each message type.  For each, record the value of the
