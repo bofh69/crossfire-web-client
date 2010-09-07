@@ -50,63 +50,84 @@ const char * const rcsid_common_newsocket_c =
 #endif
 }*/
 
-
 #define llevDebug LOG_DEBUG
 #define llevError LOG_ERROR
 
-
-/*
- * This writes data to the socket.
+/**
+ * Write at least a specified amount of data in a buffer to the socket unless
+ * an error occurs.
+ *
+ * @param fd  Socket to write to.
+ * @param buf Buffer with data to write.
+ * @param len 
+ * @return
  */
 static int write_socket(int fd, const unsigned char *buf, int len)
 {
     int amt=0;
+
     const unsigned char *pos=buf;
 
     /* If we manage to write more than we wanted, take it as a bonus */
     while (len>0) {
-	do {
+        do {
 #ifndef WIN32
-	    amt=write(fd, pos, len);
-	} while ((amt<0) && ((errno==EINTR) || (errno=EAGAIN)));
+            amt=write(fd, pos, len);
+        } while ((amt<0) && ((errno==EINTR) || (errno=EAGAIN)));
 #else
-	    amt=send(fd, pos, len, 0);
-	} while ((amt<0) && (WSAGetLastError()==EINTR));
+            amt=send(fd, pos, len, 0);
+        } while ((amt<0) && (WSAGetLastError()==EINTR));
 #endif
-
-	if (amt < 0) { /* We got an error */
-	    LOG(llevError,"write_socket","New socket (fd=%d) write failed: %s.\n", fd, strerror(errno));
-	    return -1;
-	}
-	if (amt==0) {
-	    LOG(llevError,"write_socket","Write_To_Socket: No data written out.\n");
-	}
-	len -= amt;
-	pos += amt;
+        if (amt < 0) { /* We got an error */
+            LOG(llevError,"write_socket","New socket (fd=%d) write failed: %s.\n", fd, strerror(errno));
+            return -1;
+        }
+        if (amt==0) {
+            LOG(llevError,"write_socket","Write_To_Socket: No data written out.\n");
+        }
+        len -= amt;
+        pos += amt;
     }
     return 0;
 }
 
-
-
+/**
+ * 
+ * @param sl
+ * @param buf
+ */
 void SockList_Init(SockList *sl, uint8 *buf)
 {
     sl->len=0;
-    sl->buf=buf + 2;	/* reserve two bytes for total length */
+    sl->buf=buf + 2;    /* reserve two bytes for total length */
 }
 
+/**
+ *
+ * @param sl
+ * @param c
+ */
 void SockList_AddChar(SockList *sl, char c)
 {
     sl->buf[sl->len++]=c;
 }
 
+/**
+ *
+ * @param sl
+ * @param data
+ */
 void SockList_AddShort(SockList *sl, uint16 data)
 {
     sl->buf[sl->len++] = (data>>8)&0xff;
     sl->buf[sl->len++] = data & 0xff;
 }
 
-
+/**
+ *
+ * @param sl
+ * @param data
+ */
 void SockList_AddInt(SockList *sl, uint32 data)
 {
     sl->buf[sl->len++] = (data>>24)&0xff;
@@ -115,16 +136,27 @@ void SockList_AddInt(SockList *sl, uint32 data)
     sl->buf[sl->len++] = data & 0xff;
 }
 
+/**
+ *
+ * @param sl
+ * @param str
+ */
 void SockList_AddString(SockList *sl, const char *str)
 {
     int len = strlen(str);
 
     if (sl->len + len > MAX_BUF-2)
-	len = MAX_BUF-2 - sl->len;
+        len = MAX_BUF-2 - sl->len;
     memcpy(sl->buf + sl->len, str, len);
     sl->len += len;
 }
 
+/**
+ * Send data from a socklist to the socket.
+ *
+ * @param sl
+ * @param fd
+ */
 int SockList_Send(SockList *sl, int fd)
 {
     sl->buf[-2] = sl->len / 256;
@@ -133,44 +165,68 @@ int SockList_Send(SockList *sl, int fd)
     return write_socket(fd, sl->buf-2, sl->len+2);
 }
 
-
+/**
+ *
+ * @param data
+ * @return
+ */
 char GetChar_String(const unsigned char *data)
 {
     return (data[0]);
 }
-/* Basically does the reverse of SockList_AddInt, but on
- * strings instead.  Same for the GetShort, but for 16 bits.
+
+/**
+ * The reverse of SockList_AddInt, but on strings instead.  Same for the
+ * GetShort, but for 16 bits.
+ *
+ * @param data
+ * @return
  */
 int GetInt_String(const unsigned char *data)
 {
     return ((data[0]<<24) + (data[1]<<16) + (data[2]<<8) + data[3]);
 }
 
-/* 64 bit version of the above */
+/**
+ * The reverse of SockList_AddInt, but on strings instead.  Same for the
+ * GetShort, but for 64 bits
+ *
+ * @param data
+ * @return
+ */
 sint64 GetInt64_String(const unsigned char *data)
 {
 #ifdef WIN32
     return (((sint64)data[0]<<56) + ((sint64)data[1]<<48) +
-	    ((sint64)data[2]<<40) + ((sint64)data[3]<<32) +
-	    ((sint64)data[4]<<24) + ((sint64)data[5]<<16) + ((sint64)data[6]<<8) + (sint64)data[7]);
+            ((sint64)data[2]<<40) + ((sint64)data[3]<<32) +
+            ((sint64)data[4]<<24) + ((sint64)data[5]<<16) + ((sint64)data[6]<<8) + (sint64)data[7]);
 #else
      return (((uint64)data[0]<<56) + ((uint64)data[1]<<48) +
- 	    ((uint64)data[2]<<40) + ((uint64)data[3]<<32) +
- 	    ((uint64)data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
+            ((uint64)data[2]<<40) + ((uint64)data[3]<<32) +
+            ((uint64)data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
 #endif
 }
 
+/**
+ *
+ * @param data
+ * @return
+ */
 short GetShort_String(const unsigned char *data) {
     return ((data[0]<<8)+data[1]);
 }
 
-/* This reads from fd and puts the data in sl. We return true if we think we
- * have a full packet, 0 if we have a partial packet, or -1 if an error
- * occurred. The only processing we do is remove the initial size value. len
- * (As passed) is the size of the buffer allocated in the socklist. We make
- * the assumption the buffer is at least 2 bytes long.
+/**
+ * Reads from the socket and puts data into a socklist.  The only processing
+ * done is to remove the initial size value. An assumption made is that the
+ * buffer is at least 2 bytes long.
+ *
+ * @param fd   Socket to read from.
+ * @param sl   Pointer to a buffer to put the read data.
+ * @param len  Size of the buffer allocated to accept data.
+ * @return     Return true if we think we have a full packet, 0 if we have
+ *             a partial packet, or -1 if an error occurred.
  */
-
 int SockList_ReadPacket(int fd, SockList *sl, int len)
 {
     int stat,toread,readsome=0;
@@ -188,8 +244,8 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 #endif
 
         if (stat<0) {
-            /* In non blocking mode, EAGAIN is set when there is no
-             * data available.
+            /* In non blocking mode, EAGAIN is set when there is no data
+             * available.
              */
 #ifndef WIN32
             if (errno!=EAGAIN && errno!=EWOULDBLOCK)
@@ -201,7 +257,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
                     LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning -1",errno);
                     return -1;
             }
-            return 0;	/*Error */
+            return 0;   /*Error */
         }
         if (stat==0) return -1;
 
@@ -210,7 +266,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
         cst_tot.ibytes += stat;
         cst_lst.ibytes += stat;
 #endif
-        if (stat<2) return 0;	/* Still don't have a full packet */
+        if (stat<2) return 0;   /* Still don't have a full packet */
         readsome=1;
     }
 
@@ -244,7 +300,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
                     perror("ReadPacket got an error.");
                     LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning 0",errno);
                 }
-                return 0;	/*Error */
+                return 0;       /*Error */
         }
         if (stat==0) return -1;
         sl->len += stat;
@@ -264,8 +320,12 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
     return 0;
 }
 
-/*
+/**
  * Send a printf-formatted packet to the socket.
+ *
+ * @param fd      The socket to send to.
+ * @param str     The printf format string.
+ * @param varargs An optional list of values to fulfill the format string.
  */
 int cs_print_string(int fd, const char *str, ...)
 {
@@ -282,3 +342,4 @@ int cs_print_string(int fd, const char *str, ...)
 
     return SockList_Send(&sl, fd);
 }
+
