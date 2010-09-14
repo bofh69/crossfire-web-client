@@ -42,6 +42,7 @@ Requires: SDL
 Requires: libcurl
 Requires: SDL_image
 Requires: alsa-lib
+Requires: gtk+2.0 >= 2.18.0
 Requires: libglade2.0
 BuildRequires: SDL-devel
 BuildRequires: curl-devel
@@ -80,22 +81,6 @@ Requires: crossfire-client
 %description sounds
 Sound effects for people who want sounds with their game
 
-# %package gtk
-# Summary: GTK client for %{Name}
-# Group: Games/Adventure
-# Provides: crossfire-client
-# 
-# %description gtk
-# GTK version of the crossfire client
-
-# %package x11
-# Summary: X11 client for %{Name}
-# Group: Games/Adventure
-# Provides: crossfire-client
-# 
-# %description x11
-# X11 version of the crossfire client
-
 %package common
 Summary: Common files for %{Name}
 Group: Games/Adventure
@@ -109,12 +94,6 @@ File includes sounds and images.
 
 %build
 chmod 755 configure
-# %configure \
-#   --enable-cfgtk2 \
-#   --datadir=%{_datadir} \
-#   --with-sound-dir=/usr/share/sounds/crossfire \
-#   --disable-dmalloc \
-#   --with-loglevel=3
 %configure \
   --datadir=%{_datadir} \
   --with-sound-dir=/usr/share/sounds/crossfire \
@@ -170,13 +149,8 @@ install -d %{buildroot}%{_datadir}/icons/locolor/48x48/apps
 
 %makeinstall mandir=%{buildroot}%{_mandir}
 
-#
 # KDE
 #
-# install -m 644 -c x11/crossfire-client.desktop \
-#   %{buildroot}%{_desktopdir}/crossfire-client-x11.desktop
-# install -m 644 -c gtk/crossfire-client.desktop \
-#   %{buildroot}%{_desktopdir}/crossfire-client-gtk.desktop
 install -m 644 -c gtk-v2/crossfire-client.desktop \
    %{buildroot}%{_desktopdir}/crossfire-client-gtk2.desktop
 install -m 644 pixmaps/16x16.png \
@@ -198,22 +172,6 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 
 %clean
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
-
-# %files x11
-# %defattr(644,root,root,755)
-# %doc ChangeLog COPYING License NOTES README TODO
-# %attr(755,root,root) %{_bindir}/crossfire-client-x11
-# %{_mandir}/man6/crossfire-client-x11.6*
-# Desktop file
-# %{_desktopdir}/crossfire-client-x11.desktop
-
-# %files gtk
-# %defattr(644,root,root,755)
-# %doc ChangeLog COPYING License NOTES README TODO
-# %attr(755,root,root) %{_bindir}/crossfire-client-gtk
-# %{_mandir}/man6/crossfire-client-gtk.6*
-# Desktop file
-# %{_desktopdir}/crossfire-client-gtk.desktop
 
 %files gtk2
 %defattr(644,root,root,755)
@@ -259,15 +217,6 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 %{_datadir}/icons/locolor/32x32/apps/crossfire-client.png
 %{_datadir}/icons/locolor/48x48/apps/crossfire-client.png
 
-# Not supported yet
-# %files gnome
-# %defattr(644,root,root,755)
-# %doc ChangeLog COPYING License NOTES README TODO
-# %attr(755,root,root) /usr/X11R6/bin/gnome-cfclient
-# /usr/X11R6/man/man6/gnome-cfclient.6*
-# /usr/share/gnome/apps/Games/Tclug/crossfire.desktop
-# /usr/share/pixmaps/shield.png
-
 %files sounds
 %defattr(644,root,root,755)
 %dir %{_datadir}/sounds/crossfire
@@ -275,9 +224,12 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 %attr(755,root,root) %{_bindir}/cfsndserv
 %attr(755,root,root) %{_bindir}/cfsndserv_alsa9
 
-
-
 %changelog
+* Tue Sep 14 2010 Kevin Bulgrien <kbulgrien@att.net
+- Remove commented out X11, Gnome, and GTK-V1 client support.
+- Add GTK+ 2.0 version dependency due to use of gtk_widget_get_allocation()
+  and gtk_cell_renderer_set_alignment().
+
 * Sun May 02 2010 Kevin Bulgrien <kbulgrien@att.net
 - Add vendor tag (crossfire.sourceforge.net).
 
