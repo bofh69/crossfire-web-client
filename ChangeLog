@@ -2,6 +2,15 @@
 Top of SVN tree:
 ==============================================================================
 
+configure.ac: - Use the gtk-2.0.m4 macro to test for a usable version of GTK+
+2.0.  mmetson found that build fails on Fedora Core 11.  It turns out the
+spells dialog uses two functions first provided by GTK+ 2.18.0 in the code
+that wraps the description and auto-grows/shrinks the column when the player
+resizes the dialog.  It is known that one of the calls is pretty easy to
+rewrite for build with pre-2.18.0, but converting the other call has not been
+reviewed.  Until further notice, GTK-V2 now requires GTK+ 2.18.0 or newer.
+Kevin Bulgrien 2010-09-13
+
 gtk-v2/src/spells.c: The spells dialog description text now dynamically alters
 line wrap width and table row heights when the dialog is re-sized by the user.
 Kevin Bulgrien 2010-08-25
