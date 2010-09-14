@@ -253,14 +253,14 @@ void LOG(LogLevel level, const char *origin, const char *format, ...)
 
   buf[0] = '\0';
   vsnprintf(buf, sizeof(buf), format, ap);
-  /*fprintf(stderr,getLogTextRaw(level,origin,buf));*/
+  /*fprintf(stderr, "%s", getLogTextRaw(level,origin,buf));*/
   if (strlen(buf)>0){
     LogEntry *le = LOG_NEW_ENTRY;
     LOG_APPEND(le);
     LOG_SETMESSAGE(le,buf);
     LOG_SETORIGIN(le,origin);
     le->level=level;
-    fprintf(stderr,getLogText(le));
+    fprintf(stderr, "%s", getLogText(le));
     if (loglist)
         (*loglist)(le);
   }

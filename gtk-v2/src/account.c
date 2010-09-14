@@ -775,7 +775,7 @@ static void do_account_create(const char *name, const char *p1, const char *p2)
         SockList_AddString(&sl, p1);
         SockList_Send(&sl, csocket.fd);
         /* Store password away for new character creation */
-        snprintf(account_password, 256, p1);
+        snprintf(account_password, sizeof(account_password), "%s", p1);
     }
 }
 
@@ -1009,7 +1009,7 @@ static void do_account_login(const char *name, const char *password)
         SockList_AddString(&sl, password);
         SockList_Send(&sl, csocket.fd);
         /* Store password away for new character creation */
-        snprintf(account_password, 256, password);
+        snprintf(account_password, sizeof(account_password), "%s", password);
     }
 }
 
