@@ -74,14 +74,8 @@ AC_ARG_WITH(includes, [AS_HELP_STRING([--with-includes=dir], [Provide different 
 AC_ARG_WITH(loglevel, [AS_HELP_STRING([--with-logevel=level], [Sets default loglevel])],
                 MINLOGLEVEL="$withval", MINLOGLEVEL=0)
 
-#AC_ARG_ENABLE(gtkv1, [AS_HELP_STRING([--disable-gtkv1], [Do not make original gtk client (default=make it if available)])],
-#                gtkv1=$enableval, gtkv1=yes )
-
 AC_ARG_ENABLE(gtkv2, [AS_HELP_STRING([--disable-gtkv2], [Do not make gtk-v2 client (default=make it if available)])],
                 gtkv2=$enableval, gtkv2=yes )
-
-#AC_ARG_ENABLE(cfgtk2, [AS_HELP_STRING([--enable-cfgtk2], [Enable building the original gtkv1 client with GTK+2])],
-#                cfgtk2=$enableval, cfgtk2=no)
 
 AC_ARG_ENABLE(sdl, [AS_HELP_STRING([--disable-sdl], [Disable linking with the SDL library, default is to use it if available])],
                 use_sdl=$enableval, use_sdl=yes)
@@ -144,60 +138,6 @@ esac
 #
 AX_PTHREAD(,AC_MSG_ERROR(POSIX threads not found.  Cannot build any client.))
 
-# Check for what clients we are going to build in order of x, gtk-v1, gtk-v2
-
-# Check to see if X client will be built - no_x is set by AC_CHECK_XTRA if
-# X11 isn't found on the machine
-#if eval "test x$no_x = xyes" ; then
-#    AC_MSG_WARN(X11 not found - will not build X client)
-#    X_LIBS=""
-#    x11="no"
-#else
-#    x11="yes"
-#    AC_MSG_NOTICE(X11 found - will build X client)
-#    X_LIBS="$X_LIBS -lX11"
-#    CF_SUBDIRS="$CF_SUBDIRS x11"
-#    AC_MSG_NOTICE([Xlibs: $X_LIBS])
-#    AC_MSG_NOTICE([Extras: $X_EXTRA_LIBS])
-#    AC_MSG_NOTICE([Xpre: $X_PRE_LIBS])
-#fi
-# End of X client check
-
-# Check to see if gtk-v1 client will be built
-#if eval "test x$gtkv1 = xyes" ; then
-#    if eval "test x$cfgtk2 = xyes" ; then
-#        PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, [HAVE_GTK2=yes], [HAVE_GTK2=no])
-#        if eval "test x$HAVE_GTK2 = xyes" ; then
-#            GTK_CFLAGS="`$PKG_CONFIG --cflags gtk+-2.0` -DCFGTK2 -DGTK_ENABLE_BROKEN -DGTK_WINDOW_DIALOG=GTK_WINDOW_TOPLEVEL"
-#            GTK_LIBS=`$PKG_CONFIG --libs gtk+-2.0`
-#            CF_SUBDIRS="$CF_SUBDIRS gtk"
-#            CFGTK="no"
-#            AC_MSG_NOTICE(GTK+ 2 found - building original gtk-v1 client with GTK+ 2.0.0)
-#        else
-#            AC_MSG_WARN(GTK+ 2 not found and --enable-cfgtk2 is set - cannot build original gtk-v1 client)
-#            gtkv1="no"
-#        fi
-#    else
-#        AM_PATH_GTK(1.0.0,CFGTK="yes",CFGTK="no")
-#        if eval "test x$CFGTK = xyes"; then
-#             AC_MSG_NOTICE(GTK 1 found - building gtk client)
-#             GTK_LIBS=$GTK_LIBS
-#             GTK_CFLAGS="$GTK_CFLAGS"
-#             AC_SUBST(GTK_LIBS)
-#             AC_SUBST(GTK_CFLAGS)
-#             CF_SUBDIRS="$CF_SUBDIRS gtk"
-#             # AC_DEFINE(GTK_CLIENT, 1, [Define if the GTK client is built.])
-#        else
-#            AC_MSG_WARN(GTK 1 not found - not building building gtk-v1 client)
-#            gtkv1=no
-#        fi
-#    fi
-#else
-#    AC_MSG_NOTICE(gtkv1 client build disabled)
-#fi
-# AC_SUBST(CFGTK)
-# End of gtk-v1 client check
-
 # Check to see if gtk-v2 client will be built
 #
 if eval "test x$gtkv2 = xyes" ; then
@@ -233,8 +173,6 @@ else
     AC_MSG_NOTICE(gtkv2 client disabled)
 fi
 # End of gtk-v2 client check
-
-# End of client checks
 
 AM_MAINTAINER_MODE
 AC_SUBST(PACKAGE_LIBS)
@@ -543,7 +481,6 @@ AC_SUBST(CF_DATADIR)
 # since CF_SUBDIRS won't be set in the top level makefile, we don't
 # descend into these subdirs.
 
-#   gtk/Makefile x11/Makefile
 AC_CONFIG_FILES([
     Makefile common/Makefile
     sound-src/Makefile gtk-v2/Makefile pixmaps/Makefile
@@ -562,13 +499,6 @@ AC_MSG_NOTICE([    Will put config in                   $sysconfdir])
 AC_MSG_NOTICE([    Will put data in                     $ndatadir])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Build options])
-if eval "test x$cfgtk2 = xyes" ; then
-  gtk1_2_ext="(with gtk2 extensions)"
-else
-  gtk1_2_ext=""
-fi
-#AC_MSG_NOTICE([    Will build X11 client?               $x11])
-#AC_MSG_NOTICE([    Will build GTK1 client?              $gtkv1 $gtk1_2_ext])
 AC_MSG_NOTICE([    Will build GTK2 client?              $gtkv2])
 AC_MSG_NOTICE([    With OpenGL renderer?                $opengl])
 AC_MSG_NOTICE([    With SDL renderer?                   $use_sdl])
