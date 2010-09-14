@@ -1,6 +1,7 @@
 ## Please update this variable if any new macros are created
 MACROS=						\
   aclocal-include.m4				\
+  ax_pthread.m4					\
   compiler-flags.m4				\
   curses.m4					\
   gnome-bonobo-check.m4				\
@@ -20,6 +21,7 @@ MACROS=						\
   gnome-x-checks.m4				\
   gnome-xml-check.m4				\
   gnome.m4					\
+  gtk-2.0.m4					\
   linger.m4					\
   need-declaration.m4
 
