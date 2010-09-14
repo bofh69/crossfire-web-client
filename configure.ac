@@ -1,8 +1,9 @@
 # Process this file with autoconf to produce a configure script.
 
-# IMPORTANT:  Do not specify a version number with a "-" in it.  The number
-# is used to create RPMs, and some RPM build tools do not allow use of dash
-# in the version number.
+# IMPORTANT:  Do not specify a version number with a "-" in it.  The number is
+# used to create RPMs, and some RPM build tools do not allow use of dash in
+# the version number.
+#
 AC_INIT([crossfire-client],[1.50.0.dev])
 
 AC_CONFIG_SRCDIR(crossfire-client.spec)
@@ -17,10 +18,10 @@ AC_CONFIG_HEADERS([common/config.h])
 
 # AM_ACLOCAL_INCLUDE(macros)
 
-# these are subdirectories that have make files in them
+# These are subdirectories that have make files in them
 CF_SUBDIRS="common pixmaps utils help"
 
-# Check for some neeed programs
+# Check for some needed programs
 AC_PATH_PROG(MKDIR, mkdir)
 AC_PATH_PROG(TAR, tar)
 AC_PATH_PROG(DEPEND, makedepend)
@@ -30,7 +31,7 @@ AC_PATH_PROG(PERL, perl)
 AC_PATH_PROG(AR, ar)
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
 
-# Check if svnversion is avaliable to get the rev number
+# Check if svnversion is available to get the rev number
 AC_PATH_PROG(SVNVERSION, svnversion)
 
 # Put this early on, since gtk may rely on it.
@@ -50,7 +51,8 @@ AC_ARG_ENABLE(ansi, [AS_HELP_STRING([--enable-ansi], [Turn on strict ansi (defau
 AC_ARG_ENABLE(sound, [AS_HELP_STRING([--disable-sound], [Disable sound support (default=implement sound support if supported libraries exist)])],
                 sound=$enableval, sound=yes )
 
-# These are because some of us use OSS sound, even with ALSA or ALSA9 libs installed
+# These are because some of us use OSS sound, even with ALSA or ALSA9 libs
+# installed
 
 AC_ARG_ENABLE(alsa9, [AS_HELP_STRING([--disable-alsa9], [Disable ALSA9 sound support (default=use alsa9 sound support if alsa9 libraries exist)])],
                 alsa9=$enableval, alsa9=yes )
@@ -61,9 +63,9 @@ AC_ARG_ENABLE(alsa, [AS_HELP_STRING([--disable-alsa], [Disable ALSA sound suppor
 AC_ARG_WITH(sound-dir, [AS_HELP_STRING([--with-sound-dir=dir], [Directory where the sounds are located (default=/usr/local/lib/sounds)])],
                 SOUNDDIR="$withval")
 
-# The follow two are really just a way to specify where the xpm information
+# The following two are really just a way to specify where the xpm information
 # resides if not with the normal X11 stuff (ie, in /usr/local and not /usr
-# /usr/X11
+# /usr/X11)
 
 AC_ARG_WITH(ldflags, [AS_HELP_STRING([--with-ldflags=dir], [Provide additional linker directives to find libraries])],
                 EXTRA_LIB="$withval")
@@ -138,7 +140,7 @@ esac
 #
 AX_PTHREAD(,AC_MSG_ERROR(POSIX threads not found.  Cannot build any client.))
 
-# Check to see if gtk-v2 client will be built
+# Check to see if gtk-v2 client will build.
 #
 if eval "test x$gtkv2 = xyes" ; then
     #
@@ -172,17 +174,19 @@ if eval "test x$gtkv2 = xyes" ; then
 else
     AC_MSG_NOTICE(gtkv2 client disabled)
 fi
+#
 # End of gtk-v2 client check
 
 AM_MAINTAINER_MODE
 AC_SUBST(PACKAGE_LIBS)
 AC_SUBST(INTLLIBS)
 
-# sound.c needs sqrt.  So does png (on some systems)
-# lua also needs it, so put it near the top
+# sound.c needs sqrt.  So does png (on some systems).  Lua also needs it, so
+# put it near the top
+#
 AC_CHECK_LIB(m, sqrt)
 
-AC_SEARCH_LIBS(pthread_create, [pthread, pthreadgc, pthreadgc1, pthreadgc2], [AC_DEFINE(HAVE_LIBPTHREAD, 1, [Define to 1 if you have the `pthread' library.])])
+AC_SEARCH_LIBS(pthread_create, [pthread, pthreadgc, pthreadgc1, pthreadgc2], [AC_DEFINE(HAVE_LIBPTHREAD, 1, [Define to 1 if you have the 'pthread' library.])])
 
 PKG_CHECK_MODULES(LUA, lua >= 5.0.0, [lua_scripting=yes], [lua_scripting=no])
 if eval "test x$lua_scripting = xyes" ; then
@@ -245,9 +249,8 @@ if eval "test x$sound = xyes"; then
     AC_CHECK_HEADER(sys/soundcard.h, oss_sound=yes, oss_sound=no)
     AC_CHECK_HEADER(sys/audioio.h, sun_sound=yes, sun_sound=no)
 
-    # alsa9 sound support is now independent of other sound systems,
-    # so don't preclude compilation of others just because
-    # we find it.
+    # alsa9 sound support is now independent of other sound systems, so don't
+    # preclude compilation of others just because we find it.
 
     if eval "test x$alsa9_sound = xyes"; then
         AC_MSG_NOTICE([Using ALSA sound system (0.9.x)])
@@ -256,10 +259,10 @@ if eval "test x$sound = xyes"; then
         ALSA9_LIBS="-lasound -lm"
         SOUND_SRC="sound-src";
 
-        # It appears that alsa9 sound while having the same headers, is
-        # not backwards compatible, so if you have alsa 0.9 or later, you
-        # can't compile the old old sound daemon, so if we find alsa9,
-        # disable old alsa.
+        # It appears that alsa9 sound while having the same headers, is not
+        # backwards compatible, so if you have alsa 0.9 or later, you can't
+        # compile the old old sound daemon, so if we find alsa9, disable old
+        # alsa.
         alsa_sound="no";
     fi
 
@@ -294,11 +297,10 @@ if eval "test x$sound = xyes"; then
             fi
         fi
     fi
-    # this fi is for the sound == yes check above
 fi
 
-# basically, only want to put sound-src once in the
-# subdirs listing.
+# Basically, only want to put sound-src once in the subdirs listing.
+#
 if eval "test x$SOUND_SRC != x"; then
     CF_SUBDIRS="$CF_SUBDIRS $SOUND_SRC";
 fi
@@ -312,9 +314,8 @@ AC_SUBST(CF_SUBDIRS)
 AC_SUBST(ALSA9_TARGET)
 AC_SUBST(ALSA9_LIBS)
 
-# Check for SDL 1.1.3 and sdl_image
-# note SDL_image does not ship with an sdl-image-config
-# so I'll just assume it is in the same dir as SDL
+# Check for SDL 1.1.3 and sdl_image.  Note SDL_image does not ship with an
+# sdl-image-config, so I'll just assume it is in the same dir as SDL.
 if eval "test x$use_sdl = xyes"; then
     AM_PATH_SDL(1.1.3)
 
@@ -368,8 +369,8 @@ fi
 
 # We need to check for socket/nsl here - some versions of the windowing
 # systems need these to properly link with X (I thought AC_PATH_XTRA should
-# take care of this, but apparently is does not).  If it is not here,
-# the check for xpm fails, and configure quits.
+# take care of this, but apparently is does not).  If it is not here, the
+# check for xpm fails, and configure quits.
 
 if eval "test x$networklibs = xyes"; then
     AC_CHECK_LIB(nsl, main, LIBS="$LIBS -lnsl")
@@ -405,8 +406,6 @@ AC_CHECK_LIB(z, main)
 
 AC_CHECK_LIB(png, main, , [AC_MSG_ERROR([You must have the png library installed to compile the client])])
 
-# not strictly needed, but since the X11 client uses it, lets use it here
-
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([curl/curl.h fcntl.h pthread.h string.h sys/ioctl.h sys/select.h sys/time.h unistd.h])
@@ -419,9 +418,10 @@ if eval "test x$ac_cv_header_curl_curl_h = xno" ; then
     fi
 fi
 
-# this is used to control default behavior when client starts up - even
-# if user has necessary files, if they use --disable-metaserver2, they
-# won't try to get data from those servers
+# Used to control default behavior when client starts up - even if user has
+# necessary files, if they use --disable-metaserver2, they won't try to get
+# data from those servers.
+#
 if eval "test x$metaserver2 = xyes"; then
     AC_DEFINE_UNQUOTED(METASERVER2, 1, [If metaserver2 support is enabled.])
 else
@@ -451,9 +451,9 @@ AC_SUBST(XPM)
 AC_SUBST(SOUNDDIR)
 AC_SUBST(LIBXPM_LIB)
 
-# we need to run evals on the original variable names so that
-# they get expanded to the actual path - otherwise, the substitution
-# below will contain the unexpanded variables that don't resolve.
+# Run evals on the original variable names so that they get expanded to the
+# actual path - otherwise, the substitution below will contain the unexpanded
+# variables that don't resolve.
 
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
 test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
@@ -467,7 +467,7 @@ if eval "test x$win32 = xyes" ; then
     ndatadir="."
 fi
 
-# need to do this twice to cover variables within variables
+# Do this twice to cover variables within variables.
 nbindir=`eval echo ${bindir}`
 nbindir=`eval echo ${nbindir}`
 
@@ -477,9 +477,9 @@ AC_DEFINE_UNQUOTED(MINLOGLEVEL, ${MINLOGLEVEL}, [Default logging level.])
 
 AC_SUBST(CF_DATADIR)
 
-# Make all makefiles, even if CF_SUBDIRS are not set for that directory.
-# since CF_SUBDIRS won't be set in the top level makefile, we don't
-# descend into these subdirs.
+# Make all Makefiles, even if CF_SUBDIRS are not set for that directory.
+# since CF_SUBDIRS won't be set in the top level Makefile, we don't descend
+# into these subdirs.
 
 AC_CONFIG_FILES([
     Makefile common/Makefile
@@ -525,3 +525,4 @@ AC_MSG_NOTICE([    Will build sound server?             $sound $sound_system])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Scripting options])
 AC_MSG_NOTICE([    Will include lua interface?          $lua_scripting])
+
