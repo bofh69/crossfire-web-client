@@ -1,6 +1,11 @@
 "$Id$"
 Top of SVN tree:
 ==============================================================================
+configure.ac - Back out the 2.18.0 dependency by converting the dependent
+functions to code that is compatible with older GTK.  This was positively
+tested on both 2.20 and 2.14.  On both systems the spell dialog functions as
+intended... resizing the description column and reflowing the text into it.
+Kevin Bulgrien 2010-09-14
 
 configure.ac: - Use the gtk-2.0.m4 macro to test for a usable version of GTK+
 2.0.  mmetson found that build fails on Fedora Core 11.  It turns out the

@@ -42,7 +42,6 @@ Requires: SDL
 Requires: libcurl
 Requires: SDL_image
 Requires: alsa-lib
-Requires: gtk+2.0 >= 2.18.0
 Requires: libglade2.0
 BuildRequires: SDL-devel
 BuildRequires: curl-devel
@@ -227,8 +226,6 @@ rm -f %{_datadir}/gnome/ximian/Programs/Games/crossfire.desktop
 %changelog
 * Tue Sep 14 2010 Kevin Bulgrien <kbulgrien@att.net
 - Remove commented out X11, Gnome, and GTK-V1 client support.
-- Add GTK+ 2.0 version dependency due to use of gtk_widget_get_allocation()
-  and gtk_cell_renderer_set_alignment().
 
 * Sun May 02 2010 Kevin Bulgrien <kbulgrien@att.net
 - Add vendor tag (crossfire.sourceforge.net).

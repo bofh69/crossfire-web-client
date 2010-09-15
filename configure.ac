@@ -146,13 +146,7 @@ if eval "test x$gtkv2 = xyes" ; then
     #
     # Check for GTK+ 2
     #
-    # The spell dialog uses two GTK+ functions that were first provided by
-    # version 2.18.  gtk_widget_get_allocation() should be trival to work
-    # around as it is a convenience function for features long present in GTK+
-    # 2.0.  It is unknown how easy or hard gtk_cell_renderer_set_alignment()
-    # replacement might be.
-    #
-    AM_PATH_GTK_2_0(2.18.0, HAVE_GTK2=yes, HAVE_GTK2=no)
+    AM_PATH_GTK_2_0(2.0.0, HAVE_GTK2=yes, HAVE_GTK2=no)
     if eval "test x$HAVE_GTK2 = xyes" ; then
         #
         # Check for Libglade-2.0
@@ -162,13 +156,13 @@ if eval "test x$gtkv2 = xyes" ; then
             CF_SUBDIRS="$CF_SUBDIRS gtk-v2"
             AC_SUBST(LIBGLADE_CFLAGS)
             AC_SUBST(LIBGLADE_LIBS)
-            AC_MSG_NOTICE(GTK+ >= 2.18.0 & Libglade-2.0 found; will build gtk-v2 client)
+            AC_MSG_NOTICE(GTK+ >= 2.0.0 & Libglade-2.0 found; will build gtk-v2 client)
         else
             AC_MSG_WARN(Libglade-2.0 libraries not found; will not build gtk-v2 client)
             gtkv2="no"
         fi
     else
-        AC_MSG_WARN(GTK+ libraries missing or < 2.18.0; will not build gtk-v2 client)
+        AC_MSG_WARN(GTK+ libraries missing or < 2.0.0; will not build gtk-v2 client)
         gtkv2="no"
     fi
 else

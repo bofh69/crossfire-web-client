@@ -143,15 +143,13 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
     guint column_count;
     GList *column_list;
     GtkTreeViewColumn *column;
-    GtkAllocation treeview_allocation;
  
     /* If the spell window has not been set up yet, do nothing. */
     if (!has_init) return;
     /*
      * How wide is the spell window?
      */
-    gtk_widget_get_allocation(spell_treeview, &treeview_allocation);
-    width = treeview_allocation.width;
+    width = spell_treeview->allocation.width;
     /*
      * How many columns are in the spell window tree view?
      */
@@ -351,7 +349,8 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
          * to improve readability when descriptions wrap to multiple lines.
          */
         renderer = gtk_cell_renderer_text_new();
-        gtk_cell_renderer_set_alignment(renderer, 0, 0);
+        renderer->xalign = 0;
+        renderer->yalign = 0;
         column = gtk_tree_view_column_new_with_attributes(
                      "Spell", renderer, "text", LIST_NAME, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -364,7 +363,8 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        gtk_cell_renderer_set_alignment(renderer, 0.4, 0);
+        renderer->xalign = 0.4;
+        renderer->yalign = 0;
         column = gtk_tree_view_column_new_with_attributes(
                      "Level", renderer, "text", LIST_LEVEL, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -377,7 +377,8 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        gtk_cell_renderer_set_alignment(renderer, 0.4, 0);
+        renderer->xalign = 0.4;
+        renderer->yalign = 0;
         column = gtk_tree_view_column_new_with_attributes(
                      "Cost/Cast", renderer, "text", LIST_COST, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -394,7 +395,8 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        gtk_cell_renderer_set_alignment(renderer, 0.4, 0);
+        renderer->xalign = 0.4;
+        renderer->yalign = 0;
         column = gtk_tree_view_column_new_with_attributes(
                      "Damage", renderer, "text", LIST_DAMAGE, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -418,7 +420,8 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        gtk_cell_renderer_set_alignment(renderer, 0, 0);
+        renderer->xalign = 0;
+        renderer->yalign = 0;
         column = gtk_tree_view_column_new_with_attributes(
                      "Description", renderer, "text", LIST_DESCRIPTION, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
