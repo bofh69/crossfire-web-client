@@ -82,6 +82,12 @@ AC_ARG_ENABLE(gtkv2, [AS_HELP_STRING([--disable-gtkv2], [Do not make gtk-v2 clie
 AC_ARG_ENABLE(sdl, [AS_HELP_STRING([--disable-sdl], [Disable linking with the SDL library, default is to use it if available])],
                 use_sdl=$enableval, use_sdl=yes)
 
+# SDL_mixer support is experimental.  Do not enable by default until it is
+# ready for general use.
+#
+AC_ARG_ENABLE(SDL_mixer, [AS_HELP_STRING([--enable-sdl_mixer], [Enable use of the SDL_mixer library, default is not to use it])],
+                use_sdl_mixer=$enableval, use_sdl_mixer=no)
+
 AC_ARG_ENABLE(dmalloc, [AS_HELP_STRING([--enable-dmalloc], [Enable checking for dmalloc library, default is to use it if available])],
                 use_dmalloc=$enableval, use_dmalloc=no)
 
@@ -240,6 +246,9 @@ if eval "test x$sound = xyes"; then
     if eval "test x$alsa9 = xyes"; then
         AC_CHECK_HEADER(alsa/asoundlib.h, alsa9_sound=yes, alsa_sound=no)
     fi
+    if eval "test xuse_sdl_mixer = xyes"; then
+        AC_CHECK_LIB(SDL_mixer, Mix_OpenAudio, sdl_sound=yes, sdl_sound=no)
+    fi
     AC_CHECK_HEADER(sys/soundcard.h, oss_sound=yes, oss_sound=no)
     AC_CHECK_HEADER(sys/audioio.h, sun_sound=yes, sun_sound=no)
 
@@ -260,33 +269,41 @@ if eval "test x$sound = xyes"; then
         alsa_sound="no";
     fi
 
-    if eval "test x$alsa_sound = xyes"; then
-        AC_MSG_NOTICE([Using ALSA sound system])
-        CFLAGS="$CFLAGS -DALSA_SOUND"
-        SND_LIBS="-lasound -lm"
+    if eval "test x$sdl_sound = xyes"; then
+        AC_MSG_NOTICE([Using SDL_mixer sound system])
+        SDL_CFLAGS=`sdl-config --cflags`
+        CFLAGS="${CFLAGS} ${SDL_CFLAGS} -DSDL_SOUND"
+        SND_LIBS="-lSDL_mixer"
         SOUND_SRC="sound-src";
     else
-        if eval "test x$sgi_sound = xyes"; then
-            AC_MSG_NOTICE([Using SGI sound system])
-            CFLAGS="$CFLAGS -DSGI_SOUND"
-            SND_LIBS="-laudio"
+        if eval "test x$alsa_sound = xyes"; then
+            AC_MSG_NOTICE([Using ALSA sound system])
+            CFLAGS="$CFLAGS -DALSA_SOUND"
+            SND_LIBS="-lasound -lm"
             SOUND_SRC="sound-src";
         else
-            if eval "test x$oss_sound = xyes"; then
-                AC_MSG_NOTICE([Using OSS sound system])
-                CFLAGS="$CFLAGS -DOSS_SOUND"
-                SND_LIBS="-lm"
-                AC_CHECK_LIB(ossaudio, main, SND_LIBS="$LIBS -lossaudio")
+            if eval "test x$sgi_sound = xyes"; then
+                AC_MSG_NOTICE([Using SGI sound system])
+                CFLAGS="$CFLAGS -DSGI_SOUND"
+                SND_LIBS="-laudio"
                 SOUND_SRC="sound-src";
             else
-                if eval "test x$sun_sound = xyes"; then
-                    AC_MSG_NOTICE([Using solaris sound system])
-                    CFLAGS="$CFLAGS -DSUN_SOUND"
+                if eval "test x$oss_sound = xyes"; then
+                    AC_MSG_NOTICE([Using OSS sound system])
+                    CFLAGS="$CFLAGS -DOSS_SOUND"
                     SND_LIBS="-lm"
+                    AC_CHECK_LIB(ossaudio, main, SND_LIBS="$LIBS -lossaudio")
                     SOUND_SRC="sound-src";
                 else
-                    AC_MSG_WARN([No suitable sound system found.])
-                    sound="no"
+                    if eval "test x$sun_sound = xyes"; then
+                        AC_MSG_NOTICE([Using solaris sound system])
+                        CFLAGS="$CFLAGS -DSUN_SOUND"
+                        SND_LIBS="-lm"
+                        SOUND_SRC="sound-src";
+                    else
+                        AC_MSG_WARN([No suitable sound system found.])
+                        sound="no"
+                    fi
                 fi
             fi
         fi
@@ -498,6 +515,9 @@ AC_MSG_NOTICE([    With OpenGL renderer?                $opengl])
 AC_MSG_NOTICE([    With SDL renderer?                   $use_sdl])
 sound_system=""
 if eval "test x$sound = xyes"; then
+  if eval "test x$sdl_sound = xyes"; then
+    sound_system="$sound_system (SDL_mixer)"
+  fi
   if eval "test x$alsa9_sound = xyes"; then
     sound_system="$sound_system (Alsa 0.9.x)"
   fi
