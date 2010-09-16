@@ -45,6 +45,7 @@ char *buffers=NULL;
 void play_sound(int soundnum, int soundtype, int x, int y);
 
 /**
+ * A replacement of strdup(), since it's not defined at some unix variants.
  *
  * @param str
  * @return
