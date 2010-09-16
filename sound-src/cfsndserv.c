@@ -37,6 +37,7 @@ static char *rcsid_sound_src_cfsndserv_c =
  * If you have any problems please e-mail me.
  */
 
+/*#define SDL_SOUND*/
 /*#define ALSA_SOUND*/
 /*#define OSS_SOUND*/
 /*#define SGI_SOUND*/
@@ -80,7 +81,11 @@ static char *rcsid_sound_src_cfsndserv_c =
 #include "shared/newclient.h"
 #include "soundsdef.h"
 
-#if defined(ALSA_SOUND)
+#if defined(SDL_SOUND)
+#  include "SDL.h"
+#  include "SDL_mixer.h"
+#  define AUDIODEV "/foo/bar"
+#elif defined(ALSA_SOUND)
 #  include <sys/asoundlib.h>
 #  define AUDIODEV "/dev/dsp"
     snd_pcm_t *handle=NULL;
@@ -138,6 +143,15 @@ int stereo=0, bit8=0, sample_size=0, frequency=0, sign=0, zerolevel=0;
 
 #ifdef SUN_SOUND
 
+struct sound_settings{
+    int stereo, bit8, sign, frequency, buffers, buflen, simultaneously;
+    const char *audiodev;
+} settings={0,1,1,11025,100,4096,4,AUDIODEV};
+
+#elif defined(SDL_SOUND)
+
+int audio_channels=0;
+Uint16 audio_format=0;
 struct sound_settings{
     int stereo, bit8, sign, frequency, buffers, buflen, simultaneously;
     const char *audiodev;
@@ -286,13 +300,93 @@ static void parse_sound_line(char *line, int lineno) {
     }
 }
 
-#if defined(ALSA_SOUND)
+#if defined(SDL_SOUND)
+
 /**
  *
  * @return
  */
 int init_audio(void) {
-    int card=0,device=0,err;
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+
+    frequency = settings.frequency;
+    bit8 = settings.bit8;
+    if (settings.bit8)
+        audio_format = settings.sign ? AUDIO_S8 : AUDIO_U8;
+    else
+        audio_format = settings.sign ? AUDIO_S16 : AUDIO_U16;
+    audio_channels = (stereo = settings.stereo) ? 1 : 2;
+    buffers = settings.buffers;
+    /*
+     * This is where we open up our audio device.  Mix_OpenAudio takes as its
+     * parameters the audio format we'd /like/ to have.
+     */
+    if (Mix_OpenAudio(frequency, audio_format, audio_channels, buffers)) {
+        printf("Unable to open audio!\n");
+        exit(1);
+    }
+
+    /*
+     * If we actually care about what we got, we can ask here.  In this
+     * program we don't, but I'm showing the function call here anyway in case
+     * we'd want to know later.
+     */
+    Mix_QuerySpec(&frequency, &audio_format, &audio_channels);
+
+    switch (audio_format) {
+       case AUDIO_U16LSB:
+       case AUDIO_U16MSB:
+           bit8 = 0;
+           sign = 0;
+           break;
+       case AUDIO_S16LSB:
+       case AUDIO_S16MSB:
+           bit8 = 0;
+           sign = 1;
+           break;
+       case AUDIO_U8:
+           bit8 = 1;
+           sign = 0;
+           break;
+       case AUDIO_S8:
+           bit8 = 1;
+           sign = 1;
+           break;
+       default:
+           fprintf(stderr, "Could not set proper format\n");
+           return -1;
+    }
+
+    switch (audio_channels) {
+        case 1:
+            stereo = 0;
+            break;
+        case 2:
+            stereo = 1;
+            break;
+        default:
+            fprintf(stderr, "Could not set proper format\n");
+            return -1;
+    }
+}
+
+/**
+ *
+ * @param buffer
+ * @param off
+ * @return
+ */
+int audio_play(int buffer, int off) {
+}
+
+#elif defined(ALSA_SOUND)
+
+/**
+ *
+ * @return
+ */
+int init_audio(void) {
+    int card=0, device=0, err;
     snd_pcm_channel_params_t params;
 
     printf("cfsndserv compiled for ALSA sound system\n");
@@ -349,7 +443,7 @@ int init_audio(void) {
            sign = 0;
            break;
         default:
-           fprintf(stderr, "Coulnd't set proper format\n");
+           fprintf(stderr, "Could not set proper format\n");
            return -1;
      }
 
@@ -396,7 +490,7 @@ int init_audio(void){
     }
     soundfd = open(audiodev, (O_WRONLY|O_NONBLOCK), 0);
     if (soundfd < 0) {
-        fprintf(stderr, "Couldn't open %s: %s\n", audiodev, strerror(errno));
+        fprintf(stderr, "Could not open %s: %s\n", audiodev, strerror(errno));
         return(-1);
     }
 
@@ -407,7 +501,7 @@ int init_audio(void){
 
     value |= 0x00020000;
     if (ioctl(soundfd, SNDCTL_DSP_SETFRAGMENT, &value) < 0) {
-        fprintf(stderr, "Couldn't set audio fragment spec\n");
+        fprintf(stderr, "Could not set audio fragment spec\n");
         return(-1);
     }
     if (settings.bit8)
@@ -418,7 +512,7 @@ int init_audio(void){
     value = format;
     if ((ioctl(soundfd, SNDCTL_DSP_SETFMT,&value) < 0)
     ||  (value != format) ) {
-        fprintf(stderr, "Couldn't set audio format\n");
+        fprintf(stderr, "Could not set audio format\n");
     }
 
     switch (value) {
@@ -447,7 +541,7 @@ int init_audio(void){
 
     frequency = settings.frequency;
     if (ioctl(soundfd, SNDCTL_DSP_SPEED, &frequency) < 0) {
-        fprintf(stderr, "Couldn't set audio frequency\n");
+        fprintf(stderr, "Could not set audio frequency\n");
         return(-1);
     }
     sample_size = (bit8 ? 1 : 2) * (stereo ? 2 : 1);
@@ -583,17 +677,17 @@ int init_audio(void) {
     }
     soundfd = open(audiodev, (O_WRONLY|O_NONBLOCK), 0);
     if (soundfd < 0) {
-        fprintf(stderr, "Couldn't open %s: %s\n", audiodev, strerror(errno));
+        fprintf(stderr, "Could not open %s: %s\n", audiodev, strerror(errno));
         return(-1);
     }
 
     if (ioctl(soundfd, AUDIO_GETDEV, &audio_device) < 0) {
-        fprintf(stderr, "Couldn't get audio device ioctl\n");
+        fprintf(stderr, "Could not get audio device ioctl\n");
         return(-1);
     }
 
     if (ioctl(soundfd, AUDIO_GETINFO, &audio_info) < 0) {
-      fprintf(stderr, "Couldn't get audio information ioctl\n");
+      fprintf(stderr, "Could not get audio information ioctl\n");
       return(-1);
     }
     /*
@@ -633,7 +727,7 @@ int init_audio(void) {
              bit8, stereo, frequency, sample_size);
 
     if (ioctl(soundfd, AUDIO_SETINFO, &audio_info) < 0) {
-        perror("Couldn't set audio information ioctl");
+        perror("Could not set audio information ioctl");
         return(-1);
     }
     return 0;
