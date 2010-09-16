@@ -303,6 +303,7 @@ static void parse_sound_line(char *line, int lineno) {
 #if defined(SDL_SOUND)
 
 /**
+ * Initialize the SDL_mixer sound system.
  *
  * @return
  */
@@ -325,11 +326,8 @@ int init_audio(void) {
         printf("Unable to open audio!\n");
         exit(1);
     }
-
     /*
-     * If we actually care about what we got, we can ask here.  In this
-     * program we don't, but I'm showing the function call here anyway in case
-     * we'd want to know later.
+     * Find out what configuration we got.
      */
     Mix_QuerySpec(&frequency, &audio_format, &audio_channels);
 
@@ -353,7 +351,7 @@ int init_audio(void) {
            sign = 1;
            break;
        default:
-           fprintf(stderr, "Could not set proper format\n");
+           fprintf(stderr, "Unexpected audio format\n");
            return -1;
     }
 
@@ -365,7 +363,7 @@ int init_audio(void) {
             stereo = 1;
             break;
         default:
-            fprintf(stderr, "Could not set proper format\n");
+            fprintf(stderr, "Unexpected number of audio channels\n");
             return -1;
     }
 }
