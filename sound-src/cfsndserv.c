@@ -329,7 +329,7 @@ int init_audio(void) {
      * This is where we open up our audio device.  Mix_OpenAudio takes as its
      * parameters the audio format we'd /like/ to have.
      */
-    if (Mix_OpenAudio(frequency, audio_format, audio_channels, buffers)) {
+    if (Mix_OpenAudio(frequency,audio_format,audio_channels,settings.buflen)){
         printf("Unable to open audio!\n");
         exit(1);
     }
@@ -390,6 +390,7 @@ int audio_play(int buffer, int off) {
     fprintf(stderr, "SDL_mixer audio_play()\n");
 #endif
 
+    return settings.buflen - off;
 }
 
 #elif defined(ALSA_SOUND)
@@ -1295,8 +1296,10 @@ int main(int argc, char *argv[])
     if (!soundfd) {
 #ifdef SDL_SOUND
         sdl_mixer_server();
-#elif defined(SOUND_DEBUG)
+#else
+#ifdef SOUND_DEBUG
         fprintf(stderr, "A file descriptor is not assigned.\n");
+#endif
         return 1;
 #endif
     } else {
