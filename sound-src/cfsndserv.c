@@ -1192,65 +1192,65 @@ int main(int argc, char *argv[])
     FD_SET(infd, &inset);
     while (1) {
 #if defined(SGI_SOUND)
-      /*
-       * The buffer of an audio port can hold 100000 samples. If we allow
-       * sounds to be written to the port whenever there is enough room in the
-       * buffer, all sounds will be played sequentially, which is wrong. We
-       * can set the fillpoint to a high value to prevent this.
-       */
-      ALsetfillpoint(soundport, 100000);
+        /*
+         * The buffer of an audio port can hold 100000 samples. If we allow
+         * sounds to be written to the port whenever there is enough room in the
+         * buffer, all sounds will be played sequentially, which is wrong. We
+         * can set the fillpoint to a high value to prevent this.
+         */
+        ALsetfillpoint(soundport, 100000);
 #endif
 
-      select(FD_SETSIZE, &inset, &outset, NULL, NULL);
+        select(FD_SETSIZE, &inset, &outset, NULL, NULL);
 
-      if (FD_ISSET(soundfd,&outset)) {
-          /* no sounds to play */
-          if (current_buffer==first_free_buffer) FD_CLR(soundfd,&outset);
-          else {
-              int wrote;
-              wrote=audio_play(current_buffer,sndbuf_pos);
-              if (wrote<settings.buflen-sndbuf_pos) sndbuf_pos+=wrote;
-              else {
-                 /* clean the buffer */
-                 memset(buffers + settings.buflen * current_buffer,
-                     zerolevel, settings.buflen);
-                 sounds_in_buffer[current_buffer] = 0;
-                 sndbuf_pos = 0;
-                 current_buffer++;
-                 if (current_buffer >= settings.buffers)
-                     current_buffer=0;
-              }
-          }
-      } else {
-          /*
-           * We need to reset this if it is not set - otherwise, we will never
-           * finish playing the sounds
-           */
-          FD_SET(soundfd, &outset);
-      }
+        if (FD_ISSET(soundfd,&outset)) {
+            /* no sounds to play */
+            if (current_buffer==first_free_buffer) FD_CLR(soundfd,&outset);
+            else {
+                int wrote;
+                wrote=audio_play(current_buffer,sndbuf_pos);
+                if (wrote<settings.buflen-sndbuf_pos) sndbuf_pos+=wrote;
+                else {
+                   /* clean the buffer */
+                   memset(buffers + settings.buflen * current_buffer,
+                       zerolevel, settings.buflen);
+                   sounds_in_buffer[current_buffer] = 0;
+                   sndbuf_pos = 0;
+                   current_buffer++;
+                   if (current_buffer >= settings.buffers)
+                       current_buffer=0;
+                }
+            }
+        } else {
+            /*
+             * We need to reset this if it is not set - otherwise, we will never
+             * finish playing the sounds
+             */
+            FD_SET(soundfd, &outset);
+        }
 
-      if (FD_ISSET(infd, &inset)) {
-          int err = read(infd, inbuf + inbuf_pos, 1);
+        if (FD_ISSET(infd, &inset)) {
+            int err = read(infd, inbuf + inbuf_pos, 1);
 
-          if (err < 1 && errno != EINTR) {
-              if (err<0)
-                  perror("read");
-              break;
-          }
-          if (inbuf[inbuf_pos] == '\n') {
-            inbuf[inbuf_pos++] = 0;
-            if (!SoundCmd((unsigned char*)inbuf, inbuf_pos))
-                FD_SET(soundfd, &outset);
-            inbuf_pos = 0;
-          } else {
-              inbuf_pos++;
-              if (inbuf_pos >= 1024) {
-                  fprintf(stderr, "Input buffer overflow!\n");
-                  inbuf_pos = 0;
-              }
-          }
-      }
-      FD_SET(infd, &inset);
+            if (err < 1 && errno != EINTR) {
+                if (err<0)
+                    perror("read");
+                break;
+            }
+            if (inbuf[inbuf_pos] == '\n') {
+                inbuf[inbuf_pos++] = 0;
+                if (!SoundCmd((unsigned char*)inbuf, inbuf_pos))
+                    FD_SET(soundfd, &outset);
+                inbuf_pos = 0;
+            } else {
+                inbuf_pos++;
+                if (inbuf_pos >= 1024) {
+                    fprintf(stderr, "Input buffer overflow!\n");
+                    inbuf_pos = 0;
+                }
+            }
+        }
+        FD_SET(infd, &inset);
     }
     return 0;
 }
