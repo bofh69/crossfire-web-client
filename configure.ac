@@ -85,8 +85,15 @@ AC_ARG_ENABLE(sdl, [AS_HELP_STRING([--disable-sdl], [Disable linking with the SD
 # SDL_mixer support is experimental.  Do not enable by default until it is
 # ready for general use.
 #
-AC_ARG_ENABLE(SDL_mixer, [AS_HELP_STRING([--enable-sdl_mixer], [Enable use of the SDL_mixer library, default is not to use it])],
-                use_sdl_mixer=$enableval, use_sdl_mixer=no)
+AC_ARG_ENABLE(
+    sdl_mixer,
+    [AS_HELP_STRING(
+        [--enable-sdl_mixer],
+        [Enable use of the SDL_mixer library, default is not to use it]
+    )],
+    use_sdl_mixer=$enableval,
+    use_sdl_mixer=no
+)
 
 AC_ARG_ENABLE(dmalloc, [AS_HELP_STRING([--enable-dmalloc], [Enable checking for dmalloc library, default is to use it if available])],
                 use_dmalloc=$enableval, use_dmalloc=no)
@@ -246,7 +253,7 @@ if eval "test x$sound = xyes"; then
     if eval "test x$alsa9 = xyes"; then
         AC_CHECK_HEADER(alsa/asoundlib.h, alsa9_sound=yes, alsa_sound=no)
     fi
-    if eval "test xuse_sdl_mixer = xyes"; then
+    if eval "test x$use_sdl_mixer = xyes"; then
         AC_CHECK_LIB(SDL_mixer, Mix_OpenAudio, sdl_sound=yes, sdl_sound=no)
     fi
     AC_CHECK_HEADER(sys/soundcard.h, oss_sound=yes, oss_sound=no)
