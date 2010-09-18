@@ -305,7 +305,7 @@ static void parse_sound_line(char *line, int lineno) {
 /**
  * Initialize the SDL_mixer sound system.
  *
- * @return
+ * @return Zero if audio initialized successfully, otherwise -1.
  */
 int init_audio(void) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
@@ -317,7 +317,6 @@ int init_audio(void) {
     else
         audio_format = settings.sign ? AUDIO_S16 : AUDIO_U16;
     audio_channels = (stereo = settings.stereo) ? 1 : 2;
-    buffers = settings.buffers;
     /*
      * This is where we open up our audio device.  Mix_OpenAudio takes as its
      * parameters the audio format we'd /like/ to have.
@@ -366,6 +365,8 @@ int init_audio(void) {
             fprintf(stderr, "Unexpected number of audio channels\n");
             return -1;
     }
+
+    return 0;
 }
 
 /**
@@ -381,7 +382,7 @@ int audio_play(int buffer, int off) {
 
 /**
  *
- * @return
+ * @return Zero if audio initialized successfully, otherwise -1.
  */
 int init_audio(void) {
     int card=0, device=0, err;
@@ -472,7 +473,7 @@ int audio_play(int buffer, int off) {
 
 /**
  *
- * @return
+ * @return Zero if audio initialized successfully, otherwise -1.
  */
 int init_audio(void){
 
@@ -575,7 +576,7 @@ ALport   soundport;
 
 /**
  *
- * @return
+ * @return Zero if audio initialized successfully, otherwise -1.
  */
 int init_audio(void)
 {
@@ -657,7 +658,7 @@ int audio_play(int buffer,int off)
 
 /**
  *
- * @return
+ * @return Zero if audio initialized successfully, otherwise -1.
  */
 int init_audio(void) {
 
