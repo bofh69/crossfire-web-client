@@ -115,6 +115,10 @@ int err = 0;
 
 void alsa_audio_close(void) { snd_pcm_close(handle); }
 
+/**
+ *
+ * @return Zero if audio initialized successfully, otherwise -1.
+ */
 int init_audio(void) {
     snd_pcm_sw_params_t *sw_params;
     unsigned int format;

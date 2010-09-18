@@ -29,6 +29,7 @@ static char *rcsid_sound_src_common_c =
 
 /**
  *
+ * @return Zero if audio initialized successfully, otherwise -1.
  */
 extern int init_audio(void);
 
