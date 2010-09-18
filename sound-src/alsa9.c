@@ -116,6 +116,7 @@ int err = 0;
 void alsa_audio_close(void) { snd_pcm_close(handle); }
 
 /**
+ * Initialize the Alsa9 sound system.
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
@@ -255,12 +256,18 @@ void alsa_recover(int e) {
 
 
 
-/* Does the actual task of writing the data to the socket.
- * The ALSA write logic is a bit odd, in that the count you pass in
- * is not the number of bytes you are writing, but the number of
- * samples you are writing.  Thus, if you have stereo with 1 byte/channel,
- * you'd divide the number by 2.  If you have 16 bit audio with stereo,
- * you'd divide the number by 4.
+/**
+ * Play a sound using the Alsa9 sound system.
+ *
+ * Does the actual task of writing the data to the socket.  The ALSA write
+ * logic is a bit odd, in that the count you pass in is not the number of
+ * bytes you are writing, but the number of samples you are writing.  Thus, if
+ * you have stereo with 1 byte/channel, you'd divide the number by 2.  If you
+ * have 16 bit audio with stereo, you'd divide the number by 4.
+ *
+ * @param buffer
+ * @param off
+ * @return
  */
 int audio_play(int buffer, int off) {
     int count = (settings.buflen - off) / sample_size;
