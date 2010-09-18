@@ -370,6 +370,7 @@ int init_audio(void) {
 }
 
 /**
+ * Play a sound using the SDL_mixer sound system.
  *
  * @param buffer
  * @param off
@@ -381,6 +382,7 @@ int audio_play(int buffer, int off) {
 #elif defined(ALSA_SOUND)
 
 /**
+ * Initialize the Alsa sound system.
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
@@ -457,6 +459,7 @@ int init_audio(void) {
 }
 
 /**
+ * Play a sound using the Alsa sound system.
  *
  * @param buffer
  * @param off
@@ -472,6 +475,7 @@ int audio_play(int buffer, int off) {
 #elif defined(OSS_SOUND)
 
 /**
+ * Initialize the OSS sound system.
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
@@ -548,6 +552,7 @@ int init_audio(void){
 }
 
 /**
+ * Play a sound using the OSS sound system.
  *
  * @param buffer
  * @param off
@@ -575,6 +580,7 @@ ALconfig soundconfig;
 ALport   soundport;
 
 /**
+ * Initialize the SGI sound system.
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
@@ -641,6 +647,7 @@ int init_audio(void)
 }
 
 /**
+ * Play a sound using the SGI sound system.
  *
  * @param buffer
  * @param off
@@ -657,6 +664,7 @@ int audio_play(int buffer,int off)
 #elif defined(SUN_SOUND)
 
 /**
+ * Initialize the Sun sound system.
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
@@ -733,6 +741,7 @@ int init_audio(void) {
 }
 
 /**
+ * Play a sound using the Sun sound system.
  *
  * @param buffer
  * @param off
@@ -758,9 +767,11 @@ int audio_play(int buffer,int off){
 #endif
 
 /**
- * Opens the audio device, and reads any configuration files that need to be.
- * It returns 0 on success.  On failure, the calling function will likely
- * disable sound support/requests from the server.
+ * Opens the audio device, allocates buffers, and reads any configuration
+ * files that need to be.
+ *
+ * @return Zero on success and on failure, the calling function will likely
+ *         disable sound support/requests from the server.
  */
 int init_sounds(void)
 {
@@ -779,6 +790,7 @@ int init_sounds(void)
     buffers = (char *) malloc(settings.buffers * settings.buflen);
     if (!buffers)
         return -1;
+
     sounds_in_buffer = (int *) calloc(settings.buffers, sizeof(int));
     if (!sounds_in_buffer)
         return -1;
@@ -789,7 +801,7 @@ int init_sounds(void)
     if (sign)
         zerolevel = 0;
     else
-        zerolevel = bit8 ? 0x80 : 0x8000;
+        zerolevel = bit8 ? 0x80 : 0x00;
 
     memset(buffers, zerolevel, settings.buflen * settings.buffers);
 
