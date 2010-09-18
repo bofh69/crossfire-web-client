@@ -150,8 +150,11 @@ struct sound_settings{
 
 #elif defined(SDL_SOUND)
 
-int audio_channels=0;
-Uint16 audio_format=0;
+int audio_channels=0;                   /**< Channels in use by SDL_mixer   */
+Uint16 audio_format=0;                  /**< Format of the SDL_mixer audio  */
+
+Mix_Music *music = NULL;                /**< A music file to play           */
+
 struct sound_settings{
     int stereo, bit8, sign, frequency, buffers, buflen, simultaneously;
     const char *audiodev;
@@ -308,6 +311,11 @@ static void parse_sound_line(char *line, int lineno) {
  * @return Zero if audio initialized successfully, otherwise -1.
  */
 int init_audio(void) {
+
+#ifdef SOUND_DEBUG
+    fprintf(stderr, "SDL_mixer init_audio()\n");
+#endif
+
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
     frequency = settings.frequency;
@@ -377,6 +385,11 @@ int init_audio(void) {
  * @return
  */
 int audio_play(int buffer, int off) {
+
+#ifdef SOUND_DEBUG
+    fprintf(stderr, "SDL_mixer audio_play()\n");
+#endif
+
 }
 
 #elif defined(ALSA_SOUND)
@@ -1160,30 +1173,14 @@ int read_settings(void) {
 }
 
 /**
+ * A sound server that is based on the use of file descriptors.
  *
- * @param argc
- * @param argv
- * @return
  */
-int main(int argc, char *argv[])
-{
+void fd_server(void) {
     int infd;
     char inbuf[1024];
     int inbuf_pos=0,sndbuf_pos=0;
     fd_set inset,outset;
-
-    printf("%s\n", rcsid_sound_src_cfsndserv_c);
-    fflush(stdout);
-
-    if (read_settings())
-        write_settings();
-
-    if (init_sounds())
-        return 1;
-
-    /* we don't use the file descriptor method */
-    if (!soundfd)
-        return 1;
 
     infd = fileno(stdin);
     FD_ZERO(&inset);
@@ -1252,6 +1249,60 @@ int main(int argc, char *argv[])
         }
         FD_SET(infd, &inset);
     }
+}
+
+/**
+ * A sound server that is specific to the SDL_mixer library, and not based on
+ * the use of file descriptors.
+ *
+ */
+void sdl_mixer_server(void) {
+
+    music = Mix_LoadMUS("sample.ogg");
+
+    Mix_PlayMusic(music, 0);
+
+    while (1) {
+        if (!Mix_PlayingMusic()) {
+            break;
+        }
+        /* So we don't hog the CPU */
+        SDL_Delay(50);
+    }
+
+    Mix_HaltMusic();
+    Mix_FreeMusic(music);
+    music = NULL;
+}
+
+/**
+ *
+ * @param argc
+ * @param argv
+ * @return
+ */
+int main(int argc, char *argv[])
+{
+    printf("%s\n", rcsid_sound_src_cfsndserv_c);
+    fflush(stdout);
+
+    if (read_settings())
+        write_settings();
+
+    if (init_sounds())
+        return 1;
+
+    if (!soundfd) {
+#ifdef SDL_SOUND
+        sdl_mixer_server();
+#elif defined(SOUND_DEBUG)
+        fprintf(stderr, "A file descriptor is not assigned.\n");
+        return 1;
+#endif
+    } else {
+        fd_server();
+    }
+
     return 0;
 }
 
