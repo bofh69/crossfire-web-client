@@ -131,10 +131,10 @@ default_normal, default_spell;
 #define SOUND_DECREASE 0.1
 
 /* Mixer variables */
-char *buffers=NULL;
-int  *sounds_in_buffer=NULL;
-int   current_buffer=0;                 /**< The mext buffer to write out   */
-int   first_free_buffer=0;              /**< Help know when to stop playing */
+char *buffers = NULL;
+int  *sounds_in_buffer = NULL;
+int   current_buffer = 0;               /**< The mext buffer to write out   */
+int   first_free_buffer = 0;            /**< Help know when to stop playing */
 
 int   soundfd=0;
 
@@ -144,28 +144,46 @@ int stereo=0, bit8=0, sample_size=0, frequency=0, sign=0, zerolevel=0;
 #ifdef SUN_SOUND
 
 struct sound_settings{
-    int stereo, bit8, sign, frequency, buffers, buflen, simultaneously;
+    int stereo;
+    int bit8;
+    int sign;
+    int frequency;
+    int buffers;
+    int buflen;
+    int simultaneously;
     const char *audiodev;
-} settings={0,1,1,11025,100,4096,4,AUDIODEV};
+} settings={0, 1, 1, 11025, 100, 4096, 4, AUDIODEV};
 
 #elif defined(SDL_SOUND)
 
-int audio_channels=0;                   /**< Channels in use by SDL_mixer   */
-Uint16 audio_format=0;                  /**< Format of the SDL_mixer audio  */
+int audio_channels = 0;                 /**< Channels in use by SDL_mixer   */
+Uint16 audio_format = 0;                /**< Format of the SDL_mixer audio  */
 
 Mix_Music *music = NULL;                /**< A music file to play           */
 
 struct sound_settings{
-    int stereo, bit8, sign, frequency, buffers, buflen, simultaneously;
+    int stereo;
+    int bit8;
+    int sign;
+    int frequency;
+    int buffers;
+    int buflen;
+    int simultaneously;                 /**< Max number of sounds to queue. */
     const char *audiodev;
-} settings={0,1,0,11025,100,4096,4,AUDIODEV};
+} settings={0, 1, 0, 11025, 100, 4096, 4, AUDIODEV};
 
 #else
 
 struct sound_settings{
-    int stereo, bit8, sign, frequency, buffers, buflen, simultaneously;
+    int stereo;
+    int bit8;
+    int sign;
+    int frequency;
+    int buffers;
+    int buflen;
+    int simultaneously;
     const char *audiodev;
-} settings={0,1,0,11025,100,1024,4,AUDIODEV};
+} settings={0, 1, 0, 11025, 100, 1024, 4, AUDIODEV};
 
 #endif
 
@@ -327,14 +345,38 @@ static void parse_sound_line(char *line, int lineno) {
         return;
     }
     /*
-     * Compatibility processing for older files - if the file ends in .au,
-     * convert to .raw.  A bit of a hack, but probably better than trying to
-     * play an au file.
+     * Compatibility processing for older files and/or the SDL_mixer setup.
+     * If the filename ends in .au, convert the ending to a more appropriate
+     * one as .au files are not distributed by the project.
+     *
+     * Use .raw instead of .au for most sound setups, as this is what has been
+     * supported by the clients for a long time.
+     *
+     * As SDL_mixer does not support .raw, change the extension to .ogg for
+     * systems other than Windows, or .wav for Windows.  Technically, it would
+     * be okay to use either .wav or .ogg whatever the platform, so it is a
+     * FIXME in that it would probably be best for the file extension to be a
+     * configurable option.
+     *
+     * Overriding the content of the sound file is a bit of a kludge, but
+     * allows legacy .crossfire/sound files to work with the current client.
+     * The dodgy part is that if someone looks in the file, it will not
+     * necessarily indicate the actual file being played.
      */
     strcpy(filename, line);
     cp = filename + strlen(filename) - 3;
     if (!strcmp(cp, ".au"))
         strcpy(cp, ".raw");
+#ifdef SDL_SOUND
+    cp = filename + strlen(filename) - 4;
+    if (!strcmp(cp, ".raw"))
+#ifndef WIN32
+/*      strcpy(cp, ".ogg"); */
+        strcpy(cp, ".wav");
+#else
+        strcpy(cp, ".wav");
+#endif
+#endif
     /*
      * One symbolic name is used: DEFAULT.  If it is found, the sound file
      * becomes the default sound for any undefined sound number, so set the
@@ -342,9 +384,15 @@ static void parse_sound_line(char *line, int lineno) {
      */
     if (symbolic && !strcmp(symbolic, "DEFAULT")) {
         if (readtype == 1) {
+            /*
+             * Standard Sounds
+             */
             default_normal.filename = strdup_local(filename);
             default_normal.volume = atoi(volume);
         } else if (readtype == 2) {
+            /*
+             * Spell Sounds
+             */
             default_spell.filename = strdup_local(filename);
             default_spell.volume = atoi(volume);
         }
@@ -395,7 +443,7 @@ int init_audio(void) {
     fprintf(stderr, "SDL_mixer init_audio()\n");
 #endif
 
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+    SDL_Init(SDL_INIT_AUDIO);
 
     frequency = settings.frequency;
     bit8 = settings.bit8;
@@ -957,87 +1005,118 @@ int init_sounds(void)
  */
 static void play_sound(int soundnum, int soundtype, int x, int y) {
     Sound_Info *si;
-    int buf,off;
+    int buf, off;
     int i;
-    unsigned left_ratio,right_ratio;
+    unsigned left_ratio, right_ratio;
     double dist;
 
+    /*
+     * Switch to the next buffer in a circular fashion, wrapping around back
+     * to the first as needed).
+     */
     buf = current_buffer;
     if (buf >= settings.buffers)
         buf = 1;
-
     if (buf == 0)
         buf++;
-
-    /* Check if the buffer isn't full */
+    /*
+     * Check if the buffer is "full".  If more than a specified number are
+     * already buffered, do not add more.
+     */
 #ifdef SOUND_DEBUG
     fprintf(stderr,
         "Sounds in buffer %i: %i\n", buf, sounds_in_buffer[buf]);
 #endif
     if (sounds_in_buffer[buf] > settings.simultaneously)
         return;
-
+    /*
+     * Ignore commands to play invalid/unsupported sound numbers.
+     */
     if (soundnum >= MAX_SOUNDS || soundnum < 0) {
         fprintf(stderr, "Invalid sound number: %d\n", soundnum);
         return;
     }
-
+    /*
+     * If a sound device is not open, ignore the command to play a sound.
+     */
     if (soundfd == -1) {
         fprintf(stderr, "Sound device is not open\n");
         return;
     }
-
-    if (soundtype < SOUND_NORMAL || soundtype == 0)
+    /*
+     * Instead of fussing about a bad sound type being passed in, assume that
+     * unsupported soundtype commands should play a standard sound.
+     */
+    if (soundtype < SOUND_NORMAL || soundtype == 0) {
         soundtype = SOUND_NORMAL;
-
-    if (soundtype==SOUND_NORMAL) {
+    }
+    /*
+     * Get a pointer to the sound information for the given sound, and if it
+     * does not include a filename, ignore the command to play the sound.
+     */
+    if (soundtype == SOUND_NORMAL) {
         si = &normal_sounds[soundnum];
     } else
-        if (soundtype==SOUND_SPELL) {
+        if (soundtype == SOUND_SPELL) {
             si = &spell_sounds[soundnum];
         } else {
             fprintf(stderr,"Unknown soundtype: %d\n", soundtype);
             return;
         }
 
-    if (!si->filename) {
+    if (! si->filename) {
         fprintf(stderr,
             "Sound %d (type %d) is not defined\n", soundnum, soundtype);
         return;
     }
     /*
-     * Load the sound if it is not loaded yet.
+     * Attempt to load the sound data if it has not already been loaded.
      */
-    if (!si->data) {
+    if (! si->data) {
         FILE *f;
         struct stat sbuf;
 
 #ifdef SOUND_DEBUG
         fprintf(stderr, "Loading file: %s\n", si->filename);
 #endif
+
+        /*
+         * If the file isn't found as specified, report an error.  FIXME:  It
+         * seems silly to require a full path to the sound file.  Surely it is
+         * better to reference sounds from standard locations as is done with
+         * themes, glade files, etc.
+         */
         if (stat(si->filename, &sbuf)) {
             perror(si->filename);
             return;
         }
-
+        /*
+         * Save the size of the sound data.  If for some reason it is negative
+         * ignore the sound file content.
+         */
         si->size = sbuf.st_size;
         if (si->size <= 0)
             return;
-
+        /*
+         * If the sound file contains more data than can fit in the allocated
+         * number of sound buffers, do not bother loading it.
+         */
         if (si->size*sample_size > settings.buflen * (settings.buffers - 1)) {
             fprintf(stderr,
                 "Sound %s too long (%i > %i)\n", si->filename, si->size,
                     settings.buflen * (settings.buffers - 1) / sample_size);
             return;
         }
-
+        /*
+         * Allocate space for reading the sound data, open the file, then
+         * load the sound from the file.
+         */
         si->data = (unsigned char *)malloc(si->size);
         f = fopen(si->filename, "r");
-        if (!f) {
+        if (! f) {
             perror(si->filename);
             return;
         }
-
         fread(si->data, 1, si->size, f);
         fclose(f);
     }
@@ -1050,8 +1129,8 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
 
     /* Calculate volume multiplers */
     dist = sqrt(x * x + y * y);
-    right_ratio = left_ratio =
-        ((1<<16)*si->volume)/(100*settings.simultaneously*(1+SOUND_DECREASE*dist));
+    right_ratio = left_ratio = ((1 << 16) * si->volume) /
+        (100 * settings.simultaneously * (1 + SOUND_DECREASE * dist));
     if (stereo) {
         double diff;
 
@@ -1064,7 +1143,6 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
         printf("diff: %f\n", diff);
         fflush(stdout);
 #endif
-
         if (x < 0)
             right_ratio *= diff;
         else
@@ -1075,7 +1153,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     fprintf(stderr, "Ratio: %i, %i\n", left_ratio, right_ratio);
 #endif
 
-    /* Insert the sound to the buffers */
+    /* Insert the sound into the buffers */
     sounds_in_buffer[buf]++;
     off = 0;
     for(i = 0; i < si->size; i++) {
@@ -1141,10 +1219,15 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
 }
 
 /**
+ * Handle sound-related commands that are received from stdin.  Sound commands
+ * consist of four whitespace delimited values:  sound_number, sound_type, x,
+ * and y.  The sound_number and sound_type identify which sound should play,
+ * while x and y represents the map coordinate difference between the sound
+ * source and the player/character.
  *
- * @param data
- * @param len
- * @return
+ * @param data A text buffer that (hopefully) contains a sound command.
+ * @param len  The length of the text data in the sound command buffer.
+ * @return     0 if the buffer is a well-formed sound command, otherwise -1.
  */
 int SoundCmd(unsigned char *data, int len) {
     int x, y, num, type;
@@ -1166,6 +1249,7 @@ int SoundCmd(unsigned char *data, int len) {
 }
 
 /**
+ * Update the player .crossfire/sndconfig file.
  *
  * @return
  */
@@ -1202,6 +1286,7 @@ int write_settings(void) {
 }
 
 /**
+ * Read the player .crossfire/sndconfig file.
  *
  * @return
  */
@@ -1227,7 +1312,7 @@ int read_settings(void) {
     while(fgets(linebuf, 1023, f) != NULL) {
         linebuf[1023] = 0;
         /* Strip off the newline */
-        linebuf[strlen(linebuf) -1] = 0;
+        linebuf[strlen(linebuf) - 1] = 0;
 
         if (strncmp(linebuf, "stereo:", strlen("stereo:")) == 0)
             settings.stereo = atoi(linebuf + strlen("stereo:")) ? 1 : 0;
@@ -1259,8 +1344,8 @@ int read_settings(void) {
 void fd_server(void) {
     int infd;
     char inbuf[1024];
-    int inbuf_pos=0,sndbuf_pos=0;
-    fd_set inset,outset;
+    int inbuf_pos = 0, sndbuf_pos = 0;
+    fd_set inset, outset;
 
     infd = fileno(stdin);
     FD_ZERO(&inset);
@@ -1280,13 +1365,13 @@ void fd_server(void) {
 
         select(FD_SETSIZE, &inset, &outset, NULL, NULL);
 
-        if (FD_ISSET(soundfd,&outset)) {
+        if (FD_ISSET(soundfd, &outset)) {
             /* no sounds to play */
-            if (current_buffer==first_free_buffer) FD_CLR(soundfd,&outset);
+            if (current_buffer == first_free_buffer) FD_CLR(soundfd, &outset);
             else {
                 int wrote;
-                wrote=audio_play(current_buffer,sndbuf_pos);
-                if (wrote<settings.buflen-sndbuf_pos) sndbuf_pos+=wrote;
+                wrote = audio_play(current_buffer, sndbuf_pos);
+                if (wrote < settings.buflen - sndbuf_pos) sndbuf_pos += wrote;
                 else {
                    /* clean the buffer */
                    memset(buffers + settings.buflen * current_buffer,
@@ -1295,7 +1380,7 @@ void fd_server(void) {
                    sndbuf_pos = 0;
                    current_buffer++;
                    if (current_buffer >= settings.buffers)
-                       current_buffer=0;
+                       current_buffer = 0;
                 }
             }
         } else {
@@ -1310,13 +1395,13 @@ void fd_server(void) {
             int err = read(infd, inbuf + inbuf_pos, 1);
 
             if (err < 1 && errno != EINTR) {
-                if (err<0)
+                if (err < 0)
                     perror("read");
                 break;
             }
             if (inbuf[inbuf_pos] == '\n') {
                 inbuf[inbuf_pos++] = 0;
-                if (!SoundCmd((unsigned char*)inbuf, inbuf_pos))
+                if (!SoundCmd((unsigned char*) inbuf, inbuf_pos))
                     FD_SET(soundfd, &outset);
                 inbuf_pos = 0;
             } else {
@@ -1337,14 +1422,69 @@ void fd_server(void) {
  *
  */
 void sdl_mixer_server(void) {
+    int    infd;
+    int    inbuf_pos = 0;
+    char   inbuf[1024];
+    fd_set inset;
+
+    infd = fileno(stdin);
+    /*
+     * Initialize the file descriptor set "inset" to be the empty set, then
+     * add stdin to the file descriptor set.
+     */
+    FD_ZERO(&inset);
+    FD_SET(infd, &inset);
 
     music = Mix_LoadMUS("sample.ogg");
     Mix_PlayMusic(music, 0);
 
     while (1) {
+        /*
+         * Handle sound commands from stdin
+         *
+         * If stdin is (still) a member of the file descriptor set "inset",
+         * process input from it.
+         */
+        if (FD_ISSET(infd, &inset)) {
+            int result;
+
+            /*
+             * Read a character from stdin, or wait for input if there isn't
+             * any yet.  Append it to the other data already buffered up.
+             */
+            result = read(infd, inbuf + inbuf_pos, 1);
+            if (result == -1 && errno != EINTR) {
+                if (result == -1)
+                    perror("read");
+                break;
+            }
+            /*
+             * Check to see if the last character was an end-of-line marker.
+             * If so, analyze the buffer contents, otherwise just collect
+             * the data while monitoring it to be sure it doesn't overflow.
+             */
+            if (inbuf[inbuf_pos] == '\n') {
+                inbuf[inbuf_pos++] = 0;
+                if (! SoundCmd((unsigned char*) inbuf, inbuf_pos)) {
+                    /*
+                     *
+                     */
+                }
+                inbuf_pos = 0;
+            } else {
+                inbuf_pos++;
+                if (inbuf_pos >= sizeof(inbuf)) {
+                    fprintf(stderr, "Input buffer overflow!\n");
+                    inbuf_pos = 0;
+                }
+            }
+        }
+        FD_SET(infd, &inset);
+
         if (!Mix_PlayingMusic()) {
             break;
         }
+
         /* So we don't hog the CPU */
         SDL_Delay(50);
     }
