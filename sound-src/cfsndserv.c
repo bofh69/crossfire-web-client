@@ -133,7 +133,7 @@ default_normal, default_spell;
 /* Mixer variables */
 char *buffers = NULL;
 int  *sounds_in_buffer = NULL;
-int   current_buffer = 0;               /**< The mext buffer to write out   */
+int   current_buffer = 0;               /**< The next buffer to write out   */
 int   first_free_buffer = 0;            /**< Help know when to stop playing */
 
 int   soundfd=0;
@@ -143,7 +143,7 @@ int stereo=0, bit8=0, sample_size=0, frequency=0, sign=0, zerolevel=0;
 
 #ifdef SUN_SOUND
 
-struct sound_settings{
+struct sound_settings {
     int stereo;
     int bit8;
     int sign;
@@ -152,29 +152,30 @@ struct sound_settings{
     int buflen;
     int simultaneously;
     const char *audiodev;
-} settings={0, 1, 1, 11025, 100, 4096, 4, AUDIODEV};
+} settings = { 0, 1, 1, 11025, 100, 4096, 4, AUDIODEV };
 
 #elif defined(SDL_SOUND)
 
-int audio_channels = 0;                 /**< Channels in use by SDL_mixer   */
-Uint16 audio_format = 0;                /**< Format of the SDL_mixer audio  */
+int             audio_channels = 0;     /**< Channels in use by SDL_mixer   */
+Uint16          audio_format = 0;       /**< Format of the SDL_mixer audio  */
+Mix_Music      *music = NULL;           /**< A music file to play           */
+Mix_Chunk     **chunk = NULL;           /**< Loaded sounds to play          */
+int             max_chunk = 0;          /**< Max count of concurrent sounds */
 
-Mix_Music *music = NULL;                /**< A music file to play           */
-
-struct sound_settings{
-    int stereo;
-    int bit8;
-    int sign;
-    int frequency;
-    int buffers;
-    int buflen;
-    int simultaneously;                 /**< Max number of sounds to queue. */
+struct sound_settings {
+    int         stereo;
+    int         bit8;
+    int         sign;
+    int         frequency;
+    int         buffers;
+    int         buflen;
+    int         simultaneously;         /**< Max number of sounds to queue. */
     const char *audiodev;
-} settings={0, 1, 0, 11025, 100, 4096, 4, AUDIODEV};
+} settings = { 0, 1, 0, 11025, 100, 4096, 4, AUDIODEV };
 
 #else
 
-struct sound_settings{
+struct sound_settings {
     int stereo;
     int bit8;
     int sign;
@@ -183,7 +184,7 @@ struct sound_settings{
     int buflen;
     int simultaneously;
     const char *audiodev;
-} settings={0, 1, 0, 11025, 100, 1024, 4, AUDIODEV};
+} settings = { 0, 1, 0, 11025, 100, 1024, 4, AUDIODEV };
 
 #endif
 
@@ -371,8 +372,7 @@ static void parse_sound_line(char *line, int lineno) {
     cp = filename + strlen(filename) - 4;
     if (!strcmp(cp, ".raw"))
 #ifndef WIN32
-/*      strcpy(cp, ".ogg"); */
-        strcpy(cp, ".wav");
+        strcpy(cp, ".ogg");
 #else
         strcpy(cp, ".wav");
 #endif
@@ -443,7 +443,10 @@ int init_audio(void) {
     fprintf(stderr, "SDL_mixer init_audio()\n");
 #endif
 
-    SDL_Init(SDL_INIT_AUDIO);
+    if (SDL_Init(SDL_INIT_AUDIO) == -1) {
+        fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
+        exit(1);
+    }
 
     frequency = settings.frequency;
     bit8 = settings.bit8;
@@ -457,7 +460,7 @@ int init_audio(void) {
      * parameters the audio format we'd /like/ to have.
      */
     if (Mix_OpenAudio(frequency,audio_format,audio_channels,settings.buflen)){
-        printf("Unable to open audio!\n");
+        fprintf(stderr, "Mix_OpenAudio: Unable to open audio!\n");
         exit(1);
     }
     /*
@@ -485,7 +488,7 @@ int init_audio(void) {
            sign = 1;
            break;
        default:
-           fprintf(stderr, "Unexpected audio format\n");
+           fprintf(stderr, "init_audio: Unexpected audio format\n");
            return -1;
     }
 
@@ -497,7 +500,7 @@ int init_audio(void) {
             stereo = 1;
             break;
         default:
-            fprintf(stderr, "Unexpected number of audio channels\n");
+            fprintf(stderr, "init_audio: Unexpected number of channels\n");
             return -1;
     }
 
@@ -514,7 +517,7 @@ int init_audio(void) {
 int audio_play(int buffer, int off) {
 
 #ifdef SOUND_DEBUG
-    fprintf(stderr, "SDL_mixer audio_play()\n");
+    fprintf(stderr, "audio_play: SDL_mixer audio_play()\n");
 #endif
 
     return settings.buflen - off;
@@ -993,6 +996,8 @@ int init_sounds(void)
     return 0;
 }
 
+#ifndef SDL_SOUND
+
 /**
  * Add a sound to the buffer to be played later on.
  *
@@ -1218,6 +1223,95 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
         first_free_buffer = 0;
 }
 
+#else
+
+/**
+ * Add a sound to the buffer to be played later on.
+ *
+ * @param soundnum  The sound to play.
+ * @param soundtype 0 for normal sounds, 1 for spell_sounds.
+ * @param x         Offset (assumed from player) to play sound used to
+ *                  determine value and left vs. right speaker balance.
+ * @param y         Offset (assumed from player) to play sound used to
+ *                  determine value and left vs. right speaker balance.
+ */
+static void play_sound(int soundnum, int soundtype, int x, int y) {
+    int         channel = 0;
+    int         playing = 0;
+    Sound_Info *si;
+
+    /*
+     * Ignore commands to play invalid/unsupported sound numbers.
+     */
+    if (soundnum >= MAX_SOUNDS || soundnum < 0) {
+        fprintf(stderr, "play_sound: Invalid sound number: %d\n", soundnum);
+        return;
+    }
+
+     /*
+     * Check if the channel limit is reached.  If more than a specified number
+     * are already playing, do not add more sounds.
+     */
+    playing = Mix_Playing(-1);
+#ifdef SOUND_DEBUG
+    fprintf(stderr,
+        "Channels playing: %i of %i\n", playing, max_chunk);
+#endif
+    if (playing >= max_chunk) {
+        /*
+         * Bail. Only max_chunk channels were set up for use.  It might not
+         * be that bad to allocate more, but then nobody wants a cachophony.
+         * Where does one stop?
+         */
+         return;
+    }
+    /*
+     * Find a channel that is not playing anything...
+     */
+    for (channel = 1; channel < max_chunk; channel++) {
+        if (! Mix_Playing(channel)) {
+            if (! chunk[channel]) {
+                Mix_FreeChunk(chunk[channel]);
+                chunk[channel] = NULL;
+            }
+            break;
+        }
+    }
+    /*
+     * Get a pointer to the sound information for the given sound, and if it
+     * does not include a filename, ignore the command to play the sound.
+     */
+    if (soundtype == SOUND_NORMAL) {
+        si = &normal_sounds[soundnum];
+    } else
+        if (soundtype == SOUND_SPELL) {
+            si = &spell_sounds[soundnum];
+        } else {
+            fprintf(stderr,"play_sound: Unknown soundtype: %d\n", soundtype);
+            return;
+        }
+
+    if (! si->filename) {
+        fprintf(stderr,
+            "play_sound: Sound %d (type %d) missing\n", soundnum, soundtype);
+        return;
+    }
+    /*
+     * Attempt to load the sound data.
+     */
+    chunk[channel] = Mix_LoadWAV(si->filename);
+    if (! chunk[channel]) {
+        fprintf(stderr, "play_sound: Mix_LoadWAV: %s\n", Mix_GetError());
+        return;
+    }
+
+    if (Mix_PlayChannel(channel, chunk[channel], 0) == -1) {
+        fprintf(stderr, "Mix_PlayChannel: %s\n",Mix_GetError());
+    }
+}
+
+#endif
+
 /**
  * Handle sound-related commands that are received from stdin.  Sound commands
  * consist of four whitespace delimited values:  sound_number, sound_type, x,
@@ -1422,10 +1516,29 @@ void fd_server(void) {
  *
  */
 void sdl_mixer_server(void) {
-    int    infd;
-    int    inbuf_pos = 0;
-    char   inbuf[1024];
-    fd_set inset;
+    int        infd;
+    fd_set     inset;
+    char       inbuf[1024];
+    int        inbuf_pos = 0;
+    int        mix_flags = MIX_INIT_OGG;
+    int        mix_init = 0;
+    int        channel = 0;
+
+    mix_init = Mix_Init(MIX_INIT_OGG);
+
+    if ((mix_init & mix_flags) != mix_flags) {
+#ifdef SOUND_DEBUG
+        printf("Mix_Init: Failed to init required ogg support!\n");
+        printf("Mix_Init: %s\n", Mix_GetError());
+#endif
+        return;
+    }
+
+    max_chunk = Mix_AllocateChannels(settings.simultaneously);
+    chunk = calloc(max_chunk, sizeof(chunk));
+    if (! chunk) {
+        return;
+    }
 
     infd = fileno(stdin);
     /*
@@ -1481,7 +1594,7 @@ void sdl_mixer_server(void) {
         }
         FD_SET(infd, &inset);
 
-        if (!Mix_PlayingMusic()) {
+        if (! Mix_PlayingMusic()) {
             break;
         }
 
@@ -1492,6 +1605,24 @@ void sdl_mixer_server(void) {
     Mix_HaltMusic();
     Mix_FreeMusic(music);
     music = NULL;
+
+    /*
+     * Halt all channels playing, and de-allocate any Mix_Chunks that exist.
+     */
+    Mix_HaltChannel(-1);
+    for (channel = 0; channel < max_chunk; channel++) {
+        if (chunk[channel]) {
+            Mix_FreeChunk(chunk[channel]);
+            chunk[channel] = NULL;
+        }
+    }
+    /*
+     * As long as Mix_Init() was only called once, Mix_Quit() should only need
+     * to be called once, but this covers all the bases.
+     */
+    while(Mix_Init(0)) {
+        Mix_Quit();
+    }
 }
 
 /**
@@ -1500,8 +1631,7 @@ void sdl_mixer_server(void) {
  * @param argv
  * @return
  */
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     printf("%s\n", rcsid_sound_src_cfsndserv_c);
     fflush(stdout);
 
