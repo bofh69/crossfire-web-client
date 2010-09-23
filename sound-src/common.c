@@ -69,22 +69,44 @@ Sound_Info normal_sounds[MAX_SOUNDS], spell_sounds[MAX_SOUNDS],
 default_normal, default_spell;
 
 /**
- * Parses a line from the sound file.  This is a little uglier because we
- * store some static values in the function so we know what we are doing -
- * however, it is somewhat necessary so that we can use this same function to
- * parse both files and the compiled in data.
+ * Parse a line from the sound file.  This is a little ugly because static
+ * values are stored in the function so we know what we are doing - however,
+ * it is somewhat necessary so that we can use this same function to parse
+ * both files and the compiled in data.  The linefeed delimited sound file
+ * lines that are empty, or begin with hash (#) characters are ignored. Data
+ * lines are space/tab-delimited fields:
  *
- * Note that this function will modify the data in line.  lineno is just for
- * error tracking purposes.
+ * sound_file<TAB>default_volume<TAB>SOUND_SYMBOLIC_NAME<TAB>sound_number
  *
- * @param line
- * @param lineno
- * @return
+ * sound_file is an absolute path (not at all friendly or resilient to client
+ *     changes like changing from a distro version to SVN, etc).
+ *
+ * default_volume is an integer from 0 to 100 (a percentage) that is left
+ *     padded with spaces to produce a fixed, three-character width.
+ *
+ * SOUND_SYMBOLIC_NAME is unused and may be omitted, but could be used for
+ *     client/server communication regarding a sound to play.
+ *
+ * sound_number is a zero-based integer that identifies the sound.  If it is
+ *     omitted, the last sound number used is incremented by one.  The server
+ *     communicates what sound to play via the sound number, so the order is
+ *     not arbitrary.
+ *
+ * @param line   A line of data from the .crossfire/sounds configuration file.
+ *               Note that this data may be modified by parse_sound_line().
+ * @param lineno The line number of the passed data used for error tracking.
  */
 static void parse_sound_line(char *line, int lineno) {
-    static int readtype=0, lastnum=0;
-    int newnum, len;
-    char *cp, *volume, *symbolic, *cp1, filename[512];
+    static int readtype=0;              /**< Identifies the last section title
+                                         *   found in the .crossfire/sounds
+                                         *   file.  0 indicates a section
+                                         *   title was not found yet.
+                                         */
+    static int lastnum=0;               /**< The number of items processed in
+                                         *   the current readtype section.
+                                         */
+    int        newnum, len;
+    char      *cp, *volume, *symbolic, *cp1, filename[512];
 
     if (line[0] == '#' || line[0] == '\n')
         return;
@@ -100,105 +122,183 @@ static void parse_sound_line(char *line, int lineno) {
         readtype = 2;
         return;
     }
-
     if (!readtype) {
 #ifdef SOUND_DEBUG
         fprintf(stderr,
-            "Got input without finding section header yet:\n%d:%s\n",
-                lineno, line);
+            "parse_sound_line: Ignored file header:\n%d:%s\n", lineno, line);
 #endif
         return;
     }
-
-    if (line[strlen(line) - 1] == '\n')
-        line[strlen(line) - 1] = '\0';
-
+    /*
+     * Change the LF delimiter at the end of the line to a null terminator.
+     */
+    if (line[strlen(line)-1] == '\n')
+        line[strlen(line)-1] = '\0';
+    /*
+     * Convert the first whitespace found to a null terminator.
+     */
     len = strcspn(line, " \t");
     line[len] = '\0';
     cp = line + len + 1;
-
-    /* Skip all whitespace for the next field */
+    /*
+     * Skip all the following whitespace to locate the next field, and save a
+     * pointer to the volume data.
+     */
     while (*cp != '\0' && (*cp == ' ' || *cp == '\t'))
         cp++;
-
     volume = cp;
-
-    /* No symbolic name or number - that is ok */
+    /*
+     * There is no need to null terminate the volume since it is processed
+     * with atoi.
+     *
+     * Next, check to see if the unprocessed portion of the line has any
+     * whitespace following the default volume.
+     */
     cp1 = cp;
     if (!(cp = strchr(cp1, ' ')) && !(cp = strchr(cp1, '\t'))) {
+        /*
+         * If not, there cannot be a sound number, and any data left is an
+         * unused symbolic name, so the sound number is auto-assigned.
+         */
         newnum = lastnum + 1;
         symbolic = NULL;
-    } else {    /* We think we have a symbolic name */
-        /* Don't need to nulterm the volume, since we atoi it anyways */
+    } else {
+        /*
+         * Since there is more whitespace, there might be a symbolic name and
+         * sound number.  Ignore any additional whitespace following the
+         * volume, and treat the next character as the beginning of a symbolic
+         * name.
+         */
         while (*cp != '\0' && (*cp == ' ' || *cp == '\t'))
             cp++;
-
         symbolic = cp;
-        /* Some symbolc names are double quote protected.  If, do some
-         * special processing.  We strip off the quotes.
+        /*
+         * Some symbolic names are double-quoted to allow them to contain
+         * whitespace.  If a quote starts the name, advance the name pointer
+         * to effectively strip the quote, and convert the final quote to a
+         * null terminator.
          */
         if (*symbolic == '"') {
             symbolic++;
-            for (cp = symbolic; *cp != '\0' && *cp != '"'; cp++) ;
+            for (cp = symbolic; *cp != '\0' && *cp != '"'; cp++);
             *cp = '\0';
             cp++;
         }
-        /* Lets try to find the sound number now */
+        /*
+         * cp is either the beginning of an unquoted symbolic name or is
+         * pointing to the whitespace between a quoted symbolic name and the
+         * sound number.
+         */
         cp1 = cp;
-        if (!(cp = strchr(cp1, ' '))  && !(cp = strchr(cp1, '\t')))
+        if (!(cp = strchr(cp1, ' ')) && !(cp = strchr(cp1, '\t'))) {
+            /*
+             * There is no more whitespace on the line.  If the name was
+             * quoted, there should have been whitespace following that cp was
+             * pointing to, so there cannot be a sound number present.  On the
+             * other hand, if the name was not quoted, cp would point at the
+             * symbolic name and whitespace should follow if a sound number is
+             * present.  Either way, the sound number must be auto-assigned.
+             */
             newnum = lastnum + 1;
-        else {
+        } else {
+            /*
+             * If there was whitespace left, cp points to it now, whether or
+             * not the symbolic name was quoted.  A sound number should follow
+             * the whitespace.  First, try to null terminate the prior data,
+             * then skip all subsequent whitespace, and point at what should
+             * be the sound number.  If numeric data is found, read the sound
+             * number, otherwise auto-assign the sound number.  This is a bit
+             * dodgy as invalid data is silently ignored.
+             */
             *cp++ = '\0';
             while (*cp != '\0' && (*cp == ' ' || *cp == '\t'))
                 cp++;
             if (isdigit(*cp))
                 newnum = atoi(cp);
-            else newnum = lastnum + 1;
+            else
+                newnum = lastnum + 1;
         }
     }
     if (newnum < 0 || newnum > MAX_SOUNDS) {
-        fprintf(stderr,"Invalid sound number %d, line %d, buf %s\n",
-            newnum, lineno, line);
+        fprintf(stderr,
+            "Invalid sound number %d, line %d, buf %s\n",
+                newnum, lineno, line);
         return;
     }
-
-    /* Compatibility processing for older files - if the file ends in .au,
-     * convert to .raw.  A bit of a hack, but probably better than trying to
-     * play an au file.
+    /*
+     * Compatibility processing for older files and/or the SDL_mixer setup.
+     * If the filename ends in .au, convert the ending to a more appropriate
+     * one as .au files are not distributed by the project.
+     *
+     * Use .raw instead of .au for most sound setups, as this is what has been
+     * supported by the clients for a long time.
+     *
+     * As SDL_mixer does not support .raw, change the extension to .ogg for
+     * systems other than Windows, or .wav for Windows.  Technically, it would
+     * be okay to use either .wav or .ogg whatever the platform, so it is a
+     * FIXME in that it would probably be best for the file extension to be a
+     * configurable option.
+     *
+     * Overriding the content of the sound file is a bit of a kludge, but
+     * allows legacy .crossfire/sound files to work with the current client.
+     * The dodgy part is that if someone looks in the file, it will not
+     * necessarily indicate the actual file being played.
      */
     strcpy(filename, line);
     cp = filename + strlen(filename) - 3;
     if (!strcmp(cp, ".au"))
         strcpy(cp, ".raw");
-
+    /*
+     * One symbolic name is used: DEFAULT.  If it is found, the sound file
+     * becomes the default sound for any undefined sound number, so set the
+     * appropriate default, and ignore any sound number that may follow.
+     */
     if (symbolic && !strcmp(symbolic, "DEFAULT")) {
         if (readtype == 1) {
+            /*
+             * Standard Sounds
+             */
             default_normal.filename = strdup_local(filename);
             default_normal.volume = atoi(volume);
         } else if (readtype == 2) {
+            /*
+             * Spell Sounds
+             */
             default_spell.filename = strdup_local(filename);
             default_spell.volume = atoi(volume);
         }
         return;
     }
-    else {
-        if (readtype == 1) {
-            normal_sounds[newnum].filename = strdup_local(filename);
-            normal_sounds[newnum].volume = atoi(volume);
-            if (symbolic)
-                normal_sounds[newnum].symbolic = strdup_local(symbolic);
-            else
-                normal_sounds[newnum].symbolic = NULL;
-        } else if (readtype == 2) {
-            spell_sounds[newnum].filename = strdup_local(filename);
-            spell_sounds[newnum].volume = atoi(volume);
-            if (symbolic)
-                spell_sounds[newnum].symbolic = strdup_local(symbolic);
-            else
-                spell_sounds[newnum].symbolic = NULL;
-        }
-        lastnum = newnum;
+    /*
+     * The only way for processing to reach this point is if valid sound data
+     * was found in a section.  Process it according to the section it is in.
+     */
+    if (readtype == 1) {
+        /*
+         * Standard Sounds
+         */
+        normal_sounds[newnum].filename = strdup_local(filename);
+        normal_sounds[newnum].volume = atoi(volume);
+        if (symbolic)
+            normal_sounds[newnum].symbolic = strdup_local(symbolic);
+        else
+            normal_sounds[newnum].symbolic = NULL;
+    } else if (readtype == 2) {
+        /*
+         * Spell Sounds
+         */
+        spell_sounds[newnum].filename = strdup_local(filename);
+        spell_sounds[newnum].volume = atoi(volume);
+        if (symbolic)
+            spell_sounds[newnum].symbolic = strdup_local(symbolic);
+        else
+            spell_sounds[newnum].symbolic = NULL;
     }
+    /*
+     * Retain the assigned sound number for possible use in subsquent data
+     * lines.
+     */
+    lastnum = newnum;
 }
 
 /**
