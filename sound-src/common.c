@@ -396,6 +396,11 @@ int SoundCmd(unsigned char *data,  int len) {
     return 0;
 }
 
+/**
+ * Update the player .crossfire/sndconfig file.
+ *
+ * @return
+ */
 int write_settings(void) {
     FILE *f;
     char *home;
@@ -403,7 +408,6 @@ int write_settings(void) {
 
     if ((home = getenv("HOME")) == NULL)
         return -1;
-
     path = (char *)malloc(strlen(home) + strlen(CONFIG_FILE) + 1);
     if (!path)
         return -1;
@@ -424,18 +428,23 @@ int write_settings(void) {
     fprintf(f, "buffers: %i\n", settings.buffers);
     fprintf(f, "buflen: %i\n", settings.buflen);
     fprintf(f, "simultaneously: %i\n", settings.simultaneously);
-/*  fprintf(f, "device: %s\n", settings.audiodev); */
+    /* fprintf(f,"device: %s\n",settings.audiodev); */
     fclose(f);
     return 0;
 }
 
+/**
+ * Read the player .crossfire/sndconfig file.
+ *
+ * @return
+ */
 int read_settings(void) {
     FILE *f;
     char *home;
     char *path;
-    char  linebuf[1024];
+    char linebuf[1024];
 
-    if ((home = getenv("HOME")) == NULL)
+    if ((home = getenv("HOME")) == NULL )
         return 0;
 
     path = (char *)malloc(strlen(home) + strlen(CONFIG_FILE) + 1);
@@ -444,21 +453,19 @@ int read_settings(void) {
 
     strcpy(path, home);
     strcat(path, CONFIG_FILE);
-
     f = fopen(path, "r");
     if (!f)
         return -1;
 
     while(fgets(linebuf, 1023, f) != NULL) {
-        linebuf[1023]=0;
-
+        linebuf[1023] = 0;
         /* Strip off the newline */
         linebuf[strlen(linebuf) - 1] = 0;
 
         if (strncmp(linebuf, "stereo:", strlen("stereo:")) == 0)
             settings.stereo = atoi(linebuf + strlen("stereo:")) ? 1 : 0;
         else if (strncmp(linebuf, "bits:", strlen("bits:")) == 0)
-            settings.bit8 = (atoi(linebuf + strlen("bits:")) == 8) ? 1 : 0;
+            settings.bit8 = (atoi(linebuf + strlen("bits:"))==8) ? 1 : 0;
         else if (strncmp(linebuf, "signed:", strlen("signed:")) == 0)
             settings.sign = atoi(linebuf + strlen("signed:")) ? 1 : 0;
         else if (strncmp(linebuf, "buffers:", strlen("buffers:")) == 0)
@@ -470,10 +477,11 @@ int read_settings(void) {
         else if (strncmp(linebuf, "simultaneously:", strlen("simultaneously:")) == 0)
             settings.simultaneously = atoi(linebuf + strlen("simultaneously:"));
 #if 0
-        else if (strncmp(linebuf, "device: ", strlen("device: ")) == 0)
-                settings.audiodev = strdup_local(linebuf + strlen("device: "));
+        else if (strncmp(linebuf,"device: ",strlen("device: "))==0)
+                settings.audiodev=strdup_local(linebuf+strlen("device: "));
 #endif
     }
     fclose(f);
     return 0;
 }
+
