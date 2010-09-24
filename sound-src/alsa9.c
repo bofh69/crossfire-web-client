@@ -71,8 +71,9 @@ static char *rcsid_sound_src_alsa9_c =
 #include <errno.h>
 
 #include "shared/newclient.h"
-#include "soundsdef.h"
-
+#include "def_sounds.h"
+#include "sndproto.h"
+#include "common.h"
 
 #include <alsa/asoundlib.h>
 #include <alsa/pcm_plugin.h>
@@ -86,9 +87,6 @@ int sndbuf_pos=0;
 #define ALSA9_ERROR(str,err) { \
 		fprintf(stderr,"ALSA9 Error: %s %s\n",str,snd_strerror(err)); }
 
-#define CONFIG_FILE "/.crossfire/sndconfig"
-
-
 #define SOUND_DECREASE 0.1
 
 /* mixer variables */
@@ -98,16 +96,7 @@ int first_free_buffer=0; /* So we know when to stop playing sounds */
 
 int soundfd=0;
 
-/* sound device parameters */
-int stereo=0,sample_size=0,frequency=0,sign=0,zerolevel=0;
-
-struct sound_settings{
-    int stereo, bit8, sign, frequency, buffers, buflen,simultaneously;
-    const char *audiodev;
-} settings={0,1, 0, 8000,200,2048,4,AUDIODEV};
-
-#include "common.c"
-
+sound_settings settings = { 0, 1, 0, 8000, 200, 2048, 4, AUDIODEV };
 
 snd_pcm_hw_params_t *params;
 static snd_pcm_uframes_t chunk_size = 0;

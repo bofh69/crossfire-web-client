@@ -21,30 +21,59 @@
 
 
 bin_PROGRAMS = cfsndserv @ALSA9_TARGET@
+
 EXTRA_PROGRAMS = cfsndserv_alsa9
 
-EXTRA_DIST = common.c sounds.dist soundsdef.h
+EXTRA_DIST = common.c common.h def_sounds.h sndproto.h sounds.dist
 
 AM_CPPFLAGS = -I$(top_srcdir)/common
 
 noinst_HEADERS = \
-	soundsdef.h
+        def_sounds.h \
+	sndproto.h \
+        common.h
 
-cfsndserv_SOURCES = cfsndserv.c
+cfsndserv_SOURCES = \
+        common.h \
+        sndproto.h \
+        def_sounds.c \
+        common.c \
+        cfsndserv.c
+
 cfsndserv_LDADD = $(SND_LIBS) $(DMALLOC_LIB)
 
-cfsndserv_alsa9_SOURCES = alsa9.c
-cfsndserv_alsa9_LDADD =  $(ALSA9_LIBS) $(DMALLOC_LIB)
+cfsndserv_alsa9_SOURCES = \
+        common.h \
+        sndproto.h \
+        def_sounds.c \
+        common.c \
+        alsa9.c
 
+cfsndserv_alsa9_LDADD =  $(ALSA9_LIBS) $(DMALLOC_LIB)
 
 sounds: sounds.dist Makefile
 	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUNDDIR)# $(srcdir)/sounds.dist > sounds
 
-soundsdef.h: sounds
-	$(PERL) $(top_srcdir)/utils/deftoheader.pl sounds soundsdef.h def_sounds
+def_sounds.h: sounds
+	$(PERL) \
+	    $(top_srcdir)/utils/deftoheader.pl sounds def_sounds.h def_sounds
 
-cfsndserv.o: soundsdef.h
+def_sounds.c: sounds
+	$(PERL) \
+	    $(top_srcdir)/utils/deftoheader.pl sounds def_sounds.c def_sounds
 
-alsa9.o: soundsdef.h
+def_sounds.o: def_sounds.c
+
+common.o: $(noinst_HEADERS)
+
+cfsndserv.o: $(noinst_HEADERS)
+
+alsa9.o:  $(noinst_HEADERS)
+
+PROTO_SOURCES = \
+	common.c
+
 proto:
-	echo "Nothing to do for proto"
+	cproto -e -o sndproto.h $(DEFAULT_INCLUDES) $(INCLUDES) $(PROTO_SOURCES)
+	chmod 644 sndproto.h
+

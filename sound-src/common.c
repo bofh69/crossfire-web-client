@@ -1,4 +1,4 @@
-static char *rcsid_sound_src_common_c =
+const char * rcsid_sound_src_common_c =
     "$Id$";
 /*
     Crossfire client, a client program for the crossfire program.
@@ -26,15 +26,42 @@ static char *rcsid_sound_src_common_c =
  * @file sound-src/common.c
  *
  */
+#include "config.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#include <ctype.h>
+
+#include "def_sounds.h"
+#include "common.h"
+
+Sound_Info normal_sounds[MAX_SOUNDS];
+Sound_Info spell_sounds[MAX_SOUNDS];
+Sound_Info default_normal;
+Sound_Info default_spell;
+
+char *buffers = NULL;
+
+/*
+ * Sound device parameters.  See also sound_settings.
+ */
+int stereo = 0;
+int bit8 = 0;
+int sample_size = 0;
+int frequency = 0;
+int sign = 0;
+int zerolevel = 0;
 
 /**
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
 extern int init_audio(void);
-
-#define MAX_SOUNDS 1024
-char *buffers=NULL;
 
 /**
  *
@@ -56,17 +83,6 @@ char *strdup_local(char *str) {
     strcpy(c,str);
     return c;
 }
-
-typedef struct Sound_Info {
-    char *filename;
-    char *symbolic;
-    unsigned char volume;
-    int size;
-    unsigned char *data;
-} Sound_Info;
-
-Sound_Info normal_sounds[MAX_SOUNDS], spell_sounds[MAX_SOUNDS],
-default_normal, default_spell;
 
 /**
  * Parse a line from the sound file.  This is a little ugly because static
@@ -248,6 +264,15 @@ static void parse_sound_line(char *line, int lineno) {
     cp = filename + strlen(filename) - 3;
     if (!strcmp(cp, ".au"))
         strcpy(cp, ".raw");
+#ifdef SDL_SOUND
+    cp = filename + strlen(filename) - 4;
+    if (!strcmp(cp, ".raw"))
+#ifndef WIN32
+        strcpy(cp, ".ogg");
+#else
+        strcpy(cp, ".wav");
+#endif
+#endif
     /*
      * One symbolic name is used: DEFAULT.  If it is found, the sound file
      * becomes the default sound for any undefined sound number, so set the
@@ -308,8 +333,7 @@ static void parse_sound_line(char *line, int lineno) {
  * @return Zero on success and on failure, the calling function will likely
  *         disable sound support/requests from the server.
  */
-int init_sounds(void)
-{
+int init_sounds(void) {
     int   i;
     FILE *fp;
     char  path[256], buf[512];
