@@ -302,22 +302,24 @@ static void parse_sound_line(char *line, int lineno) {
 }
 
 /**
- * init_sounds open the audio device, and reads any configuration files that
- * need to be.  It returns 0 on success.  On failure, the calling function
- * will likely disable sound support/requests from the server.
+ * Opens the audio device, allocates buffers, and reads any configuration
+ * files that need to be.
+ *
+ * @return Zero on success and on failure, the calling function will likely
+ *         disable sound support/requests from the server.
  */
 int init_sounds(void)
 {
-    int i;
+    int   i;
     FILE *fp;
-    char path[256], buf[512];
+    char  path[256], buf[512];
 
 #ifdef SOUND_DEBUG
-    fprintf(stderr, "Settings: bits: %i, ", settings.bit8 ? 8 : 16);
-    fprintf(stderr, "%s, ", settings.sign ? "signed" : "unsigned");
-    fprintf(stderr, "%s, ", settings.stereo ? "stereo" : "mono");
-    fprintf(stderr, "frequency: %i, ", settings.frequency);
-    fprintf(stderr, "device: %s\n", settings.audiodev);
+    fprintf( stderr, "Settings: bits: %i, ", settings.bit8 ? 8 : 16);
+    fprintf( stderr, "%s, ",settings.sign ? "signed" : "unsigned");
+    fprintf( stderr, "%s, ",settings.stereo ? "stereo" : "mono");
+    fprintf( stderr, "frequency: %i, ", settings.frequency);
+    fprintf( stderr, "device: %s\n", settings.audiodev);
 #endif
 
     buffers = (char *) malloc(settings.buffers * settings.buflen);
@@ -331,67 +333,86 @@ int init_sounds(void)
     if (init_audio())
         return -1;
 
+    if (sign)
+        zerolevel = 0;
+    else
+        zerolevel = bit8 ? 0x80 : 0x00;
+
     memset(buffers, zerolevel, settings.buflen * settings.buffers);
 
 #ifdef SOUND_DEBUG
-    fprintf(stderr, "bits: %i, ", settings.bit8 ? 8 : 16);
-    fprintf(stderr, "%s, ", sign ? "signed" : "unsigned");
-    fprintf(stderr, "%s, ", stereo ? "stereo" : "mono");
-    fprintf(stderr, "freq: %i, ", frequency);
-    fprintf(stderr, "smpl_size: %i, ", sample_size);
-    fprintf(stderr, "0level: %i\n", zerolevel);
+    fprintf( stderr, "bits: %i, ", bit8 ? 8 : 16);
+    fprintf( stderr, "%s, ", sign ? "signed" : "unsigned");
+    fprintf( stderr, "%s, ", stereo ? "stereo" : "mono");
+    fprintf( stderr, "freq: %i, ", frequency);
+    fprintf( stderr, "smpl_size: %i, ", sample_size);
+    fprintf( stderr, "0level: %i\n", zerolevel);
 #endif
 
-    for (i=0; i<MAX_SOUNDS; i++) {
-        normal_sounds[i].filename=NULL;
-        spell_sounds[i].filename=NULL;
-        normal_sounds[i].size=-1;
-        spell_sounds[i].size=-1;
+    for (i = 0; i < MAX_SOUNDS; i++) {
+        normal_sounds[i].filename = NULL;
+        spell_sounds[i].filename = NULL;
+        normal_sounds[i].size = -1;
+        spell_sounds[i].size = -1;
     }
-    default_normal.filename=NULL;
-    default_spell.filename=NULL;
+    default_normal.filename = NULL;
+    default_spell.filename = NULL;
 
-    sprintf(path,"%s/.crossfire/sounds", getenv("HOME"));
-    i=0;
-    if (!(fp=fopen(path,"r"))) {
-        fprintf(stderr,"Unable to open %s - will use built in defaults\n", path);
-        for (; i<sizeof(def_sounds)/sizeof(char*); i++) {
+    sprintf(path, "%s/.crossfire/sounds", getenv("HOME"));
+    i = 0;
+    if (!(fp = fopen(path, "r"))) {
+        fprintf(stderr,
+            "Unable to open %s - will use built in defaults\n", path);
+        for (; i < sizeof(def_sounds) / sizeof(char*); i++) {
             strcpy(buf, def_sounds[i]);
-            parse_sound_line(buf,i);
+            parse_sound_line(buf, i);
         }
-    } else while (fgets(buf, 511, fp)!=NULL) {
-        buf[511]='\0';
+    } else while (fgets(buf, 511, fp) != NULL) {
+        buf[511] = '\0';
         parse_sound_line(buf, ++i);
     }
     /* Note in both cases below, we leave the symbolic name untouched. */
-    for (i=0; i<MAX_SOUNDS; i++) {
+    for (i = 0; i < MAX_SOUNDS; i++) {
         if (!normal_sounds[i].filename) {
-            normal_sounds[i].filename=default_normal.filename;
-            normal_sounds[i].volume=default_normal.volume;
+            normal_sounds[i].filename = default_normal.filename;
+            normal_sounds[i].volume = default_normal.volume;
         }
         if (!spell_sounds[i].filename) {
-            spell_sounds[i].filename=default_spell.filename;
-            spell_sounds[i].volume=default_spell.volume;
+            spell_sounds[i].filename = default_spell.filename;
+            spell_sounds[i].volume = default_spell.volume;
         }
-        normal_sounds[i].data=NULL;
-        spell_sounds[i].data=NULL;
+        normal_sounds[i].data = NULL;
+        spell_sounds[i].data = NULL;
     }
     return 0;
 }
 
-int SoundCmd(unsigned char *data,  int len) {
+/**
+ * Handle sound-related commands that are received from stdin.  Sound commands
+ * consist of four whitespace delimited values:  sound_number, sound_type, x,
+ * and y.  The sound_number and sound_type identify which sound should play,
+ * while x and y represents the map coordinate difference between the sound
+ * source and the player/character.
+ *
+ * @param data A text buffer that (hopefully) contains a sound command.
+ * @param len  The length of the text data in the sound command buffer.
+ * @return     0 if the buffer is a well-formed sound command, otherwise -1.
+ */
+int SoundCmd(unsigned char *data, int len) {
     int x, y, num, type;
     int i;
 
-    i=sscanf((char *)data,"%x %x %x %x",&num,&type,&x,&y);
-    if (i!=4){
-        fprintf(stderr,"Wrong input!\n");
+    i = sscanf((char *)data,"%x %x %x %x", &num, &type, &x, &y);
+    if (i != 4){
+        fprintf(stderr, "Wrong input!\n");
         return -1;
     }
+
 #ifdef SOUND_DEBUG
-    fprintf(stderr,"Playing sound %d (type %d), offset %d, %d\n",
-            num, type, x ,y);
+    fprintf(stderr,
+        "Playing sound %d (type %d), offset %d, %d\n", num, type, x ,y);
 #endif
+
     play_sound(num, type, x, y);
     return 0;
 }
