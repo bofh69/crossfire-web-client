@@ -97,24 +97,19 @@ int init_sounds(void)
 
 /**
  * Plays sound 'soundnum'.  This procedure seems to be very slow - much slower
- * than expected. It might need to run in a thread or fork off.
+ * than expected.  It might need to run in a thread or fork off.
  *
- * @param soundnum
- * The sound to play.
- * @param soundtype
- * 0 for normal sounds, 1 for spell_sounds.  This might get extended in the
- * future.
- * @param x
- * Offset (assumed from player) to play sound used to determine value and left
- * vs right speaker balance.
- * @param y
- * Offset (assumed from player) to play sound used to determine value and left
- * vs right speaker balance.
+ * @param soundnum  The sound to play.
+ * @param soundtype Zero for normal sounds, 1 for spell_sounds.  This might
+ *                  get extended in the future.
+ * @param x         Offset (assumed from player) to play sound used to
+ *                  determine value and left vs right speaker balance.
+ * @param y         Offset (assumed from player) to play sound used to
+ *                  determine value and left vs right speaker balance.
  */
 static void play_sound(int soundnum, int soundtype, int x, int y)
 {
 #ifndef WIN32
-
     if (!use_config[CONFIG_SOUND]) return;
     if ( (fprintf(sound_pipe,"%4x %4x %4x %4x\n",soundnum,soundtype,x,y)<=0) ||
          (fflush(sound_pipe)!=0) ){
@@ -127,63 +122,97 @@ static void play_sound(int soundnum, int soundtype, int x, int y)
 #endif
 }
 
+/**
+ * Parse the data contained by a sound2 command coming from the server and
+ * handle playing the specified sound.
+ *
+ * @param data Data provided following the sound2 command from the server.
+ * @param len  Length of the sound2 command data.
+ */
 void Sound2Cmd(unsigned char *data, int len)
 {
 #ifndef WIN32
-    uint8 x, y, dir, volume, type, len_action;
+    sint8 x, y;
+    uint8 dir, volume, type, len_action;
     char* action = NULL;
     uint8 len_name;
     char* name = NULL;
-    /* sound2 <x><y><dir><volume><type><len of action>action<len of name>name */
-    /*         b  b  b    b       b     b             str    b           str*/
-    if (len<8) {
-        LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Got too short length on sound2 command: %d\n", len);
+
+    /* sound2 <x><y><dir><volume><type><len_action>action<len_name>name */
+    /*         b  b  b    b       b     b          str    b        str  */
+
+    if (len < 8) {
+        LOG(LOG_WARNING,
+            "gtk-v2::Sound2Cmd", "Sound command too short: %d\n bytes", len);
         return;
     }
+
     x = data[0];
     y = data[1];
     dir = data[2];
     volume = data[3];
     type = data[4];
     len_action = data[5];
-    /* Prevent invald index. */
-    if (len_action >= (len-8)) {
-        LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Bad length of \"len of action\" in sound2 command: %d\n", len);
+    /*
+     * The minimum size of data is 1 for each byte in the command (7) plus the
+     * size of the action string.  If we do not have that, the data is bogus.
+     */
+    if (6 + len_action + 1 > len) {
+        LOG(LOG_WARNING,
+            "gtk-v2::Sound2Cmd", "action length check: %i len: %i\n",
+                len_action, len);
         return;
     }
+
+    len_name = data[6 + len_action];
     if (len_action != 0) {
-        action = (char*)data+6;
-        data[6+len_action]='\0';
+        action = (char*) data + 6;
+        data[6 + len_action] = '\0';
     }
-    /* Lets make it readable, compiler will optimize the addition order anyway*/
-    len_name = data[6+len_action+1];
-    if (len_name >= (len-8-len_action)) {
-        LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Bad length of \"len of name\" in sound2 command: %d\n", len);
+    /*
+     * The minimum size of data is 1 for each byte in the command (7) plus the
+     * size of the action string, and the size of the name string.
+     */
+    if (6 + len_action + 1 + len_name > len) {
+        LOG(LOG_WARNING,
+            "gtk-v2::Sound2Cmd", "name length check: %i len: %i\n",
+                len_name, len);
         return;
     }
+
     if (len_name != 0) {
-        name = (char*)data+6+len_action+1;
-        data[6+len_action+1+len_name]='\0';
+        name = (char*) data + 6 + len_action + 1;
+        data[6 + len_action + 1 + len_name] = '\0';
     }
-    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd\n",
+
+    LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd",
         x, y, dir, volume, type);
-    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "               len_action=%hhd action=%s\n", len_action, action);
-    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "               len_name=%hhd name=%s\n", len_name, name);
-    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Please impement sound2!");
-    /* TODO: Play sound here. Can't implement/test as server never actually
+    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "               len_action=%hhd action=%s", len_action, action);
+    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "               len_name=%hhd name=%s", len_name, name);
+    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Please implement sound2!");
+    /*
+     * TODO: Play sound here. Can't implement/test as server never actually
      * sends this yet it seems. As this code is mostly duplicated between the
      * different clients, make sure to update the other ones too.
      */
 #endif
 }
 
+/**
+ * Parse the data contained by a music command coming from the server and
+ * handle playing the specified song.
+ *
+ * @param data Data provided following the sound2 command from the server.
+ * @param len  Length of the sound2 command data.
+ */
 void MusicCmd(const char *data, int len) {
 #ifndef WIN32
     if (!strncmp(data, "NONE", len)) {
         /* TODO stop music */
     } else {
         LOG(LOG_WARNING, "gtk-v2::MusicCmd", "music command: %s (Implement me!)\n", data);
-        /* TODO: Play music. Can't impmement/test as server doesn't send this
+        /*
+         * TODO: Play music. Can't implement/test as server doesn't send this
          * version of the command yet it seems.
          */
     }
