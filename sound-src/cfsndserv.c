@@ -1096,10 +1096,6 @@ void sdl_mixer_server(void) {
         }
         FD_SET(infd, &inset);
 
-        if (! Mix_PlayingMusic()) {
-            break;
-        }
-
         /* So we don't hog the CPU */
         SDL_Delay(50);
     }
