@@ -49,6 +49,7 @@ const char * const rcsid_gtk2_inventory_c =
 #include "../../pixmaps/nonmag.xpm"
 #include "../../pixmaps/skull.xpm"
 #include "../../pixmaps/unlock.xpm"
+#include "../../pixmaps/unidentified.xpm"
 
 GtkWidget *inv_notebook;
 GtkWidget *treeview_look;
@@ -123,6 +124,7 @@ static int show_magical(item *it)   { return (it->magical?INV_SHOW_ITEM:0); }
 static int show_nonmagical(item *it){ return (it->magical?0:INV_SHOW_ITEM); }
 static int show_locked(item *it)    { return (it->locked?(INV_SHOW_ITEM|INV_SHOW_COLOR):0); }
 static int show_unlocked(item *it)  { return (it->locked?0:(INV_SHOW_ITEM|INV_SHOW_COLOR)); }
+static int show_unidentified(item *it)  { return ((it->flagsval&F_UNIDENTIFIED)?INV_SHOW_ITEM:0); }
 
 Notebook_Info   inv_notebooks[NUM_INV_LISTS] = {
 {"all", "All Items", all_xpm, show_all, INV_TREE},
@@ -134,6 +136,7 @@ Notebook_Info   inv_notebooks[NUM_INV_LISTS] = {
 {"nonmagical", "Nonmagical items", nonmag_xpm, show_nonmagical, INV_TREE},
 {"locked", "Inventory locked items", lock_xpm, show_locked, INV_TREE},
 {"unlocked", "Inventory unlocked items",unlock_xpm, show_unlocked, INV_TREE},
+{"unidentified", "Inventory unidentified items", unidentified_xpm, show_unidentified, INV_TREE},
 {"icons", "Quick icon view", NULL, show_all, INV_TABLE}
 };
 
