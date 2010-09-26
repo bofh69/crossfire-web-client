@@ -87,7 +87,7 @@ static GtkStyle    *inv_styles[Style_Last];
  * to know about the different inventory notebooks in a module fashion -
  * instead of hardcoding values, they can be held in the array.
  */
-#define NUM_INV_LISTS   10
+#define NUM_INV_LISTS   11
 #define INV_SHOW_ITEM   0x1
 #define INV_SHOW_COLOR  0x2
 
