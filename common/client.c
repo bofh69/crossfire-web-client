@@ -124,7 +124,7 @@ struct CmdMapping commands[] = {
                                                 */},
     { "tick",            TickCmd, INT_ARRAY    /* uint32 */},
 
-    { "sound2",          Sound2Cmd, MIXED      /* int8, int8, int8, int8,
+    { "sound2",          Sound2Cmd, MIXED      /* int8, int8, int8,  int8,
                                                 * int8, int8, chars, int8,
                                                 * chars
                                                 */},
@@ -517,14 +517,18 @@ void negotiate_connection(int sound)
      */
     if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
 
-    /* For spellmon, try each acceptable level, but make sure the one the
+    /* For sound, a value following determines which sound features are
+     * wanted.  The value is 1 for sound effects, and 2 for background music,
+     * or the sum of 1 + 2 (3) for both.
+     *
+     * For spellmon, try each acceptable level, but make sure the one the
      * client prefers is last.
      */
     cs_print_string(csocket.fd,
-                    "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
-                    "faceset %d facecache %d want_pickup 1 loginmethod %d newmapcmd 1",
-                    (sound>=0) ? 3 : 0, want_config[CONFIG_LIGHTING]?1:0,
-                    face_info.faceset, want_config[CONFIG_CACHE], wantloginmethod);
+        "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
+        "faceset %d facecache %d want_pickup 1 loginmethod %d newmapcmd 1",
+        (sound >= 0) ? 3 : 0, want_config[CONFIG_LIGHTING] ? 1 : 0,
+        face_info.faceset, want_config[CONFIG_CACHE], wantloginmethod);
 
     /* We can do this right now also - isn't any reason to wait */
     cs_print_string(csocket.fd, "requestinfo skill_info");
