@@ -88,16 +88,28 @@ const char *const resists_name[NUM_RESISTS] = {
 
 typedef void (*CmdProc)(unsigned char *, int len);
 
+/**
+ * Links server commands to client functions that implement them, and gives a
+ * rough indication of the type of data that the server supplies with the
+ * command.
+ */
 struct CmdMapping {
   const char *cmdname;
   void (*cmdproc)(unsigned char *, int );
   enum CmdFormat cmdformat;
 };
 
-
+/**
+ * The list of server commands that this client supports along with pointers
+ * to the function that handles the command.  The table also gives a rough
+ * indication of the type of data that the server should send with each
+ * command.  If the client receives a command not listed in the table, a
+ * complaint is output on stdout.
+ */
 struct CmdMapping commands[] = {
-    /* Order of this table doesn't make a difference.  I tried to sort
-     * of cluster the related stuff together.
+    /*
+     * The order of this table does not make much of a difference.  Related
+     * commands are listed in groups.
      */
     { "map2",            Map2Cmd, SHORT_ARRAY },
     { "map_scroll",      (CmdProc)map_scrollCmd, ASCII },
@@ -120,15 +132,15 @@ struct CmdMapping commands[] = {
                                                 * that stat)
                                                 */},
     { "image2",          Image2Cmd, MIXED      /* int, int8, int, PNG */ },
-    { "face2",           Face2Cmd, MIXED       /* int16, int8, int32, stringi
+    { "face2",           Face2Cmd, MIXED       /* int16, int8, int32, string
                                                 */},
     { "tick",            TickCmd, INT_ARRAY    /* uint32 */},
 
+    { "music",           (CmdProc)MusicCmd, ASCII },
     { "sound2",          Sound2Cmd, MIXED      /* int8, int8, int8,  int8,
                                                 * int8, int8, chars, int8,
                                                 * chars
                                                 */},
-    { "music",           (CmdProc)MusicCmd, ASCII },
     { "anim",            AnimCmd, SHORT_ARRAY},
     { "smooth",          SmoothCmd, SHORT_ARRAY},
 
@@ -151,59 +163,99 @@ struct CmdMapping commands[] = {
     { "pickup",          PickupCmd, INT_ARRAY  /* uint32 */},
 };
 
+/**
+ * The number of entries in #commands.
+ */
 #define NCOMMANDS ((int)(sizeof(commands)/sizeof(struct CmdMapping)))
 
 /**
- * Basic little function that closes the connection to the server.
- * it seems better to have it one palce here than the same
- * logic sprinkled about in half a dozen locations in the code.
- * also useful in that if this logic does change, just one place
- * to update it.
+ * Closes the connection to the server.  It seems better to have it one place
+ * here than the same logic sprinkled about in half a dozen locations.  It is
+ * also useful in that if this logic does change, there is just one place to
+ * update it.
  */
-void close_server_connection()
-{
+void close_server_connection() {
 #ifdef WIN32
     closesocket(csocket.fd);
 #else
     close(csocket.fd);
 #endif
-    csocket.fd=-1;
+    csocket.fd = -1;
 }
 
+/**
+ * Continuously reads packets from the server, passes their commands to the
+ * script watcher, and then processes them.  Each packet contains only one
+ * command and any or no data associated with it.  Incomplete packets are
+ * ignored, and if a socket error occurs, the connection to the server is
+ * closed.
+ *
+ * @param csocket The socket that server commands are received from.
+ */
 void DoClient(ClientSocket *csocket)
 {
-    int i,len;
+    int i, len;
     unsigned char *data;
 
     while (1) {
-        i=SockList_ReadPacket(csocket->fd, &csocket->inbuf, MAXSOCKBUF-1);
-        if (i==-1) {
-            /* Need to add some better logic here */
+        i = SockList_ReadPacket(csocket->fd, &csocket->inbuf, MAXSOCKBUF - 1);
+        /*
+         * If a socket error occurred while reading the packet, drop the
+         * server connection.  Is there a better way to handle this?
+         */
+        if (i == -1) {
             close_server_connection();
             return;
         }
-        if (i==0) return;   /* Don't have a full packet */
-
-        /* Terminate the buffer */
-        csocket->inbuf.buf[csocket->inbuf.len]='\0';
-        data = csocket->inbuf.buf+2;
+        /*
+         * Drop incomplete packets without attempting to process the contents.
+         */
+        if (i == 0)
+            return;
+        /*
+         * Null-terminate the buffer, and set the data pointer so it points
+         * to the first character of the data (following the packet length).
+         */
+        csocket->inbuf.buf[csocket->inbuf.len] = '\0';
+        data = csocket->inbuf.buf + 2;
+        /*
+         * Commands that provide data are always followed by a space.  Find
+         * the space and convert it to a null character.  If no spaces are
+         * found, the packet contains a command with no associatd data.
+         */
         while ((*data != ' ') && (*data != '\0')) ++data;
         if (*data == ' ') {
-            *data='\0';
+            *data = '\0';
             data++;
             len = csocket->inbuf.len - (data - csocket->inbuf.buf);
+        } else {
+            len = 0;
         }
-        else len = 0;
-        for(i=0;i < NCOMMANDS;i++) {
+        /*
+         * Search for the command in the list of supported server commands.
+         * If the server command is supported by the client, let the script
+         * watcher know what command was received, then process it and quit
+         * searching the command list.
+         */
+        for(i = 0; i < NCOMMANDS; i++) {
             if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {
                 script_watch((char*)csocket->inbuf.buf+2,data,len,commands[i].cmdformat);
                 commands[i].cmdproc(data,len);
                 break;
             }
         }
+        /*
+         * After processing the command, mark the socket input buffer empty.
+         */
         csocket->inbuf.len=0;
+        /*
+         * Complain about unsupported commands to facilitate troubleshooting.
+         * The client and server should negotiate a connection such that the
+         * server does not send commands the client does not support.
+         */
         if (i == NCOMMANDS) {
-            printf("Bad command from server (%s)\n",csocket->inbuf.buf+2);
+            printf("Unrecognized command from server (%s)\n",
+                csocket->inbuf.buf+2);
         }
     }
 }
@@ -221,11 +273,15 @@ void DoClient(ClientSocket *csocket)
 #endif
 
 /**
- * Return the file descripter of a connected socket, -1 on failure.  In the
- * case where HAVE_GETADDRINFO is true, a timeout connect() is implemented to
- * avoid very long (3 minute) client freeze-up when a host is not reachable.
- * It is easy for this to happen if a cached server entry is used instead of
- * metaserver results.
+ * Attempt to establish a socket connection to a specified server and port.
+ * In the case where HAVE_GETADDRINFO is true, a timeout connect() is
+ * implemented to avoid very long (3 minute) client freeze-up when a host is
+ * not reachable.  It is easy for this to happen if a cached server entry is
+ * used instead of metaserver results.
+ *
+ * @param host Host name or address of the server.
+ * @param port Port name to use when connecting to the server.
+ * @return     File descripter of the connected socket, or, -1 on failure.
  */
 int init_connection(char *host, int port)
 {
@@ -235,12 +291,11 @@ int init_connection(char *host, int port)
     struct sockaddr_in insock;
     struct protoent *protox;
 
-    /* In my case, an empty host will be saved as (null) in
-     * the defaults file.  However, upon loading, that doesn't
-     * show up as a NULL, but rather this string.  For whatever
-     * reasons, at least on my system, the lookup of this takes
-     * a long time, and it isn't a valid host name in any case,
-     * so just abort quickly
+    /*
+     * An empty host is sometimes  saved as (null) in the defaults file, but,
+     * on load, that does not get handled as a NULL.  When that happens, the
+     * lookup of this invalid hostname takes a long time, and it isn't a valid
+     * host name in any case, so just abort quickly.
      */
     if (!strcmp(host,"(null)")) return -1;
 
@@ -298,7 +353,6 @@ int init_connection(char *host, int port)
 
     if (getaddrinfo(host, port_str, &hints, &res) != 0)
         return -1;
-
     /*
      * Assume that an error will not occur and that the socket is left open.
      */
@@ -477,7 +531,13 @@ int init_connection(char *host, int port)
     return fd;
 }
 
-/* This function negotiates/establishes the connection with the server.
+/**
+ * This function negotiates the characteriistics of a connection to the
+ * server.  Negotiation consists of asking the server for commands it wants,
+ * and checking protocol version for compatibility.  Serious incompatibilities
+ * abort the connection.
+ *
+ * @param sound Non-zero to ask for sound and music commands.
  */
 void negotiate_connection(int sound)
 {
@@ -529,16 +589,16 @@ void negotiate_connection(int sound)
         "faceset %d facecache %d want_pickup 1 loginmethod %d newmapcmd 1",
         (sound >= 0) ? 3 : 0, want_config[CONFIG_LIGHTING] ? 1 : 0,
         face_info.faceset, want_config[CONFIG_CACHE], wantloginmethod);
-
-    /* We can do this right now also - isn't any reason to wait */
+    /*
+     * We can do this right now also.  There is not any reason to wait.
+     */
     cs_print_string(csocket.fd, "requestinfo skill_info");
     cs_print_string(csocket.fd,"requestinfo exp_table");
-
-    /* While these are only used for new login method, that
-     * should hopefully become standard fairly soon, and
-     * all of these are pretty small in any case, so don't
-     * add much to the cost.  In this way, we are more likely
-     * to have the information ready when we bring up the window.
+    /*
+     * While these are only used for new login method, they should become
+     * standard fairly soon.  All of these are pretty small, and do not add
+     * much to the cost.  They make it more likely that the information is
+     * ready when the window that needs it is raised.
      */
     cs_print_string(csocket.fd,"requestinfo motd");
     cs_print_string(csocket.fd,"requestinfo news");
@@ -568,20 +628,22 @@ void negotiate_connection(int sound)
 
         do {
             DoClient(&csocket);
-
-            /* it's rare, the connection can die while getting this info.
+            /*
+             * It is rare, but the connection can die while getting this info.
              */
             if (csocket.fd == -1) return;
 
             if (use_config[CONFIG_DOWNLOAD]) {
-                /* we need to know how many faces to be able to make the
+                /*
+                 * We need to know how many faces to be able to make the
                  * request intelligently.  So only do the following block if
                  * we have that info.  By setting the sent flag, we will never
                  * exit this loop until that happens.
                  */
                 requestinfo_sent |= RI_IMAGE_SUMS;
                 if (face_info.num_images != 0) {
-                    /* Sort of fake things out - if we have sent the request
+                    /*
+                     * Sort of fake things out - if we have sent the request
                      * for image sums but have not got them all answered yet,
                      * we then clear the bit from the status so we continue to
                      * loop.
@@ -593,7 +655,8 @@ void negotiate_connection(int sound)
                             image_update_download_status(face_info.num_images, face_info.num_images, face_info.num_images);
                         }
                     } else {
-                        /* If we are all caught up, request another 100 sums.
+                        /*
+                         * If we are all caught up, request another 100 sums.
                          */
                         if (last_end <= (replyinfo_last_face+100)) {
                             last_start += 100;
@@ -607,11 +670,11 @@ void negotiate_connection(int sound)
             } /* endif download all faces */
 
             usleep(10*1000);    /* 10 milliseconds */
-            /* Don't put in an upper time limit with tries like we did above -
-             * if the player is downloading all the images, the time this
+            /*
+             * Do not put in an upper time limit with tries like we did above.
+             * If the player is downloading all the images, the time this
              * takes could be considerable.
              */
-
         } while (replyinfo_status != requestinfo_sent);
     }
     if (use_config[CONFIG_DOWNLOAD]) {
@@ -632,3 +695,4 @@ void negotiate_connection(int sound)
     if (!serverloginmethod)
         SendAddMe(csocket);
 }
+
