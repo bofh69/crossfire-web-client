@@ -47,31 +47,38 @@
 
 extern char VERSION_INFO[256];
 
-/* Don't send more than this many outstanding commands to the server this is
+/**
+ * Do not send more than this many outstanding commands to the server this is
  * only a default value.
  */
 #define COMMAND_WINDOW 10
 
 #define STRINGCOMMAND 0
 
-/* How many skill types server supports/client will get sent to it.  If more
+/**
+ * How many skill types server supports/client will get sent to it.  If more
  * skills are added to server, this needs to get increased.
  */
-#define MAX_SKILL   CS_NUM_SKILLS
+#define MAX_SKILL CS_NUM_SKILLS
 
 #define MAXANIM 2000
 
-/* Values for send_command option */
-
-#define SC_NORMAL 0
+/**
+ * @defgroup SC_xxx SC_xxx send_command options.
+ * Values assigned to send_command option.
+ */
+/*@{*/
+#define SC_NORMAL  0
 #define SC_FIRERUN 1
-#define SC_ALWAYS 2
+#define SC_ALWAYS  2
+/*@}*/
 
 typedef struct Animations {
     uint16  flags;
-    uint8   num_animations; /* number of animations.  Value of 2 means
-                             * only faces[0],[1] have meaningful values.
-                             */
+    uint8   num_animations;             /**< Number of animations.  Value of 2
+                                         *   means only faces[0],[1] have
+                                         *   meaningful values.
+                                         */
     uint8   speed;
     uint8   speed_left;
     uint8   phase;
@@ -88,20 +95,25 @@ extern Animations animations[MAXANIM];
                                         || (__SQUARE.smooth[layer])            \
                                      )
 
-/* ClientSocket could probably hold more of the global values - it could
- * probably hold most all socket/communication related values instead of
- * globals.
+/**
+ * Basic support for sockent communications, includeing the file descriptor,
+ * input buffer, server, server, version, etc. ClientSocket could probably
+ * hold more of the global values - it could probably hold most all
+ * socket/communication related values instead of globals.
  */
 typedef struct ClientSocket {
-    int	fd;
-    SockList	inbuf;
-    int	cs_version, sc_version;	/* Server versions of these */
-    /* These are used for the newer 'windowing' method of commands -
-     * number of last command sent, number of received confirmation
-     */
-    int command_sent, command_received;
-    /* Time (in ms) players commands currently take to execute */
-    int command_time;
+    int fd;
+    SockList    inbuf;
+    int cs_version, sc_version;         /**< Server versions of these
+                                         */
+    int command_sent, command_received; /**< These are used for the newer
+                                         *   'windowing' method of commands -
+                                         *   number of last command sent,
+                                         *   number of received confirmation
+                                         */
+    int command_time;                   /**< Time (in ms) players commands
+                                         *   currently take to execute
+                                         */
     char* servername;
 } ClientSocket;
 
@@ -109,8 +121,10 @@ extern ClientSocket csocket;
 
 extern char *server, *client_libdir,*image_file, *sound_server;
 
-typedef enum Input_State {Playing, Reply_One, Reply_Many,
-	Configure_Keys, Command_Mode, Metaserver_Select} Input_State;
+typedef enum Input_State {
+    Playing, Reply_One, Reply_Many, Configure_Keys, Command_Mode,
+    Metaserver_Select
+} Input_State;
 
 typedef enum rangetype {
   range_bottom = -1, range_none = 0, range_bow = 1, range_magic = 2,
@@ -119,7 +133,9 @@ typedef enum rangetype {
   range_size = 8
 } rangetype;
 
-/* This is a structure that contains most all of the configuration options.
+/**
+ * @defgroup CONFIG_xxx CONFIG_xxx want_config array indices.
+ * Definitions to index into an array of most of the configuration options.
  *
  * Instead of having a whole mess of variables of different names, instead use
  * a common 16 bit signed array, and index into these - this makes processing
@@ -150,59 +166,71 @@ typedef enum rangetype {
  *
  * and probably other places, if you add a new option.
  */
-#define CONFIG_DOWNLOAD	    1
-#define CONFIG_ECHO	    2
-#define CONFIG_FASTTCP	    3
-#define CONFIG_CWINDOW	    4
-#define CONFIG_CACHE	    5
-#define CONFIG_FOGWAR	    6
-#define CONFIG_ICONSCALE    7
-#define CONFIG_MAPSCALE	    8
-#define CONFIG_POPUPS	    9
-#define CONFIG_DISPLAYMODE  10
-#define CONFIG_SHOWICON	    11
-#define CONFIG_TOOLTIPS	    12
-#define CONFIG_SOUND	    13
-#define CONFIG_SPLITINFO    14
-#define CONFIG_SPLITWIN	    15
-#define CONFIG_SHOWGRID	    16
-#define CONFIG_LIGHTING	    17
-#define CONFIG_TRIMINFO	    18
-#define CONFIG_MAPWIDTH	    19
-#define CONFIG_MAPHEIGHT    20
-#define CONFIG_FOODBEEP	    21
-#define CONFIG_DARKNESS	    22
-#define CONFIG_PORT	    23		/* Not sure if useful at all anymore */
-#define CONFIG_GRAD_COLOR   24
-#define CONFIG_RESISTS      25
-#define CONFIG_SMOOTH       26
-#define CONFIG_SPLASH	    27
-#define CONFIG_APPLY_CONTAINER	28	/* Reapply container */
-#define CONFIG_MAPSCROLL    29		/* Use bitmap operations for map scrolling */
-#define CONFIG_SIGNPOPUP    30
-#define CONFIG_TIMESTAMP    31
-#define CONFIG_NUMS	    32		/* This should always be the last value in the list */
+/*@{*/
+#define CONFIG_DOWNLOAD         1
+#define CONFIG_ECHO             2
+#define CONFIG_FASTTCP          3
+#define CONFIG_CWINDOW          4
+#define CONFIG_CACHE            5
+#define CONFIG_FOGWAR           6
+#define CONFIG_ICONSCALE        7
+#define CONFIG_MAPSCALE         8
+#define CONFIG_POPUPS           9
+#define CONFIG_DISPLAYMODE      10     /**< @sa CFG_DM_xxx */
+#define CONFIG_SHOWICON         11
+#define CONFIG_TOOLTIPS         12
+#define CONFIG_SOUND            13
+#define CONFIG_SPLITINFO        14
+#define CONFIG_SPLITWIN         15
+#define CONFIG_SHOWGRID         16
+#define CONFIG_LIGHTING         17      /**< @sa CFG_LT_xxx */
+#define CONFIG_TRIMINFO         18
+#define CONFIG_MAPWIDTH         19
+#define CONFIG_MAPHEIGHT        20
+#define CONFIG_FOODBEEP         21
+#define CONFIG_DARKNESS         22
+#define CONFIG_PORT             23      /**< Is this useful any morer? */
+#define CONFIG_GRAD_COLOR       24
+#define CONFIG_RESISTS          25
+#define CONFIG_SMOOTH           26
+#define CONFIG_SPLASH           27
+#define CONFIG_APPLY_CONTAINER  28      /**< Reapply container */
+#define CONFIG_MAPSCROLL        29      /**< Use bitmap operations for map
+                                             scrolling */
+#define CONFIG_SIGNPOPUP        30
+#define CONFIG_TIMESTAMP        31
+#define CONFIG_NUMS             32      /**< This should always be the last
+                                             value in the CONFIG_xxx list. */
+/*@}*/
 
-/* CONFIG_LIGHTING can have several possible values - set them accordingly */
-#define CFG_LT_NONE	    0
-#define CFG_LT_TILE	    1
-#define CFG_LT_PIXEL	    2
-#define CFG_LT_PIXEL_BEST   3
-
-/* CONFIG_DISPLAYMODE can have several possible values.  Give defines for the
- * possibilities.
+/**
+ * @defgroup CFG_LT_xxx CONFIG_LIGHTING values.
+ * Values that may be assigned to want_config[CONFIG_LIGHTING].
  */
-#define CFG_DM_PIXMAP	    0
-#define CFG_DM_SDL	    1
-#define CFG_DM_OPENGL	    2
+/*@{*/
+#define CFG_LT_NONE         0
+#define CFG_LT_TILE         1
+#define CFG_LT_PIXEL        2
+#define CFG_LT_PIXEL_BEST   3
+/*@}*/
+
+/**
+ * @defgroup CFG_DM_xxx CONFIG_DISPLAYMODE values.
+ * Values that may be assigned to want_config[CONFIG_DISPLAYMODE].
+ */
+/*@{*/
+#define CFG_DM_PIXMAP       0
+#define CFG_DM_SDL          1
+#define CFG_DM_OPENGL       2
+/*@}*/
 
 extern sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
 
 extern const char *const config_names[CONFIG_NUMS]; /**< See common/init.c -
-                                         * basically, this is a string to
-                                         * number mapping that is used when
-                                         * loading/saving the values.
-                                         */
+                                                     *   number mapping used
+                                                     *   when loading/saving
+                                                     *   the values.
+                                                     */
 typedef struct Stat_struct {
     sint8 Str;                          /**< Strength */
     sint8 Dex;                          /**< Dexterity */
@@ -327,10 +355,11 @@ typedef struct Player_Struct {
 #endif
 } Client_Player;
 
-/* This faceset information is pretty much grabbed right from
- * server/socket/image.c
+/**
+ * @defgroup MAX_xxx_xxx MAX_xxx_xxx Face and image constants.
+ * Faceset information is pretty much grabbed right from server/socket/image.c
  */
-
+/*@{*/
 #define MAX_FACE_SETS   20
 #define MAX_IMAGE_SIZE 320              /**< Maximum size of image in each
                                          *   direction.  This is needed for the
@@ -339,6 +368,8 @@ typedef struct Player_Struct {
                                          *   Increasing this would  likely only
                                          *   need a bigger footprint
                                          */
+/*@}*/
+
 typedef struct FaceSets_struct {
     uint8   setnum;                     /**<  */
     uint8   fallback;                   /**<  */
@@ -349,32 +380,36 @@ typedef struct FaceSets_struct {
     char    *comment;                   /**<  */
 } FaceSets;
 
-/* Make one struct that holds most of the image related data.  Reduces danger
- * of namespace collision.
+/**
+ * One struct that holds most of the image related data to reduce danger of
+ * namespace collision.
  */
 typedef struct Face_Information_struct {
     uint8   faceset;
     char    *want_faceset;
     sint16  num_images;
     uint32  bmaps_checksum, old_bmaps_checksum;
-    /* Just for debugging/logging purposes.  This is cleared on each new
+    /**
+     * Just for debugging/logging purposes.  This is cleared on each new
      * server connection.  This may not be 100% precise (as we increment
      * cache_hits when we find a suitable image to load - if the data is bad,
      * that would count as both a hit and miss.
      */
     sint16  cache_hits, cache_misses;
-    uint8	have_faceset_info;	/**< Simple value to know if there is
-                                          * data in facesets[] */
-    FaceSets	facesets[MAX_FACE_SETS];
+    uint8   have_faceset_info;          /**< Simple value to know if there is
+                                         *   data in facesets[].
+                                         */
+    FaceSets    facesets[MAX_FACE_SETS];
 } Face_Information;
 
 extern Face_Information face_info;
 
-extern Client_Player cpl;		/**< Player object. */
+extern Client_Player cpl;               /**< Player object. */
 extern char *skill_names[MAX_SKILL];
 
 extern int last_used_skills[MAX_SKILL+1]; /**< maps position to skill id with
-                                           *  trailing zero as stop mark */
+                                           *  trailing zero as stop mark.
+                                           */
 
 typedef enum LogLevel {
   LOG_DEBUG = 0, LOG_INFO = 1, LOG_WARNING = 2, LOG_ERROR = 3, LOG_CRITICAL = 4
@@ -411,14 +446,14 @@ typedef void (*LogListener)(LogEntry*);
 typedef struct PipeLog {
     char* name;
     LogLevel level;
-    int log; /*yes or no to log*/
+    int log;                            /**< To log or not to log. */
 }PipeLog;
 
-#define CHILD_STDIN 1
-#define CHILD_STDOUT 2
-#define CHILD_STDERR 4
+#define CHILD_STDIN      1
+#define CHILD_STDOUT     2
+#define CHILD_STDERR     4
 #define CHILD_SILENTFAIL 8
-#define CHILD_TUBE (CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR)
+#define CHILD_TUBE       (CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR)
 typedef struct ChildProcess{
     char* name;
     int flag;
@@ -428,67 +463,76 @@ typedef struct ChildProcess{
     struct ChildProcess* next;
 }ChildProcess;
 
-#define CHILD_PIPEIN(__child) (__child->tube[0])
+#define CHILD_PIPEIN(__child)  (__child->tube[0])
 #define CHILD_PIPEOUT(__child) (__child->tube[1])
 #define CHILD_PIPEERR(__child) (__child->tube[2])
 
-
 #ifndef CPROTO
-/* We need to declare most of the structs before we can include this */
+/*
+ * We need to declare most of the structs before we can include this
+ */
 #include <proto.h>
 #endif
 
-/* Translation of the STAT_RES names into printable names, in matching order.
+/**
+ * Translation of the STAT_RES names into printable names, in matching order.
  */
 #define NUM_RESISTS 18
+
 extern const char *const resists_name[NUM_RESISTS];
 extern char *meta_server;
 extern int meta_port;
 extern int metaserver_on, metaserver2_on, serverloginmethod, wantloginmethod;
-extern uint32	tick;
+extern uint32   tick;
 
-/* This is used to hold the names that correspond to skill and resistance numbers */
+/**
+ * Holds the names that correspond to skill and resistance numbers.
+ */
 typedef struct {
     const char *name;
-    int     value;
+    int         value;
 } NameMapping;
 
 extern NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
 
-extern uint64	*exp_table;
-extern uint16	exp_table_max;
+extern uint64   *exp_table;
+extern uint16   exp_table_max;
 
-/* Map size the client will request the map to be.  The bigger it is, more
+/**
+ * Map size the client will request the map to be.  The bigger it is, more
  * memory it will use.
  */
-#define MAP_MAX_SIZE	31
+#define MAP_MAX_SIZE 31
 
-/* This is basically the smallest the map structure used for the client can
- * be.  It needs to be bigger than the min map size above simply because we
- * have to deal with off map big images, Also, we move the center point around
- * within this map, so that if the player moves one space, we don't have to
- * move around all the data.
+/**
+ * This is the smallest the map structure used for the client can be.  It
+ * needs to be bigger than the MAP_MAX_SIZE simply because we have to deal
+ * with off map big images, Also, the center point is moved around within this
+ * map, so that if the player moves one space, we don't have to move around
+ * all the data.
  */
-#define MIN_ALLOCATED_MAP_SIZE	MAP_MAX_SIZE * 2
+#define MIN_ALLOCATED_MAP_SIZE  MAP_MAX_SIZE * 2
 
-/* This is how many spaces an object might extend off the map.  Eg, for
- * bigimage stuff, the head of the image may be off the the map edge.  This is
- * the most it may be off.  This is needed To cover case of need_recenter_map
- * routines.
+/**
+ * How many spaces an object might extend off the map.  E.g. For bigimage
+ * stuff, the head of the image may be off the the map edge.  This is the most
+ * it may be off.  This is needed To cover case of need_recenter_map routines.
  */
-#define MAX_MAP_OFFSET	8
+#define MAX_MAP_OFFSET  8
 
 /* Start of map handling code.
+ *
  * For the most part, this actually is not window system specific, but
  * certainly how the client wants to store this may vary.
  */
 
 #define MAXPIXMAPNUM 10000
 
-/* This is used mostly in the cache.c file, however, it can be returned to the
- * graphic side of things so that they can update the image_data field.  Since
- * the common side has no idea what data the graphic side will point to, we
- * use a void pointer for that - it is completely up to the graphic side to
+/**
+ * Used mostly in the cache.c file, however, it can be returned to the graphic
+ * side of things so that they can update the image_data field.  Since the
+ * common side has no idea what data the graphic side will point to, we use a
+ * void pointer for that - it is completely up to the graphic side to
  * allocate/deallocate and cast that pointer as needed.
  */
 typedef struct Cache_Entry {
@@ -496,20 +540,24 @@ typedef struct Cache_Entry {
     uint32  checksum;
     uint32  ispublic:1;
     void    *image_data;
-    struct Cache_Entry	*next;
+    struct Cache_Entry  *next;
 } Cache_Entry;
 
-/* These values are used for various aspects of the library to hold state on
- * what requestinfo's we have gotten replyinfo for and what data was received.
- * In this way, common/client.c can loop until it has gotten replies for all
- * the requestinfos it has sent.  This can be useful - we don't want the addme
+/**
+ * @defgroup RI_IMAGE_xxx RI_IMAGE_xxx RequestInfo values.
+ * Values used for various aspects of the library to hold state on what
+ * requestinfo's we have gotten replyinfo for and what data was received.  In
+ * this way, common/client.c can loop until it has gotten replies for all the
+ * requestinfos it has sent.  This can be useful - we don't want the addme
  * command sent for example if we are going to use a different image set.  The
  * GUI stuff should really never change these variables, but I suppose I could
  * look at them for debugging/ status information.
  */
+/*@{*/
+#define RI_IMAGE_INFO 0x1
+#define RI_IMAGE_SUMS 0x2
+/*@}*/
 
-#define RI_IMAGE_INFO	    0x1
-#define RI_IMAGE_SUMS	    0x2
 extern int  replyinfo_status, requestinfo_sent, replyinfo_last_face;
 
 typedef struct PlayerPosition {
@@ -519,37 +567,44 @@ typedef struct PlayerPosition {
 
 extern PlayerPosition pl_pos;
 
-
 typedef struct Msg_Type_Names {
-    int        type;           /* type of message */
-    int        subtype;        /* subtype of message */
-    const char *style_name;    /* name of this message in the configfile */
+    int        type;                    /**< Type of message */
+    int        subtype;                 /**< Subtype of message */
+    const char *style_name;             /**< Name of this message in the
+                                         *   configfilei
+                                         */
 } Msg_Type_Names;
 
 extern TextManager* firstTextManager;
 
-/* declared/handled in commands.c */
-extern char *motd, *news, *rules;
+extern char *motd, *news, *rules;       /* Declared/handled in commands.c */
 
 #ifndef MIN
 #define MIN(X__,Y__) ( (X__)<(Y__)?(X__):(Y__) )
 #endif
 
-/* These are just used for passing in to update_login_info()
- * used instead of passing in strings
+/**
+ * @defgroup INFO_xxx INFO_xxx login information constants.
+ * Used for passing in to update_login_info() used instead of passing in the
+ * strings.
  */
-#define INFO_NEWS   1
-#define INFO_MOTD   2
-#define INFO_RULES  3
+/*@{*/
+#define INFO_NEWS  1
+#define INFO_MOTD  2
+#define INFO_RULES 3
+/*@}*/
 
-/* Add support for converting forward-slash delimited filespecs to WIN32
- * format when clients are built for that platform.  Client code that uses a
- * path reference builds paths in a buffer using forward slashes.  After
+/**
+ * @defgroup CONVERT_FILESPEC CONVERT_FILESPEC_TO_OS_FORMAT declarations.
+ * Support for converting forward-slash delimited filespecs to WIN32 format
+ * when clients are built for that platform.  Client code that uses a path
+ * reference builds paths in a buffer using forward slashes.  After
  * constructing the path, CONVERT_FILESPEC_TO_OS_FORMAT() is used on the
  * buffer.  On non-WIN32 platforms, the macro does nothing and the path is
  * used as-is.  On WIN32 platforms forward slashes found in the buffer are
  * converted to backslash characters.
  */
+/*@{*/
 #ifndef WIN32
 #define CONVERT_FILESPEC_TO_OS_FORMAT(path)
 #else
@@ -559,4 +614,5 @@ extern void replace_chars_with_string(
 #define CONVERT_FILESPEC_TO_OS_FORMAT(path) \
    replace_chars_with_string((path), sizeof(path), '/', "\\")
 #endif
+/*@}*/
 
