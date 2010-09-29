@@ -96,7 +96,7 @@ extern Animations animations[MAXANIM];
                                      )
 
 /**
- * Basic support for sockent communications, includeing the file descriptor,
+ * Basic support for socket communications, including the file descriptor,
  * input buffer, server, server, version, etc. ClientSocket could probably
  * hold more of the global values - it could probably hold most all
  * socket/communication related values instead of globals.
@@ -139,7 +139,7 @@ typedef enum rangetype {
  *
  * Instead of having a whole mess of variables of different names, instead use
  * a common 16 bit signed array, and index into these - this makes processing
- * in the gui aspect of the GTK client much easier.
+ * in the GUI aspect of the GTK client much easier.
  *
  * There are also 2 elements - want_options, and use_options.  The former is
  * what the player wants to use, the latter is what is currently in use.
@@ -148,7 +148,7 @@ typedef enum rangetype {
  * save them out, we save what the player wants, and not what is currently
  * being used.
  *
- * Note that all the gui interfaces may not use all these values, but making
+ * Note that all the GUI interfaces may not use all these values, but making
  * them available here makes it easy for the GUI to present a nice interface.
  *
  * 0 is intentially skipped so the index into this doesn't get a default if a
@@ -189,7 +189,7 @@ typedef enum rangetype {
 #define CONFIG_MAPHEIGHT        20
 #define CONFIG_FOODBEEP         21
 #define CONFIG_DARKNESS         22
-#define CONFIG_PORT             23      /**< Is this useful any morer? */
+#define CONFIG_PORT             23      /**< Is this useful any more? */
 #define CONFIG_GRAD_COLOR       24
 #define CONFIG_RESISTS          25
 #define CONFIG_SMOOTH           26
@@ -357,16 +357,16 @@ typedef struct Player_Struct {
 
 /**
  * @defgroup MAX_xxx_xxx MAX_xxx_xxx Face and image constants.
- * Faceset information is pretty much grabbed right from server/socket/image.c
+ * Faceset information pretty much grabbed right from server/socket/image.c.
  */
 /*@{*/
 #define MAX_FACE_SETS   20
 #define MAX_IMAGE_SIZE 320              /**< Maximum size of image in each
-                                         *   direction.  This is needed for the
-                                         *   x11 client, which wants to
-                                         *   initalize some data once.
-                                         *   Increasing this would  likely only
-                                         *   need a bigger footprint
+                                         *   direction.  Needed for the X11
+                                         *   client, which wants to initialize
+                                         *   some data once.  Increasing this
+                                         *   would likely only need a bigger
+                                         *   footprint.
                                          */
 /*@}*/
 
@@ -571,7 +571,7 @@ typedef struct Msg_Type_Names {
     int        type;                    /**< Type of message */
     int        subtype;                 /**< Subtype of message */
     const char *style_name;             /**< Name of this message in the
-                                         *   configfilei
+                                         *   configfile.
                                          */
 } Msg_Type_Names;
 
