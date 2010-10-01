@@ -128,7 +128,7 @@ void free_all_race_class_info(Race_Class_Info *data, int num_entries)
  * This extracts the data from a replyinfo race_info/class_info request.  We
  * only get this data if the client has made a requestinfo of this data.
  *
- * @parms data
+ * @param data
  * data returned from server.  Format is documented in protocol file.
  * @param len
  * length of data
