@@ -173,9 +173,8 @@ static void metaserver_save_cache(void) {
 
 /**
  * Add a server to the players server cache file.
- * @param name
- * @param ip
- * @return
+ * @param server_name
+ * @param server_ip
  */
 void metaserver_update_cache(const char *server_name, const char *server_ip) {
     int index;
