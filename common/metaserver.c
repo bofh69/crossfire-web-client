@@ -62,7 +62,7 @@ int meta_sort(Meta_Info *m1, Meta_Info *m2) { return strcasecmp(m1->hostname, m2
 /**
  * This checks the servers sc_version and cs_version to see
  * if they are compatible.
- * @parm entry
+ * @param entry
  * entry number in the metaservers array to check.
  * @return
  * 1 if this entry is compatible, 0 if it is not.  Note that this can
@@ -173,8 +173,8 @@ static void metaserver_save_cache(void) {
 
 /**
  * Add a server to the players server cache file.
- * @parm name
- * @parm ip
+ * @param name
+ * @param ip
  * @return
  */
 void metaserver_update_cache(const char *server_name, const char *server_ip) {
