@@ -323,9 +323,9 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 /**
  * Send a printf-formatted packet to the socket.
  *
- * @param fd      The socket to send to.
- * @param str     The printf format string.
- * @param varargs An optional list of values to fulfill the format string.
+ * @param fd  The socket to send to.
+ * @param str The printf format string.
+ * @param ... An optional list of values to fulfill the format string.
  */
 int cs_print_string(int fd, const char *str, ...)
 {
