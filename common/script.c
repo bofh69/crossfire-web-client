@@ -45,27 +45,27 @@ const char * const rcsid_common_script_c =
  *
  * Script Commands:
  *
- * watch <command type>
+ * watch {command type}
  *   whenever the server sends the given command type to the client, also send
  *   a copy to the script.
  *   Note that this checked before the client processes the command, so it will
  *   automatically handle new options that may be added in the future.
  *   If the command type is NULL, all commands are watched.
  *
- * unwatch <command type>
+ * unwatch {command type}
  *   turn off a previous watch command.  There may be a slight delay in
  *   response before the command is processed, so some unwanted data may
  *   still be sent to the script.
  *
- * request <data type>
+ * request {data type}
  *   have the client send the given data to the script.
  *
- * issue [<repeat> <must_send>] <command>
+ * issue [{repeat} {must_send}] {command}
  *   issue the specified command to the server.
- *   if <repeat> isn't numeric then the command is sent directly
+ *   if {repeat} isn't numeric then the command is sent directly
  *   For "lock" and "mark" only, the parameters are converted to binary.
  *
- * draw <color> <text>
+ * draw {color} {text}
  *   display the text in the specified color as if the server had sent
  *   a drawinfo command.
  *
@@ -75,8 +75,8 @@ const char * const rcsid_common_script_c =
  * unmonitor
  *   turn off monitoring.
  *
- * sync <#>
- *   wait until the server has acknowledged all but <#> commands have been
+ * sync {#}
+ *   wait until the server has acknowledged all but {#} commands have been
  *   received
  *
  * To implement this:
