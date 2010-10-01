@@ -542,14 +542,14 @@ on_button_return_login_clicked(GtkButton *button, gpointer user_data)
  * AccountPlayersCmd and data is from the accountplayers protocol command.
  * The parameters are data to add to the list store.
  *
- * @params name
- * @params class
- * @params race
- * @params face
- * @params party
- * @params map
- * @params level
- * @params faceno
+ * @param name
+ * @param class
+ * @param race
+ * @param face
+ * @param party
+ * @param map
+ * @param level
+ * @param faceno
  */
 void update_character_choose(const char *name, const char *class,
                              const char *race, const char *face,
@@ -820,8 +820,8 @@ on_button_new_cancel_clicked(GtkButton *button, gpointer user_data)
  * basically the same - if there is valid data in all of them, we try to
  * create an account - otherwise, we move to the next box.
  *
- * @params entry Entry box used to figure out what the next box is.
- * @params user_data Not used.
+ * @param entry Entry box used to figure out what the next box is.
+ * @param user_data Not used.
  */
 void
 on_entry_new_account(GtkEntry *entry, gpointer user_data) {
@@ -1152,7 +1152,7 @@ static void init_login_window(void)
  * news/motd/rules.  It is very possible that the window will get displayed
  * before we got a reply response, so this tells the client to update it.
  *
- *@params type What data just got updated - text string of motd/news/rules
+ *@param type What data just got updated - text string of motd/news/rules
  */
 void update_login_info(int type)
 {
