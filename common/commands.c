@@ -1821,7 +1821,7 @@ void PickupCmd(uint8 *data, int len) {
 /**
  * Handles a failure return from the server.
  *
- * @param data
+ * @param buf
  * buffer sent by server.
  * @param len
  * length of data.
