@@ -72,7 +72,6 @@ extern  const char * const usercolorname[NUM_COLORS];
 
 Info_Pane info_pane[NUM_TEXT_VIEWS];
 
-void draw_ext_info(int orig_color, int type, int subtype, char *message);
 extern  const char * const colorname[NUM_COLORS];
 
 /*
@@ -769,7 +768,7 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
 
 /**
  * This just does the work of taking text (which may have markup) and putting
- * it into the targetd pane.  This is a lower level than the draw_ext_info()
+ * it into the target pane.  This is a lower level than the draw_ext_info()
  * below, as it does not do message routing.  This is called from
  * draw_ext_info() below, as well as account.c to update news/motd/rules.
  *
@@ -777,6 +776,8 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
  * @param message Message that is parsed and displayed.
  * @param type    Type of the message - for default coloring information.
  * @param subtype Subtype of message - used for default coloring information.
+ * @param orig_color Legacy color hint not based on type that is used when a
+ *                   theme does not define a style for the message.
  * @note  Note both type and subtype are the values passed to draw_ext_info().
  */
 
