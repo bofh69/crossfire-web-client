@@ -491,10 +491,6 @@ static void do_num_free_items(const char * ignored) {
     LOG(LOG_INFO,"common::extended_command","num_free_items=%d", num_free_items());
 }
 
-/**
- *
- * @param arg
- */
 static void do_clienthelp(const char * arg); /* Forward. */
 
 /* Help "typecasters". */
@@ -659,14 +655,6 @@ static const char * help_showweight(void) {
             " dmalloc     - Check heap?");
 #endif
 */
-
-/* Forward. */
-
-/**
- *
- * @param currently_ignored
- */
-static void do_clienthelp(const char * currently_ignored);
 
 /* TODO Wrap these? Um. */
 static ConsoleCommand CommonCommands[] = {
