@@ -358,21 +358,25 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
  * Note - profile shows this is a very costly function - of a small run,
  * 77% of the time of the cpu time for the client was in this function.
  *
- * @param tl
- * @param tr
- * @param bl
- * @param br
- * @param width
- * @param height
- * @param startx Coordinate of the top left corner.
- * @param starty Coordinate of the top left corner.
- * @param destx Coordinate of top left corner in destination map.
- * @param desty Coordinate of top left corner in destination map.
+ * @param tl     color
+ * @param tr     color
+ * @param bl     color
+ * @param br     color
+ * @param width  color square size
+ * @param height color square size
+ * @param startx Top left corner of the interpolation region.
+ * @param starty Top left corner of the interpolation region.
+ * @param endx   Bottom right corner of the interpolation region.
+ * @param endy   Bottom right corner of the interpolation region.
+ * @param destx  Coordinate of top left corner in destination map, or where in
+ *               the lightmap to save the result.
+ * @param desty  Coordinate of top left corner in destination map, or where in
+ *               the lightmap to save the result.
  */
-void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,                /*colors*/
-                             int width, int height,                         /*color square size*/
-                             int startx, int starty, int endx, int endy,    /*interpolation region*/
-                             int destx, int desty){                         /*where in lightmap to save result*/
+void drawquarterlightmap_sdl(int tl, int tr, int bl, int br,
+                             int width, int height,
+                             int startx, int starty, int endx, int endy,
+                             int destx, int desty){
         int x,y;
         int top,bottom,val;
         for (x=startx;x<endx;x++){
