@@ -109,9 +109,9 @@ static const char * const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
  * client theme if one is selected.  First, the player-specific rc files are
  * added to the GTK rc default files list.  ${HOME}/.crossfire/gtkrc is added
  * first.  All client sessions are affected by this rc file if it exists.
- * Next, ${HOME}/.crossfire/<layout>.gtkrc is added, where <layout> is the
+ * Next, ${HOME}/.crossfire/[layout].gtkrc is added, where [layout] is the
  * name of the .glade file that is loaded.  IE. If gtk-v2.glade is loaded,
- * <layout> is "gtk-v2".  This sets up the possibility for a player to make a
+ * [layout] is "gtk-v2".  This sets up the possibility for a player to make a
  * layout-specific rc file.  Finally, if the client theme is not "None", the
  * client theme file is added.  In most cases, the player-specific files are
  * probably not going to exist, so the theme system will continue to work the
