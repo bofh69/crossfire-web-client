@@ -235,6 +235,10 @@ void enable_menu_items(int enable)
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_jewels_activate), NULL);
 
+    widget = glade_xml_get_widget(xml_tree, "containers");
+    g_signal_connect ((gpointer) widget, "activate",
+        G_CALLBACK (on_menu_containers_activate), NULL);
+
     widget = glade_xml_get_widget(xml_tree, "all_weapons");
     g_signal_connect ((gpointer) widget, "activate",
         G_CALLBACK (on_menu_all_weapons_activate), NULL);

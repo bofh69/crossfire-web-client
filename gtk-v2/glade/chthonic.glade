@@ -286,6 +286,13 @@
                           </widget>
                         </child>
                         <child>
+                          <widget class="GtkCheckMenuItem" id="containers">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Containers</property>
+                            <property name="use_underline">True</property>
+                          </widget>
+                        </child>
+                        <child>
                           <widget class="GtkMenuItem" id="weapons">
                             <property name="visible">True</property>
                             <property name="label" translatable="yes">Weapons</property>

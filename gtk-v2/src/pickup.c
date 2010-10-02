@@ -95,6 +95,7 @@ static int num_pickups=0;
 #define PU_NOT_CURSED           0x01000000
 #define PU_JEWELS               0x02000000
 #define PU_FLESH                0x04000000
+#define PU_CONTAINERS           0x08000000
 
 static unsigned int pmode=0, no_recurse=0;
 
@@ -275,6 +276,13 @@ on_menu_jewels_activate                  (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_JEWELS);
+}
+
+void
+on_menu_containers_activate                  (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+    new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_CONTAINERS);
 }
 
 void
@@ -528,6 +536,11 @@ void pickup_init(GtkWidget *window_root)
     pickup_mapping[num_pickups].menuitem =
         glade_xml_get_widget(xml_tree, "jewels");
     pickup_mapping[num_pickups].pickup_mode = PU_JEWELS;
+    num_pickups++;
+
+    pickup_mapping[num_pickups].menuitem =
+        glade_xml_get_widget(xml_tree, "containers");
+    pickup_mapping[num_pickups].pickup_mode = PU_CONTAINERS;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
