@@ -19,14 +19,15 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-
 bin_PROGRAMS = cfsndserv @ALSA9_TARGET@
 
 EXTRA_PROGRAMS = cfsndserv_alsa9
 
 EXTRA_DIST = common.c common.h def_sounds.h sndproto.h sounds.dist
 
-AM_CPPFLAGS = -I$(top_srcdir)/common
+AM_CFLAGS = \
+	-I$(top_srcdir)/common \
+	-I$(top_srcdir)/common/shared
 
 noinst_HEADERS = \
         def_sounds.h \
@@ -74,6 +75,7 @@ PROTO_SOURCES = \
 	common.c
 
 proto:
-	cproto -e -o sndproto.h $(DEFAULT_INCLUDES) $(INCLUDES) $(PROTO_SOURCES)
+	cproto -e -o sndproto.h \
+	    $(DEFAULT_INCLUDES) $(AM_CFLAGS) $(PROTO_SOURCES)
 	chmod 644 sndproto.h
 
