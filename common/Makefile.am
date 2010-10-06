@@ -72,10 +72,10 @@ proto:
 	chmod 644 proto.h
 
 item-types.h: item-types
-	$(PERL) items.pl
+	$(PERL) $(srcdir)/items.pl $(srcdir)
 
 def-keys.h: def-keys
-	../utils/mdk.sh
+	$(srcdir)/../utils/mdk.sh $(srcdir)
 
 $(srcdir)/msgtypes.h: $(srcdir)/shared/newclient.h
 	$(PERL) $(srcdir)/msgtypes.pl $(srcdir)

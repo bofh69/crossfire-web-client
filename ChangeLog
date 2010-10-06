@@ -2,9 +2,12 @@
 Top of SVN tree:
 ==============================================================================
 
+Fix out of tree build. common/Makefile.am called some scripts that were not
+properly handling the case of source directory and build directory differing.
+Arvid Norlander 2010-10-06
+
 Add 'containers' pickup menu item.
 Nicolas Weeger 2010-10-02
-
 
 configure.ac - Back out the 2.18.0 dependency by converting the dependent
 functions to code that is compatible with older GTK.  This was positively

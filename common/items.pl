@@ -7,7 +7,7 @@ $SUBS=64;
 
 $lastval=-1;
 
-open(ITEMS,"<item-types") || die("can not open item-types file");
+open(ITEMS,"<$ARGV[0]/item-types") || die("can not open item-types file");
 while(<ITEMS>) {
 	next if (/^#/ || /^\s*$/);
 	if (/^(\d*):/) {
