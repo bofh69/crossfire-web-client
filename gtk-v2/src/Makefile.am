@@ -22,7 +22,9 @@
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-	-I$(top_srcdir)/common -I$(top_srcdir)/help
+	-I$(top_srcdir)/common \
+	-I$(top_srcdir)/common/shared \
+	-I$(top_srcdir)/help
 
 AM_CFLAGS = \
 	$(PTHREAD_CFLAGS) \
@@ -54,8 +56,11 @@ PROTO_SOURCES = \
 	stats.c
 
 crossfire_client_gtk2_SOURCES = \
-	$(PROTO_SOURCES) \
-	image.h info.h main.h gtk2proto.h
+	image.h \
+	info.h \
+	main.h \
+	gtk2proto.h \
+	$(PROTO_SOURCES)
 
 crossfire_client_gtk2_LDADD = ../../common/libcfclient.a $(PTHREAD_LIBS) @LIBGLADE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@
 
@@ -64,8 +69,12 @@ crossfire_client_gtk2_LDADD = ../../common/libcfclient.a $(PTHREAD_LIBS) @LIBGLA
 # commented out here for portability reasons.  Is there a good way to do this?
 # Removing PTHREAD_CFLAGS from here used to work, but something put it back.
 #
-proto:  PROTO_DIRTY = $(SDL_CFLAGS) $(LIBGLADE_CFLAGS) $(DEFAULT_INCLUDES) \
-                      $(INCLUDES) $(PROTO_SOURCES)
+proto:  PROTO_DIRTY = \
+	$(INCLUDES) \
+	$(SDL_CFLAGS) \
+	$(LIBGLADE_CFLAGS) \
+	$(PROTO_SOURCES)
+
 # proto:  PROTO_CLEAN = $(filter-out -pthread,$(PROTO_DIRTY))
 # proto:
 # 	cproto -e -o gtk2proto.h $(PROTO_CLEAN); \
