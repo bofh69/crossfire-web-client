@@ -137,7 +137,7 @@ void play_sound(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
         sound_process = NULL;
         return;
     }
-#if 0
+#if 1
     else
         LOG(LOG_INFO, "gtk-v2::play_sound",
             format, x, y, dir, vol, type, sound, source);
@@ -160,8 +160,8 @@ void Sound2Cmd(unsigned char *data, int len) {
     char* sound = NULL;
     char* source = NULL;
 
-    /** sound2 <x><y><dir><volume><type><len_sound>sound<len_source>source
-     *          b  b  b    b       b     b         str   b          str
+    /** sound2 {x}{y}{dir}{volume}{type}{len_sound}{sound}{len_source}{source}
+     *          b  b  b    b       b     b          str    b           str
      */
     if (len < 8) {
         LOG(LOG_WARNING,
@@ -210,7 +210,7 @@ void Sound2Cmd(unsigned char *data, int len) {
         data[6 + len_sound + 1 + len_source] = '\0';
     }
 
-#if 0
+#if 1
     LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd",
         x, y, dir, vol, type);
     LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "               len_sound=%hhd sound=%s", len_sound, sound);
@@ -233,7 +233,7 @@ void Sound2Cmd(unsigned char *data, int len) {
 void MusicCmd(const char *data, int len) {
 #ifndef WIN32
     /**
-     * music <string>
+     * music {string}
      */
     if (! use_config[CONFIG_SOUND])
         return;
@@ -259,7 +259,7 @@ void MusicCmd(const char *data, int len) {
         sound_process = NULL;
         return;
     }
-#if 0
+#if 1
     else
         LOG(LOG_INFO, "gtk-v2::MusicCmd", "\"%s\"", data);
 #endif
