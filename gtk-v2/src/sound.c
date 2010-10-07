@@ -96,51 +96,73 @@ int init_sounds(void)
 }
 
 /**
- * Plays sound 'soundnum'.  This procedure seems to be very slow - much slower
- * than expected.  It might need to run in a thread or fork off.
+ * Initiates playing of a sound effect, specified by name and type, to
+ * cfsndserv via a pipe.
  *
- * @param soundnum  The sound to play.
- * @param soundtype Zero for normal sounds, 1 for spell_sounds.  This might
- *                  get extended in the future.
- * @param x         Offset (assumed from player) to play sound used to
- *                  determine value and left vs right speaker balance.
- * @param y         Offset (assumed from player) to play sound used to
- *                  determine value and left vs right speaker balance.
+ * @param x      Offset of the sound relative to the player.
+ * @param y      Offset of the sound relative to the player.
+ * @param dir    The direction the sound is moving toward, where north = 1,
+ *               northeast = 2, and so on.  0 indicates a stationary source.
+ * @param vol    A value from 0 through 100 inclusive that suggests the
+ *               relative loudness of the sound effect.
+ * @param type   See server doc/Developers/sound for details.  1 is a sound
+ *               related to living things.  2 is a spell-related sound.  3 is
+ *               is made by an item.  4 is created by the environment.  5 is a
+ *               sound of an attack.  6 is a sound of a incoming hit.  This is
+ *               list may grow over time.
+ * @param sound  A descriptive name for the sound effect to play.  It usually
+ *               describes the sound itself, and may be combined with the type
+ *               and source name to select the file to play.
+ * @param source The name of the sound emitter.  It is used in combination
+ *               with type and sound to determine which file to play.
  */
-static void play_sound(int soundnum, int soundtype, int x, int y)
-{
+void play_sound(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
+                const char *sound, const char *source) {
 #ifndef WIN32
-    if (!use_config[CONFIG_SOUND]) return;
-    if ( (fprintf(sound_pipe,"%4x %4x %4x %4x\n",soundnum,soundtype,x,y)<=0) ||
-         (fflush(sound_pipe)!=0) ){
-        LOG(LOG_ERROR,"gtk-v2::play_sound","couldn't write to sound pipe: %d",errno);
-        use_config[CONFIG_SOUND]=0;
+    /**
+     * cfsndserv recognizes sound commands by seeing the numeric parameters at
+     * the beginning of the command line.
+     */
+    char format[] = "%4x %4x %4x %4x %4x \"%s\" \"%s\"\n";
+
+    if (! use_config[CONFIG_SOUND])
+        return;
+
+    if ((fprintf(sound_pipe, format, x, y, dir, vol, type, sound, source) <= 0)
+    ||  (fflush(sound_pipe) != 0)) {
+        LOG(LOG_ERROR,
+            "gtk-v2::play_sound", "Cannot write sound pipe: %d", errno);
+        use_config[CONFIG_SOUND] = 0;
         fclose(sound_pipe);
-        sound_process=NULL;
+        sound_process = NULL;
         return;
     }
+#if 0
+    else
+        LOG(LOG_INFO, "gtk-v2::play_sound",
+            format, x, y, dir, vol, type, sound, source);
+#endif
 #endif
 }
 
 /**
  * Parse the data contained by a sound2 command coming from the server and
- * handle playing the specified sound.
+ * handle playing the specified sound.  See server doc/Developers/sound for
+ * details.
  *
  * @param data Data provided following the sound2 command from the server.
  * @param len  Length of the sound2 command data.
  */
-void Sound2Cmd(unsigned char *data, int len)
-{
+void Sound2Cmd(unsigned char *data, int len) {
 #ifndef WIN32
     sint8 x, y;
-    uint8 dir, volume, type, len_action;
-    char* action = NULL;
-    uint8 len_name;
-    char* name = NULL;
+    uint8 dir, vol, type, len_sound, len_source;
+    char* sound = NULL;
+    char* source = NULL;
 
-    /* sound2 <x><y><dir><volume><type><len_action>action<len_name>name */
-    /*         b  b  b    b       b     b          str    b        str  */
-
+    /** sound2 <x><y><dir><volume><type><len_sound>sound<len_source>source
+     *          b  b  b    b       b     b         str   b          str
+     */
     if (len < 8) {
         LOG(LOG_WARNING,
             "gtk-v2::Sound2Cmd", "Sound command too short: %d\n bytes", len);
@@ -150,71 +172,96 @@ void Sound2Cmd(unsigned char *data, int len)
     x = data[0];
     y = data[1];
     dir = data[2];
-    volume = data[3];
+    vol = data[3];
     type = data[4];
-    len_action = data[5];
+    len_sound = data[5];
     /*
      * The minimum size of data is 1 for each byte in the command (7) plus the
-     * size of the action string.  If we do not have that, the data is bogus.
+     * size of the sound string.  If we do not have that, the data is bogus.
      */
-    if (6 + len_action + 1 > len) {
+    if (6 + len_sound + 1 > len) {
         LOG(LOG_WARNING,
-            "gtk-v2::Sound2Cmd", "action length check: %i len: %i\n",
-                len_action, len);
+            "gtk-v2::Sound2Cmd", "sound length check: %i len: %i\n",
+                len_sound, len);
         return;
     }
 
-    len_name = data[6 + len_action];
-    if (len_action != 0) {
-        action = (char*) data + 6;
-        data[6 + len_action] = '\0';
+    len_source = data[6 + len_sound];
+    if (len_sound != 0) {
+        sound = (char*) data + 6;
+        data[6 + len_sound] = '\0';
     }
     /*
      * The minimum size of data is 1 for each byte in the command (7) plus the
-     * size of the action string, and the size of the name string.
+     * size of the sound string, and the size of the source string.
      */
-    if (6 + len_action + 1 + len_name > len) {
+    if (6 + len_sound + 1 + len_source > len) {
         LOG(LOG_WARNING,
-            "gtk-v2::Sound2Cmd", "name length check: %i len: %i\n",
-                len_name, len);
+            "gtk-v2::Sound2Cmd", "source length check: %i len: %i\n",
+                len_source, len);
         return;
     }
-
-    if (len_name != 0) {
-        name = (char*) data + 6 + len_action + 1;
-        data[6 + len_action + 1 + len_name] = '\0';
+    /**
+     * Though it looks like there is potential for writing a null off the end
+     * of the buffer, there is always room for a null (@sa do_client()).
+     */
+    if (len_source != 0) {
+        source = (char*) data + 6 + len_sound + 1;
+        data[6 + len_sound + 1 + len_source] = '\0';
     }
 
+#if 0
     LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd",
-        x, y, dir, volume, type);
-    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "               len_action=%hhd action=%s", len_action, action);
-    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "               len_name=%hhd name=%s", len_name, name);
-    LOG(LOG_WARNING, "gtk-v2::Sound2Cmd", "Please implement sound2!");
-    /*
-     * TODO: Play sound here. Can't implement/test as server never actually
-     * sends this yet it seems. As this code is mostly duplicated between the
-     * different clients, make sure to update the other ones too.
-     */
+        x, y, dir, vol, type);
+    LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "               len_sound=%hhd sound=%s", len_sound, sound);
+    LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "               len_source=%hhd source=%s", len_source, source);
+#endif
+
+    play_sound(x, y, dir, vol, type, sound, source);
 #endif
 }
 
 /**
  * Parse the data contained by a music command coming from the server and
- * handle playing the specified song.
+ * pass the name along to cfsndserv as a quoted string.
  *
- * @param data Data provided following the sound2 command from the server.
- * @param len  Length of the sound2 command data.
+ * @param data Data provided following the music command from the server
+ *             that hints what kind of music should play.  NONE is an
+ *             indication that music should stop playing.
+ * @param len  Length of the string describing the music to play.
  */
 void MusicCmd(const char *data, int len) {
 #ifndef WIN32
-    if (!strncmp(data, "NONE", len)) {
-        /* TODO stop music */
-    } else {
-        LOG(LOG_WARNING, "gtk-v2::MusicCmd", "music command: %s (Implement me!)\n", data);
-        /*
-         * TODO: Play music. Can't implement/test as server doesn't send this
-         * version of the command yet it seems.
-         */
+    /**
+     * music <string>
+     */
+    if (! use_config[CONFIG_SOUND])
+        return;
+    /*
+     * The client puts a null character at the end of the data.  If one is not
+     * there, ignore the command.
+     */
+    if (data[len]) {
+        LOG(LOG_ERROR,
+            "gtk-v2::MusicCmd", "Music command buffer not null-terminated.");
+        return;
     }
+    /**
+     * cfsndserv recognizes music commands by seeing the quoted string as the
+     * first item on the command line.
+     */
+    if ((fprintf(sound_pipe, "\"%s\"\n", data) <= 0)
+    ||  (fflush(sound_pipe) != 0)) {
+        LOG(LOG_ERROR,
+            "gtk-v2::MusicCmd", "Cannot write sound pipe: %d", errno);
+        use_config[CONFIG_SOUND] = 0;
+        fclose(sound_pipe);
+        sound_process = NULL;
+        return;
+    }
+#if 0
+    else
+        LOG(LOG_INFO, "gtk-v2::MusicCmd", "\"%s\"", data);
+#endif
 #endif
 }

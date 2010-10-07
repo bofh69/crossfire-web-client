@@ -2,6 +2,15 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/src/sound.c: Converted the Sound2Cmd() and play_sound() functions to
+correspond with the sound2 protocol.  Neither the client nor the server
+support the legacy sound protocol.  Sound has been broken in this client
+ever since the legacy protocol was removed.  This change is made in
+preparation for a cfsndserv re-write that is necessary to support sounds.
+Added a MusicCmd() function to accept music commands from the server and to
+pass them on to cfsndserv.
+Kevin Bulgrien 2010-10-06
+
 Fix out of tree build. common/Makefile.am called some scripts that were not
 properly handling the case of source directory and build directory differing.
 Arvid Norlander 2010-10-06
