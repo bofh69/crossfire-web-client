@@ -160,8 +160,13 @@ void Sound2Cmd(unsigned char *data, int len) {
     char* sound = NULL;
     char* source = NULL;
 
-    /** sound2 {x}{y}{dir}{volume}{type}{len_sound}{sound}{len_source}{source}
-     *          b  b  b    b       b     b          str    b           str
+    /**
+     * Format of the sound2 command recieved in data:
+     *
+     * <pre>
+     * sound2 {x}{y}{dir}{volume}{type}{len_sound}{sound}{len_source}{source}
+     *         b  b  b    b       b     b          str    b           str
+     * </pre>
      */
     if (len < 8) {
         LOG(LOG_WARNING,
@@ -201,9 +206,9 @@ void Sound2Cmd(unsigned char *data, int len) {
                 len_source, len);
         return;
     }
-    /**
+    /*
      * Though it looks like there is potential for writing a null off the end
-     * of the buffer, there is always room for a null (@sa do_client()).
+     * of the buffer, there is always room for a null (see do_client()).
      */
     if (len_source != 0) {
         source = (char*) data + 6 + len_sound + 1;
@@ -233,7 +238,11 @@ void Sound2Cmd(unsigned char *data, int len) {
 void MusicCmd(const char *data, int len) {
 #ifndef WIN32
     /**
+     * Format of the music command received in data:
+     *
+     * <pre>
      * music {string}
+     * </pre>
      */
     if (! use_config[CONFIG_SOUND])
         return;
