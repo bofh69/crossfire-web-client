@@ -138,15 +138,15 @@ void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
     if ((fprintf(sound_pipe, format, x, y, dir, vol, type, source, sound) <= 0)
     ||  (fflush(sound_pipe) != 0)) {
         LOG(LOG_ERROR,
-            "gtk-v2::play_sound", "Cannot write sound pipe: %d", errno);
+            "gtk-v2::play_sound_effect", "Cannot write sound pipe: %d", errno);
         use_config[CONFIG_SOUND] = 0;
         fclose(sound_pipe);
         sound_process = NULL;
         return;
     }
-#if 0
+#if 1
     else
-        LOG(LOG_INFO, "gtk-v2::play_sound",
+        LOG(LOG_INFO, "gtk-v2::play_sound_effect",
             format, x, y, dir, vol, type, sound, source);
 #endif
 #endif
@@ -222,14 +222,14 @@ void Sound2Cmd(unsigned char *data, int len) {
         data[6 + len_sound + 1 + len_source] = '\0';
     }
 
-#if 0
+#if 1
     LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd",
         x, y, dir, vol, type);
     LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "               len_sound=%hhd sound=%s", len_sound, sound);
     LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "               len_source=%hhd source=%s", len_source, source);
 #endif
 
-    play_sound(x, y, dir, vol, type, sound, source);
+    play_sound_effect(x, y, dir, vol, type, sound, source);
 #endif
 }
 
@@ -275,7 +275,7 @@ void MusicCmd(const char *data, int len) {
         sound_process = NULL;
         return;
     }
-#if 0
+#if 1
     else
         LOG(LOG_INFO, "gtk-v2::MusicCmd", "\"%s\"", data);
 #endif
