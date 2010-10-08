@@ -116,8 +116,8 @@ int init_sounds(void)
  * @param source The name of the sound emitter.  It is used in combination
  *               with type and sound to determine which file to play.
  */
-void play_sound(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
-                const char *sound, const char *source) {
+void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
+                       const char *sound, const char *source) {
 #ifndef WIN32
     /**
      * cfsndserv recognizes sound commands by seeing the numeric parameters at
@@ -128,7 +128,14 @@ void play_sound(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
     if (! use_config[CONFIG_SOUND])
         return;
 
-    if ((fprintf(sound_pipe, format, x, y, dir, vol, type, sound, source) <= 0)
+    /*
+     * Pass the sound command on to the player.
+     *
+     * NOTE: Sound and source are reversed with respect to how the server sent
+     * data to the client.  This is intentional, so that the sound/music name
+     * is always the last quoted string on the command sent to cfsndserv.
+     */
+    if ((fprintf(sound_pipe, format, x, y, dir, vol, type, source, sound) <= 0)
     ||  (fflush(sound_pipe) != 0)) {
         LOG(LOG_ERROR,
             "gtk-v2::play_sound", "Cannot write sound pipe: %d", errno);

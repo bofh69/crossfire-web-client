@@ -238,7 +238,7 @@ extern void on_skill_use_clicked(GtkButton *button, gpointer user_data);
 extern void on_skill_close_clicked(GtkButton *button, gpointer user_data);
 /* sound.c */
 extern int init_sounds(void);
-extern void play_sound(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type, const char *sound, const char *source);
+extern void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type, const char *sound, const char *source);
 extern void Sound2Cmd(unsigned char *data, int len);
 extern void MusicCmd(const char *data, int len);
 /* spells.c */
