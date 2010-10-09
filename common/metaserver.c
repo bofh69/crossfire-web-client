@@ -1070,7 +1070,7 @@ int metaserver_select(char *sel) {
  * defined - trying to bring in the files the are defined
  * in just causes more dependencies, etc.
  */
-void draw_ext_info(int orig_color, int type, int subtype, char *message) {}
+void draw_ext_info(int orig_color, int type, int subtype, const char *message) {}
 int init_connection(char *host, int port) {}
 
 int metaserver2_on=1, metaserver_on=1;

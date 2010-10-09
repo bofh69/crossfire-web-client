@@ -882,7 +882,7 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
  * @param subtype    Message subtype. See MSG_TYPE_*_* values in newclient.h.
  * @param message    The message text to display.
  */
-void draw_ext_info(int orig_color, int type, int subtype, char *message) {
+void draw_ext_info(int orig_color, int type, int subtype, const char *message) {
     int type_err=0;   /**< When 0, the type is valid and may be used to pick
                        *   the panel routing, otherwise the message can only
                        *   go to the main message pane.

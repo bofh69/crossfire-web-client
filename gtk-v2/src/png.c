@@ -547,7 +547,7 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     static uint8 *pixels=NULL;
     static int pixels_byte=0, rows_byte=0;
     static png_bytepp   rows=NULL;
-    unsigned long width, height;
+    png_uint_32 width, height;
     png_structp png_ptr;
     png_infop   info_ptr;
     int bit_depth, color_type, interlace_type, compression_type, filter_type,

@@ -48,7 +48,7 @@ extern void draw_magic_map(void);
 
 /* Info related functions */
 extern void draw_prompt(const char *str);
-extern void draw_ext_info(int orig_color, int type, int subtype, char *message);
+extern void draw_ext_info(int orig_color, int type, int subtype, const char *message);
 extern void x_set_echo(void);
 extern void set_scroll(const char *s);
 extern void set_autorepeat(const char *s);

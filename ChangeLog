@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+Fix a number of serious compiler warnings (passing pointer to integer of
+different size, discarding const qualifiers).
+Arvid Norlander 2010-10-09
+
 gtk-v2/src/sound.c: Converted the Sound2Cmd() and play_sound() functions to
 correspond with the sound2 protocol.  Neither the client nor the server
 support the legacy sound protocol.  Sound has been broken in this client

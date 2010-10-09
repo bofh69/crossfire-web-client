@@ -59,7 +59,7 @@ extern void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style);
 extern void info_get_styles(void);
 extern void info_init(GtkWidget *window_root);
 extern void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int subtype, int orig_color);
-extern void draw_ext_info(int orig_color, int type, int subtype, char *message);
+extern void draw_ext_info(int orig_color, int type, int subtype, const char *message);
 extern void info_buffer_init(void);
 extern void info_buffer_flush(const int id);
 extern void info_buffer_tick(void);
