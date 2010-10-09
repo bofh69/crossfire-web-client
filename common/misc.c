@@ -379,9 +379,7 @@ ChildProcess* raiseChild(char* name, int flag){
     int pipe_out[2];
     int pipe_err[2];
     int pid;
-    LogLevel deferror;
     char *args;
-    deferror=(flag & CHILD_SILENTFAIL)?LOG_INFO:LOG_ERROR;
     LOG(LOG_INFO,"common::raiseChild","Raising %s with flags %d",name,flag);
     flag=flag & (~CHILD_SILENTFAIL);
     if (flag & (~CHILD_TUBE)){

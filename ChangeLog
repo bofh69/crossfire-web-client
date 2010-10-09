@@ -2,6 +2,10 @@
 Top of SVN tree:
 ==============================================================================
 
+Fix some bugs found by static analysis (dead assignment, NULL dereference)
+using clang-analyzer.
+Arvid Norlander 2010-10-10
+
 Fix a number of serious compiler warnings (passing pointer to integer of
 different size, discarding const qualifiers).
 Arvid Norlander 2010-10-09

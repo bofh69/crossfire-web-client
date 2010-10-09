@@ -693,7 +693,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
     int partdone[8]={0,0,0,0,0,0,0,0};
     int slevels[8];
     int sfaces[8];
-    int i,lowest,weight,weightC;
+    int i,weight,weightC;
     int emx,emy;
     int smoothface;
     int hasFace = 0;
@@ -727,9 +727,8 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst){
      * there are at most 8 different levels. so... let's check 8 times
      * for the lowest one (we draw from botto to top!).
      */
-    lowest=-1;
     while (1){
-        lowest = -1;
+        int lowest = -1;
         for (i=0;i<8;i++){
             if ( (slevels[i]>0) && (!partdone[i]) &&
                 ((lowest<0) || (slevels[i]<slevels[lowest]))

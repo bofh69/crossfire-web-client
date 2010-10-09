@@ -540,104 +540,118 @@ void Image2Cmd(uint8 *data,  int len)
 }
 
 /**
+ * Helper for display_newpng, implements the caching of the image to disk.
+ */
+static void cache_newpng(int face, uint8 *buf, int buflen, int setnum, Cache_Entry **ce)
+{
+    char    filename[MAX_BUF], basename[MAX_BUF];
+    FILE *tmpfile;
+    uint32 i, csum;
+
+    if (facetoname[face]==NULL) {
+        LOG(LOG_WARNING,"common::display_newpng","Caching images, but name for %ld not set", face);
+        /* Return to avoid null dereference. */
+        return;
+    }
+    /* Make necessary leading directories */
+    snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache",getenv("HOME"));
+    if (access(filename, R_OK | W_OK | X_OK)== -1)
+#ifdef WIN32
+        mkdir(filename);
+#else
+        mkdir(filename, 0755);
+#endif
+
+    snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%c%c", getenv("HOME"),
+             facetoname[face][0], facetoname[face][1]);
+    if (access(filename, R_OK | W_OK | X_OK)== -1)
+#ifdef WIN32
+        mkdir(filename);
+#else
+        mkdir(filename,0755);
+#endif
+
+    /* If setnum is valid, and we have faceset information for it,
+     * put that prefix in.  This will make it easier later on to
+     * allow the client to switch image sets on the fly, as it can
+     * determine what set the image belongs to.
+     * We also append the number to it - there could be several versions
+     * of 'face.base.111.x' if different servers have different image
+     * values.
+     */
+    if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix)
+        snprintf(basename, sizeof(basename),"%s.%s", facetoname[face], face_info.facesets[setnum].prefix);
+    else
+        strcpy(basename, facetoname[face]);
+
+    /* Decrease it by one since it will immediately get increased
+     * in the loop below.
+     */
+    setnum--;
+    do {
+        setnum++;
+        snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%c%c/%s.%d",
+                 getenv("HOME"), facetoname[face][0],
+                 facetoname[face][1], basename, setnum);
+    } while (access(filename, F_OK)==-0);
+
+#ifdef WIN32
+    if ((tmpfile = fopen(filename,"wb"))==NULL) 
+#else
+    if ((tmpfile = fopen(filename,"w"))==NULL) 
+#endif
+    {
+        LOG(LOG_WARNING,"common::display_newpng","Can not open %s for writing", filename);
+    }
+    else
+    {
+        /* found a file we can write to */
+
+        fwrite(buf, buflen, 1, tmpfile);
+        fclose(tmpfile);
+        csum=0;
+        for (i=0; (int)i<buflen; i++) {
+            ROTATE_RIGHT(csum);
+            csum += buf[i];
+            csum &= 0xffffffff;
+        }
+        snprintf(filename, sizeof(filename), "%c%c/%s.%d", facetoname[face][0], facetoname[face][1],
+                 basename, setnum);
+        *ce = image_add_hash(facetoname[face], filename,  csum, 0);
+
+        /* It may very well be more efficient to try to store these up
+         * and then write them as a bunch instead of constantly opening the
+         * file for appending.  OTOH, hopefully people will be using the
+         * built image archives, so only a few faces actually need to get
+         * downloaded.
+         */
+        snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/bmaps.client", getenv("HOME"));
+        if ((tmpfile=fopen(filename, "a"))==NULL) {
+            LOG(LOG_WARNING,"common::display_newpng","Can not open %s for appending", filename);
+        }
+        else {
+            fprintf(tmpfile, "%s %u %c%c/%s.%d\n",
+                    facetoname[face], csum, facetoname[face][0],
+                    facetoname[face][1], basename, setnum);
+            fclose(tmpfile);
+        }
+    }
+}
+
+
+/**
  * This function is called when the server has sent us the actual png data for
- * an image.  If caching, we need to write this data to disk.
+ * an image.  If caching, we need to write this data to disk (this is handled
+ * in the function cache_newpng).
  */
 void display_newpng(int face, uint8 *buf, int buflen, int setnum)
 {
-    char    filename[MAX_BUF], basename[MAX_BUF];
     uint8   *pngtmp;
-    FILE *tmpfile;
-    uint32 width, height, csum, i;
+    uint32 width, height;
     Cache_Entry *ce=NULL;
 
-    if (use_config[CONFIG_CACHE]) {
-        if (facetoname[face]==NULL) {
-            LOG(LOG_WARNING,"common::display_newpng","Caching images, but name for %ld not set", face);
-        }
-        /* Make necessary leading directories */
-        snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache",getenv("HOME"));
-        if (access(filename, R_OK | W_OK | X_OK)== -1)
-#ifdef WIN32
-            mkdir(filename);
-#else
-            mkdir(filename, 0755);
-#endif
-
-        snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%c%c", getenv("HOME"),
-                 facetoname[face][0], facetoname[face][1]);
-        if (access(filename, R_OK | W_OK | X_OK)== -1)
-#ifdef WIN32
-            mkdir(filename);
-#else
-            mkdir(filename,0755);
-#endif
-
-        /* If setnum is valid, and we have faceset information for it,
-         * put that prefix in.  This will make it easier later on to
-         * allow the client to switch image sets on the fly, as it can
-         * determine what set the image belongs to.
-         * We also append the number to it - there could be several versions
-         * of 'face.base.111.x' if different servers have different image
-         * values.
-         */
-        if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix)
-            snprintf(basename, sizeof(basename),"%s.%s", facetoname[face], face_info.facesets[setnum].prefix);
-        else
-            strcpy(basename, facetoname[face]);
-
-        /* Decrease it by one since it will immediately get increased
-         * in the loop below.
-         */
-        setnum--;
-        do {
-            setnum++;
-            snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/%c%c/%s.%d",
-                     getenv("HOME"), facetoname[face][0],
-                     facetoname[face][1], basename, setnum);
-        } while (access(filename, F_OK)==-0);
-
-#ifdef WIN32
-        if ((tmpfile = fopen(filename,"wb"))==NULL) 
-#else
-        if ((tmpfile = fopen(filename,"w"))==NULL) 
-#endif
-            {
-                LOG(LOG_WARNING,"common::display_newpng","Can not open %s for writing", filename);
-            }
-        else {
-            /* found a file we can write to */
-
-            fwrite(buf, buflen, 1, tmpfile);
-            fclose(tmpfile);
-            csum=0;
-            for (i=0; (int)i<buflen; i++) {
-                ROTATE_RIGHT(csum);
-                csum += buf[i];
-                csum &= 0xffffffff;
-            }
-            snprintf(filename, sizeof(filename), "%c%c/%s.%d", facetoname[face][0], facetoname[face][1],
-                     basename, setnum);
-            ce = image_add_hash(facetoname[face], filename,  csum, 0);
-
-            /* It may very well be more efficient to try to store these up
-             * and then write them as a bunch instead of constantly opening the
-             * file for appending.  OTOH, hopefully people will be using the
-             * built image archives, so only a few faces actually need to get
-             * downloaded.
-             */
-            snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/bmaps.client", getenv("HOME"));
-            if ((tmpfile=fopen(filename, "a"))==NULL) {
-                LOG(LOG_WARNING,"common::display_newpng","Can not open %s for appending", filename);
-            }
-            else {
-                fprintf(tmpfile, "%s %u %c%c/%s.%d\n",
-                        facetoname[face], csum, facetoname[face][0],
-                        facetoname[face][1], basename, setnum);
-                fclose(tmpfile);
-            }
-        }
-    }
+    if (use_config[CONFIG_CACHE])
+        cache_newpng(face, buf, buflen, setnum, &ce);
 
     pngtmp = png_to_data(buf, buflen, &width, &height);
     if(create_and_rescale_image_from_data(ce, face, pngtmp, width, height)) {
@@ -746,13 +760,12 @@ void get_image_info(uint8 *data, int len)
  */
 void get_image_sums(char *data, int len)
 {
-    int start, stop, imagenum, slen, faceset;
+    int stop, imagenum, slen, faceset;
     uint32  checksum;
     char *cp, *lp;
 
     cp = strchr((char*)data, ' ');
     if (!cp || (cp - data) > len) return;
-    start = atoi((char*)data);
 
     while (isspace(*cp)) cp++;
     lp = cp;

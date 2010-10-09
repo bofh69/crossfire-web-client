@@ -126,7 +126,7 @@ void map_init(GtkWidget *window_root)
     gtk_widget_add_events (map_drawing_area, GDK_BUTTON_PRESS_MASK);
 
     if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
-        int x,y,count;
+        int x,y;
         GdkGC   *darkgc;
         /*
          * This is used when drawing with GdkPixmaps.  Create another surface,
@@ -148,7 +148,7 @@ void map_init(GtkWidget *window_root)
         gdk_draw_rectangle(dark2, darkgc, TRUE, 0, 0, map_image_size, map_image_size);
         gdk_draw_rectangle(dark3, darkgc, TRUE, 0, 0, map_image_size, map_image_size);
         gdk_gc_set_foreground(darkgc, &root_color[NDI_BLACK]);
-        count=0;
+
         for (x=0; x<map_image_size; x++) {
             for (y=0; y<map_image_size; y++) {
                 /*
@@ -266,7 +266,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
     int partdone[8]={0,0,0,0,0,0,0,0};
     int slevels[8];
     int sfaces[8];
-    int i,lowest,weight,weightC;
+    int i,weight,weightC;
     int emx,emy;
     int smoothface;
     int hasFace = 0;
@@ -296,9 +296,8 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
      * at most 8 different levels. so... check 8 times for the lowest one (we
      * draw from bottom to top!).
      */
-    lowest=-1;
     while (1){
-        lowest = -1;
+        int lowest = -1;
         for (i=0;i<8;i++){
             if ( (slevels[i]>0) && (!partdone[i]) &&
                 ((lowest<0) || (slevels[i]<slevels[lowest]))
