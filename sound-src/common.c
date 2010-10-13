@@ -73,18 +73,6 @@ extern int init_audio(void);
 void play_sound(int soundnum, int soundtype, int x, int y);
 
 /**
- * A replacement of strdup(), since it's not defined at some unix variants.
- *
- * @param str
- * @return
- */
-char *strdup_local(char *str) {
-    char *c = (char *) malloc(sizeof(char) * strlen(str) + 1);
-    strcpy(c,str);
-    return c;
-}
-
-/**
  * Parse a line from the sound file.  This is a little ugly because static
  * values are stored in the function so we know what we are doing - however,
  * it is somewhat necessary so that we can use this same function to parse

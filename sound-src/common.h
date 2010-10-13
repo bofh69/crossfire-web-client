@@ -73,5 +73,8 @@ extern int zerolevel;
 
 extern int *sounds_in_buffer;
 
+/* From ../common/libcfclient.a */
+extern char *strdup_local(const char *str);
+
 #endif /* _SOUND_SRC_COMMON_H */
 

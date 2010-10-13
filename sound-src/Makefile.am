@@ -32,25 +32,41 @@ AM_CFLAGS = \
 noinst_HEADERS = \
         def_sounds.h \
 	sndproto.h \
-        common.h
+	common.h
+
+cfsndserv_alsa9_LIBS = ../common/libcfclient.a
+cfsndserv_LIBS = ../common/libcfclient.a
+$(cfsndserv_LIBS) $(cfsndserv_LIBS):
+	for DEP in $(@); \
+	do \
+	  pushd `dirname $${DEP}` >/dev/null; \
+	  $(MAKE) `basename $${DEP}`; \
+	  popd >/dev/null; \
+	done;
 
 cfsndserv_SOURCES = \
-        common.h \
-        sndproto.h \
-        def_sounds.c \
-        common.c \
-        cfsndserv.c
+	common.h \
+	sndproto.h \
+	def_sounds.c \
+	common.c \
+	cfsndserv.c
 
-cfsndserv_LDADD = $(SND_LIBS) $(DMALLOC_LIB)
+cfsndserv_LDADD = \
+	$(SND_LIBS) \
+	$(DMALLOC_LIB) \
+	$(cfsndserv_LIBS)
 
 cfsndserv_alsa9_SOURCES = \
-        common.h \
-        sndproto.h \
-        def_sounds.c \
-        common.c \
-        alsa9.c
+	common.h \
+	sndproto.h \
+	def_sounds.c \
+	common.c \
+	alsa9.c
 
-cfsndserv_alsa9_LDADD =  $(ALSA9_LIBS) $(DMALLOC_LIB)
+cfsndserv_alsa9_LDADD = \
+	$(ALSA9_LIBS) \
+	$(DMALLOC_LIB) \
+	$(cfsndserv_alsa9_LIBS)
 
 sounds: sounds.dist Makefile
 	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUNDDIR)# $(srcdir)/sounds.dist > sounds
@@ -71,11 +87,11 @@ cfsndserv.o: $(noinst_HEADERS)
 
 alsa9.o:  $(noinst_HEADERS)
 
-PROTO_SOURCES = \
+proto_SOURCES = \
 	common.c
 
 proto:
 	cproto -e -o sndproto.h \
-	    $(DEFAULT_INCLUDES) $(AM_CFLAGS) $(PROTO_SOURCES)
+	    $(DEFAULT_INCLUDES) $(AM_CFLAGS) $(proto_SOURCES)
 	chmod 644 sndproto.h
 
