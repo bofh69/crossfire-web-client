@@ -1,7 +1,7 @@
 #
 # Makefile for crossfire client
 #
-#   Copyright (C) 2005 Mark Wedel & Crossfire Development Team
+#   Copyright (C) 2005, 2010 Mark Wedel & Crossfire Development Team
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -66,9 +66,6 @@ cfsndserv_alsa9_LDADD = \
 	$(ALSA9_LIBS) \
 	$(DMALLOC_LIB) \
 	$(client_LIBS)
-
-sounds: sounds.dist Makefile
-	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUNDDIR)# $(srcdir)/sounds.dist > sounds
 
 def_sounds.h: sounds
 	$(PERL) \
