@@ -23,7 +23,7 @@ bin_PROGRAMS = cfsndserv @ALSA9_TARGET@
 
 EXTRA_PROGRAMS = cfsndserv_alsa9
 
-EXTRA_DIST = common.c common.h def_sounds.h sndproto.h sounds.dist
+EXTRA_DIST = common.c common.h def_sounds.h sndproto.h sounds
 
 AM_CFLAGS = \
 	-I$(top_srcdir)/common \
