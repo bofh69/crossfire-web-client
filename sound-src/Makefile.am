@@ -36,7 +36,7 @@ noinst_HEADERS = \
 
 cfsndserv_alsa9_LIBS = ../common/libcfclient.a
 cfsndserv_LIBS = ../common/libcfclient.a
-$(cfsndserv_LIBS) $(cfsndserv_LIBS):
+$(cfsndserv_LIBS) $(cfsndserv_alsa9_LIBS):
 	for DEP in $(@); \
 	do \
 	  pushd `dirname $${DEP}` >/dev/null; \
