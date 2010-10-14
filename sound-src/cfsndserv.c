@@ -105,14 +105,14 @@ static char *rcsid_sound_src_cfsndserv_c =
 
 #define SOUND_DECREASE 0.1
 
-#ifdef SDL_SOUND                        /* SDL sound and music declarations */
-/*
- * Mixer variables
- */
 int  *sounds_in_buffer = NULL;
 int   current_buffer = 0;               /**< The next buffer to write out   */
 int   first_free_buffer = 0;            /**< Help know when to stop playing */
 
+#ifdef SDL_SOUND                        /* SDL sound and music declarations */
+/*
+ * Mixer variables
+ */
 int            audio_channels = 0;      /**< Channels in use by SDL_mixer   */
 Uint16         audio_format = 0;        /**< Format of the SDL_mixer audio  */
 Mix_Music     *music = NULL;            /**< A music file to play           */
@@ -1272,7 +1272,7 @@ void fd_server(void) {
             }
             if (inbuf[inbuf_pos] == '\n') {
                 inbuf[inbuf_pos++] = 0;
-                if (!StdIn2Cmd((unsigned char*) inbuf, inbuf_pos))
+                if (!StdinCmd((unsigned char*) inbuf, inbuf_pos))
                     FD_SET(soundfd, &outset);
                 inbuf_pos = 0;
             } else {
