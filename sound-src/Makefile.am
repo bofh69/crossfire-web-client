@@ -34,9 +34,8 @@ noinst_HEADERS = \
 	sndproto.h \
 	common.h
 
-cfsndserv_alsa9_LIBS = ../common/libcfclient.a
-cfsndserv_LIBS = ../common/libcfclient.a
-$(cfsndserv_LIBS) $(cfsndserv_alsa9_LIBS):
+client_LIBS = ../common/libcfclient.a
+$(client_LIBS):
 	for DEP in $(@); \
 	do \
 	  pushd `dirname $${DEP}` >/dev/null; \
@@ -54,7 +53,7 @@ cfsndserv_SOURCES = \
 cfsndserv_LDADD = \
 	$(SND_LIBS) \
 	$(DMALLOC_LIB) \
-	$(cfsndserv_LIBS)
+	$(client_LIBS)
 
 cfsndserv_alsa9_SOURCES = \
 	common.h \
@@ -66,7 +65,7 @@ cfsndserv_alsa9_SOURCES = \
 cfsndserv_alsa9_LDADD = \
 	$(ALSA9_LIBS) \
 	$(DMALLOC_LIB) \
-	$(cfsndserv_alsa9_LIBS)
+	$(client_LIBS)
 
 sounds: sounds.dist Makefile
 	$(PERL) -p -e s#/usr/local/lib/sounds#$(SOUNDDIR)# $(srcdir)/sounds.dist > sounds
