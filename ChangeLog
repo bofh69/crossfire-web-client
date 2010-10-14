@@ -2,6 +2,19 @@
 Top of SVN tree:
 ==============================================================================
 
+Commit basic, functional music support via cfsndserv when the client is built
+with SDL_mixer sound support.  Music support is not presently planned for any
+of the legacy sound systems:  Alsa, Alsa9 (cfsndserv_alsa9), OSS, SGI, and
+Sun.  Neither cfsndserv nor cfsndserv_alsa9 yet support playing sound effects.
+NOTE:  `/configure --enable-sdl_mixer` is required to enable building with the
+SDL_mixer library since the present default is to not use it (but the default
+will change shortly as music is now functional, and since all other sound
+support is still broken for all of the sound systems (including SDL_mixer).
+NOTE:  cfsndserv looks for .ogg or .wav files based on whether the OS is WIN32
+or not.  The sound files are expected to be in either ${HOME}/sound.cache/
+or CF_DATADIR/sounds/.  No provision exists yet for sound file installation.
+Kevin Bulgrien 2010-10-13
+
 Fix some bugs found by static analysis (dead assignment, NULL dereference)
 using clang-analyzer.
 Arvid Norlander 2010-10-10

@@ -70,7 +70,8 @@ static char *rcsid_sound_src_alsa9_c =
 #include <ctype.h>
 #include <errno.h>
 
-#include "shared/newclient.h"
+#include "newclient.h"
+#include "client-types.h"
 #include "def_sounds.h"
 #include "sndproto.h"
 #include "common.h"
@@ -113,8 +114,14 @@ int init_audio(void) {
     snd_pcm_sw_params_t *sw_params;
     unsigned int format;
 
-    printf("cfsndserv compiled for ALSA9 sound system\n");
+    printf("cfsndserv for the ALSA9 sound system\n");
+    printf("supports sound effects only (no background music).\n");
     fflush(stdout);
+
+#ifdef SOUND_DEBUG
+    fprintf(stderr, "init_audio: ALSA9\n");
+    fflush(stderr);
+#endif
 
     /* open the PCM device */
     if ((err = snd_pcm_open(&handle,AUDIODEV,SND_PCM_STREAM_PLAYBACK,0)) <0) {
@@ -261,6 +268,11 @@ void alsa_recover(int e) {
 int audio_play(int buffer, int off) {
     int count = (settings.buflen - off) / sample_size;
 
+#ifdef SOUND_DEBUG
+    fprintf(stderr, "audio_play: ALSA9\n");
+    fflush(stderr);
+#endif
+
     if (count > chunk_size) count=chunk_size;
 
 #ifdef SOUND_DEBUG_WRITES
@@ -279,12 +291,6 @@ int audio_play(int buffer, int off) {
     }
 }
 
-
-
-
-
-
-
 /* Plays sound 'soundnum'.  soundtype is 0 for normal sounds, 1 for
  * spell_sounds.  This might get extended in the future.  x,y are offset
  * (assumed from player) to play sound.  This information is used to
@@ -300,6 +306,11 @@ void play_sound(int soundnum, int soundtype, int x, int y)
     int i;
     unsigned left_ratio,right_ratio;
     double dist;
+
+#ifdef SOUND_DEBUG
+    fprintf(stderr, "play_sound: ALSA9\n");
+    fflush(stderr);
+#endif
 
     buf=current_buffer;
     if (buf>=settings.buffers) buf=1;
@@ -458,6 +469,22 @@ void play_sound(int soundnum, int soundtype, int x, int y)
 
 }
 
+/**
+ * Stub for playing music with the Alsa 9 sound system.
+ *
+ * @param name A name of a song to play that does not include anything like
+ *             path or file extensions.  It is up to this function to map the
+ *             name to a file.
+ */
+void play_music(const char *name) {
+
+#ifdef SOUND_DEBUG
+    fprintf(stderr, "play_music: no music support for this sound system.\n");
+    fflush(stderr);
+#endif
+
+    return;
+}
 
 int main(int argc, char *argv[])
 {
@@ -468,7 +495,6 @@ int main(int argc, char *argv[])
     struct timeval timeout;
 
     printf ("%s\n",rcsid_sound_src_alsa9_c);
-
     fflush(stdout);
 
     if (read_settings()) write_settings();
@@ -532,7 +558,7 @@ int main(int argc, char *argv[])
 		}
 		if (inbuf[inbuf_pos]=='\n'){
 		    inbuf[inbuf_pos++]=0;
-		    SoundCmd((unsigned char *)inbuf,inbuf_pos);
+		    StdinCmd((char *)inbuf, inbuf_pos);
 		    inbuf_pos=0;
 		}
 		else {
