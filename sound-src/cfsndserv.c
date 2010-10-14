@@ -1272,7 +1272,7 @@ void fd_server(void) {
             }
             if (inbuf[inbuf_pos] == '\n') {
                 inbuf[inbuf_pos++] = 0;
-                if (!StdinCmd((unsigned char*) inbuf, inbuf_pos))
+                if (!StdinCmd(inbuf, inbuf_pos))
                     FD_SET(soundfd, &outset);
                 inbuf_pos = 0;
             } else {
