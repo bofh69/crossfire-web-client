@@ -127,7 +127,7 @@ int soundfd=0;
 
 #ifdef SUN_SOUND                        /* Sun support legacy declarations. */
 
-sound_settings = { 0, 1, 1, 11025, 100, 4096, 4, AUDIODEV };
+sound_settings settings = { 0, 1, 1, 11025, 100, 4096, 4, AUDIODEV };
 
 #else                                   /* Alsa/OSS/SGI legacy declarations */
 
