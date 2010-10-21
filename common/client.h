@@ -467,13 +467,6 @@ typedef struct ChildProcess{
 #define CHILD_PIPEOUT(__child) (__child->tube[1])
 #define CHILD_PIPEERR(__child) (__child->tube[2])
 
-#ifndef CPROTO
-/*
- * We need to declare most of the structs before we can include this
- */
-#include <proto.h>
-#endif
-
 /**
  * Translation of the STAT_RES names into printable names, in matching order.
  */
@@ -577,8 +570,59 @@ typedef struct Msg_Type_Names {
 
 extern TextManager* firstTextManager;
 
+/* declared/handled in commands.c .  These variables are documented
+ * in that file - the data they present is created by the command
+ * code, but consumed by the GUI code.
+ */
+extern char *motd, *news, *rules;
 extern char *motd, *news, *rules;       /* Declared/handled in commands.c */
+extern int num_races, used_races, num_classes, used_classes;
+extern int stat_points, stat_min, stat_maximum;
 
+
+
+/*
+ * This structure is used to hold race/class adjustment info, as
+ * received by the requestinfo command.  We get the same info
+ * for both races and class, so it simplifies code to share a structure.
+ */
+/* This is how many stats (str, dex, con, etc) that are present
+ * in the create character window.
+ */
+#define NUM_NEW_CHAR_STATS  7
+
+/**
+ * The usage of the stat_mapping is to simplify the code and make it easier
+ * to expand.  Within the character creation, the different stats really
+ * do not have any meaning - the handling is pretty basic - value user
+ * has selected + race adjust + class adjustment = total stat.
+ */
+struct Stat_Mapping {
+    const char  *widget_suffix; /* within the glade file, suffix used on widget */
+    uint8       cs_value;       /* within the protocol, the CS_STAT value */
+    uint8       rc_offset;      /* Offset into the stat_adj array */
+};
+
+extern struct Stat_Mapping stat_mapping[NUM_NEW_CHAR_STATS];
+
+typedef struct Race_Class_Info {
+    char    *arch_name;     /* Name of the archetype this correponds to */
+    char    *public_name;   /* Public (human readadable) name */
+    char    *description;   /* Description of the race/class */
+    sint8   stat_adj[NUM_NEW_CHAR_STATS];  /* Adjustment values */
+} Race_Class_Info;
+
+typedef struct Starting_Map_Info {
+    char    *arch_name;     /* Name of archetype for this map */
+    char    *public_name;   /* Name of the human readable name */
+    char    *description;   /* Description of this map */
+} Starting_Map_Info;
+
+extern Race_Class_Info *races, *classes;
+extern Starting_Map_Info *starting_map_info;
+extern int starting_map_number;
+
+/* End of commands.c data, start of other declarations */
 #ifndef MIN
 #define MIN(X__,Y__) ( (X__)<(Y__)?(X__):(Y__) )
 #endif
@@ -615,4 +659,9 @@ extern void replace_chars_with_string(
    replace_chars_with_string((path), sizeof(path), '/', "\\")
 #endif
 /*@}*/
+
+#ifndef CPROTO
+/* We need to declare most of the structs before we can include this */
+#include <proto.h>
+#endif
 

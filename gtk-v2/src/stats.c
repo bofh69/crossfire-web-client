@@ -51,9 +51,9 @@ static const char * const stat_bar_names[MAX_STAT_BARS] = {
     "hp", "sp", "grace", "food", "exp"
 };
 
-GtkWidget *stat_current[MAX_STAT_BARS];
-GtkWidget *stat_max[MAX_STAT_BARS];
-GtkWidget *stat_bar[MAX_STAT_BARS];
+static GtkWidget *stat_current[MAX_STAT_BARS];
+static GtkWidget *stat_max[MAX_STAT_BARS];
+static GtkWidget *stat_bar[MAX_STAT_BARS];
 
 #define STYLE_NORMAL        0
 #define STYLE_LOW           1

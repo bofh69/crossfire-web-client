@@ -68,6 +68,7 @@ int mapupdatesent = 0;
 #include <client.h>
 #include <external.h>
 #include <assert.h>
+#include <ctype.h>
 
 #include "mapdata.h"
 
@@ -82,20 +83,303 @@ int used_races = 0;   /* How many races we have filled in */
 int num_classes = 0;  /* Same as race data above, but for classes */
 int used_classes = 0;
 
-/*
- * This structure is used to hold race/class adjustment info, as received by
- * the requestinfo command.  We get the same info for both races and class, so
- * it simplifies code to share a structure.
- */
-typedef struct Race_Class_Info {
-    char    *arch_name;     /* Name of the archetype this correponds to */
-    char    *public_name;   /* Public (human readadable) name */
-    char    *description;   /* Description of the race/class */
-    sint8   Str, Dex, Con, Wis, Cha, Int, Pow;  /* Adjustment values */
-} Race_Class_Info;
+int stat_points = 0;    /* Number of stat points for new characters */
+int stat_min = 0;       /* Minimum stat for new characters */
+int stat_maximum = 0;   /* Maximum stat for new characters */
+int starting_map_number = 0;   /* Number of starting maps */
 
 Race_Class_Info *races=NULL, *classes=NULL;
+Starting_Map_Info *starting_map_info = NULL;
 
+/* Best I can tell, none of this stat information is stored anyplace
+ * else in the server - MSW 2010-07-28
+ */
+
+#define NUM_STATS 7
+/** Short name of stats. */
+const char *const short_stat_name[NUM_STATS] = {
+    "Str",    "Dex",    "Con",
+    "Wis",    "Cha",    "Int",
+    "Pow"
+};
+
+/* Note that the label_cs and label_rs will be in this same
+ * order, eg, label_cs[0] will be strength, label_cs[1] will
+ * be con.  However, this order can be changed, so it should
+ * not be assumed that label_cs[1] will always be con.
+ */
+struct Stat_Mapping stat_mapping[NUM_NEW_CHAR_STATS] = {
+    {"str", CS_STAT_STR, 0},
+    {"con", CS_STAT_CON, 1},
+    {"dex", CS_STAT_DEX, 2},
+    {"int", CS_STAT_INT, 3},
+    {"wis", CS_STAT_WIS, 4},
+    {"pow", CS_STAT_POW, 5},
+    {"cha", CS_STAT_CHA, 6}
+};
+
+/**
+ * This function clears the data from the Race_Class_Info array.  Because the
+ * structure itself contains data that is allocated, some work needs to be
+ * done to clear that data.
+ *
+ */
+void free_all_starting_map_info()
+{
+    int i;
+
+    if (!starting_map_info) return;
+
+    /* Because we are going free the array storage itself, there is no reason
+     * to clear the data[i].. values.
+     */
+    for (i=0; i<starting_map_number; i++) {
+        if (starting_map_info[i].arch_name) free(starting_map_info[i].arch_name);
+        if (starting_map_info[i].public_name) free(starting_map_info[i].public_name);
+        if (starting_map_info[i].description) free(starting_map_info[i].description);
+    }
+
+    free(starting_map_info);
+    starting_map_info=NULL;
+    starting_map_number = 0;
+}
+
+/**
+ * This processes the replyinfo starting_map_info
+ *
+ * The data is a series of length prefixed lines.
+ *
+ * @param data
+ * data returned from server.  Format is documented in protocol file.
+ * @param len
+ * length of data.
+ */
+static void get_starting_map_info(char *data, int len)
+{
+    int pos, type, length, map_entry=-1;
+    char *cp;
+
+    pos = 0;
+    while (pos < len) {
+        type = data[pos];
+        pos++;
+
+        /* Right now, all the data is length prefixed strings, so
+         * the only real difference is where we store the data
+         */
+
+        length = GetShort_String(data + pos);
+        pos += 2;
+
+        if ((length+pos) > len) {
+            LOG(LOG_WARNING, "common::get_starting_map_info", 
+                "Length of data is greater than buffer (%d>%d)", length + pos, len);
+            return;
+        }
+
+        cp = malloc(length+1);
+        strncpy(cp, data+pos, length);
+        cp[length] = 0;
+
+        pos += length;
+
+        /* If it is the arch name, it is a new entry, so we allocate
+         * space and clear it.  This isn't most efficient, but at
+         * the same time, I don't see there being many maps.
+         * Note: If realloc is given a null pointer (which starting_map_info
+         * will be after free or first load), realloc just acts as malloc.
+         */
+        if (type == INFO_MAP_ARCH_NAME) {
+            map_entry++;
+            starting_map_info = realloc(starting_map_info, 
+                                        (map_entry + 1) * sizeof(Starting_Map_Info));
+            memset(&starting_map_info[map_entry], 0, sizeof(Starting_Map_Info));
+            starting_map_info[map_entry].arch_name = cp;
+        } else if (type == INFO_MAP_NAME) {
+            starting_map_info[map_entry].public_name = cp;
+        } else if (type == INFO_MAP_DESCRIPTION) {
+            starting_map_info[map_entry].description = cp;
+        } else {
+            /* Could be this is old client - but we can skip over
+             * this bad data so long as the length byte is valid.
+             */
+            LOG(LOG_WARNING, "common::get_starting_map_info", 
+                "Unknown type: %d\n", type);
+        }
+    }
+    starting_map_number = map_entry;
+    starting_map_update_info();
+}
+
+/**
+ * This is process the newcharinfo requestinfo.
+ * In some cases, it stores away the value, for others, it just
+ * makes sure we understand them.
+ *
+ * The data is a series of length prefixed lines.
+ *
+ * @param data
+ * data returned from server.  Format is documented in protocol file.
+ * @param len
+ * length of data.
+ */
+static void get_new_char_info(char *data, int len)
+{
+    int olen=0, llen;
+
+    /* We reset these values - if the user is switching between
+     * servers before restarting the client, these may have
+     * different values.
+     */
+    stat_points = 0;
+    stat_min = 0;
+    stat_maximum = 0;
+
+    while (olen < len) {
+        char datatype, *cp;
+
+        /* Where this line ends in the total buffer */
+        llen = olen + GetChar_String(data + olen);
+
+        /* By protocol convention, this should already be NULL,
+         * but we ensure it is.  If the server has not included the
+         * null byte, we are overwriting some real data here, but
+         * the client will probably get an error at that point -
+         * if the server is not following the protocol, we really
+         * can't trust any of the data we get from it.
+         */
+        data[llen] = 0;
+
+        if (llen > len) {
+            LOG(LOG_WARNING, "common::get_new_char_info", 
+                "Length of line is greater than buffer (%d>%d)", llen, len);
+            return;
+        }
+        olen++;
+        datatype = GetChar_String(data+olen); /* Type value */
+        olen++;
+        /* First skip all the spaces */
+        while (olen <= len) {
+            if (!isspace(data[olen])) break;
+            olen++;
+        }
+        if (olen > len) {
+            LOG(LOG_WARNING, "common::get_new_char_info", 
+                "Overran length of buffer (%d>%d)", olen, len);
+            return;
+        }
+
+        cp = data + olen;
+        /* Go until we find another space */
+        while (olen <= len) {
+            if (isspace(data[olen])) break;
+            olen++;
+        }
+        data[olen] = 0;    /* Null terminate the string */
+        olen++;
+        if (olen > len) {
+            LOG(LOG_WARNING, "common::get_new_char_info", 
+                "Overran length of buffer (%d>%d)", olen, len);
+            return;
+        }
+        /* At this point, cp points to the string portion (variable name)
+         * of the line, with data+olen is the start of the next string
+         * (variable value).  
+         */
+        if (!strcasecmp(cp,"points")) {
+            stat_points = atoi(data+olen);
+            olen = llen + 1;
+            continue;
+        } else if (!strcasecmp(cp,"statrange")) {
+            if (sscanf(data + olen, "%d %d", &stat_min, &stat_maximum)!=2) {
+                LOG(LOG_WARNING, "common::get_new_char_info", 
+                    "Unable to process statrange line (%s)", data + olen);
+            }
+            /* Either way, we go onto the next line */
+            olen = llen + 1;
+            continue;
+        } else if (!strcasecmp(cp,"statname")) {
+            /* The checking we do here is somewhat basic:
+             * 1) That we understand all the stat names that the server sends us
+             * 2) That we get the correct number of stats.
+             * Note that if the server sends us the same stat name twice, eg
+             * Str Str Dex Con ..., that will screw up this logic, but to a
+             * great extent, we have to trust that server is sending us correct
+             * information - sending the same stat twice does not follow that.
+             */
+            int i, matches=0;
+
+            while (olen < llen) {
+                for (i=0; i < NUM_STATS; i++) {
+                    if (!strncasecmp(data + olen, short_stat_name[i], strlen(short_stat_name[i]))) {
+                        matches++;
+                        olen += strlen(short_stat_name[i]) + 1;
+                        break;
+                    }
+                }
+                if (i == NUM_STATS) {
+                    LOG(LOG_WARNING, "common::get_new_char_info", 
+                        "Unable to find matching stat name (%s)", data + olen);
+                    break;
+                }
+            }
+            if (matches != NUM_STATS) {
+                LOG(LOG_WARNING, "common::get_new_char_info", 
+                    "Did not get correct number of stats (%d!=%d)", matches, NUM_STATS);
+            }
+            olen = llen + 1;
+            continue;
+        } else if (!strcasecmp(cp,"race") || !strcasecmp(cp,"class")) {
+            if (strcasecmp(data+olen, "requestinfo")) {
+                LOG(LOG_WARNING, "common::get_new_char_info", 
+                    "Got unexpected value for %s: %s", cp, data+olen);
+            }
+            olen = llen + 1;
+            continue;
+        } else if (!strcasecmp(cp,"startingmap")) {
+            if (strcasecmp(data+olen, "requestinfo")) {
+                LOG(LOG_WARNING, "common::get_new_char_info", 
+                    "Got unexpected value for %s: %s", cp, data+olen);
+            } else {
+                cs_print_string(csocket.fd, "requestinfo startingmap");
+                free_all_starting_map_info();
+            }
+            olen = llen + 1;
+            continue;
+        } else {
+            if (datatype == 'V' || datatype == 'R') {
+                LOG(LOG_WARNING, "common::get_new_char_info", 
+                    "Got unsupported string from server, type %c, value %s", datatype, cp);
+                /* pop up error here */
+            } else {
+                /* pop up warning here */
+            }
+            olen = llen + 1;
+        }
+    }
+    if (stat_min == 0 || stat_maximum == 0 || stat_points == 0) {
+        /* this needs to be handled better, but I'm not sure how -
+         * we could fall back to legacy character creation mode,
+         * but that will go away at some point - in a sense, if the
+         * server is not sending us values, that is a broken/non comformant
+         * server - best we could perhaps do is throw up a window saying
+         * this client is not compatible with the server.
+         */
+        LOG(LOG_ERROR, "common::get_new_char_info",
+            "Processed all newcharinfo yet have 0 value: stat_min=%d, stat_maximum=%d, stat_points=%d",
+            stat_min, stat_maximum, stat_points);
+    } else {
+        new_char_window_update_info();
+    }
+}
+
+
+/**
+ * Used for bsearch searching.
+ */
+static int rc_compar(const Race_Class_Info *a, const Race_Class_Info *b) {
+    return strcasecmp(a->public_name, b->public_name);
+}
 
 /**
  * This function clears the data from the Race_Class_Info array.  Because the
@@ -190,22 +474,19 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
              * value - if 0, no more stats, hence the check here.
              */
             while (cp < data + len && *cp != 0) {
-                switch (*cp) {
+                int i;
 
-                case CS_STAT_STR:   rci->Str = GetShort_String(cp+1);  cp +=3;  break;
-                case CS_STAT_INT:   rci->Int = GetShort_String(cp+1);  cp +=3;  break;
-                case CS_STAT_POW:   rci->Pow = GetShort_String(cp+1);  cp +=3;  break;
-                case CS_STAT_DEX:   rci->Dex = GetShort_String(cp+1);  cp +=3;  break;
-                case CS_STAT_CON:   rci->Con = GetShort_String(cp+1);  cp +=3;  break;
-                case CS_STAT_CHA:   rci->Cha = GetShort_String(cp+1);  cp +=3;  break;
-                case CS_STAT_WIS:   rci->Wis = GetShort_String(cp+1);  cp +=3;  break;
+                for (i=0; i < NUM_NEW_CHAR_STATS; i++) 
+                    if (stat_mapping[i].cs_value == *cp) break;
 
-                default:
+                if (i == NUM_NEW_CHAR_STATS) {
                     /* Just return with what we have */
                     LOG(LOG_WARNING, "common::process_race_class_info",
                         "Unknown stat value: %d", cp);
                     return;
                 }
+                rci->stat_adj[stat_mapping[i].rc_offset] = GetShort_String(cp+1);
+                cp += 3;
             }
             cp++;   /* Skip over 0 terminator */
         } else if (!strcmp(cp, "msg")) {
@@ -229,6 +510,14 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             break;
         }
     } while (cp < data+len);
+
+    /* The display code expects all of these to have a description -
+     * rather than add checks there for NULL values, simpler to
+     * just set things to an empty value.
+     */
+    if (!rci->description)
+        rci->description = strdup("");
+
 }
 
 /**
@@ -253,6 +542,13 @@ static void get_race_info(char *data, int len) {
 
     process_race_class_info(data, len, &races[used_races]);
     used_races++;
+
+    if (used_races == num_races) {
+        qsort(races, used_races, sizeof(Race_Class_Info),
+              (int (*)(const void *, const void *))rc_compar);
+
+        new_char_window_update_info();
+    }
 }
 
 /**
@@ -278,6 +574,13 @@ static void get_class_info(char *data, int len) {
 
     process_race_class_info(data, len, &classes[used_classes]);
     used_classes++;
+
+    if (used_classes == num_classes) {
+        qsort(classes, used_classes, sizeof(Race_Class_Info),
+              (int (*)(const void *, const void *))rc_compar);
+
+        new_char_window_update_info();
+    }
 }
 
 /**
@@ -447,6 +750,10 @@ void ReplyInfoCmd(uint8 *buf, int len) {
         get_race_info(cp, len -i -1);
     } else if (!strcmp((char*)buf, "class_info")) {
         get_class_info(cp, len -i -1);
+    } else if (!strcmp((char*)buf, "newcharinfo")) {
+        get_new_char_info(cp, len -i -1);
+    } else if (!strcmp((char*)buf, "startingmap")) {
+        get_starting_map_info(cp, len -i -1);
     }
 }
 

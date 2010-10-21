@@ -104,3 +104,7 @@ extern void update_character_choose(const char *name, const char *class,
                              const char *party, const char *map,
                              int level, int faceno);
 extern void update_login_info(int type);
+
+/* Character Creation Functions */
+extern void new_char_window_update_info();
+extern void starting_map_update_info();

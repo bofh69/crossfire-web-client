@@ -708,7 +708,7 @@ main (int argc, char *argv[])
     use_config[CONFIG_MAPWIDTH] = want_config[CONFIG_MAPWIDTH] = 25;
     use_config[CONFIG_MAPHEIGHT] = want_config[CONFIG_MAPHEIGHT] = 25;
 
-    wantloginmethod=1;
+    wantloginmethod=2;
 
     parse_args(argc, argv);
     load_theme(FALSE);
@@ -818,6 +818,7 @@ main (int argc, char *argv[])
     config_init(window_root);
     pickup_init(window_root);
     msgctrl_init(window_root);
+    init_create_character_window();
 
     load_window_positions(window_root);
 

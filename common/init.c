@@ -237,7 +237,8 @@ void reset_player_data(void)
     }
 }
 
-/* This is used to clear values between connections to different
+/**
+ * This is used to clear values between connections to different
  * servers.  This needs to be called after init_client_vars has
  * been called because it does not re-allocated some values.
  */
@@ -252,6 +253,7 @@ void reset_client_vars(void)
     cpl.stats.maxsp=1;	/* avoid div by 0 errors */
     cpl.stats.maxhp=1;	/* ditto */
     cpl.stats.maxgrace=1;	/* ditto */
+
     /* ditto - displayed weapon speed is weapon speed/speed */
     cpl.stats.speed=1;
     cpl.input_text[0]='\0';
@@ -260,7 +262,7 @@ void reset_client_vars(void)
     cpl.last_command[0] = '\0';
 
     for (i=0; i<range_size; i++)
-	cpl.ranges[i]=NULL;
+        cpl.ranges[i]=NULL;
 
     cpl.magicmap=NULL;
     cpl.showmagic=0;
@@ -294,6 +296,21 @@ void reset_client_vars(void)
     if (motd) FREE_AND_CLEAR(motd);
     if (news) FREE_AND_CLEAR(news);
     if (rules) FREE_AND_CLEAR(rules);
+    if (races) {
+        free_all_race_class_info(races, num_races);
+        num_races=0;
+        used_races=0;
+        races = NULL;
+    }
+    if (classes) {
+        free_all_race_class_info(classes, num_classes);
+        num_classes=0;
+        used_classes=0;
+        classes = NULL;
+    }
+    stat_points = 0;
+    stat_min = 0;
+    stat_maximum = 0;
 
     serverloginmethod=0;
 

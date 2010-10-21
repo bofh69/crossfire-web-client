@@ -70,7 +70,8 @@ static GtkWidget *entry_new_character_name, *new_character_window,
 
 GtkListStore    *character_store;
 
-static char account_password[256];
+/* create_char.c also uses this */
+char account_password[256];
 
 /* This enum just maps the columns in the list store to their position.
  */
@@ -118,6 +119,7 @@ void hide_all_login_windows(void)
         gtk_widget_hide(choose_char_window);
         gtk_widget_hide(create_account_window);
         gtk_widget_hide(new_character_window);
+        create_character_window_hide(); /* create_char.c */
 
         /* If the player has started playing (this function being called from
          * AddMeSuccess), we want to make sure that the extended command entry
@@ -146,12 +148,26 @@ gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data) {
  *****************************************************************************/
 
 /**
+ * Pop up a dialog window with the error from the server.
+ * Since both v1 and v2 character creation are supported,
+ * either the new_character_window or the create_character_window
+ * may be up, so we can not easily display an in window message - 
+ * a pop up is probably better, but it will also work no matter
+ * what window is up.
  *
  * @param message
+ * message - this comes from the server.
  */
 void create_new_character_failure(char *message)
 {
-    gtk_label_set_text(GTK_LABEL(label_new_char_status), message);
+    GtkWidget *dialog;
+
+    dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_QUESTION,
+                                    GTK_BUTTONS_OK,
+                                    "Error: %s", message);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+
 }
 
 /**
@@ -458,6 +474,19 @@ void choose_character_init(void)
 }
 
 /**
+ * Basic little function - this is used because
+ * we make the choose_char_window widget private to this
+ * file, but the create_char.c file will need to show
+ * this if the user decides to abandon creation of a new
+ * character.
+ */
+void choose_char_window_show()
+{
+    gtk_widget_show(choose_char_window);
+}
+
+
+/**
  * User has done necessary steps to play a character.
  * @param name
  */
@@ -504,8 +533,12 @@ void
 on_button_create_character_clicked(GtkButton *button, gpointer user_data)
 {
     gtk_widget_hide(choose_char_window);
-    gtk_widget_show(new_character_window);
-    gtk_entry_set_text(GTK_ENTRY(entry_new_character_name), "");
+    if (serverloginmethod >= 2) {
+        create_character_window_show();
+    } else {
+        gtk_widget_show(new_character_window);
+        gtk_entry_set_text(GTK_ENTRY(entry_new_character_name), "");
+    }
 }
 
 /**

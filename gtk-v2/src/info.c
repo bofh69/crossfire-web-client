@@ -949,7 +949,7 @@ void info_buffer_init(void) {
         info_buffer[loop].orig_color = 0;
         info_buffer[loop].message[0] = '\0';
     };
-};
+}
 
 /**
  * Handles message buffer flushes, and, as needed, displays the text.  Flushed
@@ -1002,7 +1002,7 @@ void info_buffer_flush(const int id) {
      * Mark the buffer newly emptied.
      */
     info_buffer[id].count = -1;
-};
+}
 
 /**
  * Output count/sync buffer maintainer adds buffer time and output messages.

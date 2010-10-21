@@ -39,6 +39,7 @@ void TickCmd(uint8 *data, int len);
 void PickupCmd(uint8 *data, int len);
 void FailureCmd(char *buf, int len);
 void AccountPlayersCmd(char *buf, int len);
+void free_all_race_class_info(Race_Class_Info *data, int num_entries);
 /* image.c */
 void init_common_cache_data(void);
 void requestface(int pnum, char *facename);

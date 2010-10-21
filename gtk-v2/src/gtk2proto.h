@@ -32,6 +32,7 @@ extern void on_entry_account_name_activate(GtkEntry *entry, gpointer user_data);
 extern void on_entry_account_password_activate(GtkEntry *entry, gpointer user_data);
 extern void update_login_info(int type);
 extern void start_login(int method);
+extern void choose_char_window_show();
 /* config.c */
 extern void load_theme(int reload);
 extern void load_defaults(void);
@@ -44,6 +45,9 @@ extern void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void save_winpos(void);
 extern void on_save_window_position_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void load_window_positions(GtkWidget *window_root);
+/* create_char.c */
+extern void create_character_window_show();
+extern void create_character_window_hide();
 /* image.c */
 extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
 extern void addsmooth(uint16 face, uint16 smooth_face);

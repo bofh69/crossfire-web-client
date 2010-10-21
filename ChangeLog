@@ -2,6 +2,28 @@
 Top of SVN tree:
 ==============================================================================
 
+Commit client side support for new in client character creation.
+common/client.h: Add various new globals for map, race, and class info.
+common/commands.c: Move Race_Class_Info structure to header file, add
+    new global declarations.  Add handling of requesting and storing
+    starting map information from server.  Handle newcharinfo
+    protocol command.
+common/external.h: Add new external calls.
+common/init.c: Add calls to free race and class data.
+common/proto.h: Add new prototype
+gtk-v2/glade/dialogs.glade: Update dialogs.glade file with new
+   window for creating character.
+gtk-v2/src/Makefile.am: Add create_char.c file
+gtk-v2/src/account.c: Add calls for popups and to show the choose
+   character window.  Add handling for new character creation method.
+gtk-v2/src/create_char.c: New file that handles character creation logic.
+gtk-v2/src/gtk2proto.h: Update with new functions
+gtk-v2/src/main.c: update loginmethod to 2, add call to
+    init_create_character_window()
+gtk-v2/src/main.h: Add global reference to account password
+gtk-v2/src/stats.c: Make some widgets static to the file.
+MSW 2010-10-20
+
 Commit basic, functional music support via cfsndserv when the client is built
 with SDL_mixer sound support.  Music support is not presently planned for any
 of the legacy sound systems:  Alsa, Alsa9 (cfsndserv_alsa9), OSS, SGI, and

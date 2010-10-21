@@ -37,6 +37,7 @@ PROTO_SOURCES = \
 	about.c \
 	account.c \
 	config.c \
+	create_char.c \
 	image.c \
 	info.c \
 	inventory.c \
