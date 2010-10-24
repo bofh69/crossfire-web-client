@@ -27,11 +27,12 @@ EXTRA_DIST = \
 	sounds
 
 AM_CFLAGS = \
+	-I$(top_builddir)/common \
 	-I$(top_srcdir)/common \
 	-I$(top_srcdir)/common/shared
 
 common_BUILT_FILES = \
-	$(top_srcdir)/common/svnversion.h
+	$(top_builddir)/common/svnversion.h
 
 $(common_BUILT_FILES):
 	pushd `dirname $(@)` >/dev/null; \
@@ -44,7 +45,7 @@ BUILT_SOURCES = \
 	def_sounds.c
 
 common_LIBS = \
-	$(top_srcdir)/common/libcfclient.a
+	$(top_builddir)/common/libcfclient.a
 
 $(common_LIBS):
 	pushd `dirname $(@)` >/dev/null; \
@@ -79,11 +80,11 @@ cfsndserv_alsa9_LDADD = \
 
 def_sounds.h: sounds
 	$(PERL) \
-	    $(top_srcdir)/utils/deftoheader.pl sounds def_sounds.h def_sounds
+	    $(top_srcdir)/utils/deftoheader.pl $(srcdir)/sounds def_sounds.h def_sounds
 
 def_sounds.c: sounds
 	$(PERL) \
-	    $(top_srcdir)/utils/deftoheader.pl sounds def_sounds.c def_sounds
+	    $(top_srcdir)/utils/deftoheader.pl $(srcdir)/sounds def_sounds.c def_sounds
 
 proto_FILES = \
 	common.c

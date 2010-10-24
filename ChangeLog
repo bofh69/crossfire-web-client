@@ -2,6 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
+Fix building client with build directory separate from source directory.
+Arvid Norlander 2010-10-24
+
 Commit client side support for new in client character creation.
 common/client.h: Add various new globals for map, race, and class info.
 common/commands.c: Move Race_Class_Info structure to header file, add

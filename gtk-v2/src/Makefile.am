@@ -22,6 +22,7 @@
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
+	-I$(top_builddir)/common \
 	-I$(top_srcdir)/common \
 	-I$(top_srcdir)/common/shared \
 	-I$(top_srcdir)/help
@@ -34,7 +35,7 @@ AM_CFLAGS = \
 bin_PROGRAMS = crossfire-client-gtk2
 
 common_BUILT_FILES = \
-	$(top_srcdir)/common/svnversion.h
+	$(top_builddir)/common/svnversion.h
 
 $(common_BUILT_FILES):
 	pushd `dirname $(@)` >/dev/null; \
@@ -45,7 +46,7 @@ BUILT_SOURCES = \
 	$(common_BUILT_FILES)
 
 common_LIBS = \
-	$(top_srcdir)/common/libcfclient.a
+	$(top_builddir)/common/libcfclient.a
 
 $(common_LIBS):
 	pushd `dirname $(@)` >/dev/null; \
