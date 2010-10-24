@@ -33,7 +33,26 @@ AM_CFLAGS = \
 
 bin_PROGRAMS = crossfire-client-gtk2
 
-PROTO_SOURCES = \
+common_BUILT_FILES = \
+	$(top_srcdir)/common/svnversion.h
+
+$(common_BUILT_FILES):
+	pushd `dirname $(@)` >/dev/null; \
+	$(MAKE) `basename $(@)`; \
+	popd >/dev/null;
+
+BUILT_SOURCES = \
+	$(common_BUILT_FILES)
+
+common_LIBS = \
+	$(top_srcdir)/common/libcfclient.a
+
+$(common_LIBS):
+	pushd `dirname $(@)` >/dev/null; \
+	$(MAKE); \
+	popd >/dev/null;
+
+proto_FILES = \
 	about.c \
 	account.c \
 	config.c \
@@ -61,9 +80,9 @@ crossfire_client_gtk2_SOURCES = \
 	info.h \
 	main.h \
 	gtk2proto.h \
-	$(PROTO_SOURCES)
+	$(proto_FILES)
 
-crossfire_client_gtk2_LDADD = ../../common/libcfclient.a $(PTHREAD_LIBS) @LIBGLADE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@
+crossfire_client_gtk2_LDADD = $(common_LIBS) $(PTHREAD_LIBS) @LIBGLADE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@
 
 # This target breaks when it sees -pthread in the cproto command, so it has to
 # be stripped out to work.  $(filter-out) is a GNU make extension, so it is
@@ -74,7 +93,7 @@ proto:  PROTO_DIRTY = \
 	$(INCLUDES) \
 	$(SDL_CFLAGS) \
 	$(LIBGLADE_CFLAGS) \
-	$(PROTO_SOURCES)
+	$(PROTO_FILES)
 
 # proto:  PROTO_CLEAN = $(filter-out -pthread,$(PROTO_DIRTY))
 # proto:
