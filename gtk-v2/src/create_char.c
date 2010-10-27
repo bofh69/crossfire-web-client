@@ -75,7 +75,7 @@ Info_Pane create_char_pane[1];
  * Also, if more than 2 windows are ever used, this will also
  * make it easier to make sure the correct window is displayed.
  *
- * @params window
+ * @param window
  * WINDOW_... define as listed at top of this file which defines
  * the winow.  Special is WINDOW_NONE, which will just result
  * in this hiding all windows.
@@ -107,7 +107,7 @@ static void show_window(int window)
  * This is used because having the player fiddle with the attributes
  * before we get the information from the server doesn't make sense.
  *
- * @params sensitive
+ * @param sensitive
  * passed to gtk_widget_set_sensitive, to either make the widget
  * sensitive or not
  */
@@ -315,7 +315,8 @@ static void send_create_player_to_server()
  * User has hit the 'return to character selection' button - basically
  * meaning that we have to hide the current window and show the choose_char_window.
  *
- * @params ignored
+ * @param button    ignored
+ * @param user_data ignored
  */
 void
 on_button_cc_cancel(GtkButton *button, gpointer user_data)
@@ -329,7 +330,8 @@ on_button_cc_cancel(GtkButton *button, gpointer user_data)
  * User has hit the choose starting map button.
  * Not much to do, other than make that window visible
  *
- * @params ignored
+ * @param button    ignored
+ * @param user_data ignored
  */
 void
 on_button_choose_starting_map(GtkButton *button, gpointer user_data)
@@ -448,7 +450,8 @@ static int character_data_ok()
  * Note: This callback is used for the 'Done' button in both
  * the character character window and starting map window.
  *
- * @params ignored
+ * @param button    ignored
+ * @param user_data ignored
  */
 void
 on_button_cc_done(GtkButton *button, gpointer user_data)
@@ -481,9 +484,9 @@ on_spinbutton_cc (GtkSpinButton *spinbutton, gpointer user_data) {
  * as such, we really need to pay attention to what
  * box is set to.
  *
- * @params box
+ * @param box
  * The combobox that generated the event.
- * @params user_data
+ * @param user_data
  * ignored
  */
 void
@@ -628,7 +631,8 @@ void new_char_window_update_info()
  * meaning that we have to hide the current window and show the 
  * create_character_window.
  *
- * @params ignored
+ * @param button    ignored
+ * @param user_data ignored
  */
 void
 on_button_csm_cancel(GtkButton *button, gpointer user_data)
