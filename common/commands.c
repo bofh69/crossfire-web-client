@@ -2056,6 +2056,11 @@ void MagicMapCmd(unsigned char *data, int len) {
         return;
     }
 
+    if (cpl.mmapx == 0 || cpl.mmapy == 0) {
+        LOG(LOG_WARNING, "common::MagicMapCmd", "empty map");
+        return;
+    }
+
     /* Now we need to find the start of the actual data.  There are 4 space
      * characters we need to skip over.
      */

@@ -2,6 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
+Fix client crash on empty magic map.
+This fixes bug #3098933: invoking magic mapping crashes client.
+
 Fix building client with build directory separate from source directory.
 Arvid Norlander 2010-10-24
 
