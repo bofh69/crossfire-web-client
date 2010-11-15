@@ -605,11 +605,30 @@ struct Stat_Mapping {
 
 extern struct Stat_Mapping stat_mapping[NUM_NEW_CHAR_STATS];
 
+/**
+ * For classes & races, the server can present some number of
+ * choices, eg, the character gets to choose 1 skill from a
+ * choice of many.  Eg RC_Choice entry represents one of these
+ * choices.  However, each race/class may have multiple choices.
+ * For example, if the class had the character make 2 choices -
+ * one for a skill, and one for an item, 2 RC_Choice structures
+ * would be used.
+ */
+struct RC_Choice {
+    char *choice_name;                  /* name to respond, eg, race_choice_1 */
+    char *choice_desc;                  /* Longer description of choice */
+    int num_values;                     /* How many values we have */
+    char **value_arch;    /* Array arch names */
+    char **value_desc;    /* Array of description */
+};
+
 typedef struct Race_Class_Info {
     char    *arch_name;     /* Name of the archetype this correponds to */
     char    *public_name;   /* Public (human readadable) name */
     char    *description;   /* Description of the race/class */
-    sint8   stat_adj[NUM_NEW_CHAR_STATS];  /* Adjustment values */
+    sint8   stat_adj[NUM_NEW_CHAR_STATS];   /* Adjustment values */
+    int     num_rc_choice;                  /* Size of following array */
+    struct RC_Choice    *rc_choice;         /* array of choices */
 } Race_Class_Info;
 
 typedef struct Starting_Map_Info {

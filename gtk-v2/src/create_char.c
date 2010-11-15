@@ -43,12 +43,35 @@ const char * const rcsid_gtk2_create_char_c =
 #include "gtk2proto.h"
 #include "metaserver.h"
 
+/* This corresponds to the number of opt_.. fields in the
+ * create_character_window.  In theory, the vbox could be resized
+ * (or add a sub box), and adjust accordingly,
+ * but it is unlikely that number of optional choices is going
+ * to rapidly grow, and making it static makes some things much
+ * easier.
+ * Instead of having two different sets of fields named different,
+ * we just have one set and split it in half, for race and
+ * class.  This is done so that boxes don't need to be moved
+ * around - imagine cas where one race has options and
+ * another doesn't, but the currently selected class does -
+ * as player chooses different races, that race choice will
+ * come and go, but we want the class box to remain and to keep
+ * its same value.
+ */
+#define NUM_OPT_FIELDS  6
+#define RACE_OPT_START  0
+#define CLASS_OPT_START NUM_OPT_FIELDS/2
+#define RACE_OPT_END    CLASS_OPT_START - 1
+#define CLASS_OPT_ENG   NUM_OPT_FIELDS - 1
+
+
 /* These are in the create_character_window */
 static GtkWidget *spinbutton_cc[NUM_NEW_CHAR_STATS], *label_rs[NUM_NEW_CHAR_STATS],
     *label_cs[NUM_NEW_CHAR_STATS], *label_tot[NUM_NEW_CHAR_STATS],
     *label_cc_unspent, *textview_rs_desc, *label_cc_desc, *label_cc_status_update,
     *button_cc_cancel, *button_cc_done, *create_character_window, *combobox_rs,
-    *combobox_cs, *textview_cs_desc, *entry_new_character_name, *button_choose_starting_map;
+    *combobox_cs, *textview_cs_desc, *entry_new_character_name, *button_choose_starting_map,
+    *opt_label[NUM_OPT_FIELDS], *opt_combobox[NUM_OPT_FIELDS];
 
 static GtkTextMark *text_mark_cs, *text_mark_rs;
 
@@ -254,7 +277,7 @@ static void update_all_stats()
 static void send_create_player_to_server()
 {
     const gchar *char_name;
-    int i, tmp;
+    int i, on_choice, tmp;
     SockList sl;
     char buf[MAX_BUF];
     uint8 sockbuf[MAX_BUF];
@@ -266,7 +289,9 @@ static void send_create_player_to_server()
     SockList_AddChar(&sl, strlen(char_name));
     SockList_AddString(&sl, char_name);
     SockList_AddChar(&sl, strlen(account_password));
+
     SockList_AddString(&sl, account_password);
+
     /* The client should never be popping up the new client creation
      * window unless the server supports loginmethod >= 2, so
      * we do not have any check here for that, but these
@@ -278,11 +303,42 @@ static void send_create_player_to_server()
     SockList_AddString(&sl, buf);
     SockList_AddChar(&sl, 0);
 
+    /* From a practical standpoint, the server should never send
+     * race/class choices unless it also supports the receipt of
+     * those.  So no special checks are needed here.
+     */
+    for (on_choice = 0; on_choice < races[i].num_rc_choice; on_choice++) {
+        int j;
+
+        j = gtk_combo_box_get_active(GTK_COMBO_BOX(opt_combobox[on_choice + RACE_OPT_START]));
+
+        snprintf(buf, MAX_BUF, "choice %s %s", races[i].rc_choice[on_choice].choice_name,
+                 races[i].rc_choice[on_choice].value_arch[j]);
+
+        SockList_AddChar(&sl, strlen(buf)+1);
+        SockList_AddString(&sl, buf);
+        SockList_AddChar(&sl, 0);
+    }
+
+
     i = gtk_combo_box_get_active(GTK_COMBO_BOX(combobox_cs));
     snprintf(buf, MAX_BUF, "class %s", classes[i].arch_name);
     SockList_AddChar(&sl, strlen(buf)+1);
     SockList_AddString(&sl, buf);
     SockList_AddChar(&sl, 0);
+
+    for (on_choice = 0; on_choice < classes[i].num_rc_choice; on_choice++) {
+        int j;
+
+        j = gtk_combo_box_get_active(GTK_COMBO_BOX(opt_combobox[on_choice + CLASS_OPT_START]));
+
+        snprintf(buf, MAX_BUF, "choice %s %s", classes[i].rc_choice[on_choice].choice_name,
+                 classes[i].rc_choice[on_choice].value_arch[j]);
+
+        SockList_AddChar(&sl, strlen(buf)+1);
+        SockList_AddString(&sl, buf);
+        SockList_AddChar(&sl, 0);
+    }
 
     /* Its possible that the server does not provide a choice of
      * starting maps - if that is the case, then we will never
@@ -492,7 +548,7 @@ on_spinbutton_cc (GtkSpinButton *spinbutton, gpointer user_data) {
 void
 on_combobox_rcs_changed(GtkComboBox *box, gpointer user_data)
 {
-    int active_entry, i;
+    int active_entry, i, opt_start, opt_end;
     GtkWidget **label_stat;
     Race_Class_Info *rc;
     char buf[256];
@@ -517,6 +573,7 @@ on_combobox_rcs_changed(GtkComboBox *box, gpointer user_data)
 
         rc = &classes[active_entry];
         label_stat = label_cs;
+        opt_start = CLASS_OPT_START;
 
     } else if (box == GTK_COMBO_BOX(combobox_rs)) {
         gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview_rs_desc)),
@@ -526,12 +583,49 @@ on_combobox_rcs_changed(GtkComboBox *box, gpointer user_data)
                                      text_mark_rs, 0.0, TRUE, 0.0, 0.0);
         rc = &races[active_entry];
         label_stat = label_rs;
-
+        opt_start = RACE_OPT_START;
     } else {
         LOG(LOG_ERROR, "gtk-v2/src/create_char.c:on_combobox_rcs_changed", 
             "Passed in combobox does not match any combobox");
         return;
     }
+
+    for (i=0; i < rc->num_rc_choice; i++) {
+        int j;
+        GtkTreeModel *store;
+        GtkTreeIter iter;
+
+        if (i == (NUM_OPT_FIELDS/2)) {
+            LOG(LOG_ERROR, "gtk-v2/src/create_char.c:on_combobox_rcs_changed",
+                "Number of racial option exceeds allocated amount (%d > %d)",
+                i, NUM_OPT_FIELDS/2);
+            break;
+        }
+        /* Set up the races combobox */
+        store = gtk_combo_box_get_model(GTK_COMBO_BOX(opt_combobox[i + opt_start]));
+        gtk_list_store_clear(GTK_LIST_STORE(store));
+
+        for (j=0; j<rc->rc_choice[i].num_values; j++) {
+            gtk_list_store_append(GTK_LIST_STORE(store), &iter);
+            gtk_list_store_set(GTK_LIST_STORE(store), &iter, 0, rc->rc_choice[i].value_desc[j], -1);
+        }
+        gtk_combo_box_set_active(GTK_COMBO_BOX(opt_combobox[i+opt_start]), 0);
+
+        gtk_label_set(GTK_LABEL(opt_label[i+opt_start]), rc->rc_choice[i].choice_desc);
+        gtk_widget_show(opt_label[i+opt_start]);
+        gtk_widget_show(opt_combobox[i+opt_start]);
+        /* No signals are connected - the value of the combo
+         * box will be when we send the data to the server.
+         */
+    }
+
+    /* Hide any unused fields */
+    for ( ; i < (NUM_OPT_FIELDS/2); i++) {
+        gtk_widget_hide(opt_label[i + opt_start]);
+        gtk_widget_hide(opt_combobox[i + opt_start]);
+    }
+            
+
     /* label_stat now points at the array of stats to update, and rc points
      * at either the race or class to get values from.
      */
@@ -594,6 +688,7 @@ void new_char_window_update_info()
     for (i=0; i<num_classes; i++) {
         gtk_list_store_append(store, &iter);
         gtk_list_store_set(store, &iter, 0, classes[i].public_name, -1);
+
     }
 
     gtk_combo_box_set_model(GTK_COMBO_BOX(combobox_cs), GTK_TREE_MODEL(store));
@@ -714,6 +809,7 @@ void init_create_character_window()
     char tmpbuf[80];
     int i;
     GtkTextIter iter;
+    GtkCellRenderer *renderer;
 
     if (has_init) return;
     has_init=1;
@@ -763,7 +859,26 @@ void init_create_character_window()
         snprintf(tmpbuf, 80, "label_tot_%s", stat_mapping[i].widget_suffix);
         label_tot[i] = glade_xml_get_widget(dialog_xml, tmpbuf);
     }
- 
+
+    /* Note that in the glade file, the numbering starts at 1 */
+    for (i=0; i < NUM_OPT_FIELDS; i++ ) {
+        GtkListStore *store;
+
+        snprintf(tmpbuf, 80, "opt_label%d", i+1);
+        opt_label[i] = glade_xml_get_widget(dialog_xml, tmpbuf);
+
+        snprintf(tmpbuf, 80, "opt_combobox%d", i+1);
+        opt_combobox[i] = glade_xml_get_widget(dialog_xml, tmpbuf);
+
+        gtk_cell_layout_clear(GTK_CELL_LAYOUT(opt_combobox[i]));
+        renderer = gtk_cell_renderer_text_new();
+        gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(opt_combobox[i]), renderer, FALSE);
+        gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(opt_combobox[i]), renderer,
+                                   "text", 0, NULL);
+        store = gtk_list_store_new(1, G_TYPE_STRING);
+        gtk_combo_box_set_model(GTK_COMBO_BOX(opt_combobox[i]), GTK_TREE_MODEL(store));
+
+    }
 
     g_signal_connect ((gpointer) button_cc_done, "clicked",
                       G_CALLBACK (on_button_cc_done), NULL);

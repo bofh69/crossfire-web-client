@@ -72,6 +72,22 @@ int mapupdatesent = 0;
 
 #include "mapdata.h"
 
+/* In general, the data from the server should not do bad
+ * things like this, but checking for it makes it easier
+ * to find bugs.  Often this is called within a loop
+ * that of iterating over the length of the buffer, hence
+ * the break.  Note that this may not prevent crashes,
+ * but at least we generate a message.
+ * Note that curpos & buflen may be string pointers or
+ * may be integers - as long as both are the same
+ * (both integers or both char *) it will work.
+ */
+#define ASSERT_LEN(function, curpos, buflen)     \
+    if (curpos > buflen) { \
+            LOG(LOG_WARNING, function, "Data goes beyond length of buffer (%d>%d)", curpos, buflen); \
+            break; \
+}
+
 char *news=NULL, *motd=NULL, *rules=NULL;
 
 int spellmon_level = 0;                 /**< Keeps track of what spellmon
@@ -399,9 +415,24 @@ void free_all_race_class_info(Race_Class_Info *data, int num_entries)
      * to clear the data[i].. values.
      */
     for (i=0; i<num_entries; i++) {
+        int j;
+
         if (data[i].arch_name) free(data[i].arch_name);
         if (data[i].public_name) free(data[i].public_name);
         if (data[i].description) free(data[i].description);
+
+        for (j=0; j<data[i].num_rc_choice; j++) {
+            int k;
+
+            for (k=0; k<data[i].rc_choice[j].num_values; k++) {
+                free(data[i].rc_choice[j].value_arch[k]);
+                free(data[i].rc_choice[j].value_desc[k]);
+            }
+            free(data[i].rc_choice[j].value_arch);
+            free(data[i].rc_choice[j].value_desc);
+            free(data[i].rc_choice[j].choice_name);
+            free(data[i].rc_choice[j].choice_desc);
+        }
     }
 
     free(data);
@@ -463,6 +494,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             int namelen;
 
             namelen = GetChar_String(nl);
+            ASSERT_LEN("common::process_race_class_info", nl + namelen, data + len);
             nl++;
             rci->public_name = malloc(namelen+1);
             strncpy(rci->public_name, nl, namelen);
@@ -496,11 +528,68 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             int msglen;
 
             msglen = GetShort_String(nl);
+            ASSERT_LEN("common::process_race_class_info", nl + msglen, data + len);
             nl+=2;
             rci->description = malloc(msglen+1);
             strncpy(rci->description, nl, msglen);
             rci->description[msglen] = 0;
             cp = nl + msglen;
+        } else if (!strcmp(cp, "choice")) {
+            int oc = rci->num_rc_choice, clen;
+
+            rci->num_rc_choice++;
+            /* rc_choice may be null, but realloc still works there */
+            rci->rc_choice = realloc(rci->rc_choice, sizeof(struct RC_Choice) * rci->num_rc_choice);
+            memset(&rci->rc_choice[oc], 0, sizeof(struct RC_Choice));
+
+            cp = nl;
+
+            /* First is the coice string we return */
+            clen = GetChar_String(cp);
+            cp++;
+            ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
+            rci->rc_choice[oc].choice_name = malloc(clen+1);
+            strncpy(rci->rc_choice[oc].choice_name, cp, clen);
+            rci->rc_choice[oc].choice_name[clen] = 0;
+            cp += clen;
+
+            /* Next is the description */
+            clen = GetChar_String(cp);
+            cp++;
+            ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
+            rci->rc_choice[oc].choice_desc = malloc(clen+1);
+            strncpy(rci->rc_choice[oc].choice_desc, cp, clen);
+            rci->rc_choice[oc].choice_desc[clen] = 0;
+            cp += clen;
+
+            /* Now is a series of archetype/description pairs */
+            while (1) {
+                int vn;
+
+                clen = GetChar_String(cp);
+                cp++;
+                if (!clen) break;    /* 0 length is end of data */
+                vn = rci->rc_choice[oc].num_values;
+                rci->rc_choice[oc].num_values++;
+                rci->rc_choice[oc].value_arch = realloc(rci->rc_choice[oc].value_arch,
+                                                        sizeof(char*) * rci->rc_choice[oc].num_values);
+                rci->rc_choice[oc].value_desc = realloc(rci->rc_choice[oc].value_desc,
+                                                        sizeof(char*) * rci->rc_choice[oc].num_values);
+
+                ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
+                rci->rc_choice[oc].value_arch[vn] = malloc(clen+1);
+                strncpy(rci->rc_choice[oc].value_arch[vn], cp, clen);
+                rci->rc_choice[oc].value_arch[vn][clen] = 0;
+                cp += clen;
+                
+                clen = GetChar_String(cp);
+                cp++;
+                ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
+                rci->rc_choice[oc].value_desc[vn] = malloc(clen+1);
+                strncpy(rci->rc_choice[oc].value_desc[vn], cp, clen);
+                rci->rc_choice[oc].value_desc[vn][clen] = 0;
+                cp += clen;
+            }
         } else {
             /* Got some keyword we did not understand.  Because we do not know
              * about it, we do not know how to skip it over - the data could

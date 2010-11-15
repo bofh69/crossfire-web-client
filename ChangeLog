@@ -2,6 +2,14 @@
 Top of SVN tree:
 ==============================================================================
 
+common/client.h: Update race & class structures to hold choice information
+   from server.
+common/commands.c: Add handling of choice information from server.
+gtk-v2/src/create_char.c: Add handling of choice option lists.
+gtk-v2/glade/dialogs.glade - add labels and combo boxes for the choice
+   options.
+MSW 2010-11-14
+
 Fix client crash on empty magic map.
 This fixes bug #3098933: invoking magic mapping crashes client.
 
