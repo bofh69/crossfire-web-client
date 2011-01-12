@@ -711,7 +711,8 @@ main (int argc, char *argv[])
     wantloginmethod=2;
 
     parse_args(argc, argv);
-    load_theme(FALSE);
+
+    init_theme();
 
     csocket.inbuf.buf=malloc(MAXSOCKBUF);
 
@@ -811,6 +812,7 @@ main (int argc, char *argv[])
         }
     }
 
+
     inventory_init(window_root);
     info_init(window_root);
     keys_init(window_root);
@@ -822,6 +824,8 @@ main (int argc, char *argv[])
 
     load_window_positions(window_root);
 
+    load_theme(TRUE);
+
     /* We want this as late as possible in the process. This way, adjustments
      * that the widgets make on initialization are not visible - this is most
      * important with the inventory widget which has to create the panes and
@@ -829,6 +833,7 @@ main (int argc, char *argv[])
      * brief glimpse of the glade layout, which, IMO, doesn't look great.
      * Also, it should be faster to realize this as later as possible. */
     gtk_widget_show (window_root);
+
 
     map_init(window_root);
 
@@ -843,6 +848,7 @@ main (int argc, char *argv[])
     cached_server_file = file_cache;
 
     init_image_cache_data();
+
 
     /* Loop to connect to server/metaserver and play the game */
     while (1) {

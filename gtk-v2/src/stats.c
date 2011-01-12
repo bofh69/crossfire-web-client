@@ -255,7 +255,7 @@ void stats_init(GtkWidget *window_root)
             y++;
         }
     }
-    stats_get_styles();
+    /*stats_get_styles();*/
 }
 
 

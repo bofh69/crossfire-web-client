@@ -661,7 +661,7 @@ void info_init(GtkWidget *window_root)
         gtk_widget_realize(info_pane[i].textview);
     }
 
-    info_get_styles();
+    /*info_get_styles();*/
     info_buffer_init();
 
     /* Register callbacks for all message types */

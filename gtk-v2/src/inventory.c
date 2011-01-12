@@ -430,7 +430,7 @@ void inventory_init(GtkWidget *window_root)
     int i;
     GladeXML *xml_tree;
 
-    inventory_get_styles();
+    /*inventory_get_styles();*/
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
 

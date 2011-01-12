@@ -2,6 +2,11 @@
 Top of SVN tree:
 ==============================================================================
 
+Fix theme handling so it is properly loaded/processed at client start up.
+Remove the theme lookup from the init_...() routines and load the theme
+after all the initialization routines are done.  
+MSW 2011-01-11
+
 common/client.h: Update race & class structures to hold choice information
    from server.
 common/commands.c: Add handling of choice information from server.
