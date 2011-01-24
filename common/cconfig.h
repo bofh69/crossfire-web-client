@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001,2011 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@
 
 #define META_SERVER "crossfire.real-time.com"
 #define META_PORT   13326
-#define METASERVER  TRUE
+#define METASERVER  FALSE
 
 
 /* If you uncomment this, the gtk client will dump information about

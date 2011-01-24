@@ -45,9 +45,11 @@ extern void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void save_winpos(void);
 extern void on_save_window_position_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void load_window_positions(GtkWidget *window_root);
+extern void init_theme();
 /* create_char.c */
 extern void create_character_window_show();
 extern void create_character_window_hide();
+extern void init_create_character_window();
 /* image.c */
 extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
 extern void addsmooth(uint16 face, uint16 smooth_face);

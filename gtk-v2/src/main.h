@@ -5,7 +5,7 @@
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005,2010 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005,2010,2011 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ extern GladeXML *dialog_xml, *window_xml;
 extern int map_image_size, map_image_half_size, image_size;
 
 #define XML_PATH_DEFAULT CF_DATADIR "/glade-gtk2/"
-#define WINDOW_XML_FILENAME "gtk-v2.glade"
+#define WINDOW_XML_FILENAME "gtk-v1.glade"
 #define DIALOG_XML_FILENAME "dialogs.glade"
 extern char window_xml_file[];
 

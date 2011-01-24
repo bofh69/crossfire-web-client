@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_info_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2011 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -725,7 +725,16 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
      */
     type_tag = pane->default_tag;
 
-    if (type >= MSG_TYPE_LAST
+    /* Clear subtype on MSG_TYPE_CLIENT if max_subtype is not set
+     * Errors are generated during initialization, before max_subtype
+     * has been set, so we can not route to a specific pane.
+     * We also want to make sure we do not hit the pane->msg_type_tags
+     * code, as that is not initialzed yet.
+     */
+    if (type == MSG_TYPE_CLIENT && !max_subtype) {
+        subtype=0;
+    }
+    else if (type >= MSG_TYPE_LAST
     || subtype >= max_subtype
     || type < 0 || subtype < 0 ) {
         LOG(LOG_ERROR, "info.c::add_to_textbuf",

@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_create_char_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2010 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2010,2011 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -906,7 +906,6 @@ void init_create_character_window()
     button_csm_done = glade_xml_get_widget(dialog_xml,"button_csm_done");
     button_csm_cancel = glade_xml_get_widget(dialog_xml,"button_csm_cancel");
     combobox_starting_map = glade_xml_get_widget(dialog_xml,"combobox_starting_map");
-    gtk_combo_box_set_active(GTK_COMBO_BOX(combobox_starting_map), -1);
 
     g_signal_connect ((gpointer) button_csm_done, "clicked",
                       G_CALLBACK (on_button_cc_done), NULL);

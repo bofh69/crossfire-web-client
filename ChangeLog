@@ -2,6 +2,19 @@
 Top of SVN tree:
 ==============================================================================
 
+Minor bugfixes/improvements:
+common/cconfig.h: Turn off metaserver1 support - will remove code in future,
+   but will see what effect this has.
+gtk-v2/src/create_char.c: Remove call setting starting map combox box active -
+   this is done elsewhere, and that call generates an error since the widget
+   isn't realized yet, so isn't doing anything in any case.
+gtk-v2/src/info.c: Handle client generated messages at startup - removes
+   a bunch of errors going to console about invalid type/subtype.
+gtk-v2/src/gtk2proto.h: Add missing prototypes.
+gtk-v2/src/main.h: Change default layout to be gtk-v1
+MSW 2011-01-23
+
+
 Fix theme handling so it is properly loaded/processed at client start up.
 Remove the theme lookup from the init_...() routines and load the theme
 after all the initialization routines are done.  
