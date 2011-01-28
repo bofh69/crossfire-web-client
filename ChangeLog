@@ -2,6 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
+==============================================================================
+Changes for 1.60.0
+==============================================================================
 Minor bugfixes/improvements:
 common/cconfig.h: Turn off metaserver1 support - will remove code in future,
    but will see what effect this has.
