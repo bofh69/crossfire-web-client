@@ -97,6 +97,7 @@ extern void hide_all_login_windows(void);
 extern void account_login_failure(char *message);
 extern void account_creation_failure(char *message);
 extern void account_add_character_failure(char *message);
+extern void account_change_password_failure(char *message);
 extern void create_new_character_failure(char *message);
 extern void choose_character_init(void);
 extern void update_character_choose(const char *name, const char *class,

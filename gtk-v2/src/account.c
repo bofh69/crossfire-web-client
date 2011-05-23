@@ -44,7 +44,7 @@ const char * const rcsid_gtk2_account_c =
 #include "metaserver.h"
 
 static GtkWidget *add_character_window, *choose_char_window,
- *create_account_window, *login_window;
+ *create_account_window, *login_window, *account_password_window;
 
 /* These are in the login_window */
 static GtkWidget *button_login, *button_create_account,
@@ -60,13 +60,18 @@ static GtkWidget *button_new_create_account, *button_new_cancel,
 
 /* These are in the choose_character window */
 static GtkWidget *button_play_character, *button_create_character,
-    *button_add_character, *button_return_login,
+    *button_add_character, *button_return_login, *button_account_password,
     *treeview_choose_character;
 
 /* These are in the new_character window */
 static GtkWidget *entry_new_character_name, *new_character_window,
     *label_new_char_status, *button_create_new_char,
     *button_new_char_cancel;
+
+/* These are in the account_password window */
+static GtkWidget *entry_account_password_current, *entry_account_password_new,
+    *entry_account_password_confirm, *button_account_password_confirm,
+    *button_account_password_cancel, *label_account_password_status;
 
 GtkListStore    *character_store;
 
@@ -119,6 +124,7 @@ void hide_all_login_windows(void)
         gtk_widget_hide(choose_char_window);
         gtk_widget_hide(create_account_window);
         gtk_widget_hide(new_character_window);
+        gtk_widget_hide(account_password_window);
         create_character_window_hide(); /* create_char.c */
 
         /* If the player has started playing (this function being called from
@@ -571,6 +577,23 @@ on_button_return_login_clicked(GtkButton *button, gpointer user_data)
 }
 
 /**
+ * User has hit the change account password, so hide this window, show the
+ * account password change dialog.
+ * @param button
+ * @param user_data
+ */
+void
+on_button_account_password_clicked(GtkButton *button, gpointer user_data)
+{
+    gtk_widget_hide(choose_char_window);
+    gtk_widget_show(account_password_window);
+    /* reset previous values */
+    gtk_entry_set_text(GTK_ENTRY(entry_account_password_current), "");
+    gtk_entry_set_text(GTK_ENTRY(entry_account_password_new), "");
+    gtk_entry_set_text(GTK_ENTRY(entry_account_password_confirm), "");
+}
+
+/**
  * This gets data and adds it to the list store.  This is called from
  * AccountPlayersCmd and data is from the accountplayers protocol command.
  * The parameters are data to add to the list store.
@@ -678,6 +701,8 @@ static void init_choose_char_window(void) {
         glade_xml_get_widget(dialog_xml,"button_add_character");
     button_return_login =
         glade_xml_get_widget(dialog_xml,"button_return_login");
+    button_account_password =
+        glade_xml_get_widget(dialog_xml,"button_account_password");
     login_pane[TEXTVIEW_RULES_CHAR].textview =
         glade_xml_get_widget(dialog_xml,"textview_rules_char");
 
@@ -707,6 +732,8 @@ static void init_choose_char_window(void) {
                      G_CALLBACK(on_button_add_character_clicked), NULL);
     g_signal_connect((gpointer) button_return_login, "clicked",
                      G_CALLBACK(on_button_return_login_clicked), NULL);
+    g_signal_connect((gpointer) button_account_password, "clicked",
+                     G_CALLBACK(on_button_account_password_clicked), NULL);
     g_signal_connect((gpointer) treeview_choose_character, "row_activated",
                      G_CALLBACK(on_treeview_choose_character_activated), NULL);
 
@@ -1177,6 +1204,161 @@ static void init_login_window(void)
 }
 
 /*****************************************************************************
+ * Account password change
+ ****************************************************************************/
+
+/**
+ * This does sanity checking of the passed in data, and if all is good, sends
+ * the request to the server to change an account password.  If all the data isn't
+ * good, it puts up an error message.  In this routine, none of the entries
+ * should be NULL - the caller should verify that before callin
+ * do_account_change();
+ *
+ * @param old  Current password.
+ * @param p1   First password - must not be NULL
+ * @param p2   Second (confirmed) password.  This routine checks that p1 & p2
+ *             are the same, and if not, puts up an error.  p2 must not be NULL
+ */
+static void do_account_change(const char *old, const char *p1, const char *p2)
+{
+    SockList sl;
+    uint8 buf[MAX_BUF];
+
+    if (strcmp(p1, p2)) {
+        gtk_label_set_text(GTK_LABEL(label_account_password_status),
+                      "The passwords you entered do not match!");
+        return;
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_account_password_status), "");
+        SockList_Init(&sl, buf);
+        SockList_AddString(&sl, "accountpw ");
+        SockList_AddChar(&sl, strlen(old));
+        SockList_AddString(&sl, old);
+        SockList_AddChar(&sl, strlen(p1));
+        SockList_AddString(&sl, p1);
+        SockList_Send(&sl, csocket.fd);
+        /* Store password away for new character creation */
+        snprintf(account_password, sizeof(account_password), "%s", p1);
+    }
+}
+
+/**
+ * User has hit the cancel account password, so hide this window, show the
+ * account main window.
+ * @param button
+ * @param user_data
+ */
+void
+on_button_account_password_cancel_clicked(GtkButton *button, gpointer user_data)
+{
+    gtk_widget_hide(account_password_window);
+    gtk_widget_show(choose_char_window);
+}
+
+/**
+ * User has hit the validate account password, so handle that.
+ * @param button
+ * @param user_data
+ */
+void
+on_button_account_password_confirm_clicked(GtkButton *button, gpointer user_data)
+{
+    do_account_change(gtk_entry_get_text(GTK_ENTRY(entry_account_password_current)),
+        gtk_entry_get_text(GTK_ENTRY(entry_account_password_new)),
+        gtk_entry_get_text(GTK_ENTRY(entry_account_password_confirm)));
+}
+
+/**
+ * This handles cases where the user hits return in one of the entry boxes.
+ * We use the same callback for all 3 entry boxes, since the processing is
+ * basically the same - if there is valid data in all of them, we try to
+ * create an account - otherwise, we move to the next box.
+ *
+ * @param entry Entry box used to figure out what the next box is.
+ * @param user_data Not used.
+ */
+void
+on_entry_account_password(GtkEntry *entry, gpointer user_data) {
+
+    const char *old, *password1, *password2, *cp;
+
+    old = gtk_entry_get_text(GTK_ENTRY(entry_account_password_current));
+    password1 = gtk_entry_get_text(GTK_ENTRY(entry_account_password_new));
+    password2 = gtk_entry_get_text(GTK_ENTRY(entry_account_password_confirm));
+    if (old && old[0] && password1 && password1[0] && password2 && password2[0]) {
+        do_account_change(old, password1, password2);
+    } else {
+        /* In this case, one, or more, of the fields is blank.  If there were
+         * more than 3 widgets, I might but them into an array to make cycling
+         * easier
+         */
+
+        /* First case - if the currently active one is blank, no reason to
+         * move onward.
+         */
+        cp = gtk_entry_get_text(entry);
+        if (!cp || !cp[0]) return;
+
+        if (entry == GTK_ENTRY(entry_account_password_current))
+            gtk_widget_grab_focus(entry_account_password_new);
+        else if (entry == GTK_ENTRY(entry_account_password_new))
+            gtk_widget_grab_focus(entry_account_password_confirm);
+        else if (entry == GTK_ENTRY(entry_account_password_confirm))
+            gtk_widget_grab_focus(entry_account_password_current);
+    }
+}
+
+void account_change_password_failure(char *message) {
+    gtk_label_set_text(GTK_LABEL(label_account_password_status), message);
+}
+
+/**
+ * This initializes the change account password window and sets up the various
+ * callbacks.
+ */
+static void init_account_password_window(void)
+{
+    GladeXML *xml_tree;
+    GtkTextIter end;
+
+    account_password_window =
+        glade_xml_get_widget(dialog_xml, "account_password_window");
+
+    gtk_window_set_transient_for(
+        GTK_WINDOW(account_password_window), GTK_WINDOW(window_root));
+
+    xml_tree = glade_get_widget_tree(GTK_WIDGET(account_password_window));
+
+    button_account_password_confirm =
+        glade_xml_get_widget(dialog_xml,"button_account_password_confirm");
+    button_account_password_cancel =
+        glade_xml_get_widget(dialog_xml,"button_account_password_cancel");
+
+    entry_account_password_current =
+        glade_xml_get_widget(dialog_xml,"entry_account_password_current");
+    entry_account_password_new =
+        glade_xml_get_widget(dialog_xml,"entry_account_password_new");
+    entry_account_password_confirm =
+        glade_xml_get_widget(dialog_xml,"entry_account_password_confirm");
+    label_account_password_status =
+        glade_xml_get_widget(dialog_xml,"label_account_password_status");
+
+    g_signal_connect((gpointer) account_password_window, "delete_event",
+                     G_CALLBACK(on_window_delete_event), NULL);
+    g_signal_connect((gpointer) button_account_password_confirm, "clicked",
+                     G_CALLBACK(on_button_account_password_confirm_clicked), NULL);
+    g_signal_connect((gpointer) button_account_password_cancel, "clicked",
+                     G_CALLBACK(on_button_account_password_cancel_clicked), NULL);
+    g_signal_connect((gpointer) entry_account_password_current, "activate",
+                     G_CALLBACK(on_entry_account_password), NULL);
+    g_signal_connect((gpointer) entry_account_password_new, "activate",
+                     G_CALLBACK(on_entry_account_password), NULL);
+    g_signal_connect((gpointer) entry_account_password_confirm, "activate",
+                     G_CALLBACK(on_entry_account_password), NULL);
+}
+
+
+/*****************************************************************************
  * Common/generic functions
  ****************************************************************************/
 
@@ -1295,6 +1477,8 @@ void start_login(int method)
         init_create_account_window();
 
         init_new_character_window();
+
+        init_account_password_window();
 
         has_init=1;
 

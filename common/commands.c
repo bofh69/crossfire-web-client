@@ -2253,6 +2253,9 @@ void FailureCmd(char *buf, int len) {
     else if (!strcmp(buf,"createplayer")) {
         create_new_character_failure(cp);
     }
+    else if (!strcmp(buf, "accountpw")) {
+        account_change_password_failure(cp);
+    }
     else
         /* This really is an error - if this happens it menas the server
          * failed to process a request that the client made - the client
