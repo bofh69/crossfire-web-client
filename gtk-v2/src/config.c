@@ -88,7 +88,7 @@ int scandir(const char *dir, struct dirent ***namelist,
 extern char window_xml_file[MAX_BUF];  /* Name of the .glade layout in use. */
 
 GtkWidget *config_window, *config_spinbutton_cwindow, *config_button_echo,
-    *config_button_fasttcp, *config_button_grad_color, *config_button_foodbeep,
+    *config_button_fasttcp, *config_button_timestamp, *config_button_grad_color, *config_button_foodbeep,
     *config_button_sound, *config_button_cache, *config_button_download,
     *config_button_fog, *config_spinbutton_iconscale, *config_spinbutton_mapscale,
     *config_spinbutton_mapwidth, *config_spinbutton_mapheight,
@@ -484,6 +484,8 @@ void config_init(GtkWidget *window_root)
         glade_xml_get_widget(xml_tree, "config_button_echo");
     config_button_fasttcp =
         glade_xml_get_widget(xml_tree, "config_button_fasttcp");
+    config_button_timestamp =
+        glade_xml_get_widget(xml_tree, "config_button_timestamp");
     config_button_grad_color =
         glade_xml_get_widget(xml_tree, "config_button_grad_color");
     config_button_foodbeep =
@@ -706,6 +708,9 @@ static void setup_config_window(void)
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_fasttcp),
                                  want_config[CONFIG_FASTTCP]);
 
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_timestamp),
+                                 want_config[CONFIG_TIMESTAMP]);
+
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_grad_color),
                                  want_config[CONFIG_GRAD_COLOR]);
 
@@ -859,6 +864,7 @@ static void read_config_window(void)
 
     want_config[CONFIG_ECHO] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_echo));
     want_config[CONFIG_FASTTCP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_fasttcp));
+    want_config[CONFIG_TIMESTAMP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_timestamp));
     want_config[CONFIG_GRAD_COLOR] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_grad_color));
     want_config[CONFIG_FOODBEEP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_foodbeep));
     want_config[CONFIG_SOUND] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_sound));

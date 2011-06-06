@@ -897,6 +897,22 @@ void draw_ext_info(int orig_color, int type, int subtype, const char *message) {
                        *   go to the main message pane.
                        */
     int pane;
+    char *stamp = NULL;
+    const char *draw = NULL;
+
+    if (want_config[CONFIG_TIMESTAMP]) {
+        time_t curtime;
+        struct tm *ltime;
+        stamp = calloc(1, strlen(message) + 7);
+        curtime = time(NULL);
+        ltime = localtime(&curtime);
+        strftime(stamp, 6, "%I:%M", ltime);
+        strcat(stamp, " ");
+        strcat(stamp, message);
+        draw = stamp;
+    } else {
+        draw = message;
+    }
 
     /*
      * A valid message type is required to index into the msgctrl_widgets
@@ -931,8 +947,11 @@ void draw_ext_info(int orig_color, int type, int subtype, const char *message) {
             if (msgctrl_widgets[type - 1].pane[pane].state == FALSE)
                 continue;
         }
-        add_marked_text_to_pane(&info_pane[pane], message, type, subtype, orig_color);
+        add_marked_text_to_pane(&info_pane[pane], draw, type, subtype, orig_color);
     }
+
+    if (want_config[CONFIG_TIMESTAMP])
+        free(stamp);
 }
 
 /**

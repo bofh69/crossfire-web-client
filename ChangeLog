@@ -2,6 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
+Add timestamping option.
+Nicolas Weeger 2011-06-06
+
 Add account password change logic and dialogs.
 Nicolas Weeger 2011-05-23
 
