@@ -355,7 +355,7 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
             draw_pixmap(
                 weightC*map_image_size, map_image_size,
                 picx, picy,
-                picx-weightC*map_image_size, picy-map_image_size,
+                picx-weightC*map_image_size, picy+map_image_size,
                 pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image, map_image_size, map_image_size);
         }
     } /* while there's some smooth to do */
