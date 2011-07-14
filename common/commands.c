@@ -1336,35 +1336,6 @@ void StatsCmd(unsigned char *data, int len) {
             case CS_STAT_FLAGS: cpl.stats.flags = GetShort_String(data+i); i += 2; break;
             case CS_STAT_WEIGHT_LIM:set_weight_limit(cpl.stats.weight_limit = GetInt_String(data+i)); i += 4; break;
 
-                /* Skill experience handling */
-                /* We make the assumption based on current bindings in the
-                 * protocol that these skip 2 values and are otherwise in
-                 * order.
-                 */
-            case CS_STAT_SKILLEXP_AGILITY:
-            case CS_STAT_SKILLEXP_PERSONAL:
-            case CS_STAT_SKILLEXP_MENTAL:
-            case CS_STAT_SKILLEXP_PHYSIQUE:
-            case CS_STAT_SKILLEXP_MAGIC:
-            case CS_STAT_SKILLEXP_WISDOM:
-                {
-                    int skill_id = (c-CS_STAT_SKILLEXP_START)/2;
-                    cpl.stats.skill_exp[skill_id] = GetInt_String(data+i);
-                    use_skill(skill_id);
-                    i += 4;
-                }
-                break;
-
-            case CS_STAT_SKILLEXP_AGLEVEL:
-            case CS_STAT_SKILLEXP_PELEVEL:
-            case CS_STAT_SKILLEXP_MELEVEL:
-            case CS_STAT_SKILLEXP_PHLEVEL:
-            case CS_STAT_SKILLEXP_MALEVEL:
-            case CS_STAT_SKILLEXP_WILEVEL:
-                cpl.stats.skill_level[(c-CS_STAT_SKILLEXP_START-1)/2] = GetShort_String(data+i);
-                i += 2;
-                break;
-
             case CS_STAT_RANGE: {
                 int rlen = data[i++];
                 strncpy(cpl.range, (const char*)data+i, rlen);

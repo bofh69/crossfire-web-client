@@ -850,28 +850,6 @@ void script_watch(const char *cmd, const uint8 *data, const int data_len, const 
                                         len -= 4;
                                         break;
 
-                                    case CS_STAT_SKILLEXP_AGILITY:
-                                    case CS_STAT_SKILLEXP_PERSONAL:
-                                    case CS_STAT_SKILLEXP_MENTAL:
-                                    case CS_STAT_SKILLEXP_PHYSIQUE:
-                                    case CS_STAT_SKILLEXP_MAGIC:
-                                    case CS_STAT_SKILLEXP_WISDOM:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " skillexp %d %d\n", c, GetInt_String(data));
-                                        data += 4;
-                                        len -= 4;
-                                        break;
-
-                                    case CS_STAT_SKILLEXP_AGLEVEL:
-                                    case CS_STAT_SKILLEXP_PELEVEL:
-                                    case CS_STAT_SKILLEXP_MELEVEL:
-                                    case CS_STAT_SKILLEXP_PHLEVEL:
-                                    case CS_STAT_SKILLEXP_MALEVEL:
-                                    case CS_STAT_SKILLEXP_WILEVEL:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " skilllevel %d %d\n", c, GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
-
                                     case CS_STAT_RANGE:
                                         {
                                             int rlen = *data;
