@@ -49,7 +49,6 @@ const char * const rcsid_common_metaserver_c =
 
 #ifdef HAVE_CURL_CURL_H
 #include <curl/curl.h>
-#include <curl/types.h>
 #include <curl/easy.h>
 #endif
 
