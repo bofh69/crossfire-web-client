@@ -312,7 +312,8 @@ size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *data)
      */
     memcpy(inbuf, leftover, strlen(leftover));
     memcpy(inbuf+strlen(leftover), ptr, realsize);
-    inbuf[realsize] = 0;
+    inbuf[strlen(leftover)+realsize] = 0;
+    leftover[0] =0;
 
     /* Processing this block of data shouldn't take very long, even on
      * slow machines, so putting the lock here, instead of each time

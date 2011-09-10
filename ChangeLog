@@ -2,6 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
+Fix metaserver not correctly displaying everything.
+Maurice Massar 2011-09-10
+
 Add timestamping option.
 Nicolas Weeger 2011-06-06
 
