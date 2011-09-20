@@ -1,0 +1,86 @@
+Python 2 or later is needed for some functionality of libglade, it may work without it (not tested).
+  http://www.python.org/ftp/python/2.7.2/python-2.7.2.msi
+
+MinGW is the compiler library, make sure to install msys too.
+  http://downloads.sourceforge.net/project/mingw/Automated%20MinGW%20Installer/mingw-get-inst/mingw-get-inst-20110802/mingw-get-inst-20110802.exe?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fmingw%2Ffiles%2FAutomated%2520MinGW%2520Installer%2Fmingw-get-inst%2Fmingw-get-inst-20110802%2F&ts=1316141182&use_mirror=superb-sea2
+
+Add python and mingw\bin and mingw\msys\1.0\bin to your path
+
+
+Either install unzip or unpack everything with the windows explorer
+  http://downloads.sourceforge.net/project/infozip/UnZip%206.x%20%28latest%29/UnZip%206.0/unzip60.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Finfozip%2Ffiles%2FUnZip%25206.x%2520%2528latest%2529%2FUnZip%25206.0%2F&ts=1316144927&use_mirror=superb-sea2
+  tar -zxf unzip60.tar.gz
+  cd unzip60
+  make -f win32/Makefile.gcc
+  cp unzip.exe /bin
+  cd ..
+
+install libcurl
+  http://curl.haxx.se/download/curl-7.22.0.zip
+  add #define HTTP_ONLY to the top of <curl>/lib/setup.h
+  cd <curl>
+  sh configure
+  make
+  make install
+
+install gtk2
+  http://ftp.gnome.org/pub/gnome/binaries/win32/gtk+/2.22/gtk+-bundle_2.22.1-20101227_win32.zip
+
+Add <gtk2>\bin to your path
+
+Install libxml
+  ftp://xmlsoft.org/libxml2/libxml2-git-snapshot.tar.gz
+  tar -zxf libxml2.tar.gz
+  cd libxml2-2.7.8
+  sh configure
+  make
+  make install
+  cp libxml.h <mingw>\include
+  set PKG_CONFIG_PATH=<path to libxml>
+
+install libglade
+  ftp://ftp.gnome.org/mirror/gnome.org/sources/libglade/2.6/libglade-2.6.4.tar.gz
+  tar -zxf libglade.tar.gz
+  sh configure
+  make
+  make install
+  set PKG_CONFIG_PATH=%PKG_CONFIG_PATH%;<path to libglade>
+
+install zlib
+  http://zlib.net/zlib125.zip
+  unzip zlib
+  cd <zlib>
+  make -f win32/Makefile.gcc
+  cp zlib1.dll <mingw/bin>
+  cp zconf.h <mingw/include>
+  cp zlib.h <mingw/include>
+  cp libz.a <mingw/lib>
+  cp libzdll.a <mingw/lib/libz.dll.a>
+
+
+install libpng <must be 1.4.8>
+  http://downloads.sourceforge.net/project/libpng/libpng14/1.4.8/lpng148.zip?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Flibpng%2Ffiles%2Flibpng14%2F1.4.8%2F&ts=1316306163&use_mirror=superb-sea2
+  cd lpng148
+  make -f scripts/makefile.gcc
+
+grab svn source
+
+cd client.svn
+sh
+sh ./autogen.sh
+./configure --with-includes="`pkg-config --cflags libglade-2.0` `pkg-config --cflags gtk+-2.0` -I <libcurl/include>" --with-ldflags="-L <libcurl/lib/.libs> -L <libpng>  -L <libxml/.libs> -L <libcurl/lib/.libs> "
+
+open gtk-v2/src/Makefile
+  find the line that starts with crossfire_client_gtk2_LDADD :
+    replace \$\(top_builddir\)/C: with /c
+    replace /glade/libglade-2.0.la with /glade/.libs/libglade-2.0-0.dll -l curl
+
+add #define MINGW to the top of common/config.h
+
+make
+make install
+
+use windows search to find dlls reported missing, copy them and the glade files to <DIST>, copy cfclient.nsi.in to <DIST/..>
+install nsis, edit cfclient.nis, replace all %s with <client.svn>, save as cfclient.nsi
+run nsis on cfclient.nis
+
