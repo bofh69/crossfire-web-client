@@ -25,11 +25,11 @@ def FetchFile(URL, Filename):
 #FetchFile('https://crossfire.svn.sourceforge.net/svnroot/crossfire/client/trunk/gtk-v2/win32/gtkclient.nsi', 'gtkclient.nsi')
 
 
-if AskInstall('Nsis'):
+if not DB and AskInstall('Nsis'):
 	FetchFile('http://downloads.sourceforge.net/project/nsis/NSIS%202/2.46/nsis-2.46-setup.exe?r=http%3A%2F%2Fnsis.sourceforge.net%2FDownload&ts=1316497068&use_mirror=superb-sea2', 'nsis.exe')
 	system('nsis.exe')
 
-NSIS=raw_input('Path to nsis?') or pwd+'\NSIS'
+NSIS=pwd+'\NSIS' if DB else raw_input('Path to nsis?') or pwd+'\NSIS'
 NSIS+='\makensis.exe '
 if 'CFSOURCE' not in dir():
 	CFSOURCE=raw_input("Path to client.svn? ")

@@ -15,7 +15,10 @@ import os, sys, subprocess
 
 subprocess.list2cmdline=(lambda x: ' '.join(x))
 def system(cmd):
-	return subprocess.Popen(cmd.split(),env=os.environ,stdin=sys.stdin,stdout=sys.stdout,stderr=sys.stderr).wait()
+	try:
+		return subprocess.Popen(cmd.split(),env=os.environ,stdin=sys.stdin,stdout=sys.stdout,stderr=sys.stderr).wait()
+	except:
+		return 1
 
 pwd=os.getcwd()
 def FetchFile(URL, Filename):
@@ -27,22 +30,23 @@ def FetchFile(URL, Filename):
 		if (ctr+1)/2*2==ctr+1:
 			print ctr*1024*512+len(txt), 'bytes downloaded'
 		o.write(txt)	
-		txt=f.read()
+		txt=f.read(1024*512)
 		ctr+=1
 	f.close()
 	o.close()
 
 Auto='auto' in sys.argv
-if Auto or 'Y' in raw_input('Install MinGW?').upper():
+DB='db' in sys.argv
+if not DB and (Auto or 'Y' in raw_input('Install MinGW?').upper()):
 	FetchFile('http://downloads.sourceforge.net/project/mingw/Automated%20MinGW%20Installer/mingw-get-inst/mingw-get-inst-20110802/mingw-get-inst-20110802.exe?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fmingw%2Ffiles%2FAutomated%2520MinGW%2520Installer%2Fmingw-get-inst%2Fmingw-get-inst-20110802%2F&ts=1316141182&use_mirror=superb-sea2', 'MinGWInstall.exe')
 	system('MinGWInstall.exe')
 
 
-MINGW=raw_input('Where is the MinGW install? ')
-if MINGW=='':
+MINGW=DB or raw_input('Where is the MinGW install? ')
+if MINGW=='' or MINGW is True:
 	MINGW='C:\\MinGW'
 MINGWBIN=MINGW+'\\bin'
-MSYS=raw_input('Where is MSYS [%s\msys]? '%MINGW)
+MSYS='' if DB else raw_input('Where is MSYS [%s\msys]? '%MINGW)
 if MSYS=='':
 	MSYS=MINGW+'\\msys'
 MSYSBIN=MSYS+'\\1.0\\bin'
@@ -59,7 +63,7 @@ addPath(sys.executable.strip('python.exe'))
 def AskInstall(Name):
 	return Auto or 'Y' in raw_input('Install %s?' %Name).upper()
 
-if AskInstall('Unzip'):
+if not DB and AskInstall('Unzip'):
 	FetchFile('http://downloads.sourceforge.net/project/infozip/UnZip%206.x%20%28latest%29/UnZip%206.0/unzip60.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Finfozip%2Ffiles%2FUnZip%25206.x%2520%2528latest%2529%2FUnZip%25206.0%2F&ts=1316144927&use_mirror=superb-sea2', 'unzip.tar.gz')
 	system('tar -zxf unzip.tar.gz')
 	os.chdir('unzip60')
@@ -76,6 +80,7 @@ def unZip(File):
 	system('unzip %s' %File)
 
 if AskInstall('libcurl'):
+	if DB: system('rm -rf curl-7.22.0')
 	FetchFile('http://curl.haxx.se/download/curl-7.22.0.zip','curl-7.22.0.zip')
 	unZip('curl-7.22.0.zip')
 	os.chdir('curl-7.22.0')
@@ -99,6 +104,7 @@ os.chdir(pwd)
 
 
 if AskInstall('gtk2'):
+	if DB: system('rm -rf gtk2bundle')
 	if system('dir gtk2bundle'):
 		system('mkdir gtk2bundle')
 	FetchFile('http://ftp.gnome.org/pub/gnome/binaries/win32/gtk+/2.22/gtk+-bundle_2.22.1-20101227_win32.zip', 'gtk2bundle/gtk2bundle.zip')
@@ -106,6 +112,7 @@ if AskInstall('gtk2'):
 	unZip('gtk2bundle.zip')
 	os.chdir(pwd)
 	addPath(pwd+r'\gtk2bundle\bin')
+	GTK=pwd+r'\gtk2bundle\bin'
 else:
 	GTK=raw_input('path to gtk library? ')
 	if GTK:
@@ -116,6 +123,7 @@ else:
 
 
 if AskInstall('libxml'):
+	if DB: system('rm -rf libxml2-2.7.8')
 	FetchFile('ftp://xmlsoft.org/libxml2/libxml2-git-snapshot.tar.gz', 'libxml2.tar.gz')
 	system('tar -zxf libxml2.tar.gz')
 	os.chdir('libxml2-2.7.8')
@@ -135,6 +143,7 @@ os.chdir(pwd)
 
 
 if AskInstall('libglade'):
+	if DB: system('rm -rf libglade-2.6.4')
 	FetchFile('ftp://ftp.gnome.org/mirror/gnome.org/sources/libglade/2.6/libglade-2.6.4.tar.gz','libglade.tar.gz')
 	system('tar -zxf libglade.tar.gz')
 	os.chdir('libglade-2.6.4')
@@ -153,6 +162,7 @@ os.environ['PKG_CONFIG_PATH']+=';'+LIBGLADE
 os.chdir(pwd)
 
 if AskInstall('zlib'):
+	if DB: system('rm -rf zlib-1.2.5')
 	FetchFile('http://zlib.net/zlib125.zip','zlib.zip')
 	unZip('zlib.zip')
 	os.chdir('zlib-1.2.5')
@@ -169,6 +179,7 @@ else:
 os.chdir(pwd)
 LIBPNG=''
 if AskInstall('libpng'):
+	if DB: system('rm -rf lpng148')
 	FetchFile('http://downloads.sourceforge.net/project/libpng/libpng14/1.4.8/lpng148.zip?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Flibpng%2Ffiles%2Flibpng14%2F1.4.8%2F&ts=1316306163&use_mirror=superb-sea2','libpng.zip')
 #	system('tar -zxf libpng.tar.gz')
 	unZip('libpng.zip')
@@ -187,9 +198,9 @@ if not LIBPNG:
 os.chdir(pwd)
 
 CFSOURCE=''
-SvnType=raw_input('Please select svn client [S]vn, [p]ysvn, [t]ortoiseSVN, [m]anual checkout:')
+SvnType='p' if DB else raw_input('Please select svn client [S]vn, [p]ysvn, [t]ortoiseSVN, [m]anual checkout:')
 if not 'M' in SvnType.upper():
-	if AskInstall('svn client'):
+	if not DB and AskInstall('svn client'):
 		if 'S' in SvnType:
 			FetchFile('http://downloads.sourceforge.net/project/win32svn/1.6.17/Setup-Subversion-1.6.17.msi?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fwin32svn%2F&ts=1316154613&use_mirror=superb-sea2','Subversion.msi')
 			system('Subversion.msi')
@@ -201,7 +212,7 @@ if not 'M' in SvnType.upper():
 			system('tsvn.msi')
 
 
-	if AskInstall('cf client gtk2 code'):
+	if DB or AskInstall('cf client gtk2 code'):
 		if 'S' in SvnType:
 			system('svn co https://crossfire.svn.sourceforge.net/svnroot/crossfire/client/trunk client.svn')
 		elif 'p' in SvnType:
@@ -215,6 +226,8 @@ if not CFSOURCE:
 	CFSOURCE=raw_input("Path to client.svn?") or os.path.join(pwd,'client.svn')
 os.chdir(CFSOURCE or 'client.svn')
 #
+if DB:
+	system('make distclean')
 if 'configure' not in os.listdir('.'):
 	system('sh autogen.sh')
 
@@ -233,7 +246,7 @@ GLADELD=GLADECF.replace('C:','/C').replace('\\','/').replace('(top_builddir/)//'
 
 GLADELD=''
 print '''sh -c './configure  --with-includes="%s %s -I %s" --with-ldflags="-L %s -L %s %s -L %s"' '''%(GLADECF, GTKCF, ('/'+LIBCURL+r'\include').replace('\\','/').replace(':',''),LIBCURL.replace('\\','/').replace('c:/','/c/').replace('//','/')+'lib/.libs', ('/'+LIBPNG).replace('\\','/').replace(':',''), GLADELD, LIBXML.replace('\\','/').replace(':','')+'/.libs')
-if raw_input('') or Auto:
+if DB or raw_input('') or Auto:
 
   if not system('''sh -c './configure  --with-includes="%s %s -I %s" --with-ldflags="-L %s -L %s %s -L %s -L %s"' '''%(GLADECF, GTKCF, ('/'+LIBCURL+r'\include').replace('\\','/').replace(':',''),LIBCURL.replace('\\','/').replace('c:/','/c/').replace('//','/')+'lib/.libs', ('/'+LIBPNG).replace('\\','/').replace(':',''), GLADELD, '/'+LIBXML.replace('\\','/').replace(':','')+'/.libs', ('/'+LIBCURL+r'/lib/.libs').replace('\\','/').replace(':',''))):
 	f=open('gtk-v2/src/Makefile')
@@ -260,13 +273,14 @@ if raw_input('') or Auto:
 
 
 
-if Auto or 'Y' in raw_input('Prepare distro? ').upper():
+if DB or Auto or 'Y' in raw_input('Prepare distro? ').upper():
 	os.chdir(pwd)
 	execfile('Collect.py')
 os.chdir(pwd)
-if Auto or 'Y' in raw_input('Prepare installer? ').upper():
+if DB or Auto or 'Y' in raw_input('Prepare installer? ').upper():
 	execfile('Bundle.py')
 
-if system('sh'):
+if not DB:
+  if system('sh'):
 	print MSYSBIN
 	system(MSYSBIN+'\sh.exe')
