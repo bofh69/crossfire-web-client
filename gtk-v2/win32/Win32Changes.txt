@@ -1,8 +1,16 @@
-Changes for Win32 GTK client 1.50.0, May 2010
+Changes for Win32 GTK client 1.60.2, May 2010
 ---------------------------------------------------
-
 This document details changes between Win32 GTK client releases.
 A full log of changes can be found in the 'ChangeLog.rtf' file ('Full change log' in start menu).
+
+
+
+From version 1.60.2
+-------------------
+* GTK runtime bundled right into Crossfire directory, no need for a separate GTK install on the PATH
+* SDL and OpenGL not included
+* Built with MinGW instead of MSVC
+* Removed gtkclient.nsi as it is now generated dynamically by Bundle.py from gtkclient.nsi.in
 
 From versions 1.50.0
 ------------------

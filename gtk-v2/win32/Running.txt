@@ -4,7 +4,7 @@ Readme for Crossfire's GTK client under Windows (May, 19th, 2010)
 This document contains notes and information about running Crossfire's GTK client under Win32.
 More information about Crossfire can be found at http://crossfire.real-time.com
 
-Building instructions can be found in Building.txt, located in the same directory.
+Building instructions can be found in Building.mingw.txt or Building.msvc.txt, located in the same directory. Building.msvc.txt is out of date.
 Changes from previous versions are listed in 'Changes' or 'Full change log' files from
 start menu.
 
@@ -12,9 +12,6 @@ start menu.
 This is release 1.60.2 of the client, only the GTK-v2 client is supported or maintained in 
 any way.
 
-Requirements
-------------
-The client requires GTK libraries to run, these are included in the installer.
 
 GTK Warning
 -----------
@@ -34,9 +31,7 @@ Else your application's directory will be used.
 Release notes & known issues
 ----------------------------
 * There is no sound currently.
-* The config dialogs don't work properly, some settings can still be changed, others will 
-  require the gdefaults2 file to be edited directly.
-* The client isn't built with OpenGL support enabled, it does have SDL support.
+* The client isn't built with OpenGL or SDL support: pixmap support only.
 
 Display Options
 ---------------

@@ -1,4 +1,4 @@
-Readme for building Crossfire's GTK client under Windows (October 26th, 2003)
+Readme for building Crossfire's GTK client under Windows using MSVC (October 26th, 2003)
 -----------------------------------------------------------------------------
 
 This file contains instructions for compiling Crossfire's GTK client under Win32.
