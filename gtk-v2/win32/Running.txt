@@ -9,7 +9,7 @@ Changes from previous versions are listed in 'Changes' or 'Full change log' file
 start menu.
 
 
-This is release 1.50.0 of the client, only the GTK-v2 client is supported or maintained in 
+This is release 1.60.2 of the client, only the GTK-v2 client is supported or maintained in 
 any way.
 
 Requirements
