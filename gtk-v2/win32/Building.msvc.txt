@@ -60,7 +60,7 @@ Troubleshooting
 If something goes wrong, first check all include and libraries paths are correct. Check GTK version for runtime and development.
 
 If everything is fine, report your troubles to:
-* Crossfire's messageboard: http://www.metalforge.net/cfmb/index.php
+* Crossfire's messageboard: http://forum.metalforge.net/
 * Crossfire's mailing list: see http://crossfire.real-time.com for instructions on how to join it
 * #crossfire on irc.freenode.org
 

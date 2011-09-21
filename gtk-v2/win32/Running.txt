@@ -16,7 +16,7 @@ any way.
 GTK Warning
 -----------
 People have reported many issues with GTK. If you experience any trouble, before asking for
-help, check http://www.metalforge.net/cfmb/, the 'bugs' and/or 'Spoilers and help request'
+help, check http://forum.metalforge.net/, the 'bugs' and/or 'Spoilers and help request'
 forums.
 
 Installation
@@ -53,7 +53,7 @@ Changing layouts requires a client restart.
 Troubleshooting
 ---------------
 If something goes wrong, report your troubles to:
-* Crossfire's messageboard: http://www.metalforge.net/cfmb/index.php
+* Crossfire's messageboard: http://forum.metalforge.net/
 * Crossfire's mailing list: see http://crossfire.real-time.com for instructions on how to join it
 * #crossfire on irc.freenode.org
 
