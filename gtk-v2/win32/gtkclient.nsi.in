@@ -252,7 +252,8 @@ Section Uninstall
   Delete "$INSTDIR\ChangeLog.rtf"
   Delete "$INSTDIR\Copying.rtf"
   Delete "$INSTDIR\Running.txt"
-  Delete "$INSTDIR\Building.txt"
+  Delete "$INSTDIR\Building.mingw.txt"
+  Delete "$INSTDIR\Building.msvc.txt"
 
   Delete "$INSTDIR\client.ico"
 
