@@ -23,7 +23,7 @@ def FetchFile(URL, Filename):
 
 
 #FetchFile('https://crossfire.svn.sourceforge.net/svnroot/crossfire/client/trunk/gtk-v2/win32/gtkclient.nsi', 'gtkclient.nsi')
-
+system('cp %s/gtk-2/win32/gtkclient.nsi.in .' %CFSOURCE)
 
 if not DB and AskInstall('Nsis'):
 	FetchFile('http://downloads.sourceforge.net/project/nsis/NSIS%202/2.46/nsis-2.46-setup.exe?r=http%3A%2F%2Fnsis.sourceforge.net%2FDownload&ts=1316497068&use_mirror=superb-sea2', 'nsis.exe')
