@@ -246,7 +246,7 @@ GLADELD=GLADECF.replace('C:','/C').replace('\\','/').replace('(top_builddir/)//'
 
 GLADELD=''
 print '''sh -c './configure  --with-includes="%s %s -I %s" --with-ldflags="-L %s -L %s %s -L %s"' '''%(GLADECF, GTKCF, ('/'+LIBCURL+r'\include').replace('\\','/').replace(':',''),LIBCURL.replace('\\','/').replace('c:/','/c/').replace('//','/')+'lib/.libs', ('/'+LIBPNG).replace('\\','/').replace(':',''), GLADELD, LIBXML.replace('\\','/').replace(':','')+'/.libs')
-if DB or raw_input('') or Auto:
+if DB or raw_input('Compile gtk2 client?') or Auto:
 
   if not system('''sh -c './configure  --with-includes="%s %s -I %s" --with-ldflags="-L %s -L %s %s -L %s -L %s"' '''%(GLADECF, GTKCF, ('/'+LIBCURL+r'\include').replace('\\','/').replace(':',''),LIBCURL.replace('\\','/').replace('c:/','/c/').replace('//','/')+'lib/.libs', ('/'+LIBPNG).replace('\\','/').replace(':',''), GLADELD, '/'+LIBXML.replace('\\','/').replace(':','')+'/.libs', ('/'+LIBCURL+r'/lib/.libs').replace('\\','/').replace(':',''))):
 	f=open('gtk-v2/src/Makefile')
