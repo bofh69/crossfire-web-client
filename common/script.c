@@ -619,10 +619,11 @@ void script_process(fd_set *set) {
     }
 }
 
-void script_watch(const char *cmd, const uint8 *data, const int data_len, const enum CmdFormat format) {
+void script_watch(const char *cmd, const uint8 *data_initial, const int data_len, const enum CmdFormat format) {
     int i;
     int w;
     int l, len;
+    const uint8 *data;
 
     /* For each script... */
     for (i = 0; i < num_scripts; ++i) {
@@ -636,6 +637,7 @@ void script_watch(const char *cmd, const uint8 *data, const int data_len, const 
             {
                 char buf[10240];
 
+                data = data_initial;
                 if (!len)
                     snprintf(buf, sizeof(buf), "watch %s\n", cmd);
                 else
