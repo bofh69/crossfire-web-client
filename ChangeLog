@@ -2,6 +2,9 @@
 Top of SVN tree:
 ==============================================================================
 
+Apply patch #3428070: Autoreconf Warnings, by Steven Johnson.
+Nicolas Weeger 2011-10-27
+
 Fix metaserver not correctly displaying everything.
 Maurice Massar 2011-09-10
 
