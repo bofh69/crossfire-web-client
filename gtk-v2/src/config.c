@@ -3,7 +3,7 @@ const char * const rcsid_gtk2_config_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2005,2007 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2005-2011 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -407,6 +407,23 @@ void load_defaults(void)
             want_config[CONFIG_MAPHEIGHT], MAP_MAX_SIZE);
         want_config[CONFIG_MAPHEIGHT] = use_config[CONFIG_MAPHEIGHT];
     }
+
+#if !defined(HAVE_OPENGL)
+    if (want_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
+        want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
+        LOG(LOG_ERROR, "config.c::load_defaults", "Display mode is set to OpenGL, but client "
+            "is not compiled with OpenGL support.  Reverting to pixmap mode.");
+    }
+#endif
+
+#if !defined(HAVE_SDL)
+    if (want_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
+        want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
+        LOG(LOG_ERROR, "config.c::load_defaults", "Display mode is set to SDL, but client "
+            "is not compiled with SDL support.  Reverting to pixmap mode.");
+    }
+#endif
+
 
     /* Now copy over the values just loaded */
     for (i=0; i<CONFIG_NUMS; i++) {
