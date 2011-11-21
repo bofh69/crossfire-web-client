@@ -3,7 +3,7 @@ const char * const rcsid_common_commands_c =
 /*
     Crossfire client, a client program for the crossfire program.
 
-    Copyright (C) 2001,2010 Mark Wedel & Crossfire Development Team
+    Copyright (C) 2001-2011 Mark Wedel & Crossfire Development Team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -724,7 +724,9 @@ static void get_skill_info(char *data, int len) {
         sn++;
         val = atoi(cp);
         val -= CS_STAT_SKILLINFO;
-        if (val < 0 || val> CS_NUM_SKILLS) {
+
+        /* skill_names[MAX_SKILL] is the declaration, so check against that */
+        if (val < 0 || val >= MAX_SKILL) {
             LOG(LOG_WARNING, "common::get_skill_info", "invalid skill number %d", val);
             return;
         }
