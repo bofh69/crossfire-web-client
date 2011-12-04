@@ -21,7 +21,7 @@
 
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
-	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
+	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
 	-I$(top_builddir)/common \
 	-I$(top_srcdir)/common \
 	-I$(top_srcdir)/common/shared \
