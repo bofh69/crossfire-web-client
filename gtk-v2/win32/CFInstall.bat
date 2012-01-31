@@ -162,19 +162,19 @@ os.environ['PKG_CONFIG_PATH']+=';'+LIBGLADE
 os.chdir(pwd)
 
 if AskInstall('zlib'):
-	if DB: system('rm -rf zlib-1.2.5')
-	FetchFile('http://zlib.net/zlib125.zip','zlib.zip')
+	if DB: system('rm -rf zlib-1.2.6')
+	FetchFile('http://zlib.net/zlib126.zip','zlib.zip')
 	unZip('zlib.zip')
-	os.chdir('zlib-1.2.5')
+	os.chdir('zlib-1.2.6')
 	system('make -f win32/Makefile.gcc')
 	system('cp zlib1.dll %s'%MINGWBIN)
 	system('cp zconf.h %s'%MINGW+'\\include')
 	system('cp zlib.h %s' %MINGW+'\\include')
 	system('cp libz.a %s'%MINGW+r'\lib')
 	system('cp libzdll.a %s'%MINGW+r'\lib\libz.dll.a')
-	ZLIB=pwd+'/zlib-1.2.5'
+	ZLIB=pwd+'/zlib-1.2.6'
 else:
-	ZLIB=raw_input("Path to zlib? ") or pwd+'/zlib-1.2.5'
+	ZLIB=raw_input("Path to zlib? ") or pwd+'/zlib-1.2.6'
 
 os.chdir(pwd)
 LIBPNG=''
