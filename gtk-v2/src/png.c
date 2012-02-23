@@ -571,7 +571,7 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
         png_destroy_read_struct (&png_ptr, NULL, NULL);
         return PNGX_OUTOFMEM;
     }
-    if (setjmp (png_ptr->jmpbuf)) {
+    if (setjmp (png_jmpbuf(png_ptr))) {
         png_destroy_read_struct (&png_ptr, &info_ptr,NULL);
         return PNGX_DATA;
     }
