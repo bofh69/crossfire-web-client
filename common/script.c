@@ -119,6 +119,8 @@ const char * const rcsid_common_script_c =
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+/* for SIGHUP */
+#include <signal.h>
 #endif
 #include <ctype.h>
 
