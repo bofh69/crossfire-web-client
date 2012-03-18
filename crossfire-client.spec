@@ -8,8 +8,8 @@
 #
 %define Name crossfire
 %define extra client
-%define version 1.60.0.dev
-%define sndversion 1.60.0.dev
+%define version 1.70.0.dev
+%define sndversion 1.70.0.dev
 %define release 1
 %define vendor sourceforge.net/projects/crossfire
 %define packager Crossfire Developer <crossfire@metalforge.org>

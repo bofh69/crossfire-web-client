@@ -4,7 +4,7 @@
 # used to create RPMs, and some RPM build tools do not allow use of dash in
 # the version number.
 #
-AC_INIT([crossfire-client],[1.60.0.dev])
+AC_INIT([crossfire-client],[1.70.0.dev])
 
 AC_CONFIG_SRCDIR(crossfire-client.spec)
 
