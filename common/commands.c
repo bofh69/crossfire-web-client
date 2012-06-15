@@ -809,6 +809,10 @@ void ReplyInfoCmd(uint8 *buf, int len) {
                 cp1 = cp;
             }
         }
+        if (*cp1!='\0') {
+            cs_print_string(csocket.fd, "requestinfo race_info %s", cp1);
+            num_races++;
+        }
         if (races) {
             free_all_race_class_info(races, num_races);
             num_races=0;
@@ -830,6 +834,11 @@ void ReplyInfoCmd(uint8 *buf, int len) {
                 }
                 cp1 = cp;
             }
+        }
+        /* last race isn't followed by a | */
+        if (*cp1 != '\0') {
+            cs_print_string(csocket.fd, "requestinfo class_info %s", cp1);
+            num_classes++;
         }
         if (classes) {
             free_all_race_class_info(classes, num_classes);
