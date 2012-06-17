@@ -30,6 +30,8 @@ INCLUDES = \
 AM_CFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	@LIBGLADE_CFLAGS@ \
+	@OPENGL_CFLAGS@ \
+	@X11_CFLAGS@ \
 	@SDL_CFLAGS@
 
 bin_PROGRAMS = crossfire-client-gtk2
@@ -83,7 +85,7 @@ crossfire_client_gtk2_SOURCES = \
 	gtk2proto.h \
 	$(proto_FILES)
 
-crossfire_client_gtk2_LDADD = $(common_LIBS) $(PTHREAD_LIBS) @LIBGLADE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) $(X_LIBS) @SDL_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@
+crossfire_client_gtk2_LDADD = $(common_LIBS) $(PTHREAD_LIBS) @LIBGLADE_LIBS@ @DMALLOC_LIB@ $(INTLLIBS) @SDL_LIBS@ @X11_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@
 
 # This target breaks when it sees -pthread in the cproto command, so it has to
 # be stripped out to work.  $(filter-out) is a GNU make extension, so it is
@@ -94,14 +96,12 @@ proto:  PROTO_DIRTY = \
 	$(INCLUDES) \
 	$(SDL_CFLAGS) \
 	$(LIBGLADE_CFLAGS) \
-	$(PROTO_FILES)
+	$(proto_FILES)
 
 # proto:  PROTO_CLEAN = $(filter-out -pthread,$(PROTO_DIRTY))
 # proto:
 # 	cproto -e -o gtk2proto.h $(PROTO_CLEAN); \
 # 	chmod 644 gtk2proto.h
-
 proto:
 	cproto -e -o gtk2proto.h $(PROTO_DIRTY); \
- 	chmod 644 gtk2proto.h
-
+	chmod 644 gtk2proto.h

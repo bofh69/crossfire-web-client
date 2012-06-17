@@ -1,6 +1,10 @@
 ## Please update this variable if any new macros are created
 MACROS=						\
   aclocal-include.m4				\
+  ax_check_gl.m4                                \
+  ax_check_glu.m4                               \
+  ax_check_glut.m4                              \
+  ax_lang_compiler_ms.m4                        \
   ax_pthread.m4					\
   compiler-flags.m4				\
   curses.m4					\

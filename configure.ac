@@ -34,8 +34,31 @@ AC_PATH_PROG(PKG_CONFIG, pkg-config)
 # Check if svnversion is available to get the rev number
 AC_PATH_PROG(SVNVERSION, svnversion)
 
-# Put this early on, since gtk may rely on it.
-AC_PATH_XTRA
+dnl
+dnl Find out if X is available. The variable have_x is set if libX11 is
+dnl found to mimic AC_PATH_XTRA.
+dnl
+AC_PATH_X
+if test -n "$PKG_CONFIG"; then
+    AC_MSG_CHECKING([pkg-config files for X11 are available])
+    PKG_CHECK_EXISTS([x11],[
+	x11_pkgconfig=yes
+	have_x=yes
+	],[
+	x11_pkgconfig=no
+    ])
+    AC_MSG_RESULT([$x11_pkgconfig])
+else
+    x11_pkgconfig=no
+fi
+dnl Use the autoconf macro if no pkg-config files
+if test "$x11_pkgconfig" = yes; then
+    PKG_CHECK_MODULES([X11], [x11])
+else
+    AC_PATH_XTRA
+    test -z "$X11_CFLAGS" && X11_CFLAGS="$X_CFLAGS"
+    test -z "$X11_LIBS" && X11_LIBS="$X_LIBS -lX11"
+fi
 
 SOUNDDIR="${datadir}/crossfire-client/sounds"
 
@@ -219,19 +242,52 @@ else
 fi
 AC_SUBST(LUA_LIBS)
 
-# Check for OpenGL
-AC_CHECK_LIB(GL, main)
-AC_CHECK_LIB(GLU, main)
-AC_CHECK_LIB(opengl32, main)
-AC_CHECK_LIB(glu32, main)
-AC_CHECK_LIB(glut, main, [opengl="yes"; AC_DEFINE(HAVE_OPENGL, 1, [Define if you have OpenGL.])], [opengl="no"])
-if eval "test x$opengl = xyes" ; then
-    if eval "test x$win32 = xyes" ; then
-        OPENGL_LIBS="-lopengl32 -lglu32 -lglut"
-    else
-        OPENGL_LIBS="-lGL -lGLU -lglut"
-    fi
+# Check for additional X11 libraries.
+
+# Save and modify CPPFLAGS and LIBS (to include X and GTK paths temporarily).
+gcfc_save_CPPFLAGS="$CPPFLAGS"
+gcfc_save_LIBS="$LIBS"
+CPPFLAGS="$GTK_CFLAGS $CPPFLAGS $OPENGL_CFLAGS $EXTRA_INC"
+LIBS="$LIBS $GTK_LIBS $X11_LIBS"
+
+# Put this here so we get the gdk libs
+# AC_CHECK_LIB(gdk_imlib, main,GTK_LIBS="$GTK_LIBS -lgdk_imlib")
+
+# Need to check for Xext while we still have X11_LIBS set.
+AC_CHECK_LIB(Xext, main, X11_LIBS="$X11_LIBS -lXext")
+
+# AC_CHECK_LIB(Imlib, main, X11_LIBS="$X11_LIBS -lImlib")
+
+# Restore previous CPPFLAGS and LIBS.
+CPPFLAGS="$gcfc_save_CPPFLAGS"
+LIBS="$gcfc_save_LIBS"
+AC_SUBST(X11_CFLAGS)
+AC_SUBST(X11_LIBS)
+
+# Check for OpenGL - Important, OpenGL needs X.
+AX_CHECK_GL
+   if test "$no_gl" != "yes"; then
+      OPENGL_LIBS="$GL_LIBS"
+      OPENGL_CFLAGS="$GL_CFLAGS"
+   fi     
+AX_CHECK_GLU   
+   if test "$no_glu" != "yes"; then
+      OPENGL_LIBS="$OPENGL_LIBS $GLU_LIBS"
+      OPENGL_CFLAGS="$OPENGL_CFLAGS $GLU_CFLAGS"
+   fi     
+AX_CHECK_GLUT
+   if test "$no_glut" != "yes"; then
+      OPENGL_LIBS="$OPENGL_LIBS $GLUT_LIBS"
+      OPENGL_CFLAGS="$OPENGL_CFLAGS $GLUT_CFLAGS"
+   fi
+if test "x$no_x" != "xyes" -a "x$no_gl" != "xyes" \
+		-a "x$no_glu" != "xyes" -a "x$no_glut" != "xyes" ; then
+    AC_DEFINE(HAVE_OPENGL, 1, [Define if you have OpenGL.])
+    AC_SUBST(OPENGL_CFLAGS)
     AC_SUBST(OPENGL_LIBS)
+    opengl="yes"
+else  
+    opengl="no"
 fi
 # End of OpenGL checks
 
@@ -241,9 +297,6 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_CPP
 AC_PROG_RANLIB
-
-AC_SUBST(X_LIBS)
-AC_SUBST(X_CFLAGS)
 
 if eval "test x$sound = xyes"; then
     if eval "test x$alsa = xyes"; then
@@ -394,24 +447,6 @@ if eval "test x$networklibs = xyes"; then
     AC_CHECK_LIB(nsl, main, LIBS="$LIBS -lnsl")
     AC_CHECK_LIB(socket, main, LIBS="$LIBS -lsocket")
 fi
-
-# Save and modify CPPFLAGS and LIBS (to include X and GTK paths temporarily).
-gcfc_save_CPPFLAGS="$CPPFLAGS"
-gcfc_save_LIBS="$LIBS"
-CPPFLAGS="$GTK_CFLAGS $CPPFLAGS $X_CFLAGS $EXTRA_INC"
-LIBS="$LIBS $GTK_LIBS $X_LIBS"
-
-# Put this here so we get the gdk libs
-# AC_CHECK_LIB(gdk_imlib, main,GTK_LIBS="$GTK_LIBS -lgdk_imlib")
-
-# Need to check for Xext while we still have X_LIBS set.
-AC_CHECK_LIB(Xext, main, X_LIBS="$X_LIBS -lXext")
-
-# AC_CHECK_LIB(Imlib, main, X_LIBS="$X_LIBS -lImlib")
-
-# Restore previous CPPFLAGS and LIBS.
-CPPFLAGS="$gcfc_save_CPPFLAGS"
-LIBS="$gcfc_save_LIBS"
 
 LIBCURL_CHECK_CONFIG()
 LIBS="$LIBS $LIBCURL"
