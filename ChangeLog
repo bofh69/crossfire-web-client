@@ -2,6 +2,14 @@
 Top of SVN tree:
 ==============================================================================
 
+gtk-v2/src/inventory.c:
+draw_lists() was redrawing the look window every time it was called.
+This caused a jumping effect when scrolling the look window. Middle clicking 
+could get you to apply the wrong item. It made it barely imposible to look at
+the next pages. 
+Now it will get redrawn only if items are uptated "below".
+Karla Stenger 2012-11-30
+
 ==============================================================================
 Changes for 1.70.0
 ==============================================================================

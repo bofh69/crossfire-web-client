@@ -1039,7 +1039,6 @@ void draw_inv(int tab)
  */
 void draw_lists (void)
 {
-    cpl.below->inv_updated=1;
     /*
      * There are some extra complications with container handling and timing.
      * For example, we draw the window before we get a list of the container,
