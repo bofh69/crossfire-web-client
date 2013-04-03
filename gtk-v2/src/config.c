@@ -43,7 +43,7 @@ const char * const rcsid_gtk2_config_c =
 
 #include <dirent.h>
 
-#ifdef MINGW
+#ifdef __MINGW32__
 int alphasort(const struct dirent **a, const struct dirent **b)
 {
     return strcoll((*a)->d_name, (*b)->d_name);
