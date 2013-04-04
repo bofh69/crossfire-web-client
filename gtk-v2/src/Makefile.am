@@ -32,6 +32,7 @@ AM_CFLAGS = \
 	@LIBGLADE_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@X11_CFLAGS@ \
+	@GTK_CFLAGS@ \
 	@SDL_CFLAGS@
 
 bin_PROGRAMS = crossfire-client-gtk2
