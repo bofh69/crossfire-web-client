@@ -54,7 +54,7 @@ fi
 dnl Use the autoconf macro if no pkg-config files
 if test "$x11_pkgconfig" = yes; then
     PKG_CHECK_MODULES([X11], [x11])
-else
+elif test "$have_x" = yes; then
     AC_PATH_XTRA
     test -z "$X11_CFLAGS" && X11_CFLAGS="$X_CFLAGS"
     test -z "$X11_LIBS" && X11_LIBS="$X_LIBS -lX11"
@@ -264,7 +264,7 @@ LIBS="$gcfc_save_LIBS"
 AC_SUBST(X11_CFLAGS)
 AC_SUBST(X11_LIBS)
 
-# Check for OpenGL - Important, OpenGL needs X.
+# Check for OpenGL
 AX_CHECK_GL
    if test "$no_gl" != "yes"; then
       OPENGL_LIBS="$GL_LIBS"
@@ -280,7 +280,7 @@ AX_CHECK_GLUT
       OPENGL_LIBS="$OPENGL_LIBS $GLUT_LIBS"
       OPENGL_CFLAGS="$OPENGL_CFLAGS $GLUT_CFLAGS"
    fi
-if test "x$no_x" != "xyes" -a "x$no_gl" != "xyes" \
+if test "x$no_gl" != "xyes" \
 		-a "x$no_glu" != "xyes" -a "x$no_glut" != "xyes" ; then
     AC_DEFINE(HAVE_OPENGL, 1, [Define if you have OpenGL.])
     AC_SUBST(OPENGL_CFLAGS)
