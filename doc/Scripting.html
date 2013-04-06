@@ -1,0 +1,596 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>Scripting</title>
+</head>
+<body>
+<table cellpadding="2" cellspacing="2" border="0"
+ style="text-align: left; width: 100%;">
+  <tbody>
+    <tr align="center">
+      <td style="vertical-align: top; width: 250px;" rowspan="1"
+ colspan="3">[logo here]<br>
+      <h2>Client Scripting Interface - Basic howto</h2>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; width: 250px;">
+      <h3>Purpose of this
+manual</h3>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;">This Howto covers the scripting
+interface present in gtk and x11 client under linux and Windows (see notes at end). <br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; width: 250px;">
+      <h3>What is the Client
+Scripting Interface?</h3>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;">Basically, the Client Scripting
+Interface is a way to have an external program (the script) interact
+client-side with your in-game behaviour. The script can have a copy of
+messages sent from server to your client (there is a wide variety of
+such messages), can have a copy of messages sent from client to server
+(there is also lots of them), may request informations (on a item, a
+map square ...) and finally can issue commands to the server. Lets call
+those actions, respectively, server-client spying, client-server
+spying, examining and interacting.<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">
+      <h3>Pipes, stdout, stdin</h3>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;">If this section make you puke at
+second line, jump to next one.<br>
+      <br>
+The script is a program which is external to the client. It can be
+written in a wide range of languages. This can be C, Java, Perl,
+Python, Bash script, php, anything you can think about. How can this be
+possible? Let's take a look at what happens when you type "echo hello
+world" on a shell prompt. Sure it writes on your terminal "hello
+world". And if you are in a graphical shell prompt? It appears in the
+graphical console! Some process changed your request of writing to
+screen to a complex process of get some system font and render the line
+in the specified window at the specified position. All this because
+when you ask to "write hello
+world to screen" you ask, really, to "write hello world to the standard
+output
+device". This standard output device is called <span
+ style="font-weight: bold;">stdout</span>. There is also
+the <span style="font-weight: bold;">stdin</span>, which most of the
+time is your keyboard and <span style="font-weight: bold;">stderr</span>,
+the
+standard error device being most of the time the same as stdout.<br>
+      <br>
+Ok, and now? Now what we use is exactly the same trick as the graphical
+console. when the client runs a script, it changes the script's stdin
+and replace the keyboard input with it's own orders (using a pipe). And
+it changes the stdout so instead of writing to screen, the script sends
+data to the client (using another pipe). And this is how any language
+can be used. Because every language can write to screen and read from
+keyboard!<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">
+      <h3>First Script</h3>
+      <h4 style="text-align: left; margin-left: 40px;">learn to say
+hello</h4>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;">Here we go for the first script.
+We will do quite simple things. We will ask our character to say "hello
+world" around. The script will be written in C because we simply need
+to
+choose a language. The script is quite simple:<br>
+      <table
+ style="border: 1pt solid black; width: 75%; text-align: left; margin-left: 50px;"
+ cellpadding="2" cellspacing="2" border="0">
+        <tbody>
+          <tr>
+            <td style="vertical-align: top;">
+            <pre>int main(){<br>    printf("issue 1 1 say hello world\n");<br>}</pre>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+Name it first.c, compile it and launch it in shell:<br>
+      <pre>tchize@Urd:~$ /home/tchize/script/first<br><br>issue 1 1 say hello world</pre>
+No surprise in the output (notice the \n at the end in source file).
+Now we are going to run it in the client. Start the client and log in
+your prefered
+server. When it's done, type in the following command:<br>
+      <pre>scripts</pre>
+Client will say you have no running scripts. That's good. Now type:<br>
+      <pre>script &lt;path_to_my_first_script&gt;<br></pre>
+where path_to_my_first_script is the location of your first script. For
+example I typed:<br>
+      <pre>script /home/tchize/script/first</pre>
+and you character says hello to the world. Nice, isn't it? Now try
+yourself with the following script:<br>
+      <table
+ style="border: 1pt solid black; width: 75%; text-align: left; margin-left: 50px;"
+ cellpadding="2" cellspacing="2" border="0">
+        <tbody>
+          <tr>
+            <td style="vertical-align: top;">
+            <pre>int main(){<br> printf("issue 1 1 shout hello world!\n");<br> printf("issue 1 1 shout I use scripts!\n");<br>}</pre>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+Do you get the idea? every <span style="font-weight: bold;">printf</span>
+you make is a command to the client scripting interface. So now let's
+look at this command. It begins with <span
+ style="font-style: italic; text-decoration: underline;">issue</span>
+followed by <span
+ style="font-style: italic; text-decoration: underline;">2 integers</span>.
+The command issue is part of the interacting of the Client
+Scripting Interface. It allows a script to send any command the player
+could send. There are lots of them i won't explain here. Just issue the
+command 'help commands' to get the list. What are those 2 integers? The
+first one is <span
+ style="font-style: italic; text-decoration: underline;">repeat</span>.
+It typically is used for dropping items, but can be used in other cases.
+The second integer, 1 or 0, is <span
+ style="font-style: italic; text-decoration: underline;">must send</span>.
+If it is one, the command must be send, if it is zero, command may be
+forget in client-server process. Most user will set this to 1.<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">
+      <h3>Second Script</h3>
+      <h4 style="text-align: left; margin-left: 40px;">Spy Kids</h4>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;">What to do next? As you can see,
+our script don't wait very long after issuing commands. And it doesn't
+get informations from the client at all. In fact it just hope it is
+really speaking to the client. We are going to write a simple script
+which issue a command to the client and then gets the result. We are
+going to spy!<br>
+Use the following script and run it in client. Ensure you ran the
+client in a console or you won't see any result!<br>
+      <table
+ style="border: 1pt solid black; width: 75%; text-align: left; margin-left: 50px;"
+ cellpadding="2" cellspacing="2" border="0">
+        <tbody>
+          <tr>
+            <td style="vertical-align: top;">
+            <pre>#include &lt;stdio.h&gt;<br><br>int main (){<br>&nbsp;&nbsp;&nbsp;     char buf[200];<br>    &nbsp;&nbsp;&nbsp; int len;<br>&nbsp;&nbsp;&nbsp;     printf ("monitor\n");<br>    &nbsp;&nbsp;&nbsp; fflush (stdout);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for(;;){&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;<br>                len=read(0,buf,200);<br>                if(len)<br>                        write(2,buf,len);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;<br>                else<br>                        exit(-1);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>}</pre>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+Now move a bit in the game. A few steps are enough! Look at your
+console, you should see something like this:<br>
+      <pre>monitor 0 0 east</pre>
+      <pre>monitor 0 0 east</pre>
+      <pre>monitor 0 0 east</pre>
+      <pre>monitor -1 0 run 7</pre>
+      <pre>monitor -1 1 run_stop</pre>
+If you type the command <span
+ style="font-style: italic; text-decoration: underline;">scripts</span>
+in client you will see our script is still running.<br>
+Let's look more closely at the code. We define a character buffer and a
+length. We will use the to read what client send to the script. Then
+script send to the client the command "<span
+ style="text-decoration: underline; font-style: italic;">monitor</span>"
+(don't forget the \n). This command ask client to give the script a
+copy of all commands sent from client to server. Now each time a
+command is sent from client to server, the script will get a "<span
+ style="text-decoration: underline; font-style: italic;">monitor
+&lt;command&gt;</span>" string.<br>
+a strange C command: <br>
+      <br>
+      <pre>fflush(stdout)</pre>
+      <br>
+The stdout has something called a buffer. When you write to output
+device, it's not immediatly sent to it. For performance reasons,
+successive print to stdout are grouped. Most of the time, \n is enough
+to force sending of data, but we ensure all data are sent to client by
+flushing the stdout (force empty buffer). In the future, when you think
+client didn't get a command but the script did send it, ensure you
+flushed stdout.<br>
+      <br>
+Then comes a loop. This loop will read from stdin (where client puts
+informations for the script) and copy them to stderr (our only access
+to console since stdout is a connection to client). Because I don't
+want to use scanf I used the binary read and write commands. Stdin is
+the file handle 0 and stderr is file handle 2. We first read up to 200
+char from stdin and if we read something we write it to stderr. If we
+didn't read anything, that means we have lost the client (shouldn't
+happen) and we simply exit.<br>
+      <br>
+Since we asked to monitor all commands from client to server, we get
+them. These commands are our move commands and the use the same format
+as <span style="text-decoration: underline; font-style: italic;">issue</span>.
+If you run our first script while this second script is still running,
+you will still say hello world, but you'll get the following in console:<br>
+      <pre>monitor 1 1 say hello world</pre>
+      <br>
+So client sends us lines made of <br>
+      <pre>monitor &lt;repeat&gt; &lt;must_send&gt; &lt;command&gt;</pre>
+      <br>
+Now kill the script by typing command <br>
+      <pre>scriptkill &lt;pathtoscript&gt;</pre>
+      <br>
+Then type scripts to ensure it's stopped. Edit it, comment the line
+printf("monitor\n"), compile and run script again. Move and look at
+console. You see nothing. The script didn't ask anything so the client
+didn't tell him anything. Your script will only gets what he asked for.<br>
+      <br>
+Now use following code:<br>
+      <table border="0" cellspacing="2" cellpadding="2"
+ style="border: 1pt solid black; width: 75%; text-align: left; margin-left: 50px;">
+        <tbody>
+          <tr>
+            <td style="vertical-align: top;">
+            <pre>#include &lt;stdio.h&gt;<br><br>int main (){<br>&nbsp;&nbsp;&nbsp;     char buf[200];<br>    &nbsp;&nbsp;&nbsp; int len;<br>&nbsp;&nbsp;&nbsp;     printf ("watch stats\n");<br>    &nbsp;&nbsp;&nbsp; fflush (stdout);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for(;;){&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;<br>                len=read(0,buf,200);<br>                if(len)<br>                        write(2,buf,len);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;<br>                else<br>                        exit(-1);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>}</pre>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+This time we are requesting commands sent from server to client. But
+there are far more of them. So watch take as argument the begin of all
+commands we want to get. Here we want every stat command from client.
+And in console we see, when running script:<br>
+      <pre>watch stats food 398</pre>
+      <pre>watch stats food 397</pre>
+      <pre>watch stats food 396</pre>
+      <pre>watch stats food 395</pre>
+      <br>
+Waw, this mean we know when food is below and we can ask our script to
+invoke restoration (remember the issue command?) when below&nbsp; 50
+food! No starvation anymore.<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">
+      <h3>What's next?</h3>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;">There are two things you can
+still do with Script. The first is to <span
+ style="text-decoration: underline; font-style: italic;">request</span>
+a bit of informations. The client then tells the script what it wants
+to know. The second thing is triggering an action of the script from
+client interface. The command <span
+ style="font-style: italic; text-decoration: underline;">scripttell</span>
+allows player to say something to a script. The script will get the
+exact command typed by player. See below for command list.<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">
+      <h3>Commands to client</h3>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;">Here is a list of command the
+script can send to client.<br>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">watch</span>
+&lt;command type&gt;<br>
+      <span style="font-style: italic; text-decoration: underline;">unwatch</span>
+&lt;command type&gt;<br>
+      <div style="margin-left: 40px;">watch/unwatch the given command
+from server-client protocol. <br>
+&lt;command type&gt; specify which specify the commands we want to
+watch. set to empty to get all commands.<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">request</span>
+&lt;data type&gt;<br>
+      <div style="margin-left: 40px;">Request a piece of informations
+from client memory. Following is the
+list of&lt;data type&gt; allowed:<br>
+      <br>
+      </div>
+      <table
+ style="border: 1px solid black; text-align: left; width: 75%; margin-left: 65px;"
+ border="0" cellspacing="2" cellpadding="2">
+        <tbody>
+          <tr>
+            <td style="vertical-align: top;">range</td>
+            <td style="vertical-align: top;">Return the type and name
+of the currently selected range attack</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">stat&nbsp;&lt;type&gt;</td>
+            <td style="vertical-align: top;">Return the specified stats</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">stat&nbsp;stats</td>
+            <td style="vertical-align: top;">Return
+Str,Con,Dex,Int,Wis,Pow,Cha</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">stat&nbsp;cmbt<br>
+            </td>
+            <td style="vertical-align: top;">Return
+wc,ac,dam,speed,weapon_sp</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">stat&nbsp;hp</td>
+            <td style="vertical-align: top;">Return
+hp,maxhp,sp,maxsp,grace,maxgrace,food</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">stat&nbsp;xp</td>
+            <td style="vertical-align: top;">Return level,xp,skill-1
+level,skill-1 xp,...</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">stat&nbsp;resists</td>
+            <td style="vertical-align: top;">Return resistances</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">weight</td>
+            <td style="vertical-align: top;">Return maxweight, weight</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">flags</td>
+            <td style="vertical-align: top;">Return flags (fire, run)</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">items&nbsp;inv<br>
+            </td>
+            <td style="vertical-align: top;">Return a list of items in
+the inventory, one per line</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">items&nbsp;actv</td>
+            <td style="vertical-align: top;">Return a list of inventory
+items that are active, one per line</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">items&nbsp;on<br>
+            </td>
+            <td style="vertical-align: top;">Return a list of items
+under the player, one per line</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">items&nbsp;cont</td>
+            <td style="vertical-align: top;">Return a list of items in
+the open container, one per line</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">map&nbsp;pos<br>
+            </td>
+            <td style="vertical-align: top;">Return the players x,y
+within the current map</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">map&nbsp;near</td>
+            <td style="vertical-align: top;">Return the 3x3 grid of the
+map centered on the player</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">map&nbsp;all</td>
+            <td style="vertical-align: top;">Return all the known map
+information</td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;">map&nbsp;&lt;x&gt;&nbsp;&lt;y&gt;</td>
+            <td style="vertical-align: top;"> Return the information
+about square x,y in the current map</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-left: 40px;">&nbsp; <br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">issue</span>
+&lt;repeat&gt; &lt;must_send&gt; &lt;command&gt;<br>
+      <div style="margin-left: 40px;">send &lt;command&gt; to server on
+behalf of client. <br>
+&lt;repeat&gt; is the number of times to execute command<br>
+&lt;must_send&gt; tells wether or not the command must sent at all cost
+(1 or 0)<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">issue</span>
+mark &lt;tag&gt;<br>
+      <div style="margin-left: 40px;">special case of issue command.
+only gets the command 'mark' and a
+object tag<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">issue</span>
+lock &lt;new state&gt; &lt;tag&gt;<br>
+      <div style="margin-left: 40px;">special case of issue command.
+Only gets the command 'lock' with 2
+parameters<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">draw</span>
+&lt;color&gt; &lt;text&gt; <br>
+      <div style="margin-left: 40px;">draw the following text on client
+interface with given color. Usefull
+for debugging and may help you to forget about using the <span
+ style="font-weight: bold;">stderr</span><br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">monitor</span><br>
+      <span style="font-style: italic; text-decoration: underline;">unmonitor</span><br>
+      <div style="margin-left: 40px;">start/stop monitoring commands
+send from client to server. Doesn't take
+any parameter.<br>
+      </div>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">
+      <h3>Informations from client</h3>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top;">Here is an incomplete list of
+information strings send by client to script. Those informations are
+sent only because the client asked them, except for <span
+ style="font-style: italic; text-decoration: underline;">scripttell</span>.
+      <br>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">scripttell</span>
+&lt;yourname&gt; &lt;additional datas&gt;<br>
+      <div style="margin-left: 40px;">user send special command to this
+script specifically<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">monitor</span>
+&lt;repeat&gt; &lt;must_send&gt; &lt;command&gt;<br>
+      <span style="font-style: italic; text-decoration: underline;">monitor</span>
+mark &lt;tag&gt;<br>
+      <span style="font-style: italic; text-decoration: underline;">monitor</span>
+lock &lt;new state&gt; &lt;tag&gt;<br>
+      <div style="margin-left: 40px;">If monitor is on, &lt;command&gt;
+is a command send to server by the
+client with given repeat. mark and lock are special cases.<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">watch</span>
+&lt;command&gt;&nbsp; &lt;datas&gt; <br>
+      <div style="margin-left: 40px;">You have put a watch on command
+or a part of command (like A to watch
+for AddMe command). This command was send by server and your are
+notified of it. Content of &lt;data&gt; vary on command and maybe very
+complex<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">request
+map</span> &lt;x&gt; &lt;y&gt;&nbsp; &lt;darkness&gt;
+&lt;need_update&gt; &lt;have_darkness&gt; &lt;need_resmooth&gt;
+&lt;cleared&gt; smooth &lt;face_bottom&gt; &lt;face_middle&gt;
+&lt;face_top&gt; heads &lt;face_bottom&gt; &lt;face_middle&gt;
+&lt;face_top&gt; tails &lt;face_bottom&gt; &lt;face_middle&gt;
+&lt;face_top&gt;\n",<br>
+      <div style="margin-left: 40px;">Bunch of informations about
+square &lt;x&gt;,&lt;y&gt;<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">request
+map</span> &lt;x&gt; &lt;y&gt; unknown<br>
+      <div style="margin-left: 40px;">error occured.<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">request
+map</span> pos &lt;x&gt; &lt;y&gt;<br>
+      <div style="margin-left: 40px;">Tells script current position of
+player<br>
+      </div>
+      <br>
+      <span style="font-style: italic; text-decoration: underline;">request
+map</span> end<br>
+      <div style="margin-left: 40px;">Marks the end of a complete map
+transfer from client to script. Helpful.<br>
+      </div>
+      <br>
+      <br>
+** NOTE more command to be added here, incomplete liste **<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; width: 250px;">
+      <h3>Windows-specific notes</h3>
+      </td>
+      <td style="vertical-align: top; width: 20px;"><br>
+      </td>
+      <td style="vertical-align: top;">
+	  Scripting works thanks to a patch from archaios. Known issues are:
+		<ul>
+		<li>If you want to run a Perl script for instance, you need to issue
+		'perl &lt;script_name.pl&gt;, even if .pl is correctly seen as perl script.
+		<li>If script doesn't output anything, try turning off buffering (in perl $| = 1)
+		or flush your pipe, or add a sleep at end of program. It seems Windows closes pipes
+		at script termination before client gets time to grab output.
+		</ul>
+	  </td>
+  </tbody>
+</table>
+<br>
+<br>
+</body>
+</html>

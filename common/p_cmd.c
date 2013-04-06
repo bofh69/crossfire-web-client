@@ -543,7 +543,7 @@ static const char * help_script(void) {
         "\n"
 	"Run the program at path <name>"
 	"as a Crossfire client script."
-	"See Documentation/Script.html";
+	"See doc/Script.html";
 }
 
 /**
