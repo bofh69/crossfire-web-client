@@ -349,6 +349,13 @@ int init_sounds(void) {
      * Initialize paths to various sound system resources.  Bail if any of
      * the buffer allocations fail.
      */
+    if (getenv("HOME") == NULL) {
+        fprintf(stderr,
+                "error: couldn't read $HOME environmental variable\n"
+                "Please run again with $HOME set to something reasonable.\n");
+        return -1;
+    }
+
     strncpy(path, getenv("HOME"), sizeof(path) - 1);
     strncat(path, USER_CONFIG_FILE, sizeof(path) - 1);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
