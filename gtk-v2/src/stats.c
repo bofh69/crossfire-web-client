@@ -424,13 +424,13 @@ void draw_message_window(int redraw) {
     static int lastbeep=0;
     static sint64 level_diff;
 
-    update_stat(0, cpl.stats.maxhp, cpl.stats.hp,
+    update_stat(STAT_BAR_HP, cpl.stats.maxhp, cpl.stats.hp,
                 cpl.stats.maxhp, cpl.stats.hp, TRUE);
-    update_stat(1, cpl.stats.maxsp, cpl.stats.sp,
+    update_stat(STAT_BAR_SP, cpl.stats.maxsp, cpl.stats.sp,
                 cpl.stats.maxsp, cpl.stats.sp, TRUE);
-    update_stat(2, cpl.stats.maxgrace, cpl.stats.grace,
+    update_stat(STAT_BAR_GRACE, cpl.stats.maxgrace, cpl.stats.grace,
                 cpl.stats.maxgrace, cpl.stats.grace, TRUE);
-    update_stat(3, 999, cpl.stats.food, 999, cpl.stats.food, TRUE);
+    update_stat(STAT_BAR_FOOD, 999, cpl.stats.food, 999, cpl.stats.food, TRUE);
 
     /* We may or may not have an exp table from the server.  If we don't, just
      * use current exp value so it will always appear maxed out.
@@ -443,7 +443,7 @@ void draw_message_window(int redraw) {
     else
         level_diff=cpl.stats.exp;
 
-    update_stat(4,
+    update_stat(STAT_BAR_EXP,
         (cpl.stats.level+1) < exp_table_max ? exp_table[cpl.stats.level+1]:cpl.stats.exp,
         cpl.stats.exp,
         level_diff,
