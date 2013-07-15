@@ -19,7 +19,7 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
 	-I$(top_builddir)/common \
