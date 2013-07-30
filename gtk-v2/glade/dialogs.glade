@@ -2837,7 +2837,7 @@ this server that is not associated with an account, click the Add Character butt
                     </child>
                     <child>
                       <widget class="GtkButton" id="button_account_password">
-                        <property name="label" translatable="yes">Change password</property>
+                        <property name="label" translatable="yes">Change Password</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -3419,7 +3419,7 @@ Character Selection</property>
                 <property name="layout_style">spread</property>
                 <child>
                   <widget class="GtkButton" id="button_account_password_confirm">
-                    <property name="label" translatable="yes">Change password</property>
+                    <property name="label" translatable="yes">Change Password</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
