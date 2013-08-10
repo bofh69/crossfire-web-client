@@ -1,5 +1,8 @@
+# def-keys -- default client keybindings
 #
-# Default keys
+# This file contains a set of default client keybindings. It is converted into
+# a C header file at build time and parsed by the client when a key file isn't
+# found in the user's home folder or a default system location.
 #
 # <keysym> <keynro> <flags> <string>
 #
@@ -9,39 +12,55 @@
 # (sun's type 5 for one) have keys with no corresponding keysym.
 # When loading, all keysyms are converted to keycodes for matching.
 #
-# flags:
+# Flags:
 #   N - Normal mode
 #   F - Fire mode
 #   R - Run mode
 #   A - All modes
 #   E - Leave in line edit mode
-#
-#quotedbl 1 AE  
+
+#### Basic Keys ####
+# The trailing space on the following two lines are intentional.
 quotedbl 1 AE say 
+Return 1 AE chat 
+
+question 1 A help
 period 1 N stay fire
-# nethack keys
-h 1 A west
-j 1 A south
-k 1 A north
-l 1 A east
-y 1 A northwest
-u 1 A northeast
-b 1 A southwest
-n 1 A southeast
-H 1 A west
-J 1 A south
-K 1 A north
-L 1 A east
-Y 1 A northwest
-U 1 A northeast
-B 1 A southwest
-N 1 A southeast
-# default cursorkeys
+S 1 A brace
+
+a 1 N apply
+a 1 RF apply
+A 1 RF apply
+
+s 1 N search
+d 1 N disarm
+
+e 1 RF examine
+E 1 RF examine
+
+t 1 A ready_skill throw
+
+comma 1 A take
+at 1 A pickup
+
+#### Cursor (Directional Keys) ####
+# Nethack-Style
+b 1 NR southwest
+h 1 NR west
+j 1 NR south
+k 1 NR north
+l 1 NR east
+n 1 NR southeast
+u 1 NR northeast
+y 1 NR northwest
+
+# Arrow Keys
 Up 1 A north
 Down 1 A south
 Left 1 A west
 Right 1 A east
-# numpad
+
+# Number Pad Arrow Keys
 Up 76 A north
 Down 120 A south
 Left 98 A west
@@ -55,7 +74,8 @@ KP_9 1 A northeast
 KP_5 1 A stay
 KP_1 1 A southwest
 KP_3 1 A southeast
-# Sun type 4 keyboards will often have different key names.
+
+# Keys for Sun Type 4 Keyboards
 KP_Up 1 A north
 KP_Down 1 A south
 KP_Right 1 A east
@@ -75,26 +95,9 @@ F29 1 A northeast
 F31 1 A stay
 F33 1 A southwest
 F35 1 A southeast
-#
-a 1 N apply
-A 1 N apply inventory
-a 1 RF apply
-A 1 RF apply
-d 1 N disarm
-e 1 N examine inventory
-E 1 N examine inventory
-e 1 RF examine
-E 1 RF examine
-s 1 A search
-S 1 A brace
-t 1 A ready_skill throw
-x 1 NF show
-comma 1 A take
-Tab 1 N rotatespells 1
-Tab 1 FR rotatespells -1
-question 1 A help
+
+#### Action Rotation ####
 KP_Add 1 A rotateshoottype
 KP_Subtract 1 A rotateshoottype -
 minus 1 N rotateshoottype -1
 plus 1 NF rotateshoottype
-at 1 A pickup
