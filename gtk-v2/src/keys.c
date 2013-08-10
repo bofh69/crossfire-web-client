@@ -372,17 +372,19 @@ static void parse_keybind_line(char *buf, int line, int standard)
 }
 
 /**
- * Initialize the standard keybindings as specified in the def-keys.h file.
- * This code is common to both x11 and gdk client
+ * Initialize the built-in default keybindings from the 'def-keys.h' file.
  */
 static void init_default_keybindings(void)
 {
     char buf[MAX_BUF];
     int i;
 
-    for(i=0;i< sizeof(def_keys)/sizeof(char *);i++) {
-        strcpy(buf,def_keys[i]);
-        parse_keybind_line(buf,i,1);
+    LOG(LOG_DEBUG, "gtk-v2::init_default_keybindings",
+            "Using built-in defaults");
+
+    for (i = 0; i < sizeof(def_keys) / sizeof(char *); i++) {
+        strcpy(buf, def_keys[i]);
+        parse_keybind_line(buf, i, 1);
     }
 }
 
@@ -567,23 +569,31 @@ void keys_init(GtkWidget *window_root)
                                              KLIST_KEY,
                                              GTK_SORT_ASCENDING);
 
-    if ((fp=fopen(buf,"r"))==NULL) {
-        LOG(LOG_INFO,"gtk-v2::init_keys","Could not open ~/.crossfire/keys, trying to load global bindings");
-        if (client_libdir==NULL) {
+    // Try to read user keybindings and load defaults if that fails.
+    if ((fp = fopen(buf, "r")) == NULL) {
+        LOG(LOG_INFO, "gtk-v2::init_keys",
+                "Could not open user keybindings; using defaults");
+
+        // Use built-in defaults if there is no system directory.
+        if (client_libdir == NULL) {
             init_default_keybindings();
             return;
         }
+
+        // Try to read system keybindings before using built-in defaults.
         snprintf(buf, sizeof(buf), "%s/def_keys", client_libdir);
-        if ((fp=fopen(buf,"r"))==NULL) {
+        if ((fp = fopen(buf, "r")) == NULL) {
             init_default_keybindings();
             return;
         }
     }
+
     while (fgets(buf, BIG_BUF, fp)) {
         line++;
-    buf[BIG_BUF-1]='\0';
+        buf[BIG_BUF-1]='\0';
         parse_keybind_line(buf,line,0);
     }
+
     fclose(fp);
 }
 
