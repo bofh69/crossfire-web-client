@@ -569,18 +569,18 @@ void keys_init(GtkWidget *window_root)
                                              KLIST_KEY,
                                              GTK_SORT_ASCENDING);
 
-    // Try to read user keybindings and load defaults if that fails.
+    /* Try to read user keybindings and load defaults if that fails. */
     if ((fp = fopen(buf, "r")) == NULL) {
         LOG(LOG_INFO, "gtk-v2::init_keys",
                 "Could not open user keybindings; using defaults");
 
-        // Use built-in defaults if there is no system directory.
+        /* Use built-in defaults if there is no system directory. */
         if (client_libdir == NULL) {
             init_default_keybindings();
             return;
         }
 
-        // Try to read system keybindings before using built-in defaults.
+        /* Try to read system keybindings before using built-in defaults. */
         snprintf(buf, sizeof(buf), "%s/def_keys", client_libdir);
         if ((fp = fopen(buf, "r")) == NULL) {
             init_default_keybindings();
