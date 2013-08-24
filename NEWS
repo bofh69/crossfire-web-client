@@ -1,3 +1,4 @@
-For list of changes, see the Changelog file.
+This file is no longer maintained; information about relevant changes can be
+found in the ChangeLog file.
 
-This file is largely here because it is required by automake.
+This file is here largely because it is required by automake.

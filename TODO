@@ -1,30 +1,17 @@
 Things to do in no particular order:
 
-gnome client: Make it work.  IT compiles, but there is something in the
-  map code (or someplace else) causing stack overflows.  What really needs
-  to get done is for it to share much more of the code with the gtk client.
+Have containers present number of objects/number of different objects in name.
 
-x11:
-Modify to support variable sized images.  This probably isn't too much work -
-   just some modifications in the gen_draw_face/display_mapcell_pixmap functions
-   to only copy to relevant portion.
+Add a damfactor display to the client (this would be weapon speed * damage of
+the weapon)
 
-   create_status_icons needs to be redone to load png files instead of Xpm's
-   (since we no longer check for Xpm.
-
-Have containers present number of objects/number of different objects in
- name.
-
-Add a damfactor display to the client (this would be weapon speed *
-damage of the weapon)
-
-Allow the seperation character for keybinding to be set to things other
-than semicolon - changes for this would really be to fix up the strtok
-in extended_command (common/player.c) to pass in the appropriate string,
-and some option in the config pane or someplace to change it - note that
-if it is changed by the player, then that function would have to go through
-all the keybindings updating the current set of complex keybindings for the
-new characters.  MSW 2003-02-19
+Allow the seperation character for keybinding to be set to things other than
+semicolon - changes for this would really be to fix up the strtok in
+extended_command (common/player.c) to pass in the appropriate string, and some
+option in the config pane or someplace to change it - note that if it is
+changed by the player, then that function would have to go through all the
+keybindings updating the current set of complex keybindings for the new
+characters.  MSW 2003-02-19
 
 Have inventory/look/container display mechanism which only show icons and
 numbers, and not full names - in a sense, a much condensed view of things.
