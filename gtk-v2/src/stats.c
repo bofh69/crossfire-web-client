@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_stats_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005-2007 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file gtk-v2/src/stats.c
@@ -258,6 +247,41 @@ void stats_init(GtkWidget *window_root)
     /*stats_get_styles();*/
 }
 
+/**
+ * Format an integer using an appropriate SI prefix.
+ *
+ * @param number
+ * Number to format
+ * @param buffer
+ * Pointer to a string to store the formatted number
+ * @param limit
+ * Size of the buffer
+ */
+static void format_si_number(int number, char *buffer, int limit) {
+    /* List of SI prefixes and corresponding values, least to greatest. */
+    const char SI_SUFFIX[] = {'\0', 'k', 'M', 'G'};
+    const float SI_VALUE[] = {1, 1000, 1000000, 1000000000};
+
+    int suffix = 0, i;
+    float si_value;
+
+    /* Determine the most appropriate SI prefix to use. */
+    for (i = sizeof(SI_SUFFIX) / sizeof(char) - 1; i > 0; i--) {
+        if (number / SI_VALUE[i] >= 10) {
+            suffix = i;
+            break;
+        }
+    }
+
+    si_value = number / SI_VALUE[suffix];
+
+    /* If possible, trim the trailing zero decimal. */
+    if (si_value - (int)si_value == 0) {
+        snprintf(buffer, limit, "%.0f%c", si_value, SI_SUFFIX[suffix]);
+    } else {
+        snprintf(buffer, limit, "%.1f%c", si_value, SI_SUFFIX[suffix]);
+    }
+}
 
 /**
  * Updates the stat bar and text display as it pertains to a specific stat.
@@ -409,10 +433,18 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
     gtk_widget_modify_base(stat_bar[stat_no], GTK_STATE_SELECTED, set_color);
     gtk_progress_set_percentage(GTK_PROGRESS(stat_bar[stat_no]), bar);
 
-    snprintf(buf, sizeof(buf), "%"FMT64, current_stat);
-    gtk_label_set(GTK_LABEL(stat_current[stat_no]), buf);
-    snprintf(buf, sizeof(buf), "%"FMT64, max_stat);
-    gtk_label_set(GTK_LABEL(stat_max[stat_no]), buf);
+    /* Display exp bar with SI prefixes; display all other normally. */
+    if (stat_no == STAT_BAR_EXP) {
+        format_si_number(current_stat, buf, sizeof(buf));
+        gtk_label_set(GTK_LABEL(stat_current[stat_no]), buf);
+        format_si_number(max_stat, buf, sizeof(buf));
+        gtk_label_set(GTK_LABEL(stat_max[stat_no]), buf);
+    } else {
+        snprintf(buf, sizeof(buf), "%"FMT64, current_stat);
+        gtk_label_set(GTK_LABEL(stat_current[stat_no]), buf);
+        snprintf(buf, sizeof(buf), "%"FMT64, max_stat);
+        gtk_label_set(GTK_LABEL(stat_max[stat_no]), buf);
+    }
 }
 
 /**
