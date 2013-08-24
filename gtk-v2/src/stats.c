@@ -263,7 +263,7 @@ static void format_si_number(int number, char *buffer, int limit) {
     const float SI_VALUE[] = {1, 1000, 1000000, 1000000000};
 
     int suffix = 0, i;
-    float si_value;
+    float value;
 
     /* Determine the most appropriate SI prefix to use. */
     for (i = sizeof(SI_SUFFIX) / sizeof(char) - 1; i > 0; i--) {
@@ -273,13 +273,13 @@ static void format_si_number(int number, char *buffer, int limit) {
         }
     }
 
-    si_value = number / SI_VALUE[suffix];
+    value = number / SI_VALUE[suffix];
 
     /* If possible, trim the trailing zero decimal. */
-    if (si_value - (int)si_value == 0) {
-        snprintf(buffer, limit, "%.0f%c", si_value, SI_SUFFIX[suffix]);
+    if (value - (int)value == 0) {
+        snprintf(buffer, limit, "%.0f%c", value, SI_SUFFIX[suffix]);
     } else {
-        snprintf(buffer, limit, "%.1f%c", si_value, SI_SUFFIX[suffix]);
+        snprintf(buffer, limit, "%.1f%c", value, SI_SUFFIX[suffix]);
     }
 }
 
