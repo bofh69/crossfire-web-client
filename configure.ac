@@ -3,66 +3,20 @@
 # IMPORTANT:  Do not specify a version number with a "-" in it.  The number is
 # used to create RPMs, and some RPM build tools do not allow use of dash in
 # the version number.
-#
-AC_INIT([crossfire-client],[1.70.0.dev])
 
-AC_CONFIG_SRCDIR(crossfire-client.spec)
-
+AC_INIT([crossfire-client], [1.70.0.dev])
 AC_CONFIG_AUX_DIR(utils)
-
-AC_CANONICAL_TARGET
-
-AM_INIT_AUTOMAKE
-
 AC_CONFIG_HEADERS([common/config.h])
-
-# AM_ACLOCAL_INCLUDE(macros)
+AC_CONFIG_SRCDIR(crossfire-client.spec)
+AC_CANONICAL_TARGET
+AM_INIT_AUTOMAKE
 
 # These are subdirectories that have make files in them
 CF_SUBDIRS="common pixmaps utils help"
 
-# Check for some needed programs
-AC_PATH_PROG(MKDIR, mkdir)
-AC_PATH_PROG(TAR, tar)
-AC_PATH_PROG(DEPEND, makedepend)
-AC_PATH_PROG(CP, cp)
-AC_PATH_PROG(RM, rm)
-AC_PATH_PROG(PERL, perl)
-AC_PATH_PROG(AR, ar)
-AC_PATH_PROG(PKG_CONFIG, pkg-config)
-
-# Check if svnversion is available to get the rev number
-AC_PATH_PROG(SVNVERSION, svnversion)
-
-dnl
-dnl Find out if X is available. The variable have_x is set if libX11 is
-dnl found to mimic AC_PATH_XTRA.
-dnl
-AC_PATH_X
-if test -n "$PKG_CONFIG"; then
-    AC_MSG_CHECKING([pkg-config files for X11 are available])
-    PKG_CHECK_EXISTS([x11],[
-	x11_pkgconfig=yes
-	have_x=yes
-	],[
-	x11_pkgconfig=no
-    ])
-    AC_MSG_RESULT([$x11_pkgconfig])
-else
-    x11_pkgconfig=no
-fi
-dnl Use the autoconf macro if no pkg-config files
-if test "$x11_pkgconfig" = yes; then
-    PKG_CHECK_MODULES([X11], [x11])
-elif test "$have_x" = yes; then
-    AC_PATH_XTRA
-    test -z "$X11_CFLAGS" && X11_CFLAGS="$X_CFLAGS"
-    test -z "$X11_LIBS" && X11_LIBS="$X_LIBS -lX11"
-fi
-
-SOUNDDIR="${datadir}/crossfire-client/sounds"
-
-# Add some options to 'configure'.
+##############################################################################
+# Configuration Options
+##############################################################################
 AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [Turn on debugging (default=no)])],
 if eval "test x$enable_debug = xyes"; then
     DEBUGFLAG="-g"
@@ -76,7 +30,6 @@ AC_ARG_ENABLE(sound, [AS_HELP_STRING([--disable-sound], [Disable sound support (
 
 # These are because some of us use OSS sound, even with ALSA or ALSA9 libs
 # installed
-
 AC_ARG_ENABLE(alsa9, [AS_HELP_STRING([--disable-alsa9], [Disable ALSA9 sound support (default=use alsa9 sound support if alsa9 libraries exist)])],
                 alsa9=$enableval, alsa9=yes )
 
@@ -107,15 +60,9 @@ AC_ARG_ENABLE(sdl, [AS_HELP_STRING([--disable-sdl], [Disable linking with the SD
 
 # SDL_mixer support is experimental.  Do not enable by default until it is
 # ready for general use.
-#
-AC_ARG_ENABLE(
-    sdl_mixer,
-    [AS_HELP_STRING(
-        [--enable-sdl_mixer],
-        [Enable use of the SDL_mixer library, default is not to use it]
-    )],
-    use_sdl_mixer=$enableval,
-    use_sdl_mixer=no
+AC_ARG_ENABLE(sdl_mixer, [AS_HELP_STRING([--enable-sdl_mixer],
+              [Enable use of the SDL_mixer library, default is not to use it])],
+              use_sdl_mixer=$enableval, use_sdl_mixer=no
 )
 
 AC_ARG_ENABLE(dmalloc, [AS_HELP_STRING([--enable-dmalloc], [Enable checking for dmalloc library, default is to use it if available])],
@@ -124,7 +71,58 @@ AC_ARG_ENABLE(dmalloc, [AS_HELP_STRING([--enable-dmalloc], [Enable checking for 
 AC_ARG_ENABLE(metaserver2, [AS_HELP_STRING([--disable-metaserver2], [Do not build in metaserver2 support])],
                 metaserver2=$enableval, metaserver2=yes )
 
+##############################################################################
+# Program Checks
+##############################################################################
 AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+
+AC_PATH_PROG(AR, ar)
+AC_PATH_PROG(CP, cp)
+AC_PATH_PROG(DEPEND, makedepend)
+AC_PATH_PROG(MKDIR, mkdir)
+AC_PATH_PROG(PERL, perl)
+AC_PATH_PROG(PKG_CONFIG, pkg-config)
+AC_PATH_PROG(RM, rm)
+AC_PATH_PROG(TAR, tar)
+
+# Check if svnversion is available to get the rev number
+AC_PATH_PROG(SVNVERSION, svnversion)
+
+##############################################################################
+# Library Checks
+##############################################################################
+# Find out if X is available. The variable have_x is set if libX11 is
+# found to mimic AC_PATH_XTRA.
+AC_PATH_X
+if test -n "$PKG_CONFIG"; then
+    AC_MSG_CHECKING([pkg-config files for X11 are available])
+    PKG_CHECK_EXISTS([x11],[
+	x11_pkgconfig=yes
+	have_x=yes
+	],[
+	x11_pkgconfig=no
+    ])
+    AC_MSG_RESULT([$x11_pkgconfig])
+else
+    x11_pkgconfig=no
+fi
+
+# Use the autoconf macro if no pkg-config files
+if test "$x11_pkgconfig" = yes; then
+    PKG_CHECK_MODULES([X11], [x11])
+elif test "$have_x" = yes; then
+    AC_PATH_XTRA
+    test -z "$X11_CFLAGS" && X11_CFLAGS="$X_CFLAGS"
+    test -z "$X11_LIBS" && X11_LIBS="$X_LIBS -lX11"
+fi
+
+SOUNDDIR="${datadir}/crossfire-client/sounds"
+
 
 AC_C_BIGENDIAN
 
@@ -162,9 +160,7 @@ case "$target" in
     ;;
 esac
 
-# dnl
-# dnl  Detect pthreads libraries
-# dnl
+# Detect pthreads libraries
 #
 # pthreads is required by both metaservers.  Only metaserver2 is optional, so
 # we cannot build any client if pthreads is not present.
@@ -179,14 +175,10 @@ AX_PTHREAD(,AC_MSG_ERROR(POSIX threads not found.  Cannot build any client.))
 # Check to see if gtk-v2 client will build.
 #
 if eval "test x$gtkv2 = xyes" ; then
-    #
     # Check for GTK+ 2
-    #
     AM_PATH_GTK_2_0(2.0.0, HAVE_GTK2=yes, HAVE_GTK2=no)
     if eval "test x$HAVE_GTK2 = xyes" ; then
-        #
         # Check for Libglade-2.0
-        #
         PKG_CHECK_MODULES(LIBGLADE, libglade-2.0 >= 2.0.0, [HAVE_LIBGLADE=yes], [HAVE_LIBGLADE=no])
         if eval "test x$HAVE_LIBGLADE = xyes" ; then
             CF_SUBDIRS="$CF_SUBDIRS gtk-v2"
@@ -290,13 +282,6 @@ else
     opengl="no"
 fi
 # End of OpenGL checks
-
-# Checks for programs.
-AC_PROG_INSTALL
-AC_PROG_LN_S
-AC_PROG_MAKE_SET
-AC_PROG_CPP
-AC_PROG_RANLIB
 
 if eval "test x$sound = xyes"; then
     if eval "test x$alsa = xyes"; then
@@ -541,20 +526,22 @@ AC_CONFIG_FILES([
     help/Makefile utils/Makefile ])
 AC_OUTPUT
 
-AC_MSG_NOTICE([])
-AC_MSG_NOTICE([Configuration summary....])
+##############################################################################
+# Configuration Summary
+##############################################################################
+AC_MSG_NOTICE([Configuration Summary ----------------------------------------------])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Paths])
-AC_MSG_NOTICE([    prefix default value                 ${prefix}])
-AC_MSG_NOTICE([    exec_prefix default value            ${exec_prefix}])
-AC_MSG_NOTICE([    Will put executables in              $nbindir])
-AC_MSG_NOTICE([    Will put config in                   $sysconfdir])
-AC_MSG_NOTICE([    Will put data in                     $ndatadir])
+AC_MSG_NOTICE([    Installation prefix          ${prefix}])
+AC_MSG_NOTICE([    exec_prefix default value    ${exec_prefix}])
+AC_MSG_NOTICE([    Will put config in           $sysconfdir])
+AC_MSG_NOTICE([    Will put data in             $ndatadir])
+AC_MSG_NOTICE([    Will put executables in      $nbindir])
 AC_MSG_NOTICE([])
-AC_MSG_NOTICE([  Build options])
-AC_MSG_NOTICE([    Will build GTK2 client?              $gtkv2])
-AC_MSG_NOTICE([    With OpenGL renderer?                $opengl])
-AC_MSG_NOTICE([    With SDL renderer?                   $use_sdl])
+AC_MSG_NOTICE([  Build Options])
+AC_MSG_NOTICE([    Build GTK2 client?           $gtkv2])
+AC_MSG_NOTICE([    Build OpenGL renderer?       $opengl])
+AC_MSG_NOTICE([    Build SDL renderer?          $use_sdl])
 sound_system=""
 if eval "test x$sound = xyes"; then
   if eval "test x$sdl_sound = xyes"; then
@@ -576,9 +563,7 @@ if eval "test x$sound = xyes"; then
     sound_system="$sound_system (Solaris)"
   fi
 fi
-AC_MSG_NOTICE([    Will build sound server?             $sound $sound_system])
-
+AC_MSG_NOTICE([    Build sound server?          $sound $sound_system])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Scripting options])
-AC_MSG_NOTICE([    Will include lua interface?          $lua_scripting])
-
+AC_MSG_NOTICE([    Include lua interface?       $lua_scripting])
