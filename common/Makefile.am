@@ -1,24 +1,3 @@
-#
-# Makefile for crossfire-client
-#
-#   Copyright (C) 2005,2007 Mark Wedel & Crossfire Development Team
-#
-#   This program is free software; you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation; either version 2 of the License, or
-#   (at your option) any later version.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software
-#   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#
-#   The author can be reached via e-mail to crossfire-devel@real-time.com
-
 noinst_LIBRARIES = libcfclient.a
 
 libcfclient_a_SOURCES = \
@@ -52,9 +31,9 @@ noinst_HEADERS = \
 	proto.h \
 	script.h \
 	script_lua.h \
-        version.h \
-        svnversion.h \
-	shared/newclient.h
+	shared/newclient.h \
+	svnversion.h \
+	version.h
 
 BUILT_SOURCES = svnversion.h
 CLEANFILES = svnversion.h
@@ -77,10 +56,10 @@ item-types.h: item-types
 def-keys.h: def-keys
 	$(srcdir)/../utils/mdk.sh $(srcdir)
 
-$(srcdir)/msgtypes.h: $(srcdir)/shared/newclient.h
+msgtypes.h: $(srcdir)/shared/newclient.h
 	$(PERL) $(srcdir)/msgtypes.pl $(srcdir)
 
-svnversion.h: FORCE
+svnversion.h:
 	OUTPUT_DATA='/* Auto-generated at build time. */'; \
 	if [ "X`echo -n`" = "X-n" ]; then \
 		echo_n() { echo $${1+"$$@"}"\c"; } \
@@ -95,5 +74,3 @@ svnversion.h: FORCE
 	elif test "$$OUTPUT_DATA" != "`cat svnversion.h`"; then \
 		echo "$$OUTPUT_DATA" > svnversion.h; \
 	fi
-
-FORCE:
