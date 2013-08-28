@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_main_c = "$Id$";
-
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file main.c
@@ -58,19 +47,19 @@ GladeXML *dialog_xml, *window_xml;
 
 /* Sets up the basic colors. */
 const char * const colorname[NUM_COLORS] = {
-"Black",                /* 0  */
-"White",                /* 1  */
-"Navy",                 /* 2  */
-"Red",                  /* 3  */
-"Orange",               /* 4  */
-"DodgerBlue",           /* 5  */
-"DarkOrange2",          /* 6  */
-"SeaGreen",             /* 7  */
-"DarkSeaGreen",         /* 8  *//* Used for window background color */
-"Grey50",               /* 9  */
-"Sienna",               /* 10 */
-"Gold",                 /* 11 */
-"Khaki"                 /* 12 */
+    "Black",                /* 0  */
+    "White",                /* 1  */
+    "Navy",                 /* 2  */
+    "Red",                  /* 3  */
+    "Orange",               /* 4  */
+    "DodgerBlue",           /* 5  */
+    "DarkOrange2",          /* 6  */
+    "SeaGreen",             /* 7  */
+    "DarkSeaGreen",         /* 8  *//* Used for window background color */
+    "Grey50",               /* 9  */
+    "Sienna",               /* 10 */
+    "Gold",                 /* 11 */
+    "Khaki"                 /* 12 */
 };
 
 /* These are the names as set by the user within the rc file.
@@ -78,28 +67,26 @@ const char * const colorname[NUM_COLORS] = {
  * to be more generic instead of specific X11 color names.
  */
 const char * const usercolorname[NUM_COLORS] = {
-"black",                /* 0  */
-"white",                /* 1  */
-"darkblue",             /* 2  */
-"red",                  /* 3  */
-"orange",               /* 4  */
-"lightblue",            /* 5  */
-"darkorange",           /* 6  */
-"green",                /* 7  */
-"darkgreen",            /* 8  *//* Used for window background color */
-"grey",                 /* 9  */
-"brown",                /* 10 */
-"yellow",               /* 11 */
-"tan"                   /* 12 */
+    "black",                /* 0  */
+    "white",                /* 1  */
+    "darkblue",             /* 2  */
+    "red",                  /* 3  */
+    "orange",               /* 4  */
+    "lightblue",            /* 5  */
+    "darkorange",           /* 6  */
+    "green",                /* 7  */
+    "darkgreen",            /* 8  *//* Used for window background color */
+    "grey",                 /* 9  */
+    "brown",                /* 10 */
+    "yellow",               /* 11 */
+    "tan"                   /* 12 */
 };
 
 char dialog_xml_file[MAX_BUF] = DIALOG_XML_FILENAME;
 char dialog_xml_path[MAX_BUF] = "";     /**< Dialog layout file with path. */
+/** The file name of the window layout in use by the client. The base name,
+ * without dot extention, is re-used when saving the window positions. */
 char window_xml_file[MAX_BUF] = WINDOW_XML_FILENAME;
-                                        /**< The file name of the window layout
-                                         * in use by the client. The base name,
-                                         * without dot extention, is re-used
-                                         * when saving the window positions. */
 char window_xml_path[MAX_BUF] = "";     /**< Window layout file with path. */
 GdkColor root_color[NUM_COLORS];
 struct timeval timeout;
@@ -124,8 +111,12 @@ int do_scriptout(void)
  */
 int do_timeout(void)
 {
-    if (cpl.showmagic) magic_map_flash_pos();
-    if (cpl.spells_updated) update_spell_information();
+    if (cpl.showmagic) {
+        magic_map_flash_pos();
+    }
+    if (cpl.spells_updated) {
+        update_spell_information();
+    }
     if (!tick) {
         inventory_tick();
         mapdata_animation();
@@ -148,8 +139,9 @@ void client_tick(uint32 tick)
      * also keep reasonable performance.
      */
     if (have_new_image && !(tick % 5)) {
-        if (cpl.container)
+        if (cpl.container) {
             cpl.container->inv_updated=1;
+        }
         cpl.ob->inv_updated=1;
 
         have_new_image=0;
@@ -176,8 +168,7 @@ void cleanup_connection(void)
 /**
  * Handles client shutdown.
  */
-void on_window_destroy_event           (GtkObject        *object,
-                                        gpointer         user_data)
+void on_window_destroy_event(GtkObject *object, gpointer user_data)
 {
 #ifdef WIN32
     script_killall();
@@ -215,7 +206,9 @@ void do_network(void)
         if (FD_ISSET(csocket.fd, &tmp_read)) {
             DoClient(&csocket);
 #ifndef WIN32
-            if ( pollret > 1 ) script_process(&tmp_read);
+            if ( pollret > 1 ) {
+                script_process(&tmp_read);
+            }
 #endif
         } else {
             script_process(&tmp_read);
@@ -233,14 +226,16 @@ void do_network(void)
         return;
     }
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(FALSE);
-    else
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
+        sdl_gen_map(FALSE);
+    } else
 #endif
 #ifdef HAVE_OPENGL
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) opengl_gen_map(FALSE);
-    else
+        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
+            opengl_gen_map(FALSE);
+        } else
 #endif
-        draw_map(FALSE);
+            draw_map(FALSE);
 
     draw_lists();
 }
@@ -280,8 +275,8 @@ void event_loop(void)
         return;
     }
     csocket_fd = gdk_input_add ((gint) csocket.fd,
-                              GDK_INPUT_READ,
-                              (GdkInputFunction) do_network, &csocket);
+                                GDK_INPUT_READ,
+                                (GdkInputFunction) do_network, &csocket);
     tag = csocket_fd;
 
     gtk_main();
@@ -300,8 +295,9 @@ void event_loop(void)
  *
  * @param sig The signal number.
  */
-static void sigpipe_handler(int sig) {
-  /* ignore that signal for now */
+static void sigpipe_handler(int sig)
+{
+    /* ignore that signal for now */
 }
 #endif
 
@@ -460,7 +456,9 @@ int parse_args(int argc, char **argv)
             }
             x = atoi(argv[on_arg]);
             for (cp = argv[on_arg]; *cp!='\0'; cp++)
-                if (*cp == 'x' || *cp == 'X') break;
+                if (*cp == 'x' || *cp == 'X') {
+                    break;
+                }
 
             if (*cp == 0) {
                 LOG(LOG_WARNING, "main.c::init_windows", "-mapsize requires "
@@ -624,7 +622,9 @@ int parse_args(int argc, char **argv)
     image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
     map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
     map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
-    if (!use_config[CONFIG_CACHE]) use_config[CONFIG_DOWNLOAD] = FALSE;
+    if (!use_config[CONFIG_CACHE]) {
+        use_config[CONFIG_DOWNLOAD] = FALSE;
+    }
 
     mapdata_init();
 
@@ -651,10 +651,10 @@ void error_dialog(char *description, char *information)
     gtk_init(NULL, NULL);
     dialog =
         gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
-        GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Crossfire %s\n%s",
-        VERSION_INFO, description);
+                               GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Crossfire %s\n%s",
+                               VERSION_INFO, description);
     gtk_message_dialog_format_secondary_markup(GTK_MESSAGE_DIALOG(dialog),
-        "%s", information);
+            "%s", information);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
 }
@@ -672,7 +672,8 @@ void error_dialog(char *description, char *information)
  */
 
 void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level,
-                    const gchar *message, gpointer user_data) {
+                    const gchar *message, gpointer user_data)
+{
     sleep(1);
 }
 
@@ -682,8 +683,7 @@ void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level,
  * @param argv
  * @return
  */
-int
-main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int i, got_one=0;
     static char file_cache[ MAX_BUF ];
@@ -738,9 +738,11 @@ main (int argc, char *argv[])
 #endif
 #endif /* def WIN32 */
 
-    if (init_sounds() == -1)
+    if (init_sounds() == -1) {
         use_config[CONFIG_SOUND] = FALSE;
-    else use_config[CONFIG_SOUND] = TRUE;
+    } else {
+        use_config[CONFIG_SOUND] = TRUE;
+    }
 
     /*
      * Load Glade XML layout files for the main client window and for the other
@@ -757,7 +759,7 @@ main (int argc, char *argv[])
     if (! dialog_xml_path[0]) {
         strncat(dialog_xml_path, XML_PATH_DEFAULT, MAX_BUF-1);
         strncat(dialog_xml_path, dialog_xml_file,
-            MAX_BUF-strlen(dialog_xml_path)-1);
+                MAX_BUF-strlen(dialog_xml_path)-1);
     }
     dialog_xml = glade_xml_new(dialog_xml_path, NULL, NULL);
     if (! dialog_xml) {
@@ -775,7 +777,7 @@ main (int argc, char *argv[])
     if (! window_xml_path[0]) {
         strncat(window_xml_path, XML_PATH_DEFAULT, MAX_BUF-1);
         strncat(window_xml_path, window_xml_file,
-            MAX_BUF-strlen(window_xml_path)-1);
+                MAX_BUF-strlen(window_xml_path)-1);
     }
     window_xml = glade_xml_new(window_xml_path, NULL, NULL);
     if (! window_xml) {
@@ -788,11 +790,11 @@ main (int argc, char *argv[])
     window_root = glade_xml_get_widget(window_xml, "window_root");
 
     g_signal_connect_swapped ((gpointer) window_root, "key_press_event",
-        G_CALLBACK (keyfunc), GTK_OBJECT (window_root));
+                              G_CALLBACK (keyfunc), GTK_OBJECT (window_root));
     g_signal_connect_swapped ((gpointer) window_root, "key_release_event",
-        G_CALLBACK (keyrelfunc), GTK_OBJECT (window_root));
+                              G_CALLBACK (keyrelfunc), GTK_OBJECT (window_root));
     g_signal_connect ((gpointer) window_root, "destroy",
-        G_CALLBACK (on_window_destroy_event), NULL);
+                      G_CALLBACK (on_window_destroy_event), NULL);
 
     /* Purely arbitrary min window size */
     geometry.min_width=640;
@@ -832,23 +834,21 @@ main (int argc, char *argv[])
      * fill in the data - if the window_root is shown before that, there is a
      * brief glimpse of the glade layout, which, IMO, doesn't look great.
      * Also, it should be faster to realize this as later as possible. */
-    gtk_widget_show (window_root);
-
+    gtk_widget_show(window_root);
 
     map_init(window_root);
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     magic_map = glade_xml_get_widget(xml_tree, "drawingarea_magic_map");
 
-    g_signal_connect ((gpointer) magic_map, "expose_event",
-        G_CALLBACK (on_drawingarea_magic_map_expose_event), NULL);
+    g_signal_connect((gpointer) magic_map, "expose_event",
+                      G_CALLBACK (on_drawingarea_magic_map_expose_event), NULL);
 
-    snprintf( file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv( "HOME" ) );
+    snprintf(file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv("HOME"));
     CONVERT_FILESPEC_TO_OS_FORMAT(file_cache);
     cached_server_file = file_cache;
 
     init_image_cache_data();
-
 
     /* Loop to connect to server/metaserver and play the game */
     while (1) {
@@ -871,13 +871,13 @@ main (int argc, char *argv[])
             draw_splash();
             metaserver_get_info(meta_server, meta_port);
             get_metaserver();
-	    /* Call this after get_metaserver so one can't do anything
-	     * with the menus at that point.
-	     */
-	    enable_menu_items(TRUE);
+            /* Call this after get_metaserver so one can't do anything
+             * with the menus at that point.
+             */
+            enable_menu_items(TRUE);
             negotiate_connection(use_config[CONFIG_SOUND]);
         } else {
-	    enable_menu_items(TRUE);
+            enable_menu_items(TRUE);
             csocket.fd=init_connection(server, use_config[CONFIG_PORT]);
             if (csocket.fd == -1) { /* specified server no longer valid */
                 server = NULL;
@@ -925,10 +925,8 @@ main (int argc, char *argv[])
  * @param w Window width
  * @param h Window height
  */
-void get_window_coord(GtkWidget *win,
-                 int *x,int *y,
-                 int *wx,int *wy,
-                 int *w,int *h)
+void get_window_coord(GtkWidget *win, int *x,int *y, int *wx, int *wy,
+                      int *w, int *h)
 {
     /* Position of a window relative to its parent window. */
     gdk_window_get_geometry (win->window, x, y, w, h, NULL);
