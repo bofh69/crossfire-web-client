@@ -1,26 +1,15 @@
-const char * const rcsid_common_item_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2001,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file common/item.c
@@ -36,10 +25,10 @@ const char * const rcsid_common_item_c =
 
 static item *free_items;        /* the list of free (unused) items */
 static item *player, *map;      /* these lists contains rest of items */
-                                /* player = pl->ob, map = pl->below */
+/* player = pl->ob, map = pl->below */
 
 #define NROF_ITEMS 50           /* how many items are reserved initially */
-                                /* for the item spool */
+/* for the item spool */
 
 #include <item-types.h>
 
@@ -50,7 +39,8 @@ static item *player, *map;      /* these lists contains rest of items */
  * We return the 'type' (matching array element above), 255 if no match
  * (so unknown objects put at the end)
  */
-uint8 get_type_from_name(const char *name) {
+uint8 get_type_from_name(const char *name)
+{
     int type, pos;
 
     for (type = 0; type < NUM_ITEM_TYPES; type++) {
@@ -79,7 +69,8 @@ uint8 get_type_from_name(const char *name) {
 /* Does what is says - inserts newitem before the object.
  * the parameters can not be null
  */
-static void insert_item_before_item(item *newitem, item *before) {
+static void insert_item_before_item(item *newitem, item *before)
+{
     if (before->prev) {
         before->prev->next = newitem;
     } else {
@@ -97,7 +88,8 @@ static void insert_item_before_item(item *newitem, item *before) {
 }
 
 /* Item it has gotten an item type, so we need to resort its location */
-void update_item_sort(item *it) {
+void update_item_sort(item *it)
+{
     item *itmp, *last = NULL;
 
     /* If not in some environment or the map, return */
@@ -114,21 +106,27 @@ void update_item_sort(item *it) {
      * if you just equip something.
      */
     if (it->prev && it->prev->type == it->type &&
-        it->prev->locked == it->locked &&
-        !strcasecmp(it->prev->s_name, it->s_name)) {
+            it->prev->locked == it->locked &&
+            !strcasecmp(it->prev->s_name, it->s_name)) {
         return;
     }
 
     if (it->next && it->next->type == it->type &&
-        it->next->locked == it->locked &&
-        !strcasecmp(it->next->s_name, it->s_name)) {
+            it->next->locked == it->locked &&
+            !strcasecmp(it->next->s_name, it->s_name)) {
         return;
     }
 
     /* Remove this item from the list */
-    if (it->prev) it->prev->next = it->next;
-    if (it->next) it->next->prev = it->prev;
-    if (it->env->inv == it) it->env->inv = it->next;
+    if (it->prev) {
+        it->prev->next = it->next;
+    }
+    if (it->next) {
+        it->next->prev = it->prev;
+    }
+    if (it->env->inv == it) {
+        it->env->inv = it->next;
+    }
 
     for (itmp = it->env->inv; itmp != NULL; itmp = itmp->next) {
         last = itmp;
@@ -149,13 +147,19 @@ void update_item_sort(item *it) {
              */
 
             /* applied items go first */
-            if (itmp->applied) continue;
+            if (itmp->applied) {
+                continue;
+            }
             /* put locked items before others */
-            if (itmp->locked && !it->locked) continue;
+            if (itmp->locked && !it->locked) {
+                continue;
+            }
 #endif
 
             /* Now alphabetise */
-            if (strcasecmp(itmp->s_name, it->s_name) < 0) continue;
+            if (strcasecmp(itmp->s_name, it->s_name) < 0) {
+                continue;
+            }
 
             /* IF we got here, it means it passed all our sorting tests */
             insert_item_before_item(it, itmp);
@@ -183,7 +187,8 @@ void update_item_sort(item *it) {
  * call to get_number().
  * It is currently only used by the query_name() function.
  */
-const char *get_number(uint32 i) {
+const char *get_number(uint32 i)
+{
     static const char numbers[21][20] = {
         "no", "a", "two", "three", "four",
         "five", "six", "seven", "eight", "nine",
@@ -210,7 +215,8 @@ const char *get_number(uint32 i) {
  *  new_item() returns pointer to new item which
  *  is allocated and initialized correctly
  */
-static item *new_item(void) {
+static item *new_item(void)
+{
     item *op = malloc(sizeof(item));
 
     if (!op) {
@@ -242,7 +248,8 @@ static item *new_item(void) {
 /*
  *  alloc_items() returns pointer to list of allocated objects
  */
-static item *alloc_items(int nrof) {
+static item *alloc_items(int nrof)
+{
     item *op, *list;
     int i;
 
@@ -259,7 +266,8 @@ static item *alloc_items(int nrof) {
 /*
  *  free_items() frees all allocated items from list
  */
-void free_all_items(item *op) {
+void free_all_items(item *op)
+{
     item *tmp;
 
     while (op) {
@@ -275,7 +283,8 @@ void free_all_items(item *op) {
 /*
  *  Recursive function, used by locate_item()
  */
-static item *locate_item_from_item(item *op, sint32 tag) {
+static item *locate_item_from_item(item *op, sint32 tag)
+{
     item *tmp;
 
     for (; op; op = op->next) {
@@ -293,7 +302,8 @@ static item *locate_item_from_item(item *op, sint32 tag) {
  *  locate_item() returns pointer to the item which tag is given
  *  as parameter or if item is not found returns NULL
  */
-item *locate_item(sint32 tag) {
+item *locate_item(sint32 tag)
+{
     item *op;
 
     if (tag == 0) {
@@ -312,8 +322,9 @@ item *locate_item(sint32 tag) {
         return cpl.container;
     }
 
-    if (cpl.container && (op = locate_item_from_item(cpl.container->inv, tag)) != NULL)
+    if (cpl.container && (op = locate_item_from_item(cpl.container->inv, tag)) != NULL) {
         return op;
+    }
 
     return NULL;
 }
@@ -322,7 +333,8 @@ item *locate_item(sint32 tag) {
  *  remove_item() inserts op the the list of free items
  *  Note that it don't clear all fields in item
  */
-void remove_item(item *op) {
+void remove_item(item *op)
+{
     /* IF no op, or it is the player */
     if (!op || op == player || op == map) {
         return;
@@ -383,7 +395,8 @@ void remove_item(item *op) {
 /*
  *  remove_item_inventory() recursive frees items inventory
  */
-void remove_item_inventory(item *op) {
+void remove_item_inventory(item *op)
+{
     if (!op) {
         return;
     }
@@ -399,7 +412,8 @@ void remove_item_inventory(item *op) {
 /*
  *  add_item() adds item op to end of the inventory of item env
  */
-static void add_item(item *env, item *op) {
+static void add_item(item *env, item *op)
+{
     item *tmp;
 
     for (tmp = env->inv; tmp && tmp->next; tmp = tmp->next)
@@ -423,7 +437,8 @@ static void add_item(item *env, item *op) {
  *  and sets its tag field and clears locked flag (all other fields
  *  are unitialized and may contain random values)
  */
-item *create_new_item(item *env, sint32 tag) {
+item *create_new_item(item *env, sint32 tag)
+{
     item *op;
 
     if (!free_items) {
@@ -445,7 +460,8 @@ item *create_new_item(item *env, sint32 tag) {
     return op;
 }
 
-int num_free_items(void) {
+int num_free_items(void)
+{
     item *tmp;
     int count = 0;
 
@@ -463,7 +479,8 @@ static const char *const apply_string[] = {
     "", " (readied)", " (wielded)", " (worn)", " (active)", " (applied)",
 };
 
-static void set_flag_string(item *op) {
+static void set_flag_string(item *op)
+{
     op->flags[0] = 0;
 
     if (op->locked) {
@@ -493,7 +510,8 @@ static void set_flag_string(item *op) {
     }
 }
 
-static void get_flags(item *op, uint16 flags) {
+static void get_flags(item *op, uint16 flags)
+{
     op->was_open = op->open;
     op->open     = flags&F_OPEN    ? 1 : 0;
     op->damned   = flags&F_DAMNED  ? 1 : 0;
@@ -509,7 +527,8 @@ static void get_flags(item *op, uint16 flags) {
 
 void set_item_values(item *op, char *name, sint32 weight, uint16 face,
                      uint16 flags, uint16 anim, uint16 animspeed,
-                     uint32 nrof, uint16 type) {
+                     uint32 nrof, uint16 type)
+{
     int resort = 1;
 
     if (!op) {
@@ -574,7 +593,8 @@ void set_item_values(item *op, char *name, sint32 weight, uint16 face,
     item_event_item_changed(op);
 }
 
-void toggle_locked(item *op) {
+void toggle_locked(item *op)
+{
     SockList sl;
     uint8 buf[MAX_BUF];
 
@@ -591,7 +611,8 @@ void toggle_locked(item *op) {
     SockList_Send(&sl, csocket.fd);
 }
 
-void send_mark_obj(item *op) {
+void send_mark_obj(item *op)
+{
     SockList sl;
     uint8 buf[MAX_BUF];
 
@@ -607,12 +628,14 @@ void send_mark_obj(item *op) {
     SockList_Send(&sl, csocket.fd);
 }
 
-item *player_item (void) {
+item *player_item (void)
+{
     player = new_item();
     return player;
 }
 
-item *map_item (void) {
+item *map_item (void)
+{
     map = new_item();
     map->weight = -1;
     return map;
@@ -620,7 +643,8 @@ item *map_item (void) {
 
 /* Upates an item with new attributes. */
 void update_item(int tag, int loc, char *name, int weight, int face, int flags,
-                 int anim, int animspeed, uint32 nrof, int type) {
+                 int anim, int animspeed, uint32 nrof, int type)
+{
     item *ip = locate_item(tag), *env = locate_item(loc);
 
     /* Need to do some special handling if this is the player that is
@@ -655,7 +679,8 @@ void update_item(int tag, int loc, char *name, int weight, int face, int flags,
  *  Prints players inventory, contain extra information for debugging purposes
  * This isn't pretty, but is only used for debugging, so it doesn't need to be.
  */
-void print_inventory(item *op) {
+void print_inventory(item *op)
+{
     char buf[MAX_BUF];
     char buf2[MAX_BUF];
     item *tmp;
@@ -688,7 +713,8 @@ void print_inventory(item *op) {
 }
 
 /* Check the objects, animate the ones as necessary */
-void animate_objects(void) {
+void animate_objects(void)
+{
     item *ip;
     int got_one = 0;
 
@@ -753,11 +779,13 @@ void animate_objects(void) {
     }
 }
 
-int can_write_spell_on(item* it) {
+int can_write_spell_on(item* it)
+{
     return (it->type == 661);
 }
 
-void inscribe_magical_scroll(item *scroll, Spell *spell) {
+void inscribe_magical_scroll(item *scroll, Spell *spell)
+{
     SockList sl;
     uint8 buf[MAX_BUF];
 

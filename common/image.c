@@ -1,26 +1,15 @@
-const char * const rcsid_common_image_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2002-2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file common/image.c
@@ -91,8 +80,12 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
         length = atoi(lp + 1);
         *cp = 0;
         for (i=0; i<MAX_FACE_SETS; i++) {
-            if (!strcmp(fd_cache[i].name, filename)) break;
-            if (last==-1 && fd_cache[i].fd == -1) last = i;
+            if (!strcmp(fd_cache[i].name, filename)) {
+                break;
+            }
+            if (last==-1 && fd_cache[i].fd == -1) {
+                last = i;
+            }
         }
         /* Didn't find a matching entry yet, so make one */
         if (i == MAX_FACE_SETS) {
@@ -106,13 +99,13 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
 #else
             if ((fd_cache[last].fd = open(filename, O_RDONLY))==-1)
 #endif
-                {
-                    LOG(LOG_WARNING,"common::load_image","unable to load listed cache file %s",filename);
-                    *cp = '@';	/* put @ back in string */
-                    return -1;
-                }
-                strcpy(fd_cache[last].name, filename);
-                i=last;
+            {
+                LOG(LOG_WARNING,"common::load_image","unable to load listed cache file %s",filename);
+                *cp = '@';	/* put @ back in string */
+                return -1;
+            }
+            strcpy(fd_cache[last].name, filename);
+            i=last;
         }
         lseek(fd_cache[i].fd, offset, SEEK_SET);
 #ifdef WIN32
@@ -121,16 +114,19 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum)
         *len = read(fd_cache[i].fd, data, 65535);
 #endif
         *cp = '@';
-    }
-    else {
+    } else {
 #ifdef WIN32
         int length = 0;
-        if ((fd=open(filename, O_RDONLY | O_BINARY))==-1) return -1;
+        if ((fd=open(filename, O_RDONLY | O_BINARY))==-1) {
+            return -1;
+        }
         length = lseek(fd, 0, SEEK_END);
         lseek(fd, 0, SEEK_SET);
         *len=read(fd, data, length);
 #else
-        if ((fd=open(filename, O_RDONLY))==-1) return -1;
+        if ((fd=open(filename, O_RDONLY))==-1) {
+            return -1;
+        }
         *len=read(fd, data, 65535);
 #endif
         close(fd);
@@ -185,7 +181,8 @@ struct Image_Cache {
  * because I'm not sure if hashing .111 at the end of all the image names will
  * be very useful.
  */
-static uint32 image_hash_name(char *str, int tablesize) {
+static uint32 image_hash_name(char *str, int tablesize)
+{
     uint32 hash = 0;
     char *p;
 
@@ -212,10 +209,16 @@ static sint32 image_find_hash(char *str)
     newhash = hash;
     do {
         /* No entry - return immediately */
-        if (image_cache[newhash].image_name == NULL) return -1;
-        if (!strcmp(image_cache[newhash].image_name, str)) return newhash;
+        if (image_cache[newhash].image_name == NULL) {
+            return -1;
+        }
+        if (!strcmp(image_cache[newhash].image_name, str)) {
+            return newhash;
+        }
         newhash ++;
-        if (newhash == IMAGE_HASH) newhash=0;
+        if (newhash == IMAGE_HASH) {
+            newhash=0;
+        }
     } while (newhash != hash);
 
     /* If the hash table is full, this is bad because we won't be able to
@@ -245,7 +248,9 @@ static void image_remove_hash(char *imagename, Cache_Entry *ce)
         return;
     }
     last = image_cache[hash_entry].cache_entry;
-    while (last->next && last->next != ce) last=last->next;
+    while (last->next && last->next != ce) {
+        last=last->next;
+    }
     if (!last->next) {
         LOG(LOG_ERROR,"common::image_rmove_hash","Unable to find cache entry for %s, %s", imagename, ce->filename);
         return;
@@ -266,11 +271,15 @@ static Cache_Entry *image_find_cache_entry(char *imagename, uint32 checksum, int
     Cache_Entry	*entry;
 
     hash_entry = image_find_hash(imagename);
-    if (hash_entry == -1) return NULL;
+    if (hash_entry == -1) {
+        return NULL;
+    }
     entry = image_cache[hash_entry].cache_entry;
     if (has_sum) {
         while (entry) {
-            if (entry->checksum == checksum) break;
+            if (entry->checksum == checksum) {
+                break;
+            }
             entry = entry->next;
         }
     }
@@ -287,9 +296,11 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename, uint32 check
 
     newhash = hash;
     while (image_cache[newhash].image_name != NULL &&
-           strcmp(image_cache[newhash].image_name, imagename)) {
+            strcmp(image_cache[newhash].image_name, imagename)) {
         newhash ++;
-        if (newhash == IMAGE_HASH) newhash=0;
+        if (newhash == IMAGE_HASH) {
+            newhash=0;
+        }
         /* If the hash table is full, can't do anything */
         if (newhash == hash) {
             LOG(LOG_WARNING,"common::image_find_hash","Hash table is full, increase IMAGE_CACHE size");
@@ -326,7 +337,9 @@ static void image_process_line(char *line, uint32 ispublic)
     char imagename[MAX_BUF], filename[MAX_BUF];
     uint32 checksum;
 
-    if (line[0] == '#') return;		    /* Ignore comments */
+    if (line[0] == '#') {
+        return;    /* Ignore comments */
+    }
 
     if (sscanf(line, "%s %u %s", imagename, &checksum, filename)==3) {
         image_add_hash(imagename, filename, checksum, ispublic);
@@ -344,11 +357,13 @@ void init_common_cache_data(void)
     char    bmaps[MAX_BUF], inbuf[MAX_BUF];
     int i;
 
-    if (!want_config[CONFIG_CACHE])
+    if (!want_config[CONFIG_CACHE]) {
         return;
+    }
 
-    for (i = 0; i < MAXPIXMAPNUM; i++)
+    for (i = 0; i < MAXPIXMAPNUM; i++) {
         facetoname[i] = NULL;
+    }
 
     /* First, make sure that image_cache is nulled out */
     memset(image_cache, 0, IMAGE_HASH * sizeof(struct Image_Cache));
@@ -433,10 +448,11 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
             /* Not in our cache, so request it from the server */
             requestface(pnum, face);
             return;
-        }
-        else if (ce->image_data) {
+        } else if (ce->image_data) {
             /* If this has image_data, then it has already been rendered */
-            if (!associate_cache_entry(ce, pnum)) return;
+            if (!associate_cache_entry(ce, pnum)) {
+                return;
+            }
         }
         if (ce->ispublic)
             snprintf(filename, sizeof(filename), "%s/%s",
@@ -457,7 +473,9 @@ void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face, int fac
         /* If the data is bad, remove it if it is in the players private cache */
         LOG(LOG_WARNING,"common::finish_face_cmd","Got error on png_to_data, image=%s",face);
         if (ce) {
-            if (!ce->ispublic) unlink(filename);
+            if (!ce->ispublic) {
+                unlink(filename);
+            }
             image_remove_hash(face,ce);
         }
 
@@ -486,9 +504,9 @@ void reset_image_cache_data(void)
     int i;
 
     if (want_config[CONFIG_CACHE]) for (i=1; i<MAXPIXMAPNUM; i++) {
-        free(facetoname[i]);
-        facetoname[i]=NULL;
-    }
+            free(facetoname[i]);
+            facetoname[i]=NULL;
+        }
 }
 
 /**
@@ -579,10 +597,11 @@ static void cache_newpng(int face, uint8 *buf, int buflen, int setnum, Cache_Ent
      * of 'face.base.111.x' if different servers have different image
      * values.
      */
-    if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix)
+    if (setnum >=0 && setnum < MAX_FACE_SETS && face_info.facesets[setnum].prefix) {
         snprintf(basename, sizeof(basename),"%s.%s", facetoname[face], face_info.facesets[setnum].prefix);
-    else
+    } else {
         strcpy(basename, facetoname[face]);
+    }
 
     /* Decrease it by one since it will immediately get increased
      * in the loop below.
@@ -596,15 +615,13 @@ static void cache_newpng(int face, uint8 *buf, int buflen, int setnum, Cache_Ent
     } while (access(filename, F_OK)==-0);
 
 #ifdef WIN32
-    if ((tmpfile = fopen(filename,"wb"))==NULL) 
+    if ((tmpfile = fopen(filename,"wb"))==NULL)
 #else
-    if ((tmpfile = fopen(filename,"w"))==NULL) 
+    if ((tmpfile = fopen(filename,"w"))==NULL)
 #endif
     {
         LOG(LOG_WARNING,"common::display_newpng","Can not open %s for writing", filename);
-    }
-    else
-    {
+    } else {
         /* found a file we can write to */
 
         fwrite(buf, buflen, 1, tmpfile);
@@ -628,8 +645,7 @@ static void cache_newpng(int face, uint8 *buf, int buflen, int setnum, Cache_Ent
         snprintf(filename, sizeof(filename), "%s/.crossfire/image-cache/bmaps.client", getenv("HOME"));
         if ((tmpfile=fopen(filename, "a"))==NULL) {
             LOG(LOG_WARNING,"common::display_newpng","Can not open %s for appending", filename);
-        }
-        else {
+        } else {
             fprintf(tmpfile, "%s %u %c%c/%s.%d\n",
                     facetoname[face], csum, facetoname[face][0],
                     facetoname[face][1], basename, setnum);
@@ -650,8 +666,9 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum)
     uint32 width, height;
     Cache_Entry *ce=NULL;
 
-    if (use_config[CONFIG_CACHE])
+    if (use_config[CONFIG_CACHE]) {
         cache_newpng(face, buf, buflen, setnum, &ce);
+    }
 
     pngtmp = png_to_data(buf, buflen, &width, &height);
     if(create_and_rescale_image_from_data(ce, face, pngtmp, width, height)) {
@@ -684,12 +701,16 @@ void get_image_info(uint8 *data, int len)
 
     lp = (char*)data;
     cp = strchr(lp, '\n');
-    if (!cp || (cp - lp) > len) return;
+    if (!cp || (cp - lp) > len) {
+        return;
+    }
     face_info.num_images = atoi(lp);
 
     lp = cp+1;
     cp = strchr(lp, '\n');
-    if (!cp || (cp - lp) > len) return;
+    if (!cp || (cp - lp) > len) {
+        return;
+    }
     face_info.bmaps_checksum = strtoul(lp, NULL, 10);	/* need unsigned, so no atoi */
 
     lp = cp+1;
@@ -700,9 +721,13 @@ void get_image_info(uint8 *data, int len)
         /* The code below is pretty much the same as the code from the server
          * which loads the original faceset file.
          */
-        if (!(cps[0] = strtok(lp, ":"))) badline=1;
+        if (!(cps[0] = strtok(lp, ":"))) {
+            badline=1;
+        }
         for (i=1; i<7; i++) {
-            if (!(cps[i] = strtok(NULL, ":"))) badline=1;
+            if (!(cps[i] = strtok(NULL, ":"))) {
+                badline=1;
+            }
         }
         if (badline) {
             LOG(LOG_WARNING,"common::get_image_info","bad data, ignoring line:/%s/", lp);
@@ -730,9 +755,13 @@ void get_image_info(uint8 *data, int len)
     if (face_info.want_faceset && atoi(face_info.want_faceset)==0) {
         for (onset=0; onset<MAX_FACE_SETS; onset++) {
             if (face_info.facesets[onset].prefix &&
-                !strcasecmp(face_info.facesets[onset].prefix, face_info.want_faceset)) break;
+                    !strcasecmp(face_info.facesets[onset].prefix, face_info.want_faceset)) {
+                break;
+            }
             if (face_info.facesets[onset].fullname &&
-                !strcasecmp(face_info.facesets[onset].fullname, face_info.want_faceset)) break;
+                    !strcasecmp(face_info.facesets[onset].fullname, face_info.want_faceset)) {
+                break;
+            }
         }
         if (onset < MAX_FACE_SETS) { /* We found a match */
             face_info.faceset = onset;
@@ -765,12 +794,18 @@ void get_image_sums(char *data, int len)
     char *cp, *lp;
 
     cp = strchr((char*)data, ' ');
-    if (!cp || (cp - data) > len) return;
+    if (!cp || (cp - data) > len) {
+        return;
+    }
 
-    while (isspace(*cp)) cp++;
+    while (isspace(*cp)) {
+        cp++;
+    }
     lp = cp;
     cp = strchr(lp, ' ');
-    if (!cp || (cp - data) > len) return;
+    if (!cp || (cp - data) > len) {
+        return;
+    }
     stop = atoi(lp);
 
     replyinfo_last_face = stop;
@@ -781,12 +816,18 @@ void get_image_sums(char *data, int len)
      * 9.  Using a check against space will work until we get up to
      * 8192 images.
      */
-    while (*cp==' ') cp++;
+    while (*cp==' ') {
+        cp++;
+    }
     while ((cp - data) < len) {
-        imagenum = GetShort_String((uint8*)cp); cp += 2;
-        checksum = GetInt_String((uint8*)cp); cp += 4;
-        faceset = *cp; cp++;
-        slen = *cp; cp++;
+        imagenum = GetShort_String((uint8*)cp);
+        cp += 2;
+        checksum = GetInt_String((uint8*)cp);
+        cp += 4;
+        faceset = *cp;
+        cp++;
+        slen = *cp;
+        cp++;
         /* Note that as is, this can break horribly if the client is missing a large number
          * of images - that is because it will request a whole bunch which will overflow
          * the servers output buffer, causing it to close the connection.
@@ -796,8 +837,9 @@ void get_image_sums(char *data, int len)
          * probably amounts to about 100 images at a time
          */
         finish_face_cmd(imagenum, checksum, 1, (char*)cp, faceset);
-        if (imagenum > stop)
+        if (imagenum > stop) {
             LOG(LOG_WARNING,"common::get_image_sums","Received an image beyond our range? %d > %d", imagenum, stop);
+        }
         cp += slen;
     }
 }

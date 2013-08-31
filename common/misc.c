@@ -1,26 +1,15 @@
-const char * const rcsid_common_misc_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2006,2001 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file common/misc.c
@@ -60,7 +49,8 @@ const char * const rcsid_common_misc_c =
 void replace_chars_with_string(char*        buffer,
                                const uint16 buffer_size,
                                const char   find,
-                               const char*  replace      ) {
+                               const char*  replace      )
+{
 
     uint16 buffer_len, expand, i, replace_len, replace_limit, template_len;
     char*  template;
@@ -72,20 +62,15 @@ void replace_chars_with_string(char*        buffer,
     buffer[0] = '\0';
 
     buffer_len = 0;
-    for (i = 0; i <= template_len; i++)
-    {
+    for (i = 0; i <= template_len; i++) {
         expand = buffer_len + replace_len < replace_limit ? replace_len : 1;
-        if (expand == 1 && buffer_len == replace_limit)
-        {
+        if (expand == 1 && buffer_len == replace_limit) {
             break;
         }
-        if ((template[i] != find) || ((expand == 1) && (replace_len > 1)))
-        {
+        if ((template[i] != find) || ((expand == 1) && (replace_len > 1))) {
             buffer[buffer_len++] = template[i];
             buffer[buffer_len] = '\0';
-        }
-        else
-        {
+        } else {
             strcat(buffer, replace);
             buffer_len += replace_len;
         }
@@ -102,33 +87,35 @@ int make_path_to_dir (char *directory)
     char buf[MAX_BUF], *cp = buf;
     struct stat statbuf;
 
-    if (!directory || !*directory)
-	return -1;
+    if (!directory || !*directory) {
+        return -1;
+    }
     strcpy (buf, directory);
     while ((cp = strchr (cp + 1, (int) '/'))) {
-	*cp = '\0';
-	if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
+        *cp = '\0';
+        if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
 #ifdef WIN32
-	    if (mkdir (buf)) {
+            if (mkdir (buf)) {
 #else
-	    if (mkdir (buf, 0777)) {
+            if (mkdir (buf, 0777)) {
 #endif
-		perror ("Couldn't make path to file");
-		return -1;
-	    }
-	} else
-	    *cp = '/';
+                perror ("Couldn't make path to file");
+                return -1;
+            }
+        } else {
+            *cp = '/';
+        }
     }
     /* Need to make the final component */
     if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
 #ifdef WIN32
-    if (mkdir (buf)) {
+        if (mkdir (buf)) {
 #else
-	if (mkdir (buf, 0777)) {
+        if (mkdir (buf, 0777)) {
 #endif
-	    perror ("Couldn't make path to file");
-	    return -1;
-	}
+            perror ("Couldn't make path to file");
+            return -1;
+        }
     }
     return 0;
 }
@@ -141,24 +128,25 @@ int make_path_to_file (char *filename)
     char buf[MAX_BUF], *cp = buf;
     struct stat statbuf;
 
-    if (!filename || !*filename)
-	return -1;
+    if (!filename || !*filename) {
+        return -1;
+    }
     strcpy (buf, filename);
     while ((cp = strchr (cp + 1, (int) '/'))) {
-	*cp = '\0';
-	if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
+        *cp = '\0';
+        if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
 #ifdef WIN32
-	    if (mkdir (buf)) {
+            if (mkdir (buf)) {
                 LOG(LOG_ERROR, "misc.c::make_path_to_file",
                     "Couldn't make path to file: %s", strerror(errno));
 #else
-	    if (mkdir (buf, 0777)) {
-		perror ("Couldn't make path to file");
+            if (mkdir (buf, 0777)) {
+                perror ("Couldn't make path to file");
 #endif
-		return -1;
-	    }
-	}
-	*cp = '/';
+                return -1;
+            }
+        }
+        *cp = '/';
     }
     return 0;
 }
@@ -167,10 +155,11 @@ int make_path_to_file (char *filename)
  * A replacement of strdup(), since it's not defined at some
  * unix variants.
  */
-char *strdup_local(const char *str) {
-  char *c=(char *)malloc(sizeof(char)*strlen(str)+1);
-  strcpy(c,str);
-  return c;
+char *strdup_local(const char *str)
+{
+    char *c=(char *)malloc(sizeof(char)*strlen(str)+1);
+    strcpy(c,str);
+    return c;
 }
 
 /* logging stuff */
@@ -182,9 +171,11 @@ LogListener loglist=NULL;
 /**
  *
  */
-int setLogListener(LogListener li){
-    if (loglist)
+int setLogListener(LogListener li)
+{
+    if (loglist) {
         return 0;
+    }
     loglist=li;
     return 1;
 }
@@ -192,7 +183,8 @@ int setLogListener(LogListener li){
 /**
  *
  */
-void clearLogListener(void) {
+void clearLogListener(void)
+{
     loglist=NULL;
 }
 
@@ -208,14 +200,16 @@ static const char *const LogLevelTexts[] = {
 /**
  *
  */
-static const char *getLogLevelText(LogLevel level) {
+static const char *getLogLevelText(LogLevel level)
+{
     return LogLevelTexts[level>LOG_CRITICAL?LOG_CRITICAL+1:level];
 }
 
 /**
  *
  */
-char *getLogTextRaw(LogLevel level, const char *origin, const char *message) {
+char *getLogTextRaw(LogLevel level, const char *origin, const char *message)
+{
     static char mybuf[20480];
     mybuf[0]='\0';
     snprintf(mybuf, sizeof(mybuf), "[%s] (%s) %s\n",getLogLevelText(level),origin,message);
@@ -225,7 +219,8 @@ char *getLogTextRaw(LogLevel level, const char *origin, const char *message) {
 /**
  *
  */
-char *getLogText(const LogEntry *le) {
+char *getLogText(const LogEntry *le)
+{
     return getLogTextRaw(le->level,le->origin,le->message);
 }
 
@@ -241,30 +236,32 @@ int MINLOG=MINLOGLEVEL;
 void LOG(LogLevel level, const char *origin, const char *format, ...)
 {
 
-  va_list ap;
-  static char buf[20480];  /* This needs to be really really big - larger
+    va_list ap;
+    static char buf[20480];  /* This needs to be really really big - larger
 		     * than any other buffer, since that buffer may
 		     * need to be put in this one.
 		     */
-  if (level<MINLOG)
-    return;
+    if (level<MINLOG) {
+        return;
+    }
 
-  va_start(ap, format);
+    va_start(ap, format);
 
-  buf[0] = '\0';
-  vsnprintf(buf, sizeof(buf), format, ap);
-  /*fprintf(stderr, "%s", getLogTextRaw(level,origin,buf));*/
-  if (strlen(buf)>0){
-    LogEntry *le = LOG_NEW_ENTRY;
-    LOG_APPEND(le);
-    LOG_SETMESSAGE(le,buf);
-    LOG_SETORIGIN(le,origin);
-    le->level=level;
-    fprintf(stderr, "%s", getLogText(le));
-    if (loglist)
-        (*loglist)(le);
-  }
-  va_end(ap);
+    buf[0] = '\0';
+    vsnprintf(buf, sizeof(buf), format, ap);
+    /*fprintf(stderr, "%s", getLogTextRaw(level,origin,buf));*/
+    if (strlen(buf)>0) {
+        LogEntry *le = LOG_NEW_ENTRY;
+        LOG_APPEND(le);
+        LOG_SETMESSAGE(le,buf);
+        LOG_SETORIGIN(le,origin);
+        le->level=level;
+        fprintf(stderr, "%s", getLogText(le));
+        if (loglist) {
+            (*loglist)(le);
+        }
+    }
+    va_end(ap);
 }
 
 ChildProcess* FirstChild=NULL;
@@ -273,26 +270,30 @@ ChildProcess* LastChild=NULL;
 /**
  *
  */
-void purgePipe(ChildProcess* cp, int pipe){
+void purgePipe(ChildProcess* cp, int pipe)
+{
     char buf[512];
     int len;
     len=read (cp->tube[pipe],buf,511);
-    if (len<1){
-        if (errno==EAGAIN)
+    if (len<1) {
+        if (errno==EAGAIN) {
             return;
+        }
         LOG(LOG_ERROR,"common::purgePipe","Child %s: could not read from pipe %d!",cp->name?cp->name:"UNKNOWN",pipe);
     }
-    if (len>0){
+    if (len>0) {
         char* next;
         char* current=buf;
         buf[len<512?len:511]='\0';
-        if (strlen(buf)==0)
+        if (strlen(buf)==0) {
             return;
-        for (;;){
-            if (!current)
+        }
+        for (;;) {
+            if (!current) {
                 return;
+            }
             next=strstr(current,"\n");
-            if (next){
+            if (next) {
                 next[0]='\0';
                 next+=strlen("\n");
             }
@@ -305,32 +306,38 @@ void purgePipe(ChildProcess* cp, int pipe){
 /**
  *
  */
-void monitorChilds(void) {
+void monitorChilds(void)
+{
 #ifndef WIN32
     ChildProcess* cp=FirstChild;
     ChildProcess* last=NULL;
-    for (;;){
-        if (!cp)
-            return; /*no child to monitor*/
-        if (waitpid(cp->pid,NULL,WNOHANG)){
+    for (;;) {
+        if (!cp) {
+            return;    /*no child to monitor*/
+        }
+        if (waitpid(cp->pid,NULL,WNOHANG)) {
             ChildProcess* next;
 
             /*pid is dead*/
             LOG(LOG_INFO,"common::monitorChilds","Child %s died. Removing and closing pipes",cp->name?cp->name:"UNKNOWN");
-            if (cp==LastChild)
+            if (cp==LastChild) {
                 LastChild=last;
+            }
             next=cp->next;
-            if (last)
+            if (last) {
                 last->next=next;
-            else
+            } else {
                 FirstChild=cp->next;
+            }
             cp=next;
             continue;
         }
-        if (cp->logger[1].log)
+        if (cp->logger[1].log) {
             purgePipe(cp,1);
-        if (cp->logger[2].log)
+        }
+        if (cp->logger[2].log) {
             purgePipe(cp,2);
+        }
         last=cp;
         cp=cp->next;
     }
@@ -340,12 +347,14 @@ void monitorChilds(void) {
 /**
  *
  */
-void logPipe(ChildProcess *child, LogLevel level, int pipe){
+void logPipe(ChildProcess *child, LogLevel level, int pipe)
+{
 #ifndef WIN32
     char buf[1024];
-    if ( (pipe<1) || (pipe>2))/*can't log stdin as it's write only*/
+    if ( (pipe<1) || (pipe>2)) { /*can't log stdin as it's write only*/
         return;
-    if (!child->logger[pipe].name){
+    }
+    if (!child->logger[pipe].name) {
         snprintf(buf, sizeof(buf), "Child%d::%s::%d",child->pid,child->name?child->name:"NONAME",pipe);
         child->logger[pipe].name=strdup(buf);
     }
@@ -362,17 +371,21 @@ void logPipe(ChildProcess *child, LogLevel level, int pipe){
 /**
  *
  */
-void logChildPipe(ChildProcess* child, LogLevel level, int flag){
-    if (child->flag & flag & CHILD_STDOUT)
+void logChildPipe(ChildProcess* child, LogLevel level, int flag)
+{
+    if (child->flag & flag & CHILD_STDOUT) {
         logPipe(child,level,1);
-    if (child->flag & flag & CHILD_STDERR)
+    }
+    if (child->flag & flag & CHILD_STDERR) {
         logPipe(child,level,2);
+    }
 }
 
 /**
  *
  */
-ChildProcess* raiseChild(char* name, int flag){
+ChildProcess* raiseChild(char* name, int flag)
+{
 #ifndef WIN32
     ChildProcess* cp;
     int pipe_in[2];
@@ -382,35 +395,41 @@ ChildProcess* raiseChild(char* name, int flag){
     char *args;
     LOG(LOG_INFO,"common::raiseChild","Raising %s with flags %d",name,flag);
     flag=flag & (~CHILD_SILENTFAIL);
-    if (flag & (~CHILD_TUBE)){
+    if (flag & (~CHILD_TUBE)) {
         LOG(LOG_ERROR,"common::raiseChild",
-                "Serious CHILD error, unknown pipe requested: 0x%X for %s",
-                flag,name);
+            "Serious CHILD error, unknown pipe requested: 0x%X for %s",
+            flag,name);
         return NULL; /**/
     }
     cp = (ChildProcess*)calloc(1,sizeof(ChildProcess));
-    if (cp==NULL)
-        return NULL; /*No log here, we are out of memory for a few DWORDs, no chance to log*/
+    if (cp==NULL) {
+        return NULL;    /*No log here, we are out of memory for a few DWORDs, no chance to log*/
+    }
 
     /* Separate name and args */
     args=name;
-    while ( *args && *args!=' ' ) ++args;
-    while ( *args && *args==' ' ) ++args;
-    if ( *args==0 )
+    while ( *args && *args!=' ' ) {
+        ++args;
+    }
+    while ( *args && *args==' ' ) {
+        ++args;
+    }
+    if ( *args==0 ) {
         args=NULL;
-    else
+    } else {
         args[-1]=0;
+    }
     /*let's pipe a bit*/
     if (flag&CHILD_STDERR)
-        if ( pipe(pipe_err) ){
+        if ( pipe(pipe_err) ) {
             LOG(LOG_ERROR,"common::raiseChild","Couldn't create stderr pipe for %s",name);
             free(cp);
             return NULL;
         }
     if (flag&CHILD_STDIN)
-        if ( pipe(pipe_in) ){
+        if ( pipe(pipe_in) ) {
             LOG(LOG_ERROR,"common::raiseChild","Couldn't create stdin pipe for %s",name);
-            if (flag&CHILD_STDERR){
+            if (flag&CHILD_STDERR) {
                 close(pipe_err[0]);
                 close(pipe_err[1]);
             }
@@ -418,13 +437,13 @@ ChildProcess* raiseChild(char* name, int flag){
             return NULL;
         }
     if (flag&CHILD_STDOUT)
-        if ( pipe(pipe_out) ){
+        if ( pipe(pipe_out) ) {
             LOG(LOG_ERROR,"common::raiseChild","Couldn't create stdout pipe for %s",name);
-            if (flag&CHILD_STDERR){
+            if (flag&CHILD_STDERR) {
                 close(pipe_err[0]);
                 close(pipe_err[1]);
             }
-            if (flag&CHILD_STDIN){
+            if (flag&CHILD_STDIN) {
                 close(pipe_in[0]);
                 close(pipe_in[1]);
             }
@@ -433,24 +452,24 @@ ChildProcess* raiseChild(char* name, int flag){
         }
 
     pid=fork();
-    if (pid==-1){/*failed to fork*/
+    if (pid==-1) { /*failed to fork*/
         LOG(LOG_ERROR,"common::raiseChild","Couldn't create child for %s. Closing pipes",name);
-        if (flag&CHILD_STDIN){
+        if (flag&CHILD_STDIN) {
             close(pipe_in[0]);
             close(pipe_in[1]);
         }
-        if (flag&CHILD_STDOUT){
+        if (flag&CHILD_STDOUT) {
             close(pipe_out[0]);
             close(pipe_out[1]);
         }
-        if (flag&CHILD_STDERR){
+        if (flag&CHILD_STDERR) {
             close(pipe_err[0]);
             close(pipe_err[1]);
         }
         free(cp);
         return NULL;
     }
-    if (pid==0){ /*we are the child (yeah))*/
+    if (pid==0) { /*we are the child (yeah))*/
         int i;
         int r;
         char *argv[256];
@@ -458,22 +477,24 @@ ChildProcess* raiseChild(char* name, int flag){
         /* Fill in argv[] */
         argv[0]=name;
         i=1;
-        while (args && *args)
-        {
+        while (args && *args) {
             argv[i]=args;
             ++i;
-            while ( *args && *args!=' ' ) ++args;
-            if ( *args )
-            {
+            while ( *args && *args!=' ' ) {
+                ++args;
+            }
+            if ( *args ) {
                 *args=0;
                 ++args;
             }
-            while ( *args && *args==' ' ) ++args;
+            while ( *args && *args==' ' ) {
+                ++args;
+            }
         }
         argv[i]=NULL;
 
         /* Clean up file descriptor space */
-        if (flag&CHILD_STDERR){
+        if (flag&CHILD_STDERR) {
             r=dup2(pipe_err[1],2);
             close(pipe_err[0]);
             if ( r != 2 ) {
@@ -481,7 +502,7 @@ ChildProcess* raiseChild(char* name, int flag){
                 fprintf(stderr,"common::raiseChild Failed to set pipe_err as stderr\n");
             }
         }
-        if (flag&CHILD_STDOUT){
+        if (flag&CHILD_STDOUT) {
             r=dup2(pipe_out[1],1);
             close(pipe_out[0]);
             if ( r != 1 ) {
@@ -489,7 +510,7 @@ ChildProcess* raiseChild(char* name, int flag){
                 fprintf(stderr,"common::raiseChild Failed to set pipe_out as stdout\n");
             }
         }
-        if (flag&CHILD_STDIN){
+        if (flag&CHILD_STDIN) {
             r=dup2(pipe_in[0],0);
             close(pipe_in[1]);
             if ( r != 0 ) {
@@ -497,38 +518,44 @@ ChildProcess* raiseChild(char* name, int flag){
                 fprintf(stderr,"common::raiseChild Failed to set pipe_in as stdin\n");
             }
         }
-        for (i=3;i<100;++i) close(i);
+        for (i=3; i<100; ++i) {
+            close(i);
+        }
 
         /* EXEC */
         execvp(argv[0],argv);
         exit(-1); /* Should not be reached */
     }
     /*We are in father here*/
-    if (flag&CHILD_STDIN){
+    if (flag&CHILD_STDIN) {
         close (pipe_in[0]); /*close read access to stdin, we are the writer*/
         CHILD_PIPEIN(cp)=pipe_in[1];
-    } else
+    } else {
         CHILD_PIPEIN(cp)=-1;
+    }
 
-    if (flag&CHILD_STDOUT){
+    if (flag&CHILD_STDOUT) {
         close (pipe_out[1]); /*close write access to stdout, we are the reader*/
         CHILD_PIPEOUT(cp)=pipe_out[0];
-    } else
+    } else {
         CHILD_PIPEOUT(cp)=-1;
+    }
 
-    if (flag&CHILD_STDERR){
+    if (flag&CHILD_STDERR) {
         close (pipe_err[1]); /*close write access to stderr, we are the reader*/
         CHILD_PIPEERR(cp)=pipe_err[0];
-    } else
+    } else {
         CHILD_PIPEERR(cp)=-1;
+    }
     cp->pid=pid;
     cp->name=strdup(name);
     cp->flag=flag;
     /*add to chained list*/
-    if (FirstChild)
+    if (FirstChild) {
         LastChild->next=cp;
-    else
+    } else {
         FirstChild=cp;
+    }
     LastChild=cp;
     cp->next=NULL;
     return cp;

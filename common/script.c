@@ -1,27 +1,15 @@
-const char * const rcsid_common_script_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2003 Mark Wedel & Crossfire Development Team
-    This source file also Copyright (C) 2003 Preston Crow
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /*
  * This file has its own script.h for prototypes, so don't want to include
@@ -134,27 +122,27 @@ const char * const rcsid_common_script_c =
  * Data structures
  */
 struct script {
-   char *name; /* the script name */
-   char *params; /* the script parameters, if any */
+    char *name; /* the script name */
+    char *params; /* the script parameters, if any */
 #ifndef WIN32
-   int out_fd; /* the file descriptor to which the client writes to the script */
-   int in_fd; /* the file descriptor from which we read commands from the script */
+    int out_fd; /* the file descriptor to which the client writes to the script */
+    int in_fd; /* the file descriptor from which we read commands from the script */
 #else
-   HANDLE out_fd; /* the file descriptor to which the client writes to the script */
-   HANDLE in_fd; /* the file descriptor from which we read commands from the script */
+    HANDLE out_fd; /* the file descriptor to which the client writes to the script */
+    HANDLE in_fd; /* the file descriptor from which we read commands from the script */
 #endif /* WIN32 */
-   int monitor; /* true if this script is monitoring commands sent to the server */
-   int num_watch; /* number of commands we're watching */
-   char **watch; /* array of commands that we're watching */
-   int cmd_count; /* bytes already read in */
-   char cmd[1024]; /* command from the script */
+    int monitor; /* true if this script is monitoring commands sent to the server */
+    int num_watch; /* number of commands we're watching */
+    char **watch; /* array of commands that we're watching */
+    int cmd_count; /* bytes already read in */
+    char cmd[1024]; /* command from the script */
 #ifndef WIN32
-   int pid;
+    int pid;
 #else
-   DWORD pid;   /* Handle to Win32 process ID */
-   HANDLE process; /* Handle of Win32 process */
+    DWORD pid;   /* Handle to Win32 process ID */
+    HANDLE process; /* Handle of Win32 process */
 #endif
-   int sync_watch;
+    int sync_watch;
 };
 
 /*
@@ -187,34 +175,39 @@ static void script_send_item(int i, const char *head, const item *it);
 #define write(x, y, z) emulate_write(x, y, z)
 #define read(x, y, z) emulate_read(x, y, z)
 
-static int emulate_read(HANDLE fd, char *buf, int len) {
+static int emulate_read(HANDLE fd, char *buf, int len)
+{
     DWORD dwBytesRead;
     BOOL rc;
 
     FlushFileBuffers(fd);
     rc = ReadFile(fd, buf, len, &dwBytesRead, NULL);
-    if (rc == FALSE)
+    if (rc == FALSE) {
         return(-1);
+    }
     buf[dwBytesRead] = '\0';
 
     return(dwBytesRead);
 }
 
-static int emulate_write(HANDLE fd, const char *buf, int len) {
+static int emulate_write(HANDLE fd, const char *buf, int len)
+{
     DWORD dwBytesWritten;
     BOOL rc;
 
     rc = WriteFile(fd, buf, len, &dwBytesWritten, NULL);
     FlushFileBuffers(fd);
-    if (rc == FALSE)
+    if (rc == FALSE) {
         return(-1);
+    }
 
     return(dwBytesWritten);
 }
 
 #endif /* WIN32 */
 
-void script_init(const char *cparams) {
+void script_init(const char *cparams)
+{
 #ifndef WIN32
     int pipe1[2];
 #ifdef USE_PIPE
@@ -225,7 +218,7 @@ void script_init(const char *cparams) {
 
     if (!cparams) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Please specify a script to launch!");
+                      "Please specify a script to launch!");
         return;
     }
 
@@ -239,10 +232,12 @@ void script_init(const char *cparams) {
     /* Get name and args */
     name = params;
     args = name;
-    while (*args && *args != ' ')
+    while (*args && *args != ' ') {
         ++args;
-    while (*args && *args == ' ')
+    }
+    while (*args && *args == ' ') {
         *args++ = '\0';
+    }
     if (*args == 0) {
         args = NULL;
     }
@@ -251,21 +246,21 @@ void script_init(const char *cparams) {
     /* Create two pipes */
     if (pipe(pipe1)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Unable to start script--pipe failed");
+                      "Unable to start script--pipe failed");
         return;
     }
     if (pipe(pipe2)) {
         close(pipe1[0]);
         close(pipe1[1]);
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Unable to start script--pipe failed");
+                      "Unable to start script--pipe failed");
         return;
     }
 #else
     /* Create a pair of sockets */
     if (socketpair(PF_LOCAL, SOCK_STREAM, AF_LOCAL, pipe1)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Unable to start script--socketpair failed");
+                      "Unable to start script--socketpair failed");
         return;
     }
 #endif
@@ -280,7 +275,7 @@ void script_init(const char *cparams) {
         close(pipe2[1]);
 #endif
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Unable to start script--fork failed");
+                      "Unable to start script--fork failed");
         return;
     }
 
@@ -295,10 +290,12 @@ void script_init(const char *cparams) {
         i = 1;
         while (args && *args && i < sizeof(argv)/sizeof(*argv)-1) {
             argv[i++] = args;
-            while (*args && *args != ' ')
+            while (*args && *args != ' ') {
                 ++args;
-            while (*args && *args == ' ')
+            }
+            while (*args && *args == ' ') {
                 *args++ = '\0';
+            }
         }
         argv[i] = NULL;
 
@@ -315,8 +312,9 @@ void script_init(const char *cparams) {
         if (r != 1) {
             fprintf(stderr, "Script Child: Failed to set pipe2 as stdout\n");
         }
-        for (i = 3; i < 100; ++i)
+        for (i = 3; i < 100; ++i) {
             close(i);
+        }
 
         /* EXEC */
         r = execvp(argv[0], argv);
@@ -376,7 +374,7 @@ void script_init(const char *cparams) {
 
     if (!cparams) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Please specifiy a script to launch!");
+                      "Please specifiy a script to launch!");
         return;
     }
 
@@ -386,10 +384,12 @@ void script_init(const char *cparams) {
     /* Get name and args */
     name = params;
     args = name;
-    while (*args && *args != ' ')
+    while (*args && *args != ' ') {
         ++args;
-    while (*args && *args == ' ')
+    }
+    while (*args && *args == ' ') {
         *args++ = '\0';
+    }
     if (*args == 0) {
         args = NULL;
     }
@@ -401,19 +401,19 @@ void script_init(const char *cparams) {
     hSaveStdout = GetStdHandle(STD_OUTPUT_HANDLE);
     if (!CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Script support: stdout CreatePipe() failed");
+                      "Script support: stdout CreatePipe() failed");
         return;
     }
 
     if (!SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Script support: failed to redirect stdout using SetStdHandle()");
+                      "Script support: failed to redirect stdout using SetStdHandle()");
         return;
     }
 
     if (!DuplicateHandle(GetCurrentProcess(), hChildStdoutRd, GetCurrentProcess(), &hChildStdoutRdDup, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Script support: failed to duplicate stdout using DuplicateHandle()");
+                      "Script support: failed to duplicate stdout using DuplicateHandle()");
         return;
     }
 
@@ -422,19 +422,19 @@ void script_init(const char *cparams) {
     hSaveStdin = GetStdHandle(STD_INPUT_HANDLE);
     if (!CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Script support: stdin CreatePipe() failed");
+                      "Script support: stdin CreatePipe() failed");
         return;
     }
 
     if (!SetStdHandle(STD_INPUT_HANDLE, hChildStdinRd)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Script support: failed to redirect stdin using SetStdHandle()");
+                      "Script support: failed to redirect stdin using SetStdHandle()");
         return;
     }
 
     if (!DuplicateHandle(GetCurrentProcess(), hChildStdinWr, GetCurrentProcess(), &hChildStdinWrDup, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Script support: failed to duplicate stdin using DuplicateHandle()");
+                      "Script support: failed to duplicate stdin using DuplicateHandle()");
         return;
     }
 
@@ -444,29 +444,31 @@ void script_init(const char *cparams) {
     ZeroMemory(&siStartupInfo, sizeof(STARTUPINFO));
     siStartupInfo.cb = sizeof(STARTUPINFO);
 
-    if (args)
+    if (args) {
         args[-1] = ' ';
+    }
 
     if (!CreateProcess(NULL, name, NULL, NULL, TRUE, CREATE_NEW_PROCESS_GROUP, NULL, NULL, &siStartupInfo, &piProcInfo)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Script support: CreateProcess() failed");
+                      "Script support: CreateProcess() failed");
         return;
     }
 
     CloseHandle(piProcInfo.hThread);
 
-    if (args)
+    if (args) {
         args[-1] = '\0';
+    }
 
     if (!SetStdHandle(STD_INPUT_HANDLE, hSaveStdin)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Script support: restoring original stdin failed");
+                      "Script support: restoring original stdin failed");
         return;
     }
 
     if (!SetStdHandle(STD_OUTPUT_HANDLE, hSaveStdout)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Script support: restoring original stdout failed");
+                      "Script support: restoring original stdout failed");
         return;
     }
 
@@ -487,11 +489,13 @@ void script_init(const char *cparams) {
 #endif /* WIN32 */
 }
 
-void script_sync(int commdiff) {
+void script_sync(int commdiff)
+{
     int i;
 
-    if (commdiff < 0)
+    if (commdiff < 0) {
         commdiff +=256;
+    }
     for (i = 0; i < num_scripts; ++i) {
         if (commdiff <= scripts[i].sync_watch && scripts[i].sync_watch >= 0) {
             char buf[1024];
@@ -503,10 +507,11 @@ void script_sync(int commdiff) {
     }
 }
 
-void script_list(void) {
+void script_list(void)
+{
     if (num_scripts == 0) {
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "No scripts are currently running");
+                      "No scripts are currently running");
     } else {
         int i;
         char buf[1024];
@@ -514,23 +519,25 @@ void script_list(void) {
         snprintf(buf, sizeof(buf), "%d scripts currently running:", num_scripts);
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
         for (i = 0; i < num_scripts; ++i) {
-            if (scripts[i].params)
+            if (scripts[i].params) {
                 snprintf(buf, sizeof(buf), "%d %s  %s", i+1, scripts[i].name, scripts[i].params);
-            else
+            } else {
                 snprintf(buf, sizeof(buf), "%d %s", i+1, scripts[i].name);
+            }
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, buf);
         }
     }
 }
 
-void script_kill(const char *params) {
+void script_kill(const char *params)
+{
     int i;
 
     /* Verify that the number is a valid array entry */
     i = script_by_name(params);
     if (i < 0 || i >= num_scripts) {
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "No such running script");
+                      "No such running script");
         return;
     }
 #ifndef WIN32
@@ -539,12 +546,13 @@ void script_kill(const char *params) {
     GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[i].pid);
 #endif /* WIN32 */
     draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-        "Killed script.");
+                  "Killed script.");
     script_dead(i);
 }
 
 #ifdef WIN32
-void script_killall(void) {
+void script_killall(void)
+{
     while (num_scripts > 0) {
         GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[0].pid);
         script_dead(0);
@@ -552,19 +560,22 @@ void script_killall(void) {
 }
 #endif /* WIN32 */
 
-void script_fdset(int *maxfd, fd_set *set) {
+void script_fdset(int *maxfd, fd_set *set)
+{
 #ifndef WIN32
     int i;
 
     for (i = 0; i < num_scripts; ++i) {
         FD_SET(scripts[i].in_fd, set);
-        if (scripts[i].in_fd >= *maxfd)
+        if (scripts[i].in_fd >= *maxfd) {
             *maxfd = scripts[i].in_fd+1;
+        }
     }
 #endif /* WIN32 */
 }
 
-void script_process(fd_set *set) {
+void script_process(fd_set *set)
+{
     int i;
     int r;
 #ifdef WIN32
@@ -604,24 +615,26 @@ void script_process(fd_set *set) {
             scripts[i].cmd[scripts[i].cmd_count] = 0; /* terminate string */
             while (scripts[i].cmd_count == sizeof(scripts[i].cmd)-1
 #ifndef WIN32
-            || strchr(scripts[i].cmd, '\n'))
+                    || strchr(scripts[i].cmd, '\n'))
 #else
-            || strchr(scripts[i].cmd, '\r\n'))
+                    || strchr(scripts[i].cmd, '\r\n'))
 #endif /* WIN32 */
-        {
-            script_process_cmd(i);
-            scripts[i].cmd[scripts[i].cmd_count] = 0; /* terminate string */
+            {
+                script_process_cmd(i);
+                scripts[i].cmd[scripts[i].cmd_count] = 0; /* terminate string */
+            }
+            return; /* Only process one script at a time */
         }
-        return; /* Only process one script at a time */
-    }
 #ifdef WIN32
-    else if (!bRC || (bStatus && (dwStatus != STILL_ACTIVE))) /* Error: assume dead */
-        script_dead(i);
+        else if (!bRC || (bStatus && (dwStatus != STILL_ACTIVE))) { /* Error: assume dead */
+            script_dead(i);
+        }
 #endif /* WIN32 */
     }
 }
 
-void script_watch(const char *cmd, const uint8 *data_initial, const int data_len, const enum CmdFormat format) {
+void script_watch(const char *cmd, const uint8 *data_initial, const int data_len, const enum CmdFormat format)
+{
     int i;
     int w;
     int l, len;
@@ -630,19 +643,17 @@ void script_watch(const char *cmd, const uint8 *data_initial, const int data_len
     /* For each script... */
     for (i = 0; i < num_scripts; ++i) {
         /* For each watch... */
-        for (w = 0; w < scripts[i].num_watch; ++w)
-        {
+        for (w = 0; w < scripts[i].num_watch; ++w) {
             len = data_len;
             /* Does this command match our watch? */
             l = strlen(scripts[i].watch[w]);
-            if (!l || strncmp(cmd, scripts[i].watch[w], l) == 0)
-            {
+            if (!l || strncmp(cmd, scripts[i].watch[w], l) == 0) {
                 char buf[10240];
 
                 data = data_initial;
-                if (!len)
+                if (!len) {
                     snprintf(buf, sizeof(buf), "watch %s\n", cmd);
-                else
+                } else
                     switch (format) {
                     case ASCII:
                         snprintf(buf, sizeof(buf), "watch %s %s\n", cmd, data);
@@ -652,236 +663,232 @@ void script_watch(const char *cmd, const uint8 *data_initial, const int data_len
                         snprintf(buf, sizeof(buf), "watch %s %d %d\n", cmd, GetShort_String(data), GetInt_String(data+2));
                         break;
 
-                    case SHORT_ARRAY:
-                        {
-                            int be;
-                            int p;
+                    case SHORT_ARRAY: {
+                        int be;
+                        int p;
 
-                            be = snprintf(buf, sizeof(buf), "watch %s", cmd);
-                            for (p = 0; p*2 < len && p < 100; ++p) {
-                                be += snprintf(buf+be, sizeof(buf)-be, " %d", GetShort_String(data+p*2));
-                            }
-                            be += snprintf(buf+be, sizeof(buf)-be, "\n");
+                        be = snprintf(buf, sizeof(buf), "watch %s", cmd);
+                        for (p = 0; p*2 < len && p < 100; ++p) {
+                            be += snprintf(buf+be, sizeof(buf)-be, " %d", GetShort_String(data+p*2));
                         }
-                        break;
+                        be += snprintf(buf+be, sizeof(buf)-be, "\n");
+                    }
+                    break;
 
-                    case INT_ARRAY:
-                        {
-                            int be;
-                            int p;
+                    case INT_ARRAY: {
+                        int be;
+                        int p;
 
-                            be = snprintf(buf, sizeof(buf), "watch %s", cmd);
-                            for (p = 0; p*4 < len; ++p) {
-                                be += snprintf(buf+be, sizeof(buf)-be, " %d", GetInt_String(data+p*4));
-                            }
-                            be += snprintf(buf+be, sizeof(buf)-be, "\n");
+                        be = snprintf(buf, sizeof(buf), "watch %s", cmd);
+                        for (p = 0; p*4 < len; ++p) {
+                            be += snprintf(buf+be, sizeof(buf)-be, " %d", GetInt_String(data+p*4));
                         }
-                        break;
+                        be += snprintf(buf+be, sizeof(buf)-be, "\n");
+                    }
+                    break;
 
-                    case STATS:
-                        {
-                            /*
-                             * We cheat here and log each stat as a separate command, even
-                             * if the server sent a bunch of updates as a single message;
-                             * most scripts will be easier to write if they only parse a fixed
-                             * format.
-                             */
-                            int be = 0;
-                            while (len) {
-                                int c; /* which stat */
+                    case STATS: {
+                        /*
+                         * We cheat here and log each stat as a separate command, even
+                         * if the server sent a bunch of updates as a single message;
+                         * most scripts will be easier to write if they only parse a fixed
+                         * format.
+                         */
+                        int be = 0;
+                        while (len) {
+                            int c; /* which stat */
 
-                                be += snprintf(buf+be, sizeof(buf)-be, "watch %s", cmd);
-                                c = *data;
-                                ++data;
-                                --len;
-                                if (c >= CS_STAT_RESIST_START && c <= CS_STAT_RESIST_END) {
-                                    be += snprintf(buf+be, sizeof(buf)-be, " resists %d %d\n", c, GetShort_String(data));
+                            be += snprintf(buf+be, sizeof(buf)-be, "watch %s", cmd);
+                            c = *data;
+                            ++data;
+                            --len;
+                            if (c >= CS_STAT_RESIST_START && c <= CS_STAT_RESIST_END) {
+                                be += snprintf(buf+be, sizeof(buf)-be, " resists %d %d\n", c, GetShort_String(data));
+                                data += 2;
+                                len -= 2;
+                            } else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
+                                be += snprintf(buf+be, sizeof(buf)-be, " skill %d %d %" FMT64 "\n", c, *data, GetInt64_String(data+1));
+                                data += 9;
+                                len -= 9;
+                            } else
+                                switch (c) {
+                                case CS_STAT_HP:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " hp %d\n", GetShort_String(data));
                                     data += 2;
                                     len -= 2;
-                                } else if (c >= CS_STAT_SKILLINFO && c < (CS_STAT_SKILLINFO+CS_NUM_SKILLS)) {
-                                    be += snprintf(buf+be, sizeof(buf)-be, " skill %d %d %" FMT64 "\n", c, *data, GetInt64_String(data+1));
-                                    data += 9;
-                                    len -= 9;
-                                } else
-                                    switch (c) {
-                                    case CS_STAT_HP:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " hp %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                    break;
 
-                                    case CS_STAT_MAXHP:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " maxhp %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_MAXHP:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " maxhp %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_SP:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " sp %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_SP:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " sp %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_MAXSP:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " maxsp %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_MAXSP:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " maxsp %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_GRACE:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " grace %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_GRACE:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " grace %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_MAXGRACE:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " maxgrace %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_MAXGRACE:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " maxgrace %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_STR:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " str %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_STR:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " str %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_INT:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " int %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_INT:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " int %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_POW:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " pow %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_POW:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " pow %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_WIS:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " wis %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_WIS:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " wis %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_DEX:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " dex %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_DEX:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " dex %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_CON:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " con %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_CON:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " con %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_CHA:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " cha %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_CHA:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " cha %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_EXP:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " exp %d\n", GetInt_String(data));
-                                        data += 4;
-                                        len -= 4;
-                                        break;
+                                case CS_STAT_EXP:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " exp %d\n", GetInt_String(data));
+                                    data += 4;
+                                    len -= 4;
+                                    break;
 
-                                    case CS_STAT_EXP64:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " exp %" FMT64 "\n", GetInt64_String(data));
-                                        data += 8;
-                                        len -= 8;
-                                        break;
+                                case CS_STAT_EXP64:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " exp %" FMT64 "\n", GetInt64_String(data));
+                                    data += 8;
+                                    len -= 8;
+                                    break;
 
-                                    case CS_STAT_LEVEL:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " level %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_LEVEL:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " level %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_WC:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " wc %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_WC:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " wc %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_AC:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " ac %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_AC:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " ac %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_DAM:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " dam %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_DAM:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " dam %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_ARMOUR:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " armour %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_ARMOUR:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " armour %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_SPEED:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " speed %d\n", GetInt_String(data));
-                                        data += 4;
-                                        len -= 4;
-                                        break;
+                                case CS_STAT_SPEED:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " speed %d\n", GetInt_String(data));
+                                    data += 4;
+                                    len -= 4;
+                                    break;
 
-                                    case CS_STAT_FOOD:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " food %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_FOOD:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " food %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_WEAP_SP:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " weap_sp %d\n", GetInt_String(data));
-                                        data += 4;
-                                        len -= 4;
-                                        break;
+                                case CS_STAT_WEAP_SP:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " weap_sp %d\n", GetInt_String(data));
+                                    data += 4;
+                                    len -= 4;
+                                    break;
 
-                                    case CS_STAT_FLAGS:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " flags %d\n", GetShort_String(data));
-                                        data += 2;
-                                        len -= 2;
-                                        break;
+                                case CS_STAT_FLAGS:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " flags %d\n", GetShort_String(data));
+                                    data += 2;
+                                    len -= 2;
+                                    break;
 
-                                    case CS_STAT_WEIGHT_LIM:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " weight_lim %d\n", GetInt_String(data));
-                                        data += 4;
-                                        len -= 4;
-                                        break;
+                                case CS_STAT_WEIGHT_LIM:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " weight_lim %d\n", GetInt_String(data));
+                                    data += 4;
+                                    len -= 4;
+                                    break;
 
-                                    case CS_STAT_RANGE:
-                                        {
-                                            int rlen = *data;
-                                            ++data; --len;
-                                            be += snprintf(buf+be, sizeof(buf)-be, " range %*.*s\n", rlen, rlen, data);
-                                            data += rlen;
-                                            len -= rlen;
-                                            break;
-                                        }
+                                case CS_STAT_RANGE: {
+                                    int rlen = *data;
+                                    ++data;
+                                    --len;
+                                    be += snprintf(buf+be, sizeof(buf)-be, " range %*.*s\n", rlen, rlen, data);
+                                    data += rlen;
+                                    len -= rlen;
+                                    break;
+                                }
 
-                                    case CS_STAT_TITLE:
-                                        {
-                                            int rlen = *data;
-                                            ++data;
-                                            --len;
-                                            be += snprintf(buf+be, sizeof(buf)-be, " title %*.*s\n", rlen, rlen, data);
-                                            data += rlen;
-                                            len -= rlen;
-                                            break;
-                                        }
+                                case CS_STAT_TITLE: {
+                                    int rlen = *data;
+                                    ++data;
+                                    --len;
+                                    be += snprintf(buf+be, sizeof(buf)-be, " title %*.*s\n", rlen, rlen, data);
+                                    data += rlen;
+                                    len -= rlen;
+                                    break;
+                                }
 
-                                    default:
-                                        be += snprintf(buf+be, sizeof(buf)-be, " unknown %d %d bytes left\n", c, len);
-                                        len = 0;
-                                    }
-                            }
+                                default:
+                                    be += snprintf(buf+be, sizeof(buf)-be, " unknown %d %d bytes left\n", c, len);
+                                    len = 0;
+                                }
                         }
-                        break;
+                    }
+                    break;
 
                     case MIXED:
                         /* magicmap */
@@ -904,15 +911,16 @@ void script_watch(const char *cmd, const uint8 *data_initial, const int data_len
                         int p;
 
                         /*we may receive an null data, in which case len has no meaning*/
-                        if (!data)
+                        if (!data) {
                             len = 0;
+                        }
                         be = snprintf(buf, sizeof(buf), "watch %s %d bytes unparsed:", cmd, len);
                         for (p = 0; p < len && p < 100; ++p) {
                             be += snprintf(buf+be, sizeof(buf)-be, " %02x", data[p]);
                         }
                         be += snprintf(buf+be, sizeof(buf)-be, "\n");
                     }
-                        break;
+                    break;
                     }
                 write(scripts[i].out_fd, buf, strlen(buf));
             }
@@ -920,7 +928,8 @@ void script_watch(const char *cmd, const uint8 *data_initial, const int data_len
     }
 }
 
-void script_monitor(const char *command, int repeat, int must_send) {
+void script_monitor(const char *command, int repeat, int must_send)
+{
     int i;
 
     /* For each script... */
@@ -935,7 +944,8 @@ void script_monitor(const char *command, int repeat, int must_send) {
     }
 }
 
-void script_monitor_str(const char *command) {
+void script_monitor_str(const char *command)
+{
     int i;
 
     /* For each script... */
@@ -950,19 +960,20 @@ void script_monitor_str(const char *command) {
     }
 }
 
-void script_tell(const char *params) {
+void script_tell(const char *params)
+{
     int i;
     char *p;
 
     if (params == NULL) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "Which script do you want to talk to?");
+                      "Which script do you want to talk to?");
         return;
     }
     p = strchr(params, ' ');
     if (p == NULL) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "What do you want to tell the script?");
+                      "What do you want to tell the script?");
         return;
     }
     while (*p == ' ') {
@@ -973,7 +984,7 @@ void script_tell(const char *params) {
     i = script_by_name(params);
     if (i < 0) {
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-            "No such running script");
+                      "No such running script");
         return;
     }
 
@@ -983,7 +994,8 @@ void script_tell(const char *params) {
     write(scripts[i].out_fd, "\n", 1);
 }
 
-static int script_by_name(const char *name) {
+static int script_by_name(const char *name)
+{
     int i;
     int l;
 
@@ -995,22 +1007,26 @@ static int script_by_name(const char *name) {
     if (isdigit(*name)) {
         i = atoi(name);
         --i;
-        if (i >= 0 && i < num_scripts)
+        if (i >= 0 && i < num_scripts) {
             return(i);
+        }
     }
 
     /* Parse script name */
     l = 0;
-    while (name[l] && name[l] != ' ')
+    while (name[l] && name[l] != ' ') {
         ++l;
+    }
     for (i = 0; i < num_scripts; ++i) {
-        if (strncmp(name, scripts[i].name, l) == 0)
+        if (strncmp(name, scripts[i].name, l) == 0) {
             return(i);
+        }
     }
     return(-1);
 }
 
-static void script_dead(int i) {
+static void script_dead(int i)
+{
     int w;
 
     /* Release resources */
@@ -1024,8 +1040,9 @@ static void script_dead(int i) {
 #endif
     free(scripts[i].name);
     free(scripts[i].params);
-    for (w = 0; w < scripts[i].num_watch; ++w)
+    for (w = 0; w < scripts[i].num_watch; ++w) {
         free(scripts[i].watch[w]);
+    }
     free(scripts[i].watch);
 
 #ifndef WIN32
@@ -1041,7 +1058,8 @@ static void script_dead(int i) {
     --num_scripts;
 }
 
-static void send_map(int i, int x, int y) {
+static void send_map(int i, int x, int y)
+{
     char buf[1024];
 
     if (x < 0 || y < 0 || the_map.x <= x || the_map.y <= y) {
@@ -1050,20 +1068,21 @@ static void send_map(int i, int x, int y) {
     }
     /*** FIXME *** send more relevant data ***/
     snprintf(buf, sizeof(buf), "request map %d %d  %d %c %c %c %c"
-        " smooth %d %d %d heads %d %d %d tails %d %d %d\n",
-        x, y, the_map.cells[x][y].darkness,
-        the_map.cells[x][y].need_update ? 'y' : 'n',
-        the_map.cells[x][y].have_darkness ? 'y' : 'n',
-        the_map.cells[x][y].need_resmooth ? 'y' : 'n',
-        the_map.cells[x][y].cleared ? 'y' : 'n',
-        the_map.cells[x][y].smooth[0], the_map.cells[x][y].smooth[1], the_map.cells[x][y].smooth[2],
-        the_map.cells[x][y].heads[0].face, the_map.cells[x][y].heads[1].face, the_map.cells[x][y].heads[2].face,
-        the_map.cells[x][y].tails[0].face, the_map.cells[x][y].tails[1].face, the_map.cells[x][y].tails[2].face
-    );
+             " smooth %d %d %d heads %d %d %d tails %d %d %d\n",
+             x, y, the_map.cells[x][y].darkness,
+             the_map.cells[x][y].need_update ? 'y' : 'n',
+             the_map.cells[x][y].have_darkness ? 'y' : 'n',
+             the_map.cells[x][y].need_resmooth ? 'y' : 'n',
+             the_map.cells[x][y].cleared ? 'y' : 'n',
+             the_map.cells[x][y].smooth[0], the_map.cells[x][y].smooth[1], the_map.cells[x][y].smooth[2],
+             the_map.cells[x][y].heads[0].face, the_map.cells[x][y].heads[1].face, the_map.cells[x][y].heads[2].face,
+             the_map.cells[x][y].tails[0].face, the_map.cells[x][y].tails[1].face, the_map.cells[x][y].tails[2].face
+            );
     write(scripts[i].out_fd, buf, strlen(buf));
 }
 
-static void script_process_cmd(int i) {
+static void script_process_cmd(int i)
+{
     char cmd[1024];
     char *c;
     int l;
@@ -1072,8 +1091,9 @@ static void script_process_cmd(int i) {
      * Strip out just this one command
      */
     for (l = 0; l < scripts[i].cmd_count; ++l) {
-        if (scripts[i].cmd[l] == '\n')
+        if (scripts[i].cmd[l] == '\n') {
             break;
+        }
     }
     ++l;
     memcpy(cmd, scripts[i].cmd, l);
@@ -1108,10 +1128,12 @@ static void script_process_cmd(int i) {
      */
     if (strncmp(cmd, "sync", 4) == 0) {
         c = cmd+4;
-        while (*c && *c != ' ')
+        while (*c && *c != ' ') {
             ++c;
-        while (*c == ' ')
+        }
+        while (*c == ' ') {
             ++c;
+        }
         scripts[i].sync_watch = -1;
         if (isdigit(*c)) {
             scripts[i].sync_watch = atoi(c);
@@ -1119,10 +1141,12 @@ static void script_process_cmd(int i) {
         script_sync(csocket.command_sent - csocket.command_received); /* in case we are already there */
     } else if (strncmp(cmd, "watch", 5) == 0) {
         c = cmd+5;
-        while (*c && *c != ' ')
+        while (*c && *c != ' ') {
             ++c;
-        while (*c == ' ')
+        }
+        while (*c == ' ') {
             ++c;
+        }
         c = strdup(c);
         scripts[i].watch = realloc(scripts[i].watch, (scripts[i].num_watch+1)*sizeof(scripts[i].watch[1]));
         scripts[i].watch[scripts[i].num_watch] = c;
@@ -1131,10 +1155,12 @@ static void script_process_cmd(int i) {
         int w;
 
         c = cmd+7;
-        while (*c && *c != ' ')
+        while (*c && *c != ' ') {
             ++c;
-        while (*c == ' ')
+        }
+        while (*c == ' ') {
             ++c;
+        }
         for (w = 0; w < scripts[i].num_watch; ++w) {
             if (strcmp(c, scripts[i].watch[w]) == 0) {
                 free(scripts[i].watch[w]);
@@ -1148,12 +1174,15 @@ static void script_process_cmd(int i) {
         }
     } else if (strncmp(cmd, "request", 7) == 0) {
         c = cmd+7;
-        while (*c && *c != ' ')
+        while (*c && *c != ' ') {
             ++c;
-        while (*c == ' ')
+        }
+        while (*c == ' ') {
             ++c;
-        if (!*c)
-            return; /* bad request */
+        }
+        if (!*c) {
+            return;    /* bad request */
+        }
         /*
          * Request information from the client's view of the world
          * (mostly defined in client.h)
@@ -1199,12 +1228,15 @@ static void script_process_cmd(int i) {
             write(scripts[i].out_fd, buf, strlen(buf));
         } else if (strncmp(c, "stat ", 5) == 0) {
             c += 4;
-            while (*c && *c != ' ')
+            while (*c && *c != ' ') {
                 ++c;
-            while (*c == ' ')
+            }
+            while (*c == ' ') {
                 ++c;
-            if (!*c)
-                return; /* bad request */
+            }
+            if (!*c) {
+                return;    /* bad request */
+            }
             /*
              *   stat stats   Return Str,Con,Dex,Int,Wis,Pow,Cha
              *   stat cmbt    Return wc,ac,dam,speed,weapon_sp
@@ -1262,12 +1294,15 @@ static void script_process_cmd(int i) {
             write(scripts[i].out_fd, buf, strlen(buf));
         } else if (strncmp(c, "items ", 6) == 0) {
             c += 5;
-            while (*c && *c != ' ')
+            while (*c && *c != ' ') {
                 ++c;
-            while (*c == ' ')
+            }
+            while (*c == ' ') {
                 ++c;
-            if (!*c)
-                return; /* bad request */
+            }
+            if (!*c) {
+                return;    /* bad request */
+            }
             /*
              *   items inv    Return a list of items in the inventory, one per line
              *   items actv   Return a list of inventory items that are active, one per line
@@ -1289,8 +1324,9 @@ static void script_process_cmd(int i) {
                 item *it;
 
                 for (it = cpl.ob->inv; it; it = it->next) {
-                    if (it->applied)
+                    if (it->applied) {
                         script_send_item(i, "request items actv ", it);
+                    }
                 }
                 buf = "request items actv end\n";
                 write(scripts[i].out_fd, buf, strlen(buf));
@@ -1321,12 +1357,15 @@ static void script_process_cmd(int i) {
             int x, y;
 
             c += 3;
-            while (*c && *c != ' ')
+            while (*c && *c != ' ') {
                 ++c;
-            while (*c == ' ')
+            }
+            while (*c == ' ') {
                 ++c;
-            if (!*c)
-                return; /* bad request */
+            }
+            if (!*c) {
+                return;    /* bad request */
+            }
             /*
              *   map pos      Return the players x,y within the current map
              *   map near     Return the 3x3 grid of the map centered on the player
@@ -1342,29 +1381,35 @@ static void script_process_cmd(int i) {
                 for (y = 0; y < 3; ++y)
                     for (x = 0; x < 3; ++x)
                         send_map(i,
-                            x+pl_pos.x+use_config[CONFIG_MAPWIDTH]/2-1,
-                            y+pl_pos.y+use_config[CONFIG_MAPHEIGHT]/2-1
-                        );
+                                 x+pl_pos.x+use_config[CONFIG_MAPWIDTH]/2-1,
+                                 y+pl_pos.y+use_config[CONFIG_MAPHEIGHT]/2-1
+                                );
             } else if (strncmp(c, "all", 3) == 0) {
                 char buf[1024];
 
                 for (y = 0; y < the_map.y; ++y)
-                    for (x = 0; x < the_map.x; ++x)
+                    for (x = 0; x < the_map.x; ++x) {
                         send_map(i, x, y);
+                    }
                 snprintf(buf, sizeof(buf), "request map end\n");
                 write(scripts[i].out_fd, buf, strlen(buf));
             } else {
-                while (*c && !isdigit(*c))
+                while (*c && !isdigit(*c)) {
                     ++c;
-                if (!*c)
-                    return; /* No x specified */
+                }
+                if (!*c) {
+                    return;    /* No x specified */
+                }
                 x = atoi(c);
-                while (*c && *c != ' ')
+                while (*c && *c != ' ') {
                     ++c;
-                while (*c && !isdigit(*c))
+                }
+                while (*c && !isdigit(*c)) {
                     ++c;
-                if (!*c)
-                    return; /* No y specified */
+                }
+                if (!*c) {
+                    return;    /* No y specified */
+                }
                 y = atoi(c);
                 send_map(i, x, y);
             }
@@ -1386,9 +1431,9 @@ static void script_process_cmd(int i) {
 
             for (spell = cpl.spelldata; spell; spell = spell->next) {
                 sprintf(buf, "request spells %d %d %d %d %d %d %d %d %s\n",
-                    spell->tag, spell->level, spell->sp, spell->grace,
-                    spell->skill_number, spell->path, spell->time,
-                    spell->dam, spell->name);
+                        spell->tag, spell->level, spell->sp, spell->grace,
+                        spell->skill_number, spell->path, spell->time,
+                        spell->dam, spell->name);
                 write(scripts[i].out_fd, buf, strlen(buf));
             }
             sprintf(buf, "request spells end\n");
@@ -1405,23 +1450,30 @@ static void script_process_cmd(int i) {
         int must_send;
 
         c = cmd+5;
-        while (*c && *c == ' ')
+        while (*c && *c == ' ') {
             ++c;
+        }
         if (*c && (isdigit(*c) || *c == '-')) { /* repeat specified; use send_command() */
             repeat = atoi(c);
-            while (*c && *c != ' ')
+            while (*c && *c != ' ') {
                 ++c;
-            while (*c && !isdigit(*c) && *c != '-')
+            }
+            while (*c && !isdigit(*c) && *c != '-') {
                 ++c;
-            if (!*c)
-                return; /* No must_send specified */
+            }
+            if (!*c) {
+                return;    /* No must_send specified */
+            }
             must_send = atoi(c);
-            while (*c && *c != ' ')
+            while (*c && *c != ' ') {
                 ++c;
-            if (!*c)
-                return; /* No command specified */
-            while (*c == ' ')
+            }
+            if (!*c) {
+                return;    /* No command specified */
+            }
+            while (*c == ' ') {
                 ++c;
+            }
             if (repeat != -1) {
                 int r;
 
@@ -1438,10 +1490,12 @@ static void script_process_cmd(int i) {
             }
         } else {
             c = cmd+5;
-            while (*c && *c != ' ')
+            while (*c && *c != ' ') {
                 ++c;
-            while (*c == ' ')
+            }
+            while (*c == ' ') {
                 ++c;
+            }
 
             /*
              * Check special cases: "mark <tag>" or "lock <new state> <tag>"
@@ -1453,10 +1507,12 @@ static void script_process_cmd(int i) {
 
                 c += 4;
 
-                while (*c && !isdigit(*c))
+                while (*c && !isdigit(*c)) {
                     ++c;
-                if (!*c)
-                    return; /* No tag specified */
+                }
+                if (!*c) {
+                    return;    /* No tag specified */
+                }
                 tag = atoi(c);
 
                 SockList_Init(&sl, buf);
@@ -1470,17 +1526,22 @@ static void script_process_cmd(int i) {
 
                 c += 4;
 
-                while (*c && !isdigit(*c))
+                while (*c && !isdigit(*c)) {
                     ++c;
-                if (!*c)
-                    return; /* No state specified */
+                }
+                if (!*c) {
+                    return;    /* No state specified */
+                }
                 locked = atoi(c);
-                while (*c && *c != ' ')
+                while (*c && *c != ' ') {
                     ++c;
-                while (*c && !isdigit(*c))
+                }
+                while (*c && !isdigit(*c)) {
                     ++c;
-                if (!*c)
-                    return; /* No tag specified */
+                }
+                if (!*c) {
+                    return;    /* No tag specified */
+                }
                 tag = atoi(c);
 
                 SockList_Init(&sl, buf);
@@ -1492,22 +1553,25 @@ static void script_process_cmd(int i) {
                 cs_print_string(csocket.fd, "%s", c);
             }
         }
-    } else if (strncmp(cmd, "localcmd", 8) == 0){
+    } else if (strncmp(cmd, "localcmd", 8) == 0) {
         char *param;
 
         c = cmd+8;
-        while (*c == ' ')
+        while (*c == ' ') {
             c++;
+        }
         param = c;
-        while ((*param != '\0') && (*param != ' '))
+        while ((*param != '\0') && (*param != ' ')) {
             param++;
-        if (*param == ' '){
+        }
+        if (*param == ' ') {
             *param = '\0';
             param++;
-        } else
+        } else {
             param = NULL;
+        }
 
-        if (!handle_local_command(c, param)){
+        if (!handle_local_command(c, param)) {
             char buf[1024];
 
             snprintf(buf, sizeof(buf), "Script %s malfunction; localcmd not understood", scripts[i].name);
@@ -1519,23 +1583,28 @@ static void script_process_cmd(int i) {
         int color;
 
         c = cmd+4;
-        while (*c && !isdigit(*c))
+        while (*c && !isdigit(*c)) {
             ++c;
-        if (!*c)
-            return; /* No color specified */
+        }
+        if (!*c) {
+            return;    /* No color specified */
+        }
         color = atoi(c);
-        while (*c && *c != ' ')
+        while (*c && *c != ' ') {
             ++c;
-        if (!*c)
-            return; /* No message specified */
-        while (*c == ' ')
+        }
+        if (!*c) {
+            return;    /* No message specified */
+        }
+        while (*c == ' ') {
             ++c;
+        }
         draw_ext_info(color, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, c);
-    } else if (strncmp(cmd, "monitor", 7) == 0)
+    } else if (strncmp(cmd, "monitor", 7) == 0) {
         scripts[i].monitor = 1;
-    else if (strncmp(cmd, "unmonitor", 9) == 0)
+    } else if (strncmp(cmd, "unmonitor", 9) == 0) {
         scripts[i].monitor = 0;
-    else {
+    } else {
         char buf[1024];
 
         snprintf(buf, sizeof(buf), "Script %d %s malfunction; invalid command:", i+1, scripts[i].name);
@@ -1557,7 +1626,8 @@ static void script_process_cmd(int i) {
  *   magic, cursed, damned, unpaid, locked, applied, open, was_open, inv_updated
  *    256     128     64      32       16      8       4      2         1
  */
-static void script_send_item(int i, const char *head, const item *it) {
+static void script_send_item(int i, const char *head, const item *it)
+{
     char buf[4096];
     int flags;
 

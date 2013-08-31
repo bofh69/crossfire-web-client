@@ -1,26 +1,15 @@
-const char * const rcsid_common_client_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2001,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file common/client.c
@@ -67,7 +56,7 @@ int last_used_skills[MAX_SKILL+1];
 int meta_port=META_PORT, want_skill_exp=0,
     replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
     maxfd,metaserver_on=METASERVER, metaserver2_on=METASERVER2,
-    wantloginmethod=0, serverloginmethod=0;
+          wantloginmethod=0, serverloginmethod=0;
 
 uint32 tick=0;
 
@@ -80,11 +69,12 @@ Client_Player cpl;
 ClientSocket csocket;
 
 const char *const resists_name[NUM_RESISTS] = {
-"armor", "magic", "fire", "elec",
-"cold", "conf", "acid", "drain",
-"ghit", "pois", "slow", "para",
-"t undead", "fear", "depl","death",
-"hword", "blind"};
+    "armor", "magic", "fire", "elec",
+    "cold", "conf", "acid", "drain",
+    "ghit", "pois", "slow", "para",
+    "t undead", "fear", "depl","death",
+    "hword", "blind"
+};
 
 typedef void (*CmdProc)(unsigned char *, int len);
 
@@ -94,9 +84,9 @@ typedef void (*CmdProc)(unsigned char *, int len);
  * command.
  */
 struct CmdMapping {
-  const char *cmdname;
-  void (*cmdproc)(unsigned char *, int );
-  enum CmdFormat cmdformat;
+    const char *cmdname;
+    void (*cmdproc)(unsigned char *, int );
+    enum CmdFormat cmdformat;
 };
 
 /**
@@ -128,19 +118,25 @@ struct CmdMapping commands[] = {
 
     { "drawinfo",        (CmdProc)DrawInfoCmd, ASCII },
     { "drawextinfo",     (CmdProc)DrawExtInfoCmd, ASCII},
-    { "stats",           StatsCmd, STATS       /* Array of: int8, (int?s for
+    {
+        "stats",           StatsCmd, STATS       /* Array of: int8, (int?s for
                                                 * that stat)
-                                                */},
+                                                */
+    },
     { "image2",          Image2Cmd, MIXED      /* int, int8, int, PNG */ },
-    { "face2",           Face2Cmd, MIXED       /* int16, int8, int32, string
-                                                */},
+    {
+        "face2",           Face2Cmd, MIXED       /* int16, int8, int32, string
+                                                */
+    },
     { "tick",            TickCmd, INT_ARRAY    /* uint32 */},
 
     { "music",           (CmdProc)MusicCmd, ASCII },
-    { "sound2",          Sound2Cmd, MIXED      /* int8, int8, int8,  int8,
+    {
+        "sound2",          Sound2Cmd, MIXED      /* int8, int8, int8,  int8,
                                                 * int8, int8, chars, int8,
                                                 * chars
-                                                */},
+                                                */
+    },
     { "anim",            AnimCmd, SHORT_ARRAY},
     { "smooth",          SmoothCmd, SHORT_ARRAY},
 
@@ -174,7 +170,8 @@ struct CmdMapping commands[] = {
  * also useful in that if this logic does change, there is just one place to
  * update it.
  */
-void close_server_connection() {
+void close_server_connection()
+{
 #ifdef WIN32
     closesocket(csocket.fd);
 #else
@@ -210,8 +207,9 @@ void DoClient(ClientSocket *csocket)
         /*
          * Drop incomplete packets without attempting to process the contents.
          */
-        if (i == 0)
+        if (i == 0) {
             return;
+        }
         /*
          * Null-terminate the buffer, and set the data pointer so it points
          * to the first character of the data (following the packet length).
@@ -223,7 +221,9 @@ void DoClient(ClientSocket *csocket)
          * the space and convert it to a null character.  If no spaces are
          * found, the packet contains a command with no associatd data.
          */
-        while ((*data != ' ') && (*data != '\0')) ++data;
+        while ((*data != ' ') && (*data != '\0')) {
+            ++data;
+        }
         if (*data == ' ') {
             *data = '\0';
             data++;
@@ -255,7 +255,7 @@ void DoClient(ClientSocket *csocket)
          */
         if (i == NCOMMANDS) {
             printf("Unrecognized command from server (%s)\n",
-                csocket->inbuf.buf+2);
+                   csocket->inbuf.buf+2);
         }
     }
 }
@@ -297,11 +297,12 @@ int init_connection(char *host, int port)
      * lookup of this invalid hostname takes a long time, and it isn't a valid
      * host name in any case, so just abort quickly.
      */
-    if (!strcmp(host,"(null)")) return -1;
+    if (!strcmp(host,"(null)")) {
+        return -1;
+    }
 
     protox = getprotobyname("tcp");
-    if (protox == (struct protoent  *) NULL)
-    {
+    if (protox == (struct protoent  *) NULL) {
         LOG (LOG_ERROR,"common::init_connection", "Error getting protobyname (tcp)");
         return -1;
     }
@@ -314,23 +315,21 @@ int init_connection(char *host, int port)
 
     insock.sin_family = AF_INET;
     insock.sin_port = htons((unsigned short)port);
-    if (isdigit(*host))
+    if (isdigit(*host)) {
         insock.sin_addr.s_addr = inet_addr(host);
-    else {
+    } else {
         struct hostent *hostbn = gethostbyname(host);
-        if (hostbn == (struct hostent *) NULL)
-        {
+        if (hostbn == (struct hostent *) NULL) {
             LOG (LOG_ERROR,"common::init_connection","Unknown host: %s",host);
             return -1;
         }
         memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
     }
 
-    if (connect(fd,(struct sockaddr *)&insock,sizeof(insock)) == (-1))
-    {
+    if (connect(fd,(struct sockaddr *)&insock,sizeof(insock)) == (-1)) {
         LOG (LOG_ERROR,"common::init_connection","Can't connect to server");
-            perror("Can't connect to server");
-            return -1;
+        perror("Can't connect to server");
+        return -1;
     }
 
 #else
@@ -342,7 +341,9 @@ int init_connection(char *host, int port)
     fd_set fdset;
 
     /* See note in section above about null hosts names */
-    if (!strcmp(host,"(null)")) return -1;
+    if (!strcmp(host,"(null)")) {
+        return -1;
+    }
 
     snprintf(port_str, sizeof(port_str), "%d", port);
 
@@ -351,8 +352,9 @@ int init_connection(char *host, int port)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
-    if (getaddrinfo(host, port_str, &hints, &res) != 0)
+    if (getaddrinfo(host, port_str, &hints, &res) != 0) {
         return -1;
+    }
     /*
      * Assume that an error will not occur and that the socket is left open.
      */
@@ -364,8 +366,8 @@ int init_connection(char *host, int port)
         fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
         if (fd == -1) {
             LOG (LOG_ERROR,
-                "common::init_connection","Error creating socket (%d %s)\n",
-                    errno, strerror(errno));
+                 "common::init_connection","Error creating socket (%d %s)\n",
+                 errno, strerror(errno));
             continue;
         }
         /*
@@ -374,16 +376,16 @@ int init_connection(char *host, int port)
         fd_flags = fcntl(fd, F_GETFL, NULL);
         if (fd_flags == -1) {
             LOG (LOG_ERROR,
-                "common::init_connection","Error fcntl(fd, F_GETFL) (%s)\n",
-                     strerror(errno));
+                 "common::init_connection","Error fcntl(fd, F_GETFL) (%s)\n",
+                 strerror(errno));
             fd_status = -1;
             break;
         }
         fd_flags |= O_NONBLOCK;
         if (fcntl(fd, F_SETFL, fd_flags) == -1) {
             LOG (LOG_ERROR,
-                "common::init_connection","Error fcntl(fd, F_SETFL) (%s)\n",
-                     strerror(errno));
+                 "common::init_connection","Error fcntl(fd, F_SETFL) (%s)\n",
+                 strerror(errno));
             fd_status = -1;
             break;
         }
@@ -411,24 +413,24 @@ int init_connection(char *host, int port)
                     fd_select = select(fd+1, NULL, &fdset, NULL, &tv);
                     if (fd_select == -1 && errno != EINTR) {
                         LOG (LOG_ERROR, "common::init_connection",
-                            "Error connecting %d - %s\n",
-                                errno, strerror(errno));
+                             "Error connecting %d - %s\n",
+                             errno, strerror(errno));
                         break;
                     } else if (fd_select > 0) {
                         /*
                          * Socket selected for write.
                          */
                         if (getsockopt(fd, SOL_SOCKET, SO_ERROR,
-                                (void*)(&fd_sockopt), &buflen)) {
+                                       (void*)(&fd_sockopt), &buflen)) {
                             LOG (LOG_ERROR, "common::init_connection",
-                                "Error in getsockopt %d - %s\n",
-                                    errno, strerror(errno));
+                                 "Error in getsockopt %d - %s\n",
+                                 errno, strerror(errno));
                             break;
                         }
                         if (fd_sockopt) {
                             LOG (LOG_ERROR, "common::init_connection",
-                                "Error in delayed connection %d - %s\n",
-                                    fd_sockopt, strerror(fd_sockopt));
+                                 "Error in delayed connection %d - %s\n",
+                                 fd_sockopt, strerror(fd_sockopt));
                             break;
                         }
                         /*
@@ -449,7 +451,7 @@ int init_connection(char *host, int port)
                  * succeeds - probably not really an error there.
                  */
                 LOG (LOG_ERROR, "common::init_connection",
-                    "Error connecting %d - %s\n", errno, strerror(errno));
+                     "Error connecting %d - %s\n", errno, strerror(errno));
                 fd_status = 0;
                 continue;
             }
@@ -462,13 +464,13 @@ int init_connection(char *host, int port)
             fd_flags = fcntl(fd, F_GETFL, NULL);
             if (fd_flags == -1) {
                 LOG (LOG_ERROR, "common::init_connection",
-                    "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+                     "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
                 fd_status = -1;
             } else {
                 fd_flags &= (~O_NONBLOCK);
                 if (fcntl(fd, F_SETFL, fd_flags) == -1) {
                     LOG (LOG_ERROR, "common::init_connection",
-                        "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+                         "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
                     fd_status = -1;
                 }
             }
@@ -483,8 +485,9 @@ int init_connection(char *host, int port)
 
     freeaddrinfo(res);
 
-    if (fd == -1)
+    if (fd == -1) {
         return -1;
+    }
 #endif
 
     free(csocket.servername);
@@ -510,17 +513,20 @@ int init_connection(char *host, int port)
         int i=1;
 
 #ifdef WIN32
-        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, ( const char* )&i, sizeof(i)) == -1)
+        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, ( const char* )&i, sizeof(i)) == -1) {
             perror("TCP_NODELAY");
+        }
 #else
-        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1)
+        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1) {
             perror("TCP_NODELAY");
+        }
 #endif
     }
 #endif
 
-    if (getsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&oldbufsize, &buflen)==-1)
+    if (getsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&oldbufsize, &buflen)==-1) {
         oldbufsize=0;
+    }
 
     if (oldbufsize<newbufsize) {
         if(setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&newbufsize, sizeof(&newbufsize))) {
@@ -554,7 +560,9 @@ void negotiate_connection(int sound)
     tries=0;
     while (csocket.cs_version==0) {
         DoClient(&csocket);
-        if (csocket.fd == -1) return;
+        if (csocket.fd == -1) {
+            return;
+        }
 
         usleep(10*1000);    /* 10 milliseconds */
         tries++;
@@ -575,7 +583,9 @@ void negotiate_connection(int sound)
     /* If the user has specified a numeric face id, use it. If it is a string
      * like base, then that resolves to 0, so no real harm in that.
      */
-    if (face_info.want_faceset) face_info.faceset = atoi(face_info.want_faceset);
+    if (face_info.want_faceset) {
+        face_info.faceset = atoi(face_info.want_faceset);
+    }
 
     /* For sound, a value following determines which sound features are
      * wanted.  The value is 1 for sound effects, and 2 for background music,
@@ -585,10 +595,10 @@ void negotiate_connection(int sound)
      * client prefers is last.
      */
     cs_print_string(csocket.fd,
-        "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
-        "faceset %d facecache %d want_pickup 1 loginmethod %d newmapcmd 1",
-        (sound >= 0) ? 3 : 0, want_config[CONFIG_LIGHTING] ? 1 : 0,
-        face_info.faceset, want_config[CONFIG_CACHE], wantloginmethod);
+                    "setup map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
+                    "faceset %d facecache %d want_pickup 1 loginmethod %d newmapcmd 1",
+                    (sound >= 0) ? 3 : 0, want_config[CONFIG_LIGHTING] ? 1 : 0,
+                    face_info.faceset, want_config[CONFIG_CACHE], wantloginmethod);
     /*
      * We can do this right now also.  There is not any reason to wait.
      */
@@ -607,8 +617,9 @@ void negotiate_connection(int sound)
     use_config[CONFIG_MAPHEIGHT]=want_config[CONFIG_MAPHEIGHT];
     use_config[CONFIG_MAPWIDTH]=want_config[CONFIG_MAPWIDTH];
     mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
-    if (use_config[CONFIG_MAPHEIGHT]!=11 || use_config[CONFIG_MAPWIDTH]!=11)
+    if (use_config[CONFIG_MAPHEIGHT]!=11 || use_config[CONFIG_MAPWIDTH]!=11) {
         cs_print_string(csocket.fd,"setup mapsize %dx%d",use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
+    }
 
     use_config[CONFIG_SMOOTH]=want_config[CONFIG_SMOOTH];
 
@@ -631,7 +642,9 @@ void negotiate_connection(int sound)
             /*
              * It is rare, but the connection can die while getting this info.
              */
-            if (csocket.fd == -1) return;
+            if (csocket.fd == -1) {
+                return;
+            }
 
             if (use_config[CONFIG_DOWNLOAD]) {
                 /*
@@ -661,7 +674,9 @@ void negotiate_connection(int sound)
                         if (last_end <= (replyinfo_last_face+100)) {
                             last_start += 100;
                             last_end += 100;
-                            if (last_end > face_info.num_images) last_end = face_info.num_images;
+                            if (last_end > face_info.num_images) {
+                                last_end = face_info.num_images;
+                            }
                             cs_print_string(csocket.fd,"requestinfo image_sums %d %d", last_start, last_end);
                             image_update_download_status(last_start, last_end, face_info.num_images);
                         }
@@ -692,7 +707,8 @@ void negotiate_connection(int sound)
      * end up building images from the wrong set.
      * Only run this if not using new login method
      */
-    if (!serverloginmethod)
+    if (!serverloginmethod) {
         SendAddMe(csocket);
+    }
 }
 

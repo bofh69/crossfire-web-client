@@ -1,26 +1,15 @@
-const char * const rcsid_common_init_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2001,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file common/init.c
@@ -40,13 +29,13 @@ const char * const rcsid_common_init_c =
  *			    want_config[i]);
  */
 const char *const config_names[CONFIG_NUMS] = {
-NULL, "download_all_images", "echo_bindings",
-"fasttcpsend", "command_window", "cacheimages", "fog_of_war", "iconscale",
-"mapscale", "popups", "displaymode", "showicon", "tooltips", "sound", "splitinfo",
-"split", "show_grid", "lighting", "trim_info_window",
-"map_width", "map_height", "foodbeep", "darkness", "port",
-"grad_color_bars", "resistances", "smoothing", "nosplash",
-"auto_apply_container", "mapscroll", "sign_popups", "message_timestamping"
+    NULL, "download_all_images", "echo_bindings",
+    "fasttcpsend", "command_window", "cacheimages", "fog_of_war", "iconscale",
+    "mapscale", "popups", "displaymode", "showicon", "tooltips", "sound", "splitinfo",
+    "split", "show_grid", "lighting", "trim_info_window",
+    "map_width", "map_height", "foodbeep", "darkness", "port",
+    "grad_color_bars", "resistances", "smoothing", "nosplash",
+    "auto_apply_container", "mapscroll", "sign_popups", "message_timestamping"
 };
 
 sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
@@ -63,24 +52,27 @@ void VersionCmd(char *data, int len)
     if (csocket.cs_version != VERSION_CS) {
         LOG(LOG_WARNING,"common::VersionCmd","Differing C->S version numbers (%d,%d)",
             VERSION_CS,csocket.cs_version);
-/*	exit(1);*/
+        /*	exit(1);*/
     }
     cp = strchr(data,' ');
-    if (!cp) return;
+    if (!cp) {
+        return;
+    }
     csocket.sc_version = atoi(cp);
     if (csocket.sc_version != VERSION_SC) {
-    LOG(LOG_WARNING,"common::VersionCmd","Differing S->C version numbers (%d,%d)",
-        VERSION_SC,csocket.sc_version);
+        LOG(LOG_WARNING,"common::VersionCmd","Differing S->C version numbers (%d,%d)",
+            VERSION_SC,csocket.sc_version);
     }
     cp = strchr(cp+1, ' ');
-    if (cp)
-	LOG(LOG_INFO,"common::VersionCmd","Playing on server type %s", cp);
+    if (cp) {
+        LOG(LOG_INFO,"common::VersionCmd","Playing on server type %s", cp);
+    }
 }
 
 void SendVersion(ClientSocket csock)
 {
     cs_print_string(csock.fd,
-		    "version %d %d %s", VERSION_CS, VERSION_SC, VERSION_INFO);
+                    "version %d %d %s", VERSION_CS, VERSION_SC, VERSION_INFO);
 }
 
 
@@ -99,13 +91,14 @@ void init_client_vars(void)
      */
     client_libdir=getenv("CFCLIENT_LIBDIR");
 #ifdef CLIENT_LIBDIR
-    if (client_libdir==NULL)
-	client_libdir=CLIENT_LIBDIR;
+    if (client_libdir==NULL) {
+        client_libdir=CLIENT_LIBDIR;
+    }
 #endif
 
     if (exp_table) {
-	free(exp_table);
-	exp_table=NULL;
+        free(exp_table);
+        exp_table=NULL;
     }
     exp_table_max=0;
 
@@ -122,16 +115,17 @@ void init_client_vars(void)
     cpl.range[0] = '\0';
     cpl.last_command[0] = '\0';
 
-    for (i=0; i<range_size; i++)
-	cpl.ranges[i]=NULL;
+    for (i=0; i<range_size; i++) {
+        cpl.ranges[i]=NULL;
+    }
 
     for (i=0; i<MAX_SKILL; i++) {
-	cpl.stats.skill_exp[i]=0;
-	cpl.stats.skill_level[i] = 0;
-	skill_names[i] = NULL;
-	last_used_skills[i] = -1;
+        cpl.stats.skill_exp[i]=0;
+        cpl.stats.skill_level[i] = 0;
+        skill_names[i] = NULL;
+        last_used_skills[i] = -1;
     }
-	last_used_skills[MAX_SKILL] = -1;
+    last_used_skills[MAX_SKILL] = -1;
 
     cpl.ob = player_item();
     cpl.below = map_item();
@@ -152,12 +146,12 @@ void init_client_vars(void)
     face_info.cache_misses=0;
     face_info.have_faceset_info=0;
     for (i=0; i<MAX_FACE_SETS; i++) {
-	face_info.facesets[i].prefix = NULL;
-	face_info.facesets[i].fullname = NULL;
-	face_info.facesets[i].fallback = 0;
-	face_info.facesets[i].size = NULL;
-	face_info.facesets[i].extension = NULL;
-	face_info.facesets[i].comment = NULL;
+        face_info.facesets[i].prefix = NULL;
+        face_info.facesets[i].fullname = NULL;
+        face_info.facesets[i].fallback = 0;
+        face_info.facesets[i].size = NULL;
+        face_info.facesets[i].extension = NULL;
+        face_info.facesets[i].comment = NULL;
     }
     /* Makes just as much sense to initialize the arrays
      * where they are declared, but I did this so I could
@@ -197,26 +191,23 @@ void init_client_vars(void)
     want_config[CONFIG_MAPSCROLL] = TRUE;
     want_config[CONFIG_SIGNPOPUP] = TRUE;
     want_config[CONFIG_TIMESTAMP] = FALSE;
-    for (i=0; i<CONFIG_NUMS; i++)
-	use_config[i] = want_config[i];
+    for (i=0; i<CONFIG_NUMS; i++) {
+        use_config[i] = want_config[i];
+    }
 
 #ifdef WIN32
     /* If HOME is not set, let's set it to . to avoid things like (null)/.crossfire paths */
-    if ( !getenv( "HOME" ) )
-        {
-        if ( getenv( "APPDATA" ) )
-            {
+    if ( !getenv( "HOME" ) ) {
+        if ( getenv( "APPDATA" ) ) {
             char env[ MAX_BUF ];
             _snprintf( env, MAX_BUF, "HOME=%s", getenv( "APPDATA" ) );
             LOG( LOG_INFO, "common::init.c", "init_client_vars: HOME set to %APPDATA%.\n" );
             putenv( env );
-            }
-        else
-            {
+        } else {
             LOG( LOG_INFO, "common::init.c", "init_client_vars: HOME not set, setting it to .\n" );
             putenv( "HOME=." );
-            }
         }
+    }
 #endif
     init_commands(); /* pcmd.c */
     init_metaserver();	/* metaserver.c */
@@ -232,8 +223,8 @@ void reset_player_data(void)
     int i;
 
     for (i=0; i<MAX_SKILL; i++) {
-	cpl.stats.skill_exp[i]=0;
-	cpl.stats.skill_level[i] = 0;
+        cpl.stats.skill_exp[i]=0;
+        cpl.stats.skill_level[i] = 0;
     }
 }
 
@@ -261,8 +252,9 @@ void reset_client_vars(void)
     cpl.range[0] = '\0';
     cpl.last_command[0] = '\0';
 
-    for (i=0; i<range_size; i++)
+    for (i=0; i<range_size; i++) {
         cpl.ranges[i]=NULL;
+    }
 
     cpl.magicmap=NULL;
     cpl.showmagic=0;
@@ -291,11 +283,18 @@ void reset_client_vars(void)
         FREE_AND_CLEAR(face_info.facesets[i].comment);
     }
     reset_player_data();
-    for (i=0; i<MAX_SKILL; i++)
+    for (i=0; i<MAX_SKILL; i++) {
         FREE_AND_CLEAR(skill_names[i]);
-    if (motd) FREE_AND_CLEAR(motd);
-    if (news) FREE_AND_CLEAR(news);
-    if (rules) FREE_AND_CLEAR(rules);
+    }
+    if (motd) {
+        FREE_AND_CLEAR(motd);
+    }
+    if (news) {
+        FREE_AND_CLEAR(news);
+    }
+    if (rules) {
+        FREE_AND_CLEAR(rules);
+    }
     if (races) {
         free_all_race_class_info(races, num_races);
         num_races=0;

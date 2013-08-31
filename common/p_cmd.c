@@ -1,24 +1,15 @@
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file common/p_cmd.c
@@ -71,7 +62,8 @@ name name name ...
 /**
  *
  */
-static void do_clienthelp_list(void) {
+static void do_clienthelp_list(void)
+{
     ConsoleCommand ** commands_array;
     ConsoleCommand * commands_copy;
     int i;
@@ -163,7 +155,8 @@ static void do_clienthelp_list(void) {
  *
  * @param cc
  */
-static void show_help(const ConsoleCommand * cc) {
+static void show_help(const ConsoleCommand * cc)
+{
     {
         char buf[MAX_BUF];
         snprintf(buf, MAX_BUF - 1, "%s Command help:", get_category_name(cc->cat));
@@ -200,7 +193,8 @@ static void show_help(const ConsoleCommand * cc) {
  *
  * @param arg
  */
-static void do_clienthelp(const char * arg) {
+static void do_clienthelp(const char * arg)
+{
     const ConsoleCommand * cc;
 
     if (!arg || !strlen(arg)) {
@@ -224,7 +218,8 @@ static void do_clienthelp(const char * arg) {
 /**
  *
  */
-static const char * help_clienthelp(void) {
+static const char * help_clienthelp(void)
+{
     return
         "Syntax:\n"
         "\n"
@@ -244,22 +239,24 @@ static const char * help_clienthelp(void) {
  *
  * @param arg
  */
-static void do_serverhelp(const char * arg) {
+static void do_serverhelp(const char * arg)
+{
 
     if (arg) {
         char buf[MAX_BUF];
-	snprintf(buf, sizeof(buf), "help %s", arg);
-	/* maybe not a must send, but we probably don't want to drop it */
-	send_command(buf, -1, 1);
+        snprintf(buf, sizeof(buf), "help %s", arg);
+        /* maybe not a must send, but we probably don't want to drop it */
+        send_command(buf, -1, 1);
     } else {
-	send_command("help", -1, 1); /* TODO make install in server branch doesn't install def_help. */
+        send_command("help", -1, 1); /* TODO make install in server branch doesn't install def_help. */
     }
 }
 
 /**
  *
  */
-static const char * help_serverhelp(void) {
+static const char * help_serverhelp(void)
+{
     return
         "Syntax:\n"
         "\n"
@@ -278,7 +275,8 @@ static const char * help_serverhelp(void) {
  *
  * @param cpnext
  */
-static void command_help(const char *cpnext) {
+static void command_help(const char *cpnext)
+{
     if (cpnext) {
         const ConsoleCommand * cc;
         char buf[MAX_BUF];
@@ -287,25 +285,26 @@ static void command_help(const char *cpnext) {
         if (cc != NULL) {
             show_help(cc);
         } else  {
-	    snprintf(buf, sizeof(buf), "help %s", cpnext);
-	    /* maybe not a must send, but we probably don't want to drop it */
-	    send_command(buf, -1, 1);
-	}
+            snprintf(buf, sizeof(buf), "help %s", cpnext);
+            /* maybe not a must send, but we probably don't want to drop it */
+            send_command(buf, -1, 1);
+        }
     } else {
-	do_clienthelp_list();
+        do_clienthelp_list();
         /* Now fetch (in theory) command list from the server.
-	TODO Protocol command - feed it to the tab completer.
+        TODO Protocol command - feed it to the tab completer.
 
-	Nope! It effectivey fetches '/help commands for commands'.
-	*/
-	send_command("help", -1, 1); /* TODO make install in server branch doesn't install def_help. */
+        Nope! It effectivey fetches '/help commands for commands'.
+        */
+        send_command("help", -1, 1); /* TODO make install in server branch doesn't install def_help. */
     }
 }
 
 /**
  *
  */
-static const char * help_help(void) {
+static const char * help_help(void)
+{
     return
         "Syntax:\n"
         "\n"
@@ -338,14 +337,15 @@ static const char * help_help(void) {
 static void set_command_window(const char *cpnext)
 {
     if (!cpnext) {
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "cwindow command requires a number parameter");
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                      "cwindow command requires a number parameter");
     } else {
-	want_config[CONFIG_CWINDOW] = atoi(cpnext);
-	if (want_config[CONFIG_CWINDOW]<1 || want_config[CONFIG_CWINDOW]>127)
-	    want_config[CONFIG_CWINDOW]=COMMAND_WINDOW;
-	else
-	    use_config[CONFIG_CWINDOW] = want_config[CONFIG_CWINDOW];
+        want_config[CONFIG_CWINDOW] = atoi(cpnext);
+        if (want_config[CONFIG_CWINDOW]<1 || want_config[CONFIG_CWINDOW]>127) {
+            want_config[CONFIG_CWINDOW]=COMMAND_WINDOW;
+        } else {
+            use_config[CONFIG_CWINDOW] = want_config[CONFIG_CWINDOW];
+        }
     }
 }
 
@@ -355,15 +355,15 @@ static void set_command_window(const char *cpnext)
  */
 static void command_foodbeep(const char *cpnext)
 {
-   (void)cpnext; /* __UNUSED__ */
+    (void)cpnext; /* __UNUSED__ */
     if (want_config[CONFIG_FOODBEEP]) {
-	want_config[CONFIG_FOODBEEP]=0;
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "Warning bell when low on food disabled");
+        want_config[CONFIG_FOODBEEP]=0;
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                      "Warning bell when low on food disabled");
     } else {
-	want_config[CONFIG_FOODBEEP]=1;
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "Warning bell when low on food enabled");
+        want_config[CONFIG_FOODBEEP]=1;
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                      "Warning bell when low on food enabled");
     }
     use_config[CONFIG_FOODBEEP] = want_config[CONFIG_FOODBEEP];
 }
@@ -372,18 +372,33 @@ static void command_foodbeep(const char *cpnext)
  *
  * @param cat
  */
-const char * get_category_name(CommCat cat) {
+const char * get_category_name(CommCat cat)
+{
     const char * cat_name;
 
     /* HACK Need to keep this in sync. with player.h */
     switch(cat) {
-        case COMM_CAT_MISC: cat_name = "Miscellaneous"; break;
-        case COMM_CAT_HELP: cat_name = "Help"; break;
-        case COMM_CAT_INFO: cat_name = "Informational"; break;
-        case COMM_CAT_SETUP: cat_name = "Configuration"; break;
-        case COMM_CAT_SCRIPT: cat_name = "Scripting"; break;
-        case COMM_CAT_DEBUG: cat_name = "Debugging"; break;
-        default: cat_name = "PROGRAMMER ERROR"; break;
+    case COMM_CAT_MISC:
+        cat_name = "Miscellaneous";
+        break;
+    case COMM_CAT_HELP:
+        cat_name = "Help";
+        break;
+    case COMM_CAT_INFO:
+        cat_name = "Informational";
+        break;
+    case COMM_CAT_SETUP:
+        cat_name = "Configuration";
+        break;
+    case COMM_CAT_SCRIPT:
+        cat_name = "Scripting";
+        break;
+    case COMM_CAT_DEBUG:
+        cat_name = "Debugging";
+        break;
+    default:
+        cat_name = "PROGRAMMER ERROR";
+        break;
     }
 
     return cat_name;
@@ -401,43 +416,51 @@ const char * get_category_name(CommCat cat) {
  *
  * @param ignored
  */
-static void do_script_list(const char * ignored) { script_list(); }
+static void do_script_list(const char * ignored)
+{
+    script_list();
+}
 
 /**
  *
  * @param ignored
  */
-static void do_clearinfo(const char * ignored) { menu_clear(); }
+static void do_clearinfo(const char * ignored)
+{
+    menu_clear();
+}
 
 /**
  *
  * @param ignored
  */
-static void do_disconnect(const char * ignored) {
+static void do_disconnect(const char * ignored)
+{
     close_server_connection();
 
-	/* the gtk clients need to do some cleanup logic - otherwise,
-	 * they start hogging CPU.
-	 */
-	cleanup_connection();
-        return;
+    /* the gtk clients need to do some cleanup logic - otherwise,
+     * they start hogging CPU.
+     */
+    cleanup_connection();
+    return;
 }
 
 #ifdef HAVE_DMALLOC_H
 #ifndef DMALLOC_VERIFY_NOERROR
-  #define DMALLOC_VERIFY_NOERROR  1
+#define DMALLOC_VERIFY_NOERROR  1
 #endif
 /**
  *
  * @param ignored
  */
-static void do_dmalloc(const char * ignored) {
-        if (dmalloc_verify(NULL)==DMALLOC_VERIFY_NOERROR)
-            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-                "Heap checks out OK");
-        else
-            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR,
-                "Heap corruption detected");
+static void do_dmalloc(const char * ignored)
+{
+    if (dmalloc_verify(NULL)==DMALLOC_VERIFY_NOERROR)
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                      "Heap checks out OK");
+    else
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR,
+                      "Heap corruption detected");
 }
 #endif
 
@@ -445,49 +468,64 @@ static void do_dmalloc(const char * ignored) {
  *
  * @param ignored
  */
-static void do_inv(const char * ignored) { print_inventory (cpl.ob); }
+static void do_inv(const char * ignored)
+{
+    print_inventory (cpl.ob);
+}
 
-static void do_magicmap(const char * ignored) {
-        cpl.showmagic=1;
-        draw_magic_map();
+static void do_magicmap(const char * ignored)
+{
+    cpl.showmagic=1;
+    draw_magic_map();
 }
 
 /**
  *
  * @param ignored
  */
-static void do_metaserver(const char * ignored) {
-        if (!metaserver_get_info(meta_server, meta_port))
-            metaserver_show(FALSE);
-        else
-            draw_ext_info(
-                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                    "Unable to get metaserver information.");
+static void do_metaserver(const char * ignored)
+{
+    if (!metaserver_get_info(meta_server, meta_port)) {
+        metaserver_show(FALSE);
+    } else
+        draw_ext_info(
+            NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
+            "Unable to get metaserver information.");
 }
 
 /**
  *
  * @param ignored
  */
-static void do_savedefaults(const char * ignored) { save_defaults(); }
+static void do_savedefaults(const char * ignored)
+{
+    save_defaults();
+}
 
 /**
  *
  * @param ignored
  */
-static void do_savewinpos(const char * ignored) { save_winpos(); }
+static void do_savewinpos(const char * ignored)
+{
+    save_winpos();
+}
 
 /**
  *
  * @param used
  */
-static void do_take(const char * used) { command_take("take", used); /* I dunno why they want it. */ }
+static void do_take(const char * used)
+{
+    command_take("take", used); /* I dunno why they want it. */
+}
 
 /**
  *
  * @param ignored
  */
-static void do_num_free_items(const char * ignored) {
+static void do_num_free_items(const char * ignored)
+{
     LOG(LOG_INFO,"common::extended_command","num_free_items=%d", num_free_items());
 }
 
@@ -499,57 +537,72 @@ static void do_clienthelp(const char * arg); /* Forward. */
 /**
  *
  */
-static const char * help_bind(void) { return HELP_BIND_LONG; }
+static const char * help_bind(void)
+{
+    return HELP_BIND_LONG;
+}
 
 /**
  *
  */
-static const char * help_unbind(void) { return HELP_UNBIND_LONG; }
+static const char * help_unbind(void)
+{
+    return HELP_UNBIND_LONG;
+}
 
 /**
  *
  */
-static const char * help_magicmap(void) { return HELP_MAGICMAP_LONG; }
+static const char * help_magicmap(void)
+{
+    return HELP_MAGICMAP_LONG;
+}
 
 /**
  *
  */
-static const char * help_inv(void) { return HELP_INV_LONG; }
+static const char * help_inv(void)
+{
+    return HELP_INV_LONG;
+}
 
 /**
  *
  */
-static const char * help_cwindow(void) {
+static const char * help_cwindow(void)
+{
     return
         "Syntax:\n"
         "\n"
         "    cwindow <val>\n"
         "\n"
         "set size of command"
-	"window (if val is exceeded"
-	"client won't send new"
-	"commands to server\n\n"
-	"(What does this mean, 'put a lid on it'?) TODO";
+        "window (if val is exceeded"
+        "client won't send new"
+        "commands to server\n\n"
+        "(What does this mean, 'put a lid on it'?) TODO";
 }
 
 /**
  *
  */
-static const char * help_script(void) {
+static const char * help_script(void)
+{
     return
         "Syntax:\n"
         "\n"
         "    script <pathname>\n"
         "\n"
-	"Run the program at path <name>"
-	"as a Crossfire client script."
-	"See doc/Script.html";
+        "Run the program at path <name>"
+        "as a Crossfire client script."
+        "See doc/Script.html";
 }
 
 /**
  *
  */
-static const char * help_scripttell(void) {
+static const char * help_scripttell(void)
+{
     return
         "Syntax:\n"
         "\n"
@@ -563,7 +616,8 @@ static const char * help_scripttell(void) {
 /**
  *
  */
-static const char * help_savewinpos(void) {
+static const char * help_savewinpos(void)
+{
     return
         "Syntax:\n"
         "\n"
@@ -575,7 +629,8 @@ static const char * help_savewinpos(void) {
 /**
  *
  */
-static const char * help_metaserver(void) {
+static const char * help_metaserver(void)
+{
     /* TODO Add command_escape() where appropriate. On the other
     hand, that can lead to a meaningless syntax-display API.*/
 
@@ -584,31 +639,33 @@ static const char * help_metaserver(void) {
         "\n"
         "    metaserver\n"
         "\n"
-	"Get updated list of servers "
-	"from the metaserver and show it."
-	"This is the same information that the client "
-	"uses to show a list of servers when it starts.\n"
-	"\n"
-	"Warning: This command may freeze the client until it gets the list.";
+        "Get updated list of servers "
+        "from the metaserver and show it."
+        "This is the same information that the client "
+        "uses to show a list of servers when it starts.\n"
+        "\n"
+        "Warning: This command may freeze the client until it gets the list.";
 }
 
 /**
  *
  */
-static const char * help_scriptkill(void) {
+static const char * help_scriptkill(void)
+{
     return
         "Syntax:\n"
         "\n"
         "    scriptkill <name>\n"
         "\n"
         "Stop scripts named <name>.\n"
-	"(Not guaranteed to work?)";
+        "(Not guaranteed to work?)";
 }
 
 /**
  *
  */
-static const char * help_showweight(void) {
+static const char * help_showweight(void)
+{
     return
         "Syntax:\n"
         "\n"
@@ -682,16 +739,19 @@ static ConsoleCommand CommonCommands[] = {
         NULL
     },
 #ifdef HAVE_LUA
-    {   "lua_load", COMM_CAT_SCRIPT,
-    script_lua_load, NULL, NULL
+    {
+        "lua_load", COMM_CAT_SCRIPT,
+        script_lua_load, NULL, NULL
     },
 
-    {   "lua_list", COMM_CAT_SCRIPT,
-    script_lua_list, NULL, NULL
+    {
+        "lua_list", COMM_CAT_SCRIPT,
+        script_lua_list, NULL, NULL
     },
 
-    {   "lua_kill", COMM_CAT_SCRIPT,
-    script_lua_kill, NULL, NULL
+    {
+        "lua_kill", COMM_CAT_SCRIPT,
+        script_lua_kill, NULL, NULL
     },
 #endif
     {
@@ -827,12 +887,12 @@ static ConsoleCommand CommonCommands[] = {
     {
         "num_free_items", COMM_CAT_DEBUG,
         do_num_free_items, NULL,
-	"log the number of free items?"
+        "log the number of free items?"
     },
     {
         "show", COMM_CAT_SETUP,
         command_show, NULL,
-	"Change what items to show in inventory"
+        "Change what items to show in inventory"
     },
 
 };
@@ -852,7 +912,10 @@ int num_commands;
 /**
  *
  */
-int get_num_commands(void) { return num_commands; }
+int get_num_commands(void)
+{
+    return num_commands;
+}
 
 static ConsoleCommand ** name_sorted_commands;
 
@@ -894,7 +957,8 @@ static int sort_by_category(const void *a_, const void *b_)
 /**
  *
  */
-void init_commands(void) {
+void init_commands(void)
+{
     int i;
 
 #ifdef TOOLKIT_COMMANDS
@@ -945,48 +1009,49 @@ void init_commands(void) {
  *
  * @param cmd
  */
-const ConsoleCommand * find_command(const char * cmd) {
-  ConsoleCommand ** asp_p = NULL, dummy;
-  ConsoleCommand * dummy_p;
-  ConsoleCommand * asp;
-  char *cp, *cmd_cpy;
-  cmd_cpy = strdup(cmd);
+const ConsoleCommand * find_command(const char * cmd)
+{
+    ConsoleCommand ** asp_p = NULL, dummy;
+    ConsoleCommand * dummy_p;
+    ConsoleCommand * asp;
+    char *cp, *cmd_cpy;
+    cmd_cpy = strdup(cmd);
 
-  for (cp=cmd_cpy; *cp; cp++) {
-    *cp =tolower(*cp);
-  }
+    for (cp=cmd_cpy; *cp; cp++) {
+        *cp =tolower(*cp);
+    }
 
-  dummy.name = cmd_cpy;
-  dummy_p = &dummy;
-  asp_p = bsearch(
-     (void *)&dummy_p,
-     (void *)name_sorted_commands,
-     num_commands,
-     sizeof(ConsoleCommand *),
-     sort_by_name);
+    dummy.name = cmd_cpy;
+    dummy_p = &dummy;
+    asp_p = bsearch(
+                (void *)&dummy_p,
+                (void *)name_sorted_commands,
+                num_commands,
+                sizeof(ConsoleCommand *),
+                sort_by_name);
 
-  if (asp_p == NULL)
-  {
-      free(cmd_cpy);
-      return NULL;
-  }
+    if (asp_p == NULL) {
+        free(cmd_cpy);
+        return NULL;
+    }
 
-  asp = *asp_p;
+    asp = *asp_p;
 
-  /* TODO The server's find_command() searches first the commands,
-  then the emotes. We might have to do something similar someday, too. */
-  /* if (asp == NULL) search something else? */
+    /* TODO The server's find_command() searches first the commands,
+    then the emotes. We might have to do something similar someday, too. */
+    /* if (asp == NULL) search something else? */
 
-  free(cmd_cpy);
+    free(cmd_cpy);
 
-  return asp;
+    return asp;
 }
 
 /**
  * Returns a pointer to the head of an array of ConsoleCommands sorted by
  * category, then by name.  It's num_commands long.
  */
-ConsoleCommand ** get_cat_sorted_commands(void) {
+ConsoleCommand ** get_cat_sorted_commands(void)
+{
     return cat_sorted_commands;
 }
 
@@ -999,7 +1064,8 @@ ConsoleCommand ** get_cat_sorted_commands(void) {
  * @param cp
  * @param cpnext
  */
-int handle_local_command(const char* cp, const char * cpnext) {
+int handle_local_command(const char* cp, const char * cpnext)
+{
     const ConsoleCommand * cc = NULL;
 
     cc = find_command(cp);
@@ -1012,9 +1078,9 @@ int handle_local_command(const char* cp, const char * cpnext) {
         char buf[MAX_BUF];
 
         snprintf(buf, MAX_BUF - 1, "Client command %s has no implementation!", cc->name);
-	draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
-	return FALSE;
+        return FALSE;
     }
 
     cc->dofunc(cpnext);
@@ -1033,21 +1099,26 @@ int handle_local_command(const char* cp, const char * cpnext) {
  *
  * @param ocommand
  */
-void extended_command(const char *ocommand) {
+void extended_command(const char *ocommand)
+{
     const char *cp = ocommand;
     char *cpnext, command[MAX_BUF];
 
     if ((cpnext = strchr(cp, ' '))!=NULL) {
-	int len = cpnext - ocommand;
-	if (len > (MAX_BUF -1 )) len = MAX_BUF-1;
+        int len = cpnext - ocommand;
+        if (len > (MAX_BUF -1 )) {
+            len = MAX_BUF-1;
+        }
 
-	strncpy(command, ocommand, len);
-	command[len] = '\0';
-	cp = command;
-	while (*cpnext == ' ')
-	    cpnext++;
-	if (*cpnext == 0)
-	    cpnext = NULL;
+        strncpy(command, ocommand, len);
+        command[len] = '\0';
+        cp = command;
+        while (*cpnext == ' ') {
+            cpnext++;
+        }
+        if (*cpnext == 0) {
+            cpnext = NULL;
+        }
     }
 
     /* cp now contains the command (everything before first space),
@@ -1055,24 +1126,27 @@ void extended_command(const char *ocommand) {
      * could be NULL.
      */
 #ifdef HAVE_LUA
-    if ( script_lua_command(cp, cpnext) )
+    if ( script_lua_command(cp, cpnext) ) {
         return;
+    }
 #endif
 
     /* If this isn't a client-side command, send it to the server. */
     if (!handle_local_command(cp, cpnext)) {
-	/* just send the command(s)  (if `ocommand' is a compound command */
-	/* then split it and send each part seperately */
-	/* TODO Remove this from the server; end of commands.c. */
+        /* just send the command(s)  (if `ocommand' is a compound command */
+        /* then split it and send each part seperately */
+        /* TODO Remove this from the server; end of commands.c. */
         strncpy(command, ocommand, MAX_BUF-1);
-	command[MAX_BUF-1]=0;
-	cp = strtok(command, ";");
-	while ( cp ) {
-	  while( *cp == ' ' ) cp++; /* throw out leading spaces; server
+        command[MAX_BUF-1]=0;
+        cp = strtok(command, ";");
+        while ( cp ) {
+            while( *cp == ' ' ) {
+                cp++;
+            } /* throw out leading spaces; server
 				       does not like them */
-	  send_command(cp, cpl.count, 0);
-	  cp = strtok(NULL, ";");
-	}
+            send_command(cp, cpl.count, 0);
+            cp = strtok(NULL, ";");
+        }
     }
 }
 
@@ -1087,25 +1161,25 @@ void extended_command(const char *ocommand) {
 /* TODO Dynamically generate. */
 
 static const char *const commands[] = {
-"accuse", "afk", "apply", "applymode", "archs", "beg", "bleed", "blush",
-"body", "bounce", "bow", "bowmode", "brace", "build", "burp", "cackle", "cast",
-"chat", "chuckle", "clap", "cointoss", "cough", "cringe", "cry", "dance",
-"disarm", "dm", "dmhide", "drop", "dropall", "east", "examine", "explore",
-"fire", "fire_stop", "fix_me", "flip", "frown", "gasp", "get", "giggle",
-"glare", "grin", "groan", "growl", "gsay", "help", "hiccup", "hiscore", "hug",
-"inventory", "invoke", "killpets", "kiss", "laugh", "lick", "listen", "logs",
-"mapinfo", "maps", "mark", "me", "motd", "nod", "north", "northeast",
-"northwest", "orcknuckle", "output-count", "output-sync", "party", "peaceful",
-"petmode", "pickup", "players", "poke", "pout", "prepare", "printlos", "puke",
-"quests", "quit", "ready_skill", "rename", "reply", "resistances",
-"rotateshoottype", "run", "run_stop", "save", "say", "scream", "search",
-"search-items", "shake", "shiver", "shout", "showpets", "shrug", "shutdown",
-"sigh", "skills", "slap", "smile", "smirk", "snap", "sneeze", "snicker",
-"sniff", "snore", "sound", "south", "southeast", "southwest", "spit",
-"statistics", "stay", "strings", "strut", "sulk", "take", "tell", "thank",
-"think", "throw", "time", "title", "twiddle", "use_skill", "usekeys",
-"version", "wave", "weather", "west", "whereabouts", "whereami", "whistle",
-"who", "wimpy", "wink", "yawn",
+    "accuse", "afk", "apply", "applymode", "archs", "beg", "bleed", "blush",
+    "body", "bounce", "bow", "bowmode", "brace", "build", "burp", "cackle", "cast",
+    "chat", "chuckle", "clap", "cointoss", "cough", "cringe", "cry", "dance",
+    "disarm", "dm", "dmhide", "drop", "dropall", "east", "examine", "explore",
+    "fire", "fire_stop", "fix_me", "flip", "frown", "gasp", "get", "giggle",
+    "glare", "grin", "groan", "growl", "gsay", "help", "hiccup", "hiscore", "hug",
+    "inventory", "invoke", "killpets", "kiss", "laugh", "lick", "listen", "logs",
+    "mapinfo", "maps", "mark", "me", "motd", "nod", "north", "northeast",
+    "northwest", "orcknuckle", "output-count", "output-sync", "party", "peaceful",
+    "petmode", "pickup", "players", "poke", "pout", "prepare", "printlos", "puke",
+    "quests", "quit", "ready_skill", "rename", "reply", "resistances",
+    "rotateshoottype", "run", "run_stop", "save", "say", "scream", "search",
+    "search-items", "shake", "shiver", "shout", "showpets", "shrug", "shutdown",
+    "sigh", "skills", "slap", "smile", "smirk", "snap", "sneeze", "snicker",
+    "sniff", "snore", "sound", "south", "southeast", "southwest", "spit",
+    "statistics", "stay", "strings", "strut", "sulk", "take", "tell", "thank",
+    "think", "throw", "time", "title", "twiddle", "use_skill", "usekeys",
+    "version", "wave", "weather", "west", "whereabouts", "whereami", "whistle",
+    "who", "wimpy", "wink", "yawn",
 };
 #define NUM_COMMANDS ((int)(sizeof(commands) / sizeof(char*)))
 
@@ -1125,8 +1199,9 @@ const char * complete_command(const char *command)
 
     len = strlen(command);
 
-    if (len == 0)
+    if (len == 0) {
         return NULL;
+    }
 
     display = 0;
     strcpy(list, "Matching commands:");
@@ -1152,8 +1227,9 @@ const char * complete_command(const char *command)
                 display = 1;
                 snprintf(list + strlen(list), 499 - strlen(list), " %s %s", match, commands[i]);
                 match = NULL;
-            } else
+            } else {
                 match = commands[i];
+            }
         }
     }
 
@@ -1166,8 +1242,9 @@ const char * complete_command(const char *command)
                 display = 1;
                 snprintf(list + strlen(list), 499 - strlen(list), " %s %s", match, CommonCommands[i].name);
                 match = NULL;
-            } else
+            } else {
                 match = CommonCommands[i].name;
+            }
         }
     }
 
@@ -1176,10 +1253,9 @@ const char * complete_command(const char *command)
             strncat(list, "\n", 499 - strlen(list));
             draw_ext_info(
                 NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, list);
-        }
-        else
+        } else
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-                "No matching command.\n");
+                          "No matching command.\n");
         /* No match. */
         return NULL;
     }

@@ -1,26 +1,15 @@
-const char * const rcsid_common_commands_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2001-2011 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file common/commands.c
@@ -144,15 +133,23 @@ void free_all_starting_map_info()
 {
     int i;
 
-    if (!starting_map_info) return;
+    if (!starting_map_info) {
+        return;
+    }
 
     /* Because we are going free the array storage itself, there is no reason
      * to clear the data[i].. values.
      */
     for (i=0; i<starting_map_number; i++) {
-        if (starting_map_info[i].arch_name) free(starting_map_info[i].arch_name);
-        if (starting_map_info[i].public_name) free(starting_map_info[i].public_name);
-        if (starting_map_info[i].description) free(starting_map_info[i].description);
+        if (starting_map_info[i].arch_name) {
+            free(starting_map_info[i].arch_name);
+        }
+        if (starting_map_info[i].public_name) {
+            free(starting_map_info[i].public_name);
+        }
+        if (starting_map_info[i].description) {
+            free(starting_map_info[i].description);
+        }
     }
 
     free(starting_map_info);
@@ -188,7 +185,7 @@ static void get_starting_map_info(char *data, int len)
         pos += 2;
 
         if ((length+pos) > len) {
-            LOG(LOG_WARNING, "common::get_starting_map_info", 
+            LOG(LOG_WARNING, "common::get_starting_map_info",
                 "Length of data is greater than buffer (%d>%d)", length + pos, len);
             return;
         }
@@ -207,7 +204,7 @@ static void get_starting_map_info(char *data, int len)
          */
         if (type == INFO_MAP_ARCH_NAME) {
             map_entry++;
-            starting_map_info = realloc(starting_map_info, 
+            starting_map_info = realloc(starting_map_info,
                                         (map_entry + 1) * sizeof(Starting_Map_Info));
             memset(&starting_map_info[map_entry], 0, sizeof(Starting_Map_Info));
             starting_map_info[map_entry].arch_name = cp;
@@ -219,7 +216,7 @@ static void get_starting_map_info(char *data, int len)
             /* Could be this is old client - but we can skip over
              * this bad data so long as the length byte is valid.
              */
-            LOG(LOG_WARNING, "common::get_starting_map_info", 
+            LOG(LOG_WARNING, "common::get_starting_map_info",
                 "Unknown type: %d\n", type);
         }
     }
@@ -267,7 +264,7 @@ static void get_new_char_info(char *data, int len)
         data[llen] = 0;
 
         if (llen > len) {
-            LOG(LOG_WARNING, "common::get_new_char_info", 
+            LOG(LOG_WARNING, "common::get_new_char_info",
                 "Length of line is greater than buffer (%d>%d)", llen, len);
             return;
         }
@@ -276,11 +273,13 @@ static void get_new_char_info(char *data, int len)
         olen++;
         /* First skip all the spaces */
         while (olen <= len) {
-            if (!isspace(data[olen])) break;
+            if (!isspace(data[olen])) {
+                break;
+            }
             olen++;
         }
         if (olen > len) {
-            LOG(LOG_WARNING, "common::get_new_char_info", 
+            LOG(LOG_WARNING, "common::get_new_char_info",
                 "Overran length of buffer (%d>%d)", olen, len);
             return;
         }
@@ -288,19 +287,21 @@ static void get_new_char_info(char *data, int len)
         cp = data + olen;
         /* Go until we find another space */
         while (olen <= len) {
-            if (isspace(data[olen])) break;
+            if (isspace(data[olen])) {
+                break;
+            }
             olen++;
         }
         data[olen] = 0;    /* Null terminate the string */
         olen++;
         if (olen > len) {
-            LOG(LOG_WARNING, "common::get_new_char_info", 
+            LOG(LOG_WARNING, "common::get_new_char_info",
                 "Overran length of buffer (%d>%d)", olen, len);
             return;
         }
         /* At this point, cp points to the string portion (variable name)
          * of the line, with data+olen is the start of the next string
-         * (variable value).  
+         * (variable value).
          */
         if (!strcasecmp(cp,"points")) {
             stat_points = atoi(data+olen);
@@ -308,7 +309,7 @@ static void get_new_char_info(char *data, int len)
             continue;
         } else if (!strcasecmp(cp,"statrange")) {
             if (sscanf(data + olen, "%d %d", &stat_min, &stat_maximum)!=2) {
-                LOG(LOG_WARNING, "common::get_new_char_info", 
+                LOG(LOG_WARNING, "common::get_new_char_info",
                     "Unable to process statrange line (%s)", data + olen);
             }
             /* Either way, we go onto the next line */
@@ -334,27 +335,27 @@ static void get_new_char_info(char *data, int len)
                     }
                 }
                 if (i == NUM_STATS) {
-                    LOG(LOG_WARNING, "common::get_new_char_info", 
+                    LOG(LOG_WARNING, "common::get_new_char_info",
                         "Unable to find matching stat name (%s)", data + olen);
                     break;
                 }
             }
             if (matches != NUM_STATS) {
-                LOG(LOG_WARNING, "common::get_new_char_info", 
+                LOG(LOG_WARNING, "common::get_new_char_info",
                     "Did not get correct number of stats (%d!=%d)", matches, NUM_STATS);
             }
             olen = llen + 1;
             continue;
         } else if (!strcasecmp(cp,"race") || !strcasecmp(cp,"class")) {
             if (strcasecmp(data+olen, "requestinfo")) {
-                LOG(LOG_WARNING, "common::get_new_char_info", 
+                LOG(LOG_WARNING, "common::get_new_char_info",
                     "Got unexpected value for %s: %s", cp, data+olen);
             }
             olen = llen + 1;
             continue;
         } else if (!strcasecmp(cp,"startingmap")) {
             if (strcasecmp(data+olen, "requestinfo")) {
-                LOG(LOG_WARNING, "common::get_new_char_info", 
+                LOG(LOG_WARNING, "common::get_new_char_info",
                     "Got unexpected value for %s: %s", cp, data+olen);
             } else {
                 cs_print_string(csocket.fd, "requestinfo startingmap");
@@ -364,7 +365,7 @@ static void get_new_char_info(char *data, int len)
             continue;
         } else {
             if (datatype == 'V' || datatype == 'R') {
-                LOG(LOG_WARNING, "common::get_new_char_info", 
+                LOG(LOG_WARNING, "common::get_new_char_info",
                     "Got unsupported string from server, type %c, value %s", datatype, cp);
                 /* pop up error here */
             } else {
@@ -393,7 +394,8 @@ static void get_new_char_info(char *data, int len)
 /**
  * Used for bsearch searching.
  */
-static int rc_compar(const Race_Class_Info *a, const Race_Class_Info *b) {
+static int rc_compar(const Race_Class_Info *a, const Race_Class_Info *b)
+{
     return strcasecmp(a->public_name, b->public_name);
 }
 
@@ -417,9 +419,15 @@ void free_all_race_class_info(Race_Class_Info *data, int num_entries)
     for (i=0; i<num_entries; i++) {
         int j;
 
-        if (data[i].arch_name) free(data[i].arch_name);
-        if (data[i].public_name) free(data[i].public_name);
-        if (data[i].description) free(data[i].description);
+        if (data[i].arch_name) {
+            free(data[i].arch_name);
+        }
+        if (data[i].public_name) {
+            free(data[i].public_name);
+        }
+        if (data[i].description) {
+            free(data[i].description);
+        }
 
         for (j=0; j<data[i].num_rc_choice; j++) {
             int k;
@@ -478,7 +486,9 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
         /* If we did not find a space, may just mean we have reached the end
          * of the data - could be a stray character, etc
          */
-        if (!nl) break;
+        if (!nl) {
+            break;
+        }
 
         if (nl) {
             *nl = 0;
@@ -508,8 +518,10 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             while (cp < data + len && *cp != 0) {
                 int i;
 
-                for (i=0; i < NUM_NEW_CHAR_STATS; i++) 
-                    if (stat_mapping[i].cs_value == *cp) break;
+                for (i=0; i < NUM_NEW_CHAR_STATS; i++)
+                    if (stat_mapping[i].cs_value == *cp) {
+                        break;
+                    }
 
                 if (i == NUM_NEW_CHAR_STATS) {
                     /* Just return with what we have */
@@ -568,7 +580,9 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
 
                 clen = GetChar_String(cp);
                 cp++;
-                if (!clen) break;    /* 0 length is end of data */
+                if (!clen) {
+                    break;    /* 0 length is end of data */
+                }
                 vn = rci->rc_choice[oc].num_values;
                 rci->rc_choice[oc].num_values++;
                 rci->rc_choice[oc].value_arch = realloc(rci->rc_choice[oc].value_arch,
@@ -581,7 +595,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
                 strncpy(rci->rc_choice[oc].value_arch[vn], cp, clen);
                 rci->rc_choice[oc].value_arch[vn][clen] = 0;
                 cp += clen;
-                
+
                 clen = GetChar_String(cp);
                 cp++;
                 ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
@@ -604,8 +618,9 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
      * rather than add checks there for NULL values, simpler to
      * just set things to an empty value.
      */
-    if (!rci->description)
+    if (!rci->description) {
         rci->description = strdup("");
+    }
 
 }
 
@@ -618,14 +633,15 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
  * @param len
  * length of data.
  */
-static void get_race_info(char *data, int len) {
+static void get_race_info(char *data, int len)
+{
 
     /* This should not happen - the client is only requesting race info for
      * races it has received - and it knows how many of those it has.
      */
     if (used_races >= num_races) {
         LOG(LOG_ERROR, "common::get_race_info",
-                "used races exceed num races, %d>=%d", used_races, num_races);
+            "used races exceed num races, %d>=%d", used_races, num_races);
         return;
     }
 
@@ -650,14 +666,15 @@ static void get_race_info(char *data, int len) {
  * @param len
  * length of data.
  */
-static void get_class_info(char *data, int len) {
+static void get_class_info(char *data, int len)
+{
 
     /* This should not happen - the client is only requesting race info for
      * classes it has received - and it knows how many of those it has.
      */
     if (used_classes >= num_classes) {
         LOG(LOG_ERROR, "common::get_race_info",
-                "used classes exceed num classes, %d>=%d", used_classes, num_classes);
+            "used classes exceed num classes, %d>=%d", used_classes, num_classes);
         return;
     }
 
@@ -677,7 +694,8 @@ static void get_class_info(char *data, int len) {
  * @param data
  * @param len
  */
-static void get_exp_info(const unsigned char *data, int len) {
+static void get_exp_info(const unsigned char *data, int len)
+{
     int pos, level;
 
     if (len < 2) {
@@ -694,7 +712,7 @@ static void get_exp_info(const unsigned char *data, int len) {
     }
     if (level != exp_table_max) {
         LOG(LOG_ERROR, "common::get_exp_info",
-             "Incomplete table sent - got %d entries, wanted %d", level, exp_table_max);
+            "Incomplete table sent - got %d entries, wanted %d", level, exp_table_max);
     }
 }
 
@@ -703,7 +721,8 @@ static void get_exp_info(const unsigned char *data, int len) {
  * @param data
  * @param len
  */
-static void get_skill_info(char *data, int len) {
+static void get_skill_info(char *data, int len)
+{
     char *cp, *nl, *sn;
     int val;
 
@@ -744,7 +763,8 @@ static void get_skill_info(char *data, int len) {
  * @param buf
  * @param len
  */
-void ReplyInfoCmd(uint8 *buf, int len) {
+void ReplyInfoCmd(uint8 *buf, int len)
+{
     uint8 *cp;
     int i;
 
@@ -783,15 +803,21 @@ void ReplyInfoCmd(uint8 *buf, int len) {
     } else if (!strcmp((char*)buf, "exp_table")) {
         get_exp_info(cp, len-i-1);          /* Located in common/commands.c */
     } else if (!strcmp((char*)buf, "motd")) {
-        if (motd) free((char*)motd);
+        if (motd) {
+            free((char*)motd);
+        }
         motd = strdup(cp);
         update_login_info(INFO_MOTD);
     } else if (!strcmp((char*)buf, "news")) {
-        if (news) free((char*)news);
+        if (news) {
+            free((char*)news);
+        }
         news = strdup(cp);
         update_login_info(INFO_NEWS);
     } else if (!strcmp((char*)buf, "rules")) {
-        if (rules) free((char*)rules);
+        if (rules) {
+            free((char*)rules);
+        }
         rules = strdup(cp);
         update_login_info(INFO_RULES);
     } else if (!strcmp((char*)buf, "race_list")) {
@@ -865,7 +891,8 @@ void ReplyInfoCmd(uint8 *buf, int len) {
  * @param buf
  * @param len
  */
-void SetupCmd(char *buf, int len) {
+void SetupCmd(char *buf, int len)
+{
     int s;
     char *cmd, *param;
 
@@ -920,7 +947,7 @@ void SetupCmd(char *buf, int len) {
 
             if (!strcasecmp(param, "false")) {
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
-                  "Server only supports standard sized maps (11x11)");
+                              "Server only supports standard sized maps (11x11)");
                 /* Do this because we may have been playing on a big server
                  * before */
                 use_config[CONFIG_MAPWIDTH] = 11;
@@ -942,15 +969,19 @@ void SetupCmd(char *buf, int len) {
              * going on.
              */
             if (use_config[CONFIG_MAPWIDTH] > x || use_config[CONFIG_MAPHEIGHT] > y) {
-                if (use_config[CONFIG_MAPWIDTH] > x) use_config[CONFIG_MAPWIDTH] = x;
-                if (use_config[CONFIG_MAPHEIGHT] > y) use_config[CONFIG_MAPHEIGHT] = y;
+                if (use_config[CONFIG_MAPWIDTH] > x) {
+                    use_config[CONFIG_MAPWIDTH] = x;
+                }
+                if (use_config[CONFIG_MAPHEIGHT] > y) {
+                    use_config[CONFIG_MAPHEIGHT] = y;
+                }
                 mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 cs_print_string(csocket.fd,
                                 "setup mapsize %dx%d", use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 snprintf(tmpbuf, sizeof(tmpbuf), "Server supports a max mapsize of %d x %d - requesting a %d x %d mapsize",
-                    x, y, use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
+                         x, y, use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
-                    tmpbuf);
+                              tmpbuf);
             } else if (use_config[CONFIG_MAPWIDTH] == x && use_config[CONFIG_MAPHEIGHT] == y) {
                 mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 resize_map_window(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
@@ -960,7 +991,7 @@ void SetupCmd(char *buf, int len) {
                  * that something is wrong.
                  */
                 snprintf(tmpbuf, sizeof(tmpbuf), "Unable to set mapsize on server - we wanted %d x %d, server returned %d x %d",
-                    use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT], x, y);
+                         use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT], x, y);
                 draw_ext_info(
                     NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER, tmpbuf);
             }
@@ -997,19 +1028,19 @@ void SetupCmd(char *buf, int len) {
                 spellmon_level = atoi(param);
             }
         } else if (!strcmp(cmd, "facecache")) {
-                use_config[CONFIG_CACHE] = atoi(param);
+            use_config[CONFIG_CACHE] = atoi(param);
         } else if (!strcmp(cmd, "faceset")) {
             if (!strcmp(param, "FALSE")) {
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
-                    "Server does not support other image sets, will use default");
+                              "Server does not support other image sets, will use default");
                 face_info.faceset = 0;
             }
         } else if (!strcmp(cmd, "map2cmd")) {
             if (!strcmp(param, "FALSE")) {
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
-                    "Server does not support map2cmd!");
+                              "Server does not support map2cmd!");
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
-                    "This server is too old to support this client!");
+                              "This server is too old to support this client!");
                 close_server_connection();
             }
         } else if (!strcmp(cmd, "want_pickup")) {
@@ -1041,7 +1072,8 @@ void SetupCmd(char *buf, int len) {
  * @param data
  * @param len
  */
-void AddMeFail(char *data, int len) {
+void AddMeFail(char *data, int len)
+{
     (void)data; /* __UNUSED__ */
     (void)len; /* __UNUSED__ */
 
@@ -1056,7 +1088,8 @@ void AddMeFail(char *data, int len) {
  * @param data
  * @param len
  */
-void AddMeSuccess(char *data, int len) {
+void AddMeSuccess(char *data, int len)
+{
     (void)data; /* __UNUSED__ */
     (void)len; /* __UNUSED__ */
 
@@ -1070,7 +1103,8 @@ void AddMeSuccess(char *data, int len) {
  * @param data
  * @param len
  */
-void GoodbyeCmd(char *data, int len) {
+void GoodbyeCmd(char *data, int len)
+{
     (void)data; /* __UNUSED__ */
     (void)len; /* __UNUSED__ */
 
@@ -1089,7 +1123,8 @@ Animations animations[MAXANIM];
  * @param data
  * @param len
  */
-void AnimCmd(unsigned char *data, int len) {
+void AnimCmd(unsigned char *data, int len)
+{
     short anum;
     int i, j;
 
@@ -1133,7 +1168,8 @@ void AnimCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void SmoothCmd(unsigned char *data, int len) {
+void SmoothCmd(unsigned char *data, int len)
+{
     uint16 faceid;
     uint16 smoothing;
 
@@ -1152,7 +1188,8 @@ void SmoothCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void DrawInfoCmd(char *data, int len) {
+void DrawInfoCmd(char *data, int len)
+{
     int color = atoi(data);
     char *buf;
 
@@ -1175,7 +1212,8 @@ TextManager *firstTextManager = NULL;
  * @param type
  * @param callback
  */
-void setTextManager(int type, ExtTextManager callback) {
+void setTextManager(int type, ExtTextManager callback)
+{
     TextManager *current = firstTextManager;
 
     while (current != NULL) {
@@ -1196,7 +1234,8 @@ void setTextManager(int type, ExtTextManager callback) {
  *
  * @param type
  */
-static ExtTextManager getTextManager(int type) {
+static ExtTextManager getTextManager(int type)
+{
     TextManager *current = firstTextManager;
     while (current != NULL) {
         if (current->type == type) {
@@ -1213,7 +1252,8 @@ static ExtTextManager getTextManager(int type) {
  * @param data
  * @param len
  */
-void DrawExtInfoCmd(char *data, int len) {
+void DrawExtInfoCmd(char *data, int len)
+{
     int color;
     int type, subtype;
     char *buf = data;
@@ -1266,20 +1306,21 @@ void DrawExtInfoCmd(char *data, int len) {
  */
 void use_skill(int skill_id)
 {
-   int i = 0;
-   int next;
-   int prev = last_used_skills[0];
+    int i = 0;
+    int next;
+    int prev = last_used_skills[0];
 
-   if(last_used_skills[0] == skill_id) return;
+    if(last_used_skills[0] == skill_id) {
+        return;
+    }
 
-   do
-   {
-       next = last_used_skills[i+1];
-       last_used_skills[i+1] = prev;
-       prev = next;
-       ++i;
-   } while(next != skill_id && next >= 0);
-   last_used_skills[0] = skill_id;
+    do {
+        next = last_used_skills[i+1];
+        last_used_skills[i+1] = prev;
+        prev = next;
+        ++i;
+    } while(next != skill_id && next >= 0);
+    last_used_skills[0] = skill_id;
 }
 
 /**
@@ -1288,7 +1329,8 @@ void use_skill(int skill_id)
  * @param data
  * @param len
  */
-void StatsCmd(unsigned char *data, int len) {
+void StatsCmd(unsigned char *data, int len)
+{
     int i = 0, c, redraw = 0;
     sint64 last_exp;
 
@@ -1317,35 +1359,122 @@ void StatsCmd(unsigned char *data, int len) {
             i += 8;
         } else {
             switch (c) {
-            case CS_STAT_HP:      cpl.stats.hp = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_MAXHP:   cpl.stats.maxhp = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_SP:      cpl.stats.sp = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_MAXSP:   cpl.stats.maxsp = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_GRACE:   cpl.stats.grace = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_MAXGRACE:cpl.stats.maxgrace = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_STR:     cpl.stats.Str = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_INT:     cpl.stats.Int = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_POW:     cpl.stats.Pow = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_WIS:     cpl.stats.Wis = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_DEX:     cpl.stats.Dex = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_CON:     cpl.stats.Con = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_CHA:     cpl.stats.Cha = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_EXP:     cpl.stats.exp = GetInt_String(data+i); i += 4; break;
-            case CS_STAT_EXP64:   cpl.stats.exp = GetInt64_String(data+i); i += 8; break;
-            case CS_STAT_LEVEL:   cpl.stats.level = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_WC:      cpl.stats.wc = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_AC:      cpl.stats.ac = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_DAM:     cpl.stats.dam = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_ARMOUR:  cpl.stats.resists[0] = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_SPEED:   cpl.stats.speed = GetInt_String(data+i); i += 4; break;
-            case CS_STAT_FOOD:    cpl.stats.food = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_WEAP_SP: cpl.stats.weapon_sp = GetInt_String(data+i); i += 4; break;
-            case CS_STAT_SPELL_ATTUNE:cpl.stats.attuned = GetInt_String(data+i); i += 4; cpl.spells_updated = 1; break;
-            case CS_STAT_SPELL_REPEL:cpl.stats.repelled = GetInt_String(data+i); i += 4; cpl.spells_updated = 1; break;
-            case CS_STAT_SPELL_DENY:cpl.stats.denied = GetInt_String(data+i); i += 4; cpl.spells_updated = 1; break;
+            case CS_STAT_HP:
+                cpl.stats.hp = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_MAXHP:
+                cpl.stats.maxhp = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_SP:
+                cpl.stats.sp = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_MAXSP:
+                cpl.stats.maxsp = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_GRACE:
+                cpl.stats.grace = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_MAXGRACE:
+                cpl.stats.maxgrace = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_STR:
+                cpl.stats.Str = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_INT:
+                cpl.stats.Int = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_POW:
+                cpl.stats.Pow = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_WIS:
+                cpl.stats.Wis = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_DEX:
+                cpl.stats.Dex = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_CON:
+                cpl.stats.Con = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_CHA:
+                cpl.stats.Cha = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_EXP:
+                cpl.stats.exp = GetInt_String(data+i);
+                i += 4;
+                break;
+            case CS_STAT_EXP64:
+                cpl.stats.exp = GetInt64_String(data+i);
+                i += 8;
+                break;
+            case CS_STAT_LEVEL:
+                cpl.stats.level = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_WC:
+                cpl.stats.wc = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_AC:
+                cpl.stats.ac = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_DAM:
+                cpl.stats.dam = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_ARMOUR:
+                cpl.stats.resists[0] = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_SPEED:
+                cpl.stats.speed = GetInt_String(data+i);
+                i += 4;
+                break;
+            case CS_STAT_FOOD:
+                cpl.stats.food = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_WEAP_SP:
+                cpl.stats.weapon_sp = GetInt_String(data+i);
+                i += 4;
+                break;
+            case CS_STAT_SPELL_ATTUNE:
+                cpl.stats.attuned = GetInt_String(data+i);
+                i += 4;
+                cpl.spells_updated = 1;
+                break;
+            case CS_STAT_SPELL_REPEL:
+                cpl.stats.repelled = GetInt_String(data+i);
+                i += 4;
+                cpl.spells_updated = 1;
+                break;
+            case CS_STAT_SPELL_DENY:
+                cpl.stats.denied = GetInt_String(data+i);
+                i += 4;
+                cpl.spells_updated = 1;
+                break;
 
-            case CS_STAT_FLAGS: cpl.stats.flags = GetShort_String(data+i); i += 2; break;
-            case CS_STAT_WEIGHT_LIM:set_weight_limit(cpl.stats.weight_limit = GetInt_String(data+i)); i += 4; break;
+            case CS_STAT_FLAGS:
+                cpl.stats.flags = GetShort_String(data+i);
+                i += 2;
+                break;
+            case CS_STAT_WEIGHT_LIM:
+                set_weight_limit(cpl.stats.weight_limit = GetInt_String(data+i));
+                i += 4;
+                break;
 
             case CS_STAT_RANGE: {
                 int rlen = data[i++];
@@ -1386,7 +1515,8 @@ void StatsCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void handle_query(char *data, int len) {
+void handle_query(char *data, int len)
+{
     char *buf, *cp;
     uint8 flags = atoi(data);
 
@@ -1441,7 +1571,8 @@ void handle_query(char *data, int len) {
  *
  * @param text contains the null terminated string of text to send.
  */
-void send_reply(const char *text) {
+void send_reply(const char *text)
+{
     cs_print_string(csocket.fd, "reply %s", text);
 
     /* Let the window system know that the (possibly hidden) query is over. */
@@ -1457,14 +1588,18 @@ void send_reply(const char *text) {
  * @param data
  * @param len
  */
-void PlayerCmd(unsigned char *data, int len) {
+void PlayerCmd(unsigned char *data, int len)
+{
     char name[MAX_BUF];
     int tag, weight, face, i = 0, nlen;
 
     reset_player_data();
-    tag = GetInt_String(data); i += 4;
-    weight = GetInt_String(data+i); i += 4;
-    face = GetInt_String(data+i); i += 4;
+    tag = GetInt_String(data);
+    i += 4;
+    weight = GetInt_String(data+i);
+    i += 4;
+    face = GetInt_String(data+i);
+    i += 4;
     nlen = data[i++];
     memcpy(name, (const char*)data+i, nlen);
     name[nlen] = '\0';
@@ -1480,7 +1615,8 @@ void PlayerCmd(unsigned char *data, int len) {
  *
  * @param op
  */
-void item_actions(item *op) {
+void item_actions(item *op)
+{
     if (!op) {
         return;
     }
@@ -1501,7 +1637,8 @@ void item_actions(item *op) {
  * @param data
  * @param len
  */
-static void common_item_command(uint8 *data, int len) {
+static void common_item_command(uint8 *data, int len)
+{
 
     int weight, loc, tag, face, flags, pos = 0, nlen, anim, nrof, type;
     uint8 animspeed;
@@ -1518,18 +1655,25 @@ static void common_item_command(uint8 *data, int len) {
         return;
     } else {
         while (pos < len) {
-            tag = GetInt_String(data+pos); pos += 4;
-            flags = GetInt_String(data+pos); pos += 4;
-            weight = GetInt_String(data+pos); pos += 4;
-            face = GetInt_String(data+pos); pos += 4;
+            tag = GetInt_String(data+pos);
+            pos += 4;
+            flags = GetInt_String(data+pos);
+            pos += 4;
+            weight = GetInt_String(data+pos);
+            pos += 4;
+            face = GetInt_String(data+pos);
+            pos += 4;
             nlen = data[pos++];
             memcpy(name, (char*)data+pos, nlen);
             pos += nlen;
             name[nlen] = '\0';
-            anim = GetShort_String(data+pos); pos += 2;
+            anim = GetShort_String(data+pos);
+            pos += 2;
             animspeed = data[pos++];
-            nrof = GetInt_String(data+pos); pos += 4;
-            type = GetShort_String(data+pos); pos += 2;
+            nrof = GetInt_String(data+pos);
+            pos += 4;
+            type = GetShort_String(data+pos);
+            pos += 2;
             update_item(tag, loc, name, weight, face, flags, anim, animspeed, nrof, type);
             item_actions(locate_item(tag));
         }
@@ -1544,7 +1688,8 @@ static void common_item_command(uint8 *data, int len) {
  * @param data
  * @param len
  */
-void Item2Cmd(unsigned char *data, int len) {
+void Item2Cmd(unsigned char *data, int len)
+{
     common_item_command(data, len);
 }
 
@@ -1554,7 +1699,8 @@ void Item2Cmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void UpdateItemCmd(unsigned char *data, int len) {
+void UpdateItemCmd(unsigned char *data, int len)
+{
     int weight, loc, tag, face, sendflags, flags, pos = 0, nlen, anim;
     uint32 nrof;
     char name[MAX_BUF];
@@ -1567,9 +1713,9 @@ void UpdateItemCmd(unsigned char *data, int len) {
     pos += 4;
     ip = locate_item(tag);
     if (!ip) {
-/*
-        fprintf(stderr, "Got update_item command for item we don't have (%d)\n", tag);
-*/
+        /*
+                fprintf(stderr, "Got update_item command for item we don't have (%d)\n", tag);
+        */
         return;
     }
 
@@ -1638,13 +1784,15 @@ void UpdateItemCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void DeleteItem(unsigned char *data, int len) {
+void DeleteItem(unsigned char *data, int len)
+{
     int pos = 0, tag;
 
     while (pos < len) {
         item *op;
 
-        tag = GetInt_String(data+pos); pos += 4;
+        tag = GetInt_String(data+pos);
+        pos += 4;
         op = locate_item(tag);
         if (op != NULL) {
             remove_item(op);
@@ -1662,7 +1810,8 @@ void DeleteItem(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void DeleteInventory(unsigned char *data, int len) {
+void DeleteInventory(unsigned char *data, int len)
+{
     int tag;
     item *op;
 
@@ -1689,7 +1838,8 @@ void DeleteInventory(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void AddspellCmd(unsigned char *data, int len) {
+void AddspellCmd(unsigned char *data, int len)
+{
     uint8 nlen;
     uint16 mlen, pos = 0;
     Spell *newspell, *tmp;
@@ -1699,39 +1849,55 @@ void AddspellCmd(unsigned char *data, int len) {
 
         /* Get standard spell information (spellmon 1)
          */
-        newspell->tag = GetInt_String(data+pos); pos += 4;
-        newspell->level = GetShort_String(data+pos); pos += 2;
-        newspell->time = GetShort_String(data+pos); pos += 2;
-        newspell->sp = GetShort_String(data+pos); pos += 2;
-        newspell->grace = GetShort_String(data+pos); pos += 2;
-        newspell->dam = GetShort_String(data+pos); pos += 2;
-        newspell->skill_number = GetChar_String(data+pos); pos += 1;
-        newspell->path = GetInt_String(data+pos); pos += 4;
-        newspell->face = GetInt_String(data+pos); pos += 4;
-        nlen = GetChar_String(data+pos); pos += 1;
-        strncpy(newspell->name, (char*)data+pos, nlen); pos += nlen;
+        newspell->tag = GetInt_String(data+pos);
+        pos += 4;
+        newspell->level = GetShort_String(data+pos);
+        pos += 2;
+        newspell->time = GetShort_String(data+pos);
+        pos += 2;
+        newspell->sp = GetShort_String(data+pos);
+        pos += 2;
+        newspell->grace = GetShort_String(data+pos);
+        pos += 2;
+        newspell->dam = GetShort_String(data+pos);
+        pos += 2;
+        newspell->skill_number = GetChar_String(data+pos);
+        pos += 1;
+        newspell->path = GetInt_String(data+pos);
+        pos += 4;
+        newspell->face = GetInt_String(data+pos);
+        pos += 4;
+        nlen = GetChar_String(data+pos);
+        pos += 1;
+        strncpy(newspell->name, (char*)data+pos, nlen);
+        pos += nlen;
         newspell->name[nlen] = '\0'; /* To ensure we are null terminated */
-        mlen = GetShort_String(data+pos); pos += 2;
-        strncpy(newspell->message, (char*)data+pos, mlen); pos += mlen;
+        mlen = GetShort_String(data+pos);
+        pos += 2;
+        strncpy(newspell->message, (char*)data+pos, mlen);
+        pos += mlen;
         newspell->message[mlen] = '\0'; /* To ensure we are null terminated */
 
         if (spellmon_level < 2) {
 
-          /* The server is not sending spellmon 2 extended information, so
-           * initialize the spell data fields as unused/empty.
-           */
-          newspell->usage = 0;
-          newspell->requirements[0] = '\0';
+            /* The server is not sending spellmon 2 extended information, so
+             * initialize the spell data fields as unused/empty.
+             */
+            newspell->usage = 0;
+            newspell->requirements[0] = '\0';
 
         } else if (pos < len) {
 
-          /* The server is sending extended spell information (spellmon 2) so
-           * process it.
-           */
-          newspell->usage = GetChar_String(data+pos); pos += 1;
-          nlen = GetChar_String(data+pos); pos += 1;
-          strncpy(newspell->requirements, (char*) data+pos, nlen); pos += nlen;
-          newspell->requirements[nlen] = '\0'; /* Ensure null-termination */
+            /* The server is sending extended spell information (spellmon 2) so
+             * process it.
+             */
+            newspell->usage = GetChar_String(data+pos);
+            pos += 1;
+            nlen = GetChar_String(data+pos);
+            pos += 1;
+            strncpy(newspell->requirements, (char*) data+pos, nlen);
+            pos += nlen;
+            newspell->requirements[nlen] = '\0'; /* Ensure null-termination */
         }
 
         /* Compute the derived spell information.
@@ -1761,7 +1927,8 @@ void AddspellCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void UpdspellCmd(unsigned char *data, int len) {
+void UpdspellCmd(unsigned char *data, int len)
+{
     int flags, tag, pos = 0;
     Spell *tmp;
 
@@ -1770,8 +1937,10 @@ void UpdspellCmd(unsigned char *data, int len) {
         return;
     }
 
-    flags = GetChar_String(data+pos); pos += 1;
-    tag = GetInt_String(data+pos); pos += 4;
+    flags = GetChar_String(data+pos);
+    pos += 1;
+    tag = GetInt_String(data+pos);
+    pos += 4;
     for (tmp = cpl.spelldata; tmp && tmp->tag != tag; tmp = tmp->next)
         ;
     if (!tmp) {
@@ -1779,13 +1948,16 @@ void UpdspellCmd(unsigned char *data, int len) {
         return;
     }
     if (flags&UPD_SP_MANA) {
-        tmp->sp = GetShort_String(data+pos); pos += 2;
+        tmp->sp = GetShort_String(data+pos);
+        pos += 2;
     }
     if (flags&UPD_SP_GRACE) {
-        tmp->grace = GetShort_String(data+pos); pos += 2;
+        tmp->grace = GetShort_String(data+pos);
+        pos += 2;
     }
     if (flags&UPD_SP_DAMAGE) {
-        tmp->dam = GetShort_String(data+pos); pos += 2;
+        tmp->dam = GetShort_String(data+pos);
+        pos += 2;
     }
     if (pos > len) {
         LOG(LOG_WARNING, "common::UpdspellCmd", "Overread buffer: %d > %d", pos, len);
@@ -1798,7 +1970,8 @@ void UpdspellCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void DeleteSpell(unsigned char *data, int len) {
+void DeleteSpell(unsigned char *data, int len)
+{
     int tag;
     Spell *tmp, *target;
 
@@ -1852,7 +2025,8 @@ void DeleteSpell(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void NewmapCmd(unsigned char *data, int len) {
+void NewmapCmd(unsigned char *data, int len)
+{
     (void)data; /* __UNUSED__ */
     (void)len; /* __UNUSED__ */
 
@@ -1877,7 +2051,8 @@ void NewmapCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void Map2Cmd(unsigned char *data, int len) {
+void Map2Cmd(unsigned char *data, int len)
+{
     int mask, x, y, pos = 0, space_len, value;
     uint8 type;
 
@@ -1886,7 +2061,8 @@ void Map2Cmd(unsigned char *data, int len) {
      * original draw logic, and map2 is closest.
      */
     while (pos < len) {
-        mask = GetShort_String(data+pos); pos += 2;
+        mask = GetShort_String(data+pos);
+        pos += 2;
         x = ((mask>>10)&0x3f)-MAP2_COORD_OFFSET;
         y = ((mask>>4)&0x3f)-MAP2_COORD_OFFSET;
 
@@ -1954,7 +2130,8 @@ void Map2Cmd(unsigned char *data, int len) {
                 assert(0 <= layer && layer < MAXLAYERS);
 
                 /* This is the face */
-                value = GetShort_String(data+pos); pos += 2;
+                value = GetShort_String(data+pos);
+                pos += 2;
                 if (!(value&FACE_IS_ANIM)) {
                     mapdata_set_face_layer(x, y, value, layer);
                 }
@@ -1988,7 +2165,8 @@ void Map2Cmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void map_scrollCmd(char *data, int len) {
+void map_scrollCmd(char *data, int len)
+{
     int dx, dy;
     char *buf;
 
@@ -2018,7 +2196,8 @@ void map_scrollCmd(char *data, int len) {
  * @param y
  * @param layer
  */
-int ExtSmooth(unsigned char *data, int len, int x, int y, int layer) {
+int ExtSmooth(unsigned char *data, int len, int x, int y, int layer)
+{
     static int dx[8] = { 0, 1, 1, 1, 0, -1, -1, -1, };
     static int dy[8] = { -1, -1, 0, 1, 1, 1, 0, -1, };
     int i, rx, ry;
@@ -2055,7 +2234,8 @@ int ExtSmooth(unsigned char *data, int len, int x, int y, int layer) {
  * @param data
  * @param len
  */
-void MapExtendedCmd(unsigned char *data, int len) {
+void MapExtendedCmd(unsigned char *data, int len)
+{
     int mask, x, y, pos = 0, layer;
     int noredraw = 0;
     int hassmooth = 0;
@@ -2066,7 +2246,8 @@ void MapExtendedCmd(unsigned char *data, int len) {
         display_map_startupdate();
     }
     mapupdatesent = 1;
-    mask = GetChar_String(data+pos); pos += 1;
+    mask = GetChar_String(data+pos);
+    pos += 1;
     if (mask&EMI_NOREDRAW) {
         noredraw = 1;
     }
@@ -2082,7 +2263,8 @@ void MapExtendedCmd(unsigned char *data, int len) {
     pos = pos+1;
 
     while (pos+entrysize+2 <= len) {
-        mask = GetShort_String(data+pos); pos += 2;
+        mask = GetShort_String(data+pos);
+        pos += 2;
         x = (mask>>10)&0x3f;
         y = (mask>>4)&0x3f;
         for (layer = NUM_LAYERS; layer >= 0; layer--) {
@@ -2117,7 +2299,8 @@ void MapExtendedCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void MagicMapCmd(unsigned char *data, int len) {
+void MagicMapCmd(unsigned char *data, int len)
+{
     unsigned char *cp;
     int i;
 
@@ -2170,7 +2353,8 @@ void MagicMapCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void SinkCmd(unsigned char *data, int len) {
+void SinkCmd(unsigned char *data, int len)
+{
 }
 
 /**
@@ -2180,7 +2364,8 @@ void SinkCmd(unsigned char *data, int len) {
  * @param data
  * @param len
  */
-void TickCmd(uint8 *data, int len) {
+void TickCmd(uint8 *data, int len)
+{
 
     tick = GetInt_String(data);
 
@@ -2196,7 +2381,8 @@ void TickCmd(uint8 *data, int len) {
  * @param len
  * length of data.
  */
-void PickupCmd(uint8 *data, int len) {
+void PickupCmd(uint8 *data, int len)
+{
     uint32 pickup = GetInt_String(data);
     client_pickup(pickup);
 }
@@ -2209,7 +2395,8 @@ void PickupCmd(uint8 *data, int len) {
  * @param len
  * length of data.
  */
-void FailureCmd(char *buf, int len) {
+void FailureCmd(char *buf, int len)
+{
     char *cp;
 
     /* The format of the buffer is 'command error message'.  We need to
@@ -2218,27 +2405,24 @@ void FailureCmd(char *buf, int len) {
      * buf is now just the failure command, and cp is the message.
      */
     cp = strchr(buf,' ');
-    if (!cp) return;
+    if (!cp) {
+        return;
+    }
 
     *cp = 0;
     cp++;
 
     if (!strcmp(buf,"accountlogin")) {
         account_login_failure(cp);
-    }
-    else if (!strcmp(buf,"accountnew")) {
+    } else if (!strcmp(buf,"accountnew")) {
         account_creation_failure(cp);
-    }
-    else if (!strcmp(buf,"accountaddplayer")) {
+    } else if (!strcmp(buf,"accountaddplayer")) {
         account_add_character_failure(cp);
-    }
-    else if (!strcmp(buf,"createplayer")) {
+    } else if (!strcmp(buf,"createplayer")) {
         create_new_character_failure(cp);
-    }
-    else if (!strcmp(buf, "accountpw")) {
+    } else if (!strcmp(buf, "accountpw")) {
         account_change_password_failure(cp);
-    }
-    else
+    } else
         /* This really is an error - if this happens it menas the server
          * failed to process a request that the client made - the client
          * should be able to handle failures for all request types it makes.
@@ -2253,11 +2437,12 @@ void FailureCmd(char *buf, int len) {
 /**
  * This handles the accountplayers command
  */
-void AccountPlayersCmd(char *buf, int len) {
+void AccountPlayersCmd(char *buf, int len)
+{
 
     int num_characters, level, pos, flen, faceno;
     char name[MAX_BUF], class[MAX_BUF], race[MAX_BUF],
-        face[MAX_BUF], party[MAX_BUF], map[MAX_BUF];
+            face[MAX_BUF], party[MAX_BUF], map[MAX_BUF];
 
     /* This is called first so it can clear out the existing data store.
      */
@@ -2314,7 +2499,7 @@ void AccountPlayersCmd(char *buf, int len) {
             strncpy(race, buf + pos +1, flen-1);
             race[flen-1] = 0;
             break;
-       
+
         case ACL_FACE:
             strncpy(face, buf + pos +1, flen-1);
             face[flen-1] = 0;

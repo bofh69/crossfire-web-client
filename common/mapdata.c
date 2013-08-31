@@ -1,25 +1,15 @@
-/* $Id$ */
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file common/mapdata.c
@@ -148,24 +138,34 @@ static void set_darkness(int x, int y, int darkness)
      * they should update their darkness now.
      */
     if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL
-    && (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL
-    ||  use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST)) {
-        if (x > 1) the_map.cells[x-1][y].need_update = 1;
-        if (y > 1) the_map.cells[x][y-1].need_update = 1;
-        if (x < width-1) the_map.cells[x+1][y].need_update = 1;
-        if (y < height-1) the_map.cells[x][y+1].need_update = 1;
+            && (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL
+                ||  use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST)) {
+        if (x > 1) {
+            the_map.cells[x-1][y].need_update = 1;
+        }
+        if (y > 1) {
+            the_map.cells[x][y-1].need_update = 1;
+        }
+        if (x < width-1) {
+            the_map.cells[x+1][y].need_update = 1;
+        }
+        if (y < height-1) {
+            the_map.cells[x][y+1].need_update = 1;
+        }
     }
 }
 
-static void mark_resmooth(int x, int y, int layer){
+static void mark_resmooth(int x, int y, int layer)
+{
     int sdx,sdy;
-    if (the_map.cells[x][y].smooth[layer]>1){
-        for (sdx=-1;sdx<2;sdx++)
-            for (sdy=-1;sdy<2;sdy++)
+    if (the_map.cells[x][y].smooth[layer]>1) {
+        for (sdx=-1; sdx<2; sdx++)
+            for (sdy=-1; sdy<2; sdy++)
                 if ( (sdx || sdy) /* ignore (0,0) */
-                    &&  ( (x+sdx >0) && (x+sdx < FOG_MAP_SIZE) &&  /* only inside map */
-                          (y+sdy >0) && (y+sdy < FOG_MAP_SIZE) ) )
+                        &&  ( (x+sdx >0) && (x+sdx < FOG_MAP_SIZE) &&  /* only inside map */
+                              (y+sdy >0) && (y+sdy < FOG_MAP_SIZE) ) ) {
                     the_map.cells[x+sdx][y+sdy].need_resmooth=1;
+                }
     }
 }
 /**
@@ -202,8 +202,8 @@ static void expand_clear_face(int x, int y, int w, int h, int layer)
              * face.
              */
             if (tail->face == cell->heads[layer].face
-            && tail->size_x == dx
-            && tail->size_y == dy) {
+                    && tail->size_x == dx
+                    && tail->size_y == dy) {
                 tail->face = 0;
                 tail->size_x = 0;
                 tail->size_y = 0;
@@ -240,8 +240,9 @@ static void expand_clear_face_from_layer(int x, int y, int layer)
     assert(0 <= layer && layer < MAXLAYERS);
 
     cell = &the_map.cells[x][y].heads[layer];
-    if (cell->size_x && cell->size_y)
-	expand_clear_face(x, y, cell->size_x, cell->size_y, layer);
+    if (cell->size_x && cell->size_y) {
+        expand_clear_face(x, y, cell->size_x, cell->size_y, layer);
+    }
 }
 
 /**
@@ -269,8 +270,9 @@ static void expand_set_face(int x, int y, int layer, sint16 face, int clear)
 
     cell = &the_map.cells[x][y];
 
-    if (clear)
-	expand_clear_face_from_layer(x, y, layer);
+    if (clear) {
+        expand_clear_face_from_layer(x, y, layer);
+    }
 
     mapdata_get_image_size(face, &w, &h);
     assert(1 <= w && w <= MAX_FACE_SIZE);
@@ -330,14 +332,14 @@ static void expand_clear_bigface(int x, int y, int w, int h, int layer, int set_
              * face.
              */
             if (tail->face == head->face
-            && tail->size_x == dx
-            && tail->size_y == dy) {
+                    && tail->size_x == dx
+                    && tail->size_y == dy) {
                 tail->face = 0;
                 tail->size_x = 0;
                 tail->size_y = 0;
 
                 if (0 <= x-dx && x-dx < width
-                && 0 <= y-dy && y-dy < height) {
+                        && 0 <= y-dy && y-dy < height) {
                     assert(0 <= pl_pos.x+x-dx && pl_pos.x+x-dx < FOG_MAP_SIZE);
                     assert(0 <= pl_pos.y+y-dy && pl_pos.y+y-dy < FOG_MAP_SIZE);
                     if (set_need_update) {
@@ -376,21 +378,23 @@ static void expand_clear_bigface_from_layer(int x, int y, int layer, int set_nee
         assert(headcell->prev != NULL || headcell == bigfaces_head);
 
         /* remove from bigfaces_head list */
-        if (headcell->prev != NULL) headcell->prev->next = headcell->next;
-        if (headcell->next != NULL) headcell->next->prev = headcell->prev;
+        if (headcell->prev != NULL) {
+            headcell->prev->next = headcell->next;
+        }
+        if (headcell->next != NULL) {
+            headcell->next->prev = headcell->prev;
+        }
         if (bigfaces_head == headcell) {
             assert(headcell->prev == NULL);
             bigfaces_head = headcell->next;
-        }
-        else {
+        } else {
             assert(headcell->prev != NULL);
         }
         headcell->prev = NULL;
         headcell->next = NULL;
 
         expand_clear_bigface(x, y, head->size_x, head->size_y, layer, set_need_update);
-    }
-    else {
+    } else {
         assert(headcell->prev == NULL && headcell != bigfaces_head);
         assert(head->size_x == 1);
         assert(head->size_y == 1);
@@ -418,8 +422,9 @@ static void expand_set_bigface(int x, int y, int layer, sint16 face, int clear)
 
     headcell = &bigfaces[x][y][layer];
     head = &headcell->head;
-    if (clear)
-	expand_clear_bigface_from_layer(x, y, layer, 1);
+    if (clear) {
+        expand_clear_bigface_from_layer(x, y, layer, 1);
+    }
 
     /* add to bigfaces_head list */
     if (face != 0) {
@@ -453,7 +458,7 @@ static void expand_set_bigface(int x, int y, int layer, sint16 face, int clear)
             tail->size_y = dy;
 
             if (0 <= x-dx && x-dx < width
-            && 0 <= y-dy && y-dy < height) {
+                    && 0 <= y-dy && y-dy < height) {
                 assert(0 <= pl_pos.x+x-dx && pl_pos.x+x-dx < FOG_MAP_SIZE);
                 assert(0 <= pl_pos.y+y-dy && pl_pos.y+y-dy < FOG_MAP_SIZE);
                 the_map.cells[pl_pos.x+x-dx][pl_pos.y+y-dy].need_update = 1;
@@ -508,8 +513,7 @@ static void expand_need_update_from_layer(int x, int y, int layer)
     head = &the_map.cells[x][y].heads[layer];
     if (head->face != 0) {
         expand_need_update(x, y, head->size_x, head->size_y);
-    }
-    else {
+    } else {
         assert(head->size_x == 1);
         assert(head->size_y == 1);
     }
@@ -522,8 +526,8 @@ void mapdata_init(void)
 
     if (the_map.cells == NULL) {
         the_map.cells = malloc(
-            sizeof(*the_map.cells)*FOG_MAP_SIZE+
-            sizeof(**the_map.cells)*FOG_MAP_SIZE*FOG_MAP_SIZE);
+                            sizeof(*the_map.cells)*FOG_MAP_SIZE+
+                            sizeof(**the_map.cells)*FOG_MAP_SIZE*FOG_MAP_SIZE);
         if (the_map.cells == NULL) {
             LOG(LOG_ERROR, "mapdata_init", "%s\n", "out of memory");
             exit(1);
@@ -613,22 +617,22 @@ void mapdata_clear_space(int x, int y)
     if (x < width && y < height) {
         /* tile is visible */
 
-	/* visible tile is now blank ==> do not clear but mark as cleared */
-	if (!the_map.cells[px][py].cleared) {
-	    the_map.cells[px][py].cleared = 1;
-	    the_map.cells[px][py].need_update = 1;
+        /* visible tile is now blank ==> do not clear but mark as cleared */
+        if (!the_map.cells[px][py].cleared) {
+            the_map.cells[px][py].cleared = 1;
+            the_map.cells[px][py].need_update = 1;
 
-	    for (i=0; i < MAXLAYERS; i++)
-		if (the_map.cells[px][py].heads[i].face)
-		    expand_need_update_from_layer(px, py, i);
-	}
-    }
-    else {
+            for (i=0; i < MAXLAYERS; i++)
+                if (the_map.cells[px][py].heads[i].face) {
+                    expand_need_update_from_layer(px, py, i);
+                }
+        }
+    } else {
         /* tile is invisible (outside view area, i.e. big face update) */
 
         for (i = 0; i < MAXLAYERS; i++) {
-	    expand_set_bigface(x, y, i, 0, TRUE);
-	}
+            expand_set_bigface(x, y, i, 0, TRUE);
+        }
     }
 }
 
@@ -659,28 +663,33 @@ void mapdata_set_check_space(int x, int y)
     is_blank=1;
     cell = &the_map.cells[px][py];
     for (i=0; i < MAXLAYERS; i++) {
-	if (cell->heads[i].face>0 || cell->tails[i].face>0) {
-	    is_blank=0;
-	    break;
-	}
+        if (cell->heads[i].face>0 || cell->tails[i].face>0) {
+            is_blank=0;
+            break;
+        }
     }
 
-    if (cell->have_darkness) is_blank=0;
+    if (cell->have_darkness) {
+        is_blank=0;
+    }
 
     /* We only care if this space needs to be blanked out */
-    if (!is_blank) return;
+    if (!is_blank) {
+        return;
+    }
 
     if (x < width && y < height) {
         /* tile is visible */
 
-	/* visible tile is now blank ==> do not clear but mark as cleared */
-	if (!the_map.cells[px][py].cleared) {
-	    the_map.cells[px][py].cleared = 1;
-	    the_map.cells[px][py].need_update = 1;
+        /* visible tile is now blank ==> do not clear but mark as cleared */
+        if (!the_map.cells[px][py].cleared) {
+            the_map.cells[px][py].cleared = 1;
+            the_map.cells[px][py].need_update = 1;
 
-	    for (i=0; i < MAXLAYERS; i++)
+            for (i=0; i < MAXLAYERS; i++) {
                 expand_need_update_from_layer(px, py, i);
-	}
+            }
+        }
     }
 }
 
@@ -714,8 +723,8 @@ void mapdata_set_darkness(int x, int y, int darkness)
 /* Sets smooth information for layer */
 void mapdata_set_smooth(int x, int y, int smooth, int layer)
 {
-    static int dx[8]={0,1,1,1,0,-1,-1,-1};
-    static int dy[8]={-1,-1,0,1,1,1,0,-1};
+    static int dx[8]= {0,1,1,1,0,-1,-1,-1};
+    static int dy[8]= {-1,-1,0,1,1,1,0,-1};
     int rx, ry, px, py, i;
 
     assert(0 <= x && x < MAX_VIEW);
@@ -727,15 +736,16 @@ void mapdata_set_smooth(int x, int y, int smooth, int layer)
     assert(0 <= py && py < FOG_MAP_SIZE);
 
     if (the_map.cells[px][py].smooth[layer] != smooth) {
-	for (i=0;i<8;i++){
+        for (i=0; i<8; i++) {
             rx=px+dx[i];
             ry=py+dy[i];
-            if ( (rx<0) || (ry<0) || (the_map.x<=rx) || (the_map.y<=ry))
+            if ( (rx<0) || (ry<0) || (the_map.x<=rx) || (the_map.y<=ry)) {
                 continue;
+            }
             the_map.cells[rx][ry].need_resmooth=1;
-	}
+        }
         the_map.cells[px][py].need_resmooth=1;
-	the_map.cells[px][py].smooth[layer] = smooth;
+        the_map.cells[px][py].smooth[layer] = smooth;
     }
 }
 
@@ -745,7 +755,8 @@ void mapdata_set_smooth(int x, int y, int smooth, int layer)
  * doesn't work went sent before the layer data when that square was
  * going to be cleared. This is used by the Map2Cmd()
  */
-void mapdata_clear_old(int x, int y) {
+void mapdata_clear_old(int x, int y)
+{
     int px, py;
     int i;
 
@@ -759,8 +770,9 @@ void mapdata_clear_old(int x, int y) {
 
     if (x < width && y < height)
         if (the_map.cells[px][py].cleared) {
-            for (i=0; i < MAXLAYERS; i++)
+            for (i=0; i < MAXLAYERS; i++) {
                 expand_clear_face_from_layer(px, py, i);
+            }
 
             the_map.cells[px][py].darkness = 0;
             the_map.cells[px][py].have_darkness = 0;
@@ -784,17 +796,16 @@ void mapdata_set_face_layer(int x, int y, sint16 face, int layer)
     assert(0 <= py && py < FOG_MAP_SIZE);
 
     if (x < width && y < height) {
-	the_map.cells[px][py].need_update = 1;
-	if (face >0)
-	    expand_set_face(px, py, layer, face, TRUE);
-	else {
-	    expand_clear_face_from_layer(px, py, layer);
-	}
+        the_map.cells[px][py].need_update = 1;
+        if (face >0) {
+            expand_set_face(px, py, layer, face, TRUE);
+        } else {
+            expand_clear_face_from_layer(px, py, layer);
+        }
 
-	the_map.cells[px][py].cleared = 0;
-    }
-    else {
-	expand_set_bigface(x, y, layer, face, TRUE);
+        the_map.cells[px][py].cleared = 0;
+    } else {
+        expand_set_bigface(x, y, layer, face, TRUE);
     }
 }
 
@@ -821,41 +832,40 @@ void mapdata_set_anim_layer(int x, int y, uint16 anim, uint8 anim_speed, int lay
 
     /* Random animation is pretty easy */
     if ((anim & ANIM_FLAGS_MASK) == ANIM_RANDOM) {
-	phase = random() % animations[animation].num_animations;
-	face = animations[animation].faces[phase];
-	speed_left = anim_speed % random();
+        phase = random() % animations[animation].num_animations;
+        face = animations[animation].faces[phase];
+        speed_left = anim_speed % random();
     } else if ((anim & ANIM_FLAGS_MASK) == ANIM_SYNC) {
-	animations[animation].speed = anim_speed;
-	phase = animations[animation].phase;
-	speed_left = animations[animation].speed_left;
-	face = animations[animation].faces[phase];
+        animations[animation].speed = anim_speed;
+        phase = animations[animation].phase;
+        speed_left = animations[animation].speed_left;
+        face = animations[animation].faces[phase];
     }
 
     if (x < width && y < height) {
-	the_map.cells[px][py].need_update = 1;
-	if (the_map.cells[px][py].cleared) {
-	    for (i=0; i < MAXLAYERS; i++)
-		expand_clear_face_from_layer(px, py, i);
+        the_map.cells[px][py].need_update = 1;
+        if (the_map.cells[px][py].cleared) {
+            for (i=0; i < MAXLAYERS; i++) {
+                expand_clear_face_from_layer(px, py, i);
+            }
 
-	    the_map.cells[px][py].darkness = 0;
-	    the_map.cells[px][py].have_darkness = 0;
-	}
-	if (face >0) {
-	    expand_set_face(px, py, layer, face, TRUE);
-	    the_map.cells[px][py].heads[layer].animation = animation;
-	    the_map.cells[px][py].heads[layer].animation_phase = phase;
-	    the_map.cells[px][py].heads[layer].animation_speed = anim_speed;
-	    the_map.cells[px][py].heads[layer].animation_left = speed_left;
-	}
-	else {
-	    expand_clear_face_from_layer(px, py, layer);
-	}
+            the_map.cells[px][py].darkness = 0;
+            the_map.cells[px][py].have_darkness = 0;
+        }
+        if (face >0) {
+            expand_set_face(px, py, layer, face, TRUE);
+            the_map.cells[px][py].heads[layer].animation = animation;
+            the_map.cells[px][py].heads[layer].animation_phase = phase;
+            the_map.cells[px][py].heads[layer].animation_speed = anim_speed;
+            the_map.cells[px][py].heads[layer].animation_left = speed_left;
+        } else {
+            expand_clear_face_from_layer(px, py, layer);
+        }
 
-	the_map.cells[px][py].cleared = 0;
+        the_map.cells[px][py].cleared = 0;
 
-    }
-    else {
-	expand_set_bigface(x, y, layer, face, TRUE);
+    } else {
+        expand_set_bigface(x, y, layer, face, TRUE);
     }
 }
 
@@ -876,14 +886,13 @@ void mapdata_scroll(int dx, int dy)
             for (x = 0; x < cell->head.size_x; x++) {
                 for (y = !x; y < cell->head.size_y; y++) {
                     if (0 <= cell->x-x && cell->x-x < width
-                    && 0 <= cell->y-y && cell->y-y < height) {
+                            && 0 <= cell->y-y && cell->y-y < height) {
                         the_map.cells[pl_pos.x+cell->x-x][pl_pos.y+cell->y-y].need_update = 1;
                     }
                 }
             }
         }
-    }
-    else {
+    } else {
         /* Emulate map scrolling by redrawing all tiles. */
         for (x = 0; x < width; x++) {
             for (y = 0; y < height; y++) {
@@ -903,8 +912,7 @@ void mapdata_scroll(int dx, int dy)
                 the_map.cells[pl_pos.x+x][pl_pos.y+y].need_update = 1;
             }
         }
-    }
-    else {
+    } else {
         for (y = 0; y < height; y++) {
             for (x = 0; x < -dx; x++) {
                 the_map.cells[pl_pos.x+x][pl_pos.y+y].cleared = 1;
@@ -920,8 +928,7 @@ void mapdata_scroll(int dx, int dy)
                 the_map.cells[pl_pos.x+x][pl_pos.y+y].need_update = 1;
             }
         }
-    }
-    else {
+    } else {
         for (x = 0; x < width; x++) {
             for (y = 0; y < -dy; y++) {
                 the_map.cells[pl_pos.x+x][pl_pos.y+y].cleared = 1;
@@ -958,7 +965,9 @@ void mapdata_newmap(void)
 
 sint16 mapdata_face(int x, int y, int layer)
 {
-    if (width <= 0) return(0);
+    if (width <= 0) {
+        return(0);
+    }
 
     assert(0 <= x && x < width);
     assert(0 <= y && y < height);
@@ -971,7 +980,9 @@ sint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh)
 {
     sint16 result;
 
-    if (width <= 0) return(0);
+    if (width <= 0) {
+        return(0);
+    }
 
     assert(0 <= x && x < width);
     assert(0 <= y && y < height);
@@ -1000,15 +1011,13 @@ sint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh)
              * old information.
              */
             clear_bigface = 0;
-        }
-        else {
+        } else {
             if (x+dx < width && y+dy < height) {
                 /* Clear face if current tile is valid but the
                  * head is marked as cleared.
                  */
                 clear_bigface = the_map.cells[pl_pos.x+x+dx][pl_pos.y+y+dy].cleared;
-            }
-            else {
+            } else {
                 /* Clear face if current tile is valid but the
                  * head is not set.
                  */
@@ -1057,7 +1066,9 @@ sint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh)
 {
     sint16 result;
 
-    if (width <= 0) return(0);
+    if (width <= 0) {
+        return(0);
+    }
 
     assert(0 <= x && x < MAX_VIEW);
     assert(0 <= y && y < MAX_VIEW);
@@ -1113,26 +1124,22 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
          * i.e. left border is FOG_BORDER_MIN+MAX_FACE_SIZE after
          * shifting.
          */
-    }
-    else if (new_x+MAX_VIEW > FOG_MAP_SIZE) {
+    } else if (new_x+MAX_VIEW > FOG_MAP_SIZE) {
         shift_x = FOG_MAP_SIZE-FOG_BORDER_MIN-MAX_VIEW-new_x;
         /* This yields: new_x+shift_x ==
          * FOG_MAP_SIZE-FOG_BODER_MIN-MAX_VIEW, i.e. right border is
          * FOGBORDER_MIN after shifting.
          */
-    }
-    else {
+    } else {
         shift_x = 0;
     }
 
     /* Same as above but for y. */
     if (new_y < MAX_FACE_SIZE) {
         shift_y = FOG_BORDER_MIN+MAX_FACE_SIZE-new_y;
-    }
-    else if (new_y+MAX_VIEW > FOG_MAP_SIZE) {
+    } else if (new_y+MAX_VIEW > FOG_MAP_SIZE) {
         shift_y = FOG_MAP_SIZE-FOG_BORDER_MIN-MAX_VIEW-new_y;
-    }
-    else {
+    } else {
         shift_y = 0;
     }
 
@@ -1149,16 +1156,14 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
     if (shift_x == 0) {
         if (new_x < FOG_BORDER_MIN+MAX_FACE_SIZE) {
             shift_x = FOG_BORDER_MIN+MAX_FACE_SIZE-new_x;
-        }
-        else if (new_x+MAX_VIEW+FOG_BORDER_MIN > FOG_MAP_SIZE) {
+        } else if (new_x+MAX_VIEW+FOG_BORDER_MIN > FOG_MAP_SIZE) {
             shift_x = FOG_MAP_SIZE-FOG_BORDER_MIN-MAX_VIEW-new_x;
         }
     }
     if (shift_y == 0) {
         if (new_y < FOG_BORDER_MIN+MAX_FACE_SIZE) {
             shift_y = FOG_BORDER_MIN+MAX_FACE_SIZE-new_y;
-        }
-        else if (new_y+MAX_VIEW+FOG_BORDER_MIN > FOG_MAP_SIZE) {
+        } else if (new_y+MAX_VIEW+FOG_BORDER_MIN > FOG_MAP_SIZE) {
             shift_y = FOG_MAP_SIZE-FOG_BORDER_MIN-MAX_VIEW-new_y;
         }
     }
@@ -1167,7 +1172,7 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
      * and recenter.
      */
     if (shift_x <= -FOG_MAP_SIZE || shift_x >= FOG_MAP_SIZE
-    || shift_y <= -FOG_MAP_SIZE || shift_y >= FOG_MAP_SIZE) {
+            || shift_y <= -FOG_MAP_SIZE || shift_y >= FOG_MAP_SIZE) {
         for (dx = 0; dx < FOG_MAP_SIZE; dx++) {
             CLEAR_CELLS(dx, 0, FOG_MAP_SIZE);
         }
@@ -1186,8 +1191,7 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
         src_x = -shift_x;
         dst_x = 0;
         len_x = FOG_MAP_SIZE+shift_x;
-    }
-    else {
+    } else {
         src_x = 0;
         dst_x = shift_x;
         len_x = FOG_MAP_SIZE-shift_x;
@@ -1197,8 +1201,7 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
         src_y = -shift_y;
         dst_y = 0;
         len_y = FOG_MAP_SIZE+shift_y;
-    }
-    else {
+    } else {
         src_y = 0;
         dst_y = shift_y;
         len_y = FOG_MAP_SIZE-shift_y;
@@ -1211,16 +1214,14 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
              */
             memcpy(&the_map.cells[dx][dst_y], &the_map.cells[sx][src_y], len_y*sizeof(the_map.cells[dx][dst_y]));
         }
-    }
-    else if (shift_x > 0) {
+    } else if (shift_x > 0) {
         for (sx = src_x+len_x-1, dx = dst_x+len_x-1, i = 0; i < len_x; sx--, dx--, i++) {
             /* srcx!=dstx ==> can use memcpy since source and
              * destination to not overlap.
              */
             memcpy(&the_map.cells[dx][dst_y], &the_map.cells[sx][src_y], len_y*sizeof(the_map.cells[dx][dst_y]));
         }
-    }
-    else {
+    } else {
         assert(src_x == dst_x);
         for (dx = src_x, i = 0; i < len_x; dx++, i++) {
             /* srcx==dstx ==> use memmove since source and
@@ -1241,8 +1242,7 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
         for (dx = 0; dx < len_x; dx++) {
             CLEAR_CELLS(dx+dst_x, 0, shift_y);
         }
-    }
-    else if (shift_y < 0) {
+    } else if (shift_y < 0) {
         for (dx = 0; dx < len_x; dx++) {
             CLEAR_CELLS(dx+dst_x, FOG_MAP_SIZE+shift_y, -shift_y);
         }
@@ -1256,10 +1256,18 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
 static void mapdata_get_image_size(int face, uint8 *w, uint8 *h)
 {
     get_map_image_size(face, w, h);
-    if (*w < 1) *w = 1;
-    if (*h < 1) *h = 1;
-    if (*w > MAX_FACE_SIZE) *w = MAX_FACE_SIZE;
-    if (*h > MAX_FACE_SIZE) *h = MAX_FACE_SIZE;
+    if (*w < 1) {
+        *w = 1;
+    }
+    if (*h < 1) {
+        *h = 1;
+    }
+    if (*w > MAX_FACE_SIZE) {
+        *w = MAX_FACE_SIZE;
+    }
+    if (*h > MAX_FACE_SIZE) {
+        *h = MAX_FACE_SIZE;
+    }
 }
 
 /* This basically goes through all the map spaces and does the necessary
@@ -1278,68 +1286,73 @@ void mapdata_animation(void)
      * keep in sync.
      */
     for (x=0; x < MAXANIM; x++) {
-	if (animations[x].speed) {
-	    animations[x].speed_left++;
-	    if (animations[x].speed_left >= animations[x].speed) {
-		animations[x].speed_left=0;
-		animations[x].phase++;
-		if (animations[x].phase >= animations[x].num_animations)
-		    animations[x].phase=0;
-	    }
-	}
+        if (animations[x].speed) {
+            animations[x].speed_left++;
+            if (animations[x].speed_left >= animations[x].speed) {
+                animations[x].speed_left=0;
+                animations[x].phase++;
+                if (animations[x].phase >= animations[x].num_animations) {
+                    animations[x].phase=0;
+                }
+            }
+        }
     }
 
     for (x=0; x < CURRENT_MAX_VIEW; x++) {
-	for (y=0; y < CURRENT_MAX_VIEW; y++) {
+        for (y=0; y < CURRENT_MAX_VIEW; y++) {
 
-	    /* Short cut some processing here.  It makes sense to me
-	     * not to animate stuff out of view
-	     */
-	    if (the_map.cells[pl_pos.x + x][pl_pos.y + y].cleared) continue;
+            /* Short cut some processing here.  It makes sense to me
+             * not to animate stuff out of view
+             */
+            if (the_map.cells[pl_pos.x + x][pl_pos.y + y].cleared) {
+                continue;
+            }
 
-	    for (layer=0; layer<MAXLAYERS; layer++) {
-		smooth = the_map.cells[pl_pos.x + x][pl_pos.y + y].smooth[layer];
+            for (layer=0; layer<MAXLAYERS; layer++) {
+                smooth = the_map.cells[pl_pos.x + x][pl_pos.y + y].smooth[layer];
 
-		/* Using the cell structure just makes life easier here */
-		cell = &the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer];
+                /* Using the cell structure just makes life easier here */
+                cell = &the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer];
 
-		if (cell->animation) {
-		    cell->animation_left++;
-		    if (cell->animation_left >= cell->animation_speed) {
-			cell->animation_left=0;
-			cell->animation_phase++;
-			if (cell->animation_phase >= animations[cell->animation].num_animations)
-			    cell->animation_phase=0;
-			face = animations[cell->animation].faces[cell->animation_phase];
+                if (cell->animation) {
+                    cell->animation_left++;
+                    if (cell->animation_left >= cell->animation_speed) {
+                        cell->animation_left=0;
+                        cell->animation_phase++;
+                        if (cell->animation_phase >= animations[cell->animation].num_animations) {
+                            cell->animation_phase=0;
+                        }
+                        face = animations[cell->animation].faces[cell->animation_phase];
 
-			/* I don't think we send any to the client, but it is possible
-			 * for animations to have blank faces.
-			 */
-			if (face >0) {
-			    expand_set_face(pl_pos.x + x, pl_pos.y + y, layer, face, FALSE);
-/*			    mapdata_set_smooth(x, y, smooth, layer);*/
-			} else {
-			    expand_clear_face_from_layer(pl_pos.x + x, pl_pos.y + y , layer);
-			}
-		    }
-		}
-		cell = &bigfaces[x][y][layer].head;
-		if (cell->animation) {
-		    cell->animation_left++;
-		    if (cell->animation_left >= cell->animation_speed) {
-			cell->animation_left=0;
-			cell->animation_phase++;
-			if (cell->animation_phase >= animations[cell->animation].num_animations)
-			    cell->animation_phase=0;
-			face = animations[cell->animation].faces[cell->animation_phase];
+                        /* I don't think we send any to the client, but it is possible
+                         * for animations to have blank faces.
+                         */
+                        if (face >0) {
+                            expand_set_face(pl_pos.x + x, pl_pos.y + y, layer, face, FALSE);
+                            /*			    mapdata_set_smooth(x, y, smooth, layer);*/
+                        } else {
+                            expand_clear_face_from_layer(pl_pos.x + x, pl_pos.y + y , layer);
+                        }
+                    }
+                }
+                cell = &bigfaces[x][y][layer].head;
+                if (cell->animation) {
+                    cell->animation_left++;
+                    if (cell->animation_left >= cell->animation_speed) {
+                        cell->animation_left=0;
+                        cell->animation_phase++;
+                        if (cell->animation_phase >= animations[cell->animation].num_animations) {
+                            cell->animation_phase=0;
+                        }
+                        face = animations[cell->animation].faces[cell->animation_phase];
 
-			/* I don't think we send any to the client, but it is possible
-			 * for animations to have blank faces.
-			 */
-			expand_set_bigface(x, y, layer, face, FALSE);
-		    }
-		}
-	    }
-	}
+                        /* I don't think we send any to the client, but it is possible
+                         * for animations to have blank faces.
+                         */
+                        expand_set_bigface(x, y, layer, face, FALSE);
+                    }
+                }
+            }
+        }
     }
 }

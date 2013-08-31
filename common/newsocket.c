@@ -1,26 +1,15 @@
-const char * const rcsid_common_newsocket_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file common/newsocket.c
@@ -59,7 +48,7 @@ const char * const rcsid_common_newsocket_c =
  *
  * @param fd  Socket to write to.
  * @param buf Buffer with data to write.
- * @param len 
+ * @param len
  * @return
  */
 static int write_socket(int fd, const unsigned char *buf, int len)
@@ -76,7 +65,8 @@ static int write_socket(int fd, const unsigned char *buf, int len)
         } while ((amt<0) && ((errno==EINTR) || (errno=EAGAIN)));
 #else
             amt=send(fd, pos, len, 0);
-        } while ((amt<0) && (WSAGetLastError()==EINTR));
+        }
+        while ((amt<0) && (WSAGetLastError()==EINTR));
 #endif
         if (amt < 0) { /* We got an error */
             LOG(llevError,"write_socket","New socket (fd=%d) write failed: %s.\n", fd, strerror(errno));
@@ -92,7 +82,7 @@ static int write_socket(int fd, const unsigned char *buf, int len)
 }
 
 /**
- * 
+ *
  * @param sl
  * @param buf
  */
@@ -145,8 +135,9 @@ void SockList_AddString(SockList *sl, const char *str)
 {
     int len = strlen(str);
 
-    if (sl->len + len > MAX_BUF-2)
+    if (sl->len + len > MAX_BUF-2) {
         len = MAX_BUF-2 - sl->len;
+    }
     memcpy(sl->buf + sl->len, str, len);
     sl->len += len;
 }
@@ -201,7 +192,7 @@ sint64 GetInt64_String(const unsigned char *data)
             ((sint64)data[2]<<40) + ((sint64)data[3]<<32) +
             ((sint64)data[4]<<24) + ((sint64)data[5]<<16) + ((sint64)data[6]<<8) + (sint64)data[7]);
 #else
-     return (((uint64)data[0]<<56) + ((uint64)data[1]<<48) +
+    return (((uint64)data[0]<<56) + ((uint64)data[1]<<48) +
             ((uint64)data[2]<<40) + ((uint64)data[3]<<32) +
             ((uint64)data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
 #endif
@@ -212,7 +203,8 @@ sint64 GetInt64_String(const unsigned char *data)
  * @param data
  * @return
  */
-short GetShort_String(const unsigned char *data) {
+short GetShort_String(const unsigned char *data)
+{
     return ((data[0]<<8)+data[1]);
 }
 
@@ -254,19 +246,23 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 #endif
             {
                 perror("ReadPacket got an error.");
-                    LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning -1",errno);
-                    return -1;
+                LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning -1",errno);
+                return -1;
             }
             return 0;   /*Error */
         }
-        if (stat==0) return -1;
+        if (stat==0) {
+            return -1;
+        }
 
         sl->len += stat;
 #ifdef CS_LOGSTATS
         cst_tot.ibytes += stat;
         cst_lst.ibytes += stat;
 #endif
-        if (stat<2) return 0;   /* Still don't have a full packet */
+        if (stat<2) {
+            return 0;    /* Still don't have a full packet */
+        }
         readsome=1;
     }
 
@@ -296,13 +292,15 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 #else
             if (WSAGetLastError()!=EAGAIN && WSAGetLastError()!=WSAEWOULDBLOCK)
 #endif
-                {
-                    perror("ReadPacket got an error.");
-                    LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning 0",errno);
-                }
-                return 0;       /*Error */
+            {
+                perror("ReadPacket got an error.");
+                LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning 0",errno);
+            }
+            return 0;       /*Error */
         }
-        if (stat==0) return -1;
+        if (stat==0) {
+            return -1;
+        }
         sl->len += stat;
 
 #ifdef CS_LOGSTATS
@@ -310,7 +308,9 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
         cst_lst.ibytes += stat;
 #endif
         toread -= stat;
-        if (toread==0) return 1;
+        if (toread==0) {
+            return 1;
+        }
 
         if (toread < 0) {
             LOG(llevError,"SockList_ReadPacket","SockList_ReadPacket: Read more bytes than desired.");
