@@ -155,37 +155,28 @@ static void do_clienthelp_list(void)
  *
  * @param cc
  */
-static void show_help(const ConsoleCommand * cc)
-{
-    {
-        char buf[MAX_BUF];
-        snprintf(buf, MAX_BUF - 1, "%s Command help:", get_category_name(cc->cat));
-        H1(buf);
-    }
+static void show_help(const ConsoleCommand *cc) {
+    char buf[MAX_BUF];
 
     if (cc->desc != NULL) {
-        char buf[MAX_BUF];
         snprintf(buf, MAX_BUF - 1, "%s - %s", cc->name, cc->desc);
         H2(buf);
     } else {
-        H2(cc->name);
+        snprintf(buf, MAX_BUF - 1, "Help for '%s':", cc->name);
+        H2(buf);
     }
 
     if (cc->helpfunc != NULL) {
-        const char * long_help = NULL;
-
+        const char *long_help = NULL;
         long_help = cc->helpfunc();
 
         if (long_help != NULL) {
-            /* For a test, let's watch draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT,
-             * MSG_TYPE_CLIENT_NOTICE, ) choke on newlines. */
-            /* TODO C line wrapping (get_info_width()), argh. Or move it to UI? */
             LINE(long_help);
         } else {
-            LINE("This command's documentation is bugged!");
+            LINE("Extended help for this command is broken.");
         }
     } else {
-        LINE("This command has no extended documentation. :(");
+        LINE("No extended help is available for this command.");
     }
 }
 
@@ -586,16 +577,11 @@ static const char * help_cwindow(void)
 /**
  *
  */
-static const char * help_script(void)
-{
+static const char * help_script(void) {
     return
-        "Syntax:\n"
-        "\n"
-        "    script <pathname>\n"
-        "\n"
-        "Run the program at path <name>"
-        "as a Crossfire client script."
-        "See doc/Script.html";
+        "Syntax: script <path>\n\n"
+        "Start an executable client script located at <path>. For details on "
+        "client-side scripting, please see the Crossfire Wiki.";
 }
 
 /**

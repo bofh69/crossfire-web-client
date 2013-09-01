@@ -206,8 +206,7 @@ static int emulate_write(HANDLE fd, const char *buf, int len)
 
 #endif /* WIN32 */
 
-void script_init(const char *cparams)
-{
+void script_init(const char *cparams) {
 #ifndef WIN32
     int pipe1[2];
 #ifdef USE_PIPE
@@ -218,7 +217,8 @@ void script_init(const char *cparams)
 
     if (!cparams) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-                      "Please specify a script to launch!");
+                      "Please specify a script to start. For help, type "
+                      "'help script'.");
         return;
     }
 
