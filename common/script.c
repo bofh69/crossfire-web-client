@@ -208,10 +208,7 @@ static int emulate_write(HANDLE fd, const char *buf, int len)
 
 void script_init(const char *cparams) {
 #ifndef WIN32
-    int pipe1[2];
-#ifdef USE_PIPE
-    int pipe2[2];
-#endif
+    int pipe1[2], pipe2[2];
     int pid;
     char *name, *args, params[MAX_BUF];
 
@@ -222,12 +219,9 @@ void script_init(const char *cparams) {
         return;
     }
 
-    /* cparams as passed in is a const value, so need to copy it
-     * to data we can write over.
-     */
-    strncpy(params, cparams, MAX_BUF-1);
-    params[MAX_BUF-1] = 0;
-
+    /* cparams is a const value, so copy the data into a buffer */
+    strncpy(params, cparams, MAX_BUF - 1);
+    params[MAX_BUF - 1] = '\0';
 
     /* Get name and args */
     name = params;
@@ -242,38 +236,28 @@ void script_init(const char *cparams) {
         args = NULL;
     }
 
-#ifdef USE_PIPE
-    /* Create two pipes */
-    if (pipe(pipe1)) {
+    /* Open two pipes, one for stdin and the other for stdout. */
+    if (pipe(pipe1) != 0) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
                       "Unable to start script--pipe failed");
         return;
     }
-    if (pipe(pipe2)) {
+    if (pipe(pipe2) != 0) {
         close(pipe1[0]);
         close(pipe1[1]);
+
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
                       "Unable to start script--pipe failed");
         return;
     }
-#else
-    /* Create a pair of sockets */
-    if (socketpair(PF_LOCAL, SOCK_STREAM, AF_LOCAL, pipe1)) {
-        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
-                      "Unable to start script--socketpair failed");
-        return;
-    }
-#endif
 
     /* Fork */
     pid = fork();
     if (pid == -1) {
         close(pipe1[0]);
         close(pipe1[1]);
-#ifdef USE_PIPE
         close(pipe2[0]);
         close(pipe2[1]);
-#endif
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
                       "Unable to start script--fork failed");
         return;
@@ -304,11 +288,7 @@ void script_init(const char *cparams) {
         if (r != 0) {
             fprintf(stderr, "Script Child: Failed to set pipe1 as stdin\n");
         }
-#ifdef USE_PIPE
         r = dup2(pipe2[1], 1);
-#else
-        r = dup2(pipe1[0], 1);
-#endif
         if (r != 1) {
             fprintf(stderr, "Script Child: Failed to set pipe2 as stdout\n");
         }
@@ -337,9 +317,7 @@ void script_init(const char *cparams) {
 
     /* Close the child's pipe ends */
     close(pipe1[0]);
-#ifdef USE_PIPE
     close(pipe2[1]);
-#endif
 
     if (fcntl(pipe1[1], F_SETFL, O_NDELAY) == -1) {
         LOG(LOG_WARNING, "common::script_init", "Error on fcntl.");
@@ -350,11 +328,7 @@ void script_init(const char *cparams) {
     scripts[num_scripts].name = strdup(name);
     scripts[num_scripts].params = args ? strdup(args) : NULL;
     scripts[num_scripts].out_fd = pipe1[1];
-#ifdef USE_PIPE
     scripts[num_scripts].in_fd = pipe2[0];
-#else
-    scripts[num_scripts].in_fd = pipe1[1];
-#endif
     scripts[num_scripts].monitor = 0;
     scripts[num_scripts].num_watch = 0;
     scripts[num_scripts].watch = NULL;
