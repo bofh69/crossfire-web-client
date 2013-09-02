@@ -410,9 +410,6 @@ static int character_data_ok()
 {
     const gchar *char_name;
     int i, stat_points_used=0, tmp[NUM_NEW_CHAR_STATS], negative_stat=0;
-    SockList sl;
-    char buf[MAX_BUF];
-    uint8 sockbuf[MAX_BUF];
 
     char_name = gtk_entry_get_text(GTK_ENTRY(entry_new_character_name));
 
@@ -548,7 +545,7 @@ on_spinbutton_cc (GtkSpinButton *spinbutton, gpointer user_data) {
 void
 on_combobox_rcs_changed(GtkComboBox *box, gpointer user_data)
 {
-    int active_entry, i, opt_start, opt_end;
+    int active_entry, i, opt_start;
     GtkWidget **label_stat;
     Race_Class_Info *rc;
     char buf[256];
@@ -739,10 +736,7 @@ on_button_csm_cancel(GtkButton *button, gpointer user_data)
 void
 on_combobox_starting_map_changed(GtkComboBox *box, gpointer user_data)
 {
-    int active_entry, i;
-    GtkWidget **label_stat;
-    Race_Class_Info *rc;
-    char buf[256];
+    int active_entry;
 
     active_entry = gtk_combo_box_get_active(box);
 
@@ -766,7 +760,6 @@ on_combobox_starting_map_changed(GtkComboBox *box, gpointer user_data)
  */
 void starting_map_update_info()
 {
-    char buf[256];
     GtkListStore *store;
     GtkTreeIter iter;
     GtkCellRenderer *renderer;

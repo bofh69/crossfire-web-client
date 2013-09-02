@@ -1319,7 +1319,6 @@ void account_change_password_failure(char *message) {
 static void init_account_password_window(void)
 {
     GladeXML *xml_tree;
-    GtkTextIter end;
 
     account_password_window =
         glade_xml_get_widget(dialog_xml, "account_password_window");

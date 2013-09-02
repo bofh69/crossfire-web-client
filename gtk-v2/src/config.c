@@ -200,7 +200,6 @@ void init_theme()
 
 void load_theme(int reload) {
     char path[MAX_BUF];
-    int i;
 
     /*
      * Whether or not this is default and initial run, we want to register
