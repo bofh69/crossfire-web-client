@@ -356,8 +356,7 @@ int init_sounds(void)
         return -1;
     }
 
-    strncpy(path, getenv("HOME"), sizeof(path) - 1);
-    strncat(path, USER_CONFIG_FILE, sizeof(path) - 1);
+    snprintf(path, sizeof(path), "%s%s", getenv("HOME"), USER_CONFIG_FILE);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
     user_config_file = (char *) malloc(strlen(path));
     if (user_config_file) {
@@ -366,8 +365,7 @@ int init_sounds(void)
         return -1;
     }
 
-    strncpy(path, getenv("HOME"), sizeof(path) - 1);
-    strncat(path, USER_SOUNDS_FILE, sizeof(path) - 1);
+    snprintf(path, sizeof(path), "%s%s", getenv("HOME"), USER_SOUNDS_FILE);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
     user_sounds_file = (char *) malloc(strlen(path));
     if (user_sounds_file) {
@@ -376,8 +374,7 @@ int init_sounds(void)
         return -1;
     }
 
-    strncpy(path, getenv("HOME"), sizeof(path) - 1);
-    strncat(path, USER_SOUNDS_PATH, sizeof(path) - 1);
+    snprintf(path, sizeof(path), "%s%s", getenv("HOME"), USER_SOUNDS_PATH);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
     user_sounds_path = (char *) malloc(strlen(path));
     if (user_sounds_path) {

@@ -749,9 +749,7 @@ void play_sound(int soundnum, int soundtype, int x, int y)
     /*
      * Attempt to load the sound data.
      */
-    strncpy(path, client_sounds_path, sizeof(path) - 5);
-    strncat(path, si->filename, sizeof(path) - 5);
-    strncat(path, ".ogg", sizeof(path) - 5);
+    snprintf(path, sizeof(path), "%s%s.ogg", client_sounds_path, si->filename);
     fprintf(stderr, "Attempting to load sound from '%s'\n", path);
 
     chunk[channel] = Mix_LoadWAV(path);
@@ -791,9 +789,7 @@ void play_music(const char* music_name)
         return;
     }
     path[sizeof(path) - 1] = '\0';
-    strncpy(path, user_sounds_path, sizeof(path) - 5);
-    strncat(path, music_name, sizeof(path) - 5);
-    strcat(path, ".ogg");
+    snprintf(path, sizeof(path), "%s%s.ogg", user_sounds_path, music_name);
 
     if (stat(path, &statbuf) != -1) {
         if ((statbuf.st_mode & S_IFMT) == S_IFREG) {
@@ -813,9 +809,7 @@ void play_music(const char* music_name)
             return;
         }
         path[sizeof(path) - 1] = '\0';
-        strncpy(path, client_sounds_path, sizeof(path) - 5);
-        strncat(path, music_name, sizeof(path) - 5);
-        strcat(path, ".ogg");
+        snprintf(path, sizeof(path), "%s%s.ogg", client_sounds_path, music_name);
 
         if (stat(path, &statbuf) != -1) {
             if (statbuf.st_mode == S_IFREG) {
