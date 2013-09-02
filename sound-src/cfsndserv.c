@@ -678,6 +678,7 @@ int audio_play(int buffer,int off)
  */
 void play_sound(int soundnum, int soundtype, int x, int y)
 {
+    char path[MAXSOCKBUF];
     int         channel = 0;
     int         playing = 0;
     Sound_Info *si;
@@ -728,9 +729,12 @@ void play_sound(int soundnum, int soundtype, int x, int y)
      * Get a pointer to the sound information for the given sound, and if it
      * does not include a filename, ignore the command to play the sound.
      */
+
+    /* TODO: To fix a compatability issue with the client, SOUND_SPELL is the
+     * same as '2'. This should be fixed in the client code soon. */
     if (soundtype == SOUND_NORMAL) {
         si = &normal_sounds[soundnum];
-    } else if (soundtype == SOUND_SPELL) {
+    } else if (soundtype == SOUND_SPELL || soundtype == 2) {
         si = &spell_sounds[soundnum];
     } else {
         fprintf(stderr,"play_sound: Unknown soundtype: %d\n", soundtype);
@@ -745,7 +749,12 @@ void play_sound(int soundnum, int soundtype, int x, int y)
     /*
      * Attempt to load the sound data.
      */
-    chunk[channel] = Mix_LoadWAV(si->filename);
+    strncpy(path, client_sounds_path, sizeof(path) - 5);
+    strncat(path, si->filename, sizeof(path) - 5);
+    strncat(path, ".ogg", sizeof(path) - 5);
+    fprintf(stderr, "Attempting to load sound from '%s'\n", path);
+
+    chunk[channel] = Mix_LoadWAV(path);
     if (! chunk[channel]) {
         fprintf(stderr, "play_sound: Mix_LoadWAV: %s\n", Mix_GetError());
         return;
