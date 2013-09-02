@@ -198,11 +198,6 @@ const char *get_number(uint32 i)
     };
     static char buf[MAX_BUF];
 
-    if (i < 0) {
-        snprintf(buf, sizeof(buf), "negative");
-        return buf;
-    }
-
     if (i <= 20) {
         return numbers[i];
     } else {
