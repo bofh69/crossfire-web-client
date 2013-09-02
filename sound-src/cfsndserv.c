@@ -1,27 +1,18 @@
 static char *rcsid_sound_src_cfsndserv_c =
     "$Id$";
+
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
-    Copyright (C) 2003 Tim Hentenaar
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file sound-src/cfsndserv.c
@@ -89,7 +80,7 @@ static char *rcsid_sound_src_cfsndserv_c =
 #elif defined(ALSA_SOUND)
 #  include <sys/asoundlib.h>
 #  define AUDIODEV "/dev/dsp"
-    snd_pcm_t *handle=NULL;
+snd_pcm_t *handle=NULL;
 #elif defined(OSS_SOUND)
 #  include <sys/soundcard.h>
 #  define AUDIODEV "/dev/dsp"
@@ -143,7 +134,8 @@ sound_settings settings = { 0, 1, 0, 11025, 100, 1024, 4, AUDIODEV };
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
-int init_audio(void) {
+int init_audio(void)
+{
 
     printf("cfsndserv for the SDL_mixer sound system\n");
     printf("supports sound effects and background music.\n");
@@ -161,16 +153,17 @@ int init_audio(void) {
 
     frequency = settings.frequency;
     bit8 = settings.bit8;
-    if (settings.bit8)
+    if (settings.bit8) {
         audio_format = settings.sign ? AUDIO_S8 : AUDIO_U8;
-    else
+    } else {
         audio_format = settings.sign ? AUDIO_S16 : AUDIO_U16;
+    }
     audio_channels = (stereo = settings.stereo) ? 1 : 2;
     /*
      * This is where we open up our audio device.  Mix_OpenAudio takes as its
      * parameters the audio format we'd /like/ to have.
      */
-    if (Mix_OpenAudio(frequency,audio_format,audio_channels,settings.buflen)){
+    if (Mix_OpenAudio(frequency,audio_format,audio_channels,settings.buflen)) {
         fprintf(stderr, "Mix_OpenAudio: Unable to open audio!\n");
         exit(1);
     }
@@ -180,39 +173,39 @@ int init_audio(void) {
     Mix_QuerySpec(&frequency, &audio_format, &audio_channels);
 
     switch (audio_format) {
-       case AUDIO_U16LSB:
-       case AUDIO_U16MSB:
-           bit8 = 0;
-           sign = 0;
-           break;
-       case AUDIO_S16LSB:
-       case AUDIO_S16MSB:
-           bit8 = 0;
-           sign = 1;
-           break;
-       case AUDIO_U8:
-           bit8 = 1;
-           sign = 0;
-           break;
-       case AUDIO_S8:
-           bit8 = 1;
-           sign = 1;
-           break;
-       default:
-           fprintf(stderr, "init_audio: Unexpected audio format\n");
-           return -1;
+    case AUDIO_U16LSB:
+    case AUDIO_U16MSB:
+        bit8 = 0;
+        sign = 0;
+        break;
+    case AUDIO_S16LSB:
+    case AUDIO_S16MSB:
+        bit8 = 0;
+        sign = 1;
+        break;
+    case AUDIO_U8:
+        bit8 = 1;
+        sign = 0;
+        break;
+    case AUDIO_S8:
+        bit8 = 1;
+        sign = 1;
+        break;
+    default:
+        fprintf(stderr, "init_audio: Unexpected audio format\n");
+        return -1;
     }
 
     switch (audio_channels) {
-        case 1:
-            stereo = 0;
-            break;
-        case 2:
-            stereo = 1;
-            break;
-        default:
-            fprintf(stderr, "init_audio: Unexpected number of channels\n");
-            return -1;
+    case 1:
+        stereo = 0;
+        break;
+    case 2:
+        stereo = 1;
+        break;
+    default:
+        fprintf(stderr, "init_audio: Unexpected number of channels\n");
+        return -1;
     }
 
     return 0;
@@ -229,7 +222,8 @@ int init_audio(void) {
  *         It is provided to maintain consistency with the legacy sound system
  *         functions of the same name.
  */
-int audio_play(int buffer, int off) {
+int audio_play(int buffer, int off)
+{
 
 #ifdef SOUND_DEBUG
     fprintf(stderr, "audio_play: SDL_SOUND\n");
@@ -246,7 +240,8 @@ int audio_play(int buffer, int off) {
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
-int init_audio(void) {
+int init_audio(void)
+{
     int card=0, device=0, err;
     snd_pcm_channel_params_t params;
 
@@ -274,15 +269,15 @@ int init_audio(void) {
         params.format.format =
             settings.sign ? SND_PCM_SFMT_S16_LE : SND_PCM_SFMT_U16_LE;
 
-     params.format.rate = settings.frequency;
-     params.format.voices = settings.stereo ? 2 : 1;
-     params.buf.block.frag_size = settings.buflen / 2;
-     params.buf.block.frags_max = 2;
-     params.buf.block.frags_min = 1;
+    params.format.rate = settings.frequency;
+    params.format.voices = settings.stereo ? 2 : 1;
+    params.buf.block.frag_size = settings.buflen / 2;
+    params.buf.block.frags_max = 2;
+    params.buf.block.frags_min = 1;
 
-     if ((err = snd_pcm_channel_params(handle, &params)) < 0) {
+    if ((err = snd_pcm_channel_params(handle, &params)) < 0) {
         fprintf(stderr,
-            "format setup failed: %s\nTrying defaults\n", snd_strerror(err));
+                "format setup failed: %s\nTrying defaults\n", snd_strerror(err));
         params.format.format = SND_PCM_SFMT_U8;
         params.format.rate = 11025;
         params.format.voices = 1;
@@ -291,37 +286,37 @@ int init_audio(void) {
             snd_pcm_close(handle);
             return -1;
         }
-     }
-     switch (params.format.format) {
-        case SND_PCM_SFMT_S8:
-           bit8 = 1;
-           sign = 1;
-           break;
-        case SND_PCM_SFMT_U8:
-           bit8 = 1;
-           sign = 0;
-           break;
-        case SND_PCM_SFMT_S16_LE:
-           bit8 = 0;
-           sign = 1;
-           break;
-        case SND_PCM_SFMT_U16_LE:
-           bit8 = 0;
-           sign = 0;
-           break;
-        default:
-           fprintf(stderr, "Could not set proper format\n");
-           return -1;
-     }
+    }
+    switch (params.format.format) {
+    case SND_PCM_SFMT_S8:
+        bit8 = 1;
+        sign = 1;
+        break;
+    case SND_PCM_SFMT_U8:
+        bit8 = 1;
+        sign = 0;
+        break;
+    case SND_PCM_SFMT_S16_LE:
+        bit8 = 0;
+        sign = 1;
+        break;
+    case SND_PCM_SFMT_U16_LE:
+        bit8 = 0;
+        sign = 0;
+        break;
+    default:
+        fprintf(stderr, "Could not set proper format\n");
+        return -1;
+    }
 
-     sample_size = params.format.voices * (bit8 ? 1 : 2);
-     stereo = (params.format.voices == 1) ? 0 : 1;
-     frequency = params.format.rate;
+    sample_size = params.format.voices * (bit8 ? 1 : 2);
+    stereo = (params.format.voices == 1) ? 0 : 1;
+    frequency = params.format.rate;
 
-     soundfd = snd_pcm_file_descriptor(handle, SND_PCM_CHANNEL_PLAYBACK);
-     snd_pcm_nonblock_mode(handle, 1);
+    soundfd = snd_pcm_file_descriptor(handle, SND_PCM_CHANNEL_PLAYBACK);
+    snd_pcm_nonblock_mode(handle, 1);
 
-     return 0;
+    return 0;
 }
 
 /**
@@ -331,7 +326,8 @@ int init_audio(void) {
  * @param off
  * @return
  */
-int audio_play(int buffer, int off) {
+int audio_play(int buffer, int off)
+{
 
 #ifdef SOUND_DEBUG
     fprintf(stderr, "audio_play: ALSA\n");
@@ -340,7 +336,7 @@ int audio_play(int buffer, int off) {
 
     return
         snd_pcm_write
-            (handle, buffers+settings.buflen*buffer+off, settings.buflen-off);
+        (handle, buffers+settings.buflen*buffer+off, settings.buflen-off);
 }
 
 #elif defined(OSS_SOUND)                /* End of Alsa sound section.       */
@@ -350,7 +346,8 @@ int audio_play(int buffer, int off) {
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
-int init_audio(void){
+int init_audio(void)
+{
 
     const char *audiodev;
     int value,format,tmp;
@@ -376,44 +373,46 @@ int init_audio(void){
 
     /* Set the audio buffering parameters */
     value = 0;
-    for (tmp = settings.buflen / 2; tmp; tmp >>= 1)
+    for (tmp = settings.buflen / 2; tmp; tmp >>= 1) {
         value++;
+    }
 
     value |= 0x00020000;
     if (ioctl(soundfd, SNDCTL_DSP_SETFRAGMENT, &value) < 0) {
         fprintf(stderr, "Could not set audio fragment spec\n");
         return(-1);
     }
-    if (settings.bit8)
+    if (settings.bit8) {
         format = settings.sign ? AFMT_S8 : AFMT_U8;
-    else
+    } else {
         format = settings.sign ? AFMT_S16_LE : AFMT_U16_LE;
+    }
 
     value = format;
     if ((ioctl(soundfd, SNDCTL_DSP_SETFMT,&value) < 0)
-    ||  (value != format) ) {
+            ||  (value != format) ) {
         fprintf(stderr, "Could not set audio format\n");
     }
 
     switch (value) {
-       case AFMT_S16_LE:
-           bit8 = 0;
-           sign = 1;
-           break;
-       case AFMT_U16_LE:
-           bit8 = 0;
-           sign = 0;
-           break;
-       case AFMT_S8:
-           bit8 = 1;
-           sign = 1;
-           break;
-       case AFMT_U8:
-           bit8 = 1;
-           sign = 0;
-           break;
-       default:
-           return -1;
+    case AFMT_S16_LE:
+        bit8 = 0;
+        sign = 1;
+        break;
+    case AFMT_U16_LE:
+        bit8 = 0;
+        sign = 0;
+        break;
+    case AFMT_S8:
+        bit8 = 1;
+        sign = 1;
+        break;
+    case AFMT_U8:
+        bit8 = 1;
+        sign = 0;
+        break;
+    default:
+        return -1;
     }
 
     stereo = settings.stereo;
@@ -435,7 +434,8 @@ int init_audio(void){
  * @param off
  * @return
  */
-int audio_play(int buffer, int off){
+int audio_play(int buffer, int off)
+{
     int wrote;
 
 #ifdef SOUND_DEBUG
@@ -443,18 +443,18 @@ int audio_play(int buffer, int off){
     fflush(stderr);
 
     printf("audio play: write starting at %d, %d bytes",
-        settings.buflen * buffer + off, settings.buflen - off);
+           settings.buflen * buffer + off, settings.buflen - off);
     fflush(stdout);
 #endif
 
-  wrote=write(soundfd,buffers+settings.buflen*buffer+off,settings.buflen-off);
+    wrote=write(soundfd,buffers+settings.buflen*buffer+off,settings.buflen-off);
 
 #ifdef SOUND_DEBUG
     printf("...wrote %d bytes\n", wrote);
     fflush(stdout);
 #endif
 
-  return wrote;
+    return wrote;
 }
 
 #elif defined(SGI_SOUND)                /* End of OSS sound section.        */
@@ -482,24 +482,21 @@ int init_audio(void)
 
     /* Allocate ALconfig structure. */
 
-    if ((soundconfig = ALnewconfig()) == 0)
-    {
+    if ((soundconfig = ALnewconfig()) == 0) {
         fprintf(stderr, "Could not allocate ALconfig structure.\n");
         return -1;
     }
 
     /* Set number of channels */
 
-    if (ALsetchannels(soundconfig, (stereo = settings.stereo) ? 2 : 1) == -1)
-    {
+    if (ALsetchannels(soundconfig, (stereo = settings.stereo) ? 2 : 1) == -1) {
         fprintf(stderr, "Could not set number of channels.\n");
         return -1;
     }
 
     /* Set sample format */
 
-    if (ALsetsampfmt(soundconfig, AL_SAMPFMT_TWOSCOMP) == -1)
-    {
+    if (ALsetsampfmt(soundconfig, AL_SAMPFMT_TWOSCOMP) == -1) {
         fprintf(stderr, "Could not set audio sample format.\n");
         return -1;
     }
@@ -507,8 +504,7 @@ int init_audio(void)
 
     /* Set sample width */
     if (ALsetwidth(
-        soundconfig, (bit8 = settings.bit8)?AL_SAMPLE_8:AL_SAMPLE_16) == -1)
-    {
+                soundconfig, (bit8 = settings.bit8)?AL_SAMPLE_8:AL_SAMPLE_16) == -1) {
         fprintf(stderr,"Could not set audio sample width.\n");
         return -1;
     }
@@ -518,16 +514,14 @@ int init_audio(void)
 
     params[0] = AL_OUTPUT_RATE;
     params[1] = frequency = settings.frequency;
-    if (ALsetparams(AL_DEFAULT_DEVICE, params, 2) == -1)
-    {
+    if (ALsetparams(AL_DEFAULT_DEVICE, params, 2) == -1) {
         fprintf(stderr, "Could not set output rate of default device.\n");
         return -1;
     }
 
     /* Open audio port */
 
-    if ((soundport = ALopenport("cfsndserv port", "w", soundconfig)) == NULL)
-    {
+    if ((soundport = ALopenport("cfsndserv port", "w", soundconfig)) == NULL) {
         fprintf(stderr, "Could not open audio port.\n");
         return -1;
     }
@@ -551,7 +545,7 @@ int audio_play(int buffer,int off)
 
     ALwritesamps(
         soundport, buffers + settings.buflen * buffer+off,
-            (settings.buflen - off) / sample_size);
+        (settings.buflen - off) / sample_size);
     return settings.buflen-off;
 }
 
@@ -562,7 +556,8 @@ int audio_play(int buffer,int off)
  *
  * @return Zero if audio initialized successfully, otherwise -1.
  */
-int init_audio(void) {
+int init_audio(void)
+{
 
     const char *audiodev;
     int value, format, tmp;
@@ -594,8 +589,8 @@ int init_audio(void) {
     }
 
     if (ioctl(soundfd, AUDIO_GETINFO, &audio_info) < 0) {
-      fprintf(stderr, "Could not get audio information ioctl\n");
-      return(-1);
+        fprintf(stderr, "Could not get audio information ioctl\n");
+        return(-1);
     }
     /*
      * The capabilities on different sun hardware vary wildly.  We attempt to
@@ -603,25 +598,25 @@ int init_audio(void) {
      *
      * This is sparc 10, sparc 20 class systems
      */
-     if (!strcmp(audio_device.name, "SUNW,dbri")) {
-         /*
-          * To use linear encoding, we must use 16 bit and some fixed
-          * frequencies.  11025 matches what the rest of the systems use
-          */
-          audio_info.play.precision = 16;
-          audio_info.play.encoding = AUDIO_ENCODING_LINEAR;
-          audio_info.play.sample_rate = 11025;
-     }
-      /* This is used on many of the ultra machines */
-     else if (!strcmp(audio_device.name, "SUNW, CS4231")) {
-          /*
-           * To use linear encoding, we must use 16 bit and some fixed
-           * frequencies.  11025 matches what the rest of the systems use
-           */
-          audio_info.play.precision = 16;
-          audio_info.play.encoding = AUDIO_ENCODING_LINEAR;
-          audio_info.play.sample_rate = 11025;
-     }
+    if (!strcmp(audio_device.name, "SUNW,dbri")) {
+        /*
+         * To use linear encoding, we must use 16 bit and some fixed
+         * frequencies.  11025 matches what the rest of the systems use
+         */
+        audio_info.play.precision = 16;
+        audio_info.play.encoding = AUDIO_ENCODING_LINEAR;
+        audio_info.play.sample_rate = 11025;
+    }
+    /* This is used on many of the ultra machines */
+    else if (!strcmp(audio_device.name, "SUNW, CS4231")) {
+        /*
+         * To use linear encoding, we must use 16 bit and some fixed
+         * frequencies.  11025 matches what the rest of the systems use
+         */
+        audio_info.play.precision = 16;
+        audio_info.play.encoding = AUDIO_ENCODING_LINEAR;
+        audio_info.play.sample_rate = 11025;
+    }
 
     audio_info.play.channels = settings.stereo ? 2 : 1;
     stereo = settings.stereo;
@@ -630,8 +625,8 @@ int init_audio(void) {
     frequency = settings.frequency;
     sample_size = (bit8 ? 1 : 2) * (stereo ? 2 : 1);
     fprintf(stderr,
-        "SUN_SOUND: bit8=%d, stereo=%d, freq=%d, sample_size=%d\n",
-             bit8, stereo, frequency, sample_size);
+            "SUN_SOUND: bit8=%d, stereo=%d, freq=%d, sample_size=%d\n",
+            bit8, stereo, frequency, sample_size);
 
     if (ioctl(soundfd, AUDIO_SETINFO, &audio_info) < 0) {
         perror("Could not set audio information ioctl");
@@ -647,7 +642,8 @@ int init_audio(void) {
  * @param off
  * @return
  */
-int audio_play(int buffer,int off){
+int audio_play(int buffer,int off)
+{
     int wrote;
 
 #ifdef SOUND_DEBUG
@@ -655,7 +651,7 @@ int audio_play(int buffer,int off){
     fflush(stderr);
 
     printf("audio play - writing starting at %d, %d bytes",
-    settings.buflen * buffer + off, settings.buflen - off);
+           settings.buflen * buffer + off, settings.buflen - off);
     fflush(stdout);
 #endif
     wrote=write(soundfd,buffers+settings.buflen*buffer+off,settings.buflen-off);
@@ -665,7 +661,7 @@ int audio_play(int buffer,int off){
 #endif
     return wrote;
 }
-                                        /* End of Sun sound section.        */
+/* End of Sun sound section.        */
 #endif                                  /* End init_audio() & audio_play(). */
 
 #ifdef SDL_SOUND                        /* Begin play_sound(), play_music() */
@@ -680,7 +676,8 @@ int audio_play(int buffer,int off){
  * @param y         Offset (assumed from player) to play sound used to
  *                  determine value and left vs. right speaker balance.
  */
-void play_sound(int soundnum, int soundtype, int x, int y) {
+void play_sound(int soundnum, int soundtype, int x, int y)
+{
     int         channel = 0;
     int         playing = 0;
     Sound_Info *si;
@@ -698,14 +695,14 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
         return;
     }
 
-     /*
-     * Check if the channel limit is reached.  If more than a specified number
-     * are already playing, do not add more sounds.
-     */
+    /*
+    * Check if the channel limit is reached.  If more than a specified number
+    * are already playing, do not add more sounds.
+    */
     playing = Mix_Playing(-1);
 #ifdef SOUND_DEBUG
     fprintf(stderr,
-        "Channels playing: %i of %i\n", playing, max_chunk);
+            "Channels playing: %i of %i\n", playing, max_chunk);
 #endif
     if (playing >= max_chunk) {
         /*
@@ -713,7 +710,7 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
          * be that bad to allocate more, but then nobody wants a cachophony.
          * Where does one stop?
          */
-         return;
+        return;
     }
     /*
      * Find a channel that is not playing anything...
@@ -733,17 +730,16 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
      */
     if (soundtype == SOUND_NORMAL) {
         si = &normal_sounds[soundnum];
-    } else
-        if (soundtype == SOUND_SPELL) {
-            si = &spell_sounds[soundnum];
-        } else {
-            fprintf(stderr,"play_sound: Unknown soundtype: %d\n", soundtype);
-            return;
-        }
+    } else if (soundtype == SOUND_SPELL) {
+        si = &spell_sounds[soundnum];
+    } else {
+        fprintf(stderr,"play_sound: Unknown soundtype: %d\n", soundtype);
+        return;
+    }
 
     if (! si->filename) {
         fprintf(stderr,
-            "play_sound: Sound %d (type %d) missing\n", soundnum, soundtype);
+                "play_sound: Sound %d (type %d) missing\n", soundnum, soundtype);
         return;
     }
     /*
@@ -767,7 +763,8 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
  *             path or file extensions.  It is up to this function to map the
  *             name to a file.
  */
-void play_music(const char* music_name) {
+void play_music(const char* music_name)
+{
     char path[MAXSOCKBUF];
     struct stat statbuf;
     int  namelen;
@@ -840,7 +837,8 @@ void play_music(const char* music_name) {
  * the use of file descriptors.
  *
  */
-void sdl_mixer_server(void) {
+void sdl_mixer_server(void)
+{
     int        infd;
     fd_set     inset;
     char       inbuf[1024];
@@ -898,8 +896,9 @@ void sdl_mixer_server(void) {
              */
             result = read(infd, inbuf + inbuf_pos, 1);
             if (result == -1 && errno != EINTR) {
-                if (result == -1)
+                if (result == -1) {
                     perror("read");
+                }
                 break;
             }
             /*
@@ -966,7 +965,8 @@ void sdl_mixer_server(void) {
  * @param y         Offset (assumed from player) to play sound used to
  *                  determine value and left vs. right speaker balance.
  */
-void play_sound(int soundnum, int soundtype, int x, int y) {
+void play_sound(int soundnum, int soundtype, int x, int y)
+{
     Sound_Info *si;
     int buf, off;
     int i;
@@ -983,20 +983,23 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
      * to the first as needed).
      */
     buf = current_buffer;
-    if (buf >= settings.buffers)
+    if (buf >= settings.buffers) {
         buf = 1;
-    if (buf == 0)
+    }
+    if (buf == 0) {
         buf++;
+    }
     /*
      * Check if the buffer is "full".  If more than a specified number are
      * already buffered, do not add more.
      */
 #ifdef SOUND_DEBUG
     fprintf(stderr,
-        "Sounds in buffer %i: %i\n", buf, sounds_in_buffer[buf]);
+            "Sounds in buffer %i: %i\n", buf, sounds_in_buffer[buf]);
 #endif
-    if (sounds_in_buffer[buf] > settings.simultaneously)
+    if (sounds_in_buffer[buf] > settings.simultaneously) {
         return;
+    }
     /*
      * Ignore commands to play invalid/unsupported sound numbers.
      */
@@ -1024,17 +1027,16 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
      */
     if (soundtype == SOUND_NORMAL) {
         si = &normal_sounds[soundnum];
-    } else
-        if (soundtype == SOUND_SPELL) {
-            si = &spell_sounds[soundnum];
-        } else {
-            fprintf(stderr,"Unknown soundtype: %d\n", soundtype);
-            return;
-        }
+    } else if (soundtype == SOUND_SPELL) {
+        si = &spell_sounds[soundnum];
+    } else {
+        fprintf(stderr,"Unknown soundtype: %d\n", soundtype);
+        return;
+    }
 
     if (! si->filename) {
         fprintf(stderr,
-            "Sound %d (type %d) is not defined\n", soundnum, soundtype);
+                "Sound %d (type %d) is not defined\n", soundnum, soundtype);
         return;
     }
     /*
@@ -1063,15 +1065,16 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
          * ignore the sound file content.
          */
         si->size = sbuf.st_size;
-        if (si->size <= 0)
+        if (si->size <= 0) {
             return;
+        }
         /*
          * If the sound file contains more data than can fit in the allocated
          * number of sound buffers, do not bother loading it.
          */
         if (si->size*sample_size > settings.buflen * (settings.buffers - 1)) {
             fprintf(stderr,
-                "Sound %s too long (%i > %i)\n", si->filename, si->size,
+                    "Sound %s too long (%i > %i)\n", si->filename, si->size,
                     settings.buflen * (settings.buffers - 1) / sample_size);
             return;
         }
@@ -1091,30 +1094,32 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
 
 #ifdef SOUND_DEBUG
     fprintf(stderr,
-        "Playing sound %i (%s), volume %i, x,y=%d,%d\n",
+            "Playing sound %i (%s), volume %i, x,y=%d,%d\n",
             soundnum, si->symbolic, si->volume, x, y);
 #endif
 
     /* Calculate volume multiplers */
     dist = sqrt(x * x + y * y);
     right_ratio = left_ratio = ((1 << 16) * si->volume) /
-        (100 * settings.simultaneously * (1 + SOUND_DECREASE * dist));
+                               (100 * settings.simultaneously * (1 + SOUND_DECREASE * dist));
     if (stereo) {
         double diff;
 
-        if (dist)
-          diff = (1.0 - fabs((double) x / dist));
-        else
-          diff = 1;
+        if (dist) {
+            diff = (1.0 - fabs((double) x / dist));
+        } else {
+            diff = 1;
+        }
 
 #ifdef SOUND_DEBUG
         printf("diff: %f\n", diff);
         fflush(stdout);
 #endif
-        if (x < 0)
+        if (x < 0) {
             right_ratio *= diff;
-        else
+        } else {
             left_ratio *= diff;
+        }
     }
 
 #ifdef SOUND_DEBUG
@@ -1148,7 +1153,8 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
 #else
                 buffers[buf*settings.buflen+off]+=((dat*left_ratio)>>8)&0xff;
                 buffers[buf*settings.buflen+off+1]+=(dat*left_ratio)>>16;
-            } else {
+            }
+            else {
                 buffers[buf*settings.buflen+off]+=((dat*left_ratio)>>8)&0xff;
                 buffers[buf*settings.buflen+off+1]+=(dat*left_ratio)>>16;
                 buffers[buf*settings.buflen+off+2]+=((dat*right_ratio)>>8)&0xff;
@@ -1169,21 +1175,27 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
     }
 #ifdef SOUND_DEBUG
     fprintf(stderr,
-        "Added %d bytes, last buffer=%d, lastpos=%d\n",
+            "Added %d bytes, last buffer=%d, lastpos=%d\n",
             si->size, buf, off);
 #endif
     /* This write did not wrap the buffers */
-    if (buf+1 > current_buffer) {
-        if ((buf+1 > first_free_buffer) && (first_free_buffer >= current_buffer))
+    if (buf+1 > current_buffer)
+    {
+        if ((buf+1 > first_free_buffer) && (first_free_buffer >= current_buffer)) {
             first_free_buffer = buf+1;
-    } else {    /* Buffers did wrap */
+        }
+    } else      /* Buffers did wrap */
+    {
         if (((buf+1 > first_free_buffer)
-        &&   (first_free_buffer < current_buffer))
-        ||  (first_free_buffer >= current_buffer))
+                &&   (first_free_buffer < current_buffer))
+                ||  (first_free_buffer >= current_buffer)) {
             first_free_buffer = buf + 1;
+        }
     }
     if (first_free_buffer >= settings.buffers)
+    {
         first_free_buffer = 0;
+    }
 }
 
 /**
@@ -1193,21 +1205,23 @@ void play_sound(int soundnum, int soundtype, int x, int y) {
  *             path or file extensions.  It is up to this function to map the
  *             name to a file.
  */
-void play_music(const char* name) {
+void play_music(const char* name)
+{
 
 #ifdef SOUND_DEBUG
     fprintf(stderr, "play_music: no music support for this sound system.\n");
     fflush(stderr);
 #endif
 
-  return;
+    return;
 }
 
 /**
  * A sound server that is based on the use of file descriptors.
  *
  */
-void fd_server(void) {
+void fd_server(void)
+{
     int infd;
     char inbuf[1024];
     int inbuf_pos = 0, sndbuf_pos = 0;
@@ -1238,20 +1252,23 @@ void fd_server(void) {
 
         if (FD_ISSET(soundfd, &outset)) {
             /* no sounds to play */
-            if (current_buffer == first_free_buffer) FD_CLR(soundfd, &outset);
-            else {
+            if (current_buffer == first_free_buffer) {
+                FD_CLR(soundfd, &outset);
+            } else {
                 int wrote;
                 wrote = audio_play(current_buffer, sndbuf_pos);
-                if (wrote < settings.buflen - sndbuf_pos) sndbuf_pos += wrote;
-                else {
-                   /* clean the buffer */
-                   memset(buffers + settings.buflen * current_buffer,
-                       zerolevel, settings.buflen);
-                   sounds_in_buffer[current_buffer] = 0;
-                   sndbuf_pos = 0;
-                   current_buffer++;
-                   if (current_buffer >= settings.buffers)
-                       current_buffer = 0;
+                if (wrote < settings.buflen - sndbuf_pos) {
+                    sndbuf_pos += wrote;
+                } else {
+                    /* clean the buffer */
+                    memset(buffers + settings.buflen * current_buffer,
+                           zerolevel, settings.buflen);
+                    sounds_in_buffer[current_buffer] = 0;
+                    sndbuf_pos = 0;
+                    current_buffer++;
+                    if (current_buffer >= settings.buffers) {
+                        current_buffer = 0;
+                    }
                 }
             }
         } else {
@@ -1266,14 +1283,16 @@ void fd_server(void) {
             int err = read(infd, inbuf + inbuf_pos, 1);
 
             if (err < 1 && errno != EINTR) {
-                if (err < 0)
+                if (err < 0) {
                     perror("read");
+                }
                 break;
             }
             if (inbuf[inbuf_pos] == '\n') {
                 inbuf[inbuf_pos++] = 0;
-                if (!StdinCmd(inbuf, inbuf_pos))
+                if (!StdinCmd(inbuf, inbuf_pos)) {
                     FD_SET(soundfd, &outset);
+                }
                 inbuf_pos = 0;
             } else {
                 inbuf_pos++;
@@ -1296,15 +1315,18 @@ void fd_server(void) {
  * @param argv
  * @return
  */
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     printf("%s\n", rcsid_sound_src_cfsndserv_c);
     fflush(stdout);
 
-    if (read_settings())
+    if (read_settings()) {
         write_settings();
+    }
 
-    if (init_sounds())
+    if (init_sounds()) {
         return 1;
+    }
 
 #ifdef SDL_SOUND
     sdl_mixer_server();

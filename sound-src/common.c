@@ -1,26 +1,15 @@
-const char * rcsid_sound_src_common_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2001 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
+ *
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
+ */
 
 /**
  * @file sound-src/common.c
@@ -95,7 +84,8 @@ int zerolevel = 0;
  *               Note that this data may be modified by parse_sound_line().
  * @param lineno The line number of the passed data used for error tracking.
  */
-static void parse_sound_line(char *line, int lineno) {
+static void parse_sound_line(char *line, int lineno)
+{
     static int readtype=0;              /**< Identifies the last section title
                                          *   found in the .crossfire/sounds
                                          *   file.  0 indicates a section
@@ -107,8 +97,9 @@ static void parse_sound_line(char *line, int lineno) {
     int        newnum, len;
     char      *cp, *volume, *symbolic, *cp1, filename[512];
 
-    if (line[0] == '#' || line[0] == '\n')
+    if (line[0] == '#' || line[0] == '\n') {
         return;
+    }
 
     if (!strcmp(line, "Standard Sounds:\n")) {
         lastnum = 0;
@@ -124,15 +115,16 @@ static void parse_sound_line(char *line, int lineno) {
     if (!readtype) {
 #ifdef SOUND_DEBUG
         fprintf(stderr,
-            "parse_sound_line: Ignored file header:\n%d:%s\n", lineno, line);
+                "parse_sound_line: Ignored file header:\n%d:%s\n", lineno, line);
 #endif
         return;
     }
     /*
      * Change the LF delimiter at the end of the line to a null terminator.
      */
-    if (line[strlen(line)-1] == '\n')
+    if (line[strlen(line)-1] == '\n') {
         line[strlen(line)-1] = '\0';
+    }
     /*
      * Convert the first whitespace found to a null terminator.
      */
@@ -143,8 +135,9 @@ static void parse_sound_line(char *line, int lineno) {
      * Skip all the following whitespace to locate the next field, and save a
      * pointer to the volume data.
      */
-    while (*cp != '\0' && (*cp == ' ' || *cp == '\t'))
+    while (*cp != '\0' && (*cp == ' ' || *cp == '\t')) {
         cp++;
+    }
     volume = cp;
     /*
      * There is no need to null terminate the volume since it is processed
@@ -168,8 +161,9 @@ static void parse_sound_line(char *line, int lineno) {
          * volume, and treat the next character as the beginning of a symbolic
          * name.
          */
-        while (*cp != '\0' && (*cp == ' ' || *cp == '\t'))
+        while (*cp != '\0' && (*cp == ' ' || *cp == '\t')) {
             cp++;
+        }
         symbolic = cp;
         /*
          * Some symbolic names are double-quoted to allow them to contain
@@ -210,17 +204,19 @@ static void parse_sound_line(char *line, int lineno) {
              * dodgy as invalid data is silently ignored.
              */
             *cp++ = '\0';
-            while (*cp != '\0' && (*cp == ' ' || *cp == '\t'))
+            while (*cp != '\0' && (*cp == ' ' || *cp == '\t')) {
                 cp++;
-            if (isdigit(*cp))
+            }
+            if (isdigit(*cp)) {
                 newnum = atoi(cp);
-            else
+            } else {
                 newnum = lastnum + 1;
+            }
         }
     }
     if (newnum < 0 || newnum > MAX_SOUNDS) {
         fprintf(stderr,
-            "Invalid sound number %d, line %d, buf %s\n",
+                "Invalid sound number %d, line %d, buf %s\n",
                 newnum, lineno, line);
         return;
     }
@@ -245,8 +241,9 @@ static void parse_sound_line(char *line, int lineno) {
      */
     strcpy(filename, line);
     cp = filename + strlen(filename) - 3;
-    if (!strcmp(cp, ".au"))
+    if (!strcmp(cp, ".au")) {
         strcpy(cp, ".raw");
+    }
 #ifdef SDL_SOUND
     cp = filename + strlen(filename) - 4;
     if (!strcmp(cp, ".raw"))
@@ -287,20 +284,22 @@ static void parse_sound_line(char *line, int lineno) {
          */
         normal_sounds[newnum].filename = strdup_local(filename);
         normal_sounds[newnum].volume = atoi(volume);
-        if (symbolic)
+        if (symbolic) {
             normal_sounds[newnum].symbolic = strdup_local(symbolic);
-        else
+        } else {
             normal_sounds[newnum].symbolic = NULL;
+        }
     } else if (readtype == 2) {
         /*
          * Spell Sounds
          */
         spell_sounds[newnum].filename = strdup_local(filename);
         spell_sounds[newnum].volume = atoi(volume);
-        if (symbolic)
+        if (symbolic) {
             spell_sounds[newnum].symbolic = strdup_local(symbolic);
-        else
+        } else {
             spell_sounds[newnum].symbolic = NULL;
+        }
     }
     /*
      * Retain the assigned sound number for possible use in subsquent data
@@ -326,7 +325,8 @@ static void parse_sound_line(char *line, int lineno) {
  * @return Zero on success and on failure, the calling function will likely
  *         disable sound support/requests from the server.
  */
-int init_sounds(void) {
+int init_sounds(void)
+{
     FILE *fp;
     char  path[MAXSOCKBUF];
     char  buf[512];
@@ -360,52 +360,60 @@ int init_sounds(void) {
     strncat(path, USER_CONFIG_FILE, sizeof(path) - 1);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
     user_config_file = (char *) malloc(strlen(path));
-    if (user_config_file)
+    if (user_config_file) {
         strcpy(user_config_file, path);
-    else
+    } else {
         return -1;
+    }
 
     strncpy(path, getenv("HOME"), sizeof(path) - 1);
     strncat(path, USER_SOUNDS_FILE, sizeof(path) - 1);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
     user_sounds_file = (char *) malloc(strlen(path));
-    if (user_sounds_file)
+    if (user_sounds_file) {
         strcpy(user_sounds_file, path);
-    else
+    } else {
         return -1;
+    }
 
     strncpy(path, getenv("HOME"), sizeof(path) - 1);
     strncat(path, USER_SOUNDS_PATH, sizeof(path) - 1);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
     user_sounds_path = (char *) malloc(strlen(path));
-    if (user_sounds_path)
+    if (user_sounds_path) {
         strcpy(user_sounds_path, path);
-    else
+    } else {
         return -1;
+    }
 
     strncpy(path, CLIENT_SOUNDS_PATH, sizeof(path) - 1);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
     client_sounds_path = (char *) malloc(strlen(path));
-    if (client_sounds_path)
+    if (client_sounds_path) {
         strcpy(client_sounds_path, path);
-    else
+    } else {
         return -1;
+    }
 
     buffers = (char *) malloc(settings.buffers * settings.buflen);
-    if (!buffers)
+    if (!buffers) {
         return -1;
+    }
 
     sounds_in_buffer = (int *) calloc(settings.buffers, sizeof(int));
-    if (!sounds_in_buffer)
+    if (!sounds_in_buffer) {
         return -1;
+    }
 
-    if (init_audio())
+    if (init_audio()) {
         return -1;
+    }
 
-    if (sign)
+    if (sign) {
         zerolevel = 0;
-    else
+    } else {
         zerolevel = bit8 ? 0x80 : 0x00;
+    }
 
     memset(buffers, zerolevel, settings.buflen * settings.buffers);
 
@@ -430,16 +438,16 @@ int init_sounds(void) {
     i = 0;
     if (!(fp = fopen(user_sounds_file, "r"))) {
         fprintf(stderr,
-            "Unable to open %s - using built-in defaults\n",
+                "Unable to open %s - using built-in defaults\n",
                 user_sounds_file);
         for (; i < sizeof(def_sounds) / sizeof(char*); i++) {
             strcpy(buf, def_sounds[i]);
             parse_sound_line(buf, i);
         }
     } else while (fgets(buf, 511, fp) != NULL) {
-        buf[511] = '\0';
-        parse_sound_line(buf, ++i);
-    }
+            buf[511] = '\0';
+            parse_sound_line(buf, ++i);
+        }
     /* Note in both cases below, we leave the symbolic name untouched. */
     for (i = 0; i < MAX_SOUNDS; i++) {
         if (!normal_sounds[i].filename) {
@@ -465,7 +473,8 @@ int init_sounds(void) {
  * @param name
  * @param type
  */
-int sound_to_soundnum(const char *name, uint8 type) {
+int sound_to_soundnum(const char *name, uint8 type)
+{
 
     fprintf(stderr, "name=%s type=%d\n", name, type);
     /**
@@ -484,11 +493,12 @@ int sound_to_soundnum(const char *name, uint8 type) {
  *
  * @param type
  */
-int type_to_soundtype(uint8 type) {
+int type_to_soundtype(uint8 type)
+{
 
 #ifdef SOUND_DEBUG
     fprintf(stderr,
-        "Converted type %d to legacy type %d.\n", type, (type == 2) ? 2 : 1);
+            "Converted type %d to legacy type %d.\n", type, (type == 2) ? 2 : 1);
 #endif
     /**
      * @todo Replace conversion to legacy soundtype.
@@ -523,7 +533,8 @@ int type_to_soundtype(uint8 type) {
  * @param len  The length of the text data in the command buffer.
  * @return     0 if the buffer contains a well-formed command, otherwise -1.
  */
-int StdinCmd(char *data, int len) {
+int StdinCmd(char *data, int len)
+{
     char* dptr;                         /* Pointer used when parsing data */
     char* fptr;
     char* sound = NULL;                 /* Points to a sound or music name */
@@ -561,11 +572,11 @@ int StdinCmd(char *data, int len) {
         i = sscanf(dptr, "%d %d %d %d %d", &x, &y, &dir, &vol, &type);
 
         if ((i != 5)
-        ||  (dir < 0)
-        ||  (dir > 8)
-        ||  (vol < 0)
-        ||  (vol > 100)
-        ||  (type < 1)) {
+                ||  (dir < 0)
+                ||  (dir > 8)
+                ||  (vol < 0)
+                ||  (vol > 100)
+                ||  (type < 1)) {
             /*
              * There is not much point in trying to work with data that does
              * not fit some basic rules known at the time of development.
@@ -573,7 +584,7 @@ int StdinCmd(char *data, int len) {
             fprintf(stderr, "Unrecognized sound command data format.\n");
 #ifdef SOUND_DEBUG
             fprintf(stderr,
-                "(%d valid items read) x=%d y=%d dir=%d vol=%d type=%d\n",
+                    "(%d valid items read) x=%d y=%d dir=%d vol=%d type=%d\n",
                     i, x, y, dir, vol, type);
 #endif
             return -1;
@@ -596,13 +607,13 @@ int StdinCmd(char *data, int len) {
         }
         source = dptr;
         sourcelen = strlen(dptr);
-       /*
-        * Verify there is whitespace between source and sound names.
-        */
+        /*
+         * Verify there is whitespace between source and sound names.
+         */
         dptr = strtok(NULL, "\"");
         if (dptr == NULL) {
-             fprintf(stderr, "Sound command is missing the sound name.\n");
-             return -1;
+            fprintf(stderr, "Sound command is missing the sound name.\n");
+            return -1;
         }
         spacelen = strlen(dptr);
         for (i = 0; i < spacelen; i++) {
@@ -614,10 +625,10 @@ int StdinCmd(char *data, int len) {
         /*
          * Advance the data pointer to the following sound name.
          */
-         dptr = strtok(NULL, "\"");
-         if (dptr == NULL) {
-             fprintf(stderr, "Sound command is missing the sound name.\n");
-             return -1;
+        dptr = strtok(NULL, "\"");
+        if (dptr == NULL) {
+            fprintf(stderr, "Sound command is missing the sound name.\n");
+            return -1;
         }
     }
     /*
@@ -637,7 +648,7 @@ int StdinCmd(char *data, int len) {
     }
     if (i > len) {
         fprintf(stderr,
-            "Invalid data after sound/music name (a quoted string needed)\n");
+                "Invalid data after sound/music name (a quoted string needed)\n");
         return -1;
     }
 
@@ -647,7 +658,7 @@ int StdinCmd(char *data, int len) {
          */
 #ifdef SOUND_DEBUG
         fprintf(stderr, "Playing sound "
-            "%d,%d dir=%d vol=%d type=%d source=\"%s\" sound=\"%s\"\n",
+                "%d,%d dir=%d vol=%d type=%d source=\"%s\" sound=\"%s\"\n",
                 x, y, dir, vol, type, source, sound);
 #endif
         play_sound(sound_to_soundnum(sound, type),
@@ -659,7 +670,7 @@ int StdinCmd(char *data, int len) {
          */
 #ifdef SOUND_DEBUG
         fprintf(stderr,
-            "Playing music \"%s\"\n", sound);
+                "Playing music \"%s\"\n", sound);
 #endif
         play_music(sound);
     }
@@ -672,12 +683,14 @@ int StdinCmd(char *data, int len) {
  *
  * @return
  */
-int write_settings(void) {
+int write_settings(void)
+{
     FILE *f;
 
     f = fopen(user_config_file, "w");
-    if (!f)
+    if (!f) {
         return -1;
+    }
 
     fprintf(f, "# Crossfire sound server settings\n");
     fprintf(f, "# Please note, that not everything will work\n\n");
@@ -698,39 +711,44 @@ int write_settings(void) {
  *
  * @return
  */
-int read_settings(void) {
+int read_settings(void)
+{
     char linebuf[1024];
     FILE *f;
 
-    if (user_config_file == NULL)
+    if (user_config_file == NULL) {
         return 0;
+    }
 
     f = fopen(user_config_file, "r");
-    if (!f)
+    if (!f) {
         return -1;
+    }
 
     while(fgets(linebuf, 1023, f) != NULL) {
         linebuf[1023] = 0;
         /* Strip off the newline */
         linebuf[strlen(linebuf) - 1] = 0;
 
-        if (strncmp(linebuf, "stereo:", strlen("stereo:")) == 0)
+        if (strncmp(linebuf, "stereo:", strlen("stereo:")) == 0) {
             settings.stereo = atoi(linebuf + strlen("stereo:")) ? 1 : 0;
-        else if (strncmp(linebuf, "bits:", strlen("bits:")) == 0)
+        } else if (strncmp(linebuf, "bits:", strlen("bits:")) == 0) {
             settings.bit8 = (atoi(linebuf + strlen("bits:"))==8) ? 1 : 0;
-        else if (strncmp(linebuf, "signed:", strlen("signed:")) == 0)
+        } else if (strncmp(linebuf, "signed:", strlen("signed:")) == 0) {
             settings.sign = atoi(linebuf + strlen("signed:")) ? 1 : 0;
-        else if (strncmp(linebuf, "buffers:", strlen("buffers:")) == 0)
+        } else if (strncmp(linebuf, "buffers:", strlen("buffers:")) == 0) {
             settings.buffers = atoi(linebuf + strlen("buffers:"));
-        else if (strncmp(linebuf, "buflen:", strlen("buflen:")) == 0)
+        } else if (strncmp(linebuf, "buflen:", strlen("buflen:")) == 0) {
             settings.buflen = atoi(linebuf + strlen("buflen:"));
-        else if (strncmp(linebuf, "frequency:", strlen("frequency:")) == 0)
+        } else if (strncmp(linebuf, "frequency:", strlen("frequency:")) == 0) {
             settings.frequency = atoi(linebuf + strlen("frequency:"));
-        else if (strncmp(linebuf, "simultaneously:", strlen("simultaneously:")) == 0)
+        } else if (strncmp(linebuf, "simultaneously:", strlen("simultaneously:")) == 0) {
             settings.simultaneously = atoi(linebuf + strlen("simultaneously:"));
+        }
 #if 0
-        else if (strncmp(linebuf,"device: ",strlen("device: "))==0)
-                settings.audiodev=strdup_local(linebuf+strlen("device: "));
+        else if (strncmp(linebuf,"device: ",strlen("device: "))==0) {
+            settings.audiodev=strdup_local(linebuf+strlen("device: "));
+        }
 #endif
     }
     fclose(f);
