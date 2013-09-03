@@ -944,7 +944,11 @@ void script_tell(const char *params)
                       "Which script do you want to talk to?");
         return;
     }
-    p = strchr(params, ' ');
+
+    /* Local copy for modifications */
+    char params_cpy[MAX_BUF]; 
+    snprintf(params_cpy, MAX_BUF-1, "%s", params);
+    p = strchr(params_cpy, ' ');
     if (p == NULL) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
                       "What do you want to tell the script?");
@@ -955,7 +959,7 @@ void script_tell(const char *params)
     }
 
     /* Find the script */
-    i = script_by_name(params);
+    i = script_by_name(params_cpy);
     if (i < 0) {
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
                       "No such running script");
