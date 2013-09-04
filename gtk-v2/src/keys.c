@@ -1374,6 +1374,30 @@ unbinded:
 }
 
 /**
+ * When the main window looses it's focus, act as if all keys have been released
+ */
+void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
+{
+  if (cpl.fire_on==1) {
+    cpl.fire_on=0;
+    clear_fire();
+    gtk_label_set (GTK_LABEL(fire_label),"    ");
+  }
+  if (cpl.run_on==1){
+    cpl.run_on=0;
+    if (use_config[CONFIG_ECHO])
+      draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+		    "stop run");
+    clear_run();
+    gtk_label_set (GTK_LABEL(run_label),"   ");
+  }
+  if (cpl.alt_on==1)
+    cpl.alt_on=0;
+  if (cpl.meta_on==1)
+    cpl.meta_on=0;
+}
+
+/**
  * GTK callback function used to handle client key release events.
  *
  * @param widget

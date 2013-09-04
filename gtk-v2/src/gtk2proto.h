@@ -115,6 +115,7 @@ extern void inventory_tick(void);
 extern void keys_init(GtkWidget *window_root);
 extern void bind_key(char *params);
 extern void unbind_key(const char *params);
+extern void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void draw_keybindings(GtkWidget *keylist);

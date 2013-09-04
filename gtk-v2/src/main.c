@@ -789,6 +789,11 @@ int main(int argc, char *argv[])
     /* Begin connecting signals for the root window loaded by libglade. */
     window_root = glade_xml_get_widget(window_xml, "window_root");
 
+    /* Request the window to receive focus in and out events */
+    gtk_widget_add_events ( (gpointer) window_root, GDK_FOCUS_CHANGE_MASK );
+    g_signal_connect((gpointer) window_root, "focus-out-event",
+		     G_CALLBACK (focusoutfunc), NULL);
+
     g_signal_connect_swapped ((gpointer) window_root, "key_press_event",
                               G_CALLBACK (keyfunc), GTK_OBJECT (window_root));
     g_signal_connect_swapped ((gpointer) window_root, "key_release_event",
