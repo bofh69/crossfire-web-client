@@ -1,515 +1,542 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <glade-interface>
   <!-- interface-requires gtk+ 2.12 -->
   <!-- interface-naming-policy toplevel-contextual -->
   <widget class="GtkWindow" id="window_root">
+    <property name="can_focus">False</property>
     <property name="title" translatable="yes">Crossfire Client - GTK v2</property>
     <property name="default_width">1201</property>
     <property name="default_height">1010</property>
-    <signal name="key_press_event" handler="keyfunc" object="window_root"/>
-    <signal name="destroy" handler="on_window_destroy_event"/>
-    <signal name="key_release_event" handler="keyrelfunc" object="window_root"/>
+    <signal name="destroy" handler="on_window_destroy_event" swapped="no"/>
+    <signal name="key_release_event" handler="keyrelfunc" object="window_root" swapped="yes"/>
+    <signal name="key_press_event" handler="keyfunc" object="window_root" swapped="yes"/>
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
         <child>
-          <widget class="GtkHBox" id="hbox_menubar">
+          <widget class="GtkMenuBar" id="menubar">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <child>
-              <widget class="GtkMenuBar" id="menubar">
+              <widget class="GtkMenuItem" id="menu_file">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_File</property>
+                <property name="use_underline">True</property>
                 <child>
-                  <widget class="GtkMenuItem" id="menu_file">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">_File</property>
-                    <property name="use_underline">True</property>
+                  <widget class="GtkMenu" id="file_menu">
+                    <property name="can_focus">False</property>
                     <child>
-                      <widget class="GtkMenu" id="file_menu">
-                        <child>
-                          <widget class="GtkMenuItem" id="quit_character">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Quit Character</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="quit">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">_Quit</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
+                      <widget class="GtkMenuItem" id="quit_character">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Quit Character</property>
+                        <property name="use_underline">True</property>
                       </widget>
                     </child>
-                  </widget>
-                </child>
-                <child>
-                  <widget class="GtkMenuItem" id="menu_client">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">_Client</property>
-                    <property name="use_underline">True</property>
                     <child>
-                      <widget class="GtkMenu" id="client_menu">
-                        <child>
-                          <widget class="GtkMenuItem" id="configure">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Configure</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="disconnect">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Disconnect</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="keybindings">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Keybindings</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="msgctrl">
-                            <property name="visible">True</property>
-                            <property name="tooltip" translatable="yes">Configure message routing and buffering.</property>
-                            <property name="label" translatable="yes">Message Control</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="save_window_position">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Save Window Position</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                  </widget>
-                </child>
-                <child>
-                  <widget class="GtkMenuItem" id="menu_player">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">Player</property>
-                    <property name="use_underline">True</property>
-                    <child>
-                      <widget class="GtkMenu" id="player_menu">
-                        <child>
-                          <widget class="GtkMenuItem" id="spells">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Spells</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="skills">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Skills</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                  </widget>
-                </child>
-                <child>
-                  <widget class="GtkMenuItem" id="menu_pickup">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">Pickup</property>
-                    <property name="use_underline">True</property>
-                    <child>
-                      <widget class="GtkMenu" id="pickup_menu">
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="do_not_pickup">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Don't Pickup</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="stop_before_pickup">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Stop Before Pickup</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="armor">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Armor</property>
-                            <property name="use_underline">True</property>
-                            <child>
-                              <widget class="GtkMenu" id="armor_menu">
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="body_armor">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Body Armor</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="boots">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Boots</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="cloaks">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Cloaks</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="gloves">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Gloves</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="helmets">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Helmets</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="shields">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Shields</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                              </widget>
-                            </child>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="books">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Books</property>
-                            <property name="use_underline">True</property>
-                            <child>
-                              <widget class="GtkMenu" id="books_menu">
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="skillscrolls">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Skillscrolls</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="normal_book_scrolls">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Normal Books &amp; Scrolls</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="spellbooks">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Spellbooks</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                              </widget>
-                            </child>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="drinks">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Drinks</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="food">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Food</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="flesh">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Flesh</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="keys">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Keys</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="magical_items">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Magical Items</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="potions">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Potions</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="valuables">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Valuables (Money &amp; Gems)</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="wands_rods_horns">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Wands/Rods/Horns</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="jewels">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Jewels</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="containers">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Containers</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="weapons">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Weapons</property>
-                            <property name="use_underline">True</property>
-                            <child>
-                              <widget class="GtkMenu" id="weapons_menu">
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="all_weapons">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">All Weapons</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="missile_weapons">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Missile Weapons</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="bows">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Bows</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkCheckMenuItem" id="arrows">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Arrows</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                              </widget>
-                            </child>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkMenuItem" id="weight/value">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Weight/Value </property>
-                            <property name="use_underline">True</property>
-                            <child>
-                              <widget class="GtkMenu" id="weight/value_menu">
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_pickup_off">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio Pickup Off</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_5">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 5</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_10">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 10</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_15">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 15</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_20">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 20</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_25">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 25</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_30">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 30</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_35">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 35</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_40">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 40</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_45">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 45</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="ratio_50">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Ratio &gt;= 50</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                    <property name="group">ratio_pickup_off</property>
-                                  </widget>
-                                </child>
-                              </widget>
-                            </child>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkCheckMenuItem" id="not_cursed">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Ignore cursed</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                  </widget>
-                </child>
-                <child>
-                  <widget class="GtkMenuItem" id="menu_help">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">_Help</property>
-                    <property name="use_underline">True</property>
-                    <child>
-                      <widget class="GtkMenu" id="help_menu">
-                        <child>
-                          <widget class="GtkMenuItem" id="about">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">_About</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                        </child>
+                      <widget class="GtkMenuItem" id="quit">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">_Quit</property>
+                        <property name="use_underline">True</property>
                       </widget>
                     </child>
                   </widget>
                 </child>
               </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="fire_on">
+              <widget class="GtkMenuItem" id="menu_client">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_Client</property>
+                <property name="use_underline">True</property>
+                <child>
+                  <widget class="GtkMenu" id="client_menu">
+                    <property name="can_focus">False</property>
+                    <child>
+                      <widget class="GtkMenuItem" id="configure">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Configure</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="disconnect">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Disconnect</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="keybindings">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Keybindings</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="msgctrl">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Configure message routing and buffering.</property>
+                        <property name="label" translatable="yes">Message Control</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="save_window_position">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Save Window Position</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
               </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">8</property>
-                <property name="position">1</property>
-              </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="run_on">
+              <widget class="GtkMenuItem" id="menu_player">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Player</property>
+                <property name="use_underline">True</property>
+                <child>
+                  <widget class="GtkMenu" id="player_menu">
+                    <property name="can_focus">False</property>
+                    <child>
+                      <widget class="GtkMenuItem" id="spells">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Spells</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="skills">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Skills</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
               </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">8</property>
-                <property name="position">2</property>
-              </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="filler">
+              <widget class="GtkMenuItem" id="menu_pickup">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Pickup</property>
+                <property name="use_underline">True</property>
+                <child>
+                  <widget class="GtkMenu" id="pickup_menu">
+                    <property name="can_focus">False</property>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="do_not_pickup">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Don't Pickup</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="stop_before_pickup">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Stop Before Pickup</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="armor">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Armor</property>
+                        <property name="use_underline">True</property>
+                        <child>
+                          <widget class="GtkMenu" id="armor_menu">
+                            <property name="can_focus">False</property>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="body_armor">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Body Armor</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="boots">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Boots</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="cloaks">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Cloaks</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="gloves">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Gloves</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="helmets">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Helmets</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="shields">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Shields</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="books">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Books</property>
+                        <property name="use_underline">True</property>
+                        <child>
+                          <widget class="GtkMenu" id="books_menu">
+                            <property name="can_focus">False</property>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="skillscrolls">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Skillscrolls</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="normal_book_scrolls">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Normal Books &amp; Scrolls</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="spellbooks">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Spellbooks</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="drinks">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Drinks</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="food">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Food</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="flesh">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Flesh</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="keys">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Keys</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="magical_items">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Magical Items</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="potions">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Potions</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="valuables">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Valuables (Money &amp; Gems)</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="wands_rods_horns">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Wands/Rods/Horns</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="jewels">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Jewels</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="containers">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Containers</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="weapons">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Weapons</property>
+                        <property name="use_underline">True</property>
+                        <child>
+                          <widget class="GtkMenu" id="weapons_menu">
+                            <property name="can_focus">False</property>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="all_weapons">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">All Weapons</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="missile_weapons">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Missile Weapons</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="bows">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Bows</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckMenuItem" id="arrows">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Arrows</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="weight/value">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Weight/Value </property>
+                        <property name="use_underline">True</property>
+                        <child>
+                          <widget class="GtkMenu" id="weight/value_menu">
+                            <property name="can_focus">False</property>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_pickup_off">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio Pickup Off</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_5">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 5</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_10">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 10</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_15">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 15</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_20">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 20</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_25">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 25</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_30">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 30</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_35">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 35</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_40">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 40</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_45">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 45</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioMenuItem" id="ratio_50">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Ratio &gt;= 50</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="group">ratio_pickup_off</property>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="not_cursed">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Ignore cursed</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
               </widget>
-              <packing>
-                <property name="position">3</property>
-              </packing>
+            </child>
+            <child>
+              <widget class="GtkMenuItem" id="menu_help">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_Help</property>
+                <property name="use_underline">True</property>
+                <child>
+                  <widget class="GtkMenu" id="help_menu">
+                    <property name="can_focus">False</property>
+                    <child>
+                      <widget class="GtkMenuItem" id="about">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">_About</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
             </child>
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">False</property>
+            <property name="fill">True</property>
             <property name="position">0</property>
           </packing>
         </child>
@@ -531,13 +558,15 @@
                     <child>
                       <widget class="GtkDrawingArea" id="drawingarea_map">
                         <property name="visible">True</property>
-                        <signal name="expose_event" handler="on_drawingarea_map_expose_event"/>
-                        <signal name="button_press_event" handler="on_drawingarea_map_button_press_event"/>
+                        <property name="can_focus">False</property>
+                        <signal name="button_press_event" handler="on_drawingarea_map_button_press_event" swapped="no"/>
+                        <signal name="expose_event" handler="on_drawingarea_map_expose_event" swapped="no"/>
                       </widget>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label_map">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Map</property>
                       </widget>
                       <packing>
@@ -548,7 +577,8 @@
                     <child>
                       <widget class="GtkDrawingArea" id="drawingarea_magic_map">
                         <property name="visible">True</property>
-                        <signal name="expose_event" handler="on_drawingarea_magic_map_expose_event"/>
+                        <property name="can_focus">False</property>
+                        <signal name="expose_event" handler="on_drawingarea_magic_map_expose_event" swapped="no"/>
                       </widget>
                       <packing>
                         <property name="position">1</property>
@@ -557,6 +587,7 @@
                     <child>
                       <widget class="GtkLabel" id="label_magicmap">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Magic Map</property>
                       </widget>
                       <packing>
@@ -579,11 +610,13 @@
                     <child>
                       <widget class="GtkViewport" id="viewport_statbars">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="border_width">2</property>
                         <property name="resize_mode">queue</property>
                         <child>
                           <widget class="GtkTable" id="table_statbars">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="border_width">2</property>
                             <property name="n_rows">6</property>
                             <property name="n_columns">3</property>
@@ -591,6 +624,7 @@
                             <child>
                               <widget class="GtkLabel" id="label_barfiller">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                               </widget>
                               <packing>
@@ -599,24 +633,26 @@
                                 <property name="top_attach">5</property>
                                 <property name="bottom_attach">6</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkProgressBar" id="progressbar_hp">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="pulse_step">0.10000000149</property>
                               </widget>
                               <packing>
                                 <property name="left_attach">2</property>
                                 <property name="right_attach">3</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                                 <property name="x_padding">2</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkProgressBar" id="progressbar_sp">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="pulse_step">0.10000000149</property>
                               </widget>
                               <packing>
@@ -624,13 +660,14 @@
                                 <property name="right_attach">3</property>
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                                 <property name="x_padding">2</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkProgressBar" id="progressbar_grace">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="pulse_step">0.10000000149</property>
                               </widget>
                               <packing>
@@ -638,13 +675,14 @@
                                 <property name="right_attach">3</property>
                                 <property name="top_attach">2</property>
                                 <property name="bottom_attach">3</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                                 <property name="x_padding">2</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkProgressBar" id="progressbar_food">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="pulse_step">0.10000000149</property>
                               </widget>
                               <packing>
@@ -652,13 +690,14 @@
                                 <property name="right_attach">3</property>
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                                 <property name="x_padding">2</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkProgressBar" id="progressbar_exp">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="pulse_step">0.10000000149</property>
                               </widget>
                               <packing>
@@ -666,30 +705,37 @@
                                 <property name="right_attach">3</property>
                                 <property name="top_attach">4</property>
                                 <property name="bottom_attach">5</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                                 <property name="x_padding">2</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkHBox" id="hbox_firerun">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <child>
                                   <widget class="GtkLabel" id="fire_label">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="xpad">2</property>
                                   </widget>
                                   <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="run_label">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="xpad">2</property>
                                   </widget>
                                   <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -704,9 +750,11 @@
                             <child>
                               <widget class="GtkHBox" id="hbox_stat_hp">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_current_hp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -718,6 +766,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_ratio_hp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">/</property>
                                   </widget>
                                   <packing>
@@ -729,6 +778,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_max_hp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -742,15 +792,17 @@
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkHBox" id="hbox_stat_sp">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_current_sp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -762,6 +814,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_ratio_sp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">/</property>
                                   </widget>
                                   <packing>
@@ -773,6 +826,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_max_sp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -788,15 +842,17 @@
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkHBox" id="hbox_stat_grace">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_current_grace">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -808,6 +864,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_ratio_grace">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">/</property>
                                   </widget>
                                   <packing>
@@ -819,6 +876,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_max_grace">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
@@ -835,15 +893,17 @@
                                 <property name="top_attach">2</property>
                                 <property name="bottom_attach">3</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkHBox" id="hbox_stat_food">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_current_food">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -855,6 +915,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_ratio_food">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">/</property>
                                   </widget>
                                   <packing>
@@ -866,6 +927,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_max_food">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -881,15 +943,17 @@
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkHBox" id="hbox_stat_exp">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_current_exp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -901,6 +965,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_ratio_exp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">/</property>
                                   </widget>
                                   <packing>
@@ -912,6 +977,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_max_exp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -927,24 +993,26 @@
                                 <property name="top_attach">4</property>
                                 <property name="bottom_attach">5</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkLabel" id="label_stat_name_hp">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="xpad">2</property>
                                 <property name="label" translatable="yes">HP:</property>
                               </widget>
                               <packing>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkLabel" id="label_stat_name_sp">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="xpad">2</property>
                                 <property name="label" translatable="yes">SP:</property>
@@ -953,12 +1021,13 @@
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkLabel" id="label_stat_name_grace">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="xpad">2</property>
                                 <property name="label" translatable="yes">Grace:</property>
@@ -967,12 +1036,13 @@
                                 <property name="top_attach">2</property>
                                 <property name="bottom_attach">3</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkLabel" id="label_stat_name_food">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="xpad">2</property>
                                 <property name="label" translatable="yes">Food:</property>
@@ -981,12 +1051,13 @@
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkLabel" id="label_stat_name_exp">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="xpad">2</property>
                                 <property name="label" translatable="yes">Exp:</property>
@@ -995,7 +1066,7 @@
                                 <property name="top_attach">4</property>
                                 <property name="bottom_attach">5</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"></property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                           </widget>
@@ -1014,11 +1085,12 @@
                         <child>
                           <widget class="GtkVBox" id="vbox_corestats">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="homogeneous">True</property>
-                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkLabel" id="label_playername">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xpad">5</property>
                                 <property name="label" translatable="yes">Player:</property>
                               </widget>
@@ -1031,320 +1103,379 @@
                             <child>
                               <widget class="GtkHBox" id="hbox_corestats">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="homogeneous">True</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_strength">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Str</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_str">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_dexterity">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Dex</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">2</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_dex">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">3</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_constitution">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Con</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">4</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_con">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">5</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_intelligence">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Int</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">6</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_int">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">7</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_wisdom">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Wis</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">8</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_wis">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">9</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_power">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Pow</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">10</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_pow">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">11</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_charisma">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Cha</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">12</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_cha">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">13</property>
                                   </packing>
                                 </child>
                               </widget>
                               <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkHBox" id="hbox_battlestats">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="homogeneous">True</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_weaponclass">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">WC</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_wc">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_damage">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Dam</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">2</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_dam">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">3</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_armorclass">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">AC</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">4</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_ac">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">5</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_defense">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Armor</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">6</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_armor">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">7</property>
                                   </packing>
                                 </child>
                               </widget>
                               <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
                                 <property name="position">2</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkHBox" id="hbox_speedstats">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="homogeneous">True</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_movement">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Speed</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_speed">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_weapon">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Weapon Speed</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">2</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <widget class="GtkLabel" id="label_weapon_speed">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">3</property>
                                   </packing>
                                 </child>
@@ -1358,6 +1489,7 @@
                             <child>
                               <widget class="GtkLabel" id="label_range">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xpad">5</property>
                                 <property name="label" translatable="yes">Range:</property>
                               </widget>
@@ -1370,10 +1502,12 @@
                             <child>
                               <widget class="GtkHBox" id="hbox_experience_level">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="homogeneous">True</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_exp">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Experience:</property>
                                   </widget>
@@ -1386,6 +1520,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_level">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xpad">5</property>
                                     <property name="label" translatable="yes">Level:</property>
                                   </widget>
@@ -1397,6 +1532,8 @@
                                 </child>
                               </widget>
                               <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
                                 <property name="position">5</property>
                               </packing>
                             </child>
@@ -1405,6 +1542,7 @@
                         <child>
                           <widget class="GtkLabel" id="label_corestats">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Core Stats</property>
                           </widget>
                           <packing>
@@ -1415,9 +1553,118 @@
                         <child>
                           <widget class="GtkTable" id="table_protections">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="n_rows">6</property>
                             <property name="n_columns">6</property>
                             <property name="homogeneous">True</property>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                             <child>
                               <placeholder/>
                             </child>
@@ -1534,6 +1781,7 @@
                         <child>
                           <widget class="GtkLabel" id="label_protections">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Protections</property>
                           </widget>
                           <packing>
@@ -1568,7 +1816,7 @@
                 <child>
                   <widget class="GtkVBox" id="vbox_info_entry">
                     <property name="visible">True</property>
-                    <property name="orientation">vertical</property>
+                    <property name="can_focus">False</property>
                     <child>
                       <widget class="GtkNotebook" id="notebook_info">
                         <property name="visible">True</property>
@@ -1576,6 +1824,7 @@
                         <child>
                           <widget class="GtkViewport" id="viewport_info1">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="border_width">2</property>
                             <property name="resize_mode">queue</property>
                             <child>
@@ -1599,6 +1848,7 @@
                         <child>
                           <widget class="GtkLabel" id="label_info1">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Messages</property>
                           </widget>
                           <packing>
@@ -1609,6 +1859,7 @@
                         <child>
                           <widget class="GtkViewport" id="viewport_info2">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="border_width">2</property>
                             <property name="resize_mode">queue</property>
                             <child>
@@ -1635,6 +1886,7 @@
                         <child>
                           <widget class="GtkLabel" id="label_info2">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Critical messages</property>
                           </widget>
                           <packing>
@@ -1645,6 +1897,8 @@
                         </child>
                       </widget>
                       <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -1652,7 +1906,11 @@
                       <widget class="GtkEntry" id="entry_commands">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <signal name="activate" handler="on_entry_commands_activate"/>
+                        <property name="primary_icon_activatable">False</property>
+                        <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
+                        <signal name="activate" handler="on_entry_commands_activate" swapped="no"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -1674,28 +1932,34 @@
                     <child>
                       <widget class="GtkVBox" id="vbox_inventory">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
+                        <property name="can_focus">False</property>
                         <child>
                           <widget class="GtkHBox" id="hbox_weight_count">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="homogeneous">True</property>
                             <child>
                               <widget class="GtkLabel" id="label_stat_encumbrance_name">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="xpad">2</property>
                                 <property name="label" translatable="yes">Inventory:</property>
                               </widget>
                               <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkHBox" id="hbox_encumbrance">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_encumbrance_current">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
@@ -1708,6 +1972,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_ratio_encumbrance">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">/</property>
                                   </widget>
@@ -1720,6 +1985,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label_stat_encumbrance_max">
                                     <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">0</property>
                                   </widget>
                                   <packing>
@@ -1730,12 +1996,15 @@
                                 </child>
                               </widget>
                               <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkLabel" id="label_count">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="xalign">1</property>
                                 <property name="xpad">5</property>
                                 <property name="label" translatable="yes">Count:</property>
@@ -1743,6 +2012,7 @@
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
+                                <property name="fill">True</property>
                                 <property name="position">2</property>
                               </packing>
                             </child>
@@ -1750,25 +2020,32 @@
                               <widget class="GtkSpinButton" id="spinbutton_count">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="primary_icon_activatable">False</property>
+                                <property name="secondary_icon_activatable">False</property>
+                                <property name="primary_icon_sensitive">True</property>
+                                <property name="secondary_icon_sensitive">True</property>
                                 <property name="adjustment">0 0 1000000 1 0 0</property>
                                 <property name="climb_rate">1</property>
                                 <property name="numeric">True</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
+                                <property name="fill">True</property>
                                 <property name="position">3</property>
                               </packing>
                             </child>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
+                            <property name="fill">True</property>
                             <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
                           <widget class="GtkNotebook" id="notebook_inv">
                             <property name="visible">True</property>
-                            <signal name="switch_page" handler="on_notebook_switch_page"/>
+                            <property name="can_focus">False</property>
+                            <signal name="switch_page" handler="on_notebook_switch_page" swapped="no"/>
                             <child>
                               <widget class="GtkScrolledWindow" id="scrolledwindow_inv">
                                 <property name="visible">True</property>
@@ -1784,7 +2061,337 @@
                                         <property name="can_focus">True</property>
                                         <property name="n_rows">11</property>
                                         <property name="n_columns">10</property>
-                                        <signal name="expose_event" handler="on_inv_table_expose_event"/>
+                                        <signal name="expose_event" handler="on_inv_table_expose_event" swapped="no"/>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
                                         <child>
                                           <placeholder/>
                                         </child>
@@ -2124,6 +2731,7 @@
                             <child>
                               <widget class="GtkLabel" id="label_icons">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Icons</property>
                               </widget>
                               <packing>
@@ -2133,6 +2741,8 @@
                             </child>
                           </widget>
                           <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
                             <property name="position">1</property>
                           </packing>
                         </child>
@@ -2145,10 +2755,11 @@
                     <child>
                       <widget class="GtkVBox" id="vbox_look">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
+                        <property name="can_focus">False</property>
                         <child>
                           <widget class="GtkLabel" id="label_look">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="xalign">0</property>
                             <property name="ypad">3</property>
                             <property name="label" translatable="yes">You see:</property>
@@ -2168,11 +2779,13 @@
                               <widget class="GtkTreeView" id="treeview_look">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <signal name="row_collapsed" handler="list_row_collapse"/>
+                                <signal name="row_collapsed" handler="list_row_collapse" swapped="no"/>
                               </widget>
                             </child>
                           </widget>
                           <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
                             <property name="position">1</property>
                           </packing>
                         </child>
@@ -2196,6 +2809,8 @@
             </child>
           </widget>
           <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
         </child>
