@@ -537,17 +537,16 @@ AC_OUTPUT
 ##############################################################################
 AC_MSG_NOTICE([Configuration Summary ----------------------------------------------])
 AC_MSG_NOTICE([])
-AC_MSG_NOTICE([  Paths])
-AC_MSG_NOTICE([    Installation prefix          ${prefix}])
-AC_MSG_NOTICE([    exec_prefix default value    ${exec_prefix}])
-AC_MSG_NOTICE([    Will put config in           $sysconfdir])
-AC_MSG_NOTICE([    Will put data in             $ndatadir])
-AC_MSG_NOTICE([    Will put executables in      $nbindir])
+AC_MSG_NOTICE([  Installation Paths])
+AC_MSG_NOTICE([    Prefix                   ${prefix}])
+AC_MSG_NOTICE([    Binaries                 $nbindir])
+AC_MSG_NOTICE([    Configuration            $sysconfdir])
+AC_MSG_NOTICE([    Data                     $ndatadir])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Build Options])
-AC_MSG_NOTICE([    Build GTK2 client?           $gtkv2])
-AC_MSG_NOTICE([    Build OpenGL renderer?       $opengl])
-AC_MSG_NOTICE([    Build SDL renderer?          $use_sdl])
+AC_MSG_NOTICE([    GTK2 client              $gtkv2])
+AC_MSG_NOTICE([    SDL renderer             $use_sdl])
+AC_MSG_NOTICE([    OpenGL renderer          $opengl])
 sound_system=""
 if eval "test x$sound = xyes"; then
   if eval "test x$sdl_sound = xyes"; then
@@ -569,7 +568,7 @@ if eval "test x$sound = xyes"; then
     sound_system="$sound_system (Solaris)"
   fi
 fi
-AC_MSG_NOTICE([    Build sound server?          $sound $sound_system])
+AC_MSG_NOTICE([    Sound                    $sound $sound_system])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Scripting Options])
-AC_MSG_NOTICE([    Build Lua interface?         $have_lua])
+AC_MSG_NOTICE([    Build Lua interface?     $have_lua])
