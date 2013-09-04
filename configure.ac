@@ -71,6 +71,8 @@ AC_ARG_ENABLE(dmalloc, [AS_HELP_STRING([--enable-dmalloc], [Enable checking for 
 AC_ARG_ENABLE(metaserver2, [AS_HELP_STRING([--disable-metaserver2], [Do not build in metaserver2 support])],
                 metaserver2=$enableval, metaserver2=yes )
 
+AC_ARG_ENABLE(lua, [AS_HELP_STRING([--enable-lua], [Lua scripting interface (off by default)])], [enable_lua=yes], [enable_lua=no])
+
 ##############################################################################
 # Program Checks
 ##############################################################################
@@ -210,14 +212,26 @@ AC_CHECK_LIB(m, sqrt)
 
 AC_SEARCH_LIBS(pthread_create, [pthread, pthreadgc, pthreadgc1, pthreadgc2], [AC_DEFINE(HAVE_LIBPTHREAD, 1, [Define to 1 if you have the 'pthread' library.])])
 
-PKG_CHECK_MODULES(LUA, lua >= 5.0.0, [lua_scripting=yes], [lua_scripting=no])
-if eval "test x$lua_scripting = xyes" ; then
-    LUA_LIBS=`$PKG_CONFIG --libs lua`
-fi
+# Test for Lua only if it has been explicitly enabled by the user.
+if test "$enable_lua" = "yes"; then
+    PKG_CHECK_MODULES(LUA, lua >= 5.0.0, [have_lua=yes], [have_lua=no])
+    if test "$have_lua" = "yes"; then
+        LUA_LIBS=`$PKG_CONFIG --libs lua`
+        AC_DEFINE(HAVE_LUA, 1, [Define to use Lua 5.x])
+    else
+        have_lua="no"
+        LUA_LIBS=""
+    fi
 
-PKG_CHECK_MODULES(LUA, lua >= 5.1.0, [HAVE_LUA_5_1=yes], [HAVE_LUA_5_1=no])
-if eval "test x$HAVE_LUA_5_1 = xyes" ; then
-    AC_DEFINE(HAVE_LUA_5_1, 1, [Define to use Lua 5.1])
+    PKG_CHECK_MODULES(LUA, lua >= 5.1.0, [have_lua_5_1=yes], [have_lua_5_1=no])
+    if test "$have_lua_5_1" = "yes"; then
+        AC_DEFINE(HAVE_LUA_5_1, 1, [Define to use Lua 5.1])
+    fi
+
+    AC_SUBST(LUA_LIBS)
+else
+    AC_MSG_NOTICE([Skipping checks for Lua; it must be explicitly enabled.])
+    have_lua="no"
 fi
 
 CPPFLAGS="$CPPFLAGS $EXTRA_INC"
@@ -225,14 +239,6 @@ LDFLAGS="$LDFLAGS $EXTRA_LIB"
 if eval "test x$need_r_flag = xyes"; then
     LDFLAGS="$LDFLAGS"
 fi
-
-if eval "test x$lua_scripting = xyes" ; then
-    AC_DEFINE(HAVE_LUA, 1, [Define to use Lua 5.x])
-else
-    lua_scripting="no"
-    LUA_LIBS=""
-fi
-AC_SUBST(LUA_LIBS)
 
 # Check for additional X11 libraries.
 
@@ -565,5 +571,5 @@ if eval "test x$sound = xyes"; then
 fi
 AC_MSG_NOTICE([    Build sound server?          $sound $sound_system])
 AC_MSG_NOTICE([])
-AC_MSG_NOTICE([  Scripting options])
-AC_MSG_NOTICE([    Include lua interface?       $lua_scripting])
+AC_MSG_NOTICE([  Scripting Options])
+AC_MSG_NOTICE([    Build Lua interface?         $have_lua])
