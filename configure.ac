@@ -17,61 +17,72 @@ CF_SUBDIRS="common pixmaps utils help"
 ##############################################################################
 # Configuration Options
 ##############################################################################
-AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [Turn on debugging (default=no)])],
-if eval "test x$enable_debug = xyes"; then
-    DEBUGFLAG="-g"
-fi)
+AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug],
+              [Build with debug flags (default no)])],
+              [], [enable_debug=$enableval])
 
-AC_ARG_ENABLE(ansi, [AS_HELP_STRING([--enable-ansi], [Turn on strict ansi (default=no)])],
-                  , enable_ansi=$enableval)
+AC_ARG_ENABLE(ansi, [AS_HELP_STRING([--enable-ansi],
+              [Compile using strict ANSI])],
+              [], [enable_ansi=$enableval])
 
-AC_ARG_ENABLE(sound, [AS_HELP_STRING([--disable-sound], [Disable sound support (default=implement sound support if supported libraries exist)])],
-                sound=$enableval, sound=yes )
+AC_ARG_ENABLE(dmalloc, [AS_HELP_STRING([--enable-dmalloc],
+              [Link with the dmalloc library (default no)])],
+              [use_dmalloc=$enableval], [use_dmalloc=no])
 
-# These are because some of us use OSS sound, even with ALSA or ALSA9 libs
-# installed
-AC_ARG_ENABLE(alsa9, [AS_HELP_STRING([--disable-alsa9], [Disable ALSA9 sound support (default=use alsa9 sound support if alsa9 libraries exist)])],
-                alsa9=$enableval, alsa9=yes )
+AC_ARG_WITH(loglevel, [AS_HELP_STRING([--with-logevel=level],
+            [Default logging level (default 0, debug)])],
+            [MINLOGLEVEL="$withval"], [MINLOGLEVEL=0])
 
-AC_ARG_ENABLE(alsa, [AS_HELP_STRING([--disable-alsa], [Disable ALSA sound support (default=use alsa sound support if alsa libraries exist)])],
-                alsa=$enableval, alsa=yes )
+#### Client Options ####
+AC_ARG_ENABLE(gtkv2, [AS_HELP_STRING([--disable-gtkv2],
+              [Do not build the GTK2 client])],
+              [gtkv2=$enableval], [gtkv2=yes])
 
-AC_ARG_WITH(sound-dir, [AS_HELP_STRING([--with-sound-dir=dir], [Directory where the sounds are located (default=/usr/local/lib/sounds)])],
-                SOUNDDIR="$withval")
+AC_ARG_ENABLE(sdl, [AS_HELP_STRING([--disable-sdl],
+              [Do not use the SDL renderer])],
+              [use_sdl=$enableval], [use_sdl=yes])
+
+AC_ARG_ENABLE(metaserver2, [AS_HELP_STRING([--disable-metaserver2],
+              [Do not build metaserver support])],
+              metaserver2=$enableval, metaserver2=yes )
+
+AC_ARG_ENABLE(lua, [AS_HELP_STRING([--enable-lua],
+              [Lua scripting interface (off by default)])],
+              [enable_lua=yes], [enable_lua=no])
+
+#### Sound Options ####
+AC_ARG_ENABLE(sound, [AS_HELP_STRING([--disable-sound],
+              [Disable sound (default yes if required libraries exist])],
+              [sound=$enableval], [sound=yes])
+
+AC_ARG_ENABLE(alsa, [AS_HELP_STRING([--disable-alsa],
+              [Disable ALSA sound (default yes if required libraries exist])],
+              [alsa=$enableval], [alsa=yes])
+
+AC_ARG_ENABLE(alsa9, [AS_HELP_STRING([--disable-alsa9],
+              [Disable ALSA9 sound (default yes if required libraries exist])],
+              [alsa9=$enableval], [alsa9=yes])
+
+# SDL_mixer support is still experimental. Do not enable it by default yet.
+AC_ARG_ENABLE(sdl_mixer, [AS_HELP_STRING([--enable-sdl_mixer],
+              [Use SDL_mixer for sound (default no)])],
+              [use_sdl_mixer=$enableval], [use_sdl_mixer=no])
+
+AC_ARG_WITH(sound-dir, [AS_HELP_STRING([--with-sound-dir=dir],
+            [Directory where the sounds are installed])],
+            SOUNDDIR="$withval")
 
 # The following two are really just a way to specify where the xpm information
 # resides if not with the normal X11 stuff (ie, in /usr/local and not /usr
 # /usr/X11)
 
-AC_ARG_WITH(ldflags, [AS_HELP_STRING([--with-ldflags=dir], [Provide additional linker directives to find libraries])],
-                EXTRA_LIB="$withval")
+AC_ARG_WITH(ldflags, [AS_HELP_STRING([--with-ldflags=dir],
+            [Provide additional linker directives to find libraries])],
+            [EXTRA_LIB="$withval"])
 
-AC_ARG_WITH(includes, [AS_HELP_STRING([--with-includes=dir], [Provide different compiler options to find headers with])],
-                EXTRA_INC="$withval")
-
-AC_ARG_WITH(loglevel, [AS_HELP_STRING([--with-logevel=level], [Sets default loglevel])],
-                MINLOGLEVEL="$withval", MINLOGLEVEL=0)
-
-AC_ARG_ENABLE(gtkv2, [AS_HELP_STRING([--disable-gtkv2], [Do not make gtk-v2 client (default=make it if available)])],
-                gtkv2=$enableval, gtkv2=yes )
-
-AC_ARG_ENABLE(sdl, [AS_HELP_STRING([--disable-sdl], [Disable linking with the SDL library, default is to use it if available])],
-                use_sdl=$enableval, use_sdl=yes)
-
-# SDL_mixer support is experimental.  Do not enable by default until it is
-# ready for general use.
-AC_ARG_ENABLE(sdl_mixer, [AS_HELP_STRING([--enable-sdl_mixer],
-              [Enable use of the SDL_mixer library, default is not to use it])],
-              use_sdl_mixer=$enableval, use_sdl_mixer=no
-)
-
-AC_ARG_ENABLE(dmalloc, [AS_HELP_STRING([--enable-dmalloc], [Enable checking for dmalloc library, default is to use it if available])],
-                use_dmalloc=$enableval, use_dmalloc=no)
-
-AC_ARG_ENABLE(metaserver2, [AS_HELP_STRING([--disable-metaserver2], [Do not build in metaserver2 support])],
-                metaserver2=$enableval, metaserver2=yes )
-
-AC_ARG_ENABLE(lua, [AS_HELP_STRING([--enable-lua], [Lua scripting interface (off by default)])], [enable_lua=yes], [enable_lua=no])
+AC_ARG_WITH(includes, [AS_HELP_STRING([--with-includes=dir],
+            [Provide different compiler options to find headers with])],
+            [EXTRA_INC="$withval"])
 
 ##############################################################################
 # Program Checks
