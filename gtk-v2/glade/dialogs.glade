@@ -3918,6 +3918,7 @@ this is the pricing the character gets in shops.</property>
   <widget class="GtkWindow" id="login_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Account Login</property>
+    <property name="resizable">False</property>
     <property name="window_position">center-on-parent</property>
     <property name="type_hint">dialog</property>
     <property name="deletable">False</property>
@@ -3945,10 +3946,10 @@ this is the pricing the character gets in shops.</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="xpad">5</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Welcome to Crossfire&lt;/b&gt;
+                    <property name="label" translatable="yes">&lt;b&gt;Welcome to Crossfire!&lt;/b&gt;
 
-Please enter your account name and password.  If you do not have an account, create one now.
-If you already have characters on this server, you may attach them to a the new account.
+Please enter your account name and password for this server. If you do not have an account,
+you can create one and link any existing characters you have to it.
 </property>
                     <property name="use_markup">True</property>
                   </widget>
@@ -4261,11 +4262,11 @@ If you already have characters on this server, you may attach them to a the new 
                     </child>
                     <child>
                       <widget class="GtkButton" id="button_go_metaserver">
-                        <property name="label" translatable="yes">Return to
-Metaserver Selection</property>
+                        <property name="label">gtk-disconnect</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
                         <signal name="pressed" handler="activate_button_go_metaserver" swapped="no"/>
                         <signal name="activate" handler="activate_button_go_metaserver" swapped="no"/>
                       </widget>
@@ -4277,10 +4278,11 @@ Metaserver Selection</property>
                     </child>
                     <child>
                       <widget class="GtkButton" id="button_exit_client">
-                        <property name="label" translatable="yes">Exit Client</property>
+                        <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
                         <signal name="pressed" handler="activate_button_exit_client" swapped="no"/>
                         <signal name="activate" handler="activate_button_exit_client" swapped="no"/>
                       </widget>
@@ -4306,42 +4308,16 @@ Metaserver Selection</property>
   </widget>
   <widget class="GtkWindow" id="metaserver_window">
     <property name="can_focus">True</property>
-    <property name="title" translatable="yes">Metaserver Selection</property>
+    <property name="title" translatable="yes">Server Selection</property>
     <property name="window_position">center-on-parent</property>
-    <property name="default_width">805</property>
-    <property name="default_height">407</property>
+    <property name="default_width">800</property>
+    <property name="default_height">400</property>
     <property name="deletable">False</property>
     <signal name="destroy" handler="on_window_destroy_event" swapped="no"/>
     <child>
       <widget class="GtkVBox" id="metaserver_vbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <child>
-          <widget class="GtkLabel" id="metaserver_label_title">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="xpad">5</property>
-            <property name="ypad">3</property>
-            <property name="label" translatable="yes">Select a Server to Play On</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHSeparator" id="hseparator_title">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="padding">2</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
         <child>
           <widget class="GtkScrolledWindow" id="metaserver_scrolledwindow">
             <property name="visible">True</property>
@@ -4359,7 +4335,7 @@ Metaserver Selection</property>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -4401,7 +4377,7 @@ Metaserver Selection</property>
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">3</property>
+            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -4436,7 +4412,7 @@ Metaserver Selection</property>
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">4</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child>
@@ -4448,7 +4424,7 @@ Metaserver Selection</property>
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="padding">2</property>
-            <property name="position">5</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -4458,12 +4434,13 @@ Metaserver Selection</property>
             <property name="layout_style">spread</property>
             <child>
               <widget class="GtkButton" id="metaserver_select">
-                <property name="label" translatable="yes">Connect</property>
+                <property name="label">gtk-connect</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_metaserver_select_clicked" swapped="no"/>
               </widget>
               <packing>
@@ -4495,7 +4472,7 @@ Metaserver Selection</property>
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="padding">2</property>
-            <property name="position">6</property>
+            <property name="position">4</property>
           </packing>
         </child>
       </widget>
