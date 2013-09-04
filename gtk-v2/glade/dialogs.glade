@@ -65,11 +65,12 @@
             <property name="can_focus">False</property>
             <child>
               <widget class="GtkButton" id="about_close">
-                <property name="label" translatable="yes">Close</property>
+                <property name="label">gtk-close</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_about_close_clicked" swapped="no"/>
               </widget>
               <packing>
@@ -113,7 +114,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="ypad">10</property>
-                <property name="label" translatable="yes">&lt;b&gt;Change Your Account Password&lt;/b&gt;</property>
+                <property name="label" translatable="yes">&lt;b&gt;Change Account Password&lt;/b&gt;</property>
                 <property name="use_markup">True</property>
               </widget>
               <packing>
@@ -295,10 +296,11 @@
                 <property name="layout_style">spread</property>
                 <child>
                   <widget class="GtkButton" id="button_account_password_confirm">
-                    <property name="label" translatable="yes">Change Password</property>
+                    <property name="label">gtk-ok</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                     <signal name="pressed" handler="activate_account_password_confirm" swapped="no"/>
                     <signal name="activate" handler="activate_account_password_confirm" swapped="no"/>
                   </widget>
@@ -310,10 +312,11 @@
                 </child>
                 <child>
                   <widget class="GtkButton" id="button_account_password_cancel">
-                    <property name="label" translatable="yes">Cancel</property>
+                    <property name="label">gtk-cancel</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                     <signal name="pressed" handler="activate_account_password_cancel" swapped="no"/>
                     <signal name="activate" handler="activate_account_password_cancel" swapped="no"/>
                   </widget>
@@ -550,10 +553,11 @@ exist on the server.</property>
                     <property name="layout_style">spread</property>
                     <child>
                       <widget class="GtkButton" id="button_do_add_character">
-                        <property name="label" translatable="yes">Add Character</property>
+                        <property name="label">gtk-add</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
                         <signal name="pressed" handler="activate_add_character" swapped="no"/>
                         <signal name="activate" handler="activate_add_character" swapped="no"/>
                       </widget>
@@ -565,11 +569,11 @@ exist on the server.</property>
                     </child>
                     <child>
                       <widget class="GtkButton" id="button_return_character_select">
-                        <property name="label" translatable="yes">Return to
-Character Selection</property>
+                        <property name="label">gtk-go-back</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
                         <signal name="pressed" handler="activate_return_character_select" swapped="no"/>
                         <signal name="activate" handler="activate_return_character_select" swapped="no"/>
                       </widget>
@@ -988,10 +992,11 @@ Account Login</property>
                 <property name="layout_style">spread</property>
                 <child>
                   <widget class="GtkButton" id="button_csm_done">
-                    <property name="label" translatable="yes">Done</property>
+                    <property name="label">gtk-ok</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -1001,10 +1006,11 @@ Account Login</property>
                 </child>
                 <child>
                   <widget class="GtkButton" id="button_csm_cancel">
-                    <property name="label" translatable="yes">Back to Character Creation</property>
+                    <property name="label">gtk-cancel</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -2014,12 +2020,13 @@ Per Tile</property>
                 <property name="layout_style">spread</property>
                 <child>
                   <widget class="GtkButton" id="config_button_save">
-                    <property name="label" translatable="yes">Save</property>
+                    <property name="label">gtk-save</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="can_default">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
+                    <property name="use_stock">True</property>
                     <signal name="clicked" handler="on_config_button_save_clicked" swapped="no"/>
                   </widget>
                   <packing>
@@ -2030,12 +2037,13 @@ Per Tile</property>
                 </child>
                 <child>
                   <widget class="GtkButton" id="config_button_apply">
-                    <property name="label" translatable="yes">Apply</property>
+                    <property name="label">gtk-apply</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="can_default">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
+                    <property name="use_stock">True</property>
                     <signal name="clicked" handler="on_config_button_apply_clicked" swapped="no"/>
                   </widget>
                   <packing>
@@ -2046,12 +2054,13 @@ Per Tile</property>
                 </child>
                 <child>
                   <widget class="GtkButton" id="config_button_close">
-                    <property name="label" translatable="yes">Close Window</property>
+                    <property name="label">gtk-close</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="can_default">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
+                    <property name="use_stock">True</property>
                     <signal name="clicked" handler="on_config_button_close_clicked" swapped="no"/>
                   </widget>
                   <packing>
@@ -2353,10 +2362,11 @@ Per Tile</property>
                     </child>
                     <child>
                       <widget class="GtkButton" id="button_new_cancel">
-                        <property name="label" translatable="yes">Cancel</property>
+                        <property name="label">gtk-cancel</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
                         <signal name="pressed" handler="activate_new_cancel" swapped="no"/>
                         <signal name="activate" handler="activate_new_cancel" swapped="no"/>
                       </widget>
@@ -3562,10 +3572,11 @@ this is the pricing the character gets in shops.</property>
                 <property name="spacing">4</property>
                 <child>
                   <widget class="GtkButton" id="button_cc_done">
-                    <property name="label" translatable="yes">Done</property>
+                    <property name="label">gtk-ok</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -3588,10 +3599,11 @@ this is the pricing the character gets in shops.</property>
                 </child>
                 <child>
                   <widget class="GtkButton" id="button_cc_cancel">
-                    <property name="label" translatable="yes">Back to Character Selection</property>
+                    <property name="label">gtk-go-back</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -3831,11 +3843,12 @@ this is the pricing the character gets in shops.</property>
             <property name="layout_style">spread</property>
             <child>
               <widget class="GtkButton" id="keybinding_button_remove">
-                <property name="label" translatable="yes">Remove Binding</property>
+                <property name="label">gtk-remove</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_keybinding_button_remove_clicked" swapped="no"/>
               </widget>
               <packing>
@@ -3861,11 +3874,12 @@ this is the pricing the character gets in shops.</property>
             </child>
             <child>
               <widget class="GtkButton" id="keybinding_button_bind">
-                <property name="label" translatable="yes">Add</property>
+                <property name="label">gtk-add</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_keybinding_button_bind_clicked" swapped="no"/>
               </widget>
               <packing>
@@ -3876,11 +3890,12 @@ this is the pricing the character gets in shops.</property>
             </child>
             <child>
               <widget class="GtkButton" id="keybinding_button_clear">
-                <property name="label" translatable="yes">Clear Fields</property>
+                <property name="label">gtk-clear</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_keybinding_button_clear_clicked" swapped="no"/>
               </widget>
               <packing>
@@ -3891,11 +3906,12 @@ this is the pricing the character gets in shops.</property>
             </child>
             <child>
               <widget class="GtkButton" id="keybinding_button_close">
-                <property name="label" translatable="yes">Close Window</property>
+                <property name="label">gtk-close</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_keybinding_button_close_clicked" swapped="no"/>
               </widget>
               <packing>
@@ -4759,11 +4775,12 @@ you can create one and link any existing characters you have to it.
             <property name="layout_style">spread</property>
             <child>
               <widget class="GtkButton" id="msgctrl_button_save">
-                <property name="label" translatable="yes">Save</property>
+                <property name="label">gtk-save</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip" translatable="yes">Apply and save the currently displayed settings to disk.</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_msgctrl_button_save_clicked" swapped="no"/>
               </widget>
               <packing>
@@ -4804,11 +4821,12 @@ you can create one and link any existing characters you have to it.
             </child>
             <child>
               <widget class="GtkButton" id="msgctrl_button_apply">
-                <property name="label" translatable="yes">Apply</property>
+                <property name="label">gtk-apply</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip" translatable="yes">Apply the currently displayed settings.</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_msgctrl_button_apply_clicked" swapped="no"/>
               </widget>
               <packing>
@@ -4819,12 +4837,13 @@ you can create one and link any existing characters you have to it.
             </child>
             <child>
               <widget class="GtkButton" id="msgctrl_button_close">
-                <property name="label" translatable="yes">Close</property>
+                <property name="label">gtk-close</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="has_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip" translatable="yes">Apply the displayed settings and close the dialog.</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_msgctrl_button_close_clicked" swapped="no"/>
               </widget>
               <packing>
@@ -4998,10 +5017,11 @@ you can create one and link any existing characters you have to it.
                     </child>
                     <child>
                       <widget class="GtkButton" id="button_new_char_cancel">
-                        <property name="label" translatable="yes">Cancel</property>
+                        <property name="label">gtk-cancel</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -5103,11 +5123,12 @@ you can create one and link any existing characters you have to it.
             </child>
             <child>
               <widget class="GtkButton" id="skill_close">
-                <property name="label" translatable="yes">Close Window</property>
+                <property name="label">gtk-close</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_underline">True</property>
+                <property name="use_stock">True</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -5325,11 +5346,12 @@ you can create one and link any existing characters you have to it.
             </child>
             <child>
               <widget class="GtkButton" id="spell_close">
-                <property name="label" translatable="yes">Close Window</property>
+                <property name="label">gtk-close</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
+                <property name="use_stock">True</property>
                 <signal name="clicked" handler="on_spell_close_clicked" swapped="no"/>
               </widget>
               <packing>
