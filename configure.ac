@@ -19,7 +19,7 @@ CF_SUBDIRS="common pixmaps utils help"
 ##############################################################################
 AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug],
               [Build with debug flags (default no)])],
-              [], [enable_debug=$enableval])
+              [DEBUGFLAG="-g"], [])
 
 AC_ARG_ENABLE(ansi, [AS_HELP_STRING([--enable-ansi],
               [Compile using strict ANSI])],
@@ -134,6 +134,7 @@ elif test "$have_x" = yes; then
     test -z "$X11_LIBS" && X11_LIBS="$X_LIBS -lX11"
 fi
 
+# FIXME: This sound dir specification overwrites the user-specified one.
 SOUNDDIR="${datadir}/crossfire-client/sounds"
 
 
