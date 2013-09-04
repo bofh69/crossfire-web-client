@@ -7,9 +7,9 @@
     <property name="title" translatable="yes">Crossfire Client - GTK v2</property>
     <property name="default_width">1201</property>
     <property name="default_height">1010</property>
-    <signal name="destroy" handler="on_window_destroy_event" swapped="no"/>
-    <signal name="key_release_event" handler="keyrelfunc" object="window_root" swapped="yes"/>
-    <signal name="key_press_event" handler="keyfunc" object="window_root" swapped="yes"/>
+    <signal name="destroy" handler="on_window_destroy_event"/>
+    <signal name="key_release_event" handler="keyrelfunc" object="window_root"/>
+    <signal name="key_press_event" handler="keyfunc" object="window_root"/>
     <child>
       <widget class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
@@ -559,8 +559,8 @@
                       <widget class="GtkDrawingArea" id="drawingarea_map">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <signal name="button_press_event" handler="on_drawingarea_map_button_press_event" swapped="no"/>
-                        <signal name="expose_event" handler="on_drawingarea_map_expose_event" swapped="no"/>
+                        <signal name="button_press_event" handler="on_drawingarea_map_button_press_event"/>
+                        <signal name="expose_event" handler="on_drawingarea_map_expose_event"/>
                       </widget>
                     </child>
                     <child>
@@ -578,7 +578,7 @@
                       <widget class="GtkDrawingArea" id="drawingarea_magic_map">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <signal name="expose_event" handler="on_drawingarea_magic_map_expose_event" swapped="no"/>
+                        <signal name="expose_event" handler="on_drawingarea_magic_map_expose_event"/>
                       </widget>
                       <packing>
                         <property name="position">1</property>
@@ -2018,7 +2018,7 @@
                         <property name="secondary_icon_activatable">False</property>
                         <property name="primary_icon_sensitive">True</property>
                         <property name="secondary_icon_sensitive">True</property>
-                        <signal name="activate" handler="on_entry_commands_activate" swapped="no"/>
+                        <signal name="activate" handler="on_entry_commands_activate"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -2153,7 +2153,7 @@
                           <widget class="GtkNotebook" id="notebook_inv">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <signal name="switch_page" handler="on_notebook_switch_page" swapped="no"/>
+                            <signal name="switch_page" handler="on_notebook_switch_page"/>
                             <child>
                               <widget class="GtkScrolledWindow" id="scrolledwindow_inv">
                                 <property name="visible">True</property>
@@ -2169,7 +2169,7 @@
                                         <property name="can_focus">True</property>
                                         <property name="n_rows">11</property>
                                         <property name="n_columns">10</property>
-                                        <signal name="expose_event" handler="on_inv_table_expose_event" swapped="no"/>
+                                        <signal name="expose_event" handler="on_inv_table_expose_event"/>
                                         <child>
                                           <placeholder/>
                                         </child>
@@ -3217,7 +3217,7 @@
                               <widget class="GtkTreeView" id="treeview_look">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <signal name="row_collapsed" handler="list_row_collapse" swapped="no"/>
+                                <signal name="row_collapsed" handler="list_row_collapse"/>
                               </widget>
                             </child>
                           </widget>

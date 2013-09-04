@@ -71,7 +71,7 @@
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_about_close_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_about_close_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -177,7 +177,7 @@
                             <property name="secondary_icon_activatable">False</property>
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
-                            <signal name="activate" handler="activate_password_current" swapped="no"/>
+                            <signal name="activate" handler="activate_password_current"/>
                           </widget>
                           <packing>
                             <property name="expand">True</property>
@@ -209,7 +209,7 @@
                             <property name="secondary_icon_activatable">False</property>
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
-                            <signal name="activate" handler="activate_new_password" swapped="no"/>
+                            <signal name="activate" handler="activate_new_password"/>
                           </widget>
                           <packing>
                             <property name="expand">True</property>
@@ -240,7 +240,7 @@
                             <property name="secondary_icon_activatable">False</property>
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
-                            <signal name="activate" handler="activate_new_password_confirm" swapped="no"/>
+                            <signal name="activate" handler="activate_new_password_confirm"/>
                           </widget>
                           <packing>
                             <property name="expand">True</property>
@@ -301,8 +301,8 @@
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="pressed" handler="activate_account_password_confirm" swapped="no"/>
-                    <signal name="activate" handler="activate_account_password_confirm" swapped="no"/>
+                    <signal name="pressed" handler="activate_account_password_confirm"/>
+                    <signal name="activate" handler="activate_account_password_confirm"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -317,8 +317,8 @@
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="pressed" handler="activate_account_password_cancel" swapped="no"/>
-                    <signal name="activate" handler="activate_account_password_cancel" swapped="no"/>
+                    <signal name="pressed" handler="activate_account_password_cancel"/>
+                    <signal name="activate" handler="activate_account_password_cancel"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -422,7 +422,7 @@
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">True</property>
                                         <property name="secondary_icon_sensitive">True</property>
-                                        <signal name="activate" handler="activate_character_name" swapped="no"/>
+                                        <signal name="activate" handler="activate_character_name"/>
                                       </widget>
                                       <packing>
                                         <property name="expand">False</property>
@@ -558,8 +558,8 @@ exist on the server.</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="pressed" handler="activate_add_character" swapped="no"/>
-                        <signal name="activate" handler="activate_add_character" swapped="no"/>
+                        <signal name="pressed" handler="activate_add_character"/>
+                        <signal name="activate" handler="activate_add_character"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -574,8 +574,8 @@ exist on the server.</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="pressed" handler="activate_return_character_select" swapped="no"/>
-                        <signal name="activate" handler="activate_return_character_select" swapped="no"/>
+                        <signal name="pressed" handler="activate_return_character_select"/>
+                        <signal name="activate" handler="activate_return_character_select"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -786,8 +786,8 @@ this server that is not associated with an account, click the Add Character butt
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="pressed" handler="activate_play_character" swapped="no"/>
-                        <signal name="activate" handler="activate_play_character" swapped="no"/>
+                        <signal name="pressed" handler="activate_play_character"/>
+                        <signal name="activate" handler="activate_play_character"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -801,8 +801,8 @@ this server that is not associated with an account, click the Add Character butt
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="pressed" handler="activate_create_character" swapped="no"/>
-                        <signal name="activate" handler="activate_create_character" swapped="no"/>
+                        <signal name="pressed" handler="activate_create_character"/>
+                        <signal name="activate" handler="activate_create_character"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -816,8 +816,8 @@ this server that is not associated with an account, click the Add Character butt
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="pressed" handler="activate_add_character" swapped="no"/>
-                        <signal name="activate" handler="activate_add_character" swapped="no"/>
+                        <signal name="pressed" handler="activate_add_character"/>
+                        <signal name="activate" handler="activate_add_character"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -831,8 +831,8 @@ this server that is not associated with an account, click the Add Character butt
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="pressed" handler="activate_change_password" swapped="no"/>
-                        <signal name="activate" handler="activate_change_password" swapped="no"/>
+                        <signal name="pressed" handler="activate_change_password"/>
+                        <signal name="activate" handler="activate_change_password"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -847,8 +847,8 @@ Account Login</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="pressed" handler="activate_return_login" swapped="no"/>
-                        <signal name="activate" handler="activate_return_login" swapped="no"/>
+                        <signal name="pressed" handler="activate_return_login"/>
+                        <signal name="activate" handler="activate_return_login"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -2027,7 +2027,7 @@ Per Tile</property>
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_config_button_save_clicked" swapped="no"/>
+                    <signal name="clicked" handler="on_config_button_save_clicked"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -2044,7 +2044,7 @@ Per Tile</property>
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_config_button_apply_clicked" swapped="no"/>
+                    <signal name="clicked" handler="on_config_button_apply_clicked"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -2061,7 +2061,7 @@ Per Tile</property>
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_config_button_close_clicked" swapped="no"/>
+                    <signal name="clicked" handler="on_config_button_close_clicked"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -2164,7 +2164,7 @@ Per Tile</property>
                                     <property name="secondary_icon_activatable">False</property>
                                     <property name="primary_icon_sensitive">True</property>
                                     <property name="secondary_icon_sensitive">True</property>
-                                    <signal name="activate" handler="activate_new_account_name" swapped="no"/>
+                                    <signal name="activate" handler="activate_new_account_name"/>
                                   </widget>
                                   <packing>
                                     <property name="expand">True</property>
@@ -2196,7 +2196,7 @@ Per Tile</property>
                                     <property name="secondary_icon_activatable">False</property>
                                     <property name="primary_icon_sensitive">True</property>
                                     <property name="secondary_icon_sensitive">True</property>
-                                    <signal name="activate" handler="activate_new_account_password" swapped="no"/>
+                                    <signal name="activate" handler="activate_new_account_password"/>
                                   </widget>
                                   <packing>
                                     <property name="expand">True</property>
@@ -2227,7 +2227,7 @@ Per Tile</property>
                                     <property name="secondary_icon_activatable">False</property>
                                     <property name="primary_icon_sensitive">True</property>
                                     <property name="secondary_icon_sensitive">True</property>
-                                    <signal name="activate" handler="activate_new_confirm_password" swapped="no"/>
+                                    <signal name="activate" handler="activate_new_confirm_password"/>
                                   </widget>
                                   <packing>
                                     <property name="expand">True</property>
@@ -2351,8 +2351,8 @@ Per Tile</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="pressed" handler="activate_new_create_account" swapped="no"/>
-                        <signal name="activate" handler="activate_new_create_account" swapped="no"/>
+                        <signal name="pressed" handler="activate_new_create_account"/>
+                        <signal name="activate" handler="activate_new_create_account"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -2367,8 +2367,8 @@ Per Tile</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="pressed" handler="activate_new_cancel" swapped="no"/>
-                        <signal name="activate" handler="activate_new_cancel" swapped="no"/>
+                        <signal name="pressed" handler="activate_new_cancel"/>
+                        <signal name="activate" handler="activate_new_cancel"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -3779,7 +3779,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="secondary_icon_activatable">False</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>
-                <signal name="key_press_event" handler="on_keybinding_entry_key_key_press_event" swapped="no"/>
+                <signal name="key_press_event" handler="on_keybinding_entry_key_key_press_event"/>
               </widget>
               <packing>
                 <property name="expand">True</property>
@@ -3849,7 +3849,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_keybinding_button_remove_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_keybinding_button_remove_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -3864,7 +3864,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_keybinding_button_update_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_keybinding_button_update_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -3880,7 +3880,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_keybinding_button_bind_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_keybinding_button_bind_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -3896,7 +3896,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_keybinding_button_clear_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_keybinding_button_clear_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -3912,7 +3912,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_keybinding_button_close_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_keybinding_button_close_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4025,7 +4025,7 @@ you can create one and link any existing characters you have to it.
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">True</property>
                                         <property name="secondary_icon_sensitive">True</property>
-                                        <signal name="activate" handler="activate_entry_account_name" swapped="no"/>
+                                        <signal name="activate" handler="activate_entry_account_name"/>
                                       </widget>
                                       <packing>
                                         <property name="expand">False</property>
@@ -4057,7 +4057,7 @@ you can create one and link any existing characters you have to it.
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">True</property>
                                         <property name="secondary_icon_sensitive">True</property>
-                                        <signal name="activate" handler="activate_account_password" swapped="no"/>
+                                        <signal name="activate" handler="activate_account_password"/>
                                       </widget>
                                       <packing>
                                         <property name="expand">False</property>
@@ -4251,8 +4251,8 @@ you can create one and link any existing characters you have to it.
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="pressed" handler="activate_button_login" swapped="no"/>
-                        <signal name="activate" handler="activate_button_login" swapped="no"/>
+                        <signal name="pressed" handler="activate_button_login"/>
+                        <signal name="activate" handler="activate_button_login"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -4267,8 +4267,8 @@ you can create one and link any existing characters you have to it.
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="yalign">0.56000000238418579</property>
-                        <signal name="pressed" handler="activate_button_create_login" swapped="no"/>
-                        <signal name="activate" handler="activate_button_create_login" swapped="no"/>
+                        <signal name="pressed" handler="activate_button_create_login"/>
+                        <signal name="activate" handler="activate_button_create_login"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -4283,8 +4283,8 @@ you can create one and link any existing characters you have to it.
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="pressed" handler="activate_button_go_metaserver" swapped="no"/>
-                        <signal name="activate" handler="activate_button_go_metaserver" swapped="no"/>
+                        <signal name="pressed" handler="activate_button_go_metaserver"/>
+                        <signal name="activate" handler="activate_button_go_metaserver"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -4299,8 +4299,8 @@ you can create one and link any existing characters you have to it.
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="pressed" handler="activate_button_exit_client" swapped="no"/>
-                        <signal name="activate" handler="activate_button_exit_client" swapped="no"/>
+                        <signal name="pressed" handler="activate_button_exit_client"/>
+                        <signal name="activate" handler="activate_button_exit_client"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -4329,7 +4329,7 @@ you can create one and link any existing characters you have to it.
     <property name="default_width">800</property>
     <property name="default_height">400</property>
     <property name="deletable">False</property>
-    <signal name="destroy" handler="on_window_destroy_event" swapped="no"/>
+    <signal name="destroy" handler="on_window_destroy_event"/>
     <child>
       <widget class="GtkVBox" id="metaserver_vbox">
         <property name="visible">True</property>
@@ -4344,7 +4344,7 @@ you can create one and link any existing characters you have to it.
               <widget class="GtkTreeView" id="treeview_metaserver">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <signal name="row_activated" handler="on_treeview_metaserver_row_activated" swapped="no"/>
+                <signal name="row_activated" handler="on_treeview_metaserver_row_activated"/>
               </widget>
             </child>
           </widget>
@@ -4379,8 +4379,8 @@ you can create one and link any existing characters you have to it.
                 <property name="secondary_icon_activatable">False</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>
-                <signal name="activate" handler="on_metaserver_text_entry_activate" swapped="no"/>
-                <signal name="key_press_event" handler="on_metaserver_text_entry_key_press_event" swapped="no"/>
+                <signal name="activate" handler="on_metaserver_text_entry_activate"/>
+                <signal name="key_press_event" handler="on_metaserver_text_entry_key_press_event"/>
               </widget>
               <packing>
                 <property name="expand">True</property>
@@ -4457,7 +4457,7 @@ you can create one and link any existing characters you have to it.
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_metaserver_select_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_metaserver_select_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4473,8 +4473,8 @@ you can create one and link any existing characters you have to it.
                 <property name="receives_default">False</property>
                 <property name="tooltip" translatable="yes">Escape also quits.</property>
                 <property name="use_stock">True</property>
-                <signal name="pressed" handler="on_button_metaserver_quit_pressed" swapped="no"/>
-                <signal name="activate" handler="on_button_metaserver_quit_pressed" swapped="no"/>
+                <signal name="pressed" handler="on_button_metaserver_quit_pressed"/>
+                <signal name="activate" handler="on_button_metaserver_quit_pressed"/>
                 <accelerator key="Escape" signal="activate"/>
               </widget>
               <packing>
@@ -4781,7 +4781,7 @@ you can create one and link any existing characters you have to it.
                 <property name="receives_default">True</property>
                 <property name="tooltip" translatable="yes">Apply and save the currently displayed settings to disk.</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_msgctrl_button_save_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_msgctrl_button_save_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4796,7 +4796,7 @@ you can create one and link any existing characters you have to it.
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip" translatable="yes">Restore the previously saved settings from disk.</property>
-                <signal name="clicked" handler="on_msgctrl_button_load_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_msgctrl_button_load_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4811,7 +4811,7 @@ you can create one and link any existing characters you have to it.
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip" translatable="yes">Load the default settings built into the client.</property>
-                <signal name="clicked" handler="on_msgctrl_button_defaults_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_msgctrl_button_defaults_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4827,7 +4827,7 @@ you can create one and link any existing characters you have to it.
                 <property name="receives_default">True</property>
                 <property name="tooltip" translatable="yes">Apply the currently displayed settings.</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_msgctrl_button_apply_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_msgctrl_button_apply_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4844,7 +4844,7 @@ you can create one and link any existing characters you have to it.
                 <property name="receives_default">True</property>
                 <property name="tooltip" translatable="yes">Apply the displayed settings and close the dialog.</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_msgctrl_button_close_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_msgctrl_button_close_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4987,7 +4987,7 @@ you can create one and link any existing characters you have to it.
               <widget class="GtkTreeView" id="spell_treeview">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <signal name="row_activated" handler="on_spell_treeview_row_activated" swapped="no"/>
+                <signal name="row_activated" handler="on_spell_treeview_row_activated"/>
               </widget>
             </child>
           </widget>
@@ -5141,7 +5141,7 @@ you can create one and link any existing characters you have to it.
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_spell_cast_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_spell_cast_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -5156,7 +5156,7 @@ you can create one and link any existing characters you have to it.
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_spell_invoke_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_spell_invoke_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -5172,7 +5172,7 @@ you can create one and link any existing characters you have to it.
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_spell_close_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_spell_close_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
