@@ -1,6 +1,4 @@
-bin_PROGRAMS = cfsndserv @ALSA9_TARGET@
-
-EXTRA_PROGRAMS = cfsndserv_alsa9
+bin_PROGRAMS = cfsndserv
 
 EXTRA_DIST = \
 	sounds
@@ -44,19 +42,6 @@ cfsndserv_LDADD = \
 	$(DMALLOC_LIB) \
 	$(common_LIBS)
 
-cfsndserv_alsa9_SOURCES = \
-	common.h \
-	sndproto.h \
-	def_sounds.h \
-	def_sounds.c \
-	common.c \
-	alsa9.c
-
-cfsndserv_alsa9_LDADD = \
-	$(ALSA9_LIBS) \
-	$(DMALLOC_LIB) \
-	$(common_LIBS)
-
 def_sounds.h: sounds
 	$(PERL) \
 	    $(top_srcdir)/utils/deftoheader.pl $(srcdir)/sounds def_sounds.h def_sounds
@@ -72,4 +57,3 @@ proto:
 	cproto -e -o sndproto.h \
 	    $(DEFAULT_INCLUDES) $(AM_CFLAGS) $(proto_FILES)
 	chmod 644 sndproto.h
-

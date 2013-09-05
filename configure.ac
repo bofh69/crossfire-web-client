@@ -52,21 +52,8 @@ AC_ARG_ENABLE(lua, [AS_HELP_STRING([--enable-lua],
 
 #### Sound Options ####
 AC_ARG_ENABLE(sound, [AS_HELP_STRING([--disable-sound],
-              [Disable sound (default yes if required libraries exist])],
-              [sound=$enableval], [sound=yes])
-
-AC_ARG_ENABLE(alsa, [AS_HELP_STRING([--disable-alsa],
-              [Disable ALSA sound (default yes if required libraries exist])],
-              [alsa=$enableval], [alsa=yes])
-
-AC_ARG_ENABLE(alsa9, [AS_HELP_STRING([--disable-alsa9],
-              [Disable ALSA9 sound (default yes if required libraries exist])],
-              [alsa9=$enableval], [alsa9=yes])
-
-# SDL_mixer support is still experimental. Do not enable it by default yet.
-AC_ARG_ENABLE(sdl_mixer, [AS_HELP_STRING([--enable-sdl_mixer],
-              [Use SDL_mixer for sound (default no)])],
-              [use_sdl_mixer=$enableval], [use_sdl_mixer=no])
+              [Disable sound (built by default)])],
+              [], [enable_sound=yes])
 
 AC_ARG_WITH(sound-dir, [AS_HELP_STRING([--with-sound-dir=dir],
             [Directory where the sounds are installed])],
@@ -301,82 +288,19 @@ else
 fi
 # End of OpenGL checks
 
-if eval "test x$sound = xyes"; then
-    if eval "test x$alsa = xyes"; then
-        AC_CHECK_LIB(asound, main, alsa_sound=yes, , -lm)
-    fi
-    AC_CHECK_LIB(audio, alNewConfig, sgi_sound=yes, )
-    if eval "test x$alsa9 = xyes"; then
-        AC_CHECK_HEADER(alsa/asoundlib.h, alsa9_sound=yes, alsa_sound=no)
-    fi
-    if eval "test x$use_sdl_mixer = xyes"; then
-        AC_CHECK_LIB(SDL_mixer, Mix_OpenAudio, sdl_sound=yes, sdl_sound=no)
-    fi
-    AC_CHECK_HEADER(sys/soundcard.h, oss_sound=yes, oss_sound=no)
-    AC_CHECK_HEADER(sys/audioio.h, sun_sound=yes, sun_sound=no)
+# If sounds are enabled, check for the required libraries.
+if test "$enable_sound" = "yes"; then
+    AC_CHECK_LIB([SDL_mixer], [Mix_OpenAudio], [sdl_sound=yes], [sdl_sound=no])
 
-    # alsa9 sound support is now independent of other sound systems, so don't
-    # preclude compilation of others just because we find it.
-
-    if eval "test x$alsa9_sound = xyes"; then
-        AC_MSG_NOTICE([Using ALSA sound system (0.9.x)])
-        CFLAGS="$CFLAGS -DALSA9_SOUND"
-        ALSA9_TARGET='cfsndserv_alsa9$(EXEEXT)'
-        ALSA9_LIBS="-lasound -lm"
-        SOUND_SRC="sound-src";
-
-        # It appears that alsa9 sound while having the same headers, is not
-        # backwards compatible, so if you have alsa 0.9 or later, you can't
-        # compile the old old sound daemon, so if we find alsa9, disable old
-        # alsa.
-        alsa_sound="no";
-    fi
-
-    if eval "test x$sdl_sound = xyes"; then
-        AC_MSG_NOTICE([Using SDL_mixer sound system])
-        SDL_CFLAGS=`sdl-config --cflags`
+    if test "$sdl_sound" = "yes"; then
+        AC_MSG_NOTICE([Building with sound support.])
         CFLAGS="${CFLAGS} ${SDL_CFLAGS} -DSDL_SOUND"
+        SDL_CFLAGS=`sdl-config --cflags`
         SND_LIBS="-lSDL_mixer"
-        SOUND_SRC="sound-src";
+        CF_SUBDIRS="$CF_SUBDIRS sound-src";
     else
-        if eval "test x$alsa_sound = xyes"; then
-            AC_MSG_NOTICE([Using ALSA sound system])
-            CFLAGS="$CFLAGS -DALSA_SOUND"
-            SND_LIBS="-lasound -lm"
-            SOUND_SRC="sound-src";
-        else
-            if eval "test x$sgi_sound = xyes"; then
-                AC_MSG_NOTICE([Using SGI sound system])
-                CFLAGS="$CFLAGS -DSGI_SOUND"
-                SND_LIBS="-laudio"
-                SOUND_SRC="sound-src";
-            else
-                if eval "test x$oss_sound = xyes"; then
-                    AC_MSG_NOTICE([Using OSS sound system])
-                    CFLAGS="$CFLAGS -DOSS_SOUND"
-                    SND_LIBS="-lm"
-                    AC_CHECK_LIB(ossaudio, main, SND_LIBS="$LIBS -lossaudio")
-                    SOUND_SRC="sound-src";
-                else
-                    if eval "test x$sun_sound = xyes"; then
-                        AC_MSG_NOTICE([Using solaris sound system])
-                        CFLAGS="$CFLAGS -DSUN_SOUND"
-                        SND_LIBS="-lm"
-                        SOUND_SRC="sound-src";
-                    else
-                        AC_MSG_WARN([No suitable sound system found.])
-                        sound="no"
-                    fi
-                fi
-            fi
-        fi
+        AC_MSG_WARN([Not building with sound; required libraries not found.])
     fi
-fi
-
-# Basically, only want to put sound-src once in the subdirs listing.
-#
-if eval "test x$SOUND_SRC != x"; then
-    CF_SUBDIRS="$CF_SUBDIRS $SOUND_SRC";
 fi
 
 AC_SUBST(GUI_OBJS)
@@ -385,8 +309,6 @@ AC_SUBST(SND_LIBS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(TARGET)
 AC_SUBST(CF_SUBDIRS)
-AC_SUBST(ALSA9_TARGET)
-AC_SUBST(ALSA9_LIBS)
 
 # Check for SDL 1.1.3 and sdl_image.  Note SDL_image does not ship with an
 # sdl-image-config, so I'll just assume it is in the same dir as SDL.
@@ -559,28 +481,7 @@ AC_MSG_NOTICE([  Build Options])
 AC_MSG_NOTICE([    GTK2 client              $gtkv2])
 AC_MSG_NOTICE([    SDL renderer             $use_sdl])
 AC_MSG_NOTICE([    OpenGL renderer          $opengl])
-sound_system=""
-if eval "test x$sound = xyes"; then
-  if eval "test x$sdl_sound = xyes"; then
-    sound_system="$sound_system (SDL_mixer)"
-  fi
-  if eval "test x$alsa9_sound = xyes"; then
-    sound_system="$sound_system (Alsa 0.9.x)"
-  fi
-  if eval "test x$alsa_sound = xyes"; then
-    sound_system="$sound_system (Alsa)"
-  fi
-  if eval "test x$sgi_sound = xyes"; then
-    sound_system="$sound_system (SGI)"
-  fi
-  if eval "test x$oss_sound = xyes"; then
-    sound_system="$sound_system (OSS)"
-  fi
-  if eval "test x$sun_sound = xyes"; then
-    sound_system="$sound_system (Solaris)"
-  fi
-fi
-AC_MSG_NOTICE([    Sound                    $sound $sound_system])
+AC_MSG_NOTICE([    Sound (SDL_mixer)        $enable_sound])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Scripting Options])
 AC_MSG_NOTICE([    Build Lua interface?     $have_lua])
