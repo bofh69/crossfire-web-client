@@ -294,9 +294,10 @@ if test "$enable_sound" = "yes"; then
 
     if test "$sdl_sound" = "yes"; then
         AC_MSG_NOTICE([Building with sound support.])
-        CFLAGS="${CFLAGS} ${SDL_CFLAGS} -DSDL_SOUND"
         SDL_CFLAGS=`sdl-config --cflags`
         SND_LIBS="-lSDL_mixer"
+
+        CFLAGS="${CFLAGS} ${SDL_CFLAGS} -DSDL_SOUND"
         CF_SUBDIRS="$CF_SUBDIRS sound-src";
     else
         AC_MSG_WARN([Not building with sound; required libraries not found.])
