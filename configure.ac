@@ -59,18 +59,6 @@ AC_ARG_WITH(sound-dir, [AS_HELP_STRING([--with-sound-dir=dir],
             [Directory where the sounds are installed])],
             SOUNDDIR="$withval")
 
-# The following two are really just a way to specify where the xpm information
-# resides if not with the normal X11 stuff (ie, in /usr/local and not /usr
-# /usr/X11)
-
-AC_ARG_WITH(ldflags, [AS_HELP_STRING([--with-ldflags=dir],
-            [Provide additional linker directives to find libraries])],
-            [EXTRA_LIB="$withval"])
-
-AC_ARG_WITH(includes, [AS_HELP_STRING([--with-includes=dir],
-            [Provide different compiler options to find headers with])],
-            [EXTRA_INC="$withval"])
-
 ##############################################################################
 # Program Checks
 ##############################################################################
@@ -233,8 +221,6 @@ else
     have_lua="no"
 fi
 
-CPPFLAGS="$CPPFLAGS $EXTRA_INC"
-LDFLAGS="$LDFLAGS $EXTRA_LIB"
 if eval "test x$need_r_flag = xyes"; then
     LDFLAGS="$LDFLAGS"
 fi
@@ -244,7 +230,7 @@ fi
 # Save and modify CPPFLAGS and LIBS (to include X and GTK paths temporarily).
 gcfc_save_CPPFLAGS="$CPPFLAGS"
 gcfc_save_LIBS="$LIBS"
-CPPFLAGS="$GTK_CFLAGS $CPPFLAGS $OPENGL_CFLAGS $EXTRA_INC"
+CPPFLAGS="$GTK_CFLAGS $CPPFLAGS $OPENGL_CFLAGS"
 LIBS="$LIBS $GTK_LIBS $X11_LIBS"
 
 # Put this here so we get the gdk libs
