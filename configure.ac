@@ -23,7 +23,7 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug],
 
 AC_ARG_ENABLE(ansi, [AS_HELP_STRING([--enable-ansi],
               [Compile using strict ANSI])],
-              [], [enable_ansi=$enableval])
+              [], [enable_ansi=no])
 
 AC_ARG_ENABLE(dmalloc, [AS_HELP_STRING([--enable-dmalloc],
               [Link with the dmalloc library (default no)])],
@@ -48,7 +48,7 @@ AC_ARG_ENABLE(metaserver2, [AS_HELP_STRING([--disable-metaserver2],
 
 AC_ARG_ENABLE(lua, [AS_HELP_STRING([--enable-lua],
               [Lua scripting interface (off by default)])],
-              [enable_lua=yes], [enable_lua=no])
+              [], [enable_lua=no])
 
 #### Sound Options ####
 AC_ARG_ENABLE(sound, [AS_HELP_STRING([--disable-sound],
