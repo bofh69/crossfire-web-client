@@ -13,13 +13,13 @@
 
 /**
  * @file sound-src/common.c
- *
  */
-#include "config.h"
 
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "config.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -46,10 +46,8 @@ char *user_sounds_file   = NULL;        /* User sound mappings              */
  */
 int stereo = 0;
 int bit8 = 0;
-int sample_size = 0;
 int frequency = 0;
 int sign = 0;
-int zerolevel = 0;
 
 /**
  * Parse a line from the sound file.  This is a little ugly because static
@@ -80,8 +78,7 @@ int zerolevel = 0;
  *               Note that this data may be modified by parse_sound_line().
  * @param lineno The line number of the passed data used for error tracking.
  */
-static void parse_sound_line(char *line, int lineno)
-{
+static void parse_sound_line(char *line, int lineno) {
     static int readtype=0;              /**< Identifies the last section title
                                          *   found in the .crossfire/sounds
                                          *   file.  0 indicates a section
@@ -305,36 +302,22 @@ static void parse_sound_line(char *line, int lineno)
 }
 
 /**
- * Opens the audio device, allocates buffers, and reads any configuration
- * files that need to be.
+ * Initialize paths to various resources, such as sound config files.
  *
- * http://en.wikipedia.org/wiki/Comparison_of_file_systems seems to show that
- * 255 characters is the maximum file name length for most file systems.  The
- * same page notes that many file systems have no defined limit to directory
- * depth.  Some operating environments have a maximum that is quite large -
- * for example, Windows NT can handle paths up to 32,767 bytes.  This data,
- * along with the fact that the server Music command from the server has no
- * inherent limitation (other than MAXSOCKBUF), is why MAXSOCKBUF is chosen
- * for the maximum size of the path buffer.  MAXSOCKBUF is rather large, but
- * the buffer size is practically only temporarily allocated (via the stack).
- *
- * @return Zero on success and on failure, the calling function will likely
- *         disable sound support/requests from the server.
+ * Currently, this means to append $HOME to each path after resizing the array
+ * using malloc(). This is grossly inefficient and uses potentially unsafe
+ * functions. This should be a TODO and a FIXME.
+ * 
+ * @return Zero on success, anything else on failure.
  */
-int init_sounds() {
-    FILE *fp;
-    char path[MAXSOCKBUF], buf[512];
-    int i;
+static int init_paths() {
+    char path[MAXSOCKBUF];
 
-    /*
-     * Force the last char of the buffer to null in case strn* cuts off the
-     * terminating null while copying file information.
-     */
+    /* Manually set the last character of the buffer to NUL in case strn* cuts
+     * off the terminating NUL while copying file information. */
     path[sizeof(path) - 1] = '\0';
-    /*
-     * Initialize paths to various sound system resources.  Bail if any of
-     * the buffer allocations fail.
-     */
+
+    /* Sanity check for a $HOME environmental variable set. */
     if (getenv("HOME") == NULL) {
         fprintf(stderr,
                 "error: couldn't read $HOME environmental variable\n"
@@ -342,6 +325,8 @@ int init_sounds() {
         return -1;
     }
 
+    /* Initialize paths to various sound system resources.  Bail if any of
+     * the buffer allocations fail. */
     snprintf(path, sizeof(path), "%s%s", getenv("HOME"), USER_SOUNDS_FILE);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
     user_sounds_file = (char *) malloc(strlen(path));
@@ -369,18 +354,19 @@ int init_sounds() {
         return -1;
     }
 
-    if (init_audio()) {
-        return -1;
-    }
+    return 0;
+}
 
-    if (sign) {
-        zerolevel = 0;
-    } else {
-        zerolevel = bit8 ? 0x80 : 0x00;
-    }
+/**
+ * Load sound definitions from a file or use built-in defaults.
+ */
+static void init_sound_def() {
+    FILE *fp;
+    char buf[512];
+    int i;
 
-    fprintf( stderr, "smpl_size: %i, ", sample_size);
-    fprintf( stderr, "0level: %i\n", zerolevel);
+    default_normal.filename = NULL;
+    default_spell.filename = NULL;
 
     for (i = 0; i < MAX_SOUNDS; i++) {
         normal_sounds[i].filename = NULL;
@@ -388,22 +374,22 @@ int init_sounds() {
         normal_sounds[i].size = -1;
         spell_sounds[i].size = -1;
     }
-    default_normal.filename = NULL;
-    default_spell.filename = NULL;
 
-    i = 0;
     if (!(fp = fopen(user_sounds_file, "r"))) {
         fprintf(stderr,
                 "Unable to open %s - using built-in defaults\n",
                 user_sounds_file);
-        for (; i < sizeof(def_sounds) / sizeof(char*); i++) {
+        for (i = 0; i < sizeof(def_sounds) / sizeof(char*); i++) {
             strcpy(buf, def_sounds[i]);
             parse_sound_line(buf, i);
         }
-    } else while (fgets(buf, 511, fp) != NULL) {
+    } else {
+        while (fgets(buf, 511, fp) != NULL) {
             buf[511] = '\0';
             parse_sound_line(buf, ++i);
         }
+    }
+
     /* Note in both cases below, we leave the symbolic name untouched. */
     for (i = 0; i < MAX_SOUNDS; i++) {
         if (!normal_sounds[i].filename) {
@@ -417,6 +403,29 @@ int init_sounds() {
         normal_sounds[i].data = NULL;
         spell_sounds[i].data = NULL;
     }
+}
+
+/**
+ * Opens the audio device, allocates buffers, and reads any configuration
+ * files that need to be.
+ *
+ * @return Zero on success and on failure, the calling function will likely
+ *         disable sound support/requests from the server.
+ */
+int init_sounds() {
+    /* Initialize paths to various resources. */
+    if (init_paths() != 0) {
+        return -1;
+    }
+
+    /* Initialize audio library. */
+    if (init_audio()) {
+        return -1;
+    }
+
+    /* Initialize sound definitions. */
+    init_sound_def();
+
     return 0;
 }
 

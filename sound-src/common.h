@@ -48,10 +48,8 @@ extern sound_settings settings;
  */
 extern int stereo;
 extern int bit8;
-extern int sample_size;
 extern int frequency;
 extern int sign;
-extern int zerolevel;
 
 extern int init_audio(void);
 
