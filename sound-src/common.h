@@ -1,8 +1,3 @@
-/**
- * @file sound-src/common.h
- *
- */
-
 #ifndef _SOUND_SRC_COMMON_H
 #define _SOUND_SRC_COMMON_H
 
@@ -12,8 +7,6 @@
 #define MAX_SOUNDS 1024
 
 #define SOUND_DEBUG
-
-extern char *def_sounds[];
 
 extern char *client_sounds_path;
 extern char *user_sounds_path;
@@ -51,14 +44,9 @@ extern int bit8;
 extern int frequency;
 extern int sign;
 
-extern int init_audio(void);
+extern int init_audio();
 
 void play_sound(int soundnum, int soundtype, int x, int y);
 void play_music(const char *name);
 
-/* From ../common/libcfclient.a */
-extern char *strdup_local(const char *str);
-extern void replace_chars_with_string(char* buffer, const uint16 buffer_size,
-        const char find, const char* replace);
-
-#endif /* _SOUND_SRC_COMMON_H */
+#endif

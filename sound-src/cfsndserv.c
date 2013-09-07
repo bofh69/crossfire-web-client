@@ -68,7 +68,9 @@ int            max_chunk = 0;           /**< Max count of concurrent sounds */
 sound_settings settings = { 0, 1, 0, 11025, 4096, 4 };
 
 /**
- * Initialize the SDL_mixer sound system.
+ * Initialize the sound subsystem.
+ *
+ * Currently, this means calling SDL_Init() and Mix_OpenAudio().
  *
  * @return Zero on success, anything else on failure.
  */
@@ -467,7 +469,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (init_sounds()) {
+    if (init()) {
         exit(EXIT_FAILURE);
     }
 

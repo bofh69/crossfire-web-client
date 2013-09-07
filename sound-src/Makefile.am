@@ -30,12 +30,14 @@ $(common_LIBS):
 	popd >/dev/null;
 
 cfsndserv_SOURCES = \
-	common.h \
-	sndproto.h \
-	def_sounds.h \
-	def_sounds.c \
+	cfsndserv.c \
 	common.c \
-	cfsndserv.c
+	common.h \
+	def_sounds.c \
+	def_sounds.h \
+	init.c \
+	parser.c \
+	sndproto.h
 
 cfsndserv_LDADD = \
 	$(SND_LIBS) \
