@@ -8,7 +8,6 @@
 
 #define CLIENT_SOUNDS_PATH CF_DATADIR "/sounds/"
 #define USER_SOUNDS_PATH "/.crossfire/sound.cache/"
-#define USER_CONFIG_FILE "/.crossfire/sndconfig"
 #define USER_SOUNDS_FILE "/.crossfire/sounds"
 #define MAX_SOUNDS 1024
 
@@ -18,10 +17,7 @@ extern char *def_sounds[];
 
 extern char *client_sounds_path;
 extern char *user_sounds_path;
-extern char *user_config_file;
 extern char *user_sounds_file;
-
-extern char *buffers;
 
 typedef struct Sound_Info {
     char *filename;
@@ -41,10 +37,8 @@ typedef struct sound_settings {
     int bit8;
     int sign;
     int frequency;
-    int buffers;
     int buflen;
     int simultaneously;                 /**< Max number of sounds to queue. */
-    const char *audiodev;
 } sound_settings;
 
 extern sound_settings settings;
@@ -59,8 +53,6 @@ extern int frequency;
 extern int sign;
 extern int zerolevel;
 
-extern int *sounds_in_buffer;
-
 extern int init_audio(void);
 
 void play_sound(int soundnum, int soundtype, int x, int y);
@@ -68,10 +60,7 @@ void play_music(const char *name);
 
 /* From ../common/libcfclient.a */
 extern char *strdup_local(const char *str);
-extern void replace_chars_with_string(char*        buffer,
-                                      const uint16 buffer_size,
-                                      const char   find,
-                                      const char*  replace      );
+extern void replace_chars_with_string(char* buffer, const uint16 buffer_size,
+        const char find, const char* replace);
 
 #endif /* _SOUND_SRC_COMMON_H */
-

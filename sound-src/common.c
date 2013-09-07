@@ -17,14 +17,13 @@
  */
 #include "config.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-
-#include <ctype.h>
 
 #include "client-types.h"
 #include "newclient.h"
@@ -41,9 +40,6 @@ Sound_Info default_spell;
 char *client_sounds_path = NULL;        /* Client sound file folder         */
 char *user_sounds_path   = NULL;        /* User sound file folder           */
 char *user_sounds_file   = NULL;        /* User sound mappings              */
-char *user_config_file   = NULL;        /* User sndconfig file.             */
-
-char *buffers = NULL;
 
 /*
  * Sound device parameters.  See also sound_settings.
@@ -325,20 +321,10 @@ static void parse_sound_line(char *line, int lineno)
  * @return Zero on success and on failure, the calling function will likely
  *         disable sound support/requests from the server.
  */
-int init_sounds(void)
-{
+int init_sounds() {
     FILE *fp;
-    char  path[MAXSOCKBUF];
-    char  buf[512];
-    int   i;
-
-#ifdef SOUND_DEBUG
-    fprintf( stderr, "Settings: bits: %i, ", settings.bit8 ? 8 : 16);
-    fprintf( stderr, "%s, ",settings.sign ? "signed" : "unsigned");
-    fprintf( stderr, "%s, ",settings.stereo ? "stereo" : "mono");
-    fprintf( stderr, "frequency: %i, ", settings.frequency);
-    fprintf( stderr, "device: %s\n", settings.audiodev);
-#endif
+    char path[MAXSOCKBUF], buf[512];
+    int i;
 
     /*
      * Force the last char of the buffer to null in case strn* cuts off the
@@ -353,15 +339,6 @@ int init_sounds(void)
         fprintf(stderr,
                 "error: couldn't read $HOME environmental variable\n"
                 "Please run again with $HOME set to something reasonable.\n");
-        return -1;
-    }
-
-    snprintf(path, sizeof(path), "%s%s", getenv("HOME"), USER_CONFIG_FILE);
-    CONVERT_FILESPEC_TO_OS_FORMAT(path);
-    user_config_file = (char *) malloc(strlen(path));
-    if (user_config_file) {
-        strcpy(user_config_file, path);
-    } else {
         return -1;
     }
 
@@ -392,16 +369,6 @@ int init_sounds(void)
         return -1;
     }
 
-    buffers = (char *) malloc(settings.buffers * settings.buflen);
-    if (!buffers) {
-        return -1;
-    }
-
-    sounds_in_buffer = (int *) calloc(settings.buffers, sizeof(int));
-    if (!sounds_in_buffer) {
-        return -1;
-    }
-
     if (init_audio()) {
         return -1;
     }
@@ -412,16 +379,8 @@ int init_sounds(void)
         zerolevel = bit8 ? 0x80 : 0x00;
     }
 
-    memset(buffers, zerolevel, settings.buflen * settings.buffers);
-
-#ifdef SOUND_DEBUG
-    fprintf( stderr, "bits: %i, ", bit8 ? 8 : 16);
-    fprintf( stderr, "%s, ", sign ? "signed" : "unsigned");
-    fprintf( stderr, "%s, ", stereo ? "stereo" : "mono");
-    fprintf( stderr, "freq: %i, ", frequency);
     fprintf( stderr, "smpl_size: %i, ", sample_size);
     fprintf( stderr, "0level: %i\n", zerolevel);
-#endif
 
     for (i = 0; i < MAX_SOUNDS; i++) {
         normal_sounds[i].filename = NULL;
@@ -674,81 +633,3 @@ int StdinCmd(char *data, int len)
 
     return 0;
 }
-
-/**
- * Update the player .crossfire/sndconfig file.
- *
- * @return
- */
-int write_settings(void)
-{
-    FILE *f;
-
-    f = fopen(user_config_file, "w");
-    if (!f) {
-        return -1;
-    }
-
-    fprintf(f, "# Crossfire sound server settings\n");
-    fprintf(f, "# Please note, that not everything will work\n\n");
-    fprintf(f, "stereo: %i\n", settings.stereo);
-    fprintf(f, "bits: %i\n", settings.bit8?8:16);
-    fprintf(f, "signed: %i\n", settings.sign);
-    fprintf(f, "frequency: %i\n", settings.frequency);
-    fprintf(f, "buffers: %i\n", settings.buffers);
-    fprintf(f, "buflen: %i\n", settings.buflen);
-    fprintf(f, "simultaneously: %i\n", settings.simultaneously);
-    /* fprintf(f,"device: %s\n",settings.audiodev); */
-    fclose(f);
-    return 0;
-}
-
-/**
- * Read the player .crossfire/sndconfig file.
- *
- * @return
- */
-int read_settings(void)
-{
-    char linebuf[1024];
-    FILE *f;
-
-    if (user_config_file == NULL) {
-        return 0;
-    }
-
-    f = fopen(user_config_file, "r");
-    if (!f) {
-        return -1;
-    }
-
-    while(fgets(linebuf, 1023, f) != NULL) {
-        linebuf[1023] = 0;
-        /* Strip off the newline */
-        linebuf[strlen(linebuf) - 1] = 0;
-
-        if (strncmp(linebuf, "stereo:", strlen("stereo:")) == 0) {
-            settings.stereo = atoi(linebuf + strlen("stereo:")) ? 1 : 0;
-        } else if (strncmp(linebuf, "bits:", strlen("bits:")) == 0) {
-            settings.bit8 = (atoi(linebuf + strlen("bits:"))==8) ? 1 : 0;
-        } else if (strncmp(linebuf, "signed:", strlen("signed:")) == 0) {
-            settings.sign = atoi(linebuf + strlen("signed:")) ? 1 : 0;
-        } else if (strncmp(linebuf, "buffers:", strlen("buffers:")) == 0) {
-            settings.buffers = atoi(linebuf + strlen("buffers:"));
-        } else if (strncmp(linebuf, "buflen:", strlen("buflen:")) == 0) {
-            settings.buflen = atoi(linebuf + strlen("buflen:"));
-        } else if (strncmp(linebuf, "frequency:", strlen("frequency:")) == 0) {
-            settings.frequency = atoi(linebuf + strlen("frequency:"));
-        } else if (strncmp(linebuf, "simultaneously:", strlen("simultaneously:")) == 0) {
-            settings.simultaneously = atoi(linebuf + strlen("simultaneously:"));
-        }
-#if 0
-        else if (strncmp(linebuf,"device: ",strlen("device: "))==0) {
-            settings.audiodev=strdup_local(linebuf+strlen("device: "));
-        }
-#endif
-    }
-    fclose(f);
-    return 0;
-}
-

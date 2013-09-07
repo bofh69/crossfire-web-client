@@ -1,6 +1,3 @@
-static char *rcsid_sound_src_cfsndserv_c =
-    "$Id$";
-
 /*
  * Crossfire -- cooperative multi-player graphical RPG and adventure game
  *
@@ -19,12 +16,18 @@ static char *rcsid_sound_src_cfsndserv_c =
  * Implements a server for sound support in the client using SDL_mixer.
  */
 
-#include <config.h>
-
+#include <SDL.h>
+#include <SDL_mixer.h>
+#include <ctype.h>
+#include <errno.h>
+#include <math.h>
 #include <stdio.h>
-#include <sys/types.h>
+#include <stdlib.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
+
+#include "config.h"
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -33,8 +36,6 @@ static char *rcsid_sound_src_cfsndserv_c =
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-#include <math.h>
 
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
@@ -48,23 +49,12 @@ static char *rcsid_sound_src_cfsndserv_c =
 #include <string.h>
 #endif
 
-#include <stdlib.h>
-#include <ctype.h>
-#include <errno.h>
-
 #include "shared/newclient.h"
 #include "client-types.h"
 #include "def_sounds.h"
 #include "sndproto.h"
 #include "common.h"
-
-#  include "SDL.h"
-#  include "SDL_mixer.h"
-#  define AUDIODEV "/foo/bar"
-
-int  *sounds_in_buffer = NULL;
-int   current_buffer = 0;               /**< The next buffer to write out   */
-int   first_free_buffer = 0;            /**< Help know when to stop playing */
+#include "version.h"
 
 /*
  * Mixer variables
@@ -75,23 +65,19 @@ Mix_Music     *music = NULL;            /**< A music file to play           */
 Mix_Chunk    **chunk = NULL;            /**< Loaded sounds to play          */
 int            max_chunk = 0;           /**< Max count of concurrent sounds */
 
-sound_settings settings = { 0, 1, 0, 11025, 100, 4096, 4, AUDIODEV };
+sound_settings settings = { 0, 1, 0, 11025, 4096, 4 };
 
 /**
  * Initialize the SDL_mixer sound system.
  *
- * @return Zero if audio initialized successfully, otherwise -1.
+ * @return Zero on success, anything else on failure.
  */
-int init_audio(void)
-{
-    printf("cfsndserv for the SDL_mixer sound system\n");
-    printf("supports sound effects and background music.\n");
-    fflush(stdout);
-
-#ifdef SOUND_DEBUG
-    fprintf(stderr, "init_audio: SDL_SOUND\n");
-    fflush(stderr);
-#endif
+int init_audio() {
+    printf("Initializing sound using %s %d-bit %s channel @ %d Hz...\n",
+            settings.sign ? "signed" : "unsigned",
+            settings.bit8 ? 8 : 16,
+            settings.stereo ? "stereo" : "mono",
+            settings.frequency);
 
     if (SDL_Init(SDL_INIT_AUDIO) == -1) {
         fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
@@ -120,39 +106,39 @@ int init_audio(void)
     Mix_QuerySpec(&frequency, &audio_format, &audio_channels);
 
     switch (audio_format) {
-    case AUDIO_U16LSB:
-    case AUDIO_U16MSB:
-        bit8 = 0;
-        sign = 0;
-        break;
-    case AUDIO_S16LSB:
-    case AUDIO_S16MSB:
-        bit8 = 0;
-        sign = 1;
-        break;
-    case AUDIO_U8:
-        bit8 = 1;
-        sign = 0;
-        break;
-    case AUDIO_S8:
-        bit8 = 1;
-        sign = 1;
-        break;
-    default:
-        fprintf(stderr, "init_audio: Unexpected audio format\n");
-        return -1;
+        case AUDIO_U16LSB:
+        case AUDIO_U16MSB:
+            bit8 = 0;
+            sign = 0;
+            break;
+        case AUDIO_S16LSB:
+        case AUDIO_S16MSB:
+            bit8 = 0;
+            sign = 1;
+            break;
+        case AUDIO_U8:
+            bit8 = 1;
+            sign = 0;
+            break;
+        case AUDIO_S8:
+            bit8 = 1;
+            sign = 1;
+            break;
+        default:
+            fprintf(stderr, "init_audio: Unexpected audio format\n");
+            return -1;
     }
 
     switch (audio_channels) {
-    case 1:
-        stereo = 0;
-        break;
-    case 2:
-        stereo = 1;
-        break;
-    default:
-        fprintf(stderr, "init_audio: Unexpected number of channels\n");
-        return -1;
+        case 1:
+            stereo = 0;
+            break;
+        case 2:
+            stereo = 1;
+            break;
+        default:
+            fprintf(stderr, "init_audio: Unexpected number of channels\n");
+            return -1;
     }
 
     return 0;
@@ -168,11 +154,10 @@ int init_audio(void)
  * @param y         Offset (assumed from player) to play sound used to
  *                  determine value and left vs. right speaker balance.
  */
-void play_sound(int soundnum, int soundtype, int x, int y)
-{
+void play_sound(int soundnum, int soundtype, int x, int y) {
     char path[MAXSOCKBUF];
-    int         channel = 0;
-    int         playing = 0;
+    int channel = 0;
+    int playing = 0;
     Sound_Info *si;
 
 #ifdef SOUND_DEBUG
@@ -233,9 +218,9 @@ void play_sound(int soundnum, int soundtype, int x, int y)
         return;
     }
 
-    if (! si->filename) {
-        fprintf(stderr,
-                "play_sound: Sound %d (type %d) missing\n", soundnum, soundtype);
+    if (!si->filename) {
+        fprintf(stderr, "play_sound: Sound %d (type %d) missing\n",
+                soundnum, soundtype);
         return;
     }
     /*
@@ -262,8 +247,7 @@ void play_sound(int soundnum, int soundtype, int x, int y)
  *             path or file extensions.  It is up to this function to map the
  *             name to a file.
  */
-void play_music(const char* music_name)
-{
+void play_music(const char* music_name) {
     char path[MAXSOCKBUF];
     struct stat statbuf;
     int  namelen;
@@ -332,15 +316,14 @@ void play_music(const char* music_name)
  * the use of file descriptors.
  *
  */
-void sdl_mixer_server(void)
-{
-    int        infd;
-    fd_set     inset;
-    char       inbuf[1024];
-    int        inbuf_pos = 0;
-    int        mix_flags = MIX_INIT_OGG;
-    int        mix_init = 0;
-    int        channel = 0;
+void sdl_mixer_server() {
+    int infd;
+    fd_set inset;
+    char inbuf[1024];
+    int inbuf_pos = 0;
+    int mix_flags = MIX_INIT_OGG;
+    int mix_init = 0;
+    int channel = 0;
 
 #ifdef SOUND_DEBUG
     fprintf(stderr, "sdl_mixer_server: starting.\n");
@@ -442,19 +425,52 @@ void sdl_mixer_server(void)
     }
 }
 
-int main(int argc, char *argv[])
-{
-    printf("%s\n", rcsid_sound_src_cfsndserv_c);
-    fflush(stdout);
+/** Print detailed version information. */
+static void print_version() {
+    printf("Crossfire Sound Server %s\n", FULL_VERSION);
+}
 
-    if (read_settings()) {
-        write_settings();
+/** Print a message stating how to get help. */
+static void print_quickhelp() {
+    fprintf(stderr, "Type 'cfsndserv -h' for usage.\n");
+}
+
+/** Print out usage information. */
+static void print_usage() {
+    printf(
+        "Usage: cfsndserv [options]\n"
+        "\n"
+        "Options:\n"
+        "  -h   display this help message\n"
+        "  -v   display version information\n"
+    );
+}
+
+int main(int argc, char *argv[]) {
+    int flag;
+
+    /* Parse command-line arguments. */
+    while ((flag = getopt(argc, argv, "hv")) != -1) {
+        switch (flag) {
+            case 'h':
+                print_usage();
+                exit(EXIT_SUCCESS);
+                break;
+            case 'v':
+                print_version();
+                exit(EXIT_SUCCESS);
+                break;
+            case '?':
+                print_quickhelp();
+                exit(EXIT_FAILURE);
+                break;
+        }
     }
 
     if (init_sounds()) {
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
     sdl_mixer_server();
-    return 0;
+    exit(EXIT_SUCCESS);
 }
