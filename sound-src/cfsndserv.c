@@ -44,7 +44,7 @@
 
 static Mix_Chunk **chunk = NULL;
 static Mix_Music *music = NULL;
-static sound_settings settings = { 0, 1, 0, 11025, 4096, 4 };
+static sound_settings settings = { 0, 1, 0, 11025, 512, 4 };
 
 /**
  * Initialize the sound subsystem.
@@ -176,11 +176,12 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     }
 
     /* Try to load and play the sound. */
-    snprintf(path, sizeof(path), "%s%s.ogg", client_sounds_path, si->filename);
+    snprintf(path, sizeof(path), "%s%s.wav", client_sounds_path, si->filename);
     chunk[channel_next] = Mix_LoadWAV(path);
 
     if (!chunk[channel_next]) {
-        fprintf(stderr, "play_sound: Mix_LoadWAV: %s\n", Mix_GetError());
+        fprintf(stderr, "Could not load sound from '%s': %s\n",
+                path, SDL_GetError());
         return;
     }
 
