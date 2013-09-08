@@ -155,10 +155,8 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     }
 
     /* Refuse to play a sound with an invalid type. */
-    if (soundtype == SOUND_NORMAL) {
-        si = &normal_sounds[soundnum];
-    } else if (soundtype == SOUND_SPELL) {
-        si = &spell_sounds[soundnum];
+    if (soundtype == SOUND_NORMAL || soundtype == SOUND_SPELL) {
+        si = &sounds[soundnum];
     } else {
         fprintf(stderr,"play_sound: Unknown soundtype: %d\n", soundtype);
         return;
@@ -346,12 +344,10 @@ static int parse_input(char *data, int len) {
 
     if (type) {
         /* Play sound effect. */
-#ifdef SOUND_DEBUG
         fprintf(stderr, "Playing sound "
                 "%d,%d dir=%d vol=%d type=%d source=\"%s\" sound=\"%s\"\n",
                 x, y, dir, vol, type, source, sound);
-#endif
-        play_sound(sound_to_soundnum(source, type),
+        play_sound(sound_to_soundnum(sound, type),
                 type_to_soundtype(type), x, y);
         return 0;
     } else {

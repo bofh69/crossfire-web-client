@@ -29,10 +29,7 @@
 #include "common.h"
 #include "sndproto.h"
 
-Sound_Info normal_sounds[MAX_SOUNDS];
-Sound_Info spell_sounds[MAX_SOUNDS];
-Sound_Info default_normal = {NULL, NULL, 0};
-Sound_Info default_spell = {NULL, NULL, 0};
+Sound_Info sounds[MAX_SOUNDS];
 
 /**
  * Load sound definitions from a file.
@@ -42,10 +39,9 @@ static void init_sounds() {
     char buf[512];
     int i;
 
-    /* First, initialize by setting all sounds to NULL. */
+    /* Initialize by setting all sounds to NULL. */
     for (i = 0; i < MAX_SOUNDS; i++) {
-        normal_sounds[i].filename = NULL;
-        spell_sounds[i].filename = NULL;
+        sounds[i].filename = NULL;
     }
 
     /* Try to open the sound definitions file. */
@@ -57,25 +53,34 @@ static void init_sounds() {
         exit(EXIT_FAILURE);
     }
 
-    /* Use 'i' as a line number tracker, so set it to zero. */
+    /* Use 'i' as index tracker, so set it to zero. */
     i = 0;
 
     /* Parse the sound definitions file, line by line. */
     while (fgets(buf, sizeof(buf), fp) != NULL) {
-        parse_sound_line(buf, i++);
-    }
+        char *line;
+        line = &buf[0];
 
-    /* Set unread sounds to the default sound. */
-    for (i = 0; i < MAX_SOUNDS; i++) {
-        if (normal_sounds[i].filename == NULL) {
-            normal_sounds[i].filename = default_normal.filename;
-            normal_sounds[i].volume = default_normal.volume;
+        /* Ignore all lines that start with a comment or newline. */
+        if (buf[0] == '#' || buf[0] == '\n') {
+            continue;
         }
 
-        if (spell_sounds[i].filename == NULL) {
-            spell_sounds[i].filename = default_spell.filename;
-            spell_sounds[i].volume = default_spell.volume;
+        /* Trim the trailing newline if it exists (see CERT FIO36-C). */
+        char *newline;
+        newline = strchr(buf, '\n');
+
+        if (newline != NULL) {
+            *newline = '\0';
         }
+
+        /* FIXME: No error checking; potential segfaults here. */
+        sounds[i].symbolic = strdup_local(strsep(&line, ":"));
+        sounds[i].volume = atoi(strsep(&line, ":"));
+        sounds[i].filename = strdup_local(strsep(&line, ":"));
+
+        /* Move on to the next sound. */
+        i++;
     }
 }
 

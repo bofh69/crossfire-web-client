@@ -13,10 +13,7 @@ typedef struct Sound_Info {
     unsigned char volume;
 } Sound_Info;
 
-extern Sound_Info normal_sounds[MAX_SOUNDS];
-extern Sound_Info spell_sounds[MAX_SOUNDS];
-extern Sound_Info default_normal;
-extern Sound_Info default_spell;
+extern Sound_Info sounds[MAX_SOUNDS];
 
 typedef struct sound_settings {
     int stereo;
