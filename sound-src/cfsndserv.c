@@ -38,7 +38,6 @@
 
 #include "shared/newclient.h"
 #include "client-types.h"
-#include "def_sounds.h"
 #include "sndproto.h"
 #include "common.h"
 
@@ -95,9 +94,6 @@ int init_audio() {
     }
 
     /* Allocate channels and resize buffers accordingly. */
-    printf("Allocating buffers for %d simultaneous sounds...\n",
-            settings.max_chunk);
-
     Mix_AllocateChannels(settings.max_chunk);
     chunk = calloc(settings.max_chunk, sizeof(chunk));
 
@@ -176,7 +172,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     }
 
     /* Try to load and play the sound. */
-    snprintf(path, sizeof(path), "%s%s.wav", client_sounds_path, si->filename);
+    snprintf(path, sizeof(path), "%s%s.wav", CLIENT_SOUNDS_PATH, si->filename);
     chunk[channel_next] = Mix_LoadWAV(path);
 
     if (!chunk[channel_next]) {
@@ -195,107 +191,12 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
  */
 static void play_music(const char* music_name) {
     char path[MAXSOCKBUF];
-    struct stat statbuf;
-    int  namelen;
-    int  pathlen;
-    int  fd = -1;
 
-#ifdef SOUND_DEBUG
-    fprintf(stderr, "play_music: SDL_mixer\n");
-    fflush(stderr);
-#endif
-
-    namelen = strlen(music_name);
-    pathlen = strlen(user_sounds_path);
-
-    if (pathlen + namelen + 5 > sizeof(path)) {
-        return;
-    }
-
-    path[sizeof(path) - 1] = '\0';
-    snprintf(path, sizeof(path), "%s%s.ogg", user_sounds_path, music_name);
-
-    if (stat(path, &statbuf) != -1) {
-        if ((statbuf.st_mode & S_IFMT) == S_IFREG) {
-            fd = open (path, O_RDONLY);
-            if (fd != -1) {
-                close(fd);
-            }
-        }
-    }
-
-    if (fd == -1) {
-#ifdef SOUND_DEBUG
-        fprintf(stderr, "play_music: %s not found.\n", path);
-#endif
-        pathlen = strlen(client_sounds_path);
-        if (pathlen + namelen + 5 > sizeof(path)) {
-            return;
-        }
-        path[sizeof(path) - 1] = '\0';
-        snprintf(path, sizeof(path), "%s%s.ogg", client_sounds_path, music_name);
-
-        if (stat(path, &statbuf) != -1) {
-            if (statbuf.st_mode == S_IFREG) {
-                fd = open (path, O_RDONLY);
-                if (fd != -1) {
-                    close(fd);
-                }
-            }
-        }
-    }
-
-    if (fd == -1) {
-#ifdef SOUND_DEBUG
-        fprintf(stderr, "play_music: %s not found.\n", path);
-#else
-        fprintf(stderr, "play_music: music %x.ogg not found\n", music_name);
-#endif
-        return;
-    }
+    snprintf(path, sizeof(path), "%s%s%s.ogg", getenv("HOME"),
+            USER_SOUNDS_PATH, music_name);
 
     music = Mix_LoadMUS(path);
     Mix_PlayMusic(music, 0);
-}
-
-/**
- * Implement the SDL_mixer sound server.
- */
-void sdl_mixer_server() {
-    char inbuf[1024];
-    int channel;
-
-    printf("Starting SDL_mixer server...\n");
-
-    while (fgets(inbuf, sizeof(inbuf), stdin) != NULL) {
-        /* Parse input and sleep to avoid hogging CPU. */
-        StdinCmd(inbuf, strlen(inbuf));
-        SDL_Delay(50);
-    }
-
-    printf("Cleaning up...\n");
-
-    Mix_HaltMusic();
-    Mix_FreeMusic(music);
-    music = NULL;
-
-    /*
-     * Halt all channels playing, and de-allocate any Mix_Chunks that exist.
-     */
-    Mix_HaltChannel(-1);
-    for (channel = 0; channel < settings.max_chunk; channel++) {
-        if (chunk[channel]) {
-            Mix_FreeChunk(chunk[channel]);
-            chunk[channel] = NULL;
-        }
-    }
-    /*
-     * As long as Mix_Init() was only called once, Mix_Quit() should only need
-     * to be called once, but this covers all the bases.
-     */
-    while(Mix_Init(0)) {
-        Mix_Quit();
-    }
 }
 
 /**
@@ -325,7 +226,7 @@ void sdl_mixer_server() {
  * @param len  The length of the text data in the command buffer.
  * @return     0 if the buffer contains a well-formed command, otherwise -1.
  */
-int StdinCmd(char *data, int len) {
+static int parse_input(char *data, int len) {
     char* dptr;                         /* Pointer used when parsing data */
     char* fptr;
     char* sound = NULL;                 /* Points to a sound or music name */
@@ -450,7 +351,7 @@ int StdinCmd(char *data, int len) {
                 "%d,%d dir=%d vol=%d type=%d source=\"%s\" sound=\"%s\"\n",
                 x, y, dir, vol, type, source, sound);
 #endif
-        play_sound(sound_to_soundnum(sound, type),
+        play_sound(sound_to_soundnum(source, type),
                 type_to_soundtype(type), x, y);
         return 0;
     } else {
@@ -462,4 +363,46 @@ int StdinCmd(char *data, int len) {
     }
 
     return 0;
+}
+
+/**
+ * Clean up after itself.
+ */
+static void cleanup() {
+    int i;
+
+    printf("Cleaning up...\n");
+
+    Mix_HaltMusic();
+    Mix_FreeMusic(music);
+
+    /* Halt all channels that are playing and free remaining samples. */
+    Mix_HaltChannel(-1);
+
+    for (i = 0; i < settings.max_chunk; i++) {
+        if (chunk[i]) {
+            Mix_FreeChunk(chunk[i]);
+        }
+    }
+
+    /* Call Mix_Quit() for each time Mix_Init() was called. */
+    while(Mix_Init(0)) {
+        Mix_Quit();
+    }
+}
+
+/**
+ * Implement the SDL_mixer sound server.
+ */
+void sdl_mixer_server() {
+    char inbuf[1024];
+
+    printf("Starting SDL_mixer server...\n");
+    atexit(cleanup);
+
+    while (fgets(inbuf, sizeof(inbuf), stdin) != NULL) {
+        /* Parse input and sleep to avoid hogging CPU. */
+        parse_input(inbuf, strlen(inbuf));
+        SDL_Delay(50);
+    }
 }

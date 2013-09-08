@@ -30,7 +30,6 @@
 #include "client.h"
 
 #include "common.h"
-#include "def_sounds.h"
 #include "sndproto.h"
 
 /**
@@ -290,16 +289,25 @@ void parse_sound_line(char *line, int lineno) {
  * sound server from sound support to sound2 capability.  This is not an end
  * solution, but one that gets the sound server working a little bit until a
  * better one can be implemented.
- *
- * @param name
- * @param type
  */
 int sound_to_soundnum(const char *name, uint8 type) {
-    fprintf(stderr, "name=%s type=%d\n", name, type);
-    /**
-     * @todo Implement conversion to legacy soundnum.
-     * @todo Replace conversion to legacy soundnum.
-     */
+    Sound_Info *sounds;
+
+    if (type == SOUND_NORMAL) {
+        sounds = normal_sounds;
+    } else {
+        sounds = spell_sounds;
+    }
+
+    for (int i = 0; i < MAX_SOUNDS; i++) {
+        if (sounds[i].symbolic != NULL) {
+            if (strcmp(sounds[i].symbolic, name) == 0) {
+                return i;
+            }
+        }
+    }
+
+    printf("Could not find matching sound for '%s'; using default.\n", name);
     return 1;
 }
 

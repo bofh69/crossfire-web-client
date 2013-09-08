@@ -3,13 +3,9 @@
 
 #define CLIENT_SOUNDS_PATH CF_DATADIR "/sounds/"
 #define USER_SOUNDS_PATH "/.crossfire/sound.cache/"
-#define USER_SOUNDS_FILE "/.crossfire/sounds"
 #define MAX_SOUNDS 1024
 
 #define SOUND_DEBUG
-
-extern char *client_sounds_path;
-extern char *user_sounds_path;
 
 typedef struct Sound_Info {
     char *filename;

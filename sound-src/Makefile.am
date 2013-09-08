@@ -1,8 +1,5 @@
 bin_PROGRAMS = cfsndserv
 
-EXTRA_DIST = \
-	sounds
-
 AM_CFLAGS = \
 	-I$(top_builddir)/common \
 	-I$(top_srcdir)/common \
@@ -17,9 +14,7 @@ $(common_BUILT_FILES):
 	popd >/dev/null;
 
 BUILT_SOURCES = \
-	$(common_BUILT_FILES) \
-	def_sounds.h \
-	def_sounds.c
+	$(common_BUILT_FILES)
 
 common_LIBS = \
 	$(top_builddir)/common/libcfclient.a
@@ -32,8 +27,6 @@ $(common_LIBS):
 cfsndserv_SOURCES = \
 	cfsndserv.c \
 	common.h \
-	def_sounds.c \
-	def_sounds.h \
 	init.c \
 	main.c \
 	parser.c \
@@ -43,11 +36,3 @@ cfsndserv_LDADD = \
 	$(SND_LIBS) \
 	$(DMALLOC_LIB) \
 	$(common_LIBS)
-
-def_sounds.h: sounds
-	$(PERL) \
-	    $(top_srcdir)/utils/deftoheader.pl $(srcdir)/sounds def_sounds.h def_sounds
-
-def_sounds.c: sounds
-	$(PERL) \
-	    $(top_srcdir)/utils/deftoheader.pl $(srcdir)/sounds def_sounds.c def_sounds

@@ -26,115 +26,53 @@
 #endif
 
 #include "client.h"
-
 #include "common.h"
-#include "def_sounds.h"
 #include "sndproto.h"
 
 Sound_Info normal_sounds[MAX_SOUNDS];
 Sound_Info spell_sounds[MAX_SOUNDS];
-Sound_Info default_normal;
-Sound_Info default_spell;
-
-char *client_sounds_path = NULL;    /* Client sound directory */
-char *user_sounds_path = NULL;      /* User sound directory */
-
-static char *user_sounds_file  = NULL;     /* User sound definitions */
+Sound_Info default_normal = {NULL, NULL, 0};
+Sound_Info default_spell = {NULL, NULL, 0};
 
 /**
- * Initialize paths to various resources, such as sound config files.
- *
- * Currently, this means to append $HOME to each path after resizing the array
- * using malloc(). This is grossly inefficient and uses potentially unsafe
- * functions. This should be a TODO and a FIXME.
- * 
- * @return Zero on success, anything else on failure.
- */
-static int init_paths() {
-    char path[MAXSOCKBUF];
-
-    /* Manually set the last character of the buffer to NUL in case strn* cuts
-     * off the terminating NUL while copying file information. */
-    path[sizeof(path) - 1] = '\0';
-
-    /* Sanity check for a $HOME environmental variable set. */
-    if (getenv("HOME") == NULL) {
-        fprintf(stderr,
-                "error: couldn't read $HOME environmental variable\n"
-                "Please run again with $HOME set to something reasonable.\n");
-        return -1;
-    }
-
-    /* Initialize paths to various sound system resources.  Bail if any of
-     * the buffer allocations fail. */
-    snprintf(path, sizeof(path), "%s%s", getenv("HOME"), USER_SOUNDS_FILE);
-    CONVERT_FILESPEC_TO_OS_FORMAT(path);
-    user_sounds_file = (char *) malloc(strlen(path));
-    if (user_sounds_file) {
-        strcpy(user_sounds_file, path);
-    } else {
-        return -1;
-    }
-
-    snprintf(path, sizeof(path), "%s%s", getenv("HOME"), USER_SOUNDS_PATH);
-    CONVERT_FILESPEC_TO_OS_FORMAT(path);
-    user_sounds_path = (char *) malloc(strlen(path));
-    if (user_sounds_path) {
-        strcpy(user_sounds_path, path);
-    } else {
-        return -1;
-    }
-
-    strncpy(path, CLIENT_SOUNDS_PATH, sizeof(path) - 1);
-    CONVERT_FILESPEC_TO_OS_FORMAT(path);
-    client_sounds_path = (char *) malloc(strlen(path));
-    if (client_sounds_path) {
-        strcpy(client_sounds_path, path);
-    } else {
-        return -1;
-    }
-
-    return 0;
-}
-
-/**
- * Load sound definitions from a file or use built-in defaults.
+ * Load sound definitions from a file.
  */
 static void init_sounds() {
     FILE *fp;
     char buf[512];
     int i;
 
-    default_normal.filename = NULL;
-    default_spell.filename = NULL;
-
+    /* First, initialize by setting all sounds to NULL. */
     for (i = 0; i < MAX_SOUNDS; i++) {
         normal_sounds[i].filename = NULL;
         spell_sounds[i].filename = NULL;
     }
 
-    if (!(fp = fopen(user_sounds_file, "r"))) {
-        fprintf(stderr,
-                "Unable to open %s - using built-in defaults\n",
-                user_sounds_file);
-        for (i = 0; i < sizeof(def_sounds) / sizeof(char*); i++) {
-            strcpy(buf, def_sounds[i]);
-            parse_sound_line(buf, i);
-        }
-    } else {
-        while (fgets(buf, 511, fp) != NULL) {
-            buf[511] = '\0';
-            parse_sound_line(buf, ++i);
-        }
+    /* Try to open the sound definitions file. */
+    printf("Loading sounds from '%s'...\n", getenv("CF_SOUND_DIR"));
+    fp = fopen(getenv("CF_SOUND_CONF"), "r");
+
+    if (fp == NULL) {
+        fprintf(stderr, "Could not find sound definitions; aborting!\n");
+        exit(EXIT_FAILURE);
     }
 
-    /* Note in both cases below, we leave the symbolic name untouched. */
+    /* Use 'i' as a line number tracker, so set it to zero. */
+    i = 0;
+
+    /* Parse the sound definitions file, line by line. */
+    while (fgets(buf, sizeof(buf), fp) != NULL) {
+        parse_sound_line(buf, i++);
+    }
+
+    /* Set unread sounds to the default sound. */
     for (i = 0; i < MAX_SOUNDS; i++) {
-        if (!normal_sounds[i].filename) {
+        if (normal_sounds[i].filename == NULL) {
             normal_sounds[i].filename = default_normal.filename;
             normal_sounds[i].volume = default_normal.volume;
         }
-        if (!spell_sounds[i].filename) {
+
+        if (spell_sounds[i].filename == NULL) {
             spell_sounds[i].filename = default_spell.filename;
             spell_sounds[i].volume = default_spell.volume;
         }
@@ -150,8 +88,26 @@ static void init_sounds() {
  * @return Zero on success, anything else on failure.
  */
 int init() {
-    /* Initialize paths to various resources. */
-    if (init_paths() != 0) {
+    char path[MAXSOCKBUF];
+
+    /* Sanity check for $HOME environmental variable. */
+    if (getenv("HOME") == NULL) {
+        fprintf(stderr, "Couldn't read $HOME environmental variable.\n"
+                "Please set it to something reasonable.\n");
+        return -1;
+    }
+
+    /* Set $CF_SOUND_DIR to something reasonable, if not already set. */
+    if (setenv("CF_SOUND_DIR", CLIENT_SOUNDS_PATH, 0) != 0) {
+        perror("Couldn't set $CF_SOUND_DIR");
+        return -1;
+    }
+
+    /* Set $CF_SOUND_CONF to something reasonable, if not already set. */
+    snprintf(path, sizeof(path), "%s/sounds.conf", getenv("CF_SOUND_DIR"));
+
+    if (setenv("CF_SOUND_CONF", path, 0) != 0) {
+        perror("Couldn't set $CF_SOUND_CONF");
         return -1;
     }
 
