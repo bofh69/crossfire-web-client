@@ -10,14 +10,11 @@
 
 extern char *client_sounds_path;
 extern char *user_sounds_path;
-extern char *user_sounds_file;
 
 typedef struct Sound_Info {
     char *filename;
     char *symbolic;
     unsigned char volume;
-    int size;
-    unsigned char *data;
 } Sound_Info;
 
 extern Sound_Info normal_sounds[MAX_SOUNDS];
@@ -31,22 +28,9 @@ typedef struct sound_settings {
     int sign;
     int frequency;
     int buflen;
-    int simultaneously;                 /**< Max number of sounds to queue. */
+    int max_chunk;                 /**< Max number of sounds to queue. */
 } sound_settings;
 
-extern sound_settings settings;
-
-/*
- * Sound device parameters
- */
-extern int stereo;
-extern int bit8;
-extern int frequency;
-extern int sign;
-
 extern int init_audio();
-
-void play_sound(int soundnum, int soundtype, int x, int y);
-void play_music(const char *name);
 
 #endif

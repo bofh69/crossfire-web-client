@@ -31,11 +31,11 @@ $(common_LIBS):
 
 cfsndserv_SOURCES = \
 	cfsndserv.c \
-	common.c \
 	common.h \
 	def_sounds.c \
 	def_sounds.h \
 	init.c \
+	main.c \
 	parser.c \
 	sndproto.h
 
@@ -51,11 +51,3 @@ def_sounds.h: sounds
 def_sounds.c: sounds
 	$(PERL) \
 	    $(top_srcdir)/utils/deftoheader.pl $(srcdir)/sounds def_sounds.c def_sounds
-
-proto_FILES = \
-	common.c
-
-proto:
-	cproto -e -o sndproto.h \
-	    $(DEFAULT_INCLUDES) $(AM_CFLAGS) $(proto_FILES)
-	chmod 644 sndproto.h

@@ -25,7 +25,6 @@
 #include <string.h>
 #endif
 
-#include "client-types.h"
 #include "client.h"
 
 #include "common.h"
@@ -39,7 +38,8 @@ Sound_Info default_spell;
 
 char *client_sounds_path = NULL;    /* Client sound directory */
 char *user_sounds_path = NULL;      /* User sound directory */
-char *user_sounds_file  = NULL;     /* User sound definitions */
+
+static char *user_sounds_file  = NULL;     /* User sound definitions */
 
 /**
  * Initialize paths to various resources, such as sound config files.
@@ -111,8 +111,6 @@ static void init_sounds() {
     for (i = 0; i < MAX_SOUNDS; i++) {
         normal_sounds[i].filename = NULL;
         spell_sounds[i].filename = NULL;
-        normal_sounds[i].size = -1;
-        spell_sounds[i].size = -1;
     }
 
     if (!(fp = fopen(user_sounds_file, "r"))) {
@@ -140,8 +138,6 @@ static void init_sounds() {
             spell_sounds[i].filename = default_spell.filename;
             spell_sounds[i].volume = default_spell.volume;
         }
-        normal_sounds[i].data = NULL;
-        spell_sounds[i].data = NULL;
     }
 }
 
