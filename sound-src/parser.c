@@ -304,21 +304,20 @@ int sound_to_soundnum(const char *name, uint8 type) {
 }
 
 /**
- * Convert a sound type to legacy type to help with the transition of the
- * sound server from sound support to sound2 capability.  This is not an end
- * solution, but one that gets the sound server working a little bit until a
- * better one can be implemented.  Basically, all types except 2 get changed
- * to 1.
+ * Convert a legacy sound type to the sound2 equivalent.
  *
- * @param type
+ * This is intended to help ease the transition from old sound to sound2
+ * capability.
  */
 int type_to_soundtype(uint8 type) {
-#ifdef SOUND_DEBUG
-    fprintf(stderr,
-            "Converted type %d to legacy type %d.\n", type, (type == 2) ? 2 : 1);
-#endif
-    /**
-     * @todo Replace conversion to legacy soundtype.
-     */
-    return (type == 2) ? 2 : 1;
+    uint8 new_type;
+
+    if (type == 2) {
+        new_type = 1;
+    } else {
+        new_type = type;
+    }
+
+    printf("Converted legacy sound type %d to %d.\n", type, new_type);
+    return new_type;
 }
