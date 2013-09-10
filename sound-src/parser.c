@@ -48,8 +48,8 @@ int sound_to_soundnum(const char *name, uint8 type) {
         }
     }
 
-    printf("Could not find matching sound for '%s'; using default.\n", name);
-    return 1;
+    printf("Could not find matching sound for '%s'.\n", name);
+    return -1;
 }
 
 /**
