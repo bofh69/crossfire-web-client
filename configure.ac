@@ -289,6 +289,9 @@ if test "$enable_sound" = "yes"; then
     else
         AC_MSG_WARN([Not building with sound; required libraries not found.])
     fi
+else
+    # Set this to 'no' so that it is properly displayed in the results.
+    sdl_sound=no
 fi
 
 AC_SUBST(GUI_OBJS)
@@ -469,7 +472,7 @@ AC_MSG_NOTICE([  Build Options])
 AC_MSG_NOTICE([    GTK2 client              $gtkv2])
 AC_MSG_NOTICE([    SDL renderer             $use_sdl])
 AC_MSG_NOTICE([    OpenGL renderer          $opengl])
-AC_MSG_NOTICE([    Sound (SDL_mixer)        $enable_sound])
+AC_MSG_NOTICE([    Sound (SDL_mixer)        $sdl_sound])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Scripting Options])
 AC_MSG_NOTICE([    Build Lua interface?     $have_lua])
