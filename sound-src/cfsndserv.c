@@ -95,7 +95,7 @@ int init_audio() {
 
     /* Allocate channels and resize buffers accordingly. */
     Mix_AllocateChannels(settings.max_chunk);
-    chunk = calloc(settings.max_chunk, sizeof(chunk));
+    chunk = calloc(settings.max_chunk, sizeof(Mix_Chunk *));
 
     if (!chunk) {
         fprintf(stderr, "Could not allocate sound buffers.\n");

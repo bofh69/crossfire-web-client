@@ -207,11 +207,11 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 
     /* the png library needs the rows, but we will just return the raw data */
     if (rows_byte == 0) {
-        rows =(png_bytepp) malloc(sizeof(char*) * *height);
-        rows_byte=*height;
+        rows = (png_bytepp)malloc(sizeof(png_byte *) * *height);
+        rows_byte = *height;
     } else if (*height > rows_byte) {
-        rows =(png_bytepp) realloc(rows, sizeof(char*) * *height);
-        rows_byte=*height;
+        rows = (png_bytepp)realloc(rows, sizeof(png_byte *) * *height);
+        rows_byte = *height;
     }
     if (!rows) {
         png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
@@ -659,11 +659,11 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
         return PNGX_OUTOFMEM;
     }
     if (rows_byte == 0) {
-        rows =(png_bytepp) malloc(sizeof(char*) * height);
-        rows_byte=height;
+        rows = (png_bytepp)malloc(sizeof(png_byte *) * height);
+        rows_byte = height;
     } else if (height > rows_byte) {
-        rows =(png_bytepp) realloc(rows, sizeof(char*) * height);
-        rows_byte=height;
+        rows = (png_bytepp)realloc(rows, sizeof(png_byte *) * height);
+        rows_byte = height;
     }
     if (!rows) {
         png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
