@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_png_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/png.c
@@ -65,7 +54,8 @@ static int data_len, data_start;
  * @param data
  * @param length
  */
-static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
+{
     memcpy(data, data_cp + data_start, length);
     data_start += length;
 }
@@ -114,90 +104,91 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
     png_set_read_fn(png_ptr, NULL, user_read_data);
     png_read_info (png_ptr, info_ptr);
 
-        /*
-         * This seems to bug on at least one system (other than mine)
-         * http://www.metalforge.net/cfmb/viewtopic.php?t=1085
-         *
-         * I think its actually a bug in libpng. This function dies with an
-         * error based on image width. However I've produced a work around
-         * using the indivial functions. Repeated below.
-         *
+    /*
+     * This seems to bug on at least one system (other than mine)
+     * http://www.metalforge.net/cfmb/viewtopic.php?t=1085
+     *
+     * I think its actually a bug in libpng. This function dies with an
+     * error based on image width. However I've produced a work around
+     * using the indivial functions. Repeated below.
+     *
     png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_unit_32*)height, &bit_depth,
-                 &color_type, &interlace_type, &compression_type, &filter_type);
-         */
-        *width = png_get_image_width(png_ptr, info_ptr);
-        *height = png_get_image_height(png_ptr, info_ptr);
-        bit_depth = png_get_bit_depth(png_ptr, info_ptr);
-        color_type = png_get_color_type(png_ptr, info_ptr);
-        interlace_type = png_get_interlace_type(png_ptr, info_ptr);
-        compression_type = png_get_compression_type(png_ptr, info_ptr);
+             &color_type, &interlace_type, &compression_type, &filter_type);
+     */
+    *width = png_get_image_width(png_ptr, info_ptr);
+    *height = png_get_image_height(png_ptr, info_ptr);
+    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    color_type = png_get_color_type(png_ptr, info_ptr);
+    interlace_type = png_get_interlace_type(png_ptr, info_ptr);
+    compression_type = png_get_compression_type(png_ptr, info_ptr);
 
     if (color_type == PNG_COLOR_TYPE_PALETTE &&
             bit_depth <= 8) {
 
-                /* Convert indexed images to RGB */
-                png_set_expand (png_ptr);
+        /* Convert indexed images to RGB */
+        png_set_expand (png_ptr);
 
     } else if (color_type == PNG_COLOR_TYPE_GRAY &&
-                   bit_depth < 8) {
+               bit_depth < 8) {
 
-                /* Convert grayscale to RGB */
-                png_set_expand (png_ptr);
+        /* Convert grayscale to RGB */
+        png_set_expand (png_ptr);
 
     } else if (png_get_valid (png_ptr,
-                                  info_ptr, PNG_INFO_tRNS)) {
+                              info_ptr, PNG_INFO_tRNS)) {
 
-                /* If we have transparency header, convert it to alpha
-                   channel */
-                png_set_expand(png_ptr);
+        /* If we have transparency header, convert it to alpha
+           channel */
+        png_set_expand(png_ptr);
 
     } else if (bit_depth < 8) {
 
-                /* If we have < 8 scale it up to 8 */
-                png_set_expand(png_ptr);
+        /* If we have < 8 scale it up to 8 */
+        png_set_expand(png_ptr);
 
 
-                /* Conceivably, png_set_packing() is a better idea;
-                 * God only knows how libpng works
-                 */
+        /* Conceivably, png_set_packing() is a better idea;
+         * God only knows how libpng works
+         */
     }
-        /* If we are 16-bit, convert to 8-bit */
+    /* If we are 16-bit, convert to 8-bit */
     if (bit_depth == 16) {
-                png_set_strip_16(png_ptr);
+        png_set_strip_16(png_ptr);
     }
 
-        /* If gray scale, convert to RGB */
+    /* If gray scale, convert to RGB */
     if (color_type == PNG_COLOR_TYPE_GRAY ||
             color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
-                png_set_gray_to_rgb(png_ptr);
+        png_set_gray_to_rgb(png_ptr);
     }
 
-        /* If interlaced, handle that */
+    /* If interlaced, handle that */
     if (interlace_type != PNG_INTERLACE_NONE) {
-                png_set_interlace_handling(png_ptr);
+        png_set_interlace_handling(png_ptr);
     }
 
     /* pad it to 4 bytes to make processing easier */
-    if (!(color_type & PNG_COLOR_MASK_ALPHA))
+    if (!(color_type & PNG_COLOR_MASK_ALPHA)) {
         png_set_filler(png_ptr, 255, PNG_FILLER_AFTER);
+    }
 
     /* Update the info the reflect our transformations */
     png_read_update_info(png_ptr, info_ptr);
     /* re-read due to transformations just made */
-        /*
-         * See above for error description
+    /*
+     * See above for error description
     png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_uint_32*)height, &bit_depth,
-                 &color_type, &interlace_type, &compression_type, &filter_type);
-        */
-        *width = png_get_image_width(png_ptr, info_ptr);
-        *height = png_get_image_height(png_ptr, info_ptr);
-        bit_depth = png_get_bit_depth(png_ptr, info_ptr);
-        color_type = png_get_color_type(png_ptr, info_ptr);
-        interlace_type = png_get_interlace_type(png_ptr, info_ptr);
-        compression_type = png_get_compression_type(png_ptr, info_ptr);
+             &color_type, &interlace_type, &compression_type, &filter_type);
+    */
+    *width = png_get_image_width(png_ptr, info_ptr);
+    *height = png_get_image_height(png_ptr, info_ptr);
+    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    color_type = png_get_color_type(png_ptr, info_ptr);
+    interlace_type = png_get_interlace_type(png_ptr, info_ptr);
+    compression_type = png_get_compression_type(png_ptr, info_ptr);
 
 
-    pixels = (uint8*)malloc(*width * *height * 4);
+    pixels = (uint8*)malloc(*width **height * 4);
 
     if (!pixels) {
         png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
@@ -207,10 +198,10 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 
     /* the png library needs the rows, but we will just return the raw data */
     if (rows_byte == 0) {
-        rows = (png_bytepp)malloc(sizeof(png_byte *) * *height);
+        rows = (png_bytepp)malloc(sizeof(png_byte *) **height);
         rows_byte = *height;
     } else if (*height > rows_byte) {
-        rows = (png_bytepp)realloc(rows, sizeof(png_byte *) * *height);
+        rows = (png_bytepp)realloc(rows, sizeof(png_byte *) **height);
         rows_byte = *height;
     }
     if (!rows) {
@@ -218,8 +209,9 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
         return NULL;
     }
 
-    for (y=0; y<*height; y++)
-        rows[y] = pixels + y * *width * 4;
+    for (y=0; y<*height; y++) {
+        rows[y] = pixels + y **width * 4;
+    }
 
     png_read_image(png_ptr, rows);
     png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
@@ -279,64 +271,71 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
     uint8 r,g,b,a;
 
     if (*width > MAX_IMAGE_WIDTH || new_width > MAX_IMAGE_WIDTH
-    || *height > MAX_IMAGE_HEIGHT || new_height > MAX_IMAGE_HEIGHT)
-    {
+            || *height > MAX_IMAGE_HEIGHT || new_height > MAX_IMAGE_HEIGHT) {
         LOG(LOG_CRITICAL,"gtk-v2::rescale_rgba_data","Image too big");
         exit(0);
     }
 
     /* clear old values these may have */
-    memset(yrow, 0, sizeof(int) * *height * BPP);
+    memset(yrow, 0, sizeof(int) **height * BPP);
 
     ndata = (uint8*)malloc(new_width * new_height * BPP);
 
-    for (y=0; y<new_height; y++)
+    for (y=0; y<new_height; y++) {
         nrows[y] = (png_bytep) (ndata + y * new_width * BPP);
+    }
 
     ytoleft = scale;
     ytofill = RATIO;
 
     for (y=0,sourcerow=0; y < new_height; y++) {
-        memset(xrow, 0, sizeof(int) * *width * BPP);
+        memset(xrow, 0, sizeof(int) **width * BPP);
         while (ytoleft < ytofill) {
             for (x=0; x< *width; ++x) {
                 /* Only want to copy the data if this is not a transperent pixel.
                  * If it is transparent, the color information is has is probably
                  * bogus, and blending that makes the results look worse.
                  */
-                if (data[(sourcerow * *width + x)*BPP+3] > 0 ) {
-                    yrow[x*BPP] += ytoleft * data[(sourcerow * *width + x)*BPP]/RATIO;
-                    yrow[x*BPP+1] += ytoleft * data[(sourcerow * *width + x)*BPP+1]/RATIO;
-                    yrow[x*BPP+2] += ytoleft * data[(sourcerow * *width + x)*BPP+2]/RATIO;
+                if (data[(sourcerow **width + x)*BPP+3] > 0 ) {
+                    yrow[x*BPP] += ytoleft * data[(sourcerow **width + x)*BPP]/RATIO;
+                    yrow[x*BPP+1] += ytoleft * data[(sourcerow **width + x)*BPP+1]/RATIO;
+                    yrow[x*BPP+2] += ytoleft * data[(sourcerow **width + x)*BPP+2]/RATIO;
                 }
                 /* Alpha is a bit special - we don't want to blend it -
                  * we want to take whatever is the more opaque value.
                  */
-                if (data[(sourcerow * *width + x)*BPP+3] > yrow[x*BPP+3])
-                    yrow[x*BPP+3] = data[(sourcerow * *width + x)*BPP+3];
+                if (data[(sourcerow **width + x)*BPP+3] > yrow[x*BPP+3]) {
+                    yrow[x*BPP+3] = data[(sourcerow **width + x)*BPP+3];
+                }
             }
             ytofill -= ytoleft;
             ytoleft = scale;
-            if (sourcerow < *height)
+            if (sourcerow < *height) {
                 sourcerow++;
+            }
         }
 
         for (x=0; x < *width; ++x) {
-            if (data[(sourcerow * *width + x)*BPP+3] > 0 ) {
-                xrow[x*BPP] = yrow[x*BPP] + ytofill * data[(sourcerow * *width + x)*BPP] / RATIO;
-                xrow[x*BPP+1] = yrow[x*BPP+1] + ytofill * data[(sourcerow * *width + x)*BPP+1] / RATIO;
-                xrow[x*BPP+2] = yrow[x*BPP+2] + ytofill * data[(sourcerow * *width + x)*BPP+2] / RATIO;
+            if (data[(sourcerow **width + x)*BPP+3] > 0 ) {
+                xrow[x*BPP] = yrow[x*BPP] + ytofill * data[(sourcerow **width + x)*BPP] / RATIO;
+                xrow[x*BPP+1] = yrow[x*BPP+1] + ytofill * data[(sourcerow **width + x)*BPP+1] / RATIO;
+                xrow[x*BPP+2] = yrow[x*BPP+2] + ytofill * data[(sourcerow **width + x)*BPP+2] / RATIO;
             }
-            if (data[(sourcerow * *width + x)*BPP+3] > xrow[x*BPP+3])
-                xrow[x*BPP+3] = data[(sourcerow * *width + x)*BPP+3];
-            yrow[x*BPP]=0; yrow[x*BPP+1]=0; yrow[x*BPP+2]=0; yrow[x*BPP+3]=0;
+            if (data[(sourcerow **width + x)*BPP+3] > xrow[x*BPP+3]) {
+                xrow[x*BPP+3] = data[(sourcerow **width + x)*BPP+3];
+            }
+            yrow[x*BPP]=0;
+            yrow[x*BPP+1]=0;
+            yrow[x*BPP+2]=0;
+            yrow[x*BPP+3]=0;
         }
 
         ytoleft -= ytofill;
         if (ytoleft <= 0) {
             ytoleft = scale;
-            if (sourcerow < *height)
+            if (sourcerow < *height) {
                 sourcerow++;
+            }
         }
 
         ytofill = RATIO;
@@ -344,7 +343,10 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
         dest_column = 0;
         source_column=0;
         needcol=0;
-        r=0; g=0; b=0; a=0;
+        r=0;
+        g=0;
+        b=0;
+        a=0;
 
         for (x=0; x< *width; x++) {
             xtoleft = scale;
@@ -352,7 +354,10 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
             while (xtoleft >= xtofill) {
                 if (needcol) {
                     dest_column++;
-                    r=0; g=0; b=0; a=0;
+                    r=0;
+                    g=0;
+                    b=0;
+                    a=0;
                 }
 
                 if (xrow[source_column*BPP+3] > 0) {
@@ -360,8 +365,9 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
                     g += xtofill * xrow[1+source_column*BPP] / RATIO;
                     b += xtofill * xrow[2+source_column*BPP] / RATIO;
                 }
-                if (xrow[3+source_column*BPP] > a)
+                if (xrow[3+source_column*BPP] > a) {
                     a = xrow[3+source_column*BPP];
+                }
 
                 nrows[destrow][dest_column * BPP] = r;
                 nrows[destrow][1+dest_column * BPP] = g;
@@ -372,10 +378,13 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
                 needcol=1;
             }
 
-            if (xtoleft > 0 ){
+            if (xtoleft > 0 ) {
                 if (needcol) {
                     dest_column++;
-                    r=0; g=0; b=0; a=0;
+                    r=0;
+                    g=0;
+                    b=0;
+                    a=0;
                     needcol=0;
                 }
 
@@ -384,8 +393,9 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
                     g += xtoleft * xrow[1+source_column*BPP] / RATIO;
                     b += xtoleft * xrow[2+source_column*BPP] / RATIO;
                 }
-                if (xrow[3+source_column*BPP] > a)
+                if (xrow[3+source_column*BPP] > a) {
                     a = xrow[3+source_column*BPP];
+                }
 
                 xtofill -= xtoleft;
             }
@@ -399,8 +409,9 @@ uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale)
                 g += xtofill * xrow[1+source_column*BPP] / RATIO;
                 b += xtofill * xrow[2+source_column*BPP] / RATIO;
             }
-            if (xrow[3+source_column*BPP] > a)
+            if (xrow[3+source_column*BPP] > a) {
                 a = xrow[3+source_column*BPP];
+            }
         }
 
         /* Not positve, but without the bound checking for dest_column,
@@ -439,7 +450,7 @@ guchar rgb[512*512*3];  /**< Make this especially big to support larger images
  * @return Non-zero on error (currently, no checks for error conditions is done
  */
 int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data,int width, int height,
-                   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
+                      GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
 {
     GdkGC       *gc, *gc_alpha;
     int         has_alpha=0, alpha;
@@ -508,7 +519,7 @@ int rgba_to_gdkpixbuf(uint8 *data,int width, int height,GdkPixbuf **pix)
      * the data should be in the right format, but it doesn't.
      */
     *pix = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB,
-                    TRUE, 8, width, height, width * 4, NULL, NULL);
+                                    TRUE, 8, width, height, width * 4, NULL, NULL);
     return 0;
 
 #else
@@ -542,7 +553,7 @@ int rgba_to_gdkpixbuf(uint8 *data,int width, int height,GdkPixbuf **pix)
  * @param *colormap
  */
 int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
-                   GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
+                     GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
 {
     static uint8 *pixels=NULL;
     static int pixels_byte=0, rows_byte=0;
@@ -585,46 +596,46 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     if (color_type == PNG_COLOR_TYPE_PALETTE &&
             bit_depth <= 8) {
 
-                /* Convert indexed images to RGB */
-                png_set_expand (png_ptr);
+        /* Convert indexed images to RGB */
+        png_set_expand (png_ptr);
 
     } else if (color_type == PNG_COLOR_TYPE_GRAY &&
-                   bit_depth < 8) {
+               bit_depth < 8) {
 
-                /* Convert grayscale to RGB */
-                png_set_expand (png_ptr);
+        /* Convert grayscale to RGB */
+        png_set_expand (png_ptr);
 
     } else if (png_get_valid (png_ptr,
-                                  info_ptr, PNG_INFO_tRNS)) {
+                              info_ptr, PNG_INFO_tRNS)) {
 
-                /* If we have transparency header, convert it to alpha
-                   channel */
-                png_set_expand(png_ptr);
+        /* If we have transparency header, convert it to alpha
+           channel */
+        png_set_expand(png_ptr);
 
     } else if (bit_depth < 8) {
 
-                /* If we have < 8 scale it up to 8 */
-                png_set_expand(png_ptr);
+        /* If we have < 8 scale it up to 8 */
+        png_set_expand(png_ptr);
 
 
-                /* Conceivably, png_set_packing() is a better idea;
-                 * God only knows how libpng works
-                 */
+        /* Conceivably, png_set_packing() is a better idea;
+         * God only knows how libpng works
+         */
     }
-        /* If we are 16-bit, convert to 8-bit */
+    /* If we are 16-bit, convert to 8-bit */
     if (bit_depth == 16) {
-                png_set_strip_16(png_ptr);
+        png_set_strip_16(png_ptr);
     }
 
-        /* If gray scale, convert to RGB */
+    /* If gray scale, convert to RGB */
     if (color_type == PNG_COLOR_TYPE_GRAY ||
             color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
-                png_set_gray_to_rgb(png_ptr);
+        png_set_gray_to_rgb(png_ptr);
     }
 
-        /* If interlaced, handle that */
+    /* If interlaced, handle that */
     if (interlace_type != PNG_INTERLACE_NONE) {
-                png_set_interlace_handling(png_ptr);
+        png_set_interlace_handling(png_ptr);
     }
 
     /* Update the info the reflect our transformations */
@@ -632,10 +643,11 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     /* re-read due to transformations just made */
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
                  &color_type, &interlace_type, &compression_type, &filter_type);
-    if (color_type & PNG_COLOR_MASK_ALPHA)
-                bpp = 4;
-    else
-                bpp = 3;
+    if (color_type & PNG_COLOR_MASK_ALPHA) {
+        bpp = 4;
+    } else {
+        bpp = 3;
+    }
 
     /* Allocate the memory we need once, and increase it if necessary.
      * This is more efficient the allocating this block of memory every time.
@@ -671,8 +683,9 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
         return PNGX_OUTOFMEM;
     }
 
-    for (y=0; y<height; y++)
+    for (y=0; y<height; y++) {
         rows[y] = pixels + y * width * bpp;
+    }
 
     png_read_image(png_ptr, rows);
 #if 0
@@ -698,8 +711,7 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
         scolor.pixel=0;
         gdk_gc_set_foreground(gc_alpha, &scolor);
         has_alpha=1;
-    }
-    else {
+    } else {
         *mask = NULL;
         gc_alpha = NULL;    /* Prevent compile warnings */
     }
@@ -720,8 +732,9 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     }
     gdk_draw_rgb_image(*pix, gc,  0, 0, 32, 32, GDK_RGB_DITHER_NONE, rgb, 32*3);
     png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-    if (has_alpha)
+    if (has_alpha) {
         gdk_gc_destroy(gc_alpha);
+    }
     gdk_gc_destroy(gc);
     return 0;
 }

@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_spells_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2006-2007,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/spells.c
@@ -42,14 +31,14 @@ const char * const rcsid_gtk2_spells_c =
 #include "gtk2proto.h"
 
 enum Styles {
-   Style_Attuned, Style_Repelled, Style_Denied, Style_Normal, Style_Last
+    Style_Attuned, Style_Repelled, Style_Denied, Style_Normal, Style_Last
 };
 
 static GtkListStore     *spell_store;
 static GtkTreeSelection *spell_selection;
 static GtkWidget        *spell_window, *spell_invoke,
-                        *spell_cast, *spell_options, *spell_treeview,
-                        *spell_label[Style_Last], *spell_eventbox[Style_Last];
+       *spell_cast, *spell_options, *spell_treeview,
+       *spell_label[Style_Last], *spell_eventbox[Style_Last];
 
 enum {
     LIST_IMAGE,  LIST_NAME,  LIST_LEVEL,      LIST_TIME,        LIST_COST,
@@ -85,14 +74,15 @@ void spell_get_styles(void)
     static int style_has_init=0;
 
     for (i=0; i < Style_Last; i++) {
-        if (style_has_init && spell_styles[i]) g_object_unref(spell_styles[i]);
+        if (style_has_init && spell_styles[i]) {
+            g_object_unref(spell_styles[i]);
+        }
         tmp_style =
             gtk_rc_get_style_by_paths(
                 gtk_settings_get_default(), NULL, Style_Names[i], G_TYPE_NONE);
         if (tmp_style) {
             spell_styles[i] = g_object_ref(tmp_style);
-        }
-        else {
+        } else {
             LOG(LOG_INFO, "spells.c::spell_get_styles",
                 "Unable to find style for %s", Style_Names[i]);
             spell_styles[i] = NULL;
@@ -135,7 +125,8 @@ static gboolean spell_selection_func(GtkTreeSelection *selection,
  * @param widget
  * @param user_data
  */
-void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
+void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data)
+{
     guint i;
     guint width;
     gboolean valid;
@@ -143,9 +134,11 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data) {
     guint column_count;
     GList *column_list;
     GtkTreeViewColumn *column;
- 
+
     /* If the spell window has not been set up yet, do nothing. */
-    if (!has_init) return;
+    if (!has_init) {
+        return;
+    }
     /*
      * How wide is the spell window?
      */
@@ -210,7 +203,9 @@ void update_spell_information(void)
     PangoFontDescription *font=NULL;
 
     /* If the window/spellstore hasn't been created, return. */
-    if (!has_init) return;
+    if (!has_init) {
+        return;
+    }
 
     cpl.spells_updated = 0;
 
@@ -222,10 +217,10 @@ void update_spell_information(void)
     for (i=0; i < Style_Last; i++) {
         if (spell_styles[i]) {
             gtk_widget_modify_fg(spell_label[i],
-                GTK_STATE_NORMAL, &spell_styles[i]->text[GTK_STATE_NORMAL]);
+                                 GTK_STATE_NORMAL, &spell_styles[i]->text[GTK_STATE_NORMAL]);
             gtk_widget_modify_font(spell_label[i], spell_styles[i]->font_desc);
             gtk_widget_modify_bg(spell_eventbox[i],
-                GTK_STATE_NORMAL, &spell_styles[i]->base[GTK_STATE_NORMAL]);
+                                 GTK_STATE_NORMAL, &spell_styles[i]->base[GTK_STATE_NORMAL]);
         } else {
             gtk_widget_modify_fg(spell_label[i],GTK_STATE_NORMAL, NULL);
             gtk_widget_modify_font(spell_label[i], NULL);
@@ -238,11 +233,12 @@ void update_spell_information(void)
         gtk_list_store_append(spell_store, &iter);
 
         buf[0] = 0;
-        if (spell->sp)
+        if (spell->sp) {
             snprintf(buf, sizeof(buf), "%d Mana ", spell->sp);
+        }
         if (spell->grace)
             snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-                         "%d Grace", spell->grace);
+                     "%d Grace", spell->grace);
 
         if (spell->path & cpl.stats.denied) {
             row_style = spell_styles[Style_Denied];
@@ -250,7 +246,9 @@ void update_spell_information(void)
             row_style = spell_styles[Style_Repelled];
         } else if (spell->path & cpl.stats.attuned) {
             row_style = spell_styles[Style_Attuned];
-        } else row_style = spell_styles[Style_Normal];
+        } else {
+            row_style = spell_styles[Style_Normal];
+        }
 
         if (row_style) {
             foreground = &row_style->text[GTK_STATE_NORMAL];
@@ -303,19 +301,19 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
         spell_treeview = glade_xml_get_widget(xml_tree, "spell_treeview");
 
         g_signal_connect((gpointer) spell_window, "size-allocate",
-            G_CALLBACK(on_spell_window_size_allocate), NULL);
+                         G_CALLBACK(on_spell_window_size_allocate), NULL);
         g_signal_connect((gpointer) spell_window, "delete-event",
-            G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+                         G_CALLBACK(gtk_widget_hide_on_delete), NULL);
         g_signal_connect((gpointer) spell_treeview, "row_activated",
-            G_CALLBACK(on_spell_treeview_row_activated), NULL);
+                         G_CALLBACK(on_spell_treeview_row_activated), NULL);
         g_signal_connect((gpointer) spell_cast, "clicked",
-            G_CALLBACK(on_spell_cast_clicked), NULL);
+                         G_CALLBACK(on_spell_cast_clicked), NULL);
         g_signal_connect((gpointer) spell_invoke, "clicked",
-            G_CALLBACK(on_spell_invoke_clicked), NULL);
+                         G_CALLBACK(on_spell_invoke_clicked), NULL);
 
         widget = glade_xml_get_widget(xml_tree, "spell_close");
         g_signal_connect((gpointer) widget, "clicked",
-            G_CALLBACK(on_spell_close_clicked), NULL);
+                         G_CALLBACK(on_spell_close_clicked), NULL);
 
         spell_store =
             gtk_list_store_new(
@@ -440,7 +438,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
          * column size that is appropriate for the dialog's default width.
          */
         g_object_set(G_OBJECT(renderer),
-            "wrap-width", 300, "wrap-mode", PANGO_WRAP_WORD, NULL);
+                     "wrap-width", 300, "wrap-mode", PANGO_WRAP_WORD, NULL);
         /*
          * Preserve the description text cell renderer pointer to facilitate
          * setting the wrap-width relative to the dialog's size and content.
@@ -571,7 +569,7 @@ void on_spell_invoke_clicked(GtkButton *button, gpointer user_data)
 
         if (!tag) {
             LOG(LOG_ERROR, "spells.c::on_spell_invoke_clicked",
-                    "Unable to get spell tag\n");
+                "Unable to get spell tag\n");
             return;
         }
         snprintf(command, MAX_BUF-1, "invoke %d %s", tag, options);

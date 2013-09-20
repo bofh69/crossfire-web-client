@@ -1,27 +1,15 @@
-const char * const rcsid_gtk2_sound_c =
-    "$Id$";
-
 /*
-    CrossFire, A Multiplayer game for X-windows
-
-    Copyright (C) 2005,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/sound.c
@@ -58,7 +46,9 @@ int init_sounds(void)
      * return -1 - this way, the calling function only needs to check the value
      * of init_sounds, and not worry about checking nosound.
      */
-    if (!want_config[CONFIG_SOUND]) return -1;
+    if (!want_config[CONFIG_SOUND]) {
+        return -1;
+    }
 
     if (sound_server[0] == '\0') {
         LOG(LOG_ERROR,"init_sounds:", "sound-server variable not set to anything");
@@ -68,10 +58,11 @@ int init_sounds(void)
      * If an absolute path is given, we use it unadorned.  Otherwise, we use
      * the path in the BINDIR.
      */
-    if (sound_server[0] == '/')
+    if (sound_server[0] == '/') {
         strcpy(sound_path, sound_server);
-    else
+    } else {
         snprintf(sound_path, sizeof(sound_path),"%s/%s", BINDIR, sound_server);
+    }
 
     if (access(sound_path, X_OK)<0) {
         fprintf(stderr,"Unable to access %s sound server process\n", sound_path);
@@ -117,7 +108,8 @@ int init_sounds(void)
  *               with type and sound to determine which file to play.
  */
 void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
-                       const char *sound, const char *source) {
+                       const char *sound, const char *source)
+{
 #ifndef WIN32
     /**
      * cfsndserv recognizes sound commands by seeing the numeric parameters at
@@ -125,8 +117,9 @@ void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
      */
     char format[] = "%4x %4x %4x %4x %4x \"%s\" \"%s\"\n";
 
-    if (! use_config[CONFIG_SOUND])
+    if (! use_config[CONFIG_SOUND]) {
         return;
+    }
 
     /*
      * Pass the sound command on to the player.
@@ -136,7 +129,7 @@ void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
      * is always the last quoted string on the command sent to cfsndserv.
      */
     if ((fprintf(sound_pipe, format, x, y, dir, vol, type, source, sound) <= 0)
-    ||  (fflush(sound_pipe) != 0)) {
+            ||  (fflush(sound_pipe) != 0)) {
         LOG(LOG_ERROR,
             "gtk-v2::play_sound_effect", "Cannot write sound pipe: %d", errno);
         use_config[CONFIG_SOUND] = 0;
@@ -160,7 +153,8 @@ void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
  * @param data Data provided following the sound2 command from the server.
  * @param len  Length of the sound2 command data.
  */
-void Sound2Cmd(unsigned char *data, int len) {
+void Sound2Cmd(unsigned char *data, int len)
+{
 #ifndef WIN32
     sint8 x, y;
     uint8 dir, vol, type, len_sound, len_source;
@@ -194,7 +188,7 @@ void Sound2Cmd(unsigned char *data, int len) {
     if (6 + len_sound + 1 > len) {
         LOG(LOG_WARNING,
             "gtk-v2::Sound2Cmd", "sound length check: %i len: %i\n",
-                len_sound, len);
+            len_sound, len);
         return;
     }
 
@@ -210,7 +204,7 @@ void Sound2Cmd(unsigned char *data, int len) {
     if (6 + len_sound + 1 + len_source > len) {
         LOG(LOG_WARNING,
             "gtk-v2::Sound2Cmd", "source length check: %i len: %i\n",
-                len_source, len);
+            len_source, len);
         return;
     }
     /*
@@ -242,7 +236,8 @@ void Sound2Cmd(unsigned char *data, int len) {
  *             indication that music should stop playing.
  * @param len  Length of the string describing the music to play.
  */
-void MusicCmd(const char *data, int len) {
+void MusicCmd(const char *data, int len)
+{
 #ifndef WIN32
     /**
      * Format of the music command received in data:
@@ -251,8 +246,9 @@ void MusicCmd(const char *data, int len) {
      * music {string}
      * </pre>
      */
-    if (! use_config[CONFIG_SOUND])
+    if (! use_config[CONFIG_SOUND]) {
         return;
+    }
     /*
      * The client puts a null character at the end of the data.  If one is not
      * there, ignore the command.
@@ -267,7 +263,7 @@ void MusicCmd(const char *data, int len) {
      * first item on the command line.
      */
     if ((fprintf(sound_pipe, "\"%s\"\n", data) <= 0)
-    ||  (fflush(sound_pipe) != 0)) {
+            ||  (fflush(sound_pipe) != 0)) {
         LOG(LOG_ERROR,
             "gtk-v2::MusicCmd", "Cannot write sound pipe: %d", errno);
         use_config[CONFIG_SOUND] = 0;
@@ -276,8 +272,9 @@ void MusicCmd(const char *data, int len) {
         return;
     }
 #if 1
-    else
+    else {
         LOG(LOG_INFO, "gtk-v2::MusicCmd", "\"%s\"", data);
+    }
 #endif
 #endif
 }

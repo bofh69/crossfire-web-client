@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_map_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/map.c
@@ -85,7 +74,8 @@ int time_map_redraw=0;
  * @param tzp
  * @return 0 indicates success.
  */
-int gettimeofday(struct timeval* tp, void* tzp) {
+int gettimeofday(struct timeval* tp, void* tzp)
+{
     DWORD t;
     t = timeGetTime();
     tp->tv_sec = t / 1000;
@@ -110,16 +100,16 @@ void map_init(GtkWidget *window_root)
     map_notebook = glade_xml_get_widget(xml_tree, "map_notebook");
 
     g_signal_connect ((gpointer) map_drawing_area, "expose_event",
-        G_CALLBACK (on_drawingarea_map_expose_event), NULL);
+                      G_CALLBACK (on_drawingarea_map_expose_event), NULL);
     g_signal_connect ((gpointer) map_drawing_area, "button_press_event",
-        G_CALLBACK (on_drawingarea_map_button_press_event), NULL);
+                      G_CALLBACK (on_drawingarea_map_button_press_event), NULL);
     g_signal_connect ((gpointer) map_drawing_area, "configure_event",
-        G_CALLBACK (on_drawingarea_map_configure_event), NULL);
+                      G_CALLBACK (on_drawingarea_map_configure_event), NULL);
 
 #if 0
     gtk_widget_set_size_request (map_drawing_area,
-        use_config[CONFIG_MAPWIDTH] * map_image_size,
-        use_config[CONFIG_MAPHEIGHT] * map_image_size);
+                                 use_config[CONFIG_MAPWIDTH] * map_image_size,
+                                 use_config[CONFIG_MAPHEIGHT] * map_image_size);
 #endif
     mapgc = gdk_gc_new(map_drawing_area->window);
     gtk_widget_show(map_drawing_area);
@@ -231,11 +221,11 @@ static void draw_pixmap(int srcx, int srcy, int dstx, int dsty, int clipx, int c
 int display_mapscroll(int dx, int dy)
 {
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
         return sdl_mapscroll(dx,dy);
-    else
+    } else
 #endif
-    return 0;
+        return 0;
 }
 
 /**
@@ -248,45 +238,46 @@ int display_mapscroll(int dx, int dy)
  * @param picx
  * @param picy Place on the map_drawing_area->window to draw
  */
-void drawsmooth (int mx,int my,int layer,int picx,int picy){
-    static int dx[8]={0,1,1,1,0,-1,-1,-1};
-    static int dy[8]={-1,-1,0,1,1,1,0,-1};
-    static int bweights[8]={2,0,4,0,8,0,1,0};
-    static int cweights[8]={0,2,0,4,0,8,0,1};
-    static int bc_exclude[8]={
-                 1+2,/*north exclude northwest (bit0) and northeast(bit1)*/
-                 0,
-                 2+4,/*east exclude northeast and southeast*/
-                 0,
-                 4+8,/*and so on*/
-                 0,
-                 8+1,
-                 0
-                };
-    int partdone[8]={0,0,0,0,0,0,0,0};
+void drawsmooth (int mx,int my,int layer,int picx,int picy)
+{
+    static int dx[8]= {0,1,1,1,0,-1,-1,-1};
+    static int dy[8]= {-1,-1,0,1,1,1,0,-1};
+    static int bweights[8]= {2,0,4,0,8,0,1,0};
+    static int cweights[8]= {0,2,0,4,0,8,0,1};
+    static int bc_exclude[8]= {
+        1+2,/*north exclude northwest (bit0) and northeast(bit1)*/
+        0,
+        2+4,/*east exclude northeast and southeast*/
+        0,
+        4+8,/*and so on*/
+        0,
+        8+1,
+        0
+    };
+    int partdone[8]= {0,0,0,0,0,0,0,0};
     int slevels[8];
     int sfaces[8];
     int i,weight,weightC;
     int emx,emy;
     int smoothface;
     int hasFace = 0;
-    for (i=0;i<=layer;i++)
+    for (i=0; i<=layer; i++) {
         hasFace |= the_map.cells[mx][my].heads[i].face;
+    }
     if (!hasFace
-    || !CAN_SMOOTH(the_map.cells[mx][my], layer)) {
+            || !CAN_SMOOTH(the_map.cells[mx][my], layer)) {
         return;
     }
-    for (i=0;i<8;i++){
+    for (i=0; i<8; i++) {
         emx=mx+dx[i];
         emy=my+dy[i];
-        if ( (emx<0) || (emy<0) || (the_map.x<=emx) || (the_map.y<=emy)){
+        if ( (emx<0) || (emy<0) || (the_map.x<=emx) || (the_map.y<=emy)) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        }
-        else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]){
+        } else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        }else{
+        } else {
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
         }
@@ -296,16 +287,18 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
      * at most 8 different levels. so... check 8 times for the lowest one (we
      * draw from bottom to top!).
      */
-    while (1){
+    while (1) {
         int lowest = -1;
-        for (i=0;i<8;i++){
+        for (i=0; i<8; i++) {
             if ( (slevels[i]>0) && (!partdone[i]) &&
-                ((lowest<0) || (slevels[i]<slevels[lowest]))
-               )
-                    lowest=i;
+                    ((lowest<0) || (slevels[i]<slevels[lowest]))
+               ) {
+                lowest=i;
+            }
         }
-        if (lowest<0)
-            break;   /*no more smooth to do on this square*/
+        if (lowest<0) {
+            break;    /*no more smooth to do on this square*/
+        }
         /*printf ("hey, must smooth something...%d\n",sfaces[lowest]);*/
         /* Here we know 'what' to smooth
          *
@@ -318,22 +311,23 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
         weightC=15; /*works in backward. remove where there is nothing*/
         /*for (i=0;i<8;i++)
             cornermask[i]=1;*/
-        for (i=0;i<8;i++){ /*check all nearby squares*/
+        for (i=0; i<8; i++) { /*check all nearby squares*/
             if ( (slevels[i]==slevels[lowest]) &&
-                 (sfaces[i]==sfaces[lowest])){
+                    (sfaces[i]==sfaces[lowest])) {
                 partdone[i]=1;
                 weight=weight+bweights[i];
                 weightC&=~bc_exclude[i];
-            }else{
+            } else {
                 /*must rmove the weight of a corner if not in smoothing*/
                 weightC&=~cweights[i];
             }
         }
         /*We can't do this before since we need the partdone to be adjusted*/
-        if (sfaces[lowest]<=0)
-            continue;  /*Can't smooth black*/
+        if (sfaces[lowest]<=0) {
+            continue;    /*Can't smooth black*/
+        }
         smoothface=sfaces[lowest];
-        if (smoothface<=0){
+        if (smoothface<=0) {
             continue;  /*picture for smoothing not yet available*/
         }
         /*
@@ -342,16 +336,17 @@ void drawsmooth (int mx,int my,int layer,int picx,int picy){
          * (32*weight,0) and (32*weightC,32)
          */
         if ( (!pixmaps[smoothface]->map_image) ||
-             (pixmaps[smoothface] == pixmaps[0]))
-            continue;   /*don't have the picture associated*/
-        if (weight>0){
+                (pixmaps[smoothface] == pixmaps[0])) {
+            continue;    /*don't have the picture associated*/
+        }
+        if (weight>0) {
             draw_pixmap(
                 weight*map_image_size, 0,
                 picx, picy,
                 picx-weight*map_image_size, picy,
                 pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image, map_image_size, map_image_size);
         }
-        if (weightC>0){
+        if (weightC>0) {
             draw_pixmap(
                 weightC*map_image_size, map_image_size,
                 picx, picy,
@@ -421,8 +416,9 @@ static void display_mapcell(int ax, int ay, int mx, int my)
              * into account cases where the smooth as already been handled 2
              * code lines before
              */
-            if ( use_config[CONFIG_SMOOTH])
+            if ( use_config[CONFIG_SMOOTH]) {
                 drawsmooth (mx, my, layer, ax*map_image_size, ay*map_image_size);
+            }
 
             /* draw big faces last (should overlap other objects) */
             face = mapdata_bigface(ax, ay, layer, &sx, &sy);
@@ -489,11 +485,10 @@ static void display_mapcell(int ax, int ay, int mx, int my)
      */
     if (use_config[CONFIG_FOGWAR] && the_map.cells[mx][my].cleared) {
         draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark1, dark, map_image_size, map_image_size);
-    }
-    else if (the_map.cells[mx][my].darkness > 192) { /* Full dark */
+    } else if (the_map.cells[mx][my].darkness > 192) { /* Full dark */
         gdk_draw_rectangle (map_drawing_area->window, map_drawing_area->style->black_gc,
-            TRUE,map_image_size*ax, map_image_size*ay,
-            map_image_size, map_image_size);
+                            TRUE,map_image_size*ax, map_image_size*ay,
+                            map_image_size, map_image_size);
     } else if (the_map.cells[mx][my].darkness> 128) {
         draw_pixmap(0, 0, ax*map_image_size, ay*map_image_size, ax*map_image_size, ay*map_image_size, dark1, dark, map_image_size, map_image_size);
     } else if (the_map.cells[mx][my].darkness> 64) {
@@ -507,17 +502,20 @@ static void display_mapcell(int ax, int ay, int mx, int my)
  *
  * @param redraw
  */
-void gtk_draw_map(int redraw) {
+void gtk_draw_map(int redraw)
+{
     int mx, my;
     int x, y;
     struct timeval tv1, tv2,tv3;
     long elapsed1, elapsed2;
 
-    if(!redraw && !map_updated)
+    if(!redraw && !map_updated) {
         return;
+    }
 
-    if (time_map_redraw)
+    if (time_map_redraw) {
         gettimeofday(&tv1, NULL);
+    }
 
     for(x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
         for(y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
@@ -530,8 +528,8 @@ void gtk_draw_map(int redraw) {
             my = pl_pos.y+y;
 
             if (redraw
-            || the_map.cells[mx][my].need_update
-            || the_map.cells[mx][my].need_resmooth) {
+                    || the_map.cells[mx][my].need_update
+                    || the_map.cells[mx][my].need_resmooth) {
                 display_mapcell(x, y, mx, my);
                 the_map.cells[mx][my].need_update = 0;
                 the_map.cells[mx][my].need_resmooth = 0;
@@ -539,8 +537,9 @@ void gtk_draw_map(int redraw) {
         } /* For y spaces */
     } /* for x spaces */
 
-    if (time_map_redraw)
+    if (time_map_redraw) {
         gettimeofday(&tv2, NULL);
+    }
 
     if (time_map_redraw) {
         gettimeofday(&tv3, NULL);
@@ -552,7 +551,7 @@ void gtk_draw_map(int redraw) {
          */
         if ((elapsed1 + elapsed2)>10000)
             LOG(LOG_INFO,"gtk-v2::sdl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
-                    elapsed1, elapsed2, elapsed1 + elapsed2);
+                elapsed1, elapsed2, elapsed1 + elapsed2);
     }
 }
 
@@ -581,15 +580,19 @@ void resize_map_window(int x, int y)
 }
 
 
-gboolean                                                                                          
+gboolean
 on_drawingarea_map_configure_event     (GtkWidget       *widget,
                                         GdkEventConfigure *event,
                                         gpointer         user_data)
 {
     sint16 w = event->width / map_image_size, h=event->height / map_image_size;
 
-    if (w > MAP_MAX_SIZE) w = MAP_MAX_SIZE;
-    if (h > MAP_MAX_SIZE) h = MAP_MAX_SIZE;
+    if (w > MAP_MAX_SIZE) {
+        w = MAP_MAX_SIZE;
+    }
+    if (h > MAP_MAX_SIZE) {
+        h = MAP_MAX_SIZE;
+    }
 
     /* Only need to do something if the size actually changes in terms
      * of displayable mapspaces.
@@ -628,8 +631,8 @@ void draw_splash(void)
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
         if (!have_init) {
             splash = gdk_pixmap_create_from_xpm_d(map_drawing_area->window,
-                                               &aboutgdkmask, NULL,
-                                               (gchar **)crossfiretitle_xpm);
+                                                  &aboutgdkmask, NULL,
+                                                  (gchar **)crossfiretitle_xpm);
             have_init=1;
         }
         gdk_window_clear(map_drawing_area->window);
@@ -653,17 +656,22 @@ void draw_splash(void)
 void draw_map(int redraw)
 {
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) sdl_gen_map(redraw);
-    else
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
+        sdl_gen_map(redraw);
+    } else
 #endif
 #ifdef HAVE_OPENGL
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) opengl_gen_map(redraw);
-    else
+        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
+            opengl_gen_map(redraw);
+        } else
 #endif
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
-        if (cpl.input_state == Metaserver_Select) draw_splash();
-        else gtk_draw_map(redraw);
-    }
+            if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
+                if (cpl.input_state == Metaserver_Select) {
+                    draw_splash();
+                } else {
+                    gtk_draw_map(redraw);
+                }
+            }
 }
 
 /**
@@ -706,46 +714,80 @@ on_drawingarea_map_button_press_event  (GtkWidget       *widget,
     ymidh=(use_config[CONFIG_MAPHEIGHT]/2 + 1) * map_image_size;
 
     switch (event->button) {
-        case 1:
-            look_at(dx,dy);
-            break;
+    case 1:
+        look_at(dx,dy);
+        break;
 
-        case 2:
-        case 3:
-            if (x<xmidl)
-                i = 0;
-            else if (x>xmidh)
-                i = 6;
-            else i =3;
+    case 2:
+    case 3:
+        if (x<xmidl) {
+            i = 0;
+        } else if (x>xmidh) {
+            i = 6;
+        } else {
+            i =3;
+        }
 
-            if (y>ymidh)
-                i += 2;
-            else if (y>ymidl)
-                i++;
+        if (y>ymidh) {
+            i += 2;
+        } else if (y>ymidl) {
+            i++;
+        }
 
-            if (event->button==2) {
-                switch (i) {
-                    case 0: fire_dir (8);break;
-                    case 1: fire_dir (7);break;
-                    case 2: fire_dir (6);break;
-                    case 3: fire_dir (1);break;
-                    case 5: fire_dir (5);break;
-                    case 6: fire_dir (2);break;
-                    case 7: fire_dir (3);break;
-                    case 8: fire_dir (4);break;
-                }
-                /* Only want to fire once */
-                clear_fire();
+        if (event->button==2) {
+            switch (i) {
+            case 0:
+                fire_dir (8);
+                break;
+            case 1:
+                fire_dir (7);
+                break;
+            case 2:
+                fire_dir (6);
+                break;
+            case 3:
+                fire_dir (1);
+                break;
+            case 5:
+                fire_dir (5);
+                break;
+            case 6:
+                fire_dir (2);
+                break;
+            case 7:
+                fire_dir (3);
+                break;
+            case 8:
+                fire_dir (4);
+                break;
             }
-            else switch (i) {
-                case 0: move_player (8);break;
-                case 1: move_player (7);break;
-                case 2: move_player (6);break;
-                case 3: move_player (1);break;
-                case 5: move_player (5);break;
-                case 6: move_player (2);break;
-                case 7: move_player (3);break;
-                case 8: move_player (4);break;
+            /* Only want to fire once */
+            clear_fire();
+        } else switch (i) {
+            case 0:
+                move_player (8);
+                break;
+            case 1:
+                move_player (7);
+                break;
+            case 2:
+                move_player (6);
+                break;
+            case 3:
+                move_player (1);
+                break;
+            case 5:
+                move_player (5);
+                break;
+            case 6:
+                move_player (2);
+                break;
+            case 7:
+                move_player (3);
+                break;
+            case 8:
+                move_player (4);
+                break;
             }
     }
     return FALSE;

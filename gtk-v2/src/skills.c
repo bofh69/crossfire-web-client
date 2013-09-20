@@ -1,26 +1,15 @@
-
-
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2006-2007,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/skills.c
@@ -64,7 +53,8 @@ static gboolean skill_selection_func(GtkTreeSelection *selection,
                                      GtkTreeModel     *model,
                                      GtkTreePath      *path,
                                      gboolean          path_currently_selected,
-                                     gpointer          userdata) {
+                                     gpointer          userdata)
+{
     gtk_widget_set_sensitive(skill_ready, TRUE);
     gtk_widget_set_sensitive(skill_use, TRUE);
     return TRUE;
@@ -76,7 +66,8 @@ static gboolean skill_selection_func(GtkTreeSelection *selection,
  * the list store otherwise nothing happens, because it will be called again
  * next time the window is opened anyway.
  */
-void update_skill_information(void) {
+void update_skill_information(void)
+{
     GtkTreeIter iter;
     char buf[MAX_BUF];
     int i, sk, level;
@@ -86,8 +77,9 @@ void update_skill_information(void) {
      * shown, return.
      */
     if (! has_init
-    ||  ! GTK_WIDGET_VISIBLE(glade_xml_get_widget(dialog_xml, "skill_window")))
+            ||  ! GTK_WIDGET_VISIBLE(glade_xml_get_widget(dialog_xml, "skill_window"))) {
         return;
+    }
 
     gtk_list_store_clear(skill_store);
     for (i = 0; i<MAX_SKILL; i++) {
@@ -100,7 +92,7 @@ void update_skill_information(void) {
                 /* we can't advance any more, so display 0*/
                 exp_to_next_level = 0;
             } else {
-                exp_to_next_level = 
+                exp_to_next_level =
                     exp_table[level + 1] - cpl.stats.skill_exp[sk];
             }
             gtk_list_store_set(skill_store, &iter,
@@ -118,7 +110,8 @@ void update_skill_information(void) {
  * @param menuitem
  * @param user_data
  */
-void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data) {
+void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data)
+{
     GladeXML *xml_tree;
     GtkWidget *widget;
 
@@ -134,17 +127,17 @@ void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data) {
         skill_treeview = glade_xml_get_widget(xml_tree, "skill_treeview");
 
         g_signal_connect((gpointer) skill_window, "delete_event",
-            G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+                         G_CALLBACK(gtk_widget_hide_on_delete), NULL);
         g_signal_connect((gpointer) skill_treeview, "row_activated",
-            G_CALLBACK(on_skill_treeview_row_activated), NULL);
+                         G_CALLBACK(on_skill_treeview_row_activated), NULL);
         g_signal_connect((gpointer) skill_ready, "clicked",
-            G_CALLBACK(on_skill_ready_clicked), NULL);
+                         G_CALLBACK(on_skill_ready_clicked), NULL);
         g_signal_connect((gpointer) skill_use, "clicked",
-            G_CALLBACK(on_skill_use_clicked), NULL);
+                         G_CALLBACK(on_skill_use_clicked), NULL);
 
         widget = glade_xml_get_widget(xml_tree, "skill_close");
         g_signal_connect((gpointer) widget, "clicked",
-            G_CALLBACK(on_skill_close_clicked), NULL);
+                         G_CALLBACK(on_skill_close_clicked), NULL);
 
         skill_store = gtk_list_store_new(4,
                                          G_TYPE_STRING, /* Name */
@@ -179,7 +172,7 @@ void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data) {
         renderer = gtk_cell_renderer_text_new();
         column = gtk_tree_view_column_new_with_attributes(
                      "Needed for next level", renderer, "text",
-                         LIST_NEXTLEVEL, NULL);
+                     LIST_NEXTLEVEL, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(skill_treeview), column);
         gtk_tree_view_column_set_sort_column_id(column, LIST_NEXTLEVEL);
 
@@ -210,21 +203,22 @@ void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data) {
  * @param use_skill
   */
 
-void trigger_skill(GtkTreeIter iter, GtkTreeModel *model, int use_skill) {
-        gchar *skname;
-        char command[MAX_BUF];
-        char *commandname;
+void trigger_skill(GtkTreeIter iter, GtkTreeModel *model, int use_skill)
+{
+    gchar *skname;
+    char command[MAX_BUF];
+    char *commandname;
 
-        gtk_tree_model_get(model, &iter, LIST_NAME, &skname, -1);
-        if (! skname) {
-            LOG(LOG_ERROR, "skills.c::trigger_skill",
-                "Unable to get skill name\n");
-            return;
-        }
-        commandname = use_skill?"use_skill":"ready_skill";
-        snprintf(command, MAX_BUF-1, "%s %s", commandname, skname);
-        send_command(command, -1, 1);
-        g_free(skname);
+    gtk_tree_model_get(model, &iter, LIST_NAME, &skname, -1);
+    if (! skname) {
+        LOG(LOG_ERROR, "skills.c::trigger_skill",
+            "Unable to get skill name\n");
+        return;
+    }
+    commandname = use_skill?"use_skill":"ready_skill";
+    snprintf(command, MAX_BUF-1, "%s %s", commandname, skname);
+    send_command(command, -1, 1);
+    g_free(skname);
 }
 
 /**
@@ -235,7 +229,8 @@ void trigger_skill(GtkTreeIter iter, GtkTreeModel *model, int use_skill) {
  * @param user_data
  */
 void on_skill_treeview_row_activated(GtkTreeView *treeview, GtkTreePath *path,
-                                 GtkTreeViewColumn *column, gpointer user_data) {
+                                     GtkTreeViewColumn *column, gpointer user_data)
+{
     GtkTreeIter iter;
     GtkTreeModel *model;
 
@@ -251,7 +246,8 @@ void on_skill_treeview_row_activated(GtkTreeView *treeview, GtkTreePath *path,
  * @param button
  * @param user_data
  */
-void on_skill_ready_clicked(GtkButton *button, gpointer user_data) {
+void on_skill_ready_clicked(GtkButton *button, gpointer user_data)
+{
     GtkTreeIter iter;
     GtkTreeModel *model;
 
@@ -266,7 +262,8 @@ void on_skill_ready_clicked(GtkButton *button, gpointer user_data) {
  * @param button
  * @param user_data
  */
-void on_skill_use_clicked(GtkButton *button, gpointer user_data) {
+void on_skill_use_clicked(GtkButton *button, gpointer user_data)
+{
     GtkTreeIter iter;
     GtkTreeModel *model;
 
@@ -280,7 +277,8 @@ void on_skill_use_clicked(GtkButton *button, gpointer user_data) {
  * @param button
  * @param user_data
  */
-void on_skill_close_clicked(GtkButton *button, gpointer user_data) {
+void on_skill_close_clicked(GtkButton *button, gpointer user_data)
+{
     gtk_widget_hide(skill_window);
 }
 

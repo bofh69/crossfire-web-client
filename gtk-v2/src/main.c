@@ -792,7 +792,7 @@ int main(int argc, char *argv[])
     /* Request the window to receive focus in and out events */
     gtk_widget_add_events ( (gpointer) window_root, GDK_FOCUS_CHANGE_MASK );
     g_signal_connect((gpointer) window_root, "focus-out-event",
-		     G_CALLBACK (focusoutfunc), NULL);
+                     G_CALLBACK (focusoutfunc), NULL);
 
     g_signal_connect_swapped ((gpointer) window_root, "key_press_event",
                               G_CALLBACK (keyfunc), GTK_OBJECT (window_root));
@@ -847,7 +847,7 @@ int main(int argc, char *argv[])
     magic_map = glade_xml_get_widget(xml_tree, "drawingarea_magic_map");
 
     g_signal_connect((gpointer) magic_map, "expose_event",
-                      G_CALLBACK (on_drawingarea_magic_map_expose_event), NULL);
+                     G_CALLBACK (on_drawingarea_magic_map_expose_event), NULL);
 
     snprintf(file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv("HOME"));
     CONVERT_FILESPEC_TO_OS_FORMAT(file_cache);

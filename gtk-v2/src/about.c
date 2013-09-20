@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_about_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2006 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/about.c
@@ -73,17 +62,17 @@ menu_about                             (GtkMenuItem     *menuitem,
         textview = glade_xml_get_widget(xml_tree, "about_textview");
 
         g_signal_connect((gpointer) about_window, "delete_event",
-            G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+                         G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 
         widget = glade_xml_get_widget(xml_tree, "about_close");
         g_signal_connect((gpointer) widget, "clicked",
-            G_CALLBACK(on_about_close_clicked), NULL);
+                         G_CALLBACK(on_about_close_clicked), NULL);
 
         textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
 
         gtk_text_buffer_get_end_iter(textbuf, &end);
         gtk_text_buffer_insert(textbuf, &end, VERSION_INFO,
-             strlen(VERSION_INFO));
+                               strlen(VERSION_INFO));
         gtk_text_buffer_insert(textbuf, &end, "\n", 1);
         gtk_text_buffer_insert(textbuf, &end, text, strlen(text));
 
@@ -91,12 +80,12 @@ menu_about                             (GtkMenuItem     *menuitem,
         gtk_widget_show(about_window);
 
         aboutgdkpixmap = gdk_pixmap_create_from_xpm_d(about_window->window,
-            &aboutgdkmask,
-            NULL,
-            (gchar **)crossfiretitle_xpm);
+                         &aboutgdkmask,
+                         NULL,
+                         (gchar **)crossfiretitle_xpm);
 
         aboutgtkpixmap= gtk_image_new_from_pixmap (aboutgdkpixmap,
-             aboutgdkmask);
+                        aboutgdkmask);
         /*
          * Use of hbox is a bit of a hack - isn't any easy way to add this
          * image as the first entry of the box once other fields have been

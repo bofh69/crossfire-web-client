@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_create_char_c =
-    "$Id: create_char.c 12988 2010-04-27 04:04:46Z kbulgrien $";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2010,2011 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/create_char.c
@@ -67,17 +56,17 @@ const char * const rcsid_gtk2_create_char_c =
 
 /* These are in the create_character_window */
 static GtkWidget *spinbutton_cc[NUM_NEW_CHAR_STATS], *label_rs[NUM_NEW_CHAR_STATS],
-    *label_cs[NUM_NEW_CHAR_STATS], *label_tot[NUM_NEW_CHAR_STATS],
-    *label_cc_unspent, *textview_rs_desc, *label_cc_desc, *label_cc_status_update,
-    *button_cc_cancel, *button_cc_done, *create_character_window, *combobox_rs,
-    *combobox_cs, *textview_cs_desc, *entry_new_character_name, *button_choose_starting_map,
-    *opt_label[NUM_OPT_FIELDS], *opt_combobox[NUM_OPT_FIELDS];
+       *label_cs[NUM_NEW_CHAR_STATS], *label_tot[NUM_NEW_CHAR_STATS],
+       *label_cc_unspent, *textview_rs_desc, *label_cc_desc, *label_cc_status_update,
+       *button_cc_cancel, *button_cc_done, *create_character_window, *combobox_rs,
+       *combobox_cs, *textview_cs_desc, *entry_new_character_name, *button_choose_starting_map,
+       *opt_label[NUM_OPT_FIELDS], *opt_combobox[NUM_OPT_FIELDS];
 
 static GtkTextMark *text_mark_cs, *text_mark_rs;
 
 /* These are in the choose starting map window */
 static GtkWidget *choose_starting_map_window,
-    *button_csm_done, *button_csm_cancel, *combobox_starting_map;
+       *button_csm_done, *button_csm_cancel, *combobox_starting_map;
 
 GtkTextBuffer *textbuf_starting_map;
 
@@ -148,16 +137,18 @@ static void create_character_set_sensitive(int sensitive)
      * no harm in doing so.
      */
 
-    for (i=0; i<NUM_NEW_CHAR_STATS; i++)
+    for (i=0; i<NUM_NEW_CHAR_STATS; i++) {
         gtk_widget_set_sensitive(spinbutton_cc[i], sensitive);
+    }
 
     /* If we do not have any starting maps, no reason to show
      * that button to the player.
      */
-    if (starting_map_number)
+    if (starting_map_number) {
         gtk_widget_show(button_choose_starting_map);
-    else
+    } else {
         gtk_widget_hide(button_choose_starting_map);
+    }
 }
 
 /**
@@ -246,7 +237,9 @@ static void update_all_stats()
         /* Might it be good to draw negative stats in red?  Rather
          * than hardcode that, it should be a style
          */
-        if (statval < 0) negative_stat = 1;
+        if (statval < 0) {
+            negative_stat = 1;
+        }
 
         sprintf(buf, "%d", statval);
         gtk_label_set_text(GTK_LABEL(label_tot[i]), buf);
@@ -261,16 +254,16 @@ static void update_all_stats()
      * perhaps the done button should be inactivated if there are errors.
      */
     if (tmp < 0) {
-        gtk_label_set_text(GTK_LABEL(label_cc_status_update), 
+        gtk_label_set_text(GTK_LABEL(label_cc_status_update),
                            "You have used more than your allotted total attribute points");
     } else if (negative_stat) {
-        gtk_label_set_text(GTK_LABEL(label_cc_status_update), 
-                   "Negative attributes are not allowed - adjust your selections before finishing");
+        gtk_label_set_text(GTK_LABEL(label_cc_status_update),
+                           "Negative attributes are not allowed - adjust your selections before finishing");
 
     } else {
         gtk_label_set_text(GTK_LABEL(label_cc_status_update), "Waiting for player selections");
     }
-    
+
 
 }
 
@@ -430,7 +423,7 @@ static int character_data_ok()
     }
 
     if (stat_points_used > stat_points) {
-        gtk_label_set_text(GTK_LABEL(label_cc_status_update), 
+        gtk_label_set_text(GTK_LABEL(label_cc_status_update),
                            "You have used more than your allotted total attribute points");
         show_window(WINDOW_CREATE_CHARACTER);
         return FALSE;
@@ -440,9 +433,9 @@ static int character_data_ok()
      * re-use that value.
      */
     if (negative_stat) {
-        gtk_label_set_text(GTK_LABEL(label_cc_status_update), 
-                   "Negative attributes are not allowed - adjust your selections before finishing");
-        show_window(WINDOW_CREATE_CHARACTER); 
+        gtk_label_set_text(GTK_LABEL(label_cc_status_update),
+                           "Negative attributes are not allowed - adjust your selections before finishing");
+        show_window(WINDOW_CREATE_CHARACTER);
         return FALSE;
     }
 
@@ -457,17 +450,17 @@ static int character_data_ok()
         int result;
 
         dialog =
-            gtk_message_dialog_new(GTK_WINDOW(create_character_window), 
+            gtk_message_dialog_new(GTK_WINDOW(create_character_window),
                                    GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_QUESTION,
                                    GTK_BUTTONS_YES_NO,
-                                   "%s\n%s\n%s", 
+                                   "%s\n%s\n%s",
                                    "You have not spent all your attribute points.",
                                    "You will be unable to spend these later.",
                                    "Create character anyways?");
         result = gtk_dialog_run(GTK_DIALOG(dialog));
         gtk_widget_destroy(dialog);
         if (result == GTK_RESPONSE_NO) {
-            show_window(WINDOW_CREATE_CHARACTER); 
+            show_window(WINDOW_CREATE_CHARACTER);
             return FALSE;
         }
         /* Otherwise, fall through below */
@@ -513,8 +506,8 @@ on_button_cc_done(GtkButton *button, gpointer user_data)
         /* If we get here, everything checks out - now we have to
          * send the data to the server.
          */
-        gtk_label_set_text(GTK_LABEL(label_cc_status_update), 
-                       "Sending new character information to server");
+        gtk_label_set_text(GTK_LABEL(label_cc_status_update),
+                           "Sending new character information to server");
         show_window(WINDOW_CREATE_CHARACTER);
         send_create_player_to_server();
     }
@@ -525,7 +518,8 @@ on_button_cc_done(GtkButton *button, gpointer user_data)
  * back up the values.
  */
 void
-on_spinbutton_cc (GtkSpinButton *spinbutton, gpointer user_data) {
+on_spinbutton_cc (GtkSpinButton *spinbutton, gpointer user_data)
+{
 
     update_all_stats();
 }
@@ -555,8 +549,9 @@ on_combobox_rcs_changed(GtkComboBox *box, gpointer user_data)
     /* I don't think this can ever happen - if we get here,
      * something should be active.
      */
-    if (active_entry == -1)
+    if (active_entry == -1) {
         return;
+    }
 
     /* since we are using a list store, and we are not re-arranging the order,
      * the entry number should match our array number.
@@ -582,7 +577,7 @@ on_combobox_rcs_changed(GtkComboBox *box, gpointer user_data)
         label_stat = label_rs;
         opt_start = RACE_OPT_START;
     } else {
-        LOG(LOG_ERROR, "gtk-v2/src/create_char.c:on_combobox_rcs_changed", 
+        LOG(LOG_ERROR, "gtk-v2/src/create_char.c:on_combobox_rcs_changed",
             "Passed in combobox does not match any combobox");
         return;
     }
@@ -621,7 +616,7 @@ on_combobox_rcs_changed(GtkComboBox *box, gpointer user_data)
         gtk_widget_hide(opt_label[i + opt_start]);
         gtk_widget_hide(opt_combobox[i + opt_start]);
     }
-            
+
 
     /* label_stat now points at the array of stats to update, and rc points
      * at either the race or class to get values from.
@@ -651,8 +646,9 @@ void new_char_window_update_info()
     /* We could do the update as we get the data, but it shouldn't take
      * too long to get all the data, and simpler to just do one update
      */
-    if (!stat_points || num_races != used_races || num_classes != used_classes)
+    if (!stat_points || num_races != used_races || num_classes != used_classes) {
         return;
+    }
 
     gtk_label_set_text(GTK_LABEL(label_cc_status_update), "Waiting for player selections");
 
@@ -720,7 +716,7 @@ void new_char_window_update_info()
 
 /**
  * User has hit the 'return to character creation' button - basically
- * meaning that we have to hide the current window and show the 
+ * meaning that we have to hide the current window and show the
  * create_character_window.
  *
  * @param button    ignored
@@ -743,8 +739,9 @@ on_combobox_starting_map_changed(GtkComboBox *box, gpointer user_data)
     /* I don't think this can ever happen - if we get here,
      * something should be active.
      */
-    if (active_entry == -1)
+    if (active_entry == -1) {
         return;
+    }
 
     /* since we are using a list store, and we are not re-arranging the order,
      * the entry number should match our array number.
@@ -804,7 +801,9 @@ void init_create_character_window()
     GtkTextIter iter;
     GtkCellRenderer *renderer;
 
-    if (has_init) return;
+    if (has_init) {
+        return;
+    }
     has_init=1;
 
     create_character_window = glade_xml_get_widget(dialog_xml, "create_character_window");
@@ -867,7 +866,7 @@ void init_create_character_window()
         renderer = gtk_cell_renderer_text_new();
         gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(opt_combobox[i]), renderer, FALSE);
         gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(opt_combobox[i]), renderer,
-                                   "text", 0, NULL);
+                                       "text", 0, NULL);
         store = gtk_list_store_new(1, G_TYPE_STRING);
         gtk_combo_box_set_model(GTK_COMBO_BOX(opt_combobox[i]), GTK_TREE_MODEL(store));
 
@@ -888,13 +887,13 @@ void init_create_character_window()
 
     create_char_pane[STARTING_MAP_PANE].textview = glade_xml_get_widget(dialog_xml,"textview_starting_map");
     textbuf_starting_map = gtk_text_view_get_buffer(
-        GTK_TEXT_VIEW(create_char_pane[STARTING_MAP_PANE].textview));
+                               GTK_TEXT_VIEW(create_char_pane[STARTING_MAP_PANE].textview));
     add_tags_to_textbuffer(&create_char_pane[STARTING_MAP_PANE], textbuf_starting_map);
     add_style_to_textbuffer(&create_char_pane[STARTING_MAP_PANE], NULL);
 
     gtk_text_buffer_get_end_iter(create_char_pane[STARTING_MAP_PANE].textbuffer, &iter);
     create_char_pane[STARTING_MAP_PANE].textmark = gtk_text_buffer_create_mark(
-        create_char_pane[STARTING_MAP_PANE].textbuffer, NULL, &iter, FALSE);
+                create_char_pane[STARTING_MAP_PANE].textbuffer, NULL, &iter, FALSE);
 
     button_csm_done = glade_xml_get_widget(dialog_xml,"button_csm_done");
     button_csm_cancel = glade_xml_get_widget(dialog_xml,"button_csm_cancel");

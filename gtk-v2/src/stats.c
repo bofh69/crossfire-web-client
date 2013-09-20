@@ -136,8 +136,9 @@ void stats_get_styles(void)
                 }
                 LOG(LOG_INFO, "stats.c::stats_get_styles()", "Unable to find style '%s'", buf);
             } else {
-                if (!bar_colors[stat_bar][sub_style])
+                if (!bar_colors[stat_bar][sub_style]) {
                     bar_colors[stat_bar][sub_style] = calloc(1, sizeof(GdkColor));
+                }
                 memcpy(bar_colors[stat_bar][sub_style],
                        &tmp_style->base[GTK_STATE_SELECTED], sizeof(GdkColor));
             }
@@ -220,7 +221,7 @@ void stats_init(GtkWidget *window_root)
         for (i=0, x=0, y=0; i < SKILL_BOXES_X * SKILL_BOXES_Y; i++) {
             statwindow.skill_exp[i] = gtk_label_new("");
             gtk_table_attach(GTK_TABLE(statwindow.table_skills_exp), statwindow.skill_exp[i],
-                      x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
+                             x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
             gtk_widget_show(statwindow.skill_exp[i]);
             x++;
             if (x == SKILL_BOXES_X) {
@@ -236,7 +237,7 @@ void stats_init(GtkWidget *window_root)
     for (i=0, x=0, y=0; i < PROTECTION_BOXES_X * PROTECTION_BOXES_Y; i++) {
         statwindow.resists[i] = gtk_label_new("");
         gtk_table_attach(GTK_TABLE(statwindow.table_protections), statwindow.resists[i],
-                  x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
+                         x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
         gtk_widget_show(statwindow.resists[i]);
         x++;
         if (x == PROTECTION_BOXES_X) {
@@ -257,7 +258,8 @@ void stats_init(GtkWidget *window_root)
  * @param limit
  * Size of the buffer
  */
-static void format_si_number(int number, char *buffer, int limit) {
+static void format_si_number(int number, char *buffer, int limit)
+{
     /* List of SI prefixes and corresponding values, least to greatest. */
     const char SI_SUFFIX[] = {'\0', 'k', 'M', 'G'};
     const float SI_VALUE[] = {1, 1000, 1000000, 1000000000};
@@ -306,7 +308,7 @@ static void format_si_number(int number, char *buffer, int limit) {
  * dictate that.
  */
 void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
-         sint64 statbar_max, sint64 statbar_stat, int can_alert)
+                 sint64 statbar_max, sint64 statbar_stat, int can_alert)
 {
     float bar;
     int is_alert;
@@ -314,18 +316,25 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
     GdkColor ncolor, *set_color=NULL;
 
     /* If nothing changed, don't need to do anything */
-    if (lastval[stat_no] == current_stat && lastmax[stat_no] == max_stat)
+    if (lastval[stat_no] == current_stat && lastmax[stat_no] == max_stat) {
         return;
+    }
 
     lastval[stat_no] = current_stat;
     lastmax[stat_no] = max_stat;
 
-    if (statbar_max > 0) bar = (float) statbar_stat / (float) statbar_max;
-    else bar = 0.0;
+    if (statbar_max > 0) {
+        bar = (float) statbar_stat / (float) statbar_max;
+    } else {
+        bar = 0.0;
+    }
 
     /* Simple check to see if current stat is less than 25% */
-    if (can_alert && current_stat * 4 < max_stat) is_alert=1;
-    else is_alert = 0;
+    if (can_alert && current_stat * 4 < max_stat) {
+        is_alert=1;
+    } else {
+        is_alert = 0;
+    }
 
     if (use_config[CONFIG_GRAD_COLOR]) {
         /* In this mode, the color of the stat bar were go between red and green
@@ -341,12 +350,16 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
          * blending logic below is the same regardless of actual value.
          */
         if (bar > 1.0) {
-            if (bar>2.0) bar=2.0;  /* Display unaffected; just calculations */
+            if (bar>2.0) {
+                bar=2.0;    /* Display unaffected; just calculations */
+            }
             hcolor = bar_colors[stat_no][STYLE_GRAD_SUPER];
             lcolor = bar_colors[stat_no][STYLE_GRAD_NORMAL];
             diff = bar - 1.0;
         } else {
-            if (bar < 0.0) bar=0.0;  /* Like above, does not affect display */
+            if (bar < 0.0) {
+                bar=0.0;    /* Like above, does not affect display */
+            }
             hcolor = bar_colors[stat_no][STYLE_GRAD_NORMAL];
             lcolor = bar_colors[stat_no][STYLE_GRAD_LOW];
             diff = bar;
@@ -387,26 +400,32 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
             if (diff > 0.5) {
                 memcpy(&ncolor, hcolor, sizeof(GdkColor));
 
-                if (lcolor->red > hcolor->red)
+                if (lcolor->red > hcolor->red) {
                     ncolor.red = 2 * lcolor->red * (1.0 - diff);
+                }
 
-                if (lcolor->green > hcolor->green)
+                if (lcolor->green > hcolor->green) {
                     ncolor.green = 2 * lcolor->green * (1.0 - diff);
+                }
 
-                if (lcolor->blue > hcolor->blue)
+                if (lcolor->blue > hcolor->blue) {
                     ncolor.blue = 2 * lcolor->blue * (1.0 - diff);
+                }
 
             } else {
                 memcpy(&ncolor, lcolor, sizeof(GdkColor));
 
-                if (hcolor->red > lcolor->red)
+                if (hcolor->red > lcolor->red) {
                     ncolor.red = 2 * hcolor->red * diff;
+                }
 
-                if (hcolor->green > lcolor->green)
+                if (hcolor->green > lcolor->green) {
                     ncolor.green = 2 * hcolor->green * diff;
+                }
 
-                if (hcolor->blue > lcolor->blue)
+                if (hcolor->blue > lcolor->blue) {
                     ncolor.blue = 2 * hcolor->blue * diff;
+                }
             }
 #endif
 #if 0
@@ -416,15 +435,20 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
             set_color = &ncolor;
         }
     } else {
-        if (statbar_stat * 4 < statbar_max)
+        if (statbar_stat * 4 < statbar_max) {
             set_color = bar_colors[stat_no][STYLE_LOW];
-        else if (statbar_stat > statbar_max)
+        } else if (statbar_stat > statbar_max) {
             set_color = bar_colors[stat_no][STYLE_SUPER];
-        else
+        } else {
             set_color = bar_colors[stat_no][STYLE_NORMAL];
+        }
     }
-    if (bar > 1.0) bar = 1.0;
-    if (bar < 0.0) bar = 0.0;
+    if (bar > 1.0) {
+        bar = 1.0;
+    }
+    if (bar < 0.0) {
+        bar = 0.0;
+    }
 
     /* It may be a waste, but we set the color everytime here - it isn't very
      * costly, and keeps us from tracing the last color we set.  Note that
@@ -452,7 +476,8 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
  *
  * @param redraw
  */
-void draw_message_window(int redraw) {
+void draw_message_window(int redraw)
+{
     static int lastbeep=0;
     static sint64 level_diff;
 
@@ -470,16 +495,17 @@ void draw_message_window(int redraw) {
     /* We calculate level_diff here just so it makes the update_stat()
      * call below less messy.
      */
-    if ((cpl.stats.level+1) < exp_table_max)
+    if ((cpl.stats.level+1) < exp_table_max) {
         level_diff = exp_table[cpl.stats.level+1] - exp_table[cpl.stats.level];
-    else
+    } else {
         level_diff=cpl.stats.exp;
+    }
 
     update_stat(STAT_BAR_EXP,
-        (cpl.stats.level+1) < exp_table_max ? exp_table[cpl.stats.level+1]:cpl.stats.exp,
-        cpl.stats.exp,
-        level_diff,
-        (cpl.stats.level+1) < exp_table_max ?
+                (cpl.stats.level+1) < exp_table_max ? exp_table[cpl.stats.level+1]:cpl.stats.exp,
+                cpl.stats.exp,
+                level_diff,
+                (cpl.stats.level+1) < exp_table_max ?
                 (cpl.stats.exp - exp_table[cpl.stats.level]):cpl.stats.exp, FALSE);
 
     if (use_config[CONFIG_FOODBEEP] && (cpl.stats.food%4==3) && (cpl.stats.food < 200)) {
@@ -496,10 +522,17 @@ void draw_message_window(int redraw) {
  */
 static int mapping_sort(NameMapping *a, NameMapping *b)
 {
-    if (!a->name && !b->name) return 0;
-    if (!a->name) return 1;
-    if (!b->name) return -1;
-    else return strcasecmp(a->name, b->name);
+    if (!a->name && !b->name) {
+        return 0;
+    }
+    if (!a->name) {
+        return 1;
+    }
+    if (!b->name) {
+        return -1;
+    } else {
+        return strcasecmp(a->name, b->name);
+    }
 }
 
 /**
@@ -511,20 +544,22 @@ static void update_stat_mapping(void)
 
     for (i=0; i < MAX_SKILL; i++) {
         skill_mapping[i].value=i;
-        if (skill_names[i])
+        if (skill_names[i]) {
             skill_mapping[i].name = skill_names[i];
-        else
+        } else {
             skill_mapping[i].name = NULL;
+        }
     }
     qsort(skill_mapping, MAX_SKILL, sizeof(NameMapping),
           (int (*)(const void*, const void*))mapping_sort);
 
     for (i=0; i < NUM_RESISTS; i++) {
         resist_mapping[i].value=i;
-        if (resists_name[i])
+        if (resists_name[i]) {
             resist_mapping[i].name = resists_name[i];
-        else
+        } else {
             resist_mapping[i].name = NULL;
+        }
     }
     qsort(resist_mapping, NUM_RESISTS, sizeof(NameMapping),
           (int (*)(const void*, const void*))mapping_sort);
@@ -536,7 +571,8 @@ static void update_stat_mapping(void)
  * Draws the stats window.  If redraw is true, it means we need to redraw the
  * entire thing, and not just do an updated
  */
-void draw_stats(int redraw) {
+void draw_stats(int redraw)
+{
     static Stats last_stats;
     static char last_name[MAX_BUF]="", last_range[MAX_BUF]="";
     static int init_before=0, max_drawn_skill=0, max_drawn_resists=0;
@@ -650,10 +686,11 @@ void draw_stats(int redraw) {
     /* sc_version >= 1029 reports real value of weapon speed -
      * not as a factor of player speed.  Handle accordingly.
      */
-    if (csocket.sc_version >= 1029)
+    if (csocket.sc_version >= 1029) {
         weap_sp = (float) cpl.stats.weapon_sp / FLOAT_MULTF;
-    else
+    } else {
         weap_sp = (float) cpl.stats.speed/((float)cpl.stats.weapon_sp);
+    }
 
     if (redraw || weap_sp !=last_stats.weapon_sp) {
         last_stats.weapon_sp=weap_sp;
@@ -684,11 +721,11 @@ void draw_stats(int redraw) {
             sk = skill_mapping[i].value;
 
             if ((redraw || cpl.stats.skill_exp[sk] != last_stats.skill_exp[sk])
-            && skill_mapping[i].name && cpl.stats.skill_exp[sk]) {
+                    && skill_mapping[i].name && cpl.stats.skill_exp[sk]) {
                 gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]),
-                    skill_mapping[i].name);
+                              skill_mapping[i].name);
                 snprintf(buff, sizeof(buff), "%" FMT64 " (%d)",
-                    cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
+                         cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
                 gtk_label_set(
                     GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
                 last_stats.skill_level[sk] = cpl.stats.skill_level[sk];
@@ -709,8 +746,9 @@ void draw_stats(int redraw) {
         if (on_skill < max_drawn_skill) {
             int k;
 
-            for (k = on_skill; k <= max_drawn_skill; k++)
+            for (k = on_skill; k <= max_drawn_skill; k++) {
                 gtk_label_set(GTK_LABEL(statwindow.skill_exp[k]), "");
+            }
         }
         max_drawn_skill = on_skill;
     }
@@ -728,7 +766,9 @@ void draw_stats(int redraw) {
                 snprintf(buff, sizeof(buff), "%+4d", cpl.stats.resists[sk]);
                 gtk_label_set(GTK_LABEL(statwindow.resists[j]), buff);
                 j++;
-                if (j >= PROTECTION_BOXES_X * PROTECTION_BOXES_Y) break;
+                if (j >= PROTECTION_BOXES_X * PROTECTION_BOXES_Y) {
+                    break;
+                }
             }
         }
         /* Erase old/unused resistances */

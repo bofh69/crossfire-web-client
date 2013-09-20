@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_account_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/account.c
@@ -44,34 +33,34 @@ const char * const rcsid_gtk2_account_c =
 #include "metaserver.h"
 
 static GtkWidget *add_character_window, *choose_char_window,
- *create_account_window, *login_window, *account_password_window;
+       *create_account_window, *login_window, *account_password_window;
 
 /* These are in the login_window */
 static GtkWidget *button_login, *button_create_account,
-    *button_go_metaserver, *button_exit_client,
-    *entry_account_name,
-    *entry_account_password, *label_account_login_status;
+       *button_go_metaserver, *button_exit_client,
+       *entry_account_name,
+       *entry_account_password, *label_account_login_status;
 
 /* These are in the create_account_window */
 static GtkWidget *button_new_create_account, *button_new_cancel,
-    *entry_new_account_name,
-    *entry_new_account_password, *entry_new_confirm_password,
-    *label_create_account_status;
+       *entry_new_account_name,
+       *entry_new_account_password, *entry_new_confirm_password,
+       *label_create_account_status;
 
 /* These are in the choose_character window */
 static GtkWidget *button_play_character, *button_create_character,
-    *button_add_character, *button_return_login, *button_account_password,
-    *treeview_choose_character;
+       *button_add_character, *button_return_login, *button_account_password,
+       *treeview_choose_character;
 
 /* These are in the new_character window */
 static GtkWidget *entry_new_character_name, *new_character_window,
-    *label_new_char_status, *button_create_new_char,
-    *button_new_char_cancel;
+       *label_new_char_status, *button_create_new_char,
+       *button_new_char_cancel;
 
 /* These are in the account_password window */
 static GtkWidget *entry_account_password_current, *entry_account_password_new,
-    *entry_account_password_confirm, *button_account_password_confirm,
-    *button_account_password_cancel, *label_account_password_status;
+       *entry_account_password_confirm, *button_account_password_confirm,
+       *button_account_password_cancel, *label_account_password_status;
 
 GtkListStore    *character_store;
 
@@ -81,16 +70,17 @@ char account_password[256];
 /* This enum just maps the columns in the list store to their position.
  */
 enum {CHAR_IMAGE, CHAR_NAME, CHAR_CLASS, CHAR_RACE, CHAR_LEVEL, CHAR_PARTY,
-      CHAR_MAP, CHAR_ICON};
+      CHAR_MAP, CHAR_ICON
+     };
 #define  CHAR_NUM_COLUMNS 8
 
 /* These are in the add_character window */
 static GtkWidget *button_do_add_character,
-    *button_return_character_select, *entry_character_name,
-    *entry_character_password, *label_add_status;
+       *button_return_character_select, *entry_character_name,
+       *entry_character_password, *label_add_status;
 
 GtkTextBuffer *textbuf_motd, *textbuf_news, *textbuf_rules_account,
-    *textbuf_rules_char;
+              *textbuf_rules_char;
 
 /* These are used as offsets for num_text_views - we share the drawing code in
  * info.c if more textviews are added, note that NUM_TEXT_VIEWS in info.c
@@ -145,7 +135,8 @@ void hide_all_login_windows(void)
  * @param window    Pointer to an account window that received a delete_event.
  * @param user_data Unused.
  */
-gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data) {
+gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data)
+{
     return TRUE;
 }
 
@@ -157,7 +148,7 @@ gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data) {
  * Pop up a dialog window with the error from the server.
  * Since both v1 and v2 character creation are supported,
  * either the new_character_window or the create_character_window
- * may be up, so we can not easily display an in window message - 
+ * may be up, so we can not easily display an in window message -
  * a pop up is probably better, but it will also work no matter
  * what window is up.
  *
@@ -248,7 +239,7 @@ static void init_new_character_window(void)
     GladeXML *xml_tree;
 
     new_character_window =
-         glade_xml_get_widget(dialog_xml, "new_character_window");
+        glade_xml_get_widget(dialog_xml, "new_character_window");
 
     gtk_window_set_transient_for(
         GTK_WINDOW(new_character_window), GTK_WINDOW(window_root));
@@ -291,7 +282,7 @@ static void add_character_to_account(const char *name, const char *password, int
 
     if (!name || !password || *name == 0 || *password == 0) {
         gtk_label_set_text(GTK_LABEL(label_add_status),
-                      "You must enter both a name and password!");
+                           "You must enter both a name and password!");
     } else {
         gtk_label_set_text(GTK_LABEL(label_add_status), "");
 
@@ -326,8 +317,9 @@ void account_add_character_failure(char *message)
     cp = strchr(message,' ');
     if (cp) {
         cp++;
-    } else
+    } else {
         cp=message;
+    }
 
     if (!retry) {
         gtk_label_set_text(GTK_LABEL(label_add_status), cp);
@@ -372,7 +364,7 @@ on_button_do_add_character_clicked(GtkButton *button, gpointer user_data)
 {
     add_character_to_account(
         gtk_entry_get_text(GTK_ENTRY(entry_character_name)),
-            gtk_entry_get_text(GTK_ENTRY(entry_character_password)), 0);
+        gtk_entry_get_text(GTK_ENTRY(entry_character_password)), 0);
 }
 
 /**
@@ -397,7 +389,8 @@ on_button_return_character_select_clicked(GtkButton *button, gpointer user_data)
  * @param entry     Entry widget which generated this callback.
  * @param user_data
  */
-void on_entry_character(GtkEntry *entry, gpointer user_data) {
+void on_entry_character(GtkEntry *entry, gpointer user_data)
+{
     const char *name, *password;
 
     name =  gtk_entry_get_text(GTK_ENTRY(entry_character_name));
@@ -410,25 +403,29 @@ void on_entry_character(GtkEntry *entry, gpointer user_data) {
 
         /* First case - this widget is empty - do nothing */
         cp = gtk_entry_get_text(entry);
-        if (!cp || !cp[0]) return;
+        if (!cp || !cp[0]) {
+            return;
+        }
 
         /* In this case, this widget is not empty - means the other one is.
          */
-        if (entry == GTK_ENTRY(entry_character_name))
+        if (entry == GTK_ENTRY(entry_character_name)) {
             gtk_widget_grab_focus(entry_character_password);
-        else
+        } else {
             gtk_widget_grab_focus(entry_character_name);
+        }
     }
 }
 
 /**
  *
  */
-static void init_add_character_window(void) {
+static void init_add_character_window(void)
+{
     GladeXML *xml_tree;
 
     add_character_window =
-         glade_xml_get_widget(dialog_xml, "add_character_window");
+        glade_xml_get_widget(dialog_xml, "add_character_window");
 
     gtk_window_set_transient_for(
         GTK_WINDOW(add_character_window), GTK_WINDOW(window_root));
@@ -622,25 +619,25 @@ void update_character_choose(const char *name, const char *class,
      */
     if (pixmaps[faceno] == pixmaps[0]) {
         gtk_list_store_set(character_store, &iter,
-                       CHAR_NAME, name,
-                       CHAR_CLASS, class,
-                       CHAR_RACE, race,
-                       CHAR_IMAGE, face,
-                       CHAR_PARTY, party,
-                       CHAR_MAP, map,
-                       CHAR_LEVEL, level,
-                       -1);
+                           CHAR_NAME, name,
+                           CHAR_CLASS, class,
+                           CHAR_RACE, race,
+                           CHAR_IMAGE, face,
+                           CHAR_PARTY, party,
+                           CHAR_MAP, map,
+                           CHAR_LEVEL, level,
+                           -1);
     } else {
         gtk_list_store_set(character_store, &iter,
-                       CHAR_ICON, pixmaps[faceno]->icon_image,
-                       CHAR_NAME, name,
-                       CHAR_CLASS, class,
-                       CHAR_RACE, race,
-                       CHAR_IMAGE, face,
-                       CHAR_PARTY, party,
-                       CHAR_MAP, map,
-                       CHAR_LEVEL, level,
-                       -1);
+                           CHAR_ICON, pixmaps[faceno]->icon_image,
+                           CHAR_NAME, name,
+                           CHAR_CLASS, class,
+                           CHAR_RACE, race,
+                           CHAR_IMAGE, face,
+                           CHAR_PARTY, party,
+                           CHAR_MAP, map,
+                           CHAR_LEVEL, level,
+                           -1);
     }
 }
 
@@ -655,9 +652,9 @@ void update_character_choose(const char *name, const char *class,
  * @param user_data Not set
  */
 void on_treeview_choose_character_activated(GtkTreeView       *treeview,
-                                            GtkTreePath       *path,
-                                            GtkTreeViewColumn *column,
-                                            gpointer          user_data)
+        GtkTreePath       *path,
+        GtkTreeViewColumn *column,
+        gpointer          user_data)
 {
     GtkTreeIter iter;
     GtkTreeModel    *model;
@@ -678,7 +675,8 @@ void on_treeview_choose_character_activated(GtkTreeView       *treeview,
 /**
  *
  */
-static void init_choose_char_window(void) {
+static void init_choose_char_window(void)
+{
 
     GladeXML *xml_tree;
     GtkTextIter end;
@@ -747,45 +745,45 @@ static void init_choose_char_window(void) {
 
     renderer = gtk_cell_renderer_pixbuf_new();
     column = gtk_tree_view_column_new_with_attributes("?", renderer,
-                                                      "pixbuf", CHAR_ICON,
-                                                      NULL);
+             "pixbuf", CHAR_ICON,
+             NULL);
 
     gtk_tree_view_column_set_min_width(column, image_size);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_choose_character), column);
 
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Character Name", renderer,
-                                                      "text", CHAR_NAME, NULL);
+             "text", CHAR_NAME, NULL);
     gtk_tree_view_column_set_sort_column_id(column, CHAR_NAME);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_choose_character), column);
 
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Class", renderer,
-                                                      "text", CHAR_CLASS, NULL);
+             "text", CHAR_CLASS, NULL);
     gtk_tree_view_column_set_sort_column_id(column, CHAR_CLASS);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_choose_character), column);
 
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Race", renderer,
-                                                      "text", CHAR_RACE, NULL);
+             "text", CHAR_RACE, NULL);
     gtk_tree_view_column_set_sort_column_id(column, CHAR_RACE);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_choose_character), column);
 
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Level", renderer,
-                                                      "text", CHAR_LEVEL, NULL);
+             "text", CHAR_LEVEL, NULL);
     gtk_tree_view_column_set_sort_column_id(column, CHAR_LEVEL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_choose_character), column);
 
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Party", renderer,
-                                                      "text", CHAR_PARTY, NULL);
+             "text", CHAR_PARTY, NULL);
     gtk_tree_view_column_set_sort_column_id(column, CHAR_PARTY);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_choose_character), column);
 
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Map", renderer,
-                                                      "text", CHAR_MAP, NULL);
+             "text", CHAR_MAP, NULL);
     gtk_tree_view_column_set_sort_column_id(column, CHAR_MAP);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_choose_character), column);
 }
@@ -823,7 +821,7 @@ static void do_account_create(const char *name, const char *p1, const char *p2)
 
     if (strcmp(p1, p2)) {
         gtk_label_set_text(GTK_LABEL(label_create_account_status),
-                      "The passwords you entered do not match!");
+                           "The passwords you entered do not match!");
         return;
     } else {
         gtk_label_set_text(GTK_LABEL(label_create_account_status), "");
@@ -858,7 +856,7 @@ on_button_new_create_account_clicked(GtkButton *button, gpointer user_data)
         do_account_create(name, password1, password2);
     } else {
         gtk_label_set_text(GTK_LABEL(label_create_account_status),
-                      "You must fill in all three entries!");
+                           "You must fill in all three entries!");
     }
 }
 
@@ -884,7 +882,8 @@ on_button_new_cancel_clicked(GtkButton *button, gpointer user_data)
  * @param user_data Not used.
  */
 void
-on_entry_new_account(GtkEntry *entry, gpointer user_data) {
+on_entry_new_account(GtkEntry *entry, gpointer user_data)
+{
 
     const char *password1, *password2, *name, *cp;
 
@@ -903,19 +902,22 @@ on_entry_new_account(GtkEntry *entry, gpointer user_data) {
          * move onward.
          */
         cp = gtk_entry_get_text(entry);
-        if (!cp || !cp[0]) return;
+        if (!cp || !cp[0]) {
+            return;
+        }
 
         /* I'm not sure if it would make more sense to advance to the first
          * NULL entry - but in that case, the pointer may hop in non intuitive
          * ways - in this case, the user may just need to hit return a few
          * times - MSW 2010/03/29
          */
-        if (entry == GTK_ENTRY(entry_new_account_name))
+        if (entry == GTK_ENTRY(entry_new_account_name)) {
             gtk_widget_grab_focus(entry_new_account_password);
-        else if (entry == GTK_ENTRY(entry_new_account_password))
+        } else if (entry == GTK_ENTRY(entry_new_account_password)) {
             gtk_widget_grab_focus(entry_new_confirm_password);
-        else if (entry == GTK_ENTRY(entry_new_confirm_password))
+        } else if (entry == GTK_ENTRY(entry_new_confirm_password)) {
             gtk_widget_grab_focus(entry_new_account_name);
+        }
     }
 }
 
@@ -1057,7 +1059,7 @@ static void do_account_login(const char *name, const char *password)
 
     if (!name || !password || *name == 0 || *password == 0) {
         gtk_label_set_text(GTK_LABEL(label_account_login_status),
-                      "You must enter both a name and password!");
+                           "You must enter both a name and password!");
     } else {
         gtk_label_set_text(GTK_LABEL(label_account_login_status), "");
 
@@ -1092,7 +1094,8 @@ on_button_login_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_entry_account_name_activate(GtkEntry *entry, gpointer user_data) {
+on_entry_account_name_activate(GtkEntry *entry, gpointer user_data)
+{
     const char *password;
 
     password = gtk_entry_get_text(GTK_ENTRY(entry_account_password));
@@ -1111,7 +1114,8 @@ on_entry_account_name_activate(GtkEntry *entry, gpointer user_data) {
  * @param user_data
  */
 void
-on_entry_account_password_activate(GtkEntry *entry, gpointer user_data) {
+on_entry_account_password_activate(GtkEntry *entry, gpointer user_data)
+{
     const char *name;
 
     name = gtk_entry_get_text(GTK_ENTRY(entry_account_name));
@@ -1226,7 +1230,7 @@ static void do_account_change(const char *old, const char *p1, const char *p2)
 
     if (strcmp(p1, p2)) {
         gtk_label_set_text(GTK_LABEL(label_account_password_status),
-                      "The passwords you entered do not match!");
+                           "The passwords you entered do not match!");
         return;
     } else {
         gtk_label_set_text(GTK_LABEL(label_account_password_status), "");
@@ -1264,8 +1268,8 @@ void
 on_button_account_password_confirm_clicked(GtkButton *button, gpointer user_data)
 {
     do_account_change(gtk_entry_get_text(GTK_ENTRY(entry_account_password_current)),
-        gtk_entry_get_text(GTK_ENTRY(entry_account_password_new)),
-        gtk_entry_get_text(GTK_ENTRY(entry_account_password_confirm)));
+                      gtk_entry_get_text(GTK_ENTRY(entry_account_password_new)),
+                      gtk_entry_get_text(GTK_ENTRY(entry_account_password_confirm)));
 }
 
 /**
@@ -1278,7 +1282,8 @@ on_button_account_password_confirm_clicked(GtkButton *button, gpointer user_data
  * @param user_data Not used.
  */
 void
-on_entry_account_password(GtkEntry *entry, gpointer user_data) {
+on_entry_account_password(GtkEntry *entry, gpointer user_data)
+{
 
     const char *old, *password1, *password2, *cp;
 
@@ -1297,18 +1302,22 @@ on_entry_account_password(GtkEntry *entry, gpointer user_data) {
          * move onward.
          */
         cp = gtk_entry_get_text(entry);
-        if (!cp || !cp[0]) return;
+        if (!cp || !cp[0]) {
+            return;
+        }
 
-        if (entry == GTK_ENTRY(entry_account_password_current))
+        if (entry == GTK_ENTRY(entry_account_password_current)) {
             gtk_widget_grab_focus(entry_account_password_new);
-        else if (entry == GTK_ENTRY(entry_account_password_new))
+        } else if (entry == GTK_ENTRY(entry_account_password_new)) {
             gtk_widget_grab_focus(entry_account_password_confirm);
-        else if (entry == GTK_ENTRY(entry_account_password_confirm))
+        } else if (entry == GTK_ENTRY(entry_account_password_confirm)) {
             gtk_widget_grab_focus(entry_account_password_current);
+        }
     }
 }
 
-void account_change_password_failure(char *message) {
+void account_change_password_failure(char *message)
+{
     gtk_label_set_text(GTK_LABEL(label_account_password_status), message);
 }
 
@@ -1370,7 +1379,9 @@ static void init_account_password_window(void)
  */
 void update_login_info(int type)
 {
-    if (!has_init) return;
+    if (!has_init) {
+        return;
+    }
 
     /* In all cases, we clear the buffer, and if we have data, then set it to
      * that data.  This routine could be smarter an
@@ -1404,7 +1415,9 @@ void update_login_info(int type)
                      * get rid of that leading space.
                      */
                     cp1 = cp+1;
-                    while (isspace(*cp1)) cp1++;
+                    while (isspace(*cp1)) {
+                        cp1++;
+                    }
 
                     /* since we've null out the newline, this snprintf will
                      * only get the % line and that is it.  Mark it up
@@ -1412,8 +1425,9 @@ void update_login_info(int type)
                     snprintf(big_buf, BIG_BUF, "[b]%s[/b]", cp1);
                     add_marked_text_to_pane(&login_pane[TEXTVIEW_NEWS], big_buf, 0, 0, 0);
                     /* Now we draw the text that goes with it, if it exists */
-                    if (el)
+                    if (el) {
                         add_marked_text_to_pane(&login_pane[TEXTVIEW_NEWS], el, 0, 0, 0);
+                    }
 
                     /* Now we wipe the % out.  In this way, the news buffer is
                      * shorter, so when it draws the ext, there will just be
@@ -1425,16 +1439,16 @@ void update_login_info(int type)
             /* If there are remnants left over, or perhaps the news file isn't
              * formatted with % headers, display what we have got.
              */
-            if (*mynews != 0)
+            if (*mynews != 0) {
                 add_marked_text_to_pane(&login_pane[TEXTVIEW_NEWS], mynews, 0, 0, 0);
+            }
         }
-    }
-    else if (type == INFO_MOTD) {
+    } else if (type == INFO_MOTD) {
         gtk_text_buffer_set_text(textbuf_motd, "", 0);
-        if (motd)
+        if (motd) {
             add_marked_text_to_pane(&login_pane[TEXTVIEW_MOTD], motd, 0, 0, 0);
-    }
-    else if (type == INFO_RULES) {
+        }
+    } else if (type == INFO_RULES) {
         gtk_text_buffer_set_text(textbuf_rules_account, "", 0);
         gtk_text_buffer_set_text(textbuf_rules_char, "", 0);
 

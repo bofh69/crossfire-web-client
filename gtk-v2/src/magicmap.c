@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_magicmap_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/magicmap.c
@@ -56,7 +45,9 @@ void draw_magic_map(void)
      * This can happen if a person selects the magic map pane before actually
      * getting any magic map data
      */
-    if (!cpl.magicmap) return;
+    if (!cpl.magicmap) {
+        return;
+    }
 
     /*
      * Have to set this so that the gtk_widget_show below actually creates the
@@ -66,22 +57,24 @@ void draw_magic_map(void)
 
     gtk_widget_show(magic_map);
 
-    if (!magic_map_gc) magic_map_gc = gdk_gc_new (magic_map->window);
+    if (!magic_map_gc) {
+        magic_map_gc = gdk_gc_new (magic_map->window);
+    }
 
     gdk_gc_set_foreground (magic_map_gc, &root_color[0]);
     gdk_draw_rectangle (magic_map->window, magic_map_gc,
-                       TRUE,
-                       0,
-                       0,
-                       magic_map->allocation.width,
-                       magic_map->allocation.height);
+                        TRUE,
+                        0,
+                        0,
+                        magic_map->allocation.width,
+                        magic_map->allocation.height);
 
     cpl.mapxres = magic_map->allocation.width/cpl.mmapx;
     cpl.mapyres = magic_map->allocation.height/cpl.mmapy;
 
     if (cpl.mapxres < 1 || cpl.mapyres<1) {
         LOG(LOG_WARNING,"gtk-v2::draw_magic_map","magic map resolution less than 1, map is %dx%d",
-              cpl.mmapx, cpl.mmapy);
+            cpl.mmapx, cpl.mmapy);
         return;
     }
 
@@ -90,8 +83,11 @@ void draw_magic_map(void)
      * However, it probably makes sense to keep them the same value.  Need to
      * take the smaller value.
      */
-    if (cpl.mapxres>cpl.mapyres) cpl.mapxres=cpl.mapyres;
-    else cpl.mapyres=cpl.mapxres;
+    if (cpl.mapxres>cpl.mapyres) {
+        cpl.mapxres=cpl.mapyres;
+    } else {
+        cpl.mapyres=cpl.mapxres;
+    }
 
     /*
      * This is keeping the same unpacking scheme that the server uses to pack
@@ -127,7 +123,9 @@ void magic_map_flash_pos(void)
         cpl.showmagic=0;
     }
 
-    if (!cpl.showmagic) return;
+    if (!cpl.showmagic) {
+        return;
+    }
 
     cpl.showmagic ^=2;
     if (cpl.showmagic & 2) {
@@ -136,11 +134,11 @@ void magic_map_flash_pos(void)
         gdk_gc_set_foreground (magic_map_gc, &root_color[1]);
     }
     gdk_draw_rectangle (magic_map->window, magic_map_gc,
-                      TRUE,
-                      cpl.mapxres*cpl.pmapx,
-                      cpl.mapyres*cpl.pmapy,
-                      cpl.mapxres,
-                      cpl.mapyres);
+                        TRUE,
+                        cpl.mapxres*cpl.pmapx,
+                        cpl.mapyres*cpl.pmapy,
+                        cpl.mapxres,
+                        cpl.mapyres);
 }
 
 /**

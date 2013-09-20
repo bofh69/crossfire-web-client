@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_info_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005-2011 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/info.c
@@ -146,27 +135,26 @@ GtkWidget *msgctrl_table;               /**< The message control table
   * fields are provided to track the time a message is in the buffer, and how
   * many times it occured during the time it is buffered.
   */
-struct info_buffer_t
-{
-  int  age;                             /**< The length of time a message
+struct info_buffer_t {
+    int  age;                             /**< The length of time a message
                                          *   spends in the buffer, measured in
                                          *   client ticks.
                                          */
-  int  count;                           /**< The number of times a buffered
+    int  count;                           /**< The number of times a buffered
                                          *   message is detected while it is
                                          *   buffered.  A count of -1
                                          *   indicates the buffer is empty.
                                          */
-  int  orig_color;                      /**< Message data:  The suggested
+    int  orig_color;                      /**< Message data:  The suggested
                                          *   color to display the text in.
                                          */
-  int  type;                            /**< Message data:  Classification
+    int  type;                            /**< Message data:  Classification
                                          *   of the buffered message.
                                          */
-  int  subtype;                         /**< Message data:  Sub-class of
+    int  subtype;                         /**< Message data:  Sub-class of
                                          *   the buffered message.
                                          */
-  char message[MESSAGE_BUFFER_SIZE];    /**< Message data:  Message text.
+    char message[MESSAGE_BUFFER_SIZE];    /**< Message data:  Message text.
                                          */
 } info_buffer[MESSAGE_BUFFER_COUNT];    /**< Several buffers that support
                                          *   suppression of duplicates even
@@ -178,13 +166,12 @@ struct info_buffer_t
  *  or time.  The structure holds a widget pointer, a state variable to track
  *  the widget value, and a default value.
  */
-typedef struct
-{
-  GtkWidget* ptr;                       /**< Spinbutton widget pointer.
+typedef struct {
+    GtkWidget* ptr;                       /**< Spinbutton widget pointer.
                                          */
-  guint state;                          /**< The state of the spinbutton.
+    guint state;                          /**< The state of the spinbutton.
                                          */
-  const guint default_state;            /**< The state of the spinbutton.
+    const guint default_state;            /**< The state of the spinbutton.
                                          */
 } buffer_parameter_t;
 
@@ -194,27 +181,24 @@ typedef struct
  *  track the parameter values, and the client built-in defaults.  Only the
  *  final initializer for output_count and output_time is used as a default.
  */
-struct buffer_control_t
-{
-  buffer_parameter_t count;             /**< Output count control & default */
-  buffer_parameter_t timer;             /**< Output time control & default  */
-} buffer_control =
-  {
+struct buffer_control_t {
+    buffer_parameter_t count;             /**< Output count control & default */
+    buffer_parameter_t timer;             /**< Output time control & default  */
+} buffer_control = {
     /*
      * { uninitialized_pointer, uninitialized_state, default_value     },
      */
-       { NULL,                  0,                   MESSAGE_COUNT_MAX },
-       { NULL,                  0,                   MESSAGE_AGE_MAX   }
-                                                                          };
+    { NULL,                  0,                   MESSAGE_COUNT_MAX },
+    { NULL,                  0,                   MESSAGE_AGE_MAX   }
+};
 /** @struct boolean_widget_t
  *  @brief A container that holds the pointer and state of a checkbox control.
  *  Each Message Control dialog checkbox is tracked in one of these structs.
  */
-typedef struct
-{
-  GtkWidget* ptr;                       /**< Checkbox widget pointer.
+typedef struct {
+    GtkWidget* ptr;                       /**< Checkbox widget pointer.
                                          */
-  gboolean state;                       /**< The state of the checkbox.
+    gboolean state;                       /**< The state of the checkbox.
                                          */
 } boolean_widget_t;
 
@@ -222,19 +206,18 @@ typedef struct
  *  @brief A container for all of the checkboxes associated with a single
  *  message type.
  */
-typedef struct
-{
-  boolean_widget_t buffer;              /**< Checkbox widget and state for a
+typedef struct {
+    boolean_widget_t buffer;              /**< Checkbox widget and state for a
                                          *   single message type.
                                          */
-  boolean_widget_t pane[NUM_TEXT_VIEWS];/**< Checkbox widgets and state for
+    boolean_widget_t pane[NUM_TEXT_VIEWS];/**< Checkbox widgets and state for
                                          *   each client-supported message
                                          *   panel.
                                          */
 } message_control_t;
 
 message_control_t
-    msgctrl_widgets[MSG_TYPE_LAST-1];   /**< All of the checkbox widgets for
+msgctrl_widgets[MSG_TYPE_LAST-1];   /**< All of the checkbox widgets for
                                          *   the entire message control
                                          *   dialog.
                                          */
@@ -249,22 +232,21 @@ message_control_t
  *  The hard-coding of the descriptive name for the message type here is not
  *  ideal as it would be nicer to have it alongside the MSG_TYPE_*  defines.
  */
-struct msgctrl_data_t
-{
-  const char * description;             /**< A descriptive name to give to
+struct msgctrl_data_t {
+    const char * description;             /**< A descriptive name to give to
                                          *   a message type when displaying it
                                          *   for a player.  These values
                                          *   should be kept in sync with the
                                          *   MSG_TYPE_* declarations in
                                          *   ../../common/shared/newclient.h
                                          */
-  const gboolean buffer;                /**< Whether or not to consider the
+    const gboolean buffer;                /**< Whether or not to consider the
                                          *   message type for output-count
                                          *   buffering.  0/1 == disable/enable
                                          *   duplicate suppression
                                          *   (output-count).
                                          */
-  const gboolean pane[NUM_TEXT_VIEWS];  /**< The routing instructions for a
+    const gboolean pane[NUM_TEXT_VIEWS];  /**< The routing instructions for a
                                          *   single message type.  For each
                                          *   pane, 0/1 == disable/enable
                                          *   display of the message type in
@@ -277,31 +259,31 @@ struct msgctrl_data_t
                                          *   output count.
                                          */
 
-  {
+{
     /*
      * { "description",                    buffer, {  pane[0], pane[1] } },
      */
-       { "Books",                           FALSE, {     TRUE,   FALSE } },
-       { "Cards",                           FALSE, {     TRUE,   FALSE } },
-       { "Paper",                           FALSE, {     TRUE,   FALSE } },
-       { "Signs & Magic Mouths",            FALSE, {     TRUE,   FALSE } },
-       { "Monuments",                       FALSE, {     TRUE,   FALSE } },
-       { "Dialogs (Altar/NPC/Magic Ear)"  , FALSE, {     TRUE,   FALSE } },
-       { "Message of the day",              FALSE, {     TRUE,   FALSE } },
-       { "Administrative",                  FALSE, {     TRUE,   FALSE } },
-       { "Shops",                            TRUE, {     TRUE,   FALSE } },
-       { "Command responses",               FALSE, {     TRUE,   FALSE } },
-       { "Changes to attributes",            TRUE, {     TRUE,    TRUE } },
-       { "Skill-related messages",           TRUE, {     TRUE,   FALSE } },
-       { "Apply results",                    TRUE, {     TRUE,   FALSE } },
-       { "Attack results",                   TRUE, {     TRUE,   FALSE } },
-       { "Player communication",            FALSE, {     TRUE,    TRUE } },
-       { "Spell results",                    TRUE, {     TRUE,   FALSE } },
-       { "Item information",                 TRUE, {     TRUE,   FALSE } },
-       { "Miscellaneous",                    TRUE, {     TRUE,   FALSE } },
-       { "Victim notification",             FALSE, {     TRUE,    TRUE } },
-       { "Client-generated messages",       FALSE, {     TRUE,   FALSE } }
-                                                                            };
+    { "Books",                           FALSE, {     TRUE,   FALSE } },
+    { "Cards",                           FALSE, {     TRUE,   FALSE } },
+    { "Paper",                           FALSE, {     TRUE,   FALSE } },
+    { "Signs & Magic Mouths",            FALSE, {     TRUE,   FALSE } },
+    { "Monuments",                       FALSE, {     TRUE,   FALSE } },
+    { "Dialogs (Altar/NPC/Magic Ear)"  , FALSE, {     TRUE,   FALSE } },
+    { "Message of the day",              FALSE, {     TRUE,   FALSE } },
+    { "Administrative",                  FALSE, {     TRUE,   FALSE } },
+    { "Shops",                            TRUE, {     TRUE,   FALSE } },
+    { "Command responses",               FALSE, {     TRUE,   FALSE } },
+    { "Changes to attributes",            TRUE, {     TRUE,    TRUE } },
+    { "Skill-related messages",           TRUE, {     TRUE,   FALSE } },
+    { "Apply results",                    TRUE, {     TRUE,   FALSE } },
+    { "Attack results",                   TRUE, {     TRUE,   FALSE } },
+    { "Player communication",            FALSE, {     TRUE,    TRUE } },
+    { "Spell results",                    TRUE, {     TRUE,   FALSE } },
+    { "Item information",                 TRUE, {     TRUE,   FALSE } },
+    { "Miscellaneous",                    TRUE, {     TRUE,   FALSE } },
+    { "Victim notification",             FALSE, {     TRUE,    TRUE } },
+    { "Client-generated messages",       FALSE, {     TRUE,   FALSE } }
+};
 /**
  * @} EndOf GTK V2 Message Control System.
  */
@@ -327,21 +309,26 @@ void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_st
     g_object_set(tag, "font-desc", NULL, NULL);
 
     if (memcmp(
-        &style->fg[GTK_STATE_NORMAL],
-        &base_style->fg[GTK_STATE_NORMAL],
-        sizeof(GdkColor)))
+                &style->fg[GTK_STATE_NORMAL],
+                &base_style->fg[GTK_STATE_NORMAL],
+                sizeof(GdkColor)))
 
+    {
         g_object_set(tag, "foreground-gdk", &style->fg[GTK_STATE_NORMAL], NULL);
+    }
 
     if (memcmp(
-        &style->bg[GTK_STATE_NORMAL],
-        &base_style->bg[GTK_STATE_NORMAL],
-        sizeof(GdkColor)))
+                &style->bg[GTK_STATE_NORMAL],
+                &base_style->bg[GTK_STATE_NORMAL],
+                sizeof(GdkColor)))
 
+    {
         g_object_set(tag, "background-gdk", &style->bg[GTK_STATE_NORMAL], NULL);
+    }
 
-    if (style->font_desc != base_style->font_desc)
+    if (style->font_desc != base_style->font_desc) {
         g_object_set(tag, "font-desc", style->font_desc, NULL);
+    }
 }
 
 /**
@@ -357,17 +344,21 @@ void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf)
 {
     int i;
 
-    if (textbuf) pane->textbuffer = textbuf;
+    if (textbuf) {
+        pane->textbuffer = textbuf;
+    }
 
     for (i = 0; i < MSG_TYPE_LAST; i++)
         pane->msg_type_tags[i] =
             calloc(max_subtype + 1, sizeof(GtkTextTag*));
 
-    for (i = 0; i < NUM_FONTS; i++)
+    for (i = 0; i < NUM_FONTS; i++) {
         pane->font_tags[i] = NULL;
+    }
 
-    for (i = 0; i < NUM_COLORS; i++)
+    for (i = 0; i < NUM_COLORS; i++) {
         pane->color_tags[i] = NULL;
+    }
     /*
      * These tag definitions never change - we don't get them from the
      * settings file (maybe we should), so we only need to allocate them once.
@@ -403,7 +394,7 @@ void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf)
  * @param pane       Message panel number to update.
  * @param base_style Base style if retrieved - may be null.
  */
-void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style) 
+void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
 {
     int i;
     char    style_name[MAX_BUF];
@@ -443,7 +434,7 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
             tmp_style =
                 gtk_rc_get_style_by_paths(
                     gtk_settings_get_default(),
-                        NULL, font_style_names[i], G_TYPE_NONE);
+                    NULL, font_style_names[i], G_TYPE_NONE);
 
             if (tmp_style) {
                 if (!pane->font_tags[i]) {
@@ -457,7 +448,7 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
                 if (pane->font_tags[i]) {
                     gtk_text_tag_table_remove(
                         gtk_text_buffer_get_tag_table(pane->textbuffer),
-                            pane->font_tags[i]);
+                        pane->font_tags[i]);
                     pane->font_tags[i] = NULL;
                 }
             }
@@ -513,8 +504,9 @@ void info_get_styles(void)
          * really be at all significant.
          */
         for (i = 0; i < sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
-            if (msg_type_names[i].subtype > max_subtype)
+            if (msg_type_names[i].subtype > max_subtype) {
                 max_subtype = msg_type_names[i].subtype;
+            }
         }
         for (j = 0; j < NUM_TEXT_VIEWS; j++) {
             add_tags_to_textbuffer(&info_pane[j], NULL);
@@ -551,7 +543,7 @@ void info_get_styles(void)
             int type, subtype;
 
             snprintf(style_name, sizeof(style_name),
-                "msg_%s", msg_type_names[i].style_name);
+                     "msg_%s", msg_type_names[i].style_name);
             type =  msg_type_names[i].type;
             subtype = msg_type_names[i].subtype;
 
@@ -665,8 +657,9 @@ void info_init(GtkWidget *window_root)
     info_buffer_init();
 
     /* Register callbacks for all message types */
-    for (i = 0; i < MSG_TYPE_LAST; i++)
+    for (i = 0; i < MSG_TYPE_LAST; i++) {
         setTextManager(i, message_callback);
+    }
 }
 
 /**
@@ -708,14 +701,17 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
      */
     if (color) {
         for (color_num = 0; color_num < NUM_COLORS; color_num++)
-            if (!strcasecmp(usercolorname[color_num], color))
+            if (!strcasecmp(usercolorname[color_num], color)) {
                 break;
-        if (color_num < NUM_COLORS)
+            }
+        if (color_num < NUM_COLORS) {
             color_tag = pane->color_tags[color_num];
+        }
     }
 
-    if (!color_tag)
+    if (!color_tag) {
         color_tag = pane->default_tag;
+    }
 
     /*
      * Following block of code deals with the type/subtype.  First, we check
@@ -733,19 +729,19 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
      */
     if (type == MSG_TYPE_CLIENT && !max_subtype) {
         subtype=0;
-    }
-    else if (type >= MSG_TYPE_LAST
-    || subtype >= max_subtype
-    || type < 0 || subtype < 0 ) {
+    } else if (type >= MSG_TYPE_LAST
+               || subtype >= max_subtype
+               || type < 0 || subtype < 0 ) {
         LOG(LOG_ERROR, "info.c::add_to_textbuf",
             "type (%d) >= MSG_TYPE_LAST (%d) or "
-                "subtype (%d) >= max_subtype (%d)\n",
-                    type, MSG_TYPE_LAST, subtype, max_subtype);
+            "subtype (%d) >= max_subtype (%d)\n",
+            type, MSG_TYPE_LAST, subtype, max_subtype);
     } else {
-        if (pane->msg_type_tags[type][subtype])
+        if (pane->msg_type_tags[type][subtype]) {
             type_tag = pane->msg_type_tags[type][subtype];
-        else if (pane->msg_type_tags[type][0])
+        } else if (pane->msg_type_tags[type][0]) {
             type_tag = pane->msg_type_tags[type][0];
+        }
     }
 
     gtk_text_view_get_visible_rect(
@@ -756,8 +752,9 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
      * so check here on what to do.
      */
     if (pane->adjustment &&
-        (pane->adjustment->value + rect.height) >= pane->adjustment->upper)
-            scroll_to_end = 1;
+            (pane->adjustment->value + rect.height) >= pane->adjustment->upper) {
+        scroll_to_end = 1;
+    }
 
     gtk_text_buffer_get_end_iter(pane->textbuffer, &end);
 
@@ -767,7 +764,7 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
         italic ? pane->italic_tag : pane->default_tag,
         underline ? pane->underline_tag : pane->default_tag,
         pane->font_tags[font] ?
-            pane->font_tags[font] : pane->default_tag,
+        pane->font_tags[font] : pane->default_tag,
         color_tag, type_tag, NULL);
 
     if (scroll_to_end)
@@ -814,7 +811,7 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
         if (orig_color <0 || orig_color>NUM_COLORS) {
             LOG(LOG_ERROR, "info.c::draw_ext_info",
                 "Passed invalid color from server: %d, max allowed is %d\n",
-                    orig_color, NUM_COLORS);
+                orig_color, NUM_COLORS);
             orig_color = 0;
         } else {
             /*
@@ -840,20 +837,33 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
         }
 
         *marker = 0;
-        if (!strcmp(current, "b"))               bold = TRUE;
-        else if (!strcmp(current,  "/b"))        bold = FALSE;
-        else if (!strcmp(current,  "i"))         italic = TRUE;
-        else if (!strcmp(current,  "/i"))        italic = FALSE;
-        else if (!strcmp(current,  "ul"))        underline = TRUE;
-        else if (!strcmp(current,  "/ul"))       underline = FALSE;
-        else if (!strcmp(current,  "fixed"))     font = FONT_FIXED;
-        else if (!strcmp(current,  "arcane"))    font = FONT_ARCANE;
-        else if (!strcmp(current,  "hand"))      font = FONT_HAND;
-        else if (!strcmp(current,  "strange"))   font = FONT_STRANGE;
-        else if (!strcmp(current,  "print"))     font = FONT_NORMAL;
-        else if (!strcmp(current,  "/color"))    color = NULL;
-        else if (!strncmp(current, "color=", 6)) color = current + 6;
-        else
+        if (!strcmp(current, "b")) {
+            bold = TRUE;
+        } else if (!strcmp(current,  "/b")) {
+            bold = FALSE;
+        } else if (!strcmp(current,  "i")) {
+            italic = TRUE;
+        } else if (!strcmp(current,  "/i")) {
+            italic = FALSE;
+        } else if (!strcmp(current,  "ul")) {
+            underline = TRUE;
+        } else if (!strcmp(current,  "/ul")) {
+            underline = FALSE;
+        } else if (!strcmp(current,  "fixed")) {
+            font = FONT_FIXED;
+        } else if (!strcmp(current,  "arcane")) {
+            font = FONT_ARCANE;
+        } else if (!strcmp(current,  "hand")) {
+            font = FONT_HAND;
+        } else if (!strcmp(current,  "strange")) {
+            font = FONT_STRANGE;
+        } else if (!strcmp(current,  "print")) {
+            font = FONT_NORMAL;
+        } else if (!strcmp(current,  "/color")) {
+            color = NULL;
+        } else if (!strncmp(current, "color=", 6)) {
+            color = current + 6;
+        } else
             LOG(LOG_INFO, "info.c::message_callback",
                 "unrecognized tag: [%s]\n", current);
 
@@ -861,12 +871,12 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
     }
 
     add_to_textbuf(
-                   pane, current, type, subtype,
-                   bold, italic, font, color, underline);
+        pane, current, type, subtype,
+        bold, italic, font, color, underline);
 
     add_to_textbuf(
-                   pane, "\n", type, subtype,
-                   bold, italic, font, color, underline);
+        pane, "\n", type, subtype,
+        bold, italic, font, color, underline);
 
     free(original);
 
@@ -891,7 +901,8 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
  * @param subtype    Message subtype. See MSG_TYPE_*_* values in newclient.h.
  * @param message    The message text to display.
  */
-void draw_ext_info(int orig_color, int type, int subtype, const char *message) {
+void draw_ext_info(int orig_color, int type, int subtype, const char *message)
+{
     int type_err=0;   /**< When 0, the type is valid and may be used to pick
                        *   the panel routing, otherwise the message can only
                        *   go to the main message pane.
@@ -944,14 +955,16 @@ void draw_ext_info(int orig_color, int type, int subtype, const char *message) {
                 break;
             }
         } else {
-            if (msgctrl_widgets[type - 1].pane[pane].state == FALSE)
+            if (msgctrl_widgets[type - 1].pane[pane].state == FALSE) {
                 continue;
+            }
         }
         add_marked_text_to_pane(&info_pane[pane], draw, type, subtype, orig_color);
     }
 
-    if (want_config[CONFIG_TIMESTAMP])
+    if (want_config[CONFIG_TIMESTAMP]) {
         free(stamp);
+    }
 }
 
 /**
@@ -966,7 +979,8 @@ void draw_ext_info(int orig_color, int type, int subtype, const char *message) {
  * count, and message should be initialized.  Type, subtype, and orig_color
  * are also set just for an extra measure of safety.
  */
-void info_buffer_init(void) {
+void info_buffer_init(void)
+{
     int loop;
 
     for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
@@ -992,7 +1006,8 @@ void info_buffer_init(void) {
  *
  * @param id The message control buffer to flush (0 - MESSAGE_BUFFER_COUNT).
  */
-void info_buffer_flush(const int id) {
+void info_buffer_flush(const int id)
+{
     char output_buffer[MESSAGE_BUFFER_SIZE  /* Buffer for output big enough */
                        +COUNT_BUFFER_SIZE]; /* to hold both count and text. */
     /*
@@ -1007,7 +1022,7 @@ void info_buffer_flush(const int id) {
          */
         if (info_buffer[id].count > 1) {
             snprintf(output_buffer, sizeof(output_buffer), "%u times %s",
-                info_buffer[id].count, info_buffer[id].message);
+                     info_buffer[id].count, info_buffer[id].message);
             /*
              * Output the message count and message text.
              */
@@ -1040,13 +1055,14 @@ void info_buffer_flush(const int id) {
  * aged so that the oldest empty buffer is used first when a new message
  * comes in.
  */
-void info_buffer_tick(void) {
+void info_buffer_tick(void)
+{
     int loop;
 
     for (loop = 0; loop < MESSAGE_BUFFER_COUNT; loop += 1) {
         if (info_buffer[loop].count > -1) {
             if ((info_buffer[loop].age < (int) buffer_control.timer.state)
-            &&  (info_buffer[loop].count < (int) buffer_control.count.state)) {
+                    &&  (info_buffer[loop].count < (int) buffer_control.count.state)) {
                 /*
                  * The buffer has data in it, and has not reached maximum age,
                  * so bump the age up a notch.
@@ -1097,7 +1113,8 @@ void info_buffer_tick(void) {
  * @param message    The message text to display.
  */
 static void
-message_callback(int orig_color, int type, int subtype, char *message) {
+message_callback(int orig_color, int type, int subtype, char *message)
+{
     int search;                         /* Loop for searching the buffers.  */
     int found;                          /* Which buffer a message is in.    */
     int empty;                          /* The ID of an empty buffer.       */
@@ -1123,10 +1140,10 @@ message_callback(int orig_color, int type, int subtype, char *message) {
      * only 39 chars can be put into it to ensure room for a null character.
      */
     if ((type <  1)
-    ||  (type >= MSG_TYPE_LAST)
-    ||  (orig_color == NDI_UNIQUE)
-    ||  (msgctrl_widgets[type - 1].buffer.state == FALSE)
-    ||  (strlen(message) >= MESSAGE_BUFFER_SIZE)) {
+            ||  (type >= MSG_TYPE_LAST)
+            ||  (orig_color == NDI_UNIQUE)
+            ||  (msgctrl_widgets[type - 1].buffer.state == FALSE)
+            ||  (strlen(message) >= MESSAGE_BUFFER_SIZE)) {
         /*
          * If the message buffering feature is off, simply pass the message on
          * to the parser that will determine the panel routing and style.
@@ -1184,11 +1201,11 @@ message_callback(int orig_color, int type, int subtype, char *message) {
             }
         }
 
-        #if 0
-            LOG(LOG_DEBUG, "info.c::message_callback", "\n           "
-                "type: %d-%d empty: %d found: %d oldest: %d oldest_age: %d",
-                    type, subtype, empty, found, oldest, oldest_age);
-        #endif
+#if 0
+        LOG(LOG_DEBUG, "info.c::message_callback", "\n           "
+            "type: %d-%d empty: %d found: %d oldest: %d oldest_age: %d",
+            type, subtype, empty, found, oldest, oldest_age);
+#endif
 
         /*
          * If the incoming message is already buffered, then increment the
@@ -1242,9 +1259,9 @@ message_callback(int orig_color, int type, int subtype, char *message) {
              * the buffer system.
              */
             if (empty > -1) {
-               /*
-                * Copy the incoming message to the empty buffer.
-                */
+                /*
+                 * Copy the incoming message to the empty buffer.
+                 */
                 info_buffer[empty].age = 0;
                 info_buffer[empty].count = 0;
                 info_buffer[empty].orig_color = orig_color;
@@ -1264,7 +1281,8 @@ message_callback(int orig_color, int type, int subtype, char *message) {
  * Clears all the message panels.  It is not clear why someone would use it,
  * but is called from the common area, and so is supported here.
  */
-void menu_clear(void) {
+void menu_clear(void)
+{
     int i;
 
     for (i=0; i < NUM_TEXT_VIEWS; i++) {
@@ -1346,7 +1364,7 @@ void msgctrl_init(GtkWidget *window_root)
     xml_tree = glade_get_widget_tree(GTK_WIDGET(msgctrl_window));
 
     g_signal_connect((gpointer) msgctrl_window, "delete_event",
-        G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+                     G_CALLBACK(gtk_widget_hide_on_delete), NULL);
     /*
      * Initialize the spinbutton pointers.
      */
@@ -1392,7 +1410,7 @@ void msgctrl_init(GtkWidget *window_root)
      * actual number of header rows, they balance out when added together.
      */
     gtk_table_resize(table,
-        (guint)(MSG_TYPE_LAST + title_rows), (guint)(1 + 1 + NUM_TEXT_VIEWS));
+                     (guint)(MSG_TYPE_LAST + title_rows), (guint)(1 + 1 + NUM_TEXT_VIEWS));
     /*
      * Now we need to put labels and checkboxes in each of the empty rows and
      * initialize the state of the checkboxes to match the default settings.
@@ -1435,7 +1453,7 @@ void msgctrl_init(GtkWidget *window_root)
             msgctrl_widgets[type].pane[pane].ptr = gtk_check_button_new();
             gtk_table_attach_defaults(
                 table, msgctrl_widgets[type].pane[pane].ptr,
-                    pane + 2, pane + 3, row, row + 1);
+                pane + 2, pane + 3, row, row + 1);
             gtk_widget_show(msgctrl_widgets[type].pane[pane].ptr);
         }
     }
@@ -1452,23 +1470,23 @@ void msgctrl_init(GtkWidget *window_root)
      */
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_save");
     g_signal_connect((gpointer) widget, "clicked",
-        G_CALLBACK(on_msgctrl_button_save_clicked), NULL);
+                     G_CALLBACK(on_msgctrl_button_save_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_load");
     g_signal_connect((gpointer) widget, "clicked",
-        G_CALLBACK(on_msgctrl_button_load_clicked), NULL);
+                     G_CALLBACK(on_msgctrl_button_load_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_defaults");
     g_signal_connect((gpointer) widget, "clicked",
-        G_CALLBACK(on_msgctrl_button_defaults_clicked), NULL);
+                     G_CALLBACK(on_msgctrl_button_defaults_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_apply");
     g_signal_connect((gpointer) widget, "clicked",
-        G_CALLBACK(on_msgctrl_button_apply_clicked), NULL);
+                     G_CALLBACK(on_msgctrl_button_apply_clicked), NULL);
 
     widget = glade_xml_get_widget(xml_tree, "msgctrl_button_close");
     g_signal_connect((gpointer) widget, "clicked",
-        G_CALLBACK(on_msgctrl_button_close_clicked), NULL);
+                     G_CALLBACK(on_msgctrl_button_close_clicked), NULL);
 }
 
 /**
@@ -1484,20 +1502,20 @@ void update_msgctrl_configuration(void)
 
     gtk_spin_button_set_value(
         GTK_SPIN_BUTTON(buffer_control.count.ptr),
-            (gdouble) buffer_control.count.state);
+        (gdouble) buffer_control.count.state);
 
     gtk_spin_button_set_value(
         GTK_SPIN_BUTTON(buffer_control.timer.ptr),
-            (gdouble) buffer_control.timer.state);
+        (gdouble) buffer_control.timer.state);
 
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
         gtk_toggle_button_set_active(
             GTK_TOGGLE_BUTTON(msgctrl_widgets[type].buffer.ptr),
-                msgctrl_widgets[type].buffer.state);
+            msgctrl_widgets[type].buffer.state);
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
             gtk_toggle_button_set_active(
                 GTK_TOGGLE_BUTTON(msgctrl_widgets[type].pane[pane].ptr),
-                    msgctrl_widgets[type].pane[pane].state);
+                msgctrl_widgets[type].pane[pane].state);
         }
     }
 }
@@ -1524,14 +1542,14 @@ void save_msgctrl_configuration(void)
         LOG(LOG_WARNING,
             "gtk-v2::save_msgctrl_configuration","Error creating %s",pathbuf);
         snprintf(textbuf, sizeof(textbuf),
-            "Error creating %s, Message Control settings not saved.",pathbuf);
+                 "Error creating %s, Message Control settings not saved.",pathbuf);
         draw_ext_info(
             NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
         return;
     }
     if ((fptr = fopen(pathbuf, "w")) == NULL) {
         snprintf(textbuf, sizeof(textbuf),
-            "Error opening %s, Message Control settings not saved.", pathbuf);
+                 "Error opening %s, Message Control settings not saved.", pathbuf);
         draw_ext_info(
             NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
         return;
@@ -1566,7 +1584,7 @@ void save_msgctrl_configuration(void)
     fclose(fptr);
 
     snprintf(textbuf, sizeof(textbuf),
-        "Message Control settings saved to %s.", pathbuf);
+             "Message Control settings saved to %s.", pathbuf);
     draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, textbuf);
 }
 
@@ -1594,7 +1612,7 @@ void load_msgctrl_configuration(void)
 
     if ((fptr = fopen(pathbuf, "r")) == NULL) {
         snprintf(textbuf, sizeof(textbuf),
-            "Error opening %s, Message Control settings not loaded.",pathbuf);
+                 "Error opening %s, Message Control settings not loaded.",pathbuf);
         draw_ext_info(
             NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
         return;
@@ -1625,7 +1643,7 @@ void load_msgctrl_configuration(void)
          */
         cptr = strtok(textbuf, "\t ");
         if ((cptr == NULL)
-        || ((*cptr != 'C') && (*cptr != 'T') && (*cptr != 'M'))) {
+                || ((*cptr != 'C') && (*cptr != 'T') && (*cptr != 'M'))) {
             error += 1;
             continue;
         }
@@ -1637,48 +1655,48 @@ void load_msgctrl_configuration(void)
         if (recordtype == 'C') {
             cptr = strtok(NULL, "\n");
             if ((cptr == NULL)
-            ||  (sscanf(cptr, "%u", &countbuf.state) != 1)
-            ||  (countbuf.state < 1)
-            ||  (countbuf.state > 96)) {
-                     error += 1;
-                     continue;
+                    ||  (sscanf(cptr, "%u", &countbuf.state) != 1)
+                    ||  (countbuf.state < 1)
+                    ||  (countbuf.state > 96)) {
+                error += 1;
+                continue;
             }
         }
         if (recordtype == 'T') {
             cptr = strtok(NULL, "\n");
             if ((cptr == NULL)
-            ||  (sscanf(cptr, "%u", &timerbuf.state) != 1)
-            ||  (timerbuf.state < 1)
-            ||  (timerbuf.state > 96)) {
-                     error += 1;
-                     continue;
+                    ||  (sscanf(cptr, "%u", &timerbuf.state) != 1)
+                    ||  (timerbuf.state < 1)
+                    ||  (timerbuf.state > 96)) {
+                error += 1;
+                continue;
             }
         }
         if (recordtype == 'M') {
             cptr = strtok(NULL, "\t ");
             if ((cptr == NULL)
-            ||  (sscanf(cptr, "%d", &type) != 1)
-            ||  (type < 1)
-            ||  (type >= MSG_TYPE_LAST)) {
-                     error += 1;
-                     continue;
+                    ||  (sscanf(cptr, "%d", &type) != 1)
+                    ||  (type < 1)
+                    ||  (type >= MSG_TYPE_LAST)) {
+                error += 1;
+                continue;
             }
             cptr = strtok(NULL, "\t ");
             if ((cptr == NULL)
-            ||  (sscanf(cptr, "%d", &statebuf.buffer.state) != 1)
-            ||  (statebuf.buffer.state < 0)
-            ||  (statebuf.buffer.state > 1)) {
-                     error += 1;
-                     continue;
+                    ||  (sscanf(cptr, "%d", &statebuf.buffer.state) != 1)
+                    ||  (statebuf.buffer.state < 0)
+                    ||  (statebuf.buffer.state > 1)) {
+                error += 1;
+                continue;
             }
             for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
                 cptr = strtok(NULL, "\t ");
                 if ((cptr == NULL)
-                ||  (sscanf(cptr, "%d", &statebuf.pane[pane].state) != 1)
-                ||  (statebuf.pane[pane].state < 0)
-                ||  (statebuf.pane[pane].state > 1)) {
-                     error += 1;
-                     continue;
+                        ||  (sscanf(cptr, "%d", &statebuf.pane[pane].state) != 1)
+                        ||  (statebuf.pane[pane].state < 0)
+                        ||  (statebuf.pane[pane].state > 1)) {
+                    error += 1;
+                    continue;
                 }
             }
             /*
@@ -1727,11 +1745,11 @@ void load_msgctrl_configuration(void)
      * timer, and each message type.
      */
     if ((error > 0)
-    ||  (cvalid != 1)
-    ||  (tvalid != 1)
-    ||  (mvalid != MSG_TYPE_LAST - 1)) {
+            ||  (cvalid != 1)
+            ||  (tvalid != 1)
+            ||  (mvalid != MSG_TYPE_LAST - 1)) {
         snprintf(textbuf, sizeof(textbuf),
-            "Corrupted Message Control settings in %s.", pathbuf);
+                 "Corrupted Message Control settings in %s.", pathbuf);
         draw_ext_info(
             NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
         LOG(LOG_ERROR, "gtk-v2::load_msgctrl_configuration",
@@ -1744,7 +1762,7 @@ void load_msgctrl_configuration(void)
      */
     if ((cvalid + tvalid + mvalid) > 0) {
         snprintf(textbuf, sizeof(textbuf),
-            "Message Control settings loaded from %s", pathbuf);
+                 "Message Control settings loaded from %s", pathbuf);
         draw_ext_info(
             NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, textbuf);
 
@@ -1822,7 +1840,7 @@ void read_msgctrl_configuration(void)
  */
 void
 on_msgctrl_button_save_clicked          (GtkButton       *button,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     read_msgctrl_configuration();
     save_msgctrl_configuration();
@@ -1838,7 +1856,7 @@ on_msgctrl_button_save_clicked          (GtkButton       *button,
  */
 void
 on_msgctrl_button_load_clicked          (GtkButton       *button,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     load_msgctrl_configuration();
 }
@@ -1852,7 +1870,7 @@ on_msgctrl_button_load_clicked          (GtkButton       *button,
  */
 void
 on_msgctrl_button_defaults_clicked      (GtkButton       *button,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     default_msgctrl_configuration();
 }
@@ -1867,7 +1885,7 @@ on_msgctrl_button_defaults_clicked      (GtkButton       *button,
  */
 void
 on_msgctrl_button_apply_clicked         (GtkButton       *button,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     read_msgctrl_configuration();
 }
@@ -1881,7 +1899,7 @@ on_msgctrl_button_apply_clicked         (GtkButton       *button,
  */
 void
 on_msgctrl_button_close_clicked         (GtkButton       *button,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     read_msgctrl_configuration();
     gtk_widget_hide(msgctrl_window);

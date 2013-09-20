@@ -1,26 +1,15 @@
-const char * const rcsid_gtk2_image_c =
-    "$Id$";
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005-2008,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/image.c
@@ -94,9 +83,9 @@ int have_new_image=0;
 
 #define MAX_ICON_SPACES     10
 static const int icon_rescale_factor[MAX_ICON_SPACES] = {
-100, 100,           80 /* 2 = 160 */,   60 /* 3 = 180 */,
-50 /* 4 = 200 */,   45 /* 5 = 225 */,   40 /* 6 = 240 */,
-35 /* 7 = 259 */,   35 /* 8 = 280 */,   33 /* 9 = 300 */
+    100, 100,           80 /* 2 = 160 */,   60 /* 3 = 180 */,
+    50 /* 4 = 200 */,   45 /* 5 = 225 */,   40 /* 6 = 240 */,
+    35 /* 7 = 259 */,   35 /* 8 = 280 */,   33 /* 9 = 300 */
 };
 
 /******************************************************************************
@@ -131,8 +120,9 @@ static void create_icon_image(uint8 *data, PixmapInfo *pi, int pixmap_num)
 {
     pi->icon_mask = NULL;
     if (rgba_to_gdkpixbuf(data, pi->icon_width, pi->icon_height,
-                (GdkPixbuf**)&pi->icon_image))
-                    LOG (LOG_ERROR,"gtk-v2::create_icon_image","Unable to create scaled image, dest num = %d\n", pixmap_num);
+                          (GdkPixbuf**)&pi->icon_image)) {
+        LOG (LOG_ERROR,"gtk-v2::create_icon_image","Unable to create scaled image, dest num = %d\n", pixmap_num);
+    }
 }
 
 /**
@@ -155,12 +145,12 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
         pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
-                pi->map_height, 32, pi->map_width * 4,  0xff,
+                        pi->map_height, 32, pi->map_width * 4,  0xff,
                         0xff00, 0xff0000, 0xff000000);
 
         fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE,
-                pi->map_width,  pi->map_height, 32, 0xff,
-                        0xff00, 0xff0000, 0xff000000);
+                                   pi->map_width,  pi->map_height, 32, 0xff,
+                                   0xff00, 0xff0000, 0xff000000);
         SDL_LockSurface(fog);
 
         for (i=0; i < pi->map_width * pi->map_height; i++) {
@@ -177,15 +167,15 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 
         SDL_UnlockSurface(fog);
         pi->fog_image = fog;
-    #else
+#else
         /* Big endian */
         pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
-                pi->map_height, 32, pi->map_width * 4,  0xff000000,
+                        pi->map_height, 32, pi->map_width * 4,  0xff000000,
                         0xff0000, 0xff00, 0xff);
 
         fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE,
-                pi->map_width,  pi->map_height, 32, 0xff000000,
-                        0xff0000, 0xff00, 0xff);
+                                   pi->map_width,  pi->map_height, 32, 0xff000000,
+                                   0xff0000, 0xff00, 0xff);
         SDL_LockSurface(fog);
 
         /*
@@ -221,20 +211,19 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 
         SDL_UnlockSurface(fog);
         pi->fog_image = fog;
-    #endif
+#endif
 
 #endif
-    }
-    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL){
+    } else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
 #ifdef HAVE_OPENGL
         create_opengl_map_image(data, pi);
 #endif
     }
 
-    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP){
+    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
         rgba_to_gdkpixmap(window_root->window, data, pi->map_width, pi->map_height,
-                (GdkPixmap**)&pi->map_image, (GdkBitmap**)&pi->map_mask,
-                gtk_widget_get_colormap(window_root));
+                          (GdkPixmap**)&pi->map_image, (GdkBitmap**)&pi->map_mask,
+                          gtk_widget_get_colormap(window_root));
     }
 }
 
@@ -245,36 +234,40 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
  */
 static void free_pixmap(PixmapInfo *pi)
 {
-    if (pi->icon_image) g_object_unref(pi->icon_image);
-    if (pi->icon_mask) g_object_unref(pi->icon_mask);
-    if (pi->map_mask) gdk_pixmap_unref(pi->map_mask);
-        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
+    if (pi->icon_image) {
+        g_object_unref(pi->icon_image);
+    }
+    if (pi->icon_mask) {
+        g_object_unref(pi->icon_mask);
+    }
+    if (pi->map_mask) {
+        gdk_pixmap_unref(pi->map_mask);
+    }
+    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 #ifdef HAVE_SDL
-            if (pi->map_image) {
-                SDL_FreeSurface(pi->map_image);
-                free(((SDL_Surface*)pi->map_image)->pixels);
-                SDL_FreeSurface(pi->fog_image);
-                /*
-                 * Minor memory leak here - SDL_FreeSurface() frees the pixel
-                 * data _unless_ SDL_CreateRGBSurfaceFrom() was used to create
-                 * the surface.  SDL_CreateRGBSurfaceFrom() is used to create
-                 * the map data, which is why we need the free there.  The
-                 * reason this is a minor memory leak is because
-                 * SDL_CreateRGBSurfaceFrom() is used to create the question
-                 * mark image, and without this free, that data is not freed.
-                 * However, with this, client crashes after disconnecting from
-                 * server with double free.
-                 */
-    /*          free(((SDL_Surface*)pi->fog_image)->pixels);*/
-            }
-#endif
+        if (pi->map_image) {
+            SDL_FreeSurface(pi->map_image);
+            free(((SDL_Surface*)pi->map_image)->pixels);
+            SDL_FreeSurface(pi->fog_image);
+            /*
+             * Minor memory leak here - SDL_FreeSurface() frees the pixel
+             * data _unless_ SDL_CreateRGBSurfaceFrom() was used to create
+             * the surface.  SDL_CreateRGBSurfaceFrom() is used to create
+             * the map data, which is why we need the free there.  The
+             * reason this is a minor memory leak is because
+             * SDL_CreateRGBSurfaceFrom() is used to create the question
+             * mark image, and without this free, that data is not freed.
+             * However, with this, client crashes after disconnecting from
+             * server with double free.
+             */
+            /*          free(((SDL_Surface*)pi->fog_image)->pixels);*/
         }
-        else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
+#endif
+    } else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
 #ifdef HAVE_OPENGL
-            opengl_free_pixmap(pi);
+        opengl_free_pixmap(pi);
 #endif
-        }
-    else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
+    } else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
         if (pi->map_image) {
             gdk_pixmap_unref(pi->map_image);
         }
@@ -300,8 +293,9 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
     uint8 *png_tmp;
     PixmapInfo  *pi;
 
-    if (pixmap_num <= 0 || pixmap_num >= MAXPIXMAPNUM)
+    if (pixmap_num <= 0 || pixmap_num >= MAXPIXMAPNUM) {
         return 1;
+    }
 
     if (pixmaps[pixmap_num] != pixmaps[0]) {
         /* As per bug 2938906, one can see image corruption when switching between
@@ -320,10 +314,10 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
          *    on the second server, causing this routine to be called.
          */
 
-         if (!use_config[CONFIG_CACHE]) {
-             free_pixmap(pixmaps[pixmap_num]);
-             free(pixmaps[pixmap_num]);
-         }
+        if (!use_config[CONFIG_CACHE]) {
+            free_pixmap(pixmaps[pixmap_num]);
+            free(pixmaps[pixmap_num]);
+        }
         pixmaps[pixmap_num] = pixmaps[0];
     }
 
@@ -339,12 +333,20 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
         int ts = 100;
 
         factor = width / DEFAULT_IMAGE_SIZE;
-        if (factor >= MAX_ICON_SPACES) factor = MAX_ICON_SPACES - 1;
-        if (icon_rescale_factor[factor] < ts) ts = icon_rescale_factor[factor];
+        if (factor >= MAX_ICON_SPACES) {
+            factor = MAX_ICON_SPACES - 1;
+        }
+        if (icon_rescale_factor[factor] < ts) {
+            ts = icon_rescale_factor[factor];
+        }
 
         factor = height / DEFAULT_IMAGE_SIZE;
-        if (factor >= MAX_ICON_SPACES) factor = MAX_ICON_SPACES - 1;
-        if (icon_rescale_factor[factor] < ts) ts = icon_rescale_factor[factor];
+        if (factor >= MAX_ICON_SPACES) {
+            factor = MAX_ICON_SPACES - 1;
+        }
+        if (icon_rescale_factor[factor] < ts) {
+            ts = icon_rescale_factor[factor];
+        }
 
         iscale = ts * use_config[CONFIG_ICONSCALE] / 100;
     }
@@ -358,8 +360,7 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
         pi->icon_height = ny;
         create_icon_image(png_tmp, pi, pixmap_num);
         free(png_tmp);
-    }
-    else {
+    } else {
         pi->icon_width = width;
         pi->icon_height = height;
         create_icon_image(rgba_data, pi, pixmap_num);
@@ -383,7 +384,9 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
          * so it can't be freed.
          */
         if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP ||
-            use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) free(png_tmp);
+                use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
+            free(png_tmp);
+        }
     } else {
         pi->map_width = width;
         pi->map_height = height;
@@ -393,8 +396,9 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
         if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
             png_tmp = malloc(width * height * BPP);
             memcpy(png_tmp, rgba_data, width * height * BPP);
-        } else
+        } else {
             png_tmp = rgba_data;
+        }
         create_map_image(png_tmp, pi);
     }
     /*
@@ -411,8 +415,9 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
         ce->image_data = pi;
     }
     pixmaps[pixmap_num] = pi;
-    if (use_config[CONFIG_CACHE])
+    if (use_config[CONFIG_CACHE]) {
         have_new_image++;
+    }
 
     return 0;
 }
@@ -575,9 +580,9 @@ void init_image_cache_data(void)
     style = gtk_widget_get_style(window_root);
     pixmaps[0] = malloc(sizeof(PixmapInfo));
     pixmaps[0]->icon_image = gdk_pixmap_create_from_xpm_d(window_root->window,
-                                                        (GdkBitmap**)&pixmaps[0]->icon_mask,
-                                                        &style->bg[GTK_STATE_NORMAL],
-                                                        (gchar **)question_xpm);
+                             (GdkBitmap**)&pixmaps[0]->icon_mask,
+                             &style->bg[GTK_STATE_NORMAL],
+                             (gchar **)question_xpm);
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
         /*
@@ -586,24 +591,22 @@ void init_image_cache_data(void)
          */
 #include "../../pixmaps/question.sdl"
         pixmaps[0]->map_image = SDL_CreateRGBSurfaceFrom(question_sdl,
-                32, 32, 1, 4, 1, 1, 1, 1);
+                                32, 32, 1, 4, 1, 1, 1, 1);
         SDL_SetAlpha(pixmaps[0]->map_image, SDL_SRCALPHA, 70);
         pixmaps[0]->fog_image = SDL_CreateRGBSurfaceFrom(question_sdl,
-                32, 32, 1, 4, 1, 1, 1, 1);
+                                32, 32, 1, 4, 1, 1, 1, 1);
         SDL_SetAlpha(pixmaps[0]->fog_image, SDL_SRCALPHA, 70);
-    }
-    else
+    } else
 #endif
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP)
-    {
-        pixmaps[0]->map_image =  pixmaps[0]->icon_image;
-        pixmaps[0]->fog_image =  pixmaps[0]->icon_image;
-        pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
-    }
+        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
+            pixmaps[0]->map_image =  pixmaps[0]->icon_image;
+            pixmaps[0]->fog_image =  pixmaps[0]->icon_image;
+            pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
+        }
 #ifdef HAVE_OPENGL
-    else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
-        create_opengl_question_mark();
-    }
+        else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
+            create_opengl_question_mark();
+        }
 #endif
 
     pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;

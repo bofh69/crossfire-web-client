@@ -1,27 +1,15 @@
-const char * const rcsid_gtk2_pickup_c =
-    "$Id$";
-
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005-2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/pickup.c
@@ -110,15 +98,18 @@ static void new_menu_pickup(int on, int val)
 {
     char modestr[128];
 
-    if (no_recurse) return;
+    if (no_recurse) {
+        return;
+    }
 
-    if (on)
+    if (on) {
         pmode |= val | PU_NEWMODE;
-    else
+    } else {
         pmode &= ~val;
+    }
 
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-        "To set this pickup mode to a key, use:");
+                  "To set this pickup mode to a key, use:");
 
     snprintf(modestr, sizeof(modestr), "bind pickup %u",pmode);
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, modestr);
@@ -245,7 +236,7 @@ on_menu_magical_items_activate         (GtkMenuItem     *menuitem,
 
 void
 on_menu_potions_activate                (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_POTION);
 }
@@ -273,21 +264,21 @@ on_menu_not_cursed_activate            (GtkMenuItem     *menuitem,
 
 void
 on_menu_jewels_activate                  (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_JEWELS);
 }
 
 void
 on_menu_containers_activate                  (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_CONTAINERS);
 }
 
 void
 on_menu_flesh_activate                  (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), PU_FLESH);
 }
@@ -330,7 +321,7 @@ on_menu_arrows_activate                (GtkMenuItem     *menuitem,
 
 void
 on_menu_ratio_pickup_off_activate       (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 0);
 }
@@ -344,63 +335,63 @@ on_menu_ratio_5_activate               (GtkMenuItem     *menuitem,
 
 void
 on_menu_ratio_10_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 2);
 }
 
 void
 on_menu_ratio_15_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 3);
 }
 
 void
 on_menu_ratio_20_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 4);
 }
 
 void
 on_menu_ratio_25_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 5);
 }
 
 void
 on_menu_ratio_30_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 6);
 }
 
 void
 on_menu_ratio_35_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 7);
 }
 
 void
 on_menu_ratio_40_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 8);
 }
 
 void
 on_menu_ratio_45_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 9);
 }
 
 void
 on_menu_ratio_50_activate               (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+        gpointer         user_data)
 {
     new_menu_pickup(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)), 10);
 }
@@ -420,7 +411,9 @@ void pickup_init(GtkWidget *window_root)
      * There isn't really any harm doing this multiple times, but isn't any
      * point either.
      */
-    if (has_init) return;
+    if (has_init) {
+        return;
+    }
     has_init=1;
 
     /*
@@ -656,7 +649,7 @@ void client_pickup(uint32 pickup)
 
     for (i=0; i < num_pickups; i++) {
         if ((pickup & ~PU_RATIO) & pickup_mapping[i].pickup_mode ||
-            (pickup & PU_RATIO) == pickup_mapping[i].pickup_mode) {
+                (pickup & PU_RATIO) == pickup_mapping[i].pickup_mode) {
             gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(pickup_mapping[i].menuitem), 1);
         } else {
             gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(pickup_mapping[i].menuitem), 0);

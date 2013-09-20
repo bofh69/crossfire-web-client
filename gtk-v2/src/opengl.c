@@ -1,27 +1,15 @@
-const char * const rcsid_gtk2_opengl_c =
-    "$Id$";
-
 /*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire@metalforge.org
-*/
+ * Crossfire -- cooperative multi-player graphical RPG and adventure game
+ *
+ * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1992 Frank Tore Johansen
+ *
+ * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
+ * welcome to redistribute it under certain conditions. For details, see the
+ * 'LICENSE' and 'COPYING' files.
+ *
+ * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ */
 
 /**
  * @file gtk-v2/src/opengl.c
@@ -95,16 +83,16 @@ static void init_opengl_common(void)
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth(1.0f);
 
-    #ifndef WIN32
+#ifndef WIN32
     glViewport(0, 0, (float)width, (float)height);
-    #else
+#else
     /*
      * There is a bug somewhere that causes the viewport to be shifted up by
      * 25-MAPHEIGHT tiles when run in Windows.  Don't know yet what causes
      * this, but this is a bad hack to fix it.
      */
     glViewport(0, (use_config[CONFIG_MAPHEIGHT]-25)*32, (float)width, (float)height);
-    #endif
+#endif
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -131,12 +119,13 @@ void init_glx_opengl(GtkWidget* drawingarea)
     GLXContext  ctx;
     XVisualInfo *vi;
     int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER,
-        GLX_RED_SIZE, 4,
-        GLX_GREEN_SIZE, 4,
-        GLX_BLUE_SIZE, 4,
-        GLX_ALPHA_SIZE, 4,
-        GLX_DEPTH_SIZE, 16,
-        None };
+                          GLX_RED_SIZE, 4,
+                          GLX_GREEN_SIZE, 4,
+                          GLX_BLUE_SIZE, 4,
+                          GLX_ALPHA_SIZE, 4,
+                          GLX_DEPTH_SIZE, 16,
+                          None
+                        };
     XSetWindowAttributes attr;
     Visual *v;
 
@@ -160,9 +149,9 @@ void init_glx_opengl(GtkWidget* drawingarea)
                                    vi->visual, AllocNone);
 
     window = XCreateWindow(display, GDK_WINDOW_XID(drawingarea->window),
-                0, 0, width, height, 0,
+                           0, 0, width, height, 0,
                            vi->depth,
-                        InputOutput,
+                           InputOutput,
                            vi->visual,
                            CWColormap, &attr);
 
@@ -178,10 +167,11 @@ void init_glx_opengl(GtkWidget* drawingarea)
         LOG(LOG_ERROR,"gtk-v2::init_glx_opengl", "Could not set opengl context!\n");
         exit(1);
     }
-    if (glXIsDirect(display, ctx))
+    if (glXIsDirect(display, ctx)) {
         LOG(LOG_INFO,"gtk-v2::init_glx_opengl", "Direct rendering is available!\n");
-    else
+    } else {
         LOG(LOG_INFO,"gtk-v2::init_glx_opengl", "Direct rendering is not available!\n");
+    }
 
 }
 #endif /* #ifndef WIN32 */
@@ -242,11 +232,11 @@ void init_wgl_opengl(GtkWidget* drawingarea)
 void init_opengl(GtkWidget* drawingarea)
 {
 
-    #ifndef WIN32
+#ifndef WIN32
     init_glx_opengl(drawingarea);
-    #else
+#else
     init_wgl_opengl(drawingarea);
-    #endif
+#endif
     init_opengl_common();
 }
 
@@ -292,7 +282,9 @@ static void opengl_light_space(int x, int y, int mx, int my)
 {
     if (use_config[CONFIG_DARKNESS] == CFG_LT_TILE) {
         /* If we don't have darkness, or it isn't dark, don't do anything */
-        if (!the_map.cells[mx][my].have_darkness || the_map.cells[mx][my].darkness==0) return;
+        if (!the_map.cells[mx][my].have_darkness || the_map.cells[mx][my].darkness==0) {
+            return;
+        }
 
         glColor4ub(0, 0, 0,  the_map.cells[mx][my].darkness);
         glBegin(GL_QUADS);
@@ -376,21 +368,21 @@ static void opengl_light_space(int x, int y, int mx, int my)
  * Some basics.  dx, dy are coordinate pairs for offsets. bweights and cweights
  * are bitmasks that determine the face to draw (or'd together)
  */
-static int dx[8]={0,1,1,1,0,-1,-1,-1};
-static int dy[8]={-1,-1,0,1,1,1,0,-1};
+static int dx[8]= {0,1,1,1,0,-1,-1,-1};
+static int dy[8]= {-1,-1,0,1,1,1,0,-1};
 
-static int bweights[8]={2,0,4,0,8,0,1,0};
-static int cweights[8]={0,2,0,4,0,8,0,1};
-static int bc_exclude[8]={
-                 1+2,/*north exclude northwest (bit0) and northeast(bit1)*/
-                 0,
-                 2+4,/*east exclude northeast and southeast*/
-                 0,
-                 4+8,/*and so on*/
-                 0,
-                 8+1,
-                 0
-                };
+static int bweights[8]= {2,0,4,0,8,0,1,0};
+static int cweights[8]= {0,2,0,4,0,8,0,1};
+static int bc_exclude[8]= {
+    1+2,/*north exclude northwest (bit0) and northeast(bit1)*/
+    0,
+    2+4,/*east exclude northeast and southeast*/
+    0,
+    4+8,/*and so on*/
+    0,
+    8+1,
+    0
+};
 
 /*
  * Vertices are floats.  This sets the value appropriately for us to multiply
@@ -409,24 +401,24 @@ static int bc_exclude[8]={
  * @param my Coordinate of square to smooth on.
  * @param layer Layer to examine (we smooth only one layer at a time).
  */
-static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
-    int partdone[8]={0,0,0,0,0,0,0,0}, slevels[8], sfaces[8], i,
-        weight,weightC, emx,emy, smoothface, dosmooth, lowest, havesmooth;
+static void drawsmooth_opengl (int x, int y, int mx, int my, int layer)
+{
+    int partdone[8]= {0,0,0,0,0,0,0,0}, slevels[8], sfaces[8], i,
+                     weight,weightC, emx,emy, smoothface, dosmooth, lowest, havesmooth;
 
     dosmooth=0;
-    for (i=0;i<8;i++){
+    for (i=0; i<8; i++) {
         emx=mx+dx[i];
         emy=my+dy[i];
 
-        if ( (emx<0) || (emy<0) || (emx >= the_map.x) || (emy >= the_map.y)){
+        if ( (emx<0) || (emy<0) || (emx >= the_map.x) || (emy >= the_map.y)) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        }
-        else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer] ||
-            the_map.cells[emx][emy].heads[layer].face == 0){
+        } else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer] ||
+                   the_map.cells[emx][emy].heads[layer].face == 0) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        } else{
+        } else {
             slevels[i]=the_map.cells[emx][emy].smooth[layer];
             sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
             dosmooth++;
@@ -444,31 +436,33 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
 
     while (havesmooth < dosmooth) {
         lowest=-1;
-        for (i=0;i<8;i++){
-            if ( (slevels[i]>0) && (!partdone[i]) && ((lowest<0) || (slevels[i]<slevels[lowest])))
+        for (i=0; i<8; i++) {
+            if ( (slevels[i]>0) && (!partdone[i]) && ((lowest<0) || (slevels[i]<slevels[lowest]))) {
                 lowest=i;
+            }
         }
-        if (lowest<0)
-            break;   /*no more smooth to do on this square*/
+        if (lowest<0) {
+            break;    /*no more smooth to do on this square*/
+        }
 
         /* The weight values is a bitmask that determines what image we draw */
         weight=0;
         weightC=15; /*works in backward. remove where there is nothing*/
 
-        for (i=0;i<8;i++){ /*check all nearby squares*/
+        for (i=0; i<8; i++) { /*check all nearby squares*/
             if (slevels[i]==slevels[lowest] && sfaces[i] == sfaces[lowest]) {
                 partdone[i]=1;
                 weight=weight+bweights[i];
                 weightC&=~bc_exclude[i];
                 havesmooth++;
-            } else{
+            } else {
                 /*must rmove the weight of a corner if not in smoothing*/
                 weightC&=~cweights[i];
             }
         }
 
         smoothface=sfaces[lowest];
-        if (smoothface<=0){
+        if (smoothface<=0) {
             continue;  /*picture for smoothing not yet available*/
         }
 
@@ -479,13 +473,15 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer) {
          * and (32*weightC,32)
          */
 
-        if ( (!pixmaps[smoothface]->map_texture) || (pixmaps[smoothface] == pixmaps[0]))
-            continue;   /*don't have the picture associated*/
+        if ( (!pixmaps[smoothface]->map_texture) || (pixmaps[smoothface] == pixmaps[0])) {
+            continue;    /*don't have the picture associated*/
+        }
 
-        if (the_map.cells[mx][my].cleared)
+        if (the_map.cells[mx][my].cleared) {
             glBindTexture(GL_TEXTURE_2D, pixmaps[smoothface]->fog_texture);
-        else
+        } else {
             glBindTexture(GL_TEXTURE_2D, pixmaps[smoothface]->map_texture);
+        }
 
         /*
          * The values of 0.0f and 0.5f are hardcoded, but as of now, it is a
@@ -543,8 +539,9 @@ static void draw_smoothing(int layer)
             mx = x + pl_pos.x;
             my = y + pl_pos.y;
 
-            if (CAN_SMOOTH(the_map.cells[mx][my],layer))
+            if (CAN_SMOOTH(the_map.cells[mx][my],layer)) {
                 drawsmooth_opengl(x, y, mx, my, layer);
+            }
         }
     }
 }
@@ -564,13 +561,15 @@ static void draw_smoothing(int layer)
  *
  * @param redraw
  */
-void opengl_gen_map(int redraw) {
+void opengl_gen_map(int redraw)
+{
     long elapsed1, elapsed2;
     struct timeval tv1, tv2,tv3;
     int mx,my, layer,x,y, d1, d2, d3, num_dark, got_smooth, face, t1, t2;
 
-    if (time_map_redraw)
+    if (time_map_redraw) {
         gettimeofday(&tv1, NULL);
+    }
 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -619,7 +618,9 @@ void opengl_gen_map(int redraw) {
                      * code here doesn't do anything that would extend onto the
                      * map.
                      */
-                    if (x >= use_config[CONFIG_MAPWIDTH] || y >= use_config[CONFIG_MAPHEIGHT]) continue;
+                    if (x >= use_config[CONFIG_MAPWIDTH] || y >= use_config[CONFIG_MAPHEIGHT]) {
+                        continue;
+                    }
                     /*
                      * One could make the case it doesn't make sense to light
                      * fog of war spaces, but I find visually it looks a lot
@@ -637,7 +638,7 @@ void opengl_gen_map(int redraw) {
                      * are >= check works just fine, right now.
                      */
                     if (layer == 0 && use_config[CONFIG_DARKNESS] >= CFG_LT_PIXEL &&
-~                       x <= use_config[CONFIG_MAPWIDTH] && y <= use_config[CONFIG_MAPHEIGHT]) {
+                            ~                       x <= use_config[CONFIG_MAPWIDTH] && y <= use_config[CONFIG_MAPHEIGHT]) {
                         /*
                          * The darkness code is similar to the per pixel SDL
                          * code.  As such, each square we process needs to know
@@ -653,10 +654,11 @@ void opengl_gen_map(int redraw) {
                          * But the results we use here, while perhaps not as
                          * nice, certainly look better than per tile lighting.
                          */
-                        if (the_map.cells[mx][my].have_darkness)
+                        if (the_map.cells[mx][my].have_darkness) {
                             map_darkness[x*2 + 1][y*2 + 1] = the_map.cells[mx][my].darkness;
-                        else
+                        } else {
                             map_darkness[x*2 + 1][y*2 + 1] = DEFAULT_DARKNESS;
+                        }
 
                         d1 = DEFAULT_DARKNESS;  /* square to left */
                         d2 = DEFAULT_DARKNESS;  /* square to upper left */
@@ -723,17 +725,20 @@ void opengl_gen_map(int redraw) {
                              * If both nx and ny are outside visible area,
                              * don't need to do anything more
                              */
-                            if (nx > width && ny > height) continue;
+                            if (nx > width && ny > height) {
+                                continue;
+                            }
                             /*
                              * There are some issues with this - it is really
                              * the head of the object that is determining fog
                              * of war logic.  I don't have good solution to
                              * that, other than to live with it.
                              */
-                            if (the_map.cells[mx][my].cleared)
+                            if (the_map.cells[mx][my].cleared) {
                                 glBindTexture(GL_TEXTURE_2D, pixmaps[the_map.cells[mx][my].heads[layer].face]->fog_texture);
-                            else
+                            } else {
                                 glBindTexture(GL_TEXTURE_2D, pixmaps[the_map.cells[mx][my].heads[layer].face]->map_texture);
+                            }
 
                             glBegin(GL_QUADS);
 
@@ -752,7 +757,7 @@ void opengl_gen_map(int redraw) {
                             glEnd();
                         }
                         if (use_config[CONFIG_SMOOTH] && CAN_SMOOTH(the_map.cells[mx][my],layer) &&
-                            the_map.cells[mx][my].heads[layer].face !=0) {
+                                the_map.cells[mx][my].heads[layer].face !=0) {
 
                             got_smooth=1;
                         }
@@ -771,17 +776,20 @@ void opengl_gen_map(int redraw) {
                              * If both nx and ny are outside visible area,
                              * don't need to do anything more
                              */
-                            if (nx > width && ny > height) continue;
+                            if (nx > width && ny > height) {
+                                continue;
+                            }
                             /*
                              * There are some issues with this - it is really
                              * the head of the object that is determining fog
                              * of war logic.  I don't have good solution to
                              * that, other than to live with it.
                              */
-                            if (the_map.cells[mx][my].cleared)
+                            if (the_map.cells[mx][my].cleared) {
                                 glBindTexture(GL_TEXTURE_2D, pixmaps[face]->fog_texture);
-                            else
+                            } else {
                                 glBindTexture(GL_TEXTURE_2D, pixmaps[face]->map_texture);
+                            }
 
                             glBegin(GL_QUADS);
 
@@ -814,18 +822,20 @@ void opengl_gen_map(int redraw) {
          * smoothing to do - for many layers, this is not likely to be set, so
          * we can save work by not doing this.
          */
-        if (got_smooth)
+        if (got_smooth) {
             draw_smoothing(layer);
+        }
     }
 
-    if (time_map_redraw)
+    if (time_map_redraw) {
         gettimeofday(&tv2, NULL);
+    }
 
-    #ifndef WIN32
+#ifndef WIN32
     glXSwapBuffers(display, window);
-    #else
+#else
     SwapBuffers(devicecontext);
-    #endif
+#endif
 
     if (time_map_redraw) {
         gettimeofday(&tv3, NULL);
@@ -837,7 +847,7 @@ void opengl_gen_map(int redraw) {
          */
         if ((elapsed1 + elapsed2)>10000)
             LOG(LOG_INFO,"gtk-v2::opengl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
-                    elapsed1, elapsed2, elapsed1 + elapsed2);
+                elapsed1, elapsed2, elapsed1 + elapsed2);
     }
 } /* opengl_gen_map function */
 
@@ -864,11 +874,15 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
      */
     for (nwidth = pi->map_width, numshifts=0; nwidth >1; nwidth >>=1, numshifts++) ;
     nwidth <<= numshifts;
-    if (nwidth != pi->map_width) nwidth <<=1;
+    if (nwidth != pi->map_width) {
+        nwidth <<=1;
+    }
 
     for (nheight = pi->map_height, numshifts=0; nheight >1; nheight >>=1, numshifts++) ;
     nheight <<= numshifts;
-    if (nheight != pi->map_height) nheight <<=1;
+    if (nheight != pi->map_height) {
+        nheight <<=1;
+    }
     /*
      * Below deals with cases where the pixmap is not a power of 2.  The
      * 'proper' opengl way of dealing with such textures is to make a mipmap -
@@ -902,13 +916,14 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
         if (nheight > pi->map_height) {
             memset(newdata, 0, (nheight - pi->map_height) * nwidth * 4);
             datastart = newdata + (nheight - pi->map_height) * nwidth * 4;
-        } else
+        } else {
             datastart = newdata;
+        }
 
         for (y =0; y < pi->map_height; y++) {
             memset(datastart + y * nwidth * 4, 0, (nwidth - pi->map_width) * 4);
             memcpy(datastart + y * nwidth * 4 + (nwidth - pi->map_width) * 4,
-                data + y * pi->map_width * 4, pi->map_width * 4);
+                   data + y * pi->map_width * 4, pi->map_width * 4);
         }
         data_to_use = newdata;
         pi->map_width = nwidth;
@@ -921,7 +936,7 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTexImage2D(GL_TEXTURE_2D, 0, 4, pi->map_width, pi->map_height,
-               0, GL_RGBA, GL_UNSIGNED_BYTE, data_to_use);
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, data_to_use);
 
     /*
      * Generate a fog image.  This isn't 100% efficient, because we copy data
@@ -936,7 +951,7 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
 
     /* In this case, newdata does not contain a copy of the data - make one */
     if (data_to_use != newdata) {
-            memcpy(newdata, data, pi->map_height *  pi->map_width * 4);
+        memcpy(newdata, data, pi->map_height *  pi->map_width * 4);
     }
 
     for (i=0; i < pi->map_width * pi->map_height; i++) {
@@ -953,7 +968,7 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTexImage2D(GL_TEXTURE_2D, 0, 4, pi->map_width, pi->map_height,
-               0, GL_RGBA, GL_UNSIGNED_BYTE, newdata);
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, newdata);
 }
 
 /**
@@ -1015,7 +1030,7 @@ void create_opengl_question_mark(void)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTexImage2D(GL_TEXTURE_2D, 0, 4, question_width, question_height,
-               0, GL_RGBA, GL_UNSIGNED_BYTE, &question[0][0][0]);
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, &question[0][0][0]);
 
     glGenTextures(1, &pixmaps[0]->fog_texture);
     glBindTexture(GL_TEXTURE_2D, pixmaps[0]->fog_texture);
@@ -1023,7 +1038,7 @@ void create_opengl_question_mark(void)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTexImage2D(GL_TEXTURE_2D, 0, 4, question_width, question_height,
-               0, GL_RGBA, GL_UNSIGNED_BYTE, &question[0][0][0]);
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, &question[0][0][0]);
 }
 
 #endif
