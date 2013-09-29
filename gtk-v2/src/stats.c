@@ -258,7 +258,7 @@ void stats_init(GtkWidget *window_root)
  * @param limit
  * Size of the buffer
  */
-static void format_si_number(int number, char *buffer, int limit)
+static void format_si_number(sint64 number, char *buffer, int limit)
 {
     /* List of SI prefixes and corresponding values, least to greatest. */
     const char SI_SUFFIX[] = {'\0', 'k', 'M', 'G'};
