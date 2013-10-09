@@ -1601,15 +1601,16 @@ static void script_process_cmd(int i)
  * <header>  tag num weight flags type name
  *
  * flags are a bitmask:
- *   magic, cursed, damned, unpaid, locked, applied, open, was_open, inv_updated
- *    256     128     64      32       16      8       4      2         1
+ * unidentified, magic, cursed, damned, unpaid, locked, applied, open, was_open, inv_updated
+ *      512        256     128     64      32       16      8       4      2         1
  */
 static void script_send_item(int i, const char *head, const item *it)
 {
     char buf[4096];
     int flags;
 
-    flags = it->magical;
+    flags = it->flagsval&F_UNIDENTIFIED?1:0;
+    flags = (flags<<1)|it->magical;
     flags = (flags<<1)|it->cursed;
     flags = (flags<<1)|it->damned;
     flags = (flags<<1)|it->unpaid;
