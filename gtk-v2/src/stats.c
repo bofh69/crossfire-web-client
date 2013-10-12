@@ -455,6 +455,9 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
      * set_color could be null, which means it reverts back to normal color.
      */
     gtk_widget_modify_base(stat_bar[stat_no], GTK_STATE_SELECTED, set_color);
+    /* The line above doesn't work sometimes, but then, the next one does. */
+    gtk_widget_modify_bg(stat_bar[stat_no], GTK_STATE_PRELIGHT, set_color);
+
     gtk_progress_set_percentage(GTK_PROGRESS(stat_bar[stat_no]), bar);
 
     /* Display exp bar with SI prefixes; display all other normally. */
