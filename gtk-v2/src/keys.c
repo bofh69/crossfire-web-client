@@ -89,7 +89,7 @@ enum {
 #define MAX_COMMAND_LEN 256
 char history[MAX_HISTORY][MAX_COMMAND_LEN];
 
-static int cur_history_position=0, scroll_history_position=0;
+static int cur_history_position = 0, scroll_history_position = 0;
 /**
  * @} EndOf Bind Log
  */
@@ -125,7 +125,7 @@ static uint32 firekeysym[2], runkeysym[2], commandkeysym, *bind_keysym,
        prevkeysym, nextkeysym, completekeysym, altkeysym[2], metakeysym[2],
        cancelkeysym;
 
-static int bind_flags=0;
+static int bind_flags = 0;
 static char bind_buf[MAX_BUF];
 
 #define KEYF_NORMAL     0x01            /**< Used in normal mode */
@@ -165,18 +165,18 @@ static Key_Entry *keys[KEYHASH];        /**< Platform independence defines that
 static void insert_key(uint32 keysym, int flags, const char *command)
 {
     Key_Entry *newkey;
-    int i, direction=-1, slot;
+    int i, direction = -1, slot;
 
     slot = keysym % KEYHASH;
 
-    if (keys[slot]==NULL) {
-        keys[slot]=malloc(sizeof(Key_Entry));
-        keys[slot]->command=NULL;
-        keys[slot]->next=NULL;
-        newkey=keys[slot];
+    if (keys[slot] == NULL) {
+        keys[slot] = malloc(sizeof(Key_Entry));
+        keys[slot]->command = NULL;
+        keys[slot]->next = NULL;
+        newkey = keys[slot];
     } else {
-        newkey=keys[slot];
-        while (newkey->next!=NULL) {
+        newkey = keys[slot];
+        while (newkey->next != NULL) {
             newkey = newkey->next;
         }
         newkey->next = calloc(1, sizeof(Key_Entry));
@@ -186,11 +186,12 @@ static void insert_key(uint32 keysym, int flags, const char *command)
      * Try to find out if the command is a direction command.  If so, keep
      * track of this fact, so in fire or run mode, things work correctly.
      */
-    for (i=0; i<9; i++)
+    for (i = 0; i < 9; i++) {
         if (!strcmp(command, directions[i])) {
-            direction=i;
+            direction = i;
             break;
         }
+    }
 
     newkey->keysym = keysym;
     newkey->flags = flags;
@@ -217,11 +218,13 @@ static void parse_keybind_line(char *buf, int line, int standard)
      */
     cp = NULL;
 
-    if (buf[0]=='#' || buf[0]=='\n') {
+    if (buf[0] == '#' || buf[0] == '\n') {
         return;
     }
-    if ((cpnext = strchr(buf,' '))==NULL) {
-        LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
+    cpnext = strchr(buf,' ');
+    if (cpnext == NULL) {
+        LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+            "Line %d (%s) corrupted in keybinding file.", line, buf);
         return;
     }
     /* Special keybinding line */
@@ -232,98 +235,106 @@ static void parse_keybind_line(char *buf, int line, int standard)
         }
         cp = strchr(cpnext, ' ');
         if (!cp) {
-            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
+            LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                "Line %d (%s) corrupted in keybinding file.", line, buf);
             return;
         }
         *cp++ = 0;  /* Null terminate it */
         cp1 = strchr(cp, ' ');
         if (!cp1) {
-            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line,buf);
+            LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                "Line %d (%s) corrupted in keybinding file.", line, buf);
             return;
         }
         *cp1 ++ = 0;/* Null terminate it */
         keysym = gdk_keyval_from_name(cp);
         /* As of now, all these keys must have keysyms */
         if (keysym == 0) {
-            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Could not convert %s into keysym", cp);
+            LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                "Could not convert %s into keysym", cp);
             return;
         }
-        if (!strcmp(cpnext,"commandkey")) {
+        if (!strcmp(cpnext, "commandkey")) {
             commandkeysym = keysym;
             return;
         }
-        if (!strcmp(cpnext,"altkey0")) {
+        if (!strcmp(cpnext, "altkey0")) {
             altkeysym[0] = keysym;
             return;
         }
-        if (!strcmp(cpnext,"altkey1")) {
+        if (!strcmp(cpnext, "altkey1")) {
             altkeysym[1] = keysym;
             return;
         }
-        if (!strcmp(cpnext,"firekey0")) {
+        if (!strcmp(cpnext, "firekey0")) {
             firekeysym[0] = keysym;
             return;
         }
-        if (!strcmp(cpnext,"firekey1")) {
+        if (!strcmp(cpnext, "firekey1")) {
             firekeysym[1] = keysym;
             return;
         }
-        if (!strcmp(cpnext,"metakey0")) {
+        if (!strcmp(cpnext, "metakey0")) {
             metakeysym[0] = keysym;
             return;
         }
-        if (!strcmp(cpnext,"metakey1")) {
+        if (!strcmp(cpnext, "metakey1")) {
             metakeysym[1] = keysym;
             return;
         }
-        if (!strcmp(cpnext,"runkey0")) {
+        if (!strcmp(cpnext, "runkey0")) {
             runkeysym[0] = keysym;
             return;
         }
-        if (!strcmp(cpnext,"runkey1")) {
+        if (!strcmp(cpnext, "runkey1")) {
             runkeysym[1] = keysym;
             return;
         }
-        if (!strcmp(cpnext,"completekey")) {
+        if (!strcmp(cpnext, "completekey")) {
             completekeysym = keysym;
             return;
         }
-        if (!strcmp(cpnext,"nextkey")) {
+        if (!strcmp(cpnext, "nextkey")) {
             nextkeysym = keysym;
             return;
         }
-        if (!strcmp(cpnext,"prevkey")) {
+        if (!strcmp(cpnext, "prevkey")) {
             prevkeysym = keysym;
             return;
         }
     } else {
         if (standard) {
-            standard=KEYF_STANDARD;
+            standard = KEYF_STANDARD;
         } else {
-            standard=0;
+            standard = 0;
         }
 
         *cpnext++ = '\0';
         keysym = gdk_keyval_from_name(buf);
         if (!keysym) {
-            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Unable to convert line %d (%s) into keysym", line, cp);
+            LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                "Unable to convert line %d (%s) into keysym", line, cp);
             return;
         }
         cp = cpnext;
-        if ((cpnext = strchr(cp,' '))==NULL) {
-            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line, cp);
+        cpnext = strchr(cp,' ');
+        if (cpnext == NULL) {
+            LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                "Line %d (%s) corrupted in keybinding file.", line, cp);
             return;
         }
         *cpnext++ = '\0';
 
         cp = cpnext;
-        if ((cpnext = strchr(cp,' '))==NULL) {
-            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Line %d (%s) corrupted in keybinding file.", line, cp);
+        cpnext = strchr(cp,' ');
+        if (cpnext == NULL) {
+            LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                "Line %d (%s) corrupted in keybinding file.", line, cp);
             return;
         }
         *cpnext++ = '\0';
         flags = 0;
-        while (*cp!='\0') {
+        while (*cp != '\0') {
             switch (*cp) {
             case 'A':
                 flags |= KEYF_NORMAL | KEYF_FIRE | KEYF_RUN
@@ -351,17 +362,18 @@ static void parse_keybind_line(char *buf, int line, int standard)
                 flags |= KEYF_STANDARD;
                 break;
             default:
-                LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Unknown flag (%c) line %d in key binding file",
+                LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                    "Unknown flag (%c) line %d in key binding file",
                     *cp, line);
             }
             cp++;
         }
 
         /* Rest of the line is the actual command.  Lets kill the newline */
-        cpnext[strlen(cpnext)-1]='\0';
-        if (strlen(cpnext)>(sizeof(bind_buf)-1)) {
-            cpnext[sizeof(bind_buf)-1]='\0';
-            LOG(LOG_WARNING,"gtk-v2::parse_keybind_line","Command too long! Truncated.");
+        cpnext[strlen(cpnext) - 1] = '\0';
+        if (strlen(cpnext) > (sizeof(bind_buf) - 1)) {
+            cpnext[sizeof(bind_buf) - 1] = '\0';
+            LOG(LOG_WARNING, "gtk-v2::parse_keybind_line", "Command too long! Truncated.");
         }
 
         insert_key(keysym, flags | standard, cpnext);
@@ -376,8 +388,7 @@ static void init_default_keybindings(void)
     char buf[MAX_BUF];
     int i;
 
-    LOG(LOG_DEBUG, "gtk-v2::init_default_keybindings",
-        "Using built-in defaults");
+    LOG(LOG_DEBUG, "gtk-v2::init_default_keybindings", "Using built-in defaults");
 
     for (i = 0; i < sizeof(def_keys) / sizeof(char *); i++) {
         strcpy(buf, def_keys[i]);
@@ -430,7 +441,7 @@ void keys_init(GtkWidget *window_root)
     nextkeysym = NoSymbol;
     prevkeysym = NoSymbol;
 
-    for (i=0; i<KEYHASH; i++) {
+    for (i = 0; i < KEYHASH; i++) {
         keys[i] = NULL;
     }
 
@@ -531,37 +542,37 @@ void keys_init(GtkWidget *window_root)
                                          );
     gtk_tree_view_set_model(GTK_TREE_VIEW(keybinding_treeview), GTK_TREE_MODEL(keybinding_store));
 
-    renderer = gtk_cell_renderer_text_new ();
+    renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes ("Key", renderer,
              "text", KLIST_KEY,
              NULL);
     gtk_tree_view_column_set_sort_column_id(column, KLIST_KEY);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
-    renderer = gtk_cell_renderer_text_new ();
+    renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes ("Modifiers", renderer,
              "text", KLIST_MODS,
              NULL);
     gtk_tree_view_column_set_sort_column_id(column, KLIST_MODS);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
-    renderer = gtk_cell_renderer_text_new ();
+    renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes ("Edit Mode", renderer,
              "text", KLIST_EDIT,
              NULL);
     gtk_tree_view_column_set_sort_column_id(column, KLIST_EDIT);
     gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
 
-    renderer = gtk_cell_renderer_text_new ();
+    renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes ("Command", renderer,
              "text", KLIST_COMMAND,
              NULL);
     gtk_tree_view_column_set_sort_column_id(column, KLIST_COMMAND);
-    gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
+    gtk_tree_view_append_column(GTK_TREE_VIEW (keybinding_treeview), column);
 
 
     keybinding_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(keybinding_treeview));
-    gtk_tree_selection_set_mode (keybinding_selection, GTK_SELECTION_BROWSE);
+    gtk_tree_selection_set_mode(keybinding_selection, GTK_SELECTION_BROWSE);
     gtk_tree_selection_set_select_function(keybinding_selection, keybinding_selection_func, NULL, NULL);
 
     gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(keybinding_store),
@@ -569,7 +580,8 @@ void keys_init(GtkWidget *window_root)
                                          GTK_SORT_ASCENDING);
 
     /* Try to read user keybindings and load defaults if that fails. */
-    if ((fp = fopen(buf, "r")) == NULL) {
+    fp = fopen(buf, "r");
+    if (fp == NULL) {
         LOG(LOG_INFO, "gtk-v2::init_keys",
             "Could not open user keybindings; using defaults");
 
@@ -581,7 +593,8 @@ void keys_init(GtkWidget *window_root)
 
         /* Try to read system keybindings before using built-in defaults. */
         snprintf(buf, sizeof(buf), "%s/def_keys", client_libdir);
-        if ((fp = fopen(buf, "r")) == NULL) {
+        fp = fopen(buf, "r");
+        if (fp == NULL) {
             init_default_keybindings();
             return;
         }
@@ -589,8 +602,8 @@ void keys_init(GtkWidget *window_root)
 
     while (fgets(buf, BIG_BUF, fp)) {
         line++;
-        buf[BIG_BUF-1]='\0';
-        parse_keybind_line(buf,line,0);
+        buf[BIG_BUF - 1] = '\0';
+        parse_keybind_line(buf, line, 0);
     }
 
     fclose(fp);
@@ -616,21 +629,21 @@ static void parse_key_release(uint32 ks)
      * Something smart does need to be done when the character enters a non
      * play mode with fire or run mode already set, however.
      */
-    if (ks==firekeysym[0] || ks==firekeysym[1]) {
-        cpl.fire_on=0;
+    if (ks == firekeysym[0] || ks == firekeysym[1]) {
+        cpl.fire_on = 0;
         clear_fire();
-        gtk_label_set (GTK_LABEL(fire_label),"    ");
-    } else if (ks==runkeysym[0] || ks==runkeysym[1]) {
-        cpl.run_on=0;
+        gtk_label_set(GTK_LABEL(fire_label), "    ");
+    } else if (ks == runkeysym[0] || ks == runkeysym[1]) {
+        cpl.run_on = 0;
         if (use_config[CONFIG_ECHO])
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                           "stop run");
         clear_run();
-        gtk_label_set (GTK_LABEL(run_label),"   ");
-    } else if (ks==altkeysym[0] || ks==altkeysym[1]) {
-        cpl.alt_on=0;
-    } else if (ks==metakeysym[0] || ks==metakeysym[1]) {
-        cpl.meta_on=0;
+        gtk_label_set(GTK_LABEL(run_label), "   ");
+    } else if (ks == altkeysym[0] || ks == altkeysym[1]) {
+        cpl.alt_on = 0;
+    } else if (ks == metakeysym[0] || ks == metakeysym[1]) {
+        cpl.meta_on = 0;
     }
     /*
      * Firing is handled on server side.  However, to keep more like the old
@@ -650,33 +663,33 @@ static void parse_key_release(uint32 ks)
  */
 static void parse_key(char key, uint32 keysym)
 {
-    Key_Entry *keyentry, *first_match=NULL;
-    int present_flags=0;
+    Key_Entry *keyentry, *first_match = NULL;
+    int present_flags = 0;
     char buf[MAX_BUF], tmpbuf[MAX_BUF];
 
-    if (keysym==commandkeysym) {
-        gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
+    if (keysym == commandkeysym) {
+        gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
         gtk_entry_set_visibility(GTK_ENTRY(entry_commands), 1);
         cpl.input_state = Command_Mode;
-        cpl.no_echo=FALSE;
+        cpl.no_echo = FALSE;
         return;
     }
-    if (keysym==altkeysym[0] ||keysym==altkeysym[1]) {
-        cpl.alt_on=1;
+    if (keysym == altkeysym[0] || keysym == altkeysym[1]) {
+        cpl.alt_on = 1;
         return;
     }
-    if (keysym==metakeysym[0] ||keysym==metakeysym[1]) {
-        cpl.meta_on=1;
+    if (keysym == metakeysym[0] || keysym == metakeysym[1]) {
+        cpl.meta_on = 1;
         return;
     }
-    if (keysym==firekeysym[0] ||keysym==firekeysym[1]) {
-        cpl.fire_on=1;
-        gtk_label_set (GTK_LABEL(fire_label),"Fire");
+    if (keysym == firekeysym[0] || keysym == firekeysym[1]) {
+        cpl.fire_on = 1;
+        gtk_label_set(GTK_LABEL(fire_label), "Fire");
         return;
     }
-    if (keysym==runkeysym[0] || keysym==runkeysym[1]) {
-        cpl.run_on=1;
-        gtk_label_set (GTK_LABEL(run_label),"Run");
+    if (keysym == runkeysym[0] || keysym == runkeysym[1]) {
+        cpl.run_on = 1;
+        gtk_label_set(GTK_LABEL(run_label), "Run");
         return;
     }
 
@@ -697,37 +710,37 @@ static void parse_key(char key, uint32 keysym)
     }
 
     keyentry = keys[keysym % KEYHASH];
-    while (keyentry!=NULL) {
-        if ((keyentry->keysym!=0 && keyentry->keysym!=keysym) ||
+    while (keyentry != NULL) {
+        if ((keyentry->keysym != 0 && keyentry->keysym != keysym) ||
                 (!(keyentry->flags & present_flags))) {
-            keyentry=keyentry->next;
+            keyentry = keyentry->next;
             continue;
         }
         first_match = keyentry;
 
         /* Try to find a prefect match */
-        if ((keyentry->flags & KEYF_MODIFIERS)!= present_flags) {
-            keyentry=keyentry->next;
+        if ((keyentry->flags & KEYF_MODIFIERS) != present_flags) {
+            keyentry = keyentry->next;
             continue;
         } else {
             break;
         }
     }
-    if (first_match!=NULL) {
+    if (first_match != NULL) {
         if (first_match->flags & KEYF_EDIT) {
             strcpy(cpl.input_text, first_match->command);
             cpl.input_state = Command_Mode;
-            gtk_entry_set_text(GTK_ENTRY(entry_commands),cpl.input_text);
-            gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
+            gtk_entry_set_text(GTK_ENTRY(entry_commands), cpl.input_text);
+            gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
             gtk_editable_select_region(GTK_EDITABLE(entry_commands), 0, 0);
             gtk_editable_set_position(GTK_EDITABLE(entry_commands), -1);
             return;
         }
 
         /* Some spells (dimension door) need a valid count value */
-        cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(spinbutton_count));
+        cpl.count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton_count));
 
-        if (first_match->direction>=0) {
+        if (first_match->direction >= 0) {
             if (cpl.fire_on) {
                 snprintf(buf, sizeof(buf), "fire %s", first_match->command);
                 fire_dir(first_match->direction);
@@ -750,35 +763,36 @@ static void parse_key(char key, uint32 keysym)
         }
         return;
     }
-    if (key>='0' && key<='9') {
-        cpl.count = cpl.count*10 + (key-'0');
-        if (cpl.count>100000) {
-            cpl.count%=100000;
+    if (key >= '0' && key <= '9') {
+        cpl.count = cpl.count * 10 + (key - '0');
+        if (cpl.count > 100000) {
+            cpl.count %= 100000;
         }
-        gtk_spin_button_set_value (GTK_SPIN_BUTTON(spinbutton_count), (float) cpl.count );
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton_count), (float) cpl.count);
         return;
     }
-    tmpbuf[0]=0;
+    tmpbuf[0] = 0;
     if (cpl.fire_on) {
-        strcat(tmpbuf,"fire+");
+        strcat(tmpbuf, "fire+");
     }
     if (cpl.run_on) {
-        strcat(tmpbuf,"run+");
+        strcat(tmpbuf, "run+");
     }
     if (cpl.alt_on) {
-        strcat(tmpbuf,"alt+");
+        strcat(tmpbuf, "alt+");
     }
     if (cpl.meta_on) {
-        strcat(tmpbuf,"meta+");
+        strcat(tmpbuf, "meta+");
     }
 
-    snprintf(buf, sizeof(buf), "Key %s%s is not bound to any command.  Use bind to associate this keypress with a command",
-             tmpbuf, keysym==NoSymbol? "unknown": gdk_keyval_name(keysym));
+    snprintf(buf, sizeof(buf),
+             "Key %s%s is not bound to any command.  Use bind to associate this keypress with a command",
+             tmpbuf, keysym == NoSymbol ? "unknown" : gdk_keyval_name(keysym));
 #ifdef WIN32
-    if ( ( 65513 != keysym ) && ( 65511 != keysym ) )
+    if ((65513 != keysym) && (65511 != keysym))
 #endif
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
-    cpl.count=0;
+    cpl.count = 0;
 }
 
 /**
@@ -789,54 +803,54 @@ static void parse_key(char key, uint32 keysym)
  * information in a friendly manner.
  * @return A character string describing the key.
  */
-static char * get_key_info(Key_Entry *key, int save_mode)
+static char *get_key_info(Key_Entry *key, int save_mode)
 {
     /* bind buf is the maximum space allowed for a
      * binded command. We will add additional datas to
      * it so we increase by MAX_BUF*/
-    static char buf[MAX_BUF+sizeof(bind_buf)];
+    static char buf[MAX_BUF + sizeof(bind_buf)];
 
     char buff[MAX_BUF];
-    int bi=0;
+    int bi = 0;
 
     if ((key->flags & KEYF_MODIFIERS) == KEYF_MODIFIERS) {
-        buff[bi++] ='A';
+        buff[bi++] = 'A';
     } else {
         if (key->flags & KEYF_NORMAL) {
-            buff[bi++] ='N';
+            buff[bi++] = 'N';
         }
         if (key->flags & KEYF_FIRE) {
-            buff[bi++] ='F';
+            buff[bi++] = 'F';
         }
         if (key->flags & KEYF_RUN) {
-            buff[bi++] ='R';
+            buff[bi++] = 'R';
         }
         if (key->flags & KEYF_ALT) {
-            buff[bi++] ='L';
+            buff[bi++] = 'L';
         }
         if (key->flags & KEYF_META) {
-            buff[bi++] ='M';
+            buff[bi++] = 'M';
         }
     }
     if (key->flags & KEYF_EDIT) {
-        buff[bi++] ='E';
+        buff[bi++] = 'E';
     }
     if (key->flags & KEYF_STANDARD) {
-        buff[bi++] ='S';
+        buff[bi++] = 'S';
     }
 
-    buff[bi]='\0';
+    buff[bi] = '\0';
     if (save_mode) {
-        if(key->keysym == NoSymbol) {
+        if (key->keysym == NoSymbol) {
             snprintf(buf, sizeof(buf), "(null) %i %s %s",
-                     0,buff, key->command);
+                     0, buff, key->command);
         } else {
             snprintf(buf, sizeof(buf), "%s %i %s %s",
                      gdk_keyval_name(key->keysym), 0,
                      buff, key->command);
         }
     } else {
-        if(key->keysym == NoSymbol) {
+        if (key->keysym == NoSymbol) {
             snprintf(buf, sizeof(buf), "key (null) %s %s",
                      buff, key->command);
         } else {
@@ -855,56 +869,56 @@ static char * get_key_info(Key_Entry *key, int save_mode)
  */
 static void show_keys(int allbindings)
 {
-    int i, count=1;
+    int i, count = 1;
     Key_Entry *key;
     char buf[MAX_BUF];
 
     snprintf(buf, sizeof(buf), "Commandkey %s",
-             commandkeysym==NoSymbol?"unknown":gdk_keyval_name(commandkeysym));
+             commandkeysym == NoSymbol ? "unknown" : gdk_keyval_name(commandkeysym));
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Firekeys 1: %s, 2: %s",
-             firekeysym[0]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[0]),
-             firekeysym[1]==NoSymbol?"unknown":gdk_keyval_name(firekeysym[1]));
+             firekeysym[0] == NoSymbol ? "unknown" : gdk_keyval_name(firekeysym[0]),
+             firekeysym[1] == NoSymbol ? "unknown" : gdk_keyval_name(firekeysym[1]));
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Altkeys 1: %s, 2: %s",
-             altkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[0]),
-             altkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(altkeysym[1]));
+             altkeysym[0] == NoSymbol ? "unknown" : gdk_keyval_name(altkeysym[0]),
+             altkeysym[1] == NoSymbol ? "unknown" : gdk_keyval_name(altkeysym[1]));
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Metakeys 1: %s, 2: %s",
-             metakeysym[0]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[0]),
-             metakeysym[1]==NoSymbol?"unknown":gdk_keyval_name(metakeysym[1]));
+             metakeysym[0] == NoSymbol ? "unknown" : gdk_keyval_name(metakeysym[0]),
+             metakeysym[1] == NoSymbol ? "unknown" : gdk_keyval_name(metakeysym[1]));
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Runkeys 1: %s, 2: %s",
-             runkeysym[0]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[0]),
-             runkeysym[1]==NoSymbol?"unknown":gdk_keyval_name(runkeysym[1]));
+             runkeysym[0] == NoSymbol ? "unknown" : gdk_keyval_name(runkeysym[0]),
+             runkeysym[1] == NoSymbol ? "unknown" : gdk_keyval_name(runkeysym[1]));
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Command Completion Key %s",
-             completekeysym==NoSymbol?"unknown":gdk_keyval_name(completekeysym));
+             completekeysym == NoSymbol ? "unknown" : gdk_keyval_name(completekeysym));
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Next Command in History Key %s",
-             nextkeysym==NoSymbol?"unknown":gdk_keyval_name(nextkeysym));
+             nextkeysym == NoSymbol ? "unknown" : gdk_keyval_name(nextkeysym));
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     snprintf(buf, sizeof(buf), "Previous Command in History Key %s",
-             prevkeysym==NoSymbol?"unknown":gdk_keyval_name(prevkeysym));
+             prevkeysym == NoSymbol ? "unknown" : gdk_keyval_name(prevkeysym));
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
 
     /*
      * Perhaps we should start at 8, so that we only show 'active' keybindings?
      */
-    for (i=0; i<KEYHASH; i++) {
-        for (key=keys[i]; key!=NULL; key =key->next) {
+    for (i = 0; i < KEYHASH; i++) {
+        for (key = keys[i]; key != NULL; key = key->next) {
             if (key->flags & KEYF_STANDARD && !allbindings) {
                 continue;
             }
 
-            snprintf(buf, sizeof(buf), "%3d %s",count,  get_key_info(key,0));
+            snprintf(buf, sizeof(buf), "%3d %s", count, get_key_info(key, 0));
             draw_ext_info(
                 NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
             count++;
@@ -933,7 +947,7 @@ void bind_key(char *params)
     }
 
     /* Skip over any spaces we may have */
-    while (*params==' ') {
+    while (*params == ' ') {
         params++;
     }
 
@@ -946,42 +960,42 @@ void bind_key(char *params)
     }
 
     if (!strcmp(params, "firekey1")) {
-        bind_keysym = & firekeysym[0];
+        bind_keysym = &firekeysym[0];
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
                       "Push key to bind new firekey 1.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "firekey2")) {
-        bind_keysym = & firekeysym[1];
+        bind_keysym = &firekeysym[1];
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
                       "Push key to bind new firekey 2.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "metakey1")) {
-        bind_keysym = & metakeysym[0];
+        bind_keysym = &metakeysym[0];
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
                       "Push key to bind new metakey 1.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "metakey2")) {
-        bind_keysym = & metakeysym[1];
+        bind_keysym = &metakeysym[1];
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
                       "Push key to bind new metakey 2.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "altkey1")) {
-        bind_keysym = & altkeysym[0];
+        bind_keysym = &altkeysym[0];
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
                       "Push key to bind new altkey 1.");
         cpl.input_state = Configure_Keys;
         return;
     }
     if (!strcmp(params, "altkey2")) {
-        bind_keysym = & altkeysym[1];
+        bind_keysym = &altkeysym[1];
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY,
                       "Push key to bind new altkey 2.");
         cpl.input_state = Configure_Keys;
@@ -1030,8 +1044,8 @@ void bind_key(char *params)
     if (params[0] != '-') {
         bind_flags = KEYF_MODIFIERS;
     } else {
-        bind_flags =0;
-        bind_keysym=NULL;
+        bind_flags = 0;
+        bind_keysym = NULL;
         for (params++; *params != ' '; params++)
             switch (*params) {
             case 'a':
@@ -1066,7 +1080,7 @@ void bind_key(char *params)
         params++;
     }
 
-    if (! (bind_flags & KEYF_MODIFIERS)) {
+    if (!(bind_flags & KEYF_MODIFIERS)) {
         bind_flags |= KEYF_MODIFIERS;
     }
 
@@ -1104,7 +1118,7 @@ void bind_key(char *params)
  */
 static void save_individual_key(FILE *fp, Key_Entry *key, KeyCode kc)
 {
-    if (key==NULL) {
+    if (key == NULL) {
         return;
     }
     fprintf(fp, "%s\n", get_key_info(key, 1));
@@ -1146,11 +1160,12 @@ static void save_keys(void)
     CONVERT_FILESPEC_TO_OS_FORMAT(buf);
 #endif
 
-    if (make_path_to_file(buf)==-1) {
-        LOG(LOG_WARNING,"gtk-v2::save_keys","Could not create %s", buf);
+    if (make_path_to_file(buf) == -1) {
+        LOG(LOG_WARNING, "gtk-v2::save_keys", "Could not create %s", buf);
         return;
     }
-    if ((fp=fopen(buf,"w"))==NULL) {
+    fp = fopen(buf,"w");
+    if (fp == NULL) {
         snprintf(buf2, sizeof(buf2), "Could not open %s, key bindings not saved\n", buf);
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf2);
         return;
@@ -1221,29 +1236,29 @@ static void save_keys(void)
 static void configure_keys(uint32 keysym)
 {
     char buf[MAX_BUF];
-    Key_Entry *keyentry, *first_match=NULL;
+    Key_Entry *keyentry, *first_match = NULL;
 
     /*
      * I think that basically if we are not rebinding the special control keys
      * (in which case bind_kesym would be set to something) we just want to
      * handle these keypresses as normal events.
      */
-    if (bind_keysym==NULL) {
-        if(keysym == altkeysym[0] || keysym == altkeysym[1]) {
-            cpl.alt_on =1;
+    if (bind_keysym == NULL) {
+        if (keysym == altkeysym[0] || keysym == altkeysym[1]) {
+            cpl.alt_on = 1;
             return;
         }
-        if(keysym == metakeysym[0] || keysym == metakeysym[1]) {
-            cpl.meta_on =1;
+        if (keysym == metakeysym[0] || keysym == metakeysym[1]) {
+            cpl.meta_on = 1;
             return;
         }
-        if(keysym == firekeysym[0] || keysym == firekeysym[1]) {
-            cpl.fire_on =1;
+        if (keysym == firekeysym[0] || keysym == firekeysym[1]) {
+            cpl.fire_on = 1;
             draw_message_window(0);
             return;
         }
-        if(keysym == runkeysym[0] || keysym == runkeysym[1]) {
-            cpl.run_on =1;
+        if (keysym == runkeysym[0] || keysym == runkeysym[1]) {
+            cpl.run_on = 1;
             draw_message_window(0);
             return;
         }
@@ -1255,7 +1270,7 @@ static void configure_keys(uint32 keysym)
      * flags to bind for many simple binds.
      */
     if ((cpl.fire_on || cpl.run_on || cpl.meta_on || cpl.alt_on) &&
-            (bind_flags & KEYF_MODIFIERS)==KEYF_MODIFIERS) {
+            (bind_flags & KEYF_MODIFIERS) == KEYF_MODIFIERS) {
         bind_flags &= ~KEYF_MODIFIERS;
         if (cpl.fire_on) {
             bind_flags |= KEYF_FIRE;
@@ -1271,29 +1286,31 @@ static void configure_keys(uint32 keysym)
         }
     }
 
-    if (bind_keysym!=NULL) {
-        *bind_keysym=keysym;
-        bind_keysym=NULL;
+    if (bind_keysym != NULL) {
+        *bind_keysym = keysym;
+        bind_keysym = NULL;
     } else {
         keyentry = keys[keysym % KEYHASH];
-        while (keyentry!=NULL) {
-            if ((keyentry->keysym!=0 && keyentry->keysym!=keysym) ||
+        while (keyentry != NULL) {
+            if ((keyentry->keysym != 0 && keyentry->keysym != keysym) ||
                     (!(keyentry->flags & bind_flags))) {
-                keyentry=keyentry->next;
+                keyentry = keyentry->next;
                 continue;
             }
             first_match = keyentry;
 
             /* Try to find a prefect match */
-            if ((keyentry->flags & KEYF_MODIFIERS)!= bind_flags) {
-                keyentry=keyentry->next;
+            if ((keyentry->flags & KEYF_MODIFIERS) != bind_flags) {
+                keyentry = keyentry->next;
                 continue;
             } else {
                 break;
             }
         }
         if (first_match) {
-            snprintf(buf, sizeof(buf), "Warning: Keybind %s may conflict with new binding.", first_match->command);
+            snprintf(buf, sizeof(buf),
+                     "Warning: Keybind %s may conflict with new binding.",
+                     first_match->command);
             draw_ext_info(
                 NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
         }
@@ -1302,10 +1319,10 @@ static void configure_keys(uint32 keysym)
     }
 
     snprintf(buf, sizeof(buf), "Binded to key '%s' (%i)",
-             keysym==NoSymbol?"unknown":gdk_keyval_name(keysym), keysym);
+             keysym == NoSymbol ? "unknown" : gdk_keyval_name(keysym), keysym);
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
-    cpl.fire_on=0;
-    cpl.run_on=0;
+    cpl.fire_on = 0;
+    cpl.run_on = 0;
     draw_message_window(0);
 
     /*
@@ -1338,43 +1355,45 @@ static void unbind_usage(void)
  */
 void unbind_key(const char *params)
 {
-    int count=0, keyentry, onkey,global=0;
+    int count = 0, keyentry, onkey,global = 0;
     Key_Entry *key, *tmp;
     char buf[MAX_BUF];
 
-    if (params==NULL || params[0]=='\0') {
+    if (params == NULL || params[0] == '\0') {
         show_keys(0);
         return;
     }
 
     /* Skip over any spaces we may have */
-    while (*params==' ') {
+    while (*params == ' ') {
         params++;
     }
 
-    if (!strcmp(params,"-a")) {
+    if (!strcmp(params, "-a")) {
         show_keys(1);
         return;
     }
-    if (!strncmp(params,"-g",2)) {
-        global=1;
-        if (!(params=strchr(params,' ')))  {
+    if (!strncmp(params, "-g", 2)) {
+        global = 1;
+        params = strchr(params,' ');
+        if (params == NULL)  {
             unbind_usage();
             return;
         }
     }
-    if ((keyentry=atoi(params))==0) {
+    keyentry = atoi(params);
+    if (keyentry == 0) {
         unbind_usage();
         return;
     }
 
-    for (onkey=0; onkey<KEYHASH; onkey++) {
-        for (key=keys[onkey]; key; key =key->next) {
-            if (global || !(key->flags&KEYF_STANDARD)) {
+    for (onkey = 0; onkey < KEYHASH; onkey++) {
+        for (key = keys[onkey]; key; key = key->next) {
+            if (global || !(key->flags & KEYF_STANDARD)) {
                 count++;
             }
             /* We found the key we want to unbind */
-            if (keyentry==count) {
+            if (keyentry == count) {
 
                 /* If it is the first entry, it is easy */
                 if (key == keys[onkey]) {
@@ -1385,9 +1404,9 @@ void unbind_key(const char *params)
                  * Otherwise, we need to figure out where in the link list the
                  * entry is.
                  */
-                for (tmp=keys[onkey]; tmp->next!=NULL; tmp=tmp->next) {
+                for (tmp = keys[onkey]; tmp->next != NULL; tmp = tmp->next) {
                     if (tmp->next == key) {
-                        tmp->next =key->next;
+                        tmp->next = key->next;
                         goto unbinded;
                     }
                 }
@@ -1418,24 +1437,24 @@ unbinded:
  */
 void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
 {
-    if (cpl.fire_on==1) {
-        cpl.fire_on=0;
+    if (cpl.fire_on == 1) {
+        cpl.fire_on = 0;
         clear_fire();
-        gtk_label_set (GTK_LABEL(fire_label),"    ");
+        gtk_label_set(GTK_LABEL(fire_label), "    ");
     }
-    if (cpl.run_on==1) {
-        cpl.run_on=0;
+    if (cpl.run_on == 1) {
+        cpl.run_on = 0;
         if (use_config[CONFIG_ECHO])
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                           "stop run");
         clear_run();
-        gtk_label_set (GTK_LABEL(run_label),"   ");
+        gtk_label_set(GTK_LABEL(run_label), "   ");
     }
-    if (cpl.alt_on==1) {
-        cpl.alt_on=0;
+    if (cpl.alt_on == 1) {
+        cpl.alt_on = 0;
     }
-    if (cpl.meta_on==1) {
-        cpl.meta_on=0;
+    if (cpl.meta_on == 1) {
+        cpl.meta_on = 0;
     }
 }
 
@@ -1448,10 +1467,10 @@ void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
  */
 void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
 {
-    if (event->keyval > 0 && ! GTK_WIDGET_HAS_FOCUS(entry_commands)) {
+    if (event->keyval > 0 && !GTK_WIDGET_HAS_FOCUS(entry_commands)) {
         parse_key_release(event->keyval);
     }
-    g_signal_stop_emission_by_name(GTK_OBJECT (window), "key_release_event");
+    g_signal_stop_emission_by_name(GTK_OBJECT(window), "key_release_event");
 }
 
 /**
@@ -1478,11 +1497,11 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
 
             if (csocket_fd) {
                 gdk_input_remove(csocket_fd);
-                csocket_fd=0;
+                csocket_fd = 0;
                 gtk_main_quit();
             }
             g_signal_stop_emission_by_name(
-                GTK_OBJECT (window), "key_press_event");
+                GTK_OBJECT(window), "key_press_event");
             return;
         }
         if  (cpl.input_state == Reply_One) {
@@ -1490,16 +1509,16 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
             send_reply(text);
             cpl.input_state = Playing;
             g_signal_stop_emission_by_name(
-                GTK_OBJECT (window), "key_press_event");
+                GTK_OBJECT(window), "key_press_event");
             return;
         } else if (cpl.input_state == Reply_Many) {
             if (GTK_WIDGET_HAS_FOCUS (entry_commands)) {
                 gtk_widget_event(GTK_WIDGET(entry_commands), (GdkEvent*)event);
             } else {
-                gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
+                gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
             }
             g_signal_stop_emission_by_name(
-                GTK_OBJECT (window), "key_press_event");
+                GTK_OBJECT(window), "key_press_event");
             return;
         }
     }
@@ -1508,7 +1527,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
      * handling these key values.
      */
     if (event->keyval > 0) {
-        if (GTK_WIDGET_HAS_FOCUS (entry_commands)) {
+        if (GTK_WIDGET_HAS_FOCUS(entry_commands)) {
             if (event->keyval == completekeysym) {
                 gtk_complete_command();
             }
@@ -1525,22 +1544,22 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
                  * will want to go the previous command when nothing is
                  * entered in the command window.
                  */
-                if (event->keyval == prevkeysym
-                        ||  event->keyval == nextkeysym) {
-                    gtk_command_history(event->keyval == nextkeysym?0:1);
+                if ((event->keyval == prevkeysym)
+                        || (event->keyval == nextkeysym)) {
+                    gtk_command_history(event->keyval == nextkeysym ? 0 : 1);
                 } else {
                     if (cpl.run_on) {
                         if (!(event->state & GDK_CONTROL_MASK)) {
                             /* printf("Run is on while ctrl is not\n"); */
-                            gtk_label_set (GTK_LABEL(run_label),"   ");
-                            cpl.run_on=0;
+                            gtk_label_set(GTK_LABEL(run_label), "   ");
+                            cpl.run_on = 0;
                             stop_run();
                         }
                     }
                     if (cpl.fire_on) {
                         if (!(event->state & GDK_SHIFT_MASK)) {
                             /* printf("Fire is on while shift is not\n");*/
-                            gtk_label_set (GTK_LABEL(fire_label),"   ");
+                            gtk_label_set(GTK_LABEL(fire_label), "   ");
                             cpl.fire_on = 0;
                             stop_fire();
                         }
@@ -1548,7 +1567,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
 
                     if ( (event->state & GDK_CONTROL_MASK)
                             && (event->state & GDK_SHIFT_MASK)
-                            && (event->keyval==GDK_i || event->keyval==GDK_I) ) {
+                            && (event->keyval == GDK_i || event->keyval == GDK_I) ) {
                         reset_map();
                     }
 
@@ -1561,14 +1580,14 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
                 break;
 
             case Command_Mode:
-                if ( event->keyval == completekeysym ) {
+                if (event->keyval == completekeysym) {
                     gtk_complete_command();
                 }
-                if ( event->keyval == prevkeysym
-                        ||   event->keyval == nextkeysym ) {
-                    gtk_command_history(event->keyval == nextkeysym?0:1);
+                if ((event->keyval == prevkeysym)
+                        || (event->keyval == nextkeysym)) {
+                    gtk_command_history(event->keyval == nextkeysym ? 0 : 1);
                 } else {
-                    gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
+                    gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
                     /*
                      * When running in split windows mode, entry_commands
                      * can't get focus because it is in a different
@@ -1587,7 +1606,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
                 break;
 
             case Metaserver_Select:
-                gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
+                gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
                 break;
 
             default:
@@ -1597,7 +1616,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
         }
     }
     g_signal_stop_emission_by_name(
-        GTK_OBJECT (window), "key_press_event");
+        GTK_OBJECT(window), "key_press_event");
 }
 
 /**
@@ -1605,66 +1624,66 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
  *
  * @param keylist
  */
-void draw_keybindings (GtkWidget *keylist)
+void draw_keybindings(GtkWidget *keylist)
 {
-    int i, count=1;
+    int i, count = 1;
     Key_Entry *key;
-    int allbindings=0;
+    int allbindings = 0;
     char buff[MAX_BUF];
-    int bi=0;
+    int bi = 0;
     char buffer[5][MAX_BUF];
     char *buffers[5];
     gint tmprow;
 
     gtk_clist_clear (GTK_CLIST(keylist));
-    for (i=0; i<KEYHASH; i++) {
-        for (key=keys[i]; key!=NULL; key =key->next) {
+    for (i = 0; i < KEYHASH; i++) {
+        for (key = keys[i]; key != NULL; key = key->next) {
             if (key->flags & KEYF_STANDARD && !allbindings) {
                 continue;
             }
 
-            bi=0;
+            bi = 0;
 
             if ((key->flags & KEYF_MODIFIERS) == KEYF_MODIFIERS) {
-                buff[bi++] ='A';
+                buff[bi++] = 'A';
             } else {
                 if (key->flags & KEYF_NORMAL) {
-                    buff[bi++] ='N';
+                    buff[bi++] = 'N';
                 }
                 if (key->flags & KEYF_FIRE) {
-                    buff[bi++] ='F';
+                    buff[bi++] = 'F';
                 }
                 if (key->flags & KEYF_RUN) {
-                    buff[bi++] ='R';
+                    buff[bi++] = 'R';
                 }
                 if (key->flags & KEYF_ALT) {
-                    buff[bi++] ='L';
+                    buff[bi++] = 'L';
                 }
                 if (key->flags & KEYF_META) {
-                    buff[bi++] ='M';
+                    buff[bi++] = 'M';
                 }
             }
             if (key->flags & KEYF_EDIT) {
-                buff[bi++] ='E';
+                buff[bi++] = 'E';
             }
             if (key->flags & KEYF_STANDARD) {
-                buff[bi++] ='S';
+                buff[bi++] = 'S';
             }
 
-            buff[bi]='\0';
+            buff[bi] = '\0';
 
-            if(key->keysym != NoSymbol) {
-                snprintf(buffer[0], sizeof(buffer[0]), "%i",count);
+            if (key->keysym != NoSymbol) {
+                snprintf(buffer[0], sizeof(buffer[0]), "%i", count);
                 snprintf(buffer[1], sizeof(buffer[1]), "%s", gdk_keyval_name(key->keysym));
-                snprintf(buffer[2], sizeof(buffer[2]), "%i",i);
-                snprintf(buffer[3], sizeof(buffer[3]), "%s",buff);
+                snprintf(buffer[2], sizeof(buffer[2]), "%i", i);
+                snprintf(buffer[3], sizeof(buffer[3]), "%s", buff);
                 snprintf(buffer[4], sizeof(buffer[4]), "%s", key->command);
                 buffers[0] = buffer[0];
                 buffers[1] = buffer[1];
                 buffers[2] = buffer[2];
                 buffers[3] = buffer[3];
                 buffers[4] = buffer[4];
-                tmprow = gtk_clist_append (GTK_CLIST (keylist), buffers);
+                tmprow = gtk_clist_append(GTK_CLIST(keylist), buffers);
             }
             count++;
         }
@@ -1687,7 +1706,7 @@ void x_set_echo(void)
 void draw_prompt(const char *str)
 {
     draw_ext_info(NDI_WHITE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY, str);
-    gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
+    gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
 }
 
 /**
@@ -1697,18 +1716,18 @@ void draw_prompt(const char *str)
  */
 void gtk_command_history(int direction)
 {
-    int i=scroll_history_position;
+    int i = scroll_history_position;
     if (direction) {
         i--;
-        if (i<0) {
-            i+=MAX_HISTORY;
+        if (i < 0) {
+            i += MAX_HISTORY;
         }
         if (i == cur_history_position) {
             return;
         }
     } else {
         i++;
-        if (i>=MAX_HISTORY) {
+        if (i >= MAX_HISTORY) {
             i = 0;
         }
         if (i == cur_history_position) {
@@ -1730,7 +1749,7 @@ void gtk_command_history(int direction)
     scroll_history_position=i;
     /*  fprintf(stderr,"resetting postion to %d, data = %s\n", i, history[i]);*/
     gtk_entry_set_text(GTK_ENTRY(entry_commands), history[i]);
-    gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
+    gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
     gtk_editable_select_region(GTK_EDITABLE(entry_commands), 0, 0);
     gtk_editable_set_position(GTK_EDITABLE(entry_commands), -1);
 
@@ -1752,7 +1771,7 @@ void gtk_complete_command(void)
     /* value differ, so update window */
     if (newcommand != NULL) {
         gtk_entry_set_text(GTK_ENTRY(entry_commands), newcommand);
-        gtk_widget_grab_focus (GTK_WIDGET(entry_commands));
+        gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
         gtk_editable_select_region(GTK_EDITABLE(entry_commands), 0, 0);
         gtk_editable_set_position(GTK_EDITABLE(entry_commands), -1);
     }
@@ -1765,9 +1784,7 @@ void gtk_complete_command(void)
  * @param entry
  * @param user_data
  */
-void
-on_entry_commands_activate             (GtkEntry        *entry,
-                                        gpointer         user_data)
+void on_entry_commands_activate(GtkEntry *entry, gpointer user_data)
 {
     const gchar *entry_text;
     extern GtkWidget *treeview_look;
@@ -1779,7 +1796,7 @@ on_entry_commands_activate             (GtkEntry        *entry,
 
     entry_text = gtk_entry_get_text(GTK_ENTRY(entry));
 
-    if (cpl.input_state==Metaserver_Select) {
+    if (cpl.input_state == Metaserver_Select) {
         strcpy(cpl.input_text, entry_text);
     } else if (cpl.input_state == Reply_One || cpl.input_state == Reply_Many) {
         cpl.input_state = Playing;
@@ -1793,19 +1810,19 @@ on_entry_commands_activate             (GtkEntry        *entry,
     } else {
         cpl.input_state = Playing;
         /* Some spells (dimension door) need a valid count value */
-        cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(spinbutton_count));
+        cpl.count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton_count));
 
         /* No reason to do anything for a null string */
         if (entry_text[0] != 0) {
             strncpy(history[cur_history_position], entry_text, MAX_COMMAND_LEN);
-            history[cur_history_position][MAX_COMMAND_LEN-1] = 0;
+            history[cur_history_position][MAX_COMMAND_LEN - 1] = 0;
             cur_history_position++;
             cur_history_position %= MAX_HISTORY;
             scroll_history_position = cur_history_position;
             extended_command(entry_text);
         }
     }
-    gtk_entry_set_text(GTK_ENTRY(entry),"");
+    gtk_entry_set_text(GTK_ENTRY(entry), "");
 
     /*
      * This grab focus is really just so the entry box doesn't have focus -
@@ -1813,10 +1830,10 @@ on_entry_commands_activate             (GtkEntry        *entry,
      * goes into the entry box.  It doesn't make much difference what widget
      * this is set to, as long as it is something that can get focus.
      */
-    gtk_widget_grab_focus (GTK_WIDGET(treeview_look));
+    gtk_widget_grab_focus(GTK_WIDGET(treeview_look));
 
     if( cpl.input_state == Metaserver_Select) {
-        cpl.input_state= Playing;
+        cpl.input_state = Playing;
         /*
          * This is the gtk_main that is started up by get_metaserver The client
          * will start another one once it is connected to a crossfire server
@@ -1839,15 +1856,15 @@ on_entry_commands_activate             (GtkEntry        *entry,
  */
 void update_keybinding_list(void)
 {
-    int i, allbindings=0;
+    int i, allbindings = 0;
     Key_Entry *key;
-    char    modifier_buf[256];
+    char modifier_buf[256];
     GtkTreeIter iter;
 
     gtk_list_store_clear(keybinding_store);
 
-    for (i=0; i<KEYHASH; i++) {
-        for (key=keys[i]; key!=NULL; key =key->next) {
+    for (i = 0; i < KEYHASH; i++) {
+        for (key = keys[i]; key != NULL; key = key->next) {
             if (key->flags & KEYF_STANDARD && !allbindings) {
                 continue;
             }
@@ -1856,29 +1873,29 @@ void update_keybinding_list(void)
 
             if ((key->flags & KEYF_MODIFIERS) != KEYF_MODIFIERS) {
                 if (key->flags & KEYF_ALT) {
-                    strcat(modifier_buf,"Alt ");
+                    strcat(modifier_buf, "Alt ");
                 }
                 if (key->flags & KEYF_FIRE) {
-                    strcat(modifier_buf,"Fire ");
+                    strcat(modifier_buf, "Fire ");
                 }
                 if (key->flags & KEYF_RUN) {
-                    strcat(modifier_buf,"Run ");
+                    strcat(modifier_buf, "Run ");
                 }
                 if (key->flags & KEYF_META) {
-                    strcat(modifier_buf,"Meta ");
+                    strcat(modifier_buf, "Meta ");
                 }
             } else {
                 strcat(modifier_buf, "All ");
             }
             if (key->flags & KEYF_STANDARD) {
-                strcat(modifier_buf,"(Standard) ");
+                strcat(modifier_buf, "(Standard) ");
             }
             gtk_list_store_append(keybinding_store, &iter);
             gtk_list_store_set(keybinding_store, &iter,
                                KLIST_ENTRY, i,
-                               KLIST_KEY,  gdk_keyval_name(key->keysym),
+                               KLIST_KEY, gdk_keyval_name(key->keysym),
                                KLIST_MODS, modifier_buf,
-                               KLIST_EDIT, (key->flags & KEYF_EDIT) ? "Yes":"No",
+                               KLIST_EDIT, (key->flags & KEYF_EDIT) ? "Yes" : "No",
                                KLIST_COMMAND, key->command,
                                KLIST_KEY_ENTRY, key,
                                -1);
@@ -1893,9 +1910,7 @@ void update_keybinding_list(void)
  * @param menuitem
  * @param user_data
  */
-void
-on_keybindings_activate                (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+void on_keybindings_activate(GtkMenuItem *menuitem, gpointer user_data)
 {
     gtk_widget_show(keybinding_window);
     update_keybinding_list();
@@ -1913,10 +1928,8 @@ on_keybindings_activate                (GtkMenuItem     *menuitem,
  * @param user_data
  * @return TRUE (Returning TRUE prevents widget from getting this event.)
  */
-gboolean
-on_keybinding_entry_key_key_press_event(GtkWidget       *widget,
-                                        GdkEventKey     *event,
-                                        gpointer         user_data)
+gboolean on_keybinding_entry_key_key_press_event(GtkWidget *widget,
+                                GdkEventKey *event, gpointer user_data)
 {
     gtk_entry_set_text(
         GTK_ENTRY(keybinding_entry_key), gdk_keyval_name(event->keyval));
@@ -1968,13 +1981,11 @@ on_keybinding_entry_key_key_press_event(GtkWidget       *widget,
  * @param button
  * @param user_data
  */
-void
-on_keybinding_button_remove_clicked    (GtkButton       *button,
-                                        gpointer         user_data)
+void on_keybinding_button_remove_clicked(GtkButton *button, gpointer user_data)
 {
-    GtkTreeModel    *model;
+    GtkTreeModel *model;
     GtkTreeIter iter;
-    Key_Entry   *entry, *key, *tmp;
+    Key_Entry *entry, *key, *tmp;
     int onkey;
 
     if (!gtk_tree_selection_get_selected(keybinding_selection, &model, &iter)) {
@@ -2056,7 +2067,7 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
      * Meta checkboxes are checked. This closely matches the combined existing
      * logic in the parse_key() and get_key_info() functions.
      */
-    if (! *flags || (*flags | KEYF_NORMAL) == KEYF_MODIFIERS) {
+    if (!*flags || (*flags | KEYF_NORMAL) == KEYF_MODIFIERS) {
         *flags |= KEYF_NORMAL;
     }
 
@@ -2069,8 +2080,8 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
     if (strlen(ed) >= sizeof(bind_buf)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR,
                       "Keybinding too long! Truncated.");
-        strncpy(bind_buf, ed, MAX_BUF-1);
-        bind_buf[MAX_BUF-1] = 0;
+        strncpy(bind_buf, ed, MAX_BUF - 1);
+        bind_buf[MAX_BUF - 1] = 0;
         *command = bind_buf;
     } else {
         *command = ed;
@@ -2095,12 +2106,10 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
  * @param button
  * @param user_data
  */
-void
-on_keybinding_button_bind_clicked      (GtkButton       *button,
-                                        gpointer         user_data)
+void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data)
 {
-    uint32  keysym;
-    uint8   flags;
+    uint32 keysym;
+    uint8 flags;
     const char *command;
 
     keybinding_get_data(&keysym, &flags, &command);
@@ -2127,13 +2136,11 @@ on_keybinding_button_bind_clicked      (GtkButton       *button,
  * @param button
  * @param user_data
  */
-void
-on_keybinding_button_update_clicked    (GtkButton       *button,
-                                        gpointer         user_data)
+void on_keybinding_button_update_clicked(GtkButton *button, gpointer user_data)
 {
     GtkTreeIter iter;
-    Key_Entry   *entry;
-    GtkTreeModel    *model;
+    Key_Entry *entry;
+    GtkTreeModel *model;
     const char *buf;
 
     if (gtk_tree_selection_get_selected(keybinding_selection, &model, &iter)) {
@@ -2161,9 +2168,7 @@ on_keybinding_button_update_clicked    (GtkButton       *button,
  * @param button
  * @param user_data
  */
-void
-on_keybinding_button_close_clicked     (GtkButton       *button,
-                                        gpointer         user_data)
+void on_keybinding_button_close_clicked(GtkButton *button, gpointer user_data)
 {
     gtk_widget_hide(keybinding_window);
 }
@@ -2180,7 +2185,7 @@ on_keybinding_button_close_clicked     (GtkButton       *button,
  * @param userdata
  * @return TRUE
  */
-gboolean keybinding_selection_func (
+gboolean keybinding_selection_func(
     GtkTreeSelection *selection,
     GtkTreeModel     *model,
     GtkTreePath      *path,
@@ -2276,11 +2281,9 @@ void reset_keybinding_status(void)
  * @param button
  * @param user_data
  */
-void
-on_keybinding_button_clear_clicked     (GtkButton       *button,
-                                        gpointer         user_data)
+void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_data)
 {
-    GtkTreeModel    *model;
+    GtkTreeModel *model;
     GtkTreeIter iter;
 
     /*
@@ -2288,7 +2291,7 @@ on_keybinding_button_clear_clicked     (GtkButton       *button,
      * deselect the currently selected keybinding if there is one.
      */
     if (gtk_tree_selection_get_selected(keybinding_selection, &model, &iter)) {
-        gtk_tree_selection_unselect_iter (keybinding_selection, &iter);
+        gtk_tree_selection_unselect_iter(keybinding_selection, &iter);
     }
     reset_keybinding_status();          /* Clear inputs and reset buttons. */
 }
