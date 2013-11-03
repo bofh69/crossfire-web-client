@@ -131,6 +131,7 @@ extern void on_keybinding_button_remove_clicked(GtkButton *button, gpointer user
 extern void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data);
 extern void on_keybinding_button_update_clicked(GtkButton *button, gpointer user_data);
 extern void on_keybinding_button_close_clicked(GtkButton *button, gpointer user_data);
+extern void on_keybinding_checkbutton_any_clicked(GtkCheckButton *cb, gpointer user_data);
 extern gboolean keybinding_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern void reset_keybinding_status(void);
 extern void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_data);
