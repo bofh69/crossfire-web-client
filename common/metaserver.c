@@ -1041,11 +1041,7 @@ int metaserver_select(char *sel)
 
     snprintf(buf, sizeof(buf), "Trying to connect to %s:%d", server_name, port);
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, buf);
-#ifdef MULTKEYS
     csocket.fd = init_connection(server_name, port);
-#else
-    csocket.fd = init_connection(server_ip, port);
-#endif
     if (csocket.fd == -1) {
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
                       "Unable to connect to server.");

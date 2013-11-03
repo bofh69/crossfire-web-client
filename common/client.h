@@ -40,8 +40,6 @@
 #  include <dmalloc.h>
 #endif
 
-#define MULTKEYS
-
 #define VERSION_CS 1023
 #define VERSION_SC 1029
 
@@ -349,10 +347,13 @@ typedef struct Player_Struct {
     uint16      mapxres,mapyres;        /**< Resolution to draw on the magic
                                          *   map. Only used in client-specific
                                          *   code, so it should move there. */
-#ifdef MULTKEYS
-    char    name[ 40 ];                 /**< Player's name, for player-specific
-                                         *   key files */
-#endif
+    char        *name;                  /**< Name of PC, set and freed in account.c
+                                         *   play_character() (using data returned
+                                         *   from server to AccountPlayersCmd, via
+                                         *   character_choose window,
+                                         *   OR in
+                                         *   send_create_player_to_server() when
+                                         *   new character created. */
 } Client_Player;
 
 /**

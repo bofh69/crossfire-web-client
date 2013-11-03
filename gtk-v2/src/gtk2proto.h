@@ -112,6 +112,7 @@ extern void animate_inventory(void);
 extern void animate_look(void);
 extern void inventory_tick(void);
 /* keys.c */
+extern void keybindings_init();
 extern void keys_init(GtkWidget *window_root);
 extern void bind_key(char *params);
 extern void unbind_key(const char *params);

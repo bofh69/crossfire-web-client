@@ -471,24 +471,41 @@ static void init_default_keybindings(void)
     }
 }
 
-/**
- * Reads in the keybindings, and initializes special values.  It is called
- * from main() as part of the client start up. The function is common to both
- * the x11 and gdk clients.
- *
- * @param window_root The client's main window.
- *
- * @todo Fix the per-character keys file support that is under \#if 0.
- */
-void keys_init(GtkWidget *window_root)
+static int parse_keys_file(char *filename)
 {
-    int i, line = 0;
+    int line = 0;
     FILE *fp;
     char buf[BIG_BUF];
-    GtkTreeViewColumn *column;
-    GtkCellRenderer *renderer;
-    GladeXML *xml_tree;
-    GtkWidget *widget;
+
+    CONVERT_FILESPEC_TO_OS_FORMAT(filename);
+    LOG(LOG_INFO, "gtk-v2::init_keys",
+        "Trying to open keybinding file %s", filename);
+
+    fp = fopen(filename, "r");
+    if (fp == NULL) {
+        return -1;
+    }
+
+    while (fgets(buf, BIG_BUF, fp)) {
+        line++;
+        buf[BIG_BUF - 1] = '\0';
+        parse_keybind_line(buf, line);
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+/**
+ * Reads in the keybindings, and initializes special values. Called
+ * from main() as part of the client start up. The function is common to both
+ * the x11 and gdk clients.
+ */
+void keybindings_init()
+{
+    int i;
+    char buf[BIG_BUF];
+    int res;
 
     for (i = 0; i < MAX_HISTORY; i++) { /* Clear out the bind history log */
         history[i][0] = 0;
@@ -517,7 +534,9 @@ void keys_init(GtkWidget *window_root)
     prevkeysym = NoSymbol;
 
     for (i = 0; i < KEYHASH; i++) {
-        keys[i] = NULL;
+        while (keys[i]) {
+            keybind_remove(keys[i]);
+        }
     }
 
     /*
@@ -529,29 +548,44 @@ void keys_init(GtkWidget *window_root)
      * the same as what it was in the server distribution.  To convert bindings
      * in character files to this format, all that needs to be done is remove
      * the 'key ' at the start of each line.
-     *
-     * We need at least one of these keybinding files to exist - this is where
-     * the various commands are defined.  In theory, we actually don't need to
-     * have any of these defined -- the player could just bind everything.
-     * Probably not a good idea, however.
      */
 
-#if 0
-    /* For Windows, use player name if defined for key file */
-    /* FIXME:  keys_init() is called long before the player logs in, so until
-     * that is fixed, it is pointless to have this code check for cpl.name
-     * being set.  Also, it is completely inappropriate for this to be a
-     * Windows only feature.
-     */
-    if ( strlen( cpl.name ) ) {
-        sprintf( buf, "%s/.crossfire/%s.keys", getenv( "HOME" ), cpl.name );
-    } else {
-        sprintf(buf,"%s/.crossfire/keys", getenv("HOME"));
+    /* Try the character-specific keys file */
+    snprintf(buf, sizeof(buf), "%s/.crossfire/%s.keys", getenv("HOME"), cpl.name);
+    res = parse_keys_file(buf);
+    if (res < 0) {
+        /* Try the user-specific keys file */
+        snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
+        res = parse_keys_file(buf);
     }
-#else
-    snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
-    CONVERT_FILESPEC_TO_OS_FORMAT(buf);
-#endif
+    if ((res < 0) && (client_libdir != NULL)) {
+        /* Try the installation-specific keys file */
+        snprintf(buf, sizeof(buf), "%s/def_keys", client_libdir);
+        res = parse_keys_file(buf);
+    }
+    if (res < 0) {
+        /* Use built-in defaults */
+        LOG(LOG_INFO, "gtk-v2::init_keys",
+            "Could not open any keybindings file; using defaults");
+        init_default_keybindings();
+    }
+}
+
+
+/**
+ * One-time initialization of windows and signals for the keybindings
+ * dialog. It is called from main() as part of the client start up. The
+ * function is common to both the x11 and gdk clients.
+ *
+ * @param window_root The client's main window.
+ */
+void keys_init(GtkWidget *window_root)
+{
+    GtkTreeViewColumn *column;
+    GtkCellRenderer *renderer;
+    GladeXML *xml_tree;
+    GtkWidget *widget;
+    int i;
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
 
@@ -659,34 +693,9 @@ void keys_init(GtkWidget *window_root)
                                          KLIST_KEY,
                                          GTK_SORT_ASCENDING);
 
-    /* Try to read user keybindings and load defaults if that fails. */
-    fp = fopen(buf, "r");
-    if (fp == NULL) {
-        LOG(LOG_INFO, "gtk-v2::init_keys",
-            "Could not open user keybindings; using defaults");
-
-        /* Use built-in defaults if there is no system directory. */
-        if (client_libdir == NULL) {
-            init_default_keybindings();
-            return;
-        }
-
-        /* Try to read system keybindings before using built-in defaults. */
-        snprintf(buf, sizeof(buf), "%s/def_keys", client_libdir);
-        fp = fopen(buf, "r");
-        if (fp == NULL) {
-            init_default_keybindings();
-            return;
-        }
+    for (i = 0; i < KEYHASH; i++) {
+        keys[i] = NULL;
     }
-
-    while (fgets(buf, BIG_BUF, fp)) {
-        line++;
-        buf[BIG_BUF - 1] = '\0';
-        parse_keybind_line(buf, line);
-    }
-
-    fclose(fp);
 }
 
 /**
@@ -1181,8 +1190,6 @@ static void save_individual_key(FILE *fp, struct keybind *kb, KeyCode kc)
  * Next, the entire key hash is traversed and the contents of each slot is
  * dumped to the file, and the output file is closed.  Success or failure is
  * reported to the message pane.
- *
- * @todo Fix the per-character keys file support that is under \#if 0.
  */
 static void save_keys(void)
 {
@@ -1190,31 +1197,15 @@ static void save_keys(void)
     int i;
     FILE *fp;
 
-#if 0
-    /* Use player's name if available */
-    /* FIXME:  keys_init() is called long before the player logs in, so until
-     * that is fixed, it is pointless to have this code check for cpl.name
-     * being set so that a file is written that cannot be opened by under
-     * the existing code structure.  That just means the keybindings saved
-     * while logged in would be inaccessible until the file was copied to
-     * the regular keys file.  Also, this was originally under #ifdef WIN32,
-     * but is completely inappropriate for this to be a Windows only feature.
-     */
-    if ( strlen( cpl.name ) ) {
-        sprintf( buf,"%s/.crossfire/%s.keys", getenv("HOME"), cpl.name );
-    } else {
-        sprintf( buf,"%s/.crossfire/keys", getenv("HOME") );
-    }
-#else
-    snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
+    snprintf(buf, sizeof(buf), "%s/.crossfire/%s.keys", getenv("HOME"), cpl.name);
     CONVERT_FILESPEC_TO_OS_FORMAT(buf);
-#endif
+    LOG(LOG_WARNING, "gtk-v2::save_keys", "Saving keybindings to %s", buf);
 
     if (make_path_to_file(buf) == -1) {
         LOG(LOG_WARNING, "gtk-v2::save_keys", "Could not create %s", buf);
         return;
     }
-    fp = fopen(buf,"w");
+    fp = fopen(buf, "w");
     if (fp == NULL) {
         snprintf(buf2, sizeof(buf2), "Could not open %s, key bindings not saved\n", buf);
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf2);
@@ -2063,6 +2054,19 @@ void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data)
     res = keybind_insert(keysym, flags, command);
     if (res == -EKEYBIND_TAKEN) {
         // FIXME: popup message key already in use?
+/*
+        GtkWidget *dialog;
+        int result;
+
+        show_window(WINDOW_CHOOSE_MAP);
+        dialog =
+            gtk_message_dialog_new(GTK_WINDOW(choose_starting_map_window),
+                                   GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_WARNING,
+                                   GTK_BUTTONS_OK,
+                                   "You must choose a starting map before you can start playing");
+        result = gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+*/
         return;
     }
 
