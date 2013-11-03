@@ -234,10 +234,11 @@ static void update_all_stats()
         tval = gtk_label_get_text(GTK_LABEL(label_rs[i]));
         statval += atoi(tval);
 
-        /* Might it be good to draw negative stats in red?  Rather
+        /* Might it be good to draw nonpositive stats in red?  Rather
          * than hardcode that, it should be a style
+         * Used to only check for negative stats, but zero is not allowed either.
          */
-        if (statval < 0) {
+        if (statval < 1) {
             negative_stat = 1;
         }
 
@@ -258,7 +259,7 @@ static void update_all_stats()
                            "You have used more than your allotted total attribute points");
     } else if (negative_stat) {
         gtk_label_set_text(GTK_LABEL(label_cc_status_update),
-                           "Negative attributes are not allowed - adjust your selections before finishing");
+                           "Attributes less than 1 are not allowed - adjust your selections before finishing");
 
     } else {
         gtk_label_set_text(GTK_LABEL(label_cc_status_update), "Waiting for player selections");
