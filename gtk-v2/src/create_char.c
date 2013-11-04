@@ -440,7 +440,7 @@ static int character_data_ok()
      */
     if (negative_stat) {
         gtk_label_set_text(GTK_LABEL(label_cc_status_update),
-                           "Negative attributes are not allowed - adjust your selections before finishing");
+                           "Attributes less than 1 are not allowed - adjust your selections before finishing");
         show_window(WINDOW_CREATE_CHARACTER);
         return FALSE;
     }
