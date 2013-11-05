@@ -501,7 +501,7 @@ static int parse_keys_file(char *filename)
  * from main() as part of the client start up. The function is common to both
  * the x11 and gdk clients.
  */
-void keybindings_init()
+void keybindings_init(const char *character_name)
 {
     int i;
     char buf[BIG_BUF];
@@ -540,6 +540,18 @@ void keybindings_init()
     }
 
     /*
+     * If we were supplied with a character name, store it so that we
+     * can load and save a character-specific keys file.
+     */
+    if (cpl.name) {
+        free(cpl.name);
+        cpl.name = NULL;
+    }
+    if (character_name) {
+        cpl.name = strdup(character_name);
+    }
+
+    /*
      * We now try to load the keybindings.  First place to look is the users
      * home directory, "~/.crossfire/keys".  Using a directory seems like a
      * good idea, in the future, additional stuff may be stored.
@@ -549,10 +561,12 @@ void keybindings_init()
      * in character files to this format, all that needs to be done is remove
      * the 'key ' at the start of each line.
      */
-
-    /* Try the character-specific keys file */
-    snprintf(buf, sizeof(buf), "%s/.crossfire/%s.keys", getenv("HOME"), cpl.name);
-    res = parse_keys_file(buf);
+    res = -1;
+    if (cpl.name) {
+        /* Try the character-specific keys file */
+        snprintf(buf, sizeof(buf), "%s/.crossfire/%s.keys", getenv("HOME"), cpl.name);
+        res = parse_keys_file(buf);
+    }
     if (res < 0) {
         /* Try the user-specific keys file */
         snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
@@ -696,6 +710,14 @@ void keys_init(GtkWidget *window_root)
     for (i = 0; i < KEYHASH; i++) {
         keys[i] = NULL;
     }
+
+    /*
+     * Old servers (e.g. 1.12) starts game play without a login
+     * process. We can't get the character name on such a server, so
+     * load default (or user-specific) key bindings here in case we
+     * don't get the character-specific one later.
+     */
+    keybindings_init(NULL);
 }
 
 /**
@@ -1197,7 +1219,11 @@ static void save_keys(void)
     int i;
     FILE *fp;
 
-    snprintf(buf, sizeof(buf), "%s/.crossfire/%s.keys", getenv("HOME"), cpl.name);
+    if (cpl.name) {
+        snprintf(buf, sizeof(buf), "%s/.crossfire/%s.keys", getenv("HOME"), cpl.name);
+    } else {
+        snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
+    }
     CONVERT_FILESPEC_TO_OS_FORMAT(buf);
     LOG(LOG_WARNING, "gtk-v2::save_keys", "Saving keybindings to %s", buf);
 

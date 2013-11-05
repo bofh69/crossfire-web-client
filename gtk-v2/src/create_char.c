@@ -358,11 +358,7 @@ static void send_create_player_to_server()
 
     SockList_Send(&sl, csocket.fd);
 
-    if (cpl.name) {
-        free(cpl.name);
-    }
-    cpl.name = strdup(char_name);
-    keybindings_init();
+    keybindings_init(char_name);
 }
 
 
