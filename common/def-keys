@@ -24,24 +24,16 @@
 quotedbl 1 AE say 
 Return 1 AE chat 
 
-question 1 A help
+comma 1 A take
 period 1 N stay fire
-S 1 A brace
+question 1 A help
 
 a 1 N apply
-a 1 RF apply
-A 1 RF apply
-
-s 1 N search
 d 1 N disarm
-
-e 1 RF examine
-E 1 RF examine
-
-t 1 A ready_skill throw
-
-comma 1 A take
-at 1 A pickup
+e 1 NR examine
+s 1 F brace
+s 1 N search
+t 1 N ready_skill throwing
 
 #### Cursor (Directional Keys) ####
 # Nethack-Style
@@ -86,15 +78,6 @@ KP_Prior 1 A northeast
 #KP_5 1 A stay
 KP_End 1 A southwest
 KP_Next 1 A southeast
-F28 1 A north
-F34 1 A south
-F30 1 A west
-F32 1 A east
-F27 1 A northwest
-F29 1 A northeast
-F31 1 A stay
-F33 1 A southwest
-F35 1 A southeast
 
 #### Action Rotation ####
 KP_Add 1 A rotateshoottype
