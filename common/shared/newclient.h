@@ -1,6 +1,6 @@
 /*
  * static char *rcsid_newclient_h =
- *   "$Id: newclient.h 14013 2010-10-21 06:16:43Z mwedel $";
+ *   "$Id$";
  */
 
 /*
@@ -163,6 +163,8 @@
 #define CS_STAT_APPLIED_CON        50 /**< CON changes from gear or skills. */
 #define CS_STAT_APPLIED_CHA        51 /**< CHA changes from gear or skills. */
 #define CS_STAT_APPLIED_POW        52 /**< POW changes from gear or skills. */
+#define CS_STAT_GOLEM_HP           53 /**< Golem's current hp, 0 if no golem. */
+#define CS_STAT_GOLEM_MAXHP        54 /**< Golem's max hp, 0 if no golem. */
 
 #define CS_STAT_RESIST_START      100 /**< Start of resistances (inclusive) */
 #define CS_STAT_RESIST_END        117 /**< End of resistances (inclusive)   */
@@ -185,23 +187,6 @@
 #define CS_STAT_RES_DEATH         115
 #define CS_STAT_RES_HOLYWORD      116
 #define CS_STAT_RES_BLIND         117
-
-#define CS_STAT_SKILLEXP_START    118 /**< Start of skill experience + skill
-                                       *   level (inclusive).               */
-#define CS_STAT_SKILLEXP_END      129 /**< End of skill experience + skill
-                                       *   level (inclusive).               */
-#define CS_STAT_SKILLEXP_AGILITY  118
-#define CS_STAT_SKILLEXP_AGLEVEL  119
-#define CS_STAT_SKILLEXP_PERSONAL 120
-#define CS_STAT_SKILLEXP_PELEVEL  121
-#define CS_STAT_SKILLEXP_MENTAL   122
-#define CS_STAT_SKILLEXP_MELEVEL  123
-#define CS_STAT_SKILLEXP_PHYSIQUE 124
-#define CS_STAT_SKILLEXP_PHLEVEL  125
-#define CS_STAT_SKILLEXP_MAGIC    126
-#define CS_STAT_SKILLEXP_MALEVEL  127
-#define CS_STAT_SKILLEXP_WISDOM   128
-#define CS_STAT_SKILLEXP_WILEVEL  129
 
 /**
  * CS_STAT_SKILLINFO is used as the starting index point.  Skill number->name
@@ -303,12 +288,6 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 #define F_NOPICK        0x4000
 #define F_LOCKED        0x8000
 #define F_BLESSED       0x0100
-
-#define CF_FACE_NONE    0
-#define CF_FACE_BITMAP  1
-#define CF_FACE_XPM     2
-#define CF_FACE_PNG     3
-#define CF_FACE_CACHE   0x10
 /*@}*/
 
 /**
