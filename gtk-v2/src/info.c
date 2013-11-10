@@ -1583,8 +1583,10 @@ void save_msgctrl_configuration(void)
     fprintf(fptr, "#\n# End of Message Control System Configuration\n");
     fclose(fptr);
 
-    snprintf(textbuf, sizeof(textbuf),
-             "Message Control settings saved to %s.", pathbuf);
+    LOG(LOG_DEBUG, "gtk-v2::save_msgctrl_configuration",
+            "Message control settings saved to '%s'", pathbuf);
+
+    snprintf(textbuf, sizeof(textbuf), "Message control settings saved!");
     draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, textbuf);
 }
 
@@ -1761,11 +1763,8 @@ void load_msgctrl_configuration(void)
      * widgets.  so they reflect the states that were previously saved.
      */
     if ((cvalid + tvalid + mvalid) > 0) {
-        snprintf(textbuf, sizeof(textbuf),
-                 "Message Control settings loaded from %s", pathbuf);
-        draw_ext_info(
-            NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, textbuf);
-
+        LOG(LOG_DEBUG, "gtk-v2::load_msgctrl_configuration",
+                "Message control settings loaded from '%s'", pathbuf);
         update_msgctrl_configuration(); /* Update checkboxes w/ loaded data */
     }
 }

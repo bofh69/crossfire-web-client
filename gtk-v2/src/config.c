@@ -33,15 +33,13 @@
 #include <dirent.h>
 
 #ifdef __MINGW32__
-int alphasort(const struct dirent **a, const struct dirent **b)
-{
+int alphasort(const struct dirent **a, const struct dirent **b) {
     return strcoll((*a)->d_name, (*b)->d_name);
 }
 
 int scandir(const char *dir, struct dirent ***namelist,
             int (*select)(const struct dirent *),
-            int (*compar)(const struct dirent **, const struct dirent **))
-{
+            int (*compar)(const struct dirent **, const struct dirent **)) {
     DIR *d;
     struct dirent *entry;
     register int i=0;
@@ -124,8 +122,7 @@ static const char * const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
  * yet, and the initialize routines will get the theme data at that time.
  */
 static char **default_files=NULL;
-void init_theme()
-{
+void init_theme() {
     char path[MAX_BUF];
     char xml_basename[MAX_BUF];
     char **tmp;
@@ -196,8 +193,7 @@ void init_theme()
     default_files[i] = NULL;
 }
 
-void load_theme(int reload)
-{
+void load_theme(int reload) {
     char path[MAX_BUF];
 
     /*
@@ -262,8 +258,7 @@ void load_theme(int reload)
  * This function processes the user saved settings file and establishes the
  * configuration of the client.
  */
-void load_defaults(void)
-{
+void load_defaults() {
     char path[MAX_BUF],inbuf[MAX_BUF],*cp;
     FILE *fp;
     int i, val;
@@ -447,8 +442,7 @@ void load_defaults(void)
  * This function saves user settings chosen using the configuration popup
  * dialog.
  */
-void save_defaults(void)
-{
+void save_defaults() {
     char path[MAX_BUF],buf[MAX_BUF];
     FILE *fp;
     int i;
@@ -482,7 +476,7 @@ void save_defaults(void)
     }
 
     fclose(fp);
-    snprintf(buf, sizeof(buf), "Defaults saved to %s",path);
+    snprintf(buf, sizeof(buf), "Client configuration saved!");
     draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
 }
 
@@ -490,8 +484,7 @@ void save_defaults(void)
  * Set up the configuration popup dialog using libglade and the XML layout file
  * loaded from main.c and connect various signals associated with this dialog.
  */
-void config_init(GtkWidget *window_root)
-{
+void config_init(GtkWidget *window_root) {
     static int has_init=0;
     GladeXML *xml_tree;
     GtkWidget *widget;
@@ -589,8 +582,7 @@ void config_init(GtkWidget *window_root)
  * function returns 1 if the file is a valid theme file name, 0 for files
  * that are not.
  */
-static int scandir_theme_filter(const struct dirent *d)
-{
+static int scandir_theme_filter(const struct dirent *d) {
     if (d->d_name[0] == '.') {
         return 0;
     }
@@ -608,8 +600,7 @@ static int scandir_theme_filter(const struct dirent *d)
  * function returns 1 if the file is a valid glade XML file name, 0 for files
  * that are not.
  */
-static int scandir_glade_filter(const struct dirent *d)
-{
+static int scandir_glade_filter(const struct dirent *d) {
     char *token = NULL;
     char *extok = NULL;
     char delim[] = ".";
@@ -658,8 +649,7 @@ static int scandir_glade_filter(const struct dirent *d)
  *
  */
 static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
-                                       uint64 want_none, char *subdir, int (*scandir_filter) ())
-{
+                                       uint64 want_none, char *subdir, int (*scandir_filter) ()) {
     int             count, i;
     GtkTreeModel    *model;
     gchar           *buf;
@@ -723,8 +713,7 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
  * Setup_config_window sets the buttons, combos, etc, to the state that matches
  * the want_config[] values.
  */
-static void setup_config_window(void)
-{
+static void setup_config_window() {
     int count, i;
     GtkTreeModel    *model;
     gchar   *buf;
@@ -887,8 +876,7 @@ static void setup_config_window(void)
  * setting the display state appropriately, we read the display state and
  * update the want_config values.
  */
-static void read_config_window(void)
-{
+static void read_config_window(void) {
     gchar   *buf;
 
     want_config[CONFIG_ECHO] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_echo));
@@ -1037,10 +1025,7 @@ static void read_config_window(void)
  * @param button
  * @param user_data
  */
-void
-on_config_button_save_clicked          (GtkButton       *button,
-                                        gpointer         user_data)
-{
+void on_config_button_save_clicked(GtkButton *button, gpointer user_data) {
     read_config_window();
     save_defaults();
 }
@@ -1052,10 +1037,7 @@ on_config_button_save_clicked          (GtkButton       *button,
  * @param button
  * @param user_data
  */
-void
-on_config_button_apply_clicked         (GtkButton       *button,
-                                        gpointer         user_data)
-{
+void on_config_button_apply_clicked (GtkButton *button, gpointer user_data) {
     read_config_window();
 }
 
@@ -1066,10 +1048,7 @@ on_config_button_apply_clicked         (GtkButton       *button,
  * @param button
  * @param user_data
  */
-void
-on_config_button_close_clicked         (GtkButton       *button,
-                                        gpointer         user_data)
-{
+void on_config_button_close_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(config_window);
 }
 
@@ -1079,10 +1058,7 @@ on_config_button_close_clicked         (GtkButton       *button,
  * @param menuitem
  * @param user_data
  */
-void
-on_configure_activate                 (GtkMenuItem     *menuitem,
-                                       gpointer         user_data)
-{
+void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data) {
     gtk_widget_show(config_window);
     setup_config_window();
 }
@@ -1093,8 +1069,7 @@ on_configure_activate                 (GtkMenuItem     *menuitem,
  * the information required, and the code automatically works for Glade XML
  * layouts that follow the glade-2's default widget naming convention.
  */
-void save_winpos(void)
-{
+void save_winpos() {
     char savename[MAX_BUF];
     char buf[MAX_BUF];
     char *cp;
@@ -1150,7 +1125,7 @@ void save_winpos(void)
     g_list_free(pane_list);
 
     fclose(save);
-    snprintf(buf, sizeof(buf), "Window positions saved to %s", savename);
+    snprintf(buf, sizeof(buf), "Window positions saved!");
     draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
 }
 
@@ -1161,10 +1136,7 @@ void save_winpos(void)
  * @param menuitem
  * @param user_data
  */
-void
-on_save_window_position_activate       (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
+void on_save_window_position_activate(GtkMenuItem *menuitem, gpointer user_data) {
     save_winpos();
     /*
      * The following prevents multiple saves per menu activation.
@@ -1178,8 +1150,7 @@ on_save_window_position_activate       (GtkMenuItem     *menuitem,
  *
  * @param window_root The client's main window.
  */
-void load_window_positions(GtkWidget *window_root)
-{
+void load_window_positions(GtkWidget *window_root) {
     char loadname[MAX_BUF];
     char buf[MAX_BUF];
     char *cp;
@@ -1206,8 +1177,8 @@ void load_window_positions(GtkWidget *window_root)
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
         return;
     } else {
-        snprintf(buf, sizeof(buf), "Loading window positions from %s", loadname);
-        draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
+        LOG(LOG_DEBUG, "gtk-v2::load_window_positions",
+                "Loading window positions from '%s'", loadname);
     }
 
     xml_tree = glade_get_widget_tree(GTK_WIDGET (window_root));
