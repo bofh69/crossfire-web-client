@@ -447,10 +447,10 @@ static void parse_keybind_line(char *buf, int line)
         }
 
         res = keybind_insert(keysym, flags, cpnext);
-        if (res == -EKEYBIND_TAKEN)
+        if (res == -EKEYBIND_TAKEN) {
             LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
-                "Duplicate keybinds in file; ignoring binding of command \"%s\".",
-                cpnext);
+                "Ignoring duplicate binding of \"%s\" -> \"%s\"", buf, cpnext);
+        }
     } /* else if not special binding line */
 }
 
