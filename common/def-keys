@@ -37,14 +37,23 @@ t 1 N ready_skill throwing
 
 #### Cursor (Directional Keys) ####
 # Nethack-Style
-b 1 NR southwest
-h 1 NR west
-j 1 NR south
-k 1 NR north
-l 1 NR east
-n 1 NR southeast
-u 1 NR northeast
-y 1 NR northwest
+b 1 N southwest
+h 1 N west
+j 1 N south
+k 1 N north
+l 1 N east
+n 1 N southeast
+u 1 N northeast
+y 1 N northwest
+
+b 1 R southwest
+h 1 R west
+j 1 R south
+k 1 R north
+l 1 R east
+n 1 R southeast
+u 1 R northeast
+y 1 R northwest
 
 # Arrow Keys
 Up 1 A north
@@ -53,10 +62,6 @@ Left 1 A west
 Right 1 A east
 
 # Number Pad Arrow Keys
-Up 76 A north
-Down 120 A south
-Left 98 A west
-Right 100 A east
 KP_8 1 A north
 KP_2 1 A south
 KP_4 1 A west
