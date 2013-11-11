@@ -55,6 +55,15 @@ n 1 R southeast
 u 1 R northeast
 y 1 R northwest
 
+b 1 F southwest
+h 1 F west
+j 1 F south
+k 1 F north
+l 1 F east
+n 1 F southeast
+u 1 F northeast
+y 1 F northwest
+
 # Arrow Keys
 Up 1 A north
 Down 1 A south
