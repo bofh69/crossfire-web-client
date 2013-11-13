@@ -188,12 +188,12 @@ void clearLogListener() {
 }
 
 static const char *const LogLevelTexts[] = {
-    "\x1b[34;1m" "DEBUG" "\x1b[0m",
-    "\x1b[32;1m" "INFO " "\x1b[0m",
-    "\x1b[33;1m" "WARN " "\x1b[0m",
-    "\x1b[31;1m" "ERROR" "\x1b[0m",
-    "\x1b[31;1m" "FATAL" "\x1b[0m",
-    "\x1b[35;1m" " ??? " "\x1b[0m",
+    "\x1b[34;1m" "DD" "\x1b[0m",
+    "\x1b[32;1m" "II" "\x1b[0m",
+    "\x1b[35;1m" "WW" "\x1b[0m",
+    "\x1b[31;1m" "EE" "\x1b[0m",
+    "\x1b[31;1m" "!!" "\x1b[0m",
+    "\x1b[30;1m" "??" "\x1b[0m",
 };
 
 /**
