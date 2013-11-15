@@ -557,7 +557,8 @@ void set_item_values(item *op, char *name, sint32 weight, uint16 face,
 
     if (op->nrof != nrof) {
         if (nrof != 1 ) {
-            sprintf(op->d_name, "%s %s", get_number(nrof), op->p_name);
+            snprintf(op->d_name, sizeof(op->d_name), "%s %s", get_number(nrof),
+                     op->p_name);
         } else {
             strcpy(op->d_name, op->s_name);
         }

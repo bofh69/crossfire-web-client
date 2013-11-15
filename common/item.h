@@ -39,7 +39,7 @@
  *  that total number of items is small (<100) so this don't even
  *  waste too much memory
  */
-#define NAME_LEN	150
+#define NAME_LEN	128
 #define copy_name(t,f) strncpy(t, f, NAME_LEN-1); t[NAME_LEN-1]=0;
 
 #define NO_ITEM_TYPE		30000
