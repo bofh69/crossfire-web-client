@@ -1205,7 +1205,8 @@ void animate_inventory(void)
                             -1);
 
         /* This is an object with animations */
-        if (tmp->animation_id >0 && tmp->anim_speed) {
+        if (tmp->animation_id >0 && tmp->anim_speed &&
+                animations[tmp->animation_id].faces != NULL) {
             tmp->last_anim++;
 
             /* Time to change the face for this one */
