@@ -12,7 +12,7 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 
 # These are subdirectories that have make files in them
-CF_SUBDIRS="common pixmaps utils help"
+CF_SUBDIRS="common pixmaps help"
 
 ##############################################################################
 # Configuration Options
@@ -454,7 +454,7 @@ AC_CONFIG_FILES([
     Makefile common/Makefile
     sound-src/Makefile gtk-v2/Makefile pixmaps/Makefile
     gtk-v2/ui/Makefile gtk-v2/src/Makefile gtk-v2/themes/Makefile
-    help/Makefile utils/Makefile ])
+    help/Makefile])
 AC_OUTPUT
 
 ##############################################################################
