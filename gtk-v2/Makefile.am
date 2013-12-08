@@ -19,7 +19,7 @@
 #
 #   The author can be reached via e-mail to crossfire-devel@real-time.com
 
-SUBDIRS = glade src themes
+SUBDIRS = src themes ui
 
 EXTRA_DIST = \
 	README \

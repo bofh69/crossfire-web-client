@@ -24,7 +24,7 @@ extern GladeXML *dialog_xml, *window_xml;
 #define DEFAULT_IMAGE_SIZE      32
 extern int map_image_size, map_image_half_size, image_size;
 
-#define XML_PATH_DEFAULT CF_DATADIR "/glade-gtk2/"
+#define XML_PATH_DEFAULT CF_DATADIR "/ui/"
 #define WINDOW_XML_FILENAME "gtk-v1.glade"
 #define DIALOG_XML_FILENAME "dialogs.glade"
 extern char window_xml_file[];

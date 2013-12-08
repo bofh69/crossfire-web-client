@@ -453,7 +453,7 @@ AC_SUBST(CF_DATADIR)
 AC_CONFIG_FILES([
     Makefile common/Makefile
     sound-src/Makefile gtk-v2/Makefile pixmaps/Makefile
-    gtk-v2/glade/Makefile gtk-v2/src/Makefile gtk-v2/themes/Makefile
+    gtk-v2/ui/Makefile gtk-v2/src/Makefile gtk-v2/themes/Makefile
     help/Makefile utils/Makefile ])
 AC_OUTPUT
 

@@ -5,10 +5,10 @@
  * Copyright (c) 1992 Frank Tore Johansen
  *
  * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
- * welcome to redistribute it under certain conditions. For details, see the
- * 'LICENSE' and 'COPYING' files.
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
  *
- * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
  */
 
 /**
@@ -95,7 +95,7 @@ GtkWidget *config_window, *config_spinbutton_cwindow, *config_button_echo,
 
 static char *theme = "Standard";
 static char *themedir = "themes";
-static char *gladedir = "glade-gtk2";
+static char *gladedir = "ui";
 
 static const char * const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
 
