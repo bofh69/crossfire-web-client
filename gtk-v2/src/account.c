@@ -95,7 +95,7 @@ Info_Pane login_pane[4];
 
 extern int num_text_views;
 
-static int has_init=0;
+static int has_init = 0;
 
 /**
  * Hides all the login related windows.  This is needed in case the client
@@ -103,8 +103,7 @@ static int has_init=0;
  * client/disconnect or network failure).  get_metaserver() calls this, as
  * well as AddMeSuccess
  */
-void hide_all_login_windows(void)
-{
+void hide_all_login_windows() {
     extern GtkWidget *treeview_look;
 
     if (has_init) {
@@ -135,8 +134,7 @@ void hide_all_login_windows(void)
  * @param window    Pointer to an account window that received a delete_event.
  * @param user_data Unused.
  */
-gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data)
-{
+gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data) {
     return TRUE;
 }
 
@@ -155,23 +153,17 @@ gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data)
  * @param message
  * message - this comes from the server.
  */
-void create_new_character_failure(char *message)
-{
+void create_new_character_failure(char *message) {
     GtkWidget *dialog;
 
-    dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_QUESTION,
-                                    GTK_BUTTONS_OK,
+    dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
+                                    GTK_MESSAGE_QUESTION, GTK_BUTTONS_OK,
                                     "Error: %s", message);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
-
 }
 
-/**
- *
- */
-static void create_new_character(void)
-{
+static void create_new_character() {
     const char *name;
     uint8 buf[MAX_BUF];
     SockList sl;
@@ -202,8 +194,7 @@ static void create_new_character(void)
  * @param user_data
  */
 void
-on_button_create_new_char_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_create_new_char_clicked(GtkButton *button, gpointer user_data) {
     create_new_character();
 }
 
@@ -213,8 +204,7 @@ on_button_create_new_char_clicked(GtkButton *button, gpointer user_data)
  * @param entry
  * @param user_data
  */
-void on_entry_new_character_name(GtkEntry *entry, gpointer user_data)
-{
+void on_entry_new_character_name(GtkEntry *entry, gpointer user_data) {
     create_new_character();
 }
 
@@ -225,8 +215,7 @@ void on_entry_new_character_name(GtkEntry *entry, gpointer user_data)
  * @param user_data
  */
 void
-on_button_new_char_cancel_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_new_char_cancel_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(new_character_window);
     gtk_widget_show(choose_char_window);
 }
@@ -234,26 +223,21 @@ on_button_new_char_cancel_clicked(GtkButton *button, gpointer user_data)
 /**
  * Initializes the new character window.
  */
-static void init_new_character_window(void)
-{
-    GladeXML *xml_tree;
-
+static void init_new_character_window() {
     new_character_window =
-        glade_xml_get_widget(dialog_xml, "new_character_window");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "new_character_window"));
 
     gtk_window_set_transient_for(
         GTK_WINDOW(new_character_window), GTK_WINDOW(window_root));
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(new_character_window));
-
     button_create_new_char =
-        glade_xml_get_widget(dialog_xml,"button_create_new_char");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_create_new_char"));
     button_new_char_cancel =
-        glade_xml_get_widget(dialog_xml,"button_new_char_cancel");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_new_char_cancel"));
     entry_new_character_name =
-        glade_xml_get_widget(dialog_xml,"entry_new_character_name");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_new_character_name"));
     label_new_char_status =
-        glade_xml_get_widget(dialog_xml,"label_new_char_status");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_new_char_status"));
 
     g_signal_connect((gpointer) new_character_window, "delete_event",
                      G_CALLBACK(on_window_delete_event), NULL);
@@ -275,8 +259,8 @@ static void init_new_character_window(void)
  * @param password
  * @param force
  */
-static void add_character_to_account(const char *name, const char *password, int force)
-{
+static void add_character_to_account(const char *name, const char *password,
+                                     int force) {
     SockList sl;
     uint8 buf[MAX_BUF];
 
@@ -308,17 +292,16 @@ static void add_character_to_account(const char *name, const char *password, int
  * of this message should be an integer, which denotes if using the 'force'
  * option would allow the user to override this.
  */
-void account_add_character_failure(char *message)
-{
+void account_add_character_failure(char *message) {
     char *cp;
     int retry;
 
     retry = atoi(message);
-    cp = strchr(message,' ');
+    cp = strchr(message, ' ');
     if (cp) {
         cp++;
     } else {
-        cp=message;
+        cp = message;
     }
 
     if (!retry) {
@@ -335,12 +318,13 @@ void account_add_character_failure(char *message)
 
         /* Bring up a dialog window */
         dialog =
-            gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_QUESTION,
+            gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
+                                   GTK_MESSAGE_QUESTION,
                                    GTK_BUTTONS_YES_NO, "%s\n%s", cp, "Apply anyways?");
         result = gtk_dialog_run(GTK_DIALOG(dialog));
         gtk_widget_destroy(dialog);
 
-        if (result == GTK_RESPONSE_YES ) {
+        if (result == GTK_RESPONSE_YES) {
             name =  gtk_entry_get_text(GTK_ENTRY(entry_character_name));
             password =  gtk_entry_get_text(GTK_ENTRY(entry_character_password));
             add_character_to_account(name, password, 1);
@@ -360,8 +344,7 @@ void account_add_character_failure(char *message)
  * @param user_data
  */
 void
-on_button_do_add_character_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_do_add_character_clicked(GtkButton *button, gpointer user_data) {
     add_character_to_account(
         gtk_entry_get_text(GTK_ENTRY(entry_character_name)),
         gtk_entry_get_text(GTK_ENTRY(entry_character_password)), 0);
@@ -375,8 +358,8 @@ on_button_do_add_character_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_button_return_character_select_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_return_character_select_clicked(GtkButton *button,
+        gpointer user_data) {
     gtk_widget_hide(add_character_window);
     gtk_widget_show(choose_char_window);
 }
@@ -389,8 +372,7 @@ on_button_return_character_select_clicked(GtkButton *button, gpointer user_data)
  * @param entry     Entry widget which generated this callback.
  * @param user_data
  */
-void on_entry_character(GtkEntry *entry, gpointer user_data)
-{
+void on_entry_character(GtkEntry *entry, gpointer user_data) {
     const char *name, *password;
 
     name =  gtk_entry_get_text(GTK_ENTRY(entry_character_name));
@@ -417,31 +399,24 @@ void on_entry_character(GtkEntry *entry, gpointer user_data)
     }
 }
 
-/**
- *
- */
-static void init_add_character_window(void)
-{
-    GladeXML *xml_tree;
-
+static void init_add_character_window() {
     add_character_window =
-        glade_xml_get_widget(dialog_xml, "add_character_window");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "add_character_window"));
 
     gtk_window_set_transient_for(
         GTK_WINDOW(add_character_window), GTK_WINDOW(window_root));
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(add_character_window));
-
     button_do_add_character =
-        glade_xml_get_widget(dialog_xml,"button_do_add_character");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_do_add_character"));
     button_return_character_select =
-        glade_xml_get_widget(dialog_xml,"button_return_character_select");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                          "button_return_character_select"));
     entry_character_name =
-        glade_xml_get_widget(dialog_xml,"entry_character_name");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_character_name"));
     entry_character_password =
-        glade_xml_get_widget(dialog_xml,"entry_character_password");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_character_password"));
     label_add_status =
-        glade_xml_get_widget(dialog_xml,"label_add_status");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_add_status"));
 
     g_signal_connect((gpointer) add_character_window, "delete_event",
                      G_CALLBACK(on_window_delete_event), NULL);
@@ -465,8 +440,7 @@ static void init_add_character_window(void)
  * but also hide any other windows and make the choose_character_window
  * visible.
  */
-void choose_character_init(void)
-{
+void choose_character_init() {
     gtk_widget_hide(login_window);
     gtk_widget_hide(add_character_window);
     gtk_widget_hide(create_account_window);
@@ -483,8 +457,7 @@ void choose_character_init(void)
  * this if the user decides to abandon creation of a new
  * character.
  */
-void choose_char_window_show()
-{
+void choose_char_window_show() {
     gtk_widget_show(choose_char_window);
 }
 
@@ -493,8 +466,7 @@ void choose_char_window_show()
  * User has done necessary steps to play a character.
  * @param name
  */
-static void play_character(const char *name)
-{
+static void play_character(const char *name) {
     SockList sl;
     uint8 buf[MAX_BUF];
 
@@ -513,14 +485,14 @@ static void play_character(const char *name)
  * @param user_data
  */
 void
-on_button_play_character_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_play_character_clicked(GtkButton *button, gpointer user_data) {
     GtkTreeSelection *selected;
     GtkTreeModel    *model;
     GtkTreeIter iter;
     char *name;
 
-    selected = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_choose_character));
+    selected = gtk_tree_view_get_selection(GTK_TREE_VIEW(
+            treeview_choose_character));
 
     if (gtk_tree_selection_get_selected(selected, &model, &iter)) {
         gtk_tree_model_get(model, &iter, CHAR_NAME, &name, -1);
@@ -535,8 +507,7 @@ on_button_play_character_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_button_create_character_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_create_character_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(choose_char_window);
     if (serverloginmethod >= 2) {
         create_character_window_show();
@@ -553,8 +524,7 @@ on_button_create_character_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_button_add_character_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_add_character_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(choose_char_window);
     gtk_widget_show(add_character_window);
     gtk_entry_set_text(GTK_ENTRY(entry_character_name), "");
@@ -569,8 +539,7 @@ on_button_add_character_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_button_return_login_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_return_login_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(choose_char_window);
     gtk_widget_show(login_window);
 }
@@ -582,8 +551,7 @@ on_button_return_login_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_button_account_password_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_account_password_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(choose_char_window);
     gtk_widget_show(account_password_window);
     /* reset previous values */
@@ -609,8 +577,7 @@ on_button_account_password_clicked(GtkButton *button, gpointer user_data)
 void update_character_choose(const char *name, const char *class,
                              const char *race, const char *face,
                              const char *party, const char *map,
-                             int level, int faceno)
-{
+                             int level, int faceno) {
     GtkTreeIter iter;
 
     gtk_list_store_append(character_store, &iter);
@@ -656,8 +623,7 @@ void update_character_choose(const char *name, const char *class,
 void on_treeview_choose_character_activated(GtkTreeView       *treeview,
         GtkTreePath       *path,
         GtkTreeViewColumn *column,
-        gpointer          user_data)
-{
+        gpointer          user_data) {
     GtkTreeIter iter;
     GtkTreeModel    *model;
     char *name;
@@ -667,7 +633,8 @@ void on_treeview_choose_character_activated(GtkTreeView       *treeview,
         gtk_tree_model_get(model, &iter, CHAR_NAME, &name, -1);
 
         if (!name) {
-            LOG(LOG_ERROR,"account.c::on_treeview_choose_character_activated", "unable to get character name");
+            LOG(LOG_ERROR, "account.c::on_treeview_choose_character_activated",
+                "unable to get character name");
             return;
         }
         play_character(name);
@@ -677,41 +644,36 @@ void on_treeview_choose_character_activated(GtkTreeView       *treeview,
 /**
  *
  */
-static void init_choose_char_window(void)
-{
-
-    GladeXML *xml_tree;
+static void init_choose_char_window() {
     GtkTextIter end;
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
 
     choose_char_window =
-        glade_xml_get_widget(dialog_xml, "choose_character_window");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "choose_character_window"));
 
     gtk_window_set_transient_for(
         GTK_WINDOW(choose_char_window), GTK_WINDOW(window_root));
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(choose_char_window));
-
     button_play_character =
-        glade_xml_get_widget(dialog_xml,"button_play_character");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_play_character"));
     button_create_character =
-        glade_xml_get_widget(dialog_xml,"button_create_character");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_create_character"));
     button_add_character =
-        glade_xml_get_widget(dialog_xml,"button_add_character");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_add_character"));
     button_return_login =
-        glade_xml_get_widget(dialog_xml,"button_return_login");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_return_login"));
     button_account_password =
-        glade_xml_get_widget(dialog_xml,"button_account_password");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_account_password"));
     login_pane[TEXTVIEW_RULES_CHAR].textview =
-        glade_xml_get_widget(dialog_xml,"textview_rules_char");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "textview_rules_char"));
 
     textbuf_rules_char =
         gtk_text_view_get_buffer(
             GTK_TEXT_VIEW(login_pane[TEXTVIEW_RULES_CHAR].textview));
 
     treeview_choose_character =
-        glade_xml_get_widget(dialog_xml,"treeview_choose_character");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "treeview_choose_character"));
 
     add_tags_to_textbuffer(
         &login_pane[TEXTVIEW_RULES_CHAR], textbuf_rules_char);
@@ -799,8 +761,7 @@ static void init_choose_char_window(void)
  * message and let the user try again.
  * @param message
  */
-void account_creation_failure(char *message)
-{
+void account_creation_failure(char *message) {
     gtk_label_set_text(GTK_LABEL(label_create_account_status), message);
 }
 
@@ -816,8 +777,8 @@ void account_creation_failure(char *message)
  * @param p2   Second (confirmed) password.  This routine checks that p1 & p2
  *             are the same, and if not, puts up an error.  p2 must not be NULL
  */
-static void do_account_create(const char *name, const char *p1, const char *p2)
-{
+static void do_account_create(const char *name, const char *p1,
+                              const char *p2) {
     SockList sl;
     uint8 buf[MAX_BUF];
 
@@ -846,8 +807,7 @@ static void do_account_create(const char *name, const char *p1, const char *p2)
  * @param user_data
  */
 void
-on_button_new_create_account_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_new_create_account_clicked(GtkButton *button, gpointer user_data) {
     const char *password1, *password2, *name;
 
     password1 = gtk_entry_get_text(GTK_ENTRY(entry_new_account_password));
@@ -868,8 +828,7 @@ on_button_new_create_account_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_button_new_cancel_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_new_cancel_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(create_account_window);
     gtk_widget_show(login_window);
 }
@@ -884,8 +843,7 @@ on_button_new_cancel_clicked(GtkButton *button, gpointer user_data)
  * @param user_data Not used.
  */
 void
-on_entry_new_account(GtkEntry *entry, gpointer user_data)
-{
+on_entry_new_account(GtkEntry *entry, gpointer user_data) {
 
     const char *password1, *password2, *name, *cp;
 
@@ -927,38 +885,34 @@ on_entry_new_account(GtkEntry *entry, gpointer user_data)
  * This initializes the create account window and sets up the various
  * callbacks.
  */
-static void init_create_account_window(void)
-{
-    GladeXML *xml_tree;
+static void init_create_account_window() {
     GtkTextIter end;
 
     create_account_window =
-        glade_xml_get_widget(dialog_xml, "create_account_window");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "create_account_window"));
 
     gtk_window_set_transient_for(
         GTK_WINDOW(create_account_window), GTK_WINDOW(window_root));
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(create_account_window));
-
     button_new_create_account =
-        glade_xml_get_widget(dialog_xml,"button_new_create_account");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_new_create_account"));
     button_new_cancel =
-        glade_xml_get_widget(dialog_xml,"button_new_cancel");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_new_cancel"));
     login_pane[TEXTVIEW_RULES_ACCOUNT].textview =
-        glade_xml_get_widget(dialog_xml,"textview_rules_account");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "textview_rules_account"));
 
     textbuf_rules_account =
         gtk_text_view_get_buffer(
-            GTK_TEXT_VIEW(login_pane[TEXTVIEW_RULES_ACCOUNT].textview ));
+            GTK_TEXT_VIEW(login_pane[TEXTVIEW_RULES_ACCOUNT].textview));
 
     entry_new_account_name =
-        glade_xml_get_widget(dialog_xml,"entry_new_account_name");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_new_account_name"));
     entry_new_account_password =
-        glade_xml_get_widget(dialog_xml,"entry_new_account_password");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_new_account_password"));
     entry_new_confirm_password =
-        glade_xml_get_widget(dialog_xml,"entry_new_confirm_password");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_new_confirm_password"));
     label_create_account_status =
-        glade_xml_get_widget(dialog_xml,"label_create_account_status");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_create_account_status"));
 
     add_tags_to_textbuffer(
         &login_pane[TEXTVIEW_RULES_ACCOUNT], textbuf_rules_account);
@@ -992,8 +946,7 @@ static void init_create_account_window(void)
  * message and let the user try again.
  * @param message
  */
-void account_login_failure(char *message)
-{
+void account_login_failure(char *message) {
     gtk_label_set_text(GTK_LABEL(label_account_login_status), message);
 }
 
@@ -1004,8 +957,7 @@ void account_login_failure(char *message)
  * @param user_data
  */
 void
-on_button_create_account_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_create_account_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(login_window);
     gtk_label_set_text(GTK_LABEL(label_create_account_status), "");
     gtk_entry_set_text(GTK_ENTRY(entry_new_account_name), "");
@@ -1022,13 +974,12 @@ on_button_create_account_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_button_go_metaserver_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_go_metaserver_clicked(GtkButton *button, gpointer user_data) {
     close_server_connection();
 
     if (csocket_fd) {
         gdk_input_remove(csocket_fd);
-        csocket_fd=0;
+        csocket_fd = 0;
         gtk_main_quit();
     }
 }
@@ -1039,8 +990,7 @@ on_button_go_metaserver_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_button_exit_client_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_exit_client_clicked(GtkButton *button, gpointer user_data) {
 #ifdef WIN32
     script_killall();
 #endif
@@ -1054,8 +1004,7 @@ on_button_exit_client_clicked(GtkButton *button, gpointer user_data)
  * @param name
  * @param password
  */
-static void do_account_login(const char *name, const char *password)
-{
+static void do_account_login(const char *name, const char *password) {
     SockList sl;
     uint8 buf[MAX_BUF];
 
@@ -1083,8 +1032,7 @@ static void do_account_login(const char *name, const char *password)
  * @param user_data
  */
 void
-on_button_login_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_login_clicked(GtkButton *button, gpointer user_data) {
     do_account_login(gtk_entry_get_text(GTK_ENTRY(entry_account_name)),
                      gtk_entry_get_text(GTK_ENTRY(entry_account_password)));
 }
@@ -1096,8 +1044,7 @@ on_button_login_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_entry_account_name_activate(GtkEntry *entry, gpointer user_data)
-{
+on_entry_account_name_activate(GtkEntry *entry, gpointer user_data) {
     const char *password;
 
     password = gtk_entry_get_text(GTK_ENTRY(entry_account_password));
@@ -1116,8 +1063,7 @@ on_entry_account_name_activate(GtkEntry *entry, gpointer user_data)
  * @param user_data
  */
 void
-on_entry_account_password_activate(GtkEntry *entry, gpointer user_data)
-{
+on_entry_account_password_activate(GtkEntry *entry, gpointer user_data) {
     const char *name;
 
     name = gtk_entry_get_text(GTK_ENTRY(entry_account_name));
@@ -1133,12 +1079,10 @@ on_entry_account_password_activate(GtkEntry *entry, gpointer user_data)
  * Sets up all the widget pointers, as well as setting up the callbacks for
  * the login windows widgets.
  */
-static void init_login_window(void)
-{
-    GladeXML *xml_tree;
+static void init_login_window() {
     GtkTextIter end;
 
-    login_window = glade_xml_get_widget(dialog_xml, "login_window");
+    login_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "login_window"));
 
     if (!login_window) {
         error_dialog("Out of date dialog.glade", "Did you run 'make install'?");
@@ -1148,20 +1092,18 @@ static void init_login_window(void)
     gtk_window_set_transient_for(
         GTK_WINDOW(login_window), GTK_WINDOW(window_root));
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(login_window));
-
     button_login =
-        glade_xml_get_widget(dialog_xml,"button_login");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_login"));
     button_create_account =
-        glade_xml_get_widget(dialog_xml,"button_create_account");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_create_account"));
     button_go_metaserver =
-        glade_xml_get_widget(dialog_xml,"button_go_metaserver");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_go_metaserver"));
     button_exit_client =
-        glade_xml_get_widget(dialog_xml,"button_exit_client");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_exit_client"));
     label_account_login_status =
-        glade_xml_get_widget(dialog_xml,"label_account_login_status");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_account_login_status"));
     login_pane[TEXTVIEW_MOTD].textview =
-        glade_xml_get_widget(dialog_xml,"textview_motd");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "textview_motd"));
 
     textbuf_motd =
         gtk_text_view_get_buffer(
@@ -1175,7 +1117,7 @@ static void init_login_window(void)
             login_pane[TEXTVIEW_MOTD].textbuffer, NULL, &end, FALSE);
 
     login_pane[TEXTVIEW_NEWS].textview =
-        glade_xml_get_widget(dialog_xml,"textview_news");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "textview_news"));
 
     textbuf_news =
         gtk_text_view_get_buffer(
@@ -1189,9 +1131,9 @@ static void init_login_window(void)
             login_pane[TEXTVIEW_NEWS].textbuffer, NULL, &end, FALSE);
 
     entry_account_name =
-        glade_xml_get_widget(dialog_xml,"entry_account_name");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_account_name"));
     entry_account_password =
-        glade_xml_get_widget(dialog_xml,"entry_account_password");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_account_password"));
 
     g_signal_connect((gpointer) login_window, "delete_event",
                      G_CALLBACK(on_window_delete_event), NULL);
@@ -1225,8 +1167,7 @@ static void init_login_window(void)
  * @param p2   Second (confirmed) password.  This routine checks that p1 & p2
  *             are the same, and if not, puts up an error.  p2 must not be NULL
  */
-static void do_account_change(const char *old, const char *p1, const char *p2)
-{
+static void do_account_change(const char *old, const char *p1, const char *p2) {
     SockList sl;
     uint8 buf[MAX_BUF];
 
@@ -1255,8 +1196,8 @@ static void do_account_change(const char *old, const char *p1, const char *p2)
  * @param user_data
  */
 void
-on_button_account_password_cancel_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_account_password_cancel_clicked(GtkButton *button,
+        gpointer user_data) {
     gtk_widget_hide(account_password_window);
     gtk_widget_show(choose_char_window);
 }
@@ -1267,8 +1208,8 @@ on_button_account_password_cancel_clicked(GtkButton *button, gpointer user_data)
  * @param user_data
  */
 void
-on_button_account_password_confirm_clicked(GtkButton *button, gpointer user_data)
-{
+on_button_account_password_confirm_clicked(GtkButton *button,
+        gpointer user_data) {
     do_account_change(gtk_entry_get_text(GTK_ENTRY(entry_account_password_current)),
                       gtk_entry_get_text(GTK_ENTRY(entry_account_password_new)),
                       gtk_entry_get_text(GTK_ENTRY(entry_account_password_confirm)));
@@ -1284,8 +1225,7 @@ on_button_account_password_confirm_clicked(GtkButton *button, gpointer user_data
  * @param user_data Not used.
  */
 void
-on_entry_account_password(GtkEntry *entry, gpointer user_data)
-{
+on_entry_account_password(GtkEntry *entry, gpointer user_data) {
 
     const char *old, *password1, *password2, *cp;
 
@@ -1318,8 +1258,7 @@ on_entry_account_password(GtkEntry *entry, gpointer user_data)
     }
 }
 
-void account_change_password_failure(char *message)
-{
+void account_change_password_failure(char *message) {
     gtk_label_set_text(GTK_LABEL(label_account_password_status), message);
 }
 
@@ -1327,31 +1266,30 @@ void account_change_password_failure(char *message)
  * This initializes the change account password window and sets up the various
  * callbacks.
  */
-static void init_account_password_window(void)
-{
-    GladeXML *xml_tree;
-
+static void init_account_password_window() {
     account_password_window =
-        glade_xml_get_widget(dialog_xml, "account_password_window");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "account_password_window"));
 
     gtk_window_set_transient_for(
         GTK_WINDOW(account_password_window), GTK_WINDOW(window_root));
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(account_password_window));
-
     button_account_password_confirm =
-        glade_xml_get_widget(dialog_xml,"button_account_password_confirm");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                          "button_account_password_confirm"));
     button_account_password_cancel =
-        glade_xml_get_widget(dialog_xml,"button_account_password_cancel");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                          "button_account_password_cancel"));
 
     entry_account_password_current =
-        glade_xml_get_widget(dialog_xml,"entry_account_password_current");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                          "entry_account_password_current"));
     entry_account_password_new =
-        glade_xml_get_widget(dialog_xml,"entry_account_password_new");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_account_password_new"));
     entry_account_password_confirm =
-        glade_xml_get_widget(dialog_xml,"entry_account_password_confirm");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                          "entry_account_password_confirm"));
     label_account_password_status =
-        glade_xml_get_widget(dialog_xml,"label_account_password_status");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_account_password_status"));
 
     g_signal_connect((gpointer) account_password_window, "delete_event",
                      G_CALLBACK(on_window_delete_event), NULL);
@@ -1379,8 +1317,7 @@ static void init_account_password_window(void)
  *
  *@param type What data just got updated - text string of motd/news/rules
  */
-void update_login_info(int type)
-{
+void update_login_info(int type) {
     if (!has_init) {
         return;
     }
@@ -1404,19 +1341,19 @@ void update_login_info(int type)
              * make sure it is at the start of the line or start of the buffer
              */
             for (cp = mynews + strlen(mynews); cp > mynews; cp--) {
-                if (*cp == '%' && (*(cp-1) == '\n' || cp == mynews)) {
+                if (*cp == '%' && (*(cp - 1) == '\n' || cp == mynews)) {
                     /* Find the end of the line */
                     el = strchr(cp, '\n');
                     /* null out the newline, put el one char beyond it */
                     if (el) {
-                        *el=0;
+                        *el = 0;
                         el++;
                     }
                     /* There isn't a clear standard - % news may be valid, as
                      * might be %news.  If % news is used, it looks better to
                      * get rid of that leading space.
                      */
-                    cp1 = cp+1;
+                    cp1 = cp + 1;
                     while (isspace(*cp1)) {
                         cp1++;
                     }
@@ -1469,8 +1406,7 @@ void update_login_info(int type)
  *
  * @param method Login method that the server suppots.
  */
-void start_login(int method)
-{
+void start_login(int method) {
     /* Store this away - if method is only 1, we can not do smart character
      * creation.
      */
@@ -1495,7 +1431,7 @@ void start_login(int method)
 
         init_account_password_window();
 
-        has_init=1;
+        has_init = 1;
 
         /* In case we have gotten news/motd/rules before getting here, update
          * it now.

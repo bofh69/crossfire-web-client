@@ -795,9 +795,7 @@ void starting_map_update_info()
 /**
  * Initializes the create character window.
  */
-void init_create_character_window()
-{
-    GladeXML *xml_tree;
+void init_create_character_window() {
     char tmpbuf[80];
     int i;
     GtkTextIter iter;
@@ -808,29 +806,28 @@ void init_create_character_window()
     }
     has_init=1;
 
-    create_character_window = glade_xml_get_widget(dialog_xml, "create_character_window");
+    create_character_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "create_character_window"));
     gtk_window_set_transient_for(GTK_WINDOW(create_character_window), GTK_WINDOW(window_root));
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(create_character_window));
 
-    button_cc_done = glade_xml_get_widget(dialog_xml,"button_cc_done");
-    button_cc_cancel = glade_xml_get_widget(dialog_xml,"button_cc_cancel");
-    button_choose_starting_map = glade_xml_get_widget(dialog_xml,"button_choose_starting_map");
-    label_cc_status_update = glade_xml_get_widget(dialog_xml,"label_cc_status_update");
-    label_cc_desc = glade_xml_get_widget(dialog_xml,"label_cc_desc");
-    label_cc_unspent = glade_xml_get_widget(dialog_xml,"label_cc_unspent");
-    combobox_rs = glade_xml_get_widget(dialog_xml,"combobox_rs");
-    combobox_cs = glade_xml_get_widget(dialog_xml,"combobox_cs");
-    entry_new_character_name = glade_xml_get_widget(dialog_xml,"cc_entry_new_character_name");
+    button_cc_done = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"button_cc_done"));
+    button_cc_cancel = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"button_cc_cancel"));
+    button_choose_starting_map = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"button_choose_starting_map"));
+    label_cc_status_update = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"label_cc_status_update"));
+    label_cc_desc = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"label_cc_desc"));
+    label_cc_unspent = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"label_cc_unspent"));
+    combobox_rs = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"combobox_rs"));
+    combobox_cs = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"combobox_cs"));
+    entry_new_character_name = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"cc_entry_new_character_name"));
 
-    textview_rs_desc = glade_xml_get_widget(dialog_xml,"textview_rs_desc");
+    textview_rs_desc = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"textview_rs_desc"));
     text_mark_rs = gtk_text_mark_new("rs_start", TRUE);
     gtk_text_buffer_get_start_iter(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview_rs_desc)),
                                    &iter);
     gtk_text_buffer_add_mark(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview_rs_desc)),
                              text_mark_rs, &iter);
 
-    textview_cs_desc = glade_xml_get_widget(dialog_xml,"textview_cs_desc");
+    textview_cs_desc = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"textview_cs_desc"));
     text_mark_cs = gtk_text_mark_new("cs_start", TRUE);
     gtk_text_buffer_get_start_iter(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview_cs_desc)),
                                    &iter);
@@ -839,19 +836,19 @@ void init_create_character_window()
 
     for (i=0; i<NUM_NEW_CHAR_STATS; i++) {
         snprintf(tmpbuf, 80, "spinbutton_cc_%s", stat_mapping[i].widget_suffix);
-        spinbutton_cc[i] = glade_xml_get_widget(dialog_xml, tmpbuf);
+        spinbutton_cc[i] = GTK_WIDGET(gtk_builder_get_object(dialog_xml, tmpbuf));
 
         g_signal_connect ((gpointer) spinbutton_cc[i], "value-changed",
                           G_CALLBACK (on_spinbutton_cc), (void*)i);
 
         snprintf(tmpbuf, 80, "label_rs_%s", stat_mapping[i].widget_suffix);
-        label_rs[i] = glade_xml_get_widget(dialog_xml, tmpbuf);
+        label_rs[i] = GTK_WIDGET(gtk_builder_get_object(dialog_xml, tmpbuf));
 
         snprintf(tmpbuf, 80, "label_cs_%s", stat_mapping[i].widget_suffix);
-        label_cs[i] = glade_xml_get_widget(dialog_xml, tmpbuf);
+        label_cs[i] = GTK_WIDGET(gtk_builder_get_object(dialog_xml, tmpbuf));
 
         snprintf(tmpbuf, 80, "label_tot_%s", stat_mapping[i].widget_suffix);
-        label_tot[i] = glade_xml_get_widget(dialog_xml, tmpbuf);
+        label_tot[i] = GTK_WIDGET(gtk_builder_get_object(dialog_xml, tmpbuf));
     }
 
     /* Note that in the glade file, the numbering starts at 1 */
@@ -859,10 +856,10 @@ void init_create_character_window()
         GtkListStore *store;
 
         snprintf(tmpbuf, 80, "opt_label%d", i+1);
-        opt_label[i] = glade_xml_get_widget(dialog_xml, tmpbuf);
+        opt_label[i] = GTK_WIDGET(gtk_builder_get_object(dialog_xml, tmpbuf));
 
         snprintf(tmpbuf, 80, "opt_combobox%d", i+1);
-        opt_combobox[i] = glade_xml_get_widget(dialog_xml, tmpbuf);
+        opt_combobox[i] = GTK_WIDGET(gtk_builder_get_object(dialog_xml, tmpbuf));
 
         gtk_cell_layout_clear(GTK_CELL_LAYOUT(opt_combobox[i]));
         renderer = gtk_cell_renderer_text_new();
@@ -882,12 +879,11 @@ void init_create_character_window()
                       G_CALLBACK (on_button_choose_starting_map), NULL);
 
     /* For starting map window */
-    choose_starting_map_window =  glade_xml_get_widget(dialog_xml, "choose_starting_map_window");
+    choose_starting_map_window =  GTK_WIDGET(gtk_builder_get_object(dialog_xml, "choose_starting_map_window"));
 
     gtk_window_set_transient_for(GTK_WINDOW(choose_starting_map_window), GTK_WINDOW(window_root));
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(create_character_window));
 
-    create_char_pane[STARTING_MAP_PANE].textview = glade_xml_get_widget(dialog_xml,"textview_starting_map");
+    create_char_pane[STARTING_MAP_PANE].textview = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"textview_starting_map"));
     textbuf_starting_map = gtk_text_view_get_buffer(
                                GTK_TEXT_VIEW(create_char_pane[STARTING_MAP_PANE].textview));
     add_tags_to_textbuffer(&create_char_pane[STARTING_MAP_PANE], textbuf_starting_map);
@@ -897,9 +893,9 @@ void init_create_character_window()
     create_char_pane[STARTING_MAP_PANE].textmark = gtk_text_buffer_create_mark(
                 create_char_pane[STARTING_MAP_PANE].textbuffer, NULL, &iter, FALSE);
 
-    button_csm_done = glade_xml_get_widget(dialog_xml,"button_csm_done");
-    button_csm_cancel = glade_xml_get_widget(dialog_xml,"button_csm_cancel");
-    combobox_starting_map = glade_xml_get_widget(dialog_xml,"combobox_starting_map");
+    button_csm_done = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"button_csm_done"));
+    button_csm_cancel = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"button_csm_cancel"));
+    combobox_starting_map = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"combobox_starting_map"));
 
     g_signal_connect ((gpointer) button_csm_done, "clicked",
                       G_CALLBACK (on_button_cc_done), NULL);
@@ -907,4 +903,3 @@ void init_create_character_window()
                       G_CALLBACK (on_button_csm_cancel), NULL);
 
 }
-

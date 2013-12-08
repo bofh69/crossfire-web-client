@@ -19,14 +19,15 @@
 #define NUM_COLORS 13
 extern GdkColor root_color[NUM_COLORS];
 extern GtkWidget *window_root, *spinbutton_count;
-extern GladeXML *dialog_xml, *window_xml;
+extern GtkBuilder *dialog_xml;
+extern GladeXML *window_xml;
 
 #define DEFAULT_IMAGE_SIZE      32
 extern int map_image_size, map_image_half_size, image_size;
 
 #define XML_PATH_DEFAULT CF_DATADIR "/ui/"
 #define WINDOW_XML_FILENAME "gtk-v1.glade"
-#define DIALOG_XML_FILENAME "dialogs.glade"
+#define DIALOG_XML_FILENAME "dialogs.ui"
 extern char window_xml_file[];
 
 #define MAGIC_MAP_PAGE  1 /**< Notebook page of the magic map */

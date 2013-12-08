@@ -486,68 +486,66 @@ void save_defaults() {
  */
 void config_init(GtkWidget *window_root) {
     static int has_init=0;
-    GladeXML *xml_tree;
     GtkWidget *widget;
     int count, i;
 
     has_init=1;
 
-    config_window = glade_xml_get_widget(dialog_xml, "config_window");
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(config_window));
+    config_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_window"));
 
     config_spinbutton_cwindow =
-        glade_xml_get_widget(xml_tree, "config_spinbutton_cwindow");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_cwindow"));
     config_button_echo =
-        glade_xml_get_widget(xml_tree, "config_button_echo");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_echo"));
     config_button_fasttcp =
-        glade_xml_get_widget(xml_tree, "config_button_fasttcp");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_fasttcp"));
     config_button_timestamp =
-        glade_xml_get_widget(xml_tree, "config_button_timestamp");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_timestamp"));
     config_button_grad_color =
-        glade_xml_get_widget(xml_tree, "config_button_grad_color");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_grad_color"));
     config_button_foodbeep =
-        glade_xml_get_widget(xml_tree, "config_button_foodbeep");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_foodbeep"));
     config_button_sound =
-        glade_xml_get_widget(xml_tree, "config_button_sound");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_sound"));
     config_button_cache =
-        glade_xml_get_widget(xml_tree, "config_button_cache");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_cache"));
     config_button_download =
-        glade_xml_get_widget(xml_tree, "config_button_download");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_download"));
     config_button_fog =
-        glade_xml_get_widget(xml_tree, "config_button_fog");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_fog"));
     config_button_smoothing =
-        glade_xml_get_widget(xml_tree, "config_button_smoothing");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_smoothing"));
     config_spinbutton_iconscale =
-        glade_xml_get_widget(xml_tree, "config_spinbutton_iconscale");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_iconscale"));
     config_spinbutton_mapscale =
-        glade_xml_get_widget(xml_tree, "config_spinbutton_mapscale");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_mapscale"));
     config_spinbutton_mapwidth =
-        glade_xml_get_widget(xml_tree, "config_spinbutton_mapwidth");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_mapwidth"));
     config_spinbutton_mapheight =
-        glade_xml_get_widget(xml_tree, "config_spinbutton_mapheight");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_mapheight"));
     config_combobox_displaymode =
-        glade_xml_get_widget(xml_tree, "config_combobox_displaymode");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_displaymode"));
     config_combobox_faceset =
-        glade_xml_get_widget(xml_tree, "config_combobox_faceset");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_faceset"));
     config_combobox_lighting =
-        glade_xml_get_widget(xml_tree, "config_combobox_lighting");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_lighting"));
     config_combobox_theme =
-        glade_xml_get_widget(xml_tree, "config_combobox_theme");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_theme"));
     config_combobox_glade =
-        glade_xml_get_widget(xml_tree, "config_combobox_glade");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_glade"));
 
     g_signal_connect((gpointer) config_window, "delete_event",
                      G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "config_button_save");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_save"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_config_button_save_clicked), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "config_button_apply");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_apply"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_config_button_apply_clicked), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "config_button_close");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_close"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_config_button_close_clicked), NULL);
 

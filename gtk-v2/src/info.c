@@ -1360,8 +1360,7 @@ void msgctrl_init(GtkWidget *window_root)
     /*
      * Get the window pointer and a pointer to the tree of widgets it contains
      */
-    msgctrl_window = glade_xml_get_widget(dialog_xml, "msgctrl_window");
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(msgctrl_window));
+    msgctrl_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "msgctrl_window"));
 
     g_signal_connect((gpointer) msgctrl_window, "delete_event",
                      G_CALLBACK(gtk_widget_hide_on_delete), NULL);
@@ -1369,15 +1368,15 @@ void msgctrl_init(GtkWidget *window_root)
      * Initialize the spinbutton pointers.
      */
     buffer_control.count.ptr =
-        glade_xml_get_widget(xml_tree, "msgctrl_spinbutton_count");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "msgctrl_spinbutton_count"));
 
     buffer_control.timer.ptr =
-        glade_xml_get_widget(xml_tree, "msgctrl_spinbutton_timer");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml,"msgctrl_spinbutton_timer"));
 
     /*
      * Locate the table widget to fill with controls and its structure.
      */
-    msgctrl_table = glade_xml_get_widget(xml_tree, "msgctrl_table");
+    msgctrl_table = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "msgctrl_table"));
     table = GTK_TABLE(msgctrl_table);
     /*
      * How many title rows were set up in the table?  The title rows are the
@@ -1468,23 +1467,23 @@ void msgctrl_init(GtkWidget *window_root)
     /*
      * Connect the control's buttons to the appropriate handlers.
      */
-    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_save");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "msgctrl_button_save"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_msgctrl_button_save_clicked), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_load");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "msgctrl_button_load"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_msgctrl_button_load_clicked), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_defaults");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "msgctrl_button_defaults"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_msgctrl_button_defaults_clicked), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_apply");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "msgctrl_button_apply"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_msgctrl_button_apply_clicked), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "msgctrl_button_close");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "msgctrl_button_close"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_msgctrl_button_close_clicked), NULL);
 }

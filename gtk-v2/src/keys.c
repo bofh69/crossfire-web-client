@@ -611,33 +611,32 @@ void keys_init(GtkWidget *window_root)
     g_signal_connect((gpointer) entry_commands, "activate",
                      G_CALLBACK(on_entry_commands_activate), NULL);
 
-    keybinding_window = glade_xml_get_widget(dialog_xml, "keybinding_window");
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(keybinding_window));
+    keybinding_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_window"));
 
     keybinding_checkbutton_any =
-        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_any");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_any"));
     keybinding_checkbutton_control =
-        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_control");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_control"));
     keybinding_checkbutton_shift =
-        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_shift");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_shift"));
     keybinding_checkbutton_alt =
-        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_alt");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_alt"));
     keybinding_checkbutton_meta =
-        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_meta");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_meta"));
     keybinding_checkbutton_edit =
-        glade_xml_get_widget(xml_tree, "keybinding_checkbutton_stayinedit");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_stayinedit"));
     keybinding_entry_key =
-        glade_xml_get_widget(xml_tree, "keybinding_entry_key");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_entry_key"));
     keybinding_entry_command =
-        glade_xml_get_widget(xml_tree, "keybinding_entry_command");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_entry_command"));
     keybinding_treeview =
-        glade_xml_get_widget(xml_tree, "keybinding_treeview");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_treeview"));
     keybinding_button_remove =
-        glade_xml_get_widget(xml_tree, "keybinding_button_remove");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_button_remove"));
     keybinding_button_update =
-        glade_xml_get_widget(xml_tree, "keybinding_button_update");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_button_update"));
     keybinding_button_bind =
-        glade_xml_get_widget(xml_tree, "keybinding_button_bind");
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_button_bind"));
 
     g_signal_connect((gpointer) keybinding_window, "delete_event",
                      G_CALLBACK(gtk_widget_hide_on_delete), NULL);
@@ -653,11 +652,11 @@ void keys_init(GtkWidget *window_root)
     g_signal_connect((gpointer) keybinding_checkbutton_any, "clicked",
                      G_CALLBACK(on_keybinding_checkbutton_any_clicked), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "keybinding_button_clear");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_button_clear"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_keybinding_button_clear_clicked), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "keybinding_button_close");
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_button_close"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_keybinding_button_close_clicked), NULL);
 

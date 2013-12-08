@@ -43,7 +43,8 @@
 #include "mapdata.h"
 
 GtkWidget *window_root, *magic_map;
-GladeXML *dialog_xml, *window_xml;
+GtkBuilder *dialog_xml;
+GladeXML *window_xml;
 
 /* Sets up the basic colors. */
 const char * const colorname[NUM_COLORS] = {
@@ -366,11 +367,7 @@ int parse_args(int argc, char **argv)
 
     load_defaults();
 
-#ifndef WIN32
-    snprintf(VERSION_INFO, MAX_BUF, "GTK V2 Unix Client %s (using %s)", FULL_VERSION, window_xml_file);
-#else
-    snprintf(VERSION_INFO, MAX_BUF, "GTK V2 Win32 Client %s (using %s)", FULL_VERSION, window_xml_file);
-#endif
+    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s (%s)", FULL_VERSION, window_xml_file);
     for (on_arg=1; on_arg<argc; on_arg++) {
         if (!strcmp(argv[on_arg], "-cache")) {
             want_config[CONFIG_CACHE]= TRUE;
@@ -689,6 +686,7 @@ int main(int argc, char *argv[])
     static char file_cache[ MAX_BUF ];
     GdkGeometry geometry;
     GladeXML *xml_tree;
+    GError* error = NULL;
 
 #ifdef ENABLE_NLS
     bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
@@ -761,11 +759,13 @@ int main(int argc, char *argv[])
         strncat(dialog_xml_path, dialog_xml_file,
                 MAX_BUF-strlen(dialog_xml_path)-1);
     }
-    dialog_xml = glade_xml_new(dialog_xml_path, NULL, NULL);
-    if (! dialog_xml) {
-        sprintf(dialog_xml_file, "Dialog layout file load failed");
-        error_dialog(dialog_xml_file, dialog_xml_path);
-        exit(-1);
+
+    dialog_xml = gtk_builder_new();
+    if (!gtk_builder_add_from_file(dialog_xml, dialog_xml_path, &error)) {
+        error_dialog("Couldn't load UI dialogs.", error->message);
+        g_warning("Couldn't load UI dialogs: %s", error->message);
+        g_error_free(error);
+        exit(EXIT_FAILURE);
     }
 
     /*

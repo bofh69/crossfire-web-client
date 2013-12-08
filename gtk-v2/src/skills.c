@@ -53,8 +53,7 @@ static gboolean skill_selection_func(GtkTreeSelection *selection,
                                      GtkTreeModel     *model,
                                      GtkTreePath      *path,
                                      gboolean          path_currently_selected,
-                                     gpointer          userdata)
-{
+                                     gpointer          userdata) {
     gtk_widget_set_sensitive(skill_ready, TRUE);
     gtk_widget_set_sensitive(skill_use, TRUE);
     return TRUE;
@@ -66,8 +65,7 @@ static gboolean skill_selection_func(GtkTreeSelection *selection,
  * the list store otherwise nothing happens, because it will be called again
  * next time the window is opened anyway.
  */
-void update_skill_information(void)
-{
+void update_skill_information(void) {
     GtkTreeIter iter;
     char buf[MAX_BUF];
     int i, sk, level;
@@ -77,18 +75,19 @@ void update_skill_information(void)
      * shown, return.
      */
     if (! has_init
-            ||  ! GTK_WIDGET_VISIBLE(glade_xml_get_widget(dialog_xml, "skill_window"))) {
+            ||  ! GTK_WIDGET_VISIBLE(GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                     "skill_window")))) {
         return;
     }
 
     gtk_list_store_clear(skill_store);
-    for (i = 0; i<MAX_SKILL; i++) {
+    for (i = 0; i < MAX_SKILL; i++) {
         sk = skill_mapping[i].value;
         level = cpl.stats.skill_level[sk];
         if (level > 0) {
             gtk_list_store_append(skill_store, &iter);
             buf[0] = 0;
-            if (level>= exp_table_max) {
+            if (level >= exp_table_max) {
                 /* we can't advance any more, so display 0*/
                 exp_to_next_level = 0;
             } else {
@@ -110,21 +109,19 @@ void update_skill_information(void)
  * @param menuitem
  * @param user_data
  */
-void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data)
-{
-    GladeXML *xml_tree;
+void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data) {
     GtkWidget *widget;
 
     if (! has_init) {
         GtkCellRenderer *renderer;
         GtkTreeViewColumn *column;
 
-        skill_window = glade_xml_get_widget(dialog_xml, "skill_window");
-        xml_tree = glade_get_widget_tree(GTK_WIDGET(skill_window));
+        skill_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "skill_window"));
 
-        skill_use = glade_xml_get_widget(xml_tree,"skill_use");
-        skill_ready = glade_xml_get_widget(xml_tree,"skill_ready");
-        skill_treeview = glade_xml_get_widget(xml_tree, "skill_treeview");
+        skill_use = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "skill_use"));
+        skill_ready = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "skill_ready"));
+        skill_treeview = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                    "skill_treeview"));
 
         g_signal_connect((gpointer) skill_window, "delete_event",
                          G_CALLBACK(gtk_widget_hide_on_delete), NULL);
@@ -135,7 +132,7 @@ void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data)
         g_signal_connect((gpointer) skill_use, "clicked",
                          G_CALLBACK(on_skill_use_clicked), NULL);
 
-        widget = glade_xml_get_widget(xml_tree, "skill_close");
+        widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "skill_close"));
         g_signal_connect((gpointer) widget, "clicked",
                          G_CALLBACK(on_skill_close_clicked), NULL);
 
@@ -190,7 +187,7 @@ void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data)
     gtk_widget_set_sensitive(skill_use, FALSE);
     gtk_widget_show(skill_window);
 
-    has_init=1;
+    has_init = 1;
     /* has to be called after has_init is set to 1 */
     update_skill_information();
 }
@@ -203,8 +200,7 @@ void on_skills_activate(GtkMenuItem *menuitem, gpointer user_data)
  * @param use_skill
   */
 
-void trigger_skill(GtkTreeIter iter, GtkTreeModel *model, int use_skill)
-{
+void trigger_skill(GtkTreeIter iter, GtkTreeModel *model, int use_skill) {
     gchar *skname;
     char command[MAX_BUF];
     char *commandname;
@@ -215,8 +211,8 @@ void trigger_skill(GtkTreeIter iter, GtkTreeModel *model, int use_skill)
             "Unable to get skill name\n");
         return;
     }
-    commandname = use_skill?"use_skill":"ready_skill";
-    snprintf(command, MAX_BUF-1, "%s %s", commandname, skname);
+    commandname = use_skill ? "use_skill" : "ready_skill";
+    snprintf(command, MAX_BUF - 1, "%s %s", commandname, skname);
     send_command(command, -1, 1);
     g_free(skname);
 }
@@ -229,8 +225,7 @@ void trigger_skill(GtkTreeIter iter, GtkTreeModel *model, int use_skill)
  * @param user_data
  */
 void on_skill_treeview_row_activated(GtkTreeView *treeview, GtkTreePath *path,
-                                     GtkTreeViewColumn *column, gpointer user_data)
-{
+                                     GtkTreeViewColumn *column, gpointer user_data) {
     GtkTreeIter iter;
     GtkTreeModel *model;
 
@@ -246,8 +241,7 @@ void on_skill_treeview_row_activated(GtkTreeView *treeview, GtkTreePath *path,
  * @param button
  * @param user_data
  */
-void on_skill_ready_clicked(GtkButton *button, gpointer user_data)
-{
+void on_skill_ready_clicked(GtkButton *button, gpointer user_data) {
     GtkTreeIter iter;
     GtkTreeModel *model;
 
@@ -262,8 +256,7 @@ void on_skill_ready_clicked(GtkButton *button, gpointer user_data)
  * @param button
  * @param user_data
  */
-void on_skill_use_clicked(GtkButton *button, gpointer user_data)
-{
+void on_skill_use_clicked(GtkButton *button, gpointer user_data) {
     GtkTreeIter iter;
     GtkTreeModel *model;
 
@@ -277,8 +270,7 @@ void on_skill_use_clicked(GtkButton *button, gpointer user_data)
  * @param button
  * @param user_data
  */
-void on_skill_close_clicked(GtkButton *button, gpointer user_data)
-{
+void on_skill_close_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(skill_window);
 }
 

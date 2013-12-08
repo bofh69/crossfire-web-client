@@ -76,7 +76,6 @@ void get_metaserver(void)
     GtkTreeIter iter;
     int i, j;
     const gchar *metaserver_txt;
-    GladeXML *xml_tree;
     GtkWidget *widget;
 
     hide_all_login_windows(); /* in account.c */
@@ -85,20 +84,20 @@ void get_metaserver(void)
         GtkTreeViewColumn *column;
         GtkCellRenderer *renderer;
 
-        metaserver_window = glade_xml_get_widget (dialog_xml,
-                            "metaserver_window");
-        xml_tree = glade_get_widget_tree(GTK_WIDGET(metaserver_window));
+        metaserver_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                       "metaserver_window"));
 
-        gtk_window_set_transient_for(GTK_WINDOW(metaserver_window), GTK_WINDOW(window_root));
+        gtk_window_set_transient_for(GTK_WINDOW(metaserver_window),
+                                     GTK_WINDOW(window_root));
 
-        treeview_metaserver = glade_xml_get_widget(xml_tree,
-                              "treeview_metaserver");
+        treeview_metaserver = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                         "treeview_metaserver"));
         metaserver_button =
-            glade_xml_get_widget(xml_tree, "metaserver_select");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_select"));
         metaserver_status =
-            glade_xml_get_widget(xml_tree, "metaserver_status");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_status"));
         metaserver_entry =
-            glade_xml_get_widget(xml_tree, "metaserver_text_entry");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_text_entry"));
 
         g_signal_connect ((gpointer) metaserver_window, "destroy",
                           G_CALLBACK (on_window_destroy_event), NULL);
@@ -111,7 +110,7 @@ void get_metaserver(void)
         g_signal_connect ((gpointer) metaserver_button, "clicked",
                           G_CALLBACK (on_metaserver_select_clicked), NULL);
 
-        widget = glade_xml_get_widget(xml_tree, "button_metaserver_quit");
+        widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_metaserver_quit"));
         g_signal_connect ((gpointer) widget, "pressed",
                           G_CALLBACK (on_button_metaserver_quit_pressed), NULL);
         g_signal_connect ((gpointer) widget, "activate",

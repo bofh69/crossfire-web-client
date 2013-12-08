@@ -1,7 +1,7 @@
 XML_FILES = \
 	caelestis.glade \
 	chthonic.glade \
-	dialogs.glade \
+	dialogs.ui \
 	eureka.glade \
 	gtk-v1.glade \
 	gtk-v2.glade \

@@ -292,13 +292,12 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
         GtkCellRenderer *renderer;
         GtkTreeViewColumn *column;
 
-        spell_window = glade_xml_get_widget(dialog_xml, "spell_window");
-        xml_tree = glade_get_widget_tree(GTK_WIDGET(spell_window));
+        spell_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_window"));
 
-        spell_invoke = glade_xml_get_widget(xml_tree,"spell_invoke");
-        spell_cast = glade_xml_get_widget(xml_tree,"spell_cast");
-        spell_options = glade_xml_get_widget(xml_tree,"spell_options");
-        spell_treeview = glade_xml_get_widget(xml_tree, "spell_treeview");
+        spell_invoke = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_invoke"));
+        spell_cast = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_cast"));
+        spell_options = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_options"));
+        spell_treeview = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_treeview"));
 
         g_signal_connect((gpointer) spell_window, "size-allocate",
                          G_CALLBACK(on_spell_window_size_allocate), NULL);
@@ -311,7 +310,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
         g_signal_connect((gpointer) spell_invoke, "clicked",
                          G_CALLBACK(on_spell_invoke_clicked), NULL);
 
-        widget = glade_xml_get_widget(xml_tree, "spell_close");
+        widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_close"));
         g_signal_connect((gpointer) widget, "clicked",
                          G_CALLBACK(on_spell_close_clicked), NULL);
 
