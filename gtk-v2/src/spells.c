@@ -283,9 +283,7 @@ void update_spell_information(void)
  * @param menuitem
  * @param user_data
  */
-void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
-{
-    GladeXML *xml_tree;
+void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
     GtkWidget *widget;
 
     if (!has_init) {
@@ -455,13 +453,13 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
 
         /* The style code will set the colors for these */
         spell_label[Style_Attuned] =
-            glade_xml_get_widget(xml_tree, "spell_label_attuned");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_label_attuned"));
         spell_label[Style_Repelled] =
-            glade_xml_get_widget(xml_tree, "spell_label_repelled");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_label_repelled"));
         spell_label[Style_Denied] =
-            glade_xml_get_widget(xml_tree, "spell_label_denied");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_label_denied"));
         spell_label[Style_Normal] =
-            glade_xml_get_widget(xml_tree, "spell_label_normal");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_label_normal"));
 
         /* We use eventboxes because the label widget is a transparent widget.
          * We can't set the background in it and have it work.  But we can set
@@ -469,13 +467,13 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data)
          * eventbox.
          */
         spell_eventbox[Style_Attuned] =
-            glade_xml_get_widget(xml_tree, "spell_eventbox_attuned");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_eventbox_attuned"));
         spell_eventbox[Style_Repelled] =
-            glade_xml_get_widget(xml_tree, "spell_eventbox_repelled");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_eventbox_repelled"));
         spell_eventbox[Style_Denied] =
-            glade_xml_get_widget(xml_tree, "spell_eventbox_denied");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_eventbox_denied"));
         spell_eventbox[Style_Normal] =
-            glade_xml_get_widget(xml_tree, "spell_eventbox_normal");
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "spell_eventbox_normal"));
     }
     gtk_widget_set_sensitive(spell_invoke, FALSE);
     gtk_widget_set_sensitive(spell_cast, FALSE);

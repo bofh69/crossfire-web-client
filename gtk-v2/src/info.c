@@ -1346,7 +1346,6 @@ int get_info_width(void)
 void msgctrl_init(GtkWidget *window_root)
 {
     GtkTableChild* child;               /* Used to get number of title rows */
-    GladeXML*      xml_tree;            /* Used to find the dialog widgets  */
     GtkWidget*     widget;              /* Used to connect widgets          */
     GtkTable*      table;               /* The table of checkbox controls   */
     GList*         list;                /* Iterator: table children         */
