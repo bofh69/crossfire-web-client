@@ -29,7 +29,6 @@
 #include "main.h"
 #include "image.h"
 #include "gtk2proto.h"
-#include "about.h"
 #include "../../pixmaps/crossfiretitle.xpm"
 
 static GtkWidget *about_window = NULL;
@@ -41,57 +40,20 @@ static GtkWidget *about_window = NULL;
  * @param user_data
  */
 void menu_about(GtkMenuItem *menuitem, gpointer user_data) {
-    GtkWidget *widget;
-
     if (!about_window) {
-        GtkWidget *textview;
-        GtkTextBuffer *textbuf;
-        GtkTextIter end;
-        GtkWidget *hbox;
-        GtkWidget *aboutgtkpixmap;
-        GdkPixmap *aboutgdkpixmap;
-        GdkBitmap *aboutgdkmask;
+        GtkImage *about_image;
 
         about_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "about_window"));
-
-        textview = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "about_textview"));
+        about_image = GTK_IMAGE(gtk_builder_get_object(dialog_xml, "about_image"));
 
         g_signal_connect((gpointer) about_window, "delete_event",
                          G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 
-        widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "about_close"));
-        g_signal_connect((gpointer) widget, "clicked",
-                         G_CALLBACK(on_about_close_clicked), NULL);
+        /* Load Crossfire image from inline XPM. */
+        gtk_image_set_from_pixbuf(about_image, gdk_pixbuf_new_from_xpm_data(
+                    (const char **)crossfiretitle_xpm));
 
-        textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
-
-        gtk_text_buffer_get_end_iter(textbuf, &end);
-        gtk_text_buffer_insert(textbuf, &end, VERSION_INFO,
-                               strlen(VERSION_INFO));
-        gtk_text_buffer_insert(textbuf, &end, "\n", 1);
-        gtk_text_buffer_insert(textbuf, &end, text, strlen(text));
-
-        /* The window must be realized before we can create the pixmap below */
         gtk_widget_show(about_window);
-
-        aboutgdkpixmap = gdk_pixmap_create_from_xpm_d(about_window->window,
-                         &aboutgdkmask, NULL,
-                         (gchar **) crossfiretitle_xpm);
-
-        aboutgtkpixmap = gtk_image_new_from_pixmap(aboutgdkpixmap,
-                         aboutgdkmask);
-        /*
-         * Use of hbox is a bit of a hack - isn't any easy way to add this
-         * image as the first entry of the box once other fields have been
-         * filled in.  So instead, we create a hbox in that first entry just to
-         * hold this image.
-         */
-        hbox = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "about_hbox_image"));
-
-        gtk_box_pack_start(GTK_BOX(hbox), aboutgtkpixmap, TRUE, TRUE, 0);
-
-        gtk_widget_show(aboutgtkpixmap);
-
     } else {
         gtk_widget_show(about_window);
     }

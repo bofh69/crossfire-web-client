@@ -1,222 +1,151 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <object class="GtkAdjustment" id="adjustment1">
-    <property name="upper">25</property>
-    <property name="lower">11</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">25</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment10">
-    <property name="upper">20</property>
-    <property name="lower">1</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">1</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment11">
-    <property name="upper">20</property>
-    <property name="lower">1</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">1</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment12">
-    <property name="upper">20</property>
-    <property name="lower">1</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">1</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment13">
-    <property name="upper">96</property>
-    <property name="lower">1</property>
-    <property name="page_increment">8</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">16</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment14">
-    <property name="upper">96</property>
-    <property name="lower">1</property>
-    <property name="page_increment">8</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">16</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment2">
-    <property name="upper">25</property>
-    <property name="lower">11</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">25</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment3">
-    <property name="upper">100</property>
-    <property name="lower">1</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">100</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment4">
-    <property name="upper">100</property>
-    <property name="lower">1</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">100</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment5">
-    <property name="upper">100</property>
-    <property name="lower">1</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">1</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment6">
-    <property name="upper">20</property>
-    <property name="lower">1</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">1</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment7">
-    <property name="upper">20</property>
-    <property name="lower">1</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">1</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment8">
-    <property name="upper">20</property>
-    <property name="lower">1</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">1</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment9">
-    <property name="upper">20</property>
-    <property name="lower">1</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
-    <property name="value">1</property>
-  </object>
-  <object class="GtkListStore" id="model1">
-    <columns>
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">None</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Best Per Pixel</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Fast Per Pixel</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Per Tile</col>
-      </row>
-    </data>
-  </object>
-  <!-- interface-requires gtk+ 2.16 -->
+  <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="about_window">
-    <property name="width_request">500</property>
-    <property name="height_request">500</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">About Crossfire</property>
     <property name="window_position">center</property>
-    <property name="deletable">False</property>
+    <property name="icon_name">help-about</property>
     <child>
       <object class="GtkVBox" id="about_vbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkHBox" id="about_hbox_image">
+          <object class="GtkImage" id="about_image">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <child>
-              <placeholder/>
-            </child>
+            <property name="stock">gtk-missing-image</property>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">0</property>
           </packing>
         </child>
         <child>
-          <object class="GtkScrolledWindow" id="about_scrolledwindow">
+          <object class="GtkLabel" id="about_text">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="xpad">20</property>
+            <property name="ypad">10</property>
+            <property name="label" translatable="yes">A free, open-source, cooperative multi-player RPG and adventure game.</property>
+            <property name="justify">center</property>
+            <property name="single_line_mode">True</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="about_license_label">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">License</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="about_license_scroll">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="shadow_type">in</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="vscrollbar_policy">automatic</property>
             <child>
-              <object class="GtkTextView" id="about_textview">
+              <object class="GtkTextView" id="about_license_textview">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="editable">False</property>
+                <property name="wrap_mode">word</property>
+                <property name="cursor_visible">False</property>
+                <property name="buffer">textbuffer_license</property>
               </object>
             </child>
           </object>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="padding">1</property>
-            <property name="position">1</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
-          <object class="GtkHSeparator" id="about_hseparator_buttons">
+          <object class="GtkLabel" id="about_authors_label">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Authors</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="padding">2</property>
-            <property name="position">2</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
-          <object class="GtkHButtonBox" id="about_hbuttonbox">
+          <object class="GtkTextView" id="about_authors_textview">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="editable">False</property>
+            <property name="cursor_visible">False</property>
+            <property name="buffer">textbuffer_authors</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHBox" id="about_links">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="homogeneous">True</property>
             <child>
-              <object class="GtkButton" id="about_close">
-                <property name="label">gtk-close</property>
+              <object class="GtkLinkButton" id="link_www">
+                <property name="label" translatable="yes">Website</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <property name="use_stock">True</property>
-                <signal handler="on_about_close_clicked" name="clicked"/>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="relief">none</property>
+                <property name="uri">http://crossfire.real-time.com/</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">1</property>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
                 <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLinkButton" id="link_sf">
+                <property name="label" translatable="yes">SourceForge</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">none</property>
+                <property name="uri">http://sourceforge.net/projects/crossfire/</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="padding">2</property>
-            <property name="position">3</property>
+            <property name="position">6</property>
           </packing>
         </child>
       </object>
@@ -302,13 +231,13 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="visibility">False</property>
-                            <property name="invisible_char">&#x25CF;</property>
+                            <property name="invisible_char">●</property>
                             <property name="truncate_multiline">True</property>
                             <property name="primary_icon_activatable">False</property>
                             <property name="secondary_icon_activatable">False</property>
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
-                            <signal handler="activate_password_current" name="activate"/>
+                            <signal name="activate" handler="activate_password_current" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -334,13 +263,13 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="visibility">False</property>
-                            <property name="invisible_char">&#x25CF;</property>
+                            <property name="invisible_char">●</property>
                             <property name="invisible_char_set">True</property>
                             <property name="primary_icon_activatable">False</property>
                             <property name="secondary_icon_activatable">False</property>
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
-                            <signal handler="activate_new_password" name="activate"/>
+                            <signal name="activate" handler="activate_new_password" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -366,12 +295,12 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="visibility">False</property>
-                            <property name="invisible_char">&#x25CF;</property>
+                            <property name="invisible_char">●</property>
                             <property name="primary_icon_activatable">False</property>
                             <property name="secondary_icon_activatable">False</property>
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
-                            <signal handler="activate_new_password_confirm" name="activate"/>
+                            <signal name="activate" handler="activate_new_password_confirm" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -432,8 +361,8 @@
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_stock">True</property>
-                    <signal handler="activate_account_password_confirm" name="pressed"/>
-                    <signal handler="activate_account_password_confirm" name="activate"/>
+                    <signal name="pressed" handler="activate_account_password_confirm" swapped="no"/>
+                    <signal name="activate" handler="activate_account_password_confirm" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -448,8 +377,8 @@
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_stock">True</property>
-                    <signal handler="activate_account_password_cancel" name="pressed"/>
-                    <signal handler="activate_account_password_cancel" name="activate"/>
+                    <signal name="pressed" handler="activate_account_password_cancel" swapped="no"/>
+                    <signal name="activate" handler="activate_account_password_cancel" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -547,13 +476,13 @@
                                       <object class="GtkEntry" id="entry_character_name">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="invisible_char">&#x25CF;</property>
+                                        <property name="invisible_char">●</property>
                                         <property name="truncate_multiline">True</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">True</property>
                                         <property name="secondary_icon_sensitive">True</property>
-                                        <signal handler="activate_character_name" name="activate"/>
+                                        <signal name="activate" handler="activate_character_name" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -580,7 +509,7 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="visibility">False</property>
-                                        <property name="invisible_char">&#x25CF;</property>
+                                        <property name="invisible_char">●</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">True</property>
@@ -686,8 +615,8 @@ exist on the server.</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal handler="activate_add_character" name="pressed"/>
-                        <signal handler="activate_add_character" name="activate"/>
+                        <signal name="pressed" handler="activate_add_character" swapped="no"/>
+                        <signal name="activate" handler="activate_add_character" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -702,8 +631,8 @@ exist on the server.</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal handler="activate_return_character_select" name="pressed"/>
-                        <signal handler="activate_return_character_select" name="activate"/>
+                        <signal name="pressed" handler="activate_return_character_select" swapped="no"/>
+                        <signal name="activate" handler="activate_return_character_select" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -724,6 +653,99 @@ exist on the server.</property>
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="lower">11</property>
+    <property name="upper">25</property>
+    <property name="value">25</property>
+    <property name="step_increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment10">
+    <property name="lower">1</property>
+    <property name="upper">20</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment11">
+    <property name="lower">1</property>
+    <property name="upper">20</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment12">
+    <property name="lower">1</property>
+    <property name="upper">20</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment13">
+    <property name="lower">1</property>
+    <property name="upper">96</property>
+    <property name="value">16</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">8</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment14">
+    <property name="lower">1</property>
+    <property name="upper">96</property>
+    <property name="value">16</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">8</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment2">
+    <property name="lower">11</property>
+    <property name="upper">25</property>
+    <property name="value">25</property>
+    <property name="step_increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment3">
+    <property name="lower">1</property>
+    <property name="upper">100</property>
+    <property name="value">100</property>
+    <property name="step_increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment4">
+    <property name="lower">1</property>
+    <property name="upper">100</property>
+    <property name="value">100</property>
+    <property name="step_increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment5">
+    <property name="lower">1</property>
+    <property name="upper">100</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment6">
+    <property name="lower">1</property>
+    <property name="upper">20</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment7">
+    <property name="lower">1</property>
+    <property name="upper">20</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment8">
+    <property name="lower">1</property>
+    <property name="upper">20</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment9">
+    <property name="lower">1</property>
+    <property name="upper">20</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkWindow" id="choose_character_window">
     <property name="can_focus">False</property>
@@ -908,8 +930,8 @@ this server that is not associated with an account, click the Add Character butt
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal handler="activate_play_character" name="pressed"/>
-                        <signal handler="activate_play_character" name="activate"/>
+                        <signal name="pressed" handler="activate_play_character" swapped="no"/>
+                        <signal name="activate" handler="activate_play_character" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -923,8 +945,8 @@ this server that is not associated with an account, click the Add Character butt
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal handler="activate_create_character" name="pressed"/>
-                        <signal handler="activate_create_character" name="activate"/>
+                        <signal name="pressed" handler="activate_create_character" swapped="no"/>
+                        <signal name="activate" handler="activate_create_character" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -938,8 +960,8 @@ this server that is not associated with an account, click the Add Character butt
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal handler="activate_add_character" name="pressed"/>
-                        <signal handler="activate_add_character" name="activate"/>
+                        <signal name="pressed" handler="activate_add_character" swapped="no"/>
+                        <signal name="activate" handler="activate_add_character" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -953,8 +975,8 @@ this server that is not associated with an account, click the Add Character butt
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal handler="activate_change_password" name="pressed"/>
-                        <signal handler="activate_change_password" name="activate"/>
+                        <signal name="pressed" handler="activate_change_password" swapped="no"/>
+                        <signal name="activate" handler="activate_change_password" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -969,8 +991,8 @@ Account Login</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal handler="activate_return_login" name="pressed"/>
-                        <signal handler="activate_return_login" name="activate"/>
+                        <signal name="pressed" handler="activate_return_login" swapped="no"/>
+                        <signal name="activate" handler="activate_return_login" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1284,7 +1306,7 @@ Account Login</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
-                                            <property name="tooltip-text" translatable="yes">When a keybind is used, show the actual commands that are sent.</property>
+                                            <property name="tooltip_text" translatable="yes">When a keybind is used, show the actual commands that are sent.</property>
                                             <property name="use_underline">True</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">True</property>
@@ -1301,7 +1323,7 @@ Account Login</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
-                                            <property name="tooltip-text" translatable="yes">May decrease latency at the expense of using more out-going bandwidth.</property>
+                                            <property name="tooltip_text" translatable="yes">May decrease latency at the expense of using more out-going bandwidth.</property>
                                             <property name="use_underline">True</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">True</property>
@@ -1318,7 +1340,7 @@ Account Login</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
-                                            <property name="tooltip-text" translatable="yes">If activated, all messages have a .</property>
+                                            <property name="tooltip_text" translatable="yes">If activated, all messages have a .</property>
                                             <property name="use_underline">True</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">True</property>
@@ -1476,7 +1498,7 @@ server connection.</property>
                                       <object class="GtkLabel" id="config_label_mapscale">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="tooltip-text" translatable="yes">Affects the size of individual map tiles.</property>
+                                        <property name="tooltip_text" translatable="yes">Affects the size of individual map tiles.</property>
                                         <property name="xalign">0</property>
                                         <property name="label" translatable="yes">Map Scale Percentage</property>
                                       </object>
@@ -1493,7 +1515,7 @@ server connection.</property>
                                       <object class="GtkLabel" id="config_label_iconscale">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="tooltip-text" translatable="yes">Affects the size of graphical icons in the inventory and floor views.</property>
+                                        <property name="tooltip_text" translatable="yes">Affects the size of graphical icons in the inventory and floor views.</property>
                                         <property name="xalign">0</property>
                                         <property name="label" translatable="yes">Icon Scale Percentage</property>
                                       </object>
@@ -1782,7 +1804,7 @@ Changes takes effect on the next server connection.</property>
                   <object class="GtkLabel" id="config_notebook_general_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="tooltip-text" translatable="yes">Sound and general user interface settings.</property>
+                    <property name="tooltip_text" translatable="yes">Sound and general user interface settings.</property>
                     <property name="label" translatable="yes">General Client Options</property>
                     <property name="use_markup">True</property>
                   </object>
@@ -2078,12 +2100,15 @@ The server determines what map tiles are visible based on map lighting levels.</
                       </object>
                     </child>
                   </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
                 <child type="tab">
                   <object class="GtkLabel" id="config_notebook_display_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="tooltip-text" translatable="yes">Miscellaneous, Image Cache, Map, Display Mode, Lighting</property>
+                    <property name="tooltip_text" translatable="yes">Miscellaneous, Image Cache, Map, Display Mode, Lighting</property>
                     <property name="label" translatable="yes">Display &amp;amp; Image Cache Options</property>
                     <property name="use_markup">True</property>
                   </object>
@@ -2125,7 +2150,7 @@ The server determines what map tiles are visible based on map lighting levels.</
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
                     <property name="use_stock">True</property>
-                    <signal handler="on_config_button_save_clicked" name="clicked"/>
+                    <signal name="clicked" handler="on_config_button_save_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -2142,7 +2167,7 @@ The server determines what map tiles are visible based on map lighting levels.</
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
                     <property name="use_stock">True</property>
-                    <signal handler="on_config_button_apply_clicked" name="clicked"/>
+                    <signal name="clicked" handler="on_config_button_apply_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -2159,7 +2184,7 @@ The server determines what map tiles are visible based on map lighting levels.</
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
                     <property name="use_stock">True</property>
-                    <signal handler="on_config_button_close_clicked" name="clicked"/>
+                    <signal name="clicked" handler="on_config_button_close_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -2256,13 +2281,13 @@ The server determines what map tiles are visible based on map lighting levels.</
                                   <object class="GtkEntry" id="entry_new_account_name">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="invisible_char">&#x25CF;</property>
+                                    <property name="invisible_char">●</property>
                                     <property name="truncate_multiline">True</property>
                                     <property name="primary_icon_activatable">False</property>
                                     <property name="secondary_icon_activatable">False</property>
                                     <property name="primary_icon_sensitive">True</property>
                                     <property name="secondary_icon_sensitive">True</property>
-                                    <signal handler="activate_new_account_name" name="activate"/>
+                                    <signal name="activate" handler="activate_new_account_name" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -2288,13 +2313,13 @@ The server determines what map tiles are visible based on map lighting levels.</
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="visibility">False</property>
-                                    <property name="invisible_char">&#x25CF;</property>
+                                    <property name="invisible_char">●</property>
                                     <property name="invisible_char_set">True</property>
                                     <property name="primary_icon_activatable">False</property>
                                     <property name="secondary_icon_activatable">False</property>
                                     <property name="primary_icon_sensitive">True</property>
                                     <property name="secondary_icon_sensitive">True</property>
-                                    <signal handler="activate_new_account_password" name="activate"/>
+                                    <signal name="activate" handler="activate_new_account_password" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -2320,12 +2345,12 @@ The server determines what map tiles are visible based on map lighting levels.</
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="visibility">False</property>
-                                    <property name="invisible_char">&#x25CF;</property>
+                                    <property name="invisible_char">●</property>
                                     <property name="primary_icon_activatable">False</property>
                                     <property name="secondary_icon_activatable">False</property>
                                     <property name="primary_icon_sensitive">True</property>
                                     <property name="secondary_icon_sensitive">True</property>
-                                    <signal handler="activate_new_confirm_password" name="activate"/>
+                                    <signal name="activate" handler="activate_new_confirm_password" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -2443,8 +2468,8 @@ The server determines what map tiles are visible based on map lighting levels.</
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal handler="activate_new_create_account" name="pressed"/>
-                        <signal handler="activate_new_create_account" name="activate"/>
+                        <signal name="pressed" handler="activate_new_create_account" swapped="no"/>
+                        <signal name="activate" handler="activate_new_create_account" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2459,8 +2484,8 @@ The server determines what map tiles are visible based on map lighting levels.</
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal handler="activate_new_cancel" name="pressed"/>
-                        <signal handler="activate_new_cancel" name="activate"/>
+                        <signal name="pressed" handler="activate_new_cancel" swapped="no"/>
+                        <signal name="activate" handler="activate_new_cancel" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2551,7 +2576,7 @@ The server determines what map tiles are visible based on map lighting levels.</
                   <object class="GtkEntry" id="cc_entry_new_character_name">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
                     <property name="primary_icon_activatable">False</property>
                     <property name="secondary_icon_activatable">False</property>
                     <property name="primary_icon_sensitive">True</property>
@@ -2602,7 +2627,7 @@ The server determines what map tiles are visible based on map lighting levels.</
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Strength determines how much a character
+                                <property name="tooltip_text" translatable="yes">Strength determines how much a character
 can carry, as well as how much effective the character is with
 melee weapons.  Fighters need a high strength</property>
                                 <property name="label" translatable="yes">Strength</property>
@@ -2618,7 +2643,7 @@ melee weapons.  Fighters need a high strength</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Constitution is the physical hardiness of the character.  High
+                                <property name="tooltip_text" translatable="yes">Constitution is the physical hardiness of the character.  High
 constitution well grant extra hit points for each level.
 Constitution is important for all classes.
 </property>
@@ -2635,7 +2660,7 @@ Constitution is important for all classes.
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Wisdom is how in tune the character is with their god.  High
+                                <property name="tooltip_text" translatable="yes">Wisdom is how in tune the character is with their god.  High
 wisdom makes it easier for a character to learn new prayers
 and is largely responsible for how many grace points the character
 has.  Wisdom is a key attribute for priests.</property>
@@ -2652,7 +2677,7 @@ has.  Wisdom is a key attribute for priests.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Power is a measurement of how in tune the character is with
+                                <property name="tooltip_text" translatable="yes">Power is a measurement of how in tune the character is with
 magic forces.  It is a major factor is how many mana points
 the character has, and has a lesser influence on how many
 grace points the character has.  High power is important
@@ -2671,7 +2696,7 @@ for wizards.
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Charisma is a measurement of likability for the character.  If the
+                                <property name="tooltip_text" translatable="yes">Charisma is a measurement of likability for the character.  If the
 character has a high charisma, creatures the character meet
 will act more favorably to the character.  The main effect of
 this is the pricing the character gets in shops.</property>
@@ -2688,7 +2713,7 @@ this is the pricing the character gets in shops.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Intelligence is a measure of how smart the character is.  High
+                                <property name="tooltip_text" translatable="yes">Intelligence is a measure of how smart the character is.  High
 intelligence gives additional mana points for casting spells and
 makes it easier for the character to learn new spells.  Intelligence
 is a key attribute for wizards.</property>
@@ -2705,7 +2730,7 @@ is a key attribute for wizards.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Dexterity is how quick and nimble the character is.  High
+                                <property name="tooltip_text" translatable="yes">Dexterity is how quick and nimble the character is.  High
 dexterity makes the character harder to hit, lets the 
 character move faster as well as attack faster.</property>
                                 <property name="label" translatable="yes">Dexterity</property>
@@ -2720,7 +2745,7 @@ character move faster as well as attack faster.</property>
                               <object class="GtkSpinButton" id="spinbutton_cc_str">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">&#x25CF;</property>
+                                <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
@@ -2740,7 +2765,7 @@ character move faster as well as attack faster.</property>
                               <object class="GtkSpinButton" id="spinbutton_cc_dex">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">&#x25CF;</property>
+                                <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
@@ -2761,7 +2786,7 @@ character move faster as well as attack faster.</property>
                               <object class="GtkSpinButton" id="spinbutton_cc_con">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">&#x25CF;</property>
+                                <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
@@ -2781,7 +2806,7 @@ character move faster as well as attack faster.</property>
                               <object class="GtkSpinButton" id="spinbutton_cc_int">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">&#x25CF;</property>
+                                <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
@@ -2802,7 +2827,7 @@ character move faster as well as attack faster.</property>
                               <object class="GtkSpinButton" id="spinbutton_cc_wis">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">&#x25CF;</property>
+                                <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
@@ -2822,7 +2847,7 @@ character move faster as well as attack faster.</property>
                               <object class="GtkSpinButton" id="spinbutton_cc_pow">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">&#x25CF;</property>
+                                <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
@@ -2843,7 +2868,7 @@ character move faster as well as attack faster.</property>
                               <object class="GtkSpinButton" id="spinbutton_cc_cha">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">&#x25CF;</property>
+                                <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
@@ -2864,7 +2889,7 @@ character move faster as well as attack faster.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Adjust your base attributes to be between 1 and 20.
+                                <property name="tooltip_text" translatable="yes">Adjust your base attributes to be between 1 and 20.
 The characters final attributes after adjustment for class
 and race can not be below one, but can be above 20.</property>
                                 <property name="label" translatable="yes">Base
@@ -2883,7 +2908,7 @@ Attribute</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Select the race you want to play.  Different races have different
+                                <property name="tooltip_text" translatable="yes">Select the race you want to play.  Different races have different
 advantages and disadvantages, and some are suited more
 towards certain classes than others.</property>
                               </object>
@@ -3215,7 +3240,7 @@ towards certain classes than others.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip-text" translatable="yes">Charisma is a measurement of likability for the character.  If the
+                                <property name="tooltip_text" translatable="yes">Charisma is a measurement of likability for the character.  If the
 character has a high charisma, creatures the character meet
 will act more favorably to the character.  The main effect of
 this is the pricing the character gets in shops.</property>
@@ -3832,11 +3857,8 @@ this is the pricing the character gets in shops.</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="draw_indicator">True</property>
-                <accessibility>
-                  
-                </accessibility>
                 <child internal-child="accessible">
-                  <object class="AtkObject" id="a11y-keybinding_checkbutton_stayinedit1">
+                  <object class="AtkObject" id="keybinding_checkbutton_stayinedit-atkobject">
                     <property name="AtkObject::accessible-description" translatable="yes">Keybinding will not be executed immediately - instead, will stay in edit mode so additional text can be entered before command is executed.</property>
                   </object>
                 </child>
@@ -3878,7 +3900,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="secondary_icon_activatable">False</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>
-                <signal handler="on_keybinding_entry_key_key_press_event" name="key_press_event"/>
+                <signal name="key-press-event" handler="on_keybinding_entry_key_key_press_event" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -3948,7 +3970,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_keybinding_button_remove_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_keybinding_button_remove_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3963,7 +3985,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
-                <signal handler="on_keybinding_button_update_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_keybinding_button_update_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3979,7 +4001,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_keybinding_button_bind_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_keybinding_button_bind_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3995,7 +4017,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_keybinding_button_clear_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_keybinding_button_clear_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4011,7 +4033,7 @@ this is the pricing the character gets in shops.</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_keybinding_button_close_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_keybinding_button_close_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4118,13 +4140,13 @@ you can create one and link any existing characters you have to it.
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="max_length">40</property>
-                                        <property name="invisible_char">&#x25CF;</property>
+                                        <property name="invisible_char">●</property>
                                         <property name="truncate_multiline">True</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">True</property>
                                         <property name="secondary_icon_sensitive">True</property>
-                                        <signal handler="activate_entry_account_name" name="activate"/>
+                                        <signal name="activate" handler="activate_entry_account_name" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -4150,13 +4172,13 @@ you can create one and link any existing characters you have to it.
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="visibility">False</property>
-                                        <property name="invisible_char">&#x25CF;</property>
+                                        <property name="invisible_char">●</property>
                                         <property name="invisible_char_set">True</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">True</property>
                                         <property name="secondary_icon_sensitive">True</property>
-                                        <signal handler="activate_account_password" name="activate"/>
+                                        <signal name="activate" handler="activate_account_password" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -4341,8 +4363,8 @@ you can create one and link any existing characters you have to it.
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal handler="activate_button_login" name="pressed"/>
-                        <signal handler="activate_button_login" name="activate"/>
+                        <signal name="pressed" handler="activate_button_login" swapped="no"/>
+                        <signal name="activate" handler="activate_button_login" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -4357,8 +4379,8 @@ you can create one and link any existing characters you have to it.
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="yalign">0.56000000238418579</property>
-                        <signal handler="activate_button_create_login" name="pressed"/>
-                        <signal handler="activate_button_create_login" name="activate"/>
+                        <signal name="pressed" handler="activate_button_create_login" swapped="no"/>
+                        <signal name="activate" handler="activate_button_create_login" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -4373,8 +4395,8 @@ you can create one and link any existing characters you have to it.
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal handler="activate_button_go_metaserver" name="pressed"/>
-                        <signal handler="activate_button_go_metaserver" name="activate"/>
+                        <signal name="pressed" handler="activate_button_go_metaserver" swapped="no"/>
+                        <signal name="activate" handler="activate_button_go_metaserver" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -4389,8 +4411,8 @@ you can create one and link any existing characters you have to it.
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal handler="activate_button_exit_client" name="pressed"/>
-                        <signal handler="activate_button_exit_client" name="activate"/>
+                        <signal name="pressed" handler="activate_button_exit_client" swapped="no"/>
+                        <signal name="activate" handler="activate_button_exit_client" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -4419,7 +4441,7 @@ you can create one and link any existing characters you have to it.
     <property name="default_width">800</property>
     <property name="default_height">400</property>
     <property name="deletable">False</property>
-    <signal handler="on_window_destroy_event" name="destroy"/>
+    <signal name="destroy" handler="on_window_destroy_event" swapped="no"/>
     <child>
       <object class="GtkVBox" id="metaserver_vbox">
         <property name="visible">True</property>
@@ -4434,7 +4456,7 @@ you can create one and link any existing characters you have to it.
               <object class="GtkTreeView" id="treeview_metaserver">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <signal handler="on_treeview_metaserver_row_activated" name="row_activated"/>
+                <signal name="row-activated" handler="on_treeview_metaserver_row_activated" swapped="no"/>
               </object>
             </child>
           </object>
@@ -4469,8 +4491,8 @@ you can create one and link any existing characters you have to it.
                 <property name="secondary_icon_activatable">False</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>
-                <signal handler="on_metaserver_text_entry_activate" name="activate"/>
-                <signal handler="on_metaserver_text_entry_key_press_event" name="key_press_event"/>
+                <signal name="activate" handler="on_metaserver_text_entry_activate" swapped="no"/>
+                <signal name="key-press-event" handler="on_metaserver_text_entry_key_press_event" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -4547,7 +4569,7 @@ you can create one and link any existing characters you have to it.
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_metaserver_select_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_metaserver_select_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4561,11 +4583,11 @@ you can create one and link any existing characters you have to it.
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="tooltip-text" translatable="yes">Escape also quits.</property>
+                <property name="tooltip_text" translatable="yes">Escape also quits.</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_button_metaserver_quit_pressed" name="pressed"/>
-                <signal handler="on_button_metaserver_quit_pressed" name="activate"/>
                 <accelerator key="Escape" signal="activate"/>
+                <signal name="pressed" handler="on_button_metaserver_quit_pressed" swapped="no"/>
+                <signal name="activate" handler="on_button_metaserver_quit_pressed" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4583,6 +4605,26 @@ you can create one and link any existing characters you have to it.
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="model1">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">None</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Best Per Pixel</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Fast Per Pixel</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Per Tile</col>
+      </row>
+    </data>
   </object>
   <object class="GtkWindow" id="msgctrl_window">
     <property name="can_focus">False</property>
@@ -4650,7 +4692,7 @@ you can create one and link any existing characters you have to it.
                   <object class="GtkSpinButton" id="msgctrl_spinbutton_timer">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="tooltip-text" translatable="yes">The maximum time that a message may reside in the buffer before it must be displayed.  8 ticks is approximately 1 second.</property>
+                    <property name="tooltip_text" translatable="yes">The maximum time that a message may reside in the buffer before it must be displayed.  8 ticks is approximately 1 second.</property>
                     <property name="max_length">2</property>
                     <property name="truncate_multiline">True</property>
                     <property name="overwrite_mode">True</property>
@@ -4677,7 +4719,7 @@ you can create one and link any existing characters you have to it.
                   <object class="GtkSpinButton" id="msgctrl_spinbutton_count">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="tooltip-text" translatable="yes">The number times a message may occur before it must be displayed.  If a message is not already in the buffer, it is always output one time with no delay.</property>
+                    <property name="tooltip_text" translatable="yes">The number times a message may occur before it must be displayed.  If a message is not already in the buffer, it is always output one time with no delay.</property>
                     <property name="max_length">2</property>
                     <property name="truncate_multiline">True</property>
                     <property name="overwrite_mode">True</property>
@@ -4752,7 +4794,7 @@ you can create one and link any existing characters you have to it.
               <object class="GtkLabel" id="msgctrl_label_cmessages">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="tooltip-text" translatable="yes">Choose one or more message panels that should display each message type.</property>
+                <property name="tooltip_text" translatable="yes">Choose one or more message panels that should display each message type.</property>
                 <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Messages</property>
@@ -4772,7 +4814,7 @@ you can create one and link any existing characters you have to it.
               <object class="GtkLabel" id="msgctrl_label_messages">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="tooltip-text" translatable="yes">Choose one or more message panels that should display each message type.</property>
+                <property name="tooltip_text" translatable="yes">Choose one or more message panels that should display each message type.</property>
                 <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Messages</property>
@@ -4823,7 +4865,7 @@ you can create one and link any existing characters you have to it.
               <object class="GtkLabel" id="msgctrl_label_duplicates">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="tooltip-text" translatable="yes">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
+                <property name="tooltip_text" translatable="yes">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
                 <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Duplicates</property>
@@ -4869,9 +4911,9 @@ you can create one and link any existing characters you have to it.
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="tooltip-text" translatable="yes">Apply and save the currently displayed settings to disk.</property>
+                <property name="tooltip_text" translatable="yes">Apply and save the currently displayed settings to disk.</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_msgctrl_button_save_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_msgctrl_button_save_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4885,8 +4927,8 @@ you can create one and link any existing characters you have to it.
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="tooltip-text" translatable="yes">Restore the previously saved settings from disk.</property>
-                <signal handler="on_msgctrl_button_load_clicked" name="clicked"/>
+                <property name="tooltip_text" translatable="yes">Restore the previously saved settings from disk.</property>
+                <signal name="clicked" handler="on_msgctrl_button_load_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4900,8 +4942,8 @@ you can create one and link any existing characters you have to it.
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="tooltip-text" translatable="yes">Load the default settings built into the client.</property>
-                <signal handler="on_msgctrl_button_defaults_clicked" name="clicked"/>
+                <property name="tooltip_text" translatable="yes">Load the default settings built into the client.</property>
+                <signal name="clicked" handler="on_msgctrl_button_defaults_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4915,9 +4957,9 @@ you can create one and link any existing characters you have to it.
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="tooltip-text" translatable="yes">Apply the currently displayed settings.</property>
+                <property name="tooltip_text" translatable="yes">Apply the currently displayed settings.</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_msgctrl_button_apply_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_msgctrl_button_apply_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4932,9 +4974,9 @@ you can create one and link any existing characters you have to it.
                 <property name="can_focus">True</property>
                 <property name="has_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="tooltip-text" translatable="yes">Apply the displayed settings and close the dialog.</property>
+                <property name="tooltip_text" translatable="yes">Apply the displayed settings and close the dialog.</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_msgctrl_button_close_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_msgctrl_button_close_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -5077,7 +5119,7 @@ you can create one and link any existing characters you have to it.
               <object class="GtkTreeView" id="spell_treeview">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <signal handler="on_spell_treeview_row_activated" name="row_activated"/>
+                <signal name="row-activated" handler="on_spell_treeview_row_activated" swapped="no"/>
               </object>
             </child>
           </object>
@@ -5231,7 +5273,7 @@ you can create one and link any existing characters you have to it.
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
-                <signal handler="on_spell_cast_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_spell_cast_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -5246,7 +5288,7 @@ you can create one and link any existing characters you have to it.
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
-                <signal handler="on_spell_invoke_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_spell_invoke_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -5262,7 +5304,7 @@ you can create one and link any existing characters you have to it.
                 <property name="receives_default">False</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <signal handler="on_spell_close_clicked" name="clicked"/>
+                <signal name="clicked" handler="on_spell_close_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -5280,5 +5322,21 @@ you can create one and link any existing characters you have to it.
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkTextBuffer" id="textbuffer_authors">
+    <property name="text">Mark Wedel (mwedel@sonic.net)
+David Sundqvist (azzie@netpolicy.com)
+Raphael Quinet (Raphael.Quinet@eed.ericsson.se)
+Jacek Konieczny &lt;jajcus@zeus.polsl.gliwice.pl&gt;
+Eric Anderson
+Scott MacFiggen (smurf@CSUA.Berkeley.EDU)
+Kevin Bulgrien (kbulgrien@att.net)</property>
+  </object>
+  <object class="GtkTextBuffer" id="textbuffer_license">
+    <property name="text" translatable="yes">This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</property>
   </object>
 </interface>
