@@ -225,19 +225,19 @@ on_button_new_char_cancel_clicked(GtkButton *button, gpointer user_data) {
  */
 static void init_new_character_window() {
     new_character_window =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "new_character_window"));
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "create_character_window"));
 
     gtk_window_set_transient_for(
         GTK_WINDOW(new_character_window), GTK_WINDOW(window_root));
 
     button_create_new_char =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_create_new_char"));
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_create_character"));
     button_new_char_cancel =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_new_char_cancel"));
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_cc_cancel"));
     entry_new_character_name =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_new_character_name"));
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "cc_entry_new_character_name"));
     label_new_char_status =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_new_char_status"));
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_cc_status_update"));
 
     g_signal_connect((gpointer) new_character_window, "delete_event",
                      G_CALLBACK(on_window_delete_event), NULL);
