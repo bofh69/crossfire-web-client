@@ -155,36 +155,10 @@ int make_path_to_file (char *filename)
  * A replacement of strdup(), since it's not defined at some
  * unix variants.
  */
-char *strdup_local(const char *str)
-{
-    char *c=(char *)malloc(sizeof(char)*strlen(str)+1);
-    strcpy(c,str);
+char *strdup_local(const char *str) {
+    char *c = (char *)malloc(sizeof(char) * strlen(str) + 1);
+    strcpy(c, str);
     return c;
-}
-
-/* logging stuff */
-LogEntry* LogFirst = NULL;
-LogEntry* LogLast = NULL;
-int logcount = 0;
-LogListener loglist = NULL;
-
-/**
- *
- */
-int setLogListener(LogListener li) {
-    if (loglist) {
-        return 0;
-    }
-
-    loglist = li;
-    return 1;
-}
-
-/**
- *
- */
-void clearLogListener() {
-    loglist = NULL;
 }
 
 static const char *const LogLevelTexts[] = {
@@ -196,45 +170,21 @@ static const char *const LogLevelTexts[] = {
     "\x1b[30;1m" "??" "\x1b[0m",
 };
 
-/**
- *
- */
 static const char *getLogLevelText(LogLevel level) {
-    return LogLevelTexts[level>LOG_CRITICAL?LOG_CRITICAL+1:level];
+    return LogLevelTexts[level > LOG_CRITICAL ? LOG_CRITICAL + 1 : level];
 }
 
-/**
- *
- */
-char *getLogTextRaw(LogLevel level, const char *origin, const char *message) {
-    static char mybuf[20480];
-    mybuf[0]='\0';
-    snprintf(mybuf, sizeof(mybuf), "[%s] (%s) %s\n",
-            getLogLevelText(level), origin, message);
-    return mybuf;
-}
+int MINLOG = MINLOGLEVEL;
 
 /**
- *
- */
-char *getLogText(const LogEntry *le) {
-    return getLogTextRaw(le->level, le->origin, le->message);
-}
-
-int MINLOG=MINLOGLEVEL;
-
-/**
- * Logs a message to stderr and save it in memory.
- * Or discards the message if it is of no importanse, and none have
- * asked to hear messages of that logLevel.
- *
- * See client.h for possible logLevels.
+ * Log messages of a certain importance to stderr. See 'client.h' for a full
+ * list of possible log levels.
  */
 void LOG(LogLevel level, const char *origin, const char *format, ...) {
     va_list ap;
 
     /* This buffer needs to be very big - larger than any other buffer. */
-    static char buf[20480];
+    char buf[20480];
 
     /* Don't log messages that the user doesn't want. */
     if (level < MINLOG) {
@@ -242,21 +192,12 @@ void LOG(LogLevel level, const char *origin, const char *format, ...) {
     }
 
     va_start(ap, format);
-
-    buf[0] = '\0';
     vsnprintf(buf, sizeof(buf), format, ap);
 
     if (strlen(buf) > 0) {
-        LogEntry *le = LOG_NEW_ENTRY;
-        LOG_APPEND(le);
-        LOG_SETMESSAGE(le, buf);
-        LOG_SETORIGIN(le, origin);
-        le->level = level;
-        fprintf(stderr, "%s", getLogText(le));
-        if (loglist) {
-            (*loglist)(le);
-        }
+        fprintf(stderr, "[%s] (%s) %s\n", getLogLevelText(level), origin, buf);
     }
+
     va_end(ap);
 }
 

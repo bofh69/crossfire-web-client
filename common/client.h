@@ -1,29 +1,3 @@
-/*
- * static char *rcsid_common_client_h =
- *   "$Id$";
- */
-/*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2001,2007,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
-
 /**
  * @file client.h
  * Includes various dependencies header files needed by most everything.  It
@@ -416,34 +390,6 @@ typedef enum LogLevel {
   LOG_DEBUG = 0, LOG_INFO = 1, LOG_WARNING = 2, LOG_ERROR = 3, LOG_CRITICAL = 4
 } LogLevel;
 
-typedef struct LogEntry {
-    char* message;
-    char* origin;
-    LogLevel level;
-    struct LogEntry* next;
-} LogEntry;
-extern LogEntry* LogFirst;
-extern LogEntry* LogLast;
-extern int logcount;
-typedef void (*LogListener)(LogEntry*);
-#define MAX_LOGS 200
-#define LOG_APPEND(_Entry) if (LogLast) {\
-    LogLast->next=_Entry;\
-  } else {\
-    LogFirst=_Entry;\
-  };\
-  LogLast=_Entry;_Entry->next=NULL;\
-  if (++logcount > MAX_LOGS)\
-  {\
-      LogEntry* old = LogFirst;\
-      LogFirst = LogFirst -> next;\
-      if (old->message) free (old->message);\
-      if (old->origin) free (old->origin);\
-  }
-#define LOG_NEW_ENTRY (LogEntry*)calloc(1,sizeof(LogEntry))
-#define LOG_SETMESSAGE(_Entry,_msg) free(_Entry->message);_Entry->message=strdup(_msg)
-#define LOG_SETORIGIN(_Entry,_orig) free(_Entry->origin);_Entry->origin=strdup(_orig)
-
 typedef struct PipeLog {
     char* name;
     LogLevel level;
@@ -684,4 +630,3 @@ extern void replace_chars_with_string(
 /* We need to declare most of the structs before we can include this */
 #include <proto.h>
 #endif
-
