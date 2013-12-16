@@ -583,11 +583,6 @@ void keybindings_init(const char *character_name)
         snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
         res = parse_keys_file(buf);
     }
-    if ((res < 0) && (client_libdir != NULL)) {
-        /* Try the installation-specific keys file */
-        snprintf(buf, sizeof(buf), "%s/def_keys", client_libdir);
-        res = parse_keys_file(buf);
-    }
     if (res < 0) {
         /* Use built-in defaults */
         LOG(LOG_INFO, "gtk-v2::init_keys",
