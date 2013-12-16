@@ -437,6 +437,10 @@ static void parse_keybind_line(char *buf, int line)
             case 'R':
                 flags |= KEYF_MOD_CTRL;
                 break;
+            case 'S':
+                LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                    "Deprecated flag (S) ignored at line %d in key binding file", line);
+                break;
             default:
                 LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
                     "Unknown flag (%c) line %d in key binding file",
