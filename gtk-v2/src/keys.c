@@ -287,7 +287,7 @@ static void keybind_free(struct keybind **entry)
 static void parse_keybind_line(char *buf, int line)
 {
     char *cp, *cpnext;
-    uint32 keysym;
+    uint32 keysym, low_keysym;
     int flags;
     int res;
 
@@ -406,7 +406,14 @@ static void parse_keybind_line(char *buf, int line)
             return;
         }
         *cpnext++ = '\0';
+
         flags = 0;
+        low_keysym = gdk_keyval_to_lower(keysym);
+        if (low_keysym != keysym) {
+            /* This binding is uppercase, switch to lowercase and flag the shift modifier */
+            flags |= KEYF_MOD_SHIFT;
+            keysym = low_keysym;
+        }
         while (*cp != '\0') {
             switch (*cp) {
             case 'A':
