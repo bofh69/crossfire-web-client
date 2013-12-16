@@ -46,6 +46,10 @@ typedef int KeyCode;                    /**< Undefined type */
 #include "gtk2proto.h"
 #include "p_cmd.h"
 
+struct keybind;
+static int keybind_remove(struct keybind *entry);
+static void keybind_free(struct keybind **entry);
+
 /**
  * @{
  * @name UI Widgets
@@ -166,7 +170,6 @@ static struct keybind *keys[KEYHASH];   /**< Platform independence defines that
  */
 
 #define EKEYBIND_NOMEM               1
-#define EKEYBIND_TAKEN               2
 
 /**
  * Find a keybinding for keysym.
@@ -212,13 +215,26 @@ static struct keybind *keybind_find(uint32 keysym, unsigned int flags)
  */
 static int keybind_insert(uint32 keysym, unsigned int flags, const char *command)
 {
-    struct keybind **next_ptr;
+    struct keybind **next_ptr, *kb;
     int slot;
     int i;
     int dir;
 
-    if (keybind_find(keysym, flags) != NULL)
-        return -EKEYBIND_TAKEN;
+    kb = keybind_find(keysym, flags);
+    while (kb != NULL) {
+        /*
+         * Keep the last binding instead of the first (backwards compatible).
+         *
+         * Also, if the new binding has the ANY flag, remove all matching
+         * previous bindings and keep this one.
+         */
+        LOG(LOG_WARNING, "gtk-v2::keybind_insert",
+            "Overwriting previous binding for key %s with command %s ",
+            gdk_keyval_name(keysym), kb->command);
+        keybind_remove(kb);
+        keybind_free(&kb);
+        kb = keybind_find(keysym, flags);
+    }
 
     slot = keysym % KEYHASH;
 
@@ -289,7 +305,6 @@ static void parse_keybind_line(char *buf, int line)
     char *cp, *cpnext;
     uint32 keysym, low_keysym;
     int flags;
-    int res;
 
     /*
      * There may be a rare error case when cp is used uninitialized. So let's
@@ -457,11 +472,8 @@ static void parse_keybind_line(char *buf, int line)
                 "Command too long! Truncated.");
         }
 
-        res = keybind_insert(keysym, flags, cpnext);
-        if (res == -EKEYBIND_TAKEN) {
-            LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
-                "Ignoring duplicate binding of \"%s\" -> \"%s\"", buf, cpnext);
-        }
+        keybind_insert(keysym, flags, cpnext);
+
     } /* else if not special binding line */
 }
 
@@ -516,7 +528,6 @@ void keybindings_init(const char *character_name)
 {
     int i;
     char buf[BIG_BUF];
-    int res;
 
     for (i = 0; i < MAX_HISTORY; i++) { /* Clear out the bind history log */
         history[i][0] = 0;
@@ -563,31 +574,27 @@ void keybindings_init(const char *character_name)
     }
 
     /*
-     * We now try to load the keybindings.  First place to look is the users
-     * home directory, "~/.crossfire/keys".  Using a directory seems like a
-     * good idea, in the future, additional stuff may be stored.
+     * We now try to load the keybindings.  First load defaults.
+     * Then go through the more specific files in the home directory:
+     *   1) user wide "~/.crossfire/keys".
+     *   2) and, if character name is known, "~/.crossfire/<name>.keys"
      *
      * The format is described in the def_keys file.  Note that this file is
      * the same as what it was in the server distribution.  To convert bindings
      * in character files to this format, all that needs to be done is remove
      * the 'key ' at the start of each line.
      */
-    res = -1;
+
+    init_default_keybindings();
+
+    /* Try the user-specific keys file */
+    snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
+    parse_keys_file(buf);
+
     if (cpl.name) {
         /* Try the character-specific keys file */
         snprintf(buf, sizeof(buf), "%s/.crossfire/%s.keys", getenv("HOME"), cpl.name);
-        res = parse_keys_file(buf);
-    }
-    if (res < 0) {
-        /* Try the user-specific keys file */
-        snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
-        res = parse_keys_file(buf);
-    }
-    if (res < 0) {
-        /* Use built-in defaults */
-        LOG(LOG_INFO, "gtk-v2::init_keys",
-            "Could not open any keybindings file; using defaults");
-        init_default_keybindings();
+        parse_keys_file(buf);
     }
 }
 
@@ -1309,7 +1316,6 @@ static void configure_keys(uint32 keysym)
 {
     char buf[MAX_BUF];
     struct keybind *kb;
-    int res;
 
     /* We handle the Shift key separately */
     keysym = gdk_keyval_to_lower(keysym);
@@ -1365,9 +1371,8 @@ static void configure_keys(uint32 keysym)
         *bind_keysym = keysym;
         bind_keysym = NULL;
     } else {
-        res = keybind_insert(keysym, bind_flags, bind_buf);
-        if (res == -EKEYBIND_TAKEN) {
-            kb = keybind_find(keysym, bind_flags);
+        kb = keybind_find(keysym, bind_flags);
+        if (kb) {
             snprintf(buf, sizeof(buf),
                      "Error: Key already used for command \"%s\". Use unbind first.",
                      kb->command);
@@ -1375,6 +1380,8 @@ static void configure_keys(uint32 keysym)
                 NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
             return;
         }
+        else
+            keybind_insert(keysym, bind_flags, bind_buf);
     }
 
     snprintf(buf, sizeof(buf), "Bound to key '%s' (%i)",
@@ -2077,13 +2084,13 @@ void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data)
     uint32 keysym;
     uint8 flags;
     const char *command;
-    int res;
+    struct keybind *kb;
 
     keybinding_get_data(&keysym, &flags, &command);
 
     /* keybind_insert will do a strdup of command for us */
-    res = keybind_insert(keysym, flags, command);
-    if (res == -EKEYBIND_TAKEN) {
+    kb = keybind_find(keysym, flags);
+    if (kb) {
         // FIXME: popup message key already in use?
 /*
         GtkWidget *dialog;
@@ -2100,6 +2107,8 @@ void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data)
 */
         return;
     }
+    else
+        keybind_insert(keysym, flags, command);
 
     /*
      * I think it is more appropriate to clear the fields once the user adds
