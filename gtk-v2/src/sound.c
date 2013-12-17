@@ -26,8 +26,14 @@
 #include <client-types.h>
 #include "client.h"
 
-FILE *sound_pipe=NULL;
-ChildProcess* sound_process;
+FILE *sound_pipe = NULL;
+ChildProcess *sound_process;
+
+/**
+ * cfsndserv recognizes sound commands by seeing the numeric parameters at
+ * the beginning of the command line.
+ */
+static const char format[] = "%4x %4x %4x %4x %4x \"%s\" \"%s\"\n";
 
 /**
  * Opens the audio device, and reads relevant configuration files.
@@ -36,50 +42,47 @@ ChildProcess* sound_process;
  * Returns 0 on success.  On failure, the calling function will likely disable
  * sound support/requests from the server.
  */
-int init_sounds(void)
-{
+int init_sounds() {
 #ifndef WIN32
     char sound_path[MAX_BUF];
 
-    /*
-     * Easy trick - global nosound is set in the arg processing - if set, just
-     * return -1 - this way, the calling function only needs to check the value
-     * of init_sounds, and not worry about checking nosound.
-     */
+    /* If sound is disabled, return a failure here. */
     if (!want_config[CONFIG_SOUND]) {
         return -1;
     }
 
+    /* If no sound server was set, don't bother starting it. */
     if (sound_server[0] == '\0') {
-        LOG(LOG_ERROR,"init_sounds:", "sound-server variable not set to anything");
+        LOG(LOG_ERROR, "gtk-v2::init_sounds", "No sound server is set.");
         return -1;
     }
-    /*
-     * If an absolute path is given, we use it unadorned.  Otherwise, we use
-     * the path in the BINDIR.
-     */
+
+    /* Prefix BINDIR to the sound server path if it was not absolute. */
     if (sound_server[0] == '/') {
-        strcpy(sound_path, sound_server);
+        strncpy(sound_path, sound_server, sizeof(sound_path));
     } else {
-        snprintf(sound_path, sizeof(sound_path),"%s/%s", BINDIR, sound_server);
+        snprintf(sound_path, sizeof(sound_path), "%s/%s", BINDIR, sound_server);
     }
 
-    if (access(sound_path, X_OK)<0) {
-        fprintf(stderr,"Unable to access %s sound server process\n", sound_path);
+    /* Check that the specified sound server exists and is executable. */
+    if (access(sound_path, X_OK) < 0) {
+        LOG(LOG_ERROR, "gtk-v2::init_sounds",
+            "Unable to find sound server at '%s'", sound_path);
         return -1;
     }
 
-    sound_process=raiseChild(sound_path,CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR);
-    logChildPipe(sound_process, LOG_INFO, CHILD_STDOUT|CHILD_STDERR);
+    sound_process = raiseChild(sound_path,
+                               CHILD_STDIN | CHILD_STDOUT | CHILD_STDERR);
+    logChildPipe(sound_process, LOG_INFO, CHILD_STDOUT | CHILD_STDERR);
 
-    if (fcntl(sound_process->tube[0], F_SETFL, O_NONBLOCK)<0) {
+    if (fcntl(sound_process->tube[0], F_SETFL, O_NONBLOCK) < 0) {
         /*
          * Setting non-blocking isn't 100% critical, but a good thing if
          * possible.
          */
         perror("init_sounds: Warning - unable to set non blocking on sound pipe\n");
     }
-    sound_pipe=fdopen(sound_process->tube[0],"w");
+    sound_pipe = fdopen(sound_process->tube[0], "w");
     return 0;
 #else
     return -1;
@@ -108,16 +111,9 @@ int init_sounds(void)
  *               with type and sound to determine which file to play.
  */
 void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
-                       const char *sound, const char *source)
-{
+                       const char *sound, const char *source) {
 #ifndef WIN32
-    /**
-     * cfsndserv recognizes sound commands by seeing the numeric parameters at
-     * the beginning of the command line.
-     */
-    char format[] = "%4x %4x %4x %4x %4x \"%s\" \"%s\"\n";
-
-    if (! use_config[CONFIG_SOUND]) {
+    if (!use_config[CONFIG_SOUND]) {
         return;
     }
 
@@ -129,19 +125,17 @@ void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
      * is always the last quoted string on the command sent to cfsndserv.
      */
     if ((fprintf(sound_pipe, format, x, y, dir, vol, type, source, sound) <= 0)
-            ||  (fflush(sound_pipe) != 0)) {
+            || (fflush(sound_pipe) != 0)) {
         LOG(LOG_ERROR,
             "gtk-v2::play_sound_effect", "Cannot write sound pipe: %d", errno);
         use_config[CONFIG_SOUND] = 0;
         fclose(sound_pipe);
         sound_process = NULL;
         return;
-    }
-#if 1
-    else
-        LOG(LOG_INFO, "gtk-v2::play_sound_effect",
+    } else {
+        LOG(LOG_DEBUG, "gtk-v2::play_sound_effect",
             format, x, y, dir, vol, type, sound, source);
-#endif
+    }
 #endif
 }
 
@@ -153,13 +147,12 @@ void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
  * @param data Data provided following the sound2 command from the server.
  * @param len  Length of the sound2 command data.
  */
-void Sound2Cmd(unsigned char *data, int len)
-{
+void Sound2Cmd(unsigned char *data, int len) {
 #ifndef WIN32
     sint8 x, y;
     uint8 dir, vol, type, len_sound, len_source;
-    char* sound = NULL;
-    char* source = NULL;
+    char *sound = NULL;
+    char *source = NULL;
 
     /**
      * Format of the sound2 command recieved in data:
@@ -194,7 +187,7 @@ void Sound2Cmd(unsigned char *data, int len)
 
     len_source = data[6 + len_sound];
     if (len_sound != 0) {
-        sound = (char*) data + 6;
+        sound = (char *) data + 6;
         data[6 + len_sound] = '\0';
     }
     /*
@@ -212,16 +205,17 @@ void Sound2Cmd(unsigned char *data, int len)
      * of the buffer, there is always room for a null (see do_client()).
      */
     if (len_source != 0) {
-        source = (char*) data + 6 + len_sound + 1;
+        source = (char *) data + 6 + len_sound + 1;
         data[6 + len_sound + 1 + len_source] = '\0';
     }
 
-#if 1
-    LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd",
+    LOG(LOG_DEBUG, "gtk-v2::Sound2Cmd",
+        "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd",
         x, y, dir, vol, type);
-    LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "               len_sound=%hhd sound=%s", len_sound, sound);
-    LOG(LOG_INFO, "gtk-v2::Sound2Cmd", "               len_source=%hhd source=%s", len_source, source);
-#endif
+    LOG(LOG_DEBUG, "gtk-v2::Sound2Cmd", "               len_sound=%hhd sound=%s",
+        len_sound, sound);
+    LOG(LOG_DEBUG, "gtk-v2::Sound2Cmd", "               len_source=%hhd source=%s",
+        len_source, source);
 
     play_sound_effect(x, y, dir, vol, type, sound, source);
 #endif
@@ -236,8 +230,7 @@ void Sound2Cmd(unsigned char *data, int len)
  *             indication that music should stop playing.
  * @param len  Length of the string describing the music to play.
  */
-void MusicCmd(const char *data, int len)
-{
+void MusicCmd(const char *data, int len) {
 #ifndef WIN32
     /**
      * Format of the music command received in data:
@@ -246,16 +239,17 @@ void MusicCmd(const char *data, int len)
      * music {string}
      * </pre>
      */
-    if (! use_config[CONFIG_SOUND]) {
+    if (!use_config[CONFIG_SOUND]) {
         return;
     }
+
     /*
      * The client puts a null character at the end of the data.  If one is not
      * there, ignore the command.
      */
     if (data[len]) {
         LOG(LOG_ERROR,
-            "gtk-v2::MusicCmd", "Music command buffer not null-terminated.");
+            "gtk-v2::MusicCmd", "Music command string is not null-terminated.");
         return;
     }
     /**
@@ -263,18 +257,15 @@ void MusicCmd(const char *data, int len)
      * first item on the command line.
      */
     if ((fprintf(sound_pipe, "\"%s\"\n", data) <= 0)
-            ||  (fflush(sound_pipe) != 0)) {
+            || (fflush(sound_pipe) != 0)) {
         LOG(LOG_ERROR,
             "gtk-v2::MusicCmd", "Cannot write sound pipe: %d", errno);
         use_config[CONFIG_SOUND] = 0;
         fclose(sound_pipe);
         sound_process = NULL;
         return;
+    } else {
+        LOG(LOG_DEBUG, "gtk-v2::MusicCmd", "\"%s\"", data);
     }
-#if 1
-    else {
-        LOG(LOG_INFO, "gtk-v2::MusicCmd", "\"%s\"", data);
-    }
-#endif
 #endif
 }
