@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy project-wide -->
+  <requires lib="gtk+" version="2.24"/>
+  <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkWindow" id="about_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">About Crossfire</property>
@@ -1074,7 +1074,7 @@ Account Login</property>
                     <property name="left_padding">5</property>
                     <property name="right_padding">5</property>
                     <child>
-                      <object class="GtkComboBox" id="combobox_starting_map">
+                      <object class="GtkComboBoxText" id="combobox_starting_map">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                       </object>
@@ -1416,7 +1416,7 @@ Account Login</property>
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkComboBox" id="config_combobox_glade">
+                                      <object class="GtkComboBoxText" id="config_combobox_glade">
                                         <property name="width_request">170</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
@@ -1714,7 +1714,7 @@ server connection.</property>
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkComboBox" id="config_combobox_theme">
+                                      <object class="GtkComboBoxText" id="config_combobox_theme">
                                         <property name="width_request">170</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
@@ -1745,7 +1745,7 @@ server connection.</property>
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkComboBox" id="config_combobox_faceset">
+                                      <object class="GtkComboBoxText" id="config_combobox_faceset">
                                         <property name="width_request">170</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
@@ -2035,7 +2035,7 @@ The server determines what map tiles are visible based on map lighting levels.</
                                         <property name="yalign">0</property>
                                         <property name="top_padding">3</property>
                                         <child>
-                                          <object class="GtkComboBox" id="config_combobox_displaymode">
+                                          <object class="GtkComboBoxText" id="config_combobox_displaymode">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
                                           </object>
@@ -2060,7 +2060,7 @@ The server determines what map tiles are visible based on map lighting levels.</
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
                                             <property name="extension_events">all</property>
-                                            <property name="model">model1</property>
+                                            <property name="model">list_sdl_map_lighting</property>
                                             <child>
                                               <object class="GtkCellRendererText" id="renderer1"/>
                                               <attributes>
@@ -2904,7 +2904,7 @@ Attribute</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="combobox_rs">
+                              <object class="GtkComboBoxText" id="combobox_rs">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
@@ -2992,7 +2992,7 @@ towards certain classes than others.</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="combobox_cs">
+                              <object class="GtkComboBoxText" id="combobox_cs">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                               </object>
@@ -3427,7 +3427,7 @@ this is the pricing the character gets in shops.</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="opt_combobox1">
+                              <object class="GtkComboBoxText" id="opt_combobox1">
                                 <property name="can_focus">False</property>
                               </object>
                               <packing>
@@ -3458,7 +3458,7 @@ this is the pricing the character gets in shops.</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="opt_combobox2">
+                              <object class="GtkComboBoxText" id="opt_combobox2">
                                 <property name="can_focus">False</property>
                               </object>
                               <packing>
@@ -3490,7 +3490,7 @@ this is the pricing the character gets in shops.</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="opt_combobox3">
+                              <object class="GtkComboBoxText" id="opt_combobox3">
                                 <property name="can_focus">False</property>
                               </object>
                               <packing>
@@ -3521,7 +3521,7 @@ this is the pricing the character gets in shops.</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="opt_combobox4">
+                              <object class="GtkComboBoxText" id="opt_combobox4">
                                 <property name="can_focus">False</property>
                               </object>
                               <packing>
@@ -3553,7 +3553,7 @@ this is the pricing the character gets in shops.</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="opt_combobox5">
+                              <object class="GtkComboBoxText" id="opt_combobox5">
                                 <property name="can_focus">False</property>
                               </object>
                               <packing>
@@ -3584,7 +3584,7 @@ this is the pricing the character gets in shops.</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="opt_combobox6">
+                              <object class="GtkComboBoxText" id="opt_combobox6">
                                 <property name="can_focus">False</property>
                               </object>
                               <packing>
@@ -4051,6 +4051,26 @@ this is the pricing the character gets in shops.</property>
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="list_sdl_map_lighting">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">None</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Best Per Pixel</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Fast Per Pixel</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Per Tile</col>
+      </row>
+    </data>
   </object>
   <object class="GtkWindow" id="login_window">
     <property name="can_focus">False</property>
@@ -4605,26 +4625,6 @@ you can create one and link any existing characters you have to it.
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkListStore" id="model1">
-    <columns>
-      <!-- column-name gchararray -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">None</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Best Per Pixel</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Fast Per Pixel</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Per Tile</col>
-      </row>
-    </data>
   </object>
   <object class="GtkWindow" id="msgctrl_window">
     <property name="can_focus">False</property>
