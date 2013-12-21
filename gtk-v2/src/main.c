@@ -20,7 +20,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #ifdef WIN32
@@ -47,7 +47,7 @@ GtkBuilder *dialog_xml;
 GladeXML *window_xml;
 
 /* Sets up the basic colors. */
-const char * const colorname[NUM_COLORS] = {
+const char *const colorname[NUM_COLORS] = {
     "Black",                /* 0  */
     "White",                /* 1  */
     "Navy",                 /* 2  */
@@ -67,7 +67,7 @@ const char * const colorname[NUM_COLORS] = {
  * We use lower case to be consistent, but also change the names
  * to be more generic instead of specific X11 color names.
  */
-const char * const usercolorname[NUM_COLORS] = {
+const char *const usercolorname[NUM_COLORS] = {
     "black",                /* 0  */
     "white",                /* 1  */
     "darkblue",             /* 2  */
@@ -92,17 +92,16 @@ char window_xml_path[MAX_BUF] = "";     /**< Window layout file with path. */
 GdkColor root_color[NUM_COLORS];
 struct timeval timeout;
 extern int maxfd;
-gint    csocket_fd=0;
-static uint8 updatekeycodes=FALSE;
+gint    csocket_fd = 0;
+static uint8 updatekeycodes = FALSE;
 extern int time_map_redraw;
 
 #ifdef WIN32 /* Win32 scripting support */
 #define PACKAGE_DATA_DIR "."
 
-int do_scriptout(void)
-{
+int do_scriptout() {
     script_process(NULL);
-    return(TRUE);
+    return (TRUE);
 }
 #endif /* WIN32 */
 
@@ -110,8 +109,7 @@ int do_scriptout(void)
  * Map, spell, and inventory maintenance.
  * @return TRUE
  */
-int do_timeout(void)
-{
+int do_timeout() {
     if (cpl.showmagic) {
         magic_map_flash_pos();
     }
@@ -128,8 +126,7 @@ int do_timeout(void)
 /**
  * X11 client doesn't care about this
  */
-void client_tick(uint32 tick)
-{
+void client_tick(uint32 tick) {
     info_buffer_tick();                 /* Maintain the info output buffers */
     inventory_tick();
     mapdata_animation();
@@ -141,11 +138,11 @@ void client_tick(uint32 tick)
      */
     if (have_new_image && !(tick % 5)) {
         if (cpl.container) {
-            cpl.container->inv_updated=1;
+            cpl.container->inv_updated = 1;
         }
-        cpl.ob->inv_updated=1;
+        cpl.ob->inv_updated = 1;
 
-        have_new_image=0;
+        have_new_image = 0;
         draw_map(1);
         draw_lists();
     } else {
@@ -157,11 +154,10 @@ void client_tick(uint32 tick)
  * Called from disconnect command - that closes the socket - we just need to
  * do the gtk cleanup.
  */
-void cleanup_connection(void)
-{
+void cleanup_connection() {
     if (csocket_fd) {
         gdk_input_remove(csocket_fd);
-        csocket_fd=0;
+        csocket_fd = 0;
         gtk_main_quit();
     }
 }
@@ -169,8 +165,7 @@ void cleanup_connection(void)
 /**
  * Handles client shutdown.
  */
-void on_window_destroy_event(GtkObject *object, gpointer user_data)
-{
+void on_window_destroy_event(GtkObject *object, gpointer user_data) {
 #ifdef WIN32
     script_killall();
 #endif
@@ -182,15 +177,14 @@ void on_window_destroy_event(GtkObject *object, gpointer user_data)
 /**
  * main loop iteration related stuff
  */
-void do_network(void)
-{
+void do_network() {
     fd_set tmp_read;
     int pollret;
 
-    if (csocket.fd==-1) {
+    if (csocket.fd == -1) {
         if (csocket_fd) {
             gdk_input_remove(csocket_fd);
-            csocket_fd=0;
+            csocket_fd = 0;
             gtk_main_quit();
         }
         return;
@@ -198,16 +192,16 @@ void do_network(void)
 
     FD_ZERO(&tmp_read);
     FD_SET(csocket.fd, &tmp_read);
-    script_fdset(&maxfd,&tmp_read);
+    script_fdset(&maxfd, &tmp_read);
     pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
-    if (pollret==-1) {
+    if (pollret == -1) {
         LOG(LOG_WARNING, "main.c::do_network",
             "Got errno %d on select call.", errno);
-    } else if ( pollret>0 ) {
+    } else if (pollret > 0) {
         if (FD_ISSET(csocket.fd, &tmp_read)) {
             DoClient(&csocket);
 #ifndef WIN32
-            if ( pollret > 1 ) {
+            if (pollret > 1) {
                 script_process(&tmp_read);
             }
 #endif
@@ -218,21 +212,21 @@ void do_network(void)
     /* DoClient now closes the socket, so we need to check for this here -
      * with the socket being closed, this function will otherwise never be
      * called again. */
-    if (csocket.fd==-1) {
+    if (csocket.fd == -1) {
         if (csocket_fd) {
             gdk_input_remove(csocket_fd);
-            csocket_fd=0;
+            csocket_fd = 0;
             gtk_main_quit();
         }
         return;
     }
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
+    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
         sdl_gen_map(FALSE);
     } else
 #endif
 #ifdef HAVE_OPENGL
-        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
+        if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
             opengl_gen_map(FALSE);
         } else
 #endif
@@ -244,40 +238,39 @@ void do_network(void)
 /**
  * Event loop iteration stuff
  */
-void event_loop(void)
-{
+void event_loop() {
     gint fleep;
     extern int do_timeout(void);
     int tag;
 
-    if (MAX_TIME==0) {
+    if (MAX_TIME == 0) {
         timeout.tv_sec = 0;
         timeout.tv_usec = 0;
     }
     maxfd = csocket.fd + 1;
 
-    if (MAX_TIME!=0) {
+    if (MAX_TIME != 0) {
         timeout.tv_sec = 0;/* MAX_TIME / 1000000;*/
         timeout.tv_usec = 0;/* MAX_TIME % 1000000;*/
     }
 
-    fleep =  gtk_timeout_add (10, (GtkFunction) do_timeout, NULL);
+    fleep =  gtk_timeout_add(10, (GtkFunction) do_timeout, NULL);
 
 #ifdef WIN32
-    gtk_timeout_add (25, (GtkFunction) do_scriptout, NULL);
+    gtk_timeout_add(25, (GtkFunction) do_scriptout, NULL);
 #endif
 
-    if (csocket.fd==-1) {
+    if (csocket.fd == -1) {
         if (csocket_fd) {
             gdk_input_remove(csocket_fd);
-            csocket_fd=0;
+            csocket_fd = 0;
             gtk_main_quit();
         }
         return;
     }
-    csocket_fd = gdk_input_add ((gint) csocket.fd,
-                                GDK_INPUT_READ,
-                                (GdkInputFunction) do_network, &csocket);
+    csocket_fd = gdk_input_add((gint) csocket.fd,
+                               GDK_INPUT_READ,
+                               (GdkInputFunction) do_network, &csocket);
     tag = csocket_fd;
 
     gtk_main();
@@ -296,8 +289,7 @@ void event_loop(void)
  *
  * @param sig The signal number.
  */
-static void sigpipe_handler(int sig)
-{
+static void sigpipe_handler(int sig) {
     /* ignore that signal for now */
 }
 #endif
@@ -308,8 +300,7 @@ static void sigpipe_handler(int sig)
  * supported - it is in this copy because the old code supported it.
  * @param *progname Not used, but should be.
  */
-static void usage(char *progname)
-{
+static void usage(char *progname) {
     puts("Usage of crossfire-client-gtk2:\n");
     puts("-cache           - Cache images for future use.");
     puts("-nocache         - Do not cache images (default action).");
@@ -360,26 +351,26 @@ static void usage(char *progname)
  * @param argv
  * @return Returns 0 on success, nonzero on failure.
  */
-int parse_args(int argc, char **argv)
-{
-    int on_arg=1;
-    char *display_name="";
+static int parse_args(int argc, char *argv[]) {
+    int on_arg = 1;
+    char *display_name = "";
 
     load_defaults();
 
-    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s (%s)", FULL_VERSION, window_xml_file);
-    for (on_arg=1; on_arg<argc; on_arg++) {
+    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s (%s)", FULL_VERSION,
+             window_xml_file);
+    for (on_arg = 1; on_arg < argc; on_arg++) {
         if (!strcmp(argv[on_arg], "-cache")) {
-            want_config[CONFIG_CACHE]= TRUE;
+            want_config[CONFIG_CACHE] = TRUE;
             continue;
         } else if (!strcmp(argv[on_arg], "-nocache")) {
-            want_config[CONFIG_CACHE]= FALSE;
+            want_config[CONFIG_CACHE] = FALSE;
             continue;
         } else if (!strcmp(argv[on_arg], "-darkness")) {
-            want_config[CONFIG_DARKNESS]= TRUE;
+            want_config[CONFIG_DARKNESS] = TRUE;
             continue;
         } else if (!strcmp(argv[on_arg], "-nodarkness")) {
-            want_config[CONFIG_DARKNESS]= FALSE;
+            want_config[CONFIG_DARKNESS] = FALSE;
             continue;
         } else if (!strcmp(argv[on_arg], "-display")) {
             if (++on_arg == argc) {
@@ -390,13 +381,13 @@ int parse_args(int argc, char **argv)
             display_name = argv[on_arg];
             continue;
         } else if (!strcmp(argv[on_arg], "-download_all_faces")) {
-            want_config[CONFIG_DOWNLOAD]= TRUE;
+            want_config[CONFIG_DOWNLOAD] = TRUE;
             continue;
         } else if (!strcmp(argv[on_arg], "-echo")) {
-            want_config[CONFIG_ECHO]= TRUE;
+            want_config[CONFIG_ECHO] = TRUE;
             continue;
         } else if (!strcmp(argv[on_arg], "-noecho")) {
-            want_config[CONFIG_ECHO]= FALSE;
+            want_config[CONFIG_ECHO] = FALSE;
             continue;
         } else if (!strcmp(argv[on_arg], "-faceset")) {
             if (++on_arg == argc) {
@@ -407,10 +398,10 @@ int parse_args(int argc, char **argv)
             face_info.want_faceset = argv[on_arg];
             continue;
         } else if (!strcmp(argv[on_arg], "-fog")) {
-            want_config[CONFIG_FOGWAR]= TRUE;
+            want_config[CONFIG_FOGWAR] = TRUE;
             continue;
         } else if (!strcmp(argv[on_arg], "-nofog")) {
-            want_config[CONFIG_FOGWAR]= FALSE;
+            want_config[CONFIG_FOGWAR] = FALSE;
             continue;
         } else if (!strcmp(argv[on_arg], "-help")) {
             usage(argv[0]);
@@ -422,10 +413,10 @@ int parse_args(int argc, char **argv)
                 return 1;
             }
             want_config[CONFIG_ICONSCALE] = atoi(argv[on_arg]);
-            if (want_config[CONFIG_ICONSCALE] < 25 || want_config[CONFIG_ICONSCALE]>200) {
+            if (want_config[CONFIG_ICONSCALE] < 25 || want_config[CONFIG_ICONSCALE] > 200) {
                 LOG(LOG_WARNING, "main.c::init_windows",
                     "Valid range for -iconscale is 25 through 200");
-                want_config[CONFIG_ICONSCALE]=100;
+                want_config[CONFIG_ICONSCALE] = 100;
                 return 1;
             }
             continue;
@@ -436,15 +427,15 @@ int parse_args(int argc, char **argv)
                 return 1;
             }
             want_config[CONFIG_MAPSCALE] = atoi(argv[on_arg]);
-            if (want_config[CONFIG_MAPSCALE] < 25 || want_config[CONFIG_MAPSCALE]>200) {
+            if (want_config[CONFIG_MAPSCALE] < 25 || want_config[CONFIG_MAPSCALE] > 200) {
                 LOG(LOG_WARNING, "main.c::init_windows",
                     "Valid range for -mapscale is 25 through 200");
-                want_config[CONFIG_MAPSCALE]=100;
+                want_config[CONFIG_MAPSCALE] = 100;
                 return 1;
             }
             continue;
         } else if (!strcmp(argv[on_arg], "-mapsize")) {
-            char *cp, x, y=0;
+            char *cp, x, y = 0;
 
             if (++on_arg == argc) {
                 LOG(LOG_WARNING, "main.c::init_windows",
@@ -452,7 +443,7 @@ int parse_args(int argc, char **argv)
                 return 1;
             }
             x = atoi(argv[on_arg]);
-            for (cp = argv[on_arg]; *cp!='\0'; cp++)
+            for (cp = argv[on_arg]; *cp != '\0'; cp++)
                 if (*cp == 'x' || *cp == 'X') {
                     break;
                 }
@@ -461,18 +452,18 @@ int parse_args(int argc, char **argv)
                 LOG(LOG_WARNING, "main.c::init_windows", "-mapsize requires "
                     "both X and Y values (ie, XxY - note the\nx in between.");
             } else {
-                y = atoi(cp+1);
+                y = atoi(cp + 1);
             }
-            if (x<9 || y<9) {
+            if (x < 9 || y < 9) {
                 LOG(LOG_WARNING, "main.c::init_windows",
                     "Map size must be positive values of at least 9");
-            } else if (x>MAP_MAX_SIZE || y>MAP_MAX_SIZE) {
+            } else if (x > MAP_MAX_SIZE || y > MAP_MAX_SIZE) {
                 LOG(LOG_WARNING, "main.c::init_windows", "Map size cannot be "
                     "larger than %d x %d", MAP_MAX_SIZE, MAP_MAX_SIZE);
 
             } else {
-                want_config[CONFIG_MAPWIDTH]=x;
-                want_config[CONFIG_MAPHEIGHT]=y;
+                want_config[CONFIG_MAPWIDTH] = x;
+                want_config[CONFIG_MAPHEIGHT] = y;
             }
             continue;
         } else if (!strcmp(argv[on_arg], "-fasttcpsend")) {
@@ -537,10 +528,10 @@ int parse_args(int argc, char **argv)
             sound_server = argv[on_arg];
             continue;
         } else if (!strcmp(argv[on_arg], "-split")) {
-            want_config[CONFIG_SPLITWIN]=TRUE;
+            want_config[CONFIG_SPLITWIN] = TRUE;
             continue;
         } else if (!strcmp(argv[on_arg], "-nosplit")) {
-            want_config[CONFIG_SPLITWIN]=FALSE;
+            want_config[CONFIG_SPLITWIN] = FALSE;
             continue;
         } else if (!strcmp(argv[on_arg], "-resists")) {
             if (++on_arg == argc) {
@@ -548,7 +539,7 @@ int parse_args(int argc, char **argv)
                     "-resists requires a value");
                 return 1;
             }
-            want_config[CONFIG_RESISTS]=atoi(argv[on_arg]);
+            want_config[CONFIG_RESISTS] = atoi(argv[on_arg]);
             continue;
         } else if (!strcmp(argv[on_arg], "-loglevel")) {
             extern int MINLOG;
@@ -561,10 +552,10 @@ int parse_args(int argc, char **argv)
             MINLOG = atoi(argv[on_arg]);
             continue;
         } else if (!strcmp(argv[on_arg], "-splitinfo")) {
-            want_config[CONFIG_SPLITINFO]=TRUE;
+            want_config[CONFIG_SPLITINFO] = TRUE;
             continue;
         } else if (!strcmp(argv[on_arg], "-timemapredraw")) {
-            time_map_redraw=TRUE;
+            time_map_redraw = TRUE;
             continue;
         } else if (!strcmp(argv[on_arg], "-triminfowindow")) {
             want_config[CONFIG_TRIMINFO] = TRUE;
@@ -573,7 +564,7 @@ int parse_args(int argc, char **argv)
             want_config[CONFIG_TRIMINFO] = FALSE;
             continue;
         } else if (!strcmp(argv[on_arg], "-updatekeycodes")) {
-            updatekeycodes=TRUE;
+            updatekeycodes = TRUE;
             continue;
         } else if (!strcmp(argv[on_arg], "-splash")) {
             want_config[CONFIG_SPLASH] = TRUE;
@@ -587,7 +578,7 @@ int parse_args(int argc, char **argv)
                     "-window_xml requires a glade xml file name");
                 return 1;
             }
-            strncpy (window_xml_path, argv[on_arg], MAX_BUF-1);
+            strncpy(window_xml_path, argv[on_arg], MAX_BUF - 1);
             continue;
         } else if (!strcmp(argv[on_arg], "-dialog_xml")) {
             if (++on_arg == argc) {
@@ -595,7 +586,7 @@ int parse_args(int argc, char **argv)
                     "-dialog_xml requires a glade xml file name");
                 return 1;
             }
-            strncpy (dialog_xml_path, argv[on_arg], MAX_BUF-1);
+            strncpy(dialog_xml_path, argv[on_arg], MAX_BUF - 1);
             continue;
         } else {
             LOG(LOG_WARNING, "main.c::init_windows",
@@ -612,7 +603,7 @@ int parse_args(int argc, char **argv)
     LOG(LOG_INFO, "Client Version", VERSION_INFO);
 
     /* Now copy over the values just loaded */
-    for (on_arg=0; on_arg<CONFIG_NUMS; on_arg++) {
+    for (on_arg = 0; on_arg < CONFIG_NUMS; on_arg++) {
         use_config[on_arg] = want_config[on_arg];
     }
 
@@ -641,8 +632,7 @@ int parse_args(int argc, char **argv)
  * A C-string, displayed in normal text, that provides additional information
  * about the error condition.
  */
-void error_dialog(char *description, char *information)
-{
+void error_dialog(char *description, char *information) {
     GtkWidget *dialog;
 
     gtk_init(NULL, NULL);
@@ -669,63 +659,26 @@ void error_dialog(char *description, char *information)
  */
 
 void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level,
-                    const gchar *message, gpointer user_data)
-{
+                    const gchar *message, gpointer user_data) {
     sleep(1);
 }
 
-/**
- * The client entry point.
- * @param argc
- * @param argv
- * @return
- */
-int main(int argc, char *argv[])
-{
-    int i, got_one=0;
-    static char file_cache[ MAX_BUF ];
-    GdkGeometry geometry;
-    GladeXML *xml_tree;
-    GError* error = NULL;
+static void init_sockets() {
+    /* Use the 'new' login method. */
+    wantloginmethod = 2;
 
-#ifdef ENABLE_NLS
-    bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
-    bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
-    textdomain (GETTEXT_PACKAGE);
-#endif
+    csocket.inbuf.buf = malloc(MAXSOCKBUF);
 
-    gtk_set_locale ();
-    gtk_init (&argc, &argv);
-#if 0
-    g_log_set_handler ("Gtk", G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL
-                       | G_LOG_FLAG_RECURSION, my_log_handler, NULL);
-#endif
-
-    /* parse_args() has to come after init_client_vars() */
-    init_client_vars();
-    use_config[CONFIG_MAPWIDTH] = want_config[CONFIG_MAPWIDTH] = 25;
-    use_config[CONFIG_MAPHEIGHT] = want_config[CONFIG_MAPHEIGHT] = 25;
-
-    wantloginmethod=2;
-
-    parse_args(argc, argv);
-
-    init_theme();
-
-    csocket.inbuf.buf=malloc(MAXSOCKBUF);
-
-#ifdef WIN32 /* def WIN32 */
+#ifdef WIN32
     maxfd = 0; /* This is ignored on win32 platforms */
 
     /* This is required for sockets to be used under win32 */
-    {
-        WORD Version = 0x0202;
-        WSADATA wsaData;
+    WORD Version = 0x0202;
+    WSADATA wsaData;
 
-        if (WSAStartup( Version, &wsaData ) != 0) {
-            LOG(LOG_CRITICAL, "main.c::main", "Could not load winsock!");
-            exit(1);
-        }
+    if (WSAStartup(Version, &wsaData) != 0) {
+        LOG(LOG_CRITICAL, "main.c::main", "Could not load winsock!");
+        exit(1);
     }
 #else /* def WIN32 */
     signal(SIGPIPE, sigpipe_handler);
@@ -735,31 +688,25 @@ int main(int argc, char *argv[])
     maxfd = getdtablesize();
 #endif
 #endif /* def WIN32 */
+}
 
-    if (init_sounds() == -1) {
-        use_config[CONFIG_SOUND] = FALSE;
-    } else {
-        use_config[CONFIG_SOUND] = TRUE;
+static void init_ui() {
+    GError *error = NULL;
+    GladeXML *xml_tree;
+    int i;
+
+    /* Set path to the UI files if they weren't set from the command line. */
+    if (dialog_xml_path[0] == '\0') {
+        snprintf(dialog_xml_path, sizeof(dialog_xml_path), "%s%s",
+                XML_PATH_DEFAULT, dialog_xml_file);
     }
 
-    /*
-     * Load Glade XML layout files for the main client window and for the other
-     * popup dialogs.  The popup dialogs must all have the "visible" attribute
-     * set to "no" so they are not shown initially.
-     *
-     * NOTE:  glade_init() is implicitly called on glade_xml_new().
-     *
-     * First, load up the common dialogs.  If the XML file path is already set,
-     * it is because a command-line parameter was used to specify it.  If not
-     * set, construct the path to the file from the default path and name
-     * settings.
-     */
-    if (! dialog_xml_path[0]) {
-        strncat(dialog_xml_path, XML_PATH_DEFAULT, MAX_BUF-1);
-        strncat(dialog_xml_path, dialog_xml_file,
-                MAX_BUF-strlen(dialog_xml_path)-1);
+    if (window_xml_path[0] == '\0') {
+        snprintf(window_xml_path, sizeof(window_xml_path), "%s%s",
+                XML_PATH_DEFAULT, window_xml_file);
     }
 
+    /* Load dialog windows using GtkBuilder. */
     dialog_xml = gtk_builder_new();
     if (!gtk_builder_add_from_file(dialog_xml, dialog_xml_path, &error)) {
         error_dialog("Couldn't load UI dialogs.", error->message);
@@ -768,57 +715,46 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    /*
-     * Next, load up the root window.  If the XML file path is already set, it
-     * is because a command-line parameter was used to specify it.  If not set,
-     * construct the path to the file from the default settings, and any values
-     * loaded from the gdefaults2 file.
-     */
-    if (! window_xml_path[0]) {
-        strncat(window_xml_path, XML_PATH_DEFAULT, MAX_BUF-1);
-        strncat(window_xml_path, window_xml_file,
-                MAX_BUF-strlen(window_xml_path)-1);
-    }
+    /* Load main window using LibGlade. */
     window_xml = glade_xml_new(window_xml_path, NULL, NULL);
-    if (! window_xml) {
+    if (!window_xml) {
+        /* TODO: Improve error handling code. */
         sprintf(window_xml_file, "Main window layout file load failed");
         error_dialog(window_xml_file, window_xml_path);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     /* Begin connecting signals for the root window loaded by libglade. */
     window_root = glade_xml_get_widget(window_xml, "window_root");
 
     /* Request the window to receive focus in and out events */
-    gtk_widget_add_events ( (gpointer) window_root, GDK_FOCUS_CHANGE_MASK );
+    gtk_widget_add_events((gpointer) window_root, GDK_FOCUS_CHANGE_MASK);
     g_signal_connect((gpointer) window_root, "focus-out-event",
-                     G_CALLBACK (focusoutfunc), NULL);
+                     G_CALLBACK(focusoutfunc), NULL);
 
-    g_signal_connect_swapped ((gpointer) window_root, "key_press_event",
-                              G_CALLBACK (keyfunc), GTK_OBJECT (window_root));
-    g_signal_connect_swapped ((gpointer) window_root, "key_release_event",
-                              G_CALLBACK (keyrelfunc), GTK_OBJECT (window_root));
-    g_signal_connect ((gpointer) window_root, "destroy",
-                      G_CALLBACK (on_window_destroy_event), NULL);
+    g_signal_connect_swapped((gpointer) window_root, "key_press_event",
+                             G_CALLBACK(keyfunc), GTK_OBJECT(window_root));
+    g_signal_connect_swapped((gpointer) window_root, "key_release_event",
+                             G_CALLBACK(keyrelfunc), GTK_OBJECT(window_root));
+    g_signal_connect((gpointer) window_root, "destroy",
+                     G_CALLBACK(on_window_destroy_event), NULL);
 
-    /* Purely arbitrary min window size */
-    geometry.min_width=640;
-    geometry.min_height=480;
+    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
+    magic_map = glade_xml_get_widget(xml_tree, "drawingarea_magic_map");
 
-    gtk_window_set_geometry_hints(GTK_WINDOW(window_root), window_root,
-                                  &geometry, GDK_HINT_MIN_SIZE);
+    g_signal_connect((gpointer) magic_map, "expose_event",
+                     G_CALLBACK(on_drawingarea_magic_map_expose_event), NULL);
 
     /* Set up colors before doing the other initialization functions */
-    for (i=0; i<NUM_COLORS; i++) {
-        if ( !gdk_color_parse(colorname[i], &root_color[i])) {
-            fprintf(stderr, "gdk_color_parse failed (%s)\n",colorname[i]);
+    for (i = 0; i < NUM_COLORS; i++) {
+        if (!gdk_color_parse(colorname[i], &root_color[i])) {
+            fprintf(stderr, "gdk_color_parse failed (%s)\n", colorname[i]);
         }
-        if ( !gdk_color_alloc (gtk_widget_get_colormap (window_root),
-                               &root_color[i])) {
+        if (!gdk_color_alloc(gtk_widget_get_colormap(window_root),
+                             &root_color[i])) {
             fprintf(stderr, "gdk_color_alloc failed\n");
         }
     }
-
 
     inventory_init(window_root);
     info_init(window_root);
@@ -831,73 +767,80 @@ int main(int argc, char *argv[])
 
     load_window_positions(window_root);
 
+    init_theme();
     load_theme(TRUE);
+}
 
-    /* We want this as late as possible in the process. This way, adjustments
-     * that the widgets make on initialization are not visible - this is most
-     * important with the inventory widget which has to create the panes and
-     * fill in the data - if the window_root is shown before that, there is a
-     * brief glimpse of the glade layout, which, IMO, doesn't look great.
-     * Also, it should be faster to realize this as later as possible. */
-    gtk_widget_show(window_root);
+/**
+ * Main client entry point.
+ */
+int main(int argc, char *argv[]) {
+#ifdef ENABLE_NLS
+    bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
+    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+    textdomain(GETTEXT_PACKAGE);
+#endif
 
-    map_init(window_root);
+    gtk_init(&argc, &argv);
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
-    magic_map = glade_xml_get_widget(xml_tree, "drawingarea_magic_map");
+    /* Initialize client configuration to something reasonable. */
+    init_client_vars();
+    use_config[CONFIG_MAPWIDTH] = want_config[CONFIG_MAPWIDTH] = 25;
+    use_config[CONFIG_MAPHEIGHT] = want_config[CONFIG_MAPHEIGHT] = 25;
 
-    g_signal_connect((gpointer) magic_map, "expose_event",
-                     G_CALLBACK (on_drawingarea_magic_map_expose_event), NULL);
+    /* This MUST come after init_client_vars(). */
+    parse_args(argc, argv);
 
-    snprintf(file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv("HOME"));
-    CONVERT_FILESPEC_TO_OS_FORMAT(file_cache);
-    cached_server_file = file_cache;
+    /* Initialize UI. */
+    init_ui();
 
+    /* Initialize sockets. */
+    init_sockets();
+
+    /* Initialize sound server. */
+    if (init_sounds() == -1) {
+        use_config[CONFIG_SOUND] = FALSE;
+    } else {
+        use_config[CONFIG_SOUND] = TRUE;
+    }
+
+    /* Load cached pixmaps. */
     init_image_cache_data();
+
+    /* Show main client window as late as possible. */
+    gtk_widget_show(window_root);
+    map_init(window_root);
 
     /* Loop to connect to server/metaserver and play the game */
     while (1) {
         reset_client_vars();
         clear_stat_mapping();
-        csocket.inbuf.len=0;
-        csocket.cs_version=0;
+        csocket.inbuf.len = 0;
+        csocket.cs_version = 0;
 
-        /*
-         * Perhaps not the best assumption, but we are taking it that if the
-         * player has not specified a server (ie, server matches compiled in
-         * default), we use the metaserver.  Otherwise, use the server
-         * provided, bypassing metaserver.  Also, if the player has already
-         * played on a server once (defined by got_one), go to the metaserver.
-         * That gives them the opportunity to quit the client or select another
-         * server.  We should really add an entry for the last server there
-         * also.
-         */
-        if (!server || got_one) {
+        /* Pick a server from the list if not specified on the command line. */
+        if (server == NULL) {
             draw_splash();
             metaserver_get_info(meta_server, meta_port);
+            enable_menu_items(FALSE);
             get_metaserver();
-            /* Call this after get_metaserver so one can't do anything
-             * with the menus at that point.
-             */
-            enable_menu_items(TRUE);
-            negotiate_connection(use_config[CONFIG_SOUND]);
         } else {
-            enable_menu_items(TRUE);
-            csocket.fd=init_connection(server, use_config[CONFIG_PORT]);
-            if (csocket.fd == -1) { /* specified server no longer valid */
-                server = NULL;
+            csocket.fd = init_connection(server, use_config[CONFIG_PORT]);
+
+            /* Set server back to NULL so metaserver is used the next time. */
+            server = NULL;
+
+            /* If unable to connect to server, return to server selection. */
+            if (csocket.fd == -1) {
                 continue;
             }
-            negotiate_connection(use_config[CONFIG_SOUND]);
         }
 
-        got_one=1;
+        negotiate_connection(use_config[CONFIG_SOUND]);
+        enable_menu_items(TRUE);
 
+        /* The event_loop will block until connection to the server is lost. */
         event_loop();
-        /*
-         * if event_loop has exited, we most likely of lost our connection, so
-         * we loop again to establish a new one.
-         */
 
         remove_item_inventory(cpl.ob);
         /*
@@ -914,9 +857,9 @@ int main(int argc, char *argv[])
          */
         reset_image_data();
     }
-    exit(0);    /* never reached */
 
-    return 0;
+    /* This statement should never be reached. */
+    exit(EXIT_SUCCESS);
 }
 
 /**
@@ -930,13 +873,12 @@ int main(int argc, char *argv[])
  * @param w Window width
  * @param h Window height
  */
-void get_window_coord(GtkWidget *win, int *x,int *y, int *wx, int *wy,
-                      int *w, int *h)
-{
+void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy,
+        int *w, int *h) {
     /* Position of a window relative to its parent window. */
-    gdk_window_get_geometry (win->window, x, y, w, h, NULL);
+    gdk_window_get_geometry(win->window, x, y, w, h, NULL);
     /* Position of the window in root window coordinates. */
-    gdk_window_get_origin (win->window, wx, wy);
+    gdk_window_get_origin(win->window, wx, wy);
     *wx -= *x;
     *wy -= *y;
 }

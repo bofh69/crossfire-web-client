@@ -18,7 +18,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #include <gtk/gtk.h>
@@ -34,8 +34,8 @@
 
 static GtkWidget *metaserver_window, *treeview_metaserver, *metaserver_button,
        *metaserver_status, *metaserver_entry;
-static GtkListStore    *store_metaserver;
-static GtkTreeSelection  *metaserver_selection;
+static GtkListStore *store_metaserver;
+static GtkTreeSelection *metaserver_selection;
 
 enum {
     LIST_HOSTNAME, LIST_IPADDR, LIST_IDLETIME, LIST_PLAYERS, LIST_VERSION, LIST_COMMENT
@@ -52,16 +52,11 @@ enum {
  * @param userdata
  * @return TRUE
  */
-gboolean metaserver_selection_func (
-    GtkTreeSelection *selection,
-    GtkTreeModel     *model,
-    GtkTreePath      *path,
-    gboolean          path_currently_selected,
-    gpointer          userdata)
-{
+gboolean metaserver_selection_func(GtkTreeSelection *selection,
+        GtkTreeModel *model, GtkTreePath *path,
+        gboolean path_currently_selected, gpointer userdata) {
     gtk_widget_set_sensitive(metaserver_button, TRUE);
     gtk_entry_set_text(GTK_ENTRY(metaserver_entry), "");
-
     return TRUE;
 }
 
@@ -70,106 +65,107 @@ gboolean metaserver_selection_func (
  * player has a servers.cache file in their .crossfire folder, the cached
  * server list is added to the contents of the metaserver dialog.
  */
-void get_metaserver(void)
-{
-    static int has_init=0;
+void get_metaserver() {
     GtkTreeIter iter;
-    int i, j;
-    const gchar *metaserver_txt;
     GtkWidget *widget;
+    char file_cache[MAX_BUF];
+    const gchar *metaserver_txt;
+    int i, j;
+    static int has_init = 0;
 
-    hide_all_login_windows(); /* in account.c */
+    hide_all_login_windows();
+
+    /* Load cached server entries. */
+    snprintf(file_cache, MAX_BUF, "%s/.crossfire/servers.cache", getenv("HOME"));
+    CONVERT_FILESPEC_TO_OS_FORMAT(file_cache);
+    cached_server_file = file_cache;
 
     if (!has_init) {
         GtkTreeViewColumn *column;
         GtkCellRenderer *renderer;
 
         metaserver_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                       "metaserver_window"));
+                    "metaserver_window"));
 
         gtk_window_set_transient_for(GTK_WINDOW(metaserver_window),
                                      GTK_WINDOW(window_root));
 
         treeview_metaserver = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                         "treeview_metaserver"));
-        metaserver_button =
-            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_select"));
-        metaserver_status =
-            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_status"));
-        metaserver_entry =
-            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_text_entry"));
+                    "treeview_metaserver"));
+        metaserver_button = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                    "metaserver_select"));
+        metaserver_status = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                    "metaserver_status"));
+        metaserver_entry = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                    "metaserver_text_entry"));
 
-        g_signal_connect ((gpointer) metaserver_window, "destroy",
-                          G_CALLBACK (on_window_destroy_event), NULL);
-        g_signal_connect ((gpointer) treeview_metaserver, "row_activated",
-                          G_CALLBACK (on_treeview_metaserver_row_activated), NULL);
-        g_signal_connect ((gpointer) metaserver_entry, "activate",
-                          G_CALLBACK (on_metaserver_text_entry_activate), NULL);
-        g_signal_connect ((gpointer) metaserver_entry, "key_press_event",
-                          G_CALLBACK (on_metaserver_text_entry_key_press_event), NULL);
-        g_signal_connect ((gpointer) metaserver_button, "clicked",
-                          G_CALLBACK (on_metaserver_select_clicked), NULL);
+        g_signal_connect((gpointer) metaserver_window, "destroy",
+                         G_CALLBACK(on_window_destroy_event), NULL);
+        g_signal_connect((gpointer) treeview_metaserver, "row_activated",
+                         G_CALLBACK(on_treeview_metaserver_row_activated), NULL);
+        g_signal_connect((gpointer) metaserver_entry, "activate",
+                         G_CALLBACK(on_metaserver_text_entry_activate), NULL);
+        g_signal_connect((gpointer) metaserver_entry, "key_press_event",
+                         G_CALLBACK(on_metaserver_text_entry_key_press_event), NULL);
+        g_signal_connect((gpointer) metaserver_button, "clicked",
+                         G_CALLBACK(on_metaserver_select_clicked), NULL);
 
-        widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_metaserver_quit"));
-        g_signal_connect ((gpointer) widget, "pressed",
-                          G_CALLBACK (on_button_metaserver_quit_pressed), NULL);
-        g_signal_connect ((gpointer) widget, "activate",
-                          G_CALLBACK (on_button_metaserver_quit_pressed), NULL);
+        widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                            "button_metaserver_quit"));
+        g_signal_connect((gpointer) widget, "pressed",
+                         G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
+        g_signal_connect((gpointer) widget, "activate",
+                         G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
 
-        store_metaserver = gtk_list_store_new (6,
-                                               G_TYPE_STRING,
-                                               G_TYPE_STRING,
-                                               G_TYPE_INT,
-                                               G_TYPE_INT,
-                                               G_TYPE_STRING,
-                                               G_TYPE_STRING);
+        store_metaserver = gtk_list_store_new(6,
+                G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
+                G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING);
 
-        gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_metaserver), GTK_TREE_MODEL(store_metaserver));
+        gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_metaserver),
+                                GTK_TREE_MODEL(store_metaserver));
 
-        renderer = gtk_cell_renderer_text_new ();
-        column = gtk_tree_view_column_new_with_attributes ("Hostname", renderer,
-                 "text", LIST_HOSTNAME,
-                 NULL);
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Hostname", renderer,
+                 "text", LIST_HOSTNAME, NULL);
         gtk_tree_view_column_set_sort_column_id(column, LIST_HOSTNAME);
-        gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
-        renderer = gtk_cell_renderer_text_new ();
-        column = gtk_tree_view_column_new_with_attributes ("Updated (Sec)", renderer,
-                 "text", LIST_IDLETIME,
-                 NULL);
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Updated (Sec)", renderer,
+                 "text", LIST_IDLETIME, NULL);
         gtk_tree_view_column_set_sort_column_id(column, LIST_IDLETIME);
-        gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
-        renderer = gtk_cell_renderer_text_new ();
-        column = gtk_tree_view_column_new_with_attributes ("Players", renderer,
-                 "text", LIST_PLAYERS,
-                 NULL);
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Players", renderer,
+                 "text", LIST_PLAYERS, NULL);
         gtk_tree_view_column_set_sort_column_id(column, LIST_PLAYERS);
-        gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
-        renderer = gtk_cell_renderer_text_new ();
-        column = gtk_tree_view_column_new_with_attributes ("Version", renderer,
-                 "text", LIST_VERSION,
-                 NULL);
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Version", renderer,
+                 "text", LIST_VERSION, NULL);
         gtk_tree_view_column_set_sort_column_id(column, LIST_VERSION);
-        gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
-        renderer = gtk_cell_renderer_text_new ();
-        column = gtk_tree_view_column_new_with_attributes ("Server Comment", renderer,
-                 "text", LIST_COMMENT,
-                 NULL);
-        gtk_tree_view_append_column (GTK_TREE_VIEW (treeview_metaserver), column);
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Server Comment", renderer,
+                 "text", LIST_COMMENT, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
         gtk_widget_realize(metaserver_window);
-        metaserver_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_metaserver));
-        gtk_tree_selection_set_mode (metaserver_selection, GTK_SELECTION_BROWSE);
-        gtk_tree_selection_set_select_function(metaserver_selection, metaserver_selection_func, NULL, NULL);
+        metaserver_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(
+                                   treeview_metaserver));
+        gtk_tree_selection_set_mode(metaserver_selection, GTK_SELECTION_BROWSE);
+        gtk_tree_selection_set_select_function(metaserver_selection,
+                                               metaserver_selection_func, NULL, NULL);
 
-        has_init=1;
+        has_init = 1;
     }
     gtk_widget_show(metaserver_window);
 
-    gtk_label_set_text(GTK_LABEL(metaserver_status), "Waiting for data from metaserver");
+    gtk_label_set_text(GTK_LABEL(metaserver_status),
+                       "Waiting for data from metaserver");
 
     metaserver_txt = gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
     if (*metaserver_txt == '\0') {
@@ -188,8 +184,8 @@ void get_metaserver(void)
     pthread_mutex_lock(&ms2_info_mutex);
 
     if (cached_servers_num) {
-        for ( i = 0; i < cached_servers_num; i++ ) {
-            for (j=0; j < meta_numservers; j++) {
+        for (i = 0; i < cached_servers_num; i++) {
+            for (j = 0; j < meta_numservers; j++) {
                 if (!strcmp(cached_servers_name[i], meta_servers[j].hostname)) {
                     break;
                 }
@@ -205,9 +201,10 @@ void get_metaserver(void)
         }
     }
 
-    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
+    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *,
+            const void *))meta_sort);
 
-    for (i=0; i<meta_numservers; i++) {
+    for (i = 0; i < meta_numservers; i++) {
         if (check_server_version(i)) {
             gtk_list_store_append(store_metaserver, &iter);
             gtk_list_store_set(store_metaserver, &iter,
@@ -232,9 +229,6 @@ void get_metaserver(void)
     cpl.input_state = Metaserver_Select;
     gtk_label_set_text(GTK_LABEL(metaserver_status), "Waiting for user selection");
 
-    enable_menu_items(FALSE);
-    /* draw_map() is to just redraw the splash */
-    draw_map(FALSE);
     gtk_main();
 
     gtk_widget_hide(metaserver_window);
@@ -253,24 +247,23 @@ void get_metaserver(void)
  * @param ip   An IP address of a server to connect to.  If specified, the IP
  *             address is used instead of the DNS name.
  */
-static void metaserver_connect_to(const char *name, const char *ip)
-{
+static void metaserver_connect_to(const char *name, const char *ip) {
     char  buf[256], *cp, newname[256];
-    int port=use_config[CONFIG_PORT];
+    int port = use_config[CONFIG_PORT];
 
     snprintf(buf, 255, "Trying to connect to %s", name);
 
     gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     strncpy(newname, name, 255);
-    newname[255]=0;
+    newname[255] = 0;
 
-    if ((cp=strchr(newname,':'))!=NULL) {
-        port = atoi(cp+1);
-        *cp=0;
+    if ((cp = strchr(newname, ':')) != NULL) {
+        port = atoi(cp + 1);
+        *cp = 0;
     }
 
-    csocket.fd=init_connection((char*)(ip?ip:newname), port);
-    if (csocket.fd==-1) {
+    csocket.fd = init_connection((char *)(ip ? ip : newname), port);
+    if (csocket.fd == -1) {
         snprintf(buf, 255, "Unable to connect to %s!", name);
         gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     } else {
@@ -289,15 +282,14 @@ static void metaserver_connect_to(const char *name, const char *ip)
  * @param user_data
  */
 void
-on_metaserver_select_clicked           (GtkButton       *button,
-                                        gpointer         user_data)
-{
+on_metaserver_select_clicked(GtkButton       *button,
+                             gpointer         user_data) {
     GtkTreeModel    *model;
     GtkTreeIter iter;
-    char    *name=NULL, *ip=NULL, *metaserver_txt;
+    char    *name = NULL, *ip = NULL, *metaserver_txt;
 
-    metaserver_txt = (char*)gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
-    if (gtk_tree_selection_get_selected (metaserver_selection, &model, &iter)) {
+    metaserver_txt = (char *)gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
+    if (gtk_tree_selection_get_selected(metaserver_selection, &model, &iter)) {
         gtk_tree_model_get(model, &iter, LIST_HOSTNAME, &name, LIST_IPADDR, &ip, -1);
 
     } else if (*metaserver_txt == '\0') {
@@ -331,11 +323,10 @@ on_metaserver_select_clicked           (GtkButton       *button,
  * @param user_data
  */
 void
-on_treeview_metaserver_row_activated   (GtkTreeView     *treeview,
-                                        GtkTreePath     *path,
-                                        GtkTreeViewColumn *column,
-                                        gpointer         user_data)
-{
+on_treeview_metaserver_row_activated(GtkTreeView     *treeview,
+                                     GtkTreePath     *path,
+                                     GtkTreeViewColumn *column,
+                                     gpointer         user_data) {
     GtkTreeIter iter;
     GtkTreeModel    *model;
     char    *name, *ip;
@@ -355,9 +346,8 @@ on_treeview_metaserver_row_activated   (GtkTreeView     *treeview,
  * @param user_data
  */
 void
-on_metaserver_text_entry_activate      (GtkEntry        *entry,
-                                        gpointer         user_data)
-{
+on_metaserver_text_entry_activate(GtkEntry        *entry,
+                                  gpointer         user_data) {
     const gchar *entry_text;
 
     entry_text = gtk_entry_get_text(GTK_ENTRY(entry));
@@ -373,9 +363,8 @@ on_metaserver_text_entry_activate      (GtkEntry        *entry,
  * @param user_data
  */
 void
-on_button_metaserver_quit_pressed      (GtkButton       *button,
-                                        gpointer         user_data)
-{
+on_button_metaserver_quit_pressed(GtkButton       *button,
+                                  gpointer         user_data) {
 #ifdef WIN32
     script_killall();
 #endif
@@ -391,13 +380,8 @@ on_button_metaserver_quit_pressed      (GtkButton       *button,
  * @param user_data
  * @return FALSE
  */
-gboolean
-on_metaserver_text_entry_key_press_event
-(GtkWidget       *widget,
- GdkEventKey     *event,
- gpointer         user_data)
-{
-
+gboolean on_metaserver_text_entry_key_press_event(GtkWidget *widget,
+        GdkEventKey *event, gpointer user_data) {
     gtk_widget_set_sensitive(metaserver_button, TRUE);
     gtk_tree_selection_unselect_all(metaserver_selection);
     return FALSE;
