@@ -17,14 +17,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include "client.h"
-
 #include "image.h"
 #include "metaserver.h"
 #include "main.h"

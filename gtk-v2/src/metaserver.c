@@ -22,15 +22,13 @@
 #endif
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
+#include <pthread.h>
 
 #include "client.h"
-
 #include "image.h"
 #include "main.h"
 #include "gtk2proto.h"
 #include "metaserver.h"
-#include <pthread.h>
 
 static GtkWidget *metaserver_window, *treeview_metaserver, *metaserver_button,
        *metaserver_status, *metaserver_entry;

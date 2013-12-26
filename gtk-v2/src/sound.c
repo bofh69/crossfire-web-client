@@ -18,12 +18,16 @@
  * responsible for playing sounds.
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
+#endif
+
 #include <ctype.h>
 #include <errno.h>
-#include <client-types.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "client-types.h"
 #include "client.h"
 
 FILE *sound_pipe = NULL;

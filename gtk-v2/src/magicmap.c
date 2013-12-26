@@ -17,14 +17,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include "client.h"
-
 #include "main.h"
 
 extern GtkWidget *magic_map;    /**< main.c - drawing area for the magic map */

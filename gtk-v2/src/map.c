@@ -17,24 +17,23 @@
  * and actual rendering (although the sdl rendering is in the sdl file
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+#include <gdk/gdkkeysyms.h>
+#include <gtk/gtk.h>
+#include <png.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#ifndef WIN32
-#include <unistd.h>
-#endif
-#include <png.h>
 
-/* Pick up the gtk headers we need */
-#include <gtk/gtk.h>
-#include <glade/glade.h>
 #ifndef WIN32
 #include <gdk/gdkx.h>
+#include <unistd.h>
 #else
-#include <time.h>
 #include <gdk/gdkwin32.h>
+#include <time.h>
 #endif
-#include <gdk/gdkkeysyms.h>
 
 #include "client-types.h"
 #include "image.h"
@@ -90,14 +89,11 @@ int gettimeofday(struct timeval* tp, void* tzp)
  *
  * @param window_root The client's main playing window.
  */
-void map_init(GtkWidget *window_root)
-{
-    GladeXML* xml_tree;
-
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
-
-    map_drawing_area = glade_xml_get_widget(xml_tree, "drawingarea_map");
-    map_notebook = glade_xml_get_widget(xml_tree, "map_notebook");
+void map_init(GtkWidget *window_root) {
+    map_drawing_area = GTK_WIDGET(gtk_builder_get_object(window_xml,
+                "drawingarea_map"));
+    map_notebook = GTK_WIDGET(gtk_builder_get_object(window_xml,
+                "map_notebook"));
 
     g_signal_connect ((gpointer) map_drawing_area, "expose_event",
                       G_CALLBACK (on_drawingarea_map_expose_event), NULL);

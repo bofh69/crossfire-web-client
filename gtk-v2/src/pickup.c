@@ -19,11 +19,10 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include "client.h"
 #include "main.h"
@@ -89,7 +88,7 @@ static unsigned int pmode=0, no_recurse=0;
 
 /**
  * Handles the pickup operations.  Unfortunately, it isn't easy (possible?)
- * in glade to attach values to the menu items.
+ * in layout to attach values to the menu items.
  *
  * @param on is TRUE if the button is activated, 0 if it is off.
  * @param val is the PU_ bitmasks to set/clear.
@@ -405,7 +404,6 @@ on_menu_ratio_50_activate               (GtkMenuItem     *menuitem,
 void pickup_init(GtkWidget *window_root)
 {
     static int has_init=0;
-    GladeXML *xml_tree;
 
     /*
      * There isn't really any harm doing this multiple times, but isn't any
@@ -430,189 +428,188 @@ void pickup_init(GtkWidget *window_root)
      * change it.
      */
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "do_not_pickup");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "do_not_pickup"));
     pickup_mapping[num_pickups].pickup_mode = PU_INHIBIT;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "stop_before_pickup");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "stop_before_pickup"));
     pickup_mapping[num_pickups].pickup_mode = PU_STOP;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "body_armor");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "body_armor"));
     pickup_mapping[num_pickups].pickup_mode = PU_ARMOUR;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "boots");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "boots"));
     pickup_mapping[num_pickups].pickup_mode = PU_BOOTS;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "cloaks");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "cloaks"));
     pickup_mapping[num_pickups].pickup_mode = PU_CLOAK;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "gloves");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "gloves"));
     pickup_mapping[num_pickups].pickup_mode = PU_GLOVES;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "helmets");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "helmets"));
     pickup_mapping[num_pickups].pickup_mode = PU_HELMET;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "shields");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "shields"));
     pickup_mapping[num_pickups].pickup_mode = PU_SHIELD;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "skillscrolls");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "skillscrolls"));
     pickup_mapping[num_pickups].pickup_mode = PU_SKILLSCROLL;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "normal_book_scrolls");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "normal_book_scrolls"));
     pickup_mapping[num_pickups].pickup_mode = PU_READABLES;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "spellbooks");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "spellbooks"));
     pickup_mapping[num_pickups].pickup_mode = PU_SPELLBOOK;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "drinks");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "drinks"));
     pickup_mapping[num_pickups].pickup_mode = PU_DRINK;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "food");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "food"));
     pickup_mapping[num_pickups].pickup_mode = PU_FOOD;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "flesh");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "flesh"));
     pickup_mapping[num_pickups].pickup_mode = PU_FLESH;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "keys");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "keys"));
     pickup_mapping[num_pickups].pickup_mode = PU_KEY;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "magical_items");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "magical_items"));
     pickup_mapping[num_pickups].pickup_mode = PU_MAGICAL;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "potions");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "potions"));
     pickup_mapping[num_pickups].pickup_mode = PU_POTION;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "valuables");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "valuables"));
     pickup_mapping[num_pickups].pickup_mode = PU_VALUABLES;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "wands_rods_horns");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "wands_rods_horns"));
     pickup_mapping[num_pickups].pickup_mode = PU_MAGIC_DEVICE;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "jewels");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "jewels"));
     pickup_mapping[num_pickups].pickup_mode = PU_JEWELS;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "containers");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "containers"));
     pickup_mapping[num_pickups].pickup_mode = PU_CONTAINERS;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "all_weapons");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "all_weapons"));
     pickup_mapping[num_pickups].pickup_mode = PU_ALLWEAPON;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "missile_weapons");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "missile_weapons"));
     pickup_mapping[num_pickups].pickup_mode = PU_MISSILEWEAPON;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "bows");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "bows"));
     pickup_mapping[num_pickups].pickup_mode = PU_BOW;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "arrows");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "arrows"));
     pickup_mapping[num_pickups].pickup_mode = PU_ARROW;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_pickup_off");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_pickup_off"));
     pickup_mapping[num_pickups].pickup_mode = ~PU_RATIO;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_5");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_5"));
     pickup_mapping[num_pickups].pickup_mode = 1;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_10");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_10"));
     pickup_mapping[num_pickups].pickup_mode = 2;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_15");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_15"));
     pickup_mapping[num_pickups].pickup_mode = 3;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_20");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_20"));
     pickup_mapping[num_pickups].pickup_mode = 4;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_25");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_25"));
     pickup_mapping[num_pickups].pickup_mode = 5;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_30");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_30"));
     pickup_mapping[num_pickups].pickup_mode = 6;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_35");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_35"));
     pickup_mapping[num_pickups].pickup_mode = 7;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_40");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_40"));
     pickup_mapping[num_pickups].pickup_mode = 8;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_45");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_45"));
     pickup_mapping[num_pickups].pickup_mode = 9;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "ratio_50");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_50"));
     pickup_mapping[num_pickups].pickup_mode = 10;
     num_pickups++;
 
     pickup_mapping[num_pickups].menuitem =
-        glade_xml_get_widget(xml_tree, "not_cursed");
+        GTK_WIDGET(gtk_builder_get_object(window_xml, "not_cursed"));
     pickup_mapping[num_pickups].pickup_mode = PU_NOT_CURSED;
     num_pickups++;
 

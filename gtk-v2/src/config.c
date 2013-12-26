@@ -1152,7 +1152,6 @@ void load_window_positions(GtkWidget *window_root) {
     char loadname[MAX_BUF];
     char buf[MAX_BUF];
     char *cp;
-    GladeXML *xml_tree;
     GtkWidget *widget;
     FILE    *load;
 
@@ -1178,8 +1177,6 @@ void load_window_positions(GtkWidget *window_root) {
         LOG(LOG_DEBUG, "gtk-v2::load_window_positions",
                 "Loading window positions from '%s'", loadname);
     }
-
-    xml_tree = glade_get_widget_tree(GTK_WIDGET (window_root));
 
     while(fgets(buf, MAX_BUF-1, load)!=NULL) {
         if ((cp=strchr(buf,':'))!=NULL) {
@@ -1207,7 +1204,7 @@ void load_window_positions(GtkWidget *window_root) {
                  * generic error to stderr if it does not exist in the current
                  * layout.
                  */
-                widget = glade_xml_get_widget(xml_tree, buf);
+                widget = GTK_WIDGET(gtk_builder_get_object(window_xml, buf));
                 if (widget) {
                     gtk_paned_set_position(GTK_PANED(widget), atoi(cp));
                 } else {

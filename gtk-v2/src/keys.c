@@ -17,24 +17,23 @@
  * and handling keypresses and looking up the keys.
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#ifndef WIN32
-#include <unistd.h>
 #endif
 
-/* Pick up the gtk headers we need */
+#include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
-#include <glade/glade.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+
 #ifndef WIN32
+#include <unistd.h>
 #include <gdk/gdkx.h>
 #else
 #include <gdk/gdkwin32.h>
 #define NoSymbol 0L                     /**< Special KeySym */
 typedef int KeyCode;                    /**< Undefined type */
 #endif
-#include <gdk/gdkkeysyms.h>
 
 #include "client-types.h"
 #include "client.h"
@@ -610,16 +609,15 @@ void keys_init(GtkWidget *window_root)
 {
     GtkTreeViewColumn *column;
     GtkCellRenderer *renderer;
-    GladeXML *xml_tree;
     GtkWidget *widget;
     int i;
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
-
-    fire_label = glade_xml_get_widget(xml_tree, "fire_label");
-    run_label = glade_xml_get_widget(xml_tree, "run_label");
-    entry_commands = glade_xml_get_widget(xml_tree, "entry_commands");
-    spinbutton_count = glade_xml_get_widget(xml_tree, "spinbutton_count");
+    fire_label = GTK_WIDGET(gtk_builder_get_object(window_xml, "fire_label"));
+    run_label = GTK_WIDGET(gtk_builder_get_object(window_xml, "run_label"));
+    entry_commands = GTK_WIDGET(gtk_builder_get_object(window_xml,
+            "entry_commands"));
+    spinbutton_count = GTK_WIDGET(gtk_builder_get_object(window_xml,
+            "spinbutton_count"));
 
     g_signal_connect((gpointer) entry_commands, "activate",
                      G_CALLBACK(on_entry_commands_activate), NULL);

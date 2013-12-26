@@ -21,7 +21,6 @@
 #endif
 
 #include <ctype.h>
-#include <glade/glade.h>
 #include <gtk/gtk.h>
 
 #include "client.h"

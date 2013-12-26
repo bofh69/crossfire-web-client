@@ -17,17 +17,14 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <ctype.h>
 
 #include "client.h"
-
 #include "image.h"
-
 #include "main.h"
 #include "gtk2proto.h"
 #include "metaserver.h"
@@ -1085,7 +1082,7 @@ static void init_login_window() {
     login_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "login_window"));
 
     if (!login_window) {
-        error_dialog("Out of date dialog.glade", "Did you run 'make install'?");
+        error_dialog("Failed to open dialogs.", "Did you run `make install`?");
         exit(1);
     }
 

@@ -18,17 +18,20 @@
  * gtk-specific as it returns gtk pixmaps.
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+#include <png.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+
 #ifndef WIN32
 #include <unistd.h>
 #endif
-#include <png.h>
 
 /* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #else

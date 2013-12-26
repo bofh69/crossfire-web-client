@@ -17,17 +17,14 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
-#include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <ctype.h>
+#include <gtk/gtk.h>
 
 #include "client.h"
-
 #include "image.h"
-
 #include "main.h"
 #include "gtk2proto.h"
 #include "metaserver.h"
@@ -701,7 +698,7 @@ void new_char_window_update_info()
      */
     for (i=0; i<NUM_NEW_CHAR_STATS; i++) {
         /* Reset any stat values - just makes more sense, but also
-         * possible that starting value set in the glade file may
+         * possible that starting value set in the layout file may
          * be outside of this range.
          */
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton_cc[i]), stat_min);
@@ -851,7 +848,7 @@ void init_create_character_window() {
         label_tot[i] = GTK_WIDGET(gtk_builder_get_object(dialog_xml, tmpbuf));
     }
 
-    /* Note that in the glade file, the numbering starts at 1 */
+    /* Note that in the layout file, the numbering starts at 1 */
     for (i=0; i < NUM_OPT_FIELDS; i++ ) {
         GtkListStore *store;
 

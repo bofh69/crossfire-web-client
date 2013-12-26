@@ -21,7 +21,6 @@
 #endif
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include "client.h"
 
@@ -455,17 +454,19 @@ void inventory_get_styles(void)
 void inventory_init(GtkWidget *window_root)
 {
     int i;
-    GladeXML *xml_tree;
 
     /*inventory_get_styles();*/
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
-
-    inv_notebook = glade_xml_get_widget(xml_tree,"notebook_inv");
-    treeview_look = glade_xml_get_widget(xml_tree, "treeview_look");
-    encumbrance_current = glade_xml_get_widget(xml_tree,"label_stat_encumbrance_current");
-    encumbrance_max = glade_xml_get_widget(xml_tree,"label_stat_encumbrance_max");
-    inv_table = glade_xml_get_widget(xml_tree,"inv_table");
+    inv_notebook = GTK_WIDGET(gtk_builder_get_object(window_xml,
+                "notebook_inv"));
+    treeview_look = GTK_WIDGET(gtk_builder_get_object(window_xml,
+                "treeview_look"));
+    encumbrance_current = GTK_WIDGET(gtk_builder_get_object(window_xml,
+                "label_stat_encumbrance_current"));
+    encumbrance_max = GTK_WIDGET(gtk_builder_get_object(window_xml,
+                "label_stat_encumbrance_max"));
+    inv_table = GTK_WIDGET(gtk_builder_get_object(window_xml,
+                "inv_table"));
 
     g_signal_connect((gpointer) inv_notebook, "switch_page",
                      (GCallback) on_notebook_switch_page, NULL);
@@ -497,9 +498,9 @@ void inventory_init(GtkWidget *window_root)
      * Glade doesn't let us fully realize a treeview widget - we still need to
      * to do a bunch of customization just like we do for the look window
      * above.  If we have to do all that work, might as well just put it in the
-     * for loop below vs setting up half realized widgets within glade that we
+     * for loop below vs setting up half realized widgets within layout that we
      * then need to finish setting up.  However, that said, we want to be able
-     * to set up other notebooks within glade for perhaps a true list of just
+     * to set up other notebooks within layout for perhaps a true list of just
      * icons.  So we presume that any tabs that exist must already be all set
      * up.  We prepend our tabs to the existing tab - this makes the position
      * of the array of noteboks correspond to actual data in the tabs.

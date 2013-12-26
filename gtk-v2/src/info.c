@@ -17,19 +17,15 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include "client.h"
-
 #include "image.h"
 #include "main.h"
 #include "gtk2proto.h"
-
-
 
 /**
  * A mapping of font numbers to style based on the rcfile content.
@@ -622,17 +618,16 @@ void info_init(GtkWidget *window_root)
     int i;
     GtkTextIter end;
     char    widget_name[MAX_BUF];
-    GladeXML *xml_tree;
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
     for (i = 0; i < NUM_TEXT_VIEWS; i++) {
         snprintf(widget_name, MAX_BUF, "textview_info%d", i+1);
-        info_pane[i].textview = glade_xml_get_widget(xml_tree, widget_name);
+        info_pane[i].textview =
+            GTK_WIDGET(gtk_builder_get_object(window_xml, widget_name));
 
         snprintf(widget_name, MAX_BUF, "scrolledwindow_textview%d", i+1);
 
         info_pane[i].scrolled_window =
-            glade_xml_get_widget(xml_tree, widget_name);
+            GTK_WIDGET(gtk_builder_get_object(window_xml, widget_name));
 
         gtk_text_view_set_wrap_mode(
             GTK_TEXT_VIEW(info_pane[i].textview), GTK_WRAP_WORD);
@@ -1353,7 +1348,7 @@ void msgctrl_init(GtkWidget *window_root)
     guint          type;                /* Iterator: message types          */
     guint          row;                 /* Attachement for current widget   */
     gint           title_rows = -1;     /* Title rows in msgctrl_table as
-                                         * defined in glade designer.  -1
+                                         * defined in layout designer.  -1
                                          * means there are no title rows.
                                          */
     /*
@@ -1916,4 +1911,3 @@ on_msgctrl_activate                    (GtkMenuItem     *menuitem,
 {
     gtk_widget_show(msgctrl_window);
 }
-

@@ -22,17 +22,16 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #ifdef WIN32
 #include <windows.h>
 #endif
+
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include "client.h"
-
 #include "p_cmd.h"
 #include "main.h"
 #include "image.h"
@@ -103,196 +102,193 @@ menu_quit_character                     (GtkMenuItem     *menuitem,
  */
 void enable_menu_items(int enable)
 {
-    GladeXML *xml_tree;
     GtkWidget *widget;
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
-
-    widget = glade_xml_get_widget(xml_tree, "quit_character");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "quit_character"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (menu_quit_character), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "quit");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "quit"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (menu_quit_program), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "configure");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "configure"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_configure_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "disconnect");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "disconnect"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_disconnect_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "keybindings");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "keybindings"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_keybindings_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "msgctrl");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "msgctrl"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_msgctrl_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "save_window_position");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "save_window_position"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_save_window_position_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "spells");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "spells"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_spells_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "skills");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "skills"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_skills_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "do_not_pickup");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "do_not_pickup"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_dont_pickup_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "stop_before_pickup");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "stop_before_pickup"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_stop_before_pickup_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "body_armor");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "body_armor"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_body_armor_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "boots");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "boots"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_boots_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "cloaks");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "cloaks"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_cloaks_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "gloves");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "gloves"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_gloves_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "helmets");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "helmets"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_helmets_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "shields");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "shields"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_shields_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "skillscrolls");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "skillscrolls"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_skillscrolls_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "normal_book_scrolls");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "normal_book_scrolls"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_normal_book_scrolls_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "spellbooks");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "spellbooks"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_spellbooks_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "drinks");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "drinks"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_drinks_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "food");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "food"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_food_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "flesh");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "flesh"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_flesh_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "keys");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "keys"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_keys_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "magical_items");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "magical_items"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_magical_items_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "potions");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "potions"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_potions_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "valuables");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "valuables"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_valuables_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "wands_rods_horns");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "wands_rods_horns"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_wands_rods_horns_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "jewels");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "jewels"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_jewels_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "containers");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "containers"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_containers_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "all_weapons");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "all_weapons"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_all_weapons_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "missile_weapons");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "missile_weapons"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_missile_weapons_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "bows");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "bows"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_bows_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "arrows");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "arrows"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_arrows_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_pickup_off");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_pickup_off"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_pickup_off_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_5");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_5"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_5_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_10");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_10"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_10_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_15");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_15"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_15_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_20");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_20"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_20_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_25");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_25"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_25_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_30");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_30"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_35_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_35");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_35"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_35_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_40");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_40"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_40_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_45");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_45"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_45_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "ratio_50");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "ratio_50"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_ratio_50_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "not_cursed");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "not_cursed"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (on_menu_not_cursed_activate), NULL);
 
-    widget = glade_xml_get_widget(xml_tree, "about");
+    widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "about"));
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (menu_about), NULL);
 }
