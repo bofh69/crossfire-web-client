@@ -21,7 +21,6 @@
 #endif
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <ctype.h>
 
 #include "client.h"
@@ -42,10 +41,10 @@ int scandir(const char *dir, struct dirent ***namelist,
             int (*compar)(const struct dirent **, const struct dirent **)) {
     DIR *d;
     struct dirent *entry;
-    register int i=0;
+    register int i = 0;
     size_t entrysize;
 
-    if((d = opendir(dir)) == NULL) {
+    if ((d = opendir(dir)) == NULL) {
         return -1;
     }
 
@@ -57,7 +56,8 @@ int scandir(const char *dir, struct dirent ***namelist,
             if (*namelist == NULL) {
                 return -1;
             }
-            entrysize = sizeof(struct dirent) - sizeof(entry->d_name) + strlen(entry->d_name) + 1;
+            entrysize = sizeof(struct dirent) - sizeof(entry->d_name) + strlen(
+                            entry->d_name) + 1;
             (*namelist)[i] = (struct dirent *)malloc(entrysize);
             if ((*namelist)[i] == NULL) {
                 return -1;
@@ -74,30 +74,31 @@ int scandir(const char *dir, struct dirent ***namelist,
     }
     if (compar != NULL)
         qsort((void *)(*namelist), (size_t)i, sizeof(struct dirent *),
-              (int(*)(const void*, const void*))compar);
+              (int(*)(const void *, const void *))compar);
 
     return i;
 }
 #endif
 
-extern char window_xml_file[MAX_BUF];  /* Name of the .glade layout in use. */
+extern char window_xml_file[MAX_BUF];  /* Name of the layout file in use. */
 
 GtkWidget *config_window, *config_spinbutton_cwindow, *config_button_echo,
-          *config_button_fasttcp, *config_button_timestamp, *config_button_grad_color, *config_button_foodbeep,
+          *config_button_fasttcp, *config_button_timestamp, *config_button_grad_color,
+          *config_button_foodbeep,
           *config_button_sound, *config_button_cache, *config_button_download,
           *config_button_fog, *config_spinbutton_iconscale, *config_spinbutton_mapscale,
           *config_spinbutton_mapwidth, *config_spinbutton_mapheight,
           *config_button_smoothing, *config_combobox_displaymode,
           *config_combobox_faceset, *config_combobox_lighting,
-          *config_combobox_theme, *config_combobox_glade;
+          *config_combobox_theme, *config_combobox_layout;
 
 /* This is the string names that correspond to the numberic id's in client.h */
 
 static char *theme = "Standard";
 static char *themedir = "themes";
-static char *gladedir = "ui";
+static char *layoutdir = "ui";
 
-static const char * const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
+static const char *const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
 
 /**
  * Sets up player-specific client and layout rc files and handles loading of a
@@ -105,7 +106,7 @@ static const char * const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
  * added to the GTK rc default files list.  ${HOME}/.crossfire/gtkrc is added
  * first.  All client sessions are affected by this rc file if it exists.
  * Next, ${HOME}/.crossfire/[layout].gtkrc is added, where [layout] is the
- * name of the .glade file that is loaded.  IE. If gtk-v2.glade is loaded,
+ * name of the layout file that is loaded.  IE. If gtk-v2.ui is loaded,
  * [layout] is "gtk-v2".  This sets up the possibility for a player to make a
  * layout-specific rc file.  Finally, if the client theme is not "None", the
  * client theme file is added.  In most cases, the player-specific files are
@@ -121,7 +122,7 @@ static const char * const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
  * is starting up, this is false, because all the widgets haven't been realized
  * yet, and the initialize routines will get the theme data at that time.
  */
-static char **default_files=NULL;
+static char **default_files = NULL;
 void init_theme() {
     char path[MAX_BUF];
     char xml_basename[MAX_BUF];
@@ -140,18 +141,18 @@ void init_theme() {
     /*
      * Add two more GTK rc files that may be used by a player to customize
      * the client appearance in general, or to customize the appearance
-     * of a specific .glade layout.  Allocate pointers to the local copy
+     * of a specific layout.  Allocate pointers to the local copy
      * of the entire list.
      */
     i += 2;
-    default_files = malloc(sizeof(char*) * (i+1));
+    default_files = malloc(sizeof(char *) * (i + 1));
     /*
      * Copy in GTK's default list which probably contains system paths
      * like <SYSCONFDIR>/gtk-2.0/gtkrc and user-specific files like
      * ${HOME}/.gtkrc, or even LANGuage-specific ones like
      * ${HOME}/.gtkrc.en, etc.
      */
-    i=0;
+    i = 0;
     while (tmp[i]) {
         default_files[i] = strdup(tmp[i]);
         i++;
@@ -259,44 +260,44 @@ void load_theme(int reload) {
  * configuration of the client.
  */
 void load_defaults() {
-    char path[MAX_BUF],inbuf[MAX_BUF],*cp;
+    char path[MAX_BUF], inbuf[MAX_BUF], *cp;
     FILE *fp;
     int i, val;
 
     /* Copy over the want values to use values now */
-    for (i=0; i<CONFIG_NUMS; i++) {
+    for (i = 0; i < CONFIG_NUMS; i++) {
         use_config[i] = want_config[i];
     }
 
     snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
-    if ((fp=fopen(path,"r"))==NULL) {
+    if ((fp = fopen(path, "r")) == NULL) {
         return;
     }
-    while (fgets(inbuf, MAX_BUF-1, fp)) {
-        inbuf[MAX_BUF-1]='\0';
-        inbuf[strlen(inbuf)-1]='\0';    /* kill newline */
+    while (fgets(inbuf, MAX_BUF - 1, fp)) {
+        inbuf[MAX_BUF - 1] = '\0';
+        inbuf[strlen(inbuf) - 1] = '\0'; /* kill newline */
 
-        if (inbuf[0]=='#') {
+        if (inbuf[0] == '#') {
             continue;
         }
         /* Skip any setting line that does not contain a colon character */
-        if (!(cp=strchr(inbuf,':'))) {
+        if (!(cp = strchr(inbuf, ':'))) {
             continue;
         }
-        *cp='\0';
-        cp+=2;      /* colon, space, then value */
+        *cp = '\0';
+        cp += 2;    /* colon, space, then value */
 
         val = -1;
         if (isdigit(*cp)) {
-            val=atoi(cp);
-        } else if (!strcmp(cp,"True")) {
+            val = atoi(cp);
+        } else if (!strcmp(cp, "True")) {
             val = TRUE;
-        } else if (!strcmp(cp,"False")) {
+        } else if (!strcmp(cp, "False")) {
             val = FALSE;
         }
 
-        for (i=1; i<CONFIG_NUMS; i++) {
+        for (i = 1; i < CONFIG_NUMS; i++) {
             if (!strcmp(config_names[i], inbuf)) {
                 if (val == -1) {
                     LOG(LOG_WARNING, "config.c::load_defaults",
@@ -316,8 +317,9 @@ void load_defaults() {
          * Legacy - now use the map_width and map_height values Don't do sanity
          * checking - that will be done below
          */
-        if (!strcmp(inbuf,"mapsize")) {
-            if (sscanf(cp,"%hdx%hd", &want_config[CONFIG_MAPWIDTH], &want_config[CONFIG_MAPHEIGHT])!=2) {
+        if (!strcmp(inbuf, "mapsize")) {
+            if (sscanf(cp, "%hdx%hd", &want_config[CONFIG_MAPWIDTH],
+                       &want_config[CONFIG_MAPHEIGHT]) != 2) {
                 LOG(LOG_WARNING, "config.c::load_defaults",
                     "Malformed mapsize option in gdefaults2.  Ignoring");
             }
@@ -328,7 +330,7 @@ void load_defaults() {
             theme = strdup_local(cp);   /* memory leak ! */
             continue;
         } else if (!strcmp(inbuf, "window_layout")) {
-            strncpy(window_xml_file, cp, MAX_BUF-1);
+            strncpy(window_xml_file, cp, MAX_BUF - 1);
             continue;
         } else if (!strcmp(inbuf, "nopopups")) {
             /* Changed name from nopopups to popups, so inverse value */
@@ -369,14 +371,14 @@ void load_defaults() {
      * Make sure some of the values entered are sane - since a user can edit
      * the defaults file directly, they could put bogus values in
      */
-    if (want_config[CONFIG_ICONSCALE]< 25 || want_config[CONFIG_ICONSCALE]>200) {
+    if (want_config[CONFIG_ICONSCALE] < 25 || want_config[CONFIG_ICONSCALE] > 200) {
         LOG(LOG_WARNING, "config.c::load_defaults",
             "Ignoring iconscale value read from gdefaults2 file.\n"
             "Invalid iconscale range (%d), valid range for -iconscale "
             "is 25 through 200", want_config[CONFIG_ICONSCALE]);
         want_config[CONFIG_ICONSCALE] = use_config[CONFIG_ICONSCALE];
     }
-    if (want_config[CONFIG_MAPSCALE]< 25 || want_config[CONFIG_MAPSCALE]>200) {
+    if (want_config[CONFIG_MAPSCALE] < 25 || want_config[CONFIG_MAPSCALE] > 200) {
         LOG(LOG_WARNING, "config.c::load_defaults",
             "ignoring mapscale value read for gdefaults2 file.\n"
             "Invalid mapscale range (%d), valid range for -iconscale "
@@ -397,13 +399,15 @@ void load_defaults() {
     }
 
     /* Make sure the map size os OK */
-    if (want_config[CONFIG_MAPWIDTH] < 9 || want_config[CONFIG_MAPWIDTH] > MAP_MAX_SIZE) {
+    if (want_config[CONFIG_MAPWIDTH] < 9 ||
+            want_config[CONFIG_MAPWIDTH] > MAP_MAX_SIZE) {
         LOG(LOG_WARNING, "config.c::load_defaults", "Invalid map width (%d) "
             "option in gdefaults2. Valid range is 9 to %d",
             want_config[CONFIG_MAPWIDTH], MAP_MAX_SIZE);
         want_config[CONFIG_MAPWIDTH] = use_config[CONFIG_MAPWIDTH];
     }
-    if (want_config[CONFIG_MAPHEIGHT] < 9 || want_config[CONFIG_MAPHEIGHT] > MAP_MAX_SIZE) {
+    if (want_config[CONFIG_MAPHEIGHT] < 9 ||
+            want_config[CONFIG_MAPHEIGHT] > MAP_MAX_SIZE) {
         LOG(LOG_WARNING, "config.c::load_defaults", "Invalid map height (%d) "
             "option in gdefaults2. Valid range is 9 to %d",
             want_config[CONFIG_MAPHEIGHT], MAP_MAX_SIZE);
@@ -413,7 +417,8 @@ void load_defaults() {
 #if !defined(HAVE_OPENGL)
     if (want_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
         want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
-        LOG(LOG_ERROR, "config.c::load_defaults", "Display mode is set to OpenGL, but client "
+        LOG(LOG_ERROR, "config.c::load_defaults",
+            "Display mode is set to OpenGL, but client "
             "is not compiled with OpenGL support.  Reverting to pixmap mode.");
     }
 #endif
@@ -421,14 +426,15 @@ void load_defaults() {
 #if !defined(HAVE_SDL)
     if (want_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
         want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
-        LOG(LOG_ERROR, "config.c::load_defaults", "Display mode is set to SDL, but client "
+        LOG(LOG_ERROR, "config.c::load_defaults",
+            "Display mode is set to SDL, but client "
             "is not compiled with SDL support.  Reverting to pixmap mode.");
     }
 #endif
 
 
     /* Now copy over the values just loaded */
-    for (i=0; i<CONFIG_NUMS; i++) {
+    for (i = 0; i < CONFIG_NUMS; i++) {
         use_config[i] = want_config[i];
     }
 
@@ -443,36 +449,36 @@ void load_defaults() {
  * dialog.
  */
 void save_defaults() {
-    char path[MAX_BUF],buf[MAX_BUF];
+    char path[MAX_BUF], buf[MAX_BUF];
     FILE *fp;
     int i;
 
     snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
-    if (make_path_to_file(path)==-1) {
-        LOG(LOG_ERROR, "config.c::save_defaults","Could not create %s", path);
+    if (make_path_to_file(path) == -1) {
+        LOG(LOG_ERROR, "config.c::save_defaults", "Could not create %s", path);
         return;
     }
-    if ((fp=fopen(path,"w"))==NULL) {
+    if ((fp = fopen(path, "w")) == NULL) {
         LOG(LOG_ERROR, "config.c::save_defaults", "Could not open %s", path);
         return;
     }
-    fprintf(fp,"# crossfire-client-gtk2 automatically generates this file.\n");
-    fprintf(fp,"# Manual editing is allowed, but the client may be a bit\n");
-    fprintf(fp,"# finicky about the keys and values.  Comparisons are case\n");
-    fprintf(fp,"# sensitive.  'True' and 'False' are the proper case, but\n");
-    fprintf(fp,"# have been replaced with 1 and 0 respectively.\n#\n");
-    fprintf(fp,"server: %s\n", server);
-    fprintf(fp,"theme: %s\n", theme);
-    fprintf(fp,"faceset: %s\n", face_info.want_faceset);
-    fprintf(fp,"window_layout: %s\n", window_xml_file);
+    fprintf(fp, "# crossfire-client-gtk2 automatically generates this file.\n");
+    fprintf(fp, "# Manual editing is allowed, but the client may be a bit\n");
+    fprintf(fp, "# finicky about the keys and values.  Comparisons are case\n");
+    fprintf(fp, "# sensitive.  'True' and 'False' are the proper case, but\n");
+    fprintf(fp, "# have been replaced with 1 and 0 respectively.\n#\n");
+    fprintf(fp, "server: %s\n", server);
+    fprintf(fp, "theme: %s\n", theme);
+    fprintf(fp, "faceset: %s\n", face_info.want_faceset);
+    fprintf(fp, "window_layout: %s\n", window_xml_file);
     /*
      * This isn't quite as good as before, as instead of saving things as
      * 'True' or 'False', it is just 1 or 0.  However, for the most part, the
      * user isn't going to be editing the file directly.
      */
-    for (i=1; i < CONFIG_NUMS; i++) {
-        fprintf(fp,"%s: %d\n", config_names[i], want_config[i]);
+    for (i = 1; i < CONFIG_NUMS; i++) {
+        fprintf(fp, "%s: %d\n", config_names[i], want_config[i]);
     }
 
     fclose(fp);
@@ -481,15 +487,15 @@ void save_defaults() {
 }
 
 /**
- * Set up the configuration popup dialog using libglade and the XML layout file
+ * Set up the configuration popup dialog using GtkBuilder and the XML layout file
  * loaded from main.c and connect various signals associated with this dialog.
  */
 void config_init(GtkWidget *window_root) {
-    static int has_init=0;
+    static int has_init = 0;
     GtkWidget *widget;
     int count, i;
 
-    has_init=1;
+    has_init = 1;
 
     config_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_window"));
 
@@ -531,7 +537,7 @@ void config_init(GtkWidget *window_root) {
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_lighting"));
     config_combobox_theme =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_theme"));
-    config_combobox_glade =
+    config_combobox_layout =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_glade"));
 
     g_signal_connect((gpointer) config_window, "delete_event",
@@ -555,18 +561,20 @@ void config_init(GtkWidget *window_root) {
      */
     count =  gtk_tree_model_iter_n_children(
                  gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_displaymode)), NULL);
-    for (i=0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         gtk_combo_box_remove_text(GTK_COMBO_BOX(config_combobox_displaymode), 0);
     }
 
 #ifdef HAVE_OPENGL
-    gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),  "OpenGL");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),
+                              "OpenGL");
 #endif
 
 #ifdef HAVE_SDL
     gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),  "SDL");
 #endif
-    gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),  "Pixmap");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),
+                              "Pixmap");
 
 }
 
@@ -589,20 +597,20 @@ static int scandir_theme_filter(const struct dirent *d) {
 
 /**
  * This function is used by scandir below to get only the directory entries
- * needed.  In the case of glade files, skip all files that do not end with
- * ".glade" and the default glade XML file that defines auxilliary dialogs.
+ * needed.  In the case of layout files, skip all files that do not end with
+ * ".ui" and the default XML file that defines auxilliary dialogs.
  *
  * @param d
  * the dirent entry from scandir.
  *
- * function returns 1 if the file is a valid glade XML file name, 0 for files
+ * function returns 1 if the file is a valid UI XML file name, 0 for files
  * that are not.
  */
-static int scandir_glade_filter(const struct dirent *d) {
+static int scandir_ui_filter(const struct dirent *d) {
     char *token = NULL;
     char *extok = NULL;
     char delim[] = ".";
-    char exten[] = "glade";
+    char exten[] = "ui";
     char parse[MAX_BUF] = "";
 
     strncpy(parse, d->d_name, MAX_BUF);
@@ -629,7 +637,7 @@ static int scandir_glade_filter(const struct dirent *d) {
  * files won't change during run time, so we only need to do this once.
  *
  * @param combobox
- * a glade combobox widget to be filled with filenames.
+ * a combobox widget to be filled with filenames.
  *
  * @param active
  * a pointer to a string that is the active combobox item.
@@ -647,7 +655,7 @@ static int scandir_glade_filter(const struct dirent *d) {
  *
  */
 static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
-                                       uint64 want_none, char *subdir, int (*scandir_filter) ()) {
+                                       uint64 want_none, char *subdir, int (*scandir_filter)()) {
     int             count, i;
     GtkTreeModel    *model;
     gchar           *buf;
@@ -662,7 +670,7 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
     if (count == 0) {
         char path[MAX_BUF];
         struct dirent **files;
-        int done_none=0;
+        int done_none = 0;
 
         snprintf(path, MAX_BUF, "%s/%s", CF_DATADIR, subdir);
 
@@ -670,7 +678,7 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
         LOG(LOG_DEBUG, "config.c::fill_combobox_from_datadir",
             "found %d files in %s\n", count, path);
 
-        for (i=0; i<count; i++) {
+        for (i = 0; i < count; i++) {
             /*
              * If a 'None' entry is desired, and if an entry that falls after
              * 'None' is found, and, if 'None' has not already been added,
@@ -679,7 +687,7 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
             if (!done_none && want_none &&
                     strcmp(files[i]->d_name, "None") > 0) {
                 gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), "None");
-                done_none=1;
+                done_none = 1;
             }
 
             gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), files[i]->d_name);
@@ -691,7 +699,7 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
      * The block belows causes the matching combobox item to be selected.  Set
      * it irregardless of whether this is the first time this is run or not.
      */
-    for (i=0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
             LOG(LOG_ERROR, "config.c::fill_combobox_from_datadir",
                 "Unable to get combo box iter\n");
@@ -768,13 +776,13 @@ static void setup_config_window() {
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_faceset));
     count =  gtk_tree_model_iter_n_children(model, NULL);
 
-    for (i=0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         gtk_combo_box_remove_text(GTK_COMBO_BOX(config_combobox_faceset), 0);
     }
 
     /* If we have real faceset info from the server, use it */
     if (face_info.have_faceset_info) {
-        for (i=0; i<MAX_FACE_SETS; i++)
+        for (i = 0; i < MAX_FACE_SETS; i++)
             if (face_info.facesets[i].fullname)
                 gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset),
                                           face_info.facesets[i].fullname);
@@ -784,7 +792,7 @@ static void setup_config_window() {
     }
     count =  gtk_tree_model_iter_n_children(model, NULL);
 
-    for (i=0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
             LOG(LOG_ERROR, "config.c::setup_config_window",
                 "Unable to get faceset iter\n");
@@ -810,7 +818,7 @@ static void setup_config_window() {
          */
         model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_displaymode));
         count =  gtk_tree_model_iter_n_children(model, NULL);
-        for (i=0; i < count; i++) {
+        for (i = 0; i < count; i++) {
             if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
                 LOG(LOG_ERROR, "config.c::setup_config_window",
                     "Unable to get faceset iter\n");
@@ -832,16 +840,19 @@ static void setup_config_window() {
      */
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_lighting));
     count =  gtk_tree_model_iter_n_children(model, NULL);
-    for (i=0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
             LOG(LOG_ERROR, "config.c::setup_config_window",
                 "Unable to get lighting iter\n");
             break;
         }
         gtk_tree_model_get(model, &iter, 0, &buf, -1);
-        if ((want_config[CONFIG_LIGHTING] == CFG_LT_TILE && !strcasecmp(buf, "Per Tile")) ||
-                (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL && !strcasecmp(buf, "Fast Per Pixel")) ||
-                (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST && !strcasecmp(buf, "Best Per Pixel")) ||
+        if ((want_config[CONFIG_LIGHTING] == CFG_LT_TILE &&
+                !strcasecmp(buf, "Per Tile")) ||
+                (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL &&
+                 !strcasecmp(buf, "Fast Per Pixel")) ||
+                (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST &&
+                 !strcasecmp(buf, "Best Per Pixel")) ||
                 (want_config[CONFIG_LIGHTING] == CFG_LT_NONE && !strcasecmp(buf, "None"))) {
             gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_lighting), i);
             g_free(buf);
@@ -858,13 +869,13 @@ static void setup_config_window() {
     fill_combobox_from_datadir(config_combobox_theme, theme, 1, themedir,
                                &scandir_theme_filter);
     /*
-     * Use the filenames of files found in the glade-gtk subdirectory of the
+     * Use the filenames of files found in the UI subdirectory of the
      * crossfire-client data directory as the selectable items in a combo box
      * selector control.  Specify the current default, and that no "None" entry
      * is desired.
      */
-    fill_combobox_from_datadir(config_combobox_glade, window_xml_file, 0,
-                               gladedir, &scandir_glade_filter);
+    fill_combobox_from_datadir(config_combobox_layout, window_xml_file, 0,
+                               layoutdir, &scandir_ui_filter);
 }
 
 #define IS_DIFFERENT(TYPE) (want_config[TYPE] != use_config[TYPE])
@@ -877,21 +888,36 @@ static void setup_config_window() {
 static void read_config_window(void) {
     gchar   *buf;
 
-    want_config[CONFIG_ECHO] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_echo));
-    want_config[CONFIG_FASTTCP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_fasttcp));
-    want_config[CONFIG_TIMESTAMP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_timestamp));
-    want_config[CONFIG_GRAD_COLOR] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_grad_color));
-    want_config[CONFIG_FOODBEEP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_foodbeep));
-    want_config[CONFIG_SOUND] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_sound));
-    want_config[CONFIG_CACHE] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_cache));
-    want_config[CONFIG_DOWNLOAD] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_download));
-    want_config[CONFIG_FOGWAR] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_fog));
-    want_config[CONFIG_SMOOTH] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_smoothing));
-    want_config[CONFIG_CWINDOW] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_cwindow));
-    want_config[CONFIG_ICONSCALE] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_iconscale));
-    want_config[CONFIG_MAPSCALE] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_mapscale));
-    want_config[CONFIG_MAPWIDTH] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_mapwidth));
-    want_config[CONFIG_MAPHEIGHT] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(config_spinbutton_mapheight));
+    want_config[CONFIG_ECHO] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                   config_button_echo));
+    want_config[CONFIG_FASTTCP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                      config_button_fasttcp));
+    want_config[CONFIG_TIMESTAMP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                        config_button_timestamp));
+    want_config[CONFIG_GRAD_COLOR] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                         config_button_grad_color));
+    want_config[CONFIG_FOODBEEP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                       config_button_foodbeep));
+    want_config[CONFIG_SOUND] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                    config_button_sound));
+    want_config[CONFIG_CACHE] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                    config_button_cache));
+    want_config[CONFIG_DOWNLOAD] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                       config_button_download));
+    want_config[CONFIG_FOGWAR] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                     config_button_fog));
+    want_config[CONFIG_SMOOTH] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+                                     config_button_smoothing));
+    want_config[CONFIG_CWINDOW] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
+                                      config_spinbutton_cwindow));
+    want_config[CONFIG_ICONSCALE] = gtk_spin_button_get_value_as_int(
+                                        GTK_SPIN_BUTTON(config_spinbutton_iconscale));
+    want_config[CONFIG_MAPSCALE] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
+                                       config_spinbutton_mapscale));
+    want_config[CONFIG_MAPWIDTH] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
+                                       config_spinbutton_mapwidth));
+    want_config[CONFIG_MAPHEIGHT] = gtk_spin_button_get_value_as_int(
+                                        GTK_SPIN_BUTTON(config_spinbutton_mapheight));
 
     buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_faceset));
 
@@ -908,11 +934,11 @@ static void read_config_window(void) {
 
     buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_displaymode));
     if (buf) {
-        if (!strcasecmp(buf,"OpenGL")) {
+        if (!strcasecmp(buf, "OpenGL")) {
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_OPENGL;
-        } else if (!strcasecmp(buf,"SDL")) {
+        } else if (!strcasecmp(buf, "SDL")) {
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
-        } else if (!strcasecmp(buf,"Pixmap")) {
+        } else if (!strcasecmp(buf, "Pixmap")) {
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
         }
         g_free(buf);
@@ -929,7 +955,7 @@ static void read_config_window(void) {
         } else if (!strcasecmp(buf, "None")) {
             want_config[CONFIG_LIGHTING] = CFG_LT_NONE;
         }
-        if  (want_config[CONFIG_LIGHTING] != CFG_LT_NONE) {
+        if (want_config[CONFIG_LIGHTING] != CFG_LT_NONE) {
             want_config[CONFIG_DARKNESS] = 1;
             use_config[CONFIG_DARKNESS] = 1;
         }
@@ -956,7 +982,7 @@ static void read_config_window(void) {
      * Load up the layout and set the combobox control to point to the loaded
      * default value.
      */
-    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_glade));
+    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_layout));
     if (buf && strcmp(buf, window_xml_file)) {
         strncpy(window_xml_file, buf, MAX_BUF);
     }
@@ -983,13 +1009,16 @@ static void read_config_window(void) {
 #ifndef WIN32
         int q = want_config[CONFIG_FASTTCP];
 
-        if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1) {
+        if (csocket.fd &&
+                setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1) {
             perror("TCP_NODELAY");
         }
 #else
         int q = want_config[CONFIG_FASTTCP];
 
-        if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, ( const char* )&q, sizeof(q)) == -1) {
+        if (csocket.fd &&
+                setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, (const char *)&q,
+                           sizeof(q)) == -1) {
             perror("TCP_NODELAY");
         }
 #endif
@@ -999,10 +1028,10 @@ static void read_config_window(void) {
 
     if (IS_DIFFERENT(CONFIG_LIGHTING)) {
 #ifdef HAVE_SDL
-        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL)
+        if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL)
             /* This is done to make the 'lightmap' in the proper format */
         {
-            init_SDL( NULL, 1);
+            init_SDL(NULL, 1);
         }
 #endif
     }
@@ -1035,7 +1064,7 @@ void on_config_button_save_clicked(GtkButton *button, gpointer user_data) {
  * @param button
  * @param user_data
  */
-void on_config_button_apply_clicked (GtkButton *button, gpointer user_data) {
+void on_config_button_apply_clicked(GtkButton *button, gpointer user_data) {
     read_config_window();
 }
 
@@ -1062,69 +1091,55 @@ void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data) {
 }
 
 /**
- * Handles saving of the window positions when the Client | Save Window
- * Position menu item is executed.  All hpaned and vpaned widget settings have
- * the information required, and the code automatically works for Glade XML
- * layouts that follow the glade-2's default widget naming convention.
+ * Save client window positions to a file unique to each layout.
  */
 void save_winpos() {
-    char savename[MAX_BUF];
-    char buf[MAX_BUF];
+    FILE *file;
+    GSList *pane_list, *list_loop;
     char *cp;
-    FILE *save;
-    int  x,y,w,h,wx,wy;
-    extern  GtkWidget *window_root;
-    GList *pane_list, *list_loop;
-    GladeXML *xml_tree;
-    GtkWidget *widget;
+    char buf[MAX_BUF], savename[MAX_BUF];
+    int x, y, w, h, wx, wy;
 
-    /*
-     * Truncate window_xml_file to remove a .extension if one exists, so that
-     * the window positions file can be created with a different .extension.
-     * this helps keep the length of the file name more reasonable.
-     */
+    /* Truncate the file extension from the layout file name. This makes it
+     * possible to save different positions for different client layouts. */
     strncpy(buf, window_xml_file, MAX_BUF);
     cp = strrchr(buf, '.');
     if (cp) {
         cp[0] = 0;
     }
 
-    snprintf(savename, sizeof(savename), "%s/.crossfire/%s.pos", getenv("HOME"), buf);
+    /* Try to open the settings file. */
+    snprintf(savename, sizeof(savename), "%s/.crossfire/%s.pos",
+            getenv("HOME"), buf);
     CONVERT_FILESPEC_TO_OS_FORMAT(savename);
-    if (!(save = fopen(savename, "w"))) {
-        snprintf(buf, sizeof(buf), "Cannot open %s - window positions not saved!", savename);
+    if (!(file = fopen(savename, "w"))) {
+        snprintf(buf, sizeof(buf),
+                "Cannot open %s - window positions not saved!", savename);
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
         return;
     }
-    get_window_coord(window_root, &x,&y, &wx,&wy,&w,&h);
-    fprintf(save,"window_root: +%d+%dx%dx%d\n", wx, wy, w, h);
 
-    xml_tree = glade_get_widget_tree(GTK_WIDGET(window_root));
-    /*
-     * Iterate through all widgets whose names begin with hpaned_* and vpaned_*
-     * to save the widget name and the position of the pane divider.  Widgets
-     * are dynamically found and processed so long as the .glade file designer
-     * adheres to the naming conventions that Glade Designer uses.
-     */
-    pane_list = glade_xml_get_widget_prefix(xml_tree, "hpaned_");
-    for (list_loop = pane_list; list_loop; list_loop = g_list_next(list_loop)) {
-        widget = list_loop->data;
-        fprintf(save, "%s: %d\n", glade_get_widget_name(widget),
-                gtk_paned_get_position(GTK_PANED(widget)));
+    /* Save window position and size. */
+    get_window_coord(window_root, &x, &y, &wx, &wy, &w, &h);
+    fprintf(file, "window_root: +%d+%dx%dx%d\n", wx, wy, w, h);
+
+    /* Save the positions of all the HPANEDs and VPANEDs. */
+    pane_list = gtk_builder_get_objects(window_xml);
+
+    for (list_loop = pane_list; list_loop != NULL; list_loop = list_loop->next) {
+        GType type = GTK_WIDGET_TYPE(list_loop->data);
+
+        if (type == GTK_TYPE_HPANED || type == GTK_TYPE_VPANED) {
+            fprintf(file, "%s: %d\n", gtk_buildable_get_name(list_loop->data),
+                    gtk_paned_get_position(GTK_PANED(list_loop->data)));
+        }
     }
-    g_list_free(pane_list);
 
-    pane_list = glade_xml_get_widget_prefix(xml_tree, "vpaned_");
-    for (list_loop = pane_list; list_loop; list_loop = g_list_next(list_loop)) {
-        widget = list_loop->data;
-        fprintf(save, "%s: %d\n", glade_get_widget_name(widget),
-                gtk_paned_get_position(GTK_PANED(widget)));
-    }
-    g_list_free(pane_list);
+    g_slist_free(pane_list);
+    fclose(file);
 
-    fclose(save);
-    snprintf(buf, sizeof(buf), "Window positions saved!");
-    draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
+    draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
+                  "Window positions saved!");
 }
 
 /**
@@ -1134,7 +1149,8 @@ void save_winpos() {
  * @param menuitem
  * @param user_data
  */
-void on_save_window_position_activate(GtkMenuItem *menuitem, gpointer user_data) {
+void on_save_window_position_activate(GtkMenuItem *menuitem,
+        gpointer user_data) {
     save_winpos();
     /*
      * The following prevents multiple saves per menu activation.
@@ -1166,7 +1182,8 @@ void load_window_positions(GtkWidget *window_root) {
         cp[0] = 0;
     }
 
-    snprintf(loadname, sizeof(loadname), "%s/.crossfire/%s.pos", getenv("HOME"), buf);
+    snprintf(loadname, sizeof(loadname), "%s/.crossfire/%s.pos", getenv("HOME"),
+             buf);
     CONVERT_FILESPEC_TO_OS_FORMAT(loadname);
     if (!(load = fopen(loadname, "r"))) {
         snprintf(buf, sizeof(buf),
@@ -1175,29 +1192,29 @@ void load_window_positions(GtkWidget *window_root) {
         return;
     } else {
         LOG(LOG_DEBUG, "gtk-v2::load_window_positions",
-                "Loading window positions from '%s'", loadname);
+            "Loading window positions from '%s'", loadname);
     }
 
-    while(fgets(buf, MAX_BUF-1, load)!=NULL) {
-        if ((cp=strchr(buf,':'))!=NULL) {
-            *cp=0;
+    while (fgets(buf, MAX_BUF - 1, load) != NULL) {
+        if ((cp = strchr(buf, ':')) != NULL) {
+            *cp = 0;
             cp++;
-            while(isspace(*cp)) {
+            while (isspace(*cp)) {
                 cp++;
             }
 
-            if (!strcmp(buf,"window_root")) {
-                int x,y,w,h;
+            if (!strcmp(buf, "window_root")) {
+                int x, y, w, h;
 
-                if (sscanf(cp,"+%d+%dx%dx%d", &x, &y, &w, &h) == 4) {
-                    gtk_window_set_default_size (GTK_WINDOW(window_root), w, h);
+                if (sscanf(cp, "+%d+%dx%dx%d", &x, &y, &w, &h) == 4) {
+                    gtk_window_set_default_size(GTK_WINDOW(window_root), w, h);
                     gtk_window_move(GTK_WINDOW(window_root), x, y);
 
                 } else {
                     LOG(LOG_ERROR, "config.c::load_window_positions",
                         "Window size %s corrupt\n", cp);
                 }
-            } else if (strstr(buf,"paned_")) {
+            } else if (strstr(buf, "paned_")) {
                 /*
                  * The save names are a re-sizeable pane, but check to be sure
                  * it is a valid widget name if only to prevent sending a
