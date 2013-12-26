@@ -34,10 +34,6 @@ AC_ARG_WITH(loglevel, [AS_HELP_STRING([--with-logevel=level],
             [MINLOGLEVEL="$withval"], [MINLOGLEVEL=0])
 
 #### Client Options ####
-AC_ARG_ENABLE(gtkv2, [AS_HELP_STRING([--disable-gtkv2],
-              [Do not build the GTK2 client])],
-              [gtkv2=$enableval], [gtkv2=yes])
-
 AC_ARG_ENABLE(sdl, [AS_HELP_STRING([--disable-sdl],
               [Do not use the SDL renderer])],
               [use_sdl=$enableval], [use_sdl=yes])
@@ -112,7 +108,6 @@ fi
 # FIXME: This sound dir specification overwrites the user-specified one.
 SOUNDDIR="${datadir}/crossfire-client/sounds"
 
-
 AC_C_BIGENDIAN
 
 networklibs="yes"
@@ -161,32 +156,9 @@ esac
 #
 AX_PTHREAD(,AC_MSG_ERROR(POSIX threads not found.  Cannot build any client.))
 
-# Check to see if gtk-v2 client will build.
-#
-if eval "test x$gtkv2 = xyes" ; then
-    # Check for GTK+ 2
-    AM_PATH_GTK_2_0(2.0.0, HAVE_GTK2=yes, HAVE_GTK2=no)
-    if eval "test x$HAVE_GTK2 = xyes" ; then
-        # Check for Libglade-2.0
-        PKG_CHECK_MODULES(LIBGLADE, libglade-2.0 >= 2.0.0, [HAVE_LIBGLADE=yes], [HAVE_LIBGLADE=no])
-        if eval "test x$HAVE_LIBGLADE = xyes" ; then
-            CF_SUBDIRS="$CF_SUBDIRS gtk-v2"
-            AC_SUBST(LIBGLADE_CFLAGS)
-            AC_SUBST(LIBGLADE_LIBS)
-            AC_MSG_NOTICE(GTK+ >= 2.0.0 & Libglade-2.0 found; will build gtk-v2 client)
-        else
-            AC_MSG_WARN(Libglade-2.0 libraries not found; will not build gtk-v2 client)
-            gtkv2="no"
-        fi
-    else
-        AC_MSG_WARN(GTK+ libraries missing or < 2.0.0; will not build gtk-v2 client)
-        gtkv2="no"
-    fi
-else
-    AC_MSG_NOTICE(gtkv2 client disabled)
-fi
-#
-# End of gtk-v2 client check
+# Check for required GTK libraries.
+AM_PATH_GTK_2_0([2.24.0], [CF_SUBDIRS="$CF_SUBDIRS gtk-v2"],
+                [AC_MSG_ERROR(Missing required GTK libraries.)])
 
 AM_MAINTAINER_MODE
 AC_SUBST(PACKAGE_LIBS)
@@ -233,13 +205,8 @@ gcfc_save_LIBS="$LIBS"
 CPPFLAGS="$GTK_CFLAGS $CPPFLAGS $OPENGL_CFLAGS"
 LIBS="$LIBS $GTK_LIBS $X11_LIBS"
 
-# Put this here so we get the gdk libs
-# AC_CHECK_LIB(gdk_imlib, main,GTK_LIBS="$GTK_LIBS -lgdk_imlib")
-
 # Need to check for Xext while we still have X11_LIBS set.
 AC_CHECK_LIB(Xext, main, X11_LIBS="$X11_LIBS -lXext")
-
-# AC_CHECK_LIB(Imlib, main, X11_LIBS="$X11_LIBS -lImlib")
 
 # Restore previous CPPFLAGS and LIBS.
 CPPFLAGS="$gcfc_save_CPPFLAGS"
@@ -469,7 +436,6 @@ AC_MSG_NOTICE([    Configuration            $sysconfdir])
 AC_MSG_NOTICE([    Data                     $ndatadir])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Build Options])
-AC_MSG_NOTICE([    GTK2 client              $gtkv2])
 AC_MSG_NOTICE([    SDL renderer             $use_sdl])
 AC_MSG_NOTICE([    OpenGL renderer          $opengl])
 AC_MSG_NOTICE([    Sound (SDL_mixer)        $sdl_sound])
