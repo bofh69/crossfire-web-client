@@ -16,4 +16,4 @@ gladedir=$(pkgdatadir)/ui
 
 glade_DATA = $(XML_FILES)
 
-EXTRA_DIST = $(XML_FILES) README
+EXTRA_DIST = $(XML_FILES)

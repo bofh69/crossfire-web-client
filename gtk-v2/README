@@ -1,0 +1,338 @@
+// vim:ft=asciidoc:linebreak
+Crossfire GTKv2 Client
+======================
+Crossfire Development Team <crossfire@metalforge.org>
+1.70.0-dev, December 2013
+:toc:
+:numbered:
+
+Overview
+--------
+The original author's main motivations for writing the client were:
+
+ . The old client layout wasn't originally designed for the map window size
+   that people are now using.
+
+ . Using an interface designer will make it much easier to add new window
+   elements in the future.
+
+ . Having a GTK 2 compliant client was considered a positive thing.
+
+Due to point #1 above, the interface was designed for a window size of about
+1200x1000.  That is to say, on a system whose resolution is 1280x1024, the
+window will use almost the entire screen.  It is possible to play this client
+on a 1024x768 desktop, but the default layout is not ideal for such a small
+screen.  Some of the alternative root window layouts are more viable when
+screen real-estate is on the low side.
+
+The original author had no particular interests in patches to make it work
+on smaller screens, and originally stated that those with a requirement for
+smaller screens needed to simply use one of the other clients (Gtk v1 client
+for example).  The rationale for this stance was that there is a perception
+that the older client has a lot of cruft trying to deal with different size
+screens, options to change various sizing, etc.  Though the GTK v2 client is
+supposed to work at 1280x1000, the information density is far lower than that
+of the original GTK v1 client, and this is not palatable to some players.
+
+The author also has stated that the GTK2 client is the "most official" client,
+and has put forward the idea that if the newer GTK client could be reworked to
+resolve differences of opinion about the layout, there may be a benefit to
+phasing out the older clients.  In fact, some Linux distributions appear to be
+ceasing to build the older GTK client - likely because it is not realized that
+it may be built with the GTK2 libraries.
+
+Considering the above issues, an endeavor was undertaken to convert the client
+to use the libglade interface to allow players to have an ability to redesign
+the main window layout without requiring code changes to the clienti, and to
+preclude a need to recompile the client in order to realize a new layout.  The
+libglade version of the client should make it easier for players to create
+main window layouts that appeal to a variety of personal preferences.
+
+To support redesign of the layout, a prospective UI layout must not rename
+widgets that accept or display information.  For the most part, container
+widgets may be renamed to suite the author.  The main exception is that hpane
+and vpane widgets must be named with consistent names so that the client can
+save and restore window positions in the gwinpos2 file.  The current client
+codebase expects hpane and vpane (resizeable) widgets to be named generically
+in the form "hpaned_*" or "vpaned_*".  The code to Save Window Position
+auto-detects the widgets in order to preserve the user's pane sizing
+preferences.
+
+Design
+------
+Core Widgets
+~~~~~~~~~~~~
+  window-root: The core window.
+
+  table-map: table that contains the map and scrollbars.
+  drawingarea-map: The map drawing area.
+  hscrollbar-map: scrollbar to move the map horizontally.
+  vscrollbar-map: scrollbar to move the map horizontally.
+  button-map-recenter: When clicked, map recenters.
+
+  drawingarea-magic-map: Area to draw the magic map
+
+NOTE: The reason scrollbars are used instead of a simple scrolled window is
+that the author does not believe it is feasible to draw much more than what
+the player is currently viewing.  If a scrolled window is used, then we may
+end up drawing a lot of stuff the player is not seeing, as well as not
+redrawing fog stuff the player is seeing.  By using scrollbars, it is easier
+to trap when the player tries to scroll the map, and redraw the new portion,
+as well as track where the map is currently positioned, without needing a
+much larger draw area.
+
+  vpaned-info-inventory: seperator for the text window vs inventory area.
+  vbox-info-entry: Top portion is text information, bottom is area for text
+     entry.
+  entry-commands: Where the player enters extended commands.
+
+  notebook-info: notebook for different text information
+  textview-info1: area where messages are displayed.
+  textview-info2: area where messages are displayed.
+
+  The two info are in a tabbed area - more tabs could in fact be added.  The
+  idea is to keep the two info panes as before, but in less space.  The primary
+  tab (1) will get all messages.  Important messages (colored in this case)
+  will also go to tab 2.  Perhaps down the road, there will be smarter
+  filtering of these messages.
+
+  label-inv-weight: Shows current weight of characters inventory.
+  spinbutton-count: Current count set by the player.
+
+  notebook-inv: Notebook for the various inventory panes.
+
+  label-stats-hp:
+  label-stats-sp:
+  label-stats-grace:
+  label-stats-food: Text label showing hp/sp/
+
+  progressbar-hp:
+  progressbar-sp:
+  progressbar-grace:
+  progressbar-food: progressbar for the stats.
+
+  label-str, label-dex, label-con,label-int, label-wis, label-pow, label-cha,
+  label-wc, label-dam, label-ac, label-armor, label-range, label-exp:
+  Actual stat value for those values.
+
+  table-stats-exp: Table hold the skills and exp values.  Note that
+  initializing this is not done in Glade - it is easier to do on the
+  client side, so that it can make an array of labels for this.
+
+  table-protections: Like table-stats-exp above, but this is for protections.
+
+Note that the inventory tabs are done in the code - Glade really doesn't let
+one fully set up a gtktreewidget (the number of columns, renderer type, etc),
+so it just made it easier to do in the actual code.)
+
+Layouts
+~~~~~~~
+Two different layout files are used by the client to build its user interface.
+One is for building the main window, and the other is for constructing the
+other dialogs common to different layouts.
+
+To start the client using a different layout, use the `-window_xml` flag.
+
+    crossfire-client-gtk2 -window_xml /path/to/layout.glade
+
+If something does not work as expected, be sure to start the client from a
+console window.  The client will report informational and error messages.
+
+To specify a different common dialog XML file, append an additional
+argument on the command-line:
+
+    -dialog_xml /path/to/dialogs.glade
+
+As of SVN revision 8406, crossfire-client-gtk2 saves window position data in
+a file named per the layout instead of the legacy file '~/crossfire/gwinpos2'.
+For example, if a player saves window positions while using gtk-v2.glade,
+they will be stored in '~/.crossfire/gtk-v2.pos', but if playing with a layout
+called caelestis.glade, they will be saved in caelestis.pos.  This means the
+client is able to remember saved sizes for each layout individually.
+
+The first time a layout is used, the '~/.crossfire/<layoutname>.pos' file will
+not exist so the client will use default sizes that were defined inside the
+'<layoutname>.glade' file at design time.  This means that as long as the
+defaults are smaller than the desktop, the client window should be laid out
+nicely.
+
+If, however, the desktop size is smaller than the default sizes, the client
+may look bad, and it may be tricky to find the size bars if panes overlap.
+With patience, they may be found and used to size the client panes better.
+Use the Client Save Window Position command to save the adjustments.  They
+will be used to restore the saved settings the next time the client is
+started.
+
+If the desktop is smaller than it was last time the '.pos' file was created,
+it is possible that the saved positions are no good.  In this case, it may
+be wise to delete the '.pos' file and try out the default settings.
+
+Development
+-----------
+Here follow some notes for those wishing to do development:
+
+ . Send a note to crossfire@metalforge.org about what you plan to work on so
+   that multiple people don't work on the same thing.
+
+ . Try to work with up to date SVN to minimize merge problems.
+
+ . If looking for something to work on, look at the TODO file.
+
+ . Try to add new graphical elements using glade-2 and not coding them in by
+   hand - this will make it easier for future modifications.
+
+ . gtk2proto.h should be used to collect prototype information needed by the
+   .c sources.  It is generated using `make proto`.  The cproto program must
+   be installed for this to work.  Note that `make proto` generates a lot of
+   error messages on the console during operation, but this does not mean the
+   process failed.
+
+ . The source files are arranged by functionality, so try to keep new code
+   functionality related to similar elements in the same files, but at the
+   same time, don't put so much stuff in one file to make it unmanageable.
+
+ . One of the motivations was to use pure GTK v2 calls and not use any of the
+   deprecated wigets/toolkits withing GTK.  Please try to keep to that model
+   (note that this does not mean things are 100% perfect, as for widgets that
+   are not deprecated, I often copied the code completely over from the GTGTK
+   client, but certain functions may be deprecated in that copied code).  But
+   dealing with that is certainly easier down the road if/when those functions
+   really disappear than having to redo code for a widget that just no longer
+   exists.
+
+Designing Layouts
+~~~~~~~~~~~~~~~~~
+ . All windows that should not be initially displayed when the application
+starts must have the "visible" property set to "no".  This property is on
+the "Common" tab.
+
+The following windows should not be initially visible:
+
+     metaserver_window
+     keybinding_window
+     msgctrl_window
+     config_window
+     spell_window
+     skill_window
+     about_window
+
+
+IMPORTANT: The root window "visible" property must also be set to "no" in
+order for saved screen size settings to be restorable when the application
+starts up. This really means that all dialogs and windows should be set as
+not visible.
+
+ . All hpane and vpane resizeable widgets that need to be saved when the user
+   selects Client | Save Window Position should have a name that begins with
+   either "hpaned_" or "vpaned_".  The client will only save window positions
+   for the widgets named in this way (this is the default naming convention
+   used by the Glade Designer application).
+
+ . Set all hpaned and vpaned size bars to result in a default layout that has
+   a decent appearance.  It is not sufficient to have the layout look good in
+   the layout designer.  You must verify that the Position property on the
+   Widget tab is set and that it's checkbox is checked.  Also see note 11 for
+   another important tip regarding setting the size of widgets.
+
+ . When creating tabbed notebooks be sure the first tab is the tab that should
+   be visible when the client starts up or when the dialog is first displayed.
+
+ . Most layouts may be altered by creatively cut/pasting elements.  Do not use
+   copy/paste, as that will cause the widgets to be renamed.
+
+ . The inventory icon pane is an excellent "temporary" holding area that may
+   be used to hold widgets while other areas of the layout are being worked
+   on.
+
+ . More complex changes may be made by temporarily expanding the outer vbox
+   container and using the bottom rows to paste things into.  Be careful when
+   reducing it back to the original size.  Glade Designer deletes the bottom
+   layers first, even if there are empty ones in the middle.  Any widgets in
+   the removed layer are lost.
+
+ . Save periodically, and keep working copies.  It is very easy to ruin a
+   layout so that it is hard to return to a proper state, and widget errors
+   may cause the client to crash at run-time when it is most inconvenient.
+
+ . When adding a combo box that is to be dynamically filled at run-time, be
+   absolutely sure to press the ellipsis "..." button next to the empty Items:
+   box, then press the OK button on the Edit Text Property dialog.  This
+   causes the XML file combo box definition to contain an essential property:
+
+     <property name="items" translatable="yes"></property>
+
+Without this property, at run-time the following code snippet will set
+model to NULL.
+
+     model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_theme));
+     count =  gtk_tree_model_iter_n_children(model, NULL);
+
+This construct is used several times in config.c's setup_config_window().
+When model is NULL, the subsequent code that attempts to use the model
+generates console errors like:
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **:
+     gtk_tree_model_iter_n_children: assertion `GTK_IS_TREE_MODEL (tree_model)'
+     failed
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **: gtk_combo_box_append_text:
+     assertion `GTK_IS_LIST_STORE (combo_box->priv->model)' failed
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **: gtk_combo_box_append_text:
+     assertion `GTK_IS_LIST_STORE (combo_box->priv->model)' failed
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **: gtk_combo_box_append_text:
+     assertion `GTK_IS_LIST_STORE (combo_box->priv->model)' failed
+
+     (crossfire-client-gtk2:9632): Gtk-CRITICAL **:
+     gtk_tree_model_iter_n_children: assertion `GTK_IS_TREE_MODEL (tree_model)'
+     failed
+
+ . The Magic Map page in map_notebook must be the second tab to maintain
+    compatibility with the client's standard main.h define "MAGIC_MAP_PAGE 1".
+    The page/tab number is zero-based, so "1" corresponds to the second tab.
+
+ . In general, do not set widget Width and Height properties on the Common
+   tab in the Glade Designer.  This is in effect placing a size request for
+   the widget, and can prevent the player from sizing the widget smaller than
+   the size set at design time.  This is especially important with respect to
+   the map and magic map drawing areas, tables, treeviews, and other large UI
+   elements (hboxes, vboxes, notebooks, etc).  A player should generally have
+   the freedom to make a widget smaller than it was originally designed in
+   the layout.
+
+ . Note, though, that this is not a hard and fast rule.  Sometimes setting a
+   size is very helpful.  For example, in the GTK V1 layout (and a few others)
+   progressbars are set to use a smaller height dimension size than their
+   default.  Since a player never expects to be able to set the thickness of
+   the bar, setting that dimension is useful to attain a particular look (I.E.
+   make the progressbar more compact).
+
+ . All dialogs defined in dialogs.glade should have their Deletable property
+   set to "No" in the XML (done while working in the Glade-3 designer).  This
+   tells window managers not to put an [X] close icon on the window frame.
+   Without this, the [X] close deletes the dialog so it cannot be resurrected
+   without restarting the client.  In some cases a segmentation fault occurs
+   and the client crashes.  To cover cases where certain window managers do
+   not honor the GTK Deletable property, connect the delete_event for each
+   dialog to gtk_widget_hide_on_delete() in the C code.  For example:
+
+        g_signal_connect((gpointer) about_window, "delete_event",
+            G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+
+Other Hints
+~~~~~~~~~~~
+ . Sometimes when making significant layout changes or when glade misbehaves
+   and does not let you visually see an select an empty cell (vboxes have been
+   noted as problematic if an empty cell is bounded by two cells with content).
+   When this happens, it is quite possible to use a text editor to move items
+   into the empty cell.  Naturally you have to be able to look at the XML
+   structure to know how to keep it intact.  Make backups before making
+   manual edits.
+
+ . When editing .glade files by hand, use of a text editor that is capable of
+   collapsing XML structures is recommended.  Even without such and editor, it
+   can be handle to use a browser alongside the editor.  To do so, make a copy
+   of the .glade file, but save it with a .xml extension, and then open it in
+   FireFox or another XML-aware browser.  Use the expand/collapse features to
+   learn or reveal the structure of the XML.
