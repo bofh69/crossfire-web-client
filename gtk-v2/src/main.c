@@ -713,11 +713,21 @@ static void init_ui() {
 
     /* Load main window using GtkBuilder. */
     window_xml = gtk_builder_new();
+
+    /* Try to load default if selected layout doesn't work. */
     if (!gtk_builder_add_from_file(window_xml, window_xml_path, &error)) {
-        error_dialog("Couldn't load client window.", error->message);
-        g_warning("Couldn't load client window: %s", error->message);
-        g_error_free(error);
-        exit(EXIT_FAILURE);
+        LOG(LOG_WARNING, "main.c::init_ui",
+                "Couldn't load '%s'; using default.", window_xml_path);
+        error = NULL;
+
+        snprintf(window_xml_path, sizeof(window_xml_path), "%s%s",
+                XML_PATH_DEFAULT, WINDOW_XML_FILENAME);
+
+        if (!gtk_builder_add_from_file(window_xml, window_xml_path, &error)) {
+            error_dialog("Couldn't load client window.", error->message);
+            g_error_free(error);
+            exit(EXIT_FAILURE);
+        }
     }
 
     /* Begin connecting signals for the root window. */
