@@ -17,10 +17,8 @@
  * and I_ARCH commands.
  */
 
-#include <client.h>
-#include "p_cmd.h" /* init_commands() */
-
-/* XXX Does the x11 client *use* these? */
+#include "client.h"
+#include "p_cmd.h"
 
 /* Makes the load/save code trivial - basically, the
  * entries here match the same numbers as the CONFIG_ values defined
@@ -42,85 +40,72 @@ sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
 
 #define FREE_AND_CLEAR(xyz) { free(xyz); xyz=NULL; }
 
-void VersionCmd(char *data, int len)
-{
+void VersionCmd(char *data, int len) {
     char *cp;
 
     csocket.cs_version = atoi(data);
     /* set sc_version in case it is an old server supplying only one version */
     csocket.sc_version = csocket.cs_version;
     if (csocket.cs_version != VERSION_CS) {
-        LOG(LOG_WARNING,"common::VersionCmd","Differing C->S version numbers (%d,%d)",
-            VERSION_CS,csocket.cs_version);
+        LOG(LOG_WARNING, "common::VersionCmd", "Differing C->S version numbers (%d,%d)",
+            VERSION_CS, csocket.cs_version);
         /*	exit(1);*/
     }
-    cp = strchr(data,' ');
+    cp = strchr(data, ' ');
     if (!cp) {
         return;
     }
     csocket.sc_version = atoi(cp);
     if (csocket.sc_version != VERSION_SC) {
-        LOG(LOG_WARNING,"common::VersionCmd","Differing S->C version numbers (%d,%d)",
-            VERSION_SC,csocket.sc_version);
+        LOG(LOG_WARNING, "common::VersionCmd", "Differing S->C version numbers (%d,%d)",
+            VERSION_SC, csocket.sc_version);
     }
-    cp = strchr(cp+1, ' ');
+    cp = strchr(cp + 1, ' ');
     if (cp) {
-        LOG(LOG_INFO,"common::VersionCmd","Playing on server type %s", cp);
+        LOG(LOG_INFO, "common::VersionCmd", "Playing on server type %s", cp);
     }
 }
 
-void SendVersion(ClientSocket csock)
-{
-    cs_print_string(csock.fd,
-                    "version %d %d %s", VERSION_CS, VERSION_SC, VERSION_INFO);
+void SendVersion(ClientSocket csock) {
+    cs_print_string(csock.fd, "version %d %d %s",
+            VERSION_CS, VERSION_SC, VERSION_INFO);
 }
 
 
-void SendAddMe(ClientSocket csock)
-{
+void SendAddMe(ClientSocket csock) {
     cs_print_string(csock.fd, "addme");
 }
 
 
-void init_client_vars(void)
-{
+void init_client_vars() {
+    char buf[FILENAME_MAX];
     int i;
-
-    /* I think environment variables should be more important than
-     * compiled in defaults, so these probably should be reversed.
-     */
-    client_libdir=getenv("CFCLIENT_LIBDIR");
-#ifdef CLIENT_LIBDIR
-    if (client_libdir==NULL) {
-        client_libdir=CLIENT_LIBDIR;
-    }
-#endif
 
     if (exp_table) {
         free(exp_table);
-        exp_table=NULL;
+        exp_table = NULL;
     }
-    exp_table_max=0;
+    exp_table_max = 0;
 
     cpl.count_left = 0;
     cpl.container = NULL;
-    memset(&cpl.stats,0, sizeof(Stats));
-    cpl.stats.maxsp=1;	/* avoid div by 0 errors */
-    cpl.stats.maxhp=1;	/* ditto */
-    cpl.stats.maxgrace=1;	/* ditto */
+    memset(&cpl.stats, 0, sizeof(Stats));
+    cpl.stats.maxsp = 1;	/* avoid div by 0 errors */
+    cpl.stats.maxhp = 1;	/* ditto */
+    cpl.stats.maxgrace = 1;	/* ditto */
     /* ditto - displayed weapon speed is weapon speed/speed */
-    cpl.stats.speed=1;
-    cpl.input_text[0]='\0';
+    cpl.stats.speed = 1;
+    cpl.input_text[0] = '\0';
     cpl.title[0] = '\0';
     cpl.range[0] = '\0';
     cpl.last_command[0] = '\0';
 
-    for (i=0; i<range_size; i++) {
-        cpl.ranges[i]=NULL;
+    for (i = 0; i < range_size; i++) {
+        cpl.ranges[i] = NULL;
     }
 
-    for (i=0; i<MAX_SKILL; i++) {
-        cpl.stats.skill_exp[i]=0;
+    for (i = 0; i < MAX_SKILL; i++) {
+        cpl.stats.skill_exp[i] = 0;
         cpl.stats.skill_level[i] = 0;
         skill_names[i] = NULL;
         last_used_skills[i] = -1;
@@ -129,23 +114,23 @@ void init_client_vars(void)
 
     cpl.ob = player_item();
     cpl.below = map_item();
-    cpl.magicmap=NULL;
-    cpl.showmagic=0;
+    cpl.magicmap = NULL;
+    cpl.showmagic = 0;
 
-
-    csocket.command_sent=0;
-    csocket.command_received=0;
-    csocket.command_time=0;
+    csocket.command_sent = 0;
+    csocket.command_received = 0;
+    csocket.command_time = 0;
 
     face_info.faceset = 0;
     face_info.num_images = 0;
     face_info.bmaps_checksum = 0;
     face_info.old_bmaps_checksum = 0;
     face_info.want_faceset = NULL;
-    face_info.cache_hits=0;
-    face_info.cache_misses=0;
-    face_info.have_faceset_info=0;
-    for (i=0; i<MAX_FACE_SETS; i++) {
+    face_info.cache_hits = 0;
+    face_info.cache_misses = 0;
+    face_info.have_faceset_info = 0;
+
+    for (i = 0; i < MAX_FACE_SETS; i++) {
         face_info.facesets[i].prefix = NULL;
         face_info.facesets[i].fullname = NULL;
         face_info.facesets[i].fallback = 0;
@@ -153,12 +138,7 @@ void init_client_vars(void)
         face_info.facesets[i].extension = NULL;
         face_info.facesets[i].comment = NULL;
     }
-    /* Makes just as much sense to initialize the arrays
-     * where they are declared, but I did this so I could
-     * keep track of everything as I was updating
-     * the code.  Plus, the performance difference is virtually
-     * nothing.
-     */
+
     want_config[CONFIG_DOWNLOAD] = FALSE;
     want_config[CONFIG_ECHO] = FALSE;
     want_config[CONFIG_FASTTCP] = TRUE;
@@ -187,43 +167,63 @@ void init_client_vars(void)
     want_config[CONFIG_RESISTS] = 0;
     want_config[CONFIG_SMOOTH] = 0;
     want_config[CONFIG_SPLASH] = TRUE;
-    want_config[CONFIG_APPLY_CONTAINER] = TRUE;	    /* Same behavior before this option was put in */
+    want_config[CONFIG_APPLY_CONTAINER] = TRUE;
     want_config[CONFIG_MAPSCROLL] = TRUE;
     want_config[CONFIG_SIGNPOPUP] = TRUE;
     want_config[CONFIG_TIMESTAMP] = FALSE;
-    for (i=0; i<CONFIG_NUMS; i++) {
+
+    for (i = 0; i < CONFIG_NUMS; i++) {
         use_config[i] = want_config[i];
     }
 
 #ifdef WIN32
-    /* If HOME is not set, let's set it to . to avoid things like (null)/.crossfire paths */
-    if ( !getenv( "HOME" ) ) {
-        if ( getenv( "APPDATA" ) ) {
+    /* If HOME is not set, set it to the current directory. */
+    if (!getenv("HOME")) {
+        if (getenv("APPDATA")) {
             char env[ MAX_BUF ];
-            _snprintf( env, MAX_BUF, "HOME=%s", getenv( "APPDATA" ) );
-            LOG( LOG_INFO, "common::init.c", "init_client_vars: HOME set to %APPDATA%.\n" );
-            putenv( env );
+            _snprintf(env, MAX_BUF, "HOME=%s", getenv("APPDATA"));
+            LOG(LOG_INFO, "common::init.c", "init_client_vars: HOME set to %APPDATA%.\n");
+            putenv(env);
         } else {
-            LOG( LOG_INFO, "common::init.c", "init_client_vars: HOME not set, setting it to .\n" );
-            putenv( "HOME=." );
+            LOG(LOG_INFO, "common::init.c",
+                "init_client_vars: HOME not set, setting it to .\n");
+            putenv("HOME=.");
         }
     }
 #endif
-    init_commands(); /* pcmd.c */
-    init_metaserver();	/* metaserver.c */
-    /* Any reasonable seed really works */
+
+    /* Initialize XDG base directories. */
+    if ((xdg_config_dir = getenv("XDG_CONFIG_HOME")) == NULL) {
+        xdg_config_dir = ".config";
+    }
+
+    if ((xdg_cache_dir = getenv("XDG_CACHE_HOME")) == NULL) {
+        xdg_cache_dir = ".cache";
+    }
+
+    /* Right now config dir is not used, so don't bother creating it. */
+    snprintf(buf, sizeof(buf), "%s/%s/crossfire", getenv("HOME"),
+            xdg_config_dir);
+    /* make_path_to_dir(buf); */
+
+    snprintf(buf, sizeof(buf), "%s/%s/crossfire", getenv("HOME"),
+            xdg_cache_dir);
+    make_path_to_dir(buf);
+
+    init_commands();
+    init_metaserver();
+
     srandom(time(NULL));
 }
 
 /* This is basically called each time a new player logs
  * on - reset all the player data
  */
-void reset_player_data(void)
-{
+void reset_player_data() {
     int i;
 
-    for (i=0; i<MAX_SKILL; i++) {
-        cpl.stats.skill_exp[i]=0;
+    for (i = 0; i < MAX_SKILL; i++) {
+        cpl.stats.skill_exp[i] = 0;
         cpl.stats.skill_level[i] = 0;
     }
 }
@@ -234,34 +234,33 @@ void reset_player_data(void)
  * been called because it does not re-allocated some values.
  */
 
-void reset_client_vars(void)
-{
+void reset_client_vars() {
     int i;
 
     cpl.count_left = 0;
     cpl.container = NULL;
-    memset(&cpl.stats,0, sizeof(Stats));
-    cpl.stats.maxsp=1;	/* avoid div by 0 errors */
-    cpl.stats.maxhp=1;	/* ditto */
-    cpl.stats.maxgrace=1;	/* ditto */
+    memset(&cpl.stats, 0, sizeof(Stats));
+    cpl.stats.maxsp = 1;	/* avoid div by 0 errors */
+    cpl.stats.maxhp = 1;	/* ditto */
+    cpl.stats.maxgrace = 1;	/* ditto */
 
     /* ditto - displayed weapon speed is weapon speed/speed */
-    cpl.stats.speed=1;
-    cpl.input_text[0]='\0';
+    cpl.stats.speed = 1;
+    cpl.input_text[0] = '\0';
     cpl.title[0] = '\0';
     cpl.range[0] = '\0';
     cpl.last_command[0] = '\0';
 
-    for (i=0; i<range_size; i++) {
-        cpl.ranges[i]=NULL;
+    for (i = 0; i < range_size; i++) {
+        cpl.ranges[i] = NULL;
     }
 
-    cpl.magicmap=NULL;
-    cpl.showmagic=0;
+    cpl.magicmap = NULL;
+    cpl.showmagic = 0;
 
-    csocket.command_sent=0;
-    csocket.command_received=0;
-    csocket.command_time=0;
+    csocket.command_sent = 0;
+    csocket.command_received = 0;
+    csocket.command_time = 0;
 
     face_info.faceset = 0;
     face_info.num_images = 0;
@@ -271,10 +270,10 @@ void reset_client_vars(void)
      */
     face_info.old_bmaps_checksum = face_info.bmaps_checksum;
     face_info.bmaps_checksum = 0;
-    face_info.cache_hits=0;
-    face_info.cache_misses=0;
-    face_info.have_faceset_info=0;
-    for (i=0; i<MAX_FACE_SETS; i++) {
+    face_info.cache_hits = 0;
+    face_info.cache_misses = 0;
+    face_info.have_faceset_info = 0;
+    for (i = 0; i < MAX_FACE_SETS; i++) {
         FREE_AND_CLEAR(face_info.facesets[i].prefix);
         FREE_AND_CLEAR(face_info.facesets[i].fullname);
         face_info.facesets[i].fallback = 0;
@@ -283,7 +282,7 @@ void reset_client_vars(void)
         FREE_AND_CLEAR(face_info.facesets[i].comment);
     }
     reset_player_data();
-    for (i=0; i<MAX_SKILL; i++) {
+    for (i = 0; i < MAX_SKILL; i++) {
         FREE_AND_CLEAR(skill_names[i]);
     }
     if (motd) {
@@ -297,20 +296,20 @@ void reset_client_vars(void)
     }
     if (races) {
         free_all_race_class_info(races, num_races);
-        num_races=0;
-        used_races=0;
+        num_races = 0;
+        used_races = 0;
         races = NULL;
     }
     if (classes) {
         free_all_race_class_info(classes, num_classes);
-        num_classes=0;
-        used_classes=0;
+        num_classes = 0;
+        used_classes = 0;
         classes = NULL;
     }
     stat_points = 0;
     stat_min = 0;
     stat_maximum = 0;
 
-    serverloginmethod=0;
+    serverloginmethod = 0;
 
 }

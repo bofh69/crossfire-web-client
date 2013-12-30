@@ -47,9 +47,10 @@ char *server=NULL;
 
 char VERSION_INFO[MAX_BUF];
 
-char *client_libdir=NULL,*meta_server=META_SERVER;
-char *sound_server="cfsndserv";
+char *meta_server = META_SERVER;
 char *skill_names[MAX_SKILL];
+char *sound_server = "cfsndserv";
+char *xdg_config_dir, *xdg_cache_dir;
 
 int last_used_skills[MAX_SKILL+1];
 

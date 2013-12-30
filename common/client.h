@@ -91,7 +91,8 @@ typedef struct ClientSocket {
 
 extern ClientSocket csocket;
 
-extern char *server, *client_libdir,*image_file, *sound_server;
+extern char *server, *image_file, *sound_server;
+extern char *xdg_cache_dir, *xdg_config_dir;
 
 typedef enum Input_State {
     Playing, Reply_One, Reply_Many, Configure_Keys, Command_Mode,
