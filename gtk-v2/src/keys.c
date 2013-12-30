@@ -1094,6 +1094,7 @@ void bind_key(char *params)
 "Usage: 'bind -ei {<commandline>,commandkey,firekey{1,2},runkey{1,2},altkey{1,2},metakey{1,2},completekey,nextkey,prevkey}'\n"
 "Where\n"
 "      -e means enter edit mode\n"
+"      -g means this binding should be global (used for all your characters)\n"
 "      -i means ignore modifier keys (keybinding works no matter if Ctrl/Alt etc are held)");
         return;
     }
@@ -1203,6 +1204,9 @@ void bind_key(char *params)
                 break;
             case 'i':
                 bind_flags |= KEYF_ANY;
+                break;
+            case 'g':
+                bind_flags |= KEYF_R_GLOBAL;
                 break;
             case '\0':
                 draw_ext_info(
