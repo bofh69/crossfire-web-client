@@ -352,7 +352,7 @@ void on_metaserver_text_entry_activate(GtkEntry *entry, gpointer user_data) {
  * @param user_data
  */
 void on_button_metaserver_quit_pressed(GtkButton *button, gpointer user_data) {
-    on_window_destroy_event(button, user_data);
+    on_window_destroy_event(GTK_OBJECT(button), user_data);
 }
 
 /**
