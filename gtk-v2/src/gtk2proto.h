@@ -11,6 +11,8 @@ extern void on_button_new_char_cancel_clicked(GtkButton *button, gpointer user_d
 extern void account_add_character_failure(char *message);
 extern void on_button_do_add_character_clicked(GtkButton *button, gpointer user_data);
 extern void on_button_return_character_select_clicked(GtkButton *button, gpointer user_data);
+extern void on_kb_scope_togglebutton_character_toggled(GtkToggleButton *toggle_button, gpointer user_data);
+extern void on_kb_scope_togglebutton_user_toggled(GtkToggleButton *toggle_button, gpointer user_data);
 extern void on_entry_character(GtkEntry *entry, gpointer user_data);
 extern void choose_character_init(void);
 extern void on_button_play_character_clicked(GtkButton *button, gpointer user_data);

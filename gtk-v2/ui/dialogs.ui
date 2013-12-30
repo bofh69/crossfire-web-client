@@ -3757,6 +3757,106 @@ this is the pricing the character gets in shops.</property>
             <property name="position">0</property>
           </packing>
         </child>
+
+        <child>
+          <object class="GtkHBox" id="kb_scope_hbox_control">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="homogeneous">False</property>
+
+            <child>
+              <object class="GtkHSeparator" id="scope_hseparator1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="keybinding_label_scope">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Scope control:</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">1</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkHButtonBox" id="keybinding_hbuttonbox_scope">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="layout_style">spread</property>
+
+                <child>
+                  <object class="GtkToggleButton" id="kb_scope_togglebutton_character">
+                    <property name="label" translatable="yes">This character</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="receives_default">False</property>
+                    <property name="use_underline">True</property>
+                    <property name="use_stock">True</property>
+                    <signal name="clicked" handler="on_kb_scope_togglebutton_character_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToggleButton" id="kb_scope_togglebutton_user">
+                    <property name="label" translatable="yes">All characters</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="receives_default">False</property>
+                    <property name="use_underline">True</property>
+                    <property name="use_stock">True</property>
+                    <signal name="clicked" handler="on_kb_scope_togglebutton_user_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">2</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkHSeparator" id="scope_hseparator2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+
         <child>
           <object class="GtkLabel" id="keybinding_label_modifiers">
             <property name="visible">True</property>
@@ -3767,7 +3867,7 @@ this is the pricing the character gets in shops.</property>
             <property name="expand">False</property>
             <property name="fill">False</property>
             <property name="padding">1</property>
-            <property name="position">1</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -3873,7 +3973,7 @@ this is the pricing the character gets in shops.</property>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -3942,7 +4042,7 @@ this is the pricing the character gets in shops.</property>
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="padding">1</property>
-            <property name="position">3</property>
+            <property name="position">5</property>
           </packing>
         </child>
         <child>
@@ -3954,7 +4054,7 @@ this is the pricing the character gets in shops.</property>
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="padding">2</property>
-            <property name="position">4</property>
+            <property name="position">6</property>
           </packing>
         </child>
         <child>
@@ -4046,7 +4146,7 @@ this is the pricing the character gets in shops.</property>
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="padding">2</property>
-            <property name="position">5</property>
+            <property name="position">7</property>
           </packing>
         </child>
       </object>
