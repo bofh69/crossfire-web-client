@@ -55,7 +55,7 @@ static void keybind_free(struct keybind **entry);
  * Widgets for the keybinding dialog
  */
 static GtkWidget *fire_label, *run_label, *keybinding_window,
-       *kb_scope_togglebutton_user, *kb_scope_togglebutton_character,
+       *kb_scope_togglebutton_global, *kb_scope_togglebutton_character,
        *keybinding_checkbutton_any,
        *keybinding_checkbutton_control, *keybinding_checkbutton_shift,
        *keybinding_checkbutton_alt, *keybinding_checkbutton_meta,
@@ -156,7 +156,7 @@ static char bind_buf[MAX_BUF];
 #define KEYF_EDIT       (1 << 5)            /**< Enter command mode */
 
 /* Keybinding's scope, decides where the binding will be saved */
-#define KEYF_R_USER     (1 << 6)            /**< Save at user's file */
+#define KEYF_R_GLOBAL   (1 << 6)            /**< Save at user's file */
 #define KEYF_R_CHAR     (1 << 7)            /**< Character specific */
 
 extern const char *const directions[9];
@@ -164,14 +164,14 @@ extern const char *const directions[9];
 #define KEYHASH 257
 /**
  * Will hold the keybindings into two separate hashes depending on
- * the scope they afect (user or character).
+ * the scope they afect (global or character).
  * This allows editting both scopes at the same time and switch scopes
  * for a certain binding with ease.
  *
  * Platform independence defines that we can't use keycodes.  Instead,
  * make it a hash, and set KEYHASH to a prime number for this purpose.
  */
-static struct keybind *keys_user[KEYHASH], *keys_char[KEYHASH];
+static struct keybind *keys_global[KEYHASH], *keys_char[KEYHASH];
 
 /**
  * @defgroup GtkV2KeyBinding GTK-V2 client keybinding functions.
@@ -194,12 +194,12 @@ static struct keybind *keys_user[KEYHASH], *keys_char[KEYHASH];
  *              Otherwise, return only bindings with matching modifier
  *              flags.
  * @param scope Determines which scope to search for the binding.
- *              0 meaning char scope, non zero meaning user scope.
+ *              0 meaning char scope, non zero meaning global scope.
  */
 static struct keybind *keybind_find(uint32 keysym, unsigned int flags, int scope)
 {
     struct keybind *kb;
-    kb = scope?keys_user[keysym % KEYHASH]:keys_char[keysym % KEYHASH];
+    kb = scope?keys_global[keysym % KEYHASH]:keys_char[keysym % KEYHASH];
     while (kb != NULL) {
         if (kb->keysym == 0 || kb->keysym == keysym) {
             if ((kb->flags & KEYF_ANY) || (flags & KEYF_ANY))
@@ -230,7 +230,7 @@ static int keybind_insert(uint32 keysym, unsigned int flags, const char *command
     int i;
     int dir;
 
-    kb = keybind_find(keysym, flags, (flags & KEYF_R_USER));
+    kb = keybind_find(keysym, flags, (flags & KEYF_R_GLOBAL));
     while (kb != NULL) {
         /*
          * Keep the last binding instead of the first (backwards compatible).
@@ -243,12 +243,12 @@ static int keybind_insert(uint32 keysym, unsigned int flags, const char *command
             gdk_keyval_name(keysym), kb->command);
         keybind_remove(kb);
         keybind_free(&kb);
-        kb = keybind_find(keysym, flags, (flags & KEYF_R_USER));
+        kb = keybind_find(keysym, flags, (flags & KEYF_R_GLOBAL));
     }
 
     slot = keysym % KEYHASH;
 
-    next_ptr = (flags & KEYF_R_USER) ? &keys_user[slot] : &keys_char[slot];
+    next_ptr = (flags & KEYF_R_GLOBAL) ? &keys_global[slot] : &keys_char[slot];
     while (*next_ptr)
         next_ptr = &(*next_ptr)->next;
     *next_ptr = calloc(1, sizeof(**next_ptr));
@@ -282,7 +282,7 @@ static int keybind_remove(struct keybind *entry)
 
     slot = entry->keysym % KEYHASH;
 
-    next_ptr = (entry->flags & KEYF_R_USER) ? &keys_user[slot] : &keys_char[slot];
+    next_ptr = (entry->flags & KEYF_R_GLOBAL) ? &keys_global[slot] : &keys_char[slot];
     while (*next_ptr) {
         if (*next_ptr == entry) {
             *next_ptr = entry->next;
@@ -308,7 +308,7 @@ static void keybind_free(struct keybind **entry)
  *
  * @param buf
  * @param line
- * @param scope_flag  KEYF_R_USER or KEYF_R_CHAR determining scope.
+ * @param scope_flag  KEYF_R_GLOBAL or KEYF_R_CHAR determining scope.
  */
 static void parse_keybind_line(char *buf, int line, unsigned int scope_flag)
 {
@@ -501,7 +501,7 @@ static void init_default_keybindings(void)
 
     for (i = 0; i < sizeof(def_keys) / sizeof(char *); i++) {
         strcpy(buf, def_keys[i]);
-        parse_keybind_line(buf, i, KEYF_R_USER);
+        parse_keybind_line(buf, i, KEYF_R_GLOBAL);
     }
 }
 
@@ -510,7 +510,7 @@ static void init_default_keybindings(void)
  *
  * @param filename   Name of the file to open.
  * @param scope_flag The scope this bindings should be loaded with.
- *                   Should be one of KEYF_R_USER or KEYF_R_CHAR.
+ *                   Should be one of KEYF_R_GLOBAL or KEYF_R_CHAR.
  *                   Every binding in the file will have the same scope.
  */
 static int parse_keys_file(char *filename, unsigned int scope_flag)
@@ -575,8 +575,8 @@ void keybindings_init(const char *character_name)
     prevkeysym = NoSymbol;
 
     for (i = 0; i < KEYHASH; i++) {
-      while (keys_user[i])
-            keybind_remove(keys_user[i]);
+      while (keys_global[i])
+            keybind_remove(keys_global[i]);
       while (keys_char[i])
             keybind_remove(keys_char[i]);
     }
@@ -607,9 +607,9 @@ void keybindings_init(const char *character_name)
 
     init_default_keybindings();
 
-    /* Try the user-specific keys file */
+    /* Try the global keys file */
     snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
-    parse_keys_file(buf, KEYF_R_USER);
+    parse_keys_file(buf, KEYF_R_GLOBAL);
 
     if (cpl.name) {
         /* Try the character-specific keys file */
@@ -645,8 +645,8 @@ void keys_init(GtkWidget *window_root)
 
     keybinding_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_window"));
 
-    kb_scope_togglebutton_user =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "kb_scope_togglebutton_user"));
+    kb_scope_togglebutton_global =
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "kb_scope_togglebutton_global"));
     kb_scope_togglebutton_character =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "kb_scope_togglebutton_character"));
     keybinding_checkbutton_any =
@@ -687,8 +687,8 @@ void keys_init(GtkWidget *window_root)
 
     g_signal_connect((gpointer) kb_scope_togglebutton_character, "toggled",
                      G_CALLBACK(on_kb_scope_togglebutton_character_toggled), NULL);
-    g_signal_connect((gpointer) kb_scope_togglebutton_user, "toggled",
-                     G_CALLBACK(on_kb_scope_togglebutton_user_toggled), NULL);
+    g_signal_connect((gpointer) kb_scope_togglebutton_global, "toggled",
+                     G_CALLBACK(on_kb_scope_togglebutton_global_toggled), NULL);
 
     g_signal_connect((gpointer) keybinding_checkbutton_any, "clicked",
                      G_CALLBACK(on_keybinding_checkbutton_any_clicked), NULL);
@@ -755,14 +755,14 @@ void keys_init(GtkWidget *window_root)
                                          GTK_SORT_ASCENDING);
 
     for (i = 0; i < KEYHASH; i++) {
-        keys_user[i] = NULL;
+        keys_global[i] = NULL;
         keys_char[i] = NULL;
     }
 
     /*
      * Old servers (e.g. 1.12) starts game play without a login
      * process. We can't get the character name on such a server, so
-     * load default (or user-specific) key bindings here in case we
+     * load default and global key bindings here in case we
      * don't get the character-specific one later.
      */
     keybindings_init(NULL);
@@ -871,7 +871,7 @@ static void parse_key(char key, uint32 keysym)
 
     kb = keybind_find(keysym, present_flags, 0); /* char scope */
     if (kb == NULL)
-        kb = keybind_find(keysym, present_flags, 1); /* user scope */
+        kb = keybind_find(keysym, present_flags, 1); /* global scope */
     if (kb != NULL) {
         if (kb->flags & KEYF_EDIT) {
             strcpy(cpl.input_text, kb->command);
@@ -1067,7 +1067,7 @@ static void show_keys(void)
      */
     for (i = 0; i < KEYHASH; i++) {
         for (j=0; j<2; j++) {
-            for (kb=(j==0)?keys_user[i]:keys_char[i]; kb != NULL; kb = kb->next) {
+            for (kb=(j==0)?keys_global[i]:keys_char[i]; kb != NULL; kb = kb->next) {
                 snprintf(buf, sizeof(buf), "%3d %s", count, get_key_info(kb, 0));
                 draw_ext_info(
                     NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
@@ -1311,7 +1311,7 @@ static void save_keys(void)
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf2);
         }
         else {
-            /* Save default bindings as part of the user scope */
+            /* Save default bindings as part of the global scope */
             if (firekeysym[0] != GDK_Shift_L && firekeysym[0] != NoSymbol)
                 fprintf(fp, "! firekey0 %s %d\n",
                         gdk_keyval_name(firekeysym[0]), 0);
@@ -1348,7 +1348,7 @@ static void save_keys(void)
                         gdk_keyval_name(prevkeysym), 0);
 
             for (i = 0; i < KEYHASH; i++)
-                save_individual_key(fp, keys_user[i], 0);
+                save_individual_key(fp, keys_global[i], 0);
             fclose(fp);
         }
     }
@@ -1421,7 +1421,7 @@ static void configure_keys(uint32 keysym)
         *bind_keysym = keysym;
         bind_keysym = NULL;
     } else {
-        kb = keybind_find(keysym, bind_flags, (bind_flags & KEYF_R_USER));
+        kb = keybind_find(keysym, bind_flags, (bind_flags & KEYF_R_GLOBAL));
         if (kb) {
             snprintf(buf, sizeof(buf),
                      "Error: Key already used for command \"%s\". Use unbind first.",
@@ -1492,7 +1492,7 @@ void unbind_key(const char *params)
 
     for (slot = 0; slot < KEYHASH; slot++) {
         for (j = 0; j < 2; j++) {
-            for (kb=(j==0)?keys_user[slot]:keys_char[slot]; kb != NULL; kb=kb->next) {
+            for (kb=(j==0)?keys_global[slot]:keys_char[slot]; kb != NULL; kb=kb->next) {
                 count++;
 
                 if (keyentry == count) {
@@ -1724,7 +1724,7 @@ void draw_keybindings(GtkWidget *keylist)
     gtk_clist_clear(GTK_CLIST(keylist));
     for (i = 0; i < KEYHASH; i++) {
         for (j = 0; j < 2; j++) {
-            for (kb=(j==0)?keys_user[i]:keys_char[i]; kb != NULL; kb = kb->next) {
+            for (kb=(j==0)?keys_global[i]:keys_char[i]; kb != NULL; kb = kb->next) {
                 get_key_modchars(kb, 0, buff);
 
                 if (kb->keysym != NoSymbol) {
@@ -1914,17 +1914,17 @@ void update_keybinding_list(void)
 {
     int i, j;
     struct keybind *kb;
-    char modifier_buf[256], scope_buf[4];
+    char modifier_buf[256], scope_buf[6];
     GtkTreeIter iter;
 
     gtk_list_store_clear(keybinding_store);
     for (i = 0; i < KEYHASH; i++) {
         for (j = 0; j < 2; j++) {
-            for (kb=(j==0)?keys_user[i]:keys_char[i]; kb != NULL; kb = kb->next) {
+            for (kb=(j==0)?keys_global[i]:keys_char[i]; kb != NULL; kb = kb->next) {
                 modifier_buf[0] = 0;
                 scope_buf[0] = 0;
                 if (j==0)
-                    kb->flags |= KEYF_R_USER;
+                    kb->flags |= KEYF_R_GLOBAL;
                 else
                     kb->flags |= KEYF_R_CHAR;
 
@@ -1952,10 +1952,10 @@ void update_keybinding_list(void)
                         strcat(modifier_buf, "Meta");
                     }
                 }
-                if (!(kb->flags & KEYF_R_USER))
-                    strcat(scope_buf, "char");
+                if (!(kb->flags & KEYF_R_GLOBAL))
+                    strcat(scope_buf, " char ");
                 else
-                    strcat(scope_buf, "user");
+                    strcat(scope_buf, "global");
                 gtk_list_store_append(keybinding_store, &iter);
                 gtk_list_store_set(keybinding_store, &iter,
                                    KLIST_ENTRY, i,
@@ -1989,7 +1989,7 @@ void on_keybindings_activate(GtkMenuItem *menuitem, gpointer user_data)
  * keys pressed, set the appropriate "Keybinding Modifiers" checkboxes if the
  * shift or control keys happens to be pressed at the time.  Oddly, the Alt and
  * Meta keys are not similarly handled.  Checkboxes are never cleared here in
- * case the user had just set the checkboxes ahead of time.i
+ * case the user had just set the checkboxes ahead of time.
  *
  * @param widget
  * @param event
@@ -2054,7 +2054,7 @@ void toggle_buttons_scope(int scope) {
     int state_u, state_c;
 
     state_u = gtk_toggle_button_get_active(
-                  GTK_TOGGLE_BUTTON(kb_scope_togglebutton_user));
+                  GTK_TOGGLE_BUTTON(kb_scope_togglebutton_global));
     state_c = gtk_toggle_button_get_active(
                   GTK_TOGGLE_BUTTON(kb_scope_togglebutton_character));
     /* If the states of the buttons are not already what we are asked for, or if
@@ -2066,20 +2066,20 @@ void toggle_buttons_scope(int scope) {
             GTK_TOGGLE_BUTTON(kb_scope_togglebutton_character),
             G_CALLBACK(on_kb_scope_togglebutton_character_toggled), NULL);
         g_signal_handlers_block_by_func(
-            GTK_TOGGLE_BUTTON(kb_scope_togglebutton_user),
-            G_CALLBACK(on_kb_scope_togglebutton_user_toggled), NULL);
+            GTK_TOGGLE_BUTTON(kb_scope_togglebutton_global),
+            G_CALLBACK(on_kb_scope_togglebutton_global_toggled), NULL);
 
         gtk_toggle_button_set_active(
             GTK_TOGGLE_BUTTON(kb_scope_togglebutton_character), !scope);
         gtk_toggle_button_set_active(
-            GTK_TOGGLE_BUTTON(kb_scope_togglebutton_user), scope);
+            GTK_TOGGLE_BUTTON(kb_scope_togglebutton_global), scope);
 
         g_signal_handlers_unblock_by_func(
             GTK_TOGGLE_BUTTON(kb_scope_togglebutton_character),
             G_CALLBACK(on_kb_scope_togglebutton_character_toggled), NULL);
         g_signal_handlers_unblock_by_func(
-            GTK_TOGGLE_BUTTON(kb_scope_togglebutton_user),
-            G_CALLBACK(on_kb_scope_togglebutton_user_toggled), NULL);
+            GTK_TOGGLE_BUTTON(kb_scope_togglebutton_global),
+            G_CALLBACK(on_kb_scope_togglebutton_global_toggled), NULL);
     }
 }
 
@@ -2122,7 +2122,7 @@ static int keybind_overwrite_confirm(struct keybind *kb){
  * and asks for confirmation before overwriting anything.
  *
  * @scope The new scope to apply to this keybind,
- *        0 meaning char scope, non zero meaning user scope.
+ *        0 meaning char scope, non zero meaning global scope.
  * @kb    Keybinding to modify scope.
  */
 void toggle_keybind_scope(int scope, struct keybind *kb) {
@@ -2148,13 +2148,13 @@ void toggle_keybind_scope(int scope, struct keybind *kb) {
         kb_old = keybind_find(kb->keysym, kb->flags, scope);
     }
 
-    /* If the new scope is 'user' we remove the binding from keys_char (don't
-     * free it), switch scope flags and rehash in keys_user.
+    /* If the new scope is 'global' we remove the binding from keys_char (don't
+     * free it), switch scope flags and rehash in keys_global.
      *
      * Else just make a copy into keys_char only switching the state flags.
      */
     if (scope) {
-        if ((kb->flags & KEYF_R_USER)==0) {
+        if ((kb->flags & KEYF_R_GLOBAL)==0) {
             /* Remove kb from keys_char, don't free it. */
             ret = keybind_remove(kb);
             if (ret == -1) {
@@ -2165,10 +2165,10 @@ void toggle_keybind_scope(int scope, struct keybind *kb) {
                 update_keybinding_list();
                 return;
             }
-            /* Place the modified kb in keys_user */
+            /* Place the modified kb in keys_global */
             kb->flags ^= KEYF_R_CHAR;
-            kb->flags |= KEYF_R_USER;
-            next_ptr = &keys_user[kb->keysym % KEYHASH];
+            kb->flags |= KEYF_R_GLOBAL;
+            next_ptr = &keys_global[kb->keysym % KEYHASH];
             kb->next = NULL;
 
             if (*next_ptr) {
@@ -2177,16 +2177,16 @@ void toggle_keybind_scope(int scope, struct keybind *kb) {
                 (*next_ptr)->next = kb;
             }
             else
-                keys_user[kb->keysym % KEYHASH] = kb;
+                keys_global[kb->keysym % KEYHASH] = kb;
         }
     }
     else {
-        if ((kb->flags & KEYF_R_USER)!=0) {
+        if ((kb->flags & KEYF_R_GLOBAL)!=0) {
             /* Copy the selected binding in the char's scope with the right flags. */
             snprintf(buf, sizeof(buf), "%s", kb->command);
             flags = kb->flags;
             flags |= KEYF_R_CHAR;
-            flags ^= KEYF_R_USER;
+            flags ^= KEYF_R_GLOBAL;
             keybind_insert(kb->keysym, flags, buf);
         }
     }
@@ -2223,7 +2223,7 @@ void on_kb_scope_togglebutton_character_toggled(GtkToggleButton *toggle_button, 
  * @param toggle_button
  * @param user_data
  */
-void on_kb_scope_togglebutton_user_toggled(GtkToggleButton *toggle_button, gpointer user_data)
+void on_kb_scope_togglebutton_global_toggled(GtkToggleButton *toggle_button, gpointer user_data)
 {
     GtkTreeModel *model;
     GtkTreeIter iter;
@@ -2232,7 +2232,7 @@ void on_kb_scope_togglebutton_user_toggled(GtkToggleButton *toggle_button, gpoin
     if (gtk_tree_selection_get_selected(keybinding_selection, &model, &iter)) {
         gtk_tree_model_get(model, &iter, KLIST_KEY_ENTRY, &kb, -1);
         scope = gtk_toggle_button_get_active(
-                    GTK_TOGGLE_BUTTON(kb_scope_togglebutton_user));
+                    GTK_TOGGLE_BUTTON(kb_scope_togglebutton_global));
         toggle_buttons_scope(scope);
         toggle_keybind_scope(scope, kb);
     }
@@ -2289,8 +2289,8 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
     }
 
     if (gtk_toggle_button_get_active(
-                GTK_TOGGLE_BUTTON(kb_scope_togglebutton_user)))
-        *flags |= KEYF_R_USER;
+                GTK_TOGGLE_BUTTON(kb_scope_togglebutton_global)))
+        *flags |= KEYF_R_GLOBAL;
 
     if (gtk_toggle_button_get_active(
                 GTK_TOGGLE_BUTTON(keybinding_checkbutton_control))) {
@@ -2353,7 +2353,7 @@ void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data)
     keybinding_get_data(&keysym, &flags, &command);
 
     /* keybind_insert will do a strdup of command for us */
-    kb = keybind_find(keysym, flags, (flags & KEYF_R_USER));
+    kb = keybind_find(keysym, flags, (flags & KEYF_R_GLOBAL));
     if (kb && (!keybind_overwrite_confirm(kb)))
         return;
     keybind_insert(keysym, flags, command);
@@ -2530,7 +2530,7 @@ gboolean keybinding_selection_func(
         gtk_entry_set_text(
             GTK_ENTRY(keybinding_entry_command), kb->command);
 
-        toggle_buttons_scope((kb->flags & KEYF_R_USER)!=0);
+        toggle_buttons_scope((kb->flags & KEYF_R_GLOBAL)!=0);
     }
     return TRUE;
 }

@@ -787,7 +787,7 @@ exist on the server.</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="ypad">5</property>
-                    <property name="label" translatable="yes">Choose a character to play or create a new character.  If you already have a character on 
+                    <property name="label" translatable="yes">Choose a character to play or create a new character.  If you already have a character on
 this server that is not associated with an account, click the Add Character button.</property>
                   </object>
                   <packing>
@@ -2731,7 +2731,7 @@ is a key attribute for wizards.</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_text" translatable="yes">Dexterity is how quick and nimble the character is.  High
-dexterity makes the character harder to hit, lets the 
+dexterity makes the character harder to hit, lets the
 character move faster as well as attack faster.</property>
                                 <property name="label" translatable="yes">Dexterity</property>
                               </object>
@@ -3813,14 +3813,14 @@ this is the pricing the character gets in shops.</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkToggleButton" id="kb_scope_togglebutton_user">
+                  <object class="GtkToggleButton" id="kb_scope_togglebutton_global">
                     <property name="label" translatable="yes">All characters</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="receives_default">False</property>
                     <property name="use_underline">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_kb_scope_togglebutton_user_clicked" swapped="no"/>
+                    <signal name="clicked" handler="on_kb_scope_togglebutton_global_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
