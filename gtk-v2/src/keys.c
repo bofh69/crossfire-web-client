@@ -613,7 +613,8 @@ void keybindings_init(const char *character_name)
 
     if (cpl.name) {
         /* Try the character-specific keys file */
-        snprintf(buf, sizeof(buf), "%s/.crossfire/%s.keys", getenv("HOME"), cpl.name);
+      snprintf(buf, sizeof(buf), "%s/.crossfire/\"%s.%s.keys\"",
+               getenv("HOME"), csocket.servername, cpl.name);
         parse_keys_file(buf, KEYF_R_CHAR);
     }
 }
