@@ -578,7 +578,7 @@ void draw_stats(int redraw)
     static int init_before=0, max_drawn_skill=0, max_drawn_resists=0;
 
     float weap_sp;
-    char buff[MAX_BUF];
+    char buff[MAX_BUF], *buff2;
     int i, on_skill, sk;
 
     if (!init_before) {
@@ -598,6 +598,10 @@ void draw_stats(int redraw)
     if (strcmp(cpl.title, last_name) || redraw) {
         strcpy(last_name,cpl.title);
         gtk_label_set (GTK_LABEL(statwindow.playername), cpl.title);
+        strcpy(buff, cpl.title);
+        buff2 = strtok(buff, " "); /* Remove the "Player:" string from the title */
+        buff2 = strtok(NULL, " "); /* The second split is the actual playername */
+        keybindings_init(buff2);
     }
 
     if(redraw || cpl.stats.exp!=last_stats.exp) {
