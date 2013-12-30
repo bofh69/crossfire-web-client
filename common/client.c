@@ -359,6 +359,7 @@ int init_connection(char *host, int port)
      * Assume that an error will not occur and that the socket is left open.
      */
     fd_status = 0;
+
     for (ai = res; ai != NULL; ai = ai->ai_next) {
         /*
          * Try to create a socket.
@@ -439,8 +440,10 @@ int init_connection(char *host, int port)
                         fd_status = 0;
                         break;
                     } else {
-                        LOG (LOG_ERROR,"common::init_connection","Timeout\n");
-                        break;
+                        /* FIXME: Clean up memory leak caused by returning. */
+                        LOG(LOG_ERROR, "common::init_connection",
+                                "Connection timed out.\n");
+                        return -1;
                     }
                 } while (1);
             } else {

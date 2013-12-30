@@ -83,19 +83,19 @@ void get_metaserver() {
         GtkCellRenderer *renderer;
 
         metaserver_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                    "metaserver_window"));
+                                       "metaserver_window"));
 
         gtk_window_set_transient_for(GTK_WINDOW(metaserver_window),
                                      GTK_WINDOW(window_root));
 
         treeview_metaserver = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                    "treeview_metaserver"));
+                                         "treeview_metaserver"));
         metaserver_button = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                    "metaserver_select"));
+                                       "metaserver_select"));
         metaserver_status = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                    "metaserver_status"));
+                                       "metaserver_status"));
         metaserver_entry = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                    "metaserver_text_entry"));
+                                      "metaserver_text_entry"));
 
         g_signal_connect((gpointer) metaserver_window, "destroy",
                          G_CALLBACK(on_window_destroy_event), NULL);
@@ -116,8 +116,8 @@ void get_metaserver() {
                          G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
 
         store_metaserver = gtk_list_store_new(6,
-                G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
-                G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING);
+                                              G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
+                                              G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING);
 
         gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_metaserver),
                                 GTK_TREE_MODEL(store_metaserver));
@@ -233,43 +233,43 @@ void get_metaserver() {
 }
 
 /**
- * Establish a connection to a server when a server DNS name or IP address is
- * specified.   Either a DNS name or IP address may be given, but if both are
- * supplied the IP address is used.  To connect on a non-standard port number,
- * a colon and the port number is appended to the DNS name.  Update the server
- * cache if the connection attempt succeeds.
+ * Establish a connection to a server with the given hostname and optional
+ * port number. To connect on a non-standard port number, a colon and the port
+ * number is appended to the DNS name.  Update the server cache if the
+ * connection attempt succeeds.
  *
  * @param name The DNS name of a server to connect to.  If the server operates
  *             on a non-standard port, a colon and the port number is appended
  *             to the DNS name.  For example:  localhost:8000
- * @param ip   An IP address of a server to connect to.  If specified, the IP
- *             address is used instead of the DNS name.
  */
-static void metaserver_connect_to(const char *name, const char *ip) {
-    char  buf[256], *cp, newname[256];
+static void metaserver_connect_to(const char *name) {
+    char buf[256], *next_token = (char *)name, *hostname;
     int port = use_config[CONFIG_PORT];
 
-    snprintf(buf, 255, "Trying to connect to %s", name);
-
+    /* Set client status and update GUI before continuing. */
+    snprintf(buf, sizeof(buf), "Connecting to '%s'...", name);
     gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-    strncpy(newname, name, 255);
-    newname[255] = 0;
+    gtk_main_iteration();
 
-    if ((cp = strchr(newname, ':')) != NULL) {
-        port = atoi(cp + 1);
-        *cp = 0;
+    /* Separate the hostname from the port number (if specified). */
+    hostname = strsep(&next_token, ":");
+
+    if (next_token != NULL) {
+        port = atoi(next_token);
     }
 
-    csocket.fd = init_connection((char *)(ip ? ip : newname), port);
-    if (csocket.fd == -1) {
-        snprintf(buf, 255, "Unable to connect to %s!", name);
-        gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
-    } else {
-        snprintf(buf, 255, "Connected to %s!", name);
-        metaserver_update_cache(name, ip ? ip : name);
-        gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
+    csocket.fd = init_connection(hostname, port);
+
+    if (csocket.fd != -1) {
+        LOG(LOG_DEBUG, "gtk-v2::metaserver_connect_to",
+            "Connected to '%s'!", name);
+
+        metaserver_update_cache(name, name);
         gtk_main_quit();
         cpl.input_state = Playing;
+    } else {
+        snprintf(buf, 255, "Unable to connect to %s!", name);
+        gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     }
 }
 
@@ -279,12 +279,10 @@ static void metaserver_connect_to(const char *name, const char *ip) {
  * @param button
  * @param user_data
  */
-void
-on_metaserver_select_clicked(GtkButton       *button,
-                             gpointer         user_data) {
-    GtkTreeModel    *model;
+void on_metaserver_select_clicked(GtkButton *button, gpointer user_data) {
+    GtkTreeModel *model;
     GtkTreeIter iter;
-    char    *name = NULL, *ip = NULL, *metaserver_txt;
+    char *name = NULL, *ip = NULL, *metaserver_txt;
 
     metaserver_txt = (char *)gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
     if (gtk_tree_selection_get_selected(metaserver_selection, &model, &iter)) {
@@ -308,7 +306,7 @@ on_metaserver_select_clicked(GtkButton       *button,
         name = metaserver_txt;
     }
 
-    metaserver_connect_to(name, ip);
+    metaserver_connect_to(name);
 }
 
 /**
@@ -320,19 +318,16 @@ on_metaserver_select_clicked(GtkButton       *button,
  * @param column
  * @param user_data
  */
-void
-on_treeview_metaserver_row_activated(GtkTreeView     *treeview,
-                                     GtkTreePath     *path,
-                                     GtkTreeViewColumn *column,
-                                     gpointer         user_data) {
+void on_treeview_metaserver_row_activated(GtkTreeView *treeview,
+        GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data) {
     GtkTreeIter iter;
-    GtkTreeModel    *model;
-    char    *name, *ip;
+    GtkTreeModel *model;
+    char *name, *ip;
 
     model = gtk_tree_view_get_model(treeview);
     if (gtk_tree_model_get_iter(model, &iter, path)) {
         gtk_tree_model_get(model, &iter, LIST_HOSTNAME, &name, LIST_IPADDR, &ip, -1);
-        metaserver_connect_to(name, ip);
+        metaserver_connect_to(name);
     }
 }
 
@@ -343,14 +338,10 @@ on_treeview_metaserver_row_activated(GtkTreeView     *treeview,
  * @param entry
  * @param user_data
  */
-void
-on_metaserver_text_entry_activate(GtkEntry        *entry,
-                                  gpointer         user_data) {
+void on_metaserver_text_entry_activate(GtkEntry *entry, gpointer user_data) {
     const gchar *entry_text;
-
     entry_text = gtk_entry_get_text(GTK_ENTRY(entry));
-
-    metaserver_connect_to(entry_text, NULL);
+    metaserver_connect_to(entry_text);
 }
 
 /**
@@ -360,13 +351,8 @@ on_metaserver_text_entry_activate(GtkEntry        *entry,
  * @param button
  * @param user_data
  */
-void
-on_button_metaserver_quit_pressed(GtkButton       *button,
-                                  gpointer         user_data) {
-#ifdef WIN32
-    script_killall();
-#endif
-    exit(0);
+void on_button_metaserver_quit_pressed(GtkButton *button, gpointer user_data) {
+    on_window_destroy_event(button, user_data);
 }
 
 /**
