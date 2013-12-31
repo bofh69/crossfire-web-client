@@ -1919,7 +1919,7 @@ void update_keybinding_list(void)
 {
     int i, j;
     struct keybind *kb;
-    char modifier_buf[256], scope_buf[6];
+    char modifier_buf[256], scope_buf[7];
     GtkTreeIter iter;
 
     gtk_list_store_clear(keybinding_store);
@@ -1958,9 +1958,9 @@ void update_keybinding_list(void)
                     }
                 }
                 if (!(kb->flags & KEYF_R_GLOBAL))
-                    strcat(scope_buf, " char ");
+                    strncat(scope_buf, " char ", sizeof(scope_buf) - 1);
                 else
-                    strcat(scope_buf, "global");
+                    strncat(scope_buf, "global", sizeof(scope_buf) - 1);
                 gtk_list_store_append(keybinding_store, &iter);
                 gtk_list_store_set(keybinding_store, &iter,
                                    KLIST_ENTRY, i,
