@@ -1278,8 +1278,8 @@ static void save_keys(void)
 
     /* If we are logged in open file to save character specific bindings */
     if (cpl.name) {
-        snprintf(buf, sizeof(buf), "%s/.crossfire/%s.keys",
-                 getenv("HOME"), cpl.name);
+        snprintf(buf, sizeof(buf), "%s/.crossfire/%s.%s.keys",
+                 getenv("HOME"), csocket.servername, cpl.name);
         CONVERT_FILESPEC_TO_OS_FORMAT(buf);
         LOG(LOG_INFO, "gtk-v2::save_keys",
             "Saving character specific keybindings to %s", buf);
