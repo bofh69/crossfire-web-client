@@ -1919,54 +1919,53 @@ void update_keybinding_list(void)
 {
     int i, j;
     struct keybind *kb;
-    char modifier_buf[256], scope_buf[7];
+    char *modifier_label, *scope_label;
     GtkTreeIter iter;
 
     gtk_list_store_clear(keybinding_store);
     for (i = 0; i < KEYHASH; i++) {
         for (j = 0; j < 2; j++) {
             for (kb=(j==0)?keys_global[i]:keys_char[i]; kb != NULL; kb = kb->next) {
-                modifier_buf[0] = 0;
-                scope_buf[0] = 0;
                 if (j==0)
                     kb->flags |= KEYF_R_GLOBAL;
                 else
                     kb->flags |= KEYF_R_CHAR;
 
                 if (kb->flags & KEYF_ANY) {
-                    strcat(modifier_buf, "Any");
+                    modifier_label = "Any";
                 } else if ((kb->flags & KEYF_MOD_MASK) == 0) {
-                    strcat(modifier_buf, "None");
+                    modifier_label = "None";
                 } else {
                     if (kb->flags & KEYF_MOD_ALT) {
-                        strcat(modifier_buf, "Alt");
+                        modifier_label = "Alt";
                         if (kb->flags & (KEYF_MOD_SHIFT | KEYF_MOD_CTRL | KEYF_MOD_META))
-                            strcat(modifier_buf, " + ");
+                            modifier_label = " + ";
                     }
                     if (kb->flags & KEYF_MOD_SHIFT) {
-                        strcat(modifier_buf, "Fire");
+                        modifier_label = "Fire";
                         if (kb->flags & (KEYF_MOD_CTRL | KEYF_MOD_META))
-                            strcat(modifier_buf, " + ");
+                            modifier_label = " + ";
                     }
                     if (kb->flags & KEYF_MOD_CTRL) {
-                        strcat(modifier_buf, "Run");
+                        modifier_label = "Run";
                         if (kb->flags & KEYF_MOD_META)
-                            strcat(modifier_buf, " + ");
+                            modifier_label = " + ";
                     }
                     if (kb->flags & KEYF_MOD_META) {
-                        strcat(modifier_buf, "Meta");
+                        modifier_label = "Meta";
                     }
                 }
-                if (!(kb->flags & KEYF_R_GLOBAL))
-                    strncat(scope_buf, " char ", sizeof(scope_buf) - 1);
-                else
-                    strncat(scope_buf, "global", sizeof(scope_buf) - 1);
+                if (!(kb->flags & KEYF_R_GLOBAL)) {
+                    scope_label = " char ";
+                } else {
+                    scope_label = "global";
+                }
                 gtk_list_store_append(keybinding_store, &iter);
                 gtk_list_store_set(keybinding_store, &iter,
                                    KLIST_ENTRY, i,
                                    KLIST_KEY, gdk_keyval_name(kb->keysym),
-                                   KLIST_MODS, modifier_buf,
-                                   KLIST_SCOPE, scope_buf,
+                                   KLIST_MODS, modifier_label,
+                                   KLIST_SCOPE, scope_label,
                                    KLIST_EDIT, (kb->flags & KEYF_EDIT) ? "Yes":"No",
                                    KLIST_COMMAND, kb->command,
                                    KLIST_KEY_ENTRY, kb,
