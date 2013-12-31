@@ -3780,7 +3780,7 @@ this is the pricing the character gets in shops.</property>
               <object class="GtkLabel" id="keybinding_label_scope">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Scope control:</property>
+                <property name="label" translatable="yes">Character control:</property>
               </object>
               <packing>
                 <property name="expand">False</property>
