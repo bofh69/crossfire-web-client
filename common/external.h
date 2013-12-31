@@ -82,6 +82,7 @@ extern void set_show_weight(const char *s);
 /* Keybinding relatated commands - this probably should not be a callback */
 extern void bind_key(const char *params);
 extern void unbind_key(const char *params);
+extern void keybindings_init(const char *character_name);
 
 /* Misc commands */
 extern void save_winpos(void);
