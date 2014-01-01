@@ -178,7 +178,7 @@ void init_theme() {
      * This is a mid-priority client rc file as its settings supersede the
      * client gtkrc file, but are overridden by a client-configured theme.
      */
-    strncpy(xml_basename, window_xml_file, MAX_BUF);
+    snprintf(xml_basename, sizeof(xml_basename), "%s", window_xml_file);
     cp = strrchr(xml_basename, '.');
     if (cp) {
         cp[0] = 0;
@@ -1102,7 +1102,7 @@ void save_winpos() {
 
     /* Truncate the file extension from the layout file name. This makes it
      * possible to save different positions for different client layouts. */
-    strncpy(buf, window_xml_file, MAX_BUF);
+    snprintf(buf, sizeof(buf), "%s", window_xml_file);
     cp = strrchr(buf, '.');
     if (cp) {
         cp[0] = 0;
@@ -1176,7 +1176,7 @@ void load_window_positions(GtkWidget *window_root) {
      * the window positions file can be created with a different .extension.
      * this helps keep the length of the file name more reasonable.
      */
-    strncpy(buf, window_xml_file, MAX_BUF);
+    snprintf(buf, sizeof(buf), "%s", window_xml_file);
     cp = strrchr(buf, '.');
     if (cp) {
         cp[0] = 0;
