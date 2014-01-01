@@ -274,12 +274,18 @@ void script_lua_load(const char* name)
     if (lua_pcall(lua, 0, 0, 0)) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT,
                       "Init error!");
-        fclose(file);
         lua_close(lua);
         return;
     }
 
     scripts = realloc(scripts,sizeof(scripts[0])*(script_count+1));
+
+    if (scripts == NULL) {
+        LOG(LOG_ERROR, "script_lua_load",
+                "Could not allocate memory: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
     script_count++;
     scripts[index].filename = strdup_local(name);
     scripts[index].state = lua;

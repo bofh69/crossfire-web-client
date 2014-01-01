@@ -56,8 +56,10 @@ int mapupdatesent = 0;
 
 #include <client.h>
 #include <external.h>
+
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "mapdata.h"
 
@@ -206,6 +208,13 @@ static void get_starting_map_info(char *data, int len)
             map_entry++;
             starting_map_info = realloc(starting_map_info,
                                         (map_entry + 1) * sizeof(Starting_Map_Info));
+
+            if (starting_map_info == NULL) {
+                LOG(LOG_ERROR, "get_starting_map_info",
+                        "Could not allocate memory: %s", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+
             memset(&starting_map_info[map_entry], 0, sizeof(Starting_Map_Info));
             starting_map_info[map_entry].arch_name = cp;
         } else if (type == INFO_MAP_NAME) {

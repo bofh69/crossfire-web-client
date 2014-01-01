@@ -20,6 +20,7 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 #include <png.h>
@@ -202,6 +203,13 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
         rows_byte = *height;
     } else if (*height > rows_byte) {
         rows = (png_bytepp)realloc(rows, sizeof(png_byte *) **height);
+
+        if (rows == NULL) {
+            LOG(LOG_ERROR, "png_to_data",
+                    "Could not allocate memory: %s", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+
         rows_byte = *height;
     }
     if (!rows) {
@@ -675,6 +683,13 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
         rows_byte = height;
     } else if (height > rows_byte) {
         rows = (png_bytepp)realloc(rows, sizeof(png_byte *) * height);
+
+        if (rows == NULL) {
+            LOG(LOG_ERROR, "png_to_gdkpixmap",
+                    "Could not allocate memory: %s", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+
         rows_byte = height;
     }
     if (!rows) {

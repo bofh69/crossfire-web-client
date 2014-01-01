@@ -30,14 +30,16 @@
 
 #include <client-types.h>
 
+#include <errno.h>
+#include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
+
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #else
 #include <windows.h>
 #include <gdk/gdkwin32.h>
 #endif
-#include <gdk/gdkkeysyms.h>
 
 #include <client.h>
 #include "main.h"
@@ -906,6 +908,12 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
         if (nwidth * nheight * 4 > size) {
             size = nwidth * nheight * 4;
             newdata = realloc(newdata, size);
+
+            if (newdata == NULL) {
+                LOG(LOG_ERROR, "create_opengl_map_image",
+                        "Could not allocate memory: %s", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
         }
         /*
          * Fill the top portion of the image with empty/transparent data.

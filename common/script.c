@@ -325,6 +325,13 @@ void script_init(const char *cparams) {
 
     /* realloc script array to add new entry; fill in the data */
     scripts = realloc(scripts, sizeof(scripts[0])*(num_scripts+1));
+
+    if (scripts == NULL) {
+        LOG(LOG_ERROR, "script_init",
+                "Could not allocate memory: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
     scripts[num_scripts].name = strdup(name);
     scripts[num_scripts].params = args ? strdup(args) : NULL;
     scripts[num_scripts].out_fd = pipe1[1];
@@ -448,6 +455,13 @@ void script_init(const char *cparams) {
 
     /* realloc script array to add new entry; fill in the data */
     scripts = realloc(scripts, sizeof(scripts[0])*(num_scripts+1));
+
+    if (scripts == NULL) {
+        LOG(LOG_ERROR, "script_init",
+                "Could not allocate memory: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
     scripts[num_scripts].name = strdup(name);
     scripts[num_scripts].params = args ? strdup(args) : NULL;
     scripts[num_scripts].out_fd = hChildStdinWrDup;
