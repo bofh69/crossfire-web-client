@@ -325,9 +325,6 @@ void load_defaults() {
                 LOG(LOG_WARNING, "config.c::load_defaults",
                     "Malformed mapsize option in gdefaults2.  Ignoring");
             }
-        } else if (!strcmp(inbuf, "server")) {
-            server = strdup_local(cp);  /* memory leak ! */
-            continue;
         } else if (!strcmp(inbuf, "theme")) {
             theme = strdup_local(cp);   /* memory leak ! */
             continue;
@@ -470,7 +467,6 @@ void save_defaults() {
     fprintf(fp, "# finicky about the keys and values.  Comparisons are case\n");
     fprintf(fp, "# sensitive.  'True' and 'False' are the proper case, but\n");
     fprintf(fp, "# have been replaced with 1 and 0 respectively.\n#\n");
-    fprintf(fp, "server: %s\n", server);
     fprintf(fp, "theme: %s\n", theme);
     fprintf(fp, "faceset: %s\n", face_info.want_faceset);
     fprintf(fp, "window_layout: %s\n", window_xml_file);
