@@ -214,6 +214,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
     }
     if (!rows) {
         png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
+        free(pixels);
         return NULL;
     }
 

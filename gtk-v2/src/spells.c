@@ -20,6 +20,7 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
 #include <gtk/gtk.h>
 
 #include "client.h"
@@ -511,6 +512,8 @@ void on_spell_treeview_row_activated(GtkTreeView       *treeview,
                 "Unable to get spell tag\n");
             return;
         }
+
+        assert(options != NULL);
         snprintf(command, MAX_BUF-1, "cast %d %s", tag, options);
         send_command(command, -1, 1);
     }

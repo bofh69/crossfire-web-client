@@ -82,6 +82,8 @@ static void init_sounds() {
         /* Move on to the next sound. */
         i++;
     }
+
+    fclose(fp);
 }
 
 /**

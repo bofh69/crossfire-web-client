@@ -2142,7 +2142,7 @@ void toggle_keybind_scope(int scope, struct keybind *kb) {
              * Need to call keybindings_init() because we may have already
              * removed some bindings from memory */
             toggle_buttons_scope(!scope);
-            keybindings_init(strdup(cpl.name));
+            keybindings_init(cpl.name);
             update_keybinding_list();
             return;
         }
@@ -2165,7 +2165,7 @@ void toggle_keybind_scope(int scope, struct keybind *kb) {
                 draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR,
                           "\nCould not remove keybind. Operation failed.\n");
                 toggle_buttons_scope(!scope);
-                keybindings_init(strdup(cpl.name));
+                keybindings_init(cpl.name);
                 update_keybinding_list();
                 return;
             }
