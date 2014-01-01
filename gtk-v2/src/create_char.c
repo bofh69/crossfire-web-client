@@ -836,7 +836,7 @@ void init_create_character_window() {
         spinbutton_cc[i] = GTK_WIDGET(gtk_builder_get_object(dialog_xml, tmpbuf));
 
         g_signal_connect ((gpointer) spinbutton_cc[i], "value-changed",
-                          G_CALLBACK (on_spinbutton_cc), (void*)i);
+                          G_CALLBACK (on_spinbutton_cc), NULL);
 
         snprintf(tmpbuf, 80, "label_rs_%s", stat_mapping[i].widget_suffix);
         label_rs[i] = GTK_WIDGET(gtk_builder_get_object(dialog_xml, tmpbuf));
