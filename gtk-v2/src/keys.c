@@ -196,16 +196,18 @@ static struct keybind *keys_global[KEYHASH], *keys_char[KEYHASH];
  * @param scope Determines which scope to search for the binding.
  *              0 meaning char scope, non zero meaning global scope.
  */
-static struct keybind *keybind_find(uint32 keysym, unsigned int flags, int scope)
-{
+static struct keybind *keybind_find(uint32 keysym, unsigned int flags,
+                                    int scope) {
     struct keybind *kb;
-    kb = scope?keys_global[keysym % KEYHASH]:keys_char[keysym % KEYHASH];
+    kb = scope ? keys_global[keysym % KEYHASH] : keys_char[keysym % KEYHASH];
     while (kb != NULL) {
         if (kb->keysym == 0 || kb->keysym == keysym) {
-            if ((kb->flags & KEYF_ANY) || (flags & KEYF_ANY))
+            if ((kb->flags & KEYF_ANY) || (flags & KEYF_ANY)) {
                 return kb;
-            if ((kb->flags & KEYF_MOD_MASK) == (flags & KEYF_MOD_MASK))
+            }
+            if ((kb->flags & KEYF_MOD_MASK) == (flags & KEYF_MOD_MASK)) {
                 return kb;
+            }
         }
         kb = kb->next;
     }
@@ -223,8 +225,8 @@ static struct keybind *keybind_find(uint32 keysym, unsigned int flags, int scope
  * @param flags State that the keyboard is in.
  * @param command A command to bind to the key specified in keysym.
  */
-static int keybind_insert(uint32 keysym, unsigned int flags, const char *command)
-{
+static int keybind_insert(uint32 keysym, unsigned int flags,
+                          const char *command) {
     struct keybind **next_ptr, *kb;
     int slot;
     int i;
@@ -249,11 +251,13 @@ static int keybind_insert(uint32 keysym, unsigned int flags, const char *command
     slot = keysym % KEYHASH;
 
     next_ptr = (flags & KEYF_R_GLOBAL) ? &keys_global[slot] : &keys_char[slot];
-    while (*next_ptr)
+    while (*next_ptr) {
         next_ptr = &(*next_ptr)->next;
+    }
     *next_ptr = calloc(1, sizeof(**next_ptr));
-    if (*next_ptr == NULL)
+    if (*next_ptr == NULL) {
         return -EKEYBIND_NOMEM;
+    }
 
     (*next_ptr)->keysym = keysym;
     (*next_ptr)->flags = flags;
@@ -275,14 +279,14 @@ static int keybind_insert(uint32 keysym, unsigned int flags, const char *command
     return 0;
 }
 
-static int keybind_remove(struct keybind *entry)
-{
+static int keybind_remove(struct keybind *entry) {
     struct keybind **next_ptr;
     int slot;
 
     slot = entry->keysym % KEYHASH;
 
-    next_ptr = (entry->flags & KEYF_R_GLOBAL) ? &keys_global[slot] : &keys_char[slot];
+    next_ptr = (entry->flags & KEYF_R_GLOBAL) ? &keys_global[slot] :
+               &keys_char[slot];
     while (*next_ptr) {
         if (*next_ptr == entry) {
             *next_ptr = entry->next;
@@ -295,8 +299,7 @@ static int keybind_remove(struct keybind *entry)
     return -1;
 }
 
-static void keybind_free(struct keybind **entry)
-{
+static void keybind_free(struct keybind **entry) {
     free((*entry)->command);
     (*entry)->command = NULL;
     free(*entry);
@@ -310,8 +313,7 @@ static void keybind_free(struct keybind **entry)
  * @param line
  * @param scope_flag  KEYF_R_GLOBAL or KEYF_R_CHAR determining scope.
  */
-static void parse_keybind_line(char *buf, int line, unsigned int scope_flag)
-{
+static void parse_keybind_line(char *buf, int line, unsigned int scope_flag) {
     char *cp, *cpnext;
     uint32 keysym, low_keysym;
     int flags;
@@ -325,7 +327,7 @@ static void parse_keybind_line(char *buf, int line, unsigned int scope_flag)
     if (buf[0] == '#' || buf[0] == '\n') {
         return;
     }
-    cpnext = strchr(buf,' ');
+    cpnext = strchr(buf, ' ');
     if (cpnext == NULL) {
         LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
             "Line %d (%s) corrupted in keybinding file.", line, buf);
@@ -441,35 +443,35 @@ static void parse_keybind_line(char *buf, int line, unsigned int scope_flag)
         }
         while (*cp != '\0') {
             switch (*cp) {
-            case 'A':
-                flags |= KEYF_ANY;
-                break;
-            case 'E':
-                flags |= KEYF_EDIT;
-                break;
-            case 'F':
-                flags |= KEYF_MOD_SHIFT;
-                break;
-            case 'L':   /* A is used, so using L for alt */
-                flags |= KEYF_MOD_ALT;
-                break;
-            case 'M':
-                flags |= KEYF_MOD_META;
-                break;
-            case 'N':
-                /* Nothing to do */
-                break;
-            case 'R':
-                flags |= KEYF_MOD_CTRL;
-                break;
-            case 'S':
-                LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
-                    "Deprecated flag (S) ignored at line %d in key binding file", line);
-                break;
-            default:
-                LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
-                    "Unknown flag (%c) line %d in key binding file",
-                    *cp, line);
+                case 'A':
+                    flags |= KEYF_ANY;
+                    break;
+                case 'E':
+                    flags |= KEYF_EDIT;
+                    break;
+                case 'F':
+                    flags |= KEYF_MOD_SHIFT;
+                    break;
+                case 'L':   /* A is used, so using L for alt */
+                    flags |= KEYF_MOD_ALT;
+                    break;
+                case 'M':
+                    flags |= KEYF_MOD_META;
+                    break;
+                case 'N':
+                    /* Nothing to do */
+                    break;
+                case 'R':
+                    flags |= KEYF_MOD_CTRL;
+                    break;
+                case 'S':
+                    LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                        "Deprecated flag (S) ignored at line %d in key binding file", line);
+                    break;
+                default:
+                    LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
+                        "Unknown flag (%c) line %d in key binding file",
+                        *cp, line);
             }
             cp++;
         }
@@ -489,19 +491,18 @@ static void parse_keybind_line(char *buf, int line, unsigned int scope_flag)
 }
 
 /**
- * Initialize the built-in default keybindings from the 'def-keys.h' file.
+ * Load pre-compiled built-in default keybindings.
  */
-static void init_default_keybindings(void)
-{
-    char buf[MAX_BUF];
+static void init_default_keybindings() {
+    char *nextline;
     int i;
 
-    LOG(LOG_DEBUG, "gtk-v2::init_default_keybindings",
-        "Using built-in defaults");
+    LOG(LOG_DEBUG, "init_default_keybindings", "Loading default keybindings");
 
     for (i = 0; i < sizeof(def_keys) / sizeof(char *); i++) {
-        strcpy(buf, def_keys[i]);
-        parse_keybind_line(buf, i, KEYF_R_GLOBAL);
+        nextline = strdup(def_keys[i]);
+        parse_keybind_line(nextline, i, KEYF_R_GLOBAL);
+        free(nextline);
     }
 }
 
@@ -513,20 +514,19 @@ static void init_default_keybindings(void)
  *                   Should be one of KEYF_R_GLOBAL or KEYF_R_CHAR.
  *                   Every binding in the file will have the same scope.
  */
-static int parse_keys_file(char *filename, unsigned int scope_flag)
-{
-    int line = 0;
+static int parse_keys_file(char *filename, unsigned int scope_flag) {
     FILE *fp;
     char buf[BIG_BUF];
+    int line = 0;
 
     CONVERT_FILESPEC_TO_OS_FORMAT(filename);
-    LOG(LOG_INFO, "gtk-v2::init_keys",
-        "Trying to open keybinding file %s", filename);
-
     fp = fopen(filename, "r");
     if (fp == NULL) {
         return -1;
     }
+
+    LOG(LOG_DEBUG, "init_keys", "Reading %s keybindings from '%s'",
+            scope_flag == KEYF_R_GLOBAL ? "global" : "character", filename);
 
     while (fgets(buf, BIG_BUF, fp)) {
         line++;
@@ -543,12 +543,12 @@ static int parse_keys_file(char *filename, unsigned int scope_flag)
  * from main() as part of the client start up. The function is common to both
  * the x11 and gdk clients.
  */
-void keybindings_init(const char *character_name)
-{
-    int i;
+void keybindings_init(const char *character_name) {
     char buf[BIG_BUF];
+    int i;
 
-    for (i = 0; i < MAX_HISTORY; i++) { /* Clear out the bind history log */
+    /* Clear out the bind history. */
+    for (i = 0; i < MAX_HISTORY; i++) {
         history[i][0] = 0;
     }
 
@@ -575,10 +575,13 @@ void keybindings_init(const char *character_name)
     prevkeysym = NoSymbol;
 
     for (i = 0; i < KEYHASH; i++) {
-      while (keys_global[i])
+        while (keys_global[i]) {
             keybind_remove(keys_global[i]);
-      while (keys_char[i])
+        }
+
+        while (keys_char[i]) {
             keybind_remove(keys_char[i]);
+        }
     }
 
     /*
@@ -607,14 +610,14 @@ void keybindings_init(const char *character_name)
 
     init_default_keybindings();
 
-    /* Try the global keys file */
+    /* Try to load global keybindings. */
     snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
     parse_keys_file(buf, KEYF_R_GLOBAL);
 
+    /* Try to load the character-specific keybindings. */
     if (cpl.name) {
-        /* Try the character-specific keys file */
-      snprintf(buf, sizeof(buf), "%s/.crossfire/\"%s.%s.keys\"",
-               getenv("HOME"), csocket.servername, cpl.name);
+        snprintf(buf, sizeof(buf), "%s/.crossfire/%s.%s.keys",
+                getenv("HOME"), csocket.servername, cpl.name);
         parse_keys_file(buf, KEYF_R_CHAR);
     }
 }
@@ -627,8 +630,7 @@ void keybindings_init(const char *character_name)
  *
  * @param window_root The client's main window.
  */
-void keys_init(GtkWidget *window_root)
-{
+void keys_init(GtkWidget *window_root) {
     GtkTreeViewColumn *column;
     GtkCellRenderer *renderer;
     GtkWidget *widget;
@@ -637,23 +639,26 @@ void keys_init(GtkWidget *window_root)
     fire_label = GTK_WIDGET(gtk_builder_get_object(window_xml, "fire_label"));
     run_label = GTK_WIDGET(gtk_builder_get_object(window_xml, "run_label"));
     entry_commands = GTK_WIDGET(gtk_builder_get_object(window_xml,
-            "entry_commands"));
+                                "entry_commands"));
     spinbutton_count = GTK_WIDGET(gtk_builder_get_object(window_xml,
-            "spinbutton_count"));
+                                  "spinbutton_count"));
 
     g_signal_connect((gpointer) entry_commands, "activate",
                      G_CALLBACK(on_entry_commands_activate), NULL);
 
-    keybinding_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_window"));
+    keybinding_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                   "keybinding_window"));
 
     kb_scope_togglebutton_global =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "kb_scope_togglebutton_global"));
     kb_scope_togglebutton_character =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "kb_scope_togglebutton_character"));
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                          "kb_scope_togglebutton_character"));
     keybinding_checkbutton_any =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_any"));
     keybinding_checkbutton_control =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_control"));
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                          "keybinding_checkbutton_control"));
     keybinding_checkbutton_shift =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_shift"));
     keybinding_checkbutton_alt =
@@ -661,7 +666,8 @@ void keys_init(GtkWidget *window_root)
     keybinding_checkbutton_meta =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_meta"));
     keybinding_checkbutton_edit =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_checkbutton_stayinedit"));
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                          "keybinding_checkbutton_stayinedit"));
     keybinding_entry_key =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_entry_key"));
     keybinding_entry_command =
@@ -694,11 +700,13 @@ void keys_init(GtkWidget *window_root)
     g_signal_connect((gpointer) keybinding_checkbutton_any, "clicked",
                      G_CALLBACK(on_keybinding_checkbutton_any_clicked), NULL);
 
-    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_button_clear"));
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                        "keybinding_button_clear"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_keybinding_button_clear_clicked), NULL);
 
-    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "keybinding_button_close"));
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                        "keybinding_button_close"));
     g_signal_connect((gpointer) widget, "clicked",
                      G_CALLBACK(on_keybinding_button_close_clicked), NULL);
 
@@ -709,47 +717,50 @@ void keys_init(GtkWidget *window_root)
                                           G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
                                           G_TYPE_POINTER
                                          );
-    gtk_tree_view_set_model(GTK_TREE_VIEW(keybinding_treeview), GTK_TREE_MODEL(keybinding_store));
+    gtk_tree_view_set_model(GTK_TREE_VIEW(keybinding_treeview),
+                            GTK_TREE_MODEL(keybinding_store));
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes ("Key", renderer,
+    column = gtk_tree_view_column_new_with_attributes("Key", renderer,
              "text", KLIST_KEY,
              NULL);
     gtk_tree_view_column_set_sort_column_id(column, KLIST_KEY);
-    gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes ("Modifiers", renderer,
+    column = gtk_tree_view_column_new_with_attributes("Modifiers", renderer,
              "text", KLIST_MODS,
              NULL);
     gtk_tree_view_column_set_sort_column_id(column, KLIST_MODS);
-    gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes ("Scope", renderer,
+    column = gtk_tree_view_column_new_with_attributes("Scope", renderer,
              "text", KLIST_SCOPE,
              NULL);
     gtk_tree_view_column_set_sort_column_id(column, KLIST_SCOPE);
-    gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes ("Edit Mode", renderer,
+    column = gtk_tree_view_column_new_with_attributes("Edit Mode", renderer,
              "text", KLIST_EDIT,
              NULL);
     gtk_tree_view_column_set_sort_column_id(column, KLIST_EDIT);
-    gtk_tree_view_append_column (GTK_TREE_VIEW (keybinding_treeview), column);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(keybinding_treeview), column);
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes ("Command", renderer,
+    column = gtk_tree_view_column_new_with_attributes("Command", renderer,
              "text", KLIST_COMMAND,
              NULL);
     gtk_tree_view_column_set_sort_column_id(column, KLIST_COMMAND);
-    gtk_tree_view_append_column(GTK_TREE_VIEW (keybinding_treeview), column);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(keybinding_treeview), column);
 
 
-    keybinding_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(keybinding_treeview));
+    keybinding_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(
+                               keybinding_treeview));
     gtk_tree_selection_set_mode(keybinding_selection, GTK_SELECTION_BROWSE);
-    gtk_tree_selection_set_select_function(keybinding_selection, keybinding_selection_func, NULL, NULL);
+    gtk_tree_selection_set_select_function(keybinding_selection,
+                                           keybinding_selection_func, NULL, NULL);
 
     gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(keybinding_store),
                                          KLIST_KEY,
@@ -759,14 +770,6 @@ void keys_init(GtkWidget *window_root)
         keys_global[i] = NULL;
         keys_char[i] = NULL;
     }
-
-    /*
-     * Old servers (e.g. 1.12) starts game play without a login
-     * process. We can't get the character name on such a server, so
-     * load default and global key bindings here in case we
-     * don't get the character-specific one later.
-     */
-    keybindings_init(NULL);
 }
 
 /**
@@ -781,8 +784,7 @@ void keys_init(GtkWidget *window_root)
  *
  * @param ks
  */
-static void parse_key_release(uint32 keysym)
-{
+static void parse_key_release(uint32 keysym) {
 
     /*
      * Only send stop firing/running commands if we are in actual play mode.
@@ -821,8 +823,7 @@ static void parse_key_release(uint32 keysym)
  * @param key
  * @param keysym
  */
-static void parse_key(char key, uint32 keysym)
-{
+static void parse_key(char key, uint32 keysym) {
     struct keybind *kb;
     int present_flags = 0;
     char buf[MAX_BUF], tmpbuf[MAX_BUF];
@@ -871,8 +872,9 @@ static void parse_key(char key, uint32 keysym)
     }
 
     kb = keybind_find(keysym, present_flags, 0); /* char scope */
-    if (kb == NULL)
-        kb = keybind_find(keysym, present_flags, 1); /* global scope */
+    if (kb == NULL) {
+        kb = keybind_find(keysym, present_flags, 1);    /* global scope */
+    }
     if (kb != NULL) {
         if (kb->flags & KEYF_EDIT) {
             strcpy(cpl.input_text, kb->command);
@@ -886,7 +888,7 @@ static void parse_key(char key, uint32 keysym)
 
         /* Some spells (dimension door) need a valid count value */
         cpl.count = gtk_spin_button_get_value_as_int(
-                                   GTK_SPIN_BUTTON(spinbutton_count));
+                        GTK_SPIN_BUTTON(spinbutton_count));
 
         if (kb->direction >= 0) {
             if (cpl.fire_on) {
@@ -944,8 +946,7 @@ static void parse_key(char key, uint32 keysym)
     cpl.count = 0;
 }
 
-static void get_key_modchars(struct keybind *kb, int save_mode, char *buf)
-{
+static void get_key_modchars(struct keybind *kb, int save_mode, char *buf) {
     int bi = 0;
 
     if (kb->flags & KEYF_ANY) {
@@ -983,8 +984,7 @@ static void get_key_modchars(struct keybind *kb, int save_mode, char *buf)
  * information in a friendly manner.
  * @return A character string describing the key.
  */
-static char *get_key_info(struct keybind *kb, int save_mode)
-{
+static char *get_key_info(struct keybind *kb, int save_mode) {
     /* bind buf is the maximum space allowed for a
      * bound command. We will add additional data to
      * it so we increase its size by MAX_BUF*/
@@ -1021,8 +1021,7 @@ static char *get_key_info(struct keybind *kb, int save_mode)
  *
  * @param allbindings Also shows the standard (default) keybindings.
  */
-static void show_keys(void)
-{
+static void show_keys(void) {
     int i, j, count = 1;
     struct keybind *kb;
     char buf[MAX_BUF];
@@ -1067,8 +1066,8 @@ static void show_keys(void)
      * Perhaps we should start at 8, so that we only show 'active' keybindings?
      */
     for (i = 0; i < KEYHASH; i++) {
-        for (j=0; j<2; j++) {
-            for (kb=(j==0)?keys_global[i]:keys_char[i]; kb != NULL; kb = kb->next) {
+        for (j = 0; j < 2; j++) {
+            for (kb = (j == 0) ? keys_global[i] : keys_char[i]; kb != NULL; kb = kb->next) {
                 snprintf(buf, sizeof(buf), "%3d %s", count, get_key_info(kb, 0));
                 draw_ext_info(
                     NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
@@ -1086,17 +1085,16 @@ static void show_keys(void)
  *
  * @param params If null, show bind command help in the message pane.
  */
-void bind_key(char *params)
-{
+void bind_key(char *params) {
     char buf[MAX_BUF + 16];
 
     if (!params) {
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-"Usage: 'bind -ei {<commandline>,commandkey,firekey{1,2},runkey{1,2},altkey{1,2},metakey{1,2},completekey,nextkey,prevkey}'\n"
-"Where\n"
-"      -e means enter edit mode\n"
-"      -g means this binding should be global (used for all your characters)\n"
-"      -i means ignore modifier keys (keybinding works no matter if Ctrl/Alt etc are held)");
+                      "Usage: 'bind -ei {<commandline>,commandkey,firekey{1,2},runkey{1,2},altkey{1,2},metakey{1,2},completekey,nextkey,prevkey}'\n"
+                      "Where\n"
+                      "      -e means enter edit mode\n"
+                      "      -g means this binding should be global (used for all your characters)\n"
+                      "      -i means ignore modifier keys (keybinding works no matter if Ctrl/Alt etc are held)");
         return;
     }
 
@@ -1200,24 +1198,24 @@ void bind_key(char *params)
     if (params[0] == '-') {
         for (params++; *params != ' '; params++)
             switch (*params) {
-            case 'e':
-                bind_flags |= KEYF_EDIT;
-                break;
-            case 'i':
-                bind_flags |= KEYF_ANY;
-                break;
-            case 'g':
-                bind_flags |= KEYF_R_GLOBAL;
-                break;
-            case '\0':
-                draw_ext_info(
-                    NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-                    "Use unbind to remove bindings.");
-                return;
-            default:
-                snprintf(buf, sizeof(buf),
-                         "Unsupported or invalid bind flag: '%c'", *params);
-                draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
+                case 'e':
+                    bind_flags |= KEYF_EDIT;
+                    break;
+                case 'i':
+                    bind_flags |= KEYF_ANY;
+                    break;
+                case 'g':
+                    bind_flags |= KEYF_R_GLOBAL;
+                    break;
+                case '\0':
+                    draw_ext_info(
+                        NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                        "Use unbind to remove bindings.");
+                    return;
+                default:
+                    snprintf(buf, sizeof(buf),
+                             "Unsupported or invalid bind flag: '%c'", *params);
+                    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
                     return;
             }
         params++;
@@ -1255,8 +1253,7 @@ void bind_key(char *params)
  *            returns when it becomes a NULL pointer.
  * @param kc
  */
-static void save_individual_key(FILE *fp, struct keybind *kb, KeyCode kc)
-{
+static void save_individual_key(FILE *fp, struct keybind *kb, KeyCode kc) {
     while (kb) {
         fprintf(fp, "%s\n", get_key_info(kb, 1));
         kb = kb->next;
@@ -1270,8 +1267,7 @@ static void save_individual_key(FILE *fp, struct keybind *kb, KeyCode kc)
  * dumped to the file, and the output file is closed.  Success or failure is
  * reported to the message pane.
  */
-static void save_keys(void)
-{
+static void save_keys(void) {
     char buf[MAX_BUF], buf2[MAX_BUF];
     int i;
     FILE *fp;
@@ -1284,18 +1280,19 @@ static void save_keys(void)
         LOG(LOG_INFO, "gtk-v2::save_keys",
             "Saving character specific keybindings to %s", buf);
 
-        if (make_path_to_file(buf) == -1)
+        if (make_path_to_file(buf) == -1) {
             LOG(LOG_WARNING, "gtk-v2::save_keys", "Could not create %s", buf);
+        }
 
         fp = fopen(buf, "w");
         if (fp == NULL) {
             snprintf(buf2, sizeof(buf2),
                      "Could not open %s, character bindings not saved\n", buf);
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf2);
-        }
-        else {
-            for (i = 0; i < KEYHASH; i++)
+        } else {
+            for (i = 0; i < KEYHASH; i++) {
                 save_individual_key(fp, keys_char[i], 0);
+            }
             fclose(fp);
         }
     }
@@ -1306,16 +1303,15 @@ static void save_keys(void)
     LOG(LOG_INFO, "gtk-v2::save_keys",
         "Saving global user's keybindings to %s", buf);
 
-    if (make_path_to_file(buf) == -1)
+    if (make_path_to_file(buf) == -1) {
         LOG(LOG_WARNING, "gtk-v2::save_keys", "Could not create %s", buf);
-    else {
+    } else {
         fp = fopen(buf, "w");
         if (fp == NULL) {
             snprintf(buf2, sizeof(buf2),
                      "Could not open %s, global key bindings not saved\n", buf);
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf2);
-        }
-        else {
+        } else {
             /* Save default bindings as part of the global scope */
             if (firekeysym[0] != GDK_Shift_L && firekeysym[0] != NoSymbol)
                 fprintf(fp, "! firekey0 %s %d\n",
@@ -1352,8 +1348,9 @@ static void save_keys(void)
                 fprintf(fp, "! prevkey %s %d\n",
                         gdk_keyval_name(prevkeysym), 0);
 
-            for (i = 0; i < KEYHASH; i++)
+            for (i = 0; i < KEYHASH; i++) {
                 save_individual_key(fp, keys_global[i], 0);
+            }
             fclose(fp);
         }
     }
@@ -1367,8 +1364,7 @@ static void save_keys(void)
  *
  * @param keysym
  */
-static void configure_keys(uint32 keysym)
-{
+static void configure_keys(uint32 keysym) {
     char buf[MAX_BUF];
     struct keybind *kb;
 
@@ -1434,9 +1430,9 @@ static void configure_keys(uint32 keysym)
             draw_ext_info(
                 NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
             return;
-        }
-        else
+        } else {
             keybind_insert(keysym, bind_flags, bind_buf);
+        }
     }
 
     snprintf(buf, sizeof(buf), "Bound to key '%s' (%i)",
@@ -1456,8 +1452,7 @@ static void configure_keys(uint32 keysym)
 /**
  * Show help for the unbind command in the message pane.
  */
-static void unbind_usage(void)
-{
+static void unbind_usage(void) {
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                   "Usage: 'unbind <entry_number>' or");
     draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
@@ -1468,8 +1463,7 @@ static void unbind_usage(void)
  *
  * @param params
  */
-void unbind_key(const char *params)
-{
+void unbind_key(const char *params) {
     int count = 0, keyentry, slot, j;
     int res;
     struct keybind *kb;
@@ -1497,7 +1491,8 @@ void unbind_key(const char *params)
 
     for (slot = 0; slot < KEYHASH; slot++) {
         for (j = 0; j < 2; j++) {
-            for (kb=(j==0)?keys_global[slot]:keys_char[slot]; kb != NULL; kb=kb->next) {
+            for (kb = (j == 0) ? keys_global[slot] : keys_char[slot]; kb != NULL;
+                    kb = kb->next) {
                 count++;
 
                 if (keyentry == count) {
@@ -1529,8 +1524,7 @@ void unbind_key(const char *params)
 /**
  * When the main window looses its focus, act as if all keys have been released
  */
-void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
-{
+void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     if (cpl.fire_on == 1) {
         cpl.fire_on = 0;
         clear_fire();
@@ -1559,8 +1553,7 @@ void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
  * @param event  GDK Key Release Event
  * @param window
  */
-void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
-{
+void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     if (event->keyval > 0 && !GTK_WIDGET_HAS_FOCUS(entry_commands)) {
         parse_key_release(event->keyval);
     }
@@ -1574,13 +1567,12 @@ void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
  * @param event  GDK Key Press Event
  * @param window
  */
-void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
-{
+void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     char *text;
 
     if (!use_config[CONFIG_POPUPS]) {
-        if ( ((cpl.input_state == Reply_One) || (cpl.input_state == Reply_Many))
-                && (event->keyval == cancelkeysym) ) {
+        if (((cpl.input_state == Reply_One) || (cpl.input_state == Reply_Many))
+                && (event->keyval == cancelkeysym)) {
 
             /*
              * Player hit cancel button during input. Disconnect it (code from
@@ -1598,7 +1590,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
                 GTK_OBJECT(window), "key_press_event");
             return;
         }
-        if  (cpl.input_state == Reply_One) {
+        if (cpl.input_state == Reply_One) {
             text = gdk_keyval_name(event->keyval);
             send_reply(text);
             cpl.input_state = Playing;
@@ -1606,8 +1598,8 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
                 GTK_OBJECT(window), "key_press_event");
             return;
         } else if (cpl.input_state == Reply_Many) {
-            if (GTK_WIDGET_HAS_FOCUS (entry_commands)) {
-                gtk_widget_event(GTK_WIDGET(entry_commands), (GdkEvent*)event);
+            if (GTK_WIDGET_HAS_FOCUS(entry_commands)) {
+                gtk_widget_event(GTK_WIDGET(entry_commands), (GdkEvent *)event);
             } else {
                 gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
             }
@@ -1626,86 +1618,86 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
                 gtk_complete_command();
             }
             if (event->keyval == prevkeysym || event->keyval == nextkeysym) {
-                gtk_command_history(event->keyval == nextkeysym?0:1);
+                gtk_command_history(event->keyval == nextkeysym ? 0 : 1);
             } else {
-                gtk_widget_event(GTK_WIDGET(entry_commands), (GdkEvent*)event);
+                gtk_widget_event(GTK_WIDGET(entry_commands), (GdkEvent *)event);
             }
         } else {
-            switch(cpl.input_state) {
-            case Playing:
-                /*
-                 * Specials - do command history - many times, the player
-                 * will want to go the previous command when nothing is
-                 * entered in the command window.
-                 */
-                if ((event->keyval == prevkeysym)
-                        || (event->keyval == nextkeysym)) {
-                    gtk_command_history(event->keyval == nextkeysym ? 0 : 1);
-                } else {
-                    if (cpl.run_on) {
-                        if (!(event->state & GDK_CONTROL_MASK)) {
-                            /* printf("Run is on while ctrl is not\n"); */
-                            gtk_label_set(GTK_LABEL(run_label), "   ");
-                            cpl.run_on = 0;
-                            stop_run();
-                        }
-                    }
-                    if (cpl.fire_on) {
-                        if (!(event->state & GDK_SHIFT_MASK)) {
-                            /* printf("Fire is on while shift is not\n");*/
-                            gtk_label_set(GTK_LABEL(fire_label), "   ");
-                            cpl.fire_on = 0;
-                            stop_fire();
-                        }
-                    }
-
-                    if ( (event->state & GDK_CONTROL_MASK)
-                            && (event->state & GDK_SHIFT_MASK)
-                            && (event->keyval == GDK_i || event->keyval == GDK_I) ) {
-                        reset_map();
-                    }
-
-                    parse_key(event->string[0], event->keyval);
-                }
-                break;
-
-            case Configure_Keys:
-                configure_keys(event->keyval);
-                break;
-
-            case Command_Mode:
-                if (event->keyval == completekeysym) {
-                    gtk_complete_command();
-                }
-                if ((event->keyval == prevkeysym)
-                        || (event->keyval == nextkeysym)) {
-                    gtk_command_history(event->keyval == nextkeysym ? 0 : 1);
-                } else {
-                    gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
+            switch (cpl.input_state) {
+                case Playing:
                     /*
-                     * When running in split windows mode, entry_commands
-                     * can't get focus because it is in a different
-                     * window.  So we have to pass the event to it
-                     * explicitly.
+                     * Specials - do command history - many times, the player
+                     * will want to go the previous command when nothing is
+                     * entered in the command window.
                      */
-                    if (GTK_WIDGET_HAS_FOCUS(entry_commands) == 0)
-                        gtk_widget_event(
-                            GTK_WIDGET(entry_commands), (GdkEvent*)event);
-                }
-                /*
-                 * Don't pass signal along to default handlers -
-                 * otherwise, we get get crashes in the clist area (gtk
-                 * fault I believe)
-                 */
-                break;
+                    if ((event->keyval == prevkeysym)
+                            || (event->keyval == nextkeysym)) {
+                        gtk_command_history(event->keyval == nextkeysym ? 0 : 1);
+                    } else {
+                        if (cpl.run_on) {
+                            if (!(event->state & GDK_CONTROL_MASK)) {
+                                /* printf("Run is on while ctrl is not\n"); */
+                                gtk_label_set(GTK_LABEL(run_label), "   ");
+                                cpl.run_on = 0;
+                                stop_run();
+                            }
+                        }
+                        if (cpl.fire_on) {
+                            if (!(event->state & GDK_SHIFT_MASK)) {
+                                /* printf("Fire is on while shift is not\n");*/
+                                gtk_label_set(GTK_LABEL(fire_label), "   ");
+                                cpl.fire_on = 0;
+                                stop_fire();
+                            }
+                        }
 
-            case Metaserver_Select:
-                gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
-                break;
+                        if ((event->state & GDK_CONTROL_MASK)
+                                && (event->state & GDK_SHIFT_MASK)
+                                && (event->keyval == GDK_i || event->keyval == GDK_I)) {
+                            reset_map();
+                        }
 
-            default:
-                LOG(LOG_ERROR, "gtk-v2::keyfunc",
-                    "Unknown input state: %d", cpl.input_state);
+                        parse_key(event->string[0], event->keyval);
+                    }
+                    break;
+
+                case Configure_Keys:
+                    configure_keys(event->keyval);
+                    break;
+
+                case Command_Mode:
+                    if (event->keyval == completekeysym) {
+                        gtk_complete_command();
+                    }
+                    if ((event->keyval == prevkeysym)
+                            || (event->keyval == nextkeysym)) {
+                        gtk_command_history(event->keyval == nextkeysym ? 0 : 1);
+                    } else {
+                        gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
+                        /*
+                         * When running in split windows mode, entry_commands
+                         * can't get focus because it is in a different
+                         * window.  So we have to pass the event to it
+                         * explicitly.
+                         */
+                        if (GTK_WIDGET_HAS_FOCUS(entry_commands) == 0)
+                            gtk_widget_event(
+                                GTK_WIDGET(entry_commands), (GdkEvent *)event);
+                    }
+                    /*
+                     * Don't pass signal along to default handlers -
+                     * otherwise, we get get crashes in the clist area (gtk
+                     * fault I believe)
+                     */
+                    break;
+
+                case Metaserver_Select:
+                    gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
+                    break;
+
+                default:
+                    LOG(LOG_ERROR, "gtk-v2::keyfunc",
+                        "Unknown input state: %d", cpl.input_state);
             }
         }
     }
@@ -1718,8 +1710,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window)
  *
  * @param keylist
  */
-void draw_keybindings(GtkWidget *keylist)
-{
+void draw_keybindings(GtkWidget *keylist) {
     int i, j, count = 1;
     struct keybind *kb;
     char buff[MAX_BUF];
@@ -1729,7 +1720,7 @@ void draw_keybindings(GtkWidget *keylist)
     gtk_clist_clear(GTK_CLIST(keylist));
     for (i = 0; i < KEYHASH; i++) {
         for (j = 0; j < 2; j++) {
-            for (kb=(j==0)?keys_global[i]:keys_char[i]; kb != NULL; kb = kb->next) {
+            for (kb = (j == 0) ? keys_global[i] : keys_char[i]; kb != NULL; kb = kb->next) {
                 get_key_modchars(kb, 0, buff);
 
                 if (kb->keysym != NoSymbol) {
@@ -1754,8 +1745,7 @@ void draw_keybindings(GtkWidget *keylist)
 /**
  *
  */
-void x_set_echo(void)
-{
+void x_set_echo(void) {
     gtk_entry_set_visibility(GTK_ENTRY(entry_commands), !cpl.no_echo);
 }
 
@@ -1764,8 +1754,7 @@ void x_set_echo(void)
  *
  * @param str
  */
-void draw_prompt(const char *str)
-{
+void draw_prompt(const char *str) {
     draw_ext_info(NDI_WHITE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_QUERY, str);
     gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
 }
@@ -1775,8 +1764,7 @@ void draw_prompt(const char *str)
  *
  * @param direction If 0, we are going backwards, if 1, we are moving forward.
  */
-void gtk_command_history(int direction)
-{
+void gtk_command_history(int direction) {
     int i = scroll_history_position;
     if (direction) {
         i--;
@@ -1807,7 +1795,7 @@ void gtk_command_history(int direction)
         return;
     }
 
-    scroll_history_position=i;
+    scroll_history_position = i;
     /*  fprintf(stderr, "resetting postion to %d, data = %s\n", i, history[i]);*/
     gtk_entry_set_text(GTK_ENTRY(entry_commands), history[i]);
     gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
@@ -1823,8 +1811,7 @@ void gtk_command_history(int direction)
  * point. It is almost like tab completion, except for the completion.  The TAB
  * key is also known by GDK_Tab, completekey, or completekeysym.
  */
-void gtk_complete_command(void)
-{
+void gtk_complete_command(void) {
     const gchar *entry_text, *newcommand;
 
     entry_text = gtk_entry_get_text(GTK_ENTRY(entry_commands));
@@ -1845,8 +1832,7 @@ void gtk_complete_command(void)
  * @param entry
  * @param user_data
  */
-void on_entry_commands_activate(GtkEntry *entry, gpointer user_data)
-{
+void on_entry_commands_activate(GtkEntry *entry, gpointer user_data) {
     const gchar *entry_text;
     extern GtkWidget *treeview_look;
 
@@ -1893,7 +1879,7 @@ void on_entry_commands_activate(GtkEntry *entry, gpointer user_data)
      */
     gtk_widget_grab_focus(GTK_WIDGET(treeview_look));
 
-    if( cpl.input_state == Metaserver_Select) {
+    if (cpl.input_state == Metaserver_Select) {
         cpl.input_state = Playing;
         /*
          * This is the gtk_main that is started up by get_metaserver The client
@@ -1915,8 +1901,7 @@ void on_entry_commands_activate(GtkEntry *entry, gpointer user_data)
 /**
  * Update the keybinding dialog to reflect the current state of the keys file.
  */
-void update_keybinding_list(void)
-{
+void update_keybinding_list(void) {
     int i, j;
     struct keybind *kb;
     char *modifier_label, *scope_label;
@@ -1925,11 +1910,12 @@ void update_keybinding_list(void)
     gtk_list_store_clear(keybinding_store);
     for (i = 0; i < KEYHASH; i++) {
         for (j = 0; j < 2; j++) {
-            for (kb=(j==0)?keys_global[i]:keys_char[i]; kb != NULL; kb = kb->next) {
-                if (j==0)
+            for (kb = (j == 0) ? keys_global[i] : keys_char[i]; kb != NULL; kb = kb->next) {
+                if (j == 0) {
                     kb->flags |= KEYF_R_GLOBAL;
-                else
+                } else {
                     kb->flags |= KEYF_R_CHAR;
+                }
 
                 if (kb->flags & KEYF_ANY) {
                     modifier_label = "Any";
@@ -1938,25 +1924,28 @@ void update_keybinding_list(void)
                 } else {
                     if (kb->flags & KEYF_MOD_ALT) {
                         modifier_label = "Alt";
-                        if (kb->flags & (KEYF_MOD_SHIFT | KEYF_MOD_CTRL | KEYF_MOD_META))
+                        if (kb->flags & (KEYF_MOD_SHIFT | KEYF_MOD_CTRL | KEYF_MOD_META)) {
                             modifier_label = " + ";
+                        }
                     }
                     if (kb->flags & KEYF_MOD_SHIFT) {
                         modifier_label = "Fire";
-                        if (kb->flags & (KEYF_MOD_CTRL | KEYF_MOD_META))
+                        if (kb->flags & (KEYF_MOD_CTRL | KEYF_MOD_META)) {
                             modifier_label = " + ";
+                        }
                     }
                     if (kb->flags & KEYF_MOD_CTRL) {
                         modifier_label = "Run";
-                        if (kb->flags & KEYF_MOD_META)
+                        if (kb->flags & KEYF_MOD_META) {
                             modifier_label = " + ";
+                        }
                     }
                     if (kb->flags & KEYF_MOD_META) {
                         modifier_label = "Meta";
                     }
                 }
                 if (!(kb->flags & KEYF_R_GLOBAL)) {
-                    scope_label = " char ";
+                    scope_label = "char";
                 } else {
                     scope_label = "global";
                 }
@@ -1966,7 +1955,7 @@ void update_keybinding_list(void)
                                    KLIST_KEY, gdk_keyval_name(kb->keysym),
                                    KLIST_MODS, modifier_label,
                                    KLIST_SCOPE, scope_label,
-                                   KLIST_EDIT, (kb->flags & KEYF_EDIT) ? "Yes":"No",
+                                   KLIST_EDIT, (kb->flags & KEYF_EDIT) ? "Yes" : "No",
                                    KLIST_COMMAND, kb->command,
                                    KLIST_KEY_ENTRY, kb,
                                    -1);
@@ -1982,8 +1971,7 @@ void update_keybinding_list(void)
  * @param menuitem
  * @param user_data
  */
-void on_keybindings_activate(GtkMenuItem *menuitem, gpointer user_data)
-{
+void on_keybindings_activate(GtkMenuItem *menuitem, gpointer user_data) {
     gtk_widget_show(keybinding_window);
     update_keybinding_list();
 }
@@ -2003,8 +1991,7 @@ void on_keybindings_activate(GtkMenuItem *menuitem, gpointer user_data)
 gboolean
 on_keybinding_entry_key_key_press_event(GtkWidget       *widget,
                                         GdkEventKey     *event,
-                                        gpointer         user_data)
-{
+                                        gpointer         user_data) {
     gtk_entry_set_text(
         GTK_ENTRY(keybinding_entry_key), gdk_keyval_name(event->keyval));
     /*
@@ -2032,7 +2019,8 @@ on_keybinding_entry_key_key_press_event(GtkWidget       *widget,
 
 #if 0
     else {
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift), FALSE);
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(keybinding_checkbutton_shift),
+                                     FALSE);
     }
 
     /* The GDK_MOD_MASK* will likely correspond to alt and meta, yet there is
@@ -2065,7 +2053,7 @@ void toggle_buttons_scope(int scope) {
      * they are equal (which is inconsistent) then update them. Deactivate the
      * callbacks for the "toggled" events temporarily to avoid an infinite loop.
      */
-    if (state_u != scope || state_u == state_c){
+    if (state_u != scope || state_u == state_c) {
         g_signal_handlers_block_by_func(
             GTK_TOGGLE_BUTTON(kb_scope_togglebutton_character),
             G_CALLBACK(on_kb_scope_togglebutton_character_toggled), NULL);
@@ -2094,18 +2082,18 @@ void toggle_buttons_scope(int scope) {
  *
  * @return TRUE if the user chooses to overwrite kb, else FALSE.
  */
-static int keybind_overwrite_confirm(struct keybind *kb){
+static int keybind_overwrite_confirm(struct keybind *kb) {
     GtkWidget *dialog, *label;
     int result;
     char buf[MAX_BUF], buf2[MAX_BUF];
 
     dialog = gtk_dialog_new_with_buttons(
-            "Key already in use",
-            GTK_WINDOW(keybinding_window),
-            GTK_DIALOG_MODAL,
-            GTK_STOCK_YES, 1,
-            GTK_STOCK_NO, 2,
-            NULL);
+                 "Key already in use",
+                 GTK_WINDOW(keybinding_window),
+                 GTK_DIALOG_MODAL,
+                 GTK_STOCK_YES, 1,
+                 GTK_STOCK_NO, 2,
+                 NULL);
     get_key_modchars(kb, 1, buf2);
     snprintf(buf, sizeof(buf), "Overwrite this binding?\n  (%s) %s\n%s",
              buf2, gdk_keyval_name(kb->keysym), kb->command);
@@ -2158,12 +2146,12 @@ void toggle_keybind_scope(int scope, struct keybind *kb) {
      * Else just make a copy into keys_char only switching the state flags.
      */
     if (scope) {
-        if ((kb->flags & KEYF_R_GLOBAL)==0) {
+        if ((kb->flags & KEYF_R_GLOBAL) == 0) {
             /* Remove kb from keys_char, don't free it. */
             ret = keybind_remove(kb);
             if (ret == -1) {
                 draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR,
-                          "\nCould not remove keybind. Operation failed.\n");
+                              "\nCould not remove keybind. Operation failed.\n");
                 toggle_buttons_scope(!scope);
                 keybindings_init(cpl.name);
                 update_keybinding_list();
@@ -2176,16 +2164,16 @@ void toggle_keybind_scope(int scope, struct keybind *kb) {
             kb->next = NULL;
 
             if (*next_ptr) {
-                while ((*next_ptr)->next)
+                while ((*next_ptr)->next) {
                     next_ptr = &(*next_ptr)->next;
+                }
                 (*next_ptr)->next = kb;
-            }
-            else
+            } else {
                 keys_global[kb->keysym % KEYHASH] = kb;
+            }
         }
-    }
-    else {
-        if ((kb->flags & KEYF_R_GLOBAL)!=0) {
+    } else {
+        if ((kb->flags & KEYF_R_GLOBAL) != 0) {
             /* Copy the selected binding in the char's scope with the right flags. */
             snprintf(buf, sizeof(buf), "%s", kb->command);
             flags = kb->flags;
@@ -2205,8 +2193,8 @@ void toggle_keybind_scope(int scope, struct keybind *kb) {
  * @param toggle_button
  * @param user_data
  */
-void on_kb_scope_togglebutton_character_toggled(GtkToggleButton *toggle_button, gpointer user_data)
-{
+void on_kb_scope_togglebutton_character_toggled(GtkToggleButton *toggle_button,
+        gpointer user_data) {
     GtkTreeModel *model;
     GtkTreeIter iter;
     struct keybind *kb;
@@ -2227,8 +2215,8 @@ void on_kb_scope_togglebutton_character_toggled(GtkToggleButton *toggle_button, 
  * @param toggle_button
  * @param user_data
  */
-void on_kb_scope_togglebutton_global_toggled(GtkToggleButton *toggle_button, gpointer user_data)
-{
+void on_kb_scope_togglebutton_global_toggled(GtkToggleButton *toggle_button,
+        gpointer user_data) {
     GtkTreeModel *model;
     GtkTreeIter iter;
     struct keybind *kb;
@@ -2249,8 +2237,8 @@ void on_kb_scope_togglebutton_global_toggled(GtkToggleButton *toggle_button, gpo
  * @param button
  * @param user_data
  */
-void on_keybinding_button_remove_clicked(GtkButton *button, gpointer user_data)
-{
+void on_keybinding_button_remove_clicked(GtkButton *button,
+        gpointer user_data) {
     GtkTreeModel *model;
     GtkTreeIter iter;
     struct keybind *kb;
@@ -2281,8 +2269,8 @@ void on_keybinding_button_remove_clicked(GtkButton *button, gpointer user_data)
  * @param flags
  * @param command
  */
-static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **command)
-{
+static void keybinding_get_data(uint32 *keysym, uint8 *flags,
+                                const char **command) {
     static char bind_buf[MAX_BUF];
     const char *ed;
     *flags = 0;
@@ -2293,8 +2281,9 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
     }
 
     if (gtk_toggle_button_get_active(
-                GTK_TOGGLE_BUTTON(kb_scope_togglebutton_global)))
+                GTK_TOGGLE_BUTTON(kb_scope_togglebutton_global))) {
         *flags |= KEYF_R_GLOBAL;
+    }
 
     if (gtk_toggle_button_get_active(
                 GTK_TOGGLE_BUTTON(keybinding_checkbutton_control))) {
@@ -2347,8 +2336,7 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags, const char **comma
  * @param button
  * @param user_data
  */
-void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data)
-{
+void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data) {
     uint32 keysym;
     uint8 flags;
     const char *command;
@@ -2358,8 +2346,9 @@ void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data)
 
     /* keybind_insert will do a strdup of command for us */
     kb = keybind_find(keysym, flags, (flags & KEYF_R_GLOBAL));
-    if (kb && (!keybind_overwrite_confirm(kb)))
+    if (kb && (!keybind_overwrite_confirm(kb))) {
         return;
+    }
     keybind_insert(keysym, flags, command);
 
     /*
@@ -2381,8 +2370,8 @@ void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data)
  * @param button
  * @param user_data
  */
-void on_keybinding_button_update_clicked(GtkButton *button, gpointer user_data)
-{
+void on_keybinding_button_update_clicked(GtkButton *button,
+        gpointer user_data) {
     GtkTreeIter iter;
     struct keybind *kb;
     GtkTreeModel *model;
@@ -2430,8 +2419,7 @@ void on_keybinding_button_update_clicked(GtkButton *button, gpointer user_data)
  * @param button
  * @param user_data
  */
-void on_keybinding_button_close_clicked(GtkButton *button, gpointer user_data)
-{
+void on_keybinding_button_close_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(keybinding_window);
 }
 
@@ -2441,8 +2429,8 @@ void on_keybinding_button_close_clicked(GtkButton *button, gpointer user_data)
  * @param button
  * @param user_data
  */
-void on_keybinding_checkbutton_any_clicked(GtkCheckButton *cb, gpointer user_data)
-{
+void on_keybinding_checkbutton_any_clicked(GtkCheckButton *cb,
+        gpointer user_data) {
     gboolean enabled;
 
     enabled = !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb));
@@ -2470,8 +2458,7 @@ gboolean keybinding_selection_func(
     GtkTreeModel     *model,
     GtkTreePath      *path,
     gboolean          path_currently_selected,
-    gpointer          userdata)
-{
+    gpointer          userdata) {
     GtkTreeIter iter;
     struct keybind *kb;
 
@@ -2534,7 +2521,7 @@ gboolean keybinding_selection_func(
         gtk_entry_set_text(
             GTK_ENTRY(keybinding_entry_command), kb->command);
 
-        toggle_buttons_scope((kb->flags & KEYF_R_GLOBAL)!=0);
+        toggle_buttons_scope((kb->flags & KEYF_R_GLOBAL) != 0);
     }
     return TRUE;
 }
@@ -2544,8 +2531,7 @@ gboolean keybinding_selection_func(
  * clear the key input box, clear the command input box, and disable the two
  * update and remove keybinding buttons.
  */
-void reset_keybinding_status(void)
-{
+void reset_keybinding_status(void) {
     gtk_toggle_button_set_active(
         GTK_TOGGLE_BUTTON(keybinding_checkbutton_any), FALSE);
     gtk_toggle_button_set_active(
@@ -2558,8 +2544,8 @@ void reset_keybinding_status(void)
         GTK_TOGGLE_BUTTON(keybinding_checkbutton_meta), FALSE);
     gtk_toggle_button_set_active(
         GTK_TOGGLE_BUTTON(keybinding_checkbutton_edit), FALSE);
-    gtk_entry_set_text (GTK_ENTRY(keybinding_entry_key), "");
-    gtk_entry_set_text (GTK_ENTRY(keybinding_entry_command), "");
+    gtk_entry_set_text(GTK_ENTRY(keybinding_entry_key), "");
+    gtk_entry_set_text(GTK_ENTRY(keybinding_entry_command), "");
 
     toggle_buttons_scope(FALSE);
 
@@ -2575,8 +2561,7 @@ void reset_keybinding_status(void)
  * @param button
  * @param user_data
  */
-void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_data)
-{
+void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_data) {
     GtkTreeModel *model;
     GtkTreeIter iter;
 

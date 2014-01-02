@@ -51,7 +51,10 @@ void new_player (long tag, char *name, long weight, long face)
     cpl.ob->nrof   = 1;
     copy_name (cpl.ob->d_name, name);
 
-    keybindings_init(name);
+    /* Right after player exit server will send this with empty name. */
+    if (strlen(name) != 0) {
+        keybindings_init(name);
+    }
 
     cpl.ob->weight = (float) weight / 1000;
     cpl.ob->face   = face;

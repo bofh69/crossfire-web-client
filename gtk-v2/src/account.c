@@ -471,8 +471,6 @@ static void play_character(const char *name) {
     SockList_AddString(&sl, "accountplay ");
     SockList_AddString(&sl, name);
     SockList_Send(&sl, csocket.fd);
-
-    keybindings_init(name);
 }
 
 /**
