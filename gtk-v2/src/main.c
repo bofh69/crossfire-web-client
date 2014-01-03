@@ -236,7 +236,6 @@ void do_network() {
  * Event loop iteration stuff
  */
 void event_loop() {
-    gint fleep;
     extern int do_timeout(void);
     int tag;
 
@@ -251,7 +250,7 @@ void event_loop() {
         timeout.tv_usec = 0;/* MAX_TIME % 1000000;*/
     }
 
-    fleep =  gtk_timeout_add(10, (GtkFunction) do_timeout, NULL);
+    gtk_timeout_add(10, (GtkFunction) do_timeout, NULL);
 
 #ifdef WIN32
     gtk_timeout_add(25, (GtkFunction) do_scriptout, NULL);
@@ -350,7 +349,6 @@ static void usage(char *progname) {
  */
 static int parse_args(int argc, char *argv[]) {
     int on_arg = 1;
-    char *display_name = "";
 
     load_defaults();
 
@@ -375,7 +373,6 @@ static int parse_args(int argc, char *argv[]) {
                     "-display requires a display name");
                 return 1;
             }
-            display_name = argv[on_arg];
             continue;
         } else if (!strcmp(argv[on_arg], "-download_all_faces")) {
             want_config[CONFIG_DOWNLOAD] = TRUE;

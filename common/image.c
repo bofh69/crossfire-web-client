@@ -66,7 +66,11 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum) {
      * images in the player's image cache. */
     if ((cp = strchr(filename, '@')) != NULL) {
         char *lp;
-        int offset, length, last = -1;
+        int offset, last = -1;
+
+#ifdef WIN32
+        int length;
+#endif
 
         offset = atoi(cp + 1);
         lp = strchr(cp, ':');
@@ -75,7 +79,9 @@ static int load_image(char *filename, uint8 *data, int *len, uint32 *csum) {
                 "Corrupt filename - has '@' but no ':' ?(%s)", filename);
             return -1;
         }
+#ifdef WIN32
         length = atoi(lp + 1);
+#endif
         *cp = 0;
         for (i = 0; i < MAX_FACE_SETS; i++) {
             if (!strcmp(fd_cache[i].name, filename)) {

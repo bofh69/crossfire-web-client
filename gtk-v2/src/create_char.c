@@ -473,7 +473,6 @@ static int character_data_ok()
     i = gtk_combo_box_get_active(GTK_COMBO_BOX(combobox_starting_map));
     if (starting_map_number && i == -1) {
         GtkWidget *dialog;
-        int result;
 
         show_window(WINDOW_CHOOSE_MAP);
         dialog =
@@ -481,7 +480,7 @@ static int character_data_ok()
                                    GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_WARNING,
                                    GTK_BUTTONS_OK,
                                    "You must choose a starting map before you can start playing");
-        result = gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_dialog_run(GTK_DIALOG(dialog));
         gtk_widget_destroy(dialog);
         return FALSE;
     }

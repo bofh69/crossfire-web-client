@@ -723,7 +723,7 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
      * code, as that is not initialzed yet.
      */
     if (type == MSG_TYPE_CLIENT && !max_subtype) {
-        subtype=0;
+        /* We would set subtype = 0, but that'd be a dead assignment. */
     } else if (type >= MSG_TYPE_LAST
                || subtype >= max_subtype
                || type < 0 || subtype < 0 ) {
@@ -807,7 +807,6 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
             LOG(LOG_ERROR, "info.c::draw_ext_info",
                 "Passed invalid color from server: %d, max allowed is %d\n",
                 orig_color, NUM_COLORS);
-            orig_color = 0;
         } else {
             /*
              * Not efficient - we have a number, but convert it to a string,
@@ -1627,7 +1626,6 @@ void load_msgctrl_configuration(void)
     cvalid = 0;
     tvalid = 0;
     mvalid = 0;
-    recordtype = '\0';
     while(fgets(textbuf, MAX_BUF-1, fptr) != NULL) {
         if (textbuf[0] == '#' || textbuf[0] == '\n') {
             continue;

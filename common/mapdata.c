@@ -1275,7 +1275,7 @@ static void mapdata_get_image_size(int face, uint8 *w, uint8 *h)
  */
 void mapdata_animation(void)
 {
-    int x, y, layer, face, smooth;
+    int x, y, layer, face;
     struct MapCellLayer *cell;
 
 
@@ -1309,8 +1309,6 @@ void mapdata_animation(void)
             }
 
             for (layer=0; layer<MAXLAYERS; layer++) {
-                smooth = the_map.cells[pl_pos.x + x][pl_pos.y + y].smooth[layer];
-
                 /* Using the cell structure just makes life easier here */
                 cell = &the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer];
 
@@ -1329,7 +1327,6 @@ void mapdata_animation(void)
                          */
                         if (face >0) {
                             expand_set_face(pl_pos.x + x, pl_pos.y + y, layer, face, FALSE);
-                            /*			    mapdata_set_smooth(x, y, smooth, layer);*/
                         } else {
                             expand_clear_face_from_layer(pl_pos.x + x, pl_pos.y + y , layer);
                         }

@@ -226,11 +226,8 @@ static void play_music(const char* music_name) {
  */
 static int parse_input(char *data, int len) {
     char* dptr;                         /* Pointer used when parsing data */
-    char* fptr;
     char* sound = NULL;                 /* Points to a sound or music name */
     char* source = NULL;
-    char  soundfile[MAXSOCKBUF];
-    int   sourcelen;
     int   soundlen;
     int   spacelen;
     int   type = 0;
@@ -240,7 +237,6 @@ static int parse_input(char *data, int len) {
     int   y = 0;
     int   i = 0;
 
-    fptr = soundfile;
     dptr = strtok(data, "\"");
     /*
      * Is data a blank line (ending with LF) or is it a quoted, empty string?
@@ -296,7 +292,7 @@ static int parse_input(char *data, int len) {
             return -1;
         }
         source = dptr;
-        sourcelen = strlen(dptr);
+
         /*
          * Verify there is whitespace between source and sound names.
          */

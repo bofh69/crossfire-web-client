@@ -1713,7 +1713,7 @@ void UpdateItemCmd(unsigned char *data, int len)
     int weight, loc, tag, face, sendflags, flags, pos = 0, nlen, anim;
     uint32 nrof;
     char name[MAX_BUF];
-    item *ip, *env = NULL;
+    item *ip;
     uint8 animspeed;
 
     sendflags = data[0];
@@ -1742,7 +1742,6 @@ void UpdateItemCmd(unsigned char *data, int len)
 
     if (sendflags&UPD_LOCATION) {
         loc = GetInt_String(data+pos);
-        env = locate_item(loc);
         LOG(LOG_WARNING, "common::UpdateItemCmd", "Got tag of unknown object (%d) for new location", loc);
         pos += 4;
     }
@@ -2449,7 +2448,7 @@ void FailureCmd(char *buf, int len)
 void AccountPlayersCmd(char *buf, int len)
 {
 
-    int num_characters, level, pos, flen, faceno;
+    int level, pos, flen, faceno;
     char name[MAX_BUF], class[MAX_BUF], race[MAX_BUF],
             face[MAX_BUF], party[MAX_BUF], map[MAX_BUF];
 
@@ -2466,8 +2465,6 @@ void AccountPlayersCmd(char *buf, int len)
     map[0]=0;
     faceno=0;
 
-    /* We don't do anything with this right now */
-    num_characters=buf[0];
     pos=1;
     while (pos < len) {
         flen = buf[pos];

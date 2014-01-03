@@ -76,7 +76,7 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
 
     png_structp png_ptr;
     png_infop   info_ptr;
-    int bit_depth, color_type, interlace_type, compression_type, y;
+    int bit_depth, color_type, interlace_type, y;
 
     data_len=len;
     data_cp = data;
@@ -114,14 +114,13 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
      * using the indivial functions. Repeated below.
      *
     png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_unit_32*)height, &bit_depth,
-             &color_type, &interlace_type, &compression_type, &filter_type);
+             &color_type, &interlace_type, NULL, &filter_type);
      */
     *width = png_get_image_width(png_ptr, info_ptr);
     *height = png_get_image_height(png_ptr, info_ptr);
     bit_depth = png_get_bit_depth(png_ptr, info_ptr);
     color_type = png_get_color_type(png_ptr, info_ptr);
     interlace_type = png_get_interlace_type(png_ptr, info_ptr);
-    compression_type = png_get_compression_type(png_ptr, info_ptr);
 
     if (color_type == PNG_COLOR_TYPE_PALETTE &&
             bit_depth <= 8) {
@@ -179,15 +178,10 @@ uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height)
     /*
      * See above for error description
     png_get_IHDR(png_ptr, info_ptr, (png_uint_32*)width, (png_uint_32*)height, &bit_depth,
-             &color_type, &interlace_type, &compression_type, &filter_type);
+             &color_type, &interlace_type, NULL, &filter_type);
     */
     *width = png_get_image_width(png_ptr, info_ptr);
     *height = png_get_image_height(png_ptr, info_ptr);
-    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
-    color_type = png_get_color_type(png_ptr, info_ptr);
-    interlace_type = png_get_interlace_type(png_ptr, info_ptr);
-    compression_type = png_get_compression_type(png_ptr, info_ptr);
-
 
     pixels = (uint8*)malloc(*width **height * 4);
 
@@ -570,7 +564,7 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     png_uint_32 width, height;
     png_structp png_ptr;
     png_infop   info_ptr;
-    int bit_depth, color_type, interlace_type, compression_type, filter_type,
+    int bit_depth, color_type, interlace_type, filter_type,
         bpp, x,y,has_alpha,i,alpha;
     GdkColor  scolor;
     GdkGC       *gc, *gc_alpha;
@@ -600,7 +594,7 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     png_read_info (png_ptr, info_ptr);
 
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
-                 &color_type, &interlace_type, &compression_type, &filter_type);
+                 &color_type, &interlace_type, NULL, &filter_type);
 
     if (color_type == PNG_COLOR_TYPE_PALETTE &&
             bit_depth <= 8) {
@@ -651,7 +645,7 @@ int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len,
     png_read_update_info(png_ptr, info_ptr);
     /* re-read due to transformations just made */
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
-                 &color_type, &interlace_type, &compression_type, &filter_type);
+                 &color_type, &interlace_type, NULL, &filter_type);
     if (color_type & PNG_COLOR_MASK_ALPHA) {
         bpp = 4;
     } else {

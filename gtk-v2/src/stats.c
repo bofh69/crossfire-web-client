@@ -308,7 +308,6 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
                  sint64 statbar_max, sint64 statbar_stat, int can_alert)
 {
     float bar;
-    int is_alert;
     char buf[256];
     GdkColor ncolor, *set_color=NULL;
 
@@ -324,13 +323,6 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
         bar = (float) statbar_stat / (float) statbar_max;
     } else {
         bar = 0.0;
-    }
-
-    /* Simple check to see if current stat is less than 25% */
-    if (can_alert && current_stat * 4 < max_stat) {
-        is_alert=1;
-    } else {
-        is_alert = 0;
     }
 
     if (use_config[CONFIG_GRAD_COLOR]) {

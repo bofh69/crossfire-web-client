@@ -128,7 +128,6 @@ void init_glx_opengl(GtkWidget* drawingarea)
                           None
                         };
     XSetWindowAttributes attr;
-    Visual *v;
 
     /* Need to tuck these away, because they are needed for glXSwappBuffers() */
     display = GDK_WINDOW_XDISPLAY(drawingarea->window);
@@ -145,7 +144,7 @@ void init_glx_opengl(GtkWidget* drawingarea)
      * create a colormap if using a different visual or we get a BadMatch
      * error.
      */
-    v = DefaultVisual(display, gdk_x11_get_default_screen ());
+    DefaultVisual(display, gdk_x11_get_default_screen ());
     attr.colormap= XCreateColormap(display, GDK_WINDOW_XID(drawingarea->window),
                                    vi->visual, AllocNone);
 
