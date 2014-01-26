@@ -92,16 +92,9 @@ menu_quit_character                     (GtkMenuItem     *menuitem,
 }
 
 /**
- * Enables/disables menubar options and connects signals to them.  Some do not
- * make sense if not connected to the server, so should be disabled until
- * connected.
- *
- * @param enable
- * If true, enable the items, if false, disable them.  Presently it looks as
- * though enable is not actually used at all.  Is this a bug?
+ * Initialize menu bar items and connect their signals to their handlers.
  */
-void enable_menu_items(int enable)
-{
+void init_menu_items() {
     GtkWidget *widget;
 
     widget = GTK_WIDGET(gtk_builder_get_object(window_xml, "quit_character"));

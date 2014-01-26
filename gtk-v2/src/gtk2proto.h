@@ -171,7 +171,7 @@ extern gboolean on_drawingarea_magic_map_expose_event(GtkWidget *widget, GdkEven
 /* menubar.c */
 extern void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data);
 extern void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data);
-extern void enable_menu_items(int enable);
+extern void init_menu_items();
 /* metaserver.c */
 extern gboolean metaserver_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern void get_metaserver(void);

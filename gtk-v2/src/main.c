@@ -772,6 +772,7 @@ static void init_ui() {
 
     init_theme();
     load_theme(TRUE);
+    init_menu_items();
 }
 
 /**
@@ -825,7 +826,6 @@ int main(int argc, char *argv[]) {
         if (server == NULL) {
             draw_splash();
             metaserver_get_info(meta_server, meta_port);
-            enable_menu_items(FALSE);
             get_metaserver();
         } else {
             csocket.fd = init_connection(server, use_config[CONFIG_PORT]);
@@ -840,7 +840,6 @@ int main(int argc, char *argv[]) {
         }
 
         negotiate_connection(use_config[CONFIG_SOUND]);
-        enable_menu_items(TRUE);
 
         /* The event_loop will block until connection to the server is lost. */
         event_loop();
