@@ -1,5 +1,3 @@
-# Process this file with autoconf to produce a configure script.
-
 # IMPORTANT:  Do not specify a version number with a "-" in it.  The number is
 # used to create RPMs, and some RPM build tools do not allow use of dash in
 # the version number.
@@ -35,16 +33,20 @@ AC_ARG_WITH(loglevel, [AS_HELP_STRING([--with-logevel=level],
 
 #### Client Options ####
 AC_ARG_ENABLE(sdl, [AS_HELP_STRING([--disable-sdl],
-              [Do not use the SDL renderer])],
-              [use_sdl=$enableval], [use_sdl=yes])
+              [SDL renderer (enabled by default)])],
+              [], [use_sdl=yes])
 
 AC_ARG_ENABLE(metaserver2, [AS_HELP_STRING([--disable-metaserver2],
-              [Do not build metaserver support])],
-              metaserver2=$enableval, metaserver2=yes )
+              [Metaserver2 support (enabled by default)])],
+              [], [metaserver2=yes])
 
 AC_ARG_ENABLE(lua, [AS_HELP_STRING([--enable-lua],
-              [Lua scripting interface (off by default)])],
-              [], [enable_lua=no])
+              [Lua scripting interface (disabled by default)])],
+              [enable_lua=yes], [])
+
+AC_ARG_ENABLE(opengl, [AS_HELP_STRING([--disable-opengl],
+              [OpenGL renderer (enabled by default)])],
+              [], [enable_opengl=yes])
 
 #### Sound Options ####
 AC_ARG_ENABLE(sound, [AS_HELP_STRING([--disable-sound],
@@ -214,24 +216,28 @@ LIBS="$gcfc_save_LIBS"
 AC_SUBST(X11_CFLAGS)
 AC_SUBST(X11_LIBS)
 
-# Check for OpenGL.
-PKG_CHECK_MODULES([gl], [gl], [have_opengl=yes], [no_gl=yes])
-PKG_CHECK_MODULES([glu], [glu], [have_opengl=yes], [no_glu=yes])
+# Check for OpenGL if it is enabled.
+if test "$enable_opengl" = "yes"; then
+    PKG_CHECK_MODULES([gl], [gl], [have_opengl=yes], [no_gl=yes])
+    PKG_CHECK_MODULES([glu], [glu], [have_opengl=yes], [no_glu=yes])
 
-if test "$have_opengl" = "yes"; then
-    OPENGL_CFLAGS="${gl_CFLAGS} ${glu_CFLAGS}"
-    OPENGL_LIBS="${gl_LIBS} ${glu_LIBS}"
+    if test "$have_opengl" = "yes"; then
+        OPENGL_CFLAGS="${gl_CFLAGS} ${glu_CFLAGS}"
+        OPENGL_LIBS="${gl_LIBS} ${glu_LIBS}"
 
-    AC_DEFINE(HAVE_OPENGL, 1, [Define if you have OpenGL.])
-    AC_SUBST(OPENGL_CFLAGS)
-    AC_SUBST(OPENGL_LIBS)
+        AC_DEFINE(HAVE_OPENGL, 1, [Define if you have OpenGL.])
+        AC_SUBST(OPENGL_CFLAGS)
+        AC_SUBST(OPENGL_LIBS)
 
-    opengl="yes"
-else  
+        opengl="yes"
+    else
+        opengl="no"
+    fi
+else
     opengl="no"
 fi
 
-# If sounds are enabled, check for the required libraries.
+# Check for sound libraries if it is enabled.
 if test "$enable_sound" = "yes"; then
     PKG_CHECK_MODULES([SDL_mixer], [SDL_mixer], [sdl_sound=yes], [sdl_sound=no])
 
