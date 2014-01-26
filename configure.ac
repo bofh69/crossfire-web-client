@@ -214,47 +214,35 @@ LIBS="$gcfc_save_LIBS"
 AC_SUBST(X11_CFLAGS)
 AC_SUBST(X11_LIBS)
 
-# Check for OpenGL
-AX_CHECK_GL
-   if test "$no_gl" != "yes"; then
-      OPENGL_LIBS="$GL_LIBS"
-      OPENGL_CFLAGS="$GL_CFLAGS"
-   fi     
-AX_CHECK_GLU   
-   if test "$no_glu" != "yes"; then
-      OPENGL_LIBS="$OPENGL_LIBS $GLU_LIBS"
-      OPENGL_CFLAGS="$OPENGL_CFLAGS $GLU_CFLAGS"
-   fi     
-AX_CHECK_GLUT
-   if test "$no_glut" != "yes"; then
-      OPENGL_LIBS="$OPENGL_LIBS $GLUT_LIBS"
-      OPENGL_CFLAGS="$OPENGL_CFLAGS $GLUT_CFLAGS"
-   fi
-if test "x$no_gl" != "xyes" \
-		-a "x$no_glu" != "xyes" -a "x$no_glut" != "xyes" ; then
+# Check for OpenGL.
+PKG_CHECK_MODULES([gl], [gl], [have_opengl=yes], [no_gl=yes])
+PKG_CHECK_MODULES([glu], [glu], [have_opengl=yes], [no_glu=yes])
+
+if test "$have_opengl" = "yes"; then
+    OPENGL_CFLAGS="${gl_CFLAGS} ${glu_CFLAGS}"
+    OPENGL_LIBS="${gl_LIBS} ${glu_LIBS}"
+
     AC_DEFINE(HAVE_OPENGL, 1, [Define if you have OpenGL.])
     AC_SUBST(OPENGL_CFLAGS)
     AC_SUBST(OPENGL_LIBS)
+
     opengl="yes"
 else  
     opengl="no"
 fi
-# End of OpenGL checks
 
 # If sounds are enabled, check for the required libraries.
 if test "$enable_sound" = "yes"; then
-    AC_CHECK_LIB([SDL_mixer], [Mix_OpenAudio], [sdl_sound=yes], [sdl_sound=no])
+    PKG_CHECK_MODULES([SDL_mixer], [SDL_mixer], [sdl_sound=yes], [sdl_sound=no])
 
     if test "$sdl_sound" = "yes"; then
-        AC_MSG_NOTICE([Building with sound support.])
-        SDL_CFLAGS=`sdl-config --cflags`
-        SDL_LIBS=`sdl-config --libs`
-        SND_LIBS="-lSDL_mixer ${SDL_LIBS}"
+        CFLAGS="${CFLAGS} ${SDL_mixer_CFLAGS}"
+        SND_LIBS="${SDL_mixer_LIBS}"
 
-        CFLAGS="${CFLAGS} ${SDL_CFLAGS}"
-        CF_SUBDIRS="$CF_SUBDIRS sound-src";
+        AC_SUBST(SND_LIBS)
+        CF_SUBDIRS="${CF_SUBDIRS} sound-src";
     else
-        AC_MSG_WARN([Not building with sound; required libraries not found.])
+        AC_MSG_WARN([Cannot find SDL_Mixer; not enabling sound support.])
     fi
 else
     # Set this to 'no' so that it is properly displayed in the results.
@@ -263,7 +251,6 @@ fi
 
 AC_SUBST(GUI_OBJS)
 AC_SUBST(GUI_SRCS)
-AC_SUBST(SND_LIBS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(TARGET)
 AC_SUBST(CF_SUBDIRS)
