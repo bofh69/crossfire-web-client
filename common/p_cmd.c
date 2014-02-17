@@ -523,7 +523,7 @@ static void do_num_free_items(const char * ignored)
 static void do_clienthelp(const char * arg); /* Forward. */
 
 /* Help "typecasters". */
-#include "../help/chelp.h"
+#include "chelp.h"
 
 /**
  *
