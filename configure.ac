@@ -110,8 +110,6 @@ fi
 # FIXME: This sound dir specification overwrites the user-specified one.
 SOUNDDIR="${datadir}/crossfire-client/sounds"
 
-AC_C_BIGENDIAN
-
 networklibs="yes"
 
 case "$target" in
