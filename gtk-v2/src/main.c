@@ -686,6 +686,7 @@ static void init_sockets() {
 
 static void init_ui() {
     GError *error = NULL;
+    GdkGeometry geometry;
     int i;
 
     /* Set path to the UI files if they weren't set from the command line. */
@@ -741,6 +742,13 @@ static void init_ui() {
                              G_CALLBACK(keyrelfunc), GTK_OBJECT(window_root));
     g_signal_connect((gpointer) window_root, "destroy",
                      G_CALLBACK(on_window_destroy_event), NULL);
+
+    /* Purely arbitrary min window size */
+    geometry.min_width=640;
+    geometry.min_height=480;
+
+    gtk_window_set_geometry_hints(GTK_WINDOW(window_root), window_root,
+                                  &geometry, GDK_HINT_MIN_SIZE);
 
     magic_map = GTK_WIDGET(gtk_builder_get_object(window_xml,
                 "drawingarea_magic_map"));
