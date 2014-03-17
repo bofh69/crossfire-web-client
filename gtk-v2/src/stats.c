@@ -648,7 +648,7 @@ void draw_stats(int redraw)
 
     if(redraw || cpl.stats.wc!=last_stats.wc) {
         last_stats.wc=cpl.stats.wc;
-        snprintf(buff, sizeof(buff), "%3d",cpl.stats.wc);
+        snprintf(buff, sizeof(buff), "%2d",cpl.stats.wc);
         gtk_label_set (GTK_LABEL(statwindow.wc), buff);
     }
 
