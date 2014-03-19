@@ -43,7 +43,7 @@ EXTRA_DIST = \
 	item-types \
 	items.pl
 
-AM_CFLAGS = $(PTHREAD_CFLAGS)
+AM_CFLAGS = $(PTHREAD_CFLAGS) @LUA_CFLAGS@
 
 proto:
 	cproto -DCPROTO -DCFCLIENT $(DEFAULT_INCLUDES) $(AM_CFLAGS) \

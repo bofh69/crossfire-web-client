@@ -33,7 +33,7 @@ AC_ARG_ENABLE(metaserver2, [AS_HELP_STRING([--disable-metaserver2],
 
 AC_ARG_ENABLE(lua, [AS_HELP_STRING([--enable-lua],
               [Lua scripting interface (disabled by default)])],
-              [enable_lua=yes], [])
+              [enable_lua=yes], [enable_lua=no])
 
 AC_ARG_ENABLE(opengl, [AS_HELP_STRING([--disable-opengl],
               [OpenGL renderer (enabled by default)])],
@@ -164,24 +164,8 @@ AC_SEARCH_LIBS(pthread_create, [pthread, pthreadgc, pthreadgc1, pthreadgc2], [AC
 
 # Test for Lua only if it has been explicitly enabled by the user.
 if test "$enable_lua" = "yes"; then
-    PKG_CHECK_MODULES(LUA, lua >= 5.0.0, [have_lua=yes], [have_lua=no])
-    if test "$have_lua" = "yes"; then
-        LUA_LIBS=`$PKG_CONFIG --libs lua`
-        AC_DEFINE(HAVE_LUA, 1, [Define to use Lua 5.x])
-    else
-        have_lua="no"
-        LUA_LIBS=""
-    fi
-
-    PKG_CHECK_MODULES(LUA, lua >= 5.1.0, [have_lua_5_1=yes], [have_lua_5_1=no])
-    if test "$have_lua_5_1" = "yes"; then
-        AC_DEFINE(HAVE_LUA_5_1, 1, [Define to use Lua 5.1])
-    fi
-
-    AC_SUBST(LUA_LIBS)
-else
-    AC_MSG_NOTICE([Skipping checks for Lua; it must be explicitly enabled.])
-    have_lua="no"
+    PKG_CHECK_MODULES([LUA], [lua-5.1], [have_lua=yes])
+    AC_DEFINE(HAVE_LUA, 1, [Define to use Lua 5.x])
 fi
 
 if eval "test x$need_r_flag = xyes"; then
@@ -390,4 +374,4 @@ AC_MSG_NOTICE([    OpenGL renderer          $opengl])
 AC_MSG_NOTICE([    Sound (SDL_mixer)        $sdl_sound])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Scripting Options])
-AC_MSG_NOTICE([    Build Lua interface?     $have_lua])
+AC_MSG_NOTICE([    Build Lua interface?     $enable_lua])
