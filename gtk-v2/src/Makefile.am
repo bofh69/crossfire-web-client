@@ -85,7 +85,7 @@ crossfire_client_gtk2_SOURCES = \
 	gtk2proto.h \
 	$(proto_FILES)
 
-crossfire_client_gtk2_LDADD = $(common_LIBS) $(PTHREAD_LIBS) @DMALLOC_LIB@ $(INTLLIBS) @SDL_LIBS@ @X11_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@ @GTK_LIBS@
+crossfire_client_gtk2_LDADD = $(common_LIBS) $(PTHREAD_LIBS) $(INTLLIBS) @SDL_LIBS@ @X11_LIBS@ @OPENGL_LIBS@ @WIN32_LIBS@ @LUA_LIBS@ @GTK_LIBS@
 
 # This target breaks when it sees -pthread in the cproto command, so it has to
 # be stripped out to work.  $(filter-out) is a GNU make extension, so it is

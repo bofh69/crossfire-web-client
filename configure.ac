@@ -15,21 +15,12 @@ CF_SUBDIRS="common pixmaps"
 ##############################################################################
 # Configuration Options
 ##############################################################################
-AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug],
-              [Build with debug flags (default no)])],
-              [DEBUGFLAG="-g"], [])
-
-AC_ARG_ENABLE(ansi, [AS_HELP_STRING([--enable-ansi],
-              [Compile using strict ANSI])],
-              [], [enable_ansi=no])
-
-AC_ARG_ENABLE(dmalloc, [AS_HELP_STRING([--enable-dmalloc],
-              [Link with the dmalloc library (default no)])],
-              [use_dmalloc=$enableval], [use_dmalloc=no])
-
 AC_ARG_WITH(loglevel, [AS_HELP_STRING([--with-logevel=level],
             [Default logging level (default 0, debug)])],
             [MINLOGLEVEL="$withval"], [MINLOGLEVEL=0])
+
+# Add support for dmalloc, if the user wants it.
+AM_WITH_DMALLOC
 
 #### Client Options ####
 AC_ARG_ENABLE(sdl, [AS_HELP_STRING([--disable-sdl],
@@ -285,33 +276,6 @@ fi
 AC_SUBST(SDL_CFLAGS)
 AC_SUBST(SDL_LIBS)
 
-# The following hacks for modifying CFLAGS were borrowed from the GIMP.
-if test -n "$DEBUGFLAG"; then
-    CFLAGS="$DEBUGFLAG $CFLAGS"
-fi
-
-if eval "test x$GCC = xyes"; then
-    if echo "$CFLAGS" | grep "\-Wall" > /dev/null 2> /dev/null; then
-        CFLAGS="$CFLAGS"
-    else
-        CFLAGS="$CFLAGS -Wall"
-    fi
-
-    if eval "test x$enable_ansi = xyes"; then
-        if echo "$CFLAGS" | grep "\-ansi" > /dev/null 2> /dev/null; then
-            CFLAGS="$CFLAGS"
-        else
-            CFLAGS="$CFLAGS -ansi"
-        fi
-
-        if echo "$CFLAGS" | grep "\-pedantic" > /dev/null 2> /dev/null; then
-            CFLAGS="$CFLAGS"
-        else
-            CFLAGS="$CFLAGS -pedantic"
-        fi
-    fi
-fi
-
 # We need to check for socket/nsl here - some versions of the windowing
 # systems need these to properly link with X (I thought AC_PATH_XTRA should
 # take care of this, but apparently is does not).  If it is not here, the
@@ -353,12 +317,6 @@ if eval "test x$metaserver2 = xyes"; then
     AC_DEFINE_UNQUOTED(METASERVER2, 1, [If metaserver2 support is enabled.])
 else
     AC_DEFINE_UNQUOTED(METASERVER2, 0, [If metaserver2 support is enabled.])
-fi
-
-if eval "test x$use_dmalloc = xyes"; then
-    AC_CHECK_LIB(dmalloc, main, DMALLOC_LIB="-ldmalloc")
-    AC_SUBST(DMALLOC_LIB)
-    AC_CHECK_HEADERS(dmalloc.h)
 fi
 
 # Checks for typedefs, structures, and compiler characteristics.
