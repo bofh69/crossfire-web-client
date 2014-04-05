@@ -1,14 +1,35 @@
-"$Id$"
-Top of SVN tree:
+==============================================================================
+Changes for 1.71.0
 ==============================================================================
 
-gtk-v2/src/inventory.c:
-draw_lists() was redrawing the look window every time it was called.
-This caused a jumping effect when scrolling the look window. Middle clicking 
-could get you to apply the wrong item. It made it barely imposible to look at
-the next pages. 
-Now it will get redrawn only if items are uptated "below".
-Karla Stenger 2012-11-30
+2014-03-17	Kevin Zheng
+	* gtk-v2/ui/gtk-v2.ui: Improve core stats display.
+
+2014-01-26	Kevin Zheng
+	* configure.ac: Add `configure` flag to disable OpenGL.
+	* configure.ac: Use pkgconf to find SDL_mixer and OpenGL.
+
+2014-01-02	Kevin Zheng
+	* gtk-v2/src/keys.c: Fix various keybinding issues.
+
+2014-01-01	Kevin Zheng
+	* gtk-v2/src/config.c: Do not store last server in gdefaults2.
+
+2013-12-30	Karla Stenger
+	* gtk-v2/src/keys.c: Add character-specific keybindings.
+
+2013-12-26	Kevin Zheng
+	* gtk-v2/: Convert widgets to use GtkBuilder.
+
+2013-09-05	Kevin Zheng
+	* sound-src/cfsndserv.c: Drop support for legacy sound systems.
+
+2012-11-30	Karla Stenger
+	* gtk-v2/src/inventory.c: draw_lists() was redrawing the look window
+	every time it was called. This caused a jumping effect when scrolling
+	the look window. Middle clicking could get you to apply the wrong item.
+	It made it barely imposible to look at the next pages. Now it will get
+	redrawn only if items are uptated "below".
 
 ==============================================================================
 Changes for 1.70.0
