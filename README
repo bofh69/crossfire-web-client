@@ -6,6 +6,7 @@ Crossfire Development Team <crossfire@metalforge.org>
 
 Introduction
 ------------
+
 What is Crossfire?
 ~~~~~~~~~~~~~~~~~~
 Crossfire is a free, open-source, cooperative multi-player RPG and adventure
@@ -15,13 +16,16 @@ character classes, and many powerful artifacts scattered far and wide. Set
 in a fantastical medieval world, it blends the style of Gauntlet, NetHack,
 Moria, and Angband.
 
+
 Installation
 ------------
-Please refer to the link::http://wiki.metalforge.net/doku.php/crossfire_client_compile_guide[client compilation guide] on the Crossfire Wiki.
+Please refer to the link:http://wiki.metalforge.net/doku.php/crossfire_client_compile_guide[client compilation guide] on the Crossfire Wiki.
 
-Running Crossfire
+
+Playing Crossfire
 -----------------
-IMPORTANT: This section is out of date. Don't rely on it.
+More information can be found on the
+link:http://wiki.metalforge.net[Crossfire Wiki].
 
 Public Servers
 ~~~~~~~~~~~~~~
@@ -30,20 +34,26 @@ the metaserver and present a list to choose from.  You can also see a list
 at http://crossfire.real-time.com/metaserver/ or
 http://crossfire.real-time.com/metaserver2/.
 
+Other Features
+--------------
+
 Sound Support
 ~~~~~~~~~~~~~
+WARNING: This legacy documentation does not necessarily reflect the behavior
+of the current version of the client.
+
 If you want sound support (only useful if you have a system that has good
 sound hardware), you will also need to get some sounds for the program.
 You will need the raw sound files - the .au files no longer work with the
 client.
 
- The sounds file determines what file is played for what sound.  The default
-location for the sound files is <prefix>/share/cfclient/sounds. <prefix>
-is the -prefix= option given when running configure, default of /usr/local.
+The sounds file determines what file is played for what sound.  The default
+location for the sound files is '<prefix>/share/cfclient/sounds'. <prefix>
+is the -prefix= option given when running configure, default of '/usr/local'.
 
 You can set this to another directory at the configure stage by using
 --with-sound-dir=/some/directory.  This file is only used for compiled in
-defaults.  If you have a ~/.crossfire/sounds file (some format), that file
+defaults.  If you have a '~/.crossfire/sounds' file (some format), that file
 will be used instead of the built in defaults.
 
 Sound are now played by separate process invoked from crossfire client.
@@ -58,23 +68,34 @@ there is no such file, one with default settings will be created.
 
 The file contains following fields:
 
-stereo:  	1 means stereo sound, 0 - mono
+[options="autowidth, header"]
+|=======================================================================
+|Option|Description
 
-bits: 		bitrate of generated sound - 8 or 16
-		16 means better quality, especially when more sounds
-		are to be played simultaneously, but takes more memory
+|stereo|
+1 means stereo sound, 0 - mono
 
-signed: 	if we should sent signed data to the soundcard. 1 means yes.
+|bits|
+bitrate of generated sound - 8 or 16 16 means better quality, especially when
+more sounds are to be played simultaneously, but takes more memory
 
-frequency:	speed of playing data. This should be 11025, or sound pitch
-		will change
+|signed|
+if we should sent signed data to the sound card. 1 means yes.
 
-buffers: 	how many buffers to allocate
-buflen: 	how big the buffers should be. buffers*buflen shouldn't be
-                smaller than the longest sound to be played.
+|frequency|
+speed of playing data. This should be 11025, or sound pitch will change
 
-simultaneously: home many sound can be played at the same time. When this
-		setting is bigger, each sound volume will decrease.
+|buffers|
+how many buffers to allocate
+
+|buflen|
+how big the buffers should be. buffers*buflen shouldn't be smaller than the
+longest sound to be played.
+
+|simultaneously|
+The number of sounds that can be played at the same time. When this setting
+is larger, each sound volume will decrease.
+|=======================================================================
 
 How Does it Work?
 ^^^^^^^^^^^^^^^^^
@@ -102,20 +123,23 @@ So bigger buffer means bigger delay, before the sound is actually played, but
 the smaller buffer is, the bigger is possibility, we won't succeed filling the
 next buffer, before last is played.
 
-Images
-~~~~~~
+Preloaded Bitmaps
+~~~~~~~~~~~~~~~~~
+WARNING: This legacy documentation does not necessarily reflect the behavior
+of the current version of the client.
+
 The client will get any images that it is missing from the server.  This
 can include the entire image set.
 
 To decrease bandwidth used when actually playing the sounds, it is suggested
 you download the image archive and install it.  The default location
-for the archive is <prefix>/share/cfclient/, where <prefix> is deteremined
+for the archive is '<prefix>/share/cfclient/', where <prefix> is determined
 by the -prefix= option given when running configure.
 
 The mechanism the client uses to find a matching image file when the
 server tells it an image name is thus:
 
-. Look in ~/.crossfire/gfx.  If an image is found here, irrespective of the
+. Look in '~/.crossfire/gfx'.  If an image is found here, irrespective of the
 set and checksum of the image on the server, it will be used.  The only
 way images are placed into the gfx directory is by the user actually
 copying them to that directory.  The gfx directory allows a user to override
@@ -127,7 +151,13 @@ Note that if the checksums match, it really doesn't matter what image
 location we use, as it is the same image.
 
 . Get the image from the server.  If -cache is set, a copy of it is put into
-~/.crossfire/image-cache.
+'~/.crossfire/image-cache.'
+
+Client Scripting
+~~~~~~~~~~~~~~~~
+Client-side scripting is documented link:doc/Scripting.html[here] as well as
+on the link:http://wiki.metalforge.net/doku.php/client_side_scripting:client_scripting_interface-basic_howto[Crossfire Wiki].
+
 
 Credits
 -------
