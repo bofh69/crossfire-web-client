@@ -3,11 +3,13 @@
 # the version number.
 
 AC_INIT([crossfire-client], [1.71.0])
-AC_CONFIG_AUX_DIR(utils)
+AC_CONFIG_AUX_DIR([utils])
 AC_CONFIG_HEADERS([common/config.h])
-AC_CONFIG_SRCDIR(crossfire-client.spec)
+AC_CONFIG_SRCDIR([crossfire-client.spec])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
+
+AM_SILENT_RULES([yes])
 
 # These are subdirectories that have make files in them
 CF_SUBDIRS="common pixmaps"
@@ -51,43 +53,22 @@ AC_ARG_WITH(sound-dir, [AS_HELP_STRING([--with-sound-dir=dir],
 ##############################################################################
 # Program Checks
 ##############################################################################
-AC_PROG_CC
-AC_PROG_CPP
-AC_PROG_INSTALL
-AC_PROG_LN_S
-AC_PROG_MAKE_SET
+AC_PROG_CC_STDC
 AC_PROG_RANLIB
 
-AC_PATH_PROG(AR, ar)
-AC_PATH_PROG(CP, cp)
-AC_PATH_PROG(DEPEND, makedepend)
-AC_PATH_PROG(MKDIR, mkdir)
 AC_PATH_PROG(PERL, perl)
-AC_PATH_PROG(PKG_CONFIG, pkg-config)
-AC_PATH_PROG(RM, rm)
-AC_PATH_PROG(TAR, tar)
 
 # Check if svnversion is available to get the rev number
 AC_PATH_PROG(SVNVERSION, svnversion)
 
 ##############################################################################
-# Library Checks
+AS_BOX([Library Checks])
 ##############################################################################
 # Find out if X is available. The variable have_x is set if libX11 is
 # found to mimic AC_PATH_XTRA.
 AC_PATH_X
-if test -n "$PKG_CONFIG"; then
-    AC_MSG_CHECKING([pkg-config files for X11 are available])
-    PKG_CHECK_EXISTS([x11],[
-	x11_pkgconfig=yes
-	have_x=yes
-	],[
-	x11_pkgconfig=no
-    ])
-    AC_MSG_RESULT([$x11_pkgconfig])
-else
-    x11_pkgconfig=no
-fi
+
+PKG_CHECK_EXISTS([x11], [x11_pkgconfig=yes have_x=yes], [x11_pkgconfig=no])
 
 # Use the autoconf macro if no pkg-config files
 if test "$x11_pkgconfig" = yes; then
@@ -154,11 +135,6 @@ AM_PATH_GTK_2_0([2.24.0], [CF_SUBDIRS="$CF_SUBDIRS gtk-v2"],
 AM_MAINTAINER_MODE
 AC_SUBST(PACKAGE_LIBS)
 AC_SUBST(INTLLIBS)
-
-# sound.c needs sqrt.  So does png (on some systems).  Lua also needs it, so
-# put it near the top
-#
-AC_CHECK_LIB(m, sqrt)
 
 AC_SEARCH_LIBS(pthread_create, [pthread, pthreadgc, pthreadgc1, pthreadgc2], [AC_DEFINE(HAVE_LIBPTHREAD, 1, [Define to 1 if you have the 'pthread' library.])])
 
@@ -276,14 +252,13 @@ CPPFLAGS="$CPPFLAGS $LIBCURL_CPPFLAGS"
 
 AC_SUBST(LIBS)
 
-# png on some systems need the zlib, so check for it
-AC_CHECK_LIB(z, main)
-
 AC_CHECK_LIB(png, main, , [AC_MSG_ERROR([You must have the png library installed to compile the client])])
 
-# Checks for header files.
+##############################################################################
+AS_BOX([Header/Type/Structure Checks])
+##############################################################################
 AC_HEADER_STDC
-AC_CHECK_HEADERS([curl/curl.h fcntl.h pthread.h string.h sys/ioctl.h sys/select.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([curl/curl.h fcntl.h pthread.h sys/time.h unistd.h])
 
 # Metaserver support is pretty critical to the client, so fail unless the
 # user explicity tells us to compile it without metaserver2 support.
@@ -312,9 +287,7 @@ AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(long long)
 
 # Checks for library functions.
-AC_PROG_GCC_TRADITIONAL
-AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([getaddrinfo mkdir socket strcspn sysconf])
+AC_CHECK_FUNCS([getaddrinfo socket sysconf])
 
 AC_SUBST(XPM)
 AC_SUBST(SOUNDDIR)
@@ -358,10 +331,8 @@ AC_CONFIG_FILES([
 AC_OUTPUT
 
 ##############################################################################
-# Configuration Summary
+AS_BOX([Configuration Summary])
 ##############################################################################
-AC_MSG_NOTICE([Configuration Summary ----------------------------------------------])
-AC_MSG_NOTICE([])
 AC_MSG_NOTICE([  Installation Paths])
 AC_MSG_NOTICE([    Prefix                   ${prefix}])
 AC_MSG_NOTICE([    Binaries                 $nbindir])
