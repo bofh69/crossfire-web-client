@@ -244,8 +244,11 @@ void get_metaserver() {
  *             to the DNS name.  For example:  localhost:8000
  */
 static void metaserver_connect_to(const char *name) {
-    char buf[256], *next_token = (char *)name, *hostname;
+    char buf[256];
     int port = use_config[CONFIG_PORT];
+
+    /* Make a copy of the input string since strtok modifies it. */
+    char *namebuf = strdup(name);
 
     /* Set client status and update GUI before continuing. */
     snprintf(buf, sizeof(buf), "Connecting to '%s'...", name);
@@ -253,10 +256,11 @@ static void metaserver_connect_to(const char *name) {
     gtk_main_iteration();
 
     /* Separate the hostname from the port number (if specified). */
-    hostname = strsep(&next_token, ":");
+    char *hostname = strtok(namebuf, ":");
+    char *portnum = strtok(NULL, " \0");
 
-    if (next_token != NULL) {
-        port = atoi(next_token);
+    if (portnum != NULL) {
+        port = atoi(portnum);
     }
 
     csocket.fd = init_connection(hostname, port);
@@ -272,6 +276,8 @@ static void metaserver_connect_to(const char *name) {
         snprintf(buf, 255, "Unable to connect to %s!", name);
         gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     }
+
+    free(namebuf);
 }
 
 /**
