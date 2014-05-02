@@ -261,7 +261,7 @@ void load_theme(int reload) {
  * This function processes the user saved settings file and establishes the
  * configuration of the client.
  */
-void load_defaults() {
+void config_load() {
     char path[MAX_BUF], inbuf[MAX_BUF], *cp;
     FILE *fp;
     int i, val;

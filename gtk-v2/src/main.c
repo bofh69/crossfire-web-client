@@ -84,7 +84,7 @@ char dialog_xml_file[MAX_BUF] = DIALOG_XML_FILENAME;
 char dialog_xml_path[MAX_BUF] = "";     /**< Dialog layout file with path. */
 /** The file name of the window layout in use by the client. The base name,
  * without dot extention, is re-used when saving the window positions. */
-char window_xml_file[MAX_BUF] = WINDOW_XML_FILENAME;
+char window_xml_file[MAX_BUF];
 char window_xml_path[MAX_BUF] = "";     /**< Window layout file with path. */
 GdkColor root_color[NUM_COLORS];
 struct timeval timeout;
@@ -350,10 +350,9 @@ static void usage(char *progname) {
 static int parse_args(int argc, char *argv[]) {
     int on_arg = 1;
 
-    load_defaults();
+    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s", FULL_VERSION);
+    config_load();
 
-    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s (%s)", FULL_VERSION,
-             window_xml_file);
     for (on_arg = 1; on_arg < argc; on_arg++) {
         if (!strcmp(argv[on_arg], "-cache")) {
             want_config[CONFIG_CACHE] = TRUE;
@@ -718,8 +717,8 @@ static void init_ui() {
                 "Couldn't load '%s'; using default.", window_xml_path);
         error = NULL;
 
-        snprintf(window_xml_path, sizeof(window_xml_path), "%s%s",
-                XML_PATH_DEFAULT, WINDOW_XML_FILENAME);
+        snprintf(window_xml_path, sizeof(window_xml_path),
+                XML_PATH_DEFAULT "gtk-v2.ui");
 
         if (!gtk_builder_add_from_file(window_xml, window_xml_path, &error)) {
             error_dialog("Couldn't load client window.", error->message);
