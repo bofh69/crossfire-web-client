@@ -1,3 +1,6 @@
+2014-05-03	Kevin Zheng
+	* gtk-v2/src/config.c: Store client settings using a key-value file.
+
 2014-05-02	Kevin Zheng
 	* gtk-v2/src/main.c: Change default layout to 'gtk-v2'.
 

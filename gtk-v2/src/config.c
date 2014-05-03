@@ -31,6 +31,9 @@
 
 #include <dirent.h>
 
+static GKeyFile *config;
+static GString *config_dir, *config_path;
+
 #ifdef __MINGW32__
 int alphasort(const struct dirent **a, const struct dirent **b) {
     return strcoll((*a)->d_name, (*b)->d_name);
@@ -258,18 +261,14 @@ void load_theme(int reload) {
 }
 
 /**
- * This function processes the user saved settings file and establishes the
- * configuration of the client.
+ * Load settings from the legacy file format.
  */
-void config_load() {
+static void config_load_legacy() {
     char path[MAX_BUF], inbuf[MAX_BUF], *cp;
     FILE *fp;
     int i, val;
 
-    /* Copy over the want values to use values now */
-    for (i = 0; i < CONFIG_NUMS; i++) {
-        use_config[i] = want_config[i];
-    }
+    LOG(LOG_INFO, "config_load_legacy", "Trying to load legacy settings...");
 
     snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
@@ -366,6 +365,70 @@ void config_load() {
                        "Unknown line in gdefaults2: %s %s", inbuf, cp);
     }
     fclose(fp);
+}
+
+/**
+ * This function processes the user saved settings file and establishes the
+ * configuration of the client.
+ */
+void config_load() {
+    GError *error = NULL;
+
+    /* Copy over the want values to use values now */
+    for (int i = 0; i < CONFIG_NUMS; i++) {
+        use_config[i] = want_config[i];
+    }
+
+    /* Create directory if it doesn't already exist. */
+    config_dir = g_string_new(NULL);
+    g_string_printf(config_dir, "%s/.crossfire/", getenv("HOME"));
+
+    if (g_file_test(config_dir->str, G_FILE_TEST_IS_DIR) != TRUE) {
+        g_mkdir_with_parents(config_dir->str, 755);
+    }
+
+    /* Load existing or create new configuration file. */
+    config = g_key_file_new();
+    config_path = g_string_new(config_dir->str);
+    g_string_append(config_path, "client.ini");
+
+    g_key_file_load_from_file(config, config_path->str,
+            G_KEY_FILE_NONE, &error);
+
+    /* Load configuration values into settings array. */
+    if (error == NULL) {
+        for (int i = 0; i < CONFIG_NUMS; i++) {
+            want_config[i] = g_key_file_get_integer(config, "Client",
+                    config_names[i], &error);
+
+            if (error != NULL) {
+                LOG(LOG_WARNING, "config_load", "Error parsing!");
+            }
+        }
+
+        /* Load additional settings. */
+        /* TODO: Both of these below are one-time memory leaks. */
+        theme = g_key_file_get_string(config, "GTKv2",
+                "theme", NULL);
+        face_info.want_faceset = g_key_file_get_string(config, "GTKv2",
+                "faceset", NULL);
+
+        /* Since this is a buffer, it must be treated differently. */
+        char *window_xml_file_name = g_key_file_get_string(config, "GTKv2",
+                "window_layout", NULL);
+
+        snprintf(window_xml_file, sizeof(window_xml_file), "%s",
+                window_xml_file_name);
+        free(window_xml_file_name);
+    } else {
+        LOG(LOG_INFO, "config_load",
+                "Could not load settings: %s", error->message);
+        g_error_free(error);
+
+        /* Load legacy configuration file. */
+        config_load_legacy();
+    }
+
     /*
      * Make sure some of the values entered are sane - since a user can edit
      * the defaults file directly, they could put bogus values in
@@ -433,7 +496,7 @@ void config_load() {
 
 
     /* Now copy over the values just loaded */
-    for (i = 0; i < CONFIG_NUMS; i++) {
+    for (int i = 0; i < CONFIG_NUMS; i++) {
         use_config[i] = want_config[i];
     }
 
@@ -448,40 +511,27 @@ void config_load() {
  * dialog.
  */
 void save_defaults() {
-    char path[MAX_BUF], buf[MAX_BUF];
-    FILE *fp;
-    int i;
+    GError *error = NULL;
 
-    snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
-    CONVERT_FILESPEC_TO_OS_FORMAT(path);
-    if (make_path_to_file(path) == -1) {
-        LOG(LOG_ERROR, "config.c::save_defaults", "Could not create %s", path);
-        return;
-    }
-    if ((fp = fopen(path, "w")) == NULL) {
-        LOG(LOG_ERROR, "config.c::save_defaults", "Could not open %s", path);
-        return;
-    }
-    fprintf(fp, "# crossfire-client-gtk2 automatically generates this file.\n");
-    fprintf(fp, "# Manual editing is allowed, but the client may be a bit\n");
-    fprintf(fp, "# finicky about the keys and values.  Comparisons are case\n");
-    fprintf(fp, "# sensitive.  'True' and 'False' are the proper case, but\n");
-    fprintf(fp, "# have been replaced with 1 and 0 respectively.\n#\n");
-    fprintf(fp, "theme: %s\n", theme);
-    fprintf(fp, "faceset: %s\n", face_info.want_faceset);
-    fprintf(fp, "window_layout: %s\n", window_xml_file);
-    /*
-     * This isn't quite as good as before, as instead of saving things as
-     * 'True' or 'False', it is just 1 or 0.  However, for the most part, the
-     * user isn't going to be editing the file directly.
-     */
-    for (i = 1; i < CONFIG_NUMS; i++) {
-        fprintf(fp, "%s: %d\n", config_names[i], want_config[i]);
+    /* Save GTKv2 specific client settings. */
+    g_key_file_set_string(config, "GTKv2", "theme", theme);
+    g_key_file_set_string(config, "GTKv2", "faceset", face_info.want_faceset);
+    g_key_file_set_string(config, "GTKv2", "window_layout", window_xml_file);
+
+    /* Save the rest of the client settings. */
+    for (int i = 1; i < CONFIG_NUMS; i++) {
+        g_key_file_set_integer(config, "Client", config_names[i], want_config[i]);
     }
 
-    fclose(fp);
-    snprintf(buf, sizeof(buf), "Client configuration saved!");
-    draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
+    g_file_set_contents(config_path->str,
+            g_key_file_to_data(config, NULL, NULL), -1, &error);
+
+    if (error != NULL) {
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
+                "Could not save settings!");
+        g_warning("Could not save settings: %s", error->message);
+        g_error_free(error);
+    }
 }
 
 /**
