@@ -80,12 +80,16 @@ const char *const usercolorname[NUM_COLORS] = {
     "tan"                   /* 12 */
 };
 
-char dialog_xml_file[MAX_BUF] = DIALOG_XML_FILENAME;
-char dialog_xml_path[MAX_BUF] = "";     /**< Dialog layout file with path. */
+/** Path to dialog layout file. */
+static char dialog_xml_path[MAX_BUF] = XML_PATH_DEFAULT DIALOG_XML_FILENAME;
+
+/** Path to window layout file. */
+static char window_xml_path[MAX_BUF] = "";
+
 /** The file name of the window layout in use by the client. The base name,
  * without dot extention, is re-used when saving the window positions. */
 char window_xml_file[MAX_BUF];
-char window_xml_path[MAX_BUF] = "";     /**< Window layout file with path. */
+
 GdkColor root_color[NUM_COLORS];
 struct timeval timeout;
 extern int maxfd;
@@ -689,12 +693,7 @@ static void init_ui() {
     int i;
 
     /* Set path to the UI files if they weren't set from the command line. */
-    if (dialog_xml_path[0] == '\0') {
-        snprintf(dialog_xml_path, sizeof(dialog_xml_path), "%s%s",
-                XML_PATH_DEFAULT, dialog_xml_file);
-    }
-
-    if (window_xml_path[0] == '\0') {
+    if (strlen(window_xml_path) == 0) {
         snprintf(window_xml_path, sizeof(window_xml_path), "%s%s",
                 XML_PATH_DEFAULT, window_xml_file);
     }
@@ -717,10 +716,8 @@ static void init_ui() {
                 "Couldn't load '%s'; using default.", window_xml_path);
         error = NULL;
 
-        snprintf(window_xml_path, sizeof(window_xml_path),
-                XML_PATH_DEFAULT "gtk-v2.ui");
-
-        if (!gtk_builder_add_from_file(window_xml, window_xml_path, &error)) {
+        if (!gtk_builder_add_from_file(window_xml,
+                    XML_PATH_DEFAULT "gtk-v2.ui", &error)) {
             error_dialog("Couldn't load client window.", error->message);
             g_error_free(error);
             exit(EXIT_FAILURE);

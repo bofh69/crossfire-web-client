@@ -25,7 +25,6 @@ extern GtkBuilder *dialog_xml, *window_xml;
 extern int map_image_size, map_image_half_size, image_size;
 
 #define XML_PATH_DEFAULT CF_DATADIR "/ui/"
-#define WINDOW_XML_FILENAME "gtk-v1.ui"
 #define DIALOG_XML_FILENAME "dialogs.ui"
 extern char window_xml_file[];
 
