@@ -896,6 +896,15 @@ drawingarea_inventory_table_expose_event        (GtkWidget       *widget,
 the object. Right click drops the object.  Shift left click locks/unlocks the \
 object.  Shift middle click marks the object"
 
+static void draw_inv_table_icon(GdkWindow *dst, const void *image) {
+    cairo_t *cr = gdk_cairo_create(dst);
+
+    gdk_window_clear(dst);
+    gdk_cairo_set_source_pixbuf(cr, (GdkPixbuf *)image, 0, 0);
+    cairo_paint(cr);
+    cairo_destroy(cr);
+}
+
 /**
  * Draws the table of image icons.
  *
@@ -958,10 +967,8 @@ void draw_inv_table(int animate)
                     tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
                     tmp->last_anim=0;
 
-                    gdk_window_clear(inv_table_children[x][y]->window);
-                    gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL,
-                                    (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
-                                    0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
+                    draw_inv_table_icon(inv_table_children[x][y]->window,
+                            pixmaps[tmp->face]->icon_image);
                 }
             }
             /* On animation run, so don't do any of the remaining logic */
@@ -1002,10 +1009,9 @@ void draw_inv_table(int animate)
                               G_CALLBACK (drawingarea_inventory_table_expose_event),
                               tmp);
 
-            gdk_window_clear(inv_table_children[x][y]->window);
-            gdk_draw_pixbuf(inv_table_children[x][y]->window, NULL,
-                            (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
-                            0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
+            /* Draw the inventory icon image to the table. */
+            draw_inv_table_icon(inv_table_children[x][y]->window,
+                    pixmaps[tmp->face]->icon_image);
 
             gtk_widget_show(inv_table_children[x][y]);
             /*
