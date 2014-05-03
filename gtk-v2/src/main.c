@@ -865,7 +865,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* This statement should never be reached. */
-    exit(EXIT_SUCCESS);
+    g_assert_not_reached();
 }
 
 /**
