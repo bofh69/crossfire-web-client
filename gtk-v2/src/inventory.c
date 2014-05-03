@@ -864,38 +864,6 @@ drawingarea_inventory_table_button_press_event  (GtkWidget       *widget,
     return TRUE;
 }
 
-/**
- *
- * @param widget
- * @param event
- * @param user_data
- * @return TRUE
- */
-gboolean
-drawingarea_inventory_table_expose_event        (GtkWidget       *widget,
-        GdkEventExpose  *event,
-        gpointer         user_data)
-{
-    item *tmp;
-
-    tmp = (item*)user_data;
-
-    gdk_window_clear(widget->window);
-    /*
-     * Can get cases when switching tabs that we get an expose event before the
-     * list is updated - if so, don't draw stuff we don't have faces for.
-     */
-    if (tmp->face)
-        gdk_draw_pixbuf(widget->window, NULL,
-                        (GdkPixbuf*)pixmaps[tmp->face]->icon_image,
-                        0, 0, 0, 0, image_size, image_size, GDK_RGB_DITHER_NONE, 0, 0);
-    return TRUE;
-}
-
-#define INVHELPTEXT "Left click examines the object.  Middle click applies \
-the object. Right click drops the object.  Shift left click locks/unlocks the \
-object.  Shift middle click marks the object"
-
 static void draw_inv_table_icon(GdkWindow *dst, const void *image) {
     cairo_t *cr = gdk_cairo_create(dst);
 
@@ -904,6 +872,34 @@ static void draw_inv_table_icon(GdkWindow *dst, const void *image) {
     cairo_paint(cr);
     cairo_destroy(cr);
 }
+
+/**
+ *
+ * @param widget
+ * @param event
+ * @param user_data
+ * @return TRUE
+ */
+gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
+        GdkEventExpose *event, gpointer user_data) {
+    item *tmp;
+
+    tmp = (item*)user_data;
+
+    /*
+     * Can get cases when switching tabs that we get an expose event before the
+     * list is updated - if so, don't draw stuff we don't have faces for.
+     */
+    if (tmp->face) {
+        draw_inv_table_icon(widget->window, pixmaps[tmp->face]->icon_image);
+    }
+
+    return TRUE;
+}
+
+#define INVHELPTEXT "Left click examines the object.  Middle click applies \
+the object. Right click drops the object.  Shift left click locks/unlocks the \
+object.  Shift middle click marks the object"
 
 /**
  * Draws the table of image icons.
