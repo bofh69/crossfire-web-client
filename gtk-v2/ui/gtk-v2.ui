@@ -560,12 +560,12 @@
           <object class="GtkHPaned" id="hpaned_client">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="position">640</property>
+            <property name="position">820</property>
             <child>
               <object class="GtkVPaned" id="vpaned_map_stats">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="position">500</property>
+                <property name="position">847</property>
                 <child>
                   <object class="GtkNotebook" id="map_notebook">
                     <property name="visible">True</property>
