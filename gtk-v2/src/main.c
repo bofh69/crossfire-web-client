@@ -83,9 +83,6 @@ const char *const usercolorname[NUM_COLORS] = {
 /** Path to dialog layout file. */
 static char dialog_xml_path[MAX_BUF] = XML_PATH_DEFAULT DIALOG_XML_FILENAME;
 
-/** Path to window layout file. */
-static char window_xml_path[MAX_BUF] = "";
-
 /** The file name of the window layout in use by the client. The base name,
  * without dot extention, is re-used when saving the window positions. */
 char window_xml_file[MAX_BUF];
@@ -575,7 +572,7 @@ static int parse_args(int argc, char *argv[]) {
                     "-window_xml requires a xml file name");
                 return 1;
             }
-            strncpy(window_xml_path, argv[on_arg], MAX_BUF - 1);
+            strncpy(window_xml_file, argv[on_arg], MAX_BUF - 1);
             continue;
         } else if (!strcmp(argv[on_arg], "-dialog_xml")) {
             if (++on_arg == argc) {
@@ -687,16 +684,26 @@ static void init_sockets() {
 #endif /* def WIN32 */
 }
 
+/**
+ * Load the given layout file.
+ */
+static gboolean init_ui_layout(const char *name) {
+    GString *path = g_string_new(XML_PATH_DEFAULT);
+    gboolean result;
+
+    strncpy(window_xml_file, name, sizeof(window_xml_file));
+
+    g_string_append(path, name);
+    result = gtk_builder_add_from_file(window_xml, path->str, NULL);
+    g_string_free(path, TRUE);
+
+    return result;
+}
+
 static void init_ui() {
     GError *error = NULL;
     GdkGeometry geometry;
     int i;
-
-    /* Set path to the UI files if they weren't set from the command line. */
-    if (strlen(window_xml_path) == 0) {
-        snprintf(window_xml_path, sizeof(window_xml_path), "%s%s",
-                XML_PATH_DEFAULT, window_xml_file);
-    }
 
     /* Load dialog windows using GtkBuilder. */
     dialog_xml = gtk_builder_new();
@@ -711,16 +718,12 @@ static void init_ui() {
     window_xml = gtk_builder_new();
 
     /* Try to load default if selected layout doesn't work. */
-    if (!gtk_builder_add_from_file(window_xml, window_xml_path, &error)) {
+    if (!init_ui_layout(window_xml_file)) {
         LOG(LOG_WARNING, "main.c::init_ui",
-                "Couldn't load '%s'; using default.", window_xml_path);
-        error = NULL;
+                "Couldn't load '%s'; using default.", window_xml_file);
 
-        if (!gtk_builder_add_from_file(window_xml,
-                    XML_PATH_DEFAULT "gtk-v2.ui", &error)) {
-            error_dialog("Couldn't load client window.", error->message);
-            g_error_free(error);
-            exit(EXIT_FAILURE);
+        if (init_ui_layout("gtk-v2.ui") != TRUE) {
+            g_error("Could not load default layout.");
         }
     }
 
