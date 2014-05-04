@@ -719,8 +719,7 @@ static void init_ui() {
 
     /* Try to load default if selected layout doesn't work. */
     if (!init_ui_layout(window_xml_file)) {
-        LOG(LOG_WARNING, "main.c::init_ui",
-                "Couldn't load '%s'; using default.", window_xml_file);
+        LOG(LOG_DEBUG, "init_ui", "Using default layout.");
 
         if (init_ui_layout("gtk-v2.ui") != TRUE) {
             g_error("Could not load default layout.");

@@ -268,7 +268,7 @@ static void config_load_legacy() {
     FILE *fp;
     int i, val;
 
-    LOG(LOG_INFO, "config_load_legacy", "Trying to load legacy settings...");
+    LOG(LOG_DEBUG, "config_load_legacy", "Trying to load legacy settings...");
 
     snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
@@ -384,7 +384,7 @@ void config_load() {
     g_string_printf(config_dir, "%s/.crossfire/", getenv("HOME"));
 
     if (g_file_test(config_dir->str, G_FILE_TEST_IS_DIR) != TRUE) {
-        g_mkdir_with_parents(config_dir->str, 755);
+        g_mkdir_with_parents(config_dir->str, 0755);
     }
 
     /* Load existing or create new configuration file. */
@@ -399,11 +399,7 @@ void config_load() {
     if (error == NULL) {
         for (int i = 0; i < CONFIG_NUMS; i++) {
             want_config[i] = g_key_file_get_integer(config, "Client",
-                    config_names[i], &error);
-
-            if (error != NULL) {
-                LOG(LOG_WARNING, "config_load", "Error parsing!");
-            }
+                    config_names[i], NULL);
         }
 
         /* Load additional settings. */
@@ -421,8 +417,6 @@ void config_load() {
                 window_xml_file_name);
         free(window_xml_file_name);
     } else {
-        LOG(LOG_INFO, "config_load",
-                "Could not load settings: %s", error->message);
         g_error_free(error);
 
         /* Load legacy configuration file. */
@@ -1142,34 +1136,18 @@ void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data) {
  * Save client window positions to a file unique to each layout.
  */
 void save_winpos() {
-    FILE *file;
     GSList *pane_list, *list_loop;
-    char *cp;
-    char buf[MAX_BUF], savename[MAX_BUF];
     int x, y, w, h, wx, wy;
-
-    /* Truncate the file extension from the layout file name. This makes it
-     * possible to save different positions for different client layouts. */
-    snprintf(buf, sizeof(buf), "%s", window_xml_file);
-    cp = strrchr(buf, '.');
-    if (cp) {
-        cp[0] = 0;
-    }
-
-    /* Try to open the settings file. */
-    snprintf(savename, sizeof(savename), "%s/.crossfire/%s.pos",
-            getenv("HOME"), buf);
-    CONVERT_FILESPEC_TO_OS_FORMAT(savename);
-    if (!(file = fopen(savename, "w"))) {
-        snprintf(buf, sizeof(buf),
-                "Cannot open %s - window positions not saved!", savename);
-        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf);
-        return;
-    }
 
     /* Save window position and size. */
     get_window_coord(window_root, &x, &y, &wx, &wy, &w, &h);
-    fprintf(file, "window_root: +%d+%dx%dx%d\n", wx, wy, w, h);
+
+    GString *window_root_info = g_string_new(NULL);
+    g_string_printf(window_root_info, "+%d+%dx%dx%d", wx, wy, w, h);
+
+    g_key_file_set_string(config, window_xml_file,
+            "window_root", window_root_info->str);
+    g_string_free(window_root_info, TRUE);
 
     /* Save the positions of all the HPANEDs and VPANEDs. */
     pane_list = gtk_builder_get_objects(window_xml);
@@ -1178,13 +1156,14 @@ void save_winpos() {
         GType type = GTK_WIDGET_TYPE(list_loop->data);
 
         if (type == GTK_TYPE_HPANED || type == GTK_TYPE_VPANED) {
-            fprintf(file, "%s: %d\n", gtk_buildable_get_name(list_loop->data),
+            g_key_file_set_integer(config, window_xml_file,
+                    gtk_buildable_get_name(list_loop->data),
                     gtk_paned_get_position(GTK_PANED(list_loop->data)));
         }
     }
 
     g_slist_free(pane_list);
-    fclose(file);
+    save_defaults();
 
     draw_ext_info(NDI_BLUE, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
                   "Window positions saved!");
@@ -1213,74 +1192,34 @@ void on_save_window_position_activate(GtkMenuItem *menuitem,
  * @param window_root The client's main window.
  */
 void load_window_positions(GtkWidget *window_root) {
-    char loadname[MAX_BUF];
-    char buf[MAX_BUF];
-    char *cp;
-    GtkWidget *widget;
-    FILE    *load;
+    GSList *pane_list, *list;
+    pane_list = gtk_builder_get_objects(window_xml);
 
-    /*
-     * Truncate window_xml_file to remove a .extension if one exists, so that
-     * the window positions file can be created with a different .extension.
-     * this helps keep the length of the file name more reasonable.
-     */
-    snprintf(buf, sizeof(buf), "%s", window_xml_file);
-    cp = strrchr(buf, '.');
-    if (cp) {
-        cp[0] = 0;
+    /* Load window size and position. */
+    gchar *root_size = g_key_file_get_string(config, window_xml_file,
+            "window_root", NULL);
+    int x, y, w, h;
+
+    if (root_size != NULL &&
+            sscanf(root_size, "+%d+%dx%dx%d", &x, &y, &w, &h) == 4) {
+        gtk_window_set_default_size(GTK_WINDOW(window_root), w, h);
+        gtk_window_move(GTK_WINDOW(window_root), x, y);
+        free(root_size);
     }
 
-    snprintf(loadname, sizeof(loadname), "%s/.crossfire/%s.pos", getenv("HOME"),
-             buf);
-    CONVERT_FILESPEC_TO_OS_FORMAT(loadname);
-    if (!(load = fopen(loadname, "r"))) {
-        snprintf(buf, sizeof(buf),
-                 "Cannot open %s: Using default window positions.", loadname);
-        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
-        return;
-    } else {
-        LOG(LOG_DEBUG, "gtk-v2::load_window_positions",
-            "Loading window positions from '%s'", loadname);
-    }
+    /* Load panel positions. */
+    for (list = pane_list; list != NULL; list = list->next) {
+        GType type = GTK_WIDGET_TYPE(list->data);
 
-    while (fgets(buf, MAX_BUF - 1, load) != NULL) {
-        if ((cp = strchr(buf, ':')) != NULL) {
-            *cp = 0;
-            cp++;
-            while (isspace(*cp)) {
-                cp++;
-            }
+        if (type == GTK_TYPE_HPANED || type == GTK_TYPE_VPANED) {
+            int position = g_key_file_get_integer(config, window_xml_file,
+                    gtk_buildable_get_name(list->data), NULL);
 
-            if (!strcmp(buf, "window_root")) {
-                int x, y, w, h;
-
-                if (sscanf(cp, "+%d+%dx%dx%d", &x, &y, &w, &h) == 4) {
-                    gtk_window_set_default_size(GTK_WINDOW(window_root), w, h);
-                    gtk_window_move(GTK_WINDOW(window_root), x, y);
-
-                } else {
-                    LOG(LOG_ERROR, "config.c::load_window_positions",
-                        "Window size %s corrupt\n", cp);
-                }
-            } else if (strstr(buf, "paned_")) {
-                /*
-                 * The save names are a re-sizeable pane, but check to be sure
-                 * it is a valid widget name if only to prevent sending a
-                 * generic error to stderr if it does not exist in the current
-                 * layout.
-                 */
-                widget = GTK_WIDGET(gtk_builder_get_object(window_xml, buf));
-                if (widget) {
-                    gtk_paned_set_position(GTK_PANED(widget), atoi(cp));
-                } else {
-                    LOG(LOG_INFO, "config.c::load_window_positions", "%s in "
-                        "%s not found in this UI layout.\n", buf, loadname);
-                }
-            } else {
-                LOG(LOG_ERROR, "config.c::load_window_positions",
-                    "Found unknown line %s in %s\n", buf, loadname);
+            if (position != 0) {
+                gtk_paned_set_position(GTK_PANED(list->data), position);
             }
         }
     }
-    fclose(load);
+
+    g_slist_free(pane_list);
 }
