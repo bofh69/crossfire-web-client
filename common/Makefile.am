@@ -30,7 +30,6 @@ noinst_HEADERS = \
 	p_cmd.h \
 	proto.h \
 	script.h \
-	script_lua.h \
 	shared/newclient.h \
 	svnversion.h \
 	version.h
