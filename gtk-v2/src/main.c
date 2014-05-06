@@ -43,6 +43,8 @@
 GtkWidget *window_root, *magic_map;
 GtkBuilder *dialog_xml, *window_xml;
 
+extern int MINLOG;
+
 /* Sets up the basic colors. */
 const char *const colorname[NUM_COLORS] = {
     "Black",                /* 0  */
@@ -102,6 +104,31 @@ int do_scriptout() {
     return (TRUE);
 }
 #endif /* WIN32 */
+
+static GOptionEntry options[] = {
+    { "server", 's', 0, G_OPTION_ARG_STRING, &server,
+        "Connect to the given server", "SERVER" },
+    { "port", 'p', 0, G_OPTION_ARG_INT, &want_config[CONFIG_PORT],
+        "Use the given port number", "PORT" },
+
+    { "cache", 0, 0, G_OPTION_ARG_NONE, &want_config[CONFIG_CACHE],
+        "Cache images", NULL },
+    { "prefetch", 0, 0, G_OPTION_ARG_NONE, &want_config[CONFIG_DOWNLOAD],
+        "Download images before playing", NULL },
+    { "faceset", 0, 0, G_OPTION_ARG_STRING, &face_info.want_faceset,
+        "Use the given faceset (if available)", "FACESET" },
+
+    { "sound_server", 0, 0, G_OPTION_ARG_FILENAME, &sound_server,
+        "Path to the sound server", "PATH" },
+    { "updatekeycodes", 0, 0, G_OPTION_ARG_NONE, &updatekeycodes,
+        "Update the saved bindings for this keyboard", NULL },
+
+    { "timemapredraw", 0, 0, G_OPTION_ARG_NONE, &time_map_redraw,
+        "Print map redraw profiling information", NULL },
+    { "verbose", 'v', 0, G_OPTION_ARG_INT, &MINLOG,
+        "Set verbosity (0 is the most verbose)", "LEVEL" },
+    { NULL }
+};
 
 /**
  * Map, spell, and inventory maintenance.
@@ -292,303 +319,24 @@ static void sigpipe_handler(int sig) {
 #endif
 
 /**
- * Usage routine.  All clients should support server, port and display
- * options, with -pix and -xpm also suggested.  -split does not need to be
- * supported - it is in this copy because the old code supported it.
- * @param *progname Not used, but should be.
- */
-static void usage(char *progname) {
-    puts("Usage of crossfire-client-gtk2:\n");
-    puts("-cache           - Cache images for future use.");
-    puts("-nocache         - Do not cache images (default action).");
-    puts("-darkness        - Enables darkness code (default)");
-    puts("-nodarkness      - Disables darkness code");
-    puts("-display <name>  - Use <name> instead if DISPLAY environment variable.");
-    puts("-download_all_faces - Download all needed faces before play starts");
-    puts("-echo            - Echo the bound commands");
-    puts("-noecho          - Do not echo the bound commands (default)");
-    puts("-faceset <name>  - Use faceset <name> if available");
-    puts("-fasttcpsend     - Send data immediately to server, may increase bandwidth");
-    puts("-nofasttcpsend   - Disables fasttcpsend");
-    puts("-fog             - Enable fog of war code");
-    puts("-help            - Display this message.");
-    puts("-loglevel <val>  - Set default logging level (0 is most verbose)");
-    puts("-iconscale %%    - Set icon scale percentage");
-    puts("-mapscale %%     - Set map scale percentage");
-    puts("-mapsize xXy     - Set the mapsize to be X by Y spaces. (default 11x11)");
-    puts("-splash          - Display the splash screen (default)");
-    puts("-nosplash        - Don't display the splash screen (startup logo)");
-    puts("-opengl          - Use opengl drawing code");
-    puts("-pixmap          - Use pixmap drawing code");
-    puts("-port <number>   - Use port <number> instead of the standard port number");
-    puts("-sdl             - Use sdl for drawing png (may not work on all hardware");
-    puts("-server <name>   - Connect to <name> instead of localhost.");
-    puts("-showicon        - Print status icons in inventory window");
-    puts("-smooth          - Enable smooth");
-    puts("-nosmooth        - Disable smooth (default)");
-    puts("-sound           - Enable sound output (default).");
-    puts("-nosound         - Disable sound output.");
-    puts("-sound_server <path> - Executable to use to play sounds.");
-    puts("-resists <val>   - Control look of resistances.");
-    puts("-split           - Use split windows.");
-    puts("-splitinfo       - Use two information windows, segregated by information type.");
-    puts("-timemapredraw   - Print out timing information for map generation");
-    puts("-triminfowindow  - Trims size of information window(s)");
-    puts("-notriminfowindow  - Do not trims size of information window(s) (default)");
-    puts("-updatekeycodes  - Update the saved bindings for this keyboard.");
-    puts("-window_xml <file> - Glade Designer client UI layout XML file.");
-    puts("-dialog_xml <file> - Glade Designer popup dialog XML file.");
-
-    exit(0);
-}
-
-/**
  * parse_args: Parses command line options, and does variable initialization.
  * @param argc
  * @param argv
- * @return Returns 0 on success, nonzero on failure.
  */
-static int parse_args(int argc, char *argv[]) {
-    int on_arg = 1;
+static void parse_args(int argc, char *argv[]) {
+    GOptionContext *context = g_option_context_new("- Crossfire GTKv2 Client");
+    GError *error = NULL;
 
-    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s", FULL_VERSION);
-    config_load();
+    g_option_context_add_main_entries(context, options, NULL);
+    g_option_context_add_group(context, gtk_get_option_group(TRUE));
 
-    for (on_arg = 1; on_arg < argc; on_arg++) {
-        if (!strcmp(argv[on_arg], "-cache")) {
-            want_config[CONFIG_CACHE] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-nocache")) {
-            want_config[CONFIG_CACHE] = FALSE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-darkness")) {
-            want_config[CONFIG_DARKNESS] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-nodarkness")) {
-            want_config[CONFIG_DARKNESS] = FALSE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-display")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-display requires a display name");
-                return 1;
-            }
-            continue;
-        } else if (!strcmp(argv[on_arg], "-download_all_faces")) {
-            want_config[CONFIG_DOWNLOAD] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-echo")) {
-            want_config[CONFIG_ECHO] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-noecho")) {
-            want_config[CONFIG_ECHO] = FALSE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-faceset")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-faceset requires a faceset name/number");
-                return 1;
-            }
-            face_info.want_faceset = argv[on_arg];
-            continue;
-        } else if (!strcmp(argv[on_arg], "-fog")) {
-            want_config[CONFIG_FOGWAR] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-nofog")) {
-            want_config[CONFIG_FOGWAR] = FALSE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-help")) {
-            usage(argv[0]);
-            continue;
-        } else if (!strcmp(argv[on_arg], "-iconscale")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-iconscale requires a percentage value");
-                return 1;
-            }
-            want_config[CONFIG_ICONSCALE] = atoi(argv[on_arg]);
-            if (want_config[CONFIG_ICONSCALE] < 25 || want_config[CONFIG_ICONSCALE] > 200) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "Valid range for -iconscale is 25 through 200");
-                want_config[CONFIG_ICONSCALE] = 100;
-                return 1;
-            }
-            continue;
-        } else if (!strcmp(argv[on_arg], "-mapscale")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-mapscale requires a percentage value");
-                return 1;
-            }
-            want_config[CONFIG_MAPSCALE] = atoi(argv[on_arg]);
-            if (want_config[CONFIG_MAPSCALE] < 25 || want_config[CONFIG_MAPSCALE] > 200) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "Valid range for -mapscale is 25 through 200");
-                want_config[CONFIG_MAPSCALE] = 100;
-                return 1;
-            }
-            continue;
-        } else if (!strcmp(argv[on_arg], "-mapsize")) {
-            char *cp, x, y = 0;
-
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-mapsize requires a XxY value");
-                return 1;
-            }
-            x = atoi(argv[on_arg]);
-            for (cp = argv[on_arg]; *cp != '\0'; cp++)
-                if (*cp == 'x' || *cp == 'X') {
-                    break;
-                }
-
-            if (*cp == 0) {
-                LOG(LOG_WARNING, "main.c::init_windows", "-mapsize requires "
-                    "both X and Y values (ie, XxY - note the\nx in between.");
-            } else {
-                y = atoi(cp + 1);
-            }
-            if (x < 9 || y < 9) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "Map size must be positive values of at least 9");
-            } else if (x > MAP_MAX_SIZE || y > MAP_MAX_SIZE) {
-                LOG(LOG_WARNING, "main.c::init_windows", "Map size cannot be "
-                    "larger than %d x %d", MAP_MAX_SIZE, MAP_MAX_SIZE);
-
-            } else {
-                want_config[CONFIG_MAPWIDTH] = x;
-                want_config[CONFIG_MAPHEIGHT] = y;
-            }
-            continue;
-        } else if (!strcmp(argv[on_arg], "-fasttcpsend")) {
-            want_config[CONFIG_FASTTCP] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-nofasttcpsend")) {
-            want_config[CONFIG_FASTTCP] = FALSE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-opengl")) {
-#ifndef HAVE_OPENGL
-            LOG(LOG_WARNING, "main.c::init_windows", "client not compiled "
-                "with opengl support.  Ignoring -opengl");
-#else
-            want_config[CONFIG_DISPLAYMODE] = CFG_DM_OPENGL;
-#endif
-            continue;
-        } else if (!strcmp(argv[on_arg], "-pixmap")) {
-            want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
-        } else if (!strcmp(argv[on_arg], "-port")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-port requires a port number");
-                return 1;
-            }
-            want_config[CONFIG_PORT] = atoi(argv[on_arg]);
-            continue;
-        } else if (!strcmp(argv[on_arg], "-sdl")) {
-#ifndef HAVE_SDL
-            LOG(LOG_WARNING, "main.c::init_windows",
-                "client not compiled with sdl support.  Ignoring -sdl");
-#else
-            want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
-#endif
-            continue;
-        } else if (!strcmp(argv[on_arg], "-server")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-server requires a host name");
-                return 1;
-            }
-            server = argv[on_arg];
-            continue;
-        } else if (!strcmp(argv[on_arg], "-showicon")) {
-            want_config[CONFIG_SHOWICON] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-smooth")) {
-            want_config[CONFIG_SMOOTH] = TRUE;
-        } else if (!strcmp(argv[on_arg], "-nosmooth")) {
-            want_config[CONFIG_SMOOTH] = FALSE;
-        } else if (!strcmp(argv[on_arg], "-sound")) {
-            want_config[CONFIG_SOUND] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-nosound")) {
-            want_config[CONFIG_SOUND] = FALSE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-sound_server")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-sound_server requires an executable pathname");
-                return 1;
-            }
-            sound_server = argv[on_arg];
-            continue;
-        } else if (!strcmp(argv[on_arg], "-split")) {
-            want_config[CONFIG_SPLITWIN] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-nosplit")) {
-            want_config[CONFIG_SPLITWIN] = FALSE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-resists")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-resists requires a value");
-                return 1;
-            }
-            want_config[CONFIG_RESISTS] = atoi(argv[on_arg]);
-            continue;
-        } else if (!strcmp(argv[on_arg], "-loglevel")) {
-            extern int MINLOG;
-
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-loglevel requires a value");
-                return 1;
-            }
-            MINLOG = atoi(argv[on_arg]);
-            continue;
-        } else if (!strcmp(argv[on_arg], "-splitinfo")) {
-            want_config[CONFIG_SPLITINFO] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-timemapredraw")) {
-            time_map_redraw = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-triminfowindow")) {
-            want_config[CONFIG_TRIMINFO] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-notriminfowindow")) {
-            want_config[CONFIG_TRIMINFO] = FALSE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-updatekeycodes")) {
-            updatekeycodes = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-splash")) {
-            want_config[CONFIG_SPLASH] = TRUE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-nosplash")) {
-            want_config[CONFIG_SPLASH] = FALSE;
-            continue;
-        } else if (!strcmp(argv[on_arg], "-window_xml")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-window_xml requires a xml file name");
-                return 1;
-            }
-            strncpy(window_xml_file, argv[on_arg], MAX_BUF - 1);
-            continue;
-        } else if (!strcmp(argv[on_arg], "-dialog_xml")) {
-            if (++on_arg == argc) {
-                LOG(LOG_WARNING, "main.c::init_windows",
-                    "-dialog_xml requires a xml file name");
-                return 1;
-            }
-            strncpy(dialog_xml_path, argv[on_arg], MAX_BUF - 1);
-            continue;
-        } else {
-            LOG(LOG_WARNING, "main.c::init_windows",
-                "Do not understand option %s", argv[on_arg]);
-            usage(argv[0]);
-            return 1;
-        }
+    if (!g_option_context_parse(context, &argc, &argv, &error)) {
+        g_print("%s\n", error->message);
+        g_error_free(error);
+        exit(EXIT_FAILURE);
     }
+
+    g_option_context_free(context);
 
     /*
      * Move this after the parsing of command line options, since that can
@@ -597,7 +345,7 @@ static int parse_args(int argc, char *argv[]) {
     LOG(LOG_INFO, "Client Version", VERSION_INFO);
 
     /* Now copy over the values just loaded */
-    for (on_arg = 0; on_arg < CONFIG_NUMS; on_arg++) {
+    for (int on_arg = 0; on_arg < CONFIG_NUMS; on_arg++) {
         use_config[on_arg] = want_config[on_arg];
     }
 
@@ -609,8 +357,6 @@ static int parse_args(int argc, char *argv[]) {
     }
 
     mapdata_init();
-
-    return 0;
 }
 
 /**
@@ -799,6 +545,8 @@ int main(int argc, char *argv[]) {
     use_config[CONFIG_MAPHEIGHT] = want_config[CONFIG_MAPHEIGHT] = 25;
 
     /* This MUST come after init_client_vars(). */
+    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s", FULL_VERSION);
+    config_load();
     parse_args(argc, argv);
 
     /* Initialize UI. */
