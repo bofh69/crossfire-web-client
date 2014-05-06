@@ -397,7 +397,7 @@ void config_load() {
 
     /* Load configuration values into settings array. */
     if (error == NULL) {
-        for (int i = 0; i < CONFIG_NUMS; i++) {
+        for (int i = 1; i < CONFIG_NUMS; i++) {
             want_config[i] = g_key_file_get_integer(config, "Client",
                     config_names[i], NULL);
         }
