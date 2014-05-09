@@ -59,17 +59,100 @@ gboolean metaserver_selection_func(GtkTreeSelection *selection,
 }
 
 /**
+ * Initialize the metaserver user interface.
+ */
+void metaserver_ui_init() {
+    GtkCellRenderer *renderer;
+    GtkTreeViewColumn *column;
+    GtkWidget *widget;
+
+    metaserver_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                   "metaserver_window"));
+
+    gtk_window_set_transient_for(GTK_WINDOW(metaserver_window),
+                                 GTK_WINDOW(window_root));
+
+    treeview_metaserver = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                     "treeview_metaserver"));
+    metaserver_button = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                   "metaserver_select"));
+    metaserver_status = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                   "metaserver_status"));
+    metaserver_entry = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                                  "metaserver_text_entry"));
+
+    g_signal_connect((gpointer) metaserver_window, "destroy",
+                     G_CALLBACK(on_window_destroy_event), NULL);
+    g_signal_connect((gpointer) treeview_metaserver, "row_activated",
+                     G_CALLBACK(on_treeview_metaserver_row_activated), NULL);
+    g_signal_connect((gpointer) metaserver_entry, "activate",
+                     G_CALLBACK(on_metaserver_text_entry_activate), NULL);
+    g_signal_connect((gpointer) metaserver_entry, "key_press_event",
+                     G_CALLBACK(on_metaserver_text_entry_key_press_event), NULL);
+    g_signal_connect((gpointer) metaserver_button, "clicked",
+                     G_CALLBACK(on_metaserver_select_clicked), NULL);
+
+    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
+                        "button_metaserver_quit"));
+    g_signal_connect((gpointer) widget, "pressed",
+                     G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
+    g_signal_connect((gpointer) widget, "activate",
+                     G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
+
+    store_metaserver = gtk_list_store_new(6,
+                                          G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
+                                          G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING);
+
+    gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_metaserver),
+                            GTK_TREE_MODEL(store_metaserver));
+
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Hostname", renderer,
+             "text", LIST_HOSTNAME, NULL);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_HOSTNAME);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
+
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Updated (Sec)", renderer,
+             "text", LIST_IDLETIME, NULL);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_IDLETIME);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
+
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Players", renderer,
+             "text", LIST_PLAYERS, NULL);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_PLAYERS);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
+
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Version", renderer,
+             "text", LIST_VERSION, NULL);
+    gtk_tree_view_column_set_sort_column_id(column, LIST_VERSION);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
+
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Server Comment", renderer,
+             "text", LIST_COMMENT, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
+
+    gtk_widget_realize(metaserver_window);
+    metaserver_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(
+                               treeview_metaserver));
+    gtk_tree_selection_set_mode(metaserver_selection, GTK_SELECTION_BROWSE);
+    gtk_tree_selection_set_select_function(metaserver_selection,
+                                           metaserver_selection_func, NULL, NULL);
+}
+
+/**
  * Constructs the metaserver dialog and handles metaserver selection.  If the
  * player has a servers.cache file in their .crossfire folder, the cached
  * server list is added to the contents of the metaserver dialog.
  */
 void get_metaserver() {
     GtkTreeIter iter;
-    GtkWidget *widget;
     char file_cache[MAX_BUF];
     const gchar *metaserver_txt;
     int i, j;
-    static int has_init = 0;
 
     hide_all_login_windows();
 
@@ -79,88 +162,6 @@ void get_metaserver() {
     CONVERT_FILESPEC_TO_OS_FORMAT(file_cache);
     cached_server_file = file_cache;
 
-    if (!has_init) {
-        GtkTreeViewColumn *column;
-        GtkCellRenderer *renderer;
-
-        metaserver_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                       "metaserver_window"));
-
-        gtk_window_set_transient_for(GTK_WINDOW(metaserver_window),
-                                     GTK_WINDOW(window_root));
-
-        treeview_metaserver = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                         "treeview_metaserver"));
-        metaserver_button = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                       "metaserver_select"));
-        metaserver_status = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                       "metaserver_status"));
-        metaserver_entry = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                      "metaserver_text_entry"));
-
-        g_signal_connect((gpointer) metaserver_window, "destroy",
-                         G_CALLBACK(on_window_destroy_event), NULL);
-        g_signal_connect((gpointer) treeview_metaserver, "row_activated",
-                         G_CALLBACK(on_treeview_metaserver_row_activated), NULL);
-        g_signal_connect((gpointer) metaserver_entry, "activate",
-                         G_CALLBACK(on_metaserver_text_entry_activate), NULL);
-        g_signal_connect((gpointer) metaserver_entry, "key_press_event",
-                         G_CALLBACK(on_metaserver_text_entry_key_press_event), NULL);
-        g_signal_connect((gpointer) metaserver_button, "clicked",
-                         G_CALLBACK(on_metaserver_select_clicked), NULL);
-
-        widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                            "button_metaserver_quit"));
-        g_signal_connect((gpointer) widget, "pressed",
-                         G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
-        g_signal_connect((gpointer) widget, "activate",
-                         G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
-
-        store_metaserver = gtk_list_store_new(6,
-                                              G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
-                                              G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING);
-
-        gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_metaserver),
-                                GTK_TREE_MODEL(store_metaserver));
-
-        renderer = gtk_cell_renderer_text_new();
-        column = gtk_tree_view_column_new_with_attributes("Hostname", renderer,
-                 "text", LIST_HOSTNAME, NULL);
-        gtk_tree_view_column_set_sort_column_id(column, LIST_HOSTNAME);
-        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
-
-        renderer = gtk_cell_renderer_text_new();
-        column = gtk_tree_view_column_new_with_attributes("Updated (Sec)", renderer,
-                 "text", LIST_IDLETIME, NULL);
-        gtk_tree_view_column_set_sort_column_id(column, LIST_IDLETIME);
-        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
-
-        renderer = gtk_cell_renderer_text_new();
-        column = gtk_tree_view_column_new_with_attributes("Players", renderer,
-                 "text", LIST_PLAYERS, NULL);
-        gtk_tree_view_column_set_sort_column_id(column, LIST_PLAYERS);
-        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
-
-        renderer = gtk_cell_renderer_text_new();
-        column = gtk_tree_view_column_new_with_attributes("Version", renderer,
-                 "text", LIST_VERSION, NULL);
-        gtk_tree_view_column_set_sort_column_id(column, LIST_VERSION);
-        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
-
-        renderer = gtk_cell_renderer_text_new();
-        column = gtk_tree_view_column_new_with_attributes("Server Comment", renderer,
-                 "text", LIST_COMMENT, NULL);
-        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
-
-        gtk_widget_realize(metaserver_window);
-        metaserver_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(
-                                   treeview_metaserver));
-        gtk_tree_selection_set_mode(metaserver_selection, GTK_SELECTION_BROWSE);
-        gtk_tree_selection_set_select_function(metaserver_selection,
-                                               metaserver_selection_func, NULL, NULL);
-
-        has_init = 1;
-    }
     gtk_widget_show(metaserver_window);
 
     gtk_label_set_text(GTK_LABEL(metaserver_status),

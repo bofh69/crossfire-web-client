@@ -511,6 +511,7 @@ static void init_ui() {
     pickup_init(window_root);
     msgctrl_init(window_root);
     init_create_character_window();
+    metaserver_ui_init();
 
     load_window_positions(window_root);
 
