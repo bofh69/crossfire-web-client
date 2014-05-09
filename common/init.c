@@ -139,42 +139,38 @@ void init_client_vars() {
         face_info.facesets[i].comment = NULL;
     }
 
-    want_config[CONFIG_DOWNLOAD] = FALSE;
-    want_config[CONFIG_ECHO] = FALSE;
-    want_config[CONFIG_FASTTCP] = TRUE;
-    want_config[CONFIG_CWINDOW] = COMMAND_WINDOW;
-    want_config[CONFIG_CACHE] = FALSE;
-    want_config[CONFIG_FOGWAR] = TRUE;
-    want_config[CONFIG_ICONSCALE] = 100;
-    want_config[CONFIG_MAPSCALE] = 100;
-    want_config[CONFIG_POPUPS] = FALSE;
-    want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
-    want_config[CONFIG_SHOWICON] = FALSE;
-    want_config[CONFIG_TOOLTIPS] = TRUE;
-    want_config[CONFIG_SOUND] = TRUE;
-    want_config[CONFIG_SPLITINFO] = FALSE;
-    want_config[CONFIG_SPLITWIN] = FALSE;
-    want_config[CONFIG_SHOWGRID] = FALSE;
-    want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
-    want_config[CONFIG_TRIMINFO] = FALSE;
-    want_config[CONFIG_MAPWIDTH] = 11;
-    want_config[CONFIG_MAPHEIGHT] = 11;
-    want_config[CONFIG_FOODBEEP] = FALSE;
-    want_config[CONFIG_DARKNESS] = TRUE;
-    want_config[CONFIG_PORT] = EPORT;
-    want_config[CONFIG_GRAD_COLOR] = FALSE;
-    want_config[CONFIG_RESISTS] = 0;
-    want_config[CONFIG_RESISTS] = 0;
-    want_config[CONFIG_SMOOTH] = 0;
-    want_config[CONFIG_SPLASH] = TRUE;
-    want_config[CONFIG_APPLY_CONTAINER] = TRUE;
-    want_config[CONFIG_MAPSCROLL] = TRUE;
-    want_config[CONFIG_SIGNPOPUP] = TRUE;
-    want_config[CONFIG_TIMESTAMP] = FALSE;
-
-    for (i = 0; i < CONFIG_NUMS; i++) {
-        use_config[i] = want_config[i];
-    }
+    use_config[CONFIG_DOWNLOAD] = FALSE;
+    use_config[CONFIG_ECHO] = FALSE;
+    use_config[CONFIG_FASTTCP] = TRUE;
+    use_config[CONFIG_CWINDOW] = COMMAND_WINDOW;
+    use_config[CONFIG_CACHE] = FALSE;
+    use_config[CONFIG_FOGWAR] = TRUE;
+    use_config[CONFIG_ICONSCALE] = 100;
+    use_config[CONFIG_MAPSCALE] = 100;
+    use_config[CONFIG_POPUPS] = FALSE;
+    use_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
+    use_config[CONFIG_SHOWICON] = FALSE;
+    use_config[CONFIG_TOOLTIPS] = TRUE;
+    use_config[CONFIG_SOUND] = TRUE;
+    use_config[CONFIG_SPLITINFO] = FALSE;
+    use_config[CONFIG_SPLITWIN] = FALSE;
+    use_config[CONFIG_SHOWGRID] = FALSE;
+    use_config[CONFIG_LIGHTING] = CFG_LT_TILE;
+    use_config[CONFIG_TRIMINFO] = FALSE;
+    use_config[CONFIG_MAPWIDTH] = 11;
+    use_config[CONFIG_MAPHEIGHT] = 11;
+    use_config[CONFIG_FOODBEEP] = FALSE;
+    use_config[CONFIG_DARKNESS] = TRUE;
+    use_config[CONFIG_PORT] = EPORT;
+    use_config[CONFIG_GRAD_COLOR] = FALSE;
+    use_config[CONFIG_RESISTS] = 0;
+    use_config[CONFIG_RESISTS] = 0;
+    use_config[CONFIG_SMOOTH] = 0;
+    use_config[CONFIG_SPLASH] = TRUE;
+    use_config[CONFIG_APPLY_CONTAINER] = TRUE;
+    use_config[CONFIG_MAPSCROLL] = TRUE;
+    use_config[CONFIG_SIGNPOPUP] = TRUE;
+    use_config[CONFIG_TIMESTAMP] = FALSE;
 
 #ifdef WIN32
     /* If HOME is not set, set it to the current directory. */

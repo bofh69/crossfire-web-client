@@ -323,6 +323,12 @@ static void sigpipe_handler(int sig) {
  * @param argc
  * @param argv
  */
+
+/**
+ * Parse command-line arguments and store settings in want_config.
+ *
+ * This function should be called after config_load().
+ */
 static void parse_args(int argc, char *argv[]) {
     GOptionContext *context = g_option_context_new("- Crossfire GTKv2 Client");
     GError *error = NULL;
@@ -343,20 +349,6 @@ static void parse_args(int argc, char *argv[]) {
      * change the default log level.
      */
     LOG(LOG_INFO, "Client Version", VERSION_INFO);
-
-    /* Now copy over the values just loaded */
-    for (int on_arg = 0; on_arg < CONFIG_NUMS; on_arg++) {
-        use_config[on_arg] = want_config[on_arg];
-    }
-
-    image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
-    map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
-    map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
-    if (!use_config[CONFIG_CACHE]) {
-        use_config[CONFIG_DOWNLOAD] = FALSE;
-    }
-
-    mapdata_init();
 }
 
 /**
@@ -541,13 +533,14 @@ int main(int argc, char *argv[]) {
 
     /* Initialize client configuration to something reasonable. */
     init_client_vars();
-    use_config[CONFIG_MAPWIDTH] = want_config[CONFIG_MAPWIDTH] = 25;
-    use_config[CONFIG_MAPHEIGHT] = want_config[CONFIG_MAPHEIGHT] = 25;
+    use_config[CONFIG_MAPWIDTH] = 25;
+    use_config[CONFIG_MAPHEIGHT] = 25;
 
     /* This MUST come after init_client_vars(). */
     snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s", FULL_VERSION);
     config_load();
     parse_args(argc, argv);
+    config_check();
 
     /* Initialize UI. */
     init_ui();

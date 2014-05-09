@@ -37,6 +37,7 @@ extern void start_login(int method);
 extern void choose_char_window_show();
 /* config.c */
 extern void load_theme(int reload);
+extern void config_check();
 extern void config_load(void);
 extern void save_defaults(void);
 extern void config_init(GtkWidget *window_root);

@@ -368,16 +368,100 @@ static void config_load_legacy() {
 }
 
 /**
- * This function processes the user saved settings file and establishes the
- * configuration of the client.
+ * Sanity check values set in want_config and copy them over to use_config
+ * when all of them are acceptable.
+ *
+ * This function should be called after config_load() and parse_args().
+ */
+void config_check() {
+    if (want_config[CONFIG_ICONSCALE] < 25 ||
+            want_config[CONFIG_ICONSCALE] > 200) {
+        LOG(LOG_WARNING, "config_check",
+                "Ignoring invalid 'iconscale' value '%d'; "
+                "must be between 25 and 200.\n",
+                want_config[CONFIG_ICONSCALE]);
+        want_config[CONFIG_ICONSCALE] = use_config[CONFIG_ICONSCALE];
+    }
+
+    if (want_config[CONFIG_MAPSCALE] < 25 ||
+            want_config[CONFIG_MAPSCALE] > 200) {
+        LOG(LOG_WARNING, "config_check",
+                "Ignoring invalid 'mapscale' value '%d'; "
+                "must be between 25 and 200.\n",
+                want_config[CONFIG_MAPSCALE]);
+        want_config[CONFIG_MAPSCALE] = use_config[CONFIG_MAPSCALE];
+    }
+
+    if (!want_config[CONFIG_LIGHTING]) {
+        LOG(LOG_WARNING, "config_check",
+            "No lighting mechanism selected - will not use darkness code");
+        want_config[CONFIG_DARKNESS] = FALSE;
+    }
+
+    if (want_config[CONFIG_RESISTS] > 2) {
+        LOG(LOG_WARNING, "config_check",
+                "Ignoring invalid 'resists' value '%d'; "
+                "must be either 0, 1, or 2.\n",
+                want_config[CONFIG_RESISTS]);
+        want_config[CONFIG_RESISTS] = 0;
+    }
+
+    /* Make sure the map size os OK */
+    if (want_config[CONFIG_MAPWIDTH] < 9 ||
+            want_config[CONFIG_MAPWIDTH] > MAP_MAX_SIZE) {
+        LOG(LOG_WARNING, "config_check", "Invalid map width (%d) "
+            "option in gdefaults2. Valid range is 9 to %d",
+            want_config[CONFIG_MAPWIDTH], MAP_MAX_SIZE);
+        want_config[CONFIG_MAPWIDTH] = use_config[CONFIG_MAPWIDTH];
+    }
+
+    if (want_config[CONFIG_MAPHEIGHT] < 9 ||
+            want_config[CONFIG_MAPHEIGHT] > MAP_MAX_SIZE) {
+        LOG(LOG_WARNING, "config_check", "Invalid map height (%d) "
+            "option in gdefaults2. Valid range is 9 to %d",
+            want_config[CONFIG_MAPHEIGHT], MAP_MAX_SIZE);
+        want_config[CONFIG_MAPHEIGHT] = use_config[CONFIG_MAPHEIGHT];
+    }
+
+#if !defined(HAVE_OPENGL)
+    if (want_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
+        want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
+        LOG(LOG_ERROR, "config_check",
+            "Display mode is set to OpenGL, but client "
+            "is not compiled with OpenGL support.  Reverting to pixmap mode.");
+    }
+#endif
+
+#if !defined(HAVE_SDL)
+    if (want_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
+        want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
+        LOG(LOG_ERROR, "config_check",
+            "Display mode is set to SDL, but client "
+            "is not compiled with SDL support.  Reverting to pixmap mode.");
+    }
+#endif
+
+    /* Copy sanitized user settings to current settings. */
+    memcpy(use_config, want_config, sizeof(use_config));
+
+    image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
+    map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
+    map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
+    if (!use_config[CONFIG_CACHE]) {
+        use_config[CONFIG_DOWNLOAD] = FALSE;
+    }
+
+    mapdata_init();
+}
+
+/**
+ * Load settings from the user's configuration file into want_config.
  */
 void config_load() {
     GError *error = NULL;
 
-    /* Copy over the want values to use values now */
-    for (int i = 0; i < CONFIG_NUMS; i++) {
-        use_config[i] = want_config[i];
-    }
+    /* Copy initial desired settings from current settings. */
+    memcpy(want_config, use_config, sizeof(want_config));
 
     /* Create directory if it doesn't already exist. */
     config_dir = g_string_new(NULL);
@@ -422,82 +506,6 @@ void config_load() {
         /* Load legacy configuration file. */
         config_load_legacy();
     }
-
-    /*
-     * Make sure some of the values entered are sane - since a user can edit
-     * the defaults file directly, they could put bogus values in
-     */
-    if (want_config[CONFIG_ICONSCALE] < 25 || want_config[CONFIG_ICONSCALE] > 200) {
-        LOG(LOG_WARNING, "config.c::load_defaults",
-            "Ignoring iconscale value read from gdefaults2 file.\n"
-            "Invalid iconscale range (%d), valid range for -iconscale "
-            "is 25 through 200", want_config[CONFIG_ICONSCALE]);
-        want_config[CONFIG_ICONSCALE] = use_config[CONFIG_ICONSCALE];
-    }
-    if (want_config[CONFIG_MAPSCALE] < 25 || want_config[CONFIG_MAPSCALE] > 200) {
-        LOG(LOG_WARNING, "config.c::load_defaults",
-            "ignoring mapscale value read for gdefaults2 file.\n"
-            "Invalid mapscale range (%d), valid range for -iconscale "
-            "is 25 through 200", want_config[CONFIG_MAPSCALE]);
-        want_config[CONFIG_MAPSCALE] = use_config[CONFIG_MAPSCALE];
-    }
-    if (!want_config[CONFIG_LIGHTING]) {
-        LOG(LOG_WARNING, "config.c::load_defaults",
-            "No lighting mechanism selected - will not use darkness code");
-        want_config[CONFIG_DARKNESS] = FALSE;
-    }
-    if (want_config[CONFIG_RESISTS] > 2) {
-        LOG(LOG_WARNING, "config.c::load_defaults",
-            "ignoring resists display value read for gdafaults file.\n"
-            "Invalid value (%d), must be one value of 0, 1 or 2.",
-            want_config[CONFIG_RESISTS]);
-        want_config[CONFIG_RESISTS] = 0;
-    }
-
-    /* Make sure the map size os OK */
-    if (want_config[CONFIG_MAPWIDTH] < 9 ||
-            want_config[CONFIG_MAPWIDTH] > MAP_MAX_SIZE) {
-        LOG(LOG_WARNING, "config.c::load_defaults", "Invalid map width (%d) "
-            "option in gdefaults2. Valid range is 9 to %d",
-            want_config[CONFIG_MAPWIDTH], MAP_MAX_SIZE);
-        want_config[CONFIG_MAPWIDTH] = use_config[CONFIG_MAPWIDTH];
-    }
-    if (want_config[CONFIG_MAPHEIGHT] < 9 ||
-            want_config[CONFIG_MAPHEIGHT] > MAP_MAX_SIZE) {
-        LOG(LOG_WARNING, "config.c::load_defaults", "Invalid map height (%d) "
-            "option in gdefaults2. Valid range is 9 to %d",
-            want_config[CONFIG_MAPHEIGHT], MAP_MAX_SIZE);
-        want_config[CONFIG_MAPHEIGHT] = use_config[CONFIG_MAPHEIGHT];
-    }
-
-#if !defined(HAVE_OPENGL)
-    if (want_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
-        want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
-        LOG(LOG_ERROR, "config.c::load_defaults",
-            "Display mode is set to OpenGL, but client "
-            "is not compiled with OpenGL support.  Reverting to pixmap mode.");
-    }
-#endif
-
-#if !defined(HAVE_SDL)
-    if (want_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
-        want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
-        LOG(LOG_ERROR, "config.c::load_defaults",
-            "Display mode is set to SDL, but client "
-            "is not compiled with SDL support.  Reverting to pixmap mode.");
-    }
-#endif
-
-
-    /* Now copy over the values just loaded */
-    for (int i = 0; i < CONFIG_NUMS; i++) {
-        use_config[i] = want_config[i];
-    }
-
-    image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
-    map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
-    map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
-    /*inv_list.show_icon = use_config[CONFIG_SHOWICON];*/
 }
 
 /**
