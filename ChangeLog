@@ -1,3 +1,6 @@
+2014-05-09	Kevin Zheng
+	* configure.ac: Add dependency on GLib.
+
 2014-05-05	Kevin Zheng
 	* gtk-v2/src/main.c: Clean up command-line arguments. Many old flags have
 	been either removed or renamed. The correct way to set client options is

@@ -1,3 +1,5 @@
+AM_CFLAGS = ${PTHREAD_CFLAGS} ${LUA_CFLAGS} ${GLIB_CFLAGS}
+
 noinst_LIBRARIES = libcfclient.a
 
 libcfclient_a_SOURCES = \
@@ -40,13 +42,6 @@ EXTRA_DIST = \
 	def-keys \
 	item-types \
 	items.pl
-
-AM_CFLAGS = $(PTHREAD_CFLAGS) @LUA_CFLAGS@
-
-proto:
-	cproto -DCPROTO -DCFCLIENT $(DEFAULT_INCLUDES) $(AM_CFLAGS) \
-		$(libcfclient_a_SOURCES) > proto.h
-	chmod 644 proto.h
 
 item-types.h: item-types
 	$(PERL) $(srcdir)/items.pl $(srcdir)

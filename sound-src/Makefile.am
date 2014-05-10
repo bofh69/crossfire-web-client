@@ -1,9 +1,11 @@
-bin_PROGRAMS = cfsndserv
-
 AM_CFLAGS = \
 	-I$(top_builddir)/common \
 	-I$(top_srcdir)/common \
-	-I$(top_srcdir)/common/shared
+	-I$(top_srcdir)/common/shared \
+	${GLIB_CFLAGS} \
+	${SDL_CFLAGS}
+
+bin_PROGRAMS = cfsndserv
 
 common_BUILT_FILES = \
 	$(top_builddir)/common/svnversion.h
@@ -32,7 +34,4 @@ cfsndserv_SOURCES = \
 	parser.c \
 	sndproto.h
 
-cfsndserv_LDADD = \
-	$(SND_LIBS) \
-	$(DMALLOC_LIB) \
-	$(common_LIBS)
+cfsndserv_LDADD = ${common_LIBS} ${SDLMIXER_LIBS}

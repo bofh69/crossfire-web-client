@@ -110,7 +110,6 @@ case "$target" in
         # explicitely set it
         CFLAGS="$CFLAGS -mms-bitfields"
         WIN32_LIBS="-lwsock32 -lwinmm"
-        AC_SUBST(WIN32_LIBS)
     ;;
     *)
     ;;
@@ -133,8 +132,6 @@ AM_PATH_GTK_2_0([2.24.0], [CF_SUBDIRS="$CF_SUBDIRS gtk-v2"],
                 [AC_MSG_ERROR(Missing required GTK libraries.)])
 
 AM_MAINTAINER_MODE
-AC_SUBST(PACKAGE_LIBS)
-AC_SUBST(INTLLIBS)
 
 AC_SEARCH_LIBS(pthread_create, [pthread, pthreadgc, pthreadgc1, pthreadgc2], [AC_DEFINE(HAVE_LIBPTHREAD, 1, [Define to 1 if you have the 'pthread' library.])])
 
@@ -148,23 +145,6 @@ if eval "test x$need_r_flag = xyes"; then
     LDFLAGS="$LDFLAGS"
 fi
 
-# Check for additional X11 libraries.
-
-# Save and modify CPPFLAGS and LIBS (to include X and GTK paths temporarily).
-gcfc_save_CPPFLAGS="$CPPFLAGS"
-gcfc_save_LIBS="$LIBS"
-CPPFLAGS="$GTK_CFLAGS $CPPFLAGS $OPENGL_CFLAGS"
-LIBS="$LIBS $GTK_LIBS $X11_LIBS"
-
-# Need to check for Xext while we still have X11_LIBS set.
-AC_CHECK_LIB(Xext, main, X11_LIBS="$X11_LIBS -lXext")
-
-# Restore previous CPPFLAGS and LIBS.
-CPPFLAGS="$gcfc_save_CPPFLAGS"
-LIBS="$gcfc_save_LIBS"
-AC_SUBST(X11_CFLAGS)
-AC_SUBST(X11_LIBS)
-
 # Check for OpenGL if it is enabled.
 if test "$enable_opengl" = "yes"; then
     PKG_CHECK_MODULES([gl], [gl], [have_opengl=yes], [no_gl=yes])
@@ -173,10 +153,10 @@ if test "$enable_opengl" = "yes"; then
     if test "$have_opengl" = "yes"; then
         OPENGL_CFLAGS="${gl_CFLAGS} ${glu_CFLAGS}"
         OPENGL_LIBS="${gl_LIBS} ${glu_LIBS}"
-
-        AC_DEFINE(HAVE_OPENGL, 1, [Define if you have OpenGL.])
         AC_SUBST(OPENGL_CFLAGS)
         AC_SUBST(OPENGL_LIBS)
+
+        AC_DEFINE(HAVE_OPENGL, 1, [Define if you have OpenGL.])
 
         opengl="yes"
     else
@@ -188,13 +168,9 @@ fi
 
 # Check for sound libraries if it is enabled.
 if test "$enable_sound" = "yes"; then
-    PKG_CHECK_MODULES([SDL_mixer], [SDL_mixer], [sdl_sound=yes], [sdl_sound=no])
+    PKG_CHECK_MODULES([SDLMIXER], [SDL_mixer], [sdl_sound=yes], [sdl_sound=no])
 
     if test "$sdl_sound" = "yes"; then
-        CFLAGS="${CFLAGS} ${SDL_mixer_CFLAGS}"
-        SND_LIBS="${SDL_mixer_LIBS}"
-
-        AC_SUBST(SND_LIBS)
         CF_SUBDIRS="${CF_SUBDIRS} sound-src";
     else
         AC_MSG_WARN([Cannot find SDL_Mixer; not enabling sound support.])
@@ -203,12 +179,6 @@ else
     # Set this to 'no' so that it is properly displayed in the results.
     sdl_sound=no
 fi
-
-AC_SUBST(GUI_OBJS)
-AC_SUBST(GUI_SRCS)
-AC_SUBST(LDFLAGS)
-AC_SUBST(TARGET)
-AC_SUBST(CF_SUBDIRS)
 
 # Check for SDL 1.1.3 and sdl_image.  Note SDL_image does not ship with an
 # sdl-image-config, so I'll just assume it is in the same dir as SDL.
@@ -233,9 +203,6 @@ if eval "test x$use_sdl = xyes"; then
     fi
 fi
 
-AC_SUBST(SDL_CFLAGS)
-AC_SUBST(SDL_LIBS)
-
 # We need to check for socket/nsl here - some versions of the windowing
 # systems need these to properly link with X (I thought AC_PATH_XTRA should
 # take care of this, but apparently is does not).  If it is not here, the
@@ -250,9 +217,9 @@ LIBCURL_CHECK_CONFIG()
 LIBS="$LIBS $LIBCURL"
 CPPFLAGS="$CPPFLAGS $LIBCURL_CPPFLAGS"
 
-AC_SUBST(LIBS)
-
 AC_CHECK_LIB(png, main, , [AC_MSG_ERROR([You must have the png library installed to compile the client])])
+
+PKG_CHECK_MODULES([GLIB], [glib-2.0])
 
 ##############################################################################
 AS_BOX([Header/Type/Structure Checks])
@@ -289,10 +256,6 @@ AC_CHECK_SIZEOF(long long)
 # Checks for library functions.
 AC_CHECK_FUNCS([getaddrinfo socket sysconf])
 
-AC_SUBST(XPM)
-AC_SUBST(SOUNDDIR)
-AC_SUBST(LIBXPM_LIB)
-
 # Run evals on the original variable names so that they get expanded to the
 # actual path - otherwise, the substitution below will contain the unexpanded
 # variables that don't resolve.
@@ -318,6 +281,7 @@ AC_DEFINE_UNQUOTED(BINDIR, "${nbindir}", [Location of other binaries.])
 AC_DEFINE_UNQUOTED(MINLOGLEVEL, ${MINLOGLEVEL}, [Default logging level.])
 
 AC_SUBST(CF_DATADIR)
+AC_SUBST(CF_SUBDIRS)
 
 # Make all Makefiles, even if CF_SUBDIRS are not set for that directory.
 # since CF_SUBDIRS won't be set in the top level Makefile, we don't descend
