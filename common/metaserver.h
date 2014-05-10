@@ -1,33 +1,22 @@
-/* char *rcsid_common_metaserver_h =
- *   "$Id$";
- */
-
-/*
-    Crossfire client, a client program for the crossfire program.
-
-    Copyright (C) 2005,2010 Mark Wedel & Crossfire Development Team
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    The author can be reached via e-mail to crossfire-devel@real-time.com
-*/
-
 /**
- * @file common/metaserver.h
- *
+ * @file
+ * Metaserver settings, structures, and prototypes.
  */
+
+/* Server to contact to get information about crossfire servers.
+ * This is not the server you play on, but rather a central repository
+ * that lists the servers.
+ * METASERVER controls default behaviour (same as -metaserver options) -
+ * if set to TRUE, we try to get metaserver information, if false, we do
+ * not.  If you are behind a firewall, you probably want this off by
+ * default.
+ * METASERVER2 is controlled via --disable-metaserver2 when configure
+ * is run - by default, it is enabled.
+ */
+
+#define META_SERVER "crossfire.real-time.com"
+#define META_PORT   13326
+#define METASERVER  FALSE
 
 /* Arbitrary size.  At some point, we would need to cut this off simply
  * for display/selection reasons.

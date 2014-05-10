@@ -14,6 +14,20 @@
 #  include <dmalloc.h>
 #endif
 
+/* This is how often the client checks for X events, as well as how often
+ * it performs animations (or will).  This value can be most anything.
+ * IT is only configurable because the exact value it needs to be set to
+ * has to be figured out.  This value is in microseconds (100,000 microseconds=
+ * 0.1 seconds
+ */
+#define MAX_TIME 100000
+
+/* This is the default port to connect to the server with. */
+#define EPORT 13327
+
+/* This is the default port to connect to the server with in string form. */
+#define DEFPORT "13327"
+
 #define VERSION_CS 1023
 #define VERSION_SC 1029
 

@@ -31,8 +31,6 @@
 
 #ifndef CLIENT_TYPES_H
 #define CLIENT_TYPES_H
-#include <cconfig.h>
-
 
 /* If using autoconf, use it to pick up the necessary files.  Otherwise,
  * we will draw on includes.h

@@ -31,7 +31,6 @@
 #include <stdlib.h>
 
 #include <client.h>
-#include <cconfig.h>
 #include <external.h>
 
 #include <metaserver.h>

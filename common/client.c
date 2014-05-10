@@ -36,14 +36,11 @@
 #include <ctype.h>
 
 #include "mapdata.h"
+#include "metaserver.h"
 
 /* actually declare the globals */
 
-#ifdef SERVER
-char *server=SERVER;
-#else
-char *server=NULL;
-#endif
+char *server = NULL;
 
 char VERSION_INFO[MAX_BUF];
 

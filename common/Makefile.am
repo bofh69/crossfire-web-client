@@ -16,7 +16,6 @@ libcfclient_a_SOURCES = \
 	script_lua.c
 
 noinst_HEADERS = \
-	cconfig.h \
 	client-types.h \
 	client.h \
 	config.h \
