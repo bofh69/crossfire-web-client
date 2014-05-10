@@ -131,18 +131,12 @@ AX_PTHREAD(,AC_MSG_ERROR(POSIX threads not found.  Cannot build any client.))
 AM_PATH_GTK_2_0([2.24.0], [CF_SUBDIRS="$CF_SUBDIRS gtk-v2"],
                 [AC_MSG_ERROR(Missing required GTK libraries.)])
 
-AM_MAINTAINER_MODE
-
 AC_SEARCH_LIBS(pthread_create, [pthread, pthreadgc, pthreadgc1, pthreadgc2], [AC_DEFINE(HAVE_LIBPTHREAD, 1, [Define to 1 if you have the 'pthread' library.])])
 
 # Test for Lua only if it has been explicitly enabled by the user.
 if test "$enable_lua" = "yes"; then
     PKG_CHECK_MODULES([LUA], [lua-5.1], [have_lua=yes])
     AC_DEFINE(HAVE_LUA, 1, [Define to use Lua 5.x])
-fi
-
-if eval "test x$need_r_flag = xyes"; then
-    LDFLAGS="$LDFLAGS"
 fi
 
 # Check for OpenGL if it is enabled.
