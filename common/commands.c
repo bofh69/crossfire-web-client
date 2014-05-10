@@ -104,7 +104,7 @@ Starting_Map_Info *starting_map_info = NULL;
 
 #define NUM_STATS 7
 /** Short name of stats. */
-const char *const short_stat_name[NUM_STATS] = {
+static const char *const short_stat_name[NUM_STATS] = {
     "Str",    "Dex",    "Con",
     "Wis",    "Cha",    "Int",
     "Pow"

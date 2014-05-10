@@ -588,6 +588,7 @@ typedef struct Starting_Map_Info {
 extern Race_Class_Info *races, *classes;
 extern Starting_Map_Info *starting_map_info;
 extern int starting_map_number;
+extern int maxfd;
 
 /* End of commands.c data, start of other declarations */
 #ifndef MIN

@@ -103,7 +103,7 @@ typedef struct {
 
 static StatWindow statwindow;
 
-int need_mapping_update=1;
+static gboolean need_mapping_update;
 
 static int lastval[MAX_STAT_BARS], lastmax[MAX_STAT_BARS];
 
@@ -556,7 +556,7 @@ static void update_stat_mapping(void)
     qsort(resist_mapping, NUM_RESISTS, sizeof(NameMapping),
           (int (*)(const void*, const void*))mapping_sort);
 
-    need_mapping_update=0;
+    need_mapping_update = FALSE;
 }
 
 /**
@@ -779,10 +779,6 @@ void draw_stats(int redraw)
 
 }
 
-/**
- *
- */
-void clear_stat_mapping(void)
-{
-    need_mapping_update=1;
+void clear_stat_mapping() {
+    need_mapping_update = TRUE;
 }

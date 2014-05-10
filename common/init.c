@@ -257,6 +257,8 @@ void reset_client_vars() {
     csocket.command_sent = 0;
     csocket.command_received = 0;
     csocket.command_time = 0;
+    csocket.cs_version = 0;
+    csocket.inbuf.len = 0;
 
     face_info.faceset = 0;
     face_info.num_images = 0;
@@ -307,5 +309,4 @@ void reset_client_vars() {
     stat_maximum = 0;
 
     serverloginmethod = 0;
-
 }

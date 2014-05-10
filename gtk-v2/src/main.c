@@ -12,14 +12,12 @@
  */
 
 /**
- * @file main.c
- * Implements client startup functions. Command-line parameters are parsed and
- * handled. GtkBuilder XML layout files are loaded. Windows and dialogs are
- * initialized. The server connection is managed.
+ * @file
+ * Client startup and main loop.
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
 #ifdef WIN32
@@ -40,13 +38,8 @@
 #include "metaserver.h"
 #include "mapdata.h"
 
-GtkWidget *window_root, *magic_map;
-GtkBuilder *dialog_xml, *window_xml;
-
-extern int MINLOG;
-
 /* Sets up the basic colors. */
-const char *const colorname[NUM_COLORS] = {
+static const char *const colorname[NUM_COLORS] = {
     "Black",                /* 0  */
     "White",                /* 1  */
     "Navy",                 /* 2  */
@@ -62,49 +55,17 @@ const char *const colorname[NUM_COLORS] = {
     "Khaki"                 /* 12 */
 };
 
-/* These are the names as set by the user within the rc file.
- * We use lower case to be consistent, but also change the names
- * to be more generic instead of specific X11 color names.
- */
-const char *const usercolorname[NUM_COLORS] = {
-    "black",                /* 0  */
-    "white",                /* 1  */
-    "darkblue",             /* 2  */
-    "red",                  /* 3  */
-    "orange",               /* 4  */
-    "lightblue",            /* 5  */
-    "darkorange",           /* 6  */
-    "green",                /* 7  */
-    "darkgreen",            /* 8  *//* Used for window background color */
-    "grey",                 /* 9  */
-    "brown",                /* 10 */
-    "yellow",               /* 11 */
-    "tan"                   /* 12 */
-};
-
 /** Path to dialog layout file. */
 static char dialog_xml_path[MAX_BUF] = XML_PATH_DEFAULT DIALOG_XML_FILENAME;
 
-/** The file name of the window layout in use by the client. The base name,
- * without dot extention, is re-used when saving the window positions. */
-char window_xml_file[MAX_BUF];
+static struct timeval timeout;
+static gboolean updatekeycodes = FALSE;
 
-GdkColor root_color[NUM_COLORS];
-struct timeval timeout;
-extern int maxfd;
-gint    csocket_fd = 0;
-static uint8 updatekeycodes = FALSE;
+/* TODO: Move these declarations to actual header files. */
 extern int time_map_redraw;
+extern int MINLOG;
 
-#ifdef WIN32 /* Win32 scripting support */
-#define PACKAGE_DATA_DIR "."
-
-int do_scriptout() {
-    script_process(NULL);
-    return (TRUE);
-}
-#endif /* WIN32 */
-
+/** Command line options, descriptions, and parameters. */
 static GOptionEntry options[] = {
     { "server", 's', 0, G_OPTION_ARG_STRING, &server,
         "Connect to the given server", "SERVER" },
@@ -130,11 +91,30 @@ static GOptionEntry options[] = {
     { NULL }
 };
 
+/** The file name of the window layout in use by the client. The base name,
+ * without dot extention, is re-used when saving the window positions. */
+char window_xml_file[MAX_BUF];
+
+GdkColor root_color[NUM_COLORS];
+gint csocket_fd = 0;
+
+GtkBuilder *dialog_xml, *window_xml;
+GtkWidget *window_root, *magic_map;
+
+#ifdef WIN32 /* Win32 scripting support */
+#define PACKAGE_DATA_DIR "."
+
+static int do_scriptout() {
+    script_process(NULL);
+    return (TRUE);
+}
+#endif /* WIN32 */
+
 /**
  * Map, spell, and inventory maintenance.
  * @return TRUE
  */
-int do_timeout() {
+static int do_timeout() {
     if (cpl.showmagic) {
         magic_map_flash_pos();
     }
@@ -202,7 +182,7 @@ void on_window_destroy_event(GtkObject *object, gpointer user_data) {
 /**
  * main loop iteration related stuff
  */
-void do_network() {
+static void do_network() {
     fd_set tmp_read;
     int pollret;
 
@@ -263,10 +243,7 @@ void do_network() {
 /**
  * Event loop iteration stuff
  */
-void event_loop() {
-    extern int do_timeout(void);
-    int tag;
-
+static void event_loop() {
     if (MAX_TIME == 0) {
         timeout.tv_sec = 0;
         timeout.tv_usec = 0;
@@ -295,7 +272,7 @@ void event_loop() {
     csocket_fd = gdk_input_add((gint) csocket.fd,
                                GDK_INPUT_READ,
                                (GdkInputFunction) do_network, &csocket);
-    tag = csocket_fd;
+    int tag = csocket_fd;
 
     gtk_main();
     gtk_timeout_remove(tag);
@@ -567,8 +544,6 @@ int main(int argc, char *argv[]) {
     while (1) {
         reset_client_vars();
         clear_stat_mapping();
-        csocket.inbuf.len = 0;
-        csocket.cs_version = 0;
 
         /* Pick a server from the list if not specified on the command line. */
         if (server == NULL) {
@@ -579,7 +554,7 @@ int main(int argc, char *argv[]) {
             csocket.fd = init_connection(server, use_config[CONFIG_PORT]);
 
             /* Set server back to NULL so metaserver is used the next time. */
-            server = NULL;
+            g_free(server);
 
             /* If unable to connect to server, return to server selection. */
             if (csocket.fd == -1) {

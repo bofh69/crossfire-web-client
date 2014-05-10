@@ -27,6 +27,23 @@
 #include "main.h"
 #include "gtk2proto.h"
 
+/** Color names set by the user in the gtkrc file. */
+static const char *const usercolorname[NUM_COLORS] = {
+    "black",                /* 0  */
+    "white",                /* 1  */
+    "darkblue",             /* 2  */
+    "red",                  /* 3  */
+    "orange",               /* 4  */
+    "lightblue",            /* 5  */
+    "darkorange",           /* 6  */
+    "green",                /* 7  */
+    "darkgreen",            /* 8  *//* Used for window background color */
+    "grey",                 /* 9  */
+    "brown",                /* 10 */
+    "yellow",               /* 11 */
+    "tan"                   /* 12 */
+};
+
 /**
  * A mapping of font numbers to style based on the rcfile content.
  */
