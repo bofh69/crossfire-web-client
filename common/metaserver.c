@@ -1078,7 +1078,7 @@ int init_connection(char *host, int port) {}
 
 int metaserver2_on=1, metaserver_on=1;
 char *server=NULL;
-sint16 use_config[CONFIG_NUMS];
+gint16 use_config[CONFIG_NUMS];
 ClientSocket csocket;
 char *meta_server=META_SERVER;
 int meta_port=META_PORT;

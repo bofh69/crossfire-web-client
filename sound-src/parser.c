@@ -37,7 +37,7 @@
  * solution, but one that gets the sound server working a little bit until a
  * better one can be implemented.
  */
-int sound_to_soundnum(const char *name, uint8 type) {
+int sound_to_soundnum(const char *name, guint8 type) {
     int i;
 
     for (i = 0; i < MAX_SOUNDS; i++) {
@@ -58,8 +58,8 @@ int sound_to_soundnum(const char *name, uint8 type) {
  * This is intended to help ease the transition from old sound to sound2
  * capability.
  */
-int type_to_soundtype(uint8 type) {
-    uint8 new_type;
+int type_to_soundtype(guint8 type) {
+    guint8 new_type;
 
     if (type == 2) {
         new_type = 1;

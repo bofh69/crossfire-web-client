@@ -46,11 +46,11 @@
 
 typedef struct PixmapInfo {
     void        *icon_mask, *icon_image;
-    uint16      icon_width, icon_height;
+    guint16      icon_width, icon_height;
     void        *map_mask, *map_image;
-    uint16      map_width, map_height;
+    guint16      map_width, map_height;
     void        *fog_image;
-    uint16      smooth_face;  /**< A face used for smoothing with this face. */
+    guint16      smooth_face;  /**< A face used for smoothing with this face. */
 #ifdef HAVE_OPENGL
     GLuint      map_texture, fog_texture;
 #endif

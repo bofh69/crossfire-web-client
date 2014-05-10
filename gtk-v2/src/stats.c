@@ -255,7 +255,7 @@ void stats_init(GtkWidget *window_root)
  * @param limit
  * Size of the buffer
  */
-static void format_si_number(sint64 number, char *buffer, int limit)
+static void format_si_number(gint64 number, char *buffer, int limit)
 {
     /* List of SI prefixes and corresponding values, least to greatest. */
     const char SI_SUFFIX[] = {'\0', 'k', 'M', 'G'};
@@ -304,8 +304,8 @@ static void format_si_number(sint64 number, char *buffer, int limit)
  * a stat shouldn't ever change color when it is low, the style should
  * dictate that.
  */
-void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
-                 sint64 statbar_max, sint64 statbar_stat, int can_alert)
+void update_stat(int stat_no, gint64 max_stat, gint64 current_stat,
+                 gint64 statbar_max, gint64 statbar_stat, int can_alert)
 {
     float bar;
     char buf[256];
@@ -456,9 +456,9 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
         format_si_number(max_stat, buf, sizeof(buf));
         gtk_label_set(GTK_LABEL(stat_max[stat_no]), buf);
     } else {
-        snprintf(buf, sizeof(buf), "%"FMT64, current_stat);
+        snprintf(buf, sizeof(buf), "%" G_GINT64_FORMAT, current_stat);
         gtk_label_set(GTK_LABEL(stat_current[stat_no]), buf);
-        snprintf(buf, sizeof(buf), "%"FMT64, max_stat);
+        snprintf(buf, sizeof(buf), "%" G_GINT64_FORMAT, max_stat);
         gtk_label_set(GTK_LABEL(stat_max[stat_no]), buf);
     }
 }
@@ -471,7 +471,7 @@ void update_stat(int stat_no, sint64 max_stat, sint64 current_stat,
 void draw_message_window(int redraw)
 {
     static int lastbeep=0;
-    static sint64 level_diff;
+    static gint64 level_diff;
 
     update_stat(STAT_BAR_HP, cpl.stats.maxhp, cpl.stats.hp,
                 cpl.stats.maxhp, cpl.stats.hp, TRUE);
@@ -594,7 +594,7 @@ void draw_stats(int redraw)
 
     if(redraw || cpl.stats.exp!=last_stats.exp) {
         last_stats.exp = cpl.stats.exp;
-        snprintf(buff, sizeof(buff), "Experience: %5" FMT64 ,cpl.stats.exp);
+        snprintf(buff, sizeof(buff), "Experience: %5" G_GINT64_FORMAT ,cpl.stats.exp);
         gtk_label_set (GTK_LABEL(statwindow.exp), buff);
     }
 
@@ -716,7 +716,7 @@ void draw_stats(int redraw)
                     && skill_mapping[i].name && cpl.stats.skill_exp[sk]) {
                 gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]),
                               skill_mapping[i].name);
-                snprintf(buff, sizeof(buff), "%" FMT64 " (%d)",
+                snprintf(buff, sizeof(buff), "%" G_GINT64_FORMAT " (%d)",
                          cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
                 gtk_label_set(
                     GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);

@@ -31,7 +31,7 @@
 
 typedef struct {
     GtkWidget   *menuitem;
-    uint32      pickup_mode;
+    guint32      pickup_mode;
 } PickupMapping;
 
 #define MAX_PICKUPS 50
@@ -630,7 +630,7 @@ void pickup_init(GtkWidget *window_root)
 /**
  * We get pickup information from server, update our status.
  */
-void client_pickup(uint32 pickup)
+void client_pickup(guint32 pickup)
 {
     int i;
 

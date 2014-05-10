@@ -83,13 +83,13 @@ struct BigCell {
     struct MapCellLayer head;
     struct MapCellLayer tail;
 
-    uint16 x, y;
-    uint8 layer;
+    guint16 x, y;
+    guint8 layer;
 };
 
 
 static void recenter_virtual_map_view(int diff_x, int diff_y);
-static void mapdata_get_image_size(int face, uint8 *w, uint8 *h);
+static void mapdata_get_image_size(int face, guint8 *w, guint8 *h);
 
 
 /**
@@ -258,11 +258,11 @@ static void expand_clear_face_from_layer(int x, int y, int layer)
  * we will just overwrite the old data.  Problem with clearing is that
  * clobbers the animation data.
  */
-static void expand_set_face(int x, int y, int layer, sint16 face, int clear)
+static void expand_set_face(int x, int y, int layer, gint16 face, int clear)
 {
     struct MapCell *cell;
     int dx, dy;
-    uint8 w, h;
+    guint8 w, h;
 
     assert(0 <= x && x < FOG_MAP_SIZE);
     assert(0 <= y && y < FOG_MAP_SIZE);
@@ -409,12 +409,12 @@ static void expand_clear_bigface_from_layer(int x, int y, int layer, int set_nee
  *
  * face is the new face to set.
  */
-static void expand_set_bigface(int x, int y, int layer, sint16 face, int clear)
+static void expand_set_bigface(int x, int y, int layer, gint16 face, int clear)
 {
     struct BigCell *headcell;
     struct MapCellLayer *head;
     int dx, dy;
-    uint8 w, h;
+    guint8 w, h;
 
     assert(0 <= x && x < MAX_VIEW);
     assert(0 <= y && y < MAX_VIEW);
@@ -783,7 +783,7 @@ void mapdata_clear_old(int x, int y)
  * than take all the faces, takes 1 face and the layer this face is
  * on.  This is used by the Map2Cmd()
  */
-void mapdata_set_face_layer(int x, int y, sint16 face, int layer)
+void mapdata_set_face_layer(int x, int y, gint16 face, int layer)
 {
     int px, py;
 
@@ -814,7 +814,7 @@ void mapdata_set_face_layer(int x, int y, sint16 face, int layer)
  * than take all the faces, takes 1 face and the layer this face is
  * on.  This is used by the Map2Cmd()
  */
-void mapdata_set_anim_layer(int x, int y, uint16 anim, uint8 anim_speed, int layer)
+void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int layer)
 {
     int px, py;
     int i, face, animation, phase, speed_left;
@@ -963,7 +963,7 @@ void mapdata_newmap(void)
     display_map_newmap();
 }
 
-sint16 mapdata_face(int x, int y, int layer)
+gint16 mapdata_face(int x, int y, int layer)
 {
     if (width <= 0) {
         return(0);
@@ -976,9 +976,9 @@ sint16 mapdata_face(int x, int y, int layer)
     return(the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer].face);
 }
 
-sint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh)
+gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh)
 {
-    sint16 result;
+    gint16 result;
 
     if (width <= 0) {
         return(0);
@@ -1062,9 +1062,9 @@ sint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh)
  * otherwise, returns 0 - we don't care about the tails
  * or other details really.
  */
-sint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh)
+gint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh)
 {
-    sint16 result;
+    gint16 result;
 
     if (width <= 0) {
         return(0);
@@ -1253,7 +1253,7 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
  * Return the size of a face in tiles. The returned size is at between 1 and
  * MAX_FACE_SIZE (inclusive).
  */
-static void mapdata_get_image_size(int face, uint8 *w, uint8 *h)
+static void mapdata_get_image_size(int face, guint8 *w, guint8 *h)
 {
     get_map_image_size(face, w, h);
     if (*w < 1) {

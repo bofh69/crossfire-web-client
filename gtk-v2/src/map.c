@@ -42,7 +42,7 @@
 #include "mapdata.h"
 #include "gtk2proto.h"
 
-static uint8 map_updated = 0;
+static guint8 map_updated = 0;
 
 /*
  * Added for fog of war. Current size of the map structure in memory.
@@ -581,7 +581,7 @@ on_drawingarea_map_configure_event     (GtkWidget       *widget,
                                         GdkEventConfigure *event,
                                         gpointer         user_data)
 {
-    sint16 w = event->width / map_image_size, h=event->height / map_image_size;
+    gint16 w = event->width / map_image_size, h=event->height / map_image_size;
 
     if (w > MAP_MAX_SIZE) {
         w = MAP_MAX_SIZE;

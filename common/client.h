@@ -60,15 +60,15 @@ extern char VERSION_INFO[256];
 /*@}*/
 
 typedef struct Animations {
-    uint16  flags;
-    uint8   num_animations;             /**< Number of animations.  Value of 2
+    guint16  flags;
+    guint8   num_animations;             /**< Number of animations.  Value of 2
                                          *   means only faces[0],[1] have
                                          *   meaningful values.
                                          */
-    uint8   speed;
-    uint8   speed_left;
-    uint8   phase;
-    uint16  *faces;
+    guint8   speed;
+    guint8   speed_left;
+    guint8   phase;
+    guint16  *faces;
 
 } Animations;
 
@@ -211,7 +211,7 @@ typedef enum rangetype {
 #define CFG_DM_OPENGL       2
 /*@}*/
 
-extern sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
+extern gint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
 
 extern const char *const config_names[CONFIG_NUMS]; /**< See common/init.c -
                                                      *   number mapping used
@@ -219,46 +219,46 @@ extern const char *const config_names[CONFIG_NUMS]; /**< See common/init.c -
                                                      *   the values.
                                                      */
 typedef struct Stat_struct {
-    sint8 Str;                          /**< Strength */
-    sint8 Dex;                          /**< Dexterity */
-    sint8 Con;                          /**< Constitution */
-    sint8 Wis;                          /**< Wisdom */
-    sint8 Cha;                          /**< Charisma */
-    sint8 Int;                          /**< Intelligence */
-    sint8 Pow;                          /**< Power */
-    sint8 wc;                           /**< Weapon Class */
-    sint8 ac;                           /**< Armour Class */
-    sint8 level;                        /**< Experience level */
-    sint16 hp;                          /**< Hit Points */
-    sint16 maxhp;                       /**< Maximum hit points */
-    sint16 sp;                          /**< Spell points for casting spells */
-    sint16 maxsp;                       /**< Maximum spell points. */
-    sint16 grace;                       /**< Spell points for using prayers. */
-    sint16 maxgrace;                    /**< Maximum spell points. */
-    sint64 exp;                         /**< Experience.  Killers gain 1/10. */
-    sint16 food;                        /**< Quantity food in stomach.
+    gint8 Str;                          /**< Strength */
+    gint8 Dex;                          /**< Dexterity */
+    gint8 Con;                          /**< Constitution */
+    gint8 Wis;                          /**< Wisdom */
+    gint8 Cha;                          /**< Charisma */
+    gint8 Int;                          /**< Intelligence */
+    gint8 Pow;                          /**< Power */
+    gint8 wc;                           /**< Weapon Class */
+    gint8 ac;                           /**< Armour Class */
+    gint8 level;                        /**< Experience level */
+    gint16 hp;                          /**< Hit Points */
+    gint16 maxhp;                       /**< Maximum hit points */
+    gint16 sp;                          /**< Spell points for casting spells */
+    gint16 maxsp;                       /**< Maximum spell points. */
+    gint16 grace;                       /**< Spell points for using prayers. */
+    gint16 maxgrace;                    /**< Maximum spell points. */
+    gint64 exp;                         /**< Experience.  Killers gain 1/10. */
+    gint16 food;                        /**< Quantity food in stomach.
                                          *   0 = starved.
                                          */
-    sint16 dam;                         /**< How much damage this object does
+    gint16 dam;                         /**< How much damage this object does
                                          *   for each hit
                                          */
-    sint32 speed;                       /**< Speed (is displayed as a float) */
-    sint32 weapon_sp;                   /**< Weapon speed (displayed in client
+    gint32 speed;                       /**< Speed (is displayed as a float) */
+    gint32 weapon_sp;                   /**< Weapon speed (displayed in client
                                          *   as a float)
                                          */
-    uint32 attuned;                     /**< Spell paths to which the player is
+    guint32 attuned;                     /**< Spell paths to which the player is
                                          *   attuned
                                          */
-    uint32 repelled;                    /**< Spell paths to which the player is
+    guint32 repelled;                    /**< Spell paths to which the player is
                                          *   repelled
                                          */
-    uint32 denied;                      /**< Spell paths denied to the player*/
-    uint16 flags;                       /**< Contains fire on/run on flags */
-    sint16 resists[30];                 /**< Resistant values */
-    uint32 resist_change:1;             /**< Resistant value change flag */
-    sint16 skill_level[MAX_SKILL];      /**< Level of known skills */
-    sint64 skill_exp[MAX_SKILL];        /**< Experience points for skills */
-    uint32 weight_limit;                /**< Carrying weight limit */
+    guint32 denied;                      /**< Spell paths denied to the player*/
+    guint16 flags;                       /**< Contains fire on/run on flags */
+    gint16 resists[30];                 /**< Resistant values */
+    guint32 resist_change:1;             /**< Resistant value change flag */
+    gint16 skill_level[MAX_SKILL];      /**< Level of known skills */
+    gint64 skill_exp[MAX_SKILL];        /**< Experience points for skills */
+    guint32 weight_limit;                /**< Carrying weight limit */
 } Stats;
 
 typedef struct Spell_struct {
@@ -266,30 +266,30 @@ typedef struct Spell_struct {
     char name[256];                     /**< One length byte plus data       */
     char message[10000];                /**< This is huge, the packets can't
                                          *   be much bigger than this anyway */
-    uint32 tag;                         /**< Unique ID number for a spell so
+    guint32 tag;                         /**< Unique ID number for a spell so
                                          *   updspell etc can operate on it. */
-    uint16 level;                       /**< The casting level of the spell. */
-    uint16 time;                        /**< Casting time in server ticks.   */
-    uint16 sp;                          /**< Mana per cast; may be zero.     */
-    uint16 grace;                       /**< Grace per cast; may be zero.    */
-    uint16 dam;                         /**< Damage done by spell though the
+    guint16 level;                       /**< The casting level of the spell. */
+    guint16 time;                        /**< Casting time in server ticks.   */
+    guint16 sp;                          /**< Mana per cast; may be zero.     */
+    guint16 grace;                       /**< Grace per cast; may be zero.    */
+    guint16 dam;                         /**< Damage done by spell though the
                                          *   meaning is spell dependent and
                                          *   actual damage may depend on how
                                          *   the spell works.                */
-    uint8 skill_number;                 /**< The index in the skill arrays,
+    guint8 skill_number;                 /**< The index in the skill arrays,
                                          *   plus CS_STAT_SKILLINFO. 0: no
                                          *   skill used for cast.  See also:
                                          *   request_info skill_info         */
     char *skill;                        /**< Pointer to the skill name,
                                          *   derived from the skill number.  */
-    uint32 path;                        /**< The bitmask of paths this spell
+    guint32 path;                        /**< The bitmask of paths this spell
                                          *   belongs to.  See request_info
                                          *   spell_paths and stats about
                                          *   attunement, repulsion, etc.     */
-    sint32 face;                        /**< A face ID that may be used to
+    gint32 face;                        /**< A face ID that may be used to
                                          *   show a graphic representation
                                          *   of the spell.                   */
-    uint8 usage;                        /**< Spellmon 2 data.  Values are:
+    guint8 usage;                        /**< Spellmon 2 data.  Values are:
                                          *   0: No argument required.
                                          *   1: Requires other spell name.
                                          *   2: Freeform string is optional.
@@ -307,33 +307,33 @@ typedef struct Player_Struct {
     item        *below;                 /**< Items below the player
                                          *   (pl.below->inv) */
     item        *container;             /**< open container */
-    uint16      count_left;             /**< count for commands */
+    guint16      count_left;             /**< count for commands */
     Input_State input_state;            /**< What the input state is */
     char        last_command[MAX_BUF];  /**< Last command entered */
     char        input_text[MAX_BUF];    /**< keys typed (for long commands) */
     item        *ranges[range_size];    /**< Object that is used for that */
                                         /**< range type */
-    uint8       ready_spell;            /**< Index to spell that is readied */
+    guint8       ready_spell;            /**< Index to spell that is readied */
     char        spells[255][40];        /**< List of all the spells the */
                                         /**< player knows */
     Stats       stats;                  /**< Player stats */
     Spell       *spelldata;             /**< List of spells known */
     char        title[MAX_BUF];         /**< Title of character */
     char        range[MAX_BUF];         /**< Range attack chosen */
-    uint32      spells_updated;         /**< Whether or not spells updated */
-    uint32      fire_on:1;              /**< True if fire key is pressed */
-    uint32      run_on:1;               /**< True if run key is on */
-    uint32      meta_on:1;              /**< True if fire key is pressed */
-    uint32      alt_on:1;               /**< True if fire key is pressed */
-    uint32      no_echo:1;              /**< If TRUE, don't echo keystrokes */
-    uint32      count;                  /**< Repeat count on command */
-    uint16      mmapx, mmapy;           /**< size of magic map */
-    uint16      pmapx, pmapy;           /**< Where the player is on the magic
+    guint32      spells_updated;         /**< Whether or not spells updated */
+    guint32      fire_on:1;              /**< True if fire key is pressed */
+    guint32      run_on:1;               /**< True if run key is on */
+    guint32      meta_on:1;              /**< True if fire key is pressed */
+    guint32      alt_on:1;               /**< True if fire key is pressed */
+    guint32      no_echo:1;              /**< If TRUE, don't echo keystrokes */
+    guint32      count;                  /**< Repeat count on command */
+    guint16      mmapx, mmapy;           /**< size of magic map */
+    guint16      pmapx, pmapy;           /**< Where the player is on the magic
                                          *   map */
-    uint8       *magicmap;              /**< Magic map data */
-    uint8       showmagic;              /**< If 0, show the normal map,
+    guint8       *magicmap;              /**< Magic map data */
+    guint8       showmagic;              /**< If 0, show the normal map,
                                          *   otherwise show the magic map. */
-    uint16      mapxres,mapyres;        /**< Resolution to draw on the magic
+    guint16      mapxres,mapyres;        /**< Resolution to draw on the magic
                                          *   map. Only used in client-specific
                                          *   code, so it should move there. */
     char        *name;                  /**< Name of PC, set and freed in account.c
@@ -361,8 +361,8 @@ typedef struct Player_Struct {
 /*@}*/
 
 typedef struct FaceSets_struct {
-    uint8   setnum;                     /**<  */
-    uint8   fallback;                   /**<  */
+    guint8   setnum;                     /**<  */
+    guint8   fallback;                   /**<  */
     char    *prefix;                    /**<  */
     char    *fullname;                  /**<  */
     char    *size;                      /**<  */
@@ -375,18 +375,18 @@ typedef struct FaceSets_struct {
  * namespace collision.
  */
 typedef struct Face_Information_struct {
-    uint8   faceset;
+    guint8   faceset;
     char    *want_faceset;
-    sint16  num_images;
-    uint32  bmaps_checksum, old_bmaps_checksum;
+    gint16  num_images;
+    guint32  bmaps_checksum, old_bmaps_checksum;
     /**
      * Just for debugging/logging purposes.  This is cleared on each new
      * server connection.  This may not be 100% precise (as we increment
      * cache_hits when we find a suitable image to load - if the data is bad,
      * that would count as both a hit and miss.
      */
-    sint16  cache_hits, cache_misses;
-    uint8   have_faceset_info;          /**< Simple value to know if there is
+    gint16  cache_hits, cache_misses;
+    guint8   have_faceset_info;          /**< Simple value to know if there is
                                          *   data in facesets[].
                                          */
     FaceSets    facesets[MAX_FACE_SETS];
@@ -438,7 +438,7 @@ extern const char *const resists_name[NUM_RESISTS];
 extern char *meta_server;
 extern int meta_port;
 extern int metaserver_on, metaserver2_on, serverloginmethod, wantloginmethod;
-extern uint32   tick;
+extern guint32   tick;
 
 /**
  * Holds the names that correspond to skill and resistance numbers.
@@ -450,8 +450,8 @@ typedef struct {
 
 extern NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
 
-extern uint64   *exp_table;
-extern uint16   exp_table_max;
+extern guint64   *exp_table;
+extern guint16   exp_table_max;
 
 /**
  * Map size the client will request the map to be.  The bigger it is, more
@@ -492,8 +492,8 @@ extern uint16   exp_table_max;
  */
 typedef struct Cache_Entry {
     char    *filename;
-    uint32  checksum;
-    uint32  ispublic:1;
+    guint32  checksum;
+    guint32  ispublic:1;
     void    *image_data;
     struct Cache_Entry  *next;
 } Cache_Entry;
@@ -561,8 +561,8 @@ extern int stat_points, stat_min, stat_maximum;
  */
 struct Stat_Mapping {
     const char  *widget_suffix; /* within the glade file, suffix used on widget */
-    uint8       cs_value;       /* within the protocol, the CS_STAT value */
-    uint8       rc_offset;      /* Offset into the stat_adj array */
+    guint8       cs_value;       /* within the protocol, the CS_STAT value */
+    guint8       rc_offset;      /* Offset into the stat_adj array */
 };
 
 extern struct Stat_Mapping stat_mapping[NUM_NEW_CHAR_STATS];
@@ -588,7 +588,7 @@ typedef struct Race_Class_Info {
     char    *arch_name;     /* Name of the archetype this correponds to */
     char    *public_name;   /* Public (human readadable) name */
     char    *description;   /* Description of the race/class */
-    sint8   stat_adj[NUM_NEW_CHAR_STATS];   /* Adjustment values */
+    gint8   stat_adj[NUM_NEW_CHAR_STATS];   /* Adjustment values */
     int     num_rc_choice;                  /* Size of following array */
     struct RC_Choice    *rc_choice;         /* array of choices */
 } Race_Class_Info;
@@ -635,7 +635,7 @@ extern int maxfd;
 #define CONVERT_FILESPEC_TO_OS_FORMAT(path)
 #else
 extern void replace_chars_with_string(
-   char* buffer, const uint16 buffer_size,
+   char* buffer, const guint16 buffer_size,
        const char find, const char* replace);
 #define CONVERT_FILESPEC_TO_OS_FORMAT(path) \
    replace_chars_with_string((path), sizeof(path), '/', "\\")

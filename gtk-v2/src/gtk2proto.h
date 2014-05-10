@@ -54,12 +54,12 @@ extern void create_character_window_show();
 extern void create_character_window_hide();
 extern void init_create_character_window();
 /* image.c */
-extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
-extern void addsmooth(uint16 face, uint16 smooth_face);
+extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, guint8 *rgba_data, int width, int height);
+extern void addsmooth(guint16 face, guint16 smooth_face);
 extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
 extern void reset_image_data(void);
 extern void image_update_download_status(int start, int end, int total);
-extern void get_map_image_size(int face, uint8 *w, uint8 *h);
+extern void get_map_image_size(int face, guint8 *w, guint8 *h);
 extern void init_image_cache_data(void);
 /* info.c */
 extern void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_style);
@@ -98,7 +98,7 @@ extern void set_show_weight(const char *s);
 extern void close_container(item *op);
 extern void open_container(item *op);
 extern void command_show(const char *params);
-extern void set_weight_limit(uint32 wlim);
+extern void set_weight_limit(guint32 wlim);
 extern void item_event_item_deleting(item *it);
 extern void item_event_container_clearing(item *container);
 extern void item_event_item_changed(item *it);
@@ -140,7 +140,7 @@ extern gboolean keybinding_selection_func(GtkTreeSelection *selection, GtkTreeMo
 extern void reset_keybinding_status(void);
 extern void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_data);
 /* main.c */
-extern void client_tick(uint32 tick);
+extern void client_tick(guint32 tick);
 extern void cleanup_connection(void);
 extern void on_window_destroy_event(GtkObject *object, gpointer user_data);
 extern void error_dialog(char *description, char *information);
@@ -183,7 +183,7 @@ extern gboolean on_metaserver_text_entry_key_press_event(GtkWidget *widget, GdkE
 extern void init_glx_opengl(GtkWidget *drawingarea);
 extern void init_opengl(GtkWidget *drawingarea);
 extern void opengl_gen_map(int redraw);
-extern void create_opengl_map_image(uint8 *data, PixmapInfo *pi);
+extern void create_opengl_map_image(guint8 *data, PixmapInfo *pi);
 extern void opengl_free_pixmap(PixmapInfo *pi);
 extern void create_opengl_question_mark(void);
 /* pickup.c */
@@ -225,13 +225,13 @@ extern void on_menu_ratio_40_activate(GtkMenuItem *menuitem, gpointer user_data)
 extern void on_menu_ratio_45_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void on_menu_ratio_50_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void pickup_init(GtkWidget *window_root);
-extern void client_pickup(uint32 pickup);
+extern void client_pickup(guint32 pickup);
 /* png.c */
-extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
-extern uint8 *rescale_rgba_data(uint8 *data, int *width, int *height, int scale);
-extern int rgba_to_gdkpixmap(GdkWindow *window, uint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
-extern int rgba_to_gdkpixbuf(uint8 *data, int width, int height, GdkPixbuf **pix);
-extern int png_to_gdkpixmap(GdkWindow *window, uint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
+extern guint8 *png_to_data(guint8 *data, int len, guint32 *width, guint32 *height);
+extern guint8 *rescale_rgba_data(guint8 *data, int *width, int *height, int scale);
+extern int rgba_to_gdkpixmap(GdkWindow *window, guint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
+extern int rgba_to_gdkpixbuf(guint8 *data, int width, int height, GdkPixbuf **pix);
+extern int png_to_gdkpixmap(GdkWindow *window, guint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 /* sdl.c */
 extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
 extern void drawquarterlightmap_sdl(int tl, int tr, int bl, int br, int width, int height, int startx, int starty, int endx, int endy, int destx, int desty);
@@ -247,7 +247,7 @@ extern void on_skill_use_clicked(GtkButton *button, gpointer user_data);
 extern void on_skill_close_clicked(GtkButton *button, gpointer user_data);
 /* sound.c */
 extern int init_sounds(void);
-extern void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type, const char *sound, const char *source);
+extern void play_sound_effect(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type, const char *sound, const char *source);
 extern void Sound2Cmd(unsigned char *data, int len);
 extern void MusicCmd(const char *data, int len);
 /* spells.c */
@@ -262,7 +262,7 @@ extern void on_spell_close_clicked(GtkButton *button, gpointer user_data);
 /* stats.c */
 extern void stats_get_styles(void);
 extern void stats_init(GtkWidget *window_root);
-extern void update_stat(int stat_no, sint64 max_stat, sint64 current_stat, sint64 statbar_max, sint64 statbar_stat, int can_alert);
+extern void update_stat(int stat_no, gint64 max_stat, gint64 current_stat, gint64 statbar_max, gint64 statbar_stat, int can_alert);
 extern void draw_message_window(int redraw);
 extern void draw_stats(int redraw);
 extern void clear_stat_mapping(void);

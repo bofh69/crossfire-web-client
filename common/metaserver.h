@@ -48,8 +48,8 @@ typedef struct Meta_Info {
     char    codebase[MS_SMALL_BUF];	/* MS2 */
     char    flags[MS_SMALL_BUF];	/* MS2 */
     int	    num_players;		/* MS1 & MS2 */
-    uint32  in_bytes;			/* MS2 */
-    uint32  out_bytes;			/* MS2 */
+    guint32  in_bytes;			/* MS2 */
+    guint32  out_bytes;			/* MS2 */
     int	    idle_time;			/* MS1 - for MS2, calculated from */
 					/* last_update value */
     int	    uptime;			/* MS2 */

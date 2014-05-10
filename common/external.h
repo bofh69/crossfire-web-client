@@ -62,16 +62,16 @@ extern void draw_message_window(int redraw);
 /* this should really just set a field in the stats, and let the
  * client figure the new weight limit out
  */
-extern void set_weight_limit(uint32 wlim);
+extern void set_weight_limit(guint32 wlim);
 
 /* Image related functions */
 extern int display_willcache(void);
-extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height);
-extern uint8 *png_to_data(uint8 *data, int len, uint32 *width, uint32 *height);
+extern int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, guint8 *rgba_data, int width, int height);
+extern guint8 *png_to_data(guint8 *data, int len, guint32 *width, guint32 *height);
 extern int associate_cache_entry(Cache_Entry *ce, int pixnum);
 extern void image_update_download_status(int start, int end, int total);
-extern void get_map_image_size(int face, uint8 *w, uint8 *h);
-extern void addsmooth(uint16 face, uint16 smooth_face);
+extern void get_map_image_size(int face, guint8 *w, guint8 *h);
+extern void addsmooth(guint16 face, guint16 smooth_face);
 
 /* Item related commands */
 extern void open_container(item *op);
@@ -88,9 +88,9 @@ extern void keybindings_init(const char *character_name);
 extern void save_winpos(void);
 extern void save_defaults(void);
 extern void command_show(const char *params);
-extern void client_tick(uint32 tick);
+extern void client_tick(guint32 tick);
 extern void cleanup_connection(void);
-extern void client_pickup(uint32 pickup);
+extern void client_pickup(guint32 pickup);
 
 /* Account Login Functions */
 extern void start_login(int method);

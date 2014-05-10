@@ -46,9 +46,9 @@
 #define MAP1_LAYERS 3
 
 struct MapCellLayer {
-    sint16 face;
-    sint8 size_x;
-    sint8 size_y;
+    gint16 face;
+    gint8 size_x;
+    gint8 size_y;
 
     /* Link into animation information.
      * animation is provided to us from the server in the map2 command.
@@ -57,10 +57,10 @@ struct MapCellLayer {
      *  by client.
      * animation_phase is current phase.
      */
-    sint16  animation;
-    uint8   animation_speed;
-    uint8   animation_left;
-    uint8   animation_phase;
+    gint16  animation;
+    guint8   animation_speed;
+    guint8   animation_left;
+    guint8   animation_phase;
 };
 
 /** The heads[] in the mapcell is used for single part objects
@@ -80,12 +80,12 @@ struct MapCell
 {
     struct MapCellLayer heads[MAXLAYERS];
     struct MapCellLayer tails[MAXLAYERS];
-    uint16 smooth[MAXLAYERS];
-    uint8 darkness;         /* darkness: 0=fully illuminated, 255=pitch black */
-    uint8 need_update:1;    /* set if tile should be redrawn */
-    uint8 have_darkness:1;  /* set if darkness information was set */
-    uint8 need_resmooth:1;  /* same has need update but for smoothing only */
-    uint8 cleared:1;        /* If set, this is a fog cell. */
+    guint16 smooth[MAXLAYERS];
+    guint8 darkness;         /* darkness: 0=fully illuminated, 255=pitch black */
+    guint8 need_update:1;    /* set if tile should be redrawn */
+    guint8 have_darkness:1;  /* set if darkness information was set */
+    guint8 need_resmooth:1;  /* same has need update but for smoothing only */
+    guint8 cleared:1;        /* If set, this is a fog cell. */
 };
 
 struct Map
@@ -142,7 +142,7 @@ int mapdata_is_inside(int x, int y);
  * Returns the face to display at a given location. This function returns the
  * "head" information, i.e. the face information sent by the server.
  */
-sint16 mapdata_face(int x, int y, int layer);
+gint16 mapdata_face(int x, int y, int layer);
 
 /**
  * Returns the face to display at a given location. This function returns the
@@ -156,6 +156,6 @@ sint16 mapdata_face(int x, int y, int layer);
  * contains obsolete (fog of war) big face information; this function detects
  * and clears such faces.
  */
-sint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh);
+gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh);
 
 #endif

@@ -86,7 +86,7 @@ static int write_socket(int fd, const unsigned char *buf, int len)
  * @param sl
  * @param buf
  */
-void SockList_Init(SockList *sl, uint8 *buf)
+void SockList_Init(SockList *sl, guint8 *buf)
 {
     sl->len=0;
     sl->buf=buf + 2;    /* reserve two bytes for total length */
@@ -107,7 +107,7 @@ void SockList_AddChar(SockList *sl, char c)
  * @param sl
  * @param data
  */
-void SockList_AddShort(SockList *sl, uint16 data)
+void SockList_AddShort(SockList *sl, guint16 data)
 {
     sl->buf[sl->len++] = (data>>8)&0xff;
     sl->buf[sl->len++] = data & 0xff;
@@ -118,7 +118,7 @@ void SockList_AddShort(SockList *sl, uint16 data)
  * @param sl
  * @param data
  */
-void SockList_AddInt(SockList *sl, uint32 data)
+void SockList_AddInt(SockList *sl, guint32 data)
 {
     sl->buf[sl->len++] = (data>>24)&0xff;
     sl->buf[sl->len++] = (data>>16)&0xff;
@@ -185,16 +185,16 @@ int GetInt_String(const unsigned char *data)
  * @param data
  * @return
  */
-sint64 GetInt64_String(const unsigned char *data)
+gint64 GetInt64_String(const unsigned char *data)
 {
 #ifdef WIN32
-    return (((sint64)data[0]<<56) + ((sint64)data[1]<<48) +
-            ((sint64)data[2]<<40) + ((sint64)data[3]<<32) +
-            ((sint64)data[4]<<24) + ((sint64)data[5]<<16) + ((sint64)data[6]<<8) + (sint64)data[7]);
+    return (((gint64)data[0]<<56) + ((gint64)data[1]<<48) +
+            ((gint64)data[2]<<40) + ((gint64)data[3]<<32) +
+            ((gint64)data[4]<<24) + ((gint64)data[5]<<16) + ((gint64)data[6]<<8) + (gint64)data[7]);
 #else
-    return (((uint64)data[0]<<56) + ((uint64)data[1]<<48) +
-            ((uint64)data[2]<<40) + ((uint64)data[3]<<32) +
-            ((uint64)data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
+    return (((guint64)data[0]<<56) + ((guint64)data[1]<<48) +
+            ((guint64)data[2]<<40) + ((guint64)data[3]<<32) +
+            ((guint64)data[4]<<24) + (data[5]<<16) + (data[6]<<8) + data[7]);
 #endif
 }
 
@@ -330,7 +330,7 @@ int cs_print_string(int fd, const char *str, ...)
 {
     va_list args;
     SockList sl;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
 
     SockList_Init(&sl, buf);
     va_start(args, str);

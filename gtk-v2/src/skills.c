@@ -67,7 +67,7 @@ void update_skill_information(void) {
     GtkTreeIter iter;
     char buf[MAX_BUF];
     int i, sk, level;
-    uint64 exp_to_next_level;
+    guint64 exp_to_next_level;
 
     /* If the window/spellstore hasn't been created, or isn't currently being
      * shown, return.

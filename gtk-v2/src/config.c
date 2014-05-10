@@ -705,7 +705,7 @@ static int scandir_ui_filter(const struct dirent *d) {
  *
  */
 static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
-                                       uint64 want_none, char *subdir, int (*scandir_filter)()) {
+                                       guint64 want_none, char *subdir, int (*scandir_filter)()) {
     int             count, i;
     GtkTreeModel    *model;
     gchar           *buf;

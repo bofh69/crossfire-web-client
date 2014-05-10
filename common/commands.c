@@ -714,7 +714,7 @@ static void get_exp_info(const unsigned char *data, int len)
 
     exp_table_max = GetShort_String(data);
     pos = 2;
-    exp_table = calloc(exp_table_max, sizeof(uint64));
+    exp_table = calloc(exp_table_max, sizeof(guint64));
     for (level = 1; level <= exp_table_max && pos < len; level++) {
         exp_table[level] = GetInt64_String(data+pos);
         pos += 8;
@@ -772,9 +772,9 @@ static void get_skill_info(char *data, int len)
  * @param buf
  * @param len
  */
-void ReplyInfoCmd(uint8 *buf, int len)
+void ReplyInfoCmd(guint8 *buf, int len)
 {
-    uint8 *cp;
+    guint8 *cp;
     int i;
 
     /* Covers a bug in the server in that it could send a replyinfo with no
@@ -1150,7 +1150,7 @@ void AnimCmd(unsigned char *data, int len)
             animations[anum].num_animations);
         return;
     }
-    animations[anum].faces = malloc(sizeof(uint16)*animations[anum].num_animations);
+    animations[anum].faces = malloc(sizeof(guint16)*animations[anum].num_animations);
     for (i = 4, j = 0; i < len; i += 2, j++) {
         animations[anum].faces[j] = GetShort_String(data+i);
     }
@@ -1179,8 +1179,8 @@ void AnimCmd(unsigned char *data, int len)
  */
 void SmoothCmd(unsigned char *data, int len)
 {
-    uint16 faceid;
-    uint16 smoothing;
+    guint16 faceid;
+    guint16 smoothing;
 
     /* len is unused.  We should check that we don't have an invalid short
      * command.  Hence, the compiler warning is valid.
@@ -1341,7 +1341,7 @@ void use_skill(int skill_id)
 void StatsCmd(unsigned char *data, int len)
 {
     int i = 0, c, redraw = 0;
-    sint64 last_exp;
+    gint64 last_exp;
 
     while (i < len) {
         c = data[i++];
@@ -1527,7 +1527,7 @@ void StatsCmd(unsigned char *data, int len)
 void handle_query(char *data, int len)
 {
     char *buf, *cp;
-    uint8 flags = atoi(data);
+    guint8 flags = atoi(data);
 
     (void)len; /* __UNUSED__ */
 
@@ -1646,11 +1646,11 @@ void item_actions(item *op)
  * @param data
  * @param len
  */
-static void common_item_command(uint8 *data, int len)
+static void common_item_command(guint8 *data, int len)
 {
 
     int weight, loc, tag, face, flags, pos = 0, nlen, anim, nrof, type;
-    uint8 animspeed;
+    guint8 animspeed;
     char name[MAX_BUF];
 
     loc = GetInt_String(data);
@@ -1711,10 +1711,10 @@ void Item2Cmd(unsigned char *data, int len)
 void UpdateItemCmd(unsigned char *data, int len)
 {
     int weight, loc, tag, face, sendflags, flags, pos = 0, nlen, anim;
-    uint32 nrof;
+    guint32 nrof;
     char name[MAX_BUF];
     item *ip;
-    uint8 animspeed;
+    guint8 animspeed;
 
     sendflags = data[0];
     pos += 1;
@@ -1775,7 +1775,7 @@ void UpdateItemCmd(unsigned char *data, int len)
         animspeed = data[pos++];
     }
     if (sendflags&UPD_NROF) {
-        nrof = (uint32)GetInt_String(data+pos);
+        nrof = (guint32)GetInt_String(data+pos);
         pos += 4;
     }
     /* update_item calls set_item_values which will then set the list redraw
@@ -1848,8 +1848,8 @@ void DeleteInventory(unsigned char *data, int len)
  */
 void AddspellCmd(unsigned char *data, int len)
 {
-    uint8 nlen;
-    uint16 mlen, pos = 0;
+    guint8 nlen;
+    guint16 mlen, pos = 0;
     Spell *newspell, *tmp;
 
     while (pos < len) {
@@ -2062,7 +2062,7 @@ void NewmapCmd(unsigned char *data, int len)
 void Map2Cmd(unsigned char *data, int len)
 {
     int mask, x, y, pos = 0, space_len, value;
-    uint8 type;
+    guint8 type;
 
     display_map_startupdate();
     /* Not really using map1 protocol, but some draw logic differs from the
@@ -2372,7 +2372,7 @@ void SinkCmd(unsigned char *data, int len)
  * @param data
  * @param len
  */
-void TickCmd(uint8 *data, int len)
+void TickCmd(guint8 *data, int len)
 {
 
     tick = GetInt_String(data);
@@ -2389,9 +2389,9 @@ void TickCmd(uint8 *data, int len)
  * @param len
  * length of data.
  */
-void PickupCmd(uint8 *data, int len)
+void PickupCmd(guint8 *data, int len)
 {
-    uint32 pickup = GetInt_String(data);
+    guint32 pickup = GetInt_String(data);
     client_pickup(pickup);
 }
 

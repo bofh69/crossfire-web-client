@@ -131,7 +131,7 @@ static int do_timeout() {
 /**
  * X11 client doesn't care about this
  */
-void client_tick(uint32 tick) {
+void client_tick(guint32 tick) {
     info_buffer_tick();                 /* Maintain the info output buffers */
     inventory_tick();
     mapdata_animation();

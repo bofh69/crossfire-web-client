@@ -271,7 +271,7 @@ static void send_create_player_to_server()
     int i, on_choice, tmp;
     SockList sl;
     char buf[MAX_BUF];
-    uint8 sockbuf[MAX_BUF];
+    guint8 sockbuf[MAX_BUF];
 
     char_name = gtk_entry_get_text(GTK_ENTRY(entry_new_character_name));
 

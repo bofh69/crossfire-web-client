@@ -249,7 +249,7 @@ void init_opengl(GtkWidget* drawingarea)
  * logic for final row/column).  That is +1 value.  but the last row also has
  * the right/bottom side vertices, and that is where the other +1 comes from
  */
-static uint16 map_darkness[(MAP_MAX_SIZE+2)*2][(MAP_MAX_SIZE+2)*2];
+static guint16 map_darkness[(MAP_MAX_SIZE+2)*2][(MAP_MAX_SIZE+2)*2];
 
 /*
  * This is darkness to use if we have no darkness information.  0 makes sense
@@ -858,13 +858,13 @@ void opengl_gen_map(int redraw)
  * @param data
  * @param pi
  */
-void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
+void create_opengl_map_image(guint8 *data, PixmapInfo *pi)
 {
-    static uint8 *newdata;
+    static guint8 *newdata;
     static int size=0;
     int nwidth, nheight, numshifts, i;
-    uint8 *data_to_use = data, *l;
-    uint32 g, *p;
+    guint8 *data_to_use = data, *l;
+    guint32 g, *p;
 
     /*
      * The width and height of textures has to be a power of 2.  so 32x32 and
@@ -898,7 +898,7 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
      */
     if (pi->map_width != nwidth || pi->map_height != nheight) {
         int y;
-        uint8   *datastart;
+        guint8   *datastart;
 
         /*
          * Use a static buffer to hold image data, so we don't have to keep
@@ -961,10 +961,10 @@ void create_opengl_map_image(uint8 *data, PixmapInfo *pi)
     }
 
     for (i=0; i < pi->map_width * pi->map_height; i++) {
-        l = (uint8 *) (newdata + i*4);
+        l = (guint8 *) (newdata + i*4);
         g = MAX(*l, *(l+1));
         g = MAX(g, *(l+2));
-        p = (uint32*) newdata + i;
+        p = (guint32*) newdata + i;
         *p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
     }
 

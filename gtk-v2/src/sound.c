@@ -114,7 +114,7 @@ int init_sounds() {
  * @param source The name of the sound emitter.  It is used in combination
  *               with type and sound to determine which file to play.
  */
-void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
+void play_sound_effect(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
                        const char *sound, const char *source) {
 #ifndef WIN32
     if (!use_config[CONFIG_SOUND]) {
@@ -153,8 +153,8 @@ void play_sound_effect(sint8 x, sint8 y, uint8 dir, uint8 vol, uint8 type,
  */
 void Sound2Cmd(unsigned char *data, int len) {
 #ifndef WIN32
-    sint8 x, y;
-    uint8 dir, vol, type, len_sound, len_source;
+    gint8 x, y;
+    guint8 dir, vol, type, len_sound, len_source;
     char *sound = NULL;
     char *source = NULL;
 

@@ -56,28 +56,28 @@ typedef struct item_struct {
     char s_name[NAME_LEN];	/* item's singular name as sent to us */
     char p_name[NAME_LEN];	/* item's plural name as sent to us */
     char flags[NAME_LEN];	/* item's status information */
-    sint32 tag;			/* item identifier (0 = free) */
-    uint32 nrof;		/* number of items */
+    gint32 tag;			/* item identifier (0 = free) */
+    guint32 nrof;		/* number of items */
     float weight;		/* how much item weights */
-    sint16 face;		/* index for face array */
-    uint16 animation_id;	/* Index into animation array */
-    uint8 anim_speed;		/* how often to animate */
-    uint8 anim_state;		/* last face in sequence drawn */
-    uint16 last_anim;		/* how many ticks have passed since we last animated */
-    uint16 magical:1;		/* item is magical */
-    uint16 cursed:1;		/* item is cursed */
-    uint16 damned:1;		/* item is damned */
-    uint16 unpaid:1;		/* item is unpaid */
-    uint16 locked:1;		/* item is locked */
-    uint16 applied:1;		/* item is applied */
-    uint16 open:1;		/* container is open */
-    uint16 was_open:1;		/* container was open */
-    uint16 inv_updated:1;	/* item's inventory is updated, this is set
+    gint16 face;		/* index for face array */
+    guint16 animation_id;	/* Index into animation array */
+    guint8 anim_speed;		/* how often to animate */
+    guint8 anim_state;		/* last face in sequence drawn */
+    guint16 last_anim;		/* how many ticks have passed since we last animated */
+    guint16 magical:1;		/* item is magical */
+    guint16 cursed:1;		/* item is cursed */
+    guint16 damned:1;		/* item is damned */
+    guint16 unpaid:1;		/* item is unpaid */
+    guint16 locked:1;		/* item is locked */
+    guint16 applied:1;		/* item is applied */
+    guint16 open:1;		/* container is open */
+    guint16 was_open:1;		/* container was open */
+    guint16 inv_updated:1;	/* item's inventory is updated, this is set
 				   when item's inventory is modified, draw
 				   routines can use this to redraw things */
-    uint8 apply_type;		/* how item is applied (worn/wield/etc) */
-    uint32 flagsval;		/* unmodified flags value as sent from the server*/
-    uint16   type;		/* Item type for ordering */
+    guint8 apply_type;		/* how item is applied (worn/wield/etc) */
+    guint32 flagsval;		/* unmodified flags value as sent from the server*/
+    guint16   type;		/* Item type for ordering */
 } item;
 
 /* Toolkits implement these. */

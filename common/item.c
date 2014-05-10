@@ -39,7 +39,7 @@ static item *player, *map;      /* these lists contains rest of items */
  * We return the 'type' (matching array element above), 255 if no match
  * (so unknown objects put at the end)
  */
-uint8 get_type_from_name(const char *name)
+guint8 get_type_from_name(const char *name)
 {
     int type, pos;
 
@@ -187,7 +187,7 @@ void update_item_sort(item *it)
  * call to get_number().
  * It is currently only used by the query_name() function.
  */
-const char *get_number(uint32 i)
+const char *get_number(guint32 i)
 {
     static const char numbers[21][20] = {
         "no", "a", "two", "three", "four",
@@ -278,7 +278,7 @@ void free_all_items(item *op)
 /*
  *  Recursive function, used by locate_item()
  */
-static item *locate_item_from_item(item *op, sint32 tag)
+static item *locate_item_from_item(item *op, gint32 tag)
 {
     item *tmp;
 
@@ -297,7 +297,7 @@ static item *locate_item_from_item(item *op, sint32 tag)
  *  locate_item() returns pointer to the item which tag is given
  *  as parameter or if item is not found returns NULL
  */
-item *locate_item(sint32 tag)
+item *locate_item(gint32 tag)
 {
     item *op;
 
@@ -432,7 +432,7 @@ static void add_item(item *env, item *op)
  *  and sets its tag field and clears locked flag (all other fields
  *  are unitialized and may contain random values)
  */
-item *create_new_item(item *env, sint32 tag)
+item *create_new_item(item *env, gint32 tag)
 {
     item *op;
 
@@ -505,7 +505,7 @@ static void set_flag_string(item *op)
     }
 }
 
-static void get_flags(item *op, uint16 flags)
+static void get_flags(item *op, guint16 flags)
 {
     op->was_open = op->open;
     op->open     = flags&F_OPEN    ? 1 : 0;
@@ -520,9 +520,9 @@ static void get_flags(item *op, uint16 flags)
     set_flag_string(op);
 }
 
-void set_item_values(item *op, char *name, sint32 weight, uint16 face,
-                     uint16 flags, uint16 anim, uint16 animspeed,
-                     uint32 nrof, uint16 type)
+void set_item_values(item *op, char *name, gint32 weight, guint16 face,
+                     guint16 flags, guint16 anim, guint16 animspeed,
+                     guint32 nrof, guint16 type)
 {
     int resort = 1;
 
@@ -592,7 +592,7 @@ void set_item_values(item *op, char *name, sint32 weight, uint16 face,
 void toggle_locked(item *op)
 {
     SockList sl;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
 
     if (op->env->tag == 0) {
         return; /* if item is on the ground, don't lock it */
@@ -610,7 +610,7 @@ void toggle_locked(item *op)
 void send_mark_obj(item *op)
 {
     SockList sl;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
 
     if (op->env->tag == 0) {
         return; /* if item is on the ground, don't mark it */
@@ -639,7 +639,7 @@ item *map_item (void)
 
 /* Upates an item with new attributes. */
 void update_item(int tag, int loc, char *name, int weight, int face, int flags,
-                 int anim, int animspeed, uint32 nrof, int type)
+                 int anim, int animspeed, guint32 nrof, int type)
 {
     item *ip = locate_item(tag), *env = locate_item(loc);
 
@@ -783,7 +783,7 @@ int can_write_spell_on(item* it)
 void inscribe_magical_scroll(item *scroll, Spell *spell)
 {
     SockList sl;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
 
     snprintf((char*)buf, sizeof(buf), "inscribe 0 %d %d", scroll->tag, spell->tag);
     script_monitor_str((char*)buf);

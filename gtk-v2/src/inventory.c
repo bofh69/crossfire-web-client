@@ -223,7 +223,7 @@ static void list_item_action(GdkEventButton *event, item *tmp)
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                           "This item is locked. To drop it, first unlock by shift+leftclicking on it.");
         } else {
-            uint32      dest;
+            guint32      dest;
 
             cpl.count = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(spinbutton_count));
             /*
@@ -643,7 +643,7 @@ void command_show (const char *params)
  *
  * @param wlim
  */
-void set_weight_limit (uint32 wlim)
+void set_weight_limit (guint32 wlim)
 {
     weight_limit = wlim/ 1000.0;
 }

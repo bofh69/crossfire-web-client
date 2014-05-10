@@ -105,9 +105,9 @@ static int cur_history_position = 0, scroll_history_position = 0;
  * A keybinding hash record structure.
  */
 struct keybind {
-    uint8       flags;                  /**< KEYF_* flags set for the record.*/
-    sint8       direction;              /**< -1 non-direction key, else >= 0.*/
-    uint32      keysym;                 /**< Key this binding record is for. */
+    guint8       flags;                  /**< KEYF_* flags set for the record.*/
+    gint8       direction;              /**< -1 non-direction key, else >= 0.*/
+    guint32      keysym;                 /**< Key this binding record is for. */
     char        *command;               /**< Command string bound to a key. */
     struct keybind *next;
 };
@@ -124,7 +124,7 @@ struct keybind {
  *
  ***********************************************************************/
 
-static uint32 firekeysym[2], runkeysym[2], commandkeysym, *bind_keysym,
+static guint32 firekeysym[2], runkeysym[2], commandkeysym, *bind_keysym,
        prevkeysym, nextkeysym, completekeysym, altkeysym[2], metakeysym[2],
        cancelkeysym;
 
@@ -196,7 +196,7 @@ static struct keybind *keys_global[KEYHASH], *keys_char[KEYHASH];
  * @param scope Determines which scope to search for the binding.
  *              0 meaning char scope, non zero meaning global scope.
  */
-static struct keybind *keybind_find(uint32 keysym, unsigned int flags,
+static struct keybind *keybind_find(guint32 keysym, unsigned int flags,
                                     int scope) {
     struct keybind *kb;
     kb = scope ? keys_global[keysym % KEYHASH] : keys_char[keysym % KEYHASH];
@@ -225,7 +225,7 @@ static struct keybind *keybind_find(uint32 keysym, unsigned int flags,
  * @param flags State that the keyboard is in.
  * @param command A command to bind to the key specified in keysym.
  */
-static int keybind_insert(uint32 keysym, unsigned int flags,
+static int keybind_insert(guint32 keysym, unsigned int flags,
                           const char *command) {
     struct keybind **next_ptr, *kb;
     int slot;
@@ -315,7 +315,7 @@ static void keybind_free(struct keybind **entry) {
  */
 static void parse_keybind_line(char *buf, int line, unsigned int scope_flag) {
     char *cp, *cpnext;
-    uint32 keysym, low_keysym;
+    guint32 keysym, low_keysym;
     int flags;
 
     /*
@@ -784,7 +784,7 @@ void keys_init(GtkWidget *window_root) {
  *
  * @param ks
  */
-static void parse_key_release(uint32 keysym) {
+static void parse_key_release(guint32 keysym) {
 
     /*
      * Only send stop firing/running commands if we are in actual play mode.
@@ -823,7 +823,7 @@ static void parse_key_release(uint32 keysym) {
  * @param key
  * @param keysym
  */
-static void parse_key(char key, uint32 keysym) {
+static void parse_key(char key, guint32 keysym) {
     struct keybind *kb;
     int present_flags = 0;
     char buf[MAX_BUF], tmpbuf[MAX_BUF];
@@ -1364,7 +1364,7 @@ static void save_keys(void) {
  *
  * @param keysym
  */
-static void configure_keys(uint32 keysym) {
+static void configure_keys(guint32 keysym) {
     char buf[MAX_BUF];
     struct keybind *kb;
 
@@ -2269,7 +2269,7 @@ void on_keybinding_button_remove_clicked(GtkButton *button,
  * @param flags
  * @param command
  */
-static void keybinding_get_data(uint32 *keysym, uint8 *flags,
+static void keybinding_get_data(guint32 *keysym, guint8 *flags,
                                 const char **command) {
     static char bind_buf[MAX_BUF];
     const char *ed;
@@ -2337,8 +2337,8 @@ static void keybinding_get_data(uint32 *keysym, uint8 *flags,
  * @param user_data
  */
 void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data) {
-    uint32 keysym;
-    uint8 flags;
+    guint32 keysym;
+    guint8 flags;
     const char *command;
     struct keybind *kb;
 
@@ -2375,8 +2375,8 @@ void on_keybinding_button_update_clicked(GtkButton *button,
     GtkTreeIter iter;
     struct keybind *kb;
     GtkTreeModel *model;
-    uint32 keysym;
-    uint8 flags;
+    guint32 keysym;
+    guint8 flags;
     const char *buf;
     int res;
 

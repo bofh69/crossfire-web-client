@@ -231,7 +231,7 @@ int send_command(const char *command, int repeat, int must_send)
 #endif
         } else {
             SockList sl;
-            uint8 buf[MAX_BUF];
+            guint8 buf[MAX_BUF];
 
             /* Don't want to copy in administrative commands */
             if (!must_send) {

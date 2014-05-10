@@ -54,7 +54,7 @@ struct FD_Cache {
  *             the checksum matches, so there is little point to re-do it.
  * @return 0 on success, -1 on failure.
  */
-static int load_image(char *filename, uint8 *data, int *len, uint32 *csum) {
+static int load_image(char *filename, guint8 *data, int *len, guint32 *csum) {
     int fd, i;
     char *cp;
 
@@ -187,8 +187,8 @@ struct Image_Cache {
  * because I'm not sure if hashing .111 at the end of all the image names will
  * be very useful.
  */
-static uint32 image_hash_name(char *str, int tablesize) {
-    uint32 hash = 0;
+static guint32 image_hash_name(char *str, int tablesize) {
+    guint32 hash = 0;
     char *p;
 
     /* use the same one-at-a-time hash function the server now uses */
@@ -207,8 +207,8 @@ static uint32 image_hash_name(char *str, int tablesize) {
  * This function returns an index into the image_cache for a matching entry,
  * -1 if no match is found.
  */
-static sint32 image_find_hash(char *str) {
-    uint32  hash = image_hash_name(str, IMAGE_HASH), newhash;
+static gint32 image_find_hash(char *str) {
+    guint32  hash = image_hash_name(str, IMAGE_HASH), newhash;
 
     newhash = hash;
     do {
@@ -271,7 +271,7 @@ static void image_remove_hash(char *imagename, Cache_Entry *ce) {
  * and checksum if has_sum is set.  If has_sum is not set, we can't
  * do a checksum comparison.
  */
-static Cache_Entry *image_find_cache_entry(char *imagename, uint32 checksum,
+static Cache_Entry *image_find_cache_entry(char *imagename, guint32 checksum,
         int has_sum) {
     int	hash_entry;
     Cache_Entry	*entry;
@@ -296,9 +296,9 @@ static Cache_Entry *image_find_cache_entry(char *imagename, uint32 checksum,
  * Add a hash entry.  Returns the entry we added, NULL on failure.
  */
 static Cache_Entry *image_add_hash(char *imagename, char *filename,
-                                   uint32 checksum, uint32 ispublic) {
+                                   guint32 checksum, guint32 ispublic) {
     Cache_Entry *new_entry;
-    uint32  hash = image_hash_name(imagename, IMAGE_HASH), newhash;
+    guint32  hash = image_hash_name(imagename, IMAGE_HASH), newhash;
 
     newhash = hash;
     while (image_cache[newhash].image_name != NULL &&
@@ -339,9 +339,9 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename,
  * some conventions.  Note that this is destructive to the data passed in
  * line.
  */
-static void image_process_line(char *line, uint32 ispublic) {
+static void image_process_line(char *line, guint32 ispublic) {
     char imagename[MAX_BUF], filename[MAX_BUF];
-    uint32 checksum;
+    guint32 checksum;
 
     if (line[0] == '#') {
         return;    /* Ignore comments */
@@ -429,13 +429,13 @@ void requestface(int pnum, char *facename) {
  * This approach makes sure that we don't have to store the same image multiple
  * times simply because the set number may be different.
  */
-void finish_face_cmd(int pnum, uint32 checksum, int has_sum, char *face,
+void finish_face_cmd(int pnum, guint32 checksum, int has_sum, char *face,
                      int faceset) {
     int len;
-    uint32 nx, ny;
-    uint8 data[65536], *png_tmp;
+    guint32 nx, ny;
+    guint8 data[65536], *png_tmp;
     char filename[1024];
-    uint32 newsum = 0;
+    guint32 newsum = 0;
     Cache_Entry *ce = NULL;
 
 #if 0
@@ -528,10 +528,10 @@ void reset_image_cache_data(void) {
  * number once - at current time, we have no way of knowing if we have already
  * received a face for a particular number.
  */
-void Face2Cmd(uint8 *data,  int len) {
+void Face2Cmd(guint8 *data,  int len) {
     int pnum;
-    uint8 setnum;
-    uint32  checksum;
+    guint8 setnum;
+    guint32  checksum;
     char *face;
 
     /* A quick sanity check, since if client isn't caching, all the data
@@ -554,9 +554,9 @@ void Face2Cmd(uint8 *data,  int len) {
 /**
  *
  */
-void Image2Cmd(uint8 *data,  int len) {
+void Image2Cmd(guint8 *data,  int len) {
     int pnum, plen;
-    uint8 setnum;
+    guint8 setnum;
 
     pnum = GetInt_String(data);
     setnum = data[4];
@@ -572,11 +572,11 @@ void Image2Cmd(uint8 *data,  int len) {
 /**
  * Helper for display_newpng, implements the caching of the image to disk.
  */
-static void cache_newpng(int face, uint8 *buf, int buflen, int setnum,
+static void cache_newpng(int face, guint8 *buf, int buflen, int setnum,
                          Cache_Entry **ce) {
     char filename[MAX_BUF], basename[MAX_BUF];
     FILE *tmpfile;
-    uint32 i, csum;
+    guint32 i, csum;
 
     if (facetoname[face] == NULL) {
         LOG(LOG_WARNING, "common::display_newpng",
@@ -681,9 +681,9 @@ static void cache_newpng(int face, uint8 *buf, int buflen, int setnum,
  * an image.  If caching, we need to write this data to disk (this is handled
  * in the function cache_newpng).
  */
-void display_newpng(int face, uint8 *buf, int buflen, int setnum) {
-    uint8   *pngtmp;
-    uint32 width, height;
+void display_newpng(int face, guint8 *buf, int buflen, int setnum) {
+    guint8   *pngtmp;
+    guint32 width, height;
     Cache_Entry *ce = NULL;
 
     if (use_config[CONFIG_CACHE]) {
@@ -713,7 +713,7 @@ void display_newpng(int face, uint8 *buf, int buflen, int setnum) {
  * good, and update the face_info accordingly.  if we don't find a newline, we
  * return.
  */
-void get_image_info(uint8 *data, int len) {
+void get_image_info(guint8 *data, int len) {
     char *cp, *lp, *cps[7], buf[MAX_BUF];
     int onset = 0, badline = 0, i;
 
@@ -811,7 +811,7 @@ void get_image_info(uint8 *data, int len) {
  */
 void get_image_sums(char *data, int len) {
     int stop, imagenum, slen, faceset;
-    uint32  checksum;
+    guint32  checksum;
     char *cp, *lp;
 
     cp = strchr((char *)data, ' ');
@@ -841,9 +841,9 @@ void get_image_sums(char *data, int len) {
         cp++;
     }
     while ((cp - data) < len) {
-        imagenum = GetShort_String((uint8 *)cp);
+        imagenum = GetShort_String((guint8 *)cp);
         cp += 2;
-        checksum = GetInt_String((uint8 *)cp);
+        checksum = GetInt_String((guint8 *)cp);
         cp += 4;
         faceset = *cp;
         cp++;

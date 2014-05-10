@@ -56,9 +56,9 @@ int image_size=DEFAULT_IMAGE_SIZE;
 
 struct {
     char    *name;
-    uint32  checksum;
-    uint8   *png_data;
-    uint32  width, height;
+    guint32  checksum;
+    guint8   *png_data;
+    guint32  width, height;
 } private_cache[MAXPIXMAPNUM];
 
 #define BPP 4
@@ -119,7 +119,7 @@ typedef struct Keys {
  * @param pi
  * @param pixmap_num
  */
-static void create_icon_image(uint8 *data, PixmapInfo *pi, int pixmap_num)
+static void create_icon_image(guint8 *data, PixmapInfo *pi, int pixmap_num)
 {
     pi->icon_mask = NULL;
     if (rgba_to_gdkpixbuf(data, pi->icon_width, pi->icon_height,
@@ -134,7 +134,7 @@ static void create_icon_image(uint8 *data, PixmapInfo *pi, int pixmap_num)
  * @param data
  * @param pi
  */
-static void create_map_image(uint8 *data, PixmapInfo *pi)
+static void create_map_image(guint8 *data, PixmapInfo *pi)
 {
     pi->map_image = NULL;
     pi->map_mask = NULL;
@@ -143,8 +143,8 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
 #if defined(HAVE_SDL)
         int i;
         SDL_Surface *fog;
-        uint32 g,*p;
-        uint8 *l;
+        guint32 g,*p;
+        guint8 *l;
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
         pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
@@ -157,14 +157,14 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
         SDL_LockSurface(fog);
 
         for (i=0; i < pi->map_width * pi->map_height; i++) {
-            l = (uint8 *) (data + i*4);
+            l = (guint8 *) (data + i*4);
 #if 1
             g = MAX(*l, *(l+1));
             g = MAX(g, *(l+2));
 #else
             g = ( *l +  *(l+1) + *(l+2)) / 3;
 #endif
-            p = (uint32*) fog->pixels + i;
+            p = (guint32*) fog->pixels + i;
             *p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
         }
 
@@ -187,28 +187,28 @@ static void create_map_image(uint8 *data, PixmapInfo *pi)
          * just the bytes for it to go on the screen are reversed.
          */
         for (i=0; i < pi->map_width * pi->map_height; i++) {
-            l = (uint8 *) (data + i*4);
+            l = (guint8 *) (data + i*4);
 #if 1
             g = MAX(*l, *(l+1));
             g = MAX(g, *(l+2));
 #else
             g = ( *l +  *(l+1) + *(l+2)) / 3;
 #endif
-            p = (uint32*) fog->pixels + i;
+            p = (guint32*) fog->pixels + i;
             *p = (g << 8) | (g << 16) | (g << 24) | *(l + 3);
         }
 
         for (i=0; i < pi->map_width * pi->map_height; i+= 4) {
-            uint32 *tmp;
+            guint32 *tmp;
 
             /*
              * The pointer arithemtic below looks suspicious, but it is a patch
              * that is submitted, so just putting it in as submitted.  MSW
              * 2004-05-11
              */
-            p = (uint32*) (fog->pixels + i);
+            p = (guint32*) (fog->pixels + i);
             g = ( ((*p >> 24) & 0xff)  + ((*p >> 16) & 0xff) + ((*p >> 8) & 0xff)) / 3;
-            tmp = (uint32*) fog->pixels + i;
+            tmp = (guint32*) fog->pixels + i;
             *tmp = (g << 24) | (g << 16) | (g << 8) | (*p & 0xff);
         }
 
@@ -290,10 +290,10 @@ static void free_pixmap(PixmapInfo *pi)
  *
  * @return 1 on failure.
  */
-int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *rgba_data, int width, int height)
+int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, guint8 *rgba_data, int width, int height)
 {
     int nx, ny, iscale, factor;
-    uint8 *png_tmp;
+    guint8 *png_tmp;
     PixmapInfo  *pi;
 
     if (pixmap_num <= 0 || pixmap_num >= MAXPIXMAPNUM) {
@@ -431,7 +431,7 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, uint8 *r
  * @param face
  * @param smooth_face
  */
-void addsmooth(uint16 face, uint16 smooth_face)
+void addsmooth(guint16 face, guint16 smooth_face)
 {
     pixmaps[face]->smooth_face = smooth_face;
 }
@@ -538,7 +538,7 @@ void image_update_download_status(int start, int end, int total)
  * @param w
  * @param h
  */
-void get_map_image_size(int face, uint8 *w, uint8 *h)
+void get_map_image_size(int face, guint8 *w, guint8 *h)
 {
     /* We want to calculate the number of spaces this image
      * uses it.  By adding the image size but substracting one,

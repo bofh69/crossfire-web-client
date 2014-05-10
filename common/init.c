@@ -36,7 +36,7 @@ const char *const config_names[CONFIG_NUMS] = {
     "auto_apply_container", "mapscroll", "sign_popups", "message_timestamping"
 };
 
-sint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
+gint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
 
 #define FREE_AND_CLEAR(xyz) { free(xyz); xyz=NULL; }
 

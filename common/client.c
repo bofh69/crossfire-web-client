@@ -56,10 +56,10 @@ int meta_port=META_PORT, want_skill_exp=0,
     maxfd,metaserver_on=METASERVER, metaserver2_on=METASERVER2,
           wantloginmethod=0, serverloginmethod=0;
 
-uint32 tick=0;
+guint32 tick=0;
 
-uint16 exp_table_max=0;
-uint64 *exp_table=NULL;
+guint16 exp_table_max=0;
+guint64 *exp_table=NULL;
 
 NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
 

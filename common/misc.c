@@ -47,12 +47,12 @@
  * @param replace     A string that is to replace each token in the buffer.
  */
 void replace_chars_with_string(char*        buffer,
-                               const uint16 buffer_size,
+                               const guint16 buffer_size,
                                const char   find,
                                const char*  replace      )
 {
 
-    uint16 buffer_len, expand, i, replace_len, replace_limit, template_len;
+    guint16 buffer_len, expand, i, replace_len, replace_limit, template_len;
     char*  template;
 
     replace_limit = buffer_size - 1;

@@ -162,7 +162,7 @@ void create_new_character_failure(char *message) {
 
 static void create_new_character() {
     const char *name;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
     SockList sl;
 
     SockList_Init(&sl, buf);
@@ -259,7 +259,7 @@ static void init_new_character_window() {
 static void add_character_to_account(const char *name, const char *password,
                                      int force) {
     SockList sl;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
 
     if (!name || !password || *name == 0 || *password == 0) {
         gtk_label_set_text(GTK_LABEL(label_add_status),
@@ -465,7 +465,7 @@ void choose_char_window_show() {
  */
 static void play_character(const char *name) {
     SockList sl;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
 
     SockList_Init(&sl, buf);
     SockList_AddString(&sl, "accountplay ");
@@ -775,7 +775,7 @@ void account_creation_failure(char *message) {
 static void do_account_create(const char *name, const char *p1,
                               const char *p2) {
     SockList sl;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
 
     if (strcmp(p1, p2)) {
         gtk_label_set_text(GTK_LABEL(label_create_account_status),
@@ -1001,7 +1001,7 @@ on_button_exit_client_clicked(GtkButton *button, gpointer user_data) {
  */
 static void do_account_login(const char *name, const char *password) {
     SockList sl;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
 
     if (!name || !password || *name == 0 || *password == 0) {
         gtk_label_set_text(GTK_LABEL(label_account_login_status),
@@ -1164,7 +1164,7 @@ static void init_login_window() {
  */
 static void do_account_change(const char *old, const char *p1, const char *p2) {
     SockList sl;
-    uint8 buf[MAX_BUF];
+    guint8 buf[MAX_BUF];
 
     if (strcmp(p1, p2)) {
         gtk_label_set_text(GTK_LABEL(label_account_password_status),

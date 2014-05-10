@@ -93,7 +93,7 @@ void draw_magic_map(void)
      */
     for (y = 0; y < cpl.mmapy; y++) {
         for (x = 0; x < cpl.mmapx; x++) {
-            uint8 val = cpl.magicmap[y*cpl.mmapx + x];
+            guint8 val = cpl.magicmap[y*cpl.mmapx + x];
 
             gdk_gc_set_foreground(
                 magic_map_gc, &root_color[val&FACE_COLOR_MASK]);

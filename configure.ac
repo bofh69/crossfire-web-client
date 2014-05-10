@@ -250,9 +250,6 @@ AC_C_CONST
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
-AC_CHECK_SIZEOF(long)
-AC_CHECK_SIZEOF(long long)
-
 # Checks for library functions.
 AC_CHECK_FUNCS([getaddrinfo socket sysconf])
 
