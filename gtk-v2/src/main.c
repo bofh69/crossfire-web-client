@@ -255,10 +255,10 @@ static void event_loop() {
         timeout.tv_usec = 0;/* MAX_TIME % 1000000;*/
     }
 
-    gtk_timeout_add(10, (GtkFunction) do_timeout, NULL);
+    g_timeout_add(100, (GtkFunction) do_timeout, NULL);
 
 #ifdef WIN32
-    gtk_timeout_add(25, (GtkFunction) do_scriptout, NULL);
+    g_timeout_add(250, (GtkFunction) do_scriptout, NULL);
 #endif
 
     if (csocket.fd == -1) {
@@ -275,7 +275,7 @@ static void event_loop() {
     int tag = csocket_fd;
 
     gtk_main();
-    gtk_timeout_remove(tag);
+    g_source_remove(tag);
 
     LOG(LOG_INFO, "main.c::event_loop",
         "gtk_main exited, returning from event_loop");
