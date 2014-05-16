@@ -1,0 +1,24 @@
+/* Crossfire Configuration (for CMake) */
+#define MINLOGLEVEL 0
+#define VERSION "@VERSION@"
+
+/* Paths */
+#define BINDIR "@CMAKE_INSTALL_FULL_BINDIR@"
+#define CF_DATADIR "@CMAKE_INSTALL_FULL_DATADIR@/crossfire-client"
+
+/* Header Files */
+#cmakedefine HAVE_CURL_CURL_H
+#cmakedefine HAVE_FCNTL_H
+#cmakedefine HAVE_SYS_TIME_H
+#cmakedefine HAVE_UNISTD_H
+#cmakedefine HAVE_PTHREAD_H
+
+/* Functions */
+#cmakedefine HAVE_GETADDRINFO 1
+#cmakedefine HAVE_SYSCONF
+
+/* Features */
+#cmakedefine HAVE_LUA
+#cmakedefine HAVE_OPENGL
+#cmakedefine HAVE_SDL
+#cmakedefine METASERVER2 1

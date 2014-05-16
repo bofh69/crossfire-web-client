@@ -1,3 +1,6 @@
+2014-05-15	Kevin Zheng
+	* CMakeLists.txt: Add CMake support.
+
 2014-05-09	Kevin Zheng
 	* configure.ac: Add dependency on GLib.
 

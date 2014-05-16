@@ -18,9 +18,7 @@
  * gtk-specific as it returns gtk pixmaps.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "config.h"
 
 #include <png.h>
 #include <stdlib.h>

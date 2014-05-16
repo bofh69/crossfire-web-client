@@ -25,7 +25,7 @@
 #include "client-types.h"
 #include "client.h"
 #include "common.h"
-#include "newclient.h"
+#include "shared/newclient.h"
 #include "sndproto.h"
 
 /**
