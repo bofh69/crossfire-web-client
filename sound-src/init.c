@@ -16,14 +16,11 @@
  * Initialize various parts of the sound server.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "config.h"
 
-#ifdef HAVE_STRING_H
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#endif
 
 #include "client.h"
 #include "common.h"

@@ -16,6 +16,8 @@
  * Implements a server for sound support in the client using SDL_mixer.
  */
 
+#include "config.h"
+
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <ctype.h>
@@ -25,15 +27,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
-
-#include "config.h"
+#include <string.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef HAVE_STRING_H
-#include <string.h>
 #endif
 
 #include "shared/newclient.h"

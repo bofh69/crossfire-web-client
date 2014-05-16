@@ -15,15 +15,12 @@
  * @file sound-src/parser.c
  */
 
+#include "config.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "config.h"
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #include "client-types.h"
 #include "client.h"
