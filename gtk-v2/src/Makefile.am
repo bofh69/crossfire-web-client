@@ -12,9 +12,6 @@ AM_CFLAGS = \
 
 bin_PROGRAMS = crossfire-client-gtk2
 
-common_BUILT_FILES = \
-	$(top_builddir)/common/svnversion.h
-
 $(common_BUILT_FILES):
 	pushd `dirname $(@)` >/dev/null; \
 	$(MAKE) `basename $(@)`; \

@@ -32,11 +32,7 @@ noinst_HEADERS = \
 	proto.h \
 	script.h \
 	shared/newclient.h \
-	svnversion.h \
 	version.h
-
-BUILT_SOURCES = svnversion.h
-CLEANFILES = svnversion.h
 
 EXTRA_DIST = \
 	def-keys \
@@ -51,19 +47,3 @@ def-keys.h: def-keys
 
 msgtypes.h: $(srcdir)/shared/newclient.h
 	$(PERL) $(srcdir)/msgtypes.pl $(srcdir)
-
-svnversion.h:
-	OUTPUT_DATA='/* Auto-generated at build time. */'; \
-	if [ "X`echo -n`" = "X-n" ]; then \
-		echo_n() { echo $${1+"$$@"}"\c"; } \
-	else \
-		echo_n() { echo -n $${1+"$$@"}; } \
-	fi; \
-	if test -n "$(SVNVERSION)" -a -d "$(top_srcdir)/.svn"; \
-	then OUTPUT_DATA=`echo "$$OUTPUT_DATA"; echo_n '#define SVN_REV "'; $(SVNVERSION) -n "$(top_srcdir)"`'"'; \
-	fi; \
-	if test ! -e svnversion.h; then \
-		echo "$$OUTPUT_DATA" > svnversion.h; \
-	elif test "$$OUTPUT_DATA" != "`cat svnversion.h`"; then \
-		echo "$$OUTPUT_DATA" > svnversion.h; \
-	fi
