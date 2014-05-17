@@ -369,7 +369,7 @@ void error_dialog(char *description, char *information) {
 
 void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level,
                     const gchar *message, gpointer user_data) {
-    sleep(1);
+    g_usleep(1 * 1e6);
 }
 
 static void init_sockets() {

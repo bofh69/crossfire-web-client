@@ -473,7 +473,7 @@ void *metaserver2_thread(void *junk)
     int metaserver_choice, tries=0;
 
     do {
-        metaserver_choice = random() % (sizeof(metaservers) / sizeof(char*));
+        metaserver_choice = g_random_int() % (sizeof(metaservers) / sizeof(char*));
         tries++;
         if (tries>5) {
             break;
@@ -1092,7 +1092,7 @@ void handle_ms_data(int msservernum)
     fprintf(stderr,"Collecting data from metaserver %d.", msservernum);
     while (metaserver_check_status()) {
         fprintf(stderr,".");
-        sleep(1);
+        g_usleep(1 * 1e6);
     }
     fprintf(stderr, "\nIp Address:Idle Time:Hostname:Players:Version:Comment\n");
     for (i = 0; i < meta_numservers; i++) {

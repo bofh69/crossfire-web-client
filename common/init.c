@@ -208,8 +208,6 @@ void init_client_vars() {
 
     init_commands();
     init_metaserver();
-
-    srandom(time(NULL));
 }
 
 /* This is basically called each time a new player logs

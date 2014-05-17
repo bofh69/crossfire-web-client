@@ -36,20 +36,6 @@
 #  include <pthread.h>
 #endif
 
-#ifdef WIN32
-/* mingw defines rand and srand only */
-#ifndef random
-#define random rand
-#endif
-#ifndef srandom
-#define srandom srand
-#endif
-
-#ifndef sleep
-#define sleep(x) Sleep((x)*1000)
-#endif
-#endif
-
 #ifndef SOL_TCP
 #define SOL_TCP IPPROTO_TCP
 #endif

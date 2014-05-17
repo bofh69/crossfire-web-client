@@ -832,9 +832,9 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
 
     /* Random animation is pretty easy */
     if ((anim & ANIM_FLAGS_MASK) == ANIM_RANDOM) {
-        phase = random() % animations[animation].num_animations;
+        phase = g_random_int() % animations[animation].num_animations;
         face = animations[animation].faces[phase];
-        speed_left = anim_speed % random();
+        speed_left = anim_speed % g_random_int();
     } else if ((anim & ANIM_FLAGS_MASK) == ANIM_SYNC) {
         animations[animation].speed = anim_speed;
         phase = animations[animation].phase;
