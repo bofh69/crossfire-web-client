@@ -33,27 +33,37 @@ add_definitions(
 # Look for optional dependencies that are enabled using options.
 if(LUA)
     find_package(Lua51)
-    include_directories(${LUA_INCLUDE_DIR})
+    if(LUA51_FOUND)
+        include_directories(${LUA_INCLUDE_DIR})
+    endif()
 endif()
 
 if(METASERVER2)
     find_package(CURL)
-    include_directories(${CURL_INCLUDE_DIRS})
+    if(CURL_FOUND)
+        include_directories(${CURL_INCLUDE_DIRS})
+    endif()
 endif()
 
 if(OPENGL)
     find_package(OpenGL)
-    include_directories(${OPENGL_INCLUDE_DIR})
+    if(OPENGL_FOUND)
+        include_directories(${OPENGL_INCLUDE_DIR})
+    endif()
 endif()
 
 if(SDL)
     find_package(SDL)
-    include_directories(${SDL_INCLUDE_DIR})
+    if(SDL_FOUND)
+        include_directories(${SDL_INCLUDE_DIR})
+    endif()
 endif()
 
 if(SOUND)
     find_package(SDL_mixer)
-    include_directories(${SDL_MIXER_INCLUDE_DIRS})
+    if(SDLMIXER_FOUND)
+        include_directories(${SDL_MIXER_INCLUDE_DIRS})
+    endif()
 endif()
 
 # Set compatibility definitions for Autotools.
@@ -93,6 +103,11 @@ include_directories(${PROJECT_SOURCE_DIR}/common)
 add_subdirectory(common)
 add_subdirectory(gtk-v2)
 
-if(SOUND)
+if(SOUND AND SDLMIXER_FOUND)
     add_subdirectory(sound-src)
 endif()
+
+# Build an installation package.
+include(InstallRequiredSystemLibraries)
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/COPYING)
+include(CPack)
