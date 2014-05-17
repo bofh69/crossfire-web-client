@@ -14,6 +14,8 @@ AM_SILENT_RULES([yes])
 # These are subdirectories that have make files in them
 CF_SUBDIRS="common pixmaps"
 
+SOUNDDIR="${datadir}/crossfire-client/sounds"
+
 ##############################################################################
 # Configuration Options
 ##############################################################################
@@ -78,9 +80,6 @@ elif test "$have_x" = yes; then
     test -z "$X11_CFLAGS" && X11_CFLAGS="$X_CFLAGS"
     test -z "$X11_LIBS" && X11_LIBS="$X_LIBS -lX11"
 fi
-
-# FIXME: This sound dir specification overwrites the user-specified one.
-SOUNDDIR="${datadir}/crossfire-client/sounds"
 
 networklibs="yes"
 
@@ -267,9 +266,14 @@ fi
 nbindir=`eval echo ${bindir}`
 nbindir=`eval echo ${nbindir}`
 
+# Remove nested variables
+nSOUNDDIR=`eval echo ${SOUNDDIR}`
+nSOUNDDIR=`eval echo ${nSOUNDDIR}`
+
 AC_DEFINE_UNQUOTED(CF_DATADIR, "${ndatadir}", [Location of read-only machine independent data.])
 AC_DEFINE_UNQUOTED(BINDIR, "${nbindir}", [Location of other binaries.])
 AC_DEFINE_UNQUOTED(MINLOGLEVEL, ${MINLOGLEVEL}, [Default logging level.])
+AC_DEFINE_UNQUOTED(CF_SOUND_DIR, "${nSOUNDDIR}", [Location of sound files.])
 
 AC_SUBST(CF_DATADIR)
 AC_SUBST(CF_SUBDIRS)

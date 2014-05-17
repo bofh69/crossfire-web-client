@@ -1,3 +1,7 @@
+2014-05-16	SilverNexus
+	* configure.ac: Fixed unchangeable sound directory path.
+	* sound-src/common.h: Implement new CF_SOUND_DIR define in common/config.h.
+
 2014-05-15	Kevin Zheng
 	* CMakeLists.txt: Add CMake support.
 
