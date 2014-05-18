@@ -5,6 +5,7 @@
 /* Paths */
 #define BINDIR "@CMAKE_INSTALL_FULL_BINDIR@"
 #define CF_DATADIR "@CMAKE_INSTALL_FULL_DATADIR@/crossfire-client"
+#define CF_SOUND_DIR "@CMAKE_INSTALL_FULL_DATADIR@/crossfire-client/sounds"
 
 /* Header Files */
 #cmakedefine HAVE_CURL_CURL_H
