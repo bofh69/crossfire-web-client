@@ -21,6 +21,8 @@
 #ifdef HAVE_SDL
 
 #include <client-types.h>
+
+/* these should generally be included by the file including this file. */
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -54,10 +56,6 @@ extern int time_map_redraw;
  * code in gx11.c - some areas are embedded so much that it is not easy to
  * remove.
  */
-
-/* these should generally be included by the file including this file. */
-#include <SDL.h>
-#include <SDL_image.h>
 
 
 static void do_SDL_error(const char *SDL_function, const char *file, int line)
