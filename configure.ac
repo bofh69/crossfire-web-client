@@ -60,9 +60,6 @@ AC_PROG_RANLIB
 
 AC_PATH_PROG(PERL, perl)
 
-# Check if svnversion is available to get the rev number
-AC_PATH_PROG(SVNVERSION, svnversion)
-
 ##############################################################################
 AS_BOX([Library Checks])
 ##############################################################################
