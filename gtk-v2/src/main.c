@@ -28,6 +28,7 @@
 
 #include <errno.h>
 #include <gtk/gtk.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "client.h"
@@ -501,6 +502,9 @@ static void init_ui() {
  * Main client entry point.
  */
 int main(int argc, char *argv[]) {
+    // Whether or not to use the metaserver pop-up dialog.
+    bool use_metaserver = true;
+
 #ifdef ENABLE_NLS
     bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
@@ -541,7 +545,7 @@ int main(int argc, char *argv[]) {
     map_init(window_root);
 
     /* Loop to connect to server/metaserver and play the game */
-    while (1) {
+    while (use_metaserver) {
         reset_client_vars();
         clear_stat_mapping();
 
@@ -551,14 +555,14 @@ int main(int argc, char *argv[]) {
             metaserver_get_info(meta_server, meta_port);
             get_metaserver();
         } else {
-            csocket.fd = init_connection(server, use_config[CONFIG_PORT]);
+            use_metaserver = false;
 
-            /* Set server back to NULL so metaserver is used the next time. */
+            csocket.fd = init_connection(server, use_config[CONFIG_PORT]);
             g_free(server);
 
-            /* If unable to connect to server, return to server selection. */
+            // Exit with an error if unable to connect to server.
             if (csocket.fd == -1) {
-                continue;
+                g_error("Unable to connect to server.");
             }
         }
 
@@ -582,9 +586,6 @@ int main(int argc, char *argv[]) {
          */
         reset_image_data();
     }
-
-    /* This statement should never be reached. */
-    g_assert_not_reached();
 }
 
 /**
