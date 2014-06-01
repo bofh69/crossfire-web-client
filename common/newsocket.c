@@ -26,6 +26,7 @@
 #include "shared/newclient.h"
 #include "script.h"
 
+
 /**
  * Write at least a specified amount of data in a buffer to the socket unless
  * an error occurs.
@@ -35,11 +36,9 @@
  * @param len
  * @return
  */
-static int write_socket(int fd, const unsigned char *buf, int len)
-{
-    int amt=0;
-
-    const unsigned char *pos=buf;
+static int write_socket(int fd, const unsigned char *buf, int len) {
+    const unsigned char *pos = buf;
+    int amt = 0;
 
     /* If we manage to write more than we wanted, take it as a bonus */
     while (len>0) {
@@ -62,6 +61,8 @@ static int write_socket(int fd, const unsigned char *buf, int len)
         len -= amt;
         pos += amt;
     }
+
+    beat_reset();
     return 0;
 }
 
@@ -132,8 +133,7 @@ void SockList_AddString(SockList *sl, const char *str)
  * @param sl
  * @param fd
  */
-int SockList_Send(SockList *sl, int fd)
-{
+int SockList_Send(SockList *sl, int fd) {
     sl->buf[-2] = sl->len / 256;
     sl->buf[-1] = sl->len % 256;
 

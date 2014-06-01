@@ -1066,9 +1066,15 @@ void SetupCmd(char *buf, int len)
             if (method) {
                 start_login(method);
             }
+        } else if (!strcmp(cmd, "beat")) {
+            if (strcmp(param, "FALSE") != 0) {
+                LOG(LOG_INFO, "SetupCmd", "Server supports heartbeats!");
+                beat_init(atoi(param));
+            }
         } else {
-            LOG(LOG_INFO, "common::SetupCmd", "Got setup for a command we don't understand: %s %s",
-                cmd, param);
+            LOG(LOG_INFO, "common::SetupCmd",
+                    "Got setup for a command we don't understand: %s %s",
+                    cmd, param);
         }
     }
 }

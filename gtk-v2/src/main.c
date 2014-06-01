@@ -126,6 +126,8 @@ static int do_timeout() {
         inventory_tick();
         mapdata_animation();
     }
+
+    beat_check();
     return TRUE;
 }
 

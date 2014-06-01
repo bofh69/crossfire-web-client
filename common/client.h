@@ -646,3 +646,8 @@ extern void replace_chars_with_string(
 /* We need to declare most of the structs before we can include this */
 #include <proto.h>
 #endif
+
+extern void beat_init(int interval);
+extern void beat_check();
+extern void beat_reset();
+extern int beat_interval;
