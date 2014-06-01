@@ -12,35 +12,19 @@
  */
 
 /**
- * @file common/newsocket.c
+ * @file
  * Made this either client or server specific for 0.95.2 release - getting too
  * complicated to keep them the same, and the common code is pretty much
  * frozen now.
  */
 
-#include <stdio.h>
-#include <stdarg.h>
 #include <errno.h>
+#include <stdarg.h>
+#include <stdio.h>
 
-#include <client.h>
-#include <shared/newclient.h>
-#include <script.h>
-
-/* The LOG function is normally part of the libcross.  If client compile,
- * we need to supply something since some of the common code calls this.
- */
-/*void LOG (int logLevel, char *format, ...)
-{
-#ifdef DEBUG
-    va_list ap;
-    va_start(ap, format);
-    vfprintf(stderr, format, ap);
-    va_end(ap);
-#endif
-}*/
-
-#define llevDebug LOG_DEBUG
-#define llevError LOG_ERROR
+#include "client.h"
+#include "shared/newclient.h"
+#include "script.h"
 
 /**
  * Write at least a specified amount of data in a buffer to the socket unless
@@ -69,11 +53,11 @@ static int write_socket(int fd, const unsigned char *buf, int len)
         while ((amt<0) && (WSAGetLastError()==EINTR));
 #endif
         if (amt < 0) { /* We got an error */
-            LOG(llevError,"write_socket","New socket (fd=%d) write failed: %s.\n", fd, strerror(errno));
+            LOG(LOG_ERROR,"write_socket","New socket (fd=%d) write failed: %s.\n", fd, strerror(errno));
             return -1;
         }
         if (amt==0) {
-            LOG(llevError,"write_socket","Write_To_Socket: No data written out.\n");
+            LOG(LOG_ERROR,"write_socket","Write_To_Socket: No data written out.\n");
         }
         len -= amt;
         pos += amt;
@@ -246,7 +230,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 #endif
             {
                 perror("ReadPacket got an error.");
-                LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning -1",errno);
+                LOG(LOG_DEBUG,"SockList_ReadPacket","ReadPacket got error %d, returning -1",errno);
                 return -1;
             }
             return 0;   /*Error */
@@ -270,7 +254,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
      */
     toread = 2+(sl->buf[0] << 8) + sl->buf[1] - sl->len;
     if ((toread + sl->len) > len) {
-        LOG(llevError,"SockList_ReadPacket","Want to read more bytes than will fit in buffer.\n");
+        LOG(LOG_ERROR,"SockList_ReadPacket","Want to read more bytes than will fit in buffer.\n");
         /* return error so the socket is closed */
         return -1;
     }
@@ -293,7 +277,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
 #endif
             {
                 perror("ReadPacket got an error.");
-                LOG(llevDebug,"SockList_ReadPacket","ReadPacket got error %d, returning 0",errno);
+                LOG(LOG_DEBUG,"SockList_ReadPacket","ReadPacket got error %d, returning 0",errno);
             }
             return 0;       /*Error */
         }
@@ -312,7 +296,7 @@ int SockList_ReadPacket(int fd, SockList *sl, int len)
         }
 
         if (toread < 0) {
-            LOG(llevError,"SockList_ReadPacket","SockList_ReadPacket: Read more bytes than desired.");
+            LOG(LOG_ERROR,"SockList_ReadPacket","SockList_ReadPacket: Read more bytes than desired.");
             return 1;
         }
     } while (toread>0);
@@ -341,4 +325,3 @@ int cs_print_string(int fd, const char *str, ...)
 
     return SockList_Send(&sl, fd);
 }
-
