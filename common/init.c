@@ -165,7 +165,7 @@ void init_client_vars() {
     use_config[CONFIG_GRAD_COLOR] = FALSE;
     use_config[CONFIG_RESISTS] = 0;
     use_config[CONFIG_RESISTS] = 0;
-    use_config[CONFIG_SMOOTH] = 0;
+    use_config[CONFIG_SMOOTH] = TRUE;
     use_config[CONFIG_SPLASH] = TRUE;
     use_config[CONFIG_APPLY_CONTAINER] = TRUE;
     use_config[CONFIG_MAPSCROLL] = TRUE;

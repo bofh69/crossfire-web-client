@@ -1,3 +1,6 @@
+2014-06-05	Kevin Zheng
+	* common/init.c: Enable smoothing by default.
+
 2014-05-16	SilverNexus
 	* configure.ac: Fixed unchangeable sound directory path.
 	* sound-src/common.h: Implement new CF_SOUND_DIR define in common/config.h.
