@@ -53,7 +53,7 @@ static void *l_alloc (void * /*ud*/, void *ptr, size_t /*osize*/, size_t nsize)
         free(ptr);
         return NULL;
     } else {
-        return realloc(ptr, nsize);
+        return g_realloc(ptr, nsize);
     }
 }
 #endif
@@ -278,7 +278,7 @@ void script_lua_load(const char* name)
         return;
     }
 
-    scripts = realloc(scripts,sizeof(scripts[0])*(script_count+1));
+    scripts = g_realloc(scripts,sizeof(scripts[0])*(script_count+1));
 
     if (scripts == NULL) {
         LOG(LOG_ERROR, "script_lua_load",

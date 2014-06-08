@@ -316,7 +316,7 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
      * see if we are at the edge of the map - doing a store vs 4
      * checks is going to be much faster.
      */
-    redrawbitmap = malloc(sizeof(char) * (MAP_MAX_SIZE +2)* (MAP_MAX_SIZE+2));
+    redrawbitmap = g_malloc(sizeof(char) * (MAP_MAX_SIZE +2)* (MAP_MAX_SIZE+2));
 }
 
 
@@ -574,12 +574,12 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 
         /* Generated stored for the darkx[] array.  Do it dynamically, but
          * only allocate if the size needs to be expanded to keep performance
-         * better.  darkx could be null in the initial case, but realloc should
-         * just treat that as a malloc (so according to the man page)
+         * better.  darkx could be null in the initial case, but g_realloc should
+         * just treat that as a g_malloc (so according to the man page)
          */
         if (map_image_size > darkx_allocated) {
-            darkx = realloc(darkx, map_image_size * sizeof(int));
-            darky = realloc(darky, map_image_size * sizeof(int));
+            darkx = g_realloc(darkx, map_image_size * sizeof(int));
+            darky = g_realloc(darky, map_image_size * sizeof(int));
             darkx_allocated = map_image_size;
         }
 

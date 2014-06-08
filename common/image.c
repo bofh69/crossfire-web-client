@@ -323,7 +323,7 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename,
      * improves performance, presuming ones later in the file are more likely
      * to be used compared to those at the start of the file.
      */
-    new_entry = malloc(sizeof(struct Cache_Entry));
+    new_entry = g_malloc(sizeof(struct Cache_Entry));
     new_entry->filename = g_strdup(filename);
     new_entry->checksum = checksum;
     new_entry->ispublic = ispublic;

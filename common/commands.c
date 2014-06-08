@@ -192,7 +192,7 @@ static void get_starting_map_info(char *data, int len)
             return;
         }
 
-        cp = malloc(length+1);
+        cp = g_malloc(length+1);
         strncpy(cp, data+pos, length);
         cp[length] = 0;
 
@@ -201,12 +201,12 @@ static void get_starting_map_info(char *data, int len)
         /* If it is the arch name, it is a new entry, so we allocate
          * space and clear it.  This isn't most efficient, but at
          * the same time, I don't see there being many maps.
-         * Note: If realloc is given a null pointer (which starting_map_info
-         * will be after free or first load), realloc just acts as malloc.
+         * Note: If g_realloc is given a null pointer (which starting_map_info
+         * will be after free or first load), g_realloc just acts as g_malloc.
          */
         if (type == INFO_MAP_ARCH_NAME) {
             map_entry++;
-            starting_map_info = realloc(starting_map_info,
+            starting_map_info = g_realloc(starting_map_info,
                                         (map_entry + 1) * sizeof(Starting_Map_Info));
 
             if (starting_map_info == NULL) {
@@ -515,7 +515,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             namelen = GetChar_String(nl);
             ASSERT_LEN("common::process_race_class_info", nl + namelen, data + len);
             nl++;
-            rci->public_name = malloc(namelen+1);
+            rci->public_name = g_malloc(namelen+1);
             strncpy(rci->public_name, nl, namelen);
             rci->public_name[namelen] = 0;
             cp = nl + namelen;
@@ -551,7 +551,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             msglen = GetShort_String(nl);
             ASSERT_LEN("common::process_race_class_info", nl + msglen, data + len);
             nl+=2;
-            rci->description = malloc(msglen+1);
+            rci->description = g_malloc(msglen+1);
             strncpy(rci->description, nl, msglen);
             rci->description[msglen] = 0;
             cp = nl + msglen;
@@ -559,8 +559,8 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             int oc = rci->num_rc_choice, clen;
 
             rci->num_rc_choice++;
-            /* rc_choice may be null, but realloc still works there */
-            rci->rc_choice = realloc(rci->rc_choice, sizeof(struct RC_Choice) * rci->num_rc_choice);
+            /* rc_choice may be null, but g_realloc still works there */
+            rci->rc_choice = g_realloc(rci->rc_choice, sizeof(struct RC_Choice) * rci->num_rc_choice);
             memset(&rci->rc_choice[oc], 0, sizeof(struct RC_Choice));
 
             cp = nl;
@@ -569,7 +569,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             clen = GetChar_String(cp);
             cp++;
             ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
-            rci->rc_choice[oc].choice_name = malloc(clen+1);
+            rci->rc_choice[oc].choice_name = g_malloc(clen+1);
             strncpy(rci->rc_choice[oc].choice_name, cp, clen);
             rci->rc_choice[oc].choice_name[clen] = 0;
             cp += clen;
@@ -578,7 +578,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             clen = GetChar_String(cp);
             cp++;
             ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
-            rci->rc_choice[oc].choice_desc = malloc(clen+1);
+            rci->rc_choice[oc].choice_desc = g_malloc(clen+1);
             strncpy(rci->rc_choice[oc].choice_desc, cp, clen);
             rci->rc_choice[oc].choice_desc[clen] = 0;
             cp += clen;
@@ -594,13 +594,13 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
                 }
                 vn = rci->rc_choice[oc].num_values;
                 rci->rc_choice[oc].num_values++;
-                rci->rc_choice[oc].value_arch = realloc(rci->rc_choice[oc].value_arch,
+                rci->rc_choice[oc].value_arch = g_realloc(rci->rc_choice[oc].value_arch,
                                                         sizeof(char*) * rci->rc_choice[oc].num_values);
-                rci->rc_choice[oc].value_desc = realloc(rci->rc_choice[oc].value_desc,
+                rci->rc_choice[oc].value_desc = g_realloc(rci->rc_choice[oc].value_desc,
                                                         sizeof(char*) * rci->rc_choice[oc].num_values);
 
                 ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
-                rci->rc_choice[oc].value_arch[vn] = malloc(clen+1);
+                rci->rc_choice[oc].value_arch[vn] = g_malloc(clen+1);
                 strncpy(rci->rc_choice[oc].value_arch[vn], cp, clen);
                 rci->rc_choice[oc].value_arch[vn][clen] = 0;
                 cp += clen;
@@ -608,7 +608,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
                 clen = GetChar_String(cp);
                 cp++;
                 ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
-                rci->rc_choice[oc].value_desc[vn] = malloc(clen+1);
+                rci->rc_choice[oc].value_desc[vn] = g_malloc(clen+1);
                 strncpy(rci->rc_choice[oc].value_desc[vn], cp, clen);
                 rci->rc_choice[oc].value_desc[vn][clen] = 0;
                 cp += clen;
@@ -1156,7 +1156,7 @@ void AnimCmd(unsigned char *data, int len)
             animations[anum].num_animations);
         return;
     }
-    animations[anum].faces = malloc(sizeof(guint16)*animations[anum].num_animations);
+    animations[anum].faces = g_malloc(sizeof(guint16)*animations[anum].num_animations);
     for (i = 4, j = 0; i < len; i += 2, j++) {
         animations[anum].faces[j] = GetShort_String(data+i);
     }
@@ -1238,7 +1238,7 @@ void setTextManager(int type, ExtTextManager callback)
         }
         current = current->next;
     }
-    current = malloc(sizeof(TextManager));
+    current = g_malloc(sizeof(TextManager));
     current->type = type;
     current->callback = callback;
     current->next = firstTextManager;
@@ -2348,7 +2348,7 @@ void MagicMapCmd(unsigned char *data, int len)
         return;
     }
     free(cpl.magicmap);
-    cpl.magicmap = malloc(cpl.mmapx*cpl.mmapy);
+    cpl.magicmap = g_malloc(cpl.mmapx*cpl.mmapy);
     /* Order the server puts it in should be just fine.  Note that the only
      * requirement that this works is that magicmap by 8 bits, being that is
      * the size specified in the protocol and what the server sends us.

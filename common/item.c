@@ -212,7 +212,7 @@ const char *get_number(guint32 i)
  */
 static item *new_item(void)
 {
-    item *op = malloc(sizeof(item));
+    item *op = g_malloc(sizeof(item));
 
     if (!op) {
         exit(0);

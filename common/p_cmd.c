@@ -962,7 +962,7 @@ void init_commands(void)
     */
 
     /* XXX Leak! */
-    name_sorted_commands = malloc(sizeof(ConsoleCommand *) * num_commands);
+    name_sorted_commands = g_malloc(sizeof(ConsoleCommand *) * num_commands);
 
     for (i = 0; i < CommonCommandsSize; i++) {
         name_sorted_commands[i] = &CommonCommands[i];
@@ -978,7 +978,7 @@ void init_commands(void)
     qsort(name_sorted_commands, num_commands, sizeof(ConsoleCommand *), sort_by_name);
 
     /* Copy the list, then sort it by category. */
-    cat_sorted_commands = malloc(sizeof(ConsoleCommand *) * num_commands);
+    cat_sorted_commands = g_malloc(sizeof(ConsoleCommand *) * num_commands);
 
     memcpy(cat_sorted_commands, name_sorted_commands, sizeof(ConsoleCommand *) * num_commands);
 

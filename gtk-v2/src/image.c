@@ -395,7 +395,7 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, guint8 *
          * If using SDL mode, a copy of the rgba data needs to be stored away.
          */
         if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
-            png_tmp = malloc(width * height * BPP);
+            png_tmp = g_malloc(width * height * BPP);
             memcpy(png_tmp, rgba_data, width * height * BPP);
         } else {
             png_tmp = rgba_data;
@@ -579,7 +579,7 @@ void init_image_cache_data(void)
     LOG(LOG_INFO,"gtk-v2::init_image_cache_data","Init Image Cache");
 
     style = gtk_widget_get_style(window_root);
-    pixmaps[0] = malloc(sizeof(PixmapInfo));
+    pixmaps[0] = g_malloc(sizeof(PixmapInfo));
     pixmaps[0]->icon_image = gdk_pixmap_create_from_xpm_d(window_root->window,
                              (GdkBitmap**)&pixmaps[0]->icon_mask,
                              &style->bg[GTK_STATE_NORMAL],

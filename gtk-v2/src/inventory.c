@@ -49,9 +49,9 @@ static double weight_limit;
 static GtkTooltips *inv_table_tooltips;
 
 /*
- * Hopefully, large enough.  Trying to do this with malloc gets more
+ * Hopefully, large enough.  Trying to do this with g_malloc gets more
  * complicated because position of elements within the array are important, so
- * a simple realloc won't work.
+ * a simple g_realloc won't work.
  */
 #define MAX_INV_COLUMNS 20
 #define MAX_INV_ROWS    100

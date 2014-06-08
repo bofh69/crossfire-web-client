@@ -500,7 +500,7 @@ int init_connection(char *host, int port)
 #endif
 
     free(csocket.servername);
-    csocket.servername = malloc(sizeof(char)*(strlen(host)+1));
+    csocket.servername = g_malloc(sizeof(char)*(strlen(host)+1));
     strcpy(csocket.servername, host);
 
 #ifndef WIN32

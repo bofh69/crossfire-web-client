@@ -379,7 +379,7 @@ static void init_sockets() {
     /* Use the 'new' login method. */
     wantloginmethod = 2;
 
-    csocket.inbuf.buf = malloc(MAXSOCKBUF);
+    csocket.inbuf.buf = g_malloc(MAXSOCKBUF);
 
 #ifdef WIN32
     maxfd = 0; /* This is ignored on win32 platforms */

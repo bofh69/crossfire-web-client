@@ -20,7 +20,7 @@
  *
  * NOTE: Using dmalloc with opengl causes problems - it gets an invalid
  * allocation - I haven't dug through it, but my guess is that some internal
- * opengl/glx routine is doing something like a malloc(0) which dmalloc
+ * opengl/glx routine is doing something like a g_malloc(0) which dmalloc
  * catches.
  */
 
@@ -906,7 +906,7 @@ void create_opengl_map_image(guint8 *data, PixmapInfo *pi)
          */
         if (nwidth * nheight * 4 > size) {
             size = nwidth * nheight * 4;
-            newdata = realloc(newdata, size);
+            newdata = g_realloc(newdata, size);
 
             if (newdata == NULL) {
                 LOG(LOG_ERROR, "create_opengl_map_image",
@@ -952,7 +952,7 @@ void create_opengl_map_image(guint8 *data, PixmapInfo *pi)
 
     if (pi->map_width * pi->map_height * 4 > size) {
         size = pi->map_width * pi->map_height * 4;
-        newdata = realloc(newdata, size);
+        newdata = g_realloc(newdata, size);
     }
 
     /* In this case, newdata does not contain a copy of the data - make one */

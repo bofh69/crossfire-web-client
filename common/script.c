@@ -323,8 +323,8 @@ void script_init(const char *cparams) {
         LOG(LOG_WARNING, "common::script_init", "Error on fcntl.");
     }
 
-    /* realloc script array to add new entry; fill in the data */
-    scripts = realloc(scripts, sizeof(scripts[0])*(num_scripts+1));
+    /* g_realloc script array to add new entry; fill in the data */
+    scripts = g_realloc(scripts, sizeof(scripts[0])*(num_scripts+1));
 
     if (scripts == NULL) {
         LOG(LOG_ERROR, "script_init",
@@ -453,8 +453,8 @@ void script_init(const char *cparams) {
         return;
     }
 
-    /* realloc script array to add new entry; fill in the data */
-    scripts = realloc(scripts, sizeof(scripts[0])*(num_scripts+1));
+    /* g_realloc script array to add new entry; fill in the data */
+    scripts = g_realloc(scripts, sizeof(scripts[0])*(num_scripts+1));
 
     if (scripts == NULL) {
         LOG(LOG_ERROR, "script_init",
@@ -1140,7 +1140,7 @@ static void script_process_cmd(int i)
             ++c;
         }
         c = g_strdup(c);
-        scripts[i].watch = realloc(scripts[i].watch, (scripts[i].num_watch+1)*sizeof(scripts[i].watch[1]));
+        scripts[i].watch = g_realloc(scripts[i].watch, (scripts[i].num_watch+1)*sizeof(scripts[i].watch[1]));
         scripts[i].watch[scripts[i].num_watch] = c;
         ++scripts[i].num_watch;
     } else if (strncmp(cmd, "unwatch", 7) == 0) {

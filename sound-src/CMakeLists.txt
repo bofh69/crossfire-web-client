@@ -7,6 +7,10 @@ add_executable(cfsndserv
     sndproto.h
 )
 
-target_link_libraries(cfsndserv cfclient ${SDL_LIBRARY} ${SDLMIXER_LIBRARY})
+target_link_libraries(cfsndserv cfclient
+    ${GTK2_LIBRARIES}
+    ${SDLMIXER_LIBRARY}
+    ${SDL_LIBRARY}
+)
 
 install(TARGETS cfsndserv DESTINATION ${CMAKE_INSTALL_BINDIR})

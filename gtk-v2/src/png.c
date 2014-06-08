@@ -183,7 +183,7 @@ guint8 *png_to_data(guint8 *data, int len, guint32 *width, guint32 *height)
     *width = png_get_image_width(png_ptr, info_ptr);
     *height = png_get_image_height(png_ptr, info_ptr);
 
-    pixels = (guint8*)malloc(*width **height * 4);
+    pixels = (guint8*)g_malloc(*width **height * 4);
 
     if (!pixels) {
         png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
@@ -193,10 +193,10 @@ guint8 *png_to_data(guint8 *data, int len, guint32 *width, guint32 *height)
 
     /* the png library needs the rows, but we will just return the raw data */
     if (rows_byte == 0) {
-        rows = (png_bytepp)malloc(sizeof(png_byte *) **height);
+        rows = (png_bytepp)g_malloc(sizeof(png_byte *) **height);
         rows_byte = *height;
     } else if (*height > rows_byte) {
-        rows = (png_bytepp)realloc(rows, sizeof(png_byte *) **height);
+        rows = (png_bytepp)g_realloc(rows, sizeof(png_byte *) **height);
 
         if (rows == NULL) {
             LOG(LOG_ERROR, "png_to_data",
@@ -247,7 +247,7 @@ guint8 *png_to_data(guint8 *data, int len, guint32 *width, guint32 *height)
  * properly.
  *
  * This function returns a new pointer to the scaled image data.  This is
- * malloc'd data, so should be freed at some point to prevent leaks.  This
+ * g_malloc'd data, so should be freed at some point to prevent leaks.  This
  * function does not modify the data passed to it - the caller is responsible
  * for freeing it if it is no longer needed.
  *
@@ -282,7 +282,7 @@ guint8 *rescale_rgba_data(guint8 *data, int *width, int *height, int scale)
     /* clear old values these may have */
     memset(yrow, 0, sizeof(int) **height * BPP);
 
-    ndata = (guint8*)malloc(new_width * new_height * BPP);
+    ndata = (guint8*)g_malloc(new_width * new_height * BPP);
 
     for (y=0; y<new_height; y++) {
         nrows[y] = (png_bytep) (ndata + y * new_width * BPP);
@@ -657,15 +657,15 @@ int png_to_gdkpixmap(GdkWindow *window, guint8 *data, int len,
      */
     if (pixels_byte==0) {
         pixels_byte = width * height * bpp;
-        pixels = (guint8*)malloc(pixels_byte);
+        pixels = (guint8*)g_malloc(pixels_byte);
     } else if ((width * height * bpp) > pixels_byte) {
         pixels_byte =width * height * bpp;
-        /* Doing a free/malloc is probably more efficient -
+        /* Doing a free/g_malloc is probably more efficient -
          * we don't care about the old data in this
          * buffer.
          */
         free(pixels);
-        pixels= (guint8*)malloc(pixels_byte);
+        pixels= (guint8*)g_malloc(pixels_byte);
     }
 
     if (!pixels) {
@@ -674,10 +674,10 @@ int png_to_gdkpixmap(GdkWindow *window, guint8 *data, int len,
         return PNGX_OUTOFMEM;
     }
     if (rows_byte == 0) {
-        rows = (png_bytepp)malloc(sizeof(png_byte *) * height);
+        rows = (png_bytepp)g_malloc(sizeof(png_byte *) * height);
         rows_byte = height;
     } else if (height > rows_byte) {
-        rows = (png_bytepp)realloc(rows, sizeof(png_byte *) * height);
+        rows = (png_bytepp)g_realloc(rows, sizeof(png_byte *) * height);
 
         if (rows == NULL) {
             LOG(LOG_ERROR, "png_to_gdkpixmap",

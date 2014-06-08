@@ -525,7 +525,7 @@ void mapdata_init(void)
     int i;
 
     if (the_map.cells == NULL) {
-        the_map.cells = malloc(
+        the_map.cells = g_malloc(
                             sizeof(*the_map.cells)*FOG_MAP_SIZE+
                             sizeof(**the_map.cells)*FOG_MAP_SIZE*FOG_MAP_SIZE);
         if (the_map.cells == NULL) {

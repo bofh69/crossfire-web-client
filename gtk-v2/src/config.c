@@ -54,7 +54,7 @@ int scandir(const char *dir, struct dirent ***namelist,
     *namelist = NULL;
     while ((entry = readdir(d)) != NULL) {
         if (select == NULL || (select != NULL && (*select)(entry))) {
-            *namelist = (struct dirent **)realloc((void *)(*namelist),
+            *namelist = (struct dirent **)g_realloc((void *)(*namelist),
                                                   (size_t)((i + 1) * sizeof(struct dirent *)));
             if (*namelist == NULL) {
                 closedir(d);
@@ -62,7 +62,7 @@ int scandir(const char *dir, struct dirent ***namelist,
             }
             entrysize = sizeof(struct dirent) - sizeof(entry->d_name) + strlen(
                             entry->d_name) + 1;
-            (*namelist)[i] = (struct dirent *)malloc(entrysize);
+            (*namelist)[i] = (struct dirent *)g_malloc(entrysize);
             if ((*namelist)[i] == NULL) {
                 closedir(d);
                 return -1;
@@ -150,7 +150,7 @@ void init_theme() {
      * of the entire list.
      */
     i += 2;
-    default_files = malloc(sizeof(char *) * (i + 1));
+    default_files = g_malloc(sizeof(char *) * (i + 1));
     /*
      * Copy in GTK's default list which probably contains system paths
      * like <SYSCONFDIR>/gtk-2.0/gtkrc and user-specific files like
@@ -974,7 +974,7 @@ static void read_config_window(void) {
     /*
      * We may be able to eliminate the extra g_strdup/free, but I'm not 100% sure
      * that we are guaranteed that glib won't implement them through its
-     * own/different malloc library.
+     * own/different g_malloc library.
      */
     if (buf) {
         free(face_info.want_faceset);
