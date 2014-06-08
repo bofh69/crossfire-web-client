@@ -258,7 +258,7 @@ static void event_loop() {
         timeout.tv_usec = 0;/* MAX_TIME % 1000000;*/
     }
 
-    g_timeout_add(100, (GtkFunction) do_timeout, NULL);
+    guint timeout_id = g_timeout_add(100, (GtkFunction) do_timeout, NULL);
 
 #ifdef WIN32
     g_timeout_add(250, (GtkFunction) do_scriptout, NULL);
@@ -272,13 +272,13 @@ static void event_loop() {
         }
         return;
     }
-    csocket_fd = gdk_input_add((gint) csocket.fd,
-                               GDK_INPUT_READ,
-                               (GdkInputFunction) do_network, &csocket);
+    csocket_fd = gdk_input_add((gint) csocket.fd, GDK_INPUT_READ,
+            (GdkInputFunction)do_network, &csocket);
     int tag = csocket_fd;
 
     gtk_main();
     g_source_remove(tag);
+    g_source_remove(timeout_id);
 
     LOG(LOG_INFO, "main.c::event_loop",
         "gtk_main exited, returning from event_loop");

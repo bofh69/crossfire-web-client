@@ -29,6 +29,7 @@
  * be converted to a machine independent format
  */
 
+#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <glib.h>
@@ -746,6 +747,8 @@ void beat_reset() {
  * Check to see if it is time to send a beat, and send it if necessary.
  */
 void beat_check() {
+    assert(csocket.fd != -1);
+
     if (beat_interval != 0) {
         double elapsed = g_timer_elapsed(beat_timer, NULL);
 
