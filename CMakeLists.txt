@@ -81,6 +81,13 @@ include(CheckFunctionExists)
 check_function_exists(getaddrinfo HAVE_GETADDRINFO)
 check_function_exists(sysconf HAVE_SYSCONF)
 
+# Add extra platform definitions for systems that need it.
+if(WIN32)
+    add_definitions(-DWIN32)
+    find_library(WSOCK32_LIBRARY wsock32)
+    find_library(WINMM_LIBRARY winmm)
+endif()
+
 # Write configuration to header file.
 configure_file(
     "${PROJECT_SOURCE_DIR}/config.h.in"

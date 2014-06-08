@@ -36,4 +36,9 @@ target_link_libraries(crossfire-client-gtk2 cfclient
     ${X11_LIBRARIES}
 )
 
+if(WIN32)
+    target_link_libraries(crossfire-client-gtk2
+        ${WSOCK32_LIBRARY} ${WINMM_LIBRARY})
+endif()
+
 install(TARGETS crossfire-client-gtk2 DESTINATION ${CMAKE_INSTALL_BINDIR})

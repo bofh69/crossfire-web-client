@@ -11,12 +11,13 @@ add_custom_command(
     DEPENDS shared/newclient.h
 )
 
-add_custom_command(
-    OUTPUT item-types.h
-    COMMAND ${PERL_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/items.pl ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS item-types
-)
+# While 'item-types.h' is still under version control, don't build it.
+#add_custom_command(
+#    OUTPUT item-types.h
+#    COMMAND ${PERL_EXECUTABLE}
+#        ${CMAKE_CURRENT_SOURCE_DIR}/items.pl ${CMAKE_CURRENT_SOURCE_DIR}
+#    DEPENDS item-types
+#)
 
 add_library(cfclient
     client-types.h
@@ -27,7 +28,6 @@ add_library(cfclient
     external.h
     image.c
     init.c
-    item-types.h
     item.c
     item.h
     mapdata.c
