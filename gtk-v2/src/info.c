@@ -713,7 +713,7 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
      */
     if (color) {
         for (color_num = 0; color_num < NUM_COLORS; color_num++)
-            if (!strcasecmp(usercolorname[color_num], color)) {
+            if (!g_ascii_strcasecmp(usercolorname[color_num], color)) {
                 break;
             }
         if (color_num < NUM_COLORS) {
@@ -808,7 +808,7 @@ void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int
                              *   color (unless no style set!)
                              */
 
-    current = strdup(message);
+    current = g_strdup(message);
     original = current;         /* Just so we know what to free */
 
     /*

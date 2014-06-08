@@ -287,7 +287,7 @@ void script_lua_load(const char* name)
     }
 
     script_count++;
-    scripts[index].filename = strdup_local(name);
+    scripts[index].filename = g_strdup(name);
     scripts[index].state = lua;
 
     /*

@@ -1330,7 +1330,7 @@ void update_login_info(int type) {
              */
             char *mynews, *cp, *el, big_buf[BIG_BUF], *cp1;
 
-            mynews = strdup(news);
+            mynews = g_strdup(news);
             /* We basically work from the end of the string going towards the
              * start looking for % characters.  If we find one, we have to
              * make sure it is at the start of the line or start of the buffer

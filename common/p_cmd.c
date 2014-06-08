@@ -1001,7 +1001,7 @@ const ConsoleCommand * find_command(const char * cmd)
     ConsoleCommand * dummy_p;
     ConsoleCommand * asp;
     char *cp, *cmd_cpy;
-    cmd_cpy = strdup(cmd);
+    cmd_cpy = g_strdup(cmd);
 
     for (cp=cmd_cpy; *cp; cp++) {
         *cp =tolower(*cp);

@@ -72,9 +72,9 @@ static void init_sounds() {
         }
 
         /* FIXME: No error checking; potential segfaults here. */
-        sounds[i].symbolic = strdup_local(strsep(&line, ":"));
+        sounds[i].symbolic = g_strdup(strsep(&line, ":"));
         sounds[i].volume = atoi(strsep(&line, ":"));
-        sounds[i].filename = strdup_local(strsep(&line, ":"));
+        sounds[i].filename = g_strdup(strsep(&line, ":"));
 
         /* Move on to the next sound. */
         i++;

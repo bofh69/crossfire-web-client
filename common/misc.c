@@ -58,7 +58,7 @@ void replace_chars_with_string(char*        buffer,
     replace_limit = buffer_size - 1;
     replace_len = strlen(replace);
     template_len = strlen(buffer);
-    template = strdup(buffer);
+    template = g_strdup(buffer);
     buffer[0] = '\0';
 
     buffer_len = 0;
@@ -149,16 +149,6 @@ int make_path_to_file (char *filename)
         *cp = '/';
     }
     return 0;
-}
-
-/**
- * A replacement of strdup(), since it's not defined at some
- * unix variants.
- */
-char *strdup_local(const char *str) {
-    char *c = (char *)malloc(sizeof(char) * strlen(str) + 1);
-    strcpy(c, str);
-    return c;
 }
 
 static const char *const LogLevelTexts[] = {
@@ -293,7 +283,7 @@ void logPipe(ChildProcess *child, LogLevel level, int pipe)
     }
     if (!child->logger[pipe].name) {
         snprintf(buf, sizeof(buf), "Child%d::%s::%d",child->pid,child->name?child->name:"NONAME",pipe);
-        child->logger[pipe].name=strdup(buf);
+        child->logger[pipe].name=g_strdup(buf);
     }
     if (fcntl(child->tube[pipe], F_SETFL, O_NDELAY)==-1) {
         LOG(LOG_WARNING,"common::logPipe","Error on fcntl.");
@@ -485,7 +475,7 @@ ChildProcess* raiseChild(char* name, int flag)
         CHILD_PIPEERR(cp)=-1;
     }
     cp->pid=pid;
-    cp->name=strdup(name);
+    cp->name=g_strdup(name);
     cp->flag=flag;
     /*add to chained list*/
     if (FirstChild) {

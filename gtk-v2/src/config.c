@@ -159,7 +159,7 @@ void init_theme() {
      */
     i = 0;
     while (tmp[i]) {
-        default_files[i] = strdup(tmp[i]);
+        default_files[i] = g_strdup(tmp[i]);
         i++;
     }
     /*
@@ -172,7 +172,7 @@ void init_theme() {
      * settings can over-ride it.
      */
     snprintf(path, sizeof(path), "%s/.crossfire/gtkrc", getenv("HOME"));
-    default_files[i] = strdup(path);
+    default_files[i] = g_strdup(path);
     i++;
     /*
      * Add a UI layout-specific rc file to the list of default list.  It
@@ -191,7 +191,7 @@ void init_theme() {
     snprintf(path, sizeof(path),
              "%s/.crossfire/%s.gtkrc", getenv("HOME"), xml_basename);
     CONVERT_FILESPEC_TO_OS_FORMAT(path);
-    default_files[i] = strdup(path);
+    default_files[i] = g_strdup(path);
     i++;
     /*
      * Mark the end of the list of default rc files.
@@ -325,7 +325,7 @@ static void config_load_legacy() {
                     "Malformed mapsize option in gdefaults2.  Ignoring");
             }
         } else if (!strcmp(inbuf, "theme")) {
-            theme = strdup_local(cp);   /* memory leak ! */
+            theme = g_strdup(cp);   /* memory leak ! */
             continue;
         } else if (!strcmp(inbuf, "window_layout")) {
             strncpy(window_xml_file, cp, MAX_BUF - 1);
@@ -341,7 +341,7 @@ static void config_load_legacy() {
             want_config[CONFIG_SPLASH] = val;
             continue;
         } else if (!strcmp(inbuf, "faceset")) {
-            face_info.want_faceset = strdup_local(cp);  /* memory leak ! */
+            face_info.want_faceset = g_strdup(cp);  /* memory leak ! */
             continue;
         }
         /* legacy, as this is now just saved as 'lighting' */
@@ -756,7 +756,7 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
             break;
         }
         gtk_tree_model_get(model, &iter, 0, &buf, -1);
-        if (!strcasecmp(active, buf)) {
+        if (!g_ascii_strcasecmp(active, buf)) {
             gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), i);
             g_free(buf);
             break;
@@ -850,7 +850,7 @@ static void setup_config_window() {
         }
         gtk_tree_model_get(model, &iter, 0, &buf, -1);
 
-        if (face_info.want_faceset && !strcasecmp(face_info.want_faceset, buf)) {
+        if (face_info.want_faceset && !g_ascii_strcasecmp(face_info.want_faceset, buf)) {
             gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_faceset), i);
             g_free(buf);
             break;
@@ -875,7 +875,7 @@ static void setup_config_window() {
                 break;
             }
             gtk_tree_model_get(model, &iter, 0, &buf, -1);
-            if (!strcasecmp(display_modes[want_config[CONFIG_DISPLAYMODE]], buf)) {
+            if (!g_ascii_strcasecmp(display_modes[want_config[CONFIG_DISPLAYMODE]], buf)) {
                 gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_displaymode), i);
                 g_free(buf);
                 break;
@@ -898,12 +898,12 @@ static void setup_config_window() {
         }
         gtk_tree_model_get(model, &iter, 0, &buf, -1);
         if ((want_config[CONFIG_LIGHTING] == CFG_LT_TILE &&
-                !strcasecmp(buf, "Per Tile")) ||
+                !g_ascii_strcasecmp(buf, "Per Tile")) ||
                 (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL &&
-                 !strcasecmp(buf, "Fast Per Pixel")) ||
+                 !g_ascii_strcasecmp(buf, "Fast Per Pixel")) ||
                 (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST &&
-                 !strcasecmp(buf, "Best Per Pixel")) ||
-                (want_config[CONFIG_LIGHTING] == CFG_LT_NONE && !strcasecmp(buf, "None"))) {
+                 !g_ascii_strcasecmp(buf, "Best Per Pixel")) ||
+                (want_config[CONFIG_LIGHTING] == CFG_LT_NONE && !g_ascii_strcasecmp(buf, "None"))) {
             gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_lighting), i);
             g_free(buf);
             break;
@@ -972,23 +972,23 @@ static void read_config_window(void) {
     buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_faceset));
 
     /*
-     * We may be able to eliminate the extra strdup/free, but I'm not 100% sure
+     * We may be able to eliminate the extra g_strdup/free, but I'm not 100% sure
      * that we are guaranteed that glib won't implement them through its
      * own/different malloc library.
      */
     if (buf) {
         free(face_info.want_faceset);
-        face_info.want_faceset = strdup_local(buf);
+        face_info.want_faceset = g_strdup(buf);
         g_free(buf);
     }
 
     buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_displaymode));
     if (buf) {
-        if (!strcasecmp(buf, "OpenGL")) {
+        if (!g_ascii_strcasecmp(buf, "OpenGL")) {
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_OPENGL;
-        } else if (!strcasecmp(buf, "SDL")) {
+        } else if (!g_ascii_strcasecmp(buf, "SDL")) {
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
-        } else if (!strcasecmp(buf, "Pixmap")) {
+        } else if (!g_ascii_strcasecmp(buf, "Pixmap")) {
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
         }
         g_free(buf);
@@ -996,13 +996,13 @@ static void read_config_window(void) {
 
     buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_lighting));
     if (buf) {
-        if (!strcasecmp(buf, "Per Tile")) {
+        if (!g_ascii_strcasecmp(buf, "Per Tile")) {
             want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
-        } else if (!strcasecmp(buf, "Fast Per Pixel")) {
+        } else if (!g_ascii_strcasecmp(buf, "Fast Per Pixel")) {
             want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL;
-        } else if (!strcasecmp(buf, "Best Per Pixel")) {
+        } else if (!g_ascii_strcasecmp(buf, "Best Per Pixel")) {
             want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL_BEST;
-        } else if (!strcasecmp(buf, "None")) {
+        } else if (!g_ascii_strcasecmp(buf, "None")) {
             want_config[CONFIG_LIGHTING] = CFG_LT_NONE;
         }
         if (want_config[CONFIG_LIGHTING] != CFG_LT_NONE) {

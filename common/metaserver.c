@@ -46,7 +46,7 @@ int meta_numservers = 0;
 
 int meta_sort(Meta_Info *m1, Meta_Info *m2)
 {
-    return strcasecmp(m1->hostname, m2->hostname);
+    return g_ascii_strcasecmp(m1->hostname, m2->hostname);
 }
 
 /**
@@ -141,8 +141,8 @@ static void metaserver_load_cache(void)
             &&     fgets(ip  , MS_LARGE_BUF, cache) != NULL) {
         ip[strlen(ip)-1] = 0;
         name[strlen(name)-1] = 0;
-        cached_servers_ip[cached_servers_num] = strdup(ip);
-        cached_servers_name[cached_servers_num++] = strdup(name);
+        cached_servers_ip[cached_servers_num] = g_strdup(ip);
+        cached_servers_name[cached_servers_num++] = g_strdup(name);
     }
     fclose(cache);
 }
@@ -205,8 +205,8 @@ void metaserver_update_cache(const char *server_name, const char *server_ip)
              * If the server was not found in the cache, expand the cache size
              * by one unless that creates too many entries.
              */
-            name = strdup(server_name);
-            ip = strdup(server_ip);
+            name = g_strdup(server_name);
+            ip = g_strdup(server_ip);
             cached_servers_num++;
             if (cached_servers_num > CACHED_SERVERS_MAX) {
                 cached_servers_num--;
@@ -356,7 +356,7 @@ size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *data)
              * data 'better'.
              */
             for (i=0; i<meta_numservers; i++) {
-                if (!strcasecmp(meta_servers[i].hostname, meta_servers[meta_numservers].hostname)) {
+                if (!g_ascii_strcasecmp(meta_servers[i].hostname, meta_servers[meta_numservers].hostname)) {
                     memcpy(&meta_servers[i], &meta_servers[meta_numservers], sizeof(Meta_Info));
                     break;
                 }

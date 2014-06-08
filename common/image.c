@@ -315,7 +315,7 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename,
         }
     }
     if (!image_cache[newhash].image_name) {
-        image_cache[newhash].image_name = strdup(imagename);
+        image_cache[newhash].image_name = g_strdup(imagename);
     }
 
     /* We insert the new entry at the start of the list of the buckets
@@ -324,7 +324,7 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename,
      * to be used compared to those at the start of the file.
      */
     new_entry = malloc(sizeof(struct Cache_Entry));
-    new_entry->filename = strdup(filename);
+    new_entry->filename = g_strdup(filename);
     new_entry->checksum = checksum;
     new_entry->ispublic = ispublic;
     new_entry->image_data = NULL;
@@ -414,7 +414,7 @@ char facecachedir[MAX_BUF];
  */
 void requestface(int pnum, char *facename) {
     face_info.cache_misses++;
-    facetoname[pnum] = strdup_local(facename);
+    facetoname[pnum] = g_strdup(facename);
     cs_print_string(csocket.fd, "askface %d", pnum);
 }
 
@@ -758,12 +758,12 @@ void get_image_info(guint8 *data, int len) {
                 LOG(LOG_WARNING, "common::get_image_info", "setnum is too high: %d > %d",
                     onset, MAX_FACE_SETS);
             }
-            face_info.facesets[onset].prefix = strdup_local(cps[1]);
-            face_info.facesets[onset].fullname = strdup_local(cps[2]);
+            face_info.facesets[onset].prefix = g_strdup(cps[1]);
+            face_info.facesets[onset].fullname = g_strdup(cps[2]);
             face_info.facesets[onset].fallback = atoi(cps[3]);
-            face_info.facesets[onset].size = strdup_local(cps[4]);
-            face_info.facesets[onset].extension = strdup_local(cps[5]);
-            face_info.facesets[onset].comment = strdup_local(cps[6]);
+            face_info.facesets[onset].size = g_strdup(cps[4]);
+            face_info.facesets[onset].extension = g_strdup(cps[5]);
+            face_info.facesets[onset].comment = g_strdup(cps[6]);
         }
         lp = cp;
         cp = strchr(lp, '\n');
@@ -776,11 +776,11 @@ void get_image_info(guint8 *data, int len) {
     if (face_info.want_faceset && atoi(face_info.want_faceset) == 0) {
         for (onset = 0; onset < MAX_FACE_SETS; onset++) {
             if (face_info.facesets[onset].prefix &&
-                    !strcasecmp(face_info.facesets[onset].prefix, face_info.want_faceset)) {
+                    !g_ascii_strcasecmp(face_info.facesets[onset].prefix, face_info.want_faceset)) {
                 break;
             }
             if (face_info.facesets[onset].fullname &&
-                    !strcasecmp(face_info.facesets[onset].fullname, face_info.want_faceset)) {
+                    !g_ascii_strcasecmp(face_info.facesets[onset].fullname, face_info.want_faceset)) {
                 break;
             }
         }

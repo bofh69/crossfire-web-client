@@ -249,7 +249,7 @@ static void metaserver_connect_to(const char *name) {
     int port = use_config[CONFIG_PORT];
 
     /* Make a copy of the input string since strtok modifies it. */
-    char *namebuf = strdup(name);
+    char *namebuf = g_strdup(name);
 
     /* Set client status and update GUI before continuing. */
     snprintf(buf, sizeof(buf), "Connecting to '%s'...", name);

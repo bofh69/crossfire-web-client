@@ -261,7 +261,7 @@ static int keybind_insert(guint32 keysym, unsigned int flags,
 
     (*next_ptr)->keysym = keysym;
     (*next_ptr)->flags = flags;
-    (*next_ptr)->command = strdup_local(command);
+    (*next_ptr)->command = g_strdup(command);
 
     /*
      * Try to find out if the command is a direction command.  If so, keep
@@ -500,7 +500,7 @@ static void init_default_keybindings() {
     LOG(LOG_DEBUG, "init_default_keybindings", "Loading default keybindings");
 
     for (i = 0; i < sizeof(def_keys) / sizeof(char *); i++) {
-        nextline = strdup(def_keys[i]);
+        nextline = g_strdup(def_keys[i]);
         parse_keybind_line(nextline, i, KEYF_R_GLOBAL);
         free(nextline);
     }
@@ -593,7 +593,7 @@ void keybindings_init(const char *character_name) {
         cpl.name = NULL;
     }
     if (character_name) {
-        cpl.name = strdup(character_name);
+        cpl.name = g_strdup(character_name);
     }
 
     /*
@@ -2344,7 +2344,7 @@ void on_keybinding_button_bind_clicked(GtkButton *button, gpointer user_data) {
 
     keybinding_get_data(&keysym, &flags, &command);
 
-    /* keybind_insert will do a strdup of command for us */
+    /* keybind_insert will do a g_strdup of command for us */
     kb = keybind_find(keysym, flags, (flags & KEYF_R_GLOBAL));
     if (kb && (!keybind_overwrite_confirm(kb))) {
         return;

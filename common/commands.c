@@ -312,11 +312,11 @@ static void get_new_char_info(char *data, int len)
          * of the line, with data+olen is the start of the next string
          * (variable value).
          */
-        if (!strcasecmp(cp,"points")) {
+        if (!g_ascii_strcasecmp(cp,"points")) {
             stat_points = atoi(data+olen);
             olen = llen + 1;
             continue;
-        } else if (!strcasecmp(cp,"statrange")) {
+        } else if (!g_ascii_strcasecmp(cp,"statrange")) {
             if (sscanf(data + olen, "%d %d", &stat_min, &stat_maximum)!=2) {
                 LOG(LOG_WARNING, "common::get_new_char_info",
                     "Unable to process statrange line (%s)", data + olen);
@@ -324,7 +324,7 @@ static void get_new_char_info(char *data, int len)
             /* Either way, we go onto the next line */
             olen = llen + 1;
             continue;
-        } else if (!strcasecmp(cp,"statname")) {
+        } else if (!g_ascii_strcasecmp(cp,"statname")) {
             /* The checking we do here is somewhat basic:
              * 1) That we understand all the stat names that the server sends us
              * 2) That we get the correct number of stats.
@@ -337,7 +337,7 @@ static void get_new_char_info(char *data, int len)
 
             while (olen < llen) {
                 for (i=0; i < NUM_STATS; i++) {
-                    if (!strncasecmp(data + olen, short_stat_name[i], strlen(short_stat_name[i]))) {
+                    if (!g_ascii_strncasecmp(data + olen, short_stat_name[i], strlen(short_stat_name[i]))) {
                         matches++;
                         olen += strlen(short_stat_name[i]) + 1;
                         break;
@@ -355,15 +355,15 @@ static void get_new_char_info(char *data, int len)
             }
             olen = llen + 1;
             continue;
-        } else if (!strcasecmp(cp,"race") || !strcasecmp(cp,"class")) {
-            if (strcasecmp(data+olen, "requestinfo")) {
+        } else if (!g_ascii_strcasecmp(cp,"race") || !g_ascii_strcasecmp(cp,"class")) {
+            if (g_ascii_strcasecmp(data+olen, "requestinfo")) {
                 LOG(LOG_WARNING, "common::get_new_char_info",
                     "Got unexpected value for %s: %s", cp, data+olen);
             }
             olen = llen + 1;
             continue;
-        } else if (!strcasecmp(cp,"startingmap")) {
-            if (strcasecmp(data+olen, "requestinfo")) {
+        } else if (!g_ascii_strcasecmp(cp,"startingmap")) {
+            if (g_ascii_strcasecmp(data+olen, "requestinfo")) {
                 LOG(LOG_WARNING, "common::get_new_char_info",
                     "Got unexpected value for %s: %s", cp, data+olen);
             } else {
@@ -405,7 +405,7 @@ static void get_new_char_info(char *data, int len)
  */
 static int rc_compar(const Race_Class_Info *a, const Race_Class_Info *b)
 {
-    return strcasecmp(a->public_name, b->public_name);
+    return g_ascii_strcasecmp(a->public_name, b->public_name);
 }
 
 /**
@@ -479,7 +479,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
     nl = strchr(cp, '\n');
     if (nl) {
         *nl=0;
-        rci->arch_name = strdup(cp);
+        rci->arch_name = g_strdup(cp);
         cp = nl+1;
     } else {
         LOG(LOG_WARNING, "common::process_race_class_info", "Did not find archetype name");
@@ -628,7 +628,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
      * just set things to an empty value.
      */
     if (!rci->description) {
-        rci->description = strdup("");
+        rci->description = g_strdup("");
     }
 
 }
@@ -760,7 +760,7 @@ static void get_skill_info(char *data, int len)
         }
 
         free(skill_names[val]);
-        skill_names[val] = strdup_local(sn);
+        skill_names[val] = g_strdup(sn);
         cp = nl;
     } while (cp < data+len);
 }
@@ -815,19 +815,19 @@ void ReplyInfoCmd(guint8 *buf, int len)
         if (motd) {
             free((char*)motd);
         }
-        motd = strdup(cp);
+        motd = g_strdup(cp);
         update_login_info(INFO_MOTD);
     } else if (!strcmp((char*)buf, "news")) {
         if (news) {
             free((char*)news);
         }
-        news = strdup(cp);
+        news = g_strdup(cp);
         update_login_info(INFO_NEWS);
     } else if (!strcmp((char*)buf, "rules")) {
         if (rules) {
             free((char*)rules);
         }
-        rules = strdup(cp);
+        rules = g_strdup(cp);
         update_login_info(INFO_RULES);
     } else if (!strcmp((char*)buf, "race_list")) {
         char *cp1;
@@ -954,7 +954,7 @@ void SetupCmd(char *buf, int len)
             int x, y = 0;
             char *cp, tmpbuf[MAX_BUF];
 
-            if (!strcasecmp(param, "false")) {
+            if (!g_ascii_strcasecmp(param, "false")) {
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
                               "Server only supports standard sized maps (11x11)");
                 /* Do this because we may have been playing on a big server

@@ -332,8 +332,8 @@ void script_init(const char *cparams) {
         exit(EXIT_FAILURE);
     }
 
-    scripts[num_scripts].name = strdup(name);
-    scripts[num_scripts].params = args ? strdup(args) : NULL;
+    scripts[num_scripts].name = g_strdup(name);
+    scripts[num_scripts].params = args ? g_strdup(args) : NULL;
     scripts[num_scripts].out_fd = pipe1[1];
     scripts[num_scripts].in_fd = pipe2[0];
     scripts[num_scripts].monitor = 0;
@@ -462,8 +462,8 @@ void script_init(const char *cparams) {
         exit(EXIT_FAILURE);
     }
 
-    scripts[num_scripts].name = strdup(name);
-    scripts[num_scripts].params = args ? strdup(args) : NULL;
+    scripts[num_scripts].name = g_strdup(name);
+    scripts[num_scripts].params = args ? g_strdup(args) : NULL;
     scripts[num_scripts].out_fd = hChildStdinWrDup;
     scripts[num_scripts].in_fd = hChildStdoutRdDup;
     scripts[num_scripts].monitor = 0;
@@ -1139,7 +1139,7 @@ static void script_process_cmd(int i)
         while (*c == ' ') {
             ++c;
         }
-        c = strdup(c);
+        c = g_strdup(c);
         scripts[i].watch = realloc(scripts[i].watch, (scripts[i].num_watch+1)*sizeof(scripts[i].watch[1]));
         scripts[i].watch[scripts[i].num_watch] = c;
         ++scripts[i].num_watch;

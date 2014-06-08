@@ -48,7 +48,7 @@ guint8 get_type_from_name(const char *name)
         while (item_types[type][pos] != NULL) {
             /* Only search at start of line */
             if (item_types[type][pos][0] == '^') {
-                if (!strncasecmp(name, item_types[type][pos]+1, strlen(item_types[type][pos]+1))) {
+                if (!g_ascii_strncasecmp(name, item_types[type][pos]+1, strlen(item_types[type][pos]+1))) {
                     return type;
                 }
             }
@@ -107,13 +107,13 @@ void update_item_sort(item *it)
      */
     if (it->prev && it->prev->type == it->type &&
             it->prev->locked == it->locked &&
-            !strcasecmp(it->prev->s_name, it->s_name)) {
+            !g_ascii_strcasecmp(it->prev->s_name, it->s_name)) {
         return;
     }
 
     if (it->next && it->next->type == it->type &&
             it->next->locked == it->locked &&
-            !strcasecmp(it->next->s_name, it->s_name)) {
+            !g_ascii_strcasecmp(it->next->s_name, it->s_name)) {
         return;
     }
 
@@ -157,7 +157,7 @@ void update_item_sort(item *it)
 #endif
 
             /* Now alphabetise */
-            if (strcasecmp(itmp->s_name, it->s_name) < 0) {
+            if (g_ascii_strcasecmp(itmp->s_name, it->s_name) < 0) {
                 continue;
             }
 

@@ -523,7 +523,7 @@ static int mapping_sort(NameMapping *a, NameMapping *b)
     if (!b->name) {
         return -1;
     } else {
-        return strcasecmp(a->name, b->name);
+        return g_ascii_strcasecmp(a->name, b->name);
     }
 }
 
