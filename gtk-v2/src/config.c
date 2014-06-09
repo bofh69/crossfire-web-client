@@ -12,27 +12,24 @@
  */
 
 /**
- * @file gtk-v2/src/config.c
+ * @file
  * Covers configuration issues.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "config.h"
 
-#include <gtk/gtk.h>
 #include <ctype.h>
+#include <dirent.h>
+#include <gtk/gtk.h>
 
 #include "client.h"
-
-#include "main.h"
 #include "image.h"
+#include "main.h"
+
 #include "gtk2proto.h"
 
-#include <dirent.h>
-
 static GKeyFile *config;
-static GString *config_dir, *config_path;
+static GString *config_path;
 
 #ifdef __MINGW32__
 int alphasort(const struct dirent **a, const struct dirent **b) {
@@ -88,17 +85,16 @@ int scandir(const char *dir, struct dirent ***namelist,
 extern char window_xml_file[MAX_BUF];  /* Name of the layout file in use. */
 
 GtkWidget *config_window, *config_spinbutton_cwindow, *config_button_echo,
-          *config_button_fasttcp, *config_button_timestamp, *config_button_grad_color,
-          *config_button_foodbeep,
-          *config_button_sound, *config_button_cache, *config_button_download,
-          *config_button_fog, *config_spinbutton_iconscale, *config_spinbutton_mapscale,
-          *config_spinbutton_mapwidth, *config_spinbutton_mapheight,
-          *config_button_smoothing, *config_combobox_displaymode,
-          *config_combobox_faceset, *config_combobox_lighting,
-          *config_combobox_theme, *config_combobox_layout;
+        *config_button_fasttcp, *config_button_timestamp, *config_button_grad_color,
+        *config_button_foodbeep,
+        *config_button_sound, *config_button_cache, *config_button_download,
+        *config_button_fog, *config_spinbutton_iconscale, *config_spinbutton_mapscale,
+        *config_spinbutton_mapwidth, *config_spinbutton_mapheight,
+        *config_button_smoothing, *config_combobox_displaymode,
+        *config_combobox_faceset, *config_combobox_lighting,
+        *config_combobox_theme, *config_combobox_layout;
 
 /* This is the string names that correspond to the numberic id's in client.h */
-
 static char *theme = "Standard";
 static char *themedir = "themes";
 static char *layoutdir = "ui";
@@ -171,7 +167,7 @@ void init_theme() {
      * file as either a <layout>.gtkrc file or a client-configured theme
      * settings can over-ride it.
      */
-    snprintf(path, sizeof(path), "%s/.crossfire/gtkrc", getenv("HOME"));
+    snprintf(path, sizeof(path), "%s/gtkrc", config_dir);
     default_files[i] = g_strdup(path);
     i++;
     /*
@@ -188,9 +184,7 @@ void init_theme() {
     if (cp) {
         cp[0] = 0;
     }
-    snprintf(path, sizeof(path),
-             "%s/.crossfire/%s.gtkrc", getenv("HOME"), xml_basename);
-    CONVERT_FILESPEC_TO_OS_FORMAT(path);
+    snprintf(path, sizeof(path), "%s/%s.gtkrc", config_dir, xml_basename);
     default_files[i] = g_strdup(path);
     i++;
     /*
@@ -270,8 +264,7 @@ static void config_load_legacy() {
 
     LOG(LOG_DEBUG, "config_load_legacy", "Trying to load legacy settings...");
 
-    snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", getenv("HOME"));
-    CONVERT_FILESPEC_TO_OS_FORMAT(path);
+    snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", g_getenv("HOME"));
     if ((fp = fopen(path, "r")) == NULL) {
         return;
     }
@@ -463,21 +456,14 @@ void config_load() {
     /* Copy initial desired settings from current settings. */
     memcpy(want_config, use_config, sizeof(want_config));
 
-    /* Create directory if it doesn't already exist. */
-    config_dir = g_string_new(NULL);
-    g_string_printf(config_dir, "%s/.crossfire/", getenv("HOME"));
-
-    if (g_file_test(config_dir->str, G_FILE_TEST_IS_DIR) != TRUE) {
-        g_mkdir_with_parents(config_dir->str, 0755);
-    }
+    g_assert(g_file_test(config_dir, G_FILE_TEST_IS_DIR) == TRUE);
 
     /* Load existing or create new configuration file. */
     config = g_key_file_new();
-    config_path = g_string_new(config_dir->str);
-    g_string_append(config_path, "client.ini");
+    config_path = g_string_new(config_dir);
+    g_string_append(config_path, "/client.ini");
 
-    g_key_file_load_from_file(config, config_path->str,
-            G_KEY_FILE_NONE, &error);
+    g_key_file_load_from_file(config, config_path->str, G_KEY_FILE_NONE, &error);
 
     /* Load configuration values into settings array. */
     if (error == NULL) {

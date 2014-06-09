@@ -1,3 +1,9 @@
+2014-06-08	Kevin Zheng
+	* common/config.c: Use GLib to determine the location of the
+	configuration and cache directories. Users who wish to keep their
+	configuration files MUST manually move them to the new location. For
+	Unix-like systems, the new location is '~/.config/crossfire'.
+
 2014-06-05	Kevin Zheng
 	* common/init.c: Enable smoothing by default.
 

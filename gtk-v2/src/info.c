@@ -1544,8 +1544,7 @@ void save_msgctrl_configuration(void)
 
     read_msgctrl_configuration();       /* Apply the displayed settings 1st */
 
-    snprintf(pathbuf, sizeof(pathbuf), "%s/.crossfire/msgs", getenv("HOME"));
-    CONVERT_FILESPEC_TO_OS_FORMAT(pathbuf);
+    snprintf(pathbuf, sizeof(pathbuf), "%s/msgs", config_dir);
 
     if (make_path_to_file(pathbuf) == -1) {
         LOG(LOG_WARNING,
@@ -1618,8 +1617,7 @@ void load_msgctrl_configuration(void)
     buffer_parameter_t timerbuf;        /* Holding area for savefile values */
     guint cvalid, tvalid, mvalid;       /* Counts the valid entries found   */
 
-    snprintf(pathbuf, sizeof(pathbuf), "%s/.crossfire/msgs", getenv("HOME"));
-    CONVERT_FILESPEC_TO_OS_FORMAT(pathbuf);
+    snprintf(pathbuf, sizeof(pathbuf), "%s/msgs", config_dir);
 
     if ((fptr = fopen(pathbuf, "r")) == NULL) {
         snprintf(textbuf, sizeof(textbuf),

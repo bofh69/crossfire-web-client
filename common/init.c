@@ -172,39 +172,16 @@ void init_client_vars() {
     use_config[CONFIG_SIGNPOPUP] = TRUE;
     use_config[CONFIG_TIMESTAMP] = FALSE;
 
-#ifdef WIN32
-    /* If HOME is not set, set it to the current directory. */
-    if (!getenv("HOME")) {
-        if (getenv("APPDATA")) {
-            char env[ MAX_BUF ];
-            _snprintf(env, MAX_BUF, "HOME=%s", getenv("APPDATA"));
-            LOG(LOG_INFO, "common::init.c", "init_client_vars: HOME set to %APPDATA%.\n");
-            putenv(env);
-        } else {
-            LOG(LOG_INFO, "common::init.c",
-                "init_client_vars: HOME not set, setting it to .\n");
-            putenv("HOME=.");
-        }
-    }
-#endif
+    // Set and create configuration and cache directories.
+    GString *app_config_dir = g_string_new(g_get_user_config_dir());
+    g_string_append(app_config_dir, "/crossfire");
+    config_dir = g_string_free(app_config_dir, FALSE);
+    g_mkdir_with_parents(config_dir, 0755);
 
-    /* Initialize XDG base directories. */
-    if ((xdg_config_dir = getenv("XDG_CONFIG_HOME")) == NULL) {
-        xdg_config_dir = ".config";
-    }
-
-    if ((xdg_cache_dir = getenv("XDG_CACHE_HOME")) == NULL) {
-        xdg_cache_dir = ".cache";
-    }
-
-    /* Right now config dir is not used, so don't bother creating it. */
-    snprintf(buf, sizeof(buf), "%s/%s/crossfire", getenv("HOME"),
-            xdg_config_dir);
-    /* make_path_to_dir(buf); */
-
-    snprintf(buf, sizeof(buf), "%s/%s/crossfire", getenv("HOME"),
-            xdg_cache_dir);
-    make_path_to_dir(buf);
+    GString *app_cache_dir = g_string_new(g_get_user_cache_dir());
+    g_string_append(app_cache_dir, "/crossfire");
+    cache_dir = g_string_free(app_cache_dir, FALSE);
+    g_mkdir_with_parents(cache_dir, 0755);
 
     init_commands();
     init_metaserver();

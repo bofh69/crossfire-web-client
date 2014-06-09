@@ -18,11 +18,12 @@
  */
 
 #include "client.h"
+
+#include <errno.h>
+#include <glib.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+
 #ifndef WIN32
 #include <sys/wait.h>
 #else
@@ -79,76 +80,13 @@ void replace_chars_with_string(char*        buffer,
 }
 
 /**
- * Verifies that the directory exists, creates it if necessary
- * Returns -1 on failure
- */
-int make_path_to_dir (char *directory)
-{
-    char buf[MAX_BUF], *cp = buf;
-    struct stat statbuf;
-
-    if (!directory || !*directory) {
-        return -1;
-    }
-    strcpy (buf, directory);
-    while ((cp = strchr (cp + 1, (int) '/'))) {
-        *cp = '\0';
-        if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
-#ifdef WIN32
-            if (mkdir (buf)) {
-#else
-            if (mkdir (buf, 0777)) {
-#endif
-                perror ("Couldn't make path to file");
-                return -1;
-            }
-        } else {
-            *cp = '/';
-        }
-    }
-    /* Need to make the final component */
-    if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
-#ifdef WIN32
-        if (mkdir (buf)) {
-#else
-        if (mkdir (buf, 0777)) {
-#endif
-            perror ("Couldn't make path to file");
-            return -1;
-        }
-    }
-    return 0;
-}
-
-/**
  * If any directories in the given path doesn't exist, they are created.
  */
-int make_path_to_file (char *filename)
-{
-    char buf[MAX_BUF], *cp = buf;
-    struct stat statbuf;
-
-    if (!filename || !*filename) {
-        return -1;
-    }
-    strcpy (buf, filename);
-    while ((cp = strchr (cp + 1, (int) '/'))) {
-        *cp = '\0';
-        if (stat (buf, &statbuf) || !S_ISDIR (statbuf.st_mode)) {
-#ifdef WIN32
-            if (mkdir (buf)) {
-                LOG(LOG_ERROR, "misc.c::make_path_to_file",
-                    "Couldn't make path to file: %s", strerror(errno));
-#else
-            if (mkdir (buf, 0777)) {
-                perror ("Couldn't make path to file");
-#endif
-                return -1;
-            }
-        }
-        *cp = '/';
-    }
-    return 0;
+int make_path_to_file(char *filename) {
+    gchar *dirname = g_path_get_dirname(filename);
+    int result = g_mkdir_with_parents(dirname, 0755);
+    g_free(dirname);
+    return result;
 }
 
 static const char *const LogLevelTexts[] = {

@@ -519,7 +519,6 @@ static int parse_keys_file(char *filename, unsigned int scope_flag) {
     char buf[BIG_BUF];
     int line = 0;
 
-    CONVERT_FILESPEC_TO_OS_FORMAT(filename);
     fp = fopen(filename, "r");
     if (fp == NULL) {
         return -1;
@@ -611,13 +610,13 @@ void keybindings_init(const char *character_name) {
     init_default_keybindings();
 
     /* Try to load global keybindings. */
-    snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
+    snprintf(buf, sizeof(buf), "%s/keys", config_dir);
     parse_keys_file(buf, KEYF_R_GLOBAL);
 
     /* Try to load the character-specific keybindings. */
     if (cpl.name) {
-        snprintf(buf, sizeof(buf), "%s/.crossfire/%s.%s.keys",
-                getenv("HOME"), csocket.servername, cpl.name);
+        snprintf(buf, sizeof(buf), "%s/%s.%s.keys", config_dir,
+                csocket.servername, cpl.name);
         parse_keys_file(buf, KEYF_R_CHAR);
     }
 }
@@ -1274,9 +1273,8 @@ static void save_keys(void) {
 
     /* If we are logged in open file to save character specific bindings */
     if (cpl.name) {
-        snprintf(buf, sizeof(buf), "%s/.crossfire/%s.%s.keys",
-                 getenv("HOME"), csocket.servername, cpl.name);
-        CONVERT_FILESPEC_TO_OS_FORMAT(buf);
+        snprintf(buf, sizeof(buf), "%s/%s.%s.keys", config_dir,
+                csocket.servername, cpl.name);
         LOG(LOG_INFO, "gtk-v2::save_keys",
             "Saving character specific keybindings to %s", buf);
 
@@ -1298,8 +1296,7 @@ static void save_keys(void) {
     }
 
     /* Open file to save global user bindings */
-    snprintf(buf, sizeof(buf), "%s/.crossfire/keys", getenv("HOME"));
-    CONVERT_FILESPEC_TO_OS_FORMAT(buf);
+    snprintf(buf, sizeof(buf), "%s/keys", config_dir);
     LOG(LOG_INFO, "gtk-v2::save_keys",
         "Saving global user's keybindings to %s", buf);
 

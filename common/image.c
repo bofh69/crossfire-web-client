@@ -17,16 +17,19 @@
  * caching of the images, processing the image commands from the server, etc.
  */
 
-#include <config.h>
+#include "config.h"
+
+#include <ctype.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
+
 #ifndef WIN32
 #include <unistd.h>
 #else
 #include <io.h>
 #include <direct.h>
 #endif
-#include <ctype.h>
 
 #include "client.h"
 #include "external.h"
@@ -387,8 +390,7 @@ void init_common_cache_data(void) {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, inbuf);
     }
 
-    snprintf(bmaps, sizeof(bmaps), "%s/%s/crossfire/image-cache/bmaps.client",
-             getenv("HOME"), xdg_cache_dir);
+    snprintf(bmaps, sizeof(bmaps), "%s/image-cache/bmaps.client", cache_dir);
     if ((fp = fopen(bmaps, "r")) != NULL) {
         while (fgets(inbuf, MAX_BUF - 1, fp) != NULL) {
             image_process_line(inbuf, 0);
@@ -448,10 +450,8 @@ void finish_face_cmd(int pnum, guint32 checksum, int has_sum, char *face,
      * we go onto the next step.  If nothing found, we request it
      * from the server.
      */
-    snprintf(filename, sizeof(filename), "%s/%s/crossfire/gfx/%s.png",
-            getenv("HOME"), xdg_cache_dir, face);
+    snprintf(filename, sizeof(filename), "%s/gfx/%s.png", cache_dir, face);
     if (load_image(filename, data, &len, &newsum) == -1) {
-
         ce = image_find_cache_entry(face, checksum, has_sum);
         if (!ce) {
             /* Not in our cache, so request it from the server */
@@ -467,8 +467,8 @@ void finish_face_cmd(int pnum, guint32 checksum, int has_sum, char *face,
             snprintf(filename, sizeof(filename), "%s/%s",
                      CF_DATADIR, ce->filename);
         else
-            snprintf(filename, sizeof(filename), "%s/%s/crossfire/image-cache/%s",
-                     getenv("HOME"), xdg_cache_dir, ce->filename);
+            snprintf(filename, sizeof(filename), "%s/image-cache/%s",
+                    cache_dir, ce->filename);
         if (load_image(filename, data, &len, &newsum) == -1) {
             LOG(LOG_WARNING, "common::finish_face_cmd",
                 "file %s listed in cache file, but unable to load", filename);
@@ -585,18 +585,13 @@ static void cache_newpng(int face, guint8 *buf, int buflen, int setnum,
         return;
     }
     /* Make necessary leading directories */
-    snprintf(filename, sizeof(filename), "%s/%s/crossfire/image-cache",
-             getenv("HOME"), xdg_cache_dir);
-    if (access(filename, R_OK | W_OK | X_OK) == -1)
-#ifdef WIN32
-        mkdir(filename);
-#else
-        mkdir(filename, 0755);
-#endif
+    snprintf(filename, sizeof(filename), "%s/image-cache", cache_dir);
+    if (g_access(filename, R_OK | W_OK | X_OK) == -1) {
+        g_mkdir(filename, 0755);
+    }
 
-    snprintf(filename, sizeof(filename), "%s/%s/crossfire/image-cache/%c%c",
-             getenv("HOME"), xdg_cache_dir,
-             facetoname[face][0], facetoname[face][1]);
+    snprintf(filename, sizeof(filename), "%s/image-cache/%c%c",
+        cache_dir, facetoname[face][0], facetoname[face][1]);
     if (access(filename, R_OK | W_OK | X_OK) == -1)
 #ifdef WIN32
         mkdir(filename);
@@ -626,10 +621,9 @@ static void cache_newpng(int face, guint8 *buf, int buflen, int setnum,
     setnum--;
     do {
         setnum++;
-        snprintf(filename, sizeof(filename), "%s/%s/crossfire/image-cache/%c%c/%s.%d",
-                 getenv("HOME"), xdg_cache_dir, facetoname[face][0],
-                 facetoname[face][1], basename, setnum);
-    } while (access(filename, F_OK) == -0);
+        snprintf(filename, sizeof(filename), "%s/image-cache/%c%c/%s.%d",
+                cache_dir, facetoname[face][0], facetoname[face][1], basename, setnum);
+    } while (g_access(filename, F_OK) == -0);
 
 #ifdef WIN32
     if ((tmpfile = fopen(filename, "wb")) == NULL)
@@ -661,8 +655,7 @@ static void cache_newpng(int face, guint8 *buf, int buflen, int setnum,
          * built image archives, so only a few faces actually need to get
          * downloaded.
          */
-        snprintf(filename, sizeof(filename), "%s/%s/crossfire/image-cache/bmaps.client",
-                 getenv("HOME"), xdg_cache_dir);
+        snprintf(filename, sizeof(filename), "%s/image-cache/bmaps.client", cache_dir);
         if ((tmpfile = fopen(filename, "a")) == NULL) {
             LOG(LOG_WARNING, "common::display_newpng", "Can not open %s for appending",
                 filename);

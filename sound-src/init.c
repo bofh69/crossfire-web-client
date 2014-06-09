@@ -42,8 +42,8 @@ static void init_sounds() {
     }
 
     /* Try to open the sound definitions file. */
-    printf("Loading sounds from '%s'...\n", getenv("CF_SOUND_DIR"));
-    fp = fopen(getenv("CF_SOUND_CONF"), "r");
+    printf("Loading sounds from '%s'...\n", g_getenv("CF_SOUND_DIR"));
+    fp = fopen(g_getenv("CF_SOUND_CONF"), "r");
 
     if (fp == NULL) {
         fprintf(stderr, "Could not find sound definitions; aborting!\n");
@@ -95,22 +95,22 @@ int init() {
     char path[MAXSOCKBUF];
 
     /* Sanity check for $HOME environmental variable. */
-    if (getenv("HOME") == NULL) {
+    if (g_getenv("HOME") == NULL) {
         fprintf(stderr, "Couldn't read $HOME environmental variable.\n"
                 "Please set it to something reasonable.\n");
         return -1;
     }
 
     /* Set $CF_SOUND_DIR to something reasonable, if not already set. */
-    if (setenv("CF_SOUND_DIR", CLIENT_SOUNDS_PATH, 0) != 0) {
+    if (g_setenv("CF_SOUND_DIR", CLIENT_SOUNDS_PATH, 0) != 0) {
         perror("Couldn't set $CF_SOUND_DIR");
         return -1;
     }
 
     /* Set $CF_SOUND_CONF to something reasonable, if not already set. */
-    snprintf(path, sizeof(path), "%s/sounds.conf", getenv("CF_SOUND_DIR"));
+    snprintf(path, sizeof(path), "%s/sounds.conf", g_getenv("CF_SOUND_DIR"));
 
-    if (setenv("CF_SOUND_CONF", path, 0) != 0) {
+    if (g_setenv("CF_SOUND_CONF", path, 0) != 0) {
         perror("Couldn't set $CF_SOUND_CONF");
         return -1;
     }

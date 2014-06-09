@@ -157,9 +157,7 @@ void get_metaserver() {
     hide_all_login_windows();
 
     /* Load cached server entries. */
-    snprintf(file_cache, MAX_BUF, "%s/%s/crossfire/servers.cache",
-            getenv("HOME"), xdg_cache_dir);
-    CONVERT_FILESPEC_TO_OS_FORMAT(file_cache);
+    snprintf(file_cache, MAX_BUF, "%s/servers.cache", cache_dir);
     cached_server_file = file_cache;
 
     gtk_widget_show(metaserver_window);

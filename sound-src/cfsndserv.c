@@ -187,7 +187,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
 static void play_music(const char* music_name) {
     char path[MAXSOCKBUF];
 
-    snprintf(path, sizeof(path), "%s%s%s.ogg", getenv("HOME"),
+    snprintf(path, sizeof(path), "%s%s%s.ogg", g_getenv("HOME"),
             USER_SOUNDS_PATH, music_name);
 
     music = Mix_LoadMUS(path);

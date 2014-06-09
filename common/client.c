@@ -50,7 +50,8 @@ char VERSION_INFO[MAX_BUF];
 char *meta_server = META_SERVER;
 char *skill_names[MAX_SKILL];
 char *sound_server = "cfsndserv";
-char *xdg_config_dir, *xdg_cache_dir;
+const char *config_dir;
+const char *cache_dir;
 
 int last_used_skills[MAX_SKILL+1];
 

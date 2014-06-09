@@ -106,7 +106,8 @@ typedef struct ClientSocket {
 extern ClientSocket csocket;
 
 extern char *server, *image_file, *sound_server;
-extern char *xdg_cache_dir, *xdg_config_dir;
+extern const char *cache_dir;
+extern const char *config_dir;
 
 typedef enum Input_State {
     Playing, Reply_One, Reply_Many, Configure_Keys, Command_Mode,
@@ -618,28 +619,6 @@ extern int maxfd;
 #define INFO_NEWS  1
 #define INFO_MOTD  2
 #define INFO_RULES 3
-/*@}*/
-
-/**
- * @defgroup CONVERT_FILESPEC CONVERT_FILESPEC_TO_OS_FORMAT declarations.
- * Support for converting forward-slash delimited filespecs to WIN32 format
- * when clients are built for that platform.  Client code that uses a path
- * reference builds paths in a buffer using forward slashes.  After
- * constructing the path, CONVERT_FILESPEC_TO_OS_FORMAT() is used on the
- * buffer.  On non-WIN32 platforms, the macro does nothing and the path is
- * used as-is.  On WIN32 platforms forward slashes found in the buffer are
- * converted to backslash characters.
- */
-/*@{*/
-#ifndef WIN32
-#define CONVERT_FILESPEC_TO_OS_FORMAT(path)
-#else
-extern void replace_chars_with_string(
-   char* buffer, const guint16 buffer_size,
-       const char find, const char* replace);
-#define CONVERT_FILESPEC_TO_OS_FORMAT(path) \
-   replace_chars_with_string((path), sizeof(path), '/', "\\")
-#endif
 /*@}*/
 
 #ifndef CPROTO
