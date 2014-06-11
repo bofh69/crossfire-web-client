@@ -1,6 +1,7 @@
 add_custom_command(
     OUTPUT def-keys.h
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/mdk.sh ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND ${PERL_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/mdk.pl ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS def-keys
 )
 

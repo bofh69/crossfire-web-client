@@ -1,3 +1,6 @@
+2014-06-11	SilverNexus
+	* common/CMakeLists.txt: Update instructions to run mdk.pl instead of mdk.sh.
+
 2014-06-10	SilverNexus
 	* common/mdk.sh: Convert to a perl script for better portability.
 	* common/mdk.pl: New perl script to read in def-keys.
