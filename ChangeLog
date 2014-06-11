@@ -1,4 +1,9 @@
 2014-06-10	SilverNexus
+	* common/mdk.sh: Convert to a perl script for better portability.
+	* common/mdk.pl: New perl script to read in def-keys.
+	* common/Makefile.am: Make compilation run the perl script.
+
+2014-06-10	SilverNexus
 	* common/p_cmd.c: Prevent sending of quit command when there is
 	no player logged in to the client. Fixes main part of bug #782.
 

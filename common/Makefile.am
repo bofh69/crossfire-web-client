@@ -43,7 +43,7 @@ item-types.h: item-types
 	$(PERL) $(srcdir)/items.pl $(srcdir)
 
 def-keys.h: def-keys
-	$(srcdir)/mdk.sh $(srcdir)
+	$(PERL) $(srcdir)/mdk.pl $(srcdir)
 
 msgtypes.h: $(srcdir)/shared/newclient.h
 	$(PERL) $(srcdir)/msgtypes.pl $(srcdir)
