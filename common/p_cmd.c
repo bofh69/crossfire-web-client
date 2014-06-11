@@ -1106,6 +1106,15 @@ void extended_command(const char *ocommand)
             cpnext = NULL;
         }
     }
+    /*
+     * Try to prevent potential client hang by trying to delete a
+     * character when there is no character to delete.
+     * Thus, only send quit command if there is a player to delete.
+     */
+    if (!cpl.ob->nrof && !strcmp(cp, "quit")){
+        // Bail here, there isn't anything this should be doing.
+        return;
+    }
 
     /* cp now contains the command (everything before first space),
      * and cpnext contains everything after that first space.  cpnext

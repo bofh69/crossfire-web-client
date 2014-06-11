@@ -1,3 +1,7 @@
+2014-06-10	SilverNexus
+	* common/p_cmd.c: Prevent sending of quit command when there is
+	no player logged in to the client. Fixes main part of bug #782.
+
 2014-06-08	Kevin Zheng
 	* common/config.c: Use GLib to determine the location of the
 	configuration and cache directories. Users who wish to keep their
