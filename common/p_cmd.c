@@ -1111,7 +1111,7 @@ void extended_command(const char *ocommand)
      * character when there is no character to delete.
      * Thus, only send quit command if there is a player to delete.
      */
-    if (!cpl.ob->nrof && !strcmp(cp, "quit")){
+    if (cpl.title[0] == '\0' && strcmp(cp, "quit") == 0){
         // Bail here, there isn't anything this should be doing.
         return;
     }
