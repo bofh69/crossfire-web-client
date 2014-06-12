@@ -1,4 +1,8 @@
 2014-06-11	SilverNexus
+	* gtk-v2/src/menubar.c,
+	* gtk-v2/src/account.c: Fix undefined reference errors in Windows.
+
+2014-06-11	SilverNexus
 	* common/CMakeLists.txt: Update instructions to run mdk.pl instead of mdk.sh.
 
 2014-06-10	SilverNexus

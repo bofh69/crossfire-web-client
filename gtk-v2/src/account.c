@@ -29,6 +29,10 @@
 #include "gtk2proto.h"
 #include "metaserver.h"
 
+#ifdef WIN32
+# include "script.h"
+#endif
+
 static GtkWidget *add_character_window, *choose_char_window,
        *create_account_window, *login_window, *account_password_window;
 

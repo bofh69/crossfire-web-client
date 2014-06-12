@@ -26,7 +26,8 @@
 #endif
 
 #ifdef WIN32
-#include <windows.h>
+# include <windows.h>
+# include "script.h"
 #endif
 
 #include <gtk/gtk.h>
