@@ -109,7 +109,6 @@ void metaserver_show(int show_selection);
 int metaserver_select(char *sel);
 /* misc.c */
 int make_path_to_file(char *filename);
-char *g_strdup(const char *str);
 void LOG(LogLevel level, const char *origin, const char *format, ...);
 void purgePipe(ChildProcess *cp, int pipe);
 void monitorChilds();
