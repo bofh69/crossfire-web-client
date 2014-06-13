@@ -84,7 +84,18 @@ void SockList_Init(SockList *sl, guint8 *buf)
  */
 void SockList_AddChar(SockList *sl, char c)
 {
-    sl->buf[sl->len++]=c;
+    if (sl->len + 1 < MAX_BUF - 2){
+        sl->buf[sl->len++]=c;
+    }
+    else{
+        /*
+         * Cast c to an unsigned short so it displays correctly in the error message.
+         * Otherwise, it prints as a hexadecimal number in a funny box.
+         *
+         * SilverNexus 2014-06-12
+         */
+        LOG(LOG_ERROR,"SockList_AddChar","Could not write %hu to socket: Buffer full.\n", (unsigned short)c);
+    }
 }
 
 /**
@@ -94,8 +105,13 @@ void SockList_AddChar(SockList *sl, char c)
  */
 void SockList_AddShort(SockList *sl, guint16 data)
 {
-    sl->buf[sl->len++] = (data>>8)&0xff;
-    sl->buf[sl->len++] = data & 0xff;
+    if (sl->len + 2 < MAX_BUF - 2){
+        sl->buf[sl->len++] = (data>>8)&0xff;
+        sl->buf[sl->len++] = data & 0xff;
+    }
+    else{
+        LOG(LOG_ERROR,"SockList_AddShort","Could not write %hu to socket: Buffer full.\n", data);
+    }
 }
 
 /**
@@ -105,10 +121,15 @@ void SockList_AddShort(SockList *sl, guint16 data)
  */
 void SockList_AddInt(SockList *sl, guint32 data)
 {
-    sl->buf[sl->len++] = (data>>24)&0xff;
-    sl->buf[sl->len++] = (data>>16)&0xff;
-    sl->buf[sl->len++] = (data>>8)&0xff;
-    sl->buf[sl->len++] = data & 0xff;
+    if (sl->len + 4 < MAX_BUF - 2){
+        sl->buf[sl->len++] = (data>>24)&0xff;
+        sl->buf[sl->len++] = (data>>16)&0xff;
+        sl->buf[sl->len++] = (data>>8)&0xff;
+        sl->buf[sl->len++] = data & 0xff;
+    }
+    else{
+        LOG(LOG_ERROR,"SockList_AddInt","Could not write %u to socket: Buffer full.\n", data);
+    }
 }
 
 /**

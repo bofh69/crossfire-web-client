@@ -1,3 +1,6 @@
+2014-06-12	SilverNexus
+	* common/newsocket.c: Fix potential socket buffer overflows on non-string socket buffer writes.
+
 2014-06-11	SilverNexus
 	* gtk-v2/src/menubar.c,
 	* gtk-v2/src/account.c: Fix undefined reference errors in Windows.
