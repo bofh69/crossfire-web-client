@@ -12,34 +12,31 @@
  */
 
 /**
- * @file gtk-v2/src/map.c
+ * @file
  * Handles map related code in terms of allocation, insertion of new objects,
  * and actual rendering (although the sdl rendering is in the sdl file
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "config.h"
 
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 #include <png.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 
 #ifndef WIN32
 #include <gdk/gdkx.h>
-#include <unistd.h>
 #else
 #include <gdk/gdkwin32.h>
 #include <time.h>
 #endif
 
 #include "client-types.h"
-#include "image.h"
 #include "client.h"
+#include "image.h"
 #include "main.h"
 #include "mapdata.h"
+
 #include "gtk2proto.h"
 
 static guint8 map_updated = 0;
@@ -53,18 +50,21 @@ static guint8 map_updated = 0;
 
 PlayerPosition pl_pos;
 
-GtkWidget *map_drawing_area, *map_notebook;
-GdkGC *mapgc;
-int map_image_size=DEFAULT_IMAGE_SIZE;
-int map_image_half_size=DEFAULT_IMAGE_SIZE/2;
+int map_image_size = DEFAULT_IMAGE_SIZE;
+int map_image_half_size = DEFAULT_IMAGE_SIZE / 2;
+
 static GdkBitmap *dark1, *dark2, *dark3;
 static GdkPixmap *dark;
+static GdkGC *mapgc;
+static GtkWidget *map_drawing_area;
+
+GtkWidget *map_notebook;
 
 /*
  * This should really be one of the CONFIG values, or perhaps a checkbox
  * someplace that displays frame rate.
  */
-int time_map_redraw=0;
+int time_map_redraw = 0;
 
 #if WIN32
 /**
@@ -91,21 +91,21 @@ int gettimeofday(struct timeval* tp, void* tzp)
  */
 void map_init(GtkWidget *window_root) {
     map_drawing_area = GTK_WIDGET(gtk_builder_get_object(window_xml,
-                "drawingarea_map"));
+            "drawingarea_map"));
     map_notebook = GTK_WIDGET(gtk_builder_get_object(window_xml,
-                "map_notebook"));
+            "map_notebook"));
 
-    g_signal_connect ((gpointer) map_drawing_area, "expose_event",
-                      G_CALLBACK (on_drawingarea_map_expose_event), NULL);
-    g_signal_connect ((gpointer) map_drawing_area, "button_press_event",
-                      G_CALLBACK (on_drawingarea_map_button_press_event), NULL);
-    g_signal_connect ((gpointer) map_drawing_area, "configure_event",
-                      G_CALLBACK (on_drawingarea_map_configure_event), NULL);
+    g_signal_connect((gpointer)map_drawing_area, "expose_event",
+            G_CALLBACK(on_drawingarea_map_expose_event), NULL);
+    g_signal_connect((gpointer)map_drawing_area, "button_press_event",
+            G_CALLBACK (on_drawingarea_map_button_press_event), NULL);
+    g_signal_connect((gpointer)map_drawing_area, "configure_event",
+            G_CALLBACK (on_drawingarea_map_configure_event), NULL);
 
 #if 0
-    gtk_widget_set_size_request (map_drawing_area,
-                                 use_config[CONFIG_MAPWIDTH] * map_image_size,
-                                 use_config[CONFIG_MAPHEIGHT] * map_image_size);
+    gtk_widget_set_size_request(map_drawing_area,
+            use_config[CONFIG_MAPWIDTH] * map_image_size,
+            use_config[CONFIG_MAPHEIGHT] * map_image_size);
 #endif
     mapgc = gdk_gc_new(map_drawing_area->window);
     gtk_widget_show(map_drawing_area);
@@ -498,14 +498,12 @@ static void display_mapcell(int ax, int ay, int mx, int my)
  *
  * @param redraw
  */
-void gtk_draw_map(int redraw)
-{
+void gtk_draw_map(int redraw) {
     int mx, my;
-    int x, y;
-    struct timeval tv1, tv2,tv3;
+    struct timeval tv1, tv2, tv3;
     long elapsed1, elapsed2;
 
-    if(!redraw && !map_updated) {
+    if (!redraw && !map_updated) {
         return;
     }
 
@@ -513,8 +511,8 @@ void gtk_draw_map(int redraw)
         gettimeofday(&tv1, NULL);
     }
 
-    for(x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
-        for(y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
+    for (int x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
+        for (int y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
             /*
              * mx,my represent the spaces on the 'virtual' map (ie, the_map
              * structure).  x and y (from the for loop) represent the visible
@@ -530,8 +528,8 @@ void gtk_draw_map(int redraw)
                 the_map.cells[mx][my].need_update = 0;
                 the_map.cells[mx][my].need_resmooth = 0;
             }
-        } /* For y spaces */
-    } /* for x spaces */
+        }
+    }
 
     if (time_map_redraw) {
         gettimeofday(&tv2, NULL);
@@ -649,25 +647,26 @@ void draw_splash(void)
  *
  * @param redraw
  */
-void draw_map(int redraw)
-{
+void draw_map(int redraw) {
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
+    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
         sdl_gen_map(redraw);
-    } else
+    }
 #endif
+
 #ifdef HAVE_OPENGL
-        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
-            opengl_gen_map(redraw);
-        } else
+    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
+        opengl_gen_map(redraw);
+    }
 #endif
-            if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
-                if (cpl.input_state == Metaserver_Select) {
-                    draw_splash();
-                } else {
-                    gtk_draw_map(redraw);
-                }
-            }
+
+    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
+        if (cpl.input_state == Metaserver_Select) {
+            draw_splash();
+        } else {
+            gtk_draw_map(redraw);
+        }
+    }
 }
 
 /**
