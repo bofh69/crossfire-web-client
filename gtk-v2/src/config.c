@@ -1180,8 +1180,7 @@ void on_save_window_position_activate(GtkMenuItem *menuitem,
 }
 
 /**
- * Retrieves saved window positions saved with the Client | Save Window
- * Position menu item.
+ * Resize the client window and its panels using saved window positions.
  *
  * @param window_root The client's main window.
  */
@@ -1189,19 +1188,21 @@ void load_window_positions(GtkWidget *window_root) {
     GSList *pane_list, *list;
     pane_list = gtk_builder_get_objects(window_xml);
 
-    /* Load window size and position. */
+    // Load and set main window dimensions.
     gchar *root_size = g_key_file_get_string(config, window_xml_file,
             "window_root", NULL);
-    int x, y, w, h;
 
-    if (root_size != NULL &&
-            sscanf(root_size, "+%d+%dx%dx%d", &x, &y, &w, &h) == 4) {
-        gtk_window_set_default_size(GTK_WINDOW(window_root), w, h);
-        gtk_window_move(GTK_WINDOW(window_root), x, y);
-        free(root_size);
+    if (root_size != NULL) {
+        int w, h;
+
+        if (sscanf(root_size, "+%*d+%*dx%dx%d", &w, &h) == 2) {
+            gtk_window_set_default_size(GTK_WINDOW(window_root), w, h);
+        }
+
+        g_free(root_size);
     }
 
-    /* Load panel positions. */
+    // Load and set panel positions.
     for (list = pane_list; list != NULL; list = list->next) {
         GType type = GTK_WIDGET_TYPE(list->data);
 
