@@ -672,7 +672,7 @@ enum {a_none, a_readied, a_wielded, a_worn, a_active, a_applied};
 /**
  * Contains the base information we use to make up a packet we want to send.
  */
-typedef struct SockList {
+typedef struct {
 #ifdef CLIENT_TYPES_H                       /* Used by the client */
     int len;
     unsigned char *buf;
@@ -685,7 +685,7 @@ typedef struct SockList {
 /**
  * Statistics on server.
  */
-typedef struct CS_Stats {
+typedef struct {
     int     ibytes;     /**< ibytes, obytes are bytes in, out. */
     int     obytes;
     short   max_conn;   /**< Maximum connections received. */

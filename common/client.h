@@ -87,7 +87,7 @@ extern Animations animations[MAXANIM];
  * hold more of the global values - it could probably hold most all
  * socket/communication related values instead of globals.
  */
-typedef struct ClientSocket {
+typedef struct {
     int fd;
     SockList    inbuf;
     int cs_version, sc_version;         /**< Server versions of these
@@ -109,12 +109,12 @@ extern char *server, *image_file, *sound_server;
 extern const char *cache_dir;
 extern const char *config_dir;
 
-typedef enum Input_State {
+typedef enum {
     Playing, Reply_One, Reply_Many, Configure_Keys, Command_Mode,
     Metaserver_Select
 } Input_State;
 
-typedef enum rangetype {
+typedef enum {
   range_bottom = -1, range_none = 0, range_bow = 1, range_magic = 2,
   range_wand = 3, range_rod = 4, range_scroll = 5, range_horn = 6,
   range_steal = 7,
