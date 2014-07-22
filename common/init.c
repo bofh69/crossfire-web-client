@@ -78,7 +78,6 @@ void SendAddMe(ClientSocket csock) {
 
 
 void init_client_vars() {
-    char buf[FILENAME_MAX];
     int i;
 
     if (exp_table) {
