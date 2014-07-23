@@ -159,7 +159,6 @@ extern gboolean on_drawingarea_map_configure_event(GtkWidget *widget, GdkEventCo
 extern void draw_splash(void);
 extern void draw_map(int redraw);
 extern gboolean on_drawingarea_map_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
-extern gboolean on_drawingarea_map_button_press_event(GtkWidget *widget, GdkEventButton *event, gpointer user_data);
 extern void display_map_startupdate(void);
 extern void display_map_doneupdate(int redraw, int notice);
 /* magicmap.c */

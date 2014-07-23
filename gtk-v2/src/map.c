@@ -41,6 +41,10 @@
 
 static guint8 map_updated = 0;
 
+// Declarations for local event-handling functions.
+static gboolean drawingarea_map_button_event(GtkWidget *widget,
+        GdkEventButton *event, gpointer user_data);
+
 /*
  * Added for fog of war. Current size of the map structure in memory.
  * We assume a rectangular map so this is the length of one side.
@@ -90,17 +94,21 @@ int gettimeofday(struct timeval* tp, void* tzp)
  * @param window_root The client's main playing window.
  */
 void map_init(GtkWidget *window_root) {
-    map_drawing_area = GTK_WIDGET(gtk_builder_get_object(window_xml,
-            "drawingarea_map"));
-    map_notebook = GTK_WIDGET(gtk_builder_get_object(window_xml,
-            "map_notebook"));
+    map_drawing_area = GTK_WIDGET(gtk_builder_get_object(
+                window_xml, "drawingarea_map"));
+    map_notebook = GTK_WIDGET(gtk_builder_get_object(
+                window_xml, "map_notebook"));
 
-    g_signal_connect((gpointer)map_drawing_area, "expose_event",
+    g_signal_connect(map_drawing_area, "configure_event",
+            G_CALLBACK(on_drawingarea_map_configure_event), NULL);
+    g_signal_connect(map_drawing_area, "expose_event",
             G_CALLBACK(on_drawingarea_map_expose_event), NULL);
-    g_signal_connect((gpointer)map_drawing_area, "button_press_event",
-            G_CALLBACK (on_drawingarea_map_button_press_event), NULL);
-    g_signal_connect((gpointer)map_drawing_area, "configure_event",
-            G_CALLBACK (on_drawingarea_map_configure_event), NULL);
+
+    // Enable event masks and set callbacks to handle mouse events.
+    gtk_widget_add_events(map_drawing_area,
+            GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+    g_signal_connect(map_drawing_area, "event",
+            G_CALLBACK(drawingarea_map_button_event), NULL);
 
 #if 0
     gtk_widget_set_size_request(map_drawing_area,
@@ -109,7 +117,6 @@ void map_init(GtkWidget *window_root) {
 #endif
     mapgc = gdk_gc_new(map_drawing_area->window);
     gtk_widget_show(map_drawing_area);
-    gtk_widget_add_events (map_drawing_area, GDK_BUTTON_PRESS_MASK);
 
     if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
         int x,y;
@@ -686,105 +693,67 @@ on_drawingarea_map_expose_event        (GtkWidget       *widget,
 }
 
 /**
- *
- * @param widget
- * @param event
- * @param user_data
- * @return FALSE
+ * Given a relative tile coordinate, determine its compass direction.
+ * @param dx Relative 'x' coordinate
+ * @param dy Relative 'y' coordinate
+ * @return 0 if x and y are both zero, 1-8 for each compass direction
  */
-gboolean
-on_drawingarea_map_button_press_event  (GtkWidget       *widget,
-                                        GdkEventButton  *event,
-                                        gpointer         user_data)
-{
-    int dx, dy, i, x, y, xmidl, xmidh, ymidl, ymidh;
+static int relative_direction(int dx, int dy) {
+    if (dx == 0 && dy == 0) {
+        return 0;
+    } else if (dx == 0 && dy < 0) {
+        return 1;
+    } else if (dx > 0 && dy < 0) {
+        return 2;
+    } else if (dx > 0 && dy == 0) {
+        return 3;
+    } else if (dx > 0 && dy > 0) {
+        return 4;
+    } else if (dx == 0 && dy > 0) {
+        return 5;
+    } else if (dx < 0 && dy > 0) {
+        return 6;
+    } else if (dx < 0 && dy == 0) {
+        return 7;
+    } else if (dx < 0 && dy < 0) {
+        return 8;
+    } else {
+        g_assert_not_reached();
+    }
+}
 
-    x=(int)event->x;
-    y=(int)event->y;
-    dx=(x-2)/map_image_size-(use_config[CONFIG_MAPWIDTH]/2);
-    dy=(y-2)/map_image_size-(use_config[CONFIG_MAPHEIGHT]/2);
-    xmidl=(use_config[CONFIG_MAPWIDTH]/2) * map_image_size;
-    xmidh=(use_config[CONFIG_MAPWIDTH]/2 + 1) * map_image_size;
-    ymidl=(use_config[CONFIG_MAPHEIGHT]/2) * map_image_size;
-    ymidh=(use_config[CONFIG_MAPHEIGHT]/2 + 1) * map_image_size;
+/**
+ * Handle a mouse event in the drawing area.
+ */
+static gboolean drawingarea_map_button_event(GtkWidget *widget,
+        GdkEventButton *event, gpointer user_data) {
+    // Determine the tile of the mouse event, relative to the player.
+    int dx = ((int)event->x - 2) / map_image_size - (use_config[CONFIG_MAPWIDTH] / 2);
+    int dy = ((int)event->y - 2) / map_image_size - (use_config[CONFIG_MAPHEIGHT] / 2);
+    int dir = relative_direction(dx, dy);
 
     switch (event->button) {
-    case 1:
-        look_at(dx,dy);
-        break;
-
-    case 2:
-    case 3:
-        if (x<xmidl) {
-            i = 0;
-        } else if (x>xmidh) {
-            i = 6;
-        } else {
-            i =3;
-        }
-
-        if (y>ymidh) {
-            i += 2;
-        } else if (y>ymidl) {
-            i++;
-        }
-
-        if (event->button==2) {
-            switch (i) {
-            case 0:
-                fire_dir (8);
-                break;
-            case 1:
-                fire_dir (7);
-                break;
-            case 2:
-                fire_dir (6);
-                break;
-            case 3:
-                fire_dir (1);
-                break;
-            case 5:
-                fire_dir (5);
-                break;
-            case 6:
-                fire_dir (2);
-                break;
-            case 7:
-                fire_dir (3);
-                break;
-            case 8:
-                fire_dir (4);
-                break;
+        case 1:
+            if (event->type == GDK_BUTTON_PRESS) {
+                look_at(dx,dy);
             }
-            /* Only want to fire once */
-            clear_fire();
-        } else switch (i) {
-            case 0:
-                move_player (8);
-                break;
-            case 1:
-                move_player (7);
-                break;
-            case 2:
-                move_player (6);
-                break;
-            case 3:
-                move_player (1);
-                break;
-            case 5:
-                move_player (5);
-                break;
-            case 6:
-                move_player (2);
-                break;
-            case 7:
-                move_player (3);
-                break;
-            case 8:
-                move_player (4);
-                break;
+            break;
+        case 2:
+            if (event->type == GDK_BUTTON_RELEASE) {
+                clear_fire();
+            } else {
+                fire_dir(dir);
             }
+            break;
+        case 3:
+            if (event->type == GDK_BUTTON_RELEASE) {
+                stop_run();
+            } else {
+                run_dir(dir);
+            }
+            break;
     }
+
     return FALSE;
 }
 
