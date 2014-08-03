@@ -553,7 +553,6 @@ int main(int argc, char *argv[]) {
 
         /* Pick a server from the list if not specified on the command line. */
         if (server == NULL) {
-            draw_splash();
             metaserver_get_info(meta_server, meta_port);
             get_metaserver();
         } else {

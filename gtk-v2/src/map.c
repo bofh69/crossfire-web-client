@@ -615,41 +615,6 @@ on_drawingarea_map_configure_event     (GtkWidget       *widget,
     return FALSE;
 }
 
-
-/**
- * Simple routine to put the splash icon in the map window.  Only supported
- * with non-SDL right now.
- */
-void draw_splash(void)
-{
-    static GdkPixmap *splash;
-    static int have_init=0;
-    GdkBitmap *aboutgdkmask;
-    int x,y, w, h;
-
-#include "../../pixmaps/crossfiretitle.xpm"
-
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
-        if (!have_init) {
-            splash = gdk_pixmap_create_from_xpm_d(map_drawing_area->window,
-                                                  &aboutgdkmask, NULL,
-                                                  (gchar **)crossfiretitle_xpm);
-            have_init=1;
-        }
-        gdk_window_clear(map_drawing_area->window);
-        gdk_drawable_get_size(splash, &w, &h);
-        x = (map_drawing_area->allocation.width- w)/2;
-        y = (map_drawing_area->allocation.height - h)/2;
-        /*
-         * Clear the clip mask - it can be left in an inconsistent state from
-         * last map redraw.
-         */
-        gdk_gc_set_clip_mask(mapgc, NULL);
-        gdk_draw_pixmap(map_drawing_area->window, mapgc, splash, 0, 0,
-                        x, y, w, h);
-    }
-}
-
 /**
  *
  * @param redraw
@@ -668,11 +633,7 @@ void draw_map(int redraw) {
 #endif
 
     if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
-        if (cpl.input_state == Metaserver_Select) {
-            draw_splash();
-        } else {
-            gtk_draw_map(redraw);
-        }
+        gtk_draw_map(redraw);
     }
 }
 
