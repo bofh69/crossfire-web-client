@@ -31,4 +31,4 @@ cfsndserv_SOURCES = \
 	parser.c \
 	sndproto.h
 
-cfsndserv_LDADD = ${common_LIBS} ${SDLMIXER_LIBS}
+cfsndserv_LDADD = ${common_LIBS} ${SDLMIXER_LIBS} ${GLIB_LIBS}

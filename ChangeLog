@@ -1,12 +1,17 @@
+2014-08-11	Tolga Dalman
+	* sound-src/Makefile.am: Add missing GLIB link libraries.
+
 2014-06-12	SilverNexus
-	* common/newsocket.c: Fix potential socket buffer overflows on non-string socket buffer writes.
+	* common/newsocket.c: Fix potential socket buffer overflows on
+	non-string socket buffer writes.
 
 2014-06-11	SilverNexus
 	* gtk-v2/src/menubar.c,
 	* gtk-v2/src/account.c: Fix undefined reference errors in Windows.
 
 2014-06-11	SilverNexus
-	* common/CMakeLists.txt: Update instructions to run mdk.pl instead of mdk.sh.
+	* common/CMakeLists.txt: Update instructions to run mdk.pl instead
+	of mdk.sh.
 
 2014-06-10	SilverNexus
 	* common/mdk.sh: Convert to a perl script for better portability.
@@ -28,7 +33,8 @@
 
 2014-05-16	SilverNexus
 	* configure.ac: Fixed unchangeable sound directory path.
-	* sound-src/common.h: Implement new CF_SOUND_DIR define in common/config.h.
+	* sound-src/common.h: Implement new CF_SOUND_DIR define in
+	common/config.h.
 
 2014-05-15	Kevin Zheng
 	* CMakeLists.txt: Add CMake support.
@@ -37,9 +43,9 @@
 	* configure.ac: Add dependency on GLib.
 
 2014-05-05	Kevin Zheng
-	* gtk-v2/src/main.c: Clean up command-line arguments. Many old flags have
-	been either removed or renamed. The correct way to set client options is
-	through the "Preferences" dialog.
+	* gtk-v2/src/main.c: Clean up command-line arguments. Many old flags
+	have been either removed or renamed. The correct way to set client
+	options is through the "Preferences" dialog.
 
 2014-05-03	Kevin Zheng
 	* gtk-v2/src/config.c: Store client settings using a key-value file.
