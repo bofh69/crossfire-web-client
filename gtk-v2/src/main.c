@@ -37,7 +37,6 @@
 #include "gtk2proto.h"
 #include "script.h"
 #include "metaserver.h"
-#include "mapdata.h"
 
 /* Sets up the basic colors. */
 static const char *const colorname[NUM_COLORS] = {
@@ -508,31 +507,28 @@ int main(int argc, char *argv[]) {
     bool use_metaserver = true;
 
 #ifdef ENABLE_NLS
-    bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+    bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
     textdomain(GETTEXT_PACKAGE);
 #endif
 
+    // Initialize GTK and client library.
     gtk_init(&argc, &argv);
+    client_init();
 
-    /* Initialize client configuration to something reasonable. */
-    init_client_vars();
+    // Set defaults, load configuration, and parse arguments.
+    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s", FULL_VERSION);
     use_config[CONFIG_MAPWIDTH] = 25;
     use_config[CONFIG_MAPHEIGHT] = 25;
 
-    /* This MUST come after init_client_vars(). */
-    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s", FULL_VERSION);
     config_load();
     parse_args(argc, argv);
     config_check();
 
-    /* Initialize UI. */
+    // Initialize UI, sockets, and sound server.
     init_ui();
-
-    /* Initialize sockets. */
     init_sockets();
 
-    /* Initialize sound server. */
     if (init_sounds() == -1) {
         use_config[CONFIG_SOUND] = FALSE;
     } else {
@@ -548,7 +544,6 @@ int main(int argc, char *argv[]) {
 
     /* Loop to connect to server/metaserver and play the game */
     while (use_metaserver) {
-        reset_client_vars();
         clear_stat_mapping();
 
         /* Pick a server from the list if not specified on the command line. */
@@ -580,12 +575,12 @@ int main(int argc, char *argv[]) {
         remove_item_inventory(locate_item(0));
         draw_look_list();
 
-        mapdata_reset();
         /*
          * Need to reset the images so they match up properly and prevent
          * memory leaks.
          */
         reset_image_data();
+        client_reset();
     }
 }
 

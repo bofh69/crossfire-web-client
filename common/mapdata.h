@@ -110,11 +110,6 @@ extern struct Map the_map;
 void mapdata_init(void);
 
 /**
- * Resets all stored information.
- */
-void mapdata_reset(void);
-
-/**
  * Sets the current display size. Must be called whenever a new display size
  * was negotiated with the server.
  */

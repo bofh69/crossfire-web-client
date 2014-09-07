@@ -54,9 +54,9 @@ void get_image_sums(char *data, int len);
 void VersionCmd(char *data, int len);
 void SendVersion(ClientSocket csock);
 void SendAddMe(ClientSocket csock);
-void init_client_vars(void);
+void client_init(void);
 void reset_player_data(void);
-void reset_client_vars(void);
+void client_reset(void);
 /* item.c */
 guint8 get_type_from_name(const char *name);
 void update_item_sort(item *it);
@@ -79,7 +79,6 @@ int can_write_spell_on(item *it);
 void inscribe_magical_scroll(item *scroll, Spell *spell);
 /* mapdata.c */
 void mapdata_init(void);
-void mapdata_reset(void);
 void mapdata_set_size(int viewx, int viewy);
 int mapdata_is_inside(int x, int y);
 void mapdata_clear_space(int x, int y);

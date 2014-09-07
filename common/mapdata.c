@@ -577,11 +577,6 @@ void mapdata_init(void)
     bigfaces_head = NULL;
 }
 
-void mapdata_reset(void)
-{
-    mapdata_init();
-}
-
 void mapdata_set_size(int viewx, int viewy)
 {
     mapdata_init();

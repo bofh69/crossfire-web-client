@@ -90,9 +90,9 @@ int used_races = 0;   /* How many races we have filled in */
 int num_classes = 0;  /* Same as race data above, but for classes */
 int used_classes = 0;
 
-int stat_points = 0;    /* Number of stat points for new characters */
-int stat_min = 0;       /* Minimum stat for new characters */
-int stat_maximum = 0;   /* Maximum stat for new characters */
+int stat_points;    /* Number of stat points for new characters */
+int stat_min;       /* Minimum stat for new characters */
+int stat_maximum;   /* Maximum stat for new characters */
 int starting_map_number = 0;   /* Number of starting maps */
 
 Race_Class_Info *races=NULL, *classes=NULL;
