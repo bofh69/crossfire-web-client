@@ -548,7 +548,6 @@ int main(int argc, char *argv[]) {
 
         /* Pick a server from the list if not specified on the command line. */
         if (server == NULL) {
-            metaserver_get();
             prompt_metaserver();
         } else {
             use_metaserver = false;

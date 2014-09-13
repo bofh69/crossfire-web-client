@@ -94,11 +94,6 @@ gint16 mapdata_face(int x, int y, int layer);
 gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh);
 gint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh);
 void mapdata_animation(void);
-/* metaserver.c */
-int metaserver_check_status(void);
-int metaserver_check_version(int entry);
-int metaserver_get(void);
-void metaserver_init(void);
 /* misc.c */
 int make_path_to_file(char *filename);
 void LOG(LogLevel level, const char *origin, const char *format, ...);

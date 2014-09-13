@@ -47,7 +47,6 @@ char *server = NULL;
 
 char VERSION_INFO[MAX_BUF];
 
-char *meta_server = META_SERVER;
 char *skill_names[MAX_SKILL];
 char *sound_server = "cfsndserv";
 const char *config_dir;
@@ -55,9 +54,9 @@ const char *cache_dir;
 
 int last_used_skills[MAX_SKILL+1];
 
-int meta_port=META_PORT, want_skill_exp=0,
-    replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
-    maxfd, metaserver2_on=METASERVER2, wantloginmethod=0, serverloginmethod=0;
+int want_skill_exp = 0, replyinfo_status = 0, requestinfo_sent = 0,
+        replyinfo_last_face = 0, maxfd,
+        wantloginmethod = 0, serverloginmethod = 0;
 
 guint32 tick=0;
 

@@ -3,21 +3,6 @@
  * Metaserver settings, structures, and prototypes.
  */
 
-/* Server to contact to get information about crossfire servers.
- * This is not the server you play on, but rather a central repository
- * that lists the servers.
- * METASERVER controls default behaviour (same as -metaserver options) -
- * if set to TRUE, we try to get metaserver information, if false, we do
- * not.  If you are behind a firewall, you probably want this off by
- * default.
- * METASERVER2 is controlled via --disable-metaserver2 when configure
- * is run - by default, it is enabled.
- */
-
-#define META_SERVER "crossfire.real-time.com"
-#define META_PORT   13326
-#define METASERVER  FALSE
-
 /* Arbitrary size.  At some point, we would need to cut this off simply
  * for display/selection reasons.
  */
@@ -28,34 +13,26 @@
 #define MS_LARGE_BUF	512
 
 /**
- * Structure that contains data we get from metaservers
- * This is used by both metaserver1 and metaserver2
- * support - fields used by only one metaserver type
- * or the other are noted with MS1 or MS2 comments.
- * Note that the client doesn't necessary do anything with
- * all of these fields, but might as well store them around
- * just in case
+ * @struct Meta_Info
+ * Information about individual servers from the metaserver.
  */
-typedef struct Meta_Info {
-    char    ip_addr[MS_SMALL_BUF];	/* MS1 */
-    char    hostname[MS_LARGE_BUF];	/* MS1 & MS2 */
-    int	    port;			/* MS2 - port server is on */
-    char    html_comment[MS_LARGE_BUF];	/* MS2 */
-    char    text_comment[MS_LARGE_BUF];	/* MS1 & MS2 - for MS1, presumed */
-					/* all comments are text */
-    char    archbase[MS_SMALL_BUF];	/* MS2 */
-    char    mapbase[MS_SMALL_BUF];	/* MS2 */
-    char    codebase[MS_SMALL_BUF];	/* MS2 */
-    char    flags[MS_SMALL_BUF];	/* MS2 */
-    int	    num_players;		/* MS1 & MS2 */
-    guint32  in_bytes;			/* MS2 */
-    guint32  out_bytes;			/* MS2 */
-    int	    idle_time;			/* MS1 - for MS2, calculated from */
-					/* last_update value */
-    int	    uptime;			/* MS2 */
-    char    version[MS_SMALL_BUF];	/* MS1 & MS2 */
-    int	    sc_version;			/* MS2 */
-    int	    cs_version;			/* MS2 */
+typedef struct {
+    char    hostname[MS_LARGE_BUF];
+    int     port;
+    char    html_comment[MS_LARGE_BUF];
+    char    text_comment[MS_LARGE_BUF]; /* all comments are text */
+    char    archbase[MS_SMALL_BUF];
+    char    mapbase[MS_SMALL_BUF];
+    char    codebase[MS_SMALL_BUF];
+    char    flags[MS_SMALL_BUF];
+    int     num_players;
+    guint32 in_bytes;
+    guint32 out_bytes;
+    int     idle_time; /* calculated from last_update value */
+    int     uptime;
+    char    version[MS_SMALL_BUF];
+    int     sc_version;
+    int     cs_version;
 } Meta_Info;
 
 extern Meta_Info *meta_servers;
@@ -81,3 +58,7 @@ extern const char* cached_server_file;
 extern
 void metaserver_update_cache(const char *server_name, const char *server_ip);
 
+int metaserver_check_status(void);
+int metaserver_check_version(int entry);
+int metaserver_get(void);
+void metaserver_init(void);

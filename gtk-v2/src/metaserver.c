@@ -174,6 +174,9 @@ void prompt_metaserver() {
 
     gtk_list_store_clear(store_metaserver);
 
+    // Start fetching server information in a separate thread.
+    metaserver_get();
+
     while (metaserver_check_status()) {
         usleep(100);
         gtk_main_iteration_do(FALSE);

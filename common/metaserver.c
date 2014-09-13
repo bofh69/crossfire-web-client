@@ -472,7 +472,7 @@ static void *metaserver2_thread(void *junk) {
 }
 
 /**
- * Contact the official metaserver for a list of public servers.
+ * Fetch a list of public servers from the official metaserver.
  */
 int metaserver_get() {
     pthread_t thread_id;
@@ -480,7 +480,7 @@ int metaserver_get() {
 
     meta_numservers = 0;
 
-    if (!metaserver2_on) {
+    if (!METASERVER2) {
         return 0;
     }
 #ifndef HAVE_CURL_CURL_H
