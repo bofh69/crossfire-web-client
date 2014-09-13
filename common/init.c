@@ -212,7 +212,7 @@ void client_init() {
 
     init_commands();
     init_config();
-    init_metaserver();
+    metaserver_init();
     init_paths();
 
     // Seed pseudo-random number generator.

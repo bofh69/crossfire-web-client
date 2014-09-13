@@ -12,28 +12,19 @@
  */
 
 /**
- * @file common/metaserver.c
+ * @file
  * Deals with contacting the metaserver, getting a list of hosts, displaying
  * and returning them to calling function, and then connecting to the server
  * when requested.
  */
 
-#ifndef WIN32
-#include <netdb.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif /* WIN32 */
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <client.h>
-#include <external.h>
-
-#include <metaserver.h>
+#include "client.h"
+#include "external.h"
+#include "metaserver.h"
 
 #ifdef HAVE_CURL_CURL_H
 #include <curl/curl.h>
@@ -60,9 +51,7 @@ int meta_sort(Meta_Info *m1, Meta_Info *m2)
  * include protocol version number, so treats all of those as
  * OK.
  */
-int check_server_version(int entry)
-{
-
+int metaserver_check_version(int entry) {
     /* No version information - nothing to do. */
     if (!meta_servers[entry].sc_version || !meta_servers[entry].cs_version) {
         return 1;
@@ -294,8 +283,7 @@ static char *metaservers[] = {"http://crossfire.real-time.com/metaserver2/meta_c
  * Number of bytes processed.  We always return the total number of
  * bytes supplied - returning anything else is an error to CURL
  */
-size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *data)
-{
+static size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *data) {
 #ifdef HAVE_CURL_CURL_H
     size_t realsize = size * nmemb;
     char    *cp, *newline, *eq, inbuf[CURL_MAX_WRITE_SIZE*2+1], *leftover;
@@ -468,8 +456,7 @@ static int get_metaserver2_data(char *metaserver2)
  * @return
  * exits when job is done, no return value.
  */
-void *metaserver2_thread(void *junk)
-{
+static void *metaserver2_thread(void *junk) {
     int metaserver_choice, tries=0;
 
     do {
@@ -491,17 +478,13 @@ void *metaserver2_thread(void *junk)
 
 
 /**
- * this is basically a replacement to the metaserver_get_info -
- * idea being that when metaserver 1 support goes away,
- * just yank that entire function and replace it with
- * this.
- * @return
- * best I can tell, always returns 0
+ * Contact the official metaserver for a list of public servers.
  */
-int metaserver2_get_info(void)
-{
+int metaserver_get() {
     pthread_t   thread_id;
     int	    ret;
+
+    meta_numservers = 0;
 
     if (!metaserver2_on) {
         return 0;
@@ -534,7 +517,7 @@ int metaserver2_get_info(void)
 /**
  * Does single use initalization of metaserver2 variables.
  */
-void init_metaserver(void)
+void metaserver_init(void)
 {
     pthread_mutex_init(&ms2_info_mutex, NULL);
 #ifdef HAVE_CURL_CURL_H
@@ -544,310 +527,6 @@ void init_metaserver(void)
 
 /******************************************************************************
  * End of Metasever2 functions.
- ******************************************************************************/
-
-/******************************************************************************
- * Start of metaserver1 logic
- *
- * Note that this shares the same mutex as metaserver2, since it is updating
- * most of the same structures.
- *******************************************************************************/
-
-static int ms1_is_running=0;
-
-
-#ifdef WIN32
-/* Need script.h for script_killall */
-#include <script.h>
-
-/**
- * This gets input from a socket, and returns it one line at a time.
- * This is a Windows-specific function, since you can't use fgets under Win32
- */
-char *get_line_from_sock(char *s, size_t n, int fd)
-{
-    static long charsleft = 0;
-    static char inbuf[MS_LARGE_BUF*4];
-    char *cp;
-    int ct;
-
-    if (!s) {
-        return s;
-    }
-    if (n != MS_LARGE_BUF*4-1) {
-        LOG(LOG_CRITICAL, "common::get_line_from_sock", "Serious program logic error in get_line_from_sock().");
-        exit(-1);
-    }
-
-    if (charsleft > MS_LARGE_BUF*4-3 && strchr(inbuf, '\n') == NULL) {
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                      "Metaserver returned an overly long line.");
-        return NULL;
-    }
-
-    /* If there is no line in the buffer */
-    while (charsleft == 0 || (cp = strchr(inbuf, '\n')) == NULL) {
-        FD_SET fdset;
-        TIMEVAL tv = {3, 0}; /* 3 second timeout on reads */
-        int nlen;
-        FD_ZERO(&fdset);
-        FD_SET(fd, &fdset);
-        if (select(0, &fdset, NULL, NULL, &tv) == 0) {
-            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                          "Metaserver timed out.");
-            return NULL;
-        }
-
-        nlen = recv(fd, inbuf+charsleft-1, MS_LARGE_BUF*4-1-charsleft, 0);
-        if (nlen == SOCKET_ERROR || nlen <= 0) { /* Probably EOF */
-            return NULL;
-        }
-
-        charsleft += nlen;
-    }
-
-    /* OK, inbuf contains a null terminated string with at least one \n
-     * Copy the string up to the \n to s, and then move the rest of the
-     * inbuf string to the beginning of the buffer.  And finally, set
-     * charsleft to the number of characters left in inbuf, or 0.
-     * Oh, and cp contains the location of the \n.
-     */
-
-    memcpy(s, inbuf, cp-inbuf+1); /* Extract the line, including the \n. */
-    s[cp-inbuf+1] = 0; /* null terminate it */
-
-    /* Copy cp to inbuf up to the \0, (skipping the \n) */
-    ct = 0;
-    while (cp[++ct] != 0) {
-        inbuf[ct-1] = cp[ct];
-    }
-    inbuf[ct-1] = 0;
-    charsleft = ct;    /* And keep track of how many characters are left. */
-
-    return s;
-}
-
-#endif /* Win32 */
-
-/**
- *
- */
-void *metaserver1_thread(void *junk)
-{
-    struct protoent *protox;
-    int fd;
-    struct sockaddr_in insock;
-#ifndef WIN32
-    FILE *fp;
-#endif
-    char inbuf[MS_LARGE_BUF*4];
-    Meta_Info *current;
-
-    protox = getprotobyname("tcp");
-    if (protox == NULL) {
-        LOG(LOG_WARNING, "common::metaserver_get_info", "Error getting protobyname (tcp)");
-        pthread_mutex_lock(&ms2_info_mutex);
-        ms1_is_running=0;
-        pthread_mutex_unlock(&ms2_info_mutex);
-        pthread_exit(NULL);
-    }
-
-    fd = socket(PF_INET, SOCK_STREAM, protox->p_proto);
-    if (fd == -1) {
-        perror("get_metaserver_info:  Error on socket command.\n");
-        pthread_mutex_lock(&ms2_info_mutex);
-        ms1_is_running=0;
-        pthread_mutex_unlock(&ms2_info_mutex);
-        pthread_exit(NULL);
-    }
-    insock.sin_family = AF_INET;
-    insock.sin_port = htons((unsigned short)meta_port);
-    if (isdigit(*meta_server)) {
-        insock.sin_addr.s_addr = inet_addr(meta_server);
-    } else {
-        struct hostent *hostbn = gethostbyname(meta_server);
-        if (hostbn == NULL) {
-            LOG(LOG_WARNING, "common::metaserver_get_info", "Unknown metaserver hostname: %s", meta_server);
-            pthread_mutex_lock(&ms2_info_mutex);
-            ms1_is_running=0;
-            pthread_mutex_unlock(&ms2_info_mutex);
-            pthread_exit(NULL);
-        }
-        memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
-    }
-    if (connect(fd, (struct sockaddr *)&insock, sizeof(insock)) == -1) {
-        perror("Can't connect to metaserver");
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                      "\nCan't connect to metaserver.");
-        pthread_mutex_lock(&ms2_info_mutex);
-        ms1_is_running=0;
-        pthread_mutex_unlock(&ms2_info_mutex);
-        pthread_exit(NULL);
-    }
-
-#ifndef WIN32 /* Windows doesn't support this */
-    /* Turn this into a file handle - this will break it on newlines
-     * for us, which makes our processing much easier - it basically
-     * means one line/server
-     */
-    if ((fp = fdopen(fd, "r")) == NULL) {
-        perror("fdopen failed.");
-        pthread_mutex_lock(&ms2_info_mutex);
-        ms1_is_running=0;
-        pthread_mutex_unlock(&ms2_info_mutex);
-        pthread_exit(NULL);
-    }
-#endif
-
-    pthread_mutex_lock(&ms2_info_mutex);
-    if (!meta_servers) {
-        meta_servers = calloc(MAX_METASERVER, sizeof(Meta_Info));
-    }
-
-
-    /* The loop goes through and unpacks the data from the metaserver
-     * into its individual components.  We do a little extra work and
-     * put the |'s back in the string after we are done with that section -
-     * this is so if there is a corrupt entry, it gets displayed as
-     * originally received from the server.
-     */
-#ifndef WIN32 /* Windows doesn't support this */
-    while (fgets(inbuf, MS_LARGE_BUF*4-1, fp) != NULL) {
-#else
-    while (get_line_from_sock(inbuf, MS_LARGE_BUF*4-1, fd) != NULL) {
-#endif
-        char *cp, *cp1;
-
-        cp = strchr(inbuf, '|');
-        if (cp == NULL) {
-            LOG(LOG_WARNING, "common::metaserver_get_info", "Corrupt line from server: %s", inbuf);
-            break;
-        }
-        *cp = 0;
-
-        current = &meta_servers[meta_numservers];
-
-        strncpy(current->ip_addr, inbuf, sizeof(current->ip_addr)-1);
-        current->ip_addr[sizeof(current->ip_addr)-1] = '\0';
-        *cp++ = '|';
-
-        current->idle_time = atoi(cp);
-
-        cp1 = strchr(cp, '|');
-        if (cp1 == NULL) {
-            LOG(LOG_WARNING, "common::metaserver_get_info", "Corrupt line from server: %s", inbuf);
-            break;
-        }
-        *cp1 = 0;
-
-        cp = strchr(cp1+1, '|');
-        if (cp == NULL) {
-            LOG(LOG_WARNING, "common::metaserver_get_info", "Corrupt line from server: %s", inbuf);
-            break;
-        }
-        *cp = 0;
-        /* cp1 points at start of comment, cp points at end */
-        strncpy(current->hostname, cp1+1, sizeof(current->hostname)-1);
-        current->hostname[sizeof(current->hostname)-1] = '\0';
-
-        *cp1++ = '|';
-        *cp++ = '|';  /* cp now points to num players */
-
-        current->num_players = atoi(cp);
-
-        cp1 = strchr(cp, '|');
-        if (cp1 == NULL) {
-            LOG(LOG_WARNING, "common::metaserver_get_info", "Corrupt line from server: %s", inbuf);
-            break;
-        }
-        *cp1 = 0;
-
-        cp = strchr(cp1+1, '|');
-        if (cp == NULL) {
-            LOG(LOG_WARNING, "common::metaserver_get_info", "Corrupt line from server: %s", inbuf);
-            break;
-        }
-        *cp = 0;
-        /* cp1 is start of version, cp is end */
-        strncpy(current->version, cp1+1, sizeof(current->version)-1);
-        current->version[sizeof(current->version)-1] = '\0';
-
-        *cp1++ = '|';
-        *cp++ = '|';  /* cp now points to comment */
-
-        cp1 = strchr(cp, '\n');
-        if (cp1 == NULL) {
-            LOG(LOG_WARNING, "common::metaserver_get_info", "Corrupt line from server: %s", inbuf);
-            break;
-        }
-        *cp1 = 0;
-        /* There is extra info included, like the bytes to/from the server
-         * that we dont' care about, so strip them off so they don't show up in
-         * the comment.
-         */
-        cp1 = strchr(cp, '|');
-        if (cp1 != NULL) {
-            *cp1 = 0;
-        }
-
-        strncpy(current->text_comment, cp, sizeof(current->text_comment)-1);
-        current->text_comment[sizeof(current->text_comment)-1] = '\0';
-
-        meta_numservers++;
-        /* has to be 1 less than array size, since array starts counting
-         * at 0.
-         */
-        if (meta_numservers >= MAX_METASERVER-1) {
-            LOG(LOG_WARNING, "common:metaserver_get_info", "Have reached maximum metaserver count\n");
-            break;
-        }
-    }
-#ifdef WIN32
-    closesocket(fd);
-#else
-    fclose(fp);
-#endif
-    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
-    ms1_is_running=0;
-    pthread_mutex_unlock(&ms2_info_mutex);
-    pthread_exit(NULL);
-    /* never reached, just to make the compiler happy. */
-    return NULL;
-}
-
-/**
- *
- */
-int metaserver1_get_info(void)
-{
-    pthread_t   thread_id;
-    int	    ret;
-
-    if (!metaserver_on) {
-        return 0;
-    }
-    metaserver_load_cache();
-
-    pthread_mutex_lock(&ms2_info_mutex);
-    if (!meta_servers) {
-        meta_servers = calloc(MAX_METASERVER, sizeof(Meta_Info));
-    }
-
-    ms1_is_running=1;
-    pthread_mutex_unlock(&ms2_info_mutex);
-
-    ret=pthread_create(&thread_id, NULL, metaserver1_thread, NULL);
-    if (ret) {
-        LOG(LOG_ERROR, "common::metaserver1_get_info", "Thread creation failed.");
-        pthread_mutex_lock(&ms2_info_mutex);
-        ms1_is_running=0;
-        pthread_mutex_unlock(&ms2_info_mutex);
-    }
-
-    return 0;
-}
-/******************************************************************************
- * End of metaserver1 logic
  ******************************************************************************/
 
 /******************************************************************************
@@ -865,275 +544,12 @@ int metaserver1_get_info(void)
  * @return
  * Returns 1 if if we are getting data, 0 if nothing is going on right now.
  */
-int metaserver_check_status(void)
-{
+int metaserver_check_status() {
     int status;
 
     pthread_mutex_lock(&ms2_info_mutex);
-    status = ms2_is_running | ms1_is_running;
+    status = ms2_is_running;
     pthread_mutex_unlock(&ms2_info_mutex);
 
     return status;
 }
-
-/**
- * This contacts the metaserver and gets the list of servers.  returns 0
- * on success, 1 on failure.  Errors will get dumped to stderr,
- * so most errors should be reasonably clear.
- * metaserver and meta_port are the server name and port number
- * to connect to.
- */
-int metaserver_get_info(char *metaserver, int meta_port)
-{
-
-    meta_numservers = 0;
-
-    metaserver2_get_info();
-
-    if (metaserver_on) {
-        metaserver1_get_info();
-    }
-
-    return 0;
-}
-
-/**
- * Show the metaservers to the player.  We use draw_ext_info() to do
- * that, and also let the player know they can enter their own host name.
- */
-void metaserver_show(int show_selection)
-{
-    int i;
-    char buf[256];
-
-    if (cached_servers_num) {
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                      "\nLast servers you connected to:\n");
-        for (i = 0; i < cached_servers_num; i++) {
-            snprintf(buf, sizeof(buf), "%2d) %-20.20s %-20.20s", i+1, cached_servers_name[i], cached_servers_ip[i]);
-            draw_ext_info(
-                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, buf);
-        }
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, " ");
-    }
-
-    while(metaserver_check_status()) {
-        usleep(100);
-    }
-
-    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                  " #)     Server        #     version   idle");
-    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                  "         Name      players           seconds");
-    pthread_mutex_lock(&ms2_info_mutex);
-
-    /* Re-sort the data - may get different data from ms1 and ms2, so
-     * order of this is somewhat random.
-     */
-    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *, const void *))meta_sort);
-    for (i = 0; i < meta_numservers; i++) {
-        if (check_server_version(i)) {
-            snprintf(buf, sizeof(buf), "%2d)  %-15.15s %2d   %-12.12s %2d",
-                     i+1+cached_servers_num, meta_servers[i].hostname,
-                     meta_servers[i].num_players, meta_servers[i].version,
-                     meta_servers[i].idle_time);
-            draw_ext_info(
-                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, buf);
-        }
-    }
-    if (show_selection) {
-        /* Show default/current server */
-        if (server) {
-            snprintf(buf, sizeof(buf), "%2d)  %s (default)", meta_numservers+1+cached_servers_num, server);
-            draw_ext_info(
-                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, buf);
-        }
-
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                      "Choose one of the entries above");
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                      "or type in a hostname/ip address");
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                      "Hit enter to re-update this list");
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                      "Enter 0 to exit the program.");
-    }
-    pthread_mutex_unlock(&ms2_info_mutex);
-}
-
-/**
- * String contains the selection that the player made for the metaserver.
- * this may not be a a selection, but could be a host name or ip address.
- * this returns 0 on sucessful selection, 1 if failure (invalid selection
- * or the like.
- */
-int metaserver_select(char *sel)
-{
-    int num = atoi(sel);
-    int port=0;
-    char buf[MAX_BUF], buf2[MAX_BUF];
-    char *server_name = NULL, *server_ip;
-
-    /* User hit return */
-    if (sel[0] == 0) {
-        metaserver_get_info(meta_server, meta_port);
-        metaserver_show(TRUE);
-        return 1;
-    }
-
-    /* Special case - player really entered a 0, so exit the
-     * program.
-     */
-    if (num == 0 && sel[0] == '0') {
-#ifdef WIN32
-        script_killall();
-#endif
-        exit(0);
-    }
-
-    pthread_mutex_lock(&ms2_info_mutex);
-
-    /* if the entry is not a number (selection from the list),
-     * or is a selection but also has a dot (suggesting
-     * a.b.c.d selection), just try to connect with given name.
-     */
-    if (num == 0 || strchr(sel, '.') != NULL) {
-        server_name = sel;
-        server_ip = sel;
-    } else {
-        if (num <= 0 || num > meta_numservers+cached_servers_num+1) {
-            draw_ext_info(
-                NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                "Invalid selection. Try again");
-            return 1;
-        }
-
-        if (num == meta_numservers+cached_servers_num+1) {
-            server_name = server;
-            server_ip = server;
-        } else if (num > cached_servers_num) {
-            server_name = meta_servers[num-cached_servers_num-1 ].hostname;
-            server_ip = meta_servers[num-cached_servers_num-1 ].ip_addr;
-            port = meta_servers[num-cached_servers_num-1 ].port;
-        } else {
-            server_name = cached_servers_name[num-1];
-            server_ip = cached_servers_ip[num-1];
-        }
-    }
-    pthread_mutex_unlock(&ms2_info_mutex);
-    if (!server_name) {
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                      "Bad selection. Try again");
-        return 1;
-    }
-
-    /* check for :port suffix, and use it */
-    if (!port) {
-        if ((sel = strrchr(server_name, ':')) != NULL && (port = atoi(sel+1)) > 0) {
-            snprintf(buf2, sizeof(buf2), "%s", server_name);
-            buf2[sel-server_name] = '\0';
-            server_name = buf2;
-        } else {
-            port = use_config[CONFIG_PORT];
-        }
-    }
-
-    snprintf(buf, sizeof(buf), "Trying to connect to %s:%d", server_name, port);
-    draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER, buf);
-    csocket.fd = init_connection(server_name, port);
-    if (csocket.fd == -1) {
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-                      "Unable to connect to server.");
-        return 1;
-    }
-
-    /*
-     * Upon successful connection, add the server to the cache or move it to
-     * the top of the list.
-     */
-    if ((num <= meta_numservers)
-            &&  (num != meta_numservers + cached_servers_num + 1)) {
-        metaserver_update_cache(server_name, server_ip);
-    }
-
-    return 0;
-}
-
-#ifdef MS_STANDALONE
-/* This is here just to verify that the code seems to be working
- * properly, this tests both metaserver one and metaserver2
- * To use this code, compile as:
- *  gcc -o metaserver -I. -DMS_STANDALONE metaserver.c misc.o -lcurl -lpthread
- *  if you only want to have support for one type of server then use either
- *  -DMS_SA_NOTMS1 or -DMS_SA_NOTMS2 to disable the metaserver you don't want.
- *  The list of servers goes to stdout, the headers for the tables, status messages etc, go to stderr.
- */
-
-/* Following lines are to cover external symbols not
- * defined - trying to bring in the files the are defined
- * in just causes more dependencies, etc.
- */
-void draw_ext_info(int orig_color, int type, int subtype, const char *message) {}
-int init_connection(char *host, int port) {}
-
-int metaserver2_on=1, metaserver_on=1;
-char *server=NULL;
-gint16 use_config[CONFIG_NUMS];
-ClientSocket csocket;
-char *meta_server=META_SERVER;
-int meta_port=META_PORT;
-
-/**
- *
- */
-void handle_ms_data(int msservernum)
-{
-    int i;
-    fprintf(stderr,"Collecting data from metaserver %d.", msservernum);
-    while (metaserver_check_status()) {
-        fprintf(stderr,".");
-        g_usleep(1 * 1e6);
-    }
-    fprintf(stderr, "\nIp Address:Idle Time:Hostname:Players:Version:Comment\n");
-    for (i = 0; i < meta_numservers; i++) {
-        printf("%s:%d:%s:%d:%s:%s\n",
-               meta_servers[i].ip_addr,
-               meta_servers[i].idle_time,
-               meta_servers[i].hostname,
-               meta_servers[i].num_players,
-               meta_servers[i].version,
-               meta_servers[i].text_comment);
-    }
-    fprintf(stderr, "%d servers found\n", meta_numservers);
-}
-
-/**
- *
- */
-int main(int argc, char *argv[])
-{
-
-#ifdef MS_SA_NOTMS2
-    metaserver2_on=0;
-#endif
-#ifdef MS_SA_NOTMS1
-    metaserver_on=0;
-#endif
-
-    init_metaserver();
-    if(metaserver2_on) {
-        metaserver2_get_info();
-        handle_ms_data(2);
-    }
-    /* both metaservers use the same array to store the servers in, so we'll
-     * reset it here in order to get the results from the other metaserver. */
-    free(meta_servers);
-    meta_servers=NULL;
-    meta_numservers = 0;
-    if(metaserver_on) {
-        metaserver1_get_info();
-        handle_ms_data(1);
-    }
-}
-
-#endif

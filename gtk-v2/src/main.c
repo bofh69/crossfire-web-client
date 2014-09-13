@@ -517,7 +517,7 @@ int main(int argc, char *argv[]) {
     client_init();
 
     // Set defaults, load configuration, and parse arguments.
-    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client %s", FULL_VERSION);
+    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client " FULL_VERSION);
     use_config[CONFIG_MAPWIDTH] = 25;
     use_config[CONFIG_MAPHEIGHT] = 25;
 
@@ -548,8 +548,8 @@ int main(int argc, char *argv[]) {
 
         /* Pick a server from the list if not specified on the command line. */
         if (server == NULL) {
-            metaserver_get_info(meta_server, meta_port);
-            get_metaserver();
+            metaserver_get();
+            prompt_metaserver();
         } else {
             use_metaserver = false;
 

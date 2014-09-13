@@ -148,7 +148,7 @@ void metaserver_ui_init() {
  * player has a servers.cache file in their .crossfire folder, the cached
  * server list is added to the contents of the metaserver dialog.
  */
-void get_metaserver() {
+void prompt_metaserver() {
     GtkTreeIter iter;
     char file_cache[MAX_BUF];
     const gchar *metaserver_txt;
@@ -203,7 +203,7 @@ void get_metaserver() {
             const void *))meta_sort);
 
     for (i = 0; i < meta_numservers; i++) {
-        if (check_server_version(i)) {
+        if (metaserver_check_version(i)) {
             gtk_list_store_append(store_metaserver, &iter);
             gtk_list_store_set(store_metaserver, &iter,
                                LIST_HOSTNAME, meta_servers[i].hostname,

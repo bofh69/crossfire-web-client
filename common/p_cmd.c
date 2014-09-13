@@ -474,20 +474,6 @@ static void do_magicmap(const char * ignored)
  *
  * @param ignored
  */
-static void do_metaserver(const char * ignored)
-{
-    if (!metaserver_get_info(meta_server, meta_port)) {
-        metaserver_show(FALSE);
-    } else
-        draw_ext_info(
-            NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_METASERVER,
-            "Unable to get metaserver information.");
-}
-
-/**
- *
- * @param ignored
- */
 static void do_savedefaults(const char * ignored)
 {
     save_defaults();
@@ -612,30 +598,6 @@ static const char * help_savewinpos(void)
         "save window positions - split windows mode only.";
 }
 
-/**
- *
- */
-static const char * help_metaserver(void)
-{
-    /* TODO Add command_escape() where appropriate. On the other
-    hand, that can lead to a meaningless syntax-display API.*/
-
-    return
-        "Syntax:\n"
-        "\n"
-        "    metaserver\n"
-        "\n"
-        "Get updated list of servers "
-        "from the metaserver and show it."
-        "This is the same information that the client "
-        "uses to show a list of servers when it starts.\n"
-        "\n"
-        "Warning: This command may freeze the client until it gets the list.";
-}
-
-/**
- *
- */
 static const char * help_scriptkill(void)
 {
     return
@@ -820,12 +782,6 @@ static ConsoleCommand CommonCommands[] = {
         "magicmap", COMM_CAT_MISC,
         do_magicmap, help_magicmap,
         HELP_MAGICMAP_SHORT
-    },
-
-    {
-        "metaserver", COMM_CAT_INFO,
-        do_metaserver, help_metaserver,
-        "Print 'metaserver information'. Warning - your client will pause."
     },
 
     {

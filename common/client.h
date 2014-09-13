@@ -438,7 +438,7 @@ typedef struct ChildProcess{
 extern const char *const resists_name[NUM_RESISTS];
 extern char *meta_server;
 extern int meta_port;
-extern int metaserver_on, metaserver2_on, serverloginmethod, wantloginmethod;
+extern int metaserver2_on, serverloginmethod, wantloginmethod;
 extern guint32   tick;
 
 /**

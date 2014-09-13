@@ -1,3 +1,6 @@
+2014-09-12	Kevin Zheng
+	* common/: Remove metaserver1 support
+
 2014-08-11	Tolga Dalman
 	* sound-src/Makefile.am: Add missing GLIB link libraries.
 

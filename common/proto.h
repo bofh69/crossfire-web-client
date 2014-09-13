@@ -95,17 +95,10 @@ gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh);
 gint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh);
 void mapdata_animation(void);
 /* metaserver.c */
-int check_server_version(int entry);
-size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *data);
-void *metaserver2_thread(void *junk);
-int metaserver2_get_info(void);
-void init_metaserver(void);
-void *metaserver1_thread(void *junk);
-int metaserver1_get_info(void);
 int metaserver_check_status(void);
-int metaserver_get_info(char *metaserver, int meta_port);
-void metaserver_show(int show_selection);
-int metaserver_select(char *sel);
+int metaserver_check_version(int entry);
+int metaserver_get(void);
+void metaserver_init(void);
 /* misc.c */
 int make_path_to_file(char *filename);
 void LOG(LogLevel level, const char *origin, const char *format, ...);

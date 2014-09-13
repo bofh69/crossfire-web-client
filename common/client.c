@@ -57,8 +57,7 @@ int last_used_skills[MAX_SKILL+1];
 
 int meta_port=META_PORT, want_skill_exp=0,
     replyinfo_status=0, requestinfo_sent=0, replyinfo_last_face=0,
-    maxfd,metaserver_on=METASERVER, metaserver2_on=METASERVER2,
-          wantloginmethod=0, serverloginmethod=0;
+    maxfd, metaserver2_on=METASERVER2, wantloginmethod=0, serverloginmethod=0;
 
 guint32 tick=0;
 
