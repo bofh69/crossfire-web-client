@@ -90,7 +90,7 @@ int cached_servers_num = 0;
 char *cached_servers_name[CACHED_SERVERS_MAX];
 char *cached_servers_ip[CACHED_SERVERS_MAX];
 static int cached_servers_loaded = 0;
-const char *cached_server_file = NULL;
+static const char *cached_server_file = NULL;
 
 /**
  * Load server names and addresses or DNS names from a cache file found in the
@@ -106,9 +106,14 @@ const char *cached_server_file = NULL;
  * number of lines, the loader assumes the last line is an incomplete entry
  * and silently discards it.
  */
-static void metaserver_load_cache(void) {
+static void metaserver_cache_load(void) {
     char name[MS_LARGE_BUF], ip[MS_LARGE_BUF];
+    char file_cache[MAX_BUF];
     FILE *cache;
+
+    /* Load cached server entries. */
+    snprintf(file_cache, MAX_BUF, "%s/servers.cache", cache_dir);
+    cached_server_file = file_cache;
 
     if (cached_servers_loaded || !cached_server_file) {
         return;
@@ -487,7 +492,7 @@ int metaserver_get() {
     return 0;
 #endif
 
-    metaserver_load_cache();
+    metaserver_cache_load();
 
     pthread_mutex_lock(&ms2_info_mutex);
     if (!meta_servers) {

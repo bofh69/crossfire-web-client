@@ -150,15 +150,10 @@ void metaserver_ui_init() {
  */
 void prompt_metaserver() {
     GtkTreeIter iter;
-    char file_cache[MAX_BUF];
     const gchar *metaserver_txt;
     int i, j;
 
     hide_all_login_windows();
-
-    /* Load cached server entries. */
-    snprintf(file_cache, MAX_BUF, "%s/servers.cache", cache_dir);
-    cached_server_file = file_cache;
 
     gtk_widget_show(metaserver_window);
 
@@ -177,13 +172,7 @@ void prompt_metaserver() {
     // Start fetching server information in a separate thread.
     metaserver_get();
 
-    while (metaserver_check_status()) {
-        usleep(100);
-        gtk_main_iteration_do(FALSE);
-    }
-
-    pthread_mutex_lock(&ms2_info_mutex);
-
+    // Populate list with cached server entries.
     if (cached_servers_num) {
         for (i = 0; i < cached_servers_num; i++) {
             for (j = 0; j < meta_numservers; j++) {
@@ -194,13 +183,19 @@ void prompt_metaserver() {
             if (j == meta_numservers) {
                 gtk_list_store_append(store_metaserver, &iter);
                 gtk_list_store_set(store_metaserver, &iter,
-                                   LIST_HOSTNAME, cached_servers_name[i],
-                                   LIST_IPADDR, cached_servers_ip[i],
-                                   LIST_COMMENT, "Cached server entry",
-                                   -1);
+                        LIST_HOSTNAME, cached_servers_name[i],
+                        LIST_IPADDR, cached_servers_ip[i],
+                        LIST_COMMENT, "Cached server entry", -1);
             }
         }
     }
+
+    while (metaserver_check_status()) {
+        usleep(100);
+        gtk_main_iteration_do(FALSE);
+    }
+
+    pthread_mutex_lock(&ms2_info_mutex);
 
     qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *,
             const void *))meta_sort);

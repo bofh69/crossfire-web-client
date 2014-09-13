@@ -52,7 +52,6 @@ extern int cached_servers_num;
 #define CACHED_SERVERS_MAX  10
 extern char* cached_servers_name[ CACHED_SERVERS_MAX ];
 extern char* cached_servers_ip[ CACHED_SERVERS_MAX ];
-extern const char* cached_server_file;
 
 /* Used by GTK-V2 client to maintain servers.cache */
 extern
