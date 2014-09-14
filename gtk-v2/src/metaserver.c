@@ -266,7 +266,7 @@ static void metaserver_connect_to(const char *name) {
         LOG(LOG_DEBUG, "gtk-v2::metaserver_connect_to",
             "Connected to '%s'!", name);
 
-        metaserver_update_cache(name, name);
+        metaserver_cache_add(name, name);
         gtk_main_quit();
         cpl.input_state = Playing;
     } else {

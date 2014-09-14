@@ -89,8 +89,9 @@ int metaserver_check_version(int entry) {
 int cached_servers_num = 0;
 char *cached_servers_name[CACHED_SERVERS_MAX];
 char *cached_servers_ip[CACHED_SERVERS_MAX];
+
 static int cached_servers_loaded = 0;
-static const char *cached_server_file = NULL;
+static char *cached_server_file = NULL;
 
 /**
  * Load server names and addresses or DNS names from a cache file found in the
@@ -108,14 +109,12 @@ static const char *cached_server_file = NULL;
  */
 static void metaserver_cache_load(void) {
     char name[MS_LARGE_BUF], ip[MS_LARGE_BUF];
-    char file_cache[MAX_BUF];
     FILE *cache;
 
-    /* Load cached server entries. */
-    snprintf(file_cache, MAX_BUF, "%s/servers.cache", cache_dir);
-    cached_server_file = file_cache;
+    // The server cache file path should have been set during initialization.
+    g_assert(cached_server_file != NULL);
 
-    if (cached_servers_loaded || !cached_server_file) {
+    if (cached_servers_loaded) {
         return;
     }
 
@@ -142,7 +141,7 @@ static void metaserver_cache_load(void) {
 /**
  *
  */
-static void metaserver_save_cache(void) {
+static void metaserver_cache_save(void) {
     FILE *cache;
     int server;
 
@@ -167,7 +166,7 @@ static void metaserver_save_cache(void) {
  * @param server_name
  * @param server_ip
  */
-void metaserver_update_cache(const char *server_name, const char *server_ip) {
+void metaserver_cache_add(const char *server_name, const char *server_ip) {
     int index;
 
     /*
@@ -228,7 +227,7 @@ void metaserver_update_cache(const char *server_name, const char *server_ip) {
          */
         cached_servers_name[0] = name;
         cached_servers_ip[0] = ip;
-        metaserver_save_cache();
+        metaserver_cache_save();
     }
 }
 
@@ -514,9 +513,17 @@ int metaserver_get() {
 }
 
 /**
- * Does single use initalization of metaserver2 variables.
+ * Initialize metaserver functions. Always call this function before using
+ * any of the metaserver-related functions or variables.
  */
-void metaserver_init(void) {
+void metaserver_init() {
+    char buf[MAX_BUF];
+
+    // Create and store the path to the server cache.
+    g_assert(cache_dir != NULL);
+    snprintf(buf, MAX_BUF, "%s/servers.cache", cache_dir);
+    cached_server_file = g_strdup(buf);
+
     pthread_mutex_init(&ms2_info_mutex, NULL);
 #ifdef HAVE_CURL_CURL_H
     curl_global_init(CURL_GLOBAL_ALL);

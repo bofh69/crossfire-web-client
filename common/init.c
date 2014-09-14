@@ -213,8 +213,10 @@ void client_init() {
 
     init_commands();
     init_config();
-    metaserver_init();
     init_paths();
+
+    // Paths must be set before metaserver can be initialized.
+    metaserver_init();
 
     // Seed pseudo-random number generator.
     srandom(time(NULL));

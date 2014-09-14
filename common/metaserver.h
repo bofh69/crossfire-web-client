@@ -55,7 +55,7 @@ extern char* cached_servers_ip[ CACHED_SERVERS_MAX ];
 
 /* Used by GTK-V2 client to maintain servers.cache */
 extern
-void metaserver_update_cache(const char *server_name, const char *server_ip);
+void metaserver_cache_add(const char *server_name, const char *server_ip);
 
 int metaserver_check_status(void);
 int metaserver_check_version(int entry);
