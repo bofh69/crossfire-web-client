@@ -81,9 +81,9 @@ int mapupdatesent = 0;
 
 char *news=NULL, *motd=NULL, *rules=NULL;
 
-int spellmon_level = 0;                 /**< Keeps track of what spellmon
-                                         *   command is supported by the
-                                         *   server. */
+/** Keeps track of what spellmon command is supported by the server. */
+static int spellmon_level = 0;
+
 int num_races = 0;    /* Number of different races server has */
 int used_races = 0;   /* How many races we have filled in */
 
@@ -169,8 +169,7 @@ void free_all_starting_map_info()
  * @param len
  * length of data.
  */
-static void get_starting_map_info(char *data, int len)
-{
+static void get_starting_map_info(unsigned char *data, int len) {
     int pos, type, length, map_entry=-1;
     char *cp;
 
@@ -193,7 +192,7 @@ static void get_starting_map_info(char *data, int len)
         }
 
         cp = g_malloc(length+1);
-        strncpy(cp, data+pos, length);
+        strncpy(cp, (char *)data + pos, length);
         cp[length] = 0;
 
         pos += length;
@@ -245,8 +244,7 @@ static void get_starting_map_info(char *data, int len)
  * @param len
  * length of data.
  */
-static void get_new_char_info(char *data, int len)
-{
+static void get_new_char_info(unsigned char *data, int len) {
     int olen=0, llen;
 
     /* We reset these values - if the user is switching between
@@ -293,7 +291,7 @@ static void get_new_char_info(char *data, int len)
             return;
         }
 
-        cp = data + olen;
+        cp = (char *)data + olen;
         /* Go until we find another space */
         while (olen <= len) {
             if (isspace(data[olen])) {
@@ -313,11 +311,11 @@ static void get_new_char_info(char *data, int len)
          * (variable value).
          */
         if (!g_ascii_strcasecmp(cp,"points")) {
-            stat_points = atoi(data+olen);
+            stat_points = atoi((char *)data + olen);
             olen = llen + 1;
             continue;
         } else if (!g_ascii_strcasecmp(cp,"statrange")) {
-            if (sscanf(data + olen, "%d %d", &stat_min, &stat_maximum)!=2) {
+            if (sscanf((char *)data + olen, "%d %d", &stat_min, &stat_maximum) != 2) {
                 LOG(LOG_WARNING, "common::get_new_char_info",
                     "Unable to process statrange line (%s)", data + olen);
             }
@@ -337,7 +335,8 @@ static void get_new_char_info(char *data, int len)
 
             while (olen < llen) {
                 for (i=0; i < NUM_STATS; i++) {
-                    if (!g_ascii_strncasecmp(data + olen, short_stat_name[i], strlen(short_stat_name[i]))) {
+                    if (!g_ascii_strncasecmp((char *)data + olen,
+                            short_stat_name[i], strlen(short_stat_name[i]))) {
                         matches++;
                         olen += strlen(short_stat_name[i]) + 1;
                         break;
@@ -356,14 +355,14 @@ static void get_new_char_info(char *data, int len)
             olen = llen + 1;
             continue;
         } else if (!g_ascii_strcasecmp(cp,"race") || !g_ascii_strcasecmp(cp,"class")) {
-            if (g_ascii_strcasecmp(data+olen, "requestinfo")) {
+            if (g_ascii_strcasecmp((char *)data + olen, "requestinfo")) {
                 LOG(LOG_WARNING, "common::get_new_char_info",
                     "Got unexpected value for %s: %s", cp, data+olen);
             }
             olen = llen + 1;
             continue;
         } else if (!g_ascii_strcasecmp(cp,"startingmap")) {
-            if (g_ascii_strcasecmp(data+olen, "requestinfo")) {
+            if (g_ascii_strcasecmp((char *)data + olen, "requestinfo")) {
                 LOG(LOG_WARNING, "common::get_new_char_info",
                     "Got unexpected value for %s: %s", cp, data+olen);
             } else {
@@ -467,11 +466,8 @@ void free_all_race_class_info(Race_Class_Info *data, int num_entries)
  * @param rci
  * Where to store the data.
  */
-static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
-{
-    char *cp, *nl;
-
-    cp = data;
+static void process_race_class_info(unsigned char *data, int len, Race_Class_Info *rci) {
+    char *cp = (char *)data, *nl;
 
     /* First thing is to process the remaining bit of the requestinfo line,
      * which is the archetype name for this race/class
@@ -512,8 +508,9 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
              */
             int namelen;
 
-            namelen = GetChar_String(nl);
-            ASSERT_LEN("common::process_race_class_info", nl + namelen, data + len);
+            namelen = GetChar_String((unsigned char *)nl);
+            ASSERT_LEN("common::process_race_class_info",
+                    (unsigned char *)nl + namelen, data + len);
             nl++;
             rci->public_name = g_malloc(namelen+1);
             strncpy(rci->public_name, nl, namelen);
@@ -524,7 +521,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             /* This loop goes through the stat values - *cp points to the stat
              * value - if 0, no more stats, hence the check here.
              */
-            while (cp < data + len && *cp != 0) {
+            while (cp < (char *)data + len && *cp != 0) {
                 int i;
 
                 for (i=0; i < NUM_NEW_CHAR_STATS; i++)
@@ -538,7 +535,8 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
                         "Unknown stat value: %d", cp);
                     return;
                 }
-                rci->stat_adj[stat_mapping[i].rc_offset] = GetShort_String(cp+1);
+                rci->stat_adj[stat_mapping[i].rc_offset] =
+                        GetShort_String((unsigned char *)cp + 1);
                 cp += 3;
             }
             cp++;   /* Skip over 0 terminator */
@@ -548,8 +546,9 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
              */
             int msglen;
 
-            msglen = GetShort_String(nl);
-            ASSERT_LEN("common::process_race_class_info", nl + msglen, data + len);
+            msglen = GetShort_String((unsigned char *)nl);
+            ASSERT_LEN("common::process_race_class_info",
+                    (unsigned char *)nl + msglen, data + len);
             nl+=2;
             rci->description = g_malloc(msglen+1);
             strncpy(rci->description, nl, msglen);
@@ -566,18 +565,20 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             cp = nl;
 
             /* First is the coice string we return */
-            clen = GetChar_String(cp);
+            clen = GetChar_String((unsigned char *)cp);
             cp++;
-            ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
+            ASSERT_LEN("common::process_race_class_info",
+                    (unsigned char *)cp + clen, data + len);
             rci->rc_choice[oc].choice_name = g_malloc(clen+1);
             strncpy(rci->rc_choice[oc].choice_name, cp, clen);
             rci->rc_choice[oc].choice_name[clen] = 0;
             cp += clen;
 
             /* Next is the description */
-            clen = GetChar_String(cp);
+            clen = GetChar_String((unsigned char *)cp);
             cp++;
-            ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
+            ASSERT_LEN("common::process_race_class_info",
+                    (unsigned char *)cp + clen, data + len);
             rci->rc_choice[oc].choice_desc = g_malloc(clen+1);
             strncpy(rci->rc_choice[oc].choice_desc, cp, clen);
             rci->rc_choice[oc].choice_desc[clen] = 0;
@@ -587,7 +588,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             while (1) {
                 int vn;
 
-                clen = GetChar_String(cp);
+                clen = GetChar_String((unsigned char *)cp);
                 cp++;
                 if (!clen) {
                     break;    /* 0 length is end of data */
@@ -599,15 +600,17 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
                 rci->rc_choice[oc].value_desc = g_realloc(rci->rc_choice[oc].value_desc,
                                                         sizeof(char*) * rci->rc_choice[oc].num_values);
 
-                ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
+                ASSERT_LEN("common::process_race_class_info",
+                        (unsigned char *)cp + clen, data + len);
                 rci->rc_choice[oc].value_arch[vn] = g_malloc(clen+1);
                 strncpy(rci->rc_choice[oc].value_arch[vn], cp, clen);
                 rci->rc_choice[oc].value_arch[vn][clen] = 0;
                 cp += clen;
 
-                clen = GetChar_String(cp);
+                clen = GetChar_String((unsigned char *)cp);
                 cp++;
-                ASSERT_LEN("common::process_race_class_info", cp + clen, data + len);
+                ASSERT_LEN("common::process_race_class_info",
+                        (unsigned char *)cp + clen, data + len);
                 rci->rc_choice[oc].value_desc[vn] = g_malloc(clen+1);
                 strncpy(rci->rc_choice[oc].value_desc[vn], cp, clen);
                 rci->rc_choice[oc].value_desc[vn][clen] = 0;
@@ -621,7 +624,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
             LOG(LOG_WARNING, "common::process_race_class_info", "Got unknown keyword: %s", cp);
             break;
         }
-    } while (cp < data+len);
+    } while ((unsigned char *)cp < data + len);
 
     /* The display code expects all of these to have a description -
      * rather than add checks there for NULL values, simpler to
@@ -642,9 +645,7 @@ static void process_race_class_info(char *data, int len, Race_Class_Info *rci)
  * @param len
  * length of data.
  */
-static void get_race_info(char *data, int len)
-{
-
+static void get_race_info(unsigned char *data, int len) {
     /* This should not happen - the client is only requesting race info for
      * races it has received - and it knows how many of those it has.
      */
@@ -675,9 +676,7 @@ static void get_race_info(char *data, int len)
  * @param len
  * length of data.
  */
-static void get_class_info(char *data, int len)
-{
-
+static void get_class_info(unsigned char *data, int len) {
     /* This should not happen - the client is only requesting race info for
      * classes it has received - and it knows how many of those it has.
      */
@@ -772,9 +771,8 @@ static void get_skill_info(char *data, int len)
  * @param buf
  * @param len
  */
-void ReplyInfoCmd(guint8 *buf, int len)
-{
-    guint8 *cp;
+void ReplyInfoCmd(unsigned char *buf, int len) {
+    unsigned char *cp;
     int i;
 
     /* Covers a bug in the server in that it could send a replyinfo with no
@@ -815,22 +813,22 @@ void ReplyInfoCmd(guint8 *buf, int len)
         if (motd) {
             free((char*)motd);
         }
-        motd = g_strdup(cp);
+        motd = g_strdup((char *)cp);
         update_login_info(INFO_MOTD);
     } else if (!strcmp((char*)buf, "news")) {
         if (news) {
             free((char*)news);
         }
-        news = g_strdup(cp);
+        news = g_strdup((char *)cp);
         update_login_info(INFO_NEWS);
     } else if (!strcmp((char*)buf, "rules")) {
         if (rules) {
             free((char*)rules);
         }
-        rules = g_strdup(cp);
+        rules = g_strdup((char *)cp);
         update_login_info(INFO_RULES);
     } else if (!strcmp((char*)buf, "race_list")) {
-        char *cp1;
+        unsigned char *cp1;
         for (cp1=cp; *cp !=0; cp++) {
             if (*cp == '|') {
                 *cp++ = '\0';
@@ -856,7 +854,7 @@ void ReplyInfoCmd(guint8 *buf, int len)
         races = calloc(num_races, sizeof(Race_Class_Info));
 
     }  else if (!strcmp((char*)buf, "class_list")) {
-        char *cp1;
+        unsigned char *cp1;
         for (cp1=cp; *cp !=0; cp++) {
             if (*cp == '|') {
                 *cp++ = '\0';
@@ -2451,9 +2449,7 @@ void FailureCmd(char *buf, int len)
 /**
  * This handles the accountplayers command
  */
-void AccountPlayersCmd(char *buf, int len)
-{
-
+void AccountPlayersCmd(char *buf, int len) {
     int level, pos, flen, faceno;
     char name[MAX_BUF], class[MAX_BUF], race[MAX_BUF],
             face[MAX_BUF], party[MAX_BUF], map[MAX_BUF];
@@ -2528,10 +2524,10 @@ void AccountPlayersCmd(char *buf, int len)
             break;
 
         case ACL_LEVEL:
-            level = GetShort_String(buf+pos+1);
+            level = GetShort_String((unsigned char *)buf + pos + 1);
             break;
         case ACL_FACE_NUM:
-            faceno = GetShort_String(buf+pos+1);
+            faceno = GetShort_String((unsigned char *)buf + pos + 1);
             break;
         }
         pos += flen;
