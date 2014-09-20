@@ -1073,29 +1073,30 @@ static void send_map(int i, int x, int y)
     write(scripts[i].out_fd, buf, strlen(buf));
 }
 
-static void script_process_cmd(int i)
-{
+/**
+ * Process a single script command from the given script. This function
+ * removes the processed command from the buffer when finished.
+ * @param i Index of the script to process a command from
+ */
+static void script_process_cmd(int i) {
     char cmd[1024];
     char *c;
-    int l;
 
-    /*
-     * Strip out just this one command
-     */
-    for (l = 0; l < scripts[i].cmd_count; ++l) {
-        if (scripts[i].cmd[l] == '\n') {
-            break;
-        }
+    // Find the length of the command up to the trailing newline.
+    int l = strcspn(scripts[i].cmd, "\n") + 1;
+
+    // Copy a single command up until the newline into a buffer.
+    g_strlcpy(cmd, scripts[i].cmd, l);
+
+    // If a carriage return is present, trim it out as well.
+    char *cr = strchr(cmd, '\r');
+    if (cr != NULL) {
+        *cr = '\0';
     }
-    ++l;
-    memcpy(cmd, scripts[i].cmd, l);
-#ifndef WIN32
-    cmd[l-1] = 0;
-#else
-    cmd[l-2] = 0;
-#endif
+
+    // Remove a single command from the script command buffer.
     if (l < scripts[i].cmd_count) {
-        memmove(scripts[i].cmd, scripts[i].cmd+l, scripts[i].cmd_count-l);
+        memmove(scripts[i].cmd, scripts[i].cmd + l, scripts[i].cmd_count - l);
         scripts[i].cmd_count -= l;
     } else {
         scripts[i].cmd_count = 0;
