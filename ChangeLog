@@ -1,3 +1,7 @@
+2014-09-21	Kevin Zheng
+	* gtk-v2/src/inventory.c: Indicate which items are being applied in
+	the inventory icon view using a solid background color.
+
 2014-09-12	Kevin Zheng
 	* common/: Remove metaserver1 support
 

@@ -39,6 +39,9 @@
 
 GtkWidget *treeview_look;
 
+/** Color to use to indicate that an item is applied. */
+static const GdkColor applied_color = {0, 50000, 50000, 50000};
+
 static GtkTooltips *inv_table_tooltips;
 static GtkTreeStore *store_look;
 static GtkWidget *encumbrance_current;
@@ -986,6 +989,15 @@ void draw_inv_table(int animate) {
             /* Draw the inventory icon image to the table. */
             draw_inv_table_icon(inv_table_children[x][y]->window,
                     pixmaps[tmp->face]->icon_image);
+
+            // Draw an extra indicator if the item is applied.
+            if (tmp->applied) {
+                gtk_widget_modify_bg(inv_table_children[x][y],
+                        GTK_STATE_NORMAL, &applied_color);
+            } else {
+                gtk_widget_modify_bg(inv_table_children[x][y],
+                        GTK_STATE_NORMAL, NULL);
+            }
 
             gtk_widget_show(inv_table_children[x][y]);
             /*
