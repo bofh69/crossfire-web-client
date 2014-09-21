@@ -82,9 +82,12 @@ static GtkStyle *inv_styles[Style_Last];
 #define INV_SHOW_ITEM   0x1
 #define INV_SHOW_COLOR  0x2
 
-enum {
-    INV_TREE,
-    INV_TABLE
+/**
+ * @enum display_type
+ * Indicate how an inventory tab should be drawn
+ */
+enum display_type {
+    INV_TREE, INV_TABLE
 };
 
 static int num_inv_notebook_pages = 0;
@@ -97,11 +100,7 @@ typedef struct {
                                  * INV_SHOW_* above on whether to show this
                                  * item and if it should be shown in color
                                  */
-    int type; /**< Type of widget - currently unused, but I'm
-                                 * thinking it might be nice to have a pane
-                                 * just of icon view or something, and need
-                                 * some way to show that
-                                 */
+    enum display_type type; /**< Type of widget */
     GtkWidget *treeview; /**< treeview widget for this tab */
     GtkTreeStore *treestore; /**< store of data for treeview */
 } Notebook_Info;
@@ -160,14 +159,23 @@ Notebook_Info inv_notebooks[NUM_INV_LISTS] = {
     {"icons", "Icon View", NULL, show_all, INV_TABLE}
 };
 
-enum {
+/**
+ * @enum list_property
+ * Constants used to refer to columns in the inventory list view
+ */
+enum list_property {
     LIST_NONE, LIST_ICON, LIST_NAME, LIST_WEIGHT, LIST_OBJECT, LIST_BACKGROUND, LIST_TYPE,
     LIST_BASENAME, LIST_FOREGROUND, LIST_FONT, LIST_NUM_COLUMNS
 };
 
-#define ITEM_INVENTORY      0x1
-#define ITEM_GROUND         0x2
-#define ITEM_IN_CONTAINER   0x4
+/**
+ * @enum item_env
+ * Describe where an item is. These constants must be kept as-is for use in
+ * a few bitwise operations.
+ */
+enum item_env {
+    ITEM_INVENTORY = 0x1, ITEM_GROUND = 0x2, ITEM_IN_CONTAINER = 0x4
+};
 
 /**
  * Returns information on the environment of the item, using the return values
@@ -350,11 +358,9 @@ static void setup_list_columns(GtkWidget *treeview) {
      * better for the image to always be at the far left - without this
      * alignment, the image is centered which IMO doesn't always look good.
      */
-    g_object_set(G_OBJECT(renderer), "xalign", 0.0,
-            NULL);
+    g_object_set(G_OBJECT(renderer), "xalign", 0.0, NULL);
     column = gtk_tree_view_column_new_with_attributes("?", renderer,
-            "pixbuf", LIST_ICON,
-            NULL);
+            "pixbuf", LIST_ICON, NULL);
 
     /*  gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);*/
     gtk_tree_view_column_set_min_width(column, image_size);
@@ -363,8 +369,7 @@ static void setup_list_columns(GtkWidget *treeview) {
 
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Name", renderer,
-            "text", LIST_NAME,
-            NULL);
+            "text", LIST_NAME, NULL);
     gtk_tree_view_column_set_expand(column, TRUE);
     gtk_tree_view_column_set_sort_column_id(column, LIST_BASENAME);
 
@@ -377,8 +382,7 @@ static void setup_list_columns(GtkWidget *treeview) {
 
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Weight", renderer,
-            "text", LIST_WEIGHT,
-            NULL);
+            "text", LIST_WEIGHT, NULL);
     /*
      * At 50, the title was always truncated on some systems.  64 is the
      * minimum on those systems for it to be possible to avoid truncation at
