@@ -89,8 +89,6 @@ extern void on_msgctrl_button_apply_clicked(GtkButton *button, gpointer user_dat
 extern void on_msgctrl_button_close_clicked(GtkButton *button, gpointer user_data);
 extern void on_msgctrl_activate(GtkMenuItem *menuitem, gpointer user_data);
 /* inventory.c */
-extern gboolean list_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
-extern void list_row_collapse(GtkTreeView *treeview, GtkTreeIter *iter, GtkTreePath *path, gpointer user_data);
 extern void inventory_get_styles(void);
 extern void inventory_init(GtkWidget *window_root);
 extern void set_show_icon(const char *s);
@@ -103,16 +101,7 @@ extern void item_event_item_deleting(item *it);
 extern void item_event_container_clearing(item *container);
 extern void item_event_item_changed(item *it);
 extern void draw_look_list(void);
-extern void draw_inv_list(int tab);
-extern gboolean drawingarea_inventory_table_button_press_event(GtkWidget *widget, GdkEventButton *event, gpointer user_data);
-extern gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
-extern void draw_inv_table(int animate);
-extern void draw_inv(int tab);
 extern void draw_lists(void);
-extern void on_notebook_switch_page(GtkNotebook *notebook, GtkNotebookPage *page, guint page_num, gpointer user_data);
-extern gboolean on_inv_table_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
-extern void animate_inventory(void);
-extern void animate_look(void);
 extern void inventory_tick(void);
 /* keys.c */
 extern void keybindings_init(const char *character_name);

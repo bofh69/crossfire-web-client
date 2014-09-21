@@ -58,7 +58,7 @@ static double weight_limit;
  */
 #define MAX_INV_COLUMNS 20
 #define MAX_INV_ROWS    100
-GtkWidget *inv_table_children[MAX_INV_ROWS][MAX_INV_COLUMNS];
+static GtkWidget *inv_table_children[MAX_INV_ROWS][MAX_INV_COLUMNS];
 
 /* Different styles we recognize */
 enum Styles {
@@ -105,6 +105,12 @@ typedef struct {
     GtkTreeStore *treestore; /**< store of data for treeview */
 } Notebook_Info;
 
+/* Prototypes for static functions */
+static gboolean on_inv_table_expose_event(GtkWidget *widget,
+        GdkEventExpose *event, gpointer user_data);
+static void on_notebook_switch_page(GtkNotebook *notebook,
+        GtkNotebookPage *page, guint page_num, gpointer user_data);
+
 static int show_all(item *it) {
     return INV_SHOW_ITEM | INV_SHOW_COLOR;
 }
@@ -145,7 +151,7 @@ static int show_unidentified(item *it) {
     return ((it->flagsval & F_UNIDENTIFIED) ? INV_SHOW_ITEM : 0);
 }
 
-Notebook_Info inv_notebooks[NUM_INV_LISTS] = {
+static Notebook_Info inv_notebooks[NUM_INV_LISTS] = {
     {"all", "All", all_xpm, show_all, INV_TREE},
     {"applied", "Applied", hand_xpm, show_applied, INV_TREE},
     {"unapplied", "Unapplied", hand2_xpm, show_unapplied, INV_TREE},
@@ -274,8 +280,9 @@ static void list_item_action(GdkEventButton *event, item *tmp) {
  * @param userdata
  * @return FALSE
  */
-gboolean list_selection_func(GtkTreeSelection *selection, GtkTreeModel *model,
-        GtkTreePath *path, gboolean path_currently_selected, gpointer userdata) {
+static gboolean list_selection_func(GtkTreeSelection *selection,
+        GtkTreeModel *model, GtkTreePath *path,
+        gboolean path_currently_selected, gpointer userdata) {
     GtkTreeIter iter;
     GdkEventButton *event;
 
@@ -313,7 +320,7 @@ gboolean list_selection_func(GtkTreeSelection *selection, GtkTreeModel *model,
  * @param path
  * @param user_data
  */
-void list_row_collapse(GtkTreeView *treeview, GtkTreeIter *iter,
+static void list_row_collapse(GtkTreeView *treeview, GtkTreeIter *iter,
         GtkTreePath *path, gpointer user_data) {
     GtkTreeModel *model;
     item *tmp;
@@ -783,7 +790,7 @@ void draw_look_list() {
  *
  * @param tab
  */
-void draw_inv_list(int tab) {
+static void draw_inv_list(int tab) {
     item *tmp;
     GtkTreeIter iter;
     int rowflag;
@@ -842,10 +849,8 @@ void draw_inv_list(int tab) {
  * @param user_data
  * @return TRUE
  */
-gboolean
-drawingarea_inventory_table_button_press_event(GtkWidget *widget,
-        GdkEventButton *event,
-        gpointer user_data) {
+static gboolean drawingarea_inventory_table_button_press_event(
+    GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
     list_item_action(event, (item*) user_data);
     return TRUE;
 }
@@ -866,7 +871,7 @@ static void draw_inv_table_icon(GdkWindow *dst, const void *image) {
  * @param user_data
  * @return TRUE
  */
-gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
+static gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
         GdkEventExpose *event, gpointer user_data) {
     item *tmp;
 
@@ -893,7 +898,7 @@ object.  Shift middle click marks the object"
  * @param animate If non-zero, then this is an animation run - flip the
  * animation state of the objects, and only draw those that need to be drawn.
  */
-void draw_inv_table(int animate) {
+static void draw_inv_table(int animate) {
     int x, y, rows, columns, num_items, i;
     static int max_drawn = 0;
     item *tmp;
@@ -1069,7 +1074,7 @@ void draw_inv_table(int animate) {
  *
  * @param tab
  */
-void draw_inv(int tab) {
+static void draw_inv(int tab) {
     char buf[256];
 
     snprintf(buf, sizeof (buf), "%6.1f", cpl.ob->weight);
@@ -1120,11 +1125,8 @@ void draw_lists() {
  * @param page_num
  * @param user_data
  */
-void
-on_notebook_switch_page(GtkNotebook *notebook,
-        GtkNotebookPage *page,
-        guint page_num,
-        gpointer user_data) {
+static void on_notebook_switch_page(GtkNotebook *notebook,
+        GtkNotebookPage *page, guint page_num, gpointer user_data) {
     int oldpage;
 
     oldpage = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
@@ -1141,10 +1143,8 @@ on_notebook_switch_page(GtkNotebook *notebook,
  * @param user_data
  * @return TRUE
  */
-gboolean
-on_inv_table_expose_event(GtkWidget *widget,
-        GdkEventExpose *event,
-        gpointer user_data) {
+static gboolean on_inv_table_expose_event(GtkWidget *widget,
+        GdkEventExpose *event, gpointer user_data) {
     draw_inv_table(0);
     return TRUE;
 }
@@ -1152,7 +1152,7 @@ on_inv_table_expose_event(GtkWidget *widget,
 /**
  *
  */
-void animate_inventory() {
+static void animate_inventory() {
     gboolean valid;
     GtkTreeIter iter;
     item *tmp;
@@ -1223,7 +1223,7 @@ void animate_inventory() {
 /**
  *
  */
-void animate_look() {
+static void animate_look() {
     gboolean valid;
     GtkTreeIter iter;
     item *tmp;
