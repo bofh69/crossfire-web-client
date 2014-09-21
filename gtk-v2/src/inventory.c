@@ -144,17 +144,17 @@ static int show_unidentified(item *it) {
 }
 
 Notebook_Info inv_notebooks[NUM_INV_LISTS] = {
-    {"all", "All Items", all_xpm, show_all, INV_TREE},
-    {"applied", "Applied Items", hand_xpm, show_applied, INV_TREE},
-    {"unapplied", "Unapplied Items", hand2_xpm, show_unapplied, INV_TREE},
-    {"unpaid", "Unpaid items", coin_xpm, show_unpaid, INV_TREE},
-    {"cursed", "Cursed items", skull_xpm, show_cursed, INV_TREE},
-    {"magical", "Magical items", mag_xpm, show_magical, INV_TREE},
-    {"nonmagical", "Nonmagical items", nonmag_xpm, show_nonmagical, INV_TREE},
-    {"locked", "Inventory locked items", lock_xpm, show_locked, INV_TREE},
-    {"unlocked", "Inventory unlocked items", unlock_xpm, show_unlocked, INV_TREE},
-    {"unidentified", "Inventory unidentified items", unidentified_xpm, show_unidentified, INV_TREE},
-    {"icons", "Quick icon view", NULL, show_all, INV_TABLE}
+    {"all", "All", all_xpm, show_all, INV_TREE},
+    {"applied", "Applied", hand_xpm, show_applied, INV_TREE},
+    {"unapplied", "Unapplied", hand2_xpm, show_unapplied, INV_TREE},
+    {"unpaid", "Unpaid", coin_xpm, show_unpaid, INV_TREE},
+    {"cursed", "Cursed", skull_xpm, show_cursed, INV_TREE},
+    {"magical", "Magical", mag_xpm, show_magical, INV_TREE},
+    {"nonmagical", "Non-magical", nonmag_xpm, show_nonmagical, INV_TREE},
+    {"locked", "Locked", lock_xpm, show_locked, INV_TREE},
+    {"unlocked", "Unlocked", unlock_xpm, show_unlocked, INV_TREE},
+    {"unidentified", "Unidentified", unidentified_xpm, show_unidentified, INV_TREE},
+    {"icons", "Icon View", NULL, show_all, INV_TABLE}
 };
 
 enum {
