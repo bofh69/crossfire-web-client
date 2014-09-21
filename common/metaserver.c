@@ -240,7 +240,7 @@ void metaserver_cache_add(const char *server_name, const char *server_ip) {
  *
  ******************************************************************************/
 
-pthread_mutex_t ms2_info_mutex;
+GMutex ms2_info_mutex;
 
 /* we use threads so that the GUI keeps responding while we wait for
  * data.  But we need to note if the thread is running or not,
@@ -308,7 +308,7 @@ static size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *dat
      * slow machines, so putting the lock here, instead of each time
      * we update a variable is cleaner
      */
-    pthread_mutex_lock(&ms2_info_mutex);
+    g_mutex_lock(&ms2_info_mutex);
 
     for (cp = inbuf; cp != NULL && *cp != 0; cp = newline) {
         newline = strchr(cp, '\n');
@@ -407,7 +407,7 @@ static size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *dat
             }
         }
     }
-    pthread_mutex_unlock(&ms2_info_mutex);
+    g_mutex_unlock(&ms2_info_mutex);
     return realsize;
 #else
     return 0;
@@ -455,7 +455,7 @@ static int get_metaserver2_data(char *metaserver2) {
  * @return
  * exits when job is done, no return value.
  */
-static void *metaserver2_thread(void *junk) {
+static void *metaserver2_thread() {
     int metaserver_choice, tries = 0;
 
     do {
@@ -466,12 +466,11 @@ static void *metaserver2_thread(void *junk) {
         }
     } while (!get_metaserver2_data(metaservers[metaserver_choice]));
 
-    pthread_mutex_lock(&ms2_info_mutex);
+    g_mutex_lock(&ms2_info_mutex);
     qsort(meta_servers, meta_numservers, sizeof (Meta_Info), (int (*)(const void *, const void *))meta_sort);
     ms2_is_running = 0;
-    pthread_mutex_unlock(&ms2_info_mutex);
-    pthread_exit(NULL);
-    // never reached, just to make the compiler happy.
+    g_mutex_unlock(&ms2_info_mutex);
+    g_thread_exit(NULL);
     return NULL;
 }
 
@@ -479,8 +478,7 @@ static void *metaserver2_thread(void *junk) {
  * Fetch a list of public servers from the official metaserver.
  */
 int metaserver_get() {
-    pthread_t thread_id;
-    int ret;
+    GThread *thread;
 
     meta_numservers = 0;
 
@@ -493,20 +491,20 @@ int metaserver_get() {
 
     metaserver_cache_load();
 
-    pthread_mutex_lock(&ms2_info_mutex);
+    g_mutex_lock(&ms2_info_mutex);
     if (!meta_servers) {
         meta_servers = calloc(MAX_METASERVER, sizeof (Meta_Info));
     }
 
     ms2_is_running = 1;
-    pthread_mutex_unlock(&ms2_info_mutex);
+    g_mutex_unlock(&ms2_info_mutex);
 
-    ret = pthread_create(&thread_id, NULL, metaserver2_thread, NULL);
-    if (ret) {
+    thread = g_thread_try_new("metaserver", metaserver2_thread, NULL, NULL);
+    if (thread == NULL) {
         LOG(LOG_ERROR, "common::metaserver2_get_info", "Thread creation failed.");
-        pthread_mutex_lock(&ms2_info_mutex);
+        g_mutex_lock(&ms2_info_mutex);
         ms2_is_running = 0;
-        pthread_mutex_unlock(&ms2_info_mutex);
+        g_mutex_unlock(&ms2_info_mutex);
     }
 
     return 0;
@@ -524,7 +522,6 @@ void metaserver_init() {
     snprintf(buf, MAX_BUF, "%s/servers.cache", cache_dir);
     cached_server_file = g_strdup(buf);
 
-    pthread_mutex_init(&ms2_info_mutex, NULL);
 #ifdef HAVE_CURL_CURL_H
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
@@ -552,9 +549,9 @@ void metaserver_init() {
 int metaserver_check_status() {
     int status;
 
-    pthread_mutex_lock(&ms2_info_mutex);
+    g_mutex_lock(&ms2_info_mutex);
     status = ms2_is_running;
-    pthread_mutex_unlock(&ms2_info_mutex);
+    g_mutex_unlock(&ms2_info_mutex);
 
     return status;
 }

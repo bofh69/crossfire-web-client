@@ -195,7 +195,7 @@ void prompt_metaserver() {
         gtk_main_iteration_do(FALSE);
     }
 
-    pthread_mutex_lock(&ms2_info_mutex);
+    g_mutex_lock(&ms2_info_mutex);
 
     qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *,
             const void *))meta_sort);
@@ -213,7 +213,7 @@ void prompt_metaserver() {
                                -1);
         }
     }
-    pthread_mutex_unlock(&ms2_info_mutex);
+    g_mutex_unlock(&ms2_info_mutex);
     if (server) {
         gtk_list_store_append(store_metaserver, &iter);
         gtk_list_store_set(store_metaserver, &iter,

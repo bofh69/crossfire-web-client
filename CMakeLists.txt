@@ -16,7 +16,6 @@ set(CMAKE_C_FLAGS "-std=c99")
 
 # Set standard installation paths.
 include(GNUInstallDirs)
-
 set(CMAKE_INSTALL_DATADIR ${CMAKE_INSTALL_DATAROOTDIR}/crossfire-client)
 
 # Look for required dependencies.
@@ -73,7 +72,6 @@ set(HAVE_SDL ${SDL_FOUND})
 
 include(CheckIncludeFiles)
 check_include_files(fcntl.h HAVE_FCNTL_H)
-check_include_files(pthread.h HAVE_PTHREAD_H)
 check_include_files(sys/time.h HAVE_SYS_TIME_H)
 check_include_files(unistd.h HAVE_UNISTD_H)
 

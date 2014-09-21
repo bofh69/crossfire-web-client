@@ -32,10 +32,6 @@
 #  include <winsock2.h>
 #endif
 
-#ifdef HAVE_PTHREAD_H
-#  include <pthread.h>
-#endif
-
 #ifndef SOL_TCP
 #define SOL_TCP IPPROTO_TCP
 #endif

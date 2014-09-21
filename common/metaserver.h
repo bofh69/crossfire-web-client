@@ -40,7 +40,7 @@ extern Meta_Info *meta_servers;
 /* Before accessing the metaservers structure,
  * a lock against this is needed
  */
-extern pthread_mutex_t ms2_info_mutex;
+extern GMutex ms2_info_mutex;
 
 /* Needs to be here because gtk2 client needs to resort for example */
 extern int meta_sort(Meta_Info *m1, Meta_Info *m2);
