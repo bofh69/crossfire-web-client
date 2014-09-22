@@ -217,9 +217,6 @@ void client_init() {
 
     // Paths must be set before metaserver can be initialized.
     metaserver_init();
-
-    // Seed pseudo-random number generator.
-    srandom(time(NULL));
 }
 
 /**
