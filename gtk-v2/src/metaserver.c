@@ -22,7 +22,6 @@
 #endif
 
 #include <gtk/gtk.h>
-#include <pthread.h>
 
 #include "client.h"
 #include "image.h"
