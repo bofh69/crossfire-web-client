@@ -36,11 +36,13 @@
                   <object class="GtkMenu" id="file_menu">
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkMenuItem" id="quit_character">
+                      <object class="GtkImageMenuItem" id="disconnect">
+                        <property name="label">gtk-disconnect</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Quit Character</property>
                         <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <property name="accel_group">accelgroup1</property>
                       </object>
                     </child>
                     <child>
@@ -61,31 +63,11 @@
               <object class="GtkMenuItem" id="menu_client">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Client</property>
+                <property name="label" translatable="yes">_Edit</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="client_menu">
                     <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="configure">
-                        <property name="label">gtk-preferences</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="accel_group">accelgroup1</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="disconnect">
-                        <property name="label">gtk-disconnect</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="accel_group">accelgroup1</property>
-                      </object>
-                    </child>
                     <child>
                       <object class="GtkMenuItem" id="keybindings">
                         <property name="visible">True</property>
@@ -109,6 +91,16 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Save Window Position</property>
                         <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="configure">
+                        <property name="label">gtk-preferences</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <property name="accel_group">accelgroup1</property>
                       </object>
                     </child>
                   </object>
@@ -138,6 +130,23 @@
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Skills</property>
                         <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="player_menu_sep">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="quit_character">
+                        <property name="label">gtk-delete</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Permenantly delete this character</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <property name="accel_group">accelgroup1</property>
                       </object>
                     </child>
                   </object>
