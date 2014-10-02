@@ -178,6 +178,7 @@ struct CmdMapping commands[] = {
  */
 void close_server_connection()
 {
+LOG (LOG_INFO,"common::close_server_connection", "Closing server connection");
 #ifdef WIN32
     closesocket(csocket.fd);
 #else
@@ -575,8 +576,9 @@ void negotiate_connection(int sound)
 
         usleep(10*1000);    /* 10 milliseconds */
         tries++;
-        /* If we have't got a response in 10 seconds, bail out */
+        /* If we haven't got a response in 10 seconds, bail out */
         if (tries > 1000) {
+            LOG (LOG_ERROR,"common::negotiate_connection", "Connection timed out");
             close_server_connection();
             return;
         }
