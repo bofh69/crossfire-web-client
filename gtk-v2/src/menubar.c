@@ -25,12 +25,12 @@
 #include <config.h>
 #endif
 
+#include <gtk/gtk.h>
+
 #ifdef WIN32
 # include <windows.h>
 # include "script.h"
 #endif
-
-#include <gtk/gtk.h>
 
 #include "client.h"
 #include "p_cmd.h"
