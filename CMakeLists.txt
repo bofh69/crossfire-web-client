@@ -12,7 +12,7 @@ option(SDL "SDL rendering" ON)
 option(SOUND "Sound support" ON)
 
 # Set compiler to use C99 standard.
-set(CMAKE_C_FLAGS "-std=c99")
+add_definitions(-std=c99)
 
 # Set standard installation paths.
 include(GNUInstallDirs)
