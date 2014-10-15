@@ -126,7 +126,9 @@ static int do_timeout() {
         mapdata_animation();
     }
 
-    beat_check();
+    if (cpl.input_state == Playing) {
+        beat_check();
+    }
     return TRUE;
 }
 
