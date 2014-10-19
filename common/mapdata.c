@@ -17,6 +17,7 @@
  */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "client.h"
@@ -93,7 +94,7 @@ static void mapdata_get_image_size(int face, guint8 *w, guint8 *h);
 
 
 /**
- * Viewable map size.
+ * Viewable map size, in number of tiles.
  */
 static int width, height;
 
@@ -958,30 +959,49 @@ void mapdata_newmap(void)
     display_map_newmap();
 }
 
-gint16 mapdata_face(int x, int y, int layer)
-{
-    if (width <= 0) {
-        return(0);
+/**
+ * Check if the given map tile is a valid slot in the map array.
+ */
+static bool mapdata_has_tile(int x, int y, int layer) {
+    if (0 <= x && x < width && 0 <= y && y < height) {
+        if (0 <= layer && layer < MAXLAYERS) {
+            return true;
+        }
     }
 
-    assert(0 <= x && x < width);
-    assert(0 <= y && y < height);
-    assert(0 <= layer && layer < MAXLAYERS);
-
-    return(the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer].face);
+    return false;
 }
 
-gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh)
-{
-    gint16 result;
-
-    if (width <= 0) {
-        return(0);
+/**
+ * Return the face number of a single-square pixmap at the given map tile.
+ * @param x X-coordinate of tile on-screen
+ * @param y Y-coordinate of tile on-screen
+ * @param layer
+ * @return Pixmap face number, or zero if the tile does not exist
+ */
+gint16 mapdata_face(int x, int y, int layer) {
+    if (!mapdata_has_tile(x, y, layer)) {
+        return 0;
     }
 
-    assert(0 <= x && x < width);
-    assert(0 <= y && y < height);
-    assert(0 <= layer && layer < MAXLAYERS);
+    return the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer].face;
+}
+
+/**
+ * Return the face number of a multi-square pixmap at the given map tile.
+ * @param x X-coordinate of tile on-screen
+ * @param y Y-coordinate of tile on-screen
+ * @param layer
+ * @param ww
+ * @param hh
+ * @return Pixmap face number, or zero if the tile does not exist
+ */
+gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh) {
+    gint16 result;
+
+    if (!mapdata_has_tile(x, y, layer)) {
+        return 0;
+    }
 
     result = the_map.cells[pl_pos.x+x][pl_pos.y+y].tails[layer].face;
     if (result != 0) {
@@ -1057,17 +1077,12 @@ gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh)
  * otherwise, returns 0 - we don't care about the tails
  * or other details really.
  */
-gint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh)
-{
+gint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh) {
     gint16 result;
 
-    if (width <= 0) {
-        return(0);
+    if (!mapdata_has_tile(x, y, layer)) {
+        return 0;
     }
-
-    assert(0 <= x && x < MAX_VIEW);
-    assert(0 <= y && y < MAX_VIEW);
-    assert(0 <= layer && layer < MAXLAYERS);
 
     result = bigfaces[x][y][layer].head.face;
     if (result != 0) {
