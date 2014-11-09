@@ -1,7 +1,7 @@
 /*
  * Crossfire -- cooperative multi-player graphical RPG and adventure game
  *
- * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1999-2014 Mark Wedel and the Crossfire Development Team
  * Copyright (c) 1992 Frank Tore Johansen
  *
  * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
@@ -19,11 +19,11 @@
  */
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "client.h"
-#include "external.h"
 #include "metaserver.h"
 
 #ifdef HAVE_CURL_CURL_H
@@ -31,12 +31,15 @@
 #include <curl/easy.h>
 #endif
 
-Meta_Info *meta_servers = NULL;
+/** Function to call when a new metaserver is available */
+static ms_callback callback;
 
-int meta_numservers = 0;
-
-int meta_sort(Meta_Info *m1, Meta_Info *m2) {
-    return g_ascii_strcasecmp(m1->hostname, m2->hostname);
+/**
+ * Set a callback function to run whenever another metaserver is available.
+ * @param function
+ */
+void ms_set_callback(ms_callback function) {
+    callback = function;
 }
 
 /**
@@ -50,13 +53,14 @@ int meta_sort(Meta_Info *m1, Meta_Info *m2) {
  * include protocol version number, so treats all of those as
  * OK.
  */
-int metaserver_check_version(int entry) {
+
+static bool ms_check_version(Meta_Info *server) {
     /* No version information - nothing to do. */
-    if (!meta_servers[entry].sc_version || !meta_servers[entry].cs_version) {
-        return 1;
+    if (!server->sc_version || !server->cs_version) {
+        return true;
     }
 
-    if (meta_servers[entry].sc_version != VERSION_SC) {
+    if (server->sc_version != VERSION_SC) {
         /* 1027->1028 removed a bunch of old commands, so a 1028
          * version client can still play on a 1027 server, so
          * special hard code that.
@@ -71,183 +75,17 @@ int metaserver_check_version(int entry) {
          * the client would just have screwed up weapon_sp values.
          */
         if ((VERSION_SC == 1028 || VERSION_SC == 1029) &&
-                (meta_servers[entry].sc_version == 1027 ||
-                meta_servers[entry].sc_version == 1028)) {
-            return 1;
+                (server->sc_version == 1027 ||
+                server->sc_version == 1028)) {
+            return true;
         }
     }
-    if (meta_servers[entry].cs_version != VERSION_CS) {
-        return 0;
+    if (server->cs_version != VERSION_CS) {
+        return false;
     }
 
-    return 1;
+    return true;
 }
-
-/*****************************************************************************
- * Start of cache related functions.
- *****************************************************************************/
-int cached_servers_num = 0;
-char *cached_servers_name[CACHED_SERVERS_MAX];
-char *cached_servers_ip[CACHED_SERVERS_MAX];
-
-static int cached_servers_loaded = 0;
-static char *cached_server_file = NULL;
-
-/**
- * Load server names and addresses or DNS names from a cache file found in the
- * player's client data folder.  The cache file has traditionally been named
- * "servers.cache".  The server cache file is a plain text file that is
- * line-feed delimited.  Cache entries consist of two lines each and if the
- * file has an odd number of lines, the last entry is ignored.  The first
- * line of a cache entry is the name of the server, and the second line is an
- * IP address or DNS hostname.  Metaserver uses both entries.  Metaserver 2
- * uses only the name since most servers set the name to a hostname anyway.
- * The load function does no parsing, so the entries must be in the correct
- * order.  There is no mechanism to support comments.  If a file has an odd
- * number of lines, the loader assumes the last line is an incomplete entry
- * and silently discards it.
- */
-static void metaserver_cache_load(void) {
-    char name[MS_LARGE_BUF], ip[MS_LARGE_BUF];
-    FILE *cache;
-
-    // The server cache file path should have been set during initialization.
-    g_assert(cached_server_file != NULL);
-
-    if (cached_servers_loaded) {
-        return;
-    }
-
-    /* If failure, we don't want to load again */
-    cached_servers_loaded = 1;
-    cached_servers_num = 0;
-
-    cache = fopen(cached_server_file, "r");
-    if (!cache) {
-        return;
-    }
-
-    while (cached_servers_num < CACHED_SERVERS_MAX
-            && fgets(name, MS_LARGE_BUF, cache) != NULL
-            && fgets(ip, MS_LARGE_BUF, cache) != NULL) {
-        ip[strlen(ip) - 1] = 0;
-        name[strlen(name) - 1] = 0;
-        cached_servers_ip[cached_servers_num] = g_strdup(ip);
-        cached_servers_name[cached_servers_num++] = g_strdup(name);
-    }
-    fclose(cache);
-}
-
-/**
- *
- */
-static void metaserver_cache_save(void) {
-    FILE *cache;
-    int server;
-
-    if (!cached_server_file) {
-        return;
-    }
-
-    cache = fopen(cached_server_file, "w");
-    if (!cache) {
-        return;
-    }
-
-    for (server = 0; server < cached_servers_num; server++) {
-        fprintf(cache, "%s\n", cached_servers_name[server]);
-        fprintf(cache, "%s\n", cached_servers_ip[server]);
-    }
-    fclose(cache);
-}
-
-/**
- * Add a server to the players server cache file.
- * @param server_name
- * @param server_ip
- */
-void metaserver_cache_add(const char *server_name, const char *server_ip) {
-    int index;
-
-    /*
-     * Try to find the given server name in the existing server cache.  If the
-     * zero-based index ends up equal to the one-based number of cached
-     * servers, it was not found.
-     */
-    for (index = 0; index < cached_servers_num; index++) {
-        if (strcmp(server_name, cached_servers_name[index]) == 0) {
-            break;
-        }
-    }
-
-    /*
-     * If server is already first in the cache list, nothing else needs to be
-     * done, otherwise, the server needs to be cached.
-     */
-    if (index != 0 || !cached_servers_num) {
-        char *name;
-        char *ip;
-        int copy;
-
-        if (index == cached_servers_num) {
-            /*
-             * If the server was not found in the cache, expand the cache size
-             * by one unless that creates too many entries.
-             */
-            name = g_strdup(server_name);
-            ip = g_strdup(server_ip);
-            cached_servers_num++;
-            if (cached_servers_num > CACHED_SERVERS_MAX) {
-                cached_servers_num--;
-                free(cached_servers_name[cached_servers_num - 1]);
-                free(cached_servers_ip[cached_servers_num - 1]);
-            }
-        } else {
-            /*
-             * If the server was already listed in the cache, grab a copy of
-             * the prior listing.
-             */
-            name = cached_servers_name[index];
-            ip = cached_servers_ip[index];
-        }
-
-        /*
-         * If the server as already listed, move all the cached items above
-         * the listing down a slot, otherwise, move the whole list down a
-         * notch.  This "empties" the top slot.
-         */
-        for (copy = MIN(index, CACHED_SERVERS_MAX - 1); copy > 0; copy--) {
-            cached_servers_name[copy] = cached_servers_name[copy - 1];
-            cached_servers_ip[copy] = cached_servers_ip[copy - 1];
-        }
-
-        /*
-         * Put the added server information at the top of the cache list, and
-         * save the changes.
-         */
-        cached_servers_name[0] = name;
-        cached_servers_ip[0] = ip;
-        metaserver_cache_save();
-    }
-}
-
-/*****************************************************************************
- * End of cache related functions.
- *****************************************************************************/
-
-/******************************************************************************
- * Metaserver2 support starts here.
- *
- ******************************************************************************/
-
-GMutex ms2_info_mutex;
-
-/* we use threads so that the GUI keeps responding while we wait for
- * data.  But we need to note if the thread is running or not,
- * so we store it here.  This, like the other metaserver2 data,
- * should be protected by using the ms2_info_mutext.
- */
-static int ms2_is_running = 0;
 
 /* list of metaserver URL to get information from - this should generally
  * correspond to the value in the metaserver2 server file, but instead
@@ -257,7 +95,7 @@ static int ms2_is_running = 0;
  * it seems unlikely that these will change very often, and certainly not
  * at a level where we would expect users to go about changing the values.
  */
-static char *metaservers[] = {
+static const char *metaservers[] = {
     "http://crossfire.real-time.com/metaserver2/meta_client.php",
     "http://metaserver.eu.cross-fire.org/meta_client.php",
 };
@@ -286,7 +124,9 @@ static char *metaservers[] = {
  * Number of bytes processed.  We always return the total number of
  * bytes supplied - returning anything else is an error to CURL
  */
-static size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *data) {
+static size_t ms_writer(void *ptr, size_t size, size_t nmemb, void *data) {
+    Meta_Info metaserver;
+
 #ifdef HAVE_CURL_CURL_H
     size_t realsize = size * nmemb;
     char *cp, *newline, *eq, inbuf[CURL_MAX_WRITE_SIZE * 2 + 1], *leftover;
@@ -306,12 +146,6 @@ static size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *dat
     memcpy(inbuf + strlen(leftover), ptr, realsize);
     inbuf[strlen(leftover) + realsize] = 0;
     leftover[0] = 0;
-
-    /* Processing this block of data shouldn't take very long, even on
-     * slow machines, so putting the lock here, instead of each time
-     * we update a variable is cleaner
-     */
-    g_mutex_lock(&ms2_info_mutex);
 
     for (cp = inbuf; cp != NULL && *cp != 0; cp = newline) {
         newline = strchr(cp, '\n');
@@ -338,23 +172,21 @@ static size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *dat
             /* Clear out all data - MS2 doesn't necessarily use all the
              * fields, so blank out any that we are not using.
              */
-            memset(&meta_servers[meta_numservers], 0, sizeof (Meta_Info));
+            memset(&metaserver, 0, sizeof (Meta_Info));
         } else if (!strcmp(cp, "END_SERVER_DATA")) {
-            int i;
+            char buf[MS_LARGE_BUF];
 
-            /* we can get data from both metaserver1 & 2 - no reason to keep
-             * both.  So check for duplicates, and consider metaserver2
-             * data 'better'.
-             */
-            for (i = 0; i < meta_numservers; i++) {
-                if (!g_ascii_strcasecmp(meta_servers[i].hostname, meta_servers[meta_numservers].hostname)) {
-                    memcpy(&meta_servers[i], &meta_servers[meta_numservers], sizeof (Meta_Info));
-                    break;
-                }
+            // If server is running custom port, add it to server name.
+            if (metaserver.port != EPORT) {
+                snprintf(buf, sizeof(buf), "%s:%d",
+                        metaserver.hostname, metaserver.port);
+            } else {
+                snprintf(buf, sizeof(buf), "%s", metaserver.hostname);
             }
-            if (i >= meta_numservers) {
-                meta_numservers++;
-            }
+
+            callback(buf, metaserver.idle_time, metaserver.num_players,
+                    metaserver.version, metaserver.text_comment,
+                    ms_check_version(&metaserver));
         } else {
             /* If we get here, these should be variable=value pairs.
              * if we don't have a value, can't do anything, and
@@ -366,51 +198,50 @@ static size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *dat
                 continue;
             }
             if (!strcmp(cp, "hostname")) {
-                strncpy(meta_servers[meta_numservers].hostname, eq, sizeof (meta_servers[meta_numservers].hostname));
+                strncpy(metaserver.hostname, eq, sizeof (metaserver.hostname));
             } else if (!strcmp(cp, "port")) {
-                meta_servers[meta_numservers].port = atoi(eq);
+                metaserver.port = atoi(eq);
             } else if (!strcmp(cp, "html_comment")) {
-                strncpy(meta_servers[meta_numservers].html_comment, eq, sizeof (meta_servers[meta_numservers].html_comment));
+                strncpy(metaserver.html_comment, eq, sizeof (metaserver.html_comment));
             } else if (!strcmp(cp, "text_comment")) {
-                strncpy(meta_servers[meta_numservers].text_comment, eq, sizeof (meta_servers[meta_numservers].text_comment));
+                strncpy(metaserver.text_comment, eq, sizeof (metaserver.text_comment));
             } else if (!strcmp(cp, "archbase")) {
-                strncpy(meta_servers[meta_numservers].archbase, eq, sizeof (meta_servers[meta_numservers].archbase));
+                strncpy(metaserver.archbase, eq, sizeof (metaserver.archbase));
             } else if (!strcmp(cp, "mapbase")) {
-                strncpy(meta_servers[meta_numservers].mapbase, eq, sizeof (meta_servers[meta_numservers].mapbase));
+                strncpy(metaserver.mapbase, eq, sizeof (metaserver.mapbase));
             } else if (!strcmp(cp, "codebase")) {
-                strncpy(meta_servers[meta_numservers].codebase, eq, sizeof (meta_servers[meta_numservers].codebase));
+                strncpy(metaserver.codebase, eq, sizeof (metaserver.codebase));
             } else if (!strcmp(cp, "flags")) {
-                strncpy(meta_servers[meta_numservers].flags, eq, sizeof (meta_servers[meta_numservers].flags));
+                strncpy(metaserver.flags, eq, sizeof (metaserver.flags));
             } else if (!strcmp(cp, "version")) {
-                strncpy(meta_servers[meta_numservers].version, eq, sizeof (meta_servers[meta_numservers].version));
+                strncpy(metaserver.version, eq, sizeof (metaserver.version));
             } else if (!strcmp(cp, "num_players")) {
-                meta_servers[meta_numservers].num_players = atoi(eq);
+                metaserver.num_players = atoi(eq);
             } else if (!strcmp(cp, "in_bytes")) {
-                meta_servers[meta_numservers].in_bytes = atoi(eq);
+                metaserver.in_bytes = atoi(eq);
             } else if (!strcmp(cp, "out_bytes")) {
-                meta_servers[meta_numservers].out_bytes = atoi(eq);
+                metaserver.out_bytes = atoi(eq);
             } else if (!strcmp(cp, "uptime")) {
-                meta_servers[meta_numservers].uptime = atoi(eq);
+                metaserver.uptime = atoi(eq);
             } else if (!strcmp(cp, "sc_version")) {
-                meta_servers[meta_numservers].sc_version = atoi(eq);
+                metaserver.sc_version = atoi(eq);
             } else if (!strcmp(cp, "cs_version")) {
-                meta_servers[meta_numservers].cs_version = atoi(eq);
+                metaserver.cs_version = atoi(eq);
             } else if (!strcmp(cp, "last_update")) {
                 /* MS2 reports update time as when it last got an update,
                  * where as we want actual elapsed time since last update.
                  * So do the conversion.  Second check is because of clock
                  * skew - my clock may be fast, and we don't want negative times.
                  */
-                meta_servers[meta_numservers].idle_time = time(NULL) - atoi(eq);
-                if (meta_servers[meta_numservers].idle_time < 0) {
-                    meta_servers[meta_numservers].idle_time = 0;
+                metaserver.idle_time = time(NULL) - atoi(eq);
+                if (metaserver.idle_time < 0) {
+                    metaserver.idle_time = 0;
                 }
             } else {
                 LOG(LOG_ERROR, "common::metaserver2_writer", "Unknown line: %s=%s", cp, eq);
             }
         }
     }
-    g_mutex_unlock(&ms2_info_mutex);
     return realsize;
 #else
     return 0;
@@ -418,14 +249,12 @@ static size_t metaserver2_writer(void *ptr, size_t size, size_t nmemb, void *dat
 }
 
 /**
- * Connects to the URL and gets metaserver data.
+ * Fetch a list of servers from the given URL.
+ *
  * @param metaserver2
- * metaserver to connect to.
  * @return
- * TRUE if successfull, false is failed for some
- * reason.
  */
-static int get_metaserver2_data(char *metaserver2) {
+bool ms_fetch_server(const char *metaserver2) {
 #ifdef HAVE_CURL_CURL_H
     CURL *curl;
     CURLcode res;
@@ -433,128 +262,46 @@ static int get_metaserver2_data(char *metaserver2) {
 
     curl = curl_easy_init();
     if (!curl) {
-        return 0;
+        return false;
     }
+
     leftover[0] = 0;
     curl_easy_setopt(curl, CURLOPT_URL, metaserver2);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, metaserver2_writer);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ms_writer);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, leftover);
     res = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
 
     if (res) {
-        return 0;
+        return false;
     } else {
-        return 1;
+        return true;
     }
 #else
-    return 1;
+    return true;
 #endif
 }
 
 /**
- * Thread function that goes off and collects metaserver
- * data.
- * @return
- * exits when job is done, no return value.
+ * Fetch a list of servers from the built-in official metaservers.
+ *
+ * Because this function can query multiple metaservers, the same servers may
+ * be listed multiple times in the results.
  */
-static void *metaserver2_thread() {
-    int metaserver_choice, tries = 0;
+void ms_fetch() {
+    const int count = sizeof(metaservers) / sizeof(char *);
 
-    do {
-        metaserver_choice = g_random_int() % (sizeof (metaservers) / sizeof (char*));
-        tries++;
-        if (tries > 5) {
-            break;
-        }
-    } while (!get_metaserver2_data(metaservers[metaserver_choice]));
-
-    g_mutex_lock(&ms2_info_mutex);
-    qsort(meta_servers, meta_numservers, sizeof (Meta_Info), (int (*)(const void *, const void *))meta_sort);
-    ms2_is_running = 0;
-    g_mutex_unlock(&ms2_info_mutex);
-    g_thread_exit(NULL);
-    return NULL;
+    for (int i = 0; i < count; i++) {
+        ms_fetch_server(metaservers[i]);
+    }
 }
 
 /**
- * Fetch a list of public servers from the official metaserver.
+ * Initialize metaserver client. This function should be called before any
+ * other metaserver functions.
  */
-int metaserver_get() {
-    GThread *thread;
-
-    meta_numservers = 0;
-
-    if (!METASERVER2) {
-        return 0;
-    }
-#ifndef HAVE_CURL_CURL_H
-    return 0;
-#endif
-
-    metaserver_cache_load();
-
-    g_mutex_lock(&ms2_info_mutex);
-    if (!meta_servers) {
-        meta_servers = calloc(MAX_METASERVER, sizeof (Meta_Info));
-    }
-
-    ms2_is_running = 1;
-    g_mutex_unlock(&ms2_info_mutex);
-
-    thread = g_thread_try_new("metaserver", metaserver2_thread, NULL, NULL);
-    if (thread == NULL) {
-        LOG(LOG_ERROR, "common::metaserver2_get_info", "Thread creation failed.");
-        g_mutex_lock(&ms2_info_mutex);
-        ms2_is_running = 0;
-        g_mutex_unlock(&ms2_info_mutex);
-    }
-
-    return 0;
-}
-
-/**
- * Initialize metaserver functions. Always call this function before using
- * any of the metaserver-related functions or variables.
- */
-void metaserver_init() {
-    char buf[MAX_BUF];
-
-    // Create and store the path to the server cache.
-    g_assert(cache_dir != NULL);
-    snprintf(buf, MAX_BUF, "%s/servers.cache", cache_dir);
-    cached_server_file = g_strdup(buf);
-
+void ms_init() {
 #ifdef HAVE_CURL_CURL_H
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
-}
-
-/******************************************************************************
- * End of Metasever2 functions.
- ******************************************************************************/
-
-/******************************************************************************
- * This is start of common logic - the above sections are actually getting
- * the data.  The code below here is just displaying the data we got
- */
-
-/**
- * Sees if we are gathering data or not.  Note that we don't have to check
- * to see what update methods are being used - the is_running flag
- * is initialized to zero no matter if we are using that method to get
- * the data, and unless we are using ms1 or ms2, the is_running flag
- * will never get changed to be non-zero.
- *
- * @return
- * Returns 1 if if we are getting data, 0 if nothing is going on right now.
- */
-int metaserver_check_status() {
-    int status;
-
-    g_mutex_lock(&ms2_info_mutex);
-    status = ms2_is_running;
-    g_mutex_unlock(&ms2_info_mutex);
-
-    return status;
 }

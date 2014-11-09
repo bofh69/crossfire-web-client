@@ -1,14 +1,12 @@
 /**
  * @file
- * Metaserver settings, structures, and prototypes.
+ * Metaserver functions and data structures
  */
 
-/* Arbitrary size.  At some point, we would need to cut this off simply
- * for display/selection reasons.
- */
-#define MAX_METASERVER 100
+#include <stdbool.h>
 
-/* Various constants we use in the structure */
+typedef void (*ms_callback)(char *, int, int, char *, char *, bool);
+
 #define MS_SMALL_BUF	60
 #define MS_LARGE_BUF	512
 
@@ -35,29 +33,7 @@ typedef struct {
     int     cs_version;
 } Meta_Info;
 
-extern Meta_Info *meta_servers;
-
-/* Before accessing the metaservers structure,
- * a lock against this is needed
- */
-extern GMutex ms2_info_mutex;
-
-/* Needs to be here because gtk2 client needs to resort for example */
-extern int meta_sort(Meta_Info *m1, Meta_Info *m2);
-
-extern int meta_numservers;
-
-extern int cached_servers_num;
-
-#define CACHED_SERVERS_MAX  10
-extern char* cached_servers_name[ CACHED_SERVERS_MAX ];
-extern char* cached_servers_ip[ CACHED_SERVERS_MAX ];
-
-/* Used by GTK-V2 client to maintain servers.cache */
-extern
-void metaserver_cache_add(const char *server_name, const char *server_ip);
-
-int metaserver_check_status(void);
-int metaserver_check_version(int entry);
-int metaserver_get(void);
-void metaserver_init(void);
+extern void ms_init(void);
+extern void ms_set_callback(ms_callback function);
+extern void ms_fetch(void);
+extern bool ms_fetch_server(const char *metaserver2);

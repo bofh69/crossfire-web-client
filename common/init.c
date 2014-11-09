@@ -216,7 +216,7 @@ void client_init() {
     init_paths();
 
     // Paths must be set before metaserver can be initialized.
-    metaserver_init();
+    ms_init();
 }
 
 /**

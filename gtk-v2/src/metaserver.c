@@ -1,14 +1,14 @@
 /*
  * Crossfire -- cooperative multi-player graphical RPG and adventure game
  *
- * Copyright (c) 1999-2013 Mark Wedel and the Crossfire Development Team
+ * Copyright (c) 1999-2014 Mark Wedel and the Crossfire Development Team
  * Copyright (c) 1992 Frank Tore Johansen
  *
  * Crossfire is free software and comes with ABSOLUTELY NO WARRANTY. You are
- * welcome to redistribute it under certain conditions. For details, see the
- * 'LICENSE' and 'COPYING' files.
+ * welcome to redistribute it under certain conditions. For details, please
+ * see COPYING and LICENSE.
  *
- * The authors can be reached via e-mail to crossfire-devel@real-time.com
+ * The authors can be reached via e-mail at <crossfire@metalforge.org>.
  */
 
 /**
@@ -20,6 +20,8 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <stdbool.h>
 
 #include <gtk/gtk.h>
 
@@ -142,22 +144,44 @@ void metaserver_ui_init() {
                                            metaserver_selection_func, NULL, NULL);
 }
 
+static void server_add(char *server, int update, int players, char *version,
+        char *comment, bool compatible) {
+    GtkTreeIter iter;
+
+    if (compatible) {
+        gtk_list_store_append(store_metaserver, &iter);
+        gtk_list_store_set(store_metaserver, &iter,
+                LIST_HOSTNAME, server,
+                LIST_IPADDR, server,
+                LIST_IDLETIME, update,
+                LIST_PLAYERS, players,
+                LIST_VERSION, version,
+                LIST_COMMENT, comment,
+                -1);
+    }
+}
+
+/**
+ * Wrapper on top of ms_fetch() for a GThread.
+ * @return NULL
+ */
+static gpointer server_fetch() {
+    ms_fetch();
+    return NULL;
+}
+
 /**
  * Constructs the metaserver dialog and handles metaserver selection.  If the
  * player has a servers.cache file in their .crossfire folder, the cached
  * server list is added to the contents of the metaserver dialog.
  */
 void prompt_metaserver() {
-    GtkTreeIter iter;
     const gchar *metaserver_txt;
-    int i, j;
 
     hide_all_login_windows();
-
     gtk_widget_show(metaserver_window);
-
     gtk_label_set_text(GTK_LABEL(metaserver_status),
-                       "Waiting for data from metaserver");
+            "Waiting for data from metaserver");
 
     metaserver_txt = gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
     if (*metaserver_txt == '\0') {
@@ -169,63 +193,13 @@ void prompt_metaserver() {
     gtk_list_store_clear(store_metaserver);
 
     // Start fetching server information in a separate thread.
-    metaserver_get();
-
-    // Populate list with cached server entries.
-    if (cached_servers_num) {
-        for (i = 0; i < cached_servers_num; i++) {
-            for (j = 0; j < meta_numservers; j++) {
-                if (!strcmp(cached_servers_name[i], meta_servers[j].hostname)) {
-                    break;
-                }
-            }
-            if (j == meta_numservers) {
-                gtk_list_store_append(store_metaserver, &iter);
-                gtk_list_store_set(store_metaserver, &iter,
-                        LIST_HOSTNAME, cached_servers_name[i],
-                        LIST_IPADDR, cached_servers_ip[i],
-                        LIST_COMMENT, "Cached server entry", -1);
-            }
-        }
-    }
-
-    while (metaserver_check_status()) {
-        usleep(100);
-        gtk_main_iteration_do(FALSE);
-    }
-
-    g_mutex_lock(&ms2_info_mutex);
-
-    qsort(meta_servers, meta_numservers, sizeof(Meta_Info), (int (*)(const void *,
-            const void *))meta_sort);
-
-    for (i = 0; i < meta_numservers; i++) {
-        if (metaserver_check_version(i)) {
-            gtk_list_store_append(store_metaserver, &iter);
-            gtk_list_store_set(store_metaserver, &iter,
-                               LIST_HOSTNAME, meta_servers[i].hostname,
-                               LIST_IPADDR, meta_servers[i].hostname,
-                               LIST_IDLETIME,  meta_servers[i].idle_time,
-                               LIST_PLAYERS, meta_servers[i].num_players,
-                               LIST_VERSION, meta_servers[i].version,
-                               LIST_COMMENT, meta_servers[i].text_comment,
-                               -1);
-        }
-    }
-    g_mutex_unlock(&ms2_info_mutex);
-    if (server) {
-        gtk_list_store_append(store_metaserver, &iter);
-        gtk_list_store_set(store_metaserver, &iter,
-                           LIST_HOSTNAME, server,
-                           LIST_COMMENT, "default server",
-                           -1);
-    }
+    ms_set_callback(server_add);
+    g_thread_new("server_fetch", server_fetch, NULL);
 
     cpl.input_state = Metaserver_Select;
     gtk_label_set_text(GTK_LABEL(metaserver_status), "Waiting for user selection");
 
     gtk_main();
-
     gtk_widget_hide(metaserver_window);
 }
 
@@ -265,7 +239,6 @@ static void metaserver_connect_to(const char *name) {
         LOG(LOG_DEBUG, "gtk-v2::metaserver_connect_to",
             "Connected to '%s'!", name);
 
-        metaserver_cache_add(name, name);
         gtk_main_quit();
         cpl.input_state = Playing;
     } else {
