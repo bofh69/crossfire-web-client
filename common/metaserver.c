@@ -31,6 +31,19 @@
 #include <curl/easy.h>
 #endif
 
+/* list of metaserver URL to get information from - this should generally
+ * correspond to the value in the metaserver2 server file, but instead
+ * of meta_update.php, use meta_client.php.
+ *
+ * These could perhaps be in some other file (config.h or the like), but
+ * it seems unlikely that these will change very often, and certainly not
+ * at a level where we would expect users to go about changing the values.
+ */
+static const char *metaservers[] = {
+    "http://crossfire.real-time.com/metaserver2/meta_client.php",
+    "http://metaserver.eu.cross-fire.org/meta_client.php",
+};
+
 /** Function to call when a new metaserver is available */
 static ms_callback callback;
 
@@ -86,19 +99,6 @@ static bool ms_check_version(Meta_Info *server) {
 
     return true;
 }
-
-/* list of metaserver URL to get information from - this should generally
- * correspond to the value in the metaserver2 server file, but instead
- * of meta_update.php, use meta_client.php.
- *
- * These could perhaps be in some other file (config.h or the like), but
- * it seems unlikely that these will change very often, and certainly not
- * at a level where we would expect users to go about changing the values.
- */
-static const char *metaservers[] = {
-    "http://crossfire.real-time.com/metaserver2/meta_client.php",
-    "http://metaserver.eu.cross-fire.org/meta_client.php",
-};
 
 /**
  * Curl doesn't really have any built in way to get data
