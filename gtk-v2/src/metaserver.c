@@ -106,13 +106,13 @@ void metaserver_ui_init() {
                             GTK_TREE_MODEL(store_metaserver));
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Hostname", renderer,
+    column = gtk_tree_view_column_new_with_attributes("Server", renderer,
              "text", LIST_HOSTNAME, NULL);
     gtk_tree_view_column_set_sort_column_id(column, LIST_HOSTNAME);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Updated (Sec)", renderer,
+    column = gtk_tree_view_column_new_with_attributes("Last Update (sec)", renderer,
              "text", LIST_IDLETIME, NULL);
     gtk_tree_view_column_set_sort_column_id(column, LIST_IDLETIME);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
@@ -130,7 +130,7 @@ void metaserver_ui_init() {
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Server Comment", renderer,
+    column = gtk_tree_view_column_new_with_attributes("Description", renderer,
              "text", LIST_COMMENT, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
