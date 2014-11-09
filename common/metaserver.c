@@ -257,7 +257,10 @@ static int ms2_is_running = 0;
  * it seems unlikely that these will change very often, and certainly not
  * at a level where we would expect users to go about changing the values.
  */
-static char *metaservers[] = {"http://crossfire.real-time.com/metaserver2/meta_client.php"};
+static char *metaservers[] = {
+    "http://crossfire.real-time.com/metaserver2/meta_client.php",
+    "http://metaserver.eu.cross-fire.org/meta_client.php",
+};
 
 /**
  * Curl doesn't really have any built in way to get data
