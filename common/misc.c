@@ -31,6 +31,12 @@
 #include <io.h>
 #endif
 
+static ChildProcess* FirstChild = NULL;
+static ChildProcess* LastChild = NULL;
+
+/** Log level, or the threshold below which messages are suppressed. */
+int MINLOG = LOG_INFO;
+
 /**
  * Convert a buffer of a specified maximum size by replacing token characters
  * with a provided string.  Given a buffered template string "/input/to/edit",
@@ -89,20 +95,18 @@ int make_path_to_file(char *filename) {
     return result;
 }
 
-static const char *const LogLevelTexts[] = {
-    "\x1b[34;1m" "DD" "\x1b[0m",
-    "\x1b[32;1m" "II" "\x1b[0m",
-    "\x1b[35;1m" "WW" "\x1b[0m",
-    "\x1b[31;1m" "EE" "\x1b[0m",
-    "\x1b[31;1m" "!!" "\x1b[0m",
-    "\x1b[30;1m" "??" "\x1b[0m",
-};
-
 static const char *getLogLevelText(LogLevel level) {
+    const char *LogLevelTexts[] = {
+        "\x1b[34;1m" "DD" "\x1b[0m",
+        "\x1b[32;1m" "II" "\x1b[0m",
+        "\x1b[35;1m" "WW" "\x1b[0m",
+        "\x1b[31;1m" "EE" "\x1b[0m",
+        "\x1b[31;1m" "!!" "\x1b[0m",
+        "\x1b[30;1m" "??" "\x1b[0m",
+    };
+
     return LogLevelTexts[level > LOG_CRITICAL ? LOG_CRITICAL + 1 : level];
 }
-
-int MINLOG = MINLOGLEVEL;
 
 /**
  * Log messages of a certain importance to stderr. See 'client.h' for a full
@@ -128,9 +132,6 @@ void LOG(LogLevel level, const char *origin, const char *format, ...) {
 
     va_end(ap);
 }
-
-ChildProcess* FirstChild=NULL;
-ChildProcess* LastChild=NULL;
 
 /**
  *
@@ -258,7 +259,7 @@ ChildProcess* raiseChild(char* name, int flag)
     int pipe_err[2];
     int pid;
     char *args;
-    LOG(LOG_INFO,"common::raiseChild","Raising %s with flags %d",name,flag);
+    LOG(LOG_DEBUG, "common::raiseChild", "Raising %s with flags %d", name, flag);
     flag=flag & (~CHILD_SILENTFAIL);
     if (flag & (~CHILD_TUBE)) {
         LOG(LOG_ERROR,"common::raiseChild",

@@ -62,7 +62,7 @@ void VersionCmd(char *data, int len) {
     }
     cp = strchr(cp + 1, ' ');
     if (cp) {
-        LOG(LOG_INFO, "common::VersionCmd", "Playing on server type %s", cp);
+        LOG(LOG_DEBUG, "common::VersionCmd", "Playing on server type %s", cp);
     }
 }
 

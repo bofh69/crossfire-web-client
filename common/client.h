@@ -402,8 +402,12 @@ extern int last_used_skills[MAX_SKILL+1]; /**< maps position to skill id with
                                            *  trailing zero as stop mark.
                                            */
 
-typedef enum LogLevel {
-  LOG_DEBUG = 0, LOG_INFO = 1, LOG_WARNING = 2, LOG_ERROR = 3, LOG_CRITICAL = 4
+typedef enum {
+    LOG_DEBUG = 0,      ///< Useful debugging information
+    LOG_INFO = 1,       ///< Minor, non-harmful issues
+    LOG_WARNING = 2,    ///< Warning that something might not work
+    LOG_ERROR = 3,      ///< Warning that something definitely didn't work
+    LOG_CRITICAL = 4    ///< Fatal crash-worthy error
 } LogLevel;
 
 typedef struct PipeLog {

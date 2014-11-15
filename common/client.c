@@ -176,9 +176,8 @@ struct CmdMapping commands[] = {
  * also useful in that if this logic does change, there is just one place to
  * update it.
  */
-void close_server_connection()
-{
-LOG (LOG_INFO,"common::close_server_connection", "Closing server connection");
+void close_server_connection() {
+    LOG (LOG_DEBUG, "common::close_server_connection", "Closing server connection");
 #ifdef WIN32
     closesocket(csocket.fd);
 #else

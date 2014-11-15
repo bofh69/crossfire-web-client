@@ -1066,7 +1066,7 @@ void SetupCmd(char *buf, int len)
             }
         } else if (!strcmp(cmd, "beat")) {
             if (strcmp(param, "FALSE") != 0) {
-                LOG(LOG_INFO, "SetupCmd", "Server supports heartbeats!");
+                LOG(LOG_DEBUG, "SetupCmd", "Server supports heartbeats!");
                 beat_init(atoi(param));
             }
         } else {
@@ -1107,7 +1107,7 @@ void AddMeSuccess(char *data, int len)
     (void)len; /* __UNUSED__ */
 
     hide_all_login_windows();
-    LOG(LOG_INFO, "common::AddMeSuccess", "addme_success received.");
+    LOG(LOG_DEBUG, "common::AddMeSuccess", "addme_success received.");
     return;
 }
 

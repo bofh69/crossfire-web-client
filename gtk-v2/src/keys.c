@@ -240,7 +240,7 @@ static int keybind_insert(guint32 keysym, unsigned int flags,
          * Also, if the new binding has the ANY flag, remove all matching
          * previous bindings and keep this one.
          */
-        LOG(LOG_WARNING, "gtk-v2::keybind_insert",
+        LOG(LOG_DEBUG, "gtk-v2::keybind_insert",
             "Overwriting previous binding for key %s with command %s ",
             gdk_keyval_name(keysym), kb->command);
         keybind_remove(kb);

@@ -179,7 +179,7 @@ void on_window_destroy_event(GtkObject *object, gpointer user_data) {
     script_killall();
 #endif
 
-    LOG(LOG_INFO, "main.c::client_exit", "Exiting with return value 0.");
+    LOG(LOG_DEBUG, "main.c::client_exit", "Exiting with return value 0.");
     exit(0);
 }
 
@@ -281,7 +281,7 @@ static void event_loop() {
     g_source_remove(tag);
     g_source_remove(timeout_id);
 
-    LOG(LOG_INFO, "main.c::event_loop",
+    LOG(LOG_DEBUG, "main.c::event_loop",
         "gtk_main exited, returning from event_loop");
 }
 
@@ -329,7 +329,7 @@ static void parse_args(int argc, char *argv[]) {
      * Move this after the parsing of command line options, since that can
      * change the default log level.
      */
-    LOG(LOG_INFO, "Client Version", VERSION_INFO);
+    LOG(LOG_DEBUG, "Client Version", VERSION_INFO);
 }
 
 /**

@@ -576,7 +576,7 @@ void init_image_cache_data(void)
 #include "../../pixmaps/question.xpm"
 
 
-    LOG(LOG_INFO,"gtk-v2::init_image_cache_data","Init Image Cache");
+    LOG(LOG_DEBUG, "gtk-v2::init_image_cache_data", "Init Image Cache");
 
     style = gtk_widget_get_style(window_root);
     pixmaps[0] = g_malloc(sizeof(PixmapInfo));
