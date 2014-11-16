@@ -140,13 +140,9 @@ extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, i
 extern void map_init(GtkWidget *window_root);
 extern void reset_map(void);
 extern int display_mapscroll(int dx, int dy);
-extern void drawsmooth(int mx, int my, int layer, int picx, int picy);
-extern void gtk_draw_map(int redraw);
 extern void display_map_newmap(void);
 extern void resize_map_window(int x, int y);
-extern gboolean on_drawingarea_map_configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer user_data);
 extern void draw_map(int redraw);
-extern gboolean on_drawingarea_map_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
 extern void display_map_startupdate(void);
 extern void display_map_doneupdate(int redraw, int notice);
 /* magicmap.c */

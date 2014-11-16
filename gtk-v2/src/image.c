@@ -219,12 +219,9 @@ static void create_map_image(guint8 *data, PixmapInfo *pi)
 #ifdef HAVE_OPENGL
         create_opengl_map_image(data, pi);
 #endif
-    }
-
-    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
-        rgba_to_gdkpixmap(window_root->window, data, pi->map_width, pi->map_height,
-                          (GdkPixmap**)&pi->map_image, (GdkBitmap**)&pi->map_mask,
-                          gtk_widget_get_colormap(window_root));
+    } else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
+        rgba_to_gdkpixbuf(data, pi->map_width, pi->map_height,
+                (GdkPixbuf **)&pi->map_image);
     }
 }
 
@@ -270,7 +267,7 @@ static void free_pixmap(PixmapInfo *pi)
 #endif
     } else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
         if (pi->map_image) {
-            gdk_pixmap_unref(pi->map_image);
+            g_object_unref(pi->map_image);
         }
     }
 }

@@ -1,3 +1,9 @@
+2014-11-16	Kevin Zheng
+	* gtk-v2/src/map.c: Reimplement default renderer using Cario. This
+	substantially improves pixmap rendering performance and improves
+	fog-of-war appearance. This change breaks smoothing under pixmap
+	rendering for the time being.
+
 2014-11-14	Kevin Zheng
 	* common/, gtk-v2/src/: Reduce default logging verbosity. Hidden
 	messages can be shown by running the client with the '-v 0' flag.
