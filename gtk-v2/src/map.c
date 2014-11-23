@@ -189,23 +189,23 @@ static void drawsmooth(cairo_t *cr, int mx, int my, int layer, int picx, int pic
     int smoothface;
     int hasFace = 0;
     for (i=0; i<=layer; i++) {
-        hasFace |= the_map.cells[mx][my].heads[i].face;
+        hasFace |= mapdata_cell(mx, my)->heads[i].face;
     }
-    if (!hasFace || !CAN_SMOOTH(the_map.cells[mx][my], layer)) {
+    if (!hasFace || !mapdata_can_smooth(mx, my, layer)) {
         return;
     }
     for (i=0; i<8; i++) {
         emx=mx+dx[i];
         emy=my+dy[i];
-        if ( (emx<0) || (emy<0) || (the_map.x<=emx) || (the_map.y<=emy)) {
+        if (!mapdata_contains(emx, emy)) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        } else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]) {
+        } else if (mapdata_cell(emx, emy)->smooth[layer] <= mapdata_cell(mx, my)->smooth[layer]) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         } else {
-            slevels[i]=the_map.cells[emx][emy].smooth[layer];
-            sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
+            slevels[i]=mapdata_cell(emx, emy)->smooth[layer];
+            sfaces[i]=pixmaps[mapdata_cell(emx, emy)->heads[layer].face]->smooth_face;
         }
     }
     /*
@@ -306,7 +306,7 @@ static gboolean face_is_big(PixmapInfo *pixmap) {
  */
 static void mapcell_draw(cairo_t *cr, int ax, int ay, int mx, int my, int layer) {
     // Always draw cell if using fog of war, otherwise only if visible.
-    if (use_config[CONFIG_FOGWAR] || !the_map.cells[mx][my].cleared) {
+    if (use_config[CONFIG_FOGWAR] || !mapdata_cell(mx, my)->cleared) {
         int face = mapdata_face(ax, ay, layer);
 
         if (face > 0 && pixmaps[face]->map_image != NULL) {
@@ -332,7 +332,7 @@ static void mapcell_draw(cairo_t *cr, int ax, int ay, int mx, int my, int layer)
  */
 static void mapcell_draw_big(cairo_t *cr, int ax, int ay, int mx, int my, int layer) {
     // Always draw cell if using fog of war, otherwise only if visible.
-    if (use_config[CONFIG_FOGWAR] || !the_map.cells[mx][my].cleared) {
+    if (use_config[CONFIG_FOGWAR] || !mapdata_cell(mx, my)->cleared) {
         int sx, sy, face = mapdata_bigface(ax, ay, layer, &sx, &sy);
 
         if (face > 0 && pixmaps[face]->map_image != NULL) {
@@ -350,9 +350,9 @@ static void mapcell_draw_darkness(cairo_t *cr, int ax, int ay, int mx, int my) {
     cairo_rectangle(cr, ax * map_image_size, ay * map_image_size,
             map_image_size, map_image_size);
 
-    double opacity = the_map.cells[mx][my].darkness / 192.0 * 0.6;
+    double opacity = mapdata_cell(mx, my)->darkness / 192.0 * 0.6;
 
-    if (use_config[CONFIG_FOGWAR] && the_map.cells[mx][my].cleared) {
+    if (use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
         opacity += 0.15;
     }
 
@@ -402,8 +402,8 @@ static void gtk_map_redraw() {
             // Determine the 'virtual' map coordinates.
             int mx = pl_pos.x + x, my = pl_pos.y + y;
             mapcell_draw_darkness(cr, x, y, mx, my);
-            the_map.cells[mx][my].need_update = 0;
-            the_map.cells[mx][my].need_resmooth = 0;
+            mapdata_cell(mx, my)->need_update = 0;
+            mapdata_cell(mx, my)->need_resmooth = 0;
         }
     }
 

@@ -1054,21 +1054,21 @@ static void send_map(int i, int x, int y)
 {
     char buf[1024];
 
-    if (x < 0 || y < 0 || the_map.x <= x || the_map.y <= y) {
+    if (!mapdata_contains(x, y)) {
         snprintf(buf, sizeof(buf), "request map %d %d unknown\n", x, y);
         write(scripts[i].out_fd, buf, strlen(buf));
     }
     /*** FIXME *** send more relevant data ***/
     snprintf(buf, sizeof(buf), "request map %d %d  %d %c %c %c %c"
              " smooth %d %d %d heads %d %d %d tails %d %d %d\n",
-             x, y, the_map.cells[x][y].darkness,
-             the_map.cells[x][y].need_update ? 'y' : 'n',
-             the_map.cells[x][y].have_darkness ? 'y' : 'n',
-             the_map.cells[x][y].need_resmooth ? 'y' : 'n',
-             the_map.cells[x][y].cleared ? 'y' : 'n',
-             the_map.cells[x][y].smooth[0], the_map.cells[x][y].smooth[1], the_map.cells[x][y].smooth[2],
-             the_map.cells[x][y].heads[0].face, the_map.cells[x][y].heads[1].face, the_map.cells[x][y].heads[2].face,
-             the_map.cells[x][y].tails[0].face, the_map.cells[x][y].tails[1].face, the_map.cells[x][y].tails[2].face
+             x, y, mapdata_cell(x, y)->darkness,
+             mapdata_cell(x, y)->need_update ? 'y' : 'n',
+             mapdata_cell(x, y)->have_darkness ? 'y' : 'n',
+             mapdata_cell(x, y)->need_resmooth ? 'y' : 'n',
+             mapdata_cell(x, y)->cleared ? 'y' : 'n',
+             mapdata_cell(x, y)->smooth[0], mapdata_cell(x, y)->smooth[1], mapdata_cell(x, y)->smooth[2],
+             mapdata_cell(x, y)->heads[0].face, mapdata_cell(x, y)->heads[1].face, mapdata_cell(x, y)->heads[2].face,
+             mapdata_cell(x, y)->tails[0].face, mapdata_cell(x, y)->tails[1].face, mapdata_cell(x, y)->tails[2].face
             );
     write(scripts[i].out_fd, buf, strlen(buf));
 }
@@ -1378,14 +1378,18 @@ static void script_process_cmd(int i) {
                                  y+pl_pos.y+use_config[CONFIG_MAPHEIGHT]/2-1
                                 );
             } else if (strncmp(c, "all", 3) == 0) {
-                char buf[1024];
+                char *endmsg = "request map end\n";
+                int sizex, sizey;
 
-                for (y = 0; y < the_map.y; ++y)
-                    for (x = 0; x < the_map.x; ++x) {
+                mapdata_size(&sizex, &sizey);
+
+                for (y = 0; y < sizey; y++) {
+                    for (x = 0; x < sizex; x++) {
                         send_map(i, x, y);
                     }
-                snprintf(buf, sizeof(buf), "request map end\n");
-                write(scripts[i].out_fd, buf, strlen(buf));
+                }
+
+                write(scripts[i].out_fd, endmsg, strlen(endmsg));
             } else {
                 while (*c && !isdigit(*c)) {
                     ++c;

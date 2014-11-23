@@ -418,30 +418,30 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
     /* I use dark0 -> dark4 in the order to keep it similar to
      * the old code.
      */
-    dark0 = the_map.cells[mx][my].darkness;
+    dark0 = mapdata_cell(mx, my)->darkness;
 
-    if (y-1 < 0 || !the_map.cells[mx][my-1].have_darkness) {
+    if (y-1 < 0 || !mapdata_cell(mx, my-1)->have_darkness) {
         dark1 = dark0;
     } else {
-        dark1 = the_map.cells[mx][my-1].darkness;
+        dark1 = mapdata_cell(mx, my-1)->darkness;
     }
 
-    if (x+1 >= use_config[CONFIG_MAPWIDTH] || !the_map.cells[mx+1][my].have_darkness) {
+    if (x+1 >= use_config[CONFIG_MAPWIDTH] || !mapdata_cell(mx+1, my)->have_darkness) {
         dark2 = dark0;
     } else {
-        dark2 = the_map.cells[mx+1][my].darkness;
+        dark2 = mapdata_cell(mx+1, my)->darkness;
     }
 
-    if (y+1 >= use_config[CONFIG_MAPHEIGHT] || !the_map.cells[mx][my+1].have_darkness) {
+    if (y+1 >= use_config[CONFIG_MAPHEIGHT] || !mapdata_cell(mx, my+1)->have_darkness) {
         dark3 = dark0;
     } else {
-        dark3 = the_map.cells[mx][my+1].darkness;
+        dark3 = mapdata_cell(mx, my+1)->darkness;
     }
 
-    if (x-1 < 0 || !the_map.cells[mx-1][my].have_darkness) {
+    if (x-1 < 0 || !mapdata_cell(mx-1, my)->have_darkness) {
         dark4 = dark0;
     } else {
-        dark4 = the_map.cells[mx-1][my].darkness;
+        dark4 = mapdata_cell(mx-1, my)->darkness;
     }
 
     /* If they are all the same, processing is easy
@@ -459,8 +459,8 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
 
         if (dark0 == 255) {
             SDL_FillRect(mapsurface,&dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
-        } else if (the_map.cells[mx][my].darkness != 0) {
-            SDL_FillRect(lightmap,NULL, SDL_MapRGBA(lightmap->format, 0, 0, 0, the_map.cells[mx][my].darkness));
+        } else if (mapdata_cell(mx, my)->darkness != 0) {
+            SDL_FillRect(lightmap,NULL, SDL_MapRGBA(lightmap->format, 0, 0, 0, mapdata_cell(mx, my)->darkness));
             SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
         }
         return;
@@ -607,32 +607,32 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
         /*we need additionnal surrounding infos*/
         int dark5, dark6, dark7, dark8;
         if ( (y-1 < 0) || (x+1 >= use_config[CONFIG_MAPWIDTH])
-                || !the_map.cells[mx+1][my-1].have_darkness) {
+                || !mapdata_cell(mx+1, my-1)->darkness) {
             dark5 = (dark1+dark2)>>1;    /*(fast div 2)*/
         } else {
-            dark5 = the_map.cells[mx+1][my-1].darkness;
+            dark5 = mapdata_cell(mx+1, my-1)->darkness;
         }
 
         if ( (x+1 >= use_config[CONFIG_MAPWIDTH])
                 || (y+1 >= use_config[CONFIG_MAPHEIGHT])
-                || !the_map.cells[mx+1][my+1].have_darkness) {
+                || !mapdata_cell(mx+1, my+1)->darkness) {
             dark6 = (dark2+dark3)>>1;
         } else {
-            dark6 = the_map.cells[mx+1][my+1].darkness;
+            dark6 = mapdata_cell(mx+1, my+1)->darkness;
         }
 
         if ( (y+1 >= use_config[CONFIG_MAPHEIGHT]) || (x-1 < 0)
-                || !the_map.cells[mx-1][my+1].have_darkness) {
+                || !mapdata_cell(mx-1, my+1)->darkness) {
             dark7 = (dark3+dark4)>>1;
         } else {
-            dark7 = the_map.cells[mx-1][my+1].darkness;
+            dark7 = mapdata_cell(mx-1, my+1)->darkness;
         }
 
         if ( (x-1 < 0) || (y-1 < 0)
-                || !the_map.cells[mx-1][my-1].have_darkness) {
+                || !mapdata_cell(mx-1, my-1)->darkness) {
             dark8 = (dark4+dark1)>>1;
         } else {
-            dark8 = the_map.cells[mx-1][my-1].darkness;
+            dark8 = mapdata_cell(mx-1, my-1)->darkness;
         }
         /*upper left lightmap quarter*/
         drawquarterlightmap_sdl(dark8, dark1, dark4, dark0,                /*colors*/
@@ -701,10 +701,9 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst)
     int hasFace = 0;
     SDL_Rect src;
     for (i=0; i<=layer; i++) {
-        hasFace |= the_map.cells[mx][my].heads[i].face;
+        hasFace |= mapdata_cell(mx, my)->heads[i].face;
     }
-    if (!hasFace
-            || !CAN_SMOOTH(the_map.cells[mx][my], layer)) {
+    if (!hasFace || !mapdata_can_smooth(mx, my, layer)) {
         return;
     }
 
@@ -714,15 +713,15 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst)
     for (i=0; i<8; i++) {
         emx=mx+dx[i];
         emy=my+dy[i];
-        if ( (emx<0) || (emy<0) || (the_map.x<=emx) || (the_map.y<=emy)) {
+        if (!mapdata_contains(emx, emy)) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        } else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer]) {
+        } else if (mapdata_cell(emx, emy)->smooth[layer]<=mapdata_cell(mx, my)->smooth[layer]) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         } else {
-            slevels[i]=the_map.cells[emx][emy].smooth[layer];
-            sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
+            slevels[i]=mapdata_cell(emx, emy)->smooth[layer];
+            sfaces[i]=pixmaps[mapdata_cell(emx, emy)->heads[layer].face]->smooth_face;
         }
     }
     /* ok, now we have a list of smoothlevel higher than current square.
@@ -785,7 +784,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst)
         if (weight>0) {
             src.x=map_image_size*weight;
             src.y=0;
-            if (the_map.cells[mx][my].cleared) {
+            if (mapdata_cell(mx, my)->cleared) {
                 if (SDL_BlitSurface(pixmaps[smoothface]->fog_image,
                                     &src, mapsurface, &dst)) {
                     do_SDL_error( "BlitSurface", __FILE__, __LINE__);
@@ -800,7 +799,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst)
         if (weightC>0) {
             src.x=map_image_size*weightC;
             src.y=map_image_size;
-            if (the_map.cells[mx][my].cleared) {
+            if (mapdata_cell(mx, my)->cleared) {
                 if (SDL_BlitSurface(pixmaps[smoothface]->fog_image,
                                     &src, mapsurface, &dst)) {
                     do_SDL_error( "BlitSurface", __FILE__, __LINE__);
@@ -844,7 +843,7 @@ static void update_redrawbitmap(void)
              * memory area allows the memset above, which is an optimized routine
              * to clear memory.
              */
-            if (the_map.cells[mx][my].need_update) {
+            if (mapdata_cell(mx, my)->need_update) {
                 redrawbitmap[x + 1 + (y+1) * use_config[CONFIG_MAPWIDTH]] = 1;
                 /* If this space has changed, and using non tile lighting,
                  * we need to update the neighbor spaces.  Ideally, we'd
@@ -868,7 +867,7 @@ static void update_redrawbitmap(void)
                     redrawbitmap[x +  (y+2) * use_config[CONFIG_MAPWIDTH]] = 1;
                     redrawbitmap[x + 2 + (y+2) * use_config[CONFIG_MAPWIDTH]] = 1;
                 }
-            } else if (the_map.cells[mx][my].need_resmooth) {
+            } else if (mapdata_cell(mx, my)->need_resmooth) {
                 redrawbitmap[x + 1 + (y+1) * use_config[CONFIG_MAPWIDTH]] = 1;
             }
         }
@@ -897,7 +896,7 @@ static void display_mapcell(int ax, int ay, int mx, int my)
     /* now draw the different layers.  Only draw if using fog of war or the
      * space isn't clear.
      */
-    if (use_config[CONFIG_FOGWAR] || !the_map.cells[mx][my].cleared) {
+    if (use_config[CONFIG_FOGWAR] || !mapdata_cell(mx, my)->cleared) {
         for (layer=0; layer<MAXLAYERS; layer++) {
             int sx, sy;
 
@@ -913,7 +912,7 @@ static void display_mapcell(int ax, int ay, int mx, int my)
                 src.h = map_image_size;
                 dst.x = ax*map_image_size;
                 dst.y = ay*map_image_size;
-                if (the_map.cells[mx][my].cleared) {
+                if (mapdata_cell(mx, my)->cleared) {
                     if (SDL_BlitSurface(pixmaps[face]->fog_image, &src, mapsurface, &dst)) {
                         do_SDL_error( "BlitSurface", __FILE__, __LINE__);
                     }
@@ -970,7 +969,7 @@ static void display_mapcell(int ax, int ay, int mx, int my)
                 src.h = map_image_size - offy;
                 dst.x = ax*map_image_size + offx;
                 dst.y = ay*map_image_size + offy;
-                if (the_map.cells[mx][my].cleared) {
+                if (mapdata_cell(mx, my)->cleared) {
                     if (SDL_BlitSurface(pixmaps[face]->fog_image, &src, mapsurface, &dst)) {
                         do_SDL_error( "BlitSurface", __FILE__, __LINE__);
                     }
@@ -993,10 +992,10 @@ static void display_mapcell(int ax, int ay, int mx, int my)
          * directly onto the map surface - I would think this should be
          * faster
          */
-        if (the_map.cells[mx][my].darkness == 255) {
+        if (mapdata_cell(mx, my)->darkness == 255) {
             SDL_FillRect(mapsurface,&dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
-        } else if (the_map.cells[mx][my].darkness != 0) {
-            SDL_SetAlpha(lightmap, SDL_SRCALPHA|SDL_RLEACCEL, the_map.cells[mx][my].darkness);
+        } else if (mapdata_cell(mx, my)->darkness != 0) {
+            SDL_SetAlpha(lightmap, SDL_SRCALPHA|SDL_RLEACCEL, mapdata_cell(mx, my)->darkness);
             SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
         }
     } else if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL || use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST) {
@@ -1050,8 +1049,8 @@ void sdl_gen_map(int redraw)
             if (redraw || redrawbitmap[x + 1 + (y+1) * use_config[CONFIG_MAPWIDTH]]) {
                 num_drawn++;
                 display_mapcell(x, y, pl_pos.x+x, pl_pos.y+y);
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].need_update = 0;
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].need_resmooth = 0;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 0;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_resmooth = 0;
             }
         }
     }

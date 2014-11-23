@@ -74,13 +74,6 @@ typedef struct Animations {
 
 extern Animations animations[MAXANIM];
 
-#define CAN_SMOOTH(__SQUARE,__LEVEL) ( (                                       \
-                                            (__SQUARE.heads[__LEVEL].face==0)  \
-                                            && (__LEVEL >0)                    \
-                                        )                                      \
-                                        || (__SQUARE.smooth[layer])            \
-                                     )
-
 /**
  * Basic support for socket communications, including the file descriptor,
  * input buffer, server, server, version, etc. ClientSocket could probably

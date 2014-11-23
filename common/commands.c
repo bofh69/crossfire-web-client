@@ -2223,17 +2223,17 @@ int ExtSmooth(unsigned char *data, int len, int x, int y, int layer)
     y += pl_pos.y;
     newsm = GetChar_String(data);
 
-    if (the_map.cells[x][y].smooth[layer] != newsm) {
+    if (mapdata_cell(x, y)->smooth[layer] != newsm) {
         for (i = 0; i < 8; i++) {
             rx = x+dx[i];
             ry = y+dy[i];
-            if (rx < 0 || ry < 0 || the_map.x <= rx || the_map.y <= ry) {
+            if (!mapdata_contains(rx, ry)) {
                 continue;
             }
-            the_map.cells[x][y].need_resmooth = 1;
+            mapdata_cell(x, y)->need_resmooth = 1;
         }
     }
-    the_map.cells[x][y].smooth[layer] = newsm;
+    mapdata_cell(x, y)->smooth[layer] = newsm;
     return 1;/*Cause smooth infos only use 1 byte*/
 }
 

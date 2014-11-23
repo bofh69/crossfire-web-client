@@ -25,23 +25,6 @@
 #include "mapdata.h"
 
 /**
- * Clear cells the_map.cells[x][y..y+len_y-1].
- */
-#define CLEAR_CELLS(x, y, len_y) \
-do { \
-    int clear_cells_i, j; \
-    memset(&the_map.cells[(x)][(y)], 0, sizeof(the_map.cells[(x)][(y)])*(len_y)); \
-    for (clear_cells_i = 0; clear_cells_i < (len_y); clear_cells_i++) \
-    { \
-	for (j=0; j < MAXLAYERS; j++) { \
-	    the_map.cells[(x)][(y)+clear_cells_i].heads[j].size_x = 1; \
-	    the_map.cells[(x)][(y)+clear_cells_i].heads[j].size_y = 1; \
-	} \
-    } \
-} while(0)
-
-
-/**
  * Size of virtual map.
  */
 #define FOG_MAP_SIZE 512
@@ -115,6 +98,56 @@ static struct BigCell bigfaces[MAX_VIEW][MAX_VIEW][MAXLAYERS];
 
 struct Map the_map;
 
+/**
+ * Clear cells the_map.cells[x][y..y+len_y-1].
+ */
+static void clear_cells(int x, int y, int len_y) {
+    int clear_cells_i, j;
+    memset(&the_map.cells[(x)][(y)], 0, sizeof(the_map.cells[(x)][(y)])*(len_y));
+
+    for (clear_cells_i = 0; clear_cells_i < (len_y); clear_cells_i++) {
+        for (j=0; j < MAXLAYERS; j++) {
+            the_map.cells[(x)][(y)+clear_cells_i].heads[j].size_x = 1;
+            the_map.cells[(x)][(y)+clear_cells_i].heads[j].size_y = 1;
+        }
+    }
+}
+
+/**
+ * Get the stored map cell at the given map coordinate.
+ */
+struct MapCell *mapdata_cell(int x, int y) {
+    return &the_map.cells[x][y];
+}
+
+/**
+ * Determine whether the map data contains the given cell.
+ */
+bool mapdata_contains(int x, int y) {
+    if (x < 0 || y < 0 || the_map.x <= x || the_map.y <= y) {
+        return false;
+    }
+
+    return true;
+}
+
+bool mapdata_can_smooth(int x, int y, int layer) {
+    return (mapdata_cell(x, y)->heads[layer].face == 0 && layer > 0) ||
+            mapdata_cell(x, y)->smooth[layer];
+}
+
+/**
+ * Determine the size of the internal fog-of-war map.
+ */
+void mapdata_size(int *x, int *y) {
+    if (x != NULL) {
+        *x = the_map.x;
+    }
+
+    if (y != NULL) {
+        *y = the_map.y;
+    }
+}
 
 /**
  * Update darkness information. This function is called whenever a map1a
@@ -126,13 +159,13 @@ struct Map the_map;
  */
 static void set_darkness(int x, int y, int darkness)
 {
-    the_map.cells[x][y].have_darkness = 1;
-    if (the_map.cells[x][y].darkness == darkness) {
+    mapdata_cell(x, y)->have_darkness = 1;
+    if (mapdata_cell(x, y)->darkness == darkness) {
         return;
     }
 
-    the_map.cells[x][y].darkness = darkness;
-    the_map.cells[x][y].need_update = 1;
+    mapdata_cell(x, y)->darkness = darkness;
+    mapdata_cell(x, y)->need_update = 1;
 
     /* pretty ugly - since the light code with pngximage uses neighboring
      * spaces to adjust the darkness, we now need to let the neighbors know
@@ -159,7 +192,7 @@ static void set_darkness(int x, int y, int darkness)
 static void mark_resmooth(int x, int y, int layer)
 {
     int sdx,sdy;
-    if (the_map.cells[x][y].smooth[layer]>1) {
+    if (mapdata_cell(x, y)->smooth[layer]>1) {
         for (sdx=-1; sdx<2; sdx++)
             for (sdy=-1; sdy<2; sdy++)
                 if ( (sdx || sdy) /* ignore (0,0) */
@@ -190,7 +223,7 @@ static void expand_clear_face(int x, int y, int w, int h, int layer)
     assert(0 <= x-w+1 && x-w+1 < FOG_MAP_SIZE);
     assert(0 <= y-h+1 && y-h+1 < FOG_MAP_SIZE);
 
-    cell = &the_map.cells[x][y];
+    cell = mapdata_cell(x, y);
 
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
@@ -240,7 +273,7 @@ static void expand_clear_face_from_layer(int x, int y, int layer)
     assert(0 <= y && y < FOG_MAP_SIZE);
     assert(0 <= layer && layer < MAXLAYERS);
 
-    cell = &the_map.cells[x][y].heads[layer];
+    cell = &mapdata_cell(x, y)->heads[layer];
     if (cell->size_x && cell->size_y) {
         expand_clear_face(x, y, cell->size_x, cell->size_y, layer);
     }
@@ -269,7 +302,7 @@ static void expand_set_face(int x, int y, int layer, gint16 face, int clear)
     assert(0 <= y && y < FOG_MAP_SIZE);
     assert(0 <= layer && layer < MAXLAYERS);
 
-    cell = &the_map.cells[x][y];
+    cell = mapdata_cell(x, y);
 
     if (clear) {
         expand_clear_face_from_layer(x, y, layer);
@@ -511,7 +544,7 @@ static void expand_need_update_from_layer(int x, int y, int layer)
     assert(0 <= y && y < FOG_MAP_SIZE);
     assert(0 <= layer && layer < MAXLAYERS);
 
-    head = &the_map.cells[x][y].heads[layer];
+    head = &mapdata_cell(x, y)->heads[layer];
     if (head->face != 0) {
         expand_need_update(x, y, head->size_x, head->size_y);
     } else {
@@ -555,7 +588,7 @@ void mapdata_init(void)
     pl_pos.y = FOG_MAP_SIZE/2-height/2;
 
     for (x = 0; x < FOG_MAP_SIZE; x++) {
-        CLEAR_CELLS(x, 0, FOG_MAP_SIZE);
+        clear_cells(x, 0, FOG_MAP_SIZE);
     }
 
     for (y = 0; y < MAX_VIEW; y++) {
@@ -614,12 +647,12 @@ void mapdata_clear_space(int x, int y)
         /* tile is visible */
 
         /* visible tile is now blank ==> do not clear but mark as cleared */
-        if (!the_map.cells[px][py].cleared) {
-            the_map.cells[px][py].cleared = 1;
-            the_map.cells[px][py].need_update = 1;
+        if (!mapdata_cell(px, py)->cleared) {
+            mapdata_cell(px, py)->cleared = 1;
+            mapdata_cell(px, py)->need_update = 1;
 
             for (i=0; i < MAXLAYERS; i++)
-                if (the_map.cells[px][py].heads[i].face) {
+                if (mapdata_cell(px, py)->heads[i].face) {
                     expand_need_update_from_layer(px, py, i);
                 }
         }
@@ -657,7 +690,7 @@ void mapdata_set_check_space(int x, int y)
 
 
     is_blank=1;
-    cell = &the_map.cells[px][py];
+    cell = mapdata_cell(px, py);
     for (i=0; i < MAXLAYERS; i++) {
         if (cell->heads[i].face>0 || cell->tails[i].face>0) {
             is_blank=0;
@@ -678,9 +711,9 @@ void mapdata_set_check_space(int x, int y)
         /* tile is visible */
 
         /* visible tile is now blank ==> do not clear but mark as cleared */
-        if (!the_map.cells[px][py].cleared) {
-            the_map.cells[px][py].cleared = 1;
-            the_map.cells[px][py].need_update = 1;
+        if (!mapdata_cell(px, py)->cleared) {
+            mapdata_cell(px, py)->cleared = 1;
+            mapdata_cell(px, py)->need_update = 1;
 
             for (i=0; i < MAXLAYERS; i++) {
                 expand_need_update_from_layer(px, py, i);
@@ -731,7 +764,7 @@ void mapdata_set_smooth(int x, int y, int smooth, int layer)
     assert(0 <= px && px < FOG_MAP_SIZE);
     assert(0 <= py && py < FOG_MAP_SIZE);
 
-    if (the_map.cells[px][py].smooth[layer] != smooth) {
+    if (mapdata_cell(px, py)->smooth[layer] != smooth) {
         for (i=0; i<8; i++) {
             rx=px+dx[i];
             ry=py+dy[i];
@@ -740,8 +773,8 @@ void mapdata_set_smooth(int x, int y, int smooth, int layer)
             }
             the_map.cells[rx][ry].need_resmooth=1;
         }
-        the_map.cells[px][py].need_resmooth=1;
-        the_map.cells[px][py].smooth[layer] = smooth;
+        mapdata_cell(px, py)->need_resmooth=1;
+        mapdata_cell(px, py)->smooth[layer] = smooth;
     }
 }
 
@@ -765,13 +798,13 @@ void mapdata_clear_old(int x, int y)
     assert(0 <= py && py < FOG_MAP_SIZE);
 
     if (x < width && y < height)
-        if (the_map.cells[px][py].cleared) {
+        if (mapdata_cell(px, py)->cleared) {
             for (i=0; i < MAXLAYERS; i++) {
                 expand_clear_face_from_layer(px, py, i);
             }
 
-            the_map.cells[px][py].darkness = 0;
-            the_map.cells[px][py].have_darkness = 0;
+            mapdata_cell(px, py)->darkness = 0;
+            mapdata_cell(px, py)->have_darkness = 0;
         }
 }
 
@@ -792,14 +825,14 @@ void mapdata_set_face_layer(int x, int y, gint16 face, int layer)
     assert(0 <= py && py < FOG_MAP_SIZE);
 
     if (x < width && y < height) {
-        the_map.cells[px][py].need_update = 1;
+        mapdata_cell(px, py)->need_update = 1;
         if (face >0) {
             expand_set_face(px, py, layer, face, TRUE);
         } else {
             expand_clear_face_from_layer(px, py, layer);
         }
 
-        the_map.cells[px][py].cleared = 0;
+        mapdata_cell(px, py)->cleared = 0;
     } else {
         expand_set_bigface(x, y, layer, face, TRUE);
     }
@@ -839,26 +872,26 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
     }
 
     if (x < width && y < height) {
-        the_map.cells[px][py].need_update = 1;
-        if (the_map.cells[px][py].cleared) {
+        mapdata_cell(px, py)->need_update = 1;
+        if (mapdata_cell(px, py)->cleared) {
             for (i=0; i < MAXLAYERS; i++) {
                 expand_clear_face_from_layer(px, py, i);
             }
 
-            the_map.cells[px][py].darkness = 0;
-            the_map.cells[px][py].have_darkness = 0;
+            mapdata_cell(px, py)->darkness = 0;
+            mapdata_cell(px, py)->have_darkness = 0;
         }
         if (face >0) {
             expand_set_face(px, py, layer, face, TRUE);
-            the_map.cells[px][py].heads[layer].animation = animation;
-            the_map.cells[px][py].heads[layer].animation_phase = phase;
-            the_map.cells[px][py].heads[layer].animation_speed = anim_speed;
-            the_map.cells[px][py].heads[layer].animation_left = speed_left;
+            mapdata_cell(px, py)->heads[layer].animation = animation;
+            mapdata_cell(px, py)->heads[layer].animation_phase = phase;
+            mapdata_cell(px, py)->heads[layer].animation_speed = anim_speed;
+            mapdata_cell(px, py)->heads[layer].animation_left = speed_left;
         } else {
             expand_clear_face_from_layer(px, py, layer);
         }
 
-        the_map.cells[px][py].cleared = 0;
+        mapdata_cell(px, py)->cleared = 0;
 
     } else {
         expand_set_bigface(x, y, layer, face, TRUE);
@@ -945,9 +978,9 @@ void mapdata_newmap(void)
 
     /* Clear the_map.cells[]. */
     for (x = 0; x < FOG_MAP_SIZE; x++) {
-        CLEAR_CELLS(x, 0, FOG_MAP_SIZE);
+        clear_cells(x, 0, FOG_MAP_SIZE);
         for (y = 0; y < FOG_MAP_SIZE; y++) {
-            the_map.cells[x][y].need_update = 1;
+            mapdata_cell(x, y)->need_update = 1;
         }
     }
 
@@ -1184,7 +1217,7 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
     if (shift_x <= -FOG_MAP_SIZE || shift_x >= FOG_MAP_SIZE
             || shift_y <= -FOG_MAP_SIZE || shift_y >= FOG_MAP_SIZE) {
         for (dx = 0; dx < FOG_MAP_SIZE; dx++) {
-            CLEAR_CELLS(dx, 0, FOG_MAP_SIZE);
+            clear_cells(dx, 0, FOG_MAP_SIZE);
         }
 
         pl_pos.x = FOG_MAP_SIZE/2-width/2;
@@ -1243,18 +1276,18 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
 
     /* Clear newly opened area */
     for (dx = 0; dx < dst_x; dx++) {
-        CLEAR_CELLS(dx, 0, FOG_MAP_SIZE);
+        clear_cells(dx, 0, FOG_MAP_SIZE);
     }
     for (dx = dst_x+len_x; dx < FOG_MAP_SIZE; dx++) {
-        CLEAR_CELLS(dx, 0, FOG_MAP_SIZE);
+        clear_cells(dx, 0, FOG_MAP_SIZE);
     }
     if (shift_y > 0) {
         for (dx = 0; dx < len_x; dx++) {
-            CLEAR_CELLS(dx+dst_x, 0, shift_y);
+            clear_cells(dx+dst_x, 0, shift_y);
         }
     } else if (shift_y < 0) {
         for (dx = 0; dx < len_x; dx++) {
-            CLEAR_CELLS(dx+dst_x, FOG_MAP_SIZE+shift_y, -shift_y);
+            clear_cells(dx+dst_x, FOG_MAP_SIZE+shift_y, -shift_y);
         }
     }
 }

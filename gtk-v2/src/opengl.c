@@ -282,11 +282,11 @@ static void opengl_light_space(int x, int y, int mx, int my)
 {
     if (use_config[CONFIG_DARKNESS] == CFG_LT_TILE) {
         /* If we don't have darkness, or it isn't dark, don't do anything */
-        if (!the_map.cells[mx][my].have_darkness || the_map.cells[mx][my].darkness==0) {
+        if (!mapdata_cell(mx, my)->have_darkness || mapdata_cell(mx, my)->darkness==0) {
             return;
         }
 
-        glColor4ub(0, 0, 0,  the_map.cells[mx][my].darkness);
+        glColor4ub(0, 0, 0,  mapdata_cell(mx, my)->darkness);
         glBegin(GL_QUADS);
         glVertex3i(x * map_image_size, y * map_image_size, 0);
         glVertex3i((x+1) * map_image_size, y * map_image_size, 0);
@@ -411,16 +411,16 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer)
         emx=mx+dx[i];
         emy=my+dy[i];
 
-        if ( (emx<0) || (emy<0) || (emx >= the_map.x) || (emy >= the_map.y)) {
+        if (!mapdata_contains(emx, emy)) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
-        } else if (the_map.cells[emx][emy].smooth[layer]<=the_map.cells[mx][my].smooth[layer] ||
-                   the_map.cells[emx][emy].heads[layer].face == 0) {
+        } else if (mapdata_cell(emx, emy)->smooth[layer]<=mapdata_cell(mx, my)->smooth[layer] ||
+                   mapdata_cell(emx, emy)->heads[layer].face == 0) {
             slevels[i]=0;
             sfaces[i]=0; /*black picture*/
         } else {
-            slevels[i]=the_map.cells[emx][emy].smooth[layer];
-            sfaces[i]=pixmaps[the_map.cells[emx][emy].heads[layer].face]->smooth_face;
+            slevels[i]=mapdata_cell(emx, emy)->smooth[layer];
+            sfaces[i]=pixmaps[mapdata_cell(emx, emy)->heads[layer].face]->smooth_face;
             dosmooth++;
         }
     }
@@ -477,7 +477,7 @@ static void drawsmooth_opengl (int x, int y, int mx, int my, int layer)
             continue;    /*don't have the picture associated*/
         }
 
-        if (the_map.cells[mx][my].cleared) {
+        if (mapdata_cell(mx, my)->cleared) {
             glBindTexture(GL_TEXTURE_2D, pixmaps[smoothface]->fog_texture);
         } else {
             glBindTexture(GL_TEXTURE_2D, pixmaps[smoothface]->map_texture);
@@ -539,7 +539,7 @@ static void draw_smoothing(int layer)
             mx = x + pl_pos.x;
             my = y + pl_pos.y;
 
-            if (CAN_SMOOTH(the_map.cells[mx][my],layer)) {
+            if (mapdata_can_smooth(mx, my,layer)) {
                 drawsmooth_opengl(x, y, mx, my, layer);
             }
         }
@@ -654,8 +654,8 @@ void opengl_gen_map(int redraw)
                          * But the results we use here, while perhaps not as
                          * nice, certainly look better than per tile lighting.
                          */
-                        if (the_map.cells[mx][my].have_darkness) {
-                            map_darkness[x*2 + 1][y*2 + 1] = the_map.cells[mx][my].darkness;
+                        if (mapdata_cell(mx, my)->have_darkness) {
+                            map_darkness[x*2 + 1][y*2 + 1] = mapdata_cell(mx, my)->darkness;
                         } else {
                             map_darkness[x*2 + 1][y*2 + 1] = DEFAULT_DARKNESS;
                         }
@@ -665,18 +665,18 @@ void opengl_gen_map(int redraw)
                         d3 = DEFAULT_DARKNESS;  /* square above */
                         num_dark=1; /* Number of adjoining spaces w/darkness */
 
-                        if (x>0 && the_map.cells[mx-1][my].have_darkness) {
-                            d1 = the_map.cells[mx-1][my].darkness;
+                        if (x>0 && mapdata_cell(mx-1, my)->have_darkness) {
+                            d1 = mapdata_cell(mx-1, my)->darkness;
                             num_dark++;
                         }
 
-                        if (x>0 && y>0 && the_map.cells[mx-1][my-1].have_darkness) {
-                            d2 = the_map.cells[mx-1][my-1].darkness;
+                        if (x>0 && y>0 && mapdata_cell(mx-1, my-1)->have_darkness) {
+                            d2 = mapdata_cell(mx-1, my-1)->darkness;
                             num_dark++;
                         }
 
-                        if (y>0 && the_map.cells[mx][my-1].have_darkness) {
-                            d3 = the_map.cells[mx][my-1].darkness;
+                        if (y>0 && mapdata_cell(mx, my-1)->have_darkness) {
+                            d3 = mapdata_cell(mx, my-1)->darkness;
                             num_dark++;
                         }
 #if 0
@@ -711,16 +711,16 @@ void opengl_gen_map(int redraw)
 #endif
                     }
 
-                    if (the_map.cells[mx][my].heads[layer].face) {
-                        if (pixmaps[the_map.cells[mx][my].heads[layer].face]->map_texture) {
+                    if (mapdata_cell(mx, my)->heads[layer].face) {
+                        if (pixmaps[mapdata_cell(mx, my)->heads[layer].face]->map_texture) {
                             int nx, ny;
 
                             /*
                              * nx, ny are the location of the top/left side of
                              * the image to draw.
                              */
-                            nx = (x+1) * map_image_size - pixmaps[the_map.cells[mx][my].heads[layer].face]->map_width;
-                            ny = (y+1) * map_image_size - pixmaps[the_map.cells[mx][my].heads[layer].face]->map_height;
+                            nx = (x+1) * map_image_size - pixmaps[mapdata_cell(mx, my)->heads[layer].face]->map_width;
+                            ny = (y+1) * map_image_size - pixmaps[mapdata_cell(mx, my)->heads[layer].face]->map_height;
                             /*
                              * If both nx and ny are outside visible area,
                              * don't need to do anything more
@@ -734,10 +734,10 @@ void opengl_gen_map(int redraw)
                              * of war logic.  I don't have good solution to
                              * that, other than to live with it.
                              */
-                            if (the_map.cells[mx][my].cleared) {
-                                glBindTexture(GL_TEXTURE_2D, pixmaps[the_map.cells[mx][my].heads[layer].face]->fog_texture);
+                            if (mapdata_cell(mx, my)->cleared) {
+                                glBindTexture(GL_TEXTURE_2D, pixmaps[mapdata_cell(mx, my)->heads[layer].face]->fog_texture);
                             } else {
-                                glBindTexture(GL_TEXTURE_2D, pixmaps[the_map.cells[mx][my].heads[layer].face]->map_texture);
+                                glBindTexture(GL_TEXTURE_2D, pixmaps[mapdata_cell(mx, my)->heads[layer].face]->map_texture);
                             }
 
                             glBegin(GL_QUADS);
@@ -756,8 +756,8 @@ void opengl_gen_map(int redraw)
 
                             glEnd();
                         }
-                        if (use_config[CONFIG_SMOOTH] && CAN_SMOOTH(the_map.cells[mx][my],layer) &&
-                                the_map.cells[mx][my].heads[layer].face !=0) {
+                        if (use_config[CONFIG_SMOOTH] && mapdata_can_smooth(mx, my, layer) &&
+                                mapdata_cell(mx, my)->heads[layer].face !=0) {
 
                             got_smooth=1;
                         }
@@ -785,7 +785,7 @@ void opengl_gen_map(int redraw)
                              * of war logic.  I don't have good solution to
                              * that, other than to live with it.
                              */
-                            if (the_map.cells[mx][my].cleared) {
+                            if (mapdata_cell(mx, my)->cleared) {
                                 glBindTexture(GL_TEXTURE_2D, pixmaps[face]->fog_texture);
                             } else {
                                 glBindTexture(GL_TEXTURE_2D, pixmaps[face]->map_texture);
