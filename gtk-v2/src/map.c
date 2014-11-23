@@ -142,7 +142,7 @@ void reset_map() {
 }
 
 static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay) {
-    gdk_cairo_set_source_pixbuf(cr, pixmap->map_image,
+    cairo_set_source_surface(cr, pixmap->map_image,
             ax * map_image_size, ay * map_image_size);
     cairo_paint(cr);
 }
@@ -369,7 +369,7 @@ static void gtk_map_redraw() {
 
     // Create double buffer and associated graphics context.
     cairo_surface_t *cst =
-            cairo_image_surface_create(CAIRO_FORMAT_RGB24, width, height);
+            cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cairo_t *cr = cairo_create(cst);
 
     // Blank graphics context with a solid black background.

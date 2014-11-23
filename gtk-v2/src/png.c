@@ -528,6 +528,35 @@ GdkPixbuf *rgba_to_gdkpixbuf(guint8 *data, int width, int height) {
 }
 
 /**
+ * Create a Cairo surface for the given RGBA data.
+ */
+cairo_surface_t *rgba_to_cairo_surface(guint8 *data, int width, int height) {
+    cairo_surface_t *surface;
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_surface_flush(surface);
+
+    unsigned char *pixels = cairo_image_surface_get_data(surface);
+    int stride = cairo_image_surface_get_stride(surface);
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            uint32_t *p = (uint32_t *)(pixels + y * stride + x * 4);
+
+            // Cairo format is native-endian ARGB, but our format is RGBA.
+            uint32_t a = data[4 * (x + y * width) + 3];
+            uint32_t r = data[4 * (x + y * width) + 0] * a / 255;
+            uint32_t g = data[4 * (x + y * width) + 1] * a / 255;
+            uint32_t b = data[4 * (x + y * width) + 2] * a / 255;
+
+            *p = a << (3 * 8) | r << (2 * 8) | g << (1 * 8) | b << (0 * 8);
+        }
+    }
+
+    cairo_surface_mark_dirty(surface);
+    return surface;
+}
+
+/**
  *
  * @param *window
  * @param *data

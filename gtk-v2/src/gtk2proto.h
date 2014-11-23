@@ -215,6 +215,7 @@ extern guint8 *rescale_rgba_data(guint8 *data, int *width, int *height, int scal
 extern int rgba_to_gdkpixmap(GdkWindow *window, guint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 extern GdkPixbuf *rgba_to_gdkpixbuf(guint8 *data, int width, int height);
 extern int png_to_gdkpixmap(GdkWindow *window, guint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
+extern cairo_surface_t *rgba_to_cairo_surface(guint8 *data, int width, int height);
 /* sdl.c */
 extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);
 extern void drawquarterlightmap_sdl(int tl, int tr, int bl, int br, int width, int height, int startx, int starty, int endx, int endy, int destx, int desty);

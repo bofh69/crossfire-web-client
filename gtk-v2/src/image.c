@@ -211,8 +211,7 @@ static void create_map_image(guint8 *data, PixmapInfo *pi) {
         create_opengl_map_image(data, pi);
 #endif
     } else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
-        rgba_to_gdkpixbuf(data, pi->map_width, pi->map_height,
-                (GdkPixbuf **)&pi->map_image);
+        pi->map_image = rgba_to_cairo_surface(data, pi->map_width, pi->map_height);
     }
 }
 
@@ -258,7 +257,7 @@ static void free_pixmap(PixmapInfo *pi)
 #endif
     } else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
         if (pi->map_image) {
-            g_object_unref(pi->map_image);
+            cairo_surface_destroy(pi->map_image);
         }
     }
 }
