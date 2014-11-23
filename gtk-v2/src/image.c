@@ -112,18 +112,10 @@ typedef struct Keys {
 
 /**
  * Helper function to make the code more readable
- *
- * @param data
- * @param pi
- * @param pixmap_num
  */
-static void create_icon_image(guint8 *data, PixmapInfo *pi, int pixmap_num)
-{
+static void create_icon_image(guint8 *data, PixmapInfo *pi) {
     pi->icon_mask = NULL;
-    if (rgba_to_gdkpixbuf(data, pi->icon_width, pi->icon_height,
-                          (GdkPixbuf**)&pi->icon_image)) {
-        LOG (LOG_ERROR,"gtk-v2::create_icon_image","Unable to create scaled image, dest num = %d\n", pixmap_num);
-    }
+    pi->icon_image = rgba_to_gdkpixbuf(data, pi->icon_width, pi->icon_height);
 }
 
 /**
@@ -132,8 +124,7 @@ static void create_icon_image(guint8 *data, PixmapInfo *pi, int pixmap_num)
  * @param data
  * @param pi
  */
-static void create_map_image(guint8 *data, PixmapInfo *pi)
-{
+static void create_map_image(guint8 *data, PixmapInfo *pi) {
     pi->map_image = NULL;
     pi->map_mask = NULL;
 
@@ -285,10 +276,9 @@ static void free_pixmap(PixmapInfo *pi)
  *
  * @return 1 on failure.
  */
-int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, guint8 *rgba_data, int width, int height)
-{
+int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num,
+        guint8 *rgba_data, int width, int height) {
     int nx, ny, iscale, factor;
-    guint8 *png_tmp;
     PixmapInfo  *pi;
 
     if (pixmap_num <= 0 || pixmap_num >= MAXPIXMAPNUM) {
@@ -353,15 +343,15 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, guint8 *
     if (iscale != 100) {
         nx=width;
         ny=height;
-        png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, iscale);
+        guint8 *png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, iscale);
         pi->icon_width = nx;
         pi->icon_height = ny;
-        create_icon_image(png_tmp, pi, pixmap_num);
+        create_icon_image(png_tmp, pi);
         free(png_tmp);
     } else {
         pi->icon_width = width;
         pi->icon_height = height;
-        create_icon_image(rgba_data, pi, pixmap_num);
+        create_icon_image(rgba_data, pi);
     }
 
     /*
@@ -369,6 +359,8 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num, guint8 *
      * more intelligent, but this should not be called too often, and this
      * keeps the code simpler.
      */
+    guint8 *png_tmp;
+
     if (use_config[CONFIG_MAPSCALE] != 100) {
         nx=width;
         ny=height;

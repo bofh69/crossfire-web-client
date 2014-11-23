@@ -502,48 +502,29 @@ int rgba_to_gdkpixmap(GdkWindow *window, guint8 *data,int width, int height,
 }
 
 /**
- * Takes data that has already been converted into RGBA format (via png_to_data
- * above perhaps) and creates a GdkPixbuf of it.
- *
- * @param *data
- * @param width
- * @param height
- * @param **pix
- * @return Non-zero on error (currently, no checks for error conditions is done
+ * Create a GdkPixbuf for the given RGBA data.
  */
-int rgba_to_gdkpixbuf(guint8 *data,int width, int height,GdkPixbuf **pix)
-{
-    int         rowstride;
-    guchar  *pixels, *p;
-    int x,y;
+GdkPixbuf *rgba_to_gdkpixbuf(guint8 *data, int width, int height) {
+    /* Our data doesn't have correct stride values, so we can't just create it
+     * from raw data using gdk_pixbuf_new_from_data(). */
 
-#if 0
-    /* I'm not sure why this doesn't work, since it seems
-     * the data should be in the right format, but it doesn't.
-     */
-    *pix = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB,
-                                    TRUE, 8, width, height, width * 4, NULL, NULL);
-    return 0;
+    GdkPixbuf *pix;
+    pix = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, width, height);
 
-#else
-    *pix  = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8, width, height);
+    int rowstride = gdk_pixbuf_get_rowstride(pix);
+    unsigned char *pixels = gdk_pixbuf_get_pixels(pix);
 
-    rowstride =  gdk_pixbuf_get_rowstride(*pix);
-    pixels = gdk_pixbuf_get_pixels(*pix);
-
-    for (y=0; y<height; y++) {
-        for (x=0; x<width; x++) {
-            p = pixels + y * rowstride + x * 4;
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            unsigned char *p = pixels + y * rowstride + x * 4;
             p[0] = data[4*(x + y * width)];
             p[1] = data[4*(x + y * width) + 1 ];
             p[2] = data[4*(x + y * width) + 2 ];
             p[3] = data[4*(x + y * width) + 3 ];
-
         }
     }
 
-    return 0;
-#endif
+    return pix;
 }
 
 /**
