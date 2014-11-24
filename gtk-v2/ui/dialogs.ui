@@ -2,150 +2,42 @@
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy toplevel-contextual -->
-  <object class="GtkWindow" id="about_window">
+  <object class="GtkAboutDialog" id="about_window">
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">About Crossfire</property>
-    <property name="window_position">center</property>
-    <property name="icon_name">help-about</property>
-    <child>
-      <object class="GtkVBox" id="about_vbox">
-        <property name="visible">True</property>
+    <property name="border_width">5</property>
+    <property name="type_hint">dialog</property>
+    <property name="program_name">Crossfire Client</property>
+    <property name="version">1.71.0</property>
+    <property name="copyright" translatable="yes">Copyright © 1999-2014 Mark Wedel, Crossfire Development Team
+Copyright © 1992 Frank Tore Johansen</property>
+    <property name="comments" translatable="yes">A free, open-source, cooperative multi-player RPG and adventure game</property>
+    <property name="website">http://crossfire.real-time.com</property>
+    <property name="license" translatable="yes">This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</property>
+    <property name="authors">Mark Wedel &lt;mwedel@sonic.net&gt;
+David Sundqvist &lt;azzie@netpolicy.com&gt;
+Raphael Quinet &lt;Raphael.Quinet@eed.ericsson.se&gt;
+Jacek Konieczny &lt;jajcus@zeus.polsl.gliwice.pl&gt;
+Eric Anderson
+Scott MacFiggen &lt;smurf@CSUA.Berkeley.EDU&gt;
+Kevin Bulgrien &lt;kbulgrien@att.net&gt;
+Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
+    <property name="wrap_license">True</property>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox1">
         <property name="can_focus">False</property>
-        <child>
-          <object class="GtkImage" id="about_image">
-            <property name="visible">True</property>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area1">
             <property name="can_focus">False</property>
-            <property name="stock">gtk-missing-image</property>
           </object>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">True</property>
+            <property name="pack_type">end</property>
             <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="about_text">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="xpad">20</property>
-            <property name="ypad">10</property>
-            <property name="label" translatable="yes">A free, open-source, cooperative multi-player RPG and adventure game</property>
-            <property name="justify">center</property>
-            <property name="single_line_mode">True</property>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="about_license_label">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">License</property>
-            <attributes>
-              <attribute name="weight" value="bold"/>
-            </attributes>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkScrolledWindow" id="about_license_scroll">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="hscrollbar_policy">automatic</property>
-            <property name="vscrollbar_policy">automatic</property>
-            <child>
-              <object class="GtkTextView" id="about_license_textview">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="wrap_mode">word</property>
-                <property name="cursor_visible">False</property>
-                <property name="buffer">textbuffer_license</property>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="about_authors_label">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Authors</property>
-            <attributes>
-              <attribute name="weight" value="bold"/>
-            </attributes>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">4</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkTextView" id="about_authors_textview">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="editable">False</property>
-            <property name="cursor_visible">False</property>
-            <property name="buffer">textbuffer_authors</property>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">5</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkHBox" id="about_links">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="homogeneous">True</property>
-            <child>
-              <object class="GtkLinkButton" id="link_www">
-                <property name="label" translatable="yes">Website</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="relief">none</property>
-                <property name="uri">http://crossfire.real-time.com/</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLinkButton" id="link_sf">
-                <property name="label" translatable="yes">SourceForge</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="relief">none</property>
-                <property name="uri">http://sourceforge.net/projects/crossfire/</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">6</property>
           </packing>
         </child>
       </object>
