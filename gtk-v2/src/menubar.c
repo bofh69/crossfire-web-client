@@ -45,10 +45,7 @@
  * @param menuitem
  * @param user_data
  */
-void
-on_disconnect_activate                  (GtkMenuItem     *menuitem,
-        gpointer         user_data)
-{
+static void on_disconnect_activate(GtkMenuItem *menuitem, gpointer user_data) {
     close_server_connection();
 
     if (csocket_fd) {
@@ -65,17 +62,13 @@ on_disconnect_activate                  (GtkMenuItem     *menuitem,
  * @param menuitem
  * @param user_data
  */
-void
-menu_quit_program                       (GtkMenuItem     *menuitem,
-        gpointer         user_data)
-{
+static void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data) {
 #ifdef WIN32
     script_killall();
 #endif
 
     LOG(LOG_INFO,"gtk-v2::client_exit","Exiting with return value 0.");
     exit(0);
-
 }
 
 /**
@@ -85,11 +78,18 @@ menu_quit_program                       (GtkMenuItem     *menuitem,
  * @param menuitem
  * @param user_data
  */
-void
-menu_quit_character                     (GtkMenuItem     *menuitem,
-        gpointer         user_data)
-{
+static void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data) {
     extended_command("quit");
+}
+
+/**
+ * Display client about dialog.
+ */
+static void menu_about(GtkMenuItem *menuitem, gpointer user_data) {
+    GtkWidget *about_window;
+    about_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "about_window"));
+    gtk_dialog_run(GTK_DIALOG(about_window));
+    gtk_widget_hide(about_window);
 }
 
 /**
@@ -286,4 +286,3 @@ void init_menu_items() {
     g_signal_connect ((gpointer) widget, "activate",
                       G_CALLBACK (menu_about), NULL);
 }
-

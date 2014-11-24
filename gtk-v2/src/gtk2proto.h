@@ -1,5 +1,3 @@
-/* about.c */
-extern void menu_about(GtkMenuItem *menuitem, gpointer user_data);
 /* account.c */
 extern void hide_all_login_windows(void);
 extern gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data);
@@ -149,8 +147,6 @@ extern void draw_magic_map(void);
 extern void magic_map_flash_pos(void);
 extern gboolean on_drawingarea_magic_map_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
 /* menubar.c */
-extern void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data);
-extern void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data);
 extern void init_menu_items();
 /* metaserver.c */
 extern gboolean metaserver_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);

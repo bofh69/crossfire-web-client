@@ -1,5 +1,4 @@
 add_executable(crossfire-client-gtk2
-    about.c
     account.c
     config.c
     create_char.c
