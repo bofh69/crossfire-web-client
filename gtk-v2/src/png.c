@@ -540,13 +540,13 @@ cairo_surface_t *rgba_to_cairo_surface(guint8 *data, int width, int height) {
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            uint32_t *p = (uint32_t *)(pixels + y * stride + x * 4);
+            guint32 *p = (guint32 *)(pixels + y * stride + x * 4);
 
             // Cairo format is native-endian ARGB, but our format is RGBA.
-            uint32_t a = data[4 * (x + y * width) + 3];
-            uint32_t r = data[4 * (x + y * width) + 0] * a / 255;
-            uint32_t g = data[4 * (x + y * width) + 1] * a / 255;
-            uint32_t b = data[4 * (x + y * width) + 2] * a / 255;
+            guint32 a = data[4 * (x + y * width) + 3];
+            guint32 r = data[4 * (x + y * width) + 0] * a / 255;
+            guint32 g = data[4 * (x + y * width) + 1] * a / 255;
+            guint32 b = data[4 * (x + y * width) + 2] * a / 255;
 
             *p = a << (3 * 8) | r << (2 * 8) | g << (1 * 8) | b << (0 * 8);
         }
