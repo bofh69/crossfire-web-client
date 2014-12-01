@@ -29,7 +29,6 @@ $(common_LIBS):
 	popd >/dev/null;
 
 crossfire_client_gtk2_SOURCES = \
-	about.c \
 	account.c \
 	config.c \
 	create_char.c \
