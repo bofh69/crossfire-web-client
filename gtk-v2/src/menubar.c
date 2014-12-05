@@ -27,12 +27,13 @@
 
 #include <gtk/gtk.h>
 
+#include "client.h"
+
 #ifdef WIN32
 # include <windows.h>
 # include "script.h"
 #endif
 
-#include "client.h"
 #include "p_cmd.h"
 #include "main.h"
 #include "image.h"

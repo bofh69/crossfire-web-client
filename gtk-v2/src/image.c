@@ -28,6 +28,8 @@
 #include <unistd.h>
 #endif
 
+#include "client-types.h"
+
 /* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
 #ifndef WIN32
@@ -42,7 +44,6 @@
 #include <SDL_image.h>
 #endif
 
-#include "client-types.h"
 #include "client.h"
 #include "image.h"
 #include "main.h"

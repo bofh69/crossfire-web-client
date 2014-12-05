@@ -27,6 +27,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+#include "client-types.h"
+
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #include <unistd.h>
@@ -34,7 +36,6 @@
 #include <gdk/gdkwin32.h>
 #endif
 
-#include "client-types.h"
 #include "client.h"
 
 /* Defines for PNG return values */

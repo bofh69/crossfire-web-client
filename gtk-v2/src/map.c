@@ -24,6 +24,9 @@
 #include <png.h>
 #include <stdlib.h>
 
+#include "client-types.h"
+#include "client.h"
+
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #else
@@ -31,8 +34,6 @@
 #include <time.h>
 #endif
 
-#include "client-types.h"
-#include "client.h"
 #include "image.h"
 #include "main.h"
 #include "mapdata.h"

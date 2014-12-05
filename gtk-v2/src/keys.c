@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+#include "client-types.h"
+
 #ifndef WIN32
 #include <unistd.h>
 #include <gdk/gdkx.h>
@@ -35,7 +37,6 @@
 typedef int KeyCode;                    /**< Undefined type */
 #endif
 
-#include "client-types.h"
 #include "client.h"
 #include "main.h"
 #include "proto.h"

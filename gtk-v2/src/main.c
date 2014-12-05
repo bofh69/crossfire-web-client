@@ -20,6 +20,12 @@
 #include "config.h"
 #endif
 
+/*
+ * This includes "client-types.h, which includes winsock2.h
+ * TDM-GCC throws a preprocessor warning when winsock2.h is included after windows.h
+ */
+#include "client.h"
+
 #ifdef WIN32
 #include <windows.h>
 #else
@@ -31,7 +37,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "client.h"
 #include "main.h"
 #include "image.h"
 #include "gtk2proto.h"

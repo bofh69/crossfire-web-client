@@ -1,3 +1,12 @@
+2014-12-04	SilverNexus
+	* gtk-v2/src/image.c,
+	* gtk-v2/src/keys.c,
+	* gtk-v2/src/main.c,
+	* gtk-v2/src/map.c,
+	* gtk-v2/src/menubar.c,
+	* gtk-v2/src/png.c: Rearranged includes to solve a preprocessor warning
+	about including winsock2.h after windows.h.
+
 2014-11-16	Kevin Zheng
 	* gtk-v2/src/map.c: Reimplement default renderer using Cario. This
 	substantially improves pixmap rendering performance and improves
