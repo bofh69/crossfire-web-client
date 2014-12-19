@@ -189,7 +189,7 @@ void update_item_sort(item *it)
  */
 const char *get_number(guint32 i)
 {
-    static const char numbers[21][20] = {
+    static const char *numbers[] = {
         "no", "a", "two", "three", "four",
         "five", "six", "seven", "eight", "nine",
         "ten", "eleven", "twelve", "thirteen", "fourteen",
