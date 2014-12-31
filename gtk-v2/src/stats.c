@@ -39,8 +39,6 @@ static const char * const stat_bar_names[MAX_STAT_BARS] = {
     "hp", "sp", "grace", "food", "exp"
 };
 
-static GtkWidget *stat_current[MAX_STAT_BARS];
-static GtkWidget *stat_max[MAX_STAT_BARS];
 static GtkWidget *stat_bar[MAX_STAT_BARS];
 
 #define STYLE_NORMAL        0
@@ -149,17 +147,11 @@ void stats_get_styles(void)
  * Associate the XML-defined widgets with pointers by name reference.
  * @param *window_root
  */
-void stats_init(GtkWidget *window_root)
-{
+void stats_init(GtkWidget *window_root) {
     int i, x, y;
     char buf[MAX_BUF];
 
     for (i=0; i<MAX_STAT_BARS; i++) {
-        snprintf(buf, sizeof(buf), "label_stat_current_%s", stat_bar_names[i]);
-        stat_current[i] = GTK_WIDGET(gtk_builder_get_object(window_xml, buf));
-        snprintf(buf, sizeof(buf), "label_stat_max_%s", stat_bar_names[i]);
-        stat_max[i] = GTK_WIDGET(gtk_builder_get_object(window_xml, buf));
-
         snprintf(buf, sizeof(buf), "progressbar_%s", stat_bar_names[i]);
         stat_bar[i] = GTK_WIDGET(gtk_builder_get_object(window_xml, buf));
 
@@ -248,15 +240,10 @@ void stats_init(GtkWidget *window_root)
 /**
  * Format an integer using an appropriate SI prefix.
  *
- * @param number
- * Number to format
- * @param buffer
- * Pointer to a string to store the formatted number
- * @param limit
- * Size of the buffer
+ * @param number Number to format
+ * @return A newly-allocated string with the formatted number
  */
-static void format_si_number(gint64 number, char *buffer, int limit)
-{
+static char *format_si_number(gint64 number) {
     /* List of SI prefixes and corresponding values, least to greatest. */
     const char SI_SUFFIX[] = {'\0', 'k', 'M', 'G'};
     const float SI_VALUE[] = {1, 1000, 1000000, 1000000000};
@@ -276,9 +263,9 @@ static void format_si_number(gint64 number, char *buffer, int limit)
 
     /* If possible, trim the trailing zero decimal. */
     if (value - (int)value == 0) {
-        snprintf(buffer, limit, "%.0f%c", value, SI_SUFFIX[suffix]);
+        return g_strdup_printf("%.0f%c", value, SI_SUFFIX[suffix]);
     } else {
-        snprintf(buffer, limit, "%.1f%c", value, SI_SUFFIX[suffix]);
+        return g_strdup_printf("%.1f%c", value, SI_SUFFIX[suffix]);
     }
 }
 
@@ -308,7 +295,6 @@ void update_stat(int stat_no, gint64 max_stat, gint64 current_stat,
                  gint64 statbar_max, gint64 statbar_stat, int can_alert)
 {
     float bar;
-    char buf[256];
     GdkColor ncolor, *set_color=NULL;
 
     /* If nothing changed, don't need to do anything */
@@ -439,6 +425,8 @@ void update_stat(int stat_no, gint64 max_stat, gint64 current_stat,
         bar = 0.0;
     }
 
+    GtkProgressBar *curr_bar = GTK_PROGRESS_BAR(stat_bar[stat_no]);
+
     /* It may be a waste, but we set the color everytime here - it isn't very
      * costly, and keeps us from tracing the last color we set.  Note that
      * set_color could be null, which means it reverts back to normal color.
@@ -447,20 +435,23 @@ void update_stat(int stat_no, gint64 max_stat, gint64 current_stat,
     /* The line above doesn't work sometimes, but then, the next one does. */
     gtk_widget_modify_bg(stat_bar[stat_no], GTK_STATE_PRELIGHT, set_color);
 
-    gtk_progress_set_percentage(GTK_PROGRESS(stat_bar[stat_no]), bar);
+    char *label;
 
-    /* Display exp bar with SI prefixes; display all other normally. */
+    // Display experience using SI prefixes; everything else normally.
     if (stat_no == STAT_BAR_EXP) {
-        format_si_number(current_stat, buf, sizeof(buf));
-        gtk_label_set(GTK_LABEL(stat_current[stat_no]), buf);
-        format_si_number(max_stat, buf, sizeof(buf));
-        gtk_label_set(GTK_LABEL(stat_max[stat_no]), buf);
+        char *exp_curr = format_si_number(current_stat);
+        char *exp_max = format_si_number(max_stat);
+        label = g_strdup_printf("%s/%s", exp_curr, exp_max);
+        g_free(exp_curr);
+        g_free(exp_max);
     } else {
-        snprintf(buf, sizeof(buf), "%" G_GINT64_FORMAT, current_stat);
-        gtk_label_set(GTK_LABEL(stat_current[stat_no]), buf);
-        snprintf(buf, sizeof(buf), "%" G_GINT64_FORMAT, max_stat);
-        gtk_label_set(GTK_LABEL(stat_max[stat_no]), buf);
+        label = g_strdup_printf("%" G_GINT64_FORMAT "/%" G_GINT64_FORMAT,
+                current_stat, max_stat);
     }
+
+    gtk_progress_bar_set_fraction(curr_bar, bar);
+    gtk_progress_bar_set_text(curr_bar, label);
+    g_free(label);
 }
 
 /**
