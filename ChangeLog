@@ -1,3 +1,6 @@
+2014-12-31	Kevin Zheng
+	* gtk-v2/src/stats.c: Display core player stats on progress bars
+
 2014-12-04	SilverNexus
 	* gtk-v2/src/image.c,
 	* gtk-v2/src/keys.c,
@@ -6,6 +9,12 @@
 	* gtk-v2/src/menubar.c,
 	* gtk-v2/src/png.c: Rearranged includes to solve a preprocessor warning
 	about including winsock2.h after windows.h.
+
+2014-11-24	Kevin Zheng
+	* gtk-v2/ui/dialogs.ui: Redesign about dialog
+
+2014-11-23	Kevin Zheng
+	* gtk-v2/src/png.c: Avoid doing pixel conversions on-the-fly
 
 2014-11-16	Kevin Zheng
 	* gtk-v2/src/map.c: Reimplement default renderer using Cario. This
