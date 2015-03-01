@@ -89,8 +89,8 @@ static GOptionEntry options[] = {
     { "updatekeycodes", 0, 0, G_OPTION_ARG_NONE, &updatekeycodes,
         "Update the saved bindings for this keyboard", NULL },
 
-    { "timemapredraw", 0, 0, G_OPTION_ARG_NONE, &time_map_redraw,
-        "Print map redraw profiling information", NULL },
+    { "time-redraw", 't', 0, G_OPTION_ARG_NONE, &time_map_redraw,
+        "Print map redraw times to stdout", NULL },
     { "verbose", 'v', 0, G_OPTION_ARG_INT, &MINLOG,
         "Set verbosity (0 is the most verbose)", "LEVEL" },
     { NULL }
