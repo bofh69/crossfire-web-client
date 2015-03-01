@@ -31,7 +31,6 @@
 #include <gdk/gdkx.h>
 #else
 #include <gdk/gdkwin32.h>
-#include <time.h>
 #endif
 
 #include "image.h"
@@ -69,24 +68,6 @@ GtkWidget *map_notebook;
  * someplace that displays frame rate.
  */
 gboolean time_map_redraw = FALSE;
-
-#if WIN32
-/**
- *
- * @param tp
- * @param tzp
- * @return 0 indicates success.
- */
-int gettimeofday(struct timeval* tp, void* tzp)
-{
-    DWORD t;
-    t = timeGetTime();
-    tp->tv_sec = t / 1000;
-    tp->tv_usec = t % 1000;
-    /* 0 indicates that the call succeeded. */
-    return 0;
-}
-#endif
 
 /**
  * Calculate and set desired map size based on map window size.
@@ -383,7 +364,11 @@ static void mapcell_draw_darkness(cairo_t *cr, int ax, int ay, int mx, int my) {
 /**
  * Redraw the entire map using GTK.
  */
-static void gtk_map_redraw() {
+static void gtk_map_redraw(gboolean redraw) {
+    if (!redraw && !map_updated) {
+        return;
+    }
+
     int width = map_drawing_area->allocation.width;
     int height = map_drawing_area->allocation.height;
 
@@ -439,34 +424,6 @@ static void gtk_map_redraw() {
 }
 
 /**
- * Draw the map window using GTK.
- * @param redraw If true, the entire screen must be redrawn.
- */
-static void gtk_draw_map(gboolean redraw) {
-    gint64 tv1, tv2;
-
-    if (!redraw && !map_updated) {
-        return;
-    }
-
-    if (time_map_redraw) {
-        tv1 = g_get_monotonic_time();
-    }
-
-    gtk_map_redraw();
-
-    if (time_map_redraw) {
-        tv2 = g_get_monotonic_time();
-        gint64 elapsed = tv2 - tv1;
-
-        // Report elapsed time only for long updates.
-        if (elapsed > 10000) {
-            LOG(LOG_INFO, "gtk_draw_map", "total = %7ld", elapsed);
-        }
-    }
-}
-
-/**
  * The player has changed maps, so any info we have (for fog of war) is bogus,
  * so clear out all that old info.
  */
@@ -495,6 +452,12 @@ void resize_map_window(int x, int y)
  * @param redraw If true, the entire screen must be redrawn.
  */
 void draw_map(gboolean redraw) {
+    gint64 t_start, t_end;
+
+    if (time_map_redraw) {
+        t_start = g_get_monotonic_time();
+    }
+
     switch (use_config[CONFIG_DISPLAYMODE]) {
 #ifdef HAVE_SDL
     case CFG_DM_SDL:
@@ -509,8 +472,14 @@ void draw_map(gboolean redraw) {
 #endif
 
     default:
-        gtk_draw_map(redraw);
+        gtk_map_redraw(redraw);
         break;
+    }
+
+    if (time_map_redraw) {
+        t_end = g_get_monotonic_time();
+        gint64 elapsed = t_end - t_start;
+        printf("%"G_GINT64_FORMAT"\n", elapsed);
     }
 }
 

@@ -561,16 +561,8 @@ static void draw_smoothing(int layer)
  *
  * @param redraw
  */
-void opengl_gen_map(int redraw)
-{
-    long elapsed1, elapsed2;
-    struct timeval tv1, tv2,tv3;
+void opengl_gen_map(int redraw) {
     int mx,my, layer,x,y, d1, d2, d3, num_dark, got_smooth, face, t1, t2;
-
-    if (time_map_redraw) {
-        gettimeofday(&tv1, NULL);
-    }
-
     glClear(GL_COLOR_BUFFER_BIT);
 
     /*
@@ -827,29 +819,12 @@ void opengl_gen_map(int redraw)
         }
     }
 
-    if (time_map_redraw) {
-        gettimeofday(&tv2, NULL);
-    }
-
 #ifndef WIN32
     glXSwapBuffers(display, window);
 #else
     SwapBuffers(devicecontext);
 #endif
-
-    if (time_map_redraw) {
-        gettimeofday(&tv3, NULL);
-        elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
-        elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
-        /*
-         * I care about performance for 'long' updates, so put the check in to
-         * make these a little more noticable
-         */
-        if ((elapsed1 + elapsed2)>10000)
-            LOG(LOG_INFO,"gtk-v2::opengl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
-                elapsed1, elapsed2, elapsed1 + elapsed2);
-    }
-} /* opengl_gen_map function */
+}
 
 /**
  * Rather than put a bunch of opengl code in the image.c file, it instead calls

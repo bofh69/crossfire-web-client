@@ -1027,16 +1027,8 @@ static void display_mapcell(int ax, int ay, int mx, int my)
  *
  * @param redraw
  */
-void sdl_gen_map(int redraw)
-{
-    int x, y, num_spaces=0, num_drawn=0;
-    struct timeval tv1, tv2, tv3;
-    long elapsed1, elapsed2;
-
-    if (time_map_redraw) {
-        gettimeofday(&tv1, NULL);
-    }
-
+void sdl_gen_map(int redraw) {
+    int x, y, num_spaces = 0, num_drawn = 0;
     update_redrawbitmap();
 
     for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
@@ -1055,24 +1047,8 @@ void sdl_gen_map(int redraw)
         }
     }
 
-    if (time_map_redraw) {
-        gettimeofday(&tv2, NULL);
-    }
-
     SDL_Flip(mapsurface);
-
-    if (time_map_redraw) {
-        gettimeofday(&tv3, NULL);
-        elapsed1 = (tv2.tv_sec - tv1.tv_sec)*1000000 + (tv2.tv_usec - tv1.tv_usec);
-        elapsed2 = (tv3.tv_sec - tv2.tv_sec)*1000000 + (tv3.tv_usec - tv2.tv_usec);
-
-        /* I care about performance for 'long' updates, so put the check in to make
-         * these a little more noticable */
-        if ((elapsed1 + elapsed2)>10000)
-            LOG(LOG_INFO,"gtk-v2::sdl_gen_map","gen took %7ld, flip took %7ld, total = %7ld",
-                elapsed1, elapsed2, elapsed1 + elapsed2);
-    }
-} /* sdl_gen_map function */
+}
 
 /**
  *
