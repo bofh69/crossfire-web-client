@@ -622,6 +622,8 @@ extern int maxfd;
 #include <proto.h>
 #endif
 
+extern void client_mapsize(int width, int height);
+
 extern void beat_init(int interval);
 extern void beat_check();
 extern void beat_reset();

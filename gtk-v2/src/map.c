@@ -45,8 +45,6 @@ static guint8 map_updated = 0;
 // Declarations for local event-handling functions.
 static gboolean map_button_event(GtkWidget *widget,
         GdkEventButton *event, gpointer user_data);
-static gboolean map_configure_event(GtkWidget *widget,
-        GdkEventConfigure *event, gpointer user_data);
 static gboolean map_expose_event(GtkWidget *widget,
         GdkEventExpose *event, gpointer user_data);
 
@@ -91,6 +89,30 @@ int gettimeofday(struct timeval* tp, void* tzp)
 #endif
 
 /**
+ * Calculate and set desired map size based on map window size.
+ */
+static void map_check_resize() {
+    int w = map_drawing_area->allocation.width / map_image_size;
+    int h = map_drawing_area->allocation.height / map_image_size;
+    w = (w > MAP_MAX_SIZE) ? MAP_MAX_SIZE : w;
+    h = (h > MAP_MAX_SIZE) ? MAP_MAX_SIZE : h;
+
+    if (w != want_config[CONFIG_MAPWIDTH] || h != want_config[CONFIG_MAPHEIGHT]) {
+        want_config[CONFIG_MAPWIDTH] = w;
+        want_config[CONFIG_MAPHEIGHT] = h;
+        client_mapsize(w, h);
+    }
+}
+
+/**
+ * Callback for map window resize event.
+ */
+static void map_configure_event(GtkWidget *widget,
+        GdkEventConfigure *event, gpointer data) {
+    map_check_resize();
+}
+
+/**
  * This initializes the stuff we need for the map.
  *
  * @param window_root The client's main playing window.
@@ -112,11 +134,8 @@ void map_init(GtkWidget *window_root) {
     g_signal_connect(map_drawing_area, "event",
             G_CALLBACK(map_button_event), NULL);
 
-#if 0
-    gtk_widget_set_size_request(map_drawing_area,
-            use_config[CONFIG_MAPWIDTH] * map_image_size,
-            use_config[CONFIG_MAPHEIGHT] * map_image_size);
-#endif
+    // Set map size based on window size and show widget.
+    map_check_resize();
     gtk_widget_show(map_drawing_area);
 
     if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
@@ -469,38 +488,6 @@ void resize_map_window(int x, int y)
      */
     gdk_window_clear(map_drawing_area->window);
     draw_map(TRUE);
-}
-
-
-static gboolean map_configure_event(GtkWidget *widget,
-        GdkEventConfigure *event, gpointer user_data) {
-    gint16 w = event->width / map_image_size, h=event->height / map_image_size;
-
-    if (w > MAP_MAX_SIZE) {
-        w = MAP_MAX_SIZE;
-    }
-    if (h > MAP_MAX_SIZE) {
-        h = MAP_MAX_SIZE;
-    }
-
-    /* Only need to do something if the size actually changes in terms
-     * of displayable mapspaces.
-     */
-    if (w!= use_config[CONFIG_MAPWIDTH] || h!=use_config[CONFIG_MAPHEIGHT]) {
-        /* We need to set the use_config values, even though we are not really using them,
-         * because the setup processing basically expects the values returned from the
-         * server to use these values.
-         * Likewise, we need to call mapdata_set_size because we may try
-         * to do map draws before we get the setup command from the server, and if it
-         * is using the old values, that doesn't work quite right.
-         */
-        use_config[CONFIG_MAPWIDTH] = w;
-        use_config[CONFIG_MAPHEIGHT] = h;
-        mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
-        cs_print_string(csocket.fd,
-                        "setup mapsize %dx%d", use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
-    }
-    return FALSE;
 }
 
 /**

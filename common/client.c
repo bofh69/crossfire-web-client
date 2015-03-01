@@ -171,6 +171,19 @@ struct CmdMapping commands[] = {
 #define NCOMMANDS ((int)(sizeof(commands)/sizeof(struct CmdMapping)))
 
 /**
+ * Ask the server for the given map size.
+ */
+void client_mapsize(int width, int height) {
+    // Store desired size in use_config to check results from the server.
+    use_config[CONFIG_MAPWIDTH] = width;
+    use_config[CONFIG_MAPHEIGHT] = height;
+
+    // Set map size in case we receive 'map' before 'setup' commands.
+    mapdata_set_size(width, height);
+    cs_print_string(csocket.fd, "setup mapsize %dx%d", width, height);
+}
+
+/**
  * Closes the connection to the server.  It seems better to have it one place
  * here than the same logic sprinkled about in half a dozen locations.  It is
  * also useful in that if this logic does change, there is just one place to
@@ -626,13 +639,7 @@ void negotiate_connection(int sound)
     cs_print_string(csocket.fd,"requestinfo news");
     cs_print_string(csocket.fd,"requestinfo rules");
 
-    use_config[CONFIG_MAPHEIGHT]=want_config[CONFIG_MAPHEIGHT];
-    use_config[CONFIG_MAPWIDTH]=want_config[CONFIG_MAPWIDTH];
-    mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
-    if (use_config[CONFIG_MAPHEIGHT]!=11 || use_config[CONFIG_MAPWIDTH]!=11) {
-        cs_print_string(csocket.fd,"setup mapsize %dx%d",use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
-    }
-
+    client_mapsize(want_config[CONFIG_MAPWIDTH], want_config[CONFIG_MAPHEIGHT]);
     use_config[CONFIG_SMOOTH]=want_config[CONFIG_SMOOTH];
 
     /* If the server will answer the requestinfo for image_info and image_data,
