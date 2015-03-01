@@ -234,17 +234,6 @@ static void do_network() {
         }
         return;
     }
-#ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
-        sdl_gen_map(FALSE);
-    } else
-#endif
-#ifdef HAVE_OPENGL
-        if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
-            opengl_gen_map(FALSE);
-        } else
-#endif
-            draw_map(FALSE);
 
     draw_lists();
 }
