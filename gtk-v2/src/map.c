@@ -495,22 +495,22 @@ void resize_map_window(int x, int y)
  * @param redraw If true, the entire screen must be redrawn.
  */
 void draw_map(gboolean redraw) {
+    switch (use_config[CONFIG_DISPLAYMODE]) {
 #ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
+    case CFG_DM_SDL:
         sdl_gen_map(redraw);
-    }
+        break;
 #endif
 
 #ifdef HAVE_OPENGL
-    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
+    case CFG_DM_OPENGL:
         opengl_gen_map(redraw);
-    }
+        break;
 #endif
 
-    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
-        if (cpl.input_state == Playing) {
-            gtk_draw_map(redraw);
-        }
+    default:
+        gtk_draw_map(redraw);
+        break;
     }
 }
 
