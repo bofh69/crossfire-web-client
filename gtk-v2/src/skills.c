@@ -12,22 +12,18 @@
  */
 
 /**
- * @file gtk-v2/src/skills.c
+ * @file
  * Handles The callbacks for the skill window.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
 #include <gtk/gtk.h>
 
-#include "client.h"
 #include "image.h"
 #include "metaserver.h"
 #include "main.h"
 #include "gtk2proto.h"
-
 
 static GtkWidget *skill_window, *skill_treeview, *skill_use, *skill_ready;
 static GtkListStore *skill_store;

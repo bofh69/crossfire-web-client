@@ -12,22 +12,18 @@
  */
 
 /**
- * @file gtk-v2/src/create_char.c
- * Handles creation of new characters
+ * @file
+ * Handle new character creation
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
-#include <ctype.h>
 #include <gtk/gtk.h>
 
-#include "client.h"
 #include "image.h"
 #include "main.h"
-#include "gtk2proto.h"
 #include "metaserver.h"
+#include "gtk2proto.h"
 
 /* This corresponds to the number of opt_.. fields in the
  * create_character_window.  In theory, the vbox could be resized

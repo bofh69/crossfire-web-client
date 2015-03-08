@@ -16,14 +16,12 @@
  * Draw inventory and 'look' windows
  */
 
-#include "config.h"
+#include "client.h"
 
 #include <gtk/gtk.h>
 
-#include "client.h"
 #include "image.h"
 #include "main.h"
-
 #include "gtk2proto.h"
 
 #include "../../pixmaps/all.xpm"

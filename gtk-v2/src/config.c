@@ -16,16 +16,14 @@
  * Covers configuration issues.
  */
 
-#include "config.h"
+#include "client.h"
 
 #include <ctype.h>
 #include <dirent.h>
 #include <gtk/gtk.h>
 
-#include "client.h"
 #include "image.h"
 #include "main.h"
-
 #include "gtk2proto.h"
 
 static GKeyFile *config;

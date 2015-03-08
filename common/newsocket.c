@@ -18,14 +18,12 @@
  * frozen now.
  */
 
-#include <errno.h>
-#include <stdarg.h>
-#include <stdio.h>
-
 #include "client.h"
+
+#include <errno.h>
+
 #include "shared/newclient.h"
 #include "script.h"
-
 
 /**
  * Write at least a specified amount of data in a buffer to the socket unless

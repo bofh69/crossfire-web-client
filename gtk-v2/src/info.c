@@ -12,17 +12,14 @@
  */
 
 /**
- * @file gtk-v2/src/info.c
- * This covers drawing text to the info window.
+ * @file
+ * Text-drawing functions for the message window
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
 #include <gtk/gtk.h>
 
-#include "client.h"
 #include "image.h"
 #include "main.h"
 #include "gtk2proto.h"

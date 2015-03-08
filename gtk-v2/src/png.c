@@ -12,31 +12,15 @@
  */
 
 /**
- * @file gtk-v2/src/png.c
+ * @file
  * Functions for manipulating graphics in the GTK-V2 client.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
 #include <errno.h>
-#include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 #include <png.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-
-#include "client-types.h"
-
-#ifndef WIN32
-#include <gdk/gdkx.h>
-#include <unistd.h>
-#else
-#include <gdk/gdkwin32.h>
-#endif
-
-#include "client.h"
 
 /* Defines for PNG return values */
 /* These should be in a header file, but currently our calling functions

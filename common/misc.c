@@ -12,7 +12,7 @@
  */
 
 /**
- * @file common/misc.c
+ * @file
  * Contains misc useful functions that may be useful to various parts of code,
  * but are not especially tied to it.
  */
@@ -20,9 +20,6 @@
 #include "client.h"
 
 #include <errno.h>
-#include <glib.h>
-#include <stdarg.h>
-#include <stdio.h>
 
 #ifndef WIN32
 #include <sys/wait.h>

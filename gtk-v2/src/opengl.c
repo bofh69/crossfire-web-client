@@ -12,7 +12,7 @@
  */
 
 /**
- * @file gtk-v2/src/opengl.c
+ * @file
  * Implements an opengl version of the map renderer.  I've tried to keep this
  * platform generic, but there are just some things that must be tied to the
  * window system is is using, namely, window creation and flipping the data
@@ -24,11 +24,9 @@
  * catches.
  */
 
-#include <config.h>
+#include "client.h"
 
 #ifdef HAVE_OPENGL
-
-#include <client-types.h>
 
 #include <errno.h>
 #include <gdk/gdkkeysyms.h>
@@ -41,11 +39,9 @@
 #include <gdk/gdkwin32.h>
 #endif
 
-#include <client.h>
-#include "main.h"
 #include "image.h"
+#include "main.h"
 #include "mapdata.h"
-
 #include "gtk2proto.h"
 
 /* Start of Open GL includes */

@@ -12,15 +12,15 @@
  */
 
 /**
- * @file common/mapdata.c
+ * @file
  * Map processing functions.
  */
 
+#include "client.h"
+
 #include <assert.h>
 #include <stdbool.h>
-#include <stdlib.h>
 
-#include "client.h"
 #include "external.h"
 #include "mapdata.h"
 

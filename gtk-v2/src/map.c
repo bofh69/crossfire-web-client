@@ -17,29 +17,16 @@
  * and actual rendering (although the sdl rendering is in the sdl file
  */
 
-#include "config.h"
-
-#include <gdk/gdkkeysyms.h>
-#include <gtk/gtk.h>
-#include <png.h>
-#include <stdlib.h>
-
-#include "client-types.h"
 #include "client.h"
 
-#ifndef WIN32
-#include <gdk/gdkx.h>
-#else
-#include <gdk/gdkwin32.h>
-#endif
+#include <gtk/gtk.h>
 
 #include "image.h"
 #include "main.h"
 #include "mapdata.h"
-
 #include "gtk2proto.h"
 
-static guint8 map_updated = 0;
+static gboolean map_updated = FALSE;
 
 // Declarations for local event-handling functions.
 static gboolean map_button_event(GtkWidget *widget,

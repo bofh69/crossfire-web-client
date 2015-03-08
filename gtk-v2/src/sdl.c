@@ -12,34 +12,28 @@
  */
 
 /**
- * @file gtk-v2/src/sdl.c
+ * @file
  * Functions that implement SDL support in the GTK V2 client.
  */
 
-#include <config.h>
+#include "client.h"
 
 #ifdef HAVE_SDL
 
-#include <client-types.h>
-
-/* these should generally be included by the file including this file. */
 #include <SDL.h>
 #include <SDL_image.h>
-
-/* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
+
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #else
 #include <gdk/gdkwin32.h>
 #endif
-#include <gdk/gdkkeysyms.h>
 
-#include "main.h"
 #include "image.h"
-#include <client.h>
-#include "gtk2proto.h"
+#include "main.h"
 #include "mapdata.h"
+#include "gtk2proto.h"
 
 SDL_Surface* mapsurface; /**< Actual SDL surface the game view is painted on */
 static SDL_Surface* lightmap;

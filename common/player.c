@@ -12,7 +12,7 @@
  */
 
 /**
- * @file common/player.c
+ * @file
  * Handles various player related functions.  This includes both things that
  * operate on the player item, cpl structure, or various commands that the
  * player issues.
@@ -26,9 +26,9 @@
  * remove the old keypress stupidity I used.
  */
 
-#include <client.h>
-#include <external.h>
-#include <script.h>
+#include "client.h"
+#include "external.h"
+#include "script.h"
 
 /* This translates the numeric direction id's into the actual direction
  * commands.  This lets us send the actual command (ie, 'north'), which

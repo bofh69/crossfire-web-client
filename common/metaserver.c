@@ -18,18 +18,14 @@
  * when requested.
  */
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "client.h"
-#include "metaserver.h"
 
 #ifdef HAVE_CURL_CURL_H
 #include <curl/curl.h>
 #include <curl/easy.h>
 #endif
+
+#include "metaserver.h"
 
 /* list of metaserver URL to get information from - this should generally
  * correspond to the value in the metaserver2 server file, but instead

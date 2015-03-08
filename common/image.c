@@ -12,26 +12,21 @@
  */
 
 /**
- * @file common/image.c
+ * @file
  * Contains image related functions at a high level.  It mostly deals with the
  * caching of the images, processing the image commands from the server, etc.
  */
 
-#include "config.h"
+#include "client.h"
 
 #include <ctype.h>
-#include <glib.h>
 #include <glib/gstdio.h>
-#include <stdlib.h>
 
-#ifndef WIN32
-#include <unistd.h>
-#else
+#ifdef WIN32
 #include <io.h>
 #include <direct.h>
 #endif
 
-#include "client.h"
 #include "external.h"
 
 /* Rotate right from bsd sum. */

@@ -12,39 +12,21 @@
  */
 
 /**
- * @file gtk-v2/src/image.c
+ * @file
  * Contains highlevel image related functions and mostly deals with the image
  * caching, processing the image commands from the server, etc.  It is
  * gtk-specific as it returns gtk pixmaps.
  */
 
-#include "config.h"
+#include "client.h"
 
-#include <png.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-
-#ifndef WIN32
-#include <unistd.h>
-#endif
-
-#include "client-types.h"
-
-/* Pick up the gtk headers we need */
 #include <gtk/gtk.h>
-#ifndef WIN32
-#include <gdk/gdkx.h>
-#else
-#include <gdk/gdkwin32.h>
-#endif
-#include <gdk/gdkkeysyms.h>
 
 #ifdef HAVE_SDL
 #include <SDL.h>
 #include <SDL_image.h>
 #endif
 
-#include "client.h"
 #include "image.h"
 #include "main.h"
 #include "mapdata.h"

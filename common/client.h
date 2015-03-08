@@ -4,15 +4,7 @@
  * also declares structures and other variables that the GUI portion needs.
  */
 
-#include <config.h>
-#include <version.h>
-#include <client-types.h>
-#include <shared/newclient.h>
-#include <item.h>
-
-#ifdef HAVE_DMALLOC_H
-#  include <dmalloc.h>
-#endif
+#include "client-types.h"
 
 /* This is how often the client checks for X events, as well as how often
  * it performs animations (or will).  This value can be most anything.

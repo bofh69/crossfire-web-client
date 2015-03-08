@@ -12,18 +12,15 @@
  */
 
 /**
- * @file gtk-v2/src/spells.c
+ * @file
  * Handles spell related functionality.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
 #include <assert.h>
 #include <gtk/gtk.h>
 
-#include "client.h"
 #include "image.h"
 #include "metaserver.h"
 #include "main.h"

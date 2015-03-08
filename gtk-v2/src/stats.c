@@ -12,18 +12,15 @@
  */
 
 /**
- * @file gtk-v2/src/stats.c
+ * @file
  * Support for character statistics.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
 #include <assert.h>
 #include <gtk/gtk.h>
 
-#include "client.h"
 #include "main.h"
 #include "image.h"
 #include "gtk2proto.h"

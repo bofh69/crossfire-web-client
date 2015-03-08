@@ -12,22 +12,19 @@
  */
 
 /**
- * @file gtk-v2/src/account.c
- * Handles account login, creation, and character selection.
+ * @file
+ * Handle account creation, login, and character selection
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include <gtk/gtk.h>
-#include <ctype.h>
-
 #include "client.h"
+
+#include <ctype.h>
+#include <gtk/gtk.h>
+
 #include "image.h"
 #include "main.h"
-#include "gtk2proto.h"
 #include "metaserver.h"
+#include "gtk2proto.h"
 
 #ifdef WIN32
 # include "script.h"

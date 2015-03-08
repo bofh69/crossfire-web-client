@@ -12,17 +12,14 @@
  */
 
 /**
- * @file gtk-v2/src/magicmap.c
+ * @file
  * Covers drawing the magic map.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
 #include <gtk/gtk.h>
 
-#include "client.h"
 #include "main.h"
 
 extern GtkWidget *magic_map;    /**< main.c - drawing area for the magic map */

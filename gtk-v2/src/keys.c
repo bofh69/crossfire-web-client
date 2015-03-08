@@ -17,19 +17,12 @@
  * and handling keypresses and looking up the keys.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-
-#include "client-types.h"
 
 #ifndef WIN32
-#include <unistd.h>
 #include <gdk/gdkx.h>
 #else
 #include <gdk/gdkwin32.h>
@@ -37,7 +30,6 @@
 typedef int KeyCode;                    /**< Undefined type */
 #endif
 
-#include "client.h"
 #include "main.h"
 #include "proto.h"
 #include "def-keys.h"

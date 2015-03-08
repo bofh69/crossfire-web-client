@@ -12,7 +12,7 @@
  */
 
 /**
- * @file common/init.c
+ * @file
  * Functions for initializing the client.
  */
 

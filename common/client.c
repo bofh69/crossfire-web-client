@@ -12,7 +12,7 @@
  */
 
 /**
- * @file common/client.c
+ * @file
  * Client interface main routine.  Sets up a few global variables, connects to
  * the server, tells it what kind of pictures it wants, adds the client and
  * enters the main dispatch loop.
@@ -32,14 +32,12 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
-#include <glib.h>
 
 #include "client.h"
 #include "external.h"
-#include "script.h"
-
 #include "mapdata.h"
 #include "metaserver.h"
+#include "script.h"
 
 /* actually declare the globals */
 

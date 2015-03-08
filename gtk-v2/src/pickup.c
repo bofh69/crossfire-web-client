@@ -12,19 +12,16 @@
  */
 
 /**
- * @file gtk-v2/src/pickup.c
+ * @file
  * This file covers the pickup menu items.  We only implement the new pickup
  * code - it seems to me that it should be able to cover everything the old
  * pickup mode does.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
 #include <gtk/gtk.h>
 
-#include "client.h"
 #include "main.h"
 #include "image.h"
 #include "gtk2proto.h"

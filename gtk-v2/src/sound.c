@@ -12,23 +12,16 @@
  */
 
 /**
- * @file gtk-v2/src/sound.c
+ * @file
  * This file contains the sound support for the GTK V2 client.  It does not
  * actually play sounds, but rather tries to run cfsndserve, which is
  * responsible for playing sounds.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "client.h"
 
 #include <ctype.h>
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "client-types.h"
-#include "client.h"
 
 FILE *sound_pipe = NULL;
 ChildProcess *sound_process;

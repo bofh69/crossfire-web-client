@@ -11,14 +11,8 @@
  * The authors can be reached via e-mail at <crossfire@metalforge.org>.
  */
 
-/*
- * This file has its own script.h for prototypes, so don't want to include
- * this when doing a 'make proto'.
- */
-#ifndef CPROTO
-
 /**
- * @file common/script.c
+ * @file
  * Handles the client-side scripting interface.
  *
  * Each script is an external process that keeps two pipes open between the
@@ -102,6 +96,10 @@
  * This does not work under Windows for now.  Someday this will be fixed :)
  */
 
+#include "client.h"
+
+#include <ctype.h>
+
 #ifndef WIN32
 #include <errno.h>
 #include <sys/types.h>
@@ -110,13 +108,11 @@
 /* for SIGHUP */
 #include <signal.h>
 #endif
-#include <ctype.h>
 
-#include <client.h>
-#include <external.h>
-#include <script.h>
-#include <p_cmd.h>
+#include "external.h"
 #include "mapdata.h"
+#include "p_cmd.h"
+#include "script.h"
 
 /*
  * Data structures
@@ -1641,5 +1637,3 @@ static void script_send_item(int i, const char *head, const item *it)
     snprintf(buf, sizeof(buf), "%s%d %d %d %d %d %s\n", head, it->tag, it->nrof, (int)(it->weight*1000+0.5), flags, it->type, it->d_name);
     write(scripts[i].out_fd, buf, strlen(buf));
 }
-
-#endif /* CPROTO */

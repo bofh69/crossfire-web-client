@@ -1,6 +1,6 @@
 /**
  * @file
- * Client type definitions.
+ * Client header files
  */
 
 #ifndef CLIENT_TYPES_H
@@ -8,6 +8,7 @@
 
 #include "config.h"
 
+#include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,11 +27,17 @@
 #  include <fcntl.h>
 #endif
 
-#include <glib.h>
+#ifdef HAVE_DMALLOC_H
+#  include <dmalloc.h>
+#endif
 
 #ifdef WIN32
 #  include <winsock2.h>
 #endif
+
+#include "item.h"
+#include "shared/newclient.h"
+#include "version.h"
 
 #ifndef SOL_TCP
 #define SOL_TCP IPPROTO_TCP

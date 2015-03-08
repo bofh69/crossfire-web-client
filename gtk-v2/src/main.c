@@ -16,26 +16,17 @@
  * Client startup and main loop.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-/*
- * This includes "client-types.h, which includes winsock2.h
- * TDM-GCC throws a preprocessor warning when winsock2.h is included after windows.h
- */
 #include "client.h"
+
+#include <errno.h>
+#include <gtk/gtk.h>
+#include <stdbool.h>
 
 #ifdef WIN32
 #include <windows.h>
 #else
 #include <signal.h>
 #endif
-
-#include <errno.h>
-#include <gtk/gtk.h>
-#include <stdbool.h>
-#include <stdio.h>
 
 #include "main.h"
 #include "image.h"

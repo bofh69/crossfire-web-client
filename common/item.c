@@ -12,16 +12,17 @@
  */
 
 /**
- * @file common/item.c
+ * @file
  * Provides functions that process items in various ways.
  */
 
+#include "client.h"
+
 #include <ctype.h>      /* needed for isdigit */
-#include <client.h>
-#include <item.h>
-#include <shared/newclient.h>
-#include <external.h>
-#include <script.h>
+
+#include "external.h"
+#include "item.h"
+#include "script.h"
 
 static item *free_items;        /* the list of free (unused) items */
 static item *player, *map;      /* these lists contains rest of items */

@@ -12,17 +12,14 @@
  */
 
 /**
- * @file common/p_cmd.c
+ * @file
  * Contains a lot about the commands typed into the client.
  */
 
-#ifndef CPROTO
-/* use declarations from p_cmd.h instead of doing make proto on this file */
-
-#include <client.h>
-#include <external.h>
-#include <script.h>
-#include <p_cmd.h>
+#include "client.h"
+#include "external.h"
+#include "p_cmd.h"
+#include "script.h"
 
 /**
  * @defgroup PCmdHelpCommands Common client player commands.
@@ -53,9 +50,9 @@ name name name ...
 #define H1(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 #define H2(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 #define LINE(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
-#endif
 
 #define assumed_wrap get_info_width()
+#endif
 
 /* TODO Help topics other than commands? Refer to other documents? */
 
@@ -1219,5 +1216,3 @@ const char * complete_command(const char *command)
 
     return result;
 }
-
-#endif /* CPROTO */

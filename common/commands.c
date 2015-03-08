@@ -12,7 +12,7 @@
  */
 
 /**
- * @file common/commands.c
+ * @file
  * Handles server->client commands; See player.c for client->server commands.
  *
  * Not necessarily all commands are handled - some might be in other files
@@ -54,13 +54,13 @@
 
 int mapupdatesent = 0;
 
-#include <client.h>
-#include <external.h>
+#include "client.h"
 
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 
+#include "external.h"
 #include "mapdata.h"
 
 /* In general, the data from the server should not do bad
