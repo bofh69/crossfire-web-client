@@ -4,7 +4,61 @@
  * also declares structures and other variables that the GUI portion needs.
  */
 
-#include "client-types.h"
+#ifndef _CLIENT_H
+#define _CLIENT_H
+
+#include "config.h"
+
+// This is required for 'newclient.h' to expose client variables.
+#define CLIENT_TYPES_H
+
+#include <glib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <time.h>
+
+#ifdef HAVE_SYS_TIME_H
+#   include <sys/time.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+#   include <unistd.h>
+#endif
+
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
+
+#ifdef HAVE_DMALLOC_H
+#  include <dmalloc.h>
+#endif
+
+#ifdef WIN32
+#  include <winsock2.h>
+#endif
+
+#include "item.h"
+#include "shared/newclient.h"
+#include "version.h"
+
+#ifndef SOL_TCP
+#define SOL_TCP IPPROTO_TCP
+#endif
+
+#define MAX_BUF 256
+#define BIG_BUF 1024
+
+/* used to register gui callbacks to extended texts
+ * (which are supposed to be handled more friendly than raw text)*/
+typedef void (*ExtTextManager)(int flag, int type, int subtype, char* message);
+
+typedef struct TextManager{
+    int type;
+    ExtTextManager callback;
+    struct TextManager* next;
+} TextManager;
 
 /* This is how often the client checks for X events, as well as how often
  * it performs animations (or will).  This value can be most anything.
@@ -620,3 +674,5 @@ extern void beat_init(int interval);
 extern void beat_check();
 extern void beat_reset();
 extern int beat_interval;
+
+#endif

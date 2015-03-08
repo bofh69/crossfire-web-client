@@ -22,7 +22,6 @@
 
 #include <errno.h>
 
-#include "shared/newclient.h"
 #include "script.h"
 
 /**

@@ -15,17 +15,11 @@
  * @file sound-src/parser.c
  */
 
-#include "config.h"
+#include "client.h"
 
 #include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "client-types.h"
-#include "client.h"
 #include "common.h"
-#include "shared/newclient.h"
 #include "sndproto.h"
 
 /**

@@ -18,7 +18,6 @@ libcfclient_a_SOURCES = \
 	script_lua.c
 
 noinst_HEADERS = \
-	client-types.h \
 	client.h \
 	config.h \
 	def-keys.h \

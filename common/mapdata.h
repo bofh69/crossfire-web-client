@@ -7,8 +7,6 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include "client-types.h"
-
 /** The protocol supports 10 layers, so set MAXLAYERS accordingly.
  */
 #define MAXLAYERS 10

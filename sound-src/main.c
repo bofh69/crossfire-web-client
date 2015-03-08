@@ -15,11 +15,8 @@
  * @file sound-src/main.c
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "client.h"
 
-#include "client-types.h"
 #include "sndproto.h"
 #include "version.h"
 
