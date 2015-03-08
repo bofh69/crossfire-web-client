@@ -106,19 +106,19 @@ void map_init(GtkWidget *window_root) {
     map_check_resize();
     gtk_widget_show(map_drawing_area);
 
-    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
-        // No extra initialization is needed.
-    }
+    switch (use_config[CONFIG_DISPLAYMODE]) {
 #ifdef HAVE_SDL
-    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
+    case CFG_DM_SDL:
         init_SDL(map_drawing_area,0);
-    }
+        break;
 #endif
+
 #ifdef HAVE_OPENGL
-    else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
+    case CFG_DM_OPENGL:
         init_opengl(map_drawing_area);
-    }
+        break;
 #endif
+    }
 }
 
 /**
@@ -129,6 +129,11 @@ void map_init(GtkWidget *window_root) {
 void reset_map() {
 }
 
+/**
+ * Draw a pixmap to the given map tile on screen.
+ * @param ax Map cell on-screen x-coordinate
+ * @param ay Map cell on-screen y-coordinate
+ */
 static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay) {
     cairo_set_source_surface(cr, pixmap->map_image,
             ax * map_image_size, ay * map_image_size);
@@ -287,8 +292,8 @@ static gboolean face_is_big(PixmapInfo *pixmap) {
 
 /**
  * Draw a map tile to a location on screen.
- * @param ax On-screen 'x' coordinate
- * @param ay On-screen 'y' coordinate
+ * @param ax Map cell on-screen x-coordinate
+ * @param ay Map cell on-screen y-coordinate
  * @param mx In-game tile 'x' coordinate
  * @param my In-game tile 'y' coordinate
  */
