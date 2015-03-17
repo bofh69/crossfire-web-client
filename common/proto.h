@@ -77,23 +77,6 @@ void print_inventory(item *op);
 void animate_objects(void);
 int can_write_spell_on(item *it);
 void inscribe_magical_scroll(item *scroll, Spell *spell);
-/* mapdata.c */
-void mapdata_init(void);
-void mapdata_set_size(int viewx, int viewy);
-int mapdata_is_inside(int x, int y);
-void mapdata_clear_space(int x, int y);
-void mapdata_set_check_space(int x, int y);
-void mapdata_set_darkness(int x, int y, int darkness);
-void mapdata_set_smooth(int x, int y, int smooth, int layer);
-void mapdata_clear_old(int x, int y);
-void mapdata_set_face_layer(int x, int y, gint16 face, int layer);
-void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int layer);
-void mapdata_scroll(int dx, int dy);
-void mapdata_newmap(void);
-gint16 mapdata_face(int x, int y, int layer);
-gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh);
-gint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh);
-void mapdata_animation(void);
 /* misc.c */
 int make_path_to_file(char *filename);
 void LOG(LogLevel level, const char *origin, const char *format, ...);

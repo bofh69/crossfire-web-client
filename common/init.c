@@ -17,6 +17,7 @@
  */
 
 #include "client.h"
+#include "mapdata.h"
 #include "metaserver.h"
 #include "p_cmd.h"
 

@@ -130,4 +130,14 @@ gint16 mapdata_face(int x, int y, int layer);
  */
 gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh);
 
+void mapdata_clear_space(int x, int y);
+void mapdata_set_check_space(int x, int y);
+void mapdata_set_darkness(int x, int y, int darkness);
+void mapdata_set_smooth(int x, int y, int smooth, int layer);
+void mapdata_clear_old(int x, int y);
+void mapdata_set_face_layer(int x, int y, gint16 face, int layer);
+void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int layer);
+gint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh);
+void mapdata_animation(void);
+
 #endif

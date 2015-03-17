@@ -28,11 +28,12 @@
 #include <signal.h>
 #endif
 
-#include "main.h"
 #include "image.h"
-#include "gtk2proto.h"
-#include "script.h"
+#include "main.h"
+#include "mapdata.h"
 #include "metaserver.h"
+#include "script.h"
+#include "gtk2proto.h"
 
 /* Sets up the basic colors. */
 static const char *const colorname[NUM_COLORS] = {

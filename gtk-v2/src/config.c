@@ -24,6 +24,7 @@
 
 #include "image.h"
 #include "main.h"
+#include "mapdata.h"
 #include "gtk2proto.h"
 
 static GKeyFile *config;
