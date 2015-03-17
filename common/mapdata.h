@@ -117,17 +117,18 @@ int mapdata_is_inside(int x, int y);
 gint16 mapdata_face(int x, int y, int layer) __attribute__((deprecated));
 
 /**
- * Return the face number of a pixmap in the given map cell. Faces for
- * multi-tile pixmaps are only returned for the bottom right cell. Set the
- * width and height pointers for the pixmap in number of tiles.
+ * Return the face number of the pixmap in the given map cell and set the
+ * offset pointers to indicate where to correctly draw the face. Offsets are
+ * zero for single-tile maps and negative for multi-tile maps. This provides
+ * a consistent way to draw tiles no matter single or multi part.
  * @param mx Virtual map x-coordinate
  * @param my Virtual map y-coordinate
  * @param layer Map layer number
- * @param width Pointer to store width
- * @param height Pointer to store height
+ * @param dx Pointer to store x-offset
+ * @param dy Pointer to store y-offset
  * @return Pixmap face number, zero if the tile does not exist
  */
-gint16 mapdata_face_info(int mx, int my, int layer, int *width, int *height);
+gint16 mapdata_face_info(int mx, int my, int layer, int *dx, int *dy);
 
 /**
  * Returns the face to display at a given location. This function returns the

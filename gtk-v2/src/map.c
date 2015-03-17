@@ -300,16 +300,9 @@ static void map_draw_layer(cairo_t *cr, int layer) {
                 continue;
             }
 
-            int width, height;
-            int face = mapdata_face_info(mx, my, layer, &width, &height);
+            int dx, dy, face = mapdata_face_info(mx, my, layer, &dx, &dy);
             if (face > 0 && pixmaps[face]->map_image != NULL) {
-                if (width == 1 && height == 1) {
-                    // Draw pixmap normally.
-                    draw_pixmap(cr, pixmaps[face], x, y);
-                } else {
-                    int rx = x + 1 - width, ry = y + 1 - height;
-                    draw_pixmap(cr, pixmaps[face], rx, ry);
-                }
+                draw_pixmap(cr, pixmaps[face], x + dx, y + dy);
             }
             /*
             * Sometimes, it may happens we need to draw the smooth while there

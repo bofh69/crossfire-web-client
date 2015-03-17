@@ -1020,11 +1020,21 @@ gint16 mapdata_face(int x, int y, int layer) {
     return the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer].face;
 }
 
-gint16 mapdata_face_info(int mx, int my, int layer, int *width, int *height) {
-    struct MapCellLayer *cell = &the_map.cells[mx][my].heads[layer];
-    *width = cell->size_x;
-    *height = cell->size_y;
-    return cell->face;
+gint16 mapdata_face_info(int mx, int my, int layer, int *dx, int *dy) {
+    struct MapCellLayer *head = &the_map.cells[mx][my].heads[layer];
+    struct MapCellLayer *tail = &the_map.cells[mx][my].tails[layer];
+    if (head->face != 0) {
+        const int width = head->size_x, height = head->size_y;
+        *dx = 1 - width, *dy = 1 - height;
+        return head->face;
+    } else if (tail->face != 0) {
+        struct MapCellLayer *head_ptr = &the_map.cells[mx + tail->size_x][my + tail->size_y].heads[layer];
+        const int width = head_ptr->size_x, height = head_ptr->size_y;
+        *dx = tail->size_x - width + 1, *dy = tail->size_y - height + 1;
+        return tail->face;
+    } else {
+        return 0;
+    }
 }
 
 /**
