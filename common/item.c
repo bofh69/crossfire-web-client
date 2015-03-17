@@ -31,8 +31,7 @@ static item *player, *map;      /* these lists contains rest of items */
 #define NROF_ITEMS 50           /* how many items are reserved initially */
 /* for the item spool */
 
-#include <item-types.h>
-
+#include "item-types.h"
 
 /* This uses the item_types table above.  We try to figure out if
  * name has a match above.  Matching is done pretty loosely - however

@@ -663,10 +663,8 @@ extern int maxfd;
 #define INFO_RULES 3
 /*@}*/
 
-#ifndef CPROTO
 /* We need to declare most of the structs before we can include this */
-#include <proto.h>
-#endif
+#include "proto.h"
 
 extern void client_mapsize(int width, int height);
 

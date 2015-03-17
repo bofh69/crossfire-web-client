@@ -101,7 +101,7 @@ include_directories(
     ${X11_INCLUDE_DIR}
 )
 
-# Add temporary hacks to pick up angled brackets.
+# Include common client header files.
 include_directories(${PROJECT_SOURCE_DIR}/common)
 
 # Build in subdirectories.

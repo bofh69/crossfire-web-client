@@ -25,7 +25,7 @@
 #include <signal.h>
 #endif
 
-#include <client.h>
+#include "client.h"
 
 #ifdef HAVE_LUA
 /* It seems easier to just comment everything out if we don't have

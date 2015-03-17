@@ -21,7 +21,6 @@ add_custom_command(
 #)
 
 add_library(cfclient
-    client-types.h
     client.c
     client.h
     commands.c
