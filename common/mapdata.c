@@ -1020,6 +1020,13 @@ gint16 mapdata_face(int x, int y, int layer) {
     return the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer].face;
 }
 
+gint16 mapdata_face_info(int mx, int my, int layer, int *width, int *height) {
+    struct MapCellLayer *cell = &the_map.cells[mx][my].heads[layer];
+    *width = cell->size_x;
+    *height = cell->size_y;
+    return cell->face;
+}
+
 /**
  * Return the face number of a multi-square pixmap at the given map tile.
  * @param x X-coordinate of tile on-screen

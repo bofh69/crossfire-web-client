@@ -114,7 +114,20 @@ int mapdata_is_inside(int x, int y);
  * Returns the face to display at a given location. This function returns the
  * "head" information, i.e. the face information sent by the server.
  */
-gint16 mapdata_face(int x, int y, int layer);
+gint16 mapdata_face(int x, int y, int layer) __attribute__((deprecated));
+
+/**
+ * Return the face number of a pixmap in the given map cell. Faces for
+ * multi-tile pixmaps are only returned for the bottom right cell. Set the
+ * width and height pointers for the pixmap in number of tiles.
+ * @param mx Virtual map x-coordinate
+ * @param my Virtual map y-coordinate
+ * @param layer Map layer number
+ * @param width Pointer to store width
+ * @param height Pointer to store height
+ * @return Pixmap face number, zero if the tile does not exist
+ */
+gint16 mapdata_face_info(int mx, int my, int layer, int *width, int *height);
 
 /**
  * Returns the face to display at a given location. This function returns the

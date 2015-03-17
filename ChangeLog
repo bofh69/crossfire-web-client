@@ -1,3 +1,6 @@
+2015-03-17	Kevin Zheng
+	* gtk-v2/src/map.c: Combine pixmap layer rendering in a single pass
+
 2015-03-01	Kevin Zheng
 	* gtk-v2/src/main.c: Rename 'time-redraw' command-line option
 	* gtk-v2/src/main.c: Remove unnecessary map draw in do_network()

@@ -286,51 +286,40 @@ static void drawsmooth(cairo_t *cr, int mx, int my, int layer, int picx, int pic
     }
 }
 
-static gboolean face_is_big(PixmapInfo *pixmap) {
-    return (pixmap->map_width > map_image_size) || (pixmap->map_height > map_image_size);
-}
-
 /**
- * Draw a map tile to a location on screen.
- * @param ax Map cell on-screen x-coordinate
- * @param ay Map cell on-screen y-coordinate
- * @param mx In-game tile 'x' coordinate
- * @param my In-game tile 'y' coordinate
+ * Draw a single map layer to the given cairo context.
  */
-static void mapcell_draw(cairo_t *cr, int ax, int ay, int mx, int my, int layer) {
-    // Always draw cell if using fog of war, otherwise only if visible.
-    if (use_config[CONFIG_FOGWAR] || !mapdata_cell(mx, my)->cleared) {
-        int face = mapdata_face(ax, ay, layer);
+static void map_draw_layer(cairo_t *cr, int layer) {
+    for (int x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
+        for (int y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
+            // Translate on-screen coordinates to virtual map coordinates.
+            int mx = pl_pos.x + x, my = pl_pos.y + y;
 
-        if (face > 0 && pixmaps[face]->map_image != NULL) {
-            if (!face_is_big(pixmaps[face])) {
-                draw_pixmap(cr, pixmaps[face], ax, ay);
+            // Skip current cell if not visible and not using fog of war.
+            if (!use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
+                continue;
             }
-        }
-        /*
-         * Sometimes, it may happens we need to draw the smooth while there
-         * is nothing to draw at that layer (but there was something at
-         * lower layers). This is handled here. The else part is to take
-         * into account cases where the smooth as already been handled 2
-         * code lines before
-         */
-        if (use_config[CONFIG_SMOOTH]) {
-            drawsmooth(cr, mx, my, layer, ax * map_image_size, ay * map_image_size);
-        }
-    }
-}
 
-/**
- * Draw a big map tile to a location on screen.
- */
-static void mapcell_draw_big(cairo_t *cr, int ax, int ay, int mx, int my, int layer) {
-    // Always draw cell if using fog of war, otherwise only if visible.
-    if (use_config[CONFIG_FOGWAR] || !mapdata_cell(mx, my)->cleared) {
-        int sx, sy, face = mapdata_bigface(ax, ay, layer, &sx, &sy);
-
-        if (face > 0 && pixmaps[face]->map_image != NULL) {
-            if (face_is_big(pixmaps[face]) && sx == 0 && sy == 0) {
-                draw_pixmap(cr, pixmaps[face], ax, ay);
+            int width, height;
+            int face = mapdata_face_info(mx, my, layer, &width, &height);
+            if (face > 0 && pixmaps[face]->map_image != NULL) {
+                if (width == 1 && height == 1) {
+                    // Draw pixmap normally.
+                    draw_pixmap(cr, pixmaps[face], x, y);
+                } else {
+                    int rx = x + 1 - width, ry = y + 1 - height;
+                    draw_pixmap(cr, pixmaps[face], rx, ry);
+                }
+            }
+            /*
+            * Sometimes, it may happens we need to draw the smooth while there
+            * is nothing to draw at that layer (but there was something at
+            * lower layers). This is handled here. The else part is to take
+            * into account cases where the smooth as already been handled 2
+            * code lines before
+            */
+            if (use_config[CONFIG_SMOOTH]) {
+                drawsmooth(cr, mx, my, layer, x * map_image_size, y * map_image_size);
             }
         }
     }
@@ -375,23 +364,7 @@ static void gtk_map_redraw(gboolean redraw) {
     cairo_fill(cr);
 
     for (int layer = 0; layer < MAXLAYERS; layer++) {
-        // Draw single-tile graphics on the first pass.
-        for (int x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
-            for (int y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
-                // Determine the 'virtual' map coordinates.
-                int mx = pl_pos.x + x, my = pl_pos.y + y;
-                mapcell_draw(cr, x, y, mx, my, layer);
-            }
-        }
-
-        // Draw multi-tile graphics on the second pass.
-        for (int x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
-            for (int y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
-                // Determine the 'virtual' map coordinates.
-                int mx = pl_pos.x + x, my = pl_pos.y + y;
-                mapcell_draw_big(cr, x, y, mx, my, layer);
-            }
-        }
+        map_draw_layer(cr, layer);
     }
 
     for (int x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
