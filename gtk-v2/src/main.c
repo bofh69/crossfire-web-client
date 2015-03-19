@@ -506,9 +506,6 @@ int main(int argc, char *argv[]) {
 
     // Set defaults, load configuration, and parse arguments.
     snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client " FULL_VERSION);
-    use_config[CONFIG_MAPWIDTH] = 25;
-    use_config[CONFIG_MAPHEIGHT] = 25;
-
     config_load();
     parse_args(argc, argv);
     config_check();
