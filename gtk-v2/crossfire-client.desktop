@@ -1,12 +1,9 @@
 [Desktop Entry]
-Type=Application
-Name=Crossfire GTK Client V2
-Name[en]=Crossfire GTK Client V2
+Name=Crossfire GTKv2 Client
 GenericName=Crossfire Client
-GenericName[en]=Crossfire Client
-Comment=Client for Crossfire, a multiplayer graphical RPG and adventure game
-Comment[en]=Client for Crossfire, a multiplayer graphical RPG and adventure game
-Icon=crossfire-client
+Comment=Cooperative multi-player RPG and adventure game
 Exec=crossfire-client-gtk2
+Icon=crossfire-client
 Terminal=false
-Categories=Game;AdventureGame;RolePlaying;GTK;
+Type=Application
+Categories=Game;AdventureGame;RolePlaying;
