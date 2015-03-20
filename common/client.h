@@ -144,9 +144,8 @@ typedef struct {
 
 extern ClientSocket csocket;
 
-extern char *server, *image_file, *sound_server;
-extern const char *cache_dir;
-extern const char *config_dir;
+extern char *sound_server;
+extern const char *cache_dir, *config_dir;
 
 typedef enum {
     Playing, Reply_One, Reply_Many, Configure_Keys, Command_Mode,

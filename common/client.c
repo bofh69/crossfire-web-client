@@ -41,8 +41,6 @@
 
 /* actually declare the globals */
 
-char *server = NULL;
-
 char VERSION_INFO[MAX_BUF];
 
 char *skill_names[MAX_SKILL];

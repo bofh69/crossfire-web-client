@@ -57,6 +57,7 @@ static char dialog_xml_path[MAX_BUF] = XML_PATH_DEFAULT DIALOG_XML_FILENAME;
 
 static struct timeval timeout;
 static gboolean updatekeycodes = FALSE;
+static char *server = NULL;
 
 /* TODO: Move these declarations to actual header files. */
 extern int time_map_redraw;

@@ -82,7 +82,6 @@ int make_path_to_file(char *filename);
 void LOG(LogLevel level, const char *origin, const char *format, ...);
 void purgePipe(ChildProcess *cp, int pipe);
 void monitorChilds();
-void logPipe(ChildProcess *child, LogLevel level, int pipe);
 void logChildPipe(ChildProcess *child, LogLevel level, int flag);
 ChildProcess *raiseChild(char *name, int flag);
 /* newsocket.c */

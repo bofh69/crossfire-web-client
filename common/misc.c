@@ -207,11 +207,7 @@ void monitorChilds(void)
 #endif
 }
 
-/**
- *
- */
-void logPipe(ChildProcess *child, LogLevel level, int pipe)
-{
+static void logPipe(ChildProcess *child, LogLevel level, int pipe) {
 #ifndef WIN32
     char buf[1024];
     if ( (pipe<1) || (pipe>2)) { /*can't log stdin as it's write only*/
