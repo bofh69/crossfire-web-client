@@ -114,7 +114,7 @@ endif()
 
 # Build an installation package.
 include(InstallRequiredSystemLibraries)
-set(CPACK_GENERATOR "TGZ")
+set(CPACK_GENERATOR "ZIP")
 set(CPACK_PACKAGE_VERSION "${VERSION}")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
 set(CPACK_SOURCE_GENERATOR "TBZ2")
