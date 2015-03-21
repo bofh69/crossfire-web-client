@@ -391,19 +391,29 @@ static void init_sockets() {
 }
 
 /**
- * Load the given layout file.
+ * Load the layout with the given name, or the default if that fails. On
+ * success, copy the layout name to window_xml_file.
  */
-static gboolean init_ui_layout(const char *name) {
+static void init_ui_layout(const char *name) {
+    const char *default_name = "gtk-v2.ui";
+
     GString *path = g_string_new(XML_PATH_DEFAULT);
-    gboolean result;
-
-    strncpy(window_xml_file, name, sizeof(window_xml_file));
-
     g_string_append(path, name);
-    result = gtk_builder_add_from_file(window_xml, path->str, NULL);
+    guint retval = gtk_builder_add_from_file(window_xml, path->str, NULL);
     g_string_free(path, TRUE);
 
-    return result;
+    if (retval > 0 && strlen(name) > 0) {
+        strncpy(window_xml_file, name, sizeof(window_xml_file));
+        return;
+    }
+
+    // Try to load default layout if selected one doesn't work.
+    if (strcmp(default_name, name) != 0) {
+        LOG(LOG_DEBUG, "init_ui_layout", "Using default layout");
+        init_ui_layout(default_name);
+    } else {
+        g_error("Could not load default layout!");
+    }
 }
 
 static void init_ui() {
@@ -422,18 +432,15 @@ static void init_ui() {
 
     /* Load main window using GtkBuilder. */
     window_xml = gtk_builder_new();
-
-    /* Try to load default if selected layout doesn't work. */
-    if (!init_ui_layout(window_xml_file)) {
-        LOG(LOG_DEBUG, "init_ui", "Using default layout.");
-
-        if (init_ui_layout("gtk-v2.ui") != TRUE) {
-            g_error("Could not load default layout.");
-        }
-    }
+    init_ui_layout(window_xml_file);
 
     /* Begin connecting signals for the root window. */
     window_root = GTK_WIDGET(gtk_builder_get_object(window_xml, "window_root"));
+    if (window_root == NULL) {
+        error_dialog("Could not load main window",
+                "Check that your layout files are not corrupt.");
+        exit(EXIT_FAILURE);
+    }
 
     /* Request the window to receive focus in and out events */
     gtk_widget_add_events((gpointer) window_root, GDK_FOCUS_CHANGE_MASK);
