@@ -1412,24 +1412,24 @@ static void script_process_cmd(int i) {
 
             for (s = 0; s < CS_NUM_SKILLS; s++) {
                 if (skill_names[s]) {
-                    sprintf(buf, "request skills %d %s\n", CS_STAT_SKILLINFO + s, skill_names[s]);
+                    snprintf(buf, sizeof(buf), "request skills %d %s\n", CS_STAT_SKILLINFO + s, skill_names[s]);
                     write(scripts[i].out_fd, buf, strlen(buf));
                 }
             }
-            sprintf(buf, "request skills end\n");
+            snprintf(buf, sizeof(buf), "request skills end\n");
             write(scripts[i].out_fd, buf, strlen(buf));
         } else if (strncmp(c, "spells", 6) == 0) {
             char buf[1024];
             Spell *spell;
 
             for (spell = cpl.spelldata; spell; spell = spell->next) {
-                sprintf(buf, "request spells %d %d %d %d %d %d %d %d %s\n",
+                snprintf(buf, sizeof(buf), "request spells %d %d %d %d %d %d %d %d %s\n",
                         spell->tag, spell->level, spell->sp, spell->grace,
                         spell->skill_number, spell->path, spell->time,
                         spell->dam, spell->name);
                 write(scripts[i].out_fd, buf, strlen(buf));
             }
-            sprintf(buf, "request spells end\n");
+            snprintf(buf, sizeof(buf), "request spells end\n");
             write(scripts[i].out_fd, buf, strlen(buf));
         } else {
             char buf[1024];

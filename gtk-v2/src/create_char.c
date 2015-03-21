@@ -235,12 +235,12 @@ static void update_all_stats()
             negative_stat = 1;
         }
 
-        sprintf(buf, "%d", statval);
+        snprintf(buf, sizeof(buf), "%d", statval);
         gtk_label_set_text(GTK_LABEL(label_tot[i]), buf);
     }
 
     tmp = stat_points - stat_points_used;
-    sprintf(buf,"%d", tmp);
+    snprintf(buf, sizeof(buf), "%d", tmp);
     gtk_label_set_text(GTK_LABEL(label_cc_unspent), buf);
 
     /* Display some warning messages - we could try and display all the
@@ -616,7 +616,7 @@ on_combobox_rcs_changed(GtkComboBox *box, gpointer user_data)
      * at either the race or class to get values from.
      */
     for (i=0; i < NUM_NEW_CHAR_STATS; i++) {
-        sprintf(buf, "%+d", rc->stat_adj[stat_mapping[i].rc_offset]);
+        snprintf(buf, sizeof(buf), "%+d", rc->stat_adj[stat_mapping[i].rc_offset]);
         gtk_label_set_text(GTK_LABEL(label_stat[i]), buf);
     }
     update_all_stats();
@@ -646,7 +646,7 @@ void new_char_window_update_info()
 
     gtk_label_set_text(GTK_LABEL(label_cc_status_update), "Waiting for player selections");
 
-    sprintf(buf,"%d", stat_points);
+    snprintf(buf, sizeof(buf), "%d", stat_points);
     gtk_label_set_text(GTK_LABEL(label_cc_unspent), buf);
 
     /* Set up the races combobox */
