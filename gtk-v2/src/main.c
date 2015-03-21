@@ -323,25 +323,14 @@ static void parse_args(int argc, char *argv[]) {
  * Display an error message dialog. The dialog contains a multi-line, bolded
  * heading that includes the client version information, an error description,
  * and information relevant to the error condition.
- *
- * @param description
- * A C-string, displayed in bold text, that describes the type of the error
- * condition.
- *
- * @param information
- * A C-string, displayed in normal text, that provides additional information
- * about the error condition.
  */
-void error_dialog(char *description, char *information) {
-    GtkWidget *dialog;
-
-    gtk_init(NULL, NULL);
-    dialog =
-        gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
-                               GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "Crossfire %s\n%s",
-                               VERSION_INFO, description);
-    gtk_message_dialog_format_secondary_markup(GTK_MESSAGE_DIALOG(dialog),
-            "%s", information);
+void error_dialog(char *error, char *message) {
+    GtkWidget *dialog = gtk_message_dialog_new(
+            NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
+            GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "%s", error);
+    gtk_window_set_title(GTK_WINDOW(dialog), "Crossfire Client");
+    gtk_message_dialog_format_secondary_markup(
+            GTK_MESSAGE_DIALOG(dialog), "%s", message);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
 }
