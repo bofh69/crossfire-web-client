@@ -99,6 +99,9 @@ gint csocket_fd = 0;
 GtkBuilder *dialog_xml, *window_xml;
 GtkWidget *window_root, *magic_map;
 
+/** Track whether the client has received a trick since the last redraw. */
+bool next_tick = false;
+
 #ifdef WIN32 /* Win32 scripting support */
 #define PACKAGE_DATA_DIR "."
 
@@ -131,19 +134,19 @@ static int do_timeout() {
 }
 
 /**
- * X11 client doesn't care about this
+ * Redraw the map. Do a full redraw if there are new images to show.
  */
-void client_tick(guint32 tick) {
-    info_buffer_tick();                 /* Maintain the info output buffers */
-    inventory_tick();
-    mapdata_animation();
+static gboolean redraw(gpointer data) {
+    // Do not redraw if no tick has arrived since the last redraw.
+    if (next_tick) {
+        next_tick = false;
+    } else {
+        // Sleep for 10 ms to prevent busy wait.
+        g_usleep(10 * 1e3);
+        return TRUE;
+    }
 
-    /* If we have new images to display, we need to do a complete redraw
-     * periodically - to keep performance up, we don't want to do it every
-     * tick, but every 5 (about half a second) is still pretty fast but should
-     * also keep reasonable performance.
-     */
-    if (have_new_image && !(tick % 5)) {
+    if (have_new_image) {
         if (cpl.container) {
             cpl.container->inv_updated = 1;
         }
@@ -155,6 +158,17 @@ void client_tick(guint32 tick) {
     } else {
         draw_map(0);
     }
+    return TRUE;
+}
+
+/**
+ * X11 client doesn't care about this
+ */
+void client_tick(guint32 tick) {
+    info_buffer_tick();
+    inventory_tick();
+    mapdata_animation();
+    next_tick = true;
 }
 
 /**
@@ -264,7 +278,9 @@ static void event_loop() {
             (GdkInputFunction)do_network, &csocket);
     int tag = csocket_fd;
 
+    guint source_redraw = g_idle_add(redraw, NULL);
     gtk_main();
+    g_source_remove(source_redraw);
     g_source_remove(tag);
     g_source_remove(timeout_id);
 

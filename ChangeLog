@@ -1,3 +1,6 @@
+2015-03-21	Kevin Zheng
+	* gtk-v2/src/main.c: Redraw map from main loop only when idle
+
 2015-03-17	Kevin Zheng
 	* gtk-v2/src/map.c: Combine pixmap layer rendering in a single pass
 
