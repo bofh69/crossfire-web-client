@@ -29,13 +29,16 @@
  * be converted to a machine independent format
  */
 
+#include "client.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <gio/gio.h>
+#ifdef HAVE_GIO_GNETWORKING_H
 #include <gio/gnetworking.h>
+#endif
 
-#include "client.h"
 #include "external.h"
 #include "mapdata.h"
 #include "metaserver.h"
@@ -279,11 +282,13 @@ int client_connect(const char *hostname) {
 
     GSocket *socket = g_socket_connection_get_socket(connection);
     int i = 1, fd = g_socket_get_fd(socket);
+#ifdef HAVE_GIO_GNETWORKING_H
     if (use_config[CONFIG_FASTTCP]) {
         if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1) {
             perror("TCP_NODELAY");
         }
     }
+#endif
     in = g_io_stream_get_input_stream(G_IO_STREAM(connection));
     out = g_io_stream_get_output_stream(G_IO_STREAM(connection));
     return fd;

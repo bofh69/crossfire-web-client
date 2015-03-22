@@ -69,7 +69,9 @@ set(HAVE_OPENGL ${OPENGL_FOUND})
 set(HAVE_SDL ${SDL_FOUND})
 
 include(CheckIncludeFiles)
+set(CMAKE_REQUIRED_INCLUDES ${GTK2_INCLUDE_DIRS})
 check_include_files(fcntl.h HAVE_FCNTL_H)
+check_include_files(gio/gnetworking.h HAVE_GIO_GNETWORKING_H)
 check_include_files(sys/time.h HAVE_SYS_TIME_H)
 check_include_files(unistd.h HAVE_UNISTD_H)
 
