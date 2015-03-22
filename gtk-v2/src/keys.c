@@ -1570,12 +1570,8 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
              */
 
             client_disconnect();
+            cleanup_connection();
 
-            if (csocket_fd) {
-                gdk_input_remove(csocket_fd);
-                csocket_fd = 0;
-                gtk_main_quit();
-            }
             g_signal_stop_emission_by_name(
                 GTK_OBJECT(window), "key_press_event");
             return;

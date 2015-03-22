@@ -94,7 +94,7 @@ static GOptionEntry options[] = {
 char window_xml_file[MAX_BUF];
 
 GdkColor root_color[NUM_COLORS];
-gint csocket_fd = 0;
+static gint csocket_fd = 0;
 
 GtkBuilder *dialog_xml, *window_xml;
 GtkWidget *window_root, *magic_map;
@@ -115,7 +115,7 @@ static int do_scriptout() {
  * Map, spell, and inventory maintenance.
  * @return TRUE
  */
-static int do_timeout() {
+static gboolean do_timeout(gpointer data) {
     if (cpl.showmagic) {
         magic_map_flash_pos();
     }
@@ -203,11 +203,7 @@ static void do_network() {
     int pollret;
 
     if (csocket.fd == -1) {
-        if (csocket_fd) {
-            gdk_input_remove(csocket_fd);
-            csocket_fd = 0;
-            gtk_main_quit();
-        }
+        cleanup_connection();
         return;
     }
 
@@ -234,11 +230,7 @@ static void do_network() {
      * with the socket being closed, this function will otherwise never be
      * called again. */
     if (csocket.fd == -1) {
-        if (csocket_fd) {
-            gdk_input_remove(csocket_fd);
-            csocket_fd = 0;
-            gtk_main_quit();
-        }
+        cleanup_connection();
         return;
     }
 
@@ -260,28 +252,18 @@ static void event_loop() {
         timeout.tv_usec = 0;/* MAX_TIME % 1000000;*/
     }
 
-    guint timeout_id = g_timeout_add(100, (GtkFunction) do_timeout, NULL);
+    guint timeout_id = g_timeout_add(100, do_timeout, NULL);
 
 #ifdef WIN32
     g_timeout_add(250, (GtkFunction) do_scriptout, NULL);
 #endif
 
-    if (csocket.fd == -1) {
-        if (csocket_fd) {
-            gdk_input_remove(csocket_fd);
-            csocket_fd = 0;
-            gtk_main_quit();
-        }
-        return;
-    }
-    csocket_fd = gdk_input_add((gint) csocket.fd, GDK_INPUT_READ,
+    csocket_fd = gdk_input_add(csocket.fd, GDK_INPUT_READ,
             (GdkInputFunction)do_network, &csocket);
-    int tag = csocket_fd;
-
     guint source_redraw = g_idle_add(redraw, NULL);
     gtk_main();
     g_source_remove(source_redraw);
-    g_source_remove(tag);
+    g_assert(csocket_fd == 0);
     g_source_remove(timeout_id);
 
     LOG(LOG_DEBUG, "main.c::event_loop",

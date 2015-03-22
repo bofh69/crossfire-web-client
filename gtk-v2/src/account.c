@@ -972,12 +972,7 @@ on_button_create_account_clicked(GtkButton *button, gpointer user_data) {
 void
 on_button_go_metaserver_clicked(GtkButton *button, gpointer user_data) {
     client_disconnect();
-
-    if (csocket_fd) {
-        gdk_input_remove(csocket_fd);
-        csocket_fd = 0;
-        gtk_main_quit();
-    }
+    cleanup_connection();
 }
 
 /**

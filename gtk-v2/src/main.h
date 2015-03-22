@@ -30,8 +30,6 @@ extern char window_xml_file[];
 
 #define MAGIC_MAP_PAGE  1 /**< Notebook page of the magic map */
 
-extern gint csocket_fd;
-
 extern char account_password[256];
 /* gtk2proto.h depends on this - so may as well just include it here */
 #include "info.h"
