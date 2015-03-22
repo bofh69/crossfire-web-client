@@ -1570,7 +1570,6 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
              */
 
             client_disconnect();
-            cleanup_connection();
 
             g_signal_stop_emission_by_name(
                 GTK_OBJECT(window), "key_press_event");

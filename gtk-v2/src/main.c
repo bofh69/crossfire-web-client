@@ -94,7 +94,6 @@ static GOptionEntry options[] = {
 char window_xml_file[MAX_BUF];
 
 GdkColor root_color[NUM_COLORS];
-static gint csocket_fd = 0;
 
 GtkBuilder *dialog_xml, *window_xml;
 GtkWidget *window_root, *magic_map;
@@ -170,19 +169,6 @@ void client_tick(guint32 tick) {
     mapdata_animation();
     next_tick = true;
 }
-
-/**
- * Called from disconnect command - that closes the socket - we just need to
- * do the gtk cleanup.
- */
-void cleanup_connection() {
-    if (csocket_fd) {
-        gdk_input_remove(csocket_fd);
-        csocket_fd = 0;
-        gtk_main_quit();
-    }
-}
-
 /**
  * Handles client shutdown.
  */
@@ -196,15 +182,15 @@ void on_window_destroy_event(GtkObject *object, gpointer user_data) {
 }
 
 /**
- * main loop iteration related stuff
+ * Callback from the event loop triggered when server input is available.
  */
-static void do_network() {
+static gboolean do_network(GObject *stream, gpointer data) {
     fd_set tmp_read;
     int pollret;
 
-    if (csocket.fd == -1) {
-        cleanup_connection();
-        return;
+    if (!client_is_connected()) {
+        gtk_main_quit();
+        return FALSE;
     }
 
     FD_ZERO(&tmp_read);
@@ -226,15 +212,9 @@ static void do_network() {
             script_process(&tmp_read);
         }
     }
-    /* DoClient now closes the socket, so we need to check for this here -
-     * with the socket being closed, this function will otherwise never be
-     * called again. */
-    if (csocket.fd == -1) {
-        cleanup_connection();
-        return;
-    }
 
     draw_lists();
+    return TRUE;
 }
 
 /**
@@ -258,16 +238,14 @@ static void event_loop() {
     g_timeout_add(250, (GtkFunction) do_scriptout, NULL);
 #endif
 
-    csocket_fd = gdk_input_add(csocket.fd, GDK_INPUT_READ,
-            (GdkInputFunction)do_network, &csocket);
+    GSource *net_source = client_get_source();
+    g_source_set_callback(net_source, (GSourceFunc)do_network, NULL, NULL);
+    g_source_attach(net_source, NULL);
     guint source_redraw = g_idle_add(redraw, NULL);
     gtk_main();
     g_source_remove(source_redraw);
-    g_assert(csocket_fd == 0);
     g_source_remove(timeout_id);
-
-    LOG(LOG_DEBUG, "main.c::event_loop",
-        "gtk_main exited, returning from event_loop");
+    LOG(LOG_DEBUG, "event_loop", "Disconnected");
 }
 
 #ifndef WIN32

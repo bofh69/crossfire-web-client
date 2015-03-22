@@ -422,15 +422,8 @@ static void do_clearinfo(const char * ignored)
  *
  * @param ignored
  */
-static void do_disconnect(const char * ignored)
-{
+static void do_disconnect(const char * ignored) {
     client_disconnect();
-
-    /* the gtk clients need to do some cleanup logic - otherwise,
-     * they start hogging CPU.
-     */
-    cleanup_connection();
-    return;
 }
 
 #ifdef HAVE_DMALLOC_H

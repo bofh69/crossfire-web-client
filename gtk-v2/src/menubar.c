@@ -43,8 +43,9 @@
  * @param user_data
  */
 static void on_disconnect_activate(GtkMenuItem *menuitem, gpointer user_data) {
-    client_disconnect();
-    cleanup_connection();
+    if (client_is_connected()) {
+        client_disconnect();
+    }
 }
 
 /**

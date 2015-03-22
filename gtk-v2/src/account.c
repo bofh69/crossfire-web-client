@@ -972,7 +972,6 @@ on_button_create_account_clicked(GtkButton *button, gpointer user_data) {
 void
 on_button_go_metaserver_clicked(GtkButton *button, gpointer user_data) {
     client_disconnect();
-    cleanup_connection();
 }
 
 /**

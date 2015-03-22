@@ -89,7 +89,6 @@ extern void save_winpos(void);
 extern void save_defaults(void);
 extern void command_show(const char *params);
 extern void client_tick(guint32 tick);
-extern void cleanup_connection(void);
 extern void client_pickup(guint32 pickup);
 
 /* Account Login Functions */

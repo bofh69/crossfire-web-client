@@ -708,6 +708,13 @@ extern void client_run(void);
  */
 extern bool client_write(const void *buf, int len);
 
+extern bool client_is_connected(void);
+
+/**
+ * Return a source triggered when input from the server is available.
+ */
+extern GSource *client_get_source(void);
+
 extern void beat_init(int interval);
 extern void beat_check();
 extern void beat_reset();

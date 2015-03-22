@@ -131,8 +131,8 @@ void SockList_AddString(SockList *sl, const char *str)
 int SockList_Send(SockList *sl, int fd) {
     sl->buf[-2] = sl->len / 256;
     sl->buf[-1] = sl->len % 256;
-    if (fd == 0 || fd == -1) {
-        LOG(LOG_WARNING, "SockList_Send", "Sending to a bad file descriptor!");
+    if (!client_is_connected()) {
+        LOG(LOG_WARNING, "SockList_Send", "Sending data while not connected!");
         return 1;
     }
     return write_socket(fd, sl->buf-2, sl->len+2);

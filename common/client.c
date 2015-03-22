@@ -290,8 +290,16 @@ int client_connect(const char *hostname) {
 }
 
 bool client_write(const void *buf, int len) {
-    assert(g_socket_connection_is_connected(connection));
     return g_output_stream_write_all(out, buf, len, NULL, NULL, NULL);
+}
+
+bool client_is_connected() {
+    return connection != NULL && g_socket_connection_is_connected(connection);
+}
+
+GSource *client_get_source() {
+    return g_pollable_input_stream_create_source(
+            G_POLLABLE_INPUT_STREAM(in), NULL);
 }
 
 void client_negotiate(int sound) {
