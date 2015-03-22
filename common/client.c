@@ -66,6 +66,8 @@ NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
 Client_Player cpl;
 ClientSocket csocket;
 static GSocketConnection *connection;
+static GInputStream *in;
+static GOutputStream *out;
 
 /** Timer to track when the last message was sent to the server. */
 static GTimer *beat_timer;
@@ -306,7 +308,14 @@ int init_connection(const char *hostname) {
             perror("TCP_NODELAY");
         }
     }
+    in = g_io_stream_get_input_stream(G_IO_STREAM(connection));
+    out = g_io_stream_get_output_stream(G_IO_STREAM(connection));
     return fd;
+}
+
+bool client_write(const void *buf, int len) {
+    assert(g_socket_connection_is_connected(connection));
+    return g_output_stream_write_all(out, buf, len, NULL, NULL, NULL);
 }
 
 /**

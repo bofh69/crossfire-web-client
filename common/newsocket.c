@@ -34,33 +34,10 @@
  * @return
  */
 static int write_socket(int fd, const unsigned char *buf, int len) {
-    const unsigned char *pos = buf;
-    int amt = 0;
-
-    /* If we manage to write more than we wanted, take it as a bonus */
-    while (len>0) {
-        do {
-#ifndef WIN32
-            amt=write(fd, pos, len);
-        } while ((amt<0) && ((errno==EINTR) || (errno=EAGAIN)));
-#else
-            amt=send(fd, pos, len, 0);
-        }
-        while ((amt<0) && (WSAGetLastError()==EINTR));
-#endif
-        if (amt < 0) { /* We got an error */
-            LOG(LOG_ERROR,"write_socket","New socket (fd=%d) write failed: %s.\n", fd, strerror(errno));
-            return -1;
-        }
-        if (amt==0) {
-            LOG(LOG_ERROR,"write_socket","Write_To_Socket: No data written out.\n");
-        }
-        len -= amt;
-        pos += amt;
-    }
-
+    g_assert(csocket.fd == fd);
+    bool success = client_write(buf, len);
     beat_reset();
-    return 0;
+    return success ? 0 : -1;
 }
 
 /**

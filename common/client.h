@@ -13,6 +13,7 @@
 #define CLIENT_TYPES_H
 
 #include <glib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -666,6 +667,11 @@ extern int maxfd;
 #include "proto.h"
 
 extern void client_mapsize(int width, int height);
+
+/**
+ * Write the given data to the server.
+ */
+extern bool client_write(const void *buf, int len);
 
 extern void beat_init(int interval);
 extern void beat_check();
