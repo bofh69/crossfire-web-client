@@ -32,6 +32,8 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <gio/gio.h>
+#include <gio/gnetworking.h>
 
 #include "client.h"
 #include "external.h"
@@ -63,6 +65,7 @@ NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
 
 Client_Player cpl;
 ClientSocket csocket;
+static GSocketConnection *connection;
 
 /** Timer to track when the last message was sent to the server. */
 static GTimer *beat_timer;
@@ -186,13 +189,10 @@ void client_mapsize(int width, int height) {
  * update it.
  */
 void close_server_connection() {
-    LOG (LOG_DEBUG, "common::close_server_connection", "Closing server connection");
-#ifdef WIN32
-    closesocket(csocket.fd);
-#else
-    close(csocket.fd);
-#endif
+    LOG(LOG_DEBUG, "close_server_connection", "Closing server connection");
     csocket.fd = -1;
+    g_io_stream_close(G_IO_STREAM(connection), NULL, NULL);
+    g_object_unref(connection);
 }
 
 /**
@@ -275,281 +275,35 @@ void DoClient(ClientSocket *csocket)
     }
 }
 
-#ifdef WIN32
-#define socklen_t int
-#else
-#include <netdb.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <ctype.h>
-#include <arpa/inet.h>
-#endif
-
 /**
- * Attempt to establish a socket connection to a specified server and port.
- * In the case where HAVE_GETADDRINFO is true, a timeout connect() is
- * implemented to avoid very long (3 minute) client freeze-up when a host is
- * not reachable.  It is easy for this to happen if a cached server entry is
- * used instead of metaserver results.
+ * Open a socket to the given hostname and store connection information.
  *
  * @param host Host name or address of the server.
- * @param port Port name to use when connecting to the server.
  * @return     File descripter of the connected socket, or, -1 on failure.
  */
-int init_connection(char *host, int port)
-{
-    int fd = -1, oldbufsize, newbufsize=65535;
-    socklen_t buflen=sizeof(int);
-#if !HAVE_GETADDRINFO || WIN32
-    struct sockaddr_in insock;
-    struct protoent *protox;
+int init_connection(char *host, int port) {
+    GSocketClient *sclient = g_socket_client_new();
+    g_socket_client_set_timeout(sclient, 10);
 
-    /*
-     * An empty host is sometimes  saved as (null) in the defaults file, but,
-     * on load, that does not get handled as a NULL.  When that happens, the
-     * lookup of this invalid hostname takes a long time, and it isn't a valid
-     * host name in any case, so just abort quickly.
-     */
-    if (!strcmp(host,"(null)")) {
+    // Store server hostname.
+    if (csocket.servername != NULL) {
+        g_free(csocket.servername);
+    }
+    csocket.servername = g_strdup(host);
+
+    // Try to connect to server.
+    connection = g_socket_client_connect_to_host(
+            sclient, host, use_config[CONFIG_PORT], NULL, NULL);
+    g_object_unref(sclient);
+    if (connection == NULL) {
         return -1;
     }
 
-    protox = getprotobyname("tcp");
-    if (protox == (struct protoent  *) NULL) {
-        LOG (LOG_ERROR,"common::init_connection", "Error getting protobyname (tcp)");
-        return -1;
-    }
-    fd = socket(PF_INET, SOCK_STREAM, protox->p_proto);
-    if (fd==-1) {
-        perror("init_connection:  Error on socket command.\n");
-        LOG (LOG_ERROR,"common::init_connection", "Error on socket command");
-        return -1;
-    }
-
-    insock.sin_family = AF_INET;
-    insock.sin_port = htons((unsigned short)port);
-    if (isdigit(*host)) {
-        insock.sin_addr.s_addr = inet_addr(host);
-    } else {
-        struct hostent *hostbn = gethostbyname(host);
-        if (hostbn == (struct hostent *) NULL) {
-            LOG (LOG_ERROR,"common::init_connection","Unknown host: %s",host);
-            return -1;
-        }
-        memcpy(&insock.sin_addr, hostbn->h_addr, hostbn->h_length);
-    }
-
-    if (connect(fd,(struct sockaddr *)&insock,sizeof(insock)) == (-1)) {
-        LOG (LOG_ERROR,"common::init_connection","Can't connect to server");
-        perror("Can't connect to server");
-        return -1;
-    }
-
-#else
-    struct addrinfo hints;
-    struct addrinfo *res = NULL, *ai;
-    char port_str[6];
-    int fd_status, fd_flags, fd_select, fd_sockopt;
-    struct timeval tv;
-    fd_set fdset;
-
-    /* See note in section above about null hosts names */
-    if (!strcmp(host,"(null)")) {
-        return -1;
-    }
-
-    snprintf(port_str, sizeof(port_str), "%d", port);
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
-
-    if (getaddrinfo(host, port_str, &hints, &res) != 0) {
-        return -1;
-    }
-    /*
-     * Assume that an error will not occur and that the socket is left open.
-     */
-    fd_status = 0;
-
-    for (ai = res; ai != NULL; ai = ai->ai_next) {
-        /*
-         * Try to create a socket.
-         */
-        fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-        if (fd == -1) {
-            LOG (LOG_ERROR,
-                 "common::init_connection","Error creating socket (%d %s)\n",
-                 errno, strerror(errno));
-            continue;
-        }
-        /*
-         * Set the socket to non-blocking mode.
-         */
-        fd_flags = fcntl(fd, F_GETFL, NULL);
-        if (fd_flags == -1) {
-            LOG (LOG_ERROR,
-                 "common::init_connection","Error fcntl(fd, F_GETFL) (%s)\n",
-                 strerror(errno));
-            fd_status = -1;
-            break;
-        }
-        fd_flags |= O_NONBLOCK;
-        if (fcntl(fd, F_SETFL, fd_flags) == -1) {
-            LOG (LOG_ERROR,
-                 "common::init_connection","Error fcntl(fd, F_SETFL) (%s)\n",
-                 strerror(errno));
-            fd_status = -1;
-            break;
-        }
-        /*
-         * Try to connect in non-blocking mode to avoid an extended client
-         * lockup in the event that the connection fails for some reason.
-         */
-        if (connect(fd, ai->ai_addr, ai->ai_addrlen) == -1) {
-            /*
-             * Assume the connection will fail...
-             */
-            fd_status = -1;
-            if (errno == EINPROGRESS) {
-                do {
-                    /*
-                     * Do not block more than the amount of time specified
-                     * here.  Prior to implementation of this timeout, the
-                     * client was observed to freeze up for three minutes or
-                     * so when the connection failed.
-                     */
-                    tv.tv_sec = 30;
-                    tv.tv_usec = 0;
-                    FD_ZERO(&fdset);
-                    FD_SET(fd, &fdset);
-                    fd_select = select(fd+1, NULL, &fdset, NULL, &tv);
-                    if (fd_select == -1 && errno != EINTR) {
-                        LOG (LOG_ERROR, "common::init_connection",
-                             "Error connecting %d - %s\n",
-                             errno, strerror(errno));
-                        break;
-                    } else if (fd_select > 0) {
-                        /*
-                         * Socket selected for write.
-                         */
-                        if (getsockopt(fd, SOL_SOCKET, SO_ERROR,
-                                       (void*)(&fd_sockopt), &buflen)) {
-                            LOG (LOG_ERROR, "common::init_connection",
-                                 "Error in getsockopt %d - %s\n",
-                                 errno, strerror(errno));
-                            break;
-                        }
-                        if (fd_sockopt) {
-                            LOG (LOG_ERROR, "common::init_connection",
-                                 "Error in delayed connection %d - %s\n",
-                                 fd_sockopt, strerror(fd_sockopt));
-                            break;
-                        }
-                        /*
-                         * The assumption was wrong: the connection succeeded.
-                         */
-                        fd_status = 0;
-                        break;
-                    } else {
-                        /* FIXME: Clean up memory leak caused by returning. */
-                        LOG(LOG_ERROR, "common::init_connection",
-                                "Connection timed out.\n");
-                        return -1;
-                    }
-                } while (1);
-            } else {
-                /* This log message should probably be removed - any error
-                 * should really be reported to the player through the GUI.
-                 * In addition, if system has ipv6 + ipv4, the ipv6 connection
-                 * may fail (generating this message), but ipv4 to same server
-                 * succeeds - probably not really an error there.
-                 */
-                LOG (LOG_ERROR, "common::init_connection",
-                     "Error connecting %d - %s\n", errno, strerror(errno));
-                fd_status = 0;
-                continue;
-            }
-        }
-        if (! fd_status) {
-            /*
-             * If we get here, the connection has worked.  Now we
-             * reset the socket to blocking mode.
-             */
-            fd_flags = fcntl(fd, F_GETFL, NULL);
-            if (fd_flags == -1) {
-                LOG (LOG_ERROR, "common::init_connection",
-                     "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
-                fd_status = -1;
-            } else {
-                fd_flags &= (~O_NONBLOCK);
-                if (fcntl(fd, F_SETFL, fd_flags) == -1) {
-                    LOG (LOG_ERROR, "common::init_connection",
-                         "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
-                    fd_status = -1;
-                }
-            }
-            break;
-        }
-    }
-
-    if (fd_status) {
-        close(fd);
-        fd = -1;
-    }
-
-    freeaddrinfo(res);
-
-    if (fd == -1) {
-        return -1;
-    }
-#endif
-
-    free(csocket.servername);
-    csocket.servername = g_malloc(sizeof(char)*(strlen(host)+1));
-    strcpy(csocket.servername, host);
-
-#ifndef WIN32
-    if (fcntl(fd, F_SETFL, O_NDELAY)==-1) {
-        LOG (LOG_ERROR,"common::init_connection","Error on fcntl.");
-    }
-#else
-    {
-        unsigned long tmp = 1;
-        if (ioctlsocket(fd, FIONBIO, &tmp)<0) {
-            LOG (LOG_ERROR,"common::init_connection","Error on ioctlsocket.");
-        }
-    }
-#endif
-
-#ifdef TCP_NODELAY
-    /* turn off nagle algorithm */
+    GSocket *socket = g_socket_connection_get_socket(connection);
+    int i = 1, fd = g_socket_get_fd(socket);
     if (use_config[CONFIG_FASTTCP]) {
-        int i=1;
-
-#ifdef WIN32
-        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, ( const char* )&i, sizeof(i)) == -1) {
-            perror("TCP_NODELAY");
-        }
-#else
         if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1) {
             perror("TCP_NODELAY");
-        }
-#endif
-    }
-#endif
-
-    if (getsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&oldbufsize, &buflen)==-1) {
-        oldbufsize=0;
-    }
-
-    if (oldbufsize<newbufsize) {
-        if(setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&newbufsize, sizeof(&newbufsize))) {
-            LOG(LOG_WARNING,"common::init_connection: setsockopt"," unable to set output buf size to %d", newbufsize);
-            setsockopt(fd,SOL_SOCKET,SO_RCVBUF, (char*)&oldbufsize, sizeof(&oldbufsize));
         }
     }
     return fd;
