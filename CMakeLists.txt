@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 project(crossfire-client C)
-
-# Set project version information.
 set(VERSION 1.71.0)
 
 # Set configuration options.
@@ -96,13 +94,11 @@ configure_file(
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${PROJECT_BINARY_DIR}/common
+    ${PROJECT_SOURCE_DIR}/common
     ${GTK2_INCLUDE_DIRS}
     ${PNG_INCLUDE_DIRS}
     ${X11_INCLUDE_DIR}
 )
-
-# Include common client header files.
-include_directories(${PROJECT_SOURCE_DIR}/common)
 
 # Build in subdirectories.
 add_subdirectory(common)
