@@ -1,6 +1,6 @@
 /* client.c */
 void DoClient(ClientSocket *csocket);
-int init_connection(char *host, int port);
+int init_connection(const char *hostname);
 void negotiate_connection(int sound);
 /* commands.c */
 void close_server_connection(void);

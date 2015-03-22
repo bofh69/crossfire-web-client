@@ -549,8 +549,7 @@ int main(int argc, char *argv[]) {
             prompt_metaserver();
         } else {
             use_metaserver = false;
-
-            csocket.fd = init_connection(server, use_config[CONFIG_PORT]);
+            csocket.fd = init_connection(server);
             g_free(server);
 
             // Exit with an error if unable to connect to server.

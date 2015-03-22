@@ -227,10 +227,7 @@ void prompt_metaserver() {
 }
 
 /**
- * Establish a connection to a server with the given hostname and optional
- * port number. To connect on a non-standard port number, a colon and the port
- * number is appended to the DNS name.  Update the server cache if the
- * connection attempt succeeds.
+ * Connect to a server with the given hostname and optional port number.
  *
  * @param name The DNS name of a server to connect to.  If the server operates
  *             on a non-standard port, a colon and the port number is appended
@@ -238,38 +235,20 @@ void prompt_metaserver() {
  */
 static void metaserver_connect_to(const char *name) {
     char buf[256];
-    int port = use_config[CONFIG_PORT];
-
-    /* Make a copy of the input string since strtok modifies it. */
-    char *namebuf = g_strdup(name);
-
     /* Set client status and update GUI before continuing. */
     snprintf(buf, sizeof(buf), "Connecting to '%s'...", name);
     gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     gtk_main_iteration();
 
-    /* Separate the hostname from the port number (if specified). */
-    char *hostname = strtok(namebuf, ":");
-    char *portnum = strtok(NULL, " \0");
-
-    if (portnum != NULL) {
-        port = atoi(portnum);
-    }
-
-    csocket.fd = init_connection(hostname, port);
-
+    csocket.fd = init_connection(name);
     if (csocket.fd != -1) {
-        LOG(LOG_DEBUG, "gtk-v2::metaserver_connect_to",
-            "Connected to '%s'!", name);
-
+        LOG(LOG_DEBUG, "metaserver_connect_to", "Connected to '%s'!", name);
         gtk_main_quit();
         cpl.input_state = Playing;
     } else {
-        snprintf(buf, 255, "Unable to connect to %s!", name);
+        snprintf(buf, sizeof(buf), "Unable to connect to %s!", name);
         gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     }
-
-    free(namebuf);
 }
 
 /**

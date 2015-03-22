@@ -281,7 +281,7 @@ void DoClient(ClientSocket *csocket)
  * @param host Host name or address of the server.
  * @return     File descripter of the connected socket, or, -1 on failure.
  */
-int init_connection(char *host, int port) {
+int init_connection(const char *hostname) {
     GSocketClient *sclient = g_socket_client_new();
     g_socket_client_set_timeout(sclient, 10);
 
@@ -289,11 +289,11 @@ int init_connection(char *host, int port) {
     if (csocket.servername != NULL) {
         g_free(csocket.servername);
     }
-    csocket.servername = g_strdup(host);
+    csocket.servername = g_strdup(hostname);
 
     // Try to connect to server.
     connection = g_socket_client_connect_to_host(
-            sclient, host, use_config[CONFIG_PORT], NULL, NULL);
+            sclient, hostname, use_config[CONFIG_PORT], NULL, NULL);
     g_object_unref(sclient);
     if (connection == NULL) {
         return -1;
