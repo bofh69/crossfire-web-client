@@ -1,9 +1,4 @@
-/* client.c */
-void DoClient(ClientSocket *csocket);
-int init_connection(const char *hostname);
-void negotiate_connection(int sound);
 /* commands.c */
-void close_server_connection(void);
 void ReplyInfoCmd(guint8 *buf, int len);
 void SetupCmd(char *buf, int len);
 void ExtendedInfoSetCmd(char *data, int len);

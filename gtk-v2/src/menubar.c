@@ -43,7 +43,7 @@
  * @param user_data
  */
 static void on_disconnect_activate(GtkMenuItem *menuitem, gpointer user_data) {
-    close_server_connection();
+    client_disconnect();
 
     if (csocket_fd) {
         gdk_input_remove(csocket_fd);

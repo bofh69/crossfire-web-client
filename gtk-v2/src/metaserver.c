@@ -240,7 +240,7 @@ static void metaserver_connect_to(const char *name) {
     gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     gtk_main_iteration();
 
-    csocket.fd = init_connection(name);
+    csocket.fd = client_connect(name);
     if (csocket.fd != -1) {
         LOG(LOG_DEBUG, "metaserver_connect_to", "Connected to '%s'!", name);
         gtk_main_quit();

@@ -666,7 +666,42 @@ extern int maxfd;
 /* We need to declare most of the structs before we can include this */
 #include "proto.h"
 
+/**
+ * Open a socket to the given hostname and store connection information.
+ *
+ * @param hostname Host name or address of the server
+ * @return File descripter of the connected socket or -1 on failure
+ */
+extern int client_connect(const char *hostname);
+
+/**
+ * Closes the connection to the server.  It seems better to have it one place
+ * here than the same logic sprinkled about in half a dozen locations.  It is
+ * also useful in that if this logic does change, there is just one place to
+ * update it.
+ */
+extern void client_disconnect(void);
+
+/**
+ * This function negotiates the characteriistics of a connection to the
+ * server.  Negotiation consists of asking the server for commands it wants,
+ * and checking protocol version for compatibility.  Serious incompatibilities
+ * abort the connection.
+ *
+ * @param sound Non-zero to ask for sound and music commands.
+ */
+extern void client_negotiate(int sound);
+
+/**
+ * Ask the server for the given map size.
+ */
 extern void client_mapsize(int width, int height);
+
+/**
+ * Read available packets from the server and handle commands until there are
+ * no more, or if a socket error occurs.
+ */
+extern void client_run(void);
 
 /**
  * Write the given data to the server.

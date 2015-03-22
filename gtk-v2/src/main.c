@@ -220,7 +220,7 @@ static void do_network() {
             "Got errno %d on select call.", errno);
     } else if (pollret > 0) {
         if (FD_ISSET(csocket.fd, &tmp_read)) {
-            DoClient(&csocket);
+            client_run();
 #ifndef WIN32
             if (pollret > 1) {
                 script_process(&tmp_read);
@@ -549,7 +549,7 @@ int main(int argc, char *argv[]) {
             prompt_metaserver();
         } else {
             use_metaserver = false;
-            csocket.fd = init_connection(server);
+            csocket.fd = client_connect(server);
             g_free(server);
 
             // Exit with an error if unable to connect to server.
@@ -558,7 +558,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        negotiate_connection(use_config[CONFIG_SOUND]);
+        client_negotiate(use_config[CONFIG_SOUND]);
 
         /* The event_loop will block until connection to the server is lost. */
         event_loop();

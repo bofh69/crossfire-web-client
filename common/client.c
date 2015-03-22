@@ -171,9 +171,6 @@ struct CmdMapping commands[] = {
  */
 #define NCOMMANDS ((int)(sizeof(commands)/sizeof(struct CmdMapping)))
 
-/**
- * Ask the server for the given map size.
- */
 void client_mapsize(int width, int height) {
     // Store desired size in use_config to check results from the server.
     use_config[CONFIG_MAPWIDTH] = width;
@@ -184,41 +181,25 @@ void client_mapsize(int width, int height) {
     cs_print_string(csocket.fd, "setup mapsize %dx%d", width, height);
 }
 
-/**
- * Closes the connection to the server.  It seems better to have it one place
- * here than the same logic sprinkled about in half a dozen locations.  It is
- * also useful in that if this logic does change, there is just one place to
- * update it.
- */
-void close_server_connection() {
+void client_disconnect() {
     LOG(LOG_DEBUG, "close_server_connection", "Closing server connection");
     csocket.fd = -1;
     g_io_stream_close(G_IO_STREAM(connection), NULL, NULL);
     g_object_unref(connection);
 }
 
-/**
- * Continuously reads packets from the server, passes their commands to the
- * script watcher, and then processes them.  Each packet contains only one
- * command and any or no data associated with it.  Incomplete packets are
- * ignored, and if a socket error occurs, the connection to the server is
- * closed.
- *
- * @param csocket The socket that server commands are received from.
- */
-void DoClient(ClientSocket *csocket)
-{
+void client_run() {
     int i, len;
     unsigned char *data;
 
     while (1) {
-        i = SockList_ReadPacket(csocket->fd, &csocket->inbuf, MAXSOCKBUF - 1);
+        i = SockList_ReadPacket(csocket.fd, &csocket.inbuf, MAXSOCKBUF - 1);
         /*
          * If a socket error occurred while reading the packet, drop the
          * server connection.  Is there a better way to handle this?
          */
         if (i == -1) {
-            close_server_connection();
+            client_disconnect();
             return;
         }
         /*
@@ -231,8 +212,8 @@ void DoClient(ClientSocket *csocket)
          * Null-terminate the buffer, and set the data pointer so it points
          * to the first character of the data (following the packet length).
          */
-        csocket->inbuf.buf[csocket->inbuf.len] = '\0';
-        data = csocket->inbuf.buf + 2;
+        csocket.inbuf.buf[csocket.inbuf.len] = '\0';
+        data = csocket.inbuf.buf + 2;
         /*
          * Commands that provide data are always followed by a space.  Find
          * the space and convert it to a null character.  If no spaces are
@@ -244,7 +225,7 @@ void DoClient(ClientSocket *csocket)
         if (*data == ' ') {
             *data = '\0';
             data++;
-            len = csocket->inbuf.len - (data - csocket->inbuf.buf);
+            len = csocket.inbuf.len - (data - csocket.inbuf.buf);
         } else {
             len = 0;
         }
@@ -255,16 +236,17 @@ void DoClient(ClientSocket *csocket)
          * searching the command list.
          */
         for(i = 0; i < NCOMMANDS; i++) {
-            if (strcmp((char*)csocket->inbuf.buf+2,commands[i].cmdname)==0) {
-                script_watch((char*)csocket->inbuf.buf+2,data,len,commands[i].cmdformat);
-                commands[i].cmdproc(data,len);
+            const char *cmdin = (char *)csocket.inbuf.buf + 2;
+            if (strcmp(cmdin, commands[i].cmdname) == 0) {
+                script_watch(cmdin, data, len, commands[i].cmdformat);
+                commands[i].cmdproc(data, len);
                 break;
             }
         }
         /*
          * After processing the command, mark the socket input buffer empty.
          */
-        csocket->inbuf.len=0;
+        csocket.inbuf.len=0;
         /*
          * Complain about unsupported commands to facilitate troubleshooting.
          * The client and server should negotiate a connection such that the
@@ -272,18 +254,12 @@ void DoClient(ClientSocket *csocket)
          */
         if (i == NCOMMANDS) {
             printf("Unrecognized command from server (%s)\n",
-                   csocket->inbuf.buf+2);
+                   csocket.inbuf.buf+2);
         }
     }
 }
 
-/**
- * Open a socket to the given hostname and store connection information.
- *
- * @param host Host name or address of the server.
- * @return     File descripter of the connected socket, or, -1 on failure.
- */
-int init_connection(const char *hostname) {
+int client_connect(const char *hostname) {
     GSocketClient *sclient = g_socket_client_new();
     g_socket_client_set_timeout(sclient, 10);
 
@@ -318,16 +294,7 @@ bool client_write(const void *buf, int len) {
     return g_output_stream_write_all(out, buf, len, NULL, NULL, NULL);
 }
 
-/**
- * This function negotiates the characteriistics of a connection to the
- * server.  Negotiation consists of asking the server for commands it wants,
- * and checking protocol version for compatibility.  Serious incompatibilities
- * abort the connection.
- *
- * @param sound Non-zero to ask for sound and music commands.
- */
-void negotiate_connection(int sound)
-{
+void client_negotiate(int sound) {
     int tries;
 
     SendVersion(csocket);
@@ -340,7 +307,7 @@ void negotiate_connection(int sound)
      */
     tries=0;
     while (csocket.cs_version==0) {
-        DoClient(&csocket);
+        client_run();
         if (csocket.fd == -1) {
             return;
         }
@@ -350,7 +317,7 @@ void negotiate_connection(int sound)
         /* If we haven't got a response in 10 seconds, bail out */
         if (tries > 1000) {
             LOG (LOG_ERROR,"common::negotiate_connection", "Connection timed out");
-            close_server_connection();
+            client_disconnect();
             return;
         }
     }
@@ -416,7 +383,7 @@ void negotiate_connection(int sound)
         replyinfo_last_face = 0;
 
         do {
-            DoClient(&csocket);
+            client_run();
             /*
              * It is rare, but the connection can die while getting this info.
              */

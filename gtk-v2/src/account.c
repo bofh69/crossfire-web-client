@@ -971,7 +971,7 @@ on_button_create_account_clicked(GtkButton *button, gpointer user_data) {
  */
 void
 on_button_go_metaserver_clicked(GtkButton *button, gpointer user_data) {
-    close_server_connection();
+    client_disconnect();
 
     if (csocket_fd) {
         gdk_input_remove(csocket_fd);

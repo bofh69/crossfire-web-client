@@ -424,7 +424,7 @@ static void do_clearinfo(const char * ignored)
  */
 static void do_disconnect(const char * ignored)
 {
-    close_server_connection();
+    client_disconnect();
 
     /* the gtk clients need to do some cleanup logic - otherwise,
      * they start hogging CPU.

@@ -1569,7 +1569,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
              * menubar)
              */
 
-            close_server_connection();
+            client_disconnect();
 
             if (csocket_fd) {
                 gdk_input_remove(csocket_fd);

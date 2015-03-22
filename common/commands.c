@@ -1048,7 +1048,7 @@ void SetupCmd(char *buf, int len)
                               "Server does not support map2cmd!");
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
                               "This server is too old to support this client!");
-                close_server_connection();
+                client_disconnect();
             }
         } else if (!strcmp(cmd, "want_pickup")) {
             /* Nothing special to do as this is info pushed from server and
