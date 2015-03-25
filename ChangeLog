@@ -1,3 +1,6 @@
+2015-03-24	Rick Tanner
+	* common/metaserver.c: Added additional US based metaserver
+
 2015-03-21	Kevin Zheng
 	* gtk-v2/src/main.c: Redraw map from main loop only when idle
 

@@ -38,6 +38,7 @@
 static const char *metaservers[] = {
     "http://crossfire.real-time.com/metaserver2/meta_client.php",
     "http://metaserver.eu.cross-fire.org/meta_client.php",
+    "http://metaserver.us.cross-fire.org/meta_update.php",
 };
 
 /** Function to call when a new metaserver is available */
