@@ -179,88 +179,6 @@ static void show_help(const ConsoleCommand *cc) {
 
 /**
  *
- * @param arg
- */
-static void do_clienthelp(const char * arg)
-{
-    const ConsoleCommand * cc;
-
-    if (!arg || !strlen(arg)) {
-        do_clienthelp_list();
-        return;
-    }
-
-    cc = find_command(arg);
-
-    if (cc == NULL) {
-        char buf[MAX_BUF];
-        snprintf(buf, MAX_BUF - 1, "clienthelp: Unknown command %s.", arg);
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
-        return;
-    }
-
-    show_help(cc);
-
-}
-
-/**
- *
- */
-static const char * help_clienthelp(void)
-{
-    return
-        "Syntax:\n"
-        "\n"
-        "    clienthelp\n"
-        "    clienthelp <command>\n"
-        "\n"
-        "Without any arguments, displays a list of client-side "
-        "commands.\n"
-        "\n"
-        "With arguments, displays the help for the client-side "
-        "command <command>.\n"
-        "\n"
-        "See also: serverhelp, help.";
-}
-
-/**
- *
- * @param arg
- */
-static void do_serverhelp(const char * arg)
-{
-
-    if (arg) {
-        char buf[MAX_BUF];
-        snprintf(buf, sizeof(buf), "help %s", arg);
-        /* maybe not a must send, but we probably don't want to drop it */
-        send_command(buf, -1, 1);
-    } else {
-        send_command("help", -1, 1); /* TODO make install in server branch doesn't install def_help. */
-    }
-}
-
-/**
- *
- */
-static const char * help_serverhelp(void)
-{
-    return
-        "Syntax:\n"
-        "\n"
-        "    serverhelp\n"
-        "    serverhelp <command>\n"
-        "\n"
-        "Fetches help from the server.\n"
-        "\n"
-        "Note that currently nothing can be done (without a recompile) if a "
-        "client command masks a server command.\n"
-        "\n"
-        "See also: clienthelp, help.";
-}
-
-/**
- *
  * @param cpnext
  */
 static void command_help(const char *cpnext)
@@ -305,9 +223,7 @@ static const char * help_help(void)
         "\n"
         "With arguments, first checks if there's a client command "
         "named <topic>. If there is, display it's help. If there "
-        "isn't, send the topic to the server.\n"
-        "\n"
-        "See also: clienthelp, serverhelp.";
+        "isn't, send the topic to the server.";
 }
 
 /**
@@ -495,8 +411,6 @@ static void do_num_free_items(const char * ignored)
 {
     LOG(LOG_INFO,"common::extended_command","num_free_items=%d", num_free_items());
 }
-
-static void do_clienthelp(const char * arg); /* Forward. */
 
 /* Help "typecasters". */
 #include "chelp.h"
@@ -748,18 +662,6 @@ static ConsoleCommand CommonCommands[] = {
         "help", COMM_CAT_HELP,
         command_help, help_help,
         NULL
-    },
-
-    {
-        "clienthelp", COMM_CAT_HELP,
-        do_clienthelp, help_clienthelp,
-        "Client-side command information"
-    },
-
-    {
-        "serverhelp", COMM_CAT_HELP,
-        do_serverhelp, help_serverhelp,
-        "Server-side command information"
     },
 
     {
