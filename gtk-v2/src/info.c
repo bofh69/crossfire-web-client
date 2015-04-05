@@ -1325,23 +1325,6 @@ void set_autorepeat(const char *s)
 }
 
 /**
- * This is used by the common help system to determine when to wrap.  Should be
- * able to get width of window, and divide by character width - however, still
- * not perfect if we are using a variable width font.  Actually, GTK can do
- * word wrapping for us, so maybe the real fix is to have it to the word
- * wrapping and just run a sufficiently large value.
- * @return The width of the info window in characters.
- */
-int get_info_width(void)
-{
-    /**
-     * @todo Configure automatic line wrap in message panels and get rid of
-     * the hardcoded 40-character wrap.
-     */
-    return 40;
-}
-
-/**
  * Initialize the message control panel by populating it with descriptions of
  * each message type along with checkboxes that are used to configure the
  * routing and duplicate suppression system.  If previously saved settings are

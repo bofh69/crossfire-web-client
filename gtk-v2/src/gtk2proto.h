@@ -72,7 +72,6 @@ extern void info_buffer_tick(void);
 extern void menu_clear(void);
 extern void set_scroll(const char *s);
 extern void set_autorepeat(const char *s);
-extern int get_info_width(void);
 extern void msgctrl_init(GtkWidget *window_root);
 extern void update_msgctrl_configuration(void);
 extern void save_msgctrl_configuration(void);

@@ -30,79 +30,33 @@
 #define H2(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 #define LINE(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 
-#define assumed_wrap get_info_width()
-
 /* TODO Help topics other than commands? Refer to other documents? */
 
-/**
- *
- */
-static void do_clienthelp_list(void)
-{
-    ConsoleCommand ** commands_array;
-    ConsoleCommand * commands_copy;
-    int i;
+static void do_clienthelp_list() {
+    ConsoleCommand **commands_array = get_cat_sorted_commands();
     CommCat current_cat = COMM_CAT_MISC;
-    char line_buf[MAX_BUF];
-    size_t line_len = 0;
-
-    line_buf[0] = '\0';
-
-    commands_array = get_cat_sorted_commands();
-
-    /* Now we have a nice sorted list. */
+    GString *line = g_string_new(NULL);
 
     H1(" === Client Side Commands === ");
-
-    for (i = 0; i < get_num_commands(); i++) {
-        commands_copy = commands_array[i];
-
-        /* Should be LOG_SPAM but I'm too lazy to tweak it. */
-        /* LOG(LOG_INFO, "p_cmd::do_clienthelp_list", "%s Command %s", get_category_name(commands_copy->cat), commands_copy->name); */
-
+    for (int i = 0; i < get_num_commands(); i++) {
+        ConsoleCommand *commands_copy = commands_array[i];
         if (commands_copy->cat != current_cat) {
+            // If moving on to next category, dump line_buf and print header.
             char buf[MAX_BUF];
-
-            if (line_len > 0) {
-                LINE(line_buf);
-                line_buf[0] = '\0';
-                line_len = 0;
-            }
-
-            snprintf(buf, MAX_BUF - 1, " --- %s Commands --- ", get_category_name(commands_copy->cat));
+            snprintf(buf, sizeof(buf), " --- %s Commands --- ", get_category_name(commands_copy->cat));
+            LINE(line->str);
             H2(buf);
+
             current_cat = commands_copy->cat;
+            g_string_free(line, true);
+            line = g_string_new(NULL);
         }
 
-        {
-            size_t name_len;
-
-            name_len = strlen(commands_copy->name);
-
-            if (strlen(commands_copy->name) > MAX_BUF) {
-                LINE(commands_copy->name);
-            } else if (name_len > assumed_wrap) {
-                LINE(line_buf);
-                LINE(commands_copy->name);
-                line_len = 0;
-            } else if (line_len + name_len > assumed_wrap) {
-                LINE(line_buf);
-                strncpy(line_buf, commands_copy->name, name_len + 1);
-                line_len = name_len;
-            } else {
-                if (line_len > 0) {
-                    strncat(line_buf, " ", 2);
-                    line_len += 1;
-                }
-                strncat(line_buf, commands_copy->name, name_len + 1);
-                line_len += name_len;
-            }
-        }
+        g_string_append_printf(line, "%s ", commands_copy->name);
     }
 
-    if (line_len) {
-        LINE(line_buf);
-    }
+    LINE(line->str);
+    g_string_free(line, true);
 }
 
 /**
