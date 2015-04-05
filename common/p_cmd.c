@@ -16,6 +16,8 @@
  * Contains a lot about the commands typed into the client.
  */
 
+#include <ctype.h>
+
 #include "client.h"
 #include "external.h"
 #include "p_cmd.h"
@@ -59,20 +61,14 @@ static void do_clienthelp_list() {
     g_string_free(line, true);
 }
 
-/**
- *
- * @param cc
- */
 static void show_help(const ConsoleCommand *cc) {
     char buf[MAX_BUF];
-
     if (cc->desc != NULL) {
         snprintf(buf, MAX_BUF - 1, "%s - %s", cc->name, cc->desc);
-        H2(buf);
     } else {
         snprintf(buf, MAX_BUF - 1, "Help for '%s':", cc->name);
-        H2(buf);
     }
+    H2(buf);
 
     if (cc->helpfunc != NULL) {
         const char *long_help = NULL;
@@ -88,12 +84,7 @@ static void show_help(const ConsoleCommand *cc) {
     }
 }
 
-/**
- *
- * @param cpnext
- */
-static void command_help(const char *cpnext)
-{
+static void command_help(const char *cpnext) {
     if (cpnext) {
         const ConsoleCommand * cc;
         char buf[MAX_BUF];
@@ -117,11 +108,7 @@ static void command_help(const char *cpnext)
     }
 }
 
-/**
- *
- */
-static const char * help_help(void)
-{
+static const char * help_help(void) {
     return
         "Syntax:\n"
         "\n"
@@ -141,16 +128,7 @@ static const char * help_help(void)
  * @} */ /* EndOf PCmdHelpCommands
  */
 
-/*
- * Other commands.
- */
-
-/**
- *
- * @param cpnext
- */
-static void set_command_window(const char *cpnext)
-{
+static void set_command_window(const char *cpnext) {
     if (!cpnext) {
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                       "cwindow command requires a number parameter");
@@ -164,13 +142,7 @@ static void set_command_window(const char *cpnext)
     }
 }
 
-/**
- *
- * @param cpnext
- */
-static void command_foodbeep(const char *cpnext)
-{
-    (void)cpnext; /* __UNUSED__ */
+static void command_foodbeep(const char *cpnext) {
     if (want_config[CONFIG_FOODBEEP]) {
         want_config[CONFIG_FOODBEEP]=0;
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
@@ -183,12 +155,7 @@ static void command_foodbeep(const char *cpnext)
     use_config[CONFIG_FOODBEEP] = want_config[CONFIG_FOODBEEP];
 }
 
-/**
- *
- * @param cat
- */
-const char * get_category_name(CommCat cat)
-{
+const char * get_category_name(CommCat cat) {
     const char * cat_name;
 
     /* HACK Need to keep this in sync. with player.h */
@@ -227,28 +194,14 @@ const char * get_category_name(CommCat cat)
 
 /* "Typecasters" (and some forwards) */
 
-/**
- *
- * @param ignored
- */
-static void do_script_list(const char * ignored)
-{
+static void do_script_list(const char *ignored) {
     script_list();
 }
 
-/**
- *
- * @param ignored
- */
-static void do_clearinfo(const char * ignored)
-{
+static void do_clearinfo(const char *ignored) {
     menu_clear();
 }
 
-/**
- *
- * @param ignored
- */
 static void do_disconnect(const char * ignored) {
     client_disconnect();
 }
@@ -257,12 +210,7 @@ static void do_disconnect(const char * ignored) {
 #ifndef DMALLOC_VERIFY_NOERROR
 #define DMALLOC_VERIFY_NOERROR  1
 #endif
-/**
- *
- * @param ignored
- */
-static void do_dmalloc(const char * ignored)
-{
+static void do_dmalloc(const char *ignored) {
     if (dmalloc_verify(NULL)==DMALLOC_VERIFY_NOERROR)
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                       "Heap checks out OK");
@@ -272,97 +220,51 @@ static void do_dmalloc(const char * ignored)
 }
 #endif
 
-/**
- *
- * @param ignored
- */
-static void do_inv(const char * ignored)
-{
-    print_inventory (cpl.ob);
+static void do_inv(const char *ignored) {
+    print_inventory(cpl.ob);
 }
 
-static void do_magicmap(const char * ignored)
-{
+static void do_magicmap(const char *ignored) {
     cpl.showmagic=1;
     draw_magic_map();
 }
 
-/**
- *
- * @param ignored
- */
-static void do_savedefaults(const char * ignored)
-{
+static void do_savedefaults(const char *ignored) {
     save_defaults();
 }
 
-/**
- *
- * @param ignored
- */
-static void do_savewinpos(const char * ignored)
-{
+static void do_savewinpos(const char *ignored) {
     save_winpos();
 }
 
-/**
- *
- * @param used
- */
-static void do_take(const char * used)
-{
+static void do_take(const char *used) {
     command_take("take", used); /* I dunno why they want it. */
 }
 
-/**
- *
- * @param ignored
- */
-static void do_num_free_items(const char * ignored)
-{
+static void do_num_free_items(const char *ignored) {
     LOG(LOG_INFO,"common::extended_command","num_free_items=%d", num_free_items());
 }
 
 /* Help "typecasters". */
 #include "chelp.h"
 
-/**
- *
- */
-static const char * help_bind(void)
-{
+static const char * help_bind(void) {
     return HELP_BIND_LONG;
 }
 
-/**
- *
- */
-static const char * help_unbind(void)
-{
+static const char * help_unbind(void) {
     return HELP_UNBIND_LONG;
 }
 
-/**
- *
- */
-static const char * help_magicmap(void)
-{
+static const char * help_magicmap(void) {
     return HELP_MAGICMAP_LONG;
 }
 
-/**
- *
- */
-static const char * help_inv(void)
-{
+static const char * help_inv(void) {
     return HELP_INV_LONG;
 }
 
-/**
- *
- */
-static const char * help_cwindow(void)
-{
+static const char * help_cwindow(void) {
     return
         "Syntax:\n"
         "\n"
@@ -375,9 +277,6 @@ static const char * help_cwindow(void)
         "(What does this mean, 'put a lid on it'?) TODO";
 }
 
-/**
- *
- */
 static const char * help_script(void) {
     return
         "Syntax: script <path>\n\n"
@@ -385,11 +284,7 @@ static const char * help_script(void) {
         "client-side scripting, please see the Crossfire Wiki.";
 }
 
-/**
- *
- */
-static const char * help_scripttell(void)
-{
+static const char * help_scripttell(void) {
     return
         "Syntax:\n"
         "\n"
@@ -400,11 +295,7 @@ static const char * help_scripttell(void)
 
 /* Toolkit-dependent. */
 
-/**
- *
- */
-static const char * help_savewinpos(void)
-{
+static const char * help_savewinpos(void) {
     return
         "Syntax:\n"
         "\n"
@@ -413,8 +304,7 @@ static const char * help_savewinpos(void)
         "save window positions - split windows mode only.";
 }
 
-static const char * help_scriptkill(void)
-{
+static const char * help_scriptkill(void) {
     return
         "Syntax:\n"
         "\n"
@@ -424,11 +314,7 @@ static const char * help_scriptkill(void)
         "(Not guaranteed to work?)";
 }
 
-/**
- *
- */
-static const char * help_showweight(void)
-{
+static const char * help_showweight(void) {
     return
         "Syntax:\n"
         "\n"
@@ -442,39 +328,6 @@ static const char * help_showweight(void)
         "no argument given) or your"
         "look-window.";
 }
-
-/*
-*	draw_ext_info(NDI_NAVY, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "Information Commands");*
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            " inv         - *recursively* print your");
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "               inventory - includes containers.");
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            " showinfo, take");
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            " help        - show this message");
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            " help <command> - get more information on a");
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "                command (Server command only?)");
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            " showicon    - draw status icons in");
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "               inventory window");
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            " showweight  - show weight in inventory");
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "               look windows");
-	draw_ext_info(NDI_NAVY, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "Scripting Commands");
-	draw_ext_info(NDI_NAVY, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            "Client Side Debugging Commands");
-#ifdef HAVE_DMALLOC_H
-	draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-            " dmalloc     - Check heap?");
-#endif
-*/
 
 /* TODO Wrap these? Um. */
 static ConsoleCommand CommonCommands[] = {
@@ -654,26 +507,15 @@ extern const int ToolkitCommandsSize;
 
 int num_commands;
 
-/**
- *
- */
-int get_num_commands(void)
-{
+int get_num_commands(void) {
     return num_commands;
 }
 
 static ConsoleCommand ** name_sorted_commands;
 
-/**
- *
- * @param a_
- * @param b_
- */
-static int sort_by_name(const void * a_, const void * b_)
-{
+static int sort_by_name(const void * a_, const void * b_) {
     ConsoleCommand * a = *((ConsoleCommand **)a_);
     ConsoleCommand * b = *((ConsoleCommand **)b_);
-
     return strcmp(a->name, b->name);
 }
 
@@ -681,13 +523,7 @@ static ConsoleCommand ** cat_sorted_commands;
 
 /* Sort by category, then by name. */
 
-/**
- *
- * @param a_
- * @param b_
- */
-static int sort_by_category(const void *a_, const void *b_)
-{
+static int sort_by_category(const void *a_, const void *b_) {
     /* Typecasts, so it goes. */
     ConsoleCommand * a = *((ConsoleCommand **)a_);
     ConsoleCommand * b = *((ConsoleCommand **)b_);
@@ -699,13 +535,7 @@ static int sort_by_category(const void *a_, const void *b_)
     return a->cat - b->cat;
 }
 
-/**
- *
- */
-void init_commands(void)
-{
-    int i;
-
+void init_commands(void) {
 #ifdef TOOLKIT_COMMANDS
     init_toolkit_commands();
 
@@ -723,12 +553,12 @@ void init_commands(void)
     /* XXX Leak! */
     name_sorted_commands = g_malloc(sizeof(ConsoleCommand *) * num_commands);
 
-    for (i = 0; i < CommonCommandsSize; i++) {
+    for (int i = 0; i < CommonCommandsSize; i++) {
         name_sorted_commands[i] = &CommonCommands[i];
     }
 
 #ifdef TOOLKIT_COMMANDS
-    for(i = 0; i < ToolkitCommandsSize; i++) {
+    for (int i = 0; i < ToolkitCommandsSize; i++) {
         name_sorted_commands[CommonCommandsSize + i] = &ToolkitCommands[i];
     }
 #endif
@@ -746,16 +576,7 @@ void init_commands(void)
     /* TODO Add to the list of tab-completion items. */
 }
 
-#ifndef tolower
-#define tolower(C)      (((C) >= 'A' && (C) <= 'Z')? (C) - 'A' + 'a': (C))
-#endif
-
-/**
- *
- * @param cmd
- */
-const ConsoleCommand * find_command(const char * cmd)
-{
+const ConsoleCommand * find_command(const char *cmd) {
     ConsoleCommand ** asp_p = NULL, dummy;
     ConsoleCommand * dummy_p;
     ConsoleCommand * asp;
@@ -795,8 +616,7 @@ const ConsoleCommand * find_command(const char * cmd)
  * Returns a pointer to the head of an array of ConsoleCommands sorted by
  * category, then by name.  It's num_commands long.
  */
-ConsoleCommand ** get_cat_sorted_commands(void)
-{
+ConsoleCommand ** get_cat_sorted_commands(void) {
     return cat_sorted_commands;
 }
 
@@ -809,8 +629,7 @@ ConsoleCommand ** get_cat_sorted_commands(void)
  * @param cp
  * @param cpnext
  */
-int handle_local_command(const char* cp, const char * cpnext)
-{
+int handle_local_command(const char* cp, const char *cpnext) {
     const ConsoleCommand * cc = NULL;
 
     cc = find_command(cp);
@@ -844,8 +663,7 @@ int handle_local_command(const char* cp, const char * cpnext)
  *
  * @param ocommand
  */
-void extended_command(const char *ocommand)
-{
+void extended_command(const char *ocommand) {
     const char *cp = ocommand;
     char *cpnext, command[MAX_BUF];
 
@@ -935,7 +753,7 @@ static const char *const commands[] = {
     "version", "wave", "weather", "west", "whereabouts", "whereami", "whistle",
     "who", "wimpy", "wink", "yawn",
 };
-#define NUM_COMMANDS ((int)(sizeof(commands) / sizeof(char*)))
+const int NUM_COMMANDS = sizeof(commands) / sizeof(char *);
 
 /**
  * Player has entered 'command' and hit tab to complete it.  See if we can
@@ -944,9 +762,8 @@ static const char *const commands[] = {
  *
  * @param command
  */
-const char * complete_command(const char *command)
-{
-    int i, len, display;
+const char * complete_command(const char *command) {
+    int i, len, display = 0;
     const char *match;
     static char result[64];
     char list[500];
@@ -957,7 +774,6 @@ const char * complete_command(const char *command)
         return NULL;
     }
 
-    display = 0;
     strcpy(list, "Matching commands:");
 
     /* TODO Partial match, e.g.:
@@ -1019,6 +835,5 @@ const char * complete_command(const char *command)
      * the excess space should be stripped off automatically.
      */
     snprintf(result, sizeof(result), "%s ", match);
-
     return result;
 }
