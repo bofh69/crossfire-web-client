@@ -26,33 +26,11 @@
  * @{
  */
 
-/* TODO This should really be under /help commands or something... */
-
-/* This dynamically generates a list from the ConsoleCommand list. */
-#undef CLIENTHELP_LONG_LIST
-
-/*
-long-list:
-category
-name - description
-name - description
-...
-
-not long list:
-category
-name name name ...
-*/
-
-#undef HELP_USE_COLOR
-#ifdef HELP_USE_COLOR
-#error Oops, need to put them back.
-#else
 #define H1(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 #define H2(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 #define LINE(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 
 #define assumed_wrap get_info_width()
-#endif
 
 /* TODO Help topics other than commands? Refer to other documents? */
 
@@ -65,12 +43,10 @@ static void do_clienthelp_list(void)
     ConsoleCommand * commands_copy;
     int i;
     CommCat current_cat = COMM_CAT_MISC;
-#ifndef CLIENTHELP_LONG_LIST
     char line_buf[MAX_BUF];
     size_t line_len = 0;
 
     line_buf[0] = '\0';
-#endif
 
     commands_array = get_cat_sorted_commands();
 
@@ -87,33 +63,17 @@ static void do_clienthelp_list(void)
         if (commands_copy->cat != current_cat) {
             char buf[MAX_BUF];
 
-#ifndef CLIENTHELP_LONG_LIST
             if (line_len > 0) {
                 LINE(line_buf);
                 line_buf[0] = '\0';
                 line_len = 0;
             }
-#endif
 
-#ifdef HELP_USE_COLOR
-            snprintf(buf, MAX_BUF - 1, "%s Commands:", get_category_name(commands_copy->cat));
-#else
             snprintf(buf, MAX_BUF - 1, " --- %s Commands --- ", get_category_name(commands_copy->cat));
-#endif
-
             H2(buf);
             current_cat = commands_copy->cat;
         }
 
-#ifdef CLIENTHELP_LONG_LIST
-        if (commands_copy->desc != NULL) {
-            char buf[MAX_BUF];
-            snprintf(buf, MAX_BUF - 1, "%s - %s", commands_copy->name, commands_copy->desc);
-            LINE(buf);
-        } else {
-            LINE(commands_copy->name);
-        }
-#else
         {
             size_t name_len;
 
@@ -138,14 +98,11 @@ static void do_clienthelp_list(void)
                 line_len += name_len;
             }
         }
-#endif
     }
 
-#ifndef CLIENTHELP_LONG_LIST
     if (line_len) {
         LINE(line_buf);
     }
-#endif
 }
 
 /**
