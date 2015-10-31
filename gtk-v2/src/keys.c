@@ -487,13 +487,9 @@ static void parse_keybind_line(char *buf, int line, unsigned int scope_flag) {
  * Load pre-compiled built-in default keybindings.
  */
 static void init_default_keybindings() {
-    char *nextline;
-    int i;
-
     LOG(LOG_DEBUG, "init_default_keybindings", "Loading default keybindings");
-
-    for (i = 0; i < sizeof(def_keys) / sizeof(char *); i++) {
-        nextline = g_strdup(def_keys[i]);
+    for (size_t i = 0; i < sizeof(def_keys) / sizeof(char *); i++) {
+        char *nextline = g_strdup(def_keys[i]);
         parse_keybind_line(nextline, i, KEYF_R_GLOBAL);
         free(nextline);
     }

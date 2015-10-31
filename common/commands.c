@@ -1934,14 +1934,9 @@ void AddspellCmd(unsigned char *data, int len)
     cpl.spells_updated = 1;
 }
 
-/**
- *
- * @param data
- * @param len
- */
-void UpdspellCmd(unsigned char *data, int len)
-{
-    int flags, tag, pos = 0;
+void UpdspellCmd(unsigned char *data, int len) {
+    int flags, pos = 0;
+    guint32 tag;
     Spell *tmp;
 
     if (!cpl.spelldata) {
@@ -1977,14 +1972,8 @@ void UpdspellCmd(unsigned char *data, int len)
     cpl.spells_updated = 1;
 }
 
-/**
- *
- * @param data
- * @param len
- */
-void DeleteSpell(unsigned char *data, int len)
-{
-    int tag;
+void DeleteSpell(unsigned char *data, int len) {
+    guint32 tag;
     Spell *tmp, *target;
 
     if (!cpl.spelldata) {

@@ -1111,7 +1111,7 @@ void draw_lists() {
  */
 static void on_notebook_switch_page(GtkNotebook *notebook,
         GtkNotebookPage *page, guint page_num, gpointer user_data) {
-    int oldpage;
+    guint oldpage;
 
     oldpage = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
     if (oldpage != page_num && inv_notebooks[oldpage].type == INV_TREE) {

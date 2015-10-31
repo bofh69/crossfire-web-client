@@ -46,49 +46,37 @@ static void user_read_data(png_structp png_ptr, png_bytep data, png_size_t lengt
     data_start += length;
 }
 
-/**
- *
- * @param *data
- * @param len
- * @param *width
- * @param *height
- */
-guint8 *png_to_data(guint8 *data, int len, guint32 *width, guint32 *height)
-{
-    guint8 *pixels=NULL;
-    static png_bytepp   rows=NULL;
-    static int rows_byte=0;
+guint8 *png_to_data(guint8 *data, int len, guint32 *width, guint32 *height) {
+    guint8 *pixels = NULL;
+    static png_bytepp rows = NULL;
+    static guint32 rows_byte = 0;
 
     png_structp png_ptr;
-    png_infop   info_ptr;
-    int bit_depth, color_type, interlace_type, y;
+    png_infop info_ptr;
+    int bit_depth, color_type, interlace_type;
 
-    data_len=len;
+    data_len = len;
     data_cp = data;
-    data_start=0;
+    data_start = 0;
 
-    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
-                                     NULL, NULL, NULL);
-
+    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (!png_ptr) {
         return NULL;
     }
-    info_ptr = png_create_info_struct (png_ptr);
 
+    info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr) {
-        png_destroy_read_struct (&png_ptr, NULL, NULL);
+        png_destroy_read_struct(&png_ptr, NULL, NULL);
         return NULL;
     }
 
-
-    if (setjmp (png_jmpbuf(png_ptr))) {
-        png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
         return NULL;
     }
-
 
     png_set_read_fn(png_ptr, NULL, user_read_data);
-    png_read_info (png_ptr, info_ptr);
+    png_read_info(png_ptr, info_ptr);
 
     /*
      * This seems to bug on at least one system (other than mine)
@@ -197,8 +185,8 @@ guint8 *png_to_data(guint8 *data, int len, guint32 *width, guint32 *height)
         return NULL;
     }
 
-    for (y=0; y<*height; y++) {
-        rows[y] = pixels + y **width * 4;
+    for (guint32 y = 0; y < *height; y++) {
+        rows[y] = pixels + y * *width * 4;
     }
 
     png_read_image(png_ptr, rows);
@@ -554,13 +542,13 @@ int png_to_gdkpixmap(GdkWindow *window, guint8 *data, int len,
                      GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap)
 {
     static guint8 *pixels=NULL;
-    static int pixels_byte=0, rows_byte=0;
+    static png_uint_32 pixels_byte = 0, rows_byte = 0;
     static png_bytepp   rows=NULL;
     png_uint_32 width, height;
     png_structp png_ptr;
     png_infop   info_ptr;
     int bit_depth, color_type, interlace_type, filter_type,
-        bpp, x,y,has_alpha,i,alpha;
+        bpp, has_alpha,i,alpha;
     GdkColor  scolor;
     GdkGC       *gc, *gc_alpha;
 
@@ -688,7 +676,7 @@ int png_to_gdkpixmap(GdkWindow *window, guint8 *data, int len,
         return PNGX_OUTOFMEM;
     }
 
-    for (y=0; y<height; y++) {
+    for (png_uint_32 y = 0; y < height; y++) {
         rows[y] = pixels + y * width * bpp;
     }
 
@@ -721,8 +709,8 @@ int png_to_gdkpixmap(GdkWindow *window, guint8 *data, int len,
         gc_alpha = NULL;    /* Prevent compile warnings */
     }
     i=0;
-    for (y=0; y<height; y++) {
-        for (x=0; x<width; x++) {
+    for (png_uint_32 y = 0; y < height; y++) {
+        for (png_uint_32 x = 0; x < width; x++) {
             rgb[i++]=rows[y][x*bpp];    /* red */
             rgb[i++]=rows[y][x*bpp+1];  /* green */
             rgb[i++]=rows[y][x*bpp+2];  /* blue */

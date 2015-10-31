@@ -261,7 +261,7 @@ void script_init(const char *cparams) {
 
     /* Child--set stdin/stdout to the pipes, then exec */
     if (pid == 0) {
-        int i;
+        size_t i;
         int r;
         char *argv[256];
 

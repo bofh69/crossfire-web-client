@@ -843,7 +843,7 @@ static void setup_config_window() {
         g_free(buf);
     }
 
-    if (sizeof(display_modes) < want_config[CONFIG_DISPLAYMODE]) {
+    if (sizeof(display_modes) < (size_t)want_config[CONFIG_DISPLAYMODE]) {
         LOG(LOG_ERROR, "config.c::setup_config_window",
             "Player display mode not in display_modes range\n");
     } else {

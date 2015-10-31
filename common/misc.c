@@ -32,7 +32,7 @@ static ChildProcess* FirstChild = NULL;
 static ChildProcess* LastChild = NULL;
 
 /** Log level, or the threshold below which messages are suppressed. */
-int MINLOG = LOG_INFO;
+LogLevel MINLOG = LOG_INFO;
 
 /**
  * Convert a buffer of a specified maximum size by replacing token characters
