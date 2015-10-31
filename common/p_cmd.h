@@ -65,18 +65,6 @@ typedef struct {        /* global list's structure */
 
 extern const ConsoleCommand * find_command(const char * cmd);
 
-/* Define this to let the toolkit give an array of toolkit-specific commands. */
-#undef TOOLKIT_COMMANDS
-#ifdef TOOLKIT_COMMANDS
-extern ConsoleCommand ToolkitCommands[];
-extern const int ToolkitCommandsSize;
-
-/* Not defined in common, called at the very top of init_commands()
-   so a toolkit can fill ToolkitCommands and ToolkitCommandsSize in.
-*/
-extern void init_toolkit_commands(void);
-#endif
-
 /**
  * Fills some internal arrays. Run this on startup, but not before filling in
  * ToolkitCommands and ToolkitCommandsSize.

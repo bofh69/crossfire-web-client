@@ -488,19 +488,8 @@ static ConsoleCommand CommonCommands[] = {
 
 };
 
-const int CommonCommandsSize = sizeof(CommonCommands) / sizeof(ConsoleCommand);
-
-#ifdef TOOLKIT_COMMANDS
-extern ConsoleCommand ToolkitCommands[];
-
-extern const int ToolkitCommandsSize;
-#endif
-
-/* ------------------------------------------------------------------ */
-
-int num_commands;
-
-int get_num_commands(void) {
+const size_t num_commands = sizeof(CommonCommands) / sizeof(ConsoleCommand);
+int get_num_commands() {
     return num_commands;
 }
 
@@ -528,33 +517,13 @@ static int sort_by_category(const void *a_, const void *b_) {
     return a->cat - b->cat;
 }
 
-void init_commands(void) {
-#ifdef TOOLKIT_COMMANDS
-    init_toolkit_commands();
-
-    /* TODO I dunno ... go through the list and print commands without helps? */
-    num_commands = CommonCommandsSize + ToolkitCommandsSize;
-#else
-    num_commands = CommonCommandsSize;
-#endif
-
-    /* Make a list of (pointers to statically allocated!) all the commands.
-       We have a list; the toolkit has a
-       ToolkitCommands and ToolkitCommandsSize, initialized before calling this.
-    */
-
+void init_commands() {
     /* XXX Leak! */
     name_sorted_commands = g_malloc(sizeof(ConsoleCommand *) * num_commands);
 
-    for (int i = 0; i < CommonCommandsSize; i++) {
+    for (size_t i = 0; i < num_commands; i++) {
         name_sorted_commands[i] = &CommonCommands[i];
     }
-
-#ifdef TOOLKIT_COMMANDS
-    for (int i = 0; i < ToolkitCommandsSize; i++) {
-        name_sorted_commands[CommonCommandsSize + i] = &ToolkitCommands[i];
-    }
-#endif
 
     /* Sort them. */
     qsort(name_sorted_commands, num_commands, sizeof(ConsoleCommand *), sort_by_name);
@@ -746,7 +715,7 @@ static const char *const commands[] = {
     "version", "wave", "weather", "west", "whereabouts", "whereami", "whistle",
     "who", "wimpy", "wink", "yawn",
 };
-const int NUM_COMMANDS = sizeof(commands) / sizeof(char *);
+const size_t num_server_commands = sizeof(commands) / sizeof(char *);
 
 /**
  * Player has entered 'command' and hit tab to complete it.  See if we can
@@ -756,7 +725,7 @@ const int NUM_COMMANDS = sizeof(commands) / sizeof(char *);
  * @param command
  */
 const char * complete_command(const char *command) {
-    int i, len, display = 0;
+    int len, display = 0;
     const char *match;
     static char result[64];
     char list[500];
@@ -782,7 +751,7 @@ const char * complete_command(const char *command) {
     match = NULL;
 
     /* check server side commands */
-    for (i=0; i<NUM_COMMANDS; i++) {
+    for (size_t i = 0; i < num_server_commands; i++) {
         if (!strncmp(command, commands[i], len)) {
             if (display) {
                 snprintf(list + strlen(list), 499 - strlen(list), " %s", commands[i]);
@@ -797,7 +766,7 @@ const char * complete_command(const char *command) {
     }
 
     /* check client side commands */
-    for (i=0; i<CommonCommandsSize; i++) {
+    for (size_t i = 0; i < num_commands; i++) {
         if (!strncmp(command, CommonCommands[i].name, len)) {
             if (display) {
                 snprintf(list + strlen(list), 499 - strlen(list), " %s", CommonCommands[i].name);
