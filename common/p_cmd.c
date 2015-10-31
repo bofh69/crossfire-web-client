@@ -329,6 +329,10 @@ static const char * help_showweight(void) {
         "look-window.";
 }
 
+static void cmd_raw(const char *cmd) {
+    cs_print_string(csocket.fd, "%s", cmd);
+}
+
 /* TODO Wrap these? Um. */
 static ConsoleCommand CommonCommands[] = {
     /* From player.h:
@@ -336,6 +340,8 @@ static ConsoleCommand CommonCommands[] = {
         func, helpfunc,
         long_desc
     */
+
+    {"cmd", COMM_CAT_DEBUG, cmd_raw, NULL, "Send a raw command to the server"},
 
     {
         "autorepeat", COMM_CAT_MISC,
