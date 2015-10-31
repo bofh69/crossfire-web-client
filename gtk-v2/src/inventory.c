@@ -566,20 +566,6 @@ void inventory_init(GtkWidget *window_root) {
 }
 
 /**
- *
- * @param s
- */
-void set_show_icon(const char *s) {
-}
-
-/**
- *
- * @param s
- */
-void set_show_weight(const char *s) {
-}
-
-/**
  * Open and close_container are now no-ops - since these are now drawn inline
  * as treestores, we don't need to update what we are drawing were.  and since
  * the activation of a container will cause the list to be redrawn, don't need

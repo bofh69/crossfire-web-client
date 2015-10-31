@@ -70,8 +70,6 @@ extern void info_buffer_init(void);
 extern void info_buffer_flush(const int id);
 extern void info_buffer_tick(void);
 extern void menu_clear(void);
-extern void set_scroll(const char *s);
-extern void set_autorepeat(const char *s);
 extern void msgctrl_init(GtkWidget *window_root);
 extern void update_msgctrl_configuration(void);
 extern void save_msgctrl_configuration(void);
@@ -87,8 +85,6 @@ extern void on_msgctrl_activate(GtkMenuItem *menuitem, gpointer user_data);
 /* inventory.c */
 extern void inventory_get_styles(void);
 extern void inventory_init(GtkWidget *window_root);
-extern void set_show_icon(const char *s);
-extern void set_show_weight(const char *s);
 extern void close_container(item *op);
 extern void open_container(item *op);
 extern void command_show(const char *params);

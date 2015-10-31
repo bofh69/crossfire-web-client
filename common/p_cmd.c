@@ -301,32 +301,12 @@ static const char * help_scriptkill(void) {
         "(Not guaranteed to work?)";
 }
 
-static const char * help_showweight(void) {
-    return
-        "Syntax:\n"
-        "\n"
-        "    showweight\n"
-        "    showweight inventory\n"
-        "    showweight look\n"
-        "\n"
-        "(Or any prefix of the arguments.)"
-        "Toggles if you see the weight of"
-        "items in your inventory (also if"
-        "no argument given) or your"
-        "look-window.";
-}
-
 static void cmd_raw(const char *cmd) {
     cs_print_string(csocket.fd, "%s", cmd);
 }
 
 static ConsoleCommand CommonCommands[] = {
     {"cmd", COMM_CAT_DEBUG, cmd_raw, NULL, "Send a raw command to the server"},
-
-    {
-     "autorepeat", COMM_CAT_MISC, set_autorepeat, NULL,
-     "toggle autorepeat" /* XXX Eh? */
-    },
 
     {"bind", COMM_CAT_SETUP, bind_key, help_bind, HELP_BIND_SHORT},
 
@@ -338,28 +318,24 @@ static ConsoleCommand CommonCommands[] = {
 
     {"lua_kill", COMM_CAT_SCRIPT, script_lua_kill, NULL, NULL},
 #endif
-    {"scripts", COMM_CAT_SCRIPT, do_script_list, NULL,
-     "List the running scripts(?)"},
+    {"scripts", COMM_CAT_SCRIPT, do_script_list, NULL, "List running scripts"},
 
     {"scriptkill", COMM_CAT_SCRIPT, script_kill, help_scriptkill, NULL},
 
     {"scripttell", COMM_CAT_SCRIPT, script_tell, help_scripttell, NULL},
 
-    {"clearinfo", COMM_CAT_MISC, do_clearinfo, NULL, "clear the info window"},
+    {"clearinfo", COMM_CAT_MISC, do_clearinfo, NULL, "Clear message window"},
 
     {"cwindow", COMM_CAT_SETUP, set_command_window, help_cwindow, NULL},
 
-    {"disconnect", COMM_CAT_MISC, do_disconnect, NULL,
-     "close connection to server"},
+    {"disconnect", COMM_CAT_MISC, do_disconnect, NULL, NULL},
 
 #ifdef HAVE_DMALLOC_H
     {"dmalloc", COMM_CAT_DEBUG, do_dmalloc, NULL, NULL},
 #endif
 
     {"foodbeep", COMM_CAT_SETUP, command_foodbeep, NULL,
-     "toggle audible low on food warning"
-
-    },
+     "toggle audible low on food warning"},
 
     {"help", COMM_CAT_HELP, command_help, help_help, NULL},
 
@@ -368,25 +344,13 @@ static ConsoleCommand CommonCommands[] = {
     {"magicmap", COMM_CAT_MISC, do_magicmap, help_magicmap,
      HELP_MAGICMAP_SHORT},
 
-    {
-     "savedefaults", COMM_CAT_SETUP, do_savedefaults, NULL,
-     HELP_SAVEDEFAULTS_SHORT /* How do we make sure showicons stays on? */
-    },
+    {"savedefaults", COMM_CAT_SETUP, do_savedefaults, NULL,
+     HELP_SAVEDEFAULTS_SHORT},
 
     {
      "savewinpos", COMM_CAT_SETUP, do_savewinpos, help_savewinpos,
      "Saves the position and sizes of windows." /* Panes? */
     },
-
-    {"scroll", COMM_CAT_SETUP, set_scroll, NULL,
-     "toggle scroll/wrap mode in info window"},
-
-    {"showicon", COMM_CAT_SETUP, set_show_icon, NULL,
-     "Toggles if you see the worn, locked, cursed etc state in the inventory "
-     "pane."},
-
-    {"showweight", COMM_CAT_SETUP, set_show_weight, help_showweight,
-     "Toggles if you see item weights in inventory look windows."},
 
     {"take", COMM_CAT_MISC, do_take, NULL, NULL},
 

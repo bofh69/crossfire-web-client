@@ -50,8 +50,6 @@ extern void draw_magic_map(void);
 extern void draw_prompt(const char *str);
 extern void draw_ext_info(int orig_color, int type, int subtype, const char *message);
 extern void x_set_echo(void);
-extern void set_scroll(const char *s);
-extern void set_autorepeat(const char *s);
 extern void menu_clear(void);
 extern int get_info_width(void);
 
@@ -76,8 +74,6 @@ extern void addsmooth(guint16 face, guint16 smooth_face);
 /* Item related commands */
 extern void open_container(item *op);
 extern void close_container(item *op);
-extern void set_show_icon(const char *s);
-extern void set_show_weight(const char *s);
 
 /* Keybinding relatated commands - this probably should not be a callback */
 extern void bind_key(const char *params);

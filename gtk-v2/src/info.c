@@ -1299,32 +1299,6 @@ void menu_clear(void)
 }
 
 /**
- * A stub function that does nothing.  These are callbacks used by the common
- * code, but they are not implemented in GTK, either because it makes no sense
- * (set_scroll for example), or because it may not be technically possible to
- * do so if we limit ourselves to proper GTK2 code (Eg, don't mess with the
- * internals of X or platform specific issues)
- *
- * @param s
- */
-void set_scroll(const char *s)
-{
-}
-
-/**
- * A stub function that does nothing.  These are callbacks used by the common
- * code, but they are not implemented in GTK, either because it makes no sense
- * (set_scroll for example), or because it may not be technically possible to
- * do so if we limit ourselves to proper GTK2 code (Eg, don't mess with the
- * internals of X or platform specific issues)
- *
- * @param s
- */
-void set_autorepeat(const char *s)
-{
-}
-
-/**
  * Initialize the message control panel by populating it with descriptions of
  * each message type along with checkboxes that are used to configure the
  * routing and duplicate suppression system.  If previously saved settings are
