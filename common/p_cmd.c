@@ -142,13 +142,13 @@ static void set_command_window(const char *cpnext) {
     }
 }
 
-static void command_foodbeep(const char *cpnext) {
+static void command_foodbeep() {
     if (want_config[CONFIG_FOODBEEP]) {
-        want_config[CONFIG_FOODBEEP]=0;
+        want_config[CONFIG_FOODBEEP] = 0;
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                       "Warning bell when low on food disabled");
     } else {
-        want_config[CONFIG_FOODBEEP]=1;
+        want_config[CONFIG_FOODBEEP] = 1;
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                       "Warning bell when low on food enabled");
     }
@@ -192,19 +192,11 @@ const char * get_category_name(CommCat cat) {
  * Implementation basically stolen verbatim from the server.
  */
 
-/* "Typecasters" (and some forwards) */
+static void do_script_list() { script_list(); }
 
-static void do_script_list(const char *ignored) {
-    script_list();
-}
+static void do_clearinfo() { menu_clear(); }
 
-static void do_clearinfo(const char *ignored) {
-    menu_clear();
-}
-
-static void do_disconnect(const char * ignored) {
-    client_disconnect();
-}
+static void do_disconnect() { client_disconnect(); }
 
 #ifdef HAVE_DMALLOC_H
 #ifndef DMALLOC_VERIFY_NOERROR
@@ -220,29 +212,24 @@ static void do_dmalloc(const char *ignored) {
 }
 #endif
 
-static void do_inv(const char *ignored) {
-    print_inventory(cpl.ob);
-}
+static void do_inv() { print_inventory(cpl.ob); }
 
-static void do_magicmap(const char *ignored) {
-    cpl.showmagic=1;
+static void do_magicmap() {
+    cpl.showmagic = 1;
     draw_magic_map();
 }
 
-static void do_savedefaults(const char *ignored) {
-    save_defaults();
-}
+static void do_savedefaults() { save_defaults(); }
 
-static void do_savewinpos(const char *ignored) {
-    save_winpos();
-}
+static void do_savewinpos() { save_winpos(); }
 
 static void do_take(const char *used) {
     command_take("take", used); /* I dunno why they want it. */
 }
 
-static void do_num_free_items(const char *ignored) {
-    LOG(LOG_INFO,"common::extended_command","num_free_items=%d", num_free_items());
+static void do_num_free_items() {
+    LOG(LOG_INFO, "common::extended_command", "num_free_items=%d",
+        num_free_items());
 }
 
 /* Help "typecasters". */
