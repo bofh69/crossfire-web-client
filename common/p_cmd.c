@@ -320,172 +320,82 @@ static void cmd_raw(const char *cmd) {
     cs_print_string(csocket.fd, "%s", cmd);
 }
 
-/* TODO Wrap these? Um. */
 static ConsoleCommand CommonCommands[] = {
-    /* From player.h:
-        name, cat,
-        func, helpfunc,
-        long_desc
-    */
-
     {"cmd", COMM_CAT_DEBUG, cmd_raw, NULL, "Send a raw command to the server"},
 
     {
-        "autorepeat", COMM_CAT_MISC,
-        set_autorepeat, NULL,
-        "toggle autorepeat" /* XXX Eh? */
+     "autorepeat", COMM_CAT_MISC, set_autorepeat, NULL,
+     "toggle autorepeat" /* XXX Eh? */
     },
 
-    {
-        "bind", COMM_CAT_SETUP,
-        bind_key, help_bind,
-        HELP_BIND_SHORT
-    },
+    {"bind", COMM_CAT_SETUP, bind_key, help_bind, HELP_BIND_SHORT},
 
-    {
-        "script", COMM_CAT_SCRIPT,
-        script_init, help_script,
-        NULL
-    },
+    {"script", COMM_CAT_SCRIPT, script_init, help_script, NULL},
 #ifdef HAVE_LUA
-    {
-        "lua_load", COMM_CAT_SCRIPT,
-        script_lua_load, NULL, NULL
-    },
+    {"lua_load", COMM_CAT_SCRIPT, script_lua_load, NULL, NULL},
 
-    {
-        "lua_list", COMM_CAT_SCRIPT,
-        script_lua_list, NULL, NULL
-    },
+    {"lua_list", COMM_CAT_SCRIPT, script_lua_list, NULL, NULL},
 
-    {
-        "lua_kill", COMM_CAT_SCRIPT,
-        script_lua_kill, NULL, NULL
-    },
+    {"lua_kill", COMM_CAT_SCRIPT, script_lua_kill, NULL, NULL},
 #endif
-    {
-        "scripts", COMM_CAT_SCRIPT,
-        do_script_list, NULL,
-        "List the running scripts(?)"
-    },
+    {"scripts", COMM_CAT_SCRIPT, do_script_list, NULL,
+     "List the running scripts(?)"},
 
-    {
-        "scriptkill", COMM_CAT_SCRIPT,
-        script_kill, help_scriptkill,
-        NULL
-    },
+    {"scriptkill", COMM_CAT_SCRIPT, script_kill, help_scriptkill, NULL},
 
-    {
-        "scripttell", COMM_CAT_SCRIPT,
-        script_tell, help_scripttell,
-        NULL
-    },
+    {"scripttell", COMM_CAT_SCRIPT, script_tell, help_scripttell, NULL},
 
-    {
-        "clearinfo", COMM_CAT_MISC,
-        do_clearinfo, NULL,
-        "clear the info window"
-    },
+    {"clearinfo", COMM_CAT_MISC, do_clearinfo, NULL, "clear the info window"},
 
-    {
-        "cwindow", COMM_CAT_SETUP,
-        set_command_window, help_cwindow,
-        NULL
-    },
+    {"cwindow", COMM_CAT_SETUP, set_command_window, help_cwindow, NULL},
 
-    {
-        "disconnect", COMM_CAT_MISC,
-        do_disconnect, NULL,
-        "close connection to server"
-    },
-
+    {"disconnect", COMM_CAT_MISC, do_disconnect, NULL,
+     "close connection to server"},
 
 #ifdef HAVE_DMALLOC_H
-    {
-        "dmalloc", COMM_CAT_DEBUG,
-        do_dmalloc, NULL,
-        NULL
-    },
+    {"dmalloc", COMM_CAT_DEBUG, do_dmalloc, NULL, NULL},
 #endif
 
-    {
-        "foodbeep", COMM_CAT_SETUP,
-        command_foodbeep, NULL,
-        "toggle audible low on food warning"
+    {"foodbeep", COMM_CAT_SETUP, command_foodbeep, NULL,
+     "toggle audible low on food warning"
 
     },
 
+    {"help", COMM_CAT_HELP, command_help, help_help, NULL},
+
+    {"inv", COMM_CAT_DEBUG, do_inv, help_inv, HELP_INV_SHORT},
+
+    {"magicmap", COMM_CAT_MISC, do_magicmap, help_magicmap,
+     HELP_MAGICMAP_SHORT},
+
     {
-        "help", COMM_CAT_HELP,
-        command_help, help_help,
-        NULL
+     "savedefaults", COMM_CAT_SETUP, do_savedefaults, NULL,
+     HELP_SAVEDEFAULTS_SHORT /* How do we make sure showicons stays on? */
     },
 
     {
-        "inv", COMM_CAT_DEBUG,
-        do_inv, help_inv,
-        HELP_INV_SHORT
+     "savewinpos", COMM_CAT_SETUP, do_savewinpos, help_savewinpos,
+     "Saves the position and sizes of windows." /* Panes? */
     },
 
-    {
-        "magicmap", COMM_CAT_MISC,
-        do_magicmap, help_magicmap,
-        HELP_MAGICMAP_SHORT
-    },
+    {"scroll", COMM_CAT_SETUP, set_scroll, NULL,
+     "toggle scroll/wrap mode in info window"},
 
-    {
-        "savedefaults", COMM_CAT_SETUP,
-        do_savedefaults, NULL,
-        HELP_SAVEDEFAULTS_SHORT /* How do we make sure showicons stays on? */
-    },
+    {"showicon", COMM_CAT_SETUP, set_show_icon, NULL,
+     "Toggles if you see the worn, locked, cursed etc state in the inventory "
+     "pane."},
 
-    {
-        "savewinpos", COMM_CAT_SETUP,
-        do_savewinpos, help_savewinpos,
-        "Saves the position and sizes of windows." /* Panes? */
-    },
+    {"showweight", COMM_CAT_SETUP, set_show_weight, help_showweight,
+     "Toggles if you see item weights in inventory look windows."},
 
-    {
-        "scroll", COMM_CAT_SETUP,
-        set_scroll, NULL,
-        "toggle scroll/wrap mode in info window"
-    },
+    {"take", COMM_CAT_MISC, do_take, NULL, NULL},
 
-    {
-        "showicon", COMM_CAT_SETUP,
-        set_show_icon, NULL,
-        "Toggles if you see the worn, locked, cursed etc state in the inventory pane."
-    },
+    {"unbind", COMM_CAT_SETUP, unbind_key, help_unbind, NULL},
 
-    {
-        "showweight", COMM_CAT_SETUP,
-        set_show_weight, help_showweight,
-        "Toggles if you see item weights in inventory look windows."
-    },
-
-    {
-        "take", COMM_CAT_MISC,
-        do_take, NULL,
-        NULL
-    },
-
-    {
-        "unbind", COMM_CAT_SETUP,
-        unbind_key, help_unbind,
-        NULL
-    },
-
-    {
-        "num_free_items", COMM_CAT_DEBUG,
-        do_num_free_items, NULL,
-        "log the number of free items?"
-    },
-    {
-        "show", COMM_CAT_SETUP,
-        command_show, NULL,
-        "Change what items to show in inventory"
-    },
-
+    {"num_free_items", COMM_CAT_DEBUG, do_num_free_items, NULL,
+     "log the number of free items?"},
+    {"show", COMM_CAT_SETUP, command_show, NULL,
+     "Change what items to show in inventory"},
 };
 
 const size_t num_commands = sizeof(CommonCommands) / sizeof(ConsoleCommand);
