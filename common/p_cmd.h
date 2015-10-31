@@ -43,7 +43,6 @@ typedef const char * (*CommHelpFunc)(void);
 /* This is used for displaying lists of commands. */
 typedef enum {
   COMM_CAT_MISC = 0,    /* Commands which can't be better sorted. */
-  COMM_CAT_HELP = 1,
   COMM_CAT_INFO = 2,    /* A tad general. */
   COMM_CAT_SETUP = 3,   /* showicon, showweight, bind, commandkey... */
   COMM_CAT_SCRIPT = 4,  /* The four commands for the nifty-scripts. */
@@ -71,7 +70,6 @@ extern const ConsoleCommand * find_command(const char * cmd);
  */
 extern void init_commands(void);
 
-extern int get_num_commands(void);
 /**
  * Returns a pointer to the head of an array of ConsoleCommands
  * sorted by category, then by name.

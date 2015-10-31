@@ -34,27 +34,29 @@
 
 /* TODO Help topics other than commands? Refer to other documents? */
 
+static int get_num_commands(void);
+
 static void do_clienthelp_list() {
-    ConsoleCommand **commands_array = get_cat_sorted_commands();
-    CommCat current_cat = COMM_CAT_MISC;
+    ConsoleCommand **sorted_cmds = get_cat_sorted_commands();
+    CommCat category = COMM_CAT_MISC;
     GString *line = g_string_new(NULL);
 
-    H1(" === Client Side Commands === ");
+    H1("Client commands:");
     for (int i = 0; i < get_num_commands(); i++) {
-        ConsoleCommand *commands_copy = commands_array[i];
-        if (commands_copy->cat != current_cat) {
+        ConsoleCommand *cmd = sorted_cmds[i];
+        if (cmd->cat != category) {
             // If moving on to next category, dump line_buf and print header.
             char buf[MAX_BUF];
-            snprintf(buf, sizeof(buf), " --- %s Commands --- ", get_category_name(commands_copy->cat));
+            snprintf(buf, sizeof(buf), "%s commands:",
+                     get_category_name(cmd->cat));
             LINE(line->str);
             H2(buf);
 
-            current_cat = commands_copy->cat;
+            category = cmd->cat;
             g_string_free(line, true);
             line = g_string_new(NULL);
         }
-
-        g_string_append_printf(line, "%s ", commands_copy->name);
+        g_string_append_printf(line, "%s ", cmd->name);
     }
 
     LINE(line->str);
@@ -162,9 +164,6 @@ const char * get_category_name(CommCat cat) {
     switch(cat) {
     case COMM_CAT_MISC:
         cat_name = "Miscellaneous";
-        break;
-    case COMM_CAT_HELP:
-        cat_name = "Help";
         break;
     case COMM_CAT_INFO:
         cat_name = "Informational";
@@ -337,7 +336,7 @@ static ConsoleCommand CommonCommands[] = {
     {"foodbeep", COMM_CAT_SETUP, command_foodbeep, NULL,
      "toggle audible low on food warning"},
 
-    {"help", COMM_CAT_HELP, command_help, help_help, NULL},
+    {"help", COMM_CAT_MISC, command_help, help_help, NULL},
 
     {"inv", COMM_CAT_DEBUG, do_inv, help_inv, HELP_INV_SHORT},
 
@@ -363,7 +362,7 @@ static ConsoleCommand CommonCommands[] = {
 };
 
 const size_t num_commands = sizeof(CommonCommands) / sizeof(ConsoleCommand);
-int get_num_commands() {
+static int get_num_commands() {
     return num_commands;
 }
 
