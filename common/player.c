@@ -30,34 +30,28 @@
 #include "external.h"
 #include "script.h"
 
-/* This translates the numeric direction id's into the actual direction
- * commands.  This lets us send the actual command (ie, 'north'), which
- * makes handling on the server side easier.
+/** Array for direction strings for each numeric direction. */
+const char *const directions[] = {"stay",      "north",     "northeast",
+                                  "east",      "southeast", "south",
+                                  "southwest", "west",      "northwest"};
+
+/**
+ * Initialize player object using information from the server.
  */
-
-const char *const directions[9] = {"stay", "north", "northeast", "east", "southeast",
-                                   "south","southwest", "west", "northwest"
-                                  };
-
-
-/*
- *  Initialiazes player item, information is received from server
- */
-void new_player (long tag, char *name, long weight, long face)
-{
+void new_player(long tag, char *name, long weight, long face) {
     Spell *spell, *spnext;
 
-    cpl.ob->tag    = tag;
-    cpl.ob->nrof   = 1;
-    copy_name (cpl.ob->d_name, name);
+    cpl.ob->tag = tag;
+    cpl.ob->nrof = 1;
+    copy_name(cpl.ob->d_name, name);
 
     /* Right after player exit server will send this with empty name. */
     if (strlen(name) != 0) {
         keybindings_init(name);
     }
 
-    cpl.ob->weight = (float) weight / 1000;
-    cpl.ob->face   = face;
+    cpl.ob->weight = (float)weight / 1000;
+    cpl.ob->face = face;
 
     if (cpl.spelldata) {
         for (spell = cpl.spelldata; spell; spell = spnext) {
@@ -66,39 +60,26 @@ void new_player (long tag, char *name, long weight, long face)
         }
         cpl.spelldata = NULL;
     }
-
 }
 
-void look_at(int x, int y)
-{
+void look_at(int x, int y) {
     cs_print_string(csocket.fd, "lookat %d %d", x, y);
 }
 
-void client_send_apply (int tag)
-{
+void client_send_apply(int tag) {
     cs_print_string(csocket.fd, "apply %d", tag);
 }
 
-void client_send_examine (int tag)
-{
+void client_send_examine(int tag) {
     cs_print_string(csocket.fd, "examine %d", tag);
-
 }
 
-/* Requests nrof objects of tag get moved to loc. */
-void client_send_move (int loc, int tag, int nrof)
-{
+/**
+ * Request to move 'nrof' objects with 'tag' to 'loc'.
+ */
+void client_send_move(int loc, int tag, int nrof) {
     cs_print_string(csocket.fd, "move %d %d %d", loc, tag, nrof);
 }
-
-
-
-void move_player(int dir)
-{
-    /* Should we perhaps use the real repeat count here? */
-    send_command(directions[dir], -1, SC_NORMAL);
-}
-
 
 /* Fire & Run code.  The server handles repeating of these actions, so
  * we only need to send a run or fire command for a particular direction
@@ -107,85 +88,59 @@ void move_player(int dir)
  */
 static int drun=-1, dfire=-1;
 
-/* Fires in a specified direction.  Note that direction 0 is a valid
- * case - the fire is centered on the player.
- */
-
-void stop_fire(void)
-{
+void stop_fire() {
     if (cpl.input_state != Playing) {
         return;
     }
     dfire |= 0x100;
 }
 
-void clear_fire_run(void)
-{
-    if ((dfire!=-1) && (dfire & 0x100)) {
+void clear_fire() {
+    if (dfire != -1) {
         send_command("fire_stop", -1, SC_FIRERUN);
-        dfire=-1;
+        dfire = -1;
     }
-    if ((drun!=-1) && (drun & 0x100)) {
+}
+
+void clear_run() {
+    if (drun != -1) {
         send_command("run_stop", -1, SC_FIRERUN);
-        drun=-1;
+        drun = -1;
     }
 }
 
-void clear_fire(void)
-{
-    if (dfire!=-1) {
-        send_command("fire_stop", -1, SC_FIRERUN);
-        dfire=-1;
-    }
-}
-
-void clear_run(void)
-{
-    if (drun!=-1) {
-        send_command("run_stop", -1, SC_FIRERUN);
-        drun=-1;
-    }
-}
-
-
-void fire_dir(int dir)
-{
-    char buf[MAX_BUF];
-
+void fire_dir(int dir) {
     if (cpl.input_state != Playing) {
         return;
     }
-    if (dir!= dfire) {
+    if (dir != dfire) {
+        char buf[MAX_BUF];
         snprintf(buf, sizeof(buf), "fire %d", dir);
         if (send_command(buf, cpl.count, SC_NORMAL)) {
-            dfire=dir;
-            cpl.count=0;
+            dfire = dir;
+            cpl.count = 0;
         }
     } else {
-        dfire &= 0xff;	/* Mark it so that we need a stop_fire */
+        dfire &= 0xff; /* Mark it so that we need a stop_fire */
     }
 }
 
-void stop_run(void)
-{
+void stop_run() {
     send_command("run_stop", -1, SC_FIRERUN);
     drun |= 0x100;
 }
 
-void run_dir(int dir)
-{
-    char buf[MAX_BUF];
-
-    if (dir!=drun) {
+void run_dir(int dir) {
+    if (dir != drun) {
+        char buf[MAX_BUF];
         snprintf(buf, sizeof(buf), "run %d", dir);
         if (send_command(buf, -1, SC_NORMAL)) {
-            drun=dir;
+            drun = dir;
         }
     } else {
         drun &= 0xff;
     }
 }
-
 
 /* This should be used for all 'command' processing.  Other functions should
  * call this so that proper windowing will be done.
@@ -196,9 +151,7 @@ void run_dir(int dir)
  * it will cause definate problems
  * return 1 if command was sent, 0 if not sent.
  */
-
-int send_command(const char *command, int repeat, int must_send)
-{
+int send_command(const char *command, int repeat, int must_send) {
     static char last_command[MAX_BUF]="";
 
     script_monitor(command,repeat,must_send);
@@ -256,8 +209,7 @@ int send_command(const char *command, int repeat, int must_send)
     return 1;
 }
 
-void CompleteCmd(unsigned char *data, int len)
-{
+void CompleteCmd(unsigned char *data, int len) {
     if (len !=6) {
         LOG(LOG_ERROR,"common::CompleteCmd","Invalid length %d - ignoring", len);
         return;
@@ -267,15 +219,12 @@ void CompleteCmd(unsigned char *data, int len)
     script_sync(csocket.command_sent - csocket.command_received);
 }
 
-
-
 /* This does special processing on the 'take' command.  If the
  * player has a container open, we want to specifiy what object
  * to move from that since we've sorted it.  command is
  * the command as tped, cpnext is any optional params.
  */
-void command_take (const char *command, const char *cpnext)
-{
+void command_take(const char *command, const char *cpnext) {
     /* If the player has specified optional data, or the player
      * does not have a container open, just issue the command
      * as normal
