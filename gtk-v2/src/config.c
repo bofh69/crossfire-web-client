@@ -19,7 +19,11 @@
 #include "client.h"
 
 #include <ctype.h>
+
+#if defined __MINGW32__ || __linux__
 #include <dirent.h>
+#endif
+
 #include <gtk/gtk.h>
 
 #include "image.h"
@@ -30,7 +34,7 @@
 static GKeyFile *config;
 static GString *config_path;
 
-#ifdef __MINGW32__
+#if defined __MINGW32__ || __linux__
 int alphasort(const struct dirent **a, const struct dirent **b) {
     return strcoll((*a)->d_name, (*b)->d_name);
 }
