@@ -12,6 +12,11 @@ option(SOUND "Sound support" ON)
 # Set compiler to use C99 standard.
 add_definitions(-std=c99)
 
+# If Linux or other Unix-like, get gio to work by defining _BSD_SOURCE
+if (UNIX)
+    add_definitions(-D_BSD_SOURCE)
+endif()
+
 # Set standard installation paths.
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_DATADIR ${CMAKE_INSTALL_DATAROOTDIR}/crossfire-client)

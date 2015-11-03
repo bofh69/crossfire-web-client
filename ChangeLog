@@ -1,3 +1,6 @@
+2015-11-03	Daniel Hawkins
+	* CMakeLists.txt: Add compiler define _BSD_SOURCE so gio includes work right in Linux.
+
 2015-11-02	Daniel Hawkins
 	* gtkv2/src/config.c: Tweak preprocessor directives to make it work on Linux again.
 	* common/mdk.pl: Add "use strict" to the perl script and correct the errors that resulted.
