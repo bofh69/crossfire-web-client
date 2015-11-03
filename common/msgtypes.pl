@@ -20,6 +20,9 @@
 #
 
 # $ARGV[0] is the source directory. We need to know it for out of tree builds.
+
+use strict;
+
 open(IN,"<$ARGV[0]/shared/newclient.h") || die("Can not open newclient.h file\n");
 open(OUT,">msgtypes.h") || die("Can not open msgtypes.h file\n");
 
@@ -30,8 +33,12 @@ print OUT "/* script. */\n";
 print OUT "\nconst Msg_Type_Names msg_type_names[] = {\n";
 print OUT "{0, 0, \"generic\"},\n";
 
-$on_subtypes=0;
-$last_type=0;
+my $on_subtypes=0;
+my $last_type=0;
+my $type;
+my $lc;
+my @types;
+my $max_types;
 
 while(<IN>) {
     if (/^#define\s+MSG_TYPE_(\S*)/) {
@@ -47,6 +54,7 @@ while(<IN>) {
 	    print OUT "{MSG_TYPE_$1, 0, \"$lc\"},\n";
 	} else {
 	    if ($type !~ /^$types[$last_type]/ ) {
+		my $i;
 		for ($i=0; $i< $max_types; $i++) {
 		    if ($type =~ /^$types[$i]/) {
 			$last_type=$i;
