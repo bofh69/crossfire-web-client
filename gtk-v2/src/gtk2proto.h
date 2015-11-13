@@ -142,14 +142,10 @@ extern gboolean on_drawingarea_magic_map_expose_event(GtkWidget *widget, GdkEven
 /* menubar.c */
 extern void init_menu_items();
 /* metaserver.c */
-extern gboolean metaserver_selection_func(GtkTreeSelection *selection, GtkTreeModel *model, GtkTreePath *path, gboolean path_currently_selected, gpointer userdata);
 extern void metaserver_ui_init();
 extern void prompt_metaserver(void);
 extern void on_metaserver_select_clicked(GtkButton *button, gpointer user_data);
-extern void on_treeview_metaserver_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
-extern void on_metaserver_text_entry_activate(GtkEntry *entry, gpointer user_data);
 extern void on_button_metaserver_quit_pressed(GtkButton *button, gpointer user_data);
-extern gboolean on_metaserver_text_entry_key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 /* opengl.c */
 extern void init_glx_opengl(GtkWidget *drawingarea);
 extern void init_opengl(GtkWidget *drawingarea);

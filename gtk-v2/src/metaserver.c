@@ -32,31 +32,37 @@ static GtkWidget *metaserver_window, *treeview_metaserver, *metaserver_button,
 static GtkListStore *store_metaserver;
 static GtkTreeSelection *metaserver_selection;
 
-enum {
-    LIST_HOSTNAME,
-    LIST_IPADDR,
-    LIST_PLAYERS,
-    LIST_VERSION,
-    LIST_COMMENT
-};
+enum { LIST_HOSTNAME, LIST_IPADDR, LIST_PLAYERS, LIST_VERSION, LIST_COMMENT };
 
 /**
- * Enables the connect button and clears the server entry box when a server is
- * navigated to or otherwise selected.
- *
- * @param selection
- * @param model
- * @param path
- * @param path_currently_selected
- * @param userdata
- * @return TRUE
+ * Copy the selected server to the server entry box.
  */
-gboolean metaserver_selection_func(GtkTreeSelection *selection,
-        GtkTreeModel *model, GtkTreePath *path,
-        gboolean path_currently_selected, gpointer userdata) {
-    gtk_widget_set_sensitive(metaserver_button, TRUE);
-    gtk_entry_set_text(GTK_ENTRY(metaserver_entry), "");
-    return TRUE;
+static gboolean on_selection_changed() {
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+    char *selection;
+
+    if (gtk_tree_selection_get_selected(metaserver_selection, &model, &iter)) {
+        gtk_tree_model_get(model, &iter, LIST_HOSTNAME, &selection, -1);
+        gtk_entry_set_text(GTK_ENTRY(metaserver_entry), selection);
+        g_free(selection);
+        gtk_widget_set_sensitive(metaserver_button, TRUE);
+    }
+    return FALSE;
+}
+
+/**
+ * Activate the connect button and unselect servers if keys are pressed to
+ * enter a server name.
+ */
+static gboolean on_server_entry_changed() {
+    if (gtk_entry_get_text_length(GTK_ENTRY(metaserver_entry)) != 0) {
+        gtk_tree_selection_unselect_all(metaserver_selection);
+        gtk_widget_set_sensitive(metaserver_button, TRUE);
+    } else {
+        gtk_widget_set_sensitive(metaserver_button, FALSE);
+    }
+    return FALSE;
 }
 
 /**
@@ -67,41 +73,45 @@ void metaserver_ui_init() {
     GtkTreeViewColumn *column;
     GtkWidget *widget;
 
-    metaserver_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                   "metaserver_window"));
-
+    // Set up metaserver window
+    metaserver_window =
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_window"));
     gtk_window_set_transient_for(GTK_WINDOW(metaserver_window),
                                  GTK_WINDOW(window_root));
-
-    treeview_metaserver = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                     "treeview_metaserver"));
-    metaserver_button = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                   "metaserver_select"));
-    metaserver_status = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                   "metaserver_status"));
-    metaserver_entry = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                  "metaserver_text_entry"));
-
-    g_signal_connect((gpointer) metaserver_window, "destroy",
+    g_signal_connect(metaserver_window, "destroy",
                      G_CALLBACK(on_window_destroy_event), NULL);
-    g_signal_connect((gpointer) treeview_metaserver, "row_activated",
-                     G_CALLBACK(on_treeview_metaserver_row_activated), NULL);
-    g_signal_connect((gpointer) metaserver_entry, "activate",
-                     G_CALLBACK(on_metaserver_text_entry_activate), NULL);
-    g_signal_connect((gpointer) metaserver_entry, "key_press_event",
-                     G_CALLBACK(on_metaserver_text_entry_key_press_event), NULL);
-    g_signal_connect((gpointer) metaserver_button, "clicked",
+
+    treeview_metaserver =
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "treeview_metaserver"));
+    metaserver_status =
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_status"));
+    metaserver_button =
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_select"));
+
+    // Server list
+    g_signal_connect(treeview_metaserver, "row_activated",
                      G_CALLBACK(on_metaserver_select_clicked), NULL);
 
+    // Server entry text box
+    metaserver_entry =
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_text_entry"));
+    g_signal_connect(metaserver_entry, "activate",
+                     G_CALLBACK(on_metaserver_select_clicked), NULL);
+    g_signal_connect(metaserver_entry, "key_release_event",
+                     G_CALLBACK(on_server_entry_changed), NULL);
+    g_signal_connect(metaserver_button, "clicked",
+                     G_CALLBACK(on_metaserver_select_clicked), NULL);
+
+    // Quit button
     widget = GTK_WIDGET(
         gtk_builder_get_object(dialog_xml, "button_metaserver_quit"));
     g_signal_connect(widget, "clicked",
                      G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
 
+    // Initialize server list
     store_metaserver =
         gtk_list_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
                            G_TYPE_STRING, G_TYPE_STRING);
-
     gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_metaserver),
                             GTK_TREE_MODEL(store_metaserver));
 
@@ -132,8 +142,8 @@ void metaserver_ui_init() {
     metaserver_selection =
         gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_metaserver));
     gtk_tree_selection_set_mode(metaserver_selection, GTK_SELECTION_BROWSE);
-    gtk_tree_selection_set_select_function(
-        metaserver_selection, metaserver_selection_func, NULL, NULL);
+    g_signal_connect(metaserver_selection, "changed",
+                     G_CALLBACK(on_selection_changed), NULL);
 }
 
 /**
@@ -194,18 +204,12 @@ static gpointer server_fetch() {
  * server list is added to the contents of the metaserver dialog.
  */
 void prompt_metaserver() {
-    const gchar *metaserver_txt;
-
     hide_all_login_windows();
     gtk_widget_show(metaserver_window);
     gtk_label_set_text(GTK_LABEL(metaserver_status), "Getting server list...");
 
-    metaserver_txt = gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
-    if (*metaserver_txt == '\0') {
-        gtk_widget_set_sensitive(metaserver_button, FALSE);
-    } else {
-        gtk_widget_set_sensitive(metaserver_button, TRUE);
-    }
+    // Disable connect button if there is no text in the server entry box.
+    on_server_entry_changed();
 
     gtk_list_store_clear(store_metaserver);
 
@@ -252,68 +256,10 @@ static void metaserver_connect_to(const char *name) {
  * @param user_data
  */
 void on_metaserver_select_clicked(GtkButton *button, gpointer user_data) {
-    GtkTreeModel *model;
-    GtkTreeIter iter;
-    char *name = NULL, *ip = NULL, *metaserver_txt;
-
-    metaserver_txt = (char *)gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
-    if (gtk_tree_selection_get_selected(metaserver_selection, &model, &iter)) {
-        gtk_tree_model_get(model, &iter, LIST_HOSTNAME, &name, LIST_IPADDR, &ip, -1);
-
-    } else if (*metaserver_txt == '\0') {
-
-        /* This can happen if user blanks out server name text field then hits
-         * the connect button.
-         */
-        gtk_label_set_text(GTK_LABEL(metaserver_status), "Error - nothing selected!\n");
-        gtk_widget_set_sensitive(metaserver_button, FALSE);
-        return;
-    } else {
-        /* This shouldn't happen because the button should not be pressable
-         * until the user selects something
-         */
-        gtk_label_set_text(GTK_LABEL(metaserver_status), "Error - nothing selected!\n");
+    const char *entry_text = gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
+    if (*entry_text != '\0') {
+        metaserver_connect_to(entry_text);
     }
-    if (!name) {
-        name = metaserver_txt;
-    }
-
-    metaserver_connect_to(name);
-}
-
-/**
- * Selects and attempts a connection to a server if the player activates one of
- * the server entries.
- *
- * @param treeview
- * @param path
- * @param column
- * @param user_data
- */
-void on_treeview_metaserver_row_activated(GtkTreeView *treeview,
-        GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data) {
-    GtkTreeIter iter;
-    GtkTreeModel *model;
-    char *name, *ip;
-
-    model = gtk_tree_view_get_model(treeview);
-    if (gtk_tree_model_get_iter(model, &iter, path)) {
-        gtk_tree_model_get(model, &iter, LIST_HOSTNAME, &name, LIST_IPADDR, &ip, -1);
-        metaserver_connect_to(name);
-    }
-}
-
-/**
- * This callback handles the user entering text into the metaserver freeform
- * entry box.
- *
- * @param entry
- * @param user_data
- */
-void on_metaserver_text_entry_activate(GtkEntry *entry, gpointer user_data) {
-    const gchar *entry_text;
-    entry_text = gtk_entry_get_text(GTK_ENTRY(entry));
-    metaserver_connect_to(entry_text);
 }
 
 /**
@@ -325,20 +271,4 @@ void on_metaserver_text_entry_activate(GtkEntry *entry, gpointer user_data) {
  */
 void on_button_metaserver_quit_pressed(GtkButton *button, gpointer user_data) {
     on_window_destroy_event(GTK_OBJECT(button), user_data);
-}
-
-/**
- * Activate the connect button and unselect servers if keys are pressed to
- * enter a server name.
- *
- * @param widget
- * @param event
- * @param user_data
- * @return FALSE
- */
-gboolean on_metaserver_text_entry_key_press_event(GtkWidget *widget,
-        GdkEventKey *event, gpointer user_data) {
-    gtk_widget_set_sensitive(metaserver_button, TRUE);
-    gtk_tree_selection_unselect_all(metaserver_selection);
-    return FALSE;
 }
