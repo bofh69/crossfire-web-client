@@ -34,10 +34,8 @@ static GtkWidget *add_character_window, *choose_char_window,
        *create_account_window, *login_window, *account_password_window;
 
 /* These are in the login_window */
-static GtkWidget *button_login, *button_create_account,
-       *button_go_metaserver, *button_exit_client,
-       *entry_account_name,
-       *entry_account_password, *label_account_login_status;
+static GtkWidget *button_login, *button_create_account, *button_go_metaserver,
+    *entry_account_name, *entry_account_password, *label_account_login_status;
 
 /* These are in the create_account_window */
 static GtkWidget *button_new_create_account, *button_new_cancel,
@@ -979,8 +977,7 @@ on_button_go_metaserver_clicked(GtkButton *button, gpointer user_data) {
  * @param button
  * @param user_data
  */
-void
-on_button_exit_client_clicked(GtkButton *button, gpointer user_data) {
+void on_button_exit_client_clicked(GtkButton *button, gpointer user_data) {
 #ifdef WIN32
     script_killall();
 #endif
@@ -1073,23 +1070,22 @@ static void init_login_window() {
     GtkTextIter end;
 
     login_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "login_window"));
-
     if (!login_window) {
         error_dialog("Failed to open dialogs.", "Did you run `make install`?");
         exit(1);
     }
 
+    g_signal_connect(login_window, "delete_event",
+                     G_CALLBACK(on_button_exit_client_clicked), NULL);
+
     gtk_window_set_transient_for(
         GTK_WINDOW(login_window), GTK_WINDOW(window_root));
-
     button_login =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_login"));
     button_create_account =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_create_account"));
     button_go_metaserver =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_go_metaserver"));
-    button_exit_client =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_exit_client"));
     label_account_login_status =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_account_login_status"));
     login_pane[TEXTVIEW_MOTD].textview =
@@ -1137,8 +1133,6 @@ static void init_login_window() {
                      G_CALLBACK(on_button_create_account_clicked), NULL);
     g_signal_connect((gpointer) button_go_metaserver, "clicked",
                      G_CALLBACK(on_button_go_metaserver_clicked), NULL);
-    g_signal_connect((gpointer) button_exit_client, "clicked",
-                     G_CALLBACK(on_button_exit_client_clicked), NULL);
 }
 
 /*****************************************************************************

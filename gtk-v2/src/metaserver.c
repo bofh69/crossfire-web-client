@@ -89,11 +89,9 @@ void metaserver_ui_init() {
     g_signal_connect((gpointer) metaserver_button, "clicked",
                      G_CALLBACK(on_metaserver_select_clicked), NULL);
 
-    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                        "button_metaserver_quit"));
-    g_signal_connect((gpointer) widget, "pressed",
-                     G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
-    g_signal_connect((gpointer) widget, "activate",
+    widget = GTK_WIDGET(
+        gtk_builder_get_object(dialog_xml, "button_metaserver_quit"));
+    g_signal_connect(widget, "clicked",
                      G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
 
     store_metaserver = gtk_list_store_new(6,
