@@ -116,7 +116,14 @@ static int do_scriptout() {
  */
 static gboolean do_timeout(gpointer data) {
     if (cpl.showmagic) {
-        magic_map_flash_pos();
+        if (gtk_notebook_get_current_page(GTK_NOTEBOOK(map_notebook)) !=
+            MAGIC_MAP_PAGE) {
+            // Stop flashing when the user switches back to the map window.
+            cpl.showmagic = 0;
+        } else {
+            magic_map_flash_pos();
+            cpl.showmagic ^= 2;
+        }
     }
     if (cpl.spells_updated) {
         update_spell_information();
@@ -437,8 +444,8 @@ static void init_ui() {
         if (!gdk_color_parse(colorname[i], &root_color[i])) {
             fprintf(stderr, "gdk_color_parse failed (%s)\n", colorname[i]);
         }
-        if (!gdk_color_alloc(gtk_widget_get_colormap(window_root),
-                             &root_color[i])) {
+        if (!gdk_colormap_alloc_color(gtk_widget_get_colormap(window_root),
+                                      &root_color[i], FALSE, FALSE)) {
             fprintf(stderr, "gdk_color_alloc failed\n");
         }
     }

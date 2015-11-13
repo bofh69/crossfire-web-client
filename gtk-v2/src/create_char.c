@@ -597,7 +597,8 @@ on_combobox_rcs_changed(GtkComboBox *box, gpointer user_data)
         }
         gtk_combo_box_set_active(GTK_COMBO_BOX(opt_combobox[i+opt_start]), 0);
 
-        gtk_label_set(GTK_LABEL(opt_label[i+opt_start]), rc->rc_choice[i].choice_desc);
+        gtk_label_set_text(GTK_LABEL(opt_label[i + opt_start]),
+                           rc->rc_choice[i].choice_desc);
         gtk_widget_show(opt_label[i+opt_start]);
         gtk_widget_show(opt_combobox[i+opt_start]);
         /* No signals are connected - the value of the combo

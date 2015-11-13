@@ -40,7 +40,6 @@ GtkWidget *treeview_look;
 /** Color to use to indicate that an item is applied. */
 static const GdkColor applied_color = {0, 50000, 50000, 50000};
 
-static GtkTooltips *inv_table_tooltips;
 static GtkTreeStore *store_look;
 static GtkWidget *encumbrance_current;
 static GtkWidget *encumbrance_max;
@@ -106,8 +105,9 @@ typedef struct {
 /* Prototypes for static functions */
 static gboolean on_inv_table_expose_event(GtkWidget *widget,
         GdkEventExpose *event, gpointer user_data);
-static void on_notebook_switch_page(GtkNotebook *notebook,
-        GtkNotebookPage *page, guint page_num, gpointer user_data);
+
+static void on_switch_page(GtkNotebook *notebook, gpointer *page,
+                           guint page_num, gpointer user_data);
 
 static int show_all(item *it) {
     return INV_SHOW_ITEM | INV_SHOW_COLOR;
@@ -465,15 +465,12 @@ void inventory_init(GtkWidget *window_root) {
     inv_table = GTK_WIDGET(gtk_builder_get_object(window_xml,
             "inv_table"));
 
-    g_signal_connect((gpointer) inv_notebook, "switch_page",
-            (GCallback) on_notebook_switch_page, NULL);
+    g_signal_connect((gpointer)inv_notebook, "switch_page",
+                     (GCallback)on_switch_page, NULL);
     g_signal_connect((gpointer) inv_table, "expose_event",
             (GCallback) on_inv_table_expose_event, NULL);
     g_signal_connect((gpointer) treeview_look, "row_collapsed",
             (GCallback) list_row_collapse, NULL);
-
-    inv_table_tooltips = gtk_tooltips_new();
-    gtk_tooltips_enable(inv_table_tooltips);
 
     memset(inv_table_children, 0, sizeof (GtkWidget *) * MAX_INV_ROWS * MAX_INV_COLUMNS);
 
@@ -523,7 +520,7 @@ void inventory_init(GtkWidget *window_root) {
                 gtk_widget_show(image);
 
                 image = eb;
-                gtk_tooltips_set_tip(inv_table_tooltips, image, inv_notebooks[i].tooltip, NULL);
+                gtk_widget_set_tooltip_text(image, inv_notebooks[i].tooltip);
             }
 
             gtk_notebook_insert_page(GTK_NOTEBOOK(inv_notebook), swindow, image, i);
@@ -595,18 +592,18 @@ void command_show(const char *params) {
          * Shouldn't need to get current page, but next_page call is not
          * wrapping like the docs claim it should.
          */
-        if (gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook)) == num_inv_notebook_pages) {
-            gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), 0);
+        if (gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook)) ==
+            num_inv_notebook_pages) {
+            gtk_notebook_set_current_page(GTK_NOTEBOOK(inv_notebook), 0);
         } else {
             gtk_notebook_next_page(GTK_NOTEBOOK(inv_notebook));
         }
     } else {
-        int i;
         char buf[MAX_BUF];
 
-        for (i = 0; i < NUM_INV_LISTS; i++) {
+        for (int i = 0; i < NUM_INV_LISTS; i++) {
             if (!strncmp(params, inv_notebooks[i].name, strlen(params))) {
-                gtk_notebook_set_page(GTK_NOTEBOOK(inv_notebook), i);
+                gtk_notebook_set_current_page(GTK_NOTEBOOK(inv_notebook), i);
                 return;
             }
         }
@@ -872,10 +869,6 @@ static gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
     return TRUE;
 }
 
-#define INVHELPTEXT "Left click examines the object.  Middle click applies \
-the object. Right click drops the object.  Shift left click locks/unlocks the \
-object.  Shift middle click marks the object"
-
 /**
  * Draws the table of image icons.
  *
@@ -917,8 +910,8 @@ static void draw_inv_table(int animate) {
     for (tmp = cpl.ob->inv; tmp; tmp = tmp->next) {
         if (inv_table_children[x][y] == NULL) {
             inv_table_children[x][y] = gtk_drawing_area_new();
-            gtk_drawing_area_size(GTK_DRAWING_AREA(inv_table_children[x][y]),
-                    image_size, image_size);
+            gtk_widget_set_size_request(inv_table_children[x][y], image_size,
+                                        image_size);
 
             gtk_table_attach(GTK_TABLE(inv_table), inv_table_children[x][y],
                     x, x + 1, y, y + 1, GTK_FILL, GTK_FILL, 0, 0);
@@ -999,8 +992,7 @@ static void draw_inv_table(int animate) {
              * removing the old tooltip, freeing strings, etc.
              */
             snprintf(buf, 255, "%s %s", tmp->d_name, tmp->flags);
-            gtk_tooltips_set_tip(inv_table_tooltips, inv_table_children[x][y],
-                    buf, INVHELPTEXT);
+            gtk_widget_set_tooltip_text(inv_table_children[x][y], buf);
         }
         x++;
         if (x == columns) {
@@ -1062,9 +1054,9 @@ static void draw_inv(int tab) {
     char buf[256];
 
     snprintf(buf, sizeof (buf), "%6.1f", cpl.ob->weight);
-    gtk_label_set(GTK_LABEL(encumbrance_current), buf);
+    gtk_label_set_text(GTK_LABEL(encumbrance_current), buf);
     snprintf(buf, sizeof (buf), "%6.1f", weight_limit);
-    gtk_label_set(GTK_LABEL(encumbrance_max), buf);
+    gtk_label_set_text(GTK_LABEL(encumbrance_max), buf);
 
     if (inv_notebooks[tab].type == INV_TREE) {
         draw_inv_list(tab);
@@ -1109,8 +1101,8 @@ void draw_lists() {
  * @param page_num
  * @param user_data
  */
-static void on_notebook_switch_page(GtkNotebook *notebook,
-        GtkNotebookPage *page, guint page_num, gpointer user_data) {
+static void on_switch_page(GtkNotebook *notebook, gpointer *page,
+                           guint page_num, gpointer user_data) {
     guint oldpage;
 
     oldpage = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));

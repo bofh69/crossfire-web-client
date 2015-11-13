@@ -103,7 +103,6 @@ extern void unbind_key(const char *params);
 extern void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
 extern void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window);
-extern void draw_keybindings(GtkWidget *keylist);
 extern void x_set_echo(void);
 extern void draw_prompt(const char *str);
 extern void gtk_command_history(int direction);
@@ -201,9 +200,7 @@ extern void client_pickup(guint32 pickup);
 /* png.c */
 extern guint8 *png_to_data(guint8 *data, int len, guint32 *width, guint32 *height);
 extern guint8 *rescale_rgba_data(guint8 *data, int *width, int *height, int scale);
-extern int rgba_to_gdkpixmap(GdkWindow *window, guint8 *data, int width, int height, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 extern GdkPixbuf *rgba_to_gdkpixbuf(guint8 *data, int width, int height);
-extern int png_to_gdkpixmap(GdkWindow *window, guint8 *data, int len, GdkPixmap **pix, GdkBitmap **mask, GdkColormap *colormap);
 extern cairo_surface_t *rgba_to_cairo_surface(guint8 *data, int width, int height);
 /* sdl.c */
 extern void init_SDL(GtkWidget *sdl_window, int just_lightmap);

@@ -68,9 +68,9 @@ void update_skill_information(void) {
     /* If the window/spellstore hasn't been created, or isn't currently being
      * shown, return.
      */
-    if (! has_init
-            ||  ! GTK_WIDGET_VISIBLE(GTK_WIDGET(gtk_builder_get_object(dialog_xml,
-                                     "skill_window")))) {
+    if (!has_init ||
+        !gtk_widget_get_visible(
+            GTK_WIDGET(gtk_builder_get_object(dialog_xml, "skill_window")))) {
         return;
     }
 

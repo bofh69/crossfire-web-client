@@ -21,6 +21,9 @@ extern GdkColor root_color[NUM_COLORS];
 extern GtkWidget *window_root, *spinbutton_count;
 extern GtkBuilder *dialog_xml, *window_xml;
 
+extern GtkWidget *magic_map;
+extern GtkWidget *map_notebook;
+
 #define DEFAULT_IMAGE_SIZE      32
 extern int map_image_size, map_image_half_size, image_size;
 

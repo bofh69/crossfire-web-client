@@ -212,7 +212,7 @@ static void free_pixmap(PixmapInfo *pi)
         g_object_unref(pi->icon_mask);
     }
     if (pi->map_mask) {
-        gdk_pixmap_unref(pi->map_mask);
+        g_object_unref(pi->map_mask);
     }
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 #ifdef HAVE_SDL
@@ -445,9 +445,7 @@ void reset_image_data(void)
     }
 }
 
-static GtkWidget     *pbar=NULL;
-static GtkWidget     *pbar_window=NULL;
-static GtkAdjustment *padj=NULL;
+static GtkWidget *pbar, *pbar_window;
 
 /**
  * Draws a status bar showing where we our in terms of downloading all the
@@ -460,43 +458,28 @@ static GtkAdjustment *padj=NULL;
  * @param end
  * @param total The total number of images.
  */
-void image_update_download_status(int start, int end, int total)
-{
+void image_update_download_status(int start, int end, int total) {
     int x, y, wx, wy, w, h;
 
     if (start == 1) {
-        padj = (GtkAdjustment*) gtk_adjustment_new (0, 1, total, 0, 0, 0);
-
-        pbar = gtk_progress_bar_new_with_adjustment(padj);
-        gtk_progress_set_format_string(GTK_PROGRESS(pbar), "Downloading image %v of %u (%p%% complete)");
-        gtk_progress_bar_set_bar_style(GTK_PROGRESS_BAR(pbar), GTK_PROGRESS_CONTINUOUS);
-        gtk_progress_set_show_text(GTK_PROGRESS(pbar), TRUE);
+        pbar = gtk_progress_bar_new();
         get_window_coord(window_root, &x,&y, &wx,&wy,&w,&h);
 
         pbar_window = gtk_window_new(GTK_WINDOW_POPUP);
-        gtk_window_set_policy(GTK_WINDOW(pbar_window), TRUE, TRUE, FALSE);
         gtk_window_set_transient_for(GTK_WINDOW(pbar_window), GTK_WINDOW (window_root));
-        /*
-         * We more or less want this window centered on the main crossfire
-         * window, and not necessarily centered on the screen or in the upper
-         * left corner.
-         */
-        gtk_widget_set_uposition(pbar_window, (wx + w)/2, (wy + h) / 2);
 
         gtk_container_add(GTK_CONTAINER(pbar_window), pbar);
         gtk_widget_show(pbar);
         gtk_widget_show(pbar_window);
-    }
-    if (start == total) {
+    } else if (start == total) {
         gtk_widget_destroy(pbar_window);
         pbar = NULL;
         pbar_window = NULL;
-        padj = NULL;
         return;
     }
 
-    gtk_progress_set_value(GTK_PROGRESS(pbar), start);
-    while ( gtk_events_pending() ) {
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pbar), (float)start / end);
+    while (gtk_events_pending()) {
         gtk_main_iteration();
     }
 }
@@ -550,11 +533,9 @@ void init_image_cache_data(void)
     LOG(LOG_DEBUG, "gtk-v2::init_image_cache_data", "Init Image Cache");
 
     style = gtk_widget_get_style(window_root);
-    pixmaps[0] = g_malloc(sizeof(PixmapInfo));
-    pixmaps[0]->icon_image = gdk_pixmap_create_from_xpm_d(window_root->window,
-                             (GdkBitmap**)&pixmaps[0]->icon_mask,
-                             &style->bg[GTK_STATE_NORMAL],
-                             (gchar **)question_xpm);
+    pixmaps[0] = g_new(PixmapInfo, 1);
+    pixmaps[0]->icon_image =
+        gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
         /*

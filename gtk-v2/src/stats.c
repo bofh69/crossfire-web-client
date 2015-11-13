@@ -576,112 +576,114 @@ void draw_stats(int redraw)
     }
 
     if (strcmp(cpl.title, last_name) || redraw) {
-        strcpy(last_name,cpl.title);
-        gtk_label_set (GTK_LABEL(statwindow.playername), cpl.title);
+        strcpy(last_name, cpl.title);
+        gtk_label_set_text(GTK_LABEL(statwindow.playername), cpl.title);
     }
 
-    if(redraw || cpl.stats.exp!=last_stats.exp) {
+    if (redraw || cpl.stats.exp != last_stats.exp) {
         last_stats.exp = cpl.stats.exp;
-        snprintf(buff, sizeof(buff), "Experience: %5" G_GINT64_FORMAT ,cpl.stats.exp);
-        gtk_label_set (GTK_LABEL(statwindow.exp), buff);
+        snprintf(buff, sizeof(buff), "Experience: %5" G_GINT64_FORMAT,
+                 cpl.stats.exp);
+        gtk_label_set_text(GTK_LABEL(statwindow.exp), buff);
     }
 
-    if(redraw || cpl.stats.level!=last_stats.level) {
+    if (redraw || cpl.stats.level != last_stats.level) {
         last_stats.level = cpl.stats.level;
-        snprintf(buff, sizeof(buff), "Level: %d",cpl.stats.level);
-        gtk_label_set (GTK_LABEL(statwindow.level), buff);
+        snprintf(buff, sizeof(buff), "Level: %d", cpl.stats.level);
+        gtk_label_set_text(GTK_LABEL(statwindow.level), buff);
     }
 
-    if(redraw || cpl.stats.Str!=last_stats.Str) {
-        last_stats.Str=cpl.stats.Str;
-        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Str);
-        gtk_label_set (GTK_LABEL(statwindow.Str), buff);
+    if (redraw || cpl.stats.Str != last_stats.Str) {
+        last_stats.Str = cpl.stats.Str;
+        snprintf(buff, sizeof(buff), "%2d", cpl.stats.Str);
+        gtk_label_set_text(GTK_LABEL(statwindow.Str), buff);
     }
 
-    if(redraw || cpl.stats.Dex!=last_stats.Dex) {
-        last_stats.Dex=cpl.stats.Dex;
-        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Dex);
-        gtk_label_set (GTK_LABEL(statwindow.Dex), buff);
+    if (redraw || cpl.stats.Dex != last_stats.Dex) {
+        last_stats.Dex = cpl.stats.Dex;
+        snprintf(buff, sizeof(buff), "%2d", cpl.stats.Dex);
+        gtk_label_set_text(GTK_LABEL(statwindow.Dex), buff);
     }
 
-    if(redraw || cpl.stats.Con!=last_stats.Con) {
-        last_stats.Con=cpl.stats.Con;
-        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Con);
-        gtk_label_set (GTK_LABEL(statwindow.Con), buff);
+    if (redraw || cpl.stats.Con != last_stats.Con) {
+        last_stats.Con = cpl.stats.Con;
+        snprintf(buff, sizeof(buff), "%2d", cpl.stats.Con);
+        gtk_label_set_text(GTK_LABEL(statwindow.Con), buff);
     }
 
-    if(redraw || cpl.stats.Int!=last_stats.Int) {
-        last_stats.Int=cpl.stats.Int;
-        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Int);
-        gtk_label_set (GTK_LABEL(statwindow.Int), buff);
+    if (redraw || cpl.stats.Int != last_stats.Int) {
+        last_stats.Int = cpl.stats.Int;
+        snprintf(buff, sizeof(buff), "%2d", cpl.stats.Int);
+        gtk_label_set_text(GTK_LABEL(statwindow.Int), buff);
     }
 
-    if(redraw || cpl.stats.Wis!=last_stats.Wis) {
-        last_stats.Wis=cpl.stats.Wis;
-        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Wis);
-        gtk_label_set (GTK_LABEL(statwindow.Wis), buff);
+    if (redraw || cpl.stats.Wis != last_stats.Wis) {
+        last_stats.Wis = cpl.stats.Wis;
+        snprintf(buff, sizeof(buff), "%2d", cpl.stats.Wis);
+        gtk_label_set_text(GTK_LABEL(statwindow.Wis), buff);
     }
 
-    if(redraw || cpl.stats.Pow!=last_stats.Pow) {
-        last_stats.Pow=cpl.stats.Pow;
-        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Pow);
-        gtk_label_set (GTK_LABEL(statwindow.Pow), buff);
+    if (redraw || cpl.stats.Pow != last_stats.Pow) {
+        last_stats.Pow = cpl.stats.Pow;
+        snprintf(buff, sizeof(buff), "%2d", cpl.stats.Pow);
+        gtk_label_set_text(GTK_LABEL(statwindow.Pow), buff);
     }
 
-    if(redraw || cpl.stats.Cha!=last_stats.Cha) {
-        last_stats.Cha=cpl.stats.Cha;
-        snprintf(buff, sizeof(buff), "%2d",cpl.stats.Cha);
-        gtk_label_set (GTK_LABEL(statwindow.Cha), buff);
+    if (redraw || cpl.stats.Cha != last_stats.Cha) {
+        last_stats.Cha = cpl.stats.Cha;
+        snprintf(buff, sizeof(buff), "%2d", cpl.stats.Cha);
+        gtk_label_set_text(GTK_LABEL(statwindow.Cha), buff);
     }
 
-    if(redraw || cpl.stats.wc!=last_stats.wc) {
-        last_stats.wc=cpl.stats.wc;
-        snprintf(buff, sizeof(buff), "%2d",cpl.stats.wc);
-        gtk_label_set (GTK_LABEL(statwindow.wc), buff);
+    if (redraw || cpl.stats.wc != last_stats.wc) {
+        last_stats.wc = cpl.stats.wc;
+        snprintf(buff, sizeof(buff), "%2d", cpl.stats.wc);
+        gtk_label_set_text(GTK_LABEL(statwindow.wc), buff);
     }
 
-    if(redraw || cpl.stats.dam!=last_stats.dam) {
-        last_stats.dam=cpl.stats.dam;
-        snprintf(buff, sizeof(buff), "%d",cpl.stats.dam);
-        gtk_label_set (GTK_LABEL(statwindow.dam), buff);
+    if (redraw || cpl.stats.dam != last_stats.dam) {
+        last_stats.dam = cpl.stats.dam;
+        snprintf(buff, sizeof(buff), "%d", cpl.stats.dam);
+        gtk_label_set_text(GTK_LABEL(statwindow.dam), buff);
     }
 
-    if(redraw || cpl.stats.ac!=last_stats.ac) {
-        last_stats.ac=cpl.stats.ac;
-        snprintf(buff, sizeof(buff), "%d",cpl.stats.ac);
-        gtk_label_set (GTK_LABEL(statwindow.ac), buff);
+    if (redraw || cpl.stats.ac != last_stats.ac) {
+        last_stats.ac = cpl.stats.ac;
+        snprintf(buff, sizeof(buff), "%d", cpl.stats.ac);
+        gtk_label_set_text(GTK_LABEL(statwindow.ac), buff);
     }
 
-    if(redraw || cpl.stats.resists[0]!=last_stats.resists[0]) {
-        last_stats.resists[0]=cpl.stats.resists[0];
-        snprintf(buff, sizeof(buff), "%d",cpl.stats.resists[0]);
-        gtk_label_set (GTK_LABEL(statwindow.armor), buff);
+    if (redraw || cpl.stats.resists[0] != last_stats.resists[0]) {
+        last_stats.resists[0] = cpl.stats.resists[0];
+        snprintf(buff, sizeof(buff), "%d", cpl.stats.resists[0]);
+        gtk_label_set_text(GTK_LABEL(statwindow.armor), buff);
     }
 
-    if (redraw || cpl.stats.speed!=last_stats.speed) {
-        last_stats.speed=cpl.stats.speed;
-        snprintf(buff, sizeof(buff), "%3.2f",(float)cpl.stats.speed/FLOAT_MULTF);
-        gtk_label_set (GTK_LABEL(statwindow.speed), buff);
+    if (redraw || cpl.stats.speed != last_stats.speed) {
+        last_stats.speed = cpl.stats.speed;
+        snprintf(buff, sizeof(buff), "%3.2f",
+                 (float)cpl.stats.speed / FLOAT_MULTF);
+        gtk_label_set_text(GTK_LABEL(statwindow.speed), buff);
     }
     /* sc_version >= 1029 reports real value of weapon speed -
      * not as a factor of player speed.  Handle accordingly.
      */
     if (csocket.sc_version >= 1029) {
-        weap_sp = (float) cpl.stats.weapon_sp / FLOAT_MULTF;
+        weap_sp = (float)cpl.stats.weapon_sp / FLOAT_MULTF;
     } else {
-        weap_sp = (float) cpl.stats.speed/((float)cpl.stats.weapon_sp);
+        weap_sp = (float)cpl.stats.speed / ((float)cpl.stats.weapon_sp);
     }
 
-    if (redraw || weap_sp !=last_stats.weapon_sp) {
-        last_stats.weapon_sp=weap_sp;
-        snprintf(buff, sizeof(buff), "%3.2f",weap_sp);
-        gtk_label_set (GTK_LABEL(statwindow.weapon_speed), buff);
+    if (redraw || weap_sp != last_stats.weapon_sp) {
+        last_stats.weapon_sp = weap_sp;
+        snprintf(buff, sizeof(buff), "%3.2f", weap_sp);
+        gtk_label_set_text(GTK_LABEL(statwindow.weapon_speed), buff);
     }
 
-    if(redraw || strcmp(cpl.range, last_range)) {
+    if (redraw || strcmp(cpl.range, last_range)) {
         strcpy(last_range, cpl.range);
-        snprintf(buff, sizeof(buff), "Range: %s",cpl.range);
-        gtk_label_set (GTK_LABEL(statwindow.range), cpl.range);
+        snprintf(buff, sizeof(buff), "Range: %s", cpl.range);
+        gtk_label_set_text(GTK_LABEL(statwindow.range), cpl.range);
     }
 
     update_skill_information();
@@ -702,11 +704,11 @@ void draw_stats(int redraw)
 
             if ((redraw || cpl.stats.skill_exp[sk] != last_stats.skill_exp[sk])
                     && skill_mapping[i].name && cpl.stats.skill_exp[sk]) {
-                gtk_label_set(GTK_LABEL(statwindow.skill_exp[on_skill++]),
+                gtk_label_set_text(GTK_LABEL(statwindow.skill_exp[on_skill++]),
                               skill_mapping[i].name);
                 snprintf(buff, sizeof(buff), "%" G_GINT64_FORMAT " (%d)",
                          cpl.stats.skill_exp[sk], cpl.stats.skill_level[sk]);
-                gtk_label_set(
+                gtk_label_set_text(
                     GTK_LABEL(statwindow.skill_exp[on_skill++]), buff);
                 last_stats.skill_level[sk] = cpl.stats.skill_level[sk];
                 last_stats.skill_exp[sk] = cpl.stats.skill_exp[sk];
@@ -724,10 +726,8 @@ void draw_stats(int redraw)
          * extra.
          */
         if (on_skill < max_drawn_skill) {
-            int k;
-
-            for (k = on_skill; k <= max_drawn_skill; k++) {
-                gtk_label_set(GTK_LABEL(statwindow.skill_exp[k]), "");
+            for (int k = on_skill; k <= max_drawn_skill; k++) {
+                gtk_label_set_text(GTK_LABEL(statwindow.skill_exp[k]), "");
             }
         }
         max_drawn_skill = on_skill;
@@ -735,16 +735,17 @@ void draw_stats(int redraw)
 
     /* Now do the resistance table */
     if (redraw || cpl.stats.resist_change) {
-        int i,j=0;
+        int j = 0;
 
         cpl.stats.resist_change=0;
-        for (i=0; i<NUM_RESISTS; i++) {
+        for (int i = 0; i < NUM_RESISTS; i++) {
             sk = resist_mapping[i].value;
             if (cpl.stats.resists[sk]) {
-                gtk_label_set(GTK_LABEL(statwindow.resists[j]), resist_mapping[i].name);
+                gtk_label_set_text(GTK_LABEL(statwindow.resists[j]),
+                                   resist_mapping[i].name);
                 j++;
                 snprintf(buff, sizeof(buff), "%+4d", cpl.stats.resists[sk]);
-                gtk_label_set(GTK_LABEL(statwindow.resists[j]), buff);
+                gtk_label_set_text(GTK_LABEL(statwindow.resists[j]), buff);
                 j++;
                 if (j >= PROTECTION_BOXES_X * PROTECTION_BOXES_Y) {
                     break;
@@ -753,8 +754,8 @@ void draw_stats(int redraw)
         }
         /* Erase old/unused resistances */
         if (j < max_drawn_resists) {
-            for (i=j; i <= max_drawn_resists; i++)  {
-                gtk_label_set(GTK_LABEL(statwindow.resists[i]), "");
+            for (int i = j; i <= max_drawn_resists; i++) {
+                gtk_label_set_text(GTK_LABEL(statwindow.resists[i]), "");
             }
         }
         max_drawn_resists = j;

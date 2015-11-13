@@ -782,14 +782,14 @@ static void parse_key_release(guint32 keysym) {
     if (keysym == firekeysym[0] || keysym == firekeysym[1]) {
         cpl.fire_on = 0;
         clear_fire();
-        gtk_label_set(GTK_LABEL(fire_label), "    ");
+        gtk_label_set_text(GTK_LABEL(fire_label), "    ");
     } else if (keysym == runkeysym[0] || keysym == runkeysym[1]) {
         cpl.run_on = 0;
         if (use_config[CONFIG_ECHO])
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                           "stop run");
         clear_run();
-        gtk_label_set(GTK_LABEL(run_label), "   ");
+        gtk_label_set_text(GTK_LABEL(run_label), "   ");
     } else if (keysym == altkeysym[0] || keysym == altkeysym[1]) {
         cpl.alt_on = 0;
     } else if (keysym == metakeysym[0] || keysym == metakeysym[1]) {
@@ -836,12 +836,12 @@ static void parse_key(char key, guint32 keysym) {
     }
     if (keysym == firekeysym[0] || keysym == firekeysym[1]) {
         cpl.fire_on = 1;
-        gtk_label_set(GTK_LABEL(fire_label), "Fire");
+        gtk_label_set_text(GTK_LABEL(fire_label), "Fire");
         return;
     }
     if (keysym == runkeysym[0] || keysym == runkeysym[1]) {
         cpl.run_on = 1;
-        gtk_label_set(GTK_LABEL(run_label), "Run");
+        gtk_label_set_text(GTK_LABEL(run_label), "Run");
         return;
     }
 
@@ -1514,7 +1514,7 @@ void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     if (cpl.fire_on == 1) {
         cpl.fire_on = 0;
         clear_fire();
-        gtk_label_set(GTK_LABEL(fire_label), "    ");
+        gtk_label_set_text(GTK_LABEL(fire_label), "    ");
     }
     if (cpl.run_on == 1) {
         cpl.run_on = 0;
@@ -1522,7 +1522,7 @@ void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
                           "stop run");
         clear_run();
-        gtk_label_set(GTK_LABEL(run_label), "   ");
+        gtk_label_set_text(GTK_LABEL(run_label), "   ");
     }
     if (cpl.alt_on == 1) {
         cpl.alt_on = 0;
@@ -1540,7 +1540,7 @@ void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
  * @param window
  */
 void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
-    if (event->keyval > 0 && !GTK_WIDGET_HAS_FOCUS(entry_commands)) {
+    if (event->keyval > 0 && !gtk_widget_has_focus(entry_commands)) {
         parse_key_release(event->keyval);
     }
     g_signal_stop_emission_by_name(GTK_OBJECT(window), "key_release_event");
@@ -1579,7 +1579,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                 GTK_OBJECT(window), "key_press_event");
             return;
         } else if (cpl.input_state == Reply_Many) {
-            if (GTK_WIDGET_HAS_FOCUS(entry_commands)) {
+            if (gtk_widget_has_focus(entry_commands)) {
                 gtk_widget_event(GTK_WIDGET(entry_commands), (GdkEvent *)event);
             } else {
                 gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
@@ -1594,7 +1594,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
      * handling these key values.
      */
     if (event->keyval > 0) {
-        if (GTK_WIDGET_HAS_FOCUS(entry_commands)) {
+        if (gtk_widget_has_focus(entry_commands)) {
             if (event->keyval == completekeysym) {
                 gtk_complete_command();
             }
@@ -1618,7 +1618,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                         if (cpl.run_on) {
                             if (!(event->state & GDK_CONTROL_MASK)) {
                                 /* printf("Run is on while ctrl is not\n"); */
-                                gtk_label_set(GTK_LABEL(run_label), "   ");
+                                gtk_label_set_text(GTK_LABEL(run_label), "   ");
                                 cpl.run_on = 0;
                                 stop_run();
                             }
@@ -1626,7 +1626,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                         if (cpl.fire_on) {
                             if (!(event->state & GDK_SHIFT_MASK)) {
                                 /* printf("Fire is on while shift is not\n");*/
-                                gtk_label_set(GTK_LABEL(fire_label), "   ");
+                                gtk_label_set_text(GTK_LABEL(fire_label), "   ");
                                 cpl.fire_on = 0;
                                 stop_fire();
                             }
@@ -1661,7 +1661,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                          * window.  So we have to pass the event to it
                          * explicitly.
                          */
-                        if (GTK_WIDGET_HAS_FOCUS(entry_commands) == 0)
+                        if (gtk_widget_has_focus(entry_commands) == 0)
                             gtk_widget_event(
                                 GTK_WIDGET(entry_commands), (GdkEvent *)event);
                     }
@@ -1684,43 +1684,6 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     }
     g_signal_stop_emission_by_name(
         GTK_OBJECT(window), "key_press_event");
-}
-
-/**
- * Output the current list of keybindings to the message pane.
- *
- * @param keylist
- */
-void draw_keybindings(GtkWidget *keylist) {
-    int i, j, count = 1;
-    struct keybind *kb;
-    char buff[MAX_BUF];
-    char buffer[5][MAX_BUF];
-    char *buffers[5];
-
-    gtk_clist_clear(GTK_CLIST(keylist));
-    for (i = 0; i < KEYHASH; i++) {
-        for (j = 0; j < 2; j++) {
-            for (kb = (j == 0) ? keys_global[i] : keys_char[i]; kb != NULL; kb = kb->next) {
-                get_key_modchars(kb, 0, buff);
-
-                if (kb->keysym != NoSymbol) {
-                    snprintf(buffer[0], sizeof(buffer[0]), "%i", count);
-                    snprintf(buffer[1], sizeof(buffer[1]), "%s", gdk_keyval_name(kb->keysym));
-                    snprintf(buffer[2], sizeof(buffer[2]), "%i", i);
-                    snprintf(buffer[3], sizeof(buffer[3]), "%s", buff);
-                    snprintf(buffer[4], sizeof(buffer[4]), "%s", kb->command);
-                    buffers[0] = buffer[0];
-                    buffers[1] = buffer[1];
-                    buffers[2] = buffer[2];
-                    buffers[3] = buffer[3];
-                    buffers[4] = buffer[4];
-                    gtk_clist_append(GTK_CLIST(keylist), buffers);
-                }
-                count++;
-            }
-        }
-    }
 }
 
 /**
@@ -1766,7 +1729,7 @@ void gtk_command_history(int direction) {
              * now.
              */
             gtk_entry_set_text(GTK_ENTRY(entry_commands), "");
-            gtk_entry_set_position(GTK_ENTRY(entry_commands), 0);
+            gtk_editable_set_position(GTK_EDITABLE(entry_commands), 0);
             scroll_history_position = cur_history_position;
             return;
         }

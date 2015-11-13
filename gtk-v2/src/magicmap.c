@@ -16,32 +16,17 @@
  * Covers drawing the magic map.
  */
 
-#include "client.h"
-
 #include <gtk/gtk.h>
 
+#include "client.h"
 #include "main.h"
 
-extern GtkWidget *magic_map;    /**< main.c - drawing area for the magic map */
-extern GtkWidget *map_notebook; /**< main.c - drawing areas for the maps */
-extern GdkColor root_color[NUM_COLORS];
-
-static GdkGC *magic_map_gc=NULL;
-
-/**
- * Draws the magic map - basically, it is just a simple encoding of space X is
- * color C.
- */
-void draw_magic_map(void)
-{
-    int x=0, y=0;
-
-    /*
-     * This can happen if a person selects the magic map pane before actually
-     * getting any magic map data
-     */
+void draw_magic_map() {
     if (!cpl.magicmap) {
+        // Do nothing if player has no magic map data.
         return;
+    } else {
+        cpl.showmagic = 1;
     }
 
     /*
@@ -50,26 +35,15 @@ void draw_magic_map(void)
      */
     gtk_notebook_set_current_page(GTK_NOTEBOOK(map_notebook), MAGIC_MAP_PAGE);
 
-    gtk_widget_show(magic_map);
+    GdkWindow *window = gtk_widget_get_window(magic_map);
+    gdk_window_clear(window);
 
-    if (!magic_map_gc) {
-        magic_map_gc = gdk_gc_new (magic_map->window);
-    }
-
-    gdk_gc_set_foreground (magic_map_gc, &root_color[0]);
-    gdk_draw_rectangle (magic_map->window, magic_map_gc,
-                        TRUE,
-                        0,
-                        0,
-                        magic_map->allocation.width,
-                        magic_map->allocation.height);
-
-    cpl.mapxres = magic_map->allocation.width/cpl.mmapx;
-    cpl.mapyres = magic_map->allocation.height/cpl.mmapy;
-
-    if (cpl.mapxres < 1 || cpl.mapyres<1) {
-        LOG(LOG_WARNING,"gtk-v2::draw_magic_map","magic map resolution less than 1, map is %dx%d",
-            cpl.mmapx, cpl.mmapy);
+    cpl.mapxres = gdk_window_get_width(window) / cpl.mmapx;
+    cpl.mapyres = gdk_window_get_height(window) / cpl.mmapy;
+    if (cpl.mapxres < 1 || cpl.mapyres < 1) {
+        LOG(LOG_WARNING, "draw_magic_map",
+            "magic map resolution less than 1, map is %dx%d", cpl.mmapx,
+            cpl.mmapy);
         return;
     }
 
@@ -78,76 +52,39 @@ void draw_magic_map(void)
      * However, it probably makes sense to keep them the same value.  Need to
      * take the smaller value.
      */
-    if (cpl.mapxres>cpl.mapyres) {
-        cpl.mapxres=cpl.mapyres;
+    if (cpl.mapxres > cpl.mapyres) {
+        cpl.mapxres = cpl.mapyres;
     } else {
-        cpl.mapyres=cpl.mapxres;
+        cpl.mapyres = cpl.mapxres;
     }
 
-    /*
-     * This is keeping the same unpacking scheme that the server uses to pack
-     * it up.
-     */
-    for (y = 0; y < cpl.mmapy; y++) {
-        for (x = 0; x < cpl.mmapx; x++) {
-            guint8 val = cpl.magicmap[y*cpl.mmapx + x];
-
-            gdk_gc_set_foreground(
-                magic_map_gc, &root_color[val&FACE_COLOR_MASK]);
-
-            gdk_draw_rectangle(magic_map->window, magic_map_gc,
-                               TRUE,
-                               cpl.mapxres*x,
-                               cpl.mapyres*y,
-                               cpl.mapxres,
-                               cpl.mapyres);
+    cairo_t *cr = gdk_cairo_create(GDK_DRAWABLE(window));
+    for (int y = 0; y < cpl.mmapy; y++) {
+        for (int x = 0; x < cpl.mmapx; x++) {
+            guint8 val = cpl.magicmap[y * cpl.mmapx + x];
+            gdk_cairo_set_source_color(cr, &root_color[val & FACE_COLOR_MASK]);
+            cairo_rectangle(cr, cpl.mapxres * x, cpl.mapyres * y, cpl.mapxres,
+                            cpl.mapyres);
+            cairo_fill(cr);
         }
     }
+    cairo_destroy(cr);
 }
 
 /**
- * Flash the player position on the magic map
+ * Flash the player's position on the magic map.
  */
-void magic_map_flash_pos(void)
-{
-    /*
-     * Don't want to keep doing this if the user switches back to the map
-     * window.
-     */
-    if (gtk_notebook_get_current_page(GTK_NOTEBOOK(map_notebook))!=MAGIC_MAP_PAGE) {
-        cpl.showmagic=0;
-    }
-
-    if (!cpl.showmagic) {
-        return;
-    }
-
-    cpl.showmagic ^=2;
-    if (cpl.showmagic & 2) {
-        gdk_gc_set_foreground (magic_map_gc, &root_color[0]);
-    } else {
-        gdk_gc_set_foreground (magic_map_gc, &root_color[1]);
-    }
-    gdk_draw_rectangle (magic_map->window, magic_map_gc,
-                        TRUE,
-                        cpl.mapxres*cpl.pmapx,
-                        cpl.mapyres*cpl.pmapy,
-                        cpl.mapxres,
-                        cpl.mapyres);
+void magic_map_flash_pos() {
+    GdkWindow *window = gtk_widget_get_window(magic_map);
+    cairo_t *cr = gdk_cairo_create(GDK_DRAWABLE(window));
+    gdk_cairo_set_source_color(cr, &root_color[(cpl.showmagic & 2) ? 0 : 1]);
+    cairo_rectangle(cr, cpl.mapxres * cpl.pmapx, cpl.mapyres * cpl.pmapy,
+                    cpl.mapxres, cpl.mapyres);
+    cairo_fill(cr);
+    cairo_destroy(cr);
 }
 
-/**
- *
- * @param widget
- * @param event
- * @param user_data
- * @return FALSE
- */
-gboolean
-on_drawingarea_magic_map_expose_event  (GtkWidget       *widget,
-                                        GdkEventExpose  *event,
-                                        gpointer         user_data)
-{
+gboolean on_drawingarea_magic_map_expose_event() {
     draw_magic_map();
     return FALSE;
 }

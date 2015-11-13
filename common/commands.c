@@ -2341,7 +2341,6 @@ void MagicMapCmd(unsigned char *data, int len)
      * the size specified in the protocol and what the server sends us.
      */
     memcpy(cpl.magicmap, cp, cpl.mmapx*cpl.mmapy);
-    cpl.showmagic = 1;
     draw_magic_map();
 }
 

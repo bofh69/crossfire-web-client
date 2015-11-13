@@ -37,7 +37,7 @@
  * As images can now be of variable size (and potentially re-sized), the size
  * information is stored here.
  */
-#define DEFAULT_IMAGE_SIZE      32
+#define DEFAULT_IMAGE_SIZE 32
 #define MAXPIXMAPNUM 10000
 
 #ifdef HAVE_OPENGL
@@ -45,14 +45,15 @@
 #endif
 
 typedef struct PixmapInfo {
-    void        *icon_mask, *icon_image;
-    guint16      icon_width, icon_height;
-    void        *map_mask, *map_image;
-    guint16      map_width, map_height;
-    void        *fog_image;
-    guint16      smooth_face;  /**< A face used for smoothing with this face. */
+    void *icon_mask;
+    GdkPixbuf *icon_image;
+    guint16 icon_width, icon_height;
+    void *map_mask, *map_image;
+    guint16 map_width, map_height;
+    void *fog_image;
+    guint16 smooth_face; /**< A face used for smoothing with this face. */
 #ifdef HAVE_OPENGL
-    GLuint      map_texture, fog_texture;
+    GLuint map_texture, fog_texture;
 #endif
 } PixmapInfo;
 

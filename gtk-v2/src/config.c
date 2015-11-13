@@ -93,9 +93,10 @@ GtkWidget *config_window, *config_spinbutton_cwindow, *config_button_echo,
         *config_button_sound, *config_button_cache, *config_button_download,
         *config_button_fog, *config_spinbutton_iconscale, *config_spinbutton_mapscale,
         *config_spinbutton_mapwidth, *config_spinbutton_mapheight,
-        *config_button_smoothing, *config_combobox_displaymode,
-        *config_combobox_faceset, *config_combobox_lighting,
-        *config_combobox_theme, *config_combobox_layout;
+        *config_button_smoothing;
+
+GtkComboBoxText *config_combobox_displaymode, *config_combobox_faceset,
+    *config_combobox_layout, *config_combobox_lighting, *config_combobox_theme;
 
 /* This is the string names that correspond to the numberic id's in client.h */
 static char *theme = "Standard";
@@ -568,16 +569,17 @@ void config_init(GtkWidget *window_root) {
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_mapwidth"));
     config_spinbutton_mapheight =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_mapheight"));
-    config_combobox_displaymode =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_displaymode"));
-    config_combobox_faceset =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_faceset"));
-    config_combobox_lighting =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_lighting"));
-    config_combobox_theme =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_theme"));
-    config_combobox_layout =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_combobox_glade"));
+
+    config_combobox_displaymode = GTK_COMBO_BOX_TEXT(
+        gtk_builder_get_object(dialog_xml, "config_combobox_displaymode"));
+    config_combobox_faceset = GTK_COMBO_BOX_TEXT(
+        gtk_builder_get_object(dialog_xml, "config_combobox_faceset"));
+    config_combobox_lighting = GTK_COMBO_BOX_TEXT(
+        gtk_builder_get_object(dialog_xml, "config_combobox_lighting"));
+    config_combobox_theme = GTK_COMBO_BOX_TEXT(
+        gtk_builder_get_object(dialog_xml, "config_combobox_theme"));
+    config_combobox_layout = GTK_COMBO_BOX_TEXT(
+        gtk_builder_get_object(dialog_xml, "config_combobox_glade"));
 
     g_signal_connect((gpointer) config_window, "delete_event",
                      G_CALLBACK(gtk_widget_hide_on_delete), NULL);
@@ -601,20 +603,17 @@ void config_init(GtkWidget *window_root) {
     count =  gtk_tree_model_iter_n_children(
                  gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_displaymode)), NULL);
     for (i = 0; i < count; i++) {
-        gtk_combo_box_remove_text(GTK_COMBO_BOX(config_combobox_displaymode), 0);
+        gtk_combo_box_text_remove(config_combobox_displaymode, 0);
     }
 
 #ifdef HAVE_OPENGL
-    gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),
-                              "OpenGL");
+    gtk_combo_box_text_append_text(config_combobox_displaymode, "OpenGL");
 #endif
 
 #ifdef HAVE_SDL
-    gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),  "SDL");
+    gtk_combo_box_text_append_text(config_combobox_displaymode, "SDL");
 #endif
-    gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_displaymode),
-                              "Pixmap");
-
+    gtk_combo_box_text_append_text(config_combobox_displaymode, "Pixmap");
 }
 
 /**
@@ -693,15 +692,12 @@ static int scandir_ui_filter(const struct dirent *d) {
  * addition to the combobox list.
  *
  */
-static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
-                                       guint64 want_none, char *subdir, int (*scandir_filter)()) {
-    int             count, i;
-    GtkTreeModel    *model;
-    gchar           *buf;
-    GtkTreeIter     iter;
+static void combo_fill_from_dir(GtkComboBoxText *combobox, char *active,
+                                guint64 want_none, char *subdir,
+                                int (*scandir_filter)()) {
+    GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(combobox));
+    int count = gtk_tree_model_iter_n_children(model, NULL);
 
-    model = gtk_combo_box_get_model(GTK_COMBO_BOX(combobox));
-    count =  gtk_tree_model_iter_n_children(model, NULL);
     /*
      * If count is 0, the combo box control has not been initialized yet, so
      * fill it with the appropriate selections now.
@@ -714,10 +710,10 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
         snprintf(path, MAX_BUF, "%s/%s", CF_DATADIR, subdir);
 
         count = scandir(path, &files, *scandir_filter, alphasort);
-        LOG(LOG_DEBUG, "config.c::fill_combobox_from_datadir",
-            "found %d files in %s\n", count, path);
+        LOG(LOG_DEBUG, "combo_fill_from_dir", "found %d files in %s\n", count,
+            path);
 
-        for (i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             /*
              * If a 'None' entry is desired, and if an entry that falls after
              * 'None' is found, and, if 'None' has not already been added,
@@ -725,11 +721,11 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
              */
             if (!done_none && want_none &&
                     strcmp(files[i]->d_name, "None") > 0) {
-                gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), "None");
+                gtk_combo_box_text_append_text(combobox, "None");
                 done_none = 1;
             }
 
-            gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), files[i]->d_name);
+            gtk_combo_box_text_append_text(combobox, files[i]->d_name);
         }
         /* Set this for below */
         count =  gtk_tree_model_iter_n_children(model, NULL);
@@ -738,9 +734,12 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
      * The block belows causes the matching combobox item to be selected.  Set
      * it irregardless of whether this is the first time this is run or not.
      */
-    for (i = 0; i < count; i++) {
+    GtkTreeIter iter;
+    gchar *buf;
+
+    for (int i = 0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-            LOG(LOG_ERROR, "config.c::fill_combobox_from_datadir",
+            LOG(LOG_ERROR, "combo_fill_from_dir",
                 "Unable to get combo box iter\n");
             break;
         }
@@ -759,10 +758,10 @@ static void fill_combobox_from_datadir(GtkWidget *combobox, char *active,
  * the want_config[] values.
  */
 static void setup_config_window() {
-    int count, i;
-    GtkTreeModel    *model;
-    gchar   *buf;
     GtkTreeIter iter;
+    GtkTreeModel *model;
+    gchar *buf;
+    int count;
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_echo),
                                  want_config[CONFIG_ECHO]);
@@ -815,23 +814,23 @@ static void setup_config_window() {
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_faceset));
     count =  gtk_tree_model_iter_n_children(model, NULL);
 
-    for (i = 0; i < count; i++) {
-        gtk_combo_box_remove_text(GTK_COMBO_BOX(config_combobox_faceset), 0);
+    for (int i = 0; i < count; i++) {
+        gtk_combo_box_text_remove(config_combobox_faceset, 0);
     }
 
     /* If we have real faceset info from the server, use it */
     if (face_info.have_faceset_info) {
-        for (i = 0; i < MAX_FACE_SETS; i++)
+        for (int i = 0; i < MAX_FACE_SETS; i++)
             if (face_info.facesets[i].fullname)
-                gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset),
-                                          face_info.facesets[i].fullname);
+                gtk_combo_box_text_append_text(config_combobox_faceset,
+                                               face_info.facesets[i].fullname);
     } else {
-        gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset),  "Standard");
-        gtk_combo_box_append_text(GTK_COMBO_BOX(config_combobox_faceset),  "Classic");
+        gtk_combo_box_text_append_text(config_combobox_faceset, "Standard");
+        gtk_combo_box_text_append_text(config_combobox_faceset, "Classic");
     }
-    count =  gtk_tree_model_iter_n_children(model, NULL);
+    count = gtk_tree_model_iter_n_children(model, NULL);
 
-    for (i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
             LOG(LOG_ERROR, "config.c::setup_config_window",
                 "Unable to get faceset iter\n");
@@ -857,7 +856,7 @@ static void setup_config_window() {
          */
         model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_displaymode));
         count =  gtk_tree_model_iter_n_children(model, NULL);
-        for (i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
                 LOG(LOG_ERROR, "config.c::setup_config_window",
                     "Unable to get faceset iter\n");
@@ -879,7 +878,7 @@ static void setup_config_window() {
      */
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_lighting));
     count =  gtk_tree_model_iter_n_children(model, NULL);
-    for (i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
             LOG(LOG_ERROR, "config.c::setup_config_window",
                 "Unable to get lighting iter\n");
@@ -905,16 +904,16 @@ static void setup_config_window() {
      * selector control.  Specify the current default, and that a "None" entry
      * needs to be added also.
      */
-    fill_combobox_from_datadir(config_combobox_theme, theme, 1, themedir,
-                               &scandir_theme_filter);
+    combo_fill_from_dir(config_combobox_theme, theme, 1, themedir,
+                        &scandir_theme_filter);
     /*
      * Use the filenames of files found in the UI subdirectory of the
      * crossfire-client data directory as the selectable items in a combo box
      * selector control.  Specify the current default, and that no "None" entry
      * is desired.
      */
-    fill_combobox_from_datadir(config_combobox_layout, window_xml_file, 0,
-                               layoutdir, &scandir_ui_filter);
+    combo_fill_from_dir(config_combobox_layout, window_xml_file, 0, layoutdir,
+                        &scandir_ui_filter);
 }
 
 #define IS_DIFFERENT(TYPE) (want_config[TYPE] != use_config[TYPE])
@@ -958,7 +957,7 @@ static void read_config_window(void) {
     want_config[CONFIG_MAPHEIGHT] = gtk_spin_button_get_value_as_int(
                                         GTK_SPIN_BUTTON(config_spinbutton_mapheight));
 
-    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_faceset));
+    buf = gtk_combo_box_text_get_active_text(config_combobox_faceset);
 
     /*
      * We may be able to eliminate the extra g_strdup/free, but I'm not 100% sure
@@ -971,7 +970,7 @@ static void read_config_window(void) {
         g_free(buf);
     }
 
-    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_displaymode));
+    buf = gtk_combo_box_text_get_active_text(config_combobox_displaymode);
     if (buf) {
         if (!g_ascii_strcasecmp(buf, "OpenGL")) {
             want_config[CONFIG_DISPLAYMODE] = CFG_DM_OPENGL;
@@ -983,7 +982,7 @@ static void read_config_window(void) {
         g_free(buf);
     }
 
-    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_lighting));
+    buf = gtk_combo_box_text_get_active_text(config_combobox_lighting);
     if (buf) {
         if (!g_ascii_strcasecmp(buf, "Per Tile")) {
             want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
@@ -1006,7 +1005,7 @@ static void read_config_window(void) {
      * allocated or is just pointing as a static string.  So we lose a few
      * bytes and just don't free the data.
      */
-    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_theme));
+    buf = gtk_combo_box_text_get_active_text(config_combobox_theme);
     if (buf) {
         if (strcmp(buf, theme)) {
             theme = buf;
@@ -1021,7 +1020,7 @@ static void read_config_window(void) {
      * Load up the layout and set the combobox control to point to the loaded
      * default value.
      */
-    buf = gtk_combo_box_get_active_text(GTK_COMBO_BOX(config_combobox_layout));
+    buf = gtk_combo_box_text_get_active_text(config_combobox_layout);
     if (buf && strcmp(buf, window_xml_file)) {
         strncpy(window_xml_file, buf, MAX_BUF);
     }
@@ -1150,7 +1149,7 @@ void save_winpos() {
     pane_list = gtk_builder_get_objects(window_xml);
 
     for (list_loop = pane_list; list_loop != NULL; list_loop = list_loop->next) {
-        GType type = GTK_WIDGET_TYPE(list_loop->data);
+        GType type = G_OBJECT_TYPE(list_loop->data);
 
         if (type == GTK_TYPE_HPANED || type == GTK_TYPE_VPANED) {
             g_key_file_set_integer(config, window_xml_file,
@@ -1207,7 +1206,7 @@ void load_window_positions(GtkWidget *window_root) {
 
     // Load and set panel positions.
     for (list = pane_list; list != NULL; list = list->next) {
-        GType type = GTK_WIDGET_TYPE(list->data);
+        GType type = G_OBJECT_TYPE(list->data);
 
         if (type == GTK_TYPE_HPANED || type == GTK_TYPE_VPANED) {
             int position = g_key_file_get_integer(config, window_xml_file,

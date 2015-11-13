@@ -214,7 +214,6 @@ static void do_dmalloc(const char *ignored) {
 static void do_inv() { print_inventory(cpl.ob); }
 
 static void do_magicmap() {
-    cpl.showmagic = 1;
     draw_magic_map();
 }
 
