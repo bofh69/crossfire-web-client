@@ -13,17 +13,12 @@
 
 /**
  * @file
- * Covers configuration issues.
+ * Implement client configuration dialog
  */
 
 #include "client.h"
 
 #include <ctype.h>
-
-#if defined __MINGW32__ || __linux__
-#include <dirent.h>
-#endif
-
 #include <gtk/gtk.h>
 
 #include "image.h"
@@ -34,76 +29,26 @@
 static GKeyFile *config;
 static GString *config_path;
 
-#if defined __MINGW32__ || __linux__
-int alphasort(const struct dirent **a, const struct dirent **b) {
-    return strcoll((*a)->d_name, (*b)->d_name);
+GtkWidget *config_dialog, *config_button_echo, *config_button_fasttcp,
+    *config_button_timestamp, *config_button_grad_color,
+    *config_button_foodbeep, *config_button_sound, *config_button_cache,
+    *config_button_download, *config_button_fog, *config_button_smoothing;
+
+GtkFileChooser *ui_filechooser, *theme_filechooser;
+GtkComboBoxText *config_combobox_faceset;
+GtkComboBox *config_combobox_displaymode, *config_combobox_lighting;
+
+#define THEME_DEFAULT CF_DATADIR "/themes/Standard"
+static char *theme = THEME_DEFAULT;
+
+static void on_config_close(GtkButton *button, gpointer user_data);
+
+/**
+ * Return the basename of the current UI file.
+ */
+static char *ui_name() {
+    return g_path_get_basename(window_xml_file);
 }
-
-int scandir(const char *dir, struct dirent ***namelist,
-            int (*select)(const struct dirent *),
-            int (*compar)(const struct dirent **, const struct dirent **)) {
-    DIR *d;
-    struct dirent *entry;
-    register int i = 0;
-    size_t entrysize;
-
-    if ((d = opendir(dir)) == NULL) {
-        return -1;
-    }
-
-    *namelist = NULL;
-    while ((entry = readdir(d)) != NULL) {
-        if (select == NULL || (select != NULL && (*select)(entry))) {
-            *namelist = (struct dirent **)g_realloc((void *)(*namelist),
-                                                  (size_t)((i + 1) * sizeof(struct dirent *)));
-            if (*namelist == NULL) {
-                closedir(d);
-                return -1;
-            }
-            entrysize = sizeof(struct dirent) - sizeof(entry->d_name) + strlen(
-                            entry->d_name) + 1;
-            (*namelist)[i] = (struct dirent *)g_malloc(entrysize);
-            if ((*namelist)[i] == NULL) {
-                closedir(d);
-                return -1;
-            }
-            memcpy((*namelist)[i], entry, entrysize);
-            i++;
-        }
-    }
-    if (closedir(d)) {
-        return -1;
-    }
-    if (i == 0) {
-        return -1;
-    }
-    if (compar != NULL)
-        qsort((void *)(*namelist), (size_t)i, sizeof(struct dirent *),
-              (int(*)(const void *, const void *))compar);
-
-    return i;
-}
-#endif
-
-extern char window_xml_file[MAX_BUF];  /* Name of the layout file in use. */
-
-GtkWidget *config_window, *config_spinbutton_cwindow, *config_button_echo,
-        *config_button_fasttcp, *config_button_timestamp, *config_button_grad_color,
-        *config_button_foodbeep,
-        *config_button_sound, *config_button_cache, *config_button_download,
-        *config_button_fog, *config_spinbutton_iconscale, *config_spinbutton_mapscale,
-        *config_spinbutton_mapwidth, *config_spinbutton_mapheight,
-        *config_button_smoothing;
-
-GtkComboBoxText *config_combobox_displaymode, *config_combobox_faceset,
-    *config_combobox_layout, *config_combobox_lighting, *config_combobox_theme;
-
-/* This is the string names that correspond to the numberic id's in client.h */
-static char *theme = "Standard";
-static char *themedir = "themes";
-static char *layoutdir = "ui";
-
-static const char *const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
 
 /**
  * Sets up player-specific client and layout rc files and handles loading of a
@@ -130,9 +75,7 @@ static const char *const display_modes[] = {"Pixmap", "SDL", "OpenGL"};
 static char **default_files = NULL;
 void init_theme() {
     char path[MAX_BUF];
-    char xml_basename[MAX_BUF];
     char **tmp;
-    char *cp;
     int i;
 
     /*
@@ -183,12 +126,7 @@ void init_theme() {
      * This is a mid-priority client rc file as its settings supersede the
      * client gtkrc file, but are overridden by a client-configured theme.
      */
-    snprintf(xml_basename, sizeof(xml_basename), "%s", window_xml_file);
-    cp = strrchr(xml_basename, '.');
-    if (cp) {
-        cp[0] = 0;
-    }
-    snprintf(path, sizeof(path), "%s/%s.gtkrc", config_dir, xml_basename);
+    snprintf(path, sizeof(path), "%s/%s.gtkrc", config_dir, ui_name());
     default_files[i] = g_strdup(path);
     i++;
     /*
@@ -198,8 +136,6 @@ void init_theme() {
 }
 
 void load_theme(int reload) {
-    char path[MAX_BUF];
-
     /*
      * Whether or not this is default and initial run, we want to register
      * the modified rc search path list, so GTK needs to get the changes.
@@ -216,8 +152,7 @@ void load_theme(int reload) {
      * <layout>.gtkrc files.  Remember, strcmp returns zero on a match, and
      * a theme file should not be registered if "None" is selected.
      */
-    if (strcmp(theme, "None")) {
-        snprintf(path, MAX_BUF, "%s/%s/%s", CF_DATADIR, themedir, theme);
+    if (theme != NULL) {
         /*
          * Check for existence of the client theme file.  Unfortunately, at
          * initial run time, the window may not be realized yet, so the
@@ -225,11 +160,11 @@ void load_theme(int reload) {
          * add the path even if the file isn't there, but the player might
          * still want to know something is wrong since they picked a theme.
          */
-        if (access(path, R_OK) == -1)
-            LOG(LOG_ERROR, "config.c::load_theme",
-                "Unable to find theme file %s", path);
-
-        gtk_rc_add_default_file(path);
+        if (access(theme, R_OK) == -1) {
+            LOG(LOG_ERROR, "load_theme", "Unable to find theme file %s", theme);
+            theme = THEME_DEFAULT;
+        }
+        gtk_rc_add_default_file(theme);
     }
 
     /*
@@ -483,13 +418,10 @@ void config_load() {
         face_info.want_faceset = g_key_file_get_string(config, "GTKv2",
                 "faceset", NULL);
 
-        /* Since this is a buffer, it must be treated differently. */
-        char *window_xml_file_name = g_key_file_get_string(config, "GTKv2",
-                "window_layout", NULL);
-
-        snprintf(window_xml_file, sizeof(window_xml_file), "%s",
-                window_xml_file_name);
-        free(window_xml_file_name);
+        char *layout =
+            g_key_file_get_string(config, "GTKv2", "window_layout", NULL);
+        g_strlcpy(window_xml_file, layout, sizeof(window_xml_file));
+        free(layout);
     } else {
         g_error_free(error);
 
@@ -526,21 +458,20 @@ void save_defaults() {
     }
 }
 
-/**
- * Set up the configuration popup dialog using GtkBuilder and the XML layout file
- * loaded from main.c and connect various signals associated with this dialog.
- */
 void config_init(GtkWidget *window_root) {
-    static int has_init = 0;
-    GtkWidget *widget;
-    int count, i;
+    config_dialog =
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_dialog"));
 
-    has_init = 1;
+    // Initialize file choosers and set filename filters.
+    ui_filechooser =
+        GTK_FILE_CHOOSER(gtk_builder_get_object(dialog_xml, "ui_filechooser"));
+    theme_filechooser = GTK_FILE_CHOOSER(
+        gtk_builder_get_object(dialog_xml, "theme_filechooser"));
 
-    config_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_window"));
+    GtkFileFilter *ui_filter = gtk_file_filter_new();
+    gtk_file_filter_add_pattern(ui_filter, "*.ui");
+    gtk_file_chooser_set_filter(ui_filechooser, ui_filter);
 
-    config_spinbutton_cwindow =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_cwindow"));
     config_button_echo =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_echo"));
     config_button_fasttcp =
@@ -561,262 +492,81 @@ void config_init(GtkWidget *window_root) {
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_fog"));
     config_button_smoothing =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_smoothing"));
-    config_spinbutton_iconscale =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_iconscale"));
-    config_spinbutton_mapscale =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_mapscale"));
-    config_spinbutton_mapwidth =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_mapwidth"));
-    config_spinbutton_mapheight =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_spinbutton_mapheight"));
 
-    config_combobox_displaymode = GTK_COMBO_BOX_TEXT(
+    config_combobox_displaymode = GTK_COMBO_BOX(
         gtk_builder_get_object(dialog_xml, "config_combobox_displaymode"));
     config_combobox_faceset = GTK_COMBO_BOX_TEXT(
         gtk_builder_get_object(dialog_xml, "config_combobox_faceset"));
-    config_combobox_lighting = GTK_COMBO_BOX_TEXT(
+    config_combobox_lighting = GTK_COMBO_BOX(
         gtk_builder_get_object(dialog_xml, "config_combobox_lighting"));
-    config_combobox_theme = GTK_COMBO_BOX_TEXT(
-        gtk_builder_get_object(dialog_xml, "config_combobox_theme"));
-    config_combobox_layout = GTK_COMBO_BOX_TEXT(
-        gtk_builder_get_object(dialog_xml, "config_combobox_glade"));
 
-    g_signal_connect((gpointer) config_window, "delete_event",
-                     G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+    GtkWidget *config_button_close =
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_close"));
+    g_signal_connect(config_button_close, "clicked",
+                     G_CALLBACK(on_config_close), NULL);
+    g_signal_connect(config_dialog, "delete_event", G_CALLBACK(on_config_close),
+                     NULL);
 
-    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_save"));
-    g_signal_connect((gpointer) widget, "clicked",
-                     G_CALLBACK(on_config_button_save_clicked), NULL);
-
-    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_apply"));
-    g_signal_connect((gpointer) widget, "clicked",
-                     G_CALLBACK(on_config_button_apply_clicked), NULL);
-
-    widget = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_close"));
-    g_signal_connect((gpointer) widget, "clicked",
-                     G_CALLBACK(on_config_button_close_clicked), NULL);
-
-    /*
-     * Display mode combo box setup.  First, remove all entries, then populate
-     * with what options are available based on what was compiled in.
-     */
-    count =  gtk_tree_model_iter_n_children(
-                 gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_displaymode)), NULL);
-    for (i = 0; i < count; i++) {
-        gtk_combo_box_text_remove(config_combobox_displaymode, 0);
-    }
-
-#ifdef HAVE_OPENGL
-    gtk_combo_box_text_append_text(config_combobox_displaymode, "OpenGL");
-#endif
-
-#ifdef HAVE_SDL
-    gtk_combo_box_text_append_text(config_combobox_displaymode, "SDL");
-#endif
-    gtk_combo_box_text_append_text(config_combobox_displaymode, "Pixmap");
-}
-
-/**
- * This function is used by scandir below to get only the directory entries
- * needed.  In the case of themes, simply skip dot files.
- *
- * @param d
- * the dirent entry from scandir.
- *
- * function returns 1 if the file is a valid theme file name, 0 for files
- * that are not.
- */
-static int scandir_theme_filter(const struct dirent *d) {
-    if (d->d_name[0] == '.') {
-        return 0;
-    }
-    return 1;
-}
-
-/**
- * This function is used by scandir below to get only the directory entries
- * needed.  In the case of layout files, skip all files that do not end with
- * ".ui" and the default XML file that defines auxilliary dialogs.
- *
- * @param d
- * the dirent entry from scandir.
- *
- * function returns 1 if the file is a valid UI XML file name, 0 for files
- * that are not.
- */
-static int scandir_ui_filter(const struct dirent *d) {
-    char *token = NULL;
-    char *extok = NULL;
-    char delim[] = ".";
-    char exten[] = "ui";
-    char parse[MAX_BUF] = "";
-
-    strncpy(parse, d->d_name, MAX_BUF);
-    token = strtok(parse, delim);
-    while (token) {
-        extok = token;
-        token = strtok(NULL, delim);
-    }
-    if (extok && strncmp(exten, extok, strlen(exten)) == 0) {
-        if (strncmp(parse, DIALOG_XML_FILENAME, strlen(parse)) == 0) {
-            return 0;
-        }
-        return 1;
-    }
-    return 0;
-}
-
-/**
- * Load a control with entries created from a directory that has files suited
- * to a particular function.  IE. themes, and UI layout files.
- *
- * This sees what themes or layouts are in the directory and puts them in the
- * pulldown menu for the selection box.  The presumption is made that these
- * files won't change during run time, so we only need to do this once.
- *
- * @param combobox
- * a combobox widget to be filled with filenames.
- *
- * @param active
- * a pointer to a string that is the active combobox item.
- *
- * @param want_none
- * 1 if a "None" entry is added to the filename list; 0 if not.
- *
- * @param subdir
- * the subdirectory that contains filenames to add to the combobox list.
- *
- * @param scandir_filter
- * a pointer to a function that is called by scandir() to filter filenames to
- * add to the combobox.  The function returns 1 if the filename is valid for
- * addition to the combobox list.
- *
- */
-static void combo_fill_from_dir(GtkComboBoxText *combobox, char *active,
-                                guint64 want_none, char *subdir,
-                                int (*scandir_filter)()) {
-    GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(combobox));
-    int count = gtk_tree_model_iter_n_children(model, NULL);
-
-    /*
-     * If count is 0, the combo box control has not been initialized yet, so
-     * fill it with the appropriate selections now.
-     */
-    if (count == 0) {
-        char path[MAX_BUF];
-        struct dirent **files;
-        int done_none = 0;
-
-        snprintf(path, MAX_BUF, "%s/%s", CF_DATADIR, subdir);
-
-        count = scandir(path, &files, *scandir_filter, alphasort);
-        LOG(LOG_DEBUG, "combo_fill_from_dir", "found %d files in %s\n", count,
-            path);
-
-        for (int i = 0; i < count; i++) {
-            /*
-             * If a 'None' entry is desired, and if an entry that falls after
-             * 'None' is found, and, if 'None' has not already been added,
-             * insert it now.
-             */
-            if (!done_none && want_none &&
-                    strcmp(files[i]->d_name, "None") > 0) {
-                gtk_combo_box_text_append_text(combobox, "None");
-                done_none = 1;
-            }
-
-            gtk_combo_box_text_append_text(combobox, files[i]->d_name);
-        }
-        /* Set this for below */
-        count =  gtk_tree_model_iter_n_children(model, NULL);
-    }
-    /*
-     * The block belows causes the matching combobox item to be selected.  Set
-     * it irregardless of whether this is the first time this is run or not.
-     */
+    // Initialize available rendering modes.
+    GtkListStore *display_list =
+        GTK_LIST_STORE(gtk_combo_box_get_model(config_combobox_displaymode));
     GtkTreeIter iter;
-    gchar *buf;
+#ifdef HAVE_OPENGL
+    gtk_list_store_append(display_list, &iter);
+    gtk_list_store_set(display_list, &iter, 0, "OpenGL", 1, CFG_DM_OPENGL, -1);
+#endif
+#ifdef HAVE_SDL
+    gtk_list_store_append(display_list, &iter);
+    gtk_list_store_set(display_list, &iter, 0, "SDL", 1, CFG_DM_SDL, -1);
+#endif
+    gtk_list_store_append(display_list, &iter);
+    gtk_list_store_set(display_list, &iter, 0, "Pixmap", 1, CFG_DM_PIXMAP, -1);
+}
 
+/**
+ * Removes all the text entries from the combo box. This function is not
+ * available in GTK+2, so implement it ourselves.
+ */
+static void combo_box_text_remove_all(GtkComboBoxText *combo_box) {
+    int count = gtk_tree_model_iter_n_children(
+        gtk_combo_box_get_model(GTK_COMBO_BOX(combo_box)), NULL);
     for (int i = 0; i < count; i++) {
-        if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-            LOG(LOG_ERROR, "combo_fill_from_dir",
-                "Unable to get combo box iter\n");
-            break;
-        }
-        gtk_tree_model_get(model, &iter, 0, &buf, -1);
-        if (!g_ascii_strcasecmp(active, buf)) {
-            gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), i);
-            g_free(buf);
-            break;
-        }
-        g_free(buf);
+        gtk_combo_box_text_remove(combo_box, 0);
     }
 }
 
 /*
- * Setup_config_window sets the buttons, combos, etc, to the state that matches
+ * Setup config_dialog sets the buttons, combos, etc, to the state that matches
  * the want_config[] values.
  */
-static void setup_config_window() {
+static void setup_config_dialog() {
     GtkTreeIter iter;
-    GtkTreeModel *model;
     gchar *buf;
     int count;
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_echo),
                                  want_config[CONFIG_ECHO]);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_fasttcp),
                                  want_config[CONFIG_FASTTCP]);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_timestamp),
                                  want_config[CONFIG_TIMESTAMP]);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_grad_color),
                                  want_config[CONFIG_GRAD_COLOR]);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_foodbeep),
                                  want_config[CONFIG_FOODBEEP]);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_sound),
                                  want_config[CONFIG_SOUND]);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_cache),
                                  want_config[CONFIG_CACHE]);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_download),
                                  want_config[CONFIG_DOWNLOAD]);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_fog),
                                  want_config[CONFIG_FOGWAR]);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_smoothing),
                                  want_config[CONFIG_SMOOTH]);
 
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_cwindow),
-                              (float)want_config[CONFIG_CWINDOW]);
-
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_iconscale),
-                              (float)want_config[CONFIG_ICONSCALE]);
-
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_mapscale),
-                              (float)want_config[CONFIG_MAPSCALE]);
-
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_mapwidth),
-                              (float)want_config[CONFIG_MAPWIDTH]);
-
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(config_spinbutton_mapheight),
-                              (float)want_config[CONFIG_MAPHEIGHT]);
-    /*
-     * Face set combo box setup.
-     * Remove all the entries currently in the combo box
-     */
-    model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_faceset));
-    count =  gtk_tree_model_iter_n_children(model, NULL);
-
-    for (int i = 0; i < count; i++) {
-        gtk_combo_box_text_remove(config_combobox_faceset, 0);
-    }
+    // Fill face set combo box with available face sets from the server.
+    combo_box_text_remove_all(config_combobox_faceset);
 
     /* If we have real faceset info from the server, use it */
     if (face_info.have_faceset_info) {
@@ -824,21 +574,20 @@ static void setup_config_window() {
             if (face_info.facesets[i].fullname)
                 gtk_combo_box_text_append_text(config_combobox_faceset,
                                                face_info.facesets[i].fullname);
-    } else {
-        gtk_combo_box_text_append_text(config_combobox_faceset, "Standard");
-        gtk_combo_box_text_append_text(config_combobox_faceset, "Classic");
     }
-    count = gtk_tree_model_iter_n_children(model, NULL);
 
+    GtkTreeModel *model =
+        gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_faceset));
+    count = gtk_tree_model_iter_n_children(model, NULL);
     for (int i = 0; i < count; i++) {
         if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-            LOG(LOG_ERROR, "config.c::setup_config_window",
-                "Unable to get faceset iter\n");
+            LOG(LOG_ERROR, "setup_config_dialog", "Cannot iterate facesets\n");
             break;
         }
         gtk_tree_model_get(model, &iter, 0, &buf, -1);
 
-        if (face_info.want_faceset && !g_ascii_strcasecmp(face_info.want_faceset, buf)) {
+        if (face_info.want_faceset &&
+            !g_ascii_strcasecmp(face_info.want_faceset, buf)) {
             gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_faceset), i);
             g_free(buf);
             break;
@@ -846,184 +595,106 @@ static void setup_config_window() {
         g_free(buf);
     }
 
-    if (sizeof(display_modes) < (size_t)want_config[CONFIG_DISPLAYMODE]) {
-        LOG(LOG_ERROR, "config.c::setup_config_window",
-            "Player display mode not in display_modes range\n");
-    } else {
-        /*
-         * We want to set up the boxes to match current settings for things
-         * like displaymode.
-         */
-        model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_displaymode));
-        count =  gtk_tree_model_iter_n_children(model, NULL);
-        for (int i = 0; i < count; i++) {
-            if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-                LOG(LOG_ERROR, "config.c::setup_config_window",
-                    "Unable to get faceset iter\n");
-                break;
-            }
-            gtk_tree_model_get(model, &iter, 0, &buf, -1);
-            if (!g_ascii_strcasecmp(display_modes[want_config[CONFIG_DISPLAYMODE]], buf)) {
-                gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_displaymode), i);
-                g_free(buf);
-                break;
-            }
-            g_free(buf);
+    // Set current display mode.
+    model = gtk_combo_box_get_model(config_combobox_displaymode);
+    bool next = gtk_tree_model_get_iter_first(model, &iter);
+    while (next) {
+        int current;
+        gtk_tree_model_get(model, &iter, 1, &current, -1);
+        if (current == want_config[CONFIG_DISPLAYMODE]) {
+            gtk_combo_box_set_active_iter(config_combobox_displaymode, &iter);
+            break;
         }
+        next = gtk_tree_model_iter_next(model, &iter);
     }
 
-    /*
-     * We want to set up the boxes to match current settings for things like
-     * lighting.  A bit of a hack to hardcode the strings below.
-     */
-    model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_lighting));
-    count =  gtk_tree_model_iter_n_children(model, NULL);
-    for (int i = 0; i < count; i++) {
-        if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-            LOG(LOG_ERROR, "config.c::setup_config_window",
-                "Unable to get lighting iter\n");
-            break;
-        }
-        gtk_tree_model_get(model, &iter, 0, &buf, -1);
-        if ((want_config[CONFIG_LIGHTING] == CFG_LT_TILE &&
-                !g_ascii_strcasecmp(buf, "Per Tile")) ||
-                (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL &&
-                 !g_ascii_strcasecmp(buf, "Fast Per Pixel")) ||
-                (want_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST &&
-                 !g_ascii_strcasecmp(buf, "Best Per Pixel")) ||
-                (want_config[CONFIG_LIGHTING] == CFG_LT_NONE && !g_ascii_strcasecmp(buf, "None"))) {
-            gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_lighting), i);
-            g_free(buf);
-            break;
-        }
-        g_free(buf);
-    }
-    /*
-     * Use the filenames of files found in the themes subdirectory of the
-     * crossfire-client data directory as the selectable items in a combo box
-     * selector control.  Specify the current default, and that a "None" entry
-     * needs to be added also.
-     */
-    combo_fill_from_dir(config_combobox_theme, theme, 1, themedir,
-                        &scandir_theme_filter);
-    /*
-     * Use the filenames of files found in the UI subdirectory of the
-     * crossfire-client data directory as the selectable items in a combo box
-     * selector control.  Specify the current default, and that no "None" entry
-     * is desired.
-     */
-    combo_fill_from_dir(config_combobox_layout, window_xml_file, 0, layoutdir,
-                        &scandir_ui_filter);
+    // Lighting option indexes never change, so set option using index.
+    gtk_combo_box_set_active(config_combobox_lighting,
+                             want_config[CONFIG_LIGHTING]);
+
+    gtk_file_chooser_set_filename(ui_filechooser, window_xml_file);
+    gtk_file_chooser_set_filename(theme_filechooser, theme);
 }
 
 #define IS_DIFFERENT(TYPE) (want_config[TYPE] != use_config[TYPE])
 
 /**
- * This is basically the opposite of setup_config_window() above - instead of
+ * Get an integer value from 'column' of the active field in 'combobox'.
+ */
+static int combobox_get_value(GtkComboBox *combobox, int column) {
+    GtkTreeModel *model = gtk_combo_box_get_model(combobox);
+    GtkTreeIter iter;
+    int result;
+
+    gtk_combo_box_get_active_iter(combobox, &iter);
+    gtk_tree_model_get(model, &iter, column, &result, -1);
+    return result;
+}
+
+/**
+ * This is basically the opposite of setup_config_dialog() above - instead of
  * setting the display state appropriately, we read the display state and
  * update the want_config values.
  */
-static void read_config_window(void) {
-    gchar   *buf;
+static void read_config_dialog(void) {
+    want_config[CONFIG_ECHO] =
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_echo));
+    want_config[CONFIG_FASTTCP] =
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_fasttcp));
+    want_config[CONFIG_TIMESTAMP] = gtk_toggle_button_get_active(
+        GTK_TOGGLE_BUTTON(config_button_timestamp));
+    want_config[CONFIG_GRAD_COLOR] = gtk_toggle_button_get_active(
+        GTK_TOGGLE_BUTTON(config_button_grad_color));
+    want_config[CONFIG_FOODBEEP] =
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_foodbeep));
+    want_config[CONFIG_SOUND] =
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_sound));
+    want_config[CONFIG_CACHE] =
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_cache));
+    want_config[CONFIG_DOWNLOAD] =
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_download));
+    want_config[CONFIG_FOGWAR] =
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_button_fog));
+    want_config[CONFIG_SMOOTH] = gtk_toggle_button_get_active(
+        GTK_TOGGLE_BUTTON(config_button_smoothing));
 
-    want_config[CONFIG_ECHO] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                   config_button_echo));
-    want_config[CONFIG_FASTTCP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                      config_button_fasttcp));
-    want_config[CONFIG_TIMESTAMP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                        config_button_timestamp));
-    want_config[CONFIG_GRAD_COLOR] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                         config_button_grad_color));
-    want_config[CONFIG_FOODBEEP] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                       config_button_foodbeep));
-    want_config[CONFIG_SOUND] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                    config_button_sound));
-    want_config[CONFIG_CACHE] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                    config_button_cache));
-    want_config[CONFIG_DOWNLOAD] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                       config_button_download));
-    want_config[CONFIG_FOGWAR] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                     config_button_fog));
-    want_config[CONFIG_SMOOTH] = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-                                     config_button_smoothing));
-    want_config[CONFIG_CWINDOW] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
-                                      config_spinbutton_cwindow));
-    want_config[CONFIG_ICONSCALE] = gtk_spin_button_get_value_as_int(
-                                        GTK_SPIN_BUTTON(config_spinbutton_iconscale));
-    want_config[CONFIG_MAPSCALE] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
-                                       config_spinbutton_mapscale));
-    want_config[CONFIG_MAPWIDTH] = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
-                                       config_spinbutton_mapwidth));
-    want_config[CONFIG_MAPHEIGHT] = gtk_spin_button_get_value_as_int(
-                                        GTK_SPIN_BUTTON(config_spinbutton_mapheight));
+    gchar *buf;
 
     buf = gtk_combo_box_text_get_active_text(config_combobox_faceset);
-
-    /*
-     * We may be able to eliminate the extra g_strdup/free, but I'm not 100% sure
-     * that we are guaranteed that glib won't implement them through its
-     * own/different g_malloc library.
-     */
     if (buf) {
         free(face_info.want_faceset);
         face_info.want_faceset = g_strdup(buf);
         g_free(buf);
     }
 
-    buf = gtk_combo_box_text_get_active_text(config_combobox_displaymode);
-    if (buf) {
-        if (!g_ascii_strcasecmp(buf, "OpenGL")) {
-            want_config[CONFIG_DISPLAYMODE] = CFG_DM_OPENGL;
-        } else if (!g_ascii_strcasecmp(buf, "SDL")) {
-            want_config[CONFIG_DISPLAYMODE] = CFG_DM_SDL;
-        } else if (!g_ascii_strcasecmp(buf, "Pixmap")) {
-            want_config[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
-        }
+    want_config[CONFIG_DISPLAYMODE] =
+        combobox_get_value(config_combobox_displaymode, 1);
+
+    // Lighting option indexes never change, so get option using index.
+    want_config[CONFIG_LIGHTING] =
+        gtk_combo_box_get_active(config_combobox_lighting);
+
+    // Enable darkness if lighting is not 'None'.
+    if (want_config[CONFIG_LIGHTING] != CFG_LT_NONE) {
+        want_config[CONFIG_DARKNESS] = 1;
+        use_config[CONFIG_DARKNESS] = 1;
+    }
+
+    // Set UI file.
+    buf = gtk_file_chooser_get_filename(ui_filechooser);
+    if (buf != NULL) {
+        g_strlcpy(window_xml_file, buf, sizeof(window_xml_file));
         g_free(buf);
     }
 
-    buf = gtk_combo_box_text_get_active_text(config_combobox_lighting);
-    if (buf) {
-        if (!g_ascii_strcasecmp(buf, "Per Tile")) {
-            want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
-        } else if (!g_ascii_strcasecmp(buf, "Fast Per Pixel")) {
-            want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL;
-        } else if (!g_ascii_strcasecmp(buf, "Best Per Pixel")) {
-            want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL_BEST;
-        } else if (!g_ascii_strcasecmp(buf, "None")) {
-            want_config[CONFIG_LIGHTING] = CFG_LT_NONE;
-        }
-        if (want_config[CONFIG_LIGHTING] != CFG_LT_NONE) {
-            want_config[CONFIG_DARKNESS] = 1;
-            use_config[CONFIG_DARKNESS] = 1;
-        }
+    // Set and load theme file.
+    buf = gtk_file_chooser_get_filename(theme_filechooser);
+    if (buf != NULL && g_ascii_strcasecmp(buf, theme) != 0) {
+        g_free(theme);
+        theme = buf;
+        load_theme(TRUE);
+    }
 
-        g_free(buf);
-    }
-    /*
-     * Load up the theme.  A problem is we don't really know if theme has been
-     * allocated or is just pointing as a static string.  So we lose a few
-     * bytes and just don't free the data.
-     */
-    buf = gtk_combo_box_text_get_active_text(config_combobox_theme);
-    if (buf) {
-        if (strcmp(buf, theme)) {
-            theme = buf;
-            load_theme(TRUE);
-        } else {
-            g_free(buf);
-        }
-    } else {
-        theme = "None";
-    }
-    /*
-     * Load up the layout and set the combobox control to point to the loaded
-     * default value.
-     */
-    buf = gtk_combo_box_text_get_active_text(config_combobox_layout);
-    if (buf && strcmp(buf, window_xml_file)) {
-        strncpy(window_xml_file, buf, MAX_BUF);
-    }
     /*
      * Some values can take effect right now, others not.  Code below handles
      * these cases - largely grabbed from gtk/config.c
@@ -1083,49 +754,15 @@ static void read_config_window(void) {
     }
 }
 
-/**
- * Defines the behavior invoked when the configuration dialog save button is
- * pressed.
- *
- * @param button
- * @param user_data
- */
-void on_config_button_save_clicked(GtkButton *button, gpointer user_data) {
-    read_config_window();
-    save_defaults();
-}
-
-/**
- * Defines the behavior invoked when the configuration dialog apply button is
- * pressed.
- *
- * @param button
- * @param user_data
- */
-void on_config_button_apply_clicked(GtkButton *button, gpointer user_data) {
-    read_config_window();
-}
-
-/**
- * Defines the behavior invoked when the configuration dialog close button is
- * pressed.
- *
- * @param button
- * @param user_data
- */
-void on_config_button_close_clicked(GtkButton *button, gpointer user_data) {
-    gtk_widget_hide(config_window);
-}
-
-/**
- * Defines the behavior invoked when the configuration dialog is activated.
- *
- * @param menuitem
- * @param user_data
- */
 void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data) {
-    gtk_widget_show(config_window);
-    setup_config_window();
+    gtk_widget_show(config_dialog);
+    setup_config_dialog();
+}
+
+static void on_config_close(GtkButton *button, gpointer user_data) {
+    read_config_dialog();
+    save_defaults();
+    gtk_widget_hide(config_dialog);
 }
 
 /**
@@ -1141,7 +778,7 @@ void save_winpos() {
     GString *window_root_info = g_string_new(NULL);
     g_string_printf(window_root_info, "+%d+%dx%dx%d", wx, wy, w, h);
 
-    g_key_file_set_string(config, window_xml_file,
+    g_key_file_set_string(config, ui_name(),
             "window_root", window_root_info->str);
     g_string_free(window_root_info, TRUE);
 
@@ -1152,7 +789,7 @@ void save_winpos() {
         GType type = G_OBJECT_TYPE(list_loop->data);
 
         if (type == GTK_TYPE_HPANED || type == GTK_TYPE_VPANED) {
-            g_key_file_set_integer(config, window_xml_file,
+            g_key_file_set_integer(config, ui_name(),
                     gtk_buildable_get_name(list_loop->data),
                     gtk_paned_get_position(GTK_PANED(list_loop->data)));
         }
@@ -1191,7 +828,7 @@ void load_window_positions(GtkWidget *window_root) {
     pane_list = gtk_builder_get_objects(window_xml);
 
     // Load and set main window dimensions.
-    gchar *root_size = g_key_file_get_string(config, window_xml_file,
+    gchar *root_size = g_key_file_get_string(config, ui_name(),
             "window_root", NULL);
 
     if (root_size != NULL) {
@@ -1209,7 +846,7 @@ void load_window_positions(GtkWidget *window_root) {
         GType type = G_OBJECT_TYPE(list->data);
 
         if (type == GTK_TYPE_HPANED || type == GTK_TYPE_VPANED) {
-            int position = g_key_file_get_integer(config, window_xml_file,
+            int position = g_key_file_get_integer(config, ui_name(),
                     gtk_buildable_get_name(list->data), NULL);
 
             if (position != 0) {

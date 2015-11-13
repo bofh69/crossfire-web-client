@@ -52,9 +52,6 @@ static const char *const colorname[NUM_COLORS] = {
     "Khaki"                 /* 12 */
 };
 
-/** Path to dialog layout file. */
-static char dialog_xml_path[MAX_BUF] = XML_PATH_DEFAULT DIALOG_XML_FILENAME;
-
 static struct timeval timeout;
 static gboolean updatekeycodes = FALSE;
 static char *server = NULL;
@@ -89,8 +86,6 @@ static GOptionEntry options[] = {
     { NULL }
 };
 
-/** The file name of the window layout in use by the client. The base name,
- * without dot extention, is re-used when saving the window positions. */
 char window_xml_file[MAX_BUF];
 
 GdkColor root_color[NUM_COLORS];
@@ -363,28 +358,15 @@ static void init_sockets() {
 }
 
 /**
- * Load the layout with the given name, or the default if that fails. On
- * success, copy the layout name to window_xml_file.
+ * Load the UI from the given path. On success, store path in window_xml_file.
  */
-static void init_ui_layout(const char *name) {
-    const char *default_name = "gtk-v2.ui";
-
-    GString *path = g_string_new(XML_PATH_DEFAULT);
-    g_string_append(path, name);
-    guint retval = gtk_builder_add_from_file(window_xml, path->str, NULL);
-    g_string_free(path, TRUE);
-
+static char *init_ui_layout(const char *name) {
+    guint retval = gtk_builder_add_from_file(window_xml, name, NULL);
     if (retval > 0 && strlen(name) > 0) {
         strncpy(window_xml_file, name, sizeof(window_xml_file));
-        return;
-    }
-
-    // Try to load default layout if selected one doesn't work.
-    if (strcmp(default_name, name) != 0) {
-        LOG(LOG_DEBUG, "init_ui_layout", "Using default layout");
-        init_ui_layout(default_name);
+        return window_xml_file;
     } else {
-        g_error("Could not load default layout!");
+        return NULL;
     }
 }
 
@@ -395,7 +377,7 @@ static void init_ui() {
 
     /* Load dialog windows using GtkBuilder. */
     dialog_xml = gtk_builder_new();
-    if (!gtk_builder_add_from_file(dialog_xml, dialog_xml_path, &error)) {
+    if (!gtk_builder_add_from_file(dialog_xml, DIALOG_FILENAME, &error)) {
         error_dialog("Couldn't load UI dialogs.", error->message);
         g_warning("Couldn't load UI dialogs: %s", error->message);
         g_error_free(error);
@@ -404,7 +386,12 @@ static void init_ui() {
 
     /* Load main window using GtkBuilder. */
     window_xml = gtk_builder_new();
-    init_ui_layout(window_xml_file);
+    if (init_ui_layout(window_xml_file) == NULL) {
+        LOG(LOG_DEBUG, "init_ui_layout", "Using default layout");
+        if (init_ui_layout(DEFAULT_UI) == NULL) {
+            g_error("Could not load default layout!");
+        }
+    }
 
     /* Begin connecting signals for the root window. */
     window_root = GTK_WIDGET(gtk_builder_get_object(window_xml, "window_root"));

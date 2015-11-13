@@ -27,9 +27,11 @@ extern GtkWidget *map_notebook;
 #define DEFAULT_IMAGE_SIZE      32
 extern int map_image_size, map_image_half_size, image_size;
 
-#define XML_PATH_DEFAULT CF_DATADIR "/ui/"
-#define DIALOG_XML_FILENAME "dialogs.ui"
-extern char window_xml_file[];
+#define DEFAULT_UI CF_DATADIR "/ui/gtk-v2.ui"
+#define DIALOG_FILENAME CF_DATADIR "/ui/dialogs.ui"
+
+/** Path to the current UI file. */
+char window_xml_file[MAX_BUF];
 
 #define MAGIC_MAP_PAGE  1 /**< Notebook page of the magic map */
 
