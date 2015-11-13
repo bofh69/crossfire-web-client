@@ -28,12 +28,16 @@
 #include "gtk2proto.h"
 
 static GtkWidget *metaserver_window, *treeview_metaserver, *metaserver_button,
-       *metaserver_status, *metaserver_entry;
+    *metaserver_status, *metaserver_entry;
 static GtkListStore *store_metaserver;
 static GtkTreeSelection *metaserver_selection;
 
 enum {
-    LIST_HOSTNAME, LIST_IPADDR, LIST_IDLETIME, LIST_PLAYERS, LIST_VERSION, LIST_COMMENT
+    LIST_HOSTNAME,
+    LIST_IPADDR,
+    LIST_PLAYERS,
+    LIST_VERSION,
+    LIST_COMMENT
 };
 
 /**
@@ -94,48 +98,42 @@ void metaserver_ui_init() {
     g_signal_connect(widget, "clicked",
                      G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
 
-    store_metaserver = gtk_list_store_new(6,
-                                          G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
-                                          G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING);
+    store_metaserver =
+        gtk_list_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
+                           G_TYPE_STRING, G_TYPE_STRING);
 
     gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_metaserver),
                             GTK_TREE_MODEL(store_metaserver));
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Server", renderer,
-             "text", LIST_HOSTNAME, NULL);
+    column = gtk_tree_view_column_new_with_attributes(
+        "Server", renderer, "text", LIST_HOSTNAME, NULL);
     gtk_tree_view_column_set_sort_column_id(column, LIST_HOSTNAME);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Last Update (sec)", renderer,
-             "text", LIST_IDLETIME, NULL);
-    gtk_tree_view_column_set_sort_column_id(column, LIST_IDLETIME);
-    gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
-
-    renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Players", renderer,
-             "text", LIST_PLAYERS, NULL);
+    column = gtk_tree_view_column_new_with_attributes(
+        "Players", renderer, "text", LIST_PLAYERS, NULL);
     gtk_tree_view_column_set_sort_column_id(column, LIST_PLAYERS);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Version", renderer,
-             "text", LIST_VERSION, NULL);
+    column = gtk_tree_view_column_new_with_attributes(
+        "Version", renderer, "text", LIST_VERSION, NULL);
     gtk_tree_view_column_set_sort_column_id(column, LIST_VERSION);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Description", renderer,
-             "text", LIST_COMMENT, NULL);
+    column = gtk_tree_view_column_new_with_attributes(
+        "Description", renderer, "text", LIST_COMMENT, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
     gtk_widget_realize(metaserver_window);
-    metaserver_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(
-                               treeview_metaserver));
+    metaserver_selection =
+        gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_metaserver));
     gtk_tree_selection_set_mode(metaserver_selection, GTK_SELECTION_BROWSE);
-    gtk_tree_selection_set_select_function(metaserver_selection,
-                                           metaserver_selection_func, NULL, NULL);
+    gtk_tree_selection_set_select_function(
+        metaserver_selection, metaserver_selection_func, NULL, NULL);
 }
 
 /**
@@ -174,7 +172,6 @@ static void server_add(char *server, int update, int players, char *version,
         gtk_list_store_set(store_metaserver, &iter,
                 LIST_HOSTNAME, server,
                 LIST_IPADDR, server,
-                LIST_IDLETIME, update,
                 LIST_PLAYERS, players,
                 LIST_VERSION, version,
                 LIST_COMMENT, comment,
@@ -201,8 +198,7 @@ void prompt_metaserver() {
 
     hide_all_login_windows();
     gtk_widget_show(metaserver_window);
-    gtk_label_set_text(GTK_LABEL(metaserver_status),
-            "Waiting for data from metaserver");
+    gtk_label_set_text(GTK_LABEL(metaserver_status), "Getting server list...");
 
     metaserver_txt = gtk_entry_get_text(GTK_ENTRY(metaserver_entry));
     if (*metaserver_txt == '\0') {
@@ -218,7 +214,7 @@ void prompt_metaserver() {
     g_thread_new("server_fetch", server_fetch, NULL);
 
     cpl.input_state = Metaserver_Select;
-    gtk_label_set_text(GTK_LABEL(metaserver_status), "Waiting for user selection");
+    gtk_label_set_text(GTK_LABEL(metaserver_status), "");
 
     gtk_main();
     gtk_widget_hide(metaserver_window);
