@@ -147,45 +147,34 @@ void metaserver_ui_init() {
 }
 
 /**
- * Determine whether the given server exists in the metaserver list.
- * @param server
- * @return
+ * Check if the given server is already in the server list.
  */
 static bool server_exists(const char *server) {
+    GtkTreeModel *model = GTK_TREE_MODEL(store_metaserver);
     GtkTreeIter iter;
-    char *name;
 
-    bool valid = gtk_tree_model_get_iter_first(
-            GTK_TREE_MODEL(store_metaserver), &iter);
-
+    bool valid = gtk_tree_model_get_iter_first(model, &iter);
     while (valid) {
+        char *name;
         gtk_tree_model_get(GTK_TREE_MODEL(store_metaserver), &iter,
-                LIST_HOSTNAME, &name, -1);
-
+                           LIST_HOSTNAME, &name, -1);
         if (strcmp(server, name) == 0) {
             return true;
         }
-
-        valid = gtk_tree_model_iter_next(
-                GTK_TREE_MODEL(store_metaserver), &iter);
+        g_free(name);
+        valid = gtk_tree_model_iter_next(model, &iter);
     }
-
     return false;
 }
 
 static void server_add(char *server, int update, int players, char *version,
-        char *comment, bool compatible) {
-    GtkTreeIter iter;
-
+                       char *comment, bool compatible) {
     if (compatible && !server_exists(server)) {
+        GtkTreeIter iter;
         gtk_list_store_append(store_metaserver, &iter);
-        gtk_list_store_set(store_metaserver, &iter,
-                LIST_HOSTNAME, server,
-                LIST_IPADDR, server,
-                LIST_PLAYERS, players,
-                LIST_VERSION, version,
-                LIST_COMMENT, comment,
-                -1);
+        gtk_list_store_set(store_metaserver, &iter, LIST_HOSTNAME, server,
+                           LIST_IPADDR, server, LIST_PLAYERS, players,
+                           LIST_VERSION, version, LIST_COMMENT, comment, -1);
     }
 }
 
