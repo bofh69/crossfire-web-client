@@ -12,29 +12,16 @@
 // This is required for 'newclient.h' to expose client variables.
 #define CLIENT_TYPES_H
 
+#include <fcntl.h>
 #include <glib.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
-
-#ifdef HAVE_SYS_TIME_H
-#   include <sys/time.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
-#   include <unistd.h>
-#endif
-
-#ifdef HAVE_FCNTL_H
-#  include <fcntl.h>
-#endif
-
-#ifdef HAVE_DMALLOC_H
-#  include <dmalloc.h>
-#endif
+#include <unistd.h>
 
 #ifdef WIN32
 #  include <winsock2.h>

@@ -17,11 +17,6 @@
  * platform generic, but there are just some things that must be tied to the
  * window system is is using, namely, window creation and flipping the data
  * buffers.  For that, on X, we use to use glx - MSW 2005-03-12
- *
- * NOTE: Using dmalloc with opengl causes problems - it gets an invalid
- * allocation - I haven't dug through it, but my guess is that some internal
- * opengl/glx routine is doing something like a g_malloc(0) which dmalloc
- * catches.
  */
 
 #include "client.h"

@@ -197,19 +197,6 @@ static void do_clearinfo() { menu_clear(); }
 
 static void do_disconnect() { client_disconnect(); }
 
-#ifdef HAVE_DMALLOC_H
-#ifndef DMALLOC_VERIFY_NOERROR
-#define DMALLOC_VERIFY_NOERROR  1
-#endif
-static void do_dmalloc(const char *ignored) {
-    if (dmalloc_verify(NULL)==DMALLOC_VERIFY_NOERROR)
-        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-                      "Heap checks out OK");
-    else
-        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR,
-                      "Heap corruption detected");
-}
-#endif
 
 static void do_inv() { print_inventory(cpl.ob); }
 
@@ -328,9 +315,6 @@ static ConsoleCommand CommonCommands[] = {
 
     {"disconnect", COMM_CAT_MISC, do_disconnect, NULL, NULL},
 
-#ifdef HAVE_DMALLOC_H
-    {"dmalloc", COMM_CAT_DEBUG, do_dmalloc, NULL, NULL},
-#endif
 
     {"foodbeep", COMM_CAT_SETUP, command_foodbeep, NULL,
      "toggle audible low on food warning"},
