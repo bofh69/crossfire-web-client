@@ -1632,12 +1632,6 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                             }
                         }
 
-                        if ((event->state & GDK_CONTROL_MASK)
-                                && (event->state & GDK_SHIFT_MASK)
-                                && (event->keyval == GDK_i || event->keyval == GDK_I)) {
-                            reset_map();
-                        }
-
                         parse_key(event->string[0], event->keyval);
                     }
                     break;

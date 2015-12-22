@@ -128,12 +128,9 @@ extern int main(int argc, char *argv[]);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
 /* map.c */
 extern void map_init(GtkWidget *window_root);
-extern void reset_map(void);
 extern int display_mapscroll(int dx, int dy);
-extern void display_map_newmap(void);
 extern void resize_map_window(int x, int y);
 extern void draw_map(int redraw);
-extern void display_map_startupdate(void);
 extern void display_map_doneupdate(int redraw, int notice);
 /* magicmap.c */
 extern void draw_magic_map(void);

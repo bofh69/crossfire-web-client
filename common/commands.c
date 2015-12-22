@@ -2057,7 +2057,6 @@ void Map2Cmd(unsigned char *data, int len)
     int mask, x, y, pos = 0, space_len, value;
     guint8 type;
 
-    display_map_startupdate();
     /* Not really using map1 protocol, but some draw logic differs from the
      * original draw logic, and map2 is closest.
      */
@@ -2182,7 +2181,6 @@ void map_scrollCmd(char *data, int len)
     buf++;
     dy = atoi(buf);
 
-    display_map_startupdate();
     mapdata_scroll(dx, dy);
     display_map_doneupdate(FALSE, TRUE);
 }
@@ -2243,9 +2241,6 @@ void MapExtendedCmd(unsigned char *data, int len)
     int entrysize;
     int startpackentry;
 
-    if (!mapupdatesent) {
-        display_map_startupdate();
-    }
     mapupdatesent = 1;
     mask = GetChar_String(data+pos);
     pos += 1;

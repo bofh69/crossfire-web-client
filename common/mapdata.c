@@ -988,8 +988,6 @@ void mapdata_newmap(void)
     while (bigfaces_head != NULL) {
         expand_clear_bigface_from_layer(bigfaces_head->x, bigfaces_head->y, bigfaces_head->layer, 0);
     }
-
-    display_map_newmap();
 }
 
 /**

@@ -39,9 +39,7 @@ extern void MusicCmd(const char *data, int len);
 
 /* Map window related functions */
 extern void resize_map_window(int x, int y);
-extern void display_map_newmap(void);
 extern void display_map_addbelow(long x, long y, long face);
-extern void display_map_startupdate(void);
 extern void display_map_doneupdate(int redraw, int notice);
 extern int display_mapscroll(int dx, int dy);
 extern void draw_magic_map(void);

@@ -34,13 +34,6 @@ static gboolean map_button_event(GtkWidget *widget,
 static gboolean map_expose_event(GtkWidget *widget,
         GdkEventExpose *event, gpointer user_data);
 
-/*
- * Added for fog of war. Current size of the map structure in memory.
- * We assume a rectangular map so this is the length of one side.
- * command.c needs to know about this so not static
- * FIX ME: Don't assume rectangle
- */
-
 PlayerPosition pl_pos;
 
 int map_image_size = DEFAULT_IMAGE_SIZE;
@@ -73,14 +66,6 @@ static void map_check_resize() {
 }
 
 /**
- * Callback for map window resize event.
- */
-static void map_configure_event(GtkWidget *widget,
-        GdkEventConfigure *event, gpointer data) {
-    map_check_resize();
-}
-
-/**
  * This initializes the stuff we need for the map.
  *
  * @param window_root The client's main playing window.
@@ -92,7 +77,7 @@ void map_init(GtkWidget *window_root) {
                 window_xml, "map_notebook"));
 
     g_signal_connect(map_drawing_area, "configure_event",
-            G_CALLBACK(map_configure_event), NULL);
+            G_CALLBACK(map_check_resize), NULL);
     g_signal_connect(map_drawing_area, "expose_event",
             G_CALLBACK(map_expose_event), NULL);
 
@@ -119,14 +104,6 @@ void map_init(GtkWidget *window_root) {
         break;
 #endif
     }
-}
-
-/**
- * Request a map update from the server. This is to circumvent a bug in some
- * server versions.
- * @todo remove
- */
-void reset_map() {
 }
 
 /**
@@ -382,22 +359,12 @@ static void gtk_map_redraw(gboolean redraw) {
 }
 
 /**
- * The player has changed maps, so any info we have (for fog of war) is bogus,
- * so clear out all that old info.
- */
-void display_map_newmap(void)
-{
-    reset_map();
-}
-
-/**
  * Resize_map_window is a NOOP for the time being - not sure if it will in fact
  * need to do something, since there are scrollbars for the map window now.
  * Note - this is note a window resize request, but rather process the size
  * (in spaces) of the map - is received from server.
  */
-void resize_map_window(int x, int y)
-{
+void resize_map_window(int x, int y) {
     /* We do an implicit clear, since after a resize, there may be some
      * left over pixels at the edge which will not get drawn on by map spaces.
      */
@@ -513,23 +480,12 @@ static gboolean map_button_event(GtkWidget *widget,
 }
 
 /**
- * This isn't used - it is basically a prequel - we know we got a map command
- * from the server, but have digested it all yet.  This can be useful if there
- * is info we know we need to store away or the like before it is destroyed,
- * but there isn't anything like that for the gtk client.
- */
-void display_map_startupdate(void)
-{
-}
-
-/**
  * This is called after the map has been all digested.  this should perhaps be
  * removed, and left to being done from from the main event loop.
  *
  * @param redraw If set, force redraw of all tiles.
  * @param notice If set, another call will follow soon.
  */
-void display_map_doneupdate(int redraw, int notice)
-{
+void display_map_doneupdate(int redraw, int notice) {
     map_updated |= redraw || !notice;
 }
