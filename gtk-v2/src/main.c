@@ -54,7 +54,6 @@ static const char *const colorname[NUM_COLORS] = {
 
 static struct timeval timeout;
 static gboolean updatekeycodes = FALSE;
-static char *server = NULL;
 
 /* TODO: Move these declarations to actual header files. */
 extern int time_map_redraw;
@@ -62,11 +61,6 @@ extern int MINLOG;
 
 /** Command line options, descriptions, and parameters. */
 static GOptionEntry options[] = {
-    { "server", 's', 0, G_OPTION_ARG_STRING, &server,
-        "Connect to the given server", "SERVER" },
-    { "port", 'p', 0, G_OPTION_ARG_INT, &want_config[CONFIG_PORT],
-        "Use the given port number", "PORT" },
-
     { "cache", 0, 0, G_OPTION_ARG_NONE, &want_config[CONFIG_CACHE],
         "Cache images", NULL },
     { "prefetch", 0, 0, G_OPTION_ARG_NONE, &want_config[CONFIG_DOWNLOAD],
@@ -458,9 +452,6 @@ static void init_ui() {
  * Main client entry point.
  */
 int main(int argc, char *argv[]) {
-    // Whether or not to use the metaserver pop-up dialog.
-    bool use_metaserver = true;
-
 #ifdef ENABLE_NLS
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
     bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
@@ -494,23 +485,11 @@ int main(int argc, char *argv[]) {
     gtk_widget_show(window_root);
     map_init(window_root);
 
-    /* Loop to connect to server/metaserver and play the game */
-    while (use_metaserver) {
+    while (true) {
         clear_stat_mapping();
 
-        /* Pick a server from the list if not specified on the command line. */
-        if (server == NULL) {
-            prompt_metaserver();
-        } else {
-            use_metaserver = false;
-            csocket.fd = client_connect(server);
-            g_free(server);
-
-            // Exit with an error if unable to connect to server.
-            if (csocket.fd == -1) {
-                g_error("Unable to connect to server.");
-            }
-        }
+        metaserver_show_prompt();
+        gtk_main();
 
         client_negotiate(use_config[CONFIG_SOUND]);
 

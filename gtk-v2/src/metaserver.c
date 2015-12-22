@@ -192,7 +192,7 @@ static gpointer server_fetch() {
  * player has a servers.cache file in their .crossfire folder, the cached
  * server list is added to the contents of the metaserver dialog.
  */
-void prompt_metaserver() {
+void metaserver_show_prompt() {
     hide_all_login_windows();
     gtk_widget_show(metaserver_window);
     gtk_label_set_text(GTK_LABEL(metaserver_status), "Getting server list...");
@@ -208,9 +208,6 @@ void prompt_metaserver() {
 
     cpl.input_state = Metaserver_Select;
     gtk_label_set_text(GTK_LABEL(metaserver_status), "");
-
-    gtk_main();
-    gtk_widget_hide(metaserver_window);
 }
 
 /**
@@ -232,6 +229,7 @@ static void metaserver_connect_to(const char *name) {
         LOG(LOG_DEBUG, "metaserver_connect_to", "Connected to '%s'!", name);
         gtk_main_quit();
         cpl.input_state = Playing;
+        gtk_widget_hide(metaserver_window);
     } else {
         snprintf(buf, sizeof(buf), "Unable to connect to %s!", name);
         gtk_label_set_text(GTK_LABEL(metaserver_status), buf);

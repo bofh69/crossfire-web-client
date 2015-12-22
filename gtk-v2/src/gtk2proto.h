@@ -140,7 +140,7 @@ extern gboolean on_drawingarea_magic_map_expose_event(GtkWidget *widget, GdkEven
 extern void init_menu_items();
 /* metaserver.c */
 extern void metaserver_ui_init();
-extern void prompt_metaserver(void);
+extern void metaserver_show_prompt(void);
 extern void on_metaserver_select_clicked(GtkButton *button, gpointer user_data);
 extern void on_button_metaserver_quit_pressed(GtkButton *button, gpointer user_data);
 /* opengl.c */
