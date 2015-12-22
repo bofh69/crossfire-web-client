@@ -52,7 +52,6 @@ static const char *const colorname[NUM_COLORS] = {
     "Khaki"                 /* 12 */
 };
 
-static struct timeval timeout;
 static gboolean updatekeycodes = FALSE;
 
 /* TODO: Move these declarations to actual header files. */
@@ -181,6 +180,7 @@ void on_window_destroy_event(GtkObject *object, gpointer user_data) {
  * Callback from the event loop triggered when server input is available.
  */
 static gboolean do_network(GObject *stream, gpointer data) {
+    struct timeval timeout = {0, 0};
     fd_set tmp_read;
     int pollret;
 
@@ -189,24 +189,13 @@ static gboolean do_network(GObject *stream, gpointer data) {
         return FALSE;
     }
 
+    client_run();
+
     FD_ZERO(&tmp_read);
-    FD_SET(csocket.fd, &tmp_read);
     script_fdset(&maxfd, &tmp_read);
     pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
-    if (pollret == -1) {
-        LOG(LOG_WARNING, "main.c::do_network",
-            "Got errno %d on select call.", errno);
-    } else if (pollret > 0) {
-        if (FD_ISSET(csocket.fd, &tmp_read)) {
-            client_run();
-#ifndef WIN32
-            if (pollret > 1) {
-                script_process(&tmp_read);
-            }
-#endif
-        } else {
-            script_process(&tmp_read);
-        }
+    if (pollret > 0) {
+        script_process(&tmp_read);
     }
 
     draw_lists();
@@ -214,21 +203,12 @@ static gboolean do_network(GObject *stream, gpointer data) {
 }
 
 /**
- * Event loop iteration stuff
+ * Set up, enter, and exit event loop. Blocks until event loop returns.
  */
 static void event_loop() {
-    if (MAX_TIME == 0) {
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 0;
-    }
     maxfd = csocket.fd + 1;
-
-    if (MAX_TIME != 0) {
-        timeout.tv_sec = 0;/* MAX_TIME / 1000000;*/
-        timeout.tv_usec = 0;/* MAX_TIME % 1000000;*/
-    }
-
-    guint timeout_id = g_timeout_add(100, do_timeout, NULL);
+    guint source_redraw = g_idle_add(redraw, NULL);
+    guint source_timeout = g_timeout_add(100, do_timeout, NULL);
 
 #ifdef WIN32
     g_timeout_add(250, (GtkFunction) do_scriptout, NULL);
@@ -237,10 +217,10 @@ static void event_loop() {
     GSource *net_source = client_get_source();
     g_source_set_callback(net_source, (GSourceFunc)do_network, NULL, NULL);
     g_source_attach(net_source, NULL);
-    guint source_redraw = g_idle_add(redraw, NULL);
     gtk_main();
+
     g_source_remove(source_redraw);
-    g_source_remove(timeout_id);
+    g_source_remove(source_timeout);
     LOG(LOG_DEBUG, "event_loop", "Disconnected");
 }
 
