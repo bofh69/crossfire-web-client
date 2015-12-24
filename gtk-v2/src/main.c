@@ -121,9 +121,7 @@ static gboolean do_timeout(gpointer data) {
         mapdata_animation();
     }
 
-    if (cpl.input_state == Playing) {
-        beat_check();
-    }
+    beat_check();
     return TRUE;
 }
 
