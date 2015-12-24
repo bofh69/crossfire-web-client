@@ -224,20 +224,6 @@ static void event_loop() {
     LOG(LOG_DEBUG, "event_loop", "Disconnected");
 }
 
-#ifndef WIN32
-/**
- * Handler for SIGPIPE.  We may receive this signal while piping data to a
- * sound server or to a script.  In both cases, we ignore the signal because
- * the failure will be reported by the system call that tried to send the
- * data.
- *
- * @param sig The signal number.
- */
-static void sigpipe_handler(int sig) {
-    /* ignore that signal for now */
-}
-#endif
-
 /**
  * parse_args: Parses command line options, and does variable initialization.
  * @param argc
@@ -322,7 +308,7 @@ static void init_sockets() {
         exit(1);
     }
 #else /* def WIN32 */
-    signal(SIGPIPE, sigpipe_handler);
+    signal(SIGPIPE, SIG_IGN);
 #ifdef HAVE_SYSCONF
     maxfd = sysconf(_SC_OPEN_MAX);
 #else
