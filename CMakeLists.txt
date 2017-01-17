@@ -34,38 +34,29 @@ add_definitions(
 
 # Look for optional dependencies that are enabled using options.
 if(LUA)
-    find_package(Lua51)
-    if(LUA51_FOUND)
-        include_directories(${LUA_INCLUDE_DIR})
-    endif()
+    find_package(Lua51 REQUIRED)
+    include_directories(${LUA_INCLUDE_DIR})
 endif()
 
 if(METASERVER2)
-    find_package(CURL)
-    if(CURL_FOUND)
-        include_directories(${CURL_INCLUDE_DIRS})
-    endif()
+    find_package(CURL REQUIRED)
+    include_directories(${CURL_INCLUDE_DIRS})
 endif()
 
 if(OPENGL)
-    find_package(OpenGL)
-    if(OPENGL_FOUND)
-        include_directories(${OPENGL_INCLUDE_DIR})
-    endif()
+    find_package(OpenGL REQUIRED)
+    include_directories(${OPENGL_INCLUDE_DIR})
 endif()
 
 if(SDL)
-    find_package(SDL)
-    if(SDL_FOUND)
-        include_directories(${SDL_INCLUDE_DIR})
-    endif()
+    find_package(SDL REQUIRED)
+    find_package(SDL_image REQUIRED)
+    include_directories(${SDL_INCLUDE_DIR})
 endif()
 
 if(SOUND)
-    find_package(SDL_mixer)
-    if(SDLMIXER_FOUND)
-        include_directories(${SDL_MIXER_INCLUDE_DIRS})
-    endif()
+    find_package(SDL_mixer REQUIRED)
+    include_directories(${SDL_MIXER_INCLUDE_DIRS})
 endif()
 
 # Set compatibility definitions for Autotools.
@@ -107,7 +98,7 @@ include_directories(
 add_subdirectory(common)
 add_subdirectory(gtk-v2)
 
-if(SOUND AND SDLMIXER_FOUND)
+if(SOUND)
     add_subdirectory(sound-src)
 endif()
 
