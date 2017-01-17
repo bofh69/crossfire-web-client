@@ -121,7 +121,6 @@ static gboolean do_timeout(gpointer data) {
         mapdata_animation();
     }
 
-    beat_check();
     return TRUE;
 }
 

@@ -702,9 +702,4 @@ extern bool client_is_connected(void);
  */
 extern GSource *client_get_source(void);
 
-extern void beat_init(int interval);
-extern void beat_check();
-extern void beat_reset();
-extern int beat_interval;
-
 #endif

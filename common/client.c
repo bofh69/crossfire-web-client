@@ -72,12 +72,6 @@ static GSocketConnection *connection;
 static GInputStream *in;
 static GOutputStream *out;
 
-/** Timer to track when the last message was sent to the server. */
-static GTimer *beat_timer;
-
-/** Interval between client beats, zero means that beating is disabled. */
-int beat_interval = 0;
-
 const char *const resists_name[NUM_RESISTS] = {
     "armor", "magic", "fire", "elec",
     "cold", "conf", "acid", "drain",
@@ -358,8 +352,7 @@ void client_negotiate(int sound) {
      */
     cs_print_string(csocket.fd, "setup "
             "map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
-            "faceset %d facecache %d want_pickup 1 loginmethod %d newmapcmd 1 "
-            "beat 1",
+            "faceset %d facecache %d want_pickup 1 loginmethod %d newmapcmd 1",
             (sound >= 0) ? 3 : 0, want_config[CONFIG_LIGHTING] ? 1 : 0,
             face_info.faceset, want_config[CONFIG_CACHE], wantloginmethod);
 
@@ -467,40 +460,5 @@ void client_negotiate(int sound) {
      */
     if (!serverloginmethod) {
         SendAddMe(csocket);
-    }
-}
-
-/**
- * Initialize the heartbeat feature.
- *
- * @param interval The maximum interval between client messages.
- */
-void beat_init(int interval) {
-    beat_interval = interval;
-    beat_timer = g_timer_new();
-}
-
-/**
- * Reset the beat timer, called after a message is sent to the server.
- */
-void beat_reset() {
-    if (beat_interval != 0) {
-        g_timer_start(beat_timer);
-    }
-}
-
-/**
- * Check to see if it is time to send a beat, and send it if necessary.
- */
-void beat_check() {
-    assert(csocket.fd != -1);
-
-    if (beat_interval != 0) {
-        double elapsed = g_timer_elapsed(beat_timer, NULL);
-
-        if (elapsed > beat_interval) {
-            LOG(LOG_DEBUG, "beat_check", "Sending beat!");
-            cs_print_string(csocket.fd, "beat");
-        }
     }
 }

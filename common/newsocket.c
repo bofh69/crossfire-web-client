@@ -36,7 +36,6 @@
 static int write_socket(int fd, const unsigned char *buf, int len) {
     g_assert(csocket.fd == fd);
     bool success = client_write(buf, len);
-    beat_reset();
     return success ? 0 : -1;
 }
 
