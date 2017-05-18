@@ -1,6 +1,6 @@
 add_subdirectory(src)
-add_subdirectory(themes)
-add_subdirectory(ui)
+
+install(DIRECTORY themes ui DESTINATION ${CMAKE_INSTALL_DATADIR})
 
 install(FILES crossfire-client.desktop
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
