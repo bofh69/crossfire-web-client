@@ -1,0 +1,27 @@
+.. note:: This legacy documentation does not necessarily reflect the behavior of the current version of the client.
+
+How Does it Work?
+-----------------
+The sound server gets information about sounds to be played on standard input.
+The information is a line:
+<sound number> <sound type> <relative x> <relative y>
+All those numbers are hex.
+The file ~/.crossfire/sounds contains description of sound numbers and types.
+For example:
+3 0 5 0
+Means that normal sound SOUND_FUMBLE spell should be played as it's source was
+5 units to the right of player.
+
+Sounds are mixed in special buffers, which are in fact one buffer, which should
+be big enough for the biggest sound to be played.
+
+The buffers, if contain anything, are sent one by one to the sound device.
+Each buffer is cleaned after playing.
+
+Sounds data is multiplied by some ratio (<1) evaluated from it's position and
+volume and added to the buffers, starting from the next after the one being
+played.
+
+So bigger buffer means bigger delay, before the sound is actually played, but
+the smaller buffer is, the bigger is possibility, we won't succeed filling the
+next buffer, before last is played.

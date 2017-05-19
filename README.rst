@@ -1,5 +1,6 @@
-Crossfire Client User Guide
-===========================
+================
+Crossfire Client
+================
 
 Crossfire is a free, open-source, cooperative multi-player RPG and adventure
 game. Since its initial release, Crossfire has grown to encompass over 150
@@ -8,105 +9,56 @@ character classes, and many powerful artifacts scattered far and wide. Set
 in a fantastical medieval world, it blends the style of Gauntlet, NetHack,
 Moria, and Angband.
 
-For more information about Crossfire or using the client, see the `Crossfire Wiki <http://wiki.cross-fire.org/>`_.
+- Website: http://crossfire.real-time.com/
+- Wiki: http://wiki.cross-fire.org/
 
 
 Installation
-------------
-Briefly, change to the source directory and execute the following commands::
+============
+To build with the default options, change to the source directory and run::
 
-    $ mkdir build; cd build
+    $ mkdir build && cd build/
     $ cmake ..
     $ make
-    $ sudo make install
+    # make install
 
-To change the compile-time default options, run **ccmake** instead of
-**cmake**.
+To build with minimal dependencies, use this CMake command instead::
 
-To compile with debugging symbols, set *CMAKE_BUILD_TYPE* to ``Debug``.
+    $ cmake -DLUA=OFF -DMETASERVER2=OFF -DOPENGL=OFF -DSDL=OFF -DSOUND=OFF ..
+
+To build with debugging symbols::
+
+    $ cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+Use **ccmake** instead of **cmake** to change these options and more
+interactively.
 
 For more details, see `Compiling the Crossfire Client <http://wiki.cross-fire.org/dokuwiki/doku.php/client:client_compiling>`_ on the Crossfire Wiki.
 
+Dependencies
+------------
+- C compiler supporting C99
+- CMake
+- GTK+ 2
+- libpng
+- Perl
 
-Sound Support
--------------
-.. note:: This legacy documentation does not necessarily reflect the behavior of the current version of the client.
+Optional:
 
-If you want sound support (only useful if you have a system that has good
-sound hardware), you will also need to get some sounds for the program.
-You will need the raw sound files - the .au files no longer work with the
-client.
+- libcurl (for metaserver support)
+- Lua 5 (for client-side Lua scripting)
+- OpenGL (gl, glu, glx) (for OpenGL rendering)
+- SDL, SDL_image (for SDL rendering)
+- SDL_mixer (for sound support)
 
-The sounds file determines what file is played for what sound.  The default
-location for the sound files is '<prefix>/share/cfclient/sounds'. <prefix>
-is the -prefix= option given when running configure, default of '/usr/local'.
 
-You can set this to another directory at the configure stage by using
---with-sound-dir=/some/directory.  This file is only used for compiled in
-defaults.  If you have a '~/.crossfire/sounds' file (some format), that file
-will be used instead of the built in defaults.
+Sounds
+------
+To play with sounds, make sure the client is compiled with ``SOUND``
+enabled. Download the sound archive and extract it to
+*${PREFIX}/share/crossfire-client*. Then enable sound effects in the client
+preferences.
 
-Sound are now played by separate process invoked from crossfire client.
-The process - called sound server - adjusts sounds' volume according to
-relative position of player and sound source on map and mixes the sounds
-together, so many sounds can be played simultaneously.
-
-Configuration
-~~~~~~~~~~~~~
-The config file '~/.crossfire/sndconfig' contains some configurable settings. If
-there is no such file, one with default settings will be created.
-
-The file contains following fields:
-
-stereo
-    1 means stereo sound, 0 - mono
-
-bits
-    bitrate of generated sound - 8 or 16 16 means better quality, especially
-    when more sounds are to be played simultaneously, but takes more memory
-
-signed
-    if we should sent signed data to the sound card. 1 means yes.
-
-frequency
-    speed of playing data. This should be 11025, or sound pitch will change
-
-buffers
-    how many buffers to allocate
-
-buflen
-    how big the buffers should be. buffers*buflen shouldn't be smaller than
-    the longest sound to be played.
-
-simultaneously
-    The number of sounds that can be played at the same time. When this
-    setting is larger, each sound volume will decrease.
-
-How Does it Work?
-~~~~~~~~~~~~~~~~~
-The sound server gets information about sounds to be played on standard input.
-The information is a line:
-<sound number> <sound type> <relative x> <relative y>
-All those numbers are hex.
-The file ~/.crossfire/sounds contains description of sound numbers and types.
-For example:
-3 0 5 0
-Means that normal sound SOUND_FUMBLE spell should be played as it's source was
-5 units to the right of player.
-
-Sounds are mixed in special buffers, which are in fact one buffer, which should
-be big enough for the biggest sound to be played.
-
-The buffers, if contain anything, are sent one by one to the sound device.
-Each buffer is cleaned after playing.
-
-Sounds data is multiplied by some ratio (<1) evaluated from it's position and
-volume and added to the buffers, starting from the next after the one being
-played.
-
-So bigger buffer means bigger delay, before the sound is actually played, but
-the smaller buffer is, the bigger is possibility, we won't succeed filling the
-next buffer, before last is played.
 
 Preloaded Bitmaps
 -----------------
@@ -137,6 +89,16 @@ server tells it an image name is thus:
   *~/.crossfire/image-cache*.
 
 
-Credits
--------
+License
+=======
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option)
+any later version.
+
+See *COPYING*.
+
+
+Authors
+=======
 .. include:: AUTHORS
