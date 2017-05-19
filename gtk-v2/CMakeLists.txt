@@ -10,5 +10,3 @@ foreach(size 16 32 48)
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${size}x${size}/apps
         RENAME crossfire-client.png)
 endforeach()
-
-install(FILES crossfire-client-gtk2.man DESTINATION ${CMAKE_INSTALL_MANDIR})
