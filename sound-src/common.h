@@ -18,12 +18,12 @@ typedef struct Sound_Info {
 extern Sound_Info sounds[MAX_SOUNDS];
 
 typedef struct sound_settings {
-    int stereo;
-    int bit8;
-    int sign;
-    int frequency;
-    int buflen;
-    int max_chunk;                 /**< Max number of sounds to queue. */
+    int stereo;     //< 1 means stereo sound, 0 - mono
+    int bit8;       //< bitrate of generated sound - 8 or 16
+    int sign;       //< true if we should sent signed data to the sound card
+    int frequency;  //< speed of playing data. This should be 11025
+    int buflen;     //< how big the buffers should be
+    int max_chunk;  //< number of sounds that can be played at the same time
 } sound_settings;
 
 extern int init_audio();
