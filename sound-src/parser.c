@@ -50,14 +50,9 @@ int sound_to_soundnum(const char *name, guint8 type) {
  * capability.
  */
 int type_to_soundtype(guint8 type) {
-    guint8 new_type;
-
     if (type == 2) {
-        new_type = 1;
+        return 1;
     } else {
-        new_type = type;
+        return 0;
     }
-
-    printf("Converted legacy sound type %d to %d.\n", type, new_type);
-    return new_type;
 }
