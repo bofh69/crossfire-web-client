@@ -102,7 +102,7 @@ int init() {
     }
 
     /* Set $CF_SOUND_DIR to something reasonable, if not already set. */
-    if (g_setenv("CF_SOUND_DIR", CLIENT_SOUNDS_PATH, 0) != 0) {
+    if (!g_setenv("CF_SOUND_DIR", CLIENT_SOUNDS_PATH, FALSE)) {
         perror("Couldn't set $CF_SOUND_DIR");
         return -1;
     }
@@ -110,7 +110,7 @@ int init() {
     /* Set $CF_SOUND_CONF to something reasonable, if not already set. */
     snprintf(path, sizeof(path), "%s/sounds.conf", g_getenv("CF_SOUND_DIR"));
 
-    if (g_setenv("CF_SOUND_CONF", path, 0) != 0) {
+    if (!g_setenv("CF_SOUND_CONF", path, FALSE)) {
         perror("Couldn't set $CF_SOUND_CONF");
         return -1;
     }

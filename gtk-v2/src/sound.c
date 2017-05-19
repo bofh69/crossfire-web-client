@@ -131,7 +131,7 @@ void play_sound_effect(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
         return;
     } else {
         LOG(LOG_DEBUG, "gtk-v2::play_sound_effect",
-            format, x, y, dir, vol, type, sound, source);
+            format, x, y, dir, vol, type, source, sound);
     }
 #endif
 }

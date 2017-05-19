@@ -156,7 +156,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     }
 
     /* Try to load and play the sound. */
-    snprintf(path, sizeof(path), "%s%s.wav", CLIENT_SOUNDS_PATH, si->filename);
+    snprintf(path, sizeof(path), "%s/%s.wav", CLIENT_SOUNDS_PATH, si->filename);
     chunk[channel_next] = Mix_LoadWAV(path);
 
     if (!chunk[channel_next]) {
