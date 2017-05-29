@@ -202,19 +202,42 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     Mix_PlayChannel(-1, chunk[channel_next], 0);
 }
 
+static bool play_new(char const music[static 1]) {
+    static char last_played[MAXSOCKBUF] = "";
+    if (strcmp(music, last_played) != 0) {
+        g_strlcpy(last_played, music, MAXSOCKBUF);
+        return true;
+    }
+    return false;
+}
+
 /**
  * Play a music file.
  *
  * @param name Name of the song to play, without file paths or extensions.
  */
 static void play_music(const char* music_name) {
-    char path[MAXSOCKBUF];
+    if (!play_new(music_name)) {
+        return;
+    }
 
+    Mix_FadeOutMusic(500);
+    if (music != NULL) {
+        Mix_FreeMusic(music);
+    }
+
+    if (strcmp(music_name, "NONE") == 0) {
+        return;
+    }
+    char path[MAXSOCKBUF];
     snprintf(path, sizeof(path), "%s%s%s.ogg", g_getenv("HOME"),
             USER_SOUNDS_PATH, music_name);
-
     music = Mix_LoadMUS(path);
-    Mix_PlayMusic(music, 0);
+    if (!music) {
+        fprintf(stderr, "Could not load music: %s\n", Mix_GetError());
+        return;
+    }
+    Mix_FadeInMusic(music, -1, 500);
 }
 
 /**

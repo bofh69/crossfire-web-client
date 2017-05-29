@@ -1,3 +1,6 @@
+2017-05-27  Kevin Zheng
+	* sound-src/cfsndserv.c: Improve music playback
+
 2015-12-21	Kevin Zheng
 	* gtk-v2/src/main.c: Remove command-line server selection option
 
