@@ -28,7 +28,7 @@
 
 static Mix_Chunk **chunk = NULL;
 static Mix_Music *music = NULL;
-static sound_settings settings = { 0, 1, 0, 11025, 512, 4 };
+static sound_settings settings = { 512, 4 };
 
 /**
  * Convert a sound name to a sound number to help with the transition of the
@@ -73,40 +73,20 @@ static int type_to_soundtype(guint8 type) {
  * @return Zero on success, anything else on failure.
  */
 int init_audio() {
-    Uint16 audio_format;
-    const int mix_flags = MIX_INIT_OGG;
-    int audio_channels, mix_init;
-
-    /* Set appropriate audio format based on settings. */
-    if (settings.bit8) {
-        audio_format = settings.sign ? AUDIO_S8 : AUDIO_U8;
-    } else {
-        audio_format = settings.sign ? AUDIO_S16 : AUDIO_U16;
-    }
-
-    audio_channels = (settings.stereo) ? 1 : 2;
-
-    /* Initialize sound library and output device. */
-    printf("Initializing sound using %s %d-bit %s channel @ %d Hz...\n",
-            settings.sign ? "signed" : "unsigned",
-            settings.bit8 ? 8 : 16,
-            settings.stereo ? "stereo" : "mono",
-            settings.frequency);
-
     if (SDL_Init(SDL_INIT_AUDIO) == -1) {
         fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
         return 1;
     }
 
-    if (Mix_OpenAudio(settings.frequency, audio_format, audio_channels,
-                settings.buflen)) {
+    if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2,
+                      settings.buflen)) {
         fprintf(stderr, "Mix_OpenAudio: %s\n", SDL_GetError());
         return 2;
     }
 
     /* Determine if OGG is supported. */
-    mix_init = Mix_Init(mix_flags);
-
+    const int mix_flags = MIX_INIT_OGG;
+    int mix_init = Mix_Init(mix_flags);
     if ((mix_init & mix_flags) != mix_flags) {
         fprintf(stderr,
                 "OGG support in SDL_mixer is required for sound; aborting!\n");
