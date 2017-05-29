@@ -1,10 +1,7 @@
 add_executable(cfsndserv
     cfsndserv.c
     common.h
-    init.c
     main.c
-    parser.c
-    sndproto.h
 )
 
 target_link_libraries(cfsndserv cfclient

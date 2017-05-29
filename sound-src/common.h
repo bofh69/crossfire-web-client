@@ -27,5 +27,6 @@ typedef struct sound_settings {
 } sound_settings;
 
 extern int init_audio();
+extern void sdl_mixer_server();
 
 #endif

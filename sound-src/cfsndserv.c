@@ -24,12 +24,46 @@
 #include <math.h>
 #include <sys/stat.h>
 
-#include "sndproto.h"
 #include "common.h"
 
 static Mix_Chunk **chunk = NULL;
 static Mix_Music *music = NULL;
 static sound_settings settings = { 0, 1, 0, 11025, 512, 4 };
+
+/**
+ * Convert a sound name to a sound number to help with the transition of the
+ * sound server from sound support to sound2 capability.  This is not an end
+ * solution, but one that gets the sound server working a little bit until a
+ * better one can be implemented.
+ */
+static int sound_to_soundnum(const char *name, guint8 type) {
+    int i;
+
+    for (i = 0; i < MAX_SOUNDS; i++) {
+        if (sounds[i].symbolic != NULL) {
+            if (strcmp(sounds[i].symbolic, name) == 0) {
+                return i;
+            }
+        }
+    }
+
+    printf("Could not find matching sound for '%s'.\n", name);
+    return -1;
+}
+
+/**
+ * Convert a legacy sound type to the sound2 equivalent.
+ *
+ * This is intended to help ease the transition from old sound to sound2
+ * capability.
+ */
+static int type_to_soundtype(guint8 type) {
+    if (type == 2) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 /**
  * Initialize the sound subsystem.
