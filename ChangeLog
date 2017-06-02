@@ -1,3 +1,6 @@
+2017-06-01	Kevin Zheng
+	* sound-src/cfsndserv.c: Move music to $CF_SOUND_DIR/music
+
 2017-05-27  Kevin Zheng
 	* sound-src/cfsndserv.c: Improve music playback
 

@@ -174,13 +174,6 @@ static void init_sounds() {
  * @return Zero on success, anything else on failure.
  */
 int cf_snd_init() {
-    /* Sanity check for $HOME environmental variable. */
-    if (g_getenv("HOME") == NULL) {
-        fprintf(stderr, "Couldn't read $HOME environmental variable.\n"
-                "Please set it to something reasonable.\n");
-        return -1;
-    }
-
     /* Set $CF_SOUND_DIR to something reasonable, if not already set. */
     if (!g_setenv("CF_SOUND_DIR", CF_SOUND_DIR, FALSE)) {
         perror("Couldn't set $CF_SOUND_DIR");
@@ -317,8 +310,8 @@ void cf_play_music(const char* music_name) {
         return;
     }
     char path[MAXSOCKBUF];
-    snprintf(path, sizeof(path), "%s%s%s.ogg", g_getenv("HOME"),
-            USER_SOUNDS_PATH, music_name);
+    snprintf(path, sizeof(path), "%s/music/%s.ogg", g_getenv("CF_SOUND_DIR"),
+             music_name);
     music = Mix_LoadMUS(path);
     if (!music) {
         fprintf(stderr, "Could not load music: %s\n", Mix_GetError());

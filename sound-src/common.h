@@ -1,8 +1,6 @@
 #ifndef _SOUND_SRC_COMMON_H
 #define _SOUND_SRC_COMMON_H
 
-#define USER_SOUNDS_PATH "/.crossfire/sound.cache/"
-
 #define SOUND_DEBUG
 
 extern int cf_snd_init();
