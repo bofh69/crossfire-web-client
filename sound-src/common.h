@@ -1,9 +1,6 @@
 #ifndef _SOUND_SRC_COMMON_H
 #define _SOUND_SRC_COMMON_H
 
-/* Just do this so I don't have to go hunt down the macro */
-#define CLIENT_SOUNDS_PATH CF_SOUND_DIR
-
 #define USER_SOUNDS_PATH "/.crossfire/sound.cache/"
 
 #define SOUND_DEBUG

@@ -182,7 +182,7 @@ int cf_snd_init() {
     }
 
     /* Set $CF_SOUND_DIR to something reasonable, if not already set. */
-    if (!g_setenv("CF_SOUND_DIR", CLIENT_SOUNDS_PATH, FALSE)) {
+    if (!g_setenv("CF_SOUND_DIR", CF_SOUND_DIR, FALSE)) {
         perror("Couldn't set $CF_SOUND_DIR");
         return -1;
     }
@@ -271,7 +271,8 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
 
     /* Try to load and play the sound. */
     char path[MAXSOCKBUF];
-    snprintf(path, sizeof(path), "%s/%s", CLIENT_SOUNDS_PATH, si->filename);
+    snprintf(path, sizeof(path), "%s/%s", g_getenv("CF_SOUND_DIR"),
+             si->filename);
     chunk[channel_next] = Mix_LoadWAV(path);
 
     if (!chunk[channel_next]) {
