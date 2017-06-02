@@ -5,24 +5,15 @@
 #define CLIENT_SOUNDS_PATH CF_SOUND_DIR
 
 #define USER_SOUNDS_PATH "/.crossfire/sound.cache/"
-#define MAX_SOUNDS 1024
 
 #define SOUND_DEBUG
 
-typedef struct Sound_Info {
-    char *filename;
-    char *symbolic;
-    unsigned char volume;
-} Sound_Info;
+extern int cf_snd_init();
+extern void cf_snd_exit();
 
-extern Sound_Info sounds[MAX_SOUNDS];
-
-typedef struct sound_settings {
-    int buflen;     //< how big the buffers should be
-    int max_chunk;  //< number of sounds that can be played at the same time
-} sound_settings;
-
-extern int init_audio();
-extern void sdl_mixer_server();
+extern void cf_play_music(const char *music_name);
+extern void cf_play_sound(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
+                          char const sound[static 1],
+                          char const source[static 1]);
 
 #endif

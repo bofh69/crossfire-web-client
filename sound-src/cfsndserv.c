@@ -23,9 +23,24 @@
 
 #include "common.h"
 
+#define MAX_SOUNDS 1024
+
+typedef struct Sound_Info {
+    char *filename;
+    char *symbolic;
+    unsigned char volume;
+} Sound_Info;
+
+typedef struct sound_settings {
+    int buflen;     //< how big the buffers should be
+    int max_chunk;  //< number of sounds that can be played at the same time
+} sound_settings;
+
 static Mix_Chunk **chunk = NULL;
 static Mix_Music *music = NULL;
 static sound_settings settings = { 512, 4 };
+
+static Sound_Info sounds[MAX_SOUNDS];
 
 /**
  * Convert a sound name to a sound number to help with the transition of the
@@ -66,7 +81,7 @@ static int type_to_soundtype(guint8 type) {
  *
  * @return Zero on success, anything else on failure.
  */
-int init_audio() {
+static int init_audio() {
     if (SDL_Init(SDL_INIT_AUDIO) == -1) {
         fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
         return 1;
@@ -94,6 +109,99 @@ int init_audio() {
     if (!chunk) {
         fprintf(stderr, "Could not allocate sound buffers.\n");
         return 4;
+    }
+
+    return 0;
+}
+
+/**
+ * Load sound definitions from a file.
+ */
+static void init_sounds() {
+    /* Initialize by setting all sounds to NULL. */
+    for (int i = 0; i < MAX_SOUNDS; i++) {
+        sounds[i].filename = NULL;
+    }
+
+    /* Try to open the sound definitions file. */
+    FILE *fp = fopen(g_getenv("CF_SOUND_CONF"), "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Could not find sound definitions; aborting!\n");
+        exit(EXIT_FAILURE);
+    }
+    printf("Loaded sounds from '%s'\n", g_getenv("CF_SOUND_DIR"));
+
+    /* Use 'i' as index tracker, so set it to zero. */
+    int i = 0;
+
+    /* Parse the sound definitions file, line by line. */
+    char buf[512];
+    while (fgets(buf, sizeof(buf), fp) != NULL) {
+        char *line;
+        line = &buf[0];
+
+        /* Ignore all lines that start with a comment or newline. */
+        if (buf[0] == '#' || buf[0] == '\n') {
+            continue;
+        }
+
+        /* Trim the trailing newline if it exists (see CERT FIO36-C). */
+        char *newline;
+        newline = strchr(buf, '\n');
+
+        if (newline != NULL) {
+            *newline = '\0';
+        }
+
+        /* FIXME: No error checking; potential segfaults here. */
+        sounds[i].symbolic = g_strdup(strsep(&line, ":"));
+        sounds[i].volume = atoi(strsep(&line, ":"));
+        sounds[i].filename = g_strdup(strsep(&line, ":"));
+
+        /* Move on to the next sound. */
+        i++;
+    }
+
+    fclose(fp);
+}
+
+/**
+ * Initialize sound server.
+ *
+ * Initialize resource paths, load sound definitions, and ready the sound
+ * subsystem.
+ *
+ * @return Zero on success, anything else on failure.
+ */
+int cf_snd_init() {
+    /* Sanity check for $HOME environmental variable. */
+    if (g_getenv("HOME") == NULL) {
+        fprintf(stderr, "Couldn't read $HOME environmental variable.\n"
+                "Please set it to something reasonable.\n");
+        return -1;
+    }
+
+    /* Set $CF_SOUND_DIR to something reasonable, if not already set. */
+    if (!g_setenv("CF_SOUND_DIR", CLIENT_SOUNDS_PATH, FALSE)) {
+        perror("Couldn't set $CF_SOUND_DIR");
+        return -1;
+    }
+
+    /* Set $CF_SOUND_CONF to something reasonable, if not already set. */
+    char path[MAXSOCKBUF];
+    snprintf(path, sizeof(path), "%s/sounds.conf", g_getenv("CF_SOUND_DIR"));
+
+    if (!g_setenv("CF_SOUND_CONF", path, FALSE)) {
+        perror("Couldn't set $CF_SOUND_CONF");
+        return -1;
+    }
+
+    /* Initialize sound definitions. */
+    init_sounds();
+
+    /* Initialize audio library. */
+    if (init_audio()) {
+        return -1;
     }
 
     return 0;
@@ -175,8 +283,8 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     Mix_PlayChannel(-1, chunk[channel_next], 0);
 }
 
-void play_sound_effect(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
-                       const char *sound, const char *source) {
+void cf_play_sound(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
+                   char const sound[static 1], char const source[static 1]) {
     play_sound(sound_to_soundnum(sound, type), type_to_soundtype(type), x, y);
 }
 
@@ -194,7 +302,7 @@ static bool music_is_different(char const music[static 1]) {
  *
  * @param name Name of the song to play, without file paths or extensions.
  */
-static void play_music(const char* music_name) {
+void cf_play_music(const char* music_name) {
     if (!music_is_different(music_name)) {
         return;
     }
@@ -218,169 +326,7 @@ static void play_music(const char* music_name) {
     Mix_FadeInMusic(music, -1, 500);
 }
 
-/**
- * Preliminary handler for Crossfire server sound2 and music commands that are
- * received from the client via stdin.
- *
- * The sound player differentiates sound2 and music commands by looking at the
- * first parameter that comes in.  Music commands consist of a single, quoted
- * string that identifies the music to play, while a sound effect command has
- * various numeric parameters followed by strings that identify what to play.
- *
- * Sound2 data consists of whitespace delimited values:  x, y, dir, vol, type,
- * sound, and source.  Type, sound, and source define what to play, while the
- * other parameters may be used to figure out how to play it.  x and y are
- * offsets from the player to identify where the sound originated. dir can be
- * set to indicate a direction that the source is travelling in. vol is an
- * attenuation factor (0-100) that may be applied to the sound volume to make
- * it possible, for example, to give map-designers the ability to suggest
- * relative loudness of sounds in the environment.
- *
- * FIXME: This is a work-in-progress.  The sound2 was put into the server
- * without a plan to fix the clients.  cfsndserv is basically made obsolete by
- * sound2.  The basic fix resurrects some sound support but does not fully
- * implement the features sound2 is supposed to provide.
- *
- * @param data A text buffer that (hopefully) has a sound or music command.
- * @param len  The length of the text data in the command buffer.
- * @return     0 if the buffer contains a well-formed command, otherwise -1.
- */
-static int parse_input(char *data, int len) {
-    char* dptr;                         /* Pointer used when parsing data */
-    char* sound = NULL;                 /* Points to a sound or music name */
-    char* source = NULL;
-    int   soundlen;
-    int   spacelen;
-    int   type = 0;
-    int   dir = 0;
-    int   vol = 0;
-    int   x = 0;
-    int   y = 0;
-    int   i = 0;
-
-    dptr = strtok(data, "\"");
-    /*
-     * Is data a blank line (ending with LF) or is it a quoted, empty string?
-     */
-    if (dptr == NULL) {
-        fprintf(stderr, "Sound/music command does not contain any data.\n");
-        return -1;
-    }
-    /*
-     * If the first character is not a quote character, a sound command is
-     * expected.
-     */
-    if (data[0] != '\"') {
-        /*
-         * There are 5 numeric values expected and required.  Technically, if
-         * cfsndserv was new, and the client old, 4 might be present, but the
-         * player does not attempt to support old clients.
-         */
-        i = sscanf(dptr, "%d %d %d %d %d", &x, &y, &dir, &vol, &type);
-
-        if ((i != 5)
-                ||  (dir < 0)
-                ||  (dir > 8)
-                ||  (vol < 0)
-                ||  (vol > 100)
-                ||  (type < 1)) {
-            /*
-             * There is not much point in trying to work with data that does
-             * not fit some basic rules known at the time of development.
-             */
-            fprintf(stderr, "Unrecognized sound command data format.\n");
-#ifdef SOUND_DEBUG
-            fprintf(stderr,
-                    "(%d valid items read) x=%d y=%d dir=%d vol=%d type=%d\n",
-                    i, x, y, dir, vol, type);
-#endif
-            return -1;
-        }
-    }
-    /*
-     * Below this point, when type == 0, a music command is expected, and when
-     * type != 0, a sound command is required.
-     */
-    if (type) {
-        /*
-         * dptr points to the numerics already read, so advance to the string
-         * following the first quote delimiter.  A sound source name is
-         * expected.
-         */
-        dptr = strtok(NULL, "\"");
-        if (dptr == NULL) {
-            fprintf(stderr, "Sound command is missing sound/source names.\n");
-            return -1;
-        }
-        source = dptr;
-
-        /*
-         * Verify there is whitespace between source and sound names.
-         */
-        dptr = strtok(NULL, "\"");
-        if (dptr == NULL) {
-            fprintf(stderr, "Sound command is missing the sound name.\n");
-            return -1;
-        }
-        spacelen = strlen(dptr);
-        for (i = 0; i < spacelen; i++) {
-            if (dptr[i] != ' ' && dptr[i] != '\t') {
-                fprintf(stderr, "Invalid characters after source name.\n");
-                return -1;
-            }
-        }
-        /*
-         * Advance the data pointer to the following sound name.
-         */
-        dptr = strtok(NULL, "\"");
-        if (dptr == NULL) {
-            fprintf(stderr, "Sound command is missing the sound name.\n");
-            return -1;
-        }
-    }
-    /*
-     * Record the sound or music name here (type determines which it is).
-     */
-    sound = dptr;
-    soundlen = strlen(dptr);
-    /*
-     * If there was a trailing quote after the sound or music name, there will
-     * be a null there now, and sound[soundlen] should point to the character
-     * just before another null at data[len-1] (that terminates the command).
-     */
-    i = sound - data + soundlen + 1 + 1;
-    if (i - 1 == len) {
-        fprintf(stderr, "Sound or music name does not end with a quote.\n");
-        return -1;
-    }
-    if (i > len) {
-        fprintf(stderr,
-                "Invalid data after sound/music name (a quoted string needed)\n");
-        return -1;
-    }
-
-    if (type) {
-        /* Play sound effect. */
-        fprintf(stderr, "Playing sound "
-                "%d,%d dir=%d vol=%d type=%d source=\"%s\" sound=\"%s\"\n",
-                x, y, dir, vol, type, source, sound);
-        play_sound_effect(x, y, dir, vol, type, sound, source);
-        return 0;
-    } else {
-        /* Play music. */
-#ifdef SOUND_DEBUG
-        fprintf(stderr, "Playing music \"%s\"\n", sound);
-#endif
-        play_music(sound);
-    }
-
-    return 0;
-}
-
-/**
- * Clean up after itself.
- */
-static void cleanup() {
+void cf_snd_exit() {
 #ifdef SOUND_DEBUG
     puts("Cleaning up...");
 #endif
@@ -398,18 +344,5 @@ static void cleanup() {
     /* Call Mix_Quit() for each time Mix_Init() was called. */
     while(Mix_Init(0)) {
         Mix_Quit();
-    }
-}
-
-/**
- * Implement the SDL_mixer sound server.
- */
-void sdl_mixer_server() {
-    char inbuf[1024];
-    atexit(cleanup);
-    while (fgets(inbuf, sizeof(inbuf), stdin) != NULL) {
-        /* Parse input and sleep to avoid hogging CPU. */
-        parse_input(inbuf, strlen(inbuf));
-        SDL_Delay(50);
     }
 }
