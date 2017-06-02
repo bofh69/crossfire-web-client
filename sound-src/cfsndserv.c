@@ -175,6 +175,11 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     Mix_PlayChannel(-1, chunk[channel_next], 0);
 }
 
+void play_sound_effect(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
+                       const char *sound, const char *source) {
+    play_sound(sound_to_soundnum(sound, type), type_to_soundtype(type), x, y);
+}
+
 static bool music_is_different(char const music[static 1]) {
     static char last_played[MAXSOCKBUF] = "";
     if (strcmp(music, last_played) != 0) {
@@ -359,8 +364,7 @@ static int parse_input(char *data, int len) {
         fprintf(stderr, "Playing sound "
                 "%d,%d dir=%d vol=%d type=%d source=\"%s\" sound=\"%s\"\n",
                 x, y, dir, vol, type, source, sound);
-        play_sound(sound_to_soundnum(sound, type),
-                type_to_soundtype(type), x, y);
+        play_sound_effect(x, y, dir, vol, type, sound, source);
         return 0;
     } else {
         /* Play music. */
