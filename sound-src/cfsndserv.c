@@ -20,9 +20,6 @@
 
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include <ctype.h>
-#include <math.h>
-#include <sys/stat.h>
 
 #include "common.h"
 
