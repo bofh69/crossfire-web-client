@@ -34,16 +34,13 @@ static sound_settings settings = { 512, 4 };
  * better one can be implemented.
  */
 static int sound_to_soundnum(const char *name, guint8 type) {
-    int i;
-
-    for (i = 0; i < MAX_SOUNDS; i++) {
+    for (int i = 0; i < MAX_SOUNDS; i++) {
         if (sounds[i].symbolic != NULL) {
             if (strcmp(sounds[i].symbolic, name) == 0) {
                 return i;
             }
         }
     }
-
     printf("Could not find matching sound for '%s'.\n", name);
     return -1;
 }
@@ -113,9 +110,6 @@ int init_audio() {
  *                  determine value and left vs. right speaker balance.
  */
 static void play_sound(int soundnum, int soundtype, int x, int y) {
-    Sound_Info *si;
-    char path[MAXSOCKBUF];
-    int i;
     static int channel_next = 0;
 
     /* Ignore commands to play invalid sound types. */
@@ -132,7 +126,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
 
     /* Find a channel that isn't playing anything. */
     /* TODO: Replace this with a channel group. */
-    for (i = 0; i < settings.max_chunk; i++) {
+    for (int i = 0; i < settings.max_chunk; i++) {
         /* Go back to the first channel if there are no more. */
         if (channel_next >= settings.max_chunk - 1) {
             channel_next = 0;
@@ -152,6 +146,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     }
 
     /* Refuse to play a sound with an invalid type. */
+    Sound_Info *si;
     if (soundtype == SOUND_NORMAL || soundtype == SOUND_SPELL) {
         si = &sounds[soundnum];
     } else {
@@ -167,6 +162,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     }
 
     /* Try to load and play the sound. */
+    char path[MAXSOCKBUF];
     snprintf(path, sizeof(path), "%s/%s", CLIENT_SOUNDS_PATH, si->filename);
     chunk[channel_next] = Mix_LoadWAV(path);
 
@@ -179,7 +175,7 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     Mix_PlayChannel(-1, chunk[channel_next], 0);
 }
 
-static bool play_new(char const music[static 1]) {
+static bool music_is_different(char const music[static 1]) {
     static char last_played[MAXSOCKBUF] = "";
     if (strcmp(music, last_played) != 0) {
         g_strlcpy(last_played, music, MAXSOCKBUF);
@@ -194,7 +190,7 @@ static bool play_new(char const music[static 1]) {
  * @param name Name of the song to play, without file paths or extensions.
  */
 static void play_music(const char* music_name) {
-    if (!play_new(music_name)) {
+    if (!music_is_different(music_name)) {
         return;
     }
 
@@ -381,17 +377,15 @@ static int parse_input(char *data, int len) {
  * Clean up after itself.
  */
 static void cleanup() {
-    int i;
-
-    printf("Cleaning up...\n");
-
+#ifdef SOUND_DEBUG
+    puts("Cleaning up...");
+#endif
     Mix_HaltMusic();
     Mix_FreeMusic(music);
 
     /* Halt all channels that are playing and free remaining samples. */
     Mix_HaltChannel(-1);
-
-    for (i = 0; i < settings.max_chunk; i++) {
+    for (int i = 0; i < settings.max_chunk; i++) {
         if (chunk[i]) {
             Mix_FreeChunk(chunk[i]);
         }
@@ -408,10 +402,7 @@ static void cleanup() {
  */
 void sdl_mixer_server() {
     char inbuf[1024];
-
-    printf("Starting SDL_mixer server...\n");
     atexit(cleanup);
-
     while (fgets(inbuf, sizeof(inbuf), stdin) != NULL) {
         /* Parse input and sleep to avoid hogging CPU. */
         parse_input(inbuf, strlen(inbuf));

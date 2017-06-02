@@ -31,28 +31,24 @@ Sound_Info sounds[MAX_SOUNDS];
  * Load sound definitions from a file.
  */
 static void init_sounds() {
-    FILE *fp;
-    char buf[512];
-    int i;
-
     /* Initialize by setting all sounds to NULL. */
-    for (i = 0; i < MAX_SOUNDS; i++) {
+    for (int i = 0; i < MAX_SOUNDS; i++) {
         sounds[i].filename = NULL;
     }
 
     /* Try to open the sound definitions file. */
-    printf("Loading sounds from '%s'...\n", g_getenv("CF_SOUND_DIR"));
-    fp = fopen(g_getenv("CF_SOUND_CONF"), "r");
-
+    FILE *fp = fopen(g_getenv("CF_SOUND_CONF"), "r");
     if (fp == NULL) {
         fprintf(stderr, "Could not find sound definitions; aborting!\n");
         exit(EXIT_FAILURE);
     }
+    printf("Loaded sounds from '%s'\n", g_getenv("CF_SOUND_DIR"));
 
     /* Use 'i' as index tracker, so set it to zero. */
-    i = 0;
+    int i = 0;
 
     /* Parse the sound definitions file, line by line. */
+    char buf[512];
     while (fgets(buf, sizeof(buf), fp) != NULL) {
         char *line;
         line = &buf[0];
@@ -91,8 +87,6 @@ static void init_sounds() {
  * @return Zero on success, anything else on failure.
  */
 static int init() {
-    char path[MAXSOCKBUF];
-
     /* Sanity check for $HOME environmental variable. */
     if (g_getenv("HOME") == NULL) {
         fprintf(stderr, "Couldn't read $HOME environmental variable.\n"
@@ -107,6 +101,7 @@ static int init() {
     }
 
     /* Set $CF_SOUND_CONF to something reasonable, if not already set. */
+    char path[MAXSOCKBUF];
     snprintf(path, sizeof(path), "%s/sounds.conf", g_getenv("CF_SOUND_DIR"));
 
     if (!g_setenv("CF_SOUND_CONF", path, FALSE)) {
@@ -182,6 +177,4 @@ int main(int argc, char *argv[]) {
     } else {
         printf("===>>> Sanity tests PASSED!\n");
     }
-
-    exit(EXIT_SUCCESS);
 }
