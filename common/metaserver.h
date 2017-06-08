@@ -3,6 +3,9 @@
  * Metaserver functions and data structures
  */
 
+#include <glib.h>
+#include <stdbool.h>
+
 typedef void (*ms_callback)(char *, int, int, char *, char *, bool);
 
 #define MS_SMALL_BUF	60

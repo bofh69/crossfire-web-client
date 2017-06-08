@@ -95,6 +95,8 @@ if(SOUND)
     add_subdirectory(sound-src)
 endif()
 
+enable_testing()
+
 # Build an installation package.
 include(InstallRequiredSystemLibraries)
 set(CPACK_GENERATOR "ZIP")
