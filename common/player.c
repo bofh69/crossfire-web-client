@@ -60,6 +60,7 @@ void new_player(long tag, char *name, long weight, long face) {
         }
         cpl.spelldata = NULL;
     }
+    hide_all_login_windows();
 }
 
 void look_at(int x, int y) {
