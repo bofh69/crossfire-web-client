@@ -53,8 +53,8 @@ gboolean time_map_redraw = FALSE;
  * Calculate and set desired map size based on map window size.
  */
 static void map_check_resize() {
-    int w = map_drawing_area->allocation.width / map_image_size;
-    int h = map_drawing_area->allocation.height / map_image_size;
+    int w = map_drawing_area->allocation.width / map_image_size + 1;
+    int h = map_drawing_area->allocation.height / map_image_size + 1;
     w = (w > MAP_MAX_SIZE) ? MAP_MAX_SIZE : w;
     h = (h > MAP_MAX_SIZE) ? MAP_MAX_SIZE : h;
 
