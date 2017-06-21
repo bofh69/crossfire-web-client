@@ -45,6 +45,36 @@ static const char *metaservers[] = {
 static ms_callback callback;
 
 /**
+ * Memory buffer used in write_mbuf().
+ */
+struct mbuf {
+    char *memory;
+    size_t size;
+};
+
+/**
+ * Curl write callback function for downloading data into memory instead of
+ * a file. Copied from Curl's 'getinmemory.c' example under the MIT License.
+ */
+static size_t mbuf_write(void *contents, size_t size, size_t nmemb,
+                         void *userp) {
+    size_t realsize = size * nmemb;
+    struct mbuf *mem = (struct mbuf *)userp;
+
+    mem->memory = realloc(mem->memory, mem->size + realsize + 1);
+    if (mem->memory == NULL) {
+        /* out of memory! */
+        printf("not enough memory (realloc returned NULL)\n");
+        return 0;
+    }
+
+    memcpy(&(mem->memory[mem->size]), contents, realsize);
+    mem->size += realsize;
+    mem->memory[mem->size] = 0;
+    return realsize;
+}
+
+/**
  * Set a callback function to run whenever another metaserver is available.
  * @param function
  */
@@ -97,49 +127,7 @@ static bool ms_check_version(Meta_Info *server) {
     return true;
 }
 
-/**
- * Curl doesn't really have any built in way to get data
- * from the URL into string data - instead, we get a blob
- * of data which we need to find the newlines, etc
- * from.  Curl also provides the data in multiple calls
- * if there is lots of data, and does not break the data on
- * newline, so we need to store the extra (unprocessed) data
- * from one call to the next.
- *
- * @param ptr
- * pointer to data to process.
- * @param size
- * @param nmemb
- * the size of each piece of data, and the number of these elements.
- * We always presume the data is byte sized, and just multiple these
- * together to get total amount of data.
- * @param data
- * user supplied data pointer - in this case, it points to a buffer
- * which is used to store unprocessed information from one call to the
- * next.
- * @return
- * Number of bytes processed.  We always return the total number of
- * bytes supplied - returning anything else is an error to CURL
- */
-static size_t ms_writer(void *ptr, size_t size, size_t nmemb, void *data) {
-#ifdef HAVE_CURL_CURL_H
-    size_t realsize = size * nmemb;
-    if (realsize > CURL_MAX_WRITE_SIZE) {
-        LOG(LOG_CRITICAL, "common::metaserver2_writer", "Function called with more data than allowed!");
-    }
-
-    /* This memcpy here is to just give us a null terminated character
-     * array - easier to do with than having to check lengths as well as other
-     * values.  Also, it makes it easier to deal with unprocessed data from
-     * the last call.
-     */
-    char inbuf[CURL_MAX_WRITE_SIZE * 2 + 1];
-    char *leftover = (char*) data;
-    memcpy(inbuf, leftover, strlen(leftover));
-    memcpy(inbuf + strlen(leftover), ptr, realsize);
-    inbuf[strlen(leftover) + realsize] = 0;
-    leftover[0] = 0;
-
+static void parse_meta(char inbuf[static 1]) {
     Meta_Info metaserver;
     char *newline;
     for (char *cp = inbuf; cp != NULL && *cp != 0; cp = newline) {
@@ -152,9 +140,8 @@ static size_t ms_writer(void *ptr, size_t size, size_t nmemb, void *data) {
              * end of the block of data for this call - store
              * away the extra for the next call.
              */
-            strncpy(leftover, cp, CURL_MAX_WRITE_SIZE - 1);
-            leftover[CURL_MAX_WRITE_SIZE - 1] = 0;
-            break;
+            // Can no longer happen after removing ms_writer().
+            return;
         }
 
         char *eq = strchr(cp, '=');
@@ -237,10 +224,6 @@ static size_t ms_writer(void *ptr, size_t size, size_t nmemb, void *data) {
             }
         }
     }
-    return realsize;
-#else
-    return 0;
-#endif
 }
 
 /**
@@ -251,27 +234,26 @@ static size_t ms_writer(void *ptr, size_t size, size_t nmemb, void *data) {
  */
 bool ms_fetch_server(const char *metaserver2) {
 #ifdef HAVE_CURL_CURL_H
-    CURL *curl;
-    CURLcode res;
-    char leftover[CURL_MAX_WRITE_SIZE];
-
-    curl = curl_easy_init();
+    CURL *curl = curl_easy_init();
     if (!curl) {
         return false;
     }
 
-    leftover[0] = 0;
+    struct mbuf chunk;
+    chunk.memory = g_malloc(1);
+    chunk.size = 0;
+
     curl_easy_setopt(curl, CURLOPT_URL, metaserver2);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ms_writer);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, leftover);
-    res = curl_easy_perform(curl);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, mbuf_write);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+    CURLcode res = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
 
-    if (res) {
-        return false;
-    } else {
-        return true;
+    if (!res) {
+        parse_meta(chunk.memory);
     }
+    g_free(chunk.memory);
+    return !res;
 #else
     return true;
 #endif
