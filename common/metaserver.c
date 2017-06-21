@@ -41,9 +41,6 @@ static const char *metaservers[] = {
     "http://metaserver.us.cross-fire.org/meta_client.php",
 };
 
-/** Function to call when a new metaserver is available */
-static ms_callback callback;
-
 /**
  * Memory buffer used in write_mbuf().
  */
@@ -72,14 +69,6 @@ static size_t mbuf_write(void *contents, size_t size, size_t nmemb,
     mem->size += realsize;
     mem->memory[mem->size] = 0;
     return realsize;
-}
-
-/**
- * Set a callback function to run whenever another metaserver is available.
- * @param function
- */
-void ms_set_callback(ms_callback function) {
-    callback = function;
 }
 
 /**
@@ -127,7 +116,7 @@ static bool ms_check_version(Meta_Info *server) {
     return true;
 }
 
-static void parse_meta(char inbuf[static 1]) {
+static void parse_meta(char inbuf[static 1], ms_callback callback) {
     Meta_Info metaserver;
     char *newline;
     for (char *cp = inbuf; cp != NULL && *cp != 0; cp = newline) {
@@ -232,7 +221,7 @@ static void parse_meta(char inbuf[static 1]) {
  * @param metaserver2
  * @return
  */
-bool ms_fetch_server(const char *metaserver2) {
+static bool ms_fetch_server(const char *metaserver2, ms_callback callback) {
 #ifdef HAVE_CURL_CURL_H
     CURL *curl = curl_easy_init();
     if (!curl) {
@@ -250,7 +239,7 @@ bool ms_fetch_server(const char *metaserver2) {
     curl_easy_cleanup(curl);
 
     if (!res) {
-        parse_meta(chunk.memory);
+        parse_meta(chunk.memory, callback);
     }
     g_free(chunk.memory);
     return !res;
@@ -265,11 +254,9 @@ bool ms_fetch_server(const char *metaserver2) {
  * Because this function can query multiple metaservers, the same servers may
  * be listed multiple times in the results.
  */
-void ms_fetch() {
-    const int count = sizeof(metaservers) / sizeof(char *);
-
-    for (int i = 0; i < count; i++) {
-        ms_fetch_server(metaservers[i]);
+void ms_fetch(ms_callback callback) {
+    for (size_t i = 0; i < sizeof(metaservers) / sizeof(char *); i++) {
+        ms_fetch_server(metaservers[i], callback);
     }
 }
 

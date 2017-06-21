@@ -183,7 +183,7 @@ static void server_add(char *server, int update, int players, char *version,
  * @return NULL
  */
 static gpointer server_fetch() {
-    ms_fetch();
+    ms_fetch(server_add);
     return NULL;
 }
 
@@ -203,7 +203,6 @@ void metaserver_show_prompt() {
     gtk_list_store_clear(store_metaserver);
 
     // Start fetching server information in a separate thread.
-    ms_set_callback(server_add);
     g_thread_new("server_fetch", server_fetch, NULL);
 
     cpl.input_state = Metaserver_Select;

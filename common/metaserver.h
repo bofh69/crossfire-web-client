@@ -35,6 +35,4 @@ typedef struct {
 } Meta_Info;
 
 extern void ms_init(void);
-extern void ms_set_callback(ms_callback function);
-extern void ms_fetch(void);
-extern bool ms_fetch_server(const char *metaserver2);
+extern void ms_fetch(ms_callback);

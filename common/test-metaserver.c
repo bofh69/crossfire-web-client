@@ -9,6 +9,5 @@ static void print_entry(char *server, int update, int players, char *version,
 
 int main() {
     ms_init();
-    ms_set_callback(print_entry);
-    ms_fetch();
+    ms_fetch(print_entry);
 }
