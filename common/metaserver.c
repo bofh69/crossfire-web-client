@@ -122,14 +122,8 @@ static bool ms_check_version(Meta_Info *server) {
  * bytes supplied - returning anything else is an error to CURL
  */
 static size_t ms_writer(void *ptr, size_t size, size_t nmemb, void *data) {
-    Meta_Info metaserver;
-
 #ifdef HAVE_CURL_CURL_H
     size_t realsize = size * nmemb;
-    char *cp, *newline, *eq, inbuf[CURL_MAX_WRITE_SIZE * 2 + 1], *leftover;
-
-    leftover = (char*) data;
-
     if (realsize > CURL_MAX_WRITE_SIZE) {
         LOG(LOG_CRITICAL, "common::metaserver2_writer", "Function called with more data than allowed!");
     }
@@ -139,12 +133,16 @@ static size_t ms_writer(void *ptr, size_t size, size_t nmemb, void *data) {
      * values.  Also, it makes it easier to deal with unprocessed data from
      * the last call.
      */
+    char inbuf[CURL_MAX_WRITE_SIZE * 2 + 1];
+    char *leftover = (char*) data;
     memcpy(inbuf, leftover, strlen(leftover));
     memcpy(inbuf + strlen(leftover), ptr, realsize);
     inbuf[strlen(leftover) + realsize] = 0;
     leftover[0] = 0;
 
-    for (cp = inbuf; cp != NULL && *cp != 0; cp = newline) {
+    Meta_Info metaserver;
+    char *newline;
+    for (char *cp = inbuf; cp != NULL && *cp != 0; cp = newline) {
         newline = strchr(cp, '\n');
         if (newline) {
             *newline = 0;
@@ -159,7 +157,7 @@ static size_t ms_writer(void *ptr, size_t size, size_t nmemb, void *data) {
             break;
         }
 
-        eq = strchr(cp, '=');
+        char *eq = strchr(cp, '=');
         if (eq) {
             *eq = 0;
             eq++;
