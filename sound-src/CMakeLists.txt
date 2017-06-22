@@ -4,7 +4,7 @@ add_executable(cfsndserv
     main.c
 )
 
-target_link_libraries(cfsndserv cfclient
+target_link_libraries(cfsndserv
     ${GTK2_LIBRARIES}
     ${SDLMIXER_LIBRARY}
     ${SDL_LIBRARY}
