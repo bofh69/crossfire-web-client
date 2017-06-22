@@ -36,11 +36,12 @@ typedef struct sound_settings {
     int max_chunk;  //< number of sounds that can be played at the same time
 } sound_settings;
 
-static Mix_Chunk **chunk = NULL;
 static Mix_Music *music = NULL;
 static sound_settings settings = { 512, 4 };
 
 static Sound_Info sounds[MAX_SOUNDS];
+
+static GHashTable* chunk_cache;
 
 /**
  * Convert a sound name to a sound number to help with the transition of the
@@ -104,13 +105,6 @@ static int init_audio() {
 
     /* Allocate channels and resize buffers accordingly. */
     Mix_AllocateChannels(settings.max_chunk);
-    chunk = calloc(settings.max_chunk, sizeof(Mix_Chunk *));
-
-    if (!chunk) {
-        fprintf(stderr, "Could not allocate sound buffers.\n");
-        return 4;
-    }
-
     return 0;
 }
 
@@ -190,6 +184,8 @@ int cf_snd_init() {
     }
 
     /* Initialize sound definitions. */
+    chunk_cache = g_hash_table_new_full(g_str_hash, g_str_equal, g_free,
+                                        (void *)Mix_FreeChunk);
     init_sounds();
 
     /* Initialize audio library. */
@@ -198,6 +194,24 @@ int cf_snd_init() {
     }
 
     return 0;
+}
+
+static Mix_Chunk* load_chunk(char const name[static 1]) {
+    Mix_Chunk* chunk = g_hash_table_lookup(chunk_cache, name);
+    if (chunk != NULL) {
+        return chunk;
+    }
+
+    char path[MAXSOCKBUF];
+    snprintf(path, sizeof(path), "%s/%s", g_getenv("CF_SOUND_DIR"), name);
+    chunk = Mix_LoadWAV(path);
+    if (!chunk) {
+        fprintf(stderr, "Could not load sound from '%s': %s\n", path,
+                SDL_GetError());
+        return NULL;
+    }
+    g_hash_table_insert(chunk_cache, &name, chunk);
+    return chunk;
 }
 
 /**
@@ -211,8 +225,6 @@ int cf_snd_init() {
  *                  determine value and left vs. right speaker balance.
  */
 static void play_sound(int soundnum, int soundtype, int x, int y) {
-    static int channel_next = 0;
-
     /* Ignore commands to play invalid sound types. */
     if (soundnum >= MAX_SOUNDS || soundnum < 0) {
         fprintf(stderr, "play_sound: Invalid sound number: %d\n", soundnum);
@@ -223,27 +235,6 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
     if (Mix_Playing(-1) >= settings.max_chunk) {
         fprintf(stderr, "play_sound: too many sounds are already playing\n");
         return;
-    }
-
-    /* Find a channel that isn't playing anything. */
-    /* TODO: Replace this with a channel group. */
-    for (int i = 0; i < settings.max_chunk; i++) {
-        /* Go back to the first channel if there are no more. */
-        if (channel_next >= settings.max_chunk - 1) {
-            channel_next = 0;
-        } else {
-            channel_next++;
-        }
-
-        if (!Mix_Playing(channel_next)) {
-            /* Free next channel if it isn't already empty. */
-            if (!chunk[channel_next]) {
-                Mix_FreeChunk(chunk[channel_next]);
-                chunk[channel_next] = NULL;
-            }
-
-            break;
-        }
     }
 
     /* Refuse to play a sound with an invalid type. */
@@ -262,19 +253,10 @@ static void play_sound(int soundnum, int soundtype, int x, int y) {
         return;
     }
 
-    /* Try to load and play the sound. */
-    char path[MAXSOCKBUF];
-    snprintf(path, sizeof(path), "%s/%s", g_getenv("CF_SOUND_DIR"),
-             si->filename);
-    chunk[channel_next] = Mix_LoadWAV(path);
-
-    if (!chunk[channel_next]) {
-        fprintf(stderr, "Could not load sound from '%s': %s\n",
-                path, SDL_GetError());
-        return;
+    Mix_Chunk* chunk = load_chunk(si->filename);
+    if (chunk != NULL) {
+        Mix_PlayChannel(-1, chunk, 0);
     }
-
-    Mix_PlayChannel(-1, chunk[channel_next], 0);
 }
 
 void cf_play_sound(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
@@ -329,11 +311,7 @@ void cf_snd_exit() {
 
     /* Halt all channels that are playing and free remaining samples. */
     Mix_HaltChannel(-1);
-    for (int i = 0; i < settings.max_chunk; i++) {
-        if (chunk[i]) {
-            Mix_FreeChunk(chunk[i]);
-        }
-    }
+    g_hash_table_destroy(chunk_cache);
 
     /* Call Mix_Quit() for each time Mix_Init() was called. */
     while(Mix_Init(0)) {
