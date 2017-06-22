@@ -22,7 +22,6 @@
 
 #ifdef HAVE_CURL_CURL_H
 #include <curl/curl.h>
-#include <curl/easy.h>
 #endif
 
 #include "metaserver.h"
@@ -165,7 +164,7 @@ static void parse_meta(char inbuf[static 1], ms_callback callback) {
              * data from the server.
              */
             if (!eq) {
-                LOG(LOG_ERROR, "common::metaserver2_writer", "Unknown line: %s", cp);
+                fprintf(stderr, "parse_meta: unknown line '%s'\n", cp);
                 continue;
             }
             if (!strcmp(cp, "hostname")) {
@@ -209,7 +208,7 @@ static void parse_meta(char inbuf[static 1], ms_callback callback) {
                     metaserver.idle_time = 0;
                 }
             } else {
-                LOG(LOG_ERROR, "common::metaserver2_writer", "Unknown line: %s=%s", cp, eq);
+                fprintf(stderr, "parse_meta: unknown line '%s=%s'\n", cp, eq);
             }
         }
     }
@@ -229,8 +228,11 @@ static bool ms_fetch_server(const char *metaserver2, ms_callback callback) {
     }
 
     struct mbuf chunk;
-    chunk.memory = g_malloc(1);
+    chunk.memory = malloc(1);
     chunk.size = 0;
+    if (!chunk.memory) {
+        abort();
+    }
 
     curl_easy_setopt(curl, CURLOPT_URL, metaserver2);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, mbuf_write);
@@ -241,10 +243,20 @@ static bool ms_fetch_server(const char *metaserver2, ms_callback callback) {
     if (!res) {
         parse_meta(chunk.memory, callback);
     }
-    g_free(chunk.memory);
+    free(chunk.memory);
     return !res;
 #else
     return true;
+#endif
+}
+
+/**
+ * Initialize metaserver client. This function should be called before any
+ * other metaserver functions.
+ */
+void ms_init() {
+#ifdef HAVE_CURL_CURL_H
+    curl_global_init(CURL_GLOBAL_ALL);
 #endif
 }
 
@@ -258,14 +270,4 @@ void ms_fetch(ms_callback callback) {
     for (size_t i = 0; i < sizeof(metaservers) / sizeof(char *); i++) {
         ms_fetch_server(metaservers[i], callback);
     }
-}
-
-/**
- * Initialize metaserver client. This function should be called before any
- * other metaserver functions.
- */
-void ms_init() {
-#ifdef HAVE_CURL_CURL_H
-    curl_global_init(CURL_GLOBAL_ALL);
-#endif
 }

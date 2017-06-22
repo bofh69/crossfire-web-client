@@ -48,7 +48,6 @@ add_library(cfclient
     version.h
 )
 
-add_executable(test-metaserver test-metaserver.c)
-target_link_libraries(test-metaserver cfclient
-    ${CURL_LIBRARIES} ${GTK2_LIBRARIES})
+add_executable(test-metaserver test-metaserver.c metaserver.c)
+target_link_libraries(test-metaserver ${CURL_LIBRARIES})
 add_test(metaserver test-metaserver)
