@@ -74,9 +74,6 @@ include(CheckIncludeFiles)
 set(CMAKE_REQUIRED_INCLUDES ${GTK2_INCLUDE_DIRS})
 check_include_files(gio/gnetworking.h HAVE_GIO_GNETWORKING_H)
 
-include(CheckFunctionExists)
-check_function_exists(sysconf HAVE_SYSCONF)
-
 configure_file(
     "${PROJECT_SOURCE_DIR}/config.h.in"
     "${PROJECT_BINARY_DIR}/config.h"
