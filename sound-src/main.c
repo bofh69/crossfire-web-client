@@ -232,8 +232,6 @@ int main(int argc, char *argv[]) {
 
     char inbuf[1024];
     while (fgets(inbuf, sizeof(inbuf), stdin) != NULL) {
-        /* Parse input and sleep to avoid hogging CPU. */
         parse_input(inbuf, strlen(inbuf));
-        SDL_Delay(50);
     }
 }
