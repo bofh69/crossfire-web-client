@@ -43,7 +43,6 @@ static void print_usage() {
         "\n"
         "Options:\n"
         "  -h   display this help message\n"
-        "  -t   run sanity tests\n"
         "  -v   display version information\n"
     );
 }
@@ -207,52 +206,34 @@ static int parse_input(char *data, int len) {
     return 0;
 }
 
-/**
- * Implement the SDL_mixer sound server.
- */
-static void sdl_mixer_server() {
-    char inbuf[1024];
+int main(int argc, char *argv[]) {
+    int flag;
+    while ((flag = getopt(argc, argv, "hv")) != -1) {
+        switch (flag) {
+        case 'h':
+            print_usage();
+            exit(EXIT_SUCCESS);
+            break;
+        case 'v':
+            print_version();
+            exit(EXIT_SUCCESS);
+            break;
+        case '?':
+            print_quickhelp();
+            exit(EXIT_FAILURE);
+            break;
+        }
+    }
+
+    if (cf_snd_init() != 0) {
+        exit(EXIT_FAILURE);
+    }
     atexit(cf_snd_exit);
+
+    char inbuf[1024];
     while (fgets(inbuf, sizeof(inbuf), stdin) != NULL) {
         /* Parse input and sleep to avoid hogging CPU. */
         parse_input(inbuf, strlen(inbuf));
         SDL_Delay(50);
-    }
-}
-
-int main(int argc, char *argv[]) {
-    int flag, test = 0;
-
-    /* Parse command-line arguments. */
-    while ((flag = getopt(argc, argv, "htv")) != -1) {
-        switch (flag) {
-            case 'h':
-                print_usage();
-                exit(EXIT_SUCCESS);
-                break;
-            case 't':
-                test = 1;
-                break;
-            case 'v':
-                print_version();
-                exit(EXIT_SUCCESS);
-                break;
-            case '?':
-                print_quickhelp();
-                exit(EXIT_FAILURE);
-                break;
-        }
-    }
-
-    /* Initialize sound server, exit on failure. */
-    if (cf_snd_init() != 0) {
-        exit(EXIT_FAILURE);
-    }
-
-    /* If not running sanity test, start server. */
-    if (!test) {
-        sdl_mixer_server();
-    } else {
-        printf("===>>> Sanity tests PASSED!\n");
     }
 }
