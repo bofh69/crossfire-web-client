@@ -23,8 +23,8 @@
 #include <ctype.h>
 #include <errno.h>
 
-FILE *sound_pipe = NULL;
-ChildProcess *sound_process;
+static FILE *sound_pipe = NULL;
+static ChildProcess *sound_process;
 
 /**
  * cfsndserv recognizes sound commands by seeing the numeric parameters at
@@ -107,8 +107,9 @@ int init_sounds() {
  * @param source The name of the sound emitter.  It is used in combination
  *               with type and sound to determine which file to play.
  */
-void play_sound_effect(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
-                       const char *sound, const char *source) {
+static void play_sound_effect(gint8 x, gint8 y, guint8 dir, guint8 vol,
+                              guint8 type, const char *sound,
+                              const char *source) {
 #ifndef WIN32
     if (!use_config[CONFIG_SOUND]) {
         return;
