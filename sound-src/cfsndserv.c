@@ -184,7 +184,7 @@ int cf_snd_init() {
     }
 
     /* Initialize sound definitions. */
-    chunk_cache = g_hash_table_new_full(g_str_hash, g_str_equal, g_free,
+    chunk_cache = g_hash_table_new_full(g_str_hash, g_str_equal, NULL,
                                         (void *)Mix_FreeChunk);
     init_sounds();
 
