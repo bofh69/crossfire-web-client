@@ -122,8 +122,10 @@ static void play_sound_effect(gint8 x, gint8 y, guint8 dir, guint8 vol,
      * data to the client.  This is intentional, so that the sound/music name
      * is always the last quoted string on the command sent to cfsndserv.
      */
-    if ((fprintf(sound_pipe, format, x, y, dir, vol, type, source, sound) <= 0)
-            || (fflush(sound_pipe) != 0)) {
+    const int written =
+        fprintf(sound_pipe, format, x, y, dir, vol, type, source, sound);
+    const int ret = fflush(sound_pipe);
+    if (written <= 0 || ret != 0) {
         LOG(LOG_ERROR,
             "gtk-v2::play_sound_effect", "Cannot write sound pipe: %d", errno);
         use_config[CONFIG_SOUND] = 0;
