@@ -228,10 +228,13 @@ int main(int argc, char *argv[]) {
     if (cf_snd_init() != 0) {
         exit(EXIT_FAILURE);
     }
-    atexit(cf_snd_exit);
 
     char inbuf[1024];
     while (fgets(inbuf, sizeof(inbuf), stdin) != NULL) {
         parse_input(inbuf, strlen(inbuf));
     }
+#ifdef SOUND_DEBUG
+    puts("Cleaning up...");
+#endif
+    cf_snd_exit();
 }

@@ -303,9 +303,6 @@ void cf_play_music(const char* music_name) {
 }
 
 void cf_snd_exit() {
-#ifdef SOUND_DEBUG
-    puts("Cleaning up...");
-#endif
     Mix_HaltMusic();
     Mix_FreeMusic(music);
 
