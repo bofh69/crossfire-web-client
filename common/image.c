@@ -587,12 +587,9 @@ static void cache_newpng(int face, guint8 *buf, int buflen, int setnum,
 
     snprintf(filename, sizeof(filename), "%s/image-cache/%c%c",
         cache_dir, facetoname[face][0], facetoname[face][1]);
-    if (access(filename, R_OK | W_OK | X_OK) == -1)
-#ifdef WIN32
-        mkdir(filename);
-#else
-        mkdir(filename, 0755);
-#endif
+    if (access(filename, R_OK | W_OK | X_OK) == -1) {
+        g_mkdir(filename, 0755);
+    }
 
     /* If setnum is valid, and we have faceset information for it,
      * put that prefix in.  This will make it easier later on to

@@ -13,7 +13,7 @@ add_definitions(-std=c99)
 if(UNIX)
     # If Linux or other Unix-like, get gio to work by defining _BSD_SOURCE
     add_definitions(-D_BSD_SOURCE)
-elseif(WIN32)
+elseif(MINGW OR WIN32)
     add_definitions(-DWIN32)
     find_library(WSOCK32_LIBRARY wsock32)
     find_library(WINMM_LIBRARY winmm)
