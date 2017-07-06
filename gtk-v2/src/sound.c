@@ -27,12 +27,6 @@ static FILE *sound_pipe = NULL;
 static ChildProcess *sound_process;
 
 /**
- * cfsndserv recognizes sound commands by seeing the numeric parameters at
- * the beginning of the command line.
- */
-static const char format[] = "%4x %4x %4x %4x %4x \"%s\" \"%s\"\n";
-
-/**
  * Opens the audio device, and reads relevant configuration files.
  *
  * @return
@@ -122,6 +116,7 @@ static void play_sound_effect(gint8 x, gint8 y, guint8 dir, guint8 vol,
      * data to the client.  This is intentional, so that the sound/music name
      * is always the last quoted string on the command sent to cfsndserv.
      */
+    char const* format = "%d %d %u %u %u \"%s\" \"%s\"\n";
     const int written =
         fprintf(sound_pipe, format, x, y, dir, vol, type, source, sound);
     const int ret = fflush(sound_pipe);
