@@ -863,7 +863,7 @@ static gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
      * list is updated - if so, don't draw stuff we don't have faces for.
      */
     if (tmp->face) {
-        draw_inv_table_icon(widget->window, pixmaps[tmp->face]->icon_image);
+        draw_inv_table_icon(gtk_widget_get_window(widget), pixmaps[tmp->face]->icon_image);
     }
 
     return TRUE;
@@ -887,11 +887,14 @@ static void draw_inv_table(int animate) {
         num_items++;
     }
 
-    columns = inv_table->allocation.width / image_size;
+    GtkAllocation size;
+    gtk_widget_get_allocation(inv_table, &size);
+
+    columns = size.width / image_size;
     if (columns > MAX_INV_COLUMNS) {
         columns = MAX_INV_COLUMNS;
     }
-    rows = inv_table->allocation.height / image_size;
+    rows = size.height / image_size;
 
     if (num_items > columns * rows) {
         rows = num_items / columns;
@@ -930,8 +933,9 @@ static void draw_inv_table(int animate) {
                     tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
                     tmp->last_anim = 0;
 
-                    draw_inv_table_icon(inv_table_children[x][y]->window,
-                            pixmaps[tmp->face]->icon_image);
+                    draw_inv_table_icon(
+                        gtk_widget_get_window(inv_table_children[x][y]),
+                        pixmaps[tmp->face]->icon_image);
                 }
             }
             /* On animation run, so don't do any of the remaining logic */
@@ -973,8 +977,8 @@ static void draw_inv_table(int animate) {
                     tmp);
 
             /* Draw the inventory icon image to the table. */
-            draw_inv_table_icon(inv_table_children[x][y]->window,
-                    pixmaps[tmp->face]->icon_image);
+            draw_inv_table_icon(gtk_widget_get_window(inv_table_children[x][y]),
+                                pixmaps[tmp->face]->icon_image);
 
             // Draw an extra indicator if the item is applied.
             if (tmp->applied) {
@@ -1011,7 +1015,7 @@ static void draw_inv_table(int animate) {
      */
     for (i = num_items; i <= max_drawn; i++) {
         if (inv_table_children[x][y]) {
-            gdk_window_clear(inv_table_children[x][y]->window);
+            gdk_window_clear(gtk_widget_get_window(inv_table_children[x][y]));
 
             handler = g_signal_handler_find((gpointer) inv_table_children[x][y],
                     G_SIGNAL_MATCH_FUNC, 0, 0, NULL,

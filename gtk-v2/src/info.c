@@ -761,7 +761,8 @@ static void add_to_textbuf(Info_Pane *pane, const char *message,
      * so check here on what to do.
      */
     if (pane->adjustment &&
-            (pane->adjustment->value + rect.height) >= pane->adjustment->upper) {
+        (gtk_adjustment_get_value(pane->adjustment) + rect.height) >=
+            gtk_adjustment_get_upper(pane->adjustment)) {
         scroll_to_end = 1;
     }
 

@@ -490,9 +490,9 @@ int main(int argc, char *argv[]) {
 void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy,
         int *w, int *h) {
     /* Position of a window relative to its parent window. */
-    gdk_window_get_geometry(win->window, x, y, w, h, NULL);
+    gdk_window_get_geometry(gtk_widget_get_window(win), x, y, w, h, NULL);
     /* Position of the window in root window coordinates. */
-    gdk_window_get_origin(win->window, wx, wy);
+    gdk_window_get_origin(gtk_widget_get_window(win), wx, wy);
     *wx -= *x;
     *wy -= *y;
 }

@@ -53,8 +53,10 @@ gboolean time_map_redraw = FALSE;
  * Calculate and set desired map size based on map window size.
  */
 static void map_check_resize() {
-    int w = map_drawing_area->allocation.width / map_image_size + 1;
-    int h = map_drawing_area->allocation.height / map_image_size + 1;
+    GtkAllocation size;
+    gtk_widget_get_allocation(map_drawing_area, &size);
+    int w = size.width / map_image_size + 1;
+    int h = size.height / map_image_size + 1;
     w = (w > MAP_MAX_SIZE) ? MAP_MAX_SIZE : w;
     h = (h > MAP_MAX_SIZE) ? MAP_MAX_SIZE : h;
 
@@ -320,8 +322,10 @@ static void gtk_map_redraw(gboolean redraw) {
         return;
     }
 
-    int width = map_drawing_area->allocation.width;
-    int height = map_drawing_area->allocation.height;
+    GtkAllocation size;
+    gtk_widget_get_allocation(map_drawing_area, &size);
+    const int width = size.width;
+    const int height = size.height;
 
     // Create double buffer and associated graphics context.
     cairo_surface_t *cst =
@@ -350,7 +354,7 @@ static void gtk_map_redraw(gboolean redraw) {
     cairo_destroy(cr);
 
     // Copy the double buffer on the map drawing area.
-    cairo_t *map_cr = gdk_cairo_create(map_drawing_area->window);
+    cairo_t *map_cr = gdk_cairo_create(gtk_widget_get_window(map_drawing_area));
     cairo_set_source_surface(map_cr, cst, 0, 0);
     cairo_paint(map_cr);
     cairo_destroy(map_cr);
@@ -368,7 +372,7 @@ void resize_map_window(int x, int y) {
     /* We do an implicit clear, since after a resize, there may be some
      * left over pixels at the edge which will not get drawn on by map spaces.
      */
-    gdk_window_clear(map_drawing_area->window);
+    gdk_window_clear(gtk_widget_get_window(map_drawing_area));
     draw_map(TRUE);
 }
 
