@@ -754,7 +754,7 @@ static void read_config_dialog(void) {
     }
 }
 
-void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data) {
+void on_configure_activate(GtkWidget *menuitem, gpointer user_data) {
     gtk_widget_show(config_dialog);
     setup_config_dialog();
 }

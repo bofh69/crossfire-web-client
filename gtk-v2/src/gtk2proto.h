@@ -41,7 +41,7 @@ extern void config_init(GtkWidget *window_root);
 extern void on_config_button_save_clicked(GtkButton *button, gpointer user_data);
 extern void on_config_button_apply_clicked(GtkButton *button, gpointer user_data);
 extern void on_config_button_close_clicked(GtkButton *button, gpointer user_data);
-extern void on_configure_activate(GtkMenuItem *menuitem, gpointer user_data);
+extern void on_configure_activate(GtkWidget *menuitem, gpointer user_data);
 extern void save_winpos(void);
 extern void on_save_window_position_activate(GtkMenuItem *menuitem, gpointer user_data);
 extern void load_window_positions(GtkWidget *window_root);

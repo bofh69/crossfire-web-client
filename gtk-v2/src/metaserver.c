@@ -144,6 +144,11 @@ void metaserver_ui_init() {
     gtk_tree_selection_set_mode(metaserver_selection, GTK_SELECTION_BROWSE);
     g_signal_connect(metaserver_selection, "changed",
                      G_CALLBACK(on_selection_changed), NULL);
+
+    widget =
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_preferences"));
+    g_signal_connect((gpointer)widget, "clicked",
+                     G_CALLBACK(on_configure_activate), NULL);
 }
 
 /**
