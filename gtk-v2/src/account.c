@@ -491,6 +491,7 @@ on_button_play_character_clicked(GtkButton *button, gpointer user_data) {
     if (gtk_tree_selection_get_selected(selected, &model, &iter)) {
         gtk_tree_model_get(model, &iter, CHAR_NAME, &name, -1);
 
+        hide_all_login_windows();
         play_character(name);
     }
 }

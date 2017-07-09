@@ -444,8 +444,6 @@ int main(int argc, char *argv[]) {
     /* Load cached pixmaps. */
     init_image_cache_data();
 
-    /* Show main client window as late as possible. */
-    gtk_widget_show(window_root);
     map_init(window_root);
 
     while (true) {
@@ -454,11 +452,13 @@ int main(int argc, char *argv[]) {
         metaserver_show_prompt();
         gtk_main();
 
+        gtk_widget_show(window_root);
         client_negotiate(use_config[CONFIG_SOUND]);
 
         /* The event_loop will block until connection to the server is lost. */
         event_loop();
 
+        gtk_widget_hide(window_root);
         remove_item_inventory(cpl.ob);
         /*
          * We know the following is the private map structure in item.c.  But
