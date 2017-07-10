@@ -605,40 +605,6 @@ void update_character_choose(const char *name, const char *class,
     }
 }
 
-/**
- * User has double clicked one of the character rows, so use that character as
- * the one to play.
- *
- * @param treeview  Treeview which activated that (should always be
- *                  treeview_choose_character)
- * @param path      Mechanism to get to selected entry
- * @param column    Activated column?
- * @param user_data Not set
- */
-void on_treeview_choose_character_activated(GtkTreeView       *treeview,
-        GtkTreePath       *path,
-        GtkTreeViewColumn *column,
-        gpointer          user_data) {
-    GtkTreeIter iter;
-    GtkTreeModel    *model;
-    char *name;
-
-    model = gtk_tree_view_get_model(treeview);
-    if (gtk_tree_model_get_iter(model, &iter, path)) {
-        gtk_tree_model_get(model, &iter, CHAR_NAME, &name, -1);
-
-        if (!name) {
-            LOG(LOG_ERROR, "account.c::on_treeview_choose_character_activated",
-                "unable to get character name");
-            return;
-        }
-        play_character(name);
-    }
-}
-
-/**
- *
- */
 static void init_choose_char_window() {
     GtkTextIter end;
     GtkCellRenderer *renderer;
@@ -692,7 +658,7 @@ static void init_choose_char_window() {
     g_signal_connect((gpointer) button_account_password, "clicked",
                      G_CALLBACK(on_button_account_password_clicked), NULL);
     g_signal_connect((gpointer) treeview_choose_character, "row_activated",
-                     G_CALLBACK(on_treeview_choose_character_activated), NULL);
+                     G_CALLBACK(on_button_play_character_clicked), NULL);
 
     character_store = gtk_list_store_new(CHAR_NUM_COLUMNS,
                                          G_TYPE_STRING, G_TYPE_STRING,
