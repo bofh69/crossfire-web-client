@@ -678,6 +678,7 @@ void display_newpng(int face, guint8 *buf, int buflen, int setnum) {
     pngtmp = png_to_data(buf, buflen, &width, &height);
     if (!pngtmp) {
         LOG(LOG_ERROR, "display_newpng", "error in PNG data; discarding");
+        return;
     }
 
     if (create_and_rescale_image_from_data(ce, face, pngtmp, width, height)) {
