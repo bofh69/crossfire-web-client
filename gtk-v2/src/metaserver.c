@@ -95,8 +95,6 @@ void metaserver_ui_init() {
     // Server entry text box
     metaserver_entry =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_text_entry"));
-    g_signal_connect(metaserver_entry, "activate",
-                     G_CALLBACK(on_metaserver_select_clicked), NULL);
     g_signal_connect(metaserver_entry, "key_release_event",
                      G_CALLBACK(on_server_entry_changed), NULL);
     g_signal_connect(metaserver_button, "clicked",

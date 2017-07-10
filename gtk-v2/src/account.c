@@ -1026,41 +1026,12 @@ on_button_login_clicked(GtkButton *button, gpointer user_data) {
 }
 
 /**
- * User hit return in the name entry box.  If there is data in the password
- * box, attempt login, otherwise make the password box active.
+ * User hit return in the name entry box.
  * @param entry
  * @param user_data
  */
-void
-on_entry_account_name_activate(GtkEntry *entry, gpointer user_data) {
-    const char *password;
-
-    password = gtk_entry_get_text(GTK_ENTRY(entry_account_password));
-
-    if (!password || *password == 0) {
-        gtk_widget_grab_focus(entry_account_password);
-    } else {
-        do_account_login(gtk_entry_get_text(GTK_ENTRY(entry_account_name)), password);
-    }
-}
-
-/**
- * user hit return in the password box.  Like above, if name data, do login,
- * otherwise make the name box active.
- * @param entry
- * @param user_data
- */
-void
-on_entry_account_password_activate(GtkEntry *entry, gpointer user_data) {
-    const char *name;
-
-    name = gtk_entry_get_text(GTK_ENTRY(entry_account_name));
-
-    if (!name || *name == 0) {
-        gtk_widget_grab_focus(entry_account_name);
-    } else {
-        do_account_login(name, gtk_entry_get_text(GTK_ENTRY(entry_account_password)));
-    }
+void on_entry_account_name_activate(GtkEntry* entry, gpointer user_data) {
+    gtk_widget_grab_focus(entry_account_password);
 }
 
 /**
@@ -1126,8 +1097,7 @@ static void init_login_window() {
                      G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) entry_account_name, "activate",
                      G_CALLBACK(on_entry_account_name_activate), NULL);
-    g_signal_connect((gpointer) entry_account_password, "activate",
-                     G_CALLBACK(on_entry_account_password_activate), NULL);
+    // entry_account_password is the default action in GtkBuilder
     g_signal_connect((gpointer) button_login, "clicked",
                      G_CALLBACK(on_button_login_clicked), NULL);
     g_signal_connect((gpointer) button_create_account, "clicked",
