@@ -190,9 +190,11 @@ static int parse_input(char *data, int len) {
 
     if (type) {
         /* Play sound effect. */
+#ifdef SOUND_DEBUG
         fprintf(stderr, "Playing sound "
                 "%d,%d dir=%d vol=%d type=%d source=\"%s\" sound=\"%s\"\n",
                 x, y, dir, vol, type, source, sound);
+#endif
         cf_play_sound(x, y, dir, vol, type, sound, source);
         return 0;
     } else {
