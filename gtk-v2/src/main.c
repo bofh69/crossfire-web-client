@@ -444,8 +444,6 @@ int main(int argc, char *argv[]) {
     /* Load cached pixmaps. */
     init_image_cache_data();
 
-    map_init(window_root);
-
     while (true) {
         clear_stat_mapping();
 
@@ -453,6 +451,7 @@ int main(int argc, char *argv[]) {
         gtk_main();
 
         gtk_widget_show(window_root);
+        map_init(window_root);
         client_negotiate(use_config[CONFIG_SOUND]);
 
         /* The event_loop will block until connection to the server is lost. */
