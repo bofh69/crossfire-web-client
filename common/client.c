@@ -31,7 +31,6 @@
 
 #include "client.h"
 
-#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <gio/gio.h>
@@ -68,9 +67,7 @@ NameMapping skill_mapping[MAX_SKILL], resist_mapping[NUM_RESISTS];
 
 Client_Player cpl;
 ClientSocket csocket;
-static GSocketConnection *connection;
 static GInputStream *in;
-static GOutputStream *out;
 
 const char *const resists_name[NUM_RESISTS] = {
     "armor", "magic", "fire", "elec",
@@ -180,83 +177,76 @@ void client_mapsize(int width, int height) {
 
 void client_disconnect() {
     LOG(LOG_DEBUG, "close_server_connection", "Closing server connection");
-    csocket.fd = -1;
-    g_io_stream_close(G_IO_STREAM(connection), NULL, NULL);
-    g_object_unref(connection);
+    g_io_stream_close(G_IO_STREAM(csocket.fd), NULL, NULL);
+    g_object_unref(csocket.fd);
+    csocket.fd = NULL;
 }
 
 void client_run() {
-    int i, len;
-    unsigned char *data;
-
-    while (1) {
-        i = SockList_ReadPacket(csocket.fd, &csocket.inbuf, MAXSOCKBUF - 1);
-        /*
-         * If a socket error occurred while reading the packet, drop the
-         * server connection.  Is there a better way to handle this?
-         */
-        if (i == -1) {
-            client_disconnect();
-            return;
+    GError* err = NULL;
+    if (!SockList_ReadPacket(csocket.fd, &csocket.inbuf, MAXSOCKBUF - 1, &err)) {
+    /*
+     * If a socket error occurred while reading the packet, drop the
+     * server connection.  Is there a better way to handle this?
+     */
+        LOG(LOG_ERROR, "client_run", "%s", err->message);
+        g_error_free(err);
+        client_disconnect();
+        return;
+    }
+    /*
+     * Null-terminate the buffer, and set the data pointer so it points
+     * to the first character of the data (following the packet length).
+     */
+    csocket.inbuf.buf[csocket.inbuf.len] = '\0';
+    unsigned char* data = csocket.inbuf.buf + 2;
+    /*
+     * Commands that provide data are always followed by a space.  Find
+     * the space and convert it to a null character.  If no spaces are
+     * found, the packet contains a command with no associatd data.
+     */
+    while ((*data != ' ') && (*data != '\0')) {
+        ++data;
+    }
+    int len;
+    if (*data == ' ') {
+        *data = '\0';
+        data++;
+        len = csocket.inbuf.len - (data - csocket.inbuf.buf);
+    } else {
+        len = 0;
+    }
+    /*
+     * Search for the command in the list of supported server commands.
+     * If the server command is supported by the client, let the script
+     * watcher know what command was received, then process it and quit
+     * searching the command list.
+     */
+    int i;
+    for(i = 0; i < NCOMMANDS; i++) {
+        const char *cmdin = (char *)csocket.inbuf.buf + 2;
+        if (strcmp(cmdin, commands[i].cmdname) == 0) {
+            script_watch(cmdin, data, len, commands[i].cmdformat);
+            commands[i].cmdproc(data, len);
+            break;
         }
-        /*
-         * Drop incomplete packets without attempting to process the contents.
-         */
-        if (i == 0) {
-            return;
-        }
-        /*
-         * Null-terminate the buffer, and set the data pointer so it points
-         * to the first character of the data (following the packet length).
-         */
-        csocket.inbuf.buf[csocket.inbuf.len] = '\0';
-        data = csocket.inbuf.buf + 2;
-        /*
-         * Commands that provide data are always followed by a space.  Find
-         * the space and convert it to a null character.  If no spaces are
-         * found, the packet contains a command with no associatd data.
-         */
-        while ((*data != ' ') && (*data != '\0')) {
-            ++data;
-        }
-        if (*data == ' ') {
-            *data = '\0';
-            data++;
-            len = csocket.inbuf.len - (data - csocket.inbuf.buf);
-        } else {
-            len = 0;
-        }
-        /*
-         * Search for the command in the list of supported server commands.
-         * If the server command is supported by the client, let the script
-         * watcher know what command was received, then process it and quit
-         * searching the command list.
-         */
-        for(i = 0; i < NCOMMANDS; i++) {
-            const char *cmdin = (char *)csocket.inbuf.buf + 2;
-            if (strcmp(cmdin, commands[i].cmdname) == 0) {
-                script_watch(cmdin, data, len, commands[i].cmdformat);
-                commands[i].cmdproc(data, len);
-                break;
-            }
-        }
-        /*
-         * After processing the command, mark the socket input buffer empty.
-         */
-        csocket.inbuf.len=0;
-        /*
-         * Complain about unsupported commands to facilitate troubleshooting.
-         * The client and server should negotiate a connection such that the
-         * server does not send commands the client does not support.
-         */
-        if (i == NCOMMANDS) {
-            printf("Unrecognized command from server (%s)\n",
-                   csocket.inbuf.buf+2);
-        }
+    }
+    /*
+     * After processing the command, mark the socket input buffer empty.
+     */
+    csocket.inbuf.len=0;
+    /*
+     * Complain about unsupported commands to facilitate troubleshooting.
+     * The client and server should negotiate a connection such that the
+     * server does not send commands the client does not support.
+     */
+    if (i == NCOMMANDS) {
+        printf("Unrecognized command from server (%s)\n",
+               csocket.inbuf.buf+2);
     }
 }
 
-int client_connect(const char *hostname) {
+void client_connect(const char hostname[static 1]) {
     GSocketClient *sclient = g_socket_client_new();
     g_socket_client_set_timeout(sclient, 10);
 
@@ -267,14 +257,14 @@ int client_connect(const char *hostname) {
     csocket.servername = g_strdup(hostname);
 
     // Try to connect to server.
-    connection = g_socket_client_connect_to_host(
+    csocket.fd = g_socket_client_connect_to_host(
             sclient, hostname, use_config[CONFIG_PORT], NULL, NULL);
     g_object_unref(sclient);
-    if (connection == NULL) {
-        return -1;
+    if (csocket.fd == NULL) {
+        return;
     }
 
-    GSocket *socket = g_socket_connection_get_socket(connection);
+    GSocket *socket = g_socket_connection_get_socket(csocket.fd);
     int i = 1, fd = g_socket_get_fd(socket);
 #ifdef HAVE_GIO_GNETWORKING_H
     if (use_config[CONFIG_FASTTCP]) {
@@ -283,17 +273,11 @@ int client_connect(const char *hostname) {
         }
     }
 #endif
-    in = g_io_stream_get_input_stream(G_IO_STREAM(connection));
-    out = g_io_stream_get_output_stream(G_IO_STREAM(connection));
-    return fd;
-}
-
-bool client_write(const void *buf, int len) {
-    return g_output_stream_write_all(out, buf, len, NULL, NULL, NULL);
+    in = g_io_stream_get_input_stream(G_IO_STREAM(csocket.fd));
 }
 
 bool client_is_connected() {
-    return connection != NULL && g_socket_connection_is_connected(connection);
+    return csocket.fd != NULL && g_socket_connection_is_connected(csocket.fd);
 }
 
 GSource *client_get_source() {
@@ -315,7 +299,7 @@ void client_negotiate(int sound) {
     tries=0;
     while (csocket.cs_version==0) {
         client_run();
-        if (csocket.fd == -1) {
+        if (csocket.fd == NULL) {
             return;
         }
 
@@ -393,7 +377,7 @@ void client_negotiate(int sound) {
             /*
              * It is rare, but the connection can die while getting this info.
              */
-            if (csocket.fd == -1) {
+            if (csocket.fd == NULL) {
                 return;
             }
 

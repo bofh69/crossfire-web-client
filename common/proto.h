@@ -85,13 +85,14 @@ void SockList_AddChar(SockList *sl, char c);
 void SockList_AddShort(SockList *sl, guint16 data);
 void SockList_AddInt(SockList *sl, guint32 data);
 void SockList_AddString(SockList *sl, const char *str);
-int SockList_Send(SockList *sl, int fd);
+int SockList_Send(SockList *sl, GSocketConnection* c);
 char GetChar_String(const unsigned char *data);
 int GetInt_String(const unsigned char *data);
 gint64 GetInt64_String(const unsigned char *data);
 short GetShort_String(const unsigned char *data);
-int SockList_ReadPacket(int fd, SockList *sl, int len);
-int cs_print_string(int fd, const char *str, ...);
+bool SockList_ReadPacket(GSocketConnection c[static 1], SockList sl[static 1],
+                         size_t len, GError** error);
+int cs_print_string(GSocketConnection* c, const char *str, ...);
 /* p_cmd.c */
 /* player.c */
 void new_player(long tag, char *name, long weight, long face);

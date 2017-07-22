@@ -23,6 +23,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <gio/gio.h>
+
 #ifdef WIN32
 #  include <winsock2.h>
 #endif
@@ -115,7 +117,7 @@ extern Animations animations[MAXANIM];
  * socket/communication related values instead of globals.
  */
 typedef struct {
-    int fd;
+    GSocketConnection* fd;
     SockList    inbuf;
     int cs_version, sc_version;         /**< Server versions of these
                                          */
@@ -657,9 +659,8 @@ extern int maxfd;
  * Open a socket to the given hostname and store connection information.
  *
  * @param hostname Host name or address of the server
- * @return File descripter of the connected socket or -1 on failure
  */
-extern int client_connect(const char *hostname);
+extern void client_connect(const char *hostname);
 
 /**
  * Closes the connection to the server.  It seems better to have it one place

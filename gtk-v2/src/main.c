@@ -203,7 +203,6 @@ static gboolean do_network(GObject *stream, gpointer data) {
  * Set up, enter, and exit event loop. Blocks until event loop returns.
  */
 static void event_loop() {
-    maxfd = csocket.fd + 1;
     guint source_redraw = g_idle_add(redraw, NULL);
     guint source_timeout = g_timeout_add(100, do_timeout, NULL);
 
@@ -212,6 +211,7 @@ static void event_loop() {
 #endif
 
     GSource *net_source = client_get_source();
+    g_assert_nonnull(net_source);
     g_source_set_callback(net_source, (GSourceFunc)do_network, NULL, NULL);
     g_source_attach(net_source, NULL);
     gtk_main();
