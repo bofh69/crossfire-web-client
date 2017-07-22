@@ -118,7 +118,6 @@ extern Animations animations[MAXANIM];
  */
 typedef struct {
     GSocketConnection* fd;
-    SockList    inbuf;
     int cs_version, sc_version;         /**< Server versions of these
                                          */
     int command_sent, command_received; /**< These are used for the newer

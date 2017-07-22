@@ -184,7 +184,9 @@ void client_disconnect() {
 
 void client_run() {
     GError* err = NULL;
-    if (!SockList_ReadPacket(csocket.fd, &csocket.inbuf, MAXSOCKBUF - 1, &err)) {
+    SockList inbuf;
+    inbuf.buf = g_malloc(MAXSOCKBUF);
+    if (!SockList_ReadPacket(csocket.fd, &inbuf, MAXSOCKBUF - 1, &err)) {
     /*
      * If a socket error occurred while reading the packet, drop the
      * server connection.  Is there a better way to handle this?
@@ -198,8 +200,8 @@ void client_run() {
      * Null-terminate the buffer, and set the data pointer so it points
      * to the first character of the data (following the packet length).
      */
-    csocket.inbuf.buf[csocket.inbuf.len] = '\0';
-    unsigned char* data = csocket.inbuf.buf + 2;
+    inbuf.buf[inbuf.len] = '\0';
+    unsigned char* data = inbuf.buf + 2;
     /*
      * Commands that provide data are always followed by a space.  Find
      * the space and convert it to a null character.  If no spaces are
@@ -212,7 +214,7 @@ void client_run() {
     if (*data == ' ') {
         *data = '\0';
         data++;
-        len = csocket.inbuf.len - (data - csocket.inbuf.buf);
+        len = inbuf.len - (data - inbuf.buf);
     } else {
         len = 0;
     }
@@ -224,7 +226,7 @@ void client_run() {
      */
     int i;
     for(i = 0; i < NCOMMANDS; i++) {
-        const char *cmdin = (char *)csocket.inbuf.buf + 2;
+        const char *cmdin = (char *)inbuf.buf + 2;
         if (strcmp(cmdin, commands[i].cmdname) == 0) {
             script_watch(cmdin, data, len, commands[i].cmdformat);
             commands[i].cmdproc(data, len);
@@ -234,7 +236,7 @@ void client_run() {
     /*
      * After processing the command, mark the socket input buffer empty.
      */
-    csocket.inbuf.len=0;
+    inbuf.len=0;
     /*
      * Complain about unsupported commands to facilitate troubleshooting.
      * The client and server should negotiate a connection such that the
@@ -242,8 +244,9 @@ void client_run() {
      */
     if (i == NCOMMANDS) {
         printf("Unrecognized command from server (%s)\n",
-               csocket.inbuf.buf+2);
+               inbuf.buf+2);
     }
+    g_free(inbuf.buf);
 }
 
 void client_connect(const char hostname[static 1]) {
