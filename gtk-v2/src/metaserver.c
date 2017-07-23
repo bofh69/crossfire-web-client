@@ -198,18 +198,23 @@ static gpointer server_fetch() {
 void metaserver_show_prompt() {
     hide_all_login_windows();
     gtk_widget_show(metaserver_window);
-    gtk_label_set_text(GTK_LABEL(metaserver_status), "Getting server list...");
 
     // Disable connect button if there is no text in the server entry box.
     on_server_entry_changed();
 
     gtk_list_store_clear(store_metaserver);
 
+#ifdef HAVE_CURL_CURL_H
     // Start fetching server information in a separate thread.
     g_thread_new("server_fetch", server_fetch, NULL);
-
-    cpl.input_state = Metaserver_Select;
     gtk_label_set_text(GTK_LABEL(metaserver_status), "");
+#else
+    gtk_widget_set_sensitive(GTK_WIDGET(treeview_metaserver), FALSE);
+    gtk_label_set_text(GTK_LABEL(metaserver_status),
+                       "This client doesn't have metaserver support.");
+#endif
+    cpl.input_state = Metaserver_Select;
+
 }
 
 /**
