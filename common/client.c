@@ -48,7 +48,7 @@
 char VERSION_INFO[MAX_BUF];
 
 char *skill_names[MAX_SKILL];
-char *sound_server = "cfsndserv";
+char *sound_server = BINDIR "/cfsndserv";
 const char *config_dir;
 const char *cache_dir;
 

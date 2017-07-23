@@ -433,7 +433,7 @@ int main(int argc, char *argv[]) {
     init_ui();
     init_sockets();
 
-    if (init_sounds() == -1) {
+    if (!want_config[CONFIG_SOUND] || !init_sounds()) {
         use_config[CONFIG_SOUND] = FALSE;
     } else {
         use_config[CONFIG_SOUND] = TRUE;

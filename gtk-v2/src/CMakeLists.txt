@@ -1,4 +1,7 @@
+vala_precompile(VALA_C sound-vala.vala OPTIONS -g GENERATE_HEADER client-vala)
+
 add_executable(crossfire-client-gtk2
+    ${VALA_C}
     account.c
     config.c
     create_char.c

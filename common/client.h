@@ -437,30 +437,6 @@ typedef enum {
     LOG_CRITICAL = 4    ///< Fatal crash-worthy error
 } LogLevel;
 
-typedef struct PipeLog {
-    char* name;
-    LogLevel level;
-    int log;                            /**< To log or not to log. */
-}PipeLog;
-
-#define CHILD_STDIN      1
-#define CHILD_STDOUT     2
-#define CHILD_STDERR     4
-#define CHILD_SILENTFAIL 8
-#define CHILD_TUBE       (CHILD_STDIN|CHILD_STDOUT|CHILD_STDERR)
-typedef struct ChildProcess{
-    char* name;
-    int flag;
-    int pid;
-    int tube[3];
-    PipeLog logger[3];
-    struct ChildProcess* next;
-}ChildProcess;
-
-#define CHILD_PIPEIN(__child)  (__child->tube[0])
-#define CHILD_PIPEOUT(__child) (__child->tube[1])
-#define CHILD_PIPEERR(__child) (__child->tube[2])
-
 /**
  * Translation of the STAT_RES names into printable names, in matching order.
  */
