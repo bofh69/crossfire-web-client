@@ -49,5 +49,5 @@ add_library(cfclient
 )
 
 add_executable(test-metaserver test-metaserver.c metaserver.c)
-target_link_libraries(test-metaserver ${CURL_LIBRARIES})
+target_link_libraries(test-metaserver ${CURL_LDFLAGS})
 add_test(metaserver test-metaserver)

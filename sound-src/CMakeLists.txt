@@ -9,8 +9,7 @@ add_executable(cfsndserv
 
 target_link_libraries(cfsndserv
     ${GTK2_LDFLAGS}
-    ${SDLMIXER_LIBRARY}
-    ${SDL_LIBRARY}
+    ${SDLMIXER_LDFLAGS}
 )
 
 install(TARGETS cfsndserv DESTINATION ${CMAKE_INSTALL_BINDIR})

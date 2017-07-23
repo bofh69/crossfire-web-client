@@ -49,7 +49,7 @@ if(LUA)
 endif()
 
 if(METASERVER2)
-    find_package(CURL REQUIRED)
+    pkg_check_modules(CURL libcurl REQUIRED)
     include_directories(${CURL_INCLUDE_DIRS})
 endif()
 
@@ -59,15 +59,13 @@ if(OPENGL)
 endif()
 
 if(SDL)
-    find_package(SDL REQUIRED)
-    find_package(SDL_image REQUIRED)
+    pkg_check_modules(SDL SDL_image REQUIRED)
     include_directories(${SDL_INCLUDE_DIR})
 endif()
 
 if(SOUND)
-    find_package(SDL REQUIRED)
-    find_package(SDL_mixer REQUIRED)
-    include_directories(${SDL_MIXER_INCLUDE_DIRS})
+    pkg_check_modules(SDLMIXER SDL_mixer REQUIRED)
+    include_directories(${SDLMIXER_INCLUDE_DIRS})
 endif()
 
 # Set compatibility definitions for Autotools.
