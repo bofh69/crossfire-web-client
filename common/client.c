@@ -271,12 +271,14 @@ void client_connect(const char hostname[static 1]) {
 
     GSocket *socket = g_socket_connection_get_socket(csocket.fd);
     int i = 1, fd = g_socket_get_fd(socket);
+#ifndef WIN32
 #ifdef HAVE_GIO_GNETWORKING_H
     if (use_config[CONFIG_FASTTCP]) {
         if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1) {
             perror("TCP_NODELAY");
         }
     }
+#endif
 #endif
     in = g_io_stream_get_input_stream(G_IO_STREAM(csocket.fd));
 }

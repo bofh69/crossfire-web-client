@@ -22,9 +22,7 @@
 #include <gtk/gtk.h>
 #include <stdbool.h>
 
-#ifdef WIN32
-#include <windows.h>
-#else
+#ifndef WIN32
 #include <signal.h>
 #endif
 
@@ -90,8 +88,6 @@ GtkWidget *window_root, *magic_map;
 bool next_tick = false;
 
 #ifdef WIN32 /* Win32 scripting support */
-#define PACKAGE_DATA_DIR "."
-
 static int do_scriptout() {
     script_process(NULL);
     return (TRUE);
@@ -293,15 +289,6 @@ static void init_sockets() {
 
 #ifdef WIN32
     maxfd = 0; /* This is ignored on win32 platforms */
-
-    /* This is required for sockets to be used under win32 */
-    WORD Version = 0x0202;
-    WSADATA wsaData;
-
-    if (WSAStartup(Version, &wsaData) != 0) {
-        LOG(LOG_CRITICAL, "main.c::main", "Could not load winsock!");
-        exit(1);
-    }
 #else /* def WIN32 */
     signal(SIGPIPE, SIG_IGN);
 #ifdef HAVE_SYSCONF

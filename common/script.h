@@ -57,10 +57,8 @@ void script_kill(const char *params);
 #ifdef WIN32
 void script_killall(void);
 #endif
-#ifndef WIN32
 void script_fdset(int *maxfd,fd_set *set);
 void script_process(fd_set *set);
-#endif
 void script_watch(const char *cmd, const guint8 *data, const int len, const enum CmdFormat format);
 void script_monitor(const char *command, int repeat, int must_send);
 void script_monitor_str(const char *command);
