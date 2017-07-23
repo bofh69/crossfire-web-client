@@ -251,8 +251,9 @@ void MusicCmd(const char *data, int len) {
      * cfsndserv recognizes music commands by seeing the quoted string as the
      * first item on the command line.
      */
-    if ((fprintf(sound_pipe, "\"%s\"\n", data) <= 0)
-            || (fflush(sound_pipe) != 0)) {
+	const int written = fprintf(sound_pipe, "\"%s\"\n", data);
+	const int res = fflush(sound_pipe);
+    if (written <= 0 || res != 0) {
         LOG(LOG_ERROR,
             "gtk-v2::MusicCmd", "Cannot write sound pipe: %d", errno);
         use_config[CONFIG_SOUND] = 0;
