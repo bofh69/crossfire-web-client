@@ -130,21 +130,25 @@ static Mix_Chunk* load_chunk(char const name[static 1]) {
  */
 void cf_play_sound(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
                    char const sound[static 1], char const source[static 1]) {
-    /* Do not play sound if the channel limit has been reached. */
-    if (Mix_Playing(-1) >= settings.max_chunk) {
-        fprintf(stderr, "play_sound: too many sounds are already playing\n");
+    SoundInfo* si = g_hash_table_lookup(sounds, sound);
+    if (si == NULL) {
+        fprintf(stderr, "play_sound: sound not defined: %s\n", sound);
         return;
     }
 
-    SoundInfo* si = g_hash_table_lookup(sounds, sound);
-    if (si == NULL) {
-        fprintf(stderr,"play_sound: sound not defined: %s\n", sound);
+    Mix_Chunk* chunk = load_chunk(si->file);
+    if (chunk == NULL) {
         return;
     }
-    Mix_Chunk* chunk = load_chunk(si->file);
-    if (chunk != NULL) {
-        Mix_PlayChannel(-1, chunk, 0);
+    Mix_VolumeChunk(chunk, si->vol * MIX_MAX_VOLUME / 100);
+
+    int channel = Mix_GroupAvailable(-1);
+    if (channel == -1) {
+        g_warning("No free channels available to play sound");
+        return;
     }
+    Mix_Volume(channel, vol * MIX_MAX_VOLUME / 100);
+    Mix_PlayChannel(channel, chunk, 0);
 }
 
 static bool music_is_different(char const music[static 1]) {
@@ -182,6 +186,7 @@ void cf_play_music(const char* music_name) {
         fprintf(stderr, "Could not load music: %s\n", Mix_GetError());
         return;
     }
+    Mix_VolumeMusic(MIX_MAX_VOLUME * 3/4);
     Mix_FadeInMusic(music, -1, 500);
 }
 
