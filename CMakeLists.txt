@@ -28,6 +28,7 @@ set(CMAKE_INSTALL_DATADIR ${CMAKE_INSTALL_DATAROOTDIR}/crossfire-client)
 find_package(GTK2 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(Perl REQUIRED)
+find_package(Vala REQUIRED)
 find_package(X11 REQUIRED)
 include_directories(
     ${GTK2_INCLUDE_DIRS}
@@ -38,6 +39,8 @@ add_definitions(
     ${GTK2_DEFINITIONS}
     ${PNG_DEFINITIONS}
 )
+
+include(${VALA_USE_FILE})
 
 # Look for optional dependencies that are enabled using options.
 if(LUA)
