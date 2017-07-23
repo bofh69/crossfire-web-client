@@ -193,8 +193,9 @@ bool SockList_ReadPacket(GSocketConnection c[static 1], SockList sl[static 1],
     }
     size_t to_read = (size_t)GetShort_String(sl->buf);
     if (to_read + 2 > len) {
-        // Ignore packets from the server that are too long.
-        return true;
+        g_set_error(error, CLIENT_ERROR, CLIENT_ERROR_TOOBIG,
+                    "Server packet too big");
+        return false;
     }
     if (!g_input_stream_read_all(in, sl->buf + 2, to_read, NULL, NULL, error)) {
         return false;

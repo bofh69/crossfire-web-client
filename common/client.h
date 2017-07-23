@@ -651,6 +651,16 @@ extern int maxfd;
 #define INFO_RULES 3
 /*@}*/
 
+#define CLIENT_ERROR client_error_quark()
+
+inline GQuark client_error_quark() {
+    return g_quark_from_static_string("client-error-quark");
+}
+
+enum ClientError {
+    CLIENT_ERROR_TOOBIG
+};
+
 /* We need to declare most of the structs before we can include this */
 #include "proto.h"
 

@@ -165,6 +165,8 @@ struct CmdMapping commands[] = {
  */
 #define NCOMMANDS ((int)(sizeof(commands)/sizeof(struct CmdMapping)))
 
+GQuark client_error_quark();
+
 void client_mapsize(int width, int height) {
     // Store desired size in use_config to check results from the server.
     use_config[CONFIG_MAPWIDTH] = width;
