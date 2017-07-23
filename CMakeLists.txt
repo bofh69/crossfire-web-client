@@ -71,7 +71,7 @@ endif()
 # Set compatibility definitions for Autotools.
 set(HAVE_CURL_CURL_H ${CURL_FOUND})
 set(HAVE_OPENGL ${OPENGL_FOUND})
-set(HAVE_SDL ${SDL_IMAGE_FOUND})
+set(HAVE_SDL ${SDL_FOUND})
 
 include(CheckIncludeFiles)
 set(CMAKE_REQUIRED_INCLUDES ${GTK2_INCLUDE_DIRS})
