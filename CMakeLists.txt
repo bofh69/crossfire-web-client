@@ -25,7 +25,8 @@ include(GNUInstallDirs)
 set(CMAKE_INSTALL_DATADIR ${CMAKE_INSTALL_DATAROOTDIR}/crossfire-client)
 
 # Look for required dependencies.
-find_package(GTK2 REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK2 gtk+-2.0 gio-2.0 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(Perl REQUIRED)
 find_package(Vala REQUIRED)
@@ -36,7 +37,7 @@ include_directories(
     ${X11_INCLUDE_DIR}
 )
 add_definitions(
-    ${GTK2_DEFINITIONS}
+    ${GTK2_CFLAGS_OTHER}
     ${PNG_DEFINITIONS}
 )
 

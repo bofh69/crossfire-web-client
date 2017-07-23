@@ -8,7 +8,7 @@ add_executable(cfsndserv
 )
 
 target_link_libraries(cfsndserv
-    ${GTK2_LIBRARIES}
+    ${GTK2_LDFLAGS}
     ${SDLMIXER_LIBRARY}
     ${SDL_LIBRARY}
 )

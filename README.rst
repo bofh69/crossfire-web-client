@@ -42,6 +42,7 @@ Dependencies
 - GTK+ 2
 - libpng
 - Perl
+- pkg-config
 - Vala
 
 Optional:

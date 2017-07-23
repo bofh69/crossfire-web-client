@@ -30,7 +30,7 @@ add_executable(crossfire-client-gtk2
 
 target_link_libraries(crossfire-client-gtk2 cfclient
     ${CURL_LIBRARIES}
-    ${GTK2_LIBRARIES}
+    ${GTK2_LDFLAGS}
     ${LUA_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${PNG_LIBRARIES}
