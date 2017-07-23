@@ -1,4 +1,7 @@
+vala_precompile(VALA_C snd.vala OPTIONS -g GENERATE_HEADER snd)
+
 add_executable(cfsndserv
+    ${VALA_C}
     cfsndserv.c
     common.h
     main.c
