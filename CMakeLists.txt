@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 project(crossfire-client C)
 set(VERSION 1.71.0)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
 option(LUA "Lua scripting" OFF)
 option(METASERVER2 "Metaserver2 support" ON)
 option(OPENGL "OpenGL rendering" ON)
