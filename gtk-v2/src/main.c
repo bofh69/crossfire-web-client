@@ -248,6 +248,9 @@ static void parse_args(int argc, char *argv[]) {
      * change the default log level.
      */
     LOG(LOG_DEBUG, "Client Version", VERSION_INFO);
+    if (MINLOG <= 0) {
+        g_setenv("CF_SOUND_DEBUG", "yes", false);
+    }
 }
 
 /**

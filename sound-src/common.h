@@ -1,8 +1,6 @@
 #ifndef _SOUND_SRC_COMMON_H
 #define _SOUND_SRC_COMMON_H
 
-#define SOUND_DEBUG
-
 extern int cf_snd_init();
 extern void cf_snd_exit();
 

@@ -26,6 +26,8 @@
 #include "common.h"
 #include "version.h"
 
+static bool debug = false;
+
 /** Print detailed version information. */
 static void print_version() {
     printf("Crossfire Sound Server %s\n", FULL_VERSION);
@@ -118,11 +120,6 @@ static int parse_input(char *data, int len) {
              * not fit some basic rules known at the time of development.
              */
             fprintf(stderr, "Unrecognized sound command data format.\n");
-#ifdef SOUND_DEBUG
-            fprintf(stderr,
-                    "(%d valid items read) x=%d y=%d dir=%d vol=%d type=%d\n",
-                    i, x, y, dir, vol, type);
-#endif
             return -1;
         }
     }
@@ -190,18 +187,18 @@ static int parse_input(char *data, int len) {
 
     if (type) {
         /* Play sound effect. */
-#ifdef SOUND_DEBUG
-        fprintf(stderr, "Playing sound "
-                "%d,%d dir=%d vol=%d type=%d source=\"%s\" sound=\"%s\"\n",
-                x, y, dir, vol, type, source, sound);
-#endif
+        if (debug) {
+            fprintf(stderr,
+                    "Playing sound "
+                    "%d,%d dir=%d vol=%d type=%d source=\"%s\" sound=\"%s\"\n",
+                    x, y, dir, vol, type, source, sound);
+        }
         cf_play_sound(x, y, dir, vol, type, sound, source);
-        return 0;
     } else {
         /* Play music. */
-#ifdef SOUND_DEBUG
-        fprintf(stderr, "Playing music \"%s\"\n", sound);
-#endif
+        if (debug) {
+            fprintf(stderr, "Playing music \"%s\"\n", sound);
+        }
         cf_play_music(sound);
     }
 
@@ -227,6 +224,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    if (g_getenv("CF_SOUND_DEBUG") != NULL) {
+        debug = true;
+    }
+
     if (cf_snd_init() != 0) {
         exit(EXIT_FAILURE);
     }
@@ -235,8 +236,5 @@ int main(int argc, char *argv[]) {
     while (fgets(inbuf, sizeof(inbuf), stdin) != NULL) {
         parse_input(inbuf, strlen(inbuf));
     }
-#ifdef SOUND_DEBUG
-    puts("Cleaning up...");
-#endif
     cf_snd_exit();
 }
