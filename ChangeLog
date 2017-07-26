@@ -1,129 +1,37 @@
-2017-06-01	Kevin Zheng
-	* sound-src/cfsndserv.c: Move music to $CF_SOUND_DIR/music
+Unreleased
+==========
 
-2017-05-27  Kevin Zheng
-	* sound-src/cfsndserv.c: Improve music playback
+**Added**
 
-2015-12-21	Kevin Zheng
-	* gtk-v2/src/main.c: Remove command-line server selection option
+- Display numerical stats on HP, mana, grace, and experience bars
+- Fade music in and out
+- Highlight applied items in the inventory icon view
+- Speed up Pixmap rendering using Cairo
+- Update metaservers
 
-2015-11-03	Daniel Hawkins
-	* CMakeLists.txt: Add compiler define _BSD_SOURCE so gio includes work right in Linux.
-	* common/metaserver.c: Fixed URL to incorrect php page for US metaserver.
-	* common/msgtypes.pl: Added "use strict" to the script and corrected resulting errors.
+**Changed**
 
-2015-11-02	Daniel Hawkins
-	* gtkv2/src/config.c: Tweak preprocessor directives to make it work on Linux again.
-	* common/mdk.pl: Add "use strict" to the perl script and correct the errors that resulted.
+- Clean up command-line arguments
+- Enable smoothing by default
+- Move music directory to *share/crossfire-client/sounds/music/*
+- Reduce default logging verbosity. Run with '-v 0' to show all messages.
+- Replace autoconf/automake build system with CMake
+- Save client settings in .ini format
+- Set default layout to *gtk-v2*
+- Update UI dialogs
+- Update sound effects
+- Use XDG-compliant directories for configuration and cache files
+- Users who wish to keep their configuration files need to manually move them to the new location. For Unix-like systems, the new location is *~/.config/crossfire*.
 
-2015-10-23	Kevin Zheng
-	* configure.ac, Makefile.am: Remove autotools build system
+**Removed**
 
-2015-03-24	Rick Tanner
-	* common/metaserver.c: Added additional US based metaserver
+- Remove old metaserver (metaserver1) support
 
-2015-03-21	Kevin Zheng
-	* gtk-v2/src/main.c: Redraw map from main loop only when idle
+**Fixed**
 
-2015-03-17	Kevin Zheng
-	* gtk-v2/src/map.c: Combine pixmap layer rendering in a single pass
-
-2015-03-01	Kevin Zheng
-	* gtk-v2/src/main.c: Rename 'time-redraw' command-line option
-	* gtk-v2/src/main.c: Remove unnecessary map draw in do_network()
-
-2014-12-31	Kevin Zheng
-	* gtk-v2/src/stats.c: Display core player stats on progress bars
-
-2014-12-04	SilverNexus
-	* gtk-v2/src/image.c,
-	* gtk-v2/src/keys.c,
-	* gtk-v2/src/main.c,
-	* gtk-v2/src/map.c,
-	* gtk-v2/src/menubar.c,
-	* gtk-v2/src/png.c: Rearranged includes to solve a preprocessor warning
-	about including winsock2.h after windows.h.
-
-2014-11-24	Kevin Zheng
-	* gtk-v2/ui/dialogs.ui: Redesign about dialog
-
-2014-11-23	Kevin Zheng
-	* gtk-v2/src/png.c: Avoid doing pixel conversions on-the-fly
-
-2014-11-16	Kevin Zheng
-	* gtk-v2/src/map.c: Reimplement default renderer using Cario. This
-	substantially improves pixmap rendering performance and improves
-	fog-of-war appearance. This change breaks smoothing under pixmap
-	rendering for the time being.
-
-2014-11-14	Kevin Zheng
-	* common/, gtk-v2/src/: Reduce default logging verbosity. Hidden
-	messages can be shown by running the client with the '-v 0' flag.
-
-2014-09-21	Kevin Zheng
-	* gtk-v2/src/inventory.c: Indicate which items are being applied in
-	the inventory icon view using a solid background color.
-
-2014-09-12	Kevin Zheng
-	* common/: Remove metaserver1 support
-
-2014-08-11	Tolga Dalman
-	* sound-src/Makefile.am: Add missing GLIB link libraries.
-
-2014-06-12	SilverNexus
-	* common/newsocket.c: Fix potential socket buffer overflows on
-	non-string socket buffer writes.
-
-2014-06-11	SilverNexus
-	* gtk-v2/src/menubar.c,
-	* gtk-v2/src/account.c: Fix undefined reference errors in Windows.
-
-2014-06-11	SilverNexus
-	* common/CMakeLists.txt: Update instructions to run mdk.pl instead
-	of mdk.sh.
-
-2014-06-10	SilverNexus
-	* common/mdk.sh: Convert to a perl script for better portability.
-	* common/mdk.pl: New perl script to read in def-keys.
-	* common/Makefile.am: Make compilation run the perl script.
-
-2014-06-10	SilverNexus
-	* common/p_cmd.c: Prevent sending of quit command when there is
-	no player logged in to the client. Fixes main part of bug #782.
-
-2014-06-08	Kevin Zheng
-	* common/config.c: Use GLib to determine the location of the
-	configuration and cache directories. Users who wish to keep their
-	configuration files MUST manually move them to the new location. For
-	Unix-like systems, the new location is '~/.config/crossfire'.
-
-2014-06-05	Kevin Zheng
-	* common/init.c: Enable smoothing by default.
-
-2014-05-16	SilverNexus
-	* configure.ac: Fixed unchangeable sound directory path.
-	* sound-src/common.h: Implement new CF_SOUND_DIR define in
-	common/config.h.
-
-2014-05-15	Kevin Zheng
-	* CMakeLists.txt: Add CMake support.
-
-2014-05-09	Kevin Zheng
-	* configure.ac: Add dependency on GLib.
-
-2014-05-05	Kevin Zheng
-	* gtk-v2/src/main.c: Clean up command-line arguments. Many old flags
-	have been either removed or renamed. The correct way to set client
-	options is through the "Preferences" dialog.
-
-2014-05-03	Kevin Zheng
-	* gtk-v2/src/config.c: Store client settings using a key-value file.
-
-2014-05-02	Kevin Zheng
-	* gtk-v2/src/main.c: Change default layout to 'gtk-v2'.
-
-2014-04-27	Kevin Zheng
-	* doc/: Remove outdated client scripting docs for now.
+- Fix potential socket buffer overflows
+- Fix various protocol-related bugs
+- Update build for Windows
 
 ==============================================================================
 Changes for 1.71.0
