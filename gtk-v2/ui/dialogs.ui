@@ -3875,6 +3875,7 @@ this is the pricing the character gets in shops.</property>
     <property name="title" translatable="yes">Preferences</property>
     <property name="icon_name">preferences-desktop</property>
     <property name="type_hint">dialog</property>
+    <property name="deletable">False</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox2">
         <property name="visible">True</property>
@@ -3887,7 +3888,7 @@ this is the pricing the character gets in shops.</property>
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="config_button_close">
-                <property name="label">gtk-close</property>
+                <property name="label">gtk-apply</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -4191,7 +4192,7 @@ this is the pricing the character gets in shops.</property>
                           <object class="GtkComboBox" id="config_combobox_displaymode">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Requires restart</property>
+                            <property name="tooltip_text" translatable="yes">Requires restart. SDL is the best, followed by OpenGL. Use Pixmap if neither are available.</property>
                             <property name="model">display_mode_liststore</property>
                             <child>
                               <object class="GtkCellRendererText" id="renderer2"/>
