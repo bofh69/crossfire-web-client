@@ -188,8 +188,13 @@ short GetShort_String(const unsigned char *data)
 bool SockList_ReadPacket(GSocketConnection c[static 1], SockList sl[static 1],
                          size_t len, GError** error) {
     GInputStream* in = g_io_stream_get_input_stream(G_IO_STREAM(csocket.fd));
-    if (!g_input_stream_read_all(in, sl->buf, 2, NULL, NULL, error)) {
+    gsize read;
+    if (!g_input_stream_read_all(in, sl->buf, 2, &read, NULL, error)) {
         return false;
+    }
+    if (read != 2) {
+        sl->len = 0;
+        return true;
     }
     size_t to_read = (size_t)GetShort_String(sl->buf);
     if (to_read + 2 > len) {
@@ -197,8 +202,12 @@ bool SockList_ReadPacket(GSocketConnection c[static 1], SockList sl[static 1],
                     "Server packet too big");
         return false;
     }
-    if (!g_input_stream_read_all(in, sl->buf + 2, to_read, NULL, NULL, error)) {
+    if (!g_input_stream_read_all(in, sl->buf + 2, to_read, &read, NULL, error)) {
         return false;
+    }
+    if (read != to_read) {
+        sl->len = 0;
+        return true;
     }
     sl->len = to_read + 2;
 #ifdef CS_LOGSTATS

@@ -198,6 +198,10 @@ void client_run() {
         client_disconnect();
         return;
     }
+    if (inbuf.len == 0) {
+        client_disconnect();
+        return;
+    }
     /*
      * Null-terminate the buffer, and set the data pointer so it points
      * to the first character of the data (following the packet length).
