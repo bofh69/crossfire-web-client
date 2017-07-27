@@ -22,7 +22,7 @@
 
 #include "client-vala.h"
 
-static SoundServer* server;
+SoundServer* server;
 
 int init_sounds() {
     server = sound_server_new();

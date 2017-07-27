@@ -52,4 +52,8 @@ public class SoundServer : Object {
         pipe.printf("\"%s\"\n", music);
         pipe.flush();
     }
+
+    public void stop() {
+        play_music("NONE");
+    }
 }

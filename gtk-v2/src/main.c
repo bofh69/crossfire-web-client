@@ -26,6 +26,7 @@
 #include <signal.h>
 #endif
 
+#include "client-vala.h"
 #include "image.h"
 #include "main.h"
 #include "mapdata.h"
@@ -55,6 +56,7 @@ static gboolean updatekeycodes = FALSE;
 /* TODO: Move these declarations to actual header files. */
 extern int time_map_redraw;
 extern int MINLOG;
+extern SoundServer* server;
 
 /** Command line options, descriptions, and parameters. */
 static GOptionEntry options[] = {
@@ -460,6 +462,7 @@ int main(int argc, char *argv[]) {
          */
         reset_image_data();
         client_reset();
+        sound_server_stop(server);
     }
 }
 
