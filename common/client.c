@@ -257,7 +257,6 @@ void client_run() {
 
 void client_connect(const char hostname[static 1]) {
     GSocketClient *sclient = g_socket_client_new();
-    g_socket_client_set_timeout(sclient, 10);
 
     // Store server hostname.
     if (csocket.servername != NULL) {
