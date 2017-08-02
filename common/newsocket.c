@@ -175,6 +175,24 @@ short GetShort_String(const unsigned char *data)
 }
 
 /**
+ * Get an unsigned short from the stream.
+ * Useful for checking size of server packets.
+ *
+ * @param data
+ * The character stream to read.
+ *
+ * @return
+ * The first two bytes, converted to a uint16.
+ *
+ * @note Currently static since it is only used in this file.
+ * Can be added to the header and made non-static if needed elsewhere
+ */
+static guint16 GetUShort_String(const unsigned char data[static 2]) // We want at least two characters.
+{
+    return ((data[0]<<8)+data[1]);
+}
+
+/**
  * Reads from the socket and puts data into a socklist.  The only processing
  * done is to remove the initial size value. An assumption made is that the
  * buffer is at least 2 bytes long.
@@ -196,7 +214,7 @@ bool SockList_ReadPacket(GSocketConnection c[static 1], SockList sl[static 1],
         sl->len = 0;
         return true;
     }
-    size_t to_read = (size_t)GetShort_String(sl->buf);
+    size_t to_read = (size_t)GetUShort_String(sl->buf);
     if (to_read + 2 > len) {
         g_set_error(error, CLIENT_ERROR, CLIENT_ERROR_TOOBIG,
                     "Server packet too big");
