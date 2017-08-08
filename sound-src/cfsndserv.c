@@ -173,6 +173,7 @@ void cf_play_music(const char* music_name) {
     Mix_FadeOutMusic(500);
     if (music != NULL) {
         Mix_FreeMusic(music);
+        music = NULL;
     }
 
     if (strcmp(music_name, "NONE") == 0) {
