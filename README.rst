@@ -62,35 +62,6 @@ enabled. Download the sound archive and extract it to
 preferences.
 
 
-Preloaded Bitmaps
------------------
-.. note:: This legacy documentation does not necessarily reflect the behavior of the current version of the client.
-
-The client will get any images that it is missing from the server.  This
-can include the entire image set.
-
-To decrease bandwidth used when actually playing the sounds, it is suggested
-you download the image archive and install it.  The default location
-for the archive is *<prefix>/share/cfclient/*, where *<prefix>* is determined
-by the -prefix= option given when running configure.
-
-The mechanism the client uses to find a matching image file when the
-server tells it an image name is thus:
-
-- Look in *~/.crossfire/gfx*.  If an image is found here, irrespective of
-  the set and checksum of the image on the server, it will be used.  The only
-  way images are placed into the gfx directory is by the user actually
-  copying them to that directory.  The gfx directory allows a user to
-  override images with versions he prefers.
-- Look in *~/.crossfire/image-cache* then
-  '<prefix>/share/cfclient/crossfire-images'. If the checksum matches the
-  image from the respective directory is used. Note that if the checksums
-  match, it really doesn't matter what image location we use, as it is the
-  same image.
-- Get the image from the server. If -cache is set, a copy of it is put into
-  *~/.crossfire/image-cache*.
-
-
 License
 =======
 This program is free software; you can redistribute it and/or modify it
@@ -99,8 +70,3 @@ Software Foundation; either version 2 of the License, or (at your option)
 any later version.
 
 See *COPYING*.
-
-
-Authors
-=======
-.. include:: AUTHORS
