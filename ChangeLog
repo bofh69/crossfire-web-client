@@ -1,5 +1,6 @@
-Unreleased
-==========
+1.72.0
+======
+2017-08-13
 
 **Added**
 
@@ -20,8 +21,7 @@ Unreleased
 - Set default layout to *gtk-v2*
 - Update UI dialogs
 - Update sound effects
-- Use XDG-compliant directories for configuration and cache files
-- Users who wish to keep their configuration files need to manually move them to the new location. For Unix-like systems, the new location is *~/.config/crossfire*.
+- Use XDG-compliant directories for configuration and cache files. Users who wish to keep their configuration files need to manually move them to the new location. For Unix-like systems, the new location is *~/.config/crossfire*.
 
 **Removed**
 
@@ -31,6 +31,7 @@ Unreleased
 
 - Fix potential socket buffer overflows
 - Fix various protocol-related bugs
+- Hide character selection window reliably after logging in
 - Update build for Windows
 
 ==============================================================================
