@@ -201,7 +201,10 @@ static void config_load_legacy() {
     FILE *fp;
     int i, val;
 
-    LOG(LOG_DEBUG, "config_load_legacy", "Trying to load legacy settings...");
+    LOG(LOG_INFO, "config_load_legacy",
+        "Configuration not found; trying old configuration files.");
+    LOG(LOG_INFO, "config_load_legacy",
+        "You will need to move your keybindings to the new location.");
 
     snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", g_getenv("HOME"));
     if ((fp = fopen(path, "r")) == NULL) {
