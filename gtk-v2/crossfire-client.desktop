@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=Crossfire GTKv2 Client
+Name=Crossfire Client
 GenericName=Crossfire Client
 Comment=Cooperative multi-player RPG and adventure game
 Exec=crossfire-client-gtk2
