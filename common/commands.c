@@ -1482,6 +1482,8 @@ void StatsCmd(unsigned char *data, int len)
             case CS_STAT_WEIGHT_LIM:
                 set_weight_limit(cpl.stats.weight_limit = GetInt_String(data+i));
                 i += 4;
+                /* Mark weight limit changes to update the client inventory window */
+                cpl.ob->inv_updated = 1;
                 break;
 
             case CS_STAT_RANGE: {

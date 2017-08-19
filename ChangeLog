@@ -1,3 +1,10 @@
+current trunk
+=============
+
+**Fixed**
+
+- Fix delayed update of weight limit on strength changes.
+
 1.72.0
 ======
 2017-08-13
