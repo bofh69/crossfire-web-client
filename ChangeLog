@@ -4,6 +4,7 @@ current trunk
 **Fixed**
 
 - Fix delayed update of weight limit on strength changes.
+- Allow Sound system to work with Vala < 0.25.3,
 
 1.72.0
 ======
