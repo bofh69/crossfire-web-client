@@ -7,7 +7,7 @@ public struct SoundInfo {
  * Load sound configuration file into a hash table of sound info structs.
  */
 public HashTable? load_snd_config() {
-    string snd_dir = GLib.Environment.get_variable("CF_SOUND_DIR");
+    unowned string snd_dir = GLib.Environment.get_variable("CF_SOUND_DIR");
     var snd_config = @"$snd_dir/sounds.conf";
     string contents;
     try {
