@@ -227,7 +227,7 @@ static item *new_item(void)
     op->tag = 0;
     op->face = 0;
     op->weight = 0;
-    op->magical = op->cursed = op->damned = 0;
+    op->magical = op->cursed = op->damned = op->blessed = 0;
     op->unpaid = op->locked = op->applied = 0;
     op->flagsval = 0;
     op->animation_id = 0;
@@ -376,7 +376,7 @@ void remove_item(item *op)
     op->tag = 0;
     op->face = 0;
     op->weight = 0;
-    op->magical = op->cursed = op->damned = 0;
+    op->magical = op->cursed = op->damned = op->blessed = 0;
     op->unpaid = op->locked = op->applied = 0;
     op->flagsval = 0;
     op->animation_id = 0;
@@ -497,6 +497,9 @@ static void set_flag_string(item *op)
     if (op->cursed) {
         strcat(op->flags, " (cursed)");
     }
+    if (op->blessed) {
+        strcat(op->flags, " (blessed)");
+    }
     if (op->magical) {
         strcat(op->flags, " (magic)");
     }
@@ -511,6 +514,7 @@ static void get_flags(item *op, guint16 flags)
     op->open     = flags&F_OPEN    ? 1 : 0;
     op->damned   = flags&F_DAMNED  ? 1 : 0;
     op->cursed   = flags&F_CURSED  ? 1 : 0;
+    op->blessed  = flags&F_BLESSED ? 1 : 0;
     op->magical  = flags&F_MAGIC   ? 1 : 0;
     op->unpaid   = flags&F_UNPAID  ? 1 : 0;
     op->applied  = flags&F_APPLIED ? 1 : 0;
