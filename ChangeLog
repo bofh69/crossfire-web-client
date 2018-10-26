@@ -5,6 +5,7 @@ current trunk
 
 - Fix delayed update of weight limit on strength changes.
 - Allow Sound system to work with Vala < 0.25.3,
+- Display "(blessed)" on items that have blessed flag set. Mostly scrolls.
 
 1.72.0
 ======

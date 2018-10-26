@@ -67,6 +67,7 @@ typedef struct item_struct {
     guint16 magical:1;		/* item is magical */
     guint16 cursed:1;		/* item is cursed */
     guint16 damned:1;		/* item is damned */
+    guint16 blessed:1;		/* item is blessed */
     guint16 unpaid:1;		/* item is unpaid */
     guint16 locked:1;		/* item is locked */
     guint16 applied:1;		/* item is applied */
