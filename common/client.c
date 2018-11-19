@@ -249,7 +249,7 @@ void client_run() {
      * server does not send commands the client does not support.
      */
     if (i == NCOMMANDS) {
-        printf("Unrecognized command from server (%s)\n",
+        LOG(LOG_ERROR, "client_run", "Unrecognized command from server (%s)\n",
                inbuf.buf+2);
     }
     g_free(inbuf.buf);
