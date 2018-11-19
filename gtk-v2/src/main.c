@@ -464,7 +464,9 @@ int main(int argc, char *argv[]) {
          */
         reset_image_data();
         client_reset();
-        sound_server_stop(server);
+        if (server != NULL) {
+            sound_server_stop(server);
+        }
     }
 }
 

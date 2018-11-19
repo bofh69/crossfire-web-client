@@ -1,5 +1,5 @@
 public class SoundServer : Object {
-    FileStream pipe;
+    FileStream? pipe;
 
     public bool spawn(string server_path) {
         string[] args = {server_path};
