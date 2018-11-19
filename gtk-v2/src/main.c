@@ -310,7 +310,9 @@ static void init_sockets() {
 static char *init_ui_layout(const char *name) {
     guint retval = gtk_builder_add_from_file(window_xml, name, NULL);
     if (retval > 0 && strlen(name) > 0) {
-        strncpy(window_xml_file, name, sizeof(window_xml_file));
+        if (window_xml_file != name) { // FIXME: caught by Valgrind
+            strncpy(window_xml_file, name, sizeof(window_xml_file));
+        }
         return window_xml_file;
     } else {
         return NULL;
