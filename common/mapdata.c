@@ -861,7 +861,13 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
 
     /* Random animation is pretty easy */
     if ((anim & ANIM_FLAGS_MASK) == ANIM_RANDOM) {
-        phase = g_random_int() % animations[animation].num_animations;
+        const guint8 num_animations = animations[animation].num_animations;
+        if (num_animations == 0) {
+            LOG(LOG_WARNING, "mapdata_set_anim_layer",
+                "animating object with zero animations");
+            return;
+        }
+        phase = g_random_int() % num_animations;
         face = animations[animation].faces[phase];
         speed_left = anim_speed % g_random_int();
     } else if ((anim & ANIM_FLAGS_MASK) == ANIM_SYNC) {
