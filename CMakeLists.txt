@@ -5,10 +5,10 @@ set(VERSION 1.72.0)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 option(LUA "Lua scripting" OFF)
-option(METASERVER2 "Metaserver2 support" ON)
+option(METASERVER2 "Metaserver2 support (requires curl)" ON)
 option(OPENGL "OpenGL rendering" ON)
-option(SDL "SDL rendering" ON)
-option(SOUND "Sound support" ON)
+option(SDL "SDL rendering (requires sdl_image)" ON)
+option(SOUND "Sound support (requires sdl_mixer)" ON)
 
 if(UNIX)
     # If Linux or other Unix-like, get gio to work by defining _BSD_SOURCE
