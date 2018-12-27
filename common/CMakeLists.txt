@@ -48,6 +48,8 @@ add_library(cfclient
     version.h
 )
 
+target_compile_features(cfclient PRIVATE c_std_99)
+
 target_include_directories(cfclient
     PRIVATE ${CURL_INCLUDE_DIRS}
             ${GTK2_INCLUDE_DIRS}

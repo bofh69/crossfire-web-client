@@ -10,8 +10,6 @@ option(OPENGL "OpenGL rendering" ON)
 option(SDL "SDL rendering" ON)
 option(SOUND "Sound support" ON)
 
-add_definitions(-std=c99)
-
 if(UNIX)
     # If Linux or other Unix-like, get gio to work by defining _BSD_SOURCE
     add_definitions(-D_BSD_SOURCE)
