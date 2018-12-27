@@ -142,7 +142,8 @@ static int show_locked(item *it) {
 }
 
 static int show_unlocked(item *it) {
-    return (it->locked ? 0 : (INV_SHOW_ITEM | INV_SHOW_COLOR));
+    // Show open containers, even if locked, to make moving items easier.
+    return ((it->locked && !it->open) ? 0 : (INV_SHOW_ITEM | INV_SHOW_COLOR));
 }
 
 static int show_unidentified(item *it) {
