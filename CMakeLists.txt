@@ -42,24 +42,23 @@ endif()
 
 if(METASERVER2)
     pkg_check_modules(CURL libcurl REQUIRED)
+    set(HAVE_CURL_CURL_H ${CURL_FOUND})
 endif()
 
 if(OPENGL)
     find_package(OpenGL REQUIRED)
+    set(HAVE_OPENGL ${OPENGL_FOUND})
 endif()
 
 if(SDL)
     pkg_check_modules(SDL SDL_image REQUIRED)
+    set(HAVE_SDL ${SDL_FOUND})
 endif()
 
 if(SOUND)
     pkg_check_modules(SDLMIXER SDL_mixer REQUIRED)
+    add_subdirectory(sound-src)
 endif()
-
-# Set compatibility definitions for Autotools.
-set(HAVE_CURL_CURL_H ${CURL_FOUND})
-set(HAVE_OPENGL ${OPENGL_FOUND})
-set(HAVE_SDL ${SDL_FOUND})
 
 include(CheckIncludeFiles)
 set(CMAKE_REQUIRED_INCLUDES ${GTK2_INCLUDE_DIRS})
@@ -75,10 +74,6 @@ configure_file(
 
 add_subdirectory(common)
 add_subdirectory(gtk-v2)
-
-if(SOUND)
-    add_subdirectory(sound-src)
-endif()
 
 enable_testing()
 
