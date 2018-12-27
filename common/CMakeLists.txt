@@ -48,6 +48,18 @@ add_library(cfclient
     version.h
 )
 
+target_include_directories(cfclient
+    PRIVATE ${CURL_INCLUDE_DIRS}
+            ${GTK2_INCLUDE_DIRS}
+            ${LUA_INCLUDE_DIR}
+            ${PROJECT_BINARY_DIR}
+)
+
 add_executable(test-metaserver test-metaserver.c metaserver.c)
+target_include_directories(test-metaserver
+    PRIVATE ${GTK2_INCLUDE_DIRS}
+            ${PROJECT_BINARY_DIR}
+            ${PROJECT_SOURCE_DIR}/common
+)
 target_link_libraries(test-metaserver ${CURL_LDFLAGS})
 add_test(metaserver test-metaserver)

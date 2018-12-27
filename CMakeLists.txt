@@ -30,11 +30,6 @@ find_package(PNG REQUIRED)
 find_package(Perl REQUIRED)
 find_package(Vala REQUIRED)
 find_package(X11 REQUIRED)
-include_directories(
-    ${GTK2_INCLUDE_DIRS}
-    ${PNG_INCLUDE_DIRS}
-    ${X11_INCLUDE_DIR}
-)
 add_definitions(
     ${GTK2_CFLAGS_OTHER}
     ${PNG_DEFINITIONS}
@@ -45,27 +40,22 @@ include(${VALA_USE_FILE})
 # Look for optional dependencies that are enabled using options.
 if(LUA)
     find_package(Lua51 REQUIRED)
-    include_directories(${LUA_INCLUDE_DIR})
 endif()
 
 if(METASERVER2)
     pkg_check_modules(CURL libcurl REQUIRED)
-    include_directories(${CURL_INCLUDE_DIRS})
 endif()
 
 if(OPENGL)
     find_package(OpenGL REQUIRED)
-    include_directories(${OPENGL_INCLUDE_DIR})
 endif()
 
 if(SDL)
     pkg_check_modules(SDL SDL_image REQUIRED)
-    include_directories(${SDL_INCLUDE_DIR})
 endif()
 
 if(SOUND)
     pkg_check_modules(SDLMIXER SDL_mixer REQUIRED)
-    include_directories(${SDLMIXER_INCLUDE_DIRS})
 endif()
 
 # Set compatibility definitions for Autotools.
@@ -83,12 +73,6 @@ check_function_exists(sysconf HAVE_SYSCONF)
 configure_file(
     "${PROJECT_SOURCE_DIR}/config.h.in"
     "${PROJECT_BINARY_DIR}/config.h"
-)
-
-include_directories(
-    ${PROJECT_BINARY_DIR}
-    ${PROJECT_BINARY_DIR}/common
-    ${PROJECT_SOURCE_DIR}/common
 )
 
 add_subdirectory(common)

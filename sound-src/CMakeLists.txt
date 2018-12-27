@@ -7,6 +7,13 @@ add_executable(cfsndserv
     main.c
 )
 
+target_include_directories(cfsndserv
+    PRIVATE ${GTK2_INCLUDE_DIRS}
+            ${SDLMIXER_INCLUDE_DIRS}
+            ${PROJECT_BINARY_DIR}
+            ${PROJECT_SOURCE_DIR}/common
+)
+
 target_link_libraries(cfsndserv
     ${GTK2_LDFLAGS}
     ${SDLMIXER_LDFLAGS}
