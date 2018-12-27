@@ -20,8 +20,8 @@
 
 #ifdef HAVE_SDL
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #include <gtk/gtk.h>
 
 #ifndef WIN32

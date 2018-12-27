@@ -23,8 +23,8 @@
 #include <gtk/gtk.h>
 
 #ifdef HAVE_SDL
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #endif
 
 #include "image.h"
