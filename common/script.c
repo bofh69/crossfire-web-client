@@ -1623,6 +1623,7 @@ static void script_process_cmd(int i) {
  * unidentified, magic, cursed, damned, unpaid, locked, applied, open, was_open, inv_updated
  *      512        256     128     64      32       16      8       4      2         1
  */
+ // TODO: Add blessed here
 static void script_send_item(int i, const char *head, const item *it)
 {
     char buf[4096];
