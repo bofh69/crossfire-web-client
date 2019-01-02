@@ -492,6 +492,7 @@ on_button_play_character_clicked(GtkButton *button, gpointer user_data) {
         gtk_tree_model_get(model, &iter, CHAR_NAME, &name, -1);
 
         hide_all_login_windows();
+        show_main_client();
         play_character(name);
     }
 }

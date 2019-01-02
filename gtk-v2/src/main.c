@@ -404,6 +404,16 @@ static void init_ui() {
 }
 
 /**
+ * Show main client window. Called after connect if server does not support
+ * new loginmethod, or after character is selected.
+ */
+void show_main_client() {
+    gtk_widget_show(window_root);
+    clear_stat_mapping();
+    map_init(window_root);
+}
+
+/**
  * Main client entry point.
  */
 int main(int argc, char *argv[]) {
@@ -437,14 +447,13 @@ int main(int argc, char *argv[]) {
     init_image_cache_data();
 
     while (true) {
-        clear_stat_mapping();
-
         metaserver_show_prompt();
         gtk_main();
 
-        gtk_widget_show(window_root);
-        map_init(window_root);
         client_negotiate(use_config[CONFIG_SOUND]);
+        if (!serverloginmethod) {
+            show_main_client();
+        }
 
         /* The event_loop will block until connection to the server is lost. */
         event_loop();

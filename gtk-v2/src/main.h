@@ -38,3 +38,5 @@ char window_xml_file[MAX_BUF];
 extern char account_password[256];
 /* gtk2proto.h depends on this - so may as well just include it here */
 #include "info.h"
+
+extern void show_main_client(void);
