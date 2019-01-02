@@ -369,11 +369,6 @@ static void gtk_map_redraw(gboolean redraw) {
  * (in spaces) of the map - is received from server.
  */
 void resize_map_window(int x, int y) {
-    /* We do an implicit clear, since after a resize, there may be some
-     * left over pixels at the edge which will not get drawn on by map spaces.
-     */
-    gdk_window_clear(gtk_widget_get_window(map_drawing_area));
-    draw_map(TRUE);
 }
 
 /**
