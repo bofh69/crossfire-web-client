@@ -437,6 +437,7 @@ static void init_add_character_window() {
  * visible.
  */
 void choose_character_init() {
+    hide_main_client();
     gtk_widget_hide(login_window);
     gtk_widget_hide(add_character_window);
     gtk_widget_hide(create_account_window);

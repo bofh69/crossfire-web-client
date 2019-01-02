@@ -414,6 +414,24 @@ void show_main_client() {
 }
 
 /**
+ * Called if event_loop() exits, or whenever the character selection window
+ * comes up (before logging in, or after having applied a bed).
+ */
+void hide_main_client() {
+    gtk_widget_hide(window_root);
+    remove_item_inventory(cpl.ob);
+    /*
+     * We know the following is the private map structure in item.c.  But
+     * we don't have direct access to it, so we still use locate.
+     */
+    remove_item_inventory(locate_item(0));
+
+    if (server != NULL) {
+        sound_server_stop(server);
+    }
+}
+
+/**
  * Main client entry point.
  */
 int main(int argc, char *argv[]) {
@@ -458,14 +476,7 @@ int main(int argc, char *argv[]) {
         /* The event_loop will block until connection to the server is lost. */
         event_loop();
 
-        gtk_widget_hide(window_root);
-        remove_item_inventory(cpl.ob);
-        /*
-         * We know the following is the private map structure in item.c.  But
-         * we don't have direct access to it, so we still use locate.
-         */
-        remove_item_inventory(locate_item(0));
-        draw_look_list();
+        hide_main_client();
 
         /*
          * Need to reset the images so they match up properly and prevent
@@ -473,9 +484,6 @@ int main(int argc, char *argv[]) {
          */
         reset_image_data();
         client_reset();
-        if (server != NULL) {
-            sound_server_stop(server);
-        }
     }
 }
 

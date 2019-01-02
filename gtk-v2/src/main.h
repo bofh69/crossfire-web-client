@@ -40,3 +40,4 @@ extern char account_password[256];
 #include "info.h"
 
 extern void show_main_client(void);
+extern void hide_main_client(void);
