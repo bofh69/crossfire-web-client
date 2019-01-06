@@ -1,10 +1,15 @@
-current trunk
-=============
+1.73.0
+======
 
 **Added**
 
-- Add text for blessed items in inventory views
 - Pass player and server name to client scripts
+
+**Changed**
+
+- Add text for blessed items in inventory views
+- Client window stays hidden until after player selection
+- Install sound files when SOUND is enabled
 - Show open containers in unlocked inventory view
 
 **Fixed**
