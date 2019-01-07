@@ -446,10 +446,13 @@ int main(int argc, char *argv[]) {
     client_init();
 
     // Set defaults, load configuration, and parse arguments.
-    snprintf(VERSION_INFO, MAX_BUF, "GTKv2 Client " FULL_VERSION);
     config_load();
     parse_args(argc, argv);
     config_check();
+    char *layout = g_path_get_basename(window_xml_file);
+    snprintf(VERSION_INFO, MAX_BUF,
+            "GTKv2 Client " FULL_VERSION " (%s)", layout);
+    g_free(layout);
 
     // Initialize UI, sockets, and sound server.
     init_ui();
