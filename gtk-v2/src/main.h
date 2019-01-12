@@ -39,5 +39,4 @@ extern char account_password[256];
 /* gtk2proto.h depends on this - so may as well just include it here */
 #include "info.h"
 
-extern void show_main_client(void);
 extern void hide_main_client(void);

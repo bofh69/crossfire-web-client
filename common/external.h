@@ -87,6 +87,7 @@ extern void client_pickup(guint32 pickup);
 
 /* Account Login Functions */
 extern void start_login(int method);
+extern void show_main_client(void);
 extern void hide_all_login_windows(void);
 extern void account_login_failure(char *message);
 extern void account_creation_failure(char *message);

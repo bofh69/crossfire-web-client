@@ -472,9 +472,6 @@ int main(int argc, char *argv[]) {
         gtk_main();
 
         client_negotiate(use_config[CONFIG_SOUND]);
-        if (!serverloginmethod) {
-            show_main_client();
-        }
 
         /* The event_loop will block until connection to the server is lost. */
         event_loop();

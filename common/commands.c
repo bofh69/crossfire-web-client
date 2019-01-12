@@ -1102,6 +1102,7 @@ void AddMeSuccess(char *data, int len)
     (void)len; /* __UNUSED__ */
 
     hide_all_login_windows();
+    show_main_client();
     LOG(LOG_DEBUG, "common::AddMeSuccess", "addme_success received.");
     return;
 }
