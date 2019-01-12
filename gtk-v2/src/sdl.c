@@ -1023,6 +1023,9 @@ static void display_mapcell(int ax, int ay, int mx, int my)
  */
 void sdl_gen_map(int redraw) {
     int x, y, num_spaces = 0, num_drawn = 0;
+    if (redrawbitmap == NULL) {
+        return;
+    }
     update_redrawbitmap();
 
     for( x= 0; x<use_config[CONFIG_MAPWIDTH]; x++) {
