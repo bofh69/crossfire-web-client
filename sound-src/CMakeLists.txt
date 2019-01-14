@@ -7,8 +7,6 @@ add_executable(cfsndserv
     main.c
 )
 
-target_compile_features(cfsndserv PRIVATE c_std_99)
-
 target_include_directories(cfsndserv
     PRIVATE ${GTK2_INCLUDE_DIRS}
             ${SDLMIXER_INCLUDE_DIRS}

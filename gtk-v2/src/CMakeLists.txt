@@ -28,8 +28,6 @@ add_executable(crossfire-client-gtk2
     stats.c
 )
 
-target_compile_features(crossfire-client-gtk2 PRIVATE c_std_99)
-
 target_include_directories(crossfire-client-gtk2
     PRIVATE ${GTK2_INCLUDE_DIRS}
             ${OPENGL_INCLUDE_DIR}

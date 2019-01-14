@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.1)
 project(crossfire-client C)
 set(VERSION 1.73.0)
 
@@ -9,6 +9,9 @@ option(METASERVER2 "Metaserver2 support (requires curl)" ON)
 option(OPENGL "OpenGL rendering" ON)
 option(SDL "SDL rendering (requires sdl_image)" ON)
 option(SOUND "Sound support (requires sdl_mixer)" ON)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 if(UNIX)
     # If Linux or other Unix-like, get gio to work by defining _BSD_SOURCE
