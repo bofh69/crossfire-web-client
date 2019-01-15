@@ -8,7 +8,7 @@
     <property name="type_hint">dialog</property>
     <property name="program_name">Crossfire Client</property>
     <property name="version">1.73.0</property>
-    <property name="copyright" translatable="yes">Copyright © 1999-2017 Mark Wedel, Crossfire Development Team
+    <property name="copyright" translatable="yes">Copyright © 1999-2019 Mark Wedel, Crossfire Development Team
 Copyright © 1992 Frank Tore Johansen</property>
     <property name="comments" translatable="yes">A free, open-source, cooperative multi-player RPG and adventure game</property>
     <property name="website">http://crossfire.real-time.com</property>
