@@ -27,7 +27,7 @@
 #include "metaserver.h"
 #include "gtk2proto.h"
 
-static GtkWidget *metaserver_window, *treeview_metaserver, *metaserver_button,
+static GtkWidget *treeview_metaserver, *metaserver_button,
     *metaserver_status, *metaserver_entry;
 static GtkListStore *store_metaserver;
 static GtkTreeSelection *metaserver_selection;
@@ -72,14 +72,6 @@ void metaserver_ui_init() {
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
     GtkWidget *widget;
-
-    // Set up metaserver window
-    metaserver_window =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "metaserver_window"));
-    gtk_window_set_transient_for(GTK_WINDOW(metaserver_window),
-                                 GTK_WINDOW(window_root));
-    g_signal_connect(metaserver_window, "destroy",
-                     G_CALLBACK(on_window_destroy_event), NULL);
 
     treeview_metaserver =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "treeview_metaserver"));
@@ -136,7 +128,6 @@ void metaserver_ui_init() {
         "Description", renderer, "text", LIST_COMMENT, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview_metaserver), column);
 
-    gtk_widget_realize(metaserver_window);
     metaserver_selection =
         gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_metaserver));
     gtk_tree_selection_set_mode(metaserver_selection, GTK_SELECTION_BROWSE);
@@ -196,8 +187,8 @@ static gpointer server_fetch() {
  * server list is added to the contents of the metaserver dialog.
  */
 void metaserver_show_prompt() {
-    hide_all_login_windows();
-    gtk_widget_show(metaserver_window);
+    gtk_notebook_set_current_page(main_notebook, 0);
+    gtk_widget_grab_default(metaserver_button);
 
     // Disable connect button if there is no text in the server entry box.
     on_server_entry_changed();
@@ -236,7 +227,6 @@ static void metaserver_connect_to(const char *name) {
         LOG(LOG_DEBUG, "metaserver_connect_to", "Connected to '%s'!", name);
         gtk_main_quit();
         cpl.input_state = Playing;
-        gtk_widget_hide(metaserver_window);
     } else {
         snprintf(buf, sizeof(buf), "Unable to connect to %s!", name);
         gtk_label_set_text(GTK_LABEL(metaserver_status), buf);

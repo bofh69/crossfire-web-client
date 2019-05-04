@@ -30,9 +30,6 @@
 # include "script.h"
 #endif
 
-static GtkWidget *add_character_window, *choose_char_window,
-       *create_account_window, *login_window, *account_password_window;
-
 /* These are in the login_window */
 static GtkWidget *button_login, *button_create_account, *button_go_metaserver,
     *entry_account_name, *entry_account_password, *label_account_login_status;
@@ -101,15 +98,11 @@ static int has_init = 0;
  */
 void hide_all_login_windows() {
     extern GtkWidget *treeview_look;
+    gtk_widget_hide(connect_window);
 
     if (has_init) {
         /* If we have not initialized, nothing to hide */
-        gtk_widget_hide(login_window);
-        gtk_widget_hide(add_character_window);
-        gtk_widget_hide(choose_char_window);
-        gtk_widget_hide(create_account_window);
         gtk_widget_hide(new_character_window);
-        gtk_widget_hide(account_password_window);
         create_character_window_hide(); /* create_char.c */
 
         /* If the player has started playing (this function being called from
@@ -213,7 +206,7 @@ void on_entry_new_character_name(GtkEntry *entry, gpointer user_data) {
 void
 on_button_new_char_cancel_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide(new_character_window);
-    gtk_widget_show(choose_char_window);
+    choose_char_window_show();
 }
 
 /**
@@ -356,8 +349,7 @@ on_button_do_add_character_clicked(GtkButton *button, gpointer user_data) {
 void
 on_button_return_character_select_clicked(GtkButton *button,
         gpointer user_data) {
-    gtk_widget_hide(add_character_window);
-    gtk_widget_show(choose_char_window);
+    gtk_notebook_set_current_page(main_notebook, 3);
 }
 
 /**
@@ -396,12 +388,6 @@ void on_entry_character(GtkEntry *entry, gpointer user_data) {
 }
 
 static void init_add_character_window() {
-    add_character_window =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "add_character_window"));
-
-    gtk_window_set_transient_for(
-        GTK_WINDOW(add_character_window), GTK_WINDOW(window_root));
-
     button_do_add_character =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_do_add_character"));
     button_return_character_select =
@@ -414,8 +400,6 @@ static void init_add_character_window() {
     label_add_status =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_add_status"));
 
-    g_signal_connect((gpointer) add_character_window, "delete_event",
-                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) button_do_add_character, "clicked",
                      G_CALLBACK(on_button_do_add_character_clicked), NULL);
     g_signal_connect((gpointer) button_return_character_select, "clicked",
@@ -438,10 +422,7 @@ static void init_add_character_window() {
  */
 void choose_character_init() {
     hide_main_client();
-    gtk_widget_hide(login_window);
-    gtk_widget_hide(add_character_window);
-    gtk_widget_hide(create_account_window);
-    gtk_widget_show(choose_char_window);
+    choose_char_window_show();
 
     /* Store any old/stale entries */
     gtk_list_store_clear(character_store);
@@ -455,7 +436,7 @@ void choose_character_init() {
  * character.
  */
 void choose_char_window_show() {
-    gtk_widget_show(choose_char_window);
+    gtk_notebook_set_current_page(main_notebook, 3);
 }
 
 
@@ -491,6 +472,7 @@ on_button_play_character_clicked(GtkButton *button, gpointer user_data) {
 
     if (gtk_tree_selection_get_selected(selected, &model, &iter)) {
         gtk_tree_model_get(model, &iter, CHAR_NAME, &name, -1);
+        show_main_client();
         play_character(name);
     }
 }
@@ -502,7 +484,6 @@ on_button_play_character_clicked(GtkButton *button, gpointer user_data) {
  */
 void
 on_button_create_character_clicked(GtkButton *button, gpointer user_data) {
-    gtk_widget_hide(choose_char_window);
     if (serverloginmethod >= 2) {
         create_character_window_show();
     } else {
@@ -519,8 +500,7 @@ on_button_create_character_clicked(GtkButton *button, gpointer user_data) {
  */
 void
 on_button_add_character_clicked(GtkButton *button, gpointer user_data) {
-    gtk_widget_hide(choose_char_window);
-    gtk_widget_show(add_character_window);
+    gtk_notebook_set_current_page(main_notebook, 5);
     gtk_entry_set_text(GTK_ENTRY(entry_character_name), "");
     gtk_entry_set_text(GTK_ENTRY(entry_character_password), "");
     gtk_widget_grab_focus(entry_character_name);
@@ -534,8 +514,7 @@ on_button_add_character_clicked(GtkButton *button, gpointer user_data) {
  */
 void
 on_button_return_login_clicked(GtkButton *button, gpointer user_data) {
-    gtk_widget_hide(choose_char_window);
-    gtk_widget_show(login_window);
+    gtk_notebook_set_current_page(main_notebook, 1);
 }
 
 /**
@@ -546,8 +525,7 @@ on_button_return_login_clicked(GtkButton *button, gpointer user_data) {
  */
 void
 on_button_account_password_clicked(GtkButton *button, gpointer user_data) {
-    gtk_widget_hide(choose_char_window);
-    gtk_widget_show(account_password_window);
+    gtk_notebook_set_current_page(main_notebook, 4);
     /* reset previous values */
     gtk_entry_set_text(GTK_ENTRY(entry_account_password_current), "");
     gtk_entry_set_text(GTK_ENTRY(entry_account_password_new), "");
@@ -609,12 +587,6 @@ static void init_choose_char_window() {
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
 
-    choose_char_window =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "choose_character_window"));
-
-    gtk_window_set_transient_for(
-        GTK_WINDOW(choose_char_window), GTK_WINDOW(window_root));
-
     button_play_character =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_play_character"));
     button_create_character =
@@ -644,8 +616,6 @@ static void init_choose_char_window() {
         gtk_text_buffer_create_mark(
             login_pane[TEXTVIEW_RULES_CHAR].textbuffer, NULL, &end, FALSE);
 
-    g_signal_connect((gpointer) choose_char_window, "delete_event",
-                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) button_play_character, "clicked",
                      G_CALLBACK(on_button_play_character_clicked), NULL);
     g_signal_connect((gpointer) button_create_character, "clicked",
@@ -789,8 +759,7 @@ on_button_new_create_account_clicked(GtkButton *button, gpointer user_data) {
  */
 void
 on_button_new_cancel_clicked(GtkButton *button, gpointer user_data) {
-    gtk_widget_hide(create_account_window);
-    gtk_widget_show(login_window);
+    gtk_notebook_set_current_page(main_notebook, 1);
 }
 
 /**
@@ -848,12 +817,6 @@ on_entry_new_account(GtkEntry *entry, gpointer user_data) {
 static void init_create_account_window() {
     GtkTextIter end;
 
-    create_account_window =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "create_account_window"));
-
-    gtk_window_set_transient_for(
-        GTK_WINDOW(create_account_window), GTK_WINDOW(window_root));
-
     button_new_create_account =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_new_create_account"));
     button_new_cancel =
@@ -883,8 +846,6 @@ static void init_create_account_window() {
         gtk_text_buffer_create_mark(
             login_pane[TEXTVIEW_RULES_ACCOUNT].textbuffer, NULL, &end, FALSE);
 
-    g_signal_connect((gpointer) create_account_window, "delete_event",
-                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) button_new_create_account, "clicked",
                      G_CALLBACK(on_button_new_create_account_clicked), NULL);
     g_signal_connect((gpointer) button_new_cancel, "clicked",
@@ -918,12 +879,11 @@ void account_login_failure(char *message) {
  */
 void
 on_button_create_account_clicked(GtkButton *button, gpointer user_data) {
-    gtk_widget_hide(login_window);
     gtk_label_set_text(GTK_LABEL(label_create_account_status), "");
     gtk_entry_set_text(GTK_ENTRY(entry_new_account_name), "");
     gtk_entry_set_text(GTK_ENTRY(entry_new_account_password), "");
     gtk_entry_set_text(GTK_ENTRY(entry_new_confirm_password), "");
-    gtk_widget_show(create_account_window);
+    gtk_notebook_set_current_page(main_notebook, 2);
 }
 
 /**
@@ -1006,17 +966,6 @@ void on_entry_account_name_activate(GtkEntry* entry, gpointer user_data) {
 static void init_login_window() {
     GtkTextIter end;
 
-    login_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "login_window"));
-    if (!login_window) {
-        error_dialog("Failed to open dialogs.", "Did you run `make install`?");
-        exit(1);
-    }
-
-    g_signal_connect(login_window, "delete_event",
-                     G_CALLBACK(on_button_exit_client_clicked), NULL);
-
-    gtk_window_set_transient_for(
-        GTK_WINDOW(login_window), GTK_WINDOW(window_root));
     button_login =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_login"));
     button_create_account =
@@ -1058,8 +1007,6 @@ static void init_login_window() {
     entry_account_password =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "entry_account_password"));
 
-    g_signal_connect((gpointer) login_window, "delete_event",
-                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) entry_account_name, "activate",
                      G_CALLBACK(on_entry_account_name_activate), NULL);
     // entry_account_password is the default action in GtkBuilder
@@ -1118,8 +1065,7 @@ static void do_account_change(const char *old, const char *p1, const char *p2) {
 void
 on_button_account_password_cancel_clicked(GtkButton *button,
         gpointer user_data) {
-    gtk_widget_hide(account_password_window);
-    gtk_widget_show(choose_char_window);
+    gtk_notebook_set_current_page(main_notebook, 3);
 }
 
 /**
@@ -1187,12 +1133,6 @@ void account_change_password_failure(char *message) {
  * callbacks.
  */
 static void init_account_password_window() {
-    account_password_window =
-        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "account_password_window"));
-
-    gtk_window_set_transient_for(
-        GTK_WINDOW(account_password_window), GTK_WINDOW(window_root));
-
     button_account_password_confirm =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml,
                                           "button_account_password_confirm"));
@@ -1211,8 +1151,6 @@ static void init_account_password_window() {
     label_account_password_status =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "label_account_password_status"));
 
-    g_signal_connect((gpointer) account_password_window, "delete_event",
-                     G_CALLBACK(on_window_delete_event), NULL);
     g_signal_connect((gpointer) button_account_password_confirm, "clicked",
                      G_CALLBACK(on_button_account_password_confirm_clicked), NULL);
     g_signal_connect((gpointer) button_account_password_cancel, "clicked",
@@ -1363,11 +1301,14 @@ void start_login(int method) {
 
     gtk_entry_set_text(GTK_ENTRY(entry_account_name), "");
     gtk_entry_set_text(GTK_ENTRY(entry_account_password), "");
+}
+
+void account_show_login() {
+    gtk_notebook_set_current_page(main_notebook, 1);
     /* We set focus to account name - this makes the most sense if user is
      * logging in again - it is possible that the password is active, but both
      * fields are blank, which is not what is expected.
      */
     gtk_widget_grab_focus(entry_account_name);
-    gtk_widget_show(login_window);
+    gtk_widget_grab_default(button_login);
 }
-

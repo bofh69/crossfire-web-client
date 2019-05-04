@@ -32,6 +32,7 @@ extern void on_entry_account_password_activate(GtkEntry *entry, gpointer user_da
 extern void update_login_info(int type);
 extern void start_login(int method);
 extern void choose_char_window_show();
+extern void account_show_login(void);
 /* config.c */
 extern void load_theme(int reload);
 extern void config_check();
@@ -126,6 +127,7 @@ extern void error_dialog(char *description, char *information);
 extern void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data);
 extern int main(int argc, char *argv[]);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
+extern void show_main_client(void);
 /* map.c */
 extern void map_init(GtkWidget *window_root);
 extern int display_mapscroll(int dx, int dy);

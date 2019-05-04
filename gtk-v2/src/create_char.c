@@ -51,7 +51,7 @@
 static GtkWidget *spinbutton_cc[NUM_NEW_CHAR_STATS], *label_rs[NUM_NEW_CHAR_STATS],
        *label_cs[NUM_NEW_CHAR_STATS], *label_tot[NUM_NEW_CHAR_STATS],
        *label_cc_unspent, *textview_rs_desc, *label_cc_desc, *label_cc_status_update,
-       *button_cc_cancel, *button_cc_done, *create_character_window, *combobox_rs,
+       *button_cc_cancel, *create_character_window, *combobox_rs,
        *combobox_cs, *textview_cs_desc, *entry_new_character_name, *button_choose_starting_map,
        *opt_label[NUM_OPT_FIELDS], *opt_combobox[NUM_OPT_FIELDS];
 
@@ -120,7 +120,6 @@ static void create_character_set_sensitive(int sensitive)
 {
     int i;
 
-    gtk_widget_set_sensitive(button_cc_done, sensitive);
     gtk_widget_set_sensitive(button_choose_starting_map, sensitive);
     gtk_widget_set_sensitive(entry_new_character_name, sensitive);
     gtk_widget_set_sensitive(combobox_rs, sensitive);
@@ -504,6 +503,7 @@ on_button_cc_done(GtkButton *button, gpointer user_data)
                            "Sending new character information to server");
         show_window(WINDOW_CREATE_CHARACTER);
         send_create_player_to_server();
+        show_main_client();
     }
 }
 
@@ -800,10 +800,9 @@ void init_create_character_window() {
     has_init=1;
 
     create_character_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "create_character_window"));
-    gtk_window_set_transient_for(GTK_WINDOW(create_character_window), GTK_WINDOW(window_root));
+    gtk_window_set_transient_for(GTK_WINDOW(create_character_window), GTK_WINDOW(connect_window));
 
 
-    button_cc_done = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"button_cc_done"));
     button_cc_cancel = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"button_cc_cancel"));
     button_choose_starting_map = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"button_choose_starting_map"));
     label_cc_status_update = GTK_WIDGET(gtk_builder_get_object(dialog_xml,"label_cc_status_update"));
@@ -864,8 +863,6 @@ void init_create_character_window() {
 
     }
 
-    g_signal_connect ((gpointer) button_cc_done, "clicked",
-                      G_CALLBACK (on_button_cc_done), NULL);
     g_signal_connect ((gpointer) button_cc_cancel, "clicked",
                       G_CALLBACK (on_button_cc_cancel), NULL);
     g_signal_connect ((gpointer) button_choose_starting_map, "clicked",

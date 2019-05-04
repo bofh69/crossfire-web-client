@@ -84,7 +84,8 @@ char window_xml_file[MAX_BUF];
 GdkColor root_color[NUM_COLORS];
 
 GtkBuilder *dialog_xml, *window_xml;
-GtkWidget *window_root, *magic_map;
+GtkWidget *window_root, *magic_map, *connect_window;
+GtkNotebook *main_notebook;
 
 /** Track whether the client has received a trick since the last redraw. */
 bool next_tick = false;
@@ -342,6 +343,14 @@ static void init_ui() {
         }
     }
 
+    connect_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "connect_window"));
+    gtk_window_set_transient_for(GTK_WINDOW(connect_window),
+                                 GTK_WINDOW(window_root));
+    g_signal_connect(connect_window, "destroy",
+                     G_CALLBACK(on_window_destroy_event), NULL);
+    main_notebook =
+        GTK_NOTEBOOK(gtk_builder_get_object(dialog_xml, "main_notebook"));
+
     /* Begin connecting signals for the root window. */
     window_root = GTK_WIDGET(gtk_builder_get_object(window_xml, "window_root"));
     if (window_root == NULL) {
@@ -408,6 +417,7 @@ static void init_ui() {
  * new loginmethod, or after character is selected.
  */
 void show_main_client() {
+    hide_all_login_windows();
     gtk_widget_show(window_root);
     clear_stat_mapping();
     map_init(window_root);
@@ -429,6 +439,7 @@ void hide_main_client() {
     if (server != NULL) {
         sound_server_stop(server);
     }
+    gtk_widget_show(connect_window);
 }
 
 /**
@@ -468,10 +479,16 @@ int main(int argc, char *argv[]) {
     init_image_cache_data();
 
     while (true) {
+        gtk_widget_show(connect_window);
         metaserver_show_prompt();
         gtk_main();
 
         client_negotiate(use_config[CONFIG_SOUND]);
+        if (serverloginmethod) {
+            account_show_login();
+        } else {
+            show_main_client();
+        }
 
         /* The event_loop will block until connection to the server is lost. */
         event_loop();
