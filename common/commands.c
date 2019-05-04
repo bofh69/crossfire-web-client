@@ -1836,6 +1836,19 @@ void DeleteInventory(unsigned char *data, int len)
     }
 }
 
+/**
+ * Remove trailing newlines from the given C string in-place.
+ */
+static void rstrip(char buf[static 1], size_t len) {
+    for (size_t i = len - 1; i > 0; i--) {
+        if (buf[i] == '\n' || buf[i] == ' ') {
+            buf[i] = '\0';
+        } else {
+            return;
+        }
+    }
+}
+
 /****************************************************************************/
 
 /**
@@ -1887,6 +1900,7 @@ void AddspellCmd(unsigned char *data, int len)
         strncpy(newspell->message, (char*)data+pos, mlen);
         pos += mlen;
         newspell->message[mlen] = '\0'; /* To ensure we are null terminated */
+        rstrip(newspell->message, mlen);
 
         if (spellmon_level < 2) {
 
