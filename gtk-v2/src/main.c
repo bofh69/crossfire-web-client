@@ -59,8 +59,12 @@ extern bool profile_latency;
 extern int MINLOG;
 extern SoundServer* server;
 
+static char *connect_server = NULL;
+
 /** Command line options, descriptions, and parameters. */
 static GOptionEntry options[] = {
+    { "server", 's', 0, G_OPTION_ARG_STRING, &connect_server,
+        "Connect to the given server", "SERVER[:PORT]" },
     { "cache", 0, 0, G_OPTION_ARG_NONE, &want_config[CONFIG_CACHE],
         "Cache images", NULL },
     { "prefetch", 0, 0, G_OPTION_ARG_NONE, &want_config[CONFIG_DOWNLOAD],
@@ -483,8 +487,17 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         gtk_widget_show(connect_window);
-        metaserver_show_prompt();
-        gtk_main();
+        if (connect_server == NULL) {
+            metaserver_show_prompt();
+            gtk_main();
+        } else {
+            client_connect(connect_server);
+            if (csocket.fd == NULL) {
+                LOG(LOG_ERROR, "main", "Unable to connect to %s!", connect_server);
+                break;
+            }
+            cpl.input_state = Playing;
+        }
 
         client_negotiate(use_config[CONFIG_SOUND]);
         if (serverloginmethod) {

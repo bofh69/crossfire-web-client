@@ -4,6 +4,7 @@ Trunk
 **Added**
 
 - Add "--profile-latency" command-line option
+- Resurrect "--server" option to connect to a server directly
 
 **Changed**
 
