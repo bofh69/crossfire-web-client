@@ -47,7 +47,7 @@ GtkWidget *map_notebook;
  * This should really be one of the CONFIG values, or perhaps a checkbox
  * someplace that displays frame rate.
  */
-gboolean time_map_redraw = FALSE;
+bool time_map_redraw = false;
 
 /**
  * Calculate and set desired map size based on map window size.
@@ -403,7 +403,7 @@ void draw_map(gboolean redraw) {
     if (time_map_redraw) {
         t_end = g_get_monotonic_time();
         gint64 elapsed = t_end - t_start;
-        printf("%"G_GINT64_FORMAT"\n", elapsed);
+        printf("[profile/redraw] %"G_GINT64_FORMAT"\n", elapsed);
     }
 }
 

@@ -54,7 +54,7 @@ static const char *const colorname[NUM_COLORS] = {
 static gboolean updatekeycodes = FALSE;
 
 /* TODO: Move these declarations to actual header files. */
-extern int time_map_redraw;
+extern bool time_map_redraw;
 extern bool profile_latency;
 extern int MINLOG;
 extern SoundServer* server;
@@ -75,7 +75,7 @@ static GOptionEntry options[] = {
 
     { "profile-latency", 0, 0, G_OPTION_ARG_NONE, &profile_latency,
         "Log command acknowledgement latency to stdout", NULL },
-    { "time-redraw", 't', 0, G_OPTION_ARG_NONE, &time_map_redraw,
+    { "profile-redraw", 0, 0, G_OPTION_ARG_NONE, &time_map_redraw,
         "Print map redraw times to stdout", NULL },
     { "verbose", 'v', 0, G_OPTION_ARG_INT, &MINLOG,
         "Set verbosity (0 is the most verbose)", "LEVEL" },

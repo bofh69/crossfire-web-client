@@ -40,9 +40,6 @@ static SDL_Surface* lightmap;
 static SDL_Surface* fogmap;
 static char *redrawbitmap;
 
-extern int time_map_redraw;
-
-
 /* Move some of the SDL code to this file here.  This makes it easier to share
  * between the gnome and gtk client.  It also reduces the length of both the
  * gx11.c and gnome.c file.  It also is more readable, as not as many #ifdef

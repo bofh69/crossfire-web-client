@@ -46,8 +46,6 @@
 #include <GL/glx.h>
 #endif
 
-extern int time_map_redraw;
-
 #ifndef WIN32
 static Display  *display;       /* X display & window for glx buffer swapping */
 static Window   window;
