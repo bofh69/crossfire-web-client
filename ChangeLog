@@ -1,5 +1,24 @@
+Trunk
+=====
+
+**Added**
+
+- Add "--profile-latency" command-line option
+
+**Changed**
+
+- Rename "--time-redraw" to "--profile-redraw"
+- Report UI layout in client version string
+- Trim trailing whitespace from spell descriptions
+- Use one window for metaserver and login dialogs
+
+**Fixed**
+
+- Handle previously handled 'newmapcmd' and 'tick' setup commands
+
 1.73.0
 ======
+2019-01-06
 
 **Added**
 
