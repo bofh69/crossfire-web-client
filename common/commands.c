@@ -1064,6 +1064,10 @@ void SetupCmd(char *buf, int len)
             if (method) {
                 start_login(method);
             }
+        } else if (!strcmp(cmd, "newmapcmd")) {
+            // if server doesn't support newmapcmd, too bad
+        } else if (!strcmp(cmd, "tick")) {
+            // if server doesn't support ticks, too bad
         } else {
             LOG(LOG_INFO, "common::SetupCmd",
                     "Got setup for a command we don't understand: %s %s",
