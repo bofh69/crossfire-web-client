@@ -29,7 +29,6 @@
 
 #include "image.h"
 #include "main.h"
-#include "mapdata.h"
 #include "gtk2proto.h"
 
 extern GtkWidget *window_root; /**< In main.c */
