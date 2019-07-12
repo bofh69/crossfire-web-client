@@ -445,7 +445,6 @@ typedef enum {
 extern const char *const resists_name[NUM_RESISTS];
 extern char *meta_server;
 extern int serverloginmethod, wantloginmethod;
-extern guint32   tick;
 
 /**
  * Holds the names that correspond to skill and resistance numbers.

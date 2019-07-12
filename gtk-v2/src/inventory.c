@@ -1139,25 +1139,6 @@ static void animate_inventory() {
     item *tmp;
     int page;
     GtkTreeStore *store;
-    static int inv_tick = 0;
-
-    /*
-     * If global tick is set, then we are getting tick events from server to
-     * keep in sync, so we don't need the logic below.
-     */
-    if (!tick) {
-        /*
-         * The gtk client timeout is 12 times faster than that of the server so
-         * we slow it down here.  If we were really clever, we'd find what the
-         * timeout on the server actually is, and do gettimeofday calls here to
-         * remain very closely in sync.
-         */
-        inv_tick++;
-        if (inv_tick < 12) {
-            return;
-        }
-        inv_tick = 0;
-    }
 
     page = gtk_notebook_get_current_page(GTK_NOTEBOOK(inv_notebook));
 
@@ -1208,25 +1189,6 @@ static void animate_look() {
     gboolean valid;
     GtkTreeIter iter;
     item *tmp;
-    static int inv_tick = 0;
-
-    /*
-     * If global tick is set, then we are getting tick events from server to
-     * keep in sync, so we don't need the logic below.
-     */
-    if (!tick) {
-        /*
-         * The gtk client timeout is 12 times faster than that of the server so
-         * we slow it down here.  If we were really clever, we'd find what the
-         * timeout on the server actually is, and do gettimeofday calls here to
-         * remain very closely in sync.
-         */
-        inv_tick++;
-        if (inv_tick < 12) {
-            return;
-        }
-        inv_tick = 0;
-    }
 
     /* Get the first iter in the list */
     valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store_look), &iter);

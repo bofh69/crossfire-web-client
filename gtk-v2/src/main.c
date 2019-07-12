@@ -94,9 +94,6 @@ GtkBuilder *dialog_xml, *window_xml;
 GtkWidget *window_root, *magic_map, *connect_window;
 GtkNotebook *main_notebook;
 
-/** Track whether the client has received a trick since the last redraw. */
-bool next_tick = false;
-
 #ifdef WIN32 /* Win32 scripting support */
 static int do_scriptout() {
     script_process(NULL);
@@ -105,10 +102,29 @@ static int do_scriptout() {
 #endif /* WIN32 */
 
 /**
- * Map, spell, and inventory maintenance.
- * @return TRUE
+ * Redraw the map. Do a full redraw if there are new images to show. Return
+ * false to unregister this event source after one redraw.
  */
-static gboolean do_timeout(gpointer data) {
+static gboolean redraw(gpointer data) {
+    if (have_new_image) {
+        if (cpl.container) {
+            cpl.container->inv_updated = 1;
+        }
+        cpl.ob->inv_updated = 1;
+
+        have_new_image = 0;
+        draw_map(1);
+        draw_lists();
+    } else {
+        draw_map(0);
+    }
+    return FALSE;
+}
+
+/**
+ * Called whenever the server sends a tick command.
+ */
+void client_tick(guint32 tick) {
     if (cpl.showmagic) {
         if (gtk_notebook_get_current_page(GTK_NOTEBOOK(map_notebook)) !=
             MAGIC_MAP_PAGE) {
@@ -122,50 +138,11 @@ static gboolean do_timeout(gpointer data) {
     if (cpl.spells_updated) {
         update_spell_information();
     }
-    if (!tick) {
-        inventory_tick();
-        mapdata_animation();
-    }
 
-    return TRUE;
-}
-
-/**
- * Redraw the map. Do a full redraw if there are new images to show.
- */
-static gboolean redraw(gpointer data) {
-    // Do not redraw if no tick has arrived since the last redraw.
-    if (next_tick) {
-        next_tick = false;
-    } else {
-        // Sleep for 10 ms to prevent busy wait.
-        g_usleep(10 * 1e3);
-        return TRUE;
-    }
-
-    if (have_new_image) {
-        if (cpl.container) {
-            cpl.container->inv_updated = 1;
-        }
-        cpl.ob->inv_updated = 1;
-
-        have_new_image = 0;
-        draw_map(1);
-        draw_lists();
-    } else {
-        draw_map(0);
-    }
-    return TRUE;
-}
-
-/**
- * X11 client doesn't care about this
- */
-void client_tick(guint32 tick) {
     info_buffer_tick();
     inventory_tick();
     mapdata_animation();
-    next_tick = true;
+    g_idle_add(redraw, NULL);
 }
 /**
  * Handles client shutdown.
@@ -209,9 +186,6 @@ static gboolean do_network(GObject *stream, gpointer data) {
  * Set up, enter, and exit event loop. Blocks until event loop returns.
  */
 static void event_loop() {
-    guint source_redraw = g_idle_add(redraw, NULL);
-    guint source_timeout = g_timeout_add(100, do_timeout, NULL);
-
 #ifdef WIN32
     g_timeout_add(250, (GtkFunction) do_scriptout, NULL);
 #endif
@@ -222,8 +196,6 @@ static void event_loop() {
     g_source_attach(net_source, NULL);
     gtk_main();
 
-    g_source_remove(source_redraw);
-    g_source_remove(source_timeout);
     LOG(LOG_DEBUG, "event_loop", "Disconnected");
 }
 

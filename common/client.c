@@ -58,8 +58,6 @@ int want_skill_exp = 0, replyinfo_status = 0, requestinfo_sent = 0,
         replyinfo_last_face = 0, maxfd,
         wantloginmethod = 0, serverloginmethod = 0;
 
-guint32 tick=0;
-
 guint16 exp_table_max=0;
 guint64 *exp_table=NULL;
 

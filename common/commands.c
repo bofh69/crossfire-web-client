@@ -1067,7 +1067,16 @@ void SetupCmd(char *buf, int len)
         } else if (!strcmp(cmd, "newmapcmd")) {
             // if server doesn't support newmapcmd, too bad
         } else if (!strcmp(cmd, "tick")) {
-            // if server doesn't support ticks, too bad
+            // Ticks drive the redraw loop via client_tick(), so we really
+            // do need ticks. To support servers without ticks, add a timer
+            // callback via g_timeout_add() that calls client_tick().
+            if (!strcmp(param, "FALSE")) {
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+                              "Server does not support tick!");
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
+                              "This server is too old to support this client!");
+                client_disconnect();
+            }
         } else {
             LOG(LOG_INFO, "common::SetupCmd",
                     "Got setup for a command we don't understand: %s %s",
@@ -2377,11 +2386,8 @@ void SinkCmd(unsigned char *data, int len)
  */
 void TickCmd(guint8 *data, int len)
 {
-
-    tick = GetInt_String(data);
-
     /* Up to the specific client to decide what to do */
-    client_tick(tick);
+    client_tick(GetInt_String(data));
 }
 
 /**
