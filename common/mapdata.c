@@ -750,7 +750,7 @@ void mapdata_set_darkness(int x, int y, int darkness)
 }
 
 /* Sets smooth information for layer */
-void mapdata_set_smooth(int x, int y, int smooth, int layer)
+void mapdata_set_smooth(int x, int y, guint8 smooth, int layer)
 {
     static int dx[8]= {0,1,1,1,0,-1,-1,-1};
     static int dy[8]= {-1,-1,0,1,1,1,0,-1};

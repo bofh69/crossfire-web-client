@@ -50,7 +50,7 @@ struct MapCell
 {
     struct MapCellLayer heads[MAXLAYERS];
     struct MapCellLayer tails[MAXLAYERS];
-    guint16 smooth[MAXLAYERS];
+    guint8 smooth[MAXLAYERS];
     guint8 darkness;         /* darkness: 0=fully illuminated, 255=pitch black */
     guint8 need_update:1;    /* set if tile should be redrawn */
     guint8 have_darkness:1;  /* set if darkness information was set */
@@ -141,7 +141,7 @@ gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh);
 void mapdata_clear_space(int x, int y);
 void mapdata_set_check_space(int x, int y);
 void mapdata_set_darkness(int x, int y, int darkness);
-void mapdata_set_smooth(int x, int y, int smooth, int layer);
+void mapdata_set_smooth(int x, int y, guint8 smooth, int layer);
 void mapdata_clear_old(int x, int y);
 void mapdata_set_face_layer(int x, int y, gint16 face, int layer);
 void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int layer);
