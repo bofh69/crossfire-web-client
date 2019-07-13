@@ -65,7 +65,7 @@ struct BigCell {
     struct BigCell *prev;
 
     struct MapCellLayer head;
-    struct MapCellLayer tail;
+    struct MapCellTailLayer tail;
 
     guint16 x, y;
     guint8 layer;
@@ -224,7 +224,7 @@ static void expand_clear_face(int x, int y, int w, int h, int layer)
 
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
-            struct MapCellLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
+            struct MapCellTailLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
             assert(0 <= x-dx && x-dx < the_map.width);
             assert(0 <= y-dy && y-dy < the_map.height);
             assert(0 <= layer && layer < MAXLAYERS);
@@ -316,7 +316,7 @@ static void expand_set_face(int x, int y, int layer, gint16 face, int clear)
 
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
-            struct MapCellLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
+            struct MapCellTailLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
             assert(0 <= x-dx && x-dx < the_map.width);
             assert(0 <= y-dy && y-dy < the_map.height);
             assert(0 <= layer && layer < MAXLAYERS);
@@ -354,7 +354,7 @@ static void expand_clear_bigface(int x, int y, int w, int h, int layer, int set_
 
     for (dx = 0; dx < w && dx <= x; dx++) {
         for (dy = !dx; dy < h && dy <= y; dy++) {
-            struct MapCellLayer *tail = &bigfaces[x-dx][y-dy][layer].tail;
+            struct MapCellTailLayer *tail = &bigfaces[x-dx][y-dy][layer].tail;
             assert(0 <= x-dx && x-dx < MAX_VIEW);
             assert(0 <= y-dy && y-dy < MAX_VIEW);
             assert(0 <= layer && layer < MAXLAYERS);
@@ -479,7 +479,7 @@ static void expand_set_bigface(int x, int y, int layer, gint16 face, int clear)
 
     for (dx = 0; dx < w && dx <= x; dx++) {
         for (dy = !dx; dy < h && dy <= y; dy++) {
-            struct MapCellLayer *tail = &bigfaces[x-dx][y-dy][layer].tail;
+            struct MapCellTailLayer *tail = &bigfaces[x-dx][y-dy][layer].tail;
             assert(0 <= x-dx && x-dx < MAX_VIEW);
             assert(0 <= y-dy && y-dy < MAX_VIEW);
             assert(0 <= layer && layer < MAXLAYERS);
@@ -1026,7 +1026,7 @@ gint16 mapdata_face(int x, int y, int layer) {
 
 gint16 mapdata_face_info(int mx, int my, int layer, int *dx, int *dy) {
     struct MapCellLayer *head = &the_map.cells[mx][my].heads[layer];
-    struct MapCellLayer *tail = &the_map.cells[mx][my].tails[layer];
+    struct MapCellTailLayer *tail = &the_map.cells[mx][my].tails[layer];
     if (head->face != 0) {
         const int width = head->size_x, height = head->size_y;
         *dx = 1 - width, *dy = 1 - height;

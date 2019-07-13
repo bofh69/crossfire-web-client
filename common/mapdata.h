@@ -33,6 +33,12 @@ struct MapCellLayer {
     guint8   animation_phase;
 };
 
+struct MapCellTailLayer {
+    gint16 face;
+    gint8 size_x;
+    gint8 size_y;
+};
+
 /** The heads[] in the mapcell is used for single part objects
  * or the head piece for multipart.  The easiest way to think about
  * it is that the heads[] contains the map information as specifically
@@ -49,7 +55,7 @@ struct MapCellLayer {
 struct MapCell
 {
     struct MapCellLayer heads[MAXLAYERS];
-    struct MapCellLayer tails[MAXLAYERS];
+    struct MapCellTailLayer tails[MAXLAYERS];
     guint8 smooth[MAXLAYERS];
     guint8 darkness;         /* darkness: 0=fully illuminated, 255=pitch black */
     guint8 need_update:1;    /* set if tile should be redrawn */
