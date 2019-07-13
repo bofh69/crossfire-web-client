@@ -100,12 +100,12 @@ static struct Map the_map;
  */
 static void clear_cells(int x, int y, int len_y) {
     int clear_cells_i, j;
-    memset(&the_map.cells[x][y], 0, sizeof(the_map.cells[x][y])*len_y);
+    memset(mapdata_cell(x, y), 0, sizeof(struct MapCell)*len_y);
 
     for (clear_cells_i = 0; clear_cells_i < (len_y); clear_cells_i++) {
         for (j=0; j < MAXLAYERS; j++) {
-            the_map.cells[x][y+clear_cells_i].heads[j].size_x = 1;
-            the_map.cells[x][y+clear_cells_i].heads[j].size_y = 1;
+            mapdata_cell(x, y+clear_cells_i)->heads[j].size_x = 1;
+            mapdata_cell(x, y+clear_cells_i)->heads[j].size_y = 1;
         }
     }
 }
@@ -113,8 +113,8 @@ static void clear_cells(int x, int y, int len_y) {
 /**
  * Get the stored map cell at the given map coordinate.
  */
-struct MapCell *mapdata_cell(int x, int y) {
-    return &the_map.cells[x][y];
+inline struct MapCell *mapdata_cell(int x, int y) {
+    return &the_map._cells[x][y];
 }
 
 /**
@@ -172,16 +172,16 @@ static void set_darkness(int x, int y, int darkness)
             && (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL
                 ||  use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST)) {
         if (x > 1) {
-            the_map.cells[x-1][y].need_update = 1;
+            mapdata_cell(x-1, y)->need_update = 1;
         }
         if (y > 1) {
-            the_map.cells[x][y-1].need_update = 1;
+            mapdata_cell(x, y-1)->need_update = 1;
         }
         if (x < width-1) {
-            the_map.cells[x+1][y].need_update = 1;
+            mapdata_cell(x+1, y)->need_update = 1;
         }
         if (y < height-1) {
-            the_map.cells[x][y+1].need_update = 1;
+            mapdata_cell(x, y+1)->need_update = 1;
         }
     }
 }
@@ -195,7 +195,7 @@ static void mark_resmooth(int x, int y, int layer)
                 if ( (sdx || sdy) /* ignore (0,0) */
                         &&  ( (x+sdx >0) && (x+sdx < the_map.width) &&  /* only inside map */
                               (y+sdy >0) && (y+sdy < the_map.height) ) ) {
-                    the_map.cells[x+sdx][y+sdy].need_resmooth=1;
+                    mapdata_cell(x+sdx, y+sdy)->need_resmooth=1;
                 }
     }
 }
@@ -224,7 +224,7 @@ static void expand_clear_face(int x, int y, int w, int h, int layer)
 
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
-            struct MapCellTailLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
+            struct MapCellTailLayer *tail = &mapdata_cell(x-dx, y-dy)->tails[layer];
             assert(0 <= x-dx && x-dx < the_map.width);
             assert(0 <= y-dy && y-dy < the_map.height);
             assert(0 <= layer && layer < MAXLAYERS);
@@ -238,7 +238,7 @@ static void expand_clear_face(int x, int y, int w, int h, int layer)
                 tail->face = 0;
                 tail->size_x = 0;
                 tail->size_y = 0;
-                the_map.cells[x-dx][y-dy].need_update = 1;
+                mapdata_cell(x-dx, y-dy)->need_update = 1;
             }
             mark_resmooth(x-dx,y-dy,layer);
         }
@@ -316,7 +316,7 @@ static void expand_set_face(int x, int y, int layer, gint16 face, int clear)
 
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
-            struct MapCellTailLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
+            struct MapCellTailLayer *tail = &mapdata_cell(x-dx, y-dy)->tails[layer];
             assert(0 <= x-dx && x-dx < the_map.width);
             assert(0 <= y-dy && y-dy < the_map.height);
             assert(0 <= layer && layer < MAXLAYERS);
@@ -324,7 +324,7 @@ static void expand_set_face(int x, int y, int layer, gint16 face, int clear)
             tail->face = face;
             tail->size_x = dx;
             tail->size_y = dy;
-            the_map.cells[x-dx][y-dy].need_update = 1;
+            mapdata_cell(x-dx, y-dy)->need_update = 1;
             mark_resmooth(x-dx,y-dy,layer);
         }
     }
@@ -374,7 +374,7 @@ static void expand_clear_bigface(int x, int y, int w, int h, int layer, int set_
                     assert(0 <= pl_pos.x+x-dx && pl_pos.x+x-dx < the_map.width);
                     assert(0 <= pl_pos.y+y-dy && pl_pos.y+y-dy < the_map.height);
                     if (set_need_update) {
-                        the_map.cells[pl_pos.x+x-dx][pl_pos.y+y-dy].need_update = 1;
+                        mapdata_cell(pl_pos.x+x-dx, pl_pos.y+y-dy)->need_update = 1;
                     }
                 }
             }
@@ -492,7 +492,7 @@ static void expand_set_bigface(int x, int y, int layer, gint16 face, int clear)
                     && 0 <= y-dy && y-dy < height) {
                 assert(0 <= pl_pos.x+x-dx && pl_pos.x+x-dx < the_map.width);
                 assert(0 <= pl_pos.y+y-dy && pl_pos.y+y-dy < the_map.height);
-                the_map.cells[pl_pos.x+x-dx][pl_pos.y+y-dy].need_update = 1;
+                mapdata_cell(pl_pos.x+x-dx, pl_pos.y+y-dy)->need_update = 1;
             }
         }
     }
@@ -519,7 +519,7 @@ static void expand_need_update(int x, int y, int w, int h)
 
     for (dx = 0; dx < w; dx++) {
         for (dy = 0; dy < h; dy++) {
-            struct MapCell *cell = &the_map.cells[x-dx][y-dy];
+            struct MapCell *cell = mapdata_cell(x-dx, y-dy);
             assert(0 <= x-dx && x-dx < the_map.width);
             assert(0 <= y-dy && y-dy < the_map.height);
             cell->need_update = 1;
@@ -555,21 +555,21 @@ static void expand_need_update_from_layer(int x, int y, int layer)
  * multi-dimensional array.
  */
 static void mapdata_alloc(struct Map* const map, const int width, const int height) {
-    map->cells = (struct MapCell **)g_new(struct MapCell, width * (height + 1));
-    g_assert(map->cells != NULL); // g_new() always succeeds
+    map->_cells = (struct MapCell **)g_new(struct MapCell, width * (height + 1));
+    g_assert(map->_cells != NULL); // g_new() always succeeds
     map->width = width;
     map->height = height;
 
     /* Skip past the first row of pointers to rows and assign the
      * start of the actual map data
      */
-    map->cells[0] = (struct MapCell *)((char *)map->cells+(sizeof(struct MapCell *)*map->width));
+    map->_cells[0] = (struct MapCell *)((char *)map->_cells+(sizeof(struct MapCell *)*map->width));
 
     /* Finish assigning the beginning of each row relative to the
      * first row assigned above
      */
     for (int i = 0; i < map->width; i++) {
-        map->cells[i] = map->cells[0]+i*map->height;
+        map->_cells[i] = map->_cells[0]+i*map->height;
     }
 }
 
@@ -578,7 +578,7 @@ void mapdata_init(void)
     int x, y;
     int i;
 
-    if (the_map.cells == NULL) {
+    if (the_map._cells == NULL) {
         mapdata_alloc(&the_map, FOG_MAP_SIZE, FOG_MAP_SIZE);
     }
 
@@ -771,7 +771,7 @@ void mapdata_set_smooth(int x, int y, guint8 smooth, int layer)
             if ( (rx<0) || (ry<0) || (the_map.width<=rx) || (the_map.height<=ry)) {
                 continue;
             }
-            the_map.cells[rx][ry].need_resmooth=1;
+            mapdata_cell(rx, ry)->need_resmooth=1;
         }
         mapdata_cell(px, py)->need_resmooth=1;
         mapdata_cell(px, py)->smooth[layer] = smooth;
@@ -922,7 +922,7 @@ void mapdata_scroll(int dx, int dy)
                 for (y = !x; y < cell->head.size_y; y++) {
                     if (0 <= cell->x-x && cell->x-x < width
                             && 0 <= cell->y-y && cell->y-y < height) {
-                        the_map.cells[pl_pos.x+cell->x-x][pl_pos.y+cell->y-y].need_update = 1;
+                        mapdata_cell(pl_pos.x+cell->x-x, pl_pos.y+cell->y-y)->need_update = 1;
                     }
                 }
             }
@@ -931,7 +931,7 @@ void mapdata_scroll(int dx, int dy)
         /* Emulate map scrolling by redrawing all tiles. */
         for (x = 0; x < width; x++) {
             for (y = 0; y < height; y++) {
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].need_update = 1;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 1;
             }
         }
     }
@@ -943,15 +943,15 @@ void mapdata_scroll(int dx, int dy)
     if (dx > 0) {
         for (y = 0; y < height; y++) {
             for (x = width-dx; x < width; x++) {
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].cleared = 1;
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].need_update = 1;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared = 1;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 1;
             }
         }
     } else {
         for (y = 0; y < height; y++) {
             for (x = 0; x < -dx; x++) {
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].cleared = 1;
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].need_update = 1;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared = 1;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 1;
             }
         }
     }
@@ -959,15 +959,15 @@ void mapdata_scroll(int dx, int dy)
     if (dy > 0) {
         for (x = 0; x < width; x++) {
             for (y = height-dy; y < height; y++) {
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].cleared = 1;
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].need_update = 1;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared = 1;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 1;
             }
         }
     } else {
         for (x = 0; x < width; x++) {
             for (y = 0; y < -dy; y++) {
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].cleared = 1;
-                the_map.cells[pl_pos.x+x][pl_pos.y+y].need_update = 1;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared = 1;
+                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 1;
             }
         }
     }
@@ -1021,18 +1021,18 @@ gint16 mapdata_face(int x, int y, int layer) {
         return 0;
     }
 
-    return the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer].face;
+    return mapdata_cell(pl_pos.x+x, pl_pos.y+y)->heads[layer].face;
 }
 
 gint16 mapdata_face_info(int mx, int my, int layer, int *dx, int *dy) {
-    struct MapCellLayer *head = &the_map.cells[mx][my].heads[layer];
-    struct MapCellTailLayer *tail = &the_map.cells[mx][my].tails[layer];
+    struct MapCellLayer *head = &mapdata_cell(mx, my)->heads[layer];
+    struct MapCellTailLayer *tail = &mapdata_cell(mx, my)->tails[layer];
     if (head->face != 0) {
         const int width = head->size_x, height = head->size_y;
         *dx = 1 - width, *dy = 1 - height;
         return head->face;
     } else if (tail->face != 0) {
-        struct MapCellLayer *head_ptr = &the_map.cells[mx + tail->size_x][my + tail->size_y].heads[layer];
+        struct MapCellLayer *head_ptr = &mapdata_cell(mx + tail->size_x, my + tail->size_y)->heads[layer];
         const int width = head_ptr->size_x, height = head_ptr->size_y;
         *dx = tail->size_x - width + 1, *dy = tail->size_y - height + 1;
         return tail->face;
@@ -1057,13 +1057,13 @@ gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh) {
         return 0;
     }
 
-    result = the_map.cells[pl_pos.x+x][pl_pos.y+y].tails[layer].face;
+    result = mapdata_cell(pl_pos.x+x, pl_pos.y+y)->tails[layer].face;
     if (result != 0) {
         int clear_bigface;
-        int dx = the_map.cells[pl_pos.x+x][pl_pos.y+y].tails[layer].size_x;
-        int dy = the_map.cells[pl_pos.x+x][pl_pos.y+y].tails[layer].size_y;
-        int w = the_map.cells[pl_pos.x+x+dx][pl_pos.y+y+dy].heads[layer].size_x;
-        int h = the_map.cells[pl_pos.x+x+dx][pl_pos.y+y+dy].heads[layer].size_y;
+        int dx = mapdata_cell(pl_pos.x+x, pl_pos.y+y)->tails[layer].size_x;
+        int dy = mapdata_cell(pl_pos.x+x, pl_pos.y+y)->tails[layer].size_y;
+        int w = mapdata_cell(pl_pos.x+x+dx, pl_pos.y+y+dy)->heads[layer].size_x;
+        int h = mapdata_cell(pl_pos.x+x+dx, pl_pos.y+y+dy)->heads[layer].size_y;
         assert(1 <= w && w <= MAX_FACE_SIZE);
         assert(1 <= h && h <= MAX_FACE_SIZE);
         assert(0 <= dx && dx < w);
@@ -1075,7 +1075,7 @@ gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh) {
          * tile if it was already valid, just clear the big face and do not
          * return it.
          */
-        if (the_map.cells[pl_pos.x+x][pl_pos.y+y].cleared) {
+        if (mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared) {
             /* Current face is a "fog of war" tile ==> do not clear
              * old information.
              */
@@ -1085,7 +1085,7 @@ gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh) {
                 /* Clear face if current tile is valid but the
                  * head is marked as cleared.
                  */
-                clear_bigface = the_map.cells[pl_pos.x+x+dx][pl_pos.y+y+dy].cleared;
+                clear_bigface = mapdata_cell(pl_pos.x+x+dx, pl_pos.y+y+dy)->cleared;
             } else {
                 /* Clear face if current tile is valid but the
                  * head is not set.
@@ -1100,9 +1100,9 @@ gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh) {
             return(result);
         }
 
-        assert(the_map.cells[pl_pos.x+x][pl_pos.y+y].tails[layer].face == result);
+        assert(mapdata_cell(pl_pos.x+x, pl_pos.y+y)->tails[layer].face == result);
         expand_clear_face_from_layer(pl_pos.x+x+dx, pl_pos.y+y+dy, layer);
-        assert(the_map.cells[pl_pos.x+x][pl_pos.y+y].tails[layer].face == 0);
+        assert(mapdata_cell(pl_pos.x+x, pl_pos.y+y)->tails[layer].face == 0);
     }
 
     result = bigfaces[x][y][layer].tail.face;
@@ -1276,14 +1276,14 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
             /* srcx!=dstx ==> can use memcpy since source and
              * destination to not overlap.
              */
-            memcpy(&the_map.cells[dx][dst_y], &the_map.cells[sx][src_y], len_y*sizeof(the_map.cells[dx][dst_y]));
+            memcpy(mapdata_cell(dx, dst_y), mapdata_cell(sx, src_y), len_y*sizeof(struct MapCell));
         }
     } else if (shift_x > 0) {
         for (sx = src_x+len_x-1, dx = dst_x+len_x-1, i = 0; i < len_x; sx--, dx--, i++) {
             /* srcx!=dstx ==> can use memcpy since source and
              * destination to not overlap.
              */
-            memcpy(&the_map.cells[dx][dst_y], &the_map.cells[sx][src_y], len_y*sizeof(the_map.cells[dx][dst_y]));
+            memcpy(mapdata_cell(dx, dst_y), mapdata_cell(sx, src_y), len_y*sizeof(struct MapCell));
         }
     } else {
         assert(src_x == dst_x);
@@ -1291,7 +1291,7 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
             /* srcx==dstx ==> use memmove since source and
              * destination probably do overlap.
              */
-            memmove(&the_map.cells[dx][dst_y], &the_map.cells[dx][src_y], len_y*sizeof(the_map.cells[dx][dst_y]));
+            memmove(mapdata_cell(dx, dst_y), mapdata_cell(dx, src_y), len_y*sizeof(struct MapCell));
         }
     }
 
@@ -1368,13 +1368,13 @@ void mapdata_animation(void)
             /* Short cut some processing here.  It makes sense to me
              * not to animate stuff out of view
              */
-            if (the_map.cells[pl_pos.x + x][pl_pos.y + y].cleared) {
+            if (mapdata_cell(pl_pos.x + x, pl_pos.y + y)->cleared) {
                 continue;
             }
 
             for (layer=0; layer<MAXLAYERS; layer++) {
                 /* Using the cell structure just makes life easier here */
-                cell = &the_map.cells[pl_pos.x+x][pl_pos.y+y].heads[layer];
+                cell = &mapdata_cell(pl_pos.x+x, pl_pos.y+y)->heads[layer];
 
                 if (cell->animation) {
                     cell->animation_left++;

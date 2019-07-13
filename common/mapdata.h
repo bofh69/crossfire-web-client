@@ -66,7 +66,7 @@ struct MapCell
 
 struct Map
 {
-    struct MapCell **cells;
+    struct MapCell **_cells; //< data, access via mapdata_cells()
     int width;  //< width of cells array
     int height; //< height of cells array
 };
