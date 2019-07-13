@@ -60,13 +60,9 @@ struct MapCell
 
 struct Map
 {
-    /* Store size of map so we know if map_size has changed
-     * since the last time we allocated this;
-     */
-    int x;
-    int y;
-
     struct MapCell **cells;
+    int width;  //< width of cells array
+    int height; //< height of cells array
 };
 
 struct MapCell *mapdata_cell(int x, int y);

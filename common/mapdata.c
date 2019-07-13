@@ -76,10 +76,8 @@ static void recenter_virtual_map_view(int diff_x, int diff_y);
 static void mapdata_get_image_size(int face, guint8 *w, guint8 *h);
 
 
-/**
- * Viewable map size, in number of tiles.
- */
-static int width, height;
+static int width;   //< width of current map view
+static int height;  //< height of current map view
 
 
 /**
@@ -95,20 +93,19 @@ static struct BigCell *bigfaces_head;
  */
 static struct BigCell bigfaces[MAX_VIEW][MAX_VIEW][MAXLAYERS];
 
-
-struct Map the_map;
+static struct Map the_map;
 
 /**
  * Clear cells the_map.cells[x][y..y+len_y-1].
  */
 static void clear_cells(int x, int y, int len_y) {
     int clear_cells_i, j;
-    memset(&the_map.cells[(x)][(y)], 0, sizeof(the_map.cells[(x)][(y)])*(len_y));
+    memset(&the_map.cells[x][y], 0, sizeof(the_map.cells[x][y])*len_y);
 
     for (clear_cells_i = 0; clear_cells_i < (len_y); clear_cells_i++) {
         for (j=0; j < MAXLAYERS; j++) {
-            the_map.cells[(x)][(y)+clear_cells_i].heads[j].size_x = 1;
-            the_map.cells[(x)][(y)+clear_cells_i].heads[j].size_y = 1;
+            the_map.cells[x][y+clear_cells_i].heads[j].size_x = 1;
+            the_map.cells[x][y+clear_cells_i].heads[j].size_y = 1;
         }
     }
 }
@@ -124,7 +121,7 @@ struct MapCell *mapdata_cell(int x, int y) {
  * Determine whether the map data contains the given cell.
  */
 bool mapdata_contains(int x, int y) {
-    if (x < 0 || y < 0 || the_map.x <= x || the_map.y <= y) {
+    if (x < 0 || y < 0 || the_map.width <= x || the_map.height <= y) {
         return false;
     }
 
@@ -141,11 +138,11 @@ bool mapdata_can_smooth(int x, int y, int layer) {
  */
 void mapdata_size(int *x, int *y) {
     if (x != NULL) {
-        *x = the_map.x;
+        *x = the_map.width;
     }
 
     if (y != NULL) {
-        *y = the_map.y;
+        *y = the_map.height;
     }
 }
 
@@ -196,8 +193,8 @@ static void mark_resmooth(int x, int y, int layer)
         for (sdx=-1; sdx<2; sdx++)
             for (sdy=-1; sdy<2; sdy++)
                 if ( (sdx || sdy) /* ignore (0,0) */
-                        &&  ( (x+sdx >0) && (x+sdx < FOG_MAP_SIZE) &&  /* only inside map */
-                              (y+sdy >0) && (y+sdy < FOG_MAP_SIZE) ) ) {
+                        &&  ( (x+sdx >0) && (x+sdx < the_map.width) &&  /* only inside map */
+                              (y+sdy >0) && (y+sdy < the_map.height) ) ) {
                     the_map.cells[x+sdx][y+sdy].need_resmooth=1;
                 }
     }
@@ -215,21 +212,21 @@ static void expand_clear_face(int x, int y, int w, int h, int layer)
     int dx, dy;
     struct MapCell *cell;
 
-    assert(0 <= x && x < FOG_MAP_SIZE);
-    assert(0 <= y && y < FOG_MAP_SIZE);
+    assert(0 <= x && x < the_map.width);
+    assert(0 <= y && y < the_map.height);
     assert(1 <= w && w <= MAX_FACE_SIZE);
     assert(1 <= h && h <= MAX_FACE_SIZE);
 
-    assert(0 <= x-w+1 && x-w+1 < FOG_MAP_SIZE);
-    assert(0 <= y-h+1 && y-h+1 < FOG_MAP_SIZE);
+    assert(0 <= x-w+1 && x-w+1 < the_map.width);
+    assert(0 <= y-h+1 && y-h+1 < the_map.height);
 
     cell = mapdata_cell(x, y);
 
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
             struct MapCellLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
-            assert(0 <= x-dx && x-dx < FOG_MAP_SIZE);
-            assert(0 <= y-dy && y-dy < FOG_MAP_SIZE);
+            assert(0 <= x-dx && x-dx < the_map.width);
+            assert(0 <= y-dy && y-dy < the_map.height);
             assert(0 <= layer && layer < MAXLAYERS);
 
             /* Do not clear faces that already have been overwritten by another
@@ -269,8 +266,8 @@ static void expand_clear_face_from_layer(int x, int y, int layer)
 {
     const struct MapCellLayer *cell;
 
-    assert(0 <= x && x < FOG_MAP_SIZE);
-    assert(0 <= y && y < FOG_MAP_SIZE);
+    assert(0 <= x && x < the_map.width);
+    assert(0 <= y && y < the_map.height);
     assert(0 <= layer && layer < MAXLAYERS);
 
     cell = &mapdata_cell(x, y)->heads[layer];
@@ -298,8 +295,8 @@ static void expand_set_face(int x, int y, int layer, gint16 face, int clear)
     int dx, dy;
     guint8 w, h;
 
-    assert(0 <= x && x < FOG_MAP_SIZE);
-    assert(0 <= y && y < FOG_MAP_SIZE);
+    assert(0 <= x && x < the_map.width);
+    assert(0 <= y && y < the_map.height);
     assert(0 <= layer && layer < MAXLAYERS);
 
     cell = mapdata_cell(x, y);
@@ -320,8 +317,8 @@ static void expand_set_face(int x, int y, int layer, gint16 face, int clear)
     for (dx = 0; dx < w; dx++) {
         for (dy = !dx; dy < h; dy++) {
             struct MapCellLayer *tail = &the_map.cells[x-dx][y-dy].tails[layer];
-            assert(0 <= x-dx && x-dx < FOG_MAP_SIZE);
-            assert(0 <= y-dy && y-dy < FOG_MAP_SIZE);
+            assert(0 <= x-dx && x-dx < the_map.width);
+            assert(0 <= y-dy && y-dy < the_map.height);
             assert(0 <= layer && layer < MAXLAYERS);
 
             tail->face = face;
@@ -374,8 +371,8 @@ static void expand_clear_bigface(int x, int y, int w, int h, int layer, int set_
 
                 if (0 <= x-dx && x-dx < width
                         && 0 <= y-dy && y-dy < height) {
-                    assert(0 <= pl_pos.x+x-dx && pl_pos.x+x-dx < FOG_MAP_SIZE);
-                    assert(0 <= pl_pos.y+y-dy && pl_pos.y+y-dy < FOG_MAP_SIZE);
+                    assert(0 <= pl_pos.x+x-dx && pl_pos.x+x-dx < the_map.width);
+                    assert(0 <= pl_pos.y+y-dy && pl_pos.y+y-dy < the_map.height);
                     if (set_need_update) {
                         the_map.cells[pl_pos.x+x-dx][pl_pos.y+y-dy].need_update = 1;
                     }
@@ -493,8 +490,8 @@ static void expand_set_bigface(int x, int y, int layer, gint16 face, int clear)
 
             if (0 <= x-dx && x-dx < width
                     && 0 <= y-dy && y-dy < height) {
-                assert(0 <= pl_pos.x+x-dx && pl_pos.x+x-dx < FOG_MAP_SIZE);
-                assert(0 <= pl_pos.y+y-dy && pl_pos.y+y-dy < FOG_MAP_SIZE);
+                assert(0 <= pl_pos.x+x-dx && pl_pos.x+x-dx < the_map.width);
+                assert(0 <= pl_pos.y+y-dy && pl_pos.y+y-dy < the_map.height);
                 the_map.cells[pl_pos.x+x-dx][pl_pos.y+y-dy].need_update = 1;
             }
         }
@@ -512,19 +509,19 @@ static void expand_need_update(int x, int y, int w, int h)
 {
     int dx, dy;
 
-    assert(0 <= x && x < FOG_MAP_SIZE);
-    assert(0 <= y && y < FOG_MAP_SIZE);
+    assert(0 <= x && x < the_map.width);
+    assert(0 <= y && y < the_map.height);
     assert(1 <= w && w <= MAX_FACE_SIZE);
     assert(1 <= h && h <= MAX_FACE_SIZE);
 
-    assert(0 <= x-w+1 && x-w+1 < FOG_MAP_SIZE);
-    assert(0 <= y-h+1 && y-h+1 < FOG_MAP_SIZE);
+    assert(0 <= x-w+1 && x-w+1 < the_map.width);
+    assert(0 <= y-h+1 && y-h+1 < the_map.height);
 
     for (dx = 0; dx < w; dx++) {
         for (dy = 0; dy < h; dy++) {
             struct MapCell *cell = &the_map.cells[x-dx][y-dy];
-            assert(0 <= x-dx && x-dx < FOG_MAP_SIZE);
-            assert(0 <= y-dy && y-dy < FOG_MAP_SIZE);
+            assert(0 <= x-dx && x-dx < the_map.width);
+            assert(0 <= y-dy && y-dy < the_map.height);
             cell->need_update = 1;
         }
     }
@@ -540,8 +537,8 @@ static void expand_need_update_from_layer(int x, int y, int layer)
 {
     struct MapCellLayer *head;
 
-    assert(0 <= x && x < FOG_MAP_SIZE);
-    assert(0 <= y && y < FOG_MAP_SIZE);
+    assert(0 <= x && x < the_map.width);
+    assert(0 <= y && y < the_map.height);
     assert(0 <= layer && layer < MAXLAYERS);
 
     head = &mapdata_cell(x, y)->heads[layer];
@@ -553,42 +550,45 @@ static void expand_need_update_from_layer(int x, int y, int layer)
     }
 }
 
+/**
+ * Allocate and set up pointers for a map, with cells represented as a C-style
+ * multi-dimensional array.
+ */
+static void mapdata_alloc(struct Map* const map, const int width, const int height) {
+    map->cells = (struct MapCell **)g_new(struct MapCell, width * (height + 1));
+    g_assert(map->cells != NULL); // g_new() always succeeds
+    map->width = width;
+    map->height = height;
+
+    /* Skip past the first row of pointers to rows and assign the
+     * start of the actual map data
+     */
+    map->cells[0] = (struct MapCell *)((char *)map->cells+(sizeof(struct MapCell *)*map->width));
+
+    /* Finish assigning the beginning of each row relative to the
+     * first row assigned above
+     */
+    for (int i = 0; i < map->width; i++) {
+        map->cells[i] = map->cells[0]+i*map->height;
+    }
+}
+
 void mapdata_init(void)
 {
     int x, y;
     int i;
 
     if (the_map.cells == NULL) {
-        the_map.cells = g_malloc(
-                            sizeof(*the_map.cells)*FOG_MAP_SIZE+
-                            sizeof(**the_map.cells)*FOG_MAP_SIZE*FOG_MAP_SIZE);
-        if (the_map.cells == NULL) {
-            LOG(LOG_ERROR, "mapdata_init", "%s\n", "out of memory");
-            exit(1);
-        }
-
-        /* Skip past the first row of pointers to rows and assign the
-         * start of the actual map data
-         */
-        the_map.cells[0] = (struct MapCell *)((char *)the_map.cells+(sizeof(struct MapCell *)*FOG_MAP_SIZE));
-
-        /* Finish assigning the beginning of each row relative to the
-         * first row assigned above
-         */
-        for (i = 0; i < FOG_MAP_SIZE; i++) {
-            the_map.cells[i] = the_map.cells[0]+i*FOG_MAP_SIZE;
-        }
-        the_map.x = FOG_MAP_SIZE;
-        the_map.y = FOG_MAP_SIZE;
+        mapdata_alloc(&the_map, FOG_MAP_SIZE, FOG_MAP_SIZE);
     }
 
     width = 0;
     height = 0;
-    pl_pos.x = FOG_MAP_SIZE/2-width/2;
-    pl_pos.y = FOG_MAP_SIZE/2-height/2;
+    pl_pos.x = the_map.width/2-width/2;
+    pl_pos.y = the_map.height/2-height/2;
 
-    for (x = 0; x < FOG_MAP_SIZE; x++) {
-        clear_cells(x, 0, FOG_MAP_SIZE);
+    for (x = 0; x < the_map.width; x++) {
+        clear_cells(x, 0, the_map.height);
     }
 
     for (y = 0; y < MAX_VIEW; y++) {
@@ -617,8 +617,8 @@ void mapdata_set_size(int viewx, int viewy)
 
     width = viewx;
     height = viewy;
-    pl_pos.x = FOG_MAP_SIZE/2-width/2;
-    pl_pos.y = FOG_MAP_SIZE/2-height/2;
+    pl_pos.x = the_map.width/2-width/2;
+    pl_pos.y = the_map.height/2-height/2;
 }
 
 int mapdata_is_inside(int x, int y)
@@ -640,8 +640,8 @@ void mapdata_clear_space(int x, int y)
 
     px = pl_pos.x+x;
     py = pl_pos.y+y;
-    assert(0 <= px && px < FOG_MAP_SIZE);
-    assert(0 <= py && py < FOG_MAP_SIZE);
+    assert(0 <= px && px < the_map.width);
+    assert(0 <= py && py < the_map.height);
 
     if (x < width && y < height) {
         /* tile is visible */
@@ -685,8 +685,8 @@ void mapdata_set_check_space(int x, int y)
     px = pl_pos.x+x;
     py = pl_pos.y+y;
 
-    assert(0 <= px && px < FOG_MAP_SIZE);
-    assert(0 <= py && py < FOG_MAP_SIZE);
+    assert(0 <= px && px < the_map.width);
+    assert(0 <= py && py < the_map.height);
 
 
     is_blank=1;
@@ -736,8 +736,8 @@ void mapdata_set_darkness(int x, int y, int darkness)
 
     px = pl_pos.x+x;
     py = pl_pos.y+y;
-    assert(0 <= px && px < FOG_MAP_SIZE);
-    assert(0 <= py && py < FOG_MAP_SIZE);
+    assert(0 <= px && px < the_map.width);
+    assert(0 <= py && py < the_map.height);
 
     /* Ignore darkness information for tile outside the viewable area: if
      * such a tile becomes visible again, it is either "fog of war" (and
@@ -761,14 +761,14 @@ void mapdata_set_smooth(int x, int y, guint8 smooth, int layer)
 
     px = pl_pos.x+x;
     py = pl_pos.y+y;
-    assert(0 <= px && px < FOG_MAP_SIZE);
-    assert(0 <= py && py < FOG_MAP_SIZE);
+    assert(0 <= px && px < the_map.width);
+    assert(0 <= py && py < the_map.height);
 
     if (mapdata_cell(px, py)->smooth[layer] != smooth) {
         for (i=0; i<8; i++) {
             rx=px+dx[i];
             ry=py+dy[i];
-            if ( (rx<0) || (ry<0) || (the_map.x<=rx) || (the_map.y<=ry)) {
+            if ( (rx<0) || (ry<0) || (the_map.width<=rx) || (the_map.height<=ry)) {
                 continue;
             }
             the_map.cells[rx][ry].need_resmooth=1;
@@ -794,8 +794,8 @@ void mapdata_clear_old(int x, int y)
 
     px = pl_pos.x+x;
     py = pl_pos.y+y;
-    assert(0 <= px && px < FOG_MAP_SIZE);
-    assert(0 <= py && py < FOG_MAP_SIZE);
+    assert(0 <= px && px < the_map.width);
+    assert(0 <= py && py < the_map.height);
 
     if (x < width && y < height)
         if (mapdata_cell(px, py)->cleared) {
@@ -821,8 +821,8 @@ void mapdata_set_face_layer(int x, int y, gint16 face, int layer)
 
     px = pl_pos.x+x;
     py = pl_pos.y+y;
-    assert(0 <= px && px < FOG_MAP_SIZE);
-    assert(0 <= py && py < FOG_MAP_SIZE);
+    assert(0 <= px && px < the_map.width);
+    assert(0 <= py && py < the_map.height);
 
     if (x < width && y < height) {
         mapdata_cell(px, py)->need_update = 1;
@@ -853,8 +853,8 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
 
     px = pl_pos.x+x;
     py = pl_pos.y+y;
-    assert(0 <= px && px < FOG_MAP_SIZE);
-    assert(0 <= py && py < FOG_MAP_SIZE);
+    assert(0 <= px && px < the_map.width);
+    assert(0 <= py && py < the_map.height);
 
     animation = anim & ANIM_MASK;
     face = 0;
@@ -983,9 +983,9 @@ void mapdata_newmap(void)
     int x, y;
 
     /* Clear the_map.cells[]. */
-    for (x = 0; x < FOG_MAP_SIZE; x++) {
-        clear_cells(x, 0, FOG_MAP_SIZE);
-        for (y = 0; y < FOG_MAP_SIZE; y++) {
+    for (x = 0; x < the_map.width; x++) {
+        clear_cells(x, 0, the_map.height);
+        for (y = 0; y < the_map.height; y++) {
             mapdata_cell(x, y)->need_update = 1;
         }
     }
@@ -1188,10 +1188,10 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
          * i.e. left border is FOG_BORDER_MIN+MAX_FACE_SIZE after
          * shifting.
          */
-    } else if (new_x+MAX_VIEW > FOG_MAP_SIZE) {
-        shift_x = FOG_MAP_SIZE-FOG_BORDER_MIN-MAX_VIEW-new_x;
+    } else if (new_x+MAX_VIEW > the_map.width) {
+        shift_x = the_map.width-FOG_BORDER_MIN-MAX_VIEW-new_x;
         /* This yields: new_x+shift_x ==
-         * FOG_MAP_SIZE-FOG_BODER_MIN-MAX_VIEW, i.e. right border is
+         * the_map.width-FOG_BODER_MIN-MAX_VIEW, i.e. right border is
          * FOGBORDER_MIN after shifting.
          */
     } else {
@@ -1201,8 +1201,8 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
     /* Same as above but for y. */
     if (new_y < MAX_FACE_SIZE) {
         shift_y = FOG_BORDER_MIN+MAX_FACE_SIZE-new_y;
-    } else if (new_y+MAX_VIEW > FOG_MAP_SIZE) {
-        shift_y = FOG_MAP_SIZE-FOG_BORDER_MIN-MAX_VIEW-new_y;
+    } else if (new_y+MAX_VIEW > the_map.height) {
+        shift_y = the_map.height-FOG_BORDER_MIN-MAX_VIEW-new_y;
     } else {
         shift_y = 0;
     }
@@ -1220,29 +1220,29 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
     if (shift_x == 0) {
         if (new_x < FOG_BORDER_MIN+MAX_FACE_SIZE) {
             shift_x = FOG_BORDER_MIN+MAX_FACE_SIZE-new_x;
-        } else if (new_x+MAX_VIEW+FOG_BORDER_MIN > FOG_MAP_SIZE) {
-            shift_x = FOG_MAP_SIZE-FOG_BORDER_MIN-MAX_VIEW-new_x;
+        } else if (new_x+MAX_VIEW+FOG_BORDER_MIN > the_map.width) {
+            shift_x = the_map.width-FOG_BORDER_MIN-MAX_VIEW-new_x;
         }
     }
     if (shift_y == 0) {
         if (new_y < FOG_BORDER_MIN+MAX_FACE_SIZE) {
             shift_y = FOG_BORDER_MIN+MAX_FACE_SIZE-new_y;
-        } else if (new_y+MAX_VIEW+FOG_BORDER_MIN > FOG_MAP_SIZE) {
-            shift_y = FOG_MAP_SIZE-FOG_BORDER_MIN-MAX_VIEW-new_y;
+        } else if (new_y+MAX_VIEW+FOG_BORDER_MIN > the_map.height) {
+            shift_y = the_map.height-FOG_BORDER_MIN-MAX_VIEW-new_y;
         }
     }
 
     /* Shift for more than virtual map size? ==> clear whole virtual map
      * and recenter.
      */
-    if (shift_x <= -FOG_MAP_SIZE || shift_x >= FOG_MAP_SIZE
-            || shift_y <= -FOG_MAP_SIZE || shift_y >= FOG_MAP_SIZE) {
-        for (dx = 0; dx < FOG_MAP_SIZE; dx++) {
-            clear_cells(dx, 0, FOG_MAP_SIZE);
+    if (shift_x <= -the_map.width || shift_x >= the_map.width
+            || shift_y <= -the_map.height || shift_y >= the_map.height) {
+        for (dx = 0; dx < the_map.width; dx++) {
+            clear_cells(dx, 0, the_map.height);
         }
 
-        pl_pos.x = FOG_MAP_SIZE/2-width/2;
-        pl_pos.y = FOG_MAP_SIZE/2-height/2;
+        pl_pos.x = the_map.width/2-width/2;
+        pl_pos.y = the_map.height/2-height/2;
         return;
     }
 
@@ -1254,21 +1254,21 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
     if (shift_x < 0) {
         src_x = -shift_x;
         dst_x = 0;
-        len_x = FOG_MAP_SIZE+shift_x;
+        len_x = the_map.width+shift_x;
     } else {
         src_x = 0;
         dst_x = shift_x;
-        len_x = FOG_MAP_SIZE-shift_x;
+        len_x = the_map.width-shift_x;
     }
 
     if (shift_y < 0) {
         src_y = -shift_y;
         dst_y = 0;
-        len_y = FOG_MAP_SIZE+shift_y;
+        len_y = the_map.height+shift_y;
     } else {
         src_y = 0;
         dst_y = shift_y;
-        len_y = FOG_MAP_SIZE-shift_y;
+        len_y = the_map.height-shift_y;
     }
 
     if (shift_x < 0) {
@@ -1297,10 +1297,10 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
 
     /* Clear newly opened area */
     for (dx = 0; dx < dst_x; dx++) {
-        clear_cells(dx, 0, FOG_MAP_SIZE);
+        clear_cells(dx, 0, the_map.height);
     }
-    for (dx = dst_x+len_x; dx < FOG_MAP_SIZE; dx++) {
-        clear_cells(dx, 0, FOG_MAP_SIZE);
+    for (dx = dst_x+len_x; dx < the_map.width; dx++) {
+        clear_cells(dx, 0, the_map.height);
     }
     if (shift_y > 0) {
         for (dx = 0; dx < len_x; dx++) {
@@ -1308,7 +1308,7 @@ static void recenter_virtual_map_view(int diff_x, int diff_y)
         }
     } else if (shift_y < 0) {
         for (dx = 0; dx < len_x; dx++) {
-            clear_cells(dx+dst_x, FOG_MAP_SIZE+shift_y, -shift_y);
+            clear_cells(dx+dst_x, the_map.height+shift_y, -shift_y);
         }
     }
 }
