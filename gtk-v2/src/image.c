@@ -34,18 +34,9 @@
 extern GtkWidget *window_root; /**< In main.c */
 int image_size=DEFAULT_IMAGE_SIZE;
 
-struct {
-    char    *name;
-    guint32  checksum;
-    guint8   *png_data;
-    guint32  width, height;
-} private_cache[MAXPIXMAPNUM];
-
 #define BPP 4
 
 PixmapInfo *pixmaps[MAXPIXMAPNUM];
-
-int last_face_num=0;
 
 /* Do we have new images to display? */
 int have_new_image=0;

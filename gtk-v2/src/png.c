@@ -408,9 +408,6 @@ guint8 *rescale_rgba_data(guint8 *data, int *width, int *height, int scale)
     return ndata;
 }
 
-guchar rgb[512*512*3];  /**< Make this especially big to support larger images
-                         *   in the future */
-
 /**
  * Create a GdkPixbuf for the given RGBA data.
  */
