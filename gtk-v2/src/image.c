@@ -207,8 +207,8 @@ static void free_pixmap(PixmapInfo *pi)
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 #ifdef HAVE_SDL
         if (pi->map_image) {
+            g_free(((SDL_Surface*)pi->map_image)->pixels);
             SDL_FreeSurface(pi->map_image);
-            free(((SDL_Surface*)pi->map_image)->pixels);
             SDL_FreeSurface(pi->fog_image);
             /*
              * Minor memory leak here - SDL_FreeSurface() frees the pixel
