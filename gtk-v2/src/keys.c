@@ -174,6 +174,13 @@ static struct keybind *keys_global[KEYHASH], *keys_char[KEYHASH];
 #define EKEYBIND_NOMEM               1
 
 /**
+ * When a key is held down, prevent multiple commands from being sent without
+ * server acknowledgement by setting debounce when keys are pressed, and
+ * clearing it when the server acknowledges or when a key is released.
+ */
+static bool debounce = false;
+
+/**
  * Find a keybinding for keysym.
  *
  * Make it possible to match a specific keysym-and-key-modifier combo
@@ -1542,6 +1549,7 @@ void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
 void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     if (event->keyval > 0 && !gtk_widget_has_focus(entry_commands)) {
         parse_key_release(event->keyval);
+        debounce = false;
     }
     g_signal_stop_emission_by_name(GTK_OBJECT(window), "key_release_event");
 }
@@ -1632,7 +1640,14 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                             }
                         }
 
-                        parse_key(event->string[0], event->keyval);
+                        if (csocket.command_received >= csocket.command_sent) {
+                            debounce = false;
+                        }
+
+                        if (!debounce) {
+                            parse_key(event->string[0], event->keyval);
+                            debounce = true;
+                        }
                     }
                     break;
 

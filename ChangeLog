@@ -12,6 +12,7 @@ Trunk
 - Report UI layout in client version string
 - Trim trailing whitespace from spell descriptions
 - Use one window for metaserver and login dialogs
+- Change key handling to reduce lag after holding down a key
 
 **Fixed**
 
