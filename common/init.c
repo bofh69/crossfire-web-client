@@ -130,7 +130,7 @@ static void reset_vars_common() {
     stat_min = 0;
     stat_maximum = 0;
 
-    mapdata_init();
+    mapdata_free();
     reset_player_data();
 }
 

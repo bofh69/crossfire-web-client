@@ -573,14 +573,12 @@ static void mapdata_alloc(struct Map* const map, const int width, const int heig
     }
 }
 
-void mapdata_init(void)
+static void mapdata_init(void)
 {
     int x, y;
     int i;
 
-    if (the_map._cells == NULL) {
-        mapdata_alloc(&the_map, FOG_MAP_SIZE, FOG_MAP_SIZE);
-    }
+    mapdata_alloc(&the_map, FOG_MAP_SIZE, FOG_MAP_SIZE);
 
     width = 0;
     height = 0;
@@ -611,8 +609,16 @@ void mapdata_init(void)
     bigfaces_head = NULL;
 }
 
+void mapdata_free(void) {
+    if (the_map._cells != NULL) {
+        g_free(the_map._cells);
+        the_map._cells = NULL;
+    }
+}
+
 void mapdata_set_size(int viewx, int viewy)
 {
+    mapdata_free();
     mapdata_init();
 
     width = viewx;

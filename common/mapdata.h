@@ -78,15 +78,16 @@ bool mapdata_can_smooth(int x, int y, int layer);
 
 /**
  * Initializes the module. Allocates memory for the_map. This functions must be
- * called before any other function is used.
- */
-void mapdata_init(void);
-
-/**
- * Sets the current display size. Must be called whenever a new display size
+ * called before any other function is used, and whenever a new display size
  * was negotiated with the server.
  */
 void mapdata_set_size(int viewx, int viewy);
+
+/**
+ * Deallocate map data. Do not call functions other than mapdata_set_size()
+ * after calling mapdata_free().
+ */
+void mapdata_free(void);
 
 /**
  * Scrolls the map view. Must be called whenever a map_scroll command was

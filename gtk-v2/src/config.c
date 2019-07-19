@@ -385,8 +385,6 @@ void config_check() {
     if (!use_config[CONFIG_CACHE]) {
         use_config[CONFIG_DOWNLOAD] = FALSE;
     }
-
-    mapdata_init();
 }
 
 /**
