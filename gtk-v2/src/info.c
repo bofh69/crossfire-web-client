@@ -586,8 +586,10 @@ void info_get_styles(void)
                         info_pane[j].msg_type_tags[type][subtype] = NULL;
                     }
                 }
-                add_style_to_textbuffer(&info_pane[j], base_style);
             }
+        }
+        for (j = 0; j < NUM_TEXT_VIEWS; j++) {
+            add_style_to_textbuffer(&info_pane[j], base_style);
         }
     } else {
         /*
@@ -611,8 +613,10 @@ void info_get_styles(void)
                         info_pane[j].msg_type_tags[type][subtype]);
                     info_pane[j].msg_type_tags[type][subtype] = NULL;
                 }
-                add_style_to_textbuffer(&info_pane[j], NULL);
             }
+        }
+        for (j = 0; j < NUM_TEXT_VIEWS; j++) {
+            add_style_to_textbuffer(&info_pane[j], NULL);
         }
     }
 }
