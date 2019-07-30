@@ -60,7 +60,7 @@ extern void image_update_download_status(int start, int end, int total);
 extern void get_map_image_size(int face, guint8 *w, guint8 *h);
 extern void init_image_cache_data(void);
 /* info.c */
-extern void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_style);
+extern void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, const GtkStyle * const base_style);
 extern void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf);
 extern void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style);
 extern void info_get_styles(void);

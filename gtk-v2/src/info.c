@@ -312,7 +312,7 @@ struct msgctrl_data_t {
  * @param style      Style name to get values from.
  * @param base_style Base style for the widget to compare against.
  */
-void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, GtkStyle *base_style)
+void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, const GtkStyle * const base_style)
 {
     g_object_set(tag, "foreground-set", FALSE, NULL);
     g_object_set(tag, "background-set", FALSE, NULL);
@@ -498,8 +498,7 @@ void info_get_styles(void)
 {
     unsigned int i, j;
     static int has_init=0;
-    GtkStyle    *tmp_style, *base_style[NUM_TEXT_VIEWS];
-    char    style_name[MAX_BUF];
+    GtkStyle    *tmp_style, *base_style;
 
     if (!has_init) {
         /*
@@ -524,13 +523,9 @@ void info_get_styles(void)
         }
         has_init = 1;
     }
-    for (i = 0; i < NUM_TEXT_VIEWS; i++) {
-        base_style[i] =
-            gtk_rc_get_style_by_paths(
-                gtk_settings_get_default(),
-                NULL, "info_default", G_TYPE_NONE);
-    }
-    if (!base_style[0]) {
+    base_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
+                                           "info_default", G_TYPE_NONE);
+    if (!base_style) {
         LOG(LOG_INFO, "info.c::info_get_styles",
             "Unable to find base style info_default"
             " - will not process most info tag styles!");
@@ -544,7 +539,7 @@ void info_get_styles(void)
      * nothing (meaning, taking everything in style) still doesn't work really
      * well.
      */
-    if (base_style[0]) {
+    if (base_style) {
         /*
          * This processes the type/subtype styles.  We look up the names in
          * the array to find what name goes to what number.
@@ -552,6 +547,7 @@ void info_get_styles(void)
         for (i = 0; i < sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
             int type, subtype;
 
+            char style_name[MAX_BUF];
             snprintf(style_name, sizeof(style_name),
                      "msg_%s", msg_type_names[i].style_name);
             type =  msg_type_names[i].type;
@@ -575,7 +571,7 @@ void info_get_styles(void)
                     }
                     set_text_tag_from_style(
                         info_pane[j].msg_type_tags[type][subtype],
-                        tmp_style, base_style[j]);
+                        tmp_style, base_style);
                     has_style = 1;
                 } else {
                     /*
@@ -590,7 +586,7 @@ void info_get_styles(void)
                         info_pane[j].msg_type_tags[type][subtype] = NULL;
                     }
                 }
-                add_style_to_textbuffer(&info_pane[j], base_style[j]);
+                add_style_to_textbuffer(&info_pane[j], base_style);
             }
         }
     } else {
