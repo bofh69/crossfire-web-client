@@ -28,6 +28,8 @@
 #include <io.h>
 #endif
 
+GTimer* global_time;
+
 /** Log level, or the threshold below which messages are suppressed. */
 LogLevel MINLOG = LOG_INFO;
 
@@ -121,7 +123,7 @@ void LOG(LogLevel level, const char *origin, const char *format, ...) {
     vsnprintf(buf, sizeof(buf), format, ap);
 
     if (strlen(buf) > 0) {
-        fprintf(stderr, "[%s] (%s) %s\n", getLogLevelText(level), origin, buf);
+        fprintf(stderr, "[%s] %lf (%s) %s\n", getLogLevelText(level), g_timer_elapsed(global_time, NULL), origin, buf);
     }
 
     va_end(ap);

@@ -425,6 +425,7 @@ void hide_main_client() {
  * Main client entry point.
  */
 int main(int argc, char *argv[]) {
+    global_time = g_timer_new();
 #ifdef ENABLE_NLS
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
     bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);

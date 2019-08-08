@@ -687,4 +687,6 @@ extern bool client_is_connected(void);
  */
 extern GSource *client_get_source(void);
 
+extern GTimer* global_time;
+
 #endif
