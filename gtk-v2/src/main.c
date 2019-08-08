@@ -114,10 +114,10 @@ static gboolean redraw(gpointer data) {
 
         have_new_image = 0;
         draw_map(1);
-        draw_lists();
     } else {
         draw_map(0);
     }
+    draw_lists();
     return FALSE;
 }
 
@@ -178,7 +178,6 @@ static gboolean do_network(GObject *stream, gpointer data) {
         script_process(&tmp_read);
     }
 
-    draw_lists();
     return TRUE;
 }
 

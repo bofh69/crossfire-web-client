@@ -37,6 +37,7 @@ Trunk
 
 - Enable sound with older (< 0.25.3) versions of Vala
 - Fix delayed weight limit update when strength attribute changes
+- Speed up inventory redraw when picking up and dropping many items
 
 1.72.0
 ======
