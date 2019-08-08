@@ -519,9 +519,6 @@ void init_image_cache_data(void)
     GtkStyle *style;
 #include "../../pixmaps/question.xpm"
 
-
-    LOG(LOG_DEBUG, "gtk-v2::init_image_cache_data", "Init Image Cache");
-
     style = gtk_widget_get_style(window_root);
     pixmaps[0] = g_new(PixmapInfo, 1);
     pixmaps[0]->icon_image =
