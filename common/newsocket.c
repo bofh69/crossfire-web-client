@@ -116,6 +116,9 @@ int SockList_Send(SockList *sl, GSocketConnection* c) {
         LOG(LOG_WARNING, "SockList_Send", "Sending data while not connected!");
         return 1;
     }
+    if (debug_protocol) {
+        LOG(LOG_INFO, "C->S", "%s", sl->buf);
+    }
     GOutputStream* out = g_io_stream_get_output_stream(G_IO_STREAM(c));
     bool ret = g_output_stream_write_all(out, sl->buf - 2, sl->len + 2, NULL,
                                          NULL, NULL);

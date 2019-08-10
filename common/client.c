@@ -228,9 +228,13 @@ void client_run() {
      * watcher know what command was received, then process it and quit
      * searching the command list.
      */
+    const char *cmdin = (char *)inbuf.buf + 2;
+    if (debug_protocol) {
+        // Extra spaces in front to make S->C easier to see
+        LOG(LOG_INFO, "    S->C", "len %d cmd %s", len, cmdin);
+    }
     int i;
     for(i = 0; i < NCOMMANDS; i++) {
-        const char *cmdin = (char *)inbuf.buf + 2;
         if (strcmp(cmdin, commands[i].cmdname) == 0) {
             script_watch(cmdin, data, len, commands[i].cmdformat);
             commands[i].cmdproc(data, len);

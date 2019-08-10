@@ -58,6 +58,7 @@ extern bool time_map_redraw;
 extern bool profile_latency;
 extern int MINLOG;
 extern SoundServer* server;
+bool debug_protocol;
 
 static char *connect_server = NULL;
 
@@ -83,6 +84,8 @@ static GOptionEntry options[] = {
         "Print map redraw times to stdout", NULL },
     { "verbose", 'v', 0, G_OPTION_ARG_INT, &MINLOG,
         "Set verbosity (0 is the most verbose)", "LEVEL" },
+    { "debug-protocol", 0, 0, G_OPTION_ARG_NONE, &debug_protocol,
+        "Print commands to and from the server", NULL },
     { NULL }
 };
 

@@ -3,6 +3,7 @@ Trunk
 
 **Added**
 
+- Add "--debug-protocol" command-line option
 - Add "--profile-latency" command-line option
 - Resurrect "--server" option to connect to a server directly
 

@@ -689,4 +689,6 @@ extern GSource *client_get_source(void);
 
 extern GTimer* global_time;
 
+extern bool debug_protocol;
+
 #endif
