@@ -112,3 +112,5 @@ void script_lua_list(const char *param);
 void script_lua_kill(const char *param);
 void script_lua_stats(void);
 int script_lua_command(const char *command, const char *param);
+
+void error_dialog(char *error, char *message);

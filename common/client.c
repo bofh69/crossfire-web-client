@@ -248,7 +248,14 @@ void client_run() {
      */
     if (i == NCOMMANDS) {
         LOG(LOG_ERROR, "client_run", "Unrecognized command from server (%s)\n",
-               inbuf.buf+2);
+            inbuf.buf + 2);
+        error_dialog("Server error",
+                     "The server sent an unrecognized command. "
+                     "Crossfire Client will now disconnect."
+                     "\n\nIf this problem persists with a particular "
+                     "character, try playing another character, and without "
+                     "disconnecting, playing the problematic character again.");
+        client_disconnect();
     }
     g_free(inbuf.buf);
 }
