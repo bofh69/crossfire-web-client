@@ -572,7 +572,6 @@ void inventory_init(GtkWidget *window_root) {
  * @param op
  */
 void close_container(item *op) {
-    draw_lists();
 }
 
 /**
@@ -580,7 +579,6 @@ void close_container(item *op) {
  * @param op
  */
 void open_container(item *op) {
-    draw_lists();
 }
 
 /**
