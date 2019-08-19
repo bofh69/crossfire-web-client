@@ -99,8 +99,9 @@ typedef struct {
                                  */
     enum display_type type; /**< Type of widget */
     GtkWidget *treeview; /**< treeview widget for this tab */
-    GtkTreeStore *treestore; /**< store of data for treeview */
 } Notebook_Info;
+
+static GtkTreeStore *treestore; /**< store of data for treeview */
 
 /* Prototypes for static functions */
 static void on_switch_page(GtkNotebook *notebook, gpointer *page,
@@ -470,6 +471,18 @@ void inventory_init(GtkWidget *window_root) {
 
     memset(inv_table_children, 0, sizeof (GtkWidget *) * MAX_INV_ROWS * MAX_INV_COLUMNS);
 
+    treestore = gtk_tree_store_new(LIST_NUM_COLUMNS,
+            G_TYPE_STRING,
+            G_TYPE_OBJECT,
+            G_TYPE_STRING,
+            G_TYPE_STRING,
+            G_TYPE_POINTER,
+            GDK_TYPE_COLOR,
+            G_TYPE_INT,
+            G_TYPE_STRING,
+            GDK_TYPE_COLOR,
+            PANGO_TYPE_FONT_DESCRIPTION);
+
     store_look = gtk_tree_store_new(LIST_NUM_COLUMNS,
             G_TYPE_STRING,
             G_TYPE_OBJECT,
@@ -521,20 +534,8 @@ void inventory_init(GtkWidget *window_root) {
 
             gtk_notebook_insert_page(GTK_NOTEBOOK(inv_notebook), swindow, image, i);
 
-            inv_notebooks[i].treestore = gtk_tree_store_new(LIST_NUM_COLUMNS,
-                    G_TYPE_STRING,
-                    G_TYPE_OBJECT,
-                    G_TYPE_STRING,
-                    G_TYPE_STRING,
-                    G_TYPE_POINTER,
-                    GDK_TYPE_COLOR,
-                    G_TYPE_INT,
-                    G_TYPE_STRING,
-                    GDK_TYPE_COLOR,
-                    PANGO_TYPE_FONT_DESCRIPTION);
-
             inv_notebooks[i].treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(
-                    inv_notebooks[i].treestore));
+                    treestore));
 
             g_signal_connect((gpointer) inv_notebooks[i].treeview, "row_collapsed",
                     G_CALLBACK(list_row_collapse), NULL);
@@ -776,7 +777,7 @@ static void draw_inv_list(int tab) {
      * changed.  As such, we are forced to basicly redraw the entire list each
      * time this is called.
      */
-    gtk_tree_store_clear(inv_notebooks[tab].treestore);
+    gtk_tree_store_clear(treestore);
 
     for (tmp = cpl.ob->inv; tmp; tmp = tmp->next) {
         rowflag = inv_notebooks[tab].show_func(tmp);
@@ -784,7 +785,7 @@ static void draw_inv_list(int tab) {
             continue;
         }
 
-        add_object_to_store(tmp, inv_notebooks[tab].treestore, &iter, NULL, rowflag & INV_SHOW_COLOR);
+        add_object_to_store(tmp, treestore, &iter, NULL, rowflag & INV_SHOW_COLOR);
 
         if ((cpl.container == tmp) && tmp->open) {
             item *tmp2;
@@ -807,10 +808,10 @@ static void draw_inv_list(int tab) {
                 if (!(rowflag & INV_SHOW_ITEM)) {
                     continue;
                 }
-                add_object_to_store(tmp2, inv_notebooks[tab].treestore, &iter1, &iter,
+                add_object_to_store(tmp2, treestore, &iter1, &iter,
                         rowflag & INV_SHOW_COLOR);
             }
-            path = gtk_tree_model_get_path(GTK_TREE_MODEL(inv_notebooks[tab].treestore), &iter);
+            path = gtk_tree_model_get_path(GTK_TREE_MODEL(treestore), &iter);
             gtk_tree_view_expand_row(GTK_TREE_VIEW(inv_notebooks[tab].treeview), path, FALSE);
             gtk_tree_path_free(path);
         }
@@ -1105,7 +1106,7 @@ static void on_switch_page(GtkNotebook *notebook, gpointer *page,
 
     oldpage = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
     if (oldpage != page_num && inv_notebooks[oldpage].type == INV_TREE) {
-        gtk_tree_store_clear(inv_notebooks[oldpage].treestore);
+        gtk_tree_store_clear(treestore);
     }
     cpl.ob->inv_updated = 1;
 }
@@ -1128,7 +1129,7 @@ static void animate_inventory() {
         return;
     }
 
-    store = inv_notebooks[page].treestore;
+    store = treestore;
 
     /* Get the first iter in the list */
     valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &iter);
