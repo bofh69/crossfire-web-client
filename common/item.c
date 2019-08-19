@@ -645,8 +645,6 @@ item *map_item (void)
 void update_item(int tag, int loc, char *name, int weight, int face, int flags,
                  int anim, int animspeed, guint32 nrof, int type)
 {
-    item *ip = locate_item(tag), *env = locate_item(loc);
-
     /* Need to do some special handling if this is the player that is
      * being updated.
      */
@@ -666,11 +664,17 @@ void update_item(int tag, int loc, char *name, int weight, int face, int flags,
         player->anim_speed = animspeed;
         player->nrof = nrof;
     } else {
+        item *ip = locate_item(tag), *env = locate_item(loc);
         if (ip && ip->env != env) {
+            // If item moved, it's easier to remove and re-add than to update
+            // everything that needs updating.
             remove_item(ip);
             ip = NULL;
         }
-        set_item_values(ip ? ip : create_new_item(env, tag), name, weight, face, flags,
+        if (ip == NULL) {
+            ip = create_new_item(env, tag);
+        }
+        set_item_values(ip, name, weight, face, flags,
                         anim, animspeed, nrof, type);
     }
 }
