@@ -103,9 +103,6 @@ typedef struct {
 } Notebook_Info;
 
 /* Prototypes for static functions */
-static gboolean on_inv_table_expose_event(GtkWidget *widget,
-        GdkEventExpose *event, gpointer user_data);
-
 static void on_switch_page(GtkNotebook *notebook, gpointer *page,
                            guint page_num, gpointer user_data);
 
@@ -468,8 +465,6 @@ void inventory_init(GtkWidget *window_root) {
 
     g_signal_connect((gpointer)inv_notebook, "switch_page",
                      (GCallback)on_switch_page, NULL);
-    g_signal_connect((gpointer) inv_table, "expose_event",
-            (GCallback) on_inv_table_expose_event, NULL);
     g_signal_connect((gpointer) treeview_look, "row_collapsed",
             (GCallback) list_row_collapse, NULL);
 
@@ -1113,19 +1108,6 @@ static void on_switch_page(GtkNotebook *notebook, gpointer *page,
         gtk_tree_store_clear(inv_notebooks[oldpage].treestore);
     }
     cpl.ob->inv_updated = 1;
-}
-
-/**
- *
- * @param widget
- * @param event
- * @param user_data
- * @return TRUE
- */
-static gboolean on_inv_table_expose_event(GtkWidget *widget,
-        GdkEventExpose *event, gpointer user_data) {
-    draw_inv_table(0);
-    return TRUE;
 }
 
 /**
