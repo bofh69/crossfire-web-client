@@ -1010,27 +1010,8 @@ static void draw_inv_table(int animate) {
      */
     for (i = num_items; i <= max_drawn; i++) {
         if (inv_table_children[x][y]) {
-            gdk_window_clear(gtk_widget_get_window(inv_table_children[x][y]));
-
-            handler = g_signal_handler_find((gpointer) inv_table_children[x][y],
-                    G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
-                    G_CALLBACK(drawingarea_inventory_table_button_press_event),
-                    NULL);
-
-            if (handler) {
-                g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
-            }
-
-            handler = g_signal_handler_find((gpointer) inv_table_children[x][y],
-                    G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
-                    G_CALLBACK(drawingarea_inventory_table_expose_event),
-                    NULL);
-            if (handler) {
-                g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
-            }
-
-            /* Hide the widget so that the tooltips doesn't show up */
-            gtk_widget_hide(inv_table_children[x][y]);
+            gtk_widget_destroy(inv_table_children[x][y]);
+            inv_table_children[x][y] = NULL;
         }
         x++;
         if (x == columns) {
