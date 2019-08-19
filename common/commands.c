@@ -1657,13 +1657,10 @@ void item_actions(item *op)
 /**
  * Parses the data sent to us from the server.  revision is what item command
  * the data came from - newer ones have addition fields.
- *
  * @param data
  * @param len
  */
-static void common_item_command(guint8 *data, int len)
-{
-
+void Item2Cmd(unsigned char *data, int len) {
     int weight, loc, tag, face, flags, pos = 0, nlen, anim, nrof, type;
     guint8 animspeed;
     char name[MAX_BUF];
@@ -1705,16 +1702,6 @@ static void common_item_command(guint8 *data, int len)
             LOG(LOG_WARNING, "common::common_item_cmd", "Overread buffer: %d > %d", pos, len);
         }
     }
-}
-
-/**
- *
- * @param data
- * @param len
- */
-void Item2Cmd(unsigned char *data, int len)
-{
-    common_item_command(data, len);
 }
 
 /**
