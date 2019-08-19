@@ -18,6 +18,8 @@ Trunk
 **Fixed**
 
 - Handle previously handled 'newmapcmd' and 'tick' setup commands
+- Functionality and performance fixes for inventory table view with large
+  inventories
 
 1.73.0
 ======

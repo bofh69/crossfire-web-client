@@ -55,7 +55,7 @@ static double weight_limit;
  */
 #define MAX_INV_COLUMNS 20
 #define MAX_INV_ROWS    100
-static GtkWidget *inv_table_children[MAX_INV_ROWS][MAX_INV_COLUMNS];
+static GtkWidget *inv_table_children[MAX_INV_COLUMNS][MAX_INV_ROWS];
 
 /* Different styles we recognize */
 enum Styles {
