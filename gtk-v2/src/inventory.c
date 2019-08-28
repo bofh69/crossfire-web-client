@@ -53,9 +53,10 @@ static double weight_limit;
  * complicated because position of elements within the array are important, so
  * a simple g_realloc won't work.
  */
-#define MAX_INV_COLUMNS 20
-#define MAX_INV_ROWS    100
-static GtkWidget *inv_table_children[MAX_INV_COLUMNS][MAX_INV_ROWS];
+#define MAX_INV         2000
+static GtkWidget *inv_table_children[MAX_INV];
+
+#define INV_TABLE_AT(x, y, cols) inv_table_children[cols*y + x]
 
 /* Different styles we recognize */
 enum Styles {
@@ -469,7 +470,7 @@ void inventory_init(GtkWidget *window_root) {
     g_signal_connect((gpointer) treeview_look, "row_collapsed",
             (GCallback) list_row_collapse, NULL);
 
-    memset(inv_table_children, 0, sizeof (GtkWidget *) * MAX_INV_ROWS * MAX_INV_COLUMNS);
+    memset(inv_table_children, 0, sizeof (GtkWidget *) * MAX_INV);
 
     treestore = gtk_tree_store_new(LIST_NUM_COLUMNS,
             G_TYPE_STRING,
@@ -882,13 +883,15 @@ static void draw_inv_table(int animate) {
         num_items++;
     }
 
+    if (num_items > MAX_INV) {
+        LOG(LOG_ERROR, "draw_inv_table", "Too many items in inventory!");
+        return;
+    }
+
     GtkAllocation size;
     gtk_widget_get_allocation(inv_table, &size);
 
     columns = size.width / image_size;
-    if (columns > MAX_INV_COLUMNS) {
-        columns = MAX_INV_COLUMNS;
-    }
     rows = size.height / image_size;
 
     if (num_items > columns * rows) {
@@ -897,21 +900,18 @@ static void draw_inv_table(int animate) {
             rows++;
         }
     }
-    if (rows > MAX_INV_ROWS) {
-        rows = MAX_INV_ROWS;
-    }
 
     gtk_table_resize(GTK_TABLE(inv_table), rows, columns);
 
     x = 0;
     y = 0;
     for (tmp = cpl.ob->inv; tmp; tmp = tmp->next) {
-        if (inv_table_children[x][y] == NULL) {
-            inv_table_children[x][y] = gtk_drawing_area_new();
-            gtk_widget_set_size_request(inv_table_children[x][y], image_size,
+        if (INV_TABLE_AT(x, y, columns) == NULL) {
+            INV_TABLE_AT(x, y, columns) = gtk_drawing_area_new();
+            gtk_widget_set_size_request(INV_TABLE_AT(x, y, columns), image_size,
                                         image_size);
 
-            gtk_table_attach(GTK_TABLE(inv_table), inv_table_children[x][y],
+            gtk_table_attach(GTK_TABLE(inv_table), INV_TABLE_AT(x, y, columns),
                     x, x + 1, y, y + 1, GTK_FILL, GTK_FILL, 0, 0);
         }
         if (animate) {
@@ -929,7 +929,7 @@ static void draw_inv_table(int animate) {
                     tmp->last_anim = 0;
 
                     draw_inv_table_icon(
-                        gtk_widget_get_window(inv_table_children[x][y]),
+                        gtk_widget_get_window(INV_TABLE_AT(x, y, columns)),
                         pixmaps[tmp->face]->icon_image);
                 }
             }
@@ -940,58 +940,58 @@ static void draw_inv_table(int animate) {
              * effectively stacked - you can have 6 signal handlers tied to the
              * same function.
              */
-            handler = g_signal_handler_find((gpointer) inv_table_children[x][y],
+            handler = g_signal_handler_find((gpointer) INV_TABLE_AT(x, y, columns),
                     G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
                     G_CALLBACK(drawingarea_inventory_table_button_press_event),
                     NULL);
 
             if (handler) {
-                g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+                g_signal_handler_disconnect((gpointer) INV_TABLE_AT(x, y, columns), handler);
             }
 
-            handler = g_signal_handler_find((gpointer) inv_table_children[x][y],
+            handler = g_signal_handler_find((gpointer) INV_TABLE_AT(x, y, columns),
                     G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
                     G_CALLBACK(drawingarea_inventory_table_expose_event),
                     NULL);
             if (handler) {
-                g_signal_handler_disconnect((gpointer) inv_table_children[x][y], handler);
+                g_signal_handler_disconnect((gpointer) INV_TABLE_AT(x, y, columns), handler);
             }
             /*
              * Not positive precisely what events are needed, but some events
              * beyond just the button press are necessary for the tooltips to
              * work.
              */
-            gtk_widget_add_events(inv_table_children[x][y], GDK_ALL_EVENTS_MASK);
+            gtk_widget_add_events(INV_TABLE_AT(x, y, columns), GDK_ALL_EVENTS_MASK);
 
-            g_signal_connect((gpointer) inv_table_children[x][y], "button_press_event",
+            g_signal_connect((gpointer) INV_TABLE_AT(x, y, columns), "button_press_event",
                     G_CALLBACK(drawingarea_inventory_table_button_press_event),
                     tmp);
 
-            g_signal_connect((gpointer) inv_table_children[x][y], "expose_event",
+            g_signal_connect((gpointer) INV_TABLE_AT(x, y, columns), "expose_event",
                     G_CALLBACK(drawingarea_inventory_table_expose_event),
                     tmp);
 
             /* Draw the inventory icon image to the table. */
-            draw_inv_table_icon(gtk_widget_get_window(inv_table_children[x][y]),
+            draw_inv_table_icon(gtk_widget_get_window(INV_TABLE_AT(x, y, columns)),
                                 pixmaps[tmp->face]->icon_image);
 
             // Draw an extra indicator if the item is applied.
             if (tmp->applied) {
-                gtk_widget_modify_bg(inv_table_children[x][y],
+                gtk_widget_modify_bg(INV_TABLE_AT(x, y, columns),
                         GTK_STATE_NORMAL, &applied_color);
             } else {
-                gtk_widget_modify_bg(inv_table_children[x][y],
+                gtk_widget_modify_bg(INV_TABLE_AT(x, y, columns),
                         GTK_STATE_NORMAL, NULL);
             }
 
-            gtk_widget_show(inv_table_children[x][y]);
+            gtk_widget_show(INV_TABLE_AT(x, y, columns));
             /*
              * Use tooltips to provide additional detail about the icons.
              * Looking at the code, the tooltip widget will take care of
              * removing the old tooltip, freeing strings, etc.
              */
             snprintf(buf, 255, "%s %s", tmp->d_name, tmp->flags);
-            gtk_widget_set_tooltip_text(inv_table_children[x][y], buf);
+            gtk_widget_set_tooltip_text(INV_TABLE_AT(x, y, columns), buf);
         }
         x++;
         if (x == columns) {
@@ -1009,9 +1009,9 @@ static void draw_inv_table(int animate) {
      * otherwise, we get errors on objects that are drawn.
      */
     for (i = num_items; i <= max_drawn; i++) {
-        if (inv_table_children[x][y]) {
-            gtk_widget_destroy(inv_table_children[x][y]);
-            inv_table_children[x][y] = NULL;
+        if (INV_TABLE_AT(x, y, columns)) {
+            gtk_widget_destroy(INV_TABLE_AT(x, y, columns));
+            INV_TABLE_AT(x, y, columns) = NULL;
         }
         x++;
         if (x == columns) {

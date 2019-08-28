@@ -14,10 +14,11 @@ Trunk
 - Trim trailing whitespace from spell descriptions
 - Use one window for metaserver and login dialogs
 - Change key handling to reduce lag after holding down a key
+- Inventory table view no longer has a column limit
 
 **Fixed**
 
-- Handle previously handled 'newmapcmd' and 'tick' setup commands
+- Handle previously unhandled 'newmapcmd' and 'tick' setup commands
 - Functionality and performance fixes for inventory table view with large
   inventories
 
