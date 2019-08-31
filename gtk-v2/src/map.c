@@ -403,7 +403,7 @@ void draw_map(gboolean redraw) {
     if (time_map_redraw) {
         t_end = g_get_monotonic_time();
         gint64 elapsed = t_end - t_start;
-        printf("[profile/redraw] %"G_GINT64_FORMAT"\n", elapsed);
+        printf("profile/redraw,%"G_GINT64_FORMAT"\n", elapsed);
     }
 }
 

@@ -202,7 +202,7 @@ int send_command(const char *command, int repeat, int must_send) {
             SockList_AddString(&sl, command);
             SockList_Send(&sl, csocket.fd);
             if (profile_latency) {
-                printf("[profile/com] %d,%" G_GINT64_FORMAT ",%s\n",
+                printf("profile/com,%d,%" G_GINT64_FORMAT ",%s\n",
                        csocket.command_sent, g_get_monotonic_time(), command);
             }
         }
@@ -225,7 +225,7 @@ void CompleteCmd(unsigned char *data, int len) {
     const int in_flight = csocket.command_sent - csocket.command_received;
     if (profile_latency) {
         gint64 t = g_get_monotonic_time();
-        printf("[profile/comc] %d,%" G_GINT64_FORMAT ",%d,%d\n",
+        printf("profile/comc,%d,%" G_GINT64_FORMAT ",%d,%d\n",
                csocket.command_received, t, csocket.command_time, in_flight);
     }
     script_sync(in_flight);
