@@ -193,7 +193,12 @@ static void event_loop() {
 #endif
 
     GSource *net_source = client_get_source();
-    g_assert_nonnull(net_source);
+    if (net_source == NULL) {
+        error_dialog("Server unexpectedly disconnected",
+                     "The server unexpectedly disconnected.");
+        client_disconnect();
+        return;
+    }
     g_source_set_callback(net_source, (GSourceFunc)do_network, NULL, NULL);
     g_source_attach(net_source, NULL);
     gtk_main();
