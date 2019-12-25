@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(crossfire-client C)
-set(VERSION 1.73.0)
+set(VERSION 1.74.0)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
