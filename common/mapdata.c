@@ -100,11 +100,10 @@ static struct Map the_map;
  */
 static void clear_cells(int x, int y, int len_y) {
     int clear_cells_i, j;
-    struct MapCell *cell;
     memset(mapdata_cell(x, y), 0, sizeof(struct MapCell)*len_y);
 
     for (clear_cells_i = 0; clear_cells_i < (len_y); clear_cells_i++) {
-        cell = mapdata_cell(x, y+clear_cells_i);
+        struct MapCell *cell = mapdata_cell(x, y+clear_cells_i);
         for (j=0; j < MAXLAYERS; j++) {
             cell->heads[j].size_x = 1;
             cell->heads[j].size_y = 1;
@@ -1349,7 +1348,6 @@ void mapdata_animation(void)
 {
     int x, y, layer, face;
     struct MapCellLayer *cell;
-    struct MapCell *map_space;
 
 
     /* For synchronized animations, what we do is set the initial values
@@ -1373,10 +1371,7 @@ void mapdata_animation(void)
 
     for (x=0; x < CURRENT_MAX_VIEW; x++) {
         for (y=0; y < CURRENT_MAX_VIEW; y++) {
-            /* Store the map cell we are on.
-             * Reducing calls to map_cell should help performance some.
-             */
-            map_space = mapdata_cell(pl_pos.x + x, pl_pos.y + y);
+            struct MapCell *map_space = mapdata_cell(pl_pos.x + x, pl_pos.y + y);
             
             /* Short cut some processing here.  It makes sense to me
              * not to animate stuff out of view
