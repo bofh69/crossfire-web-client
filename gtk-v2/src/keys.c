@@ -547,18 +547,18 @@ void keybindings_init(const char *character_name) {
         history[i][0] = 0;
     }
 
-    commandkeysym  = GDK_apostrophe;
-    firekeysym[0]  = GDK_Shift_L;
-    firekeysym[1]  = GDK_Shift_R;
-    runkeysym[0]   = GDK_Control_L;
-    runkeysym[1]   = GDK_Control_R;
-    metakeysym[0]  = GDK_Meta_L;
-    metakeysym[1]  = GDK_Meta_R;
-    altkeysym[0]   = GDK_Alt_L;
-    altkeysym[1]   = GDK_Alt_R;
+    commandkeysym  = GDK_KEY_apostrophe;
+    firekeysym[0]  = GDK_KEY_Shift_L;
+    firekeysym[1]  = GDK_KEY_Shift_R;
+    runkeysym[0]   = GDK_KEY_Control_L;
+    runkeysym[1]   = GDK_KEY_Control_R;
+    metakeysym[0]  = GDK_KEY_Meta_L;
+    metakeysym[1]  = GDK_KEY_Meta_R;
+    altkeysym[0]   = GDK_KEY_Alt_L;
+    altkeysym[1]   = GDK_KEY_Alt_R;
 
-    completekeysym = GDK_Tab;
-    cancelkeysym   = GDK_Escape;
+    completekeysym = GDK_KEY_Tab;
+    cancelkeysym   = GDK_KEY_Escape;
 
     /*
      * Don't set these to anything by default.  At least on Sun keyboards, the
@@ -1306,31 +1306,31 @@ static void save_keys(void) {
             draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, buf2);
         } else {
             /* Save default bindings as part of the global scope */
-            if (firekeysym[0] != GDK_Shift_L && firekeysym[0] != NoSymbol)
+            if (firekeysym[0] != GDK_KEY_Shift_L && firekeysym[0] != NoSymbol)
                 fprintf(fp, "! firekey0 %s %d\n",
                         gdk_keyval_name(firekeysym[0]), 0);
-            if (firekeysym[1] != GDK_Shift_R && firekeysym[1] != NoSymbol)
+            if (firekeysym[1] != GDK_KEY_Shift_R && firekeysym[1] != NoSymbol)
                 fprintf(fp, "! firekey1 %s %d\n",
                         gdk_keyval_name(firekeysym[1]), 0);
-            if (metakeysym[0] != GDK_Shift_L && metakeysym[0] != NoSymbol)
+            if (metakeysym[0] != GDK_KEY_Shift_L && metakeysym[0] != NoSymbol)
                 fprintf(fp, "! metakey0 %s %d\n",
                         gdk_keyval_name(metakeysym[0]), 0);
-            if (metakeysym[1] != GDK_Shift_R && metakeysym[1] != NoSymbol)
+            if (metakeysym[1] != GDK_KEY_Shift_R && metakeysym[1] != NoSymbol)
                 fprintf(fp, "! metakey1 %s %d\n",
                         gdk_keyval_name(metakeysym[1]), 0);
-            if (altkeysym[0] != GDK_Shift_L && altkeysym[0] != NoSymbol)
+            if (altkeysym[0] != GDK_KEY_Shift_L && altkeysym[0] != NoSymbol)
                 fprintf(fp, "! altkey0 %s %d\n",
                         gdk_keyval_name(altkeysym[0]), 0);
-            if (altkeysym[1] != GDK_Shift_R && altkeysym[1] != NoSymbol)
+            if (altkeysym[1] != GDK_KEY_Shift_R && altkeysym[1] != NoSymbol)
                 fprintf(fp, "! altkey1 %s %d\n",
                         gdk_keyval_name(altkeysym[1]), 0);
-            if (runkeysym[0] != GDK_Control_L && runkeysym[0] != NoSymbol)
+            if (runkeysym[0] != GDK_KEY_Control_L && runkeysym[0] != NoSymbol)
                 fprintf(fp, "! runkey0 %s %d\n",
                         gdk_keyval_name(runkeysym[0]), 0);
-            if (runkeysym[1] != GDK_Control_R && runkeysym[1] != NoSymbol)
+            if (runkeysym[1] != GDK_KEY_Control_R && runkeysym[1] != NoSymbol)
                 fprintf(fp, "! runkey1 %s %d\n",
                         gdk_keyval_name(runkeysym[1]), 0);
-            if (completekeysym != GDK_Tab && completekeysym != NoSymbol)
+            if (completekeysym != GDK_KEY_Tab && completekeysym != NoSymbol)
                 fprintf(fp, "! completekey %s %d\n",
                         gdk_keyval_name(completekeysym), 0);
             /* No defaults for these, so if it is set to anything, assume its valid */
