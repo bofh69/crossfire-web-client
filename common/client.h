@@ -120,7 +120,7 @@ typedef struct {
     GSocketConnection* fd;
     int cs_version, sc_version;         /**< Server versions of these
                                          */
-    int command_sent, command_received; /**< These are used for the newer
+    uint16_t command_sent, command_received; /**< These are used for the newer
                                          *   'windowing' method of commands -
                                          *   number of last command sent,
                                          *   number of received confirmation
