@@ -31,6 +31,8 @@
 #include "script.h"
 
 bool profile_latency = false;
+int64_t *profile_time = NULL; /** 256-length array to keep track of when
+                                commands were sent to the server */
 
 /** Array for direction strings for each numeric direction. */
 const char *const directions[] = {"stay",      "north",     "northeast",
@@ -202,8 +204,11 @@ int send_command(const char *command, int repeat, int must_send) {
             SockList_AddString(&sl, command);
             SockList_Send(&sl, csocket.fd);
             if (profile_latency) {
-                printf("profile/com,%d,%" G_GINT64_FORMAT ",%s\n",
-                       csocket.command_sent, g_get_monotonic_time(), command);
+                if (profile_time == NULL) {
+                    profile_time = calloc(256, sizeof(int64_t));
+                }
+                profile_time[csocket.command_sent] = g_get_monotonic_time();
+                printf("profile/com\t%d\t%s\n", csocket.command_sent, command);
             }
         }
     } else {
@@ -224,9 +229,13 @@ void CompleteCmd(unsigned char *data, int len) {
     csocket.command_time = GetInt_String(data+2);
     const int in_flight = csocket.command_sent - csocket.command_received;
     if (profile_latency) {
-        gint64 t = g_get_monotonic_time();
-        printf("profile/comc,%d,%" G_GINT64_FORMAT ",%d,%d\n",
-               csocket.command_received, t, csocket.command_time, in_flight);
+        gint64 now = g_get_monotonic_time();
+        if (profile_time != NULL) {
+            printf("profile/comc\t%d\t%" G_GINT64_FORMAT "\t%d\t%d\n",
+                   csocket.command_received,
+                   (now - profile_time[csocket.command_received])/1000,
+                   csocket.command_time, in_flight);
+        }
     }
     script_sync(in_flight);
 }
