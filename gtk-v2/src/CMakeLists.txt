@@ -29,7 +29,7 @@ add_executable(crossfire-client-gtk2
 )
 
 target_include_directories(crossfire-client-gtk2
-    PRIVATE ${GTK2_INCLUDE_DIRS}
+    PRIVATE ${GTK_INCLUDE_DIRS}
             ${OPENGL_INCLUDE_DIR}
             ${PNG_INCLUDE_DIRS}
             ${SDLMIXER_INCLUDE_DIRS}
@@ -41,7 +41,7 @@ target_include_directories(crossfire-client-gtk2
 
 target_link_libraries(crossfire-client-gtk2 cfclient
     ${CURL_LDFLAGS}
-    ${GTK2_LDFLAGS}
+    ${GTK_LDFLAGS}
     ${LUA_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${PNG_LIBRARIES}

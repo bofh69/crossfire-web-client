@@ -26,13 +26,13 @@ set(CMAKE_INSTALL_DATADIR ${CMAKE_INSTALL_DATAROOTDIR}/crossfire-client)
 
 # Look for required dependencies.
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTK2 gtk+-2.0 gio-2.0 REQUIRED)
+pkg_check_modules(GTK gtk+-2.0 gio-2.0 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(Perl REQUIRED)
 find_package(Vala REQUIRED)
 find_package(X11 REQUIRED)
 add_definitions(
-    ${GTK2_CFLAGS_OTHER}
+    ${GTK_CFLAGS_OTHER}
     ${PNG_DEFINITIONS}
 )
 
@@ -71,7 +71,7 @@ if(SOUND)
 endif()
 
 include(CheckIncludeFiles)
-set(CMAKE_REQUIRED_INCLUDES ${GTK2_INCLUDE_DIRS})
+set(CMAKE_REQUIRED_INCLUDES ${GTK_INCLUDE_DIRS})
 check_include_files(gio/gnetworking.h HAVE_GIO_GNETWORKING_H)
 
 include(CheckFunctionExists)

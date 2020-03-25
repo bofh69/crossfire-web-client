@@ -8,14 +8,14 @@ add_executable(cfsndserv
 )
 
 target_include_directories(cfsndserv
-    PRIVATE ${GTK2_INCLUDE_DIRS}
+    PRIVATE ${GTK_INCLUDE_DIRS}
             ${SDLMIXER_INCLUDE_DIRS}
             ${PROJECT_BINARY_DIR}
             ${PROJECT_SOURCE_DIR}/common
 )
 
 target_link_libraries(cfsndserv
-    ${GTK2_LDFLAGS}
+    ${GTK_LDFLAGS}
     ${SDLMIXER_LDFLAGS}
 )
 
