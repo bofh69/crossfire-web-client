@@ -230,10 +230,10 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
 
 #ifndef WIN32
         snprintf(SDL_windowhack, sizeof(SDL_windowhack), "SDL_WINDOWID=%ld",
-                 GDK_WINDOW_XWINDOW(sdl_window->window) );
+                 GDK_WINDOW_XWINDOW(gtk_widget_get_window(sdl_window)) );
 #else
         sprintf( SDL_windowhack, "SDL_WINDOWID=%ld",
-                 GDK_WINDOW_HWND(sdl_window->window) );
+                 GDK_WINDOW_HWND(gtk_widget_get_window(sdl_window)) );
 #endif
         putenv( SDL_windowhack);
 

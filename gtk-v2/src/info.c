@@ -1350,7 +1350,7 @@ void msgctrl_init(GtkWidget *window_root)
      * This assumption is unwise if client layouts begin to be implemented to
      * have fewer message panes than the code supports!
      */
-    for (list = table->children; list; list = list->next) {
+    for (list = gtk_container_get_children(GTK_CONTAINER(table)); list; list = list->next) {
         child = list->data;
         if ((child->widget != 0) && (child->top_attach > title_rows)) {
             title_rows = child->top_attach;

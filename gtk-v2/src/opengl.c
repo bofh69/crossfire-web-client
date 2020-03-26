@@ -119,7 +119,7 @@ void init_glx_opengl(GtkWidget* drawingarea)
     XSetWindowAttributes attr;
 
     /* Need to tuck these away, because they are needed for glXSwappBuffers() */
-    display = GDK_WINDOW_XDISPLAY(drawingarea->window);
+    display = GDK_WINDOW_XDISPLAY(gtk_widget_get_window(drawingarea));
     vi = glXChooseVisual(display,
                          gdk_x11_get_default_screen (), attrListDbl);
 
@@ -134,10 +134,10 @@ void init_glx_opengl(GtkWidget* drawingarea)
      * error.
      */
     DefaultVisual(display, gdk_x11_get_default_screen ());
-    attr.colormap= XCreateColormap(display, GDK_WINDOW_XID(drawingarea->window),
+    attr.colormap= XCreateColormap(display, GDK_WINDOW_XID(gtk_widget_get_window(drawingarea)),
                                    vi->visual, AllocNone);
 
-    window = XCreateWindow(display, GDK_WINDOW_XID(drawingarea->window),
+    window = XCreateWindow(display, GDK_WINDOW_XID(gtk_widget_get_window(drawingarea)),
                            0, 0, width, height, 0,
                            vi->depth,
                            InputOutput,
@@ -200,7 +200,7 @@ void init_wgl_opengl(GtkWidget* drawingarea)
     width = drawingarea->allocation.width;
     height = drawingarea->allocation.height;
 
-    dctx = GetDC(GDK_WINDOW_HWND(drawingarea->window));
+    dctx = GetDC(GDK_WINDOW_HWND(gtk_widget_get_window(drawingarea)));
     devicecontext = dctx;
 
     /* Get the closest matching pixel format to what we specified and set it */
