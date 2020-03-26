@@ -542,8 +542,6 @@ static void combo_box_text_remove_all(GtkComboBoxText *combo_box) {
  */
 static void setup_config_dialog() {
     GtkTreeIter iter;
-    gchar *buf;
-    int count;
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_button_echo),
                                  want_config[CONFIG_ECHO]);
@@ -568,35 +566,22 @@ static void setup_config_dialog() {
 
     // Fill face set combo box with available face sets from the server.
     combo_box_text_remove_all(config_combobox_faceset);
-
-    /* If we have real faceset info from the server, use it */
     if (face_info.have_faceset_info) {
-        for (int i = 0; i < MAX_FACE_SETS; i++)
-            if (face_info.facesets[i].fullname)
-                gtk_combo_box_text_append_text(config_combobox_faceset,
-                                               face_info.facesets[i].fullname);
-    }
-
-    GtkTreeModel *model =
-        gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_faceset));
-    count = gtk_tree_model_iter_n_children(model, NULL);
-    for (int i = 0; i < count; i++) {
-        if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, i)) {
-            LOG(LOG_ERROR, "setup_config_dialog", "Cannot iterate facesets\n");
-            break;
+        for (int i = 0; i < MAX_FACE_SETS; i++) {
+            const char *name = face_info.facesets[i].fullname;
+            if (name != NULL) {
+                gtk_combo_box_text_append_text(config_combobox_faceset, name);
+                if (!g_ascii_strcasecmp(face_info.want_faceset, name)) {
+                    gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_faceset), i);
+                }
+            } else {
+                break;
+            }
         }
-        gtk_tree_model_get(model, &iter, 0, &buf, -1);
-
-        if (face_info.want_faceset &&
-            !g_ascii_strcasecmp(face_info.want_faceset, buf)) {
-            gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_faceset), i);
-            g_free(buf);
-            break;
-        }
-        g_free(buf);
     }
 
     // Set current display mode.
+    GtkTreeModel *model;
     model = gtk_combo_box_get_model(config_combobox_displaymode);
     bool next = gtk_tree_model_get_iter_first(model, &iter);
     while (next) {
