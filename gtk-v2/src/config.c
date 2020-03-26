@@ -809,7 +809,7 @@ void on_save_window_position_activate(GtkMenuItem *menuitem,
     /*
      * The following prevents multiple saves per menu activation.
      */
-    g_signal_stop_emission_by_name(GTK_OBJECT(menuitem), "activate");
+    g_signal_stop_emission_by_name(GTK_WIDGET(menuitem), "activate");
 }
 
 /**

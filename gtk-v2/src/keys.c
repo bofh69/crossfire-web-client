@@ -1551,7 +1551,7 @@ void keyrelfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
         parse_key_release(event->keyval);
         debounce = false;
     }
-    g_signal_stop_emission_by_name(GTK_OBJECT(window), "key_release_event");
+    g_signal_stop_emission_by_name(GTK_WIDGET(window), "key_release_event");
 }
 
 /**
@@ -1576,7 +1576,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
             client_disconnect();
 
             g_signal_stop_emission_by_name(
-                GTK_OBJECT(window), "key_press_event");
+                GTK_WIDGET(window), "key_press_event");
             return;
         }
         if (cpl.input_state == Reply_One) {
@@ -1584,7 +1584,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
             send_reply(text);
             cpl.input_state = Playing;
             g_signal_stop_emission_by_name(
-                GTK_OBJECT(window), "key_press_event");
+                GTK_WIDGET(window), "key_press_event");
             return;
         } else if (cpl.input_state == Reply_Many) {
             if (gtk_widget_has_focus(entry_commands)) {
@@ -1593,7 +1593,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                 gtk_widget_grab_focus(GTK_WIDGET(entry_commands));
             }
             g_signal_stop_emission_by_name(
-                GTK_OBJECT(window), "key_press_event");
+                GTK_WIDGET(window), "key_press_event");
             return;
         }
     }
@@ -1692,7 +1692,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
         }
     }
     g_signal_stop_emission_by_name(
-        GTK_OBJECT(window), "key_press_event");
+        GTK_WIDGET(window), "key_press_event");
 }
 
 /**
@@ -2277,7 +2277,7 @@ static void keybinding_get_data(guint32 *keysym, guint8 *flags,
      */
     *keysym = gdk_keyval_from_name(
                   gtk_entry_get_text(GTK_ENTRY(keybinding_entry_key)));
-    if (*keysym == GDK_VoidSymbol) {
+    if (*keysym == GDK_KEY_VoidSymbol) {
         LOG(LOG_ERROR, "keys.c::keybinding_get_data",
             "Cannot get valid keysym from selection");
     }

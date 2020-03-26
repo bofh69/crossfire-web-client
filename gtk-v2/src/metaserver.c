@@ -254,5 +254,5 @@ void on_metaserver_select_clicked(GtkButton *button, gpointer user_data) {
  * @param user_data
  */
 void on_button_metaserver_quit_pressed(GtkButton *button, gpointer user_data) {
-    on_window_destroy_event(GTK_OBJECT(button), user_data);
+    on_window_destroy_event(GTK_WIDGET(button), user_data);
 }

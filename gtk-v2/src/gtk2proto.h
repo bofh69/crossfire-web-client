@@ -122,7 +122,7 @@ extern void reset_keybinding_status(void);
 extern void on_keybinding_button_clear_clicked(GtkButton *button, gpointer user_data);
 /* main.c */
 extern void client_tick(guint32 tick);
-extern void on_window_destroy_event(GtkObject *object, gpointer user_data);
+extern void on_window_destroy_event(GtkWidget *object, gpointer user_data);
 extern void error_dialog(char *description, char *information);
 extern void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data);
 extern int main(int argc, char *argv[]);

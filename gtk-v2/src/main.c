@@ -150,7 +150,7 @@ void client_tick(guint32 tick) {
 /**
  * Handles client shutdown.
  */
-void on_window_destroy_event(GtkObject *object, gpointer user_data) {
+void on_window_destroy_event(GtkWidget *object, gpointer user_data) {
 #ifdef WIN32
     script_killall();
 #endif
@@ -353,9 +353,9 @@ static void init_ui() {
                      G_CALLBACK(focusoutfunc), NULL);
 
     g_signal_connect_swapped((gpointer) window_root, "key_press_event",
-                             G_CALLBACK(keyfunc), GTK_OBJECT(window_root));
+                             G_CALLBACK(keyfunc), GTK_WIDGET(window_root));
     g_signal_connect_swapped((gpointer) window_root, "key_release_event",
-                             G_CALLBACK(keyrelfunc), GTK_OBJECT(window_root));
+                             G_CALLBACK(keyrelfunc), GTK_WIDGET(window_root));
     g_signal_connect((gpointer) window_root, "destroy",
                      G_CALLBACK(on_window_destroy_event), NULL);
 
