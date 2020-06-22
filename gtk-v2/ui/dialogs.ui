@@ -3312,6 +3312,20 @@ Enter a character name and password to add this account. The character must alre
                   </packing>
                 </child>
                 <child>
+                  <object class="GtkButton" id="button_refresh">
+                    <property name="label">gtk-refresh</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkButton" id="button_preferences">
                     <property name="label">gtk-preferences</property>
                     <property name="visible">True</property>
@@ -3322,7 +3336,7 @@ Enter a character name and password to add this account. The character must alre
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
               </object>

@@ -34,6 +34,8 @@ static GtkTreeSelection *metaserver_selection;
 
 enum { LIST_HOSTNAME, LIST_IPADDR, LIST_PLAYERS, LIST_VERSION, LIST_COMMENT };
 
+static void on_button_refresh(GtkButton *button, gpointer user_data);
+
 /**
  * Copy the selected server to the server entry box.
  */
@@ -97,6 +99,11 @@ void metaserver_ui_init() {
         gtk_builder_get_object(dialog_xml, "button_metaserver_quit"));
     g_signal_connect(widget, "clicked",
                      G_CALLBACK(on_button_metaserver_quit_pressed), NULL);
+
+    // Refresh button
+    g_signal_connect(
+        GTK_WIDGET(gtk_builder_get_object(dialog_xml, "button_refresh")),
+        "clicked", G_CALLBACK(on_button_refresh), NULL);
 
     // Initialize server list
     store_metaserver =
@@ -181,6 +188,23 @@ static gpointer server_fetch() {
     return NULL;
 }
 
+static void metaserver_refresh(void) {
+    gtk_list_store_clear(store_metaserver);
+#ifdef HAVE_CURL_CURL_H
+    // Start fetching server information in a separate thread.
+    g_thread_new("server_fetch", server_fetch, NULL);
+    gtk_label_set_text(GTK_LABEL(metaserver_status), "");
+#else
+    gtk_widget_set_sensitive(GTK_WIDGET(treeview_metaserver), FALSE);
+    gtk_label_set_text(GTK_LABEL(metaserver_status),
+                       "This client doesn't have metaserver support.");
+#endif
+}
+
+static void on_button_refresh(GtkButton *button, gpointer user_data) {
+    metaserver_refresh();
+}
+
 /**
  * Constructs the metaserver dialog and handles metaserver selection.  If the
  * player has a servers.cache file in their .crossfire folder, the cached
@@ -193,19 +217,8 @@ void metaserver_show_prompt() {
     // Disable connect button if there is no text in the server entry box.
     on_server_entry_changed();
 
-    gtk_list_store_clear(store_metaserver);
-
-#ifdef HAVE_CURL_CURL_H
-    // Start fetching server information in a separate thread.
-    g_thread_new("server_fetch", server_fetch, NULL);
-    gtk_label_set_text(GTK_LABEL(metaserver_status), "");
-#else
-    gtk_widget_set_sensitive(GTK_WIDGET(treeview_metaserver), FALSE);
-    gtk_label_set_text(GTK_LABEL(metaserver_status),
-                       "This client doesn't have metaserver support.");
-#endif
+    metaserver_refresh();
     cpl.input_state = Metaserver_Select;
-
 }
 
 /**
