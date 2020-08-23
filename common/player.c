@@ -26,6 +26,8 @@
  * remove the old keypress stupidity I used.
  */
 
+#include <stdint.h>
+
 #include "client.h"
 #include "external.h"
 #include "script.h"
