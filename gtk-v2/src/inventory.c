@@ -894,6 +894,13 @@ static void draw_inv_table(int animate) {
     columns = size.width / image_size;
     rows = size.height / image_size;
 
+    if (columns < 1) {
+        // size.width is occasionally very small after a player applies a bed
+        // to reality and the character selection window comes on. This causes
+        // columns = 0 and a divide by zero a few lines later.
+        return;
+    }
+
     if (num_items > columns * rows) {
         rows = num_items / columns;
         if (num_items % columns) {
