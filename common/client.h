@@ -137,8 +137,9 @@ extern char *sound_server;
 extern const char *cache_dir, *config_dir;
 
 typedef enum {
-    Playing, Reply_One, Reply_Many, Configure_Keys, Command_Mode,
-    Metaserver_Select
+    Playing,            //< including account login, character selection
+    Reply_One, Reply_Many, Configure_Keys, Command_Mode,
+    Metaserver_Select   //< only when metaserver window is up
 } Input_State;
 
 typedef enum {
