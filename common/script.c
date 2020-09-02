@@ -636,7 +636,7 @@ void script_watch(const char *cmd, const guint8 *data_initial, const int data_le
             /* Does this command match our watch? */
             l = strlen(scripts[i].watch[w]);
             if (!l || strncmp(cmd, scripts[i].watch[w], l) == 0) {
-                char buf[10240];
+                char buf[MAXSOCKBUF*3]; // Source is binary, dest is ASCII; 2-byte short can be 5 chars plus space
 
                 data = data_initial;
                 if (!len) {
@@ -656,7 +656,7 @@ void script_watch(const char *cmd, const guint8 *data_initial, const int data_le
                         int p;
 
                         be = snprintf(buf, sizeof(buf), "watch %s", cmd);
-                        for (p = 0; p*2 < len && p < 100; ++p) {
+                        for (p = 0; p*2 < len; ++p) {
                             be += snprintf(buf+be, sizeof(buf)-be, " %d", GetShort_String(data+p*2));
                         }
                         be += snprintf(buf+be, sizeof(buf)-be, "\n");
@@ -903,7 +903,7 @@ void script_watch(const char *cmd, const guint8 *data_initial, const int data_le
                             len = 0;
                         }
                         be = snprintf(buf, sizeof(buf), "watch %s %d bytes unparsed:", cmd, len);
-                        for (p = 0; p < len && p < 100; ++p) {
+                        for (p = 0; p < len; ++p) {
                             be += snprintf(buf+be, sizeof(buf)-be, " %02x", data[p]);
                         }
                         be += snprintf(buf+be, sizeof(buf)-be, "\n");
