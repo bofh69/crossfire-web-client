@@ -1056,8 +1056,8 @@ static void send_map(int i, int x, int y)
 
     if (!mapdata_contains(x, y)) {
         snprintf(buf, sizeof(buf), "request map %d %d unknown\n", x, y);
-        write(scripts[i].out_fd, buf, strlen(buf));
     }
+    else {
     /*** FIXME *** send more relevant data ***/
     snprintf(buf, sizeof(buf), "request map %d %d  %d %c %c %c %c"
              " smooth %d %d %d heads %d %d %d tails %d %d %d\n",
@@ -1070,6 +1070,7 @@ static void send_map(int i, int x, int y)
              mapdata_cell(x, y)->heads[0].face, mapdata_cell(x, y)->heads[1].face, mapdata_cell(x, y)->heads[2].face,
              mapdata_cell(x, y)->tails[0].face, mapdata_cell(x, y)->tails[1].face, mapdata_cell(x, y)->tails[2].face
             );
+    }
     write(scripts[i].out_fd, buf, strlen(buf));
 }
 
