@@ -1495,7 +1495,12 @@ static void script_process_cmd(int i) {
             }
 
             /*
-             * Check special cases: "mark <tag>" or "lock <new state> <tag>"
+             * Check special cases with tags:
+             *     mark <tag>
+             *     lock <new state> <tag>
+             *     take <tag> [<count>]
+             *     drop <tag> [<count>]
+             *     apply <tag>
              */
             if (strncmp(c, "mark", 4) == 0) {
                 int tag;
@@ -1546,6 +1551,45 @@ static void script_process_cmd(int i) {
                 SockList_AddChar(&sl, locked);
                 SockList_AddInt(&sl, tag);
                 SockList_Send(&sl, csocket.fd);
+            } else if ( (strncmp(c, "take", 4) == 0) || (strncmp(c, "drop", 4) == 0) ) {
+                int tag, count, dest;
+
+                dest = (strncmp(c, "drop", 4) == 0) ? 0 : cpl.ob->tag; /* dest is player tag for take, 0 for drop */
+                c += 4;
+
+                while (*c && !isdigit(*c)) {
+                    ++c;
+                }
+                if (!*c) {
+                    return;    /* No tag */
+                }
+                tag = atoi(c);
+                while (*c && *c != ' ') {
+                    ++c;
+                }
+                while (*c && !isdigit(*c)) {
+                    ++c;
+                }
+                if (!*c) {
+                    count=0; /* default: count of zero */
+                }
+                count = atoi(c);
+
+                client_send_move(dest,tag,count);
+            } else if (strncmp(c, "apply", 5) == 0) {
+                int tag;
+
+                c += 5;
+
+                while (*c && !isdigit(*c)) {
+                    ++c;
+                }
+                if (!*c) {
+                    return;    /* No tag specified */
+                }
+                tag = atoi(c);
+
+                client_send_apply(tag);
             } else {
                 cs_print_string(csocket.fd, "%s", c);
             }
