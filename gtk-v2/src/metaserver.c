@@ -229,22 +229,24 @@ void metaserver_show_prompt() {
  *             to the DNS name.  For example:  localhost:8000
  */
 static void metaserver_connect_to(const char *name) {
-    g_strstrip(name);
+    char *name_dup = g_strdup(name);
+    g_strstrip(name_dup);
     char buf[256];
     /* Set client status and update GUI before continuing. */
-    snprintf(buf, sizeof(buf), "Connecting to '%s'...", name);
+    snprintf(buf, sizeof(buf), "Connecting to '%s'...", name_dup);
     gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     gtk_main_iteration();
 
-    client_connect(name);
+    client_connect(name_dup);
     if (csocket.fd != NULL) {
-        LOG(LOG_DEBUG, "metaserver_connect_to", "Connected to '%s'!", name);
+        LOG(LOG_DEBUG, "metaserver_connect_to", "Connected to '%s'!", name_dup);
         gtk_main_quit();
         cpl.input_state = Playing;
     } else {
-        snprintf(buf, sizeof(buf), "Unable to connect to %s!", name);
+        snprintf(buf, sizeof(buf), "Unable to connect to %s!", name_dup);
         gtk_label_set_text(GTK_LABEL(metaserver_status), buf);
     }
+    g_free(name_dup);
 }
 
 /**
