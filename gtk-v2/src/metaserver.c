@@ -229,6 +229,7 @@ void metaserver_show_prompt() {
  *             to the DNS name.  For example:  localhost:8000
  */
 static void metaserver_connect_to(const char *name) {
+    g_strstrip(name);
     char buf[256];
     /* Set client status and update GUI before continuing. */
     snprintf(buf, sizeof(buf), "Connecting to '%s'...", name);
