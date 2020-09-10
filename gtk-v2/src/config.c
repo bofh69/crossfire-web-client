@@ -571,7 +571,10 @@ static void setup_config_dialog() {
             const char *name = face_info.facesets[i].fullname;
             if (name != NULL) {
                 gtk_combo_box_text_append_text(config_combobox_faceset, name);
-                if (!g_ascii_strcasecmp(face_info.want_faceset, name)) {
+                // g_ascii_strcasecmp expects both arguments to be non-null.
+                // It appears to return 0 when one is null, confounding the result with
+                // that of an actual match.
+                if (face_info.want_faceset && !g_ascii_strcasecmp(face_info.want_faceset, name)) {
                     gtk_combo_box_set_active(GTK_COMBO_BOX(config_combobox_faceset), i);
                 }
             } else {

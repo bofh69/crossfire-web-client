@@ -2,6 +2,7 @@ Trunk
 ======
 
 **Fixed**
+Config window displayed last faceset as active regardless of desired faceset.
 
 1.74.0
 ======
