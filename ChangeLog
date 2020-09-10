@@ -4,6 +4,9 @@ Trunk
 **Fixed**
 Config window displayed last faceset as active regardless of desired faceset.
 
+**Changed**
+- Allow for the client to handle face sets of any reasonable size. 24x24 has been currently tested.
+
 1.74.0
 ======
 2019-12-25

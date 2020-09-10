@@ -89,6 +89,12 @@ void map_init(GtkWidget *window_root) {
     g_signal_connect(map_drawing_area, "event",
             G_CALLBACK(map_button_event), NULL);
 
+    // Set our image sizes.
+    // IIRC, atoi stops at the first nonnumeric char, so the x in the size will be the end.
+    image_size = atoi(face_info.facesets[face_info.faceset].size);
+    map_image_size  = image_size; // These should be the same.
+    map_image_half_size = map_image_size / 2;
+
     // Set map size based on window size and show widget.
     map_check_resize();
     gtk_widget_show(map_drawing_area);
