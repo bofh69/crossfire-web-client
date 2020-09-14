@@ -62,6 +62,8 @@ bool debug_protocol;
 
 static char *connect_server = NULL;
 
+static gboolean script_launch(const gchar *option_name, const gchar *value, gpointer data, GError **error);
+
 /** Command line options, descriptions, and parameters. */
 static GOptionEntry options[] = {
     { "server", 's', 0, G_OPTION_ARG_STRING, &connect_server,
@@ -86,6 +88,8 @@ static GOptionEntry options[] = {
         "Set verbosity (0 is the most verbose)", "LEVEL" },
     { "debug-protocol", 0, 0, G_OPTION_ARG_NONE, &debug_protocol,
         "Print commands to and from the server", NULL },
+    { "script", 0, 0, G_OPTION_ARG_CALLBACK, &script_launch,
+        "Launch client script at start (can be used multiple times)", "SCRIPT_NAME" },
     { NULL }
 };
 
@@ -103,6 +107,15 @@ static int do_scriptout() {
     return (TRUE);
 }
 #endif /* WIN32 */
+
+static gboolean script_launch(const gchar *option_name, const gchar *value, gpointer data, GError **error)
+{
+   (void)option_name; // always "--script"
+   (void)data; // Not used
+   (void)error; // Not used
+   script_init(value);
+   return TRUE;
+}
 
 /**
  * Redraw the map. Do a full redraw if there are new images to show. Return

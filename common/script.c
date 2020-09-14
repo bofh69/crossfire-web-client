@@ -293,8 +293,8 @@ void script_init(const char *cparams) {
         }
 
         /* Pass extra info to the script */
-        setenv("CF_PLAYER_NAME", cpl.name, 1);
-        setenv("CF_SERVER_NAME", csocket.servername, 1);
+        if ( cpl.name ) setenv("CF_PLAYER_NAME", cpl.name, 1);
+        if ( csocket.servername ) setenv("CF_SERVER_NAME", csocket.servername, 1);
 
         /* EXEC */
         r = execvp(argv[0], argv);

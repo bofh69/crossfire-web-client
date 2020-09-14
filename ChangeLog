@@ -2,6 +2,9 @@ Trunk
 ======
 
 **Fixed**
+Add '--script=...' command-line option to pre-launch scripts.
+
+**Fixed**
 Config window displayed last faceset as active regardless of desired faceset.
 
 **Changed**
