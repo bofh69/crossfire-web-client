@@ -189,6 +189,14 @@ static void create_map_image(guint8 *data, PixmapInfo *pi) {
 }
 
 /**
+ * Wrapper for accessing outside this file.
+ */
+void do_new_image(guint8 *data, PixmapInfo *pi) {
+    create_icon_image(data, pi);
+    create_map_image(data, pi);
+}
+
+/**
  * Memory management.
  *
  * @param pi
