@@ -16,6 +16,9 @@
  * Contains various global definitions and XML file name and path defaults.
  */
 
+#ifndef MAIN_H
+#define MAIN_H
+
 #define NUM_COLORS 13
 extern GdkColor root_color[NUM_COLORS];
 extern GtkWidget *window_root, *spinbutton_count;
@@ -43,3 +46,5 @@ extern char account_password[256];
 #include "info.h"
 
 extern void hide_main_client(void);
+
+#endif

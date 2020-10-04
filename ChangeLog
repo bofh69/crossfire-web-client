@@ -3,9 +3,8 @@ Trunk
 
 **Fixed**
 Add '--script=...' command-line option to pre-launch scripts.
-
-**Fixed**
 Config window displayed last faceset as active regardless of desired faceset.
+Prevent compiler errors on GCC 10 by disallowing multiple inclusions of src/gtk-v2/main.h.
 
 **Changed**
 - Allow for the client to handle face sets of any reasonable size. 24x24 has been currently tested.
