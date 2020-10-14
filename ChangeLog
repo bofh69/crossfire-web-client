@@ -5,6 +5,7 @@ Trunk
 Add '--script=...' command-line option to pre-launch scripts.
 Config window displayed last faceset as active regardless of desired faceset.
 Prevent compiler errors on GCC 10 by disallowing multiple inclusions of src/gtk-v2/main.h.
+Do not attempt to redraw map widget when disconnected.
 
 **Changed**
 - Allow for the client to handle face sets of any reasonable size. 24x24 has been currently tested.
@@ -158,7 +159,7 @@ MSW 2011-01-23
 
 Fix theme handling so it is properly loaded/processed at client start up.
 Remove the theme lookup from the init_...() routines and load the theme
-after all the initialization routines are done.  
+after all the initialization routines are done.
 MSW 2011-01-11
 
 common/client.h: Update race & class structures to hold choice information
@@ -306,7 +307,7 @@ MSW 2010-07-12
 Remove disabled GTK and X11 clients.
 Nicolas Weeger 2010-06-19
 
-gtk-v2/win32/gtkclient.nsi: Include theme files in the package script, these 
+gtk-v2/win32/gtkclient.nsi: Include theme files in the package script, these
 don't seem to actually work under a windows build yet though.
 Brendan Lally 2010-05-21
 
@@ -317,11 +318,11 @@ gtk-v2/win32: remove old-style icon and a compiled windows package I'd
 accidentally included.
 Brendan Lally 2010-05-20
 
-gtk-v2/win32/gtkclient.nsi: Merge some changes to the nsi file from the one 
+gtk-v2/win32/gtkclient.nsi: Merge some changes to the nsi file from the one
 from the 1.12 branch
 Brendan Lally 2010-05-20
 
-Win32Readme.txt, gtk-v2/win32/Running.txt: Merge the contents of win32Readme 
+Win32Readme.txt, gtk-v2/win32/Running.txt: Merge the contents of win32Readme
 into the Running.txt file.
 Brendan Lally 2010-05-20
 
@@ -332,7 +333,7 @@ common/client.h: Use a more explicit type in a struct definition (doesn't
 compile on windows otherwise)
 Brendan Lally 2010-05-20
 
-gtk-v2/win32: Remove .gladep files from the win32 nsi file, these are not 
+gtk-v2/win32: Remove .gladep files from the win32 nsi file, these are not
 needed by an end-user.
 Brendan Lally 2010-05-20
 
@@ -404,7 +405,7 @@ properly, merge the standalone versions of for both metaservers, and add a
 some more explanatory text to stdout.
 Brendan Lally 2010-04-24
 
-gtk-v2/src/main.c, common/client.h: Put the name of the glade layout file 
+gtk-v2/src/main.c, common/client.h: Put the name of the glade layout file
 that is being used in the version string that the client sends to the server.
 Brendan Lally 2010-04-24
 
@@ -632,7 +633,7 @@ common/client.c
   figure things out dynamically.
 - These changes have been tested on old and new servers - including logging in
   and out of each on the same client session.  The data in the Spell struct
-  has been confirmed to hold data (by testing with spells found in the 
+  has been confirmed to hold data (by testing with spells found in the
   test/spell_requirements map).
 - LOG message for spellmon FALSE is changed from WARNING to INFO.  It's not
   clear that a server's failure to support spellmon is really that bad.  It
@@ -976,7 +977,7 @@ common/metaserver.c: Fix bug 2806906- gcfclient hangs on exit when offline.
     Limit number of attempts to get metaserver2 data - was trying
     perpetually before.
 MSW 2009-07-27
-	
+
 gtk-v2/src/keys.c: Always extract spinbutton count and send it to server
   when doing commands - fixes 'invoke dimension door' spacing issue.
 MSW 2009-07-13

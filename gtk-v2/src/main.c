@@ -122,18 +122,22 @@ static gboolean script_launch(const gchar *option_name, const gchar *value, gpoi
  * false to unregister this event source after one redraw.
  */
 static gboolean redraw(gpointer data) {
-    if (have_new_image) {
-        if (cpl.container) {
-            cpl.container->inv_updated = 1;
-        }
-        cpl.ob->inv_updated = 1;
+    // Add a check for client_is_connected so that forced socket termination
+    // does not erroneously attempt to redraw the map after it has been destroyed.
+    if (client_is_connected()) {
+        if (have_new_image) {
+            if (cpl.container) {
+                cpl.container->inv_updated = 1;
+            }
+            cpl.ob->inv_updated = 1;
 
-        have_new_image = 0;
-        draw_map(1);
-    } else {
-        draw_map(0);
+            have_new_image = 0;
+            draw_map(1);
+        } else {
+            draw_map(0);
+        }
+        draw_lists();
     }
-    draw_lists();
     return FALSE;
 }
 
@@ -182,6 +186,7 @@ static gboolean do_network(GObject *stream, gpointer data) {
 
     if (!client_is_connected()) {
         gtk_main_quit();
+        LOG(LOG_INFO, "main.c::do_network", "Trying to do network when not connected.");
         return FALSE;
     }
 
