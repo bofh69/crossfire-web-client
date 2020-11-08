@@ -73,6 +73,7 @@ static void map_check_resize() {
  * @param window_root The client's main playing window.
  */
 void map_init(GtkWidget *window_root) {
+    static gulong map_button_handler = 0;
     map_drawing_area = GTK_WIDGET(gtk_builder_get_object(
                 window_xml, "drawingarea_map"));
     map_notebook = GTK_WIDGET(gtk_builder_get_object(
@@ -84,10 +85,14 @@ void map_init(GtkWidget *window_root) {
             G_CALLBACK(map_expose_event), NULL);
 
     // Enable event masks and set callbacks to handle mouse events.
-    gtk_widget_add_events(map_drawing_area,
+    // If its already connected (e.g. on a second login), then skip
+    // an additional association.
+    if (!g_signal_handler_is_connected(map_drawing_area, map_button_handler)) {
+        gtk_widget_add_events(map_drawing_area,
             GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
-    g_signal_connect(map_drawing_area, "event",
+        map_button_handler = g_signal_connect(map_drawing_area, "event",
             G_CALLBACK(map_button_event), NULL);
+    }
 
     // Set our image sizes.
     // IIRC, atoi stops at the first nonnumeric char, so the x in the size will be the end.

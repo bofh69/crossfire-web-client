@@ -7,6 +7,7 @@ Config window displayed last faceset as active regardless of desired faceset.
 Prevent compiler errors on GCC 10 by disallowing multiple inclusions of src/gtk-v2/main.h.
 Do not attempt to redraw map widget when disconnected.
 Removed vestigal 0/0 next to food, xp, grace, sp, and hp bars.
+Reapeated logins do not perpetually associate additional instances of the mouse button events to the map area.
 
 **Changed**
 - Allow for the client to handle face sets of any reasonable size. 24x24 has been currently tested.
