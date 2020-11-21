@@ -644,7 +644,7 @@ void info_init(GtkWidget *window_root)
             GTK_WIDGET(gtk_builder_get_object(window_xml, widget_name));
 
         gtk_text_view_set_wrap_mode(
-            GTK_TEXT_VIEW(info_pane[i].textview), GTK_WRAP_WORD);
+            GTK_TEXT_VIEW(info_pane[i].textview), GTK_WRAP_WORD_CHAR);
 
         info_pane[i].textbuffer =
             gtk_text_view_get_buffer(GTK_TEXT_VIEW(info_pane[i].textview));
