@@ -4,6 +4,7 @@ Trunk
 **Fixed**
 Add '--script=...' command-line option to pre-launch scripts.
 Config window displayed last faceset as active regardless of desired faceset.
+Config dialog now allows to set the faceset for the client next run. It was broken and did nothing previously.
 Prevent compiler errors on GCC 10 by disallowing multiple inclusions of src/gtk-v2/main.h.
 Do not attempt to redraw map widget when disconnected.
 Removed vestigal 0/0 next to food, xp, grace, sp, and hp bars.

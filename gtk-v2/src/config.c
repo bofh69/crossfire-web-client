@@ -647,13 +647,30 @@ static void read_config_dialog(void) {
     want_config[CONFIG_SMOOTH] = gtk_toggle_button_get_active(
         GTK_TOGGLE_BUTTON(config_button_smoothing));
 
-    gchar *buf;
-
-    buf = gtk_combo_box_text_get_active_text(config_combobox_faceset);
-    if (buf) {
-        free(face_info.want_faceset);
-        face_info.want_faceset = g_strdup(buf);
-        g_free(buf);
+    gchar *buf = 0;
+    GtkTreeIter iter;
+    /**
+     * Since the combo box does not have the "has-entry" property set to TRUE, we cannot use
+     * gtk_combo_box_text_get_active_text to get the currently selected option.
+     * Since we really have no good reason to turn that on and open up the box for
+     * arbitrary faceset strings, we can treat it more like a regular combo box.
+     * We need to use an iterator retrieval and gtk_tree_model_get to fetch the text,
+     * which is significantly more of a pain in the posterior.
+     *
+     * Daniel Hawkins -- 2020-11-21
+     */
+    if (gtk_combo_box_get_active_iter(GTK_COMBO_BOX(config_combobox_faceset), &iter)) {
+        // We have an active selection in our iterator. Now we get the string from the tree model.
+        GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_combobox_faceset));
+        gtk_tree_model_get(model, &iter, 0, &buf, -1);
+        if (buf) {
+            free(face_info.want_faceset);
+            face_info.want_faceset = g_strdup(buf);
+            g_free(buf);
+        }
+        else {
+            LOG(LOG_ERROR, "read_config_dialog", "Failed to get face set string from GTK Widget.");
+        }
     }
 
     want_config[CONFIG_DISPLAYMODE] =
