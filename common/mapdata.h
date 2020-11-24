@@ -151,4 +151,6 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
 gint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh);
 void mapdata_animation(void);
 
+extern PlayerPosition script_pos;
+
 #endif

@@ -25,6 +25,12 @@
 #include "mapdata.h"
 
 /**
+ * Position of a player on the map, relative to the coordinates received
+ * after a 'newmap' command. These are kept to for reporting to client scripts.
+ */
+PlayerPosition script_pos;
+
+/**
  * Size of virtual map.
  */
 #define FOG_MAP_SIZE 512
@@ -914,6 +920,8 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
 
 void mapdata_scroll(int dx, int dy)
 {
+    script_pos.x += dx;
+    script_pos.y += dy;
     int x, y;
 
     recenter_virtual_map_view(dx, dy);
@@ -987,6 +995,8 @@ void mapdata_scroll(int dx, int dy)
 
 void mapdata_newmap(void)
 {
+    script_pos.x = 0;
+    script_pos.y = 0;
     int x, y;
 
     /* Clear the_map.cells[]. */
