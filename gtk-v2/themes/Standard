@@ -154,20 +154,24 @@ widget_class "exp_gradual_bar_super" style "gradual_super_bar"
 
 style "inv_cursed"
 {
-    base[NORMAL] = "red"
+    # "tomato" is a more muted color than "red", better contrast --DTW
+    base[NORMAL] = "tomato"
 }
 widget_class "inv_cursed" style "inv_cursed"
 
 style "inv_magical"
 {
-    base[NORMAL] = "blue"
+    # "skyblue" is more muted than "blue", *far* better contrast --DTW
+    base[NORMAL] = "skyblue"
 }
 widget_class "inv_magical" style "inv_magical"
 
 # You owe gold for these
 style "inv_unpaid"
 {
-    text[NORMAL] = "gold"
+    # Not only is "wheat" more muted than "gold",
+    # but I changed it to color the background, not the text. --DTW
+    base[NORMAL] = "wheat"
 }
 widget_class "inv_unpaid" style "inv_unpaid"
 
@@ -191,7 +195,8 @@ widget_class "inv_applied" style "inv_applied"
 #
 style "spell_denied"
 {
-    base[NORMAL] = "red"
+    # "tomato" is more muted than "red", better contrast --DTW
+    base[NORMAL] = "tomato"
 }
 widget_class "spell_denied" style "spell_denied"
 
@@ -203,7 +208,8 @@ widget_class "spell_repelled" style "spell_repelled"
 
 style "spell_attuned"
 {
-    base[NORMAL] = "green"
+    # "lightgreen" is more muted than "green", better contrast --DTW
+    base[NORMAL] = "lightgreen"
 }
 widget_class "spell_attuned" style "spell_attuned"
 
