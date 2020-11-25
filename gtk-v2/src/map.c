@@ -136,9 +136,21 @@ void map_init(GtkWidget *window_root) {
  * @param ay Map cell on-screen y-coordinate
  */
 static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay) {
-    cairo_set_source_surface(cr, pixmap->map_image,
-            ax * map_image_size, ay * map_image_size);
+    const int dest_x = ax * map_image_size;
+    const int dest_y = ay * map_image_size;
+    cairo_set_source_surface(cr, pixmap->map_image, dest_x, dest_y);
     cairo_paint(cr);
+}
+
+static void draw_smooth_pixmap(cairo_t* cr, PixmapInfo* pixmap,
+        const int sx, const int sy, const int dx, const int dy) {
+    const int src_x = map_image_size * sx;
+    const int src_y = map_image_size * sy;
+    const int dest_x = map_image_size * dx;
+    const int dest_y = map_image_size * dy;
+    cairo_set_source_surface(cr, pixmap->map_image, dest_x - src_x, dest_y - src_y);
+    cairo_rectangle(cr, dest_x, dest_y, map_image_size, map_image_size);
+    cairo_fill(cr);
 }
 
 int display_mapscroll(int dx, int dy) {
@@ -260,29 +272,12 @@ static void drawsmooth(cairo_t *cr, int mx, int my, int layer, int picx, int pic
             continue;    /*don't have the picture associated*/
         }
 
-        // @todo Fix smoothing here.
         if (weight > 0) {
-            draw_pixmap(cr, pixmaps[smoothface], picx, picy);
-
-            /*
-            draw_pixmap(
-                weight*map_image_size, 0,
-                picx, picy,
-                picx-weight*map_image_size, picy,
-                pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image, map_image_size, map_image_size);
-            */
+            draw_smooth_pixmap(cr, pixmaps[smoothface], weight, 0, picx, picy);
         }
 
         if (weightC > 0) {
-            draw_pixmap(cr, pixmaps[smoothface], picx, picy);
-
-            /*
-            draw_pixmap(
-                weightC*map_image_size, map_image_size,
-                picx, picy,
-                picx-weightC*map_image_size, picy+map_image_size,
-                pixmaps[smoothface]->map_mask, pixmaps[smoothface]->map_image, map_image_size, map_image_size);
-            */
+            draw_smooth_pixmap(cr, pixmaps[smoothface], weightC, 0, picx, picy);
         }
     }
 }
@@ -290,30 +285,26 @@ static void drawsmooth(cairo_t *cr, int mx, int my, int layer, int picx, int pic
 /**
  * Draw a single map layer to the given cairo context.
  */
-static void map_draw_layer(cairo_t *cr, int layer) {
+static void map_draw_layer(cairo_t *cr, int layer, int pass) {
     for (int x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
         for (int y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
             // Translate on-screen coordinates to virtual map coordinates.
             int mx = pl_pos.x + x, my = pl_pos.y + y;
 
-            // Skip current cell if not visible and not using fog of war.
-            if (!use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
-                continue;
-            }
+            if (pass == 0) {
+                // Skip current cell if not visible and not using fog of war.
+                if (!use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
+                    continue;
+                }
 
-            int dx, dy, face = mapdata_face_info(mx, my, layer, &dx, &dy);
-            if (face > 0 && pixmaps[face]->map_image != NULL) {
-                draw_pixmap(cr, pixmaps[face], x + dx, y + dy);
-            }
-            /*
-            * Sometimes, it may happens we need to draw the smooth while there
-            * is nothing to draw at that layer (but there was something at
-            * lower layers). This is handled here. The else part is to take
-            * into account cases where the smooth as already been handled 2
-            * code lines before
-            */
-            if (use_config[CONFIG_SMOOTH]) {
-                drawsmooth(cr, mx, my, layer, x * map_image_size, y * map_image_size);
+                int dx, dy, face = mapdata_face_info(mx, my, layer, &dx, &dy);
+                if (face > 0 && pixmaps[face]->map_image != NULL) {
+                    draw_pixmap(cr, pixmaps[face], x + dx, y + dy);
+                }
+            } else if (pass == 1) {
+                if (use_config[CONFIG_SMOOTH]) {
+                    drawsmooth(cr, mx, my, layer, x, y);
+                }
             }
         }
     }
@@ -360,7 +351,8 @@ static void gtk_map_redraw(gboolean redraw) {
     cairo_fill(cr);
 
     for (int layer = 0; layer < MAXLAYERS; layer++) {
-        map_draw_layer(cr, layer);
+        map_draw_layer(cr, layer, 0);
+        map_draw_layer(cr, layer, 1);
     }
 
     for (int x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
