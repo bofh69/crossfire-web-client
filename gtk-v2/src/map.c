@@ -277,7 +277,7 @@ static void drawsmooth(cairo_t *cr, int mx, int my, int layer, int picx, int pic
         }
 
         if (weightC > 0) {
-            draw_smooth_pixmap(cr, pixmaps[smoothface], weightC, 0, picx, picy);
+            draw_smooth_pixmap(cr, pixmaps[smoothface], weightC, 1, picx, picy);
         }
     }
 }
