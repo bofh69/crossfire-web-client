@@ -83,7 +83,7 @@ void init_theme() {
      */
     tmp = gtk_rc_get_default_files();
     i = 0;
-    while (tmp[i]) {
+    while (tmp && tmp[i]) {
         i++;
     }
     /*
@@ -101,7 +101,7 @@ void init_theme() {
      * ${HOME}/.gtkrc.en, etc.
      */
     i = 0;
-    while (tmp[i]) {
+    while (tmp && tmp[i]) {
         default_files[i] = g_strdup(tmp[i]);
         i++;
     }
