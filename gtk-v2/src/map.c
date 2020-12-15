@@ -96,9 +96,13 @@ void map_init(GtkWidget *window_root) {
 
     // Set our image sizes.
     // IIRC, atoi stops at the first nonnumeric char, so the x in the size will be the end.
-    image_size = atoi(face_info.facesets[face_info.faceset].size);
-    map_image_size  = image_size; // These should be the same.
-    map_image_half_size = map_image_size / 2;
+    if (face_info.facesets[face_info.faceset].size != NULL) {
+        image_size = atoi(face_info.facesets[face_info.faceset].size);
+        map_image_size  = image_size; // These should be the same.
+        map_image_half_size = map_image_size / 2;
+    } else {
+        LOG(LOG_ERROR, "map_init", "Invalid faceset size from server");
+    }
     // If we are not on the default size, we need to resize pixmaps[0].
     if (map_image_size != DEFAULT_IMAGE_SIZE) {
         int nx = map_image_size, ny = map_image_size;
