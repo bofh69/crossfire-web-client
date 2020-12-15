@@ -320,7 +320,7 @@ static void mapcell_draw_darkness(cairo_t *cr, int ax, int ay, int mx, int my) {
     double opacity = mapdata_cell(mx, my)->darkness / 192.0 * 0.6;
 
     if (use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
-        opacity += 0.15;
+        opacity += 0.2;
     }
 
     cairo_set_source_rgba(cr, 0, 0, 0, opacity);
