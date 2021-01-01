@@ -32,6 +32,7 @@
 #include "mapdata.h"
 #include "metaserver.h"
 #include "script.h"
+#include "sound.h"
 #include "gtk2proto.h"
 
 /* Sets up the basic colors. */
@@ -57,7 +58,6 @@ static gboolean updatekeycodes = FALSE;
 extern bool time_map_redraw;
 extern bool profile_latency;
 extern int MINLOG;
-extern SoundServer* server;
 bool debug_protocol;
 
 static char *connect_server = NULL;
@@ -447,9 +447,7 @@ void hide_main_client() {
      */
     remove_item_inventory(locate_item(0));
 
-    if (server != NULL) {
-        sound_server_stop(server);
-    }
+    cf_play_music("NONE");
     gtk_widget_show(connect_window);
 }
 

@@ -1,4 +1,4 @@
-vala_precompile(VALA_C sound-vala.vala OPTIONS -g GENERATE_HEADER client-vala)
+vala_precompile(VALA_C snd.vala OPTIONS -g GENERATE_HEADER client-vala)
 
 add_executable(crossfire-client-gtk2
     ${VALA_C}
@@ -26,6 +26,8 @@ add_executable(crossfire-client-gtk2
     sound.c
     spells.c
     stats.c
+    sound.h
+    cfsndserv.c
 )
 
 target_include_directories(crossfire-client-gtk2
@@ -46,6 +48,7 @@ target_link_libraries(crossfire-client-gtk2 cfclient
     ${OPENGL_LIBRARIES}
     ${PNG_LIBRARIES}
     ${SDL_LDFLAGS}
+    ${SDLMIXER_LDFLAGS}
     ${X11_LIBRARIES}
 )
 

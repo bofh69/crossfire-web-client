@@ -22,7 +22,7 @@
 #include <SDL_mixer.h>
 #include <glib-object.h>
 
-#include "common.h"
+#include "sound.h"
 #include "snd.h"
 
 typedef struct sound_settings {
@@ -130,9 +130,13 @@ static Mix_Chunk* load_chunk(char const name[static 1]) {
  */
 void cf_play_sound(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
                    char const sound[static 1], char const source[static 1]) {
+    LOG(LOG_DEBUG, "cf_play_sound",
+        "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd sound=%s "
+        "source=%s", x, y, dir, vol, type, sound, source);
+
     SoundInfo* si = g_hash_table_lookup(sounds, sound);
     if (si == NULL) {
-        fprintf(stderr, "play_sound: sound not defined: %s\n", sound);
+        LOG(LOG_WARNING, "cf_play_sound", "sound not defined: %s\n", sound);
         return;
     }
 
@@ -166,6 +170,7 @@ static bool music_is_different(char const music[static 1]) {
  * @param name Name of the song to play, without file paths or extensions.
  */
 void cf_play_music(const char* music_name) {
+    LOG(LOG_DEBUG, "cf_play_music", "\"%s\"", music_name);
     if (!music_is_different(music_name)) {
         return;
     }

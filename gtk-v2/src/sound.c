@@ -19,14 +19,12 @@
  */
 
 #include "client.h"
+#include "sound.h"
 
 #include "client-vala.h"
 
-SoundServer* server;
-
 int init_sounds() {
-    server = sound_server_new();
-    return sound_server_spawn(server, sound_server);
+    return cf_snd_init() == 0;
 }
 
 /**
@@ -98,15 +96,8 @@ void Sound2Cmd(unsigned char *data, int len) {
         data[6 + len_sound + 1 + len_source] = '\0';
     }
 
-    LOG(LOG_DEBUG, "gtk-v2::Sound2Cmd",
-        "Playing sound2 x=%hhd y=%hhd dir=%hhd volume=%hhd type=%hhd",
-        x, y, dir, vol, type);
-    LOG(LOG_DEBUG, "gtk-v2::Sound2Cmd", "               len_sound=%hhd sound=%s",
-        len_sound, sound);
-    LOG(LOG_DEBUG, "gtk-v2::Sound2Cmd", "               len_source=%hhd source=%s",
-        len_source, source);
     if (use_config[CONFIG_SOUND]) {
-        sound_server_play(server, x, y, dir, vol, type, sound, source);
+        cf_play_sound(x, y, dir, vol, type, sound, source);
     }
 }
 
@@ -133,8 +124,7 @@ void MusicCmd(const char *data, int len) {
             "Music command string is not null-terminated.");
         return;
     }
-    LOG(LOG_DEBUG, "gtk-v2::MusicCmd", "\"%s\"", data);
     if (use_config[CONFIG_SOUND]) {
-        sound_server_play_music(server, data);
+        cf_play_music(data);
     }
 }
