@@ -32,7 +32,6 @@ typedef int KeyCode;                    /**< Undefined type */
 
 #include "main.h"
 #include "proto.h"
-#include "def-keys.h"
 
 #include "image.h"
 #include "gtk2proto.h"
@@ -476,8 +475,6 @@ static void parse_keybind_line(char *buf, int line, unsigned int scope_flag) {
             cp++;
         }
 
-        /* Rest of the line is the actual command.  Lets kill the newline */
-        cpnext[strlen(cpnext) - 1] = '\0';
         if (strlen(cpnext) > (sizeof(bind_buf) - 1)) {
             cpnext[sizeof(bind_buf) - 1] = '\0';
             LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
@@ -491,18 +488,6 @@ static void parse_keybind_line(char *buf, int line, unsigned int scope_flag) {
 }
 
 /**
- * Load pre-compiled built-in default keybindings.
- */
-static void init_default_keybindings() {
-    LOG(LOG_DEBUG, "init_default_keybindings", "Loading default keybindings");
-    for (size_t i = 0; i < sizeof(def_keys) / sizeof(char *); i++) {
-        char *nextline = g_strdup(def_keys[i]);
-        parse_keybind_line(nextline, i, KEYF_R_GLOBAL);
-        free(nextline);
-    }
-}
-
-/**
  * Opens a file and loads the keybinds contained in it.
  *
  * @param filename   Name of the file to open.
@@ -510,27 +495,29 @@ static void init_default_keybindings() {
  *                   Should be one of KEYF_R_GLOBAL or KEYF_R_CHAR.
  *                   Every binding in the file will have the same scope.
  */
-static int parse_keys_file(char *filename, unsigned int scope_flag) {
-    FILE *fp;
-    char buf[BIG_BUF];
-    int line = 0;
-
-    fp = fopen(filename, "r");
-    if (fp == NULL) {
-        return -1;
+static int parse_keys_file(GInputStream *in, unsigned int scope_flag) {
+    GDataInputStream *stream = g_data_input_stream_new(in);
+    int line_no = 0;
+    char *line;
+    while ((line = g_data_input_stream_read_line(stream, NULL, NULL, NULL)) != NULL) {
+        line_no++;
+        parse_keybind_line(line, line_no, scope_flag);
     }
 
-    LOG(LOG_DEBUG, "init_keys", "Reading %s keybindings from '%s'",
-            scope_flag == KEYF_R_GLOBAL ? "global" : "character", filename);
-
-    while (fgets(buf, BIG_BUF, fp)) {
-        line++;
-        buf[BIG_BUF - 1] = '\0';
-        parse_keybind_line(buf, line, scope_flag);
-    }
-
-    fclose(fp);
     return 0;
+}
+
+/**
+ * Load pre-compiled built-in default keybindings.
+ */
+static void init_default_keybindings() {
+    LOG(LOG_DEBUG, "init_default_keybindings", "Loading default keybindings");
+    GInputStream *in = g_resources_open_stream("/org/crossfire/client/common/def-keys", 0, NULL);
+    if (in == NULL) {
+        g_error("could not load default keybindings");
+    }
+    parse_keys_file(in, KEYF_R_GLOBAL);
+    g_object_unref(in);
 }
 
 /**
@@ -607,13 +594,23 @@ void keybindings_init(const char *character_name) {
 
     /* Try to load global keybindings. */
     snprintf(buf, sizeof(buf), "%s/keys", config_dir);
-    parse_keys_file(buf, KEYF_R_GLOBAL);
+    GFile *f = g_file_new_for_path(buf);
+    GInputStream *in = G_INPUT_STREAM(g_file_read(f, NULL, NULL));
+    if (in != NULL) {
+        LOG(LOG_DEBUG, "keybindings_init", "Loading global keybindings");
+        parse_keys_file(in, KEYF_R_GLOBAL);
+    }
 
     /* Try to load the character-specific keybindings. */
     if (cpl.name) {
         snprintf(buf, sizeof(buf), "%s/%s.%s.keys", config_dir,
                 csocket.servername, cpl.name);
-        parse_keys_file(buf, KEYF_R_CHAR);
+        GFile *f = g_file_new_for_path(buf);
+        GInputStream *in = G_INPUT_STREAM(g_file_read(f, NULL, NULL));
+        if (in != NULL) {
+            LOG(LOG_DEBUG, "keybindings_init", "Loading character keybindings");
+            parse_keys_file(in, KEYF_R_CHAR);
+        }
     }
 }
 

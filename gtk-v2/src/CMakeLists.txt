@@ -1,5 +1,14 @@
 vala_precompile(VALA_C snd.vala OPTIONS -g GENERATE_HEADER client-vala)
 
+add_custom_command(
+    OUTPUT resources.c
+    COMMAND ${GLIB_COMPILE_RESOURCES}
+        --generate-source
+        --target ${CMAKE_CURRENT_BINARY_DIR}/resources.c
+        --sourcedir=${PROJECT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/resources.xml
+)
+
 add_executable(crossfire-client-gtk2
     ${VALA_C}
     account.c
@@ -28,6 +37,7 @@ add_executable(crossfire-client-gtk2
     stats.c
     sound.h
     cfsndserv.c
+    resources.c
 )
 
 target_include_directories(crossfire-client-gtk2

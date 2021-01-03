@@ -1,11 +1,4 @@
 add_custom_command(
-    OUTPUT def-keys.h
-    COMMAND ${PERL_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/mdk.pl ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS def-keys
-)
-
-add_custom_command(
     OUTPUT msgtypes.h
     COMMAND ${PERL_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/msgtypes.pl ${CMAKE_CURRENT_SOURCE_DIR}
@@ -24,7 +17,6 @@ add_library(cfclient
     client.c
     client.h
     commands.c
-    def-keys.h
     external.h
     image.c
     init.c
