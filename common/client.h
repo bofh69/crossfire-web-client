@@ -464,7 +464,7 @@ extern guint16   exp_table_max;
  * Map size the client will request the map to be.  The bigger it is, more
  * memory it will use.
  */
-#define MAP_MAX_SIZE 31
+#define MAP_MAX_SIZE 25
 
 /**
  * This is the smallest the map structure used for the client can be.  It
