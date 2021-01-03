@@ -22,8 +22,8 @@
 #include <SDL_mixer.h>
 #include <glib-object.h>
 
+#include "client-vala.h"
 #include "sound.h"
-#include "snd.h"
 
 typedef struct sound_settings {
     int buflen;     //< how big the buffers should be
