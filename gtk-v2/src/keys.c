@@ -323,7 +323,7 @@ static void parse_keybind_line(char *buf, int line, unsigned int scope_flag) {
      */
     cp = NULL;
 
-    if (buf[0] == '#' || buf[0] == '\n') {
+    if (buf[0] == '\0' || buf[0] == '#' || buf[0] == '\n') {
         return;
     }
     cpnext = strchr(buf, ' ');
