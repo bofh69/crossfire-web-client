@@ -60,7 +60,6 @@ endif()
 
 if(SOUND)
     pkg_check_modules(SDLMIXER SDL_mixer REQUIRED)
-    add_subdirectory(sound-src)
     if(EXISTS "${PROJECT_SOURCE_DIR}/sounds")
         install(DIRECTORY sounds DESTINATION ${CMAKE_INSTALL_DATADIR})
     else()
