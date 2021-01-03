@@ -55,8 +55,9 @@ bool time_map_redraw = false;
 static void map_check_resize() {
     GtkAllocation size;
     gtk_widget_get_allocation(map_drawing_area, &size);
-    int w = size.width / map_image_size + 1;
-    int h = size.height / map_image_size + 1;
+    int scaled_size = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+    int w = size.width / scaled_size + 1;
+    int h = size.height / scaled_size + 1;
     w = (w > MAP_MAX_SIZE) ? MAP_MAX_SIZE : w;
     h = (h > MAP_MAX_SIZE) ? MAP_MAX_SIZE : h;
 
@@ -341,8 +342,8 @@ static void gtk_map_redraw(gboolean redraw) {
 
     GtkAllocation size;
     gtk_widget_get_allocation(map_drawing_area, &size);
-    const int width = size.width;
-    const int height = size.height;
+    const int width = use_config[CONFIG_MAPWIDTH] * map_image_size;
+    const int height = use_config[CONFIG_MAPHEIGHT] * map_image_size;
 
     // Create double buffer and associated graphics context.
     cairo_surface_t *cst =
@@ -373,6 +374,10 @@ static void gtk_map_redraw(gboolean redraw) {
 
     // Copy the double buffer on the map drawing area.
     cairo_t *map_cr = gdk_cairo_create(gtk_widget_get_window(map_drawing_area));
+    if (use_config[CONFIG_MAPSCALE] != 100) {
+        float scale = use_config[CONFIG_MAPSCALE]/100.0;
+        cairo_scale(map_cr, scale, scale);
+    }
     cairo_set_source_surface(map_cr, cst, 0, 0);
     cairo_paint(map_cr);
     cairo_destroy(map_cr);

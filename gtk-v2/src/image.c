@@ -341,23 +341,7 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num,
      */
     guint8 *png_tmp;
 
-    if (use_config[CONFIG_MAPSCALE] != 100) {
-        nx=width;
-        ny=height;
-        png_tmp = rescale_rgba_data(rgba_data, &nx, &ny, use_config[CONFIG_MAPSCALE]);
-        pi->map_width = nx;
-        pi->map_height = ny;
-        create_map_image(png_tmp, pi);
-        /*
-         * pixmap mode and opengl don't need the rgba data after they have
-         * created the image, so we can free it.  SDL uses the raw rgba data,
-         * so it can't be freed.
-         */
-        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP ||
-                use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
-            free(png_tmp);
-        }
-    } else {
+    {
         pi->map_width = width;
         pi->map_height = height;
         /*
