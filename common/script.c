@@ -306,12 +306,7 @@ void script_init(const char *cparams) {
          * Forward the error back to the client, using the script pipes.
          */
 
-        if (r != -1) {
-            printf("draw %d Script child: no error, but no execvp().\n", NDI_RED);
-        } else {
-            printf("draw %d Script child failed to start: %s\n", NDI_RED, strerror(errno));
-        }
-
+        printf("draw %d Could not start script: %s\n", NDI_RED, strerror(errno));
         exit(1);
     }
 
@@ -550,6 +545,7 @@ void script_killall(void)
 
 void script_fdset(int *maxfd, fd_set *set)
 {
+    *maxfd = 0;
 #ifndef WIN32
     int i;
 

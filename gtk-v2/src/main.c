@@ -193,9 +193,12 @@ static gboolean do_network(GObject *stream, gpointer data) {
     client_run();
 
     FD_ZERO(&tmp_read);
+    int maxfd;
     script_fdset(&maxfd, &tmp_read);
     pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
-    if (pollret > 0) {
+    if (pollret < 0) {
+        LOG(LOG_ERROR, "do_network", "script select() failed: %s", strerror(errno));
+    } else if (pollret > 0) {
         script_process(&tmp_read);
     }
 
@@ -297,16 +300,9 @@ static void init_sockets() {
     /* Use the 'new' login method. */
     wantloginmethod = 2;
 
-#ifdef WIN32
-    maxfd = 0; /* This is ignored on win32 platforms */
-#else /* def WIN32 */
+#ifndef WIN32
     signal(SIGPIPE, SIG_IGN);
-#ifdef HAVE_SYSCONF
-    maxfd = sysconf(_SC_OPEN_MAX);
-#else
-    maxfd = getdtablesize();
 #endif
-#endif /* def WIN32 */
 }
 
 /**
