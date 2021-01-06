@@ -1,0 +1,8 @@
+To create a Windows client installer, you need NSIS.
+
+First build the client, then put all its required files into a "files" subdirectory of the directory containing this readme.
+
+Adjust, if needed, the trunk version in the .nsi file.
+
+
+Then run NSIS on the .nsi file.
