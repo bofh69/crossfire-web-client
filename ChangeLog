@@ -21,7 +21,7 @@
 - Fixed faceset drop-down menu
 - Fixed some crashes
 - Pixmap renderer smooths correctly
-- Removed unused fields in chthonic layout
+- Removed unused fields in all layouts except gtk-v1 and gtk-v2
 
 1.74.0
 ======
