@@ -50,7 +50,7 @@ Optional:
 - libcurl (for metaserver support)
 - Lua 5 (for client-side Lua scripting)
 - OpenGL (gl, glu, glx) (for OpenGL rendering)
-- SDL, SDL_image (for SDL rendering)
+- SDL (for SDL rendering)
 - SDL_mixer (for sound support)
 
 

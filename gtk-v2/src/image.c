@@ -24,7 +24,6 @@
 
 #ifdef HAVE_SDL
 #include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
 #endif
 
 #include "image.h"

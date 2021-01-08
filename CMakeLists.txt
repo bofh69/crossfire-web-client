@@ -55,7 +55,7 @@ if(OPENGL)
 endif()
 
 if(SDL)
-    pkg_check_modules(SDL SDL_image REQUIRED)
+    pkg_check_modules(SDL REQUIRED)
     set(HAVE_SDL ${SDL_FOUND})
 endif()
 

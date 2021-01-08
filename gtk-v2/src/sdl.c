@@ -21,7 +21,6 @@
 #ifdef HAVE_SDL
 
 #include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
 #include <gtk/gtk.h>
 
 #ifndef WIN32
