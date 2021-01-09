@@ -130,8 +130,8 @@ static void overlay_grid( int re_init, int ax, int ay)
 
     if( grid_overlay == NULL) {
         grid_overlay= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA,
-                                            use_config[CONFIG_MAPWIDTH]*map_image_size,
-                                            use_config[CONFIG_MAPHEIGHT]*map_image_size,
+                                            use_config[CONFIG_MAPWIDTH]*map_image_size * use_config[CONFIG_MAPSCALE] / 100,
+                                            use_config[CONFIG_MAPHEIGHT]*map_image_size * use_config[CONFIG_MAPSCALE] / 100,
                                             mapsurface->format->BitsPerPixel,
                                             mapsurface->format->Rmask,
                                             mapsurface->format->Gmask,
@@ -157,14 +157,15 @@ static void overlay_grid( int re_init, int ax, int ay)
          */
 
         fmt= grid_overlay->format;
-        for( x= 0; x < map_image_size*use_config[CONFIG_MAPWIDTH]; x++) {
-            for( y= 0; y < map_image_size*use_config[CONFIG_MAPHEIGHT]; y++) {
+        for( x= 0; x < map_image_size*use_config[CONFIG_MAPWIDTH] * use_config[CONFIG_MAPSCALE] / 100; x++) {
+            for( y= 0; y < map_image_size*use_config[CONFIG_MAPHEIGHT] * use_config[CONFIG_MAPSCALE] / 100; y++) {
                 /* FIXME: Only works for 32 bit displays right now */
                 pixel= (Uint32*)grid_overlay->pixels+y*grid_overlay->pitch/4+x;
 
                 if( x == 0 || y == 0 ||
-                        ((x % map_image_size) == 0) || ((y % map_image_size) == 0 ) ||
-                        y == use_config[CONFIG_MAPHEIGHT]*map_image_size-1 || x == use_config[CONFIG_MAPWIDTH]*map_image_size -1 ) {
+                        ((x % map_image_size * use_config[CONFIG_MAPSCALE] / 100) == 0) || ((y % map_image_size * use_config[CONFIG_MAPSCALE] / 100) == 0 ) ||
+                         y == use_config[CONFIG_MAPHEIGHT]*map_image_size * use_config[CONFIG_MAPSCALE] / 100 -1 ||
+                         x == use_config[CONFIG_MAPWIDTH]*map_image_size * use_config[CONFIG_MAPSCALE] / 100 -1 ) {
                     *pixel= SDL_MapRGBA( fmt, 255, 0, 0, SDL_ALPHA_OPAQUE);
                 } else {
                     *pixel= SDL_MapRGBA( fmt, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
@@ -179,14 +180,14 @@ static void overlay_grid( int re_init, int ax, int ay)
          */
         dst.x= 0;
         dst.y= 0;
-        dst.w= map_image_size*use_config[CONFIG_MAPWIDTH];
-        dst.h= map_image_size*use_config[CONFIG_MAPHEIGHT];
+        dst.w= map_image_size*use_config[CONFIG_MAPWIDTH] * use_config[CONFIG_MAPSCALE] / 100;
+        dst.h= map_image_size*use_config[CONFIG_MAPHEIGHT] * use_config[CONFIG_MAPSCALE] / 100;
         SDL_BlitSurface( grid_overlay, NULL, mapsurface, &dst);
     } else {
-        dst.x= ax* map_image_size;
-        dst.y= ay* map_image_size;
-        dst.w= map_image_size;
-        dst.h= map_image_size;
+        dst.x= ax* map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.y= ay* map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.w= map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.h= map_image_size * use_config[CONFIG_MAPSCALE] / 100;
         /* One to one pixel mapping of grid and mapsurface so we
          * can share the SDL_Rect
          */
@@ -241,7 +242,8 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
             gtk_main_quit();
         }
 
-        mapsurface= SDL_SetVideoMode( map_image_size*use_config[CONFIG_MAPWIDTH], map_image_size*use_config[CONFIG_MAPHEIGHT], 0,
+        mapsurface= SDL_SetVideoMode( map_image_size*use_config[CONFIG_MAPWIDTH]*use_config[CONFIG_MAPSCALE] / 100,
+                                      map_image_size*use_config[CONFIG_MAPHEIGHT]*use_config[CONFIG_MAPSCALE] / 100, 0,
                                       SDL_HWSURFACE|SDL_DOUBLEBUF);
 
         if( mapsurface == NULL) {
@@ -252,8 +254,8 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
             SDL_FreeSurface( fogmap);
         }
 
-        fogmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, map_image_size,
-                                      map_image_size,
+        fogmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, map_image_size*use_config[CONFIG_MAPSCALE] / 100,
+                                      map_image_size*use_config[CONFIG_MAPSCALE] / 100,
                                       mapsurface->format->BitsPerPixel,
                                       mapsurface->format->Rmask,
                                       mapsurface->format->Gmask,
@@ -277,8 +279,8 @@ void init_SDL( GtkWidget* sdl_window, int just_lightmap)
         SDL_FreeSurface( lightmap);
     }
 
-    lightmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, map_image_size,
-                                    map_image_size,
+    lightmap= SDL_CreateRGBSurface( SDL_HWSURFACE|SDL_SRCALPHA, map_image_size*use_config[CONFIG_MAPSCALE] / 100,
+                                    map_image_size*use_config[CONFIG_MAPSCALE] / 100,
                                     mapsurface->format->BitsPerPixel,
                                     mapsurface->format->Rmask,
                                     mapsurface->format->Gmask,
@@ -442,10 +444,10 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
      * Tchize 19 may 2004
      */
     if (dark0 == dark1 && dark0 == dark2 && dark0 == dark3 && dark0 == dark4 && (use_config[CONFIG_LIGHTING] != CFG_LT_PIXEL_BEST)) {
-        dst.x = x * map_image_size;
-        dst.y = y * map_image_size;
-        dst.w = map_image_size;
-        dst.h = map_image_size;
+        dst.x = x * map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.y = y * map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.w = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.h = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
 
         if (dark0 == 255) {
             SDL_FillRect(mapsurface,&dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
@@ -482,18 +484,18 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
             */
             dst.x=0;
             dst.y=0;
-            dst.w = map_image_size;
-            dst.h = map_image_half_size;
+            dst.w = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+            dst.h = map_image_half_size * use_config[CONFIG_MAPSCALE] / 100;
             SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
         } else for (i=0; i<map_image_half_size; i++) {
                 /* Need to do it line by line */
 
                 dst.x = 0;
                 dst.y = i;
-                dst.w = map_image_size;
+                dst.w = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
                 dst.h = 1;
                 SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0,
-                             ALPHA_FUDGE((map_image_half_size - i) * dark1 + i * dark0)/map_image_half_size));
+                             ALPHA_FUDGE((map_image_half_size * use_config[CONFIG_MAPSCALE] / 100 - i) * dark1 + i * dark0)/(map_image_half_size * use_config[CONFIG_MAPSCALE] / 100)));
 
             }
         /* All the following blocks are basically the same as above, just different
@@ -501,61 +503,63 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
          */
         if (dark3 == dark0) {
             dst.x=0;
-            dst.y=map_image_half_size;
-            dst.w = map_image_size;
-            dst.h = map_image_half_size;
+            dst.y=map_image_half_size * use_config[CONFIG_MAPSCALE] / 100;
+            dst.w = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+            dst.h = map_image_half_size * use_config[CONFIG_MAPSCALE] / 100;
             SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
-        } else for (i=map_image_half_size; i<map_image_size; i++) {
+        } else for (i=map_image_half_size * use_config[CONFIG_MAPSCALE] / 100; i<map_image_size * use_config[CONFIG_MAPSCALE] / 100; i++) {
                 /* Need to do it line by line */
 
                 dst.x = 0;
                 dst.y = i;
-                dst.w = map_image_size;
+                dst.w = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
                 dst.h = 1;
                 SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0,
-                             ALPHA_FUDGE(dark0*(map_image_size-i) + dark3*(i-map_image_half_size)) / map_image_half_size));
+                             ALPHA_FUDGE(dark0*(map_image_size * use_config[CONFIG_MAPSCALE] / 100 - i)
+                                + dark3*(i-map_image_half_size * use_config[CONFIG_MAPSCALE] / 100))
+                                / (map_image_half_size * use_config[CONFIG_MAPSCALE] / 100)));
             }
         /* Blit this to the screen now.  Otherwise, we need to look at the alpha values
          * and re-average.
          */
 
-        dst.x= x * map_image_size;
-        dst.y= y * map_image_size;
+        dst.x= x * map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.y= y * map_image_size * use_config[CONFIG_MAPSCALE] / 100;
         SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
 
         if (dark4 == dark0) {
             dst.x=0;
             dst.y=0;
-            dst.w = map_image_half_size;
-            dst.h = map_image_size;
+            dst.w = map_image_half_size * use_config[CONFIG_MAPSCALE] / 100;
+            dst.h = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
             SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
         } else for (i=0; i<map_image_half_size; i++) {
                 /* Need to do it line by line */
                 dst.x = i;
                 dst.y = 0;
                 dst.w = 1;
-                dst.h = map_image_size;
+                dst.h = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
                 SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0,
-                             ALPHA_FUDGE(dark4*(map_image_half_size-i) + dark0*i) / map_image_half_size));
+                             ALPHA_FUDGE(dark4*(map_image_half_size * use_config[CONFIG_MAPSCALE] / 100 -i) + dark0*i) / (map_image_half_size * use_config[CONFIG_MAPSCALE] / 100)));
             }
         if (dark2 == dark0) {
-            dst.x=map_image_half_size;
+            dst.x=map_image_half_size * use_config[CONFIG_MAPSCALE] / 100;
             dst.y=0;
-            dst.w = map_image_half_size;
-            dst.h = map_image_size;
+            dst.w = map_image_half_size * use_config[CONFIG_MAPSCALE] / 100;
+            dst.h = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
             SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0, ALPHA_FUDGE(dark0)));
-        } else for (i=map_image_half_size; i<map_image_size; i++) {
+        } else for (i=map_image_half_size * use_config[CONFIG_MAPSCALE] / 100; i<map_image_size * use_config[CONFIG_MAPSCALE] / 100; i++) {
                 /* Need to do it line by line */
 
                 dst.x = i;
                 dst.y = 0;
                 dst.w = 1;
-                dst.h = map_image_size;
+                dst.h = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
                 SDL_FillRect(lightmap, &dst, SDL_MapRGBA(lightmap->format, 0, 0, 0,
-                             ALPHA_FUDGE(dark0*(map_image_size-i) + dark2*(i-map_image_half_size)) / map_image_half_size));
+                             ALPHA_FUDGE(dark0*(map_image_size* use_config[CONFIG_MAPSCALE] / 100-i) + dark2*(i-map_image_half_size* use_config[CONFIG_MAPSCALE] / 100)) / (map_image_half_size * use_config[CONFIG_MAPSCALE] / 100)));
             }
-        dst.x= x * map_image_size;
-        dst.y= y * map_image_size;
+        dst.x= x * map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.y= y * map_image_size * use_config[CONFIG_MAPSCALE] / 100;
         SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
     } else if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST ) {
 #if 0
@@ -567,30 +571,30 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
          * better.  darkx could be null in the initial case, but g_realloc should
          * just treat that as a g_malloc (so according to the man page)
          */
-        if (map_image_size > darkx_allocated) {
-            darkx = g_realloc(darkx, map_image_size * sizeof(int));
-            darky = g_realloc(darky, map_image_size * sizeof(int));
-            darkx_allocated = map_image_size;
+        if (map_image_size * use_config[CONFIG_MAPSCALE] / 100 > darkx_allocated) {
+            darkx = g_realloc(darkx, map_image_size * use_config[CONFIG_MAPSCALE] / 100 * sizeof(int));
+            darky = g_realloc(darky, map_image_size * use_config[CONFIG_MAPSCALE] / 100 * sizeof(int));
+            darkx_allocated = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
         }
 
-        for( dx= 0; dx < map_image_half_size; dx++) {
-            darkx[dx]= (dark4*(map_image_half_size-dx) + dark0*dx) / map_image_half_size;
+        for( dx= 0; dx < map_image_half_size * use_config[CONFIG_MAPSCALE] / 100; dx++) {
+            darkx[dx]= (dark4*(map_image_half_size * use_config[CONFIG_MAPSCALE] / 100-dx) + dark0*dx) / (map_image_half_size * use_config[CONFIG_MAPSCALE] / 100);
         }
-        for( dx= map_image_half_size; dx < map_image_size; dx++) {
-            darkx[dx] = (dark0*(map_image_size-dx) + dark2*(dx-map_image_half_size)) / map_image_half_size;
+        for( dx= map_image_half_size* use_config[CONFIG_MAPSCALE] / 100; dx < map_image_size * use_config[CONFIG_MAPSCALE] / 100; dx++) {
+            darkx[dx] = (dark0*(map_image_size* use_config[CONFIG_MAPSCALE] / 100-dx) + dark2*(dx-map_image_half_size* use_config[CONFIG_MAPSCALE] / 100)) / (map_image_half_size* use_config[CONFIG_MAPSCALE] / 100);
         }
 
-        for( dy= 0; dy < map_image_half_size; dy++) {
-            darky[dy]= (dark1*(map_image_half_size-dy) + dark0*dy) / map_image_half_size;
+        for( dy= 0; dy < map_image_half_size* use_config[CONFIG_MAPSCALE] / 100; dy++) {
+            darky[dy]= (dark1*(map_image_half_size* use_config[CONFIG_MAPSCALE] / 100-dy) + dark0*dy) / (map_image_half_size * use_config[CONFIG_MAPSCALE] / 100);
         }
-        for( dy= map_image_half_size; dy < map_image_size; dy++) {
-            darky[dy] = (dark0*(map_image_size-dy) + dark3*(dy-map_image_half_size)) / map_image_half_size;
+        for( dy= map_image_half_size * use_config[CONFIG_MAPSCALE] / 100; dy < map_image_size * use_config[CONFIG_MAPSCALE] / 100; dy++) {
+            darky[dy] = (dark0*(map_image_size * use_config[CONFIG_MAPSCALE] / 100-dy) + dark3*(dy-map_image_half_size * use_config[CONFIG_MAPSCALE] / 100)) / (map_image_half_size * use_config[CONFIG_MAPSCALE] / 100);
         }
 
         SDL_LockSurface( lightmap);
 
-        for (dx=0; dx<map_image_size; dx++)
-            for (dy=0; dy<map_image_size; dy++) {
+        for (dx=0; dx<map_image_size* use_config[CONFIG_MAPSCALE] / 100; dx++)
+            for (dy=0; dy<map_image_size* use_config[CONFIG_MAPSCALE] / 100; dy++) {
                 putpixel(lightmap, dx, dy, SDL_MapRGBA(lightmap->format, 0, 0, 0,(darkx[dx] + darky[dy])/2));
             }
 #else
@@ -626,29 +630,29 @@ static void do_sdl_per_pixel_lighting(int x, int y, int mx, int my)
         }
         /*upper left lightmap quarter*/
         drawquarterlightmap_sdl(dark8, dark1, dark4, dark0,                /*colors*/
-                                map_image_size, map_image_size,               /*color square size*/
-                                map_image_half_size, map_image_half_size, map_image_size, map_image_size,    /*interpolation region*/
+                                map_image_size * use_config[CONFIG_MAPSCALE] / 100, map_image_size * use_config[CONFIG_MAPSCALE] / 100,               /*color square size*/
+                                map_image_half_size * use_config[CONFIG_MAPSCALE] / 100, map_image_half_size * use_config[CONFIG_MAPSCALE] / 100, map_image_size * use_config[CONFIG_MAPSCALE] / 100, map_image_size * use_config[CONFIG_MAPSCALE] / 100,    /*interpolation region*/
                                 0, 0);                         /*where in lightmap to save result*/
         /*upper right lightmap quarter*/
         drawquarterlightmap_sdl(dark1, dark5, dark0, dark2,                /*colors*/
-                                map_image_size, map_image_size,               /*color square size*/
-                                0, map_image_half_size, map_image_half_size, map_image_size,    /*interpolation region*/
-                                map_image_half_size, 0);                         /*where in lightmap to save result*/
+                                map_image_size * use_config[CONFIG_MAPSCALE] / 100, map_image_size * use_config[CONFIG_MAPSCALE] / 100,               /*color square size*/
+                                0, map_image_half_size * use_config[CONFIG_MAPSCALE] / 100, map_image_half_size * use_config[CONFIG_MAPSCALE] / 100, map_image_size * use_config[CONFIG_MAPSCALE] / 100,    /*interpolation region*/
+                                map_image_half_size * use_config[CONFIG_MAPSCALE] / 100, 0);                         /*where in lightmap to save result*/
         /*bottom left lightmap quarter*/
         drawquarterlightmap_sdl(dark4, dark0, dark7, dark3,                /*colors*/
-                                map_image_size, map_image_size,               /*color square size*/
-                                map_image_half_size, 0, map_image_size, map_image_half_size,    /*interpolation region*/
-                                0, map_image_half_size);                         /*where in lightmap to save result*/
+                                map_image_size* use_config[CONFIG_MAPSCALE] / 100, map_image_size * use_config[CONFIG_MAPSCALE] / 100,               /*color square size*/
+                                map_image_half_size * use_config[CONFIG_MAPSCALE] / 100, 0, map_image_size * use_config[CONFIG_MAPSCALE] / 100, map_image_half_size * use_config[CONFIG_MAPSCALE] / 100,    /*interpolation region*/
+                                0, map_image_half_size * use_config[CONFIG_MAPSCALE] / 100);                         /*where in lightmap to save result*/
         /*bottom right lightmap quarter*/
         drawquarterlightmap_sdl(dark0, dark2, dark3, dark6,                /*colors*/
-                                map_image_size, map_image_size,               /*color square size*/
-                                0, 0, map_image_half_size, map_image_half_size,    /*interpolation region*/
-                                map_image_half_size, map_image_half_size);                         /*where in lightmap to save result*/
+                                map_image_size* use_config[CONFIG_MAPSCALE] / 100, map_image_size * use_config[CONFIG_MAPSCALE] / 100,               /*color square size*/
+                                0, 0, map_image_half_size * use_config[CONFIG_MAPSCALE] / 100, map_image_half_size * use_config[CONFIG_MAPSCALE] / 100,    /*interpolation region*/
+                                map_image_half_size * use_config[CONFIG_MAPSCALE] / 100, map_image_half_size * use_config[CONFIG_MAPSCALE] / 100);                         /*where in lightmap to save result*/
 #endif
-        dst.w= map_image_size;
-        dst.h= map_image_size;
-        dst.x= x * map_image_size;
-        dst.y= y * map_image_size;
+        dst.w= map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.h= map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.x= x * map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        dst.y= y * map_image_size * use_config[CONFIG_MAPSCALE] / 100;
         SDL_UnlockSurface(lightmap);
         SDL_BlitSurface(lightmap, NULL, mapsurface, &dst);
     }
@@ -772,7 +776,7 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst)
             continue;    /*don't have the picture associated*/
         }
         if (weight>0) {
-            src.x=map_image_size*weight;
+            src.x=map_image_size*weight * use_config[CONFIG_MAPSCALE] / 100;
             src.y=0;
             if (mapdata_cell(mx, my)->cleared) {
                 if (SDL_BlitSurface(pixmaps[smoothface]->fog_image,
@@ -787,8 +791,8 @@ static void drawsmooth_sdl (int mx,int my,int layer,SDL_Rect dst)
             }
         }
         if (weightC>0) {
-            src.x=map_image_size*weightC;
-            src.y=map_image_size;
+            src.x=map_image_size*weightC* use_config[CONFIG_MAPSCALE] / 100;
+            src.y=map_image_size* use_config[CONFIG_MAPSCALE] / 100;
             if (mapdata_cell(mx, my)->cleared) {
                 if (SDL_BlitSurface(pixmaps[smoothface]->fog_image,
                                     &src, mapsurface, &dst)) {
@@ -874,13 +878,13 @@ static void update_redrawbitmap(void)
 static void display_mapcell(int ax, int ay, int mx, int my)
 {
     SDL_Rect dst, src;
-    int layer;
+    int layer, scaled_image_size = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
 
     /* First, we need to black out this space. */
-    dst.x = ax*map_image_size;
-    dst.y = ay*map_image_size;
-    dst.w = map_image_size;
-    dst.h = map_image_size;
+    dst.x = ax*scaled_image_size;
+    dst.y = ay*scaled_image_size;
+    dst.w = scaled_image_size;
+    dst.h = scaled_image_size;
     SDL_FillRect(mapsurface, &dst, SDL_MapRGB(mapsurface->format, 0, 0, 0));
 
     /* now draw the different layers.  Only draw if using fog of war or the
@@ -896,12 +900,12 @@ static void display_mapcell(int ax, int ay, int mx, int my)
                 int w = pixmaps[face]->map_width;
                 int h = pixmaps[face]->map_height;
                 /* add one to the size values to take into account the actual width of the space */
-                src.x = w-map_image_size;
-                src.y = h-map_image_size;
-                src.w = map_image_size;
-                src.h = map_image_size;
-                dst.x = ax*map_image_size;
-                dst.y = ay*map_image_size;
+                src.x = w-scaled_image_size;
+                src.y = h-scaled_image_size;
+                src.w = scaled_image_size;
+                src.h = scaled_image_size;
+                dst.x = ax*scaled_image_size;
+                dst.y = ay*scaled_image_size;
                 if (mapdata_cell(mx, my)->cleared) {
                     if (SDL_BlitSurface(pixmaps[face]->fog_image, &src, mapsurface, &dst)) {
                         do_SDL_error( "BlitSurface", __FILE__, __LINE__);
@@ -933,21 +937,21 @@ static void display_mapcell(int ax, int ay, int mx, int my)
                  */
                 int dx, dy, sourcex, sourcey, offx, offy;
 
-                dx = pixmaps[face]->map_width % map_image_size;
-                offx = dx?(map_image_size -dx):0;
+                dx = pixmaps[face]->map_width % scaled_image_size;
+                offx = dx?(scaled_image_size-dx):0;
 
                 if (sx) {
-                    sourcex = sx * map_image_size - offx ;
+                    sourcex = sx * scaled_image_size - offx ;
                     offx=0;
                 } else {
                     sourcex=0;
                 }
 
-                dy = pixmaps[face]->map_height % map_image_size;
-                offy = dy?(map_image_size -dy):0;
+                dy = (pixmaps[face]->map_height) % scaled_image_size;
+                offy = dy?(scaled_image_size-dy):0;
 
                 if (sy) {
-                    sourcey = sy * map_image_size - offy;
+                    sourcey = sy * scaled_image_size - offy;
                     offy=0;
                 } else {
                     sourcey=0;
@@ -955,10 +959,10 @@ static void display_mapcell(int ax, int ay, int mx, int my)
 
                 src.x = sourcex;
                 src.y = sourcey;
-                src.w = map_image_size - offx;
-                src.h = map_image_size - offy;
-                dst.x = ax*map_image_size + offx;
-                dst.y = ay*map_image_size + offy;
+                src.w = scaled_image_size - offx;
+                src.h = scaled_image_size - offy;
+                dst.x = ax*scaled_image_size + offx;
+                dst.y = ay*scaled_image_size + offy;
                 if (mapdata_cell(mx, my)->cleared) {
                     if (SDL_BlitSurface(pixmaps[face]->fog_image, &src, mapsurface, &dst)) {
                         do_SDL_error( "BlitSurface", __FILE__, __LINE__);
@@ -973,10 +977,10 @@ static void display_mapcell(int ax, int ay, int mx, int my)
     }
 
     if (use_config[CONFIG_LIGHTING] == CFG_LT_TILE) {
-        dst.x = ax*map_image_size;
-        dst.y = ay*map_image_size;
-        dst.w = map_image_size;
-        dst.h = map_image_size;
+        dst.x = ax*scaled_image_size;
+        dst.y = ay*scaled_image_size;
+        dst.w = scaled_image_size;
+        dst.h = scaled_image_size;
 
         /* Note - Instead of using a lightmap, I just fillrect
          * directly onto the map surface - I would think this should be
@@ -1052,19 +1056,24 @@ int sdl_mapscroll(int dx, int dy)
 {
     /* Don't sdl_gen_map should take care of the redraw */
 
+    // If we are more than about 15 tiles of movement, then
+    // Don't scroll. This should avoid a segfault.
+    if (dx > 15 || dx < -15 || dy > 15 || dy < 15)
+        return 0;
+
     /* a copy of what pngximage does except sdl specfic
      * mapsurface->pitch is the length of a scanline in bytes
      * including alignment padding
      */
     SDL_LockSurface( mapsurface);
     if( dy < 0) {
-        int offset= mapsurface->pitch * (-dy*map_image_size);
+        int offset= mapsurface->pitch * (-dy*map_image_size* use_config[CONFIG_MAPSCALE] / 100);
         memmove( mapsurface->pixels + offset, mapsurface->pixels,
-                 mapsurface->pitch * (mapsurface->h + dy*map_image_size) );
+                 mapsurface->pitch * (mapsurface->h + dy*map_image_size* use_config[CONFIG_MAPSCALE] / 100) );
     } else if( dy > 0) {
-        int offset= mapsurface->pitch * (dy*map_image_size);
+        int offset= mapsurface->pitch * (dy*map_image_size * use_config[CONFIG_MAPSCALE] / 100);
         memmove( mapsurface->pixels,  mapsurface->pixels + offset,
-                 mapsurface->pitch * (mapsurface->h - dy*map_image_size) );
+                 mapsurface->pitch * (mapsurface->h - dy*map_image_size* use_config[CONFIG_MAPSCALE] / 100) );
     }
 
     if (dx) {
@@ -1072,12 +1081,12 @@ int sdl_mapscroll(int dx, int dy)
         for( y= 0; y < mapsurface->h; y++) {
             if( dx < 0) {
                 char* start_of_row= mapsurface->pixels + mapsurface->pitch * y;
-                int offset= ( mapsurface->format->BytesPerPixel * map_image_size * -dx);
+                int offset= ( mapsurface->format->BytesPerPixel * map_image_size* use_config[CONFIG_MAPSCALE] / 100 * -dx);
                 memmove( start_of_row + offset, start_of_row,
                          mapsurface->pitch - offset);
             } else {
                 char* start_of_row= mapsurface->pixels + mapsurface->pitch * y;
-                int offset= ( mapsurface->format->BytesPerPixel * map_image_size * dx);
+                int offset= ( mapsurface->format->BytesPerPixel * map_image_size* use_config[CONFIG_MAPSCALE] / 100 * dx);
                 memmove( start_of_row, start_of_row + offset,
                          mapsurface->pitch - offset);
             }

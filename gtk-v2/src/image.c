@@ -102,23 +102,28 @@ static void create_map_image(guint8 *data, PixmapInfo *pi) {
 
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
 #if defined(HAVE_SDL)
-        int i;
+        int i, width = pi->map_width, height = pi->map_height;
         SDL_Surface *fog;
         guint32 g,*p;
-        guint8 *l;
+        guint8 *l, *scaled;
+        if (use_config[CONFIG_MAPSCALE] != 100)
+            scaled = rescale_rgba_data(data, &width, &height, use_config[CONFIG_MAPSCALE]);
+        else
+            scaled = data;
+        pi->map_width = width, pi->map_height = height;
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
-        pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
-                        pi->map_height, 32, pi->map_width * 4,  0xff,
+        pi->map_image = SDL_CreateRGBSurfaceFrom(scaled, width,
+                        height, 32, width * 4,  0xff,
                         0xff00, 0xff0000, 0xff000000);
 
         fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE,
-                                   pi->map_width,  pi->map_height, 32, 0xff,
+                                   width,  height, 32, 0xff,
                                    0xff00, 0xff0000, 0xff000000);
         SDL_LockSurface(fog);
 
-        for (i=0; i < pi->map_width * pi->map_height; i++) {
-            l = (guint8 *) (data + i*4);
+        for (i=0; i < width * height; i++) {
+            l = (guint8 *) (scaled + i*4);
 #if 1
             g = MAX(*l, *(l+1));
             g = MAX(g, *(l+2));
@@ -133,12 +138,12 @@ static void create_map_image(guint8 *data, PixmapInfo *pi) {
         pi->fog_image = fog;
 #else
         /* Big endian */
-        pi->map_image = SDL_CreateRGBSurfaceFrom(data, pi->map_width,
-                        pi->map_height, 32, pi->map_width * 4,  0xff000000,
+        pi->map_image = SDL_CreateRGBSurfaceFrom(scaled, width,
+                        height, 32, width * 4,  0xff000000,
                         0xff0000, 0xff00, 0xff);
 
         fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE,
-                                   pi->map_width,  pi->map_height, 32, 0xff000000,
+                                   width,  height, 32, 0xff000000,
                                    0xff0000, 0xff00, 0xff);
         SDL_LockSurface(fog);
 
@@ -147,8 +152,8 @@ static void create_map_image(guint8 *data, PixmapInfo *pi) {
          * as my recollection is that the png data would be in the same order,
          * just the bytes for it to go on the screen are reversed.
          */
-        for (i=0; i < pi->map_width * pi->map_height; i++) {
-            l = (guint8 *) (data + i*4);
+        for (i=0; i < width * height; i++) {
+            l = (guint8 *) (scaled + i*4);
 #if 1
             g = MAX(*l, *(l+1));
             g = MAX(g, *(l+2));
@@ -159,7 +164,7 @@ static void create_map_image(guint8 *data, PixmapInfo *pi) {
             *p = (g << 8) | (g << 16) | (g << 24) | *(l + 3);
         }
 
-        for (i=0; i < pi->map_width * pi->map_height; i+= 4) {
+        for (i=0; i < width * ny; i+= 4) {
             guint32 *tmp;
 
             /*
@@ -484,8 +489,9 @@ void get_map_image_size(int face, guint8 *w, guint8 *h)
         *w = 1;
         *h = 1;
     } else {
-        *w = (pixmaps[face]->map_width + map_image_size - 1)/ map_image_size;
-        *h = (pixmaps[face]->map_height + map_image_size - 1)/ map_image_size;
+        const int scaled_image_size = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        *w = (pixmaps[face]->map_width + scaled_image_size - 1)/ scaled_image_size;
+        *h = (pixmaps[face]->map_height + scaled_image_size - 1)/ scaled_image_size;
     }
 }
 
