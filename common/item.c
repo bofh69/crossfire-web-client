@@ -602,7 +602,7 @@ void toggle_locked(item *op)
         return; /* if item is on the ground, don't lock it */
     }
 
-    snprintf((char*)buf, sizeof(buf), "lock %c %d", !op->locked, op->tag);
+    snprintf((char*)buf, sizeof(buf), "lock %d %d", !op->locked, op->tag);
     script_monitor_str((char*)buf);
     SockList_Init(&sl, buf);
     SockList_AddString(&sl, "lock ");
