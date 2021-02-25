@@ -41,10 +41,10 @@ add_library(cfclient
 )
 
 target_include_directories(cfclient
-    PRIVATE ${CURL_INCLUDE_DIRS}
+    PRIVATE ${PROJECT_BINARY_DIR}
+            ${CURL_INCLUDE_DIRS}
             ${GTK_INCLUDE_DIRS}
             ${LUA_INCLUDE_DIR}
-            ${PROJECT_BINARY_DIR}
 )
 
 add_executable(test-metaserver test-metaserver.c metaserver.c)

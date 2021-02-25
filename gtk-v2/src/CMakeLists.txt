@@ -41,14 +41,14 @@ add_executable(crossfire-client-gtk2
 )
 
 target_include_directories(crossfire-client-gtk2
-    PRIVATE ${GTK_INCLUDE_DIRS}
+    PRIVATE ${PROJECT_BINARY_DIR}
+            ${PROJECT_BINARY_DIR}/common
+            ${PROJECT_SOURCE_DIR}/common
+            ${GTK_INCLUDE_DIRS}
             ${OPENGL_INCLUDE_DIR}
             ${PNG_INCLUDE_DIRS}
             ${SDLMIXER_INCLUDE_DIRS}
             ${SDL_INCLUDE_DIR}
-            ${PROJECT_BINARY_DIR}
-            ${PROJECT_BINARY_DIR}/common
-            ${PROJECT_SOURCE_DIR}/common
 )
 
 target_link_libraries(crossfire-client-gtk2 cfclient
