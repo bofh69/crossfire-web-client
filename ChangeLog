@@ -1,3 +1,8 @@
+1.75.1
+======
+**Fixed**
+Prevent select() from causing a dubious error message claiming no error.
+
 1.75.0
 ======
 

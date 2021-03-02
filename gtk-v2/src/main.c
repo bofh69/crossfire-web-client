@@ -197,7 +197,10 @@ static gboolean do_network(GObject *stream, gpointer data) {
     script_fdset(&maxfd, &tmp_read);
     pollret = select(maxfd, &tmp_read, NULL, NULL, &timeout);
     if (pollret < 0) {
+#ifndef WIN32
+		// FIXME: For whatever reason, we get errors claiming "no error" here in Windows
         LOG(LOG_ERROR, "do_network", "script select() failed: %s", strerror(errno));
+#endif
     } else if (pollret > 0) {
         script_process(&tmp_read);
     }
