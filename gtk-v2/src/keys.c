@@ -595,22 +595,34 @@ void keybindings_init(const char *character_name) {
     /* Try to load global keybindings. */
     snprintf(buf, sizeof(buf), "%s/keys", config_dir);
     GFile *f = g_file_new_for_path(buf);
-    GInputStream *in = G_INPUT_STREAM(g_file_read(f, NULL, NULL));
-    if (in != NULL) {
-        LOG(LOG_DEBUG, "keybindings_init", "Loading global keybindings");
-        parse_keys_file(in, KEYF_R_GLOBAL);
+    GFileInputStream * fs = g_file_read(f, NULL, NULL);
+    if (fs != NULL) {
+        GInputStream *in = G_INPUT_STREAM(fs);
+        if (in != NULL) {
+            LOG(LOG_DEBUG, "keybindings_init", "Loading global keybindings");
+            parse_keys_file(in, KEYF_R_GLOBAL);
+            g_object_unref(in);
+        }
+        g_object_unref(fs);
     }
+    g_object_unref(f);
 
     /* Try to load the character-specific keybindings. */
     if (cpl.name) {
         snprintf(buf, sizeof(buf), "%s/%s.%s.keys", config_dir,
                 csocket.servername, cpl.name);
         GFile *f = g_file_new_for_path(buf);
-        GInputStream *in = G_INPUT_STREAM(g_file_read(f, NULL, NULL));
-        if (in != NULL) {
-            LOG(LOG_DEBUG, "keybindings_init", "Loading character keybindings");
-            parse_keys_file(in, KEYF_R_CHAR);
+        GFileInputStream * fs = g_file_read(f, NULL, NULL);
+        if (fs != NULL) {
+            GInputStream *in = G_INPUT_STREAM(fs);
+            if (in != NULL) {
+                LOG(LOG_DEBUG, "keybindings_init", "Loading character keybindings");
+                parse_keys_file(in, KEYF_R_CHAR);
+                g_object_unref(in);
+            }
+            g_object_unref(fs);
         }
+        g_object_unref(f);
     }
 }
 
