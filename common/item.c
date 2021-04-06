@@ -506,6 +506,9 @@ static void set_flag_string(item *op)
     if (op->unpaid) {
         strcat(op->flags, " (unpaid)");
     }
+    if (op->read) {
+        strcat(op->flags, " (read)");
+    }
 }
 
 static void get_flags(item *op, guint16 flags)
@@ -519,6 +522,7 @@ static void get_flags(item *op, guint16 flags)
     op->unpaid   = flags&F_UNPAID  ? 1 : 0;
     op->applied  = flags&F_APPLIED ? 1 : 0;
     op->locked   = flags&F_LOCKED  ? 1 : 0;
+    op->read     = flags&F_READ    ? 1 : 0;
     op->flagsval = flags;
     op->apply_type = flags&F_APPLIED;
     set_flag_string(op);

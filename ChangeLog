@@ -1,6 +1,12 @@
 1.75.1
 ======
+
+**Added**
+
+- Display "(read)" in inventory and look trees for books that have been read for exp when on servers r22052 or newer.
+
 **Fixed**
+
 Prevent select() from causing a dubious error message claiming no error.
 Properly close keybinding files when loading existing keybindings.
 

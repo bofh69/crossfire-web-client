@@ -73,6 +73,7 @@ typedef struct item_struct {
     guint16 applied:1;		/* item is applied */
     guint16 open:1;		/* container is open */
     guint16 was_open:1;		/* container was open */
+    guint16 read:1;             /* book has been read */
     guint16 inv_updated:1;	/* item's inventory is updated, this is set
 				   when item's inventory is modified, draw
 				   routines can use this to redraw things */
