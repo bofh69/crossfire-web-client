@@ -956,7 +956,7 @@ void script_tell(const char *params)
     }
 
     /* Local copy for modifications */
-    char params_cpy[MAX_BUF]; 
+    char params_cpy[MAX_BUF];
     snprintf(params_cpy, MAX_BUF-1, "%s", params);
     p = strchr(params_cpy, ' ');
     if (p == NULL) {
@@ -1662,8 +1662,8 @@ static void script_process_cmd(int i) {
  * <header>  tag num weight flags type name
  *
  * flags are a bitmask:
- * unidentified, magic, cursed, damned, unpaid, locked, applied, open, was_open, inv_updated
- *      512        256     128     64      32       16      8       4      2         1
+ * read, unidentified, magic, cursed, damned, unpaid, locked, applied, open, was_open, inv_updated
+ * 1024      512        256     128     64      32       16      8       4      2         1
  */
  // TODO: Add blessed here
 static void script_send_item(int i, const char *head, const item *it)
@@ -1671,7 +1671,8 @@ static void script_send_item(int i, const char *head, const item *it)
     char buf[4096];
     int flags;
 
-    flags = it->flagsval&F_UNIDENTIFIED?1:0;
+    flags = it->read;
+    flags = (flags<<1)|(it->flagsval&F_UNIDENTIFIED?1:0);
     flags = (flags<<1)|it->magical;
     flags = (flags<<1)|it->cursed;
     flags = (flags<<1)|it->damned;
