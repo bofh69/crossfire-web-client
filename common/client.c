@@ -357,7 +357,7 @@ void client_negotiate(int sound) {
      */
     cs_print_string(csocket.fd, "setup "
             "map2cmd 1 tick 1 sound2 %d darkness %d spellmon 1 spellmon 2 "
-            "faceset %d facecache %d want_pickup 1 loginmethod %d newmapcmd 1",
+            "faceset %d facecache %d want_pickup 1 loginmethod %d newmapcmd 1 extendedTextInfos 1",
             (sound >= 0) ? 3 : 0, want_config[CONFIG_LIGHTING] ? 1 : 0,
             face_info.faceset, want_config[CONFIG_CACHE], wantloginmethod);
 

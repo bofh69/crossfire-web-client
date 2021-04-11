@@ -1077,6 +1077,19 @@ void SetupCmd(char *buf, int len)
                               "This server is too old to support this client!");
                 client_disconnect();
             }
+        } else if (!strcmp(cmd, "extendedTextInfos")) {
+            // Even though this is deprecated, old servers are sitll being
+            // actively used. Request extended text info (drawextinfo).
+            if (strcmp(param, "FALSE")) { /* server didn't send FALSE*/
+                /* Server seems to accept extended text infos. Let's tell
+                 * it what extended text info we want
+                 */
+                for (int i = 1; i < 20; i++) {
+                    char exttext[MAX_BUF];
+                    snprintf(exttext, sizeof(exttext), "toggleextendedtext %d", i);
+                    cs_print_string(csocket.fd, exttext);
+                }
+            }
         } else {
             LOG(LOG_INFO, "common::SetupCmd",
                     "Got setup for a command we don't understand: %s %s",
