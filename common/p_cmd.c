@@ -212,11 +212,6 @@ static void do_take(const char *used) {
     command_take("take", used); /* I dunno why they want it. */
 }
 
-static void do_num_free_items() {
-    LOG(LOG_INFO, "common::extended_command", "num_free_items=%d",
-        num_free_items());
-}
-
 /* Help "typecasters". */
 #include "chelp.h"
 
@@ -338,8 +333,6 @@ static ConsoleCommand CommonCommands[] = {
 
     {"unbind", COMM_CAT_SETUP, unbind_key, help_unbind, NULL},
 
-    {"num_free_items", COMM_CAT_DEBUG, do_num_free_items, NULL,
-     "log the number of free items?"},
     {"show", COMM_CAT_SETUP, command_show, NULL,
      "Change what items to show in inventory"},
 };

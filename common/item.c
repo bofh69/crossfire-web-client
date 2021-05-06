@@ -24,7 +24,6 @@
 #include "item.h"
 #include "script.h"
 
-static item *free_items;        /* the list of free (unused) items */
 static item *player, *map;      /* these lists contains rest of items */
 /* player = pl->ob, map = pl->below */
 
@@ -241,24 +240,6 @@ static item *new_item(void)
 }
 
 /*
- *  alloc_items() returns pointer to list of allocated objects
- */
-static item *alloc_items(int nrof)
-{
-    item *op, *list;
-    int i;
-
-    list = op = new_item();
-
-    for (i = 1; i < nrof; i++) {
-        op->next = new_item();
-        op->next->prev = op;
-        op = op->next;
-    }
-    return list;
-}
-
-/*
  *  free_items() frees all allocated items from list
  */
 void free_all_items(item *op)
@@ -357,34 +338,7 @@ void remove_item(item *op)
         return; /* Don't free this! */
     }
 
-    /* add object to a list of free objects */
-    op->next = free_items;
-    if (op->next != NULL) {
-        op->next->prev = op;
-    }
-    free_items = op;
-
-    /* Clear all these values, since this item will get re-used */
-    op->prev = NULL;
-    op->env = NULL;
-    op->tag = 0;
-    copy_name(op->d_name, "");
-    copy_name(op->s_name, "");
-    copy_name(op->p_name, "");
-    op->inv = NULL;
-    op->env = NULL;
-    op->tag = 0;
-    op->face = 0;
-    op->weight = 0;
-    op->magical = op->cursed = op->damned = op->blessed = 0;
-    op->unpaid = op->locked = op->applied = 0;
-    op->flagsval = 0;
-    op->animation_id = 0;
-    op->last_anim = 0;
-    op->anim_state = 0;
-    op->nrof = 0;
-    op->open = 0;
-    op->type = NO_ITEM_TYPE;
+    free(op);
 }
 
 /*
@@ -435,16 +389,7 @@ static void add_item(item *env, item *op)
 item *create_new_item(item *env, gint32 tag)
 {
     item *op;
-
-    if (!free_items) {
-        free_items = alloc_items(NROF_ITEMS);
-    }
-
-    op = free_items;
-    free_items = free_items->next;
-    if (free_items) {
-        free_items->prev = NULL;
-    }
+    op = new_item();
 
     op->tag = tag;
     op->locked = 0;
@@ -453,18 +398,6 @@ item *create_new_item(item *env, gint32 tag)
     }
 
     return op;
-}
-
-int num_free_items(void)
-{
-    item *tmp;
-    int count = 0;
-
-    for (tmp = free_items; tmp; tmp = tmp->next) {
-        count++;
-    }
-
-    return count;
 }
 
 /*
