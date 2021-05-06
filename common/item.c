@@ -386,7 +386,7 @@ static void add_item(item *env, item *op)
  *  and sets its tag field and clears locked flag (all other fields
  *  are unitialized and may contain random values)
  */
-item *create_new_item(item *env, gint32 tag)
+static item *create_new_item(item *env, gint32 tag)
 {
     item *op;
     op = new_item();

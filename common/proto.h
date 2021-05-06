@@ -60,7 +60,6 @@ void free_all_items(item *op);
 item *locate_item(gint32 tag);
 void remove_item(item *op);
 void remove_item_inventory(item *op);
-item *create_new_item(item *env, gint32 tag);
 void set_item_values(item *op, char *name, gint32 weight, guint16 face, guint16 flags, guint16 anim, guint16 animspeed, guint32 nrof, guint16 type);
 void toggle_locked(item *op);
 void send_mark_obj(item *op);
