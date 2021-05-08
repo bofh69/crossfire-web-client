@@ -27,9 +27,6 @@
 static item *player, *map;      /* these lists contains rest of items */
 /* player = pl->ob, map = pl->below */
 
-#define NROF_ITEMS 50           /* how many items are reserved initially */
-/* for the item spool */
-
 #include "item-types.h"
 
 /* This uses the item_types table above.  We try to figure out if
