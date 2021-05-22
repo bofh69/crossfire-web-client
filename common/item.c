@@ -335,7 +335,7 @@ void remove_item(item *op)
         return; /* Don't free this! */
     }
 
-    free(op);
+    g_free(op);
 }
 
 /*

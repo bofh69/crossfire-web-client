@@ -667,7 +667,31 @@ static GtkStyle *get_row_style(item *it) {
  *    insertions and removals are more difficult.
  */
 
-void item_event_item_deleting(item * it) {
+static void remove_object_from_store(item* it, GtkTreeStore* store) {
+    GtkTreeIter iter;
+    gboolean valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &iter);
+    while (valid) {
+        item* curr_item;
+        gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, LIST_OBJECT, &curr_item, -1);
+        if (curr_item == it) {
+            gtk_tree_store_remove(store, &iter);
+            break;
+        }
+        valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(store), &iter);
+    }
+}
+
+void item_event_item_deleting(item* it) {
+    switch (get_item_env(it)) {
+    case ITEM_INVENTORY:
+        remove_object_from_store(it, treestore);
+        cpl.ob->inv_updated = 1;
+        break;
+    case ITEM_GROUND:
+        remove_object_from_store(it, store_look);
+        cpl.below->inv_updated = 1;
+        break;
+    }
 }
 
 void item_event_container_clearing(item * container) {
@@ -851,6 +875,13 @@ static void draw_inv_table_icon(GdkWindow *dst, const void *image) {
 static gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
         GdkEventExpose *event, gpointer user_data) {
     item *tmp;
+
+    if (cpl.ob->inv_updated != 0) {
+        // Delay drawing until inventory is fully updated. This avoids drawing
+        // previously added items that may now be removed, leading to a heap
+        // use-after-free.
+        return TRUE;
+    }
 
     tmp = (item*) user_data;
 
