@@ -616,13 +616,17 @@ void keybindings_init(const char *character_name) {
         if (fs != NULL) {
             GInputStream *in = G_INPUT_STREAM(fs);
             if (in != NULL) {
-                LOG(LOG_DEBUG, "keybindings_init", "Loading character keybindings");
+                LOG(LOG_DEBUG, "keybindings_init", "Loading character keybindings for '%s'", cpl.name);
                 parse_keys_file(in, KEYF_R_CHAR);
                 g_object_unref(in);
             }
             g_object_unref(fs);
+        } else {
+            LOG(LOG_DEBUG, "keybindings_init", "No character keybindings for '%s' found", cpl.name);
         }
         g_object_unref(f);
+    } else {
+        LOG(LOG_DEBUG, "keybindings_init", "No character name");
     }
 }
 
