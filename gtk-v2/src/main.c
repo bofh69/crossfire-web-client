@@ -213,7 +213,7 @@ static gboolean do_network(GObject *stream, gpointer data) {
  */
 static void event_loop() {
 #ifdef WIN32
-    g_timeout_add(250, (GtkFunction) do_scriptout, NULL);
+    g_timeout_add(250, G_SOURCE_FUNC(do_scriptout), NULL);
 #endif
 
     GSource *net_source = client_get_source();
