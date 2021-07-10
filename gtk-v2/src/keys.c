@@ -482,6 +482,10 @@ static void parse_keybind_line(char *buf, int line, unsigned int scope_flag) {
         }
 
         flags |= scope_flag;  /* add the corresponding scope flag */
+
+        // If there is a trailing CR, remove it.
+        cpnext[strcspn(cpnext, "\r")] = 0;
+
         keybind_insert(keysym, flags, cpnext);
 
     } /* else if not special binding line */
