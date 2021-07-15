@@ -43,6 +43,8 @@ static char *theme = THEME_DEFAULT;
 
 static void on_config_close(GtkButton *button, gpointer user_data);
 
+char* last_server = NULL;
+
 /**
  * Return the basename of the current UI file.
  */
@@ -418,6 +420,7 @@ void config_load() {
                 "theme", NULL);
         face_info.want_faceset = g_key_file_get_string(config, "GTKv2",
                 "faceset", NULL);
+        last_server = g_key_file_get_string(config, "GTKv2", "last_server", NULL);
 
         char *layout =
             g_key_file_get_string(config, "GTKv2", "window_layout", NULL);
@@ -441,6 +444,7 @@ void save_defaults() {
     /* Save GTKv2 specific client settings. */
     g_key_file_set_string(config, "GTKv2", "theme", theme);
     g_key_file_set_string(config, "GTKv2", "faceset", face_info.want_faceset);
+    g_key_file_set_string(config, "GTKv2", "last_server", last_server);
     g_key_file_set_string(config, "GTKv2", "window_layout", window_xml_file);
 
     /* Save the rest of the client settings. */

@@ -34,6 +34,8 @@ static GtkTreeSelection *metaserver_selection;
 
 enum { LIST_HOSTNAME, LIST_IPADDR, LIST_PLAYERS, LIST_VERSION, LIST_COMMENT };
 
+extern char* last_server;
+
 static void on_button_refresh(GtkButton *button, gpointer user_data);
 
 /**
@@ -214,6 +216,8 @@ void metaserver_show_prompt() {
     gtk_notebook_set_current_page(main_notebook, 0);
     gtk_widget_grab_default(metaserver_button);
 
+    gtk_entry_set_text(GTK_ENTRY(metaserver_entry), last_server);
+
     // Disable connect button if there is no text in the server entry box.
     on_server_entry_changed();
 
@@ -240,6 +244,11 @@ static void metaserver_connect_to(const char *name) {
     client_connect(name_dup);
     if (csocket.fd != NULL) {
         LOG(LOG_DEBUG, "metaserver_connect_to", "Connected to '%s'!", name_dup);
+        if (last_server != NULL) {
+            g_free(last_server);
+        }
+        last_server = g_strdup(name);
+        save_defaults();
         gtk_main_quit();
         cpl.input_state = Playing;
     } else {
