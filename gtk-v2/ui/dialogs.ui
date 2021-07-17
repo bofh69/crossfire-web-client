@@ -144,7 +144,7 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                   <object class="GtkSpinButton" id="msgctrl_spinbutton_timer">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">The maximum time that a message may reside in the buffer before it must be displayed.  8 ticks is approximately 1 second.</property>
+                    <property name="tooltip_text" translatable="yes">The maximum time that a message may reside in the buffer before it must be displayed. 8 ticks is approximately 1 second.</property>
                     <property name="max_length">2</property>
                     <property name="truncate_multiline">True</property>
                     <property name="overwrite_mode">True</property>
@@ -171,7 +171,7 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                   <object class="GtkSpinButton" id="msgctrl_spinbutton_count">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">The number times a message may occur before it must be displayed.  If a message is not already in the buffer, it is always output one time with no delay.</property>
+                    <property name="tooltip_text" translatable="yes">The number times a message may occur before it must be displayed. If a message is not already in the buffer, it is always output one time with no delay.</property>
                     <property name="max_length">2</property>
                     <property name="truncate_multiline">True</property>
                     <property name="overwrite_mode">True</property>
@@ -595,9 +595,7 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Strength determines how much a character
-can carry, as well as how much effective the character is with
-melee weapons.  Fighters need a high strength.</property>
+                                <property name="tooltip_text" translatable="yes">Strength determines how much a character can carry, as well as how effective the character is with melee weapons. Fighters need a high strength.</property>
                                 <property name="label" translatable="yes">Strength</property>
                               </object>
                               <packing>
@@ -611,10 +609,7 @@ melee weapons.  Fighters need a high strength.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Constitution is the physical hardiness of the character.  High
-constitution well grant extra hit points for each level.
-Constitution is important for all classes.
-</property>
+                                <property name="tooltip_text" translatable="yes">Constitution is the physical hardiness of the character. High constitution will grant extra hit points for each level. Constitution is important for all classes.</property>
                                 <property name="label" translatable="yes">Constitution</property>
                               </object>
                               <packing>
@@ -628,10 +623,7 @@ Constitution is important for all classes.
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Wisdom is how in tune the character is with their god.  High
-wisdom makes it easier for a character to learn new prayers
-and is largely responsible for how many grace points the character
-has.  Wisdom is a key attribute for priests.</property>
+                                <property name="tooltip_text" translatable="yes">Wisdom is how in tune the character is with their god. High wisdom makes it easier for a character to learn new prayers and is largely responsible for how many grace points the character has. Wisdom is a key attribute for priests.</property>
                                 <property name="label" translatable="yes">Wisdom</property>
                               </object>
                               <packing>
@@ -645,12 +637,8 @@ has.  Wisdom is a key attribute for priests.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Power is a measurement of how in tune the character is with
-magic forces.  It is a major factor is how many mana points
-the character has, and has a lesser influence on how many
-grace points the character has.  High power is important
-for wizards.
-</property>
+                                <property name="tooltip_text" translatable="yes">Power is a measurement of how in tune the character is with magic forces. It is a major factor in how many mana points the character has, and has a lesser influence on how many grace points the character has. High power is important
+for wizards.</property>
                                 <property name="label" translatable="yes">Power</property>
                               </object>
                               <packing>
@@ -664,10 +652,7 @@ for wizards.
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Charisma is a measurement of likability for the character.  If the
-character has a high charisma, creatures the character meet
-will act more favorably to the character.  The main effect of
-this is the pricing the character gets in shops.</property>
+                                <property name="tooltip_text" translatable="yes">Charisma is a measurement of likability for the character. If the character has a high charisma, creatures the character meets will act more favorably to the character. The main effect of this is the pricing the character gets in shops.</property>
                                 <property name="label" translatable="yes">Charisma</property>
                               </object>
                               <packing>
@@ -681,10 +666,7 @@ this is the pricing the character gets in shops.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Intelligence is a measure of how smart the character is.  High
-intelligence gives additional mana points for casting spells and
-makes it easier for the character to learn new spells.  Intelligence
-is a key attribute for wizards.</property>
+                                <property name="tooltip_text" translatable="yes">Intelligence is a measure of how smart the character is. High intelligence gives additional mana points for casting spells and makes it easier for the character to learn new spells. Intelligence is a key attribute for wizards.</property>
                                 <property name="label" translatable="yes">Intelligence</property>
                               </object>
                               <packing>
@@ -698,7 +680,7 @@ is a key attribute for wizards.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Dexterity is how quick and nimble the character is.  High
+                                <property name="tooltip_text" translatable="yes">Dexterity is how quick and nimble the character is. High
 dexterity makes the character harder to hit, lets the
 character move faster as well as attack faster.</property>
                                 <property name="label" translatable="yes">Dexterity</property>
@@ -876,9 +858,7 @@ Attribute</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Select the race you want to play.  Different races have different
-advantages and disadvantages, and some are suited more
-towards certain classes than others.</property>
+                                <property name="tooltip_text" translatable="yes">Select the race you want to play. Different races have different advantages and disadvantages, and some are suited more towards certain classes than others.</property>
                               </object>
                               <packing>
                                 <property name="left_attach">2</property>
@@ -1208,10 +1188,7 @@ towards certain classes than others.</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Charisma is a measurement of likability for the character.  If the
-character has a high charisma, creatures the character meet
-will act more favorably to the character.  The main effect of
-this is the pricing the character gets in shops.</property>
+                                <property name="tooltip_text" translatable="yes">Charisma is a measurement of likability for the character. If the character has a high charisma, creatures the character meet will act more favorably to the character. The main effect of this is the pricing the character gets in shops.</property>
                                 <property name="label" translatable="yes">Unused Points:</property>
                               </object>
                               <packing>
