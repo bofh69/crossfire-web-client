@@ -9,6 +9,7 @@
 
 Prevent select() from causing a dubious error message claiming no error.
 Properly close keybinding files when loading existing keybindings.
+Prevent stack smashing in the client if a command that is too long is attempted to be sent.
 
 1.75.0
 ======

@@ -253,7 +253,7 @@ int cs_print_string(GSocketConnection* fd, const char *str, ...)
 
     SockList_Init(&sl, buf);
     va_start(args, str);
-    sl.len += vsprintf((char*)sl.buf + sl.len, str, args);
+    sl.len += vsnprintf((char*)sl.buf + sl.len, MAX_BUF-sl.len, str, args);
     va_end(args);
 
     script_monitor_str((char*)sl.buf);
