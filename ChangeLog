@@ -4,6 +4,7 @@
 **Added**
 
 - Display "(read)" in inventory and look trees for books that have been read for exp when on servers r22052 or newer.
+- Display a dialog when accountplay command is sent an an invalid time and the server returns a failure message.
 
 **Fixed**
 

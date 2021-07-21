@@ -2439,6 +2439,10 @@ void FailureCmd(char *buf, int len)
         create_new_character_failure(cp);
     } else if (!strcmp(buf, "accountpw")) {
         account_change_password_failure(cp);
+    } else if (!strcmp(buf, "accountplay")) {
+        // This creates a dialog that says the failure message.
+        // It should suffice for what we want here anyway.
+        create_new_character_failure(cp);
     } else
         /* This really is an error - if this happens it menas the server
          * failed to process a request that the client made - the client
