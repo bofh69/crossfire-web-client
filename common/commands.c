@@ -2459,7 +2459,8 @@ void FailureCmd(char *buf, int len)
  * This handles the accountplayers command
  */
 void AccountPlayersCmd(char *buf, int len) {
-    int level, pos, flen, faceno;
+    int level, pos, faceno;
+    guint8 flen;
     char name[MAX_BUF], class[MAX_BUF], race[MAX_BUF],
             face[MAX_BUF], party[MAX_BUF], map[MAX_BUF];
 

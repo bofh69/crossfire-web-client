@@ -11,6 +11,7 @@
 Prevent select() from causing a dubious error message claiming no error.
 Properly close keybinding files when loading existing keybindings.
 Prevent stack smashing in the client if a command that is too long is attempted to be sent.
+Prevent segfault on account load screen when a field is longer than 127 but shorter than 256 characters.
 
 1.75.0
 ======
