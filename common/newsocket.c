@@ -255,6 +255,10 @@ int cs_print_string(GSocketConnection* fd, const char *str, ...)
     va_start(args, str);
     sl.len += vsnprintf((char*)sl.buf + sl.len, MAX_BUF-sl.len, str, args);
     va_end(args);
+    // Adjust sl.len to account for when we overflow the buffer.
+    if (sl.len > MAX_BUF - 3) {
+        sl.len = MAX_BUF - 3;
+    }
 
     script_monitor_str((char*)sl.buf);
 
