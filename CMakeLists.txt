@@ -18,7 +18,7 @@ if(UNIX)
     add_definitions(-D_BSD_SOURCE)
 elseif(MINGW OR WIN32)
     add_definitions(-DWIN32)
-    set(CMAKE_INSTALL_PREFIX ".")
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
 include(GNUInstallDirs)
