@@ -81,6 +81,13 @@ KP_5 1 A stay
 KP_1 1 A southwest
 KP_3 1 A southeast
 
+# Windows reports Home, End, etc. as not separate from their non-keypad equivalents.
+# These appear over the numpad keys when attempting to fire diagonally.
+End 1 F southwest f
+Home 1 F northwest f
+PgUp 1 F northeast f
+PgDown 1 F southeast f
+
 # Keys for Sun Type 4 Keyboards
 KP_Up 1 A north
 KP_Down 1 A south
