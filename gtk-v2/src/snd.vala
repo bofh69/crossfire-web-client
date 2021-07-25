@@ -20,6 +20,8 @@ public HashTable? load_snd_config() {
     var sounds = new HashTable <string, SoundInfo?>(str_hash, str_equal);
     var lines = contents.split("\n");
     foreach (var line in lines) {
+        // In Windows, it there can be a \r before the \n. pull that out too.
+        line = line.chomp();
         if (line[0] == '#' || line.length == 0) {
             continue;
         }
