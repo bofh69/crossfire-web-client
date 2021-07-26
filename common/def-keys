@@ -92,6 +92,10 @@ End 1 N southwest
 Home 1 N northwest
 Page_Up 1 N northeast
 Page_Down 1 N southeast
+End 1 R southwest
+Home 1 R northwest
+Page_Up 1 R northeast
+Page_Down 1 R southeast
 
 # Keys for Sun Type 4 Keyboards
 KP_Up 1 A north
