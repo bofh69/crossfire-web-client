@@ -83,10 +83,15 @@ KP_3 1 A southeast
 
 # Windows reports Home, End, etc. as not separate from their non-keypad equivalents.
 # These appear over the numpad keys when attempting to fire diagonally.
+# With NumLock off, the following 8 bindings suffice.
 End 1 F southwest f
 Home 1 F northwest f
 PgUp 1 F northeast f
 PgDown 1 F southeast f
+End 1 N southwest
+Home 1 N northwest
+Page_Up 1 N northeast
+Page_Down 1 N southeast
 
 # Keys for Sun Type 4 Keyboards
 KP_Up 1 A north
