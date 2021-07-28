@@ -80,6 +80,8 @@ static GOptionEntry options[] = {
     { "updatekeycodes", 0, 0, G_OPTION_ARG_NONE, &updatekeycodes,
         "Update the saved bindings for this keyboard", NULL },
 
+    { "loginmethod", 0, 0, G_OPTION_ARG_INT, &wantloginmethod,
+        "Login method to request from server", NULL },
     { "profile-latency", 0, 0, G_OPTION_ARG_NONE, &profile_latency,
         "Log command acknowledgement latency to stdout", NULL },
     { "profile-redraw", 0, 0, G_OPTION_ARG_NONE, &time_map_redraw,
@@ -300,9 +302,6 @@ void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level,
 }
 
 static void init_sockets() {
-    /* Use the 'new' login method. */
-    wantloginmethod = 2;
-
 #ifndef WIN32
     signal(SIGPIPE, SIG_IGN);
 #endif
