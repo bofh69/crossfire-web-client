@@ -110,6 +110,9 @@ typedef struct Animations {
 
 extern Animations animations[MAXANIM];
 
+/** Largest ncom command number to send before wrapping. */
+const static uint8_t COMMAND_MAX = 255;
+
 /**
  * Basic support for socket communications, including the file descriptor,
  * input buffer, server, server, version, etc. ClientSocket could probably
@@ -129,6 +132,7 @@ typedef struct {
                                          *   currently take to execute
                                          */
     char* servername;
+    int8_t dir[COMMAND_MAX];    //< Direction of sent movement command (or -1) for local prediction
 } ClientSocket;
 
 extern ClientSocket csocket;

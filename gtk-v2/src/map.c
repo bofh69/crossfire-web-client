@@ -143,7 +143,7 @@ void map_init(GtkWidget *window_root) {
 static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay) {
     const int dest_x = ax * map_image_size;
     const int dest_y = ay * map_image_size;
-    cairo_set_source_surface(cr, pixmap->map_image, dest_x, dest_y);
+    cairo_set_source_surface(cr, pixmap->map_image, dest_x + global_offset_x, dest_y + global_offset_y);
     cairo_paint(cr);
 }
 
@@ -151,8 +151,8 @@ static void draw_smooth_pixmap(cairo_t* cr, PixmapInfo* pixmap,
         const int sx, const int sy, const int dx, const int dy) {
     const int src_x = map_image_size * sx;
     const int src_y = map_image_size * sy;
-    const int dest_x = map_image_size * dx;
-    const int dest_y = map_image_size * dy;
+    const int dest_x = map_image_size * dx + global_offset_x;
+    const int dest_y = map_image_size * dy + global_offset_y;
     cairo_set_source_surface(cr, pixmap->map_image, dest_x - src_x, dest_y - src_y);
     cairo_rectangle(cr, dest_x, dest_y, map_image_size, map_image_size);
     cairo_fill(cr);
@@ -319,7 +319,7 @@ static void map_draw_layer(cairo_t *cr, int layer, int pass) {
  * Draw darkness layer to a location on screen.
  */
 static void mapcell_draw_darkness(cairo_t *cr, int ax, int ay, int mx, int my) {
-    cairo_rectangle(cr, ax * map_image_size, ay * map_image_size,
+    cairo_rectangle(cr, ax * map_image_size + global_offset_x, ay * map_image_size + global_offset_y,
             map_image_size, map_image_size);
 
     double opacity = mapdata_cell(mx, my)->darkness / 192.0 * 0.6;
@@ -394,12 +394,29 @@ static void gtk_map_redraw(gboolean redraw) {
 void resize_map_window(int x, int y) {
 }
 
+static void update_global_offset() {
+    const float alpha = 0.15;
+    int dx, dy;
+    dx = ((want_offset_x*map_image_size) - global_offset_x)*alpha;
+    dy = ((want_offset_y*map_image_size) - global_offset_y)*alpha;
+    global_offset_x += dx;
+    global_offset_y += dy;
+
+    // Snap global offset to zero when we're at the right square.
+    if (want_offset_x == 0 && want_offset_y == 0) {
+        global_offset_x = 0;
+        global_offset_y = 0;
+    }
+}
+
 /**
  * Draw the map window using the appropriate backend.
  * @param redraw If true, the entire screen must be redrawn.
  */
 void draw_map(gboolean redraw) {
     gint64 t_start, t_end;
+
+    update_global_offset();
 
     if (time_map_redraw) {
         t_start = g_get_monotonic_time();

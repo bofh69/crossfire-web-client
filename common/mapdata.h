@@ -153,4 +153,7 @@ void mapdata_animation(void);
 
 extern PlayerPosition script_pos;
 
+extern int global_offset_x, want_offset_x;
+extern int global_offset_y, want_offset_y;
+
 #endif

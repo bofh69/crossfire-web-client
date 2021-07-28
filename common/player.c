@@ -31,6 +31,7 @@
 #include "client.h"
 #include "external.h"
 #include "script.h"
+#include "mapdata.h"
 
 bool profile_latency = false;
 int64_t *profile_time = NULL; /** 256-length array to keep track of when
@@ -148,6 +149,58 @@ void run_dir(int dir) {
     }
 }
 
+extern const char *const directions[];
+
+int command_to_direction(const char *dir) {
+    for (int i = 0; i < 9; i++) {
+        if (!strcmp(dir, directions[i])) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/**
+ * Change map drawing offset to provide local movement prediction based on
+ * player's movement commands to the server.
+ */
+void predict_scroll(int dir) {
+    switch (dir%8) {
+    case 0:
+        want_offset_x += 1;
+        want_offset_y += 1;
+        break;
+    case 1:
+        want_offset_x += 0;
+        want_offset_y += 1;
+        break;
+    case 2:
+        want_offset_x += -1;
+        want_offset_y += 1;
+        break;
+    case 3:
+        want_offset_x += -1;
+        want_offset_y += 0;
+        break;
+    case 4:
+        want_offset_x += -1;
+        want_offset_y += -1;
+        break;
+    case 5:
+        want_offset_x += 0;
+        want_offset_y += -1;
+        break;
+    case 6:
+        want_offset_x += 1;
+        want_offset_y += -1;
+        break;
+    case 7:
+        want_offset_x += 1;
+        want_offset_y += 0;
+        break;
+    }
+}
+
 /* This should be used for all 'command' processing.  Other functions should
  * call this so that proper windowing will be done.
  * command is the text command, repeat is a count value, or -1 if none
@@ -197,7 +250,7 @@ int send_command(const char *command, int repeat, int must_send) {
                 strcpy(last_command, command);
             }
             csocket.command_sent++;
-            csocket.command_sent &= 0xff;   /* max out at 255 */
+            csocket.command_sent %= COMMAND_MAX;
 
             SockList_Init(&sl, buf);
             SockList_AddString(&sl, "ncom ");
@@ -211,6 +264,13 @@ int send_command(const char *command, int repeat, int must_send) {
                 }
                 profile_time[csocket.command_sent] = g_get_monotonic_time();
                 printf("profile/com\t%d\t%s\n", csocket.command_sent, command);
+            }
+
+            int dir = command_to_direction(command);
+            csocket.dir[csocket.command_sent] = dir;
+            if (drun == -1 && dir != -1) {
+                // If movement command, predict scroll.
+                predict_scroll(dir);
             }
         }
     } else {
@@ -238,6 +298,13 @@ void CompleteCmd(unsigned char *data, int len) {
                    (now - profile_time[csocket.command_received])/1000,
                    csocket.command_time, in_flight);
         }
+    }
+    int dir = csocket.dir[csocket.command_received];
+    if (drun == -1 && dir != -1) {
+        // Revert prediction when command is acknowledged. Note that we undo
+        // the prediction the same regardless of whether the command succeeded
+        // or not, because the player always ends up in the center of the map.
+        predict_scroll(dir+4);
     }
     script_sync(in_flight);
 }

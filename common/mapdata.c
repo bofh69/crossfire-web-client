@@ -77,6 +77,10 @@ struct BigCell {
     guint8 layer;
 };
 
+int global_offset_x = 0;
+int global_offset_y = 0;
+int want_offset_x = 0;
+int want_offset_y = 0;
 
 static void recenter_virtual_map_view(int diff_x, int diff_y);
 static void mapdata_get_image_size(int face, guint8 *w, guint8 *h);
@@ -614,6 +618,11 @@ static void mapdata_init(void)
         }
     }
     bigfaces_head = NULL;
+
+    global_offset_x = 0;
+    global_offset_y = 0;
+    want_offset_x = 0;
+    want_offset_y = 0;
 }
 
 void mapdata_free(void) {
@@ -998,6 +1007,14 @@ void mapdata_newmap(void)
     script_pos.x = 0;
     script_pos.y = 0;
     int x, y;
+
+    global_offset_x = 0;
+    global_offset_y = 0;
+    want_offset_x = 0;
+    want_offset_y = 0;
+
+    // Clear past predictions.
+    memset(csocket.dir, -1, sizeof(csocket.dir));
 
     /* Clear the_map.cells[]. */
     for (x = 0; x < the_map.width; x++) {
