@@ -412,7 +412,7 @@ static void parse_keybind_line(char *buf, int line, unsigned int scope_flag) {
         keysym = gdk_keyval_from_name(buf);
         if (!keysym) {
             LOG(LOG_WARNING, "gtk-v2::parse_keybind_line",
-                "Unable to convert line %d (%s) into keysym", line, cp);
+                "Unable to convert line %d (%s) into keysym", line, buf);
             return;
         }
         cp = cpnext;
