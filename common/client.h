@@ -111,7 +111,7 @@ typedef struct Animations {
 extern Animations animations[MAXANIM];
 
 /** Largest ncom command number to send before wrapping. */
-const static guint8 COMMAND_MAX = 255;
+#define COMMAND_MAX 255
 
 /**
  * Basic support for socket communications, including the file descriptor,
