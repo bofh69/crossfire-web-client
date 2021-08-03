@@ -1080,7 +1080,7 @@ void SetupCmd(char *buf, int len)
         } else if (!strcmp(cmd, "extendedTextInfos")) {
             // Even though this is deprecated, old servers are sitll being
             // actively used. Request extended text info (drawextinfo).
-            if (strcmp(param, "FALSE")) { /* server didn't send FALSE*/
+            if (csocket.cs_version < 1023 && strcmp(param, "FALSE")) { /* server didn't send FALSE*/
                 /* Server seems to accept extended text infos. Let's tell
                  * it what extended text info we want
                  */
