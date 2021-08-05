@@ -45,9 +45,17 @@
 #endif
 
 typedef struct PixmapInfo {
+    /* Icons, used in the inventory tree view */
+    /* Scaled according to inventory scale config */
     void *icon_mask;
     GdkPixbuf *icon_image;
     guint16 icon_width, icon_height;
+    /* "Full icons", used in the spell list and inventory table view */
+    /* Same as above, but not scaled */
+    void *full_icon_mask;
+    GdkPixbuf *full_icon_image;
+    guint16 full_icon_width, full_icon_height;
+    /* Map images */
     void *map_mask, *map_image;
     guint16 map_width, map_height;
     void *fog_image;

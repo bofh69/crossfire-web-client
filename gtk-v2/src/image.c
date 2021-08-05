@@ -90,6 +90,11 @@ static void create_icon_image(guint8 *data, PixmapInfo *pi) {
     pi->icon_image = rgba_to_gdkpixbuf(data, pi->icon_width, pi->icon_height);
 }
 
+static void create_full_icon_image(guint8 *data, PixmapInfo *pi) {
+    pi->full_icon_mask = NULL;
+    pi->full_icon_image = rgba_to_gdkpixbuf(data, pi->full_icon_width, pi->full_icon_height);
+}
+
 /**
  * Helper function to make the code more readable
  *
@@ -197,6 +202,7 @@ static void create_map_image(guint8 *data, PixmapInfo *pi) {
  */
 void do_new_image(guint8 *data, PixmapInfo *pi) {
     create_icon_image(data, pi);
+    create_full_icon_image(data, pi);
     create_map_image(data, pi);
 }
 
@@ -212,6 +218,12 @@ static void free_pixmap(PixmapInfo *pi)
     }
     if (pi->icon_mask) {
         g_object_unref(pi->icon_mask);
+    }
+    if (pi->full_icon_image) {
+        g_object_unref(pi->full_icon_image);
+    }
+    if (pi->full_icon_mask) {
+        g_object_unref(pi->full_icon_mask);
     }
     if (pi->map_mask) {
         g_object_unref(pi->map_mask);
@@ -324,6 +336,9 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num,
     }
 
     /* In all cases, the icon images are in native form. */
+    pi->full_icon_width = width;
+    pi->full_icon_height = height;
+    create_full_icon_image(rgba_data, pi);
     if (iscale != 100) {
         nx=width;
         ny=height;
@@ -520,6 +535,8 @@ void init_image_cache_data(void)
     pixmaps[0] = g_new(PixmapInfo, 1);
     pixmaps[0]->icon_image =
         gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
+    pixmaps[0]->full_icon_image =
+        gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
 #ifdef HAVE_SDL
     if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
         /*
@@ -546,7 +563,7 @@ void init_image_cache_data(void)
         }
 #endif
 
-    pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
+    pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->full_icon_width = pixmaps[0]->full_icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
     pixmaps[0]->smooth_face = 0;
 
     /* Don't do anything special for SDL image - rather, that drawing

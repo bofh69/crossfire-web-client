@@ -258,6 +258,7 @@ void update_spell_information(void)
 
         gtk_list_store_set(
             spell_store, &iter,
+            LIST_IMAGE, (GdkPixbuf*) pixmaps[spell->face]->full_icon_image,
             LIST_NAME, spell->name,
             LIST_LEVEL, spell->level,
             LIST_COST, buf,
@@ -339,6 +340,15 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
          * Note: Cell alignment is set to top right instead of the default,
          * to improve readability when descriptions wrap to multiple lines.
          */
+
+        renderer = gtk_cell_renderer_pixbuf_new();
+        renderer->xalign = 0;
+        renderer->yalign = 0;
+        column = gtk_tree_view_column_new_with_attributes(
+                     "?", renderer, "pixbuf", LIST_IMAGE, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
+        gtk_tree_view_column_set_sort_column_id(column, LIST_IMAGE);
+        
         renderer = gtk_cell_renderer_text_new();
         renderer->xalign = 0;
         renderer->yalign = 0;

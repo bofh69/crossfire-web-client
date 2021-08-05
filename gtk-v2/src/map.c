@@ -115,6 +115,8 @@ void map_init(GtkWidget *window_root) {
         pixmaps[0]->map_height = ny;
         pixmaps[0]->icon_width = nx;
         pixmaps[0]->icon_height = ny;
+        pixmaps[0]->full_icon_width = nx;
+        pixmaps[0]->full_icon_height = ny;
         do_new_image(png_tmp, pixmaps[0]);
     }
 
