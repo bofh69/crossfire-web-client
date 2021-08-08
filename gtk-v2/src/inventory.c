@@ -204,63 +204,78 @@ static int get_item_env(item *it) {
     return (ITEM_IN_CONTAINER | get_item_env(it->env));
 }
 
+static void list_item_drop(item *tmp);
+
 /**
  *
  * @param event
  * @param tmp
  */
 static void list_item_action(GdkEventButton *event, item *tmp) {
-    int env;
-
-    /* We need to know where this item is in fact is */
-    env = get_item_env(tmp);
-
     /* It'd sure be nice if these weren't hardcoded values for button and
      * shift presses.
      */
-    if (event->button == 1) {
+    if (event->button == 1) { // primary/left mouse button
         if (event->state & GDK_SHIFT_MASK) {
             toggle_locked(tmp);
         } else {
             client_send_examine(tmp->tag);
         }
-    } else if (event->button == 2) {
+    } else if (event->button == 2) { // middle mouse button
+        /* Some mice do not have a functioning middle mouse button,
+         * so all the actions here are duplicated elsewhere
+         */
         if (event->state & GDK_SHIFT_MASK) {
             send_mark_obj(tmp);
         } else {
             client_send_apply(tmp->tag);
         }
-    } else if (event->button == 3) {
-        if (tmp->locked) {
-            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-                    "This item is locked. To drop it, first unlock by shift+leftclicking on it.");
+    } else if (event->button == 3) { // secondary/right mouse button
+        if (event->state & GDK_SHIFT_MASK) {
+            client_send_apply(tmp->tag);
+        } else if (event->state & GDK_CONTROL_MASK) {
+            send_mark_obj(tmp);
         } else {
-            guint32 dest;
-
-            cpl.count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton_count));
-            /*
-             * Figure out where to move the item to.  If it is on the ground,
-             * it is moving to the players inventory.  If it is in a container,
-             * it is also moving to players inventory.  If it is in the players
-             * inventory (not a container) and the player has an open container
-             * in his inventory, move the object to the container (not ground).
-             * Otherwise, it is moving to the ground (dest=0).  Have to look at
-             * the item environment, because what list is no longer accurate.
-             */
-            if (env & (ITEM_GROUND | ITEM_IN_CONTAINER)) {
-                dest = cpl.ob->tag;
-            } else if (env == ITEM_INVENTORY && cpl.container &&
-                    (get_item_env(cpl.container) == ITEM_INVENTORY ||
-                    get_item_env(cpl.container) == ITEM_GROUND)) {
-                dest = cpl.container->tag;
-            } else {
-                dest = 0;
-            }
-
-            client_send_move(dest, tmp->tag, cpl.count);
-            gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton_count), 0.0);
-            cpl.count = 0;
+            list_item_drop(tmp);
         }
+    }
+}
+
+static void list_item_drop(item *tmp) {
+    int env;
+
+    /* We need to know where this item is in fact is */
+    env = get_item_env(tmp);
+
+    if (tmp->locked) {
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
+                "This item is locked. To drop it, first unlock by shift+leftclicking on it.");
+    } else {
+        guint32 dest;
+
+        cpl.count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton_count));
+        /*
+         * Figure out where to move the item to.  If it is on the ground,
+         * it is moving to the players inventory.  If it is in a container,
+         * it is also moving to players inventory.  If it is in the players
+         * inventory (not a container) and the player has an open container
+         * in his inventory, move the object to the container (not ground).
+         * Otherwise, it is moving to the ground (dest=0).  Have to look at
+         * the item environment, because what list is no longer accurate.
+         */
+        if (env & (ITEM_GROUND | ITEM_IN_CONTAINER)) {
+            dest = cpl.ob->tag;
+        } else if (env == ITEM_INVENTORY && cpl.container &&
+                (get_item_env(cpl.container) == ITEM_INVENTORY ||
+                get_item_env(cpl.container) == ITEM_GROUND)) {
+            dest = cpl.container->tag;
+        } else {
+            dest = 0;
+        }
+
+        client_send_move(dest, tmp->tag, cpl.count);
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton_count), 0.0);
+        cpl.count = 0;
     }
 }
 
