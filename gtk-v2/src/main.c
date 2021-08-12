@@ -337,7 +337,7 @@ static void init_ui() {
     /* Load main window using GtkBuilder. */
     window_xml = gtk_builder_new();
     if (init_ui_layout(window_xml_file) == NULL) {
-        LOG(LOG_DEBUG, "init_ui_layout", "Using default layout");
+        LOG(LOG_DEBUG, "init_ui_layout", "Could not initialize '%s', using default layout", window_xml_file);
         if (init_ui_layout(DEFAULT_UI) == NULL) {
             g_error("Could not load default layout!");
         }
