@@ -15,7 +15,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 if(UNIX)
     # If Linux or other Unix-like, get gio to work by defining _BSD_SOURCE
-    add_definitions(-D_BSD_SOURCE)
+    add_definitions(-D_DEFAULT_SOURCE)
 elseif(MINGW OR WIN32)
     add_definitions(-DWIN32)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
