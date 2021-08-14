@@ -12,7 +12,6 @@ Prevent select() from causing a dubious error message claiming no error.
 Properly close keybinding files when loading existing keybindings.
 Prevent stack smashing in the client if a command that is too long is attempted to be sent.
 Prevent segfault on account load screen when a field is longer than 127 but shorter than 256 characters.
-Fix Windows build to use correct path. This allows the ui load on client startup to function off a clean build without modifying any files/locations.
 Fix Windows keybinds to correctly handle firing/running diagonally on the numpad.
 Fix sound config loading to properly discard \r when present (and any other trailing whitespace).
 
