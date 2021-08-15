@@ -39,11 +39,12 @@ GtkComboBoxText *config_combobox_faceset;
 GtkComboBox *config_combobox_displaymode, *config_combobox_lighting;
 
 #define THEME_DEFAULT CF_DATADIR "/themes/Standard"
-static char *theme = THEME_DEFAULT;
+
+/* Configuration variables initialized to NULL, set by config_load() */
+static char *theme;
+char* last_server;
 
 static void on_config_close(GtkButton *button, gpointer user_data);
-
-char* last_server = NULL;
 
 /**
  * Return the basename of the current UI file.
@@ -154,7 +155,8 @@ void load_theme(int reload) {
      * <layout>.gtkrc files.  Remember, strcmp returns zero on a match, and
      * a theme file should not be registered if "None" is selected.
      */
-    if (theme != NULL) {
+    g_assert(theme != NULL); // ensured by config_load()
+    {
         /*
          * Check for existence of the client theme file.  Unfortunately, at
          * initial run time, the window may not be realized yet, so the
@@ -164,7 +166,8 @@ void load_theme(int reload) {
          */
         if (access(theme, R_OK) == -1) {
             LOG(LOG_ERROR, "load_theme", "Unable to find theme file %s", theme);
-            theme = THEME_DEFAULT;
+            g_free(theme);
+            theme = g_strdup(THEME_DEFAULT);
         }
         gtk_rc_add_default_file(theme);
     }
@@ -262,7 +265,10 @@ static void config_load_legacy() {
                     "Malformed mapsize option in gdefaults2.  Ignoring");
             }
         } else if (!strcmp(inbuf, "theme")) {
-            theme = g_strdup(cp);   /* memory leak ! */
+            if (theme != NULL) {
+                g_free(theme);
+            }
+            theme = g_strdup(cp);
             continue;
         } else if (!strcmp(inbuf, "window_layout")) {
             strncpy(window_xml_file, cp, MAX_BUF - 1);
@@ -415,15 +421,22 @@ void config_load() {
         }
 
         /* Load additional settings. */
-        /* TODO: Both of these below are one-time memory leaks. */
-        theme = g_key_file_get_string(config, "GTKv2",
-                "theme", NULL);
-        face_info.want_faceset = g_key_file_get_string(config, "GTKv2",
-                "faceset", NULL);
+        if (theme != NULL) {
+            g_free(theme);
+        }
+        theme = g_key_file_get_string(config, "GTKv2", "theme", NULL);
+
+        if (face_info.want_faceset != NULL) {
+            g_free(face_info.want_faceset);
+        }
+        face_info.want_faceset = g_key_file_get_string(config, "GTKv2", "faceset", NULL);
+
+        if (last_server != NULL) {
+            g_free(last_server);
+        }
         last_server = g_key_file_get_string(config, "GTKv2", "last_server", NULL);
 
-        char *layout =
-            g_key_file_get_string(config, "GTKv2", "window_layout", NULL);
+        char *layout = g_key_file_get_string(config, "GTKv2", "window_layout", NULL);
         g_strlcpy(window_xml_file, layout, sizeof(window_xml_file));
         free(layout);
     } else {
@@ -431,6 +444,18 @@ void config_load() {
 
         /* Load legacy configuration file. */
         config_load_legacy();
+    }
+
+    if (theme == NULL) {
+        theme = g_strdup(THEME_DEFAULT);
+    }
+
+    if (face_info.want_faceset == NULL) {
+        face_info.want_faceset = g_strdup("");
+    }
+
+    if (last_server == NULL) {
+        last_server = g_strdup("");
     }
 }
 
