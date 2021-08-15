@@ -36,6 +36,8 @@ static gboolean map_expose_event(GtkWidget *widget,
 
 PlayerPosition pl_pos;
 
+int predict_alpha = 15;
+
 int map_image_size = DEFAULT_IMAGE_SIZE;
 int map_image_half_size = DEFAULT_IMAGE_SIZE / 2;
 
@@ -395,10 +397,9 @@ void resize_map_window(int x, int y) {
 }
 
 static void update_global_offset() {
-    const float alpha = 0.15;
     int dx, dy;
-    dx = ((want_offset_x*map_image_size) - global_offset_x)*alpha;
-    dy = ((want_offset_y*map_image_size) - global_offset_y)*alpha;
+    dx = ((want_offset_x*map_image_size) - global_offset_x)*predict_alpha/100.0;
+    dy = ((want_offset_y*map_image_size) - global_offset_y)*predict_alpha/100.0;
     global_offset_x += dx;
     global_offset_y += dy;
 
