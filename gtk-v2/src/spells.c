@@ -494,26 +494,7 @@ void on_spell_treeview_row_activated(GtkTreeView       *treeview,
                                      GtkTreeViewColumn *column,
                                      gpointer           user_data)
 {
-    int tag;
-    char command[MAX_BUF];
-    const char *options=NULL;
-    GtkTreeIter iter;
-    GtkTreeModel *model;
-
-    model = gtk_tree_view_get_model(treeview);
-    if (gtk_tree_model_get_iter(model, &iter, path)) {
-        gtk_tree_model_get(model, &iter, LIST_TAG, &tag, -1);
-
-        if (!tag) {
-            LOG(LOG_ERROR, "spells.c::on_spell_cast_clicked",
-                "Unable to get spell tag\n");
-            return;
-        }
-
-        assert(options != NULL);
-        snprintf(command, MAX_BUF-1, "cast %d %s", tag, options);
-        send_command(command, -1, 1);
-    }
+    on_spell_cast_clicked(NULL, NULL);
 }
 
 /**
