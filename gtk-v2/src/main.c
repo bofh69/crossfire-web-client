@@ -58,7 +58,6 @@ static gboolean updatekeycodes = FALSE;
 extern bool time_map_redraw;
 extern bool profile_latency;
 extern int MINLOG;
-extern int predict_alpha;
 bool debug_protocol;
 
 static char *connect_server = NULL;
@@ -87,8 +86,6 @@ static GOptionEntry options[] = {
         "Log command acknowledgement latency to stdout", NULL },
     { "profile-redraw", 0, 0, G_OPTION_ARG_NONE, &time_map_redraw,
         "Print map redraw times to stdout", NULL },
-    { "predict", 0, 0, G_OPTION_ARG_INT, &predict_alpha,
-        "Predictor alpha value (0 to disable, 15 by default)", NULL },
     { "verbose", 'v', 0, G_OPTION_ARG_INT, &MINLOG,
         "Set verbosity (0 is the most verbose)", "LEVEL" },
     { "debug-protocol", 0, 0, G_OPTION_ARG_NONE, &debug_protocol,

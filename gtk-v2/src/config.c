@@ -44,6 +44,8 @@ GtkComboBox *config_combobox_displaymode, *config_combobox_lighting;
 static char *theme;
 char* last_server;
 
+int predict_alpha;
+
 static void on_config_close(GtkButton *button, gpointer user_data);
 
 /**
@@ -431,6 +433,8 @@ void config_load() {
         }
         face_info.want_faceset = g_key_file_get_string(config, "GTKv2", "faceset", NULL);
 
+        predict_alpha = g_key_file_get_integer(config, "GTKv2", "predict_alpha", NULL);
+
         if (last_server != NULL) {
             g_free(last_server);
         }
@@ -470,6 +474,7 @@ void save_defaults() {
     g_key_file_set_string(config, "GTKv2", "theme", theme);
     g_key_file_set_string(config, "GTKv2", "faceset", face_info.want_faceset);
     g_key_file_set_string(config, "GTKv2", "last_server", last_server);
+    g_key_file_set_integer(config, "GTKv2", "predict_alpha", predict_alpha);
     g_key_file_set_string(config, "GTKv2", "window_layout", window_xml_file);
 
     /* Save the rest of the client settings. */

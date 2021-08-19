@@ -36,7 +36,7 @@ static gboolean map_expose_event(GtkWidget *widget,
 
 PlayerPosition pl_pos;
 
-int predict_alpha = 15;
+extern int predict_alpha;
 
 int map_image_size = DEFAULT_IMAGE_SIZE;
 int map_image_half_size = DEFAULT_IMAGE_SIZE / 2;
