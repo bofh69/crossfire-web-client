@@ -1,22 +1,29 @@
 1.75.1
 ======
+2021-08-19
 
 **Added**
 
-- Display "(read)" in inventory and look trees for books that have been read for exp when on servers r22052 or newer.
-- Display a dialog when accountplay command is sent an an invalid time and the server returns a failure message.
+- Remember the most recently-connected server
+- Display "read" flag for books in the inventory that have been read
+- Add JXClient-like mouse bindings to support inventory operations without
+  middle-click
+- Add local map scroll prediction (disabled by default)
+
+**Changed**
+
+- Request extended text information from older servers
 
 **Fixed**
 
-- Prevent select() from causing a dubious error message claiming no error.
-- Properly close keybinding files when loading existing keybindings.
-- Prevent stack smashing in the client if a command that is too long is attempted to be sent.
-- Prevent segfault on account load screen when a field is longer than 127 but shorter than 256 characters.
-- Fix Windows keybinds to correctly handle firing/running diagonally on the numpad.
-- Fix sound config loading to properly discard \r when present (and any other trailing whitespace).
+- Fixed several repeated error messages
+- Fixed build on big-endian architectures
+- Fixed keybindings and sounds on Windows
+- Fixed several crashes
 
 1.75.0
 ======
+2021-01-01
 
 **Added**
 
