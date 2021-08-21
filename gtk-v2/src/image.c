@@ -504,7 +504,12 @@ void get_map_image_size(int face, guint8 *w, guint8 *h)
         *w = 1;
         *h = 1;
     } else {
-        const int scaled_image_size = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        int scaled_image_size;
+        if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
+            scaled_image_size = map_image_size;
+        } else {
+            scaled_image_size = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
+        }
         *w = (pixmaps[face]->map_width + scaled_image_size - 1)/ scaled_image_size;
         *h = (pixmaps[face]->map_height + scaled_image_size - 1)/ scaled_image_size;
     }
