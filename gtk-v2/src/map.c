@@ -346,17 +346,16 @@ static void gtk_map_redraw(gboolean redraw) {
 
     GtkAllocation size;
     gtk_widget_get_allocation(map_drawing_area, &size);
-    const int width = use_config[CONFIG_MAPWIDTH] * map_image_size;
-    const int height = use_config[CONFIG_MAPHEIGHT] * map_image_size;
 
     // Create double buffer and associated graphics context.
+    float scale = use_config[CONFIG_MAPSCALE]/100.0;
     cairo_surface_t *cst =
-            cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+            cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size.width / scale, size.height / scale);
     cairo_t *cr = cairo_create(cst);
 
     // Blank graphics context with a solid black background.
     cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_rectangle(cr, 0, 0, width, height);
+    cairo_rectangle(cr, 0, 0, size.width / scale, size.height / scale);
     cairo_fill(cr);
 
     for (int layer = 0; layer < MAXLAYERS; layer++) {
@@ -379,7 +378,6 @@ static void gtk_map_redraw(gboolean redraw) {
     // Copy the double buffer on the map drawing area.
     cairo_t *map_cr = gdk_cairo_create(gtk_widget_get_window(map_drawing_area));
     if (use_config[CONFIG_MAPSCALE] != 100) {
-        float scale = use_config[CONFIG_MAPSCALE]/100.0;
         cairo_scale(map_cr, scale, scale);
     }
     cairo_set_source_surface(map_cr, cst, 0, 0);
