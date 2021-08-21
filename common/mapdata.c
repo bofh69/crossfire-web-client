@@ -174,27 +174,6 @@ static void set_darkness(int x, int y, int darkness)
 
     mapdata_cell(x, y)->darkness = darkness;
     mapdata_cell(x, y)->need_update = 1;
-
-    /* pretty ugly - since the light code with pngximage uses neighboring
-     * spaces to adjust the darkness, we now need to let the neighbors know
-     * they should update their darkness now.
-     */
-    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL
-            && (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL
-                ||  use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST)) {
-        if (x > 1) {
-            mapdata_cell(x-1, y)->need_update = 1;
-        }
-        if (y > 1) {
-            mapdata_cell(x, y-1)->need_update = 1;
-        }
-        if (x < width-1) {
-            mapdata_cell(x+1, y)->need_update = 1;
-        }
-        if (y < height-1) {
-            mapdata_cell(x, y+1)->need_update = 1;
-        }
-    }
 }
 
 static void mark_resmooth(int x, int y, int layer)

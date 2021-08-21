@@ -6,8 +6,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 option(LUA "Lua scripting" OFF)
 option(METASERVER2 "Metaserver2 support (requires curl)" ON)
-option(OPENGL "OpenGL rendering" ON)
-option(SDL "SDL rendering (requires sdl_image)" ON)
 option(SOUND "Sound support (requires sdl_mixer)" ON)
 
 set(CMAKE_C_STANDARD 99)
@@ -47,16 +45,6 @@ endif()
 if(METASERVER2)
     pkg_check_modules(CURL libcurl REQUIRED)
     set(HAVE_CURL_CURL_H ${CURL_FOUND})
-endif()
-
-if(OPENGL)
-    find_package(OpenGL REQUIRED)
-    set(HAVE_OPENGL ${OPENGL_FOUND})
-endif()
-
-if(SDL)
-    pkg_check_modules(SDL REQUIRED)
-    set(HAVE_SDL ${SDL_FOUND})
 endif()
 
 if(SOUND)

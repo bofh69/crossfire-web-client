@@ -27,10 +27,8 @@ add_executable(crossfire-client-gtk2
     map.c
     menubar.c
     metaserver.c
-    opengl.c
     pickup.c
     png.c
-    sdl.c
     skills.c
     sound.c
     spells.c

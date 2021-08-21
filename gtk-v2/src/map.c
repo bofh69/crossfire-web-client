@@ -123,20 +123,6 @@ void map_init(GtkWidget *window_root) {
     // Set map size based on window size and show widget.
     map_check_resize();
     gtk_widget_show(map_drawing_area);
-
-    switch (use_config[CONFIG_DISPLAYMODE]) {
-#ifdef HAVE_SDL
-    case CFG_DM_SDL:
-        init_SDL(map_drawing_area,0);
-        break;
-#endif
-
-#ifdef HAVE_OPENGL
-    case CFG_DM_OPENGL:
-        init_opengl(map_drawing_area);
-        break;
-#endif
-    }
 }
 
 /**
@@ -163,11 +149,6 @@ static void draw_smooth_pixmap(cairo_t* cr, PixmapInfo* pixmap,
 }
 
 int display_mapscroll(int dx, int dy) {
-#ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL) {
-        return sdl_mapscroll(dx,dy);
-    } else
-#endif
         return 0;
 }
 
@@ -426,23 +407,7 @@ void draw_map(gboolean redraw) {
         t_start = g_get_monotonic_time();
     }
 
-    switch (use_config[CONFIG_DISPLAYMODE]) {
-#ifdef HAVE_SDL
-    case CFG_DM_SDL:
-        sdl_gen_map(redraw);
-        break;
-#endif
-
-#ifdef HAVE_OPENGL
-    case CFG_DM_OPENGL:
-        opengl_gen_map(redraw);
-        break;
-#endif
-
-    default:
-        gtk_map_redraw(redraw);
-        break;
-    }
+    gtk_map_redraw(redraw);
 
     if (time_map_redraw) {
         t_end = g_get_monotonic_time();

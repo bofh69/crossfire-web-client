@@ -15,5 +15,3 @@
 
 /* Features */
 #cmakedefine HAVE_LUA
-#cmakedefine HAVE_OPENGL
-#cmakedefine HAVE_SDL

@@ -22,10 +22,6 @@
 
 #include <gtk/gtk.h>
 
-#ifdef HAVE_SDL
-#include <SDL/SDL.h>
-#endif
-
 #include "image.h"
 #include "main.h"
 #include "gtk2proto.h"
@@ -104,97 +100,7 @@ static void create_full_icon_image(guint8 *data, PixmapInfo *pi) {
 static void create_map_image(guint8 *data, PixmapInfo *pi) {
     pi->map_image = NULL;
     pi->map_mask = NULL;
-
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
-#if defined(HAVE_SDL)
-        int i, width = pi->map_width, height = pi->map_height;
-        SDL_Surface *fog;
-        guint32 g,*p;
-        guint8 *l, *scaled;
-        if (use_config[CONFIG_MAPSCALE] != 100)
-            scaled = rescale_rgba_data(data, &width, &height, use_config[CONFIG_MAPSCALE]);
-        else
-            scaled = data;
-        pi->map_width = width, pi->map_height = height;
-
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-        pi->map_image = SDL_CreateRGBSurfaceFrom(scaled, width,
-                        height, 32, width * 4,  0xff,
-                        0xff00, 0xff0000, 0xff000000);
-
-        fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE,
-                                   width,  height, 32, 0xff,
-                                   0xff00, 0xff0000, 0xff000000);
-        SDL_LockSurface(fog);
-
-        for (i=0; i < width * height; i++) {
-            l = (guint8 *) (scaled + i*4);
-#if 1
-            g = MAX(*l, *(l+1));
-            g = MAX(g, *(l+2));
-#else
-            g = ( *l +  *(l+1) + *(l+2)) / 3;
-#endif
-            p = (guint32*) fog->pixels + i;
-            *p = g | (g << 8) | (g << 16) | (*(l + 3) << 24);
-        }
-
-        SDL_UnlockSurface(fog);
-        pi->fog_image = fog;
-#else
-        /* Big endian */
-        pi->map_image = SDL_CreateRGBSurfaceFrom(scaled, width,
-                        height, 32, width * 4,  0xff000000,
-                        0xff0000, 0xff00, 0xff);
-
-        fog = SDL_CreateRGBSurface(SDL_SRCALPHA | SDL_HWSURFACE,
-                                   width,  height, 32, 0xff000000,
-                                   0xff0000, 0xff00, 0xff);
-        SDL_LockSurface(fog);
-
-        /*
-         * I think this works out, but haven't tried it on a big endian machine
-         * as my recollection is that the png data would be in the same order,
-         * just the bytes for it to go on the screen are reversed.
-         */
-        for (i=0; i < width * height; i++) {
-            l = (guint8 *) (scaled + i*4);
-#if 1
-            g = MAX(*l, *(l+1));
-            g = MAX(g, *(l+2));
-#else
-            g = ( *l +  *(l+1) + *(l+2)) / 3;
-#endif
-            p = (guint32*) fog->pixels + i;
-            *p = (g << 8) | (g << 16) | (g << 24) | *(l + 3);
-        }
-
-        for (i=0; i < width * height; i+= 4) {
-            guint32 *tmp;
-
-            /*
-             * The pointer arithemtic below looks suspicious, but it is a patch
-             * that is submitted, so just putting it in as submitted.  MSW
-             * 2004-05-11
-             */
-            p = (guint32*) (fog->pixels + i);
-            g = ( ((*p >> 24) & 0xff)  + ((*p >> 16) & 0xff) + ((*p >> 8) & 0xff)) / 3;
-            tmp = (guint32*) fog->pixels + i;
-            *tmp = (g << 24) | (g << 16) | (g << 8) | (*p & 0xff);
-        }
-
-        SDL_UnlockSurface(fog);
-        pi->fog_image = fog;
-#endif
-
-#endif
-    } else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_OPENGL) {
-#ifdef HAVE_OPENGL
-        create_opengl_map_image(data, pi);
-#endif
-    } else if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_PIXMAP) {
-        pi->map_image = rgba_to_cairo_surface(data, pi->map_width, pi->map_height);
-    }
+    pi->map_image = rgba_to_cairo_surface(data, pi->map_width, pi->map_height);
 }
 
 /**
@@ -228,34 +134,8 @@ static void free_pixmap(PixmapInfo *pi)
     if (pi->map_mask) {
         g_object_unref(pi->map_mask);
     }
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
-#ifdef HAVE_SDL
-        if (pi->map_image) {
-            g_free(((SDL_Surface*)pi->map_image)->pixels);
-            SDL_FreeSurface(pi->map_image);
-            SDL_FreeSurface(pi->fog_image);
-            /*
-             * Minor memory leak here - SDL_FreeSurface() frees the pixel
-             * data _unless_ SDL_CreateRGBSurfaceFrom() was used to create
-             * the surface.  SDL_CreateRGBSurfaceFrom() is used to create
-             * the map data, which is why we need the free there.  The
-             * reason this is a minor memory leak is because
-             * SDL_CreateRGBSurfaceFrom() is used to create the question
-             * mark image, and without this free, that data is not freed.
-             * However, with this, client crashes after disconnecting from
-             * server with double free.
-             */
-            /*          free(((SDL_Surface*)pi->fog_image)->pixels);*/
-        }
-#endif
-    } else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
-#ifdef HAVE_OPENGL
-        opengl_free_pixmap(pi);
-#endif
-    } else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
-        if (pi->map_image) {
-            cairo_surface_destroy(pi->map_image);
-        }
+    if (pi->map_image) {
+        cairo_surface_destroy(pi->map_image);
     }
 }
 
@@ -363,15 +243,7 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num,
     {
         pi->map_width = width;
         pi->map_height = height;
-        /*
-         * If using SDL mode, a copy of the rgba data needs to be stored away.
-         */
-        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
-            png_tmp = g_malloc(width * height * BPP);
-            memcpy(png_tmp, rgba_data, width * height * BPP);
-        } else {
-            png_tmp = rgba_data;
-        }
+        png_tmp = rgba_data;
         create_map_image(png_tmp, pi);
     }
     /*
@@ -542,38 +414,12 @@ void init_image_cache_data(void)
         gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
     pixmaps[0]->full_icon_image =
         gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
-#ifdef HAVE_SDL
-    if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_SDL) {
-        /*
-         * Make a semi-transparent question mark symbol to use for the cached
-         * images.
-         */
-#include "../../pixmaps/question.sdl"
-        pixmaps[0]->map_image = SDL_CreateRGBSurfaceFrom(question_sdl,
-                                32, 32, 1, 4, 1, 1, 1, 1);
-        SDL_SetAlpha(pixmaps[0]->map_image, SDL_SRCALPHA, 70);
-        pixmaps[0]->fog_image = SDL_CreateRGBSurfaceFrom(question_sdl,
-                                32, 32, 1, 4, 1, 1, 1, 1);
-        SDL_SetAlpha(pixmaps[0]->fog_image, SDL_SRCALPHA, 70);
-    } else
-#endif
-        if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_PIXMAP) {
-            pixmaps[0]->map_image =  pixmaps[0]->icon_image;
-            pixmaps[0]->fog_image =  pixmaps[0]->icon_image;
-            pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
-        }
-#ifdef HAVE_OPENGL
-        else if (use_config[CONFIG_DISPLAYMODE]==CFG_DM_OPENGL) {
-            create_opengl_question_mark();
-        }
-#endif
+    pixmaps[0]->map_image =  pixmaps[0]->icon_image;
+    pixmaps[0]->fog_image =  pixmaps[0]->icon_image;
+    pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
 
     pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->full_icon_width = pixmaps[0]->full_icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
     pixmaps[0]->smooth_face = 0;
-
-    /* Don't do anything special for SDL image - rather, that drawing
-     * code will check to see if there is no data
-     */
 
     /* Initialize all the images to be of the same value. */
     for (i=1; i<MAXPIXMAPNUM; i++)  {
