@@ -32,6 +32,8 @@
 #define H2(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 #define LINE(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 
+extern void map_check_resize();
+
 /* TODO Help topics other than commands? Refer to other documents? */
 
 static int get_num_commands(void);
@@ -208,6 +210,22 @@ static void do_savedefaults() { save_defaults(); }
 
 static void do_savewinpos() { save_winpos(); }
 
+static void do_set_mapscale(const char *used) {
+    if (used != NULL) {
+        long long scale = strtoll(used, NULL, 0);
+        if (scale >= 10 && scale <= 200) {
+            use_config[CONFIG_MAPSCALE] = scale;
+            map_check_resize();
+        } else {
+            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
+                    "invalid mapscale argument");
+        }
+    } else {
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
+                "mapscale command requires an argument");
+    }
+}
+
 static void do_take(const char *used) {
     command_take("take", used); /* I dunno why they want it. */
 }
@@ -320,6 +338,8 @@ static ConsoleCommand CommonCommands[] = {
 
     {"magicmap", COMM_CAT_MISC, do_magicmap, help_magicmap,
      HELP_MAGICMAP_SHORT},
+
+    {"mapscale", COMM_CAT_MISC, do_set_mapscale, NULL, NULL},
 
     {"savedefaults", COMM_CAT_SETUP, do_savedefaults, NULL,
      HELP_SAVEDEFAULTS_SHORT},

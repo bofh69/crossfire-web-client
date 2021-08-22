@@ -54,7 +54,7 @@ bool time_map_redraw = false;
 /**
  * Calculate and set desired map size based on map window size.
  */
-static void map_check_resize() {
+void map_check_resize() {
     GtkAllocation size;
     gtk_widget_get_allocation(map_drawing_area, &size);
     int scaled_size = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
