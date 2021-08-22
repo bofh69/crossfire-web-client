@@ -495,8 +495,9 @@ static int relative_direction(int dx, int dy) {
 static gboolean map_button_event(GtkWidget *widget,
         GdkEventButton *event, gpointer user_data) {
     // Determine the tile of the mouse event, relative to the player.
-    int dx = ((int)event->x - 2) / map_image_size - (use_config[CONFIG_MAPWIDTH] / 2);
-    int dy = ((int)event->y - 2) / map_image_size - (use_config[CONFIG_MAPHEIGHT] / 2);
+    const float tile_size = map_image_size * use_config[CONFIG_MAPSCALE]/100.0;
+    int dx = ((int)event->x - 2) / tile_size - (use_config[CONFIG_MAPWIDTH] / 2);
+    int dy = ((int)event->y - 2) / tile_size - (use_config[CONFIG_MAPHEIGHT] / 2);
     int dir = relative_direction(dx, dy);
 
     switch (event->button) {
