@@ -4,5 +4,6 @@ First build the client, then put all its required files into a "files" subdirect
 
 Adjust, if needed, the trunk version in the .nsi file.
 
-
 Then run NSIS on the .nsi file.
+
+If using the Powershell autobuild script written by DraugTheWhopper, it will tell NSIS where to find and put everything. Check the comments of that script for more info.

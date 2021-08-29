@@ -1,21 +1,40 @@
 !include "MUI.nsh"
 
+;If the user passed "/DGITVERSION=something" when invoking the script, use that. Else, use a placeholder.
+!ifdef GITVERSION
+!define REVISION "git-${GITVERSION}"
+!else
+!define REVISION "git-unknown"
+!endif
+
 ;Title Of Your Application
-Name "Crossfire Client trunk-21708"
+Name "Crossfire GTKClient"
 
 VIAddVersionKey "ProductName" "Crossfire client installer"
 VIAddVersionKey "Comments" "Website: http://crossfire.real-time.com"
 VIAddVersionKey "FileDescription" "Crossfire client installer"
-VIAddVersionKey "FileVersion" "trunk-21708"
+VIAddVersionKey "FileVersion" "${REVISION}"
 VIAddVersionKey "LegalCopyright" "Crossfire is released under the GPL."
-VIProductVersion "2.0.0.21708"
+
+;If the user passed "/DVERSION=something" when invoking the script, use that. Else, use a placeholder.
+;Note that it must be numerals, in the format x.x.x.x
+!ifdef VERSION
+VIProductVersion ${VERSION}
+!else
+VIProductVersion 1.99.99.99
+!endif
 
 ;Do A CRC Check
 CRCCheck On
 SetCompressor /SOLID lzma
 
 ;Output File Name
-OutFile "CrossfireClient.exe"
+;If the user passed "/DOUTPUTDIR=something" when invoking the script, use that. Else, use the current working directory.
+!ifdef OUTPUTDIR
+OutFile "${OUTPUTDIR}\CrossfireClient-${REVISION}.exe"
+!else
+OutFile "CrossfireClient-${REVISION}.exe"
+!endif
 
 ;The Default Installation Directory
 InstallDir "$PROGRAMFILES\Crossfire Client"
@@ -42,9 +61,21 @@ Section "Crossfire Client (required)" cf
   SetOutPath $INSTDIR
   SetCompress Auto
   SetOverwrite IfNewer
+  
+  ;If the user passed "/DINPUTDIR=something" when invoking the script, use that. Else, find the files in ".\files\"
+  !ifdef INPUTDIR
+  File /r "${INPUTDIR}\*.*"
+  !else 
   File /r "files\*.*"
+  !endif
+  
+  ;If the user passed "/DSOURCELOCATION=something" when invoking the script, use that. Else, find the icon in  "..\..\pixmaps\client.ico"
+  !ifdef SOURCELOCATION
+  File ${SOURCELOCATION}\pixmaps\client.ico
+  !else
   File ..\..\pixmaps\client.ico
-
+  !endif
+  
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Crossfire Client" "DisplayName" "Crossfire Client (remove only)"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Crossfire Client" "UninstallString" "$INSTDIR\Uninst.exe"

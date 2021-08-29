@@ -1,4 +1,5 @@
 #!/bin/sh
+# This script has been deprecated by the addition of a powershell build script. --DraugTheWhopper
 # win32-package -- run this in the build directory
 
 function gather_deps() {
