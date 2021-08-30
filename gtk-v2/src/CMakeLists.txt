@@ -58,6 +58,7 @@ target_link_libraries(crossfire-client-gtk2 cfclient
     ${SDL_LDFLAGS}
     ${SDLMIXER_LDFLAGS}
     ${X11_LIBRARIES}
+    m # math
 )
 
 if(MINGW OR WIN32)

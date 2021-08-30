@@ -19,6 +19,7 @@
 
 #include "client.h"
 
+#include <math.h>
 #include <gtk/gtk.h>
 
 #include "image.h"
@@ -130,10 +131,10 @@ void map_init(GtkWidget *window_root) {
  * @param ax Map cell on-screen x-coordinate
  * @param ay Map cell on-screen y-coordinate
  */
-static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay) {
+static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay, int off_x, int off_y) {
     const int dest_x = ax * map_image_size;
     const int dest_y = ay * map_image_size;
-    cairo_set_source_surface(cr, pixmap->map_image, dest_x + global_offset_x, dest_y + global_offset_y);
+    cairo_set_source_surface(cr, pixmap->map_image, dest_x + global_offset_x + off_x, dest_y + global_offset_y + off_y);
     cairo_paint(cr);
 }
 
@@ -275,11 +276,12 @@ static void drawsmooth(cairo_t *cr, int mx, int my, int layer, int picx, int pic
 /**
  * Draw a single map layer to the given cairo context.
  */
-static void map_draw_layer(cairo_t *cr, int layer, int pass) {
-    for (int x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
-        for (int y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
+static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int nx, int my_start, int ny, int off_x, int off_y) {
+    for (int x = 0; x <= nx; x++) {
+        for (int y = 0; y <= ny; y++) {
             // Translate on-screen coordinates to virtual map coordinates.
-            int mx = pl_pos.x + x, my = pl_pos.y + y;
+            const int mx = mx_start + x;
+            const int my = my_start + y;
 
             if (pass == 0) {
                 // Skip current cell if not visible and not using fog of war.
@@ -289,11 +291,11 @@ static void map_draw_layer(cairo_t *cr, int layer, int pass) {
 
                 int dx, dy, face = mapdata_face_info(mx, my, layer, &dx, &dy);
                 if (face > 0 && pixmaps[face]->map_image != NULL) {
-                    draw_pixmap(cr, pixmaps[face], x + dx, y + dy);
+                    draw_pixmap(cr, pixmaps[face], x + dx, y + dy, off_x, off_y);
                 }
             } else if (pass == 1) {
                 if (use_config[CONFIG_SMOOTH]) {
-                    drawsmooth(cr, mx, my, layer, x, y);
+                    drawsmooth(cr, mx, my, layer, x + off_x, y + off_y);
                 }
             }
         }
@@ -328,26 +330,45 @@ static void gtk_map_redraw(gboolean redraw) {
     GtkAllocation size;
     gtk_widget_get_allocation(map_drawing_area, &size);
 
-    // Create double buffer and associated graphics context.
+    // Effective dimensions in pixels, i.e. after adjusting for map scale
     float scale = use_config[CONFIG_MAPSCALE]/100.0;
-    cairo_surface_t *cst =
-            cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size.width / scale, size.height / scale);
+    const double ew = size.width / scale;
+    const double eh = size.height / scale;
+
+    // Number of tiles to show in x and y dimensions
+    const int nx = (int)ceilf(ew / map_image_size);
+    const int ny = (int)ceilf(eh / map_image_size);
+
+    // Current viewport dimensions as sent by server, in squares
+    const int vw = use_config[CONFIG_MAPWIDTH];
+    const int vh = use_config[CONFIG_MAPHEIGHT];
+
+    // The server always centers the player in the viewport. However, if our
+    // drawing area shows more tiles than the viewport, then the player is
+    // no longer centered. Correct that here.
+    const int mx_start = (nx > vw) ? pl_pos.x - (nx - vw)/2 : pl_pos.x;
+    const int my_start = (ny > vh) ? pl_pos.y - (ny - vh)/2 : pl_pos.y;
+
+    // Create double buffer and associated graphics context.
+    cairo_surface_t *cst = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, ew, eh);
     cairo_t *cr = cairo_create(cst);
 
     // Blank graphics context with a solid black background.
     cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_rectangle(cr, 0, 0, size.width / scale, size.height / scale);
+    cairo_rectangle(cr, 0, 0, ew, eh);
     cairo_fill(cr);
 
     for (int layer = 0; layer < MAXLAYERS; layer++) {
-        map_draw_layer(cr, layer, 0);
-        map_draw_layer(cr, layer, 1);
+        map_draw_layer(cr, layer, 0, mx_start, nx, my_start, ny, 0, 0);
+        map_draw_layer(cr, layer, 1, mx_start, nx, my_start, ny, 0, 0);
     }
 
-    for (int x = 0; x < use_config[CONFIG_MAPWIDTH]; x++) {
-        for (int y = 0; y < use_config[CONFIG_MAPHEIGHT]; y++) {
-            // Determine the 'virtual' map coordinates.
-            int mx = pl_pos.x + x, my = pl_pos.y + y;
+    for (int x = 0; x <= nx; x++) {
+        for (int y = 0; y <= ny; y++) {
+            // Translate on-screen coordinates to virtual map coordinates.
+            const int mx = mx_start + x;
+            const int my = my_start + y;
+
             mapcell_draw_darkness(cr, x, y, mx, my);
             mapdata_cell(mx, my)->need_update = 0;
             mapdata_cell(mx, my)->need_resmooth = 0;
