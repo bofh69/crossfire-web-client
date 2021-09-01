@@ -221,6 +221,10 @@ int send_command(const char *command, int repeat, int must_send) {
         return 0;
     }
 
+    if (use_config[CONFIG_ECHO]) {
+        draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, command);
+    }
+
     /* Does the server understand 'ncom'? If so, special code */
     if (csocket.cs_version >= 1021) {
         int commdiff=csocket.command_sent - csocket.command_received;

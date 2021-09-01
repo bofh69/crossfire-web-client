@@ -809,9 +809,6 @@ static void parse_key_release(guint32 keysym) {
         gtk_label_set_text(GTK_LABEL(fire_label), "    ");
     } else if (keysym == runkeysym[0] || keysym == runkeysym[1]) {
         cpl.run_on = 0;
-        if (use_config[CONFIG_ECHO])
-            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-                          "stop run");
         clear_run();
         gtk_label_set_text(GTK_LABEL(run_label), "   ");
     } else if (keysym == altkeysym[0] || keysym == altkeysym[1]) {
@@ -912,15 +909,7 @@ static void parse_key(char key, guint32 keysym) {
             } else {
                 extended_command(kb->command);
             }
-            if (use_config[CONFIG_ECHO])
-                draw_ext_info(
-                    NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-                    kb->command);
         } else {
-            if (use_config[CONFIG_ECHO])
-                draw_ext_info(
-                    NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-                    kb->command);
             extended_command(kb->command);
         }
         return;
@@ -1542,9 +1531,6 @@ void focusoutfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
     }
     if (cpl.run_on == 1) {
         cpl.run_on = 0;
-        if (use_config[CONFIG_ECHO])
-            draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE,
-                          "stop run");
         clear_run();
         gtk_label_set_text(GTK_LABEL(run_label), "   ");
     }
