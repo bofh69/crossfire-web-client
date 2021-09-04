@@ -231,7 +231,6 @@ static bool starts_with(const char *prefix, const char *str) {
 int send_command(const char *command, int repeat, int must_send) {
     static char last_command[MAX_BUF]="";
 
-    script_monitor(command,repeat,must_send);
     if (cpl.input_state==Reply_One) {
         LOG(LOG_ERROR,"common::send_command","Wont send command '%s' - since in reply mode!",
             command);
@@ -272,6 +271,8 @@ int send_command(const char *command, int repeat, int must_send) {
             SockList sl;
             guint8 buf[MAX_BUF];
 
+            script_monitor(command, repeat, must_send);
+
             /* Don't want to copy in administrative commands */
             if (!must_send) {
                 strcpy(last_command, command);
@@ -304,6 +305,7 @@ int send_command(const char *command, int repeat, int must_send) {
             }
         }
     } else {
+        script_monitor(command, repeat, must_send);
         cs_print_string(csocket.fd, "command %d %s", repeat,command);
     }
     if (repeat!=-1) {
