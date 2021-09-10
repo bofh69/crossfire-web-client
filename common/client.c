@@ -169,12 +169,6 @@ struct CmdMapping commands[] = {
 GQuark client_error_quark();
 
 void client_mapsize(int width, int height) {
-    // Store desired size in use_config to check results from the server.
-    use_config[CONFIG_MAPWIDTH] = width;
-    use_config[CONFIG_MAPHEIGHT] = height;
-
-    // Set map size in case we receive 'map' before 'setup' commands.
-    mapdata_set_size(width, height);
     cs_print_string(csocket.fd, "setup mapsize %dx%d", width, height);
 }
 

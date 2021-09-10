@@ -949,9 +949,6 @@ void SetupCmd(char *buf, int len)
         } else if (!strcmp(cmd, "sound")) {
             /* No, this should not be !strcmp()... */
         } else if (!strcmp(cmd, "mapsize")) {
-            int x, y = 0;
-            char *cp, tmpbuf[MAX_BUF];
-
             if (!g_ascii_strcasecmp(param, "false")) {
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
                               "Server only supports standard sized maps (11x11)");
@@ -963,33 +960,38 @@ void SetupCmd(char *buf, int len)
                 resize_map_window(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 continue;
             }
-            x = atoi(param);
-            for (cp = param; *cp != 0; cp++) {
+
+            // Parse map size returned by the server.
+            int x = atoi(param);
+            int y = 0;
+            for (char *cp = param; *cp != 0; cp++) {
                 if (*cp == 'x' || *cp == 'X') {
                     y = atoi(cp+1);
                     break;
                 }
             }
+
             /* A size larger than what the server supports was requested.
              * Reduce the size to server maximum, and re-send the setup
              * command.  Update our want sizes, and tell the player what is
              * going on.
              */
-            if (use_config[CONFIG_MAPWIDTH] > x || use_config[CONFIG_MAPHEIGHT] > y) {
-                if (use_config[CONFIG_MAPWIDTH] > x) {
-                    use_config[CONFIG_MAPWIDTH] = x;
+            char tmpbuf[MAX_BUF];
+            if (want_config[CONFIG_MAPWIDTH] > x || want_config[CONFIG_MAPHEIGHT] > y) {
+                if (want_config[CONFIG_MAPWIDTH] > x) {
+                    want_config[CONFIG_MAPWIDTH] = x;
                 }
-                if (use_config[CONFIG_MAPHEIGHT] > y) {
-                    use_config[CONFIG_MAPHEIGHT] = y;
+                if (want_config[CONFIG_MAPHEIGHT] > y) {
+                    want_config[CONFIG_MAPHEIGHT] = y;
                 }
-                mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
-                cs_print_string(csocket.fd,
-                                "setup mapsize %dx%d", use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
+                client_mapsize(want_config[CONFIG_MAPWIDTH], want_config[CONFIG_MAPHEIGHT]);
                 snprintf(tmpbuf, sizeof(tmpbuf), "Server supports a max mapsize of %d x %d - requesting a %d x %d mapsize",
-                         x, y, use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
+                         x, y, want_config[CONFIG_MAPWIDTH], want_config[CONFIG_MAPHEIGHT]);
                 draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER,
                               tmpbuf);
-            } else if (use_config[CONFIG_MAPWIDTH] == x && use_config[CONFIG_MAPHEIGHT] == y) {
+            } else if (want_config[CONFIG_MAPWIDTH] == x && want_config[CONFIG_MAPHEIGHT] == y) {
+                use_config[CONFIG_MAPWIDTH] = want_config[CONFIG_MAPWIDTH];
+                use_config[CONFIG_MAPHEIGHT] = want_config[CONFIG_MAPHEIGHT];
                 mapdata_set_size(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
                 resize_map_window(use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT]);
             } else {
@@ -998,9 +1000,8 @@ void SetupCmd(char *buf, int len)
                  * that something is wrong.
                  */
                 snprintf(tmpbuf, sizeof(tmpbuf), "Unable to set mapsize on server - we wanted %d x %d, server returned %d x %d",
-                         use_config[CONFIG_MAPWIDTH], use_config[CONFIG_MAPHEIGHT], x, y);
-                draw_ext_info(
-                    NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER, tmpbuf);
+                         want_config[CONFIG_MAPWIDTH], want_config[CONFIG_MAPHEIGHT], x, y);
+                draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SERVER, tmpbuf);
             }
         } else if (!strcmp(cmd, "darkness")) {
             /* Older servers might not support this setup command.
