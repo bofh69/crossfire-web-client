@@ -121,8 +121,6 @@ void map_init(GtkWidget *window_root) {
         int nx = map_image_size, ny = map_image_size;
         guint8 *png_tmp = rescale_rgba_data(pixmaps[0]->map_image, &nx, &ny, use_config[CONFIG_MAPSCALE]);
         // Try to affect pixmap[0] in-place, since it is referenced extensively.
-        pixmaps[0]->map_width = nx;
-        pixmaps[0]->map_height = ny;
         pixmaps[0]->icon_width = nx;
         pixmaps[0]->icon_height = ny;
         pixmaps[0]->full_icon_width = nx;

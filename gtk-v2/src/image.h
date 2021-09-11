@@ -40,29 +40,18 @@
 #define DEFAULT_IMAGE_SIZE 32
 #define MAXPIXMAPNUM 10000
 
-#ifdef HAVE_OPENGL
-#include <GL/gl.h>
-#endif
-
 typedef struct PixmapInfo {
     /* Icons, used in the inventory tree view */
     /* Scaled according to inventory scale config */
-    void *icon_mask;
     GdkPixbuf *icon_image;
     guint16 icon_width, icon_height;
     /* "Full icons", used in the spell list and inventory table view */
     /* Same as above, but not scaled */
-    void *full_icon_mask;
     GdkPixbuf *full_icon_image;
     guint16 full_icon_width, full_icon_height;
     /* Map images */
-    void *map_mask, *map_image;
-    guint16 map_width, map_height;
-    void *fog_image;
+    void *map_image; // same as full_icon_image, but as a cairo_surface_t
     guint16 smooth_face; /**< A face used for smoothing with this face. */
-#ifdef HAVE_OPENGL
-    GLuint map_texture, fog_texture;
-#endif
 } PixmapInfo;
 
 extern PixmapInfo *pixmaps[MAXPIXMAPNUM];

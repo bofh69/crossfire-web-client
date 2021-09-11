@@ -82,12 +82,10 @@ typedef struct Keys {
  * Helper function to make the code more readable
  */
 static void create_icon_image(guint8 *data, PixmapInfo *pi) {
-    pi->icon_mask = NULL;
     pi->icon_image = rgba_to_gdkpixbuf(data, pi->icon_width, pi->icon_height);
 }
 
 static void create_full_icon_image(guint8 *data, PixmapInfo *pi) {
-    pi->full_icon_mask = NULL;
     pi->full_icon_image = rgba_to_gdkpixbuf(data, pi->full_icon_width, pi->full_icon_height);
 }
 
@@ -98,9 +96,7 @@ static void create_full_icon_image(guint8 *data, PixmapInfo *pi) {
  * @param pi
  */
 static void create_map_image(guint8 *data, PixmapInfo *pi) {
-    pi->map_image = NULL;
-    pi->map_mask = NULL;
-    pi->map_image = rgba_to_cairo_surface(data, pi->map_width, pi->map_height);
+    pi->map_image = rgba_to_cairo_surface(data, pi->full_icon_width, pi->full_icon_height);
 }
 
 /**
@@ -122,17 +118,8 @@ static void free_pixmap(PixmapInfo *pi)
     if (pi->icon_image) {
         g_object_unref(pi->icon_image);
     }
-    if (pi->icon_mask) {
-        g_object_unref(pi->icon_mask);
-    }
     if (pi->full_icon_image) {
         g_object_unref(pi->full_icon_image);
-    }
-    if (pi->full_icon_mask) {
-        g_object_unref(pi->full_icon_mask);
-    }
-    if (pi->map_mask) {
-        g_object_unref(pi->map_mask);
     }
     if (pi->map_image) {
         cairo_surface_destroy(pi->map_image);
@@ -233,19 +220,7 @@ int create_and_rescale_image_from_data(Cache_Entry *ce, int pixmap_num,
         create_icon_image(rgba_data, pi);
     }
 
-    /*
-     * If icon_scale matched use_config[CONFIG_MAPSCALE], we could try to be
-     * more intelligent, but this should not be called too often, and this
-     * keeps the code simpler.
-     */
-    guint8 *png_tmp;
-
-    {
-        pi->map_width = width;
-        pi->map_height = height;
-        png_tmp = rgba_data;
-        create_map_image(png_tmp, pi);
-    }
+    create_map_image(rgba_data, pi);
     /*
      * Not ideal, but if it is missing the map or icon image, presume something
      * failed.  However, opengl doesn't set the map_image, so if using that
@@ -382,8 +357,8 @@ void get_map_image_size(int face, guint8 *w, guint8 *h)
         } else {
             scaled_image_size = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
         }
-        *w = (pixmaps[face]->map_width + scaled_image_size - 1)/ scaled_image_size;
-        *h = (pixmaps[face]->map_height + scaled_image_size - 1)/ scaled_image_size;
+        *w = (pixmaps[face]->full_icon_width + scaled_image_size - 1)/ scaled_image_size;
+        *h = (pixmaps[face]->full_icon_height + scaled_image_size - 1)/ scaled_image_size;
     }
 }
 
@@ -415,10 +390,8 @@ void init_image_cache_data(void)
     pixmaps[0]->full_icon_image =
         gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
     pixmaps[0]->map_image =  pixmaps[0]->icon_image;
-    pixmaps[0]->fog_image =  pixmaps[0]->icon_image;
-    pixmaps[0]->map_mask =  pixmaps[0]->icon_mask;
 
-    pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->full_icon_width = pixmaps[0]->full_icon_height = pixmaps[0]->map_width = pixmaps[0]->map_height = map_image_size;
+    pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->full_icon_width = pixmaps[0]->full_icon_height = map_image_size;
     pixmaps[0]->smooth_face = 0;
 
     /* Initialize all the images to be of the same value. */
