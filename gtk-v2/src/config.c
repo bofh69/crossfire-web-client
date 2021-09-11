@@ -717,7 +717,6 @@ static void read_config_dialog(void) {
     // Enable darkness if lighting is not 'None'.
     if (want_config[CONFIG_LIGHTING] != CFG_LT_NONE) {
         want_config[CONFIG_DARKNESS] = 1;
-        use_config[CONFIG_DARKNESS] = 1;
     }
 
     // Set UI file.
@@ -768,15 +767,6 @@ static void read_config_dialog(void) {
         use_config[CONFIG_FASTTCP] = want_config[CONFIG_FASTTCP];
     }
 
-    if (IS_DIFFERENT(CONFIG_LIGHTING)) {
-#ifdef HAVE_SDL
-        if (use_config[CONFIG_DISPLAYMODE] == CFG_DM_SDL)
-            /* This is done to make the 'lightmap' in the proper format */
-        {
-            init_SDL(NULL, 1);
-        }
-#endif
-    }
     /*
      * Nothing to do, but we can switch immediately without problems.  do force
      * a redraw
@@ -794,6 +784,7 @@ void on_configure_activate(GtkWidget *menuitem, gpointer user_data) {
 
 static void on_config_close(GtkButton *button, gpointer user_data) {
     read_config_dialog();
+    config_check();
     save_defaults();
     gtk_widget_hide(config_dialog);
 }
