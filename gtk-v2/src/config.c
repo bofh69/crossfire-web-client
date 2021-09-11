@@ -386,6 +386,12 @@ void config_check() {
     }
 #endif
 
+    if (want_config[CONFIG_CACHE]) {
+        LOG(LOG_ERROR, "config_check",
+                "Image caching is not currently supported in this client. Running without image caching.");
+        want_config[CONFIG_CACHE] = 0;
+    }
+
     /* Copy sanitized user settings to current settings. */
     memcpy(use_config, want_config, sizeof(use_config));
 
