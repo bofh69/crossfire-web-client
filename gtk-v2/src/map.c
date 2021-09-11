@@ -429,19 +429,23 @@ static void update_global_offset() {
  */
 void draw_map() {
     gint64 t_start, t_end;
+    t_start = g_get_monotonic_time();
 
     update_global_offset();
-
-    if (time_map_redraw) {
-        t_start = g_get_monotonic_time();
-    }
-
     gtk_map_redraw();
 
+    t_end = g_get_monotonic_time();
+    gint64 elapsed = t_end - t_start;
     if (time_map_redraw) {
-        t_end = g_get_monotonic_time();
-        gint64 elapsed = t_end - t_start;
         printf("profile/redraw,%"G_GINT64_FORMAT"\n", elapsed);
+    }
+
+    const unsigned int target_redraw = 100000;
+    if (elapsed > target_redraw) {
+        LOG(LOG_DEBUG, "draw_map", "Increasing mapscale to %d to reduce draw time below %u us",
+                use_config[CONFIG_MAPSCALE], target_redraw);
+        use_config[CONFIG_MAPSCALE] += 5;
+        map_check_resize();
     }
 }
 
