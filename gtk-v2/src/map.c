@@ -64,6 +64,15 @@ void map_check_resize() {
     w = (w > MAP_MAX_SIZE) ? MAP_MAX_SIZE : w;
     h = (h > MAP_MAX_SIZE) ? MAP_MAX_SIZE : h;
 
+    // If request would be even, make it odd so player is centered.
+    if (w % 2 == 0) {
+        w += 1;
+    }
+
+    if (h % 2 == 0) {
+        h += 1;
+    }
+
     if (w != want_config[CONFIG_MAPWIDTH] || h != want_config[CONFIG_MAPHEIGHT]) {
         want_config[CONFIG_MAPWIDTH] = w;
         want_config[CONFIG_MAPHEIGHT] = h;
