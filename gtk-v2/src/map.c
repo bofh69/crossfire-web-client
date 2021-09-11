@@ -331,8 +331,8 @@ static void mapcell_draw_darkness(cairo_t *cr, int ax, int ay, int mx, int my) {
 /**
  * Redraw the entire map using GTK.
  */
-static void gtk_map_redraw(gboolean redraw) {
-    if (!redraw && !map_updated) {
+static void gtk_map_redraw() {
+    if (!map_updated) {
         return;
     }
 
@@ -426,9 +426,8 @@ static void update_global_offset() {
 
 /**
  * Draw the map window using the appropriate backend.
- * @param redraw If true, the entire screen must be redrawn.
  */
-void draw_map(gboolean redraw) {
+void draw_map() {
     gint64 t_start, t_end;
 
     update_global_offset();
@@ -437,7 +436,7 @@ void draw_map(gboolean redraw) {
         t_start = g_get_monotonic_time();
     }
 
-    gtk_map_redraw(redraw);
+    gtk_map_redraw();
 
     if (time_map_redraw) {
         t_end = g_get_monotonic_time();
@@ -448,7 +447,7 @@ void draw_map(gboolean redraw) {
 
 static gboolean map_expose_event(GtkWidget *widget, GdkEventExpose *event,
         gpointer user_data) {
-    draw_map(TRUE);
+    draw_map();
     return FALSE;
 }
 

@@ -133,7 +133,7 @@ extern void show_main_client(void);
 extern void map_init(GtkWidget *window_root);
 extern int display_mapscroll(int dx, int dy);
 extern void resize_map_window(int x, int y);
-extern void draw_map(int redraw);
+extern void draw_map(void);
 extern void display_map_doneupdate(int redraw, int notice);
 /* magicmap.c */
 extern void draw_magic_map(void);

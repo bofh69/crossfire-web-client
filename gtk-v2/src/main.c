@@ -132,12 +132,9 @@ static gboolean redraw(gpointer data) {
                 cpl.container->inv_updated = 1;
             }
             cpl.ob->inv_updated = 1;
-
             have_new_image = 0;
-            draw_map(1);
-        } else {
-            draw_map(0);
         }
+        draw_map();
         draw_lists();
     }
     return FALSE;
