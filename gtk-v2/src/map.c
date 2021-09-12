@@ -13,8 +13,8 @@
 
 /**
  * @file
- * Handles map related code in terms of allocation, insertion of new objects,
- * and actual rendering (although the sdl rendering is in the sdl file
+ * Initializes and renders the map drawing area. Handles map drawing area
+ * events, notably the "click to look at" mouse event.
  */
 
 #include "client.h"
@@ -27,30 +27,21 @@
 #include "mapdata.h"
 #include "gtk2proto.h"
 
+/* Configuration (from config.c) */
+extern int predict_alpha;
+extern bool time_map_redraw;
+
+int map_image_size = DEFAULT_IMAGE_SIZE;
 static gboolean map_updated = FALSE;
 
-// Declarations for local event-handling functions.
+GtkWidget *map_notebook;
+static GtkWidget *map_drawing_area;
+
+// Forward declarations for events
 static gboolean map_button_event(GtkWidget *widget,
         GdkEventButton *event, gpointer user_data);
 static gboolean map_expose_event(GtkWidget *widget,
         GdkEventExpose *event, gpointer user_data);
-
-PlayerPosition pl_pos;
-
-extern int predict_alpha;
-
-int map_image_size = DEFAULT_IMAGE_SIZE;
-int map_image_half_size = DEFAULT_IMAGE_SIZE / 2;
-
-static GtkWidget *map_drawing_area;
-
-GtkWidget *map_notebook;
-
-/*
- * This should really be one of the CONFIG values, or perhaps a checkbox
- * someplace that displays frame rate.
- */
-bool time_map_redraw = false;
 
 /**
  * Calculate and set desired map size based on map window size.
@@ -119,7 +110,6 @@ void map_init(GtkWidget *window_root) {
     if (face_info.facesets[face_info.faceset].size != NULL) {
         image_size = atoi(face_info.facesets[face_info.faceset].size);
         map_image_size  = image_size; // These should be the same.
-        map_image_half_size = map_image_size / 2;
     } else {
         LOG(LOG_ERROR, "map_init", "Invalid faceset size from server");
     }

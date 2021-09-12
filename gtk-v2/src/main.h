@@ -31,7 +31,7 @@ extern GtkWidget *map_notebook;
 extern GtkWidget *connect_window;
 
 #define DEFAULT_IMAGE_SIZE      32
-extern int map_image_size, map_image_half_size, image_size;
+extern int map_image_size, image_size;
 
 #define DEFAULT_UI CF_DATADIR "/ui/gtk-v2.ui"
 #define DIALOG_FILENAME CF_DATADIR "/ui/dialogs.ui"

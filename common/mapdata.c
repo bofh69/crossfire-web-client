@@ -24,6 +24,8 @@
 #include "external.h"
 #include "mapdata.h"
 
+PlayerPosition pl_pos;
+
 /**
  * Position of a player on the map, relative to the coordinates received
  * after a 'newmap' command. These are kept to for reporting to client scripts.

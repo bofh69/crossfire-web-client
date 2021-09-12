@@ -44,6 +44,13 @@ GtkComboBox *config_combobox_displaymode, *config_combobox_lighting;
 static char *theme;
 char* last_server;
 
+/*
+ * This should really be one of the CONFIG values, or perhaps a checkbox
+ * someplace that displays frame rate.
+ */
+bool time_map_redraw = false;
+
+/** Speed of local map prediction scrolling, 0-100 (0 to disable). */
 int predict_alpha;
 
 static void on_config_close(GtkButton *button, gpointer user_data);
