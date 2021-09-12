@@ -297,12 +297,12 @@ static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int n
             const int mx = mx_start + x;
             const int my = my_start + y;
 
-            if (pass == 0) {
-                // Skip current cell if not visible and not using fog of war.
-                if (!use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
-                    continue;
-                }
+            // Skip current cell if not visible and not using fog of war.
+            if (!use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
+                continue;
+            }
 
+            if (pass == 0) {
                 int dx, dy, face = mapdata_face_info(mx, my, layer, &dx, &dy);
                 if (face > 0 && pixmaps[face]->map_image != NULL) {
                     draw_pixmap(cr, pixmaps[face], x + dx, y + dy, off_x, off_y);
