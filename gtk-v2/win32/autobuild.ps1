@@ -7,7 +7,7 @@
 # You have a working git
 # You've already 'git clone' the client and sounds repos, into the "sourcedir" and "sounddir" directories listed below
 # We have write permission into the C:\autobuild folder
-# Nothing major has changed since git e6dde587db37839cf89c63c3391efaebe418d3da. That's the last time this script was more or less debugged.
+# Nothing major has changed since git e460f2ab73e8c7900f428b8c066c6b1a11d63622. That's the last time this script was more or less debugged.
 # In MSYS' MinGW, you've installed:
 #     mingw-w64-x86_64-SDL_image
 #     mingw-w64-x86_64-SDL_mixer
@@ -28,10 +28,36 @@ $packagedir = "C:\autobuild\cfpackage"
 $7zipbinary = "$env:ProgramFiles\7-Zip\7z.exe"
 $nsisbinary = "$env:ProgramFiles (x86)\NSIS\makensis.exe"
 
+# A handy function to see if something is a command, or is in our PATH. Returns a simple $true/$false.
+# If we want to know *where* the executable was, then we'd use "Get-Command" by itself, which is similar to the Unix "which" command.
+Function Test-CommandExists
+{
+ Param ($command)
+ $oldPreference = $ErrorActionPreference
+ $ErrorActionPreference = ‘stop’
+ try {if(Get-Command $command){RETURN $true}}
+ Catch {Write-Host “$command does not exist”; RETURN $false}
+ Finally {$ErrorActionPreference=$oldPreference}
+} #end function test-CommandExists
+
 
 # Check to make sure the source exists. If not, abort.
 if (!(Test-Path $sourcedir\.git\config))
-    {Exit}
+    {throw "Can't confirm the source dir is a git dir."}
+
+if (!(Test-CommandExists cmake.exe))
+    {throw "cmake.exe is not in your PATH."}
+
+if (!(Test-CommandExists mingw32-make.exe))
+    {throw "mingw32-make.exe is not in your PATH."}
+
+if (!(Test-Path C:\msys64\mingw64\lib))
+    {throw "Can't find MinGW's lib folder. Make sure it's in C:\msys64\mingw64\lib\"}
+
+if (!(Test-Path C:\msys64\mingw64\share))
+    {throw "Can't find MinGW's share folder. Make sure it's in C:\msys64\mingw64\share\"}
+
+
 
 # Update the source tree
 pushd $sourcedir
@@ -56,7 +82,6 @@ $cmakeoutput = (
 # make sure you don't have another pkg-config in your PATH, such as
 # one supplied by a third--party PERL.
 
-
 # Run Make
 pushd $builddir
 $makeoutput = (mingw32-make.exe -j 4 2>&1 ) # if you have more cores, turn up the number of jobs with the "j" flag
@@ -66,6 +91,29 @@ popd
 # Get a rough count of compile warnings and errors
 $makewarnings = ($makeoutput | select-string -pattern ": warning:").count
 $makeerrors = ($makeoutput | select-string -pattern ": error:").count
+
+# We're done with the build and need to assemble all it's components into one place.
+# First, a few sanity checks.
+
+if (!(Test-Path C:\msys64\mingw64\lib))
+    {throw "Can't find MinGW's lib folder. Make sure it's in C:\msys64\mingw64\lib\"}
+
+if (!(Test-Path C:\msys64\mingw64\share))
+    {throw "Can't find MinGW's share folder. Make sure it's in C:\msys64\mingw64\share\"}
+
+if (!(Test-Path C:\msys64\mingw64\bin))
+    {throw "Can't find MinGW's bin folder. Make sure it's in C:\msys64\mingw64\bin\"}
+
+if (!(Test-Path C:\autobuild\cfbuild\share))
+    {throw "The 'make install' process didn't create the 'share' directory. It should be in $builddir\share"}
+
+if (!(Test-Path $builddir\bin\crossfire-client-gtk2.exe))
+    {throw "Can't find the Crossfire binary. It should be in $builddir\bin\crossfire-client-gtk2.exe"}
+
+if (!(Test-CommandExists C:\msys64\usr\bin\ldd.exe))
+    {throw "Can't find ldd.exe. It should be in C:\msys64\usr\bin\"}
+
+
 
 # Clean the directory to prepare for assembling the release
 If (Test-Path $releasedir) { Remove-Item $releasedir -recurse}
@@ -92,6 +140,7 @@ if (Test-Path $sounddir\.git\config) {
     mkdir "$releasedir\share\crossfire-client\sounds"
     Copy-Item -Path $sounddir\* -Destination $releasedir\share\crossfire-client\sounds\ -Recurse
     }
+    else {Write-Warning -Message "Couldn't find the sounds, so we won't copy them into the build."}
 
 # Pull in the compiled binary. No need for a sound server binary anymore, since
 # git 1c9ba67464bf845ac1cc8bf4d7fb80774756cece or SVN 21700
@@ -118,9 +167,17 @@ Copy-Item C:\msys64\mingw64\bin\libvorbis-0.dll $releasedir
 Copy-Item C:\msys64\mingw64\bin\libvorbisfile-3.dll $releasedir
 Copy-Item C:\msys64\mingw64\bin\libogg-0.dll $releasedir
 
+# We're done with assembling the release. You should now be able to take $releasedir and run it on another system safely.
+# Let's do a few sanity checks before trying to make the package.
 
+if (!(Test-CommandExists $7zipbinary))
+    {throw "Can't find 7-zip."}
 
-# Whew, now we should have all DLLs. You should now be able to take $releasedir and run it on another system safely.
+if (!(Test-CommandExists C:\msys64\usr\bin\sha256sum.exe))
+    {throw "Can't find sha256sum.exe in the MSYS bin directory."}
+
+if (!(Test-CommandExists $nsisbinary))
+    {throw "Can't find NSIS."}
 
 # Time to make a zip package
 
