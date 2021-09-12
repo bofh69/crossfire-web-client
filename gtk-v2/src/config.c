@@ -48,6 +48,10 @@ int predict_alpha;
 
 static void on_config_close(GtkButton *button, gpointer user_data);
 
+static bool IS_DIFFERENT(int type) {
+    return want_config[type] != use_config[type];
+}
+
 /**
  * Return the basename of the current UI file.
  */
@@ -313,10 +317,9 @@ static void config_load_legacy() {
 }
 
 /**
- * Sanity check values set in want_config and copy them over to use_config
- * when all of them are acceptable.
- *
- * This function should be called after config_load() and parse_args().
+ * Check that want_config is valid, copy the new configuration to use_config,
+ * and apply the new configuration. Call this after changing want_config,
+ * either through config_load() or on_config_close().
  */
 void config_check() {
     if (want_config[CONFIG_ICONSCALE] < 25 ||
@@ -328,11 +331,10 @@ void config_check() {
         want_config[CONFIG_ICONSCALE] = use_config[CONFIG_ICONSCALE];
     }
 
-    if (want_config[CONFIG_MAPSCALE] < 25 ||
-            want_config[CONFIG_MAPSCALE] > 200) {
+    if (want_config[CONFIG_MAPSCALE] < 10 || want_config[CONFIG_MAPSCALE] > 200) {
         LOG(LOG_WARNING, "config_check",
                 "Ignoring invalid 'mapscale' value '%d'; "
-                "must be between 25 and 200.\n",
+                "must be between 10 and 200.\n",
                 want_config[CONFIG_MAPSCALE]);
         want_config[CONFIG_MAPSCALE] = use_config[CONFIG_MAPSCALE];
     }
@@ -392,12 +394,36 @@ void config_check() {
         want_config[CONFIG_CACHE] = 0;
     }
 
+    // Enable darkness if lighting is not 'None'.
+    if (want_config[CONFIG_LIGHTING] != CFG_LT_NONE) {
+        want_config[CONFIG_DARKNESS] = 1;
+    }
+
+    if (want_config[CONFIG_SOUND] && init_sounds()) {
+        use_config[CONFIG_SOUND] = 1;
+    } else {
+        use_config[CONFIG_SOUND] = 0;
+    }
+    if (csocket.fd) {
+        cs_print_string(csocket.fd, "setup sound %d", use_config[CONFIG_SOUND]);
+    }
+
+#ifdef TCP_NODELAY
+#ifndef WIN32
+    // TODO: Merge with setsockopt code from client.c
+    int q = want_config[CONFIG_FASTTCP];
+
+    if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1) {
+        perror("TCP_NODELAY");
+    }
+#endif
+#endif
+
     /* Copy sanitized user settings to current settings. */
     memcpy(use_config, want_config, sizeof(use_config));
 
+    map_check_resize();
     image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
-    map_image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 100;
-    map_image_half_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_MAPSCALE] / 200;
     if (!use_config[CONFIG_CACHE]) {
         use_config[CONFIG_DOWNLOAD] = FALSE;
     }
@@ -645,8 +671,6 @@ static void setup_config_dialog() {
     gtk_file_chooser_set_filename(theme_filechooser, theme);
 }
 
-#define IS_DIFFERENT(TYPE) (want_config[TYPE] != use_config[TYPE])
-
 /**
  * Get an integer value from 'column' of the active field in 'combobox'.
  */
@@ -720,11 +744,6 @@ static void read_config_dialog(void) {
     want_config[CONFIG_LIGHTING] =
         gtk_combo_box_get_active(config_combobox_lighting);
 
-    // Enable darkness if lighting is not 'None'.
-    if (want_config[CONFIG_LIGHTING] != CFG_LT_NONE) {
-        want_config[CONFIG_DARKNESS] = 1;
-    }
-
     // Set UI file.
     buf = gtk_file_chooser_get_filename(ui_filechooser);
     if (buf != NULL) {
@@ -740,45 +759,7 @@ static void read_config_dialog(void) {
         load_theme(TRUE);
     }
 
-    /*
-     * Some values can take effect right now, others not.  Code below handles
-     * these cases - largely grabbed from gtk/config.c
-     */
-    if (IS_DIFFERENT(CONFIG_SOUND)) {
-        int tmp;
-        if (want_config[CONFIG_SOUND]) {
-            tmp = init_sounds();
-            if (csocket.fd) {
-                cs_print_string(csocket.fd, "setup sound %d", tmp >= 0);
-            }
-        } else {
-            if (csocket.fd) {
-                cs_print_string(csocket.fd, "setup sound 0");
-            }
-        }
-        use_config[CONFIG_SOUND] = want_config[CONFIG_SOUND];
-    }
-    if (IS_DIFFERENT(CONFIG_FASTTCP)) {
-#ifdef TCP_NODELAY
-#ifndef WIN32
-        // TODO: Merge with setsockopt code from client.c
-        int q = want_config[CONFIG_FASTTCP];
-
-        if (csocket.fd &&
-                setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1) {
-            perror("TCP_NODELAY");
-        }
-#endif
-#endif
-        use_config[CONFIG_FASTTCP] = want_config[CONFIG_FASTTCP];
-    }
-
-    /*
-     * Nothing to do, but we can switch immediately without problems.  do force
-     * a redraw
-     */
     if (IS_DIFFERENT(CONFIG_GRAD_COLOR)) {
-        use_config[CONFIG_GRAD_COLOR] = want_config[CONFIG_GRAD_COLOR];
         draw_stats(TRUE);
     }
 }

@@ -32,7 +32,8 @@
 #define H2(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 #define LINE(a) draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, a)
 
-extern void map_check_resize();
+extern void config_check(void);
+extern void map_check_resize(void);
 
 /* TODO Help topics other than commands? Refer to other documents? */
 
@@ -213,13 +214,8 @@ static void do_savewinpos() { save_winpos(); }
 static void do_set_mapscale(const char *used) {
     if (used != NULL) {
         long long scale = strtoll(used, NULL, 0);
-        if (scale >= 10 && scale <= 200) {
-            use_config[CONFIG_MAPSCALE] = scale;
-            map_check_resize();
-        } else {
-            draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
-                    "invalid mapscale argument");
-        }
+        want_config[CONFIG_MAPSCALE] = scale;
+        config_check();
     } else {
         draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG,
                 "mapscale command requires an argument");

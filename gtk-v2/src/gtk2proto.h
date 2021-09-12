@@ -39,9 +39,6 @@ extern void config_check();
 extern void config_load(void);
 extern void save_defaults(void);
 extern void config_init(GtkWidget *window_root);
-extern void on_config_button_save_clicked(GtkButton *button, gpointer user_data);
-extern void on_config_button_apply_clicked(GtkButton *button, gpointer user_data);
-extern void on_config_button_close_clicked(GtkButton *button, gpointer user_data);
 extern void on_configure_activate(GtkWidget *menuitem, gpointer user_data);
 extern void save_winpos(void);
 extern void on_save_window_position_activate(GtkMenuItem *menuitem, gpointer user_data);
@@ -130,6 +127,7 @@ extern int main(int argc, char *argv[]);
 extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, int *w, int *h);
 extern void show_main_client(void);
 /* map.c */
+extern void map_check_resize(void);
 extern void map_init(GtkWidget *window_root);
 extern int display_mapscroll(int dx, int dy);
 extern void resize_map_window(int x, int y);

@@ -56,6 +56,11 @@ bool time_map_redraw = false;
  * Calculate and set desired map size based on map window size.
  */
 void map_check_resize() {
+    if (!GTK_IS_WIDGET(map_drawing_area)) {
+        // Called by config_check(), but main window layout not yet loaded.
+        return;
+    }
+
     GtkAllocation size;
     gtk_widget_get_allocation(map_drawing_area, &size);
     int scaled_size = map_image_size * use_config[CONFIG_MAPSCALE] / 100;
@@ -76,7 +81,9 @@ void map_check_resize() {
     if (w != want_config[CONFIG_MAPWIDTH] || h != want_config[CONFIG_MAPHEIGHT]) {
         want_config[CONFIG_MAPWIDTH] = w;
         want_config[CONFIG_MAPHEIGHT] = h;
-        client_mapsize(w, h);
+        if (csocket.fd) {
+            client_mapsize(w, h);
+        }
     }
 }
 
