@@ -136,7 +136,7 @@ void cf_play_sound(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
 
     SoundInfo* si = g_hash_table_lookup(sounds, sound);
     if (si == NULL) {
-        LOG(LOG_WARNING, "cf_play_sound", "sound not defined: %s\n", sound);
+        LOG(LOG_WARNING, "cf_play_sound", "sound not defined: %s", sound);
         return;
     }
 
