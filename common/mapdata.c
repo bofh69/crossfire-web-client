@@ -24,11 +24,14 @@
 #include "external.h"
 #include "mapdata.h"
 
+/**
+ * Position of the player on the internal map. Internal to the client.
+ */
 PlayerPosition pl_pos;
 
 /**
- * Position of a player on the map, relative to the coordinates received
- * after a 'newmap' command. These are kept to for reporting to client scripts.
+ * Position of the player reported to client scripts. It resets to (0, 0)
+ * after a 'newmap' command.
  */
 PlayerPosition script_pos;
 
@@ -79,6 +82,7 @@ struct BigCell {
     guint8 layer;
 };
 
+/* Global map rendering offsets used for local scroll prediction. */
 int global_offset_x = 0;
 int global_offset_y = 0;
 int want_offset_x = 0;
@@ -87,10 +91,8 @@ int want_offset_y = 0;
 static void recenter_virtual_map_view(int diff_x, int diff_y);
 static void mapdata_get_image_size(int face, guint8 *w, guint8 *h);
 
-
 static int width;   //< width of current map view
 static int height;  //< height of current map view
-
 
 /**
  * Contains the head of a list of all currently active big faces outside the
