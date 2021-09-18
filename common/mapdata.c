@@ -610,6 +610,8 @@ void mapdata_free(void) {
     if (the_map._cells != NULL) {
         g_free(the_map._cells);
         the_map._cells = NULL;
+        the_map.width = 0;
+        the_map.height = 0;
     }
 }
 
