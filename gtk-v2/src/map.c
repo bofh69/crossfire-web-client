@@ -481,14 +481,59 @@ static int relative_direction(int dx, int dy) {
 }
 
 /**
+ * Given x, y coordinates on the map drawing area, determine the tile that the
+ * coordinates are on with respect to the player. Clicking on the tile with
+ * the player returns (0, 0).
+ */
+static void coord_to_tile(int x, int y, int *dx, int *dy) {
+    // Calculate tile below (x, y) coordinates. The top left corner is (0, 0).
+    // This is easy, just floor divide the coordinates by tile size.
+    const float tile_size = map_image_size * use_config[CONFIG_MAPSCALE]/100.0;
+    int mx = x / tile_size;
+    int my = y / tile_size;
+
+    // Now calculate where the player is drawn. The code below is copied from
+    // gtk_map_redraw() (see the comments there):
+    GtkAllocation size;
+    gtk_widget_get_allocation(map_drawing_area, &size);
+
+    float scale = use_config[CONFIG_MAPSCALE]/100.0;
+    const double ew = size.width / scale;
+    const double eh = size.height / scale;
+
+    const int nx = (int)ceilf(ew / map_image_size);
+    const int ny = (int)ceilf(eh / map_image_size);
+
+    const int vw = use_config[CONFIG_MAPWIDTH];
+    const int vh = use_config[CONFIG_MAPHEIGHT];
+
+    // Normally, the player is centered in the middle of the server viewport
+    // (with floor division).
+    int ox = vw / 2;
+    int oy = vh / 2;
+
+    // If mapscale is less than 100, what is shown in the client no longer
+    // matches the viewport. Add the right offset.
+    if (nx > vw) {
+        ox += (nx - vw)/2;
+    }
+
+    if (ny > vh) {
+        oy += (ny - vh)/2;
+    }
+
+    // Shift the clicked tile by the player's position.
+    *dx = mx - ox;
+    *dy = my - oy;
+}
+
+/**
  * Handle a mouse event in the drawing area.
  */
 static gboolean map_button_event(GtkWidget *widget,
         GdkEventButton *event, gpointer user_data) {
-    // Determine the tile of the mouse event, relative to the player.
-    const float tile_size = map_image_size * use_config[CONFIG_MAPSCALE]/100.0;
-    int dx = ((int)event->x - 2) / tile_size - (use_config[CONFIG_MAPWIDTH] / 2);
-    int dy = ((int)event->y - 2) / tile_size - (use_config[CONFIG_MAPHEIGHT] / 2);
+    int dx, dy;
+    coord_to_tile((int)event->x, (int)event->y, &dx, &dy);
     int dir = relative_direction(dx, dy);
 
     switch (event->button) {
