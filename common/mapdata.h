@@ -161,6 +161,7 @@ bool is_at_moveto(void);
 void run_move_to(void);
 
 extern int move_to_x, move_to_y;
+extern bool move_to_attack;
 extern int global_offset_x, want_offset_x;
 extern int global_offset_y, want_offset_y;
 

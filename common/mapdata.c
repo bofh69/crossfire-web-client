@@ -37,6 +37,7 @@ PlayerPosition script_pos;
 
 /** Move to coordinates on the current map. (0, 0) means no destination. */
 int move_to_x = 0, move_to_y = 0;
+bool move_to_attack = false;
 
 /**
  * Size of virtual map.
@@ -1459,14 +1460,25 @@ void pl_mpos(int *px, int *py) {
 }
 
 void set_move_to(int dx, int dy) {
+    int old_move_to_x = move_to_x;
+    int old_move_to_y = move_to_y;
+
     pl_mpos(&move_to_x, &move_to_y);
     move_to_x += dx;
     move_to_y += dy;
+
+    if (move_to_x == old_move_to_x && move_to_y == old_move_to_y) {
+        // Detect double-click.
+        move_to_attack = true;
+    } else {
+        move_to_attack = false;
+    }
 }
 
 void clear_move_to() {
     move_to_x = 0;
     move_to_y = 0;
+    move_to_attack = false;
 }
 
 bool is_at_moveto() {
@@ -1491,5 +1503,10 @@ void run_move_to() {
     int dx = move_to_x - px;
     int dy = move_to_y - py;
     int dir = relative_direction(dx, dy);
-    walk_dir(dir);
+
+    if (move_to_attack) {
+        run_dir(dir);
+    } else {
+        walk_dir(dir);
+    }
 }

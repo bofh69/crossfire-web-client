@@ -382,7 +382,11 @@ static void gtk_map_redraw() {
                 int sx = x * map_image_size;
                 int sy = y * map_image_size;
                 cairo_rectangle(cr, sx + global_offset_x, sy + global_offset_y, map_image_size, map_image_size);
-                cairo_set_source_rgb(cr, 1, 1, 0); // yellow
+                if (move_to_attack) {
+                    cairo_set_source_rgb(cr, 1, 0, 0); // red to attack
+                } else {
+                    cairo_set_source_rgb(cr, 1, 1, 0); // yellow to walk
+                }
                 cairo_set_line_width(cr, 2);
                 cairo_stroke(cr);
                 cairo_rectangle(cr, sx + global_offset_x + 2, sy + global_offset_y + 2, map_image_size - 4, map_image_size - 4);
