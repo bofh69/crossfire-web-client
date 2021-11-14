@@ -1492,6 +1492,11 @@ bool is_at_moveto() {
 }
 
 void run_move_to() {
+    if (move_to_x == 0 && move_to_y == 0) {
+        // If not moving to a tile, skip to avoid calling stop_run().
+        return;
+    }
+
     if (is_at_moveto()) {
         clear_move_to();
         stop_run();
