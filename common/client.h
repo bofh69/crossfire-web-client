@@ -93,6 +93,7 @@ extern char VERSION_INFO[256];
 #define SC_NORMAL  0
 #define SC_FIRERUN 1
 #define SC_ALWAYS  2
+#define SC_MOVETO  3
 /*@}*/
 
 typedef struct Animations {

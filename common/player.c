@@ -160,6 +160,14 @@ int command_to_direction(const char *dir) {
     return -1;
 }
 
+const char* dir_to_command(int dir) {
+    return directions[dir];
+}
+
+void walk_dir(int dir) {
+    send_command(dir_to_command(dir), -1, SC_MOVETO);
+}
+
 /**
  * Change map drawing offset to provide local movement prediction based on
  * player's movement commands to the server.
@@ -275,6 +283,9 @@ int send_command(const char *command, int repeat, int must_send) {
             if (drun == -1 && dir != -1) {
                 // If movement command, predict scroll.
                 predict_scroll(dir);
+                if (must_send != SC_MOVETO) {
+                    clear_move_to();
+                }
             }
         }
     } else {

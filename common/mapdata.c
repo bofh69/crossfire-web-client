@@ -35,6 +35,9 @@ PlayerPosition pl_pos;
  */
 PlayerPosition script_pos;
 
+/** Move to coordinates on the current map. (0, 0) means no destination. */
+int move_to_x = 0, move_to_y = 0;
+
 /**
  * Size of virtual map.
  */
@@ -985,6 +988,8 @@ void mapdata_scroll(int dx, int dy)
     while (bigfaces_head != NULL) {
         expand_clear_bigface_from_layer(bigfaces_head->x, bigfaces_head->y, bigfaces_head->layer, 0);
     }
+
+    run_move_to();
 }
 
 void mapdata_newmap(void)
@@ -1013,6 +1018,9 @@ void mapdata_newmap(void)
     while (bigfaces_head != NULL) {
         expand_clear_bigface_from_layer(bigfaces_head->x, bigfaces_head->y, bigfaces_head->layer, 0);
     }
+
+    // Clear destination.
+    clear_move_to();
 }
 
 /**
@@ -1436,4 +1444,52 @@ void mapdata_animation(void)
             }
         }
     }
+}
+
+/**
+ * Compute player position in map coordinates. Unlike pl_pos.x and pl_pos.y
+ * which store the top left corner of the virtual map, this returns the actual
+ * position of the player.
+ */
+void pl_mpos(int *px, int *py) {
+    const int vw = use_config[CONFIG_MAPWIDTH];
+    const int vh = use_config[CONFIG_MAPHEIGHT];
+    *px = pl_pos.x + vw/2;
+    *py = pl_pos.y + vh/2;
+}
+
+void set_move_to(int dx, int dy) {
+    pl_mpos(&move_to_x, &move_to_y);
+    move_to_x += dx;
+    move_to_y += dy;
+}
+
+void clear_move_to() {
+    move_to_x = 0;
+    move_to_y = 0;
+}
+
+bool is_at_moveto() {
+    if (move_to_x == 0 && move_to_y == 0) {
+        return true;
+    }
+
+    int px, py;
+    pl_mpos(&px, &py);
+    return !(move_to_x != px || move_to_y != py);
+}
+
+void run_move_to() {
+    if (is_at_moveto()) {
+        clear_move_to();
+        stop_run();
+        return;
+    }
+
+    int px, py;
+    pl_mpos(&px, &py);
+    int dx = move_to_x - px;
+    int dy = move_to_y - py;
+    int dir = relative_direction(dx, dy);
+    walk_dir(dir);
 }

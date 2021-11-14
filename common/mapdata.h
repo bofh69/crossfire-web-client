@@ -150,9 +150,17 @@ void mapdata_set_face_layer(int x, int y, gint16 face, int layer);
 void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int layer);
 gint16 mapdata_bigface_head(int x, int y, int layer, int *ww, int *hh);
 void mapdata_animation(void);
+int relative_direction(int dx, int dy);
 
 extern PlayerPosition script_pos;
 
+void pl_mpos(int *px, int *py);
+void set_move_to(int dx, int dy);
+void clear_move_to(void);
+bool is_at_moveto(void);
+void run_move_to(void);
+
+extern int move_to_x, move_to_y;
 extern int global_offset_x, want_offset_x;
 extern int global_offset_y, want_offset_y;
 

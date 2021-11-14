@@ -100,6 +100,7 @@ void clear_run(void);
 void fire_dir(int dir);
 void stop_run(void);
 void run_dir(int dir);
+void walk_dir(int dir);
 int send_command(const char *command, int repeat, int must_send);
 void CompleteCmd(unsigned char *data, int len);
 void command_take(const char *command, const char *cpnext);

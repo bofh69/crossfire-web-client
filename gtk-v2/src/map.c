@@ -376,6 +376,20 @@ static void gtk_map_redraw() {
             mapcell_draw_darkness(cr, x, y, mx, my);
             mapdata_cell(mx, my)->need_update = 0;
             mapdata_cell(mx, my)->need_resmooth = 0;
+
+            // Draw move-to tile.
+            if (mx == move_to_x && my == move_to_y && !is_at_moveto()) {
+                int sx = x * map_image_size;
+                int sy = y * map_image_size;
+                cairo_rectangle(cr, sx + global_offset_x, sy + global_offset_y, map_image_size, map_image_size);
+                cairo_set_source_rgb(cr, 1, 1, 0); // yellow
+                cairo_set_line_width(cr, 2);
+                cairo_stroke(cr);
+                cairo_rectangle(cr, sx + global_offset_x + 2, sy + global_offset_y + 2, map_image_size - 4, map_image_size - 4);
+                cairo_set_source_rgb(cr, 0, 0, 0); // black
+                cairo_set_line_width(cr, 1);
+                cairo_stroke(cr);
+            }
         }
     }
 
@@ -456,7 +470,7 @@ static gboolean map_expose_event(GtkWidget *widget, GdkEventExpose *event,
  * @param dy Relative 'y' coordinate
  * @return 0 if x and y are both zero, 1-8 for each compass direction
  */
-static int relative_direction(int dx, int dy) {
+int relative_direction(int dx, int dy) {
     if (dx == 0 && dy == 0) {
         return 0;
     } else if (dx == 0 && dy < 0) {
@@ -550,10 +564,9 @@ static gboolean map_button_event(GtkWidget *widget,
             }
             break;
         case 3:
-            if (event->type == GDK_BUTTON_RELEASE) {
-                stop_run();
-            } else {
-                run_dir(dir);
+            if (event->type == GDK_BUTTON_PRESS) {
+                set_move_to(dx, dy);
+                run_move_to();
             }
             break;
     }
