@@ -183,7 +183,7 @@ widget_class "inv_cursed" style "inv_cursed"
 
 style "inv_magical"
 {
-    text[NORMAL] = "blue"
+    text[NORMAL] = "skyblue"
 }
 widget_class "inv_magical" style "inv_magical"
 
