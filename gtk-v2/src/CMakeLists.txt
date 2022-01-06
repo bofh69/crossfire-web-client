@@ -43,7 +43,6 @@ target_include_directories(crossfire-client-gtk2
             ${PROJECT_BINARY_DIR}/common
             ${PROJECT_SOURCE_DIR}/common
             ${GTK_INCLUDE_DIRS}
-            ${OPENGL_INCLUDE_DIR}
             ${PNG_INCLUDE_DIRS}
             ${SDLMIXER_INCLUDE_DIRS}
             ${SDL_INCLUDE_DIR}
@@ -53,7 +52,6 @@ target_link_libraries(crossfire-client-gtk2 cfclient
     ${CURL_LDFLAGS}
     ${GTK_LDFLAGS}
     ${LUA_LIBRARIES}
-    ${OPENGL_LIBRARIES}
     ${PNG_LIBRARIES}
     ${SDL_LDFLAGS}
     ${SDLMIXER_LDFLAGS}

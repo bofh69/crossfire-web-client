@@ -24,7 +24,7 @@ To build with the default options, change to the source directory and run::
 
 To build with minimal dependencies, use this CMake command instead::
 
-    $ cmake -DLUA=OFF -DMETASERVER2=OFF -DOPENGL=OFF -DSDL=OFF -DSOUND=OFF ..
+    $ cmake -DLUA=OFF -DMETASERVER2=OFF -DSOUND=OFF ..
 
 To build with debugging symbols::
 
@@ -49,8 +49,6 @@ Optional:
 
 - libcurl (for metaserver support)
 - Lua 5 (for client-side Lua scripting)
-- OpenGL (gl, glu, glx) (for OpenGL rendering)
-- SDL (for SDL rendering)
 - SDL_mixer (for sound support)
 
 
