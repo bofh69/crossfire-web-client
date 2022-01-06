@@ -1,3 +1,28 @@
+1.75.2
+======
+2022-01-06
+
+**Added**
+
+- Added 'mapscale' command to change map scaling
+- Right-click a tile to walk to it, double right-click to attack
+- Spells window shows spell icons
+
+**Changed**
+
+- All commands, not just key bindings, are shown when command echo is enabled
+- Improve text readability in the 'Black' theme
+- Image caching has been disabled until some bugs can be fixed
+
+**Removed**
+
+- OpenGL and SDL renderers have been removed
+
+**Fixed**
+
+- Fixed several bugs in the Pixmap renderer
+- Fixed mouse-click examine showing the wrong tile
+
 1.75.1
 ======
 2021-08-19
