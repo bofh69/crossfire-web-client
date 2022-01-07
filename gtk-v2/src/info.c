@@ -298,6 +298,8 @@ struct msgctrl_data_t {
  * @} EndOf GTK V2 Message Control System.
  */
 
+extern bool arm_mapedit;
+
 /**
  * Sets attributes in the text tag from a style.  Best I can gather, there is
  * no way to take all of the attributes from a style and apply them directly to
@@ -1098,6 +1100,20 @@ void info_buffer_tick(void)
     }
 }
 
+static void launch_mapedit(const char *path) {
+    const char *editor = getenv("CF_MAP_EDITOR");
+    if (editor == NULL) {
+        LOG(LOG_ERROR, "mapedit", "CF_MAP_EDITOR is not defined");
+    }
+
+    if (fork() == 0) {
+        LOG(LOG_INFO, "mapedit", "Launching map editor on '%s'", path);
+        execlp(editor, editor, path, NULL);
+        perror("could not launch editor");
+        exit(1);
+    }
+}
+
 /**
  * A callback to accept messages along with meta information color and type.
  * Unlike the GTK V1 client, we don't do anything tricky like popups with
@@ -1148,6 +1164,23 @@ message_callback(int orig_color, int type, int subtype, char *message)
      * at the end of the string in the buffer. IE. If the buffer size is 40,
      * only 39 chars can be put into it to ensure room for a null character.
      */
+    if (arm_mapedit) {
+        arm_mapedit = false;
+        char *msg_cpy = strdup(message);
+        char *ptr = msg_cpy;
+        ptr = strtok(ptr, ")");
+        if (ptr != NULL) {
+            ptr = strtok(ptr, "(");
+            ptr = strtok(NULL, "(");
+            if (ptr != NULL) {
+                launch_mapedit(ptr);
+            } else {
+                LOG(LOG_INFO, "mapedit", "Could not parse map path from '%s'", message);
+            }
+        }
+        free(msg_cpy);
+    }
+
     if ((type <  1)
             ||  (type >= MSG_TYPE_LAST)
             ||  (orig_color == NDI_UNIQUE)

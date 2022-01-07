@@ -35,6 +35,9 @@
 extern void config_check(void);
 extern void map_check_resize(void);
 
+/** If true, the next drawextinfo is expected to contain a map path. */
+bool arm_mapedit = false;
+
 /* TODO Help topics other than commands? Refer to other documents? */
 
 static int get_num_commands(void);
@@ -211,6 +214,11 @@ static void do_savedefaults() { save_defaults(); }
 
 static void do_savewinpos() { save_winpos(); }
 
+static void do_mapedit() {
+    send_command("mapinfo", -1, 1);
+    arm_mapedit = true;
+}
+
 static void do_set_mapscale(const char *used) {
     if (used != NULL) {
         long long scale = strtoll(used, NULL, 0);
@@ -334,6 +342,8 @@ static ConsoleCommand CommonCommands[] = {
 
     {"magicmap", COMM_CAT_MISC, do_magicmap, help_magicmap,
      HELP_MAGICMAP_SHORT},
+
+    {"mapedit", COMM_CAT_MISC, do_mapedit, NULL, NULL},
 
     {"mapscale", COMM_CAT_MISC, do_set_mapscale, NULL, NULL},
 
