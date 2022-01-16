@@ -306,21 +306,58 @@ static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int n
     }
 }
 
-/**
- * Draw darkness layer to a location on screen.
- */
-static void mapcell_draw_darkness(cairo_t *cr, int ax, int ay, int mx, int my) {
-    cairo_rectangle(cr, ax * map_image_size + global_offset_x, ay * map_image_size + global_offset_y,
-            map_image_size, map_image_size);
-
+static double mapcell_darkness(int mx, int my) {
     double opacity = mapdata_cell(mx, my)->darkness / 192.0 * 0.6;
-
     if (use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
         opacity += 0.2;
     }
+    return opacity;
+}
 
-    cairo_set_source_rgba(cr, 0, 0, 0, opacity);
-    cairo_fill(cr);
+static void draw_darkness(cairo_t *cr, int nx, int ny, int mx_start, int my_start) {
+    /**
+     * Create light map nx wide, ny tall. Add a border 1px around to get rid
+     * of edge effects.
+     */
+    cairo_surface_t *cst_lm = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, nx+2, ny+2);
+    cairo_t *cr_lm = cairo_create(cst_lm);
+    for (int x = -1; x <= nx+1; x++) {
+        for (int y = -1; y <= ny+1; y++) {
+            const int dx = MIN(MAX(0, x), nx);
+            const int dy = MIN(MAX(0, y), ny);
+
+            // Map coordinate to get darkness information from
+            const int mx = mx_start + dx;
+            const int my = my_start + dy;
+
+            // Destination coordinates on light map
+            const int ax = x + 1;
+            const int ay = y + 1;
+
+            cairo_rectangle(cr_lm, ax, ay, 1, 1);
+            cairo_set_source_rgba(cr_lm, 0, 0, 0, mapcell_darkness(mx, my));
+            cairo_fill(cr_lm);
+        }
+    }
+    cairo_destroy(cr_lm);
+
+    // Scale up light map and draw to map.
+    cairo_translate(cr, global_offset_x, global_offset_y);
+    cairo_scale(cr, map_image_size, map_image_size);
+    cairo_translate(cr, -1, -1);
+    cairo_set_source_surface(cr, cst_lm, 0, 0);
+    switch (use_config[CONFIG_LIGHTING]) {
+        case CFG_LT_TILE:
+            cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
+            break;
+        case CFG_LT_PIXEL:
+            cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_GOOD);
+            break;
+        case CFG_LT_PIXEL_BEST:
+            cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_BEST);
+            break;
+    }
+    cairo_paint(cr);
 }
 
 /**
@@ -373,7 +410,6 @@ static void gtk_map_redraw() {
             const int mx = mx_start + x;
             const int my = my_start + y;
 
-            mapcell_draw_darkness(cr, x, y, mx, my);
             mapdata_cell(mx, my)->need_update = 0;
             mapdata_cell(mx, my)->need_resmooth = 0;
 
@@ -397,6 +433,9 @@ static void gtk_map_redraw() {
         }
     }
 
+    if (use_config[CONFIG_LIGHTING] != 0) {
+        draw_darkness(cr, nx, ny, mx_start, my_start);
+    }
     cairo_destroy(cr);
 
     // Copy the double buffer on the map drawing area.
