@@ -4052,7 +4052,7 @@ Enter a character name and password to add this account. The character must alre
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="xpad">10</property>
-                            <property name="label" translatable="yes">Lighting (SDL)</property>
+                            <property name="label" translatable="yes">Lighting</property>
                           </object>
                           <packing>
                             <property name="top_attach">1</property>
@@ -4065,7 +4065,6 @@ Enter a character name and password to add this account. The character must alre
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="extension_events">all</property>
-                            <property name="tooltip_text" translatable="yes">This setting only applies when rendering with SDL. OpenGL uses its own lighting method, and Pixmap always uses per-tile lighting.</property>
                             <property name="model">sdl_lighting_liststore</property>
                             <child>
                               <object class="GtkCellRendererText" id="renderer1"/>
