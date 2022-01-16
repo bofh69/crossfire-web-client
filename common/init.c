@@ -150,7 +150,7 @@ static void init_config() {
     want_config[CONFIG_FOODBEEP] = FALSE;
     want_config[CONFIG_GRAD_COLOR] = FALSE;
     want_config[CONFIG_ICONSCALE] = 100;
-    want_config[CONFIG_LIGHTING] = CFG_LT_TILE;
+    want_config[CONFIG_LIGHTING] = CFG_LT_PIXEL;
     want_config[CONFIG_MAPHEIGHT] = 20;
     want_config[CONFIG_MAPSCALE] = 100;
     want_config[CONFIG_MAPSCROLL] = TRUE;
