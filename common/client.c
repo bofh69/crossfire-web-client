@@ -179,6 +179,26 @@ void client_disconnect() {
     csocket.fd = NULL;
 }
 
+/**
+ * Replace the non-printable characters in 'data' with a dot ('.') in a newly
+ * allocated, NUL-terminated string. Caller must free the result.
+ */
+char *printable(void *data, int len) {
+    char *buf = (char *)malloc(len+1);
+    if (buf != NULL) {
+        memcpy(buf, data, len);
+        for (int i = 0; i < len; i++) {
+            if (!isprint(buf[i])) {
+                buf[i] = '.';
+            } else if (buf[i] == '\n' || buf[i] == '\r') {
+                buf[i] = '\\';
+            }
+        }
+        buf[len] = '\0';
+    }
+    return buf;
+}
+
 void client_run() {
     GError* err = NULL;
     SockList inbuf;
@@ -229,8 +249,11 @@ void client_run() {
      */
     const char *cmdin = (char *)inbuf.buf + 2;
     if (debug_protocol) {
-        // Extra spaces in front to make S->C easier to see
-        LOG(LOG_INFO, "    S->C", "len %d cmd %s", len, cmdin);
+        char *data_print = printable(data, len);
+        if (data_print != NULL) {
+            LOG(LOG_INFO, "S->C", "len=%d cmd=%s |%s|", len, cmdin, data_print);
+            free(data_print);
+        }
     }
     int i;
     for(i = 0; i < NCOMMANDS; i++) {
