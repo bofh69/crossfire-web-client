@@ -1100,17 +1100,17 @@ void info_buffer_tick(void)
     }
 }
 
-static void launch_mapedit(const char *path) {
-    const char *editor = getenv("CF_MAP_EDITOR");
+static void launch_mapedit(char *path) {
+    char *editor = getenv("CF_MAP_EDITOR");
     if (editor == NULL) {
         LOG(LOG_ERROR, "mapedit", "CF_MAP_EDITOR is not defined");
     }
 
-    if (fork() == 0) {
-        LOG(LOG_INFO, "mapedit", "Launching map editor on '%s'", path);
-        execlp(editor, editor, path, NULL);
-        perror("could not launch editor");
-        exit(1);
+    LOG(LOG_INFO, "mapedit", "Launching map editor on '%s'", path);
+    char *argv[] = {editor, path, NULL};
+    GError *err = NULL;
+    if (!g_spawn_async(NULL, argv, NULL, 0, NULL, NULL, NULL, &err)) {
+        LOG(LOG_ERROR, "mapedit", "Could not launch CF_MAP_EDITOR: %s", err->message);
     }
 }
 
