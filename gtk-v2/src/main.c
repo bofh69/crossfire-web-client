@@ -103,6 +103,9 @@ GtkBuilder *dialog_xml, *window_xml;
 GtkWidget *window_root, *magic_map, *connect_window;
 GtkNotebook *main_notebook;
 
+extern time_t last_command_sent;
+extern bool is_afk;
+
 #ifdef WIN32 /* Win32 scripting support */
 static int do_scriptout() {
     script_process(NULL);
@@ -140,6 +143,38 @@ static gboolean redraw(gpointer data) {
     return FALSE;
 }
 
+static void on_auto_afk_response(GtkDialog *self, gint response_id, gpointer user_data) {
+    switch (response_id) {
+    case 1:
+        gtk_widget_destroy(GTK_WIDGET(self));
+        break;
+    case 2:
+        send_command("afk", 0, true);
+        want_config[CONFIG_AUTO_AFK] = 0;
+        config_check();
+        save_defaults();
+        gtk_widget_destroy(GTK_WIDGET(self));
+        break;
+    default:
+        // includes closing the pop-up
+        send_command("afk", 0, true);
+        gtk_widget_destroy(GTK_WIDGET(self));
+        break;
+    }
+}
+
+static void auto_afk() {
+    send_command("afk", 0, true);
+    GtkWidget *dialog = gtk_dialog_new_with_buttons("Auto-AFK", GTK_WINDOW(window_root), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+            "Return to game", 0, "Return to game, but stay AFK", 1, "Return to game, disable auto-AFK", 2, NULL);
+    GtkWidget *label, *content_area;
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+    label = gtk_label_new("You have been automatically marked as being away.");
+    gtk_container_add(GTK_CONTAINER(content_area), label);
+    g_signal_connect_swapped(dialog, "response", G_CALLBACK(on_auto_afk_response), dialog);
+    gtk_widget_show_all(dialog);
+}
+
 /**
  * Called whenever the server sends a tick command.
  */
@@ -162,6 +197,10 @@ void client_tick(guint32 tick) {
     inventory_tick();
     mapdata_animation();
     g_idle_add(redraw, NULL);
+
+    if (!is_afk && use_config[CONFIG_AUTO_AFK] != 0 && time(NULL) > (last_command_sent + use_config[CONFIG_AUTO_AFK])) {
+        auto_afk();
+    }
 }
 /**
  * Handles client shutdown.

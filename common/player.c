@@ -42,6 +42,12 @@ const char *const directions[] = {"stay",      "north",     "northeast",
                                   "east",      "southeast", "south",
                                   "southwest", "west",      "northwest"};
 
+/** Best guess whether or not we are currently AFK or not. */
+bool is_afk;
+
+/** Time when last command was sent. Used to keep track of auto-AFK. */
+time_t last_command_sent;
+
 /**
  * Initialize player object using information from the server.
  */
@@ -67,6 +73,10 @@ void new_player(long tag, char *name, long weight, long face) {
         }
         cpl.spelldata = NULL;
     }
+
+    // Reset auto-AFK data.
+    is_afk = false;
+    last_command_sent = time(NULL);
 }
 
 void look_at(int x, int y) {
@@ -209,6 +219,10 @@ void predict_scroll(int dir) {
     }
 }
 
+static bool starts_with(const char *prefix, const char *str) {
+    return strncmp(prefix, str, strlen(prefix)) == 0;
+}
+
 /* This should be used for all 'command' processing.  Other functions should
  * call this so that proper windowing will be done.
  * command is the text command, repeat is a count value, or -1 if none
@@ -232,6 +246,11 @@ int send_command(const char *command, int repeat, int must_send) {
     if (use_config[CONFIG_ECHO]) {
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, command);
     }
+
+    if (starts_with("afk", command)) {
+        is_afk = !is_afk;
+    }
+    last_command_sent = time(NULL);
 
     /* Does the server understand 'ncom'? If so, special code */
     if (csocket.cs_version >= 1021) {

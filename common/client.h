@@ -220,7 +220,8 @@ typedef enum {
                                              scrolling */
 #define CONFIG_SIGNPOPUP        30
 #define CONFIG_TIMESTAMP        31
-#define CONFIG_NUMS             32      /**< This should always be the last
+#define CONFIG_AUTO_AFK         32
+#define CONFIG_NUMS             33      /**< This should always be the last
                                              value in the CONFIG_xxx list. */
 /*@}*/
 
