@@ -144,12 +144,15 @@ static gboolean redraw(gpointer data) {
 }
 
 static void on_auto_afk_response(GtkDialog *self, gint response_id, gpointer user_data) {
+    // It is possible for is_afk to be false because dialog is non-modal.
     switch (response_id) {
     case 1:
         gtk_widget_destroy(GTK_WIDGET(self));
         break;
     case 2:
-        send_command("afk", 0, true);
+        if (is_afk) {
+            send_command("afk", 0, true);
+        }
         want_config[CONFIG_AUTO_AFK] = 0;
         config_check();
         save_defaults();
@@ -157,7 +160,9 @@ static void on_auto_afk_response(GtkDialog *self, gint response_id, gpointer use
         break;
     default:
         // includes closing the pop-up
-        send_command("afk", 0, true);
+        if (is_afk) {
+            send_command("afk", 0, true);
+        }
         gtk_widget_destroy(GTK_WIDGET(self));
         break;
     }
@@ -165,7 +170,7 @@ static void on_auto_afk_response(GtkDialog *self, gint response_id, gpointer use
 
 static void auto_afk() {
     send_command("afk", 0, true);
-    GtkWidget *dialog = gtk_dialog_new_with_buttons("Auto-AFK", GTK_WINDOW(window_root), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+    GtkWidget *dialog = gtk_dialog_new_with_buttons("Auto-AFK", GTK_WINDOW(window_root), GTK_DIALOG_DESTROY_WITH_PARENT,
             "Return to game", 0, "Return to game, but stay AFK", 1, "Return to game, disable auto-AFK", 2, NULL);
     GtkWidget *label, *content_area;
     content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
