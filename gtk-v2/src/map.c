@@ -358,6 +358,7 @@ static void draw_darkness(cairo_t *cr, int nx, int ny, int mx_start, int my_star
             break;
     }
     cairo_paint(cr);
+    cairo_surface_destroy(cst_lm);
 }
 
 /**
