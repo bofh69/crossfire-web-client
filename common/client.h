@@ -175,17 +175,9 @@ typedef enum {
  * 0 is intentially skipped so the index into this doesn't get a default if a
  * table has a blank value
  *
- * CONFIG_NUMS is the number of configuration options; don't forget to add to
- * some of:
+ * CONFIG_NUMS is the number of configuration options; don't forget to modify:
  *
- *   common/init.c config_names,
- *                 init_client_vars,
- *   x11/x11.c load_defaults
- *             save_defaults
- *   gtk/config.c load_defaults
- *                save_defaults
- *
- * and probably other places, if you add a new option.
+ *   common/init.c -- config_names and init_config()
  */
 /*@{*/
 #define CONFIG_DOWNLOAD         1
@@ -221,7 +213,8 @@ typedef enum {
 #define CONFIG_SIGNPOPUP        30
 #define CONFIG_TIMESTAMP        31
 #define CONFIG_AUTO_AFK         32
-#define CONFIG_NUMS             33      /**< This should always be the last
+#define CONFIG_INV_MENU         33
+#define CONFIG_NUMS             34      /**< This should always be the last
                                              value in the CONFIG_xxx list. */
 /*@}*/
 

@@ -279,7 +279,11 @@ static void list_item_action(GdkEventButton *event, item *tmp) {
         if (event->state & GDK_SHIFT_MASK) {
             toggle_locked(tmp);
         } else {
-            show_item_menu(event, tmp);
+            if (use_config[CONFIG_INV_MENU]) {
+                show_item_menu(event, tmp);
+            } else {
+                client_send_examine(tmp->tag);
+            }
         }
     } else if (event->button == 2) { // middle mouse button
         /* Some mice do not have a functioning middle mouse button,

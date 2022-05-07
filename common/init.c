@@ -34,7 +34,8 @@ const char *const config_names[CONFIG_NUMS] = {
     "split", "show_grid", "lighting", "trim_info_window",
     "map_width", "map_height", "foodbeep", "darkness", "port",
     "grad_color_bars", "resistances", "smoothing", "nosplash",
-    "auto_apply_container", "mapscroll", "sign_popups", "message_timestamping", "auto_afk"
+    "auto_apply_container", "mapscroll", "sign_popups", "message_timestamping", "auto_afk",
+    "inv_menu"
 };
 
 gint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
@@ -171,6 +172,7 @@ static void init_config() {
     want_config[CONFIG_TOOLTIPS] = TRUE;
     want_config[CONFIG_TRIMINFO] = FALSE;
     want_config[CONFIG_AUTO_AFK] = 300;
+    want_config[CONFIG_INV_MENU] = TRUE;
 
     for (int i = 0; i < CONFIG_NUMS; i++) {
         use_config[i] = want_config[i];
