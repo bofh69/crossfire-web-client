@@ -206,6 +206,66 @@ static int get_item_env(item *it) {
 
 static void list_item_drop(item *tmp);
 
+static void ma_examine(GtkWidget *widget, item *tmp) {
+    client_send_examine(tmp->tag);
+}
+
+static void ma_apply(GtkWidget *widget, item *tmp) {
+    client_send_apply(tmp->tag);
+}
+
+static void ma_mark(GtkWidget *widget, item *tmp) {
+    send_mark_obj(tmp);
+}
+
+static void ma_lock(GtkWidget *widget, item *tmp) {
+    toggle_locked(tmp);
+}
+
+static void ma_drop(GtkWidget *widget, item *tmp) {
+    list_item_drop(tmp);
+}
+
+static void show_item_menu(GdkEventButton *event, item *tmp) {
+    GtkWidget *menu = gtk_menu_new();
+    GtkWidget *mi_examine = gtk_menu_item_new_with_mnemonic("_Examine");
+    GtkWidget *mi_apply = gtk_menu_item_new_with_mnemonic("_Apply");
+    GtkWidget *mi_mark = gtk_menu_item_new_with_mnemonic("_Mark");
+    GtkWidget *mi_lock;
+    if (tmp->locked) {
+        mi_lock = gtk_menu_item_new_with_mnemonic("Un_lock");
+    } else {
+        mi_lock = gtk_menu_item_new_with_mnemonic("_Lock");
+    }
+    GtkWidget *mi_drop;
+    gchar *drop_action = tmp->env == cpl.ob ? "_Drop" : "_Pick Up";
+    int count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton_count));
+    if (count != 0) {
+        gchar *drop_label;
+        drop_label = g_strdup_printf("%s %d", drop_action, count);
+        mi_drop = gtk_menu_item_new_with_mnemonic(drop_label);
+        g_free(drop_label);
+    } else {
+        mi_drop = gtk_menu_item_new_with_mnemonic(drop_action);
+    }
+
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), mi_examine);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), mi_apply);
+    if (tmp->env == cpl.ob) {
+        // In player's inventory
+        gtk_menu_shell_append(GTK_MENU_SHELL(menu), mi_mark);
+        gtk_menu_shell_append(GTK_MENU_SHELL(menu), mi_lock);
+    }
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), mi_drop);
+    g_signal_connect(mi_examine, "activate", G_CALLBACK(ma_examine), tmp);
+    g_signal_connect(mi_apply, "activate", G_CALLBACK(ma_apply), tmp);
+    g_signal_connect(mi_mark, "activate", G_CALLBACK(ma_mark), tmp);
+    g_signal_connect(mi_lock, "activate", G_CALLBACK(ma_lock), tmp);
+    g_signal_connect(mi_drop, "activate", G_CALLBACK(ma_drop), tmp);
+    gtk_widget_show_all(menu);
+    gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, event->button, event->time);
+}
+
 /**
  *
  * @param event
@@ -219,7 +279,7 @@ static void list_item_action(GdkEventButton *event, item *tmp) {
         if (event->state & GDK_SHIFT_MASK) {
             toggle_locked(tmp);
         } else {
-            client_send_examine(tmp->tag);
+            show_item_menu(event, tmp);
         }
     } else if (event->button == 2) { // middle mouse button
         /* Some mice do not have a functioning middle mouse button,
