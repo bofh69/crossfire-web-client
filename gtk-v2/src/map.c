@@ -445,7 +445,7 @@ static void gtk_map_redraw() {
         cairo_scale(map_cr, scale, scale);
     }
     cairo_set_source_surface(map_cr, cst, 0, 0);
-    if (use_config[CONFIG_MAPSCALE] > 100) {
+    if (use_config[CONFIG_MAPSCALE] % 100 == 0) {
         cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
     }
     cairo_paint(map_cr);
