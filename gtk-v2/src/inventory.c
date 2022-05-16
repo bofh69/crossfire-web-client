@@ -239,10 +239,9 @@ static void show_item_menu(GdkEventButton *event, item *tmp) {
     }
     GtkWidget *mi_drop;
     gchar *drop_action = tmp->env == cpl.ob ? "_Drop" : "_Pick Up";
-    int count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton_count));
-    if (count != 0) {
+    if (cpl.count != 0) {
         gchar *drop_label;
-        drop_label = g_strdup_printf("%s %d", drop_action, count);
+        drop_label = g_strdup_printf("%s %d", drop_action, cpl.count);
         mi_drop = gtk_menu_item_new_with_mnemonic(drop_label);
         g_free(drop_label);
     } else {
@@ -316,8 +315,6 @@ static void list_item_drop(item *tmp) {
                 "This item is locked. To drop it, first unlock by shift+leftclicking on it.");
     } else {
         guint32 dest;
-
-        cpl.count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton_count));
         /*
          * Figure out where to move the item to.  If it is on the ground,
          * it is moving to the players inventory.  If it is in a container,

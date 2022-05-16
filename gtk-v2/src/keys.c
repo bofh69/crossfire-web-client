@@ -634,6 +634,9 @@ void keybindings_init(const char *character_name) {
     }
 }
 
+static void on_count_changed(GtkSpinButton *spinbutton, gpointer *data) {
+    cpl.count = gtk_spin_button_get_value_as_int(spinbutton);
+}
 
 /**
  * One-time initialization of windows and signals for the keybindings
@@ -654,6 +657,7 @@ void keys_init(GtkWidget *window_root) {
                                 "entry_commands"));
     spinbutton_count = GTK_WIDGET(gtk_builder_get_object(window_xml,
                                   "spinbutton_count"));
+    g_signal_connect(spinbutton_count, "value-changed", G_CALLBACK(on_count_changed), NULL);
 
     g_signal_connect((gpointer) entry_commands, "activate",
                      G_CALLBACK(on_entry_commands_activate), NULL);
@@ -894,10 +898,6 @@ static void parse_key(char key, guint32 keysym) {
             gtk_editable_set_position(GTK_EDITABLE(entry_commands), -1);
             return;
         }
-
-        /* Some spells (dimension door) need a valid count value */
-        cpl.count = gtk_spin_button_get_value_as_int(
-                        GTK_SPIN_BUTTON(spinbutton_count));
 
         if (kb->direction >= 0) {
             if (cpl.fire_on) {
@@ -1812,9 +1812,6 @@ void on_entry_commands_activate(GtkEntry *entry, gpointer user_data) {
 
     } else {
         cpl.input_state = Playing;
-        /* Some spells (dimension door) need a valid count value */
-        cpl.count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton_count));
-
         /* No reason to do anything for a null string */
         if (entry_text[0] != 0) {
             strncpy(history[cur_history_position], entry_text, MAX_COMMAND_LEN);
