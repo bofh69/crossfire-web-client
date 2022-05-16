@@ -117,7 +117,11 @@ int SockList_Send(SockList *sl, GSocketConnection* c) {
         return 1;
     }
     if (debug_protocol) {
-        LOG(LOG_INFO, "C->S", "%s", sl->buf);
+        char *data_print = printable(sl->buf, sl->len);
+        if (data_print != NULL) {
+            LOG(LOG_INFO, "C->S", "len=%d |%s|", sl->len, data_print);
+            free(data_print);
+        }
     }
     GOutputStream* out = g_io_stream_get_output_stream(G_IO_STREAM(c));
     bool ret = g_output_stream_write_all(out, sl->buf - 2, sl->len + 2, NULL,
