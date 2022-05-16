@@ -23,8 +23,10 @@
 # The trailing space on the following two lines are intentional.
 quotedbl 1 AE say 
 Return 1 AE chat 
+semicolon 0 NE reply
 
 comma 1 A take
+less 0 F get all
 period 1 N stay fire
 question 1 A help
 
