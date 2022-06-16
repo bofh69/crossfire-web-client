@@ -143,6 +143,7 @@ gboolean on_window_delete_event(GtkWidget *window, gpointer *user_data) {
  * message - this comes from the server.
  */
 void create_new_character_failure(char *message) {
+    hide_main_client();
     GtkWidget *dialog;
 
     dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
