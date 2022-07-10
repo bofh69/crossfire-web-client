@@ -533,15 +533,27 @@ void script_kill(const char *params)
     script_dead(i);
 }
 
-#ifdef WIN32
+void script_killall_wrapper(const char *params)
+{
+	script_killall();
+}
+
 void script_killall(void)
 {
-    while (num_scripts > 0) {
-        GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[0].pid);
-        script_dead(0);
-    }
-}
+	const char message_template[] = "Tried to kill %d scripts.";
+	char message[sizeof(message_template) + 10];
+	snprintf(&message, sizeof(message), &message_template, num_scripts);
+	while (num_scripts > 0) {
+#ifndef WIN32
+		kill(scripts[num_scripts - 1].pid, SIGHUP);
+		script_dead(num_scripts - 1);
+#else
+		GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, scripts[0].pid);
+		script_dead(0);
 #endif /* WIN32 */
+	}
+	draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_SCRIPT, message);
+}
 
 void script_fdset(int *maxfd, fd_set *set)
 {

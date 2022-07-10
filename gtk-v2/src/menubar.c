@@ -56,10 +56,7 @@ static void on_disconnect_activate(GtkMenuItem *menuitem, gpointer user_data) {
  * @param user_data
  */
 static void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data) {
-#ifdef WIN32
     script_killall();
-#endif
-
     LOG(LOG_INFO,"gtk-v2::client_exit","Exiting with return value 0.");
     exit(0);
 }
@@ -72,6 +69,7 @@ static void menu_quit_program(GtkMenuItem *menuitem, gpointer user_data) {
  * @param user_data
  */
 static void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data) {
+    script_killall();
     extended_command("quit");
 }
 

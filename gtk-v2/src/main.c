@@ -211,10 +211,7 @@ void client_tick(guint32 tick) {
  * Handles client shutdown.
  */
 void on_window_destroy_event(GtkWidget *object, gpointer user_data) {
-#ifdef WIN32
     script_killall();
-#endif
-
     LOG(LOG_DEBUG, "main.c::client_exit", "Exiting with return value 0.");
     exit(0);
 }

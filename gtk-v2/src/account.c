@@ -905,9 +905,7 @@ on_button_go_metaserver_clicked(GtkButton *button, gpointer user_data) {
  * @param user_data
  */
 void on_button_exit_client_clicked(GtkButton *button, gpointer user_data) {
-#ifdef WIN32
     script_killall();
-#endif
     exit(0);
 }
 

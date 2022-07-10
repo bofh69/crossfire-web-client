@@ -303,6 +303,16 @@ static const char * help_scriptkill(void) {
         "(Not guaranteed to work?)";
 }
 
+static const char * help_scriptkillall(void) {
+    return
+        "Syntax:\n"
+        "\n"
+        "    scriptkillall\n"
+        "\n"
+        "Stop all active scripts.\n"
+        "(Not guaranteed to work?)";
+}
+
 static void cmd_raw(const char *cmd) {
     cs_print_string(csocket.fd, "%s", cmd);
 }
@@ -323,6 +333,8 @@ static ConsoleCommand CommonCommands[] = {
     {"scripts", COMM_CAT_SCRIPT, do_script_list, NULL, "List running scripts"},
 
     {"scriptkill", COMM_CAT_SCRIPT, script_kill, help_scriptkill, NULL},
+
+    {"scriptkillall", COMM_CAT_SCRIPT, script_killall_wrapper, help_scriptkillall, NULL},
 
     {"scripttell", COMM_CAT_SCRIPT, script_tell, help_scripttell, NULL},
 

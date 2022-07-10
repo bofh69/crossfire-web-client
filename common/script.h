@@ -54,9 +54,8 @@ void script_init(const char *params);
 void script_list(void);
 void script_sync(int cmddiff);
 void script_kill(const char *params);
-#ifdef WIN32
+void script_killall_wrapper(const char *params);
 void script_killall(void);
-#endif
 void script_fdset(int *maxfd,fd_set *set);
 void script_process(fd_set *set);
 void script_watch(const char *cmd, const guint8 *data, const int len, const enum CmdFormat format);
