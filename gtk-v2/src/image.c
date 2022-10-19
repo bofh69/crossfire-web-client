@@ -379,11 +379,7 @@ void get_map_image_size(int face, guint8 *w, guint8 *h)
  */
 void init_image_cache_data(void)
 {
-    int i;
-    GtkStyle *style;
 #include "../../pixmaps/question.xpm"
-
-    style = gtk_widget_get_style(window_root);
     pixmaps[0] = g_new(PixmapInfo, 1);
     pixmaps[0]->icon_image =
         gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
@@ -395,7 +391,7 @@ void init_image_cache_data(void)
     pixmaps[0]->smooth_face = 0;
 
     /* Initialize all the images to be of the same value. */
-    for (i=1; i<MAXPIXMAPNUM; i++)  {
+    for (int i = 1; i < MAXPIXMAPNUM; i++) {
         pixmaps[i] = pixmaps[0];
     }
 
