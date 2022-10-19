@@ -27,13 +27,13 @@
 
 #ifdef WIN32
 # include <windows.h>
-# include "script.h"
 #endif
 
 #include "p_cmd.h"
 #include "main.h"
 #include "image.h"
 #include "gtk2proto.h"
+#include "script.h"
 
 /**
  * Client | Disconnect

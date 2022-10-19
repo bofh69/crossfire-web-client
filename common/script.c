@@ -542,7 +542,7 @@ void script_killall(void)
 {
 	const char message_template[] = "Tried to kill %d scripts.";
 	char message[sizeof(message_template) + 10];
-	snprintf(&message, sizeof(message), &message_template, num_scripts);
+	snprintf(message, sizeof(message), message_template, num_scripts);
 	while (num_scripts > 0) {
 #ifndef WIN32
 		kill(scripts[num_scripts - 1].pid, SIGHUP);

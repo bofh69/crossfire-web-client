@@ -25,10 +25,7 @@
 #include "main.h"
 #include "metaserver.h"
 #include "gtk2proto.h"
-
-#ifdef WIN32
-# include "script.h"
-#endif
+#include "script.h"
 
 /* These are in the login_window */
 static GtkWidget *button_login, *button_create_account, *button_go_metaserver,
