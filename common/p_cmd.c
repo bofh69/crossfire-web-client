@@ -555,7 +555,7 @@ void extended_command(const char *ocommand) {
     /* If this isn't a client-side command, send it to the server. */
     if (!handle_local_command(cp, cpnext)) {
         /* just send the command(s)  (if `ocommand' is a compound command */
-        /* then split it and send each part seperately */
+        /* then split it and send each part separately */
         /* TODO Remove this from the server; end of commands.c. */
         strncpy(command, ocommand, MAX_BUF-1);
         command[MAX_BUF-1]=0;

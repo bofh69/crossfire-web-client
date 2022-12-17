@@ -79,7 +79,7 @@ to trap when the player tries to scroll the map, and redraw the new portion,
 as well as track where the map is currently positioned, without needing a
 much larger draw area.
 
-  vpaned-info-inventory: seperator for the text window vs inventory area.
+  vpaned-info-inventory: separator for the text window vs inventory area.
   vbox-info-entry: Top portion is text information, bottom is area for text
      entry.
   entry-commands: Where the player enters extended commands.

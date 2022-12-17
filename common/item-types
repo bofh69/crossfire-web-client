@@ -29,7 +29,7 @@ bag
 chest
 key ring
 # Weapon types
-# Stylistically, I seperate the artifacts here to make it
+# Stylistically, I separate the artifacts here to make it
 # a little clear.  It could be said that actually having a different
 # element for the artifacts is desirable.
 2:

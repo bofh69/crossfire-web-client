@@ -4195,7 +4195,7 @@ common/metaserver.c: Once we have read in limit of number of
 MSW 2005-02-19
 
 Sound cleanup and redo for ALSA9.  The bulk of this is to break out the
-alsa9 code from the cfsndser.c and compile its own seperate cfsndserv-alsa9
+alsa9 code from the cfsndser.c and compile its own separate cfsndserv-alsa9
 executable.  Add options to config file/gtk client to support setting
 which sound daemon to use.  Note that ALSA9 sound now works all
 properly - significant changes had to get made to the code for this
@@ -5059,7 +5059,7 @@ Changes for 1.1.0:
 
 README: Update notes on needing png (and not xpm) library.  Update mailing
     alias.
-configure.in, configure: As the seperate sound program (cfsndserv) is the
+configure.in, configure: As the separate sound program (cfsndserv) is the
     only supported sound configuration, remove new_sound_system defines
     and ability to use the old (now non existant) sound system.
     Have configure exit with error message if png library is not found,
@@ -5716,7 +5716,7 @@ item.h: Remove name and o_name from item structure, instead there is now
   d_name, s_name, and p_name, representing the display name, singular name,
   and plural name.  display name is derived from the s/p names plus nrof value.
 
-commands.c: Chance strncpy to memcpy, as a null character is used to seperate
+commands.c: Chance strncpy to memcpy, as a null character is used to separate
   the two name values.  UpdateItemCmd is also modified to supply an empty
   string to set_item_values instead of the same name if the name is unchanged.
 gx11.c, player.c, x11.c: use d_name instead of name to correspond with
@@ -6096,7 +6096,7 @@ Incorporate gtk version 0.94.3auto into this release to have one common
 client source base.
 
 Support for complex keybindings (more than one command bound to the same
-key, seperated by semicolons)
+key, separated by semicolons)
 
 added -nocache command line option (default behaviour, but option needed
 if your defaults file is set to cache).
@@ -6140,7 +6140,7 @@ when versions are mismatched.  Current versions for both set to 1020.
 Also, version command can now take an optional string describing
 the client and server (ie, X11 C client, or Java client, etc)
 
-Client query command now will handle multi line text fields (seperated
+Client query command now will handle multi line text fields (separated
 by newlines) as sent in the query command.  Before, it was never explicity
 set that this should be done, and was never an issue because there
 never was multiple lines sent.  However, to make input handling on
