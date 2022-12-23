@@ -456,6 +456,7 @@ void config_load() {
 
     /* Load configuration values into settings array. */
     if (error == NULL) {
+        LOG(LOG_DEBUG, "config_load", "config_path='%s'", config_path->str);
         for (int i = 1; i < CONFIG_NUMS; i++) {
             GError *error = NULL;
             gint value = g_key_file_get_integer(config, "Client", config_names[i], &error);
