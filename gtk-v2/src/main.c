@@ -373,7 +373,7 @@ static void init_ui() {
         g_error_free(error);
         exit(EXIT_FAILURE);
     }
-    LOG(LOG_DEBUG, "init_ui", "loaded dialog_xml");
+    LOG(LOG_DEBUG, "init_ui", "loaded dialog_xml '%s'", DIALOG_FILENAME);
 
     /* Load main window using GtkBuilder. */
     window_xml = gtk_builder_new();
@@ -383,7 +383,7 @@ static void init_ui() {
             g_error("Could not load default layout!");
         }
     }
-    LOG(LOG_DEBUG, "init_ui", "loaded window_xml");
+    LOG(LOG_DEBUG, "init_ui", "loaded window_xml '%s'", window_xml_file);
 
     connect_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "connect_window"));
     gtk_window_set_transient_for(GTK_WINDOW(connect_window),
@@ -500,11 +500,11 @@ int main(int argc, char *argv[]) {
 
     // Initialize GTK and client library.
     gtk_init(&argc, &argv);
+    parse_args(argc, argv);
     client_init();
 
     // Set defaults, load configuration, and parse arguments.
     config_load();
-    parse_args(argc, argv);
     config_check();
     char *layout = g_path_get_basename(window_xml_file);
     snprintf(VERSION_INFO, MAX_BUF,
