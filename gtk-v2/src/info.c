@@ -1350,11 +1350,13 @@ void msgctrl_init(GtkWidget *window_root)
     GList*         list;                /* Iterator: table children         */
     guint          pane;                /* Iterator: client message panes   */
     guint          type;                /* Iterator: message types          */
-    guint          row;                 /* Attachement for current widget   */
-    gint           title_rows = -1;     /* Title rows in msgctrl_table as
-                                         * defined in layout designer.  -1
-                                         * means there are no title rows.
-                                         */
+    guint          row;                 /* Attachment for current widget    */
+    guint          title_cols;          /* Title cols in msgctrl_table      */
+    guint          title_rows;          /* Title rows in msgctrl_table      */
+                                        /* The cols/rows will describe the
+                                         * prefilled table data already in
+                                         * msgctrl_table when first loaded
+                                         * from the .ui file containing it. */
     /*
      * Get the window pointer and a pointer to the tree of widgets it contains
      */
@@ -1383,12 +1385,7 @@ void msgctrl_init(GtkWidget *window_root)
      * This assumption is unwise if client layouts begin to be implemented to
      * have fewer message panes than the code supports!
      */
-    for (list = gtk_container_get_children(GTK_CONTAINER(table)); list; list = list->next) {
-        child = list->data;
-        if ((child->widget != 0) && (child->top_attach > title_rows)) {
-            title_rows = child->top_attach;
-        }
-    }
+     gtk_table_get_size(table, &title_rows, &title_cols);
 
     /*
      * The table is defined in the dialog created with the design tool, but
