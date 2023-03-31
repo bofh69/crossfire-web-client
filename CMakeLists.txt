@@ -37,6 +37,10 @@ add_definitions(
 
 include(${VALA_USE_FILE})
 
+# By default, silence warnings about deprecated definitions. We know we're
+# using deprecated GTK functions; these just clutter more important warnings.
+add_compile_options(-Wno-deprecated-declarations)
+
 # Look for optional dependencies that are enabled using options.
 if(LUA)
     find_package(Lua51 REQUIRED)
