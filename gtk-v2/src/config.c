@@ -51,7 +51,7 @@ char* last_server;
 bool time_map_redraw = false;
 
 /** Speed of local map prediction scrolling, 0-100 (0 to disable). */
-int predict_alpha;
+int predict_alpha = 10;
 
 static void on_config_close(GtkButton *button, gpointer user_data);
 

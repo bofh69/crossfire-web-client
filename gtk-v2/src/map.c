@@ -469,12 +469,6 @@ static void update_global_offset() {
     dy = ((want_offset_y*map_image_size) - global_offset_y)*predict_alpha/100.0;
     global_offset_x += dx;
     global_offset_y += dy;
-
-    // Snap global offset to zero when we're at the right square.
-    if (want_offset_x == 0 && want_offset_y == 0) {
-        global_offset_x = 0;
-        global_offset_y = 0;
-    }
 }
 
 /**
