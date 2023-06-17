@@ -49,7 +49,7 @@ Optional:
 
 - libcurl (for metaserver support)
 - Lua 5 (for client-side Lua scripting)
-- SDL_mixer (for sound support)
+- SDL2_mixer (for sound support)
 
 
 Sounds

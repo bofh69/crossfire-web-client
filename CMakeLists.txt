@@ -52,7 +52,7 @@ if(METASERVER2)
 endif()
 
 if(SOUND)
-    pkg_check_modules(SDLMIXER SDL_mixer REQUIRED)
+    pkg_check_modules(SDLMIXER SDL2_mixer REQUIRED)
     if(EXISTS "${PROJECT_SOURCE_DIR}/sounds")
         install(DIRECTORY sounds DESTINATION ${CMAKE_INSTALL_DATADIR})
     else()
