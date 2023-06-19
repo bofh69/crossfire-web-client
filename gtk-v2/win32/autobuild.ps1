@@ -81,7 +81,6 @@ $cmakeoutput = (
     cmake.exe `
     -S C:\autobuild\cfsource -B C:\autobuild\cfbuild\ `
     -G "MinGW Makefiles" `
-    -D OPENGL=OFF `
     2>&1
     )
 $cmakeoutput | Out-File -FilePath C:\autobuild\cmakeoutput.txt
