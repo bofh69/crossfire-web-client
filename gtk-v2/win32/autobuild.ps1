@@ -12,14 +12,14 @@
 # Nothing major has changed since git e460f2ab73e8c7900f428b8c066c6b1a11d63622. That's the last time this script was more or less debugged.
 # In MSYS' MinGW, you've installed:
 #     mingw-w64-x86_64-SDL_image
-#     mingw-w64-x86_64-SDL_mixer
+#     mingw-w64-x86_64-SDL2_mixer
 #     mingw-w64-x86_64-gcc
 #     mingw-w64-x86_64-make
 #     mingw-w64-x86_64-perl
 #     mingw-w64-x86_64-pkg-config
 #     mingw-w64-x86_64-vala
 # (The oneliner for these is here:)
-# pacman -S mingw-w64-x86_64-SDL_image mingw-w64-x86_64-SDL_mixer mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-perl mingw-w64-x86_64-pkg-config mingw-w64-x86_64-vala
+# pacman -S mingw-w64-x86_64-SDL_image mingw-w64-x86_64-SDL2_mixer mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-perl mingw-w64-x86_64-pkg-config mingw-w64-x86_64-vala
 
 
 $sourcedir = "C:\autobuild\cfsource"
