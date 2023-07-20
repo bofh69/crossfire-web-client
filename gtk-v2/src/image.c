@@ -352,10 +352,9 @@ void get_map_image_size(int face, guint8 *w, guint8 *h)
         *h = 1;
     } else {
         // Try to make this not jank out so much.
-        // image dimension * scale / tile size should be more sensible and less prone to breakage.
-        const int scale_factor = 100*map_image_size; // The 100 comes from the divisor of the map scale.
-        *w = (pixmaps[face]->full_icon_width * use_config[CONFIG_MAPSCALE]) / scale_factor;
-        *h = (pixmaps[face]->full_icon_height * use_config[CONFIG_MAPSCALE]) / scale_factor;
+        // unscaled image dimension / tile size should be more sensible and less prone to breakage.
+        *w = pixmaps[face]->full_icon_width / map_image_size;
+        *h = pixmaps[face]->full_icon_height / map_image_size;
     }
 }
 
