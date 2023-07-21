@@ -120,8 +120,7 @@ void map_init(GtkWidget *window_root) {
         // Try to affect pixmap[0] in-place, since it is referenced extensively.
         pixmaps[0]->icon_width = nx;
         pixmaps[0]->icon_height = ny;
-        pixmaps[0]->full_icon_width = nx;
-        pixmaps[0]->full_icon_height = ny;
+        // Do not affect full_icon_width/height, since those are expected to be the unscaled size.
         do_new_image(png_tmp, pixmaps[0]);
     }
 
