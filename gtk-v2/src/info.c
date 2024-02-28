@@ -1104,6 +1104,9 @@ static void launch_mapedit(char *path) {
     char *editor = getenv("CF_MAP_EDITOR");
     if (editor == NULL) {
         LOG(LOG_ERROR, "mapedit", "CF_MAP_EDITOR is not defined");
+        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, "No map editor is specified in CF_MAP_EDITOR environment variable!");
+        // If no editor, then we cannot proceed. argv[0] of null crashes the client.
+        return;
     }
 
     LOG(LOG_INFO, "mapedit", "Launching map editor on '%s'", path);
