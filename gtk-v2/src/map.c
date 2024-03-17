@@ -487,10 +487,11 @@ void draw_map() {
     }
 
     const unsigned int target_redraw = 100000;
-    if (elapsed > target_redraw) {
+    const int no_resize_above = 100; // don't resize above this value of mapscale
+    if (elapsed > target_redraw && use_config[CONFIG_MAPSCALE] < no_resize_above) {
+        use_config[CONFIG_MAPSCALE] = MIN(use_config[CONFIG_MAPSCALE] + 5, no_resize_above);
         LOG(LOG_DEBUG, "draw_map", "Increasing mapscale to %d to reduce draw time below %u us",
                 use_config[CONFIG_MAPSCALE], target_redraw);
-        use_config[CONFIG_MAPSCALE] += 5;
         map_check_resize();
     }
 }
