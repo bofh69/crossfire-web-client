@@ -59,7 +59,6 @@ struct MapCell
     guint8 smooth[MAXLAYERS];
     guint8 darkness;         /* darkness: 0=fully illuminated, 255=pitch black */
     guint8 need_update:1;    /* set if tile should be redrawn */
-    guint8 have_darkness:1;  /* set if darkness information was set */
     guint8 need_resmooth:1;  /* same has need update but for smoothing only */
     guint8 cleared:1;        /* If set, this is a fog cell. */
 };

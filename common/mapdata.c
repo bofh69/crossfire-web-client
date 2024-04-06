@@ -175,7 +175,6 @@ void mapdata_size(int *x, int *y) {
  */
 static void set_darkness(int x, int y, int darkness)
 {
-    mapdata_cell(x, y)->have_darkness = 1;
     if (mapdata_cell(x, y)->darkness == darkness) {
         return;
     }
@@ -709,7 +708,7 @@ void mapdata_set_check_space(int x, int y)
         }
     }
 
-    if (cell->have_darkness) {
+    if (cell->darkness != 0) {
         is_blank=0;
     }
 
@@ -815,7 +814,6 @@ void mapdata_clear_old(int x, int y)
             }
 
             mapdata_cell(px, py)->darkness = 0;
-            mapdata_cell(px, py)->have_darkness = 0;
         }
 }
 
@@ -896,7 +894,6 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
             }
 
             mapdata_cell(px, py)->darkness = 0;
-            mapdata_cell(px, py)->have_darkness = 0;
         }
         if (face >0) {
             expand_set_face(px, py, layer, face, TRUE);

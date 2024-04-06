@@ -1071,7 +1071,7 @@ static void send_map(int i, int x, int y)
              " smooth %d %d %d heads %d %d %d tails %d %d %d\n",
              x, y, mapdata_cell(x, y)->darkness,
              mapdata_cell(x, y)->need_update ? 'y' : 'n',
-             mapdata_cell(x, y)->have_darkness ? 'y' : 'n',
+             mapdata_cell(x, y)->darkness != 0 ? 'y' : 'n',
              mapdata_cell(x, y)->need_resmooth ? 'y' : 'n',
              mapdata_cell(x, y)->cleared ? 'y' : 'n',
              mapdata_cell(x, y)->smooth[0], mapdata_cell(x, y)->smooth[1], mapdata_cell(x, y)->smooth[2],
