@@ -279,7 +279,7 @@ static void drawsmooth(cairo_t *cr, int mx, int my, int layer, int picx, int pic
 /**
  * Draw a single map layer to the given cairo context.
  */
-static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int nx, int my_start, int ny) {
+static void map_draw_layer(cairo_t *cr, int layer, int mx_start, int nx, int my_start, int ny) {
     for (int x = 0; x <= nx; x++) {
         for (int y = 0; y <= ny; y++) {
             // Translate on-screen coordinates to virtual map coordinates.
@@ -291,16 +291,15 @@ static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int n
                 continue;
             }
 
-            if (pass == 0) {
-                // Draw pixmaps
-                int dx, dy, face = mapdata_face_info(mx, my, layer, &dx, &dy);
-                if (face > 0 && pixmaps[face]->map_image != NULL) {
-                    draw_pixmap(cr, pixmaps[face], x + dx, y + dy);
-                }
-            } else if (pass == 1) {
-                if (use_config[CONFIG_SMOOTH]) {
-                    drawsmooth(cr, mx, my, layer, x, y);
-                }
+            // Draw pixmaps
+            int dx, dy, face = mapdata_face_info(mx, my, layer, &dx, &dy);
+            if (face > 0 && pixmaps[face]->map_image != NULL) {
+                draw_pixmap(cr, pixmaps[face], x + dx, y + dy);
+            }
+
+            // Draw smoothing
+            if (use_config[CONFIG_SMOOTH]) {
+                drawsmooth(cr, mx, my, layer, x, y);
             }
         }
     }
@@ -429,8 +428,7 @@ static void gtk_map_redraw() {
     // Draw layer-by-layer. Drawing cell-by-cell, looping over the layers,
     // doesn't work because big faces need to be correctly layered on top.
     for (int layer = 0; layer < MAXLAYERS; layer++) {
-        map_draw_layer(cr, layer, 0, mx_start, nx, my_start, ny);
-        map_draw_layer(cr, layer, 1, mx_start, nx, my_start, ny);
+        map_draw_layer(cr, layer, mx_start, nx, my_start, ny);
     }
 
     draw_move_to(cr, mx_start, my_start);
