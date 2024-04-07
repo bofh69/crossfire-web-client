@@ -134,10 +134,10 @@ void map_init(GtkWidget *window_root) {
  * @param ax Map cell on-screen x-coordinate
  * @param ay Map cell on-screen y-coordinate
  */
-static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay, int off_x, int off_y) {
+static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay) {
     const int dest_x = ax * map_image_size;
     const int dest_y = ay * map_image_size;
-    cairo_set_source_surface(cr, pixmap->map_image, dest_x + global_offset_x + off_x, dest_y + global_offset_y + off_y);
+    cairo_set_source_surface(cr, pixmap->map_image, dest_x, dest_y);
     cairo_paint(cr);
 }
 
@@ -145,8 +145,8 @@ static void draw_smooth_pixmap(cairo_t* cr, PixmapInfo* pixmap,
         const int sx, const int sy, const int dx, const int dy) {
     const int src_x = map_image_size * sx;
     const int src_y = map_image_size * sy;
-    const int dest_x = map_image_size * dx + global_offset_x;
-    const int dest_y = map_image_size * dy + global_offset_y;
+    const int dest_x = map_image_size * dx;
+    const int dest_y = map_image_size * dy;
     cairo_set_source_surface(cr, pixmap->map_image, dest_x - src_x, dest_y - src_y);
     cairo_rectangle(cr, dest_x, dest_y, map_image_size, map_image_size);
     cairo_fill(cr);
@@ -279,7 +279,7 @@ static void drawsmooth(cairo_t *cr, int mx, int my, int layer, int picx, int pic
 /**
  * Draw a single map layer to the given cairo context.
  */
-static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int nx, int my_start, int ny, int off_x, int off_y) {
+static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int nx, int my_start, int ny) {
     for (int x = 0; x <= nx; x++) {
         for (int y = 0; y <= ny; y++) {
             // Translate on-screen coordinates to virtual map coordinates.
@@ -292,13 +292,14 @@ static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int n
             }
 
             if (pass == 0) {
+                // Draw pixmaps
                 int dx, dy, face = mapdata_face_info(mx, my, layer, &dx, &dy);
                 if (face > 0 && pixmaps[face]->map_image != NULL) {
-                    draw_pixmap(cr, pixmaps[face], x + dx, y + dy, off_x, off_y);
+                    draw_pixmap(cr, pixmaps[face], x + dx, y + dy);
                 }
             } else if (pass == 1) {
                 if (use_config[CONFIG_SMOOTH]) {
-                    drawsmooth(cr, mx, my, layer, x + off_x, y + off_y);
+                    drawsmooth(cr, mx, my, layer, x, y);
                 }
             }
         }
@@ -341,7 +342,6 @@ static void draw_darkness(cairo_t *cr, int nx, int ny, int mx_start, int my_star
     cairo_destroy(cr_lm);
 
     // Scale up light map and draw to map.
-    cairo_translate(cr, global_offset_x, global_offset_y);
     cairo_scale(cr, map_image_size, map_image_size);
     cairo_translate(cr, -1, -1);
     cairo_set_source_surface(cr, cst_lm, 0, 0);
@@ -358,6 +358,30 @@ static void draw_darkness(cairo_t *cr, int nx, int ny, int mx_start, int my_star
     }
     cairo_paint(cr);
     cairo_surface_destroy(cst_lm);
+}
+
+// Draw move-to tile.
+static void draw_move_to(cairo_t *cr, int mx_start, int my_start) {
+    int mx = move_to_x;
+    int my = move_to_y;
+    int x = mx - mx_start;
+    int y = my - my_start;
+    if (!is_at_moveto()) {
+        int sx = x * map_image_size;
+        int sy = y * map_image_size;
+        cairo_rectangle(cr, sx, sy, map_image_size, map_image_size);
+        if (move_to_attack) {
+            cairo_set_source_rgb(cr, 1, 0, 0); // red to attack
+        } else {
+            cairo_set_source_rgb(cr, 1, 1, 0); // yellow to walk
+        }
+        cairo_set_line_width(cr, 2);
+        cairo_stroke(cr);
+        cairo_rectangle(cr, sx + 2, sy + 2, map_image_size - 4, map_image_size - 4);
+        cairo_set_source_rgb(cr, 0, 0, 0); // black
+        cairo_set_line_width(cr, 1);
+        cairo_stroke(cr);
+    }
 }
 
 /**
@@ -399,39 +423,15 @@ static void gtk_map_redraw() {
     cairo_rectangle(cr, 0, 0, ew, eh);
     cairo_fill(cr);
 
+    // Set global offset (after blanking background)
+    cairo_translate(cr, global_offset_x, global_offset_y);
+
     for (int layer = 0; layer < MAXLAYERS; layer++) {
-        map_draw_layer(cr, layer, 0, mx_start, nx, my_start, ny, 0, 0);
-        map_draw_layer(cr, layer, 1, mx_start, nx, my_start, ny, 0, 0);
+        map_draw_layer(cr, layer, 0, mx_start, nx, my_start, ny);
+        map_draw_layer(cr, layer, 1, mx_start, nx, my_start, ny);
     }
 
-    for (int x = 0; x <= nx; x++) {
-        for (int y = 0; y <= ny; y++) {
-            // Translate on-screen coordinates to virtual map coordinates.
-            const int mx = mx_start + x;
-            const int my = my_start + y;
-
-            mapdata_cell(mx, my)->need_update = 0;
-            mapdata_cell(mx, my)->need_resmooth = 0;
-
-            // Draw move-to tile.
-            if (mx == move_to_x && my == move_to_y && !is_at_moveto()) {
-                int sx = x * map_image_size;
-                int sy = y * map_image_size;
-                cairo_rectangle(cr, sx + global_offset_x, sy + global_offset_y, map_image_size, map_image_size);
-                if (move_to_attack) {
-                    cairo_set_source_rgb(cr, 1, 0, 0); // red to attack
-                } else {
-                    cairo_set_source_rgb(cr, 1, 1, 0); // yellow to walk
-                }
-                cairo_set_line_width(cr, 2);
-                cairo_stroke(cr);
-                cairo_rectangle(cr, sx + global_offset_x + 2, sy + global_offset_y + 2, map_image_size - 4, map_image_size - 4);
-                cairo_set_source_rgb(cr, 0, 0, 0); // black
-                cairo_set_line_width(cr, 1);
-                cairo_stroke(cr);
-            }
-        }
-    }
+    draw_move_to(cr, mx_start, my_start);
 
     if (use_config[CONFIG_LIGHTING] != 0) {
         draw_darkness(cr, nx, ny, mx_start, my_start);
