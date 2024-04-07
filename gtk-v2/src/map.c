@@ -426,6 +426,8 @@ static void gtk_map_redraw() {
     // Set global offset (after blanking background)
     cairo_translate(cr, global_offset_x, global_offset_y);
 
+    // Draw layer-by-layer. Drawing cell-by-cell, looping over the layers,
+    // doesn't work because big faces need to be correctly layered on top.
     for (int layer = 0; layer < MAXLAYERS; layer++) {
         map_draw_layer(cr, layer, 0, mx_start, nx, my_start, ny);
         map_draw_layer(cr, layer, 1, mx_start, nx, my_start, ny);
