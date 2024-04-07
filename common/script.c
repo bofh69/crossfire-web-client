@@ -1073,7 +1073,7 @@ static void send_map(int i, int x, int y)
              mapdata_cell(x, y)->need_update ? 'y' : 'n',
              mapdata_cell(x, y)->darkness != 0 ? 'y' : 'n',
              mapdata_cell(x, y)->need_resmooth ? 'y' : 'n',
-             mapdata_cell(x, y)->cleared ? 'y' : 'n',
+             mapdata_cell(x, y)->state != VISIBLE ? 'y' : 'n',
              mapdata_cell(x, y)->smooth[0], mapdata_cell(x, y)->smooth[1], mapdata_cell(x, y)->smooth[2],
              mapdata_cell(x, y)->heads[0].face, mapdata_cell(x, y)->heads[1].face, mapdata_cell(x, y)->heads[2].face,
              mapdata_cell(x, y)->tails[0].face, mapdata_cell(x, y)->tails[1].face, mapdata_cell(x, y)->tails[2].face

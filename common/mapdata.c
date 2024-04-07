@@ -94,6 +94,8 @@ int want_offset_y = 0;
 
 static void recenter_virtual_map_view(int diff_x, int diff_y);
 static void mapdata_get_image_size(int face, guint8 *w, guint8 *h);
+static void expand_need_update(int x, int y, int w, int h);
+static void expand_need_update_from_layer(int x, int y, int layer);
 
 static int width;   //< width of current map view
 static int height;  //< height of current map view
@@ -181,6 +183,32 @@ static void set_darkness(int x, int y, int darkness)
 
     mapdata_cell(x, y)->darkness = darkness;
     mapdata_cell(x, y)->need_update = 1;
+}
+
+/**
+ * Mark the given cell as cleared in response to a Map2 clear command. While
+ * the server shouldn't be clearing cells it didn't send, in practice we
+ * sometimes do clearing ourselves (e.g. when we scroll the map).
+ */
+void mapdata_clear(int x, int y) {
+    int px = pl_pos.x + x;
+    int py = pl_pos.y + y;
+    assert(0 <= px && px < the_map.width);
+    assert(0 <= py && py < the_map.height);
+
+    if (mapdata_cell(px, py) == EMPTY)
+        return;
+
+    if (mapdata_cell(px, py)->state == VISIBLE) {
+        mapdata_cell(px, py)->need_update = 1;
+        for (int i = 0; i < MAXLAYERS; i++) {
+            if (mapdata_cell(px, py)->heads[i].face) {
+                expand_need_update_from_layer(px, py, i);
+            }
+        }
+    }
+
+    mapdata_cell(px, py)->state = FOG;
 }
 
 static void mark_resmooth(int x, int y, int layer)
@@ -655,17 +683,8 @@ void mapdata_clear_space(int x, int y)
 
     if (x < width && y < height) {
         /* tile is visible */
-
         /* visible tile is now blank ==> do not clear but mark as cleared */
-        if (!mapdata_cell(px, py)->cleared) {
-            mapdata_cell(px, py)->cleared = 1;
-            mapdata_cell(px, py)->need_update = 1;
-
-            for (i=0; i < MAXLAYERS; i++)
-                if (mapdata_cell(px, py)->heads[i].face) {
-                    expand_need_update_from_layer(px, py, i);
-                }
-        }
+        mapdata_clear(x, y);
     } else {
         /* tile is invisible (outside view area, i.e. big face update) */
 
@@ -721,14 +740,7 @@ void mapdata_set_check_space(int x, int y)
         /* tile is visible */
 
         /* visible tile is now blank ==> do not clear but mark as cleared */
-        if (!mapdata_cell(px, py)->cleared) {
-            mapdata_cell(px, py)->cleared = 1;
-            mapdata_cell(px, py)->need_update = 1;
-
-            for (i=0; i < MAXLAYERS; i++) {
-                expand_need_update_from_layer(px, py, i);
-            }
-        }
+        mapdata_clear(x, y);
     }
 }
 
@@ -788,33 +800,35 @@ void mapdata_set_smooth(int x, int y, guint8 smooth, int layer)
     }
 }
 
-/* If old cell data is set and is to be cleared, clear it.
- * This used to be in mapdata_set_face_layer(), however it needs to be
- * called here, earlier in the Map2Cmd() because otherwise darkness
- * doesn't work went sent before the layer data when that square was
- * going to be cleared. This is used by the Map2Cmd()
+/**
+ * Prepare a map cell, which may contain old fog of war data, for new visible
+ * map data. Call this when Map2 is imminently going to provide an update for
+ * the given tile. A better name for this function would be mapdata_prepare().
  */
 void mapdata_clear_old(int x, int y)
 {
-    int px, py;
-    int i;
-
     assert(0 <= x && x < MAX_VIEW);
     assert(0 <= y && y < MAX_VIEW);
+    if (!(x < width && y < height))
+        return;
 
-    px = pl_pos.x+x;
-    py = pl_pos.y+y;
+    int px = pl_pos.x + x;
+    int py = pl_pos.y + y;
     assert(0 <= px && px < the_map.width);
     assert(0 <= py && py < the_map.height);
 
-    if (x < width && y < height)
-        if (mapdata_cell(px, py)->cleared) {
-            for (i=0; i < MAXLAYERS; i++) {
-                expand_clear_face_from_layer(px, py, i);
-            }
-
-            mapdata_cell(px, py)->darkness = 0;
+    // In theory we only have to do this if this is a fog of war tile, because
+    // the server remembers what tiles are visible to us and sends the
+    // appropriate darkness updates.
+    if (mapdata_cell(px, py)->state == FOG) {
+        mapdata_cell(px, py)->need_update = 1;
+        for (int i = 0; i < MAXLAYERS; i++) {
+            expand_clear_face_from_layer(px, py, i);
         }
+        mapdata_cell(px, py)->darkness = 0;
+    }
+
+    mapdata_cell(px, py)->state = VISIBLE;
 }
 
 /* This is vaguely related to the mapdata_set_face() above, but rather
@@ -840,8 +854,6 @@ void mapdata_set_face_layer(int x, int y, gint16 face, int layer)
         } else {
             expand_clear_face_from_layer(px, py, layer);
         }
-
-        mapdata_cell(px, py)->cleared = 0;
     } else {
         expand_set_bigface(x, y, layer, face, TRUE);
     }
@@ -887,14 +899,7 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
     }
 
     if (x < width && y < height) {
-        mapdata_cell(px, py)->need_update = 1;
-        if (mapdata_cell(px, py)->cleared) {
-            for (i=0; i < MAXLAYERS; i++) {
-                expand_clear_face_from_layer(px, py, i);
-            }
-
-            mapdata_cell(px, py)->darkness = 0;
-        }
+        mapdata_clear_old(x, y);
         if (face >0) {
             expand_set_face(px, py, layer, face, TRUE);
             mapdata_cell(px, py)->heads[layer].animation = animation;
@@ -904,9 +909,6 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
         } else {
             expand_clear_face_from_layer(px, py, layer);
         }
-
-        mapdata_cell(px, py)->cleared = 0;
-
     } else {
         expand_set_bigface(x, y, layer, face, TRUE);
     }
@@ -953,15 +955,13 @@ void mapdata_scroll(int dx, int dy)
     if (dx > 0) {
         for (y = 0; y < height; y++) {
             for (x = width-dx; x < width; x++) {
-                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared = 1;
-                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 1;
+                mapdata_clear(x, y);
             }
         }
     } else {
         for (y = 0; y < height; y++) {
             for (x = 0; x < -dx; x++) {
-                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared = 1;
-                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 1;
+                mapdata_clear(x, y);
             }
         }
     }
@@ -969,15 +969,13 @@ void mapdata_scroll(int dx, int dy)
     if (dy > 0) {
         for (x = 0; x < width; x++) {
             for (y = height-dy; y < height; y++) {
-                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared = 1;
-                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 1;
+                mapdata_clear(x, y);
             }
         }
     } else {
         for (x = 0; x < width; x++) {
             for (y = 0; y < -dy; y++) {
-                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared = 1;
-                mapdata_cell(pl_pos.x+x, pl_pos.y+y)->need_update = 1;
+                mapdata_clear(x, y);
             }
         }
     }
@@ -1100,7 +1098,7 @@ gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh) {
          * tile if it was already valid, just clear the big face and do not
          * return it.
          */
-        if (mapdata_cell(pl_pos.x+x, pl_pos.y+y)->cleared) {
+        if (mapdata_cell(pl_pos.x+x, pl_pos.y+y)->state == FOG) {
             /* Current face is a "fog of war" tile ==> do not clear
              * old information.
              */
@@ -1110,7 +1108,7 @@ gint16 mapdata_bigface(int x, int y, int layer, int *ww, int *hh) {
                 /* Clear face if current tile is valid but the
                  * head is marked as cleared.
                  */
-                clear_bigface = mapdata_cell(pl_pos.x+x+dx, pl_pos.y+y+dy)->cleared;
+                clear_bigface = mapdata_cell(pl_pos.x+x+dx, pl_pos.y+y+dy)->state == FOG;
             } else {
                 /* Clear face if current tile is valid but the
                  * head is not set.
@@ -1394,7 +1392,7 @@ void mapdata_animation(void)
             /* Short cut some processing here.  It makes sense to me
              * not to animate stuff out of view
              */
-            if (map_space->cleared) {
+            if (map_space->state == VISIBLE) {
                 continue;
             }
 

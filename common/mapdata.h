@@ -39,6 +39,13 @@ struct MapCellTailLayer {
     gint8 size_y;
 };
 
+/// A map cell can be in one of three states:
+enum MapCellState {
+    EMPTY,   //< No data from server, and no fog data
+    VISIBLE, //< Data from server
+    FOG      //< No longer visible, but saved as fog of war data
+};
+
 /** The heads[] in the mapcell is used for single part objects
  * or the head piece for multipart.  The easiest way to think about
  * it is that the heads[] contains the map information as specifically
@@ -60,7 +67,7 @@ struct MapCell
     guint8 darkness;         /* darkness: 0=fully illuminated, 255=pitch black */
     guint8 need_update:1;    /* set if tile should be redrawn */
     guint8 need_resmooth:1;  /* same has need update but for smoothing only */
-    guint8 cleared:1;        /* If set, this is a fog cell. */
+    enum MapCellState state:2;
 };
 
 struct Map

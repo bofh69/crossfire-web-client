@@ -287,7 +287,7 @@ static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int n
             const int my = my_start + y;
 
             // Skip current cell if not visible and not using fog of war.
-            if (!use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
+            if (!use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->state == FOG) {
                 continue;
             }
 
@@ -307,7 +307,7 @@ static void map_draw_layer(cairo_t *cr, int layer, int pass, int mx_start, int n
 
 static double mapcell_darkness(int mx, int my) {
     double opacity = mapdata_cell(mx, my)->darkness / 192.0 * 0.6;
-    if (use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->cleared) {
+    if (use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->state == FOG) {
         opacity += 0.2;
     }
     return opacity;
