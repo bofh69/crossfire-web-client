@@ -1,3 +1,22 @@
+1.75.3
+======
+2024-04-10
+
+**Added**
+
+- Add 'mapedit' command to launch map editor on current map
+- Implement smooth lighting for new Pixmap (Cairo) renderer
+- Add additional protocol debugging flags
+- Automatically set 'away' if idle for some time
+- Add pop-up action menu when left-clicking on items. Can be disabled with the inv_menu configuration option
+- Add default bindings for 'reply' and 'get all'
+- Add "scriptkillall" command
+
+**Changed**
+
+- Lighting defaults to per-pixel lighting
+- Improve movement prediction and enable it by default
+
 1.75.2
 ======
 2022-01-06
