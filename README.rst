@@ -68,3 +68,20 @@ Software Foundation; either version 2 of the License, or (at your option)
 any later version.
 
 See *COPYING*.
+
+
+Release
+=======
+To tag and prepare a client release:
+
+#. Update *ChangeLog*
+#. Update ``VERSION`` string in *CMakeLists.txt*
+#. Create an annotated tag (e.g. ``git tag -a v1.2.3 -m "Tag 1.2.3 release"``)
+#. Push tags
+#. Build the client normally (see above)
+#. Run ``git clean -fx`` to clean up local files
+#. Download/check out current sounds into **sounds/** for inclusion in the source release
+#. In the build directory, run ``make package_source``
+#. Inspect resulting source tarball, extract, build, test
+#. Upload source distribution, coordinate builds, announce
+#. Celebrate with a Chateau Navar '78
