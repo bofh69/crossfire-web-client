@@ -75,7 +75,7 @@ Release
 To tag and prepare a client release:
 
 #. Update *ChangeLog*
-#. Update ``VERSION`` string in *CMakeLists.txt*
+#. Update ``VERSION`` string in *CMakeLists.txt* and *gtk-v2/ui/dialogs.ui*
 #. Create an annotated tag (e.g. ``git tag -a v1.2.3 -m "Tag 1.2.3 release"``)
 #. Push tags
 #. Build the client normally (see above)
