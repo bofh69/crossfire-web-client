@@ -252,6 +252,9 @@ static gboolean self_tick(gpointer data) {
         if (!is_afk && use_config[CONFIG_AUTO_AFK] != 0 && time(NULL) > (last_command_sent + use_config[CONFIG_AUTO_AFK])) {
             auto_afk();
         }
+        if (!want_config[CONFIG_SERVER_TICKS]) {
+            client_tick(0);
+        }
         return TRUE;
     }
     return FALSE;

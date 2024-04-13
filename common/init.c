@@ -37,6 +37,7 @@ const char *const config_names[CONFIG_NUMS] = {
     "auto_apply_container", "mapscroll", "sign_popups", "message_timestamping", "auto_afk",
     "inv_menu",
     "music_vol",
+    "server_ticks",
 };
 
 gint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
@@ -175,6 +176,7 @@ static void init_config() {
     want_config[CONFIG_AUTO_AFK] = 300;
     want_config[CONFIG_INV_MENU] = TRUE;
     want_config[CONFIG_MUSIC_VOL] = 100;
+    want_config[CONFIG_SERVER_TICKS] = FALSE;
 
     for (int i = 0; i < CONFIG_NUMS; i++) {
         use_config[i] = want_config[i];
