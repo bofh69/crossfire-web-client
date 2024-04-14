@@ -60,6 +60,8 @@ extern bool profile_latency;
 extern int MINLOG;
 bool debug_protocol;
 
+static bool playing = FALSE; // Set to true when main window is up, gates self-generated ticks
+
 static char *connect_server = NULL;
 
 static gboolean script_launch(const gchar *option_name, const gchar *value, gpointer data, GError **error);
@@ -201,11 +203,6 @@ void client_tick(guint32 tick) {
     info_buffer_tick();
     inventory_tick();
     mapdata_animation();
-    g_idle_add(redraw, NULL);
-
-    if (!is_afk && use_config[CONFIG_AUTO_AFK] != 0 && time(NULL) > (last_command_sent + use_config[CONFIG_AUTO_AFK])) {
-        auto_afk();
-    }
 }
 /**
  * Handles client shutdown.
@@ -246,6 +243,18 @@ static gboolean do_network(GObject *stream, gpointer data) {
     }
 
     return TRUE;
+}
+
+static gboolean self_tick(gpointer data) {
+    if (playing) {
+        g_idle_add(redraw, NULL);
+
+        if (!is_afk && use_config[CONFIG_AUTO_AFK] != 0 && time(NULL) > (last_command_sent + use_config[CONFIG_AUTO_AFK])) {
+            auto_afk();
+        }
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /**
@@ -464,6 +473,11 @@ static void init_ui() {
  * new loginmethod, or after character is selected.
  */
 void show_main_client() {
+    if (!playing) {
+        // Prevent double-time if show_main_client() is called multiple times (it's possible)
+        g_timeout_add(1000/8, G_SOURCE_FUNC(self_tick), NULL);
+    }
+    playing = TRUE;
     hide_all_login_windows();
     gtk_widget_show(window_root);
     clear_stat_mapping();
@@ -475,6 +489,7 @@ void show_main_client() {
  * comes up (before logging in, or after having applied a bed).
  */
 void hide_main_client() {
+    playing = FALSE;
     gtk_widget_hide(window_root);
     remove_item_inventory(cpl.ob);
     /*
