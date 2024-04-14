@@ -2499,7 +2499,7 @@ void AccountPlayersCmd(char *buf, int len) {
             continue;
         }
         pos++;
-        if ((pos +flen) > len || flen>=MAX_BUF) {
+        if ((pos +flen) > len) { // flen always < MAX_BUF by virtue of being 8 bits
             LOG(LOG_ERROR,"commands.c:AccountPlayerCmd", "data overran buffer");
             return;
         }
