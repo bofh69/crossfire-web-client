@@ -1392,7 +1392,7 @@ void mapdata_animation(void)
             /* Short cut some processing here.  It makes sense to me
              * not to animate stuff out of view
              */
-            if (map_space->state == VISIBLE) {
+            if (map_space->state != VISIBLE) {
                 continue;
             }
 
