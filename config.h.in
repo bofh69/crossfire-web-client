@@ -10,8 +10,5 @@
 #cmakedefine HAVE_CURL_CURL_H
 #cmakedefine HAVE_GIO_GNETWORKING_H
 
-/* Functions */
-#cmakedefine HAVE_SYSCONF
-
 /* Features */
 #cmakedefine HAVE_LUA
