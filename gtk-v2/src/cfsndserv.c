@@ -30,8 +30,11 @@ typedef struct sound_settings {
     int max_chunk;  //< number of sounds that can be played at the same time
 } sound_settings;
 
-static Mix_Music *music = NULL;
+static Mix_Music *music = NULL; //< current music sample
+static char *music_playing; //< current or next music name
+
 static sound_settings settings = { 512, 4 };
+static const int fade_time_ms = 1000;
 
 static GHashTable* chunk_cache;
 static GHashTable* sounds;
@@ -156,9 +159,9 @@ void cf_play_sound(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
 }
 
 static bool music_is_different(char const music[static 1]) {
-    static char last_played[MAXSOCKBUF] = "";
-    if (strcmp(music, last_played) != 0) {
-        g_strlcpy(last_played, music, MAXSOCKBUF);
+    if (music_playing == NULL)
+        return true;
+    if (strcmp(music, music_playing) != 0) {
         return true;
     }
     return false;
@@ -174,6 +177,30 @@ static bool find_music_path(const char *name, char *path, size_t len) {
     return false;
 }
 
+void cf_play_music_cb() {
+    Mix_HookMusicFinished(NULL);
+    if (music != NULL) {
+        Mix_FreeMusic(music);
+        music = NULL;
+    }
+
+    if (strcmp(music_playing, "NONE") == 0) {
+        return;
+    }
+    char path[MAXSOCKBUF];
+    if (!find_music_path(music_playing, path, sizeof(path))) {
+        fprintf(stderr, "Could not find a music file (ogg or mp3) for %s in %s\n", music_playing, path);
+        return;
+    }
+    music = Mix_LoadMUS(path);
+    if (!music) {
+        fprintf(stderr, "Could not load music: %s\n", Mix_GetError());
+        return;
+    }
+    Mix_VolumeMusic(MIX_MAX_VOLUME * 3/4);
+    Mix_FadeInMusic(music, -1, fade_time_ms);
+}
+
 /**
  * Play a music file.
  *
@@ -185,27 +212,14 @@ void cf_play_music(const char* music_name) {
         return;
     }
 
-    Mix_FadeOutMusic(500);
-    if (music != NULL) {
-        Mix_FreeMusic(music);
-        music = NULL;
+    if (music_playing != NULL)
+        g_free(music_playing);
+    music_playing = g_strdup(music_name);
+    if (Mix_FadeOutMusic(fade_time_ms)) {
+        Mix_HookMusicFinished(cf_play_music_cb); // handle in callback to avoid blocking during fade-out
+    } else {
+        cf_play_music_cb(); // nothing playing, just do it
     }
-
-    if (strcmp(music_name, "NONE") == 0) {
-        return;
-    }
-    char path[MAXSOCKBUF];
-    if (!find_music_path(music_name, path, sizeof(path))) {
-        fprintf(stderr, "Could not find a music file (ogg or mp3) for %s in %s\n", music_name, path);
-        return;
-    }
-    music = Mix_LoadMUS(path);
-    if (!music) {
-        fprintf(stderr, "Could not load music: %s\n", Mix_GetError());
-        return;
-    }
-    Mix_VolumeMusic(MIX_MAX_VOLUME * 3/4);
-    Mix_FadeInMusic(music, -1, 500);
 }
 
 void cf_snd_exit() {
