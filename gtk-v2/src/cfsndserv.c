@@ -164,6 +164,16 @@ static bool music_is_different(char const music[static 1]) {
     return false;
 }
 
+static bool find_music_path(const char *name, char *path, size_t len) {
+    snprintf(path, len, "%s/music/%s.ogg", g_getenv("CF_SOUND_DIR"), name);
+    if (g_file_test(path, G_FILE_TEST_EXISTS))
+        return true;
+    snprintf(path, len, "%s/music/%s.mp3", g_getenv("CF_SOUND_DIR"), name);
+    if (g_file_test(path, G_FILE_TEST_EXISTS))
+        return true;
+    return false;
+}
+
 /**
  * Play a music file.
  *
@@ -185,8 +195,10 @@ void cf_play_music(const char* music_name) {
         return;
     }
     char path[MAXSOCKBUF];
-    snprintf(path, sizeof(path), "%s/music/%s.ogg", g_getenv("CF_SOUND_DIR"),
-             music_name);
+    if (!find_music_path(music_name, path, sizeof(path))) {
+        fprintf(stderr, "Could not find a music file (ogg or mp3) for %s in %s\n", music_name, path);
+        return;
+    }
     music = Mix_LoadMUS(path);
     if (!music) {
         fprintf(stderr, "Could not load music: %s\n", Mix_GetError());
