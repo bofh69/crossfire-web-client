@@ -161,11 +161,10 @@ static void init_config() {
     want_config[CONFIG_POPUPS] = FALSE;
     want_config[CONFIG_PORT] = EPORT;
     want_config[CONFIG_RESISTS] = 0;
-    want_config[CONFIG_RESISTS] = 0;
     want_config[CONFIG_SHOWGRID] = FALSE;
     want_config[CONFIG_SHOWICON] = FALSE;
     want_config[CONFIG_SIGNPOPUP] = TRUE;
-    want_config[CONFIG_SMOOTH] = 0;
+    want_config[CONFIG_SMOOTH] = FALSE;
     want_config[CONFIG_SOUND] = TRUE;
     want_config[CONFIG_SPLASH] = TRUE;
     want_config[CONFIG_SPLITINFO] = FALSE;
