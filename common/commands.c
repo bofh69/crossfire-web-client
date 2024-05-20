@@ -2178,7 +2178,15 @@ void Map2Cmd(unsigned char *data, int len)
                     mapdata_set_smooth(x, y, opt, layer);
                 }
                 continue;
-            } /* if image layer */
+            } else {
+                // unhandled type, we're still responsible for checking the length
+                if (space_len != 7) {
+                    pos += space_len;
+                } else {
+                    int len = data[pos++];
+                    pos += len;
+                }
+            }
         } /* while pos<len inner loop for space */
     } /* While pos<len outer loop */
     mapupdatesent = 0;
