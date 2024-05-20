@@ -800,6 +800,23 @@ void mapdata_set_smooth(int x, int y, guint8 smooth, int layer)
     }
 }
 
+void mapdata_add_label(int x, int y, int subtype, const char *label) {
+    assert(0 <= x && x < MAX_VIEW);
+    assert(0 <= y && y < MAX_VIEW);
+    if (!(x < width && y < height))
+        return;
+
+    int px = pl_pos.x + x;
+    int py = pl_pos.y + y;
+    assert(0 <= px && px < the_map.width);
+    assert(0 <= py && py < the_map.height);
+    struct MapLabel *new = g_malloc(sizeof(struct MapLabel));
+    new->subtype = subtype;
+    new->label = g_strdup(label);
+    new->next = mapdata_cell(px, py)->label;
+    mapdata_cell(px, py)->label = new;
+}
+
 /**
  * Prepare a map cell, which may contain old fog of war data, for new visible
  * map data. Call this when Map2 is imminently going to provide an update for
@@ -826,6 +843,13 @@ void mapdata_clear_old(int x, int y)
             expand_clear_face_from_layer(px, py, i);
         }
         mapdata_cell(px, py)->darkness = 0;
+    }
+
+    while (mapdata_cell(px, py)->label != NULL) {
+        struct MapLabel *next = mapdata_cell(px, py)->label->next;
+        g_free(mapdata_cell(px, py)->label->label);
+        g_free(mapdata_cell(px, py)->label);
+        mapdata_cell(px, py)->label = next;
     }
 
     mapdata_cell(px, py)->state = VISIBLE;

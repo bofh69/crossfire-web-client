@@ -63,11 +63,18 @@ struct MapCell
 {
     struct MapCellLayer heads[MAXLAYERS];
     struct MapCellTailLayer tails[MAXLAYERS];
+    struct MapLabel *label;
     guint8 smooth[MAXLAYERS];
     guint8 darkness;         /* darkness: 0=fully illuminated, 255=pitch black */
     guint8 need_update:1;    /* set if tile should be redrawn */
     guint8 need_resmooth:1;  /* same has need update but for smoothing only */
     enum MapCellState state:2;
+};
+
+struct MapLabel {
+    int subtype;
+    char *label;
+    struct MapLabel *next;
 };
 
 struct Map
@@ -151,6 +158,7 @@ void mapdata_clear_space(int x, int y);
 void mapdata_set_check_space(int x, int y);
 void mapdata_set_darkness(int x, int y, int darkness);
 void mapdata_set_smooth(int x, int y, guint8 smooth, int layer);
+void mapdata_add_label(int x, int y, int subtype, const char *label);
 void mapdata_clear_old(int x, int y);
 void mapdata_set_face_layer(int x, int y, gint16 face, int layer);
 void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int layer);

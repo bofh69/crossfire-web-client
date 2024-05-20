@@ -41,27 +41,30 @@
 /*@{*/
 #define MAP2_TYPE_CLEAR         0x0
 #define MAP2_TYPE_DARKNESS      0x1
+#define MAP2_TYPE_LABEL         0x2 // SC 1030
 /*
  * These next two are not used presently, but the numbers are set aside for
  * when support is added.
  *
- * #define MAP2_TYPE_SOUND         0x2
  * #define MAP2_TYPE_LIGHTSOURCE   0x3
  */
 /*@}*/
 
-#define MAP2_LAYER_START        0x10
-
 /**
- * Encodes a (x, y) pair suitable for map2 parameters. The coordinates must be
- * between [-MAP2_COORD_OFFSET..63-MAP2_COORD_OFFSET]. The flags value must be
- * between [0..15].
- *
- * @param x the x-coordinate
- * @param y the y-coordinate
- * @param flags the flags value
+ * Map label subtypes
  */
-#define MAP2_COORD_ENCODE(x, y, flags) ((((x)+MAP2_COORD_OFFSET)&0x3f)<<10|(((y)+MAP2_COORD_OFFSET)&0x3f)<<4|(flags&0x0f))
+enum map2_label {
+    MAP2_LABEL_PLAYER = 1,
+    MAP2_LABEL_PLAYER_PARTY = 2,
+    MAP2_LABEL_DM = 3,
+    MAP2_LABEL_NPC = 4,
+    MAP2_LABEL_SIGN = 5,
+    MAP2_LABEL_SAY = 6,
+    MAP2_LABEL_CHAT = 7,
+};
+
+#define MAP2_LAYER_START        0x10
+#define MAP2_ADD_LENGTH         0b11100000 // OR this with the above for "next byte is length", SC 1030
 
 #define CS_QUERY_YESNO      0x1 /**< Yes/no question. */
 #define CS_QUERY_SINGLECHAR 0x2 /**< Single character response expected. */

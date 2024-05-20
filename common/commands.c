@@ -2140,6 +2140,19 @@ void Map2Cmd(unsigned char *data, int len)
                 value = data[pos++];
                 mapdata_set_darkness(x, y, value);
                 continue;
+            } else if (type == MAP2_TYPE_LABEL) {
+                if (space_len != 7) {
+                    // protocol error
+                    abort();
+                }
+                unsigned int lenp2 = data[pos++];
+                unsigned char subtype = data[pos++];
+                unsigned int len = data[pos++];
+                char buf[256];
+                strncpy(buf, (const char *)(data+pos), len);
+                buf[len] = '\0';
+                mapdata_add_label(x, y, subtype, buf);
+                pos += len;
             } else if (type >= MAP2_LAYER_START && type < MAP2_LAYER_START+MAXLAYERS) {
                 int layer, opt;
 

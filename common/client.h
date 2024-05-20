@@ -65,7 +65,7 @@ typedef struct TextManager{
 #define DEFPORT "13327"
 
 #define VERSION_CS 1023
-#define VERSION_SC 1029
+#define VERSION_SC 1030
 
 extern char VERSION_INFO[256];
 

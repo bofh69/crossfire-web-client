@@ -305,6 +305,54 @@ static void map_draw_layer(cairo_t *cr, int layer, int mx_start, int nx, int my_
     }
 }
 
+static void map_draw_labels(cairo_t *cr, int mx_start, int nx, int my_start, int ny) {
+    cairo_font_face_t *font = cairo_toy_font_face_create("", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_face(cr, font);
+    for (int x = 0; x <= nx; x++) {
+        for (int y = 0; y <= ny; y++) {
+            // Translate on-screen coordinates to virtual map coordinates.
+            const int mx = mx_start + x;
+            const int my = my_start + y;
+
+            struct MapLabel *next = mapdata_cell(mx, my)->label;
+            double off_y = 0;
+            while (next != NULL) {
+                // calculate extents to center text above square
+                cairo_text_extents_t extents;
+                cairo_text_extents(cr, next->label, &extents);
+                double off_x = map_image_size/2 - extents.width/2;
+                double sx = (mx-mx_start)*map_image_size + off_x;
+                double sy = (my-my_start)*map_image_size + off_y;
+
+                // background shading
+                int bx = 3;
+                double lineheight = extents.height+2*bx;
+                cairo_set_source_rgba(cr, 0.3, 0.3, 0.3, 0.5);
+                cairo_rectangle(cr, sx - bx, sy-extents.height-bx, extents.width+2*bx, lineheight);
+                cairo_fill(cr);
+
+                // render text
+                cairo_move_to(cr, sx, sy);
+                switch (next->subtype) {
+                case MAP2_LABEL_DM:
+                    cairo_set_source_rgb(cr, 1, 0, 0);
+                    break;
+                case MAP2_LABEL_PLAYER_PARTY:
+                    cairo_set_source_rgb(cr, 177.0/255, 225.0/255, 255.0/255);
+                    break;
+                default:
+                    cairo_set_source_rgb(cr, 1, 1, 1);
+                }
+                cairo_show_text(cr, next->label);
+
+                next = next->next;
+                off_y += lineheight;
+            }
+        }
+    }
+    cairo_font_face_destroy(font);
+}
+
 static double mapcell_darkness(int mx, int my) {
     double opacity = mapdata_cell(mx, my)->darkness / 192.0 * 0.6;
     if (use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->state == FOG) {
@@ -432,6 +480,7 @@ static void gtk_map_redraw() {
     }
 
     draw_move_to(cr, mx_start, my_start);
+    map_draw_labels(cr, mx_start, nx, my_start, ny);
 
     if (use_config[CONFIG_LIGHTING] != 0) {
         draw_darkness(cr, nx, ny, mx_start, my_start);
