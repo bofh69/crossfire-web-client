@@ -214,7 +214,8 @@ typedef enum {
 #define CONFIG_TIMESTAMP        31
 #define CONFIG_AUTO_AFK         32
 #define CONFIG_INV_MENU         33
-#define CONFIG_NUMS             34      /**< This should always be the last
+#define CONFIG_MUSIC_VOL        34
+#define CONFIG_NUMS             35      /**< This should always be the last
                                              value in the CONFIG_xxx list. */
 /*@}*/
 

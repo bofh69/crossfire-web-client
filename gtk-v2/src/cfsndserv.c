@@ -197,7 +197,7 @@ void cf_play_music_cb() {
         fprintf(stderr, "Could not load music: %s\n", Mix_GetError());
         return;
     }
-    Mix_VolumeMusic(MIX_MAX_VOLUME * 3/4);
+    Mix_VolumeMusic(MIX_MAX_VOLUME * 3/4 * MIN(use_config[CONFIG_MUSIC_VOL], 100) / 100);
     Mix_FadeInMusic(music, -1, fade_time_ms);
 }
 
