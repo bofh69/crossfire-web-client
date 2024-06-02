@@ -73,10 +73,6 @@ void new_player(long tag, char *name, long weight, long face) {
         }
         cpl.spelldata = NULL;
     }
-
-    // Reset auto-AFK data.
-    is_afk = false;
-    last_command_sent = time(NULL);
 }
 
 void look_at(int x, int y) {

@@ -482,6 +482,10 @@ void show_main_client() {
     gtk_widget_show(window_root);
     clear_stat_mapping();
     map_init(window_root);
+
+    // Reset auto-AFK data.
+    is_afk = false;
+    last_command_sent = time(NULL);
 }
 
 /**
