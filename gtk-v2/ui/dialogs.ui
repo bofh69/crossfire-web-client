@@ -2386,7 +2386,7 @@ Attribute</property>
                                         <property name="label" translatable="yes">Name:</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">0</property>
                                       </packing>
@@ -2405,7 +2405,7 @@ Attribute</property>
                                         <signal name="activate" handler="activate_new_account_name" swapped="no"/>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">1</property>
                                       </packing>
@@ -2418,7 +2418,7 @@ Attribute</property>
                                         <property name="label" translatable="yes">Enter Password:</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">2</property>
                                       </packing>
@@ -2437,7 +2437,7 @@ Attribute</property>
                                         <signal name="activate" handler="activate_new_account_password" swapped="no"/>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">3</property>
                                       </packing>
@@ -2450,7 +2450,7 @@ Attribute</property>
                                         <property name="label" translatable="yes">Confirm Password:</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">4</property>
                                       </packing>
@@ -2469,7 +2469,7 @@ Attribute</property>
                                         <signal name="activate" handler="activate_new_confirm_password" swapped="no"/>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">5</property>
                                       </packing>
@@ -2481,7 +2481,7 @@ Attribute</property>
                                         <property name="ypad">5</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
+                                        <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="position">6</property>
                                       </packing>
