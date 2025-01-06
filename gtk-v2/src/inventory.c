@@ -950,8 +950,6 @@ static void draw_inv_table_icon(GdkWindow *dst, const void *image) {
  */
 static gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
         GdkEventExpose *event, gpointer user_data) {
-    item *tmp;
-
     if (cpl.ob->inv_updated != 0) {
         // Delay drawing until inventory is fully updated. This avoids drawing
         // previously added items that may now be removed, leading to a heap
@@ -959,12 +957,11 @@ static gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
         return TRUE;
     }
 
-    tmp = (item*) user_data;
-
     /*
      * Can get cases when switching tabs that we get an expose event before the
      * list is updated - if so, don't draw stuff we don't have faces for.
      */
+    item* tmp = (item*)user_data;
     if (tmp->face) {
         draw_inv_table_icon(gtk_widget_get_window(widget), pixmaps[tmp->face]->icon_image);
     }
