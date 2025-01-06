@@ -342,16 +342,14 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
          */
 
         renderer = gtk_cell_renderer_pixbuf_new();
-        renderer->xalign = 0;
-        renderer->yalign = 0;
+        gtk_cell_renderer_set_alignment(renderer, 0, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "?", renderer, "pixbuf", LIST_IMAGE, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
         gtk_tree_view_column_set_sort_column_id(column, LIST_IMAGE);
         
         renderer = gtk_cell_renderer_text_new();
-        renderer->xalign = 0;
-        renderer->yalign = 0;
+        gtk_cell_renderer_set_alignment(renderer, 0, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Spell", renderer, "text", LIST_NAME, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -364,8 +362,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        renderer->xalign = 0.4;
-        renderer->yalign = 0;
+        gtk_cell_renderer_set_alignment(renderer, 0.4, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Level", renderer, "text", LIST_LEVEL, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -378,8 +375,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        renderer->xalign = 0.4;
-        renderer->yalign = 0;
+        gtk_cell_renderer_set_alignment(renderer, 0.4, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Cost/Cast", renderer, "text", LIST_COST, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -396,8 +392,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        renderer->xalign = 0.4;
-        renderer->yalign = 0;
+        gtk_cell_renderer_set_alignment(renderer, 0.4, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Damage", renderer, "text", LIST_DAMAGE, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
@@ -421,8 +416,7 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
             column, renderer, "font-desc", LIST_FONT);
 
         renderer = gtk_cell_renderer_text_new();
-        renderer->xalign = 0;
-        renderer->yalign = 0;
+        gtk_cell_renderer_set_alignment(renderer, 0, 0);
         column = gtk_tree_view_column_new_with_attributes(
                      "Description", renderer, "text", LIST_DESCRIPTION, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
