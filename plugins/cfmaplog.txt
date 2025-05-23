@@ -2,7 +2,7 @@ cfmaplog.py - A Crossfire Plug-In designed for use the Crossfire GTK2 Client
 
 Conceptualized by:  Kevin R. Bulgrien
 Original creation:  May,  2025
-Last modification:  2025/05/22
+Last modification:  2025/05/23
 
 ================================================================================
 
@@ -187,4 +187,9 @@ Various tables are maintained:
   at 10, which allows for maps of about 5 levels being looted with about 5
   more transitions for return trips to drop off loot.  This could bear some
   adjustment in size probably, but support for run-time changes is not in place.
+
+= Bugs =========================================================================
+
+* player_send() seems to only output black on the developer's client.  It is not
+  clear yet what the problem is.
 

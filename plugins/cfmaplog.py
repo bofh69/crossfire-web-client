@@ -73,8 +73,34 @@ def debug_send(text):
 # should go, and it usually should, pass one at the end of the text.  This
 # script may build output incrementally, so do not add one here.
 #
+# See Also:  client/common/shared/newclient.h
+#
+NDI_BLACK      = 0
+NDI_WHITE      = 1
+NDI_NAVY       = 2
+NDI_RED        = 3
+NDI_ORANGE     = 4
+NDI_BLUE       = 5       # Actually, it is Dodger Blue
+NDI_DK_ORANGE  = 6       # DarkOrange2
+NDI_GREEN      = 7       # SeaGreen
+NDI_LT_GREEN   = 8       # DarkSeaGreen, which is actually paler
+                         # than seagreen - also background color.
+NDI_GREY       = 9
+NDI_BROWN      = 10      # Sienna.
+NDI_GOLD       = 11
+NDI_TAN        = 12      # Khaki.
+NDI_MAX_COLOR  = 12      # Last value in.
+
+NDI_COLOR_MASK = 0xff    # Gives lots of room for expansion - we are
+                         # using an int anyways, so we have the
+                         # space to still do all the flags.
+
+NDI_UNIQUE     = 0x100   # Print immediately, don't buffer.
+NDI_ALL        = 0x200   # Inform all players of this message.
+NDI_ALL_DMS    = 0x400   # Inform all logged in DMs. Used in case of
+
 def player_send(text):
-  client_send(f"issue 1 1 tell {player_name} {codefile}: " + text)
+  client_send(f"draw 11 {player_name} {codefile}: " + text)
   debug_send(f"{player_name} {codefile}: " + text)
   return
 
