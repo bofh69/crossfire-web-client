@@ -73,6 +73,9 @@ def debug_send(text):
 # should go, and it usually should, pass one at the end of the text.  This
 # script may build output incrementally, so do not add one here.
 #
+# IMPORTANT: It appears that the integer-based color is currently broken
+#            in the client; text markup is required to set text attributes.
+#
 # See Also:  client/common/shared/newclient.h
 #
 NDI_BLACK      = 0
@@ -99,9 +102,49 @@ NDI_UNIQUE     = 0x100   # Print immediately, don't buffer.
 NDI_ALL        = 0x200   # Inform all players of this message.
 NDI_ALL_DMS    = 0x400   # Inform all logged in DMs. Used in case of
 
+# See Also:  client/gtk-v2/src/info.c
+#
+# The following markup strings are supported:
+#
+# [b] ... [/b]   bold
+# [i] ... [/i]   italic
+# [ul] ... [/ul] underline
+# [print]        font_style_names[0] ???
+# [arcane]       font_style_names[1]
+# [strange]      font_style_names[2]
+# [fixed]        font_style_names[3]
+# [hand]         font_style_names[4]
+# [color=x] ... [/color] where x are the quoted color names below.
+#
+# font_style_names[] are determined by the selected theme.  The default
+# installed theme files are in client/gtk-v2/themes and are "Standard"
+# and Black.  Both themes use the same set of fonts by default.
+#
+#     font_style_names[0] =  <system/theme default> ???
+#     font_style_names[1] =  "URW Chancery Lk"
+#     font_style_names[2] =  "Sans Italic"
+#     font_style_names[3] =  "Luxi Mono"
+#     font_style_names[4] =  "Century Schoolbook L Italic"
+#
+# Color names set by the user in the gtkrc file. */
+# static const char *const usercolorname[NUM_COLORS] = {
+#   "black",                /* 0  */
+#   "white",                /* 1  */
+#   "darkblue",             /* 2  */
+#   "red",                  /* 3  */
+#   "orange",               /* 4  */
+#   "lightblue",            /* 5  */
+#   "darkorange",           /* 6  */
+#   "green",                /* 7  */
+#   "darkgreen",            /* 8  *//* Used for window background color */
+#   "grey",                 /* 9  */
+#   "brown",                /* 10 */
+#   "yellow",               /* 11 */
+#   "tan"                   /* 12 */
+#
 def player_send(text):
-  client_send(f"draw 11 {player_name} {codefile}: " + text)
-  debug_send(f"{player_name} {codefile}: " + text)
+  client_send(f"draw 0 [color=darkorange] {codefile}: {text}")
+  debug_send(f"{codefile}: {text}")
   return
 
 # Begin ######################################################################
@@ -264,7 +307,7 @@ try:
 except:
   console_send(f"{e}\n")
 
-player_send(f"Welcome, {player_title}\n")
+player_send(f"Hello, {player_name}\n")
 
 # map initialization #########################################################
 #
@@ -623,7 +666,7 @@ for buffer in sys.stdin:
 
   buffer = ''
 
-player_send(f"Farewell, {player_title}\n")
+player_send(f"Farewell, {player_name}\n")
 
 vcConn.close()
 dbConn.close()

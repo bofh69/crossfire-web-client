@@ -188,8 +188,3 @@ Various tables are maintained:
   more transitions for return trips to drop off loot.  This could bear some
   adjustment in size probably, but support for run-time changes is not in place.
 
-= Bugs =========================================================================
-
-* player_send() seems to only output black on the developer's client.  It is not
-  clear yet what the problem is.
-
