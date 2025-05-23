@@ -143,7 +143,7 @@ NDI_ALL_DMS    = 0x400   # Inform all logged in DMs. Used in case of
 #   "tan"                   /* 12 */
 #
 def player_send(text):
-  client_send(f"draw 0 [color=darkorange] {codefile}: {text}")
+  client_send(f"draw 0 [color=darkorange]{codefile}: {text}")
   debug_send(f"{codefile}: {text}")
   return
 
