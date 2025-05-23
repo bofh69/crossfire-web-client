@@ -1,0 +1,190 @@
+cfmaplog.py - A Crossfire Plug-In designed for use the Crossfire GTK2 Client 
+
+Conceptualized by:  Kevin R. Bulgrien
+Original creation:  May,  2025
+Last modification:  2025/05/22
+
+================================================================================
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and this
+notice are preserved.  This file is offered as-is, without any warranty.
+
+( https://www.gnu.org/licenses/license-list.html#GNUAllPermissive )
+
+= Introduction =================================================================
+
+This Crossfire plug-in aims to allow a player to track visits to individual maps
+in the game.  The author created a dozen or so characters of all the different
+races in the game and used most of the character classes in a bid to learn more
+about playing the game.  He found it difficult to keep track of which maps one's
+character played when playing only a few characters, so with a dozen it became
+hopeless to do so.  This was the motivation for creating the cfmaplog plug-in.
+
+Even if you do not play a dozen characters, this plugin is a tool that can help
+keep up with where in the world the character has gone.  It uses the 'mapinfo'
+command to source the data.  The travel log data is stored in an sqlite3 data
+file named 'cfmaplog.db'.
+
+= Install ======================================================================
+
+It is recommended to place the cfmaplog.py script in the same folder where the
+other personal client configuration files are stored (i.e. keybinds).  On a
+Linux system this could be a folder like ~/.config/crossfire under the user's
+HOME directory.
+
+A cfmaplog.db file is automatically created in the folder where the script
+resides upon first invocation if the file does not already exist.  It is For
+example, when loading with 'script /home/user/.config/crossfire/cfmaplog.py',
+the plugin data is /home/user/.config/crossfire/cfmaplog.db.  It is readily
+acknowledged that use of this path is not particularly ideal in case one wants
+the script deployed in a system folder not writeable by the user.
+
+= Setup ========================================================================
+
+The author uses keybinds to make it simple to start and stop the plugin.  The
+examples following presume use of the PAUSE/BREAK key on US PC keyboards:
+
+  Key:       Pause
+  Modifiers: Fire
+  Command:   script /home/user/.config/crossfire/cfmaplog.py
+
+  Key:       Pause
+  Modifiers: None
+  Command:   scripts
+
+  Key:       Break
+  Modifiers: Run
+  Command:   scripttell /home/user/.config/crossfire/cfmaplog.py quit
+
+It is also possible to halt the cfmaplog.py plugin with a standard command:
+
+  scriptkill /home/user/.config/crossfire/cfmaplog.py
+
+The scripttell command allows the plugin to shutdown on its own terms (closing
+files nicely, etc.).  That said, since the database file is not written to by
+more than one process, scriptkill has not corrupted the database file during
+initial development and testing.
+
+NOTE: Full paths in the aforementioned commands allow for use of various plugins
+      without assuming a particular load order.  If cfmaplog.py is the only
+      plugin in use, the scriptkill and scripttell commands may replace the path
+      with "1" (the plugin number displayed by the scripts command).
+
+= Usage ========================================================================
+
+Start the Crossfire GTK client.
+
+Login to a Crossfire server.
+
+Select a character to play.
+
+Once a character to play is visible on a Crossfire map, start the plugin using
+a keybind or command as shown in the "Setup" section.
+
+Once the plugin is running, upon transitioning to a different map, the Messages
+dialog shows something like this:
+
+  Mess Hall (/scorn/houses/messhall) in The Kingdom of Scorn
+  Created:  2003-02-04
+  Modified: 2020-01-13 Rick Tanner
+  
+  Character tells you: I don't think I remember this place!
+  You tell Character: I don't think I remember this place!
+
+-or-
+
+  Mess Hall (/scorn/houses/messhall) in The Kingdom of Scorn
+  Created:  2003-02-04
+  Modified: 2020-01-13 Rick Tanner
+  
+  Character tells you: I've been here 2 times before.
+  You tell Character: I've been here 2 times before.
+
+NOTE: The near duplicate messages are a consequence of the script using tell
+      commands to communicate with the player.  This is standard behavior if a
+      player tells himself someting with the tell command.
+
+As one might guess, these messages are rather pointless for locations like
+Apartments, world maps, etc.  The number of prior visits messaging is
+suppressed under certain circumstances.
+
+* The plugin maintains a table containing map name patterns that should not
+  show messages.  Though there are built in defaults, it is possible to add
+  entries to the "quiet" table.  Presently this is done with another tool
+  (i.e. the aforementioned DB Browser for SQLite).
+
+* Furthermore, there is an in-memory cache file of the most recent ten maps
+  visited.  If the map is listed in the cache, messages are not shown.  This
+  helps reduce spurious visit counts when popping in and out of maps for
+  purposes of looting, etc.
+
+It is presumed safe to just quit the client when finished playing, but one may
+also expressly shutdown the script ahead of time.
+
+It is IMPORTANT to (re)start the plugin whenever switching servers or
+characters.  At present, the plugin only checks server and character names at
+start up.  Incorrect visit log entries will occur if the plugin is not
+restarted.
+
+At present, there is no built-in reporting other than what occurs when entering
+maps.  The cfdialog.db file is inspectable by tools that understand how to work
+with sqlite3 files.  The author finds DB Browser for SQLite helpful.
+
+NOTE: In some cases it is supported to run more than one instance of the client
+      simultaneously on the same computer.  It is NOT SUPPORTED to run multiple
+      instances of this plugin on the same computer.
+
+= Technical Information ========================================================
+
+For developers, another scripttell may prove helpful.  This enables a variety
+of messages if the client is started from a console:
+
+  scripttell /home/user/.config/crossfire/cfmaplog.py debug
+
+Various tables are maintained:
+
+* server
+
+  The plugin logs reference the server on which they were played.  For example,
+  a visit to a map on MetalForge is distinct form a visit to the same map on
+  Invidious.  This table allows uniquely tracking map visits even if the same
+  character name is used on multiple servers.  The server name is obtained by
+  reading a CF_SERVER_NAME environment variable that the client sets up.
+
+* player
+
+  The plugin obtains character names from the CF_PLAYER_NAME environment variable  established by the Crossfire client.  Map visits are tracked separately by
+  character name.  There is no issue with using the same character name on
+  different servers.
+
+* map
+
+  To populate this table, the client uses mapinfo commands when the client shows
+  a map change has occurred.  This causes mapinfo text to show up in the message
+  log when:  changing maps, going through a store portal, and possibly other
+  events like dimension door.  The table tracks the various data elements output
+  by the mapinfo command (name, path, author, last change).
+
+* quiet
+
+  Contains SQL "LIKE" patterns to match against map names.  When entering a map
+  with a matching name, visits after the first one are not announced (though
+  mapinfo data still shows).  The table contains character and server ID fields
+  so it could support per-character, per-server filtering.  Setting the fields
+  is not currently implemented and some of the filtering is incomplete.
+
+* visit
+
+  The log of map visit count (and last recorded visit date).  Since there are
+  Python bindings for GTK, it could be really interesting to support pop-up
+  report/search dialogs...
+
+* vcache
+
+  The memory-based visit cache used to squelch visit counts when repeat visits
+  occur in close succession.  At present, the depth of the cache is hardcoded
+  at 10, which allows for maps of about 5 levels being looted with about 5
+  more transitions for return trips to drop off loot.  This could bear some
+  adjustment in size probably, but support for run-time changes is not in place.
+
