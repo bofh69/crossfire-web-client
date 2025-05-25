@@ -422,9 +422,46 @@ cursor.execute('''
       MAP_ID      INTEGER NOT NULL,
       PLAYER_ID   INTEGER NOT NULL,
       VISIT_TOTAL INTEGER NOT NULL,
-      VISIT_DATE  TEXT NOT NULL
+      VISIT_DATE  TEXT NOT NULL,
+      COMPLETED   INTEGER DEFAULT 0,
+      VISIT_DATE  TEXT NOT NULL DEFAULT ""
     )
 ''')
+
+# Schema update if COMPLETED is missing.
+#
+cursor.execute('''
+    PRAGMA table_info(visit)
+''')
+success = False
+query = cursor.fetchall()
+for row in query:
+  # row field numbers are zero-based
+  if row[1] == "COMPLETED":
+    success = True
+if not success:
+  debug_send(f"ALTER TABLE visit ADD COLUMN COMPLETED INTEGER DEFAULT 0\n")
+  cursor.execute('''
+      ALTER TABLE visit ADD COLUMN COMPLETED INTEGER DEFAULT 0
+  ''')
+
+# Schema update if COMPLETED_DATE is missing.
+#
+cursor.execute('''
+    PRAGMA table_info(visit)
+''')
+success = False
+query = cursor.fetchall()
+for row in query:
+  # row field numbers are zero-based
+  if row[1] == "COMPLETED_DATE":
+    success = True
+if not success:
+  debug_send(f"ALTER TABLE visit ADD COLUMN COMPLETED_DATE STRING NOT NULL" \
+    + ": DEFAULT ''\n")
+  cursor.execute('''
+      ALTER TABLE visit ADD COLUMN COMPLETED_DATE STRING NOT NULL DEFAULT ""
+  ''')
 
 visits = 0
 visit_date  = ''
@@ -466,6 +503,45 @@ for buffer in sys.stdin:
   match buffer:
     case '':
       time.sleep(0.25)
+      continue
+
+    # Player may halt the script with either 'scripttell' or 'scriptkill'
+    #
+    case 'scripttell complete':
+      completed = 0
+      completed_date = ""
+      cursor.execute('''
+        SELECT COMPLETED FROM visit
+        WHERE  MAP_ID = ? AND PLAYER_ID = ?
+      ''', ( map_id, player_id ))
+      query = cursor.fetchone()
+      if query == None:
+        visit_total = 0
+        cursor.execute('''
+          INSERT INTO visit
+            ( MAP_ID, PLAYER_ID, VISIT_TOTAL, VISIT_DATE, COMPLETED, COMPLETED_DATE )
+              VALUES ( ?, ?, ?, ?, ? )
+        ''', (map_id, player_id, 1, visit_date, 0, ""))
+        dbConn.commit()
+      cursor.execute('''
+        SELECT COMPLETED, COMPLETED_DATE
+        FROM visit WHERE MAP_ID = ? and PLAYER_ID = ?
+      ''', ( map_id, player_id))
+      query = cursor.fetchone()
+      completed = query[0] + 1
+      player_send(f"I've marked this map complete {completed} times.\n")
+      if completed > 1 and len(query[1]):
+        player_send(f"The most resent completion was {query[1]}.\n")
+      completed_date = time.strftime("%Y/%m/%d %H:%M")
+      try:
+        cursor.execute('''
+          UPDATE visit
+            SET   COMPLETED = ?, COMPLETED_DATE = ?
+            WHERE MAP_ID = ? AND PLAYER_ID = ?
+        ''', (completed, completed_date, map_id, player_id))
+        dbConn.commit()
+      except:
+        console_send(f"{e}\n")
       continue
 
     # Player may halt the script with either 'scripttell' or 'scriptkill'
