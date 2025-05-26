@@ -160,7 +160,7 @@ except:
 # Sometimes its hard to pick out where the beginning of the run is located
 # when stopping and starting the script during development so output this.
 #
-debug_send(\
+debug_send("" + \
   "-----------------------------------------------------------------------\n")
 
 # sqlite3 initialization #####################################################
@@ -170,7 +170,15 @@ datafile = codefile + ".db"
 codefile = re.compile("^.+\/").sub("", codefile)
 debug_send(f"{datafile}\n")
 
-dbConn = sqlite3.connect(f"{datafile}")
+try:
+  dbConn = sqlite3.connect(f"{datafile}")
+except:
+  console_send(f"{e}\n")
+  player_send(f"{datafile}\n")
+  player_send(f"[color=red]sqlite3.connect error[/color]\n")
+  player_send(f"exiting...\n")
+  sys.exit(0)
+
 cursor = dbConn.cursor()
 
 # server initialization ######################################################
@@ -180,40 +188,65 @@ server_id   = 0
 
 debug_send(f"CF_SERVER_NAME: {server_name}\n")
 
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS server (
-      SERVER_ID         INTEGER PRIMARY KEY NOT NULL,
-      SERVER_NAME       TEXT    UNIQUE NOT NULL
-    )
-''')
+try:
+  cursor.execute('''
+      CREATE TABLE IF NOT EXISTS server (
+        SERVER_ID         INTEGER PRIMARY KEY NOT NULL,
+        SERVER_NAME       TEXT    UNIQUE NOT NULL
+      )
+  ''')
+except:
+  console_send(f"{e}\n")
+  player_send(f"{datafile}\n")
+  player_send(f"[color=red]CREATE TABLE server error[/color]\n")
+  player_send(f"exiting...\n")
+  sys.exit(0)
 
-cursor.execute('''
-    SELECT COUNT(*) from server
-''')
+try:
+  cursor.execute('''
+      SELECT COUNT(*) FROM server
+  ''')
+except:
+  console_send(f"{e}\n")
+  player_send(f"{datafile}\n")
+  player_send(f"[color=red]SELECT FROM server error[/color]\n")
+  player_send(f"exiting...\n")
+  sys.exit(0)
+
 query = cursor.fetchone()
 servers = query[0]
 
 # Get or assign a server_id for the current server.
 #
-cursor.execute('''
-  SELECT SERVER_ID FROM server
-  WHERE  SERVER_NAME = ?
-''', ( server_name, ))
+try:
+  cursor.execute('''
+    SELECT SERVER_ID FROM server
+    WHERE  SERVER_NAME = ?
+  ''', ( server_name, ))
+except:
+  console_send(f"{e}\n")
+  player_send(f"{datafile}\n")
+  player_send(f"[color=red]SELECT FROM server error[/color]\n")
+  player_send(f"exiting...\n")
+
 query = cursor.fetchone()
 if query == None:
+  servers = servers + 1
+  server_id = servers
   try:
-    servers = servers + 1
     cursor.execute('''
       INSERT INTO server
         ( SERVER_ID, SERVER_NAME )
           VALUES ( ?, ? )
     ''', (servers, server_name))
-    dbConn.commit()
-    server_id = servers
   except:
     console_send(f"{e}\n")
-    servers = servers - 1
-    server_id = 0
+    player_send(f"{datafile}\n")
+    player_send(f"[color=red]INSERT INTO server error[/color]\n")
+    player_send(f"exiting...\n")
+    sys.exit(0)
+
+  dbConn.commit()
 else:
   server_id = query[0]
 
@@ -242,28 +275,47 @@ regc_rqst_player_name = re.compile(regx_rqst_player_name)
 regx_rqst_player_data = regx_rqst_player_id + regx_rqst_player_name
 regc_rqst_player_data = re.compile(regx_rqst_player_data)
 
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS player (
-      PLAYER_ID         INTEGER PRIMARY KEY NOT NULL,
-      SERVER_ID         INTEGER NOT NULL,
-      PLAYER_NAME       TEXT    NOT NULL,
-      PLAYER_TITLE      TEXT    NOT NULL,
-      PLAYER_SEEN       TEXT    NOT NULL
-    )
-''')
+try:
+  cursor.execute('''
+      CREATE TABLE IF NOT EXISTS player (
+        PLAYER_ID         INTEGER PRIMARY KEY NOT NULL,
+        SERVER_ID         INTEGER NOT NULL,
+        PLAYER_NAME       TEXT    NOT NULL,
+        PLAYER_TITLE      TEXT    NOT NULL,
+        PLAYER_SEEN       TEXT    NOT NULL
+      )
+  ''')
+except:
+  console_send(f"{e}\n")
+  player_send(f"{datafile}\n")
+  player_send(f"[color=red]CREATE TABLE player error[/color]\n")
+  player_send(f"exiting...\n")
+  sys.exit(0)
 
-cursor.execute('''
-    SELECT COUNT(*) from player
-''')
+try:
+  cursor.execute('''
+      SELECT COUNT(*) from player
+  ''')
+except:
+  console_send(f"{e}\n")
+  player_send(f"{datafile}\n")
+  player_send(f"[color=red]SELECT FROM player error[/color]\n")
+  player_send(f"exiting...\n")
+
 query = cursor.fetchone()
 players = query[0]
+try:
+  cursor.execute('''
+    SELECT PLAYER_ID, PLAYER_TITLE FROM player
+    WHERE  PLAYER_NAME = ? AND SERVER_ID = ?
+  ''', ( player_name, server_id ))
+except:
+  console_send(f"{e}\n")
+  player_send(f"{datafile}\n")
+  player_send(f"[color=red]SELECT FROM player error[/color]\n")
+  player_send(f"exiting...\n")
 
-cursor.execute('''
-  SELECT PLAYER_ID, PLAYER_TITLE FROM player
-  WHERE  PLAYER_NAME = ? AND SERVER_ID = ?
-''', ( player_name, server_id ))
 query = cursor.fetchone()
-
 if query == None:
   client_send("request player\n")
 
@@ -275,20 +327,21 @@ if query == None:
       player_nmbr  = matches.group(1)
       # player_name  = matches.group(2)
       player_title = matches.group(3)
+      players = players + 1
       try:
-        players = players + 1
         cursor.execute('''
           INSERT INTO player
             ( PLAYER_ID, SERVER_ID, PLAYER_NAME, PLAYER_TITLE, PLAYER_SEEN )
               VALUES ( ?, ?, ?, ?, ? )
         ''', (players, server_id, player_name, player_title, player_seen))
-        dbConn.commit()
-        player_id = players
       except:
-        console_send(f"{e}\n")
-        players = players - 1
-        player_id = 0
-      break
+        player_send(f"{datafile}\n")
+        player_send(f"[color=red]INSERT INTO player error[/color]\n")
+        player_send(f"exiting...\n")
+        sys.exit(0)
+
+      dbConn.commit()
+      player_id = players
     else:
       continue
 else:
@@ -299,13 +352,17 @@ debug_send(f"player_id: {player_id}\n")
 
 try:
   cursor.execute('''
-    UPDATE player
-      SET   PLAYER_SEEN = ?
-      WHERE PLAYER_ID = ?
+      UPDATE player
+        SET   PLAYER_SEEN = ?
+        WHERE PLAYER_ID = ?
   ''', (player_seen, player_id))
-  dbConn.commit()
 except:
-  console_send(f"{e}\n")
+  player_send(f"{datafile}\n")
+  player_send(f"[color=red]UPDATE player error[/color]\n")
+  player_send(f"exiting...\n")
+  sys.exit(0)
+
+dbConn.commit()
 
 player_send(f"Hello, {player_name}\n")
 
@@ -487,9 +544,11 @@ vcursor.execute('''
 v_head  = 1
 v_tail  = 0
 
-# map logging service ########################################################
+# cfmaplog service ###########################################################
 
-# Notify when enterings a map.
+regc_scripttell = re.compile('^scripttell\s+', 0)
+
+# Notify when entering a map.
 #
 client_send("watch newmap\n")
 
@@ -500,74 +559,90 @@ for buffer in sys.stdin:
 
   debug_send(f"> '{buffer}'\n")
 
-  match buffer:
-    case '':
-      time.sleep(0.25)
-      continue
+  if not len(buffer):
+    time.sleep(0.25)
+    continue
 
-    # Player may halt the script with either 'scripttell' or 'scriptkill'
-    #
-    case 'scripttell complete':
-      completed = 0
-      completed_date = ""
-      cursor.execute('''
-        SELECT COMPLETED FROM visit
-        WHERE  MAP_ID = ? AND PLAYER_ID = ?
-      ''', ( map_id, player_id ))
-      query = cursor.fetchone()
-      if query == None:
-        visit_total = 0
-        cursor.execute('''
-          INSERT INTO visit
-            ( MAP_ID, PLAYER_ID, VISIT_TOTAL, VISIT_DATE, COMPLETED, COMPLETED_DATE )
-              VALUES ( ?, ?, ?, ?, ? )
-        ''', (map_id, player_id, 1, visit_date, 0, ""))
+  if regc_scripttell.match(buffer):
+    match regc_scripttell.sub('', buffer):
+
+      # Player may halt the script with either 'scripttell' or 'scriptkill'
+      #
+      case 'quit':
+        break
+
+      # player may toggle debug with 'scripttell'
+      #
+      case 'debug':
+        debug = not debug
+
+      case 'complete' | 'incomplete':
+        completed = 0
+        completed_date = ""
+        try:
+          cursor.execute('''
+            SELECT COMPLETED, COMPLETED_DATE
+            FROM visit WHERE MAP_ID = ? and PLAYER_ID = ?
+          ''', ( map_id, player_id))
+        except:
+          console_send(f"{e}\n")
+          debug_send(f"map_id {map_id} player_id {player_id}")
+
+        query = cursor.fetchone()
+        if query == None:
+          if buffer == 'scripttell complete':
+            completed = 1
+            completed_date = time.strftime("%Y/%m/%d %H:%M")
+        else:
+          if buffer == 'scripttell complete':
+            completed = query[0] + 1
+            player_send(f"You've marked this map complete {completed} times.\n")
+            if completed > 1 and len(query[1]):
+              player_send(f"The most recent previous time was:  {query[1]}.\n")
+            completed_date = time.strftime("%Y/%m/%d %H:%M")
+          else:
+            if query[0] == 0:
+              player_send(f"This map is already marked as not completed.\n")
+            else:
+              player_send(f"You've marked this map as not completed.\n")
+
+        debug_send(f"map_id {map_id} player_id {player_id}\n")
+        debug_send(f"completed {completed} completed_date {completed_date}\n")
+        try:
+          cursor.execute('''
+            UPDATE visit
+              SET   COMPLETED = ?, COMPLETED_DATE = ?
+              WHERE MAP_ID = ? AND PLAYER_ID = ?
+          ''', (completed, completed_date, map_id, player_id))
+        except:
+          console_send(f"{e}\n")
+
         dbConn.commit()
-      cursor.execute('''
-        SELECT COMPLETED, COMPLETED_DATE
-        FROM visit WHERE MAP_ID = ? and PLAYER_ID = ?
-      ''', ( map_id, player_id))
-      query = cursor.fetchone()
-      completed = query[0] + 1
-      player_send(f"I've marked this map complete {completed} times.\n")
-      if completed > 1 and len(query[1]):
-        player_send(f"The most resent completion was {query[1]}.\n")
-      completed_date = time.strftime("%Y/%m/%d %H:%M")
-      try:
-        cursor.execute('''
-          UPDATE visit
-            SET   COMPLETED = ?, COMPLETED_DATE = ?
-            WHERE MAP_ID = ? AND PLAYER_ID = ?
-        ''', (completed, completed_date, map_id, player_id))
-        dbConn.commit()
-      except:
-        console_send(f"{e}\n")
-      continue
 
-    # Player may halt the script with either 'scripttell' or 'scriptkill'
-    #
-    case 'scripttell quit':
-      break
+      case _:
+        player_send(f"'{buffer}'\n")
+        player_send(f"[color=red]Not a recognized command.[\color]\n")
 
-    # player may toggle debug with 'scripttell'
-    #
-    case 'scripttell debug':
-      debug = not debug
-      buffer = ''
-      continue
+    buffer = ''
+    continue
 
-    # When a map is entered, ask the client to start forwarding drawextinfo
-    # the server sends.  Instruct the client to issue a mapinfo command on
-    # our behalf.  Then commence listening for mapinfo output the client
-    # forwards to us.
-    #
-    case 'watch newmap':
-      map_line = 0;
-      map_data = '';
-      client_send("watch drawextinfo\n")
-      client_send("issue 1 1 mapinfo\n")
-      buffer = ''
-      continue
+  # When a map is entered, ask the client to start forwarding drawextinfo
+  # the server sends.  Instruct the client to issue a mapinfo command on
+  # our behalf.  Then commence listening for mapinfo output the client
+  # forwards to us.
+  #
+  if buffer == "watch newmap":
+    buffer = ''
+    map_id = 0;
+    map_line = 0;
+    map_data = '';
+    map_name = '';
+    map_path = '';
+    map_made = '';
+    map_date = '';
+    client_send("watch drawextinfo\n")
+    client_send("issue 1 1 mapinfo\n")
+    continue
 
   if map_line >= 0:
     map_line = map_line + 1
@@ -692,7 +767,7 @@ for buffer in sys.stdin:
         #
         visit_date = time.strftime("%Y/%m/%d %H:%M")
         cursor.execute('''
-          SELECT VISIT_TOTAL FROM visit
+          SELECT VISIT_TOTAL, COMPLETED, COMPLETED_DATE FROM visit
           WHERE  MAP_ID = ? AND PLAYER_ID = ?
         ''', ( map_id, player_id ))
         query = cursor.fetchone()
@@ -706,7 +781,9 @@ for buffer in sys.stdin:
           dbConn.commit()
           player_send(f"I don't think I remember this place!\n")
         else:
+          completed_date = query[2]
           visit_total = query[0]
+          completed = query[1]
           cursor.execute('''
             SELECT
               MAP_PATTERN
@@ -718,7 +795,10 @@ for buffer in sys.stdin:
           if query:
             debug_send(f"QUIET!SHH!\n")
           else:
-            player_send(f"I've been here at least {visit_total} times before.\n")
+            player_send(f"You've been here at least {visit_total} times before.\n")
+            if completed:
+              player_send(f"You've marked this area completed {completed} times.\n")
+              player_send(f"The most recent time was:  {completed_date}.\n")
           visit_total = visit_total + 1
           debug_send(f"visit_total {visit_total}\n")
 
@@ -728,17 +808,11 @@ for buffer in sys.stdin:
                 SET   VISIT_TOTAL = ?, VISIT_DATE = ?
                 WHERE MAP_ID = ? AND PLAYER_ID = ?
             ''', (visit_total, visit_date, map_id, player_id))
-            dbConn.commit()
           except:
             console_send(f"{e}\n")
+          dbConn.commit()
 
-      map_id = 0;
       map_line = -1;
-      map_data = '';
-      map_name = '';
-      map_path = '';
-      map_made = '';
-      map_date = '';
 
   buffer = ''
 
