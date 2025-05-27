@@ -1,8 +1,8 @@
-cfmaplog.py - A Crossfire Plug-In designed for use the Crossfire GTK2 Client 
+cfmaplog.py - A Crossfire Map Log Plug-In designed for the Crossfire GTK2 Client
 
 Conceptualized by:  Kevin R. Bulgrien
 Original creation:  May,  2025
-Last modification:  2025/05/23
+Last modification:  2025/05/27
 
 ================================================================================
 
@@ -57,14 +57,21 @@ examples following presume use of the PAUSE/BREAK key on US PC keyboards:
   Modifiers: Run
   Command:   scripttell /home/user/.config/crossfire/cfmaplog.py quit
 
-It is also possible to halt the cfmaplog.py plugin with a standard command:
+Additional commands and/or keybinds add feature access:
+
+  Command:   scripttell /home/user/.config/crossfire/cfmaplog.py complete
+
+  Command:   scripttell /home/user/.config/crossfire/cfmaplog.py incomplete
+
+It is also possible to halt the cfmaplog.py plugin with:
 
   scriptkill /home/user/.config/crossfire/cfmaplog.py
 
 The scripttell command allows the plugin to shutdown on its own terms (closing
-files nicely, etc.).  That said, since the database file is not written to by
-more than one process, scriptkill has not corrupted the database file during
-initial development and testing.
+files nicely, etc.) but the scriptkill command can forcibly stop the plugin in
+the event that the plugin becomes unresponsive during development.  That said,
+since the database file is not written to by more than one process, scriptkill
+has not corrupted the database file during initial development and testing.
 
 NOTE: Full paths in the aforementioned commands allow for use of various plugins
       without assuming a particular load order.  If cfmaplog.py is the only
@@ -88,22 +95,16 @@ dialog shows something like this:
   Mess Hall (/scorn/houses/messhall) in The Kingdom of Scorn
   Created:  2003-02-04
   Modified: 2020-01-13 Rick Tanner
-  
-  Character tells you: I don't think I remember this place!
-  You tell Character: I don't think I remember this place!
+
+  cfmaplog: I don't think I remember this place!
 
 -or-
 
   Mess Hall (/scorn/houses/messhall) in The Kingdom of Scorn
   Created:  2003-02-04
   Modified: 2020-01-13 Rick Tanner
-  
-  Character tells you: I've been here 2 times before.
-  You tell Character: I've been here 2 times before.
 
-NOTE: The near duplicate messages are a consequence of the script using tell
-      commands to communicate with the player.  This is standard behavior if a
-      player tells himself someting with the tell command.
+   cfmaplog: You've been here at least 2 times before.
 
 As one might guess, these messages are rather pointless for locations like
 Apartments, world maps, etc.  The number of prior visits messaging is
@@ -119,21 +120,84 @@ suppressed under certain circumstances.
   helps reduce spurious visit counts when popping in and out of maps for
   purposes of looting, etc.
 
-It is presumed safe to just quit the client when finished playing, but one may
-also expressly shutdown the script ahead of time.
+Optionally, a player may mark the current map to show it as "completed".  This
+is done by issuing the "complete" command listed in Setup above.  The current
+date and time is stored as the completion date.
 
-It is IMPORTANT to (re)start the plugin whenever switching servers or
-characters.  At present, the plugin only checks server and character names at
-start up.  Incorrect visit log entries will occur if the plugin is not
-restarted.
+One may issue the command on any map, but it is likely most helpful to mark the
+entry-point maps as opposed to intervening map levels between it and the final
+map of a "dungeon".  When used in this way, the completion flag offers a way
+of knowing whether or not the map set has been played to completion before.
+This feature is intended to support players that prefer to focus on map
+completion rather than on map farming.
 
-At present, there is no built-in reporting other than what occurs when entering
-maps.  The cfdialog.db file is inspectable by tools that understand how to work
-with sqlite3 files.  The author finds DB Browser for SQLite helpful.
+After issuing the "complete" command on a map, subsequent visits to it generate
+addition messages.  For example:
 
-NOTE: In some cases it is supported to run more than one instance of the client
-      simultaneously on the same computer.  It is NOT SUPPORTED to run multiple
-      instances of this plugin on the same computer.
+  Mess Hall (/scorn/houses/messhall) in The Kingdom of Scorn
+  Created:  2003-02-04
+  Modified: 2020-01-13 Rick Tanner
+
+   cfmaplog: Youe were here at least 2 times prior.
+   cfmaplog: You marked this area completed 1 times.
+   cfmaplog: The most recent completion was:  2025/05/27 12:20.
+
+One may mark maps as completed multiple times, but only the most recent
+completion date/time is saved.
+
+It is possible to erase the "completed" status via the "incomplete" command
+mentioned in Setup above.
+
+Issuing the "incomplete" command on a map not already marked as completed
+returns:
+
+  This map is already marked as not completed.
+
+Otherwise, the command returns:
+
+  This map is now marked as not completed.
+
+Marking a map as not completed resets the completion count to zero and
+clears the associated date/time string.
+
+= Additional Notes =============================================================
+
+Ending a gaming session:
+
+  It is generally presumed safe to just quit the client when finished playing,
+  but one may expressly shutdown the script beforehand.
+
+Switching characters:
+
+  It is currently very IMPORTANT to stop and restart the plugin when switching
+  servers or characters.  At present, the plugin only checks the server and
+  character names at start up.  Incorrect visit log entries will occur if the
+  plugin is not restarted.
+
+Reviewing saved data:
+
+  At present, there is no built-in reporting other than what occurs upon
+  entering a map.  That said, the cfdialog.db file is inspectable by using
+  tools capable of opening sqlite3 files.  The author finds DB Browser for
+  SQLite helpful.
+
+  Implementation of in-game reports is planned for future versions of the
+  plugin.
+
+Running multiple clients on the same computer:
+
+  In some cases it is supported to run more than one instance of the client
+  simultaneously on the same computer.  It is NOT SUPPORTED to run multiple
+  instances of this plugin on the same computer.
+
+A special note regarding random maps:
+
+  Some dungeons are comprised of a starting level and and ending level with
+  various "random" maps between them.  Random map visit count and completion
+  markers cannot represent the actual number of times a character has visited
+  since the identity of the map changes from one visit to the next.  It is
+  unknown at this time whether or not a future plugin revision may have an
+  ability to track logical levels comprised of random maps in a series.
 
 = Technical Information ========================================================
 
@@ -176,9 +240,11 @@ Various tables are maintained:
 
 * visit
 
-  The log of map visit count (and last recorded visit date).  Since there are
-  Python bindings for GTK, it could be really interesting to support pop-up
-  report/search dialogs...
+  The log of map visit count (and last recorded visit date).  This table also
+  contains the completed flag and date/time stamps.  Since there are Python
+  bindings for GTK, it could be really interesting to support pop-up
+  report/search dialogs, but regardless, reporting to the message window is
+  certainly expected in a future release.
 
 * vcache
 
