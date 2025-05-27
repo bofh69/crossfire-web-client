@@ -604,7 +604,7 @@ for buffer in sys.stdin:
             if query[0] == 0:
               player_send(f"This map is already marked as not completed.\n")
             else:
-              player_send(f"You've marked this map as not completed.\n")
+              player_send(f"This map is now marked as not completed.\n")
 
         debug_send(f"map_id {map_id} player_id {player_id}\n")
         debug_send(f"completed {completed} completed_date {completed_date}\n")
@@ -795,10 +795,10 @@ for buffer in sys.stdin:
           if query:
             debug_send(f"QUIET!SHH!\n")
           else:
-            player_send(f"You've been here at least {visit_total} times before.\n")
+            player_send(f"You were here at least {visit_total} times prior.\n")
             if completed:
-              player_send(f"You've marked this area completed {completed} times.\n")
-              player_send(f"The most recent time was:  {completed_date}.\n")
+              player_send(f"You marked this area completed {completed} times.\n")
+              player_send(f"The most recent completion was: {completed_date}.\n")
           visit_total = visit_total + 1
           debug_send(f"visit_total {visit_total}\n")
 
