@@ -147,6 +147,25 @@ def player_send(text):
   debug_send(f"{codefile}: {text}")
   return
 
+def check_completed():
+  #
+  # Does a visit log exist for this map and player?  This may fail if a player
+  # hasn't visited the map before when the logger was active.  If not found,
+  # a map cannot have been marked completed.
+  #
+  if map_id and player_id:
+    cursor.execute('''
+        SELECT COMPLETED, COMPLETED_DATE FROM visit
+        WHERE  MAP_ID = ? AND PLAYER_ID = ?
+    ''', ( map_id, player_id ))
+    query = cursor.fetchone()
+    if query != None:
+      completed = query[0]
+      completed_date = query[1]
+      if completed:
+        player_send(f"You marked this area completed {completed} times.\n")
+        player_send(f"The most recent completion was: {completed_date}.\n")
+
 # Begin ######################################################################
 
 try:
@@ -741,7 +760,12 @@ for buffer in sys.stdin:
       ''', ( map_id, ) )
       query = vcursor.fetchone()
       if query != None:
-        debug_send(f"SQUELCHED!\n")
+        debug_send(f"SQUELCH visit message!\n")
+        #
+        # But completion notices are never squelched if for recent visits as
+        # this may affect a player's choice as to whether or not to proceed.
+        #
+        check_completed()
       else:
         vcursor.execute('''
           INSERT INTO vcache
@@ -796,9 +820,9 @@ for buffer in sys.stdin:
             debug_send(f"QUIET!SHH!\n")
           else:
             player_send(f"You were here at least {visit_total} times prior.\n")
-            if completed:
-              player_send(f"You marked this area completed {completed} times.\n")
-              player_send(f"The most recent completion was: {completed_date}.\n")
+          #
+          # Update the visit count
+          #
           visit_total = visit_total + 1
           debug_send(f"visit_total {visit_total}\n")
 
@@ -811,6 +835,10 @@ for buffer in sys.stdin:
           except:
             console_send(f"{e}\n")
           dbConn.commit()
+          #
+          # Always check map completion status without regard to quiet status.
+          #
+          check_completed()
 
       map_line = -1;
 
