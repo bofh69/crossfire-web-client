@@ -125,11 +125,16 @@ is done by issuing the "complete" command listed in Setup above.  The current
 date and time is stored as the completion date.
 
 One may issue the command on any map, but it is likely most helpful to mark the
-entry-point maps as opposed to intervening map levels between it and the final
-map of a "dungeon".  When used in this way, the completion flag offers a way
-of knowing whether or not the map set has been played to completion before.
-This feature is intended to support players that prefer to focus on map
-completion rather than on map farming.
+non-random entry-point maps as opposed to intervening map levels between it and
+the final map of a "dungeon".  Alternatively, if the top-level map of a dungeon
+is a random map, mark both the top and bottom levels.  When used in this way,
+the completion flag offers a way of knowing whether or not the map set has been
+played to completion before.  This feature is intended to support players that
+prefer to focus on map completion rather than on map farming.
+
+NOTE:  For the time being, if the top-level map is a random dungeon, one may
+       not yet recieve notification of having completed it, but hopefully at
+some point, a method of determining completion reliably is forthcoming.
 
 After issuing the "complete" command on a map, subsequent visits to it generate
 addition messages.  For example:
