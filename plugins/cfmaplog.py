@@ -188,6 +188,7 @@ codefile = re.compile("[.][^.]+\Z").sub("", __file__)
 datafile = codefile + ".db"
 codefile = re.compile("^.+\/").sub("", codefile)
 debug_send(f"{datafile}\n")
+codepath = __file__
 
 try:
   dbConn = sqlite3.connect(f"{datafile}")
@@ -497,6 +498,7 @@ cursor.execute('''
     CREATE TABLE  IF NOT EXISTS visit (
       MAP_ID      INTEGER NOT NULL,
       PLAYER_ID   INTEGER NOT NULL,
+      SERVER_ID   INTEGER NOT NULL,
       VISIT_TOTAL INTEGER NOT NULL,
       VISIT_DATE  TEXT NOT NULL,
       COMPLETED   INTEGER DEFAULT 0,
@@ -538,6 +540,46 @@ if not success:
   cursor.execute('''
       ALTER TABLE visit ADD COLUMN COMPLETED_DATE STRING NOT NULL DEFAULT ""
   ''')
+
+# Schema update if SERVER_ID is missing.  OH NO! MAY IT NEVER BE!  If the
+# player ever played multiple servers, the old schema only tracked visits
+# by MAP_ID and PLAYER_ID and omitted SERVER_ID.  There's really not any
+# good way to fix the visit log.  The best thing to do is set SERVER_ID
+# to the current server.  Unfortunately, if the assumption is wrong, the
+# player's only option is to clear incorrect completion data, and then
+# effectively lose visit data for the completion on a different server.
+#
+# The player hopefully performs this schema update on the server with the
+# most log entries (since that minimizes server_id errors created here if
+# they logged visits on more than one server).  Ouch!
+#
+cursor.execute('''
+    PRAGMA table_info(visit)
+''')
+success = False
+query = cursor.fetchall()
+for row in query:
+  # row field numbers are zero-based
+  if row[1] == "SERVER_ID":
+    success = True
+if not success:
+  player_send(f"[color=red]NOTE: visit database schema repair![color]\n")
+  player_send(f"Visit data previously failed to track the server that a "  + \
+              f"visit occurred on.  Unfortunately, if you logged visits "  + \
+              f"on multiple servers, it is not possible to automatically " + \
+              f"determine which server was in use at the time.  We are "   + \
+              f"assuming (sorry) that the current server is the one that " + \
+              f"should be used for all old visit data.  While playing, if" + \
+              f" you notice incorrect completion data upon entering a map" + \
+              f", use 'scripttell {codepath} incomplete' to erase it.  If" + \
+              f" the map was completed on another server, logon to it and" + \
+              f" re-visit the map and mark it complete (again) there."     + \
+              f"\n")
+  debug_send(f"ALTER TABLE visit ADD COLUMN SERVER_ID INTEGER DEFAULT "    + \
+             f"{server_id}\n")
+  cursor.execute('''
+      ALTER TABLE visit ADD COLUMN SERVER_ID INTEGER DEFAULT ''' + \
+      f"{server_id}")
 
 visits = 0
 visit_date  = ''

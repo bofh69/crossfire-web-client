@@ -2,7 +2,7 @@ cfmaplog.py - A Crossfire Map Log Plug-In designed for the Crossfire GTK2 Client
 
 Conceptualized by:  Kevin R. Bulgrien
 Original creation:  May,  2025
-Last modification:  2025/05/27
+Last modification:  2025/06/07
 
 ================================================================================
 
@@ -11,6 +11,38 @@ permitted in any medium without royalty provided the copyright notice and this
 notice are preserved.  This file is offered as-is, without any warranty.
 
 ( https://www.gnu.org/licenses/license-list.html#GNUAllPermissive )
+
+= IMPORTANT UPDATE INFORMATION =================================================
+
+Unfortunately, earlier revisions of this script did not log visits based on the
+server they were made on.  Sadly, this means that IF you logged visits on more
+than one server, the log is indeterminate with respect to where visits occurred.
+
+To update the visit log most accurately:
+
+* Close the script if it is running,
+* Update the script (as shown in Install below).
+* Disconnect the current server if it is not the one with the most visits.
+* Connect to the server with the most visits in the log.
+* Start the updated script.
+* Review the notice.
+
+During play, if you see invalid visit count or completion data for maps played:
+
+* Visit count will remain incorrect as it is number of visits to maps of the
+  same name across all servers up until the time of thiis update.  There is no
+  way to correct the per-server visit count, though visits after the update do
+  track the server on which they occurred.
+
+* Completion data is reset by issuing the following command:
+
+    scripttell <path-to-script> incomplete
+
+  This command effectively deletes "completed" status for maps of the same name
+  across all servers unless the completion was logged after this update.
+
+The developer apologizes for any inconvenience or annoyance this presents to the
+player, but notes the Python script was and is provided as-is, without warranty.
 
 = Introduction =================================================================
 
