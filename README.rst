@@ -33,7 +33,7 @@ To build with debugging symbols::
 Use **ccmake** instead of **cmake** to change these options and more
 interactively.
 
-For more details, see `Compiling the Crossfire Client <http://wiki.cross-fire.org/dokuwiki/doku.php/client:client_compiling>`_ on the Crossfire Wiki.
+For more details, see `Compiling the Crossfire Client <https://wiki.cross-fire.org/client:client_compiling>`_ on the Crossfire Wiki.
 
 Dependencies
 ------------
