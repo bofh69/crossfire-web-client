@@ -2,21 +2,38 @@ cfmaplog.py - A Crossfire Map Log Plug-In designed for the Crossfire GTK2 Client
 
 Conceptualized by:  Kevin R. Bulgrien
 Original creation:  May,  2025
-Last modification:  2025/06/07
+Last modification:  2025/06/09
 
-================================================================================
+==============================================================================
 
 Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice and this
-notice are preserved.  This file is offered as-is, without any warranty.
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
 
 ( https://www.gnu.org/licenses/license-list.html#GNUAllPermissive )
 
-= IMPORTANT UPDATE INFORMATION =================================================
+= Introduction ===============================================================
 
-Unfortunately, earlier revisions of this script did not log visits based on the
-server they were made on.  Sadly, this means that IF you logged visits on more
-than one server, the log is indeterminate with respect to where visits occurred.
+This Crossfire plug-in aims to allow a player to track visits to individual
+maps in the game.  The author created a dozen or so characters of all the
+different races in the game and used most of the character classes in a bid
+to learn more about playing the game.  He found it difficult to keep track
+of which maps one's character played when playing only a few characters, so
+with a dozen it became hopeless to do so.  This was the motivation for
+creating the cfmaplog plug-in.
+
+Even if you do not play a dozen characters, this plugin is a tool that can
+help keep up with where in the world the character has gone.  It uses the
+'mapinfo' command to source the data.  The travel log data is stored in an
+sqlite3 data file named 'cfmaplog.db'.
+
+= IMPORTANT UPDATE INFORMATION ===============================================
+
+Unfortunately, revisions of this script dated May 27, 2025 and earlier did
+not log visits based on the server they were made on.  Sadly, this means
+that IF you logged visits on more than one server, the log is indeterminate
+with respect to where visits occurred.
 
 To update the visit log most accurately:
 
@@ -27,52 +44,41 @@ To update the visit log most accurately:
 * Start the updated script.
 * Review the notice.
 
-During play, if you see invalid visit count or completion data for maps played:
+During play, if an invalid visit count or completion data is shown upon
+entering a map:
 
-* Visit count will remain incorrect as it is number of visits to maps of the
-  same name across all servers up until the time of thiis update.  There is no
-  way to correct the per-server visit count, though visits after the update do
-  track the server on which they occurred.
+* Visit count will remain incorrect as it is number of visits to maps of
+  the same name across all servers up until the time of thiis update.
+  There is no way to correct the per-server visit count, though visits
+  after the update do track the server on which they occurred.
 
 * Completion data is reset by issuing the following command:
 
     scripttell <path-to-script> incomplete
 
-  This command effectively deletes "completed" status for maps of the same name
-  across all servers unless the completion was logged after this update.
+  This command effectively deletes "completed" status for maps of the same
+  name across all servers unless completion was logged after a June, 2025,
+  or later, revision was installed and used.
 
-The developer apologizes for any inconvenience or annoyance this presents to the
-player, but notes the Python script was and is provided as-is, without warranty.
+The developer apologizes for inconvenience or annoyance this presents to
+the player, but notes that the plug-in was and is provided as-is, without
+warranty of any kind.
 
-= Introduction =================================================================
+= Install ====================================================================
 
-This Crossfire plug-in aims to allow a player to track visits to individual maps
-in the game.  The author created a dozen or so characters of all the different
-races in the game and used most of the character classes in a bid to learn more
-about playing the game.  He found it difficult to keep track of which maps one's
-character played when playing only a few characters, so with a dozen it became
-hopeless to do so.  This was the motivation for creating the cfmaplog plug-in.
-
-Even if you do not play a dozen characters, this plugin is a tool that can help
-keep up with where in the world the character has gone.  It uses the 'mapinfo'
-command to source the data.  The travel log data is stored in an sqlite3 data
-file named 'cfmaplog.db'.
-
-= Install ======================================================================
-
-It is recommended to place the cfmaplog.py script in the same folder where the
-other personal client configuration files are stored (i.e. keybinds).  On a
-Linux system this could be a folder like ~/.config/crossfire under the user's
-HOME directory.
+It is recommended to place the cfmaplog.py script in the same folder where
+the other personal client configuration files are stored (i.e. keybinds).
+On a Linux system this could be a folder like ~/.config/crossfire under the
+user's HOME directory.
 
 A cfmaplog.db file is automatically created in the folder where the script
-resides upon first invocation if the file does not already exist.  It is For
-example, when loading with 'script /home/user/.config/crossfire/cfmaplog.py',
-the plugin data is /home/user/.config/crossfire/cfmaplog.db.  It is readily
-acknowledged that use of this path is not particularly ideal in case one wants
-the script deployed in a system folder not writeable by the user.
+resides upon invocation (if one does not already exist).  For example, when
+loading with 'script /home/user/.config/crossfire/cfmaplog.py', the plugin
+data is /home/user/.config/crossfire/cfmaplog.db.  It is acknowledged that
+use of this path is not particularly ideal in case one wants the script
+deployed in a system folder not writeable by the user.
 
-= Setup ========================================================================
+= Setup ======================================================================
 
 The author uses keybinds to make it simple to start and stop the plugin.  The
 examples following presume use of the PAUSE/BREAK key on US PC keyboards:
@@ -99,18 +105,20 @@ It is also possible to halt the cfmaplog.py plugin with:
 
   scriptkill /home/user/.config/crossfire/cfmaplog.py
 
-The scripttell command allows the plugin to shutdown on its own terms (closing
-files nicely, etc.) but the scriptkill command can forcibly stop the plugin in
-the event that the plugin becomes unresponsive during development.  That said,
-since the database file is not written to by more than one process, scriptkill
-has not corrupted the database file during initial development and testing.
+The scripttell command allows the plugin to shutdown on its own terms
+(closing files nicely, etc.) but the scriptkill command can forcibly stop
+the plugin in the event that the plugin becomes unresponsive during
+development.  That said, since the database file is not written to by more
+than one process, scriptkill has not corrupted the database file during
+initial development and testing.
 
-NOTE: Full paths in the aforementioned commands allow for use of various plugins
-      without assuming a particular load order.  If cfmaplog.py is the only
-      plugin in use, the scriptkill and scripttell commands may replace the path
-      with "1" (the plugin number displayed by the scripts command).
+NOTE: Full paths in the aforementioned commands allow for use of various
+      plugins without assuming a particular load order.  If cfmaplog.py is
+      the only plugin in use, the scriptkill and scripttell commands may
+      replace the path with "1" (the plugin number displayed by the scripts
+      command).
 
-= Usage ========================================================================
+= Usage ======================================================================
 
 Start the Crossfire GTK client.
 
@@ -118,11 +126,11 @@ Login to a Crossfire server.
 
 Select a character to play.
 
-Once a character to play is visible on a Crossfire map, start the plugin using
-a keybind or command as shown in the "Setup" section.
+Once a character to play is visible on a Crossfire map, start the plugin
+using a keybind or command as shown in the "Setup" section.
 
-Once the plugin is running, upon transitioning to a different map, the Messages
-dialog shows something like this:
+Once the plugin is running, upon transitioning to a different map, the
+Messages dialog shows something like this:
 
   Mess Hall (/scorn/houses/messhall) in The Kingdom of Scorn
   Created:  2003-02-04
@@ -148,28 +156,29 @@ suppressed under certain circumstances.
   (i.e. the aforementioned DB Browser for SQLite).
 
 * Furthermore, there is an in-memory cache file of the most recent ten maps
-  visited.  If the map is listed in the cache, messages are not shown.  This
-  helps reduce spurious visit counts when popping in and out of maps for
-  purposes of looting, etc.
+  visited.  If the map is listed in the cache, messages are not shown.
+  This helps reduce spurious visit counts when popping in and out of maps
+  for purposes of looting, etc.
 
-Optionally, a player may mark the current map to show it as "completed".  This
-is done by issuing the "complete" command listed in Setup above.  The current
-date and time is stored as the completion date.
+Optionally, a player may mark the current map to show it as "completed".
+This is done by issuing the "complete" command listed in Setup above.  The
+current date and time is stored as the completion date.
 
-One may issue the command on any map, but it is likely most helpful to mark the
-non-random entry-point maps as opposed to intervening map levels between it and
-the final map of a "dungeon".  Alternatively, if the top-level map of a dungeon
-is a random map, mark both the top and bottom levels.  When used in this way,
-the completion flag offers a way of knowing whether or not the map set has been
-played to completion before.  This feature is intended to support players that
-prefer to focus on map completion rather than on map farming.
+One may issue the command on any map, but it is likely most helpful to mark
+the non-random entry-point maps as opposed to intervening map levels
+between it and the final map of a "dungeon".  Alternatively, if the
+top-level map of a dungeon is a random map, mark both the top and bottom
+levels.  When used in this way, the completion flag offers a way of knowing
+whether or not the map set has been played to completion before.  This
+feature is intended to support players that prefer to focus on map
+completion rather than on map farming.
 
 NOTE:  For the time being, if the top-level map is a random dungeon, one may
        not yet recieve notification of having completed it, but hopefully at
 some point, a method of determining completion reliably is forthcoming.
 
-After issuing the "complete" command on a map, subsequent visits to it generate
-addition messages.  For example:
+After issuing the "complete" command on a map, subsequent visits to it
+generate addition messages.  For example:
 
   Mess Hall (/scorn/houses/messhall) in The Kingdom of Scorn
   Created:  2003-02-04
@@ -197,29 +206,42 @@ Otherwise, the command returns:
 Marking a map as not completed resets the completion count to zero and
 clears the associated date/time string.
 
-= Additional Notes =============================================================
+= Additional Notes ===========================================================
 
 Ending a gaming session:
 
-  It is generally presumed safe to just quit the client when finished playing,
-  but one may expressly shutdown the script beforehand.
+  It is generally presumed safe to just quit the client when finished
+  playing, but one may expressly shutdown the script beforehand.
 
 Switching characters:
 
-  It is currently very IMPORTANT to stop and restart the plugin when switching
-  servers or characters.  At present, the plugin only checks the server and
-  character names at start up.  Incorrect visit log entries will occur if the
-  plugin is not restarted.
+  It is currently very IMPORTANT to stop and restart the plugin when
+  switching servers or characters.  At present, the plugin only checks the
+  server and character names at start up.  Incorrect visit log entries will
+  occur if the plugin is not restarted.
 
 Reviewing saved data:
 
-  At present, there is no built-in reporting other than what occurs upon
-  entering a map.  That said, the cfdialog.db file is inspectable by using
-  tools capable of opening sqlite3 files.  The author finds DB Browser for
-  SQLite helpful.
+  Please use the following command to review the most up-to-date
+  information about built-in reporting:
 
-  Implementation of in-game reports is planned for future versions of the
-  plugin.
+    scripttell /home/user/.config/crossfire/cfmaplog.py help
+
+  The current list of reporting commands is as follows.
+
+  * scripttell /home/user/.config/crossfire/cfmaplog.py completed
+  * scripttell /home/user/.config/crossfire/cfmaplog.py visited
+  * scripttell /home/user/.config/crossfire/cfmaplog.py visited <Max>
+  * scripttell /home/user/.config/crossfire/cfmaplog.py visited most
+  * scripttell /home/user/.config/crossfire/cfmaplog.py visited most <Max>
+  * scripttell /home/user/.config/crossfire/cfmaplog.py visited least
+  * scripttell /home/user/.config/crossfire/cfmaplog.py visited least <Max>
+
+  <Max> is an integer representing the maximum number of results to show.
+
+  The cfdialog.db file is also inspectable by using tools capable of
+  opening sqlite3 files.  The author finds DB Browser for SQLite helpful.
+  This tool allows one to write their own SQL queries on the data.
 
 Running multiple clients on the same computer:
 
@@ -230,16 +252,17 @@ Running multiple clients on the same computer:
 A special note regarding random maps:
 
   Some dungeons are comprised of a starting level and and ending level with
-  various "random" maps between them.  Random map visit count and completion
-  markers cannot represent the actual number of times a character has visited
-  since the identity of the map changes from one visit to the next.  It is
-  unknown at this time whether or not a future plugin revision may have an
-  ability to track logical levels comprised of random maps in a series.
+  various "random" maps between them.  Random map visit count and
+  completion markers cannot represent the actual number of times a
+  character has visited since the identity of the map changes from one
+  visit to the next.  It is unknown at this time whether or not a future
+  plugin revision may have an ability to track logical levels comprised of
+  random maps in a series.
 
-= Technical Information ========================================================
+= Technical Information ======================================================
 
-For developers, another scripttell may prove helpful.  This enables a variety
-of messages if the client is started from a console:
+For developers, another scripttell may prove helpful.  This enables a
+variety of messages if the client is started from a console:
 
   scripttell /home/user/.config/crossfire/cfmaplog.py debug
 
@@ -247,47 +270,52 @@ Various tables are maintained:
 
 * server
 
-  The plugin logs reference the server on which they were played.  For example,
-  a visit to a map on MetalForge is distinct form a visit to the same map on
-  Invidious.  This table allows uniquely tracking map visits even if the same
-  character name is used on multiple servers.  The server name is obtained by
-  reading a CF_SERVER_NAME environment variable that the client sets up.
+  The plugin logs reference the server on which they were played.  For
+  example, a visit to a map on MetalForge is distinct form a visit to the
+  same map on Invidious.  This table allows uniquely tracking map visits
+  even if the same character name is used on multiple servers.  The server
+  name is obtained by reading a CF_SERVER_NAME environment variable that
+  the client sets up.
 
 * player
 
-  The plugin obtains character names from the CF_PLAYER_NAME environment variable  established by the Crossfire client.  Map visits are tracked separately by
-  character name.  There is no issue with using the same character name on
-  different servers.
+  The plugin obtains character names from the CF_PLAYER_NAME environment
+  variable  established by the Crossfire client.  Map visits are tracked
+  separately by character name.  There is no issue with using the same
+  character name on different servers.
 
 * map
 
-  To populate this table, the client uses mapinfo commands when the client shows
-  a map change has occurred.  This causes mapinfo text to show up in the message
-  log when:  changing maps, going through a store portal, and possibly other
-  events like dimension door.  The table tracks the various data elements output
-  by the mapinfo command (name, path, author, last change).
+  To populate this table, the client uses mapinfo commands when the client
+  shows a map change has occurred.  This causes mapinfo text to show up in
+  the message log when:  changing maps, going through a store portal, and
+  possibly other events like dimension door.  The table tracks the various
+  data elements output by the mapinfo command (name, path, author, last
+  change).
 
 * quiet
 
-  Contains SQL "LIKE" patterns to match against map names.  When entering a map
-  with a matching name, visits after the first one are not announced (though
-  mapinfo data still shows).  The table contains character and server ID fields
-  so it could support per-character, per-server filtering.  Setting the fields
-  is not currently implemented and some of the filtering is incomplete.
+  Contains SQL "LIKE" patterns to match against map names.  When entering a
+  map with a matching name, visits after the first one are not announced
+  (though mapinfo data still shows).  The table contains character and
+  server ID fields so it could support per-character, per-server filtering.
+  Setting the fields is not currently implemented and some of the filtering
+  is incomplete.
 
 * visit
 
-  The log of map visit count (and last recorded visit date).  This table also
-  contains the completed flag and date/time stamps.  Since there are Python
-  bindings for GTK, it could be really interesting to support pop-up
+  The log of map visit count (and last recorded visit date).  This table
+  also contains the completed flag and date/time stamps.  Since there are
+  Python bindings for GTK, it could be really interesting to support pop-up
   report/search dialogs, but regardless, reporting to the message window is
   certainly expected in a future release.
 
 * vcache
 
-  The memory-based visit cache used to squelch visit counts when repeat visits
-  occur in close succession.  At present, the depth of the cache is hardcoded
-  at 10, which allows for maps of about 5 levels being looted with about 5
-  more transitions for return trips to drop off loot.  This could bear some
-  adjustment in size probably, but support for run-time changes is not in place.
+  The memory-based visit cache used to squelch visit counts when repeat
+  visits occur in close succession.  At present, the depth of the cache is
+  hardcoded at 10, which allows for maps of about 5 levels being looted
+  with about 5 more transitions for return trips to drop off loot.  This
+  could bear some adjustment in size probably, but support for run-time
+  changes is not in place.
 
