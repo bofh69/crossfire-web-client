@@ -811,7 +811,7 @@ commands are:
                         f"[\color]")
             continue
 
-        player_send_bare(f'''{sqlcmd}, ({player_id}, {server_id})''')
+        debug_send(f'''{sqlcmd}, ({player_id}, {server_id})''')
 
         try:
           cursor.execute(sqlcmd, (player_id, server_id))
