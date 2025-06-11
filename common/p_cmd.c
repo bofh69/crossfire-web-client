@@ -22,6 +22,7 @@
 #include "external.h"
 #include "p_cmd.h"
 #include "script.h"
+#include "mapdata.h"
 
 /**
  * @defgroup PCmdHelpCommands Common client player commands.
@@ -41,6 +42,8 @@ bool arm_mapedit = false;
 /* TODO Help topics other than commands? Refer to other documents? */
 
 static int get_num_commands(void);
+
+int render_debug_layers = MAXLAYERS;
 
 static void do_clienthelp_list() {
     ConsoleCommand **sorted_cmds = get_cat_sorted_commands();
@@ -317,8 +320,21 @@ static void cmd_raw(const char *cmd) {
     cs_print_string(csocket.fd, "%s", cmd);
 }
 
+void cmd_debugrender(const char *cmd) {
+    if (render_debug_layers == MAXLAYERS) {
+        render_debug_layers = 1;
+    } else {
+        render_debug_layers++;
+    }
+    char buf[MAX_BUF];
+    snprintf(buf, sizeof(buf), "Rendering %d layers.", render_debug_layers);
+    draw_ext_info(NDI_BROWN, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_DEBUG, buf);
+}
+
 static ConsoleCommand CommonCommands[] = {
     {"cmd", COMM_CAT_DEBUG, cmd_raw, NULL, "Send a raw command to the server"},
+
+    {"debugrender", COMM_CAT_DEBUG, cmd_debugrender, NULL, "Enable renderer debugging"},
 
     {"bind", COMM_CAT_SETUP, bind_key, help_bind, HELP_BIND_SHORT},
 

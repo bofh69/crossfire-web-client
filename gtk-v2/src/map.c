@@ -475,7 +475,7 @@ static void gtk_map_redraw() {
 
     // Draw layer-by-layer. Drawing cell-by-cell, looping over the layers,
     // doesn't work because big faces need to be correctly layered on top.
-    for (int layer = 0; layer < MAXLAYERS; layer++) {
+    for (int layer = 0; layer < MIN(render_debug_layers, MAXLAYERS); layer++) {
         map_draw_layer(cr, layer, mx_start, nx, my_start, ny);
     }
 

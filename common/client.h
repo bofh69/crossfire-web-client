@@ -642,6 +642,12 @@ enum ClientError {
 #include "proto.h"
 
 /**
+ * Current number of layers to render for renderer debugging purposes.
+ * Normally set to MAXLAYERS when not debugging.
+ */
+extern int render_debug_layers;
+
+/**
  * Open a socket to the given hostname and store connection information.
  *
  * @param hostname Host name or address of the server
