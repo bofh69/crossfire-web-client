@@ -56,3 +56,5 @@ typedef struct PixmapInfo {
 
 extern PixmapInfo *pixmaps[MAXPIXMAPNUM];
 extern int have_new_image;
+
+#define PIXMAP(x) "/org/crossfire/client/pixmaps/" x ".gif"

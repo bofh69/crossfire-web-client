@@ -375,12 +375,9 @@ void get_map_image_size(int face, guint8 *w, guint8 *h)
  */
 void init_image_cache_data(void)
 {
-#include "../../pixmaps/question.xpm"
     pixmaps[0] = g_new(PixmapInfo, 1);
-    pixmaps[0]->icon_image =
-        gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
-    pixmaps[0]->full_icon_image =
-        gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
+    pixmaps[0]->icon_image = gdk_pixbuf_new_from_resource(PIXMAP("question"), NULL);
+    pixmaps[0]->full_icon_image = gdk_pixbuf_new_from_resource(PIXMAP("question"), NULL);
     pixmaps[0]->map_image =  pixmaps[0]->icon_image;
 
     pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->full_icon_width = pixmaps[0]->full_icon_height = map_image_size;

@@ -24,17 +24,6 @@
 #include "main.h"
 #include "gtk2proto.h"
 
-#include "../../pixmaps/all.xpm"
-#include "../../pixmaps/coin.xpm"
-#include "../../pixmaps/hand.xpm"
-#include "../../pixmaps/hand2.xpm"
-#include "../../pixmaps/lock.xpm"
-#include "../../pixmaps/mag.xpm"
-#include "../../pixmaps/nonmag.xpm"
-#include "../../pixmaps/skull.xpm"
-#include "../../pixmaps/unlock.xpm"
-#include "../../pixmaps/unidentified.xpm"
-
 GtkWidget *treeview_look;
 
 /** Color to use to indicate that an item is applied. */
@@ -93,7 +82,7 @@ static int num_inv_notebook_pages = 0;
 typedef struct {
     const char *name; /**< Name of this page, for the show command */
     const char *tooltip; /**< Tooltip for menu */
-    const char *const *xpm; /**< Icon to draw for the notebook selector */
+    const char *icon_resource; /**< Resource path with icon to draw for the notebook selector */
     int(*show_func) (item *it); /**< Function that takes an item and returns
                                  * INV_SHOW_* above on whether to show this
                                  * item and if it should be shown in color
@@ -150,16 +139,16 @@ static int show_unidentified(item *it) {
 }
 
 static Notebook_Info inv_notebooks[NUM_INV_LISTS] = {
-    {"all", "All", all_xpm, show_all, INV_TREE},
-    {"applied", "Applied", hand_xpm, show_applied, INV_TREE},
-    {"unapplied", "Unapplied", hand2_xpm, show_unapplied, INV_TREE},
-    {"unpaid", "Unpaid", coin_xpm, show_unpaid, INV_TREE},
-    {"cursed", "Cursed", skull_xpm, show_cursed, INV_TREE},
-    {"magical", "Magical", mag_xpm, show_magical, INV_TREE},
-    {"nonmagical", "Non-magical", nonmag_xpm, show_nonmagical, INV_TREE},
-    {"locked", "Locked", lock_xpm, show_locked, INV_TREE},
-    {"unlocked", "Unlocked", unlock_xpm, show_unlocked, INV_TREE},
-    {"unidentified", "Unidentified", unidentified_xpm, show_unidentified, INV_TREE},
+    {"all", "All", PIXMAP("all"), show_all, INV_TREE},
+    {"applied", "Applied", PIXMAP("hand"), show_applied, INV_TREE},
+    {"unapplied", "Unapplied", PIXMAP("hand2"), show_unapplied, INV_TREE},
+    {"unpaid", "Unpaid", PIXMAP("coin"), show_unpaid, INV_TREE},
+    {"cursed", "Cursed", PIXMAP("skull"), show_cursed, INV_TREE},
+    {"magical", "Magical", PIXMAP("mag"), show_magical, INV_TREE},
+    {"nonmagical", "Non-magical", PIXMAP("nonmag"), show_nonmagical, INV_TREE},
+    {"locked", "Locked", PIXMAP("lock"), show_locked, INV_TREE},
+    {"unlocked", "Unlocked", PIXMAP("unlock"), show_unlocked, INV_TREE},
+    {"unidentified", "Unidentified", PIXMAP("unidentified"), show_unidentified, INV_TREE},
     {"icons", "Icon View", NULL, show_all, INV_TABLE}
 };
 
@@ -594,7 +583,7 @@ void inventory_init(GtkWidget *window_root) {
             gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(swindow),
                     GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
             image = gtk_image_new_from_pixbuf(
-                    gdk_pixbuf_new_from_xpm_data((const char**) inv_notebooks[i].xpm));
+                    gdk_pixbuf_new_from_resource(inv_notebooks[i].icon_resource, NULL));
 
             if (inv_notebooks[i].tooltip) {
                 GtkWidget *eb;
