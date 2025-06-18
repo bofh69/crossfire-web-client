@@ -297,7 +297,7 @@ regx_rqst_player_id   = "(\d+)\s+"
 regc_rqst_player_id   = re.compile(regx_rqst_player_id)
 regx_rqst_player_strt = regx_rqst_player + regx_rqst_player_id
 regc_rqst_player_strt = re.compile(regx_rqst_player_strt)
-regx_rqst_player_name = "Player:\s+(\w+)\s+the\s+(.+)"
+regx_rqst_player_name = "Player:\s+(\w+)\s+(.+)"
 regc_rqst_player_name = re.compile(regx_rqst_player_name)
 regx_rqst_player_data = regx_rqst_player_id + regx_rqst_player_name
 regc_rqst_player_data = re.compile(regx_rqst_player_data)
@@ -348,6 +348,7 @@ if query == None:
 
   for buffer in sys.stdin:
     buffer = buffer.rstrip(os.linesep)
+    debug_send(f"{buffer}\n")
     if regc_rqst_player_strt.match(buffer):
       buffer = regc_rqst_player.sub('', buffer)
       matches = regc_rqst_player_data.match(buffer)

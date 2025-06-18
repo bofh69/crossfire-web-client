@@ -2,7 +2,7 @@ cfmaplog.py - A Crossfire Map Log Plug-In designed for the Crossfire GTK2 Client
 
 Conceptualized by:  Kevin R. Bulgrien
 Original creation:  May,  2025
-Last modification:  2025/06/09
+Last modification:  2025/06/17
 
 ==============================================================================
 
