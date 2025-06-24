@@ -905,15 +905,15 @@ static void parse_key(char key, guint32 keysym) {
             if (cpl.fire_on) {
                 snprintf(buf, sizeof(buf), "fire %s", kb->command);
                 fire_dir(kb->direction);
+                return;
             } else if (cpl.run_on) {
                 snprintf(buf, sizeof(buf), "run %s", kb->command);
                 run_dir(kb->direction);
-            } else {
-                extended_command(kb->command);
+                return;
             }
-        } else {
-            extended_command(kb->command);
         }
+        extended_command(kb->command);
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton_count), (float) cpl.count);
         return;
     }
 
@@ -1822,6 +1822,7 @@ void on_entry_commands_activate(GtkEntry *entry, gpointer user_data) {
             cur_history_position %= MAX_HISTORY;
             scroll_history_position = cur_history_position;
             extended_command(entry_text);
+            gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton_count), (float) cpl.count);
         }
     }
     gtk_entry_set_text(GTK_ENTRY(entry), "");
