@@ -37,6 +37,8 @@ typedef int KeyCode;                    /**< Undefined type */
 #include "gtk2proto.h"
 #include "p_cmd.h"
 
+const int COUNT_MAX = 10000000;
+
 struct keybind;
 static int keybind_remove(struct keybind *entry);
 static void keybind_free(struct keybind **entry);
@@ -917,8 +919,8 @@ static void parse_key(char key, guint32 keysym) {
 
     if (key >= '0' && key <= '9') {
         cpl.count = cpl.count * 10 + (key - '0');
-        if (cpl.count > 100000) {
-            cpl.count %= 100000;
+        if (cpl.count > COUNT_MAX) {
+            cpl.count %= COUNT_MAX;
         }
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton_count), (float) cpl.count);
         return;
