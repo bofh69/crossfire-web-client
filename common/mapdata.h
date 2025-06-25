@@ -158,6 +158,7 @@ void mapdata_clear_space(int x, int y);
 void mapdata_set_check_space(int x, int y);
 void mapdata_set_darkness(int x, int y, int darkness);
 void mapdata_set_smooth(int x, int y, guint8 smooth, int layer);
+void mapdata_clear_label(int px, int py);
 void mapdata_add_label(int x, int y, int subtype, const char *label);
 void mapdata_clear_old(int x, int y);
 void mapdata_set_face_layer(int x, int y, gint16 face, int layer);

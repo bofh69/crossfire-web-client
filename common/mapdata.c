@@ -131,6 +131,8 @@ static void clear_cells(int x, int y, int len_y) {
     }
 }
 
+extern void mapdata_clear_label(int px, int py);
+
 /**
  * Get the stored map cell at the given map coordinate.
  */
@@ -209,6 +211,7 @@ void mapdata_clear(int x, int y) {
     }
 
     mapdata_cell(px, py)->state = FOG;
+    mapdata_clear_label(px, py);
 }
 
 static void mark_resmooth(int x, int y, int layer)
@@ -810,11 +813,27 @@ void mapdata_add_label(int x, int y, int subtype, const char *label) {
     int py = pl_pos.y + y;
     assert(0 <= px && px < the_map.width);
     assert(0 <= py && py < the_map.height);
+
+    if (subtype == 0) {
+        mapdata_clear_label(px, py);
+        return;
+    }
+
     struct MapLabel *new = g_malloc(sizeof(struct MapLabel));
     new->subtype = subtype;
     new->label = g_strdup(label);
     new->next = mapdata_cell(px, py)->label;
     mapdata_cell(px, py)->label = new;
+    mapdata_cell(px, py)->need_update = 1;
+}
+
+void mapdata_clear_label(int px, int py) {
+    while (mapdata_cell(px, py)->label != NULL) {
+        struct MapLabel *next = mapdata_cell(px, py)->label->next;
+        g_free(mapdata_cell(px, py)->label->label);
+        g_free(mapdata_cell(px, py)->label);
+        mapdata_cell(px, py)->label = next;
+    }
 }
 
 /**
@@ -843,13 +862,7 @@ void mapdata_clear_old(int x, int y)
             expand_clear_face_from_layer(px, py, i);
         }
         mapdata_cell(px, py)->darkness = 0;
-    }
-
-    while (mapdata_cell(px, py)->label != NULL) {
-        struct MapLabel *next = mapdata_cell(px, py)->label->next;
-        g_free(mapdata_cell(px, py)->label->label);
-        g_free(mapdata_cell(px, py)->label);
-        mapdata_cell(px, py)->label = next;
+        mapdata_clear_label(px, py);
     }
 
     mapdata_cell(px, py)->state = VISIBLE;

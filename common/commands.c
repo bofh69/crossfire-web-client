@@ -2122,6 +2122,11 @@ void Map2Cmd(unsigned char *data, int len)
          */
         mapdata_clear_old(x, y);
 
+        if (debug_protocol)
+            LOG(LOG_INFO, "Map2Cmd", "(%d, %d) ", x, y);
+
+        bool first_label = true;
+
         /* Inner loop is for the data on the space itself */
         while (pos < len) {
             type = data[pos++];
@@ -2135,10 +2140,14 @@ void Map2Cmd(unsigned char *data, int len)
             /* Clear the space */
             if (type == MAP2_TYPE_CLEAR) {
                 mapdata_clear_space(x, y);
+                if (debug_protocol)
+                    LOG(LOG_INFO, "Map2Cmd", " clear");
                 continue;
             } else if (type == MAP2_TYPE_DARKNESS) {
                 value = data[pos++];
                 mapdata_set_darkness(x, y, value);
+                if (debug_protocol)
+                    LOG(LOG_INFO, "Map2Cmd", " darkness %d", value);
                 continue;
             } else if (type == MAP2_TYPE_LABEL) {
                 if (space_len != 7) {
@@ -2151,7 +2160,15 @@ void Map2Cmd(unsigned char *data, int len)
                 char buf[256];
                 strncpy(buf, (const char *)(data+pos), len);
                 buf[len] = '\0';
+                if (debug_protocol)
+                    LOG(LOG_INFO, "Map2Cmd", " label %d %s (%d)", subtype, buf, first_label);
+                if (first_label) {
+                    int px = pl_pos.x + x;
+                    int py = pl_pos.y + y;
+                    mapdata_clear_label(px, py);
+                }
                 mapdata_add_label(x, y, subtype, buf);
+                first_label = false;
                 pos += len;
             } else if (type >= MAP2_LAYER_START && type < MAP2_LAYER_START+MAXLAYERS) {
                 int layer, opt;
@@ -2173,6 +2190,8 @@ void Map2Cmd(unsigned char *data, int len)
                 pos += 2;
                 if (!(value&FACE_IS_ANIM)) {
                     mapdata_set_face_layer(x, y, value, layer);
+                    if (debug_protocol)
+                        LOG(LOG_INFO, "Map2Cmd", " layer %d face %d", layer, value);
                 }
 
                 if (space_len > 2) {
