@@ -1062,6 +1062,7 @@ void SetupCmd(char *buf, int len)
              * version the server supports so client can do appropriate
              * work
              */
+            serverloginmethod = method;
             if (method) {
                 start_login(method);
             }

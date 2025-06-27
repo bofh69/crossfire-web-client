@@ -566,15 +566,18 @@ int main(int argc, char *argv[]) {
             cpl.input_state = Playing;
         }
 
-        client_negotiate(use_config[CONFIG_SOUND]);
-        if (serverloginmethod) {
-            account_show_login();
-        } else {
-            show_main_client();
-        }
+        if (client_negotiate(use_config[CONFIG_SOUND])) {
+            if (serverloginmethod) {
+                account_show_login();
+            } else {
+                show_main_client();
+            }
 
-        /* The event_loop will block until connection to the server is lost. */
-        event_loop();
+            /* The event_loop will block until connection to the server is lost. */
+            event_loop();
+        } else {
+            LOG(LOG_ERROR, "main", "Failed to negotiate connection with server");
+        }
 
         hide_main_client();
 

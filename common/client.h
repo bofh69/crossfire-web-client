@@ -670,7 +670,7 @@ extern void client_disconnect(void);
  *
  * @param sound Non-zero to ask for sound and music commands.
  */
-extern void client_negotiate(int sound);
+extern bool client_negotiate(int sound);
 
 /**
  * Ask the server for the given map size.

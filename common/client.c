@@ -59,7 +59,7 @@ int want_skill_exp = 0, replyinfo_status = 0, requestinfo_sent = 0,
 
 /* Use the 'new' login method by default */
 int wantloginmethod = 2;
-int serverloginmethod = 0;
+int serverloginmethod = -1;
 
 guint16 exp_table_max=0;
 guint64 *exp_table=NULL;
@@ -326,7 +326,8 @@ GSource *client_get_source() {
             G_POLLABLE_INPUT_STREAM(in), NULL);
 }
 
-void client_negotiate(int sound) {
+bool client_negotiate(int sound) {
+    serverloginmethod = -1; // how we detect if server replied to our setup command
     int tries;
 
     SendVersion(csocket);
@@ -341,16 +342,17 @@ void client_negotiate(int sound) {
     while (csocket.cs_version==0) {
         client_run();
         if (csocket.fd == NULL) {
-            return;
+            LOG(LOG_ERROR, "client_negotiate", "Server disconnected while waiting for version command");
+            return false;
         }
 
         usleep(10*1000);    /* 10 milliseconds */
         tries++;
         /* If we haven't got a response in 10 seconds, bail out */
         if (tries > 1000) {
-            LOG (LOG_ERROR,"common::negotiate_connection", "Connection timed out");
+            LOG(LOG_ERROR,"client_negotiate", "Timed out waiting for version command");
             client_disconnect();
-            return;
+            return false;
         }
     }
 
@@ -420,7 +422,8 @@ void client_negotiate(int sound) {
              * It is rare, but the connection can die while getting this info.
              */
             if (csocket.fd == NULL) {
-                return;
+                LOG(LOG_ERROR,"client_negotiate", "Server disconnected while downloading faces");
+                return false;
             }
 
             if (use_config[CONFIG_DOWNLOAD]) {
@@ -477,6 +480,17 @@ void client_negotiate(int sound) {
         draw_ext_info(NDI_GOLD, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_CONFIG, buf);
     }
 
+    // Block until server replies to our setup command.
+    do {
+        client_run();
+        if (csocket.fd == NULL) {
+            LOG(LOG_ERROR,"client_negotiate", "Server disconnected while waiting for setup");
+            return false;
+        }
+
+        usleep(10*1000);
+    } while (serverloginmethod == -1);
+
     /* This needs to get changed around - we really don't want to send the
      * SendAddMe until we do all of our negotiation, which may include things
      * like downloading all the images and whatnot - this is more an issue if
@@ -484,7 +498,9 @@ void client_negotiate(int sound) {
      * end up building images from the wrong set.
      * Only run this if not using new login method
      */
-    if (!serverloginmethod) {
+    if (serverloginmethod == 0) {
         SendAddMe(csocket);
     }
+
+    return true;
 }
