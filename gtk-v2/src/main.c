@@ -584,6 +584,10 @@ int main(int argc, char *argv[]) {
          */
         reset_image_data();
         client_reset();
+
+        if (connect_server != NULL) {
+            break;
+        }
     }
 }
 
