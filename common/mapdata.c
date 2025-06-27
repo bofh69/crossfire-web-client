@@ -1422,8 +1422,8 @@ void mapdata_animation(void)
         }
     }
 
-    for (x=0; x < CURRENT_MAX_VIEW; x++) {
-        for (y=0; y < CURRENT_MAX_VIEW; y++) {
+    for (x=0; x < MIN(width, CURRENT_MAX_VIEW); x++) {
+        for (y=0; y < MIN(height, CURRENT_MAX_VIEW); y++) {
             struct MapCell *map_space = mapdata_cell(pl_pos.x + x, pl_pos.y + y);
             
             /* Short cut some processing here.  It makes sense to me
