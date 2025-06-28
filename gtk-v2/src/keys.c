@@ -886,11 +886,15 @@ static void parse_key(char key, guint32 keysym) {
         present_flags |= KEYF_MOD_META;
     }
 
+    const bool numkey = key >= '0' && key <= '9';
+
     kb = keybind_find(keysym, present_flags, 0); /* char scope */
     if (kb == NULL) {
         kb = keybind_find(keysym, present_flags, 1);    /* global scope */
     }
-    if (kb != NULL) {
+    if (kb != NULL &&
+            // ignore number bindings if count is focused
+            !(numkey && gtk_widget_has_focus(GTK_WIDGET(spinbutton_count)))) {
         if (kb->flags & KEYF_EDIT) {
             strcpy(cpl.input_text, kb->command);
             cpl.input_state = Command_Mode;
@@ -917,7 +921,7 @@ static void parse_key(char key, guint32 keysym) {
         return;
     }
 
-    if (key >= '0' && key <= '9') {
+    if (numkey) {
         cpl.count = cpl.count * 10 + (key - '0');
         if (cpl.count > COUNT_MAX) {
             cpl.count %= COUNT_MAX;
