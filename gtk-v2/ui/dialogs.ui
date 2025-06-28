@@ -4204,6 +4204,18 @@ Enter a character name and password to add this account. The character must alre
                       </packing>
                     </child>
                     <child>
+                      <object class="GtkHScale" id="config_music_volume">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="receives_default">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
                       <object class="GtkCheckButton" id="config_button_foodbeep">
                         <property name="label" translatable="yes">Beep when food is low</property>
                         <property name="visible">True</property>

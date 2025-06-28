@@ -25,6 +25,7 @@
 #include "main.h"
 #include "mapdata.h"
 #include "gtk2proto.h"
+#include "sound.h"
 
 static GKeyFile *config;
 static GString *config_path;
@@ -37,6 +38,7 @@ GtkWidget *config_dialog, *config_button_echo, *config_button_fasttcp,
 GtkFileChooser *ui_filechooser, *theme_filechooser;
 GtkComboBoxText *config_combobox_faceset;
 GtkComboBox *config_combobox_displaymode, *config_combobox_lighting;
+GtkRange *config_music_volume;
 
 #define THEME_DEFAULT CF_DATADIR "/themes/Standard"
 
@@ -89,6 +91,7 @@ static char *ui_name() {
  * yet, and the initialize routines will get the theme data at that time.
  */
 static char **default_files = NULL;
+
 void init_theme() {
     char path[MAX_BUF];
     char **tmp;
@@ -429,6 +432,7 @@ void config_check() {
     /* Copy sanitized user settings to current settings. */
     memcpy(use_config, want_config, sizeof(use_config));
 
+    set_music_volume();
     map_check_resize();
     image_size = DEFAULT_IMAGE_SIZE * use_config[CONFIG_ICONSCALE] / 100;
     if (!use_config[CONFIG_CACHE]) {
@@ -536,6 +540,11 @@ void save_defaults() {
     }
 }
 
+void on_music_volume_changed(GtkWidget *control, gpointer data) {
+    use_config[CONFIG_MUSIC_VOL] = want_config[CONFIG_MUSIC_VOL] = gtk_range_get_value(config_music_volume);
+    set_music_volume();
+}
+
 void config_init(GtkWidget *window_root) {
     config_dialog =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_dialog"));
@@ -570,6 +579,11 @@ void config_init(GtkWidget *window_root) {
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_fog"));
     config_button_smoothing =
         GTK_WIDGET(gtk_builder_get_object(dialog_xml, "config_button_smoothing"));
+
+    config_music_volume =
+        GTK_RANGE(gtk_builder_get_object(dialog_xml, "config_music_volume"));
+    gtk_range_set_range(config_music_volume, 0, 100);
+    g_signal_connect(config_music_volume, "value-changed", G_CALLBACK(on_music_volume_changed), NULL);
 
     config_combobox_displaymode = GTK_COMBO_BOX(
         gtk_builder_get_object(dialog_xml, "config_combobox_displaymode"));
@@ -680,6 +694,8 @@ static void setup_config_dialog() {
 
     gtk_file_chooser_set_filename(ui_filechooser, window_xml_file);
     gtk_file_chooser_set_filename(theme_filechooser, theme);
+
+    gtk_range_set_value(config_music_volume, want_config[CONFIG_MUSIC_VOL]);
 }
 
 /**

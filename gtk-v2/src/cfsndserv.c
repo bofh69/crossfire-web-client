@@ -177,6 +177,10 @@ static bool find_music_path(const char *name, char *path, size_t len) {
     return false;
 }
 
+void set_music_volume() {
+    Mix_VolumeMusic(MIX_MAX_VOLUME * 3/4 * MIN(use_config[CONFIG_MUSIC_VOL], 100) / 100);
+}
+
 void cf_play_music_cb() {
     Mix_HookMusicFinished(NULL);
     if (music != NULL) {
@@ -197,7 +201,7 @@ void cf_play_music_cb() {
         fprintf(stderr, "Could not load music: %s\n", Mix_GetError());
         return;
     }
-    Mix_VolumeMusic(MIX_MAX_VOLUME * 3/4 * MIN(use_config[CONFIG_MUSIC_VOL], 100) / 100);
+    set_music_volume();
     Mix_FadeInMusic(music, -1, fade_time_ms);
 }
 
