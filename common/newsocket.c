@@ -211,9 +211,7 @@ static guint16 GetUShort_String(const unsigned char data[static 2]) // We want a
  * @return     Return true if we think we have a full packet, 0 if we have
  *             a partial packet, or -1 if an error occurred.
  */
-bool SockList_ReadPacket(GSocketConnection c[static 1], SockList sl[static 1],
-                         size_t len, GError** error) {
-    GInputStream* in = g_io_stream_get_input_stream(G_IO_STREAM(csocket.fd));
+bool SockList_ReadPacket(GInputStream in[static 1], SockList sl[static 1], size_t len, GError** error) {
     gsize read;
     if (!g_input_stream_read_all(in, sl->buf, 2, &read, NULL, error)) {
         return false;

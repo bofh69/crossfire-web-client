@@ -84,8 +84,7 @@ char GetChar_String(const unsigned char *data);
 int GetInt_String(const unsigned char *data);
 gint64 GetInt64_String(const unsigned char *data);
 short GetShort_String(const unsigned char *data);
-bool SockList_ReadPacket(GSocketConnection c[static 1], SockList sl[static 1],
-                         size_t len, GError** error);
+bool SockList_ReadPacket(GInputStream in[static 1], SockList sl[static 1], size_t len, GError** error);
 int cs_print_string(GSocketConnection* c, const char *str, ...);
 /* p_cmd.c */
 /* player.c */

@@ -203,7 +203,7 @@ void client_run() {
     GError* err = NULL;
     SockList inbuf;
     inbuf.buf = g_malloc(MAXSOCKBUF);
-    if (!SockList_ReadPacket(csocket.fd, &inbuf, MAXSOCKBUF - 1, &err)) {
+    if (!SockList_ReadPacket(in, &inbuf, MAXSOCKBUF - 1, &err)) {
     /*
      * If a socket error occurred while reading the packet, drop the
      * server connection.  Is there a better way to handle this?
