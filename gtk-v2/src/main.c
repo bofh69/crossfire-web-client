@@ -324,6 +324,7 @@ static void parse_args(int argc, char *argv[]) {
  * and information relevant to the error condition.
  */
 void error_dialog(char *error, char *message) {
+    LOG(LOG_ERROR, error, message);
     GtkWidget *dialog = gtk_message_dialog_new(
             NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
             GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "%s", error);
@@ -381,7 +382,6 @@ static void init_ui() {
     dialog_xml = gtk_builder_new();
     if (!gtk_builder_add_from_file(dialog_xml, DIALOG_FILENAME, &error)) {
         error_dialog("Couldn't load UI dialogs.", error->message);
-        g_warning("Couldn't load UI dialogs: %s", error->message);
         g_error_free(error);
         exit(EXIT_FAILURE);
     }
