@@ -222,8 +222,9 @@ static gboolean do_network(GObject *stream, gpointer data) {
     int pollret;
 
     if (!client_is_connected()) {
+        // It would be better to call gtk_main_quit() after client_disconnect(). But that function
+        // is in common, so we just check here.
         gtk_main_quit();
-        LOG(LOG_INFO, "main.c::do_network", "Trying to do network when not connected.");
         return FALSE;
     }
 
@@ -268,18 +269,13 @@ static void event_loop() {
     g_timeout_add(250, G_SOURCE_FUNC(do_scriptout), NULL);
 #endif
 
+    // Set up network callback
     GSource *net_source = client_get_source();
-    if (net_source == NULL) {
-        error_dialog("Server unexpectedly disconnected",
-                     "The server unexpectedly disconnected.");
-        client_disconnect();
-        return;
-    }
+    g_assert(net_source != NULL); // crashes if input stream is not a pollable input stream
     g_source_set_callback(net_source, (GSourceFunc)do_network, NULL, NULL);
     g_source_attach(net_source, NULL);
-    gtk_main();
 
-    LOG(LOG_DEBUG, "event_loop", "Disconnected");
+    gtk_main();
 }
 
 /**

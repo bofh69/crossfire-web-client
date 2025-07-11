@@ -217,6 +217,7 @@ void client_run() {
     }
     if (inbuf.len == 0) {
         client_disconnect();
+        error_dialog("Disconnected", "The server closed the connection.");
         return;
     }
     /*
