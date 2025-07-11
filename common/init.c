@@ -38,6 +38,7 @@ const char *const config_names[CONFIG_NUMS] = {
     "inv_menu",
     "music_vol",
     "server_ticks",
+    "debounce",
 };
 
 gint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
@@ -176,6 +177,7 @@ static void init_config() {
     want_config[CONFIG_INV_MENU] = TRUE;
     want_config[CONFIG_MUSIC_VOL] = 100;
     want_config[CONFIG_SERVER_TICKS] = FALSE;
+    want_config[CONFIG_DEBOUNCE] = TRUE;
 
     for (int i = 0; i < CONFIG_NUMS; i++) {
         use_config[i] = want_config[i];

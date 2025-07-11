@@ -216,7 +216,8 @@ typedef enum {
 #define CONFIG_INV_MENU         33
 #define CONFIG_MUSIC_VOL        34
 #define CONFIG_SERVER_TICKS     35      //< Send "setup tick 1" for the server to send ticks, else generate our own
-#define CONFIG_NUMS             36      /**< This should always be the last
+#define CONFIG_DEBOUNCE         36
+#define CONFIG_NUMS             37      /**< This should always be the last
                                              value in the CONFIG_xxx list. */
 /*@}*/
 

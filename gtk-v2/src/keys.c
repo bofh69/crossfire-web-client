@@ -1653,7 +1653,7 @@ void keyfunc(GtkWidget *widget, GdkEventKey *event, GtkWidget *window) {
                             debounce = false;
                         }
 
-                        if (!debounce) {
+                        if (!use_config[CONFIG_DEBOUNCE] || !debounce) {
                             parse_key(event->string[0], event->keyval);
                             debounce = true;
                         }
