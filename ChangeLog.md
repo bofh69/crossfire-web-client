@@ -1,3 +1,32 @@
+1.75.4
+======
+2025-07-18
+
+**Added**
+
+- Implement map label support. Players now render on the map with name labels.
+- Implement client side ticks to reduce network bandwidth
+- Add pop-up dialog when unexpectedly disconnecting from server
+- Add configuration option for "debounce". When disabled, it restores previous
+  command buffering behavior.
+- Add configuration widget for music volume
+- Support loading MP3 music files
+
+**Changed**
+
+- Quit after disconnecting from a single-connect server
+- Increase maximum count supported in the count spin box
+- Reset auto-AFK as soon as main windows are hidden
+- Improve music transitions
+- For client scripting, only `monitor` commands that are actually sent to
+  the server
+
+**Fixed**
+
+- Better handle errors in negotiation stage
+- Fix inventory tab icons with recent gdk-pixbuf
+- Fix save window positions; bars save onscreen
+
 1.75.3
 ======
 2024-04-10
