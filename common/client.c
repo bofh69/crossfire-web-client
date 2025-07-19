@@ -482,7 +482,7 @@ bool client_negotiate(int sound) {
     }
 
     // Block until server replies to our setup command.
-    do {
+    while (serverloginmethod == -1) {
         client_run();
         if (csocket.fd == NULL) {
             LOG(LOG_ERROR,"client_negotiate", "Server disconnected while waiting for setup");
@@ -490,7 +490,7 @@ bool client_negotiate(int sound) {
         }
 
         usleep(10*1000);
-    } while (serverloginmethod == -1);
+    }
 
     /* This needs to get changed around - we really don't want to send the
      * SendAddMe until we do all of our negotiation, which may include things
