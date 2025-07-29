@@ -26,6 +26,10 @@
 #include <signal.h>
 #endif
 
+#ifdef HAVE_CAPSICUM
+#include <sys/capsicum.h>
+#endif
+
 #include "client-vala.h"
 #include "image.h"
 #include "main.h"
@@ -104,6 +108,8 @@ GdkColor root_color[NUM_COLORS];
 GtkBuilder *dialog_xml, *window_xml;
 GtkWidget *window_root, *magic_map, *connect_window;
 GtkNotebook *main_notebook;
+
+GtkCheckButton *sandbox_enable;
 
 extern time_t last_command_sent;
 extern bool is_afk;
@@ -455,6 +461,12 @@ static void init_ui() {
     msgctrl_init(window_root);
     init_create_character_window();
     metaserver_ui_init();
+    sandbox_enable = GTK_CHECK_BUTTON(gtk_builder_get_object(dialog_xml, "sandbox_enable"));
+#ifdef HAVE_CAPSICUM
+    gtk_widget_set_sensitive(GTK_WIDGET(sandbox_enable), true);
+#else
+    gtk_widget_set_sensitive(GTK_WIDGET(sandbox_enable), false);
+#endif
 
     LOG(LOG_DEBUG, "init_ui", "window positions");
     load_window_positions(window_root);
@@ -547,6 +559,7 @@ int main(int argc, char *argv[]) {
     init_image_cache_data();
 
     LOG(LOG_DEBUG, "main", "init done");
+    bool sandbox_enabled = false;
 
     while (true) {
         gtk_widget_show(connect_window);
@@ -560,6 +573,17 @@ int main(int argc, char *argv[]) {
                 break;
             }
             cpl.input_state = Playing;
+        }
+
+        sandbox_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(sandbox_enable));
+        if (sandbox_enabled) {
+#ifdef HAVE_CAPSICUM
+            if (cap_enter() != 0) {
+                error_dialog("Failed to enter sandbox", "Sandboxing was enabled, but the running kernel does not support sandboxing.");
+                break;
+            }
+            LOG(LOG_INFO, "main", "Entering sandbox");
+#endif
         }
 
         if (client_negotiate(use_config[CONFIG_SOUND])) {
@@ -584,7 +608,7 @@ int main(int argc, char *argv[]) {
         reset_image_data();
         client_reset();
 
-        if (connect_server != NULL) {
+        if (connect_server != NULL || sandbox_enabled) {
             break;
         }
     }

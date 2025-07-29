@@ -65,6 +65,7 @@ endif()
 include(CheckIncludeFiles)
 set(CMAKE_REQUIRED_INCLUDES ${GTK_INCLUDE_DIRS})
 check_include_files(gio/gnetworking.h HAVE_GIO_GNETWORKING_H)
+check_include_files(sys/capsicum.h HAVE_CAPSICUM)
 
 configure_file(
     "${PROJECT_SOURCE_DIR}/config.h.in"
