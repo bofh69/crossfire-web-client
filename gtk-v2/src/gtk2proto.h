@@ -128,6 +128,7 @@ extern void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy, i
 extern void show_main_client(void);
 /* map.c */
 extern void map_check_resize(void);
+extern void map_pre_sandbox_init(void);
 extern void map_init(GtkWidget *window_root);
 extern int display_mapscroll(int dx, int dy);
 extern void resize_map_window(int x, int y);

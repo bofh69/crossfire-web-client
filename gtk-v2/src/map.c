@@ -43,6 +43,9 @@ static gboolean map_button_event(GtkWidget *widget,
 static gboolean map_expose_event(GtkWidget *widget,
         GdkEventExpose *event, gpointer user_data);
 
+// Font for drawing player labels
+static cairo_font_face_t *font;
+
 /**
  * Calculate and set desired map size based on map window size.
  */
@@ -76,6 +79,25 @@ void map_check_resize() {
             client_mapsize(w, h);
         }
     }
+}
+
+/**
+ * Called before entering the sandbox to cache things like fonts.
+ */
+void map_pre_sandbox_init() {
+    // TODO: This is technically missing a cairo_font_face_destroy()
+    font = cairo_toy_font_face_create("", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+
+    // Do dummy text drawing to cache the font
+    const char *test_text = "TEST TEXT";
+    cairo_surface_t *cst = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 10, 10);
+    cairo_t *cr = cairo_create(cst);
+    cairo_set_font_face(cr, font);
+    cairo_text_extents_t extents;
+    cairo_text_extents(cr, test_text, &extents);
+    cairo_show_text(cr, test_text);
+    cairo_destroy(cr);
+    cairo_surface_destroy(cst);
 }
 
 /**
@@ -306,7 +328,6 @@ static void map_draw_layer(cairo_t *cr, int layer, int mx_start, int nx, int my_
 }
 
 static void map_draw_labels(cairo_t *cr, int mx_start, int nx, int my_start, int ny) {
-    cairo_font_face_t *font = cairo_toy_font_face_create("", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_face(cr, font);
     for (int x = 0; x <= nx; x++) {
         for (int y = 0; y <= ny; y++) {
@@ -350,7 +371,6 @@ static void map_draw_labels(cairo_t *cr, int mx_start, int nx, int my_start, int
             }
         }
     }
-    cairo_font_face_destroy(font);
 }
 
 static double mapcell_darkness(int mx, int my) {

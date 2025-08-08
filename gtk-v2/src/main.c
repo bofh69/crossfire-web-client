@@ -575,6 +575,7 @@ int main(int argc, char *argv[]) {
             cpl.input_state = Playing;
         }
 
+        map_pre_sandbox_init();
         sandbox_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(sandbox_enable));
         if (sandbox_enabled) {
 #ifdef HAVE_CAPSICUM
