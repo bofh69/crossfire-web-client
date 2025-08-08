@@ -578,6 +578,14 @@ int main(int argc, char *argv[]) {
         map_pre_sandbox_init();
         sandbox_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(sandbox_enable));
         if (sandbox_enabled) {
+            // preload some themes from the main window
+            gtk_widget_show(window_root);
+            map_init(window_root);
+            for (int i = 0; i < 100; i++) {
+                gtk_main_iteration();
+            }
+            gtk_widget_hide(window_root);
+
 #ifdef HAVE_CAPSICUM
             if (cap_enter() != 0) {
                 error_dialog("Failed to enter sandbox", "Sandboxing was enabled, but the running kernel does not support sandboxing.");
