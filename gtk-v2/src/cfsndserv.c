@@ -82,7 +82,7 @@ static int init_audio() {
  */
 int cf_snd_init() {
     /* Set $CF_SOUND_DIR to something reasonable, if not already set. */
-    if (!g_setenv("CF_SOUND_DIR", CF_SOUND_DIR, FALSE)) {
+    if (!g_setenv("CF_SOUND_DIR", CF_DATADIR "/sounds", FALSE)) {
         perror("Couldn't set $CF_SOUND_DIR");
         return -1;
     }

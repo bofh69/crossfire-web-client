@@ -81,8 +81,6 @@ static GOptionEntry options[] = {
     { "faceset", 0, 0, G_OPTION_ARG_STRING, &face_info.want_faceset,
         "Use the given faceset (if available)", "FACESET" },
 
-    { "sound_server", 0, 0, G_OPTION_ARG_FILENAME, &sound_server,
-        "Path to the sound server", "PATH" },
     { "updatekeycodes", 0, 0, G_OPTION_ARG_NONE, &updatekeycodes,
         "Update the saved bindings for this keyboard", NULL },
 

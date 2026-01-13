@@ -138,7 +138,6 @@ typedef struct {
 
 extern ClientSocket csocket;
 
-extern char *sound_server;
 extern const char *cache_dir, *config_dir;
 
 typedef enum {
