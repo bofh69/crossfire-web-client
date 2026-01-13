@@ -501,7 +501,6 @@ extern guint16   exp_table_max;
 typedef struct Cache_Entry {
     char    *filename;
     guint32  checksum;
-    guint32  ispublic:1;
     void    *image_data;
     struct Cache_Entry  *next;
 } Cache_Entry;

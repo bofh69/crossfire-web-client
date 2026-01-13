@@ -293,8 +293,7 @@ static Cache_Entry *image_find_cache_entry(char *imagename, guint32 checksum,
 /**
  * Add a hash entry.  Returns the entry we added, NULL on failure.
  */
-static Cache_Entry *image_add_hash(char *imagename, char *filename,
-                                   guint32 checksum, guint32 ispublic) {
+static Cache_Entry *image_add_hash(char *imagename, char *filename, guint32 checksum) {
     Cache_Entry *new_entry;
     guint32  hash = image_hash_name(imagename, IMAGE_HASH), newhash;
 
@@ -324,7 +323,6 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename,
     new_entry = g_malloc(sizeof(struct Cache_Entry));
     new_entry->filename = g_strdup(filename);
     new_entry->checksum = checksum;
-    new_entry->ispublic = ispublic;
     new_entry->image_data = NULL;
     new_entry->next = image_cache[newhash].cache_entry;
     image_cache[newhash].cache_entry = new_entry;
@@ -337,7 +335,7 @@ static Cache_Entry *image_add_hash(char *imagename, char *filename,
  * some conventions.  Note that this is destructive to the data passed in
  * line.
  */
-static void image_process_line(char *line, guint32 ispublic) {
+static void image_process_line(char *line) {
     char imagename[MAX_BUF], filename[MAX_BUF];
     guint32 checksum;
 
@@ -346,7 +344,7 @@ static void image_process_line(char *line, guint32 ispublic) {
     }
 
     if (sscanf(line, "%s %u %s", imagename, &checksum, filename) == 3) {
-        image_add_hash(imagename, filename, checksum, ispublic);
+        image_add_hash(imagename, filename, checksum);
     } else {
         LOG(LOG_WARNING, "common::image_process_line",
             "Did not parse line %s properly?", line);
@@ -372,23 +370,10 @@ void init_common_cache_data(void) {
     /* First, make sure that image_cache is nulled out */
     memset(image_cache, 0, IMAGE_HASH * sizeof(struct Image_Cache));
 
-    snprintf(bmaps, sizeof(bmaps), "%s/bmaps.client", CF_DATADIR);
-    if ((fp = fopen(bmaps, "r")) != NULL) {
-        while (fgets(inbuf, MAX_BUF - 1, fp) != NULL) {
-            image_process_line(inbuf, 1);
-        }
-        fclose(fp);
-    } else {
-        snprintf(inbuf, sizeof(inbuf),
-                 "Unable to open %s.  You may wish to download and install the image file to improve performance.\n",
-                 bmaps);
-        draw_ext_info(NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, inbuf);
-    }
-
     snprintf(bmaps, sizeof(bmaps), "%s/image-cache/bmaps.client", cache_dir);
     if ((fp = fopen(bmaps, "r")) != NULL) {
         while (fgets(inbuf, MAX_BUF - 1, fp) != NULL) {
-            image_process_line(inbuf, 0);
+            image_process_line(inbuf);
         }
         fclose(fp);
     } /* User may not have a cache, so no error if not found */
@@ -458,12 +443,7 @@ void finish_face_cmd(int pnum, guint32 checksum, int has_sum, char *face,
                 return;
             }
         }
-        if (ce->ispublic)
-            snprintf(filename, sizeof(filename), "%s/%s",
-                     CF_DATADIR, ce->filename);
-        else
-            snprintf(filename, sizeof(filename), "%s/image-cache/%s",
-                    cache_dir, ce->filename);
+        snprintf(filename, sizeof(filename), "%s/image-cache/%s", cache_dir, ce->filename);
         if (load_image(filename, data, &len, &newsum) == -1) {
             LOG(LOG_WARNING, "common::finish_face_cmd",
                 "file %s listed in cache file, but unable to load", filename);
@@ -479,9 +459,7 @@ void finish_face_cmd(int pnum, guint32 checksum, int has_sum, char *face,
         LOG(LOG_WARNING, "common::finish_face_cmd",
             "Got error on png_to_data, image=%s", face);
         if (ce) {
-            if (!ce->ispublic) {
-                unlink(filename);
-            }
+            unlink(filename);
             image_remove_hash(face, ce);
         }
 
@@ -639,7 +617,7 @@ static void cache_newpng(int face, guint8 *buf, int buflen, int setnum,
         snprintf(filename, sizeof(filename), "%c%c/%s.%d", facetoname[face][0],
                  facetoname[face][1],
                  basename, setnum);
-        *ce = image_add_hash(facetoname[face], filename,  csum, 0);
+        *ce = image_add_hash(facetoname[face], filename,  csum);
 
         /* It may very well be more efficient to try to store these up
          * and then write them as a bunch instead of constantly opening the
