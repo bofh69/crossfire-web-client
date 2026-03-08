@@ -207,7 +207,7 @@ void client_run() {
      * If a socket error occurred while reading the packet, drop the
      * server connection.  Is there a better way to handle this?
      */
-        if (!err) {
+        if (err) {
             LOG(LOG_ERROR, "client_run", "%s", err->message);
             g_error_free(err);
         }
