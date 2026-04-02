@@ -13,11 +13,11 @@ import {
   CS_STAT_RESIST_START, CS_STAT_RESIST_END, CS_STAT_SKILLINFO, CS_NUM_SKILLS,
   CS_STAT_GOLEM_HP, CS_STAT_GOLEM_MAXHP,
   MAP2_COORD_OFFSET, MAP2_TYPE_CLEAR, MAP2_TYPE_DARKNESS, MAP2_TYPE_LABEL,
-  MAP2_LAYER_START,
+  MAP2_LAYER_START, MAX_VIEW,
   UPD_LOCATION, UPD_FLAGS, UPD_WEIGHT, UPD_FACE, UPD_NAME, UPD_ANIM, UPD_ANIMSPEED, UPD_NROF,
   UPD_SP_MANA, UPD_SP_GRACE, UPD_SP_DAMAGE,
   NDI_COLOR_MASK,
-  FACE_IS_ANIM, ANIM_MASK, ANIM_FLAGS_MASK,
+  FACE_IS_ANIM,
   MAXLAYERS,
   VERSION_CS, VERSION_SC,
   type Stats, type Spell, type Animation,
@@ -27,7 +27,7 @@ import {
   getStringFromData, SockList, CrossfireSocket,
 } from './newsocket.js';
 import { locateItem, removeItem, removeItemInventory, updateItem, playerItem, animations, setCSocket as setItemSocket } from './item.js';
-import { mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer, mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space, mapdata_set_check_space, mapdata_set_size, mapdata_clear_label, mapdata_add_label } from './mapdata.js';
+import { mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer, mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space, mapdata_set_check_space, mapdata_clear_old, mapdata_set_size, mapdata_clear_label, mapdata_add_label } from './mapdata.js';
 import { addSmooth, getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
 import { wantConfig, useConfig, resetPlayerData } from './init.js';
 import { LOG } from './misc.js';
@@ -345,42 +345,80 @@ function NewmapCmd(): void {
 function Map2Cmd(data: DataView, len: number): void {
   let pos = 0;
   while (pos < len) {
-    const coord = getShortFromData(data, pos); pos += 2;
-    const x = ((coord >> 10) & 0x3F) - MAP2_COORD_OFFSET;
-    const y = ((coord >> 4) & 0x3F) - MAP2_COORD_OFFSET;
-    const coordType = coord & 0x0F;
+    const mask = getShortFromData(data, pos); pos += 2;
+    const x = ((mask >> 10) & 0x3F) - MAP2_COORD_OFFSET;
+    const y = ((mask >> 4) & 0x3F) - MAP2_COORD_OFFSET;
 
-    if (coordType === MAP2_TYPE_CLEAR) {
-      mapdata_clear_space(x, y);
-    } else if (coordType === MAP2_TYPE_DARKNESS) {
-      const darkness = getCharFromData(data, pos); pos += 1;
-      mapdata_set_darkness(x, y, darkness);
-    } else if (coordType === MAP2_TYPE_LABEL) {
-      const labelLen = getCharFromData(data, pos); pos += 1;
-      const subtype = getCharFromData(data, pos); pos += 1;
-      const label = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, labelLen - 1);
-      pos += labelLen - 1;
-      mapdata_add_label(x, y, subtype, label);
-    } else if (coordType >= MAP2_LAYER_START) {
-      const layer = coordType - MAP2_LAYER_START;
-      if (layer < MAXLAYERS) {
+    // A coord word with the scroll flag set encodes a map scroll, not a tile.
+    if (mask & 0x1) {
+      mapdata_scroll(x, y);
+      continue;
+    }
+
+    // Clamp to the valid view coordinate range.
+    const cx = Math.max(0, Math.min(x, MAX_VIEW - 1));
+    const cy = Math.max(0, Math.min(y, MAX_VIEW - 1));
+
+    mapdata_clear_old(cx, cy);
+
+    // Inner loop: read per-tile type bytes until the 255 end-of-space marker.
+    while (pos < len) {
+      const typeByte = getCharFromData(data, pos); pos += 1;
+
+      if (typeByte === 255) {
+        mapdata_set_check_space(cx, cy);
+        break;
+      }
+
+      // Upper 3 bits encode the number of additional data bytes for this entry;
+      // lower 5 bits are the entry type.
+      const spaceLen = typeByte >> 5;
+      const type = typeByte & 0x1F;
+
+      if (type === MAP2_TYPE_CLEAR) {
+        mapdata_clear_space(cx, cy);
+      } else if (type === MAP2_TYPE_DARKNESS) {
+        const value = getCharFromData(data, pos); pos += 1;
+        mapdata_set_darkness(cx, cy, value);
+      } else if (type === MAP2_TYPE_LABEL) {
+        // spaceLen === 7 signals variable-length data: next byte is total length.
+        /* labelTotalLen */ getCharFromData(data, pos); pos += 1;
+        const subtype = getCharFromData(data, pos); pos += 1;
+        const strLen = getCharFromData(data, pos); pos += 1;
+        const label = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, strLen);
+        pos += strLen;
+        mapdata_add_label(cx, cy, subtype, label);
+      } else if (type >= MAP2_LAYER_START && type < MAP2_LAYER_START + MAXLAYERS) {
+        const layer = type & 0xF;
         const faceOrAnim = getShortFromData(data, pos); pos += 2;
-        if (faceOrAnim & FACE_IS_ANIM) {
-          const animId = faceOrAnim & ANIM_MASK;
-          const animFlags = faceOrAnim & ANIM_FLAGS_MASK;
-          const animSpeed = getCharFromData(data, pos); pos += 1;
-          mapdata_set_anim_layer(x, y, animId, animSpeed, layer);
-        } else {
-          mapdata_set_face_layer(x, y, faceOrAnim, layer);
+        if (!(faceOrAnim & FACE_IS_ANIM)) {
+          mapdata_set_face_layer(cx, cy, faceOrAnim, layer);
         }
-        // Check for smooth data
-        if (pos < len) {
-          const nextCoord = getShortFromData(data, pos);
-          // Smooth data would follow but we skip complex smooth handling for simplicity
+        if (spaceLen > 2) {
+          const opt = getCharFromData(data, pos); pos += 1;
+          if (faceOrAnim & FACE_IS_ANIM) {
+            // opt is the animation speed.
+            mapdata_set_anim_layer(cx, cy, faceOrAnim, opt, layer);
+          } else {
+            // opt is a smooth value.
+            mapdata_set_smooth(cx, cy, opt, layer);
+          }
+        }
+        // A fourth byte (when present) is always a smooth value.
+        if (spaceLen > 3) {
+          const opt = getCharFromData(data, pos); pos += 1;
+          mapdata_set_smooth(cx, cy, opt, layer);
+        }
+      } else {
+        // Unknown type: skip the declared number of data bytes.
+        if (spaceLen !== 7) {
+          pos += spaceLen;
+        } else {
+          const extraLen = getCharFromData(data, pos); pos += 1;
+          pos += extraLen;
         }
       }
     }
-    mapdata_set_check_space(x, y);
   }
   callbacks.onMapUpdate?.();
 }

@@ -800,6 +800,10 @@ export function mapdata_set_check_space(x: number, y: number): void {
     const px = pl_pos.x + x;
     const py = pl_pos.y + y;
 
+    if (px < 0 || py < 0 || px >= mapWidth || py >= mapHeight) {
+        return;
+    }
+
     let isBlank = true;
     const cell = cells[px][py];
     for (let i = 0; i < MAXLAYERS; i++) {
