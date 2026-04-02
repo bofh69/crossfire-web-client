@@ -19,6 +19,29 @@
   let queryInput = $state('');
   let statusMessage = $state('');
 
+  /** Set to true once the server sends addme_success. We only switch to the
+   *  game screen when this is true AND no query prompt is pending, so that a
+   *  server that sends addme_success quickly (before the user finishes
+   *  answering login prompts) doesn't cause a premature state change. */
+  let addMeSuccessReceived = $state(false);
+
+  /** Element reference for the query input, used for programmatic focus. */
+  let queryInputEl: HTMLInputElement | undefined = $state();
+
+  // Focus the query input whenever it (re-)appears in the DOM.
+  $effect(() => {
+    if (queryInputEl) {
+      queryInputEl.focus();
+    }
+  });
+
+  function checkLoginComplete() {
+    if (addMeSuccessReceived && !queryPrompt) {
+      statusMessage = 'Login successful!';
+      onLoggedIn();
+    }
+  }
+
   async function handleConnect() {
     errorMessage = '';
     connecting = true;
@@ -40,6 +63,8 @@
       sendReply(queryInput);
       queryInput = '';
       queryPrompt = '';
+      // If addme_success already arrived, switch now that the prompt is gone.
+      checkLoginComplete();
     }
   }
 
@@ -62,8 +87,13 @@
     };
 
     callbacks.onAddMeSuccess = () => {
-      statusMessage = 'Login successful!';
-      onLoggedIn();
+      addMeSuccessReceived = true;
+      if (queryPrompt) {
+        // A query is still on screen – wait until the user answers it.
+        statusMessage = 'Authenticated. Answer the prompt to enter the game.';
+      } else {
+        checkLoginComplete();
+      }
     };
 
     callbacks.onAddMeFail = () => {
@@ -116,8 +146,8 @@
         <input
           type={queryHidden ? 'password' : 'text'}
           bind:value={queryInput}
+          bind:this={queryInputEl}
           onkeydown={handleQueryKeydown}
-          autofocus
         />
       </label>
       <button onclick={handleQuerySubmit}>Submit</button>

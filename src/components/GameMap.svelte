@@ -57,12 +57,16 @@
           if (url) {
             const img = imageCache.get(url);
             if (img) {
+              // Only draw once the image is fully decoded.
               ctx.drawImage(img, px, py, TILE_SIZE, TILE_SIZE);
             } else {
-              loadImage(url, face);
+              // Kick off a background load; draw a placeholder for now.
+              loadImage(url);
+              ctx.fillStyle = layer === 0 ? '#222' : '#333';
+              ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
             }
           } else {
-            // No image yet - draw placeholder
+            // Face URL not yet known – draw placeholder.
             ctx.fillStyle = layer === 0 ? '#222' : '#333';
             ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
           }
@@ -79,17 +83,23 @@
   }
 
   const imageCache = new Map<string, HTMLImageElement>();
+  /** URLs for which a load is already in flight. */
+  const loadingUrls = new Set<string>();
+  /** URLs that permanently failed to load (don't retry). */
+  const failedUrls = new Set<string>();
 
-  function loadImage(url: string, _face: number) {
-    if (imageCache.has(url)) return;
+  function loadImage(url: string) {
+    if (imageCache.has(url) || loadingUrls.has(url) || failedUrls.has(url)) return;
+    loadingUrls.add(url);
     const img = new Image();
-    imageCache.set(url, img);
     img.onload = () => {
+      loadingUrls.delete(url);
       imageCache.set(url, img);
       mapVersion++;
     };
     img.onerror = () => {
-      imageCache.delete(url);
+      loadingUrls.delete(url);
+      failedUrls.add(url);
     };
     img.src = url;
   }
