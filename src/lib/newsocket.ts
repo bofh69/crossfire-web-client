@@ -234,6 +234,9 @@ export class CrossfireSocket {
       return;
     }
     const data = sl.getData();
+    // Log the outgoing binary packet as a text preview (first 64 bytes decoded).
+    const preview = new TextDecoder().decode(data.subarray(0, Math.min(64, data.length)));
+    console.debug(`[TX binary ${data.length}B] ${preview}`);
     this.ws.send(data);
     this.commandSent++;
   }
@@ -248,6 +251,7 @@ export class CrossfireSocket {
       console.warn("CrossfireSocket.sendString: not connected");
       return;
     }
+    console.debug(`[TX] ${cmd}`);
     const encoded = new TextEncoder().encode(cmd);
     this.ws.send(encoded);
     this.commandSent++;

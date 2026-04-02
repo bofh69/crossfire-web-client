@@ -553,25 +553,29 @@ export function dispatchPacket(packet: ArrayBuffer): void {
   const cmdName = new TextDecoder().decode(bytes.subarray(0, spaceIdx));
   const entry = commandTable.get(cmdName);
 
+  const dataStart = spaceIdx < bytes.length ? spaceIdx + 1 : bytes.length;
+  const dataLen = bytes.length - dataStart;
+
   if (!entry) {
-    LOG(LogLevel.Debug, 'dispatch', `Unknown command: ${cmdName}`);
+    LOG(LogLevel.Debug, 'dispatch', `Unknown command: ${cmdName} (${dataLen}B)`);
     return;
   }
-
-  const dataStart = spaceIdx < bytes.length ? spaceIdx + 1 : bytes.length;
 
   switch (entry.type) {
     case 'text': {
       const textData = new TextDecoder().decode(bytes.subarray(dataStart));
+      LOG(LogLevel.Debug, 'RX', `${cmdName} ${textData}`);
       (entry.handler as TextHandler)(textData);
       break;
     }
     case 'binary': {
+      LOG(LogLevel.Debug, 'RX', `${cmdName} <binary ${dataLen}B>`);
       const dataView = new DataView(packet, dataStart);
-      (entry.handler as BinaryHandler)(dataView, bytes.length - dataStart);
+      (entry.handler as BinaryHandler)(dataView, dataLen);
       break;
     }
     case 'none':
+      LOG(LogLevel.Debug, 'RX', cmdName);
       (entry.handler as NoArgHandler)();
       break;
   }

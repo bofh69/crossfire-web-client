@@ -6,7 +6,7 @@
 import { LogLevel } from "./protocol";
 
 /** Minimum log level; messages below this threshold are suppressed. */
-export let minLog: LogLevel = LogLevel.Info;
+export let minLog: LogLevel = LogLevel.Debug;
 
 /**
  * Set the minimum log level threshold.
