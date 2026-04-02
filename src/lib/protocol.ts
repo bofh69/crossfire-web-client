@@ -632,6 +632,8 @@ export interface Stats {
     skillLevel: number[];
     skillExp: bigint[];
     weightLimit: number;
+    golemHp: number;
+    golemMaxhp: number;
 }
 
 export interface Spell {

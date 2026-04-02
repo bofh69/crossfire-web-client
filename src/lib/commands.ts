@@ -26,7 +26,7 @@ import {
   getCharFromData, getShortFromData, getIntFromData, getInt64FromData,
   getStringFromData, SockList, CrossfireSocket,
 } from './newsocket.js';
-import { locateItem, removeItem, removeItemInventory, updateItem, playerItem, animations, setSocket as setItemSocket } from './item.js';
+import { locateItem, removeItem, removeItemInventory, updateItem, playerItem, animations, setCSocket as setItemSocket } from './item.js';
 import { mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer, mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space, mapdata_set_check_space, mapdata_set_size, mapdata_clear_label, mapdata_add_label } from './mapdata.js';
 import { addSmooth, getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
 import { wantConfig, useConfig, resetPlayerData } from './init.js';
@@ -78,12 +78,12 @@ export const playerStats: Stats = {
   Str: 0, Dex: 0, Con: 0, Wis: 0, Cha: 0, Int: 0, Pow: 0,
   wc: 0, ac: 0, level: 0, hp: 0, maxhp: 0, sp: 0, maxsp: 0,
   grace: 0, maxgrace: 0, exp: BigInt(0), food: 0, dam: 0,
-  speed: 0, weapon_sp: 0, attuned: 0, repelled: 0, denied: 0,
-  flags: 0, resists: new Array(30).fill(0), resist_change: false,
-  skill_level: new Array(CS_NUM_SKILLS).fill(0),
-  skill_exp: new Array(CS_NUM_SKILLS).fill(BigInt(0)),
-  weight_limit: 0,
-  golem_hp: 0, golem_maxhp: 0,
+  speed: 0, weaponSp: 0, attuned: 0, repelled: 0, denied: 0,
+  flags: 0, resists: new Array(30).fill(0), resistChange: false,
+  skillLevel: new Array(CS_NUM_SKILLS).fill(0),
+  skillExp: new Array(CS_NUM_SKILLS).fill(BigInt(0)),
+  weightLimit: 0,
+  golemHp: 0, golemMaxhp: 0,
 };
 
 /** Known spells */
@@ -115,7 +115,7 @@ function SetupCmd(data: string): void {
         mapdata_set_size(w, h);
       }
     }
-    LOG(LogLevel.DEBUG, 'SetupCmd', `${key} = ${value}`);
+    LOG(LogLevel.Debug, 'SetupCmd', `${key} = ${value}`);
   }
 }
 
@@ -163,15 +163,15 @@ function StatsCmd(data: DataView, len: number): void {
       case CS_STAT_ARMOUR: playerStats.ac = getShortFromData(data, pos); pos += 2; break;
       case CS_STAT_SPEED: playerStats.speed = getIntFromData(data, pos); pos += 4; break;
       case CS_STAT_FOOD: playerStats.food = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_WEAP_SP: playerStats.weapon_sp = getIntFromData(data, pos); pos += 4; break;
+      case CS_STAT_WEAP_SP: playerStats.weaponSp = getIntFromData(data, pos); pos += 4; break;
       case CS_STAT_FLAGS: playerStats.flags = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_WEIGHT_LIM: playerStats.weight_limit = getIntFromData(data, pos); pos += 4; break;
+      case CS_STAT_WEIGHT_LIM: playerStats.weightLimit = getIntFromData(data, pos); pos += 4; break;
       case CS_STAT_EXP64: playerStats.exp = getInt64FromData(data, pos); pos += 8; break;
       case CS_STAT_SPELL_ATTUNE: playerStats.attuned = getIntFromData(data, pos); pos += 4; break;
       case CS_STAT_SPELL_REPEL: playerStats.repelled = getIntFromData(data, pos); pos += 4; break;
       case CS_STAT_SPELL_DENY: playerStats.denied = getIntFromData(data, pos); pos += 4; break;
-      case CS_STAT_GOLEM_HP: playerStats.golem_hp = getIntFromData(data, pos); pos += 4; break;
-      case CS_STAT_GOLEM_MAXHP: playerStats.golem_maxhp = getIntFromData(data, pos); pos += 4; break;
+      case CS_STAT_GOLEM_HP: playerStats.golemHp = getIntFromData(data, pos); pos += 4; break;
+      case CS_STAT_GOLEM_MAXHP: playerStats.golemMaxhp = getIntFromData(data, pos); pos += 4; break;
       case CS_STAT_RANGE: {
         const r = parseString(data, pos);
         pos = r.newOffset;
@@ -185,14 +185,14 @@ function StatsCmd(data: DataView, len: number): void {
       default:
         if (stat >= CS_STAT_RESIST_START && stat <= CS_STAT_RESIST_END) {
           playerStats.resists[stat - CS_STAT_RESIST_START] = getShortFromData(data, pos);
-          playerStats.resist_change = true;
+          playerStats.resistChange = true;
           pos += 2;
         } else if (stat >= CS_STAT_SKILLINFO && stat < CS_STAT_SKILLINFO + CS_NUM_SKILLS) {
           const skillIdx = stat - CS_STAT_SKILLINFO;
-          playerStats.skill_level[skillIdx] = getCharFromData(data, pos); pos += 1;
-          playerStats.skill_exp[skillIdx] = getInt64FromData(data, pos); pos += 8;
+          playerStats.skillLevel[skillIdx] = getCharFromData(data, pos); pos += 1;
+          playerStats.skillExp[skillIdx] = getInt64FromData(data, pos); pos += 8;
         } else {
-          LOG(LogLevel.WARNING, 'StatsCmd', `Unknown stat ${stat}`);
+          LOG(LogLevel.Warning, 'StatsCmd', `Unknown stat ${stat}`);
           return; // Can't continue - unknown length
         }
         break;
@@ -214,7 +214,7 @@ function PlayerCmd(data: DataView, len: number): void {
   const weight = getIntFromData(data, pos); pos += 4;
   const face = getIntFromData(data, pos); pos += 4;
   const nameResult = parseString(data, pos);
-  LOG(LogLevel.INFO, 'PlayerCmd', `Player: ${nameResult.str} tag=${tag}`);
+  LOG(LogLevel.Info, 'PlayerCmd', `Player: ${nameResult.str} tag=${tag}`);
   callbacks.onPlayerUpdate?.();
 }
 
@@ -261,13 +261,13 @@ function UpdateItemCmd(data: DataView, len: number): void {
     const nameLen = getCharFromData(data, pos); pos += 1;
     const name = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, nameLen);
     pos += nameLen;
-    item.d_name = name;
+    item.dName = name;
   }
   if (updateFlags & UPD_ANIM) {
-    item.animation_id = getShortFromData(data, pos); pos += 2;
+    item.animationId = getShortFromData(data, pos); pos += 2;
   }
   if (updateFlags & UPD_ANIMSPEED) {
-    item.anim_speed = getCharFromData(data, pos); pos += 1;
+    item.animSpeed = getCharFromData(data, pos); pos += 1;
   }
   if (updateFlags & UPD_NROF) {
     item.nrof = getIntFromData(data, pos); pos += 4;
@@ -310,7 +310,7 @@ function AddspellCmd(data: DataView, len: number): void {
 
     const spell: Spell = {
       name, message, tag, level: spellLevel, time: castingTime,
-      sp: mana, grace: grace, dam: damage, skill_number: skill,
+      sp: mana, grace: grace, dam: damage, skillNumber: skill,
       skill: '', path, face, usage: 0, requirements: '',
     };
     spells.push(spell);
@@ -395,7 +395,7 @@ function mapScrollCmd(data: string): void {
 
 function MagicMapCmd(data: DataView, len: number): void {
   // Simplified - just log receipt
-  LOG(LogLevel.INFO, 'MagicMapCmd', `Received magic map data (${len} bytes)`);
+  LOG(LogLevel.Info, 'MagicMapCmd', `Received magic map data (${len} bytes)`);
 }
 
 function TickCmd(data: DataView, _len: number): void {
@@ -405,14 +405,14 @@ function TickCmd(data: DataView, _len: number): void {
 
 function PickupCmd(data: DataView, _len: number): void {
   const mode = getIntFromData(data, 0);
-  LOG(LogLevel.DEBUG, 'PickupCmd', `Pickup mode: ${mode}`);
+  LOG(LogLevel.Debug, 'PickupCmd', `Pickup mode: ${mode}`);
 }
 
 function FailureCmd(data: string): void {
   const spaceIdx = data.indexOf(' ');
   const command = spaceIdx > 0 ? data.substring(0, spaceIdx) : data;
   const message = spaceIdx > 0 ? data.substring(spaceIdx + 1) : '';
-  LOG(LogLevel.WARNING, 'FailureCmd', `${command}: ${message}`);
+  LOG(LogLevel.Warning, 'FailureCmd', `${command}: ${message}`);
   callbacks.onFailure?.(command, message);
 }
 
@@ -445,8 +445,8 @@ function AnimCmd(data: DataView, len: number): void {
   }
   const anim: Animation = {
     flags: animFlags,
-    num_animations: faces.length,
-    speed: 0, speed_left: 0, phase: 0,
+    numAnimations: faces.length,
+    speed: 0, speedLeft: 0, phase: 0,
     faces,
   };
   animations[animId] = anim;
@@ -463,7 +463,7 @@ function VersionCmd(data: string): void {
   const csVer = parts.length > 0 ? parseInt(parts[0]) : 0;
   const scVer = parts.length > 1 ? parseInt(parts[1]) : 0;
   const verStr = parts.length > 2 ? parts[2] : '';
-  LOG(LogLevel.INFO, 'VersionCmd', `Server version: cs=${csVer} sc=${scVer} ${verStr}`);
+  LOG(LogLevel.Info, 'VersionCmd', `Server version: cs=${csVer} sc=${scVer} ${verStr}`);
   callbacks.onVersion?.(csVer, scVer, verStr);
 }
 
@@ -479,21 +479,21 @@ function ReplyInfoCmd(data: DataView, len: number): void {
     const sumsData = getStringFromData(bytes, spaceIdx + 1, len - spaceIdx - 1);
     getImageSums(sumsData, len - spaceIdx - 1);
   }
-  LOG(LogLevel.DEBUG, 'ReplyInfoCmd', `Info type: ${infoType}`);
+  LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }
 
 function GoodbyeCmd(): void {
-  LOG(LogLevel.INFO, 'GoodbyeCmd', 'Server said goodbye');
+  LOG(LogLevel.Info, 'GoodbyeCmd', 'Server said goodbye');
   callbacks.onGoodbye?.();
 }
 
 function AddMeFail(): void {
-  LOG(LogLevel.WARNING, 'AddMeFail', 'Failed to add player');
+  LOG(LogLevel.Warning, 'AddMeFail', 'Failed to add player');
   callbacks.onAddMeFail?.();
 }
 
 function AddMeSuccess(): void {
-  LOG(LogLevel.INFO, 'AddMeSuccess', 'Player added successfully');
+  LOG(LogLevel.Info, 'AddMeSuccess', 'Player added successfully');
   callbacks.onAddMeSuccess?.();
 }
 
@@ -554,7 +554,7 @@ export function dispatchPacket(packet: ArrayBuffer): void {
   const entry = commandTable.get(cmdName);
 
   if (!entry) {
-    LOG(LogLevel.DEBUG, 'dispatch', `Unknown command: ${cmdName}`);
+    LOG(LogLevel.Debug, 'dispatch', `Unknown command: ${cmdName}`);
     return;
   }
 
