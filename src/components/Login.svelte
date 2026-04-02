@@ -111,12 +111,15 @@
     };
 
     return () => {
-      callbacks.onQuery = undefined;
       callbacks.onVersion = undefined;
       callbacks.onAddMeSuccess = undefined;
       callbacks.onAddMeFail = undefined;
       callbacks.onFailure = undefined;
-      callbacks.onDrawInfo = undefined;
+      // onQuery and onDrawInfo are NOT cleared here: wireCallbacks() in App.svelte
+      // sets them synchronously before this cleanup runs (Svelte defers $effect
+      // cleanup to the next microtask), so clearing them here would silently
+      // destroy the handlers that the game screen just installed.  App.svelte's
+      // handleDisconnect() is responsible for clearing these when needed.
     };
   });
 </script>
