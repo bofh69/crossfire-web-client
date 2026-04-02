@@ -4,7 +4,9 @@
   import { initCommands } from './lib/p_cmd';
   import { callbacks, playerStats, spells } from './lib/commands';
   import { locateItem, cpl } from './lib/item';
+  import { sendReply } from './lib/player';
   import type { Stats } from './lib/protocol';
+  import { CS_QUERY_HIDEINPUT } from './lib/protocol';
   import Login from './components/Login.svelte';
   import GameMap from './components/GameMap.svelte';
   import InfoPanel from './components/InfoPanel.svelte';
@@ -17,6 +19,31 @@
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
   let activeTab = $state<'inventory' | 'spells' | 'skills'>('inventory');
+
+  /** Query prompt sent by the server while in the playing state (e.g. character
+   *  name prompt that the server sends after addme_success on some servers). */
+  let gameQueryPrompt = $state('');
+  let gameQueryHidden = $state(false);
+  let gameQueryInput = $state('');
+  let gameQueryInputEl: HTMLInputElement | undefined = $state();
+
+  $effect(() => {
+    if (gameQueryInputEl) {
+      gameQueryInputEl.focus();
+    }
+  });
+
+  function handleGameQuerySubmit() {
+    sendReply(gameQueryInput);
+    gameQueryInput = '';
+    gameQueryPrompt = '';
+  }
+
+  function handleGameQueryKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      handleGameQuerySubmit();
+    }
+  }
 
   let gameMap: GameMap | undefined = $state();
   let infoPanel: InfoPanel | undefined = $state();
@@ -46,6 +73,8 @@
     callbacks.onPlayerUpdate = undefined;
     callbacks.onTick = undefined;
     callbacks.onGoodbye = undefined;
+    callbacks.onQuery = undefined;
+    gameQueryPrompt = '';
     appState = 'login';
   }
 
@@ -61,6 +90,12 @@
     callbacks.onStatsUpdate = (stats: Partial<Stats>) => {
       statsPanel?.updateStats(stats);
       skillList?.updateSkills(playerStats);
+    };
+
+    callbacks.onQuery = (flags: number, prompt: string) => {
+      gameQueryPrompt = prompt;
+      gameQueryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
+      gameQueryInput = '';
     };
 
     callbacks.onMapUpdate = () => {
@@ -128,4 +163,80 @@
       <InfoPanel bind:this={infoPanel} />
     </div>
   </div>
+
+  {#if gameQueryPrompt}
+    <div class="query-overlay">
+      <div class="query-box">
+        <label>
+          {gameQueryPrompt}
+          <input
+            type={gameQueryHidden ? 'password' : 'text'}
+            bind:value={gameQueryInput}
+            bind:this={gameQueryInputEl}
+            onkeydown={handleGameQueryKeydown}
+          />
+        </label>
+        <button onclick={handleGameQuerySubmit}>Submit</button>
+      </div>
+    </div>
+  {/if}
 {/if}
+
+<style>
+  .query-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 100;
+  }
+
+  .query-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 340px;
+    padding: 1.5rem;
+    background: #1e1e1e;
+    border: 1px solid #7a6a4a;
+    border-radius: 6px;
+  }
+
+  .query-box label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: #c0b090;
+    font-size: 0.9rem;
+  }
+
+  .query-box input {
+    padding: 0.5rem;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #2a2a2a;
+    color: #e0e0e0;
+    font-size: 1rem;
+  }
+
+  .query-box input:focus {
+    outline: none;
+    border-color: #7a6a4a;
+  }
+
+  .query-box button {
+    padding: 0.6rem 1rem;
+    border: 1px solid #7a6a4a;
+    border-radius: 4px;
+    background: #4a3a2a;
+    color: #e0d0b0;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .query-box button:hover {
+    background: #5a4a3a;
+  }
+</style>
