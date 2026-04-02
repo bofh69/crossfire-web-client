@@ -1,0 +1,148 @@
+<script lang="ts">
+  import { extendedCommand } from '../lib/p_cmd';
+  import { sendCommand } from '../lib/player';
+  import {
+    NDI_BLACK, NDI_WHITE, NDI_NAVY, NDI_RED, NDI_ORANGE, NDI_BLUE,
+    NDI_DK_ORANGE, NDI_GREEN, NDI_LT_GREEN, NDI_GREY, NDI_BROWN,
+    NDI_GOLD, NDI_TAN,
+  } from '../lib/protocol';
+
+  interface Message {
+    text: string;
+    color: string;
+  }
+
+  let messages: Message[] = $state([]);
+  let commandInput = $state('');
+  let messagesDiv: HTMLDivElement | undefined = $state();
+
+  const NDI_COLORS: Record<number, string> = {
+    [NDI_BLACK]: '#cccccc',   // Black on dark bg → light gray
+    [NDI_WHITE]: '#ffffff',
+    [NDI_NAVY]: '#6060cc',
+    [NDI_RED]: '#ff4444',
+    [NDI_ORANGE]: '#ff8800',
+    [NDI_BLUE]: '#4488ff',
+    [NDI_DK_ORANGE]: '#cc6600',
+    [NDI_GREEN]: '#44cc44',
+    [NDI_LT_GREEN]: '#88ff88',
+    [NDI_GREY]: '#999999',
+    [NDI_BROWN]: '#aa7744',
+    [NDI_GOLD]: '#ffcc00',
+    [NDI_TAN]: '#ccaa88',
+  };
+
+  function colorForNdi(ndi: number): string {
+    return NDI_COLORS[ndi] ?? '#cccccc';
+  }
+
+  export function addMessage(color: number, text: string) {
+    messages = [...messages, { text, color: colorForNdi(color) }];
+    // Keep a reasonable buffer
+    if (messages.length > 500) {
+      messages = messages.slice(-400);
+    }
+    scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    requestAnimationFrame(() => {
+      if (messagesDiv) {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+    });
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      submitCommand();
+    }
+  }
+
+  function submitCommand() {
+    const cmd = commandInput.trim();
+    if (cmd.length === 0) return;
+
+    if (cmd.startsWith('/')) {
+      extendedCommand(cmd);
+    } else {
+      sendCommand(cmd, 0, 1);
+    }
+    commandInput = '';
+  }
+</script>
+
+<div class="info-panel">
+  <div class="messages" bind:this={messagesDiv}>
+    {#each messages as msg}
+      <div class="message" style:color={msg.color}>{msg.text}</div>
+    {/each}
+  </div>
+  <div class="input-row">
+    <input
+      type="text"
+      bind:value={commandInput}
+      onkeydown={handleKeydown}
+      placeholder="Type command..."
+    />
+    <button onclick={submitCommand}>Send</button>
+  </div>
+</div>
+
+<style>
+  .info-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+  }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+
+  .message {
+    padding: 1px 0;
+    word-wrap: break-word;
+  }
+
+  .input-row {
+    display: flex;
+    border-top: 1px solid #333;
+  }
+
+  input {
+    flex: 1;
+    padding: 0.4rem 0.5rem;
+    border: none;
+    background: #222;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+  }
+
+  input:focus {
+    outline: none;
+    background: #282828;
+  }
+
+  button {
+    padding: 0.4rem 0.75rem;
+    border: none;
+    border-left: 1px solid #333;
+    background: #333;
+    color: #c0c0c0;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+
+  button:hover {
+    background: #444;
+  }
+</style>
