@@ -283,10 +283,14 @@ function DeleteItemCmd(data: DataView, len: number): void {
   }
 }
 
-function DeleteInventoryCmd(data: DataView, len: number): void {
-  const tag = getIntFromData(data, 0);
+function DeleteInventoryCmd(data: string): void {
+  const tag = parseInt(data, 10);
   const item = locateItem(tag);
-  if (item) removeItemInventory(item);
+  if (item) {
+    removeItemInventory(item);
+  } else {
+    LOG(LogLevel.Warning, 'DeleteInventoryCmd', `Invalid tag: ${tag}`);
+  }
 }
 
 function AddspellCmd(data: DataView, len: number): void {
@@ -555,7 +559,7 @@ const commandTable = new Map<string, CommandEntry>([
   ['item2', { type: 'binary', handler: Item2Cmd }],
   ['upditem', { type: 'binary', handler: UpdateItemCmd }],
   ['delitem', { type: 'binary', handler: DeleteItemCmd }],
-  ['delinv', { type: 'binary', handler: DeleteInventoryCmd }],
+  ['delinv', { type: 'text', handler: DeleteInventoryCmd }],
   ['addspell', { type: 'binary', handler: AddspellCmd }],
   ['updspell', { type: 'binary', handler: UpdspellCmd }],
   ['delspell', { type: 'binary', handler: DeleteSpellCmd }],
