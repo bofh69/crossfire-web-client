@@ -70,35 +70,46 @@
     let placeholders = 0;
     let loadsStarted = 0;
 
-    // Iterate over the view-relative coordinates.
-    // The player is at the centre: (vw/2, vh/2).
+    // Iterate layer by layer (matching the old C client's map_draw_layer approach).
+    // This ensures correct z-ordering: all tiles for layer N are fully drawn before
+    // any tile at layer N+1, so large multi-tile images never overdraw objects on a
+    // higher layer that happen to sit on an earlier tile in scan order.
+
+    // Pass 1: fog-of-war background and per-tile setup (collect cell info).
     for (let vy = 0; vy < vh; vy++) {
       for (let vx = 0; vx < vw; vx++) {
-        // Absolute coordinates on the fog map.
         const ax = plPos.x + vx;
         const ay = plPos.y + vy;
-
         const cell = mapdata_cell(ax, ay);
         if (cell.state === MapCellState.Empty) continue;
-
         tilesDrawn++;
         const px = vx * TILE_SIZE;
         const py = vy * TILE_SIZE;
-
-        // Draw fog as slightly lighter
         if (cell.state === MapCellState.Fog) {
           ctx.fillStyle = '#1a1a1a';
           ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         }
+      }
+    }
 
-        // Draw layers bottom to top
-        for (let layer = 0; layer < MAXLAYERS; layer++) {
+    // Pass 2: draw all tiles for each layer in order (layer 0 first, then 1, …).
+    for (let layer = 0; layer < MAXLAYERS; layer++) {
+      for (let vy = 0; vy < vh; vy++) {
+        for (let vx = 0; vx < vw; vx++) {
+          const ax = plPos.x + vx;
+          const ay = plPos.y + vy;
+          const cell = mapdata_cell(ax, ay);
+          if (cell.state === MapCellState.Empty) continue;
+
           const head = cell.heads[layer];
           const tail = cell.tails[layer];
 
           // Tail cell: skip — the head cell draws the full multi-tile image.
           if (head.face === 0 && tail.face !== 0) continue;
           if (head.face === 0) continue;
+
+          const px = vx * TILE_SIZE;
+          const py = vy * TILE_SIZE;
 
           const url = getFaceUrl(head.face);
           if (url) {
@@ -127,12 +138,20 @@
             placeholders++;
           }
         }
+      }
+    }
 
-        // Apply darkness overlay
-        if (cell.darkness > 0 && cell.state === MapCellState.Visible) {
+    // Pass 3: darkness overlay (applied on top of all layers).
+    for (let vy = 0; vy < vh; vy++) {
+      for (let vx = 0; vx < vw; vx++) {
+        const ax = plPos.x + vx;
+        const ay = plPos.y + vy;
+        const cell = mapdata_cell(ax, ay);
+        if (cell.state !== MapCellState.Visible) continue;
+        if (cell.darkness > 0) {
           const alpha = Math.min(cell.darkness / 255, 0.8);
           ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-          ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+          ctx.fillRect(vx * TILE_SIZE, vy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         }
       }
     }

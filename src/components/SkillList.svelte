@@ -1,6 +1,7 @@
 <script lang="ts">
   import { skillNames } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
+  import { extendedCommand } from '../lib/p_cmd';
 
   interface SkillEntry {
     index: number;
@@ -10,6 +11,7 @@
   }
 
   let skills: SkillEntry[] = $state([]);
+  let contextMenu = $state<{ x: number; y: number; skill: SkillEntry } | null>(null);
 
   export function updateSkills(stats: Stats) {
     const entries: SkillEntry[] = [];
@@ -25,7 +27,23 @@
     }
     skills = entries.sort((a, b) => a.name.localeCompare(b.name));
   }
+
+  function handleContextMenu(e: MouseEvent, skill: SkillEntry) {
+    e.preventDefault();
+    contextMenu = { x: e.clientX, y: e.clientY, skill };
+  }
+
+  function closeContextMenu() {
+    contextMenu = null;
+  }
+
+  function useSkill(skill: SkillEntry) {
+    extendedCommand(`use_skill ${skill.name}`);
+    closeContextMenu();
+  }
 </script>
+
+<svelte:window onclick={closeContextMenu} />
 
 <div class="skill-list">
   <h3>Skills ({skills.length})</h3>
@@ -43,7 +61,8 @@
         </thead>
         <tbody>
           {#each skills as skill (skill.index)}
-            <tr>
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <tr oncontextmenu={(e: MouseEvent) => handleContextMenu(e, skill)}>
               <td class="skill-name">{skill.name}</td>
               <td>{skill.level}</td>
               <td>{skill.exp}</td>
@@ -54,6 +73,19 @@
     {/if}
   </div>
 </div>
+
+{#if contextMenu}
+  <div
+    class="context-menu"
+    style:left="{contextMenu.x}px"
+    style:top="{contextMenu.y}px"
+    role="menu"
+  >
+    <button onclick={() => contextMenu && useSkill(contextMenu.skill)}>
+      Use skill: {contextMenu.skill.name}
+    </button>
+  </div>
+{/if}
 
 <style>
   .skill-list {
@@ -117,4 +149,30 @@
   .skill-name {
     color: #aaffaa;
   }
+
+  .context-menu {
+    position: fixed;
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+
+  .context-menu button {
+    padding: 0.4rem 1rem;
+    border: none;
+    background: none;
+    color: #ddd;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  .context-menu button:hover {
+    background: #444;
+  }
 </style>
+

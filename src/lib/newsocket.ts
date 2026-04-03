@@ -116,9 +116,14 @@ export function getCharFromData(data: DataView, offset: number): number {
   return data.getUint8(offset);
 }
 
-/** Read an unsigned 16-bit integer (big-endian) from `data` at `offset`. */
+/**
+ * Read a signed 16-bit integer (big-endian) from `data` at `offset`.
+ *
+ * Matches the C client's GetShort_String() which returns `short` (signed).
+ * Stats like AC, WC, Grace, DAM etc. can be negative.
+ */
 export function getShortFromData(data: DataView, offset: number): number {
-  return data.getUint16(offset, false);
+  return data.getInt16(offset, false);
 }
 
 /**
