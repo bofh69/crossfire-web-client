@@ -1,0 +1,137 @@
+/* Crossfire Web Client - Global Styles */
+
+:root {
+  --bg: #1e1e1e;
+  --bg-darker: #151515;
+  --bg-lighter: #2a2a2a;
+  --text: #c0c0c0;
+  --text-bright: #e0e0e0;
+  --text-dim: #888;
+  --border: #333;
+  --accent: #7a6a4a;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'Courier New', ui-monospace, Consolas, monospace;
+
+  font: 14px/1.4 var(--sans);
+  color-scheme: dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Game layout grid */
+.game-layout {
+  display: grid;
+  grid-template-areas:
+    "menu menu"
+    "map  side"
+    "info side";
+  grid-template-columns: 1fr 280px;
+  grid-template-rows: 28px 1fr 200px;
+  width: 100vw;
+  height: 100vh;
+  gap: 0;
+}
+
+.menu-area {
+  grid-area: menu;
+}
+
+.map-area {
+  grid-area: map;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+}
+
+.side-area {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.stats-section {
+  flex-shrink: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tab-bar {
+  display: flex;
+  background: #252525;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tab-bar button {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.tab-bar button:hover {
+  color: var(--text);
+}
+
+.tab-bar button.active {
+  color: var(--text-bright);
+  background: var(--bg-lighter);
+  border-bottom: 2px solid var(--accent);
+}
+
+.tab-content {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.info-area {
+  grid-area: info;
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-darker);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
