@@ -16,13 +16,15 @@
     magical: boolean;
     cursed: boolean;
     unpaid: boolean;
+    open: boolean;
+    depth: number;
   }
 
   let playerItems: FlatItem[] = $state([]);
   let groundItems: FlatItem[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; item: FlatItem; isGround: boolean } | null>(null);
 
-  function flattenItems(root: Item | null): FlatItem[] {
+  function flattenItems(root: Item | null, depth = 0): FlatItem[] {
     const result: FlatItem[] = [];
     let item = root?.inv ?? null;
     while (item) {
@@ -37,7 +39,13 @@
         magical: item.magical,
         cursed: item.cursed,
         unpaid: item.unpaid,
+        open: item.open,
+        depth,
       });
+      // If the container is open, show its contents indented below it.
+      if (item.open && item.inv) {
+        result.push(...flattenItems(item, depth + 1));
+      }
       item = item.next;
     }
     return result;
@@ -106,6 +114,7 @@
           class:applied={item.applied}
           class:cursed={item.cursed}
           class:magical={item.magical}
+          style:padding-left="{0.4 + item.depth * 1}rem"
           onclick={() => handleApply(item.tag)}
           oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item, false)}
         >
@@ -116,6 +125,7 @@
           {/if}
           <span class="item-name">
             {item.name}
+            {#if item.open}📂{/if}
             {#if item.locked}🔒{/if}
             {#if item.applied}*{/if}
             {#if item.unpaid}(unpaid){/if}
@@ -132,6 +142,7 @@
       {#each groundItems as item (item.tag)}
         <div
           class="item-row"
+          style:padding-left="{0.4 + item.depth * 1}rem"
           onclick={() => handleApply(item.tag)}
           oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item, true)}
         >
@@ -140,7 +151,10 @@
           {:else}
             <span class="item-icon-placeholder">?</span>
           {/if}
-          <span class="item-name">{item.name}</span>
+          <span class="item-name">
+            {item.name}
+            {#if item.open}📂{/if}
+          </span>
           <span class="item-weight">{formatWeight(item.weight)}</span>
         </div>
       {/each}

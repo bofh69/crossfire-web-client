@@ -29,7 +29,7 @@ import {
 import { locateItem, removeItem, removeItemInventory, updateItem, playerItem, animations, setCSocket as setItemSocket, registerPlayerTag } from './item.js';
 import { mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer, mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space, mapdata_set_check_space, mapdata_clear_old, mapdata_set_size, mapdata_clear_label, mapdata_add_label } from './mapdata.js';
 import { addSmooth, getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
-import { wantConfig, useConfig, resetPlayerData } from './init.js';
+import { wantConfig, useConfig, resetPlayerData, getCpl } from './init.js';
 import { newPlayer } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
@@ -64,6 +64,7 @@ export interface CommandCallbacks {
   onAddMeSuccess?: () => void;
   onAddMeFail?: () => void;
   onVersion?: (csVersion: number, scVersion: number, versionString: string) => void;
+  onDisconnect?: () => void;
 }
 
 export const callbacks: CommandCallbacks = {};
@@ -90,6 +91,12 @@ export const playerStats: Stats = {
 
 /** Known spells */
 export const spells: Spell[] = [];
+
+/**
+ * Skill names populated from the server's skill_info reply.
+ * Index i corresponds to CS_STAT_SKILLINFO + i.
+ */
+export const skillNames: string[] = new Array(CS_NUM_SKILLS).fill('');
 
 /** Text decoder for binary data */
 const textDecoder = new TextDecoder();
@@ -175,13 +182,15 @@ function StatsCmd(data: DataView, len: number): void {
       case CS_STAT_GOLEM_HP: playerStats.golemHp = getIntFromData(data, pos); pos += 4; break;
       case CS_STAT_GOLEM_MAXHP: playerStats.golemMaxhp = getIntFromData(data, pos); pos += 4; break;
       case CS_STAT_RANGE: {
-        const r = parseString(data, pos);
-        pos = r.newOffset;
+        // 1-byte length prefix + string (not null-terminated)
+        const rlen = getCharFromData(data, pos); pos += 1;
+        pos += rlen;
         break;
       }
       case CS_STAT_TITLE: {
-        const t = parseString(data, pos);
-        pos = t.newOffset;
+        // 1-byte length prefix + string (not null-terminated)
+        const tlen = getCharFromData(data, pos); pos += 1;
+        pos += tlen;
         break;
       }
       default:
@@ -221,6 +230,13 @@ function PlayerCmd(data: DataView, len: number): void {
   if (pos !== len) {
     LOG(LogLevel.Warning, 'PlayerCmd', `lengths do not match (${pos}!=${len})`);
   }
+  // Clear stale inventory and spell data from any previous session.
+  const cpl = getCpl();
+  if (cpl) {
+    removeItemInventory(cpl.ob);
+    removeItemInventory(cpl.below);
+  }
+  spells.length = 0;
   resetPlayerData();
   newPlayer(tag, name, weight, face);
   registerPlayerTag(tag);
@@ -341,6 +357,16 @@ function AddspellCmd(data: DataView, len: number): void {
     const msgLen = getShortFromData(data, pos); pos += 2;
     const message = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, msgLen);
     pos += msgLen;
+
+    // Consume spellmon 2 extension fields (always present: client requests spellmon 2).
+    // usage: 1 byte; requirements: 1-byte length + string
+    if (pos < len) {
+      pos += 1; // usage
+      if (pos < len) {
+        const reqLen = getCharFromData(data, pos); pos += 1;
+        pos += reqLen;
+      }
+    }
 
     const spell: Spell = {
       name, message, tag, level: spellLevel, time: castingTime,
@@ -558,6 +584,19 @@ function ReplyInfoCmd(data: DataView, len: number): void {
   } else if (infoType === 'image_sums') {
     const sumsData = getStringFromData(bytes, spaceIdx + 1, len - spaceIdx - 1);
     getImageSums(sumsData, len - spaceIdx - 1);
+  } else if (infoType === 'skill_info') {
+    // Each line is "stat_number:skill_name\n"
+    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
+    for (const line of text.split('\n')) {
+      const colonIdx = line.indexOf(':');
+      if (colonIdx < 0) continue;
+      const statNum = parseInt(line.substring(0, colonIdx));
+      const name = line.substring(colonIdx + 1).trim();
+      const idx = statNum - CS_STAT_SKILLINFO;
+      if (idx >= 0 && idx < CS_NUM_SKILLS && name.length > 0) {
+        skillNames[idx] = name;
+      }
+    }
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }

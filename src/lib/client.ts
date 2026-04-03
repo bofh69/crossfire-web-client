@@ -70,6 +70,7 @@ export async function clientConnect(hostname: string, port?: number): Promise<vo
     sock.onDisconnect = () => {
         LOG(LogLevel.Info, "client", "Server disconnected");
         csocket = null;
+        callbacks.onDisconnect?.();
     };
 
     sock.onError = (_ev: Event) => {

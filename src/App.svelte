@@ -24,6 +24,9 @@
   let appState = $state<AppState>('login');
   let activeTab = $state<'inventory' | 'spells' | 'skills'>('inventory');
 
+  /** Set to true when the server disconnects while we're in playing state. */
+  let serverDisconnected = $state(false);
+
   /** Query prompt sent by the server while in the playing state (e.g. character
    *  name prompt that the server sends after addme_success on some servers). */
   let gameQueryPrompt = $state('');
@@ -49,6 +52,8 @@
 
   function handleGameQueryKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter') {
+      // Stop propagation so the global window handler doesn't re-focus the chat input.
+      e.stopPropagation();
       handleGameQuerySubmit();
     }
   }
@@ -239,6 +244,18 @@
     callbacks.onGoodbye = () => {
       handleDisconnect();
     };
+
+    callbacks.onDisconnect = () => {
+      // Server closed the connection unexpectedly while we're in the game.
+      serverDisconnected = true;
+    };
+
+    // Wire addme_success for in-session reconnects (e.g. after the server
+    // asks the user to reconnect when leaving the game).
+    callbacks.onAddMeSuccess = () => {
+      serverDisconnected = false;
+      gameQueryPrompt = '';
+    };
   }
 
   function refreshInventory() {
@@ -301,6 +318,15 @@
           />
         </label>
         <button onclick={handleGameQuerySubmit}>Submit</button>
+      </div>
+    </div>
+  {/if}
+
+  {#if serverDisconnected}
+    <div class="disconnect-overlay">
+      <div class="disconnect-box">
+        <p>⚠ Disconnected from server</p>
+        <button onclick={handleDisconnect}>Back to Login</button>
       </div>
     </div>
   {/if}
@@ -401,5 +427,46 @@
 
   .tab-panel[hidden] {
     display: none;
+  }
+
+  .disconnect-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 200;
+  }
+
+  .disconnect-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    background: #1e1e1e;
+    border: 1px solid #8b2020;
+    border-radius: 6px;
+  }
+
+  .disconnect-box p {
+    color: #ff8888;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  .disconnect-box button {
+    padding: 0.6rem 1.5rem;
+    border: 1px solid #7a6a4a;
+    border-radius: 4px;
+    background: #4a3a2a;
+    color: #e0d0b0;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .disconnect-box button:hover {
+    background: #5a4a3a;
   }
 </style>

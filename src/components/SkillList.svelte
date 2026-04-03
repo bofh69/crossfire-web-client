@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { skillNames } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
 
   interface SkillEntry {
@@ -8,20 +9,6 @@
     exp: string;
   }
 
-  const SKILL_NAMES: Record<number, string> = {
-    1: 'lockpicking', 2: 'hiding', 3: 'smithery', 4: 'bowyer',
-    5: 'jeweler', 6: 'alchemy', 7: 'stealing', 8: 'literacy',
-    9: 'bargaining', 10: 'jumping', 11: 'detect magic',
-    12: 'oratory', 13: 'singing', 14: 'detect curse',
-    15: 'find traps', 16: 'meditation', 17: 'punching',
-    18: 'flame touch', 19: 'karate', 20: 'climbing',
-    21: 'woodsman', 22: 'inscription', 23: 'one handed weapons',
-    24: 'missile weapons', 25: 'throwing', 26: 'use magic item',
-    27: 'praying', 28: 'clawing', 29: 'levitation',
-    30: 'summoning', 31: 'pyromancy', 32: 'evocation',
-    33: 'sorcery', 34: 'two handed weapons',
-  };
-
   let skills: SkillEntry[] = $state([]);
 
   export function updateSkills(stats: Stats) {
@@ -30,7 +17,7 @@
       if (stats.skillLevel[i] > 0) {
         entries.push({
           index: i,
-          name: SKILL_NAMES[i] ?? `skill_${i}`,
+          name: skillNames[i] || `skill_${i}`,
           level: stats.skillLevel[i],
           exp: stats.skillExp[i].toString(),
         });
