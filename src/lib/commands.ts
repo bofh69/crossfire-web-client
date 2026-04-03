@@ -621,6 +621,18 @@ const commandTable = new Map<string, CommandEntry>([
 ]);
 
 /**
+ * When true, every received server command is logged to the console.
+ * Defaults to false to avoid console noise in production.
+ * Always logs when a handler throws.
+ */
+let logReceivedCommands = false;
+
+/** Toggle (or explicitly set) command-receive logging. */
+export function setLogReceivedCommands(enabled: boolean): void {
+  logReceivedCommands = enabled;
+}
+
+/**
  * Dispatch a received command from the server.
  * The raw packet is: command_name (ASCII) + space + binary/text data
  */
@@ -642,23 +654,29 @@ export function dispatchPacket(packet: ArrayBuffer): void {
     return;
   }
 
-  switch (entry.type) {
-    case 'text': {
-      const textData = new TextDecoder().decode(bytes.subarray(dataStart));
-      LOG(LogLevel.Debug, 'RX', `${cmdName} ${textData}`);
-      (entry.handler as TextHandler)(textData);
-      break;
+  try {
+    switch (entry.type) {
+      case 'text': {
+        const textData = new TextDecoder().decode(bytes.subarray(dataStart));
+        if (logReceivedCommands) LOG(LogLevel.Debug, 'RX', `${cmdName} ${textData}`);
+        (entry.handler as TextHandler)(textData);
+        break;
+      }
+      case 'binary': {
+        if (logReceivedCommands) LOG(LogLevel.Debug, 'RX', `${cmdName} <binary ${dataLen}B>`);
+        const dataView = new DataView(packet, dataStart);
+        (entry.handler as BinaryHandler)(dataView, dataLen);
+        break;
+      }
+      case 'none':
+        if (logReceivedCommands) LOG(LogLevel.Debug, 'RX', cmdName);
+        (entry.handler as NoArgHandler)();
+        break;
     }
-    case 'binary': {
-      LOG(LogLevel.Debug, 'RX', `${cmdName} <binary ${dataLen}B>`);
-      const dataView = new DataView(packet, dataStart);
-      (entry.handler as BinaryHandler)(dataView, dataLen);
-      break;
-    }
-    case 'none':
-      LOG(LogLevel.Debug, 'RX', cmdName);
-      (entry.handler as NoArgHandler)();
-      break;
+  } catch (err) {
+    // Always log on exception regardless of the logging flag.
+    LOG(LogLevel.Error, 'dispatch', `Exception handling ${cmdName}: ${err}`);
+    console.error(err);
   }
 
   const elapsed = performance.now() - t0;

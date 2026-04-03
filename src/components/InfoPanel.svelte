@@ -73,17 +73,19 @@
     });
   }
 
+  /** The prefix that Enter/focusInput inserts by default. */
+  const CHAT_PREFIX = 'chat ';
+
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter') {
+      // Stop propagation so the global window handler doesn't re-focus us
+      // (the Enter binding would call focusCommandInput('chat ') again).
+      e.stopPropagation();
       submitCommand();
     } else if (e.key === 'Escape') {
       // Leave command mode and return focus to the game.
       commandInput = '';
-      inputEl?.blur();
-      const cpl = getCpl();
-      if (cpl) {
-        cpl.inputState = InputState.Playing;
-      }
+      blurInput();
     }
   }
 
@@ -95,9 +97,23 @@
     }
   }
 
+  function blurInput() {
+    const cpl = getCpl();
+    if (cpl) {
+      cpl.inputState = InputState.Playing;
+    }
+    inputEl?.blur();
+  }
+
   function submitCommand() {
     const cmd = commandInput.trim();
-    if (cmd.length === 0) return;
+
+    // Empty input or bare chat prefix → just unfocus, don't send anything.
+    if (cmd.length === 0 || cmd === CHAT_PREFIX.trim()) {
+      commandInput = '';
+      blurInput();
+      return;
+    }
 
     if (cmd.startsWith('/')) {
       extendedCommand(cmd);
@@ -105,14 +121,7 @@
       sendCommand(cmd, 0, 1);
     }
     commandInput = '';
-
-    // Return to playing state after sending command.
-    const cpl = getCpl();
-    if (cpl) {
-      cpl.inputState = InputState.Playing;
-    }
-    // Blur the input so keyboard events go to the game.
-    inputEl?.blur();
+    blurInput();
   }
 </script>
 

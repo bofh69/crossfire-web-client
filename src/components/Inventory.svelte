@@ -2,6 +2,7 @@
   import { clientSendApply, clientSendExamine, clientSendMove } from '../lib/player';
   import { toggleLocked, locateItem } from '../lib/item';
   import { getFaceUrl } from '../lib/image';
+  import { getCpl } from '../lib/init';
   import type { Item } from '../lib/protocol';
 
   interface FlatItem {
@@ -19,7 +20,7 @@
 
   let playerItems: FlatItem[] = $state([]);
   let groundItems: FlatItem[] = $state([]);
-  let contextMenu = $state<{ x: number; y: number; item: FlatItem } | null>(null);
+  let contextMenu = $state<{ x: number; y: number; item: FlatItem; isGround: boolean } | null>(null);
 
   function flattenItems(root: Item | null): FlatItem[] {
     const result: FlatItem[] = [];
@@ -57,8 +58,16 @@
   }
 
   function handleDrop(item: FlatItem) {
-    // Move item to ground (tag 0)
+    // Move item to ground (loc = 0)
     clientSendMove(0, item.tag, item.nrof);
+    contextMenu = null;
+  }
+
+  function handlePickup(item: FlatItem) {
+    // Move item from ground to player (loc = player tag)
+    const cpl = getCpl();
+    const playerTag = cpl?.ob?.tag ?? 0;
+    clientSendMove(playerTag, item.tag, item.nrof);
     contextMenu = null;
   }
 
@@ -70,9 +79,9 @@
     contextMenu = null;
   }
 
-  function handleContextMenu(e: MouseEvent, item: FlatItem) {
+  function handleContextMenu(e: MouseEvent, item: FlatItem, isGround: boolean) {
     e.preventDefault();
-    contextMenu = { x: e.clientX, y: e.clientY, item };
+    contextMenu = { x: e.clientX, y: e.clientY, item, isGround };
   }
 
   function closeContextMenu() {
@@ -98,7 +107,7 @@
           class:cursed={item.cursed}
           class:magical={item.magical}
           onclick={() => handleApply(item.tag)}
-          oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item)}
+          oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item, false)}
         >
           {#if getFaceUrl(item.face)}
             <img src={getFaceUrl(item.face)} alt="" class="item-icon" />
@@ -124,7 +133,7 @@
         <div
           class="item-row"
           onclick={() => handleApply(item.tag)}
-          oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item)}
+          oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item, true)}
         >
           {#if getFaceUrl(item.face)}
             <img src={getFaceUrl(item.face)} alt="" class="item-icon" />
@@ -141,10 +150,14 @@
   {#if contextMenu}
     <div class="context-menu" style:left="{contextMenu.x}px" style:top="{contextMenu.y}px">
       <button onclick={() => contextMenu && handleExamine(contextMenu.item)}>Examine</button>
-      <button onclick={() => contextMenu && handleDrop(contextMenu.item)}>Drop</button>
-      <button onclick={() => contextMenu && handleLock(contextMenu.item)}>
-        {contextMenu.item.locked ? 'Unlock' : 'Lock'}
-      </button>
+      {#if contextMenu.isGround}
+        <button onclick={() => contextMenu && handlePickup(contextMenu.item)}>Pickup</button>
+      {:else}
+        <button onclick={() => contextMenu && handleDrop(contextMenu.item)}>Drop</button>
+        <button onclick={() => contextMenu && handleLock(contextMenu.item)}>
+          {contextMenu.item.locked ? 'Unlock' : 'Lock'}
+        </button>
+      {/if}
     </div>
   {/if}
 </div>

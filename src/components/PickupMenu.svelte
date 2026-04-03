@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { sendCommand } from '../lib/player';
 
   // ── Pickup flag constants (from old/gtk-v2/src/pickup.c) ──────────
@@ -125,13 +126,18 @@
 
   // ── State ─────────────────────────────────────────────────────────
 
-  /** Current pickup mode bitmask (unsigned 32-bit). */
-  let pmode = $state(PU_NEWMODE >>> 0);
+  interface Props {
+    initialMode?: number;
+  }
+  let { initialMode = PU_NEWMODE >>> 0 }: Props = $props();
+
+  /** Current pickup mode bitmask (unsigned 32-bit). Initialised from parent. */
+  let pmode = $state(untrack(() => initialMode >>> 0));
 
   /** Which submenu is expanded (null = none). */
   let expandedGroup = $state<string | null>(null);
 
-  /** Update mode from the server. */
+  /** Update mode from the server (also called by parent on re-mount). */
   export function setPickupMode(mode: number) {
     pmode = mode >>> 0;
   }

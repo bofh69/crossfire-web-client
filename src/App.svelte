@@ -272,13 +272,15 @@
         <button class:active={activeTab === 'skills'} onclick={() => activeTab = 'skills'}>Skills</button>
       </div>
       <div class="tab-content">
-        {#if activeTab === 'inventory'}
+        <div hidden={activeTab !== 'inventory'} class="tab-panel">
           <Inventory bind:this={inventory} />
-        {:else if activeTab === 'spells'}
+        </div>
+        <div hidden={activeTab !== 'spells'} class="tab-panel">
           <SpellList bind:this={spellList} />
-        {:else}
+        </div>
+        <div hidden={activeTab !== 'skills'} class="tab-panel">
           <SkillList bind:this={skillList} />
-        {/if}
+        </div>
       </div>
     </div>
     <div class="info-area">
@@ -389,5 +391,15 @@
   .indicator.run {
     background: #205080;
     color: #cce0ff;
+  }
+
+  /* Keep all tab panels mounted so data callbacks always work.
+     Only one is visible at a time via the hidden attribute. */
+  .tab-panel {
+    height: 100%;
+  }
+
+  .tab-panel[hidden] {
+    display: none;
   }
 </style>

@@ -11,6 +11,9 @@
   let activeMenu = $state<string | null>(null);
   let pickupMenu: PickupMenu | undefined = $state();
 
+  /** Persist the pickup mode so it survives menu close/reopen. */
+  let currentPickupMode = $state(0x80000000 >>> 0); // PU_NEWMODE
+
   function toggleMenu(menu: string) {
     activeMenu = activeMenu === menu ? null : menu;
   }
@@ -27,7 +30,8 @@
 
   /** Called by the parent when the server sends a pickup update. */
   export function setPickupMode(mode: number) {
-    pickupMenu?.setPickupMode(mode);
+    currentPickupMode = mode >>> 0;
+    pickupMenu?.setPickupMode(currentPickupMode);
   }
 </script>
 
@@ -51,7 +55,7 @@
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="dropdown" onclick={(e: MouseEvent) => e.stopPropagation()}>
-        <PickupMenu bind:this={pickupMenu} />
+        <PickupMenu bind:this={pickupMenu} initialMode={currentPickupMode} />
       </div>
     {/if}
   </div>
