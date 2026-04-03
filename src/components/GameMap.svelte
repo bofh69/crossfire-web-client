@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { mapdata_cell, mapdata_face_info, getViewSize, getPlayerPosition } from '../lib/mapdata';
+  import { mapdata_cell, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { MapCellState, MAXLAYERS } from '../lib/protocol';
@@ -96,24 +96,22 @@
           const head = cell.heads[layer];
           const tail = cell.tails[layer];
 
-          // If this cell is a tail (not the head) of a multi-tile image, skip —
-          // the head cell will draw the full image at the correct offset.
+          // Tail cell: skip — the head cell draws the full multi-tile image.
           if (head.face === 0 && tail.face !== 0) continue;
+          if (head.face === 0) continue;
 
-          const faceInfo = mapdata_face_info(ax, ay, layer);
-          if (faceInfo.face === 0) continue;
-
-          const url = getFaceUrl(faceInfo.face);
-          // Determine the draw size: head.sizeX/Y tiles wide/tall.
-          const drawW = head.face !== 0 ? head.sizeX * TILE_SIZE : TILE_SIZE;
-          const drawH = head.face !== 0 ? head.sizeY * TILE_SIZE : TILE_SIZE;
-          // dx/dy are negative for big images (offset to top-left corner).
-          const drawX = px + faceInfo.dx * TILE_SIZE;
-          const drawY = py + faceInfo.dy * TILE_SIZE;
-
+          const url = getFaceUrl(head.face);
           if (url) {
             const img = imageCache.get(url);
             if (img) {
+              // Use the image's natural pixel dimensions so multi-tile images
+              // are drawn at full size.  The formula aligns the image's
+              // bottom-right corner with the head tile's bottom-right corner,
+              // matching the C client's convention.
+              const drawW = img.naturalWidth;
+              const drawH = img.naturalHeight;
+              const drawX = px + TILE_SIZE - drawW;
+              const drawY = py + TILE_SIZE - drawH;
               ctx.drawImage(img, drawX, drawY, drawW, drawH);
               imagesDrawn++;
             } else {

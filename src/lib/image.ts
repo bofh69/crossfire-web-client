@@ -199,12 +199,14 @@ export function Image2Cmd(data: DataView, len: number): void {
     }
 
     const pngBytes = new Uint8Array(data.buffer, data.byteOffset + 9, plen).slice();
-    const blob = new Blob([pngBytes], { type: 'image/png' });
 
-    applyFaceBlob(pnum, blob);
+    // Register the face synchronously so sizeX/sizeY in mapdata are correct
+    // when a subsequent map2 packet in the same receive loop references this face.
+    applyFacePngBytes(pnum, pngBytes);
 
-    // Persist to browser cache
+    // Persist to browser cache (using a Blob for storage compatibility)
     const checksum = faceChecksums.get(pnum) ?? 0;
+    const blob = new Blob([pngBytes], { type: 'image/png' });
     saveCacheData(`face_${pnum}_${checksum}`, blob).catch(() => {
         LOG(LogLevel.Warning, 'Image2Cmd', `Failed to cache face ${pnum}`);
     });
@@ -357,8 +359,34 @@ export function getImageSums(data: string, len: number): void {
 // ---------------------------------------------------------------------------
 
 /**
+ * Read PNG image dimensions synchronously from raw PNG bytes.
+ *
+ * PNG structure:
+ *   bytes  0-7  : PNG signature
+ *   bytes  8-11 : IHDR chunk length (always 13)
+ *   bytes 12-15 : "IHDR" marker
+ *   bytes 16-19 : width  (uint32 big-endian)
+ *   bytes 20-23 : height (uint32 big-endian)
+ *
+ * Returns {w:32, h:32} as a safe fallback for anything unexpected.
+ */
+function readPngDimensionsSync(pngBytes: Uint8Array): { w: number; h: number } {
+    // Minimum header size: 8 (signature) + 4 (len) + 4 (type) + 4 (w) + 4 (h) = 24 bytes
+    if (pngBytes.length < 24) return { w: 32, h: 32 };
+    // Verify PNG signature bytes 1-3: 'P','N','G'
+    if (pngBytes[1] !== 0x50 || pngBytes[2] !== 0x4E || pngBytes[3] !== 0x47) {
+        return { w: 32, h: 32 };
+    }
+    const w = (pngBytes[16] << 24 | pngBytes[17] << 16 | pngBytes[18] << 8 | pngBytes[19]) >>> 0;
+    const h = (pngBytes[20] << 24 | pngBytes[21] << 16 | pngBytes[22] << 8 | pngBytes[23]) >>> 0;
+    return { w: w || 32, h: h || 32 };
+}
+
+/**
  * Create a Blob URL from a PNG Blob, extract its dimensions via an
  * off-screen image element, and store the results.
+ * For the real-time image path (Image2Cmd), prefer applyFacePngBytes so
+ * the dimensions are set synchronously before map data references the face.
  */
 function applyFaceBlob(pnum: number, blob: Blob): void {
     // Revoke any previous URL for this face to avoid memory leaks
@@ -370,7 +398,7 @@ function applyFaceBlob(pnum: number, blob: Blob): void {
     const url = URL.createObjectURL(blob);
     faceUrls.set(pnum, url);
 
-    // Decode image dimensions asynchronously
+    // Decode image dimensions asynchronously (used for cached blobs)
     if (typeof createImageBitmap === 'function') {
         createImageBitmap(blob).then((bmp) => {
             faceSizes.set(pnum, { w: bmp.width, h: bmp.height });
@@ -382,4 +410,26 @@ function applyFaceBlob(pnum: number, blob: Blob): void {
         // Fallback: assume default tile size
         faceSizes.set(pnum, { w: 32, h: 32 });
     }
+}
+
+/**
+ * Register a face from raw PNG bytes, extracting dimensions synchronously
+ * so that map data set up in the same receive loop sees the correct tile size.
+ */
+function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
+    const oldUrl = faceUrls.get(pnum);
+    if (oldUrl) {
+        URL.revokeObjectURL(oldUrl);
+    }
+
+    // Copy into a plain ArrayBuffer to satisfy Blob's type constraints.
+    const buffer = new ArrayBuffer(pngBytes.byteLength);
+    new Uint8Array(buffer).set(pngBytes);
+    const blob = new Blob([buffer], { type: 'image/png' });
+    const url = URL.createObjectURL(blob);
+    faceUrls.set(pnum, url);
+
+    // Extract dimensions synchronously from PNG IHDR
+    const dims = readPngDimensionsSync(pngBytes);
+    faceSizes.set(pnum, dims);
 }

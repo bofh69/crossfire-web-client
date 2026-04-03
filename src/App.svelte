@@ -121,6 +121,9 @@
     // Query prompt active: don't dispatch game keys.
     if (gameQueryPrompt) return;
 
+    // MenuBar key-capture dialog active: let MenuBar handle the key.
+    if (menuBar?.isDialogActive()) return;
+
     // Route based on input state.
     switch (cpl.inputState) {
       case InputState.Playing:

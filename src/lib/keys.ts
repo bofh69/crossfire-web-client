@@ -592,3 +592,66 @@ export function resetBindings(): void {
 export function getBindings(): readonly KeyBind[] {
     return bindings;
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Interactive bind / unbind helpers (used by the MenuBar key-binding dialog)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Build a human-readable string from a keyboard event (e.g. "Ctrl+Shift+a"). */
+export function keyEventToString(e: KeyboardEvent): string {
+    const parts: string[] = [];
+    if (e.ctrlKey)  parts.push('Ctrl');
+    if (e.altKey)   parts.push('Alt');
+    if (e.shiftKey) parts.push('Shift');
+    if (e.metaKey)  parts.push('Meta');
+    parts.push(e.key);
+    return parts.join('+');
+}
+
+/** Build a KEYF_* bitmask from a keyboard event (modifiers only). */
+export function keyEventToFlags(e: KeyboardEvent): number {
+    let flags = 0;
+    if (e.shiftKey) flags |= KEYF_MOD_SHIFT;
+    if (e.ctrlKey)  flags |= KEYF_MOD_CTRL;
+    if (e.altKey)   flags |= KEYF_MOD_ALT;
+    if (e.metaKey)  flags |= KEYF_MOD_META;
+    return flags;
+}
+
+/**
+ * Look up an existing binding for a keyboard event.
+ * Returns the matching KeyBind or null.
+ */
+export function findBindingForEvent(e: KeyboardEvent): KeyBind | null {
+    const keysym = normaliseKey(e.key);
+    const flags = keyEventToFlags(e);
+    return keybindFind(keysym, flags);
+}
+
+/**
+ * Bind a command to the key described by a keyboard event.
+ * Replaces any existing binding for the same key+modifiers.
+ * Persists to localStorage.
+ */
+export function bindCommandToEvent(e: KeyboardEvent, command: string): void {
+    const keysym = normaliseKey(e.key);
+    const flags = keyEventToFlags(e);
+    keybindInsert(keysym, flags, command);
+    saveBindings();
+}
+
+/**
+ * Remove the binding for the key described by a keyboard event.
+ * Returns the removed binding, or null if nothing was bound.
+ * Persists to localStorage.
+ */
+export function unbindEvent(e: KeyboardEvent): KeyBind | null {
+    const keysym = normaliseKey(e.key);
+    const flags = keyEventToFlags(e);
+    const kb = keybindFind(keysym, flags);
+    if (kb) {
+        bindings = bindings.filter(b => b !== kb);
+        saveBindings();
+    }
+    return kb;
+}

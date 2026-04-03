@@ -212,3 +212,8 @@ export function sendCommand(command: string, repeat: number, mustSend: number): 
 export function sendReply(text: string): void {
     csocket?.sendString(`reply ${text}`);
 }
+
+/** Return the last command string sent via sendCommand (for keybinding use). */
+export function getLastCommand(): string {
+    return lastCommand;
+}

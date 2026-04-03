@@ -602,6 +602,8 @@ function ReplyInfoCmd(data: DataView, len: number): void {
         skillNames[idx] = name;
       }
     }
+    // Notify the UI so skill names are shown immediately (stats may already be set).
+    callbacks.onStatsUpdate?.(playerStats);
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }
