@@ -6,6 +6,8 @@
     findBindingForEvent,
     bindCommandToEvent,
     unbindEvent,
+    getBindings,
+    flagsToDisplayString,
     type KeyBind,
   } from '../lib/keys';
   import { getLastCommand } from '../lib/player';
@@ -28,7 +30,8 @@
     | 'bind-capture'        // waiting for the key to bind
     | 'bind-confirm'        // key captured; asking to overwrite an existing binding
     | 'unbind-capture'      // waiting for the key to unbind
-    | 'unbind-confirm';     // key captured; asking to confirm removal
+    | 'unbind-confirm'      // key captured; asking to confirm removal
+    | 'show-bindings';      // showing all key bindings
 
   let dialogMode = $state<DialogMode>('idle');
   let dialogKeyStr = $state('');             // human-readable key (e.g. "Ctrl+f")
@@ -129,6 +132,17 @@
     capturedEvent = null;
   }
 
+  // ── Show key bindings ──────────────────────────────────────────────────────
+
+  function showBindings() {
+    dialogMode = 'show-bindings';
+    closeMenu();
+  }
+
+  function closeBindings() {
+    dialogMode = 'idle';
+  }
+
   function handleWindowKeydown(e: KeyboardEvent) {
     if (dialogMode === 'bind-capture') {
       handleBindCapture(e);
@@ -174,6 +188,7 @@
       <div class="dropdown">
         <button onclick={startBind}>Bind last command to key…</button>
         <button onclick={startUnbind}>Unbind a key…</button>
+        <button onclick={showBindings}>Show key bindings</button>
       </div>
     {/if}
   </div>
@@ -249,6 +264,31 @@
           <button onclick={cancelUnbind}>Close</button>
         </div>
       {/if}
+    </div>
+  </div>
+{:else if dialogMode === 'show-bindings'}
+  <div class="dialog-overlay">
+    <div class="dialog dialog-wide">
+      <p class="dialog-title">Key Bindings</p>
+      <div class="bindings-table-wrapper">
+        <table class="bindings-table">
+          <thead>
+            <tr><th>Key</th><th>Modifiers</th><th>Command</th></tr>
+          </thead>
+          <tbody>
+            {#each getBindings() as kb, i}
+              <tr>
+                <td>{kb.keysym}</td>
+                <td>{flagsToDisplayString(kb.flags)}</td>
+                <td>{kb.command}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+      <div class="dialog-buttons">
+        <button onclick={closeBindings}>Close</button>
+      </div>
     </div>
   </div>
 {/if}
@@ -391,6 +431,41 @@
   .btn-danger {
     border-color: #ff4444 !important;
     color: #ff8888 !important;
+  }
+
+  .dialog-wide {
+    max-width: 600px;
+    min-width: 400px;
+  }
+
+  .bindings-table-wrapper {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 0.5rem 0;
+  }
+
+  .bindings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  .bindings-table th,
+  .bindings-table td {
+    padding: 0.25rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid #444;
+  }
+
+  .bindings-table th {
+    color: #e0d0b0;
+    position: sticky;
+    top: 0;
+    background: #2a2a2a;
+  }
+
+  .bindings-table td {
+    color: #c0c0c0;
   }
 </style>
 

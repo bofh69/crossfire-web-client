@@ -9,8 +9,8 @@
  *
  * Modifier key mapping (old → new):
  *   Shift      → fire modifier
- *   Control    → run modifier
- *   Alt        → alt modifier
+ *   Alt        → run modifier
+ *   Control    → ctrl modifier
  *   Meta       → meta modifier
  *   apostrophe → command mode
  */
@@ -329,11 +329,11 @@ export function parseKey(e: KeyboardEvent): void {
         return;
     }
     if (e.key === "Control" || e.key === "ControlLeft" || e.key === "ControlRight") {
-        cpl.runOn = true;
+        cpl.altOn = true;
         return;
     }
     if (e.key === "Alt" || e.key === "AltLeft" || e.key === "AltRight") {
-        cpl.altOn = true;
+        cpl.runOn = true;
         return;
     }
     if (e.key === "Meta" || e.key === "MetaLeft" || e.key === "MetaRight") {
@@ -410,12 +410,12 @@ export function parseKeyRelease(e: KeyboardEvent): void {
         return;
     }
     if (e.key === "Control" || e.key === "ControlLeft" || e.key === "ControlRight") {
-        cpl.runOn = false;
-        clearRun();
+        cpl.altOn = false;
         return;
     }
     if (e.key === "Alt" || e.key === "AltLeft" || e.key === "AltRight") {
-        cpl.altOn = false;
+        cpl.runOn = false;
+        clearRun();
         return;
     }
     if (e.key === "Meta" || e.key === "MetaLeft" || e.key === "MetaRight") {
@@ -522,8 +522,8 @@ export function configureKeys(e: KeyboardEvent): void {
     let flags = bindFlags;
     if (!(flags & KEYF_ANY)) {
         if (e.shiftKey) flags |= KEYF_MOD_SHIFT;
-        if (e.ctrlKey)  flags |= KEYF_MOD_CTRL;
-        if (e.altKey)   flags |= KEYF_MOD_ALT;
+        if (e.altKey)   flags |= KEYF_MOD_CTRL;  // Alt = run modifier
+        if (e.ctrlKey)  flags |= KEYF_MOD_ALT;   // Ctrl = alt modifier
         if (e.metaKey)  flags |= KEYF_MOD_META;
     }
 
@@ -593,6 +593,21 @@ export function getBindings(): readonly KeyBind[] {
     return bindings;
 }
 
+/**
+ * Convert a KEYF_* bitmask to a human-readable modifier description.
+ * E.g. "Alt+Shift" for run+fire, "Any" for KEYF_ANY, "(none)" for normal.
+ */
+export function flagsToDisplayString(f: number): string {
+    const parts: string[] = [];
+    if (f & KEYF_ANY)       parts.push("Any");
+    if (f & KEYF_MOD_SHIFT) parts.push("Shift");
+    if (f & KEYF_MOD_CTRL)  parts.push("Alt");   // run = Alt key
+    if (f & KEYF_MOD_ALT)   parts.push("Ctrl");  // alt = Ctrl key
+    if (f & KEYF_MOD_META)  parts.push("Meta");
+    if (f & KEYF_EDIT)      parts.push("Edit");
+    return parts.length > 0 ? parts.join("+") : "(none)";
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Interactive bind / unbind helpers (used by the MenuBar key-binding dialog)
 // ──────────────────────────────────────────────────────────────────────────────
@@ -612,8 +627,8 @@ export function keyEventToString(e: KeyboardEvent): string {
 export function keyEventToFlags(e: KeyboardEvent): number {
     let flags = 0;
     if (e.shiftKey) flags |= KEYF_MOD_SHIFT;
-    if (e.ctrlKey)  flags |= KEYF_MOD_CTRL;
-    if (e.altKey)   flags |= KEYF_MOD_ALT;
+    if (e.altKey)   flags |= KEYF_MOD_CTRL;  // Alt = run modifier
+    if (e.ctrlKey)  flags |= KEYF_MOD_ALT;   // Ctrl = alt modifier
     if (e.metaKey)  flags |= KEYF_MOD_META;
     return flags;
 }

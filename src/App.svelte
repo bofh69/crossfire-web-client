@@ -129,13 +129,16 @@
       case InputState.Playing:
         // Verify that modifier key state matches reality
         // (handles missed key-ups from focus changes).
-        if (cpl.runOn && !e.ctrlKey) {
+        if (cpl.runOn && !e.altKey) {
           cpl.runOn = false;
           runOn = false;
         }
         if (cpl.fireOn && !e.shiftKey) {
           cpl.fireOn = false;
           fireOn = false;
+        }
+        if (cpl.altOn && !e.ctrlKey) {
+          cpl.altOn = false;
         }
 
         parseKey(e);
