@@ -689,6 +689,18 @@ export function updateItem(
         ip = createNewItem(env, tag);
     }
     setItemValues(ip, name, weight, face, flags, anim, animspeed, nrof, type);
+
+    // Track open container state: when an item transitions to open,
+    // record it as the active container; when it closes, clear it.
+    if (cpl) {
+        if (ip.open && !ip.wasOpen) {
+            cpl.container = ip;
+        } else if (!ip.open && ip.wasOpen) {
+            if (cpl.container === ip) {
+                cpl.container = null;
+            }
+        }
+    }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
