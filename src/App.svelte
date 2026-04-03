@@ -105,12 +105,10 @@
     const cpl = getCpl();
     if (!cpl) return;
 
-    // If a text input has focus, let it handle keys normally
-    // UNLESS it's a modifier key (Shift/Ctrl) which we always track.
+    // If a text input has focus, let it handle keys normally.
+    // The modifier reality-check in the Playing handler will correct
+    // any stale fire/run state when focus returns to the game.
     if (isInputFocused()) {
-      // Still track modifier releases for fire/run state.
-      if (e.key === 'Shift') { cpl.fireOn = true; fireOn = true; }
-      if (e.key === 'Control') { cpl.runOn = true; runOn = true; }
       return;
     }
 
@@ -155,13 +153,7 @@
 
   function handleGlobalKeyUp(e: KeyboardEvent) {
     if (appState !== 'playing') return;
-    if (isInputFocused()) {
-      // Track modifier releases even when input focused.
-      const cpl = getCpl();
-      if (cpl && (e.key === 'Shift')) { cpl.fireOn = false; fireOn = false; }
-      if (cpl && (e.key === 'Control')) { cpl.runOn = false; runOn = false; }
-      return;
-    }
+    if (isInputFocused()) return;
 
     parseKeyRelease(e);
     const cpl = getCpl();
