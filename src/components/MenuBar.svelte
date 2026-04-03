@@ -327,7 +327,7 @@
       </p>
       <p>
         Source code is available on
-        <a href="https://github.com/bofh69/crossfire-client-gtk" target="_blank" rel="noopener noreferrer">GitHub</a>.
+        <a href="https://github.com/bofh69/crossfire-web-client" target="_blank" rel="noopener noreferrer">GitHub</a>.
       </p>
       <p class="dialog-credits">
         Built with

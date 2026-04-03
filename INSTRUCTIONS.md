@@ -21,6 +21,17 @@ npm install
 ### Run development server
 
 ```bash
+cd development-ws-proxy
+npm install
+node ws-proxy.js
+```
+
+That starts a proxy between a websocket on localhost and
+a crossfire server.
+
+In another shell run:
+
+```bash
 npm run dev
 ```
 
@@ -64,37 +75,12 @@ npx tsc --noEmit
 ```
 ├── src/                  # Source code
 │   ├── lib/              # Core library (converted from C common code)
-│   │   ├── client.ts     # Main client logic
-│   │   ├── commands.ts   # Server command handlers
-│   │   ├── image.ts      # Image processing
-│   │   ├── init.ts       # Initialization
-│   │   ├── item.ts       # Item management
-│   │   ├── mapdata.ts    # Map data handling
-│   │   ├── misc.ts       # Utilities
-│   │   ├── newsocket.ts  # WebSocket communication
-│   │   ├── p_cmd.ts      # Player commands
-│   │   ├── player.ts     # Player operations
-│   │   ├── keys.ts       # Key bindings (def-keys)
-│   │   ├── protocol.ts   # Protocol constants
-│   │   └── storage.ts    # Client-side storage
 │   ├── components/       # Svelte UI components
-│   │   ├── App.svelte
-│   │   ├── Map.svelte
-│   │   ├── Inventory.svelte
-│   │   ├── Stats.svelte
-│   │   ├── Info.svelte
-│   │   ├── Spells.svelte
-│   │   ├── Skills.svelte
-│   │   ├── Login.svelte
-│   │   ├── CreateChar.svelte
-│   │   └── MenuBar.svelte
 │   ├── assets/           # Static assets (pixmaps)
 │   ├── main.ts           # Entry point
 │   └── app.css           # Global styles
 ├── public/               # Public static files
 ├── old/                  # Original C/GTK source (for reference)
-├── AUTHORS               # Project contributors
-├── INSTRUCTIONS.md       # This file
 ├── index.html            # HTML entry point
 ├── package.json
 ├── tsconfig.json
@@ -108,4 +94,4 @@ npx tsc --noEmit
 - **localStorage/IndexedDB** is used instead of file I/O for caching and configuration.
 - **Console logging** replaces stdout/stderr output.
 - **Keybindings** are available via the `getDefaultKeyBindings()` function.
-- The client connects to a fixed server address (no metaserver).
+- The client connects to a fixed server address
