@@ -31,7 +31,8 @@
     | 'bind-confirm'        // key captured; asking to overwrite an existing binding
     | 'unbind-capture'      // waiting for the key to unbind
     | 'unbind-confirm'      // key captured; asking to confirm removal
-    | 'show-bindings';      // showing all key bindings
+    | 'show-bindings'       // showing all key bindings
+    | 'about';              // about dialog
 
   let dialogMode = $state<DialogMode>('idle');
   let dialogKeyStr = $state('');             // human-readable key (e.g. "Ctrl+f")
@@ -143,6 +144,15 @@
     dialogMode = 'idle';
   }
 
+  function showAbout() {
+    dialogMode = 'about';
+    closeMenu();
+  }
+
+  function closeAbout() {
+    dialogMode = 'idle';
+  }
+
   function handleWindowKeydown(e: KeyboardEvent) {
     if (dialogMode === 'bind-capture') {
       handleBindCapture(e);
@@ -197,7 +207,7 @@
     <button class="menu-button" onclick={() => toggleMenu('help')}>Help</button>
     {#if activeMenu === 'help'}
       <div class="dropdown">
-        <button onclick={closeMenu}>About Crossfire Web Client</button>
+        <button onclick={showAbout}>About Crossfire Web Client</button>
       </div>
     {/if}
   </div>
@@ -288,6 +298,34 @@
       </div>
       <div class="dialog-buttons">
         <button onclick={closeBindings}>Close</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'about'}
+  <div class="dialog-overlay">
+    <div class="dialog dialog-wide">
+      <p class="dialog-title">About Crossfire Web Client</p>
+      <p>
+        A web-based client for <a href="http://crossfire.real-time.com/" target="_blank" rel="noopener noreferrer">Crossfire</a>,
+        the cooperative multi-player graphical RPG and adventure game.
+      </p>
+      <p>
+        This client is based on the original
+        <a href="http://crossfire.real-time.com/" target="_blank" rel="noopener noreferrer">Crossfire GTK client</a>
+        and reimplemented for the browser.
+      </p>
+      <p>
+        Source code is available on
+        <a href="https://github.com/bofh69/crossfire-client-gtk" target="_blank" rel="noopener noreferrer">GitHub</a>.
+      </p>
+      <p class="dialog-credits">
+        Built with
+        <a href="https://svelte.dev/" target="_blank" rel="noopener noreferrer">Svelte</a>,
+        <a href="https://vite.dev/" target="_blank" rel="noopener noreferrer">Vite</a>, and
+        <a href="https://www.typescriptlang.org/" target="_blank" rel="noopener noreferrer">TypeScript</a>.
+      </p>
+      <div class="dialog-buttons">
+        <button onclick={closeAbout}>Close</button>
       </div>
     </div>
   </div>
@@ -466,6 +504,21 @@
 
   .bindings-table td {
     color: #c0c0c0;
+  }
+
+  .dialog a {
+    color: #88bbff;
+    text-decoration: none;
+  }
+
+  .dialog a:hover {
+    text-decoration: underline;
+  }
+
+  .dialog-credits {
+    color: #aaa;
+    font-size: 0.8rem;
+    margin-top: 0.8rem !important;
   }
 </style>
 

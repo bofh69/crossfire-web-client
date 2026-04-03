@@ -23,6 +23,7 @@
   let playerItems: FlatItem[] = $state([]);
   let groundItems: FlatItem[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; item: FlatItem; isGround: boolean } | null>(null);
+  let itemCount = $state(0);
 
   function flattenItems(root: Item | null, depth = 0): FlatItem[] {
     const result: FlatItem[] = [];
@@ -54,6 +55,7 @@
   export function updateInventory(playerRoot: Item | null, groundRoot: Item | null) {
     playerItems = flattenItems(playerRoot);
     groundItems = flattenItems(groundRoot);
+    itemCount = getCpl()?.count ?? 0;
   }
 
   function handleApply(tag: number) {
@@ -67,7 +69,8 @@
 
   function handleDrop(item: FlatItem) {
     // Move item to ground (loc = 0)
-    clientSendMove(0, item.tag, item.nrof);
+    clientSendMove(0, item.tag, getMoveCount());
+    clearCount();
     contextMenu = null;
   }
 
@@ -75,7 +78,8 @@
     // Move item from ground to player (loc = player tag)
     const cpl = getCpl();
     const playerTag = cpl?.ob?.tag ?? 0;
-    clientSendMove(playerTag, item.tag, item.nrof);
+    clientSendMove(playerTag, item.tag, getMoveCount());
+    clearCount();
     contextMenu = null;
   }
 
@@ -100,17 +104,19 @@
     const cpl = getCpl();
     const container = cpl?.container;
     if (!container) { contextMenu = null; return; }
+    const count = getMoveCount();
     // If the item is currently in the container, move it to the player inventory.
     // Otherwise move it into the container.
     const realItem = locateItem(item.tag);
     if (realItem?.env?.tag === container.tag) {
       // Move to player inventory
       const playerTag = cpl?.ob?.tag ?? 0;
-      clientSendMove(playerTag, item.tag, item.nrof);
+      clientSendMove(playerTag, item.tag, count);
     } else {
       // Move to container
-      clientSendMove(container.tag, item.tag, item.nrof);
+      clientSendMove(container.tag, item.tag, count);
     }
+    clearCount();
     contextMenu = null;
   }
 
@@ -127,13 +133,36 @@
     if (w < 1) return `${(w * 1000).toFixed(0)}g`;
     return `${w.toFixed(1)}kg`;
   }
+
+  /** Return the number of items to move: use cpl.count if set, otherwise 0 (all). */
+  function getMoveCount(): number {
+    const cpl = getCpl();
+    return cpl && cpl.count > 0 ? cpl.count : 0;
+  }
+
+  /** Reset the typed item count to zero. */
+  function clearCount() {
+    const cpl = getCpl();
+    if (cpl) cpl.count = 0;
+    itemCount = 0;
+  }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="inventory" onclick={closeContextMenu}>
   <div class="inv-section">
-    <h3>Inventory ({playerItems.length})</h3>
+    <h3>
+      Inventory ({playerItems.length})
+      {#if itemCount > 0}
+        <span class="item-count">
+          {itemCount}
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <span class="count-clear" onclick={clearCount}>✕</span>
+        </span>
+      {/if}
+    </h3>
     <div class="item-list">
       {#each playerItems as item (item.tag)}
         <div
@@ -245,6 +274,31 @@
     color: #e0d0b0;
     font-size: 0.8rem;
     background: #252525;
+    display: flex;
+    align-items: center;
+  }
+
+  .item-count {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    color: #ffcc66;
+    font-size: 0.75rem;
+    font-weight: normal;
+  }
+
+  .count-clear {
+    cursor: pointer;
+    color: #888;
+    font-size: 0.7rem;
+    padding: 0 0.15rem;
+    border-radius: 2px;
+  }
+
+  .count-clear:hover {
+    color: #ff8888;
+    background: #3a3a3a;
   }
 
   .item-list {
