@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { skillNames } from '../lib/commands';
+  import { playerStats } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
   import { extendedCommand } from '../lib/p_cmd';
 
@@ -28,6 +30,11 @@
     skills = entries.sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  // Initialize with whatever data has already arrived before this component mounted.
+  // skill_info and stats packets often arrive during login, before wireCallbacks() is
+  // set up in App.svelte, so we must load on mount to catch the pre-login data.
+  onMount(() => updateSkills(playerStats));
+
   function handleContextMenu(e: MouseEvent, skill: SkillEntry) {
     e.preventDefault();
     contextMenu = { x: e.clientX, y: e.clientY, skill };
@@ -39,6 +46,11 @@
 
   function useSkill(skill: SkillEntry) {
     extendedCommand(`use_skill ${skill.name}`);
+    closeContextMenu();
+  }
+
+  function readySkill(skill: SkillEntry) {
+    extendedCommand(`ready_skill ${skill.name}`);
     closeContextMenu();
   }
 </script>
@@ -83,6 +95,9 @@
   >
     <button onclick={() => contextMenu && useSkill(contextMenu.skill)}>
       Use skill: {contextMenu.skill.name}
+    </button>
+    <button onclick={() => contextMenu && readySkill(contextMenu.skill)}>
+      Ready skill: {contextMenu.skill.name}
     </button>
   </div>
 {/if}
