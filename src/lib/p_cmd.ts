@@ -7,6 +7,7 @@ import { CommCat, LogLevel, type ConsoleCommand } from "./protocol";
 import { LOG } from "./misc";
 import { saveConfig } from "./storage";
 import { sendCommand } from "./player";
+import { bindKey, unbindKey, resetBindings } from "./keys";
 
 // ---------------------------------------------------------------------------
 // Internal state
@@ -78,17 +79,15 @@ function commandHelp(args: string): void {
 }
 
 function commandBind(args: string): void {
-    LOG(LogLevel.Info, "p_cmd::bind",
-        args.length > 0
-            ? `bind requested: ${args}`
-            : "Usage: bind <key> <command>");
+    bindKey(args);
 }
 
 function commandUnbind(args: string): void {
-    LOG(LogLevel.Info, "p_cmd::unbind",
-        args.length > 0
-            ? `unbind requested: ${args}`
-            : "Usage: unbind <key>");
+    unbindKey(args);
+}
+
+function commandResetKeys(_args: string): void {
+    resetBindings();
 }
 
 function commandMagicmap(_args: string): void {
@@ -121,6 +120,7 @@ const builtinCommands: ConsoleCommand[] = [
     { name: "inv",          category: CommCat.Debug, description: "Show inventory",                handler: commandInv },
     { name: "inventory",    category: CommCat.Debug, description: "Show inventory (alias)",        handler: commandInv },
     { name: "magicmap",     category: CommCat.Misc,  description: "Request the magic map overlay", handler: commandMagicmap },
+    { name: "resetkeys",    category: CommCat.Setup, description: "Reset key bindings to defaults",handler: commandResetKeys },
     { name: "savedefaults", category: CommCat.Setup, description: "Save current configuration",   handler: commandSaveDefaults },
     { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",   handler: commandTake },
     { name: "unbind",       category: CommCat.Setup, description: "Remove a key binding",         handler: commandUnbind },

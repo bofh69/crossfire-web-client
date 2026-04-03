@@ -1,6 +1,8 @@
 <script lang="ts">
   import { extendedCommand } from '../lib/p_cmd';
   import { sendCommand } from '../lib/player';
+  import { InputState } from '../lib/protocol';
+  import { getCpl } from '../lib/init';
   import {
     NDI_BLACK, NDI_WHITE, NDI_NAVY, NDI_RED, NDI_ORANGE, NDI_BLUE,
     NDI_DK_ORANGE, NDI_GREEN, NDI_LT_GREEN, NDI_GREY, NDI_BROWN,
@@ -15,6 +17,7 @@
   let messages: Message[] = $state([]);
   let commandInput = $state('');
   let messagesDiv: HTMLDivElement | undefined = $state();
+  let inputEl: HTMLInputElement | undefined = $state();
 
   const NDI_COLORS: Record<number, string> = {
     [NDI_BLACK]: '#cccccc',   // Black on dark bg → light gray
@@ -45,6 +48,23 @@
     scrollToBottom();
   }
 
+  /**
+   * Focus the command input field, optionally pre-filling it with text.
+   * Used by the keybinding system when entering command mode.
+   */
+  export function focusInput(prefill?: string) {
+    if (prefill !== undefined) {
+      commandInput = prefill;
+    }
+    requestAnimationFrame(() => {
+      inputEl?.focus();
+      // Place cursor at end of prefilled text.
+      if (inputEl && prefill) {
+        inputEl.setSelectionRange(prefill.length, prefill.length);
+      }
+    });
+  }
+
   function scrollToBottom() {
     requestAnimationFrame(() => {
       if (messagesDiv) {
@@ -56,6 +76,22 @@
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter') {
       submitCommand();
+    } else if (e.key === 'Escape') {
+      // Leave command mode and return focus to the game.
+      commandInput = '';
+      inputEl?.blur();
+      const cpl = getCpl();
+      if (cpl) {
+        cpl.inputState = InputState.Playing;
+      }
+    }
+  }
+
+  function handleBlur() {
+    // When the input loses focus, return to Playing state.
+    const cpl = getCpl();
+    if (cpl && cpl.inputState === InputState.CommandMode) {
+      cpl.inputState = InputState.Playing;
     }
   }
 
@@ -69,6 +105,14 @@
       sendCommand(cmd, 0, 1);
     }
     commandInput = '';
+
+    // Return to playing state after sending command.
+    const cpl = getCpl();
+    if (cpl) {
+      cpl.inputState = InputState.Playing;
+    }
+    // Blur the input so keyboard events go to the game.
+    inputEl?.blur();
   }
 </script>
 
@@ -82,7 +126,9 @@
     <input
       type="text"
       bind:value={commandInput}
+      bind:this={inputEl}
       onkeydown={handleKeydown}
+      onblur={handleBlur}
       placeholder="Type command..."
     />
     <button onclick={submitCommand}>Send</button>

@@ -5,8 +5,12 @@
   import { callbacks, playerStats, spells } from './lib/commands';
   import { locateItem } from './lib/item';
   import { sendReply } from './lib/player';
+  import {
+    keybindingsInit, setKeyCallbacks, parseKey, parseKeyRelease,
+    configureKeys, handleFocusLost,
+  } from './lib/keys';
   import type { Stats } from './lib/protocol';
-  import { CS_QUERY_HIDEINPUT } from './lib/protocol';
+  import { InputState, CS_QUERY_HIDEINPUT } from './lib/protocol';
   import Login from './components/Login.svelte';
   import GameMap from './components/GameMap.svelte';
   import InfoPanel from './components/InfoPanel.svelte';
@@ -26,6 +30,10 @@
   let gameQueryHidden = $state(false);
   let gameQueryInput = $state('');
   let gameQueryInputEl: HTMLInputElement | undefined = $state();
+
+  /** Fire / Run indicator state for display */
+  let fireOn = $state(false);
+  let runOn = $state(false);
 
   $effect(() => {
     if (gameQueryInputEl) {
@@ -55,7 +63,119 @@
   onMount(() => {
     clientInit();
     initCommands();
+    keybindingsInit();
+
+    // Wire key-system callbacks so keys.ts can interact with the UI.
+    setKeyCallbacks({
+      drawInfo: (message: string) => {
+        infoPanel?.addMessage(0, message);
+      },
+      focusCommandInput: (prefill?: string) => {
+        infoPanel?.focusInput(prefill);
+      },
+      getCpl: () => getCpl(),
+    });
+
+    // Listen for keyboard events on the window.
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    window.addEventListener('keyup', handleGlobalKeyUp);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+      window.removeEventListener('keyup', handleGlobalKeyUp);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
   });
+
+  // ── Keyboard event routing ───────────────────────────────────────
+
+  function isInputFocused(): boolean {
+    const el = document.activeElement;
+    if (!el) return false;
+    const tag = el.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+           (el as HTMLElement).isContentEditable;
+  }
+
+  function handleGlobalKeyDown(e: KeyboardEvent) {
+    // Only handle game keys when in the playing state.
+    if (appState !== 'playing') return;
+
+    const cpl = getCpl();
+    if (!cpl) return;
+
+    // If a text input has focus, let it handle keys normally
+    // UNLESS it's a modifier key (Shift/Ctrl) which we always track.
+    if (isInputFocused()) {
+      // Still track modifier releases for fire/run state.
+      if (e.key === 'Shift') { cpl.fireOn = true; fireOn = true; }
+      if (e.key === 'Control') { cpl.runOn = true; runOn = true; }
+      return;
+    }
+
+    // Query prompt active: don't dispatch game keys.
+    if (gameQueryPrompt) return;
+
+    // Route based on input state.
+    switch (cpl.inputState) {
+      case InputState.Playing:
+        // Verify that modifier key state matches reality
+        // (handles missed key-ups from focus changes).
+        if (cpl.runOn && !e.ctrlKey) {
+          cpl.runOn = false;
+          runOn = false;
+        }
+        if (cpl.fireOn && !e.shiftKey) {
+          cpl.fireOn = false;
+          fireOn = false;
+        }
+
+        parseKey(e);
+
+        // Update indicator state.
+        fireOn = cpl.fireOn;
+        runOn = cpl.runOn;
+
+        // Prevent default browser actions for game keys.
+        e.preventDefault();
+        break;
+
+      case InputState.ConfigureKeys:
+        configureKeys(e);
+        e.preventDefault();
+        break;
+
+      case InputState.CommandMode:
+        // Focus should go to the command input.
+        infoPanel?.focusInput();
+        break;
+    }
+  }
+
+  function handleGlobalKeyUp(e: KeyboardEvent) {
+    if (appState !== 'playing') return;
+    if (isInputFocused()) {
+      // Track modifier releases even when input focused.
+      const cpl = getCpl();
+      if (cpl && (e.key === 'Shift')) { cpl.fireOn = false; fireOn = false; }
+      if (cpl && (e.key === 'Control')) { cpl.runOn = false; runOn = false; }
+      return;
+    }
+
+    parseKeyRelease(e);
+    const cpl = getCpl();
+    if (cpl) {
+      fireOn = cpl.fireOn;
+      runOn = cpl.runOn;
+    }
+  }
+
+  function handleWindowBlur() {
+    handleFocusLost();
+    fireOn = false;
+    runOn = false;
+  }
 
   function handleLoggedIn() {
     appState = 'playing';
@@ -136,6 +256,10 @@
   <div class="game-layout">
     <div class="menu-area">
       <MenuBar onDisconnect={handleDisconnect} />
+      <div class="status-indicators">
+        {#if fireOn}<span class="indicator fire">Fire</span>{/if}
+        {#if runOn}<span class="indicator run">Run</span>{/if}
+      </div>
     </div>
     <div class="map-area">
       <GameMap bind:this={gameMap} />
@@ -238,5 +362,34 @@
 
   .query-box button:hover {
     background: #5a4a3a;
+  }
+
+  .menu-area {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .status-indicators {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .indicator {
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .indicator.fire {
+    background: #8b2020;
+    color: #ffcccc;
+  }
+
+  .indicator.run {
+    background: #205080;
+    color: #cce0ff;
   }
 </style>
