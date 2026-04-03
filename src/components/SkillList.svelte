@@ -17,10 +17,10 @@
   export function updateSkills(stats: Stats) {
     const entries: SkillEntry[] = [];
     for (let i = 0; i < stats.skillLevel.length; i++) {
-      if (stats.skillLevel[i] > 0) {
+      if (stats.skillLevel[i] > 0 && skillNames[i]) {
         entries.push({
           index: i,
-          name: skillNames[i] || `skill_${i}`,
+          name: skillNames[i],
           level: stats.skillLevel[i],
           exp: stats.skillExp[i],
         });
@@ -174,8 +174,10 @@
 
   .exp-bar {
     position: absolute;
-    inset: 0;
-    background: rgba(180, 140, 40, 0.28);
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(180, 140, 40, 0.3);
     pointer-events: none;
   }
 

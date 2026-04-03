@@ -185,9 +185,8 @@ export function sendCommand(command: string, repeat: number, mustSend: number): 
         return 0;
     }
 
-    if (!mustSend) {
-        lastCommand = command;
-    }
+    // Track last command for keybinding and dedup purposes.
+    lastCommand = command;
 
     csocket.commandSent = (csocket.commandSent + 1) % COMMAND_MAX;
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { expTable, expBarPercent } from '../lib/commands';
+  import { expBarPercent } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
 
   let stats: Stats = $state({
@@ -97,14 +97,9 @@
     <div class="stat-row">
       <span>Speed</span><span>{(stats.speed / 100000).toFixed(2)}</span>
     </div>
-    <div class="stat-row">
+    <div class="stat-row exp-stat-row">
+      <div class="exp-bg-bar" style:width="{expPercent}%"></div>
       <span>Exp</span><span>{stats.exp.toString()}</span>
-    </div>
-    <div class="bar-row exp-bar-row">
-      <div class="bar-track">
-        <div class="bar-fill" style:width="{expPercent}%" style:background="#ddaa44"></div>
-      </div>
-      <span class="bar-value exp-bar-label">{expTable.length > 0 ? `Lv ${stats.level}` : ''}</span>
     </div>
   </div>
 </div>
@@ -207,13 +202,15 @@
     color: #ddd;
   }
 
-  .exp-bar-row {
-    margin-top: 0.1rem;
+  .exp-stat-row {
+    position: relative;
   }
 
-  .exp-bar-label {
-    width: 36px;
-    font-size: 0.7rem;
-    color: #aaa;
-    text-align: right;
+  .exp-bg-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(180, 140, 40, 0.3);
+    pointer-events: none;
   }</style>
