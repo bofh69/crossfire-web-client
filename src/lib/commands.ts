@@ -223,7 +223,7 @@ function Item2Cmd(data: DataView, len: number): void {
   const location = getIntFromData(data, pos); pos += 4;
   while (pos < len) {
     const tag = getIntFromData(data, pos); pos += 4;
-    const flags = getShortFromData(data, pos); pos += 2;
+    const flags = getIntFromData(data, pos); pos += 4;
     const weight = getIntFromData(data, pos); pos += 4;
     const face = getIntFromData(data, pos); pos += 4;
     const nameLen = getCharFromData(data, pos); pos += 1;
