@@ -87,6 +87,7 @@ export const playerStats: Stats = {
   skillExp: new Array(CS_NUM_SKILLS).fill(BigInt(0)),
   weightLimit: 0,
   golemHp: 0, golemMaxhp: 0,
+  range: '',
 };
 
 /** Known spells */
@@ -212,6 +213,7 @@ function StatsCmd(data: DataView, len: number): void {
       case CS_STAT_RANGE: {
         // 1-byte length prefix + string (not null-terminated)
         const rlen = getCharFromData(data, pos); pos += 1;
+        playerStats.range = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, rlen);
         pos += rlen;
         break;
       }

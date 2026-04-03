@@ -634,6 +634,7 @@ export interface Stats {
     weightLimit: number;
     golemHp: number;
     golemMaxhp: number;
+    range: string;
 }
 
 export interface Spell {

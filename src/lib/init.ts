@@ -266,6 +266,7 @@ function initPlayerData(): void {
             skillExp: new Array(CS_NUM_SKILLS).fill(BigInt(0)),
             weightLimit: 0,
             golemHp: 0, golemMaxhp: 0,
+            range: '',
         },
         spelldata: [],
         title: '',

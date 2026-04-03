@@ -10,6 +10,7 @@
     flags: 0, resists: new Array(30).fill(0), resistChange: false,
     skillLevel: new Array(50).fill(0), skillExp: new Array(50).fill(BigInt(0)),
     weightLimit: 0, golemHp: 0, golemMaxhp: 0,
+    range: '',
   });
 
   export function updateStats(newStats: Partial<Stats>) {

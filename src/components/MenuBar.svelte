@@ -60,6 +60,14 @@
     pickupMenu?.setPickupMode(currentPickupMode);
   }
 
+  /** The currently readied range item (spell, skill, bow, etc.). */
+  let currentRange = $state('');
+
+  /** Called by the parent when the server sends a range stat update. */
+  export function setRange(range: string) {
+    currentRange = range;
+  }
+
   /** Returns true while a key-capture or confirm dialog is showing. */
   export function isDialogActive(): boolean {
     return dialogMode !== 'idle';
@@ -213,6 +221,9 @@
   </div>
 
   <div class="spacer"></div>
+  {#if currentRange}
+    <span class="range-label">Range: {currentRange}</span>
+  {/if}
   <span class="title">Crossfire</span>
 </div>
 
@@ -389,6 +400,16 @@
 
   .spacer {
     flex: 1;
+  }
+
+  .range-label {
+    color: #a0b0c0;
+    font-size: 0.75rem;
+    padding-right: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
   }
 
   .title {

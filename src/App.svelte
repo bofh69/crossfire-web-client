@@ -227,6 +227,9 @@
     callbacks.onStatsUpdate = (stats: Partial<Stats>) => {
       statsPanel?.updateStats(stats);
       skillList?.updateSkills(playerStats);
+      if (stats.range !== undefined) {
+        menuBar?.setRange(stats.range);
+      }
     };
 
     callbacks.onQuery = (flags: number, prompt: string) => {
