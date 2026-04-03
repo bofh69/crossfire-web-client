@@ -138,12 +138,17 @@ function DrawInfoCmd(data: string): void {
 }
 
 function DrawExtInfoCmd(data: string): void {
-  const parts = data.split(' ', 4);
-  if (parts.length < 4) return;
-  const color = parseInt(parts[0]);
-  const type = parseInt(parts[1]);
-  const subtype = parseInt(parts[2]);
-  const message = data.substring(data.indexOf(parts[3]));
+  // Parse the three leading integers (color type subtype), then take everything
+  // after them as the message — mirroring the C code that advances a pointer
+  // past three space-separated tokens.
+  const s1 = data.indexOf(' ');
+  const s2 = s1 >= 0 ? data.indexOf(' ', s1 + 1) : -1;
+  const s3 = s2 >= 0 ? data.indexOf(' ', s2 + 1) : -1;
+  if (s2 < 0) return; // need at least color, type, subtype
+  const color = parseInt(data);
+  const type = parseInt(data.substring(s1 + 1));
+  const subtype = parseInt(data.substring(s2 + 1));
+  const message = s3 >= 0 ? data.substring(s3 + 1) : '';
   callbacks.onDrawExtInfo?.(color & NDI_COLOR_MASK, type, subtype, message);
 }
 
@@ -158,18 +163,18 @@ function StatsCmd(data: DataView, len: number): void {
       case CS_STAT_MAXSP: playerStats.maxsp = getShortFromData(data, pos); pos += 2; break;
       case CS_STAT_GRACE: playerStats.grace = getShortFromData(data, pos); pos += 2; break;
       case CS_STAT_MAXGRACE: playerStats.maxgrace = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_STR: playerStats.Str = getCharFromData(data, pos); pos += 1; break;
-      case CS_STAT_INT: playerStats.Int = getCharFromData(data, pos); pos += 1; break;
-      case CS_STAT_WIS: playerStats.Wis = getCharFromData(data, pos); pos += 1; break;
-      case CS_STAT_DEX: playerStats.Dex = getCharFromData(data, pos); pos += 1; break;
-      case CS_STAT_CON: playerStats.Con = getCharFromData(data, pos); pos += 1; break;
-      case CS_STAT_CHA: playerStats.Cha = getCharFromData(data, pos); pos += 1; break;
-      case CS_STAT_POW: playerStats.Pow = getCharFromData(data, pos); pos += 1; break;
-      case CS_STAT_LEVEL: playerStats.level = getCharFromData(data, pos); pos += 1; break;
+      case CS_STAT_STR: playerStats.Str = getShortFromData(data, pos); pos += 2; break;
+      case CS_STAT_INT: playerStats.Int = getShortFromData(data, pos); pos += 2; break;
+      case CS_STAT_WIS: playerStats.Wis = getShortFromData(data, pos); pos += 2; break;
+      case CS_STAT_DEX: playerStats.Dex = getShortFromData(data, pos); pos += 2; break;
+      case CS_STAT_CON: playerStats.Con = getShortFromData(data, pos); pos += 2; break;
+      case CS_STAT_CHA: playerStats.Cha = getShortFromData(data, pos); pos += 2; break;
+      case CS_STAT_POW: playerStats.Pow = getShortFromData(data, pos); pos += 2; break;
+      case CS_STAT_LEVEL: playerStats.level = getShortFromData(data, pos); pos += 2; break;
       case CS_STAT_WC: playerStats.wc = getShortFromData(data, pos); pos += 2; break;
       case CS_STAT_AC: playerStats.ac = getShortFromData(data, pos); pos += 2; break;
       case CS_STAT_DAM: playerStats.dam = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_ARMOUR: playerStats.ac = getShortFromData(data, pos); pos += 2; break;
+      case CS_STAT_ARMOUR: playerStats.resists[0] = getShortFromData(data, pos); pos += 2; break;
       case CS_STAT_SPEED: playerStats.speed = getIntFromData(data, pos); pos += 4; break;
       case CS_STAT_FOOD: playerStats.food = getShortFromData(data, pos); pos += 2; break;
       case CS_STAT_WEAP_SP: playerStats.weaponSp = getIntFromData(data, pos); pos += 4; break;

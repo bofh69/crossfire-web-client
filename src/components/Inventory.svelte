@@ -1,6 +1,6 @@
 <script lang="ts">
   import { clientSendApply, clientSendExamine, clientSendMove } from '../lib/player';
-  import { toggleLocked, locateItem } from '../lib/item';
+  import { toggleLocked, locateItem, sendMarkObj } from '../lib/item';
   import { getFaceUrl } from '../lib/image';
   import { getCpl } from '../lib/init';
   import type { Item } from '../lib/protocol';
@@ -87,6 +87,33 @@
     contextMenu = null;
   }
 
+  function handleMark(item: FlatItem) {
+    const realItem = locateItem(item.tag);
+    if (realItem) {
+      sendMarkObj(realItem);
+    }
+    contextMenu = null;
+  }
+
+  /** Move an item between the player inventory and the open container. */
+  function handleMoveToContainer(item: FlatItem) {
+    const cpl = getCpl();
+    const container = cpl?.container;
+    if (!container) { contextMenu = null; return; }
+    // If the item is currently in the container, move it to the player inventory.
+    // Otherwise move it into the container.
+    const realItem = locateItem(item.tag);
+    if (realItem?.env?.tag === container.tag) {
+      // Move to player inventory
+      const playerTag = cpl?.ob?.tag ?? 0;
+      clientSendMove(playerTag, item.tag, item.nrof);
+    } else {
+      // Move to container
+      clientSendMove(container.tag, item.tag, item.nrof);
+    }
+    contextMenu = null;
+  }
+
   function handleContextMenu(e: MouseEvent, item: FlatItem, isGround: boolean) {
     e.preventDefault();
     contextMenu = { x: e.clientX, y: e.clientY, item, isGround };
@@ -162,16 +189,30 @@
   </div>
 
   {#if contextMenu}
-    <div class="context-menu" style:left="{contextMenu.x}px" style:top="{contextMenu.y}px">
+    {#snippet contextMenuContent()}
+      {@const item = contextMenu!.item}
+      {@const isGround = contextMenu!.isGround}
+      {@const openContainer = getCpl()?.container ?? null}
+      {@const realItem = locateItem(item.tag)}
+      {@const inContainer = openContainer !== null && realItem?.env?.tag === openContainer.tag}
       <button onclick={() => contextMenu && handleExamine(contextMenu.item)}>Examine</button>
-      {#if contextMenu.isGround}
+      {#if isGround}
         <button onclick={() => contextMenu && handlePickup(contextMenu.item)}>Pickup</button>
       {:else}
         <button onclick={() => contextMenu && handleDrop(contextMenu.item)}>Drop</button>
         <button onclick={() => contextMenu && handleLock(contextMenu.item)}>
-          {contextMenu.item.locked ? 'Unlock' : 'Lock'}
+          {item.locked ? 'Unlock' : 'Lock'}
         </button>
+        <button onclick={() => contextMenu && handleMark(contextMenu.item)}>Mark</button>
+        {#if openContainer !== null}
+          <button onclick={() => contextMenu && handleMoveToContainer(contextMenu.item)}>
+            {inContainer ? 'Move to inventory' : 'Move to container'}
+          </button>
+        {/if}
       {/if}
+    {/snippet}
+    <div class="context-menu" style:left="{contextMenu.x}px" style:top="{contextMenu.y}px">
+      {@render contextMenuContent()}
     </div>
   {/if}
 </div>

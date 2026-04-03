@@ -9,9 +9,16 @@
     NDI_GOLD, NDI_TAN,
   } from '../lib/protocol';
 
-  interface Message {
+  interface MessageSpan {
     text: string;
     color: string;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+  }
+
+  interface Message {
+    spans: MessageSpan[];
   }
 
   let messages: Message[] = $state([]);
@@ -39,8 +46,67 @@
     return NDI_COLORS[ndi] ?? '#cccccc';
   }
 
+  /**
+   * Parse a server message that may contain markup tags:
+   * [b]/[/b], [i]/[/i], [ul]/[/ul], [color=xxx]/[/color]
+   * Returns an array of styled spans, matching the C client's add_marked_text_to_pane().
+   */
+  function parseMarkup(text: string, baseColor: string): MessageSpan[] {
+    const spans: MessageSpan[] = [];
+    let bold = false;
+    let italic = false;
+    let underline = false;
+    let color = baseColor;
+    let current = text;
+
+    while (true) {
+      const openBracket = current.indexOf('[');
+      if (openBracket < 0) break;
+
+      // Emit text before the bracket
+      if (openBracket > 0) {
+        spans.push({ text: current.substring(0, openBracket), color, bold, italic, underline });
+      }
+      current = current.substring(openBracket + 1);
+
+      const closeBracket = current.indexOf(']');
+      if (closeBracket < 0) break; // malformed — stop
+
+      const tag = current.substring(0, closeBracket);
+      current = current.substring(closeBracket + 1);
+
+      if (tag === 'b') {
+        bold = true;
+      } else if (tag === '/b') {
+        bold = false;
+      } else if (tag === 'i') {
+        italic = true;
+      } else if (tag === '/i') {
+        italic = false;
+      } else if (tag === 'ul') {
+        underline = true;
+      } else if (tag === '/ul') {
+        underline = false;
+      } else if (tag === '/color') {
+        color = baseColor;
+      } else if (tag.startsWith('color=')) {
+        color = '#' + tag.substring(6);
+      }
+      // Ignore other tags (fixed, arcane, hand, strange, print, etc.)
+    }
+
+    // Emit any remaining text
+    if (current.length > 0) {
+      spans.push({ text: current, color, bold, italic, underline });
+    }
+
+    return spans;
+  }
+
   export function addMessage(color: number, text: string) {
-    messages = [...messages, { text, color: colorForNdi(color) }];
+    const baseColor = colorForNdi(color);
+    const spans = parseMarkup(text, baseColor);
+    messages = [...messages, { spans }];
     // Keep a reasonable buffer
     if (messages.length > 500) {
       messages = messages.slice(-400);
@@ -128,7 +194,12 @@
 <div class="info-panel">
   <div class="messages" bind:this={messagesDiv}>
     {#each messages as msg}
-      <div class="message" style:color={msg.color}>{msg.text}</div>
+      <div class="message">{#each msg.spans as span}<span
+          style:color={span.color}
+          style:font-weight={span.bold ? 'bold' : 'normal'}
+          style:font-style={span.italic ? 'italic' : 'normal'}
+          style:text-decoration={span.underline ? 'underline' : 'none'}
+        >{span.text}</span>{/each}</div>
     {/each}
   </div>
   <div class="input-row">

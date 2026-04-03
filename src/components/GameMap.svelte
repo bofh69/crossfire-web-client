@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { mapdata_cell, getViewSize, getPlayerPosition } from '../lib/mapdata';
+  import { mapdata_cell, mapdata_face_info, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { MapCellState, MAXLAYERS } from '../lib/protocol';
@@ -94,14 +94,27 @@
         // Draw layers bottom to top
         for (let layer = 0; layer < MAXLAYERS; layer++) {
           const head = cell.heads[layer];
-          const face = head.face || (cell.tails[layer]?.face ?? 0);
-          if (face === 0) continue;
+          const tail = cell.tails[layer];
 
-          const url = getFaceUrl(face);
+          // If this cell is a tail (not the head) of a multi-tile image, skip —
+          // the head cell will draw the full image at the correct offset.
+          if (head.face === 0 && tail.face !== 0) continue;
+
+          const faceInfo = mapdata_face_info(ax, ay, layer);
+          if (faceInfo.face === 0) continue;
+
+          const url = getFaceUrl(faceInfo.face);
+          // Determine the draw size: head.sizeX/Y tiles wide/tall.
+          const drawW = head.face !== 0 ? head.sizeX * TILE_SIZE : TILE_SIZE;
+          const drawH = head.face !== 0 ? head.sizeY * TILE_SIZE : TILE_SIZE;
+          // dx/dy are negative for big images (offset to top-left corner).
+          const drawX = px + faceInfo.dx * TILE_SIZE;
+          const drawY = py + faceInfo.dy * TILE_SIZE;
+
           if (url) {
             const img = imageCache.get(url);
             if (img) {
-              ctx.drawImage(img, px, py, TILE_SIZE, TILE_SIZE);
+              ctx.drawImage(img, drawX, drawY, drawW, drawH);
               imagesDrawn++;
             } else {
               if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;

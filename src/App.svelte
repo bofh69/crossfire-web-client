@@ -177,6 +177,7 @@
 
   function handleLoggedIn() {
     appState = 'playing';
+    serverDisconnected = false;
     wireCallbacks();
   }
 
