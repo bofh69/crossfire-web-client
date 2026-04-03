@@ -156,7 +156,7 @@ function initConfig(): void {
     wantConfig[CONFIG_AUTO_AFK] = 300;
     wantConfig[CONFIG_INV_MENU] = TRUE;
     wantConfig[CONFIG_MUSIC_VOL] = 100;
-    wantConfig[CONFIG_SERVER_TICKS] = FALSE;
+    wantConfig[CONFIG_SERVER_TICKS] = TRUE;
     wantConfig[CONFIG_DEBOUNCE] = TRUE;
 
     for (let i = 0; i < CONFIG_NUMS; i++) {

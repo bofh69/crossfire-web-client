@@ -10,7 +10,8 @@
     configureKeys, handleFocusLost,
   } from './lib/keys';
   import type { Stats } from './lib/protocol';
-  import { InputState, CS_QUERY_HIDEINPUT } from './lib/protocol';
+  import { InputState, CS_QUERY_HIDEINPUT, CONFIG_SERVER_TICKS } from './lib/protocol';
+  import { useConfig } from './lib/init';
   import { mapdata_animation } from './lib/mapdata';
   import Login from './components/Login.svelte';
   import GameMap from './components/GameMap.svelte';
@@ -24,6 +25,9 @@
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
   let activeTab = $state<'inventory' | 'spells' | 'skills'>('inventory');
+
+  /** Self-tick timer (fallback when the server doesn't send ticks). */
+  let selfTickTimer: ReturnType<typeof setInterval> | null = null;
 
   /** Set to true when the server disconnects while we're in playing state. */
   let serverDisconnected = $state(false);
@@ -189,6 +193,12 @@
   }
 
   function handleDisconnect() {
+    // Stop self-tick timer
+    if (selfTickTimer !== null) {
+      clearInterval(selfTickTimer);
+      selfTickTimer = null;
+    }
+
     // Clear callbacks to avoid stale references
     callbacks.onDrawInfo = undefined;
     callbacks.onDrawExtInfo = undefined;
@@ -251,6 +261,17 @@
       gameMap?.redrawMap();
       refreshInventory();
     };
+
+    // Self-tick fallback: if the server doesn't send ticks, drive
+    // animations with a local 8 fps timer (matching the old C client).
+    if (!useConfig[CONFIG_SERVER_TICKS]) {
+      selfTickTimer = setInterval(() => {
+        mapdata_animation();
+        animateObjects();
+        gameMap?.redrawMap();
+        refreshInventory();
+      }, 125);
+    }
 
     callbacks.onGoodbye = () => {
       handleDisconnect();
