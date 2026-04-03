@@ -1,5 +1,6 @@
 <script lang="ts">
   import { clientDisconnect } from '../lib/client';
+  import PickupMenu from './PickupMenu.svelte';
 
   interface Props {
     onDisconnect: () => void;
@@ -8,6 +9,7 @@
   let { onDisconnect }: Props = $props();
 
   let activeMenu = $state<string | null>(null);
+  let pickupMenu: PickupMenu | undefined = $state();
 
   function toggleMenu(menu: string) {
     activeMenu = activeMenu === menu ? null : menu;
@@ -22,6 +24,11 @@
     onDisconnect();
     closeMenu();
   }
+
+  /** Called by the parent when the server sends a pickup update. */
+  export function setPickupMode(mode: number) {
+    pickupMenu?.setPickupMode(mode);
+  }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -32,6 +39,19 @@
     {#if activeMenu === 'file'}
       <div class="dropdown">
         <button onclick={handleDisconnect}>Disconnect</button>
+      </div>
+    {/if}
+  </div>
+
+  <div class="menu-item">
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <button class="menu-button" onclick={() => toggleMenu('pickup')}>Pickup</button>
+    {#if activeMenu === 'pickup'}
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="dropdown" onclick={(e: MouseEvent) => e.stopPropagation()}>
+        <PickupMenu bind:this={pickupMenu} />
       </div>
     {/if}
   </div>

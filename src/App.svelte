@@ -59,6 +59,7 @@
   let inventory: Inventory | undefined = $state();
   let spellList: SpellList | undefined = $state();
   let skillList: SkillList | undefined = $state();
+  let menuBar: MenuBar | undefined = $state();
 
   onMount(() => {
     clientInit();
@@ -183,6 +184,7 @@
     callbacks.onNewMap = undefined;
     callbacks.onSpellUpdate = undefined;
     callbacks.onPlayerUpdate = undefined;
+    callbacks.onPickupUpdate = undefined;
     callbacks.onTick = undefined;
     callbacks.onGoodbye = undefined;
     callbacks.onQuery = undefined;
@@ -226,6 +228,10 @@
       refreshInventory();
     };
 
+    callbacks.onPickupUpdate = (mode: number) => {
+      menuBar?.setPickupMode(mode);
+    };
+
     callbacks.onTick = (_tickNo: number) => {
       refreshInventory();
     };
@@ -247,7 +253,7 @@
 {:else}
   <div class="game-layout">
     <div class="menu-area">
-      <MenuBar onDisconnect={handleDisconnect} />
+      <MenuBar bind:this={menuBar} onDisconnect={handleDisconnect} />
       <div class="status-indicators">
         {#if fireOn}<span class="indicator fire">Fire</span>{/if}
         {#if runOn}<span class="indicator run">Run</span>{/if}

@@ -56,6 +56,7 @@ export interface CommandCallbacks {
   onMapUpdate?: () => void;
   onPlayerUpdate?: () => void;
   onSpellUpdate?: () => void;
+  onPickupUpdate?: (mode: number) => void;
   onAccountPlayers?: (players: AccountPlayer[]) => void;
   onFailure?: (command: string, message: string) => void;
   onTick?: (tickNo: number) => void;
@@ -484,6 +485,7 @@ function TickCmd(data: DataView, _len: number): void {
 function PickupCmd(data: DataView, _len: number): void {
   const mode = getIntFromData(data, 0);
   LOG(LogLevel.Debug, 'PickupCmd', `Pickup mode: ${mode}`);
+  callbacks.onPickupUpdate?.(mode >>> 0); // unsigned
 }
 
 function FailureCmd(data: string): void {
