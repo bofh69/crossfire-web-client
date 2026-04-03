@@ -3,7 +3,10 @@
  * Port of old/common/init.c configuration and startup logic.
  */
 
+import type { Player } from "./protocol";
 import {
+    CS_NUM_SKILLS,
+    InputState,
     CONFIG_APPLY_CONTAINER,
     CONFIG_AUTO_AFK,
     CONFIG_CACHE,
@@ -49,6 +52,8 @@ import {
 } from "./protocol";
 
 import { loadConfig, saveConfig } from "./storage";
+import { playerItem, mapItem, setCpl as setCplInItem } from "./item";
+import { setCpl as setCplInPlayer } from "./player";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Configuration name/value arrays
@@ -212,6 +217,12 @@ export function resetPlayerData(): void {
 // Client lifecycle
 // ──────────────────────────────────────────────────────────────────────────────
 
+/** The global player data structure, equivalent to C `cpl`. */
+let cplInstance: Player | null = null;
+
+/** Return the global Player instance (creating it if needed). */
+export function getCpl(): Player | null { return cplInstance; }
+
 /**
  * One-time client startup initialization. Sets built-in defaults, then
  * overlays any previously-saved user configuration from localStorage.
@@ -221,6 +232,61 @@ export function clientInit(): void {
     initConfig();
     loadSavedConfig();
     resetPlayerData();
+    initPlayerData();
+}
+
+/**
+ * Allocate the player and map root items and wire up the global `cpl`
+ * structure.  Equivalent to the C code in `client_init()`:
+ *     cpl.ob = player_item();
+ *     cpl.below = map_item();
+ */
+function initPlayerData(): void {
+    const ob = playerItem();
+    const below = mapItem();
+    const p: Player = {
+        ob,
+        below,
+        container: null,
+        countLeft: 0,
+        inputState: InputState.Playing,
+        lastCommand: '',
+        inputText: '',
+        ranges: [],
+        readySpell: 0,
+        stats: {
+            Str: 0, Dex: 0, Con: 0, Wis: 0, Cha: 0, Int: 0, Pow: 0,
+            wc: 0, ac: 0, level: 0, hp: 0, maxhp: 0, sp: 0, maxsp: 0,
+            grace: 0, maxgrace: 0, exp: BigInt(0), food: 0, dam: 0,
+            speed: 0, weaponSp: 0, attuned: 0, repelled: 0, denied: 0,
+            flags: 0,
+            resists: new Array(30).fill(0),
+            resistChange: false,
+            skillLevel: new Array(CS_NUM_SKILLS).fill(0),
+            skillExp: new Array(CS_NUM_SKILLS).fill(BigInt(0)),
+            weightLimit: 0,
+            golemHp: 0, golemMaxhp: 0,
+        },
+        spelldata: [],
+        title: '',
+        range: '',
+        spellsUpdated: 0,
+        fireOn: false,
+        runOn: false,
+        metaOn: false,
+        altOn: false,
+        noEcho: false,
+        count: 0,
+        mmapx: 0, mmapy: 0,
+        pmapx: 0, pmapy: 0,
+        magicmap: null,
+        showmagic: 0,
+        mapxres: 0, mapyres: 0,
+        name: '',
+    };
+    cplInstance = p;
+    setCplInItem(p);
+    setCplInPlayer(p);
 }
 
 /**

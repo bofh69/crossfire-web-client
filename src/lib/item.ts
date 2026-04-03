@@ -488,11 +488,16 @@ export function setItemValues(
 
     let resort = true;
     if (name.length > 0) {
-        op.sName = name;
-        // Plural name follows after NUL inside the same buffer when the
-        // server version is ≥ 1024.  In TypeScript the caller is expected
-        // to pass pName separately; default to sName.
-        if (!op.pName || op.pName.length === 0) {
+        // The server sends two NUL‐separated strings in the name buffer:
+        //   singular_name \0 plural_name
+        // In the C code these are split via strlen(name)+1.  In TypeScript
+        // the TextDecoder preserves the NUL, so we split on '\0'.
+        const nulIdx = name.indexOf('\0');
+        if (nulIdx >= 0) {
+            op.sName = name.substring(0, nulIdx);
+            op.pName = name.substring(nulIdx + 1);
+        } else {
+            op.sName = name;
             op.pName = name;
         }
         // Force display‐name rebuild by making nrof differ.
@@ -614,6 +619,20 @@ export function playerItem(): Item {
     player = newItem();
     itemsByTag.delete(0); // clean stale tag‑0 if any
     return player;
+}
+
+/**
+ * Register the player root item in the tag lookup map so that
+ * `locateItem(playerTag)` returns it.  Called by PlayerCmd after the
+ * server tells us the player's tag.
+ */
+export function registerPlayerTag(tag: number): void {
+    // Remove any previous player tag registration.
+    if (player.tag !== 0) {
+        itemsByTag.delete(player.tag);
+    }
+    player.tag = tag;
+    itemsByTag.set(tag, player);
 }
 
 /** (Re‑)initialise and return the map / ground root item. */

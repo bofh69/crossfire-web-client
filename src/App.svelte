@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { clientInit } from './lib/init';
+  import { clientInit, getCpl } from './lib/init';
   import { initCommands } from './lib/p_cmd';
   import { callbacks, playerStats, spells } from './lib/commands';
-  import { locateItem, cpl } from './lib/item';
+  import { locateItem } from './lib/item';
   import { sendReply } from './lib/player';
   import type { Stats } from './lib/protocol';
   import { CS_QUERY_HIDEINPUT } from './lib/protocol';
@@ -124,7 +124,7 @@
   }
 
   function refreshInventory() {
-    const playerRoot = cpl?.ob ?? null;
+    const playerRoot = getCpl()?.ob ?? null;
     const groundRoot = locateItem(0);
     inventory?.updateInventory(playerRoot, groundRoot);
   }

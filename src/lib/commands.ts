@@ -26,10 +26,11 @@ import {
   getCharFromData, getShortFromData, getIntFromData, getInt64FromData,
   getStringFromData, SockList, CrossfireSocket,
 } from './newsocket.js';
-import { locateItem, removeItem, removeItemInventory, updateItem, playerItem, animations, setCSocket as setItemSocket } from './item.js';
+import { locateItem, removeItem, removeItemInventory, updateItem, playerItem, animations, setCSocket as setItemSocket, registerPlayerTag } from './item.js';
 import { mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer, mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space, mapdata_set_check_space, mapdata_clear_old, mapdata_set_size, mapdata_clear_label, mapdata_add_label } from './mapdata.js';
 import { addSmooth, getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
 import { wantConfig, useConfig, resetPlayerData } from './init.js';
+import { newPlayer } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 
@@ -213,8 +214,16 @@ function PlayerCmd(data: DataView, len: number): void {
   const tag = getIntFromData(data, pos); pos += 4;
   const weight = getIntFromData(data, pos); pos += 4;
   const face = getIntFromData(data, pos); pos += 4;
-  const nameResult = parseString(data, pos);
-  LOG(LogLevel.Info, 'PlayerCmd', `Player: ${nameResult.str} tag=${tag}`);
+  const nameLen = getCharFromData(data, pos); pos += 1;
+  const name = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, nameLen);
+  pos += nameLen;
+  if (pos !== len) {
+    LOG(LogLevel.Warning, 'PlayerCmd', `lengths do not match (${pos}!=${len})`);
+  }
+  resetPlayerData();
+  newPlayer(tag, name, weight, face);
+  registerPlayerTag(tag);
+  LOG(LogLevel.Info, 'PlayerCmd', `Player: ${name} tag=${tag}`);
   callbacks.onPlayerUpdate?.();
 }
 
@@ -235,6 +244,7 @@ function Item2Cmd(data: DataView, len: number): void {
     const type = getShortFromData(data, pos); pos += 2;
     updateItem(tag, location, name, weight, face, flags, anim, animSpeed, nrof, type);
   }
+  callbacks.onPlayerUpdate?.();
 }
 
 function UpdateItemCmd(data: DataView, len: number): void {
@@ -244,34 +254,51 @@ function UpdateItemCmd(data: DataView, len: number): void {
   const item = locateItem(tag);
   if (!item) return;
 
+  // Follow the old C pattern: copy all current values, then update only the
+  // fields indicated by updateFlags, and finally call updateItem() which
+  // handles location changes, re-sorting, name parsing, and event firing.
+  let loc = item.env ? item.env.tag : 0;
+  let weight = item.weight * 1000;
+  let face = item.face;
+  let flags = item.flagsval;
+  let anim = item.animationId;
+  let animspeed = item.animSpeed;
+  let nrof = item.nrof;
+  let name = '';
+
   if (updateFlags & UPD_LOCATION) {
-    const loc = getIntFromData(data, pos); pos += 4;
+    loc = getIntFromData(data, pos); pos += 4;
   }
   if (updateFlags & UPD_FLAGS) {
-    const flags = getShortFromData(data, pos); pos += 2;
+    flags = getIntFromData(data, pos); pos += 4;
   }
   if (updateFlags & UPD_WEIGHT) {
-    const weight = getIntFromData(data, pos); pos += 4;
-    item.weight = weight / 1000;
+    weight = getIntFromData(data, pos); pos += 4;
   }
   if (updateFlags & UPD_FACE) {
-    item.face = getIntFromData(data, pos); pos += 4;
+    face = getIntFromData(data, pos); pos += 4;
   }
   if (updateFlags & UPD_NAME) {
     const nameLen = getCharFromData(data, pos); pos += 1;
-    const name = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, nameLen);
+    name = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, nameLen);
     pos += nameLen;
-    item.dName = name;
+  }
+  if (pos > len) {
+    LOG(LogLevel.Warning, 'UpdateItemCmd', `Overread buffer: ${pos} > ${len}`);
+    return;
   }
   if (updateFlags & UPD_ANIM) {
-    item.animationId = getShortFromData(data, pos); pos += 2;
+    anim = getShortFromData(data, pos); pos += 2;
   }
   if (updateFlags & UPD_ANIMSPEED) {
-    item.animSpeed = getCharFromData(data, pos); pos += 1;
+    animspeed = getCharFromData(data, pos); pos += 1;
   }
   if (updateFlags & UPD_NROF) {
-    item.nrof = getIntFromData(data, pos); pos += 4;
+    nrof = getIntFromData(data, pos); pos += 4;
   }
+
+  updateItem(tag, loc, name, weight, face, flags, anim, animspeed, nrof, item.type);
+  callbacks.onPlayerUpdate?.();
 }
 
 function DeleteItemCmd(data: DataView, len: number): void {
@@ -281,6 +308,7 @@ function DeleteItemCmd(data: DataView, len: number): void {
     const item = locateItem(tag);
     if (item) removeItem(item);
   }
+  callbacks.onPlayerUpdate?.();
 }
 
 function DeleteInventoryCmd(data: string): void {
@@ -291,6 +319,7 @@ function DeleteInventoryCmd(data: string): void {
   } else {
     LOG(LogLevel.Warning, 'DeleteInventoryCmd', `Invalid tag: ${tag}`);
   }
+  callbacks.onPlayerUpdate?.();
 }
 
 function AddspellCmd(data: DataView, len: number): void {
