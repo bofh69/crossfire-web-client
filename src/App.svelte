@@ -3,7 +3,7 @@
   import { clientInit, getCpl } from './lib/init';
   import { initCommands } from './lib/p_cmd';
   import { callbacks, playerStats, spells } from './lib/commands';
-  import { locateItem } from './lib/item';
+  import { locateItem, animateObjects } from './lib/item';
   import { sendReply } from './lib/player';
   import {
     keybindingsInit, setKeyCallbacks, parseKey, parseKeyRelease,
@@ -11,6 +11,7 @@
   } from './lib/keys';
   import type { Stats } from './lib/protocol';
   import { InputState, CS_QUERY_HIDEINPUT } from './lib/protocol';
+  import { mapdata_animation } from './lib/mapdata';
   import Login from './components/Login.svelte';
   import GameMap from './components/GameMap.svelte';
   import InfoPanel from './components/InfoPanel.svelte';
@@ -245,6 +246,9 @@
     };
 
     callbacks.onTick = (_tickNo: number) => {
+      mapdata_animation();
+      animateObjects();
+      gameMap?.redrawMap();
       refreshInventory();
     };
 

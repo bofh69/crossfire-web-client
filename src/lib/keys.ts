@@ -207,13 +207,6 @@ function loadDefaultBindings(): void {
         ['ArrowLeft',  'A', 'west'],
         ['ArrowRight', 'A', 'east'],
 
-        // Numpad (numlock on — digit chars)
-        ['8', 'A', 'north'],     ['2', 'A', 'south'],
-        ['4', 'A', 'west'],      ['6', 'A', 'east'],
-        ['7', 'A', 'northwest'], ['9', 'A', 'northeast'],
-        ['5', 'A', 'stay'],      ['1', 'A', 'southwest'],
-        ['3', 'A', 'southeast'],
-
         // Nav cluster / numpad (numlock off)
         ['Home',     'A', 'northwest'], ['End',      'A', 'southwest'],
         ['PageUp',   'A', 'northeast'], ['PageDown', 'A', 'southeast'],
