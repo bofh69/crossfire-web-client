@@ -13,6 +13,7 @@
   import { InputState, CS_QUERY_HIDEINPUT, CONFIG_SERVER_TICKS } from './lib/protocol';
   import { useConfig } from './lib/init';
   import { mapdata_animation } from './lib/mapdata';
+  import { initSound, stopAll as stopAllSound } from './lib/sound';
   import Login from './components/Login.svelte';
   import GameMap from './components/GameMap.svelte';
   import InfoPanel from './components/InfoPanel.svelte';
@@ -190,6 +191,7 @@
     appState = 'playing';
     serverDisconnected = false;
     wireCallbacks();
+    initSound();
   }
 
   function handleDisconnect() {
@@ -198,6 +200,9 @@
       clearInterval(selfTickTimer);
       selfTickTimer = null;
     }
+
+    // Stop all sound/music
+    stopAllSound();
 
     // Clear callbacks to avoid stale references
     callbacks.onDrawInfo = undefined;
