@@ -603,7 +603,15 @@ function VersionCmd(data: string): void {
 
 function ReplyInfoCmd(data: DataView, len: number): void {
   const bytes = new Uint8Array(data.buffer, data.byteOffset, len);
-  const spaceIdx = bytes.indexOf(32); // space
+  // The separator between the info type and its data can be either a space or
+  // a newline, depending on what the server sends (mirrors the C client logic).
+  let spaceIdx = -1;
+  for (let i = 0; i < len; i++) {
+    if (bytes[i] === 32 /* space */ || bytes[i] === 10 /* newline */) {
+      spaceIdx = i;
+      break;
+    }
+  }
   if (spaceIdx < 0) return;
   const infoType = getStringFromData(bytes, 0, spaceIdx);
 

@@ -17,10 +17,10 @@
   export function updateSkills(stats: Stats) {
     const entries: SkillEntry[] = [];
     for (let i = 0; i < stats.skillLevel.length; i++) {
-      if (stats.skillLevel[i] > 0 && skillNames[i]) {
+      if (stats.skillLevel[i] > 0) {
         entries.push({
           index: i,
-          name: skillNames[i],
+          name: skillNames[i] || `skill_${i}`,
           level: stats.skillLevel[i],
           exp: stats.skillExp[i],
         });
