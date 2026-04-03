@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { skillNames } from '../lib/commands';
-  import { playerStats } from '../lib/commands';
+  import { skillNames, playerStats, expBarPercent } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
   import { extendedCommand } from '../lib/p_cmd';
 
@@ -9,7 +8,7 @@
     index: number;
     name: string;
     level: number;
-    exp: string;
+    exp: bigint;
   }
 
   let skills: SkillEntry[] = $state([]);
@@ -23,7 +22,7 @@
           index: i,
           name: skillNames[i] || `skill_${i}`,
           level: stats.skillLevel[i],
-          exp: stats.skillExp[i].toString(),
+          exp: stats.skillExp[i],
         });
       }
     }
@@ -77,7 +76,10 @@
             <tr oncontextmenu={(e: MouseEvent) => handleContextMenu(e, skill)}>
               <td class="skill-name">{skill.name}</td>
               <td>{skill.level}</td>
-              <td>{skill.exp}</td>
+              <td class="exp-cell">
+                <div class="exp-bar" style:width="{expBarPercent(skill.exp, skill.level)}%"></div>
+                <span class="exp-text">{skill.exp.toString()}</span>
+              </td>
             </tr>
           {/each}
         </tbody>
@@ -163,6 +165,23 @@
 
   .skill-name {
     color: #aaffaa;
+  }
+
+  .exp-cell {
+    position: relative;
+    min-width: 60px;
+  }
+
+  .exp-bar {
+    position: absolute;
+    inset: 0;
+    background: rgba(180, 140, 40, 0.28);
+    pointer-events: none;
+  }
+
+  .exp-text {
+    position: relative;
+    z-index: 1;
   }
 
   .context-menu {

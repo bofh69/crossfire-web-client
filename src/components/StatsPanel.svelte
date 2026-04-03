@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { expTable, expBarPercent } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
 
   let stats: Stats = $state({
@@ -30,6 +31,8 @@
   let spPercent = $derived(barPercent(stats.sp, stats.maxsp));
   let gracePercent = $derived(barPercent(stats.grace, stats.maxgrace));
   let foodPercent = $derived(barPercent(stats.food, 999));
+  // expTable is a plain array mutated on login; re-evaluated whenever stats updates.
+  let expPercent = $derived(expBarPercent(stats.exp, stats.level));
 </script>
 
 <div class="stats-panel">
@@ -96,6 +99,12 @@
     </div>
     <div class="stat-row">
       <span>Exp</span><span>{stats.exp.toString()}</span>
+    </div>
+    <div class="bar-row exp-bar-row">
+      <div class="bar-track">
+        <div class="bar-fill" style:width="{expPercent}%" style:background="#ddaa44"></div>
+      </div>
+      <span class="bar-value exp-bar-label">{expTable.length > 0 ? `Lv ${stats.level}` : ''}</span>
     </div>
   </div>
 </div>
@@ -197,4 +206,14 @@
   .stat-row span:last-child {
     color: #ddd;
   }
-</style>
+
+  .exp-bar-row {
+    margin-top: 0.1rem;
+  }
+
+  .exp-bar-label {
+    width: 36px;
+    font-size: 0.7rem;
+    color: #aaa;
+    text-align: right;
+  }</style>

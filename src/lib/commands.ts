@@ -98,6 +98,29 @@ export const spells: Spell[] = [];
  */
 export const skillNames: string[] = new Array(CS_NUM_SKILLS).fill('');
 
+/**
+ * Experience table populated from the server's exp_table reply.
+ * expTable[level] is the total experience required to reach that level.
+ * expTable[0] = 0n (level 0 requires 0 exp, used as base for level 1).
+ * expTable[1] is the exp needed for level 1, expTable[2] for level 2, etc.
+ */
+export const expTable: bigint[] = [];
+
+/**
+ * Compute the 0–100 progress percentage of `exp` within the current level band.
+ * Returns 100 if the player is at the maximum known level.
+ */
+export function expBarPercent(exp: bigint, level: number): number {
+  if (expTable.length < 2 || level <= 0) return 0;
+  const curIdx = Math.min(level, expTable.length - 1);
+  const curLevelExp = expTable[curIdx];
+  if (curIdx + 1 >= expTable.length) return 100; // at or beyond max level
+  const nextLevelExp = expTable[curIdx + 1];
+  if (nextLevelExp <= curLevelExp) return 100;
+  const ratio = Number(exp - curLevelExp) / Number(nextLevelExp - curLevelExp);
+  return Math.max(0, Math.min(100, ratio * 100));
+}
+
 /** Text decoder for binary data */
 const textDecoder = new TextDecoder();
 
@@ -604,6 +627,21 @@ function ReplyInfoCmd(data: DataView, len: number): void {
     }
     // Notify the UI so skill names are shown immediately (stats may already be set).
     callbacks.onStatsUpdate?.(playerStats);
+  } else if (infoType === 'exp_table') {
+    // Binary format: 2-byte uint16 (max level count N), then N×8-byte int64 values
+    // for levels 1..N.  expTable[0]=0n is the implicit base; expTable[level] is the
+    // total experience required to reach that level.
+    const rest = bytes.subarray(spaceIdx + 1);
+    if (rest.length < 2) return;
+    const dv = new DataView(rest.buffer, rest.byteOffset, rest.byteLength);
+    const maxLevel = dv.getUint16(0, false);
+    expTable.length = 0;
+    expTable.push(BigInt(0)); // level 0 base
+    for (let level = 1; level <= maxLevel; level++) {
+      const pos = 2 + (level - 1) * 8;
+      if (pos + 8 > rest.length) break;
+      expTable.push(dv.getBigInt64(pos, false));
+    }
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }
