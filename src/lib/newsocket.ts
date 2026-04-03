@@ -276,6 +276,11 @@ export class CrossfireSocket {
       return;
     }
 
+    const t0 = performance.now();
     this.onPacket?.(payload);
+    const elapsed = performance.now() - t0;
+    if (elapsed > 5) {
+      console.warn(`[perf:ws] onPacket callback took ${elapsed.toFixed(1)}ms for ${payload.length}B message (#${this.commandReceived})`);
+    }
   }
 }

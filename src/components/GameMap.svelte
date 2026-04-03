@@ -9,8 +9,31 @@
   let canvas: HTMLCanvasElement | undefined = $state();
   let mapVersion = $state(0);
 
+  /** Whether a requestAnimationFrame callback is already pending. */
+  let rafPending = false;
+  /** Number of redraw requests coalesced into the current rAF frame. */
+  let pendingRedrawCount = 0;
+  /** Running count of draw calls for stats logging. */
+  let drawCount = 0;
+  /** Timestamp of the last stats log. */
+  let lastStatsTime = performance.now();
+
+  function scheduleRedraw() {
+    pendingRedrawCount++;
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(() => {
+      rafPending = false;
+      if (pendingRedrawCount > 1) {
+        console.debug(`[perf:map] coalesced ${pendingRedrawCount} redraw requests into 1 frame`);
+      }
+      pendingRedrawCount = 0;
+      mapVersion++;
+    });
+  }
+
   export function redrawMap() {
-    mapVersion++;
+    scheduleRedraw();
   }
 
   $effect(() => {
@@ -21,6 +44,8 @@
   });
 
   function drawMap(c: HTMLCanvasElement) {
+    const t0 = performance.now();
+    performance.mark('drawMap-start');
     const ctx = c.getContext('2d');
     if (!ctx) return;
 
@@ -33,11 +58,17 @@
     ctx.fillStyle = '#111';
     ctx.fillRect(0, 0, canvasW, canvasH);
 
+    let tilesDrawn = 0;
+    let imagesDrawn = 0;
+    let placeholders = 0;
+    let loadsStarted = 0;
+
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const cell = mapdata_cell(x, y);
         if (cell.state === MapCellState.Empty) continue;
 
+        tilesDrawn++;
         const px = x * TILE_SIZE;
         const py = y * TILE_SIZE;
 
@@ -59,16 +90,20 @@
             if (img) {
               // Only draw once the image is fully decoded.
               ctx.drawImage(img, px, py, TILE_SIZE, TILE_SIZE);
+              imagesDrawn++;
             } else {
               // Kick off a background load; draw a placeholder for now.
+              if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
               loadImage(url);
               ctx.fillStyle = layer === 0 ? '#222' : '#333';
               ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+              placeholders++;
             }
           } else {
             // Face URL not yet known – draw placeholder.
             ctx.fillStyle = layer === 0 ? '#222' : '#333';
             ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+            placeholders++;
           }
         }
 
@@ -79,6 +114,25 @@
           ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         }
       }
+    }
+
+    performance.mark('drawMap-end');
+    performance.measure('drawMap', 'drawMap-start', 'drawMap-end');
+    const elapsed = performance.now() - t0;
+    drawCount++;
+
+    // Log per-draw stats if it took a noticeable amount of time
+    if (elapsed > 5) {
+      console.warn(`[perf:map] drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders} loadsStarted:${loadsStarted}`);
+    }
+
+    // Periodic aggregate stats every 5 seconds
+    const now = performance.now();
+    if (now - lastStatsTime > 5000) {
+      const dt = (now - lastStatsTime) / 1000;
+      console.info(`[perf:map] ${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), imageCache:${imageCache.size} loading:${loadingUrls.size} failed:${failedUrls.size}`);
+      drawCount = 0;
+      lastStatsTime = now;
     }
   }
 
@@ -92,14 +146,20 @@
     if (imageCache.has(url) || loadingUrls.has(url) || failedUrls.has(url)) return;
     loadingUrls.add(url);
     const img = new Image();
+    const loadStart = performance.now();
     img.onload = () => {
+      const elapsed = performance.now() - loadStart;
       loadingUrls.delete(url);
       imageCache.set(url, img);
-      mapVersion++;
+      if (elapsed > 100) {
+        console.debug(`[perf:map] image load took ${elapsed.toFixed(0)}ms: ${url}`);
+      }
+      scheduleRedraw();
     };
     img.onerror = () => {
       loadingUrls.delete(url);
       failedUrls.add(url);
+      console.warn(`[perf:map] image load failed: ${url}`);
     };
     img.src = url;
   }

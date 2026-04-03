@@ -347,6 +347,8 @@ function NewmapCmd(): void {
 }
 
 function Map2Cmd(data: DataView, len: number): void {
+  const t0 = performance.now();
+  let tileCount = 0;
   let pos = 0;
   while (pos < len) {
     const mask = getShortFromData(data, pos); pos += 2;
@@ -364,6 +366,7 @@ function Map2Cmd(data: DataView, len: number): void {
     const cy = Math.max(0, Math.min(y, MAX_VIEW - 1));
 
     mapdata_clear_old(cx, cy);
+    tileCount++;
 
     // Inner loop: read per-tile type bytes until the 255 end-of-space marker.
     while (pos < len) {
@@ -423,6 +426,10 @@ function Map2Cmd(data: DataView, len: number): void {
         }
       }
     }
+  }
+  const elapsed = performance.now() - t0;
+  if (elapsed > 1 || tileCount > 10) {
+    LOG(LogLevel.Debug, 'perf:map2', `parsed ${tileCount} tiles from ${len}B in ${elapsed.toFixed(1)}ms`);
   }
   callbacks.onMapUpdate?.();
 }
@@ -587,6 +594,7 @@ const commandTable = new Map<string, CommandEntry>([
  * The raw packet is: command_name (ASCII) + space + binary/text data
  */
 export function dispatchPacket(packet: ArrayBuffer): void {
+  const t0 = performance.now();
   const bytes = new Uint8Array(packet);
   // Find the space separating command name from data
   let spaceIdx = bytes.indexOf(32); // ASCII space
@@ -620,5 +628,10 @@ export function dispatchPacket(packet: ArrayBuffer): void {
       LOG(LogLevel.Debug, 'RX', cmdName);
       (entry.handler as NoArgHandler)();
       break;
+  }
+
+  const elapsed = performance.now() - t0;
+  if (elapsed > 2) {
+    LOG(LogLevel.Warning, 'perf:dispatch', `${cmdName} handler took ${elapsed.toFixed(1)}ms (${dataLen}B)`);
   }
 }
