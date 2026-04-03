@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { mapdata_cell, mapdata_size } from '../lib/mapdata';
+  import { mapdata_cell, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { MapCellState, MAXLAYERS } from '../lib/protocol';
@@ -49,9 +49,16 @@
     const ctx = c.getContext('2d');
     if (!ctx) return;
 
-    const { width, height } = mapdata_size();
-    const canvasW = width * TILE_SIZE;
-    const canvasH = height * TILE_SIZE;
+    // Use the view dimensions (e.g. 20×20) instead of the full fog map.
+    const view = getViewSize();
+    const vw = view.width || 1;
+    const vh = view.height || 1;
+
+    // The player position gives the top-left of the view on the fog map.
+    const plPos = getPlayerPosition();
+
+    const canvasW = vw * TILE_SIZE;
+    const canvasH = vh * TILE_SIZE;
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
 
@@ -63,14 +70,20 @@
     let placeholders = 0;
     let loadsStarted = 0;
 
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const cell = mapdata_cell(x, y);
+    // Iterate over the view-relative coordinates.
+    // The player is at the centre: (vw/2, vh/2).
+    for (let vy = 0; vy < vh; vy++) {
+      for (let vx = 0; vx < vw; vx++) {
+        // Absolute coordinates on the fog map.
+        const ax = plPos.x + vx;
+        const ay = plPos.y + vy;
+
+        const cell = mapdata_cell(ax, ay);
         if (cell.state === MapCellState.Empty) continue;
 
         tilesDrawn++;
-        const px = x * TILE_SIZE;
-        const py = y * TILE_SIZE;
+        const px = vx * TILE_SIZE;
+        const py = vy * TILE_SIZE;
 
         // Draw fog as slightly lighter
         if (cell.state === MapCellState.Fog) {
@@ -88,11 +101,9 @@
           if (url) {
             const img = imageCache.get(url);
             if (img) {
-              // Only draw once the image is fully decoded.
               ctx.drawImage(img, px, py, TILE_SIZE, TILE_SIZE);
               imagesDrawn++;
             } else {
-              // Kick off a background load; draw a placeholder for now.
               if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
               loadImage(url);
               ctx.fillStyle = layer === 0 ? '#222' : '#333';
@@ -100,7 +111,6 @@
               placeholders++;
             }
           } else {
-            // Face URL not yet known – draw placeholder.
             ctx.fillStyle = layer === 0 ? '#222' : '#333';
             ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
             placeholders++;
@@ -121,12 +131,10 @@
     const elapsed = performance.now() - t0;
     drawCount++;
 
-    // Log per-draw stats if it took a noticeable amount of time
     if (elapsed > 5) {
       console.warn(`[perf:map] drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders} loadsStarted:${loadsStarted}`);
     }
 
-    // Periodic aggregate stats every 5 seconds
     const now = performance.now();
     if (now - lastStatsTime > 5000) {
       const dt = (now - lastStatsTime) / 1000;
@@ -169,9 +177,10 @@
     const rect = canvas.getBoundingClientRect();
     const tileX = Math.floor((e.clientX - rect.left) / TILE_SIZE);
     const tileY = Math.floor((e.clientY - rect.top) / TILE_SIZE);
-    const { width, height } = mapdata_size();
-    const centerX = Math.floor(width / 2);
-    const centerY = Math.floor(height / 2);
+    const view = getViewSize();
+    // Player is always at the centre of the view.
+    const centerX = Math.floor(view.width / 2);
+    const centerY = Math.floor(view.height / 2);
     const dx = tileX - centerX;
     const dy = tileY - centerY;
     lookAt(dx, dy);
