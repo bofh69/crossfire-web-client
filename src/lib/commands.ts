@@ -66,6 +66,7 @@ export interface CommandCallbacks {
   onAddMeFail?: () => void;
   onVersion?: (csVersion: number, scVersion: number, versionString: string) => void;
   onDisconnect?: () => void;
+  onReplyInfo?: (infoType: string, text: string) => void;
 }
 
 export const callbacks: CommandCallbacks = {};
@@ -222,8 +223,12 @@ function StatsCmd(data: DataView, len: number): void {
       case CS_STAT_TITLE: {
         // 1-byte length prefix + string (not null-terminated)
         const tlen = getCharFromData(data, pos); pos += 1;
-        playerStats.title = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, tlen);
+        let titleStr = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, tlen);
         pos += tlen;
+        if (titleStr.startsWith('Player: ')) {
+          titleStr = titleStr.slice('Player: '.length);
+        }
+        playerStats.title = titleStr;
         break;
       }
       default:
@@ -248,8 +253,13 @@ function StatsCmd(data: DataView, len: number): void {
 function handleQuery(data: string): void {
   const spaceIdx = data.indexOf(' ');
   const flags = spaceIdx > 0 ? parseInt(data.substring(0, spaceIdx)) : 0;
-  const prompt = (spaceIdx > 0 ? data.substring(spaceIdx + 1) : data).trim();
-  callbacks.onQuery?.(flags, prompt);
+  let prompt = spaceIdx > 0 ? data.substring(spaceIdx + 1) : data;
+  // Server sometimes appends "\n:" as a colon-prompt on a new line; strip it
+  // when there is more text before it.
+  if (prompt.endsWith('\n:') && prompt.length > 2) {
+    prompt = prompt.slice(0, -2);
+  }
+  callbacks.onQuery?.(flags, prompt.trim());
 }
 
 function PlayerCmd(data: DataView, len: number): void {
@@ -655,6 +665,9 @@ function ReplyInfoCmd(data: DataView, len: number): void {
       if (pos + 8 > rest.length) break;
       expTable.push(dv.getBigInt64(pos, false));
     }
+  } else if (infoType === 'motd' || infoType === 'news' || infoType === 'rules') {
+    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
+    callbacks.onReplyInfo?.(infoType, text);
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }
