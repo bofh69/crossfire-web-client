@@ -72,6 +72,9 @@ function commandHelp(args: string): void {
     if (target) {
         LOG(LogLevel.Info, "p_cmd::help",
             `${target.name}: ${target.description ?? "(no description)"}`);
+        if (target.longDescription) {
+            LOG(LogLevel.Info, "p_cmd::help", target.longDescription);
+        }
     } else {
         LOG(LogLevel.Info, "p_cmd::help",
             `Unknown command '${args.trim()}'. Type 'help' for a list.`);
@@ -115,7 +118,35 @@ function commandSaveDefaults(_args: string): void {
 // ---------------------------------------------------------------------------
 
 const builtinCommands: ConsoleCommand[] = [
-    { name: "bind",         category: CommCat.Setup, description: "Bind a key to a command",       handler: commandBind },
+    {
+        name: "bind",
+        category: CommCat.Setup,
+        description: "Bind a key to a command",
+        longDescription:
+            "Syntax:\n" +
+            "  bind [options] <command>\n" +
+            "\n" +
+            "Options:\n" +
+            "  -e   enter edit mode when key is pressed (pre-fills command input)\n" +
+            "  -i   ignore modifiers — binding works regardless of Shift/Ctrl/Alt\n" +
+            "  -n   bind for normal mode (no modifier keys)\n" +
+            "  -f   bind for fire mode (Shift held)\n" +
+            "  -r   bind for run mode (Alt held)\n" +
+            "  -a   bind for alt mode (Ctrl held)\n" +
+            "  -m   bind for meta mode (Meta/Win key held)\n" +
+            "  -g   global scope (ignored in web client)\n" +
+            "\n" +
+            "Without -n/-f/-r/-a/-m, modifiers are read from the keyboard when\n" +
+            "you press the key to bind.  With those flags the modifier combination\n" +
+            "is set explicitly, so you do not need to hold any keys.\n" +
+            "\n" +
+            "Examples:\n" +
+            "  bind -f cast fireball\n" +
+            "    Then press F3 → binds Shift+F3 to 'cast fireball' (fire mode)\n" +
+            "  bind -e shout \n" +
+            "    Then press \" → pre-fills 'shout' in the command input",
+        handler: commandBind,
+    },
     { name: "help",         category: CommCat.Misc,  description: "Show help on commands",         handler: commandHelp },
     { name: "inv",          category: CommCat.Debug, description: "Show inventory",                handler: commandInv },
     { name: "inventory",    category: CommCat.Debug, description: "Show inventory (alias)",        handler: commandInv },
@@ -123,7 +154,17 @@ const builtinCommands: ConsoleCommand[] = [
     { name: "resetkeys",    category: CommCat.Setup, description: "Reset key bindings to defaults",handler: commandResetKeys },
     { name: "savedefaults", category: CommCat.Setup, description: "Save current configuration",   handler: commandSaveDefaults },
     { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",   handler: commandTake },
-    { name: "unbind",       category: CommCat.Setup, description: "Remove a key binding",         handler: commandUnbind },
+    {
+        name: "unbind",
+        category: CommCat.Setup,
+        description: "Remove a key binding",
+        longDescription:
+            "Syntax:\n" +
+            "  unbind              — list all current bindings with indices\n" +
+            "  unbind <number>     — remove the binding at the given index\n" +
+            "  unbind <key>        — remove all bindings for the named key",
+        handler: commandUnbind,
+    },
 ];
 
 // ---------------------------------------------------------------------------
