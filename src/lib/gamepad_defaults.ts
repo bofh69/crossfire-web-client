@@ -54,7 +54,7 @@ export interface GamepadProfile {
 
 const xboxProfile: GamepadProfile = {
     name: "Xbox One Controller",
-    matchId: "Microsoft X-Box One pad",
+    matchId: "Microsoft Controller",
     walkStick: { axisX: 0, axisY: 1 },
     fireStick: { axisX: 2, axisY: 3 },
     walkThreshold: 0.2,
@@ -111,8 +111,11 @@ export function findProfileForGamepad(gamepadId: string): GamepadProfile {
     const lower = gamepadId.toLowerCase();
     for (const profile of defaultProfiles) {
         if (lower.includes(profile.matchId.toLowerCase())) {
+            console.log(lower + " matched with: ", profile.matchId)
             return structuredClone(profile);
         }
     }
+    console.log(lower + " didn't match a default profile")
+
     return structuredClone(fallbackProfile);
 }
