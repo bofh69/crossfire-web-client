@@ -34,14 +34,24 @@ let drun = -1;
 /** Last command string sent (for dedup). */
 let lastCommand = "";
 
-// ── Key-repeat throttle ──────────────────────────────────────────────────────
+// ── Key-repeat throttle (comc-ack based) ────────────────────────────────────
 
-/** Monotonically-increasing tick counter, advanced by notifyTick(). */
-let currentTick = 0;
-/** Command that was last allowed through the repeat throttle. */
-let repeatThrottleCmd = "";
-/** Tick number at which repeatThrottleCmd was last sent. */
-let repeatThrottleTick = -1;
+/**
+ * The command string currently being throttled during key-repeat.
+ * Reset to "" when the key is released or a different command is sent.
+ */
+let repeatPendingCmd = "";
+/**
+ * The ncom packet sequence number that was sent for the last repeat of
+ * repeatPendingCmd.  We wait for the server to ack this via comc before
+ * allowing another repeat of the same command.  -1 means "not yet sent".
+ */
+let repeatPendingSeq = -1;
+/**
+ * The most recent ncom packet sequence number acknowledged by the server
+ * via a comc response.  -1 means no ack has been received yet.
+ */
+let lastNcomAcked = -1;
 
 // ── Module wiring ────────────────────────────────────────────────────────────
 
@@ -226,37 +236,57 @@ export function getLastCommand(): string {
     return lastCommand;
 }
 
-// ── Key-repeat throttle ──────────────────────────────────────────────────────
+// ── Key-repeat throttle (comc-ack based) ────────────────────────────────────
 
 /**
- * Advance the tick counter.  Must be called once per server tick (or
- * self-tick).  This allows one queued repeat of each command per tick.
+ * Record that the server has acknowledged a ncom packet.
+ * Called by the `comc` command handler with the packet number from the server.
  */
-export function notifyTick(): void {
-    currentTick++;
+export function notifyNcomAck(seq: number): void {
+    lastNcomAcked = seq;
 }
 
 /**
- * Check whether a key-repeat event for `cmd` should be forwarded this tick.
- * Returns true (and records the send) the first time `cmd` is attempted in
- * the current tick, or whenever `cmd` differs from the previous repeat command.
- * Returns false when the same command has already been sent in this tick.
+ * Check whether a key-repeat event for `cmd` should be forwarded.
+ *
+ * Returns true (and clears the pending sequence) when:
+ *  - The command differs from the one currently being throttled (new key), or
+ *  - The server has already acknowledged the previous ncom for this command.
+ *
+ * Returns false (drop) when the same command is still in-flight (no comc yet).
  */
 export function checkRepeatThrottle(cmd: string): boolean {
-    if (cmd === repeatThrottleCmd && currentTick === repeatThrottleTick) {
-        return false; // same command, same tick → throttle
+    if (cmd !== repeatPendingCmd) {
+        // Different command: allow and start tracking the new one.
+        repeatPendingCmd = cmd;
+        repeatPendingSeq = -1;
+        return true;
     }
-    repeatThrottleCmd = cmd;
-    repeatThrottleTick = currentTick;
-    return true;
+    // Same command: allow only if no ack is expected (first repeat) or the
+    // previous ncom has already been acknowledged.
+    if (repeatPendingSeq === -1 || lastNcomAcked === repeatPendingSeq) {
+        return true;
+    }
+    return false; // still waiting for comc ack
+}
+
+/**
+ * Record the ncom packet sequence number that was just sent for the current
+ * repeat command.  Must be called immediately after a successful send so we
+ * know which comc ack to wait for.
+ */
+export function recordRepeatSend(): void {
+    if (csocket) {
+        repeatPendingSeq = csocket.commandSent;
+    }
 }
 
 /**
  * Reset the key-repeat throttle.  Call this when the player releases a key
- * so that immediately re-pressing the same key within the same tick still
- * sends the command right away.
+ * so that immediately re-pressing the same key sends the command right away
+ * without waiting for the comc ack.
  */
 export function resetRepeatThrottle(): void {
-    repeatThrottleCmd = "";
-    repeatThrottleTick = -1;
+    repeatPendingCmd = "";
+    repeatPendingSeq = -1;
 }

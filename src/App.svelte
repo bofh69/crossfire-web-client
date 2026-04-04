@@ -4,7 +4,7 @@
   import { initCommands } from './lib/p_cmd';
   import { callbacks, playerStats, spells } from './lib/commands';
   import { locateItem, animateObjects } from './lib/item';
-  import { sendReply, notifyTick } from './lib/player';
+  import { sendReply } from './lib/player';
   import {
     keybindingsInit, setKeyCallbacks, parseKey, parseKeyRelease,
     configureKeys, handleFocusLost,
@@ -303,7 +303,6 @@
     };
 
     callbacks.onTick = (_tickNo: number) => {
-      notifyTick();
       mapdata_animation();
       animateObjects();
       gameMap?.redrawMap();
@@ -314,7 +313,6 @@
     // animations with a local 8 fps timer (matching the old C client).
     if (!useConfig[CONFIG_SERVER_TICKS]) {
       selfTickTimer = setInterval(() => {
-        notifyTick();
         mapdata_animation();
         animateObjects();
         gameMap?.redrawMap();

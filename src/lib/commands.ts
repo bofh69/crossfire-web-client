@@ -30,7 +30,7 @@ import { locateItem, removeItem, removeItemInventory, updateItem, playerItem, an
 import { mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer, mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space, mapdata_set_check_space, mapdata_clear_old, mapdata_set_size, mapdata_clear_label, mapdata_add_label } from './mapdata.js';
 import { addSmooth, getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
 import { wantConfig, useConfig, resetPlayerData, getCpl } from './init.js';
-import { newPlayer } from './player.js';
+import { newPlayer, notifyNcomAck } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { playSound, playMusic } from './sound.js';
@@ -551,6 +551,20 @@ function TickCmd(data: DataView, _len: number): void {
   callbacks.onTick?.(tickNo);
 }
 
+/**
+ * Handle a `comc` packet from the server.
+ * The server sends this to acknowledge a previously received ncom packet.
+ * Payload: 2-byte packet sequence number + 4-byte command time (ignored here).
+ */
+function ComcCmd(data: DataView, len: number): void {
+  if (len < 2) {
+    LOG(LogLevel.Error, 'ComcCmd', `Invalid comc length ${len} - ignoring`);
+    return;
+  }
+  const seq = getShortFromData(data, 0);
+  notifyNcomAck(seq);
+}
+
 function PickupCmd(data: DataView, _len: number): void {
   const mode = getIntFromData(data, 0);
   LOG(LogLevel.Debug, 'PickupCmd', `Pickup mode: ${mode}`);
@@ -766,6 +780,7 @@ const commandTable = new Map<string, CommandEntry>([
   ['map_scroll', { type: 'text', handler: mapScrollCmd }],
   ['magicmap', { type: 'binary', handler: MagicMapCmd }],
   ['tick', { type: 'binary', handler: TickCmd }],
+  ['comc', { type: 'binary', handler: ComcCmd }],
   ['pickup', { type: 'binary', handler: PickupCmd }],
   ['failure', { type: 'text', handler: FailureCmd }],
   ['accountplayers', { type: 'text', handler: AccountPlayersCmd }],
