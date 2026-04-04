@@ -89,6 +89,7 @@ export const playerStats: Stats = {
   weightLimit: 0,
   golemHp: 0, golemMaxhp: 0,
   range: '',
+  title: '',
 };
 
 /** Known spells */
@@ -221,6 +222,7 @@ function StatsCmd(data: DataView, len: number): void {
       case CS_STAT_TITLE: {
         // 1-byte length prefix + string (not null-terminated)
         const tlen = getCharFromData(data, pos); pos += 1;
+        playerStats.title = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, tlen);
         pos += tlen;
         break;
       }

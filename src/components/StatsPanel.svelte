@@ -11,6 +11,7 @@
     skillLevel: new Array(50).fill(0), skillExp: new Array(50).fill(BigInt(0)),
     weightLimit: 0, golemHp: 0, golemMaxhp: 0,
     range: '',
+    title: '',
   });
 
   export function updateStats(newStats: Partial<Stats>) {
@@ -37,7 +38,7 @@
 </script>
 
 <div class="stats-panel">
-  <h3>Stats</h3>
+  <h3>Stats{stats.title ? ` - ${stats.title}` : ''}</h3>
 
   <div class="bars">
     <div class="bar-row">

@@ -359,6 +359,31 @@
     </div>
     <div class="map-area">
       <GameMap bind:this={gameMap} />
+      {#if gameQueryPrompt}
+        <div class="query-overlay">
+          <div class="query-box">
+            <p class="query-text" aria-live="polite">{gameQueryPrompt}</p>
+            {#if gameQueryYesNo}
+              <div class="yesno-buttons">
+                <button aria-keyshortcuts="y" onclick={() => sendGameQueryReply('y')}>Yes</button>
+                <button aria-keyshortcuts="n" onclick={() => sendGameQueryReply('n')}>No</button>
+              </div>
+            {:else}
+              <label>
+                <input
+                  type={gameQueryHidden ? 'password' : 'text'}
+                  bind:value={gameQueryInput}
+                  bind:this={gameQueryInputEl}
+                  onkeydown={handleGameQueryKeydown}
+                />
+              </label>
+              {#if !gameQuerySingleChar}
+                <button onclick={handleGameQuerySubmit}>Submit</button>
+              {/if}
+            {/if}
+          </div>
+        </div>
+      {/if}
     </div>
     <div class="side-area">
       <div class="stats-section">
@@ -386,32 +411,6 @@
     </div>
   </div>
 
-  {#if gameQueryPrompt}
-    <div class="query-overlay">
-      <div class="query-box">
-        <p class="query-text" aria-live="polite">{gameQueryPrompt}</p>
-        {#if gameQueryYesNo}
-          <div class="yesno-buttons">
-            <button aria-keyshortcuts="y" onclick={() => sendGameQueryReply('y')}>Yes</button>
-            <button aria-keyshortcuts="n" onclick={() => sendGameQueryReply('n')}>No</button>
-          </div>
-        {:else}
-          <label>
-            <input
-              type={gameQueryHidden ? 'password' : 'text'}
-              bind:value={gameQueryInput}
-              bind:this={gameQueryInputEl}
-              onkeydown={handleGameQueryKeydown}
-            />
-          </label>
-          {#if !gameQuerySingleChar}
-            <button onclick={handleGameQuerySubmit}>Submit</button>
-          {/if}
-        {/if}
-      </div>
-    </div>
-  {/if}
-
   {#if serverDisconnected}
     <div class="disconnect-overlay">
       <div class="disconnect-box">
@@ -424,16 +423,17 @@
 
 <style>
   .query-overlay {
-    position: fixed;
+    position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     background: rgba(0, 0, 0, 0.325);
     z-index: 100;
   }
 
   .query-box {
+    position: absolute;
+    top: calc(50% + 48px);
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -442,7 +442,6 @@
     background: #1e1e1e;
     border: 1px solid #7a6a4a;
     border-radius: 6px;
-    margin-top: 32px;
   }
 
   .query-box .query-text {
