@@ -52,13 +52,12 @@ const AXIS_CONFIG_CENTER_THRESHOLD = 0.3;
 const HYSTERESIS = 0.1;
 
 /**
- * When the main axis is above the walk threshold but the secondary axis
- * is below it, still count as a diagonal if the secondary axis is at
- * least this fraction of the walk threshold.
- * E.g. with walkThreshold=0.2 and DIAGONAL_RATIO=0.75, a secondary axis
- * value of 0.15 (≥ 0.2 × 0.75 = 0.15) qualifies for diagonal.
+ * Half-width of the angular hysteresis band on each side of a sector boundary.
+ * The stick must move this far past the 22.5° boundary before the direction
+ * changes, preventing rapid alternation between adjacent directions near the
+ * boundary.  7.5° = π/24 radians.
  */
-const DIAGONAL_RATIO = 0.75;
+const ANGLE_HYSTERESIS = Math.PI / 24;
 
 /**
  * Delay (in milliseconds) before sending a walk command from the gamepad.
@@ -88,44 +87,52 @@ export function directionName(dir: number): string {
 }
 
 /**
- * Convert an (x, y) analog stick position to a direction index 0–8,
- * with relaxed diagonal detection.
+ * Convert an (x, y) analog stick position to a direction index 0–8, using
+ * polar coordinates with angular hysteresis to prevent flickering between
+ * adjacent directions near sector boundaries.
  *
  *   0 = stay, 1 = north, 2 = NE, 3 = east, 4 = SE,
  *   5 = south, 6 = SW, 7 = west, 8 = NW.
  *
- * The `threshold` is the main dead-zone.  If only one axis is above
- * `threshold`, the other axis is still considered if it exceeds
- * `threshold * DIAGONAL_RATIO`, enabling diagonals when the stick
- * is close to the threshold boundary.
+ * @param x        Stick X axis (positive = east).
+ * @param y        Stick Y axis (positive = south / down).
+ * @param threshold Dead-zone distance; returns 0 (stay) when magnitude < threshold.
+ * @param prevDir  Previously returned direction (0 = none).  Used to apply
+ *                 angular hysteresis: the direction only changes when the angle
+ *                 has moved more than (22.5° + ANGLE_HYSTERESIS) from the
+ *                 current sector centre.
  */
-function stickToDirection(x: number, y: number, threshold: number): number {
-    const ax = Math.abs(x);
-    const ay = Math.abs(y);
-    const diagThreshold = threshold * DIAGONAL_RATIO;
+function stickToDirection(x: number, y: number, threshold: number, prevDir: number): number {
+    // Use vector magnitude for the dead-zone check.
+    const dist = Math.sqrt(x * x + y * y);
+    if (dist < threshold) return 0;
 
-    // Both axes below the relaxed threshold → dead-zone.
-    if (ax < diagThreshold && ay < diagThreshold) return 0;
+    // Compute clockwise-from-north angle in [0, 2π).
+    // atan2(x, -y): north (y<0) → 0, east (x>0) → π/2, south (y>0) → π,
+    //               west (x<0) → 3π/2.
+    let angle = Math.atan2(x, -y);
+    if (angle < 0) angle += 2 * Math.PI;
 
-    // At least one axis must be above the full threshold.
-    if (ax < threshold && ay < threshold) return 0;
+    // Each of the 8 sectors spans π/4 (45°).
+    // Sector 0 = north (N), 1 = NE, 2 = east, …, 7 = NW.
+    // Shifting by π/8 before flooring places boundaries between sector centres.
+    const rawSector = Math.floor((angle + Math.PI / 8) / (Math.PI / 4)) % 8;
 
-    // Determine which axes contribute to direction.
-    const hasX = ax >= diagThreshold;
-    const hasY = ay >= diagThreshold;
-
-    if (hasX && hasY) {
-        // Diagonal
-        if (x > 0 && y < 0) return 2; // NE
-        if (x > 0 && y > 0) return 4; // SE
-        if (x < 0 && y > 0) return 6; // SW
-        return 8; // NW
+    // Apply angular hysteresis: only leave the current sector when the angle
+    // has moved more than half-sector-width + ANGLE_HYSTERESIS from its centre.
+    if (prevDir > 0) {
+        const prevSector = prevDir - 1;
+        const sectorCenter = prevSector * (Math.PI / 4);
+        let diff = angle - sectorCenter;
+        // Normalise to (-π, π] so the comparison works across the 0/2π seam.
+        if (diff >  Math.PI) diff -= 2 * Math.PI;
+        if (diff < -Math.PI) diff += 2 * Math.PI;
+        if (Math.abs(diff) < Math.PI / 8 + ANGLE_HYSTERESIS) {
+            return prevDir;
+        }
     }
-    if (hasX) {
-        return x > 0 ? 3 : 7; // east / west
-    }
-    // hasY
-    return y < 0 ? 1 : 5; // north / south (y-axis: negative=up)
+
+    return rawSector + 1;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -404,7 +411,7 @@ function processSticks(gp: Gamepad): void {
 
     // ── Fire stick (takes priority for direction-sending) ───────────
     if (fireMag >= activeProfile.fireThreshold) {
-        const dir = stickToDirection(fxRaw, fyRaw, activeProfile.fireThreshold);
+        const dir = stickToDirection(fxRaw, fyRaw, activeProfile.fireThreshold, prevFireDir);
         if (dir > 0) {
             if (dir !== prevFireDir || !prevFiring) {
                 fireDir(dir);
@@ -446,7 +453,7 @@ function processSticks(gp: Gamepad): void {
     }
 
     if (isWalking) {
-        const dir = stickToDirection(wxRaw, wyRaw, activeProfile.walkThreshold);
+        const dir = stickToDirection(wxRaw, wyRaw, activeProfile.walkThreshold, prevWalkDir);
         if (dir > 0) {
             if (isRunning) {
                 // Cancel any pending walk delay — we're running now.
@@ -622,7 +629,7 @@ export function getAxisTestDirection(): number {
 
     const x = gp.axes[axisConfigPending.axisX] ?? 0;
     const y = gp.axes[axisConfigPending.axisY] ?? 0;
-    return stickToDirection(x, y, 0.2);
+    return stickToDirection(x, y, 0.2, 0);
 }
 
 function handleAxisConfig(gp: Gamepad): void {
