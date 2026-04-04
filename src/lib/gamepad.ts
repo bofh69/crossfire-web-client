@@ -25,6 +25,7 @@ import {
     fireDir, clearFire,
     runDir, clearRun,
     walkDir,
+    getLastNcomSeqSent, isNcomAcked,
 } from "./player";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
@@ -35,6 +36,13 @@ import { LogLevel } from "./protocol";
 
 /** Axis threshold used during axis-configuration to detect stick movement. */
 const AXIS_CONFIG_THRESHOLD = 0.7;
+
+/**
+ * After capturing a direction, all axes must drop below this value
+ * before the next direction is accepted.  Provides hysteresis so the
+ * user doesn't accidentally advance two steps at once.
+ */
+const AXIS_CONFIG_CENTER_THRESHOLD = 0.3;
 
 /**
  * Hysteresis margin for walk↔run transitions.
@@ -51,6 +59,13 @@ const HYSTERESIS = 0.1;
  * value of 0.15 (≥ 0.2 × 0.75 = 0.15) qualifies for diagonal.
  */
 const DIAGONAL_RATIO = 0.75;
+
+/**
+ * Delay (in milliseconds) before sending a walk command from the gamepad.
+ * If the stick reaches the run threshold within this window, we send
+ * a run command instead — avoiding an unwanted walk-then-run on fast flicks.
+ */
+const WALK_DELAY_MS = 80;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Direction helpers
@@ -159,6 +174,24 @@ let prevFiring = false;
 /** Animation frame handle for the polling loop. */
 let pollHandle: number | null = null;
 
+// ── Walk-delay state (prevents walk-then-run on fast flick) ─────────────────
+
+/** Timer handle for the pending walk command. */
+let walkDelayTimer: ReturnType<typeof setTimeout> | null = null;
+/** Direction of the pending walk (set when timer fires or promoted to run). */
+let walkDelayDir = 0;
+
+// ── Run-stop guard (prevents extra walk step after releasing run) ────────────
+
+/**
+ * When we send `run_stop`, we record the ncom sequence number here.
+ * We suppress any walk commands from the gamepad until the server has
+ * acknowledged that `run_stop` via a comc response, preventing an extra
+ * walk step that would otherwise be triggered while the stick passes
+ * through the walk zone on its way back to center.
+ */
+let runStopSeq = -1;
+
 // ── Axis-configuration mode ─────────────────────────────────────────────────
 
 export type AxisConfigTarget = "walk" | "fire";
@@ -182,6 +215,12 @@ let axisConfigActive = false;
 let axisConfigTarget: AxisConfigTarget = "walk";
 let axisConfigStep: AxisConfigStep = "move-north";
 let axisConfigCallback: ((axes: StickAxes | null) => void) | null = null;
+
+/**
+ * When true, we've captured a direction and are waiting for all axes
+ * to return to center before advancing to the next step.
+ */
+let axisConfigWaitingForCenter = false;
 
 /** Axis index and sign captured during each calibration step. */
 let axisNorthIdx: number | null = null;
@@ -381,9 +420,7 @@ function processSticks(gp: Gamepad): void {
         prevFireDir = 0;
     }
 
-    // ── Walk / run stick (with hysteresis) ──────────────────────────
-    // Hysteresis: once running, keep running until magnitude drops
-    // below (runThreshold − HYSTERESIS).
+    // ── Walk / run stick (with hysteresis, walk delay, run-stop guard) ──
     const runEnter = activeProfile.runThreshold;
     const runExit = Math.max(activeProfile.walkThreshold,
                              activeProfile.runThreshold - HYSTERESIS);
@@ -392,10 +429,24 @@ function processSticks(gp: Gamepad): void {
         : walkMag >= runEnter;  // not running: use full enter threshold
     const isWalking = walkMag >= activeProfile.walkThreshold;
 
+    // ── Run-stop guard: check if the pending run_stop has been acked ──
+    if (runStopSeq !== -1) {
+        if (isNcomAcked(runStopSeq)) {
+            // Server acknowledged the run_stop; we can process walk again.
+            runStopSeq = -1;
+        } else if (isWalking && !isRunning) {
+            // Still waiting for run_stop ack and stick is in walk zone —
+            // suppress walk to avoid an extra step.
+            return;
+        }
+    }
+
     if (isWalking) {
         const dir = stickToDirection(wxRaw, wyRaw, activeProfile.walkThreshold);
         if (dir > 0) {
             if (isRunning) {
+                // Cancel any pending walk delay — we're running now.
+                cancelWalkDelay();
                 if (dir !== prevWalkDir || !prevRunning) {
                     if (prevRunning) {
                         clearRun();
@@ -403,26 +454,68 @@ function processSticks(gp: Gamepad): void {
                     runDir(dir);
                 }
                 prevRunning = true;
+                prevWalkDir = dir;
             } else {
-                // Walking speed
+                // Walking speed.
                 if (prevRunning) {
                     clearRun();
+                    // Record the run_stop sequence for the guard.
+                    runStopSeq = getLastNcomSeqSent();
                     prevRunning = false;
                 }
-                if (dir !== prevWalkDir) {
-                    walkDir(dir);
-                }
+                // Use walk delay: schedule the walk command after a short
+                // delay.  If the stick reaches run within the window, the
+                // timer is cancelled and run is sent instead.
+                scheduleWalk(dir);
             }
-            prevWalkDir = dir;
         }
     } else {
         // Stick returned to center.
+        cancelWalkDelay();
         if (prevRunning) {
             clearRun();
+            runStopSeq = getLastNcomSeqSent();
             prevRunning = false;
         }
         prevWalkDir = 0;
     }
+}
+
+// ── Walk delay helpers ──────────────────────────────────────────────────────
+
+/**
+ * Schedule a walk command after WALK_DELAY_MS.  If a walk is already
+ * pending for the same direction, do nothing (avoid re-scheduling).
+ * If the direction changed, replace the pending walk.
+ */
+function scheduleWalk(dir: number): void {
+    if (walkDelayTimer !== null && walkDelayDir === dir) {
+        // Already pending for this direction.
+        return;
+    }
+    cancelWalkDelay();
+    walkDelayDir = dir;
+    walkDelayTimer = setTimeout(() => {
+        walkDelayTimer = null;
+        // Re-check: if the stick has since reached run threshold, the
+        // run branch in processSticks will have cancelled us already,
+        // but just in case, verify we're still in walk-only state.
+        if (!prevRunning && walkDelayDir > 0) {
+            if (walkDelayDir !== prevWalkDir || prevWalkDir === 0) {
+                walkDir(walkDelayDir);
+            }
+            prevWalkDir = walkDelayDir;
+        }
+        walkDelayDir = 0;
+    }, WALK_DELAY_MS);
+}
+
+function cancelWalkDelay(): void {
+    if (walkDelayTimer !== null) {
+        clearTimeout(walkDelayTimer);
+        walkDelayTimer = null;
+    }
+    walkDelayDir = 0;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -474,6 +567,7 @@ export function startAxisConfig(
     axisConfigStep = "move-north";
     axisConfigStepCallback = onStepChange;
     axisConfigCallback = onDone;
+    axisConfigWaitingForCenter = false;
     axisNorthIdx = null;
     axisEastIdx = null;
     axisYInverted = false;
@@ -484,6 +578,7 @@ export function startAxisConfig(
 /** Cancel a running axis configuration. */
 export function cancelAxisConfig(): void {
     axisConfigActive = false;
+    axisConfigWaitingForCenter = false;
     axisConfigCallback = null;
     axisConfigStepCallback = null;
     axisNorthIdx = null;
@@ -527,6 +622,20 @@ export function getAxisTestDirection(): number {
 }
 
 function handleAxisConfig(gp: Gamepad): void {
+    // If waiting for center, check whether all axes are back in the
+    // dead-zone before proceeding.
+    if (axisConfigWaitingForCenter) {
+        let allCentered = true;
+        for (let i = 0; i < gp.axes.length; i++) {
+            if (Math.abs(gp.axes[i]) > AXIS_CONFIG_CENTER_THRESHOLD) {
+                allCentered = false;
+                break;
+            }
+        }
+        if (!allCentered) return;  // Still waiting for center.
+        axisConfigWaitingForCenter = false;
+    }
+
     switch (axisConfigStep) {
         case "move-north":
             handleAxisStep(gp, (idx, value) => {
@@ -534,8 +643,7 @@ function handleAxisConfig(gp: Gamepad): void {
                 // Typically, north is negative Y.  If value is positive,
                 // the axis is inverted.
                 axisYInverted = value > 0;
-                axisConfigStep = "move-east";
-                axisConfigStepCallback?.("move-east");
+                advanceAxisStep("move-east");
             });
             break;
 
@@ -543,8 +651,7 @@ function handleAxisConfig(gp: Gamepad): void {
             handleAxisStep(gp, (idx, value) => {
                 axisEastIdx = idx;
                 axisXInverted = value < 0;
-                axisConfigStep = "move-south";
-                axisConfigStepCallback?.("move-south");
+                advanceAxisStep("move-south");
             });
             break;
 
@@ -552,11 +659,10 @@ function handleAxisConfig(gp: Gamepad): void {
             // Confirm it's the same axis as north.
             handleAxisStep(gp, (idx, _value) => {
                 if (idx !== axisNorthIdx) {
-                    // Different axis — restart north capture.
+                    // Different axis — accept the new one.
                     axisNorthIdx = idx;
                 }
-                axisConfigStep = "move-west";
-                axisConfigStepCallback?.("move-west");
+                advanceAxisStep("move-west");
             });
             break;
 
@@ -566,17 +672,7 @@ function handleAxisConfig(gp: Gamepad): void {
                 if (idx !== axisEastIdx) {
                     axisEastIdx = idx;
                 }
-                // Build the StickAxes.  The axisX/axisY values stored are
-                // the raw axis indices.  The stickToDirection function uses
-                // the convention x-positive=east, y-positive=south (negative=north).
-                // If the axis is inverted we negate via a sign-flipped index.
-                // However, the Gamepad API doesn't support sign-flip on axes,
-                // so we just store the axis indices and note that the standard
-                // mapping (positive-X = right, positive-Y = down) is expected.
-                //
-                // For now, we assume standard axis orientation since most
-                // controllers follow this convention and the calibration
-                // steps validated the correct axis assignment.
+                // Build the StickAxes — store raw axis indices.
                 axisConfigPending = {
                     axisX: axisEastIdx!,
                     axisY: axisNorthIdx!,
@@ -606,6 +702,16 @@ function handleAxisConfig(gp: Gamepad): void {
             }
             break;
     }
+}
+
+/**
+ * Advance to the next axis-configuration step, requiring the stick to
+ * return to center first.
+ */
+function advanceAxisStep(nextStep: AxisConfigStep): void {
+    axisConfigWaitingForCenter = true;
+    axisConfigStep = nextStep;
+    axisConfigStepCallback?.(nextStep);
 }
 
 /**
@@ -766,6 +872,7 @@ export function gamepadShutdown(): void {
     window.removeEventListener("gamepadconnected", onGamepadConnected);
     window.removeEventListener("gamepaddisconnected", onGamepadDisconnected);
     stopPolling();
+    cancelWalkDelay();
 
     if (prevRunning) clearRun();
     if (prevFiring) clearFire();
@@ -778,4 +885,5 @@ export function gamepadShutdown(): void {
     prevFireDir = 0;
     prevRunning = false;
     prevFiring = false;
+    runStopSeq = -1;
 }

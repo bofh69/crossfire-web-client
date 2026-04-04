@@ -243,6 +243,20 @@ export function getLastCommand(): string {
     return lastCommand;
 }
 
+/** Return the sequence number of the most recently sent ncom packet. */
+export function getLastNcomSeqSent(): number {
+    return lastNcomSeqSent;
+}
+
+/**
+ * Check whether a specific ncom sequence number has been acknowledged
+ * by the server.  Returns true if seq ≤ lastNcomAcked (or seq is -1).
+ */
+export function isNcomAcked(seq: number): boolean {
+    if (seq === -1) return true;
+    return lastNcomAcked === seq;
+}
+
 // ── Key-repeat throttle (comc-ack based) ────────────────────────────────────
 
 /**
