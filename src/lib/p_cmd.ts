@@ -6,8 +6,8 @@
 import { CommCat, LogLevel, type ConsoleCommand } from "./protocol";
 import { LOG } from "./misc";
 import { saveConfig } from "./storage";
-import { sendCommand } from "./player";
-import { bindKey, unbindKey, resetBindings } from "./keys";
+import { sendCommand, setLastCommand } from "./player";
+import { resetBindings } from "./keys";
 
 // ---------------------------------------------------------------------------
 // Internal state
@@ -48,6 +48,24 @@ function getCategoryName(cat: CommCat): string {
 }
 
 // ---------------------------------------------------------------------------
+// Callbacks (wired by App.svelte after MenuBar mounts)
+// ---------------------------------------------------------------------------
+
+export interface PCmdCallbacks {
+    /** Open the keyboard key-bind dialog (reads lastCommand internally). */
+    openKeyBind: () => void;
+    /** Open the gamepad button-bind dialog (reads lastCommand internally). */
+    openGamepadBind: () => void;
+}
+
+let pcmdCallbacks: PCmdCallbacks | null = null;
+
+/** Wire callbacks from the UI layer so local commands can open dialogs. */
+export function setPCmdCallbacks(cbs: PCmdCallbacks): void {
+    pcmdCallbacks = cbs;
+}
+
+// ---------------------------------------------------------------------------
 // Built-in command handlers
 // ---------------------------------------------------------------------------
 
@@ -82,11 +100,25 @@ function commandHelp(args: string): void {
 }
 
 function commandBind(args: string): void {
-    bindKey(args);
+    if (!args || args.trim().length === 0) {
+        LOG(LogLevel.Info, "p_cmd::bind",
+            "Usage: bind <command>\n" +
+            "  Sets <command> as the pending command and opens the key-bind dialog.");
+        return;
+    }
+    setLastCommand(args.trim());
+    pcmdCallbacks?.openKeyBind();
 }
 
-function commandUnbind(args: string): void {
-    unbindKey(args);
+function commandGamepadBind(args: string): void {
+    if (!args || args.trim().length === 0) {
+        LOG(LogLevel.Info, "p_cmd::gamepad_bind",
+            "Usage: gamepad_bind <command>\n" +
+            "  Sets <command> as the pending command and opens the gamepad button-bind dialog.");
+        return;
+    }
+    setLastCommand(args.trim());
+    pcmdCallbacks?.openGamepadBind();
 }
 
 function commandResetKeys(_args: string): void {
@@ -121,31 +153,36 @@ const builtinCommands: ConsoleCommand[] = [
     {
         name: "bind",
         category: CommCat.Setup,
-        description: "Bind a key to a command",
+        description: "Store a command and open the key-bind dialog",
         longDescription:
             "Syntax:\n" +
-            "  bind [options] <command>\n" +
+            "  bind <command>\n" +
             "\n" +
-            "Options:\n" +
-            "  -e   enter edit mode when key is pressed (pre-fills command input)\n" +
-            "  -i   ignore modifiers — binding works regardless of Shift/Ctrl/Alt\n" +
-            "  -n   bind for normal mode (no modifier keys)\n" +
-            "  -f   bind for fire mode (Shift held)\n" +
-            "  -r   bind for run mode (Alt held)\n" +
-            "  -a   bind for alt mode (Ctrl held)\n" +
-            "  -m   bind for meta mode (Meta/Win key held)\n" +
-            "  -g   global scope (ignored in web client)\n" +
+            "Stores <command> as the pending command (without sending it to the\n" +
+            "server) and opens the keyboard key-bind dialog so you can assign\n" +
+            "it to a key.\n" +
             "\n" +
-            "Without -n/-f/-r/-a/-m, modifiers are read from the keyboard when\n" +
-            "you press the key to bind.  With those flags the modifier combination\n" +
-            "is set explicitly, so you do not need to hold any keys.\n" +
-            "\n" +
-            "Examples:\n" +
-            "  bind -f cast fireball\n" +
-            "    Then press F3 → binds Shift+F3 to 'cast fireball' (fire mode)\n" +
-            "  bind -e shout \n" +
-            "    Then press \" → pre-fills 'shout' in the command input",
+            "Example:\n" +
+            "  bind cast fireball\n" +
+            "    Opens the bind dialog with 'cast fireball' ready to be assigned.",
         handler: commandBind,
+    },
+    {
+        name: "gamepad_bind",
+        category: CommCat.Setup,
+        description: "Store a command and open the gamepad button-bind dialog",
+        longDescription:
+            "Syntax:\n" +
+            "  gamepad_bind <command>\n" +
+            "\n" +
+            "Stores <command> as the pending command (without sending it to the\n" +
+            "server) and opens the gamepad button-bind dialog so you can assign\n" +
+            "it to a controller button.\n" +
+            "\n" +
+            "Example:\n" +
+            "  gamepad_bind cast fireball\n" +
+            "    Opens the gamepad bind dialog with 'cast fireball' ready to be assigned.",
+        handler: commandGamepadBind,
     },
     { name: "help",         category: CommCat.Misc,  description: "Show help on commands",         handler: commandHelp },
     { name: "inv",          category: CommCat.Debug, description: "Show inventory",                handler: commandInv },
@@ -154,17 +191,6 @@ const builtinCommands: ConsoleCommand[] = [
     { name: "resetkeys",    category: CommCat.Setup, description: "Reset key bindings to defaults",handler: commandResetKeys },
     { name: "savedefaults", category: CommCat.Setup, description: "Save current configuration",   handler: commandSaveDefaults },
     { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",   handler: commandTake },
-    {
-        name: "unbind",
-        category: CommCat.Setup,
-        description: "Remove a key binding",
-        longDescription:
-            "Syntax:\n" +
-            "  unbind              — list all current bindings with indices\n" +
-            "  unbind <number>     — remove the binding at the given index\n" +
-            "  unbind <key>        — remove all bindings for the named key",
-        handler: commandUnbind,
-    },
 ];
 
 // ---------------------------------------------------------------------------

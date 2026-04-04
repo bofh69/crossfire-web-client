@@ -111,7 +111,7 @@
 
   // ── Bind last command ──────────────────────────────────────────────────────
 
-  function startBind() {
+  export function startBind() {
     const cmd = getLastCommand();
     if (!cmd) {
       // No command has been sent yet; nothing to bind.
@@ -252,7 +252,7 @@
     // The onDone callback will set dialogMode = 'idle'.
   }
 
-  function startGamepadButtonBind() {
+  export function startGamepadButtonBind() {
     const cmd = getLastCommand();
     if (!cmd) {
       closeMenu();
