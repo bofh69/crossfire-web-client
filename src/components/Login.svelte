@@ -89,8 +89,9 @@
   }
 
   function handleQuerySubmit() {
-    if (queryInput.length > 0 || queryPrompt.length > 0) {
-      sendQueryReply(queryInput);
+    let trimmed = queryInput.trim()
+    if (trimmed.length > 0) {
+      sendQueryReply(trimmed);
     }
   }
 
