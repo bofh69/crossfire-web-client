@@ -10,7 +10,7 @@
     configureKeys, handleFocusLost,
   } from './lib/keys';
   import type { Stats } from './lib/protocol';
-  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CONFIG_SERVER_TICKS } from './lib/protocol';
+  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, CONFIG_SERVER_TICKS } from './lib/protocol';
   import { useConfig } from './lib/init';
   import { mapdata_animation } from './lib/mapdata';
   import { initSound, stopAll as stopAllSound } from './lib/sound';
@@ -38,6 +38,7 @@
   let gameQueryPrompt = $state('');
   let gameQueryHidden = $state(false);
   let gameQuerySingleChar = $state(false);
+  let gameQueryYesNo = $state(false);
   let gameQueryInput = $state('');
   let gameQueryInputEl: HTMLInputElement | undefined = $state();
 
@@ -51,21 +52,27 @@
     }
   });
 
-  function handleGameQuerySubmit() {
-    sendReply(gameQueryInput);
+  function clearGameQuery() {
     gameQueryInput = '';
     gameQueryPrompt = '';
     gameQuerySingleChar = false;
+    gameQueryYesNo = false;
+  }
+
+  function sendGameQueryReply(answer: string) {
+    sendReply(answer);
+    clearGameQuery();
+  }
+
+  function handleGameQuerySubmit() {
+    sendGameQueryReply(gameQueryInput);
   }
 
   function handleGameQueryKeydown(e: KeyboardEvent) {
     if (gameQuerySingleChar && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
       // For single-character queries, send the reply immediately on keypress
       // without requiring Enter. The typed character becomes the reply.
-      sendReply(e.key);
-      gameQueryInput = '';
-      gameQueryPrompt = '';
-      gameQuerySingleChar = false;
+      sendGameQueryReply(e.key);
       e.preventDefault();
       // Stop propagation so the global window handler doesn't re-focus the chat input.
       e.stopPropagation();
@@ -137,7 +144,17 @@
     }
 
     // Query prompt active: don't dispatch game keys.
-    if (gameQueryPrompt) return;
+    if (gameQueryPrompt) {
+      // For yes/no queries, handle y/n key presses without needing focus on a button.
+      if (gameQueryYesNo) {
+        const key = e.key.toLowerCase();
+        if ((key === 'y' || key === 'n') && !e.ctrlKey && !e.altKey && !e.metaKey) {
+          sendGameQueryReply(key);
+          e.preventDefault();
+        }
+      }
+      return;
+    }
 
     // MenuBar key-capture dialog active: let MenuBar handle the key.
     if (menuBar?.isDialogActive()) return;
@@ -230,6 +247,7 @@
     callbacks.onQuery = undefined;
     gameQueryPrompt = '';
     gameQuerySingleChar = false;
+    gameQueryYesNo = false;
     appState = 'login';
   }
 
@@ -251,9 +269,13 @@
     };
 
     callbacks.onQuery = (flags: number, prompt: string) => {
-      gameQueryPrompt = prompt;
+      // If the server sends an empty prompt, reuse the previous prompt text.
+      if (prompt) {
+        gameQueryPrompt = prompt;
+      }
       gameQueryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
       gameQuerySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
+      gameQueryYesNo = (flags & CS_QUERY_YESNO) !== 0;
       gameQueryInput = '';
     };
 
@@ -310,6 +332,7 @@
       serverDisconnected = false;
       gameQueryPrompt = '';
       gameQuerySingleChar = false;
+      gameQueryYesNo = false;
     };
   }
 
@@ -363,16 +386,25 @@
   {#if gameQueryPrompt}
     <div class="query-overlay">
       <div class="query-box">
-        <label>
-          {gameQueryPrompt}
-          <input
-            type={gameQueryHidden ? 'password' : 'text'}
-            bind:value={gameQueryInput}
-            bind:this={gameQueryInputEl}
-            onkeydown={handleGameQueryKeydown}
-          />
-        </label>
-        <button onclick={handleGameQuerySubmit}>Submit</button>
+        <p class="query-text">{gameQueryPrompt}</p>
+        {#if gameQueryYesNo}
+          <div class="yesno-buttons">
+            <button onclick={() => sendGameQueryReply('y')}>Yes</button>
+            <button onclick={() => sendGameQueryReply('n')}>No</button>
+          </div>
+        {:else}
+          <label>
+            <input
+              type={gameQueryHidden ? 'password' : 'text'}
+              bind:value={gameQueryInput}
+              bind:this={gameQueryInputEl}
+              onkeydown={handleGameQueryKeydown}
+            />
+          </label>
+          {#if !gameQuerySingleChar}
+            <button onclick={handleGameQuerySubmit}>Submit</button>
+          {/if}
+        {/if}
       </div>
     </div>
   {/if}
@@ -407,6 +439,21 @@
     background: #1e1e1e;
     border: 1px solid #7a6a4a;
     border-radius: 6px;
+  }
+
+  .query-box .query-text {
+    color: #c0b090;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .query-box .yesno-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .query-box .yesno-buttons button {
+    flex: 1;
   }
 
   .query-box label {

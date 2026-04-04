@@ -2,7 +2,7 @@
   import { clientConnect, clientNegotiate, sendAddMe } from '../lib/client';
   import { callbacks } from '../lib/commands';
   import { sendReply } from '../lib/player';
-  import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR } from '../lib/protocol';
+  import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO } from '../lib/protocol';
 
   interface Props {
     onLoggedIn: () => void;
@@ -17,6 +17,7 @@
   let queryPrompt = $state('');
   let queryHidden = $state(false);
   let querySingleChar = $state(false);
+  let queryYesNo = $state(false);
   let queryInput = $state('');
   let statusMessage = $state('');
 
@@ -59,13 +60,22 @@
     }
   }
 
+  function clearQuery() {
+    queryInput = '';
+    queryPrompt = '';
+    querySingleChar = false;
+    queryYesNo = false;
+  }
+
+  function sendQueryReply(answer: string) {
+    sendReply(answer);
+    clearQuery();
+    checkLoginComplete();
+  }
+
   function handleQuerySubmit() {
     if (queryInput.length > 0 || queryPrompt.length > 0) {
-      sendReply(queryInput);
-      queryInput = '';
-      queryPrompt = '';
-      // If addme_success already arrived, switch now that the prompt is gone.
-      checkLoginComplete();
+      sendQueryReply(queryInput);
     }
   }
 
@@ -73,22 +83,31 @@
     if (querySingleChar && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
       // For single-character queries, send the reply immediately on keypress
       // without requiring Enter. The typed character becomes the reply.
-      sendReply(e.key);
-      queryInput = '';
-      queryPrompt = '';
-      querySingleChar = false;
+      sendQueryReply(e.key);
       e.preventDefault();
-      checkLoginComplete();
     } else if (e.key === 'Enter') {
       handleQuerySubmit();
     }
   }
 
+  function handleYesNoKeydown(e: KeyboardEvent) {
+    if (!queryYesNo) return;
+    const key = e.key.toLowerCase();
+    if ((key === 'y' || key === 'n') && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      sendQueryReply(key);
+      e.preventDefault();
+    }
+  }
+
   $effect(() => {
     callbacks.onQuery = (flags: number, prompt: string) => {
-      queryPrompt = prompt;
+      // If the server sends an empty prompt, reuse the previous prompt text.
+      if (prompt) {
+        queryPrompt = prompt;
+      }
       queryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
       querySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
+      queryYesNo = (flags & CS_QUERY_YESNO) !== 0;
       queryInput = '';
     };
 
@@ -135,6 +154,8 @@
   });
 </script>
 
+<svelte:window onkeydown={handleYesNoKeydown} />
+
 <div class="login-container">
   <h1>⚔ Crossfire Web Client</h1>
 
@@ -155,16 +176,25 @@
     </div>
   {:else if queryPrompt}
     <div class="login-form">
-      <label>
-        {queryPrompt}
-        <input
-          type={queryHidden ? 'password' : 'text'}
-          bind:value={queryInput}
-          bind:this={queryInputEl}
-          onkeydown={handleQueryKeydown}
-        />
-      </label>
-      <button onclick={handleQuerySubmit}>Submit</button>
+      <p class="query-text">{queryPrompt}</p>
+      {#if queryYesNo}
+        <div class="yesno-buttons">
+          <button onclick={() => sendQueryReply('y')}>Yes</button>
+          <button onclick={() => sendQueryReply('n')}>No</button>
+        </div>
+      {:else}
+        <label>
+          <input
+            type={queryHidden ? 'password' : 'text'}
+            bind:value={queryInput}
+            bind:this={queryInputEl}
+            onkeydown={handleQueryKeydown}
+          />
+        </label>
+        {#if !querySingleChar}
+          <button onclick={handleQuerySubmit}>Submit</button>
+        {/if}
+      {/if}
     </div>
   {/if}
 
@@ -248,5 +278,20 @@
   .error {
     color: #e06060;
     font-size: 0.85rem;
+  }
+
+  .query-text {
+    color: #c0b090;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .yesno-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .yesno-buttons button {
+    flex: 1;
   }
 </style>
