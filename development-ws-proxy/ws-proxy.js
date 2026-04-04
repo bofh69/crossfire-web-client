@@ -27,18 +27,38 @@ let listenPort = DEFAULT_LISTEN_PORT;
 let logFrames = false;
 let maxLength = Infinity;
 
+function requireValue(arg, value) {
+  if (value === undefined) {
+    console.error(`Error: ${arg} requires a value`);
+    printUsage();
+    process.exit(1);
+  }
+  return value;
+}
+
+function requireInt(arg, value) {
+  const str = requireValue(arg, value);
+  const n = parseInt(str, 10);
+  if (isNaN(n)) {
+    console.error(`Error: ${arg} requires an integer value, got: ${str}`);
+    printUsage();
+    process.exit(1);
+  }
+  return n;
+}
+
 for (let i = 0; i < args.length; i++) {
   const arg = args[i];
   if (arg === '--host') {
-    host = args[++i];
+    host = requireValue(arg, args[++i]);
   } else if (arg === '--port') {
-    port = parseInt(args[++i], 10);
+    port = requireInt(arg, args[++i]);
   } else if (arg === '--listen-port') {
-    listenPort = parseInt(args[++i], 10);
+    listenPort = requireInt(arg, args[++i]);
   } else if (arg === '--log') {
     logFrames = true;
   } else if (arg === '--max-length') {
-    maxLength = parseInt(args[++i], 10);
+    maxLength = requireInt(arg, args[++i]);
   } else if (arg === '--help') {
     printUsage();
     process.exit(0);
@@ -54,15 +74,15 @@ for (let i = 0; i < args.length; i++) {
 function formatPayload(payload) {
   let result = '';
   for (let i = 0; i < payload.length; i++) {
+    if (result.length >= maxLength) {
+      result += '...';
+      break;
+    }
     const byte = payload[i];
     if (byte >= 0x20 && byte <= 0x7e) {
       result += String.fromCharCode(byte);
     } else {
       result += `\\x${byte.toString(16).padStart(2, '0')}`;
-    }
-    if (result.length >= maxLength) {
-      result = result.slice(0, maxLength) + '...';
-      break;
     }
   }
   return result;
