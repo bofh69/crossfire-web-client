@@ -100,6 +100,7 @@ function commandHelp(args: string): void {
             lines.push(`    ${cmd.name.padEnd(16)} ${desc}`);
         }
         drawInfo(lines.join("\n"));
+        sendCommand('help', 0, 1);
         return;
     }
 
@@ -110,6 +111,7 @@ function commandHelp(args: string): void {
             drawInfo(target.longDescription);
         }
     } else {
+        sendCommand(`help ${args.trim()}`, 0, 1);
         drawInfo(`Unknown command '${args.trim()}'. Type 'help' for a list.`);
     }
 }
@@ -155,11 +157,6 @@ function commandTake(args: string): void {
     sendCommand(`take ${what}`.trim(), 0, 1);
 }
 
-function commandSaveDefaults(_args: string): void {
-    saveConfig("defaults_saved", true);
-    drawInfo("Defaults saved.");
-}
-
 // ---------------------------------------------------------------------------
 // Command table
 // ---------------------------------------------------------------------------
@@ -200,11 +197,6 @@ const builtinCommands: ConsoleCommand[] = [
         handler: commandGamepadBind,
     },
     { name: "help",         category: CommCat.Misc,  description: "Show help on commands",         handler: commandHelp },
-    { name: "inv",          category: CommCat.Debug, description: "Show inventory",                handler: commandInv },
-    { name: "inventory",    category: CommCat.Debug, description: "Show inventory (alias)",        handler: commandInv },
-    { name: "magicmap",     category: CommCat.Misc,  description: "Request the magic map overlay", handler: commandMagicmap },
-    { name: "resetkeys",    category: CommCat.Setup, description: "Reset key bindings to defaults",handler: commandResetKeys },
-    { name: "savedefaults", category: CommCat.Setup, description: "Save current configuration",   handler: commandSaveDefaults },
     { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",   handler: commandTake },
 ];
 
