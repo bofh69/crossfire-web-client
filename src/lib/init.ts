@@ -255,6 +255,7 @@ function initPlayerData(): void {
         ranges: [],
         readySpell: 0,
         stats: {
+            title: '',
             Str: 0, Dex: 0, Con: 0, Wis: 0, Cha: 0, Int: 0, Pow: 0,
             wc: 0, ac: 0, level: 0, hp: 0, maxhp: 0, sp: 0, maxsp: 0,
             grace: 0, maxgrace: 0, exp: BigInt(0), food: 0, dam: 0,
