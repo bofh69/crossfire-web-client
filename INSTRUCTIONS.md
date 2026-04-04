@@ -18,7 +18,7 @@ to a TypeScript/Svelte web application using Vite as the build tool.
 npm install
 ```
 
-### Run development server
+### Running while developing
 
 ```bash
 cd development-ws-proxy
@@ -68,7 +68,6 @@ npx tsc --noEmit
 
 1. Run `npm run build` to produce the `dist/` directory.
 2. Serve the contents of `dist/` with any static file server (nginx, Apache, Caddy, GitHub Pages, Netlify, Vercel, etc.).
-3. Ensure the Crossfire server allows WebSocket connections from the client's origin (CORS).
 
 ## Project Structure
 
@@ -93,5 +92,3 @@ npx tsc --noEmit
 - **WebSocket** is used instead of raw TCP sockets for server communication.
 - **localStorage/IndexedDB** is used instead of file I/O for caching and configuration.
 - **Console logging** replaces stdout/stderr output.
-- **Keybindings** are available via the `getDefaultKeyBindings()` function.
-- The client connects to a fixed server address
