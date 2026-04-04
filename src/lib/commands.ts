@@ -246,7 +246,7 @@ function StatsCmd(data: DataView, len: number): void {
 function handleQuery(data: string): void {
   const spaceIdx = data.indexOf(' ');
   const flags = spaceIdx > 0 ? parseInt(data.substring(0, spaceIdx)) : 0;
-  const prompt = spaceIdx > 0 ? data.substring(spaceIdx + 1) : data;
+  const prompt = (spaceIdx > 0 ? data.substring(spaceIdx + 1) : data).trim();
   callbacks.onQuery?.(flags, prompt);
 }
 
