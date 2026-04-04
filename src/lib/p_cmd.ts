@@ -52,6 +52,8 @@ function getCategoryName(cat: CommCat): string {
 // ---------------------------------------------------------------------------
 
 export interface PCmdCallbacks {
+    /** Display a message in the info panel. */
+    drawInfo: (message: string) => void;
     /** Open the keyboard key-bind dialog (reads lastCommand internally). */
     openKeyBind: () => void;
     /** Open the gamepad button-bind dialog (reads lastCommand internally). */
@@ -63,6 +65,15 @@ let pcmdCallbacks: PCmdCallbacks | null = null;
 /** Wire callbacks from the UI layer so local commands can open dialogs. */
 export function setPCmdCallbacks(cbs: PCmdCallbacks): void {
     pcmdCallbacks = cbs;
+}
+
+/** Display a message in the info panel (falls back to console). */
+function drawInfo(message: string): void {
+    if (pcmdCallbacks) {
+        pcmdCallbacks.drawInfo(message);
+    } else {
+        console.info(message);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -82,26 +93,24 @@ function commandHelp(args: string): void {
             const desc = cmd.description ?? "";
             lines.push(`    ${cmd.name.padEnd(16)} ${desc}`);
         }
-        LOG(LogLevel.Info, "p_cmd::help", lines.join("\n"));
+        drawInfo(lines.join("\n"));
         return;
     }
 
     const target = findCommand(args.trim());
     if (target) {
-        LOG(LogLevel.Info, "p_cmd::help",
-            `${target.name}: ${target.description ?? "(no description)"}`);
+        drawInfo(`${target.name}: ${target.description ?? "(no description)"}`);
         if (target.longDescription) {
-            LOG(LogLevel.Info, "p_cmd::help", target.longDescription);
+            drawInfo(target.longDescription);
         }
     } else {
-        LOG(LogLevel.Info, "p_cmd::help",
-            `Unknown command '${args.trim()}'. Type 'help' for a list.`);
+        drawInfo(`Unknown command '${args.trim()}'. Type 'help' for a list.`);
     }
 }
 
 function commandBind(args: string): void {
     if (!args || args.trim().length === 0) {
-        LOG(LogLevel.Info, "p_cmd::bind",
+        drawInfo(
             "Usage: bind <command>\n" +
             "  Sets <command> as the pending command and opens the key-bind dialog.");
         return;
@@ -112,7 +121,7 @@ function commandBind(args: string): void {
 
 function commandGamepadBind(args: string): void {
     if (!args || args.trim().length === 0) {
-        LOG(LogLevel.Info, "p_cmd::gamepad_bind",
+        drawInfo(
             "Usage: gamepad_bind <command>\n" +
             "  Sets <command> as the pending command and opens the gamepad button-bind dialog.");
         return;
@@ -142,7 +151,7 @@ function commandTake(args: string): void {
 
 function commandSaveDefaults(_args: string): void {
     saveConfig("defaults_saved", true);
-    LOG(LogLevel.Info, "p_cmd::savedefaults", "Defaults saved.");
+    drawInfo("Defaults saved.");
 }
 
 // ---------------------------------------------------------------------------

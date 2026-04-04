@@ -120,6 +120,9 @@
 
     // Wire p_cmd callbacks so bind/gamepad_bind commands can open dialogs.
     setPCmdCallbacks({
+      drawInfo: (message: string) => {
+        infoPanel?.addMessage(0, message);
+      },
       openKeyBind: () => menuBar?.startBind(),
       openGamepadBind: () => menuBar?.startGamepadButtonBind(),
     });
