@@ -429,6 +429,13 @@ export const CS_QUERY_SINGLECHAR = 0x2;
 export const CS_QUERY_HIDEINPUT = 0x4;
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Magic map face flags (from newclient.h)
+// ──────────────────────────────────────────────────────────────────────────────
+export const FACE_FLOOR      = 0x80;
+export const FACE_WALL       = 0x40;
+export const FACE_COLOR_MASK = 0x0f;
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Animation and face flags
 // ──────────────────────────────────────────────────────────────────────────────
 export const FACE_IS_ANIM = 1 << 15;

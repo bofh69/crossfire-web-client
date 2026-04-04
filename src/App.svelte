@@ -23,6 +23,7 @@
   import SpellList from './components/SpellList.svelte';
   import SkillList from './components/SkillList.svelte';
   import MenuBar from './components/MenuBar.svelte';
+  import MagicMap from './components/MagicMap.svelte';
 
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
@@ -93,6 +94,8 @@
   let spellList: SpellList | undefined = $state();
   let skillList: SkillList | undefined = $state();
   let menuBar: MenuBar | undefined = $state();
+  let magicMap: MagicMap | undefined = $state();
+  let showMagicMap = $state(false);
 
   onMount(() => {
     clientInit();
@@ -125,6 +128,10 @@
       },
       openKeyBind: () => menuBar?.startBind(),
       openGamepadBind: () => menuBar?.startGamepadButtonBind(),
+      showMagicMap: () => {
+        showMagicMap = true;
+        magicMap?.show();
+      },
     });
 
     // Listen for keyboard events on the window.
@@ -260,6 +267,7 @@
     callbacks.onStatsUpdate = undefined;
     callbacks.onMapUpdate = undefined;
     callbacks.onNewMap = undefined;
+    callbacks.onMagicMap = undefined;
     callbacks.onSpellUpdate = undefined;
     callbacks.onPlayerUpdate = undefined;
     callbacks.onPickupUpdate = undefined;
@@ -269,6 +277,7 @@
     gameQueryPrompt = '';
     gameQuerySingleChar = false;
     gameQueryYesNo = false;
+    showMagicMap = false;
     appState = 'login';
   }
 
@@ -307,6 +316,13 @@
 
     callbacks.onNewMap = () => {
       gameMap?.redrawMap();
+      // Switching to a new map hides the magic map overlay.
+      showMagicMap = false;
+    };
+
+    callbacks.onMagicMap = () => {
+      showMagicMap = true;
+      magicMap?.show();
     };
 
     callbacks.onSpellUpdate = () => {
@@ -326,6 +342,16 @@
       animateObjects();
       gameMap?.redrawMap();
       refreshInventory();
+
+      // Flash player position on the magic map.
+      const cpl = getCpl();
+      if (cpl && cpl.showmagic && showMagicMap) {
+        magicMap?.flashPlayerPos();
+        cpl.showmagic ^= 2; // Toggle flash on/off every tick
+      } else if (showMagicMap && cpl && !cpl.showmagic) {
+        // User closed via the MagicMap component's close button.
+        showMagicMap = false;
+      }
     };
 
     // Self-tick fallback: if the server doesn't send ticks, drive
@@ -336,6 +362,14 @@
         animateObjects();
         gameMap?.redrawMap();
         refreshInventory();
+
+        const cpl = getCpl();
+        if (cpl && cpl.showmagic && showMagicMap) {
+          magicMap?.flashPlayerPos();
+          cpl.showmagic ^= 2;
+        } else if (showMagicMap && cpl && !cpl.showmagic) {
+          showMagicMap = false;
+        }
       }, 125);
     }
 
@@ -378,6 +412,9 @@
     </div>
     <div class="map-area">
       <GameMap bind:this={gameMap} />
+      {#if showMagicMap}
+        <MagicMap bind:this={magicMap} />
+      {/if}
       {#if gameQueryPrompt}
         <div class="query-overlay">
           <div class="query-box">
