@@ -278,6 +278,11 @@ function processSticks(gp: Gamepad): void {
             }
             prevFireDir = dir;
             prevFiring = true;
+        } else if (prevFiring) {
+            // Magnitude above threshold but direction resolved to stay (0).
+            clearFire();
+            prevFiring = false;
+            prevFireDir = 0;
         }
     } else if (prevFiring) {
         clearFire();
@@ -294,9 +299,8 @@ function processSticks(gp: Gamepad): void {
         if (dir > 0) {
             if (isRunning) {
                 if (dir !== prevWalkDir || !prevRunning) {
-                    // When transitioning from walk to run or changing run direction,
-                    // stop the previous run first.
-                    if (prevRunning && dir !== prevWalkDir) {
+                    // When changing run direction, stop the previous run first.
+                    if (prevRunning) {
                         clearRun();
                     }
                     runDir(dir);
