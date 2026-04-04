@@ -15,6 +15,7 @@
   let connecting = $state(false);
   let errorMessage = $state('');
   let queryPrompt = $state('');
+  let lastQueryPrompt = '';
   let queryHidden = $state(false);
   let querySingleChar = $state(false);
   let queryYesNo = $state(false);
@@ -103,8 +104,9 @@
     callbacks.onQuery = (flags: number, prompt: string) => {
       // If the server sends an empty prompt, reuse the previous prompt text.
       if (prompt) {
-        queryPrompt = prompt;
+        lastQueryPrompt = prompt;
       }
+      queryPrompt = lastQueryPrompt;
       queryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
       querySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
       queryYesNo = (flags & CS_QUERY_YESNO) !== 0;

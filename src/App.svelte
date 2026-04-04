@@ -36,6 +36,7 @@
   /** Query prompt sent by the server while in the playing state (e.g. character
    *  name prompt that the server sends after addme_success on some servers). */
   let gameQueryPrompt = $state('');
+  let lastGameQueryPrompt = '';
   let gameQueryHidden = $state(false);
   let gameQuerySingleChar = $state(false);
   let gameQueryYesNo = $state(false);
@@ -271,8 +272,9 @@
     callbacks.onQuery = (flags: number, prompt: string) => {
       // If the server sends an empty prompt, reuse the previous prompt text.
       if (prompt) {
-        gameQueryPrompt = prompt;
+        lastGameQueryPrompt = prompt;
       }
+      gameQueryPrompt = lastGameQueryPrompt;
       gameQueryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
       gameQuerySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
       gameQueryYesNo = (flags & CS_QUERY_YESNO) !== 0;
