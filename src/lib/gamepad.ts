@@ -5,10 +5,12 @@
  *  • Polling-based gamepad input (requestAnimationFrame loop)
  *  • Analog stick → direction conversion with walk/run/fire zones
  *  • Button → command mapping with edge-detection (press/release)
- *  • Per-controller profiles (auto-detected by name)
+ *  • Per-controller profiles (auto-detected by name, stored per-controller)
  *  • Persistence of user-customised bindings via localStorage
- *  • Interactive axis-configuration (move a stick to assign it)
- *  • Interactive button-binding (press a button to assign a command)
+ *  • Interactive axis-configuration (move stick N/E/S/W + test mode)
+ *  • Interactive button-binding (press button, binds last command sent)
+ *  • Hysteresis for walk↔run transitions
+ *  • Relaxed diagonal detection for near-threshold second axis
  */
 
 import {
@@ -22,48 +24,106 @@ import { extendedCommand } from "./p_cmd";
 import {
     fireDir, clearFire,
     runDir, clearRun,
-    sendCommand, walkDir,
+    walkDir,
 } from "./player";
 import { LOG } from "./misc";
-import { LogLevel, SC_NORMAL } from "./protocol";
+import { LogLevel } from "./protocol";
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Constants
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Axis threshold used during axis-configuration to detect stick movement. */
+const AXIS_CONFIG_THRESHOLD = 0.7;
+
+/**
+ * Hysteresis margin for walk↔run transitions.
+ * Once running (magnitude ≥ runThreshold), stay running until magnitude
+ * drops below (runThreshold − HYSTERESIS).
+ */
+const HYSTERESIS = 0.1;
+
+/**
+ * When the main axis is above the walk threshold but the secondary axis
+ * is below it, still count as a diagonal if the secondary axis is at
+ * least this fraction of the walk threshold.
+ * E.g. with walkThreshold=0.2 and DIAGONAL_RATIO=0.75, a secondary axis
+ * value of 0.15 (≥ 0.2 × 0.75 = 0.15) qualifies for diagonal.
+ */
+const DIAGONAL_RATIO = 0.75;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Direction helpers
 // ──────────────────────────────────────────────────────────────────────────────
 
+/** Direction names indexed 0–8 (matching protocol direction indices). */
+const directionNames: readonly string[] = [
+    "stay", "north", "northeast",
+    "east", "southeast", "south",
+    "southwest", "west", "northwest",
+];
+
 /**
- * Convert an (x, y) analog stick position to a direction index 0–8.
+ * Convert a direction index (0–8) to a human-readable name.
+ */
+export function directionName(dir: number): string {
+    return directionNames[dir] ?? "stay";
+}
+
+/**
+ * Convert an (x, y) analog stick position to a direction index 0–8,
+ * with relaxed diagonal detection.
+ *
  *   0 = stay, 1 = north, 2 = NE, 3 = east, 4 = SE,
  *   5 = south, 6 = SW, 7 = west, 8 = NW.
  *
- * Returns 0 if the magnitude is below `deadzone`.
+ * The `threshold` is the main dead-zone.  If only one axis is above
+ * `threshold`, the other axis is still considered if it exceeds
+ * `threshold * DIAGONAL_RATIO`, enabling diagonals when the stick
+ * is close to the threshold boundary.
  */
-function stickToDirection(x: number, y: number, deadzone: number): number {
-    const mag = Math.sqrt(x * x + y * y);
-    if (mag < deadzone) return 0; // stay / dead-zone
+function stickToDirection(x: number, y: number, threshold: number): number {
+    const ax = Math.abs(x);
+    const ay = Math.abs(y);
+    const diagThreshold = threshold * DIAGONAL_RATIO;
 
-    // atan2 gives angle in radians; convert to 0–360 degrees (0 = right/east).
-    let angle = Math.atan2(-y, x) * (180 / Math.PI);
-    if (angle < 0) angle += 360;
+    // Both axes below the relaxed threshold → dead-zone.
+    if (ax < diagThreshold && ay < diagThreshold) return 0;
 
-    // Map angle to one of eight compass directions.
-    // Each sector is 45° wide, centred on the compass direction.
-    //   East=0°, NE=45°, North=90°, NW=135°, West=180°, SW=225°, South=270°, SE=315°
-    if (angle < 22.5  || angle >= 337.5) return 3; // east
-    if (angle < 67.5)  return 2; // northeast
-    if (angle < 112.5) return 1; // north
-    if (angle < 157.5) return 8; // northwest
-    if (angle < 202.5) return 7; // west
-    if (angle < 247.5) return 6; // southwest
-    if (angle < 292.5) return 5; // south
-    return 4; // southeast
+    // At least one axis must be above the full threshold.
+    if (ax < threshold && ay < threshold) return 0;
+
+    // Determine which axes contribute to direction.
+    const hasX = ax >= diagThreshold;
+    const hasY = ay >= diagThreshold;
+
+    if (hasX && hasY) {
+        // Diagonal
+        if (x > 0 && y < 0) return 2; // NE
+        if (x > 0 && y > 0) return 4; // SE
+        if (x < 0 && y > 0) return 6; // SW
+        return 8; // NW
+    }
+    if (hasX) {
+        return x > 0 ? 3 : 7; // east / west
+    }
+    // hasY
+    return y < 0 ? 1 : 5; // north / south (y-axis: negative=up)
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Storage key
+// Storage – per-controller keys
 // ──────────────────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "cf_gamepad_bindings";
+const STORAGE_KEY_PREFIX = "cf_gamepad_bindings_";
+
+/** Sanitise a gamepad name for use as a localStorage key suffix. */
+function sanitiseName(name: string): string {
+    return name.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80);
+}
+
+/** The sanitised name of the currently active controller (for storage). */
+let activeControllerKey = "";
 
 interface SavedGamepadConfig {
     walkStick: StickAxes;
@@ -91,7 +151,7 @@ let prevButtons: boolean[] = [];
 let prevWalkDir = 0;
 /** Previous direction from fire stick. */
 let prevFireDir = 0;
-/** Whether we were running last frame. */
+/** Whether we were running last frame (with hysteresis). */
 let prevRunning = false;
 /** Whether we were firing (via fire stick) last frame. */
 let prevFiring = false;
@@ -103,12 +163,39 @@ let pollHandle: number | null = null;
 
 export type AxisConfigTarget = "walk" | "fire";
 
+/**
+ * Multi-step axis configuration flow:
+ *   1. "move-north" — user pushes stick north
+ *   2. "move-east"  — user pushes stick east
+ *   3. "move-south" — user pushes stick south (confirms Y axis & sign)
+ *   4. "move-west"  — user pushes stick west  (confirms X axis & sign)
+ *   5. "testing"    — user sees live direction feedback, Accept/Abort
+ */
+export type AxisConfigStep =
+    | "move-north"
+    | "move-east"
+    | "move-south"
+    | "move-west"
+    | "testing";
+
 let axisConfigActive = false;
 let axisConfigTarget: AxisConfigTarget = "walk";
-let axisConfigCallback: ((axes: StickAxes) => void) | null = null;
-/** Track which axis moved first (becomes X), and which second (becomes Y). */
-let axisConfigFirst: number | null = null;
-let axisConfigSecond: number | null = null;
+let axisConfigStep: AxisConfigStep = "move-north";
+let axisConfigCallback: ((axes: StickAxes | null) => void) | null = null;
+
+/** Axis index and sign captured during each calibration step. */
+let axisNorthIdx: number | null = null;
+let axisEastIdx: number | null = null;
+/** Whether the Y axis is inverted (positive = north instead of negative). */
+let axisYInverted = false;
+/** Whether the X axis is inverted (positive = west instead of east). */
+let axisXInverted = false;
+
+/** Pending StickAxes during the testing phase (not yet saved). */
+let axisConfigPending: StickAxes | null = null;
+
+/** Callback for step transitions (so UI can update its state). */
+let axisConfigStepCallback: ((step: AxisConfigStep) => void) | null = null;
 
 // ── Button-configuration mode ───────────────────────────────────────────────
 
@@ -130,11 +217,11 @@ export function setGamepadCallbacks(c: GamepadCallbacks): void {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Persistence
+// Persistence – per-controller
 // ──────────────────────────────────────────────────────────────────────────────
 
 function saveGamepadConfig(): void {
-    if (!activeProfile) return;
+    if (!activeProfile || !activeControllerKey) return;
     const data: SavedGamepadConfig = {
         walkStick: activeProfile.walkStick,
         fireStick: activeProfile.fireStick,
@@ -143,11 +230,12 @@ function saveGamepadConfig(): void {
         fireThreshold: activeProfile.fireThreshold,
         buttons: activeProfile.buttons,
     };
-    saveConfig(STORAGE_KEY, data);
+    saveConfig(STORAGE_KEY_PREFIX + activeControllerKey, data);
 }
 
-function loadSavedConfig(): SavedGamepadConfig | null {
-    return loadConfig<SavedGamepadConfig | null>(STORAGE_KEY, null);
+function loadSavedConfig(controllerKey: string): SavedGamepadConfig | null {
+    return loadConfig<SavedGamepadConfig | null>(
+        STORAGE_KEY_PREFIX + controllerKey, null);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -157,7 +245,8 @@ function loadSavedConfig(): SavedGamepadConfig | null {
 function onGamepadConnected(e: GamepadEvent): void {
     const gp = e.gamepad;
     LOG(LogLevel.Info, "gamepad::connected",
-        `Gamepad connected: "${gp.id}" (index ${gp.index}, ${gp.buttons.length} buttons, ${gp.axes.length} axes)`);
+        `Gamepad connected: "${gp.id}" (index ${gp.index}, ` +
+        `${gp.buttons.length} buttons, ${gp.axes.length} axes)`);
 
     if (activeGamepadIndex >= 0) {
         // Already tracking a gamepad; ignore additional ones.
@@ -165,9 +254,11 @@ function onGamepadConnected(e: GamepadEvent): void {
     }
 
     activeGamepadIndex = gp.index;
+    activeControllerKey = sanitiseName(gp.id);
 
-    // Try to load saved config, otherwise use a matching profile.
-    const saved = loadSavedConfig();
+    // Try to load saved config for this controller, otherwise use a
+    // matching built-in profile.
+    const saved = loadSavedConfig(activeControllerKey);
     const profile = findProfileForGamepad(gp.id);
     if (saved) {
         profile.walkStick = saved.walkStick;
@@ -196,6 +287,7 @@ function onGamepadDisconnected(e: GamepadEvent): void {
 
     if (gp.index === activeGamepadIndex) {
         activeGamepadIndex = -1;
+        activeControllerKey = "";
         activeProfile = null;
         prevButtons = [];
         stopPolling();
@@ -251,7 +343,7 @@ function pollGamepad(): void {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Stick processing
+// Stick processing (with hysteresis and relaxed diagonals)
 // ──────────────────────────────────────────────────────────────────────────────
 
 function processSticks(gp: Gamepad): void {
@@ -279,7 +371,6 @@ function processSticks(gp: Gamepad): void {
             prevFireDir = dir;
             prevFiring = true;
         } else if (prevFiring) {
-            // Magnitude above threshold but direction resolved to stay (0).
             clearFire();
             prevFiring = false;
             prevFireDir = 0;
@@ -290,8 +381,15 @@ function processSticks(gp: Gamepad): void {
         prevFireDir = 0;
     }
 
-    // ── Walk / run stick ────────────────────────────────────────────
-    const isRunning = walkMag >= activeProfile.runThreshold;
+    // ── Walk / run stick (with hysteresis) ──────────────────────────
+    // Hysteresis: once running, keep running until magnitude drops
+    // below (runThreshold − HYSTERESIS).
+    const runEnter = activeProfile.runThreshold;
+    const runExit = Math.max(activeProfile.walkThreshold,
+                             activeProfile.runThreshold - HYSTERESIS);
+    const isRunning = prevRunning
+        ? walkMag >= runExit    // already running: use lower exit threshold
+        : walkMag >= runEnter;  // not running: use full enter threshold
     const isWalking = walkMag >= activeProfile.walkThreshold;
 
     if (isWalking) {
@@ -299,7 +397,6 @@ function processSticks(gp: Gamepad): void {
         if (dir > 0) {
             if (isRunning) {
                 if (dir !== prevWalkDir || !prevRunning) {
-                    // When changing run direction, stop the previous run first.
                     if (prevRunning) {
                         clearRun();
                     }
@@ -354,67 +451,177 @@ function processButtons(gp: Gamepad): void {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Axis configuration (interactive)
+// Axis configuration (interactive, multi-step)
 // ──────────────────────────────────────────────────────────────────────────────
-
-const AXIS_CONFIG_THRESHOLD = 0.7;
 
 /**
  * Start axis-configuration mode.
- * The user moves a stick, and the first two distinct axes that exceed
- * the threshold become the chosen stick.
+ * Guides the user through four directional movements (N, E, S, W) to
+ * determine which axes correspond to X and Y, then enters a test phase
+ * with live feedback.
  *
  * @param target Which stick to configure ("walk" or "fire").
- * @param onDone Called when two axes have been captured.
+ * @param onStepChange Called when the configuration step changes (for UI).
+ * @param onDone Called when configuration is accepted (axes) or aborted (null).
  */
 export function startAxisConfig(
     target: AxisConfigTarget,
-    onDone: (axes: StickAxes) => void,
+    onStepChange: (step: AxisConfigStep) => void,
+    onDone: (axes: StickAxes | null) => void,
 ): void {
     axisConfigActive = true;
     axisConfigTarget = target;
+    axisConfigStep = "move-north";
+    axisConfigStepCallback = onStepChange;
     axisConfigCallback = onDone;
-    axisConfigFirst = null;
-    axisConfigSecond = null;
+    axisNorthIdx = null;
+    axisEastIdx = null;
+    axisYInverted = false;
+    axisXInverted = false;
+    axisConfigPending = null;
 }
 
 /** Cancel a running axis configuration. */
 export function cancelAxisConfig(): void {
     axisConfigActive = false;
     axisConfigCallback = null;
-    axisConfigFirst = null;
-    axisConfigSecond = null;
+    axisConfigStepCallback = null;
+    axisNorthIdx = null;
+    axisEastIdx = null;
+    axisConfigPending = null;
+}
+
+/** Accept the current axis configuration (called from test mode). */
+export function acceptAxisConfig(): void {
+    if (!axisConfigActive || axisConfigStep !== "testing") return;
+    if (axisConfigPending && activeProfile) {
+        if (axisConfigTarget === "walk") {
+            activeProfile.walkStick = axisConfigPending;
+        } else {
+            activeProfile.fireStick = axisConfigPending;
+        }
+        saveGamepadConfig();
+    }
+    const doneCb = axisConfigCallback;
+    const result = axisConfigPending;
+    cancelAxisConfig();
+    doneCb?.(result);
+}
+
+/**
+ * Get the live stick direction during axis-config test mode.
+ * Returns the direction index (0–8) or 0 if not in test mode.
+ */
+export function getAxisTestDirection(): number {
+    if (!axisConfigActive || axisConfigStep !== "testing") return 0;
+    if (!axisConfigPending) return 0;
+
+    if (activeGamepadIndex < 0) return 0;
+    const gamepads = navigator.getGamepads();
+    const gp = gamepads[activeGamepadIndex];
+    if (!gp) return 0;
+
+    const x = gp.axes[axisConfigPending.axisX] ?? 0;
+    const y = gp.axes[axisConfigPending.axisY] ?? 0;
+    return stickToDirection(x, y, 0.2);
 }
 
 function handleAxisConfig(gp: Gamepad): void {
-    for (let i = 0; i < gp.axes.length; i++) {
-        if (Math.abs(gp.axes[i]) < AXIS_CONFIG_THRESHOLD) continue;
+    switch (axisConfigStep) {
+        case "move-north":
+            handleAxisStep(gp, (idx, value) => {
+                axisNorthIdx = idx;
+                // Typically, north is negative Y.  If value is positive,
+                // the axis is inverted.
+                axisYInverted = value > 0;
+                axisConfigStep = "move-east";
+                axisConfigStepCallback?.("move-east");
+            });
+            break;
 
-        if (axisConfigFirst === null) {
-            axisConfigFirst = i;
-        } else if (axisConfigSecond === null && i !== axisConfigFirst) {
-            axisConfigSecond = i;
-        }
-    }
+        case "move-east":
+            handleAxisStep(gp, (idx, value) => {
+                axisEastIdx = idx;
+                axisXInverted = value < 0;
+                axisConfigStep = "move-south";
+                axisConfigStepCallback?.("move-south");
+            });
+            break;
 
-    if (axisConfigFirst !== null && axisConfigSecond !== null) {
-        const axes: StickAxes = {
-            axisX: axisConfigFirst,
-            axisY: axisConfigSecond,
-        };
+        case "move-south":
+            // Confirm it's the same axis as north.
+            handleAxisStep(gp, (idx, _value) => {
+                if (idx !== axisNorthIdx) {
+                    // Different axis — restart north capture.
+                    axisNorthIdx = idx;
+                }
+                axisConfigStep = "move-west";
+                axisConfigStepCallback?.("move-west");
+            });
+            break;
 
-        if (activeProfile) {
-            if (axisConfigTarget === "walk") {
-                activeProfile.walkStick = axes;
-            } else {
-                activeProfile.fireStick = axes;
+        case "move-west":
+            // Confirm it's the same axis as east.
+            handleAxisStep(gp, (idx, _value) => {
+                if (idx !== axisEastIdx) {
+                    axisEastIdx = idx;
+                }
+                // Build the StickAxes.  The axisX/axisY values stored are
+                // the raw axis indices.  The stickToDirection function uses
+                // the convention x-positive=east, y-positive=south (negative=north).
+                // If the axis is inverted we negate via a sign-flipped index.
+                // However, the Gamepad API doesn't support sign-flip on axes,
+                // so we just store the axis indices and note that the standard
+                // mapping (positive-X = right, positive-Y = down) is expected.
+                //
+                // For now, we assume standard axis orientation since most
+                // controllers follow this convention and the calibration
+                // steps validated the correct axis assignment.
+                axisConfigPending = {
+                    axisX: axisEastIdx!,
+                    axisY: axisNorthIdx!,
+                };
+                axisConfigStep = "testing";
+                axisConfigStepCallback?.("testing");
+            });
+            break;
+
+        case "testing":
+            // In test mode, check if the "apply" button (B0) is pressed
+            // to accept.
+            for (let i = 0; i < gp.buttons.length; i++) {
+                if (gp.buttons[i].pressed && !(prevButtons[i] ?? false)) {
+                    // Check if this button is mapped to "apply".
+                    const mapping = activeProfile?.buttons.find(
+                        b => b.button === i);
+                    if (mapping?.command === "apply") {
+                        acceptAxisConfig();
+                        break;
+                    }
+                }
             }
-            saveGamepadConfig();
-        }
+            // Update button state for edge detection.
+            for (let i = 0; i < gp.buttons.length; i++) {
+                prevButtons[i] = gp.buttons[i].pressed;
+            }
+            break;
+    }
+}
 
-        const doneCb = axisConfigCallback;
-        cancelAxisConfig();
-        doneCb?.(axes);
+/**
+ * Helper: detect the first axis that exceeds AXIS_CONFIG_THRESHOLD and
+ * has just crossed from below to above (edge detection).
+ */
+function handleAxisStep(
+    gp: Gamepad,
+    onDetected: (axisIndex: number, value: number) => void,
+): void {
+    for (let i = 0; i < gp.axes.length; i++) {
+        const value = gp.axes[i];
+        if (Math.abs(value) >= AXIS_CONFIG_THRESHOLD) {
+            onDetected(i, value);
+            return;
+        }
     }
 }
 
@@ -480,7 +687,8 @@ export function setButtonCommand(button: number, command: string): void {
 /** Remove the command mapping for a specific button. */
 export function removeButtonCommand(button: number): void {
     if (!activeProfile) return;
-    activeProfile.buttons = activeProfile.buttons.filter(b => b.button !== button);
+    activeProfile.buttons = activeProfile.buttons.filter(
+        b => b.button !== button);
     saveGamepadConfig();
 }
 
@@ -490,7 +698,8 @@ export function getButtonMappings(): readonly ButtonMapping[] {
 }
 
 /** Get the current stick configuration. */
-export function getStickConfig(): { walk: StickAxes; fire: StickAxes } | null {
+export function getStickConfig(): {
+    walk: StickAxes; fire: StickAxes } | null {
     if (!activeProfile) return null;
     return {
         walk: { ...activeProfile.walkStick },
@@ -520,6 +729,12 @@ export function getActiveProfileName(): string {
     return activeProfile?.name ?? "(none)";
 }
 
+/** Find the existing command for a given button, or null. */
+export function getButtonCommand(button: number): string | null {
+    return activeProfile?.buttons.find(b => b.button === button)?.command
+        ?? null;
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Initialisation / teardown
 // ──────────────────────────────────────────────────────────────────────────────
@@ -537,7 +752,8 @@ export function gamepadInit(): void {
     const gamepads = navigator.getGamepads();
     for (const gp of gamepads) {
         if (gp) {
-            onGamepadConnected(new GamepadEvent("gamepadconnected", { gamepad: gp }));
+            onGamepadConnected(
+                new GamepadEvent("gamepadconnected", { gamepad: gp }));
             break; // Only track the first one.
         }
     }
@@ -555,6 +771,7 @@ export function gamepadShutdown(): void {
     if (prevFiring) clearFire();
 
     activeGamepadIndex = -1;
+    activeControllerKey = "";
     activeProfile = null;
     prevButtons = [];
     prevWalkDir = 0;

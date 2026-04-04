@@ -25,11 +25,15 @@
     resetGamepadBindings,
     startAxisConfig,
     cancelAxisConfig,
+    acceptAxisConfig,
+    getAxisTestDirection,
+    directionName,
     startButtonConfig,
     cancelButtonConfig,
+    getButtonCommand,
     type AxisConfigTarget,
+    type AxisConfigStep,
   } from '../lib/gamepad';
-  import type { StickAxes } from '../lib/gamepad_defaults';
 
   interface Props {
     onDisconnect: () => void;
@@ -53,9 +57,9 @@
     | 'show-bindings'       // showing all key bindings
     | 'about'               // about dialog
     | 'gp-show-bindings'    // showing gamepad bindings
-    | 'gp-axis-config'      // configuring a gamepad axis
-    | 'gp-button-capture'   // waiting for a gamepad button press
-    | 'gp-button-command'   // entering command for captured button
+    | 'gp-axis-config'      // configuring a gamepad axis (multi-step)
+    | 'gp-button-capture'   // waiting for a gamepad button press (binds last command)
+    | 'gp-button-confirm'   // confirm binding button to last command
     ;
 
   let dialogMode = $state<DialogMode>('idle');
@@ -66,9 +70,11 @@
 
   // ── Gamepad dialog state ────────────────────────────────────────────────
   let gpAxisTarget = $state<AxisConfigTarget>('walk');
+  let gpAxisStep = $state<AxisConfigStep>('move-north');
+  let gpAxisTestDir = $state(0);
+  let gpAxisTestTimer: ReturnType<typeof setInterval> | null = null;
   let gpCapturedButton = $state(-1);
-  let gpButtonCommand = $state('');
-  let gpButtonCommandInput: HTMLInputElement | undefined = $state();
+  let gpButtonExistingCmd = $state<string | null>(null);
 
   function toggleMenu(menu: string) {
     activeMenu = activeMenu === menu ? null : menu;
@@ -204,25 +210,61 @@
 
   function startGamepadAxisConfig(target: AxisConfigTarget) {
     gpAxisTarget = target;
+    gpAxisStep = 'move-north';
     dialogMode = 'gp-axis-config';
     closeMenu();
-    startAxisConfig(target, (_axes: StickAxes) => {
-      dialogMode = 'idle';
-    });
+    startAxisConfig(
+      target,
+      (step) => {
+        gpAxisStep = step;
+        if (step === 'testing') {
+          // Start polling live direction for the test display.
+          gpAxisTestDir = 0;
+          gpAxisTestTimer = setInterval(() => {
+            gpAxisTestDir = getAxisTestDirection();
+          }, 100);
+        }
+      },
+      (_axes) => {
+        // Done (accepted or aborted).
+        stopAxisTestTimer();
+        dialogMode = 'idle';
+      },
+    );
+  }
+
+  function stopAxisTestTimer() {
+    if (gpAxisTestTimer !== null) {
+      clearInterval(gpAxisTestTimer);
+      gpAxisTestTimer = null;
+    }
   }
 
   function cancelGamepadAxisConfig() {
+    stopAxisTestTimer();
     cancelAxisConfig();
     dialogMode = 'idle';
   }
 
+  function handleAcceptAxisConfig() {
+    stopAxisTestTimer();
+    acceptAxisConfig();
+    // The onDone callback will set dialogMode = 'idle'.
+  }
+
   function startGamepadButtonBind() {
+    const cmd = getLastCommand();
+    if (!cmd) {
+      closeMenu();
+      return;
+    }
+    dialogCommand = cmd;
     dialogMode = 'gp-button-capture';
     closeMenu();
     startButtonConfig((button: number) => {
       gpCapturedButton = button;
-      gpButtonCommand = '';
-      dialogMode = 'gp-button-command';
+      gpButtonExistingCmd = getButtonCommand(button);
+      dialogMode = 'gp-button-confirm';
     });
   }
 
@@ -232,8 +274,8 @@
   }
 
   function confirmGamepadButtonBind() {
-    if (gpCapturedButton >= 0 && gpButtonCommand.trim()) {
-      setButtonCommand(gpCapturedButton, gpButtonCommand.trim());
+    if (gpCapturedButton >= 0 && dialogCommand) {
+      setButtonCommand(gpCapturedButton, dialogCommand);
     }
     dialogMode = 'idle';
   }
@@ -250,12 +292,6 @@
     resetGamepadBindings();
     closeMenu();
   }
-
-  $effect(() => {
-    if (gpButtonCommandInput) {
-      gpButtonCommandInput.focus();
-    }
-  });
 
   // ── Sound mute toggles ────────────────────────────────────────────────────
 
@@ -330,7 +366,7 @@
       <div class="dropdown">
         {#if isGamepadConnected()}
           <button onclick={showGamepadBindings}>Show gamepad bindings</button>
-          <button onclick={startGamepadButtonBind}>Bind button to command…</button>
+          <button onclick={startGamepadButtonBind}>Bind last command to button…</button>
           <button onclick={() => startGamepadAxisConfig('walk')}>Configure walk/run stick…</button>
           <button onclick={() => startGamepadAxisConfig('fire')}>Configure fire stick…</button>
           <button onclick={handleResetGamepad}>Reset to defaults</button>
@@ -516,38 +552,54 @@
   <div class="dialog-overlay">
     <div class="dialog">
       <p class="dialog-title">Configure {gpAxisTarget === 'walk' ? 'Walk/Run' : 'Fire'} Stick</p>
-      <p class="dialog-prompt">Move the stick you want to use for {gpAxisTarget === 'walk' ? 'walking and running' : 'firing'}…</p>
-      <div class="dialog-buttons">
-        <button onclick={cancelGamepadAxisConfig}>Cancel</button>
-      </div>
+      {#if gpAxisStep === 'move-north'}
+        <p class="dialog-prompt">Push the stick <strong>north</strong> (up)…</p>
+      {:else if gpAxisStep === 'move-east'}
+        <p class="dialog-prompt">Push the stick <strong>east</strong> (right)…</p>
+      {:else if gpAxisStep === 'move-south'}
+        <p class="dialog-prompt">Push the stick <strong>south</strong> (down)…</p>
+      {:else if gpAxisStep === 'move-west'}
+        <p class="dialog-prompt">Push the stick <strong>west</strong> (left)…</p>
+      {:else if gpAxisStep === 'testing'}
+        <p>Move the stick to test. Current direction:</p>
+        <p class="axis-test-direction">{gpAxisTestDir > 0 ? directionName(gpAxisTestDir) : '(center)'}</p>
+        <div class="dialog-buttons">
+          <button class="btn-primary" onclick={handleAcceptAxisConfig}>Accept</button>
+          <button onclick={cancelGamepadAxisConfig}>Abort</button>
+        </div>
+      {/if}
+      {#if gpAxisStep !== 'testing'}
+        <div class="dialog-buttons">
+          <button onclick={cancelGamepadAxisConfig}>Cancel</button>
+        </div>
+      {/if}
     </div>
   </div>
 {:else if dialogMode === 'gp-button-capture'}
   <div class="dialog-overlay">
     <div class="dialog">
       <p class="dialog-title">Bind Gamepad Button</p>
+      <p>Command: <strong>{dialogCommand}</strong></p>
       <p class="dialog-prompt">Press the gamepad button you want to bind…</p>
       <div class="dialog-buttons">
         <button onclick={cancelGamepadButtonCapture}>Cancel</button>
       </div>
     </div>
   </div>
-{:else if dialogMode === 'gp-button-command'}
+{:else if dialogMode === 'gp-button-confirm'}
   <div class="dialog-overlay">
     <div class="dialog">
       <p class="dialog-title">Bind Gamepad Button</p>
       <p>Button: <strong>B{gpCapturedButton}</strong></p>
-      <label>
-        Command:
-        <input
-          type="text"
-          bind:value={gpButtonCommand}
-          bind:this={gpButtonCommandInput}
-          onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') confirmGamepadButtonBind(); }}
-        />
-      </label>
+      <p>Command: <strong>{dialogCommand}</strong></p>
+      {#if gpButtonExistingCmd}
+        <p class="dialog-warn">Already bound to: <strong>{gpButtonExistingCmd}</strong></p>
+        <p>Overwrite?</p>
+      {/if}
       <div class="dialog-buttons">
-        <button class="btn-primary" onclick={confirmGamepadButtonBind}>Bind</button>
+        <button class="btn-primary" onclick={confirmGamepadButtonBind}>
+          {gpButtonExistingCmd ? 'Overwrite' : 'Bind'}
+        </button>
         <button onclick={cancelGamepadButtonBind}>Cancel</button>
       </div>
     </div>
@@ -760,27 +812,13 @@
     min-width: 0 !important;
   }
 
-  .dialog label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    color: #c0c0c0;
-    font-size: 0.85rem;
-    margin: 0.5rem 0;
-  }
-
-  .dialog input[type="text"] {
-    padding: 0.4rem;
-    border: 1px solid #555;
-    border-radius: 3px;
-    background: #333;
-    color: #e0e0e0;
-    font-size: 0.85rem;
-  }
-
-  .dialog input[type="text"]:focus {
-    outline: none;
-    border-color: #4488ff;
+  .axis-test-direction {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e0d0b0;
+    text-align: center;
+    padding: 0.5rem 0;
+    text-transform: capitalize;
   }
 
   .dropdown button:disabled {
