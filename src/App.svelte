@@ -11,7 +11,7 @@
   } from './lib/keys';
   import { gamepadInit, gamepadShutdown, setGamepadCallbacks } from './lib/gamepad';
   import type { Stats } from './lib/protocol';
-  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, CONFIG_SERVER_TICKS } from './lib/protocol';
+  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, CONFIG_SERVER_TICKS, SHOWMAGIC_FLASH_BIT } from './lib/protocol';
   import { useConfig } from './lib/init';
   import { mapdata_animation } from './lib/mapdata';
   import { initSound, stopAll as stopAllSound } from './lib/sound';
@@ -23,6 +23,7 @@
   import SpellList from './components/SpellList.svelte';
   import SkillList from './components/SkillList.svelte';
   import MenuBar from './components/MenuBar.svelte';
+  import MagicMap from './components/MagicMap.svelte';
 
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
@@ -93,6 +94,8 @@
   let spellList: SpellList | undefined = $state();
   let skillList: SkillList | undefined = $state();
   let menuBar: MenuBar | undefined = $state();
+  let magicMap: MagicMap | undefined = $state();
+  let showMagicMap = $state(false);
 
   onMount(() => {
     clientInit();
@@ -125,6 +128,10 @@
       },
       openKeyBind: () => menuBar?.startBind(),
       openGamepadBind: () => menuBar?.startGamepadButtonBind(),
+      showMagicMap: () => {
+        showMagicMap = true;
+        magicMap?.show();
+      },
     });
 
     // Listen for keyboard events on the window.
@@ -179,6 +186,15 @@
 
     // MenuBar key-capture dialog active: let MenuBar handle the key.
     if (menuBar?.isDialogActive()) return;
+
+    // If the magic map is displayed, Escape or Enter dismisses it.
+    if (showMagicMap && (e.key === 'Escape' || e.key === 'Enter')) {
+      const cpl2 = getCpl();
+      if (cpl2) cpl2.showmagic = 0;
+      showMagicMap = false;
+      e.preventDefault();
+      return;
+    }
 
     // Route based on input state.
     switch (cpl.inputState) {
@@ -260,6 +276,7 @@
     callbacks.onStatsUpdate = undefined;
     callbacks.onMapUpdate = undefined;
     callbacks.onNewMap = undefined;
+    callbacks.onMagicMap = undefined;
     callbacks.onSpellUpdate = undefined;
     callbacks.onPlayerUpdate = undefined;
     callbacks.onPickupUpdate = undefined;
@@ -269,6 +286,7 @@
     gameQueryPrompt = '';
     gameQuerySingleChar = false;
     gameQueryYesNo = false;
+    showMagicMap = false;
     appState = 'login';
   }
 
@@ -307,6 +325,13 @@
 
     callbacks.onNewMap = () => {
       gameMap?.redrawMap();
+      // Switching to a new map hides the magic map overlay.
+      showMagicMap = false;
+    };
+
+    callbacks.onMagicMap = () => {
+      showMagicMap = true;
+      magicMap?.show();
     };
 
     callbacks.onSpellUpdate = () => {
@@ -326,6 +351,16 @@
       animateObjects();
       gameMap?.redrawMap();
       refreshInventory();
+
+      // Flash player position on the magic map.
+      const cpl = getCpl();
+      if (cpl && cpl.showmagic && showMagicMap) {
+        magicMap?.flashPlayerPos();
+        cpl.showmagic ^= SHOWMAGIC_FLASH_BIT;
+      } else if (showMagicMap && cpl && !cpl.showmagic) {
+        // User closed via the MagicMap component's close button.
+        showMagicMap = false;
+      }
     };
 
     // Self-tick fallback: if the server doesn't send ticks, drive
@@ -336,6 +371,14 @@
         animateObjects();
         gameMap?.redrawMap();
         refreshInventory();
+
+        const cpl = getCpl();
+        if (cpl && cpl.showmagic && showMagicMap) {
+          magicMap?.flashPlayerPos();
+          cpl.showmagic ^= SHOWMAGIC_FLASH_BIT;
+        } else if (showMagicMap && cpl && !cpl.showmagic) {
+          showMagicMap = false;
+        }
       }, 125);
     }
 
@@ -378,6 +421,9 @@
     </div>
     <div class="map-area">
       <GameMap bind:this={gameMap} />
+      {#if showMagicMap}
+        <MagicMap bind:this={magicMap} />
+      {/if}
       {#if gameQueryPrompt}
         <div class="query-overlay">
           <div class="query-box">

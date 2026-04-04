@@ -60,6 +60,7 @@ export interface CommandCallbacks {
   onPickupUpdate?: (mode: number) => void;
   onAccountPlayers?: (players: AccountPlayer[]) => void;
   onFailure?: (command: string, message: string) => void;
+  onMagicMap?: () => void;
   onTick?: (tickNo: number) => void;
   onGoodbye?: () => void;
   onAddMeSuccess?: () => void;
@@ -542,8 +543,66 @@ function mapScrollCmd(data: string): void {
 }
 
 function MagicMapCmd(data: DataView, len: number): void {
-  // Simplified - just log receipt
-  LOG(LogLevel.Info, 'MagicMapCmd', `Received magic map data (${len} bytes)`);
+  // The magicmap packet is MIXED format: ASCII header + binary data.
+  // Header: "%d %d %d %d " (mmapx mmapy pmapx pmapy), then raw bytes.
+  const bytes = new Uint8Array(data.buffer, data.byteOffset, len);
+
+  // Find the 4 spaces that separate the ASCII header values from the binary data.
+  let spaceCount = 0;
+  let dataOffset = 0;
+  for (let i = 0; i < len; i++) {
+    if (bytes[i] === 0x20) { // ASCII space
+      spaceCount++;
+      if (spaceCount === 4) {
+        dataOffset = i + 1;
+        break;
+      }
+    }
+  }
+  if (spaceCount !== 4) {
+    LOG(LogLevel.Warning, 'MagicMapCmd', 'Unable to find start of magic map data');
+    return;
+  }
+
+  // Parse the ASCII header.
+  const header = new TextDecoder().decode(bytes.subarray(0, dataOffset));
+  const parts = header.trim().split(/\s+/);
+  if (parts.length < 4) {
+    LOG(LogLevel.Warning, 'MagicMapCmd', 'Could not parse magic map header');
+    return;
+  }
+
+  const mmapx = parseInt(parts[0], 10);
+  const mmapy = parseInt(parts[1], 10);
+  const pmapx = parseInt(parts[2], 10);
+  const pmapy = parseInt(parts[3], 10);
+
+  if (mmapx === 0 || mmapy === 0) {
+    LOG(LogLevel.Warning, 'MagicMapCmd', 'Empty magic map');
+    return;
+  }
+
+  const dataLen = len - dataOffset;
+  if (dataLen !== mmapx * mmapy) {
+    LOG(LogLevel.Warning, 'MagicMapCmd',
+      `Magic map size mismatch. Have ${dataLen} bytes, should have ${mmapx * mmapy}`);
+    return;
+  }
+
+  const cpl = getCpl();
+  if (!cpl) return;
+
+  cpl.mmapx = mmapx;
+  cpl.mmapy = mmapy;
+  cpl.pmapx = pmapx;
+  cpl.pmapy = pmapy;
+  cpl.magicmap = new Uint8Array(bytes.subarray(dataOffset, dataOffset + dataLen));
+  cpl.showmagic = 1;
+
+  LOG(LogLevel.Info, 'MagicMapCmd',
+    `Received magic map ${mmapx}x${mmapy}, player at (${pmapx},${pmapy})`);
+
+  callbacks.onMagicMap?.();
 }
 
 function TickCmd(data: DataView, _len: number): void {

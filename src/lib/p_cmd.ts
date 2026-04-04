@@ -8,6 +8,7 @@ import { LOG } from "./misc";
 import { saveConfig } from "./storage";
 import { sendCommand, setLastCommand } from "./player";
 import { resetBindings } from "./keys";
+import { getCpl } from "./init";
 
 // ---------------------------------------------------------------------------
 // Internal state
@@ -58,6 +59,8 @@ export interface PCmdCallbacks {
     openKeyBind: () => void;
     /** Open the gamepad button-bind dialog (reads lastCommand internally). */
     openGamepadBind: () => void;
+    /** Show the magic map overlay (re-display last received data). */
+    showMagicMap?: () => void;
 }
 
 let pcmdCallbacks: PCmdCallbacks | null = null;
@@ -143,8 +146,13 @@ function commandResetKeys(_args: string): void {
 }
 
 function commandMagicmap(_args: string): void {
-    LOG(LogLevel.Info, "p_cmd::magicmap", "Requesting magic map from server.");
-    sendCommand("magicmap", 0, 1);
+    const cpl = getCpl();
+    if (!cpl || !cpl.magicmap) {
+        drawInfo("No magic map data available.");
+        return;
+    }
+    cpl.showmagic = 1;
+    pcmdCallbacks?.showMagicMap?.();
 }
 
 function commandInv(_args: string): void {
@@ -197,6 +205,7 @@ const builtinCommands: ConsoleCommand[] = [
         handler: commandGamepadBind,
     },
     { name: "help",         category: CommCat.Misc,  description: "Show help on commands",         handler: commandHelp },
+    { name: "magicmap",     category: CommCat.Misc,  description: "Show last received magic map",  handler: commandMagicmap },
     { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",   handler: commandTake },
 ];
 
