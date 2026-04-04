@@ -176,11 +176,11 @@
     </div>
   {:else if queryPrompt}
     <div class="login-form">
-      <p class="query-text">{queryPrompt}</p>
+      <p class="query-text" aria-live="polite">{queryPrompt}</p>
       {#if queryYesNo}
         <div class="yesno-buttons">
-          <button onclick={() => sendQueryReply('y')}>Yes</button>
-          <button onclick={() => sendQueryReply('n')}>No</button>
+          <button aria-keyshortcuts="y" onclick={() => sendQueryReply('y')}>Yes</button>
+          <button aria-keyshortcuts="n" onclick={() => sendQueryReply('n')}>No</button>
         </div>
       {:else}
         <label>

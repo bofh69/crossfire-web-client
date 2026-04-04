@@ -386,11 +386,11 @@
   {#if gameQueryPrompt}
     <div class="query-overlay">
       <div class="query-box">
-        <p class="query-text">{gameQueryPrompt}</p>
+        <p class="query-text" aria-live="polite">{gameQueryPrompt}</p>
         {#if gameQueryYesNo}
           <div class="yesno-buttons">
-            <button onclick={() => sendGameQueryReply('y')}>Yes</button>
-            <button onclick={() => sendGameQueryReply('n')}>No</button>
+            <button aria-keyshortcuts="y" onclick={() => sendGameQueryReply('y')}>Yes</button>
+            <button aria-keyshortcuts="n" onclick={() => sendGameQueryReply('n')}>No</button>
           </div>
         {:else}
           <label>
