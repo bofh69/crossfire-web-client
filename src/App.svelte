@@ -9,6 +9,7 @@
     keybindingsInit, setKeyCallbacks, parseKey, parseKeyRelease,
     configureKeys, handleFocusLost,
   } from './lib/keys';
+  import { gamepadInit, gamepadShutdown, setGamepadCallbacks } from './lib/gamepad';
   import type { Stats } from './lib/protocol';
   import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, CONFIG_SERVER_TICKS } from './lib/protocol';
   import { useConfig } from './lib/init';
@@ -97,6 +98,7 @@
     clientInit();
     initCommands();
     keybindingsInit();
+    gamepadInit();
 
     // Wire key-system callbacks so keys.ts can interact with the UI.
     setKeyCallbacks({
@@ -109,6 +111,13 @@
       getCpl: () => getCpl(),
     });
 
+    // Wire gamepad callbacks.
+    setGamepadCallbacks({
+      drawInfo: (message: string) => {
+        infoPanel?.addMessage(0, message);
+      },
+    });
+
     // Listen for keyboard events on the window.
     window.addEventListener('keydown', handleGlobalKeyDown);
     window.addEventListener('keyup', handleGlobalKeyUp);
@@ -118,6 +127,7 @@
       window.removeEventListener('keydown', handleGlobalKeyDown);
       window.removeEventListener('keyup', handleGlobalKeyUp);
       window.removeEventListener('blur', handleWindowBlur);
+      gamepadShutdown();
     };
   });
 

@@ -15,6 +15,25 @@
     getMusicMuted, getSfxMuted,
     setMusicMuted, setSfxMuted,
   } from '../lib/sound';
+  import {
+    isGamepadConnected,
+    getActiveProfileName,
+    getButtonMappings,
+    getStickConfig,
+    setButtonCommand,
+    removeButtonCommand,
+    resetGamepadBindings,
+    startAxisConfig,
+    cancelAxisConfig,
+    acceptAxisConfig,
+    getAxisTestDirection,
+    directionName,
+    startButtonConfig,
+    cancelButtonConfig,
+    getButtonCommand,
+    type AxisConfigTarget,
+    type AxisConfigStep,
+  } from '../lib/gamepad';
 
   interface Props {
     onDisconnect: () => void;
@@ -36,13 +55,26 @@
     | 'unbind-capture'      // waiting for the key to unbind
     | 'unbind-confirm'      // key captured; asking to confirm removal
     | 'show-bindings'       // showing all key bindings
-    | 'about';              // about dialog
+    | 'about'               // about dialog
+    | 'gp-show-bindings'    // showing gamepad bindings
+    | 'gp-axis-config'      // configuring a gamepad axis (multi-step)
+    | 'gp-button-capture'   // waiting for a gamepad button press (binds last command)
+    | 'gp-button-confirm'   // confirm binding button to last command
+    ;
 
   let dialogMode = $state<DialogMode>('idle');
   let dialogKeyStr = $state('');             // human-readable key (e.g. "Ctrl+f")
   let dialogCommand = $state('');           // command being bound
   let dialogExisting = $state<KeyBind | null>(null); // existing binding for the key
   let capturedEvent = $state<KeyboardEvent | null>(null);
+
+  // ── Gamepad dialog state ────────────────────────────────────────────────
+  let gpAxisTarget = $state<AxisConfigTarget>('walk');
+  let gpAxisStep = $state<AxisConfigStep>('move-north');
+  let gpAxisTestDir = $state(0);
+  let gpAxisTestTimer: ReturnType<typeof setInterval> | null = null;
+  let gpCapturedButton = $state(-1);
+  let gpButtonExistingCmd = $state<string | null>(null);
 
   function toggleMenu(menu: string) {
     activeMenu = activeMenu === menu ? null : menu;
@@ -165,6 +197,102 @@
     dialogMode = 'idle';
   }
 
+  // ── Gamepad dialogs ───────────────────────────────────────────────────────
+
+  function showGamepadBindings() {
+    dialogMode = 'gp-show-bindings';
+    closeMenu();
+  }
+
+  function closeGamepadBindings() {
+    dialogMode = 'idle';
+  }
+
+  function startGamepadAxisConfig(target: AxisConfigTarget) {
+    gpAxisTarget = target;
+    gpAxisStep = 'move-north';
+    dialogMode = 'gp-axis-config';
+    closeMenu();
+    startAxisConfig(
+      target,
+      (step) => {
+        gpAxisStep = step;
+        if (step === 'testing') {
+          // Start polling live direction for the test display.
+          gpAxisTestDir = 0;
+          gpAxisTestTimer = setInterval(() => {
+            gpAxisTestDir = getAxisTestDirection();
+          }, 100);
+        }
+      },
+      (_axes) => {
+        // Done (accepted or aborted).
+        stopAxisTestTimer();
+        dialogMode = 'idle';
+      },
+    );
+  }
+
+  function stopAxisTestTimer() {
+    if (gpAxisTestTimer !== null) {
+      clearInterval(gpAxisTestTimer);
+      gpAxisTestTimer = null;
+    }
+  }
+
+  function cancelGamepadAxisConfig() {
+    stopAxisTestTimer();
+    cancelAxisConfig();
+    dialogMode = 'idle';
+  }
+
+  function handleAcceptAxisConfig() {
+    stopAxisTestTimer();
+    acceptAxisConfig();
+    // The onDone callback will set dialogMode = 'idle'.
+  }
+
+  function startGamepadButtonBind() {
+    const cmd = getLastCommand();
+    if (!cmd) {
+      closeMenu();
+      return;
+    }
+    dialogCommand = cmd;
+    dialogMode = 'gp-button-capture';
+    closeMenu();
+    startButtonConfig((button: number) => {
+      gpCapturedButton = button;
+      gpButtonExistingCmd = getButtonCommand(button);
+      dialogMode = 'gp-button-confirm';
+    });
+  }
+
+  function cancelGamepadButtonCapture() {
+    cancelButtonConfig();
+    dialogMode = 'idle';
+  }
+
+  function confirmGamepadButtonBind() {
+    if (gpCapturedButton >= 0 && dialogCommand) {
+      setButtonCommand(gpCapturedButton, dialogCommand);
+    }
+    dialogMode = 'idle';
+  }
+
+  function cancelGamepadButtonBind() {
+    dialogMode = 'idle';
+  }
+
+  function handleRemoveGamepadButton(button: number) {
+    removeButtonCommand(button);
+  }
+
+  function handleResetGamepad() {
+    resetGamepadBindings();
+    closeMenu();
+  }
+
   // ── Sound mute toggles ────────────────────────────────────────────────────
 
   let musicMuted = $state(getMusicMuted());
@@ -233,6 +361,23 @@
   </div>
 
   <div class="menu-item">
+    <button class="menu-button" onclick={() => toggleMenu('gamepad')}>Gamepad</button>
+    {#if activeMenu === 'gamepad'}
+      <div class="dropdown">
+        {#if isGamepadConnected()}
+          <button onclick={showGamepadBindings}>Show gamepad bindings</button>
+          <button onclick={startGamepadButtonBind}>Bind last command to button…</button>
+          <button onclick={() => startGamepadAxisConfig('walk')}>Configure walk/run stick…</button>
+          <button onclick={() => startGamepadAxisConfig('fire')}>Configure fire stick…</button>
+          <button onclick={handleResetGamepad}>Reset to defaults</button>
+        {:else}
+          <button disabled>No gamepad connected</button>
+        {/if}
+      </div>
+    {/if}
+  </div>
+
+  <div class="menu-item">
     <button class="menu-button" onclick={() => toggleMenu('sound')}>Sound</button>
     {#if activeMenu === 'sound'}
       <div class="dropdown">
@@ -253,7 +398,7 @@
 
   <div class="spacer"></div>
   {#if currentRange}
-    <span class="range-label">Range: {currentRange}</span>
+    <span class="range-label">{currentRange}</span>
   {/if}
   <span class="title">Crossfire</span>
 </div>
@@ -368,6 +513,94 @@
       </p>
       <div class="dialog-buttons">
         <button onclick={closeAbout}>Close</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'gp-show-bindings'}
+  <div class="dialog-overlay">
+    <div class="dialog dialog-wide">
+      <p class="dialog-title">Gamepad Bindings — {getActiveProfileName()}</p>
+      {#if getStickConfig()}
+        {@const sticks = getStickConfig()}
+        <p>Walk/Run stick: axes {sticks?.walk.axisX}, {sticks?.walk.axisY}</p>
+        <p>Fire stick: axes {sticks?.fire.axisX}, {sticks?.fire.axisY}</p>
+      {/if}
+      <div class="bindings-table-wrapper">
+        <table class="bindings-table">
+          <thead>
+            <tr><th>Button</th><th>Command</th><th></th></tr>
+          </thead>
+          <tbody>
+            {#each getButtonMappings() as mapping}
+              <tr>
+                <td>B{mapping.button}</td>
+                <td>{mapping.command}</td>
+                <td>
+                  <button class="btn-small btn-danger" onclick={() => handleRemoveGamepadButton(mapping.button)}>✕</button>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+      <div class="dialog-buttons">
+        <button onclick={closeGamepadBindings}>Close</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'gp-axis-config'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Configure {gpAxisTarget === 'walk' ? 'Walk/Run' : 'Fire'} Stick</p>
+      {#if gpAxisStep === 'move-north'}
+        <p class="dialog-prompt">Push the stick <strong>north</strong> (up)…</p>
+      {:else if gpAxisStep === 'move-east'}
+        <p class="dialog-prompt">Push the stick <strong>east</strong> (right)…</p>
+      {:else if gpAxisStep === 'move-south'}
+        <p class="dialog-prompt">Push the stick <strong>south</strong> (down)…</p>
+      {:else if gpAxisStep === 'move-west'}
+        <p class="dialog-prompt">Push the stick <strong>west</strong> (left)…</p>
+      {:else if gpAxisStep === 'testing'}
+        <p>Move the stick to test. Current direction:</p>
+        <p class="axis-test-direction">{gpAxisTestDir > 0 ? directionName(gpAxisTestDir) : '(center)'}</p>
+        <div class="dialog-buttons">
+          <button class="btn-primary" onclick={handleAcceptAxisConfig}>Accept</button>
+          <button onclick={cancelGamepadAxisConfig}>Abort</button>
+        </div>
+      {/if}
+      {#if gpAxisStep !== 'testing'}
+        <div class="dialog-buttons">
+          <button onclick={cancelGamepadAxisConfig}>Cancel</button>
+        </div>
+      {/if}
+    </div>
+  </div>
+{:else if dialogMode === 'gp-button-capture'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind Gamepad Button</p>
+      <p>Command: <strong>{dialogCommand}</strong></p>
+      <p class="dialog-prompt">Press the gamepad button you want to bind…</p>
+      <div class="dialog-buttons">
+        <button onclick={cancelGamepadButtonCapture}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'gp-button-confirm'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind Gamepad Button</p>
+      <p>Button: <strong>B{gpCapturedButton}</strong></p>
+      <p>Command: <strong>{dialogCommand}</strong></p>
+      {#if gpButtonExistingCmd}
+        <p class="dialog-warn">Already bound to: <strong>{gpButtonExistingCmd}</strong></p>
+        <p>Overwrite?</p>
+      {/if}
+      <div class="dialog-buttons">
+        <button class="btn-primary" onclick={confirmGamepadButtonBind}>
+          {gpButtonExistingCmd ? 'Overwrite' : 'Bind'}
+        </button>
+        <button onclick={cancelGamepadButtonBind}>Cancel</button>
       </div>
     </div>
   </div>
@@ -571,6 +804,30 @@
     color: #aaa;
     font-size: 0.8rem;
     margin-top: 0.8rem !important;
+  }
+
+  .btn-small {
+    padding: 0.1rem 0.4rem !important;
+    font-size: 0.7rem !important;
+    min-width: 0 !important;
+  }
+
+  .axis-test-direction {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e0d0b0;
+    text-align: center;
+    padding: 0.5rem 0;
+    text-transform: capitalize;
+  }
+
+  .dropdown button:disabled {
+    color: #666;
+    cursor: default;
+  }
+
+  .dropdown button:disabled:hover {
+    background: none;
   }
 </style>
 

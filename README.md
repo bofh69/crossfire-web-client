@@ -1,13 +1,32 @@
 # Crossfire Web Client
 
-This is a port of the crossfire gtk-v2 client to TypeScript and Svelte.
+This is a conversion of the Crossfire GTK-v2 client to TypeScript and Svelte.
 
-Vite is used for the build system.
+Vite is used for the building everything.
 
-Almost everything was done in less than a day by GitHub Copilot with
-Claude Opus or Sonnet, and me just testing the different versions.
+Almost everything was done by GitHub Copilot with Claude Opus or Sonnet,
+and me just testing the different versions.
+
+<img src="screenshots/game_ui.png" width="50%" alt="Screenshot of game">
+
+## Protocol changes
+
+Web pages can't use raw TCP sockets so WebSockets has to be used.
+
+The public crossfire clients don't support WebSockets, so a WebSocket
+proxy has to be used when connecting to them. There is one included in
+the repo that also handles crossfire's protocol's length header.
+
+The [crossfire-server](https://github.com/bofh69/crossfire-server) fork
+has built in support for WebSockets.
 
 ## UX differences compared to GTK client.
+
+The client doesn't contact a metaserver as the normal servers
+don't use support WebSockets anyway.
+
+I prefer the old login system of logging in to the character
+directly, so that's what the client does.
 
 A web page can't override all the browser's built in hot keys,
 so alt is used instead of ctrl for running. That way it hopefully
@@ -19,18 +38,25 @@ Key bindings are stored locally in the browser. If playing
 from different computers/browsers, the bindings will have to
 be redone.
 
+Left clicking on items activates them.
+
 Right clicking on items and skills brings up a menu.
 
-Clicking on a skill selects it.
+Left clicking on a spell selects it.
 
+Right clicking on skills brings up a menu for use/ready of it.
 
-## Protocol changes
+## Music & sfx
 
-The web page can't use raw TCP sockets, so WebSockets has to be used.
+The client supports music and sfx, they are downloaded
+as needed from the server. Both can be muted.
 
-The public crossfire clients don't support WebSockets, so a WebSocket
-proxy has to be used when connecting to them. There is one included in
-the repo.
+## Gamepad support
 
-The [crossfire-server](https://github.com/bofh69/crossfire-server) fork
-has built in support for WebSockets.
+There is simple gamepad support built in. Currently it only has default
+bindings for my XBox One controller.
+
+It is possible to configure the client for more controllers, but it
+takes some time. It is probably easier to change in the code instead.
+
+PRs for more controllers are welcome.

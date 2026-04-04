@@ -243,6 +243,25 @@ export function getLastCommand(): string {
     return lastCommand;
 }
 
+/** Return the sequence number of the most recently sent ncom packet. */
+export function getLastNcomSeqSent(): number {
+    return lastNcomSeqSent;
+}
+
+/**
+ * Check whether a specific ncom sequence number has been acknowledged
+ * by the server.  Returns true if the server has acked this sequence or
+ * any later one (accounting for 256-wrap), or if seq is -1 (no-op).
+ */
+export function isNcomAcked(seq: number): boolean {
+    if (seq === -1 || lastNcomAcked === -1) return seq === -1;
+    // Modular distance: how many packets ahead is lastNcomAcked?
+    // If it's 0..127 ahead, the seq has been acked.  If 128..255
+    // ahead, lastNcomAcked is actually behind seq.
+    const diff = ((lastNcomAcked - seq) + 256) % 256;
+    return diff <= 127;
+}
+
 // ── Key-repeat throttle (comc-ack based) ────────────────────────────────────
 
 /**
