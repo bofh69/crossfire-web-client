@@ -34,6 +34,15 @@ let drun = -1;
 /** Last command string sent (for dedup). */
 let lastCommand = "";
 
+// ── Key-repeat throttle ──────────────────────────────────────────────────────
+
+/** Monotonically-increasing tick counter, advanced by notifyTick(). */
+let currentTick = 0;
+/** Command that was last allowed through the repeat throttle. */
+let repeatThrottleCmd = "";
+/** Tick number at which repeatThrottleCmd was last sent. */
+let repeatThrottleTick = -1;
+
 // ── Module wiring ────────────────────────────────────────────────────────────
 
 export function setSocket(sock: CrossfireSocket): void {
@@ -215,4 +224,39 @@ export function sendReply(text: string): void {
 /** Return the last command string sent via sendCommand (for keybinding use). */
 export function getLastCommand(): string {
     return lastCommand;
+}
+
+// ── Key-repeat throttle ──────────────────────────────────────────────────────
+
+/**
+ * Advance the tick counter.  Must be called once per server tick (or
+ * self-tick).  This allows one queued repeat of each command per tick.
+ */
+export function notifyTick(): void {
+    currentTick++;
+}
+
+/**
+ * Check whether a key-repeat event for `cmd` should be forwarded this tick.
+ * Returns true (and records the send) the first time `cmd` is attempted in
+ * the current tick, or whenever `cmd` differs from the previous repeat command.
+ * Returns false when the same command has already been sent in this tick.
+ */
+export function checkRepeatThrottle(cmd: string): boolean {
+    if (cmd === repeatThrottleCmd && currentTick === repeatThrottleTick) {
+        return false; // same command, same tick → throttle
+    }
+    repeatThrottleCmd = cmd;
+    repeatThrottleTick = currentTick;
+    return true;
+}
+
+/**
+ * Reset the key-repeat throttle.  Call this when the player releases a key
+ * so that immediately re-pressing the same key within the same tick still
+ * sends the command right away.
+ */
+export function resetRepeatThrottle(): void {
+    repeatThrottleCmd = "";
+    repeatThrottleTick = -1;
 }

@@ -20,7 +20,7 @@ import { loadConfig, saveConfig } from "./storage";
 import { extendedCommand } from "./p_cmd";
 import {
     fireDir, runDir, clearFire, clearRun, stopFire, stopRun,
-    sendCommand,
+    sendCommand, checkRepeatThrottle, resetRepeatThrottle,
 } from "./player";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
@@ -364,7 +364,10 @@ export function parseKey(e: KeyboardEvent): void {
             }
         }
 
-        // Normal command
+        // Normal command — throttle key-repeat to at most once per tick.
+        if (e.repeat && !checkRepeatThrottle(kb.command)) {
+            return;
+        }
         extendedCommand(kb.command);
         return;
     }
@@ -421,6 +424,11 @@ export function parseKeyRelease(e: KeyboardEvent): void {
     if (cpl.fireOn) {
         clearFire();
     }
+
+    // A key was released: reset the repeat throttle so that immediately
+    // re-pressing the same key (within the same tick) sends the command
+    // without waiting for the next tick.
+    resetRepeatThrottle();
 }
 
 /**
