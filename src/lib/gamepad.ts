@@ -64,6 +64,8 @@ const DIAGONAL_RATIO = 0.75;
  * Delay (in milliseconds) before sending a walk command from the gamepad.
  * If the stick reaches the run threshold within this window, we send
  * a run command instead — avoiding an unwanted walk-then-run on fast flicks.
+ * 80 ms is short enough to feel responsive but long enough to catch
+ * a fast flick that passes through the walk zone on its way to run.
  */
 const WALK_DELAY_MS = 80;
 
@@ -436,7 +438,9 @@ function processSticks(gp: Gamepad): void {
             runStopSeq = -1;
         } else if (isWalking && !isRunning) {
             // Still waiting for run_stop ack and stick is in walk zone —
-            // suppress walk to avoid an extra step.
+            // suppress walk to avoid an extra step.  We intentionally
+            // skip all state updates so the next frame re-evaluates
+            // from scratch once the ack arrives.
             return;
         }
     }
