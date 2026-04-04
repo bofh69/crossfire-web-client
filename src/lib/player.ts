@@ -52,6 +52,12 @@ let repeatPendingSeq = -1;
  * via a comc response.  -1 means no ack has been received yet.
  */
 let lastNcomAcked = -1;
+/**
+ * The sequence number embedded in the most recently sent ncom packet.
+ * Set inside sendCommand so recordRepeatSend() can read it reliably,
+ * before csocket.send() increments commandSent a second time.
+ */
+let lastNcomSeqSent = -1;
 
 // ── Module wiring ────────────────────────────────────────────────────────────
 
@@ -208,6 +214,7 @@ export function sendCommand(command: string, repeat: number, mustSend: number): 
     lastCommand = command;
 
     csocket.commandSent = (csocket.commandSent + 1) % COMMAND_MAX;
+    lastNcomSeqSent = csocket.commandSent;
 
     const sl = new SockList();
     sl.addString("ncom ");
@@ -276,9 +283,7 @@ export function checkRepeatThrottle(cmd: string): boolean {
  * know which comc ack to wait for.
  */
 export function recordRepeatSend(): void {
-    if (csocket) {
-        repeatPendingSeq = csocket.commandSent;
-    }
+    repeatPendingSeq = lastNcomSeqSent;
 }
 
 /**
