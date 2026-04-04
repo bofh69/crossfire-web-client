@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getCpl } from '../lib/init';
-  import { FACE_COLOR_MASK } from '../lib/protocol';
+  import { FACE_COLOR_MASK, SHOWMAGIC_FLASH_BIT } from '../lib/protocol';
 
   /**
    * Magic map color palette matching the old GTK client (old/gtk-v2/src/main.c).
@@ -98,7 +98,7 @@
 
     // Flash the player position: alternate between Black and White each tick.
     if (cpl.showmagic) {
-      const flashColor = (cpl.showmagic & 2)
+      const flashColor = (cpl.showmagic & SHOWMAGIC_FLASH_BIT)
         ? MAGIC_MAP_COLORS[0]  // Black
         : MAGIC_MAP_COLORS[1]; // White
       ctx.fillStyle = flashColor;

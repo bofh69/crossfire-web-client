@@ -11,7 +11,7 @@
   } from './lib/keys';
   import { gamepadInit, gamepadShutdown, setGamepadCallbacks } from './lib/gamepad';
   import type { Stats } from './lib/protocol';
-  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, CONFIG_SERVER_TICKS } from './lib/protocol';
+  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, CONFIG_SERVER_TICKS, SHOWMAGIC_FLASH_BIT } from './lib/protocol';
   import { useConfig } from './lib/init';
   import { mapdata_animation } from './lib/mapdata';
   import { initSound, stopAll as stopAllSound } from './lib/sound';
@@ -347,7 +347,7 @@
       const cpl = getCpl();
       if (cpl && cpl.showmagic && showMagicMap) {
         magicMap?.flashPlayerPos();
-        cpl.showmagic ^= 2; // Toggle flash on/off every tick
+        cpl.showmagic ^= SHOWMAGIC_FLASH_BIT;
       } else if (showMagicMap && cpl && !cpl.showmagic) {
         // User closed via the MagicMap component's close button.
         showMagicMap = false;
@@ -366,7 +366,7 @@
         const cpl = getCpl();
         if (cpl && cpl.showmagic && showMagicMap) {
           magicMap?.flashPlayerPos();
-          cpl.showmagic ^= 2;
+          cpl.showmagic ^= SHOWMAGIC_FLASH_BIT;
         } else if (showMagicMap && cpl && !cpl.showmagic) {
           showMagicMap = false;
         }

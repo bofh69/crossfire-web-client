@@ -435,6 +435,9 @@ export const FACE_FLOOR      = 0x80;
 export const FACE_WALL       = 0x40;
 export const FACE_COLOR_MASK = 0x0f;
 
+/** Bit toggled on showmagic to alternate the player position flash color. */
+export const SHOWMAGIC_FLASH_BIT = 2;
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Animation and face flags
 // ──────────────────────────────────────────────────────────────────────────────
