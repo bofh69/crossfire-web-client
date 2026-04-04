@@ -380,8 +380,8 @@
         </div>
       </div>
     </div>
-    <div class="info-area">
-      <InfoPanel bind:this={infoPanel} />
+    <div class="info-area" class:query-active={!!gameQueryPrompt}>
+      <InfoPanel bind:this={infoPanel} inputDisabled={!!gameQueryPrompt} />
     </div>
   </div>
 

@@ -118,6 +118,11 @@ body {
   min-height: 0;
 }
 
+.info-area.query-active {
+  position: relative;
+  z-index: 101;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

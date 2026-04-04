@@ -9,6 +9,8 @@
     NDI_GOLD, NDI_TAN,
   } from '../lib/protocol';
 
+  let { inputDisabled = false }: { inputDisabled?: boolean } = $props();
+
   interface MessageSpan {
     text: string;
     color: string;
@@ -202,7 +204,7 @@
         >{span.text}</span>{/each}</div>
     {/each}
   </div>
-  <div class="input-row">
+  <div class="input-row" class:disabled={inputDisabled}>
     <input
       type="text"
       bind:value={commandInput}
@@ -210,8 +212,9 @@
       onkeydown={handleKeydown}
       onblur={handleBlur}
       placeholder="Type command..."
+      disabled={inputDisabled}
     />
-    <button onclick={submitCommand}>Send</button>
+    <button onclick={submitCommand} disabled={inputDisabled}>Send</button>
   </div>
 </div>
 
@@ -241,6 +244,11 @@
   .input-row {
     display: flex;
     border-top: 1px solid #333;
+  }
+
+  .input-row.disabled {
+    opacity: 0.4;
+    pointer-events: none;
   }
 
   input {
