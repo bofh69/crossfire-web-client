@@ -187,6 +187,15 @@
     // MenuBar key-capture dialog active: let MenuBar handle the key.
     if (menuBar?.isDialogActive()) return;
 
+    // If the magic map is displayed, Escape or Enter dismisses it.
+    if (showMagicMap && (e.key === 'Escape' || e.key === 'Enter')) {
+      const cpl2 = getCpl();
+      if (cpl2) cpl2.showmagic = 0;
+      showMagicMap = false;
+      e.preventDefault();
+      return;
+    }
+
     // Route based on input state.
     switch (cpl.inputState) {
       case InputState.Playing:
