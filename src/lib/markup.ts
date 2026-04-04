@@ -1,0 +1,113 @@
+/**
+ * Markup parsing shared between InfoPanel and the Login page.
+ *
+ * The Crossfire server can embed simple formatting tags in messages:
+ *   [b]/[/b]           bold
+ *   [i]/[/i]           italic
+ *   [ul]/[/ul]         underline
+ *   [color=rrggbb]/[/color]  hex colour
+ * This mirrors the C client's add_marked_text_to_pane() logic.
+ */
+
+import {
+  NDI_BLACK, NDI_WHITE, NDI_NAVY, NDI_RED, NDI_ORANGE, NDI_BLUE,
+  NDI_DK_ORANGE, NDI_GREEN, NDI_LT_GREEN, NDI_GREY, NDI_BROWN,
+  NDI_GOLD, NDI_TAN,
+} from './protocol';
+
+export interface MessageSpan {
+  text: string;
+  color: string;
+  bold: boolean;
+  italic: boolean;
+  underline: boolean;
+}
+
+export const NDI_COLORS: Record<number, string> = {
+  [NDI_BLACK]: '#cccccc',   // Black on dark bg → light gray
+  [NDI_WHITE]: '#ffffff',
+  [NDI_NAVY]: '#6060cc',
+  [NDI_RED]: '#ff4444',
+  [NDI_ORANGE]: '#ff8800',
+  [NDI_BLUE]: '#4488ff',
+  [NDI_DK_ORANGE]: '#cc6600',
+  [NDI_GREEN]: '#44cc44',
+  [NDI_LT_GREEN]: '#88ff88',
+  [NDI_GREY]: '#999999',
+  [NDI_BROWN]: '#aa7744',
+  [NDI_GOLD]: '#ffcc00',
+  [NDI_TAN]: '#ccaa88',
+};
+
+export function colorForNdi(ndi: number): string {
+  return NDI_COLORS[ndi] ?? '#cccccc';
+}
+
+/**
+ * Parse a server message that may contain markup tags.
+ * Returns an array of styled spans.
+ */
+export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
+  const spans: MessageSpan[] = [];
+  let bold = false;
+  let italic = false;
+  let underline = false;
+  let color = baseColor;
+  let current = text;
+
+  while (true) {
+    const openBracket = current.indexOf('[');
+    if (openBracket < 0) break;
+
+    // Emit text before the bracket
+    if (openBracket > 0) {
+      spans.push({ text: current.substring(0, openBracket), color, bold, italic, underline });
+    }
+    current = current.substring(openBracket + 1);
+
+    const closeBracket = current.indexOf(']');
+    if (closeBracket < 0) break; // malformed — stop
+
+    const tag = current.substring(0, closeBracket);
+    current = current.substring(closeBracket + 1);
+
+    if (tag === 'b') {
+      bold = true;
+    } else if (tag === '/b') {
+      bold = false;
+    } else if (tag === 'i') {
+      italic = true;
+    } else if (tag === '/i') {
+      italic = false;
+    } else if (tag === 'ul') {
+      underline = true;
+    } else if (tag === '/ul') {
+      underline = false;
+    } else if (tag === '/color') {
+      color = baseColor;
+    } else if (tag.startsWith('color=')) {
+      color = '#' + tag.substring(6);
+    }
+    // Ignore other tags (fixed, arcane, hand, strange, print, etc.)
+  }
+
+  // Emit any remaining text
+  if (current.length > 0) {
+    spans.push({ text: current, color, bold, italic, underline });
+  }
+
+  return spans;
+}
+
+/**
+ * Split a multi-line text block and parse each line with parseMarkup.
+ * Trailing empty lines are dropped.
+ */
+export function parseMarkupLines(text: string, baseColor: string): MessageSpan[][] {
+  const rawLines = text.split('\n');
+  // Drop trailing blank lines
+  while (rawLines.length > 0 && rawLines[rawLines.length - 1].trim() === '') {
+    rawLines.pop();
+  }
+  return rawLines.map(line => parseMarkup(line, baseColor));
+}

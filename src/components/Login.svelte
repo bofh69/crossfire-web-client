@@ -3,6 +3,7 @@
   import { callbacks } from '../lib/commands';
   import { sendReply } from '../lib/player';
   import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO } from '../lib/protocol';
+  import { type MessageSpan, parseMarkupLines } from '../lib/markup';
 
   interface Props {
     onLoggedIn: () => void;
@@ -23,7 +24,7 @@
   let statusMessage = $state('');
 
   /** Sections received from replyinfo (motd, news, rules). */
-  interface InfoSection { type: string; text: string; }
+  interface InfoSection { type: string; lines: MessageSpan[][]; }
   let serverInfoSections = $state<InfoSection[]>([]);
 
   /** Set to true once the server sends addme_success. We only switch to the
@@ -129,11 +130,12 @@
     };
 
     callbacks.onReplyInfo = (infoType: string, text: string) => {
+      const lines = parseMarkupLines(text, '#cccccc');
       const idx = serverInfoSections.findIndex(s => s.type === infoType);
       if (idx >= 0) {
-        serverInfoSections = serverInfoSections.map((s, i) => i === idx ? { type: infoType, text } : s);
+        serverInfoSections = serverInfoSections.map((s, i) => i === idx ? { type: infoType, lines } : s);
       } else {
-        serverInfoSections = [...serverInfoSections, { type: infoType, text }];
+        serverInfoSections = [...serverInfoSections, { type: infoType, lines }];
       }
     };
 
@@ -214,7 +216,14 @@
           {#each serverInfoSections as section}
             <div class="info-section">
               <h3>{infoTypeLabel(section.type)}</h3>
-              <pre class="info-text">{section.text}</pre>
+              <div class="info-text">
+                {#each section.lines as line}<div class="info-line">{#each line as span}<span
+                      style:color={span.color}
+                      style:font-weight={span.bold ? 'bold' : 'normal'}
+                      style:font-style={span.italic ? 'italic' : 'normal'}
+                      style:text-decoration={span.underline ? 'underline' : 'none'}
+                    >{span.text}</span>{/each}</div>{/each}
+              </div>
             </div>
           {/each}
         </div>
@@ -301,11 +310,14 @@
   }
 
   .info-text {
-    color: #c0c0c0;
+    font-family: 'Courier New', monospace;
     font-size: 0.85rem;
-    white-space: pre-wrap;
-    margin: 0;
-    font-family: var(--mono);
+    line-height: 1.3;
+  }
+
+  .info-line {
+    padding: 1px 0;
+    word-wrap: break-word;
   }
 
   .query-panel {
