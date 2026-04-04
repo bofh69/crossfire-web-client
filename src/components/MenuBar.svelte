@@ -11,6 +11,10 @@
     type KeyBind,
   } from '../lib/keys';
   import { getLastCommand } from '../lib/player';
+  import {
+    getMusicMuted, getSfxMuted,
+    setMusicMuted, setSfxMuted,
+  } from '../lib/sound';
 
   interface Props {
     onDisconnect: () => void;
@@ -161,6 +165,23 @@
     dialogMode = 'idle';
   }
 
+  // ── Sound mute toggles ────────────────────────────────────────────────────
+
+  let musicMuted = $state(getMusicMuted());
+  let sfxMuted = $state(getSfxMuted());
+
+  function toggleMusicMute() {
+    musicMuted = !musicMuted;
+    setMusicMuted(musicMuted);
+    closeMenu();
+  }
+
+  function toggleSfxMute() {
+    sfxMuted = !sfxMuted;
+    setSfxMuted(sfxMuted);
+    closeMenu();
+  }
+
   function handleWindowKeydown(e: KeyboardEvent) {
     if (dialogMode === 'bind-capture') {
       handleBindCapture(e);
@@ -207,6 +228,16 @@
         <button onclick={startBind}>Bind last command to key…</button>
         <button onclick={startUnbind}>Unbind a key…</button>
         <button onclick={showBindings}>Show key bindings</button>
+      </div>
+    {/if}
+  </div>
+
+  <div class="menu-item">
+    <button class="menu-button" onclick={() => toggleMenu('sound')}>Sound</button>
+    {#if activeMenu === 'sound'}
+      <div class="dropdown">
+        <button onclick={toggleMusicMute}>{musicMuted ? 'Unmute Music' : 'Mute Music'}</button>
+        <button onclick={toggleSfxMute}>{sfxMuted ? 'Unmute Sound Effects' : 'Mute Sound Effects'}</button>
       </div>
     {/if}
   </div>
