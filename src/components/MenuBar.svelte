@@ -398,7 +398,7 @@
 
   <div class="spacer"></div>
   {#if currentRange}
-    <span class="range-label">Range: {currentRange}</span>
+    <span class="range-label">{currentRange}</span>
   {/if}
   <span class="title">Crossfire</span>
 </div>
