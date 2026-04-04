@@ -809,5 +809,6 @@ export interface ConsoleCommand {
     name: string;
     category: CommCat;
     description: string;
+    longDescription?: string;
     handler: (args: string) => void;
 }

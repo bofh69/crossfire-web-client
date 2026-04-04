@@ -243,6 +243,14 @@ export function getLastCommand(): string {
     return lastCommand;
 }
 
+/**
+ * Set the last command string without sending it to the server.
+ * Used by local `bind`/`gamepad_bind` commands to prime the bind dialogs.
+ */
+export function setLastCommand(cmd: string): void {
+    lastCommand = cmd;
+}
+
 /** Return the sequence number of the most recently sent ncom packet. */
 export function getLastNcomSeqSent(): number {
     return lastNcomSeqSent;

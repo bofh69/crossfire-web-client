@@ -455,11 +455,13 @@ export function handleFocusLost(): void {
 // State used during the Configure_Keys phase.
 let bindFlags = 0;
 let bindCommand = "";
+/** True when the caller explicitly set modifier flags via -n/-f/-r/-a/-m. */
+let bindModifiersExplicit = false;
 
 /**
  * Implements the `/bind` command.
  *
- * Usage: `bind [-e] [-i] [-g] <command>`
+ * Usage: `bind [-einframg] <command>`
  *
  * After parsing flags, the client enters Configure_Keys state and waits
  * for the next keypress, which is then bound to the command.
@@ -467,32 +469,69 @@ let bindCommand = "";
  * Flags:
  *   -e   enter edit mode (prefill command input)
  *   -i   bind for any modifier combination (KEYF_ANY)
+ *   -n   bind for normal mode (no modifier keys held)
+ *   -f   bind for fire mode (Shift held)
+ *   -r   bind for run mode (Alt held)
+ *   -a   bind for alt mode (Ctrl held)
+ *   -m   bind for meta mode (Meta/Win key held)
  *   -g   (ignored in web client, kept for compat)
+ *
+ * Flags may be combined in a single argument (e.g. `-nf`) or given
+ * separately (e.g. `-n -f`).  When any of -n/-f/-r/-a/-m are given the
+ * modifier combination is fixed; otherwise the modifiers held at the time
+ * the user presses the key determine the binding's modifier flags.
  */
 export function bindKey(params: string): void {
     if (!params || params.trim().length === 0) {
         cb?.drawInfo(
-            "Usage: bind [-e] [-i] <command>\n" +
+            "Usage: bind [-einframg] <command>\n" +
             "  -e  enter edit mode when key is pressed\n" +
             "  -i  ignore modifiers (keybinding works no matter if Shift/Ctrl etc are held)\n" +
-            "Press the key you want to bind after entering the command."
+            "  -n  bind for normal mode (no modifier keys)\n" +
+            "  -f  bind for fire mode (Shift held)\n" +
+            "  -r  bind for run mode (Alt held)\n" +
+            "  -a  bind for alt mode (Ctrl held)\n" +
+            "  -m  bind for meta mode (Meta/Win key held)\n" +
+            "Without -n/-f/-r/-a/-m, modifiers are read from the keyboard when you press the key."
         );
         return;
     }
 
     let rest = params.trim();
     bindFlags = 0;
+    bindModifiersExplicit = false;
 
-    // Parse option flags
-    while (rest.startsWith("-")) {
+    // Parse option flags.  Supports both combined ("-nfe") and separate
+    // ("-n -f -e") styles, matching the original C client.
+    while (rest.startsWith("-") && rest.length > 1) {
         const spaceIdx = rest.indexOf(" ");
-        const flag = spaceIdx > 0 ? rest.substring(0, spaceIdx) : rest;
-        if (flag === "-e") {
-            bindFlags |= KEYF_EDIT;
-        } else if (flag === "-i") {
-            bindFlags |= KEYF_ANY;
-        } else if (flag === "-g") {
-            // global scope — ignored in web client
+        const flagChars = spaceIdx > 0 ? rest.substring(1, spaceIdx) : rest.substring(1);
+        for (const ch of flagChars) {
+            switch (ch) {
+                case 'e': bindFlags |= KEYF_EDIT; break;
+                case 'i': bindFlags |= KEYF_ANY; break;
+                case 'g': break; // global scope — ignored in web client
+                case 'n':
+                    // Normal mode: no extra modifier bits; just mark explicit.
+                    bindModifiersExplicit = true;
+                    break;
+                case 'f':
+                    bindFlags |= KEYF_MOD_SHIFT; // fire = Shift
+                    bindModifiersExplicit = true;
+                    break;
+                case 'r':
+                    bindFlags |= KEYF_MOD_CTRL;  // run mode: Alt key → KEYF_MOD_CTRL (see key mapping)
+                    bindModifiersExplicit = true;
+                    break;
+                case 'a':
+                    bindFlags |= KEYF_MOD_ALT;   // alt mode: Ctrl key → KEYF_MOD_ALT (see key mapping)
+                    bindModifiersExplicit = true;
+                    break;
+                case 'm':
+                    bindFlags |= KEYF_MOD_META;
+                    bindModifiersExplicit = true;
+                    break;
+            }
         }
         rest = spaceIdx > 0 ? rest.substring(spaceIdx + 1).trimStart() : "";
     }
@@ -525,7 +564,7 @@ export function configureKeys(e: KeyboardEvent): void {
 
     // Add modifier flags based on what's currently held
     let flags = bindFlags;
-    if (!(flags & KEYF_ANY)) {
+    if (!(flags & KEYF_ANY) && !bindModifiersExplicit) {
         if (e.shiftKey) flags |= KEYF_MOD_SHIFT;
         if (e.altKey)   flags |= KEYF_MOD_CTRL;  // Alt = run modifier
         if (e.ctrlKey)  flags |= KEYF_MOD_ALT;   // Ctrl = alt modifier

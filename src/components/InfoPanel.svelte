@@ -1,6 +1,5 @@
 <script lang="ts">
   import { extendedCommand } from '../lib/p_cmd';
-  import { sendCommand } from '../lib/player';
   import { InputState } from '../lib/protocol';
   import { getCpl } from '../lib/init';
   import { type MessageSpan, colorForNdi, parseMarkup } from '../lib/markup';
@@ -94,11 +93,7 @@
       return;
     }
 
-    if (cmd.startsWith('/')) {
-      extendedCommand(cmd);
-    } else {
-      sendCommand(cmd, 0, 1);
-    }
+    extendedCommand(cmd);
     commandInput = '';
     blurInput();
   }

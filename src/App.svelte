@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { clientInit, getCpl } from './lib/init';
-  import { initCommands } from './lib/p_cmd';
+  import { initCommands, setPCmdCallbacks } from './lib/p_cmd';
   import { callbacks, playerStats, spells } from './lib/commands';
   import { locateItem, animateObjects } from './lib/item';
   import { sendReply } from './lib/player';
@@ -116,6 +116,15 @@
       drawInfo: (message: string) => {
         infoPanel?.addMessage(0, message);
       },
+    });
+
+    // Wire p_cmd callbacks so bind/gamepad_bind commands can open dialogs.
+    setPCmdCallbacks({
+      drawInfo: (message: string) => {
+        infoPanel?.addMessage(0, message);
+      },
+      openKeyBind: () => menuBar?.startBind(),
+      openGamepadBind: () => menuBar?.startGamepadButtonBind(),
     });
 
     // Listen for keyboard events on the window.

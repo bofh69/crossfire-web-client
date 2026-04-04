@@ -6,8 +6,8 @@
 import { CommCat, LogLevel, type ConsoleCommand } from "./protocol";
 import { LOG } from "./misc";
 import { saveConfig } from "./storage";
-import { sendCommand } from "./player";
-import { bindKey, unbindKey, resetBindings } from "./keys";
+import { sendCommand, setLastCommand } from "./player";
+import { resetBindings } from "./keys";
 
 // ---------------------------------------------------------------------------
 // Internal state
@@ -48,6 +48,41 @@ function getCategoryName(cat: CommCat): string {
 }
 
 // ---------------------------------------------------------------------------
+// Callbacks (wired by App.svelte after MenuBar mounts)
+// ---------------------------------------------------------------------------
+
+export interface PCmdCallbacks {
+    /** Display a message in the info panel. */
+    drawInfo: (message: string) => void;
+    /** Open the keyboard key-bind dialog (reads lastCommand internally). */
+    openKeyBind: () => void;
+    /** Open the gamepad button-bind dialog (reads lastCommand internally). */
+    openGamepadBind: () => void;
+}
+
+let pcmdCallbacks: PCmdCallbacks | null = null;
+
+/** Wire callbacks from the UI layer so local commands can open dialogs. */
+export function setPCmdCallbacks(cbs: PCmdCallbacks): void {
+    pcmdCallbacks = cbs;
+}
+
+/** Display a message in the info panel (falls back to console).
+ *  Multi-line strings are split so each line is shown on its own row. */
+function drawInfo(message: string): void {
+    const lines = message.split("\n");
+    if (pcmdCallbacks) {
+        for (const line of lines) {
+            pcmdCallbacks.drawInfo(line);
+        }
+    } else {
+        for (const line of lines) {
+            console.info(line);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Built-in command handlers
 // ---------------------------------------------------------------------------
 
@@ -64,26 +99,43 @@ function commandHelp(args: string): void {
             const desc = cmd.description ?? "";
             lines.push(`    ${cmd.name.padEnd(16)} ${desc}`);
         }
-        LOG(LogLevel.Info, "p_cmd::help", lines.join("\n"));
+        drawInfo(lines.join("\n"));
+        sendCommand('help', 0, 1);
         return;
     }
 
     const target = findCommand(args.trim());
     if (target) {
-        LOG(LogLevel.Info, "p_cmd::help",
-            `${target.name}: ${target.description ?? "(no description)"}`);
+        drawInfo(`${target.name}: ${target.description ?? "(no description)"}`);
+        if (target.longDescription) {
+            drawInfo(target.longDescription);
+        }
     } else {
-        LOG(LogLevel.Info, "p_cmd::help",
-            `Unknown command '${args.trim()}'. Type 'help' for a list.`);
+        sendCommand(`help ${args.trim()}`, 0, 1);
+        drawInfo(`Unknown command '${args.trim()}'. Type 'help' for a list.`);
     }
 }
 
 function commandBind(args: string): void {
-    bindKey(args);
+    if (!args || args.trim().length === 0) {
+        drawInfo(
+            "Usage: bind <command>\n" +
+            "  Sets <command> as the pending command and opens the key-bind dialog.");
+        return;
+    }
+    setLastCommand(args.trim());
+    pcmdCallbacks?.openKeyBind();
 }
 
-function commandUnbind(args: string): void {
-    unbindKey(args);
+function commandGamepadBind(args: string): void {
+    if (!args || args.trim().length === 0) {
+        drawInfo(
+            "Usage: gamepad_bind <command>\n" +
+            "  Sets <command> as the pending command and opens the gamepad button-bind dialog.");
+        return;
+    }
+    setLastCommand(args.trim());
+    pcmdCallbacks?.openGamepadBind();
 }
 
 function commandResetKeys(_args: string): void {
@@ -105,25 +157,47 @@ function commandTake(args: string): void {
     sendCommand(`take ${what}`.trim(), 0, 1);
 }
 
-function commandSaveDefaults(_args: string): void {
-    saveConfig("defaults_saved", true);
-    LOG(LogLevel.Info, "p_cmd::savedefaults", "Defaults saved.");
-}
-
 // ---------------------------------------------------------------------------
 // Command table
 // ---------------------------------------------------------------------------
 
 const builtinCommands: ConsoleCommand[] = [
-    { name: "bind",         category: CommCat.Setup, description: "Bind a key to a command",       handler: commandBind },
+    {
+        name: "bind",
+        category: CommCat.Setup,
+        description: "Store a command and open the key-bind dialog",
+        longDescription:
+            "Syntax:\n" +
+            "  bind <command>\n" +
+            "\n" +
+            "Stores <command> as the pending command (without sending it to the\n" +
+            "server) and opens the keyboard key-bind dialog so you can assign\n" +
+            "it to a key.\n" +
+            "\n" +
+            "Example:\n" +
+            "  bind cast fireball\n" +
+            "    Opens the bind dialog with 'cast fireball' ready to be assigned.",
+        handler: commandBind,
+    },
+    {
+        name: "gamepad_bind",
+        category: CommCat.Setup,
+        description: "Store a command and open the gamepad button-bind dialog",
+        longDescription:
+            "Syntax:\n" +
+            "  gamepad_bind <command>\n" +
+            "\n" +
+            "Stores <command> as the pending command (without sending it to the\n" +
+            "server) and opens the gamepad button-bind dialog so you can assign\n" +
+            "it to a controller button.\n" +
+            "\n" +
+            "Example:\n" +
+            "  gamepad_bind cast fireball\n" +
+            "    Opens the gamepad bind dialog with 'cast fireball' ready to be assigned.",
+        handler: commandGamepadBind,
+    },
     { name: "help",         category: CommCat.Misc,  description: "Show help on commands",         handler: commandHelp },
-    { name: "inv",          category: CommCat.Debug, description: "Show inventory",                handler: commandInv },
-    { name: "inventory",    category: CommCat.Debug, description: "Show inventory (alias)",        handler: commandInv },
-    { name: "magicmap",     category: CommCat.Misc,  description: "Request the magic map overlay", handler: commandMagicmap },
-    { name: "resetkeys",    category: CommCat.Setup, description: "Reset key bindings to defaults",handler: commandResetKeys },
-    { name: "savedefaults", category: CommCat.Setup, description: "Save current configuration",   handler: commandSaveDefaults },
     { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",   handler: commandTake },
-    { name: "unbind",       category: CommCat.Setup, description: "Remove a key binding",         handler: commandUnbind },
 ];
 
 // ---------------------------------------------------------------------------
@@ -224,8 +298,9 @@ export function handleLocalCommand(cp: string, cpnext: string): boolean {
 
 /**
  * Parse and execute a command string.
- * Leading "/" is stripped if present.  If the command matches a local
- * handler it is executed directly; otherwise it is sent to the server.
+ * An optional leading "/" is stripped before matching — extended command
+ * names do not include the slash.  If the command matches a local handler
+ * it is executed directly; otherwise it is sent to the server.
  */
 export function extendedCommand(command: string): void {
     let trimmed = command.trim();
@@ -233,7 +308,7 @@ export function extendedCommand(command: string): void {
         return;
     }
 
-    // Strip leading slash.
+    // Strip optional leading slash — commands are registered without it.
     if (trimmed.startsWith("/")) {
         trimmed = trimmed.slice(1);
     }
