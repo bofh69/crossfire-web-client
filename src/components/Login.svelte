@@ -2,7 +2,7 @@
   import { clientConnect, clientNegotiate, sendAddMe } from '../lib/client';
   import { callbacks } from '../lib/commands';
   import { sendReply } from '../lib/player';
-  import { CS_QUERY_HIDEINPUT } from '../lib/protocol';
+  import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR } from '../lib/protocol';
 
   interface Props {
     onLoggedIn: () => void;
@@ -16,6 +16,7 @@
   let errorMessage = $state('');
   let queryPrompt = $state('');
   let queryHidden = $state(false);
+  let querySingleChar = $state(false);
   let queryInput = $state('');
   let statusMessage = $state('');
 
@@ -69,7 +70,16 @@
   }
 
   function handleQueryKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
+    if (querySingleChar && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      // For single-character queries, send the reply immediately on keypress
+      // without requiring Enter. The typed character becomes the reply.
+      sendReply(e.key);
+      queryInput = '';
+      queryPrompt = '';
+      querySingleChar = false;
+      e.preventDefault();
+      checkLoginComplete();
+    } else if (e.key === 'Enter') {
       handleQuerySubmit();
     }
   }
@@ -78,6 +88,7 @@
     callbacks.onQuery = (flags: number, prompt: string) => {
       queryPrompt = prompt;
       queryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
+      querySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
       queryInput = '';
     };
 

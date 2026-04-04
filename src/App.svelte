@@ -10,7 +10,7 @@
     configureKeys, handleFocusLost,
   } from './lib/keys';
   import type { Stats } from './lib/protocol';
-  import { InputState, CS_QUERY_HIDEINPUT, CONFIG_SERVER_TICKS } from './lib/protocol';
+  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CONFIG_SERVER_TICKS } from './lib/protocol';
   import { useConfig } from './lib/init';
   import { mapdata_animation } from './lib/mapdata';
   import { initSound, stopAll as stopAllSound } from './lib/sound';
@@ -37,6 +37,7 @@
    *  name prompt that the server sends after addme_success on some servers). */
   let gameQueryPrompt = $state('');
   let gameQueryHidden = $state(false);
+  let gameQuerySingleChar = $state(false);
   let gameQueryInput = $state('');
   let gameQueryInputEl: HTMLInputElement | undefined = $state();
 
@@ -54,10 +55,21 @@
     sendReply(gameQueryInput);
     gameQueryInput = '';
     gameQueryPrompt = '';
+    gameQuerySingleChar = false;
   }
 
   function handleGameQueryKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
+    if (gameQuerySingleChar && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      // For single-character queries, send the reply immediately on keypress
+      // without requiring Enter. The typed character becomes the reply.
+      sendReply(e.key);
+      gameQueryInput = '';
+      gameQueryPrompt = '';
+      gameQuerySingleChar = false;
+      e.preventDefault();
+      // Stop propagation so the global window handler doesn't re-focus the chat input.
+      e.stopPropagation();
+    } else if (e.key === 'Enter') {
       // Stop propagation so the global window handler doesn't re-focus the chat input.
       e.stopPropagation();
       handleGameQuerySubmit();
@@ -217,6 +229,7 @@
     callbacks.onGoodbye = undefined;
     callbacks.onQuery = undefined;
     gameQueryPrompt = '';
+    gameQuerySingleChar = false;
     appState = 'login';
   }
 
@@ -240,6 +253,7 @@
     callbacks.onQuery = (flags: number, prompt: string) => {
       gameQueryPrompt = prompt;
       gameQueryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
+      gameQuerySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
       gameQueryInput = '';
     };
 
@@ -295,6 +309,7 @@
     callbacks.onAddMeSuccess = () => {
       serverDisconnected = false;
       gameQueryPrompt = '';
+      gameQuerySingleChar = false;
     };
   }
 
