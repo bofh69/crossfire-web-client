@@ -15,6 +15,21 @@
     getMusicMuted, getSfxMuted,
     setMusicMuted, setSfxMuted,
   } from '../lib/sound';
+  import {
+    isGamepadConnected,
+    getActiveProfileName,
+    getButtonMappings,
+    getStickConfig,
+    setButtonCommand,
+    removeButtonCommand,
+    resetGamepadBindings,
+    startAxisConfig,
+    cancelAxisConfig,
+    startButtonConfig,
+    cancelButtonConfig,
+    type AxisConfigTarget,
+  } from '../lib/gamepad';
+  import type { StickAxes } from '../lib/gamepad_defaults';
 
   interface Props {
     onDisconnect: () => void;
@@ -36,13 +51,24 @@
     | 'unbind-capture'      // waiting for the key to unbind
     | 'unbind-confirm'      // key captured; asking to confirm removal
     | 'show-bindings'       // showing all key bindings
-    | 'about';              // about dialog
+    | 'about'               // about dialog
+    | 'gp-show-bindings'    // showing gamepad bindings
+    | 'gp-axis-config'      // configuring a gamepad axis
+    | 'gp-button-capture'   // waiting for a gamepad button press
+    | 'gp-button-command'   // entering command for captured button
+    ;
 
   let dialogMode = $state<DialogMode>('idle');
   let dialogKeyStr = $state('');             // human-readable key (e.g. "Ctrl+f")
   let dialogCommand = $state('');           // command being bound
   let dialogExisting = $state<KeyBind | null>(null); // existing binding for the key
   let capturedEvent = $state<KeyboardEvent | null>(null);
+
+  // ── Gamepad dialog state ────────────────────────────────────────────────
+  let gpAxisTarget = $state<AxisConfigTarget>('walk');
+  let gpCapturedButton = $state(-1);
+  let gpButtonCommand = $state('');
+  let gpButtonCommandInput: HTMLInputElement | undefined = $state();
 
   function toggleMenu(menu: string) {
     activeMenu = activeMenu === menu ? null : menu;
@@ -165,6 +191,72 @@
     dialogMode = 'idle';
   }
 
+  // ── Gamepad dialogs ───────────────────────────────────────────────────────
+
+  function showGamepadBindings() {
+    dialogMode = 'gp-show-bindings';
+    closeMenu();
+  }
+
+  function closeGamepadBindings() {
+    dialogMode = 'idle';
+  }
+
+  function startGamepadAxisConfig(target: AxisConfigTarget) {
+    gpAxisTarget = target;
+    dialogMode = 'gp-axis-config';
+    closeMenu();
+    startAxisConfig(target, (_axes: StickAxes) => {
+      dialogMode = 'idle';
+    });
+  }
+
+  function cancelGamepadAxisConfig() {
+    cancelAxisConfig();
+    dialogMode = 'idle';
+  }
+
+  function startGamepadButtonBind() {
+    dialogMode = 'gp-button-capture';
+    closeMenu();
+    startButtonConfig((button: number) => {
+      gpCapturedButton = button;
+      gpButtonCommand = '';
+      dialogMode = 'gp-button-command';
+    });
+  }
+
+  function cancelGamepadButtonCapture() {
+    cancelButtonConfig();
+    dialogMode = 'idle';
+  }
+
+  function confirmGamepadButtonBind() {
+    if (gpCapturedButton >= 0 && gpButtonCommand.trim()) {
+      setButtonCommand(gpCapturedButton, gpButtonCommand.trim());
+    }
+    dialogMode = 'idle';
+  }
+
+  function cancelGamepadButtonBind() {
+    dialogMode = 'idle';
+  }
+
+  function handleRemoveGamepadButton(button: number) {
+    removeButtonCommand(button);
+  }
+
+  function handleResetGamepad() {
+    resetGamepadBindings();
+    closeMenu();
+  }
+
+  $effect(() => {
+    if (gpButtonCommandInput) {
+      gpButtonCommandInput.focus();
+    }
+  });
+
   // ── Sound mute toggles ────────────────────────────────────────────────────
 
   let musicMuted = $state(getMusicMuted());
@@ -228,6 +320,23 @@
         <button onclick={startBind}>Bind last command to key…</button>
         <button onclick={startUnbind}>Unbind a key…</button>
         <button onclick={showBindings}>Show key bindings</button>
+      </div>
+    {/if}
+  </div>
+
+  <div class="menu-item">
+    <button class="menu-button" onclick={() => toggleMenu('gamepad')}>Gamepad</button>
+    {#if activeMenu === 'gamepad'}
+      <div class="dropdown">
+        {#if isGamepadConnected()}
+          <button onclick={showGamepadBindings}>Show gamepad bindings</button>
+          <button onclick={startGamepadButtonBind}>Bind button to command…</button>
+          <button onclick={() => startGamepadAxisConfig('walk')}>Configure walk/run stick…</button>
+          <button onclick={() => startGamepadAxisConfig('fire')}>Configure fire stick…</button>
+          <button onclick={handleResetGamepad}>Reset to defaults</button>
+        {:else}
+          <button disabled>No gamepad connected</button>
+        {/if}
       </div>
     {/if}
   </div>
@@ -368,6 +477,78 @@
       </p>
       <div class="dialog-buttons">
         <button onclick={closeAbout}>Close</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'gp-show-bindings'}
+  <div class="dialog-overlay">
+    <div class="dialog dialog-wide">
+      <p class="dialog-title">Gamepad Bindings — {getActiveProfileName()}</p>
+      {#if getStickConfig()}
+        {@const sticks = getStickConfig()}
+        <p>Walk/Run stick: axes {sticks?.walk.axisX}, {sticks?.walk.axisY}</p>
+        <p>Fire stick: axes {sticks?.fire.axisX}, {sticks?.fire.axisY}</p>
+      {/if}
+      <div class="bindings-table-wrapper">
+        <table class="bindings-table">
+          <thead>
+            <tr><th>Button</th><th>Command</th><th></th></tr>
+          </thead>
+          <tbody>
+            {#each getButtonMappings() as mapping}
+              <tr>
+                <td>B{mapping.button}</td>
+                <td>{mapping.command}</td>
+                <td>
+                  <button class="btn-small btn-danger" onclick={() => handleRemoveGamepadButton(mapping.button)}>✕</button>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+      <div class="dialog-buttons">
+        <button onclick={closeGamepadBindings}>Close</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'gp-axis-config'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Configure {gpAxisTarget === 'walk' ? 'Walk/Run' : 'Fire'} Stick</p>
+      <p class="dialog-prompt">Move the stick you want to use for {gpAxisTarget === 'walk' ? 'walking and running' : 'firing'}…</p>
+      <div class="dialog-buttons">
+        <button onclick={cancelGamepadAxisConfig}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'gp-button-capture'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind Gamepad Button</p>
+      <p class="dialog-prompt">Press the gamepad button you want to bind…</p>
+      <div class="dialog-buttons">
+        <button onclick={cancelGamepadButtonCapture}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'gp-button-command'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind Gamepad Button</p>
+      <p>Button: <strong>B{gpCapturedButton}</strong></p>
+      <label>
+        Command:
+        <input
+          type="text"
+          bind:value={gpButtonCommand}
+          bind:this={gpButtonCommandInput}
+          onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') confirmGamepadButtonBind(); }}
+        />
+      </label>
+      <div class="dialog-buttons">
+        <button class="btn-primary" onclick={confirmGamepadButtonBind}>Bind</button>
+        <button onclick={cancelGamepadButtonBind}>Cancel</button>
       </div>
     </div>
   </div>
@@ -571,6 +752,44 @@
     color: #aaa;
     font-size: 0.8rem;
     margin-top: 0.8rem !important;
+  }
+
+  .btn-small {
+    padding: 0.1rem 0.4rem !important;
+    font-size: 0.7rem !important;
+    min-width: 0 !important;
+  }
+
+  .dialog label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: #c0c0c0;
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+  }
+
+  .dialog input[type="text"] {
+    padding: 0.4rem;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: #333;
+    color: #e0e0e0;
+    font-size: 0.85rem;
+  }
+
+  .dialog input[type="text"]:focus {
+    outline: none;
+    border-color: #4488ff;
+  }
+
+  .dropdown button:disabled {
+    color: #666;
+    cursor: default;
+  }
+
+  .dropdown button:disabled:hover {
+    background: none;
   }
 </style>
 
