@@ -66,6 +66,7 @@
   }
 
   function handleGameQuerySubmit() {
+    if (gameQueryInput.trim() === '') return;
     sendGameQueryReply(gameQueryInput);
   }
 
@@ -428,7 +429,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.325);
     z-index: 100;
   }
 
@@ -441,6 +442,7 @@
     background: #1e1e1e;
     border: 1px solid #7a6a4a;
     border-radius: 6px;
+    margin-top: 32px;
   }
 
   .query-box .query-text {
