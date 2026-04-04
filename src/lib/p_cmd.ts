@@ -67,12 +67,18 @@ export function setPCmdCallbacks(cbs: PCmdCallbacks): void {
     pcmdCallbacks = cbs;
 }
 
-/** Display a message in the info panel (falls back to console). */
+/** Display a message in the info panel (falls back to console).
+ *  Multi-line strings are split so each line is shown on its own row. */
 function drawInfo(message: string): void {
+    const lines = message.split("\n");
     if (pcmdCallbacks) {
-        pcmdCallbacks.drawInfo(message);
+        for (const line of lines) {
+            pcmdCallbacks.drawInfo(line);
+        }
     } else {
-        console.info(message);
+        for (const line of lines) {
+            console.info(line);
+        }
     }
 }
 
