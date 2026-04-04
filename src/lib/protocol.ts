@@ -477,7 +477,7 @@ export const MAP1_LAYERS = 3;
 // ──────────────────────────────────────────────────────────────────────────────
 export const MAX_BUF = 256;
 export const BIG_BUF = 1024;
-export const EPORT = 13327;
+export const EPORT = 13328;
 export const VERSION_CS = 1023;
 export const VERSION_SC = 1030;
 

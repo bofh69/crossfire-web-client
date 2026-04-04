@@ -2,7 +2,7 @@
   import { clientConnect, clientNegotiate, sendAddMe } from '../lib/client';
   import { callbacks } from '../lib/commands';
   import { sendReply } from '../lib/player';
-  import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO } from '../lib/protocol';
+  import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, EPORT } from '../lib/protocol';
   import { type MessageSpan, parseMarkupLines } from '../lib/markup';
 
   interface Props {
@@ -11,7 +11,7 @@
 
   let { onLoggedIn }: Props = $props();
 
-  let serverAddress = $state('ws://localhost:13327');
+  let serverAddress = $state('ws://' + window.location.hostname + ':' + EPORT);
   let connected = $state(false);
   let connecting = $state(false);
   let errorMessage = $state('');
