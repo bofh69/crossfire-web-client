@@ -291,13 +291,19 @@ export function handleLocalCommand(cp: string, cpnext: string): boolean {
 
 /**
  * Parse and execute a command string.
- * If the command matches a local handler it is executed directly;
- * otherwise it is sent to the server.
+ * An optional leading "/" is stripped before matching — extended command
+ * names do not include the slash.  If the command matches a local handler
+ * it is executed directly; otherwise it is sent to the server.
  */
 export function extendedCommand(command: string): void {
-    const trimmed = command.trim();
+    let trimmed = command.trim();
     if (trimmed.length === 0) {
         return;
+    }
+
+    // Strip optional leading slash — commands are registered without it.
+    if (trimmed.startsWith("/")) {
+        trimmed = trimmed.slice(1);
     }
 
     // Split into command name and arguments.
