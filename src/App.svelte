@@ -10,7 +10,7 @@
     configureKeys, handleFocusLost,
   } from './lib/keys';
   import type { Stats } from './lib/protocol';
-  import { InputState, CS_QUERY_HIDEINPUT, CONFIG_SERVER_TICKS } from './lib/protocol';
+  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, CONFIG_SERVER_TICKS } from './lib/protocol';
   import { useConfig } from './lib/init';
   import { mapdata_animation } from './lib/mapdata';
   import { initSound, stopAll as stopAllSound } from './lib/sound';
@@ -36,7 +36,10 @@
   /** Query prompt sent by the server while in the playing state (e.g. character
    *  name prompt that the server sends after addme_success on some servers). */
   let gameQueryPrompt = $state('');
+  let lastGameQueryPrompt = '';
   let gameQueryHidden = $state(false);
+  let gameQuerySingleChar = $state(false);
+  let gameQueryYesNo = $state(false);
   let gameQueryInput = $state('');
   let gameQueryInputEl: HTMLInputElement | undefined = $state();
 
@@ -50,14 +53,32 @@
     }
   });
 
-  function handleGameQuerySubmit() {
-    sendReply(gameQueryInput);
+  function clearGameQuery() {
     gameQueryInput = '';
     gameQueryPrompt = '';
+    gameQuerySingleChar = false;
+    gameQueryYesNo = false;
+  }
+
+  function sendGameQueryReply(answer: string) {
+    sendReply(answer);
+    clearGameQuery();
+  }
+
+  function handleGameQuerySubmit() {
+    if (gameQueryInput.trim() === '') return;
+    sendGameQueryReply(gameQueryInput);
   }
 
   function handleGameQueryKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
+    if (gameQuerySingleChar && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      // For single-character queries, send the reply immediately on keypress
+      // without requiring Enter. The typed character becomes the reply.
+      sendGameQueryReply(e.key);
+      e.preventDefault();
+      // Stop propagation so the global window handler doesn't re-focus the chat input.
+      e.stopPropagation();
+    } else if (e.key === 'Enter') {
       // Stop propagation so the global window handler doesn't re-focus the chat input.
       e.stopPropagation();
       handleGameQuerySubmit();
@@ -125,7 +146,17 @@
     }
 
     // Query prompt active: don't dispatch game keys.
-    if (gameQueryPrompt) return;
+    if (gameQueryPrompt) {
+      // For yes/no queries, handle y/n key presses without needing focus on a button.
+      if (gameQueryYesNo) {
+        const key = e.key.toLowerCase();
+        if ((key === 'y' || key === 'n') && !e.ctrlKey && !e.altKey && !e.metaKey) {
+          sendGameQueryReply(key);
+          e.preventDefault();
+        }
+      }
+      return;
+    }
 
     // MenuBar key-capture dialog active: let MenuBar handle the key.
     if (menuBar?.isDialogActive()) return;
@@ -217,6 +248,8 @@
     callbacks.onGoodbye = undefined;
     callbacks.onQuery = undefined;
     gameQueryPrompt = '';
+    gameQuerySingleChar = false;
+    gameQueryYesNo = false;
     appState = 'login';
   }
 
@@ -238,8 +271,14 @@
     };
 
     callbacks.onQuery = (flags: number, prompt: string) => {
-      gameQueryPrompt = prompt;
+      // If the server sends an empty prompt, reuse the previous prompt text.
+      if (prompt) {
+        lastGameQueryPrompt = prompt;
+      }
+      gameQueryPrompt = lastGameQueryPrompt;
       gameQueryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
+      gameQuerySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
+      gameQueryYesNo = (flags & CS_QUERY_YESNO) !== 0;
       gameQueryInput = '';
     };
 
@@ -295,6 +334,8 @@
     callbacks.onAddMeSuccess = () => {
       serverDisconnected = false;
       gameQueryPrompt = '';
+      gameQuerySingleChar = false;
+      gameQueryYesNo = false;
     };
   }
 
@@ -318,6 +359,31 @@
     </div>
     <div class="map-area">
       <GameMap bind:this={gameMap} />
+      {#if gameQueryPrompt}
+        <div class="query-overlay">
+          <div class="query-box">
+            <p class="query-text" aria-live="polite">{gameQueryPrompt}</p>
+            {#if gameQueryYesNo}
+              <div class="yesno-buttons">
+                <button aria-keyshortcuts="y" onclick={() => sendGameQueryReply('y')}>Yes</button>
+                <button aria-keyshortcuts="n" onclick={() => sendGameQueryReply('n')}>No</button>
+              </div>
+            {:else}
+              <label>
+                <input
+                  type={gameQueryHidden ? 'password' : 'text'}
+                  bind:value={gameQueryInput}
+                  bind:this={gameQueryInputEl}
+                  onkeydown={handleGameQueryKeydown}
+                />
+              </label>
+              {#if !gameQuerySingleChar}
+                <button onclick={handleGameQuerySubmit}>Submit</button>
+              {/if}
+            {/if}
+          </div>
+        </div>
+      {/if}
     </div>
     <div class="side-area">
       <div class="stats-section">
@@ -340,27 +406,10 @@
         </div>
       </div>
     </div>
-    <div class="info-area">
-      <InfoPanel bind:this={infoPanel} />
+    <div class="info-area" class:query-active={!!gameQueryPrompt}>
+      <InfoPanel bind:this={infoPanel} inputDisabled={!!gameQueryPrompt} />
     </div>
   </div>
-
-  {#if gameQueryPrompt}
-    <div class="query-overlay">
-      <div class="query-box">
-        <label>
-          {gameQueryPrompt}
-          <input
-            type={gameQueryHidden ? 'password' : 'text'}
-            bind:value={gameQueryInput}
-            bind:this={gameQueryInputEl}
-            onkeydown={handleGameQueryKeydown}
-          />
-        </label>
-        <button onclick={handleGameQuerySubmit}>Submit</button>
-      </div>
-    </div>
-  {/if}
 
   {#if serverDisconnected}
     <div class="disconnect-overlay">
@@ -374,16 +423,17 @@
 
 <style>
   .query-overlay {
-    position: fixed;
+    position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.325);
     z-index: 100;
   }
 
   .query-box {
+    position: absolute;
+    top: calc(50% + 48px);
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -392,6 +442,21 @@
     background: #1e1e1e;
     border: 1px solid #7a6a4a;
     border-radius: 6px;
+  }
+
+  .query-box .query-text {
+    color: #c0b090;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .query-box .yesno-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .query-box .yesno-buttons button {
+    flex: 1;
   }
 
   .query-box label {

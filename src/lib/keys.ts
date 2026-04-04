@@ -20,7 +20,7 @@ import { loadConfig, saveConfig } from "./storage";
 import { extendedCommand } from "./p_cmd";
 import {
     fireDir, runDir, clearFire, clearRun, stopFire, stopRun,
-    sendCommand,
+    sendCommand, checkRepeatThrottle, resetRepeatThrottle, recordRepeatSend,
 } from "./player";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
@@ -364,8 +364,15 @@ export function parseKey(e: KeyboardEvent): void {
             }
         }
 
-        // Normal command
+        // Normal command — throttle key-repeat: only send if the previous
+        // ncom for this command has been acknowledged by the server (comc).
+        if (e.repeat && !checkRepeatThrottle(kb.command)) {
+            return;
+        }
         extendedCommand(kb.command);
+        if (e.repeat) {
+            recordRepeatSend();
+        }
         return;
     }
 
@@ -421,6 +428,11 @@ export function parseKeyRelease(e: KeyboardEvent): void {
     if (cpl.fireOn) {
         clearFire();
     }
+
+    // A key was released: reset the repeat throttle so that immediately
+    // re-pressing the same key sends the command without waiting for a
+    // comc acknowledgement from the server.
+    resetRepeatThrottle();
 }
 
 /**

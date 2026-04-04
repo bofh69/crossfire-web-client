@@ -16,3 +16,6 @@ dist/
 
 # Old project build artifacts
 old/build/
+
+# Vite files
+.vite

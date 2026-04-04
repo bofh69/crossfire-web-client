@@ -2,7 +2,8 @@
   import { clientConnect, clientNegotiate, sendAddMe } from '../lib/client';
   import { callbacks } from '../lib/commands';
   import { sendReply } from '../lib/player';
-  import { CS_QUERY_HIDEINPUT } from '../lib/protocol';
+  import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO } from '../lib/protocol';
+  import { type MessageSpan, parseMarkupLines } from '../lib/markup';
 
   interface Props {
     onLoggedIn: () => void;
@@ -15,9 +16,16 @@
   let connecting = $state(false);
   let errorMessage = $state('');
   let queryPrompt = $state('');
+  let lastQueryPrompt = '';
   let queryHidden = $state(false);
+  let querySingleChar = $state(false);
+  let queryYesNo = $state(false);
   let queryInput = $state('');
   let statusMessage = $state('');
+
+  /** Sections received from replyinfo (motd, news, rules). */
+  interface InfoSection { type: string; lines: MessageSpan[][]; }
+  let serverInfoSections = $state<InfoSection[]>([]);
 
   /** Set to true once the server sends addme_success. We only switch to the
    *  game screen when this is true AND no query prompt is pending, so that a
@@ -35,6 +43,15 @@
     }
   });
 
+  function infoTypeLabel(type: string): string {
+    switch (type) {
+      case 'motd': return 'Message of the Day';
+      case 'news': return 'News';
+      case 'rules': return 'Rules';
+      default: return type;
+    }
+  }
+
   function checkLoginComplete() {
     if (addMeSuccessReceived && !queryPrompt) {
       statusMessage = 'Login successful!';
@@ -44,6 +61,7 @@
 
   async function handleConnect() {
     errorMessage = '';
+    serverInfoSections = [];
     connecting = true;
     statusMessage = 'Connecting...';
     try {
@@ -58,27 +76,67 @@
     }
   }
 
+  function clearQuery() {
+    queryInput = '';
+    queryPrompt = '';
+    querySingleChar = false;
+    queryYesNo = false;
+  }
+
+  function sendQueryReply(answer: string) {
+    sendReply(answer);
+    clearQuery();
+    checkLoginComplete();
+  }
+
   function handleQuerySubmit() {
-    if (queryInput.length > 0 || queryPrompt.length > 0) {
-      sendReply(queryInput);
-      queryInput = '';
-      queryPrompt = '';
-      // If addme_success already arrived, switch now that the prompt is gone.
-      checkLoginComplete();
+    let trimmed = queryInput.trim();
+    if (trimmed.length > 0) {
+      sendQueryReply(trimmed);
     }
   }
 
   function handleQueryKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
+    if (querySingleChar && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      // For single-character queries, send the reply immediately on keypress
+      // without requiring Enter. The typed character becomes the reply.
+      sendQueryReply(e.key);
+      e.preventDefault();
+    } else if (e.key === 'Enter') {
       handleQuerySubmit();
+    }
+  }
+
+  function handleYesNoKeydown(e: KeyboardEvent) {
+    if (!queryYesNo) return;
+    const key = e.key.toLowerCase();
+    if ((key === 'y' || key === 'n') && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      sendQueryReply(key);
+      e.preventDefault();
     }
   }
 
   $effect(() => {
     callbacks.onQuery = (flags: number, prompt: string) => {
-      queryPrompt = prompt;
+      // If the server sends an empty prompt, reuse the previous prompt text.
+      if (prompt) {
+        lastQueryPrompt = prompt;
+      }
+      queryPrompt = lastQueryPrompt;
       queryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
+      querySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
+      queryYesNo = (flags & CS_QUERY_YESNO) !== 0;
       queryInput = '';
+    };
+
+    callbacks.onReplyInfo = (infoType: string, text: string) => {
+      const lines = parseMarkupLines(text, '#cccccc');
+      const idx = serverInfoSections.findIndex(s => s.type === infoType);
+      if (idx >= 0) {
+        serverInfoSections = serverInfoSections.map((s, i) => i === idx ? { type: infoType, lines } : s);
+      } else {
+        serverInfoSections = [...serverInfoSections, { type: infoType, lines }];
+      }
     };
 
     callbacks.onVersion = (_cs: number, _sc: number, verStr: string) => {
@@ -115,6 +173,7 @@
       callbacks.onAddMeSuccess = undefined;
       callbacks.onAddMeFail = undefined;
       callbacks.onFailure = undefined;
+      callbacks.onReplyInfo = undefined;
       // onQuery and onDrawInfo are NOT cleared here: wireCallbacks() in App.svelte
       // sets them synchronously before this cleanup runs (Svelte defers $effect
       // cleanup to the next microtask), so clearing them here would silently
@@ -123,6 +182,8 @@
     };
   });
 </script>
+
+<svelte:window onkeydown={handleYesNoKeydown} />
 
 <div class="login-container">
   <h1>⚔ Crossfire Web Client</h1>
@@ -142,26 +203,63 @@
         {connecting ? 'Connecting...' : 'Connect'}
       </button>
     </div>
-  {:else if queryPrompt}
-    <div class="login-form">
-      <label>
-        {queryPrompt}
-        <input
-          type={queryHidden ? 'password' : 'text'}
-          bind:value={queryInput}
-          bind:this={queryInputEl}
-          onkeydown={handleQueryKeydown}
-        />
-      </label>
-      <button onclick={handleQuerySubmit}>Submit</button>
+    {#if statusMessage}
+      <p class="status">{statusMessage}</p>
+    {/if}
+    {#if errorMessage}
+      <p class="error">{errorMessage}</p>
+    {/if}
+  {:else}
+    <div class="connected-layout">
+      {#if serverInfoSections.length > 0}
+        <div class="server-info">
+          {#each serverInfoSections as section}
+            <div class="info-section">
+              <h3>{infoTypeLabel(section.type)}</h3>
+              <div class="info-text">
+                {#each section.lines as line}<div class="info-line">{#each line as span}<span
+                      style:color={span.color}
+                      style:font-weight={span.bold ? 'bold' : 'normal'}
+                      style:font-style={span.italic ? 'italic' : 'normal'}
+                      style:text-decoration={span.underline ? 'underline' : 'none'}
+                    >{span.text}</span>{/each}</div>{/each}
+              </div>
+            </div>
+          {/each}
+        </div>
+      {/if}
+      <div class="query-panel">
+        {#if queryPrompt}
+          <div class="login-form">
+            <p class="query-text" aria-live="polite">{queryPrompt}</p>
+            {#if queryYesNo}
+              <div class="yesno-buttons">
+                <button aria-keyshortcuts="y" onclick={() => sendQueryReply('y')}>Yes</button>
+                <button aria-keyshortcuts="n" onclick={() => sendQueryReply('n')}>No</button>
+              </div>
+            {:else}
+              <label>
+                <input
+                  type={queryHidden ? 'password' : 'text'}
+                  bind:value={queryInput}
+                  bind:this={queryInputEl}
+                  onkeydown={handleQueryKeydown}
+                />
+              </label>
+              {#if !querySingleChar}
+                <button onclick={handleQuerySubmit}>Submit</button>
+              {/if}
+            {/if}
+          </div>
+        {/if}
+        {#if statusMessage}
+          <p class="status">{statusMessage}</p>
+        {/if}
+        {#if errorMessage}
+          <p class="error">{errorMessage}</p>
+        {/if}
+      </div>
     </div>
-  {/if}
-
-  {#if statusMessage}
-    <p class="status">{statusMessage}</p>
-  {/if}
-  {#if errorMessage}
-    <p class="error">{errorMessage}</p>
   {/if}
 </div>
 
@@ -172,6 +270,7 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    padding: 2rem 1rem;
     gap: 1rem;
   }
 
@@ -179,6 +278,53 @@
     color: #e0d0b0;
     font-size: 2rem;
     margin-bottom: 1rem;
+  }
+
+  .connected-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 960px;
+  }
+
+  .server-info {
+    flex: 1;
+    max-height: 70vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 1rem;
+    background: #151515;
+  }
+
+  .info-section h3 {
+    color: #e0d0b0;
+    font-size: 0.9rem;
+    margin: 0 0 0.5rem 0;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.25rem;
+  }
+
+  .info-text {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+
+  .info-line {
+    padding: 1px 0;
+    word-wrap: break-word;
+  }
+
+  .query-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 280px;
   }
 
   .login-form {
@@ -237,5 +383,20 @@
   .error {
     color: #e06060;
     font-size: 0.85rem;
+  }
+
+  .query-text {
+    color: #c0b090;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .yesno-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .yesno-buttons button {
+    flex: 1;
   }
 </style>

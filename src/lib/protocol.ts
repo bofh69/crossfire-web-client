@@ -635,6 +635,7 @@ export interface Stats {
     golemHp: number;
     golemMaxhp: number;
     range: string;
+    title: string;
 }
 
 export interface Spell {

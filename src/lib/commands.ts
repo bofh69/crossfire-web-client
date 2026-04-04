@@ -30,7 +30,7 @@ import { locateItem, removeItem, removeItemInventory, updateItem, playerItem, an
 import { mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer, mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space, mapdata_set_check_space, mapdata_clear_old, mapdata_set_size, mapdata_clear_label, mapdata_add_label } from './mapdata.js';
 import { addSmooth, getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
 import { wantConfig, useConfig, resetPlayerData, getCpl } from './init.js';
-import { newPlayer } from './player.js';
+import { newPlayer, notifyNcomAck } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { playSound, playMusic } from './sound.js';
@@ -66,6 +66,7 @@ export interface CommandCallbacks {
   onAddMeFail?: () => void;
   onVersion?: (csVersion: number, scVersion: number, versionString: string) => void;
   onDisconnect?: () => void;
+  onReplyInfo?: (infoType: string, text: string) => void;
 }
 
 export const callbacks: CommandCallbacks = {};
@@ -89,6 +90,7 @@ export const playerStats: Stats = {
   weightLimit: 0,
   golemHp: 0, golemMaxhp: 0,
   range: '',
+  title: '',
 };
 
 /** Known spells */
@@ -221,7 +223,12 @@ function StatsCmd(data: DataView, len: number): void {
       case CS_STAT_TITLE: {
         // 1-byte length prefix + string (not null-terminated)
         const tlen = getCharFromData(data, pos); pos += 1;
+        let titleStr = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, tlen);
         pos += tlen;
+        if (titleStr.startsWith('Player: ')) {
+          titleStr = titleStr.slice('Player: '.length);
+        }
+        playerStats.title = titleStr;
         break;
       }
       default:
@@ -246,8 +253,13 @@ function StatsCmd(data: DataView, len: number): void {
 function handleQuery(data: string): void {
   const spaceIdx = data.indexOf(' ');
   const flags = spaceIdx > 0 ? parseInt(data.substring(0, spaceIdx)) : 0;
-  const prompt = spaceIdx > 0 ? data.substring(spaceIdx + 1) : data;
-  callbacks.onQuery?.(flags, prompt);
+  let prompt = spaceIdx > 0 ? data.substring(spaceIdx + 1) : data;
+  // Server sometimes appends "\n:" as a colon-prompt on a new line; strip it
+  // when there is more text before it.
+  if (prompt.endsWith('\n:') && prompt.length > 2) {
+    prompt = prompt.slice(0, -2);
+  }
+  callbacks.onQuery?.(flags, prompt.trim());
 }
 
 function PlayerCmd(data: DataView, len: number): void {
@@ -539,6 +551,20 @@ function TickCmd(data: DataView, _len: number): void {
   callbacks.onTick?.(tickNo);
 }
 
+/**
+ * Handle a `comc` packet from the server.
+ * The server sends this to acknowledge a previously received ncom packet.
+ * Payload: 2-byte packet sequence number + 4-byte command time (ignored here).
+ */
+function ComcCmd(data: DataView, len: number): void {
+  if (len < 2) {
+    LOG(LogLevel.Error, 'ComcCmd', `Invalid comc length ${len} - ignoring`);
+    return;
+  }
+  const seq = getShortFromData(data, 0);
+  notifyNcomAck(seq);
+}
+
 function PickupCmd(data: DataView, _len: number): void {
   const mode = getIntFromData(data, 0);
   LOG(LogLevel.Debug, 'PickupCmd', `Pickup mode: ${mode}`);
@@ -653,6 +679,9 @@ function ReplyInfoCmd(data: DataView, len: number): void {
       if (pos + 8 > rest.length) break;
       expTable.push(dv.getBigInt64(pos, false));
     }
+  } else if (infoType === 'motd' || infoType === 'news' || infoType === 'rules') {
+    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
+    callbacks.onReplyInfo?.(infoType, text);
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }
@@ -751,6 +780,7 @@ const commandTable = new Map<string, CommandEntry>([
   ['map_scroll', { type: 'text', handler: mapScrollCmd }],
   ['magicmap', { type: 'binary', handler: MagicMapCmd }],
   ['tick', { type: 'binary', handler: TickCmd }],
+  ['comc', { type: 'binary', handler: ComcCmd }],
   ['pickup', { type: 'binary', handler: PickupCmd }],
   ['failure', { type: 'text', handler: FailureCmd }],
   ['accountplayers', { type: 'text', handler: AccountPlayersCmd }],

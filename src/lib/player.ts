@@ -34,6 +34,31 @@ let drun = -1;
 /** Last command string sent (for dedup). */
 let lastCommand = "";
 
+// ── Key-repeat throttle (comc-ack based) ────────────────────────────────────
+
+/**
+ * The command string currently being throttled during key-repeat.
+ * Reset to "" when the key is released or a different command is sent.
+ */
+let repeatPendingCmd = "";
+/**
+ * The ncom packet sequence number that was sent for the last repeat of
+ * repeatPendingCmd.  We wait for the server to ack this via comc before
+ * allowing another repeat of the same command.  -1 means "not yet sent".
+ */
+let repeatPendingSeq = -1;
+/**
+ * The most recent ncom packet sequence number acknowledged by the server
+ * via a comc response.  -1 means no ack has been received yet.
+ */
+let lastNcomAcked = -1;
+/**
+ * The sequence number embedded in the most recently sent ncom packet.
+ * Set inside sendCommand so recordRepeatSend() can read it reliably,
+ * before csocket.send() increments commandSent a second time.
+ */
+let lastNcomSeqSent = -1;
+
 // ── Module wiring ────────────────────────────────────────────────────────────
 
 export function setSocket(sock: CrossfireSocket): void {
@@ -189,6 +214,7 @@ export function sendCommand(command: string, repeat: number, mustSend: number): 
     lastCommand = command;
 
     csocket.commandSent = (csocket.commandSent + 1) % COMMAND_MAX;
+    lastNcomSeqSent = csocket.commandSent;
 
     const sl = new SockList();
     sl.addString("ncom ");
@@ -215,4 +241,57 @@ export function sendReply(text: string): void {
 /** Return the last command string sent via sendCommand (for keybinding use). */
 export function getLastCommand(): string {
     return lastCommand;
+}
+
+// ── Key-repeat throttle (comc-ack based) ────────────────────────────────────
+
+/**
+ * Record that the server has acknowledged a ncom packet.
+ * Called by the `comc` command handler with the packet number from the server.
+ */
+export function notifyNcomAck(seq: number): void {
+    lastNcomAcked = seq;
+}
+
+/**
+ * Check whether a key-repeat event for `cmd` should be forwarded.
+ *
+ * Returns true (and clears the pending sequence) when:
+ *  - The command differs from the one currently being throttled (new key), or
+ *  - The server has already acknowledged the previous ncom for this command.
+ *
+ * Returns false (drop) when the same command is still in-flight (no comc yet).
+ */
+export function checkRepeatThrottle(cmd: string): boolean {
+    if (cmd !== repeatPendingCmd) {
+        // Different command: allow and start tracking the new one.
+        repeatPendingCmd = cmd;
+        repeatPendingSeq = -1;
+        return true;
+    }
+    // Same command: allow only if no ack is expected (first repeat) or the
+    // previous ncom has already been acknowledged.
+    if (repeatPendingSeq === -1 || lastNcomAcked === repeatPendingSeq) {
+        return true;
+    }
+    return false; // still waiting for comc ack
+}
+
+/**
+ * Record the ncom packet sequence number that was just sent for the current
+ * repeat command.  Must be called immediately after a successful send so we
+ * know which comc ack to wait for.
+ */
+export function recordRepeatSend(): void {
+    repeatPendingSeq = lastNcomSeqSent;
+}
+
+/**
+ * Reset the key-repeat throttle.  Call this when the player releases a key
+ * so that immediately re-pressing the same key sends the command right away
+ * without waiting for the comc ack.
+ */
+export function resetRepeatThrottle(): void {
+    repeatPendingCmd = "";
+    repeatPendingSeq = -1;
 }

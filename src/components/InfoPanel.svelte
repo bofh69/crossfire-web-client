@@ -3,19 +3,9 @@
   import { sendCommand } from '../lib/player';
   import { InputState } from '../lib/protocol';
   import { getCpl } from '../lib/init';
-  import {
-    NDI_BLACK, NDI_WHITE, NDI_NAVY, NDI_RED, NDI_ORANGE, NDI_BLUE,
-    NDI_DK_ORANGE, NDI_GREEN, NDI_LT_GREEN, NDI_GREY, NDI_BROWN,
-    NDI_GOLD, NDI_TAN,
-  } from '../lib/protocol';
+  import { type MessageSpan, colorForNdi, parseMarkup } from '../lib/markup';
 
-  interface MessageSpan {
-    text: string;
-    color: string;
-    bold: boolean;
-    italic: boolean;
-    underline: boolean;
-  }
+  let { inputDisabled = false }: { inputDisabled?: boolean } = $props();
 
   interface Message {
     spans: MessageSpan[];
@@ -25,83 +15,6 @@
   let commandInput = $state('');
   let messagesDiv: HTMLDivElement | undefined = $state();
   let inputEl: HTMLInputElement | undefined = $state();
-
-  const NDI_COLORS: Record<number, string> = {
-    [NDI_BLACK]: '#cccccc',   // Black on dark bg → light gray
-    [NDI_WHITE]: '#ffffff',
-    [NDI_NAVY]: '#6060cc',
-    [NDI_RED]: '#ff4444',
-    [NDI_ORANGE]: '#ff8800',
-    [NDI_BLUE]: '#4488ff',
-    [NDI_DK_ORANGE]: '#cc6600',
-    [NDI_GREEN]: '#44cc44',
-    [NDI_LT_GREEN]: '#88ff88',
-    [NDI_GREY]: '#999999',
-    [NDI_BROWN]: '#aa7744',
-    [NDI_GOLD]: '#ffcc00',
-    [NDI_TAN]: '#ccaa88',
-  };
-
-  function colorForNdi(ndi: number): string {
-    return NDI_COLORS[ndi] ?? '#cccccc';
-  }
-
-  /**
-   * Parse a server message that may contain markup tags:
-   * [b]/[/b], [i]/[/i], [ul]/[/ul], [color=xxx]/[/color]
-   * Returns an array of styled spans, matching the C client's add_marked_text_to_pane().
-   */
-  function parseMarkup(text: string, baseColor: string): MessageSpan[] {
-    const spans: MessageSpan[] = [];
-    let bold = false;
-    let italic = false;
-    let underline = false;
-    let color = baseColor;
-    let current = text;
-
-    while (true) {
-      const openBracket = current.indexOf('[');
-      if (openBracket < 0) break;
-
-      // Emit text before the bracket
-      if (openBracket > 0) {
-        spans.push({ text: current.substring(0, openBracket), color, bold, italic, underline });
-      }
-      current = current.substring(openBracket + 1);
-
-      const closeBracket = current.indexOf(']');
-      if (closeBracket < 0) break; // malformed — stop
-
-      const tag = current.substring(0, closeBracket);
-      current = current.substring(closeBracket + 1);
-
-      if (tag === 'b') {
-        bold = true;
-      } else if (tag === '/b') {
-        bold = false;
-      } else if (tag === 'i') {
-        italic = true;
-      } else if (tag === '/i') {
-        italic = false;
-      } else if (tag === 'ul') {
-        underline = true;
-      } else if (tag === '/ul') {
-        underline = false;
-      } else if (tag === '/color') {
-        color = baseColor;
-      } else if (tag.startsWith('color=')) {
-        color = '#' + tag.substring(6);
-      }
-      // Ignore other tags (fixed, arcane, hand, strange, print, etc.)
-    }
-
-    // Emit any remaining text
-    if (current.length > 0) {
-      spans.push({ text: current, color, bold, italic, underline });
-    }
-
-    return spans;
-  }
 
   export function addMessage(color: number, text: string) {
     const baseColor = colorForNdi(color);
@@ -202,7 +115,7 @@
         >{span.text}</span>{/each}</div>
     {/each}
   </div>
-  <div class="input-row">
+  <div class="input-row" class:disabled={inputDisabled}>
     <input
       type="text"
       bind:value={commandInput}
@@ -210,8 +123,9 @@
       onkeydown={handleKeydown}
       onblur={handleBlur}
       placeholder="Type command..."
+      disabled={inputDisabled}
     />
-    <button onclick={submitCommand}>Send</button>
+    <button onclick={submitCommand} disabled={inputDisabled}>Send</button>
   </div>
 </div>
 
@@ -241,6 +155,11 @@
   .input-row {
     display: flex;
     border-top: 1px solid #333;
+  }
+
+  .input-row.disabled {
+    opacity: 0.4;
+    pointer-events: none;
   }
 
   input {

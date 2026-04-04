@@ -12,6 +12,7 @@
 
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
+import { loadConfig, saveConfig } from './storage.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -52,6 +53,12 @@ let currentMusic = '';
 
 /** Master sound-enabled flag. */
 let soundEnabled = true;
+
+/** Whether background music is muted (independent of soundEnabled). */
+let musicMuted: boolean = loadConfig<boolean>('musicMuted', false);
+
+/** Whether sound effects are muted (independent of soundEnabled). */
+let sfxMuted: boolean = loadConfig<boolean>('sfxMuted', false);
 
 /** Music volume 0–100. */
 let musicVolume = 100;
@@ -184,7 +191,7 @@ export function playSound(
   _x: number, _y: number, _dir: number, vol: number, _type: number,
   sound: string, _source: string,
 ): void {
-  if (!soundEnabled || !soundConfig) return;
+  if (!soundEnabled || sfxMuted || !soundConfig) return;
 
   const si = soundConfig.get(sound);
   if (!si) {
@@ -222,7 +229,7 @@ export function playSound(
  * @param name  Music track name (without path or extension), or `"NONE"`.
  */
 export function playMusic(name: string): void {
-  if (!soundEnabled) return;
+  if (!soundEnabled || musicMuted) return;
   if (name === currentMusic) return;
   currentMusic = name;
 
@@ -282,4 +289,51 @@ export function stopAll(): void {
     musicElement = null;
   }
   currentMusic = '';
+}
+
+// ---------------------------------------------------------------------------
+// Mute controls
+// ---------------------------------------------------------------------------
+
+/** Return whether music is currently muted. */
+export function getMusicMuted(): boolean {
+  return musicMuted;
+}
+
+/** Return whether sound effects are currently muted. */
+export function getSfxMuted(): boolean {
+  return sfxMuted;
+}
+
+/**
+ * Mute or unmute background music.
+ * Persists the setting and immediately pauses or restarts playback.
+ */
+export function setMusicMuted(muted: boolean): void {
+  musicMuted = muted;
+  saveConfig('musicMuted', muted);
+  if (muted) {
+    // Pause current music but remember the track name for when unmuted.
+    if (musicElement) {
+      musicElement.pause();
+      musicElement.src = '';
+      musicElement = null;
+    }
+  } else {
+    // Resume the track that was playing before muting.
+    if (currentMusic && currentMusic !== 'NONE') {
+      const nameToResume = currentMusic;
+      currentMusic = ''; // force playMusic to re-start it
+      playMusic(nameToResume);
+    }
+  }
+}
+
+/**
+ * Mute or unmute sound effects.
+ * Persists the setting; takes effect on the next sound played.
+ */
+export function setSfxMuted(muted: boolean): void {
+  sfxMuted = muted;
+  saveConfig('sfxMuted', muted);
 }
