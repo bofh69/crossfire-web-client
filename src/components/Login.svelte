@@ -11,7 +11,23 @@
 
   let { onLoggedIn }: Props = $props();
 
-  let serverAddress = $state('ws://' + window.location.hostname + ':' + EPORT);
+  /** True when the page was loaded on a standard HTTP/HTTPS port (80 or 443).
+   *  In that case the server address is derived automatically and the input
+   *  field is hidden. */
+  const standardPort = (() => {
+    const port = window.location.port;
+    return port === '' || port === '80' || port === '443';
+  })();
+
+  function defaultServerAddress(): string {
+    if (standardPort) {
+      const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      return `${scheme}://${window.location.host}/ws`;
+    }
+    return 'ws://' + window.location.hostname + ':' + EPORT;
+  }
+
+  let serverAddress = $state(defaultServerAddress());
   let connected = $state(false);
   let connecting = $state(false);
   let errorMessage = $state('');
@@ -191,15 +207,17 @@
 
   {#if !connected}
     <div class="login-form">
-      <label>
-        Server Address
-        <input
-          type="text"
-          bind:value={serverAddress}
-          placeholder="ws://hostname:port"
-          disabled={connecting}
-        />
-      </label>
+      {#if !standardPort}
+        <label>
+          Server Address
+          <input
+            type="text"
+            bind:value={serverAddress}
+            placeholder="ws://hostname:port"
+            disabled={connecting}
+          />
+        </label>
+      {/if}
       <button onclick={handleConnect} disabled={connecting}>
         {connecting ? 'Connecting...' : 'Connect'}
       </button>
