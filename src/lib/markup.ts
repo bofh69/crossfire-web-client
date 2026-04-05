@@ -23,6 +23,13 @@ export interface MessageSpan {
   underline: boolean;
 }
 
+/** A single parsed line from a server info block (motd/news/rules). */
+export interface InfoLine {
+  /** True when the original line started with '%', marking it as a section title. */
+  isTitle: boolean;
+  spans: MessageSpan[];
+}
+
 export const NDI_COLORS: Record<number, string> = {
   [NDI_BLACK]: '#cccccc',   // Black on dark bg → light gray
   [NDI_WHITE]: '#ffffff',
@@ -101,13 +108,20 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
 
 /**
  * Split a multi-line text block and parse each line with parseMarkup.
+ * Lines that begin with '%' are treated as section titles: the '%' is
+ * stripped and the line is returned with isTitle set to true.
  * Trailing empty lines are dropped.
  */
-export function parseMarkupLines(text: string, baseColor: string): MessageSpan[][] {
+export function parseMarkupLines(text: string, baseColor: string): InfoLine[] {
   const rawLines = text.split('\n');
   // Drop trailing blank lines
   while (rawLines.length > 0 && rawLines[rawLines.length - 1].trim() === '') {
     rawLines.pop();
   }
-  return rawLines.map(line => parseMarkup(line, baseColor));
+  return rawLines.map(line => {
+    if (line.startsWith('%')) {
+      return { isTitle: true, spans: parseMarkup(line.substring(1), baseColor) };
+    }
+    return { isTitle: false, spans: parseMarkup(line, baseColor) };
+  });
 }
