@@ -115,7 +115,6 @@ function commandHelp(args: string): void {
         }
     } else {
         sendCommand(`help ${args.trim()}`, 0, 1);
-        drawInfo(`Unknown command '${args.trim()}'. Type 'help' for a list.`);
     }
 }
 
