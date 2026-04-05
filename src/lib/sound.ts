@@ -30,6 +30,15 @@ interface SoundInfo {
 /** Base URL prefix for sound assets (no trailing slash). */
 const SOUND_BASE = 'sounds';
 
+/** Duration in ms to fade out the old track when switching to a new one. */
+const MUSIC_FADE_OUT_MS = 2000;
+
+/** Duration in ms to fade out the current track when stopping music. */
+const MUSIC_FADE_STOP_MS = 1000;
+
+/** Duration in ms to fade in a new track when music was already playing. */
+const MUSIC_FADE_IN_MS = 2000;
+
 /** Parsed sounds.conf mapping: logical-name → SoundInfo */
 let soundConfig: Map<string, SoundInfo> | null = null;
 
@@ -291,10 +300,11 @@ function fadeInElement(el: HTMLAudioElement, targetVol: number, durationMs: numb
 }
 
 /**
- * Create a new Audio element for `name`, start playing it, and fade it in
- * over 2 seconds.  OGG is tried first, with MP3 as fallback.
+ * Create a new Audio element for `name` and start playing it.
+ * If `fadeIn` is true the track fades in over `MUSIC_FADE_IN_MS`; otherwise
+ * it starts at full volume immediately.  OGG is tried first, with MP3 as fallback.
  */
-function startTrack(name: string): void {
+function startTrack(name: string, fadeIn: boolean): void {
   const el = new Audio();
   el.loop = true;
   const targetVol = Math.min(musicVolume, 100) / 100 * 0.75;  // cap at 75 % like old client
@@ -305,12 +315,20 @@ function startTrack(name: string): void {
 
   el.src = oggUrl;
   el.play().then(() => {
-    fadeInElement(el, targetVol, 2000);
+    if (fadeIn) {
+      fadeInElement(el, targetVol, MUSIC_FADE_IN_MS);
+    } else {
+      el.volume = targetVol;
+    }
   }).catch(() => {
     // OGG may not be supported; try MP3.
     el.src = mp3Url;
     el.play().then(() => {
-      fadeInElement(el, targetVol, 2000);
+      if (fadeIn) {
+        fadeInElement(el, targetVol, MUSIC_FADE_IN_MS);
+      } else {
+        el.volume = targetVol;
+      }
     }).catch(err => {
       LOG(LogLevel.Warning, 'playMusic', `Could not play music "${name}": ${err}`);
     });
@@ -323,9 +341,10 @@ function startTrack(name: string): void {
  * Music files live under `sounds/music/{name}.ogg` (falling back to `.mp3`).
  * Passing `"NONE"` stops the current music.
  *
- * When switching tracks the old song fades out over 2 seconds and the new one
- * fades in over 2 seconds.  When stopping (`"NONE"`), the old song fades out
- * over 1 second.
+ * When switching tracks the old song fades out over `MUSIC_FADE_OUT_MS` and
+ * the new one fades in over `MUSIC_FADE_IN_MS`.  When stopping (`"NONE"`),
+ * the old song fades out over `MUSIC_FADE_STOP_MS`.  If no music is currently
+ * playing the new track starts immediately at full volume.
  *
  * @param name  Music track name (without path or extension), or `"NONE"`.
  */
@@ -338,7 +357,7 @@ export function playMusic(name: string): void {
   stopFadeIn();
 
   const isStop = name === 'NONE' || name === '';
-  const fadeOutDuration = isStop ? 1000 : 2000;
+  const fadeOutDuration = isStop ? MUSIC_FADE_STOP_MS : MUSIC_FADE_OUT_MS;
 
   if (musicElement) {
     // Move the playing element to the "fading out" slot, then fade it out.
@@ -348,13 +367,13 @@ export function playMusic(name: string): void {
     const el = fadingOutElement;
     const trackName = name;  // capture for the async callback
     fadeOutElement(el, fadeOutDuration, () => {
-      if (!isStop) startTrack(trackName);
+      if (!isStop) startTrack(trackName, true);
     });
   } else {
     // Nothing currently playing (may have been mid-fade-out); cancel that and
-    // start the new track immediately.
+    // start the new track immediately without fading in.
     stopFadeOut();
-    if (!isStop) startTrack(name);
+    if (!isStop) startTrack(name, false);
   }
 }
 
