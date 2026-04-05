@@ -157,7 +157,7 @@
     };
 
     callbacks.onVersion = (_cs: number, _sc: number, verStr: string) => {
-      statusMessage = `Server: ${verStr}. Sending addme...`;
+      statusMessage = `Server: ${verStr}. Handshaking...`;
       sendAddMe();
     };
 
@@ -165,7 +165,7 @@
       addMeSuccessReceived = true;
       if (queryPrompt) {
         // A query is still on screen – wait until the user answers it.
-        statusMessage = 'Authenticated. Answer the prompt to enter the game.';
+        statusMessage = 'Connected.';
       } else {
         checkLoginComplete();
       }
