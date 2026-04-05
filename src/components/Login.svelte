@@ -104,6 +104,7 @@
       e.preventDefault();
     } else if (e.key === 'Enter') {
       handleQuerySubmit();
+      e.stopPropagation();
     }
   }
 
