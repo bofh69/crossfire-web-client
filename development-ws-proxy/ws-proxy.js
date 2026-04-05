@@ -5,7 +5,7 @@ const net = require('net');
 
 const DEFAULT_HOST = 'birdsnest.sytes.net';
 const DEFAULT_PORT = 13327;
-const DEFAULT_LISTEN_PORT = 13327;
+const DEFAULT_LISTEN_PORT = 13328;
 
 function printUsage() {
   console.log(`Usage: node ws-proxy.js [options]
