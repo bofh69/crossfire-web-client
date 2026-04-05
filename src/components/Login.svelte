@@ -3,7 +3,7 @@
   import { callbacks } from '../lib/commands';
   import { sendReply } from '../lib/player';
   import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, EPORT } from '../lib/protocol';
-  import { type MessageSpan, parseMarkupLines } from '../lib/markup';
+  import { type InfoLine, parseMarkupLines } from '../lib/markup';
 
   interface Props {
     onLoggedIn: () => void;
@@ -11,7 +11,23 @@
 
   let { onLoggedIn }: Props = $props();
 
-  let serverAddress = $state('ws://' + window.location.hostname + ':' + EPORT);
+  /** True when the page was loaded on a standard HTTP/HTTPS port (80 or 443).
+   *  In that case the server address is derived automatically and the input
+   *  field is hidden. */
+  const standardPort = (() => {
+    const port = window.location.port;
+    return port === '' || port === '80' || port === '443';
+  })();
+
+  function defaultServerAddress(): string {
+    if (standardPort) {
+      const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      return `${scheme}://${window.location.host}/ws`;
+    }
+    return 'ws://' + window.location.hostname + ':' + EPORT;
+  }
+
+  let serverAddress = $state(defaultServerAddress());
   let connected = $state(false);
   let connecting = $state(false);
   let errorMessage = $state('');
@@ -24,7 +40,7 @@
   let statusMessage = $state('');
 
   /** Sections received from replyinfo (motd, news, rules). */
-  interface InfoSection { type: string; lines: MessageSpan[][]; }
+  interface InfoSection { type: string; lines: InfoLine[]; }
   let serverInfoSections = $state<InfoSection[]>([]);
 
   /** Set to true once the server sends addme_success. We only switch to the
@@ -191,15 +207,17 @@
 
   {#if !connected}
     <div class="login-form">
-      <label>
-        Server Address
-        <input
-          type="text"
-          bind:value={serverAddress}
-          placeholder="ws://hostname:port"
-          disabled={connecting}
-        />
-      </label>
+      {#if !standardPort}
+        <label>
+          Server Address
+          <input
+            type="text"
+            bind:value={serverAddress}
+            placeholder="ws://hostname:port"
+            disabled={connecting}
+          />
+        </label>
+      {/if}
       <button onclick={handleConnect} disabled={connecting}>
         {connecting ? 'Connecting...' : 'Connect'}
       </button>
@@ -218,12 +236,15 @@
             <div class="info-section">
               <h3>{infoTypeLabel(section.type)}</h3>
               <div class="info-text">
-                {#each section.lines as line}<div class="info-line">{#each line as span}<span
-                      style:color={span.color}
-                      style:font-weight={span.bold ? 'bold' : 'normal'}
-                      style:font-style={span.italic ? 'italic' : 'normal'}
-                      style:text-decoration={span.underline ? 'underline' : 'none'}
-                    >{span.text}</span>{/each}</div>{/each}
+                {#snippet spanList(spans: import('../lib/markup').MessageSpan[])}
+                  {#each spans as span}<span
+                    style:color={span.color}
+                    style:font-weight={span.bold ? 'bold' : 'normal'}
+                    style:font-style={span.italic ? 'italic' : 'normal'}
+                    style:text-decoration={span.underline ? 'underline' : 'none'}
+                  >{span.text}</span>{/each}
+                {/snippet}
+                {#each section.lines as line}{#if line.isTitle}<p class="info-title">{@render spanList(line.spans)}</p>{:else}<div class="info-line">{@render spanList(line.spans)}</div>{/if}{/each}
               </div>
             </div>
           {/each}
@@ -318,6 +339,15 @@
 
   .info-line {
     padding: 1px 0;
+    word-wrap: break-word;
+  }
+
+  .info-title {
+    color: #e0d0b0;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 0.25rem 0;
+    padding: 0;
     word-wrap: break-word;
   }
 
