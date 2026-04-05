@@ -22,12 +22,13 @@
   import Inventory from './components/Inventory.svelte';
   import SpellList from './components/SpellList.svelte';
   import SkillList from './components/SkillList.svelte';
+  import ProtectionList from './components/ProtectionList.svelte';
   import MenuBar from './components/MenuBar.svelte';
   import MagicMap from './components/MagicMap.svelte';
 
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
-  let activeTab = $state<'inventory' | 'spells' | 'skills'>('inventory');
+  let activeTab = $state<'inventory' | 'spells' | 'skills' | 'protections'>('inventory');
 
   /** Self-tick timer (fallback when the server doesn't send ticks). */
   let selfTickTimer: ReturnType<typeof setInterval> | null = null;
@@ -93,6 +94,7 @@
   let inventory: Inventory | undefined = $state();
   let spellList: SpellList | undefined = $state();
   let skillList: SkillList | undefined = $state();
+  let protectionList: ProtectionList | undefined = $state();
   let menuBar: MenuBar | undefined = $state();
   let magicMap: MagicMap | undefined = $state();
   let showMagicMap = $state(false);
@@ -302,6 +304,7 @@
     callbacks.onStatsUpdate = (stats: Partial<Stats>) => {
       statsPanel?.updateStats(stats);
       skillList?.updateSkills(playerStats);
+      protectionList?.updateProtections(playerStats);
       if (stats.range !== undefined) {
         menuBar?.setRange(stats.range);
       }
@@ -458,6 +461,7 @@
         <button class:active={activeTab === 'inventory'} onclick={() => activeTab = 'inventory'}>Items</button>
         <button class:active={activeTab === 'spells'} onclick={() => activeTab = 'spells'}>Spells</button>
         <button class:active={activeTab === 'skills'} onclick={() => activeTab = 'skills'}>Skills</button>
+        <button class:active={activeTab === 'protections'} onclick={() => activeTab = 'protections'}>Protect</button>
       </div>
       <div class="tab-content">
         <div hidden={activeTab !== 'inventory'} class="tab-panel">
@@ -468,6 +472,9 @@
         </div>
         <div hidden={activeTab !== 'skills'} class="tab-panel">
           <SkillList bind:this={skillList} />
+        </div>
+        <div hidden={activeTab !== 'protections'} class="tab-panel">
+          <ProtectionList bind:this={protectionList} />
         </div>
       </div>
     </div>
