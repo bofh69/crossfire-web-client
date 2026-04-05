@@ -202,6 +202,15 @@
 
 <svelte:window onkeydown={handleYesNoKeydown} />
 
+{#if !connected}
+  <a
+    class="github-ribbon"
+    href="https://github.com/bofh69/crossfire-web-client"
+    target="_blank"
+    rel="noopener noreferrer"
+  >Fork me on GitHub</a>
+{/if}
+
 <div class="login-container">
   <h1>⚔ Crossfire Web Client</h1>
 
@@ -429,5 +438,28 @@
 
   .yesno-buttons button {
     flex: 1;
+  }
+
+  .github-ribbon {
+    position: fixed;
+    top: 2.5rem;
+    right: -3rem;
+    z-index: 100;
+    display: block;
+    width: 12rem;
+    padding: 0.35rem 0;
+    background: #7a6a4a;
+    color: #e0d0b0;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    transition: background 0.2s;
+  }
+
+  .github-ribbon:hover {
+    background: #9a8a6a;
   }
 </style>
