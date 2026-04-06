@@ -360,7 +360,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="menu-bar" onclick={(e: MouseEvent) => e.stopPropagation()} onmouseenter={handleMenuBarMouseEnter} onmouseleave={handleMenuBarMouseLeave}>
   <div class="menu-item">
-    <button class="menu-button" onclick={() => toggleMenu('file')}>File</button>
+    <button class="menu-button" onclick={() => toggleMenu('file')} oncontextmenu={(e) => { e.preventDefault(); toggleMenu('file'); }}>File</button>
     {#if activeMenu === 'file'}
       <div class="dropdown" class:fading={menuFading}>
         <button
@@ -374,7 +374,7 @@
   <div class="menu-item">
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <button class="menu-button" onclick={() => toggleMenu('pickup')}>Pickup</button>
+    <button class="menu-button" onclick={() => toggleMenu('pickup')} oncontextmenu={(e) => { e.preventDefault(); toggleMenu('pickup'); }}>Pickup</button>
     {#if activeMenu === 'pickup'}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -385,7 +385,7 @@
   </div>
 
   <div class="menu-item">
-    <button class="menu-button" onclick={() => toggleMenu('keyboard')}>Keyboard</button>
+    <button class="menu-button" onclick={() => toggleMenu('keyboard')} oncontextmenu={(e) => { e.preventDefault(); toggleMenu('keyboard'); }}>Keyboard</button>
     {#if activeMenu === 'keyboard'}
       <div class="dropdown" class:fading={menuFading}>
         <button
@@ -405,7 +405,7 @@
   </div>
 
   <div class="menu-item">
-    <button class="menu-button" onclick={() => toggleMenu('gamepad')}>Gamepad</button>
+    <button class="menu-button" onclick={() => toggleMenu('gamepad')} oncontextmenu={(e) => { e.preventDefault(); toggleMenu('gamepad'); }}>Gamepad</button>
     {#if activeMenu === 'gamepad'}
       <div class="dropdown" class:fading={menuFading}>
         {#if isGamepadConnected()}
@@ -437,7 +437,7 @@
   </div>
 
   <div class="menu-item">
-    <button class="menu-button" onclick={() => toggleMenu('sound')}>Sound</button>
+    <button class="menu-button" onclick={() => toggleMenu('sound')} oncontextmenu={(e) => { e.preventDefault(); toggleMenu('sound'); }}>Sound</button>
     {#if activeMenu === 'sound'}
       <div class="dropdown" class:fading={menuFading}>
         <button
@@ -453,7 +453,7 @@
   </div>
 
   <div class="menu-item">
-    <button class="menu-button" onclick={() => toggleMenu('help')}>Help</button>
+    <button class="menu-button" onclick={() => toggleMenu('help')} oncontextmenu={(e) => { e.preventDefault(); toggleMenu('help'); }}>Help</button>
     {#if activeMenu === 'help'}
       <div class="dropdown" class:fading={menuFading}>
         <button
